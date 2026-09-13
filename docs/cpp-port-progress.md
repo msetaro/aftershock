@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: botlib; next `code/botlib/l_libvar.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: botlib; next `code/botlib/l_log.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -263,7 +263,7 @@ Phase 1: botlib; next `code/botlib/l_libvar.c`. Resume there; do not redo files 
 | `code/botlib/botlib.h` | todo | Pending module pass. |
 | `code/botlib/l_crc.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_crc.o); G4 PASS. |
 | `code/botlib/l_crc.h` | todo | Pending module pass. |
-| `code/botlib/l_libvar.c` | todo | Pending module pass. |
+| `code/botlib/l_libvar.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_libvar.o); G4 PASS. |
 | `code/botlib/l_libvar.h` | todo | Pending module pass. |
 | `code/botlib/l_log.c` | todo | Pending module pass. |
 | `code/botlib/l_log.h` | todo | Pending module pass. |
