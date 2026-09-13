@@ -1432,7 +1432,7 @@ void *Z_TagMalloc( size_t size, memtag_t tag ) {
 	size_t		extra;
 
 	if ( size > INT_MAX ) {
-		Com_Error( ERR_FATAL, "Z_TagMalloc: %"PRIz"u > INT_MAX", size );
+		Com_Error( ERR_FATAL, "Z_TagMalloc: %" PRIz"u > INT_MAX", size );
 	}
 
 	if ( tag == TAG_FREE ) {
@@ -1669,9 +1669,9 @@ static void Z_LogZoneHeap( memzone_t *zone, const char *name )
 #else
 	allocSize = numBlocks * sizeof(memblock_t); // + 32 bit alignment
 #endif
-	len = Com_sprintf( buf, sizeof( buf ), "%"PRIz"u %s memory in %"PRIz"u blocks\r\n", size, name, numBlocks );
+	len = Com_sprintf( buf, sizeof( buf ), "%" PRIz"u %s memory in %" PRIz"u blocks\r\n", size, name, numBlocks );
 	FS_Write( buf, len, logfile );
-	len = Com_sprintf( buf, sizeof( buf ), "%"PRIz"u %s memory overhead\r\n", size - allocSize, name );
+	len = Com_sprintf( buf, sizeof( buf ), "%" PRIz"u %s memory overhead\r\n", size - allocSize, name );
 	FS_Write( buf, len, logfile );
 	FS_Flush( logfile );
 }
@@ -1738,7 +1738,7 @@ char *CopyString( const char *in )
 		return ((char *)&numberstring[in[0]-'0']) + sizeof(memblock_t);
 	}
 #endif
-	out = S_Malloc( strlen( in ) + 1 );
+	out = (char *)S_Malloc( strlen( in ) + 1 );
 	strcpy( out, in );
 	return out;
 }
@@ -1893,7 +1893,7 @@ static void Zone_Stats( const memzone_t *z, qboolean printDetails, zone_stats_t 
 #endif
 				st.zoneSegments++;
 				if ( printDetails ) {
-					Com_Printf( "---------- %s zone segment #%"PRIz"u ----------\n", zone->name, st.zoneSegments );
+					Com_Printf( "---------- %s zone segment #%" PRIz"u ----------\n", zone->name, st.zoneSegments );
 				}
 				block = next->next;
 				continue;
@@ -1953,25 +1953,25 @@ static void Com_Meminfo_f( void ) {
 	Com_Printf( "%8i unused highwater\n", unused );
 	Com_Printf( "\n" );
 
-	Zone_Stats( mainzone, !Q_stricmp( Cmd_Argv(1), "main" ) || !Q_stricmp( Cmd_Argv(1), "all" ), &st );
-	Com_Printf( "%8"PRIz"u bytes total main zone\n\n", mainzone->size );
-	Com_Printf( "%8"PRIz"u bytes in %"PRIz"u main zone blocks%s\n", st.zoneBytes, st.zoneBlocks,
-		st.zoneSegments > 1 ? va( " and %"PRIz"u segments", st.zoneSegments ) : "" );
-	Com_Printf( "        %8"PRIz"u bytes in botlib\n", st.botlibBytes );
-	Com_Printf( "        %8"PRIz"u bytes in renderer\n", st.rendererBytes );
-	Com_Printf( "        %8"PRIz"u bytes in other\n", st.zoneBytes - ( st.botlibBytes + st.rendererBytes ) );
-	Com_Printf( "        %8"PRIz"u bytes in %"PRIz"u free blocks\n", st.freeBytes, st.freeBlocks );
+	Zone_Stats( mainzone, (qboolean)( !Q_stricmp( Cmd_Argv(1), "main" ) || !Q_stricmp( Cmd_Argv(1), "all" ) ), &st );
+	Com_Printf( "%8" PRIz"u bytes total main zone\n\n", mainzone->size );
+	Com_Printf( "%8" PRIz"u bytes in %" PRIz"u main zone blocks%s\n", st.zoneBytes, st.zoneBlocks,
+		st.zoneSegments > 1 ? va( " and %" PRIz"u segments", st.zoneSegments ) : "" );
+	Com_Printf( "        %8" PRIz"u bytes in botlib\n", st.botlibBytes );
+	Com_Printf( "        %8" PRIz"u bytes in renderer\n", st.rendererBytes );
+	Com_Printf( "        %8" PRIz"u bytes in other\n", st.zoneBytes - ( st.botlibBytes + st.rendererBytes ) );
+	Com_Printf( "        %8" PRIz"u bytes in %" PRIz"u free blocks\n", st.freeBytes, st.freeBlocks );
 	if ( st.freeBlocks > 1 ) {
-		Com_Printf( "        (largest: %"PRIz"u bytes, smallest: %"PRIz"u bytes)\n\n", st.freeLargest, st.freeSmallest );
+		Com_Printf( "        (largest: %" PRIz"u bytes, smallest: %" PRIz"u bytes)\n\n", st.freeLargest, st.freeSmallest );
 	}
 
-	Zone_Stats( smallzone, !Q_stricmp( Cmd_Argv(1), "small" ) || !Q_stricmp( Cmd_Argv(1), "all" ), &st );
-	Com_Printf( "%8"PRIz"u bytes total small zone\n\n", smallzone->size );
-	Com_Printf( "%8"PRIz"u bytes in %"PRIz"u small zone blocks%s\n", st.zoneBytes, st.zoneBlocks,
-		st.zoneSegments > 1 ? va( " and %"PRIz"u segments", st.zoneSegments ) : "" );
-	Com_Printf( "        %8"PRIz"u bytes in %"PRIz"u free blocks\n", st.freeBytes, st.freeBlocks );
+	Zone_Stats( smallzone, (qboolean)( !Q_stricmp( Cmd_Argv(1), "small" ) || !Q_stricmp( Cmd_Argv(1), "all" ) ), &st );
+	Com_Printf( "%8" PRIz"u bytes total small zone\n\n", smallzone->size );
+	Com_Printf( "%8" PRIz"u bytes in %" PRIz"u small zone blocks%s\n", st.zoneBytes, st.zoneBlocks,
+		st.zoneSegments > 1 ? va( " and %" PRIz"u segments", st.zoneSegments ) : "" );
+	Com_Printf( "        %8" PRIz"u bytes in %" PRIz"u free blocks\n", st.freeBytes, st.freeBlocks );
 	if ( st.freeBlocks > 1 ) {
-		Com_Printf( "        (largest: %"PRIz"u bytes, smallest: %"PRIz"u bytes)\n", st.freeLargest, st.freeSmallest );
+		Com_Printf( "        (largest: %" PRIz"u bytes, smallest: %" PRIz"u bytes)\n", st.freeLargest, st.freeSmallest );
 	}
 }
 
@@ -2071,7 +2071,7 @@ static void Com_InitZoneMemory( void ) {
 #endif
 		mainZoneSize = cv->integer * 1024 * 1024;
 
-	mainzone = malloc( mainZoneSize );
+	mainzone = (memzone_t *)malloc( mainZoneSize );
 	if ( !mainzone ) {
 		Com_Error( ERR_FATAL, "Zone data failed to allocate %i megs", mainZoneSize / (1024*1024) );
 	}
@@ -2184,13 +2184,13 @@ static void Com_InitHunkMemory( void ) {
 
 	s_hunkTotal = cv->integer * 1024 * 1024;
 
-	s_hunkData = calloc( s_hunkTotal + 63, 1 );
+	s_hunkData = (byte *)calloc( s_hunkTotal + 63, 1 );
 	if ( !s_hunkData ) {
 		Com_Error( ERR_FATAL, "Hunk data failed to allocate %i megs", s_hunkTotal / (1024*1024) );
 	}
 
 	// cacheline align
-	s_hunkData = PADP( s_hunkData, 64 );
+	s_hunkData = (byte *)PADP( s_hunkData, 64 );
 	Hunk_Clear();
 
 	Cmd_AddCommand( "meminfo", Com_Meminfo_f );
@@ -2360,7 +2360,7 @@ void *Hunk_Alloc( size_t size, ha_pref preference ) {
 	}
 
 	if ( size > INT_MAX ) {
-		Com_Error( ERR_FATAL, "Hunk_Alloc: %"PRIz"u > INT_MAX", size );
+		Com_Error( ERR_FATAL, "Hunk_Alloc: %" PRIz"u > INT_MAX", size );
 	}
 
 	switch ( preference ) {
@@ -2391,9 +2391,9 @@ void *Hunk_Alloc( size_t size, ha_pref preference ) {
 		Hunk_Log();
 		Hunk_SmallLog();
 
-		Com_Error(ERR_DROP, "Hunk_Alloc failed on %"PRIz"u: %s, line: %d (%s)", size, file, line, label);
+		Com_Error(ERR_DROP, "Hunk_Alloc failed on %" PRIz"u: %s, line: %d (%s)", size, file, line, label);
 #else
-		Com_Error(ERR_DROP, "Hunk_Alloc failed on %"PRIz"u", size);
+		Com_Error(ERR_DROP, "Hunk_Alloc failed on %" PRIz"u", size);
 #endif
 	}
 
@@ -2450,13 +2450,13 @@ void *Hunk_AllocateTempMemory( size_t size ) {
 	}
 
 	if ( size > INT_MAX ) {
-		Com_Error( ERR_FATAL, "Hunk_AllocateTempMemory: %"PRIz"u > INT_MAX", size );
+		Com_Error( ERR_FATAL, "Hunk_AllocateTempMemory: %" PRIz"u > INT_MAX", size );
 	}
 
 	size = PAD(size, sizeof(intptr_t)) + sizeof( hunkHeader_t );
 
 	if ( hunk_temp->temp + hunk_permanent->permanent + size > s_hunkTotal ) {
-		Com_Error( ERR_DROP, "Hunk_AllocateTempMemory: failed on %"PRIz"u", size );
+		Com_Error( ERR_DROP, "Hunk_AllocateTempMemory: failed on %" PRIz"u", size );
 	}
 
 	if ( hunk_temp == &hunk_low ) {
@@ -2793,7 +2793,7 @@ static sysEvent_t Com_GetSystemEvent( void )
 		int   len;
 
 		len = strlen( s ) + 1;
-		b = Z_Malloc( len );
+		b = (char *)Z_Malloc( len );
 		strcpy( b, s );
 		Sys_QueEvent( evTime, SE_CONSOLE, 0, 0, len, b );
 	}
