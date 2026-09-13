@@ -495,7 +495,7 @@ static void VM_LoadSymbols( vm_t *vm ) {
 			break;
 		}
 		chars = strlen( token );
-		sym = Hunk_Alloc( sizeof( *sym ) + chars, h_current );
+		sym = (vmSymbol_t *)Hunk_Alloc( sizeof( *sym ) + chars, h_current );
 		*prev = sym;
 		prev = &sym->next;
 		sym->next = NULL;
@@ -863,7 +863,7 @@ static vmHeader_t *VM_LoadQVM( vm_t *vm, qboolean alloc ) {
 
 	if ( alloc ) {
 		// allocate zero filled space for initialized and uninitialized data
-		vm->dataBase = Hunk_Alloc( dataAlloc, h_current );
+		vm->dataBase = (byte *)Hunk_Alloc( dataAlloc, h_current );
 		vm->dataMask = dataLength - 1;
 		vm->dataAlloc = dataAlloc;
 	} else {
@@ -1806,8 +1806,8 @@ static void * QDECL VM_LoadDll( const char *name, vmMainFunc_t *entryPoint, dllS
 
 	Com_Printf( "VM_LoadDLL '%s' ok\n", filename );
 
-	dllEntry = /* ( dllEntry_t ) */ Sys_LoadFunction( libHandle, "dllEntry" );
-	*entryPoint = /* ( dllSyscall_t ) */ Sys_LoadFunction( libHandle, "vmMain" );
+	dllEntry = /* ( dllEntry_t ) */ (dllEntry_t)Sys_LoadFunction( libHandle, "dllEntry" );
+	*entryPoint = /* ( dllSyscall_t ) */ (vmMainFunc_t)Sys_LoadFunction( libHandle, "vmMain" );
 	if ( !*entryPoint || !dllEntry ) {
 		Sys_UnloadLibrary( libHandle );
 		return NULL;
@@ -2168,7 +2168,7 @@ static void VM_VmProfile_f( void ) {
 		return;
 	}
 
-	sorted = Z_Malloc( vm->numSymbols * sizeof( *sorted ) );
+	sorted = (vmSymbol_t **)Z_Malloc( vm->numSymbols * sizeof( *sorted ) );
 	sorted[0] = vm->symbols;
 	total = sorted[0]->profileCount;
 	for ( i = 1 ; i < vm->numSymbols ; i++ ) {
