@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/renderercommon/vulkan/vk_platform.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/renderer/tr_local.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -478,7 +478,7 @@ Phase 1: next `code/renderercommon/vulkan/vk_platform.h`. Resume there; do not r
 | `code/renderercommon/tr_noise.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_noise.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderercommon/tr_public.h` | done | T1-T17: 0; unchanged header verified through code/renderercommon/tr_font.c, strict native builds/G2/G3 PASS. |
 | `code/renderercommon/tr_types.h` | done | T1-T17: 0; unchanged header verified through code/renderercommon/tr_font.c, strict native builds/G2/G3 PASS. |
-| `code/renderercommon/vulkan/vk_platform.h` | todo | Pending module pass. |
+| `code/renderercommon/vulkan/vk_platform.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan.h` | todo | Pending module pass. |
 | `code/renderercommon/vulkan/vulkan_core.h` | todo | Pending module pass. |
 | `code/renderercommon/vulkan/vulkan_win32.h` | todo | Pending module pass. |
