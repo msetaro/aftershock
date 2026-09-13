@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: client; next `code/client/snd_wavelet.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: client; next `code/client/client.h`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -386,7 +386,7 @@ Phase 1: client; next `code/client/snd_wavelet.c`. Resume there; do not redo fil
 | `code/client/snd_mem.c` | done | T1: 4; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mem.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/snd_mix.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mix.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/snd_public.h` | todo | Pending module pass. |
-| `code/client/snd_wavelet.c` | todo | Pending module pass. |
+| `code/client/snd_wavelet.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_wavelet.o, default); G4 PASS. |
 | `code/game/bg_public.h` | todo | Pending module pass. |
 | `code/game/g_public.h` | todo | Pending module pass. |
 | `code/qcommon/cm_load.c` | done | T1: 28; native ded C SHA256 unchanged (df42e0cabff475c22ebf8383e443cfe34d558abf817baf6f5cd8ad0c96700017); strict C++/G2/G3 PASS; G4 advisory diff retained. |
