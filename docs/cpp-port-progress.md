@@ -47,6 +47,7 @@ Phase 0: verify gate negative controls, finish formatter/tidy/CI and notes; inve
 ## Harness status
 
 - Makefile: committed, C checksum proof PASS (295 objects), strict single objects PASS; frozen warning counts above.
+- `tools/port/compile_pair.py ded/md4.o /tmp/aftershock-cpp-port/gates` (likewise q_math) emits debug objects, -O2 assembly, and exact compiler commands using Makefile flags.
 - G2/G3 on q_math/md4: PASS. G4 md4 PASS, q_math advisory FAIL retained below.
 - Gate implementation excludes DWARF records by declaration provenance (engine-only) and fails on missing DWARF/empty engine layouts. Symbols retain nm kind/linkage; only labels and compiler clone numbering normalize. Assembly retains instructions/constants.
 - Initial clang-format whole-file trial: cvar.c 549/2141 changed lines (25.642%); cl_main.c 982/5120 (19.180%). Threshold unmet; source files untouched. Surrounding source mixes styles that a global formatter cannot preserve exactly. Further tuning pending; this is not a phase-0 pass.
