@@ -632,7 +632,7 @@ qboolean NET_CompareAdr( const netadr_t *a, const netadr_t *b )
 
 qboolean NET_IsLocalAddress( const netadr_t *adr ) 
 {
-	return adr->type == NA_LOOPBACK;
+	return (qboolean)( adr->type == NA_LOOPBACK );
 }
 
 //=============================================================================
@@ -1015,7 +1015,7 @@ static SOCKET NET_IPSocket( const char *net_interface, int port, int *err ) {
 		address.sin_port = htons( (short)port );
 	}
 
-	if( bind( newsocket, (void *)&address, sizeof(address) ) == SOCKET_ERROR ) {
+	if( bind( newsocket, (const struct sockaddr *)&address, sizeof(address) ) == SOCKET_ERROR ) {
 		Com_Printf( "WARNING: NET_IPSocket: bind: %s\n", NET_ErrorString() );
 		*err = socketError;
 		closesocket( newsocket );
@@ -1097,7 +1097,7 @@ static SOCKET NET_IP6Socket( const char *net_interface, int port, struct sockadd
 		address.sin6_port = htons( (short)port );
 	}
 
-	if( bind( newsocket, (void *)&address, sizeof(address) ) == SOCKET_ERROR ) {
+	if( bind( newsocket, (const struct sockaddr *)&address, sizeof(address) ) == SOCKET_ERROR ) {
 		Com_Printf( "WARNING: NET_IP6Socket: bind: %s\n", NET_ErrorString() );
 		*err = socketError;
 		closesocket( newsocket );
