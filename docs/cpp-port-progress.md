@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: client; next `code/client/snd_main.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: client; next `code/client/snd_mem.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -378,7 +378,7 @@ Phase 1: client; next `code/client/snd_main.c`. Resume there; do not redo files 
 | `code/client/snd_codec_wav.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_codec_wav.o, default); G4 PASS. |
 | `code/client/snd_dma.c` | done | T1: 1, T15: 2 (non-SDL branch); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_dma.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/snd_local.h` | todo | Pending module pass. |
-| `code/client/snd_main.c` | todo | Pending module pass. |
+| `code/client/snd_main.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_main.o, default); G4 PASS. |
 | `code/client/snd_mem.c` | todo | Pending module pass. |
 | `code/client/snd_mix.c` | todo | Pending module pass. |
 | `code/client/snd_public.h` | todo | Pending module pass. |
