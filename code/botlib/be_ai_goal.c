@@ -134,7 +134,7 @@ typedef struct iteminfo_s
 	int number;							//number of the item info
 } iteminfo_t;
 
-#define ITEMINFO_OFS(x)	(size_t)&(((iteminfo_t *)0)->x)
+#define ITEMINFO_OFS(x)	(int)(size_t)&(((iteminfo_t *)0)->x)
 
 static const fielddef_t iteminfo_fields[] =
 {
