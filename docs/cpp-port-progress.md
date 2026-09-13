@@ -106,7 +106,7 @@ Phase 1: qcommon; next `code/qcommon/cvar.c`. Resume there; do not redo files ma
 
 ## Blocked files
 
-None assessed yet.
+- `code/qcommon/huffman_static.c`: G3 `R HuffmanDecoderTable` -> `r HuffmanDecoderTable`. No existing declaration to move (whole-tree search found definition and internal use only). Adding `extern` to a const object is outside T1-T17; unchanged source retained per stuck rule.
 
 ## Bugs
 
@@ -226,7 +226,7 @@ None assessed yet.
 | `code/qcommon/files.c` | todo | Pending module pass. |
 | `code/qcommon/history.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/history.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/huffman.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/huffman.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/huffman_static.c` | todo | Pending module pass. |
+| `code/qcommon/huffman_static.c` | blocked | Compiles unchanged, but G3: HuffmanDecoderTable changes R (external) to r (static) under C++. Restoring extern const linkage is outside T1-T17; no source edit applied. |
 | `code/qcommon/json.h` | todo | Pending module pass. |
 | `code/qcommon/keys.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/keys.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/md4.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/md4.o); G4 PASS. |
