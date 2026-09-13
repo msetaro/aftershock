@@ -33,4 +33,6 @@ g++ -x c++ -c "$port_tmp/export.c" -o "$port_tmp/export.cxx.o"
 if tools/port/symbol_gate.sh "$port_tmp/export.c.o" "$port_tmp/export.cxx.o" > "$port_tmp/export.log"; then
     echo 'FAIL: symbol gate missed mangled external ABI'; exit 1
 fi
+python3 tools/port/compile_pair.py ded/md5.o "$port_tmp"
+tools/port/layout_gate.sh "$port_tmp/md5.c.o" "$port_tmp/md5.cxx.o"
 echo 'PASS: gate positive and negative controls'

@@ -46,6 +46,8 @@ Phase 1: qcommon; next `code/qcommon/md5.c`. Resume there; do not redo files mar
 
 ## Harness status
 
+- md5 has a nested union type declaration repeated in C++ pahole output. Use pahole `-M` (data members only) to compare actual stored layout, retaining embedded union offsets and sizes; md5 is added to gate controls.
+
 - G3 local-static numbering: C emits cv.N while C++ mangles function scope with no suffix. Strip compiler numeric suffixes on both sides and retain the complete multiset and nm linkage kinds; source locals remain counted.
 
 - cm_load exposed compiler-generated C `__func__.N` arrays versus C++ `.LC` strings in G3. Ignore compiler function-name string symbols symmetrically with existing compiler labels; G4 still compares their contents. This is harness normalization, not a source change.

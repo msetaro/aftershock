@@ -21,7 +21,7 @@ def plain_symbol(name):
 def layout(path):
     if '.debug_info' not in run('readelf', '-S', '-W', path):
         raise ValueError(f'{path}: missing DWARF; compile with -g -fno-eliminate-unused-debug-types')
-    raw = run('pahole', '--sort', '-a', '-A', '-I', path)
+    raw = run('pahole', '--sort', '-a', '-A', '-I', '-M', path)
     records = []
     # Declaration provenance excludes only system/builtin/vendor records, never
     # missing engine records: each side is filtered independently before diff.
