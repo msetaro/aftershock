@@ -787,10 +787,13 @@ release:
 
 # Direct objects pass flags through the same shell quoting as release/debug.
 ifndef B
-$(BR)/%.o:
+.PHONY: port-object-check
+port-object-check:
+
+$(BR)/%.o: port-object-check
 	@$(MAKE) $@ B=$(BR) CFLAGS="$(CFLAGS) $(RELEASE_CFLAGS)" V=$(V)
 
-$(BD)/%.o:
+$(BD)/%.o: port-object-check
 	@$(MAKE) $@ B=$(BD) CFLAGS="$(CFLAGS) $(DEBUG_CFLAGS)" V=$(V)
 endif
 
