@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: sdl; next `code/unix/linux_local.h`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: next `code/unix/unix_glw.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -486,7 +486,7 @@ Phase 1: sdl; next `code/unix/linux_local.h`. Resume there; do not redo files ma
 | `code/ui/ui_public.h` | todo | Pending module pass. |
 | `code/unix/linux_glimp.c` | done | T1: 2 sites (4 expanded casts), T2: 3, T3: 2, T4: 1 identifier (3 occurrences); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_glimp.o, nosdl); G4 advisory FAIL, full diff retained. |
 | `code/unix/linux_joystick.c` | done | T1-T17: 0; dormant USE_JOYSTICK body explicitly compiled; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_joystick.o, nosdl); G4 advisory FAIL, full diff retained. |
-| `code/unix/linux_local.h` | todo | Pending module pass. |
+| `code/unix/linux_local.h` | done | T1-T17: 0; unchanged header verified through unix_main.c and linux_glimp.c; native strict builds and G2/G3 PASS. |
 | `code/unix/linux_qgl.c` | done | T1: 1 macro site (6 expanded casts); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_qgl.o, nosdl); G4 advisory FAIL, full diff retained. |
 | `code/unix/linux_qvk.c` | blocked | At :76 returns PFN_vkVoidFunction (function pointer) as void*. Explicit function-pointer-to-object-pointer conversion is outside T1; source unchanged. |
 | `code/unix/linux_signals.c` | blocked | Client object includes renderer/tr_local.h, whose or fields/parameters require T4 in later renderer module (:568,:1054,:1146,:1365,:1598). Source unchanged; dedicated syntax passes. Recheck this file after renderer header port. |
