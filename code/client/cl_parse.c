@@ -462,7 +462,7 @@ CL_GameSwitch
 */
 qboolean CL_GameSwitch( void )
 {
-	return (cls.gameSwitch && !com_errorEntered);
+	return (qboolean)(cls.gameSwitch && !com_errorEntered);
 }
 
 
