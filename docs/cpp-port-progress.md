@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/renderer/tr_local.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/renderer/tr_animation.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -23,6 +23,8 @@ Phase 1: next `code/renderer/tr_local.h`. Resume there; do not redo done files. 
 - [ ] Final G1-G8, differential/runtime/sanitizer checks
 
 ## Decisions
+
+- Renderer T4 prerequisite is atomic across tr_local.h and all 14 source consumers (243 identifier occurrences; 202 replaced lines). Per-file commit sequencing cannot keep C green while a shared field declaration and its uses disagree; plan T4 requires every use updated. Reviewer approves coherent prerequisite, then individual completion commits. Comments/strings stay unchanged. Full C rebuild passes and all 295 original object hashes match (`renderer-t4-c.log`); same-source header G2/G3 pass through client/linux_signals.o. Whole-tree reference search retained at `/tmp/aftershock-cpp-port/or-whole-tree.txt`; renderervk/renderer2 have separate own types and are not consumers of this header.
 
 - renderercommon/tr_font.c is verified in the supported default BUILD_FREETYPE-disabled configuration. freetype2 development metadata/headers are unavailable; dormant BUILD_FREETYPE body remains unverified and unchanged. No package installation.
 
@@ -448,31 +450,31 @@ Phase 1: next `code/renderer/tr_local.h`. Resume there; do not redo done files. 
 | `code/renderer/iqm.h` | todo | Pending module pass. |
 | `code/renderer/qgl.h` | todo | Pending module pass. |
 | `code/renderer/tr_animation.c` | todo | Pending module pass. |
-| `code/renderer/tr_arb.c` | todo | Pending module pass. |
-| `code/renderer/tr_backend.c` | todo | Pending module pass. |
+| `code/renderer/tr_arb.c` | todo | T4 prerequisite: or renamed to orientation (3 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_backend.c` | todo | T4 prerequisite: or renamed to orientation (9 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_bsp.c` | todo | Pending module pass. |
 | `code/renderer/tr_cmds.c` | todo | Pending module pass. |
 | `code/renderer/tr_common.h` | todo | Pending module pass. |
 | `code/renderer/tr_curve.c` | todo | Pending module pass. |
-| `code/renderer/tr_flares.c` | todo | Pending module pass. |
+| `code/renderer/tr_flares.c` | todo | T4 prerequisite: or renamed to orientation (3 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_image.c` | todo | Pending module pass. |
 | `code/renderer/tr_init.c` | todo | Pending module pass. |
-| `code/renderer/tr_light.c` | todo | Pending module pass. |
-| `code/renderer/tr_local.h` | todo | Pending module pass. |
-| `code/renderer/tr_main.c` | todo | Pending module pass. |
+| `code/renderer/tr_light.c` | todo | T4 prerequisite: or renamed to orientation (10 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_local.h` | todo | T4 prerequisite: or renamed to orientation (5 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_main.c` | todo | T4 prerequisite: or renamed to orientation (113 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_marks.c` | todo | Pending module pass. |
-| `code/renderer/tr_mesh.c` | todo | Pending module pass. |
+| `code/renderer/tr_mesh.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_model.c` | todo | Pending module pass. |
 | `code/renderer/tr_model_iqm.c` | todo | Pending module pass. |
-| `code/renderer/tr_scene.c` | todo | Pending module pass. |
-| `code/renderer/tr_shade.c` | todo | Pending module pass. |
-| `code/renderer/tr_shade_calc.c` | todo | Pending module pass. |
+| `code/renderer/tr_scene.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_shade.c` | todo | T4 prerequisite: or renamed to orientation (1 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_shade_calc.c` | todo | T4 prerequisite: or renamed to orientation (50 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_shader.c` | todo | Pending module pass. |
-| `code/renderer/tr_shadows.c` | todo | Pending module pass. |
-| `code/renderer/tr_sky.c` | todo | Pending module pass. |
-| `code/renderer/tr_surface.c` | todo | Pending module pass. |
-| `code/renderer/tr_vbo.c` | todo | Pending module pass. |
-| `code/renderer/tr_world.c` | todo | Pending module pass. |
+| `code/renderer/tr_shadows.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_sky.c` | todo | T4 prerequisite: or renamed to orientation (7 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_surface.c` | todo | T4 prerequisite: or renamed to orientation (25 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_vbo.c` | todo | T4 prerequisite: or renamed to orientation (3 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_world.c` | todo | T4 prerequisite: or renamed to orientation (2 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderercommon/tr_font.c` | done | T1: 1; dormant BUILD_FREETYPE body unverified (missing dependency); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_font.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_bmp.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_bmp.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_jpg.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_jpg.o, default); G4 PASS. |

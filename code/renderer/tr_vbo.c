@@ -1410,9 +1410,9 @@ static void RB_IterateStagesVBO( const shaderCommands_t *input )
 		if ( pStage->tessFlags & ( TESS_ENV0 | TESS_ENV1 ) ) {
 			// setup viewpos needed for environment mapping program
 			qglProgramLocalParameter4fARB( GL_VERTEX_PROGRAM_ARB, 0,
-				backEnd.or.viewOrigin[0],
-				backEnd.or.viewOrigin[1],
-				backEnd.or.viewOrigin[2],
+				backEnd.orientation.viewOrigin[0],
+				backEnd.orientation.viewOrigin[1],
+				backEnd.orientation.viewOrigin[2],
 				0.0 );
 			normalMask = CLS_NORMAL_ARRAY;
 		} else {

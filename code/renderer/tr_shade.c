@@ -646,7 +646,7 @@ void R_ComputeColors( const shaderStage_t *pStage )
 				float len;
 				vec3_t v;
 
-				VectorSubtract( tess.xyz[i], backEnd.viewParms.or.origin, v );
+				VectorSubtract( tess.xyz[i], backEnd.viewParms.orientation.origin, v );
 				len = VectorLength( v ) * tess.shader->portalRangeR;
 
 				if ( len > 1 )

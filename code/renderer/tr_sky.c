@@ -269,7 +269,7 @@ static void RB_ClipSkyPolygons( const shaderCommands_t *input )
 		for (j = 0 ; j < 3 ; j++) 
 		{
 			VectorSubtract( input->xyz[input->indexes[i+j]],
-							backEnd.viewParms.or.origin, 
+							backEnd.viewParms.orientation.origin, 
 							p[j] );
 		}
 		ClipSkyPolygon( 3, p[0], 0 );
@@ -372,19 +372,19 @@ static qboolean CullSkySide( const int mins[2], const int maxs[2] )
 
 	s = mins[0] + HALF_SKY_SUBDIVISIONS;
 	t = mins[1] + HALF_SKY_SUBDIVISIONS;
-	VectorAdd( s_skyPoints[t][s], backEnd.viewParms.or.origin, v[0] );
+	VectorAdd( s_skyPoints[t][s], backEnd.viewParms.orientation.origin, v[0] );
 
 	s = mins[0] + HALF_SKY_SUBDIVISIONS;
 	t = maxs[1] + HALF_SKY_SUBDIVISIONS;
-	VectorAdd( s_skyPoints[t][s], backEnd.viewParms.or.origin, v[1] );
+	VectorAdd( s_skyPoints[t][s], backEnd.viewParms.orientation.origin, v[1] );
 
 	s = maxs[0] + HALF_SKY_SUBDIVISIONS;
 	t = mins[1] + HALF_SKY_SUBDIVISIONS;
-	VectorAdd( s_skyPoints[t][s], backEnd.viewParms.or.origin, v[2] );
+	VectorAdd( s_skyPoints[t][s], backEnd.viewParms.orientation.origin, v[2] );
 
 	s = maxs[0] + HALF_SKY_SUBDIVISIONS;
 	t = maxs[1] + HALF_SKY_SUBDIVISIONS;
-	VectorAdd( s_skyPoints[t][s], backEnd.viewParms.or.origin, v[3] );
+	VectorAdd( s_skyPoints[t][s], backEnd.viewParms.orientation.origin, v[3] );
 
 	if ( CullPoints( v, 4 ) )
 		return qtrue;
@@ -417,7 +417,7 @@ static void FillSkySide( const int mins[2], const int maxs[2], float skyTexCoord
 	{
 		for ( s = mins[0]+HALF_SKY_SUBDIVISIONS; s <= maxs[0]+HALF_SKY_SUBDIVISIONS; s++ )
 		{
-			VectorAdd( s_skyPoints[t][s], backEnd.viewParms.or.origin, tess.xyz[ tess.numVertexes ] );
+			VectorAdd( s_skyPoints[t][s], backEnd.viewParms.orientation.origin, tess.xyz[ tess.numVertexes ] );
 			tess.texCoords[0][tess.numVertexes][0] = skyTexCoords[t][s][0];
 			tess.texCoords[0][tess.numVertexes][1] = skyTexCoords[t][s][1];
 			tess.numVertexes++;
@@ -776,7 +776,7 @@ void RB_DrawSun( float scale, shader_t *shader ) {
 	dist = backEnd.viewParms.zFar / 1.75;		// div sqrt(3)
 	size = dist * scale;
 
-	VectorMA( backEnd.viewParms.or.origin, dist, tr.sunDirection, origin );
+	VectorMA( backEnd.viewParms.orientation.origin, dist, tr.sunDirection, origin );
 	PerpendicularVector( vec1, tr.sunDirection );
 	CrossProduct( tr.sunDirection, vec1, vec2 );
 
