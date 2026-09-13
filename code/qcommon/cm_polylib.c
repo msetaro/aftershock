@@ -60,7 +60,7 @@ static winding_t *AllocWinding( int points )
 		c_peak_windings = c_active_windings;
 
 	s = sizeof( *w ) - sizeof( w->p ) + sizeof( w->p[0] ) * points;
-	w = Z_Malloc( s );
+	w = (winding_t *)Z_Malloc( s );
 
 	return w;
 }
