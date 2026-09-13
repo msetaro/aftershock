@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: renderercommon; next `code/renderercommon/tr_image_png.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: renderercommon; next `code/renderercommon/tr_image_tga.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -469,7 +469,7 @@ Phase 1: renderercommon; next `code/renderercommon/tr_image_png.c`. Resume there
 | `code/renderercommon/tr_image_bmp.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_bmp.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_jpg.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_jpg.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_pcx.c` | done | T1: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_pcx.o, default); G4 PASS. |
-| `code/renderercommon/tr_image_png.c` | todo | Pending module pass. |
+| `code/renderercommon/tr_image_png.c` | done | T1: 18; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_png.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_tga.c` | todo | Pending module pass. |
 | `code/renderercommon/tr_noise.c` | todo | Pending module pass. |
 | `code/renderercommon/tr_public.h` | todo | Pending module pass. |

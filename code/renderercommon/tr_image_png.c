@@ -233,7 +233,7 @@ static struct BufferedFile *ReadBufferedFile(const char *name)
 	 *  Allocate control struct.
 	 */
 
-	BF = ri.Malloc(sizeof(struct BufferedFile));
+	BF = (struct BufferedFile *)ri.Malloc(sizeof(struct BufferedFile));
 	if(!BF)
 	{
 		return(NULL);
@@ -453,7 +453,7 @@ static qboolean FindChunk(struct BufferedFile *BF, uint32_t ChunkType)
 		 *  Read the chunk-header.
 		 */
 
-		CH = BufferedFileRead(BF, PNG_ChunkHeader_Size);
+		CH = (struct PNG_ChunkHeader *)BufferedFileRead(BF, PNG_ChunkHeader_Size);
 		if(!CH)
 		{
 			return(qfalse);
@@ -567,7 +567,7 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer)
 		 *  Read chunk header
 		 */
 
-		CH = BufferedFileRead(BF, PNG_ChunkHeader_Size);
+		CH = (struct PNG_ChunkHeader *)BufferedFileRead(BF, PNG_ChunkHeader_Size);
 		if(!CH)
 		{
 			/*
@@ -624,7 +624,7 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer)
 
 	BufferedFileRewind(BF, BytesToRewind);
 
-	CompressedData = ri.Malloc(CompressedDataLength);
+	CompressedData = (uint8_t *)ri.Malloc(CompressedDataLength);
 	if(!CompressedData)
 	{
 		return((unsigned)-1);
@@ -642,7 +642,7 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer)
 		 *  Read chunk header
 		 */
 
-		CH = BufferedFileRead(BF, PNG_ChunkHeader_Size);
+		CH = (struct PNG_ChunkHeader *)BufferedFileRead(BF, PNG_ChunkHeader_Size);
 		if(!CH)
 		{
 			ri.Free(CompressedData); 
@@ -676,7 +676,7 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer)
 		{
 			uint8_t *OrigCompressedData;
 
-			OrigCompressedData = BufferedFileRead(BF, Length);
+			OrigCompressedData = (uint8_t *)BufferedFileRead(BF, Length);
 			if(!OrigCompressedData)
 			{
 				ri.Free(CompressedData); 
@@ -726,7 +726,7 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer)
 	 *  Allocate the buffer for the uncompressed data.
 	 */
 
-	DecompressedData = ri.Malloc(puffDestLen);
+	DecompressedData = (uint8_t *)ri.Malloc(puffDestLen);
 	if(!DecompressedData)
 	{
 		ri.Free(CompressedData);
@@ -1970,7 +1970,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 	 *  Read the signature of the file.
 	 */
 
-	Signature = BufferedFileRead(ThePNG, PNG_Signature_Size);
+	Signature = (uint8_t *)BufferedFileRead(ThePNG, PNG_Signature_Size);
 	if(!Signature)
 	{
 		CloseBufferedFile(ThePNG);
@@ -1993,7 +1993,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 	 *  Read the first chunk-header.
 	 */
 
-	CH = BufferedFileRead(ThePNG, PNG_ChunkHeader_Size);
+	CH = (struct PNG_ChunkHeader *)BufferedFileRead(ThePNG, PNG_ChunkHeader_Size);
 	if(!CH)
 	{
 		CloseBufferedFile(ThePNG);
@@ -2023,7 +2023,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 	 *  Read the IHDR.
 	 */ 
 
-	IHDR = BufferedFileRead(ThePNG, PNG_Chunk_IHDR_Size);
+	IHDR = (struct PNG_Chunk_IHDR *)BufferedFileRead(ThePNG, PNG_Chunk_IHDR_Size);
 	if(!IHDR)
 	{
 		CloseBufferedFile(ThePNG);
@@ -2035,7 +2035,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 	 *  Read the CRC for IHDR
 	 */
 
-	CRC = BufferedFileRead(ThePNG, PNG_ChunkCRC_Size);
+	CRC = (PNG_ChunkCRC *)BufferedFileRead(ThePNG, PNG_ChunkCRC_Size);
 	if(!CRC)
 	{
 		CloseBufferedFile(ThePNG);
@@ -2115,7 +2115,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 		 *  Read the chunk-header.
 		 */
 
-		CH = BufferedFileRead(ThePNG, PNG_ChunkHeader_Size);
+		CH = (struct PNG_ChunkHeader *)BufferedFileRead(ThePNG, PNG_ChunkHeader_Size);
 		if(!CH)
 		{
 			CloseBufferedFile(ThePNG);
@@ -2156,7 +2156,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 		 *  Read the raw palette data
 		 */
 
-		InPal = BufferedFileRead(ThePNG, ChunkHeaderLength);
+		InPal = (uint8_t *)BufferedFileRead(ThePNG, ChunkHeaderLength);
 		if(!InPal)
 		{
 			CloseBufferedFile(ThePNG);
@@ -2168,7 +2168,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 		 *  Read the CRC for the palette
 		 */
 
-		CRC = BufferedFileRead(ThePNG, PNG_ChunkCRC_Size);
+		CRC = (PNG_ChunkCRC *)BufferedFileRead(ThePNG, PNG_ChunkCRC_Size);
 		if(!CRC)
 		{
 			CloseBufferedFile(ThePNG);
@@ -2217,7 +2217,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 		 *  Read the chunk-header.
 		 */
 
-		CH = BufferedFileRead(ThePNG, PNG_ChunkHeader_Size);
+		CH = (struct PNG_ChunkHeader *)BufferedFileRead(ThePNG, PNG_ChunkHeader_Size);
 		if(!CH)
 		{
 			CloseBufferedFile(ThePNG);
@@ -2247,7 +2247,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 		 *  Read the transparency information.
 		 */
 
-		Trans = BufferedFileRead(ThePNG, ChunkHeaderLength);
+		Trans = (uint8_t *)BufferedFileRead(ThePNG, ChunkHeaderLength);
 		if(!Trans)
 		{
 			CloseBufferedFile(ThePNG);
@@ -2259,7 +2259,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 		 *  Read the CRC.
 		 */
 
-		CRC = BufferedFileRead(ThePNG, PNG_ChunkCRC_Size);
+		CRC = (PNG_ChunkCRC *)BufferedFileRead(ThePNG, PNG_ChunkCRC_Size);
 		if(!CRC)
 		{
 			CloseBufferedFile(ThePNG);
@@ -2401,7 +2401,7 @@ void R_LoadPNG(const char *name, byte **pic, int *width, int *height)
 	 *  Allocate output buffer.
 	 */
 
-	OutBuffer = ri.Malloc(IHDR_Width * IHDR_Height * Q3IMAGE_BYTESPERPIXEL); 
+	OutBuffer = (byte *)ri.Malloc(IHDR_Width * IHDR_Height * Q3IMAGE_BYTESPERPIXEL);
 	if(!OutBuffer)
 	{
 		ri.Free(DecompressedData); 
