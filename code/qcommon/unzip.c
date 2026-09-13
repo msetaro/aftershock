@@ -2607,19 +2607,19 @@ inflate_blocks_statef *inflate_blocks_new(z_streamp z, check_func c, uInt w)
        (inflate_huft *)ZALLOC(z, sizeof(inflate_huft), MANY)) == Z_NULL)
   {
     ZFREE(z, s);
-    return Z_NULL;
+    return (inflate_blocks_statef *)Z_NULL;
   }
   if ((s->window = (Byte *)ZALLOC(z, 1, w)) == Z_NULL)
   {
     ZFREE(z, s->hufts);
     ZFREE(z, s);
-    return Z_NULL;
+    return (inflate_blocks_statef *)Z_NULL;
   }
   s->end = s->window + w;
   s->checkfn = c;
   s->mode = TYPE;
   Tracev(("inflate:   blocks allocated\n"));
-  inflate_blocks_reset(s, z, Z_NULL);
+  inflate_blocks_reset(s, z, (uLong *)Z_NULL);
   return s;
 }
 
@@ -2805,7 +2805,7 @@ int inflate_blocks(inflate_blocks_statef *s, z_streamp z, int r)
           s->sub.trees.index = i;
         }
       }
-      s->sub.trees.tb = Z_NULL;
+      s->sub.trees.tb = (inflate_huft *)Z_NULL;
       {
         uInt bl, bd;
         inflate_huft *tl, *td;
@@ -2874,7 +2874,7 @@ int inflate_blocks(inflate_blocks_statef *s, z_streamp z, int r)
 
 int inflate_blocks_free(inflate_blocks_statef *s, z_streamp z)
 {
-  inflate_blocks_reset(s, z, Z_NULL);
+  inflate_blocks_reset(s, z, (uLong *)Z_NULL);
   ZFREE(z, s->window);
   ZFREE(z, s->hufts);
   ZFREE(z, s);
@@ -3070,16 +3070,16 @@ static int huft_build(uInt *b, uInt n, uInt s, const uInt *d, const uInt *e, inf
   uInt f;                       /* i repeats in table every f entries */
   int g;                        /* maximum code length */
   int h;                        /* table level */
-  register uInt i;              /* counter, current code */
-  register uInt j;              /* counter */
-  register int k;               /* number of bits in current code */
+  uInt i;              /* counter, current code */
+  uInt j;              /* counter */
+  int k;               /* number of bits in current code */
   int l;                        /* bits per table (returned in m) */
   uInt mask;                    /* (1 << w) - 1, to avoid cc -O bug on HP */
-  register uInt *p;            /* pointer into c[], b[], or v[] */
+  uInt *p;            /* pointer into c[], b[], or v[] */
   inflate_huft *q;              /* points to current table */
   struct inflate_huft_s r = {{{0, 0}}};      /* table entry for structure assignment */
   inflate_huft *u[BMAX];        /* table stack */
-  register int w;               /* bits before this table == (l * h) */
+  int w;               /* bits before this table == (l * h) */
   uInt x[BMAX+1];               /* bit offsets, then code stack */
   uInt *xp;                    /* pointer into x */
   int y;                        /* number of dummy codes added */
@@ -4039,9 +4039,9 @@ int inflateReset(z_streamp z)
   if (z == Z_NULL || z->state == Z_NULL)
     return Z_STREAM_ERROR;
   z->total_in = z->total_out = 0;
-  z->msg = Z_NULL;
+  z->msg = (char *)Z_NULL;
   z->state->mode = z->state->nowrap ? imBLOCKS : imMETHOD;
-  inflate_blocks_reset(z->state->blocks, z, Z_NULL);
+  inflate_blocks_reset(z->state->blocks, z, (uLong *)Z_NULL);
   Tracev(("inflate: reset\n"));
   return Z_OK;
 }
@@ -4054,7 +4054,7 @@ int inflateEnd(z_streamp z)
   if (z->state->blocks != Z_NULL)
     inflate_blocks_free(z->state->blocks, z);
   ZFREE(z, z->state);
-  z->state = Z_NULL;
+  z->state = (struct internal_state *)Z_NULL;
   Tracev(("inflate: end\n"));
   return Z_OK;
 }
@@ -4070,7 +4070,7 @@ int inflateInit2_(z_streamp z, int w, const char *version, int stream_size)
   /* initialize state */
   if (z == Z_NULL)
     return Z_STREAM_ERROR;
-  z->msg = Z_NULL;
+  z->msg = (char *)Z_NULL;
   if (z->zalloc == Z_NULL)
   {
     z->zalloc = (void *(*)(void *, unsigned, unsigned))zcalloc;
@@ -4080,7 +4080,7 @@ int inflateInit2_(z_streamp z, int w, const char *version, int stream_size)
   if ((z->state = (struct internal_state *)
        ZALLOC(z,1,sizeof(struct internal_state))) == Z_NULL)
     return Z_MEM_ERROR;
-  z->state->blocks = Z_NULL;
+  z->state->blocks = (inflate_blocks_statef *)Z_NULL;
 
   /* handle undocumented nowrap option (no zlib header or check) */
   z->state->nowrap = 0;
