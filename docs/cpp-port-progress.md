@@ -110,6 +110,8 @@ Phase 1: client; next `code/client/cl_curl.c`. Resume there; do not redo files m
 
 ## Codegen differences
 
+- `code/client/cl_input.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_input.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_input.o /tmp/aftershock-cpp-port/cl_input ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
+
 - `code/client/cl_console.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_console.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_console.o /tmp/aftershock-cpp-port/cl_console ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/client/cl_cin.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_cin.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_cin.o /tmp/aftershock-cpp-port/cl_cin ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
@@ -336,7 +338,7 @@ Phase 1: client; next `code/client/cl_curl.c`. Resume there; do not redo files m
 | `code/client/cl_console.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_console.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_curl.c` | todo | Pending module pass. |
 | `code/client/cl_curl.h` | todo | Pending module pass. |
-| `code/client/cl_input.c` | todo | Pending module pass. |
+| `code/client/cl_input.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_input.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_jpeg.c` | todo | Pending module pass. |
 | `code/client/cl_keys.c` | todo | Pending module pass. |
 | `code/client/cl_main.c` | todo | Pending module pass. |
