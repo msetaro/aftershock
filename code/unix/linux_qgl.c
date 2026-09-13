@@ -165,7 +165,7 @@ qboolean QGL_Init( const char *dllname )
 
 	glErrorCount = 0;
 
-#define GLE( ret, name, ... ) q##name = GL_GetProcAddress( XSTRING( name ) ); if ( !q##name ) { Com_Printf( "Error resolving core X11 functions\n" ); return qfalse; }
+#define GLE( ret, name, ... ) q##name = (ret ( APIENTRY * )( __VA_ARGS__ ))GL_GetProcAddress( XSTRING( name ) ); if ( !q##name ) { Com_Printf( "Error resolving core X11 functions\n" ); return qfalse; }
 	QGL_LinX11_PROCS;
 #undef GLE
 
