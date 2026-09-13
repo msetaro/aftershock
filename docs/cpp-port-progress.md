@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/renderercommon/tr_font.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: renderercommon; next `code/renderercommon/tr_image_bmp.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -23,6 +23,8 @@ Phase 1: next `code/renderercommon/tr_font.c`. Resume there; do not redo done fi
 - [ ] Final G1-G8, differential/runtime/sanitizer checks
 
 ## Decisions
+
+- renderercommon/tr_font.c is verified in the supported default BUILD_FREETYPE-disabled configuration. freetype2 development metadata/headers are unavailable; dormant BUILD_FREETYPE body remains unverified and unchanged. No package installation.
 
 - Read AGENTS.md and the entire plan before work. The existing t3code branch is used as explicitly requested; no main pushes, force pushes, or history edits.
 - Plan section 7 supersedes early CMake instructions: GNU Make only; CMake remains untouched. Section 9 defers vcxproj lists to rename and makes MSVC CI-only.
@@ -463,7 +465,7 @@ Phase 1: next `code/renderercommon/tr_font.c`. Resume there; do not redo done fi
 | `code/renderer/tr_surface.c` | todo | Pending module pass. |
 | `code/renderer/tr_vbo.c` | todo | Pending module pass. |
 | `code/renderer/tr_world.c` | todo | Pending module pass. |
-| `code/renderercommon/tr_font.c` | todo | Pending module pass. |
+| `code/renderercommon/tr_font.c` | done | T1: 1; dormant BUILD_FREETYPE body unverified (missing dependency); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_font.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_bmp.c` | todo | Pending module pass. |
 | `code/renderercommon/tr_image_jpg.c` | todo | Pending module pass. |
 | `code/renderercommon/tr_image_pcx.c` | todo | Pending module pass. |
