@@ -137,6 +137,17 @@ ifndef BUILD_DIR
 BUILD_DIR=build
 endif
 
+# C and C++ objects must never share an output directory.
+ifeq ($(BUILD_CXX),1)
+  ifeq ($(origin BUILD_DIR),file)
+    BUILD_DIR=build/cxx
+  endif
+  override USE_OPENGL2=0
+  ifeq ($(RENDERER_DEFAULT),opengl2)
+    $(error renderer2 is outside the C++ port)
+  endif
+endif
+
 ifndef GENERATE_DEPENDENCIES
 GENERATE_DEPENDENCIES=1
 endif
@@ -677,45 +688,77 @@ else
     RENDCFLAGS=$(NOTSHLIBCFLAGS)
 endif
 
+# Keep these suppressions frozen; counts and source diagnostics are recorded in
+# docs/cpp-port-progress.md. Catalog-fixable C++ diagnostics remain enabled.
+CXX_FROZEN_WARNINGS = -Wall -Wextra -Werror \
+  -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers \
+  -Wno-implicit-fallthrough -Wno-ignored-qualifiers -Wno-type-limits
+# The classes above occur in the C baseline too. Aggregate zero initialization
+# produces additional missing-field diagnostics in C++; no initializer is changed.
+
+ENGINE_CC = $(CC)
+ENGINE_CFLAGS = $(CFLAGS)
+ENGINE_LD = $(CC)
+ifeq ($(BUILD_CXX),1)
+  ENGINE_CC = $(CXX)
+  ENGINE_CFLAGS = $(filter-out -Wstrict-prototypes -Wimplicit,$(CFLAGS)) \
+    -x c++ -std=c++20 -fno-exceptions -fno-rtti $(CXX_FROZEN_WARNINGS)
+  ENGINE_LD = $(CXX)
+endif
+
+# DO_CC also serves the vendored C libraries. Select by the actual source path,
+# including for direct object targets and make -k probes.
+VENDORED_SOURCE = $(filter $(JPDIR)/% $(OGGDIR)/% $(VORBISDIR)/%,$<)
+SOURCE_CC = $(if $(VENDORED_SOURCE),$(CC),$(ENGINE_CC))
+SOURCE_CFLAGS = $(if $(VENDORED_SOURCE),$(CFLAGS),$(ENGINE_CFLAGS))
+
 define DO_CC
+$(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "CC $<"
-$(Q)$(CC) $(CFLAGS) -o $@ -c $<
+$(Q)$(SOURCE_CC) $(SOURCE_CFLAGS) -o $@ -c $<
 endef
 
 define DO_CC_QVM
+$(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "CC_QVM $<"
-$(Q)$(CC) $(CFLAGS) -fno-fast-math -o $@ -c $<
+$(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) -fno-fast-math -o $@ -c $<
 endef
 
 define DO_REND_CC
+$(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "REND_CC $<"
-$(Q)$(CC) $(CFLAGS) $(RENDCFLAGS) -o $@ -c $<
+$(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) $(RENDCFLAGS) -o $@ -c $<
 endef
 
 define DO_REF_STR
+$(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "REF_STR $<"
 $(Q)rm -f $@
 $(Q)$(STRINGIFY) $< $@
 endef
 
 define DO_BOT_CC
+$(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "BOT_CC $<"
-$(Q)$(CC) $(CFLAGS) $(BOTCFLAGS) -DBOTLIB -o $@ -c $<
+$(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) $(BOTCFLAGS) -DBOTLIB -o $@ -c $<
 endef
 
 define DO_AS
+$(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "AS $<"
 $(Q)$(CC) $(CFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 endef
 
 define DO_DED_CC
+$(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "DED_CC $<"
-$(Q)$(CC) $(CFLAGS) -DDEDICATED -o $@ -c $<
+$(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) -DDEDICATED -o $@ -c $<
 endef
 
 define DO_DED_CC_QVM
+$(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "DED_CC_QVM $<"
-$(Q)$(CC) $(CFLAGS) -fno-fast-math -DDEDICATED -o $@ -c $<
+$(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) -fno-fast-math -DDEDICATED -o $@ -c $<
 endef
 
 define DO_WINDRES
@@ -739,6 +782,15 @@ debug:
 
 release:
 	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(RELEASE_CFLAGS)" V=$(V)
+
+# Direct objects pass flags through the same shell quoting as release/debug.
+ifndef B
+$(BR)/%.o:
+	@$(MAKE) $@ B=$(BR) CFLAGS="$(CFLAGS) $(RELEASE_CFLAGS)" V=$(V)
+
+$(BD)/%.o:
+	@$(MAKE) $@ B=$(BD) CFLAGS="$(CFLAGS) $(DEBUG_CFLAGS)" V=$(V)
+endif
 
 define ADD_COPY_TARGET
 TARGETS += $2
@@ -1278,13 +1330,13 @@ endif # !MINGW
 
 $(B)/$(TARGET_CLIENT): $(Q3OBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) -o $@ $(Q3OBJ) $(CLIENT_LDFLAGS) $(LDFLAGS)
+	$(Q)$(ENGINE_LD) -o $@ $(Q3OBJ) $(CLIENT_LDFLAGS) $(LDFLAGS)
 
 # modular renderers
 
 $(B)/$(TARGET_REND1): $(Q3REND1OBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) -o $@ $(Q3REND1OBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
+	$(Q)$(ENGINE_LD) -o $@ $(Q3REND1OBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
 
 $(STRINGIFY): $(MOUNT_DIR)/renderer2/stringify.c
 	$(echo_cmd) "LD $@"
@@ -1296,7 +1348,7 @@ $(B)/$(TARGET_REND2): $(Q3REND2OBJ) $(Q3REND2STROBJ)
 
 $(B)/$(TARGET_RENDV): $(Q3RENDVOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) -o $@ $(Q3RENDVOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
+	$(Q)$(ENGINE_LD) -o $@ $(Q3RENDVOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
 
 #############################################################################
 # DEDICATED SERVER
@@ -1408,7 +1460,7 @@ endif
 $(B)/$(TARGET_SERVER): $(Q3DOBJ)
 	$(echo_cmd) $(Q3DOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) -o $@ $(Q3DOBJ) $(LDFLAGS)
+	$(Q)$(ENGINE_LD) -o $@ $(Q3DOBJ) $(LDFLAGS)
 
 #############################################################################
 ## CLIENT/SERVER RULES

@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 0: capture the untouched full C build and SHA256 manifest before editing Makefile.
+Phase 0: finish checksum verification of final Makefile, then implement G2/G3/G4 scripts and formatter/tidy/CI configuration.
 
 ## Phases
 
@@ -30,12 +30,19 @@ Phase 0: capture the untouched full C build and SHA256 manifest before editing M
 - Headers are tracked individually and verified through their consuming translation units. Inactive architecture sources remain tracked and cannot be called verified based on the native build.
 - T2 will use `(qboolean)( expression )` consistently in each module.
 - All engine .c/.h outside the six excluded directories appear below. Game/UI sources outside shared headers/bg scope are tracked as done with an exclusion reason, not ported.
+- Checksum reproducibility uses `SOURCE_DATE_EPOCH=1789257600` for both C baselines: unix_main embeds `__TIME__` and common embeds `__DATE__`. No source or C flags changed to remove those values.
 - Missing tools: Xvfb and x86_64-w64-mingw32-gcc not found on PATH. No packages will be installed. gcc, g++, clang, clang-format, clang-tidy, pahole, bear are present.
 - Gate G4 differences are advisory and recorded for human review; they do not count as a passed identical-codegen check.
 
 ## Evidence and reproduction
 
-Pending baseline capture. Local artifacts will live in `/tmp/aftershock-cpp-port` and persistent evidence in `docs/` or `tools/port/`.
+- Baseline full C build: PASS, 295 objects. First Makefile checksum comparison: PASS, all 295 objects byte-identical. Final Makefile checksum check: PASS, 295/295 identical.
+- Reproduction: `SOURCE_DATE_EPOCH=1789257600 make -B -j$(nproc) BUILD_DIR=/tmp/aftershock-cpp-port/oracle`, run on base and modified Makefile in the same worktree. Hash every `.o` relative to the build root. Manifests: `/tmp/aftershock-cpp-port/{before,after}.sha256`; logs: `{baseline,after}.log`.
+- Baseline warning probes: `SOURCE_DATE_EPOCH=1789257600 make -k -j$(nproc) BUILD_DIR=/tmp/aftershock-cpp-port/c-warnings CFLAGS=-Wextra`; C++ counterpart uses `BUILD_CXX=1 BUILD_DIR=/tmp/aftershock-cpp-port/cxx-warnings CXX_FROZEN_WARNINGS='-Wall -Wextra'` (no permissive mode). C++ probe failed as expected with 3489 errors including cascades; this is not a completed port.
+- Warning counts below count diagnostic lines from engine paths (exclude vendored paths), with duplicate client/ded/renderer compilations counted separately. Frozen suppressions: sign-compare 544 C / 532 C++; unused-parameter 171 / 173; missing-field-initializers 100 / 595; implicit-fallthrough 39 / 39; ignored-qualifiers 4 / 4; type-limits 2 / 2.
+- Unsuppressed observed classes: C discarded-qualifiers 4 and old-style-declaration 4; C++ literal-suffix 57, write-strings 243, unused-function 9, register 10, parentheses 48, deprecated-enum-float-conversion 42, switch 2, extra 1. Catalog-fixable warnings must be transformed. Warnings cascading from parse errors will be reassessed after fixing the cause.
+- Single-object strict C++ builds of `ded/md4.o` and `ded/q_math.o`: PASS. Use `make BUILD_CXX=1 BUILD_DIR=/tmp/aftershock-cpp-port/single /tmp/aftershock-cpp-port/single/release-linux-x86_64/ded/md4.o` (likewise q_math).
+- Local artifacts: `/tmp/aftershock-cpp-port`; persistent evidence follows in `tools/port/` and this checkpoint.
 
 ## Deviations
 
