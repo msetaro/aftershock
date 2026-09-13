@@ -22,6 +22,26 @@ Hard rules for port work:
   content-free `git mv` change.
 - The C build is the oracle. Every change must keep the C build green until the rename phase.
 
+## Code rules for the port phase
+
+Full table with the modernization-phase counterpart is in `docs/cpp-port-plan.md` section 11.
+- Style is "match the surrounding line": tabs, spaces inside parentheses `( a, b )`, `NULL`,
+  C-style casts, `qboolean`. Writing `nullptr` in a file full of `NULL` fails review even if
+  the code is correct. clang-format runs on changed lines only; never reformat untouched lines.
+- Warnings: `-Werror` against a frozen list of disabled warnings. Do not "fix" pre-existing
+  warnings (a signed/unsigned change can change behavior); that is a later, separate PR class.
+- Never restructure a floating-point expression in `qcommon/cm_*`, `q_math.c`, `bg_*`, `msg.c`
+  or snapshot code. Cross-build determinism is what netcode and demos depend on.
+- Keep intentional undefined-behavior patterns as they are (`Q_rsqrt` punning, file buffers
+  cast to structs). They define behavior. Do not replace with `memcpy`/`std::bit_cast`.
+- No assertions, no RAII, no smart pointers, no namespaces, no fixed-width type changes. The
+  memory model (hunk/zone) and `Com_Error` (a `longjmp`) are untouched.
+- Subsystem boundaries are the existing prefixes (`Sys_`, `Com_`, `FS_`, `CL_`, `SV_`, `R_`,
+  `S_`) and `*_public.h` vs `*_local.h`. Include only other subsystems' public headers.
+- Definition of done: C and C++ builds green, every verification gate green, every hunk maps to
+  a catalog entry T1-T17, diff size proportionate, PR description lists transformation counts
+  and pasted gate output.
+
 ## Layout
 
 - `code/qcommon` shared core: cvars, commands, filesystem, network, collision (cm_*), QVM (vm_*)

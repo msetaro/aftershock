@@ -280,3 +280,32 @@ when that phase starts, not now:
 - 64-bit little-endian only; 32-bit x86, armv7 and ppc64 leave the matrix.
 - Console SDKs are NDA-gated (ID@Xbox, PlayStation Partners, Nintendo Developer Portal); real
   console builds happen only once access exists.
+
+## 11. Code rules (port phase vs modernization phase)
+
+Two phases, two rule sets. The port phase rules are enforced now and are copied into
+`AGENTS.md`. The modernization rules are recorded so they are decided once, not rediscovered.
+
+| Topic | Port phase (now) | Modernization phase (later) |
+|---|---|---|
+| Language features | None. No `nullptr`, `auto`, references, classes, templates, STL, `constexpr`, namespaces, `using`. | C++20, feature-by-feature allowlist; never "because it is new". |
+| Warnings | `-Werror` with a **frozen, checked-in list of disabled warnings** matching what the C build already tolerates (C build: 279 warnings under `-Wall -Wextra`; C++ adds ~800, mostly `-Wwrite-strings` and `-Wmissing-field-initializers`). | Re-enable one warning class per PR, each verified by the gates. Vendored libs stay `-w`. |
+| Formatting | Match the surrounding line exactly: tabs, spaces inside parentheses `( a, b )`, `NULL`, C casts, `qboolean`. `.clang-format` mimicking id style, enforced with `git clang-format` on **changed lines only**. No tree-wide reformat. | One tree-wide reformat commit after the port is verified, checked by byte-identical `-S` output before and after. From then on clang-format is authoritative. |
+| clang-tidy | Small `bugprone-*` + `portability-*` subset, changed lines only (`clang-tidy-diff`). No `modernize-*`, no `cppcoreguidelines-*`. | Add `performance-*` and a readability subset. `modernize-*` advisory, enabled one check at a time. `cppcoreguidelines-*` cherry-picked, never wholesale. |
+| Sanitizers | ASan + UBSan run on the **C build first** to record the baseline (needs game data); anything new in the C++ build is a port bug. UBSan blocklist for known-benign alignment in BSP loading. Same source has more UB as C++ than as C (union punning is defined in C11, undefined in C++). | ASan + UBSan on every CI run; TSan periodically for the SDL audio callback, WASAPI thread, and curl. |
+| Memory / ownership | Untouched. | Ownership is expressed by arena (hunk = level lifetime with mark/free-to-mark, zone = tagged small allocs, temp hunk), not by per-object smart pointers. RAII only for OS/GPU resources at the platform boundary. `new`/`delete`/`malloc` forbidden outside the allocator layer. |
+| Error handling | Untouched. `Com_Error` is a `longjmp`. | Decide explicitly, before any RAII lands in engine code: a `longjmp` over a stack object with a non-trivial destructor leaks or corrupts. Either RAII stays out of code paths that can `Com_Error`, or `Com_Error` changes shape first. Exceptions and RTTI stay off. |
+| Assertions | None added (a firing assert is a behavior change). | `Q_ASSERT` with no side effects, compiled out in release identically; debug and release must compute the same simulation. |
+| Integer types | Untouched. | Fixed-width types in every struct that hits the wire, a demo, or a file format. `long` is banned (32-bit on MSVC). Explicit `char` signedness where it matters (unsigned on aarch64). |
+| Undefined-behavior patterns | Keep them: `Q_rsqrt` punning, file buffers cast to structs, `-ffast-math` on mingw. They define behavior demos and netcode depend on. | Replace with `std::bit_cast`/`memcpy` only when the codegen gate shows identical output. |
+| Floating point / determinism | No restructuring of any floating-point expression in `qcommon/cm_*`, `q_math.c`, `bg_*`, `msg.c`, or server snapshot code. Ever. | Same rule, permanently. Cross-build determinism is what netcode and demos rest on. |
+| Layout | `static_assert(sizeof)` table for wire/file/QVM structs, generated from the C build (gate G2). | Add `is_trivially_copyable` / `is_standard_layout` assertions for the same structs. |
+| Subsystem boundaries | Keep the existing encoding: `Sys_`/`Com_`/`FS_`/`CL_`/`SV_`/`R_`/`S_`/`Cvar_`/`Cmd_` prefixes and `*_public.h` vs `*_local.h`. A subsystem includes only other subsystems' public headers. | Enforce with a CI grep. Namespaces, if ever, map one-to-one onto the prefixes. Each subsystem gets a short responsibility/ownership paragraph in `docs/`. |
+| Scope per PR | One module or file group, only catalog transformations, `DEVIATION:` commits for anything else. | One feature or one warning class per PR. No unrelated refactoring. |
+| Definition of done | Both builds green, every gate green, every hunk mapped to T1-T17, diff size proportionate, PR description lists transformation counts and gate output. | Builds green, sanitizers clean, tests (the differential harness plus whatever the feature adds) green, style checks green. |
+
+Concrete artifacts this implies for phase 0: the frozen `-Wno-*` list in the Makefile/CMake,
+`.clang-format` tuned against real files (tabs, `( a, b )` spacing, function brace on the same
+line as in most of `code/client` and `code/qcommon`), a `.clang-tidy` with the small subset,
+and a UBSan blocklist seeded from a C-build run.
+
