@@ -46,7 +46,9 @@ Phase 1: next `code/renderercommon/tr_font.c`. Resume there; do not redo done fi
 
 ## Harness status
 
-- G7 early clang++21 syntax probe on 82 completed native source files: 79 PASS, 3 fail (be_ai_goal.c, be_ai_weap.c, msg.c) on size_t field-offset expressions narrowing into int brace-initializer members. T16 corrections queued after current client source pass, before final module verification; prior done status records GCC/native G2/G3 only. Log `/tmp/aftershock-cpp-port/clang-probe.log`; summary `/tmp/aftershock-cpp-port/clang-summary.log`; probe uses each saved Makefile C++ command with compiler replaced by clang++ and -c/-o replaced by -fsyntax-only. This is a syntax probe, not full clang build.
+- G7 clang++21 syntax probe: 88 completed native sources PASS after five T16 field-offset macro casts (be_ai_goal 1, be_ai_weap 2, msg 2). Each cast preserves the existing address expression and int initializer member. Exact saved Makefile commands use clang++ with -fsyntax-only; `/tmp/aftershock-cpp-port/clang-probe.log`. This is not a full clang link/build gate. G8 reviewer independently approves these followups.
+
+- Client assessed: 19 source files and seven local plus four shared ABI headers done; three sources blocked (cl_curl, cl_main, snd_codec_ogg). Default C and dedicated C full builds PASS; non-SDL full C PASS; all 19 successful non-SDL C objects match original hashes and 38 release/debug C++ targets PASS. Logs `/tmp/aftershock-cpp-port/client-{full,ded,full-nosdl}-c.log` and `client-nosdl-{0,1}.log`. G8 reviewer approves all retained T1/T2/T3/T15 edits and unchanged blockers through eab18e91. C++ runtime cannot link while compile blockers remain.
 
 - Unix/SDL assessed: successful files have unchanged C hashes, strict native release/debug and G2/G3 PASS; six source/header blockers remain, including linux_signals deferred to renderer T4. Default SDL C, dedicated C and non-SDL C full builds PASS (`/tmp/aftershock-cpp-port/platform-{full,ded,nosdl}-c.log`). Dormant joystick explicitly checked with its feature flag. Logged preexisting ALSA pthread callback signature mismatch; no fix. Next client.
 
