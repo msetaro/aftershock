@@ -128,6 +128,8 @@ Phase 1: qcommon; next `code/qcommon/vm_interpreted.c`. Resume there; do not red
 
 ## Blocked files
 
+- `code/qcommon/vm_x86.c`: At :3498 mov_rx_ptr(R_SYSCALL, vm->systemCall) converts syscall_t function pointer to const void*. T1 covers the reverse direction only; no catalog remedy. A T3 cast is also needed at :4323. No source edit retained.
+
 - `code/qcommon/vm_interpreted.c`: VM_Indent:27 initializes char * from a string literal and returns char *. No public prototype or callers exist; changing its return type or casting its initializer is outside the literal wording of T8 (pointer variables/parameters, public-signature call-site exception). Also T1 needed at :129. No source edit retained.
 
 - `code/qcommon/q_math.c`: confirmed semantic difference, not only G4 noise. `tools/port/math_gate.sh` compares 10,000 fixed inputs. C / C++ hashes: RotatePointAroundVector `056104dc` / `220b9dd8`; vectoangles `6f225d24` / `0929b283`; AngleVectors (fed preceding output) `0691ca72` / `84895270`; Q_rsqrt `301a8708` / `301a8708`. Float math overloads replace C double promotion. No allowed T1-T17 transformation restores double arithmetic here; source remains untouched. Full-port behavior equivalence and rename are blocked.
@@ -278,7 +280,7 @@ Phase 1: qcommon; next `code/qcommon/vm_interpreted.c`. Resume there; do not red
 | `code/qcommon/vm_local.h` | todo | Pending module pass. |
 | `code/qcommon/vm_optimize.h` | todo | Pending module pass. |
 | `code/qcommon/vm_powerpc.c` | todo | Pending module pass. |
-| `code/qcommon/vm_x86.c` | todo | Pending module pass. |
+| `code/qcommon/vm_x86.c` | blocked | At :3498 mov_rx_ptr(R_SYSCALL, vm->systemCall) converts syscall_t function pointer to const void*. T1 covers the reverse direction only; no catalog remedy. A T3 cast is also needed at :4323. No source edit retained. |
 | `code/renderer/iqm.h` | todo | Pending module pass. |
 | `code/renderer/qgl.h` | todo | Pending module pass. |
 | `code/renderer/tr_animation.c` | todo | Pending module pass. |
