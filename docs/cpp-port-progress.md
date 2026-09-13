@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: botlib; next `code/botlib/be_ea.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: botlib; next `code/botlib/be_interface.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -256,7 +256,7 @@ Phase 1: botlib; next `code/botlib/be_ea.c`. Resume there; do not redo files mar
 | `code/botlib/be_ai_weap.h` | todo | Pending module pass. |
 | `code/botlib/be_ai_weight.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_weight.o); G4 PASS. |
 | `code/botlib/be_ai_weight.h` | todo | Pending module pass. |
-| `code/botlib/be_ea.c` | todo | Pending module pass. |
+| `code/botlib/be_ea.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ea.o); G4 PASS. |
 | `code/botlib/be_ea.h` | todo | Pending module pass. |
 | `code/botlib/be_interface.c` | todo | Pending module pass. |
 | `code/botlib/be_interface.h` | todo | Pending module pass. |
