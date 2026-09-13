@@ -46,6 +46,8 @@ Phase 1: next `code/botlib/be_aas_bspq3.c`. Resume there; do not redo done files
 
 ## Harness status
 
+- Proxy follow-up: limit forced proxy rules to explicitly requested object goals via static patterns. A broad forced %.o rule triggered GNU Make implicit .d.o rebuild attempts when dependency files existed; normal default/ded C builds now PASS again. Strict completed-file matrix rechecked.
+
 - Corrected direct-object proxy timestamp bug: existing top-level object targets previously skipped recursion, so source freshness was not checked. Added a phony prerequisite only to proxy rules; recursive Make still uses normal dependencies. Revalidated every retained edit through e00a079d: forced full C rebuild PASS, SHA256 295/295 equal to original oracle; 110 native strict release/debug client/ded/renderer object targets PASS. Prior per-file checksum statements are now independently confirmed by this forced rebuild. Commands: `SOURCE_DATE_EPOCH=1789257600 make -B -j20 BUILD_DIR=/tmp/aftershock-cpp-port/oracle`; hash against committed manifest; strict target log `/tmp/aftershock-cpp-port/recheck-strict.log`.
 
 - Qcommon assessed completely: 7 blocked source/header entries remain; module is not green. Retained source edits passed G8 review (134 replaced lines across 14 files, 0.425%, through 9277ddcb); later vm_interpreted adds one T1 cast. Full C client/renderers and dedicated builds PASS after 74ee31d9 using the fixed epoch. Native strict release/debug contexts checked; JIT blockers prevent the complete C++ link/runtime. Continuing server per stuck rules.

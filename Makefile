@@ -790,11 +790,15 @@ ifndef B
 .PHONY: port-object-check
 port-object-check:
 
-$(BR)/%.o: port-object-check
+ifneq ($(filter $(BR)/%.o,$(MAKECMDGOALS)),)
+$(filter $(BR)/%.o,$(MAKECMDGOALS)): $(BR)/%.o: port-object-check
 	@$(MAKE) $@ B=$(BR) CFLAGS="$(CFLAGS) $(RELEASE_CFLAGS)" V=$(V)
+endif
 
-$(BD)/%.o: port-object-check
+ifneq ($(filter $(BD)/%.o,$(MAKECMDGOALS)),)
+$(filter $(BD)/%.o,$(MAKECMDGOALS)): $(BD)/%.o: port-object-check
 	@$(MAKE) $@ B=$(BD) CFLAGS="$(CFLAGS) $(DEBUG_CFLAGS)" V=$(V)
+endif
 endif
 
 define ADD_COPY_TARGET
