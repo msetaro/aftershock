@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/sdl/sdl_input.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/sdl/sdl_snd.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -213,6 +213,8 @@ Phase 1: next `code/sdl/sdl_input.c`. Resume there; do not redo done files. Bloc
 - `md4.c`: G4 PASS, normalized assembly identical.
 
 ## Blocked files
+
+- `code/sdl/sdl_input.c`: Nested anonymous enum inside consoleKey_s (:119) scopes QUAKE_KEY/CHARACTER in C++; uses at :158/:163/:185/:190 no longer resolve. Qualifying names or restructuring the enum is outside T1-T17. Integer-to-keyNum_t T3 diagnostics also remain; source unchanged.
 
 - `code/sdl/sdl_glimp.c`: At :763 returns PFN_vkVoidFunction as void*: function-pointer-to-object-pointer conversion is outside T1. Eight additional T1/T3 diagnostics remain; source unchanged.
 
@@ -466,7 +468,7 @@ Phase 1: next `code/sdl/sdl_input.c`. Resume there; do not redo done files. Bloc
 | `code/sdl/sdl_glimp.c` | blocked | At :763 returns PFN_vkVoidFunction as void*: function-pointer-to-object-pointer conversion is outside T1. Eight additional T1/T3 diagnostics remain; source unchanged. |
 | `code/sdl/sdl_glw.h` | todo | Pending module pass. |
 | `code/sdl/sdl_icon.h` | todo | Pending module pass. |
-| `code/sdl/sdl_input.c` | todo | Pending module pass. |
+| `code/sdl/sdl_input.c` | blocked | Nested anonymous enum inside consoleKey_s (:119) scopes QUAKE_KEY/CHARACTER in C++; uses at :158/:163/:185/:190 no longer resolve. Qualifying names or restructuring the enum is outside T1-T17. Integer-to-keyNum_t T3 diagnostics also remain; source unchanged. |
 | `code/sdl/sdl_snd.c` | todo | Pending module pass. |
 | `code/server/server.h` | done | T1-T17: 0; unchanged header verified through server consumers, strict native release/debug and G2/G3 PASS. |
 | `code/server/sv_bot.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_bot.o); G4 advisory FAIL, full diff retained. |
