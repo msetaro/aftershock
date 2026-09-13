@@ -36,7 +36,7 @@ def layout(path):
         records.append(re.sub(r'[ \t]+', ' ', block).strip() + '\n')
     if not records:
         raise ValueError(f'{path}: no engine layouts found; this is not an ABI pass')
-    return sorted(records)
+    return ''.join(sorted(records)).splitlines(keepends=True)
 
 
 def symbols(path):
