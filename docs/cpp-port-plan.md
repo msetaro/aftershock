@@ -57,12 +57,17 @@ Whole-tree scan of engine sources (vendored libs excluded):
 Extrapolating to the client + three renderers + platform layers (~200 more files), expect roughly
 100-150 hard errors and 1000-1500 conversions across the whole tree. This is a mechanical job.
 
-## 3. C++ standard — **DECISION**
+## 3. C++ standard — DECIDED: C++20
 
-Recommendation: **C++17** as the conformance target, with `-fno-exceptions -fno-rtti`
-(MSVC: `/std:c++17 /EHs-c- /GR-`), plus a CI leg that compiles the same sources with
-`-std=c++20 -Werror=deprecated-enum-enum-conversion -Werror=deprecated-enum-float-conversion`
-so the tree stays forward-clean for a later bump.
+Decision (Matt, 2026-09-13): **C++20**, with `-fno-exceptions -fno-rtti`
+(MSVC: `/std:c++20 /EHs-c- /GR-`). The port itself uses no C++20 feature; the standard is
+chosen for the modernization phase that follows, and because C++20 is the last standard fully
+implemented by every toolchain that matters later, including console SDK compilers (MSVC for
+Xbox, clang/libc++ forks for PlayStation and Switch). C++23 is off the table until those
+toolchains support it. Consequences: the legacy `msys32` CI job (gcc 7.1/9.3) is dropped;
+the ~57 `shaderSort_t`-vs-`float` sites get a T17 cast during the port.
+
+The comparison that led here, kept for the record:
 
 Measured on 2026-09-13 with gcc 15.2 (same sources, `-Wall -Wextra -fpermissive`):
 
@@ -83,7 +88,7 @@ so the comparison is unchanged). The standard choice is therefore almost entirel
 | C++20 | gcc 10, clang 10 (16 for full), MSVC 2019 16.10, Apple clang 13 | ubuntu-22.04-arm gcc 11 OK; `msys32` gcc 9.3 only via `-std=c++2a`, gcc 7.1 fails |
 | C++23 | gcc 13, clang 17, MSVC 2022 17.7 (partial), Apple clang 16 (partial) | ubuntu-22.04-arm (gcc 11) fails, `msys32` fails, macos-14 partial |
 
-Reasons to stay at C++17 for the port:
+Arguments that were made for C++17 (superseded by the decision above):
 - Highest standard every existing CI toolchain accepts, so nothing in the matrix changes.
 - Same codegen as C for this code; the differential gates (section 5) compare like with like.
 - Zero deprecation noise; the `register` removals and literal-suffix spaces are needed for
@@ -96,28 +101,26 @@ punning, `<bit>` for the hand-rolled bit tricks in `q_math.c`, `std::span`, conc
 `std::mdspan`, none of which matters to an engine port in 2026 unless the improvement phase
 is designed around them.
 
-If Matt wants C++20 as the long-term baseline, the cost today is dropping the `msys32` CI job
-and 57 enum-to-float casts. That is small enough that "C++20 now" is a defensible choice; the
-recommendation is C++17 only because the port itself gains nothing from going higher.
+Cost of C++20 today: dropping the `msys32` CI job and 57 enum-to-float casts. Accepted.
 
 ## 4. Strategy — "compile as C++ first, rename last"
 
 Phase 0 — harness (no engine source changes)
-1. Makefile: add `BUILD_CXX=1` that compiles engine sources with `$(CXX) -x c++ -std=c++17
+1. Makefile: add `BUILD_CXX=1` that compiles engine sources with `$(CXX) -x c++ -std=c++20
    -fno-exceptions -fno-rtti`, drops C-only flags (`-Wstrict-prototypes`, `-Wimplicit`), and
-   keeps vendored libs compiled as C. Same for CMake (`CMAKE_CXX_STANDARD 17`) and the vcxproj
+   keeps vendored libs compiled as C. Same for CMake (`CMAKE_CXX_STANDARD 20`) and the vcxproj
    files (`<CompileAs>CompileAsCpp</CompileAs>`, libjpeg/ogg/vorbis stay `CompileAsC`).
 2. CI: add a matrix leg that builds `BUILD_CXX=1` next to the existing C legs (Linux gcc + clang,
-   macOS clang, MSVC). Keep C legs until phase 3.
+   macOS clang, MSVC). Keep C legs until phase 3. Remove the `msys32` job.
 3. Local tooling installed (section 7), `compile_commands.json` via `bear` for clang-tidy.
 4. Golden artifacts captured from the C build (section 5) and checked into `tests/golden/` or
    produced on the fly by CI from the C leg.
 
-Phase 1 — make the tree compile as C++17, module by module, C build stays green
+Phase 1 — make the tree compile as C++20, module by module, C build stays green
 Order (dependency order, easiest first, each is one PR):
 `qcommon` -> `server` -> `botlib` -> `unix` + `sdl` -> `client` -> `renderercommon` ->
 `renderer` -> `renderervk` -> `renderer2` -> `win32` (cross-compile with mingw or CI-only).
-Exit criterion per module: compiles with `-std=c++17 -Wall -Wextra -Werror` (no `-fpermissive`),
+Exit criterion per module: compiles with `-std=c++20 -Wall -Wextra -Werror` (no `-fpermissive`),
 and all verification gates (section 5) pass.
 
 Phase 2 — `extern "C"` boundaries
@@ -136,8 +139,7 @@ Phase 3 — rename
 **DECISION**: vendored libs (`libjpeg`, `libogg`, `libvorbis`, `libcurl` headers, `libsdl`)
 stay C. Their headers already carry `extern "C"` guards. Recommendation: yes, keep as C.
 
-**DECISION**: keep or drop the legacy `msys32` Windows CI job. If dropped, nothing changes in the
-recommendation above, but it removes the gcc 7 floor.
+DECIDED: the legacy `msys32` Windows CI job is dropped (gcc 7.1/9.3 cannot do C++20).
 
 ## 5. Verification gates (how we know agent output is a faithful port)
 
@@ -254,9 +256,27 @@ Game data: none found. Needed for G6 only.
 
 ## 9. Open questions for Matt
 
-1. C++17 as the standard (section 3)?
+1. ~~C++ standard~~ decided: C++20.
 2. Vendored libs stay C (section 4)?
-3. Keep the msys32 CI job?
+3. ~~msys32 CI job~~ decided: dropped.
 4. Where do game data for G6 live locally, and is OpenArena acceptable for CI?
 5. Is the MSVC/vcxproj build in scope for the agents (no Windows machine here), or CI-only?
 6. Is `renderer2` (upstream calls it unmaintained, disabled by default) in scope?
+
+## 10. Deferred until after the port (recorded so it is not lost)
+
+Modernization goal: keep the classic id Tech 3 / early Call of Duty feel (fixed-timestep sim,
+snapshot netcode with prediction, cvars, pk3, POD structs, no per-frame allocation) while
+targeting modern hardware including consoles. Constraints that follow, to become agent rules
+when that phase starts, not now:
+- No exceptions, no RTTI, fixed-width integers only (`long` is 32-bit on MSVC/Xbox), explicit
+  `char` signedness where it matters (unsigned on aarch64).
+- No JIT (console cert forbids executable memory): QVM compilers are PC-only, game code goes native.
+- No runtime `dlopen`: static renderer linking becomes the primary configuration.
+- OS access only inside `code/<platform>` and `files.c`; portable code never calls SDL/POSIX/Win32.
+- Renderer behind an RHI with the Vulkan renderer as the base (D3D12 for Xbox, AGC for PS5,
+  Vulkan/NVN for Switch). `renderer2` dropped; OpenGL1 renderer is legacy.
+- CI proxies for console toolchains: clang + libc++ (x86_64 and aarch64 cross) and MSVC.
+- 64-bit little-endian only; 32-bit x86, armv7 and ppc64 leave the matrix.
+- Console SDKs are NDA-gated (ID@Xbox, PlayStation Partners, Nintendo Developer Portal); real
+  console builds happen only once access exists.

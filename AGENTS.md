@@ -3,7 +3,7 @@
 Aftershock is Matt's fork of the Quake3e engine (upstream: ec-/Quake3e). It is a C codebase
 (~300 engine files, ~308k lines, plus vendored libjpeg/libogg/libvorbis/libcurl/libsdl).
 
-## Current project goal: strict C -> C++ port
+## Current project goal: strict C -> C++20 port
 
 The ONLY goal right now is to port the engine sources from C to C++ **with no behavioral change**.
 This is not a modernization, cleanup, or refactor. Read `docs/cpp-port-plan.md` before doing any
@@ -15,7 +15,7 @@ Hard rules for port work:
 - Only apply transformations from the allowed catalog in the plan. Anything else needs a separate
   commit prefixed `DEVIATION:` with a justification.
 - Do not introduce classes, references, templates, STL, `auto`, `nullptr`, `constexpr`, or any
-  C++ idiom. The result must read as the same C code that happens to compile as C++17.
+  C++ idiom. The result must read as the same C code that happens to compile as C++20.
 - Vendored third-party libraries under `code/libjpeg`, `code/libogg`, `code/libvorbis`,
   `code/libcurl`, `code/libsdl` are NOT ported. Leave them as C.
 - Do not rename files (`.c` -> `.cpp`) until the plan's rename phase; that phase is a separate,
@@ -48,7 +48,7 @@ make clean
 C++ probe build (until the Makefile gains a proper C++ mode; see plan):
 
 ```
-make -k -j$(nproc) BUILD_DIR=/tmp/cxx CC="g++ -x c++ -std=c++17 -fpermissive"
+make -k -j$(nproc) BUILD_DIR=/tmp/cxx CC="g++ -x c++ -std=c++20 -fpermissive"
 ```
 
 Local machine notes: gcc 15.2 only (no clang yet), 20 cores. Client-side dev packages
