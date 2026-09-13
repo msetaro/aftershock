@@ -228,7 +228,7 @@ static void dump_nodes( const filter_node_t *node, int level, int skip_tagged, F
 		}
 		else
 		{
-			const char *s = op2str( node->fop );
+			const char *s = op2str( (filter_op)node->fop );
 
 			if ( node->is_date )
 			{
