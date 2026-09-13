@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: unix; next `code/renderer/tr_animation.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: renderer; next `code/renderer/tr_arb.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -119,6 +119,8 @@ Phase 1: unix; next `code/renderer/tr_animation.c`. Resume there; do not redo fi
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
 
 ## Codegen differences
+
+- `code/renderer/tr_animation.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_animation.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_animation.o /tmp/aftershock-cpp-port/renderer-tr_animation ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderercommon/tr_noise.c`: G4 advisory FAIL; full diff `tools/port/evidence/tr_noise.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_noise.o /tmp/aftershock-cpp-port/tr_noise ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -449,7 +451,7 @@ Phase 1: unix; next `code/renderer/tr_animation.c`. Resume there; do not redo fi
 | `code/qcommon/vm_x86.c` | blocked | At :3498 mov_rx_ptr(R_SYSCALL, vm->systemCall) converts syscall_t function pointer to const void*. T1 covers the reverse direction only; no catalog remedy. A T3 cast is also needed at :4323. No source edit retained. |
 | `code/renderer/iqm.h` | todo | Pending module pass. |
 | `code/renderer/qgl.h` | todo | Pending module pass. |
-| `code/renderer/tr_animation.c` | todo | Pending module pass. |
+| `code/renderer/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_animation.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_arb.c` | todo | T4 prerequisite: or renamed to orientation (3 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_backend.c` | todo | T4 prerequisite: or renamed to orientation (9 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_bsp.c` | todo | Pending module pass. |
