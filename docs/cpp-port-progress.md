@@ -93,6 +93,8 @@ Phase 1: botlib; next `code/botlib/aasfile.h`. Resume there; do not redo files m
 
 ## Deviations
 
+- `DEVIATION: freeze observed parenthesized-declarator warnings`: add -Wno-parentheses, 48 engine diagnostics observed in the original C++ probe (24 per client/ded be_ai_move.c). C accepts the unchanged macro declaration `bot_moveresult_t (x) = ...`; removing parentheses is outside T1-T17 and unnecessary to preserve behavior. G8 reviewer recommended the phase-0 baseline-warning policy already used for write-strings. C flags, source macro, ABI and expressions remain unchanged; hard conversion errors remain enabled. Reopen be_ai_move.c for its single T1 allocator cast.
+
 - `DEVIATION: freeze observed legacy string-literal warnings`: add `-Wno-write-strings` (243 engine diagnostics in the original C++ probe) to the frozen list. Plan section 11 explicitly identifies this class as historical baseline noise tolerated by the C build. The original list mistakenly excluded it, which would force noncatalog signature changes in VM_Indent. Reviewer confirmed that freezing this observed class fits phase 0; the separate deviation documents changing an already-frozen list. No engine behavior, C flags, or -fpermissive policy changes. Other noncatalog hard errors remain blocked.
 
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
@@ -193,7 +195,6 @@ Phase 1: botlib; next `code/botlib/aasfile.h`. Resume there; do not redo files m
 
 ## Blocked files
 
-- `code/botlib/be_ai_move.c`: Strict C++ emits 24 -Wparentheses errors for bot_moveresult_t_cleared in be_ai_move.h:103 (parenthesized declaration name); removing these parentheses is outside T1-T17 and class is not frozen. One T1 allocation conversion also remains. Left unchanged.
 
 - `code/server/tlds.h`: Unchanged initializer fragment; sole consumer sv_client.c is blocked, so complete-object C++/G2/G3 verification is unavailable.
 
@@ -261,7 +262,7 @@ Phase 1: botlib; next `code/botlib/aasfile.h`. Resume there; do not redo files m
 | `code/botlib/be_ai_gen.h` | todo | Pending module pass. |
 | `code/botlib/be_ai_goal.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_goal.o); G4 PASS. |
 | `code/botlib/be_ai_goal.h` | todo | Pending module pass. |
-| `code/botlib/be_ai_move.c` | blocked | Strict C++ emits 24 -Wparentheses errors for bot_moveresult_t_cleared in be_ai_move.h:103 (parenthesized declaration name); removing these parentheses is outside T1-T17 and class is not frozen. One T1 allocation conversion also remains. Left unchanged. |
+| `code/botlib/be_ai_move.c` | todo | Reopened after observed warning-class correction; single T1 cast pending. |
 | `code/botlib/be_ai_move.h` | todo | Pending module pass. |
 | `code/botlib/be_ai_weap.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_weap.o); G4 PASS. |
 | `code/botlib/be_ai_weap.h` | todo | Pending module pass. |

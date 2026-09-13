@@ -693,9 +693,10 @@ endif
 CXX_FROZEN_WARNINGS = -Wall -Wextra -Werror \
   -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers \
   -Wno-implicit-fallthrough -Wno-ignored-qualifiers -Wno-type-limits \
-  -Wno-write-strings
+  -Wno-write-strings -Wno-parentheses
 # write-strings: 243 observed C++ diagnostics for literals tolerated by C.
-# Other classes occur in the C baseline too. Aggregate zero initialization
+# parentheses: 48 observed C++ diagnostics from legacy parenthesized declarators.
+# The six original classes occur in the C baseline too. Aggregate zero initialization
 # produces additional missing-field diagnostics in C++; no initializer is changed.
 
 ENGINE_CC = $(CC)
