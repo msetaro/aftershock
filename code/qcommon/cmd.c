@@ -386,7 +386,7 @@ static void Cmd_Exec_f( void ) {
 	} f;
 	char filename[MAX_QPATH];
 
-	quiet = !Q_stricmp(Cmd_Argv(0), "execq");
+	quiet = (qboolean)( !Q_stricmp(Cmd_Argv(0), "execq") );
 
 	if (Cmd_Argc () != 2) {
 		Com_Printf ("exec%s <filename> : execute a script file%s\n",
@@ -772,7 +772,7 @@ void Cmd_AddCommand( const char *cmd_name, xcommand_t function ) {
 	}
 
 	// use a small malloc to avoid zone fragmentation
-	cmd = S_Malloc( sizeof( *cmd ) );
+	cmd = (cmd_function_t *)S_Malloc( sizeof( *cmd ) );
 	cmd->name = CopyString( cmd_name );
 	cmd->function = function;
 	cmd->complete = NULL;
