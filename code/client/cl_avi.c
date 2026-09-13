@@ -545,9 +545,9 @@ qboolean CL_OpenAVIForWriting( const char *fileName, const char *pipeFormat, qbo
 		// padding at the end of pixel lines, and padding for alignment
 		#define MAX_PACK_LEN 16
 		//afd.cBuffer = Z_Malloc((afd.width * 3 + MAX_PACK_LEN - 1) * afd.height + MAX_PACK_LEN - 1);
-		afd.cBuffer = Z_Malloc( (afd.width * afd.height * 4) + MAX_PACK_LEN - 1 ); // allocate for RGBA storage
+		afd.cBuffer = (byte *)Z_Malloc( (afd.width * afd.height * 4) + MAX_PACK_LEN - 1 ); // allocate for RGBA storage
 		// raw avi files have pixel lines start on 4-byte boundaries
-		afd.eBuffer = Z_Malloc( PAD( afd.width * 3, AVI_LINE_PADDING ) * afd.height );
+		afd.eBuffer = (byte *)Z_Malloc( PAD( afd.width * 3, AVI_LINE_PADDING ) * afd.height );
 	}
 
 	afd.a.rate = dma.speed;
