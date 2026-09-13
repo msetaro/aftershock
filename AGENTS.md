@@ -17,7 +17,7 @@ Hard rules for port work:
 - Do not introduce classes, references, templates, STL, `auto`, `nullptr`, `constexpr`, or any
   C++ idiom. The result must read as the same C code that happens to compile as C++20.
 - Vendored third-party libraries under `code/libjpeg`, `code/libogg`, `code/libvorbis`,
-  `code/libcurl`, `code/libsdl` are NOT ported. Leave them as C.
+  `code/libcurl`, `code/libsdl` are NOT ported. Leave them as C. `code/renderer2` is not ported either.
 - Do not rename files (`.c` -> `.cpp`) until the plan's rename phase; that phase is a separate,
   content-free `git mv` change.
 - The C build is the oracle. Every change must keep the C build green until the rename phase.
@@ -47,7 +47,7 @@ Full table with the modernization-phase counterpart is in `docs/cpp-port-plan.md
 - `code/qcommon` shared core: cvars, commands, filesystem, network, collision (cm_*), QVM (vm_*)
 - `code/server`, `code/client` server and client
 - `code/botlib` bot AI library
-- `code/renderercommon`, `code/renderer` (OpenGL1), `code/renderervk` (Vulkan), `code/renderer2` (OpenGL2, unmaintained)
+- `code/renderercommon`, `code/renderer` (OpenGL1), `code/renderervk` (Vulkan); `code/renderer2` (OpenGL2) is out of scope and not ported
 - `code/unix`, `code/win32`, `code/sdl` platform layers
 - `code/asm` hand-written assembly (referenced by C symbol name; needs `extern "C"` after the port)
 - `code/cgame`, `code/game`, `code/ui` only the shared public headers / bg code for the QVM ABI

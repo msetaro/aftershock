@@ -1,6 +1,6 @@
 # C -> C++ port plan (strict, no behavior change)
 
-Status: DRAFT for discussion. Items marked **DECISION** need Matt's sign-off.
+Status: decisions resolved 2026-09-13 (section 9); phase 0 not yet started.
 
 ## 1. Goal and non-goals
 
@@ -119,7 +119,7 @@ Phase 0 — harness (no engine source changes)
 Phase 1 — make the tree compile as C++20, module by module, C build stays green
 Order (dependency order, easiest first, each is one PR):
 `qcommon` -> `server` -> `botlib` -> `unix` + `sdl` -> `client` -> `renderercommon` ->
-`renderer` -> `renderervk` -> `renderer2` -> `win32` (cross-compile with mingw or CI-only).
+`renderer` -> `renderervk` -> `win32` (CI-only via the windows-msvc and msys2 jobs). `renderer2` is not ported.
 Exit criterion per module: compiles with `-std=c++20 -Wall -Wextra -Werror` (no `-fpermissive`),
 and all verification gates (section 5) pass.
 
@@ -136,8 +136,8 @@ Phase 3 — rename
 `BUILD_CXX` switch and the C legs. This commit must contain no content changes so `git log
 --follow` and blame stay clean.
 
-**DECISION**: vendored libs (`libjpeg`, `libogg`, `libvorbis`, `libcurl` headers, `libsdl`)
-stay C. Their headers already carry `extern "C"` guards. Recommendation: yes, keep as C.
+DECIDED: vendored libs (`libjpeg`, `libogg`, `libvorbis`, `libcurl` headers, `libsdl`)
+stay C. Their headers already carry `extern "C"` guards.
 
 DECIDED: the legacy `msys32` Windows CI job is dropped (gcc 7.1/9.3 cannot do C++20).
 
@@ -254,14 +254,19 @@ Game data: none found. Needed for G6 only.
   no removed code; no new includes except `<cstdint>`-style shims if a header needs one;
   gates pass; diff proportion sane.
 
-## 9. Open questions for Matt
+## 9. Decisions (all resolved 2026-09-13)
 
-1. ~~C++ standard~~ decided: C++20.
-2. Vendored libs stay C (section 4)?
-3. ~~msys32 CI job~~ decided: dropped.
-4. Where do game data for G6 live locally, and is OpenArena acceptable for CI?
-5. Is the MSVC/vcxproj build in scope for the agents (no Windows machine here), or CI-only?
-6. Is `renderer2` (upstream calls it unmaintained, disabled by default) in scope?
+1. C++ standard: **C++20** (section 3).
+2. Vendored libs (`libjpeg`, `libogg`, `libvorbis`, `libcurl`, `libsdl`): **stay C**. Their headers
+   already carry `extern "C"` guards; they are upstream code, not engine code.
+3. Legacy `msys32` CI job: **dropped**.
+4. Game data for gate G6: Matt's own Quake III Arena install for local runs (none is on this
+   machine yet; G6 is blocked until a `baseq3` path is provided). **OpenArena** paks for CI.
+5. MSVC / vcxproj: **CI-only** during the port. No Windows machine here; the vcxproj file lists
+   are updated in the rename phase and verified by the existing windows-msvc CI job.
+6. `renderer2` (OpenGL2, disabled by default, upstream calls it unmaintained): **out of scope**.
+   It is not ported and is removed from the build in the rename phase. The console direction
+   (section 10) makes the Vulkan renderer the reference renderer anyway.
 
 ## 10. Deferred until after the port (recorded so it is not lost)
 
