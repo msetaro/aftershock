@@ -346,14 +346,14 @@ static qboolean setup_ALSA( smode_t mode )
 		goto __fail;
 	}
 
-	hwparams = alloca( _snd_pcm_hw_params_sizeof() );
+	hwparams = (snd_pcm_hw_params_t *)alloca( _snd_pcm_hw_params_sizeof() );
 	if ( hwparams == NULL )
 	{
 		Com_Printf( "Error allocating %i bytes of memory for hwparams\n", (int)_snd_pcm_hw_params_sizeof() );
 		goto __fail;
 	}
 
-	swparams = alloca( _snd_pcm_sw_params_sizeof() );
+	swparams = (snd_pcm_sw_params_t *)alloca( _snd_pcm_sw_params_sizeof() );
 	if ( swparams == NULL )
 	{
 		Com_Printf( "Error allocating %i bytes of memory for swparams\n", (int)_snd_pcm_sw_params_sizeof() );
@@ -603,9 +603,9 @@ static qboolean setup_ALSA( smode_t mode )
 #endif
 	
 		if ( use_mmap )
-			err = _pthread_create( &thread, NULL, (void*)&thread_proc_mmap, NULL );
+			err = _pthread_create( &thread, NULL, (void *(*)(void *))(void*)&thread_proc_mmap, NULL );
 		else
-			err = _pthread_create( &thread, NULL, (void*)&thread_proc_direct, NULL );
+			err = _pthread_create( &thread, NULL, (void *(*)(void *))(void*)&thread_proc_direct, NULL );
 
 		if ( err != 0 )
 		{
@@ -901,7 +901,7 @@ static void thread_proc_mmap( void )
 			}
 		}
 
-		addr = areas[0].addr;
+		addr = (unsigned char *)areas[0].addr;
 		addr += offset * frame_sz;
 		sz0 = frames * frame_sz;
 
