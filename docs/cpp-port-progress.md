@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: qcommon; next `code/qcommon/cm_test.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: qcommon; next `code/qcommon/cm_trace.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -204,7 +204,7 @@ None assessed yet.
 | `code/qcommon/cm_polylib.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_polylib.o); G4 PASS. |
 | `code/qcommon/cm_polylib.h` | todo | Pending module pass. |
 | `code/qcommon/cm_public.h` | todo | Pending module pass. |
-| `code/qcommon/cm_test.c` | todo | Pending module pass. |
+| `code/qcommon/cm_test.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_test.o); G4 PASS. |
 | `code/qcommon/cm_trace.c` | todo | Pending module pass. |
 | `code/qcommon/cmd.c` | todo | Pending module pass. |
 | `code/qcommon/common.c` | todo | Pending module pass. |
