@@ -480,7 +480,7 @@ Phase 1: next `code/renderer/tr_local.h`. Resume there; do not redo done files. 
 | `code/renderercommon/tr_types.h` | done | T1-T17: 0; unchanged header verified through code/renderercommon/tr_font.c, strict native builds/G2/G3 PASS. |
 | `code/renderercommon/vulkan/vk_platform.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
-| `code/renderercommon/vulkan/vulkan_core.h` | todo | Pending module pass. |
+| `code/renderercommon/vulkan/vulkan_core.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan_win32.h` | todo | Pending module pass. |
 | `code/renderercommon/vulkan/vulkan_xlib.h` | todo | Pending module pass. |
 | `code/renderercommon/vulkan/vulkan_xlib_xrandr.h` | todo | Pending module pass. |
