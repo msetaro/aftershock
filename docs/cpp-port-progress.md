@@ -256,6 +256,8 @@ Phase 1: next `code/renderer/tr_local.h`. Resume there; do not redo done files. 
 
 ## Blocked files
 
+- `code/renderercommon/vulkan/vulkan_win32.h`: Unverified: unchanged generated Khronos Windows header; no MinGW cross-compiler/Windows SDK available.
+
 - `code/client/snd_codec_ogg.c`: G3 fails: const S_OGG_Callbacks changes external D to internal d in C++; no prior extern declaration exists. Restoring const-object external linkage is outside T1-T17. Reverted three T1 casts; source unchanged.
 
 - `code/client/cl_main.c`: At :864 strrchr(const char*arg) assigned to read-only local char*ext_test; adding const is behavior-preserving but outside T8 literal string-constant scope (G8 reviewed). Remaining T1/T2/T3 diagnostics retained; source unchanged.
@@ -481,7 +483,7 @@ Phase 1: next `code/renderer/tr_local.h`. Resume there; do not redo done files. 
 | `code/renderercommon/vulkan/vk_platform.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan_core.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
-| `code/renderercommon/vulkan/vulkan_win32.h` | todo | Pending module pass. |
+| `code/renderercommon/vulkan/vulkan_win32.h` | blocked | Unverified: unchanged generated Khronos Windows header; no MinGW cross-compiler/Windows SDK available. |
 | `code/renderercommon/vulkan/vulkan_xlib.h` | todo | Pending module pass. |
 | `code/renderercommon/vulkan/vulkan_xlib_xrandr.h` | todo | Pending module pass. |
 | `code/renderervk/iqm.h` | todo | Pending module pass. |
