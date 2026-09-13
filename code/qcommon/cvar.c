@@ -1783,7 +1783,7 @@ const char *Cvar_InfoString( int bit, qboolean *truncated )
 			}
 			else
 			{
-				allSet &= Info_SetValueForKey( info, var->name, var->string );
+				allSet = (qboolean)( allSet & Info_SetValueForKey( info, var->name, var->string ) );
 			}
 		}
 	}
@@ -1792,19 +1792,19 @@ const char *Cvar_InfoString( int bit, qboolean *truncated )
 	for ( i = 0; i < vm_count; i++ )
 	{
 		var = vm_vars[ i ];
-		allSet &= Info_SetValueForKey( info, var->name, var->string );
+		allSet = (qboolean)( allSet & Info_SetValueForKey( info, var->name, var->string ) );
 	}
 
 	// add user-created cvars
 	for ( i = 0; i < user_count; i++ )
 	{
 		var = user_vars[ i ];
-		allSet &= Info_SetValueForKey( info, var->name, var->string );
+		allSet = (qboolean)( allSet & Info_SetValueForKey( info, var->name, var->string ) );
 	}
 
 	if ( truncated )
 	{
-		*truncated = !allSet;
+		*truncated = (qboolean)( !allSet );
 	}
 
 	return info;
@@ -1830,12 +1830,12 @@ const char *Cvar_InfoString_Big( int bit, qboolean *truncated )
 	for ( var = cvar_vars; var; var = var->next )
 	{
 		if ( var->name && (var->flags & bit) )
-			allSet &= Info_SetValueForKey_s( info, sizeof( info ), var->name, var->string );
+			allSet = (qboolean)( allSet & Info_SetValueForKey_s( info, sizeof( info ), var->name, var->string ) );
 	}
 
 	if ( truncated )
 	{
-		*truncated = !allSet;
+		*truncated = (qboolean)( !allSet );
 	}
 
 	return info;
