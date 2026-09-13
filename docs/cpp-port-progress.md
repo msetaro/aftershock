@@ -46,6 +46,8 @@ Phase 0: verify gate negative controls, finish formatter/tidy/CI and notes; inve
 
 ## Harness status
 
+- CI: removed windows-msys32; added non-failing ubuntu-cxx-probe with compiler error count, make status, and log artifact. Dependent archive jobs now use existing windows-msys gcc artifacts; release output filenames remain the same. Existing C CI legs retained.
+
 - `.clang-tidy`: only signed-char-misuse, narrowing-conversions, suspicious-string-compare, and portability-simd-intrinsics; changed-line use only, no modernization checks.
 
 - `tools/port/selfcheck.sh`: PASS, positive controls and deliberate layout-offset, symbol-linkage, and instruction mutations all detected.
