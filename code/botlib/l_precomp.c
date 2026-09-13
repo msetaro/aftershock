@@ -1341,7 +1341,7 @@ static define_t *PC_DefineFromString(const char *string)
 	Q_strncpyz( src.filename, "*extern", sizeof( src.filename ) );
 	src.scriptstack = script;
 #if DEFINEHASHING
-	src.definehash = GetClearedMemory(DEFINEHASHSIZE * sizeof(define_t *));
+	src.definehash = (define_t **) GetClearedMemory(DEFINEHASHSIZE * sizeof(define_t *));
 #endif //DEFINEHASHING
 	//create a define from the source
 	res = PC_Directive_define(&src);
@@ -1621,7 +1621,7 @@ static int PC_Directive_endif(source_t *source)
 //============================================================================
 typedef struct operator_s
 {
-	int operator;
+	int op;
 	int priority;
 	int parentheses;
 	struct operator_s *prev, *next;
@@ -1927,7 +1927,7 @@ static int PC_EvaluateTokens(source_t *source, token_t *tokens, int *intvalue, f
 				{
 					//o = (operator_t *) GetClearedMemory(sizeof(operator_t));
 					AllocOperator(o);
-					o->operator = t->subtype;
+					o->op = t->subtype;
 					o->priority = PC_OperatorPriority(t->subtype);
 					o->parentheses = parentheses;
 					o->next = NULL;
@@ -1982,8 +1982,8 @@ static int PC_EvaluateTokens(source_t *source, token_t *tokens, int *intvalue, f
 				if (o->priority >= o->next->priority) break;
 			} //end if
 			//if the arity of the operator isn't equal to 1
-			if (o->operator != P_LOGIC_NOT
-					&& o->operator != P_BIN_NOT) v = v->next;
+			if (o->op != P_LOGIC_NOT
+					&& o->op != P_BIN_NOT) v = v->next;
 			//if there's no value or no next value
 			if (!v)
 			{
@@ -1998,16 +1998,16 @@ static int PC_EvaluateTokens(source_t *source, token_t *tokens, int *intvalue, f
 #ifdef DEBUG_EVAL
 		if (integer)
 		{
-			Log_Write("operator %s, value1 = %d", PunctuationFromNum(source->scriptstack, o->operator), v1->intvalue);
+			Log_Write("operator %s, value1 = %d", PunctuationFromNum(source->scriptstack, o->op), v1->intvalue);
 			if (v2) Log_Write("value2 = %d", v2->intvalue);
 		} //end if
 		else
 		{
-			Log_Write("operator %s, value1 = %f", PunctuationFromNum(source->scriptstack, o->operator), v1->floatvalue);
+			Log_Write("operator %s, value1 = %f", PunctuationFromNum(source->scriptstack, o->op), v1->floatvalue);
 			if (v2) Log_Write("value2 = %f", v2->floatvalue);
 		} //end else
 #endif //DEBUG_EVAL
-		switch(o->operator)
+		switch(o->op)
 		{
 			case P_LOGIC_NOT:		v1->intvalue = !v1->intvalue;
 									v1->floatvalue = !v1->floatvalue; break;
@@ -2099,11 +2099,11 @@ static int PC_EvaluateTokens(source_t *source, token_t *tokens, int *intvalue, f
 #endif //DEBUG_EVAL
 		if (error) break;
 		//if not an operator with arity 1
-		if (o->operator != P_LOGIC_NOT
-				&& o->operator != P_BIN_NOT)
+		if (o->op != P_LOGIC_NOT
+				&& o->op != P_BIN_NOT)
 		{
 			//remove the second value if not question mark operator
-			if (o->operator != P_QUESTIONMARK) v = v->next;
+			if (o->op != P_QUESTIONMARK) v = v->next;
 			//
 			if (v)
 			{
@@ -3030,7 +3030,7 @@ source_t *LoadSourceFile(const char *filename)
 	source->skip = 0;
 
 #if DEFINEHASHING
-	source->definehash = GetClearedMemory(DEFINEHASHSIZE * sizeof(define_t *));
+	source->definehash = (define_t **) GetClearedMemory(DEFINEHASHSIZE * sizeof(define_t *));
 #endif //DEFINEHASHING
 	PC_AddGlobalDefinesToSource(source);
 	return source;
@@ -3064,7 +3064,7 @@ source_t *LoadSourceMemory(const char *ptr, int length, const char *name)
 	source->skip = 0;
 
 #if DEFINEHASHING
-	source->definehash = GetClearedMemory(DEFINEHASHSIZE * sizeof(define_t *));
+	source->definehash = (define_t **) GetClearedMemory(DEFINEHASHSIZE * sizeof(define_t *));
 #endif //DEFINEHASHING
 	PC_AddGlobalDefinesToSource(source);
 	return source;
