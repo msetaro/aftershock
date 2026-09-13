@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: qcommon; next `code/server/sv_bot.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: server; next `code/server/sv_bot.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -45,6 +45,8 @@ Phase 1: qcommon; next `code/server/sv_bot.c`. Resume there; do not redo files m
 - Local artifacts: `/tmp/aftershock-cpp-port`; persistent evidence follows in `tools/port/` and this checkpoint.
 
 ## Harness status
+
+- Qcommon assessed completely: 7 blocked source/header entries remain; module is not green. Retained source edits passed G8 review (134 replaced lines across 14 files, 0.425%, through 9277ddcb); later vm_interpreted adds one T1 cast. Full C client/renderers and dedicated builds PASS after 74ee31d9 using the fixed epoch. Native strict release/debug contexts checked; JIT blockers prevent the complete C++ link/runtime. Continuing server per stuck rules.
 
 - `tools/port/math_gate.sh`: standalone reproducible G5 math differential, currently FAIL as recorded under blocked files. It does not modify engine sources.
 
