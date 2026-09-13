@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 0: finish checksum verification of final Makefile, then implement G2/G3/G4 scripts and formatter/tidy/CI configuration.
+Phase 0: verify gate negative controls, finish formatter/tidy/CI and notes; investigate formatter threshold before declaring phase 0 complete.
 
 ## Phases
 
@@ -44,13 +44,21 @@ Phase 0: finish checksum verification of final Makefile, then implement G2/G3/G4
 - Single-object strict C++ builds of `ded/md4.o` and `ded/q_math.o`: PASS. Use `make BUILD_CXX=1 BUILD_DIR=/tmp/aftershock-cpp-port/single /tmp/aftershock-cpp-port/single/release-linux-x86_64/ded/md4.o` (likewise q_math).
 - Local artifacts: `/tmp/aftershock-cpp-port`; persistent evidence follows in `tools/port/` and this checkpoint.
 
+## Harness status
+
+- Makefile: committed, C checksum proof PASS (295 objects), strict single objects PASS; frozen warning counts above.
+- G2/G3 on q_math/md4: PASS. G4 md4 PASS, q_math advisory FAIL retained below.
+- Gate implementation excludes DWARF records by declaration provenance (engine-only) and fails on missing DWARF/empty engine layouts. Symbols retain nm kind/linkage; only labels and compiler clone numbering normalize. Assembly retains instructions/constants.
+- Initial clang-format whole-file trial: cvar.c 549/2141 changed lines (25.642%); cl_main.c 982/5120 (19.180%). Threshold unmet; source files untouched. Surrounding source mixes styles that a global formatter cannot preserve exactly. Further tuning pending; this is not a phase-0 pass.
+
 ## Deviations
 
 None.
 
 ## Codegen differences
 
-None measured yet.
+- `q_math.c`: G4 FAIL (advisory) on unchanged source, gcc/g++ 15.2, actual release Makefile flags plus `-O2 -S`. C uses double `sincos`, C++ selects `sincosf`; additional overload-related instruction differences exist. This is a potential semantic difference, not merely labels. Full diff: `tools/port/evidence/q_math.codegen.diff` (pending commit). No floating-point expression was changed. Phase 1 must assess this before marking the file done; a double-argument cast is not in T1-T17 and must not be silently introduced.
+- `md4.c`: G4 PASS, normalized assembly identical.
 
 ## Blocked files
 
