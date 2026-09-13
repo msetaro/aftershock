@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: qcommon, starting cm_load.c. Harness six artifacts exist and q_math/md4 gates ran; formatting threshold deviation remains explicit. Continue per-file independent checks, do not declare final completion or rename while any limitation/block remains.
+Phase 1: qcommon, next cm_patch.c. cm_load.c is committed and must not be redone. Harness six artifacts exist and q_math/md4 gates ran; formatting threshold deviation remains explicit. Continue per-file independent checks, do not declare final completion or rename while any limitation/block remains.
 
 ## Phases
 
@@ -79,6 +79,8 @@ Phase 1: qcommon, starting cm_load.c. Harness six artifacts exist and q_math/md4
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
 
 ## Codegen differences
+
+- `cm_load.c`: G4 advisory FAIL; compiler function-name string placement and resulting label/section differences. Full diff: `tools/port/evidence/cm_load.codegen.diff.gz` (`gzip -dc` to inspect). C SHA256 unchanged; G2/G3 PASS. Reproduce with `python3 tools/port/compile_pair.py ded/cm_load.o /tmp/aftershock-cpp-port/cm_load`, then each `tools/port/*_gate.sh` on the emitted `.c.o/.cxx.o` (G2/G3) or `.c.s/.cxx.s` (G4). 28 T1 casts, 28/1059 changed lines, no floating-point expression changed.
 
 - `q_math.c`: G4 FAIL (advisory) on unchanged source, gcc/g++ 15.2, actual release Makefile flags plus `-O2 -S`. C uses double `sincos`, C++ selects `sincosf`; additional overload-related instruction differences exist. This is a potential semantic difference, not merely labels. Full diff: `tools/port/evidence/q_math.codegen.diff`. No floating-point expression was changed. Phase 1 must assess this before marking the file done; a double-argument cast is not in T1-T17 and must not be silently introduced.
 - The full q_math G4 diff is committed without engine changes and must remain visible to human review.
@@ -191,7 +193,7 @@ None assessed yet.
 | `code/client/snd_wavelet.c` | todo | Pending module pass. |
 | `code/game/bg_public.h` | todo | Pending module pass. |
 | `code/game/g_public.h` | todo | Pending module pass. |
-| `code/qcommon/cm_load.c` | todo | Pending module pass. |
+| `code/qcommon/cm_load.c` | done | T1: 28; native ded C SHA256 unchanged (df42e0cabff475c22ebf8383e443cfe34d558abf817baf6f5cd8ad0c96700017); strict C++/G2/G3 PASS; G4 advisory diff retained. |
 | `code/qcommon/cm_local.h` | todo | Pending module pass. |
 | `code/qcommon/cm_patch.c` | todo | Pending module pass. |
 | `code/qcommon/cm_patch.h` | todo | Pending module pass. |
