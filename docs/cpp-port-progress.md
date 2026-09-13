@@ -11,7 +11,7 @@ Phase 1: next `code/unix/linux_glimp.c`. Resume there; do not redo done files. B
 - [ ] Phase 0: harness artifacts/checksum/gate controls/CI/notes complete; formatting <3% requirement unmet (DEVIATION recorded)
 - [ ] Phase 1: qcommon
 - [ ] Phase 1: server
-- [ ] Phase 1: botlib
+- [x] Phase 1: botlib (native per-file compilation/G2/G3 complete; integrated runtime and final matrix pending)
 - [ ] Phase 1: unix + sdl
 - [ ] Phase 1: client
 - [ ] Phase 1: renderercommon
@@ -45,6 +45,9 @@ Phase 1: next `code/unix/linux_glimp.c`. Resume there; do not redo done files. B
 - Local artifacts: `/tmp/aftershock-cpp-port`; persistent evidence follows in `tools/port/` and this checkpoint.
 
 ## Harness status
+
+- Botlib: all 28 native source files and 34 headers assessed; strict release/debug client/ded, C SHA256 and G2/G3 PASS per file; G4 advisory diffs retained. Full default/ded C PASS. G8 passes retained casts/keyword rename (37 replaced lines across 8 files including final be_ai_move T1). Integrated C++ runtime remains blocked by qcommon/server; no full-engine equivalence claim.
+- Unix/non-SDL baseline captured before any platform-source edits: 298 C objects, `SOURCE_DATE_EPOCH=1789257600 make -j20 USE_SDL=0 BUILD_DIR=/tmp/aftershock-cpp-port/oracle-nosdl`; manifest `tools/port/evidence/nosdl-c.sha256`. Non-SDL per-file checks use this oracle and pass USE_SDL=0 to compile_pair.py.
 
 - Runtime reproducibility blocker confirmed: two executions of the same rebuilt C server with the exact requested q3dm17/two-bot/wait-300 arguments both exit 0 but differ in Item events, beyond timestamps/PIDs. Persistent diff: `tools/port/evidence/c-runtime-repeat.diff`. C seeds use time(NULL), Com_Milliseconds(), and GAME_INIT receives Com_Milliseconds() (common:5055, sv_init:529, sv_game:1061). Therefore the literal console-diff criterion is nondeterministic even before C++; no engine seed/timing behavior changed. C++ runtime still blocked by build failures; deterministic harness control remains needed for a meaningful comparison.
 - Suppression check: same sanitizer baseline with `ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=suppressions=$PWD/tools/port/ubsan.supp` exits 0 with no runtime-error or sanitizer diagnostic. Log: `/tmp/aftershock-cpp-port/runtime-sanitize-suppressed.log`. These two function-scoped alignment suppressions are effective on the tested C smoke.
