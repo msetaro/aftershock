@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/client/keys.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/client/snd_codec.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -374,7 +374,7 @@ Phase 1: next `code/client/keys.h`. Resume there; do not redo done files. Blocke
 | `code/client/cl_ui.c` | done | T1: 80, T2: 1, T3: 8; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_ui.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/client.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/keycodes.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
-| `code/client/keys.h` | todo | Pending module pass. |
+| `code/client/keys.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/snd_adpcm.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_adpcm.o, default); G4 PASS. |
 | `code/client/snd_codec.c` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_codec.o, default); G4 PASS. |
 | `code/client/snd_codec.h` | todo | Pending module pass. |
