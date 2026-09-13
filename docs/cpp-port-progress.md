@@ -128,6 +128,8 @@ Phase 1: qcommon; next `code/qcommon/vm_interpreted.c`. Resume there; do not red
 
 ## Blocked files
 
+- `code/qcommon/vm_aarch64.c`: Native syntax probe: :1583/:2290 need T1; :2348 __clear_cache undeclared. No aarch64 cross compiler/sysroot verified; cannot prove C object equivalence or target gates. Unmodified, target unverified.
+
 - `code/qcommon/vm_x86.c`: At :3498 mov_rx_ptr(R_SYSCALL, vm->systemCall) converts syscall_t function pointer to const void*. T1 covers the reverse direction only; no catalog remedy. A T3 cast is also needed at :4323. No source edit retained.
 
 - `code/qcommon/vm_interpreted.c`: VM_Indent:27 initializes char * from a string literal and returns char *. No public prototype or callers exist; changing its return type or casting its initializer is outside the literal wording of T8 (pointer variables/parameters, public-signature call-site exception). Also T1 needed at :129. No source edit retained.
@@ -274,7 +276,7 @@ Phase 1: qcommon; next `code/qcommon/vm_interpreted.c`. Resume there; do not red
 | `code/qcommon/unzip.c` | done | T1: 10, T14: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unzip.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/unzip.h` | todo | Pending module pass. |
 | `code/qcommon/vm.c` | done | T1: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/vm_aarch64.c` | todo | Pending module pass. |
+| `code/qcommon/vm_aarch64.c` | blocked | Native syntax probe: :1583/:2290 need T1; :2348 __clear_cache undeclared. No aarch64 cross compiler/sysroot verified; cannot prove C object equivalence or target gates. Unmodified, target unverified. |
 | `code/qcommon/vm_armv7l.c` | todo | Pending module pass. |
 | `code/qcommon/vm_interpreted.c` | blocked | VM_Indent:27 initializes char * from a string literal and returns char *. No public prototype or callers exist; changing its return type or casting its initializer is outside the literal wording of T8 (pointer variables/parameters, public-signature call-site exception). Also T1 needed at :129. No source edit retained. |
 | `code/qcommon/vm_local.h` | todo | Pending module pass. |
