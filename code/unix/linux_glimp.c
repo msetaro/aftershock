@@ -551,7 +551,7 @@ static qboolean X11_PendingInput( void )
 		FD_SET( x11_fd, &fdset );
 		if ( select( x11_fd+1, &fdset, NULL, NULL, &zero_time ) == 1 )
 		{
-			return( XPending( dpy ) );
+			return( (qboolean)XPending( dpy ) );
 		}
 	}
 
@@ -1009,7 +1009,7 @@ IN_MouseActive
 */
 qboolean IN_MouseActive( void )
 {
-	return ( in_nograb->integer == 0 && mouse_active );
+	return (qboolean)( in_nograb->integer == 0 && mouse_active );
 }
 
 
@@ -1266,7 +1266,7 @@ static rserr_t GLW_StartDriverAndSetMode( int mode, const char *modeFS, qboolean
 		fullscreen = qfalse;
 	}
 
-	err = GLW_SetMode( mode, modeFS, fullscreen, vulkan );
+	err = (rserr_t)GLW_SetMode( mode, modeFS, fullscreen, vulkan );
 
 	switch ( err )
 	{
@@ -1408,12 +1408,12 @@ static XVisualInfo *GL_SelectVisual( int colorbits, int depthbits, int stencilbi
 static XVisualInfo *VK_SelectVisual( int colorbits, int depthbits, int stencilbits, glconfig_t *config )
 {
 	static XVisualInfo visinfo;
-	XVisualInfo template;
+	XVisualInfo visualTemplate;
 	XVisualInfo *list;
 	int i, nvisuals;
 
-	template.screen = scrnum;
-	list = XGetVisualInfo( dpy, VisualScreenMask, &template, &nvisuals );
+	visualTemplate.screen = scrnum;
+	list = XGetVisualInfo( dpy, VisualScreenMask, &visualTemplate, &nvisuals );
 
 	for ( i = 0; i < nvisuals; i++ )
 	{
@@ -1797,7 +1797,7 @@ static qboolean GLW_LoadOpenGL( const char *name )
 	if ( QGL_Init( name ) )
 	{
 		rserr_t err;
-		fullscreen = (r_fullscreen->integer != 0);
+		fullscreen = (qboolean)(r_fullscreen->integer != 0);
 
 		// create the window and set up the context
 		err = GLW_StartDriverAndSetMode( r_mode->integer, r_modeFullscreen->string, fullscreen, qfalse /* vulkan */ );
@@ -1886,7 +1886,7 @@ void GLimp_Init( glconfig_t *config )
 	config->hardwareType = GLHW_GENERIC;
 
 	// optional
-#define GLE( ret, name, ... ) q##name = GL_GetProcAddress( XSTRING( name ) );
+#define GLE( ret, name, ... ) q##name = (ret ( APIENTRY * )( __VA_ARGS__ ))GL_GetProcAddress( XSTRING( name ) );
 	QGL_Swp_PROCS;
 #undef GLE
 
@@ -1954,7 +1954,7 @@ static qboolean GLW_LoadVulkan( void )
 	if ( QVK_Init() )
 	{
 		rserr_t err;
-		qboolean fullscreen = (r_fullscreen->integer != 0);
+		qboolean fullscreen = (qboolean)(r_fullscreen->integer != 0);
 
 		// create the window and set up the context
 		err = GLW_StartDriverAndSetMode( r_mode->integer, r_modeFullscreen->string, fullscreen, qtrue /* vulkan */ );
@@ -2137,7 +2137,7 @@ char *Sys_GetClipboardData( void )
 			&type, &format, &nitems, &rem, &data ) == 0 ) {
 			if ( format == 8 ) {
 				if ( nitems > 0 ) {
-					buf = Z_Malloc( nitems + 1 );
+					buf = (char *)Z_Malloc( nitems + 1 );
 					Q_strncpyz( buf, (char*)data, nitems + 1 );
 					strtok( buf, "\n\r\b" );
 					return buf;
