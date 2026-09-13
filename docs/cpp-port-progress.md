@@ -46,6 +46,8 @@ Phase 1: client; next `code/client/snd_dma.c`. Resume there; do not redo files m
 
 ## Harness status
 
+- G7 early clang++21 syntax probe on 82 completed native source files: 79 PASS, 3 fail (be_ai_goal.c, be_ai_weap.c, msg.c) on size_t field-offset expressions narrowing into int brace-initializer members. T16 corrections queued after current client source pass, before final module verification; prior done status records GCC/native G2/G3 only. Log `/tmp/aftershock-cpp-port/clang-probe.log`; summary `/tmp/aftershock-cpp-port/clang-summary.log`; probe uses each saved Makefile C++ command with compiler replaced by clang++ and -c/-o replaced by -fsyntax-only. This is a syntax probe, not full clang build.
+
 - Unix/SDL assessed: successful files have unchanged C hashes, strict native release/debug and G2/G3 PASS; six source/header blockers remain, including linux_signals deferred to renderer T4. Default SDL C, dedicated C and non-SDL C full builds PASS (`/tmp/aftershock-cpp-port/platform-{full,ded,nosdl}-c.log`). Dormant joystick explicitly checked with its feature flag. Logged preexisting ALSA pthread callback signature mismatch; no fix. Next client.
 
 - Dormant linux_joystick.c has a generic Make object rule but is absent from linked object lists. Verify its real body using USE_SDL=0 CFLAGS=-DUSE_JOYSTICK; source equals base byte-for-byte. Added this explicit-feature C baseline object to nosdl-c.sha256 (298 standard +1 dormant). No feature enabled in supported builds.
