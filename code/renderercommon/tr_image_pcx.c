@@ -109,7 +109,7 @@ void R_LoadPCX ( const char *filename, byte **pic, int *width, int *height)
 		return;
 	}
 
-	pix = pic8 = ri.Malloc ( size );
+	pix = pic8 = (byte *)ri.Malloc ( size );
 
 	raw.b = pcx->data;
 	// FIXME: should use bytes_per_line but original q3 didn't do that either
@@ -153,7 +153,7 @@ void R_LoadPCX ( const char *filename, byte **pic, int *width, int *height)
 
 	palette = end-768;
 
-	pix = out = ri.Malloc(4 * size );
+	pix = out = (byte *)ri.Malloc(4 * size );
 	for (i = 0 ; i < size ; i++)
 	{
 		unsigned char p = pic8[i];
