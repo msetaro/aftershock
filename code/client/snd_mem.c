@@ -104,7 +104,7 @@ void SND_setup( void )
 	}
 
 	if ( buffer == NULL ) {
-		buffer = malloc( sz );
+		buffer = (sndBuffer *)malloc( sz );
 	}
 
 	// -EC-
@@ -119,7 +119,7 @@ void SND_setup( void )
 	// allocate the stack based hunk allocator
 	// -EC-
 	if ( sfxScratchBuffer == NULL ) {
-		sfxScratchBuffer = malloc( sz );	//Hunk_Alloc(SND_CHUNK_SIZE * sizeof(short) * 4);
+		sfxScratchBuffer = (short int *)malloc( sz );	//Hunk_Alloc(SND_CHUNK_SIZE * sizeof(short) * 4);
 	}
 
 	// clear scratch buffer -EC-
@@ -274,7 +274,7 @@ qboolean S_LoadSound( sfx_t *sfx )
 //	int		size;
 
 	// load it in
-	data = S_CodecLoad(sfx->soundName, &info);
+	data = (byte *)S_CodecLoad(sfx->soundName, &info);
 	if(!data)
 		return qfalse;
 
@@ -286,7 +286,7 @@ qboolean S_LoadSound( sfx_t *sfx )
 		Com_DPrintf(S_COLOR_YELLOW "WARNING: %s is not a 22kHz audio file\n", sfx->soundName);
 	}
 
-	samples = Hunk_AllocateTempMemory(info.samples * sizeof(short) * 2);
+	samples = (short int *)Hunk_AllocateTempMemory(info.samples * sizeof(short) * 2);
 
 	sfx->lastTimeUsed = s_soundtime + 1; // Com_Milliseconds()+1
 
