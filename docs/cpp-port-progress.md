@@ -46,6 +46,8 @@ Phase 1: qcommon; next `code/qcommon/q_shared.c`. Resume there; do not redo file
 
 ## Harness status
 
+- `tools/port/math_gate.sh`: standalone reproducible G5 math differential, currently FAIL as recorded under blocked files. It does not modify engine sources.
+
 - md5 has a nested union type declaration repeated in C++ pahole output. Use pahole `-M` (data members only) to compare actual stored layout, retaining embedded union offsets and sizes; md5 is added to gate controls.
 
 - G3 local-static numbering: C emits cv.N while C++ mangles function scope with no suffix. Strip compiler numeric suffixes on both sides and retain the complete multiset and nm linkage kinds; source locals remain counted.
