@@ -250,7 +250,7 @@ Phase 1: qcommon; next `code/qcommon/cm_local.h`. Resume there; do not redo file
 | `code/qcommon/cm_load.c` | done | T1: 28; native ded C SHA256 unchanged (df42e0cabff475c22ebf8383e443cfe34d558abf817baf6f5cd8ad0c96700017); strict C++/G2/G3 PASS; G4 advisory diff retained. |
 | `code/qcommon/cm_local.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/cm_patch.c` | done | T1: 3, T2: 6, T3: 3; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_patch.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/cm_patch.h` | todo | Pending module pass. |
+| `code/qcommon/cm_patch.h` | done | T1-T17: 0; unchanged header checked via cm_patch.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/cm_polylib.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_polylib.o); G4 PASS. |
 | `code/qcommon/cm_polylib.h` | todo | Pending module pass. |
 | `code/qcommon/cm_public.h` | todo | Pending module pass. |
