@@ -271,7 +271,7 @@ static void Field_KeyDownEvent( field_t *edit, int key ) {
 			break;
 
 		case K_INS:
-			key_overstrikeMode = !key_overstrikeMode;
+			key_overstrikeMode = (qboolean)( !key_overstrikeMode );
 			break;
 
 		default:
