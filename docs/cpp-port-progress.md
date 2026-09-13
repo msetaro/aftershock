@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: botlib; next `code/botlib/be_ai_move.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: next `code/botlib/be_ai_weap.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -182,6 +182,8 @@ Phase 1: botlib; next `code/botlib/be_ai_move.c`. Resume there; do not redo file
 
 ## Blocked files
 
+- `code/botlib/be_ai_move.c`: Strict C++ emits 24 -Wparentheses errors for bot_moveresult_t_cleared in be_ai_move.h:103 (parenthesized declaration name); removing these parentheses is outside T1-T17 and class is not frozen. One T1 allocation conversion also remains. Left unchanged.
+
 - `code/server/tlds.h`: Unchanged initializer fragment; sole consumer sv_client.c is blocked, so complete-object C++/G2/G3 verification is unavailable.
 
 - `code/server/sv_rankings.c`: At :25 missing rankings/1.0/gr/grapi.h SDK (legacy backslash include); SDK absent and source has no Makefile object rule. Cannot compile either C oracle or C++ or run gates; left unchanged.
@@ -248,7 +250,7 @@ Phase 1: botlib; next `code/botlib/be_ai_move.c`. Resume there; do not redo file
 | `code/botlib/be_ai_gen.h` | todo | Pending module pass. |
 | `code/botlib/be_ai_goal.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_goal.o); G4 PASS. |
 | `code/botlib/be_ai_goal.h` | todo | Pending module pass. |
-| `code/botlib/be_ai_move.c` | todo | Pending module pass. |
+| `code/botlib/be_ai_move.c` | blocked | Strict C++ emits 24 -Wparentheses errors for bot_moveresult_t_cleared in be_ai_move.h:103 (parenthesized declaration name); removing these parentheses is outside T1-T17 and class is not frozen. One T1 allocation conversion also remains. Left unchanged. |
 | `code/botlib/be_ai_move.h` | todo | Pending module pass. |
 | `code/botlib/be_ai_weap.c` | todo | Pending module pass. |
 | `code/botlib/be_ai_weap.h` | todo | Pending module pass. |
