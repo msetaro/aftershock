@@ -389,7 +389,7 @@ Phase 1: next `code/renderercommon/tr_font.c`. Resume there; do not redo done fi
 | `code/client/snd_mix.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mix.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/snd_public.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/snd_wavelet.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_wavelet.o, default); G4 PASS. |
-| `code/game/bg_public.h` | todo | Pending module pass. |
+| `code/game/bg_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through sv_game.c actual dependency and native strict builds/G2/G3. |
 | `code/game/g_public.h` | todo | Pending module pass. |
 | `code/qcommon/cm_load.c` | done | T1: 28; native ded C SHA256 unchanged (df42e0cabff475c22ebf8383e443cfe34d558abf817baf6f5cd8ad0c96700017); strict C++/G2/G3 PASS; G4 advisory diff retained. |
 | `code/qcommon/cm_local.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
