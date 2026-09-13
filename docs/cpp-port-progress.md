@@ -46,6 +46,8 @@ Phase 1: qcommon, next cm_patch.c. cm_load.c is committed and must not be redone
 
 ## Harness status
 
+- G3 local-static numbering: C emits cv.N while C++ mangles function scope with no suffix. Strip compiler numeric suffixes on both sides and retain the complete multiset and nm linkage kinds; source locals remain counted.
+
 - cm_load exposed compiler-generated C `__func__.N` arrays versus C++ `.LC` strings in G3. Ignore compiler function-name string symbols symmetrically with existing compiler labels; G4 still compares their contents. This is harness normalization, not a source change.
 
 - C dedicated smoke: exit 0 with requested q3dm17/Sarge/Major/wait-300 command. C ASan/UBSan smoke: exit 0, no ASan error, three known unaligned loads (unzip.c:1523/:1524, vm.c:1181). `tools/port/ubsan.supp` seeds function-scoped alignment exclusions; verification pending. No source fix.

@@ -15,7 +15,7 @@ def plain_symbol(name):
     name = re.sub(r'\(.*\)', '', name)
     name = re.sub(r' \[clone ([^]]+)\]', r'\1', name)
     # GCC numbers local static objects and optimization clones per TU.
-    return re.sub(r'\.(\d+)(?=\.|$)', '.N', name)
+    return re.sub(r'\.(\d+)(?=\.|$)', '', name)
 
 
 def layout(path):
