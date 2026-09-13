@@ -46,6 +46,8 @@ Phase 1: qcommon, starting cm_load.c. Harness six artifacts exist and q_math/md4
 
 ## Harness status
 
+- cm_load exposed compiler-generated C `__func__.N` arrays versus C++ `.LC` strings in G3. Ignore compiler function-name string symbols symmetrically with existing compiler labels; G4 still compares their contents. This is harness normalization, not a source change.
+
 - C dedicated smoke: exit 0 with requested q3dm17/Sarge/Major/wait-300 command. C ASan/UBSan smoke: exit 0, no ASan error, three known unaligned loads (unzip.c:1523/:1524, vm.c:1181). `tools/port/ubsan.supp` seeds function-scoped alignment exclusions; verification pending. No source fix.
 - Sanitizer reproduction: `SOURCE_DATE_EPOCH=1789257600 make -j$(nproc) BUILD_CLIENT=0 BUILD_DIR=/tmp/aftershock-cpp-port/sanitize CFLAGS='-fsanitize=address,undefined -fno-omit-frame-pointer' LDFLAGS='-fsanitize=address,undefined -lm -ldl'`; run its `release-linux-x86_64/quake3e.ded.x64 +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17 +addbot sarge 3 +addbot major 3 +wait 300 +quit` with `ASAN_OPTIONS=detect_leaks=0`. Logs: `/tmp/aftershock-cpp-port/{sanitize-build,runtime-sanitize,runtime-c}.log`.
 - G8: reviewer verified checksum proof, layout positive/negative controls, symbol boundary correction, and CI references. Direct renderer2-target issue fixed in 7e34499d and rechecked locally. Artifact compiler currently native Linux x86_64; other architectures must not be marked verified by it.

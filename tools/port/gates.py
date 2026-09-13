@@ -44,8 +44,8 @@ def symbols(path):
     for line in run('nm', '--defined-only', '--format=posix', path).splitlines():
         fields = line.split()
         name, kind = fields[:2]
-        if name.startswith('.L') or kind in ('a', 'N'):
-            continue  # compiler labels and debug/file metadata
+        if name.startswith(('.L', '__func__.', '__FUNCTION__.', '__PRETTY_FUNCTION__.')) or kind in ('a', 'N'):
+            continue  # compiler labels, function-name strings, debug/file metadata
         demangled = run('c++filt', name).strip()
         # Local statics have function scope in C++ demangling only.
         normalized = plain_symbol(demangled).split('::')[-1]
