@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: unix; next `code/unix/linux_joystick.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: unix; next `code/unix/linux_qgl.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -107,6 +107,8 @@ Phase 1: unix; next `code/unix/linux_joystick.c`. Resume there; do not redo file
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
 
 ## Codegen differences
+
+- `code/unix/linux_joystick.c`: G4 advisory FAIL; full diff `tools/port/evidence/linux_joystick.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/linux_joystick.o /tmp/aftershock-cpp-port/linux_joystick USE_SDL=0 CFLAGS=-DUSE_JOYSTICK` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/unix/linux_glimp.c`: G4 advisory FAIL; full diff `tools/port/evidence/linux_glimp.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/linux_glimp.o /tmp/aftershock-cpp-port/linux_glimp USE_SDL=0` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -467,7 +469,7 @@ Phase 1: unix; next `code/unix/linux_joystick.c`. Resume there; do not redo file
 | `code/server/tlds.h` | blocked | Unchanged initializer fragment; sole consumer sv_client.c is blocked, so complete-object C++/G2/G3 verification is unavailable. |
 | `code/ui/ui_public.h` | todo | Pending module pass. |
 | `code/unix/linux_glimp.c` | done | T1: 2 sites (4 expanded casts), T2: 3, T3: 2, T4: 1 identifier (3 occurrences); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_glimp.o, nosdl); G4 advisory FAIL, full diff retained. |
-| `code/unix/linux_joystick.c` | todo | Pending module pass. |
+| `code/unix/linux_joystick.c` | done | T1-T17: 0; dormant USE_JOYSTICK body explicitly compiled; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_joystick.o, nosdl); G4 advisory FAIL, full diff retained. |
 | `code/unix/linux_local.h` | todo | Pending module pass. |
 | `code/unix/linux_qgl.c` | todo | Pending module pass. |
 | `code/unix/linux_qvk.c` | todo | Pending module pass. |
