@@ -394,7 +394,7 @@ FS_Initialized
 ==============
 */
 qboolean FS_Initialized( void ) {
-	return ( fs_searchpaths != NULL );
+	return (qboolean)( fs_searchpaths != NULL );
 }
 
 
@@ -677,7 +677,7 @@ static void FS_CopyFile( const char *fromOSPath, const char *toOSPath ) {
 
 	// we are using direct malloc instead of Z_Malloc here, so it
 	// probably won't work on a mac... It's only for developers anyway...
-	buf = malloc( len );
+	buf = (byte *)malloc( len );
 	if ( !buf ) {
 		fclose( f );
 		Com_Error( ERR_FATAL, "Memory alloc error in FS_Copyfiles()\n" );
@@ -1419,7 +1419,7 @@ static qboolean FS_IsExt( const char *filename, const char *ext, size_t namelen 
 
 	filename += namelen - extlen;
 
-	return !Q_stricmp( filename, ext );
+	return (qboolean)( !Q_stricmp( filename, ext ) );
 }
 
 
@@ -1548,14 +1548,14 @@ static int FS_OpenFileInPak( fileHandle_t *file, pack_t *pak, fileInPack_t *pakF
 
 	if ( uniqueFILE ) {
 		// open a new file on the pakfile
-		temp = unzReOpen( pak->pakFilename, pak->handle );
+		temp = (FILE *)unzReOpen( pak->pakFilename, pak->handle );
 		if ( temp == NULL ) {
 			Com_Printf( S_COLOR_RED "Couldn't reopen %s", pak->pakFilename );
 			*file = FS_INVALID_HANDLE;
 			return -1;
 		}
 	} else {
-		temp = pak->handle;
+		temp = (FILE *)pak->handle;
 	}
 
 	*file = FS_HandleForFile();
@@ -2205,7 +2205,7 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 				return len;
 			}
 
-			buf = Hunk_AllocateTempMemory(len+1);
+			buf = (byte *)Hunk_AllocateTempMemory(len+1);
 			*buffer = buf;
 
 			r = FS_Read( buf, len, com_journalDataFile );
@@ -2251,7 +2251,7 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 		return len;
 	}
 
-	buf = Hunk_AllocateTempMemory( len + 1 );
+	buf = (byte *)Hunk_AllocateTempMemory( len + 1 );
 
 	if ( FS_Read( buf, len, h ) != len ) {
 		Hunk_FreeTempMemory( buf );
@@ -2779,7 +2779,7 @@ static qboolean FS_LoadPakFromFile( FILE *f )
 	size += pakBaseLen;
 	size += pk.numHeaderLongs * sizeof( pack->headerLongs[0] );
 
-	pack = Z_TagMalloc( size, TAG_PACK );
+	pack = (pack_t *)Z_TagMalloc( size, TAG_PACK );
 	Com_Memset( pack, 0, size );
 
 	pack->mtime = pk.mtime;
@@ -3100,7 +3100,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile )
 #ifdef USE_PK3_CACHE
 	size += ( filecount + 1 ) * sizeof( fs_headerLongs[0] );
 #endif
-	pack = Z_TagMalloc( size, TAG_PACK );
+	pack = (pack_t *)Z_TagMalloc( size, TAG_PACK );
 	Com_Memset( pack, 0, size );
 
 	pack->handle = uf;
@@ -3316,7 +3316,7 @@ static int FS_ReturnPath( const char *zname, char *zpath, int *depth ) {
 char *FS_CopyString( const char *in ) {
 	char *out;
 	//out = S_Malloc( strlen( in ) + 1 );
-	out = Z_Malloc( strlen( in ) + 1 );
+	out = (char *)Z_Malloc( strlen( in ) + 1 );
 	strcpy( out, in );
 	return out;
 }
@@ -3536,7 +3536,7 @@ static char **FS_ListFilteredFiles( const char *path, const char *extension, con
 		return NULL;
 	}
 
-	listCopy = Z_Malloc( ( nfiles + 1 ) * sizeof( listCopy[0] ) );
+	listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( listCopy[0] ) );
 	for ( i = 0; i < nfiles; i++ ) {
 		listCopy[i] = list[i];
 	}
@@ -3656,7 +3656,7 @@ static char** FS_ConcatenateFileLists( char **list0, char **list1 )
 	totalLength += Sys_CountFileList( list1 );
 
 	/* Create new list. */
-	dst = cat = Z_Malloc( ( totalLength + 1 ) * sizeof( char* ) );
+	dst = cat = (char **)Z_Malloc( ( totalLength + 1 ) * sizeof( char* ) );
 
 	/* Copy over lists. */
 	if ( list0 )
@@ -4215,7 +4215,7 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 	dir_len = PAD( dir_len, sizeof( int ) );
 	len = sizeof( *search ) + sizeof( *search->dir ) + path_len + dir_len;
 
-	search = Z_TagMalloc( len, TAG_SEARCH_PATH );
+	search = (searchpath_t *)Z_TagMalloc( len, TAG_SEARCH_PATH );
 	Com_Memset( search, 0, len );
 	search->dir = (directory_t*)( search + 1 );
 	search->dir->path = (char*)( search->dir + 1 );
@@ -4295,7 +4295,7 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 			fs_packFiles += pak->numfiles;
 			fs_packCount++;
 
-			search = Z_TagMalloc( sizeof( *search ), TAG_SEARCH_PACK );
+			search = (searchpath_t *)Z_TagMalloc( sizeof( *search ), TAG_SEARCH_PACK );
 			Com_Memset( search, 0, sizeof( *search ) );
 			search->pack = pak;
 
@@ -4321,7 +4321,7 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 			dir_len = PAD( len + 1, sizeof( int ) );
 			len = sizeof( *search ) + sizeof( *search->dir ) + path_len + dir_len;
 
-			search = Z_TagMalloc( len, TAG_SEARCH_DIR );
+			search = (searchpath_t *)Z_TagMalloc( len, TAG_SEARCH_DIR );
 			Com_Memset( search, 0, len );
 			search->dir = (directory_t*)(search + 1);
 			search->dir->path = (char*)( search->dir + 1 );
