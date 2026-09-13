@@ -1465,15 +1465,15 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 	}
 
 	CIN_SetExtents(currentHandle, x, y, w, h);
-	CIN_SetLooping(currentHandle, (systemBits & CIN_loop)!=0);
+	CIN_SetLooping(currentHandle, (qboolean)( (systemBits & CIN_loop)!=0 ));
 
 	cinTable[currentHandle].CIN_HEIGHT = DEFAULT_CIN_HEIGHT;
 	cinTable[currentHandle].CIN_WIDTH  =  DEFAULT_CIN_WIDTH;
-	cinTable[currentHandle].holdAtEnd = (systemBits & CIN_hold) != 0;
-	cinTable[currentHandle].alterGameState = (systemBits & CIN_system) != 0;
+	cinTable[currentHandle].holdAtEnd = (qboolean)( (systemBits & CIN_hold) != 0 );
+	cinTable[currentHandle].alterGameState = (qboolean)( (systemBits & CIN_system) != 0 );
 	cinTable[currentHandle].playonwalls = 1;
-	cinTable[currentHandle].silent = (systemBits & CIN_silent) != 0;
-	cinTable[currentHandle].shader = (systemBits & CIN_shader) != 0;
+	cinTable[currentHandle].silent = (qboolean)( (systemBits & CIN_silent) != 0 );
+	cinTable[currentHandle].shader = (qboolean)( (systemBits & CIN_shader) != 0 );
 
 	if (cinTable[currentHandle].alterGameState) {
 		// close the menu
@@ -1631,7 +1631,7 @@ void CIN_DrawCinematic( int handle ) {
 	if (cinTable[handle].dirty && (cinTable[handle].CIN_WIDTH != cinTable[handle].drawX || cinTable[handle].CIN_HEIGHT != cinTable[handle].drawY)) {
 		int *buf2;
 
-		buf2 = Hunk_AllocateTempMemory( 256*256*4 );
+		buf2 = (int *)Hunk_AllocateTempMemory( 256*256*4 );
 
 		CIN_ResampleCinematic(handle, buf2);
 
@@ -1720,7 +1720,7 @@ void CIN_UploadCinematic( int handle ) {
 		if (cinTable[handle].dirty && (cinTable[handle].CIN_WIDTH != cinTable[handle].drawX || cinTable[handle].CIN_HEIGHT != cinTable[handle].drawY))  {
 			int *buf2;
 
-			buf2 = Hunk_AllocateTempMemory( 256*256*4 );
+			buf2 = (int *)Hunk_AllocateTempMemory( 256*256*4 );
 
 			CIN_ResampleCinematic(handle, buf2);
 
