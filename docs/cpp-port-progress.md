@@ -128,6 +128,8 @@ Phase 1: qcommon; next `code/qcommon/vm_interpreted.c`. Resume there; do not red
 
 ## Blocked files
 
+- `code/qcommon/vm_powerpc.c`: Native syntax probe: :1727/:2579 need T1; :2558/:2561/:2564/:2567 pass function pointers to const void*, outside T1. No PPC64 cross compiler/sysroot verified; unmodified, target unverified.
+
 - `code/qcommon/vm_armv7l.c`: Native syntax probe: :1223/:1931 need T1; :1978 __clear_cache undeclared; eight host-width overflow diagnostics from 32-bit instruction constants. No ARM cross compiler/sysroot verified; unmodified, target unverified.
 
 - `code/qcommon/vm_aarch64.c`: Native syntax probe: :1583/:2290 need T1; :2348 __clear_cache undeclared. No aarch64 cross compiler/sysroot verified; cannot prove C object equivalence or target gates. Unmodified, target unverified.
@@ -283,7 +285,7 @@ Phase 1: qcommon; next `code/qcommon/vm_interpreted.c`. Resume there; do not red
 | `code/qcommon/vm_interpreted.c` | blocked | VM_Indent:27 initializes char * from a string literal and returns char *. No public prototype or callers exist; changing its return type or casting its initializer is outside the literal wording of T8 (pointer variables/parameters, public-signature call-site exception). Also T1 needed at :129. No source edit retained. |
 | `code/qcommon/vm_local.h` | todo | Pending module pass. |
 | `code/qcommon/vm_optimize.h` | todo | Pending module pass. |
-| `code/qcommon/vm_powerpc.c` | todo | Pending module pass. |
+| `code/qcommon/vm_powerpc.c` | blocked | Native syntax probe: :1727/:2579 need T1; :2558/:2561/:2564/:2567 pass function pointers to const void*, outside T1. No PPC64 cross compiler/sysroot verified; unmodified, target unverified. |
 | `code/qcommon/vm_x86.c` | blocked | At :3498 mov_rx_ptr(R_SYSCALL, vm->systemCall) converts syscall_t function pointer to const void*. T1 covers the reverse direction only; no catalog remedy. A T3 cast is also needed at :4323. No source edit retained. |
 | `code/renderer/iqm.h` | todo | Pending module pass. |
 | `code/renderer/qgl.h` | todo | Pending module pass. |
