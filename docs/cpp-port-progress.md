@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/client/client.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/client/keycodes.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -372,7 +372,7 @@ Phase 1: next `code/client/client.h`. Resume there; do not redo done files. Bloc
 | `code/client/cl_parse.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_parse.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_scrn.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_scrn.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_ui.c` | done | T1: 80, T2: 1, T3: 8; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_ui.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/client.h` | todo | Pending module pass. |
+| `code/client/client.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/keycodes.h` | todo | Pending module pass. |
 | `code/client/keys.h` | todo | Pending module pass. |
 | `code/client/snd_adpcm.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_adpcm.o, default); G4 PASS. |
