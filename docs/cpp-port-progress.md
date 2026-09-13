@@ -485,7 +485,7 @@ Phase 1: next `code/renderer/tr_local.h`. Resume there; do not redo done files. 
 | `code/renderercommon/vulkan/vulkan_core.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan_win32.h` | blocked | Unverified: unchanged generated Khronos Windows header; no MinGW cross-compiler/Windows SDK available. |
 | `code/renderercommon/vulkan/vulkan_xlib.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
-| `code/renderercommon/vulkan/vulkan_xlib_xrandr.h` | todo | Pending module pass. |
+| `code/renderercommon/vulkan/vulkan_xlib_xrandr.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderervk/iqm.h` | todo | Pending module pass. |
 | `code/renderervk/shaders/bin2hex.c` | todo | Pending module pass. |
 | `code/renderervk/shaders/spirv/shader_data.c` | todo | Pending module pass. |
