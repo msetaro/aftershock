@@ -46,6 +46,8 @@ Phase 1: next `code/client/cl_avi.c`. Resume there; do not redo done files. Bloc
 
 ## Harness status
 
+- Unix/SDL assessed: successful files have unchanged C hashes, strict native release/debug and G2/G3 PASS; six source/header blockers remain, including linux_signals deferred to renderer T4. Default SDL C, dedicated C and non-SDL C full builds PASS (`/tmp/aftershock-cpp-port/platform-{full,ded,nosdl}-c.log`). Dormant joystick explicitly checked with its feature flag. Logged preexisting ALSA pthread callback signature mismatch; no fix. Next client.
+
 - Dormant linux_joystick.c has a generic Make object rule but is absent from linked object lists. Verify its real body using USE_SDL=0 CFLAGS=-DUSE_JOYSTICK; source equals base byte-for-byte. Added this explicit-feature C baseline object to nosdl-c.sha256 (298 standard +1 dormant). No feature enabled in supported builds.
 
 - G2 named nested records: pahole -M alone omitted C++ download_s::func_s while C exposed func_s at file scope. Added native --show_private_classes to compare nested member records on both sides. Positive named-nested control and same-size member-swap negative control PASS; full gate selfcheck PASS; all 63 existing artifact pairs G2 PASS after this correction. No source type/layout change.
