@@ -46,6 +46,8 @@ Phase 0: verify gate negative controls, finish formatter/tidy/CI and notes; inve
 
 ## Harness status
 
+- `.clang-tidy`: only signed-char-misuse, narrowing-conversions, suspicious-string-compare, and portability-simd-intrinsics; changed-line use only, no modernization checks.
+
 - `tools/port/selfcheck.sh`: PASS, positive controls and deliberate layout-offset, symbol-linkage, and instruction mutations all detected.
 
 - Entry point: `tools/port/codegen_gate.sh C-artifact CXX-artifact`; returns nonzero and prints FAIL plus unified diff on differences.
