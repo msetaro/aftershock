@@ -308,7 +308,7 @@ float	LittleFloat (const float *l) {return _LittleFloat(l);}
 
 void CopyShortSwap(void *dest, void *src)
 {
-	byte *to = dest, *from = src;
+	byte *to = (byte *)dest, *from = (byte *)src;
 
 	to[0] = from[1];
 	to[1] = from[0];
@@ -316,7 +316,7 @@ void CopyShortSwap(void *dest, void *src)
 
 void CopyLongSwap(void *dest, void *src)
 {
-	byte *to = dest, *from = src;
+	byte *to = (byte *)dest, *from = (byte *)src;
 
 	to[0] = from[3];
 	to[1] = from[2];
@@ -971,7 +971,7 @@ qboolean SkipBracedSection( const char **program, int depth ) {
 		}
 	} while( depth && *program );
 
-	return ( depth == 0 );
+	return (qboolean)( depth == 0 );
 }
 
 
@@ -1224,14 +1224,14 @@ qboolean Q_isanumber( const char *s )
 
 	strtod( s, &p );
 
-    return *p == '\0';
+    return (qboolean)( *p == '\0' );
 #endif
 }
 
 
 qboolean Q_isintegral( float f )
 {
-    return (int)f == f;
+    return (qboolean)( (int)f == f );
 }
 
 
