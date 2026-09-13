@@ -277,7 +277,7 @@ Phase 1: qcommon; next `code/qcommon/cm_local.h`. Resume there; do not redo file
 | `code/qcommon/q_shared.c` | done | T1: 4, T2: 3; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_shared.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/q_shared.h` | done | T1-T17: 0; unchanged header checked via q_shared.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/qcommon.h` | done | T1-T17: 0; unchanged header checked via md4.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/qfiles.h` | todo | Pending module pass. |
+| `code/qcommon/qfiles.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/surfaceflags.h` | todo | Pending module pass. |
 | `code/qcommon/unzip.c` | done | T1: 10, T14: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unzip.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/unzip.h` | todo | Pending module pass. |
