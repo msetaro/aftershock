@@ -46,6 +46,8 @@ Phase 0: verify gate negative controls, finish formatter/tidy/CI and notes; inve
 
 ## Harness status
 
+- Entry point: `tools/port/symbol_gate.sh C-artifact CXX-artifact`; returns nonzero and prints FAIL plus unified diff on differences.
+
 - Entry point: `tools/port/layout_gate.sh C-artifact CXX-artifact`; returns nonzero and prints FAIL plus unified diff on differences.
 
 - Makefile: committed, C checksum proof PASS (295 objects), strict single objects PASS; frozen warning counts above.
