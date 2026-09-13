@@ -256,7 +256,7 @@ how CI would run them. The dedicated-server half of G6 needs no display.
 Optional: `gcc-multilib` for `ARCH=x86` builds (the x87 JIT and 32-bit determinism paths),
 `mingw-w64` for cross-checking `code/win32` locally.
 
-Game data: none found. Needed for G6 only.
+Game data: `~/.q3a/baseq3/pak0-8.pk3` (from the Steam install). Needed for G6 only.
 
 ## 8. Agent workflow
 
@@ -277,8 +277,11 @@ Game data: none found. Needed for G6 only.
 2. Vendored libs (`libjpeg`, `libogg`, `libvorbis`, `libcurl`, `libsdl`): **stay C**. Their headers
    already carry `extern "C"` guards; they are upstream code, not engine code.
 3. Legacy `msys32` CI job: **dropped**.
-4. Game data for gate G6: Matt's own Quake III Arena install for local runs (none is on this
-   machine yet; G6 is blocked until a `baseq3` path is provided). **OpenArena** paks for CI.
+4. Game data for gate G6: Quake III Arena (Steam) paks copied to `~/.q3a/baseq3/` (pak0-pak8,
+   483 MB), which the engine finds with no flags. Verified 2026-09-13: dedicated server loads
+   q3dm17/q3dm7 with bots and shuts down cleanly. The two demos in pak0 are old `.dm3` format
+   and will not play on protocol 68; record fresh `.dm_68` demos for the client half of G6.
+   **OpenArena** paks for CI.
 5. MSVC / vcxproj: **CI-only** during the port. No Windows machine here; the vcxproj file lists
    are updated in the rename phase and verified by the existing windows-msvc CI job.
 6. `renderer2` (OpenGL2, disabled by default, upstream calls it unmaintained): **out of scope**.

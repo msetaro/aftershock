@@ -74,7 +74,8 @@ make -k -j$(nproc) BUILD_DIR=/tmp/cxx CC="g++ -x c++ -std=c++20 -fpermissive"
 
 Local machine: gcc 15.2, clang 21, 20 cores, all dev packages installed; every Makefile
 configuration builds. No display in agent shells: client runtime tests need a desktop session
-or Xvfb + Mesa software drivers; the dedicated server runs headless.
+or Xvfb + Mesa software drivers; the dedicated server runs headless. Game data is in
+`~/.q3a/baseq3/` and is found automatically; never commit or copy pak files into the repo.
 
 ## Verification commands
 
