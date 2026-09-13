@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: server; next `code/server/sv_rankings.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: next `code/server/sv_snapshot.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -151,6 +151,8 @@ Phase 1: server; next `code/server/sv_rankings.c`. Resume there; do not redo fil
 - `md4.c`: G4 PASS, normalized assembly identical.
 
 ## Blocked files
+
+- `code/server/sv_rankings.c`: At :25 missing rankings/1.0/gr/grapi.h SDK (legacy backslash include); SDK absent and source has no Makefile object rule. Cannot compile either C oracle or C++ or run gates; left unchanged.
 
 - `code/server/sv_client.c`: At :402 C++ strstr(const char*, ...) returns const char*, assigned to writable str then sprintf writes through it. Removing const from cmd or casting away const is outside T8 (which permits adding const for literal pointers); source retained unchanged. Seven other T1/T2/T3 diagnostics remain.
 
@@ -402,7 +404,7 @@ Phase 1: server; next `code/server/sv_rankings.c`. Resume there; do not redo fil
 | `code/server/sv_init.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_main.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_main.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_net_chan.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_net_chan.o); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_rankings.c` | todo | Pending module pass. |
+| `code/server/sv_rankings.c` | blocked | At :25 missing rankings/1.0/gr/grapi.h SDK (legacy backslash include); SDK absent and source has no Makefile object rule. Cannot compile either C oracle or C++ or run gates; left unchanged. |
 | `code/server/sv_snapshot.c` | todo | Pending module pass. |
 | `code/server/sv_world.c` | todo | Pending module pass. |
 | `code/server/tlds.h` | todo | Pending module pass. |
