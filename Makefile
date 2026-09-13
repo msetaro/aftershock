@@ -1505,6 +1505,7 @@ $(B)/rend1/%.o: $(RCDIR)/%.c
 $(B)/rend1/%.o: $(CMDIR)/%.c
 	$(DO_REND_CC)
 
+ifneq ($(BUILD_CXX),1)
 $(B)/rend2/glsl/%.c: $(R2DIR)/glsl/%.glsl $(STRINGIFY)
 	$(DO_REF_STR)
 
@@ -1519,6 +1520,8 @@ $(B)/rend2/%.o: $(RCDIR)/%.c
 
 $(B)/rend2/%.o: $(CMDIR)/%.c
 	$(DO_REND_CC)
+
+endif
 
 $(B)/rendv/%.o: $(RVDIR)/%.c
 	$(DO_REND_CC)
