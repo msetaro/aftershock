@@ -101,6 +101,8 @@ Phase 1: botlib; next `code/botlib/aasfile.h`. Resume there; do not redo files m
 
 ## Codegen differences
 
+- `code/botlib/be_ai_move.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_ai_move.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_ai_move.o /tmp/aftershock-cpp-port/be_ai_move` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
+
 - `code/botlib/l_struct.c`: G4 advisory FAIL; full diff `tools/port/evidence/l_struct.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/l_struct.o /tmp/aftershock-cpp-port/l_struct` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/botlib/l_script.c`: G4 advisory FAIL; full diff `tools/port/evidence/l_script.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/l_script.o /tmp/aftershock-cpp-port/l_script` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
@@ -262,7 +264,7 @@ Phase 1: botlib; next `code/botlib/aasfile.h`. Resume there; do not redo files m
 | `code/botlib/be_ai_gen.h` | todo | Pending module pass. |
 | `code/botlib/be_ai_goal.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_goal.o); G4 PASS. |
 | `code/botlib/be_ai_goal.h` | todo | Pending module pass. |
-| `code/botlib/be_ai_move.c` | todo | Reopened after observed warning-class correction; single T1 cast pending. |
+| `code/botlib/be_ai_move.c` | done | T1: 1; declaration macro retained under frozen warning policy; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_move.o); G4 advisory FAIL, full diff retained. |
 | `code/botlib/be_ai_move.h` | todo | Pending module pass. |
 | `code/botlib/be_ai_weap.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_weap.o); G4 PASS. |
 | `code/botlib/be_ai_weap.h` | todo | Pending module pass. |
