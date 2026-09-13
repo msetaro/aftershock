@@ -73,7 +73,7 @@ extern void RB_SetGL2D( void );
 
 qboolean GL_ProgramAvailable( void )
 {
-	return (programCompiled != 0);
+	return (qboolean)( (programCompiled != 0) );
 }
 
 
@@ -205,7 +205,7 @@ static void ARB_Lighting( const shaderStage_t* pStage )
 	if ( !numIndexes )
 		return;
 
-	if ( tess.shader->sort < SS_OPAQUE ) {
+	if ( tess.shader->sort < (float)SS_OPAQUE ) {
 		GL_State( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL );
 	} else {
 		GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL );
@@ -224,7 +224,7 @@ static void ARB_Lighting_Fast( const shaderStage_t* pStage )
 	if ( !tess.numIndexes )
 		return;
 
-	if ( tess.shader->sort < SS_OPAQUE ) {
+	if ( tess.shader->sort < (float)SS_OPAQUE ) {
 		GL_State( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL );
 	} else {
 		GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL );
@@ -263,7 +263,7 @@ void ARB_SetupLightParams( void )
 
 	radius = dl->radius;
 
-	fogPass = ( tess.fogNum && tess.shader->fogPass );
+	fogPass = (qboolean)( ( tess.fogNum && tess.shader->fogPass ) );
 	fp = NULL;
 
 	vertexProgram = DLIGHT_VERTEX;
@@ -278,11 +278,11 @@ void ARB_SetupLightParams( void )
 		fp = RB_CalcFogProgramParms();
 		// switch to fog programs
 		if ( fp->eyeOutside ) {
-			vertexProgram += 2;
+			vertexProgram = (programNum)( vertexProgram + 2 );
 		} else {
-			vertexProgram += 1;
+			vertexProgram = (programNum)( vertexProgram + 1 );
 		}
-		++fragmentProgram;
+		fragmentProgram = (programNum)( fragmentProgram + 1 );
 	}
 
 	ARB_ProgramEnable( vertexProgram, fragmentProgram );
@@ -2005,7 +2005,7 @@ void FBO_PostProcess( void )
 	minimized = ri.CL_IsMinimized();
 
 	if ( r_bloom->integer && programCompiled && qglActiveTextureARB ) {
-		if ( FBO_Bloom( gamma, obScale, !minimized ) ) {
+		if ( FBO_Bloom( gamma, obScale, (qboolean)( !minimized ) ) ) {
 			return;
 		}
 	}
@@ -2162,23 +2162,23 @@ void QGL_InitFBO( void )
 			depthStencil = qtrue;
 		else
 			depthStencil = qfalse;
-		result = FBO_Create( &frameBuffers[ 0 ], w, h, depthStencil, &fboTextureFormat, &fboTextureType )
+		result = (qboolean)( FBO_Create( &frameBuffers[ 0 ], w, h, depthStencil, &fboTextureFormat, &fboTextureType )
 			&& FBO_Create( &frameBuffers[ 1 ], w, h, depthStencil, NULL, NULL )
 			&& FBO_Create( &frameBuffers[ 2 ], SCR_WIDTH, SCR_HEIGHT, qfalse, NULL, NULL )
-			&& FBO_Create( &frameBuffers[ 3 ], SCR_WIDTH, SCR_HEIGHT, qfalse, NULL, NULL );
+			&& FBO_Create( &frameBuffers[ 3 ], SCR_WIDTH, SCR_HEIGHT, qfalse, NULL, NULL ) );
 		frameBufferMultiSampling = result;
 	}
 	else
 	{
-		result = FBO_Create( &frameBuffers[ 0 ], w, h, qtrue, &fboTextureFormat, &fboTextureType )
+		result = (qboolean)( FBO_Create( &frameBuffers[ 0 ], w, h, qtrue, &fboTextureFormat, &fboTextureType )
 			&& FBO_Create( &frameBuffers[ 1 ], w, h, qtrue, NULL, NULL )
 			&& FBO_Create( &frameBuffers[ 2 ], SCR_WIDTH, SCR_HEIGHT, qfalse, NULL, NULL )
-			&& FBO_Create( &frameBuffers[ 3 ], SCR_WIDTH, SCR_HEIGHT, qfalse, NULL, NULL );
+			&& FBO_Create( &frameBuffers[ 3 ], SCR_WIDTH, SCR_HEIGHT, qfalse, NULL, NULL ) );
 	}
 
 	if ( result && superSampled )
 	{
-		result &= FBO_Create( &frameBuffers[ 4 ], gls.captureWidth, gls.captureHeight, qfalse, NULL, NULL );
+		result = (qboolean)( result & FBO_Create( &frameBuffers[ 4 ], gls.captureWidth, gls.captureHeight, qfalse, NULL, NULL ) );
 	}
 
 	if ( result )

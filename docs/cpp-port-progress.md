@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: renderer; next `code/renderer/tr_arb.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: renderer; next `code/renderer/tr_backend.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -23,6 +23,8 @@ Phase 1: renderer; next `code/renderer/tr_arb.c`. Resume there; do not redo file
 - [ ] Final G1-G8, differential/runtime/sanitizer checks
 
 ## Decisions
+
+- G8 confirms renderer keyword rename exactly changes only code tokens. T3 covers local nonvolatile enum compound arithmetic in tr_arb: preserve +2/+1 offsets and unused standalone increment result; add cast of original promoted integer result, as with prior enum bitwise assignments.
 
 - Renderer T4 prerequisite is atomic across tr_local.h and all 14 source consumers (243 identifier occurrences; 202 replaced lines). Per-file commit sequencing cannot keep C green while a shared field declaration and its uses disagree; plan T4 requires every use updated. Reviewer approves coherent prerequisite, then individual completion commits. Comments/strings stay unchanged. Full C rebuild passes and all 295 original object hashes match (`renderer-t4-c.log`); same-source header G2/G3 pass through client/linux_signals.o. Whole-tree reference search retained at `/tmp/aftershock-cpp-port/or-whole-tree.txt`; renderervk/renderer2 have separate own types and are not consumers of this header.
 
@@ -119,6 +121,8 @@ Phase 1: renderer; next `code/renderer/tr_arb.c`. Resume there; do not redo file
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
 
 ## Codegen differences
+
+- `code/renderer/tr_arb.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_arb.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_arb.o /tmp/aftershock-cpp-port/renderer-tr_arb ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderer/tr_animation.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_animation.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_animation.o /tmp/aftershock-cpp-port/renderer-tr_animation ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -278,7 +282,6 @@ Phase 1: renderer; next `code/renderer/tr_arb.c`. Resume there; do not redo file
 
 - `code/unix/unix_shared.c`: At :22 _GNU_SOURCE is redefined: source defines it empty, g++ predefines it as 1. Adding an ifndef guard or changing macro value is outside T1-T17; diagnostic has no named -W class to freeze. T1 char** allocation at :236 also pending; source unchanged.
 
-- `code/unix/linux_signals.c`: Client object includes renderer/tr_local.h, whose or fields/parameters require T4 in later renderer module (:568,:1054,:1146,:1365,:1598). Source unchanged; dedicated syntax passes. Recheck this file after renderer header port.
 
 - `code/unix/linux_qvk.c`: At :76 returns PFN_vkVoidFunction (function pointer) as void*. Explicit function-pointer-to-object-pointer conversion is outside T1; source unchanged.
 
@@ -452,7 +455,7 @@ Phase 1: renderer; next `code/renderer/tr_arb.c`. Resume there; do not redo file
 | `code/renderer/iqm.h` | todo | Pending module pass. |
 | `code/renderer/qgl.h` | todo | Pending module pass. |
 | `code/renderer/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_animation.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_arb.c` | todo | T4 prerequisite: or renamed to orientation (3 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_arb.c` | done | T4: 3 occurrences (prerequisite), T2: 5, T3: 4, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_arb.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_backend.c` | todo | T4 prerequisite: or renamed to orientation (9 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_bsp.c` | todo | Pending module pass. |
 | `code/renderer/tr_cmds.c` | todo | Pending module pass. |
