@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: unix; next `code/unix/unix_shared.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: next `code/unix/x11_dga.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -213,6 +213,8 @@ Phase 1: unix; next `code/unix/unix_shared.c`. Resume there; do not redo files m
 - `md4.c`: G4 PASS, normalized assembly identical.
 
 ## Blocked files
+
+- `code/unix/unix_shared.c`: At :22 _GNU_SOURCE is redefined: source defines it empty, g++ predefines it as 1. Adding an ifndef guard or changing macro value is outside T1-T17; diagnostic has no named -W class to freeze. T1 char** allocation at :236 also pending; source unchanged.
 
 - `code/unix/linux_signals.c`: Client object includes renderer/tr_local.h, whose or fields/parameters require T4 in later renderer module (:568,:1054,:1146,:1365,:1598). Source unchanged; dedicated syntax passes. Recheck this file after renderer header port.
 
@@ -487,7 +489,7 @@ Phase 1: unix; next `code/unix/unix_shared.c`. Resume there; do not redo files m
 | `code/unix/linux_snd.c` | done | T1: 5; original thread-function casts retained inside typed casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_snd.o, nosdl); G4 advisory FAIL, full diff retained. |
 | `code/unix/unix_glw.h` | todo | Pending module pass. |
 | `code/unix/unix_main.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_main.o, default); G4 advisory FAIL, full diff retained. |
-| `code/unix/unix_shared.c` | todo | Pending module pass. |
+| `code/unix/unix_shared.c` | blocked | At :22 _GNU_SOURCE is redefined: source defines it empty, g++ predefines it as 1. Adding an ifndef guard or changing macro value is outside T1-T17; diagnostic has no named -W class to freeze. T1 char** allocation at :236 also pending; source unchanged. |
 | `code/unix/x11_dga.c` | todo | Pending module pass. |
 | `code/unix/x11_randr.c` | todo | Pending module pass. |
 | `code/unix/x11_vidmode.c` | todo | Pending module pass. |
