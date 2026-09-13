@@ -35,4 +35,15 @@ if tools/port/symbol_gate.sh "$port_tmp/export.c.o" "$port_tmp/export.cxx.o" > "
 fi
 python3 tools/port/compile_pair.py ded/md5.o "$port_tmp"
 tools/port/layout_gate.sh "$port_tmp/md5.c.o" "$port_tmp/md5.cxx.o"
+# C++ scopes named nested records inside the parent; compare their members too.
+printf 'struct outer { struct inner { int a; int b; } child; }; struct outer value;\n' > "$port_tmp/nested.c"
+gcc -g -fdebug-prefix-map="$port_tmp=code/port-gate-selfcheck" -c "$port_tmp/nested.c" -o "$port_tmp/nested.c.o"
+g++ -x c++ -g -fdebug-prefix-map="$port_tmp=code/port-gate-selfcheck" -c "$port_tmp/nested.c" -o "$port_tmp/nested.cxx.o"
+tools/port/layout_gate.sh "$port_tmp/nested.c.o" "$port_tmp/nested.cxx.o"
+sed 's/int a; int b;/int b; int a;/' "$port_tmp/nested.c" > "$port_tmp/nested-bad.c"
+g++ -x c++ -g -fdebug-prefix-map="$port_tmp=code/port-gate-selfcheck" -c "$port_tmp/nested-bad.c" -o "$port_tmp/nested-bad.o"
+if tools/port/layout_gate.sh "$port_tmp/nested.c.o" "$port_tmp/nested-bad.o" > "$port_tmp/nested.log"; then
+    echo 'FAIL: layout gate missed changed nested members'; exit 1
+fi
+grep '^@@' "$port_tmp/nested.log"
 echo 'PASS: gate positive and negative controls'

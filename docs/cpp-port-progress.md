@@ -46,6 +46,8 @@ Phase 1: next `code/unix/linux_glimp.c`. Resume there; do not redo done files. B
 
 ## Harness status
 
+- G2 named nested records: pahole -M alone omitted C++ download_s::func_s while C exposed func_s at file scope. Added native --show_private_classes to compare nested member records on both sides. Positive named-nested control and same-size member-swap negative control PASS; full gate selfcheck PASS; all 63 existing artifact pairs G2 PASS after this correction. No source type/layout change.
+
 - Botlib: all 28 native source files and 34 headers assessed; strict release/debug client/ded, C SHA256 and G2/G3 PASS per file; G4 advisory diffs retained. Full default/ded C PASS. G8 passes retained casts/keyword rename (37 replaced lines across 8 files including final be_ai_move T1). Integrated C++ runtime remains blocked by qcommon/server; no full-engine equivalence claim.
 - Unix/non-SDL baseline captured before any platform-source edits: 298 C objects, `SOURCE_DATE_EPOCH=1789257600 make -j20 USE_SDL=0 BUILD_DIR=/tmp/aftershock-cpp-port/oracle-nosdl`; manifest `tools/port/evidence/nosdl-c.sha256`. Non-SDL per-file checks use this oracle and pass USE_SDL=0 to compile_pair.py.
 
