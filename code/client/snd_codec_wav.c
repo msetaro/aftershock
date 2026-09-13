@@ -306,6 +306,6 @@ int S_WAV_CodecReadStream(snd_stream_t *stream, int bytes, void *buffer)
 		return 0;
 	stream->pos += bytes;
 	samples = (bytes / stream->info.width) / stream->info.channels;
-	S_ByteSwapRawSamples(samples, stream->info.width, stream->info.channels, buffer);
+	S_ByteSwapRawSamples(samples, stream->info.width, stream->info.channels, (const byte *)buffer);
 	return bytes;
 }
