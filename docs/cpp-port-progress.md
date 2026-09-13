@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/botlib/be_ai_weight.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/botlib/be_ea.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -269,7 +269,7 @@ Phase 1: next `code/botlib/be_ai_weight.h`. Resume there; do not redo done files
 | `code/botlib/be_ai_weap.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_weap.o); G4 PASS. |
 | `code/botlib/be_ai_weap.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_weap.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_ai_weight.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_weight.o); G4 PASS. |
-| `code/botlib/be_ai_weight.h` | todo | Pending module pass. |
+| `code/botlib/be_ai_weight.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_goal.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_ea.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ea.o); G4 PASS. |
 | `code/botlib/be_ea.h` | todo | Pending module pass. |
 | `code/botlib/be_interface.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_interface.o); G4 PASS. |
