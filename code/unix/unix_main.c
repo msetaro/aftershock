@@ -1008,7 +1008,7 @@ int main( int argc, const char* argv[] )
 	for ( len = 1, i = 1; i < argc; i++ )
 		len += strlen( argv[i] ) + 1;
 
-	cmdline = malloc( len );
+	cmdline = (char *)malloc( len );
 	*cmdline = '\0';
 	for ( i = 1; i < argc; i++ )
 	{
