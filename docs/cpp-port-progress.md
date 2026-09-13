@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: botlib; next `code/botlib/be_aas_main.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: botlib; next `code/botlib/be_aas_move.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -212,7 +212,7 @@ Phase 1: botlib; next `code/botlib/be_aas_main.c`. Resume there; do not redo fil
 | `code/botlib/be_aas_file.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_file.o); G4 advisory FAIL, full diff retained. |
 | `code/botlib/be_aas_file.h` | todo | Pending module pass. |
 | `code/botlib/be_aas_funcs.h` | todo | Pending module pass. |
-| `code/botlib/be_aas_main.c` | todo | Pending module pass. |
+| `code/botlib/be_aas_main.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_main.o); G4 PASS. |
 | `code/botlib/be_aas_main.h` | todo | Pending module pass. |
 | `code/botlib/be_aas_move.c` | todo | Pending module pass. |
 | `code/botlib/be_aas_move.h` | todo | Pending module pass. |
