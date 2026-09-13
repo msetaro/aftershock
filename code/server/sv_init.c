@@ -276,7 +276,7 @@ SV_AllocClients
 */
 static void SV_AllocClients( int count )
 {
-	svs.clients = Z_TagMalloc( count * sizeof( client_t ), TAG_CLIENTS );
+	svs.clients = (client_t *)Z_TagMalloc( count * sizeof( client_t ), TAG_CLIENTS );
 	Com_Memset( svs.clients, 0x0, count * sizeof( client_t ) );
 	sv.maxclients = count;
 	SV_SetSnapshotParams();
@@ -348,7 +348,7 @@ static void SV_ChangeMaxClients( void ) {
 		return;
 	}
 
-	oldClients = Hunk_AllocateTempMemory( count * sizeof(client_t) );
+	oldClients = (client_t *)Hunk_AllocateTempMemory( count * sizeof(client_t) );
 	// copy the clients to hunk memory
 	for ( i = 0; i < count; i++ ) {
 		if ( svs.clients[i].state >= CS_CONNECTED ) {
@@ -470,7 +470,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	FS_ClearPakReferences( 0 );
 
 	// allocate the snapshot entities on the hunk
-	svs.snapshotEntities = Hunk_Alloc( sizeof(entityState_t)*svs.numSnapshotEntities, h_high );
+	svs.snapshotEntities = (entityState_t *)Hunk_Alloc( sizeof(entityState_t)*svs.numSnapshotEntities, h_high );
 
 	// initialize snapshot storage
 	SV_InitSnapshotStorage();
@@ -599,7 +599,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 			}
 
 			// connect the client again
-			denied = GVM_ArgPtr( VM_Call( gvm, 3, GAME_CLIENT_CONNECT, i, qfalse, isBot ) );	// firstTime = qfalse
+			denied = (const char *)GVM_ArgPtr( VM_Call( gvm, 3, GAME_CLIENT_CONNECT, i, qfalse, isBot ) );	// firstTime = qfalse
 			if ( denied ) {
 				// this generally shouldn't happen, because the client
 				// was connected before the level change
