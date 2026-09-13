@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: botlib; next `code/botlib/aasfile.h`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: next `code/botlib/be_aas.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -228,7 +228,7 @@ Phase 1: botlib; next `code/botlib/aasfile.h`. Resume there; do not redo files m
 | File | Status | Evidence / reason |
 |---|---|---|
 | `code/asm/qasm.h` | todo | Pending module pass. |
-| `code/botlib/aasfile.h` | todo | Pending module pass. |
+| `code/botlib/aasfile.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas.h` | todo | Pending module pass. |
 | `code/botlib/be_aas_bsp.h` | todo | Pending module pass. |
 | `code/botlib/be_aas_bspq3.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_bspq3.o); G4 advisory FAIL, full diff retained. |
