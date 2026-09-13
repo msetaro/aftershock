@@ -228,13 +228,30 @@ Everything not listed is a DEVIATION and gets its own commit and justification.
 ## 7. Local setup gaps found on this machine (2026-09-13)
 
 Present: gcc/g++ 15.2, GNU make 4.4, binutils, 20 cores. Dedicated server builds.
-Missing (sudo password required, so Matt runs this):
+Installed 2026-09-13 with:
 
 ```
 sudo apt install libcurl4-openssl-dev libsdl2-dev mesa-common-dev libgl1-mesa-dev \
   libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound2-dev libvulkan-dev \
   clang clang-tidy clang-format cmake ninja-build ccache bear cppcheck dwarves
 ```
+
+Verified after install (2026-09-13): default gcc build (client + ded + both dlopen renderers),
+non-SDL X11 client, full clang build, and the CI-style static Vulkan client all pass. Tool
+versions: gcc 15.2, clang 21.1, cmake 4.2, clang-format/tidy 21, pahole 1.31, SDL2 2.32,
+libcurl 8.18. `libc++-dev` is not installed; only needed for the console-proxy CI leg later.
+
+**CMake is broken upstream and is not a supported build for the port.** Three defects: the
+`CMAKE_SYSTEM_PROCESSOR` regex classifies x86_64 as x86 (outputs named `_x86`), the renderer
+shared libraries are not linked with `-lm` (`powf@GLIBC` versioned-symbol link error), and
+`code/asm/snd_mix_x86_64.s` is missing from the client sources (`S_WriteLinearBlastStereo16_SSE_x64`
+undefined). Only the dedicated server links. The Makefile is the only build the port targets;
+CMake support is a modernization-phase item.
+
+The client runtime gate (G6) needs a display. This shell has none (`DISPLAY` unset), so client
+demo comparisons run from a desktop session or under Xvfb with Mesa's software drivers
+(`llvmpipe` for OpenGL, `lavapipe` for Vulkan, package `mesa-vulkan-drivers`), which is also
+how CI would run them. The dedicated-server half of G6 needs no display.
 
 Optional: `gcc-multilib` for `ARCH=x86` builds (the x87 JIT and 32-bit determinism paths),
 `mingw-w64` for cross-checking `code/win32` locally.

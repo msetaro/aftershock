@@ -54,8 +54,9 @@ Full table with the modernization-phase counterpart is in `docs/cpp-port-plan.md
 
 ## Building
 
-Primary build is the GNU Makefile (CMake also exists but is secondary; MSVC projects live in
-`code/win32/msvc2017`). Output goes to `build/<config>-<platform>-<arch>/`.
+The GNU Makefile is the only supported build. CMake exists but is broken upstream (wrong arch
+suffix, renderers not linked with -lm, missing asm source); do not use it. MSVC projects live in
+`code/win32/msvc2017` and are CI-only. Output goes to `build/<config>-<platform>-<arch>/`.
 
 ```
 make -j$(nproc)                                  # client + server + dlopen renderers
@@ -71,8 +72,9 @@ C++ probe build (until the Makefile gains a proper C++ mode; see plan):
 make -k -j$(nproc) BUILD_DIR=/tmp/cxx CC="g++ -x c++ -std=c++20 -fpermissive"
 ```
 
-Local machine notes: gcc 15.2 only (no clang yet), 20 cores. Client-side dev packages
-(libcurl, SDL2, X11, Vulkan headers) may be missing; the dedicated server always builds.
+Local machine: gcc 15.2, clang 21, 20 cores, all dev packages installed; every Makefile
+configuration builds. No display in agent shells: client runtime tests need a desktop session
+or Xvfb + Mesa software drivers; the dedicated server runs headless.
 
 ## Verification commands
 
