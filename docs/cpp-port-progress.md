@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: botlib; next `code/botlib/be_aas_cluster.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: botlib; next `code/botlib/be_aas_debug.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -95,6 +95,8 @@ Phase 1: botlib; next `code/botlib/be_aas_cluster.c`. Resume there; do not redo 
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
 
 ## Codegen differences
+
+- `code/botlib/be_aas_cluster.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_cluster.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_cluster.o /tmp/aftershock-cpp-port/be_aas_cluster` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/botlib/be_aas_bspq3.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_bspq3.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_bspq3.o /tmp/aftershock-cpp-port/be_aas_bspq3` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -196,7 +198,7 @@ Phase 1: botlib; next `code/botlib/be_aas_cluster.c`. Resume there; do not redo 
 | `code/botlib/be_aas.h` | todo | Pending module pass. |
 | `code/botlib/be_aas_bsp.h` | todo | Pending module pass. |
 | `code/botlib/be_aas_bspq3.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_bspq3.o); G4 advisory FAIL, full diff retained. |
-| `code/botlib/be_aas_cluster.c` | todo | Pending module pass. |
+| `code/botlib/be_aas_cluster.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_cluster.o); G4 advisory FAIL, full diff retained. |
 | `code/botlib/be_aas_cluster.h` | todo | Pending module pass. |
 | `code/botlib/be_aas_debug.c` | todo | Pending module pass. |
 | `code/botlib/be_aas_debug.h` | todo | Pending module pass. |
