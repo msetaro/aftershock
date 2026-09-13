@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: client; next `code/client/cl_console.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: client; next `code/client/cl_curl.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -109,6 +109,8 @@ Phase 1: client; next `code/client/cl_console.c`. Resume there; do not redo file
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
 
 ## Codegen differences
+
+- `code/client/cl_console.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_console.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_console.o /tmp/aftershock-cpp-port/cl_console ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/client/cl_cin.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_cin.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_cin.o /tmp/aftershock-cpp-port/cl_cin ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -331,7 +333,7 @@ Phase 1: client; next `code/client/cl_console.c`. Resume there; do not redo file
 | `code/client/cl_avi.c` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_avi.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_cgame.c` | done | T1: 116, T2: 1, T3: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_cgame.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_cin.c` | done | T1: 2, T2: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_cin.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_console.c` | todo | Pending module pass. |
+| `code/client/cl_console.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_console.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_curl.c` | todo | Pending module pass. |
 | `code/client/cl_curl.h` | todo | Pending module pass. |
 | `code/client/cl_input.c` | todo | Pending module pass. |

@@ -232,7 +232,7 @@ static void Con_Dump_f( void )
 	}
 
 	bufferlen = con.linewidth + ARRAY_LEN( Q_NEWLINE ) * sizeof( char );
-	buffer = Hunk_AllocateTempMemory( bufferlen );
+	buffer = (char *)Hunk_AllocateTempMemory( bufferlen );
 
 	// write the remaining lines
 	buffer[ bufferlen - 1 ] = '\0';
