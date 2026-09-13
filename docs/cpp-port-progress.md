@@ -128,6 +128,8 @@ Phase 1: qcommon; next `code/qcommon/vm_interpreted.c`. Resume there; do not red
 
 ## Blocked files
 
+- `code/qcommon/vm_interpreted.c`: VM_Indent:27 initializes char * from a string literal and returns char *. No public prototype or callers exist; changing its return type or casting its initializer is outside the literal wording of T8 (pointer variables/parameters, public-signature call-site exception). Also T1 needed at :129. No source edit retained.
+
 - `code/qcommon/q_math.c`: confirmed semantic difference, not only G4 noise. `tools/port/math_gate.sh` compares 10,000 fixed inputs. C / C++ hashes: RotatePointAroundVector `056104dc` / `220b9dd8`; vectoangles `6f225d24` / `0929b283`; AngleVectors (fed preceding output) `0691ca72` / `84895270`; Q_rsqrt `301a8708` / `301a8708`. Float math overloads replace C double promotion. No allowed T1-T17 transformation restores double arithmetic here; source remains untouched. Full-port behavior equivalence and rename are blocked.
 
 - `code/qcommon/huffman_static.c`: G3 `R HuffmanDecoderTable` -> `r HuffmanDecoderTable`. No existing declaration to move (whole-tree search found definition and internal use only). Adding `extern` to a const object is outside T1-T17; unchanged source retained per stuck rule.
@@ -272,7 +274,7 @@ Phase 1: qcommon; next `code/qcommon/vm_interpreted.c`. Resume there; do not red
 | `code/qcommon/vm.c` | done | T1: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/vm_aarch64.c` | todo | Pending module pass. |
 | `code/qcommon/vm_armv7l.c` | todo | Pending module pass. |
-| `code/qcommon/vm_interpreted.c` | todo | Pending module pass. |
+| `code/qcommon/vm_interpreted.c` | blocked | VM_Indent:27 initializes char * from a string literal and returns char *. No public prototype or callers exist; changing its return type or casting its initializer is outside the literal wording of T8 (pointer variables/parameters, public-signature call-site exception). Also T1 needed at :129. No source edit retained. |
 | `code/qcommon/vm_local.h` | todo | Pending module pass. |
 | `code/qcommon/vm_optimize.h` | todo | Pending module pass. |
 | `code/qcommon/vm_powerpc.c` | todo | Pending module pass. |
