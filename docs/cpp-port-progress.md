@@ -525,7 +525,7 @@ Phase 1: next `code/renderercommon/tr_font.c`. Resume there; do not redo done fi
 | `code/server/sv_snapshot.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_snapshot.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_world.c` | done | T3: 2 (includes bitwise assignment result); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_world.o); G4 advisory FAIL, full diff retained. |
 | `code/server/tlds.h` | blocked | Unchanged initializer fragment; sole consumer sv_client.c is blocked, so complete-object C++/G2/G3 verification is unavailable. |
-| `code/ui/ui_public.h` | todo | Pending module pass. |
+| `code/ui/ui_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through cl_ui.c actual dependency and native strict builds/G2/G3. |
 | `code/unix/linux_glimp.c` | done | T1: 2 sites (4 expanded casts), T2: 3, T3: 2, T4: 1 identifier (3 occurrences); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_glimp.o, nosdl); G4 advisory FAIL, full diff retained. |
 | `code/unix/linux_joystick.c` | done | T1-T17: 0; dormant USE_JOYSTICK body explicitly compiled; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_joystick.o, nosdl); G4 advisory FAIL, full diff retained. |
 | `code/unix/linux_local.h` | done | T1-T17: 0; unchanged header verified through unix_main.c and linux_glimp.c; native strict builds and G2/G3 PASS. |
