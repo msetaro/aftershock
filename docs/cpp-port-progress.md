@@ -77,7 +77,7 @@ None assessed yet.
 
 ## Bugs
 
-None observed yet; findings will be recorded in `docs/cpp-port-notes.md`.
+`docs/cpp-port-notes.md` exists. No engine bug fixes; math overload hazard and previously documented CMake defects are recorded.
 
 ## Per-file status
 
