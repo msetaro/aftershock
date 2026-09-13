@@ -49,6 +49,13 @@ def symbols(path):
         demangled = run('c++filt', name).strip()
         # Local statics have function scope in C++ demangling only.
         normalized = plain_symbol(demangled).split('::')[-1]
+        if normalized in {
+            'GetRefAPI', 'dllEntry', 'vmMain', 'snd_p', 'snd_out',
+            'snd_linear_count', 'Q_setjmp_c', 'Q_longjmp_c', 'CPUID_EX',
+            'Q_GetFPUCW', 'Q_SetFPUCW', 'NvOptimusEnablement',
+            'AmdPowerXpressRequestHighPerformance',
+        } or normalized.startswith('S_WriteLinearBlastStereo16_'):
+            normalized = name  # External loaders/assembly require the C spelling.
         rows.append(f'{kind} {normalized}\n')
     if not rows:
         raise ValueError(f'{path}: no defined symbols')

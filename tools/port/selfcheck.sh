@@ -27,4 +27,10 @@ sed '0,/ret/s/ret/nop/' "$port_tmp/md4.c.s" > "$port_tmp/changed.s"
 if tools/port/codegen_gate.sh "$port_tmp/md4.c.s" "$port_tmp/changed.s" > "$port_tmp/codegen.log"; then
     echo 'FAIL: codegen gate missed changed instruction'; exit 1
 fi
+printf 'void GetRefAPI(void) {}\n' > "$port_tmp/export.c"
+gcc -c "$port_tmp/export.c" -o "$port_tmp/export.c.o"
+g++ -x c++ -c "$port_tmp/export.c" -o "$port_tmp/export.cxx.o"
+if tools/port/symbol_gate.sh "$port_tmp/export.c.o" "$port_tmp/export.cxx.o" > "$port_tmp/export.log"; then
+    echo 'FAIL: symbol gate missed mangled external ABI'; exit 1
+fi
 echo 'PASS: gate positive and negative controls'

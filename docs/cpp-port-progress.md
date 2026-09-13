@@ -46,6 +46,8 @@ Phase 0: verify gate negative controls, finish formatter/tidy/CI and notes; inve
 
 ## Harness status
 
+- G8 reviewer found G3 demangling hid missing extern-C on GetRefAPI. Fixed by preserving raw names for the plan-listed loader/assembly exports; added a negative control. JIT-specific call targets still require phase-2 source inventory.
+
 - CI: removed windows-msys32; added non-failing ubuntu-cxx-probe with compiler error count, make status, and log artifact. Dependent archive jobs now use existing windows-msys gcc artifacts; release output filenames remain the same. Existing C CI legs retained.
 
 - `.clang-tidy`: only signed-char-misuse, narrowing-conversions, suspicious-string-compare, and portability-simd-intrinsics; changed-line use only, no modernization checks.
