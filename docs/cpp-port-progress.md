@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: qcommon; next `code/qcommon/md4.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: qcommon; next `code/qcommon/md5.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -221,7 +221,7 @@ None assessed yet.
 | `code/qcommon/huffman_static.c` | todo | Pending module pass. |
 | `code/qcommon/json.h` | todo | Pending module pass. |
 | `code/qcommon/keys.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/keys.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/md4.c` | todo | Pending module pass. |
+| `code/qcommon/md4.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/md4.o); G4 PASS. |
 | `code/qcommon/md5.c` | todo | Pending module pass. |
 | `code/qcommon/msg.c` | todo | Pending module pass. |
 | `code/qcommon/net_chan.c` | todo | Pending module pass. |
