@@ -1631,7 +1631,7 @@ static bot_stringlist_t *BotCheckChatMessageIntegrety(char *message, bot_stringl
 						if (!BotFindStringInList(stringlist, temp))
 						{
 							Log_Write("%s = {\"%s\"} //MISSING RANDOM\r\n", temp, temp);
-							s = GetClearedMemory(sizeof(bot_stringlist_t) + strlen(temp) + 1);
+							s = (bot_stringlist_t *) GetClearedMemory(sizeof(bot_stringlist_t) + strlen(temp) + 1);
 							s->string = (char *) s + sizeof(bot_stringlist_t);
 							strcpy(s->string, temp);
 							s->next = stringlist;
@@ -1936,7 +1936,7 @@ static bot_replychat_t *BotLoadReplyChat( const char *filename )
 			return NULL;
 		} //end if
 		//
-		replychat = GetClearedHunkMemory(sizeof(bot_replychat_t));
+		replychat = (bot_replychat_t *) GetClearedHunkMemory(sizeof(bot_replychat_t));
 		replychat->keys = NULL;
 		replychat->next = replychatlist;
 		replychatlist = replychat;
@@ -2328,7 +2328,7 @@ int BotLoadChatFile(int chatstate, const char *chatfile, const char *chatname)
 	} //end if
 	if (!LibVarGetValue("bot_reloadcharacters"))
 	{
-		ichatdata[avail] = GetClearedMemory( sizeof(bot_ichatdata_t) );
+		ichatdata[avail] = (bot_ichatdata_t *) GetClearedMemory( sizeof(bot_ichatdata_t) );
 		ichatdata[avail]->chat = cs->chat;
 		Q_strncpyz( ichatdata[avail]->chatname, chatname, sizeof(ichatdata[avail]->chatname) );
 		Q_strncpyz( ichatdata[avail]->filename, chatfile, sizeof(ichatdata[avail]->filename) );
@@ -3046,7 +3046,7 @@ int BotAllocChatState(void)
 	{
 		if (!botchatstates[i])
 		{
-			botchatstates[i] = GetClearedMemory(sizeof(bot_chatstate_t));
+			botchatstates[i] = (bot_chatstate_t *) GetClearedMemory(sizeof(bot_chatstate_t));
 			return i;
 		} //end if
 	} //end for
