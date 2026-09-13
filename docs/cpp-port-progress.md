@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: botlib; next `code/botlib/l_memory.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: botlib; next `code/botlib/l_precomp.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -98,6 +98,8 @@ Phase 1: botlib; next `code/botlib/l_memory.c`. Resume there; do not redo files 
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
 
 ## Codegen differences
+
+- `code/botlib/l_memory.c`: G4 advisory FAIL; full diff `tools/port/evidence/l_memory.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/l_memory.o /tmp/aftershock-cpp-port/l_memory` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/botlib/be_ai_chat.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_ai_chat.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_ai_chat.o /tmp/aftershock-cpp-port/be_ai_chat` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -270,7 +272,7 @@ Phase 1: botlib; next `code/botlib/l_memory.c`. Resume there; do not redo files 
 | `code/botlib/l_libvar.h` | todo | Pending module pass. |
 | `code/botlib/l_log.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_log.o); G4 PASS. |
 | `code/botlib/l_log.h` | todo | Pending module pass. |
-| `code/botlib/l_memory.c` | todo | Pending module pass. |
+| `code/botlib/l_memory.c` | done | T1: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_memory.o); G4 advisory FAIL, full diff retained. |
 | `code/botlib/l_memory.h` | todo | Pending module pass. |
 | `code/botlib/l_precomp.c` | todo | Pending module pass. |
 | `code/botlib/l_precomp.h` | todo | Pending module pass. |

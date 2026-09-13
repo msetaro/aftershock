@@ -351,7 +351,7 @@ void *GetMemory(size_t size)
 	if (size > SIZE_MAX - sizeof(*memid))
 		botimport.Print(PRT_EXIT, "%s: bad size", __func__);
 
-	memid = botimport.GetMemory(size + sizeof(*memid));
+	memid = (uintptr_t *)botimport.GetMemory(size + sizeof(*memid));
 	*memid = MEM_ID;
 	return memid + 1;
 } //end of the function GetMemory
@@ -393,7 +393,7 @@ void *GetHunkMemory(size_t size)
 	if (size > SIZE_MAX - sizeof(*memid))
 		botimport.Print(PRT_EXIT, "%s: bad size", __func__);
 
-	memid = botimport.HunkAlloc(size + sizeof(*memid));
+	memid = (uintptr_t *)botimport.HunkAlloc(size + sizeof(*memid));
 	*memid = HUNK_ID;
 	return memid + 1;
 } //end of the function GetHunkMemory
