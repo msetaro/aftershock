@@ -46,6 +46,8 @@ Phase 1: unix; next `code/unix/linux_joystick.c`. Resume there; do not redo file
 
 ## Harness status
 
+- Dormant linux_joystick.c has a generic Make object rule but is absent from linked object lists. Verify its real body using USE_SDL=0 CFLAGS=-DUSE_JOYSTICK; source equals base byte-for-byte. Added this explicit-feature C baseline object to nosdl-c.sha256 (298 standard +1 dormant). No feature enabled in supported builds.
+
 - G2 named nested records: pahole -M alone omitted C++ download_s::func_s while C exposed func_s at file scope. Added native --show_private_classes to compare nested member records on both sides. Positive named-nested control and same-size member-swap negative control PASS; full gate selfcheck PASS; all 63 existing artifact pairs G2 PASS after this correction. No source type/layout change.
 
 - Botlib: all 28 native source files and 34 headers assessed; strict release/debug client/ded, C SHA256 and G2/G3 PASS per file; G4 advisory diffs retained. Full default/ded C PASS. G8 passes retained casts/keyword rename (37 replaced lines across 8 files including final be_ai_move T1). Integrated C++ runtime remains blocked by qcommon/server; no full-engine equivalence claim.

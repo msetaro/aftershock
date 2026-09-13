@@ -296,3 +296,4 @@ bc720190ded28268e0d9b5c4e0328c642840a89590e9cd509760b87898e83433  release-linux-
 6bf22346f3db1e10697cceb898c92a4d93fcdf24bedd9ce58f8742c9edc8f823  release-linux-x86_64/rendv/vk.o
 5d4b78f4ca064f11486178c800d7f02cc2eca024014ac9dc106333fb1aa83a2f  release-linux-x86_64/rendv/vk_flares.o
 24a02ab40f148ec0e96d701c8bde2cca9a8ce72b93708df05834a84a59b1aeaa  release-linux-x86_64/rendv/vk_vbo.o
+c1908700124c797bb3f7adf675bf7eca5a59d1ef333816ef9303677ba74ead01  release-linux-x86_64/client/linux_joystick.o
