@@ -1529,7 +1529,7 @@ qboolean S_Base_Init( soundInterface_t *si ) {
 	s_device = Cvar_Get( "s_device", "default", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_SetDescription( s_device, "Set ALSA output device\n"
 		" Use \"default\", \"sysdefault\", \"front\", etc.\n"
-		" Enter " S_COLOR_CYAN "aplay -L "S_COLOR_WHITE"in your shell to see all options.\n"
+		" Enter " S_COLOR_CYAN "aplay -L " S_COLOR_WHITE "in your shell to see all options.\n"
 		S_COLOR_YELLOW " Please note that only mono/stereo devices are acceptable.\n" );
 #endif
 
@@ -1551,7 +1551,7 @@ qboolean S_Base_Init( soundInterface_t *si ) {
 		if ( dma.samples * dma.samplebits/8 <= sizeof( buffer2 ) ) {
 			dma_buffer2 = buffer2;
 		} else {
-			dma_buffer2 = malloc( dma.samples * dma.samplebits/8 );
+			dma_buffer2 = (byte *)malloc( dma.samples * dma.samplebits/8 );
 			memset( dma_buffer2, 0, dma.samples * dma.samplebits/8 );
 		}
 	} else {
