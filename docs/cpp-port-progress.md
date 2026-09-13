@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/botlib/l_memory.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/botlib/l_precomp.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -282,7 +282,7 @@ Phase 1: next `code/botlib/l_memory.h`. Resume there; do not redo done files. Bl
 | `code/botlib/l_log.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_log.o); G4 PASS. |
 | `code/botlib/l_log.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_cluster.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/l_memory.c` | done | T1: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_memory.o); G4 advisory FAIL, full diff retained. |
-| `code/botlib/l_memory.h` | todo | Pending module pass. |
+| `code/botlib/l_memory.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/l_precomp.c` | done | T1: 3 (one in inactive LoadSourceMemory), T4: 1 field (10 occurrences); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_precomp.o); G4 advisory FAIL, full diff retained. |
 | `code/botlib/l_precomp.h` | todo | Pending module pass. |
 | `code/botlib/l_script.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_script.o); G4 advisory FAIL, full diff retained. |
