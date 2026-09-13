@@ -4,11 +4,11 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 0: verify gate negative controls, finish formatter/tidy/CI and notes; investigate formatter threshold before declaring phase 0 complete.
+Phase 1: qcommon, starting cm_load.c. Harness six artifacts exist and q_math/md4 gates ran; formatting threshold deviation remains explicit. Continue per-file independent checks, do not declare final completion or rename while any limitation/block remains.
 
 ## Phases
 
-- [ ] Phase 0: harness, checksum proof, warning inventory, gates, formatting, CI, notes
+- [ ] Phase 0: harness artifacts/checksum/gate controls/CI/notes complete; formatting <3% requirement unmet (DEVIATION recorded)
 - [ ] Phase 1: qcommon
 - [ ] Phase 1: server
 - [ ] Phase 1: botlib
@@ -45,6 +45,10 @@ Phase 0: verify gate negative controls, finish formatter/tidy/CI and notes; inve
 - Local artifacts: `/tmp/aftershock-cpp-port`; persistent evidence follows in `tools/port/` and this checkpoint.
 
 ## Harness status
+
+- C dedicated smoke: exit 0 with requested q3dm17/Sarge/Major/wait-300 command. C ASan/UBSan smoke: exit 0, no ASan error, three known unaligned loads (unzip.c:1523/:1524, vm.c:1181). `tools/port/ubsan.supp` seeds function-scoped alignment exclusions; verification pending. No source fix.
+- Sanitizer reproduction: `SOURCE_DATE_EPOCH=1789257600 make -j$(nproc) BUILD_CLIENT=0 BUILD_DIR=/tmp/aftershock-cpp-port/sanitize CFLAGS='-fsanitize=address,undefined -fno-omit-frame-pointer' LDFLAGS='-fsanitize=address,undefined -lm -ldl'`; run its `release-linux-x86_64/quake3e.ded.x64 +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17 +addbot sarge 3 +addbot major 3 +wait 300 +quit` with `ASAN_OPTIONS=detect_leaks=0`. Logs: `/tmp/aftershock-cpp-port/{sanitize-build,runtime-sanitize,runtime-c}.log`.
+- G8: reviewer verified checksum proof, layout positive/negative controls, symbol boundary correction, and CI references. Direct renderer2-target issue fixed in 7e34499d and rechecked locally. Artifact compiler currently native Linux x86_64; other architectures must not be marked verified by it.
 
 - G8 reviewer found direct rend2 object targets bypassed USE_OPENGL2=0. Disabled those pattern rules in C++ mode; full C mode remains unchanged.
 
