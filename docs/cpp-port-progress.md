@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/unix/x11_dga.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: unix; next `code/unix/x11_randr.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -490,7 +490,7 @@ Phase 1: next `code/unix/x11_dga.c`. Resume there; do not redo done files. Block
 | `code/unix/unix_glw.h` | todo | Pending module pass. |
 | `code/unix/unix_main.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_main.o, default); G4 advisory FAIL, full diff retained. |
 | `code/unix/unix_shared.c` | blocked | At :22 _GNU_SOURCE is redefined: source defines it empty, g++ predefines it as 1. Adding an ifndef guard or changing macro value is outside T1-T17; diagnostic has no named -W class to freeze. T1 char** allocation at :236 also pending; source unchanged. |
-| `code/unix/x11_dga.c` | todo | Pending module pass. |
+| `code/unix/x11_dga.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_dga.o, nosdl); G4 PASS. |
 | `code/unix/x11_randr.c` | todo | Pending module pass. |
 | `code/unix/x11_vidmode.c` | todo | Pending module pass. |
 | `code/win32/glw_win.h` | todo | Pending module pass. |
