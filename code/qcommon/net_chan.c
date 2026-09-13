@@ -644,7 +644,7 @@ static packetQueue_t *list_process( packetQueue_t *head, const int time_diff )
 
 void NET_QueuePacket( netsrc_t sock, int length, const void *data, const netadr_t *to, int offset )
 {
-	packetQueue_t *new;
+	packetQueue_t *newPacket;
 
 	if ( to->type == NA_BOT ) {
 		return;
@@ -660,16 +660,16 @@ void NET_QueuePacket( netsrc_t sock, int length, const void *data, const netadr_
 		offset = 999;
 	}
 
-	new = S_Malloc(sizeof(*new) + length);
-	new->data = (byte *)( new + 1 );
-	Com_Memcpy(new->data, data, length);
-	new->length = length;
-	new->to = *to;
-	new->sock = sock;
-	new->release = Sys_Milliseconds() + (int)( (float)offset / com_timescale->value );
-	new->next = NULL;
+	newPacket = (packetQueue_t *)S_Malloc(sizeof(*newPacket) + length);
+	newPacket->data = (byte *)( newPacket + 1 );
+	Com_Memcpy(newPacket->data, data, length);
+	newPacket->length = length;
+	newPacket->to = *to;
+	newPacket->sock = sock;
+	newPacket->release = Sys_Milliseconds() + (int)( (float)offset / com_timescale->value );
+	newPacket->next = NULL;
 
-	packetQueue = list_insert( packetQueue, new );
+	packetQueue = list_insert( packetQueue, newPacket );
 }
 
 
