@@ -46,6 +46,9 @@ Phase 1: botlib; next `code/botlib/l_memory.c`. Resume there; do not redo files 
 
 ## Harness status
 
+- Runtime reproducibility blocker confirmed: two executions of the same rebuilt C server with the exact requested q3dm17/two-bot/wait-300 arguments both exit 0 but differ in Item events, beyond timestamps/PIDs. Persistent diff: `tools/port/evidence/c-runtime-repeat.diff`. C seeds use time(NULL), Com_Milliseconds(), and GAME_INIT receives Com_Milliseconds() (common:5055, sv_init:529, sv_game:1061). Therefore the literal console-diff criterion is nondeterministic even before C++; no engine seed/timing behavior changed. C++ runtime still blocked by build failures; deterministic harness control remains needed for a meaningful comparison.
+- Suppression check: same sanitizer baseline with `ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=suppressions=$PWD/tools/port/ubsan.supp` exits 0 with no runtime-error or sanitizer diagnostic. Log: `/tmp/aftershock-cpp-port/runtime-sanitize-suppressed.log`. These two function-scoped alignment suppressions are effective on the tested C smoke.
+
 - Server assessed: 9 native source files strict release/debug and G2/G3 PASS; sv_client.c, sv_rankings.c and tlds.h blocked. Full default C and dedicated C PASS (logs `/tmp/aftershock-cpp-port/server-{full,ded}-c.log`). G8 reviewer independently verified sv_game 199 T1 +7 T3 and sv_world 2 T3; all casts preserve original expressions. sv_game requires 116/1139 changed lines because almost every syscall passes untyped VM arguments; density is necessary at the ABI dispatch boundary, not cleanup. Module remains incomplete due blockers; proceeding botlib.
 
 - Proxy follow-up: limit forced proxy rules to explicitly requested object goals via static patterns. A broad forced %.o rule triggered GNU Make implicit .d.o rebuild attempts when dependency files existed; normal default/ded C builds now PASS again. Strict completed-file matrix rechecked.

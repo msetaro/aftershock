@@ -18,3 +18,5 @@ No engine bug fixes have been made.
 - The q_math hazard is confirmed by `tools/port/math_gate.sh`: fixed-input hashes
   differ between C and C++, while Q_rsqrt matches. See the checkpoint for exact
   hashes. The unchanged C implementation remains the oracle.
+
+- The exact unattended bot smoke is nondeterministic for two runs of the same C binary: Item events differ because engine/game initialization uses wall-clock seeds. This is a verification limitation, not a new engine bug; no timing or seed behavior changed. The full repeat diff is retained in tools/port/evidence/c-runtime-repeat.diff.
