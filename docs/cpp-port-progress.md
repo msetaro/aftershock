@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: client; next `code/client/cl_main.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: next `code/client/cl_net_chan.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -230,6 +230,8 @@ Phase 1: client; next `code/client/cl_main.c`. Resume there; do not redo files m
 
 ## Blocked files
 
+- `code/client/cl_main.c`: At :864 strrchr(const char*arg) assigned to read-only local char*ext_test; adding const is behavior-preserving but outside T8 literal string-constant scope (G8 reviewed). Remaining T1/T2/T3 diagnostics retained; source unchanged.
+
 - `code/client/cl_curl.c`: At :967 strrchr(const char*localName) assigned to char*s. Local pointer is read-only and adding const would preserve behavior, but T8 is explicitly string-literal constness; this library-overload const propagation is outside literal catalog scope (G8 reviewed). 35 T1 sites also pending; source unchanged.
 
 - `code/sdl/sdl_icon.h`: Unchanged image initializer; sole consuming translation unit sdl_glimp.c blocked, so complete-object C++ gates unavailable.
@@ -347,7 +349,7 @@ Phase 1: client; next `code/client/cl_main.c`. Resume there; do not redo files m
 | `code/client/cl_input.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_input.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_jpeg.c` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_jpeg.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_keys.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_keys.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_main.c` | todo | Pending module pass. |
+| `code/client/cl_main.c` | blocked | At :864 strrchr(const char*arg) assigned to read-only local char*ext_test; adding const is behavior-preserving but outside T8 literal string-constant scope (G8 reviewed). Remaining T1/T2/T3 diagnostics retained; source unchanged. |
 | `code/client/cl_net_chan.c` | todo | Pending module pass. |
 | `code/client/cl_parse.c` | todo | Pending module pass. |
 | `code/client/cl_scrn.c` | todo | Pending module pass. |
