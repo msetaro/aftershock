@@ -106,11 +106,13 @@ Phase 1: qcommon; next `code/qcommon/q_shared.c`. Resume there; do not redo file
 
 - `cm_load.c`: G4 advisory FAIL; compiler function-name string placement and resulting label/section differences. Full diff: `tools/port/evidence/cm_load.codegen.diff.gz` (`gzip -dc` to inspect). C SHA256 unchanged; G2/G3 PASS. Reproduce with `python3 tools/port/compile_pair.py ded/cm_load.o /tmp/aftershock-cpp-port/cm_load`, then each `tools/port/*_gate.sh` on the emitted `.c.o/.cxx.o` (G2/G3) or `.c.s/.cxx.s` (G4). 28 T1 casts, 28/1059 changed lines, no floating-point expression changed.
 
-- `q_math.c`: G4 FAIL (advisory) on unchanged source, gcc/g++ 15.2, actual release Makefile flags plus `-O2 -S`. C uses double `sincos`, C++ selects `sincosf`; additional overload-related instruction differences exist. This is a potential semantic difference, not merely labels. Full diff: `tools/port/evidence/q_math.codegen.diff`. No floating-point expression was changed. Phase 1 must assess this before marking the file done; a double-argument cast is not in T1-T17 and must not be silently introduced.
+- `q_math.c`: G4 FAIL (advisory) on unchanged source, gcc/g++ 15.2, actual release Makefile flags plus `-O2 -S`. C uses double `sincos`, C++ selects `sincosf`; additional overload-related instruction differences exist. This is a potential semantic difference, not merely labels. Full diff: `tools/port/evidence/q_math.codegen.diff`. No floating-point expression was changed. G5 now confirms differing results; file is blocked; a double-argument cast is not in T1-T17 and must not be silently introduced.
 - The full q_math G4 diff is committed without engine changes and must remain visible to human review.
 - `md4.c`: G4 PASS, normalized assembly identical.
 
 ## Blocked files
+
+- `code/qcommon/q_math.c`: confirmed semantic difference, not only G4 noise. `tools/port/math_gate.sh` compares 10,000 fixed inputs. C / C++ hashes: RotatePointAroundVector `056104dc` / `220b9dd8`; vectoangles `6f225d24` / `0929b283`; AngleVectors (fed preceding output) `0691ca72` / `84895270`; Q_rsqrt `301a8708` / `301a8708`. Float math overloads replace C double promotion. No allowed T1-T17 transformation restores double arithmetic here; source remains untouched. Full-port behavior equivalence and rename are blocked.
 
 - `code/qcommon/huffman_static.c`: G3 `R HuffmanDecoderTable` -> `r HuffmanDecoderTable`. No existing declaration to move (whole-tree search found definition and internal use only). Adding `extern` to a const object is outside T1-T17; unchanged source retained per stuck rule.
 
@@ -242,7 +244,7 @@ Phase 1: qcommon; next `code/qcommon/q_shared.c`. Resume there; do not redo file
 | `code/qcommon/net_ip.c` | done | T1: 2, T2: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/net_ip.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/puff.c` | todo | Pending module pass. |
 | `code/qcommon/puff.h` | todo | Pending module pass. |
-| `code/qcommon/q_math.c` | todo | Pending module pass. |
+| `code/qcommon/q_math.c` | blocked | G2/G3 PASS, but G5 fixed-input hashes differ in RotatePointAroundVector and vectoangles; AngleVectors chain differs too. C++ float overloads change results; double-argument casts are outside T1-T17. No source changes. |
 | `code/qcommon/q_platform.h` | todo | Pending module pass. |
 | `code/qcommon/q_shared.c` | todo | Pending module pass. |
 | `code/qcommon/q_shared.h` | todo | Pending module pass. |

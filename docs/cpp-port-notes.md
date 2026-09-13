@@ -14,3 +14,7 @@ No engine bug fixes have been made.
   no ASan error reported. Leak checking was disabled for this initial baseline.
   Narrow function alignment suppressions are seeded in tools/port/ubsan.supp;
   suppression effectiveness must still be checked before using them as a gate.
+
+- The q_math hazard is confirmed by `tools/port/math_gate.sh`: fixed-input hashes
+  differ between C and C++, while Q_rsqrt matches. See the checkpoint for exact
+  hashes. The unchanged C implementation remains the oracle.
