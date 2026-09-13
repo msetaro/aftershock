@@ -1,0 +1,729 @@
+FAIL: codegen /tmp/aftershock-cpp-port/gates/q_math.c.s /tmp/aftershock-cpp-port/gates/q_math.cxx.s
+--- /tmp/aftershock-cpp-port/gates/q_math.c.s
++++ /tmp/aftershock-cpp-port/gates/q_math.cxx.s
+@@ -349,27 +349,23 @@
+ 	movq	%rdi, %rbx
+ 	subq	$24, %rsp
+ 	.cfi_def_cfa_offset 48
+-	leaq	8(%rsp), %rdi
++	leaq	12(%rsp), %rdi
+ 	mulsd	.Lnorm37(%rip), %xmm0
+-	movq	%rsp, %rsi
++	leaq	8(%rsp), %rsi
+ 	divsd	.Lnorm38(%rip), %xmm0
+ 	cvtsd2ss	%xmm0, %xmm0
+-	cvtss2sd	%xmm0, %xmm0
+-	call	sincos@PLT
++	call	sincosf@PLT
+ 	movss	0(%rbp), %xmm7
+-	pxor	%xmm4, %xmm4
+-	pxor	%xmm5, %xmm5
+ 	movss	4(%rbp), %xmm2
+ 	movss	8(%rbp), %xmm0
+-	movss	.Lnorm39(%rip), %xmm6
+-	cvtsd2ss	(%rsp), %xmm5
+-	cvtsd2ss	8(%rsp), %xmm4
+ 	movaps	%xmm7, %xmm8
+ 	movaps	%xmm7, %xmm1
++	movss	8(%rsp), %xmm5
++	movss	12(%rsp), %xmm4
+ 	unpcklps	%xmm2, %xmm8
+ 	movaps	%xmm0, %xmm10
+ 	shufps	$0, %xmm1, %xmm1
+-	subss	%xmm5, %xmm6
++	movss	.Lnorm39(%rip), %xmm6
+ 	mulss	%xmm4, %xmm7
+ 	unpcklps	%xmm2, %xmm10
+ 	movaps	%xmm8, %xmm3
+@@ -379,15 +375,16 @@
+ 	movaps	%xmm0, %xmm10
+ 	unpcklps	%xmm2, %xmm3
+ 	unpcklps	%xmm0, %xmm10
+-	movaps	%xmm6, %xmm9
++	subss	%xmm5, %xmm6
+ 	movlhps	%xmm8, %xmm3
+ 	movaps	%xmm2, %xmm8
+-	shufps	$0, %xmm9, %xmm9
+ 	mulss	%xmm4, %xmm2
+ 	unpcklps	%xmm0, %xmm8
+ 	movlhps	%xmm10, %xmm8
+ 	mulps	%xmm8, %xmm3
++	movaps	%xmm6, %xmm9
+ 	mulss	%xmm0, %xmm4
++	shufps	$0, %xmm9, %xmm9
+ 	mulps	%xmm9, %xmm1
+ 	mulss	%xmm0, %xmm0
+ 	movaps	%xmm2, %xmm8
+@@ -508,57 +505,56 @@
+ 	movq	%rsi, %rbx
+ 	subq	$32, %rsp
+ 	.cfi_def_cfa_offset 48
+-	movss	4(%rdi), %xmm3
+-	movss	(%rdi), %xmm2
+-	ucomiss	%xmm0, %xmm3
++	movss	4(%rdi), %xmm2
++	movss	(%rdi), %xmm1
++	ucomiss	%xmm0, %xmm2
+ 	jp	.Lnorm45
+ 	jne	.Lnorm45
+-	ucomiss	%xmm0, %xmm2
++	ucomiss	%xmm0, %xmm1
+ 	jp	.Lnorm46
+ 	jne	.Lnorm46
+ 	movss	8(%rdi), %xmm1
+ 	comiss	%xmm0, %xmm1
+ 	jbe	.Lnorm47
+ 	movss	.Lnorm48(%rip), %xmm0
+-	pxor	%xmm4, %xmm4
++	pxor	%xmm3, %xmm3
+ 	jmp	.Lnorm49
+ 	.p2align 4,,10
+ 	.p2align 3
+ .Lnorm45:
+ 	pxor	%xmm0, %xmm0
+-	ucomiss	%xmm0, %xmm2
++	ucomiss	%xmm0, %xmm1
+ 	jp	.Lnorm46
+ 	jne	.Lnorm46
+-	mulss	%xmm2, %xmm2
+-	comiss	%xmm0, %xmm3
+-	movaps	%xmm3, %xmm1
+-	mulss	%xmm3, %xmm1
+-	addss	%xmm2, %xmm1
++	mulss	%xmm1, %xmm1
++	comiss	%xmm0, %xmm2
++	movaps	%xmm2, %xmm3
++	mulss	%xmm2, %xmm3
++	addss	%xmm3, %xmm1
+ 	jbe	.Lnorm50
+-	movss	.Lnorm51(%rip), %xmm4
+-	movsd	.Lnorm38(%rip), %xmm6
+-	movsd	.Lnorm37(%rip), %xmm5
+-.Lnorm52:
++	movss	.Lnorm51(%rip), %xmm3
++	movss	.Lnorm52(%rip), %xmm5
++	movsd	.Lnorm37(%rip), %xmm4
++.Lnorm53:
+ 	sqrtss	%xmm1, %xmm1
+-	pxor	%xmm0, %xmm0
+-	movss	%xmm4, 12(%rsp)
+-	movsd	%xmm6, 24(%rsp)
+-	cvtss2sd	8(%rdi), %xmm0
+-	movsd	%xmm5, 16(%rsp)
+-	cvtss2sd	%xmm1, %xmm1
+-	call	atan2@PLT
++	movss	8(%rdi), %xmm0
++	movss	%xmm3, 12(%rsp)
++	movss	%xmm5, 24(%rsp)
++	movsd	%xmm4, 16(%rsp)
++	call	atan2f@PLT
++	mulss	24(%rsp), %xmm0
+ 	pxor	%xmm1, %xmm1
+-	movss	12(%rsp), %xmm4
+-	mulsd	24(%rsp), %xmm0
++	movss	12(%rsp), %xmm3
++	cvtss2sd	%xmm0, %xmm0
+ 	divsd	16(%rsp), %xmm0
+ 	cvtsd2ss	%xmm0, %xmm0
+ 	comiss	%xmm0, %xmm1
+-	jbe	.Lnorm53
+-	addss	.Lnorm54(%rip), %xmm0
+-.Lnorm53:
+-	xorps	.Lnorm55(%rip), %xmm0
++	jbe	.Lnorm54
++	addss	.Lnorm55(%rip), %xmm0
++.Lnorm54:
++	xorps	.Lnorm56(%rip), %xmm0
+ .Lnorm49:
+-	unpcklps	%xmm4, %xmm0
++	unpcklps	%xmm3, %xmm0
+ 	movl	$0x00000000, 8(%rbx)
+ 	movlps	%xmm0, (%rbx)
+ 	addq	$32, %rsp
+@@ -571,70 +567,67 @@
+ 	.p2align 3
+ .Lnorm50:
+ 	.cfi_restore_state
+-	movss	.Lnorm56(%rip), %xmm4
+-	movsd	.Lnorm38(%rip), %xmm6
+-	movsd	.Lnorm37(%rip), %xmm5
+-	jmp	.Lnorm52
++	movss	.Lnorm57(%rip), %xmm3
++	movss	.Lnorm52(%rip), %xmm5
++	movsd	.Lnorm37(%rip), %xmm4
++	jmp	.Lnorm53
+ 	.p2align 4,,10
+ 	.p2align 3
+ .Lnorm46:
++	movaps	%xmm2, %xmm0
++	movq	%rdi, 24(%rsp)
++	movss	%xmm1, 16(%rsp)
++	movss	%xmm2, 12(%rsp)
++	call	atan2f@PLT
++	movss	16(%rsp), %xmm1
++	movq	24(%rsp), %rdi
++	movss	.Lnorm52(%rip), %xmm5
++	movaps	%xmm0, %xmm3
+ 	pxor	%xmm0, %xmm0
+-	pxor	%xmm1, %xmm1
+-	movq	%rdi, 24(%rsp)
+-	cvtss2sd	%xmm2, %xmm1
+-	movss	%xmm3, 16(%rsp)
+-	cvtss2sd	%xmm3, %xmm0
+-	movss	%xmm2, 12(%rsp)
+-	call	atan2@PLT
+-	movss	16(%rsp), %xmm3
+-	movq	24(%rsp), %rdi
+-	movsd	.Lnorm38(%rip), %xmm6
+-	movapd	%xmm0, %xmm4
+-	pxor	%xmm0, %xmm0
+-	movsd	.Lnorm37(%rip), %xmm5
++	movsd	.Lnorm37(%rip), %xmm4
+ 	movss	12(%rsp), %xmm2
+-	mulss	%xmm3, %xmm3
+-	mulsd	%xmm6, %xmm4
++	mulss	%xmm1, %xmm1
++	mulss	%xmm5, %xmm3
+ 	mulss	%xmm2, %xmm2
+-	divsd	%xmm5, %xmm4
+-	addss	%xmm2, %xmm3
+-	movaps	%xmm3, %xmm1
+-	cvtsd2ss	%xmm4, %xmm4
+-	comiss	%xmm4, %xmm0
+-	jbe	.Lnorm52
+-	addss	.Lnorm54(%rip), %xmm4
+-	jmp	.Lnorm52
++	cvtss2sd	%xmm3, %xmm3
++	divsd	%xmm4, %xmm3
++	addss	%xmm2, %xmm1
++	cvtsd2ss	%xmm3, %xmm3
++	comiss	%xmm3, %xmm0
++	jbe	.Lnorm53
++	addss	.Lnorm55(%rip), %xmm3
++	jmp	.Lnorm53
+ 	.p2align 4,,10
+ 	.p2align 3
+ .Lnorm47:
+-	movss	.Lnorm57(%rip), %xmm0
+-	pxor	%xmm4, %xmm4
++	movss	.Lnorm58(%rip), %xmm0
++	pxor	%xmm3, %xmm3
+ 	jmp	.Lnorm49
+ 	.cfi_endproc
+-.Lnorm58:
++.Lnorm59:
+ 	.size	vectoangles, .-vectoangles
+ 	.p2align 4
+ 	.globl	AxisClear
+ 	.hidden	AxisClear
+ 	.type	AxisClear, @function
+ AxisClear:
+-.Lnorm59:
+-	.cfi_startproc
+-	endbr64
+-	movss	.Lnorm60(%rip), %xmm0
++.Lnorm60:
++	.cfi_startproc
++	endbr64
++	movss	.Lnorm61(%rip), %xmm0
+ 	movl	$0x3f800000, 32(%rdi)
+ 	movups	%xmm0, (%rdi)
+ 	movups	%xmm0, 16(%rdi)
+ 	ret
+ 	.cfi_endproc
+-.Lnorm61:
++.Lnorm62:
+ 	.size	AxisClear, .-AxisClear
+ 	.p2align 4
+ 	.globl	AxisCopy
+ 	.hidden	AxisCopy
+ 	.type	AxisCopy, @function
+ AxisCopy:
+-.Lnorm62:
++.Lnorm63:
+ 	.cfi_startproc
+ 	endbr64
+ 	movss	(%rdi), %xmm0
+@@ -657,14 +650,14 @@
+ 	movss	%xmm0, 32(%rsi)
+ 	ret
+ 	.cfi_endproc
+-.Lnorm63:
++.Lnorm64:
+ 	.size	AxisCopy, .-AxisCopy
+ 	.p2align 4
+ 	.globl	ProjectPointOnPlane
+ 	.hidden	ProjectPointOnPlane
+ 	.type	ProjectPointOnPlane, @function
+ ProjectPointOnPlane:
+-.Lnorm64:
++.Lnorm65:
+ 	.cfi_startproc
+ 	endbr64
+ 	movss	(%rdx), %xmm3
+@@ -706,14 +699,14 @@
+ 	movss	%xmm0, 8(%rdi)
+ 	ret
+ 	.cfi_endproc
+-.Lnorm65:
++.Lnorm66:
+ 	.size	ProjectPointOnPlane, .-ProjectPointOnPlane
+ 	.p2align 4
+ 	.globl	VectorRotate
+ 	.hidden	VectorRotate
+ 	.type	VectorRotate, @function
+ VectorRotate:
+-.Lnorm66:
++.Lnorm67:
+ 	.cfi_startproc
+ 	endbr64
+ 	movss	(%rdi), %xmm0
+@@ -745,25 +738,25 @@
+ 	movss	%xmm0, 8(%rdx)
+ 	ret
+ 	.cfi_endproc
+-.Lnorm67:
++.Lnorm68:
+ 	.size	VectorRotate, .-VectorRotate
+ 	.p2align 4
+ 	.globl	Q_rsqrt
+ 	.hidden	Q_rsqrt
+ 	.type	Q_rsqrt, @function
+ Q_rsqrt:
+-.Lnorm68:
++.Lnorm69:
+ 	.cfi_startproc
+ 	endbr64
+ 	pxor	%xmm1, %xmm1
+ 	ucomiss	%xmm0, %xmm1
+-	ja	.Lnorm69
++	ja	.Lnorm70
+ 	sqrtss	%xmm0, %xmm0
+ 	movss	.Lnorm39(%rip), %xmm1
+ 	divss	%xmm0, %xmm1
+ 	movaps	%xmm1, %xmm0
+ 	ret
+-.Lnorm69:
++.Lnorm70:
+ 	pushq	%rax
+ 	.cfi_def_cfa_offset 16
+ 	call	sqrtf@PLT
+@@ -774,14 +767,14 @@
+ 	movaps	%xmm1, %xmm0
+ 	ret
+ 	.cfi_endproc
+-.Lnorm70:
++.Lnorm71:
+ 	.size	Q_rsqrt, .-Q_rsqrt
+ 	.p2align 4
+ 	.globl	Q_fabs
+ 	.hidden	Q_fabs
+ 	.type	Q_fabs, @function
+ Q_fabs:
+-.Lnorm71:
++.Lnorm72:
+ 	.cfi_startproc
+ 	endbr64
+ 	movd	%xmm0, %eax
+@@ -789,29 +782,29 @@
+ 	movd	%eax, %xmm0
+ 	ret
+ 	.cfi_endproc
+-.Lnorm72:
++.Lnorm73:
+ 	.size	Q_fabs, .-Q_fabs
+ 	.p2align 4
+ 	.globl	LerpAngle
+ 	.hidden	LerpAngle
+ 	.type	LerpAngle, @function
+ LerpAngle:
+-.Lnorm73:
++.Lnorm74:
+ 	.cfi_startproc
+ 	endbr64
+ 	movaps	%xmm0, %xmm3
+ 	movaps	%xmm1, %xmm0
+ 	subss	%xmm3, %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
++	comiss	.Lnorm52(%rip), %xmm0
+ 	jbe	.Lnorm75
+-	subss	.Lnorm54(%rip), %xmm1
++	subss	.Lnorm55(%rip), %xmm1
+ 	movaps	%xmm1, %xmm0
+ 	subss	%xmm3, %xmm0
+ .Lnorm75:
+ 	movss	.Lnorm76(%rip), %xmm4
+ 	comiss	%xmm0, %xmm4
+ 	jbe	.Lnorm77
+-	addss	.Lnorm54(%rip), %xmm1
++	addss	.Lnorm55(%rip), %xmm1
+ 	subss	%xmm3, %xmm1
+ 	movaps	%xmm1, %xmm0
+ .Lnorm77:
+@@ -831,15 +824,15 @@
+ 	.cfi_startproc
+ 	endbr64
+ 	subss	%xmm1, %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
+-	movss	.Lnorm54(%rip), %xmm1
++	comiss	.Lnorm52(%rip), %xmm0
++	movss	.Lnorm55(%rip), %xmm1
+ 	jbe	.Lnorm80
+ 	.p2align 4
+ 	.p2align 4
+ 	.p2align 3
+ .Lnorm81:
+ 	subss	%xmm1, %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
++	comiss	.Lnorm52(%rip), %xmm0
+ 	ja	.Lnorm81
+ 	ret
+ 	.p2align 4,,10
+@@ -870,43 +863,43 @@
+ 	endbr64
+ 	movss	(%rdi), %xmm0
+ 	subss	(%rsi), %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
+-	movss	.Lnorm54(%rip), %xmm1
++	comiss	.Lnorm52(%rip), %xmm0
++	movss	.Lnorm55(%rip), %xmm1
+ 	jbe	.Lnorm86
+ 	.p2align 4
+ 	.p2align 4
+ 	.p2align 3
+ .Lnorm87:
+ 	subss	%xmm1, %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
++	comiss	.Lnorm52(%rip), %xmm0
+ 	ja	.Lnorm87
+ .Lnorm88:
+ 	movss	%xmm0, (%rdx)
+ 	movss	4(%rdi), %xmm0
+ 	subss	4(%rsi), %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
+-	movss	.Lnorm54(%rip), %xmm1
++	comiss	.Lnorm52(%rip), %xmm0
++	movss	.Lnorm55(%rip), %xmm1
+ 	jbe	.Lnorm89
+ 	.p2align 4
+ 	.p2align 4
+ 	.p2align 3
+ .Lnorm90:
+ 	subss	%xmm1, %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
++	comiss	.Lnorm52(%rip), %xmm0
+ 	ja	.Lnorm90
+ .Lnorm91:
+ 	movss	%xmm0, 4(%rdx)
+ 	movss	8(%rdi), %xmm0
+ 	subss	8(%rsi), %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
+-	movss	.Lnorm54(%rip), %xmm1
++	comiss	.Lnorm52(%rip), %xmm0
++	movss	.Lnorm55(%rip), %xmm1
+ 	jbe	.Lnorm92
+ 	.p2align 4
+ 	.p2align 4
+ 	.p2align 3
+ .Lnorm93:
+ 	subss	%xmm1, %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
++	comiss	.Lnorm52(%rip), %xmm0
+ 	ja	.Lnorm93
+ .Lnorm94:
+ 	movss	%xmm0, 8(%rdx)
+@@ -1013,9 +1006,9 @@
+ 	cvtsi2sdl	%eax, %xmm0
+ 	mulsd	.Lnorm101(%rip), %xmm0
+ 	cvtsd2ss	%xmm0, %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
++	comiss	.Lnorm52(%rip), %xmm0
+ 	jbe	.Lnorm106
+-	subss	.Lnorm54(%rip), %xmm0
++	subss	.Lnorm55(%rip), %xmm0
+ .Lnorm106:
+ 	ret
+ 	.cfi_endproc
+@@ -1038,9 +1031,9 @@
+ 	cvtsi2sdl	%eax, %xmm0
+ 	mulsd	.Lnorm101(%rip), %xmm0
+ 	cvtsd2ss	%xmm0, %xmm0
+-	comiss	.Lnorm74(%rip), %xmm0
++	comiss	.Lnorm52(%rip), %xmm0
+ 	jbe	.Lnorm109
+-	subss	.Lnorm54(%rip), %xmm0
++	subss	.Lnorm55(%rip), %xmm0
+ .Lnorm109:
+ 	ret
+ 	.cfi_endproc
+@@ -1490,7 +1483,7 @@
+ 	movss	(%rdi), %xmm5
+ 	movq	%rdi, %rax
+ 	movaps	%xmm5, %xmm1
+-	xorps	.Lnorm55(%rip), %xmm1
++	xorps	.Lnorm56(%rip), %xmm1
+ 	movss	%xmm1, 4(%rsi)
+ 	movss	4(%rdi), %xmm4
+ 	movss	%xmm4, 8(%rsi)
+@@ -1504,7 +1497,7 @@
+ 	movaps	%xmm4, %xmm0
+ 	mulss	%xmm3, %xmm0
+ 	addss	%xmm1, %xmm0
+-	xorps	.Lnorm55(%rip), %xmm0
++	xorps	.Lnorm56(%rip), %xmm0
+ 	mulss	%xmm0, %xmm2
+ 	addss	%xmm3, %xmm2
+ 	movss	%xmm2, (%rsi)
+@@ -1878,112 +1871,103 @@
+ 	pushq	%rbx
+ 	.cfi_def_cfa_offset 56
+ 	.cfi_offset 3, -56
+-	subq	$56, %rsp
+-	.cfi_def_cfa_offset 112
++	subq	$40, %rsp
++	.cfi_def_cfa_offset 96
+ 	cvtss2sd	4(%rdi), %xmm0
+-	leaq	32(%rsp), %rbp
+-	leaq	40(%rsp), %rdi
++	leaq	24(%rsp), %rbp
++	leaq	28(%rsp), %rdi
+ 	mulsd	.Lnorm179(%rip), %xmm0
+ 	movq	%rbp, %rsi
+ 	cvtsd2ss	%xmm0, %xmm0
+-	cvtss2sd	%xmm0, %xmm0
+-	call	sincos@PLT
++	call	sincosf@PLT
++	pxor	%xmm0, %xmm0
+ 	movq	%rbp, %rsi
+-	movsd	40(%rsp), %xmm0
+-	movsd	32(%rsp), %xmm5
+-	leaq	40(%rsp), %rdi
+-	movapd	%xmm0, %xmm6
+-	unpcklpd	%xmm0, %xmm5
++	cvtss2sd	(%r12), %xmm0
++	movss	24(%rsp), %xmm6
++	movss	28(%rsp), %xmm1
++	leaq	28(%rsp), %rdi
++	mulsd	.Lnorm179(%rip), %xmm0
++	movaps	%xmm6, %xmm5
++	movss	%xmm6, 20(%rsp)
++	unpcklps	%xmm1, %xmm5
++	movss	%xmm1, 16(%rsp)
++	movlps	%xmm5, 8(%rsp)
++	cvtsd2ss	%xmm0, %xmm0
++	call	sincosf@PLT
+ 	pxor	%xmm0, %xmm0
+-	movhpd	32(%rsp), %xmm6
+-	cvtss2sd	(%r12), %xmm0
+-	cvtpd2ps	%xmm6, %xmm6
+-	cvtpd2ps	%xmm5, %xmm5
++	movq	%rbp, %rsi
++	cvtss2sd	8(%r12), %xmm0
++	movss	24(%rsp), %xmm3
++	movss	28(%rsp), %xmm2
++	leaq	28(%rsp), %rdi
+ 	mulsd	.Lnorm179(%rip), %xmm0
+-	movlps	%xmm6, 24(%rsp)
+-	movlps	%xmm5, 16(%rsp)
++	movss	%xmm3, 4(%rsp)
++	movss	%xmm2, (%rsp)
+ 	cvtsd2ss	%xmm0, %xmm0
+-	cvtss2sd	%xmm0, %xmm0
+-	call	sincos@PLT
+-	movq	%rbp, %rsi
+-	pxor	%xmm0, %xmm0
+-	pxor	%xmm1, %xmm1
+-	pxor	%xmm3, %xmm3
+-	cvtss2sd	8(%r12), %xmm0
+-	mulsd	.Lnorm179(%rip), %xmm0
+-	leaq	40(%rsp), %rdi
+-	cvtsd2ss	40(%rsp), %xmm1
+-	cvtsd2ss	32(%rsp), %xmm3
+-	movss	%xmm1, 12(%rsp)
+-	movss	%xmm3, 8(%rsp)
+-	cvtsd2ss	%xmm0, %xmm0
+-	cvtss2sd	%xmm0, %xmm0
+-	call	sincos@PLT
++	call	sincosf@PLT
+ 	testq	%r15, %r15
+-	pxor	%xmm0, %xmm0
+-	pxor	%xmm4, %xmm4
+-	movss	8(%rsp), %xmm3
+-	movss	12(%rsp), %xmm1
+-	movq	16(%rsp), %xmm5
+-	movq	24(%rsp), %xmm6
+-	cvtsd2ss	40(%rsp), %xmm0
+-	cvtsd2ss	32(%rsp), %xmm4
++	movss	24(%rsp), %xmm4
++	movss	28(%rsp), %xmm7
++	movss	(%rsp), %xmm2
++	movss	4(%rsp), %xmm3
++	movq	8(%rsp), %xmm5
++	movss	16(%rsp), %xmm1
++	movss	20(%rsp), %xmm6
+ 	je	.Lnorm180
+-	movaps	%xmm3, %xmm2
+-	movq	%xmm5, %xmm7
+-	shufps	$0xe0, %xmm2, %xmm2
+-	movq	%xmm2, %xmm2
+-	mulps	%xmm7, %xmm2
+-	movlps	%xmm2, (%r15)
+-	movaps	%xmm1, %xmm2
+-	xorps	.Lnorm55(%rip), %xmm2
+-	movss	%xmm2, 8(%r15)
++	movaps	%xmm6, %xmm8
++	movaps	%xmm3, %xmm0
++	unpcklps	%xmm3, %xmm8
++	unpcklps	%xmm1, %xmm0
++	movq	%xmm8, %xmm8
++	movq	%xmm0, %xmm0
++	mulps	%xmm8, %xmm0
++	movlps	%xmm0, (%r15)
++	movaps	%xmm2, %xmm0
++	xorps	.Lnorm56(%rip), %xmm0
++	movss	%xmm0, 8(%r15)
+ .Lnorm180:
+ 	testq	%r14, %r14
+ 	je	.Lnorm181
+-	movaps	%xmm0, %xmm8
+-	xorps	.Lnorm55(%rip), %xmm8
+-	movaps	%xmm1, %xmm7
+-	movaps	%xmm4, %xmm9
+-	xorps	.Lnorm55(%rip), %xmm9
+-	movaps	%xmm4, %xmm2
+-	mulss	%xmm8, %xmm7
+-	mulss	%xmm3, %xmm8
+-	unpcklps	%xmm9, %xmm2
+-	movq	%xmm6, %xmm9
+-	movq	%xmm2, %xmm2
+-	mulps	%xmm9, %xmm2
+-	movq	%xmm5, %xmm9
+-	shufps	$0xe0, %xmm7, %xmm7
+-	movq	%xmm7, %xmm7
+-	mulps	%xmm9, %xmm7
+-	movss	%xmm8, 8(%r14)
+-	movq	%xmm2, %xmm2
+-	movq	%xmm7, %xmm7
+-	addps	%xmm7, %xmm2
+-	movlps	%xmm2, (%r14)
++	movaps	%xmm7, %xmm9
++	xorps	.Lnorm56(%rip), %xmm9
++	movaps	%xmm4, %xmm10
++	xorps	.Lnorm56(%rip), %xmm10
++	movaps	%xmm1, %xmm8
++	mulss	%xmm4, %xmm8
++	movaps	%xmm9, %xmm0
++	mulss	%xmm6, %xmm10
++	mulss	%xmm2, %xmm0
++	mulss	%xmm3, %xmm9
++	unpcklps	%xmm10, %xmm8
++	movq	%xmm5, %xmm10
++	shufps	$0xe0, %xmm0, %xmm0
++	movq	%xmm0, %xmm0
++	movq	%xmm8, %xmm8
++	mulps	%xmm10, %xmm0
++	movss	%xmm9, 8(%r14)
++	movq	%xmm0, %xmm0
++	addps	%xmm8, %xmm0
++	movlps	%xmm0, (%r14)
+ .Lnorm181:
+ 	testq	%r13, %r13
+ 	je	.Lnorm182
+-	mulss	%xmm4, %xmm1
+-	movaps	%xmm0, %xmm2
+-	xorps	.Lnorm55(%rip), %xmm2
++	mulss	%xmm4, %xmm2
++	movq	%xmm5, %xmm5
++	mulss	%xmm7, %xmm1
++	xorps	.Lnorm56(%rip), %xmm7
+ 	mulss	%xmm4, %xmm3
+-	movq	%xmm6, %xmm6
+-	movq	%xmm5, %xmm5
+-	unpcklps	%xmm2, %xmm0
++	mulss	%xmm6, %xmm7
++	shufps	$0xe0, %xmm2, %xmm2
++	movq	%xmm2, %xmm0
++	mulps	%xmm5, %xmm0
++	movss	%xmm3, 8(%r13)
++	unpcklps	%xmm7, %xmm1
++	movq	%xmm1, %xmm1
+ 	movq	%xmm0, %xmm0
+-	mulps	%xmm6, %xmm0
+-	shufps	$0xe0, %xmm1, %xmm1
+-	movq	%xmm1, %xmm1
+-	mulps	%xmm5, %xmm1
+-	movss	%xmm3, 8(%r13)
+-	movq	%xmm0, %xmm0
+-	movq	%xmm1, %xmm1
+-	addps	%xmm1, %xmm0
+-	movlps	%xmm0, 0(%r13)
++	addps	%xmm0, %xmm1
++	movlps	%xmm1, 0(%r13)
+ .Lnorm182:
+-	addq	$56, %rsp
++	addq	$40, %rsp
+ 	.cfi_def_cfa_offset 56
+ 	popq	%rbx
+ 	.cfi_def_cfa_offset 48
+@@ -2288,10 +2272,8 @@
+ 	endbr64
+ 	subq	$8, %rsp
+ 	.cfi_def_cfa_offset 16
+-	cvtss2sd	%xmm0, %xmm0
+-	call	acos@PLT
++	call	acosf@PLT
+ 	pxor	%xmm1, %xmm1
+-	cvtsd2ss	%xmm0, %xmm0
+ 	cvtss2sd	%xmm0, %xmm1
+ 	comisd	.Lnorm37(%rip), %xmm1
+ 	ja	.Lnorm208
+@@ -3114,40 +3096,40 @@
+ .Lnorm38:
+ 	.long	0
+ 	.long	1080459264
+-	.set	.Lnorm39,.Lnorm60
++	.set	.Lnorm39,.Lnorm61
+ 	.section	.rodata.cst4
+ 	.align 4
+-.Lnorm56:
++.Lnorm57:
+ 	.long	1132920832
+ 	.align 4
+ .Lnorm51:
+ 	.long	1119092736
+ 	.align 4
+-.Lnorm57:
++.Lnorm58:
+ 	.long	-1014562816
+ 	.align 4
+ .Lnorm48:
+ 	.long	-1028390912
+ 	.align 4
+-.Lnorm54:
++.Lnorm52:
++	.long	1127481344
++	.align 4
++.Lnorm55:
+ 	.long	1135869952
+ 	.section	.rodata.cst16,"aM",@progbits,16
+ 	.align 16
+-.Lnorm55:
++.Lnorm56:
+ 	.long	-2147483648
+ 	.long	0
+ 	.long	0
+ 	.long	0
+ 	.align 16
+-.Lnorm60:
++.Lnorm61:
+ 	.long	1065353216
+ 	.long	0
+ 	.long	0
+ 	.long	0
+ 	.section	.rodata.cst4
+-	.align 4
+-.Lnorm74:
+-	.long	1127481344
+ 	.align 4
+ .Lnorm76:
+ 	.long	-1020002304

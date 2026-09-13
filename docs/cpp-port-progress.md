@@ -71,6 +71,7 @@ None.
 ## Codegen differences
 
 - `q_math.c`: G4 FAIL (advisory) on unchanged source, gcc/g++ 15.2, actual release Makefile flags plus `-O2 -S`. C uses double `sincos`, C++ selects `sincosf`; additional overload-related instruction differences exist. This is a potential semantic difference, not merely labels. Full diff: `tools/port/evidence/q_math.codegen.diff`. No floating-point expression was changed. Phase 1 must assess this before marking the file done; a double-argument cast is not in T1-T17 and must not be silently introduced.
+- The full q_math G4 diff is committed without engine changes and must remain visible to human review.
 - `md4.c`: G4 PASS, normalized assembly identical.
 
 ## Blocked files
