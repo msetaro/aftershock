@@ -7,29 +7,26 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: `issue/31-native-dispatch`, based on modernization. #2 is checkpointed
-on issue/2-native-game at b167c637 / draft PR #50. #31 movement-result fix PR #51
-merged as 5ecf43e52dbc5a62efd2fe62c13a1c5a17065e95 after regression 34900480717 and
-full build 34900480656 passed on fc49615d. Merged-tree regression 34900871236 passed.
-Merge 21ad2eea brings this fix into #2, retaining both CI/test documentation additions.
-Permanent GCC native smoke passes both maps (6dad7c18 / a15c9c91 normalized hashes).
-Clang native smoke loads the DLL then catches SIGSEGV before bots start: GDB locates
-VM_Call's native argument-copy loop. That branch reads args[0..2] even for nargs=0;
-Clang exploits the undefined uninitialized reads and removes the zero-count exit,
-then overruns the stack. No source fix on #2. Separately, native C diagnostics found
-the same teamleader[sizeof(teamleader)] out-of-bounds terminator in ai_cmd.c:1311
-and ai_team.c:1963; both are #31 work, not inline port edits.
-The separate dispatch regression is committed first as 6d4710b4 and fails with
-SIGSEGV under Clang before the fix. Initializing the three-slot array now passes
-GCC/Clang stub calls for counts 0–3 and both native Clang bot smoke logs. Upstream
-C reproduces SIGSEGV before and passes after with Clang. No golden changes.
-PR #52 is open on source 3201b7fa8babcd54be0129fac3c0d0ab99349dcf. Regression
-34908517245 and full build 34908517199 passed. Self-review passes; this checkpoint
-is documentation only.
-Next: merge the native-dispatch fix with a merge commit and verify its merged
-tree, then the separate #31 teamleader bounds fix. Resume #2 native C compiler
-parity, OpenArena native support, T1–T25 C++ gates, static calls and VM/JIT removal.
-Accepted goldens may change only in an explained #31 fix, never on #2.
+Active work: `issue/31-teamleader-name`, based on modernization. #2 is checkpointed
+on issue/2-native-game at b167c637 / draft PR #50. Movement-result PR #51 merged
+as 5ecf43e5; native-dispatch PR #52 merged as 99f3b2b5405ef023afaf16c03233a8b842465b9e.
+#52 source 3201b7fa passed regression 34908517245 and full build 34908517199;
+merged-tree regression 34908936239 passed. Upstream C counterparts: #435 and #436.
+#2 already includes #51; merge modernization after this bounds fix to include #52
+and the two corrected prerequisite C imports. Resolve their add/add conflicts to
+the reviewed #31 versions and update the #2 provenance dispositions.
+
+The team-leader regression and exact two-file GPL prerequisite import are committed
+first as fc665341. Both original functions fail Clang's array-bounds diagnostic:
+they write index 32 of teamleader[32]. Replacing each copy/terminator pair with
+Q_strncpyz now passes both real GPL translation units. Defined symbols are unchanged;
+only BotMatch_StartTeamLeaderShip and BotTeamAI change normalized GCC assembly.
+No engine source or simulation expression changes. ec-/Quake3e does not contain
+these game files, so there is no corresponding engine upstream patch to submit.
+Next: finish bounds-fix validation, record source/run IDs and self-review, merge
+its PR with a merge commit, and verify the merged tree. Then resume #2 native C
+compiler parity, OpenArena native support, T1–T25 C++ gates, static calls and VM/JIT
+removal. Accepted goldens may change only in an explained #31 fix, never on #2.
 
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
@@ -142,7 +139,7 @@ experiment still timed out before output and is not a claimed runtime gate.
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); thirteen fixes merged through #49; merged-tree regression 34895239211 passed. Reopened for the movement-result defect found by #2; separate fix branch active. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); thirteen fixes merged through #49; merged-tree regression 34895239211 passed. Movement result (#51, upstream #435) and native dispatch (#52, upstream #436) also merged; active follow-up is GPL team-leader name bounds. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Complete: merged #48, merged-tree regression 34893585998 passed. |
 | 4 | #2 native game | In progress: exact C import and native preflight; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -504,3 +501,23 @@ rejects both index-32 teamleader writes. Other writes already use ClientName or
 Q_strncpyz. These game files are absent from ec-/Quake3e, and pinned OpenArena
 already terminates at sizeof(teamleader)-1. Keep this native import defect scoped
 to its own #31 PR; do not introduce unrelated game imports upstream.
+
+## #31 team-leader bounds validation
+
+Test-first commit fc665341 imports only code/game/ai_cmd.c and ai_team.c from GPL
+revision dbe4ddb10315479fc00086f08e25d968b4b43c49, retaining their notices. Full native
+integration remains #2. `python3 tests/teamleader.py` checks the actual C functions
+against the pinned, clean original bot-state headers with Clang bounds errors.
+Both original index-32 writes fail; both bounded-copy replacements pass. The test
+fetches public source headers when absent, never game assets. CI runs it on Clang.
+Original source SHA256s and reproducer are in cpp-port-notes.md.
+
+GCC -O2 -DNDEBUG defined-symbol comparison passes. Of 43 ai_cmd and 22 ai_team
+functions, only BotMatch_StartTeamLeaderShip and BotTeamAI change normalized assembly:
+the existing Q_strncpyz call replaces strncpy plus the out-of-bounds byte store;
+the first function also reallocates one register. No FP instruction changes.
+No expected-failure entry or UBSan suppression covered this compile-time failure.
+
+Explicit unit/collision regeneration produces zero golden diff (8d44421d /
+9674cd22). Gameplay/frame fixtures are unaffected by these test-only prerequisite
+imports; the existing CI runtime gates remain required.

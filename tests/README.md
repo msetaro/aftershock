@@ -200,3 +200,11 @@ and `--output` select the same compiler matrix as the other unit checks.
 three arguments, including zero-filled unused slots and balanced call depth. It
 uses the production VM_Call body and requires no game content. The same compiler
 and output options as bot_move.py apply.
+
+`python3 tests/teamleader.py` compiles both imported GPL C team-leader paths with
+Clang's bounds diagnostics as errors. It uses the original bot-state declarations
+from pinned GPL commit dbe4ddb10315479fc00086f08e25d968b4b43c49, fetching source
+headers into /tmp/aftershock-q3-gpl when absent (`--source` overrides the checkout).
+It verifies the revision and header cleanliness. No game content is required.
+The two C files are prerequisite imports for this #31 fix; #2 integrates the full
+native modules and retains their import provenance.
