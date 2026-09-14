@@ -561,11 +561,11 @@ void R_BuildWorldVBO( msurface_t *surf, int surfCount )
 	ibo_size = PAD( ibo_size, 32 );
 
 	// 0 item is unused
-	vbo->items = ri.Hunk_Alloc( ( numStaticSurfaces + 1 ) * sizeof( vbo_item_t ), h_low );
+	vbo->items = (vbo_item_t *)ri.Hunk_Alloc( ( numStaticSurfaces + 1 ) * sizeof( vbo_item_t ), h_low );
 	vbo->items_count = numStaticSurfaces;
 
 	// last item will be used for run length termination
-	vbo->items_queue = ri.Hunk_Alloc( ( numStaticSurfaces + 1 ) * sizeof( int ), h_low );
+	vbo->items_queue = (int *)ri.Hunk_Alloc( ( numStaticSurfaces + 1 ) * sizeof( int ), h_low );
 	vbo->items_queue_count = 0;
 
 	ri.Printf( PRINT_ALL, "...found %i VBO surfaces (%i vertexes, %i indexes)\n",
@@ -576,20 +576,20 @@ void R_BuildWorldVBO( msurface_t *surf, int surfCount )
 
 	// vertex buffer
 	vbo_size += ibo_size;
-	vbo->vbo_buffer = ri.Hunk_AllocateTempMemory( vbo_size );
+	vbo->vbo_buffer = (byte *)ri.Hunk_AllocateTempMemory( vbo_size );
 	vbo->vbo_offset = 0;
 	vbo->vbo_size = vbo_size;
 
 	// index buffer
-	vbo->ibo_buffer = ri.Hunk_Alloc( ibo_size, h_low );
+	vbo->ibo_buffer = (byte *)ri.Hunk_Alloc( ibo_size, h_low );
 	vbo->ibo_offset = 0;
 	vbo->ibo_size = ibo_size;
 
 	// ibo runs buffer
-	vbo->ibo_items = ri.Hunk_Alloc( ( (numStaticIndexes / MIN_IBO_RUN) + 1 ) * sizeof( ibo_item_t ), h_low );
+	vbo->ibo_items = (ibo_item_t *)ri.Hunk_Alloc( ( (numStaticIndexes / MIN_IBO_RUN) + 1 ) * sizeof( ibo_item_t ), h_low );
 	vbo->ibo_items_count = 0;
 
-	surfList = ri.Hunk_AllocateTempMemory( numStaticSurfaces * sizeof( msurface_t* ) );
+	surfList = (msurface_t **)ri.Hunk_AllocateTempMemory( numStaticSurfaces * sizeof( msurface_t* ) );
 
 	for ( i = 0, n = 0, sf = surf; i < surfCount; i++, sf++ ) {
 		face = (srfSurfaceFace_t *) sf->data;
