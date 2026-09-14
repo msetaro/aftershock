@@ -729,7 +729,7 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 		RB_CalcEnvironmentTexCoords( ( float * ) dst );
 		break;
 	case TCGEN_ENVIRONMENT_MAPPED_FP:
-		RB_CalcEnvironmentTexCoordsFP( ( float * ) dst, bundle->isScreenMap );
+		RB_CalcEnvironmentTexCoordsFP( ( float * ) dst, (qboolean)( bundle->isScreenMap ) );
 		break;
 	case TCGEN_BAD:
 		return;
@@ -982,7 +982,7 @@ void RB_StageIteratorGeneric( void )
 #ifdef USE_PMLIGHT
 	if ( !R_GetDlightMode() )
 #endif
-	if ( tess.dlightBits && tess.shader->sort <= SS_OPAQUE && !(tess.shader->surfaceFlags & (SURF_NODLIGHT | SURF_SKY) ) )
+	if ( tess.dlightBits && tess.shader->sort <= (float)SS_OPAQUE && !(tess.shader->surfaceFlags & (SURF_NODLIGHT | SURF_SKY) ) )
 	{
 		ProjectDlightTexture();
 	}
