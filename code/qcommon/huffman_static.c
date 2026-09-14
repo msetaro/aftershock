@@ -4,6 +4,7 @@
 // alternative huffman encoder and decoder, backported from uberdemotools project
 // https://github.com/mightycow/uberdemotools/blob/develop/UDT_DLL/src/message.cpp
 
+extern const uint16_t HuffmanDecoderTable[ 2048 ];
 const uint16_t HuffmanDecoderTable[ 2048 ] =
 {
 	2512, 2182, 512, 2763, 1859, 2808, 512, 2360, 1918, 1988, 512, 1803, 2158, 2358, 512, 2180,
