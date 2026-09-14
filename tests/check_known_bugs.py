@@ -4,13 +4,14 @@ import contextlib
 import io
 from run import check_known_bugs
 
-known = "code/qcommon/huffman_static.cpp:206:26: runtime error: load of misaligned address 0x1 for type 'const uint32_t'"
+known = 'known: runtime error: test'
+patterns = [r'^known: runtime error: test$']
 unknown = 'code/qcommon/msg.cpp:1:1: runtime error: signed integer overflow'
 with contextlib.redirect_stdout(io.StringIO()):
-    check_known_bugs(known)
+    check_known_bugs(known, patterns)
     for diagnostics in ('', unknown, known + '\n' + unknown):
         try:
-            check_known_bugs(diagnostics)
+            check_known_bugs(diagnostics, patterns)
         except SystemExit:
             continue
         raise AssertionError('invalid diagnostics accepted: ' + diagnostics)
