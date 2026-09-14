@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/win32/win_qgl.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/win32/win_qvk.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -358,6 +358,8 @@ Phase 1: next `code/win32/win_qgl.c`. Resume there; do not redo done files. Bloc
 
 ## Blocked files
 
+- `code/win32/win_qgl.c`: Unverified (no MinGW/Windows SDK). T1: 2 source sites (library handle and proc macro with APIENTRY preserved). GL_GetProcAddress still assigns a function pointer to void*, outside T1. Target gates unavailable.
+
 - `code/win32/win_minimize.c`: Unverified (no MinGW/Windows SDK). Inspection found no required catalog transformations in key-token table/parser; unchanged, target gates unavailable.
 
 - `code/win32/win_main.c`: Unverified (no MinGW/Windows SDK). T1: 4 allocator/void-handle casts by inspection. Sys_LoadFunction still assigns FARPROC to void*, outside T1; C checksum and G1-G4 unavailable.
@@ -676,7 +678,7 @@ Phase 1: next `code/win32/win_qgl.c`. Resume there; do not redo done files. Bloc
 | `code/win32/win_local.h` | todo | Pending module pass. |
 | `code/win32/win_main.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 4 allocator/void-handle casts by inspection. Sys_LoadFunction still assigns FARPROC to void*, outside T1; C checksum and G1-G4 unavailable. |
 | `code/win32/win_minimize.c` | blocked | Unverified (no MinGW/Windows SDK). Inspection found no required catalog transformations in key-token table/parser; unchanged, target gates unavailable. |
-| `code/win32/win_qgl.c` | todo | Pending module pass. |
+| `code/win32/win_qgl.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 source sites (library handle and proc macro with APIENTRY preserved). GL_GetProcAddress still assigns a function pointer to void*, outside T1. Target gates unavailable. |
 | `code/win32/win_qvk.c` | todo | Pending module pass. |
 | `code/win32/win_shared.c` | todo | Pending module pass. |
 | `code/win32/win_snd.c` | todo | Pending module pass. |

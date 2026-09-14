@@ -124,7 +124,7 @@ qboolean QGL_Init( const char *dllname )
 		Q_strncpyz( libName, dllname, sizeof( libName ) );
 #endif
 		Q_strcat( libName, sizeof( libName ), ".dll" );
-		glw_state.OpenGLLib = Sys_LoadLibrary( libName );
+		glw_state.OpenGLLib = (HINSTANCE)Sys_LoadLibrary( libName );
 		if ( glw_state.OpenGLLib == NULL )
 		{
 			Com_Printf( "...loading '%s' : " S_COLOR_YELLOW "failed\n", libName );
@@ -145,7 +145,7 @@ qboolean QGL_Init( const char *dllname )
 
 	Sys_LoadFunctionErrors(); // reset error count
 
-#define GLE( ret, name, ... ) q##name = GL_GetProcAddress( XSTRING( name ) ); if ( !q##name ) { Com_Printf( "Error resolving core Win32 functions\n" ); return qfalse; }
+#define GLE( ret, name, ... ) q##name = (ret (APIENTRY *)( __VA_ARGS__ ))GL_GetProcAddress( XSTRING( name ) ); if ( !q##name ) { Com_Printf( "Error resolving core Win32 functions\n" ); return qfalse; }
 	QGL_Win32_PROCS;
 #undef GLE
 
