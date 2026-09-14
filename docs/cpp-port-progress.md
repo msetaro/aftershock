@@ -673,3 +673,6 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 
 - G3 probes additionally use `-fno-inline-functions`: SDL IN_SyncModifiers was inlined away only in C, creating a false symbol-presence mismatch. Reviewer recompiled all 143 previous completed native contexts with the adjustment: 143 PASS, plus SDL PASS; pinned-double/integer sin controls pass and float sin/sinf control still fails. Evidence `tools/port/evidence/expanded-symbols-reviewed.json`. Production, G2 and G4 flags are unchanged.
 - T19 preserves the moved enum body’s original indentation so minimal diff statistics agree with and without `-w`; no whitespace-only engine hunk is introduced.
+
+
+- Full native C build and dedicated C build PASS after native conversions. Both C++ dlopen renderers link. Dedicated and client C++ executables stop at sv_client.c:1639; an attempted T1/T2/T20 subset still leaves that error in both contexts and was reverted. The temporary syntax probe was not proof of a successful Make object build; actual release/debug Make recipes are authoritative.
