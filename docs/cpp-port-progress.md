@@ -2,11 +2,11 @@
 
 Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed continuation starts at `6a990e7c` (T1–T23 plan amendment). No engine files have been renamed. No engine bug fixes, vendor edits, renderer2 port, main pushes, force pushes, or history rewrites were made.
 
-**The port is not fully complete.** All independently buildable files have been handled: 253 of 257 inventory entries are done (including two explicit exclusions), four are blocked. Three source blockers prevent complete executables; `tlds.h` is blocked only through its sole consumer. Every completed native/cross object inspected passes mandatory layout and symbol gates. Phase 3 and its MSVC CI loop have not started because the native C++ executable/runtime prerequisites fail.
+**Continuation active under T24/T25.** The following 7ec7e925 results are historical until replaced. All independently buildable files have been handled: 253 of 257 inventory entries are done (including two explicit exclusions), four are blocked. Three source blockers prevent complete executables; `tlds.h` is blocked only through its sole consumer. Every completed native/cross object inspected passes mandatory layout and symbol gates. Phase 3 and its MSVC CI loop have not started because the native C++ executable/runtime prerequisites fail.
 
 ## Next action
 
-The catalog-only work is exhausted at the blockers below. Do not redo completed files or rename anything. A future authorized continuation must first resolve `sv_client.c` without violating its C SHA256 oracle, then the Windows GUID/COM boundary without inventing transformations; reverify `tlds.h` through its consumer. Rebuild native ded/client/static Vulkan, require two identical C faketime logs and then identical C/C++ logs. Only after prerequisites pass: perform the content-free engine rename, Makefile/vcxproj updates, remove BUILD_CXX/renderer2/32-bit x86 CI legs, push this branch, and watch/fix MSVC CI under the catalog. No user question is pending.
+Resumed from 7ec7e925 with accepted T24/T25 and no C hash exception. Next: sv_client.c T25 plus prior catalog patch, then tlds.h; Windows T24; full builds/runtime; refresh cross gates; rename only after acceptance, CI, then separately remove T25 C branches with unchanged C++ hashes.
 
 ## Phase checklist
 
@@ -1209,3 +1209,8 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 | static-opengl | `rend1/tr_init.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl` | `current-static-opengl-tr_init.diff.gz` |
 | static-vulkan | `client/cl_main.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan` | `current-static-vulkan-cl_main.diff.gz` |
 | static-vulkan | `rendv/tr_init.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan` | `current-static-vulkan-tr_init.diff.gz` |
+
+## T24/T25 continuation decisions
+
+- First commit adds the exact authorized catalog entries. No C SHA256 exception. Reviewer prefixes: original/T25 4a9f0e56..., single-source cast 96b95b5a.... Existing local diagnostic artifacts use a different command: original af7af4b97d9a5753c8c3451059cbb6c4b61bdef5e38d55813b235c0bfc2f8c91; single-source cast 737a9615cf6a8499e41fb05d92966c6bb74ed1abe161bc8f5c25f08300869110. Production manifest hashes will be measured again.
+- The T24 site list contains ten outgoing arguments total (two in win_input, eight in win_snd), despite the prompt introductory count of eight. Apply the explicit sites, plus the two incoming memcmp pointer uses.

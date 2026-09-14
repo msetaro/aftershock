@@ -249,6 +249,40 @@ T21. At a C math call where C++ selects a float overload, cast each float argume
 T22. At abs() with a non-integer argument, cast that argument to (int).
 T23. Wrap a feature-test macro definition in #ifndef when the C++ compiler predefines it.
 
+T24. COM reference parameters (Windows only). In code/win32/win_local.h, before
+     SDK includes, use the following C/C++ boundary macros:
+
+    #ifdef __cplusplus
+    #define CINTERFACE
+    #define Q_REFGUID( g )     ( g )
+    #define Q_REFGUID_PTR( r ) ( &( r ) )
+    #else
+    #define Q_REFGUID( g )     ( &( g ) )
+    #define Q_REFGUID_PTR( r ) ( r )
+    #endif
+
+     Replace &SomeGuid passed to REFGUID/REFIID/REFCLSID with Q_REFGUID( SomeGuid ).
+     Wrap a REFIID used as a pointer (win_snd.c memcmp) in Q_REFGUID_PTR( riid ).
+     For the DIPROP_BUFFERSIZE pointer use Q_REFGUID( *guid ). C expansion preserves
+     the original expression in parentheses; byte-identical C objects must be measured.
+     REFGUID is const GUID* in C and const GUID& in C++, passed as a pointer under
+     Microsoft x64 and Itanium ABIs; vtable ABI and calling conventions stay unchanged.
+T25. Dual-source compound assignment on an enum. Only when the ordinary T3 form
+     of e &= x or e |= x has been measured to change the C object hash, record both
+     hashes and use:
+
+    #ifdef __cplusplus
+    <the T3 cast form>
+    #else
+    <the original line, untouched>
+    #endif
+
+     Still measure the unchanged C object hash; no hash exception is granted.
+     After phase 3 remove these #else branches in a separate cleanup commit,
+     verified by unchanged C++ object hashes. Review measured sv_client.c:1639:
+     original C 4a9f0e56..., single-source casts 96b95b5a..., T25 path 4a9f0e56....
+     These reviewer prefixes supplement the exact local artifact hashes in progress.md.
+
 Everything not listed is a DEVIATION and gets its own commit and justification.
 
 ## 7. Local setup gaps found on this machine (2026-09-13)
@@ -293,7 +327,7 @@ Game data: `~/.q3a/baseq3/pak0-8.pk3` (from the Steam install). Needed for G6 on
 - PR description template: module, list of transformation counts by catalog ID, DEVIATION
   commits with reasons, gate results (paste the commands and their outputs), anything logged to
   `docs/cpp-port-notes.md`.
-- Reviewer agent checklist: every hunk maps to T1-T23; no whitespace-only churn; no reordering;
+- Reviewer agent checklist: every hunk maps to T1-T25; no whitespace-only churn; no reordering;
   no removed code; no new includes except `<cstdint>`-style shims if a header needs one;
   gates pass; diff proportion sane.
 
@@ -329,7 +363,7 @@ Game data: `~/.q3a/baseq3/pak0-8.pk3` (from the Steam install). Needed for G6 on
     frozen-list entries (243 and 48 observed C++ diagnostics respectively). The formatter
     is advisory as specified in section 11. Keep historical commits; do not rewrite history.
 11. Continue per-file commits on t3code/port-engine-to-cpp20, push after modules, never
-    main. After phase 3 push and watch CI; fix MSVC errors by inspection using T1-T23,
+    main. After phase 3 push and watch CI; fix MSVC errors by inspection using T1-T25,
     repeat until green or an error genuinely requires an uncataloged transformation.
 
 ## 10. Deferred until after the port (recorded so it is not lost)
@@ -371,7 +405,7 @@ Two phases, two rule sets. The port phase rules are enforced now and are copied 
 | Layout | `static_assert(sizeof)` table for wire/file/QVM structs, generated from the C build (gate G2). | Add `is_trivially_copyable` / `is_standard_layout` assertions for the same structs. |
 | Subsystem boundaries | Keep the existing encoding: `Sys_`/`Com_`/`FS_`/`CL_`/`SV_`/`R_`/`S_`/`Cvar_`/`Cmd_` prefixes and `*_public.h` vs `*_local.h`. A subsystem includes only other subsystems' public headers. | Enforce with a CI grep. Namespaces, if ever, map one-to-one onto the prefixes. Each subsystem gets a short responsibility/ownership paragraph in `docs/`. |
 | Scope per PR | One module or file group, only catalog transformations, `DEVIATION:` commits for anything else. | One feature or one warning class per PR. No unrelated refactoring. |
-| Definition of done | Both builds green, every gate green, every hunk mapped to T1-T23, diff size proportionate, PR description lists transformation counts and gate output. | Builds green, sanitizers clean, tests (the differential harness plus whatever the feature adds) green, style checks green. |
+| Definition of done | Both builds green, every gate green, every hunk mapped to T1-T25, diff size proportionate, PR description lists transformation counts and gate output. | Builds green, sanitizers clean, tests (the differential harness plus whatever the feature adds) green, style checks green. |
 
 Concrete artifacts this implies for phase 0: the frozen `-Wno-*` list in the Makefile/CMake,
 `.clang-format` tuned against real files (tabs, `( a, b )` spacing, function brace on the same
