@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/win32/win_gamma.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/win32/win_glimp.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -23,6 +23,8 @@ Phase 1: next `code/win32/win_gamma.c`. Resume there; do not redo done files. Bl
 - [ ] Final G1-G8, differential/runtime/sanitizer checks
 
 ## Decisions
+
+- Windows inspection follows the user's explicit missing-MinGW exception: retain only catalog casts/keyword fixes whose source types can be established, commit each file, mark blocked/unverified because no C oracle, C++ build or G2/G3 can run. Known noncatalog issues remain in place. No system packages installed.
 
 - Vulkan uses the same atomic T4 sequencing as OpenGL: 242 code-token occurrences across 13 files; comments/strings unchanged. Full C rebuild and all 295 original hashes PASS (`renderervk-t4-c.log`), same-source header G2/G3 PASS through rendv/tr_marks.o. Remaining per-file casts/gates remain pending.
 
@@ -356,6 +358,8 @@ Phase 1: next `code/win32/win_gamma.c`. Resume there; do not redo done files. Bl
 
 ## Blocked files
 
+- `code/win32/win_gamma.c`: Unverified (no MinGW/Windows SDK). T1: 1 HANDLE/void-pointer to HMODULE argument cast by inspection; all gamma behavior unchanged. C checksum and G1-G4 unavailable.
+
 - `code/renderervk/shaders/spirv/shader_data.c`: Unchanged generated initializer included by vk.c: 74 const arrays lose external linkage in C++; G3 FAIL, no existing extern declarations. See vk.c blocker.
 
 - `code/renderervk/vk.c`: Catalog casts compile with unchanged C hash/G2 PASS, but G3 reports 74 generated const shader arrays changing external R to internal r. No existing extern declarations to move; adding new declarations is outside catalog. Attempt reverted. Evidence tools/port/evidence/vulkan-shader-linkage.diff.
@@ -658,7 +662,7 @@ Phase 1: next `code/win32/win_gamma.c`. Resume there; do not redo done files. Bl
 | `code/unix/x11_vidmode.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_vidmode.o, nosdl); G4 PASS. |
 | `code/win32/glw_win.h` | todo | Pending module pass. |
 | `code/win32/resource.h` | todo | Pending module pass. |
-| `code/win32/win_gamma.c` | todo | Pending module pass. |
+| `code/win32/win_gamma.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 1 HANDLE/void-pointer to HMODULE argument cast by inspection; all gamma behavior unchanged. C checksum and G1-G4 unavailable. |
 | `code/win32/win_glimp.c` | todo | Pending module pass. |
 | `code/win32/win_input.c` | todo | Pending module pass. |
 | `code/win32/win_local.h` | todo | Pending module pass. |

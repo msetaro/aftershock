@@ -65,7 +65,7 @@ static BOOL IsCurrentSessionRemoteable( void )
 				hKernel32 = GetModuleHandleA( "kernel32" );
 				if ( hKernel32 != NULL )
 				{
-					pProcessIdToSessionId = (PFN_ProcessIdToSessionId) GetProcAddress( hKernel32, "ProcessIdToSessionId" );
+					pProcessIdToSessionId = (PFN_ProcessIdToSessionId) GetProcAddress( (HMODULE)hKernel32, "ProcessIdToSessionId" );
 					if ( pProcessIdToSessionId != NULL )
 					{
 						if ( pProcessIdToSessionId( GetCurrentProcessId(), &dwCurrentSessionId  ) )
