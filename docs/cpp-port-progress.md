@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: client; next `code/qcommon/qcommon.h`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: next `G5 differential harness, G7 analysis, final blocker audit`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -23,6 +23,10 @@ Phase 1: client; next `code/qcommon/qcommon.h`. Resume there; do not redo files 
 - [ ] Final G1-G8, differential/runtime/sanitizer checks
 
 ## Decisions
+
+- Phase 2 retained boundaries pass G8 through 24f646ac; final syscall_t annotation follows the same reviewed JIT ABI. All 295 original C hashes unchanged after full build (`phase2-final-c.log`). Native G2/G3 pass on touched consumers. The original qcommon.h per-header hash lookup used an incorrect ded path and raised StopIteration; immediately corrected against ded/qvm/vm_interpreted.o, PASS, independently reconfirmed by this complete manifest.
+- OpenGL C++ shared renderer builds and loads: `SOURCE_DATE_EPOCH=1789257600 make -k -j20 BUILD_CXX=1 BUILD_DIR=/tmp/aftershock-cpp-port/strict` (overall exit 2 from recorded unrelated blockers), then `python3 -c 'import ctypes; lib=ctypes.CDLL("/tmp/aftershock-cpp-port/strict/release-linux-x86_64/quake3e_opengl_x86_64.so"); print(bool(lib.GetRefAPI))'` prints True. RTLD_NOW succeeds. This proves renderer export resolution, not an integrated C++ client runtime or graphical initialization.
+- Phase 2 unresolved JIT target inventory: vm_x86.c ErrJump/BadJump/BadStack/BadOpStack/BadDataRead/BadDataWrite; vm_aarch64.c and vm_armv7l.c OutJump/BadJump/ErrBadProgramStack/ErrBadOpStack/ErrBadDataRead/ErrBadDataWrite; vm_powerpc.c OutJump/BadJump/ErrBadProgramStack/ErrBadOpStack/debug ErrHighBitsSet. They remain unchanged under the stuck rule: their whole translation units cannot pass compilation/G3 within the catalog (see rows), so retaining an ungated T5 patch would violate the required revert. Future T5 must wrap exact existing static definitions in guarded Q_EXTERN_C blocks, never remove static. VM_CallCompiled's stale comment says generated-code target, but actual flow is host entry calling generated code; no external loader/name reference identified, so its existing C++ linkage is retained.
 
 - G3 now checks raw names of undefined enumerated ABI references as well as definitions. Added a negative assembly-call control; full gate selfcheck PASS (`phase2-selfcheck.log`). This catches the previously invisible snd_mix SSE_x64 reference; ordinary undefined C++ symbols remain outside the defined-symbol comparison.
 
@@ -590,7 +594,7 @@ Phase 1: client; next `code/qcommon/qcommon.h`. Resume there; do not redo files 
 | `code/qcommon/q_platform.h` | done | T1-T17: 0; unchanged header checked via md4.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/q_shared.c` | done | T1: 4, T2: 3; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_shared.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/q_shared.h` | done | T5: guarded Q_EXTERN_C macro plus 2 Windows assembly prototypes; native md4 consumer G2/G3 PASS and all 295 C hashes unchanged; Windows branch unverified. |
-| `code/qcommon/qcommon.h` | done | T5: 3 native DLL function typedefs and 2 assembly FPU prototypes; vm_interpreted consumer C hash unchanged, strict C++/G2/G3 PASS. 32-bit FPU branch unverified. |
+| `code/qcommon/qcommon.h` | done | T5: 4 native/JIT function typedefs and 2 assembly FPU prototypes; native consumer strict C++/G2/G3 PASS, full C and all 295 original hashes PASS; 32-bit FPU branch unverified. |
 | `code/qcommon/qfiles.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/surfaceflags.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/unzip.c` | done | T1: 10, T14: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unzip.o); G4 advisory FAIL, full diff retained. |

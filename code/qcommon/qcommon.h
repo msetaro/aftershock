@@ -399,7 +399,7 @@ typedef enum {
 
 Q_EXTERN_C typedef intptr_t (QDECL *vmMainFunc_t)( int command, int arg0, int arg1, int arg2 );
 
-typedef intptr_t (*syscall_t)( intptr_t *parms );
+Q_EXTERN_C typedef intptr_t (*syscall_t)( intptr_t *parms );
 Q_EXTERN_C typedef intptr_t (QDECL *dllSyscall_t)( intptr_t callNum, ... );
 Q_EXTERN_C typedef void (QDECL *dllEntry_t)( dllSyscall_t syscallptr );
 
