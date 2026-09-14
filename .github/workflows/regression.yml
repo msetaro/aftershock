@@ -1,0 +1,77 @@
+name: regression
+on:
+  pull_request:
+    branches: [modernization]
+  workflow_dispatch:
+
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cc: gcc
+            cxx: g++
+          - cc: clang
+            cxx: clang++ -stdlib=libc++
+    steps:
+      - uses: actions/checkout@v7
+      - name: Differential goldens and one-ULP negative control
+        run: python3 tests/run.py unit --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}' --negative-control
+
+  sanitizers:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: ASan and UBSan with the existing suppression file
+        run: python3 tests/run.py unit --cc clang --cxx clang++ --sanitize
+
+  fuzz:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [parse, msg, tga, png, jpeg]
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 tests/fuzz/run.py '${{ matrix.target }}' --runs 10000
+
+  runtime:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Require provisioned game assets and runtime tools
+        run: |
+          command -v faketime
+          command -v xvfb-run
+          test -r "$HOME/.q3a/baseq3/pak0.pk3"
+      - name: Collision and both-map bot goldens
+        run: |
+          python3 tests/run.py differential
+          python3 tests/run.py runtime
+      - name: In-process impaired loopback prediction
+        run: python3 tests/network.py
+      - name: Both-map Mesa timedemo frames
+        run: python3 tests/demo.py
+
+  cross:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cc: aarch64-linux-gnu-gcc
+            cxx: aarch64-linux-gnu-g++
+            settings: ARCH=aarch64
+          - cc: x86_64-w64-mingw32-gcc
+            cxx: x86_64-w64-mingw32-g++
+            settings: PLATFORM=mingw64 ARCH=x86_64
+    steps:
+      - uses: actions/checkout@v7
+      - name: Require the cross compiler (no package installation)
+        run: command -v '${{ matrix.cxx }}'
+      - name: Cross-build dedicated server
+        run: make -j4 BUILD_CLIENT=0 CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' ${{ matrix.settings }}
+
+  # Existing build.yml also builds MSVC x64/ARM64 Debug/Release for this PR.

@@ -33,8 +33,17 @@ No engine bug fixes have been made.
 - Sanitized GCC build warns that AAS_Reachability_JumpArea beststart may be uninitialized at be_aas_reach.cpp:2196. The original C sanitizer build reports the same warning. If the nested qualifying-face/edge loops never supply a candidate, VectorMiddle reads beststart before the later bestdist check. Recorded without initialization/control-flow changes.
 
 - Modernization #3 differential driver under Clang ASan/UBSan reports an unaligned
-  `const uint32_t` load in `Huff_Decode` at huffman_static.cpp:206 when reading the
+  `const uint32_t` load in `HuffmanGetSymbol` at huffman_static.cpp:206 when reading the
   existing MSG roundtrip fixture (buffer offset one). Reproduce:
   `python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --sanitize --output /tmp/aftershock-san-tests`.
   Existing tools/port/ubsan.supp does not cover this function; no new suppression or
   engine fix was added. Repair belongs in a separate #31 failing-test-first PR.
+
+- Modernization #3 seeded PNG fuzzing reports `PNG_ChunkHeader` member access on a
+  byte-packed chunk at tr_image_png.cpp:467 (the valid 1x1 RGBA seed already triggers
+  it). Reproduce: `python3 tests/fuzz/run.py png --runs 1000`. No inline fix.
+- Modernization #3 JPEG fuzzing reports a Huffman-table index outside the four-entry
+  array at libjpeg/jdmarker.c:508: get_dht forms the table-element address before
+  rejecting an invalid index. Reproduce: `python3 tests/fuzz/run.py jpeg --runs 1000`;
+  observed crash SHA1 1868dc3f9cb6875028fd4f795a1d596b87706c16 under /tmp/aftershock-fuzz/jpeg.
+  Vendor code remains untouched; a dedicated #31 test/fix/upstream PR is required.

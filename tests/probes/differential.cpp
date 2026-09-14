@@ -2,6 +2,8 @@
 #include "../../code/qcommon/q_shared.h"
 #include "../../code/qcommon/qcommon.h"
 #include <assert.h>
+#include "../../code/qcommon/qfiles.h"
+#include <stddef.h>
 
 qboolean com_errorEntered;
 static const char *map_path;
@@ -70,6 +72,17 @@ int main( int argc, char **argv )
 	vec3_t axis = { 0, 0, 1 }, point = { 1, 2, 3 }, out, forward, right, up;
 	assert( argc == 1 || argc == 2 );
 	map_path = argc == 2 ? argv[1] : NULL;
+	/* Layout is observable independently of roundtrip serializers. */
+	number( sizeof( usercmd_t ) ); number( sizeof( entityState_t ) ); number( sizeof( playerState_t ) );
+	number( sizeof( msg_t ) ); number( sizeof( netadr_t ) );
+	number( offsetof( usercmd_t, angles ) ); number( offsetof( entityState_t, pos ) );
+	number( offsetof( playerState_t, origin ) ); number( offsetof( msg_t, data ) );
+	number( sizeof( dheader_t ) ); number( sizeof( dmodel_t ) ); number( sizeof( dplane_t ) );
+	number( sizeof( dnode_t ) ); number( sizeof( dleaf_t ) ); number( sizeof( dbrush_t ) );
+	number( sizeof( dbrushside_t ) ); number( sizeof( drawVert_t ) ); number( sizeof( dsurface_t ) );
+	number( sizeof( md3Header_t ) ); number( sizeof( md3Surface_t ) ); number( sizeof( md3Frame_t ) );
+	number( sizeof( md3Tag_t ) ); number( sizeof( md3Triangle_t ) ); number( sizeof( md3XyzNormal_t ) );
+	result( "wire_file_layout" );
 	COM_BeginParseSession( "port" );
 	while ( input ) string( COM_ParseExt( &input, qtrue ) );
 	result( "COM_ParseExt" );

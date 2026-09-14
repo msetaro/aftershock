@@ -111,8 +111,14 @@ def runtime(args):
         results = []
         # Isolated home prevents the user's config and pak cache influencing fixtures.
         with tempfile.TemporaryDirectory(prefix='aftershock-smoke-') as home:
+            base = Path(home) / 'baseq3'
+            base.mkdir()
+            for pak in args.data.glob('pak*.pk3'):
+                (base / pak.name).symlink_to(pak)
+            if not (base / 'pak0.pk3').is_file():
+                raise SystemExit('FAIL: user-owned baseq3 paks are required')
             command = ['timeout', '90', 'faketime', '-f', '@2026-01-01 00:00:00 i0.01', binary,
-                       '+set', 'fs_basepath', args.data.parent, '+set', 'fs_homepath', home,
+                       '+set', 'fs_basepath', home, '+set', 'fs_homepath', home,
                        '+set', 'dedicated', '1', '+set', 'sv_pure', '0', '+set', 'com_logfile', '0',
                        '+map', map_name, '+addbot', 'sarge', '3', '+addbot', 'major', '3', '+wait', '300', '+quit']
             for iteration in ('warmup', '1', '2'):
