@@ -376,9 +376,6 @@ SV_GameSystemCalls
 The module is making a system call
 ====================
 */
-#ifdef __cplusplus
-Q_EXTERN_C {
-#endif
 static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 
 	// detect infinite loops in QVM code by counting syscalls per VM_Call invocation
@@ -1018,9 +1015,6 @@ static intptr_t QDECL SV_DllSyscall( intptr_t arg, ... ) {
 	return SV_GameSystemCalls( &arg );
 #endif
 }
-#ifdef __cplusplus
-}
-#endif
 
 
 /*

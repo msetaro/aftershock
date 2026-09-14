@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Cross verification: next `phase 2`; retain native sv_client C hash blocker. Then T5 review, final native/cross sweeps, runtime where buildable; no rename until prerequisites pass.
+Continuation: server; next `phase 2 headers and static renderer verification` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/server/sv_game.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_game.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_game.o /tmp/aftershock-cpp-port/sv_game ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/qcommon/net_ip.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-net_ip.codegen.diff.gz`.
 
@@ -659,7 +661,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/server/sv_ccmds.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_client.c` | blocked | New C-oracle blocker: T3 expansion of bGood &= FS_FileIsInPAK into bGood = (qboolean)( bGood & FS_FileIsInPAK(...) ) changes one test instruction register order in the client C object (45 85 fe -> 45 85 f7). Both logical operations are equivalent, but the mandatory SHA256 fails. Commuted and ternary alternatives also failed the hash; commutation additionally exceeds T3. All candidate source changes reverted. Exact patch and C disassembly diff: tools/port/evidence/sv_client-t3-attempt.patch and sv_client-c-oracle.diff. |
 | `code/server/sv_filter.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_game.c` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_game.o, default); G4 advisory FAIL, full diff retained. |
+| `code/server/sv_game.c` | done | T5 review: remove internal-only C linkage; all earlier catalog edits retained; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_game.o, default); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_init.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_main.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_main.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_net_chan.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_net_chan.o); G4 advisory FAIL, full diff retained. |
