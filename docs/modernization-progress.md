@@ -6,6 +6,27 @@ Integration branch: `modernization`; issue branches: `issue/<number>-<slug>`. St
 
 Continue #3 on issue/3-regression-suite: deterministic software-rendered demo recording/replay, network/fuzz coverage and CI; preserve the existing HuffmanGetSymbol sanitizer failure for a separate #31 fix. Unit/differential/runtime goldens and explicit regeneration are implemented; do not merge incomplete acceptance.
 
+## New-thread handoff (2026-09-14)
+
+All implementation through `069c2249` is committed and pushed to `origin/issue/3-regression-suite`. Draft PR [#33](https://github.com/msetaro/aftershock/pull/33) targets `modernization`; leave it draft until acceptance passes. This checkpoint-only commit follows that implementation. The user requested a pause for a new thread, not a scope change. No production engine or vendored source has been modified during #3.
+
+Resume by reading this file, AGENTS.md, plan sections 10/11 and the specified issues. Do not restart the port or regenerate accepted goldens. Concrete remaining steps:
+
+1. Add the missing BSP, MD3, IQM and pk3 robustness targets to `tests/fuzz/run.py`, reusing `tests/fuzz/common.h`, `files.h`, and real loader implementations. Existing targets are parse/msg/tga/png/jpeg. BSP investigation stopped before edits: `CM_ClearMap` is declared in cm_public.h; loader cvar stubs will need `Cvar_Get` and `Cvar_SetDescription` with persistent trivial storage.
+2. Run `python3 tests/network.py --max-error 0` to verify the prediction-bound negative control. The normal in-process test already passes; do not restore the superseded UDP experiment.
+3. Investigate the remaining repeated demo-byte mismatch in `tests/demo.py`. The checksumFeed fixture and corrected `fixedtime` cvar are committed; no complete demo/frame golden is accepted. Do not waive scoreboard ping or unexplained packet differences.
+4. Resolve or explicitly checkpoint CI prerequisites and the sanitizer bugs, keeping fixes in individual #31 PRs. Follow the user's stuck rule if #3 cannot be completed; do not merge a failing draft or silently skip checks. All later modernization issues remain outstanding as listed below.
+
+Verified CI on the implementation commit: [existing build workflow](https://github.com/msetaro/aftershock/actions/runs/34858816371) **passed**; [new regression workflow](https://github.com/msetaro/aftershock/actions/runs/34858816443) **failed**. GCC unit/one-ULP, parser fuzz and TGA fuzz passed. Sanitizer/MSG, PNG and JPEG jobs reproduce the recorded bugs. Hosted clang/libc++ fails with `/usr/bin/ld: cannot find -lc++`; cross jobs lack the requested compilers; runtime stops at missing faketime, with game-asset provisioning also unresolved. Local tools are available as recorded below. No system packages were installed and no runner was provisioned.
+
+Local scratch evidence is useful but disposable; it is not required to recover the source:
+
+- `/tmp/modernization-ci-failed.log`: downloaded regression failures; reproduce with `gh run view 34858816443 -R msetaro/aftershock --log-failed`.
+- `/tmp/aftershock-demo-tests/`: differing recordings, record/replay logs and builds; `/tmp/modernization-demos.log`: most recent mismatch. Temporary decoder `/tmp/modernization-snapshotdump.cpp` and `/tmp/demo7-snap-{0,1}.txt` showed the scoreboard ping discrepancy. These diagnostic files are not suite deliverables.
+- `/tmp/aftershock-loopback-tests/results.json`: passing impairment measurements; `/tmp/aftershock-fuzz/`: seeded corpora/crashes. Recreate using the committed tests commands if missing.
+
+Full runnable commands and explicit regeneration rules are in `tests/README.md`. Preserve `port-evidence` unchanged. No policy/tool rejection was observed in this session; the recorded blockers are reproducible test failures or missing CI prerequisites.
+
 ## Issue status
 
 | Order | Issue | Status | Outcome / next step |
