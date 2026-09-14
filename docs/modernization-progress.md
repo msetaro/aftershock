@@ -29,18 +29,19 @@ ZIP PR #41 merged as 2a9436fe after regression 34885119593 and full build
 VM PR #42 merged as 62dad842 after regression 34886047536 and full build
 34886047431 passed; merged-tree regression 34886485915 passed.
 
-Current branch: `issue/31-zlib-callbacks`. Added an allocator lifecycle check to
-the existing unit driver, using real private inflate initialization/cleanup and
-existing allocation stubs, without reading any content. Clang's standalone
-ASan/UBSan and permanent unit reproductions fail on the original zcalloc type.
-Correct void-pointer signatures and direct assignments pass the unit sanitizer
-and pointer checks. Upstream C fails before and passes after:
-https://github.com/ec-/Quake3e/pull/430. Production codegen/symbol gates pass;
-unit/collision regeneration, normal smoke, GCC UBSan smoke and fixed-demo replay
-retain all goldens. No allocation behavior change. PR #43 is open at source
-74b15fd6; regression 34886950022 and build 34886949860 passed. Self-review passes.
-Next: mark ready, merge, verify merged-tree regression, then fix the filesystem
-extension out-parameter on issue/31-extension-output.
+zlib callback PR #43 merged as fed755d6 after regression 34886950022 and full
+build 34886949860 passed; merged-tree regression 34887353903 is running.
+
+Current branch: `issue/31-extension-output`. Caller audit confirms both platform
+Sys_LoadLibrary functions print the extension out-parameter on an allowed return,
+while the shared FS_AllowedExtension only wrote it on a rejected return. Added
+output-contract assertions to the existing unit driver; they fail before and pass
+after initializing the output for every return. Classification and .so.N handling
+are unchanged. Unit/sanitizer/pointer/negative-control, collision, smoke and replay
+pass; explicit unit/collision regeneration has no golden diff. Upstream C test
+fails before and passes after: https://github.com/ec-/Quake3e/pull/431. Symbols
+pass, and only FS_AllowedExtension changes bytes among 99 functions. Next: open
+PR and complete hosted CI/self-review.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -57,7 +58,7 @@ experiment still timed out before output and is not a claimed runtime gate.
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -251,3 +252,20 @@ https://github.com/ec-/Quake3e/pull/430. Self-review: one callback ABI bug; no
 allocation arithmetic, per-frame allocation, layout, FP, destructor or engine
 OS-access changes. Regression 34886950022 and full build 34886949860 pass
 on source 74b15fd6. Final checkpoint is documentation only; self-review passes.
+
+## #31 extension output validation
+
+Both platform diagnostic callers receive a defined extension on true returns:
+the shared function now initializes its output before classification, using an
+empty string for names without a dot. Versioned .so and rejected-extension strings
+remain unchanged; the other callers only consume output on false returns.
+Existing unit assertions fail before and pass after for empty, extensionless,
+trailing-dot, ordinary, .so.N and pk3 cases. No library is loaded by the test.
+Clang sanitizer/pointer checks, one-ULP control, collision, smoke and replay pass.
+Explicit unit/collision regeneration changes no golden. Symbols pass; only
+FS_AllowedExtension changes bytes among 99 functions. The assembly text also
+renames CSWTCH.612/613 in FS_Seek, whose bytes are unchanged. Reviewed expected
+codegen difference; no gate weakening. Upstream C fix/test:
+https://github.com/ec-/Quake3e/pull/431. Self-review: shared out-parameter bug only;
+no extension policy, OS access, allocation, destructor, FP or layout changes.
+Hosted gates pending.

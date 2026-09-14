@@ -175,3 +175,13 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   This is a transition-JIT instrumentation compatibility limitation, addressed by
   JIT removal in #2. No engine fix, CI flag change or suppression was added.
   Callback fork PR #43 passed regression 34886950022 and full build 34886949860.
+
+- #31 extension diagnostic fix: FS_AllowedExtension now always writes a supplied
+  extension output, using an empty string when there is no dot. This repairs both
+  Sys_LoadLibrary diagnostics in the shared function. Versioned .so and rejected
+  suffix output/classification stay unchanged. Existing unit assertions fail before
+  and pass after; no library is loaded by the test. Clang sanitizer/pointer checks,
+  one-ULP control, collision, smoke and replay pass. Explicit unit/collision
+  regeneration has no golden diff. Symbols pass; only FS_AllowedExtension changes
+  bytes among 99 functions (the text diff also renames an FS_Seek switch-table label).
+  Upstream C regression/fix: https://github.com/ec-/Quake3e/pull/431.

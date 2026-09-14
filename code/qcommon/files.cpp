@@ -727,6 +727,8 @@ qboolean FS_AllowedExtension( const char *fileName, qboolean allowPk3s, const ch
 	int i, n;
 
 	e = strrchr( fileName, '.' );
+	if ( ext )
+		*ext = e ? e+1 : "";
 	if ( !e )
 		return qtrue;
 
@@ -753,8 +755,6 @@ qboolean FS_AllowedExtension( const char *fileName, qboolean allowPk3s, const ch
 	{
 		if ( Q_stricmp( e, extlist[i] ) == 0 ) 
 		{
-			if ( ext )
-				*ext = e;
 			return qfalse;
 		}
 	}

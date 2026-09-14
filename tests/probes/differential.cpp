@@ -114,6 +114,26 @@ int main( int argc, char **argv )
 	assert( FS_AllowedExtension( ".SO.9", qfalse, NULL ) == qfalse );
 	assert( FS_AllowedExtension( "a.1", qfalse, NULL ) == qtrue );
 	assert( FS_AllowedExtension( "data.pk3", qfalse, NULL ) == qfalse );
+	{
+		const struct { const char *name, *extension; qboolean allowed; } cases[] = {
+			{ "no_extension", "", qtrue },
+			{ "", "", qtrue },
+			{ ".", "", qtrue },
+			{ "a.txt", "txt", qtrue },
+			{ ".SO.9", "SO.9", qfalse },
+			{ "module.so.1", "so.1", qfalse },
+			{ "data.pk3", "pk3", qfalse }
+		};
+		const char *extension = NULL;
+		for ( i = 0; i < ARRAY_LEN( cases ); i++ ) {
+			extension = NULL;
+			assert( FS_AllowedExtension( cases[i].name, qfalse, &extension ) == cases[i].allowed );
+			assert( extension && !strcmp( extension, cases[i].extension ) );
+		}
+		extension = NULL;
+		assert( FS_AllowedExtension( "data.pk3", qtrue, &extension ) == qtrue );
+		assert( extension && !strcmp( extension, "pk3" ) );
+	}
 	number( FS_AllowedExtension( "module.so.1", qfalse, NULL ) );
 	number( FS_AllowedExtension( "data.pk3", qtrue, NULL ) );
 	COM_StripExtension( "maps/test.bsp", text, sizeof( text ) ); string( text ); result( "FS_paths" );
