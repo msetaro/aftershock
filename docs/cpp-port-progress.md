@@ -169,245 +169,124 @@ G5: complete C-driver differential coverage beyond math; then G7 static analysis
 
 ## Codegen differences
 
-- `code/client/cl_ui.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_ui.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_ui.o /tmp/aftershock-cpp-port/cl_ui ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_cgame.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_cgame.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_cgame.o /tmp/aftershock-cpp-port/cl_cgame ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_game.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_game.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_game.o /tmp/aftershock-cpp-port/sv_game ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/common.c`: G4 advisory FAIL; full diff `tools/port/evidence/common.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/common.o /tmp/aftershock-cpp-port/common ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/snd_mix.c`: G4 advisory FAIL; full diff `tools/port/evidence/snd_mix.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/snd_mix.o /tmp/aftershock-cpp-port/snd_mix ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_init.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_init.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_init.o /tmp/aftershock-cpp-port/renderervk-tr_init ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_init.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_init.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_init.o /tmp/aftershock-cpp-port/renderer-tr_init ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/vk_vbo.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-vk_vbo.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/vk_vbo.o /tmp/aftershock-cpp-port/renderervk-vk_vbo ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/vk_flares.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-vk_flares.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/vk_flares.o /tmp/aftershock-cpp-port/renderervk-vk_flares ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_world.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_world.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_world.o /tmp/aftershock-cpp-port/renderervk-tr_world ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_surface.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_surface.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_surface.o /tmp/aftershock-cpp-port/renderervk-tr_surface ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_sky.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_sky.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_sky.o /tmp/aftershock-cpp-port/renderervk-tr_sky ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_shadows.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_shadows.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_shadows.o /tmp/aftershock-cpp-port/renderervk-tr_shadows ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_shader.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_shader.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_shader.o /tmp/aftershock-cpp-port/renderervk-tr_shader ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_shade_calc.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_shade_calc.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_shade_calc.o /tmp/aftershock-cpp-port/renderervk-tr_shade_calc ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_shade.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_shade.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_shade.o /tmp/aftershock-cpp-port/renderervk-tr_shade ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_scene.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_scene.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_scene.o /tmp/aftershock-cpp-port/renderervk-tr_scene ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_model_iqm.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_model_iqm.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_model_iqm.o /tmp/aftershock-cpp-port/renderervk-tr_model_iqm ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_model.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_model.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_model.o /tmp/aftershock-cpp-port/renderervk-tr_model ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_mesh.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_mesh.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_mesh.o /tmp/aftershock-cpp-port/renderervk-tr_mesh ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_main.o /tmp/aftershock-cpp-port/renderervk-tr_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_light.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_light.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_light.o /tmp/aftershock-cpp-port/renderervk-tr_light ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_image.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_image.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_image.o /tmp/aftershock-cpp-port/renderervk-tr_image ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_curve.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_curve.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_curve.o /tmp/aftershock-cpp-port/renderervk-tr_curve ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_cmds.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_cmds.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_cmds.o /tmp/aftershock-cpp-port/renderervk-tr_cmds ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_bsp.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_bsp.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_bsp.o /tmp/aftershock-cpp-port/renderervk-tr_bsp ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_backend.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_backend.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_backend.o /tmp/aftershock-cpp-port/renderervk-tr_backend ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_animation.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_animation.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_animation.o /tmp/aftershock-cpp-port/renderervk-tr_animation ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_world.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_world.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_world.o /tmp/aftershock-cpp-port/renderer-tr_world ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_vbo.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_vbo.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_vbo.o /tmp/aftershock-cpp-port/renderer-tr_vbo ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_vbo.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_vbo.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_vbo.o /tmp/aftershock-cpp-port/renderer-tr_vbo ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_surface.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_surface.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_surface.o /tmp/aftershock-cpp-port/renderer-tr_surface ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_sky.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_sky.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_sky.o /tmp/aftershock-cpp-port/renderer-tr_sky ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_shadows.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_shadows.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_shadows.o /tmp/aftershock-cpp-port/renderer-tr_shadows ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_shader.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_shader.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_shader.o /tmp/aftershock-cpp-port/renderer-tr_shader ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_shade_calc.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_shade_calc.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_shade_calc.o /tmp/aftershock-cpp-port/renderer-tr_shade_calc ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_shade.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_shade.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_shade.o /tmp/aftershock-cpp-port/renderer-tr_shade ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_scene.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_scene.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_scene.o /tmp/aftershock-cpp-port/renderer-tr_scene ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_model_iqm.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_model_iqm.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_model_iqm.o /tmp/aftershock-cpp-port/renderer-tr_model_iqm ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_model.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_model.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_model.o /tmp/aftershock-cpp-port/renderer-tr_model ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_mesh.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_mesh.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_mesh.o /tmp/aftershock-cpp-port/renderer-tr_mesh ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_main.o /tmp/aftershock-cpp-port/renderer-tr_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_light.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_light.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_light.o /tmp/aftershock-cpp-port/renderer-tr_light ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_image.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_image.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_image.o /tmp/aftershock-cpp-port/renderer-tr_image ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_flares.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_flares.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_flares.o /tmp/aftershock-cpp-port/renderer-tr_flares ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_curve.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_curve.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_curve.o /tmp/aftershock-cpp-port/renderer-tr_curve ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_cmds.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_cmds.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_cmds.o /tmp/aftershock-cpp-port/renderer-tr_cmds ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_bsp.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_bsp.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_bsp.o /tmp/aftershock-cpp-port/renderer-tr_bsp ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_backend.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_backend.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_backend.o /tmp/aftershock-cpp-port/renderer-tr_backend ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_arb.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_arb.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_arb.o /tmp/aftershock-cpp-port/renderer-tr_arb ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_animation.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_animation.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_animation.o /tmp/aftershock-cpp-port/renderer-tr_animation ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderercommon/tr_noise.c`: G4 advisory FAIL; full diff `tools/port/evidence/tr_noise.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_noise.o /tmp/aftershock-cpp-port/tr_noise ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderercommon/tr_image_tga.c`: G4 advisory FAIL; full diff `tools/port/evidence/tr_image_tga.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_image_tga.o /tmp/aftershock-cpp-port/tr_image_tga ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/msg.c`: G4 advisory FAIL; full diff `tools/port/evidence/msg.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/msg.o /tmp/aftershock-cpp-port/msg ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/snd_mix.c`: G4 advisory FAIL; full diff `tools/port/evidence/snd_mix.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/snd_mix.o /tmp/aftershock-cpp-port/snd_mix ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/snd_mem.c`: G4 advisory FAIL; full diff `tools/port/evidence/snd_mem.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/snd_mem.o /tmp/aftershock-cpp-port/snd_mem ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/snd_dma.c`: G4 advisory FAIL; full diff `tools/port/evidence/snd_dma.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/snd_dma.o /tmp/aftershock-cpp-port/snd_dma ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_ui.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_ui.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_ui.o /tmp/aftershock-cpp-port/cl_ui ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_scrn.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_scrn.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_scrn.o /tmp/aftershock-cpp-port/cl_scrn ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_parse.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_parse.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_parse.o /tmp/aftershock-cpp-port/cl_parse ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_net_chan.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_net_chan.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_net_chan.o /tmp/aftershock-cpp-port/cl_net_chan ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_keys.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_keys.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_keys.o /tmp/aftershock-cpp-port/cl_keys ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_jpeg.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_jpeg.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_jpeg.o /tmp/aftershock-cpp-port/cl_jpeg ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_input.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_input.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_input.o /tmp/aftershock-cpp-port/cl_input ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_console.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_console.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_console.o /tmp/aftershock-cpp-port/cl_console ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_cin.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_cin.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_cin.o /tmp/aftershock-cpp-port/cl_cin ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_cgame.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_cgame.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_cgame.o /tmp/aftershock-cpp-port/cl_cgame ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_avi.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_avi.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_avi.o /tmp/aftershock-cpp-port/cl_avi ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/unix/unix_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/unix_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/unix_main.o /tmp/aftershock-cpp-port/unix_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/unix/linux_snd.c`: G4 advisory FAIL; full diff `tools/port/evidence/linux_snd.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/linux_snd.o /tmp/aftershock-cpp-port/linux_snd USE_SDL=0` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/unix/linux_qgl.c`: G4 advisory FAIL; full diff `tools/port/evidence/linux_qgl.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/linux_qgl.o /tmp/aftershock-cpp-port/linux_qgl USE_SDL=0` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/unix/linux_joystick.c`: G4 advisory FAIL; full diff `tools/port/evidence/linux_joystick.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/linux_joystick.o /tmp/aftershock-cpp-port/linux_joystick USE_SDL=0 CFLAGS=-DUSE_JOYSTICK` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/unix/linux_glimp.c`: G4 advisory FAIL; full diff `tools/port/evidence/linux_glimp.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/linux_glimp.o /tmp/aftershock-cpp-port/linux_glimp USE_SDL=0` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_ai_move.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_ai_move.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_ai_move.o /tmp/aftershock-cpp-port/be_ai_move` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/l_struct.c`: G4 advisory FAIL; full diff `tools/port/evidence/l_struct.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/l_struct.o /tmp/aftershock-cpp-port/l_struct` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/l_script.c`: G4 advisory FAIL; full diff `tools/port/evidence/l_script.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/l_script.o /tmp/aftershock-cpp-port/l_script` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/l_precomp.c`: G4 advisory FAIL; full diff `tools/port/evidence/l_precomp.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/l_precomp.o /tmp/aftershock-cpp-port/l_precomp` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/l_memory.c`: G4 advisory FAIL; full diff `tools/port/evidence/l_memory.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/l_memory.o /tmp/aftershock-cpp-port/l_memory` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_ai_chat.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_ai_chat.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_ai_chat.o /tmp/aftershock-cpp-port/be_ai_chat` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_ai_char.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_ai_char.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_ai_char.o /tmp/aftershock-cpp-port/be_ai_char` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_sample.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_sample.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_sample.o /tmp/aftershock-cpp-port/be_aas_sample` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_routealt.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_routealt.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_routealt.o /tmp/aftershock-cpp-port/be_aas_routealt` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_route.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_route.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_route.o /tmp/aftershock-cpp-port/be_aas_route` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_reach.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_reach.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_reach.o /tmp/aftershock-cpp-port/be_aas_reach` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_move.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_move.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_move.o /tmp/aftershock-cpp-port/be_aas_move` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_file.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_file.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_file.o /tmp/aftershock-cpp-port/be_aas_file` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_debug.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_debug.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_debug.o /tmp/aftershock-cpp-port/be_aas_debug` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_cluster.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_cluster.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_cluster.o /tmp/aftershock-cpp-port/be_aas_cluster` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_bspq3.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_bspq3.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_bspq3.o /tmp/aftershock-cpp-port/be_aas_bspq3` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_world.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_world.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_world.o /tmp/aftershock-cpp-port/sv_world` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_snapshot.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_snapshot.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_snapshot.o /tmp/aftershock-cpp-port/sv_snapshot` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_net_chan.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_net_chan.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_net_chan.o /tmp/aftershock-cpp-port/sv_net_chan` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_main.o /tmp/aftershock-cpp-port/sv_main` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_init.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_init.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_init.o /tmp/aftershock-cpp-port/sv_init` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_game.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_game.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_game.o /tmp/aftershock-cpp-port/sv_game` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_filter.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_filter.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_filter.o /tmp/aftershock-cpp-port/sv_filter` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_ccmds.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_ccmds.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_ccmds.o /tmp/aftershock-cpp-port/sv_ccmds` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_bot.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_bot.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_bot.o /tmp/aftershock-cpp-port/sv_bot` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/vm_interpreted.c`: G4 advisory FAIL; full diff `tools/port/evidence/vm_interpreted.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/qvm/vm_interpreted.o /tmp/aftershock-cpp-port/vm_interpreted` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/common.c`: G4 advisory FAIL; full diff `tools/port/evidence/common.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/common.o /tmp/aftershock-cpp-port/common` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/vm.c`: G4 advisory FAIL; full diff `tools/port/evidence/vm.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/qvm/vm.o /tmp/aftershock-cpp-port/vm` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/unzip.c`: G4 advisory FAIL; full diff `tools/port/evidence/unzip.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/unzip.o /tmp/aftershock-cpp-port/unzip` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/files.c`: G4 advisory FAIL; full diff `tools/port/evidence/files.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/files.o /tmp/aftershock-cpp-port/files` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/common.c`: G4 advisory FAIL; full diff `tools/port/evidence/common.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/common.o /tmp/aftershock-cpp-port/common` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/puff.c`: G4 advisory FAIL; full diff `tools/port/evidence/puff.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/puff.o /tmp/aftershock-cpp-port/puff` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/msg.c`: G4 advisory FAIL; full diff `tools/port/evidence/msg.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/msg.o /tmp/aftershock-cpp-port/msg` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/q_shared.c`: G4 advisory FAIL; full diff `tools/port/evidence/q_shared.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/q_shared.o /tmp/aftershock-cpp-port/q_shared` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/net_ip.c`: G4 advisory FAIL; full diff `tools/port/evidence/net_ip.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/net_ip.o /tmp/aftershock-cpp-port/net_ip` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/net_chan.c`: G4 advisory FAIL; full diff `tools/port/evidence/net_chan.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/net_chan.o /tmp/aftershock-cpp-port/net_chan` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/cvar.c`: G4 advisory FAIL; full diff `tools/port/evidence/cvar.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cvar.o /tmp/aftershock-cpp-port/cvar` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/cmd.c`: G4 advisory FAIL; full diff `tools/port/evidence/cmd.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cmd.o /tmp/aftershock-cpp-port/cmd` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/huffman.c`: G4 advisory FAIL; full diff `tools/port/evidence/huffman.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/huffman.o /tmp/aftershock-cpp-port/huffman` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/md5.c`: G4 advisory FAIL; full diff `tools/port/evidence/md5.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/md5.o /tmp/aftershock-cpp-port/md5` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/keys.c`: G4 advisory FAIL; full diff `tools/port/evidence/keys.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/keys.o /tmp/aftershock-cpp-port/keys` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/history.c`: G4 advisory FAIL; full diff `tools/port/evidence/history.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/history.o /tmp/aftershock-cpp-port/history` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/cm_trace.c`: G4 advisory FAIL; full diff `tools/port/evidence/cm_trace.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cm_trace.o /tmp/aftershock-cpp-port/cm_trace` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/cm_patch.c`: G4 advisory FAIL; full diff `tools/port/evidence/cm_patch.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cm_patch.o /tmp/aftershock-cpp-port/cm_patch` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `cm_load.c`: G4 advisory FAIL; compiler function-name string placement and resulting label/section differences. Full diff: `tools/port/evidence/cm_load.codegen.diff.gz` (`gzip -dc` to inspect). C SHA256 unchanged; G2/G3 PASS. Reproduce with `python3 tools/port/compile_pair.py ded/cm_load.o /tmp/aftershock-cpp-port/cm_load`, then each `tools/port/*_gate.sh` on the emitted `.c.o/.cxx.o` (G2/G3) or `.c.s/.cxx.s` (G4). 28 T1 casts, 28/1059 changed lines, no floating-point expression changed.
-
-- `q_math.c`: G4 FAIL (advisory) on unchanged source, gcc/g++ 15.2, actual release Makefile flags plus `-O2 -S`. C uses double `sincos`, C++ selects `sincosf`; additional overload-related instruction differences exist. This is a potential semantic difference, not merely labels. Full diff: `tools/port/evidence/q_math.codegen.diff`. No floating-point expression was changed. G5 now confirms differing results; file is blocked; a double-argument cast is not in T1-T17 and must not be silently introduced.
-- The full q_math G4 diff is committed without engine changes and must remain visible to human review.
-- `md4.c`: G4 PASS, normalized assembly identical.
+Final current-header sweep: 143 compiled native TUs pass G2/G3; 33 G4 PASS, 110 advisory differences. The standalone bin2hex utility is tested separately. G4 differences require human review and do not establish C++ behavioral equivalence. In addition, blocked q_math.c has its complete 730-line phase-0 diff in `tools/port/evidence/q_math.codegen.diff`; G5 proves a behavioral difference there.
+
+Reproduce all current completed sources with `python3 tools/port/completed_gates.py /tmp/aftershock-cpp-port/final-gates` (expected exit 0 for compilation/G2/G3; G4 remains advisory). It always rebuilds pairs from current sources using the actual recorded Make contexts. Per-file object/variant and statuses: `tools/port/evidence/completed-gates.json`. For one file: `python3 tools/port/compile_pair.py OBJECT OUTPUT [MAKE_VARIABLE=value ...]`, then `tools/port/{layout,symbol}_gate.sh OUTPUT/STEM.c.o OUTPUT/STEM.cxx.o` and `tools/port/codegen_gate.sh OUTPUT/STEM.c.s OUTPUT/STEM.cxx.s`.
+
+Every nonempty completed-source G4 diff is listed below. Read each with `gzip -dc PATH`.
+
+| Source | Complete advisory diff |
+|---|---|
+| `code/botlib/be_aas_bspq3.c` | `tools/port/evidence/be_aas_bspq3.codegen.diff.gz` |
+| `code/botlib/be_aas_cluster.c` | `tools/port/evidence/be_aas_cluster.codegen.diff.gz` |
+| `code/botlib/be_aas_debug.c` | `tools/port/evidence/be_aas_debug.codegen.diff.gz` |
+| `code/botlib/be_aas_file.c` | `tools/port/evidence/be_aas_file.codegen.diff.gz` |
+| `code/botlib/be_aas_move.c` | `tools/port/evidence/be_aas_move.codegen.diff.gz` |
+| `code/botlib/be_aas_reach.c` | `tools/port/evidence/be_aas_reach.codegen.diff.gz` |
+| `code/botlib/be_aas_route.c` | `tools/port/evidence/be_aas_route.codegen.diff.gz` |
+| `code/botlib/be_aas_routealt.c` | `tools/port/evidence/be_aas_routealt.codegen.diff.gz` |
+| `code/botlib/be_aas_sample.c` | `tools/port/evidence/be_aas_sample.codegen.diff.gz` |
+| `code/botlib/be_ai_char.c` | `tools/port/evidence/be_ai_char.codegen.diff.gz` |
+| `code/botlib/be_ai_chat.c` | `tools/port/evidence/be_ai_chat.codegen.diff.gz` |
+| `code/botlib/be_ai_move.c` | `tools/port/evidence/be_ai_move.codegen.diff.gz` |
+| `code/botlib/l_memory.c` | `tools/port/evidence/l_memory.codegen.diff.gz` |
+| `code/botlib/l_precomp.c` | `tools/port/evidence/l_precomp.codegen.diff.gz` |
+| `code/botlib/l_script.c` | `tools/port/evidence/l_script.codegen.diff.gz` |
+| `code/botlib/l_struct.c` | `tools/port/evidence/l_struct.codegen.diff.gz` |
+| `code/client/cl_avi.c` | `tools/port/evidence/cl_avi.codegen.diff.gz` |
+| `code/client/cl_cgame.c` | `tools/port/evidence/cl_cgame.codegen.diff.gz` |
+| `code/client/cl_cin.c` | `tools/port/evidence/cl_cin.codegen.diff.gz` |
+| `code/client/cl_console.c` | `tools/port/evidence/cl_console.codegen.diff.gz` |
+| `code/client/cl_input.c` | `tools/port/evidence/cl_input.codegen.diff.gz` |
+| `code/client/cl_jpeg.c` | `tools/port/evidence/cl_jpeg.codegen.diff.gz` |
+| `code/client/cl_keys.c` | `tools/port/evidence/cl_keys.codegen.diff.gz` |
+| `code/client/cl_net_chan.c` | `tools/port/evidence/cl_net_chan.codegen.diff.gz` |
+| `code/client/cl_parse.c` | `tools/port/evidence/cl_parse.codegen.diff.gz` |
+| `code/client/cl_scrn.c` | `tools/port/evidence/cl_scrn.codegen.diff.gz` |
+| `code/client/cl_ui.c` | `tools/port/evidence/cl_ui.codegen.diff.gz` |
+| `code/client/snd_dma.c` | `tools/port/evidence/snd_dma.codegen.diff.gz` |
+| `code/client/snd_mem.c` | `tools/port/evidence/snd_mem.codegen.diff.gz` |
+| `code/client/snd_mix.c` | `tools/port/evidence/snd_mix.codegen.diff.gz` |
+| `code/qcommon/cm_load.c` | `tools/port/evidence/cm_load.codegen.diff.gz` |
+| `code/qcommon/cm_patch.c` | `tools/port/evidence/cm_patch.codegen.diff.gz` |
+| `code/qcommon/cm_trace.c` | `tools/port/evidence/cm_trace.codegen.diff.gz` |
+| `code/qcommon/cmd.c` | `tools/port/evidence/cmd.codegen.diff.gz` |
+| `code/qcommon/common.c` | `tools/port/evidence/common.codegen.diff.gz` |
+| `code/qcommon/cvar.c` | `tools/port/evidence/cvar.codegen.diff.gz` |
+| `code/qcommon/files.c` | `tools/port/evidence/files.codegen.diff.gz` |
+| `code/qcommon/history.c` | `tools/port/evidence/history.codegen.diff.gz` |
+| `code/qcommon/huffman.c` | `tools/port/evidence/huffman.codegen.diff.gz` |
+| `code/qcommon/keys.c` | `tools/port/evidence/keys.codegen.diff.gz` |
+| `code/qcommon/md5.c` | `tools/port/evidence/md5.codegen.diff.gz` |
+| `code/qcommon/msg.c` | `tools/port/evidence/msg.codegen.diff.gz` |
+| `code/qcommon/net_chan.c` | `tools/port/evidence/net_chan.codegen.diff.gz` |
+| `code/qcommon/net_ip.c` | `tools/port/evidence/net_ip.codegen.diff.gz` |
+| `code/qcommon/puff.c` | `tools/port/evidence/puff.codegen.diff.gz` |
+| `code/qcommon/q_shared.c` | `tools/port/evidence/q_shared.codegen.diff.gz` |
+| `code/qcommon/unzip.c` | `tools/port/evidence/unzip.codegen.diff.gz` |
+| `code/qcommon/vm.c` | `tools/port/evidence/vm.codegen.diff.gz` |
+| `code/qcommon/vm_interpreted.c` | `tools/port/evidence/vm_interpreted.codegen.diff.gz` |
+| `code/renderer/tr_animation.c` | `tools/port/evidence/renderer-tr_animation.codegen.diff.gz` |
+| `code/renderer/tr_arb.c` | `tools/port/evidence/renderer-tr_arb.codegen.diff.gz` |
+| `code/renderer/tr_backend.c` | `tools/port/evidence/renderer-tr_backend.codegen.diff.gz` |
+| `code/renderer/tr_bsp.c` | `tools/port/evidence/renderer-tr_bsp.codegen.diff.gz` |
+| `code/renderer/tr_cmds.c` | `tools/port/evidence/renderer-tr_cmds.codegen.diff.gz` |
+| `code/renderer/tr_curve.c` | `tools/port/evidence/renderer-tr_curve.codegen.diff.gz` |
+| `code/renderer/tr_flares.c` | `tools/port/evidence/renderer-tr_flares.codegen.diff.gz` |
+| `code/renderer/tr_image.c` | `tools/port/evidence/renderer-tr_image.codegen.diff.gz` |
+| `code/renderer/tr_init.c` | `tools/port/evidence/renderer-tr_init.codegen.diff.gz` |
+| `code/renderer/tr_light.c` | `tools/port/evidence/renderer-tr_light.codegen.diff.gz` |
+| `code/renderer/tr_main.c` | `tools/port/evidence/renderer-tr_main.codegen.diff.gz` |
+| `code/renderer/tr_mesh.c` | `tools/port/evidence/renderer-tr_mesh.codegen.diff.gz` |
+| `code/renderer/tr_model.c` | `tools/port/evidence/renderer-tr_model.codegen.diff.gz` |
+| `code/renderer/tr_model_iqm.c` | `tools/port/evidence/renderer-tr_model_iqm.codegen.diff.gz` |
+| `code/renderer/tr_scene.c` | `tools/port/evidence/renderer-tr_scene.codegen.diff.gz` |
+| `code/renderer/tr_shade.c` | `tools/port/evidence/renderer-tr_shade.codegen.diff.gz` |
+| `code/renderer/tr_shade_calc.c` | `tools/port/evidence/renderer-tr_shade_calc.codegen.diff.gz` |
+| `code/renderer/tr_shader.c` | `tools/port/evidence/renderer-tr_shader.codegen.diff.gz` |
+| `code/renderer/tr_shadows.c` | `tools/port/evidence/renderer-tr_shadows.codegen.diff.gz` |
+| `code/renderer/tr_sky.c` | `tools/port/evidence/renderer-tr_sky.codegen.diff.gz` |
+| `code/renderer/tr_surface.c` | `tools/port/evidence/renderer-tr_surface.codegen.diff.gz` |
+| `code/renderer/tr_vbo.c` | `tools/port/evidence/renderer-tr_vbo.codegen.diff.gz` |
+| `code/renderer/tr_world.c` | `tools/port/evidence/renderer-tr_world.codegen.diff.gz` |
+| `code/renderercommon/tr_image_tga.c` | `tools/port/evidence/tr_image_tga.codegen.diff.gz` |
+| `code/renderercommon/tr_noise.c` | `tools/port/evidence/tr_noise.codegen.diff.gz` |
+| `code/renderervk/tr_animation.c` | `tools/port/evidence/renderervk-tr_animation.codegen.diff.gz` |
+| `code/renderervk/tr_backend.c` | `tools/port/evidence/renderervk-tr_backend.codegen.diff.gz` |
+| `code/renderervk/tr_bsp.c` | `tools/port/evidence/renderervk-tr_bsp.codegen.diff.gz` |
+| `code/renderervk/tr_cmds.c` | `tools/port/evidence/renderervk-tr_cmds.codegen.diff.gz` |
+| `code/renderervk/tr_curve.c` | `tools/port/evidence/renderervk-tr_curve.codegen.diff.gz` |
+| `code/renderervk/tr_image.c` | `tools/port/evidence/renderervk-tr_image.codegen.diff.gz` |
+| `code/renderervk/tr_init.c` | `tools/port/evidence/renderervk-tr_init.codegen.diff.gz` |
+| `code/renderervk/tr_light.c` | `tools/port/evidence/renderervk-tr_light.codegen.diff.gz` |
+| `code/renderervk/tr_main.c` | `tools/port/evidence/renderervk-tr_main.codegen.diff.gz` |
+| `code/renderervk/tr_mesh.c` | `tools/port/evidence/renderervk-tr_mesh.codegen.diff.gz` |
+| `code/renderervk/tr_model.c` | `tools/port/evidence/renderervk-tr_model.codegen.diff.gz` |
+| `code/renderervk/tr_model_iqm.c` | `tools/port/evidence/renderervk-tr_model_iqm.codegen.diff.gz` |
+| `code/renderervk/tr_scene.c` | `tools/port/evidence/renderervk-tr_scene.codegen.diff.gz` |
+| `code/renderervk/tr_shade.c` | `tools/port/evidence/renderervk-tr_shade.codegen.diff.gz` |
+| `code/renderervk/tr_shade_calc.c` | `tools/port/evidence/renderervk-tr_shade_calc.codegen.diff.gz` |
+| `code/renderervk/tr_shader.c` | `tools/port/evidence/renderervk-tr_shader.codegen.diff.gz` |
+| `code/renderervk/tr_shadows.c` | `tools/port/evidence/renderervk-tr_shadows.codegen.diff.gz` |
+| `code/renderervk/tr_sky.c` | `tools/port/evidence/renderervk-tr_sky.codegen.diff.gz` |
+| `code/renderervk/tr_surface.c` | `tools/port/evidence/renderervk-tr_surface.codegen.diff.gz` |
+| `code/renderervk/tr_world.c` | `tools/port/evidence/renderervk-tr_world.codegen.diff.gz` |
+| `code/renderervk/vk_flares.c` | `tools/port/evidence/renderervk-vk_flares.codegen.diff.gz` |
+| `code/renderervk/vk_vbo.c` | `tools/port/evidence/renderervk-vk_vbo.codegen.diff.gz` |
+| `code/server/sv_bot.c` | `tools/port/evidence/sv_bot.codegen.diff.gz` |
+| `code/server/sv_ccmds.c` | `tools/port/evidence/sv_ccmds.codegen.diff.gz` |
+| `code/server/sv_filter.c` | `tools/port/evidence/sv_filter.codegen.diff.gz` |
+| `code/server/sv_game.c` | `tools/port/evidence/sv_game.codegen.diff.gz` |
+| `code/server/sv_init.c` | `tools/port/evidence/sv_init.codegen.diff.gz` |
+| `code/server/sv_main.c` | `tools/port/evidence/sv_main.codegen.diff.gz` |
+| `code/server/sv_net_chan.c` | `tools/port/evidence/sv_net_chan.codegen.diff.gz` |
+| `code/server/sv_snapshot.c` | `tools/port/evidence/sv_snapshot.codegen.diff.gz` |
+| `code/server/sv_world.c` | `tools/port/evidence/sv_world.codegen.diff.gz` |
+| `code/unix/linux_glimp.c` | `tools/port/evidence/linux_glimp.codegen.diff.gz` |
+| `code/unix/linux_joystick.c` | `tools/port/evidence/linux_joystick.codegen.diff.gz` |
+| `code/unix/linux_qgl.c` | `tools/port/evidence/linux_qgl.codegen.diff.gz` |
+| `code/unix/linux_snd.c` | `tools/port/evidence/linux_snd.codegen.diff.gz` |
+| `code/unix/unix_main.c` | `tools/port/evidence/unix_main.codegen.diff.gz` |
 
 ## Blocked files
 
