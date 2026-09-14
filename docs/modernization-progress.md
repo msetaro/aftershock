@@ -9,13 +9,19 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 Active work: `issue/2-native-game` / draft PR #50. #31 movement-result fix PR #51
 merged as 5ecf43e52dbc5a62efd2fe62c13a1c5a17065e95 after regression 34900480717 and
-full build 34900480656 passed on fc49615d. Merged-tree regression is pending.
-This branch merges modernization without rewriting the original C import history;
-workflow conflicts keep both native ABI and movement-result checks, README keeps
-both sections, and notes/progress retain the newest verified #31 evidence.
-Next: verify the merged tree and rerun permanent native C smoke/replay with the fix;
-then hosted OpenArena native support, T1–T25 C++ port gates, static direct calls,
-and VM/JIT removal. No accepted fixtures are to be regenerated on #2.
+full build 34900480656 passed on fc49615d. Merged-tree regression 34900871236 passed.
+Merge 21ad2eea brings this fix into #2, retaining both CI/test documentation additions.
+Permanent GCC native smoke passes both maps (6dad7c18 / a15c9c91 normalized hashes).
+Clang native smoke loads the DLL then catches SIGSEGV before bots start: GDB locates
+VM_Call's native argument-copy loop. That branch reads args[0..2] even for nargs=0;
+Clang exploits the undefined uninitialized reads and removes the zero-count exit,
+then overruns the stack. No source fix on #2. Separately, native C diagnostics found
+the same teamleader[sizeof(teamleader)] out-of-bounds terminator in ai_cmd.c:1311
+and ai_team.c:1963; both are #31 work, not inline port edits.
+Next: separate #31 native-dispatch failing-test-first fix PR and upstream C PR;
+then the teamleader bounds defect, and resume #2 native C compiler parity,
+OpenArena native support, T1–T25 C++ gates, static direct calls and VM/JIT removal.
+Accepted goldens may change only in an explained #31 fix, never on #2.
 
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
@@ -457,3 +463,10 @@ updated goldens. Self-review: one #31 initialization defect, production-body tes
 first, explained golden changes only, unchanged file/wire layout and FP expressions,
 no new engine OS calls, non-trivial destructors or allocations. Issue updated;
 upstream #435 open. This final checkpoint changes documentation only.
+
+#2 preparation only: OpenArena oaxB52 source tag resolves to
+331464ca396d80e91cf9be273588f2b5f4b7afc8, matching the release used by hosted QVM
+fixtures. Clone is /tmp/aftershock-oa-native-source; no native OA build or code change
+yet. GCC and Clang both accept their binary32 literal flags in C++20 as well as C.
+Temporary C++ compilation of the base game lists expected enum/pointer/constness,
+FOFS pointer-to-int and old-style definition conversions; no C++ source port begun.

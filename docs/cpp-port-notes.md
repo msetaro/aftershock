@@ -311,3 +311,23 @@ GCC/Clang C++ and upstream C probes pass; upstream PR: https://github.com/ec-/Qu
 bot logs change due to corrected obstacle avoidance and repeat identically. All
 fixed-demo frames remain unchanged. See modernization-progress.md for counts/hashes.
 No fix or accepted golden change was made on #2. No known-bug entry/suppression covered it.
+
+## #31 native dispatch argument initialization (open, found during #2)
+
+`VM_Call`'s native branch fills only nargs slots of args[3], but always reads all
+three for entryPoint. Zero/one/two-argument calls therefore read uninitialized ints.
+`python3 tests/run.py runtime --game-code native --cc clang --cxx 'clang++ -stdlib=libc++'`
+loads qagame then catches SIGSEGV before bot startup. GDB identifies VM_Call's copy
+loop; Clang 21 release assembly has no zero-count exit in this branch and overwrites
+the stack on GAME_CONSOLE_COMMAND (nargs=0). GCC native smoke passes by accident.
+A separate #31 PR must zero unused slots and test every argument count against a
+native entry stub. No fix or golden change made on #2.
+
+## #31 team-leader name termination (open, found during #2)
+
+Clang's C build diagnoses `bs->teamleader[sizeof(bs->teamleader)] = '\0'` in
+BotMatch_StartTeamLeaderShip (ai_cmd.c:1311) and BotTeamAI (ai_team.c:1963).
+The field has 32 bytes; both write index 32 after strncpy and can leave index 31
+unterminated. Reproducer discovery: `python3 tests/native.py --cc clang`, diagnostics
+in the game.log output. A separate #31 failing test must exercise bounded name
+copying before both sites use the existing Q_strncpyz helper. No inline #2 fix.

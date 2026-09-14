@@ -207,9 +207,9 @@ the QVM compiler does; `bg_lib.c` preserves the QVM random sequence. Temporary D
 entry points marshal pointer-width words until static integration removes them.
 Replay uses the same committed demos/frame hashes. Smoke removes only module load
 metadata, build date and bot-skill printf padding before comparing the accepted QVM
-log. Gameplay text is retained. Native q3dm17 and both-map replay pass; q3dm7 still
-fails on an uninitialized movement result tracked in #31. This is not a passing
-native parity gate yet. Native OpenArena support is still required before VM removal.
+log. Gameplay text is retained. Both Quake 3 maps and both-renderer replay pass after
+#31 PR #51 fixed the engine's uninitialized movement result. Native OpenArena support
+is still required before VM removal.
 Native parity commands reject regeneration; the accepted QVM default is unchanged.
 
 ### Bot movement result regression
