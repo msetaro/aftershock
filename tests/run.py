@@ -92,9 +92,10 @@ def differential(args):
         negative_control(args, objects, binary)
 
 
-def check_known_bugs(diagnostics):
-    patterns = [line for line in (ROOT / 'tests/known-bugs.txt').read_text().splitlines()
-                if line and not line.startswith('#')]
+def check_known_bugs(diagnostics, patterns=None):
+    if patterns is None:
+        patterns = [line for line in (ROOT / 'tests/known-bugs.txt').read_text().splitlines()
+                    if line and not line.startswith('#')]
     errors = [line for line in diagnostics.splitlines() if 'runtime error:' in line]
     for error in errors:
         if not any(re.search(pattern, error) for pattern in patterns):

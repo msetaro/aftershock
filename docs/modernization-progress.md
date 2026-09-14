@@ -7,10 +7,12 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-#3 has passed acceptance on 98096f97. Mark PR #33 ready, merge into modernization
-with a merge commit, then require the regression workflow on the merged tree to
-pass before starting #31. This final checkpoint commit changes documentation only;
-all executable/test/golden files remain exactly the tested 98096f97 tree.
+PR #33 is merged into modernization as **8692b422643f7b5169c623bbb6bb755f7c35c46d**.
+Merged-tree regression workflow **34867621821** passed; #3 is complete. Current branch is `issue/31-huffman-alignment`
+in the supplied workspace `/home/matt/.t3/worktrees/aftershock/t3code-99571af6`.
+Huffman alignment reproduces under fatal UBSan before the fix. Replaced the
+unaligned typed load with memcpy; removed its known-bugs expectation. Validation
+and upstream PR are next. No other bug fix is included.
 
 Continue #31 one bug per PR, starting with HuffmanGetSymbol's unaligned read. Run
 its existing fatal sanitizer reproducer before editing, make the smallest fix,
@@ -21,8 +23,8 @@ fix upstream in C. Then address the remaining recorded defects individually.
 
 | Order | Issue | Status / required work |
 |---|---|---|
-| 1 | #3 regression suite | Acceptance passed; ready/merge and merged-tree verification next. |
-| 2 | #31 bugs | Not started. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
+| 2 | #31 bugs | Huffman alignment fix in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -98,3 +100,14 @@ packages were extracted under `/tmp/aftershock-openarena`, never installed.
 `/tmp/aftershock-demo-tests` and `/tmp/aftershock-oa-demo` contain final local replay
 evidence. `/tmp/aftershock-ci-runtime4/aftershock-demo-tests` contains reviewed hosted
 baseline evidence. These paths are disposable; source and README commands suffice.
+
+## #31 Huffman validation
+
+Fatal Clang ASan/UBSan unit run failed before the fix at huffman_static.cpp:206,
+exit 1; the same command passes afterward with no diagnostic/expectation.
+Production GCC assembly and symbols pass the existing port gates before/after.
+The explicit unit and differential regeneration commands produce zero golden
+diff. Local q3dm17/q3dm7 smoke and both-renderer fixed-demo replay pass unchanged.
+An upstream C regression tests every symbol at 32 bit offsets: sanitizer fails
+before, passes after, and GCC C assembly is also identical. Upstream PR: https://github.com/ec-/Quake3e/pull/424. Fork PR/CI/self-review remain
+before merge.

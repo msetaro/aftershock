@@ -1,6 +1,6 @@
 # C++ port notes — record bugs, do not fix them
 
-No engine bug fixes have been made.
+The strict port made no engine bug fixes. Modernization #31 dispositions are recorded below.
 
 - Upstream CMake defects already documented in cpp-port-plan.md section 7 remain untouched.
 - Phase 0 found that C++ math-header overload resolution changes unchanged q_math.c
@@ -47,3 +47,11 @@ No engine bug fixes have been made.
   rejecting an invalid index. Reproduce: `python3 tests/fuzz/run.py jpeg --runs 1000`;
   observed crash SHA1 1868dc3f9cb6875028fd4f795a1d596b87706c16 under /tmp/aftershock-fuzz/jpeg.
   Vendor code remains untouched; a dedicated #31 test/fix/upstream PR is required.
+
+- #31 Huffman alignment fix: `HuffmanGetSymbol` now copies the packed word with
+  memcpy before applying the unchanged shifts/mask. The fatal sanitizer unit
+  reproducer failed before and passes after. GCC production assembly/symbols and
+  regenerated unit/differential goldens are identical; both-map bot logs and
+  fixed-demo frames remain identical. Removed its known-bugs entry; it never had
+  a UBSan suppression. Upstream C regression covers 256 symbols at 32 bit offsets.
+  Upstream C fix/test: https://github.com/ec-/Quake3e/pull/424.

@@ -1,3 +1,2 @@
 # UBSan diagnostic patterns exercised by tests/run.py unit --sanitize --known-bugs.
 # Every pattern must occur; every runtime error must match. Remove with the #31 fix.
-huffman_static\.cpp:[0-9]+:[0-9]+: runtime error: load of misaligned address .* for type 'const uint32_t'
