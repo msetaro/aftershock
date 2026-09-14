@@ -33,6 +33,18 @@ g++ -x c++ -c "$port_tmp/export.c" -o "$port_tmp/export.cxx.o"
 if tools/port/symbol_gate.sh "$port_tmp/export.c.o" "$port_tmp/export.cxx.o" > "$port_tmp/export.log"; then
     echo 'FAIL: symbol gate missed mangled external ABI'; exit 1
 fi
+# Recorded static-renderer builds deliberately use ordinary C++ linkage.
+printf 'gcc -c export.c\n' > "$port_tmp/export.c.o.command"
+printf 'g++ -c export.c\n' > "$port_tmp/export.cxx.o.command"
+tools/port/symbol_gate.sh "$port_tmp/export.c.o" "$port_tmp/export.cxx.o"
+printf 'g++ -DUSE_RENDERER_DLOPEN -c export.c\n' > "$port_tmp/export.cxx.o.command"
+if tools/port/symbol_gate.sh "$port_tmp/export.c.o" "$port_tmp/export.cxx.o" > "$port_tmp/mode.log"; then
+    echo 'FAIL: symbol gate accepted mismatched renderer modes'; exit 1
+fi
+printf 'gcc -DUSE_RENDERER_DLOPEN -c export.c\n' > "$port_tmp/export.c.o.command"
+if tools/port/symbol_gate.sh "$port_tmp/export.c.o" "$port_tmp/export.cxx.o" > "$port_tmp/dlopen.log"; then
+    echo 'FAIL: symbol gate missed mangled dlopen entry'; exit 1
+fi
 # Assembly callees can be undefined in the calling object: test those too.
 printf 'void S_WriteLinearBlastStereo16_SSE_x64(int*, short*, int); void invoke(void) { S_WriteLinearBlastStereo16_SSE_x64(0, 0, 0); }\n' > "$port_tmp/import.c"
 gcc -c "$port_tmp/import.c" -o "$port_tmp/import.c.o"

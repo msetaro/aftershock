@@ -2,6 +2,7 @@
 """Compare C/C++ artifacts; preserve linkage, layout, and instruction differences."""
 import difflib
 import re
+import shlex
 import subprocess
 import tempfile
 import sys
@@ -54,7 +55,15 @@ def layout(path):
     return ''.join(sorted(records)).splitlines(keepends=True)
 
 
-def symbols(path):
+def renderer_mode(path):
+    command = Path(path + '.command')
+    if not command.exists():
+        return None
+    return any(arg == '-DUSE_RENDERER_DLOPEN' or arg.startswith('-DUSE_RENDERER_DLOPEN=')
+               for arg in shlex.split(command.read_text()))
+
+
+def symbols(path, renderer_boundary=True):
     rows = []
     for line in run('nm', '--format=posix', path).splitlines():
         fields = line.split()
@@ -73,6 +82,8 @@ def symbols(path):
             'Q_GetFPUCW', 'Q_SetFPUCW', '__clear_cache', 'NvOptimusEnablement',
             'AmdPowerXpressRequestHighPerformance',
         } or boundary_name.startswith('S_WriteLinearBlastStereo16_')
+        if boundary_name == 'GetRefAPI' and not renderer_boundary:
+            boundary = False  # Static renderer calls stay within the C++ build.
         if boundary_name == 'CPUID_EX' and kind == 't':
             boundary = False  # GNU private helper is not the MSVC assembly entry.
         if boundary:
@@ -104,7 +115,14 @@ def main():
     gate, left, right = sys.argv[1:]
     try:
         normalize = {'layout': layout, 'symbol': symbols, 'codegen': codegen}[gate]
-        a, b = normalize(left), normalize(right)
+        if gate == 'symbol':
+            modes = renderer_mode(left), renderer_mode(right)
+            if None not in modes and modes[0] != modes[1]:
+                raise ValueError('renderer build modes differ')
+            boundary = modes != (False, False)
+            a, b = symbols(left, boundary), symbols(right, boundary)
+        else:
+            a, b = normalize(left), normalize(right)
         diff = ''.join(difflib.unified_diff(a, b, fromfile=left, tofile=right))
         print(f'{"FAIL" if diff else "PASS"}: {gate} {left} {right}')
         if diff:
