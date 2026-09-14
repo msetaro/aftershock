@@ -58,12 +58,16 @@ def differential(args):
     objects = args.output / 'unit-build/release-linux-x86_64/ded'
     sanitizers = 'address,pointer-compare' if args.pointer_compare else 'address,undefined'
     instrument = ['-fsanitize=' + sanitizers, '-fno-omit-frame-pointer'] if args.sanitize else []
+    jpeg_tables = args.output / 'jpeg-tables.o'
+    run([*shlex.split(args.cc), '-std=c11', '-O2', *instrument, '-fno-strict-aliasing',
+         '-ffunction-sections', '-fdata-sections', '-c', 'tests/probes/jpeg_tables.c', '-o', jpeg_tables])
     variables = [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0', 'USE_SDL=0', 'USE_CURL=0', 'CFLAGS=-ffunction-sections -fdata-sections ' + ' '.join(instrument)]
     build(args.output / 'unit-build', variables, [objects / (s + '.o') for s in SOURCES])
     binary = args.output / 'differential'
     run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti', '-O2',
          *instrument, '-fno-strict-aliasing', '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',
          'tests/probes/allocations.cpp',
+         jpeg_tables,
          *[objects / (s + '.o') for s in SOURCES], '-Wl,--gc-sections',
          '-Wl,--wrap=_Z11FS_ReadFilePKcPPv', '-o', binary, '-lm'])
     command = [binary]
@@ -130,6 +134,7 @@ def negative_control(args, objects, binary):
     run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti', '-O2',
          '-fno-strict-aliasing', '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',
          'tests/probes/allocations.cpp',
+         args.output / 'jpeg-tables.o',
          *[obj if stem == 'q_math' else objects / (stem + '.o') for stem in SOURCES],
          '-Wl,--gc-sections', '-Wl,--wrap=_Z11FS_ReadFilePKcPPv', '-o', mutated_binary, '-lm'])
     changed = run([mutated_binary], stdout=subprocess.PIPE).stdout

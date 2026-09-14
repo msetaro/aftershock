@@ -56,6 +56,7 @@ static void string( const char *s ) { bytes( s, strlen( s ) + 1 ); }
 static void result( const char *name ) { printf( "%s %08x\n", name, hash ); hash = 2166136261U; }
 
 void TestInflateAllocations( void );
+Q_EXTERN_C void TestJpegTables( void );
 
 int main( int argc, char **argv )
 {
@@ -74,6 +75,7 @@ int main( int argc, char **argv )
 	vec3_t axis = { 0, 0, 1 }, point = { 1, 2, 3 }, out, forward, right, up;
 	assert( argc == 1 || argc == 2 );
 	TestInflateAllocations();
+	TestJpegTables();
 	map_path = argc == 2 ? argv[1] : NULL;
 	/* Layout is observable independently of roundtrip serializers. */
 	number( sizeof( usercmd_t ) ); number( sizeof( entityState_t ) ); number( sizeof( playerState_t ) );
