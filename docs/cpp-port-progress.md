@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: qcommon; next `code/qcommon/vm_x86.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: qcommon; next `code/server/sv_client.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/qcommon/vm_x86.c`: G4 advisory FAIL; full diff `tools/port/evidence/vm_x86.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/qvm/vm_x86.o /tmp/aftershock-cpp-port/vm_x86 ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/qcommon/common.c`: G4 advisory FAIL; full diff `tools/port/evidence/common.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/common.o /tmp/aftershock-cpp-port/common ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -524,7 +526,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/qcommon/vm_local.h` | done | T1-T17: 0; unchanged header checked via vm.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/vm_optimize.h` | blocked | Unchanged; all consuming JIT translation units are blocked/unverified, so complete-object gates cannot verify this header. |
 | `code/qcommon/vm_powerpc.c` | blocked | Native syntax probe: :1727/:2579 need T1; :2558/:2561/:2564/:2567 pass function pointers to const void*, outside T1. No PPC64 cross compiler/sysroot verified; unmodified, target unverified. |
-| `code/qcommon/vm_x86.c` | blocked | At :3498 mov_rx_ptr(R_SYSCALL, vm->systemCall) converts syscall_t function pointer to const void*. T1 covers the reverse direction only; no catalog remedy. A T3 cast is also needed at :4323. No source edit retained. |
+| `code/qcommon/vm_x86.c` | done | T1: 1 function-to-object pointer cast; T3: 1 macro_op_t cast; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_x86.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderer/qgl.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderer/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_animation.o, default); G4 advisory FAIL, full diff retained. |

@@ -3495,7 +3495,7 @@ __compile:
 
 	emit_load4( R_OPSTACK | R_REX, R_EAX, 0 );		// mov rdi, [rax]
 
-	mov_rx_ptr( R_SYSCALL, vm->systemCall );		// mov r13, vm->systemCall
+	mov_rx_ptr( R_SYSCALL, (const void *)vm->systemCall );		// mov r13, vm->systemCall
 
 	mov_rx_ptr( R_EAX, &vm->programStack );			// mov rax, &vm->programStack
 
@@ -4320,7 +4320,7 @@ __compile:
 			case MOP_LEU:
 			case MOP_GTU:
 			case MOP_GEU:
-				if ( !EmitMOPs( vm, ci, ci->op ) ) {
+				if ( !EmitMOPs( vm, ci, (macro_op_t)ci->op ) ) {
  					// optimization was rejected, reswitch
 					ip--;
 				}
