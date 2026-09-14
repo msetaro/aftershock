@@ -415,7 +415,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/win32/win_gamma.c` | done | T1: 1 previously inspected HMODULE cast, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_gamma.o); G4 PASS. |
 | `code/win32/win_glimp.c` | done | T1: 2 including optional procedure macro; T2: 4; T5: 2 GPU exports; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_glimp.o); G4 advisory difference retained. |
 | `code/win32/win_input.c` | blocked | Real MinGW verification: :536/:566 cannot convert const GUID* to const GUID&. CINTERFACE preserves vtables but GUID arguments still require pointer/reference adapters outside T1-T23. Two T15 literal-suffix errors are independently cataloged, but no partial candidate retained. Prior inspected T2 cast remains; C oracle hash matches. G1-G4 incomplete. |
-| `code/win32/win_local.h` | done | Unchanged; actual MinGW win_main.c consumer passes C hash, strict release/debug C++ and G2/G3. |
+| `code/win32/win_local.h` | done | T24 exact approved macros before SDK includes; all 300 original MinGW C object hashes unchanged; win_main C++/G2/G3 PASS. |
 | `code/win32/win_main.c` | done | T1: 4 total, including FARPROC to void*; existing inspection casts now C-oracle verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_main.o); G4 advisory difference retained. |
 | `code/win32/win_minimize.c` | done | T1-T23: 0, already compatible; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_minimize.o); G4 advisory difference retained. |
 | `code/win32/win_qgl.c` | done | T1: 3 sites including function-to-object pointer conversion; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_qgl.o); G4 PASS. |
@@ -1218,3 +1218,5 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 - T25 production release-linux-x86_64/client/sv_client.o: original and T25 SHA256 `af7af4b97d9a5753c8c3451059cbb6c4b61bdef5e38d55813b235c0bfc2f8c91`. Dedicated and client G2/G3 PASS; G4 `sv_client.codegen.diff.gz` and `t25-client-sv_client.diff.gz`.
 
 - T25 production release-linux-x86_64/ded/sv_client.o: original and T25 SHA256 `4a9f0e564093f0277ee5c558d269fc3a00b01b92a5d40665d06df0a14298815c`. Dedicated and client G2/G3 PASS; G4 `sv_client.codegen.diff.gz` and `t25-client-sv_client.diff.gz`.
+
+- T24 win_local.h verification: all 300 MinGW original C hashes unchanged; client win_main G2/G3 passes. Header defines CINTERFACE only under __cplusplus. Next win_input.c.
