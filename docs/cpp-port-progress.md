@@ -625,7 +625,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/renderercommon/vulkan/vk_platform.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan_core.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
-| `code/renderercommon/vulkan/vulkan_win32.h` | blocked | Unverified: unchanged generated Khronos Windows header; no MinGW cross-compiler/Windows SDK available. |
+| `code/renderercommon/vulkan/vulkan_win32.h` | done | Unchanged Khronos header; actual MinGW win_qvk.c consumer passes C hash, strict release/debug C++ and G2/G3. |
 | `code/renderercommon/vulkan/vulkan_xlib.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan_xlib_xrandr.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderervk/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
@@ -751,3 +751,5 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 - Revalidated code/qcommon/vm_optimize.h: Unchanged; real native x86_64 and cross ARM/AArch64/PPC JIT consumers pass strict C++, G2/G3 and original C hashes.
 
 - Revalidated code/sdl/sdl_icon.h: Unchanged initializer; sdl_glimp.c consuming object passes original C hash, strict C++ and G2/G3.
+
+- Revalidated code/renderercommon/vulkan/vulkan_win32.h: Unchanged Khronos header; actual MinGW win_qvk.c consumer passes C hash, strict release/debug C++ and G2/G3.
