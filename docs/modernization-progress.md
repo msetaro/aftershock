@@ -14,19 +14,16 @@ build 34868566674 passed; its merged-tree run 34869117306 passed.
 Filesystem PR #37 merged as 73108eab after regression 34877286456 and full build
 34877286443 passed; merged-tree regression 34877819880 passed.
 
-Current branch: `issue/31-download-url`. Permanent `python3 tests/download.py`
-failed before the fix on a base ending in `/` (doubled separator). The one-line
-last-character check now handles the empty base safely and preserves `%1` behavior.
-GCC and Clang/libc++ checks pass. `--regenerate` created the new download.txt URL
-fixture only; existing goldens stay unchanged. CI runs this in the runtime job
-using its installed libcurl development package. Next:
-fork PR, hosted CI, self-review and merge.
-
-Upstream C PR: https://github.com/ec-/Quake3e/pull/426; its standalone test fails
-before and passes after. Unit/negative-control, collision, smoke and replay gates
-pass. One smoke attempt overlapped demo replay and differed only in the occupied
-UDP port diagnostic; a serial rerun passed both original map goldens. Run these
-two local runtime gates serially. No golden was changed to accommodate the collision.
+Current branch: `issue/31-download-url`, PR #38. Source/test head 56ece5e4 passed
+regression 34878247137 and full platform build 34878247337. Final checkpoint changes
+only documentation. Self-review passed: one URL bug, no simulation FP, layout,
+OS-access, allocation or core-lifetime change. Only the new URL golden was added.
+Next: mark #38 ready, merge with a merge commit, verify the merged-tree regression,
+then create `issue/31-audio-threads`. Prepared C++ and upstream C signature checks
+fail on both ALSA callbacks before any fix. Give them pthread-compatible signatures,
+remove the casts, and use ALSA's null sink to verify MMAP/DIRECT sample submission
+and thread joins. Temporary C++ test: /tmp/aftershock-audio-probe.cpp; upstream test
+is uncommitted on issue/31-audio-upstream in /tmp/aftershock-upstream-huffman.
 
 ## Issue status and remaining sequence
 
@@ -135,3 +132,17 @@ Upstream C test fails before and passes after: https://github.com/ec-/Quake3e/pu
 Fork: https://github.com/msetaro/aftershock/pull/37. Regression/full build runs above
 include public-content runtime and all platform legs. The caller audit's separate
 Sys_LoadLibrary uninitialized diagnostic pointer is recorded in notes and issue #31.
+
+## #31 download validation
+
+Permanent `python3 tests/download.py` fails before on the trailing-slash base
+(`maps//map%20name.pk3`), then passes with GCC and Clang/libc++ after the one-line
+guarded last-character check. `%1` substitution, escaping and empty-base behavior
+are retained. Explicit regeneration created only tests/golden/download.txt.
+Existing unit/one-ULP, collision, smoke and replay gates pass. One local smoke
+attempt overlapped replay and hit an occupied UDP port; serial smoke passed both
+original map goldens. Run those local runtime gates serially. No golden changed
+to accommodate the collision. The hosted runtime URL check uses existing libcurl
+packages; begin/cleanup run without a transfer.
+Upstream C fix/test: https://github.com/ec-/Quake3e/pull/426.
+Fork PR: https://github.com/msetaro/aftershock/pull/38.

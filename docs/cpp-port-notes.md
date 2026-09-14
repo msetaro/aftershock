@@ -86,3 +86,4 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   and already rejects empty configured URLs; the shared fix still guards empty input.
   Upstream C test/fix: https://github.com/ec-/Quake3e/pull/426.
   Local unit/negative-control, collision, smoke and replay gates pass unchanged.
+  Fork PR #38 passed regression 34878247137 and full build 34878247337.
