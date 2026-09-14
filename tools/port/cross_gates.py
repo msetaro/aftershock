@@ -31,6 +31,9 @@ for name, target in targets.items():
 
 def check(task):
     name, obj, variables = task
+    if obj == 'client/linux_joystick.o':
+        # The default object is empty; check its actual body as in completed_gates.
+        variables = [*variables, 'CFLAGS=-DUSE_JOYSTICK']
     target = output / name / obj.removesuffix('.o')
     target.mkdir(parents=True, exist_ok=True)
     stem = Path(obj).stem

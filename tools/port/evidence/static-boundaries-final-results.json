@@ -1,0 +1,46 @@
+[
+  {
+    "renderer": "opengl",
+    "object": "client/cl_main.o",
+    "variables": [
+      "USE_RENDERER_DLOPEN=0",
+      "RENDERER_DEFAULT=opengl"
+    ],
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "renderer": "opengl",
+    "object": "rend1/tr_init.o",
+    "variables": [
+      "USE_RENDERER_DLOPEN=0",
+      "RENDERER_DEFAULT=opengl"
+    ],
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "renderer": "vulkan",
+    "object": "client/cl_main.o",
+    "variables": [
+      "USE_RENDERER_DLOPEN=0",
+      "RENDERER_DEFAULT=vulkan"
+    ],
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "renderer": "vulkan",
+    "object": "rendv/tr_init.o",
+    "variables": [
+      "USE_RENDERER_DLOPEN=0",
+      "RENDERER_DEFAULT=vulkan"
+    ],
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  }
+]

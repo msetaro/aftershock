@@ -1,466 +1,185 @@
 # C++20 port checkpoint
 
-Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`.
+Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed continuation starts at `6a990e7c` (T1–T23 plan amendment). No engine files have been renamed. No engine bug fixes, vendor edits, renderer2 port, main pushes, force pushes, or history rewrites were made.
 
-The port has resumed under the accepted T1–T23 catalog and revised gates. Prior blockers below are historical diagnoses pending revalidation, not unresolved requests for guidance. `q_math.c` now passes C hashes, strict C++, G2/G3 and G4 after T21. Remaining work: tree-wide math conversions, native blockers, full links/runtime, cross-target verification, T5 review, rename and CI. No files have been renamed. The old aggregate results below are retained until the replacement sweep completes.
+**The port is not fully complete.** All independently buildable files have been handled: 253 of 257 inventory entries are done (including two explicit exclusions), four are blocked. Three source blockers prevent complete executables; `tlds.h` is blocked only through its sole consumer. Every completed native/cross object inspected passes mandatory layout and symbol gates. Phase 3 and its MSVC CI loop have not started because the native C++ executable/runtime prerequisites fail.
 
 ## Next action
 
-Finish fresh native/cross sweeps, resolve newly exposed compiler/gate diagnostics within the catalog, then consolidate this checkpoint. Phase 2 annotation cleanup is done. Native runtime/rename remain blocked by sv_client C hash; Windows SDK blockers are now real MinGW diagnoses.
+The catalog-only work is exhausted at the blockers below. Do not redo completed files or rename anything. A future authorized continuation must first resolve `sv_client.c` without violating its C SHA256 oracle, then the Windows GUID/COM boundary without inventing transformations; reverify `tlds.h` through its consumer. Rebuild native ded/client/static Vulkan, require two identical C faketime logs and then identical C/C++ logs. Only after prerequisites pass: perform the content-free engine rename, Makefile/vcxproj updates, remove BUILD_CXX/renderer2/32-bit x86 CI legs, push this branch, and watch/fix MSVC CI under the catalog. No user question is pending.
 
 ## Phase checklist
 
-- [ ] Phase 0 fully satisfies all criteria: all six artifacts exist, checksums and gate controls pass; formatter is now advisory; per-file whitespace checks are enforced.
-- [ ] Phase 1 qcommon: assessed, seven blocked entries.
-- [ ] Phase 1 server: assessed, three blocked entries.
-- [x] Phase 1 botlib: native per-file strict builds/G2/G3 and C builds pass; integrated runtime blocked elsewhere.
-- [ ] Phase 1 unix + sdl: assessed, five blocked entries.
-- [ ] Phase 1 client: assessed, three blocked entries.
-- [ ] Phase 1 renderercommon: native consumers pass; Windows Vulkan header unverified.
-- [x] Phase 1 renderer: all native objects pass; C++ OpenGL shared renderer builds and loads.
-- [ ] Phase 1 renderervk: assessed; vk.c/generated shader data blocked by const linkage.
-- [ ] Phase 1 win32: all files inspected; all target verification unavailable.
-- [ ] Phase 2 complete: available native boundaries pass; foreign-target verification and removal of unnecessary internal callback linkage remain.
-- [ ] Phase 3: intentionally not started because prerequisites fail.
-- [x] Final available G1-G8 checks executed and evidence recorded; failures are not presented as passes.
+- [x] Phase 0: all six harness artifacts, frozen observed warnings, C hash proof, q_math/md4 gate runs and positive/negative controls. Formatter advisory under amended plan; T15/stat exception documented below.
+- [x] Phase 1: every file assessed and every independent native/cross transformation completed; per-file commits retained. Full native C builds are green.
+- [ ] Phase 1 full integration: three source blockers remain; complete C++ ded/client/static builds and runtime cannot pass.
+- [x] Phase 2 source/linkage review: unnecessary internal annotations removed; all buildable native/cross objects pass G3. Both C++ dlopen renderer libraries load and resolve GetRefAPI.
+- [ ] Phase 2 client-driven renderer/runtime proof: full C++ client cannot link through the server blocker; library dlopen/dlsym proof is separate.
+- [ ] Phase 3 rename and MSVC CI: deliberately unstarted; prerequisites fail.
+- [x] Final available checks and review recorded; advisory G4 differences and unavailable checks are not represented as passes.
+
+## Remaining blockers
+
+1. `code/server/sv_client.c`: the required T3 conversion of `bGood &= FS_FileIsInPAK(...)` at line 1639 into `bGood = (qboolean)( bGood & FS_FileIsInPAK(...) )` changes one C instruction's commutative operand encoding: `45 85 fe` (`test %r15d,%r14d`) becomes `45 85 f7` (`test %r14d,%r15d`). This is not evidence of changed behavior, but it fails the user's mandatory raw C SHA256 rule. The straightforward T3 form, alternate parentheses/ternary attempts, and a commuted trial did not preserve the hash; commutation also exceeds T3. All candidate edits were reverted. Both dedicated and client contexts fail to compile, with eight native errors each while the file is reverted. The independently cataloged T1/T2/T20 sites cannot make the whole file pass. Exact attempted patch and disassembly: `tools/port/evidence/sv_client-t3-attempt.patch`, `sv_client-c-oracle.diff`.
+2. `code/win32/win_input.c`: actual MinGW errors at 536/566 convert `const GUID*` to `const GUID&`. `CINTERFACE` does not change these SDK reference aliases. Two T15 literal-suffix sites are cataloged, but pointer/reference adaptation is outside T1–T23. No partial new candidate is retained; the earlier inspected T2 cast remains and its C hash is verified.
+3. `code/win32/win_snd.c`: C++ SDK interfaces lack the source's `lpVtbl` members. A temporary CINTERFACE/T4 probe restores the vtables but still fails GUID/reference calls at 300/393/422/578/853/855: eight outgoing GUID arguments plus two `memcmp` address adaptations are uncataloged. Disabling WASAPI still leaves DirectSound GUID calls. Existing two T1 loader casts have verified C hashes; new trial edits were not retained. Full errors and temporary SDK probe logs: `tools/port/evidence/mingw-full-diagnostics.log.gz`, `win-snd-sdk-{wasapi,dsound,cobjmacros}.log.gz`.
+4. `code/server/tlds.h`: unchanged initializer fragment; complete-object C++/G2/G3 verification depends on the blocked `sv_client.c`. No independent source defect was identified.
 
 ## Module inventory
 
-Counts include headers and the standalone Vulkan shader utility. “Done” is per-file/native-context status, not a claim that the module or complete engine runs as C++.
+“Done” is a per-file result, not a claim that the complete C++ engine runs. qasm.h is assembly-only; sv_rankings.c is excluded and must not be renamed. Shared cgame/game/ui ABI headers are included; this checkout has no bg implementation sources.
 
 | Module | Done | Blocked |
 |---|---:|---:|
-| asm | 0 | 1 |
+| asm | 1 | 0 |
 | botlib | 62 | 0 |
 | cgame | 1 | 0 |
-| client | 26 | 3 |
+| client | 29 | 0 |
 | game | 2 | 0 |
-| qcommon | 35 | 7 |
+| qcommon | 42 | 0 |
 | renderer | 28 | 0 |
-| renderercommon | 14 | 1 |
-| renderervk | 28 | 2 |
-| sdl | 3 | 3 |
-| server | 10 | 3 |
+| renderercommon | 15 | 0 |
+| renderervk | 30 | 0 |
+| sdl | 6 | 0 |
+| server | 11 | 2 |
 | ui | 1 | 0 |
-| unix | 11 | 2 |
-| win32 | 0 | 14 |
+| unix | 13 | 0 |
+| win32 | 12 | 2 |
 
 ## Verification results
 
-| Check | Final result | Persistent evidence |
-|---|---|---|
-| C oracle | Full client/renderers and dedicated PASS; 295/295 original object SHA256 hashes unchanged | `tools/port/evidence/phase0-c.sha256`, `final-c-checksums.log` |
-| G1/G7 compiler matrix | Eight C configurations PASS; eight C++ configurations FAIL in blocked files | `tools/port/evidence/build-matrix-results.json`, `build-matrix.log`, all 16 `*.build.log.gz` |
-| G2/G3 current completed files | 143 native TUs PASS; one standalone utility separately verified | `tools/port/evidence/completed-gates.json`, `final-native-gates.log.gz` |
-| Gate controls | Positive and negative controls PASS, including nested layout, changed static linkage, missing export/assembly linkage and optimized JIT clone | `tools/port/evidence/final-selfcheck.log` |
-| G4 | 33 completed-source PASS; 110 advisory differences retained; blocked q_math also differs | Complete list below |
-| G5 | 12 groups match; vector math FAIL | `tools/port/evidence/g5-differential.log` |
-| G6 C smoke | Final requested q3dm17/two-bot/wait-300 run exits 0 | `tools/port/evidence/final-runtime-c.log.gz` |
-| G6 C++ runtime | Blocked by full builds; no equivalent-runtime claim | Blocked list and compiler matrix |
-| C sanitizer smoke | ASan/UBSan exits 0 with no diagnostics using documented alignment suppressions; leak detection disabled | `tools/port/evidence/final-runtime-sanitize.log.gz`, `tools/port/ubsan.supp` |
-| G7 clang-tidy | 99 changed native sources checked, zero tool/compile failures, **236 narrowing findings**; nine Windows sources skipped | `tools/port/evidence/static-summary.txt`, `static-warnings.json`, `clang-tidy.log.gz` |
-| G8 | Reviewer found no uncatalog engine-source hunks; final harness findings fixed and regression checked | Decisions and per-file transformation counts below |
+- C oracle: default native 295/295 hashes and non-SDL 299/299 hashes unchanged. Full client/ded/renderers C links pass. Each ARM, AArch64 and PPC64LE dedicated oracle retains 65/65 hashes and links. MinGW non-SDL retains 300/300 hashes; its default curl-enabled client lacks target zlib, while ded and both DLLs link. The matching USE_CURL=0 baseline/current build links client/ded/both renderers and retains 299/299 C hashes (mingw-client-c-results.json, cross-mingw64-nocurl-c.sha256). Original-base cross builds were extracted with git archive into /tmp; port work stayed in this worktree.
+- Native matrix: all eight C configurations pass; all eight C++ configurations fail only in sv_client.c. GCC release/debug SDL and non-SDL plus static OpenGL/Vulkan; Clang release SDL and debug non-SDL. Exact commands and error counts: `tools/port/evidence/resumed-build-matrix-results.json`; full logs `resumed-*.log.gz`.
+- Cross C++ matrix: ARM, AArch64 and PPC64LE fail only in sv_client.c; MinGW also fails win_input.c/win_snd.c. Both MinGW renderer DLLs link. Exact commands/errors: `tools/port/evidence/final-cross-results.json`; full logs `final-cross-*.log.gz`. Cross-only JIT files and nine Windows implementation files passed strict release/debug object builds and original C hashes before their per-file commits.
+- native-tu: 154 compiled object pairs, G2/G3 PASS; G4 39 PASS and 115 advisory differences. Exact object/variable list: `tools/port/evidence/native-tu-final-results.json`.
+- cross: 417 compiled object pairs, G2/G3 PASS; G4 85 PASS and 332 advisory differences. Exact object/variable list: `tools/port/evidence/cross-final-results.json`.
+- native-context: 450 compiled object pairs, G2/G3 PASS; G4 123 PASS and 327 advisory differences. Exact object/variable list: `tools/port/evidence/native-context-final-results.json`.
+- G5: all 13 groups PASS with one C-compiled driver linked to either object set; vector_math is `5c00b4de` for both. Standalone math gate PASS. Evidence: `g5-final.log`, `math-final.log`. Coverage includes parsing, strings/info, commands/cvars, FS paths, MSG roundtrips plus 256 delta trials, adaptive Huffman, addresses, 1,000 collision traces, Q_rsqrt/Q_fabs and vector math. The full memory/filesystem/runtime is not modeled. Test-only unambiguous objcopy aliases let the C driver call C++ functions; production G3 remains independent.
+- G6: warm-up then two C runs under the prescribed faketime increment exit 0 and yield byte-identical **124-line logs** (`final-faketime-c-{1,2}.log.gz`). Both C++ renderer libraries from the native client build load with dlopen and expose GetRefAPI (`final-runtime-summary.log`). C++ executable smoke and client-driven renderer load are blocked by linking. Xvfb is now installed, but cannot remedy missing C++ executables; earlier no-display diagnoses are superseded. No client timedemo/image equivalence is claimed.
+- G7: 115 changed native sources analyzed with clang-tidy, zero tool/compile failures; 366 bugprone-narrowing findings retained. Thirteen non-native/blocked/include sources are skipped. Exact results: `resumed-static-summary.txt`, `resumed-static-warnings.json`, `resumed-static-clang-tidy.log.gz`. No warning-driven engine cleanup was performed.
+- Earlier C ASan/UBSan smoke exited 0 with no diagnostics after narrow known alignment suppressions; leak checking disabled. Evidence remains `final-runtime-sanitize.log.gz`, `tools/port/ubsan.supp`. C++ sanitizer/runtime comparison remains unavailable.
+- G8: final engine diff is 134 files, 1,859 insertions / 1,758 deletions (about 0.6% of engine lines). Reviewer checked T1–T23, T18 declarations, T21 expression preservation and linkage removals; full report: final-g8-review.txt. All gate controls pass (`final-controls.log`). The explicit T15/stat exception is below.
 
-C matrix coverage: GCC release/debug with SDL and without SDL, plus static OpenGL and Vulkan; Clang release SDL and debug non-SDL. Default dlopen configurations build client, dedicated and both renderers. Each has a C++ counterpart. C++ compiler-error counts are GCC 143/104/143/104/95/130 and Clang 105/77 respectively (diagnostics include repeated contexts; Clang stops after its error limit). Failed linking includes const-linkage and semantic blockers beyond these compiler counts.
+- Final static-renderer boundary checks: OpenGL/Vulkan cl_main consumers and tr_init definitions (four pairs) pass G2/G3; G4 advisory diffs are indexed below. Exact variables: static-boundaries-final-results.json.
 
-The G5 test uses one GCC-compiled C driver for both object sets. Test-only objcopy aliases normalize unambiguous global symbol spelling without changing visibility, instructions or data; the production G3 gate is separate. Allocation/log stubs and a linker-wrapped read isolate the tested behavior. This is not a test of the engine memory allocator or full filesystem/runtime. It covers COM_ParseExt, Info, Q_str/va/Com_sprintf, command tokenization, cvars, FS paths, basic MSG roundtrip, 256 usercmd/entity/playerstate delta roundtrips, adaptive Huffman, numeric/loopback NET_StringToAdr, 1,000 CM_BoxTrace sweeps with both collisions and misses, and Q_rsqrt/Q_fabs. Those twelve groups match. Vector math hashes are C `5c00b4de`, C++ `31ee774f`: unchanged C++ math headers choose float overloads instead of C double promotion. The original standalone math probe also records per-function differences.
+## Decisions, scope and harness details
 
-Collision data comes from the installed user-owned `~/.q3a/baseq3/pak0.pk3` member `maps/q3dm17.bsp`, extracted only under /tmp. BSP SHA256: `ee1394417b06d92f705088150d7609d6b9f55f5796a9a7626bfe7982e8fc94e8`. No archive or game data is committed. This uses existing licensed data instead of bundling a BSP.
+- Only GNU Make is supported; plan section 7 supersedes early CMake references. Build mode uses C++20, no exceptions/RTTI or permissive flag; vendors remain C, assembly unchanged, renderer2 skipped only in C++ mode until rename. Single objects and make -k work. CXX derives from the same compiler prefix as CC, respecting explicit CXX. SOURCE_DATE_EPOCH=1789257600 stabilizes date/time macros for raw hashes.
+- T1 preserves exact existing destination types/calling conventions, including function/object pointers. T2 consistently casts to qboolean. T3 preserves the original promoted expression; no offset/operand reorder. T19 moves the SDL console-key enum intact. T20 only changes receiving locals/casts. T23 guards the pre-defined GNU feature macro. T18 adds one huffman table, codec const linkage, and 74 exact shader-array extern declarations without changing data.
+- T21 adds 364 net double argument casts: 347 reviewed native casts, six conditional common.c rint calls, and eleven MSVC/fallback-M_PI sites. Only the original complete argument expression is wrapped; no FP expression is restructured. The first q_math edit briefly had seven redundant nested casts, removed in a subsequent commit without history rewrite. Native review of all 98 abs calls found no non-integer argument, so no T22 changes were needed. Two fabs calls inside #if 0 remain untouched. Dormant platform/SDK branches outside verified configurations are not claimed as compiled.
+- T4 renderer field renames were atomic prerequisites: all existing uses were renamed together to keep C compiling, with identical C hashes, followed by per-file commits. No strings/comments were renamed. Phase 2 removed C linkage from six static callbacks in three files, syscall_t/dllSyscall_t, and static-renderer GetRefAPI. Kept the listed DLL typedefs, dlopen exports, assembly boundaries and GPU exports. T11 __clear_cache is an existing libgcc import, correctly declared void(void*,void*) with C linkage in vm_local.h for ARM/AArch64; target compiler ABI and unchanged C hashes were checked.
+- G2 uses actual engine DWARF and pahole sizes/offsets/alignment/nested members, excluding system/vendor types by declaration source (never by intersecting results). MinGW COFF DWARF relocations are resolved in a temporary PE carrier and converted to ELF; dummy undefined definitions exist only in this never-executed layout carrier. G3 always inspects original objects.
+- G3 uses separate -O2 probe objects with -fno-builtin, -fno-inline-functions, -D__NO_CTYPE=1 and -U_FORTIFY_SOURCE. GCC probes also disable small/called-once inlining and IPA scalar replacement. MinGW -Wa,-L retains actual local C functions beginning L. Exact ARM/AArch64 local instruction/data mapping markers are metadata. All other source-defined and undefined symbols are retained/demangled, preserving static/global kind. GetRefAPI stays raw for dlopen (both compiler commands must agree); absent metadata conservatively enforces raw names. Controls catch static/export changes, missing assembly C linkage and newly selected float libm calls. Plain -fno-inline was rejected because it materializes integer math template helpers.
+- G2/G4/G5 and production builds retain their own real optimization flags. MinGW default -flto gives serialized IR with unstable build IDs even for untouched md4, so object oracles use matching -O2 -ffast-math -fno-lto on base/current. Default-LTO dedicated C links were separately verified. Inspection artifacts disable LTO so actual code/DWARF can be compared. No production flags were changed to make gates pass.
+- All requested cross compilers are installed and used: x86_64-w64-mingw32-g++ (GCC 13), aarch64-linux-gnu-g++, arm-linux-gnueabihf-g++, powerpc64le-linux-gnu-g++ (GCC 15.2). ARM explicitly uses LONG_BIT=32. 32-bit x86 is excluded; its CI legs remain until the deferred rename commit. MSVC verification is deferred with that phase; no MSVC green result is claimed. No system packages were installed.
+- Optional BUILD_FREETYPE remains unverified because FreeType headers/pkg-config are absent. win_shared.c default configuration is compiled; the dormant USE_PROFILES branch has no build-system definition and is not verified. The explicitly requested cross JIT files and normal Windows configurations have actual compiler evidence, replacing prior inspection-only labels.
+- Pak files stay in ~/.q3a/baseq3; no game data is committed/copied into the repository. G5 collision map is extracted only under /tmp from pak0.pk3; q3dm17.bsp SHA256 ee1394417b06d92f705088150d7609d6b9f55f5796a9a7626bfe7982e8fc94e8.
 
-The exact bot-smoke console-diff criterion is nondeterministic even for two runs of the same C binary: Item events differ, beyond timestamps/PIDs. Evidence: `tools/port/evidence/c-runtime-repeat.diff`. Existing seeds use time(NULL), Com_Milliseconds(), and the GAME_INIT time argument (common.c, sv_init.c, sv_game.c). No seed or timing behavior changed. Full C++ runtime/snapshot comparison remains blocked by compilation; client timedemo/image checks also lack a display/Xvfb.
+## Frozen warning inventory
 
-## Reproduction commands
+Only observed classes are suppressed; C flags are unchanged. Counts include repeated build contexts.
 
-Run from this worktree on native Linux x86_64. No system packages were installed. GCC 15.2, Clang 21, pahole, clang-format and clang-tidy are present. MinGW, ARM/PPC cross toolchains/sysroots, 32-bit libc headers, FreeType development headers, and Xvfb/display are unavailable.
+| Class | Original C | Original C++ | Scope |
+|---|---:|---:|---|
+| sign-compare | 544 | 532 | all C++ |
+| unused-parameter | 171 | 173 | all C++ |
+| missing-field-initializers | 100 | 595 | all C++ |
+| implicit-fallthrough | 39 | 39 | all C++ |
+| ignored-qualifiers | 4 | 4 | all C++ |
+| type-limits | 2 | 2 | all C++ |
+| write-strings | tolerated by C | 243 | all C++; review accepted ordinary frozen entry |
+| parentheses | tolerated by C | 48 | all C++; review accepted ordinary frozen entry |
+| cast-function-type | 9 in 11 Windows TUs | observed at same legacy casts | MinGW C++ only |
+| unused-function | 2 per Clang configuration | 2 per configuration | Clang C++ only; unchanged HasFCOM |
+| varargs | no C diagnostic | 1 per Clang configuration | Clang C++ only; unchanged CURLoption va_start |
+
+## Every DEVIATION
+
+- `5a28cd29 DEVIATION: preserve source style despite formatter threshold`: 16 formatter trials could not reproduce mixed original style below 3% (cvar 25.549%, cl_main 17.852%). No engine reformat. Accepted continuation makes the formatter advisory; this historical threshold blocker is resolved.
+- `dc031ab7 DEVIATION: freeze observed legacy string-literal warnings`: froze 243 observed write-strings warnings rather than change signatures/behavior. Accepted continuation folds this into the ordinary frozen list; historical commit retained.
+- `7553c037 DEVIATION: freeze observed parenthesized-declarator warnings`: froze 48 existing macro-declaration warnings instead of rewriting source. Also accepted as ordinary frozen entry; historical commit retained.
+- `8d827a6d DEVIATION: freeze observed Clang compatibility warnings`: added Clang-only unused-function/varargs suppressions after fresh matrix reached unchanged HasFCOM/CURLoption sites. Counts above; retained varargs hazard is logged. No engine fixes, public-signature changes or C flag changes.
+- `74233370 DEVIATION: retain required T15 lexical spaces in diff check`: the literal -w heuristic erases required C++ literal/macro token separators. Per-file minimal stats agree in 132/134 files. common.c is 38/38 versus 16/16 and snd_dma.c 2/2 versus 1/1; all 23 omitted lines are T15, not formatting cleanup. Retain the explicitly authorized lexical changes; do not add fake substantive tokens to game the metric. Exact diff: `g8-stat.diff`. No engine content changed in the decision commit.
+
+## Bugs and compatibility hazards logged, not fixed
+
+Full ledger: `docs/cpp-port-notes.md`. It records upstream CMake defects; preexisting unaligned unzip/vm accesses and sanitizer suppression limits; legacy linux_snd pthread signature mismatch; cl_curl's terminating-NUL slash test; FS_AllowedExtension's NULL relational comparison; and the retained CURLoption va_start warning. The original float-math overload hazard is resolved through T21, and the unfaked bot nondeterminism is controlled by the accepted faketime test. No unrelated source behavior was fixed.
+
+## Exact reproduction commands
+
+Run from this branch/worktree. Results and compiler versions are host-dependent; use the recorded original compiler versions for raw SHA256 comparisons.
 
 ```sh
-port_repo=$PWD
 export SOURCE_DATE_EPOCH=1789257600
+port_repo=$PWD
 make -j20 BUILD_DIR=/tmp/aftershock-cpp-port/oracle
 make -j20 BUILD_CLIENT=0 BUILD_DIR=/tmp/aftershock-cpp-port/oracle
 (cd /tmp/aftershock-cpp-port/oracle && sha256sum -c "$port_repo/tools/port/evidence/phase0-c.sha256")
+make -j20 USE_SDL=0 BUILD_DIR=/tmp/aftershock-cpp-port/oracle-nosdl
+(cd /tmp/aftershock-cpp-port/oracle-nosdl && sha256sum -c "$port_repo/tools/port/evidence/nosdl-c.sha256")
 
 tools/port/selfcheck.sh
-python3 tools/port/completed_gates.py /tmp/aftershock-cpp-port/final-gates
-python3 tools/port/build_matrix.py /tmp/aftershock-cpp-port/matrix
-python3 tools/port/static_gate.py /tmp/aftershock-cpp-port/static
-python3 tools/port/differential_gate.py /tmp/aftershock-cpp-port/differential
+python3 tools/port/completed_gates.py /tmp/aftershock-cpp-port/recheck-tus
+python3 tools/port/cross_gates.py /tmp/aftershock-cpp-port/recheck-native native
+python3 tools/port/cross_gates.py /tmp/aftershock-cpp-port/recheck-cross
+python3 tools/port/build_matrix.py /tmp/aftershock-cpp-port/recheck-matrix
+python3 tools/port/static_gate.py /tmp/aftershock-cpp-port/recheck-static
+python3 tools/port/differential_gate.py /tmp/aftershock-cpp-port/recheck-g5
 tools/port/math_gate.sh
 ```
 
-Expected status: selfcheck/completed gates/static execution return 0 (static warnings remain); build_matrix/differential/math return 1 while the listed blockers remain. Matrix runs allocate fresh build roots; exact commands from the recorded first fresh run are retained in build-matrix-results.json. Completed gates always rebuild their current source pairs. Single-object mode:
+Expected: gates, static execution and differential harness return 0; build matrix returns nonzero in the explicitly blocked source. G4 per-object exit 1 is advisory; full diffs are indexed below. Every compile_pair output records its exact compiler command in a neighboring .command file.
 
 ```sh
-make BUILD_CXX=1 BUILD_DIR=/tmp/aftershock-cpp-port/single /tmp/aftershock-cpp-port/single/release-linux-x86_64/ded/md4.o
-python3 tools/port/compile_pair.py ded/md4.o /tmp/aftershock-cpp-port/md4
-# Likewise ded/q_math.o; q_math layout/symbol pass but codegen/math differ.
-tools/port/layout_gate.sh /tmp/aftershock-cpp-port/md4/md4.c.o /tmp/aftershock-cpp-port/md4/md4.cxx.o
-tools/port/symbol_gate.sh /tmp/aftershock-cpp-port/md4/md4.c.o /tmp/aftershock-cpp-port/md4/md4.cxx.o
-tools/port/codegen_gate.sh /tmp/aftershock-cpp-port/md4/md4.c.s /tmp/aftershock-cpp-port/md4/md4.cxx.s
+python3 tools/port/compile_pair.py ded/q_math.o /tmp/port-qmath
+# Substitute md4.o or any object/variables from the JSON result inventories.
+tools/port/layout_gate.sh /tmp/port-qmath/q_math.c.o /tmp/port-qmath/q_math.cxx.o
+tools/port/symbol_gate.sh /tmp/port-qmath/q_math.c.sym.o /tmp/port-qmath/q_math.cxx.sym.o
+tools/port/codegen_gate.sh /tmp/port-qmath/q_math.c.s /tmp/port-qmath/q_math.cxx.s
+
+command -v x86_64-w64-mingw32-g++ aarch64-linux-gnu-g++ arm-linux-gnueabihf-g++ powerpc64le-linux-gnu-g++
+make -j20 BUILD_CLIENT=0 PLATFORM=mingw64 ARCH=x86_64 BUILD_DIR=/tmp/port-mingw-c
+make -k -j20 BUILD_CXX=1 PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 USE_CURL=0 BUILD_DIR=/tmp/port-mingw-cxx
+make -k -j20 BUILD_CXX=1 BUILD_CLIENT=0 ARCH=aarch64 CC=aarch64-linux-gnu-gcc BUILD_DIR=/tmp/port-aarch64-cxx
+make -k -j20 BUILD_CXX=1 BUILD_CLIENT=0 ARCH=arm LONG_BIT=32 CC=arm-linux-gnueabihf-gcc BUILD_DIR=/tmp/port-arm-cxx
+make -k -j20 BUILD_CXX=1 BUILD_CLIENT=0 ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc BUILD_DIR=/tmp/port-ppc-cxx
+python3 tools/port/compile_pair.py ded/vm_aarch64.o /tmp/port-aarch64-gates ARCH=aarch64 CC=aarch64-linux-gnu-gcc
+python3 tools/port/compile_pair.py client/win_main.o /tmp/port-win-gates PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 'OPTIMIZE=-O2 -ffast-math -fno-lto'
 ```
 
-Renderer loading (overall make exits 2 from unrelated blockers, but the OpenGL shared object builds):
+For the full cross C oracle commands and corresponding manifest filenames use `final-oracle-results.json`; unchanged-base commands and working directories are in `cross-oracles.json`. Do not compare serialized MinGW LTO IR hashes. No cross executable runtime emulation is claimed.
 
 ```sh
-SOURCE_DATE_EPOCH=1789257600 make -k -j20 BUILD_CXX=1 BUILD_DIR=/tmp/aftershock-cpp-port/strict
-python3 -c 'import ctypes; lib=ctypes.CDLL("/tmp/aftershock-cpp-port/strict/release-linux-x86_64/quake3e_opengl_x86_64.so"); print(bool(lib.GetRefAPI))'
+port_binary=/tmp/aftershock-cpp-port/oracle/release-linux-x86_64/quake3e.ded.x64
+for port_run in warm 1 2; do
+  timeout 90 faketime -f "@2026-01-01 00:00:00 i0.01" "$port_binary"     +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17     +addbot sarge 3 +addbot major 3 +wait 300 +quit > "/tmp/port-c-$port_run.log" 2>&1
+done
+diff -u /tmp/port-c-1.log /tmp/port-c-2.log
+# After a valid C++ executable exists, repeat with it and diff against C run 2.
+# timeout must stay outside faketime; no additional log normalization is used.
 ```
 
-`True` confirms RTLD_NOW loading and GetRefAPI resolution; this is not graphical initialization or an integrated C++ client run.
-
-Runtime and sanitizer reproduction:
-
-```sh
-timeout 60 /tmp/aftershock-cpp-port/oracle/release-linux-x86_64/quake3e.ded.x64 +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17 +addbot sarge 3 +addbot major 3 +wait 300 +quit
-SOURCE_DATE_EPOCH=1789257600 make -j20 BUILD_CLIENT=0 BUILD_DIR=/tmp/aftershock-cpp-port/sanitize CFLAGS='-fsanitize=address,undefined -fno-omit-frame-pointer' LDFLAGS='-fsanitize=address,undefined -lm -ldl'
-ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=suppressions=$PWD/tools/port/ubsan.supp timeout 60 /tmp/aftershock-cpp-port/sanitize/release-linux-x86_64/quake3e.ded.x64 +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17 +addbot sarge 3 +addbot major 3 +wait 300 +quit
-```
-
-Both final runtime commands returned 0; the suppressed sanitizer run emitted no diagnostics. Without suppressions, the C baseline reported the intentional unaligned unzip/VM loads recorded in the bug notes.
-
-## Decisions and harness details
-
-- Revised G3 uses separately emitted *.sym.o objects at -O2 -fno-builtin -D__NO_CTYPE=1 -U_FORTIFY_SOURCE, identically for C/C++. Reviewer measured these controls against all 33 failures: nine libc/header implementation differences disappear; 24 math differences remain. Each control is needed on this host. Float sin/sinf negative control still fails, pinned-double and integer-sin positive controls pass. Production C hashes, G2 objects, G4 assembly and G5 remain unchanged. No undefined symbols are ignored. Cross-target applicability will be tested with target gates.
-
-- Continuation G3 now compares all undefined references after demangling; raw name requirements follow clarified T5. Reran all 143 previously completed pairs: 33 failures, with full diffs in tools/port/evidence/expanded-symbols-initial.json. These include expected float math references and independently observed libc header/optimizer substitutions; neither is silently ignored. A G3-only probe configuration is being evaluated to compare source linkage without optimizer-created libc call differences; G4/G5 will keep the production optimization settings.
-
-- Read AGENTS.md and the full plan before port work. GNU Make only: plan section 7 supersedes early CMake references, and section 9 defers vcxproj lists to rename. Existing t3code worktree/branch used; per-file commits and module pushes, no main push, force push, history rewrite, source rename, vendor or renderer2 port.
-- All 257 engine .c/.h outside the excluded vendor/renderer2 directories are in the table; final filesystem inventory found zero missing/stale rows. There are no bg implementation files in this checkout, only the four shared cgame/game/ui headers listed.
-- Make BUILD_CXX=1 uses C++20, no exceptions/RTTI and no permissive mode, filters C-only flags, keeps vendored C and assembly unchanged, and skips renderer2 even for direct objects. Explicit object proxies support make -k and current source dependencies. The initial proxy freshness bug was corrected and independently revalidated with a forced C rebuild: all 295 original hashes matched; final full rebuild confirms them again. SOURCE_DATE_EPOCH preserves __DATE__/__TIME__ checksums without source edits.
-- Frozen flags: -Wall -Wextra -Werror, with only observed -Wno-sign-compare, -Wno-unused-parameter, -Wno-missing-field-initializers, -Wno-implicit-fallthrough, -Wno-ignored-qualifiers, -Wno-type-limits, -Wno-write-strings and -Wno-parentheses. Original engine diagnostic counts (C/C++, repeated object contexts included): sign-compare 544/532, unused-parameter 171/173, missing-field-initializers 100/595, implicit-fallthrough 39/39, ignored-qualifiers 4/4, type-limits 2/2. C++ write-strings 243 and parentheses 48 are the two explicit later frozen-list deviations. No -fpermissive enabled.
-- G2 requires real engine DWARF records, compares sizes/members/offsets/alignment with pahole -a -A -I -M --show_private_classes, and preserves nested/union layouts. Compiler/system/vendor records are excluded by declaration provenance, not by intersecting record sets. G3 preserves symbol-kind multisets and raw enumerated ABI names, including undefined assembly references and optimized JIT clones; local static/compiler numbering is normalized. The GNU private CPUID_EX helper is distinct from the MSVC external assembly entry. All normalization has positive/negative controls.
-- T2 consistently casts the original Boolean expression to qboolean. T3 compound enum operations cast the original promoted result without changing offsets/operands or evaluating expressions twice. T8 is limited to literal constness; library-overload const propagation remains blocked. No floating-point expression was restructured.
-- Shared renderer keyword changes require atomic T4 prerequisites to keep C valid: OpenGL 243 code-token occurrences across its header and 14 sources; Vulkan 242 across 13 files. Comments/strings unchanged, all consumers updated, 295 original C hashes reconfirmed after each prerequisite. Per-file work then resumed. No speculative cleanup.
-- Windows inspection retained 14 T1 + 8 T2 casts across nine files, plus T5 GPU exports; G8 removed one redundant same-type cast. All Windows entries remain blocked/unverified without MinGW/SDK. Optional FreeType body is unchanged/unverified without its dev headers; native default tr_font is verified. 32-bit qasm preprocessing fails through endian.h because bits/wordsize.h is unavailable.
-- Phase 2 Q_EXTERN_C is empty in C, extern "C" in C++. Function typedefs/prototypes and GetRefAPI definitions are annotated; guarded linkage blocks preserve definitions and static storage for sound globals and native/JIT callbacks. Enumerated Windows assembly prototypes are retained but target-unverified. Never use Q_EXTERN_C static, which is invalid C++; never turn a global definition into a mere extern declaration.
-- G8 reviewed the final 113-file engine diff (1,310 insertions / 1,274 deletions, about 0.5% of engine C/header lines). Every retained hunk maps to T1-T17; no behavior or FP restructuring found. The reviewer identified a gate clone-name blind spot and analysis-reporting ambiguity; both were fixed and verified. All 143 native symbol pairs were rerun after the strengthened gate, with zero failures.
-
-## Deviations
-
-- `DEVIATION: freeze observed parenthesized-declarator warnings`: add -Wno-parentheses, 48 engine diagnostics observed in the original C++ probe (24 per client/ded be_ai_move.c). C accepts the unchanged macro declaration `bot_moveresult_t (x) = ...`; removing parentheses is outside T1-T17 and unnecessary to preserve behavior. G8 reviewer recommended the phase-0 baseline-warning policy already used for write-strings. C flags, source macro, ABI and expressions remain unchanged; hard conversion errors remain enabled. be_ai_move.c subsequently passed its per-file gates.
-
-- `DEVIATION: freeze observed legacy string-literal warnings`: add `-Wno-write-strings` (243 engine diagnostics in the original C++ probe) to the frozen list. Plan section 11 explicitly identifies this class as historical baseline noise tolerated by the C build. The original list mistakenly excluded it, which would force noncatalog signature changes in VM_Indent. Reviewer confirmed that freezing this observed class fits phase 0; the separate deviation documents changing an already-frozen list. No engine behavior, C flags, or -fpermissive policy changes. Other noncatalog hard errors remain blocked.
-
-- `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
-
-
-## Codegen differences
-
-- `code/renderervk/tr_init.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_init.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_init.o /tmp/aftershock-cpp-port/renderervk-tr_init ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_init.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_init.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_init.o /tmp/aftershock-cpp-port/renderer-tr_init ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_ui.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_ui.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_ui.o /tmp/aftershock-cpp-port/cl_ui ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_cgame.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_cgame.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_cgame.o /tmp/aftershock-cpp-port/cl_cgame ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_game.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_game.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_game.o /tmp/aftershock-cpp-port/sv_game ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/net_ip.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-net_ip.codegen.diff.gz`.
-
-- `code/qcommon/net_ip.c`: G4 advisory FAIL; full diff `tools/port/evidence/net_ip.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/net_ip.o /tmp/aftershock-cpp-port/net_ip ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_surface.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_surface.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_surface.o /tmp/aftershock-cpp-port/renderervk-tr_surface ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_main.o /tmp/aftershock-cpp-port/renderervk-tr_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_init.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_init.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_init.o /tmp/aftershock-cpp-port/renderervk-tr_init ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_surface.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_surface.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_surface.o /tmp/aftershock-cpp-port/renderer-tr_surface ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_main.o /tmp/aftershock-cpp-port/renderer-tr_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_init.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_init.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_init.o /tmp/aftershock-cpp-port/renderer-tr_init ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_reach.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_reach.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_reach.o /tmp/aftershock-cpp-port/be_aas_reach ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/win32/win_minimize.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-win_minimize.codegen.diff.gz`.
-
-- `code/win32/win_wndproc.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-win_wndproc.codegen.diff.gz`.
-
-- `code/win32/win_syscon.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-win_syscon.codegen.diff.gz`.
-
-- `code/win32/win_shared.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-win_shared.codegen.diff.gz`.
-
-- `code/win32/win_glimp.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-win_glimp.codegen.diff.gz`.
-
-- `code/win32/win_main.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-win_main.codegen.diff.gz`.
-
-- `code/qcommon/vm_armv7l.c` (arm): G4 advisory; full diff `tools/port/evidence/cross-arm-vm_armv7l.codegen.diff.gz`.
-
-- `code/qcommon/vm_aarch64.c` (aarch64): G4 advisory; full diff `tools/port/evidence/cross-aarch64-vm_aarch64.codegen.diff.gz`.
-
-- `code/qcommon/vm_powerpc.c` (ppc64le): G4 advisory; full diff `tools/port/evidence/cross-ppc64le-vm_powerpc.codegen.diff.gz`.
-
-- `code/renderervk/vk.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-vk.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/vk.o /tmp/aftershock-cpp-port/renderervk-vk ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/sdl/sdl_input.c`: G4 advisory FAIL; full diff `tools/port/evidence/sdl_input.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/sdl_input.o /tmp/aftershock-cpp-port/sdl_input ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_main.o /tmp/aftershock-cpp-port/cl_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_curl.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_curl.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_curl.o /tmp/aftershock-cpp-port/cl_curl ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_curl.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_curl.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_curl.o /tmp/aftershock-cpp-port/cl_curl ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/unix/unix_shared.c`: G4 advisory FAIL; full diff `tools/port/evidence/unix_shared.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/unix_shared.o /tmp/aftershock-cpp-port/unix_shared ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/vm_x86.c`: G4 advisory FAIL; full diff `tools/port/evidence/vm_x86.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/qvm/vm_x86.o /tmp/aftershock-cpp-port/vm_x86 ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/common.c`: G4 advisory FAIL; full diff `tools/port/evidence/common.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/common.o /tmp/aftershock-cpp-port/common ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/vk_flares.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-vk_flares.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/vk_flares.o /tmp/aftershock-cpp-port/renderervk-vk_flares ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_surface.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_surface.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_surface.o /tmp/aftershock-cpp-port/renderervk-tr_surface ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_sky.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_sky.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_sky.o /tmp/aftershock-cpp-port/renderervk-tr_sky ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_shader.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_shader.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_shader.o /tmp/aftershock-cpp-port/renderervk-tr_shader ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_shade_calc.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_shade_calc.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_shade_calc.o /tmp/aftershock-cpp-port/renderervk-tr_shade_calc ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_mesh.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_mesh.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_mesh.o /tmp/aftershock-cpp-port/renderervk-tr_mesh ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_main.o /tmp/aftershock-cpp-port/renderervk-tr_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_light.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_light.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_light.o /tmp/aftershock-cpp-port/renderervk-tr_light ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderervk/tr_bsp.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_bsp.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_bsp.o /tmp/aftershock-cpp-port/renderervk-tr_bsp ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_surface.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_surface.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_surface.o /tmp/aftershock-cpp-port/renderer-tr_surface ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_sky.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_sky.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_sky.o /tmp/aftershock-cpp-port/renderer-tr_sky ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_sky.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_sky.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_sky.o /tmp/aftershock-cpp-port/renderer-tr_sky ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_shader.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_shader.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_shader.o /tmp/aftershock-cpp-port/renderer-tr_shader ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_shade_calc.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_shade_calc.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_shade_calc.o /tmp/aftershock-cpp-port/renderer-tr_shade_calc ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_mesh.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_mesh.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_mesh.o /tmp/aftershock-cpp-port/renderer-tr_mesh ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_main.o /tmp/aftershock-cpp-port/renderer-tr_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_light.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_light.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_light.o /tmp/aftershock-cpp-port/renderer-tr_light ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_flares.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_flares.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_flares.o /tmp/aftershock-cpp-port/renderer-tr_flares ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_bsp.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_bsp.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_bsp.o /tmp/aftershock-cpp-port/renderer-tr_bsp ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderer/tr_arb.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_arb.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_arb.o /tmp/aftershock-cpp-port/renderer-tr_arb ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/renderercommon/tr_noise.c`: G4 advisory FAIL; full diff `tools/port/evidence/tr_noise.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_noise.o /tmp/aftershock-cpp-port/tr_noise ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_ui.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_ui.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_ui.o /tmp/aftershock-cpp-port/cl_ui ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_input.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_input.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_input.o /tmp/aftershock-cpp-port/cl_input ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_cgame.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_cgame.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_cgame.o /tmp/aftershock-cpp-port/cl_cgame ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/client/cl_avi.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_avi.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_avi.o /tmp/aftershock-cpp-port/cl_avi ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/l_precomp.c`: G4 advisory FAIL; full diff `tools/port/evidence/l_precomp.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/l_precomp.o /tmp/aftershock-cpp-port/l_precomp ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_ai_move.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_ai_move.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_ai_move.o /tmp/aftershock-cpp-port/be_ai_move ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/botlib/be_aas_reach.c`: G4 advisory FAIL; full diff `tools/port/evidence/be_aas_reach.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/be_aas_reach.o /tmp/aftershock-cpp-port/be_aas_reach ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/server/sv_game.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_game.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_game.o /tmp/aftershock-cpp-port/sv_game ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/cvar.c`: G4 advisory FAIL; full diff `tools/port/evidence/cvar.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cvar.o /tmp/aftershock-cpp-port/cvar ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/cm_trace.c`: G4 advisory FAIL; full diff `tools/port/evidence/cm_trace.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cm_trace.o /tmp/aftershock-cpp-port/cm_trace ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-- `code/qcommon/cm_patch.c`: G4 advisory FAIL; full diff `tools/port/evidence/cm_patch.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cm_patch.o /tmp/aftershock-cpp-port/cm_patch ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
-
-Final current-header sweep: 143 compiled native TUs pass G2/G3; 33 G4 PASS, 110 advisory differences. The standalone bin2hex utility is tested separately. G4 differences require human review and do not establish C++ behavioral equivalence. In addition, blocked q_math.c has its complete 730-line phase-0 diff in `tools/port/evidence/q_math.codegen.diff`; G5 proves a behavioral difference there.
-
-Reproduce all current completed sources with `python3 tools/port/completed_gates.py /tmp/aftershock-cpp-port/final-gates` (expected exit 0 for compilation/G2/G3; G4 remains advisory). It always rebuilds pairs from current sources using the actual recorded Make contexts. Per-file object/variant and statuses: `tools/port/evidence/completed-gates.json`. For one file: `python3 tools/port/compile_pair.py OBJECT OUTPUT [MAKE_VARIABLE=value ...]`, then `tools/port/{layout,symbol}_gate.sh OUTPUT/STEM.c.o OUTPUT/STEM.cxx.o` and `tools/port/codegen_gate.sh OUTPUT/STEM.c.s OUTPUT/STEM.cxx.s`.
-
-Every nonempty completed-source G4 diff is listed below. Read each with `gzip -dc PATH`.
-
-| Source | Complete advisory diff |
-|---|---|
-| `code/botlib/be_aas_bspq3.c` | `tools/port/evidence/be_aas_bspq3.codegen.diff.gz` |
-| `code/botlib/be_aas_cluster.c` | `tools/port/evidence/be_aas_cluster.codegen.diff.gz` |
-| `code/botlib/be_aas_debug.c` | `tools/port/evidence/be_aas_debug.codegen.diff.gz` |
-| `code/botlib/be_aas_file.c` | `tools/port/evidence/be_aas_file.codegen.diff.gz` |
-| `code/botlib/be_aas_move.c` | `tools/port/evidence/be_aas_move.codegen.diff.gz` |
-| `code/botlib/be_aas_reach.c` | `tools/port/evidence/be_aas_reach.codegen.diff.gz` |
-| `code/botlib/be_aas_route.c` | `tools/port/evidence/be_aas_route.codegen.diff.gz` |
-| `code/botlib/be_aas_routealt.c` | `tools/port/evidence/be_aas_routealt.codegen.diff.gz` |
-| `code/botlib/be_aas_sample.c` | `tools/port/evidence/be_aas_sample.codegen.diff.gz` |
-| `code/botlib/be_ai_char.c` | `tools/port/evidence/be_ai_char.codegen.diff.gz` |
-| `code/botlib/be_ai_chat.c` | `tools/port/evidence/be_ai_chat.codegen.diff.gz` |
-| `code/botlib/be_ai_move.c` | `tools/port/evidence/be_ai_move.codegen.diff.gz` |
-| `code/botlib/l_memory.c` | `tools/port/evidence/l_memory.codegen.diff.gz` |
-| `code/botlib/l_precomp.c` | `tools/port/evidence/l_precomp.codegen.diff.gz` |
-| `code/botlib/l_script.c` | `tools/port/evidence/l_script.codegen.diff.gz` |
-| `code/botlib/l_struct.c` | `tools/port/evidence/l_struct.codegen.diff.gz` |
-| `code/client/cl_avi.c` | `tools/port/evidence/cl_avi.codegen.diff.gz` |
-| `code/client/cl_cgame.c` | `tools/port/evidence/cl_cgame.codegen.diff.gz` |
-| `code/client/cl_cin.c` | `tools/port/evidence/cl_cin.codegen.diff.gz` |
-| `code/client/cl_console.c` | `tools/port/evidence/cl_console.codegen.diff.gz` |
-| `code/client/cl_input.c` | `tools/port/evidence/cl_input.codegen.diff.gz` |
-| `code/client/cl_jpeg.c` | `tools/port/evidence/cl_jpeg.codegen.diff.gz` |
-| `code/client/cl_keys.c` | `tools/port/evidence/cl_keys.codegen.diff.gz` |
-| `code/client/cl_net_chan.c` | `tools/port/evidence/cl_net_chan.codegen.diff.gz` |
-| `code/client/cl_parse.c` | `tools/port/evidence/cl_parse.codegen.diff.gz` |
-| `code/client/cl_scrn.c` | `tools/port/evidence/cl_scrn.codegen.diff.gz` |
-| `code/client/cl_ui.c` | `tools/port/evidence/cl_ui.codegen.diff.gz` |
-| `code/client/snd_dma.c` | `tools/port/evidence/snd_dma.codegen.diff.gz` |
-| `code/client/snd_mem.c` | `tools/port/evidence/snd_mem.codegen.diff.gz` |
-| `code/client/snd_mix.c` | `tools/port/evidence/snd_mix.codegen.diff.gz` |
-| `code/qcommon/cm_load.c` | `tools/port/evidence/cm_load.codegen.diff.gz` |
-| `code/qcommon/cm_patch.c` | `tools/port/evidence/cm_patch.codegen.diff.gz` |
-| `code/qcommon/cm_trace.c` | `tools/port/evidence/cm_trace.codegen.diff.gz` |
-| `code/qcommon/cmd.c` | `tools/port/evidence/cmd.codegen.diff.gz` |
-| `code/qcommon/common.c` | `tools/port/evidence/common.codegen.diff.gz` |
-| `code/qcommon/cvar.c` | `tools/port/evidence/cvar.codegen.diff.gz` |
-| `code/qcommon/files.c` | `tools/port/evidence/files.codegen.diff.gz` |
-| `code/qcommon/history.c` | `tools/port/evidence/history.codegen.diff.gz` |
-| `code/qcommon/huffman.c` | `tools/port/evidence/huffman.codegen.diff.gz` |
-| `code/qcommon/keys.c` | `tools/port/evidence/keys.codegen.diff.gz` |
-| `code/qcommon/md5.c` | `tools/port/evidence/md5.codegen.diff.gz` |
-| `code/qcommon/msg.c` | `tools/port/evidence/msg.codegen.diff.gz` |
-| `code/qcommon/net_chan.c` | `tools/port/evidence/net_chan.codegen.diff.gz` |
-| `code/qcommon/net_ip.c` | `tools/port/evidence/net_ip.codegen.diff.gz` |
-| `code/qcommon/puff.c` | `tools/port/evidence/puff.codegen.diff.gz` |
-| `code/qcommon/q_shared.c` | `tools/port/evidence/q_shared.codegen.diff.gz` |
-| `code/qcommon/unzip.c` | `tools/port/evidence/unzip.codegen.diff.gz` |
-| `code/qcommon/vm.c` | `tools/port/evidence/vm.codegen.diff.gz` |
-| `code/qcommon/vm_interpreted.c` | `tools/port/evidence/vm_interpreted.codegen.diff.gz` |
-| `code/renderer/tr_animation.c` | `tools/port/evidence/renderer-tr_animation.codegen.diff.gz` |
-| `code/renderer/tr_arb.c` | `tools/port/evidence/renderer-tr_arb.codegen.diff.gz` |
-| `code/renderer/tr_backend.c` | `tools/port/evidence/renderer-tr_backend.codegen.diff.gz` |
-| `code/renderer/tr_bsp.c` | `tools/port/evidence/renderer-tr_bsp.codegen.diff.gz` |
-| `code/renderer/tr_cmds.c` | `tools/port/evidence/renderer-tr_cmds.codegen.diff.gz` |
-| `code/renderer/tr_curve.c` | `tools/port/evidence/renderer-tr_curve.codegen.diff.gz` |
-| `code/renderer/tr_flares.c` | `tools/port/evidence/renderer-tr_flares.codegen.diff.gz` |
-| `code/renderer/tr_image.c` | `tools/port/evidence/renderer-tr_image.codegen.diff.gz` |
-| `code/renderer/tr_init.c` | `tools/port/evidence/renderer-tr_init.codegen.diff.gz` |
-| `code/renderer/tr_light.c` | `tools/port/evidence/renderer-tr_light.codegen.diff.gz` |
-| `code/renderer/tr_main.c` | `tools/port/evidence/renderer-tr_main.codegen.diff.gz` |
-| `code/renderer/tr_mesh.c` | `tools/port/evidence/renderer-tr_mesh.codegen.diff.gz` |
-| `code/renderer/tr_model.c` | `tools/port/evidence/renderer-tr_model.codegen.diff.gz` |
-| `code/renderer/tr_model_iqm.c` | `tools/port/evidence/renderer-tr_model_iqm.codegen.diff.gz` |
-| `code/renderer/tr_scene.c` | `tools/port/evidence/renderer-tr_scene.codegen.diff.gz` |
-| `code/renderer/tr_shade.c` | `tools/port/evidence/renderer-tr_shade.codegen.diff.gz` |
-| `code/renderer/tr_shade_calc.c` | `tools/port/evidence/renderer-tr_shade_calc.codegen.diff.gz` |
-| `code/renderer/tr_shader.c` | `tools/port/evidence/renderer-tr_shader.codegen.diff.gz` |
-| `code/renderer/tr_shadows.c` | `tools/port/evidence/renderer-tr_shadows.codegen.diff.gz` |
-| `code/renderer/tr_sky.c` | `tools/port/evidence/renderer-tr_sky.codegen.diff.gz` |
-| `code/renderer/tr_surface.c` | `tools/port/evidence/renderer-tr_surface.codegen.diff.gz` |
-| `code/renderer/tr_vbo.c` | `tools/port/evidence/renderer-tr_vbo.codegen.diff.gz` |
-| `code/renderer/tr_world.c` | `tools/port/evidence/renderer-tr_world.codegen.diff.gz` |
-| `code/renderercommon/tr_image_tga.c` | `tools/port/evidence/tr_image_tga.codegen.diff.gz` |
-| `code/renderercommon/tr_noise.c` | `tools/port/evidence/tr_noise.codegen.diff.gz` |
-| `code/renderervk/tr_animation.c` | `tools/port/evidence/renderervk-tr_animation.codegen.diff.gz` |
-| `code/renderervk/tr_backend.c` | `tools/port/evidence/renderervk-tr_backend.codegen.diff.gz` |
-| `code/renderervk/tr_bsp.c` | `tools/port/evidence/renderervk-tr_bsp.codegen.diff.gz` |
-| `code/renderervk/tr_cmds.c` | `tools/port/evidence/renderervk-tr_cmds.codegen.diff.gz` |
-| `code/renderervk/tr_curve.c` | `tools/port/evidence/renderervk-tr_curve.codegen.diff.gz` |
-| `code/renderervk/tr_image.c` | `tools/port/evidence/renderervk-tr_image.codegen.diff.gz` |
-| `code/renderervk/tr_init.c` | `tools/port/evidence/renderervk-tr_init.codegen.diff.gz` |
-| `code/renderervk/tr_light.c` | `tools/port/evidence/renderervk-tr_light.codegen.diff.gz` |
-| `code/renderervk/tr_main.c` | `tools/port/evidence/renderervk-tr_main.codegen.diff.gz` |
-| `code/renderervk/tr_mesh.c` | `tools/port/evidence/renderervk-tr_mesh.codegen.diff.gz` |
-| `code/renderervk/tr_model.c` | `tools/port/evidence/renderervk-tr_model.codegen.diff.gz` |
-| `code/renderervk/tr_model_iqm.c` | `tools/port/evidence/renderervk-tr_model_iqm.codegen.diff.gz` |
-| `code/renderervk/tr_scene.c` | `tools/port/evidence/renderervk-tr_scene.codegen.diff.gz` |
-| `code/renderervk/tr_shade.c` | `tools/port/evidence/renderervk-tr_shade.codegen.diff.gz` |
-| `code/renderervk/tr_shade_calc.c` | `tools/port/evidence/renderervk-tr_shade_calc.codegen.diff.gz` |
-| `code/renderervk/tr_shader.c` | `tools/port/evidence/renderervk-tr_shader.codegen.diff.gz` |
-| `code/renderervk/tr_shadows.c` | `tools/port/evidence/renderervk-tr_shadows.codegen.diff.gz` |
-| `code/renderervk/tr_sky.c` | `tools/port/evidence/renderervk-tr_sky.codegen.diff.gz` |
-| `code/renderervk/tr_surface.c` | `tools/port/evidence/renderervk-tr_surface.codegen.diff.gz` |
-| `code/renderervk/tr_world.c` | `tools/port/evidence/renderervk-tr_world.codegen.diff.gz` |
-| `code/renderervk/vk_flares.c` | `tools/port/evidence/renderervk-vk_flares.codegen.diff.gz` |
-| `code/renderervk/vk_vbo.c` | `tools/port/evidence/renderervk-vk_vbo.codegen.diff.gz` |
-| `code/server/sv_bot.c` | `tools/port/evidence/sv_bot.codegen.diff.gz` |
-| `code/server/sv_ccmds.c` | `tools/port/evidence/sv_ccmds.codegen.diff.gz` |
-| `code/server/sv_filter.c` | `tools/port/evidence/sv_filter.codegen.diff.gz` |
-| `code/server/sv_game.c` | `tools/port/evidence/sv_game.codegen.diff.gz` |
-| `code/server/sv_init.c` | `tools/port/evidence/sv_init.codegen.diff.gz` |
-| `code/server/sv_main.c` | `tools/port/evidence/sv_main.codegen.diff.gz` |
-| `code/server/sv_net_chan.c` | `tools/port/evidence/sv_net_chan.codegen.diff.gz` |
-| `code/server/sv_snapshot.c` | `tools/port/evidence/sv_snapshot.codegen.diff.gz` |
-| `code/server/sv_world.c` | `tools/port/evidence/sv_world.codegen.diff.gz` |
-| `code/unix/linux_glimp.c` | `tools/port/evidence/linux_glimp.codegen.diff.gz` |
-| `code/unix/linux_joystick.c` | `tools/port/evidence/linux_joystick.codegen.diff.gz` |
-| `code/unix/linux_qgl.c` | `tools/port/evidence/linux_qgl.codegen.diff.gz` |
-| `code/unix/linux_snd.c` | `tools/port/evidence/linux_snd.codegen.diff.gz` |
-| `code/unix/unix_main.c` | `tools/port/evidence/unix_main.codegen.diff.gz` |
-
-## Blocked files
-
-These are the exact unresolved file statuses, including missing verification. Codegen differences alone are advisory and are not used to mark otherwise completed files blocked. The additional non-file blocker is the formatter threshold documented above.
-
-- `code/asm/qasm.h`: Unchanged assembly preprocessing header. Explicit gcc -m32 assembler check fails because 32-bit libc bits/wordsize.h is unavailable through q_platform.h/endian.h; no target gates or package installation.
-- `code/client/cl_curl.c`: At :967 strrchr(const char*localName) assigned to char*s. Local pointer is read-only and adding const would preserve behavior, but T8 is explicitly string-literal constness; this library-overload const propagation is outside literal catalog scope (G8 reviewed). 35 T1 sites also pending; source unchanged.
-- `code/client/cl_main.c`: At :864 strrchr(const char*arg) assigned to read-only local char*ext_test; adding const is behavior-preserving but outside T8 literal string-constant scope (G8 reviewed). Remaining T1/T2/T3 diagnostics retained; source unchanged.
-- `code/client/snd_codec_ogg.c`: G3 fails: const S_OGG_Callbacks changes external D to internal d in C++; no prior extern declaration exists. Restoring const-object external linkage is outside T1-T17. Reverted three T1 casts; source unchanged.
-- `code/qcommon/huffman_static.c`: Compiles unchanged, but G3: HuffmanDecoderTable changes R (external) to r (static) under C++. Restoring extern const linkage is outside T1-T17; no source edit applied.
-- `code/qcommon/q_math.c`: G2/G3 PASS, but G5 fixed-input hashes differ in RotatePointAroundVector and vectoangles; AngleVectors chain differs too. C++ float overloads change results; double-argument casts are outside T1-T17. No source changes.
-- `code/qcommon/vm_aarch64.c`: Native syntax probe: :1583/:2290 need T1; :2348 __clear_cache undeclared. No aarch64 cross compiler/sysroot verified; cannot prove C object equivalence or target gates. Unmodified, target unverified.
-- `code/qcommon/vm_armv7l.c`: Native syntax probe: :1223/:1931 need T1; :1978 __clear_cache undeclared; eight host-width overflow diagnostics from 32-bit instruction constants. No ARM cross compiler/sysroot verified; unmodified, target unverified.
-- `code/qcommon/vm_optimize.h`: Unchanged; all consuming JIT translation units are blocked/unverified, so complete-object gates cannot verify this header.
-- `code/qcommon/vm_powerpc.c`: Native syntax probe: :1727/:2579 need T1; :2558/:2561/:2564/:2567 pass function pointers to const void*, outside T1. No PPC64 cross compiler/sysroot verified; unmodified, target unverified.
-- `code/qcommon/vm_x86.c`: At :3498 mov_rx_ptr(R_SYSCALL, vm->systemCall) converts syscall_t function pointer to const void*. T1 covers the reverse direction only; no catalog remedy. A T3 cast is also needed at :4323. No source edit retained.
-- `code/renderercommon/vulkan/vulkan_win32.h`: Unverified: unchanged generated Khronos Windows header; no MinGW cross-compiler/Windows SDK available.
-- `code/renderervk/shaders/spirv/shader_data.c`: Unchanged generated initializer included by vk.c: 74 const arrays lose external linkage in C++; G3 FAIL, no existing extern declarations. See vk.c blocker.
-- `code/renderervk/vk.c`: Catalog casts compile with unchanged C hash/G2 PASS, but G3 reports 74 generated const shader arrays changing external R to internal r. No existing extern declarations to move; adding new declarations is outside catalog. Attempt reverted. Evidence tools/port/evidence/vulkan-shader-linkage.diff.
-- `code/sdl/sdl_glimp.c`: At :763 returns PFN_vkVoidFunction as void*: function-pointer-to-object-pointer conversion is outside T1. Eight additional T1/T3 diagnostics remain; source unchanged.
-- `code/sdl/sdl_icon.h`: Unchanged image initializer; sole consuming translation unit sdl_glimp.c blocked, so complete-object C++ gates unavailable.
-- `code/sdl/sdl_input.c`: Nested anonymous enum inside consoleKey_s (:119) scopes QUAKE_KEY/CHARACTER in C++; uses at :158/:163/:185/:190 no longer resolve. Qualifying names or restructuring the enum is outside T1-T17. Integer-to-keyNum_t T3 diagnostics also remain; source unchanged.
-- `code/server/sv_client.c`: At :402 C++ strstr(const char*, ...) returns const char*, assigned to writable str then sprintf writes through it. Removing const from cmd or casting away const is outside T8 (which permits adding const for literal pointers); source retained unchanged. Seven other T1/T2/T3 diagnostics remain.
-- `code/server/sv_rankings.c`: At :25 missing rankings/1.0/gr/grapi.h SDK (legacy backslash include); SDK absent and source has no Makefile object rule. Cannot compile either C oracle or C++ or run gates; left unchanged.
-- `code/server/tlds.h`: Unchanged initializer fragment; sole consumer sv_client.c is blocked, so complete-object C++/G2/G3 verification is unavailable.
-- `code/unix/linux_qvk.c`: At :76 returns PFN_vkVoidFunction (function pointer) as void*. Explicit function-pointer-to-object-pointer conversion is outside T1; source unchanged.
-- `code/unix/unix_shared.c`: At :22 _GNU_SOURCE is redefined: source defines it empty, g++ predefines it as 1. Adding an ifndef guard or changing macro value is outside T1-T17; diagnostic has no named -W class to freeze. T1 char** allocation at :236 also pending; source unchanged.
-- `code/win32/glw_win.h`: Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable.
-- `code/win32/resource.h`: Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable.
-- `code/win32/win_gamma.c`: Unverified (no MinGW/Windows SDK). T1: 1 HANDLE/void-pointer to HMODULE argument cast by inspection; all gamma behavior unchanged. C checksum and G1-G4 unavailable.
-- `code/win32/win_glimp.c`: Unverified (no MinGW/Windows SDK). T1: 1, T2: 4; T5: conditional C-linkage block for 2 GPU exports, preserves definitions/initializers. Target checksum/G1-G4 unavailable.
-- `code/win32/win_input.c`: Unverified (no MinGW/Windows SDK). T2: 1 boolean return cast by inspection. DirectInput SDK interface macros and optional joystick/MIDI paths require target compile; C checksum and G1-G4 unavailable.
-- `code/win32/win_local.h`: Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable.
-- `code/win32/win_main.c`: Unverified (no MinGW/Windows SDK). T1: 3 allocator/void-handle casts by inspection. Sys_LoadFunction still assigns FARPROC to void*, outside T1; C checksum and G1-G4 unavailable.
-- `code/win32/win_minimize.c`: Unverified (no MinGW/Windows SDK). Inspection found no required catalog transformations in key-token table/parser; unchanged, target gates unavailable.
-- `code/win32/win_qgl.c`: Unverified (no MinGW/Windows SDK). T1: 2 source sites (library handle and proc macro with APIENTRY preserved). GL_GetProcAddress still assigns a function pointer to void*, outside T1. Target gates unavailable.
-- `code/win32/win_qvk.c`: Unverified (no MinGW/Windows SDK). T1: 3 library/proc casts by inspection. VK_GetInstanceProcAddr still returns a function pointer as void*, outside T1. Target gates unavailable.
-- `code/win32/win_shared.c`: Unverified (no MinGW/Windows SDK). No obvious catalog edits; unchanged. Optional USE_PROFILES calls FARPROC with arguments despite C++ zero-argument type, requiring an uncataloged function-pointer signature cast. Target gates unavailable.
-- `code/win32/win_snd.c`: Unverified (no MinGW/Windows SDK). T1: 2 casts around existing void* loader casts, WINAPI preserved. WASAPI explicitly uses C lpVtbl interfaces/REFIID pointer arguments; C++ SDK interface selection requires uncataloged changes. Target gates unavailable.
-- `code/win32/win_syscon.c`: Unverified (no MinGW/Windows SDK). T2: 1 boolean-toggle cast by inspection; target C/C++ builds and G1-G4 unavailable.
-- `code/win32/win_wndproc.c`: Unverified (no MinGW/Windows SDK). T1: 2 clipboard-pointer casts, T2: 2 boolean-toggle casts by inspection; target gates unavailable.
-
-## Bugs and compatibility hazards recorded, not fixed
-
-Full notes: `docs/cpp-port-notes.md`.
-
-- Existing CMake defects; GNU Make remains the supported build.
-- Unchanged q_math C++ float overloads alter numerical results (confirmed G5 blocker).
-- Intentional unaligned unzip.c/VM file-buffer loads; narrow sanitizer suppressions verified.
-- Same-C bot runs differ due existing time-dependent seeds, limiting literal runtime log comparison.
-- linux_snd thread callback signature mismatch is preserved; casts retain the original conversion.
-- cl_curl slash test indexes the URL terminator and therefore always appends in that branch.
-- FS_AllowedExtension compares a possible NULL strrchr result relationally before its NULL check.
+GetRefAPI library proof used ctypes.CDLL(path).GetRefAPI on both libraries listed in `final-runtime-summary.log` (built in gcc-c1-release-sdl). It exercises dlopen/dlsym, not a client frame. The production client/static executable path remains blocked.
 
 ## Per-file status
 
-| File | Status | Evidence / reason |
+All 257 scoped .c/.h entries appear exactly once in this table. Native status refers to actual compiler contexts; header verification follows consumers. Repeated contexts and complete G4 results are in the JSON inventories/index. Earlier per-file commits preserve original transformation counts where subsequent linkage/math passes updated the row.
+
+| File | Status | Transformations and verification |
 |---|---|---|
 | `code/asm/qasm.h` | done | Not applicable: included only by assembly .s files; explicitly outside C++ inputs. No rename. |
 | `code/botlib/aasfile.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_bsp.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_bspq3.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_bspq3.o); G4 advisory FAIL, full diff retained. |
-| `code/botlib/be_aas_cluster.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_cluster.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_aas_bspq3.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_bspq3.o); G4 advisory difference retained. |
+| `code/botlib/be_aas_cluster.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_cluster.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_cluster.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_debug.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_debug.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_aas_debug.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_debug.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_debug.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_def.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_entity.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_entity.o); G4 PASS. |
 | `code/botlib/be_aas_entity.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_file.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_file.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_aas_file.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_file.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_file.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_funcs.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_main.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_main.o); G4 PASS. |
@@ -469,23 +188,23 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/botlib/be_aas_move.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_optimize.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_optimize.o); G4 PASS. |
 | `code/botlib/be_aas_optimize.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_reach.c` | done | T1-T17: 0 (already compatible); T21/T22: 1 argument casts at 1 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_reach.o, default); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_aas_reach.c` | done | T1-T17: 0 (already compatible); T21: 15 argument casts at 15 calls (native and fallback M_PI); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_reach.o, default); G4 advisory difference retained. |
 | `code/botlib/be_aas_reach.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_route.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_route.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_aas_route.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_route.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_route.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_routealt.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_routealt.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_aas_routealt.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_routealt.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_routealt.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_sample.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_sample.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_aas_sample.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_sample.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_sample.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ai_char.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_char.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_ai_char.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_char.o); G4 advisory difference retained. |
 | `code/botlib/be_ai_char.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_char.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ai_chat.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_chat.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_ai_chat.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_chat.o); G4 advisory difference retained. |
 | `code/botlib/be_ai_chat.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_chat.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_ai_gen.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_gen.o); G4 PASS. |
 | `code/botlib/be_ai_gen.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_gen.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_ai_goal.c` | done | T1: 1, T16: 1 macro site (8 expanded casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_goal.o, default); G4 PASS. |
 | `code/botlib/be_ai_goal.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_goal.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ai_move.c` | done | T1: 1; T21/T22: 12 argument casts at 12 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_move.o, default); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_ai_move.c` | done | T1: 1; T21/T22: 12 argument casts at 12 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_move.o, default); G4 advisory difference retained. |
 | `code/botlib/be_ai_move.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_goal.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_ai_weap.c` | done | T1: 1, T16: 2 macro sites (36 expanded casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_weap.o, default); G4 PASS. |
 | `code/botlib/be_ai_weap.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_weap.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
@@ -502,30 +221,30 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/botlib/l_libvar.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_cluster.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/l_log.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_log.o); G4 PASS. |
 | `code/botlib/l_log.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_cluster.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_memory.c` | done | T1: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_memory.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/l_memory.c` | done | T1: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_memory.o); G4 advisory difference retained. |
 | `code/botlib/l_memory.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_precomp.c` | done | T1: 3 (one in inactive LoadSourceMemory), T4: 1 field (10 occurrences); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_precomp.o, default); G4 advisory FAIL, full diff retained. |
+| `code/botlib/l_precomp.c` | done | T1: 3 (one in inactive LoadSourceMemory), T4: 1 field (10 occurrences); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_precomp.o, default); G4 advisory difference retained. |
 | `code/botlib/l_precomp.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_script.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_script.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/l_script.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_script.o); G4 advisory difference retained. |
 | `code/botlib/l_script.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_struct.c` | done | T3: 14; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_struct.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/l_struct.c` | done | T3: 14; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_struct.o); G4 advisory difference retained. |
 | `code/botlib/l_struct.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/l_utils.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_entity.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/cgame/cg_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through cl_cgame.c actual dependency and native strict builds/G2/G3. |
-| `code/client/cl_avi.c` | done | T1: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_avi.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_cgame.c` | done | T5 review: remove internal-only C linkage; all earlier catalog edits retained; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_cgame.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_cin.c` | done | T1: 2, T2: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_cin.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_console.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_console.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_curl.c` | done | T1: 35; T20: 1 receiving local const; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_curl.o, default); G4 advisory FAIL, full diff retained. |
+| `code/client/cl_avi.c` | done | T1: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_avi.o, default); G4 advisory difference retained. |
+| `code/client/cl_cgame.c` | done | T1: 116, T2: 1, T3: 6; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (client/cl_cgame.o); G4 advisory difference retained. |
+| `code/client/cl_cin.c` | done | T1: 2, T2: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_cin.o, default); G4 advisory difference retained. |
+| `code/client/cl_console.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_console.o, default); G4 advisory difference retained. |
+| `code/client/cl_curl.c` | done | T1: 35; T20: 1 receiving local const; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_curl.o, default); G4 advisory difference retained. |
 | `code/client/cl_curl.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
-| `code/client/cl_input.c` | done | T1-T17: 0 (already compatible); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_input.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_jpeg.c` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_jpeg.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_keys.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_keys.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_main.c` | done | T1: 1; T2: 1; T3: 6 compound-assignment result casts; T20: 1 receiving local const; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_main.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_net_chan.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_net_chan.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_parse.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_parse.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_scrn.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_scrn.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_ui.c` | done | T5 review: remove internal-only C linkage; all earlier catalog edits retained; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_ui.o, default); G4 advisory FAIL, full diff retained. |
+| `code/client/cl_input.c` | done | T1-T17: 0 (already compatible); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_input.o, default); G4 advisory difference retained. |
+| `code/client/cl_jpeg.c` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_jpeg.o, default); G4 advisory difference retained. |
+| `code/client/cl_keys.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_keys.o, default); G4 advisory difference retained. |
+| `code/client/cl_main.c` | done | T1: 1; T2: 1; T3: 6 compound-assignment result casts; T20: 1 receiving local const; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_main.o, default); G4 advisory difference retained. |
+| `code/client/cl_net_chan.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_net_chan.o, default); G4 advisory difference retained. |
+| `code/client/cl_parse.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_parse.o, default); G4 advisory difference retained. |
+| `code/client/cl_scrn.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_scrn.o, default); G4 advisory difference retained. |
+| `code/client/cl_ui.c` | done | T1: 80, T2: 1, T3: 8; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (client/cl_ui.o); G4 advisory difference retained. |
 | `code/client/client.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/keycodes.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/keys.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
@@ -534,92 +253,92 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/client/snd_codec.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/snd_codec.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/snd_codec_ogg.c` | done | T1: 3; T18: 1 preceding extern const declaration; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_codec_ogg.o, default); G4 PASS. |
 | `code/client/snd_codec_wav.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_codec_wav.o, default); G4 PASS. |
-| `code/client/snd_dma.c` | done | T1: 1, T15: 2 (non-SDL branch); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_dma.o, default); G4 advisory FAIL, full diff retained. |
+| `code/client/snd_dma.c` | done | T1: 1, T15: 2 (non-SDL branch); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_dma.o, default); G4 advisory difference retained. |
 | `code/client/snd_local.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/snd_main.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_main.o, default); G4 PASS. |
-| `code/client/snd_mem.c` | done | T1: 4; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mem.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/snd_mix.c` | done | T5: C linkage block for 3 assembly globals plus 5 assembly declarations/conditional definitions; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mix.o, default); G4 advisory FAIL, full diff retained. |
+| `code/client/snd_mem.c` | done | T1: 4; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mem.o, default); G4 advisory difference retained. |
+| `code/client/snd_mix.c` | done | T5: C linkage block for 3 assembly globals plus 5 assembly declarations/conditional definitions; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mix.o, default); G4 advisory difference retained. |
 | `code/client/snd_public.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/snd_wavelet.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_wavelet.o, default); G4 PASS. |
 | `code/game/bg_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through sv_game.c actual dependency and native strict builds/G2/G3. |
 | `code/game/g_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through sv_game.c actual dependency and native strict builds/G2/G3. |
-| `code/qcommon/cm_load.c` | done | T1: 28; native ded C SHA256 unchanged (df42e0cabff475c22ebf8383e443cfe34d558abf817baf6f5cd8ad0c96700017); strict C++/G2/G3 PASS (ded/cm_load.o, default); G4 advisory diff retained. |
+| `code/qcommon/cm_load.c` | done | T1: 28; native ded C SHA256 unchanged (df42e0cabff475c22ebf8383e443cfe34d558abf817baf6f5cd8ad0c96700017); strict C++/G2/G3 PASS (ded/cm_load.o, default); G4 advisory difference retained. |
 | `code/qcommon/cm_local.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/cm_patch.c` | done | T1: 3, T2: 6, T3: 3; T21/T22: 14 argument casts at 14 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_patch.o, default); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/cm_patch.c` | done | T1: 3, T2: 6, T3: 3; T21/T22: 14 argument casts at 14 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_patch.o, default); G4 advisory difference retained. |
 | `code/qcommon/cm_patch.h` | done | T1-T17: 0; unchanged header checked via cm_patch.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/cm_polylib.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_polylib.o); G4 PASS. |
 | `code/qcommon/cm_polylib.h` | done | T1-T17: 0; unchanged header checked via cm_polylib.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/cm_public.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/cm_test.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_test.o); G4 PASS. |
-| `code/qcommon/cm_trace.c` | done | T1-T17: 0 (already compatible); T21/T22: 6 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_trace.o, default); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/cmd.c` | done | T1: 1, T2: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cmd.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/common.c` | done | T1: 5, T2: 2, T3: 1, T15: 29; T5: 2 conditional MSVC CPUID_EX declarations/definitions; T21: six conditional rint calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/common.o, default); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/cvar.c` | done | T2: 2, T3: 4 (cast compound-assignment result); T21/T22: 2 argument casts at 2 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cvar.o, default); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/files.c` | done | T1: 13, T2: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/files.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/history.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/history.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/huffman.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/huffman.o); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/cm_trace.c` | done | T1-T17: 0 (already compatible); T21/T22: 6 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_trace.o, default); G4 advisory difference retained. |
+| `code/qcommon/cmd.c` | done | T1: 1, T2: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cmd.o); G4 advisory difference retained. |
+| `code/qcommon/common.c` | done | T1: 5, T2: 2, T3: 1, T15: 29; T5: 2 conditional MSVC CPUID_EX declarations/definitions; T21: six conditional rint calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/common.o, default); G4 advisory difference retained. |
+| `code/qcommon/cvar.c` | done | T2: 2, T3: 4 (cast compound-assignment result); T21/T22: 2 argument casts at 2 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cvar.o, default); G4 advisory difference retained. |
+| `code/qcommon/files.c` | done | T1: 13, T2: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/files.o); G4 advisory difference retained. |
+| `code/qcommon/history.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/history.o); G4 advisory difference retained. |
+| `code/qcommon/huffman.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/huffman.o); G4 advisory difference retained. |
 | `code/qcommon/huffman_static.c` | done | T18: one preceding extern const declaration; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/huffman_static.o, default); G4 PASS. |
 | `code/qcommon/json.h` | done | Excluded: whole-tree include search finds only renderer2/tr_bsp.c; implementation is solely for excluded renderer2. Left unchanged. |
-| `code/qcommon/keys.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/keys.o); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/keys.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/keys.o); G4 advisory difference retained. |
 | `code/qcommon/md4.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/md4.o); G4 PASS. |
-| `code/qcommon/md5.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/md5.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/msg.c` | done | T16: 3 sites (1 mask, 99 expanded field-offset casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/msg.o, default); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/net_chan.c` | done | T1: 1, T4: 1 identifier (12 occurrences); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/net_chan.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/net_ip.c` | done | T1: 11 additional Winsock casts; native C hashes and G2/G3 also PASS; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/net_ip.o); G4 advisory difference retained. |
-| `code/qcommon/puff.c` | done | T1-T17: 0 (already compatible); 3 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/puff.o); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/md5.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/md5.o); G4 advisory difference retained. |
+| `code/qcommon/msg.c` | done | T16: 3 sites (1 mask, 99 expanded field-offset casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/msg.o, default); G4 advisory difference retained. |
+| `code/qcommon/net_chan.c` | done | T1: 1, T4: 1 identifier (12 occurrences); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/net_chan.o); G4 advisory difference retained. |
+| `code/qcommon/net_ip.c` | done | T1: 2, T2: 1; T1: 11 additional Winsock casts; native and MinGW C hashes, strict release/debug and G2/G3 PASS (ded/net_ip.o); G4 advisory difference retained. |
+| `code/qcommon/puff.c` | done | T1-T17: 0 (already compatible); 3 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/puff.o); G4 advisory difference retained. |
 | `code/qcommon/puff.h` | done | T1-T17: 0; unchanged header checked via puff.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/q_math.c` | done | T21: 20 argument casts at 18 calls, redundant cast correction; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_math.o, default); G4 PASS. |
 | `code/qcommon/q_platform.h` | done | T1-T17: 0; unchanged header checked via md4.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/q_shared.c` | done | T1: 4, T2: 3; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_shared.o); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/q_shared.c` | done | T1: 4, T2: 3; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_shared.o); G4 advisory difference retained. |
 | `code/qcommon/q_shared.h` | done | T5: guarded Q_EXTERN_C macro plus 2 Windows assembly prototypes; native md4 consumer G2/G3 PASS and all 295 C hashes unchanged; Windows branch unverified. |
 | `code/qcommon/qcommon.h` | done | T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: ded/vm.o, client/cl_cgame.o. |
 | `code/qcommon/qfiles.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/surfaceflags.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/unzip.c` | done | T1: 10, T14: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unzip.o); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/unzip.c` | done | T1: 10, T14: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unzip.o); G4 advisory difference retained. |
 | `code/qcommon/unzip.h` | done | T1-T17: 0; unchanged header checked via unzip.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/vm.c` | done | T1: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm.o); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/vm.c` | done | T1: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm.o); G4 advisory difference retained. |
 | `code/qcommon/vm_aarch64.c` | done | T1: 2 allocator result casts; T11 cache prototype in vm_local.h; aarch64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_aarch64.o); G4 advisory difference retained. |
 | `code/qcommon/vm_armv7l.c` | done | T1: 2 allocator result casts; T11 cache prototype in vm_local.h; arm original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_armv7l.o); G4 advisory difference retained. |
-| `code/qcommon/vm_interpreted.c` | done | T1: 1; literal retained under frozen warning policy; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_interpreted.o); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/vm_interpreted.c` | done | T1: 1; literal retained under frozen warning policy; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_interpreted.o); G4 advisory difference retained. |
 | `code/qcommon/vm_local.h` | done | Existing T4 edits; T11: correctly typed C-linkage declaration of existing GNU ARM runtime __clear_cache dependency. ARM/AArch64 65/65 C hashes unchanged; ARM vm_interpreted consumer strict C++/G2/G3 PASS; G4 advisory evidence cross-arm-vm_interpreted.codegen.diff.gz. |
 | `code/qcommon/vm_optimize.h` | done | Unchanged; real native x86_64 and cross ARM/AArch64/PPC JIT consumers pass strict C++, G2/G3 and original C hashes. |
 | `code/qcommon/vm_powerpc.c` | done | T1: 7 pointer conversions including debug-only callback; ppc64le original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_powerpc.o); G4 advisory difference retained. |
-| `code/qcommon/vm_x86.c` | done | T1: 1 function-to-object pointer cast; T3: 1 macro_op_t cast; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_x86.o, default); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/vm_x86.c` | done | T1: 1 function-to-object pointer cast; T3: 1 macro_op_t cast; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_x86.o, default); G4 advisory difference retained. |
 | `code/renderer/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderer/qgl.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderer/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_animation.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_arb.c` | done | T4: 3 occurrences (prerequisite), T2: 5, T3: 4, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_arb.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_backend.c` | done | T4: 9 occurrences (prerequisite), T1: 4, T2: 2, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_backend.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_bsp.c` | done | T1: 42, T3: 2; T21/T22: 94 argument casts at 94 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_bsp.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_cmds.c` | done | T1: 11; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_cmds.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderer/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_animation.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_arb.c` | done | T4: 3 occurrences (prerequisite), T2: 5, T3: 4, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_arb.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_backend.c` | done | T4: 9 occurrences (prerequisite), T1: 4, T2: 2, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_backend.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_bsp.c` | done | T1: 42, T3: 2; T21/T22: 94 argument casts at 94 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_bsp.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_cmds.c` | done | T1: 11; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_cmds.o, default); G4 advisory difference retained. |
 | `code/renderer/tr_common.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderer/tr_curve.c` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_curve.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_flares.c` | done | T4: 3 occurrences (prerequisite), T2: 1; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_flares.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_image.c` | done | T1: 9, T2: 2, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_init.c` | done | T5 review: remove internal-only C linkage; all earlier catalog edits retained; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_init.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_light.c` | done | T4: 10 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_light.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderer/tr_curve.c` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_curve.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_flares.c` | done | T4: 3 occurrences (prerequisite), T2: 1; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_flares.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_image.c` | done | T1: 9, T2: 2, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_init.c` | done | T1: 10, T2: 1, T3: 1, T5: dlopen definition only; T21: 1 fallback M_PI argument cast; static GetRefAPI C linkage removed; C hash/strict C++/G2/G3 PASS (rend1/tr_init.o); G4 advisory difference retained. |
+| `code/renderer/tr_light.c` | done | T4: 10 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_light.o, default); G4 advisory difference retained. |
 | `code/renderer/tr_local.h` | done | T4: 5 occurrences (prerequisite); actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderer/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; T21/T22: 2 argument casts at 2 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_main.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderer/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; T21: 8 argument casts at 8 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_main.o, default); G4 advisory difference retained. |
 | `code/renderer/tr_marks.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_marks.o, default); G4 PASS. |
-| `code/renderer/tr_mesh.c` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_mesh.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_model.c` | done | T1: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_model.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_model_iqm.c` | done | T1: 4, T2: 2, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_model_iqm.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_scene.c` | done | T4: 4 occurrences (prerequisite), T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_scene.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_shade.c` | done | T4: 1 occurrence (prerequisite), T3: 1, T17: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shade.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_shade_calc.c` | done | T4: 50 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shade_calc.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_shader.c` | done | T1: 5, T3: 16, T16: 1, T17: 9; T21/T22: 5 argument casts at 5 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shader.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_shadows.c` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shadows.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_sky.c` | done | T4: 7 occurrences (prerequisite); T21: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_sky.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_surface.c` | done | T4: 25 occurrences (prerequisite); T21/T22: 2 argument casts at 2 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_surface.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_vbo.c` | done | T4: 3 occurrences (prerequisite), T1: 7, T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_vbo.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_world.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderer/tr_mesh.c` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_mesh.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_model.c` | done | T1: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_model.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_model_iqm.c` | done | T1: 4, T2: 2, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_model_iqm.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_scene.c` | done | T4: 4 occurrences (prerequisite), T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_scene.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_shade.c` | done | T4: 1 occurrence (prerequisite), T3: 1, T17: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shade.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_shade_calc.c` | done | T4: 50 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shade_calc.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_shader.c` | done | T1: 5, T3: 16, T16: 1, T17: 9; T21/T22: 5 argument casts at 5 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shader.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_shadows.c` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shadows.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_sky.c` | done | T4: 7 occurrences (prerequisite); T21: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_sky.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_surface.c` | done | T4: 25 occurrences (prerequisite); T21: 4 argument casts at 4 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_surface.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_vbo.c` | done | T4: 3 occurrences (prerequisite), T1: 7, T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_vbo.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_world.o, default); G4 advisory difference retained. |
 | `code/renderercommon/tr_font.c` | done | T1: 1; dormant BUILD_FREETYPE body unverified (missing dependency); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_font.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_bmp.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_bmp.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_jpg.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_jpg.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_pcx.c` | done | T1: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_pcx.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_png.c` | done | T1: 18; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_png.o, default); G4 PASS. |
-| `code/renderercommon/tr_image_tga.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_tga.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderercommon/tr_noise.c` | done | T1-T17: 0 (already compatible); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_noise.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderercommon/tr_image_tga.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_tga.o, default); G4 advisory difference retained. |
+| `code/renderercommon/tr_noise.c` | done | T1-T17: 0 (already compatible); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_noise.o, default); G4 advisory difference retained. |
 | `code/renderercommon/tr_public.h` | done | T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: rend1/tr_init.o, rendv/tr_init.o. |
 | `code/renderercommon/tr_types.h` | done | T1-T17: 0; unchanged header verified through code/renderercommon/tr_font.c, strict native builds/G2/G3 PASS. |
 | `code/renderercommon/vulkan/vk_platform.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
@@ -631,63 +350,63 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/renderervk/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderervk/shaders/bin2hex.c` | done | Unchanged standalone build utility, not linked engine code; gcc/g++ strict native -O2 compile PASS, fixed 259-byte input and append output byte-identical. Engine layout gate not applicable (no engine records). |
 | `code/renderervk/shaders/spirv/shader_data.c` | done | T18: 74 preceding extern const declarations; unchanged initialized bytes. Verified through sole consumer rendv/vk.o: C SHA256 unchanged, strict release/debug C++, G2/G3 PASS; G4 advisory diff retained under vk.c. vk.c and this include require each other for C++ gates; consecutive per-file commits record the pair. |
-| `code/renderervk/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_animation.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_backend.c` | done | T4: 11 occurrences (prerequisite), T1: 4, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_backend.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_bsp.c` | done | T1: 42, T3: 2; T21/T22: 94 argument casts at 94 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_bsp.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_cmds.c` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_cmds.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderervk/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_animation.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_backend.c` | done | T4: 11 occurrences (prerequisite), T1: 4, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_backend.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_bsp.c` | done | T1: 42, T3: 2; T21/T22: 94 argument casts at 94 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_bsp.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_cmds.c` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_cmds.o, default); G4 advisory difference retained. |
 | `code/renderervk/tr_common.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderervk/tr_curve.c` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_curve.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_image.c` | done | T1: 8, T2: 1, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_image.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_init.c` | done | T5 review: remove internal-only C linkage; all earlier catalog edits retained; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_init.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_light.c` | done | T4: 10 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_light.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderervk/tr_curve.c` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_curve.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_image.c` | done | T1: 8, T2: 1, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_image.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_init.c` | done | T1: 5, T5: dlopen definition only; T21: 1 fallback M_PI argument cast; static GetRefAPI C linkage removed; C hash/strict C++/G2/G3 PASS (rendv/tr_init.o); G4 advisory difference retained. |
+| `code/renderervk/tr_light.c` | done | T4: 10 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_light.o, default); G4 advisory difference retained. |
 | `code/renderervk/tr_local.h` | done | T4: 5 occurrences (prerequisite); actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderervk/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; T21/T22: 2 argument casts at 2 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_main.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderervk/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; T21: 8 argument casts at 8 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_main.o, default); G4 advisory difference retained. |
 | `code/renderervk/tr_marks.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_marks.o, default); G4 PASS. |
-| `code/renderervk/tr_mesh.c` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_mesh.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_model.c` | done | T1: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_model.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_model_iqm.c` | done | T1: 4, T2: 2, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_model_iqm.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_scene.c` | done | T4: 4 occurrences (prerequisite), T1: 2, T3: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_scene.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_shade.c` | done | T4: 4 occurrences (prerequisite), T2: 1, T17: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shade.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_shade_calc.c` | done | T4: 50 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shade_calc.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_shader.c` | done | T1: 5, T3: 17, T16: 1, T17: 9; T21/T22: 5 argument casts at 5 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shader.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_shadows.c` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shadows.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_sky.c` | done | T4: 7 occurrences (prerequisite); T21/T22: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_sky.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_surface.c` | done | T4: 25 occurrences (prerequisite); T21/T22: 2 argument casts at 2 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_surface.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_world.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/vk.c` | done | T1: 2 macro sites (17 expansions); T3: 14; included shader T18 prerequisite; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderervk/tr_mesh.c` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_mesh.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_model.c` | done | T1: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_model.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_model_iqm.c` | done | T1: 4, T2: 2, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_model_iqm.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_scene.c` | done | T4: 4 occurrences (prerequisite), T1: 2, T3: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_scene.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_shade.c` | done | T4: 4 occurrences (prerequisite), T2: 1, T17: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shade.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_shade_calc.c` | done | T4: 50 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shade_calc.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_shader.c` | done | T1: 5, T3: 17, T16: 1, T17: 9; T21/T22: 5 argument casts at 5 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shader.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_shadows.c` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shadows.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_sky.c` | done | T4: 7 occurrences (prerequisite); T21/T22: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_sky.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_surface.c` | done | T4: 25 occurrences (prerequisite); T21: 4 argument casts at 4 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_surface.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_world.o, default); G4 advisory difference retained. |
+| `code/renderervk/vk.c` | done | T1: 2 macro sites (17 expansions); T3: 14; included shader T18 prerequisite; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk.o, default); G4 advisory difference retained. |
 | `code/renderervk/vk.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderervk/vk_flares.c` | done | T4: 3 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_flares.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/vk_vbo.c` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_vbo.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderervk/vk_flares.c` | done | T4: 3 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_flares.o, default); G4 advisory difference retained. |
+| `code/renderervk/vk_vbo.c` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_vbo.o, default); G4 advisory difference retained. |
 | `code/sdl/sdl_gamma.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_gamma.o, default); G4 PASS. |
 | `code/sdl/sdl_glimp.c` | done | T1: 4; T3: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_glimp.o, default); G4 PASS. |
 | `code/sdl/sdl_glw.h` | done | T1-T17: 0; unchanged header verified through sdl_gamma.c; native strict builds and G2/G3 PASS. |
 | `code/sdl/sdl_icon.h` | done | Unchanged initializer; sdl_glimp.c consuming object passes original C hash, strict C++ and G2/G3. |
-| `code/sdl/sdl_input.c` | done | T19: 1 enum hoisted with original body indentation; T3: 25 keyNum_t casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_input.o, default); G4 advisory FAIL, full diff retained. |
+| `code/sdl/sdl_input.c` | done | T19: 1 enum hoisted with original body indentation; T3: 25 keyNum_t casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_input.o, default); G4 advisory difference retained. |
 | `code/sdl/sdl_snd.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_snd.o, default); G4 PASS. |
 | `code/server/server.h` | done | T1-T17: 0; unchanged header verified through server consumers, strict native release/debug and G2/G3 PASS. |
-| `code/server/sv_bot.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_bot.o); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_ccmds.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory FAIL, full diff retained. |
+| `code/server/sv_bot.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_bot.o); G4 advisory difference retained. |
+| `code/server/sv_ccmds.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory difference retained. |
 | `code/server/sv_client.c` | blocked | New C-oracle blocker: T3 expansion of bGood &= FS_FileIsInPAK into bGood = (qboolean)( bGood & FS_FileIsInPAK(...) ) changes one test instruction register order in the client C object (45 85 fe -> 45 85 f7). Both logical operations are equivalent, but the mandatory SHA256 fails. Commuted and ternary alternatives also failed the hash; commutation additionally exceeds T3. All candidate source changes reverted. Exact patch and C disassembly diff: tools/port/evidence/sv_client-t3-attempt.patch and sv_client-c-oracle.diff. |
-| `code/server/sv_filter.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_game.c` | done | T5 review: remove internal-only C linkage; all earlier catalog edits retained; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_game.o, default); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_init.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_main.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_main.o); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_net_chan.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_net_chan.o); G4 advisory FAIL, full diff retained. |
+| `code/server/sv_filter.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory difference retained. |
+| `code/server/sv_game.c` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (ded/sv_game.o); G4 advisory difference retained. |
+| `code/server/sv_init.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory difference retained. |
+| `code/server/sv_main.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_main.o); G4 advisory difference retained. |
+| `code/server/sv_net_chan.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_net_chan.o); G4 advisory difference retained. |
 | `code/server/sv_rankings.c` | done | Excluded by accepted scope: never built, proprietary rankings SDK; unchanged and must not be renamed. |
-| `code/server/sv_snapshot.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_snapshot.o); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_world.c` | done | T3: 2 (includes bitwise assignment result); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_world.o); G4 advisory FAIL, full diff retained. |
+| `code/server/sv_snapshot.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_snapshot.o); G4 advisory difference retained. |
+| `code/server/sv_world.c` | done | T3: 2 (includes bitwise assignment result); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_world.o); G4 advisory difference retained. |
 | `code/server/tlds.h` | blocked | Unchanged initializer fragment; sole consumer sv_client.c is blocked, so complete-object C++/G2/G3 verification is unavailable. |
 | `code/ui/ui_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through cl_ui.c actual dependency and native strict builds/G2/G3. |
-| `code/unix/linux_glimp.c` | done | T1: 2 sites (4 expanded casts), T2: 3, T3: 2, T4: 1 identifier (3 occurrences); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_glimp.o, nosdl); G4 advisory FAIL, full diff retained. |
-| `code/unix/linux_joystick.c` | done | T1-T17: 0; dormant USE_JOYSTICK body explicitly compiled; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_joystick.o, nosdl); G4 advisory FAIL, full diff retained. |
+| `code/unix/linux_glimp.c` | done | T1: 2 sites (4 expanded casts), T2: 3, T3: 2, T4: 1 identifier (3 occurrences); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_glimp.o, nosdl); G4 advisory difference retained. |
+| `code/unix/linux_joystick.c` | done | T1-T17: 0; dormant USE_JOYSTICK body explicitly compiled; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_joystick.o, nosdl); G4 advisory difference retained. |
 | `code/unix/linux_local.h` | done | T1-T17: 0; unchanged header verified through unix_main.c and linux_glimp.c; native strict builds and G2/G3 PASS. |
-| `code/unix/linux_qgl.c` | done | T1: 1 macro site (6 expanded casts); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_qgl.o, nosdl); G4 advisory FAIL, full diff retained. |
+| `code/unix/linux_qgl.c` | done | T1: 1 macro site (6 expanded casts); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_qgl.o, nosdl); G4 advisory difference retained. |
 | `code/unix/linux_qvk.c` | done | T1: 1 function-to-object pointer return cast; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_qvk.o, nosdl); G4 PASS. |
 | `code/unix/linux_signals.c` | done | T1-T17: 0; renderer header T4 prerequisite resolves prior blocker; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/linux_signals.o, default); G4 PASS. |
-| `code/unix/linux_snd.c` | done | T1: 5; original thread-function casts retained inside typed casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_snd.o, nosdl); G4 advisory FAIL, full diff retained. |
+| `code/unix/linux_snd.c` | done | T1: 5; original thread-function casts retained inside typed casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_snd.o, nosdl); G4 advisory difference retained. |
 | `code/unix/unix_glw.h` | done | T1-T17: 0; unchanged header verified through non-SDL linux_glimp.c, linux_qgl.c and X11 extensions; G2/G3 PASS. |
-| `code/unix/unix_main.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_main.o, default); G4 advisory FAIL, full diff retained. |
-| `code/unix/unix_shared.c` | done | T1: 1; T23: 1 feature-test guard; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_shared.o, default); G4 advisory FAIL, full diff retained. |
+| `code/unix/unix_main.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_main.o, default); G4 advisory difference retained. |
+| `code/unix/unix_shared.c` | done | T1: 1; T23: 1 feature-test guard; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_shared.o, default); G4 advisory difference retained. |
 | `code/unix/x11_dga.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_dga.o, nosdl); G4 PASS. |
 | `code/unix/x11_randr.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_randr.o, nosdl); G4 PASS. |
 | `code/unix/x11_vidmode.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_vidmode.o, nosdl); G4 PASS. |
@@ -706,70 +425,787 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/win32/win_syscon.c` | done | T2: 1 previously inspected boolean toggle, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_syscon.o); G4 advisory difference retained. |
 | `code/win32/win_wndproc.c` | done | T1: 2; T2: 2 previously inspected edits, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_wndproc.o); G4 advisory difference retained. |
 
-Continuation correction: the first q_math T21 edit contained seven redundant nested casts from an AST inventory that also selected explicit casts. Removed those redundant casts in a new commit without rewriting history; the scanner now selects only implicit conversions. The intended 20 argument casts at 18 calls remain.
+## Every retained current G4 difference
 
-Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_gate.py /tmp/aftershock-cpp-port/differential-resumed` PASS, all 13 groups equal; vector_math C/C++ `5c00b4de`. Evidence `tools/port/evidence/g5-resumed.log`. Six conditional Sys_SnapVector rint calls are also pinned with T21 after the reviewer found them outside the first inventory. Native AST and source review found no in-scope non-integer abs arguments, so no T22 casts were necessary in the native configuration.
+G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not accepted evidence of identical behavior. The matching G2/G3 comparisons pass. Open each with `gzip -dc tools/port/evidence/<artifact>`. Reproduce with `python3 tools/port/compile_pair.py <Object> /tmp/port-pair <Make variables>` and `tools/port/codegen_gate.sh` on its .c.s/.cxx.s pair. Linux joystick is an empty default translation unit; both native inventories explicitly enable USE_JOYSTICK for its meaningful body gates. Its unchanged default C object hash is checked separately with the full manifest. Historical superseded diffs remain in git/evidence for audit (notably the original q_math failure); current q_math is G4/G5 PASS.
 
-## Resumed verification decisions
-
-- New C-oracle blocker: T3 expansion of bGood &= FS_FileIsInPAK into bGood = (qboolean)( bGood & FS_FileIsInPAK(...) ) changes one test instruction register order in the client C object (45 85 fe -> 45 85 f7). Both logical operations are equivalent, but the mandatory SHA256 fails. Commuted and ternary alternatives also failed the hash; commutation additionally exceeds T3. All candidate source changes reverted. Exact patch and C disassembly diff: tools/port/evidence/sv_client-t3-attempt.patch and sv_client-c-oracle.diff. No oracle relaxation is authorized; continue every independent file and cross target, then report this remaining blocker if no catalog form clears it.
-- Warm-up plus two runs of the C dedicated binary under the prescribed faketime increment produces byte-identical 124-line logs, exit 0; acceptance first stage PASS.
-
-- Whitespace gate uses `git diff --minimal --stat` and `git diff --minimal -w --stat` (with identical per-file counts). Git default heuristics matched repeated curl assignment blocks differently: 37 vs 40 lines despite only 36 substantive changed lines. Minimal diff gives 36/36 in both modes without source churn.
-
-- G3 probes additionally use `-fno-inline-functions`: SDL IN_SyncModifiers was inlined away only in C, creating a false symbol-presence mismatch. Reviewer recompiled all 143 previous completed native contexts with the adjustment: 143 PASS, plus SDL PASS; pinned-double/integer sin controls pass and float sin/sinf control still fails. Evidence `tools/port/evidence/expanded-symbols-reviewed.json`. Production, G2 and G4 flags are unchanged.
-- T19 preserves the moved enum body’s original indentation so minimal diff statistics agree with and without `-w`; no whitespace-only engine hunk is introduced.
-
-
-- Full native C build and dedicated C build PASS after native conversions. Both C++ dlopen renderers link. Dedicated and client C++ executables stop at sv_client.c:1639; an attempted T1/T2/T20 subset still leaves that error in both contexts and was reverted. The temporary syntax probe was not proof of a successful Make object build; actual release/debug Make recipes are authoritative.
-
-- Cross harness: confirm all four requested C++ cross compilers via `command -v`. BUILD_CXX=1 now derives CXX from CC (gcc/g++, clang/clang++, cc/c++), including the MinGW auto-selected prefix, while respecting an explicitly supplied CXX. C-mode compiler selection is untouched. Make dry runs confirm native, Clang, MinGW, aarch64, armhf and ppc64le pairs. `compile_pair.py` now accepts PLATFORM/ARCH for the artifact target path.
-- To verify earlier inspection-only Windows edits too, cross C oracles are built from untouched base commit `8a7e8ed2` extracted with git archive under /tmp/aftershock-cpp-port/cross-base, not merely from current partially ported source. The ARM command explicitly sets LONG_BIT=32 for its requested armhf target; excluded 32-bit x86 remains untouched.
-- Post-native-conversion oracle recheck: all 295 original native C objects have unchanged SHA256 hashes.
-
-- Cross oracle results: untouched-base C dedicated builds PASS for all four compilers. Current C reproduces all 65/65 ARM, AArch64 and PPC64LE object hashes. MinGW default `-flto` serializes compiler IR and per-build IDs instead of stable machine-code objects (even untouched md4 differs). Its object oracle therefore uses `OPTIMIZE=-O2 -ffast-math -fno-lto` on both sides: 66/66 exact hashes match. Default-LTO C executable builds also pass separately; the non-LTO comparison is explicitly an object verification configuration, not a change to production build flags.
-- G2/G3/G4 artifacts append `-fno-lto` when Make supplies LTO, ensuring real DWARF, symbols and assembly rather than serialized compiler IR. G2 supports MinGW COFF through a temporary, never-executed PE carrier that resolves debug relocations, then objcopy to ELF for pahole. Undefined symbols are set to zero only in this carrier; G3 uses the original COFF object. Direct COFF-to-ELF conversion was rejected because it corrupted DWARF string references. Native and COFF positive/negative nested-layout controls PASS; `tools/port/evidence/cross-selfcheck.log`.
-
-- T11 __clear_cache declaration belongs in vm_local.h and uses the installed GCC builtin ABI `void(void *, void *)`, confirmed by both target compilers and libgcc exports. Q_EXTERN_C supplies the existing runtime dependency linkage; this adds no engine export beyond the phase-2 engine list. G3 now preserves its raw name. Reviewer temporary declaration tests and full target C rebuilds preserve original hashes.
-
-- MinGW full non-SDL C oracle compiles 300 objects, and current C matches all 300 hashes. Dedicated executable and both renderer DLLs link; the client link lacks target zlib (`cannot find -lz`). No packages installed. Object/gate verification can continue; use a matching USE_CURL=0 build for an independent client link if needed.
-- Windows frozen warning inventory (eleven C TUs, -Wall -Wextra): cast-function-type 9, sign-compare 12, unused-parameter 17. The latter two were already frozen; add the observed cast-function-type class only for MinGW, preserving the existing explicit WinAPI loader casts. Evidence `tools/port/evidence/windows-initial-diagnostics.json`.
-- New Windows SDK catalog boundary: CINTERFACE selects C vtables, but MinGW GUID parameter aliases remain C++ references solely under __cplusplus. Existing pointer-based calls in win_input.c and win_snd.c need GUID pointer/reference adapters beyond T1–T23; even USE_WASAPI=0 retains DirectSound GUID calls. No unsupported SDK macro overrides or reference adapters will be invented. Continue all independent Windows files and record exact target diagnostics.
-
-- G3 retains and demangles COFF section symbols (.text$, .pdata$, .xdata$), whose names embed function mangling. This removes section-name spelling noise without discarding any defined or undefined symbol. A MinGW function-section positive control was added; all native/COFF gate controls pass (`tools/port/evidence/coff-symbol-selfcheck.log`). Native completed-TU sweeps now leave cross-only objects to their recorded target-specific gate commands.
-
-- Phase 2 reviewer confirmed removal of three static callback linkage blocks, syscall_t/dllSyscall_t annotations, and static-renderer GetRefAPI annotations. G3 reads both recorded compiler commands to distinguish static from dlopen GetRefAPI; mismatched modes fail and missing metadata conservatively enforces raw external names. Static positive, dlopen negative and mode-mismatch controls pass.
-
-- Phase 2 code/qcommon/qcommon.h: T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: ded/vm.o, client/cl_cgame.o.
-
-- Phase 2 code/renderercommon/tr_public.h: T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: rend1/tr_init.o, rendv/tr_init.o.
-
-- Revalidated code/asm/qasm.h: Not applicable: included only by assembly .s files; explicitly outside C++ inputs. No rename.
-
-- Revalidated code/server/sv_rankings.c: Excluded by accepted scope: never built, proprietary rankings SDK; unchanged and must not be renamed.
-
-- Revalidated code/qcommon/vm_optimize.h: Unchanged; real native x86_64 and cross ARM/AArch64/PPC JIT consumers pass strict C++, G2/G3 and original C hashes.
-
-- Revalidated code/sdl/sdl_icon.h: Unchanged initializer; sdl_glimp.c consuming object passes original C hash, strict C++ and G2/G3.
-
-- Revalidated code/renderercommon/vulkan/vulkan_win32.h: Unchanged Khronos header; actual MinGW win_qvk.c consumer passes C hash, strict release/debug C++ and G2/G3.
-
-- Revalidated code/win32/glw_win.h: Unchanged; actual MinGW win_glimp.c and win_qgl.c consumers pass C hashes, strict release/debug C++ and G2/G3.
-
-- Revalidated code/win32/resource.h: Unchanged; actual MinGW win_main.c and win_syscon.c consumers pass C hashes, strict release/debug C++ and G2/G3.
-
-- Revalidated code/win32/win_local.h: Unchanged; actual MinGW win_main.c consumer passes C hash, strict release/debug C++ and G2/G3.
-
-- Revalidated code/win32/win_input.c: Real MinGW verification: :536/:566 cannot convert const GUID* to const GUID&. CINTERFACE preserves vtables but GUID arguments still require pointer/reference adapters outside T1-T23. Two T15 literal-suffix errors are independently cataloged, but no partial candidate retained. Prior inspected T2 cast remains; C oracle hash matches. G1-G4 incomplete.
-
-- Revalidated code/win32/win_snd.c: Real MinGW verification: SDK C++ interfaces lack lpVtbl; CINTERFACE plus T4 this rename still fails GUID/reference calls at :300/:393/:422/:578/:853/:855. Eight outgoing GUID arguments and two memcmp addresses need uncataloged adaptation. USE_WASAPI=0 still fails DirectSound GUID calls. Prior two inspected T1 casts remain and C hash matches; new candidate edits not retained. G1-G4 incomplete.
-
-- Fresh native completed sweep: 154 translation units compile and pass G2/G3. All 13 G5 groups and standalone math gate still PASS after T5 cleanup. Every cross oracle object is now rechecked with tools/port/cross_gates.py (excluding blocked translation units and vendored objects); full cross compiler logs retained.
-
-- DEVIATION: freeze observed Clang compatibility warnings. Fresh full matrix reaches unchanged HasFCOM (-Wunused-function: 2 C warnings/config) and cl_curl enum va_start (-Wvarargs: 1 C++ warning/config). Reviewer verified both predate the port. Freeze these classes for Clang C++ only; leave code, signatures, C flags and production behavior untouched. The varargs diagnostic remains a logged limitation. This separately documents extending the frozen inventory after first capture.
-
-- Cross G3 review: retain all source symbols. GCC-only probe controls now disable small/called-once inlining and IPA scalar replacement; plain -fno-inline was rejected because it materializes C++ integer math template helpers. MinGW probes pass -Wa,-L because its assembler otherwise discards actual C local functions beginning L (LoadWeaponConfig/LoadItemConfig/Load_JTS). ARM/AArch64 exact local $a/$d/$t/$x mapping markers are metadata; exclude only those names on those ELF architectures. G2, G4, production flags and C hashes remain unchanged. New full native/cross G3 sweep and negative controls pending.
-
-- Revised G3 final sweep PASS: 154 native translation units and 417 cross objects, zero failures. Production G2 still passes all 571 pairs; G4 retains 115 native and 332 cross advisory diffs. Clang-tidy refreshed with real status rows and native Clang flags: 115 changed sources checked, zero tool/compile failures, 366 narrowing findings retained; 13 non-native/blocked/include sources skipped. Additional native manifest contexts are being checked before final consolidation.
-
-- DEVIATION: retain required T15 lexical spaces in diff-shape check. The literal git -w count heuristic conflicts with explicit T15: it erases C++-required literal/macro token separators. Whole-engine minimal numstats agree for 132/134 changed files; common.c is 38/38 versus 16/16 and snd_dma.c is 2/2 versus 1/1. All 23 omitted changed lines are required T15 separators, not formatting cleanup. Preserve T15 and record this exact exception; do not add redundant non-whitespace tokens to game the heuristic. No engine content is changed in this decision commit.
+| Context | Object | Make variables | Full diff artifact under tools/port/evidence |
+|---|---|---|---|
+| native-tu | `ded/be_aas_bspq3.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_bspq3.diff.gz` |
+| native-tu | `ded/be_aas_cluster.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_cluster.diff.gz` |
+| native-tu | `ded/be_aas_debug.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_debug.diff.gz` |
+| native-tu | `ded/be_aas_file.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_file.diff.gz` |
+| native-tu | `ded/be_aas_reach.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_reach.diff.gz` |
+| native-tu | `ded/be_aas_route.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_route.diff.gz` |
+| native-tu | `ded/be_aas_routealt.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_routealt.diff.gz` |
+| native-tu | `ded/be_aas_sample.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_sample.diff.gz` |
+| native-tu | `ded/be_ai_char.o` | `defaults` | `current-native-tu-botlib-ded-be_ai_char.diff.gz` |
+| native-tu | `ded/be_ai_chat.o` | `defaults` | `current-native-tu-botlib-ded-be_ai_chat.diff.gz` |
+| native-tu | `ded/be_ai_move.o` | `defaults` | `current-native-tu-botlib-ded-be_ai_move.diff.gz` |
+| native-tu | `ded/l_memory.o` | `defaults` | `current-native-tu-botlib-ded-l_memory.diff.gz` |
+| native-tu | `ded/l_precomp.o` | `defaults` | `current-native-tu-botlib-ded-l_precomp.diff.gz` |
+| native-tu | `ded/l_script.o` | `defaults` | `current-native-tu-botlib-ded-l_script.diff.gz` |
+| native-tu | `ded/l_struct.o` | `defaults` | `current-native-tu-botlib-ded-l_struct.diff.gz` |
+| native-tu | `client/cl_avi.o` | `defaults` | `current-native-tu-client-client-cl_avi.diff.gz` |
+| native-tu | `client/cl_cgame.o` | `defaults` | `current-native-tu-client-client-cl_cgame.diff.gz` |
+| native-tu | `client/cl_cin.o` | `defaults` | `current-native-tu-client-client-cl_cin.diff.gz` |
+| native-tu | `client/cl_console.o` | `defaults` | `current-native-tu-client-client-cl_console.diff.gz` |
+| native-tu | `client/cl_curl.o` | `defaults` | `current-native-tu-client-client-cl_curl.diff.gz` |
+| native-tu | `client/cl_input.o` | `defaults` | `current-native-tu-client-client-cl_input.diff.gz` |
+| native-tu | `client/cl_jpeg.o` | `defaults` | `current-native-tu-client-client-cl_jpeg.diff.gz` |
+| native-tu | `client/cl_keys.o` | `defaults` | `current-native-tu-client-client-cl_keys.diff.gz` |
+| native-tu | `client/cl_main.o` | `defaults` | `current-native-tu-client-client-cl_main.diff.gz` |
+| native-tu | `client/cl_net_chan.o` | `defaults` | `current-native-tu-client-client-cl_net_chan.diff.gz` |
+| native-tu | `client/cl_parse.o` | `defaults` | `current-native-tu-client-client-cl_parse.diff.gz` |
+| native-tu | `client/cl_scrn.o` | `defaults` | `current-native-tu-client-client-cl_scrn.diff.gz` |
+| native-tu | `client/cl_ui.o` | `defaults` | `current-native-tu-client-client-cl_ui.diff.gz` |
+| native-tu | `client/snd_dma.o` | `defaults` | `current-native-tu-client-client-snd_dma.diff.gz` |
+| native-tu | `client/snd_mem.o` | `defaults` | `current-native-tu-client-client-snd_mem.diff.gz` |
+| native-tu | `client/snd_mix.o` | `defaults` | `current-native-tu-client-client-snd_mix.diff.gz` |
+| native-tu | `ded/cm_load.o` | `defaults` | `current-native-tu-qcommon-ded-cm_load.diff.gz` |
+| native-tu | `ded/cm_patch.o` | `defaults` | `current-native-tu-qcommon-ded-cm_patch.diff.gz` |
+| native-tu | `ded/cm_trace.o` | `defaults` | `current-native-tu-qcommon-ded-cm_trace.diff.gz` |
+| native-tu | `ded/cmd.o` | `defaults` | `current-native-tu-qcommon-ded-cmd.diff.gz` |
+| native-tu | `ded/common.o` | `defaults` | `current-native-tu-qcommon-ded-common.diff.gz` |
+| native-tu | `ded/cvar.o` | `defaults` | `current-native-tu-qcommon-ded-cvar.diff.gz` |
+| native-tu | `ded/files.o` | `defaults` | `current-native-tu-qcommon-ded-files.diff.gz` |
+| native-tu | `ded/history.o` | `defaults` | `current-native-tu-qcommon-ded-history.diff.gz` |
+| native-tu | `ded/huffman.o` | `defaults` | `current-native-tu-qcommon-ded-huffman.diff.gz` |
+| native-tu | `ded/keys.o` | `defaults` | `current-native-tu-qcommon-ded-keys.diff.gz` |
+| native-tu | `ded/md5.o` | `defaults` | `current-native-tu-qcommon-ded-md5.diff.gz` |
+| native-tu | `ded/msg.o` | `defaults` | `current-native-tu-qcommon-ded-msg.diff.gz` |
+| native-tu | `ded/net_chan.o` | `defaults` | `current-native-tu-qcommon-ded-net_chan.diff.gz` |
+| native-tu | `ded/net_ip.o` | `defaults` | `current-native-tu-qcommon-ded-net_ip.diff.gz` |
+| native-tu | `client/puff.o` | `defaults` | `current-native-tu-qcommon-client-puff.diff.gz` |
+| native-tu | `ded/q_shared.o` | `defaults` | `current-native-tu-qcommon-ded-q_shared.diff.gz` |
+| native-tu | `ded/unzip.o` | `defaults` | `current-native-tu-qcommon-ded-unzip.diff.gz` |
+| native-tu | `ded/qvm/vm.o` | `defaults` | `current-native-tu-qcommon-ded-qvm-vm.diff.gz` |
+| native-tu | `ded/qvm/vm_interpreted.o` | `defaults` | `current-native-tu-qcommon-ded-qvm-vm_interpreted.diff.gz` |
+| native-tu | `ded/qvm/vm_x86.o` | `defaults` | `current-native-tu-qcommon-ded-qvm-vm_x86.diff.gz` |
+| native-tu | `rend1/tr_animation.o` | `defaults` | `current-native-tu-renderer-rend1-tr_animation.diff.gz` |
+| native-tu | `rend1/tr_arb.o` | `defaults` | `current-native-tu-renderer-rend1-tr_arb.diff.gz` |
+| native-tu | `rend1/tr_backend.o` | `defaults` | `current-native-tu-renderer-rend1-tr_backend.diff.gz` |
+| native-tu | `rend1/tr_bsp.o` | `defaults` | `current-native-tu-renderer-rend1-tr_bsp.diff.gz` |
+| native-tu | `rend1/tr_cmds.o` | `defaults` | `current-native-tu-renderer-rend1-tr_cmds.diff.gz` |
+| native-tu | `rend1/tr_curve.o` | `defaults` | `current-native-tu-renderer-rend1-tr_curve.diff.gz` |
+| native-tu | `rend1/tr_flares.o` | `defaults` | `current-native-tu-renderer-rend1-tr_flares.diff.gz` |
+| native-tu | `rend1/tr_image.o` | `defaults` | `current-native-tu-renderer-rend1-tr_image.diff.gz` |
+| native-tu | `rend1/tr_init.o` | `defaults` | `current-native-tu-renderer-rend1-tr_init.diff.gz` |
+| native-tu | `rend1/tr_light.o` | `defaults` | `current-native-tu-renderer-rend1-tr_light.diff.gz` |
+| native-tu | `rend1/tr_main.o` | `defaults` | `current-native-tu-renderer-rend1-tr_main.diff.gz` |
+| native-tu | `rend1/tr_mesh.o` | `defaults` | `current-native-tu-renderer-rend1-tr_mesh.diff.gz` |
+| native-tu | `rend1/tr_model.o` | `defaults` | `current-native-tu-renderer-rend1-tr_model.diff.gz` |
+| native-tu | `rend1/tr_model_iqm.o` | `defaults` | `current-native-tu-renderer-rend1-tr_model_iqm.diff.gz` |
+| native-tu | `rend1/tr_scene.o` | `defaults` | `current-native-tu-renderer-rend1-tr_scene.diff.gz` |
+| native-tu | `rend1/tr_shade.o` | `defaults` | `current-native-tu-renderer-rend1-tr_shade.diff.gz` |
+| native-tu | `rend1/tr_shade_calc.o` | `defaults` | `current-native-tu-renderer-rend1-tr_shade_calc.diff.gz` |
+| native-tu | `rend1/tr_shader.o` | `defaults` | `current-native-tu-renderer-rend1-tr_shader.diff.gz` |
+| native-tu | `rend1/tr_shadows.o` | `defaults` | `current-native-tu-renderer-rend1-tr_shadows.diff.gz` |
+| native-tu | `rend1/tr_sky.o` | `defaults` | `current-native-tu-renderer-rend1-tr_sky.diff.gz` |
+| native-tu | `rend1/tr_surface.o` | `defaults` | `current-native-tu-renderer-rend1-tr_surface.diff.gz` |
+| native-tu | `rend1/tr_vbo.o` | `defaults` | `current-native-tu-renderer-rend1-tr_vbo.diff.gz` |
+| native-tu | `rend1/tr_world.o` | `defaults` | `current-native-tu-renderer-rend1-tr_world.diff.gz` |
+| native-tu | `rend1/tr_image_tga.o` | `defaults` | `current-native-tu-renderercommon-rend1-tr_image_tga.diff.gz` |
+| native-tu | `rend1/tr_noise.o` | `defaults` | `current-native-tu-renderercommon-rend1-tr_noise.diff.gz` |
+| native-tu | `rendv/tr_animation.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_animation.diff.gz` |
+| native-tu | `rendv/tr_backend.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_backend.diff.gz` |
+| native-tu | `rendv/tr_bsp.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_bsp.diff.gz` |
+| native-tu | `rendv/tr_cmds.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_cmds.diff.gz` |
+| native-tu | `rendv/tr_curve.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_curve.diff.gz` |
+| native-tu | `rendv/tr_image.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_image.diff.gz` |
+| native-tu | `rendv/tr_init.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_init.diff.gz` |
+| native-tu | `rendv/tr_light.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_light.diff.gz` |
+| native-tu | `rendv/tr_main.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_main.diff.gz` |
+| native-tu | `rendv/tr_mesh.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_mesh.diff.gz` |
+| native-tu | `rendv/tr_model.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_model.diff.gz` |
+| native-tu | `rendv/tr_model_iqm.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_model_iqm.diff.gz` |
+| native-tu | `rendv/tr_scene.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_scene.diff.gz` |
+| native-tu | `rendv/tr_shade.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_shade.diff.gz` |
+| native-tu | `rendv/tr_shade_calc.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_shade_calc.diff.gz` |
+| native-tu | `rendv/tr_shader.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_shader.diff.gz` |
+| native-tu | `rendv/tr_shadows.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_shadows.diff.gz` |
+| native-tu | `rendv/tr_sky.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_sky.diff.gz` |
+| native-tu | `rendv/tr_surface.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_surface.diff.gz` |
+| native-tu | `rendv/tr_world.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_world.diff.gz` |
+| native-tu | `rendv/vk.o` | `defaults` | `current-native-tu-renderervk-rendv-vk.diff.gz` |
+| native-tu | `rendv/vk_flares.o` | `defaults` | `current-native-tu-renderervk-rendv-vk_flares.diff.gz` |
+| native-tu | `rendv/vk_vbo.o` | `defaults` | `current-native-tu-renderervk-rendv-vk_vbo.diff.gz` |
+| native-tu | `client/sdl_input.o` | `defaults` | `current-native-tu-sdl-client-sdl_input.diff.gz` |
+| native-tu | `ded/sv_bot.o` | `defaults` | `current-native-tu-server-ded-sv_bot.diff.gz` |
+| native-tu | `ded/sv_ccmds.o` | `defaults` | `current-native-tu-server-ded-sv_ccmds.diff.gz` |
+| native-tu | `ded/sv_filter.o` | `defaults` | `current-native-tu-server-ded-sv_filter.diff.gz` |
+| native-tu | `ded/sv_game.o` | `defaults` | `current-native-tu-server-ded-sv_game.diff.gz` |
+| native-tu | `ded/sv_init.o` | `defaults` | `current-native-tu-server-ded-sv_init.diff.gz` |
+| native-tu | `ded/sv_main.o` | `defaults` | `current-native-tu-server-ded-sv_main.diff.gz` |
+| native-tu | `ded/sv_net_chan.o` | `defaults` | `current-native-tu-server-ded-sv_net_chan.diff.gz` |
+| native-tu | `ded/sv_snapshot.o` | `defaults` | `current-native-tu-server-ded-sv_snapshot.diff.gz` |
+| native-tu | `ded/sv_world.o` | `defaults` | `current-native-tu-server-ded-sv_world.diff.gz` |
+| native-tu | `client/linux_glimp.o` | `USE_SDL=0` | `current-native-tu-unix-client-linux_glimp.diff.gz` |
+| native-tu | `client/linux_joystick.o` | `USE_SDL=0 CFLAGS=-DUSE_JOYSTICK` | `current-native-tu-unix-client-linux_joystick.diff.gz` |
+| native-tu | `client/linux_qgl.o` | `USE_SDL=0` | `current-native-tu-unix-client-linux_qgl.diff.gz` |
+| native-tu | `client/linux_snd.o` | `USE_SDL=0` | `current-native-tu-unix-client-linux_snd.diff.gz` |
+| native-tu | `ded/unix_main.o` | `defaults` | `current-native-tu-unix-ded-unix_main.diff.gz` |
+| native-tu | `ded/unix_shared.o` | `defaults` | `current-native-tu-unix-ded-unix_shared.diff.gz` |
+| mingw64 | `client/be_aas_bspq3.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_bspq3.diff.gz` |
+| mingw64 | `client/be_aas_cluster.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_cluster.diff.gz` |
+| mingw64 | `client/be_aas_debug.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_debug.diff.gz` |
+| mingw64 | `client/be_aas_entity.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_entity.diff.gz` |
+| mingw64 | `client/be_aas_file.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_file.diff.gz` |
+| mingw64 | `client/be_aas_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_move.diff.gz` |
+| mingw64 | `client/be_aas_optimize.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_optimize.diff.gz` |
+| mingw64 | `client/be_aas_reach.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_reach.diff.gz` |
+| mingw64 | `client/be_aas_route.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_route.diff.gz` |
+| mingw64 | `client/be_aas_sample.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_sample.diff.gz` |
+| mingw64 | `client/be_ai_char.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_ai_char.diff.gz` |
+| mingw64 | `client/be_ai_chat.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_ai_chat.diff.gz` |
+| mingw64 | `client/be_ai_goal.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_ai_goal.diff.gz` |
+| mingw64 | `client/be_ai_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_ai_move.diff.gz` |
+| mingw64 | `client/cl_avi.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_avi.diff.gz` |
+| mingw64 | `client/cl_cgame.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_cgame.diff.gz` |
+| mingw64 | `client/cl_console.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_console.diff.gz` |
+| mingw64 | `client/cl_curl.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_curl.diff.gz` |
+| mingw64 | `client/cl_input.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_input.diff.gz` |
+| mingw64 | `client/cl_jpeg.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_jpeg.diff.gz` |
+| mingw64 | `client/cl_keys.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_keys.diff.gz` |
+| mingw64 | `client/cl_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_main.diff.gz` |
+| mingw64 | `client/cl_net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_net_chan.diff.gz` |
+| mingw64 | `client/cl_parse.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_parse.diff.gz` |
+| mingw64 | `client/cl_scrn.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_scrn.diff.gz` |
+| mingw64 | `client/cl_ui.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_ui.diff.gz` |
+| mingw64 | `client/cm_load.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cm_load.diff.gz` |
+| mingw64 | `client/cm_patch.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cm_patch.diff.gz` |
+| mingw64 | `client/cm_test.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cm_test.diff.gz` |
+| mingw64 | `client/cm_trace.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cm_trace.diff.gz` |
+| mingw64 | `client/cmd.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cmd.diff.gz` |
+| mingw64 | `client/common.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-common.diff.gz` |
+| mingw64 | `client/cvar.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cvar.diff.gz` |
+| mingw64 | `client/files.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-files.diff.gz` |
+| mingw64 | `client/history.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-history.diff.gz` |
+| mingw64 | `client/huffman.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-huffman.diff.gz` |
+| mingw64 | `client/keys.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-keys.diff.gz` |
+| mingw64 | `client/l_memory.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-l_memory.diff.gz` |
+| mingw64 | `client/l_precomp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-l_precomp.diff.gz` |
+| mingw64 | `client/l_script.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-l_script.diff.gz` |
+| mingw64 | `client/l_struct.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-l_struct.diff.gz` |
+| mingw64 | `client/md5.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-md5.diff.gz` |
+| mingw64 | `client/msg.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-msg.diff.gz` |
+| mingw64 | `client/net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-net_chan.diff.gz` |
+| mingw64 | `client/net_ip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-net_ip.diff.gz` |
+| mingw64 | `client/puff.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-puff.diff.gz` |
+| mingw64 | `client/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-q_math.diff.gz` |
+| mingw64 | `client/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-q_shared.diff.gz` |
+| mingw64 | `client/qvm/vm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-qvm-vm.diff.gz` |
+| mingw64 | `client/qvm/vm_interpreted.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-qvm-vm_interpreted.diff.gz` |
+| mingw64 | `client/qvm/vm_x86.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-qvm-vm_x86.diff.gz` |
+| mingw64 | `client/snd_dma.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-snd_dma.diff.gz` |
+| mingw64 | `client/snd_mem.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-snd_mem.diff.gz` |
+| mingw64 | `client/snd_mix.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-snd_mix.diff.gz` |
+| mingw64 | `client/sv_bot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_bot.diff.gz` |
+| mingw64 | `client/sv_ccmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_ccmds.diff.gz` |
+| mingw64 | `client/sv_filter.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_filter.diff.gz` |
+| mingw64 | `client/sv_game.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_game.diff.gz` |
+| mingw64 | `client/sv_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_init.diff.gz` |
+| mingw64 | `client/sv_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_main.diff.gz` |
+| mingw64 | `client/sv_net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_net_chan.diff.gz` |
+| mingw64 | `client/sv_snapshot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_snapshot.diff.gz` |
+| mingw64 | `client/sv_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_world.diff.gz` |
+| mingw64 | `client/unzip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-unzip.diff.gz` |
+| mingw64 | `client/win_glimp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_glimp.diff.gz` |
+| mingw64 | `client/win_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_main.diff.gz` |
+| mingw64 | `client/win_minimize.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_minimize.diff.gz` |
+| mingw64 | `client/win_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_shared.diff.gz` |
+| mingw64 | `client/win_syscon.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_syscon.diff.gz` |
+| mingw64 | `client/win_wndproc.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_wndproc.diff.gz` |
+| mingw64 | `ded/be_aas_bspq3.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_bspq3.diff.gz` |
+| mingw64 | `ded/be_aas_cluster.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_cluster.diff.gz` |
+| mingw64 | `ded/be_aas_debug.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_debug.diff.gz` |
+| mingw64 | `ded/be_aas_entity.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_entity.diff.gz` |
+| mingw64 | `ded/be_aas_file.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_file.diff.gz` |
+| mingw64 | `ded/be_aas_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_move.diff.gz` |
+| mingw64 | `ded/be_aas_optimize.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_optimize.diff.gz` |
+| mingw64 | `ded/be_aas_reach.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_reach.diff.gz` |
+| mingw64 | `ded/be_aas_route.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_route.diff.gz` |
+| mingw64 | `ded/be_aas_sample.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_sample.diff.gz` |
+| mingw64 | `ded/be_ai_char.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_ai_char.diff.gz` |
+| mingw64 | `ded/be_ai_chat.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_ai_chat.diff.gz` |
+| mingw64 | `ded/be_ai_goal.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_ai_goal.diff.gz` |
+| mingw64 | `ded/be_ai_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_ai_move.diff.gz` |
+| mingw64 | `ded/cm_load.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cm_load.diff.gz` |
+| mingw64 | `ded/cm_patch.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cm_patch.diff.gz` |
+| mingw64 | `ded/cm_test.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cm_test.diff.gz` |
+| mingw64 | `ded/cm_trace.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cm_trace.diff.gz` |
+| mingw64 | `ded/cmd.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cmd.diff.gz` |
+| mingw64 | `ded/common.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-common.diff.gz` |
+| mingw64 | `ded/cvar.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cvar.diff.gz` |
+| mingw64 | `ded/files.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-files.diff.gz` |
+| mingw64 | `ded/history.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-history.diff.gz` |
+| mingw64 | `ded/huffman.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-huffman.diff.gz` |
+| mingw64 | `ded/keys.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-keys.diff.gz` |
+| mingw64 | `ded/l_memory.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-l_memory.diff.gz` |
+| mingw64 | `ded/l_precomp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-l_precomp.diff.gz` |
+| mingw64 | `ded/l_script.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-l_script.diff.gz` |
+| mingw64 | `ded/l_struct.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-l_struct.diff.gz` |
+| mingw64 | `ded/md5.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-md5.diff.gz` |
+| mingw64 | `ded/msg.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-msg.diff.gz` |
+| mingw64 | `ded/net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-net_chan.diff.gz` |
+| mingw64 | `ded/net_ip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-net_ip.diff.gz` |
+| mingw64 | `ded/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-q_math.diff.gz` |
+| mingw64 | `ded/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-q_shared.diff.gz` |
+| mingw64 | `ded/qvm/vm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-qvm-vm.diff.gz` |
+| mingw64 | `ded/qvm/vm_interpreted.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-qvm-vm_interpreted.diff.gz` |
+| mingw64 | `ded/qvm/vm_x86.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-qvm-vm_x86.diff.gz` |
+| mingw64 | `ded/sv_bot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_bot.diff.gz` |
+| mingw64 | `ded/sv_ccmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_ccmds.diff.gz` |
+| mingw64 | `ded/sv_filter.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_filter.diff.gz` |
+| mingw64 | `ded/sv_game.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_game.diff.gz` |
+| mingw64 | `ded/sv_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_init.diff.gz` |
+| mingw64 | `ded/sv_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_main.diff.gz` |
+| mingw64 | `ded/sv_net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_net_chan.diff.gz` |
+| mingw64 | `ded/sv_snapshot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_snapshot.diff.gz` |
+| mingw64 | `ded/sv_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_world.diff.gz` |
+| mingw64 | `ded/unzip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-unzip.diff.gz` |
+| mingw64 | `ded/win_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-win_main.diff.gz` |
+| mingw64 | `ded/win_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-win_shared.diff.gz` |
+| mingw64 | `ded/win_syscon.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-win_syscon.diff.gz` |
+| mingw64 | `rend1/puff.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-puff.diff.gz` |
+| mingw64 | `rend1/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-q_math.diff.gz` |
+| mingw64 | `rend1/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-q_shared.diff.gz` |
+| mingw64 | `rend1/tr_animation.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_animation.diff.gz` |
+| mingw64 | `rend1/tr_arb.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_arb.diff.gz` |
+| mingw64 | `rend1/tr_backend.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_backend.diff.gz` |
+| mingw64 | `rend1/tr_bsp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_bsp.diff.gz` |
+| mingw64 | `rend1/tr_cmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_cmds.diff.gz` |
+| mingw64 | `rend1/tr_curve.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_curve.diff.gz` |
+| mingw64 | `rend1/tr_flares.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_flares.diff.gz` |
+| mingw64 | `rend1/tr_image.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_image.diff.gz` |
+| mingw64 | `rend1/tr_image_tga.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_image_tga.diff.gz` |
+| mingw64 | `rend1/tr_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_init.diff.gz` |
+| mingw64 | `rend1/tr_light.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_light.diff.gz` |
+| mingw64 | `rend1/tr_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_main.diff.gz` |
+| mingw64 | `rend1/tr_marks.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_marks.diff.gz` |
+| mingw64 | `rend1/tr_mesh.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_mesh.diff.gz` |
+| mingw64 | `rend1/tr_model.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_model.diff.gz` |
+| mingw64 | `rend1/tr_model_iqm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_model_iqm.diff.gz` |
+| mingw64 | `rend1/tr_scene.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_scene.diff.gz` |
+| mingw64 | `rend1/tr_shade.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_shade.diff.gz` |
+| mingw64 | `rend1/tr_shade_calc.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_shade_calc.diff.gz` |
+| mingw64 | `rend1/tr_shader.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_shader.diff.gz` |
+| mingw64 | `rend1/tr_shadows.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_shadows.diff.gz` |
+| mingw64 | `rend1/tr_sky.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_sky.diff.gz` |
+| mingw64 | `rend1/tr_surface.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_surface.diff.gz` |
+| mingw64 | `rend1/tr_vbo.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_vbo.diff.gz` |
+| mingw64 | `rend1/tr_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_world.diff.gz` |
+| mingw64 | `rendv/puff.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-puff.diff.gz` |
+| mingw64 | `rendv/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-q_math.diff.gz` |
+| mingw64 | `rendv/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-q_shared.diff.gz` |
+| mingw64 | `rendv/tr_animation.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_animation.diff.gz` |
+| mingw64 | `rendv/tr_backend.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_backend.diff.gz` |
+| mingw64 | `rendv/tr_bsp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_bsp.diff.gz` |
+| mingw64 | `rendv/tr_cmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_cmds.diff.gz` |
+| mingw64 | `rendv/tr_curve.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_curve.diff.gz` |
+| mingw64 | `rendv/tr_image.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_image.diff.gz` |
+| mingw64 | `rendv/tr_image_tga.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_image_tga.diff.gz` |
+| mingw64 | `rendv/tr_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_init.diff.gz` |
+| mingw64 | `rendv/tr_light.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_light.diff.gz` |
+| mingw64 | `rendv/tr_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_main.diff.gz` |
+| mingw64 | `rendv/tr_marks.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_marks.diff.gz` |
+| mingw64 | `rendv/tr_mesh.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_mesh.diff.gz` |
+| mingw64 | `rendv/tr_model.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_model.diff.gz` |
+| mingw64 | `rendv/tr_model_iqm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_model_iqm.diff.gz` |
+| mingw64 | `rendv/tr_scene.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_scene.diff.gz` |
+| mingw64 | `rendv/tr_shade.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_shade.diff.gz` |
+| mingw64 | `rendv/tr_shade_calc.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_shade_calc.diff.gz` |
+| mingw64 | `rendv/tr_shader.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_shader.diff.gz` |
+| mingw64 | `rendv/tr_shadows.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_shadows.diff.gz` |
+| mingw64 | `rendv/tr_sky.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_sky.diff.gz` |
+| mingw64 | `rendv/tr_surface.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_surface.diff.gz` |
+| mingw64 | `rendv/tr_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_world.diff.gz` |
+| mingw64 | `rendv/vk.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-vk.diff.gz` |
+| mingw64 | `rendv/vk_flares.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-vk_flares.diff.gz` |
+| mingw64 | `rendv/vk_vbo.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-vk_vbo.diff.gz` |
+| aarch64 | `ded/be_aas_bspq3.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_bspq3.diff.gz` |
+| aarch64 | `ded/be_aas_cluster.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_cluster.diff.gz` |
+| aarch64 | `ded/be_aas_debug.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_debug.diff.gz` |
+| aarch64 | `ded/be_aas_file.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_file.diff.gz` |
+| aarch64 | `ded/be_aas_reach.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_reach.diff.gz` |
+| aarch64 | `ded/be_aas_route.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_route.diff.gz` |
+| aarch64 | `ded/be_aas_routealt.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_routealt.diff.gz` |
+| aarch64 | `ded/be_aas_sample.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_sample.diff.gz` |
+| aarch64 | `ded/be_ai_char.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_ai_char.diff.gz` |
+| aarch64 | `ded/be_ai_chat.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_ai_chat.diff.gz` |
+| aarch64 | `ded/be_ai_move.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_ai_move.diff.gz` |
+| aarch64 | `ded/cm_load.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-cm_load.diff.gz` |
+| aarch64 | `ded/cm_patch.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-cm_patch.diff.gz` |
+| aarch64 | `ded/cm_trace.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-cm_trace.diff.gz` |
+| aarch64 | `ded/cmd.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-cmd.diff.gz` |
+| aarch64 | `ded/common.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-common.diff.gz` |
+| aarch64 | `ded/cvar.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-cvar.diff.gz` |
+| aarch64 | `ded/files.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-files.diff.gz` |
+| aarch64 | `ded/history.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-history.diff.gz` |
+| aarch64 | `ded/huffman.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-huffman.diff.gz` |
+| aarch64 | `ded/keys.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-keys.diff.gz` |
+| aarch64 | `ded/l_memory.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-l_memory.diff.gz` |
+| aarch64 | `ded/l_precomp.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-l_precomp.diff.gz` |
+| aarch64 | `ded/l_script.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-l_script.diff.gz` |
+| aarch64 | `ded/l_struct.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-l_struct.diff.gz` |
+| aarch64 | `ded/md5.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-md5.diff.gz` |
+| aarch64 | `ded/msg.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-msg.diff.gz` |
+| aarch64 | `ded/net_chan.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-net_chan.diff.gz` |
+| aarch64 | `ded/net_ip.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-net_ip.diff.gz` |
+| aarch64 | `ded/q_shared.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-q_shared.diff.gz` |
+| aarch64 | `ded/qvm/vm.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-qvm-vm.diff.gz` |
+| aarch64 | `ded/qvm/vm_aarch64.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-qvm-vm_aarch64.diff.gz` |
+| aarch64 | `ded/qvm/vm_interpreted.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-qvm-vm_interpreted.diff.gz` |
+| aarch64 | `ded/sv_bot.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_bot.diff.gz` |
+| aarch64 | `ded/sv_ccmds.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_ccmds.diff.gz` |
+| aarch64 | `ded/sv_filter.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_filter.diff.gz` |
+| aarch64 | `ded/sv_game.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_game.diff.gz` |
+| aarch64 | `ded/sv_init.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_init.diff.gz` |
+| aarch64 | `ded/sv_main.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_main.diff.gz` |
+| aarch64 | `ded/sv_net_chan.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_net_chan.diff.gz` |
+| aarch64 | `ded/sv_snapshot.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_snapshot.diff.gz` |
+| aarch64 | `ded/sv_world.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_world.diff.gz` |
+| aarch64 | `ded/unix_main.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-unix_main.diff.gz` |
+| aarch64 | `ded/unix_shared.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-unix_shared.diff.gz` |
+| aarch64 | `ded/unzip.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-unzip.diff.gz` |
+| arm | `ded/be_aas_bspq3.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_bspq3.diff.gz` |
+| arm | `ded/be_aas_cluster.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_cluster.diff.gz` |
+| arm | `ded/be_aas_debug.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_debug.diff.gz` |
+| arm | `ded/be_aas_file.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_file.diff.gz` |
+| arm | `ded/be_aas_reach.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_reach.diff.gz` |
+| arm | `ded/be_aas_route.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_route.diff.gz` |
+| arm | `ded/be_aas_routealt.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_routealt.diff.gz` |
+| arm | `ded/be_aas_sample.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_sample.diff.gz` |
+| arm | `ded/be_ai_char.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_ai_char.diff.gz` |
+| arm | `ded/be_ai_chat.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_ai_chat.diff.gz` |
+| arm | `ded/be_ai_move.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_ai_move.diff.gz` |
+| arm | `ded/cm_load.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-cm_load.diff.gz` |
+| arm | `ded/cm_patch.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-cm_patch.diff.gz` |
+| arm | `ded/cm_trace.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-cm_trace.diff.gz` |
+| arm | `ded/cmd.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-cmd.diff.gz` |
+| arm | `ded/common.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-common.diff.gz` |
+| arm | `ded/cvar.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-cvar.diff.gz` |
+| arm | `ded/files.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-files.diff.gz` |
+| arm | `ded/history.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-history.diff.gz` |
+| arm | `ded/huffman.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-huffman.diff.gz` |
+| arm | `ded/keys.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-keys.diff.gz` |
+| arm | `ded/l_memory.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-l_memory.diff.gz` |
+| arm | `ded/l_precomp.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-l_precomp.diff.gz` |
+| arm | `ded/l_script.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-l_script.diff.gz` |
+| arm | `ded/l_struct.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-l_struct.diff.gz` |
+| arm | `ded/md5.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-md5.diff.gz` |
+| arm | `ded/msg.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-msg.diff.gz` |
+| arm | `ded/net_chan.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-net_chan.diff.gz` |
+| arm | `ded/net_ip.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-net_ip.diff.gz` |
+| arm | `ded/q_math.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-q_math.diff.gz` |
+| arm | `ded/q_shared.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-q_shared.diff.gz` |
+| arm | `ded/qvm/vm.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-qvm-vm.diff.gz` |
+| arm | `ded/qvm/vm_armv7l.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-qvm-vm_armv7l.diff.gz` |
+| arm | `ded/qvm/vm_interpreted.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-qvm-vm_interpreted.diff.gz` |
+| arm | `ded/sv_bot.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_bot.diff.gz` |
+| arm | `ded/sv_ccmds.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_ccmds.diff.gz` |
+| arm | `ded/sv_filter.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_filter.diff.gz` |
+| arm | `ded/sv_game.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_game.diff.gz` |
+| arm | `ded/sv_init.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_init.diff.gz` |
+| arm | `ded/sv_main.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_main.diff.gz` |
+| arm | `ded/sv_net_chan.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_net_chan.diff.gz` |
+| arm | `ded/sv_snapshot.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_snapshot.diff.gz` |
+| arm | `ded/sv_world.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_world.diff.gz` |
+| arm | `ded/unix_main.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-unix_main.diff.gz` |
+| arm | `ded/unix_shared.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-unix_shared.diff.gz` |
+| arm | `ded/unzip.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-unzip.diff.gz` |
+| ppc64le | `ded/be_aas_bspq3.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_bspq3.diff.gz` |
+| ppc64le | `ded/be_aas_cluster.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_cluster.diff.gz` |
+| ppc64le | `ded/be_aas_debug.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_debug.diff.gz` |
+| ppc64le | `ded/be_aas_entity.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_entity.diff.gz` |
+| ppc64le | `ded/be_aas_file.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_file.diff.gz` |
+| ppc64le | `ded/be_aas_main.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_main.diff.gz` |
+| ppc64le | `ded/be_aas_move.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_move.diff.gz` |
+| ppc64le | `ded/be_aas_optimize.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_optimize.diff.gz` |
+| ppc64le | `ded/be_aas_reach.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_reach.diff.gz` |
+| ppc64le | `ded/be_aas_route.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_route.diff.gz` |
+| ppc64le | `ded/be_aas_routealt.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_routealt.diff.gz` |
+| ppc64le | `ded/be_aas_sample.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_sample.diff.gz` |
+| ppc64le | `ded/be_ai_char.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_char.diff.gz` |
+| ppc64le | `ded/be_ai_chat.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_chat.diff.gz` |
+| ppc64le | `ded/be_ai_gen.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_gen.diff.gz` |
+| ppc64le | `ded/be_ai_goal.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_goal.diff.gz` |
+| ppc64le | `ded/be_ai_move.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_move.diff.gz` |
+| ppc64le | `ded/be_ai_weap.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_weap.diff.gz` |
+| ppc64le | `ded/be_ai_weight.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_weight.diff.gz` |
+| ppc64le | `ded/be_ea.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ea.diff.gz` |
+| ppc64le | `ded/be_interface.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_interface.diff.gz` |
+| ppc64le | `ded/cm_load.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cm_load.diff.gz` |
+| ppc64le | `ded/cm_patch.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cm_patch.diff.gz` |
+| ppc64le | `ded/cm_polylib.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cm_polylib.diff.gz` |
+| ppc64le | `ded/cm_test.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cm_test.diff.gz` |
+| ppc64le | `ded/cm_trace.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cm_trace.diff.gz` |
+| ppc64le | `ded/cmd.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cmd.diff.gz` |
+| ppc64le | `ded/common.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-common.diff.gz` |
+| ppc64le | `ded/cvar.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cvar.diff.gz` |
+| ppc64le | `ded/files.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-files.diff.gz` |
+| ppc64le | `ded/history.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-history.diff.gz` |
+| ppc64le | `ded/huffman.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-huffman.diff.gz` |
+| ppc64le | `ded/huffman_static.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-huffman_static.diff.gz` |
+| ppc64le | `ded/keys.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-keys.diff.gz` |
+| ppc64le | `ded/l_crc.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_crc.diff.gz` |
+| ppc64le | `ded/l_libvar.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_libvar.diff.gz` |
+| ppc64le | `ded/l_log.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_log.diff.gz` |
+| ppc64le | `ded/l_memory.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_memory.diff.gz` |
+| ppc64le | `ded/l_precomp.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_precomp.diff.gz` |
+| ppc64le | `ded/l_script.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_script.diff.gz` |
+| ppc64le | `ded/l_struct.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_struct.diff.gz` |
+| ppc64le | `ded/linux_signals.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-linux_signals.diff.gz` |
+| ppc64le | `ded/md4.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-md4.diff.gz` |
+| ppc64le | `ded/md5.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-md5.diff.gz` |
+| ppc64le | `ded/msg.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-msg.diff.gz` |
+| ppc64le | `ded/net_chan.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-net_chan.diff.gz` |
+| ppc64le | `ded/net_ip.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-net_ip.diff.gz` |
+| ppc64le | `ded/q_math.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-q_math.diff.gz` |
+| ppc64le | `ded/q_shared.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-q_shared.diff.gz` |
+| ppc64le | `ded/qvm/vm.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-qvm-vm.diff.gz` |
+| ppc64le | `ded/qvm/vm_interpreted.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-qvm-vm_interpreted.diff.gz` |
+| ppc64le | `ded/qvm/vm_powerpc.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-qvm-vm_powerpc.diff.gz` |
+| ppc64le | `ded/sv_bot.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_bot.diff.gz` |
+| ppc64le | `ded/sv_ccmds.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_ccmds.diff.gz` |
+| ppc64le | `ded/sv_filter.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_filter.diff.gz` |
+| ppc64le | `ded/sv_game.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_game.diff.gz` |
+| ppc64le | `ded/sv_init.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_init.diff.gz` |
+| ppc64le | `ded/sv_main.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_main.diff.gz` |
+| ppc64le | `ded/sv_net_chan.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_net_chan.diff.gz` |
+| ppc64le | `ded/sv_snapshot.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_snapshot.diff.gz` |
+| ppc64le | `ded/sv_world.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_world.diff.gz` |
+| ppc64le | `ded/unix_main.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-unix_main.diff.gz` |
+| ppc64le | `ded/unix_shared.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-unix_shared.diff.gz` |
+| ppc64le | `ded/unzip.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-unzip.diff.gz` |
+| native | `client/be_aas_bspq3.o` | `defaults` | `current-native-context-native-client-be_aas_bspq3.diff.gz` |
+| native | `client/be_aas_cluster.o` | `defaults` | `current-native-context-native-client-be_aas_cluster.diff.gz` |
+| native | `client/be_aas_debug.o` | `defaults` | `current-native-context-native-client-be_aas_debug.diff.gz` |
+| native | `client/be_aas_file.o` | `defaults` | `current-native-context-native-client-be_aas_file.diff.gz` |
+| native | `client/be_aas_reach.o` | `defaults` | `current-native-context-native-client-be_aas_reach.diff.gz` |
+| native | `client/be_aas_route.o` | `defaults` | `current-native-context-native-client-be_aas_route.diff.gz` |
+| native | `client/be_aas_routealt.o` | `defaults` | `current-native-context-native-client-be_aas_routealt.diff.gz` |
+| native | `client/be_aas_sample.o` | `defaults` | `current-native-context-native-client-be_aas_sample.diff.gz` |
+| native | `client/be_ai_char.o` | `defaults` | `current-native-context-native-client-be_ai_char.diff.gz` |
+| native | `client/be_ai_chat.o` | `defaults` | `current-native-context-native-client-be_ai_chat.diff.gz` |
+| native | `client/be_ai_move.o` | `defaults` | `current-native-context-native-client-be_ai_move.diff.gz` |
+| native | `client/cl_avi.o` | `defaults` | `current-native-context-native-client-cl_avi.diff.gz` |
+| native | `client/cl_cgame.o` | `defaults` | `current-native-context-native-client-cl_cgame.diff.gz` |
+| native | `client/cl_cin.o` | `defaults` | `current-native-context-native-client-cl_cin.diff.gz` |
+| native | `client/cl_console.o` | `defaults` | `current-native-context-native-client-cl_console.diff.gz` |
+| native | `client/cl_curl.o` | `defaults` | `current-native-context-native-client-cl_curl.diff.gz` |
+| native | `client/cl_input.o` | `defaults` | `current-native-context-native-client-cl_input.diff.gz` |
+| native | `client/cl_jpeg.o` | `defaults` | `current-native-context-native-client-cl_jpeg.diff.gz` |
+| native | `client/cl_keys.o` | `defaults` | `current-native-context-native-client-cl_keys.diff.gz` |
+| native | `client/cl_main.o` | `defaults` | `current-native-context-native-client-cl_main.diff.gz` |
+| native | `client/cl_net_chan.o` | `defaults` | `current-native-context-native-client-cl_net_chan.diff.gz` |
+| native | `client/cl_parse.o` | `defaults` | `current-native-context-native-client-cl_parse.diff.gz` |
+| native | `client/cl_scrn.o` | `defaults` | `current-native-context-native-client-cl_scrn.diff.gz` |
+| native | `client/cl_ui.o` | `defaults` | `current-native-context-native-client-cl_ui.diff.gz` |
+| native | `client/cm_load.o` | `defaults` | `current-native-context-native-client-cm_load.diff.gz` |
+| native | `client/cm_patch.o` | `defaults` | `current-native-context-native-client-cm_patch.diff.gz` |
+| native | `client/cm_trace.o` | `defaults` | `current-native-context-native-client-cm_trace.diff.gz` |
+| native | `client/cmd.o` | `defaults` | `current-native-context-native-client-cmd.diff.gz` |
+| native | `client/common.o` | `defaults` | `current-native-context-native-client-common.diff.gz` |
+| native | `client/cvar.o` | `defaults` | `current-native-context-native-client-cvar.diff.gz` |
+| native | `client/files.o` | `defaults` | `current-native-context-native-client-files.diff.gz` |
+| native | `client/history.o` | `defaults` | `current-native-context-native-client-history.diff.gz` |
+| native | `client/huffman.o` | `defaults` | `current-native-context-native-client-huffman.diff.gz` |
+| native | `client/keys.o` | `defaults` | `current-native-context-native-client-keys.diff.gz` |
+| native | `client/l_memory.o` | `defaults` | `current-native-context-native-client-l_memory.diff.gz` |
+| native | `client/l_precomp.o` | `defaults` | `current-native-context-native-client-l_precomp.diff.gz` |
+| native | `client/l_script.o` | `defaults` | `current-native-context-native-client-l_script.diff.gz` |
+| native | `client/l_struct.o` | `defaults` | `current-native-context-native-client-l_struct.diff.gz` |
+| native | `client/md5.o` | `defaults` | `current-native-context-native-client-md5.diff.gz` |
+| native | `client/msg.o` | `defaults` | `current-native-context-native-client-msg.diff.gz` |
+| native | `client/net_chan.o` | `defaults` | `current-native-context-native-client-net_chan.diff.gz` |
+| native | `client/net_ip.o` | `defaults` | `current-native-context-native-client-net_ip.diff.gz` |
+| native | `client/puff.o` | `defaults` | `current-native-context-native-client-puff.diff.gz` |
+| native | `client/q_shared.o` | `defaults` | `current-native-context-native-client-q_shared.diff.gz` |
+| native | `client/qvm/vm.o` | `defaults` | `current-native-context-native-client-qvm-vm.diff.gz` |
+| native | `client/qvm/vm_interpreted.o` | `defaults` | `current-native-context-native-client-qvm-vm_interpreted.diff.gz` |
+| native | `client/qvm/vm_x86.o` | `defaults` | `current-native-context-native-client-qvm-vm_x86.diff.gz` |
+| native | `client/sdl_input.o` | `defaults` | `current-native-context-native-client-sdl_input.diff.gz` |
+| native | `client/snd_dma.o` | `defaults` | `current-native-context-native-client-snd_dma.diff.gz` |
+| native | `client/snd_mem.o` | `defaults` | `current-native-context-native-client-snd_mem.diff.gz` |
+| native | `client/snd_mix.o` | `defaults` | `current-native-context-native-client-snd_mix.diff.gz` |
+| native | `client/sv_bot.o` | `defaults` | `current-native-context-native-client-sv_bot.diff.gz` |
+| native | `client/sv_ccmds.o` | `defaults` | `current-native-context-native-client-sv_ccmds.diff.gz` |
+| native | `client/sv_filter.o` | `defaults` | `current-native-context-native-client-sv_filter.diff.gz` |
+| native | `client/sv_game.o` | `defaults` | `current-native-context-native-client-sv_game.diff.gz` |
+| native | `client/sv_init.o` | `defaults` | `current-native-context-native-client-sv_init.diff.gz` |
+| native | `client/sv_main.o` | `defaults` | `current-native-context-native-client-sv_main.diff.gz` |
+| native | `client/sv_net_chan.o` | `defaults` | `current-native-context-native-client-sv_net_chan.diff.gz` |
+| native | `client/sv_snapshot.o` | `defaults` | `current-native-context-native-client-sv_snapshot.diff.gz` |
+| native | `client/sv_world.o` | `defaults` | `current-native-context-native-client-sv_world.diff.gz` |
+| native | `client/unix_main.o` | `defaults` | `current-native-context-native-client-unix_main.diff.gz` |
+| native | `client/unix_shared.o` | `defaults` | `current-native-context-native-client-unix_shared.diff.gz` |
+| native | `client/unzip.o` | `defaults` | `current-native-context-native-client-unzip.diff.gz` |
+| native | `ded/be_aas_bspq3.o` | `defaults` | `current-native-context-native-ded-be_aas_bspq3.diff.gz` |
+| native | `ded/be_aas_cluster.o` | `defaults` | `current-native-context-native-ded-be_aas_cluster.diff.gz` |
+| native | `ded/be_aas_debug.o` | `defaults` | `current-native-context-native-ded-be_aas_debug.diff.gz` |
+| native | `ded/be_aas_file.o` | `defaults` | `current-native-context-native-ded-be_aas_file.diff.gz` |
+| native | `ded/be_aas_reach.o` | `defaults` | `current-native-context-native-ded-be_aas_reach.diff.gz` |
+| native | `ded/be_aas_route.o` | `defaults` | `current-native-context-native-ded-be_aas_route.diff.gz` |
+| native | `ded/be_aas_routealt.o` | `defaults` | `current-native-context-native-ded-be_aas_routealt.diff.gz` |
+| native | `ded/be_aas_sample.o` | `defaults` | `current-native-context-native-ded-be_aas_sample.diff.gz` |
+| native | `ded/be_ai_char.o` | `defaults` | `current-native-context-native-ded-be_ai_char.diff.gz` |
+| native | `ded/be_ai_chat.o` | `defaults` | `current-native-context-native-ded-be_ai_chat.diff.gz` |
+| native | `ded/be_ai_move.o` | `defaults` | `current-native-context-native-ded-be_ai_move.diff.gz` |
+| native | `ded/cm_load.o` | `defaults` | `current-native-context-native-ded-cm_load.diff.gz` |
+| native | `ded/cm_patch.o` | `defaults` | `current-native-context-native-ded-cm_patch.diff.gz` |
+| native | `ded/cm_trace.o` | `defaults` | `current-native-context-native-ded-cm_trace.diff.gz` |
+| native | `ded/cmd.o` | `defaults` | `current-native-context-native-ded-cmd.diff.gz` |
+| native | `ded/common.o` | `defaults` | `current-native-context-native-ded-common.diff.gz` |
+| native | `ded/cvar.o` | `defaults` | `current-native-context-native-ded-cvar.diff.gz` |
+| native | `ded/files.o` | `defaults` | `current-native-context-native-ded-files.diff.gz` |
+| native | `ded/history.o` | `defaults` | `current-native-context-native-ded-history.diff.gz` |
+| native | `ded/huffman.o` | `defaults` | `current-native-context-native-ded-huffman.diff.gz` |
+| native | `ded/keys.o` | `defaults` | `current-native-context-native-ded-keys.diff.gz` |
+| native | `ded/l_memory.o` | `defaults` | `current-native-context-native-ded-l_memory.diff.gz` |
+| native | `ded/l_precomp.o` | `defaults` | `current-native-context-native-ded-l_precomp.diff.gz` |
+| native | `ded/l_script.o` | `defaults` | `current-native-context-native-ded-l_script.diff.gz` |
+| native | `ded/l_struct.o` | `defaults` | `current-native-context-native-ded-l_struct.diff.gz` |
+| native | `ded/md5.o` | `defaults` | `current-native-context-native-ded-md5.diff.gz` |
+| native | `ded/msg.o` | `defaults` | `current-native-context-native-ded-msg.diff.gz` |
+| native | `ded/net_chan.o` | `defaults` | `current-native-context-native-ded-net_chan.diff.gz` |
+| native | `ded/net_ip.o` | `defaults` | `current-native-context-native-ded-net_ip.diff.gz` |
+| native | `ded/q_shared.o` | `defaults` | `current-native-context-native-ded-q_shared.diff.gz` |
+| native | `ded/qvm/vm.o` | `defaults` | `current-native-context-native-ded-qvm-vm.diff.gz` |
+| native | `ded/qvm/vm_interpreted.o` | `defaults` | `current-native-context-native-ded-qvm-vm_interpreted.diff.gz` |
+| native | `ded/qvm/vm_x86.o` | `defaults` | `current-native-context-native-ded-qvm-vm_x86.diff.gz` |
+| native | `ded/sv_bot.o` | `defaults` | `current-native-context-native-ded-sv_bot.diff.gz` |
+| native | `ded/sv_ccmds.o` | `defaults` | `current-native-context-native-ded-sv_ccmds.diff.gz` |
+| native | `ded/sv_filter.o` | `defaults` | `current-native-context-native-ded-sv_filter.diff.gz` |
+| native | `ded/sv_game.o` | `defaults` | `current-native-context-native-ded-sv_game.diff.gz` |
+| native | `ded/sv_init.o` | `defaults` | `current-native-context-native-ded-sv_init.diff.gz` |
+| native | `ded/sv_main.o` | `defaults` | `current-native-context-native-ded-sv_main.diff.gz` |
+| native | `ded/sv_net_chan.o` | `defaults` | `current-native-context-native-ded-sv_net_chan.diff.gz` |
+| native | `ded/sv_snapshot.o` | `defaults` | `current-native-context-native-ded-sv_snapshot.diff.gz` |
+| native | `ded/sv_world.o` | `defaults` | `current-native-context-native-ded-sv_world.diff.gz` |
+| native | `ded/unix_main.o` | `defaults` | `current-native-context-native-ded-unix_main.diff.gz` |
+| native | `ded/unix_shared.o` | `defaults` | `current-native-context-native-ded-unix_shared.diff.gz` |
+| native | `ded/unzip.o` | `defaults` | `current-native-context-native-ded-unzip.diff.gz` |
+| native | `rend1/puff.o` | `defaults` | `current-native-context-native-rend1-puff.diff.gz` |
+| native | `rend1/q_shared.o` | `defaults` | `current-native-context-native-rend1-q_shared.diff.gz` |
+| native | `rend1/tr_animation.o` | `defaults` | `current-native-context-native-rend1-tr_animation.diff.gz` |
+| native | `rend1/tr_arb.o` | `defaults` | `current-native-context-native-rend1-tr_arb.diff.gz` |
+| native | `rend1/tr_backend.o` | `defaults` | `current-native-context-native-rend1-tr_backend.diff.gz` |
+| native | `rend1/tr_bsp.o` | `defaults` | `current-native-context-native-rend1-tr_bsp.diff.gz` |
+| native | `rend1/tr_cmds.o` | `defaults` | `current-native-context-native-rend1-tr_cmds.diff.gz` |
+| native | `rend1/tr_curve.o` | `defaults` | `current-native-context-native-rend1-tr_curve.diff.gz` |
+| native | `rend1/tr_flares.o` | `defaults` | `current-native-context-native-rend1-tr_flares.diff.gz` |
+| native | `rend1/tr_image.o` | `defaults` | `current-native-context-native-rend1-tr_image.diff.gz` |
+| native | `rend1/tr_image_tga.o` | `defaults` | `current-native-context-native-rend1-tr_image_tga.diff.gz` |
+| native | `rend1/tr_init.o` | `defaults` | `current-native-context-native-rend1-tr_init.diff.gz` |
+| native | `rend1/tr_light.o` | `defaults` | `current-native-context-native-rend1-tr_light.diff.gz` |
+| native | `rend1/tr_main.o` | `defaults` | `current-native-context-native-rend1-tr_main.diff.gz` |
+| native | `rend1/tr_mesh.o` | `defaults` | `current-native-context-native-rend1-tr_mesh.diff.gz` |
+| native | `rend1/tr_model.o` | `defaults` | `current-native-context-native-rend1-tr_model.diff.gz` |
+| native | `rend1/tr_model_iqm.o` | `defaults` | `current-native-context-native-rend1-tr_model_iqm.diff.gz` |
+| native | `rend1/tr_noise.o` | `defaults` | `current-native-context-native-rend1-tr_noise.diff.gz` |
+| native | `rend1/tr_scene.o` | `defaults` | `current-native-context-native-rend1-tr_scene.diff.gz` |
+| native | `rend1/tr_shade.o` | `defaults` | `current-native-context-native-rend1-tr_shade.diff.gz` |
+| native | `rend1/tr_shade_calc.o` | `defaults` | `current-native-context-native-rend1-tr_shade_calc.diff.gz` |
+| native | `rend1/tr_shader.o` | `defaults` | `current-native-context-native-rend1-tr_shader.diff.gz` |
+| native | `rend1/tr_shadows.o` | `defaults` | `current-native-context-native-rend1-tr_shadows.diff.gz` |
+| native | `rend1/tr_sky.o` | `defaults` | `current-native-context-native-rend1-tr_sky.diff.gz` |
+| native | `rend1/tr_surface.o` | `defaults` | `current-native-context-native-rend1-tr_surface.diff.gz` |
+| native | `rend1/tr_vbo.o` | `defaults` | `current-native-context-native-rend1-tr_vbo.diff.gz` |
+| native | `rend1/tr_world.o` | `defaults` | `current-native-context-native-rend1-tr_world.diff.gz` |
+| native | `rendv/puff.o` | `defaults` | `current-native-context-native-rendv-puff.diff.gz` |
+| native | `rendv/q_shared.o` | `defaults` | `current-native-context-native-rendv-q_shared.diff.gz` |
+| native | `rendv/tr_animation.o` | `defaults` | `current-native-context-native-rendv-tr_animation.diff.gz` |
+| native | `rendv/tr_backend.o` | `defaults` | `current-native-context-native-rendv-tr_backend.diff.gz` |
+| native | `rendv/tr_bsp.o` | `defaults` | `current-native-context-native-rendv-tr_bsp.diff.gz` |
+| native | `rendv/tr_cmds.o` | `defaults` | `current-native-context-native-rendv-tr_cmds.diff.gz` |
+| native | `rendv/tr_curve.o` | `defaults` | `current-native-context-native-rendv-tr_curve.diff.gz` |
+| native | `rendv/tr_image.o` | `defaults` | `current-native-context-native-rendv-tr_image.diff.gz` |
+| native | `rendv/tr_image_tga.o` | `defaults` | `current-native-context-native-rendv-tr_image_tga.diff.gz` |
+| native | `rendv/tr_init.o` | `defaults` | `current-native-context-native-rendv-tr_init.diff.gz` |
+| native | `rendv/tr_light.o` | `defaults` | `current-native-context-native-rendv-tr_light.diff.gz` |
+| native | `rendv/tr_main.o` | `defaults` | `current-native-context-native-rendv-tr_main.diff.gz` |
+| native | `rendv/tr_mesh.o` | `defaults` | `current-native-context-native-rendv-tr_mesh.diff.gz` |
+| native | `rendv/tr_model.o` | `defaults` | `current-native-context-native-rendv-tr_model.diff.gz` |
+| native | `rendv/tr_model_iqm.o` | `defaults` | `current-native-context-native-rendv-tr_model_iqm.diff.gz` |
+| native | `rendv/tr_noise.o` | `defaults` | `current-native-context-native-rendv-tr_noise.diff.gz` |
+| native | `rendv/tr_scene.o` | `defaults` | `current-native-context-native-rendv-tr_scene.diff.gz` |
+| native | `rendv/tr_shade.o` | `defaults` | `current-native-context-native-rendv-tr_shade.diff.gz` |
+| native | `rendv/tr_shade_calc.o` | `defaults` | `current-native-context-native-rendv-tr_shade_calc.diff.gz` |
+| native | `rendv/tr_shader.o` | `defaults` | `current-native-context-native-rendv-tr_shader.diff.gz` |
+| native | `rendv/tr_shadows.o` | `defaults` | `current-native-context-native-rendv-tr_shadows.diff.gz` |
+| native | `rendv/tr_sky.o` | `defaults` | `current-native-context-native-rendv-tr_sky.diff.gz` |
+| native | `rendv/tr_surface.o` | `defaults` | `current-native-context-native-rendv-tr_surface.diff.gz` |
+| native | `rendv/tr_world.o` | `defaults` | `current-native-context-native-rendv-tr_world.diff.gz` |
+| native | `rendv/vk.o` | `defaults` | `current-native-context-native-rendv-vk.diff.gz` |
+| native | `rendv/vk_flares.o` | `defaults` | `current-native-context-native-rendv-vk_flares.diff.gz` |
+| native | `rendv/vk_vbo.o` | `defaults` | `current-native-context-native-rendv-vk_vbo.diff.gz` |
+| native-nosdl | `client/be_aas_bspq3.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_bspq3.diff.gz` |
+| native-nosdl | `client/be_aas_cluster.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_cluster.diff.gz` |
+| native-nosdl | `client/be_aas_debug.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_debug.diff.gz` |
+| native-nosdl | `client/be_aas_file.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_file.diff.gz` |
+| native-nosdl | `client/be_aas_reach.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_reach.diff.gz` |
+| native-nosdl | `client/be_aas_route.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_route.diff.gz` |
+| native-nosdl | `client/be_aas_routealt.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_routealt.diff.gz` |
+| native-nosdl | `client/be_aas_sample.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_sample.diff.gz` |
+| native-nosdl | `client/be_ai_char.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_ai_char.diff.gz` |
+| native-nosdl | `client/be_ai_chat.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_ai_chat.diff.gz` |
+| native-nosdl | `client/be_ai_move.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_ai_move.diff.gz` |
+| native-nosdl | `client/cl_avi.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_avi.diff.gz` |
+| native-nosdl | `client/cl_cgame.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_cgame.diff.gz` |
+| native-nosdl | `client/cl_cin.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_cin.diff.gz` |
+| native-nosdl | `client/cl_console.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_console.diff.gz` |
+| native-nosdl | `client/cl_curl.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_curl.diff.gz` |
+| native-nosdl | `client/cl_input.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_input.diff.gz` |
+| native-nosdl | `client/cl_jpeg.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_jpeg.diff.gz` |
+| native-nosdl | `client/cl_keys.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_keys.diff.gz` |
+| native-nosdl | `client/cl_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_main.diff.gz` |
+| native-nosdl | `client/cl_net_chan.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_net_chan.diff.gz` |
+| native-nosdl | `client/cl_parse.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_parse.diff.gz` |
+| native-nosdl | `client/cl_scrn.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_scrn.diff.gz` |
+| native-nosdl | `client/cl_ui.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_ui.diff.gz` |
+| native-nosdl | `client/cm_load.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cm_load.diff.gz` |
+| native-nosdl | `client/cm_patch.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cm_patch.diff.gz` |
+| native-nosdl | `client/cm_trace.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cm_trace.diff.gz` |
+| native-nosdl | `client/cmd.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cmd.diff.gz` |
+| native-nosdl | `client/common.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-common.diff.gz` |
+| native-nosdl | `client/cvar.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cvar.diff.gz` |
+| native-nosdl | `client/files.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-files.diff.gz` |
+| native-nosdl | `client/history.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-history.diff.gz` |
+| native-nosdl | `client/huffman.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-huffman.diff.gz` |
+| native-nosdl | `client/keys.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-keys.diff.gz` |
+| native-nosdl | `client/l_memory.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-l_memory.diff.gz` |
+| native-nosdl | `client/l_precomp.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-l_precomp.diff.gz` |
+| native-nosdl | `client/l_script.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-l_script.diff.gz` |
+| native-nosdl | `client/l_struct.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-l_struct.diff.gz` |
+| native-nosdl | `client/linux_glimp.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-linux_glimp.diff.gz` |
+| native-nosdl | `client/linux_qgl.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-linux_qgl.diff.gz` |
+| native-nosdl | `client/linux_snd.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-linux_snd.diff.gz` |
+| native-nosdl | `client/md5.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-md5.diff.gz` |
+| native-nosdl | `client/msg.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-msg.diff.gz` |
+| native-nosdl | `client/net_chan.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-net_chan.diff.gz` |
+| native-nosdl | `client/net_ip.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-net_ip.diff.gz` |
+| native-nosdl | `client/puff.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-puff.diff.gz` |
+| native-nosdl | `client/q_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-q_shared.diff.gz` |
+| native-nosdl | `client/qvm/vm.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-qvm-vm.diff.gz` |
+| native-nosdl | `client/qvm/vm_interpreted.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-qvm-vm_interpreted.diff.gz` |
+| native-nosdl | `client/qvm/vm_x86.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-qvm-vm_x86.diff.gz` |
+| native-nosdl | `client/snd_dma.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-snd_dma.diff.gz` |
+| native-nosdl | `client/snd_mem.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-snd_mem.diff.gz` |
+| native-nosdl | `client/snd_mix.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-snd_mix.diff.gz` |
+| native-nosdl | `client/sv_bot.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_bot.diff.gz` |
+| native-nosdl | `client/sv_ccmds.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_ccmds.diff.gz` |
+| native-nosdl | `client/sv_filter.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_filter.diff.gz` |
+| native-nosdl | `client/sv_game.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_game.diff.gz` |
+| native-nosdl | `client/sv_init.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_init.diff.gz` |
+| native-nosdl | `client/sv_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_main.diff.gz` |
+| native-nosdl | `client/sv_net_chan.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_net_chan.diff.gz` |
+| native-nosdl | `client/sv_snapshot.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_snapshot.diff.gz` |
+| native-nosdl | `client/sv_world.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_world.diff.gz` |
+| native-nosdl | `client/unix_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-unix_main.diff.gz` |
+| native-nosdl | `client/unix_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-unix_shared.diff.gz` |
+| native-nosdl | `client/unzip.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-unzip.diff.gz` |
+| native-nosdl | `ded/be_aas_bspq3.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_bspq3.diff.gz` |
+| native-nosdl | `ded/be_aas_cluster.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_cluster.diff.gz` |
+| native-nosdl | `ded/be_aas_debug.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_debug.diff.gz` |
+| native-nosdl | `ded/be_aas_file.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_file.diff.gz` |
+| native-nosdl | `ded/be_aas_reach.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_reach.diff.gz` |
+| native-nosdl | `ded/be_aas_route.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_route.diff.gz` |
+| native-nosdl | `ded/be_aas_routealt.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_routealt.diff.gz` |
+| native-nosdl | `ded/be_aas_sample.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_sample.diff.gz` |
+| native-nosdl | `ded/be_ai_char.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_ai_char.diff.gz` |
+| native-nosdl | `ded/be_ai_chat.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_ai_chat.diff.gz` |
+| native-nosdl | `ded/be_ai_move.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_ai_move.diff.gz` |
+| native-nosdl | `ded/cm_load.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-cm_load.diff.gz` |
+| native-nosdl | `ded/cm_patch.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-cm_patch.diff.gz` |
+| native-nosdl | `ded/cm_trace.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-cm_trace.diff.gz` |
+| native-nosdl | `ded/cmd.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-cmd.diff.gz` |
+| native-nosdl | `ded/common.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-common.diff.gz` |
+| native-nosdl | `ded/cvar.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-cvar.diff.gz` |
+| native-nosdl | `ded/files.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-files.diff.gz` |
+| native-nosdl | `ded/history.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-history.diff.gz` |
+| native-nosdl | `ded/huffman.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-huffman.diff.gz` |
+| native-nosdl | `ded/keys.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-keys.diff.gz` |
+| native-nosdl | `ded/l_memory.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-l_memory.diff.gz` |
+| native-nosdl | `ded/l_precomp.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-l_precomp.diff.gz` |
+| native-nosdl | `ded/l_script.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-l_script.diff.gz` |
+| native-nosdl | `ded/l_struct.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-l_struct.diff.gz` |
+| native-nosdl | `ded/md5.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-md5.diff.gz` |
+| native-nosdl | `ded/msg.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-msg.diff.gz` |
+| native-nosdl | `ded/net_chan.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-net_chan.diff.gz` |
+| native-nosdl | `ded/net_ip.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-net_ip.diff.gz` |
+| native-nosdl | `ded/q_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-q_shared.diff.gz` |
+| native-nosdl | `ded/qvm/vm.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-qvm-vm.diff.gz` |
+| native-nosdl | `ded/qvm/vm_interpreted.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-qvm-vm_interpreted.diff.gz` |
+| native-nosdl | `ded/qvm/vm_x86.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-qvm-vm_x86.diff.gz` |
+| native-nosdl | `ded/sv_bot.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_bot.diff.gz` |
+| native-nosdl | `ded/sv_ccmds.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_ccmds.diff.gz` |
+| native-nosdl | `ded/sv_filter.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_filter.diff.gz` |
+| native-nosdl | `ded/sv_game.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_game.diff.gz` |
+| native-nosdl | `ded/sv_init.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_init.diff.gz` |
+| native-nosdl | `ded/sv_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_main.diff.gz` |
+| native-nosdl | `ded/sv_net_chan.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_net_chan.diff.gz` |
+| native-nosdl | `ded/sv_snapshot.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_snapshot.diff.gz` |
+| native-nosdl | `ded/sv_world.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_world.diff.gz` |
+| native-nosdl | `ded/unix_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-unix_main.diff.gz` |
+| native-nosdl | `ded/unix_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-unix_shared.diff.gz` |
+| native-nosdl | `ded/unzip.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-unzip.diff.gz` |
+| native-nosdl | `rend1/puff.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-puff.diff.gz` |
+| native-nosdl | `rend1/q_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-q_shared.diff.gz` |
+| native-nosdl | `rend1/tr_animation.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_animation.diff.gz` |
+| native-nosdl | `rend1/tr_arb.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_arb.diff.gz` |
+| native-nosdl | `rend1/tr_backend.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_backend.diff.gz` |
+| native-nosdl | `rend1/tr_bsp.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_bsp.diff.gz` |
+| native-nosdl | `rend1/tr_cmds.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_cmds.diff.gz` |
+| native-nosdl | `rend1/tr_curve.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_curve.diff.gz` |
+| native-nosdl | `rend1/tr_flares.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_flares.diff.gz` |
+| native-nosdl | `rend1/tr_image.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_image.diff.gz` |
+| native-nosdl | `rend1/tr_image_tga.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_image_tga.diff.gz` |
+| native-nosdl | `rend1/tr_init.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_init.diff.gz` |
+| native-nosdl | `rend1/tr_light.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_light.diff.gz` |
+| native-nosdl | `rend1/tr_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_main.diff.gz` |
+| native-nosdl | `rend1/tr_mesh.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_mesh.diff.gz` |
+| native-nosdl | `rend1/tr_model.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_model.diff.gz` |
+| native-nosdl | `rend1/tr_model_iqm.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_model_iqm.diff.gz` |
+| native-nosdl | `rend1/tr_noise.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_noise.diff.gz` |
+| native-nosdl | `rend1/tr_scene.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_scene.diff.gz` |
+| native-nosdl | `rend1/tr_shade.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_shade.diff.gz` |
+| native-nosdl | `rend1/tr_shade_calc.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_shade_calc.diff.gz` |
+| native-nosdl | `rend1/tr_shader.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_shader.diff.gz` |
+| native-nosdl | `rend1/tr_shadows.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_shadows.diff.gz` |
+| native-nosdl | `rend1/tr_sky.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_sky.diff.gz` |
+| native-nosdl | `rend1/tr_surface.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_surface.diff.gz` |
+| native-nosdl | `rend1/tr_vbo.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_vbo.diff.gz` |
+| native-nosdl | `rend1/tr_world.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_world.diff.gz` |
+| native-nosdl | `rendv/puff.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-puff.diff.gz` |
+| native-nosdl | `rendv/q_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-q_shared.diff.gz` |
+| native-nosdl | `rendv/tr_animation.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_animation.diff.gz` |
+| native-nosdl | `rendv/tr_backend.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_backend.diff.gz` |
+| native-nosdl | `rendv/tr_bsp.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_bsp.diff.gz` |
+| native-nosdl | `rendv/tr_cmds.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_cmds.diff.gz` |
+| native-nosdl | `rendv/tr_curve.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_curve.diff.gz` |
+| native-nosdl | `rendv/tr_image.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_image.diff.gz` |
+| native-nosdl | `rendv/tr_image_tga.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_image_tga.diff.gz` |
+| native-nosdl | `rendv/tr_init.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_init.diff.gz` |
+| native-nosdl | `rendv/tr_light.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_light.diff.gz` |
+| native-nosdl | `rendv/tr_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_main.diff.gz` |
+| native-nosdl | `rendv/tr_mesh.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_mesh.diff.gz` |
+| native-nosdl | `rendv/tr_model.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_model.diff.gz` |
+| native-nosdl | `rendv/tr_model_iqm.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_model_iqm.diff.gz` |
+| native-nosdl | `rendv/tr_noise.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_noise.diff.gz` |
+| native-nosdl | `rendv/tr_scene.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_scene.diff.gz` |
+| native-nosdl | `rendv/tr_shade.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_shade.diff.gz` |
+| native-nosdl | `rendv/tr_shade_calc.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_shade_calc.diff.gz` |
+| native-nosdl | `rendv/tr_shader.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_shader.diff.gz` |
+| native-nosdl | `rendv/tr_shadows.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_shadows.diff.gz` |
+| native-nosdl | `rendv/tr_sky.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_sky.diff.gz` |
+| native-nosdl | `rendv/tr_surface.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_surface.diff.gz` |
+| native-nosdl | `rendv/tr_world.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_world.diff.gz` |
+| native-nosdl | `rendv/vk.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-vk.diff.gz` |
+| native-nosdl | `rendv/vk_flares.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-vk_flares.diff.gz` |
+| native-nosdl | `rendv/vk_vbo.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-vk_vbo.diff.gz` |
+| native-nosdl | `client/linux_joystick.o` | `USE_SDL=0 CFLAGS=-DUSE_JOYSTICK` | `current-native-context-native-nosdl-client-linux_joystick.diff.gz` |
+| static-opengl | `client/cl_main.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl` | `current-static-opengl-cl_main.diff.gz` |
+| static-opengl | `rend1/tr_init.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl` | `current-static-opengl-tr_init.diff.gz` |
+| static-vulkan | `client/cl_main.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan` | `current-static-vulkan-cl_main.diff.gz` |
+| static-vulkan | `rendv/tr_init.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan` | `current-static-vulkan-tr_init.diff.gz` |
