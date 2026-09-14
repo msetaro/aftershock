@@ -6,7 +6,7 @@ Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed c
 
 ## Next action
 
-Cross verification: next `win_snd.c`; T25 server hash blocker resolved. Then full native/cross sweeps and runtime acceptance; no rename until prerequisites pass.
+Cross verification: next `explicit WASAPI modes then full runtime`; T25 server hash blocker resolved. Then full native/cross sweeps and runtime acceptance; no rename until prerequisites pass.
 
 ## Phase checklist
 
@@ -421,7 +421,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/win32/win_qgl.c` | done | T1: 3 sites including function-to-object pointer conversion; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_qgl.o); G4 PASS. |
 | `code/win32/win_qvk.c` | done | T1: 4 sites including function-to-object pointer conversion; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_qvk.o); G4 PASS. |
 | `code/win32/win_shared.c` | done | T1-T23: 0; default profile configuration; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_shared.o); G4 advisory difference retained. |
-| `code/win32/win_snd.c` | blocked | Real MinGW verification: SDK C++ interfaces lack lpVtbl; CINTERFACE plus T4 this rename still fails GUID/reference calls at :300/:393/:422/:578/:853/:855. Eight outgoing GUID arguments and two memcmp addresses need uncataloged adaptation. USE_WASAPI=0 still fails DirectSound GUID calls. Prior two inspected T1 casts remain and C hash matches; new candidate edits not retained. G1-G4 incomplete. |
+| `code/win32/win_snd.c` | done | T24: 8 outgoing GUID arguments and 2 incoming pointer uses; T4: this identifier to self; T1: 2 Lock casts plus prior loader casts; T18: 2 GUID const declarations; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_snd.o); G4 advisory difference retained. |
 | `code/win32/win_syscon.c` | done | T2: 1 previously inspected boolean toggle, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_syscon.o); G4 advisory difference retained. |
 | `code/win32/win_wndproc.c` | done | T1: 2; T2: 2 previously inspected edits, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_wndproc.o); G4 advisory difference retained. |
 

@@ -89,7 +89,9 @@ const GUID IID_IAudioRenderClient = { 0xF294ACFC, 0x3146, 0x4483, { 0xA7, 0xBF, 
 const GUID CLSID_MMDeviceEnumerator = { 0xBCDE0395, 0xE52F, 0x467C, { 0x8E, 0x3D, 0xC4, 0x57, 0x92, 0x91, 0x69, 0x2E } };
 const GUID IID_IMMNotificationClient = { 0x7991EEC9, 0x7E89, 0x4D85, { 0x83, 0x90, 0x6C, 0x70, 0x3C, 0xEC, 0x60, 0xC0 } };
 const GUID IID_IMMDeviceEnumerator = { 0xA95664D2, 0x9614, 0x4F35, { 0xA7, 0x46, 0xDE, 0x8D, 0xB6, 0x36, 0x17, 0xE6 } };
+extern const GUID PcmSubformatGuid;
 const GUID PcmSubformatGuid = { 0x00000001, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71 } };
+extern const GUID FloatSubformatGuid;
 const GUID FloatSubformatGuid = { 0x00000003, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71 } };
 
 static LPWSTR DeviceID = NULL;
@@ -295,12 +297,12 @@ typedef struct NotificationClient_s
 }
 NotificationClient_t;
 
-static HRESULT STDMETHODCALLTYPE QueryInterface( IMMNotificationClient *this, REFIID riid, VOID **ppvInterface )
+static HRESULT STDMETHODCALLTYPE QueryInterface( IMMNotificationClient *self, REFIID riid, VOID **ppvInterface )
 {
-	if ( !memcmp( riid, &IID_IUnknown, sizeof( GUID ) ) || !memcmp( riid, &IID_IMMNotificationClient, sizeof( GUID ) ) ) 
+	if ( !memcmp( Q_REFGUID_PTR( riid ), &IID_IUnknown, sizeof( GUID ) ) || !memcmp( Q_REFGUID_PTR( riid ), &IID_IMMNotificationClient, sizeof( GUID ) ) )
 	{
-		*ppvInterface = (void**)this;
-		this->lpVtbl->AddRef( this );
+		*ppvInterface = (void**)self;
+		self->lpVtbl->AddRef( self );
 		return S_OK;
 	}
 	else
@@ -310,19 +312,19 @@ static HRESULT STDMETHODCALLTYPE QueryInterface( IMMNotificationClient *this, RE
 	}
 }
 
-static ULONG STDMETHODCALLTYPE AddRef( IMMNotificationClient *this )
+static ULONG STDMETHODCALLTYPE AddRef( IMMNotificationClient *self )
 {
-	NotificationClient_t *cl = (NotificationClient_t *) this;
+	NotificationClient_t *cl = (NotificationClient_t *) self;
 	return InterlockedIncrement( &cl->refcount );
 }
 
-static ULONG STDMETHODCALLTYPE Release( IMMNotificationClient *this )
+static ULONG STDMETHODCALLTYPE Release( IMMNotificationClient *self )
 {
-	NotificationClient_t *cl = (NotificationClient_t *) this;
+	NotificationClient_t *cl = (NotificationClient_t *) self;
 	return InterlockedDecrement( &cl->refcount );
 }
 
-static HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged( IMMNotificationClient *this, EDataFlow flow, ERole role, LPCWSTR pwstrDeviceId )
+static HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged( IMMNotificationClient *self, EDataFlow flow, ERole role, LPCWSTR pwstrDeviceId )
 {
 	if ( flow == eRender && role == eMultimedia )
 	{
@@ -331,17 +333,17 @@ static HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged( IMMNotificationClient *
 	return S_OK;
 }
 
-static HRESULT STDMETHODCALLTYPE OnDeviceAdded( IMMNotificationClient *this, LPCWSTR pwstrDeviceId )
+static HRESULT STDMETHODCALLTYPE OnDeviceAdded( IMMNotificationClient *self, LPCWSTR pwstrDeviceId )
 {
 	return S_OK;
 }
 
-static HRESULT STDMETHODCALLTYPE OnDeviceRemoved( IMMNotificationClient *this, LPCWSTR pwstrDeviceId )
+static HRESULT STDMETHODCALLTYPE OnDeviceRemoved( IMMNotificationClient *self, LPCWSTR pwstrDeviceId )
 {
 	return S_OK;
 }
 
-static HRESULT STDMETHODCALLTYPE OnDeviceStateChanged( IMMNotificationClient *this, LPCWSTR pwstrDeviceId, DWORD dwNewState )
+static HRESULT STDMETHODCALLTYPE OnDeviceStateChanged( IMMNotificationClient *self, LPCWSTR pwstrDeviceId, DWORD dwNewState )
 {
 	if ( DeviceID && wcscmp( DeviceID, pwstrDeviceId ) == 0 )
 	{
@@ -357,7 +359,7 @@ static HRESULT STDMETHODCALLTYPE OnDeviceStateChanged( IMMNotificationClient *th
 	return S_OK;
 }
 
-static HRESULT STDMETHODCALLTYPE OnPropertyValueChanged( IMMNotificationClient *this, LPCWSTR pwstrDeviceId, const PROPERTYKEY key )
+static HRESULT STDMETHODCALLTYPE OnPropertyValueChanged( IMMNotificationClient *self, LPCWSTR pwstrDeviceId, const PROPERTYKEY key )
 {
 	//MessageBox( 0, "PropertyValueChanged", "", MB_ICONWARNING );
 	return S_OK;
@@ -390,7 +392,7 @@ static qboolean SNDDMA_InitWASAPI( void )
 
 	InitializeCriticalSection( &cs );
 
-	hr = CoCreateInstance( &CLSID_MMDeviceEnumerator, 0, CLSCTX_ALL, &IID_IMMDeviceEnumerator, (void **) &pEnumerator );
+	hr = CoCreateInstance( Q_REFGUID( CLSID_MMDeviceEnumerator ), 0, CLSCTX_ALL, Q_REFGUID( IID_IMMDeviceEnumerator ), (void **) &pEnumerator );
 	if ( hr != S_OK )
 	{
 		Com_Printf( S_COLOR_YELLOW "WASAPI: CoCreateInstance() failed\n" );
@@ -419,7 +421,7 @@ static qboolean SNDDMA_InitWASAPI( void )
 
 	iMMDevice->lpVtbl->GetId( iMMDevice, &DeviceID );
 
-	hr = iMMDevice->lpVtbl->Activate( iMMDevice, &IID_IAudioClient, CLSCTX_ALL, 0, (void **)&iAudioClient );
+	hr = iMMDevice->lpVtbl->Activate( iMMDevice, Q_REFGUID( IID_IAudioClient ), CLSCTX_ALL, 0, (void **)&iAudioClient );
 	if ( hr != S_OK )
 	{
 		Com_Printf( S_COLOR_YELLOW "WASAPI: audio client activation failed\n" );
@@ -575,7 +577,7 @@ static qboolean SNDDMA_InitWASAPI( void )
 		goto error5;
 	}
 
-	if ( iAudioClient->lpVtbl->GetService( iAudioClient, &IID_IAudioRenderClient, (void**)&iAudioRenderClient ) != S_OK )
+	if ( iAudioClient->lpVtbl->GetService( iAudioClient, Q_REFGUID( IID_IAudioRenderClient ), (void**)&iAudioRenderClient ) != S_OK )
 	{
 		Com_Printf( S_COLOR_YELLOW "WASAPI: GetService() failed\n" );
 		iAudioRenderClient = NULL;
@@ -850,9 +852,9 @@ static qboolean SNDDMA_InitDS( void )
 
 	use8 = 1;
 	// Create IDirectSound using the primary sound device
-	if( FAILED( hresult = CoCreateInstance(&CLSID_DirectSound8, NULL, CLSCTX_INPROC_SERVER, &IID_IDirectSound8, (void **)&pDS))) {
+	if( FAILED( hresult = CoCreateInstance(Q_REFGUID( CLSID_DirectSound8 ), NULL, CLSCTX_INPROC_SERVER, Q_REFGUID( IID_IDirectSound8 ), (void **)&pDS))) {
 		use8 = 0;
-		if( FAILED( hresult = CoCreateInstance(&CLSID_DirectSound, NULL, CLSCTX_INPROC_SERVER, &IID_IDirectSound, (void **)&pDS))) {
+		if( FAILED( hresult = CoCreateInstance(Q_REFGUID( CLSID_DirectSound ), NULL, CLSCTX_INPROC_SERVER, Q_REFGUID( IID_IDirectSound ), (void **)&pDS))) {
 			Com_Printf ("failed\n");
 			SNDDMA_Shutdown();
 			return qfalse;
@@ -1036,8 +1038,8 @@ void SNDDMA_BeginPainting( void ) {
 	reps = 0;
 	dma.buffer = NULL;
 
-	while ((hresult = pDSBuf->lpVtbl->Lock(pDSBuf, 0, gSndBufSize, (LPVOID)&pbuf, &locksize, 
-								   (LPVOID)&pbuf2, &dwSize2, 0)) != DS_OK)
+	while ((hresult = pDSBuf->lpVtbl->Lock(pDSBuf, 0, gSndBufSize, (void **)(LPVOID)&pbuf, &locksize,
+								   (void **)(LPVOID)&pbuf2, &dwSize2, 0)) != DS_OK)
 	{
 		if (hresult != DSERR_BUFFERLOST)
 		{
