@@ -104,7 +104,7 @@ void R_AddPolygonSurfaces( void ) {
 
 	for ( i = 0, poly = tr.refdef.polys; i < tr.refdef.numPolys ; i++, poly++ ) {
 		sh = R_GetShaderByHandle( poly->hShader );
-		R_AddDrawSurf( ( void * )poly, sh, poly->fogIndex, 0 );
+		R_AddDrawSurf( (surfaceType_t *)( void * )poly, sh, poly->fogIndex, 0 );
 	}
 }
 
@@ -511,7 +511,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	VectorCopy( fd->vieworg, parms.pvsOrigin );
 
 #ifdef USE_VULKAN
-	lastRenderCommand = tr.lastRenderCommand;
+	lastRenderCommand = (renderCommand_t)( tr.lastRenderCommand );
 	tr.drawSurfCmd = NULL;
 	tr.numDrawSurfCmds = 0;
 #endif
@@ -529,7 +529,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 			for ( i = 0; i < tr.numDrawSurfCmds; i++ )
 			{
-				cmd = R_GetCommandBuffer( sizeof( *cmd ) );
+				cmd = (drawSurfsCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
 				if ( cmd )
 				{
 					src = tr.drawSurfCmd + i;
