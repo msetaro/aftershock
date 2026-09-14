@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Cross verification: next `code/qcommon/vm_armv7l.c`; retain native sv_client C hash blocker. Then T5 review, final native/cross sweeps, runtime where buildable; no rename until prerequisites pass.
+Cross verification: next `Windows native platform objects`; retain native sv_client C hash blocker. Then T5 review, final native/cross sweeps, runtime where buildable; no rename until prerequisites pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/qcommon/vm_armv7l.c` (arm): G4 advisory; full diff `tools/port/evidence/cross-arm-vm_armv7l.codegen.diff.gz`.
 
 - `code/qcommon/vm_aarch64.c` (aarch64): G4 advisory; full diff `tools/port/evidence/cross-aarch64-vm_aarch64.codegen.diff.gz`.
 
@@ -537,7 +539,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/qcommon/unzip.h` | done | T1-T17: 0; unchanged header checked via unzip.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/vm.c` | done | T1: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/vm_aarch64.c` | done | T1: 2 allocator result casts; T11 cache prototype in vm_local.h; aarch64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_aarch64.o); G4 advisory difference retained. |
-| `code/qcommon/vm_armv7l.c` | blocked | Native syntax probe: :1223/:1931 need T1; :1978 __clear_cache undeclared; eight host-width overflow diagnostics from 32-bit instruction constants. No ARM cross compiler/sysroot verified; unmodified, target unverified. |
+| `code/qcommon/vm_armv7l.c` | done | T1: 2 allocator result casts; T11 cache prototype in vm_local.h; arm original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_armv7l.o); G4 advisory difference retained. |
 | `code/qcommon/vm_interpreted.c` | done | T1: 1; literal retained under frozen warning policy; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_interpreted.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/vm_local.h` | done | Existing T4 edits; T11: correctly typed C-linkage declaration of existing GNU ARM runtime __clear_cache dependency. ARM/AArch64 65/65 C hashes unchanged; ARM vm_interpreted consumer strict C++/G2/G3 PASS; G4 advisory evidence cross-arm-vm_interpreted.codegen.diff.gz. |
 | `code/qcommon/vm_optimize.h` | blocked | Unchanged; all consuming JIT translation units are blocked/unverified, so complete-object gates cannot verify this header. |
