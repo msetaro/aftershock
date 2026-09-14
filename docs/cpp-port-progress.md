@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: renderervk; next `code/renderervk/tr_shadows.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: renderervk; next `code/renderervk/tr_sky.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -125,6 +125,8 @@ Phase 1: renderervk; next `code/renderervk/tr_shadows.c`. Resume there; do not r
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
 
 ## Codegen differences
+
+- `code/renderervk/tr_shadows.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_shadows.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_shadows.o /tmp/aftershock-cpp-port/renderervk-tr_shadows ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderervk/tr_shader.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_shader.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_shader.o /tmp/aftershock-cpp-port/renderervk-tr_shader ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -597,7 +599,7 @@ Phase 1: renderervk; next `code/renderervk/tr_shadows.c`. Resume there; do not r
 | `code/renderervk/tr_shade.c` | done | T4: 4 occurrences (prerequisite), T2: 1, T17: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shade.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_shade_calc.c` | done | T4: 50 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shade_calc.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_shader.c` | done | T1: 5, T3: 17, T16: 1, T17: 9; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shader.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_shadows.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderervk/tr_shadows.c` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shadows.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_sky.c` | todo | T4 prerequisite: or renamed to orientation (7 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderervk/tr_surface.c` | todo | T4 prerequisite: or renamed to orientation (25 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderervk/tr_world.c` | todo | T4 prerequisite: or renamed to orientation (2 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
