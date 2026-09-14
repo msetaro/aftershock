@@ -149,7 +149,7 @@ static int GLW_ChoosePFD( HDC hDC, PIXELFORMATDESCRIPTOR *pPFD )
 	maxPFD = DescribePixelFormat( hDC, 1, sizeof( PIXELFORMATDESCRIPTOR ), NULL );
 #endif
 
-	pfds = Z_Malloc( ( maxPFD + 1 ) * sizeof( PIXELFORMATDESCRIPTOR ) );
+	pfds = (PIXELFORMATDESCRIPTOR *)Z_Malloc( ( maxPFD + 1 ) * sizeof( PIXELFORMATDESCRIPTOR ) );
 
 	Com_Printf( "...%d PFDs found\n", maxPFD );
 
@@ -510,7 +510,7 @@ static qboolean GLW_InitOpenGLDriver( int colorbits )
 	//
 	if ( !glw_state.pixelFormatSet )
 	{
-		GLW_CreatePFD( &pfd, colorbits, depthbits, stencilbits, r_stereoEnabled->integer != 0 );
+		GLW_CreatePFD( &pfd, colorbits, depthbits, stencilbits, (qboolean)( r_stereoEnabled->integer != 0 ) );
 		if ( ( tpfd = GLW_MakeContext( &pfd ) ) != TRY_PFD_SUCCESS )
 		{
 			if ( tpfd == TRY_PFD_FAIL_HARD )
@@ -540,7 +540,7 @@ static qboolean GLW_InitOpenGLDriver( int colorbits )
 			{
 				colorbits = glw_state.desktopBitsPixel;
 			}
-			GLW_CreatePFD( &pfd, colorbits, depthbits, 0, r_stereoEnabled->integer != 0 );
+			GLW_CreatePFD( &pfd, colorbits, depthbits, 0, (qboolean)( r_stereoEnabled->integer != 0 ) );
 			if ( GLW_MakeContext( &pfd ) != TRY_PFD_SUCCESS )
 			{
 				if ( glw_state.hDC )
@@ -1249,7 +1249,7 @@ static qboolean GLW_LoadOpenGL( const char *drivername )
 	// 
 	if ( QGL_Init( buffer ) )
 	{
-		cdsFullscreen = (r_fullscreen->integer != 0);
+		cdsFullscreen = (qboolean)( (r_fullscreen->integer != 0) );
 
 		// create the window and set up the context
 		if ( GLW_StartDriverAndSetMode( r_mode->integer, r_modeFullscreen->string, r_colorbits->integer, cdsFullscreen, qfalse ) != RSERR_OK )
@@ -1467,7 +1467,7 @@ static qboolean GLW_LoadVulkan( void )
 	//
 	if ( QVK_Init() )
 	{
-		qboolean cdsFullscreen = (r_fullscreen->integer != 0);
+		qboolean cdsFullscreen = (qboolean)( (r_fullscreen->integer != 0) );
 
 		// create the window and set up the context
 		if ( GLW_StartDriverAndSetMode( r_mode->integer, r_modeFullscreen->string, r_colorbits->integer, cdsFullscreen, qtrue ) == RSERR_OK )
