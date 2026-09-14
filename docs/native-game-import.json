@@ -1,0 +1,888 @@
+{
+  "repository": "https://github.com/id-Software/Quake-III-Arena",
+  "revision": "dbe4ddb10315479fc00086f08e25d968b4b43c49",
+  "modules": {
+    "game": [
+      "code/game/ai_chat.c",
+      "code/game/ai_cmd.c",
+      "code/game/ai_dmnet.c",
+      "code/game/ai_dmq3.c",
+      "code/game/ai_main.c",
+      "code/game/ai_team.c",
+      "code/game/ai_vcmd.c",
+      "code/game/bg_misc.c",
+      "code/game/bg_pmove.c",
+      "code/game/bg_slidemove.c",
+      "code/game/g_active.c",
+      "code/game/g_arenas.c",
+      "code/game/g_bot.c",
+      "code/game/g_client.c",
+      "code/game/g_cmds.c",
+      "code/game/g_combat.c",
+      "code/game/g_items.c",
+      "code/game/g_main.c",
+      "code/game/g_mem.c",
+      "code/game/g_misc.c",
+      "code/game/g_missile.c",
+      "code/game/g_mover.c",
+      "code/game/g_session.c",
+      "code/game/g_spawn.c",
+      "code/game/g_svcmds.c",
+      "code/game/g_syscalls.c",
+      "code/game/g_target.c",
+      "code/game/g_team.c",
+      "code/game/g_trigger.c",
+      "code/game/g_utils.c",
+      "code/game/g_weapon.c",
+      "code/game/q_math.c",
+      "code/game/q_shared.c"
+    ],
+    "cgame": [
+      "code/game/bg_misc.c",
+      "code/game/bg_pmove.c",
+      "code/game/bg_slidemove.c",
+      "code/cgame/cg_consolecmds.c",
+      "code/cgame/cg_draw.c",
+      "code/cgame/cg_drawtools.c",
+      "code/cgame/cg_effects.c",
+      "code/cgame/cg_ents.c",
+      "code/cgame/cg_event.c",
+      "code/cgame/cg_info.c",
+      "code/cgame/cg_localents.c",
+      "code/cgame/cg_main.c",
+      "code/cgame/cg_marks.c",
+      "code/cgame/cg_players.c",
+      "code/cgame/cg_playerstate.c",
+      "code/cgame/cg_predict.c",
+      "code/cgame/cg_scoreboard.c",
+      "code/cgame/cg_servercmds.c",
+      "code/cgame/cg_snapshot.c",
+      "code/cgame/cg_syscalls.c",
+      "code/cgame/cg_view.c",
+      "code/cgame/cg_weapons.c",
+      "code/game/q_math.c",
+      "code/game/q_shared.c"
+    ],
+    "ui": [
+      "code/game/bg_misc.c",
+      "code/ui/ui_addbots.c",
+      "code/ui/ui_atoms.c",
+      "code/ui/ui_cdkey.c",
+      "code/ui/ui_cinematics.c",
+      "code/ui/ui_confirm.c",
+      "code/ui/ui_connect.c",
+      "code/ui/ui_controls2.c",
+      "code/ui/ui_credits.c",
+      "code/ui/ui_demo2.c",
+      "code/ui/ui_display.c",
+      "code/ui/ui_gameinfo.c",
+      "code/ui/ui_ingame.c",
+      "code/ui/ui_loadconfig.c",
+      "code/ui/ui_main.c",
+      "code/ui/ui_menu.c",
+      "code/ui/ui_mfield.c",
+      "code/ui/ui_mods.c",
+      "code/ui/ui_network.c",
+      "code/ui/ui_options.c",
+      "code/ui/ui_playermodel.c",
+      "code/ui/ui_players.c",
+      "code/ui/ui_playersettings.c",
+      "code/ui/ui_preferences.c",
+      "code/ui/ui_qmenu.c",
+      "code/ui/ui_removebots.c",
+      "code/ui/ui_saveconfig.c",
+      "code/ui/ui_serverinfo.c",
+      "code/ui/ui_servers2.c",
+      "code/ui/ui_setup.c",
+      "code/ui/ui_sound.c",
+      "code/ui/ui_sparena.c",
+      "code/ui/ui_specifyserver.c",
+      "code/ui/ui_splevel.c",
+      "code/ui/ui_sppostgame.c",
+      "code/ui/ui_spskill.c",
+      "code/ui/ui_startserver.c",
+      "code/ui/ui_syscalls.c",
+      "code/ui/ui_team.c",
+      "code/ui/ui_teamorders.c",
+      "code/ui/ui_video.c",
+      "code/game/q_math.c",
+      "code/game/q_shared.c"
+    ]
+  },
+  "files": [
+    {
+      "source": "code/cgame/cg_consolecmds.c",
+      "path": "code/cgame/cg_consolecmds.c",
+      "sha256": "6db7e3bb57607e5dada54dad68d0a419c7ae0f9819e9c00d3386457884e9c584",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_draw.c",
+      "path": "code/cgame/cg_draw.c",
+      "sha256": "6ac7267402f16d77a403aed8bb987830a5567e4ca65909c52decce14955612ef",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_drawtools.c",
+      "path": "code/cgame/cg_drawtools.c",
+      "sha256": "d15e172774f61c0f63cf7e0346f5657db8c950ef709647099098b6ee6b64b224",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_effects.c",
+      "path": "code/cgame/cg_effects.c",
+      "sha256": "ca31c30eddb244e15b1605d4796ca2ccd7bc0a6217a34d2b351cc9b1c21df2fa",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_ents.c",
+      "path": "code/cgame/cg_ents.c",
+      "sha256": "c8670d557ea9326d546f0b75fee2cfd0f1aaef8c025b3d8a4b17eb8ce74fe020",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_event.c",
+      "path": "code/cgame/cg_event.c",
+      "sha256": "5d76552ac9427ef8f3f2e94bc6793aa1f28e5dbb8015cb9bcf741c5f6b17fcc3",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_info.c",
+      "path": "code/cgame/cg_info.c",
+      "sha256": "1563f624984cc4c226b44cdfe07b1bf5f31ecb2b98f6bf66ae690913435a78ee",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_local.h",
+      "path": "code/cgame/cg_local.h",
+      "sha256": "950d17d47d3419cc6f3c0684ba6ea6285073b5dd777984f2ebd71b0cb042918a",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_localents.c",
+      "path": "code/cgame/cg_localents.c",
+      "sha256": "d8631eb29b5ae6f4bc0cc0216def511afa8897166dbfe61dcc0b8dddec0721d3",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_main.c",
+      "path": "code/cgame/cg_main.c",
+      "sha256": "5b0223fa2b2facff8ab80130ab39c1a1fe94bf2aa55b3ab9f3f30e329136bf15",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_marks.c",
+      "path": "code/cgame/cg_marks.c",
+      "sha256": "2268dc21d415b5057aeaf3f352aa074f75bef95c95c66c11d7a8e496d771078f",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_players.c",
+      "path": "code/cgame/cg_players.c",
+      "sha256": "842e8d808f8637187f9d2f288ddbaf348b8ac0219f07b2fb00dc2aa74a942dc5",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_playerstate.c",
+      "path": "code/cgame/cg_playerstate.c",
+      "sha256": "bd96e421d73c66ad6732fa2a3c714fe6a12e1b6c265164330d95cebaba6cb6a5",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_predict.c",
+      "path": "code/cgame/cg_predict.c",
+      "sha256": "3b2cf78980613834ba191d1d0f8087935e463396a2e52141a2d7fbf45a6a83ee",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_public.h",
+      "path": "code/cgame/cg_public.h",
+      "sha256": "c46ca41276d75b8b1b179c5998df7d158b7d52a998af426de1d98a3074d8d7b0",
+      "disposition": "existing engine ABI header retained"
+    },
+    {
+      "source": "code/cgame/cg_scoreboard.c",
+      "path": "code/cgame/cg_scoreboard.c",
+      "sha256": "6fa1f43b66fbac44255b1993ed5572a8420ce6f7af8374f9136d8cd064ba90a4",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_servercmds.c",
+      "path": "code/cgame/cg_servercmds.c",
+      "sha256": "1152a47762b427820d713d90c3573ce002edd5fd8dddcdafc5b3cc25799a0cb8",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_snapshot.c",
+      "path": "code/cgame/cg_snapshot.c",
+      "sha256": "c28605dedff7d807e4f9f846dbfd3d0096b9a63ec8f336cdec829efa010e510b",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_syscalls.c",
+      "path": "code/cgame/cg_syscalls.c",
+      "sha256": "2cc8c426bf6a4ff79000270771e104aa5eb4f88332347c4479c5d00420c8927c",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_view.c",
+      "path": "code/cgame/cg_view.c",
+      "sha256": "78bb45bf5d51ce3c20d7e40b55386b133df4d6e1003c7795dd670450390ccf3b",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/cg_weapons.c",
+      "path": "code/cgame/cg_weapons.c",
+      "sha256": "aee4f5bc39cfc697a6a9ae83addf37c633e8237df9dd5373bd6f80373777da98",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/cgame/tr_types.h",
+      "path": "code/cgame/tr_types.h",
+      "sha256": "6ce0e5cfd49d0ec6ca6907e0c80985b41c9b2963958ce3583bd6a3918ca16dd0",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_chat.c",
+      "path": "code/game/ai_chat.c",
+      "sha256": "ca8c93d5673dcb1205af9e8a68aca73bb918c05a55ab49f09ec26ae6f06d7135",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_chat.h",
+      "path": "code/game/ai_chat.h",
+      "sha256": "accfa59e19fde261af99e77602002957c9bc02b892faaa8f6741928101901d7d",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_cmd.c",
+      "path": "code/game/ai_cmd.c",
+      "sha256": "a999dc8d989afac9d108ca5ce693d6c43c37ed8df0ad294446ab63b030ef907d",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_cmd.h",
+      "path": "code/game/ai_cmd.h",
+      "sha256": "00503dc9a1a54f68e2e867b4d0f7a6e709b1f9536196cf3cf67f22b64f7b8dc0",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_dmnet.c",
+      "path": "code/game/ai_dmnet.c",
+      "sha256": "7f5277bd9530caa9cb9a1a3c7625c3ee60878b4e64897c344d62d611b3d96042",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_dmnet.h",
+      "path": "code/game/ai_dmnet.h",
+      "sha256": "33ddff5e4cc0beecf7b5b84a55c0a4713a6ff193f72dd22ad712339de96dd649",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_dmq3.c",
+      "path": "code/game/ai_dmq3.c",
+      "sha256": "6452f29f14b9042a8e921166149ede046d24e36734a74925d68cf46dd1a1fb46",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_dmq3.h",
+      "path": "code/game/ai_dmq3.h",
+      "sha256": "99ebae3130f856eb67eda1f4dbdd77f6c2f00417906abe0e47b8fabbc3229594",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_main.c",
+      "path": "code/game/ai_main.c",
+      "sha256": "e969a606253b2d0aa69e9dc1c46981ef3a2ed352140ee3ce637cf456fc23497e",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_main.h",
+      "path": "code/game/ai_main.h",
+      "sha256": "a9c5ed889e4c06494462aea665bc7c8c3e800780cecfc2e087c31ddf5f98d5fa",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_team.c",
+      "path": "code/game/ai_team.c",
+      "sha256": "6c72ba41c01f181ae4f7ffe29be4c2962d4cee12327f01f883dc1f8fe9384165",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_team.h",
+      "path": "code/game/ai_team.h",
+      "sha256": "5fa4071caa55ca8f23ff7a7f19bd9e3b594e50c2e673b2b755e41293ee9c6f6b",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_vcmd.c",
+      "path": "code/game/ai_vcmd.c",
+      "sha256": "04f2626aa631367b3c0f735873c0bc913242d47743bc5514a7ea7f320f3a602a",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/ai_vcmd.h",
+      "path": "code/game/ai_vcmd.h",
+      "sha256": "5ea37bedc8278305de6190d6e1114a883e031b606d3fd43e0eb91e4fc798dfbc",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/be_aas.h",
+      "path": "code/game/be_aas.h",
+      "sha256": "86ac70f29f7c387b255b0c8b6da56841cc773f26ac7551923e4b8429652dad70",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/be_ai_char.h",
+      "path": "code/game/be_ai_char.h",
+      "sha256": "3d85e3a206c7f7a298c0913350a7805910b7d54a174564989a708226b892021e",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/be_ai_chat.h",
+      "path": "code/game/be_ai_chat.h",
+      "sha256": "7b5806810ad6cbdf362d436fb834da9d255e1cd6c9c7ca8905d31dd817ed08cf",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/be_ai_gen.h",
+      "path": "code/game/be_ai_gen.h",
+      "sha256": "e4078c623b03b8c860ae93d2d272d3911013269aa09fea642b0372d8332ee3f7",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/be_ai_goal.h",
+      "path": "code/game/be_ai_goal.h",
+      "sha256": "5813861b05db039d369f9be85f5ff3fd8760177e2a1a5b02ec39cb5078a5aa2c",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/be_ai_move.h",
+      "path": "code/game/be_ai_move.h",
+      "sha256": "4bb24218eb74cc92a4de0e3a2fc8682b57b5bb500234b2d727d44cf9f816cbf8",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/be_ai_weap.h",
+      "path": "code/game/be_ai_weap.h",
+      "sha256": "8e689aa03cc69e45a459c18bca58afc0ab556909bcd650d257585dc281dd362e",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/be_ea.h",
+      "path": "code/game/be_ea.h",
+      "sha256": "84d2ae1f421c355cc160e1bb6284cb5db4a4f0e104ed5ed76f7e5278098e4e7b",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/bg_lib.c",
+      "path": "code/game/bg_lib.c",
+      "sha256": "a7cfee75e1f8b751012a95912d8c756d75ac0727f156dd2d27acc64ae2e3bbe0",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/bg_lib.h",
+      "path": "code/game/bg_lib.h",
+      "sha256": "64bf40e89dd48bc8c5eeba0b04f6ad8ae9270d0a3d523821cbdcf3c7192d09aa",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/bg_local.h",
+      "path": "code/game/bg_local.h",
+      "sha256": "2743f8b6c5fac16d2267b73d3d7af597e481db6a8dc4fa27b31f7d9fb01f38ab",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/bg_misc.c",
+      "path": "code/game/bg_misc.c",
+      "sha256": "6ac561b647882e2e5a45ceb9da86f7ae88ec9714cd54ec29ad78440b3e991bbb",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/bg_pmove.c",
+      "path": "code/game/bg_pmove.c",
+      "sha256": "e4560cbd9e1bb1479e586018433fc4c2b7cc61f9798097944609b1e661aba182",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/bg_public.h",
+      "path": "code/game/bg_public.h",
+      "sha256": "1a5a1b6c8defbfd3346a924dabc68b34a76f7ab8ced3e847cb8dc01a870c66aa",
+      "disposition": "existing engine ABI header retained"
+    },
+    {
+      "source": "code/game/bg_slidemove.c",
+      "path": "code/game/bg_slidemove.c",
+      "sha256": "39dbf1b27be3da0c855db7e31937ac38512d6f05016fa3210044b990d5e9b322",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/botlib.h",
+      "path": "code/game/botlib.h",
+      "sha256": "5eb2397db26ea5463aa1153431b8f39ac8ad92fcb2d4e3108e6b33fc894515af",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/chars.h",
+      "path": "code/game/chars.h",
+      "sha256": "e29a45cb101f8d0fb01d619a01611bfc8698d5ab2af9e6901c323e5f8d12b115",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_active.c",
+      "path": "code/game/g_active.c",
+      "sha256": "11917f653856ed5c244bb3e8bb7fd7343b6ec1f219d58c4e3c87305ba18df166",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_arenas.c",
+      "path": "code/game/g_arenas.c",
+      "sha256": "de9e67acd91f898ceb3a68fde1aa4baa250d16974b0a3dc5966008f03d3178b3",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_bot.c",
+      "path": "code/game/g_bot.c",
+      "sha256": "0074e666597b5e2f99d9c373317122f4044d5cd2b1918dae25c699fcec7681f4",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_client.c",
+      "path": "code/game/g_client.c",
+      "sha256": "2e5d3f526e4e82409bec32a34385cca4cb087fefdd0a5358b7895b71793b4a73",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_cmds.c",
+      "path": "code/game/g_cmds.c",
+      "sha256": "6b72215dd6bdaf8c6c544b80e9b625b37aa4222604543567e18ab12f553e2f59",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_combat.c",
+      "path": "code/game/g_combat.c",
+      "sha256": "249b6e0804d5c137b4f7b2ff0cc8f5c2fbf3114936a040cb0696688ab296a014",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_items.c",
+      "path": "code/game/g_items.c",
+      "sha256": "752cde38645acdb3e8105933943ceff1235fa46f784edc4e9f2d1f03d3e99ca4",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_local.h",
+      "path": "code/game/g_local.h",
+      "sha256": "de98d3c7212f026650cf581baf102908c359667eb55f1bc65ef5c5b8819283e0",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_main.c",
+      "path": "code/game/g_main.c",
+      "sha256": "fdc9abc73283c57a27e25c15fbcac7cc7b63d0a82d6fe9ce8f8af8252548ee4a",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_mem.c",
+      "path": "code/game/g_mem.c",
+      "sha256": "2bc6b384305c8a1036ed2a0a12ddc0accb2366623896ec003331c6abb2c6a84d",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_misc.c",
+      "path": "code/game/g_misc.c",
+      "sha256": "0c356b7ef5364cfa59f3ed257c81db602085e869f360085727b7bd2594097425",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_missile.c",
+      "path": "code/game/g_missile.c",
+      "sha256": "ea7de647cfce347f3ae2b1b14f2377991950b3b53bdf6a6f41fc55bf75d143c7",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_mover.c",
+      "path": "code/game/g_mover.c",
+      "sha256": "f6ad545eec11f46eb4ab7abe21f6ffea34c3d3c1b2e07d4c7ced37316c17fc62",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_public.h",
+      "path": "code/game/g_public.h",
+      "sha256": "61d1f1920b187f3bf8cfb0e3619a0c1a5da18167b91858579d608c1839a32a64",
+      "disposition": "existing engine ABI header retained"
+    },
+    {
+      "source": "code/game/g_rankings.h",
+      "path": "code/game/g_rankings.h",
+      "sha256": "01cd517df442a18567548508becb0e8828dbf2f3634697732f1a8d13bd46cf55",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_session.c",
+      "path": "code/game/g_session.c",
+      "sha256": "a04b043bfd65dd32c0d5ac8b0eb12395c785a3ce286e66d454410249744220f8",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_spawn.c",
+      "path": "code/game/g_spawn.c",
+      "sha256": "155f7a4c3c4c003d681b66c3e7c54242f9fb069657036060938d2879887ddc40",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_svcmds.c",
+      "path": "code/game/g_svcmds.c",
+      "sha256": "15214a282b8818f8b153dc86c8d19e8b01ee9ba4fa59e508faf3aceeefd1ec9c",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_syscalls.c",
+      "path": "code/game/g_syscalls.c",
+      "sha256": "42f5ea24fac3428ff8af4e24fbb553698b3f03067d1c3dbcfb6715fedcb28d22",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_target.c",
+      "path": "code/game/g_target.c",
+      "sha256": "5d47e01aaacfe997cc5b956a2364ed47d762259d1083dbd8616bf5f53e61c3bf",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_team.c",
+      "path": "code/game/g_team.c",
+      "sha256": "d004609c19db6949e3d4fe3d3a2d911fbb10f2d7f04249fd13218fb0aa928182",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_team.h",
+      "path": "code/game/g_team.h",
+      "sha256": "0df64a2d49ce05fc5cb569792ee4d2fffdd93db6ba1fee106a2a11613a16d9bb",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_trigger.c",
+      "path": "code/game/g_trigger.c",
+      "sha256": "df5cc13f5e9d4f55ccc858ffe829690dfbd9443dcc0b9502e80ddcdd3eafd8a3",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_utils.c",
+      "path": "code/game/g_utils.c",
+      "sha256": "2bd8d6664a1d731dc5862cae00442adb564d53654ffa7e3de77f7c9813278bac",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_weapon.c",
+      "path": "code/game/g_weapon.c",
+      "sha256": "6c977ca2b5eca4d4a265a887259a187d83e86c738539f5beb907c392131bea1a",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/inv.h",
+      "path": "code/game/inv.h",
+      "sha256": "41e61dc1df5e21235add209c5c776a6ea092c6ae23944ca835f2343f8f2289f9",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/match.h",
+      "path": "code/game/match.h",
+      "sha256": "b212f7c187065cc08f84eda2ef3151748a94f9b94ed7d5f06ba409289830a735",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/q_math.c",
+      "path": "code/game/q_math.c",
+      "sha256": "571cffb6357b3f34fb4a5c000e22d7108f2f3380a49b55f8a993f0b0ce0ba239",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/q_shared.c",
+      "path": "code/game/q_shared.c",
+      "sha256": "a8ddd2b1093ee69df7d0826aad75180ac2ff27bb45f25389e4313efeb51c4be2",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/q_shared.h",
+      "path": "code/game/q_shared.h",
+      "sha256": "9083a35790991b674bc58c3800b068a9a978898508c5fb08123ea52e1dc8597a",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/surfaceflags.h",
+      "path": "code/game/surfaceflags.h",
+      "sha256": "f05993c571858f3bb86cdcb9121d1748351377746916b5db0e28312bdb3b6722",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/syn.h",
+      "path": "code/game/syn.h",
+      "sha256": "18f0aaab55b29ff45c1c669812fc5f84cb3985c538f721afd1b7da467ab56a4e",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/keycodes.h",
+      "path": "code/ui/keycodes.h",
+      "sha256": "dd0f7c5cba444a3399ca70684d1292d82aec5094b607cf222ad67aa50b5342df",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_addbots.c",
+      "path": "code/ui/ui_addbots.c",
+      "sha256": "6d294093cd9bdf759fba3375af8adf51f3f727ba999599db1a2c50afeb8762be",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_atoms.c",
+      "path": "code/ui/ui_atoms.c",
+      "sha256": "d221b463c8458f3e192562e512a6e3c7c48f501401fa81207f4758087f331498",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_cdkey.c",
+      "path": "code/ui/ui_cdkey.c",
+      "sha256": "603c3d3e471f13288376810e19d3fea7707409a0a61a5c85ebc069ed33899c4c",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_cinematics.c",
+      "path": "code/ui/ui_cinematics.c",
+      "sha256": "b58dd992260cf501dc9268db032fe23c039d17c8c15153c1520a61efdfce1fa4",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_confirm.c",
+      "path": "code/ui/ui_confirm.c",
+      "sha256": "64c15b422ef8715314cca227878381db4a2e3065c77aa72ef3ef431bef65cc56",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_connect.c",
+      "path": "code/ui/ui_connect.c",
+      "sha256": "1558c7db8f47415ed6884f5a6b8ca8ccc389727c19dcecc07ed65da9a2e796f2",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_controls2.c",
+      "path": "code/ui/ui_controls2.c",
+      "sha256": "87ec01656e0b29981e3d994666555a8ddd5f76a3ac2d363594a8708ffe8ba8f6",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_credits.c",
+      "path": "code/ui/ui_credits.c",
+      "sha256": "507dca6d093b49e236ced02bcb0e762595a8ad810c52ba77f95cbbefaac6bb5b",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_demo2.c",
+      "path": "code/ui/ui_demo2.c",
+      "sha256": "1d39b4ff39e52e22ee30ec5e7839d67a63b68b2e94053dbd2ba754e26635e7fd",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_display.c",
+      "path": "code/ui/ui_display.c",
+      "sha256": "b920a14f4f9e0ce97c9ec3fa16a63a8d232dffaf6ac1048ff721b991003598bb",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_gameinfo.c",
+      "path": "code/ui/ui_gameinfo.c",
+      "sha256": "71bf5706863167627bf0cbd67c8a220860ca9be6b667d63512a354d89d17d199",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_ingame.c",
+      "path": "code/ui/ui_ingame.c",
+      "sha256": "bfac9351feb14e5fca45daa085f51e6e969f3da99bb7a4c757c964d8f8565f01",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_loadconfig.c",
+      "path": "code/ui/ui_loadconfig.c",
+      "sha256": "17b02e2222ee1e62de9b47b1da29fa34cb6ff8eedb8b54a0b06a7b609d9594c9",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_local.h",
+      "path": "code/ui/ui_local.h",
+      "sha256": "a6646ebf728fa741c1638a630e8d8c3e6979e75218108831b48e53490418a807",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_main.c",
+      "path": "code/ui/ui_main.c",
+      "sha256": "08c57f6ea15247efb17f688d3f0e5093b2180c0076c680e0cbee382b9910e6d9",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_menu.c",
+      "path": "code/ui/ui_menu.c",
+      "sha256": "8694408c371f9aada5832fcfcfaa57a9b5482f4bf1975723589fa345893c8e2f",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_mfield.c",
+      "path": "code/ui/ui_mfield.c",
+      "sha256": "8bcc1162e8e6aa63d1739371f65358ee940dfe6c8a610c57facfd8c6b3b72cae",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_mods.c",
+      "path": "code/ui/ui_mods.c",
+      "sha256": "c7f15efe5f8f515e682665aaca13a25a65ca4398eec8c4da857673e6615650b7",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_network.c",
+      "path": "code/ui/ui_network.c",
+      "sha256": "9115a164615e0ec39ad82593fee2b5af1d8cf99eed374624746c50968c6e3538",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_options.c",
+      "path": "code/ui/ui_options.c",
+      "sha256": "6943e0e0642521d7dcc90770c04f9bbce0da77908a082b66735dcc764f411de0",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_playermodel.c",
+      "path": "code/ui/ui_playermodel.c",
+      "sha256": "ee8451eccd80a390d5d1eecff7618909d3fdbe9a28ee2e028482f01be0ba821d",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_players.c",
+      "path": "code/ui/ui_players.c",
+      "sha256": "6e7c12e92ec1858f3e5508dfe48f98f3ace8c67a53882ca4836b414692843cc1",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_playersettings.c",
+      "path": "code/ui/ui_playersettings.c",
+      "sha256": "43a029c85062e2313783438bb975c11286f48c4a94f0ae0e3286dd9e57b46775",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_preferences.c",
+      "path": "code/ui/ui_preferences.c",
+      "sha256": "3c46fd6f1222416870921135018e27cadb7642507638b2554f5053437c5049e2",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_qmenu.c",
+      "path": "code/ui/ui_qmenu.c",
+      "sha256": "bb532514f8652dd6b83be5064c8339c80e6d3d50d803be374999756835b9284a",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_removebots.c",
+      "path": "code/ui/ui_removebots.c",
+      "sha256": "b4d69965363d66c807ca5270edf83fe878dba792d55a55ada8fdf0d601f69fe0",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_saveconfig.c",
+      "path": "code/ui/ui_saveconfig.c",
+      "sha256": "000c8536fe102361a6e3fdc5e300101ebca26e1037cbbbdfabc3cdbb8d418fdc",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_serverinfo.c",
+      "path": "code/ui/ui_serverinfo.c",
+      "sha256": "7b7e5bc9694c0612df99169c92aefc78b8361aa17d3d3881f9ae82553192825b",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_servers2.c",
+      "path": "code/ui/ui_servers2.c",
+      "sha256": "1e625c1f18a751d5c6f4f79b535407ce2509319c6a23e68c501296dee3dbe0b3",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_setup.c",
+      "path": "code/ui/ui_setup.c",
+      "sha256": "45457de65a461fb515ea3fb49163f435d88858662829cefba48f2c189efd14f5",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_sound.c",
+      "path": "code/ui/ui_sound.c",
+      "sha256": "ecef9153dce421ce157b60fbdea79775dc551ca780c1818083010555aee03133",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_sparena.c",
+      "path": "code/ui/ui_sparena.c",
+      "sha256": "5830d1f8846efae41e416e9b2f807cde47a0783fa72cccf89b926ddf9718c26a",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_specifyserver.c",
+      "path": "code/ui/ui_specifyserver.c",
+      "sha256": "1e0013f2942c0e4eee718bfb8896556880054f1425cf5b461170350e1a383bc7",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_splevel.c",
+      "path": "code/ui/ui_splevel.c",
+      "sha256": "47ef0e3422d053b7991cea9fdb7d4805462d84f3640513e9e9b29aa45cb4f55f",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_sppostgame.c",
+      "path": "code/ui/ui_sppostgame.c",
+      "sha256": "97c189fabc56754564c61ed73081ca28c5eae915aa398112bc00bf2c21a9f0cc",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_spskill.c",
+      "path": "code/ui/ui_spskill.c",
+      "sha256": "76f007cb790078d9f01244cd95b70095ee9d11892eb6f9b02a5eb7bf1757eca4",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_startserver.c",
+      "path": "code/ui/ui_startserver.c",
+      "sha256": "83860c82ed983ed5dc1aa890f9ee275553e392cdd5fac84922d5ccacd000617d",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_team.c",
+      "path": "code/ui/ui_team.c",
+      "sha256": "456c32c0853e12cd140a114524b44282145afbf93efe7cdd22c14a6d2138b339",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_teamorders.c",
+      "path": "code/ui/ui_teamorders.c",
+      "sha256": "0c56533423e0badbdd8c1f964d77b3ad376278df40d91ceca9b7666f5c60855f",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/ui_video.c",
+      "path": "code/ui/ui_video.c",
+      "sha256": "fa0817b1191a8eb91dd9a185f841c3a610aeeae142ab49ca1bb61154022fa64f",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/ui/ui_public.h",
+      "path": "code/ui/ui_public.h",
+      "sha256": "9ada4dd687b2c0a5dd73f9d81a5cd344664cd8dd787ec6552c5e83c8fe16f9c7",
+      "disposition": "existing engine ABI header retained"
+    },
+    {
+      "source": "code/ui/ui_syscalls.c",
+      "path": "code/ui/ui_syscalls.c",
+      "sha256": "d9ca255d00503d677ec8c52a441d6cabd0555808bab47f204a540c4b49f24a56",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "ui/menudef.h",
+      "path": "ui/menudef.h",
+      "sha256": "e32d5303f38e32ec4820a87e98747b41b9a4579f07dbcc358ac1d2e876a26aef",
+      "disposition": "verbatim import"
+    }
+  ]
+}

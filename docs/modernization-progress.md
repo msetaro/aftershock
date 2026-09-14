@@ -45,23 +45,26 @@ JPEG PR #47 merged as 9a7c2625 after regression 34891606879 and full build
 34891606634 passed on source 01f2dd40. Its merged-tree regression 34892331846 passed. The disposition audit accounts for all twelve defects; CMake remains #5.
 #31 is complete; all twelve fixes are merged and linked in the closed notes ledger.
 
-Current branch: `issue/1-error-model`. Section 11 now records option 1 and its
-rationale. Added a Clang AST lifetime check using actual Make client/server flags
-for OpenGL and Vulkan, with seven-object rejection and trivial-object acceptance
-controls. All controls and the full 140-translation-unit scan pass. CI installs its own
-clang-tools and build headers. No engine or golden changes. PR #48 is open. Directory controls also verify core inclusion and platform exclusion.
-Regression 34892972996 passes on source e0013d90, including hosted lifetime
-analysis. Full build 34892972994 also passes on e0013d90. Self-review: only
-decision/enforcement/docs, no engine/golden or unrelated workflow changes. Final
-checkpoint is docs-only. Next: merge #48, verify merged-tree regression, then begin #2.
-Preparation cloned official GPL sources dbe4ddb10315479fc00086f08e25d968b4b43c49
-into /tmp/aftershock-q3-gpl. A temporary base-game C shared module compiles using
-the official Q3GOBJ source list with intptr_t entry-point/syscall return widths.
-No repository source imported or #2 engine changes yet, and no native parity claim.
-Temporary script/log: /tmp/aftershock-native-preflight.py and
-/tmp/aftershock-native-preflight/code/build.log. Initial wildcard build included
-optional rankings sources; the actual upstream manifest excludes them. Source
-headers also require ui/menudef.h. These are import/build dependencies, not fixes.
+Longjmp decision #1 merged as PR #48 / 95b418b0 after regression 34892972996 and
+full build 34892972994 passed on source e0013d90. Its merged-tree regression
+34893585998 is pending.
+
+Current branch: `issue/2-native-game`. Imported the official GPL 1.32 base-game,
+cgame and base UI C sources verbatim, with SHA256 provenance in
+`docs/native-game-import.json`. Existing engine ABI headers are retained and
+listed separately. Sources are not wired into the engine build yet. The upstream
+Unix Make Q3GOBJ/Q3CGOBJ/Q3UIOBJ lists select the base modules; ui_syscalls.c lives
+in upstream code/ui despite the stale q3_ui recipe. ui/menudef.h is a required
+source header, not game content. GPL notices remain intact.
+
+Next: commit the exact import, establish C native build/ABI and layout evidence,
+then measure QVM/native bot smoke and fixed-demo parity before any C++ port or
+VM/JIT removal. Keep the last QVM binaries/fixtures as transition evidence. No
+accepted golden or fixture regeneration. Every new bug remains a separate #31 PR.
+Preparation: official GPL dbe4ddb10315479fc00086f08e25d968b4b43c49 is cloned at
+/tmp/aftershock-q3-gpl. /tmp/aftershock-native-preflight.py compiles the original
+base-game list as a temporary C shared module with intptr_t entry-point/syscall
+return widths; this is build evidence only, not a gameplay parity claim.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -79,8 +82,8 @@ experiment still timed out before output and is not a claimed runtime gate.
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
 | 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); complete, final merged-tree regression 34892331846 passed. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
-| 3 | #1 error model | In progress: longjmp rationale recorded in section 11; Clang AST lifetime check passes locally, hosted gates pending. |
-| 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
+| 3 | #1 error model | Merged #48; rationale and Clang lifetime CI check passed local/hosted gates; merged-tree check pending. |
+| 4 | #2 native game | In progress: exact GPL 1.32 C import, not built yet; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
 | 6 | #5 CMake | Repair as primary, object parity before removing Makefile; generated MSVC projects, 64-bit little-endian only. |
 | 7 | #8 code rules | Warning class per PR; one codegen-identical tree-wide clang-format commit; tidy subsets; fixed-width wire/file types and layout traits; release-identical Q_ASSERT. |
