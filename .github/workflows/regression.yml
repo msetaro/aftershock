@@ -33,6 +33,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libc++-dev libc++abi-dev
       - name: Frame evidence negative controls
         run: python3 tests/check_frames.py
+      - name: GPL team-leader name bounds
+        if: matrix.cc == 'clang'
+        run: python3 tests/teamleader.py
       - name: Native dispatch argument counts
         run: python3 tests/native_dispatch.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
       - name: Complete bot movement result

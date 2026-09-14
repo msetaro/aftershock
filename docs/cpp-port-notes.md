@@ -313,7 +313,7 @@ bot logs change due to corrected obstacle avoidance and repeat identically. All
 fixed-demo frames remain unchanged. See modernization-progress.md for counts/hashes.
 No fix or accepted golden change was made on #2. No known-bug entry/suppression covered it.
 
-## #31 native dispatch argument initialization (open, found during #2)
+## #31 native dispatch argument initialization (merged #52, found during #2)
 
 `VM_Call`'s native branch fills only nargs slots of args[3], but always reads all
 three for entryPoint. Zero/one/two-argument calls therefore read uninitialized ints.
@@ -332,7 +332,23 @@ Clang's C build diagnoses `bs->teamleader[sizeof(bs->teamleader)] = '\0'` in
 BotMatch_StartTeamLeaderShip (ai_cmd.c:1311) and BotTeamAI (ai_team.c:1963).
 The field has 32 bytes; both write index 32 after strncpy and can leave index 31
 unterminated. Reproducer discovery: `python3 tests/native.py --cc clang`, diagnostics
-in the game.log output. A separate #31 failing test must exercise bounded name
-copying before both sites use the existing Q_strncpyz helper. No inline #2 fix.
+in the game.log output. Separate #31 branch issue/31-teamleader-name commits the failing compile check
+first as fc665341. `python3 tests/teamleader.py` fails on both original functions
+with Clang's array-bounds diagnostic against the real pinned GPL bot-state type;
+after both sites use existing Q_strncpyz, it passes. No inline #2 fix.
+
+Only these two C files are prerequisite imports from the original GPL revision
+[dbe4ddb10315479fc00086f08e25d968b4b43c49](https://github.com/id-Software/Quake-III-Arena/tree/dbe4ddb10315479fc00086f08e25d968b4b43c49).
+Original SHA256 ai_cmd.c: a999dc8d989afac9d108ca5ce693d6c43c37ed8df0ad294446ab63b030ef907d.
+Original SHA256 ai_team.c: 6c72ba41c01f181ae4f7ffe29be4c2962d4cee12327f01f883dc1f8fe9384165.
+The test fetches this pinned checkout's headers when absent and checks their revision
+and cleanliness. #2 integrates the complete native modules. All original notices
+remain. ec-/Quake3e has no corresponding game files; importing unrelated game code
+there would not be an upstream engine fix. No expectation or suppression applies.
 
 Native dispatch upstream C fix/test: https://github.com/ec-/Quake3e/pull/436.
+
+Team-leader fix PR #53 source 0ff62c30 passed regression 34909591046 and full build
+34909591164 (attempt 2 after an artifact-service timeout). Self-review passes.
+Defined symbols are unchanged and only the two affected functions change codegen;
+unit/collision regeneration has zero golden diff. No expectation/suppression applies.
