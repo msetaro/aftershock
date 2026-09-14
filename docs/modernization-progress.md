@@ -10,7 +10,7 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 Active work: `issue/2-native-game`, draft PR #50. #31 team-leader bounds PR #53
 merged as f908cd8e81556a8292bb9bcd841389942e8fdb8e after regression 34909591046
 and full build 34909591164 attempt 2 passed on 0ff62c30. Merged-tree regression
-34910099630 is pending. #52 merged as 99f3b2b5; its merged-tree regression
+34910099630 passed. #52 merged as 99f3b2b5; its merged-tree regression
 34908936239 passed. This merge brings #52/#53 into #2, preserves all three native
 CI probes, and resolves the two add/add GPL files to the reviewed #53 versions.
 Their manifest dispositions now reference #53; original import hashes are retained.
@@ -529,3 +529,24 @@ only two bounded-copy changes; no new OS access, non-trivial lifetime, allocatio
 wire/file layout or FP expression changes. Defined-symbol/codegen review and the
 failing-before/passing-after test pass. Goldens/fixtures remain unchanged; no
 expectation or suppression applies. This final checkpoint changes documentation only.
+
+#2 resumed at merge 383c53e0. Permanent Clang C native smoke passes both Q3 maps
+(6dad7c18 / a15c9c91 normalized accepted logs); Clang C native fixed replay passes
+both maps/renderers with the unchanged frame hash b38004b1 and original fixtures.
+Commands use --game-code native --cc clang --cxx 'clang++ -stdlib=libc++'; logs:
+/tmp/aftershock-native-runtime-clang-final.log and
+/tmp/aftershock-native-demo-clang-final.log. GCC parity was already measured before
+this bounds-only fix; the unused team paths are now covered by tests/teamleader.py.
+OpenArena C native preflight is confined to /tmp/aftershock-oa-native-work from the
+pinned source: transitional intptr_t syscall words, entry signatures and the same
+binary32 ABI header. No repository OA source import or golden changes yet.
+
+OpenArena native preflight builds game/cgame C modules but oa_dm1 stops before bot
+startup: SP_func_door passes NULL ent->targetname through strequals to libc strcmp.
+GDB confirms __strcmp_avx2 -> SP_func_door -> G_CallSpawn -> G_InitGame. Reproducer:
+/tmp/aftershock-oa-native-smoke.py and /tmp/aftershock-oa-native-gdb.py (logs alongside).
+The original macro is code/qcommon/q_shared.h:712; nullable targetname also reaches
+it in three g_main.c paths. This is an external OpenArena game-source #31 item;
+no patch has been made. Quake 3 native compiler/replay parity is complete, so its
+C++ catalog port can proceed independently while OA remains a failing prerequisite.
+The permanent native OA build and UI source mapping are not yet implemented.
