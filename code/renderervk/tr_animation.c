@@ -189,7 +189,7 @@ void R_MDRAddAnimSurfaces( trRefEntity_t *ent ) {
 
 	header = (mdrHeader_t *) tr.currentModel->modelData;
 
-	personalModel = (ent->e.renderfx & RF_THIRD_PERSON) && (tr.viewParms.portalView == PV_NONE);
+	personalModel = (qboolean)( (ent->e.renderfx & RF_THIRD_PERSON) && (tr.viewParms.portalView == PV_NONE) );
 
 	if ( ent->e.renderfx & RF_WRAP_FRAMES )
 	{
@@ -279,22 +279,22 @@ void R_MDRAddAnimSurfaces( trRefEntity_t *ent ) {
 		        && r_shadows->integer == 2
 			&& fogNum == 0
 			&& !(ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK ) )
-			&& shader->sort == SS_OPAQUE )
+			&& shader->sort == (float)SS_OPAQUE )
 		{
-			R_AddDrawSurf( (void *)surface, tr.shadowShader, 0, 0 );
+			R_AddDrawSurf( (surfaceType_t *)(void *)surface, tr.shadowShader, 0, 0 );
 		}
 
 		// projection shadows work fine with personal models
 		if ( r_shadows->integer == 3
 			&& fogNum == 0
 			&& (ent->e.renderfx & RF_SHADOW_PLANE )
-			&& shader->sort == SS_OPAQUE )
+			&& shader->sort == (float)SS_OPAQUE )
 		{
-			R_AddDrawSurf( (void *)surface, tr.projectionShadowShader, 0, 0 );
+			R_AddDrawSurf( (surfaceType_t *)(void *)surface, tr.projectionShadowShader, 0, 0 );
 		}
 
 		if ( !personalModel ) {
-			R_AddDrawSurf( (void *)surface, shader, fogNum, 0 );
+			R_AddDrawSurf( (surfaceType_t *)(void *)surface, shader, fogNum, 0 );
 			tr.needScreenMap |= shader->hasScreenMap;
 		}
 
