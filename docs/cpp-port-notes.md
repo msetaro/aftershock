@@ -13,7 +13,7 @@ No engine bug fixes have been made.
   file/VM access patterns; leave them unchanged per the plan. Runtime exited 0,
   no ASan error reported. Leak checking was disabled for this initial baseline.
   Narrow function alignment suppressions are seeded in tools/port/ubsan.supp;
-  suppression effectiveness must still be checked before using them as a gate.
+  suppression effectiveness was confirmed by the subsequent C runtime smoke (exit 0, no sanitizer diagnostics).
 
 - The q_math hazard is confirmed by `tools/port/math_gate.sh`: fixed-input hashes
   differ between C and C++, while Q_rsqrt matches. See the checkpoint for exact
@@ -24,3 +24,5 @@ No engine bug fixes have been made.
 - linux_snd.c passes void(void) thread procedures through void* to pthread_create, whose callback type is void*(*)(void*). This preexisting signature mismatch remains; T1 casts wrap the existing conversion without changing thread bodies or signatures. C object hash remains identical.
 
 - cl_curl.c Com_DL_Begin tests dl->URL[strlen(dl->URL)] against slash. That index is the terminating NUL, so the slash append always executes when percent-1 URL replacement fails. Recorded during constness review; source unchanged.
+
+- FS_AllowedExtension compares the result of strrchr relationally to fileName + 3 before checking it for NULL. Inputs without an extension reach a relational comparison involving NULL; this existing undefined pointer comparison was noticed while preparing G5. No source fix.
