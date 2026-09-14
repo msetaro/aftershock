@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: renderervk; next `code/renderervk/tr_light.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: renderervk; next `code/renderervk/tr_main.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/renderervk/tr_light.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_light.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_light.o /tmp/aftershock-cpp-port/renderervk-tr_light ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderervk/tr_bsp.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_bsp.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_bsp.o /tmp/aftershock-cpp-port/renderervk-tr_bsp ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -561,7 +563,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/renderervk/tr_curve.c` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_curve.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_image.c` | done | T1: 8, T2: 1, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_image.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_init.c` | done | T1: 5, T5: 2 conditional definitions; phase-2 GetRefAPI blocker resolved; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_init.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_light.c` | done | T4: 10 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_light.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderervk/tr_light.c` | done | T4: 10 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_light.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_local.h` | done | T4: 5 occurrences (prerequisite); actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderervk/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_main.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_marks.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_marks.o, default); G4 PASS. |
