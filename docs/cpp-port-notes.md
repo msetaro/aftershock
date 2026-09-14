@@ -113,3 +113,6 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   GCC production codegen and symbol gates are identical. Unit/one-ULP, collision,
   serial both-map smoke and both-renderer replay pass unchanged. All callers are
   within cl_curl.cpp; no public header declaration or wire layout changes.
+  Fork PR #40 passed regression 34880567812 and full build 34880567796.
+  The normalized symbol gate passes; the internal C++ mangled name changes with
+  the parameter type, and all callers rebuild in the same translation unit.
