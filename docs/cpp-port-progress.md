@@ -572,7 +572,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/qcommon/q_platform.h` | done | T1-T17: 0; unchanged header checked via md4.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/q_shared.c` | done | T1: 4, T2: 3; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_shared.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/q_shared.h` | done | T5: guarded Q_EXTERN_C macro plus 2 Windows assembly prototypes; native md4 consumer G2/G3 PASS and all 295 C hashes unchanged; Windows branch unverified. |
-| `code/qcommon/qcommon.h` | done | T5: 4 native/JIT function typedefs and 2 assembly FPU prototypes; native consumer strict C++/G2/G3 PASS, full C and all 295 original hashes PASS; 32-bit FPU branch unverified. |
+| `code/qcommon/qcommon.h` | done | T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: ded/vm.o, client/cl_cgame.o. |
 | `code/qcommon/qfiles.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/surfaceflags.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/unzip.c` | done | T1: 10, T14: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unzip.o); G4 advisory FAIL, full diff retained. |
@@ -739,3 +739,5 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 - G3 retains and demangles COFF section symbols (.text$, .pdata$, .xdata$), whose names embed function mangling. This removes section-name spelling noise without discarding any defined or undefined symbol. A MinGW function-section positive control was added; all native/COFF gate controls pass (`tools/port/evidence/coff-symbol-selfcheck.log`). Native completed-TU sweeps now leave cross-only objects to their recorded target-specific gate commands.
 
 - Phase 2 reviewer confirmed removal of three static callback linkage blocks, syscall_t/dllSyscall_t annotations, and static-renderer GetRefAPI annotations. G3 reads both recorded compiler commands to distinguish static from dlopen GetRefAPI; mismatched modes fail and missing metadata conservatively enforces raw external names. Static positive, dlopen negative and mode-mismatch controls pass.
+
+- Phase 2 code/qcommon/qcommon.h: T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: ded/vm.o, client/cl_cgame.o.
