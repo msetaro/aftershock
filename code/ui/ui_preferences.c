@@ -186,7 +186,7 @@ static void Crosshair_Draw( void *self ) {
 	y =	s->generic.y;
 
 	style = UI_SMALLFONT;
-	focus = (s->generic.parent->cursor == s->generic.menuPosition);
+	focus = (qboolean)( (s->generic.parent->cursor == s->generic.menuPosition) );
 
 	if ( s->generic.flags & QMF_GRAYED )
 		color = text_color_disabled;

@@ -224,7 +224,7 @@ static void UI_TeamOrdersMenu_ListDraw( void *self ) {
 
 	l = (menulist_s *)self;
 
-	hasfocus = (l->generic.parent->cursor == l->generic.menuPosition);
+	hasfocus = (qboolean)( (l->generic.parent->cursor == l->generic.menuPosition) );
 
 	x =	320;//l->generic.x;
 	y =	l->generic.y;

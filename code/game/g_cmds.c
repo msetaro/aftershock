@@ -393,7 +393,7 @@ void Cmd_Noclip_f( gentity_t *ent ) {
 	} else {
 		msg = "noclip ON\n";
 	}
-	ent->client->noclip = !ent->client->noclip;
+	ent->client->noclip = (qboolean)( !ent->client->noclip );
 
 	trap_SendServerCommand( ent-g_entities, va("print \"%s\"", msg));
 }
@@ -610,7 +610,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 		client->sess.spectatorTime = level.time;
 	}
 
-	client->sess.sessionTeam = team;
+	client->sess.sessionTeam = (team_t)team;
 	client->sess.spectatorState = specState;
 	client->sess.spectatorClient = specClient;
 

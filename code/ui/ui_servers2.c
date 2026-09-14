@@ -645,7 +645,7 @@ static void ArenaServers_Insert( char* adrstr, char* info, int pingtime )
 	servernodeptr->pingtime   = pingtime;
 	servernodeptr->minPing    = atoi( Info_ValueForKey( info, "minPing") );
 	servernodeptr->maxPing    = atoi( Info_ValueForKey( info, "maxPing") );
-	servernodeptr->bPB = atoi( Info_ValueForKey( info, "punkbuster") );
+	servernodeptr->bPB = (qboolean)atoi( Info_ValueForKey( info, "punkbuster") );
 
 	/*
 	s = Info_ValueForKey( info, "nettype" );

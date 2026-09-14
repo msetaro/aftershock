@@ -194,7 +194,7 @@ void MField_KeyDownEvent( mfield_t *edit, int key ) {
 	}
 
 	if ( key == K_INS || key == K_KP_INS ) {
-		trap_Key_SetOverstrikeMode( !trap_Key_GetOverstrikeMode() );
+		trap_Key_SetOverstrikeMode( (qboolean)!trap_Key_GetOverstrikeMode() );
 		return;
 	}
 }

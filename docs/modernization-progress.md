@@ -15,10 +15,11 @@ and full build 34909591164 attempt 2 passed on 0ff62c30. Merged-tree regression
 CI probes, and resolves the two add/add GPL files to the reviewed #53 versions.
 Their manifest dispositions now reference #53; original import hashes are retained.
 
-Next: verify #53's merged-tree regression, then run permanent GCC/Clang C native
-smoke and fixed-demo replay. Complete OpenArena native support, then the T1–T25
-C++ port/gates, static calls and VM/JIT removal. No C++ source port or VM removal
-has started. Accepted goldens remain unchanged on #2. Keep newly found bugs in
+Next: continue the native C++ catalog port (string constness next), then its
+layout/symbol/codegen/smoke/replay gates. GCC/Clang native C parity is verified.
+OpenArena native support remains blocked by its separately recorded nullable-name
+bug. Complete that support before static integration and VM/JIT removal. No VM
+removal has started. Accepted goldens remain unchanged on #2. Keep newly found bugs in
 separate #31 failing-test-first PRs.
 
 
@@ -568,3 +569,14 @@ python3 /tmp/aftershock-native-c-object-gate.py deviations. No simulation expres
 or golden change; no new algorithm or bug fix. Ordinary catalog casts/renames follow
 in separate commits. C++ syntax preflight initially reports 50 of 100 module TUs
 failing; bg_lib adds old-style-definition errors. No permissive flags are enabled.
+
+First ordinary catalog pass: T1 pointer casts, T2 boolean-expression casts, T3 enum
+casts, T4 delete member -> deleteButton, T14 register removal, T20 const search
+results (or casts where the shared receiving pointer also mutates writable text).
+All 103 native C release objects remain byte-identical to 3306d55d; including
+uis.debug's T3 compound-assignment spelling, so no T25 branch is needed. The field
+rename leaves the menu asset paths unchanged. During review a broad temporary
+replacement also changed two string literals; those were restored before this
+passing gate and are not part of the commit. Strict C++ syntax now proceeds to
+string-literal constness under -Werror=write-strings; no warning suppression.
+Evidence: /tmp/aftershock-native-c-catalog-final.log; 103 unchanged hashes.

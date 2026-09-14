@@ -530,7 +530,7 @@ team_t TeamCount( int ignoreClientNum, int team ) {
 		}
 	}
 
-	return count;
+	return (team_t)count;
 }
 
 /*
@@ -951,7 +951,7 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	if( isBot ) {
 		ent->r.svFlags |= SVF_BOT;
 		ent->inuse = qtrue;
-		if( !G_BotConnect( clientNum, !firstTime ) ) {
+		if( !G_BotConnect( clientNum, (qboolean)!firstTime ) ) {
 			return "BotConnectfailed";
 		}
 	}

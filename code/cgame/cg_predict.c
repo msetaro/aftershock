@@ -338,7 +338,7 @@ static void CG_TouchTriggerPrediction( void ) {
 		return;
 	}
 
-	spectator = ( cg.predictedPlayerState.pm_type == PM_SPECTATOR );
+	spectator = (qboolean)( ( cg.predictedPlayerState.pm_type == PM_SPECTATOR ) );
 
 	if ( cg.predictedPlayerState.pm_type != PM_NORMAL && !spectator ) {
 		return;
@@ -454,7 +454,7 @@ void CG_PredictPlayerState( void ) {
 	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 		cg_pmove.tracemask &= ~CONTENTS_BODY;	// spectators can fly through bodies
 	}
-	cg_pmove.noFootsteps = ( cgs.dmflags & DF_NO_FOOTSTEPS ) > 0;
+	cg_pmove.noFootsteps = (qboolean)( ( cgs.dmflags & DF_NO_FOOTSTEPS ) > 0 );
 
 	// save the state before the pmove so we can detect transitions
 	oldPlayerState = cg.predictedPlayerState;

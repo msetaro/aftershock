@@ -160,11 +160,11 @@ int trap_PointContents( const vec3_t point, int passEntityNum ) {
 
 
 qboolean trap_InPVS( const vec3_t p1, const vec3_t p2 ) {
-	return NATIVE_SYSCALL( (intptr_t)( G_IN_PVS ), (intptr_t)( p1 ), (intptr_t)( p2 ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( G_IN_PVS ), (intptr_t)( p1 ), (intptr_t)( p2 ) );
 }
 
 qboolean trap_InPVSIgnorePortals( const vec3_t p1, const vec3_t p2 ) {
-	return NATIVE_SYSCALL( (intptr_t)( G_IN_PVS_IGNORE_PORTALS ), (intptr_t)( p1 ), (intptr_t)( p2 ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( G_IN_PVS_IGNORE_PORTALS ), (intptr_t)( p1 ), (intptr_t)( p2 ) );
 }
 
 void trap_AdjustAreaPortalState( gentity_t *ent, qboolean open ) {
@@ -172,7 +172,7 @@ void trap_AdjustAreaPortalState( gentity_t *ent, qboolean open ) {
 }
 
 qboolean trap_AreasConnected( int area1, int area2 ) {
-	return NATIVE_SYSCALL( (intptr_t)( G_AREAS_CONNECTED ), (intptr_t)( area1 ), (intptr_t)( area2 ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( G_AREAS_CONNECTED ), (intptr_t)( area1 ), (intptr_t)( area2 ) );
 }
 
 void trap_LinkEntity( gentity_t *ent ) {
@@ -188,11 +188,11 @@ int trap_EntitiesInBox( const vec3_t mins, const vec3_t maxs, int *list, int max
 }
 
 qboolean trap_EntityContact( const vec3_t mins, const vec3_t maxs, const gentity_t *ent ) {
-	return NATIVE_SYSCALL( (intptr_t)( G_ENTITY_CONTACT ), (intptr_t)( mins ), (intptr_t)( maxs ), (intptr_t)( ent ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( G_ENTITY_CONTACT ), (intptr_t)( mins ), (intptr_t)( maxs ), (intptr_t)( ent ) );
 }
 
 qboolean trap_EntityContactCapsule( const vec3_t mins, const vec3_t maxs, const gentity_t *ent ) {
-	return NATIVE_SYSCALL( (intptr_t)( G_ENTITY_CONTACTCAPSULE ), (intptr_t)( mins ), (intptr_t)( maxs ), (intptr_t)( ent ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( G_ENTITY_CONTACTCAPSULE ), (intptr_t)( mins ), (intptr_t)( maxs ), (intptr_t)( ent ) );
 }
 
 int trap_BotAllocateClient( void ) {
@@ -208,7 +208,7 @@ void trap_GetUsercmd( int clientNum, usercmd_t *cmd ) {
 }
 
 qboolean trap_GetEntityToken( char *buffer, int bufferSize ) {
-	return NATIVE_SYSCALL( (intptr_t)( G_GET_ENTITY_TOKEN ), (intptr_t)( buffer ), (intptr_t)( bufferSize ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( G_GET_ENTITY_TOKEN ), (intptr_t)( buffer ), (intptr_t)( bufferSize ) );
 }
 
 int trap_DebugPolygonCreate(int color, int numPoints, vec3_t *points) {

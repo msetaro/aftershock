@@ -118,7 +118,7 @@ static void PlayerSettings_DrawName( void *self ) {
 	f = (menufield_s*)self;
 	basex = f->generic.x;
 	y = f->generic.y;
-	focus = (f->generic.parent->cursor == f->generic.menuPosition);
+	focus = (qboolean)( (f->generic.parent->cursor == f->generic.menuPosition) );
 
 	style = UI_LEFT|UI_SMALLFONT;
 	color = text_color_normal;
@@ -183,7 +183,7 @@ static void PlayerSettings_DrawHandicap( void *self ) {
 	float			*color;
 
 	item = (menulist_s *)self;
-	focus = (item->generic.parent->cursor == item->generic.menuPosition);
+	focus = (qboolean)( (item->generic.parent->cursor == item->generic.menuPosition) );
 
 	style = UI_LEFT|UI_SMALLFONT;
 	color = text_color_normal;
@@ -209,7 +209,7 @@ static void PlayerSettings_DrawEffects( void *self ) {
 	float			*color;
 
 	item = (menulist_s *)self;
-	focus = (item->generic.parent->cursor == item->generic.menuPosition);
+	focus = (qboolean)( (item->generic.parent->cursor == item->generic.menuPosition) );
 
 	style = UI_LEFT|UI_SMALLFONT;
 	color = text_color_normal;

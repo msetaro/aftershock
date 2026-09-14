@@ -403,7 +403,7 @@ void UI_SPPostgameMenu_Cache( void ) {
 	int			n;
 	qboolean	buildscript;
 
-	buildscript = trap_Cvar_VariableValue("com_buildscript");
+	buildscript = (qboolean)trap_Cvar_VariableValue("com_buildscript");
 
 	trap_R_RegisterShaderNoMip( ART_MENU0 );
 	trap_R_RegisterShaderNoMip( ART_MENU1 );

@@ -498,7 +498,7 @@ static void RadioButton_Draw( menuradiobutton_s *rb )
 	x = rb->generic.x;
 	y = rb->generic.y;
 
-	focus = (rb->generic.parent->cursor == rb->generic.menuPosition);
+	focus = (qboolean)( (rb->generic.parent->cursor == rb->generic.menuPosition) );
 
 	if ( rb->generic.flags & QMF_GRAYED )
 	{
@@ -637,7 +637,7 @@ static void Slider_Draw( menuslider_s *s ) {
 	
 	x =	s->generic.x;
 	y = s->generic.y;
-	focus = (s->generic.parent->cursor == s->generic.menuPosition);
+	focus = (qboolean)( (s->generic.parent->cursor == s->generic.menuPosition) );
 
 	if( s->generic.flags & QMF_GRAYED ) {
 		color = text_color_disabled;
@@ -851,7 +851,7 @@ static void SpinControl_Draw( menulist_s *s )
 	y =	s->generic.y;
 
 	style = UI_SMALLFONT;
-	focus = (s->generic.parent->cursor == s->generic.menuPosition);
+	focus = (qboolean)( (s->generic.parent->cursor == s->generic.menuPosition) );
 
 	if ( s->generic.flags & QMF_GRAYED )
 		color = text_color_disabled;
@@ -1211,7 +1211,7 @@ void ScrollList_Draw( menulist_s *l )
 	qboolean	hasfocus;
 	int			style;
 
-	hasfocus = (l->generic.parent->cursor == l->generic.menuPosition);
+	hasfocus = (qboolean)( (l->generic.parent->cursor == l->generic.menuPosition) );
 
 	x =	l->generic.x;
 	for( column = 0; column < l->columns; column++ ) {
@@ -1541,7 +1541,7 @@ void Menu_Draw( menuframework_s *menu )
 #endif
 	}
 
-	itemptr = Menu_ItemAtCursor( menu );
+	itemptr = (menucommon_s *)Menu_ItemAtCursor( menu );
 	if ( itemptr && itemptr->statusbar)
 		itemptr->statusbar( ( void * ) itemptr );
 }
@@ -1599,7 +1599,7 @@ sfxHandle_t Menu_DefaultKey( menuframework_s *m, int key )
 		return 0;
 
 	// route key stimulus to widget
-	item = Menu_ItemAtCursor( m );
+	item = (menucommon_s *)Menu_ItemAtCursor( m );
 	if (item && !(item->flags & (QMF_GRAYED|QMF_INACTIVE)))
 	{
 		switch (item->type)
@@ -1636,7 +1636,7 @@ sfxHandle_t Menu_DefaultKey( menuframework_s *m, int key )
 	{
 #ifndef NDEBUG
 		case K_F11:
-			uis.debug ^= 1;
+			uis.debug = (qboolean)( uis.debug ^ 1 );
 			break;
 
 		case K_F12:

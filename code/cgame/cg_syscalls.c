@@ -314,11 +314,11 @@ void		trap_GetCurrentSnapshotNumber( int *snapshotNumber, int *serverTime ) {
 }
 
 qboolean	trap_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
-	return NATIVE_SYSCALL( (intptr_t)( CG_GETSNAPSHOT ), (intptr_t)( snapshotNumber ), (intptr_t)( snapshot ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( CG_GETSNAPSHOT ), (intptr_t)( snapshotNumber ), (intptr_t)( snapshot ) );
 }
 
 qboolean	trap_GetServerCommand( int serverCommandNumber ) {
-	return NATIVE_SYSCALL( (intptr_t)( CG_GETSERVERCOMMAND ), (intptr_t)( serverCommandNumber ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( CG_GETSERVERCOMMAND ), (intptr_t)( serverCommandNumber ) );
 }
 
 int			trap_GetCurrentCmdNumber( void ) {
@@ -326,7 +326,7 @@ int			trap_GetCurrentCmdNumber( void ) {
 }
 
 qboolean	trap_GetUserCmd( int cmdNumber, usercmd_t *ucmd ) {
-	return NATIVE_SYSCALL( (intptr_t)( CG_GETUSERCMD ), (intptr_t)( cmdNumber ), (intptr_t)( ucmd ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( CG_GETUSERCMD ), (intptr_t)( cmdNumber ), (intptr_t)( ucmd ) );
 }
 
 void		trap_SetUserCmdValue( int stateValue, float sensitivityScale ) {
@@ -346,7 +346,7 @@ int trap_MemoryRemaining( void ) {
 }
 
 qboolean trap_Key_IsDown( int keynum ) {
-	return NATIVE_SYSCALL( (intptr_t)( CG_KEY_ISDOWN ), (intptr_t)( keynum ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( CG_KEY_ISDOWN ), (intptr_t)( keynum ) );
 }
 
 int trap_Key_GetCatcher( void ) {
@@ -401,13 +401,13 @@ int trap_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int
 // stops playing the cinematic and ends it.  should always return FMV_EOF
 // cinematics must be stopped in reverse order of when they are started
 e_status trap_CIN_StopCinematic(int handle) {
-  return NATIVE_SYSCALL( (intptr_t)( CG_CIN_STOPCINEMATIC ), (intptr_t)( handle ) );
+  return (e_status)NATIVE_SYSCALL( (intptr_t)( CG_CIN_STOPCINEMATIC ), (intptr_t)( handle ) );
 }
 
 
 // will run a frame of the cinematic but will not draw it.  Will return FMV_EOF if the end of the cinematic has been reached.
 e_status trap_CIN_RunCinematic (int handle) {
-  return NATIVE_SYSCALL( (intptr_t)( CG_CIN_RUNCINEMATIC ), (intptr_t)( handle ) );
+  return (e_status)NATIVE_SYSCALL( (intptr_t)( CG_CIN_RUNCINEMATIC ), (intptr_t)( handle ) );
 }
  
 
@@ -424,7 +424,7 @@ void trap_CIN_SetExtents (int handle, int x, int y, int w, int h) {
 
 /*
 qboolean trap_loadCamera( const char *name ) {
-	return NATIVE_SYSCALL( (intptr_t)( CG_LOADCAMERA ), (intptr_t)( name ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( CG_LOADCAMERA ), (intptr_t)( name ) );
 }
 
 void trap_startCamera(int time) {
@@ -432,14 +432,14 @@ void trap_startCamera(int time) {
 }
 
 qboolean trap_getCameraInfo( int time, vec3_t *origin, vec3_t *angles) {
-	return NATIVE_SYSCALL( (intptr_t)( CG_GETCAMERAINFO ), (intptr_t)( time ), (intptr_t)( origin ), (intptr_t)( angles ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( CG_GETCAMERAINFO ), (intptr_t)( time ), (intptr_t)( origin ), (intptr_t)( angles ) );
 }
 */
 
 qboolean trap_GetEntityToken( char *buffer, int bufferSize ) {
-	return NATIVE_SYSCALL( (intptr_t)( CG_GET_ENTITY_TOKEN ), (intptr_t)( buffer ), (intptr_t)( bufferSize ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( CG_GET_ENTITY_TOKEN ), (intptr_t)( buffer ), (intptr_t)( bufferSize ) );
 }
 
 qboolean trap_R_inPVS( const vec3_t p1, const vec3_t p2 ) {
-	return NATIVE_SYSCALL( (intptr_t)( CG_R_INPVS ), (intptr_t)( p1 ), (intptr_t)( p2 ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( CG_R_INPVS ), (intptr_t)( p1 ), (intptr_t)( p2 ) );
 }

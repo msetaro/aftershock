@@ -203,11 +203,11 @@ void trap_Key_SetBinding( int keynum, const char *binding ) {
 }
 
 qboolean trap_Key_IsDown( int keynum ) {
-	return NATIVE_SYSCALL( (intptr_t)( UI_KEY_ISDOWN ), (intptr_t)( keynum ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( UI_KEY_ISDOWN ), (intptr_t)( keynum ) );
 }
 
 qboolean trap_Key_GetOverstrikeMode( void ) {
-	return NATIVE_SYSCALL( (intptr_t)( UI_KEY_GETOVERSTRIKEMODE ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( UI_KEY_GETOVERSTRIKEMODE ) );
 }
 
 void trap_Key_SetOverstrikeMode( qboolean state ) {
@@ -299,7 +299,7 @@ int trap_LAN_ServerIsVisible( int source, int n) {
 }
 
 qboolean trap_LAN_UpdateVisiblePings( int source ) {
-	return NATIVE_SYSCALL( (intptr_t)( UI_LAN_UPDATEVISIBLEPINGS ), (intptr_t)( source ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( UI_LAN_UPDATEVISIBLEPINGS ), (intptr_t)( source ) );
 }
 
 int trap_LAN_AddServer(int source, const char *name, const char *addr) {
@@ -366,13 +366,13 @@ int trap_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int
 // stops playing the cinematic and ends it.  should always return FMV_EOF
 // cinematics must be stopped in reverse order of when they are started
 e_status trap_CIN_StopCinematic(int handle) {
-  return NATIVE_SYSCALL( (intptr_t)( UI_CIN_STOPCINEMATIC ), (intptr_t)( handle ) );
+  return (e_status)NATIVE_SYSCALL( (intptr_t)( UI_CIN_STOPCINEMATIC ), (intptr_t)( handle ) );
 }
 
 
 // will run a frame of the cinematic but will not draw it.  Will return FMV_EOF if the end of the cinematic has been reached.
 e_status trap_CIN_RunCinematic (int handle) {
-  return NATIVE_SYSCALL( (intptr_t)( UI_CIN_RUNCINEMATIC ), (intptr_t)( handle ) );
+  return (e_status)NATIVE_SYSCALL( (intptr_t)( UI_CIN_RUNCINEMATIC ), (intptr_t)( handle ) );
 }
  
 
@@ -393,7 +393,7 @@ void	trap_R_RemapShader( const char *oldShader, const char *newShader, const cha
 }
 
 qboolean trap_VerifyCDKey( const char *key, const char *chksum) {
-	return NATIVE_SYSCALL( (intptr_t)( UI_VERIFY_CDKEY ), (intptr_t)( key ), (intptr_t)( chksum ) );
+	return (qboolean)NATIVE_SYSCALL( (intptr_t)( UI_VERIFY_CDKEY ), (intptr_t)( key ), (intptr_t)( chksum ) );
 }
 
 void trap_SetPbClStatus( int status ) {

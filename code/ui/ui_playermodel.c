@@ -247,7 +247,7 @@ static sfxHandle_t PlayerModel_MenuKey( int key )
 	{
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
-			m = Menu_ItemAtCursor(&s_playermodel.menu);
+			m = (menucommon_s *)Menu_ItemAtCursor(&s_playermodel.menu);
 			picnum = m->id - ID_PLAYERPIC0;
 			if (picnum >= 0 && picnum <= 15)
 			{
@@ -271,7 +271,7 @@ static sfxHandle_t PlayerModel_MenuKey( int key )
 
 		case K_KP_RIGHTARROW:
 		case K_RIGHTARROW:
-			m = Menu_ItemAtCursor(&s_playermodel.menu);
+			m = (menucommon_s *)Menu_ItemAtCursor(&s_playermodel.menu);
 			picnum = m->id - ID_PLAYERPIC0;
 			if (picnum >= 0 && picnum <= 15)
 			{
@@ -400,7 +400,7 @@ static void PlayerModel_BuildList( void )
 	int		filelen;
 	qboolean precache;
 
-	precache = trap_Cvar_VariableValue("com_buildscript");
+	precache = (qboolean)trap_Cvar_VariableValue("com_buildscript");
 
 	s_playermodel.modelpage = 0;
 	s_playermodel.nummodels = 0;

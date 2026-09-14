@@ -542,7 +542,7 @@ static void Controls_UpdateModel( int anim ) {
 		break;
 	}
 
-	UI_PlayerInfo_SetInfo( &s_controls.playerinfo, s_controls.playerLegs, s_controls.playerTorso, s_controls.playerViewangles, s_controls.playerMoveangles, s_controls.playerWeapon, s_controls.playerChat );
+	UI_PlayerInfo_SetInfo( &s_controls.playerinfo, s_controls.playerLegs, s_controls.playerTorso, s_controls.playerViewangles, s_controls.playerMoveangles, (weapon_t)s_controls.playerWeapon, s_controls.playerChat );
 }
 
 
@@ -664,7 +664,7 @@ static void Controls_DrawKeyBinding( void *self )
 	x =	a->generic.x;
 	y = a->generic.y;
 
-	c = (Menu_ItemAtCursor( a->generic.parent ) == a);
+	c = (qboolean)( (Menu_ItemAtCursor( a->generic.parent ) == a) );
 
 	b1 = g_bindings[a->generic.id].bind1;
 	if (b1 == -1)
@@ -1145,7 +1145,7 @@ static void Controls_ActionEvent( void* ptr, int event )
 	}
 	else if ((event == QM_ACTIVATED) && !s_controls.waitingforkey)
 	{
-		s_controls.waitingforkey = 1;
+		s_controls.waitingforkey = (qboolean)1;
 		Controls_Update();
 	}
 }
