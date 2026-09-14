@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: renderervk; next `code/renderervk/tr_surface.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: renderervk; next `code/renderervk/vk_flares.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/renderervk/tr_surface.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_surface.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_surface.o /tmp/aftershock-cpp-port/renderervk-tr_surface ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderervk/tr_sky.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_sky.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_sky.o /tmp/aftershock-cpp-port/renderervk-tr_sky ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -586,7 +588,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/renderervk/tr_shader.c` | done | T1: 5, T3: 17, T16: 1, T17: 9; T21/T22: 5 argument casts at 5 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shader.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_shadows.c` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shadows.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_sky.c` | done | T4: 7 occurrences (prerequisite); T21/T22: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_sky.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_surface.c` | done | T4: 25 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_surface.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderervk/tr_surface.c` | done | T4: 25 occurrences (prerequisite); T21/T22: 2 argument casts at 2 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_surface.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_world.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/vk.c` | blocked | Catalog casts compile with unchanged C hash/G2 PASS, but G3 reports 74 generated const shader arrays changing external R to internal r. No existing extern declarations to move; adding new declarations is outside catalog. Attempt reverted. Evidence tools/port/evidence/vulkan-shader-linkage.diff. |
 | `code/renderervk/vk.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |

@@ -231,8 +231,8 @@ static void RB_SurfaceSprite( void ) {
 		float	ang;
 		
 		ang = M_PI * backEnd.currentEntity->e.rotation / 180.0;
-		s = sin( ang );
-		c = cos( ang );
+		s = sin( (double)(ang) );
+		c = cos( (double)(ang) );
 
 		VectorScale( backEnd.viewParms.orientation.axis[1], c * radius, left );
 		VectorMA( left, -s * radius, backEnd.viewParms.orientation.axis[2], left );
