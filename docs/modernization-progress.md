@@ -30,7 +30,7 @@ VM PR #42 merged as 62dad842 after regression 34886047536 and full build
 34886047431 passed; merged-tree regression 34886485915 passed.
 
 zlib callback PR #43 merged as fed755d6 after regression 34886950022 and full
-build 34886949860 passed; merged-tree regression 34887353903 is running.
+build 34886949860 passed; merged-tree regression 34887353903 passed.
 
 Current branch: `issue/31-extension-output`. Caller audit confirms both platform
 Sys_LoadLibrary functions print the extension out-parameter on an allowed return,
@@ -40,8 +40,12 @@ after initializing the output for every return. Classification and .so.N handlin
 are unchanged. Unit/sanitizer/pointer/negative-control, collision, smoke and replay
 pass; explicit unit/collision regeneration has no golden diff. Upstream C test
 fails before and passes after: https://github.com/ec-/Quake3e/pull/431. Symbols
-pass, and only FS_AllowedExtension changes bytes among 99 functions. Next: open
-PR and complete hosted CI/self-review.
+pass, and only FS_AllowedExtension changes bytes among 99 functions. PR #44 is
+open at source 8fd57208; regression 34887856044 and full build 34887856072 passed.
+Self-review below passes. Next: mark ready, merge, verify merged-tree regression,
+then branch issue/31-aas-jump-candidate. Remove its specific GCC sanitizer warning
+exception before the failing runtime build, guard the missing-candidate sentinel
+before midpoint arithmetic, then rerun gates and offer upstream.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -268,4 +272,14 @@ renames CSWTCH.612/613 in FS_Seek, whose bytes are unchanged. Reviewed expected
 codegen difference; no gate weakening. Upstream C fix/test:
 https://github.com/ec-/Quake3e/pull/431. Self-review: shared out-parameter bug only;
 no extension policy, OS access, allocation, destructor, FP or layout changes.
-Hosted gates pending.
+Regression 34887856044 and full build 34887856072 pass on source 8fd57208.
+Final checkpoint changes documentation only; self-review passes.
+
+Next AAS reproduction: GCC UBSan compile of be_aas_reach.cpp with its existing
+-Wno-maybe-uninitialized exception overridden by -Werror=maybe-uninitialized fails
+on beststart at line 2196. The function is AAS_Reachability_Jump (the earlier note
+incorrectly called it JumpArea). A temporary source copy with a bestdist==999999
+return before VectorMiddle compiles cleanly; engine source is unchanged so far.
+The Makefile exception explicitly names this one defect and can be removed in
+its own #31 PR. Evidence: /tmp/aftershock-aas-warning-before.log and
+/tmp/aftershock-aas-guard-check.log.

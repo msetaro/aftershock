@@ -185,3 +185,4 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   regeneration has no golden diff. Symbols pass; only FS_AllowedExtension changes
   bytes among 99 functions (the text diff also renames an FS_Seek switch-table label).
   Upstream C regression/fix: https://github.com/ec-/Quake3e/pull/431.
+  Extension fork PR #44 passed regression 34887856044 and full build 34887856072.
