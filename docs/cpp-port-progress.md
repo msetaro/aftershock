@@ -17,7 +17,7 @@ export PORT_EVIDENCE=/tmp/port-evidence/tools/port/evidence
 
 ## Next action
 
-PR #32 review follow-up: origin/main merged; implement generator T18 emission and byte-identical regeneration, T25 cleanup using release/stripped-debug hashes, publish evidence on orphan port-evidence, record final acceptance, answer/resolve all 15 threads, refresh CI and PR readiness.
+PR #32 implementation and acceptance complete; push review commits, answer/resolve all 15 threads, and verify fresh CI and PR readiness.
 
 ## Phase checklist
 
@@ -68,6 +68,63 @@ None. PR32 review corrected the T25 verification rule: GCC/Clang release objects
 - **Unverified:** optional FreeType (headers/pkg-config unavailable), dormant Windows USE_PROFILES (not selected by Make/MSVC), cross-target executable runtime, and client timedemo/frame/image equivalence. Native renderer map-load tests do not claim those checks. `sv_rankings.c` is excluded for its proprietary SDK; `qasm.h` is assembly-only. MSVC x64/ARM64 Debug/Release pass on 34804759804.
 
 Historical results at 7ec7e925 and intermediate T24/T25 checkpoints remain in git/evidence (`resumed-*`, `final-*`, `t25-*`). They are superseded by the current results above.
+
+## PR #32 final acceptance (merged tree)
+
+Merged `origin/main` at `841b35d5` in `cc114e79`; full fresh C (main) and C++ dedicated/client/both dlopen renderer builds pass. Generator fix `6ef22a39` regenerates all 74 arrays byte-identically (SHA256 `700724298e78e98017adeeceb34b56af6243fe6cdbdce94da60751b1fb187367`), including a separate `_size` linkage fixture for the existing disabled emission path. Committed SPIR-V bytes were reused because glslangValidator is unavailable; no shader compilation or bytecode substitution is claimed. T25 cleanup `80763bd2` passes all eight GCC/Clang release/debug client/ded comparisons: release hashes match raw; debug hashes match after `objcopy --strip-debug`. Full before/after hashes are in the small acceptance JSON and archived `pr32-cleanup-results.json`; G2/G3 on sv_client pass and G4 remains advisory.
+
+Runtime acceptance was rerun locally after cleanup using two warmups and two measured runs per language at the identical executable path, following C-repeat, C++-repeat, then C-vs-C++ order. All four normalized logs contain 123 identical lines and hash `00446177640cfac27f9018572860cbf9618930bf8d38b52184e19d74dade0a01`. Only the permitted cached-paks line is removed; the working-directory line is identical because the execution path is shared. This path differs from the earlier phase-3 test, explaining its different overall log hash.
+
+| Run | Raw SHA256 |
+|---|---|
+| c 1 | `e9eb578d11d6c6a0ead10379b603d13c9bf12a7330796e3b63a5270056127cf6` |
+| c 2 | `b41fb28770659389102a03d97b777dc5e9ecd8929bd2319625e9736732d4fa8b` |
+| cxx 1 | `e9eb578d11d6c6a0ead10379b603d13c9bf12a7330796e3b63a5270056127cf6` |
+| cxx 2 | `e9eb578d11d6c6a0ead10379b603d13c9bf12a7330796e3b63a5270056127cf6` |
+
+Whole-binary `nm -g` comparison preserves symbol kind and version suffix, demangles names and removes function parameter lists: **473 C defined globals = 473 C++ defined globals**, identical sets. Undefined imports differ exactly as the maintainer observed:
+
+| C only | C++ only | Accepted explanation / retained G4 class |
+|---|---|---|
+| `ceilf@GLIBC_2.2.5`, `floorf@GLIBC_2.2.5` | none | GCC folds C float-result/double-input calls to float libm; C++ uses inlined double SSE operations, exact for these float inputs. |
+| `__ctype_b_loc@GLIBC_2.3`, `__ctype_tolower_loc@GLIBC_2.3` | `isspace@GLIBC_2.2.5`, `tolower@GLIBC_2.2.5` | glibc C macros versus C++ function declarations, same tables. |
+| `__stpcpy_chk@GLIBC_2.3.4` | none | Different fortify wrapper selection. |
+
+No f-suffixed libm import appears only in C++. This production-binary comparison supplements the controlled per-object G3 checks; it does not silently waive any new G3 failure.
+
+The maintainer independently reported the same 473-symbol comparison and repeated 123-line runtime trace (28 item pickups, five kills, same order) in [review 5197874004](https://github.com/msetaro/aftershock/pull/32#pullrequestreview-5197874004), with only the working-directory path differing between their installations. That review also reports Vulkan q3dm17/HUD rendering on RTX 3080 Ti and OpenGL menu rendering on llvmpipe, with screenshots from both; those GPU observations are the maintainer's, not this headless follow-up's tests.
+
+Exact reproduction (first extract the evidence archive as above; game data remains in ~/.q3a/baseq3):
+
+```sh
+export SOURCE_DATE_EPOCH=1789257600 LC_ALL=C
+mkdir -p /tmp/port-pr32/main-c
+git archive 841b35d5faf0c2a09b8c0d0e746b92a20dd36e97 | tar -x -C /tmp/port-pr32/main-c
+make -C /tmp/port-pr32/main-c -j10 BUILD_DIR=/tmp/port-pr32/build-c
+make -j10 BUILD_DIR=/tmp/port-pr32/build-cxx
+python3 tools/port/check_shader_generator.py /tmp/port-pr32/shaders
+python3 tools/port/reproduce_t25_cleanup.py "$PWD" /tmp/port-pr32/cleanup-reproduction
+python3 "$PORT_EVIDENCE/pr32-acceptance.py"
+```
+
+The last script copies each executable to `/tmp/port-pr32/runtime/quake3e.ded.x64` in sequence, performs two warmups and two measured runs, asserts repeat/equivalence checks, and writes raw/normalized logs, sorted defined/undefined symbol lists and `acceptance-results.json` under `/tmp/port-pr32`. The exact runtime command is:
+
+```sh
+timeout 90 faketime -f "@2026-01-01 00:00:00 i0.01" /tmp/port-pr32/runtime/quake3e.ded.x64 \
+  +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17 \
+  +addbot sarge 3 +addbot major 3 +wait 300 +quit
+```
+
+For each binary the script runs `nm -g --defined-only <binary> | c++filt` and `nm -g --undefined-only <binary> | c++filt`, removes only parameter lists with `re.sub(r'\(.*\)', '', name)`, sorts kind/name pairs, asserts equality of defined sets and records both undefined set differences. Compare its emitted lists with:
+
+```sh
+diff -u /tmp/port-pr32/symbols-c-defined.txt /tmp/port-pr32/symbols-cxx-defined.txt
+diff -u /tmp/port-pr32/symbols-c-undefined.txt /tmp/port-pr32/symbols-cxx-undefined.txt
+```
+
+Review dispositions: required generator/T25 changes are implemented; T15/T21 wording and versioned-compiler instructions are corrected. Existing inner `(int)` casts in SDL and printf were present in original `8a7e8ed2`, so they are retained. Fresh original C hashes confirm cl_cgame.o `6e11f30cf2da5013a32f3ed871b30fb853a3456848e6b729456f887663683536` and both sv_game.o contexts `a6fedc0c9eb7f9d232bbf5b90c38cd79485fb9b9126b8bbb7866e32af0599086`; only the new `(char *)VMA(1)` casts are T1. C linkage on assembly/GPU variables remains necessary for MSVC raw names; function typedef linkage documents approved external boundaries. T21 M_PI casts remain necessary for the float fallback in q_shared.h on supported configurations. Huffman T18 preserves original C external linkage. Both CINTERFACE definitions deliberately cover early SDK inclusion and header consumers; __clear_cache already has the requested target guard. The advisory C++ probe was already removed in phase 3. Detailed fixtures are archived as `pr32-nit-review.json`.
+
+Independent G8 review reran both new verification tools successfully. Its stale inventory wording findings are corrected, and cross_gates now rejects an empty manifest/inventory match; an extracted real md4 manifest entry passes compilation/G2/G3/G4 and an empty manifest fails explicitly.
 
 ## Decisions, scope and harness details
 
@@ -379,7 +436,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/renderercommon/vulkan/vulkan_xlib.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan_xlib_xrandr.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderervk/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderervk/shaders/bin2hex.cpp` | done | PR32 T18 array/_size declaration emission and byte-identical 74-array regeneration verified.  Unchanged standalone build utility, not linked engine code; gcc/g++ strict native -O2 compile PASS, fixed 259-byte input and append output byte-identical. Engine layout gate not applicable (no engine records). |
+| `code/renderervk/shaders/bin2hex.cpp` | done | PR32 T18 array/_size declaration emission and byte-identical 74-array regeneration verified.  Standalone build utility, not linked engine code; original pre-review verification: gcc/g++ strict native -O2 compile PASS, fixed 259-byte input and append output byte-identical. Engine layout gate not applicable (no engine records). |
 | `code/renderervk/shaders/spirv/shader_data.cpp` | done | T18: 74 preceding extern const declarations; unchanged initialized bytes. Verified through sole consumer rendv/vk.o: C SHA256 unchanged, strict release/debug C++, G2/G3 PASS; G4 advisory diff retained under vk.c. vk.c and this include require each other for C++ gates; consecutive per-file commits record the pair. |
 | `code/renderervk/tr_animation.cpp` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_animation.o, default); G4 advisory difference retained. |
 | `code/renderervk/tr_backend.cpp` | done | T4: 11 occurrences (prerequisite), T1: 4, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_backend.o, default); G4 advisory difference retained. |
@@ -417,7 +474,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/server/server.h` | done | T1-T17: 0; unchanged header verified through server consumers, strict native release/debug and G2/G3 PASS. |
 | `code/server/sv_bot.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_bot.o); G4 advisory difference retained. |
 | `code/server/sv_ccmds.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory difference retained. |
-| `code/server/sv_client.cpp` | done | Port/runtime and approved T25 cleanup pass.  T1: 2; T2: 4; T20: 1; T25: 1 preserving original C compound line; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_client.o, default); G4 advisory FAIL, full diff retained. |
+| `code/server/sv_client.cpp` | done | Port/runtime and approved T25 cleanup pass.  T1: 2; T2: 4; T20: 1; T25: 1 preserved original C compound line before rename; approved post-rename cleanup now removes that inactive branch; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_client.o, default); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_filter.cpp` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory difference retained. |
 | `code/server/sv_game.cpp` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (ded/sv_game.o); G4 advisory difference retained. |
 | `code/server/sv_init.cpp` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory difference retained. |
@@ -1186,11 +1243,11 @@ Later per-file G4: `phase3-msvc-vm_aarch64.diff.gz`; same Linux AArch64 body wit
 
 - qcommon/vm_aarch64.cpp: MSVC ARM64 reports C2440 at 2283, VirtualAlloc LPVOID to byte*. Added one T1 (byte *) cast, matching the existing field. AArch64 strict compile/G2/G3 PASS; G4 retained in phase3-msvc-vm_aarch64.diff.gz. Windows ARM64 verification continues in CI; MSVC x64 Debug/Release now pass.
 
-- T25 cleanup reproducer: `python3 tools/port/reproduce_t25_cleanup.py "$PWD" /tmp/port-cleanup-proof`. Success means the documented incompatibility was reproduced, **not** that cleanup passed. It records actual Make recipes, compiler versions, all variant hashes, raw DWARF and precisely locates the 16-byte MD5 region (offset depends on output-path length). Archived original/blank Clang objects are t25-cleanup-clang-default-{original,blank}.o.gz. Source remains unchanged.
+- Historical T25 cleanup reproducer at `629700fa`: `python3 tools/port/reproduce_t25_cleanup.py "$PWD" /tmp/port-cleanup-proof`. At that commit, success meant the documented incompatibility was reproduced, **not** that cleanup passed; the current script instead verifies the approved cleanup. It records actual Make recipes, compiler versions, all variant hashes, raw DWARF and precisely locates the 16-byte MD5 region (offset depends on output-path length). Archived original/blank Clang objects are t25-cleanup-clang-default-{original,blank}.o.gz. Source remains unchanged.
 - MSVC final catalog loop: run 34804759804 at commit 4ffcd649 passes Debug/Release x64 and ARM64 after the one Windows-only vm_aarch64 T1 cast. No remaining MSVC error needs a new transformation.
 
 - Final CI: https://github.com/msetaro/aftershock/actions/runs/34804759804 — success at 4ffcd649. `gh run watch --exit-status` and `gh run view --log-failed` completed; no failed logs in the final run. Exact per-job conclusions and commands are in phase3-ci{1,2,3}-results.json. Later commits contain only checkpoint/evidence and the read-only cleanup reproducer; no engine/build content changes after the green source commit.
-- Final scope: 257 inventory entries done (171 renamed implementation/data sources, shared headers, and two explicit exclusions). No engine compile/G2/G3 blocker remains. T25 cleanup is the sole blocked source task; retaining its guard is not claimed as completing that requested cleanup. Optional unverified configurations are listed separately above. All eight historical DEVIATION commits remain listed with reasons; all current and historical G4 differences remain indexed. No question or hash-policy exception was inferred.
+- Final scope: 257 inventory entries done (171 renamed implementation/data sources, shared headers, and two explicit exclusions). No engine compile/G2/G3 blocker remains. At that historical checkpoint T25 cleanup was the sole blocked source task; the PR32 continuation below removes the guard under the approved metadata comparison. Optional unverified configurations are listed separately above. All eight historical DEVIATION commits remain listed with reasons; all current and historical G4 differences remain indexed. No question or hash-policy exception was inferred.
 
 ## PR 32 maintainer review follow-up
 

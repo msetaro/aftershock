@@ -31,6 +31,9 @@ for name, target in targets.items():
         if Path(path).stem in stems:
             tasks.append((name, path.split('/', 1)[1], variables))
 
+if not tasks:
+    sys.exit('FAIL: no engine objects matched the evidence manifests and progress inventory')
+
 
 def check(task):
     name, obj, variables = task
