@@ -711,8 +711,8 @@ static byte *RB_ReadPixels(int x, int y, int width, int height, size_t *offset, 
 
 	// Allocate a few more bytes so that we can choose an alignment we like
 	//buffer = ri.Hunk_AllocateTempMemory(padwidth * height + *offset + bufAlign - 1);
-	buffer = ri.Hunk_AllocateTempMemory(width * height * 4 + *offset + bufAlign - 1);
-	bufstart = PADP((intptr_t) buffer + *offset, bufAlign);
+	buffer = (byte *)ri.Hunk_AllocateTempMemory(width * height * 4 + *offset + bufAlign - 1);
+	bufstart = (byte *)PADP((intptr_t) buffer + *offset, bufAlign);
 
 	vk_read_pixels( bufstart, width, height );
 
@@ -1007,7 +1007,7 @@ static void R_LevelShot( void ) {
 	allsource = RB_ReadPixels(0, 0, gls.captureWidth, gls.captureHeight, &offset, &padlen, 0 );
 	source = allsource + offset;
 
-	buffer = ri.Hunk_AllocateTempMemory(128 * 128*3 + 18);
+	buffer = (byte *)ri.Hunk_AllocateTempMemory(128 * 128*3 + 18);
 	Com_Memset (buffer, 0, 18);
 	buffer[2] = 2;		// uncompressed type
 	buffer[12] = 128;
@@ -1160,7 +1160,7 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 	avipadwidth = PAD(linelen, AVI_LINE_PADDING);
 	avipadlen = avipadwidth - linelen;
 
-	cBuf = PADP(cmd->captureBuffer, packAlign);
+	cBuf = (byte *)PADP(cmd->captureBuffer, packAlign);
 
 #ifdef USE_VULKAN
 	vk_read_pixels(cBuf, cmd->width, cmd->height);
@@ -1893,7 +1893,7 @@ void R_Init( void ) {
 	max_polys = r_maxpolys->integer;
 	max_polyverts = r_maxpolyverts->integer;
 
-	ptr = ri.Hunk_Alloc( sizeof( *backEndData ) + sizeof(srfPoly_t) * max_polys + sizeof(polyVert_t) * max_polyverts, h_low);
+	ptr = (byte *)ri.Hunk_Alloc( sizeof( *backEndData ) + sizeof(srfPoly_t) * max_polys + sizeof(polyVert_t) * max_polyverts, h_low);
 	backEndData = (backEndData_t *) ptr;
 	backEndData->polys = (srfPoly_t *) ((char *) ptr + sizeof( *backEndData ));
 	backEndData->polyVerts = (polyVert_t *) ((char *) ptr + sizeof( *backEndData ) + sizeof(srfPoly_t) * max_polys);
@@ -2033,9 +2033,9 @@ GetRefAPI
 @@@@@@@@@@@@@@@@@@@@@
 */
 #ifdef USE_RENDERER_DLOPEN
-Q_EXPORT refexport_t* QDECL GetRefAPI ( int apiVersion, refimport_t *rimp ) {
+Q_EXTERN_C Q_EXPORT refexport_t* QDECL GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 #else
-refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
+Q_EXTERN_C refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 #endif
 
 	static refexport_t	re;
