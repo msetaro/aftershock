@@ -215,3 +215,4 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   fixed-demo frame hashes are identical. No new fixture recording.
   Upstream C fix: https://github.com/ec-/Quake3e/pull/433. Explicit unit/collision
   regeneration has no golden diff, and normal both-map smoke passes.
+  Fork PR #46 passed regression 34890358367 and full build 34890358307.

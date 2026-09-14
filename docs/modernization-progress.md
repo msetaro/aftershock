@@ -36,7 +36,7 @@ Extension output PR #44 merged as bdef99f4 after regression 34887856044 and full
 build 34887856072 passed; merged-tree regression 34888464336 passed.
 
 AAS PR #45 merged as 481d008a after regression 34889484418 and full build
-34889484412 passed; merged-tree regression 34889992769 is running.
+34889484412 passed; merged-tree regression 34889992769 passed.
 
 Current branch: `issue/31-png-header-alignment`. Added size/alignment assertions
 for the byte-packed PNG chunk header to the existing renderer source, before
@@ -46,8 +46,12 @@ gives the header byte alignment without changing its eight-byte size, fields or
 byte-order conversion. GCC production codegen/symbol gates and both-renderer fixed
 replay pass unchanged. Upstream C assertions fail before and pass after with GCC
 and Clang: https://github.com/ec-/Quake3e/pull/433. Unit/collision regeneration
-changes no golden, and normal both-map smoke passes. Next: open PR and complete
-hosted CI/self-review. No fixture recording.
+changes no golden, and normal both-map smoke passes. PR #46 is open at source
+becd4b27; regression 34890358367 and full build 34890358307 passed. Self-review
+below passes. Next: mark ready, merge, verify merged-tree regression, then branch
+issue/31-jpeg-table-index. Extend the existing unit driver with a C table-index
+check using the actual vendor routine, then move table-pointer arithmetic after
+validation. Vendor code stays C. No fixture recording.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -317,4 +321,5 @@ Upstream C layout assertions fail before and pass after with GCC and Clang:
 https://github.com/ec-/Quake3e/pull/433. No expected-failure entry or suppression
 covered this type. Self-review: one alignment bug; persistent layout assertions
 in the existing renderer build, no new content/recording, FP, allocation, OS-access
-or destructor changes. Hosted gates pending.
+or destructor changes. Regression 34890358367 and full build 34890358307 pass
+on source becd4b27. Final checkpoint changes documentation only; self-review passes.
