@@ -54,7 +54,7 @@ SHA256 provenance. Native preflight found an LP64 Q_rsqrt overread; no fix was m
 on #2. The source is not wired into the engine yet.
 
 Native math PR #49 merged as 2018564f after regression 34894597080 and full build
-34894597081 passed on source 152cc6e2. Its merged-tree regression is pending.
+34894597081 passed on source 152cc6e2. Its merged-tree regression 34895239211 is pending.
 
 Current branch: `issue/2-native-game`. Merging modernization retains the original
 GPL import commit b3ef1acd and resolves the q_math add/add to the reviewed #49 fix.
@@ -65,9 +65,12 @@ three offsets. Temporary native game/cgame/UI modules compile as C after pointer
 entry-point adaptation and linking original bg_lib support; all 36 q3dm17 gameplay
 events match the accepted QVM log. Full log differences are implementation-loading
 metadata, compile date and bot-skill printf padding. Both-renderer fixed-demo
-native preflight is running, with unchanged fixtures/goldens and existing engine
-binaries. Next: inspect its result, import the required ui_shared.h header with
-provenance, then wire reproducible C native ABI/layout/smoke/replay checks before
+native preflight repeats identically but fails all accepted frame hashes: differences
+range from 2 pixels to 931 pixels per sample. No fixture/golden changes. Added the
+required ui_shared.h header verbatim with provenance (126 imported files now).
+A temporary compiler-flag experiment uses single-precision literals to match the
+QVM data model; replay result pending, no production flag/source change. Next:
+resolve exact native replay parity, then wire C native ABI/layout/smoke/replay checks before
 any C++ port or VM/JIT removal. Keep all new fixes in separate #31 PRs.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect

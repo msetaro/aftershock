@@ -594,7 +594,7 @@
       "source": "code/game/q_math.c",
       "path": "code/game/q_math.c",
       "sha256": "571cffb6357b3f34fb4a5c000e22d7108f2f3380a49b55f8a993f0b0ce0ba239",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import in b3ef1acd; LP64 word fix merged from PR #49"
     },
     {
       "source": "code/game/q_shared.c",
@@ -771,6 +771,12 @@
       "disposition": "verbatim import"
     },
     {
+      "source": "code/ui/ui_public.h",
+      "path": "code/ui/ui_public.h",
+      "sha256": "9ada4dd687b2c0a5dd73f9d81a5cd344664cd8dd787ec6552c5e83c8fe16f9c7",
+      "disposition": "existing engine ABI header retained"
+    },
+    {
       "source": "code/q3_ui/ui_qmenu.c",
       "path": "code/ui/ui_qmenu.c",
       "sha256": "bb532514f8652dd6b83be5064c8339c80e6d3d50d803be374999756835b9284a",
@@ -804,6 +810,12 @@
       "source": "code/q3_ui/ui_setup.c",
       "path": "code/ui/ui_setup.c",
       "sha256": "45457de65a461fb515ea3fb49163f435d88858662829cefba48f2c189efd14f5",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/ui/ui_shared.h",
+      "path": "code/ui/ui_shared.h",
+      "sha256": "b249e8d18be4379c1606a58e2f9fea6ec4ac4ef910de75e4d600bbe18a3d9902",
       "disposition": "verbatim import"
     },
     {
@@ -849,6 +861,12 @@
       "disposition": "verbatim import"
     },
     {
+      "source": "code/ui/ui_syscalls.c",
+      "path": "code/ui/ui_syscalls.c",
+      "sha256": "d9ca255d00503d677ec8c52a441d6cabd0555808bab47f204a540c4b49f24a56",
+      "disposition": "verbatim import"
+    },
+    {
       "source": "code/q3_ui/ui_team.c",
       "path": "code/ui/ui_team.c",
       "sha256": "456c32c0853e12cd140a114524b44282145afbf93efe7cdd22c14a6d2138b339",
@@ -864,18 +882,6 @@
       "source": "code/q3_ui/ui_video.c",
       "path": "code/ui/ui_video.c",
       "sha256": "fa0817b1191a8eb91dd9a185f841c3a610aeeae142ab49ca1bb61154022fa64f",
-      "disposition": "verbatim import"
-    },
-    {
-      "source": "code/ui/ui_public.h",
-      "path": "code/ui/ui_public.h",
-      "sha256": "9ada4dd687b2c0a5dd73f9d81a5cd344664cd8dd787ec6552c5e83c8fe16f9c7",
-      "disposition": "existing engine ABI header retained"
-    },
-    {
-      "source": "code/ui/ui_syscalls.c",
-      "path": "code/ui/ui_syscalls.c",
-      "sha256": "d9ca255d00503d677ec8c52a441d6cabd0555808bab47f204a540c4b49f24a56",
       "disposition": "verbatim import"
     },
     {
