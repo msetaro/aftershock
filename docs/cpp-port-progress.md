@@ -6,7 +6,7 @@ Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed c
 
 ## Next action
 
-Phase 3 files renamed: validate fresh C++ build matrix, full native/cross gates against PORT_C_ORACLE, runtime, then push and dispatch/watch CI. Separate T25 cleanup remains.
+Push verified phase 3 and dispatch/watch build.yml on this feature branch. Fix MSVC diagnostics only under the catalog. Then T25 cleanup with unchanged C++ object hashes; debug checksum compatibility is being measured.
 
 ## Phase checklist
 
@@ -1242,3 +1242,7 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 - Frozen pre-rename C oracle: `e49b82595c7b1a25c70d9e86b72b3ed147adbdb3`. Reproduce with `mkdir -p /tmp/port-c-oracle; git archive e49b82595c7b1a25c70d9e86b72b3ed147adbdb3 | tar -x -C /tmp/port-c-oracle`; export `PORT_C_ORACLE=/tmp/port-c-oracle` for every post-rename gate/matrix invocation. That checkout retains BUILD_CXX=0 and the original C T25 branch.
 
 - Main rename G8: reviewer verified all 170 R100 moves, correct native/Clang/cross/explicit-CXX compiler selection, unchanged vendor C flags, valid MSVC XML/paths and CRLF, and feature-branch CI publication guard. Removed final two dead rend2 mkdir lines. Fresh build directories are mandatory after the language change.
+
+- Post-rename integration: 16/16 native C-oracle/C++ matrix configurations PASS; four cross C++ full links PASS; G5 13 groups PASS, vector_math 5c00b4de, math PASS. G7 155 native sources checked, zero compile/tool failures, same 366 narrowing findings retained; 16 platform/include-only sources skipped. G6 again matches all 123 lines after only the allowed cached-pak line removal. Exact commands/results/logs: phase3-build-matrix-results.json, phase3-cross-build-results.json, phase3-runtime-results.json, phase3-client-runtime.json, phase3-static-summary.txt, phase3-g5.log.gz, phase3-math.log.gz. One G5 recipe query raced the final Makefile write and was rerun after commit; the committed Makefile parses and G5 passes.
+
+- Phase 3 final object sweeps PASS: [('native', 454, 331), ('cross', 424, 338)]. Tuples are (target family, G2/G3 passing contexts, retained G4 differences). Full per-object diff indexes: phase3-native-context-results.json and phase3-cross-gates-results.json. Gate controls PASS, including rejection of a C++ object supplied as a C oracle. Both dlopen clients and static Vulkan load q3dm17 under Xvfb.
