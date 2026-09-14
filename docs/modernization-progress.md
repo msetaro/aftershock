@@ -17,16 +17,21 @@ Filesystem PR #37 merged as 73108eab after regression 34877286456 and full build
 Download PR #38 merged as 02b16def after regression 34878247137 and full build
 34878247337 passed; merged-tree regression 34878892522 passed.
 
-Current branch: `issue/31-audio-threads`. Permanent `python3 tests/audio.py` fails
-compilation before the fix because both callback types mismatch pthread's required
-signature. Correct signatures, direct registration and NULL returns pass with GCC
-and Clang/libc++; removed the unused pthread_exit import. Both paths submit samples
-to real ALSA null output and join their threads. The test counts positive ALSA write
-results, needs no physical device, and times out on shutdown failure. CI installs
-libasound2-dev for this check. The normal dynamic-ALSA production object also builds.
-Unit/collision regeneration produced zero golden diff; serial smoke/replay gates
-pass unchanged. Upstream C test/fix: https://github.com/ec-/Quake3e/pull/427.
-Next: open fork PR, wait for hosted CI, self-review and merge before the next #31 fix.
+Current branch: `issue/31-audio-threads`, PR #39. Source/test head 4dcfa075 passed
+regression 34879358567 and full build 34879358584. Final checkpoint changes only
+documentation. Self-review passed: platform callback signatures/registration/return
+only, no mixing arithmetic, simulation FP, layouts, allocation or core-lifetime changes.
+Next: mark #39 ready, merge with a merge commit, verify merged-tree regression,
+then create `issue/31-curl-varargs`. Prepared Clang C++ test fails at va_start;
+change the named enum parameter to its promoted integer representation, retain the
+CURLoption local for calls, remove -Wno-varargs, and run the prepared local-file
+transfer checks for long/pointer/offset arguments. C++ test: /tmp/aftershock-curl-options.cpp.
+
+New ruling from direct comparison: this va_start defect is specific to the C++
+port on our toolchains. The original C source compiles with Clang -Werror=varargs;
+a C11 type probe reports CURLoption compatible with its promoted type (unsigned int).
+C++ compilation rejects it. Do not claim a failing upstream C test or open an
+upstream bug-fix PR without one. Record this correction on #31 with the fork fix.
 
 ## Issue status and remaining sequence
 
@@ -149,3 +154,14 @@ to accommodate the collision. The hosted runtime URL check uses existing libcurl
 packages; begin/cleanup run without a transfer.
 Upstream C fix/test: https://github.com/ec-/Quake3e/pull/426.
 Fork PR: https://github.com/msetaro/aftershock/pull/38.
+
+## #31 ALSA validation
+
+Permanent callback assignments reject both original void(void) signatures. GCC and
+Clang/libc++ pass after the pthread-compatible signatures/direct registration/NULL
+returns. Real ALSA null output receives positive MMAP/DIRECT submissions and both
+threads join within the timeout; no physical device or fabricated audio backend.
+The dynamic-ALSA production object builds. Explicit unit/collision regeneration
+produces no golden diff; serial both-map smoke and both-renderer replay pass unchanged.
+Upstream C test/fix: https://github.com/ec-/Quake3e/pull/427.
+Fork PR: https://github.com/msetaro/aftershock/pull/39. CI runs are above.

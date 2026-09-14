@@ -97,3 +97,4 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   the two setup_ALSA registrations. The dynamic-ALSA production object also builds.
   Upstream C test/fix: https://github.com/ec-/Quake3e/pull/427. Unit/collision
   regeneration produces no golden diff; both-map smoke and both-renderer replay pass.
+  Fork PR #39 passed regression 34879358567 and full build 34879358584.
