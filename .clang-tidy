@@ -1,0 +1,3 @@
+Checks: '-*,bugprone-signed-char-misuse,bugprone-narrowing-conversions,bugprone-suspicious-string-compare,portability-simd-intrinsics'
+WarningsAsErrors: ''
+HeaderFilterRegex: '^code/(qcommon|server|botlib|unix|sdl|client|renderercommon|renderer|renderervk|win32)/'

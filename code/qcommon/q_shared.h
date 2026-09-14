@@ -23,6 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __Q_SHARED_H
 #define __Q_SHARED_H
 
+#ifdef __cplusplus
+#define Q_EXTERN_C extern "C"
+#else
+#define Q_EXTERN_C
+#endif
+
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
@@ -202,8 +208,8 @@ void CopyLongSwap( void *dest, void *src );
 // use custom setjmp()/longjmp() implementations
 #define Q_setjmp Q_setjmp_c
 #define Q_longjmp Q_longjmp_c
-int Q_setjmp_c(void *);
-int Q_longjmp_c(void *, int);
+Q_EXTERN_C int Q_setjmp_c(void *);
+Q_EXTERN_C int Q_longjmp_c(void *, int);
 #else // !idx64 || MSVC<2017
 #define Q_setjmp setjmp
 #define Q_longjmp longjmp

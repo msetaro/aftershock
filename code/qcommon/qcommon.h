@@ -397,11 +397,11 @@ typedef enum {
 // we don't need more than 4 arguments (counting callnum) for vmMain, at least in Vanilla Quake3
 #define MAX_VMMAIN_CALL_ARGS 4
 
-typedef intptr_t (QDECL *vmMainFunc_t)( int command, int arg0, int arg1, int arg2 );
+Q_EXTERN_C typedef intptr_t (QDECL *vmMainFunc_t)( int command, int arg0, int arg1, int arg2 );
 
 typedef intptr_t (*syscall_t)( intptr_t *parms );
 typedef intptr_t (QDECL *dllSyscall_t)( intptr_t callNum, ... );
-typedef void (QDECL *dllEntry_t)( dllSyscall_t syscallptr );
+Q_EXTERN_C typedef void (QDECL *dllEntry_t)( dllSyscall_t syscallptr );
 
 void	VM_Init( void );
 vm_t	*VM_Create( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllSyscalls, vmInterpret_t interpret );
@@ -965,8 +965,8 @@ extern	int	CPU_Flags;
 #endif
 
 #ifdef USE_X87
-void Q_GetFPUCW( unsigned short *cw );
-void Q_SetFPUCW( unsigned short *cw );
+Q_EXTERN_C void Q_GetFPUCW( unsigned short *cw );
+Q_EXTERN_C void Q_SetFPUCW( unsigned short *cw );
 extern int32_t x87_cw_orig;	// double precision, round to nearest - global/syscalls
 extern int32_t x87_cw_rint;	// single precision, round to nearest - qvm/snapvector
 extern int32_t x87_cw_cvfi;	// single precision, truncate to zero - ftol()

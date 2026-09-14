@@ -109,7 +109,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;BOTLIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PreprocessorDefinitions>CINTERFACE=;WIN32;NDEBUG;_LIB;BOTLIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
@@ -118,7 +122,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;BOTLIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PreprocessorDefinitions>CINTERFACE=;WIN32;NDEBUG;_LIB;BOTLIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -126,7 +134,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;BOTLIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PreprocessorDefinitions>CINTERFACE=;WIN32;NDEBUG;_LIB;BOTLIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -134,8 +146,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;BOTLIB;DEBUG;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CINTERFACE=;WIN32;_DEBUG;_LIB;BOTLIB;DEBUG;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <BrowseInformation>true</BrowseInformation>
@@ -147,8 +163,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;BOTLIB;DEBUG;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CINTERFACE=;WIN32;_DEBUG;_LIB;BOTLIB;DEBUG;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <BrowseInformation>true</BrowseInformation>
@@ -159,8 +179,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;BOTLIB;DEBUG;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CINTERFACE=;WIN32;_DEBUG;_LIB;BOTLIB;DEBUG;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <BrowseInformation>true</BrowseInformation>
@@ -170,34 +194,34 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\botlib\be_aas_bspq3.c" />
-    <ClCompile Include="..\..\botlib\be_aas_cluster.c" />
-    <ClCompile Include="..\..\botlib\be_aas_debug.c" />
-    <ClCompile Include="..\..\botlib\be_aas_entity.c" />
-    <ClCompile Include="..\..\botlib\be_aas_file.c" />
-    <ClCompile Include="..\..\botlib\be_aas_main.c" />
-    <ClCompile Include="..\..\botlib\be_aas_move.c" />
-    <ClCompile Include="..\..\botlib\be_aas_optimize.c" />
-    <ClCompile Include="..\..\botlib\be_aas_reach.c" />
-    <ClCompile Include="..\..\botlib\be_aas_route.c" />
-    <ClCompile Include="..\..\botlib\be_aas_routealt.c" />
-    <ClCompile Include="..\..\botlib\be_aas_sample.c" />
-    <ClCompile Include="..\..\botlib\be_ai_char.c" />
-    <ClCompile Include="..\..\botlib\be_ai_chat.c" />
-    <ClCompile Include="..\..\botlib\be_ai_gen.c" />
-    <ClCompile Include="..\..\botlib\be_ai_goal.c" />
-    <ClCompile Include="..\..\botlib\be_ai_move.c" />
-    <ClCompile Include="..\..\botlib\be_ai_weap.c" />
-    <ClCompile Include="..\..\botlib\be_ai_weight.c" />
-    <ClCompile Include="..\..\botlib\be_ea.c" />
-    <ClCompile Include="..\..\botlib\be_interface.c" />
-    <ClCompile Include="..\..\botlib\l_crc.c" />
-    <ClCompile Include="..\..\botlib\l_libvar.c" />
-    <ClCompile Include="..\..\botlib\l_log.c" />
-    <ClCompile Include="..\..\botlib\l_memory.c" />
-    <ClCompile Include="..\..\botlib\l_precomp.c" />
-    <ClCompile Include="..\..\botlib\l_script.c" />
-    <ClCompile Include="..\..\botlib\l_struct.c" />
+    <ClCompile Include="..\..\botlib\be_aas_bspq3.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_cluster.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_debug.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_entity.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_file.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_main.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_move.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_optimize.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_reach.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_route.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_routealt.cpp" />
+    <ClCompile Include="..\..\botlib\be_aas_sample.cpp" />
+    <ClCompile Include="..\..\botlib\be_ai_char.cpp" />
+    <ClCompile Include="..\..\botlib\be_ai_chat.cpp" />
+    <ClCompile Include="..\..\botlib\be_ai_gen.cpp" />
+    <ClCompile Include="..\..\botlib\be_ai_goal.cpp" />
+    <ClCompile Include="..\..\botlib\be_ai_move.cpp" />
+    <ClCompile Include="..\..\botlib\be_ai_weap.cpp" />
+    <ClCompile Include="..\..\botlib\be_ai_weight.cpp" />
+    <ClCompile Include="..\..\botlib\be_ea.cpp" />
+    <ClCompile Include="..\..\botlib\be_interface.cpp" />
+    <ClCompile Include="..\..\botlib\l_crc.cpp" />
+    <ClCompile Include="..\..\botlib\l_libvar.cpp" />
+    <ClCompile Include="..\..\botlib\l_log.cpp" />
+    <ClCompile Include="..\..\botlib\l_memory.cpp" />
+    <ClCompile Include="..\..\botlib\l_precomp.cpp" />
+    <ClCompile Include="..\..\botlib\l_script.cpp" />
+    <ClCompile Include="..\..\botlib\l_struct.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\botlib\aasfile.h" />

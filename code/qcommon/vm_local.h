@@ -25,6 +25,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon.h"
 
+#if defined(__GNUC__) && !defined(_WIN32) && (defined(__arm__) || defined(__aarch64__))
+Q_EXTERN_C void __clear_cache( void *start, void *end );
+#endif
+
 #define	MAX_OPSTACK_SIZE	512
 #define	PROC_OPSTACK_SIZE	30
 

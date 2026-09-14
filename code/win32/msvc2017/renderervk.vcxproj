@@ -116,9 +116,13 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CINTERFACE=;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
@@ -130,9 +134,13 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CINTERFACE=;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <BrowseInformation>true</BrowseInformation>
@@ -144,9 +152,13 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CINTERFACE=;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -157,10 +169,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CINTERFACE=;NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
@@ -176,10 +192,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CINTERFACE=;NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FloatingPointModel>Fast</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -194,10 +214,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
+      <AdditionalOptions>/Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CINTERFACE=;NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FloatingPointModel>Fast</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -211,37 +235,37 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\renderercommon\tr_noise.c" />
-    <ClCompile Include="..\..\renderervk\tr_animation.c" />
-    <ClCompile Include="..\..\renderervk\tr_backend.c" />
-    <ClCompile Include="..\..\renderervk\tr_bsp.c" />
-    <ClCompile Include="..\..\renderervk\tr_cmds.c" />
-    <ClCompile Include="..\..\renderervk\tr_curve.c" />
-    <ClCompile Include="..\..\renderervk\tr_image.c" />
-    <ClCompile Include="..\..\renderercommon\tr_font.c" />
-    <ClCompile Include="..\..\renderercommon\tr_image_bmp.c" />
-    <ClCompile Include="..\..\renderercommon\tr_image_jpg.c" />
-    <ClCompile Include="..\..\renderercommon\tr_image_pcx.c" />
-    <ClCompile Include="..\..\renderercommon\tr_image_png.c" />
-    <ClCompile Include="..\..\renderercommon\tr_image_tga.c" />
-    <ClCompile Include="..\..\renderervk\tr_init.c" />
-    <ClCompile Include="..\..\renderervk\tr_light.c" />
-    <ClCompile Include="..\..\renderervk\tr_main.c" />
-    <ClCompile Include="..\..\renderervk\tr_marks.c" />
-    <ClCompile Include="..\..\renderervk\tr_mesh.c" />
-    <ClCompile Include="..\..\renderervk\tr_model.c" />
-    <ClCompile Include="..\..\renderervk\tr_model_iqm.c" />
-    <ClCompile Include="..\..\renderervk\tr_scene.c" />
-    <ClCompile Include="..\..\renderervk\tr_shade.c" />
-    <ClCompile Include="..\..\renderervk\tr_shader.c" />
-    <ClCompile Include="..\..\renderervk\tr_shade_calc.c" />
-    <ClCompile Include="..\..\renderervk\tr_shadows.c" />
-    <ClCompile Include="..\..\renderervk\tr_sky.c" />
-    <ClCompile Include="..\..\renderervk\tr_surface.c" />
-    <ClCompile Include="..\..\renderervk\tr_world.c" />
-    <ClCompile Include="..\..\renderervk\vk.c" />
-    <ClCompile Include="..\..\renderervk\vk_flares.c" />
-    <ClCompile Include="..\..\renderervk\vk_vbo.c" />
+    <ClCompile Include="..\..\renderercommon\tr_noise.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_animation.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_backend.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_bsp.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_cmds.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_curve.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_image.cpp" />
+    <ClCompile Include="..\..\renderercommon\tr_font.cpp" />
+    <ClCompile Include="..\..\renderercommon\tr_image_bmp.cpp" />
+    <ClCompile Include="..\..\renderercommon\tr_image_jpg.cpp" />
+    <ClCompile Include="..\..\renderercommon\tr_image_pcx.cpp" />
+    <ClCompile Include="..\..\renderercommon\tr_image_png.cpp" />
+    <ClCompile Include="..\..\renderercommon\tr_image_tga.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_init.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_light.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_main.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_marks.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_mesh.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_model.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_model_iqm.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_scene.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_shade.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_shader.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_shade_calc.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_shadows.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_sky.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_surface.cpp" />
+    <ClCompile Include="..\..\renderervk\tr_world.cpp" />
+    <ClCompile Include="..\..\renderervk\vk.cpp" />
+    <ClCompile Include="..\..\renderervk\vk_flares.cpp" />
+    <ClCompile Include="..\..\renderervk\vk_vbo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\renderervk\iqm.h" />

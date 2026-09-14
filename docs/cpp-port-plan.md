@@ -1,6 +1,6 @@
 # C -> C++ port plan (strict, no behavior change)
 
-Status: decisions resolved 2026-09-13 (section 9); phase 0 not yet started.
+Status: initial decisions resolved 2026-09-13; continuation review amendments below are authoritative. Current execution state is docs/cpp-port-progress.md.
 
 ## 1. Goal and non-goals
 
@@ -127,9 +127,9 @@ Phase 2 — `extern "C"` boundaries
 Only where linkage is externally observable: `GetRefAPI` (dlopen'd renderers),
 `dllEntry`/`vmMain` typedefs (native mod DLLs), symbols referenced from `code/asm/*.s`/`*.asm`
 (`S_WriteLinearBlastStereo16_*`, `snd_p`, `snd_out`, `snd_linear_count`, `Q_setjmp_c`,
-`Q_longjmp_c`, `CPUID_EX`, `Q_GetFPUCW`, `Q_SetFPUCW`), the JIT (`vm_x86.c` etc.) call targets,
-and `NvOptimusEnablement`/`AmdPowerXpressRequestHighPerformance`. Everything else gets C++
-linkage. Verified by the symbol gate.
+`Q_longjmp_c`, `CPUID_EX`, `Q_GetFPUCW`, `Q_SetFPUCW`), and `NvOptimusEnablement`/`AmdPowerXpressRequestHighPerformance`. Everything else gets C++
+linkage. Only symbols resolved by name outside the C++ objects require T5. Address-taken
+static functions called by generated JIT code require no C linkage. Verified by the symbol gate.
 
 Phase 3 — rename
 `git mv code/**/*.c -> *.cpp` for engine dirs only, update Makefile/CMake/vcxproj lists, remove
@@ -155,9 +155,11 @@ G2. Struct layout gate (ABI). Compile both builds with `-g`, extract struct size
     diff. Zero differences allowed. Covers network structs, `entityState_t`/`playerState_t`,
     QVM interface structs, BSP/MD3/AAS file formats, `refexport_t`/`refimport_t`, botlib.
 
-G3. Symbol gate. `nm --defined-only` on each object, demangle with `c++filt`, normalize, diff
-    against the C object. Same set of functions and globals; same `static` vs external linkage.
-    Catches accidental `static`/`inline` changes and missing `extern "C"` on dlopen/asm symbols.
+G3. Symbol gate. Run nm on defined and undefined symbols of each object, demangle with
+    c++filt, normalize, and diff against the C object. Preserve static/external linkage and
+    raw names for actual dlopen/assembly/export boundaries. Any f-suffixed libm reference
+    present in C++ and absent in C fails; T21/T22 must pin the C semantics. Undefined
+    ordinary C++ engine references are compared after demangling, not discarded.
 
 G4. Codegen diff (advisory, not blocking). Compile each TU with `-O2 -S` under C and C++,
     demangle, normalize label names, diff. For pure-computation files (`q_math.c`, `cm_*.c`,
@@ -173,12 +175,20 @@ G5. Differential unit harness. A small C harness (so it links against either bui
     `FS_*` path helpers, `Q_rsqrt`/`Q_fabs`/vector math, `NET_StringToAdr`. Output must be
     byte-identical between C and C++ builds.
 
-G6. Runtime differential. Dedicated server: `+set dedicated 1 +set sv_pure 0 +map <map>
-    +addbot ... ` for N server frames with `-fixedtime`; compare console logs and a snapshot
-    hash. Client: `+timedemo 1 +demo <name>` and `+set cl_avidemo`/screenshot hashes on the
-    same GPU and driver; compare frame counts and image hashes. **Requires game data**: no
-    Quake III `pak0.pk3` was found on this machine. Options: Matt's own Q3A install for local
-    runs, and OpenArena (free) paks for CI.
+G6. Runtime differential. Use the installed game data and libfaketime increment mode:
+
+    timeout 90 faketime -f "@2026-01-01 00:00:00 i0.01" <binary> +set dedicated 1 \
+      +set sv_pure 0 +set com_logfile 0 +map q3dm17 +addbot sarge 3 +addbot major 3 \
+      +wait 300 +quit
+
+    Keep timeout outside faketime. Increment 0.01 finishes in about one second; 0.001
+    takes minutes. Do a warm-up run or ignore only the "...found N cached paks" line.
+    Accept two identical C runs first, then identical C and C++ logs. If bots still
+    diverge, compare a bot-less map load and record the limitation. This procedure was
+    independently verified with three byte-identical 124-line C logs. The clocks seed
+    both server and game module, so plain unfaked runs are not a determinism oracle.
+    Client timedemo/frame/image comparison uses the same GPU/driver when a display and
+    compatible demo are available; record unavailable verification explicitly.
 
     Verified deterministic procedure (2026-09-13): the bot smoke is nondeterministic on its own
     because the server and game module seed from the millisecond clock. Under libfaketime's
@@ -203,8 +213,9 @@ G8. Diff-shape review. For a mechanical port, changed lines per module should be
 
 ## 6. Allowed transformation catalog (the whole allowed vocabulary for agents)
 
-T1. Add an explicit C-style cast on `void *` -> `T *` results (allocators, `memcpy`-style
-    helpers, `Sys_LoadFunction`, `dlsym`). Keep the C-style cast form used elsewhere in the file.
+T1. Any implicit pointer conversion accepted by C and rejected by C++ in either direction,
+    including function pointer <-> object pointer, gets a C-style cast to exactly the
+    destination type already used by the C code. Preserve calling conventions and qualifiers.
 T2. `qboolean` from a boolean expression: `x = (a && b);` -> `x = (a && b) ? qtrue : qfalse;`
     or `(qboolean)( expr )`. Pick one form per module and use it consistently.
 T3. `int` -> enum: add a cast to the enum type. Never change the enum definition.
@@ -213,7 +224,9 @@ T4. Rename identifiers that are C++ keywords or alternative tokens (`new`, `oper
     a minimal, local rename (`new` -> `newPacket`, `operator` -> `op`). Struct field renames must
     update every use; grep the whole tree.
 T5. `extern "C"` only on the symbols enumerated in phase 2, via a `Q_EXTERN_C` macro guarded by
-    `__cplusplus` so headers stay valid C.
+    `__cplusplus` so headers stay valid C. Applies only to symbols resolved by name outside
+    the C++ objects (dlsym, assembly, exported entry points); address-taken static JIT
+    callbacks need no linkage annotation.
 T6. Compound literal -> named local temporary with identical initializer.
 T7. `goto`/`switch` jumping over an initialization: move the declaration up (uninitialized
     declaration at block top, assignment where the initializer was).
@@ -233,6 +246,58 @@ T16. Narrowing in a brace initializer or enum (`0xFFFFFFFF` into `int`): add the
      yields the same bit pattern; never change the constant.
 T17. Enum compared with or converted from `float` (`shaderSort_t`): cast the enum to `float`
      at the use site. Never cast the float to the enum (truncation changes the comparison).
+
+T18. A namespace-scope const object with external linkage in C gets a preceding extern
+     declaration of the same object in the same file so C++ preserves that linkage.
+T19. Hoist an enum nested in a struct immediately above that struct as a typedef with
+     identical enumerators in identical order; use the typedef for the field.
+T20. At strchr/strrchr/strstr/strpbrk/memchr calls whose C++ overload returns const, add
+     const to the receiving local if compilation then succeeds; otherwise cast the call
+     result to (char *). Never remove const from a parameter.
+T21. At a C math call where at least one argument would otherwise select a float overload,
+     cast each float argument to
+     (double), selecting the same double function as C. Leave result conversion unchanged.
+     Do not cast arguments that are already double in every supported configuration.
+     Conditional headers may make the same argument float on another supported target.
+     This pins C semantics and does not permit expression restructuring.
+T22. At abs() with a non-integer argument, cast that argument to (int).
+T23. Wrap a feature-test macro definition in #ifndef when the C++ compiler predefines it.
+
+T24. COM reference parameters (Windows only). In code/win32/win_local.h, before
+     SDK includes, use the following C/C++ boundary macros:
+
+    #ifdef __cplusplus
+    #define CINTERFACE
+    #define Q_REFGUID( g )     ( g )
+    #define Q_REFGUID_PTR( r ) ( &( r ) )
+    #else
+    #define Q_REFGUID( g )     ( &( g ) )
+    #define Q_REFGUID_PTR( r ) ( r )
+    #endif
+
+     Replace &SomeGuid passed to REFGUID/REFIID/REFCLSID with Q_REFGUID( SomeGuid ).
+     Wrap a REFIID used as a pointer (win_snd.c memcmp) in Q_REFGUID_PTR( riid ).
+     For the DIPROP_BUFFERSIZE pointer use Q_REFGUID( *guid ). C expansion preserves
+     the original expression in parentheses; byte-identical C objects must be measured.
+     REFGUID is const GUID* in C and const GUID& in C++, passed as a pointer under
+     Microsoft x64 and Itanium ABIs; vtable ABI and calling conventions stay unchanged.
+T25. Dual-source compound assignment on an enum. Only when the ordinary T3 form
+     of e &= x or e |= x has been measured to change the C object hash, record both
+     hashes and use:
+
+    #ifdef __cplusplus
+    <the T3 cast form>
+    #else
+    <the original line, untouched>
+    #endif
+
+     Still measure the unchanged C object hash; no hash exception is granted.
+     After phase 3 remove these #else branches in a separate cleanup commit,
+     verified on GCC and Clang by unchanged raw release-object hashes and unchanged
+     debug-object hashes after objcopy --strip-debug (source/line metadata may change).
+     This exception covers debug metadata only, never code/data. Review measured sv_client.c:1639:
+     original C 4a9f0e56..., single-source casts 96b95b5a..., T25 path 4a9f0e56....
+     These reviewer prefixes supplement the exact local artifact hashes in progress.md.
 
 Everything not listed is a DEVIATION and gets its own commit and justification.
 
@@ -285,7 +350,7 @@ compilers and 32-bit targets are out of the port's matrix.
 - PR description template: module, list of transformation counts by catalog ID, DEVIATION
   commits with reasons, gate results (paste the commands and their outputs), anything logged to
   `docs/cpp-port-notes.md`.
-- Reviewer agent checklist: every hunk maps to T1-T17; no whitespace-only churn; no reordering;
+- Reviewer agent checklist: every hunk maps to T1-T25; no whitespace-only hunks except T15 literal-suffix spacing; no reordering;
   no removed code; no new includes except `<cstdint>`-style shims if a header needs one;
   gates pass; diff proportion sane.
 
@@ -305,6 +370,24 @@ compilers and 32-bit targets are out of the port's matrix.
 6. `renderer2` (OpenGL2, disabled by default, upstream calls it unmaintained): **out of scope**.
    It is not ported and is removed from the build in the rename phase. The console direction
    (section 10) makes the Vulkan renderer the reference renderer anyway.
+
+7. Continuation review: 32-bit x86 is excluded from port verification; remove ubuntu-x86
+   and Windows x86 CI legs in phase 3. The explicitly requested arm-linux-gnueabihf cross
+   target remains covered; x86 multilib is not required.
+8. code/server/sv_rankings.c is excluded: no build configuration uses it and its SDK is
+   proprietary. Do not port or rename it. code/asm/qasm.h is assembly-preprocessor input,
+   not C++ input: done/not-applicable.
+9. Installed cross compilers: x86_64-w64-mingw32-g++ (GCC 13), aarch64-linux-gnu-g++,
+   arm-linux-gnueabihf-g++, powerpc64le-linux-gnu-g++ (GCC 15.2). Confirm availability;
+   install nothing. Derive CXX from the same tool prefix as CC. Build each C oracle and
+   record target object hashes before target-specific transformations. MinGW uses
+   PLATFORM=mingw64 ARCH=x86_64. Replace inspection-only statuses with actual target gates.
+10. Historical write-strings and parentheses warning deviations are accepted as ordinary
+    frozen-list entries (243 and 48 observed C++ diagnostics respectively). The formatter
+    is advisory as specified in section 11. Keep historical commits; do not rewrite history.
+11. Continue per-file commits on t3code/port-engine-to-cpp20, push after modules, never
+    main. After phase 3 push and watch CI; fix MSVC errors by inspection using T1-T25,
+    repeat until green or an error genuinely requires an uncataloged transformation.
 
 ## 10. Deferred until after the port (recorded so it is not lost)
 
@@ -333,7 +416,7 @@ Two phases, two rule sets. The port phase rules are enforced now and are copied 
 |---|---|---|
 | Language features | None. No `nullptr`, `auto`, references, classes, templates, STL, `constexpr`, namespaces, `using`. | C++20, feature-by-feature allowlist; never "because it is new". |
 | Warnings | `-Werror` with a **frozen, checked-in list of disabled warnings** matching what the C build already tolerates (C build: 279 warnings under `-Wall -Wextra`; C++ adds ~800, mostly `-Wwrite-strings` and `-Wmissing-field-initializers`). | Re-enable one warning class per PR, each verified by the gates. Vendored libs stay `-w`. |
-| Formatting | Match the surrounding line exactly: tabs, spaces inside parentheses `( a, b )`, `NULL`, C casts, `qboolean`. `.clang-format` mimicking id style, enforced with `git clang-format` on **changed lines only**. No tree-wide reformat. | One tree-wide reformat commit after the port is verified, checked by byte-identical `-S` output before and after. From then on clang-format is authoritative. |
+| Formatting | Match the surrounding line exactly: tabs, spaces inside parentheses `( a, b )`, `NULL`, C casts, `qboolean`. `.clang-format` is advisory. Enforce no whitespace-only engine hunks except required T15 literal-suffix spacing: per-file `git diff --stat` with and without `-w` must agree. No tree-wide reformat. | One tree-wide reformat commit after the port is verified, checked by byte-identical `-S` output before and after. From then on clang-format is authoritative. |
 | clang-tidy | Small `bugprone-*` + `portability-*` subset, changed lines only (`clang-tidy-diff`). No `modernize-*`, no `cppcoreguidelines-*`. | Add `performance-*` and a readability subset. `modernize-*` advisory, enabled one check at a time. `cppcoreguidelines-*` cherry-picked, never wholesale. |
 | Sanitizers | ASan + UBSan run on the **C build first** to record the baseline (needs game data); anything new in the C++ build is a port bug. UBSan blocklist for known-benign alignment in BSP loading. Same source has more UB as C++ than as C (union punning is defined in C11, undefined in C++). | ASan + UBSan on every CI run; TSan periodically for the SDL audio callback, WASAPI thread, and curl. |
 | Memory / ownership | Untouched. | Ownership is expressed by arena (hunk = level lifetime with mark/free-to-mark, zone = tagged small allocs, temp hunk), not by per-object smart pointers. RAII only for OS/GPU resources at the platform boundary. `new`/`delete`/`malloc` forbidden outside the allocator layer. |
@@ -341,11 +424,11 @@ Two phases, two rule sets. The port phase rules are enforced now and are copied 
 | Assertions | None added (a firing assert is a behavior change). | `Q_ASSERT` with no side effects, compiled out in release identically; debug and release must compute the same simulation. |
 | Integer types | Untouched. | Fixed-width types in every struct that hits the wire, a demo, or a file format. `long` is banned (32-bit on MSVC). Explicit `char` signedness where it matters (unsigned on aarch64). |
 | Undefined-behavior patterns | Keep them: `Q_rsqrt` punning, file buffers cast to structs, `-ffast-math` on mingw. They define behavior demos and netcode depend on. | Replace with `std::bit_cast`/`memcpy` only when the codegen gate shows identical output. |
-| Floating point / determinism | No restructuring of any floating-point expression in `qcommon/cm_*`, `q_math.c`, `bg_*`, `msg.c`, or server snapshot code. Ever. | Same rule, permanently. Cross-build determinism is what netcode and demos rest on. |
+| Floating point / determinism | No floating-point expression restructuring in `qcommon/cm_*`, `q_math.c`, `bg_*`, `msg.c`, or server snapshot code; only T21/T22 argument casts that restore C evaluation are permitted. | Same rule, permanently. Cross-build determinism is what netcode and demos rest on. |
 | Layout | `static_assert(sizeof)` table for wire/file/QVM structs, generated from the C build (gate G2). | Add `is_trivially_copyable` / `is_standard_layout` assertions for the same structs. |
 | Subsystem boundaries | Keep the existing encoding: `Sys_`/`Com_`/`FS_`/`CL_`/`SV_`/`R_`/`S_`/`Cvar_`/`Cmd_` prefixes and `*_public.h` vs `*_local.h`. A subsystem includes only other subsystems' public headers. | Enforce with a CI grep. Namespaces, if ever, map one-to-one onto the prefixes. Each subsystem gets a short responsibility/ownership paragraph in `docs/`. |
 | Scope per PR | One module or file group, only catalog transformations, `DEVIATION:` commits for anything else. | One feature or one warning class per PR. No unrelated refactoring. |
-| Definition of done | Both builds green, every gate green, every hunk mapped to T1-T17, diff size proportionate, PR description lists transformation counts and gate output. | Builds green, sanitizers clean, tests (the differential harness plus whatever the feature adds) green, style checks green. |
+| Definition of done | Both builds green, every gate green, every hunk mapped to T1-T25, diff size proportionate, PR description lists transformation counts and gate output. | Builds green, sanitizers clean, tests (the differential harness plus whatever the feature adds) green, style checks green. |
 
 Concrete artifacts this implies for phase 0: the frozen `-Wno-*` list in the Makefile/CMake,
 `.clang-format` tuned against real files (tabs, `( a, b )` spacing, function brace on the same

@@ -21,6 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // win_local.h: Win32-specific Quake3 header file
 
+#ifdef __cplusplus
+#define CINTERFACE
+#define Q_REFGUID( g )     ( g )
+#define Q_REFGUID_PTR( r ) ( &( r ) )
+#else
+#define Q_REFGUID( g )     ( &( g ) )
+#define Q_REFGUID_PTR( r ) ( r )
+#endif
+
 #define RAW_INPUT
 
 #define FAST_MODE_SWITCH
