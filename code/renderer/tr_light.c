@@ -156,7 +156,7 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 		float	v;
 
 		v = lightOrigin[i]*tr.world->lightGridInverseSize[i];
-		pos[i] = floor( v );
+		pos[i] = floor( (double)(v) );
 		frac[i] = v - pos[i];
 		if ( pos[i] < 0 ) {
 			pos[i] = 0;
