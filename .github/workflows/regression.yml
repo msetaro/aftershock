@@ -67,12 +67,15 @@ jobs:
           python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Both-map Mesa timedemo frames
         run: python3 tests/demo.py --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: GCC UBSan bot smoke
+        run: python3 tests/run.py runtime --sanitize --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/tests-runtime-ubsan
       - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: runtime-diagnostics
           path: |
             /tmp/aftershock-tests/**/*.log
+            /tmp/tests-runtime-ubsan/**/*.log
             /tmp/aftershock-demo-tests/**/*.log
             /tmp/aftershock-demo-tests/*.tga
 

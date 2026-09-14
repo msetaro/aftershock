@@ -42,6 +42,7 @@ wrong callback type, or shutdown timeout fails the test.
 ```
 python3 tests/run.py differential
 python3 tests/run.py runtime
+python3 tests/run.py runtime --sanitize --output /tmp/tests-runtime-ubsan
 python3 tests/demo.py
 ```
 
@@ -109,6 +110,13 @@ A matching error prints `known, tracked in #31`. An unknown error, an ASan crash
 a nonzero subprocess exit, a changed unit golden, or a disappeared known error
 fails. The test still runs and prints its diagnostics; this is not suppression.
 A #31 fix removes its entry and updates the policy self-check if applicable.
+The existing bot smoke also runs under GCC UBSan (`runtime --sanitize`), comparing
+the same content goldens and treating every unsuppressed diagnostic as fatal.
+Both compile and link steps enable UBSan. This uses the original GCC runtime
+baseline; Clang's function checks expose callback type mismatches, and a recovery
+survey later crashed at QVM startup (cause not isolated), as recorded in #31 and
+the bug notes. Unit ASan/UBSan coverage remains required;
+the ASan runtime experiment with faketime timed out before producing output.
 Pointer comparisons run separately from UBSan: combining both instruments Clang's
 generated pointer-overflow checks and reports invalid pairs in otherwise valid
 pointer increments. Both runs compare the same unit golden; neither replaces the
