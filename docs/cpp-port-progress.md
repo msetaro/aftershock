@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/renderervk/shaders/spirv/shader_data.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/win32/win_gamma.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -354,6 +354,8 @@ Phase 1: next `code/renderervk/shaders/spirv/shader_data.c`. Resume there; do no
 
 ## Blocked files
 
+- `code/renderervk/shaders/spirv/shader_data.c`: Unchanged generated initializer included by vk.c: 74 const arrays lose external linkage in C++; G3 FAIL, no existing extern declarations. See vk.c blocker.
+
 - `code/renderervk/vk.c`: Catalog casts compile with unchanged C hash/G2 PASS, but G3 reports 74 generated const shader arrays changing external R to internal r. No existing extern declarations to move; adding new declarations is outside catalog. Attempt reverted. Evidence tools/port/evidence/vulkan-shader-linkage.diff.
 
 - `code/renderervk/tr_init.c`: Five T1 casts compile with original C hash/G2 PASS; G3 fails only GetRefAPI mangling. Reverted; reapply with phase-2 T5. Patch /tmp/aftershock-cpp-port/renderervk-tr_init-phase1.patch.
@@ -591,7 +593,7 @@ Phase 1: next `code/renderervk/shaders/spirv/shader_data.c`. Resume there; do no
 | `code/renderercommon/vulkan/vulkan_xlib_xrandr.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderervk/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderervk/shaders/bin2hex.c` | done | Unchanged standalone build utility, not linked engine code; gcc/g++ strict native -O2 compile PASS, fixed 259-byte input and append output byte-identical. Engine layout gate not applicable (no engine records). |
-| `code/renderervk/shaders/spirv/shader_data.c` | todo | Pending module pass. |
+| `code/renderervk/shaders/spirv/shader_data.c` | blocked | Unchanged generated initializer included by vk.c: 74 const arrays lose external linkage in C++; G3 FAIL, no existing extern declarations. See vk.c blocker. |
 | `code/renderervk/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_animation.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_backend.c` | done | T4: 11 occurrences (prerequisite), T1: 4, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_backend.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_bsp.c` | done | T1: 42, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_bsp.o, default); G4 advisory FAIL, full diff retained. |
