@@ -35,24 +35,19 @@ build 34886949860 passed; merged-tree regression 34887353903 passed.
 Extension output PR #44 merged as bdef99f4 after regression 34887856044 and full
 build 34887856072 passed; merged-tree regression 34888464336 passed.
 
-Current branch: `issue/31-aas-jump-candidate`. Removed the Makefile's specific
-GCC sanitizer -Wno-maybe-uninitialized exception before changing engine code.
-The existing runtime --sanitize command is compiling a fresh output directory;
-it failed on beststart at line 2196, before any source fix. Added a return for the
-unchanged 999999 missing-candidate sentinel before midpoint calculations. The
-same permanent GCC UBSan runtime command passes after the fix. Upstream C
-compilation fails before and passes after. Unit/collision regeneration has no
-golden diff; final Q3/OA UBSan smoke, normal smoke and fixed-demo replay pass.
-Codegen/symbol gates differ: jump/grapple code uses an outlined VectorLength helper.
-Its production bytes match a libm oracle on 4 million finite vectors across four
-rounding modes. No source FP expression changed; reviewed compiler differences
-are recorded without weakening gates. Upstream C fix:
-https://github.com/ec-/Quake3e/pull/432. Fork PR #45 is open at source b5e31b8c;
-regression 34889484418 and full build 34889484412 passed. Self-review below passes.
-Next: mark ready, merge, verify merged-tree regression, then address PNG header
-alignment on issue/31-png-header-alignment. Its existing renderer build will enforce
-a header layout assertion; the local compile assertion already fails at alignment 4
-instead of 1. Preserve fixed-demo fixtures and frame goldens.
+AAS PR #45 merged as 481d008a after regression 34889484418 and full build
+34889484412 passed; merged-tree regression 34889992769 is running.
+
+Current branch: `issue/31-png-header-alignment`. Added size/alignment assertions
+for the byte-packed PNG chunk header to the existing renderer source, before
+changing its layout. The standalone assertion fails at alignment 4 instead of 1;
+the permanent demo command also failed at that assertion. Scoped packing now
+gives the header byte alignment without changing its eight-byte size, fields or
+byte-order conversion. GCC production codegen/symbol gates and both-renderer fixed
+replay pass unchanged. Upstream C assertions fail before and pass after with GCC
+and Clang: https://github.com/ec-/Quake3e/pull/433. Unit/collision regeneration
+changes no golden, and normal both-map smoke passes. Next: open PR and complete
+hosted CI/self-review. No fixture recording.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -69,7 +64,7 @@ experiment still timed out before output and is not a claimed runtime gate.
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -309,3 +304,17 @@ No source FP expression change or gate weakening. Self-review: one missing-candi
 bug, existing compile/runtime regression, no layout/OS/allocation/destructor change.
 Regression 34889484418 and full build 34889484412 pass on source b5e31b8c.
 Final checkpoint is documentation only; self-review passes.
+
+## #31 PNG header validation
+
+The existing demo build fails before on the new chunk-header alignment assertion
+(4 instead of 1). A scoped packing pragma gives this wire type byte alignment;
+its eight-byte size, two uint32_t fields and BigLong conversions stay unchanged.
+All six buffered header-read sites share the type. GCC production codegen/symbol
+gates pass identically; both-renderer fixed replay preserves every frame hash.
+Explicit unit/collision regeneration has no golden diff; both-map smoke passes.
+Upstream C layout assertions fail before and pass after with GCC and Clang:
+https://github.com/ec-/Quake3e/pull/433. No expected-failure entry or suppression
+covered this type. Self-review: one alignment bug; persistent layout assertions
+in the existing renderer build, no new content/recording, FP, allocation, OS-access
+or destructor changes. Hosted gates pending.
