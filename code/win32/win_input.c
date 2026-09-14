@@ -125,7 +125,7 @@ IN_MouseActive
 */
 qboolean IN_MouseActive( void )
 {
-	return ( s_wmv.mouseActive && in_nograb->integer == 0 );
+	return (qboolean)( ( s_wmv.mouseActive && in_nograb->integer == 0 ) );
 }
 
 
