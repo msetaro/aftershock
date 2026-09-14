@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: client; next `code/client/cl_main.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: client; next `code/client/snd_codec_ogg.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/client/cl_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_main.o /tmp/aftershock-cpp-port/cl_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/client/cl_curl.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_curl.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_curl.o /tmp/aftershock-cpp-port/cl_curl ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -469,7 +471,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/client/cl_input.c` | done | T1-T17: 0 (already compatible); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_input.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_jpeg.c` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_jpeg.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_keys.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_keys.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_main.c` | blocked | At :864 strrchr(const char*arg) assigned to read-only local char*ext_test; adding const is behavior-preserving but outside T8 literal string-constant scope (G8 reviewed). Remaining T1/T2/T3 diagnostics retained; source unchanged. |
+| `code/client/cl_main.c` | done | T1: 1; T2: 1; T3: 6 compound-assignment result casts; T20: 1 receiving local const; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_main.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_net_chan.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_net_chan.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_parse.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_parse.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_scrn.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_scrn.o, default); G4 advisory FAIL, full diff retained. |

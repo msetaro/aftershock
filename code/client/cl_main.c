@@ -846,7 +846,7 @@ demo <demoname>
 static void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH];
 	const char		*arg;
-	char		*ext_test;
+	const char	*ext_test;
 	int			protocol, i;
 	char		retry[MAX_OSPATH];
 	const char	*shortname, *slash;
@@ -2310,8 +2310,8 @@ static void CL_CheckForResend( void ) {
 
 		// remove some non-important keys that may cause overflow during connection
 		if ( strlen( info ) > MAX_USERINFO_LENGTH - 64 ) {
-			infoTruncated |= Info_RemoveKey( info, "xp_name" ) ? qtrue : qfalse;
-			infoTruncated |= Info_RemoveKey( info, "xp_country" ) ? qtrue : qfalse;
+			infoTruncated = (qboolean)( infoTruncated | ( Info_RemoveKey( info, "xp_name" ) ? qtrue : qfalse ) );
+			infoTruncated = (qboolean)( infoTruncated | ( Info_RemoveKey( info, "xp_country" ) ? qtrue : qfalse ) );
 		}
 
 		len = strlen( info );
@@ -2322,18 +2322,18 @@ static void CL_CheckForResend( void ) {
 		}
 
 		if ( com_protocol->integer != DEFAULT_PROTOCOL_VERSION ) {
-			notOverflowed &= Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "protocol",
-				com_protocol->string );
+			notOverflowed = (qboolean)( notOverflowed & Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "protocol",
+				com_protocol->string ) );
 		} else {
-			notOverflowed &= Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "protocol",
-				clc.compat ? XSTRING( OLD_PROTOCOL_VERSION ) : XSTRING( NEW_PROTOCOL_VERSION ) );
+			notOverflowed = (qboolean)( notOverflowed & Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "protocol",
+				clc.compat ? XSTRING( OLD_PROTOCOL_VERSION ) : XSTRING( NEW_PROTOCOL_VERSION ) ) );
 		}
 
-		notOverflowed &= Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "qport",
-			va( "%i", port ) );
+		notOverflowed = (qboolean)( notOverflowed & Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "qport",
+			va( "%i", port ) ) );
 
-		notOverflowed &= Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "challenge",
-			va( "%i", clc.challenge ) );
+		notOverflowed = (qboolean)( notOverflowed & Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "challenge",
+			va( "%i", clc.challenge ) ) );
 
 		// for now - this will be used to inform server about q3msgboom fix
 		// this is optional key so will not trigger oversize warning
@@ -3394,7 +3394,7 @@ static void CL_InitRef( void ) {
 		}
 	}
 
-	GetRefAPI = Sys_LoadFunction( rendererLib, "GetRefAPI" );
+	GetRefAPI = (GetRefAPI_t)Sys_LoadFunction( rendererLib, "GetRefAPI" );
 	if( !GetRefAPI )
 	{
 		Com_Error( ERR_FATAL, "Can't load symbol GetRefAPI" );
@@ -3545,7 +3545,7 @@ static void CL_Video_f( void )
 		return;
 	}
 
-	pipe = ( Q_stricmp( Cmd_Argv( 0 ), "video-pipe" ) == 0 );
+	pipe = (qboolean)( ( Q_stricmp( Cmd_Argv( 0 ), "video-pipe" ) == 0 ) );
 
 	if ( pipe ) {
 		char *e;
