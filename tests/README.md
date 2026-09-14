@@ -27,6 +27,14 @@ and an empty base. File/cvar/UI operations are isolated by test stubs. Explicit
 `python3 tests/download.py --regenerate` creates the reviewed URL golden; CI never
 regenerates it. `--cc` and `--cxx` select the compiler as in the unit driver.
 
+`python3 tests/audio.py` verifies the native ALSA callbacks have pthread-compatible
+types, submits samples through both MMAP and DIRECT paths to ALSA's `null` output,
+and joins both threads. It needs ALSA development files (`libasound2-dev` on Ubuntu)
+and no physical audio device. CI installs those files in the runtime job. The test
+uses the real ALSA implementation; wrappers count successful paths without replacing
+the calls. `--cxx` selects the compiler. A missing device/library, no sample submission,
+wrong callback type, or shutdown timeout fails the test.
+
 ## Local Quake 3 content
 
 ```

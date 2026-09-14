@@ -14,23 +14,31 @@ build 34868566674 passed; its merged-tree run 34869117306 passed.
 Filesystem PR #37 merged as 73108eab after regression 34877286456 and full build
 34877286443 passed; merged-tree regression 34877819880 passed.
 
-Current branch: `issue/31-download-url`, PR #38. Source/test head 56ece5e4 passed
-regression 34878247137 and full platform build 34878247337. Final checkpoint changes
-only documentation. Self-review passed: one URL bug, no simulation FP, layout,
-OS-access, allocation or core-lifetime change. Only the new URL golden was added.
-Next: mark #38 ready, merge with a merge commit, verify the merged-tree regression,
-then create `issue/31-audio-threads`. Prepared C++ and upstream C signature checks
-fail on both ALSA callbacks before any fix. Give them pthread-compatible signatures,
-remove the casts, and use ALSA's null sink to verify MMAP/DIRECT sample submission
-and thread joins. Temporary C++ test: /tmp/aftershock-audio-probe.cpp; upstream test
-is uncommitted on issue/31-audio-upstream in /tmp/aftershock-upstream-huffman.
+Download PR #38 merged as 02b16def after regression 34878247137 and full build
+34878247337 passed; merged-tree regression 34878892522 passed.
+
+Current branch: `issue/31-audio-threads`, PR #39. Source/test head 4dcfa075 passed
+regression 34879358567 and full build 34879358584. Final checkpoint changes only
+documentation. Self-review passed: platform callback signatures/registration/return
+only, no mixing arithmetic, simulation FP, layouts, allocation or core-lifetime changes.
+Next: mark #39 ready, merge with a merge commit, verify merged-tree regression,
+then create `issue/31-curl-varargs`. Prepared Clang C++ test fails at va_start;
+change the named enum parameter to its promoted integer representation, retain the
+CURLoption local for calls, remove -Wno-varargs, and run the prepared local-file
+transfer checks for long/pointer/offset arguments. C++ test: /tmp/aftershock-curl-options.cpp.
+
+New ruling from direct comparison: this va_start defect is specific to the C++
+port on our toolchains. The original C source compiles with Clang -Werror=varargs;
+a C11 type probe reports CURLoption compatible with its promoted type (unsigned int).
+C++ compilation rejects it. Do not claim a failing upstream C test or open an
+upstream bug-fix PR without one. Record this correction on #31 with the fork fix.
 
 ## Issue status and remaining sequence
 
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA thread signatures in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -146,3 +154,14 @@ to accommodate the collision. The hosted runtime URL check uses existing libcurl
 packages; begin/cleanup run without a transfer.
 Upstream C fix/test: https://github.com/ec-/Quake3e/pull/426.
 Fork PR: https://github.com/msetaro/aftershock/pull/38.
+
+## #31 ALSA validation
+
+Permanent callback assignments reject both original void(void) signatures. GCC and
+Clang/libc++ pass after the pthread-compatible signatures/direct registration/NULL
+returns. Real ALSA null output receives positive MMAP/DIRECT submissions and both
+threads join within the timeout; no physical device or fabricated audio backend.
+The dynamic-ALSA production object builds. Explicit unit/collision regeneration
+produces no golden diff; serial both-map smoke and both-renderer replay pass unchanged.
+Upstream C test/fix: https://github.com/ec-/Quake3e/pull/427.
+Fork PR: https://github.com/msetaro/aftershock/pull/39. CI runs are above.
