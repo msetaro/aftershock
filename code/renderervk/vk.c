@@ -724,7 +724,7 @@ static void vk_create_render_passes( void )
 	// depth buffer
 	attachments[1].flags = 0;
 	attachments[1].format = depth_format;
-	attachments[1].samples = vkSamples;
+	attachments[1].samples = (VkSampleCountFlagBits)( vkSamples );
 	attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // Need empty depth buffer before use
 	attachments[1].stencilLoadOp = glConfig.stencilBits ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	if ( r_bloom->integer ) {
@@ -763,7 +763,7 @@ static void vk_create_render_passes( void )
 	{
 		attachments[2].flags = 0;
 		attachments[2].format = vk.color_format;
-		attachments[2].samples = vkSamples;
+		attachments[2].samples = (VkSampleCountFlagBits)( vkSamples );
 #ifdef USE_BUFFER_CLEAR
 		attachments[2].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 #else
@@ -970,7 +970,7 @@ static void vk_create_render_passes( void )
 	// screenmap depth buffer
 	attachments[1].flags = 0;
 	attachments[1].format = depth_format;
-	attachments[1].samples = vk.screenMapSamples;
+	attachments[1].samples = (VkSampleCountFlagBits)( vk.screenMapSamples );
 	attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // Need empty depth buffer before use
 	attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -1005,7 +1005,7 @@ static void vk_create_render_passes( void )
 
 		attachments[2].flags = 0;
 		attachments[2].format = vk.color_format;
-		attachments[2].samples = vk.screenMapSamples;
+		attachments[2].samples = (VkSampleCountFlagBits)( vk.screenMapSamples );
 #ifdef USE_BUFFER_CLEAR
 		attachments[2].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 #else
@@ -1864,13 +1864,13 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 
 
 #define INIT_INSTANCE_FUNCTION(func) \
-	q##func = /*(PFN_ ## func)*/ ri.VK_GetInstanceProcAddr(vk_instance, #func); \
+	q##func = /*(PFN_ ## func)*/ (PFN_ ## func)ri.VK_GetInstanceProcAddr(vk_instance, #func); \
 	if (q##func == NULL) {											\
 		ri.Error(ERR_FATAL, "Failed to find entrypoint %s", #func);	\
 	}
 
 #define INIT_INSTANCE_FUNCTION_EXT(func) \
-	q##func = /*(PFN_ ## func)*/ ri.VK_GetInstanceProcAddr(vk_instance, #func);
+	q##func = /*(PFN_ ## func)*/ (PFN_ ## func)ri.VK_GetInstanceProcAddr(vk_instance, #func);
 
 
 #define INIT_DEVICE_FUNCTION(func) \
@@ -3036,7 +3036,7 @@ static void vk_alloc_persistent_pipelines( void )
 			unsigned dlight_state = dlight_state_bits[ i ];
 
 			for ( j = 0; j < 3; j++ ) {
-				def.face_culling = j; // cullType_t value
+				def.face_culling = (cullType_t)( j ); // cullType_t value
 
 				for ( k = 0; k < 2; k++ ) {
 					def.polygon_offset = polygon_offset[ k ];
@@ -3065,7 +3065,7 @@ static void vk_alloc_persistent_pipelines( void )
 		def.state_bits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL;
 		//def.shader_type = TYPE_SIGNLE_TEXTURE_LIGHTING;
 		for (i = 0; i < 3; i++) { // cullType
-			def.face_culling = i;
+			def.face_culling = (cullType_t)( i );
 			for ( j = 0; j < 2; j++ ) { // polygonOffset
 				def.polygon_offset = polygon_offset[j];
 				for ( k = 0; k < 2; k++ ) {
@@ -3531,7 +3531,7 @@ static void vk_create_attachments( void )
 
 		// screenmap-msaa
 		if ( vk.screenMapSamples > VK_SAMPLE_COUNT_1_BIT ) {
-			create_color_attachment( vk.screenMapWidth, vk.screenMapHeight, vk.screenMapSamples, vk.color_format,
+			create_color_attachment( vk.screenMapWidth, vk.screenMapHeight, (VkSampleCountFlagBits)( vk.screenMapSamples ), vk.color_format,
 				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, &vk.screenMap.color_image_msaa, &vk.screenMap.color_image_view_msaa, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, qtrue );
 		}
 
@@ -3540,10 +3540,10 @@ static void vk_create_attachments( void )
 			usage, &vk.screenMap.color_image, &vk.screenMap.color_image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, qfalse );
 
 		// screenmap depth
-		create_depth_attachment( vk.screenMapWidth, vk.screenMapHeight, vk.screenMapSamples, &vk.screenMap.depth_image, &vk.screenMap.depth_image_view, qtrue );
+		create_depth_attachment( vk.screenMapWidth, vk.screenMapHeight, (VkSampleCountFlagBits)( vk.screenMapSamples ), &vk.screenMap.depth_image, &vk.screenMap.depth_image_view, qtrue );
 
 		if ( vk.msaaActive ) {
-			create_color_attachment( glConfig.vidWidth, glConfig.vidHeight, vkSamples, vk.color_format,
+			create_color_attachment( glConfig.vidWidth, glConfig.vidHeight, (VkSampleCountFlagBits)( vkSamples ), vk.color_format,
 				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, &vk.msaa_image, &vk.msaa_image_view, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, qtrue );
 		}
 
@@ -3557,7 +3557,7 @@ static void vk_create_attachments( void )
 
 	//vk_alloc_attachments();
 
-	create_depth_attachment( glConfig.vidWidth, glConfig.vidHeight, vkSamples, &vk.depth_image, &vk.depth_image_view,
+	create_depth_attachment( glConfig.vidWidth, glConfig.vidHeight, (VkSampleCountFlagBits)( vkSamples ), &vk.depth_image, &vk.depth_image_view,
 		(vk.fboActive && r_bloom->integer) ? qfalse : qtrue );
 
 	vk_alloc_attachments();
@@ -3992,7 +3992,7 @@ void vk_initialize( void )
 
 	if ( /*vk.fboActive &&*/ vk.msaaActive ) {
 		VkSampleCountFlags mask = vkMaxSamples;
-		vkSamples = MAX( log2pad( r_ext_multisample->integer, 1 ), VK_SAMPLE_COUNT_2_BIT );
+		vkSamples = MAX( (VkSampleCountFlagBits)log2pad( r_ext_multisample->integer, 1 ), VK_SAMPLE_COUNT_2_BIT );
 		while ( vkSamples > mask )
 				vkSamples >>= 1;
 		ri.Printf( PRINT_ALL, "...using %ix MSAA\n", vkSamples );
@@ -4769,7 +4769,7 @@ static void record_buffer_memory_barrier(VkCommandBuffer cb, VkBuffer buffer, Vk
 
 void vk_create_image( image_t *image, int width, int height, int mip_levels ) {
 
-	VkFormat format = image->internalFormat;
+	VkFormat format = (VkFormat)( image->internalFormat );
 
 	if ( image->handle ) {
 		qvkDestroyImage( vk.device, image->handle, NULL );
@@ -5185,7 +5185,7 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 			fsmodule = vk.modules.blend_fs;
 			renderpass = vk.render_pass.post_bloom;
 			layout = vk.pipeline_layout_blend;
-			samples = vkSamples;
+			samples = (VkSampleCountFlagBits)( vkSamples );
 			pipeline_name = "bloom blend pipeline";
 			blend = qtrue;
 			break;
@@ -6385,7 +6385,7 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 	multisample_state.pNext = NULL;
 	multisample_state.flags = 0;
 
-	multisample_state.rasterizationSamples = (renderPassIndex == RENDER_PASS_SCREENMAP) ? vk.screenMapSamples : vkSamples;
+	multisample_state.rasterizationSamples = (VkSampleCountFlagBits)( (renderPassIndex == RENDER_PASS_SCREENMAP) ? vk.screenMapSamples : vkSamples );
 
 	multisample_state.sampleShadingEnable = VK_FALSE;
 	multisample_state.minSampleShading = 1.0f;
