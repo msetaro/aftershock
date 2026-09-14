@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: renderer; next `code/renderer/tr_marks.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: renderer; next `code/renderer/tr_mesh.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -485,7 +485,7 @@ Phase 1: renderer; next `code/renderer/tr_marks.c`. Resume there; do not redo fi
 | `code/renderer/tr_light.c` | done | T4: 10 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_light.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_local.h` | todo | T4 prerequisite: or renamed to orientation (5 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_main.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_marks.c` | todo | Pending module pass. |
+| `code/renderer/tr_marks.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_marks.o, default); G4 PASS. |
 | `code/renderer/tr_mesh.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_model.c` | todo | Pending module pass. |
 | `code/renderer/tr_model_iqm.c` | todo | Pending module pass. |
