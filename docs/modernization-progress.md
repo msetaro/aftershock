@@ -45,23 +45,29 @@ JPEG PR #47 merged as 9a7c2625 after regression 34891606879 and full build
 34891606634 passed on source 01f2dd40. Its merged-tree regression 34892331846 passed. The disposition audit accounts for all twelve defects; CMake remains #5.
 #31 is complete; all twelve fixes are merged and linked in the closed notes ledger.
 
-Current branch: `issue/1-error-model`. Section 11 now records option 1 and its
-rationale. Added a Clang AST lifetime check using actual Make client/server flags
-for OpenGL and Vulkan, with seven-object rejection and trivial-object acceptance
-controls. All controls and the full 140-translation-unit scan pass. CI installs its own
-clang-tools and build headers. No engine or golden changes. PR #48 is open. Directory controls also verify core inclusion and platform exclusion.
-Regression 34892972996 passes on source e0013d90, including hosted lifetime
-analysis. Full build 34892972994 also passes on e0013d90. Self-review: only
-decision/enforcement/docs, no engine/golden or unrelated workflow changes. Final
-checkpoint is docs-only. Next: merge #48, verify merged-tree regression, then begin #2.
-Preparation cloned official GPL sources dbe4ddb10315479fc00086f08e25d968b4b43c49
-into /tmp/aftershock-q3-gpl. A temporary base-game C shared module compiles using
-the official Q3GOBJ source list with intptr_t entry-point/syscall return widths.
-No repository source imported or #2 engine changes yet, and no native parity claim.
-Temporary script/log: /tmp/aftershock-native-preflight.py and
-/tmp/aftershock-native-preflight/code/build.log. Initial wildcard build included
-optional rankings sources; the actual upstream manifest excludes them. Source
-headers also require ui/menudef.h. These are import/build dependencies, not fixes.
+#1 merged as PR #48 / 95b418b0 after regression 34892972996 and full build
+34892972994 passed on e0013d90; merged-tree regression 34893585998 passed.
+
+#2 exact GPL C import is committed/pushed on issue/2-native-game: b3ef1acd plus
+checkpoint a937d710. Its 125 imported files and four retained ABI headers have
+SHA256 provenance. Native preflight found an LP64 Q_rsqrt overread; no fix was made
+on #2. The source is not wired into the engine yet.
+
+Current branch: `issue/31-native-math-word`, based on modernization. Import only
+q_math.c/q_shared.h/surfaceflags.h as a tested native dependency. The permanent C
+regression fails before (Clang optimized SIGSEGV); direct input 4 returned 4, and
+-O0 ASan reported an eight-byte read from a four-byte float. int32_t plus memcpy
+passes GCC/Clang optimized and ASan modes with all FP expressions unchanged.
+Eight exact result words were measured from the unmodified 32-bit SSE C routine.
+Evidence: /tmp/aftershock-native-math-oracle32.c/.bin, test-before.log and
+native-math-test-after-{clang,gcc}.log under /tmp/aftershock- prefixes.
+Local native GCC/Clang optimized/ASan checks pass. Explicit unit/collision
+regeneration produces zero golden diff. Production-like GCC -O2 -DNDEBUG symbols
+pass; only Q_rsqrt changes normalized assembly among 47 functions, as expected
+for removing the eight-byte load. Next: open this separate #31 PR, finish hosted
+gates/self-review and merge, then
+merge modernization back into #2 without rewriting history and continue native
+C ABI/layout and QVM/native smoke/replay parity. No goldens/fixtures replaced.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -78,8 +84,8 @@ experiment still timed out before output and is not a claimed runtime gate.
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); complete, final merged-tree regression 34892331846 passed. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
-| 3 | #1 error model | In progress: longjmp rationale recorded in section 11; Clang AST lifetime check passes locally, hosted gates pending. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); original twelve complete; new native LP64 math dependency fix in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 3 | #1 error model | Complete: merged #48, merged-tree regression 34893585998 passed. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
 | 6 | #5 CMake | Repair as primary, object parity before removing Makefile; generated MSVC projects, 64-bit little-endian only. |
