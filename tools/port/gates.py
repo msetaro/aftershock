@@ -68,7 +68,7 @@ def symbols(path):
         boundary = boundary_name in {
             'GetRefAPI', 'dllEntry', 'vmMain', 'snd_p', 'snd_out',
             'snd_linear_count', 'Q_setjmp_c', 'Q_longjmp_c', 'CPUID_EX',
-            'Q_GetFPUCW', 'Q_SetFPUCW', 'NvOptimusEnablement',
+            'Q_GetFPUCW', 'Q_SetFPUCW', '__clear_cache', 'NvOptimusEnablement',
             'AmdPowerXpressRequestHighPerformance',
         } or boundary_name.startswith('S_WriteLinearBlastStereo16_')
         if boundary_name == 'CPUID_EX' and kind == 't':
