@@ -64,8 +64,9 @@ native-math-test-after-{clang,gcc}.log under /tmp/aftershock- prefixes.
 Local native GCC/Clang optimized/ASan checks pass. Explicit unit/collision
 regeneration produces zero golden diff. Production-like GCC -O2 -DNDEBUG symbols
 pass; only Q_rsqrt changes normalized assembly among 47 functions, as expected
-for removing the eight-byte load. Next: open this separate #31 PR, finish hosted
-gates/self-review and merge, then
+for removing the eight-byte load. PR #49 passed regression 34894597080 and full
+build 34894597081 on source 152cc6e2. Final checkpoint is docs-only; self-review
+passes. Next: merge #49 and verify merged-tree regression, then
 merge modernization back into #2 without rewriting history and continue native
 C ABI/layout and QVM/native smoke/replay parity. No goldens/fixtures replaced.
 
@@ -367,3 +368,23 @@ comes directly from VarDecl::needsDestruction; the controls detect format drift.
 Section 11 records the retained longjmp rationale, wrapper restriction, and inactive
 preprocessor-branch/self-review limitation. AGENTS.md and README document the command.
 No engine source or golden changed. Final self-review passes; docs checkpoint only.
+
+## #31 native math acceptance evidence
+
+Source 152cc6e294a37772c0d942fb1ce69dadb1d57c9d passed regression 34894597080 and
+full build 34894597081. GCC/Clang optimized and ASan C checks pass all eight words
+from the unmodified 32-bit SSE C executable. Explicit unit/collision regeneration
+has zero diff. Symbols pass; only Q_rsqrt changes normalized assembly among 47
+functions, with unchanged FP arithmetic order. No expectation/suppression existed.
+Self-review: one LP64 native word-width defect, three prerequisite GPL source/header
+imports, no production engine/FP/layout/OS/allocation/destructor change. This C
+math dependency is test-only until #2. Final checkpoint changes documentation only.
+
+Independent temporary #2 preflight: seven shared ABI sizes and three offsets match
+between original GPL C headers and engine C++ headers (/tmp/aftershock-native-layout-*.txt).
+Base-game native smoke with original bg_lib support reproduces all 36 accepted
+q3dm17 gameplay events. Full text differs only in module-loading metadata, build
+date and bot-skill padding (custom VM printf vs native libc). This is preliminary
+single-map evidence, not completed parity. Temporary UI compiles; cgame additionally
+requires upstream code/ui/ui_shared.h, an include omitted from the initial #2 import.
+Do not remove VM/JIT paths or change accepted fixtures before full native parity.

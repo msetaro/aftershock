@@ -6,7 +6,7 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
 
 The original twelve engine/vendor defects are closed with merged tested fixes
 below; final regression 34892331846 passed on 9a7c2625. #2 native import preflight
-found an additional LP64 game-math defect; its separate #31 fix is in progress. `tests/known-bugs.txt` has no active entries and
+found an additional LP64 game-math defect; its separate fix is PR #49, hosted gates passed; merged-tree verification pending. `tests/known-bugs.txt` has no active entries and
 `tools/port/ubsan.supp` is empty.
 
 | Defect | Fork fix | Upstream |
@@ -287,4 +287,7 @@ table above and subsequent validation entries give the current state.
   Explicit unit/collision regeneration produces zero golden diff. GCC -O2
   -DNDEBUG symbol comparison passes; only Q_rsqrt changes normalized assembly
   among 47 functions. Its load/shift use the intended 32-bit word; all FP
-  instructions keep their order. No codegen gate weakening or blanket exception.
+  arithmetic instructions keep their order. No codegen gate weakening or blanket exception.
+
+  Fork PR #49: regression 34894597080 and full build 34894597081 passed on
+  152cc6e2. Final checkpoint is documentation only; self-review passes.
