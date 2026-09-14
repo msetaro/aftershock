@@ -26,31 +26,38 @@ Curl PR #40 merged as 998f21c3 after regression 34880567812 and full build
 ZIP PR #41 merged as 2a9436fe after regression 34885119593 and full build
 34885119668 passed; merged-tree regression 34885592975 passed.
 
-Current branch: `issue/31-vm-alignment`. Removed the remaining VM alignment
-suppression before changing the source. The existing GCC UBSan smoke without
-suppressions fails at vm.cpp:1181 on a valid QVM operand. CopyLittleLong through
-an int32_t temporary passes both Q3 and OA smoke goldens. Production symbols and
-all 26 function-section bytes are unchanged; the text gate differs only in the
-compiler-generated switch-table name CSWTCH.89/90. Unit/collision regeneration
-changes no golden. Normal smoke and both-renderer fixed-demo replay pass unchanged.
-Upstream C startup fails before and passes after: https://github.com/ec-/Quake3e/pull/429.
-Fork PR #42 at source f320dee6 passed regression 34886047536 and full build
-34886047431. Self-review below passes. Next: mark ready, merge, verify merged-tree
-regression, then fix zlib allocator callback signatures on its own branch.
+VM PR #42 merged as 62dad842 after regression 34886047536 and full build
+34886047431 passed; merged-tree regression 34886485915 passed.
 
-Broader Clang experiments remain distinct from the GCC runtime gate: ASan/UBSan
-with faketime timed out before output; UBSan alone exposed zcalloc/zcfree callback
-signature mismatches. Recovery then segfaulted when starting the legacy QVM.
-Those observations are on #31; fix the callback types separately; do not fold them
-into the packed-read fix. No new suppression or unexercised known-bug entry was added.
-Existing Clang unit ASan/UBSan and pointer checks stay required.
+Current branch: `issue/31-zlib-callbacks`. Added an allocator lifecycle check to
+the existing unit driver, using real private inflate initialization/cleanup and
+existing allocation stubs, without reading any content. Clang's standalone
+ASan/UBSan and permanent unit reproductions fail on the original zcalloc type.
+Correct void-pointer signatures and direct assignments pass the unit sanitizer
+and pointer checks. Upstream C fails before and passes after:
+https://github.com/ec-/Quake3e/pull/430. Production codegen/symbol gates pass;
+unit/collision regeneration, normal smoke, GCC UBSan smoke and fixed-demo replay
+retain all goldens. No allocation behavior change. PR #43 is open at source
+74b15fd6; regression 34886950022 and build 34886949860 passed. Self-review passes.
+Next: mark ready, merge, verify merged-tree regression, then fix the filesystem
+extension out-parameter on issue/31-extension-output.
+
+Clang runtime observation classified: VM_CallCompiled's instrumented indirect
+call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
+starts at codeBase and has no preceding metadata. Disassembly confirms that load.
+A temporary relink with only vm_x86.o built with -fno-sanitize=function passes both
+original Q3 smoke goldens; all other UBSan instrumentation remains. No source or
+CI flag/suppression changes were made. This is an instrumentation/JIT compatibility
+limit of the transition oracle; #2 removes that JIT. The allocator callback bug
+is independently covered by the permanent Clang unit test. The ASan/faketime
+experiment still timed out before output and is not a claimed runtime gate.
 
 ## Issue status and remaining sequence
 
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -228,3 +235,19 @@ FP, JIT behavior, allocation, destructor, layout or engine OS changes. No new
 known-bug entry or test target; existing runtime CI is the permanent regression.
 Regression 34886047536 and full build 34886047431 pass on source f320dee6.
 Final checkpoint changes documentation only. Self-review passes.
+
+## #31 zlib callback validation
+
+Permanent Clang ASan/UBSan unit fails before on zcalloc's byte-pointer callback
+type; correct void-pointer signatures and direct registration pass initialization
+and cleanup. Separate pointer sanitizer mode also passes. The helper is linked
+into the existing unit driver and uses its allocator stubs, with no content input.
+No new runner/target or expectation/suppression. Explicit unit/collision golden
+regeneration produces no diff; one-ULP negative control, normal/GCC UBSan smoke
+and both-renderer replay pass. Production normalized codegen/symbol gates pass;
+only private callback mangled names change. All callers are in unzip.cpp.
+Upstream C regression fails before and passes after:
+https://github.com/ec-/Quake3e/pull/430. Self-review: one callback ABI bug; no
+allocation arithmetic, per-frame allocation, layout, FP, destructor or engine
+OS-access changes. Regression 34886950022 and full build 34886949860 pass
+on source 74b15fd6. Final checkpoint is documentation only; self-review passes.

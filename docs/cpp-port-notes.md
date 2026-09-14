@@ -154,3 +154,24 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   Upstream fix: https://github.com/ec-/Quake3e/pull/429. Explicit unit/collision
   regeneration has no golden diff; normal smoke and fixed-demo replay pass unchanged.
   Fork PR #42 passed regression 34886047536 and full build 34886047431.
+
+- #31 zlib callback fix: zcalloc/zcfree now use the z_stream void-pointer types,
+  with direct assignments and unchanged allocation/free behavior. The existing
+  unit driver initializes/frees real inflate state through its allocator stubs,
+  without content input. Permanent Clang ASan/UBSan test fails before and passes
+  after; pointer-check mode also passes. No expectation or suppression was added.
+  GCC normalized production codegen/symbol gates pass (private callback mangled
+  names change). Explicit unit/collision regeneration has no golden diff; normal
+  and GCC UBSan smoke and fixed-demo replay pass unchanged. Upstream C test/fix:
+  https://github.com/ec-/Quake3e/pull/430. The separate Clang QVM startup observation
+  remains unclassified; this fix resolves the callback diagnostics only.
+
+- Clang QVM crash classification: instrumented VM_CallCompiled emits a function
+  signature probe at codeBase-8 before the indirect JIT entry call. VM_Alloc_Compiled
+  supplies a fresh mmap region beginning at codeBase, without preceding sanitizer
+  metadata. Disassembly confirms the probe. Temporary relink with only vm_x86.o
+  built using -fno-sanitize=function passes both original Q3 smoke goldens; every
+  other UBSan check remains. Evidence: /tmp/aftershock-clang-jit-check.py and .log.
+  This is a transition-JIT instrumentation compatibility limitation, addressed by
+  JIT removal in #2. No engine fix, CI flag change or suppression was added.
+  Callback fork PR #43 passed regression 34886950022 and full build 34886949860.
