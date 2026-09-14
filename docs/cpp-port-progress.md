@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: renderervk; next `shader_data.c per-file checkpoint` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: renderervk; next `server dedicated-only compatible subset, then native link checks` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -584,7 +584,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/renderercommon/vulkan/vulkan_xlib_xrandr.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderervk/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderervk/shaders/bin2hex.c` | done | Unchanged standalone build utility, not linked engine code; gcc/g++ strict native -O2 compile PASS, fixed 259-byte input and append output byte-identical. Engine layout gate not applicable (no engine records). |
-| `code/renderervk/shaders/spirv/shader_data.c` | blocked | Unchanged generated initializer included by vk.c: 74 const arrays lose external linkage in C++; G3 FAIL, no existing extern declarations. See vk.c blocker. |
+| `code/renderervk/shaders/spirv/shader_data.c` | done | T18: 74 preceding extern const declarations; unchanged initialized bytes. Verified through sole consumer rendv/vk.o: C SHA256 unchanged, strict release/debug C++, G2/G3 PASS; G4 advisory diff retained under vk.c. vk.c and this include require each other for C++ gates; consecutive per-file commits record the pair. |
 | `code/renderervk/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_animation.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_backend.c` | done | T4: 11 occurrences (prerequisite), T1: 4, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_backend.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_bsp.c` | done | T1: 42, T3: 2; T21/T22: 94 argument casts at 94 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_bsp.o, default); G4 advisory FAIL, full diff retained. |
