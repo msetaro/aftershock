@@ -238,7 +238,7 @@ extern	refimport_t	ri;
 #ifdef USE_RENDERER_DLOPEN
 Q_EXTERN_C typedef	refexport_t* (QDECL *GetRefAPI_t) (int apiVersion, refimport_t * rimp);
 #else
-Q_EXTERN_C refexport_t*GetRefAPI( int apiVersion, refimport_t *rimp );
+refexport_t*GetRefAPI( int apiVersion, refimport_t *rimp );
 #endif
 
 #endif	// __TR_PUBLIC_H

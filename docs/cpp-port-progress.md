@@ -620,7 +620,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/renderercommon/tr_image_png.c` | done | T1: 18; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_png.o, default); G4 PASS. |
 | `code/renderercommon/tr_image_tga.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_tga.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderercommon/tr_noise.c` | done | T1-T17: 0 (already compatible); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_noise.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderercommon/tr_public.h` | done | T5: GetRefAPI typedef and static-build prototype; tr_marks consumer C hash unchanged and strict C++/G2/G3 PASS. |
+| `code/renderercommon/tr_public.h` | done | T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: rend1/tr_init.o, rendv/tr_init.o. |
 | `code/renderercommon/tr_types.h` | done | T1-T17: 0; unchanged header verified through code/renderercommon/tr_font.c, strict native builds/G2/G3 PASS. |
 | `code/renderercommon/vulkan/vk_platform.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
@@ -741,3 +741,5 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 - Phase 2 reviewer confirmed removal of three static callback linkage blocks, syscall_t/dllSyscall_t annotations, and static-renderer GetRefAPI annotations. G3 reads both recorded compiler commands to distinguish static from dlopen GetRefAPI; mismatched modes fail and missing metadata conservatively enforces raw external names. Static positive, dlopen negative and mode-mismatch controls pass.
 
 - Phase 2 code/qcommon/qcommon.h: T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: ded/vm.o, client/cl_cgame.o.
+
+- Phase 2 code/renderercommon/tr_public.h: T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: rend1/tr_init.o, rendv/tr_init.o.
