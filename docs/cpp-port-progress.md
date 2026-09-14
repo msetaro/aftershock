@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: unix; next `code/unix/linux_qvk.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: unix; next `code/unix/unix_shared.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -624,7 +624,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/unix/linux_joystick.c` | done | T1-T17: 0; dormant USE_JOYSTICK body explicitly compiled; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_joystick.o, nosdl); G4 advisory FAIL, full diff retained. |
 | `code/unix/linux_local.h` | done | T1-T17: 0; unchanged header verified through unix_main.c and linux_glimp.c; native strict builds and G2/G3 PASS. |
 | `code/unix/linux_qgl.c` | done | T1: 1 macro site (6 expanded casts); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_qgl.o, nosdl); G4 advisory FAIL, full diff retained. |
-| `code/unix/linux_qvk.c` | blocked | At :76 returns PFN_vkVoidFunction (function pointer) as void*. Explicit function-pointer-to-object-pointer conversion is outside T1; source unchanged. |
+| `code/unix/linux_qvk.c` | done | T1: 1 function-to-object pointer return cast; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_qvk.o, nosdl); G4 PASS. |
 | `code/unix/linux_signals.c` | done | T1-T17: 0; renderer header T4 prerequisite resolves prior blocker; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/linux_signals.o, default); G4 PASS. |
 | `code/unix/linux_snd.c` | done | T1: 5; original thread-function casts retained inside typed casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_snd.o, nosdl); G4 advisory FAIL, full diff retained. |
 | `code/unix/unix_glw.h` | done | T1-T17: 0; unchanged header verified through non-SDL linux_glimp.c, linux_qgl.c and X11 extensions; G2/G3 PASS. |
