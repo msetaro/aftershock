@@ -676,3 +676,7 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 
 
 - Full native C build and dedicated C build PASS after native conversions. Both C++ dlopen renderers link. Dedicated and client C++ executables stop at sv_client.c:1639; an attempted T1/T2/T20 subset still leaves that error in both contexts and was reverted. The temporary syntax probe was not proof of a successful Make object build; actual release/debug Make recipes are authoritative.
+
+- Cross harness: confirm all four requested C++ cross compilers via `command -v`. BUILD_CXX=1 now derives CXX from CC (gcc/g++, clang/clang++, cc/c++), including the MinGW auto-selected prefix, while respecting an explicitly supplied CXX. C-mode compiler selection is untouched. Make dry runs confirm native, Clang, MinGW, aarch64, armhf and ppc64le pairs. `compile_pair.py` now accepts PLATFORM/ARCH for the artifact target path.
+- To verify earlier inspection-only Windows edits too, cross C oracles are built from untouched base commit `8a7e8ed2` extracted with git archive under /tmp/aftershock-cpp-port/cross-base, not merely from current partially ported source. The ARM command explicitly sets LONG_BIT=32 for its requested armhf target; excluded 32-bit x86 remains untouched.
+- Post-native-conversion oracle recheck: all 295 original native C objects have unchanged SHA256 hashes.

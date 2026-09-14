@@ -678,6 +678,15 @@ ifneq ($(BUILD_CLIENT),0)
   endif
 endif
 
+# Match the selected C compiler prefix unless CXX was explicitly supplied.
+ifeq ($(BUILD_CXX),1)
+  ifneq ($(filter default undefined,$(origin CXX)),)
+    CXX := $(CC:gcc=g++)
+    CXX := $(CXX:clang=clang++)
+    CXX := $(CXX:cc=c++)
+  endif
+endif
+
 ifeq ($(USE_CCACHE),1)
   CC := ccache $(CC)
 endif

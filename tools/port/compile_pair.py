@@ -9,12 +9,15 @@ import sys
 if len(sys.argv) < 3:
     sys.exit('usage: compile_pair.py ded/md4.o OUTPUT_DIR [MAKE_VARIABLE=value ...]')
 obj, output, *variables = sys.argv[1:]
+settings = dict(v.split('=', 1) for v in variables if '=' in v)
+platform = settings.get('PLATFORM', 'linux')
+arch = settings.get('ARCH', 'x86_64')
 output = Path(output).resolve()
 output.mkdir(parents=True, exist_ok=True)
 env = dict(os.environ, SOURCE_DATE_EPOCH='1789257600', LC_ALL='C')
 for mode, tag in [('0', 'c'), ('1', 'cxx')]:
     build = output / ('make-' + tag)
-    target = build / 'release-linux-x86_64' / obj
+    target = build / f'release-{platform}-{arch}' / obj
     recipe = subprocess.check_output(
         ['make', '-Bn', 'V=1', f'BUILD_CXX={mode}', f'BUILD_DIR={build}', *variables, str(target)],
         text=True, env=env)
