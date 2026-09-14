@@ -47,7 +47,12 @@ Codegen/symbol gates differ: jump/grapple code uses an outlined VectorLength hel
 Its production bytes match a libm oracle on 4 million finite vectors across four
 rounding modes. No source FP expression changed; reviewed compiler differences
 are recorded without weakening gates. Upstream C fix:
-https://github.com/ec-/Quake3e/pull/432. Next: open PR and complete hosted CI/self-review.
+https://github.com/ec-/Quake3e/pull/432. Fork PR #45 is open at source b5e31b8c;
+regression 34889484418 and full build 34889484412 passed. Self-review below passes.
+Next: mark ready, merge, verify merged-tree regression, then address PNG header
+alignment on issue/31-png-header-alignment. Its existing renderer build will enforce
+a header layout assertion; the local compile assertion already fails at alignment 4
+instead of 1. Preserve fixed-demo fixtures and frame goldens.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -302,4 +307,5 @@ Register/stack/inlining changes were reviewed; actual emitted VectorLength match
 a libm oracle for four million finite-input vectors across all four rounding modes.
 No source FP expression change or gate weakening. Self-review: one missing-candidate
 bug, existing compile/runtime regression, no layout/OS/allocation/destructor change.
-Hosted gates pending.
+Regression 34889484418 and full build 34889484412 pass on source b5e31b8c.
+Final checkpoint is documentation only; self-review passes.

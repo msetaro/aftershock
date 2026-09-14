@@ -203,3 +203,4 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   Upstream C fix: https://github.com/ec-/Quake3e/pull/432. Unit/collision
   regeneration changes no golden; final Q3/OA UBSan smoke, normal smoke and
   fixed-demo replay pass unchanged.
+  Fork PR #45 passed regression 34889484418 and full build 34889484412.
