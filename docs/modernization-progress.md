@@ -11,22 +11,26 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
 build 34868566674 passed; its merged-tree run 34869117306 passed.
 
-Current branch: `issue/31-extension-validation`, PR #37. Source/test head ae390e6f
-passed regression 34877286456 and full build 34877286443. Final checkpoint changes
-only documentation. Self-review passed: one filesystem bug, no OS calls, allocation,
-non-trivial core destructors, layout or simulation FP changes; all goldens unchanged.
-Next: mark #37 ready, merge with a merge commit, verify the merged-tree regression,
-then branch `issue/31-download-url` for Com_DL_Begin. A temporary test already
-confirms a trailing slash generates `maps//map%20name.pk3`; preserve the no-slash,
-percent-1 template and empty-base behavior while fixing the final-character check.
-The test calls the real begin/cleanup path with libcurl but never performs a transfer.
+Filesystem PR #37 merged as 73108eab after regression 34877286456 and full build
+34877286443 passed; merged-tree regression 34877819880 passed.
+
+Current branch: `issue/31-download-url`, PR #38. Source/test head 56ece5e4 passed
+regression 34878247137 and full platform build 34878247337. Final checkpoint changes
+only documentation. Self-review passed: one URL bug, no simulation FP, layout,
+OS-access, allocation or core-lifetime change. Only the new URL golden was added.
+Next: mark #38 ready, merge with a merge commit, verify the merged-tree regression,
+then create `issue/31-audio-threads`. Prepared C++ and upstream C signature checks
+fail on both ALSA callbacks before any fix. Give them pthread-compatible signatures,
+remove the casts, and use ALSA's null sink to verify MMAP/DIRECT sample submission
+and thread joins. Temporary C++ test: /tmp/aftershock-audio-probe.cpp; upstream test
+is uncommitted on issue/31-audio-upstream in /tmp/aftershock-upstream-huffman.
 
 ## Issue status and remaining sequence
 
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem extension validation in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -128,3 +132,17 @@ Upstream C test fails before and passes after: https://github.com/ec-/Quake3e/pu
 Fork: https://github.com/msetaro/aftershock/pull/37. Regression/full build runs above
 include public-content runtime and all platform legs. The caller audit's separate
 Sys_LoadLibrary uninitialized diagnostic pointer is recorded in notes and issue #31.
+
+## #31 download validation
+
+Permanent `python3 tests/download.py` fails before on the trailing-slash base
+(`maps//map%20name.pk3`), then passes with GCC and Clang/libc++ after the one-line
+guarded last-character check. `%1` substitution, escaping and empty-base behavior
+are retained. Explicit regeneration created only tests/golden/download.txt.
+Existing unit/one-ULP, collision, smoke and replay gates pass. One local smoke
+attempt overlapped replay and hit an occupied UDP port; serial smoke passed both
+original map goldens. Run those local runtime gates serially. No golden changed
+to accommodate the collision. The hosted runtime URL check uses existing libcurl
+packages; begin/cleanup run without a transfer.
+Upstream C fix/test: https://github.com/ec-/Quake3e/pull/426.
+Fork PR: https://github.com/msetaro/aftershock/pull/38.

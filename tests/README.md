@@ -19,6 +19,14 @@ source copy; the golden comparison must reject it. Clang requires libc++-dev and
 libc++abi-dev. Cross compilation and MSVC builds run in CI; Linux executable tests
 do not claim to execute on those targets.
 
+`python3 tests/download.py` checks the real download begin/cleanup path with
+libcurl, without performing a transfer. It requires libcurl development headers
+and the library (`libcurl4-openssl-dev` on Ubuntu); hosted runtime CI installs them.
+The URL cases cover bases with/without a trailing slash, `%1` templates, escaping,
+and an empty base. File/cvar/UI operations are isolated by test stubs. Explicit
+`python3 tests/download.py --regenerate` creates the reviewed URL golden; CI never
+regenerates it. `--cc` and `--cxx` select the compiler as in the unit driver.
+
 ## Local Quake 3 content
 
 ```
