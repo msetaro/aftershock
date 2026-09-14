@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: qcommon; next `code/server/sv_client.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: unix; next `code/unix/linux_qvk.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -609,7 +609,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/server/server.h` | done | T1-T17: 0; unchanged header verified through server consumers, strict native release/debug and G2/G3 PASS. |
 | `code/server/sv_bot.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_bot.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_ccmds.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_client.c` | blocked | At :402 C++ strstr(const char*, ...) returns const char*, assigned to writable str then sprintf writes through it. Removing const from cmd or casting away const is outside T8 (which permits adding const for literal pointers); source retained unchanged. Seven other T1/T2/T3 diagnostics remain. |
+| `code/server/sv_client.c` | blocked | New C-oracle blocker: T3 expansion of bGood &= FS_FileIsInPAK into bGood = (qboolean)( bGood & FS_FileIsInPAK(...) ) changes one test instruction register order in the client C object (45 85 fe -> 45 85 f7). Both logical operations are equivalent, but the mandatory SHA256 fails. Commuted and ternary alternatives also failed the hash; commutation additionally exceeds T3. All candidate source changes reverted. Exact patch and C disassembly diff: tools/port/evidence/sv_client-t3-attempt.patch and sv_client-c-oracle.diff. |
 | `code/server/sv_filter.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_game.c` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_game.o, default); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_init.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory FAIL, full diff retained. |
@@ -651,3 +651,8 @@ Full notes: `docs/cpp-port-notes.md`.
 Continuation correction: the first q_math T21 edit contained seven redundant nested casts from an AST inventory that also selected explicit casts. Removed those redundant casts in a new commit without rewriting history; the scanner now selects only implicit conversions. The intended 20 argument casts at 18 calls remain.
 
 Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_gate.py /tmp/aftershock-cpp-port/differential-resumed` PASS, all 13 groups equal; vector_math C/C++ `5c00b4de`. Evidence `tools/port/evidence/g5-resumed.log`. Six conditional Sys_SnapVector rint calls are also pinned with T21 after the reviewer found them outside the first inventory. Native AST and source review found no in-scope non-integer abs arguments, so no T22 casts were necessary in the native configuration.
+
+## Resumed verification decisions
+
+- New C-oracle blocker: T3 expansion of bGood &= FS_FileIsInPAK into bGood = (qboolean)( bGood & FS_FileIsInPAK(...) ) changes one test instruction register order in the client C object (45 85 fe -> 45 85 f7). Both logical operations are equivalent, but the mandatory SHA256 fails. Commuted and ternary alternatives also failed the hash; commutation additionally exceeds T3. All candidate source changes reverted. Exact patch and C disassembly diff: tools/port/evidence/sv_client-t3-attempt.patch and sv_client-c-oracle.diff. No oracle relaxation is authorized; continue every independent file and cross target, then report this remaining blocker if no catalog form clears it.
+- Warm-up plus two runs of the C dedicated binary under the prescribed faketime increment produces byte-identical 124-line logs, exit 0; acceptance first stage PASS.
