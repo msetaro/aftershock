@@ -582,7 +582,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 					else
 					{
 						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, flip, 0, NULL );
-						flip = !flip;
+						flip = (qboolean)( !flip );
 					}
 				}
 			}
@@ -598,7 +598,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 					else
 					{
 						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, flip, 0, NULL );
-						flip = !flip;
+						flip = (qboolean)( !flip );
 					}
 				}
 			}
@@ -1030,9 +1030,9 @@ char *Sys_GetClipboardData( void ) {
 
 		// GetClipboardData performs implicit CF_UNICODETEXT => CF_TEXT conversion
 		if ( ( hClipboardData = GetClipboardData( CF_TEXT ) ) != 0 ) {
-			if ( ( cliptext = GlobalLock( hClipboardData ) ) != 0 ) {
+			if ( ( cliptext = (char *)GlobalLock( hClipboardData ) ) != 0 ) {
 				size = GlobalSize( hClipboardData ) + 1;
-				data = Z_Malloc( size );
+				data = (char *)Z_Malloc( size );
 				Q_strncpyz( data, cliptext, size );
 				GlobalUnlock( hClipboardData );
 				

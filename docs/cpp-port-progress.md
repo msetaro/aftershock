@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/win32/win_wndproc.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/win32/glw_win.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -358,6 +358,8 @@ Phase 1: next `code/win32/win_wndproc.c`. Resume there; do not redo done files. 
 
 ## Blocked files
 
+- `code/win32/win_wndproc.c`: Unverified (no MinGW/Windows SDK). T1: 2 clipboard-pointer casts, T2: 2 boolean-toggle casts by inspection; target gates unavailable.
+
 - `code/win32/win_syscon.c`: Unverified (no MinGW/Windows SDK). T2: 1 boolean-toggle cast by inspection; target C/C++ builds and G1-G4 unavailable.
 
 - `code/win32/win_snd.c`: Unverified (no MinGW/Windows SDK). T1: 2 casts around existing void* loader casts, WINAPI preserved. WASAPI explicitly uses C lpVtbl interfaces/REFIID pointer arguments; C++ SDK interface selection requires uncataloged changes. Target gates unavailable.
@@ -691,4 +693,4 @@ Phase 1: next `code/win32/win_wndproc.c`. Resume there; do not redo done files. 
 | `code/win32/win_shared.c` | blocked | Unverified (no MinGW/Windows SDK). No obvious catalog edits; unchanged. Optional USE_PROFILES calls FARPROC with arguments despite C++ zero-argument type, requiring an uncataloged function-pointer signature cast. Target gates unavailable. |
 | `code/win32/win_snd.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 casts around existing void* loader casts, WINAPI preserved. WASAPI explicitly uses C lpVtbl interfaces/REFIID pointer arguments; C++ SDK interface selection requires uncataloged changes. Target gates unavailable. |
 | `code/win32/win_syscon.c` | blocked | Unverified (no MinGW/Windows SDK). T2: 1 boolean-toggle cast by inspection; target C/C++ builds and G1-G4 unavailable. |
-| `code/win32/win_wndproc.c` | todo | Pending module pass. |
+| `code/win32/win_wndproc.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 clipboard-pointer casts, T2: 2 boolean-toggle casts by inspection; target gates unavailable. |
