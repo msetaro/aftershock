@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: renderervk; next `code/renderervk/vk.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: next `code/renderervk/vk_flares.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -350,6 +350,8 @@ Phase 1: renderervk; next `code/renderervk/vk.c`. Resume there; do not redo file
 
 ## Blocked files
 
+- `code/renderervk/vk.c`: Catalog casts compile with unchanged C hash/G2 PASS, but G3 reports 74 generated const shader arrays changing external R to internal r. No existing extern declarations to move; adding new declarations is outside catalog. Attempt reverted. Evidence tools/port/evidence/vulkan-shader-linkage.diff.
+
 - `code/renderervk/tr_init.c`: Five T1 casts compile with original C hash/G2 PASS; G3 fails only GetRefAPI mangling. Reverted; reapply with phase-2 T5. Patch /tmp/aftershock-cpp-port/renderervk-tr_init-phase1.patch.
 
 - `code/renderer/tr_init.c`: 12 catalog casts compile with original C hash and G2 PASS, but G3 fails only GetRefAPI mangling. Cast attempt reverted; reapply with phase-2 T5 boundary after module source passes. Patch /tmp/aftershock-cpp-port/renderer-tr_init-phase1.patch.
@@ -609,7 +611,7 @@ Phase 1: renderervk; next `code/renderervk/vk.c`. Resume there; do not redo file
 | `code/renderervk/tr_sky.c` | done | T4: 7 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_sky.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_surface.c` | done | T4: 25 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_surface.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_world.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/vk.c` | todo | Pending module pass. |
+| `code/renderervk/vk.c` | blocked | Catalog casts compile with unchanged C hash/G2 PASS, but G3 reports 74 generated const shader arrays changing external R to internal r. No existing extern declarations to move; adding new declarations is outside catalog. Attempt reverted. Evidence tools/port/evidence/vulkan-shader-linkage.diff. |
 | `code/renderervk/vk.h` | todo | Pending module pass. |
 | `code/renderervk/vk_flares.c` | todo | T4 prerequisite: or renamed to orientation (3 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderervk/vk_vbo.c` | todo | Pending module pass. |
