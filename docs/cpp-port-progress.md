@@ -122,6 +122,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 ## Decisions and harness details
 
+- Revised G3 uses separately emitted *.sym.o objects at -O2 -fno-builtin -D__NO_CTYPE=1 -U_FORTIFY_SOURCE, identically for C/C++. Reviewer measured these controls against all 33 failures: nine libc/header implementation differences disappear; 24 math differences remain. Each control is needed on this host. Float sin/sinf negative control still fails, pinned-double and integer-sin positive controls pass. Production C hashes, G2 objects, G4 assembly and G5 remain unchanged. No undefined symbols are ignored. Cross-target applicability will be tested with target gates.
+
 - Continuation G3 now compares all undefined references after demangling; raw name requirements follow clarified T5. Reran all 143 previously completed pairs: 33 failures, with full diffs in tools/port/evidence/expanded-symbols-initial.json. These include expected float math references and independently observed libc header/optimizer substitutions; neither is silently ignored. A G3-only probe configuration is being evaluated to compare source linkage without optimizer-created libc call differences; G4/G5 will keep the production optimization settings.
 
 - Read AGENTS.md and the full plan before port work. GNU Make only: plan section 7 supersedes early CMake references, and section 9 defers vcxproj lists to rename. Existing t3code worktree/branch used; per-file commits and module pushes, no main push, force push, history rewrite, source rename, vendor or renderer2 port.

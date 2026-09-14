@@ -32,7 +32,7 @@ def check(row):
     result = dict(source=source, object=context[1], variables=variables, compile=status)
     if status:
         return result
-    for gate, suffix in [('layout', 'o'), ('symbol', 'o'), ('codegen', 's')]:
+    for gate, suffix in [('layout', 'o'), ('symbol', 'sym.o'), ('codegen', 's')]:
         with (target / (gate + '.diff')).open('w') as log:
             result[gate] = subprocess.run([f'tools/port/{gate}_gate.sh',
                                           str(target / f'{stem}.c.{suffix}'),

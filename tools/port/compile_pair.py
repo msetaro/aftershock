@@ -27,7 +27,10 @@ for mode, tag in [('0', 'c'), ('1', 'cxx')]:
     del args[index:index + 2]
     args.remove('-c')
     args = [arg for arg in args if arg not in ('-MMD', '-MP')]
+    # G3 isolates symbol declarations/references from libc macro and optimizer
+    # substitutions. Production G2 objects and G4 assembly keep their own flags.
     for suffix, flags in [('o', ['-g', '-fno-eliminate-unused-debug-types', '-c']),
+                          ('sym.o', ['-g0', '-O2', '-fno-builtin', '-D__NO_CTYPE=1', '-U_FORTIFY_SOURCE', '-c']),
                           ('s', ['-g0', '-O2', '-S'])]:
         artifact = output / f'{Path(obj).stem}.{tag}.{suffix}'
         command = [*args, *flags, '-o', str(artifact)]
