@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: renderer; next `code/renderer/tr_mesh.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: renderer; next `code/renderer/tr_model.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -121,6 +121,8 @@ Phase 1: renderer; next `code/renderer/tr_mesh.c`. Resume there; do not redo fil
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
 
 ## Codegen differences
+
+- `code/renderer/tr_mesh.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_mesh.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_mesh.o /tmp/aftershock-cpp-port/renderer-tr_mesh ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderer/tr_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_main.o /tmp/aftershock-cpp-port/renderer-tr_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -486,7 +488,7 @@ Phase 1: renderer; next `code/renderer/tr_mesh.c`. Resume there; do not redo fil
 | `code/renderer/tr_local.h` | todo | T4 prerequisite: or renamed to orientation (5 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_main.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_marks.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_marks.o, default); G4 PASS. |
-| `code/renderer/tr_mesh.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_mesh.c` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_mesh.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_model.c` | todo | Pending module pass. |
 | `code/renderer/tr_model_iqm.c` | todo | Pending module pass. |
 | `code/renderer/tr_scene.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
