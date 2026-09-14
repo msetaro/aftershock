@@ -117,6 +117,9 @@ baseline; Clang's function checks expose callback type mismatches, and a recover
 survey later crashed at QVM startup (cause not isolated), as recorded in #31 and
 the bug notes. Unit ASan/UBSan coverage remains required;
 the ASan runtime experiment with faketime timed out before producing output.
+The unit driver also initializes and frees real zlib state through its default
+allocator callbacks, under the existing sanitizer modes. It reads no content and
+reuses the unit allocation stubs; the ordinary unit golden stays unchanged.
 Pointer comparisons run separately from UBSan: combining both instruments Clang's
 generated pointer-overflow checks and reports invalid pairs in otherwise valid
 pointer increments. Both runs compare the same unit golden; neither replaces the

@@ -154,3 +154,14 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   Upstream fix: https://github.com/ec-/Quake3e/pull/429. Explicit unit/collision
   regeneration has no golden diff; normal smoke and fixed-demo replay pass unchanged.
   Fork PR #42 passed regression 34886047536 and full build 34886047431.
+
+- #31 zlib callback fix: zcalloc/zcfree now use the z_stream void-pointer types,
+  with direct assignments and unchanged allocation/free behavior. The existing
+  unit driver initializes/frees real inflate state through its allocator stubs,
+  without content input. Permanent Clang ASan/UBSan test fails before and passes
+  after; pointer-check mode also passes. No expectation or suppression was added.
+  GCC normalized production codegen/symbol gates pass (private callback mangled
+  names change). Explicit unit/collision regeneration has no golden diff; normal
+  and GCC UBSan smoke and fixed-demo replay pass unchanged. Upstream C test/fix:
+  https://github.com/ec-/Quake3e/pull/430. The separate Clang QVM startup observation
+  remains unclassified; this fix resolves the callback diagnostics only.

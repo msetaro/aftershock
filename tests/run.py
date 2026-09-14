@@ -62,7 +62,8 @@ def differential(args):
     build(args.output / 'unit-build', variables, [objects / (s + '.o') for s in SOURCES])
     binary = args.output / 'differential'
     run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti', '-O2',
-         *instrument, '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',
+         *instrument, '-fno-strict-aliasing', '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',
+         'tests/probes/allocations.cpp',
          *[objects / (s + '.o') for s in SOURCES], '-Wl,--gc-sections',
          '-Wl,--wrap=_Z11FS_ReadFilePKcPPv', '-o', binary, '-lm'])
     command = [binary]
@@ -127,7 +128,8 @@ def negative_control(args, objects, binary):
     run([*command, '-Icode/qcommon', '-ffunction-sections', '-fdata-sections'])
     mutated_binary = args.output / 'differential-one-ulp'
     run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti', '-O2',
-         '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',
+         '-fno-strict-aliasing', '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',
+         'tests/probes/allocations.cpp',
          *[obj if stem == 'q_math' else objects / (stem + '.o') for stem in SOURCES],
          '-Wl,--gc-sections', '-Wl,--wrap=_Z11FS_ReadFilePKcPPv', '-o', mutated_binary, '-lm'])
     changed = run([mutated_binary], stdout=subprocess.PIPE).stdout
