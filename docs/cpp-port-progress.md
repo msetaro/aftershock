@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: server; next `code/botlib/be_aas_move.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: botlib; next `code/botlib/be_aas_reach.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -166,7 +166,7 @@ Every nonempty completed-source G4 diff is listed below. Read each with `gzip -d
 | `code/botlib/be_aas_cluster.c` | `tools/port/evidence/be_aas_cluster.codegen.diff.gz` |
 | `code/botlib/be_aas_debug.c` | `tools/port/evidence/be_aas_debug.codegen.diff.gz` |
 | `code/botlib/be_aas_file.c` | `tools/port/evidence/be_aas_file.codegen.diff.gz` |
-| `code/botlib/be_aas_move.c` | `tools/port/evidence/be_aas_move.codegen.diff.gz` |
+| `code/botlib/be_aas_move.c` | done | T1-T17: 0 (already compatible); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_move.o, default); G4 PASS. |
 | `code/botlib/be_aas_reach.c` | `tools/port/evidence/be_aas_reach.codegen.diff.gz` |
 | `code/botlib/be_aas_route.c` | `tools/port/evidence/be_aas_route.codegen.diff.gz` |
 | `code/botlib/be_aas_routealt.c` | `tools/port/evidence/be_aas_routealt.codegen.diff.gz` |
@@ -347,7 +347,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/botlib/be_aas_funcs.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_main.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_main.o); G4 PASS. |
 | `code/botlib/be_aas_main.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_move.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_move.o); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_aas_move.c` | done | T1-T17: 0 (already compatible); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_move.o, default); G4 PASS. |
 | `code/botlib/be_aas_move.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_optimize.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_optimize.o); G4 PASS. |
 | `code/botlib/be_aas_optimize.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
