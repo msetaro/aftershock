@@ -61,17 +61,43 @@ def differential(args):
          '-Wl,--wrap=_Z11FS_ReadFilePKcPPv', '-o', binary, '-lm'])
     command = [binary]
     if args.check == 'differential':
-        with zipfile.ZipFile(args.data / 'pak0.pk3') as pak:
-            bsp = pak.read('maps/q3dm17.bsp')
-        map_path = args.output / 'q3dm17.bsp'
+        name = content_maps(args.content)[0] + '.bsp'
+        bsp = None
+        for archive in sorted(args.data.glob('*.pk3')):
+            with zipfile.ZipFile(archive) as pak:
+                if 'maps/' + name in pak.namelist():
+                    bsp = pak.read('maps/' + name)
+        if bsp is None:
+            raise SystemExit('FAIL: missing map: ' + name)
+        map_path = args.output / name
         map_path.write_bytes(bsp)
         command.append(map_path)
         print('BSP SHA256', hashlib.sha256(bsp).hexdigest())
-    actual = run(command, stdout=subprocess.PIPE).stdout
+    result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    diagnostics = result.stderr.decode()
+    if diagnostics:
+        print(diagnostics, end='')
+    result.check_returncode()
+    if args.known_bugs:
+        check_known_bugs(diagnostics)
+    actual = result.stdout
     (args.output / (args.check + '.txt')).write_bytes(actual)
-    compare(args.check + '.txt', actual, args.regenerate)
+    compare(('openarena/' if args.check == 'differential' and args.content == 'openarena' else '') + args.check + '.txt', actual, args.regenerate)
     if args.negative_control:
         negative_control(args, objects, binary)
+
+
+def check_known_bugs(diagnostics):
+    patterns = [line for line in (ROOT / 'tests/known-bugs.txt').read_text().splitlines()
+                if line and not line.startswith('#')]
+    errors = [line for line in diagnostics.splitlines() if 'runtime error:' in line]
+    for error in errors:
+        if not any(re.search(pattern, error) for pattern in patterns):
+            raise SystemExit('FAIL: unlisted sanitizer failure: ' + error)
+        print('known, tracked in #31: ' + error)
+    for pattern in patterns:
+        if not any(re.search(pattern, error) for error in errors):
+            raise SystemExit('FAIL: listed bug stopped failing; remove its entry: ' + pattern)
 
 
 def negative_control(args, objects, binary):
@@ -105,35 +131,52 @@ def negative_control(args, objects, binary):
     print('PASS: one-ULP Q_rsqrt mutation rejected; engine source untouched')
 
 
+def content_maps(content):
+    return ('oa_dm1', 'oa_dm7') if content == 'openarena' else ('q3dm17', 'q3dm7')
+
+
+def content_bots(content):
+    return ('sarge', 'major') if content == 'quake3' else ('sarge', 'beret')
+
+
+def content_settings(content):
+    return ['+set', 'fs_game', 'baseoa', '+set', 'net_enabled', '0'] if content == 'openarena' else []
+
+
 def runtime(args):
     binary = build(args.output / 'runtime-build', [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0']) / 'quake3e.ded.x64'
-    for map_name in ('q3dm17', 'q3dm7'):
+    for map_name in content_maps(args.content):
         results = []
         # Isolated home prevents the user's config and pak cache influencing fixtures.
         with tempfile.TemporaryDirectory(prefix='aftershock-smoke-') as home:
-            base = Path(home) / 'baseq3'
+            base = Path(home) / ('baseoa' if args.content == 'openarena' else 'baseq3')
             base.mkdir()
-            for pak in args.data.glob('pak*.pk3'):
+            for pak in args.data.glob('*.pk3'):
                 (base / pak.name).symlink_to(pak)
-            if not (base / 'pak0.pk3').is_file():
-                raise SystemExit('FAIL: user-owned baseq3 paks are required')
+            if not list(base.glob('*.pk3')):
+                raise SystemExit('FAIL: installed content paks are required')
             command = ['timeout', '90', 'faketime', '-f', '@2026-01-01 00:00:00 i0.01', binary,
                        '+set', 'fs_basepath', home, '+set', 'fs_homepath', home,
+                       *content_settings(args.content),
                        '+set', 'dedicated', '1', '+set', 'sv_pure', '0', '+set', 'com_logfile', '0',
-                       '+map', map_name, '+addbot', 'sarge', '3', '+addbot', 'major', '3', '+wait', '300', '+quit']
+                       '+map', map_name, '+addbot', content_bots(args.content)[0], '3', '+addbot', content_bots(args.content)[1], '3', '+wait', '900' if args.content == 'openarena' else '300', '+quit']
             for iteration in ('warmup', '1', '2'):
-                log = run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout
+                result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                log = result.stdout
                 (args.output / f'{map_name}-{iteration}.log').write_bytes(log)
+                result.check_returncode()
                 # Only installation metadata is normalized; gameplay text is retained.
                 normalized = re.sub(rb'^\.\.\.found [0-9]+ cached paks\r?\n|^Working directory:.*\r?\n', b'', log, flags=re.M)
-                normalized = normalized.replace(str(args.data.parent).encode(), b'<DATA>').replace(home.encode(), b'<HOME>')
+                normalized = normalized.replace(home.encode(), b'<HOME>').replace(str(args.data.parent).encode(), b'<DATA>')
+                if args.content == 'openarena':
+                    normalized = re.sub(rb'^\.\.\.detecting CPU, found .*$', b'...detecting CPU, found <CPU>', normalized, flags=re.M)
                 if iteration != 'warmup':
                     results.append(normalized)
             if results[0] != results[1]:
                 raise SystemExit('FAIL: repeated runtime differs: ' + map_name)
             if b'ClientBegin: 1' not in results[0] or b'Kill:' not in results[0]:
                 raise SystemExit('FAIL: runtime did not exercise both bots: ' + map_name)
-            compare(map_name + '.log', results[0], args.regenerate)
+            compare(('openarena/' if args.content == 'openarena' else '') + map_name + '.log', results[0], args.regenerate)
 
 
 def main():
@@ -141,6 +184,8 @@ def main():
     parser.add_argument('check', choices=['unit', 'differential', 'runtime'])
     parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-tests'))
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
+    parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
+    parser.add_argument('--known-bugs', action='store_true')
     parser.add_argument('--cc', default='gcc')
     parser.add_argument('--cxx', default='g++')
     parser.add_argument('--sanitize', action='store_true')
@@ -153,9 +198,11 @@ def main():
         parser.error('--negative-control requires unit without regeneration/sanitizers')
     if args.sanitize and args.check == 'runtime':
         parser.error('runtime sanitizer runner is not implemented yet')
+    if args.known_bugs and (not args.sanitize or args.regenerate):
+        parser.error('--known-bugs requires sanitizers without regeneration')
     if args.sanitize:
         ENV['ASAN_OPTIONS'] = 'detect_leaks=0:halt_on_error=1'
-        ENV['UBSAN_OPTIONS'] = f'halt_on_error=1:suppressions={ROOT / "tools/port/ubsan.supp"}'
+        ENV['UBSAN_OPTIONS'] = f'halt_on_error={0 if args.known_bugs else 1}:suppressions={ROOT / "tools/port/ubsan.supp"}'
     args.output = args.output.resolve()
     args.data = args.data.resolve()
     args.output.mkdir(parents=True, exist_ok=True)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline deterministic .dm_68 recording and Mesa software timedemo frame goldens."""
+"""Replay fixed .dm_68 fixtures and compare Mesa software timedemo frame goldens."""
 import argparse
 import hashlib
 import json
@@ -9,20 +9,24 @@ import shutil
 import subprocess
 import tempfile
 
-from run import ROOT, ENV, build, compare, run
+from run import ROOT, ENV, build, compare, run, content_maps, content_bots, content_settings
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-demo-tests'))
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
-parser.add_argument('--regenerate', action='store_true')
+parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
+parser.add_argument('--record-fixtures', action='store_true', help='explicitly replace demos and frame goldens')
+parser.add_argument('--regenerate', action='store_true', help='explicitly replace frame goldens only')
 args = parser.parse_args()
+if args.record_fixtures:
+    args.regenerate = True
 if args.regenerate and os.environ.get('CI'):
     parser.error('CI must never regenerate goldens')
 output = args.output.resolve()
 output.mkdir(parents=True, exist_ok=True)
 data = args.data.resolve()
-paks = sorted(data.glob('pak*.pk3'))
-if not (data / 'pak0.pk3').is_file():
+paks = sorted(data.glob('*.pk3'))
+if not paks:
     parser.error('user-owned baseq3 paks are required; see tests/README.md')
 icds = list(Path('/usr/share/vulkan/icd.d').glob('lvp*.json'))
 if len(icds) != 1:
@@ -42,17 +46,22 @@ def client(binary, home, commands, log_name, fixed_random=False):
     preload = ['env', 'LD_PRELOAD=' + str(shim)] if fixed_random else []
     command = ['timeout', '90', 'xvfb-run', '-a', *preload, 'faketime', '-f', '@2026-01-01 00:00:00 i0.01', binary,
                '+set', 'fs_basepath', home, '+set', 'fs_homepath', home,
+               *content_settings(args.content),
                '+set', 'r_fullscreen', '0', '+set', 'r_mode', '3', '+set', 's_initsound', '0',
                '+set', 'sv_pure', '0', '+set', 'net_ip', '127.0.0.1', '+set', 'com_maxfps', '0',
                '+set', 'com_logfile', '0', '+set', 'cl_autoRecordDemo', '0', '+set', 'name', 'regression', *commands]
-    log = run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout
+    result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    log = result.stdout
     (output / log_name).write_bytes(log)
+    result.check_returncode()
+    if b'Unknown command' in log or b'ERROR:' in log:
+        raise SystemExit('FAIL: client reported an error: ' + log_name)
     if b'llvmpipe' not in log.lower():
         raise SystemExit('FAIL: renderer did not report the forced software device: ' + log_name)
 
 
 def prepare(home):
-    base = home / 'baseq3'
+    base = home / ('baseoa' if args.content == 'openarena' else 'baseq3')
     base.mkdir()
     # Reuse installed content without reading the user's loose configs or copying paks.
     for pak in paks:
@@ -62,29 +71,21 @@ def prepare(home):
 
 
 frames = {}
-for map_name in ('q3dm17', 'q3dm7'):
-    recordings = []
-    for iteration in (1, 2):
+golden = ROOT / 'tests/golden' / ('openarena' if args.content == 'openarena' else '')
+for map_name in content_maps(args.content):
+    fixture = golden / (map_name + '.dm_68')
+    if args.record_fixtures:
         with tempfile.TemporaryDirectory(prefix='aftershock-record-') as temporary:
             home = Path(temporary)
             base = prepare(home)
             client(binaries['vulkan'], home,
                    ['+set', 'g_synchronousClients', '1', '+set', 'fixedtime', '50',
-                    '+map', map_name, '+addbot', 'sarge', '3', '+addbot', 'major', '3',
-                    '+wait', '100', '+record', map_name, '+wait', '300', '+stoprecord', '+quit'],
-                   f'{map_name}-record-{iteration}.log', fixed_random=True)
-            demo = base / 'demos' / (map_name + '.dm_68')
-            recordings.append(demo.read_bytes())
-    if recordings[0] != recordings[1]:
-        for i, recording in enumerate(recordings):
-            (output / f'{map_name}-different-{i}.dm_68').write_bytes(recording)
-        raise SystemExit('FAIL: repeated demo bytes differ: ' + map_name)
-    fixture = ROOT / 'tests/golden' / (map_name + '.dm_68')
-    if args.regenerate:
-        fixture.write_bytes(recordings[0])
-    elif fixture.read_bytes() != recordings[0]:
-        raise SystemExit('FAIL: recorded demo differs from golden: ' + map_name)
-    print('PASS repeated demo', map_name, hashlib.sha256(recordings[0]).hexdigest(), flush=True)
+                    '+map', map_name, '+addbot', content_bots(args.content)[0], '3',
+                    '+addbot', content_bots(args.content)[1], '3',
+                    '+wait', '100', '+team', 'spectator', '+follow', '1', '+wait', '10', '+record', map_name, '+wait', '300', '+stoprecord', '+quit'],
+                   f'{map_name}-record.log', fixed_random=True)
+            fixture.write_bytes((base / 'demos' / fixture.name).read_bytes())
+    print('FIXTURE', map_name, hashlib.sha256(fixture.read_bytes()).hexdigest(), flush=True)
     for backend, binary in binaries.items():
         repetitions = []
         for iteration in (1, 2):
@@ -100,9 +101,14 @@ for map_name in ('q3dm17', 'q3dm7'):
                        f'{map_name}-{backend}-replay-{iteration}.log')
                 hashes = {name: hashlib.sha256((base / 'screenshots' / (name + '.tga')).read_bytes()).hexdigest()
                           for name in ('frame050', 'frame100', 'frame200')}
+                for name in hashes:
+                    shutil.copyfile(base / 'screenshots' / (name + '.tga'),
+                                    output / f'{map_name}-{backend}-{iteration}-{name}.tga')
+                if len(set(hashes.values())) != len(hashes):
+                    raise SystemExit('FAIL: sampled frames did not advance: ' + map_name)
                 repetitions.append(hashes)
         if repetitions[0] != repetitions[1]:
             raise SystemExit('FAIL: repeated timedemo frames differ: ' + map_name + '/' + backend)
         frames[map_name + '/' + backend] = repetitions[0]
         print('PASS repeated frames', map_name, backend, flush=True)
-compare('frames.json', (json.dumps(frames, indent=2, sort_keys=True) + '\n').encode(), args.regenerate)
+compare(('openarena/' if args.content == 'openarena' else '') + 'frames.json', (json.dumps(frames, indent=2, sort_keys=True) + '\n').encode(), args.regenerate)

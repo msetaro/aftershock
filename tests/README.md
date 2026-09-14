@@ -1,78 +1,117 @@
-# Permanent regression suite (#3, in progress)
+# Permanent regression suite (#3)
 
-Run from the repository root. Python 3, GNU Make, GCC or Clang/libc++, and binutils
-are required. Tests call real engine functions built with Make's production flags;
-only the test driver provides allocator/log/file stubs, as in the port G5 harness.
-No engine source is rewritten. These Linux executable checks do not yet claim
-MSVC or cross-target execution coverage.
+Run from the repository root with Python 3, GNU Make, GCC or Clang, and binutils.
+Tests call real engine functions with production flags. Test drivers provide only
+isolated allocator/log/file stubs and instrumentation; production code is unchanged.
 
 ```
 python3 tests/run.py unit --negative-control
 python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
-python3 tests/run.py differential
-python3 tests/run.py runtime
-python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --sanitize --output /tmp/tests-sanitized
+python3 tests/check_known_bugs.py
+python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
 ```
 
-`unit` runs the thirteen asset-free groups (twelve inherited G5 groups plus wire/file layout). `differential` adds the original
-q3dm17 1,000 collision sweeps; it requires user-owned `~/.q3a/baseq3/pak0.pk3`.
-`runtime` requires faketime and all installed baseq3 paks, runs q3dm17/q3dm7 with
-two bots, warms the cache and requires two identical traces before golden comparison.
-Use `--data /path/to/baseq3` for another installation. Pak files never enter git.
+The thirteen asset-free groups include wire/file layout. The negative control
+moves the active GCC SSE Q_rsqrt return one ULP toward infinity in a temporary
+source copy; the golden comparison must reject it. Clang requires libc++-dev and
+libc++abi-dev. Cross compilation and MSVC builds run in CI; Linux executable tests
+do not claim to execute on those targets.
 
-The runtime command keeps timeout outside faketime, fixes SOURCE_DATE_EPOCH, and
-uses an isolated home. Normalization removes only cached-paks / working-directory
-lines and replaces the two installation directory prefixes with `<HOME>`/`<DATA>`;
-all gameplay events are retained. Full raw logs remain under `--output`.
+## Local Quake 3 content
 
-The negative control compiles a temporary copy of q_math.cpp whose active GCC SSE
-Q_rsqrt return moves one ULP toward infinity; golden equality must fail. It never
-edits the production file. Sanitizer mode uses tools/port/ubsan.supp unchanged;
-leak checks are disabled because the inherited isolated hunk/zone test allocator
-retains allocations to process exit. Address/undefined behavior checks remain fatal.
+```
+python3 tests/run.py differential
+python3 tests/run.py runtime
+python3 tests/demo.py
+```
+
+These use the user's installed `~/.q3a/baseq3` paks and maps q3dm17/q3dm7.
+`--data /path/to/baseq3` selects another installation. No Quake 3 paks are copied
+into git or uploaded anywhere. The original unit, collision and smoke goldens
+remain unchanged. Runtime needs faketime; demos also need Xvfb and Mesa's
+llvmpipe/lavapipe. Tests fail when required content or tools are missing.
+
+The completed in-process network check is `python3 tests/network.py`: both sides
+use real engine loopback with `net_enabled=0`, test-only latency/loss/reordering,
+and a 64-unit correction bound. Its `--max-error 0` negative control was run once
+on 2026-09-14 and rejected the measured 8.875-unit correction. This requires local
+Quake 3 content and is not run on the public-content hosted runtime runner.
+
+## Hosted OpenArena content
+
+The runtime CI job installs `openarena-data`, `faketime`, `xvfb`, and
+`mesa-vulkan-drivers`. It then runs:
+
+```
+python3 tests/openarena.py
+python3 tests/run.py differential --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/demo.py --content openarena --data /tmp/aftershock-openarena-baseoa
+```
+
+OpenArena uses `+set fs_game baseoa`, oa_dm1/oa_dm7, Sarge/Beret, and separate
+`tests/golden/openarena/` outputs. The collision sweep uses oa_dm1. Its smoke
+runs 900 waits to exercise combat; the accepted Quake 3 scenario stays at 300.
+
+Ubuntu/Debian data packages replace QVMs with native-module markers unsupported
+by this engine. `openarena.py` symlinks installed paks into temporary storage and
+adds the official OpenArena gamecode oaxB52 release, verified by SHA256
+`91cb4e677d1a9f1741391ebc5fe06054ed25073addf050baf80cfc7550f98c94`.
+Release/source: https://github.com/OpenArena/gamecode/releases/tag/oaxB52
+(GPL-2.0-or-later, source commit 331464ca396d80e91cf9be273588f2b5f4b7afc8).
+Its license is retained alongside the staged data; no downloaded paks enter git.
+Use `openarena.py --data /path/to/baseoa` for data extracted without installing
+packages. Local system package installation is prohibited; runner installs are
+expected. A download/checksum/content failure fails CI.
+
+## Runtime and fixed-demo oracle
+
+Dedicated smoke warms the pak cache and requires two identical traces before
+comparing the golden. Timeout wraps faketime, SOURCE_DATE_EPOCH is fixed, and each
+map has an isolated home. Normalization removes cached-paks/working-directory
+lines and replaces home/data installation prefixes. OpenArena additionally
+normalizes the CPU model label and disables networking; gameplay events are kept.
+Raw logs are retained in `--output`, including failed invocations.
+
+Normal demo runs **never record**. They replay each committed `.dm_68` twice per
+software renderer, sample TGA frames at waits 50/100/200, require changing samples
+and repeated byte-identical frame hashes, then compare `frames.json`. Screenshots
+and logs remain in `--output` for review. Fixtures are small engine-generated
+artifacts, not game-content archives. Recording is intentionally not reproducible:
+SDL/X11/Mesa clock calls affect faketime's call count and ping-derived demo bytes.
+
+## Sanitizer known failures
+
+`tests/known-bugs.txt` contains regexes for UBSan diagnostics exercised by the
+sanitizer unit job. Each diagnostic must match; every listed pattern must occur.
+A matching error prints `known, tracked in #31`. An unknown error, an ASan crash,
+a nonzero subprocess exit, a changed unit golden, or a disappeared known error
+fails. The test still runs and prints its diagnostics; this is not suppression.
+A #31 fix removes its entry and updates the policy self-check if applicable.
+PNG chunk alignment and JPEG table-index reproducers are already recorded in
+issue #31 and `docs/cpp-port-notes.md`; they are not exercised by the unit driver.
+
+The inherited `tools/port/ubsan.supp` remains unchanged. Leak checks are disabled
+because the inherited isolated test allocator retains hunk allocations to exit.
+Omit `--known-bugs` for fatal-on-first-error UBSan behavior.
 
 ## Explicit golden regeneration
 
-Only an intentional issue-scoped behavior change may regenerate affected goldens:
+Only an intentional issue-scoped change may replace affected goldens. Initial
+OpenArena and demo baselines are established in #3; accepted Quake 3 baselines
+must not be regenerated for infrastructure edits.
 
 ```
 python3 tests/run.py unit --regenerate
 python3 tests/run.py differential --regenerate
 python3 tests/run.py runtime --regenerate
-git diff -- tests/golden
+python3 tests/demo.py --record-fixtures
+python3 tests/demo.py --regenerate
 ```
 
-Explain every changed group/event in the PR. `--regenerate` is rejected whenever
-`CI` is set; CI must compare committed outputs, never generate replacements.
-Initial goldens were generated from the unchanged merged port, then repeated.
-
-## Outstanding acceptance
-
-Demo recording/replay and fixed-frame hashes, the remaining reader fuzzers and the complete CI matrix are being added. Current sanitizer run
-exposes HuffmanGetSymbol's existing unaligned load; #31 owns its fix. Hosted runtime CI
-has no licensed game-data provisioning or configured self-hosted runner yet.
-These gaps are blockers, not skipped tests counted as passes; #3 is not complete.
-
-Parser fuzzing: `python3 tests/fuzz/run.py parse --runs 10000` and
-`python3 tests/fuzz/run.py msg --runs 10000` call the production entry points with
-libFuzzer/ASan/UBSan, deterministic seed 1, and bounded input size. Crashes and
-corpora remain in the selected temporary output directory.
-
-The added regression workflow deliberately does not install packages, auto-create
-assets, regenerate goldens or ignore failures. Missing compiler/runtime prerequisites
-and the known Huffman sanitizer failure currently make the affected jobs fail;
-#3 must remain draft until all deliverables and these prerequisites are resolved.
-
-`python3 tests/network.py` runs both sides in one process through the real engine
-loopback, with `net_enabled=0` enforced. Test-only link wrappers delay/drop/reorder
-packet copies in a fixed POD queue; no game sockets or real network are used.
-It reports packet counts and the cgame's prediction corrections, failing if delay,
-loss and reordering were not exercised or a correction exceeds 64 world units.
-`--max-error 0` is a negative control for the observed nonzero correction.
-
-`python3 tests/demo.py --regenerate` is an **unfinished** baseline procedure: it
-builds static software renderers, records each map twice with bots and the actual
-`fixedtime=50` cvar, then requires byte-identical demos and repeatable sampled frames.
-The offline random-input fixture pins checksumFeed without changing engine code;
-remaining timing-dependent packet differences currently stop this check. Do not
-call a partial .dm_68 file an accepted golden. No game paks are copied or committed.
+`demo.py --record-fixtures` explicitly records one new demo per map and replaces
+frame goldens; `--regenerate` alone replaces frame goldens using existing demos.
+Add the same `--content openarena --data /tmp/aftershock-openarena-baseoa` arguments
+to select that content set. Review demo logs/screenshots and explain every changed
+hash or gameplay event in the PR. All golden writes are rejected when `CI` is set;
+CI compares committed outputs and never regenerates them.
