@@ -509,7 +509,7 @@ Phase 1: next `code/renderervk/tr_local.h`. Resume there; do not redo done files
 | `code/renderer/tr_image.c` | done | T1: 9, T2: 2, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_init.c` | blocked | 12 catalog casts compile with original C hash and G2 PASS, but G3 fails only GetRefAPI mangling. Cast attempt reverted; reapply with phase-2 T5 boundary after module source passes. Patch /tmp/aftershock-cpp-port/renderer-tr_init-phase1.patch. |
 | `code/renderer/tr_light.c` | done | T4: 10 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_light.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_local.h` | todo | T4 prerequisite: or renamed to orientation (5 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderer/tr_local.h` | done | T4: 5 occurrences (prerequisite); actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderer/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_main.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_marks.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_marks.o, default); G4 PASS. |
 | `code/renderer/tr_mesh.c` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_mesh.o, default); G4 advisory FAIL, full diff retained. |
