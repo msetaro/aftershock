@@ -787,6 +787,9 @@ CL_UISystemCalls
 The ui module is making a system call
 ====================
 */
+#ifdef __cplusplus
+Q_EXTERN_C {
+#endif
 static intptr_t CL_UISystemCalls( intptr_t *args ) {
 	switch( args[0] ) {
 	case UI_ERROR:
@@ -1213,6 +1216,9 @@ static intptr_t QDECL UI_DllSyscall( intptr_t arg, ... ) {
 	return CL_UISystemCalls( &arg );
 #endif
 }
+#ifdef __cplusplus
+}
+#endif
 
 
 /*
