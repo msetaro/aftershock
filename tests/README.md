@@ -40,7 +40,7 @@ Quake 3 content and is not run on the public-content hosted runtime runner.
 ## Hosted OpenArena content
 
 The runtime CI job installs `openarena-data`, `faketime`, `xvfb`, and
-`mesa-vulkan-drivers`, and `libsdl2-dev` for client compilation. It then runs:
+`mesa-vulkan-drivers`, `libsdl2-dev`, `libcurl4-openssl-dev`, and `mesa-common-dev` for client compilation. It then runs:
 
 ```
 python3 tests/openarena.py

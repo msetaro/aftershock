@@ -102,3 +102,8 @@ its job lacked SDL development prerequisites installed by the separate build
 workflow. Added libsdl2-dev to the runtime job and exposed build logs on failure;
 replay on hosted CI remains to verify. Final local Quake 3 collision/smoke/replay
 comparison also passed without changing accepted baselines.
+
+Follow-up 34865406267 passed the same non-client gates and identified the next
+missing client prerequisite explicitly: curl/curl.h. Added the curl development
+package and Mesa headers used by the existing supported Linux build. No test or
+golden waiver; the hosted replay must actually execute before merge.
