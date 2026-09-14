@@ -2,11 +2,11 @@
 
 Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed continuation starts at `6a990e7c` (T1–T23 plan amendment). All 171 scoped engine implementation/data files now use .cpp; each moved blob was verified unchanged. No engine bug fixes, vendor edits, renderer2 port, main pushes, force pushes, or history rewrites were made.
 
-**Phases 0–2 and the phase 3 rename/build/gates/runtime are complete; CI verification continues.** All 257 inventory entries are done (including the two explicit exclusions). Native GCC/Clang C and strict C++ configurations all build. MinGW, ARM, AArch64 and PPC64LE C++ full links pass. T24/T25 resolve all reviewed blockers with unchanged C hashes. C++ dedicated runtime matches C under G6, and the client loads OpenGL/Vulkan renderers under Xvfb.
+**Engine port and phases 0–3 pass, including all 14 active CI build jobs. One required post-rename cleanup remains blocked by the unchanged-hash rule.** All 257 inventory entries are done (including the two explicit exclusions). Native GCC/Clang C and strict C++ configurations all build. MinGW, ARM, AArch64 and PPC64LE C++ full links pass. T24/T25 resolve all reviewed blockers with unchanged C hashes. C++ dedicated runtime matches C under G6, and the client loads OpenGL/Vulkan renderers under Xvfb.
 
 ## Next action
 
-MSVC x64/ARM64 Debug/Release pass on run 34804759804; wait for the remaining CI jobs, archive results, and push the final checkpoint. T25 cleanup is blocked by the verified Clang debug checksum conflict; retain its source branch.
+No further engine transformation is needed. All authorized independent work is complete and pushed. The only outstanding action is removal of the T25 C-only branch in `code/server/sv_client.cpp`; the verified Clang DWARF5 source checksum conflict prevents that action under the current literal no-hash-exception rule. Keep the passing source intact. Reproduction and exact hashes are below. Do not redo finished files or rename work.
 
 ## Phase checklist
 
@@ -16,7 +16,7 @@ MSVC x64/ARM64 Debug/Release pass on run 34804759804; wait for the remaining CI 
 - [x] Phase 3 rename, fresh native/cross builds, gates, and runtime.
 - [x] MSVC x64 and ARM64 Debug/Release CI (34804759804).
 - [ ] T25 cleanup: blocked by Clang DWARF5 source checksum under the unchanged-object rule.
-- [ ] Final CI evidence/checkpoint and push.
+- [x] Final CI evidence and cold-readable checkpoint, committed and pushed to the feature branch.
 
 ## Remaining blockers
 
@@ -57,7 +57,7 @@ The former sv_client C-hash/Windows COM blockers were resolved by T24/T25 with u
 - **G6:** prescribed faketime test passes C-repeat first and C-vs-C++ next. Exactly the allowed `...found N cached paks` line is removed because it still varies after warming; no other normalization. All 123 remaining lines hash `e0428e406c541d3de1640f4a07d0a2dd252cb2859f94f1743fe653a537c854f7`. Raw 124-line logs and all raw hashes are retained in `phase3-runtime-results.json`. Native C++ OpenGL/Vulkan dlopen clients and static Vulkan load q3dm17 under Xvfb and quit cleanly. No client timedemo/image equivalence is claimed.
 - **G7:** clang-tidy checks 155 native sources, zero compile/tool failures, 366 existing narrowing findings retained; 16 platform/include-only inputs skipped. GCC/Clang build matrix passes. C and C++ GCC ASan/UBSan bot smoke have no diagnostics with the same two original alignment suppressions and leak checking disabled. No extra runtime suppression was added for C++.
 - **G8:** 170 main-commit source moves are R100 with exact parent blob matches; shader data was a separate byte-identical move with necessary include/generator path changes. Reviewer verified compiler selection, vendor C preservation, MSVC paths/settings/CRLF, x86 CI removal and renderer2 build removal. Current engine edits stay in T1–T25; build/harness deviations are listed below.
-- **CI:** first run 34804449387 reached existing macOS deprecated-declarations and MSVC frozen string-literal policy gaps. Second run 34804619682 has all macOS and MSVC x64 Debug/Release green; ARM64 exposed one catalog T1 VirtualAlloc cast, now committed. Third run 34804759804 passes all four MSVC jobs; its remaining jobs are in progress. Disabled legacy emulator jobs are not counted as runtime verification.
+- **CI:** first run 34804449387 reached existing macOS deprecated-declarations and MSVC frozen string-literal policy gaps. Second run 34804619682 has all macOS and MSVC x64 Debug/Release green; ARM64 exposed one catalog T1 VirtualAlloc cast, now committed. Third run **34804759804 is fully green** at source commit `4ffcd649`: all 14 active build jobs pass (MSVC x64/ARM64 Debug/Release, MinGW x86_64 Debug/Release, Linux x86_64/ARM64 Debug/Release, macOS x86_64/AArch64 Debug/Release). Four preexisting emulator jobs contain disabled build steps and are not counted; both release-publication jobs are skipped on this feature branch. Disabled legacy emulator jobs are not counted as runtime verification.
 - **Unverified:** optional FreeType (headers/pkg-config unavailable), dormant Windows USE_PROFILES (not selected by Make/MSVC), cross-target executable runtime, and client timedemo/frame/image equivalence. Native renderer map-load tests do not claim those checks. `sv_rankings.c` is excluded for its proprietary SDK; `qasm.h` is assembly-only. MSVC x64/ARM64 Debug/Release pass on 34804759804.
 
 Historical results at 7ec7e925 and intermediate T24/T25 checkpoints remain in git/evidence (`resumed-*`, `final-*`, `t25-*`). They are superseded by the current results above.
@@ -107,12 +107,12 @@ MSVC mirrors the accepted write-strings policy with `/Zc:strictStrings-`; initia
 - `74233370 DEVIATION: retain required T15 lexical spaces in diff check`: the literal -w heuristic erases required C++ literal/macro token separators. Per-file minimal stats agree in 132/134 files. common.c is 38/38 versus 16/16 and snd_dma.c 2/2 versus 1/1; all 23 omitted lines are T15, not formatting cleanup. Retain the explicitly authorized lexical changes; do not add fake substantive tokens to game the metric. Exact diff: `g8-stat.diff`. No engine content changed in the decision commit.
 
 - `c2705708 DEVIATION: update embedded shader path for rename`: byte-identical shader-data move plus one include and two generator output paths; necessary to keep the main 170-file rename content-free. C hashes and native/non-SDL/MinGW consumer gates pass.
-- `DEVIATION: freeze observed Apple SDK deprecation warnings`: platform-only existing sprintf diagnostics, no API substitution.
-- `DEVIATION: freeze existing sanitizer uninitialized warning`: only the preexisting GCC instrumentation diagnostic; later narrowed to GCC by G8. No initialization/control-flow fix.
+- `d56244f2 DEVIATION: freeze observed Apple SDK deprecation warnings`: platform-only existing sprintf diagnostics, no API substitution.
+- `47f79834 DEVIATION: freeze existing sanitizer uninitialized warning`: only the preexisting GCC instrumentation diagnostic; later narrowed to GCC by G8. No initialization/control-flow fix.
 
 ## Bugs and compatibility hazards logged, not fixed
 
-Full ledger: `docs/cpp-port-notes.md`. It records upstream CMake defects; preexisting unaligned unzip/vm accesses and sanitizer suppression limits; legacy linux_snd pthread signature mismatch; cl_curl's terminating-NUL slash test; FS_AllowedExtension's NULL relational comparison; and the retained CURLoption va_start warning. The original float-math overload hazard is resolved through T21, and the unfaked bot nondeterminism is controlled by the accepted faketime test. No unrelated source behavior was fixed.
+Full ledger: `docs/cpp-port-notes.md`. It records upstream CMake defects; preexisting unaligned unzip/vm accesses and sanitizer suppression limits; legacy linux_snd pthread signature mismatch; cl_curl's terminating-NUL slash test; FS_AllowedExtension's NULL relational comparison; the retained CURLoption va_start warning; and the possible uninitialized beststart path in AAS_Reachability_JumpArea (same original C sanitizer diagnostic). The original float-math overload hazard is resolved through T21, and the unfaked bot nondeterminism is controlled by the accepted faketime test. No unrelated source behavior was fixed.
 
 ## Exact reproduction commands
 
@@ -1127,7 +1127,7 @@ All files below are under tools/port/evidence; use `gzip -dc` to read a diff. Re
 
 Later per-file G4: `phase3-msvc-vm_aarch64.diff.gz`; same Linux AArch64 body with one Windows-only T1 cast.
 
-## T24/T25 continuation decisions
+## Historical continuation decisions (chronological audit; current state is above)
 
 - First commit adds the exact authorized catalog entries. No C SHA256 exception. Reviewer prefixes: original/T25 4a9f0e56..., single-source cast 96b95b5a.... Existing local diagnostic artifacts use a different command: original af7af4b97d9a5753c8c3451059cbb6c4b61bdef5e38d55813b235c0bfc2f8c91; single-source cast 737a9615cf6a8499e41fb05d92966c6bb74ed1abe161bc8f5c25f08300869110. Production manifest hashes will be measured again.
 - The T24 site list contains ten outgoing arguments total (two in win_input, eight in win_snd), despite the prompt introductory count of eight. Apply the explicit sites, plus the two incoming memcmp pointer uses.
@@ -1181,3 +1181,6 @@ Later per-file G4: `phase3-msvc-vm_aarch64.diff.gz`; same Linux AArch64 body wit
 
 - T25 cleanup reproducer: `python3 tools/port/reproduce_t25_cleanup.py "$PWD" /tmp/port-cleanup-proof`. Success means the documented incompatibility was reproduced, **not** that cleanup passed. It records actual Make recipes, compiler versions, all variant hashes, raw DWARF and precisely locates the 16-byte MD5 region (offset depends on output-path length). Archived original/blank Clang objects are t25-cleanup-clang-default-{original,blank}.o.gz. Source remains unchanged.
 - MSVC final catalog loop: run 34804759804 at commit 4ffcd649 passes Debug/Release x64 and ARM64 after the one Windows-only vm_aarch64 T1 cast. No remaining MSVC error needs a new transformation.
+
+- Final CI: https://github.com/msetaro/aftershock/actions/runs/34804759804 — success at 4ffcd649. `gh run watch --exit-status` and `gh run view --log-failed` completed; no failed logs in the final run. Exact per-job conclusions and commands are in phase3-ci{1,2,3}-results.json. Later commits contain only checkpoint/evidence and the read-only cleanup reproducer; no engine/build content changes after the green source commit.
+- Final scope: 257 inventory entries done (171 renamed implementation/data sources, shared headers, and two explicit exclusions). No engine compile/G2/G3 blocker remains. T25 cleanup is the sole blocked source task; retaining its guard is not claimed as completing that requested cleanup. Optional unverified configurations are listed separately above. All eight historical DEVIATION commits remain listed with reasons; all current and historical G4 differences remain indexed. No question or hash-policy exception was inferred.
