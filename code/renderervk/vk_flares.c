@@ -139,7 +139,7 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 	backEnd.pc.c_flareAdds++;
 
 	if ( normal && (normal[0] || normal[1] || normal[2] ) )	{
-		VectorSubtract( backEnd.viewParms.or.origin, point, local );
+		VectorSubtract( backEnd.viewParms.orientation.origin, point, local );
 		VectorNormalizeFast( local );
 		d = DotProduct( local, normal );
 		// If the viewer is behind the flare don't add it.
@@ -150,7 +150,7 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 
 	// if the point is off the screen, don't bother adding it
 	// calculate screen coordinates and depth
-	R_TransformModelToClip( point, backEnd.or.modelMatrix, backEnd.viewParms.projectionMatrix, eye, clip );
+	R_TransformModelToClip( point, backEnd.orientation.modelMatrix, backEnd.viewParms.projectionMatrix, eye, clip );
 
 	// check to see if the point is completely off screen
 	for ( i = 0 ; i < 3 ; i++ ) {
@@ -497,7 +497,7 @@ void RB_RenderFlares( void ) {
 	// Reset currentEntity to world so that any previously referenced entities
 	// don't have influence on the rendering of these flares (i.e. RF_ renderer flags).
 	backEnd.currentEntity = &tr.worldEntity;
-	backEnd.or = backEnd.viewParms.world;
+	backEnd.orientation = backEnd.viewParms.world;
 
 	//RB_AddDlightFlares();
 

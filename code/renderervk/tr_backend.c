@@ -682,14 +682,14 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 					backEnd.refdef.floatTime = originalTime - (double)backEnd.currentEntity->e.shaderTime.f;
 
 				// set up the transformation matrix
-				R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.or );
+				R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.orientation );
 				// set up the dynamic lighting if needed
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
 				if ( !r_dlightMode->integer )
 #endif
 				if ( backEnd.currentEntity->needDlights ) {
-					R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
+					R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.orientation );
 				}
 #endif // USE_LEGACY_DLIGHTS
 				if ( backEnd.currentEntity->e.renderfx & RF_DEPTHHACK ) {
@@ -702,12 +702,12 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			} else {
 				backEnd.currentEntity = &tr.worldEntity;
 				backEnd.refdef.floatTime = originalTime;
-				backEnd.or = backEnd.viewParms.world;
+				backEnd.orientation = backEnd.viewParms.world;
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
 				if ( !r_dlightMode->integer )
 #endif
-				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
+				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.orientation );
 #endif // USE_LEGACY_DLIGHTS
 			}
 
@@ -716,11 +716,11 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
 
 #ifdef USE_VULKAN
-			Com_Memcpy( vk_world.modelview_transform, backEnd.or.modelMatrix, 64 );
+			Com_Memcpy( vk_world.modelview_transform, backEnd.orientation.modelMatrix, 64 );
 			tess.depthRange = depthRange ? DEPTH_RANGE_WEAPON : DEPTH_RANGE_NORMAL;
 			vk_update_mvp( NULL );
 #else
-			qglLoadMatrixf( backEnd.or.modelMatrix );
+			qglLoadMatrixf( backEnd.orientation.modelMatrix );
 #endif
 
 			//
@@ -909,7 +909,7 @@ static void RB_RenderLitSurfList( dlight_t* dl ) {
 					backEnd.refdef.floatTime = originalTime - (double)backEnd.currentEntity->e.shaderTime.f;
 
 				// set up the transformation matrix
-				R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.or );
+				R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.orientation );
 
 				if ( backEnd.currentEntity->e.renderfx & RF_DEPTHHACK ) {
 					// hack the depth range to prevent view model from poking into walls
@@ -921,7 +921,7 @@ static void RB_RenderLitSurfList( dlight_t* dl ) {
 			} else {
 				backEnd.currentEntity = &tr.worldEntity;
 				backEnd.refdef.floatTime = originalTime;
-				backEnd.or = backEnd.viewParms.world;
+				backEnd.orientation = backEnd.viewParms.world;
 			}
 
 			// we have to reset the shaderTime as well otherwise image animations on
@@ -929,15 +929,15 @@ static void RB_RenderLitSurfList( dlight_t* dl ) {
 			tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
 
 			// set up the dynamic lighting
-			R_TransformDlights( 1, dl, &backEnd.or );
+			R_TransformDlights( 1, dl, &backEnd.orientation );
 			tess.dlightUpdateParams = qtrue;
 
 #ifdef USE_VULKAN
 			tess.depthRange = depthRange ? DEPTH_RANGE_WEAPON : DEPTH_RANGE_NORMAL;
-			Com_Memcpy( vk_world.modelview_transform, backEnd.or.modelMatrix, 64 );
+			Com_Memcpy( vk_world.modelview_transform, backEnd.orientation.modelMatrix, 64 );
 			vk_update_mvp( NULL );
 #else
-			qglLoadMatrixf( backEnd.or.modelMatrix );
+			qglLoadMatrixf( backEnd.orientation.modelMatrix );
 
 			//
 			// change depthrange. Also change projection matrix so first person weapon does not look like coming

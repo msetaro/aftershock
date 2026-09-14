@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/renderervk/tr_local.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/renderervk/tr_animation.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -23,6 +23,8 @@ Phase 1: next `code/renderervk/tr_local.h`. Resume there; do not redo done files
 - [ ] Final G1-G8, differential/runtime/sanitizer checks
 
 ## Decisions
+
+- Vulkan uses the same atomic T4 sequencing as OpenGL: 242 code-token occurrences across 13 files; comments/strings unchanged. Full C rebuild and all 295 original hashes PASS (`renderervk-t4-c.log`), same-source header G2/G3 PASS through rendv/tr_marks.o. Remaining per-file casts/gates remain pending.
 
 - G8 confirms renderer keyword rename exactly changes only code tokens. T3 covers local nonvolatile enum compound arithmetic in tr_arb: preserve +2/+1 offsets and unused standalone increment result; add cast of original promoted integer result, as with prior enum bitwise assignments.
 
@@ -545,31 +547,31 @@ Phase 1: next `code/renderervk/tr_local.h`. Resume there; do not redo done files
 | `code/renderervk/shaders/bin2hex.c` | todo | Pending module pass. |
 | `code/renderervk/shaders/spirv/shader_data.c` | todo | Pending module pass. |
 | `code/renderervk/tr_animation.c` | todo | Pending module pass. |
-| `code/renderervk/tr_backend.c` | todo | Pending module pass. |
+| `code/renderervk/tr_backend.c` | todo | T4 prerequisite: or renamed to orientation (11 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderervk/tr_bsp.c` | todo | Pending module pass. |
 | `code/renderervk/tr_cmds.c` | todo | Pending module pass. |
 | `code/renderervk/tr_common.h` | todo | Pending module pass. |
 | `code/renderervk/tr_curve.c` | todo | Pending module pass. |
 | `code/renderervk/tr_image.c` | todo | Pending module pass. |
 | `code/renderervk/tr_init.c` | todo | Pending module pass. |
-| `code/renderervk/tr_light.c` | todo | Pending module pass. |
-| `code/renderervk/tr_local.h` | todo | Pending module pass. |
-| `code/renderervk/tr_main.c` | todo | Pending module pass. |
+| `code/renderervk/tr_light.c` | todo | T4 prerequisite: or renamed to orientation (10 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderervk/tr_local.h` | todo | T4 prerequisite: or renamed to orientation (5 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderervk/tr_main.c` | todo | T4 prerequisite: or renamed to orientation (113 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderervk/tr_marks.c` | todo | Pending module pass. |
-| `code/renderervk/tr_mesh.c` | todo | Pending module pass. |
+| `code/renderervk/tr_mesh.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderervk/tr_model.c` | todo | Pending module pass. |
 | `code/renderervk/tr_model_iqm.c` | todo | Pending module pass. |
-| `code/renderervk/tr_scene.c` | todo | Pending module pass. |
-| `code/renderervk/tr_shade.c` | todo | Pending module pass. |
-| `code/renderervk/tr_shade_calc.c` | todo | Pending module pass. |
+| `code/renderervk/tr_scene.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderervk/tr_shade.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderervk/tr_shade_calc.c` | todo | T4 prerequisite: or renamed to orientation (50 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderervk/tr_shader.c` | todo | Pending module pass. |
-| `code/renderervk/tr_shadows.c` | todo | Pending module pass. |
-| `code/renderervk/tr_sky.c` | todo | Pending module pass. |
-| `code/renderervk/tr_surface.c` | todo | Pending module pass. |
-| `code/renderervk/tr_world.c` | todo | Pending module pass. |
+| `code/renderervk/tr_shadows.c` | todo | T4 prerequisite: or renamed to orientation (4 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderervk/tr_sky.c` | todo | T4 prerequisite: or renamed to orientation (7 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderervk/tr_surface.c` | todo | T4 prerequisite: or renamed to orientation (25 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
+| `code/renderervk/tr_world.c` | todo | T4 prerequisite: or renamed to orientation (2 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderervk/vk.c` | todo | Pending module pass. |
 | `code/renderervk/vk.h` | todo | Pending module pass. |
-| `code/renderervk/vk_flares.c` | todo | Pending module pass. |
+| `code/renderervk/vk_flares.c` | todo | T4 prerequisite: or renamed to orientation (3 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderervk/vk_vbo.c` | todo | Pending module pass. |
 | `code/sdl/sdl_gamma.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_gamma.o, default); G4 PASS. |
 | `code/sdl/sdl_glimp.c` | blocked | At :763 returns PFN_vkVoidFunction as void*: function-pointer-to-object-pointer conversion is outside T1. Eight additional T1/T3 diagnostics remain; source unchanged. |

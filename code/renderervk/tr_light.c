@@ -39,20 +39,20 @@ Used by both the front end (for DlightBmodel) and
 the back end (before doing the lighting calculation)
 ===============
 */
-void R_TransformDlights( int count, dlight_t *dl, orientationr_t *or) {
+void R_TransformDlights( int count, dlight_t *dl, orientationr_t *orientation) {
 	int		i;
 	vec3_t	temp, temp2;
 
 	for ( i = 0 ; i < count ; i++, dl++ ) {
-		VectorSubtract( dl->origin, or->origin, temp );
-		dl->transformed[0] = DotProduct( temp, or->axis[0] );
-		dl->transformed[1] = DotProduct( temp, or->axis[1] );
-		dl->transformed[2] = DotProduct( temp, or->axis[2] );
+		VectorSubtract( dl->origin, orientation->origin, temp );
+		dl->transformed[0] = DotProduct( temp, orientation->axis[0] );
+		dl->transformed[1] = DotProduct( temp, orientation->axis[1] );
+		dl->transformed[2] = DotProduct( temp, orientation->axis[2] );
 		if ( dl->linear ) {
-			VectorSubtract( dl->origin2, or->origin, temp2 );
-			dl->transformed2[0] = DotProduct( temp2, or->axis[0] );
-			dl->transformed2[1] = DotProduct( temp2, or->axis[1] );
-			dl->transformed2[2] = DotProduct( temp2, or->axis[2] );
+			VectorSubtract( dl->origin2, orientation->origin, temp2 );
+			dl->transformed2[0] = DotProduct( temp2, orientation->axis[0] );
+			dl->transformed2[1] = DotProduct( temp2, orientation->axis[1] );
+			dl->transformed2[2] = DotProduct( temp2, orientation->axis[2] );
 		}
 	}
 }
@@ -73,7 +73,7 @@ void R_DlightBmodel( bmodel_t *bmodel ) {
 	msurface_t	*surf;
 
 	// transform all the lights
-	R_TransformDlights( tr.refdef.num_dlights, tr.refdef.dlights, &tr.or );
+	R_TransformDlights( tr.refdef.num_dlights, tr.refdef.dlights, &tr.orientation );
 
 	mask = 0;
 	for ( i = 0; i < tr.refdef.num_dlights; i++ ) {

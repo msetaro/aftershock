@@ -757,7 +757,7 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 				float len;
 				vec3_t v;
 
-				VectorSubtract( tess.xyz[i], backEnd.viewParms.or.origin, v );
+				VectorSubtract( tess.xyz[i], backEnd.viewParms.orientation.origin, v );
 				len = VectorLength( v ) * tess.shader->portalRangeR;
 
 				if ( len > 1 )
@@ -952,7 +952,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 #ifdef USE_FOG_COLLAPSE
 	if ( fogCollapse ) {
 		VK_SetFogParams( &uniform, &fog_stage );
-		VectorCopy( backEnd.or.viewOrigin, uniform.eyePos );
+		VectorCopy( backEnd.orientation.viewOrigin, uniform.eyePos );
 		vk_update_descriptor( VK_DESC_FOG_COLLAPSE, tr.fogImage->descriptor );
 		pushUniform = qtrue;
 	} else
@@ -960,7 +960,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 	{
 		fog_stage = 0;
 		if ( tess_flags & TESS_VPOS ) {
-			VectorCopy( backEnd.or.viewOrigin, uniform.eyePos );
+			VectorCopy( backEnd.orientation.viewOrigin, uniform.eyePos );
 			tess_flags &= ~TESS_VPOS;
 			pushUniform = qtrue;
 		}
@@ -1127,7 +1127,7 @@ static void VK_SetLightParams( vkUniform_t *uniform, const dlight_t *dl ) {
 	radius = dl->radius;
 
 	// vertex data
-	VectorCopy( backEnd.or.viewOrigin, uniform->eyePos ); uniform->eyePos[3] = 0.0f;
+	VectorCopy( backEnd.orientation.viewOrigin, uniform->eyePos ); uniform->eyePos[3] = 0.0f;
 	VectorCopy( dl->transformed, uniform->light.pos ); uniform->light.pos[3] = 0.0f;
 
 	// fragment data

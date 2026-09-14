@@ -31,8 +31,8 @@ static float ProjectRadius( float r, vec3_t location )
 	vec3_t	p;
 	float	projected[4];
 
-	c = DotProduct( tr.viewParms.or.axis[0], tr.viewParms.or.origin );
-	dist = DotProduct( tr.viewParms.or.axis[0], location ) - c;
+	c = DotProduct( tr.viewParms.orientation.axis[0], tr.viewParms.orientation.origin );
+	dist = DotProduct( tr.viewParms.orientation.axis[0], location ) - c;
 
 	if ( dist <= 0 )
 		return 0;
@@ -348,7 +348,7 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 #ifdef USE_PMLIGHT
 	numDlights = 0;
 	if ( r_dlightMode->integer >= 2 && ( !personalModel || tr.viewParms.portalView != PV_NONE ) ) {
-		R_TransformDlights( tr.viewParms.num_dlights, tr.viewParms.dlights, &tr.or );
+		R_TransformDlights( tr.viewParms.num_dlights, tr.viewParms.dlights, &tr.orientation );
 		for ( n = 0; n < tr.viewParms.num_dlights; n++ ) {
 			dl = &tr.viewParms.dlights[ n ];
 			if ( !R_LightCullBounds( dl, bounds[0], bounds[1] ) ) 
