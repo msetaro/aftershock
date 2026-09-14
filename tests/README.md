@@ -188,3 +188,26 @@ Add the same `--content openarena --data /tmp/aftershock-openarena-baseoa` argum
 to select that content set. Review demo logs/screenshots and explain every changed
 hash or gameplay event in the PR. All golden writes are rejected when `CI` is set;
 CI compares committed outputs and never regenerates them.
+
+### Native C transition (#2, in progress)
+
+The pinned GPL C imports and provenance are in `docs/native-game-import.json`.
+These Linux x86_64 commands build the native modules and compare their shared ABI
+layouts against the engine; installed Quake 3 content is required for runtime/replay:
+
+```
+python3 tests/native.py
+python3 tests/native.py --cc clang --cxx clang++ --output /tmp/native-clang
+python3 tests/run.py runtime --game-code native
+python3 tests/demo.py --game-code native
+```
+
+The native ABI uses binary32 literals and rounds host math results to float, as
+the QVM compiler does; `bg_lib.c` preserves the QVM random sequence. Temporary DLL
+entry points marshal pointer-width words until static integration removes them.
+Replay uses the same committed demos/frame hashes. Smoke removes only module load
+metadata, build date and bot-skill printf padding before comparing the accepted QVM
+log. Gameplay text is retained. Native q3dm17 and both-map replay pass; q3dm7 still
+fails on an uninitialized movement result tracked in #31. This is not a passing
+native parity gate yet. Native OpenArena support is still required before VM removal.
+Native parity commands reject regeneration; the accepted QVM default is unchanged.

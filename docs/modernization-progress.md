@@ -54,7 +54,7 @@ SHA256 provenance. Native preflight found an LP64 Q_rsqrt overread; no fix was m
 on #2. The source is not wired into the engine yet.
 
 Native math PR #49 merged as 2018564f after regression 34894597080 and full build
-34894597081 passed on source 152cc6e2. Its merged-tree regression 34895239211 is pending.
+34894597081 passed on source 152cc6e2. Its merged-tree regression 34895239211 passed. #31 is closed again.
 
 Current branch: `issue/2-native-game`. Merging modernization retains the original
 GPL import commit b3ef1acd and resolves the q_math add/add to the reviewed #49 fix.
@@ -68,10 +68,37 @@ metadata, compile date and bot-skill printf padding. Both-renderer fixed-demo
 native preflight repeats identically but fails all accepted frame hashes: differences
 range from 2 pixels to 931 pixels per sample. No fixture/golden changes. Added the
 required ui_shared.h header verbatim with provenance (126 imported files now).
-A temporary compiler-flag experiment uses single-precision literals to match the
-QVM data model; replay result pending, no production flag/source change. Next:
-resolve exact native replay parity, then wire C native ABI/layout/smoke/replay checks before
-any C++ port or VM/JIT removal. Keep all new fixes in separate #31 PRs.
+Temporary native ABI adaptation now passes every accepted frame on both maps and
+renderers: binary32 literals plus float results at math calls reproduce the QVM
+compiler model (lcc/src/bytecode.c declares float/double/long double all size 4).
+GCC uses -fsingle-precision-constant; Clang accepts -cl-single-precision-constant
+(the GCC spelling is ignored by Clang, verified with a literal-type assertion).
+This is native ABI compatibility, not a new simulation algorithm: original FP
+expressions and all accepted fixtures/goldens remain unchanged. Evidence:
+/tmp/aftershock-native-demo-math-boundary.log, original frame hash b38004b1.
+Permanent C native build/layout/smoke/replay commands are under development.
+All 29 shared ABI sizes/alignments and three offsets match with GCC and Clang.
+Native syscall arguments now use intptr_t words and explicit unused tail words,
+matching the transitional DLL host's fixed vararg reads. The default QVM smoke
+still passes both accepted goldens. Native q3dm17 passes the normalized accepted
+log; native q3dm7 repeats but adds a Major chat line at the end, so parity fails.
+The gate retains that failure and all gameplay text. Temporary engine tracing
+shows both modes receive seed 140, run 1,494 frames, and finish at 74,900 ms.
+Player states match through 42,150 ms; the first bot movement input difference
+then precedes the differing state at 42,200 ms and syscall sequence at 42,300 ms.
+Trace edits live only under /tmp, outside this branch's engine sources.
+Permanent native demo replay now passes all accepted frames on both maps and both
+renderers (/tmp/aftershock-native-demo-permanent.log, hash b38004b1). The server
+trace identifies the blocker: BotMoveToGoal initializes only its first six fields;
+the obstacle early return leaves movedir/weapon/ideal_viewangles untouched.
+At 42,150 ms both modes pass identical movement state and goal, return blocked by
+entity 167 with flags 32, then BotAIBlocked reads stale movedir. QVM has old stack
+coordinates while native has different stack contents, causing different avoidance.
+This is an existing engine bug, not native arithmetic drift. No inline #2 fix.
+Next: checkpoint #2, then a separate #31 failing-test-first PR initializes the
+complete movement result and explains any resulting golden changes. After it
+merges, resume permanent native smoke/replay parity and C++/static integration. No VM/JIT
+removal before full native parity. Keep all new bugs in separate #31 PRs.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -88,7 +115,7 @@ experiment still timed out before output and is not a claimed runtime gate.
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); thirteen fixes merged through #49; latest merged-tree regression pending. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); thirteen fixes merged through #49; merged-tree regression 34895239211 passed. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Complete: merged #48, merged-tree regression 34893585998 passed. |
 | 4 | #2 native game | In progress: exact C import and native preflight; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |

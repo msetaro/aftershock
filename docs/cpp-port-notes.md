@@ -6,7 +6,8 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
 
 The original twelve engine/vendor defects are closed with merged tested fixes
 below; final regression 34892331846 passed on 9a7c2625. #2 native import preflight
-found an additional LP64 game-math defect; its separate fix is PR #49, hosted gates passed; merged-tree verification pending. `tests/known-bugs.txt` has no active entries and
+found an additional LP64 game-math defect; its separate fix is merged PR #49. Merged-tree regression 34895239211 passed
+on 2018564f; #31 is closed again. `tests/known-bugs.txt` has no active entries and
 `tools/port/ubsan.supp` is empty.
 
 | Defect | Fork fix | Upstream |
@@ -291,3 +292,19 @@ table above and subsequent validation entries give the current state.
 
   Fork PR #49: regression 34894597080 and full build 34894597081 passed on
   152cc6e2. Final checkpoint is documentation only; self-review passes.
+
+## #31 movement result initialization (open, found during #2)
+
+`BotMoveToGoal` in code/botlib/be_ai_move.cpp clears only failure, type, blocked,
+blockentity, traveltype and flags. Invalid-state/no-goal and obstacle returns leave
+weapon, movedir and ideal_viewangles from caller storage. The imported GPL game's
+`BotAIBlocked` reads movedir unconditionally on a blocked result for avoidance.
+Reproducer: `python3 tests/run.py runtime --game-code native` on #2's C ABI branch.
+q3dm17 matches; q3dm7 adds an end-of-match Major chat line. Temporary engine tracing
+finds identical player states through 42,150 ms, identical movement state/goal, and
+a blocked obstacle result for entity 167 (flags 32) with different stale movedir
+words. QVM/native then choose different avoidance. The trace writes only after
+shutdown; both runs use seed 140 and 1,494 frames ending at 74,900 ms.
+Fix in a separate #31 PR: fully initialize the shared result before every return,
+with a poisoned-output regression test first and explained runtime golden changes.
+No fix or accepted golden change made on #2.

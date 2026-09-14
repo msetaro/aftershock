@@ -22,8 +22,10 @@ def run(args, **kwargs):
     return subprocess.run([str(a) for a in args], cwd=ROOT, env=ENV, check=True, **kwargs)
 
 
-def compare(name, actual, regenerate):
+def compare(name, actual, regenerate, normalize=None):
     path = ROOT / 'tests/golden' / name
+    if regenerate and normalize:
+        raise SystemExit('FAIL: normalized native parity cannot regenerate QVM goldens')
     if regenerate:
         if os.environ.get('CI'):
             raise SystemExit('FAIL: CI must never regenerate goldens')
@@ -33,6 +35,8 @@ def compare(name, actual, regenerate):
     if not path.is_file():
         raise SystemExit('FAIL: missing reviewed golden: ' + name)
     expected = path.read_bytes()
+    if normalize:
+        expected, actual = normalize(expected), normalize(actual)
     if expected != actual:
         print(''.join(difflib.unified_diff(expected.decode().splitlines(True), actual.decode().splitlines(True), fromfile=str(path), tofile='actual')))
         raise SystemExit('FAIL: ' + name)
@@ -162,6 +166,12 @@ def runtime(args):
     if args.sanitize:
         variables += ['CFLAGS=-fsanitize=undefined -fno-omit-frame-pointer', 'LDFLAGS=-fsanitize=undefined']
     binary = build(args.output / 'runtime-build', variables) / 'quake3e.ded.x64'
+    modules = {}
+    normalize = None
+    if args.game_code == 'native':
+        from native import build_modules, normalize_log
+        modules = build_modules(args.output / 'native', args.cc, ('game',), args.cxx)
+        normalize = normalize_log
     for map_name in content_maps(args.content):
         results = []
         # Isolated home prevents the user's config and pak cache influencing fixtures.
@@ -170,11 +180,14 @@ def runtime(args):
             base.mkdir()
             for pak in args.data.glob('*.pk3'):
                 (base / pak.name).symlink_to(pak)
+            for module in modules.values():
+                (base / module.name).symlink_to(module)
             if not list(base.glob('*.pk3')):
                 raise SystemExit('FAIL: installed content paks are required')
             command = ['timeout', '90', 'faketime', '-f', '@2026-01-01 00:00:00 i0.01', binary,
                        '+set', 'fs_basepath', home, '+set', 'fs_homepath', home,
                        *content_settings(args.content),
+                       *(['+set', 'vm_game', '0'] if modules else []),
                        '+set', 'dedicated', '1', '+set', 'sv_pure', '0', '+set', 'com_logfile', '0',
                        '+map', map_name, '+addbot', content_bots(args.content)[0], '3', '+addbot', content_bots(args.content)[1], '3', '+wait', '900' if args.content == 'openarena' else '300', '+quit']
             for iteration in ('warmup', '1', '2'):
@@ -182,18 +195,22 @@ def runtime(args):
                 log = result.stdout
                 (args.output / f'{map_name}-{iteration}.log').write_bytes(log)
                 result.check_returncode()
+                if modules and (b'VM_LoadDll(qagame) succeeded!' not in log or b'Failed to load dll' in log):
+                    raise SystemExit('FAIL: native qagame was not loaded')
                 # Only installation metadata is normalized; gameplay text is retained.
                 normalized = re.sub(rb'^\.\.\.found [0-9]+ cached paks\r?\n|^Working directory:.*\r?\n', b'', log, flags=re.M)
                 normalized = normalized.replace(home.encode(), b'<HOME>').replace(str(args.data.parent).encode(), b'<DATA>')
                 if args.content == 'openarena':
                     normalized = re.sub(rb'^\.\.\.detecting CPU, found .*$', b'...detecting CPU, found <CPU>', normalized, flags=re.M)
+                if normalize:
+                    normalized = normalize(normalized)
                 if iteration != 'warmup':
                     results.append(normalized)
             if results[0] != results[1]:
                 raise SystemExit('FAIL: repeated runtime differs: ' + map_name)
             if b'ClientBegin: 1' not in results[0] or b'Kill:' not in results[0]:
                 raise SystemExit('FAIL: runtime did not exercise both bots: ' + map_name)
-            compare(('openarena/' if args.content == 'openarena' else '') + map_name + '.log', results[0], args.regenerate)
+            compare(('openarena/' if args.content == 'openarena' else '') + map_name + '.log', results[0], args.regenerate, normalize)
 
 
 def main():
@@ -202,6 +219,7 @@ def main():
     parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-tests'))
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
+    parser.add_argument('--game-code', choices=['qvm', 'native'], default='qvm')
     parser.add_argument('--known-bugs', action='store_true')
     parser.add_argument('--cc', default='gcc')
     parser.add_argument('--cxx', default='g++')
@@ -210,6 +228,8 @@ def main():
     parser.add_argument('--negative-control', action='store_true')
     parser.add_argument('--regenerate', action='store_true', help='explicitly replace goldens; prohibited in CI')
     args = parser.parse_args()
+    if args.game_code == 'native' and (args.check != 'runtime' or args.content != 'quake3' or args.regenerate):
+        parser.error('native parity currently requires Quake 3 runtime without regeneration')
     if args.regenerate and os.environ.get('CI'):
         parser.error('CI must never regenerate goldens')
     if args.negative_control and (args.check != 'unit' or args.sanitize or args.regenerate):

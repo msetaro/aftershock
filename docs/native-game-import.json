@@ -168,7 +168,7 @@
       "source": "code/cgame/cg_main.c",
       "path": "code/cgame/cg_main.c",
       "sha256": "5b0223fa2b2facff8ab80130ab39c1a1fe94bf2aa55b3ab9f3f30e329136bf15",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import followed by #2 native intptr_t return and three-argument engine entry ABI adaptation"
     },
     {
       "source": "code/cgame/cg_marks.c",
@@ -222,7 +222,7 @@
       "source": "code/cgame/cg_syscalls.c",
       "path": "code/cgame/cg_syscalls.c",
       "sha256": "2cc8c426bf6a4ff79000270771e104aa5eb4f88332347c4479c5d00420c8927c",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import followed by #2 native intptr_t syscall word marshalling; removed at static integration"
     },
     {
       "source": "code/cgame/cg_view.c",
@@ -480,7 +480,7 @@
       "source": "code/game/g_main.c",
       "path": "code/game/g_main.c",
       "sha256": "fdc9abc73283c57a27e25c15fbcac7cc7b63d0a82d6fe9ce8f8af8252548ee4a",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import followed by #2 native intptr_t return and three-argument engine entry ABI adaptation"
     },
     {
       "source": "code/game/g_mem.c",
@@ -540,7 +540,7 @@
       "source": "code/game/g_syscalls.c",
       "path": "code/game/g_syscalls.c",
       "sha256": "42f5ea24fac3428ff8af4e24fbb553698b3f03067d1c3dbcfb6715fedcb28d22",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import followed by #2 native intptr_t syscall word marshalling; removed at static integration"
     },
     {
       "source": "code/game/g_target.c",
@@ -714,7 +714,7 @@
       "source": "code/q3_ui/ui_main.c",
       "path": "code/ui/ui_main.c",
       "sha256": "08c57f6ea15247efb17f688d3f0e5093b2180c0076c680e0cbee382b9910e6d9",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import followed by #2 native intptr_t return and three-argument engine entry ABI adaptation"
     },
     {
       "source": "code/q3_ui/ui_menu.c",
@@ -864,7 +864,7 @@
       "source": "code/ui/ui_syscalls.c",
       "path": "code/ui/ui_syscalls.c",
       "sha256": "d9ca255d00503d677ec8c52a441d6cabd0555808bab47f204a540c4b49f24a56",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import followed by #2 native intptr_t syscall word marshalling; removed at static integration"
     },
     {
       "source": "code/q3_ui/ui_team.c",
