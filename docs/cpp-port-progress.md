@@ -6,7 +6,7 @@ Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed c
 
 ## Next action
 
-No further engine transformation is needed. All authorized independent work is complete and pushed. The only outstanding action is removal of the T25 C-only branch in `code/server/sv_client.cpp`; the verified Clang DWARF5 source checksum conflict prevents that action under the current literal no-hash-exception rule. Keep the passing source intact. Reproduction and exact hashes are below. Do not redo finished files or rename work.
+PR #32 review follow-up: origin/main merged; implement generator T18 emission and byte-identical regeneration, T25 cleanup using release/stripped-debug hashes, publish evidence on orphan port-evidence, record final acceptance, answer/resolve all 15 threads, refresh CI and PR readiness.
 
 ## Phase checklist
 
@@ -1184,3 +1184,7 @@ Later per-file G4: `phase3-msvc-vm_aarch64.diff.gz`; same Linux AArch64 body wit
 
 - Final CI: https://github.com/msetaro/aftershock/actions/runs/34804759804 — success at 4ffcd649. `gh run watch --exit-status` and `gh run view --log-failed` completed; no failed logs in the final run. Exact per-job conclusions and commands are in phase3-ci{1,2,3}-results.json. Later commits contain only checkpoint/evidence and the read-only cleanup reproducer; no engine/build content changes after the green source commit.
 - Final scope: 257 inventory entries done (171 renamed implementation/data sources, shared headers, and two explicit exclusions). No engine compile/G2/G3 blocker remains. T25 cleanup is the sole blocked source task; retaining its guard is not claimed as completing that requested cleanup. Optional unverified configurations are listed separately above. All eight historical DEVIATION commits remain listed with reasons; all current and historical G4 differences remain indexed. No question or hash-policy exception was inferred.
+
+## PR 32 maintainer review follow-up
+
+- Merged origin/main 841b35d5 without conflicts; its deterministic runtime and toolchain notes are retained. Review authorizes T25 cleanup with raw release hashes and objcopy --strip-debug hashes for debug objects on GCC/Clang. No code/data hash exception is allowed.
