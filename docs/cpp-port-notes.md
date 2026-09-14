@@ -141,3 +141,16 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   fix or new suppression in the ZIP PR; the GCC runtime baseline and existing
   Clang unit sanitizer checks remain the required gates. The ASan/faketime runtime
   experiment timed out before output; it is not treated as an engine failure or pass.
+
+- #31 VM packed operand fix: the existing `python3 tests/run.py runtime --sanitize`
+  fails before at VM_LoadInstructions with its alignment suppression removed.
+  CopyLittleLong into an int32_t temporary passes the original Q3/OA map goldens;
+  tools/port/ubsan.supp is now empty. The interpreter and x86/aarch64/armv7/powerpc
+  compilers all call this shared function. GCC production symbols pass and all
+  26 function-section byte sequences are identical. The text codegen gate differs
+  only in the compiler-generated switch-table name CSWTCH.89/90, with unchanged
+  instructions and table data; no gate weakening. Upstream C startup on a valid
+  qagame QVM fails before and passes after (only its separate ZIP bug suppressed).
+  Upstream fix: https://github.com/ec-/Quake3e/pull/429. Explicit unit/collision
+  regeneration has no golden diff; normal smoke and fixed-demo replay pass unchanged.
+  Fork PR #42 passed regression 34886047536 and full build 34886047431.
