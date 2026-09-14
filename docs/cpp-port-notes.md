@@ -347,3 +347,8 @@ remain. ec-/Quake3e has no corresponding game files; importing unrelated game co
 there would not be an upstream engine fix. No expectation or suppression applies.
 
 Native dispatch upstream C fix/test: https://github.com/ec-/Quake3e/pull/436.
+
+Team-leader fix PR #53 source 0ff62c30 passed regression 34909591046 and full build
+34909591164 (attempt 2 after an artifact-service timeout). Self-review passes.
+Defined symbols are unchanged and only the two affected functions change codegen;
+unit/collision regeneration has zero golden diff. No expectation/suppression applies.

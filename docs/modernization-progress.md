@@ -23,8 +23,9 @@ Q_strncpyz now passes both real GPL translation units. Defined symbols are uncha
 only BotMatch_StartTeamLeaderShip and BotTeamAI change normalized GCC assembly.
 No engine source or simulation expression changes. ec-/Quake3e does not contain
 these game files, so there is no corresponding engine upstream patch to submit.
-Next: finish bounds-fix validation, record source/run IDs and self-review, merge
-its PR with a merge commit, and verify the merged tree. Then resume #2 native C
+PR #53 source 0ff62c30 passed regression 34909591046 and full build 34909591164
+(attempt 2, retrying only a transient artifact-upload timeout). Self-review passes.
+Next: merge PR #53 with a merge commit and verify the merged tree. Then resume #2 native C
 compiler parity, OpenArena native support, T1–T25 C++ gates, static calls and VM/JIT
 removal. Accepted goldens may change only in an explained #31 fix, never on #2.
 
@@ -521,3 +522,18 @@ No expected-failure entry or UBSan suppression covered this compile-time failure
 Explicit unit/collision regeneration produces zero golden diff (8d44421d /
 9674cd22). Gameplay/frame fixtures are unaffected by these test-only prerequisite
 imports; the existing CI runtime gates remain required.
+
+PR #53 source 0ff62c302c96e00f929f4537e7bc8559805f2c29 passed regression
+34909591046. Full build 34909591164 compiled macOS release successfully but its
+artifact upload timed out at CreateArtifact (ETIMEDOUT); retry only the failed job
+after the remaining build job finishes. This is not a source/build failure and
+is not counted as a passing full-build gate. The original GPL ai_team.c ends in
+a blank line, preserved byte-for-byte in the prerequisite import; the fix itself
+has no whitespace-only changes.
+
+Full build 34909591164 attempt 2 passed on the same source; only the failed macOS
+job was rerun. PR #53 self-review: one #31 bug, exact two-file prerequisite import,
+only two bounded-copy changes; no new OS access, non-trivial lifetime, allocation,
+wire/file layout or FP expression changes. Defined-symbol/codegen review and the
+failing-before/passing-after test pass. Goldens/fixtures remain unchanged; no
+expectation or suppression applies. This final checkpoint changes documentation only.
