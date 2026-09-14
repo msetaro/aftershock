@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Cross verification: next `code/win32/win_qgl.c`; retain native sv_client C hash blocker. Then T5 review, final native/cross sweeps, runtime where buildable; no rename until prerequisites pass.
+Cross verification: next `code/win32/win_qvk.c`; retain native sv_client C hash blocker. Then T5 review, final native/cross sweeps, runtime where buildable; no rename until prerequisites pass.
 
 ## Phase checklist
 
@@ -663,7 +663,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/win32/win_local.h` | blocked | Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable. |
 | `code/win32/win_main.c` | done | T1: 4 total, including FARPROC to void*; existing inspection casts now C-oracle verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_main.o); G4 advisory difference retained. |
 | `code/win32/win_minimize.c` | blocked | Unverified (no MinGW/Windows SDK). Inspection found no required catalog transformations in key-token table/parser; unchanged, target gates unavailable. |
-| `code/win32/win_qgl.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 source sites (library handle and proc macro with APIENTRY preserved). GL_GetProcAddress still assigns a function pointer to void*, outside T1. Target gates unavailable. |
+| `code/win32/win_qgl.c` | done | T1: 3 sites including function-to-object pointer conversion; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_qgl.o); G4 PASS. |
 | `code/win32/win_qvk.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 3 library/proc casts by inspection. VK_GetInstanceProcAddr still returns a function pointer as void*, outside T1. Target gates unavailable. |
 | `code/win32/win_shared.c` | blocked | Unverified (no MinGW/Windows SDK). No obvious catalog edits; unchanged. Optional USE_PROFILES calls FARPROC with arguments despite C++ zero-argument type, requiring an uncataloged function-pointer signature cast. Target gates unavailable. |
 | `code/win32/win_snd.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 casts around existing void* loader casts, WINAPI preserved. WASAPI explicitly uses C lpVtbl interfaces/REFIID pointer arguments; C++ SDK interface selection requires uncataloged changes. Target gates unavailable. |

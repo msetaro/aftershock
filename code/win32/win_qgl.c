@@ -75,7 +75,7 @@ void *GL_GetProcAddress( const char *name )
 	ptr = Sys_LoadFunction( glw_state.OpenGLLib, name );
 	if ( !ptr && qwglGetProcAddress )
 	{
-		ptr = qwglGetProcAddress( name );
+		ptr = (void *)qwglGetProcAddress( name );
 	}
 
 	return ptr;
