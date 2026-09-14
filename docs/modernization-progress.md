@@ -7,6 +7,17 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
+Active work: `issue/2-native-game` / draft PR #50. #31 movement-result fix PR #51
+merged as 5ecf43e52dbc5a62efd2fe62c13a1c5a17065e95 after regression 34900480717 and
+full build 34900480656 passed on fc49615d. Merged-tree regression is pending.
+This branch merges modernization without rewriting the original C import history;
+workflow conflicts keep both native ABI and movement-result checks, README keeps
+both sections, and notes/progress retain the newest verified #31 evidence.
+Next: verify the merged tree and rerun permanent native C smoke/replay with the fix;
+then hosted OpenArena native support, T1–T25 C++ port gates, static direct calls,
+and VM/JIT removal. No accepted fixtures are to be regenerated on #2.
+
+
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
 build 34868566674 passed; its merged-tree run 34869117306 passed.
@@ -56,7 +67,7 @@ on #2. The source is not wired into the engine yet.
 Native math PR #49 merged as 2018564f after regression 34894597080 and full build
 34894597081 passed on source 152cc6e2. Its merged-tree regression 34895239211 passed. #31 is closed again.
 
-Current branch: `issue/2-native-game`. Merging modernization retains the original
+Native transition branch: `issue/2-native-game` (draft PR #50, checkpoint f4653398). Merging modernization retains the original
 GPL import commit b3ef1acd and resolves the q_math add/add to the reviewed #49 fix.
 The progress conflict is resolved to the latest #31 evidence plus this #2 state.
 No history rewritten. Sources still compile only in temporary native preflight,
@@ -95,7 +106,9 @@ At 42,150 ms both modes pass identical movement state and goal, return blocked b
 entity 167 with flags 32, then BotAIBlocked reads stale movedir. QVM has old stack
 coordinates while native has different stack contents, causing different avoidance.
 This is an existing engine bug, not native arithmetic drift. No inline #2 fix.
-Next: checkpoint #2, then a separate #31 failing-test-first PR initializes the
+Current branch: `issue/31-bot-move-result`, based on modernization. #2 is safely
+checkpointed/pushed as f4653398 and draft PR #50. #31 is reopened.
+Next: a separate #31 failing-test-first PR initializes the
 complete movement result and explains any resulting golden changes. After it
 merges, resume permanent native smoke/replay parity and C++/static integration. No VM/JIT
 removal before full native parity. Keep all new bugs in separate #31 PRs.
@@ -115,7 +128,7 @@ experiment still timed out before output and is not a claimed runtime gate.
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); thirteen fixes merged through #49; merged-tree regression 34895239211 passed. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); thirteen fixes merged through #49; merged-tree regression 34895239211 passed. Reopened for the movement-result defect found by #2; separate fix branch active. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Complete: merged #48, merged-tree regression 34893585998 passed. |
 | 4 | #2 native game | In progress: exact C import and native preflight; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -418,3 +431,29 @@ date and bot-skill padding (custom VM printf vs native libc). This is preliminar
 single-map evidence, not completed parity. Temporary UI compiles; cgame additionally
 requires upstream code/ui/ui_shared.h, an include omitted from the initial #2 import.
 Do not remove VM/JIT paths or change accepted fixtures before full native parity.
+
+## #31 movement result validation
+
+The poisoned-output production-engine test fails before (3993d575) and passes after
+for GCC and Clang/libc++. The upstream C test fails before with GCC and passes after
+with GCC and Clang: https://github.com/ec-/Quake3e/pull/435. BotMoveToGoal now zeroes all 52 bytes before lookup/early returns;
+no FP expression, layout, allocation, OS access or destructor change. Symbols pass;
+only BotMoveToGoal differs among 33 assembly functions: additional zero stores and
+register allocation changes, reviewed as expected for this tested bug fix.
+
+Explicit unit/collision regeneration preserves their hashes (8d44421d / 9674cd22).
+q3dm17 is unchanged. q3dm7 changes only by Major's two-line chat (one say event),
+now hash 028fba42; native and QVM match after implementation metadata normalization.
+OpenArena obstacle avoidance no longer depends on stale caller memory: oa_dm1 has
+70 rather than 75 Item events, still four kills, one rather than two say events
+(hash 9ca81956); oa_dm7 has 58 rather than 71 Item events, five rather than two kills,
+and two rather than one say events (5a511a91). Both maps repeat identically before
+these explicit golden writes. No recording/frame golden changes. Fixed replay
+passes both maps/renderers for Quake 3 (b38004b1) and OpenArena (5b89d338).
+No expected-failure entry or UBSan suppression covered uninitialized movement output.
+Regression 34900480717 and full build 34900480656 pass on source
+fc49615d4be82ff41110f6d521ee6945dd376739. GCC UBSan Quake 3 smoke also passes both
+updated goldens. Self-review: one #31 initialization defect, production-body test
+first, explained golden changes only, unchanged file/wire layout and FP expressions,
+no new engine OS calls, non-trivial destructors or allocations. Issue updated;
+upstream #435 open. This final checkpoint changes documentation only.

@@ -211,3 +211,10 @@ log. Gameplay text is retained. Native q3dm17 and both-map replay pass; q3dm7 st
 fails on an uninitialized movement result tracked in #31. This is not a passing
 native parity gate yet. Native OpenArena support is still required before VM removal.
 Native parity commands reject regeneration; the accepted QVM default is unchanged.
+
+### Bot movement result regression
+
+`python3 tests/bot_move.py` calls the production `BotMoveToGoal` early return with
+two poisoned output buffers and checks all result fields. It links the dedicated
+server objects with a test entry point, so no content is required. `--cc`, `--cxx`
+and `--output` select the same compiler matrix as the other unit checks.

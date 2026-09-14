@@ -35,6 +35,8 @@ jobs:
         run: python3 tests/check_frames.py
       - name: Build C native modules and compare ABI layouts
         run: python3 tests/native.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+      - name: Complete bot movement result
+        run: python3 tests/bot_move.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
       - name: Native game math word regression
         run: python3 tests/native_math.py --cc '${{ matrix.cc }}'
       - name: Differential goldens and one-ULP negative control

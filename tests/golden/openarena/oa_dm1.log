@@ -132,84 +132,77 @@ PlayerScore: 0 1: Sarge now has 1 points
 Kill: 1 0 7: Beret killed Sarge by MOD_ROCKET_SPLASH
 PlayerScore: 1 1: Beret now has 1 points
 Item: 0 ammo_rockets
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
 Item: 1 weapon_rocketlauncher
 Item: 1 weapon_lightning
-Item: 0 item_armor_shard
-Item: 0 item_armor_shard
-Item: 0 item_armor_shard
-Item: 0 item_armor_shard
-Item: 0 item_armor_shard
-Item: 1 ammo_shells
 Item: 0 weapon_lightning
 Item: 1 weapon_grenadelauncher
 Item: 0 weapon_shotgun
 Item: 1 weapon_plasmagun
+Item: 0 ammo_shells
 Item: 1 weapon_rocketlauncher
 Item: 0 weapon_grenadelauncher
-Item: 0 item_health
-Item: 0 item_health
+Item: 1 weapon_shotgun
+Item: 0 weapon_plasmagun
 Item: 1 weapon_grenadelauncher
+Item: 0 weapon_rocketlauncher
+Item: 1 weapon_rocketlauncher
+Item: 1 weapon_grenadelauncher
+Kill: 0 1 4: Sarge killed Beret by MOD_GRENADE
+PlayerScore: 0 2: Sarge now has 2 points
+Item: 0 weapon_rocketlauncher
+Item: 1 weapon_shotgun
+Item: 1 weapon_grenadelauncher
+Item: 1 weapon_plasmagun
 Item: 1 weapon_rocketlauncher
 Item: 0 weapon_grenadelauncher
+Item: 1 ammo_cells
+Item: 0 weapon_plasmagun
+Item: 1 ammo_rockets
+Item: 0 item_health
+Item: 0 weapon_rocketlauncher
 Item: 1 item_armor_shard
 Item: 1 item_armor_shard
 Item: 1 item_armor_shard
 Item: 1 item_armor_shard
 Item: 1 item_armor_shard
 Item: 1 item_armor_shard
-Item: 0 ammo_cells
 Item: 1 item_armor_shard
 Item: 1 item_armor_shard
 Item: 1 ammo_rockets
 Item: 1 ammo_grenades
-Kill: 0 0 5: Sarge killed Sarge by MOD_GRENADE_SPLASH
-PlayerScore: 0 1: Sarge now has 1 points
-say: Sarge: Well, beret needed the help.
-Sarge^7: Well, beret needed the help.
-Item: 0 ammo_bullets
-Item: 1 weapon_shotgun
-Item: 0 item_invis
-Item: 1 item_health
-Item: 1 ammo_shells
-Item: 0 weapon_lightning
-Item: 1 weapon_grenadelauncher
-Item: 0 weapon_shotgun
-Item: 1 weapon_plasmagun
-Item: 1 item_health
-Item: 1 weapon_rocketlauncher
-Item: 1 weapon_grenadelauncher
-Item: 1 item_health
-Item: 1 weapon_rocketlauncher
-Kill: 1 0 6: Beret killed Sarge by MOD_ROCKET
-PlayerScore: 1 3: Beret now has 3 points
-say: Sarge: What the... how cheap!
-Sarge^7: What the... how cheap!
-Item: 0 weapon_lightning
-Item: 1 item_health
-Item: 0 weapon_shotgun
-Item: 1 weapon_grenadelauncher
-Item: 1 item_invis
+Item: 1 ammo_bullets
 Item: 1 weapon_lightning
-Item: 0 weapon_grenadelauncher
-Item: 0 weapon_plasmagun
+Item: 1 item_quad
+Item: 0 item_health_large
+Kill: 1 0 7: Beret killed Sarge by MOD_ROCKET_SPLASH
+PlayerScore: 1 2: Beret now has 2 points
+Item: 1 weapon_grenadelauncher
+say: Sarge: Back in my day, frags weren't so cheap.
+Sarge^7: Back in my day, frags weren't so cheap.
+Item: 1 weapon_shotgun
+Item: 1 item_health
+Item: 0 item_invis
+Item: 1 ammo_shells
+Item: 0 weapon_shotgun
+Item: 1 weapon_grenadelauncher
+Item: 0 weapon_lightning
+Item: 1 weapon_plasmagun
+Item: 1 weapon_rocketlauncher
 Item: 1 ammo_cells
 Item: 1 ammo_rockets
-Item: 0 weapon_rocketlauncher
-Item: 1 item_armor_shard
-Item: 1 item_armor_shard
-Item: 1 item_armor_shard
-Item: 1 item_armor_shard
 Item: 0 weapon_grenadelauncher
 Item: 1 item_armor_shard
 Item: 1 item_armor_shard
 Item: 1 item_armor_shard
 Item: 1 item_armor_shard
-Item: 1 ammo_rockets
-Item: 1 ammo_grenades
-Item: 0 weapon_rocketlauncher
-Item: 1 weapon_lightning
-Item: 1 item_health_large
-Item: 1 item_health_large
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
 ----- Server Shutdown (Server quit) -----
 ==== ShutdownGame ====
 ShutdownGame:

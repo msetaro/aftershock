@@ -7,7 +7,7 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
 The original twelve engine/vendor defects are closed with merged tested fixes
 below; final regression 34892331846 passed on 9a7c2625. #2 native import preflight
 found an additional LP64 game-math defect; its separate fix is merged PR #49. Merged-tree regression 34895239211 passed
-on 2018564f; #31 is closed again. `tests/known-bugs.txt` has no active entries and
+on 2018564f. #31 is reopened for the movement-result initialization defect below. `tests/known-bugs.txt` has no active entries and
 `tools/port/ubsan.supp` is empty.
 
 | Defect | Fork fix | Upstream |
@@ -305,6 +305,9 @@ finds identical player states through 42,150 ms, identical movement state/goal, 
 a blocked obstacle result for entity 167 (flags 32) with different stale movedir
 words. QVM/native then choose different avoidance. The trace writes only after
 shutdown; both runs use seed 140 and 1,494 frames ending at 74,900 ms.
-Fix in a separate #31 PR: fully initialize the shared result before every return,
-with a poisoned-output regression test first and explained runtime golden changes.
-No fix or accepted golden change made on #2.
+Separate #31 fix branch issue/31-bot-move-result: the permanent poisoned-output
+probe fails at commit 3993d575, then passes after all 52 result bytes are initialized.
+GCC/Clang C++ and upstream C probes pass; upstream PR: https://github.com/ec-/Quake3e/pull/435. q3dm7 adds only Major's chat; both OpenArena
+bot logs change due to corrected obstacle avoidance and repeat identically. All
+fixed-demo frames remain unchanged. See modernization-progress.md for counts/hashes.
+No fix or accepted golden change was made on #2. No known-bug entry/suppression covered it.
