@@ -1,0 +1,717 @@
+[
+  [
+    "code/botlib/be_aas_bspq3.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_bspq3/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_bspq3/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_cluster.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_cluster/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_cluster/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_debug.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_debug/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_debug/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_entity.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_entity/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_entity/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_file.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_file/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_file/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_main.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_main/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_main/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_move.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_move/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_move/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_optimize.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_optimize/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_optimize/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_reach.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_reach/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_reach/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_route.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_route/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_route/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_routealt.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_routealt/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_routealt/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_aas_sample.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_sample/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_aas_sample/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_ai_char.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_char/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_char/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_ai_chat.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_chat/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_chat/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_ai_gen.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_gen/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_gen/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_ai_goal.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_goal/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_goal/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_ai_move.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_move/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_move/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_ai_weap.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_weap/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_weap/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_ai_weight.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_weight/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ai_weight/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_ea.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ea/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_ea/cxx.o\n"
+  ],
+  [
+    "code/botlib/be_interface.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_interface/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/be_interface/cxx.o\n"
+  ],
+  [
+    "code/botlib/l_crc.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_crc/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_crc/cxx.o\n"
+  ],
+  [
+    "code/botlib/l_libvar.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_libvar/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_libvar/cxx.o\n"
+  ],
+  [
+    "code/botlib/l_log.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_log/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_log/cxx.o\n"
+  ],
+  [
+    "code/botlib/l_memory.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_memory/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_memory/cxx.o\n"
+  ],
+  [
+    "code/botlib/l_precomp.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_precomp/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_precomp/cxx.o\n"
+  ],
+  [
+    "code/botlib/l_script.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_script/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_script/cxx.o\n"
+  ],
+  [
+    "code/botlib/l_struct.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_struct/c.o /tmp/aftershock-cpp-port/review-inline-completed/botlib/l_struct/cxx.o\n"
+  ],
+  [
+    "code/client/cl_avi.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_avi/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_avi/cxx.o\n"
+  ],
+  [
+    "code/client/cl_cgame.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_cgame/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_cgame/cxx.o\n"
+  ],
+  [
+    "code/client/cl_cin.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_cin/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_cin/cxx.o\n"
+  ],
+  [
+    "code/client/cl_console.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_console/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_console/cxx.o\n"
+  ],
+  [
+    "code/client/cl_input.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_input/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_input/cxx.o\n"
+  ],
+  [
+    "code/client/cl_jpeg.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_jpeg/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_jpeg/cxx.o\n"
+  ],
+  [
+    "code/client/cl_keys.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_keys/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_keys/cxx.o\n"
+  ],
+  [
+    "code/client/cl_net_chan.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_net_chan/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_net_chan/cxx.o\n"
+  ],
+  [
+    "code/client/cl_parse.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_parse/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_parse/cxx.o\n"
+  ],
+  [
+    "code/client/cl_scrn.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_scrn/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_scrn/cxx.o\n"
+  ],
+  [
+    "code/client/cl_ui.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/cl_ui/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/cl_ui/cxx.o\n"
+  ],
+  [
+    "code/client/snd_adpcm.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/snd_adpcm/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/snd_adpcm/cxx.o\n"
+  ],
+  [
+    "code/client/snd_codec.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/snd_codec/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/snd_codec/cxx.o\n"
+  ],
+  [
+    "code/client/snd_codec_wav.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/snd_codec_wav/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/snd_codec_wav/cxx.o\n"
+  ],
+  [
+    "code/client/snd_dma.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/snd_dma/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/snd_dma/cxx.o\n"
+  ],
+  [
+    "code/client/snd_main.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/snd_main/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/snd_main/cxx.o\n"
+  ],
+  [
+    "code/client/snd_mem.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/snd_mem/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/snd_mem/cxx.o\n"
+  ],
+  [
+    "code/client/snd_mix.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/snd_mix/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/snd_mix/cxx.o\n"
+  ],
+  [
+    "code/client/snd_wavelet.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/client/snd_wavelet/c.o /tmp/aftershock-cpp-port/review-inline-completed/client/snd_wavelet/cxx.o\n"
+  ],
+  [
+    "code/qcommon/cm_load.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cm_load/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cm_load/cxx.o\n"
+  ],
+  [
+    "code/qcommon/cm_patch.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cm_patch/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cm_patch/cxx.o\n"
+  ],
+  [
+    "code/qcommon/cm_polylib.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cm_polylib/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cm_polylib/cxx.o\n"
+  ],
+  [
+    "code/qcommon/cm_test.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cm_test/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cm_test/cxx.o\n"
+  ],
+  [
+    "code/qcommon/cm_trace.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cm_trace/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cm_trace/cxx.o\n"
+  ],
+  [
+    "code/qcommon/cmd.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cmd/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cmd/cxx.o\n"
+  ],
+  [
+    "code/qcommon/common.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/common/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/common/cxx.o\n"
+  ],
+  [
+    "code/qcommon/cvar.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cvar/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/cvar/cxx.o\n"
+  ],
+  [
+    "code/qcommon/files.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/files/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/files/cxx.o\n"
+  ],
+  [
+    "code/qcommon/history.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/history/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/history/cxx.o\n"
+  ],
+  [
+    "code/qcommon/huffman.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/huffman/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/huffman/cxx.o\n"
+  ],
+  [
+    "code/qcommon/keys.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/keys/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/keys/cxx.o\n"
+  ],
+  [
+    "code/qcommon/md4.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/md4/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/md4/cxx.o\n"
+  ],
+  [
+    "code/qcommon/md5.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/md5/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/md5/cxx.o\n"
+  ],
+  [
+    "code/qcommon/msg.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/msg/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/msg/cxx.o\n"
+  ],
+  [
+    "code/qcommon/net_chan.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/net_chan/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/net_chan/cxx.o\n"
+  ],
+  [
+    "code/qcommon/net_ip.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/net_ip/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/net_ip/cxx.o\n"
+  ],
+  [
+    "code/qcommon/puff.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/puff/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/puff/cxx.o\n"
+  ],
+  [
+    "code/qcommon/q_shared.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/q_shared/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/q_shared/cxx.o\n"
+  ],
+  [
+    "code/qcommon/unzip.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/unzip/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/unzip/cxx.o\n"
+  ],
+  [
+    "code/qcommon/vm.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/vm/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/vm/cxx.o\n"
+  ],
+  [
+    "code/qcommon/vm_interpreted.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/qcommon/vm_interpreted/c.o /tmp/aftershock-cpp-port/review-inline-completed/qcommon/vm_interpreted/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_animation.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_animation/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_animation/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_arb.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_arb/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_arb/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_backend.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_backend/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_backend/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_bsp.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_bsp/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_bsp/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_cmds.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_cmds/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_cmds/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_curve.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_curve/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_curve/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_flares.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_flares/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_flares/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_image.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_image/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_image/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_init.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_init/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_init/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_light.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_light/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_light/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_main.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_main/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_main/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_marks.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_marks/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_marks/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_mesh.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_mesh/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_mesh/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_model.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_model/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_model/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_model_iqm.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_model_iqm/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_model_iqm/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_scene.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_scene/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_scene/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_shade.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_shade/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_shade/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_shade_calc.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_shade_calc/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_shade_calc/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_shader.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_shader/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_shader/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_shadows.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_shadows/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_shadows/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_sky.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_sky/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_sky/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_surface.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_surface/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_surface/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_vbo.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_vbo/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_vbo/cxx.o\n"
+  ],
+  [
+    "code/renderer/tr_world.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_world/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderer/tr_world/cxx.o\n"
+  ],
+  [
+    "code/renderercommon/tr_font.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_font/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_font/cxx.o\n"
+  ],
+  [
+    "code/renderercommon/tr_image_bmp.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_image_bmp/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_image_bmp/cxx.o\n"
+  ],
+  [
+    "code/renderercommon/tr_image_jpg.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_image_jpg/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_image_jpg/cxx.o\n"
+  ],
+  [
+    "code/renderercommon/tr_image_pcx.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_image_pcx/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_image_pcx/cxx.o\n"
+  ],
+  [
+    "code/renderercommon/tr_image_png.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_image_png/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_image_png/cxx.o\n"
+  ],
+  [
+    "code/renderercommon/tr_image_tga.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_image_tga/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_image_tga/cxx.o\n"
+  ],
+  [
+    "code/renderercommon/tr_noise.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_noise/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderercommon/tr_noise/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_animation.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_animation/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_animation/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_backend.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_backend/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_backend/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_bsp.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_bsp/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_bsp/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_cmds.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_cmds/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_cmds/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_curve.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_curve/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_curve/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_image.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_image/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_image/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_init.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_init/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_init/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_light.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_light/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_light/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_main.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_main/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_main/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_marks.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_marks/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_marks/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_mesh.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_mesh/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_mesh/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_model.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_model/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_model/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_model_iqm.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_model_iqm/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_model_iqm/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_scene.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_scene/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_scene/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_shade.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_shade/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_shade/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_shade_calc.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_shade_calc/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_shade_calc/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_shader.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_shader/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_shader/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_shadows.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_shadows/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_shadows/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_sky.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_sky/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_sky/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_surface.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_surface/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_surface/cxx.o\n"
+  ],
+  [
+    "code/renderervk/tr_world.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_world/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/tr_world/cxx.o\n"
+  ],
+  [
+    "code/renderervk/vk_flares.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/vk_flares/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/vk_flares/cxx.o\n"
+  ],
+  [
+    "code/renderervk/vk_vbo.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/renderervk/vk_vbo/c.o /tmp/aftershock-cpp-port/review-inline-completed/renderervk/vk_vbo/cxx.o\n"
+  ],
+  [
+    "code/sdl/sdl_gamma.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/sdl/sdl_gamma/c.o /tmp/aftershock-cpp-port/review-inline-completed/sdl/sdl_gamma/cxx.o\n"
+  ],
+  [
+    "code/sdl/sdl_snd.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/sdl/sdl_snd/c.o /tmp/aftershock-cpp-port/review-inline-completed/sdl/sdl_snd/cxx.o\n"
+  ],
+  [
+    "code/server/sv_bot.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/server/sv_bot/c.o /tmp/aftershock-cpp-port/review-inline-completed/server/sv_bot/cxx.o\n"
+  ],
+  [
+    "code/server/sv_ccmds.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/server/sv_ccmds/c.o /tmp/aftershock-cpp-port/review-inline-completed/server/sv_ccmds/cxx.o\n"
+  ],
+  [
+    "code/server/sv_filter.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/server/sv_filter/c.o /tmp/aftershock-cpp-port/review-inline-completed/server/sv_filter/cxx.o\n"
+  ],
+  [
+    "code/server/sv_game.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/server/sv_game/c.o /tmp/aftershock-cpp-port/review-inline-completed/server/sv_game/cxx.o\n"
+  ],
+  [
+    "code/server/sv_init.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/server/sv_init/c.o /tmp/aftershock-cpp-port/review-inline-completed/server/sv_init/cxx.o\n"
+  ],
+  [
+    "code/server/sv_main.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/server/sv_main/c.o /tmp/aftershock-cpp-port/review-inline-completed/server/sv_main/cxx.o\n"
+  ],
+  [
+    "code/server/sv_net_chan.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/server/sv_net_chan/c.o /tmp/aftershock-cpp-port/review-inline-completed/server/sv_net_chan/cxx.o\n"
+  ],
+  [
+    "code/server/sv_snapshot.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/server/sv_snapshot/c.o /tmp/aftershock-cpp-port/review-inline-completed/server/sv_snapshot/cxx.o\n"
+  ],
+  [
+    "code/server/sv_world.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/server/sv_world/c.o /tmp/aftershock-cpp-port/review-inline-completed/server/sv_world/cxx.o\n"
+  ],
+  [
+    "code/unix/linux_glimp.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/unix/linux_glimp/c.o /tmp/aftershock-cpp-port/review-inline-completed/unix/linux_glimp/cxx.o\n"
+  ],
+  [
+    "code/unix/linux_joystick.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/unix/linux_joystick/c.o /tmp/aftershock-cpp-port/review-inline-completed/unix/linux_joystick/cxx.o\n"
+  ],
+  [
+    "code/unix/linux_qgl.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/unix/linux_qgl/c.o /tmp/aftershock-cpp-port/review-inline-completed/unix/linux_qgl/cxx.o\n"
+  ],
+  [
+    "code/unix/linux_signals.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/unix/linux_signals/c.o /tmp/aftershock-cpp-port/review-inline-completed/unix/linux_signals/cxx.o\n"
+  ],
+  [
+    "code/unix/linux_snd.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/unix/linux_snd/c.o /tmp/aftershock-cpp-port/review-inline-completed/unix/linux_snd/cxx.o\n"
+  ],
+  [
+    "code/unix/unix_main.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/unix/unix_main/c.o /tmp/aftershock-cpp-port/review-inline-completed/unix/unix_main/cxx.o\n"
+  ],
+  [
+    "code/unix/x11_dga.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/unix/x11_dga/c.o /tmp/aftershock-cpp-port/review-inline-completed/unix/x11_dga/cxx.o\n"
+  ],
+  [
+    "code/unix/x11_randr.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/unix/x11_randr/c.o /tmp/aftershock-cpp-port/review-inline-completed/unix/x11_randr/cxx.o\n"
+  ],
+  [
+    "code/unix/x11_vidmode.c",
+    0,
+    "PASS: symbol /tmp/aftershock-cpp-port/review-inline-completed/unix/x11_vidmode/c.o /tmp/aftershock-cpp-port/review-inline-completed/unix/x11_vidmode/cxx.o\n"
+  ]
+]

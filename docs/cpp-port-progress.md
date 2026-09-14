@@ -666,3 +666,6 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 - Warm-up plus two runs of the C dedicated binary under the prescribed faketime increment produces byte-identical 124-line logs, exit 0; acceptance first stage PASS.
 
 - Whitespace gate uses `git diff --minimal --stat` and `git diff --minimal -w --stat` (with identical per-file counts). Git default heuristics matched repeated curl assignment blocks differently: 37 vs 40 lines despite only 36 substantive changed lines. Minimal diff gives 36/36 in both modes without source churn.
+
+- G3 probes additionally use `-fno-inline-functions`: SDL IN_SyncModifiers was inlined away only in C, creating a false symbol-presence mismatch. Reviewer recompiled all 143 previous completed native contexts with the adjustment: 143 PASS, plus SDL PASS; pinned-double/integer sin controls pass and float sin/sinf control still fails. Evidence `tools/port/evidence/expanded-symbols-reviewed.json`. Production, G2 and G4 flags are unchanged.
+- T19 preserves the moved enum body’s original indentation so minimal diff statistics agree with and without `-w`; no whitespace-only engine hunk is introduced.
