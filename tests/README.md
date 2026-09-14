@@ -195,3 +195,8 @@ CI compares committed outputs and never regenerates them.
 two poisoned output buffers and checks all result fields. It links the dedicated
 server objects with a test entry point, so no content is required. `--cc`, `--cxx`
 and `--output` select the same compiler matrix as the other unit checks.
+
+`python3 tests/native_dispatch.py` checks native engine calls with zero through
+three arguments, including zero-filled unused slots and balanced call depth. It
+uses the production VM_Call body and requires no game content. The same compiler
+and output options as bot_move.py apply.

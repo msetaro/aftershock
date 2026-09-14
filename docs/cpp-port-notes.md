@@ -7,7 +7,8 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
 The original twelve engine/vendor defects are closed with merged tested fixes
 below; final regression 34892331846 passed on 9a7c2625. #2 native import preflight
 found an additional LP64 game-math defect; its separate fix is merged PR #49. Merged-tree regression 34895239211 passed
-on 2018564f. #31 is reopened for the movement-result initialization defect below. `tests/known-bugs.txt` has no active entries and
+on 2018564f. #31 movement-result fix is merged as PR #51 / 5ecf43e5 with merged-tree regression
+34900871236 passed. #31 remains open for native dispatch and team-leader names below. `tests/known-bugs.txt` has no active entries and
 `tools/port/ubsan.supp` is empty.
 
 | Defect | Fork fix | Upstream |
@@ -293,7 +294,7 @@ table above and subsequent validation entries give the current state.
   Fork PR #49: regression 34894597080 and full build 34894597081 passed on
   152cc6e2. Final checkpoint is documentation only; self-review passes.
 
-## #31 movement result initialization (open, found during #2)
+## #31 movement result initialization (merged #51, found during #2)
 
 `BotMoveToGoal` in code/botlib/be_ai_move.cpp clears only failure, type, blocked,
 blockentity, traveltype and flags. Invalid-state/no-goal and obstacle returns leave
@@ -311,3 +312,27 @@ GCC/Clang C++ and upstream C probes pass; upstream PR: https://github.com/ec-/Qu
 bot logs change due to corrected obstacle avoidance and repeat identically. All
 fixed-demo frames remain unchanged. See modernization-progress.md for counts/hashes.
 No fix or accepted golden change was made on #2. No known-bug entry/suppression covered it.
+
+## #31 native dispatch argument initialization (open, found during #2)
+
+`VM_Call`'s native branch fills only nargs slots of args[3], but always reads all
+three for entryPoint. Zero/one/two-argument calls therefore read uninitialized ints.
+`python3 tests/run.py runtime --game-code native --cc clang --cxx 'clang++ -stdlib=libc++'`
+loads qagame then catches SIGSEGV before bot startup. GDB identifies VM_Call's copy
+loop; Clang 21 release assembly has no zero-count exit in this branch and overwrites
+the stack on GAME_CONSOLE_COMMAND (nargs=0). GCC native smoke passes by accident.
+Separate branch issue/31-native-dispatch adds the production-body stub regression
+first (6d4710b4, Clang SIGSEGV), then initializes unused slots. GCC/Clang pass counts
+0–3 and Clang native bot smoke matches both QVM maps. Upstream C also fails before
+and passes after. No golden changes; no fix made on #2.
+
+## #31 team-leader name termination (open, found during #2)
+
+Clang's C build diagnoses `bs->teamleader[sizeof(bs->teamleader)] = '\0'` in
+BotMatch_StartTeamLeaderShip (ai_cmd.c:1311) and BotTeamAI (ai_team.c:1963).
+The field has 32 bytes; both write index 32 after strncpy and can leave index 31
+unterminated. Reproducer discovery: `python3 tests/native.py --cc clang`, diagnostics
+in the game.log output. A separate #31 failing test must exercise bounded name
+copying before both sites use the existing Q_strncpyz helper. No inline #2 fix.
+
+Native dispatch upstream C fix/test: https://github.com/ec-/Quake3e/pull/436.
