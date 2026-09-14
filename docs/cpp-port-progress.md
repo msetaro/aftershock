@@ -702,7 +702,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/win32/win_qgl.c` | done | T1: 3 sites including function-to-object pointer conversion; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_qgl.o); G4 PASS. |
 | `code/win32/win_qvk.c` | done | T1: 4 sites including function-to-object pointer conversion; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_qvk.o); G4 PASS. |
 | `code/win32/win_shared.c` | done | T1-T23: 0; default profile configuration; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_shared.o); G4 advisory difference retained. |
-| `code/win32/win_snd.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 casts around existing void* loader casts, WINAPI preserved. WASAPI explicitly uses C lpVtbl interfaces/REFIID pointer arguments; C++ SDK interface selection requires uncataloged changes. Target gates unavailable. |
+| `code/win32/win_snd.c` | blocked | Real MinGW verification: SDK C++ interfaces lack lpVtbl; CINTERFACE plus T4 this rename still fails GUID/reference calls at :300/:393/:422/:578/:853/:855. Eight outgoing GUID arguments and two memcmp addresses need uncataloged adaptation. USE_WASAPI=0 still fails DirectSound GUID calls. Prior two inspected T1 casts remain and C hash matches; new candidate edits not retained. G1-G4 incomplete. |
 | `code/win32/win_syscon.c` | done | T2: 1 previously inspected boolean toggle, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_syscon.o); G4 advisory difference retained. |
 | `code/win32/win_wndproc.c` | done | T1: 2; T2: 2 previously inspected edits, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_wndproc.o); G4 advisory difference retained. |
 
@@ -761,3 +761,5 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 - Revalidated code/win32/win_local.h: Unchanged; actual MinGW win_main.c consumer passes C hash, strict release/debug C++ and G2/G3.
 
 - Revalidated code/win32/win_input.c: Real MinGW verification: :536/:566 cannot convert const GUID* to const GUID&. CINTERFACE preserves vtables but GUID arguments still require pointer/reference adapters outside T1-T23. Two T15 literal-suffix errors are independently cataloged, but no partial candidate retained. Prior inspected T2 cast remains; C oracle hash matches. G1-G4 incomplete.
+
+- Revalidated code/win32/win_snd.c: Real MinGW verification: SDK C++ interfaces lack lpVtbl; CINTERFACE plus T4 this rename still fails GUID/reference calls at :300/:393/:422/:578/:853/:855. Eight outgoing GUID arguments and two memcmp addresses need uncataloged adaptation. USE_WASAPI=0 still fails DirectSound GUID calls. Prior two inspected T1 casts remain and C hash matches; new candidate edits not retained. G1-G4 incomplete.
