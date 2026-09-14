@@ -77,7 +77,7 @@ qboolean VK_CreateSurface( VkInstance instance, VkSurfaceKHR *pSurface )
 {
 	VkWin32SurfaceCreateInfoKHR desc;
 
-	qvkCreateWin32SurfaceKHR = /*(PFN_vkCreateWin32SurfaceKHR)*/ VK_GetInstanceProcAddr( instance, "vkCreateWin32SurfaceKHR" );
+	qvkCreateWin32SurfaceKHR = /*(PFN_vkCreateWin32SurfaceKHR)*/ (PFN_vkCreateWin32SurfaceKHR)VK_GetInstanceProcAddr( instance, "vkCreateWin32SurfaceKHR" );
 	if ( !qvkCreateWin32SurfaceKHR )
 		return qfalse;
 
@@ -98,11 +98,11 @@ static HINSTANCE load_vulkan_library( const char *dllname )
 {
 	HINSTANCE lib;
 
-	lib = Sys_LoadLibrary( dllname );
+	lib = (HINSTANCE)Sys_LoadLibrary( dllname );
 
 	if ( lib )
 	{
-		qvkGetInstanceProcAddr = /*(PFN_vkGetInstanceProcAddr)*/ Sys_LoadFunction( lib, "vkGetInstanceProcAddr" );
+		qvkGetInstanceProcAddr = /*(PFN_vkGetInstanceProcAddr)*/ (PFN_vkGetInstanceProcAddr)Sys_LoadFunction( lib, "vkGetInstanceProcAddr" );
 		if ( qvkGetInstanceProcAddr )
 		{
 			return lib;
