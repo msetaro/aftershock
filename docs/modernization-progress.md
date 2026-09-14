@@ -47,7 +47,7 @@ JPEG PR #47 merged as 9a7c2625 after regression 34891606879 and full build
 
 Longjmp decision #1 merged as PR #48 / 95b418b0 after regression 34892972996 and
 full build 34892972994 passed on source e0013d90. Its merged-tree regression
-34893585998 is pending.
+34893585998 passed.
 
 Current branch: `issue/2-native-game`. Imported the official GPL 1.32 base-game,
 cgame and base UI C sources verbatim, with SHA256 provenance in
@@ -57,7 +57,13 @@ Unix Make Q3GOBJ/Q3CGOBJ/Q3UIOBJ lists select the base modules; ui_syscalls.c li
 in upstream code/ui despite the stale q3_ui recipe. ui/menudef.h is a required
 source header, not game content. GPL notices remain intact.
 
-Next: commit the exact import, establish C native build/ABI and layout evidence,
+Exact import committed as b3ef1acd. Native math preflight exposed an LP64 defect:
+code/game/q_math.c Q_rsqrt reads four-byte y through eight-byte long*. Clang -O2
+returns 4 for input 4; -O0 ASan reports an eight-byte stack overread. Reproducers:
+/tmp/aftershock-native-math-check.c, /tmp/aftershock-native-math-before.log and
+/tmp/aftershock-native-math-before-debug.log. No fix on #2. Next: separate #31
+PR importing only this shared math dependency with its failing test/fix, merge it
+back into #2 without rewriting the import history, then establish C native ABI/layout,
 then measure QVM/native bot smoke and fixed-demo parity before any C++ port or
 VM/JIT removal. Keep the last QVM binaries/fixtures as transition evidence. No
 accepted golden or fixture regeneration. Every new bug remains a separate #31 PR.
@@ -82,7 +88,7 @@ experiment still timed out before output and is not a claimed runtime gate.
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
 | 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); complete, final merged-tree regression 34892331846 passed. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
-| 3 | #1 error model | Merged #48; rationale and Clang lifetime CI check passed local/hosted gates; merged-tree check pending. |
+| 3 | #1 error model | Merged #48; rationale and Clang lifetime CI check passed local/hosted gates; merged-tree regression 34893585998 passed. |
 | 4 | #2 native game | In progress: exact GPL 1.32 C import, not built yet; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
 | 6 | #5 CMake | Repair as primary, object parity before removing Makefile; generated MSVC projects, 64-bit little-endian only. |
