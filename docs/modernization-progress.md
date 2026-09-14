@@ -107,3 +107,22 @@ Follow-up 34865406267 passed the same non-client gates and identified the next
 missing client prerequisite explicitly: curl/curl.h. Added the curl development
 package and Mesa headers used by the existing supported Linux build. No test or
 golden waiver; the hosted replay must actually execute before merge.
+
+### Cross-host renderer investigation (acceptance still pending)
+
+Run 34865647962 on 75e505b3 reached both-map replay: every repeated pair matched,
+but hosted Mesa 25.2.8 differed from local Mesa 26.0.8 by small pixel values (oa_dm1
+frame100 maximum channel delta 2; oa_dm7 maximum 8). Collision and smoke goldens
+matched across hosts. The full existing build matrix passed on 75e505b3.
+
+Review found a preexisting #3 harness configuration error: Make expects
+RENDERER_DEFAULT=opengl, but demo.py passed opengl1, leaving Vulkan selected. Earlier
+claims of two-renderer coverage were incorrect. Fixing the test configuration and
+asserting GL_RENDERER/VK_RENDERER in logs; production source remains unchanged.
+Current demos remain fixed; only the initial, still-unaccepted frame baselines are
+being corrected with explicit commands. Exact hashes are now separated by Mesa
+version; unknown versions fail until their repeated evidence is reviewed. No pixel
+tolerance or golden fallback is introduced. The saved-evidence checker enables a
+local explicit regeneration command after reviewing a hosted artifact; CI itself
+never regenerates goldens. Next: validate real OpenGL1, review local/hosted frames,
+commit the new initial profiles, and rerun all gates before ready/merge.

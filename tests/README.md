@@ -75,7 +75,8 @@ Raw logs are retained in `--output`, including failed invocations.
 
 Normal demo runs **never record**. They replay each committed `.dm_68` twice per
 software renderer, sample TGA frames at waits 50/100/200, require changing samples
-and repeated byte-identical frame hashes, then compare `frames.json`. Screenshots
+and repeated byte-identical frame hashes, then compare `frames-mesa-VERSION.json`. Unknown Mesa versions fail. Pixel hashes
+are exact within each version; cross-version rasterization is not assumed identical. Screenshots
 and logs remain in `--output` for review. Fixtures are small engine-generated
 artifacts, not game-content archives. Recording is intentionally not reproducible:
 SDL/X11/Mesa clock calls affect faketime's call count and ping-derived demo bytes.
@@ -111,6 +112,19 @@ python3 tests/demo.py --regenerate
 
 `demo.py --record-fixtures` explicitly records one new demo per map and replaces
 frame goldens; `--regenerate` alone replaces frame goldens using existing demos.
+Initial Mesa profiles can also be established from reviewed hosted artifacts,
+without ever running regeneration in CI:
+
+```
+gh run download RUN_ID -R msetaro/aftershock -n runtime-diagnostics -D /tmp/replay-evidence
+python3 tests/frames.py --output /tmp/replay-evidence/aftershock-demo-tests --content openarena --regenerate
+```
+
+Review the job's fixture hashes and all screenshots first. The evidence checker
+requires both repetitions, both renderer identities, one Mesa version, and three
+changing samples per map. This explicit local command hashes the downloaded TGA
+files itself; it does not trust a hash manifest supplied by CI. Each initial
+profile and its run/source provenance must be explained in the PR.
 Add the same `--content openarena --data /tmp/aftershock-openarena-baseoa` arguments
 to select that content set. Review demo logs/screenshots and explain every changed
 hash or gameplay event in the PR. All golden writes are rejected when `CI` is set;

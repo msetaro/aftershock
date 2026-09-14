@@ -2,14 +2,14 @@
 """Replay fixed .dm_68 fixtures and compare Mesa software timedemo frame goldens."""
 import argparse
 import hashlib
-import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 
-from run import ROOT, ENV, build, compare, run, content_maps, content_bots, content_settings
+from run import ROOT, ENV, build, run, content_maps, content_bots, content_settings
+from frames import check_frames
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-demo-tests'))
@@ -37,7 +37,7 @@ shim = output / 'fixed-random.so'
 run(['cc', '-Wall', '-Wextra', '-Werror', '-shared', '-fPIC', 'tests/probes/fixed_random.c', '-ldl', '-o', shim])
 binaries = {}
 for backend in ('vulkan', 'opengl1'):
-    directory = build(output / ('build-' + backend), ['BUILD_SERVER=0', 'USE_RENDERER_DLOPEN=0', 'RENDERER_DEFAULT=' + backend])
+    directory = build(output / ('build-' + backend), ['BUILD_SERVER=0', 'USE_RENDERER_DLOPEN=0', 'RENDERER_DEFAULT=' + ('opengl' if backend == 'opengl1' else backend)])
     binaries[backend] = directory / 'quake3e.x64'
 
 
@@ -56,6 +56,9 @@ def client(binary, home, commands, log_name, fixed_random=False):
     result.check_returncode()
     if b'Unknown command' in log or b'ERROR:' in log:
         raise SystemExit('FAIL: client reported an error: ' + log_name)
+    marker = b'GL_RENDERER:' if binary == binaries['opengl1'] else b'VK_RENDERER:'
+    if marker not in log:
+        raise SystemExit('FAIL: wrong renderer: ' + log_name)
     if b'llvmpipe' not in log.lower():
         raise SystemExit('FAIL: renderer did not report the forced software device: ' + log_name)
 
@@ -70,7 +73,6 @@ def prepare(home):
     return base
 
 
-frames = {}
 golden = ROOT / 'tests/golden' / ('openarena' if args.content == 'openarena' else '')
 for map_name in content_maps(args.content):
     fixture = golden / (map_name + '.dm_68')
@@ -87,7 +89,6 @@ for map_name in content_maps(args.content):
             fixture.write_bytes((base / 'demos' / fixture.name).read_bytes())
     print('FIXTURE', map_name, hashlib.sha256(fixture.read_bytes()).hexdigest(), flush=True)
     for backend, binary in binaries.items():
-        repetitions = []
         for iteration in (1, 2):
             with tempfile.TemporaryDirectory(prefix='aftershock-replay-') as temporary:
                 home = Path(temporary)
@@ -99,16 +100,7 @@ for map_name in content_maps(args.content):
                         '+wait', '50', '+screenshot', 'frame100',
                         '+wait', '100', '+screenshot', 'frame200', '+wait', '2', '+quit'],
                        f'{map_name}-{backend}-replay-{iteration}.log')
-                hashes = {name: hashlib.sha256((base / 'screenshots' / (name + '.tga')).read_bytes()).hexdigest()
-                          for name in ('frame050', 'frame100', 'frame200')}
-                for name in hashes:
+                for name in ('frame050', 'frame100', 'frame200'):
                     shutil.copyfile(base / 'screenshots' / (name + '.tga'),
                                     output / f'{map_name}-{backend}-{iteration}-{name}.tga')
-                if len(set(hashes.values())) != len(hashes):
-                    raise SystemExit('FAIL: sampled frames did not advance: ' + map_name)
-                repetitions.append(hashes)
-        if repetitions[0] != repetitions[1]:
-            raise SystemExit('FAIL: repeated timedemo frames differ: ' + map_name + '/' + backend)
-        frames[map_name + '/' + backend] = repetitions[0]
-        print('PASS repeated frames', map_name, backend, flush=True)
-compare(('openarena/' if args.content == 'openarena' else '') + 'frames.json', (json.dumps(frames, indent=2, sort_keys=True) + '\n').encode(), args.regenerate)
+check_frames(output, args.content, args.regenerate)
