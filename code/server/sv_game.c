@@ -946,16 +946,16 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		return args[1];
 
 	case TRAP_SIN:
-		return FloatAsInt( sin( VMF(1) ) );
+		return FloatAsInt( sin( (double)(VMF(1)) ) );
 
 	case TRAP_COS:
-		return FloatAsInt( cos( VMF(1) ) );
+		return FloatAsInt( cos( (double)(VMF(1)) ) );
 
 	case TRAP_ATAN2:
-		return FloatAsInt( atan2( VMF(1), VMF(2) ) );
+		return FloatAsInt( atan2( (double)(VMF(1)), (double)(VMF(2)) ) );
 
 	case TRAP_SQRT:
-		return FloatAsInt( sqrt( VMF(1) ) );
+		return FloatAsInt( sqrt( (double)(VMF(1)) ) );
 
 	case G_MATRIXMULTIPLY:
 		MatrixMultiply( (float ( *)[3])VMA(1), (float ( *)[3])VMA(2), (float ( *)[3])VMA(3) );
@@ -970,10 +970,10 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		return 0;
 
 	case G_FLOOR:
-		return FloatAsInt( floor( VMF(1) ) );
+		return FloatAsInt( floor( (double)(VMF(1)) ) );
 
 	case G_CEIL:
-		return FloatAsInt( ceil( VMF(1) ) );
+		return FloatAsInt( ceil( (double)(VMF(1)) ) );
 
 	case G_TESTPRINTINT:
 		return sprintf( (char *)VMA(1), "%i", (int)args[2] );

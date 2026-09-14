@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: qcommon; next `code/server/sv_game.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: server; next `code/botlib/be_aas_move.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -146,6 +146,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 ## Codegen differences
 
+- `code/server/sv_game.c`: G4 advisory FAIL; full diff `tools/port/evidence/sv_game.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/sv_game.o /tmp/aftershock-cpp-port/sv_game ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
+
 - `code/qcommon/cvar.c`: G4 advisory FAIL; full diff `tools/port/evidence/cvar.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cvar.o /tmp/aftershock-cpp-port/cvar ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/qcommon/cm_trace.c`: G4 advisory FAIL; full diff `tools/port/evidence/cm_trace.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cm_trace.o /tmp/aftershock-cpp-port/cm_trace ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
@@ -259,7 +261,7 @@ Every nonempty completed-source G4 diff is listed below. Read each with `gzip -d
 | `code/server/sv_bot.c` | `tools/port/evidence/sv_bot.codegen.diff.gz` |
 | `code/server/sv_ccmds.c` | `tools/port/evidence/sv_ccmds.codegen.diff.gz` |
 | `code/server/sv_filter.c` | `tools/port/evidence/sv_filter.codegen.diff.gz` |
-| `code/server/sv_game.c` | `tools/port/evidence/sv_game.codegen.diff.gz` |
+| `code/server/sv_game.c` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_game.o, default); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_init.c` | `tools/port/evidence/sv_init.codegen.diff.gz` |
 | `code/server/sv_main.c` | `tools/port/evidence/sv_main.codegen.diff.gz` |
 | `code/server/sv_net_chan.c` | `tools/port/evidence/sv_net_chan.codegen.diff.gz` |
@@ -549,7 +551,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/server/sv_ccmds.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_client.c` | blocked | At :402 C++ strstr(const char*, ...) returns const char*, assigned to writable str then sprintf writes through it. Removing const from cmd or casting away const is outside T8 (which permits adding const for literal pointers); source retained unchanged. Seven other T1/T2/T3 diagnostics remain. |
 | `code/server/sv_filter.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_game.c` | done | T1: 199, T3: 7; T5: C linkage block for static JIT syscall target and native DLL callback; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_game.o, default); G4 advisory FAIL, full diff retained. |
+| `code/server/sv_game.c` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_game.o, default); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_init.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_main.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_main.o); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_net_chan.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_net_chan.o); G4 advisory FAIL, full diff retained. |
