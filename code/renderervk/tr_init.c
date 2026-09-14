@@ -2035,7 +2035,7 @@ GetRefAPI
 #ifdef USE_RENDERER_DLOPEN
 Q_EXTERN_C Q_EXPORT refexport_t* QDECL GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 #else
-Q_EXTERN_C refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
+refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 #endif
 
 	static refexport_t	re;
