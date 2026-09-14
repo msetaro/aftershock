@@ -23,7 +23,10 @@ The separate dispatch regression is committed first as 6d4710b4 and fails with
 SIGSEGV under Clang before the fix. Initializing the three-slot array now passes
 GCC/Clang stub calls for counts 0–3 and both native Clang bot smoke logs. Upstream
 C reproduces SIGSEGV before and passes after with Clang. No golden changes.
-Next: publish/gate/self-review/merge the native-dispatch fix and verify its merged
+PR #52 is open on source 3201b7fa8babcd54be0129fac3c0d0ab99349dcf. Regression
+34908517245 and full build 34908517199 passed. Self-review passes; this checkpoint
+is documentation only.
+Next: merge the native-dispatch fix with a merge commit and verify its merged
 tree, then the separate #31 teamleader bounds fix. Resume #2 native C compiler
 parity, OpenArena native support, T1–T25 C++ gates, static calls and VM/JIT removal.
 Accepted goldens may change only in an explained #31 fix, never on #2.
@@ -487,6 +490,17 @@ Default QVM bot smoke and both-map/both-renderer fixed replay remain unchanged.
 Explicit unit/collision regeneration has zero diff. Symbols pass; only VM_Call
 changes among 26 assembly functions: zero stores and native-path control flow;
 no source FP, layout, OS, allocation or destructor changes. No known-bug entry or
-suppression covered the native uninitialized arguments. CI/self-review pending.
+suppression covered the native uninitialized arguments. Regression 34908517245 and
+full build 34908517199 pass on source 3201b7fa8babcd54be0129fac3c0d0ab99349dcf.
+Self-review: one shared dispatch initialization bug, failing test first, no unrelated
+refactoring, unchanged file/wire layout, FP expressions, allocation, OS access and
+trivial lifetime rules. Issue updated, upstream #436 open. Final checkpoint docs only.
 
 Native dispatch upstream C fix/test: https://github.com/ec-/Quake3e/pull/436.
+
+Next #31 prerequisite investigation: Clang -std=gnu99 -O2 -Werror=array-bounds
+-fsyntax-only on the original pinned GPL ai_cmd.c and ai_team.c independently
+rejects both index-32 teamleader writes. Other writes already use ClientName or
+Q_strncpyz. These game files are absent from ec-/Quake3e, and pinned OpenArena
+already terminates at sizeof(teamleader)-1. Keep this native import defect scoped
+to its own #31 PR; do not introduce unrelated game imports upstream.
