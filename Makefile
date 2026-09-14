@@ -712,6 +712,12 @@ ifdef MINGW
   CXX_FROZEN_WARNINGS += -Wno-cast-function-type
 endif
 
+ifneq ($(findstring clang,$(CXX)),)
+  # Clang: two unchanged HasFCOM C warnings per full configuration.
+  # One C++ enum/va_start diagnostic in cl_curl.c; retained and logged, not fixed.
+  CXX_FROZEN_WARNINGS += -Wno-unused-function -Wno-varargs
+endif
+
 ENGINE_CC = $(CC)
 ENGINE_CFLAGS = $(CFLAGS)
 ENGINE_LD = $(CC)
