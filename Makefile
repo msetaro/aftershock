@@ -683,6 +683,11 @@ ifdef MINGW
   CXX_FROZEN_WARNINGS += -Wno-cast-function-type
 endif
 
+ifneq ($(findstring -fsanitize=,$(CFLAGS)),)
+  # One existing C/C++ sanitizer diagnostic: be_aas_reach beststart.
+  CXX_FROZEN_WARNINGS += -Wno-maybe-uninitialized
+endif
+
 ifeq ($(PLATFORM),darwin)
   # Apple SDK: two existing sprintf deprecations per initial CI configuration.
   CXX_FROZEN_WARNINGS += -Wno-deprecated-declarations
