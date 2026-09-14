@@ -87,3 +87,13 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   Upstream C test/fix: https://github.com/ec-/Quake3e/pull/426.
   Local unit/negative-control, collision, smoke and replay gates pass unchanged.
   Fork PR #38 passed regression 34878247137 and full build 34878247337.
+
+- #31 ALSA callback fix: both native audio thread procedures now have the required
+  `void *(*)(void *)` signature; pthread_create no longer needs casts. Returning NULL
+  replaces the explicit pthread_exit call and its unused import. Reproducer:
+  `python3 tests/audio.py` fails compilation before and passes after with GCC and
+  Clang/libc++. The real ALSA null sink receives positive MMAP/DIRECT submissions,
+  then both threads join. No physical device is needed. Caller audit finds only
+  the two setup_ALSA registrations. The dynamic-ALSA production object also builds.
+  Upstream C test/fix: https://github.com/ec-/Quake3e/pull/427. Unit/collision
+  regeneration produces no golden diff; both-map smoke and both-renderer replay pass.

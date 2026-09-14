@@ -54,11 +54,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Install runtime tools and OpenArena content
-        run: sudo apt-get update && sudo apt-get install -y faketime xvfb mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev mesa-common-dev openarena-data
+        run: sudo apt-get update && sudo apt-get install -y faketime xvfb mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data
       - name: Stage pinned upstream OpenArena gamecode
         run: python3 tests/openarena.py
       - name: Download URL construction
         run: python3 tests/download.py
+      - name: Native ALSA thread checks
+        run: python3 tests/audio.py
       - name: Collision and both-map bot goldens
         run: |
           python3 tests/run.py differential --content openarena --data /tmp/aftershock-openarena-baseoa

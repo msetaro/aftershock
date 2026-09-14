@@ -14,23 +14,26 @@ build 34868566674 passed; its merged-tree run 34869117306 passed.
 Filesystem PR #37 merged as 73108eab after regression 34877286456 and full build
 34877286443 passed; merged-tree regression 34877819880 passed.
 
-Current branch: `issue/31-download-url`, PR #38. Source/test head 56ece5e4 passed
-regression 34878247137 and full platform build 34878247337. Final checkpoint changes
-only documentation. Self-review passed: one URL bug, no simulation FP, layout,
-OS-access, allocation or core-lifetime change. Only the new URL golden was added.
-Next: mark #38 ready, merge with a merge commit, verify the merged-tree regression,
-then create `issue/31-audio-threads`. Prepared C++ and upstream C signature checks
-fail on both ALSA callbacks before any fix. Give them pthread-compatible signatures,
-remove the casts, and use ALSA's null sink to verify MMAP/DIRECT sample submission
-and thread joins. Temporary C++ test: /tmp/aftershock-audio-probe.cpp; upstream test
-is uncommitted on issue/31-audio-upstream in /tmp/aftershock-upstream-huffman.
+Download PR #38 merged as 02b16def after regression 34878247137 and full build
+34878247337 passed; merged-tree regression 34878892522 passed.
+
+Current branch: `issue/31-audio-threads`. Permanent `python3 tests/audio.py` fails
+compilation before the fix because both callback types mismatch pthread's required
+signature. Correct signatures, direct registration and NULL returns pass with GCC
+and Clang/libc++; removed the unused pthread_exit import. Both paths submit samples
+to real ALSA null output and join their threads. The test counts positive ALSA write
+results, needs no physical device, and times out on shutdown failure. CI installs
+libasound2-dev for this check. The normal dynamic-ALSA production object also builds.
+Unit/collision regeneration produced zero golden diff; serial smoke/replay gates
+pass unchanged. Upstream C test/fix: https://github.com/ec-/Quake3e/pull/427.
+Next: open fork PR, wait for hosted CI, self-review and merge before the next #31 fix.
 
 ## Issue status and remaining sequence
 
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA thread signatures in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
