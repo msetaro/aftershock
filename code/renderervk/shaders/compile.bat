@@ -3,13 +3,13 @@
 set bh=%~dp0bin2hex.exe
 set cl=%VULKAN_SDK%\Bin\glslangValidator.exe
 set tmpf=%~dp0spirv\data.spv
-set outf=+spirv\shader_data.c
+set outf=+spirv\shader_data.cpp
 
 echo %bin2hex%
 
 mkdir %~dp0spirv
 
-del /Q %~dp0spirv\shader_data.c
+del /Q %~dp0spirv\shader_data.cpp
 del /Q "%tmpf%"
 
 @rem compile individual shaders
