@@ -44,8 +44,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderer/qgl.h"
 
 // Enable High Performance Graphics while using Integrated Graphics.
+#ifdef __cplusplus
+Q_EXTERN_C {
+#endif
 Q_EXPORT DWORD NvOptimusEnablement = 0x00000001;		// Nvidia
 Q_EXPORT int AmdPowerXpressRequestHighPerformance = 1;	// AMD
+#ifdef __cplusplus
+}
+#endif
 #endif
 
 typedef enum {

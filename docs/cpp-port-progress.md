@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: qcommon; next `code/win32/win_glimp.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: next `code/server/sv_game.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -373,6 +373,8 @@ Phase 1: qcommon; next `code/win32/win_glimp.c`. Resume there; do not redo files
 
 ## Blocked files
 
+- `code/win32/win_glimp.c`: Unverified (no MinGW/Windows SDK). T1: 1, T2: 4; T5: conditional C-linkage block for 2 GPU exports, preserves definitions/initializers. Target checksum/G1-G4 unavailable.
+
 - `code/asm/qasm.h`: Unchanged assembly preprocessing header. Explicit gcc -m32 assembler check fails because 32-bit libc bits/wordsize.h is unavailable through q_platform.h/endian.h; no target gates or package installation.
 
 - `code/win32/win_local.h`: Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable.
@@ -704,7 +706,7 @@ Phase 1: qcommon; next `code/win32/win_glimp.c`. Resume there; do not redo files
 | `code/win32/glw_win.h` | blocked | Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable. |
 | `code/win32/resource.h` | blocked | Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable. |
 | `code/win32/win_gamma.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 1 HANDLE/void-pointer to HMODULE argument cast by inspection; all gamma behavior unchanged. C checksum and G1-G4 unavailable. |
-| `code/win32/win_glimp.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 1 allocator cast, T2: 4 boolean-expression casts by inspection; C checksum and G1-G4 unavailable. |
+| `code/win32/win_glimp.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 1, T2: 4; T5: conditional C-linkage block for 2 GPU exports, preserves definitions/initializers. Target checksum/G1-G4 unavailable. |
 | `code/win32/win_input.c` | blocked | Unverified (no MinGW/Windows SDK). T2: 1 boolean return cast by inspection. DirectInput SDK interface macros and optional joystick/MIDI paths require target compile; C checksum and G1-G4 unavailable. |
 | `code/win32/win_local.h` | blocked | Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable. |
 | `code/win32/win_main.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 3 allocator/void-handle casts by inspection. Sys_LoadFunction still assigns FARPROC to void*, outside T1; C checksum and G1-G4 unavailable. |
