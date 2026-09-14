@@ -1254,3 +1254,5 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 - DEVIATION: sanitizer-only frozen maybe-uninitialized class. One original C diagnostic at be_aas_reach.c:2196 reappears under C++ instrumentation; freeze that observed class only when -fsanitize is present. The original C warning is retained in sanitizer-c-baseline-warning.log; possible uninitialized beststart path logged in cpp-port-notes.md and left unchanged. Normal production flags are unaffected.
 
 - G8 scoped the sanitizer-only maybe-uninitialized suppression to GCC: Clang does not recognize that warning option. C++ GCC ASan/UBSan dedicated q3dm17/two-bot smoke exits cleanly with the same two original alignment suppressions and leak checking disabled; no new runtime diagnostics.
+
+- qcommon/vm_aarch64.cpp: MSVC ARM64 reports C2440 at 2283, VirtualAlloc LPVOID to byte*. Added one T1 (byte *) cast, matching the existing field. AArch64 strict compile/G2/G3 PASS; G4 retained in phase3-msvc-vm_aarch64.diff.gz. Windows ARM64 verification continues in CI; MSVC x64 Debug/Release now pass.

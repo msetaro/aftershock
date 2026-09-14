@@ -2280,7 +2280,7 @@ __recompile:
 #endif
 
 #ifdef _WIN32
-		vm->codeBase.ptr = VirtualAlloc( NULL, allocSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE );
+		vm->codeBase.ptr = (byte *)VirtualAlloc( NULL, allocSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE );
 		if ( !vm->codeBase.ptr ) {
 			VM_FreeBuffers();
 			Com_Printf( S_COLOR_WARNING "%s(%s): VirtualAlloc failed\n", __func__, vm->name );
