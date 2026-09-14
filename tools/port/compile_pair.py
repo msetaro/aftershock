@@ -38,7 +38,13 @@ for mode, tag in [('0', 'c'), ('1', 'cxx')]:
         artifact = output / f'{Path(obj).stem}.{tag}.{suffix}'
         # Inspect real machine code/DWARF, not serialized LTO IR.
         lto = ['-fno-lto'] if any(a.startswith('-flto') for a in args) else []
-        command = [*args, *flags, *lto, '-o', str(artifact)]
+        linkage_flags = []
+        if suffix == 'sym.o':
+            if not any('clang' in arg for arg in args[:2]):
+                linkage_flags += ['-fno-inline-small-functions', '-fno-inline-functions-called-once', '-fno-ipa-sra']
+            if platform == 'mingw64':
+                linkage_flags += ['-Wa,-L']  # COFF otherwise drops real local functions beginning L.
+        command = [*args, *flags, *lto, *linkage_flags, '-o', str(artifact)]
         artifact.with_suffix(artifact.suffix + '.command').write_text(shlex.join(command) + '\n')
         subprocess.run(command, env=env, check=True)
         print(artifact)

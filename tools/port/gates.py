@@ -65,9 +65,14 @@ def renderer_mode(path):
 
 def symbols(path, renderer_boundary=True):
     rows = []
+    header = Path(path).read_bytes()[:20]
+    arm_mapping = header[:4] == b'\x7fELF' and int.from_bytes(
+        header[18:20], 'little' if header[5] == 1 else 'big') in (40, 183)
     for line in run('nm', '--format=posix', path).splitlines():
         fields = line.split()
         name, kind = fields[:2]
+        if arm_mapping and kind.islower() and re.fullmatch(r'\$[adtx](?:\.\d+)?', name):
+            continue  # ARM instruction/data mapping metadata, not source symbols.
         if name.startswith(('.L', '__func__.', '__FUNCTION__.', '__PRETTY_FUNCTION__.')) or kind in ('a', 'N'):
             continue  # compiler labels, function-name strings, debug/file metadata
         # COFF also embeds function names in .text$/.pdata$/.xdata$

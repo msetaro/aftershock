@@ -1,0 +1,95 @@
+[
+  {
+    "target": "native",
+    "command": [
+      "make",
+      "-k",
+      "-j4",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/oracle"
+    ],
+    "build_status": 0,
+    "manifest": "phase0-c.sha256",
+    "objects": 295,
+    "changed": []
+  },
+  {
+    "target": "native-nosdl",
+    "command": [
+      "make",
+      "-k",
+      "-j4",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/oracle-nosdl",
+      "USE_SDL=0"
+    ],
+    "build_status": 0,
+    "manifest": "nosdl-c.sha256",
+    "objects": 299,
+    "changed": []
+  },
+  {
+    "target": "mingw64",
+    "command": [
+      "make",
+      "-k",
+      "-j4",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/cross-current-mingw64-nolto-nosdl",
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "build_status": 2,
+    "manifest": "cross-mingw64-nolto-nosdl-c.sha256",
+    "objects": 300,
+    "changed": []
+  },
+  {
+    "target": "aarch64",
+    "command": [
+      "make",
+      "-k",
+      "-j4",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/cross-current-aarch64",
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc",
+      "BUILD_CLIENT=0"
+    ],
+    "build_status": 0,
+    "manifest": "cross-aarch64-c.sha256",
+    "objects": 65,
+    "changed": []
+  },
+  {
+    "target": "arm",
+    "command": [
+      "make",
+      "-k",
+      "-j4",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/cross-current-arm",
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32",
+      "BUILD_CLIENT=0"
+    ],
+    "build_status": 0,
+    "manifest": "cross-arm-c.sha256",
+    "objects": 65,
+    "changed": []
+  },
+  {
+    "target": "ppc64le",
+    "command": [
+      "make",
+      "-k",
+      "-j4",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/cross-current-ppc64le",
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc",
+      "BUILD_CLIENT=0"
+    ],
+    "build_status": 0,
+    "manifest": "cross-ppc64le-c.sha256",
+    "objects": 65,
+    "changed": []
+  }
+]

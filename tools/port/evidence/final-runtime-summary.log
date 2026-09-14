@@ -1,0 +1,3 @@
+PASS: two C runtime logs byte-identical; 124 lines
+PASS: dlopen and dlsym GetRefAPI /tmp/aftershock-cpp-port/resumed-matrix/build-8ab0k8o4/gcc-c1-release-sdl/release-linux-x86_64/quake3e_opengl_x86_64.so
+PASS: dlopen and dlsym GetRefAPI /tmp/aftershock-cpp-port/resumed-matrix/build-8ab0k8o4/gcc-c1-release-sdl/release-linux-x86_64/quake3e_vulkan_x86_64.so

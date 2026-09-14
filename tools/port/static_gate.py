@@ -19,12 +19,15 @@ for source in files:
  if ranges:filters.append({'name':source,'lines':ranges})
 line_filter=json.dumps(filters)
 def probe(source):
- row=next((line for line in progress.splitlines() if line.startswith('| `'+source+'` |')), '')
+ if '/win32/' in source or Path(source).name in ('vm_aarch64.c','vm_armv7l.c','vm_powerpc.c'):
+  return source,None,'SKIP: native clang-tidy has no target SDK; real cross builds/gates are separate\n'
+ row=next((line for line in progress.splitlines() if line.startswith('| `'+source+'` | done |')), '')
  match=re.search(r'\(([^() ]+\.o)(?:,|\))',row)
  if not match or '| done |' not in row:return source,None,'SKIP: no verified native object context\n'
  target=str(base/'commands'/'release-linux-x86_64'/match[1])
  variables=['USE_SDL=0'] if 'nosdl' in row else []
- recipe=subprocess.check_output(['make','-Bn','V=1','BUILD_CXX=1','BUILD_DIR='+str(base/'commands'),*variables,target],text=True)
+ if source == 'code/unix/linux_joystick.c':variables.append('CFLAGS=-DUSE_JOYSTICK')
+ recipe=subprocess.check_output(['make','-Bn','V=1','BUILD_CXX=1','CXX=clang++','BUILD_DIR='+str(base/'commands'),*variables,target],text=True)
  commands=[shlex.split(line) for line in recipe.splitlines() if ' -c code/' in line]
  args=next(args for args in commands if '-o' in args and args[args.index('-o')+1]==target)[1:]
  i=args.index('-o');del args[i:i+2];args.remove('-c');args.remove(source)

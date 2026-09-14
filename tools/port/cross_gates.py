@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Recheck every built, unblocked cross-target engine object using the C manifests."""
+"""Recheck built, unblocked engine objects using cross or native C manifests."""
 from concurrent.futures import ThreadPoolExecutor
 import json
 import os
@@ -15,10 +15,14 @@ progress = Path('docs/cpp-port-progress.md').read_text()
 sources = re.findall(r'^\| `(code/[^`]+\.c)` \| done \|', progress, re.M)
 stems = {Path(source).stem for source in sources}
 tasks = []
-for name, target in json.loads(Path('tools/port/evidence/cross-oracles.json').read_text()).items():
+targets = json.loads(Path('tools/port/evidence/cross-oracles.json').read_text())
+if len(sys.argv) > 2 and sys.argv[2] == 'native':
+    targets = {'native': {'variables': [], 'manifest': 'phase0-c.sha256'},
+               'native-nosdl': {'variables': ['USE_SDL=0'], 'manifest': 'nosdl-c.sha256'}}
+for name, target in targets.items():
     suffix = '-nolto-nosdl' if name == 'mingw64' else ''
     variables = target['variables'] + (['USE_SDL=0', 'OPTIMIZE=-O2 -ffast-math -fno-lto'] if suffix else [])
-    manifest = Path(f'tools/port/evidence/cross-{name}{suffix}-c.sha256')
+    manifest = Path('tools/port/evidence') / target.get('manifest', f'cross-{name}{suffix}-c.sha256')
     for line in manifest.read_text().splitlines():
         _, path = line.split()
         if Path(path).stem in stems:
@@ -49,5 +53,5 @@ with ThreadPoolExecutor(4) as pool:
     results = list(pool.map(check, tasks))
 (output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
 failed = [row for row in results if any(row.get(key, 0) for key in ('compile', 'layout', 'symbol'))]
-print(f'{"FAIL" if failed else "PASS"}: {len(results)} cross objects, {len(failed)} blocking failures; G4 advisory')
+print(f'{"FAIL" if failed else "PASS"}: {len(results)} objects, {len(failed)} blocking failures; G4 advisory')
 sys.exit(bool(failed))

@@ -74,6 +74,17 @@ fi
 grep '^@@' "$port_tmp/libm.log"
 python3 tools/port/compile_pair.py ded/md5.o "$port_tmp"
 tools/port/layout_gate.sh "$port_tmp/md5.c.o" "$port_tmp/md5.cxx.o"
+# Keep C++ integer math templates inlined while pinning float arguments to C double.
+printf '#include <math.h>\ndouble compute(int x, float y) { return sin(x) + cos((double)y); }\n' > "$port_tmp/math-overload.c"
+gcc -O2 -fno-builtin -fno-inline-functions -fno-inline-small-functions -fno-inline-functions-called-once -fno-ipa-sra -c "$port_tmp/math-overload.c" -o "$port_tmp/math-overload.c.o"
+g++ -x c++ -O2 -fno-builtin -fno-inline-functions -fno-inline-small-functions -fno-inline-functions-called-once -fno-ipa-sra -c "$port_tmp/math-overload.c" -o "$port_tmp/math-overload.cxx.o"
+tools/port/symbol_gate.sh "$port_tmp/math-overload.c.o" "$port_tmp/math-overload.cxx.o"
+sed 's/cos((double)y)/cos(y)/' "$port_tmp/math-overload.c" > "$port_tmp/math-overload-bad.c"
+g++ -x c++ -O2 -fno-builtin -fno-inline-functions -fno-inline-small-functions -fno-inline-functions-called-once -fno-ipa-sra -c "$port_tmp/math-overload-bad.c" -o "$port_tmp/math-overload-bad.o"
+if tools/port/symbol_gate.sh "$port_tmp/math-overload.c.o" "$port_tmp/math-overload-bad.o" > "$port_tmp/math-overload.log"; then
+    echo 'FAIL: symbol gate missed actual C++ float overload'; exit 1
+fi
+grep '^@@' "$port_tmp/math-overload.log"
 # C++ scopes named nested records inside the parent; compare their members too.
 printf 'struct outer { struct inner { int a; int b; } child; }; struct outer value;\n' > "$port_tmp/nested.c"
 gcc -g -fdebug-prefix-map="$port_tmp=code/port-gate-selfcheck" -c "$port_tmp/nested.c" -o "$port_tmp/nested.c.o"
@@ -87,6 +98,11 @@ fi
 grep '^@@' "$port_tmp/nested.log"
 # The same nested-layout controls must work with MinGW COFF when available.
 if command -v x86_64-w64-mingw32-g++ >/dev/null 2>&1; then
+    printf 'static int LocalValue(int x) { return x+1; } int wrapper(int x) { return LocalValue(x); }\n' > "$port_tmp/local-name.c"
+    x86_64-w64-mingw32-gcc -O2 -fno-inline-functions -fno-inline-small-functions -fno-inline-functions-called-once -Wa,-L -c "$port_tmp/local-name.c" -o "$port_tmp/local-name.c.o"
+    x86_64-w64-mingw32-g++ -x c++ -O2 -fno-inline-functions -fno-inline-small-functions -fno-inline-functions-called-once -Wa,-L -c "$port_tmp/local-name.c" -o "$port_tmp/local-name.cxx.o"
+    nm --format=posix "$port_tmp/local-name.c.o" | grep '^LocalValue t '
+    tools/port/symbol_gate.sh "$port_tmp/local-name.c.o" "$port_tmp/local-name.cxx.o"
     x86_64-w64-mingw32-gcc -g -fdebug-prefix-map="$port_tmp=code/port-gate-selfcheck" -c "$port_tmp/nested.c" -o "$port_tmp/coff.c.o"
     x86_64-w64-mingw32-g++ -x c++ -g -fdebug-prefix-map="$port_tmp=code/port-gate-selfcheck" -c "$port_tmp/nested.c" -o "$port_tmp/coff.cxx.o"
     x86_64-w64-mingw32-g++ -x c++ -g -fdebug-prefix-map="$port_tmp=code/port-gate-selfcheck" -c "$port_tmp/nested-bad.c" -o "$port_tmp/coff-bad.o"
