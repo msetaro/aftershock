@@ -5,6 +5,7 @@ Tests call real engine functions with production flags. Test drivers provide onl
 isolated allocator/log/file stubs and instrumentation; production code is unchanged.
 
 ```
+python3 tests/native_math.py
 python3 tests/check_lifetimes.py
 python3 tests/run.py unit --negative-control
 python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
@@ -47,6 +48,13 @@ owning objects (including aliases, inheritance, arrays and std::string), and acc
 trivial/defaulted destructors and pointers. Platform/vendor directories are excluded;
 inactive preprocessor branches remain part of self-review. See plan section 11 for
 the permanent longjmp decision and narrowly permitted resource-wrapper boundary.
+
+`python3 tests/native_math.py --cc clang` checks the imported native game Q_rsqrt
+in optimized and ASan builds. Eight fixed result words come from the unmodified
+GPL routine measured in a freestanding 32-bit SSE C executable. CI needs no 32-bit
+runtime: it checks those words using the selected native C compiler. This source
+is a dependency of #2 and is not linked into the engine yet. Its original GPL
+source and import hashes are documented in docs/cpp-port-notes.md.
 
 ## Local Quake 3 content
 
