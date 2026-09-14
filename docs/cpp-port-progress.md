@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: qcommon; next `net_ip cross verification` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Cross verification: next `phase 2`; retain native sv_client C hash blocker. Then T5 review, final native/cross sweeps, runtime where buildable; no rename until prerequisites pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/qcommon/net_ip.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-net_ip.codegen.diff.gz`.
 
 - `code/qcommon/net_ip.c`: G4 advisory FAIL; full diff `tools/port/evidence/net_ip.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/net_ip.o /tmp/aftershock-cpp-port/net_ip ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -553,7 +555,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/qcommon/md5.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/md5.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/msg.c` | done | T16: 3 sites (1 mask, 99 expanded field-offset casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/msg.o, default); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/net_chan.c` | done | T1: 1, T4: 1 identifier (12 occurrences); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/net_chan.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/net_ip.c` | done | T1: 11 additional Winsock destination casts; prior T1/T2 retained; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/net_ip.o, default); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/net_ip.c` | done | T1: 11 additional Winsock casts; native C hashes and G2/G3 also PASS; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/net_ip.o); G4 advisory difference retained. |
 | `code/qcommon/puff.c` | done | T1-T17: 0 (already compatible); 3 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/puff.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/puff.h` | done | T1-T17: 0; unchanged header checked via puff.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/q_math.c` | done | T21: 20 argument casts at 18 calls, redundant cast correction; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_math.o, default); G4 PASS. |
