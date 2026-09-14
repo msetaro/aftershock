@@ -1724,7 +1724,7 @@ qboolean VM_Compile( vm_t *vm, vmHeader_t *header )
 	}
 
 	if ( !vm->instructionPointers ) {
-		vm->instructionPointers = Hunk_Alloc( header->instructionCount * sizeof(vm->instructionPointers[0]), h_current );
+		vm->instructionPointers = (intptr_t *)Hunk_Alloc( header->instructionCount * sizeof(vm->instructionPointers[0]), h_current );
 	}
 
 	VM_ReplaceInstructions( vm, inst );
@@ -2555,20 +2555,20 @@ __recompile:
 	emitBlockCopyFunc( vm );
 
 	funcOffset[ FUNC_BADJ ] = compiledOfs;
-	emitFuncEntry( BadJump );
+	emitFuncEntry( (const void *)BadJump );
 
 	funcOffset[ FUNC_OUTJ ] = compiledOfs;
-	emitFuncEntry( OutJump );
+	emitFuncEntry( (const void *)OutJump );
 
 	funcOffset[ FUNC_OSOF ] = compiledOfs;
-	emitFuncEntry( ErrBadOpStack );
+	emitFuncEntry( (const void *)ErrBadOpStack );
 
 	funcOffset[ FUNC_PSOF ] = compiledOfs;
-	emitFuncEntry( ErrBadProgramStack );
+	emitFuncEntry( (const void *)ErrBadProgramStack );
 
 #ifndef NDEBUG
 	funcOffset[ FUNC_HIBITSET ] = compiledOfs;
-	emitFuncEntry( ErrHighBitsSet );
+	emitFuncEntry( (const void *)ErrHighBitsSet );
 #endif
 
 	} // pass
@@ -2576,7 +2576,7 @@ __recompile:
 	if ( vm->codeBase.ptr == NULL ) {
 		uint32_t allocSize = compiledOfs;
 
-		vm->codeBase.ptr = mmap( NULL, allocSize, PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0 );
+		vm->codeBase.ptr = (byte *)mmap( NULL, allocSize, PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0 );
 		if ( vm->codeBase.ptr == MAP_FAILED ) {
 			VM_FreeBuffers();
 			Com_Printf( S_COLOR_WARNING "%s(%s): mmap failed\n", __func__, vm->name );
