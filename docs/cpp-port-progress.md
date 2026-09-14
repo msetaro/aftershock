@@ -661,7 +661,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/sdl/sdl_gamma.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_gamma.o, default); G4 PASS. |
 | `code/sdl/sdl_glimp.c` | done | T1: 4; T3: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_glimp.o, default); G4 PASS. |
 | `code/sdl/sdl_glw.h` | done | T1-T17: 0; unchanged header verified through sdl_gamma.c; native strict builds and G2/G3 PASS. |
-| `code/sdl/sdl_icon.h` | blocked | Unchanged image initializer; sole consuming translation unit sdl_glimp.c blocked, so complete-object C++ gates unavailable. |
+| `code/sdl/sdl_icon.h` | done | Unchanged initializer; sdl_glimp.c consuming object passes original C hash, strict C++ and G2/G3. |
 | `code/sdl/sdl_input.c` | done | T19: 1 enum hoisted with original body indentation; T3: 25 keyNum_t casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_input.o, default); G4 advisory FAIL, full diff retained. |
 | `code/sdl/sdl_snd.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_snd.o, default); G4 PASS. |
 | `code/server/server.h` | done | T1-T17: 0; unchanged header verified through server consumers, strict native release/debug and G2/G3 PASS. |
@@ -749,3 +749,5 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 - Revalidated code/server/sv_rankings.c: Excluded by accepted scope: never built, proprietary rankings SDK; unchanged and must not be renamed.
 
 - Revalidated code/qcommon/vm_optimize.h: Unchanged; real native x86_64 and cross ARM/AArch64/PPC JIT consumers pass strict C++, G2/G3 and original C hashes.
+
+- Revalidated code/sdl/sdl_icon.h: Unchanged initializer; sdl_glimp.c consuming object passes original C hash, strict C++ and G2/G3.
