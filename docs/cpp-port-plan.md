@@ -420,7 +420,7 @@ Two phases, two rule sets. The port phase rules are enforced now and are copied 
 | clang-tidy | Small `bugprone-*` + `portability-*` subset, changed lines only (`clang-tidy-diff`). No `modernize-*`, no `cppcoreguidelines-*`. | Add `performance-*` and a readability subset. `modernize-*` advisory, enabled one check at a time. `cppcoreguidelines-*` cherry-picked, never wholesale. |
 | Sanitizers | ASan + UBSan run on the **C build first** to record the baseline (needs game data); anything new in the C++ build is a port bug. UBSan blocklist for known-benign alignment in BSP loading. Same source has more UB as C++ than as C (union punning is defined in C11, undefined in C++). | ASan + UBSan on every CI run; TSan periodically for the SDL audio callback, WASAPI thread, and curl. |
 | Memory / ownership | Untouched. | Ownership is expressed by arena (hunk = level lifetime with mark/free-to-mark, zone = tagged small allocs, temp hunk), not by per-object smart pointers. RAII only for OS/GPU resources at the platform boundary. `new`/`delete`/`malloc` forbidden outside the allocator layer. |
-| Error handling | Untouched. `Com_Error` is a `longjmp`. | Decide explicitly, before any RAII lands in engine code: a `longjmp` over a stack object with a non-trivial destructor leaks or corrupts. Either RAII stays out of code paths that can `Com_Error`, or `Com_Error` changes shape first. Exceptions and RTTI stay off. |
+| Error handling | Untouched. `Com_Error` is a `longjmp`. | Decision #1: keep `Com_Error`/`longjmp`. Engine locals, parameters, temporaries and globals must be trivially destructible. RAII is restricted to platform/GPU resource wrappers which return errors and never cross a `Com_Error` unwind. Exceptions and RTTI stay off. |
 | Assertions | None added (a firing assert is a behavior change). | `Q_ASSERT` with no side effects, compiled out in release identically; debug and release must compute the same simulation. |
 | Integer types | Untouched. | Fixed-width types in every struct that hits the wire, a demo, or a file format. `long` is banned (32-bit on MSVC). Explicit `char` signedness where it matters (unsigned on aarch64). |
 | Undefined-behavior patterns | Keep them: `Q_rsqrt` punning, file buffers cast to structs, `-ffast-math` on mingw. They define behavior demos and netcode depend on. | Replace with `std::bit_cast`/`memcpy` only when the codegen gate shows identical output. |
@@ -435,3 +435,22 @@ Concrete artifacts this implies for phase 0: the frozen `-Wno-*` list in the Mak
 line as in most of `code/client` and `code/qcommon`), a `.clang-tidy` with the small subset,
 and a UBSan blocklist seeded from a C-build run.
 
+
+### Error-model decision (#1)
+
+Keep the existing longjmp model. It preserves the frame-abort behavior and flat
+arena-owned data without a tree-wide error-return rewrite. Its cost is a permanent
+restriction on C++ object lifetimes: no non-trivial destruction in engine core,
+including parameters, temporaries and static/global objects. Platform/GPU wrappers
+may own resources only where errors return normally to the caller; they must not
+call a path that can longjmp while an owned resource is live. A renderer directory
+is not a blanket exception: new wrappers require a reviewed boundary and error flow.
+
+`python3 tests/check_lifetimes.py` enforces the rule with Clang's AST through
+clang-query, using Make's actual client/server flags for both renderers. It rejects
+objects Clang marks as requiring destruction and non-trivial temporaries, including
+aliases, inherited destructors and standard-library objects. Positive and negative
+controls run every time. This checks active Linux configurations and engine headers
+included by them; inactive preprocessor branches and future platform wrappers still
+require the AGENTS.md self-review. The check does not claim whole-program longjmp
+reachability analysis. Directory coverage must follow the moves in #4.

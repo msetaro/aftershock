@@ -5,6 +5,7 @@ Tests call real engine functions with production flags. Test drivers provide onl
 isolated allocator/log/file stubs and instrumentation; production code is unchanged.
 
 ```
+python3 tests/check_lifetimes.py
 python3 tests/run.py unit --negative-control
 python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
 python3 tests/check_known_bugs.py
@@ -36,6 +37,16 @@ and no physical audio device. CI installs those files in the runtime job. The te
 uses the real ALSA implementation; wrappers count successful paths without replacing
 the calls. `--cxx` selects the compiler. A missing device/library, no sample submission,
 wrong callback type, or shutdown timeout fails the test.
+
+`python3 tests/check_lifetimes.py` checks non-trivial locals, parameters, globals,
+statics and temporaries in active Linux engine code and included engine headers,
+using both renderer configurations. It requires clang-query (clang-tools in CI),
+Clang and the client build headers. `--clang-query` selects a versioned executable;
+`--output` retains the compile database and AST evidence. Its controls reject seven
+owning objects (including aliases, inheritance, arrays and std::string), and accept
+trivial/defaulted destructors and pointers. Platform/vendor directories are excluded;
+inactive preprocessor branches remain part of self-review. See plan section 11 for
+the permanent longjmp decision and narrowly permitted resource-wrapper boundary.
 
 ## Local Quake 3 content
 
