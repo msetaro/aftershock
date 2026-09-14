@@ -35,6 +35,11 @@ jobs:
         run: python3 tests/check_frames.py
       - name: Build C native modules and compare ABI layouts
         run: python3 tests/native.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+      - name: GPL team-leader name bounds
+        if: matrix.cc == 'clang'
+        run: python3 tests/teamleader.py
+      - name: Native dispatch argument counts
+        run: python3 tests/native_dispatch.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
       - name: Complete bot movement result
         run: python3 tests/bot_move.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
       - name: Native game math word regression

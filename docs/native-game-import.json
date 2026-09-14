@@ -258,7 +258,7 @@
       "source": "code/game/ai_cmd.c",
       "path": "code/game/ai_cmd.c",
       "sha256": "a999dc8d989afac9d108ca5ce693d6c43c37ed8df0ad294446ab63b030ef907d",
-      "disposition": "verbatim import"
+      "disposition": "GPL import with reviewed #31 team-leader bounds fix from PR #53"
     },
     {
       "source": "code/game/ai_cmd.h",
@@ -306,7 +306,7 @@
       "source": "code/game/ai_team.c",
       "path": "code/game/ai_team.c",
       "sha256": "6c72ba41c01f181ae4f7ffe29be4c2962d4cee12327f01f883dc1f8fe9384165",
-      "disposition": "verbatim import"
+      "disposition": "GPL import with reviewed #31 team-leader bounds fix from PR #53"
     },
     {
       "source": "code/game/ai_team.h",
