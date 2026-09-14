@@ -6,9 +6,7 @@ The port is blocked, not complete. Every one of the 257 in-scope engine C/header
 
 ## Next action
 
-Resume authorized continuation: strengthen G3 to compare all undefined symbols, rerun every completed TU, then apply T21/T22 per file. Next clear native blockers using the amended T1/T18-T23, run native G5/faketime runtime, cross-check installed targets, review/remove unnecessary T5, and rename only after native gates/runtime pass. Prior blocked statuses below are historical evidence pending reassessment under the amended catalog.
-
-Continuation decisions: first commit amends the authoritative plan as requested. All four cross compilers, faketime and gh are present on PATH. No installation. The 32-bit exclusion is x86; the explicitly requested ARM hard-float compiler remains in scope. Formatter threshold and the two frozen warning additions are resolved by the review; their historical commits remain intact. No implementation edit precedes this plan commit.
+Continuation: qcommon; next `remaining math inventory` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -444,7 +442,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/qcommon/net_ip.c` | done | T1: 2, T2: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/net_ip.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/puff.c` | done | T1-T17: 0 (already compatible); 3 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/puff.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/puff.h` | done | T1-T17: 0; unchanged header checked via puff.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/q_math.c` | blocked | G2/G3 PASS, but G5 fixed-input hashes differ in RotatePointAroundVector and vectoangles; AngleVectors chain differs too. C++ float overloads change results; double-argument casts are outside T1-T17. No source changes. |
+| `code/qcommon/q_math.c` | done | T21: 20 argument casts at 18 calls; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_math.o, default); G4 PASS. |
 | `code/qcommon/q_platform.h` | done | T1-T17: 0; unchanged header checked via md4.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/q_shared.c` | done | T1: 4, T2: 3; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_shared.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/q_shared.h` | done | T5: guarded Q_EXTERN_C macro plus 2 Windows assembly prototypes; native md4 consumer G2/G3 PASS and all 295 C hashes unchanged; Windows branch unverified. |

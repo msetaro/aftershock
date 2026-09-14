@@ -353,8 +353,8 @@ void SetupRotationMatrix( vec3_t matrix[3], const vec3_t dir, float degrees ) {
 	vec_t	angle, s, c, one_c, xx, yy, zz, xy, yz, zx, xs, ys, zs;
 
 	angle = DEG2RAD(degrees);
-	s = sin(angle);
-	c = cos(angle);
+	s = sin((double)((double)(angle)));
+	c = cos((double)((double)(angle)));
 	one_c = 1.0F - c;
 
 	xx = dir[0] * dir[0];
@@ -432,7 +432,7 @@ void vectoangles( const vec3_t value1, vec3_t angles ) {
 	}
 	else {
 		if ( value1[0] ) {
-			yaw = ( atan2 ( value1[1], value1[0] ) * 180 / M_PI );
+			yaw = ( atan2 ( (double)((double)(value1[1])), (double)((double)(value1[0])) ) * 180 / M_PI );
 		}
 		else if ( value1[1] > 0 ) {
 			yaw = 90;
@@ -444,8 +444,8 @@ void vectoangles( const vec3_t value1, vec3_t angles ) {
 			yaw += 360;
 		}
 
-		forward = sqrt ( value1[0]*value1[0] + value1[1]*value1[1] );
-		pitch = ( atan2(value1[2], forward) * 180 / M_PI );
+		forward = sqrt ( (double)((double)(value1[0]*value1[0] + value1[1]*value1[1])) );
+		pitch = ( atan2((double)((double)(value1[2])), (double)((double)(forward))) * 180 / M_PI );
 		if ( pitch < 0 ) {
 			pitch += 360;
 		}
@@ -766,8 +766,8 @@ float RadiusFromBounds( const vec3_t mins, const vec3_t maxs ) {
 	float	a, b;
 
 	for (i=0 ; i<3 ; i++) {
-		a = fabs( mins[i] );
-		b = fabs( maxs[i] );
+		a = fabs( (double)(mins[i]) );
+		b = fabs( (double)(maxs[i]) );
 		corner[i] = a > b ? a : b;
 	}
 
@@ -859,7 +859,7 @@ vec_t VectorNormalize( vec3_t v ) {
 
 	if ( length ) {
 		/* writing it this way allows gcc to recognize that rsqrt can be used */
-		ilength = 1/(float)sqrt (length);
+		ilength = 1/(float)sqrt ((double)(length));
 		/* sqrt(length) = length * (1 / sqrt(length)) */
 		length *= ilength;
 		v[0] *= ilength;
@@ -878,7 +878,7 @@ vec_t VectorNormalize2( const vec3_t v, vec3_t out) {
 	if (length)
 	{
 		/* writing it this way allows gcc to recognize that rsqrt can be used */
-		ilength = 1/(float)sqrt (length);
+		ilength = 1/(float)sqrt ((double)(length));
 		/* sqrt(length) = length * (1 / sqrt(length)) */
 		length *= ilength;
 		out[0] = v[0]*ilength;
@@ -999,14 +999,14 @@ void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 	// static to help MS compiler fp bugs
 
 	angle = angles[YAW] * (M_PI*2 / 360);
-	sy = sin(angle);
-	cy = cos(angle);
+	sy = sin((double)(angle));
+	cy = cos((double)(angle));
 	angle = angles[PITCH] * (M_PI*2 / 360);
-	sp = sin(angle);
-	cp = cos(angle);
+	sp = sin((double)(angle));
+	cp = cos((double)(angle));
 	angle = angles[ROLL] * (M_PI*2 / 360);
-	sr = sin(angle);
-	cr = cos(angle);
+	sr = sin((double)(angle));
+	cr = cos((double)(angle));
 
 	if (forward)
 	{
@@ -1043,10 +1043,10 @@ void PerpendicularVector( vec3_t dst, const vec3_t src )
 	*/
 	for ( pos = 0, i = 0; i < 3; i++ )
 	{
-		if ( fabs( src[i] ) < minelem )
+		if ( fabs( (double)(src[i]) ) < minelem )
 		{
 			pos = i;
-			minelem = fabs( src[i] );
+			minelem = fabs( (double)(src[i]) );
 		}
 	}
 	tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
@@ -1165,7 +1165,7 @@ acos(*(float*) &i) == -1.#IND0
 float Q_acos(float c) {
 	float angle;
 
-	angle = acos(c);
+	angle = acos((double)(c));
 
 	if (angle > M_PI) {
 		return (float)M_PI;
