@@ -518,7 +518,7 @@ void *Sys_LoadFunction( void *handle, const char *name )
 		return NULL;
 	}
 
-	symbol = GetProcAddress( (HMODULE)handle, name );
+	symbol = (void *)GetProcAddress( (HMODULE)handle, name );
 	if ( !symbol )
 		dll_err_count++;
 
