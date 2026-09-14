@@ -707,6 +707,10 @@ CXX_FROZEN_WARNINGS = -Wall -Wextra -Werror \
 # parentheses: 48 observed C++ diagnostics from legacy parenthesized declarators.
 # The six original classes occur in the C baseline too. Aggregate zero initialization
 # produces additional missing-field diagnostics in C++; no initializer is changed.
+ifdef MINGW
+  # Nine pre-existing C diagnostics in eleven Windows TUs with -Wall -Wextra.
+  CXX_FROZEN_WARNINGS += -Wno-cast-function-type
+endif
 
 ENGINE_CC = $(CC)
 ENGINE_CFLAGS = $(CFLAGS)
