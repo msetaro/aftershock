@@ -28,17 +28,21 @@ Current branch: `issue/31-zip-alignment`. The existing bot smoke now supports
 the ZIP alignment suppression. Both original packed loads fail under UBSan; the
 CopyLittleLong fix uses a signed int temporary to preserve conversion to uLong.
 The GCC before test links the original ZIP object into the same runtime; it fails
-at the original load. The fixed runtime passes both Q3 and both OpenArena map goldens. Normal unit,
+at the original load. The fixed runtime passes both Q3 and both OpenArena map
+goldens. Normal unit,
 collision, serial smoke and both-renderer replay pass unchanged. Symbol gate passes;
 codegen differs only by exchanged stack slots with matching signed consumers,
 reviewed as acceptable under #31. Upstream C fails before and passes after the same
-fix: https://github.com/ec-/Quake3e/pull/428. Next: open fork PR, get CI green,
-self-review and merge.
+fix: https://github.com/ec-/Quake3e/pull/428. Fork PR #41 is open at source
+09e7cc96; regression 34885119593 and full build 34885119668 passed.
+Self-review below passes. Next: mark #41 ready, merge with a merge commit, verify
+merged-tree regression, then branch issue/31-vm-alignment for the remaining packed
+operand load and remove its suppression.
 
 Broader Clang experiments remain distinct from the GCC runtime gate: ASan/UBSan
 with faketime timed out before output; UBSan alone exposed zcalloc/zcfree callback
-signature mismatches. Recovery then segfaulted when starting the legacy QVM. Record
-those observations on #31 and fix the callback types separately; do not fold them
+signature mismatches. Recovery then segfaulted when starting the legacy QVM.
+Those observations are on #31; fix the callback types separately; do not fold them
 into the packed-read fix. No new suppression or unexercised known-bug entry was added.
 Existing Clang unit ASan/UBSan and pointer checks stay required.
 
@@ -202,4 +206,10 @@ after: https://github.com/ec-/Quake3e/pull/428. No new content or loader target.
 Self-review: one packed-read bug, shared function covers all callers; no simulation
 FP edit, layout change, allocation, destructor or new engine OS call. Runtime
 sanitizer coverage reuses the existing smoke runner and compares existing goldens.
-CI pending.
+Regression 34885119593 passed on source 09e7cc96, including hosted GCC UBSan smoke.
+Full build 34885119668 passed on the same source. Final checkpoint changes only
+documentation; self-review passes and no goldens changed.
+
+Next bug reproduction is ready without a source change: the same GCC runtime
+with UBSAN_OPTIONS=halt_on_error=1 (no suppressions) exits 1 at vm.cpp:1181.
+Evidence: /tmp/aftershock-vm-before-runtime.log. Follow with its own branch/PR.

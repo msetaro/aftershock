@@ -128,7 +128,8 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   Symbol gate passes; GCC assembly only exchanges stack slots 64/68 and matching
   sign-extending consumers, reviewed acceptable under #31. No gate weakening.
   Upstream C reproducer fails before and passes after:
-  https://github.com/ec-/Quake3e/pull/428.
+  https://github.com/ec-/Quake3e/pull/428. Fork PR #41 passed regression
+  34885119593 and full build 34885119668 on source 09e7cc96.
 
 - Additional #31 finding during runtime expansion: Clang UBSan reports zcalloc
   and zcfree calls through incompatible function-pointer types. Their private
