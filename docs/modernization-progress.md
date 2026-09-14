@@ -23,21 +23,18 @@ ALSA PR #39 merged as 811c6f7a after regression 34879358567 and full build
 Curl PR #40 merged as 998f21c3 after regression 34880567812 and full build
 34880567796 passed; merged-tree regression 34881337473 passed.
 
-Current branch: `issue/31-zip-alignment`. The existing bot smoke now supports
-`runtime --sanitize` with GCC UBSan and compares the same goldens. Removed only
-the ZIP alignment suppression. Both original packed loads fail under UBSan; the
-CopyLittleLong fix uses a signed int temporary to preserve conversion to uLong.
-The GCC before test links the original ZIP object into the same runtime; it fails
-at the original load. The fixed runtime passes both Q3 and both OpenArena map
-goldens. Normal unit,
-collision, serial smoke and both-renderer replay pass unchanged. Symbol gate passes;
-codegen differs only by exchanged stack slots with matching signed consumers,
-reviewed as acceptable under #31. Upstream C fails before and passes after the same
-fix: https://github.com/ec-/Quake3e/pull/428. Fork PR #41 is open at source
-09e7cc96; regression 34885119593 and full build 34885119668 passed.
-Self-review below passes. Next: mark #41 ready, merge with a merge commit, verify
-merged-tree regression, then branch issue/31-vm-alignment for the remaining packed
-operand load and remove its suppression.
+ZIP PR #41 merged as 2a9436fe after regression 34885119593 and full build
+34885119668 passed; merged-tree regression 34885592975 passed.
+
+Current branch: `issue/31-vm-alignment`. Removed the remaining VM alignment
+suppression before changing the source. The existing GCC UBSan smoke without
+suppressions fails at vm.cpp:1181 on a valid QVM operand. CopyLittleLong through
+an int32_t temporary passes both Q3 and OA smoke goldens. Production symbols and
+all 26 function-section bytes are unchanged; the text gate differs only in the
+compiler-generated switch-table name CSWTCH.89/90. Unit/collision regeneration
+changes no golden. Normal smoke and both-renderer fixed-demo replay pass unchanged.
+Upstream C startup fails before and passes after: https://github.com/ec-/Quake3e/pull/429.
+Next: open PR and complete CI/self-review.
 
 Broader Clang experiments remain distinct from the GCC runtime gate: ASan/UBSan
 with faketime timed out before output; UBSan alone exposed zcalloc/zcfree callback
@@ -51,7 +48,7 @@ Existing Clang unit ASan/UBSan and pointer checks stay required.
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -213,3 +210,18 @@ documentation; self-review passes and no goldens changed.
 Next bug reproduction is ready without a source change: the same GCC runtime
 with UBSAN_OPTIONS=halt_on_error=1 (no suppressions) exits 1 at vm.cpp:1181.
 Evidence: /tmp/aftershock-vm-before-runtime.log. Follow with its own branch/PR.
+
+## #31 VM validation
+
+Permanent GCC UBSan runtime fails before at vm.cpp:1181, passes after the packed
+read uses CopyLittleLong through int32_t. Removed the final alignment suppression;
+tools/port/ubsan.supp is empty. All Q3/OA smoke goldens, normal serial smoke and
+both-renderer replay pass unchanged. Explicit unit/collision regeneration has no
+golden diff. Production symbols and all 26 function-section bytes match. Text
+codegen differs only in the compiler switch-table label CSWTCH.89/90; unchanged
+instructions/data reviewed acceptable, no gate edits. Upstream C reproducer
+fails before and passes after: https://github.com/ec-/Quake3e/pull/429.
+Self-review: one packed-read bug in the shared caller path; no instruction format,
+FP, JIT behavior, allocation, destructor, layout or engine OS changes. No new
+known-bug entry or test target; existing runtime CI is the permanent regression.
+Hosted gates pending.

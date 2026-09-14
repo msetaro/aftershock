@@ -1,3 +1,0 @@
-# C baseline, q3dm17 with two bots, 2026-09-13. Keep source behavior intact.
-# QVM operands are byte-packed in the file.
-alignment:VM_LoadInstructions
