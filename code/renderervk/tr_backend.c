@@ -571,7 +571,7 @@ static void RB_BeginDrawingView( void ) {
 		backEnd.isHyperspace = qfalse;
 	}
 
-	glState.faceCulling = -1;		// force face culling to set next time
+	glState.faceCulling = (cullType_t)( -1 );		// force face culling to set next time
 
 	// we will only draw a sun if there was sky rendered in this view
 	backEnd.skyRenderedThisView = qfalse;
@@ -645,7 +645,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			//}
 #ifdef USE_PMLIGHT
 			#define INSERT_POINT SS_FOG
-			if ( backEnd.refdef.numLitSurfs && oldShaderSort < INSERT_POINT && shader->sort >= INSERT_POINT ) {
+			if ( backEnd.refdef.numLitSurfs && oldShaderSort < (float)INSERT_POINT && shader->sort >= (float)INSERT_POINT ) {
 				//RB_BeginDrawingLitSurfs(); // no need, already setup in RB_BeginDrawingView()
 #ifdef USE_VULKAN
 				RB_LightingPass();
@@ -823,7 +823,7 @@ static void RB_BeginDrawingLitSurfs( void )
 	//
 	SetViewportAndScissor();
 
-	glState.faceCulling = -1;		// force face culling to set next time
+	glState.faceCulling = (cullType_t)( -1 );		// force face culling to set next time
 }
 
 
@@ -1118,7 +1118,7 @@ void RE_UploadCinematic( int w, int h, int cols, int rows, byte *data, int clien
 	image_t *image;
 
 	if ( !tr.scratchImage[ client ] ) {
-		tr.scratchImage[ client ] = R_CreateImage( va( "*scratch%i", client ), NULL, data, cols, rows, IMGFLAG_CLAMPTOEDGE | IMGFLAG_RGB | IMGFLAG_NOSCALE );
+		tr.scratchImage[ client ] = R_CreateImage( va( "*scratch%i", client ), NULL, data, cols, rows, (imgFlags_t)( IMGFLAG_CLAMPTOEDGE | IMGFLAG_RGB | IMGFLAG_NOSCALE ) );
 		return;
 	}
 
@@ -1618,7 +1618,7 @@ RB_ColorMask
 */
 static const void *RB_ColorMask( const void *data )
 {
-	const colorMaskCommand_t *cmd = data;
+	const colorMaskCommand_t *cmd = (const colorMaskCommand_t *)data;
 #ifdef USE_VULKAN
 	// TODO: implement! ZZZZZZZZZZZ
 #else
@@ -1636,7 +1636,7 @@ RB_ClearDepth
 */
 static const void *RB_ClearDepth( const void *data )
 {
-	const clearDepthCommand_t *cmd = data;
+	const clearDepthCommand_t *cmd = (const clearDepthCommand_t *)data;
 
 	RB_EndSurface();
 
@@ -1657,7 +1657,7 @@ RB_ClearColor
 */
 static const void *RB_ClearColor( const void *data )
 {
-	const clearColorCommand_t *cmd = data;
+	const clearColorCommand_t *cmd = (const clearColorCommand_t *)data;
 
 #ifdef USE_VULKAN
 	backEnd.projection2D = qtrue;
@@ -1681,7 +1681,7 @@ RB_FinishBloom
 */
 static const void *RB_FinishBloom( const void *data )
 {
-	const finishBloomCommand_t *cmd = data;
+	const finishBloomCommand_t *cmd = (const finishBloomCommand_t *)data;
 
 	RB_EndSurface();
 
