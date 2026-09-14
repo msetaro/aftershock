@@ -1373,7 +1373,7 @@ void GLimp_Init( glconfig_t *config )
 	config->hardwareType = GLHW_GENERIC;
 
 	// optional
-#define GLE( ret, name, ... ) q##name = GL_GetProcAddress( XSTRING( name ) )
+#define GLE( ret, name, ... ) q##name = (ret (APIENTRY *)( __VA_ARGS__ ))GL_GetProcAddress( XSTRING( name ) )
 	QGL_Swp_PROCS;
 #undef GLE
 

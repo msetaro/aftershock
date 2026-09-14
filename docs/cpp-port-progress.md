@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Cross verification: next `code/win32/win_glimp.c`; retain native sv_client C hash blocker. Then T5 review, final native/cross sweeps, runtime where buildable; no rename until prerequisites pass.
+Cross verification: next `code/win32/win_qgl.c`; retain native sv_client C hash blocker. Then T5 review, final native/cross sweeps, runtime where buildable; no rename until prerequisites pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/win32/win_glimp.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-win_glimp.codegen.diff.gz`.
 
 - `code/win32/win_main.c` (mingw64): G4 advisory; full diff `tools/port/evidence/cross-mingw64-win_main.codegen.diff.gz`.
 
@@ -656,7 +658,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/win32/glw_win.h` | blocked | Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable. |
 | `code/win32/resource.h` | blocked | Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable. |
 | `code/win32/win_gamma.c` | done | T1: 1 previously inspected HMODULE cast, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_gamma.o); G4 PASS. |
-| `code/win32/win_glimp.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 1, T2: 4; T5: conditional C-linkage block for 2 GPU exports, preserves definitions/initializers. Target checksum/G1-G4 unavailable. |
+| `code/win32/win_glimp.c` | done | T1: 2 including optional procedure macro; T2: 4; T5: 2 GPU exports; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_glimp.o); G4 advisory difference retained. |
 | `code/win32/win_input.c` | blocked | Unverified (no MinGW/Windows SDK). T2: 1 boolean return cast by inspection. DirectInput SDK interface macros and optional joystick/MIDI paths require target compile; C checksum and G1-G4 unavailable. |
 | `code/win32/win_local.h` | blocked | Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable. |
 | `code/win32/win_main.c` | done | T1: 4 total, including FARPROC to void*; existing inspection casts now C-oracle verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_main.o); G4 advisory difference retained. |
