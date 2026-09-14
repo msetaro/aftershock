@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: renderer; next `code/renderer/tr_init.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
+Phase 1: next `code/renderer/tr_light.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -278,6 +278,8 @@ Phase 1: renderer; next `code/renderer/tr_init.c`. Resume there; do not redo fil
 
 ## Blocked files
 
+- `code/renderer/tr_init.c`: 12 catalog casts compile with original C hash and G2 PASS, but G3 fails only GetRefAPI mangling. Cast attempt reverted; reapply with phase-2 T5 boundary after module source passes. Patch /tmp/aftershock-cpp-port/renderer-tr_init-phase1.patch.
+
 - `code/renderercommon/vulkan/vulkan_win32.h`: Unverified: unchanged generated Khronos Windows header; no MinGW cross-compiler/Windows SDK available.
 
 - `code/client/snd_codec_ogg.c`: G3 fails: const S_OGG_Callbacks changes external D to internal d in C++; no prior extern declaration exists. Restoring const-object external linkage is outside T1-T17. Reverted three T1 casts; source unchanged.
@@ -475,7 +477,7 @@ Phase 1: renderer; next `code/renderer/tr_init.c`. Resume there; do not redo fil
 | `code/renderer/tr_curve.c` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_curve.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_flares.c` | done | T4: 3 occurrences (prerequisite), T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_flares.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_image.c` | done | T1: 9, T2: 2, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_init.c` | todo | Pending module pass. |
+| `code/renderer/tr_init.c` | blocked | 12 catalog casts compile with original C hash and G2 PASS, but G3 fails only GetRefAPI mangling. Cast attempt reverted; reapply with phase-2 T5 boundary after module source passes. Patch /tmp/aftershock-cpp-port/renderer-tr_init-phase1.patch. |
 | `code/renderer/tr_light.c` | todo | T4 prerequisite: or renamed to orientation (10 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_local.h` | todo | T4 prerequisite: or renamed to orientation (5 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
 | `code/renderer/tr_main.c` | todo | T4 prerequisite: or renamed to orientation (113 occurrences); original C hash unchanged. Remaining per-file C++/gates pending. |
