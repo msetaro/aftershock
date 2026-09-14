@@ -2,27 +2,33 @@
 
 Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed continuation starts at `6a990e7c` (T1–T23 plan amendment). All 171 scoped engine implementation/data files now use .cpp; each moved blob was verified unchanged. No engine bug fixes, vendor edits, renderer2 port, main pushes, force pushes, or history rewrites were made.
 
-**Phases 0–2 complete.** All 257 inventory entries are done (including the two explicit exclusions). Native GCC/Clang C and strict C++ configurations all build. MinGW, ARM, AArch64 and PPC64LE C++ full links pass. T24/T25 resolve all reviewed blockers with unchanged C hashes. C++ dedicated runtime matches C under G6, and the client loads OpenGL/Vulkan renderers under Xvfb.
+**Phases 0–2 and the phase 3 rename/build/gates/runtime are complete; CI verification continues.** All 257 inventory entries are done (including the two explicit exclusions). Native GCC/Clang C and strict C++ configurations all build. MinGW, ARM, AArch64 and PPC64LE C++ full links pass. T24/T25 resolve all reviewed blockers with unchanged C hashes. C++ dedicated runtime matches C under G6, and the client loads OpenGL/Vulkan renderers under Xvfb.
 
 ## Next action
 
-Push verified phase 3 and dispatch/watch build.yml on this feature branch. Fix MSVC diagnostics only under the catalog. Then T25 cleanup with unchanged C++ object hashes; debug checksum compatibility is being measured.
+MSVC x64/ARM64 Debug/Release pass on run 34804759804; wait for the remaining CI jobs, archive results, and push the final checkpoint. T25 cleanup is blocked by the verified Clang debug checksum conflict; retain its source branch.
 
 ## Phase checklist
 
 - [x] Phase 0: harness, frozen warnings, C hash proof, controls; formatter advisory.
 - [x] Phase 1: all scoped sources and headers, unchanged C hashes, strict native/cross builds.
 - [x] Phase 2: required external linkage, G2/G3, full native links, deterministic dedicated smoke, client-driven renderer load.
-- [ ] Phase 3: rename, fresh build/gates/runtime, MSVC CI.
-- [ ] Post-rename T25 cleanup, unchanged C++ hashes, final checkpoint.
+- [x] Phase 3 rename, fresh native/cross builds, gates, and runtime.
+- [x] MSVC x64 and ARM64 Debug/Release CI (34804759804).
+- [ ] T25 cleanup: blocked by Clang DWARF5 source checksum under the unchanged-object rule.
+- [ ] Final CI evidence/checkpoint and push.
 
 ## Remaining blockers
 
-None currently. Historical sv_client hash and Windows COM evidence remains below; T24/T25 resolved those failures without granting hash exceptions.
+The engine port itself has no unresolved native/cross compiler or G2/G3 failures. The remaining cleanup in `code/server/sv_client.cpp` cannot meet the literal requirement that **every C++ object hash remain unchanged**. Removing the T25 C-only branch changes debug line positions; retaining blank lines preserves GCC debug objects but changes exactly the 16-byte source MD5 embedded by Clang DWARF5. All other Clang object bytes remain identical. No hash exception was granted, so the T25 guard and C-only branch remain. No production debug flags or object metadata were changed to hide this result.
+
+Measured with identical paths and actual Make debug recipes: original Clang object `14015309c7608e9e061adac4a78b3a956bfcb1b8dd158fa1c6a0dce362d342a8`; line-preserving cleanup `bf7c20601c22866dbd89aff9f3fc46f997998a4501549dd1f321b9844bf0b570`. Both are 158776 bytes; only offsets 69567–69582 differ. GCC line-preserving original/cleanup both hash `63bc0890bfe9b82ee2507db4349b9705e654b40c89f77e1d9fa73424239fe97d`. A diagnostic DWARF4 control also matches, but changing the flags is not an accepted workaround. Full evidence: `t25-cleanup-review.txt`, `t25-cleanup-results.json`.
+
+The former sv_client C-hash/Windows COM blockers were resolved by T24/T25 with unchanged C hashes. Their original evidence is retained for audit, not listed as an active engine blocker.
 
 ## Module inventory
 
-“Done” is a per-file result, not a claim that the complete C++ engine runs. qasm.h is assembly-only; sv_rankings.c is excluded and must not be renamed. Shared cgame/game/ui ABI headers are included; this checkout has no bg implementation sources.
+“Done” records successful port/gate verification. Complete native C++ executables now run; optional configurations and cleanup limitations are listed explicitly. qasm.h is assembly-only; sv_rankings.c is excluded and must not be renamed. Shared cgame/game/ui ABI headers are included; this checkout has no bg implementation sources.
 
 | Module | Done | Blocked |
 |---|---:|---:|
@@ -41,32 +47,31 @@ None currently. Historical sv_client hash and Windows COM evidence remains below
 | unix | 13 | 0 |
 | win32 | 14 | 0 |
 
-## Historical verification results at 7ec7e925 (superseded by continuation results below)
+## Current verification results
 
-- C oracle: default native 295/295 hashes and non-SDL 299/299 hashes unchanged. Full client/ded/renderers C links pass. Each ARM, AArch64 and PPC64LE dedicated oracle retains 65/65 hashes and links. MinGW non-SDL retains 300/300 hashes; its default curl-enabled client lacks target zlib, while ded and both DLLs link. The matching USE_CURL=0 baseline/current build links client/ded/both renderers and retains 299/299 C hashes (mingw-client-c-results.json, cross-mingw64-nocurl-c.sha256). Original-base cross builds were extracted with git archive into /tmp; port work stayed in this worktree.
-- Native matrix: all eight C configurations pass; all eight C++ configurations fail only in sv_client.c. GCC release/debug SDL and non-SDL plus static OpenGL/Vulkan; Clang release SDL and debug non-SDL. Exact commands and error counts: `tools/port/evidence/resumed-build-matrix-results.json`; full logs `resumed-*.log.gz`.
-- Cross C++ matrix: ARM, AArch64 and PPC64LE fail only in sv_client.c; MinGW also fails win_input.c/win_snd.c. Both MinGW renderer DLLs link. Exact commands/errors: `tools/port/evidence/final-cross-results.json`; full logs `final-cross-*.log.gz`. Cross-only JIT files and nine Windows implementation files passed strict release/debug object builds and original C hashes before their per-file commits.
-- native-tu: 154 compiled object pairs, G2/G3 PASS; G4 39 PASS and 115 advisory differences. Exact object/variable list: `tools/port/evidence/native-tu-final-results.json`.
-- cross: 417 compiled object pairs, G2/G3 PASS; G4 85 PASS and 332 advisory differences. Exact object/variable list: `tools/port/evidence/cross-final-results.json`.
-- native-context: 450 compiled object pairs, G2/G3 PASS; G4 123 PASS and 327 advisory differences. Exact object/variable list: `tools/port/evidence/native-context-final-results.json`.
-- G5: all 13 groups PASS with one C-compiled driver linked to either object set; vector_math is `5c00b4de` for both. Standalone math gate PASS. Evidence: `g5-final.log`, `math-final.log`. Coverage includes parsing, strings/info, commands/cvars, FS paths, MSG roundtrips plus 256 delta trials, adaptive Huffman, addresses, 1,000 collision traces, Q_rsqrt/Q_fabs and vector math. The full memory/filesystem/runtime is not modeled. Test-only unambiguous objcopy aliases let the C driver call C++ functions; production G3 remains independent.
-- G6: warm-up then two C runs under the prescribed faketime increment exit 0 and yield byte-identical **124-line logs** (`final-faketime-c-{1,2}.log.gz`). Both C++ renderer libraries from the native client build load with dlopen and expose GetRefAPI (`final-runtime-summary.log`). C++ executable smoke and client-driven renderer load are blocked by linking. Xvfb is now installed, but cannot remedy missing C++ executables; earlier no-display diagnoses are superseded. No client timedemo/image equivalence is claimed.
-- G7: 115 changed native sources analyzed with clang-tidy, zero tool/compile failures; 366 bugprone-narrowing findings retained. Thirteen non-native/blocked/include sources are skipped. Exact results: `resumed-static-summary.txt`, `resumed-static-warnings.json`, `resumed-static-clang-tidy.log.gz`. No warning-driven engine cleanup was performed.
-- Earlier C ASan/UBSan smoke exited 0 with no diagnostics after narrow known alignment suppressions; leak checking disabled. Evidence remains `final-runtime-sanitize.log.gz`, `tools/port/ubsan.supp`. C++ sanitizer/runtime comparison remains unavailable.
-- G8: final engine diff is 134 files, 1,859 insertions / 1,758 deletions (about 0.6% of engine lines). Reviewer checked T1–T23, T18 declarations, T21 expression preservation and linkage removals; full report: final-g8-review.txt. All gate controls pass (`final-controls.log`). The explicit T15/stat exception is below.
+- **C oracle:** original `8a7e8ed2`; frozen pre-rename checkout `e49b82595c7b1a25c70d9e86b72b3ed147adbdb3`. Final original-object checks pass 295/295 native, 299/299 non-SDL, 65/65 each ARM/AArch64/PPC64LE, and 300/300 MinGW non-SDL. No raw C hash exception. MinGW uses matching non-LTO flags for inspectable deterministic object bytes.
+- **G1:** 16/16 native matrix configurations pass (eight C-oracle/eight C++, GCC/Clang, release/debug, SDL/non-SDL, static OpenGL/Vulkan). Native dedicated/client/both dlopen renderers and static clients link. MinGW client/ded/renderers and ARM/AArch64/PPC64LE dedicated builds pass. See `phase3-build-matrix-results.json` and `phase3-cross-build-results.json` for exact commands, source cwd and logs.
+- **G2/G3:** all **454 native contexts and 424 cross contexts pass** against the frozen C checkout. The later MSVC-only vm_aarch64 T1 cast also passes its AArch64 pair. Scope includes static-renderer boundary checks from phase 2 and both WASAPI modes from T24. Raw names of actual external boundaries and demangled undefined references are checked. Gate positive/negative controls pass.
+- **G4:** 331 native and 338 cross advisory differences remain; 123 native and 86 cross pairs pass without differences. Every current diff is indexed below and in `phase3-native-context-results.json` / `phase3-cross-gates-results.json`. Compiler instruction selection, labels, source-name literals and other differences are retained, not called byte-identical behavior evidence. Pure math G4/G5 passes.
+- **G5:** all 13 fixed-input groups pass; `vector_math 5c00b4de` in C and C++. Parsing/strings/info, command/cvar/FS helpers, MSG roundtrips and 256 deltas, adaptive Huffman, address helpers, 1000 collision traces and math are covered. One C driver calls either object set using test-only aliases; production G3 is separate. See `phase3-g5.log.gz`, `phase3-math.log.gz`.
+- **G6:** prescribed faketime test passes C-repeat first and C-vs-C++ next. Exactly the allowed `...found N cached paks` line is removed because it still varies after warming; no other normalization. All 123 remaining lines hash `e0428e406c541d3de1640f4a07d0a2dd252cb2859f94f1743fe653a537c854f7`. Raw 124-line logs and all raw hashes are retained in `phase3-runtime-results.json`. Native C++ OpenGL/Vulkan dlopen clients and static Vulkan load q3dm17 under Xvfb and quit cleanly. No client timedemo/image equivalence is claimed.
+- **G7:** clang-tidy checks 155 native sources, zero compile/tool failures, 366 existing narrowing findings retained; 16 platform/include-only inputs skipped. GCC/Clang build matrix passes. C and C++ GCC ASan/UBSan bot smoke have no diagnostics with the same two original alignment suppressions and leak checking disabled. No extra runtime suppression was added for C++.
+- **G8:** 170 main-commit source moves are R100 with exact parent blob matches; shader data was a separate byte-identical move with necessary include/generator path changes. Reviewer verified compiler selection, vendor C preservation, MSVC paths/settings/CRLF, x86 CI removal and renderer2 build removal. Current engine edits stay in T1–T25; build/harness deviations are listed below.
+- **CI:** first run 34804449387 reached existing macOS deprecated-declarations and MSVC frozen string-literal policy gaps. Second run 34804619682 has all macOS and MSVC x64 Debug/Release green; ARM64 exposed one catalog T1 VirtualAlloc cast, now committed. Third run 34804759804 passes all four MSVC jobs; its remaining jobs are in progress. Disabled legacy emulator jobs are not counted as runtime verification.
+- **Unverified:** optional FreeType (headers/pkg-config unavailable), dormant Windows USE_PROFILES (not selected by Make/MSVC), cross-target executable runtime, and client timedemo/frame/image equivalence. Native renderer map-load tests do not claim those checks. `sv_rankings.c` is excluded for its proprietary SDK; `qasm.h` is assembly-only. MSVC x64/ARM64 Debug/Release pass on 34804759804.
 
-- Final static-renderer boundary checks: OpenGL/Vulkan cl_main consumers and tr_init definitions (four pairs) pass G2/G3; G4 advisory diffs are indexed below. Exact variables: static-boundaries-final-results.json.
+Historical results at 7ec7e925 and intermediate T24/T25 checkpoints remain in git/evidence (`resumed-*`, `final-*`, `t25-*`). They are superseded by the current results above.
 
 ## Decisions, scope and harness details
 
-- Only GNU Make is supported; plan section 7 supersedes early CMake references. Build mode uses C++20, no exceptions/RTTI or permissive flag; vendors remain C, assembly unchanged, renderer2 skipped only in C++ mode until rename. Single objects and make -k work. CXX derives from the same compiler prefix as CC, respecting explicit CXX. SOURCE_DATE_EPOCH=1789257600 stabilizes date/time macros for raw hashes.
+- Only GNU Make is supported; plan section 7 supersedes early CMake references. Build mode uses C++20, no exceptions/RTTI or permissive flag; vendors remain C, assembly unchanged, renderer2 removed from the supported build in phase 3. Single objects and make -k work. CXX derives from the same compiler prefix as CC, respecting explicit CXX. SOURCE_DATE_EPOCH=1789257600 stabilizes date/time macros for raw hashes.
 - T1 preserves exact existing destination types/calling conventions, including function/object pointers. T2 consistently casts to qboolean. T3 preserves the original promoted expression; no offset/operand reorder. T19 moves the SDL console-key enum intact. T20 only changes receiving locals/casts. T23 guards the pre-defined GNU feature macro. T18 adds one huffman table, codec const linkage, and 74 exact shader-array extern declarations without changing data.
 - T21 adds 364 net double argument casts: 347 reviewed native casts, six conditional common.c rint calls, and eleven MSVC/fallback-M_PI sites. Only the original complete argument expression is wrapped; no FP expression is restructured. The first q_math edit briefly had seven redundant nested casts, removed in a subsequent commit without history rewrite. Native review of all 98 abs calls found no non-integer argument, so no T22 changes were needed. Two fabs calls inside #if 0 remain untouched. Dormant platform/SDK branches outside verified configurations are not claimed as compiled.
 - T4 renderer field renames were atomic prerequisites: all existing uses were renamed together to keep C compiling, with identical C hashes, followed by per-file commits. No strings/comments were renamed. Phase 2 removed C linkage from six static callbacks in three files, syscall_t/dllSyscall_t, and static-renderer GetRefAPI. Kept the listed DLL typedefs, dlopen exports, assembly boundaries and GPU exports. T11 __clear_cache is an existing libgcc import, correctly declared void(void*,void*) with C linkage in vm_local.h for ARM/AArch64; target compiler ABI and unchanged C hashes were checked.
 - G2 uses actual engine DWARF and pahole sizes/offsets/alignment/nested members, excluding system/vendor types by declaration source (never by intersecting results). MinGW COFF DWARF relocations are resolved in a temporary PE carrier and converted to ELF; dummy undefined definitions exist only in this never-executed layout carrier. G3 always inspects original objects.
 - G3 uses separate -O2 probe objects with -fno-builtin, -fno-inline-functions, -D__NO_CTYPE=1 and -U_FORTIFY_SOURCE. GCC probes also disable small/called-once inlining and IPA scalar replacement. MinGW -Wa,-L retains actual local C functions beginning L. Exact ARM/AArch64 local instruction/data mapping markers are metadata. All other source-defined and undefined symbols are retained/demangled, preserving static/global kind. GetRefAPI stays raw for dlopen (both compiler commands must agree); absent metadata conservatively enforces raw names. Controls catch static/export changes, missing assembly C linkage and newly selected float libm calls. Plain -fno-inline was rejected because it materializes integer math template helpers.
 - G2/G4/G5 and production builds retain their own real optimization flags. MinGW default -flto gives serialized IR with unstable build IDs even for untouched md4, so object oracles use matching -O2 -ffast-math -fno-lto on base/current. Default-LTO dedicated C links were separately verified. Inspection artifacts disable LTO so actual code/DWARF can be compared. No production flags were changed to make gates pass.
-- All requested cross compilers are installed and used: x86_64-w64-mingw32-g++ (GCC 13), aarch64-linux-gnu-g++, arm-linux-gnueabihf-g++, powerpc64le-linux-gnu-g++ (GCC 15.2). ARM explicitly uses LONG_BIT=32. 32-bit x86 is excluded; its CI legs remain until the deferred rename commit. MSVC verification is deferred with that phase; no MSVC green result is claimed. No system packages were installed.
+- All requested cross compilers are installed and used: x86_64-w64-mingw32-g++ (GCC 13), aarch64-linux-gnu-g++, arm-linux-gnueabihf-g++, powerpc64le-linux-gnu-g++ (GCC 15.2). ARM explicitly uses LONG_BIT=32. 32-bit x86 is excluded and its CI legs are removed. MSVC x64/ARM64 Debug/Release now pass. No system packages were installed.
 - Optional BUILD_FREETYPE remains unverified because FreeType headers/pkg-config are absent. win_shared.c default configuration is compiled; the dormant USE_PROFILES branch has no build-system definition and is not verified. The explicitly requested cross JIT files and normal Windows configurations have actual compiler evidence, replacing prior inspection-only labels.
 - Pak files stay in ~/.q3a/baseq3; no game data is committed/copied into the repository. G5 collision map is extracted only under /tmp from pak0.pk3; q3dm17.bsp SHA256 ee1394417b06d92f705088150d7609d6b9f55f5796a9a7626bfe7982e8fc94e8.
 
@@ -88,6 +93,11 @@ Only observed classes are suppressed; C flags are unchanged. Counts include repe
 | unused-function | 2 per Clang configuration | 2 per configuration | Clang C++ only; unchanged HasFCOM |
 | varargs | no C diagnostic | 1 per Clang configuration | Clang C++ only; unchanged CURLoption va_start |
 
+| deprecated-declarations | existing Apple SDK sprintf sites | 2 per initial macOS CI leg | Darwin only |
+| maybe-uninitialized | 1 instrumented GCC C warning | 1 at the same beststart site | GCC sanitizer builds only |
+
+MSVC mirrors the accepted write-strings policy with `/Zc:strictStrings-`; initial botlib CI observed 136 unique Debug / 118 unique Release literal-conversion errors per architecture.
+
 ## Every DEVIATION
 
 - `5a28cd29 DEVIATION: preserve source style despite formatter threshold`: 16 formatter trials could not reproduce mixed original style below 3% (cvar 25.549%, cl_main 17.852%). No engine reformat. Accepted continuation makes the formatter advisory; this historical threshold blocker is resolved.
@@ -96,65 +106,84 @@ Only observed classes are suppressed; C flags are unchanged. Counts include repe
 - `8d827a6d DEVIATION: freeze observed Clang compatibility warnings`: added Clang-only unused-function/varargs suppressions after fresh matrix reached unchanged HasFCOM/CURLoption sites. Counts above; retained varargs hazard is logged. No engine fixes, public-signature changes or C flag changes.
 - `74233370 DEVIATION: retain required T15 lexical spaces in diff check`: the literal -w heuristic erases required C++ literal/macro token separators. Per-file minimal stats agree in 132/134 files. common.c is 38/38 versus 16/16 and snd_dma.c 2/2 versus 1/1; all 23 omitted lines are T15, not formatting cleanup. Retain the explicitly authorized lexical changes; do not add fake substantive tokens to game the metric. Exact diff: `g8-stat.diff`. No engine content changed in the decision commit.
 
+- `c2705708 DEVIATION: update embedded shader path for rename`: byte-identical shader-data move plus one include and two generator output paths; necessary to keep the main 170-file rename content-free. C hashes and native/non-SDL/MinGW consumer gates pass.
+- `DEVIATION: freeze observed Apple SDK deprecation warnings`: platform-only existing sprintf diagnostics, no API substitution.
+- `DEVIATION: freeze existing sanitizer uninitialized warning`: only the preexisting GCC instrumentation diagnostic; later narrowed to GCC by G8. No initialization/control-flow fix.
+
 ## Bugs and compatibility hazards logged, not fixed
 
 Full ledger: `docs/cpp-port-notes.md`. It records upstream CMake defects; preexisting unaligned unzip/vm accesses and sanitizer suppression limits; legacy linux_snd pthread signature mismatch; cl_curl's terminating-NUL slash test; FS_AllowedExtension's NULL relational comparison; and the retained CURLoption va_start warning. The original float-math overload hazard is resolved through T21, and the unfaked bot nondeterminism is controlled by the accepted faketime test. No unrelated source behavior was fixed.
 
 ## Exact reproduction commands
 
-Run from this branch/worktree. Results and compiler versions are host-dependent; use the recorded original compiler versions for raw SHA256 comparisons.
+Use the same recorded compiler versions for raw object hashes. Fresh build directories prevent stale pre-rename C objects. C pair artifacts retain `.c.o` as a **language tag**; current engine source names are `.cpp`.
 
 ```sh
-export SOURCE_DATE_EPOCH=1789257600
-port_repo=$PWD
-make -j20 BUILD_DIR=/tmp/aftershock-cpp-port/oracle
-make -j20 BUILD_CLIENT=0 BUILD_DIR=/tmp/aftershock-cpp-port/oracle
-(cd /tmp/aftershock-cpp-port/oracle && sha256sum -c "$port_repo/tools/port/evidence/phase0-c.sha256")
-make -j20 USE_SDL=0 BUILD_DIR=/tmp/aftershock-cpp-port/oracle-nosdl
-(cd /tmp/aftershock-cpp-port/oracle-nosdl && sha256sum -c "$port_repo/tools/port/evidence/nosdl-c.sha256")
+export SOURCE_DATE_EPOCH=1789257600 LC_ALL=C
+mkdir -p /tmp/port-c-oracle
+git archive e49b82595c7b1a25c70d9e86b72b3ed147adbdb3 | tar -x -C /tmp/port-c-oracle
+export PORT_C_ORACLE=/tmp/port-c-oracle
+make -C "$PORT_C_ORACLE" -j20 BUILD_DIR=/tmp/port-c
+make -j20 BUILD_DIR=/tmp/port-cxx
+make -j20 BUILD_CLIENT=0 BUILD_DIR=/tmp/port-cxx
+make -j20 BUILD_SERVER=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan BUILD_DIR=/tmp/port-static-vulkan
 
 tools/port/selfcheck.sh
-python3 tools/port/completed_gates.py /tmp/aftershock-cpp-port/recheck-tus
-python3 tools/port/cross_gates.py /tmp/aftershock-cpp-port/recheck-native native
-python3 tools/port/cross_gates.py /tmp/aftershock-cpp-port/recheck-cross
-python3 tools/port/build_matrix.py /tmp/aftershock-cpp-port/recheck-matrix
-python3 tools/port/static_gate.py /tmp/aftershock-cpp-port/recheck-static
-python3 tools/port/differential_gate.py /tmp/aftershock-cpp-port/recheck-g5
+python3 tools/port/cross_gates.py /tmp/port-native-gates native
+python3 tools/port/cross_gates.py /tmp/port-cross-gates
+python3 tools/port/build_matrix.py /tmp/port-matrix
+python3 tools/port/static_gate.py /tmp/port-static-analysis
+python3 tools/port/differential_gate.py /tmp/port-g5
 tools/port/math_gate.sh
-```
-
-Expected: gates, static execution and differential harness return 0; build matrix returns nonzero in the explicitly blocked source. G4 per-object exit 1 is advisory; full diffs are indexed below. Every compile_pair output records its exact compiler command in a neighboring .command file.
-
-```sh
 python3 tools/port/compile_pair.py ded/q_math.o /tmp/port-qmath
-# Substitute md4.o or any object/variables from the JSON result inventories.
 tools/port/layout_gate.sh /tmp/port-qmath/q_math.c.o /tmp/port-qmath/q_math.cxx.o
 tools/port/symbol_gate.sh /tmp/port-qmath/q_math.c.sym.o /tmp/port-qmath/q_math.cxx.sym.o
 tools/port/codegen_gate.sh /tmp/port-qmath/q_math.c.s /tmp/port-qmath/q_math.cxx.s
 
 command -v x86_64-w64-mingw32-g++ aarch64-linux-gnu-g++ arm-linux-gnueabihf-g++ powerpc64le-linux-gnu-g++
-make -j20 BUILD_CLIENT=0 PLATFORM=mingw64 ARCH=x86_64 BUILD_DIR=/tmp/port-mingw-c
-make -k -j20 BUILD_CXX=1 PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 USE_CURL=0 BUILD_DIR=/tmp/port-mingw-cxx
-make -k -j20 BUILD_CXX=1 BUILD_CLIENT=0 ARCH=aarch64 CC=aarch64-linux-gnu-gcc BUILD_DIR=/tmp/port-aarch64-cxx
-make -k -j20 BUILD_CXX=1 BUILD_CLIENT=0 ARCH=arm LONG_BIT=32 CC=arm-linux-gnueabihf-gcc BUILD_DIR=/tmp/port-arm-cxx
-make -k -j20 BUILD_CXX=1 BUILD_CLIENT=0 ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc BUILD_DIR=/tmp/port-ppc-cxx
-python3 tools/port/compile_pair.py ded/vm_aarch64.o /tmp/port-aarch64-gates ARCH=aarch64 CC=aarch64-linux-gnu-gcc
-python3 tools/port/compile_pair.py client/win_main.o /tmp/port-win-gates PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 'OPTIMIZE=-O2 -ffast-math -fno-lto'
+make -j20 PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 USE_CURL=0 'OPTIMIZE=-O2 -ffast-math -fno-lto' BUILD_DIR=/tmp/port-mingw
+make -j20 BUILD_CLIENT=0 ARCH=aarch64 CC=aarch64-linux-gnu-gcc BUILD_DIR=/tmp/port-aarch64
+make -j20 BUILD_CLIENT=0 ARCH=arm LONG_BIT=32 CC=arm-linux-gnueabihf-gcc BUILD_DIR=/tmp/port-arm
+make -j20 BUILD_CLIENT=0 ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc BUILD_DIR=/tmp/port-ppc
 ```
 
-For the full cross C oracle commands and corresponding manifest filenames use `final-oracle-results.json`; unchanged-base commands and working directories are in `cross-oracles.json`. Do not compare serialized MinGW LTO IR hashes. No cross executable runtime emulation is claimed.
+Every matrix/pair command and working directory is in the JSON inventories or neighboring `.command` / `.cwd` files. G4 exit 1 means retained advisory diff; G2/G3 require exit 0. Do not unset PORT_C_ORACLE after rename: the harness rejects a C++ recipe passed as the C oracle.
 
 ```sh
-port_binary=/tmp/aftershock-cpp-port/oracle/release-linux-x86_64/quake3e.ded.x64
-for port_run in warm 1 2; do
-  timeout 90 faketime -f "@2026-01-01 00:00:00 i0.01" "$port_binary"     +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17     +addbot sarge 3 +addbot major 3 +wait 300 +quit > "/tmp/port-c-$port_run.log" 2>&1
+mkdir -p /tmp/port-runtime
+# Same installation path avoids the working-directory banner differing.
+for port_mode in c cxx; do
+  cp "/tmp/port-$port_mode/release-linux-x86_64/quake3e.ded.x64" /tmp/port-runtime/quake3e.ded.x64
+  for port_run in warm1 warm2 1 2; do
+    timeout 90 faketime -f "@2026-01-01 00:00:00 i0.01" /tmp/port-runtime/quake3e.ded.x64 \
+      +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17 \
+      +addbot sarge 3 +addbot major 3 +wait 300 +quit > "/tmp/port-$port_mode-$port_run.log" 2>&1
+    sed '/^\.\.\.found [0-9][0-9]* cached paks$/d' "/tmp/port-$port_mode-$port_run.log" > "/tmp/port-$port_mode-$port_run.normalized.log"
+  done
 done
-diff -u /tmp/port-c-1.log /tmp/port-c-2.log
-# After a valid C++ executable exists, repeat with it and diff against C run 2.
-# timeout must stay outside faketime; no additional log normalization is used.
+diff -u /tmp/port-c-1.normalized.log /tmp/port-c-2.normalized.log
+diff -u /tmp/port-c-2.normalized.log /tmp/port-cxx-1.normalized.log
+sha256sum /tmp/port-c-{1,2}.log /tmp/port-cxx-1.log /tmp/port-*.normalized.log
+for port_renderer in opengl vulkan; do
+  timeout 90 xvfb-run -a /tmp/port-cxx/release-linux-x86_64/quake3e.x64 \
+    +set cl_renderer "$port_renderer" +set r_fullscreen 0 +set r_mode 3 \
+    +set s_initsound 0 +set com_introplayed 1 +map q3dm17 +wait 20 +quit
+done
+make -j20 BUILD_CLIENT=0 BUILD_DIR=/tmp/port-sanitize \
+  'CFLAGS=-fsanitize=address,undefined -fno-omit-frame-pointer' 'LDFLAGS=-fsanitize=address,undefined'
+ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS="suppressions=$PWD/tools/port/ubsan.supp:halt_on_error=1" \
+  timeout 90 /tmp/port-sanitize/release-linux-x86_64/quake3e.ded.x64 \
+  +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17 \
+  +addbot sarge 3 +addbot major 3 +wait 300 +quit
 ```
 
-GetRefAPI library proof used ctypes.CDLL(path).GetRefAPI on both libraries listed in `final-runtime-summary.log` (built in gcc-c1-release-sdl). It exercises dlopen/dlsym, not a client frame. The production client/static executable path remains blocked.
+CI is explicitly dispatched on the feature branch; branch dispatch cannot publish the public latest release. Always pass the fork repository because gh otherwise selects upstream.
+
+```sh
+gh workflow run build.yml -R msetaro/aftershock --ref t3code/port-engine-to-cpp20
+gh run watch RUN_ID -R msetaro/aftershock --interval 20 --exit-status
+gh run view RUN_ID -R msetaro/aftershock --log-failed
+```
 
 ## Per-file status
 
@@ -292,7 +321,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/qcommon/unzip.cpp` | done | T1: 10, T14: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unzip.o); G4 advisory difference retained. |
 | `code/qcommon/unzip.h` | done | T1-T17: 0; unchanged header checked via unzip.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/vm.cpp` | done | T1: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm.o); G4 advisory difference retained. |
-| `code/qcommon/vm_aarch64.cpp` | done | T1: 2 allocator result casts; T11 cache prototype in vm_local.h; aarch64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_aarch64.o); G4 advisory difference retained. |
+| `code/qcommon/vm_aarch64.cpp` | done | Additional MSVC ARM64 T1 VirtualAlloc cast; AArch64 pair passes; MSVC x64/ARM64 Debug/Release CI passes (34804759804).  T1: 2 allocator result casts; T11 cache prototype in vm_local.h; aarch64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_aarch64.o); G4 advisory difference retained. |
 | `code/qcommon/vm_armv7l.cpp` | done | T5 four external libgcc assembly imports; arm original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_armv7l.o); G4 advisory difference retained. |
 | `code/qcommon/vm_interpreted.cpp` | done | T1: 1; literal retained under frozen warning policy; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_interpreted.o); G4 advisory difference retained. |
 | `code/qcommon/vm_local.h` | done | Existing T4 edits; T11: correctly typed C-linkage declaration of existing GNU ARM runtime __clear_cache dependency. ARM/AArch64 65/65 C hashes unchanged; ARM vm_interpreted consumer strict C++/G2/G3 PASS; G4 advisory evidence cross-arm-vm_interpreted.codegen.diff.gz. |
@@ -381,7 +410,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/server/server.h` | done | T1-T17: 0; unchanged header verified through server consumers, strict native release/debug and G2/G3 PASS. |
 | `code/server/sv_bot.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_bot.o); G4 advisory difference retained. |
 | `code/server/sv_ccmds.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory difference retained. |
-| `code/server/sv_client.cpp` | done | T1: 2; T2: 4; T20: 1; T25: 1 preserving original C compound line; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_client.o, default); G4 advisory FAIL, full diff retained. |
+| `code/server/sv_client.cpp` | done | Port/runtime pass; only post-rename T25 cleanup blocked by Clang source checksum as detailed above.  T1: 2; T2: 4; T20: 1; T25: 1 preserving original C compound line; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_client.o, default); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_filter.cpp` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory difference retained. |
 | `code/server/sv_game.cpp` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (ded/sv_game.o); G4 advisory difference retained. |
 | `code/server/sv_init.cpp` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory difference retained. |
@@ -422,788 +451,681 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 
 ## Every retained current G4 difference
 
-G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not accepted evidence of identical behavior. The matching G2/G3 comparisons pass. Open each with `gzip -dc tools/port/evidence/<artifact>`. Reproduce with `python3 tools/port/compile_pair.py <Object> /tmp/port-pair <Make variables>` and `tools/port/codegen_gate.sh` on its .c.s/.cxx.s pair. Linux joystick is an empty default translation unit; both native inventories explicitly enable USE_JOYSTICK for its meaningful body gates. Its unchanged default C object hash is checked separately with the full manifest. Historical superseded diffs remain in git/evidence for audit (notably the original q_math failure); current q_math is G4/G5 PASS.
+All files below are under tools/port/evidence; use `gzip -dc` to read a diff. Reproduce with the object and Make variables shown, PORT_C_ORACLE set as above, then codegen_gate.sh on the emitted assembly pair. G4 is advisory; G2/G3 pass. Older retained differences and their exact commands remain indexed in `tools/port/evidence/historical-g4-index.md` and the historical JSON results.
 
-| Context | Object | Make variables | Full diff artifact under tools/port/evidence |
-|---|---|---|---|
-| native-tu | `ded/be_aas_bspq3.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_bspq3.diff.gz` |
-| native-tu | `ded/be_aas_cluster.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_cluster.diff.gz` |
-| native-tu | `ded/be_aas_debug.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_debug.diff.gz` |
-| native-tu | `ded/be_aas_file.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_file.diff.gz` |
-| native-tu | `ded/be_aas_reach.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_reach.diff.gz` |
-| native-tu | `ded/be_aas_route.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_route.diff.gz` |
-| native-tu | `ded/be_aas_routealt.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_routealt.diff.gz` |
-| native-tu | `ded/be_aas_sample.o` | `defaults` | `current-native-tu-botlib-ded-be_aas_sample.diff.gz` |
-| native-tu | `ded/be_ai_char.o` | `defaults` | `current-native-tu-botlib-ded-be_ai_char.diff.gz` |
-| native-tu | `ded/be_ai_chat.o` | `defaults` | `current-native-tu-botlib-ded-be_ai_chat.diff.gz` |
-| native-tu | `ded/be_ai_move.o` | `defaults` | `current-native-tu-botlib-ded-be_ai_move.diff.gz` |
-| native-tu | `ded/l_memory.o` | `defaults` | `current-native-tu-botlib-ded-l_memory.diff.gz` |
-| native-tu | `ded/l_precomp.o` | `defaults` | `current-native-tu-botlib-ded-l_precomp.diff.gz` |
-| native-tu | `ded/l_script.o` | `defaults` | `current-native-tu-botlib-ded-l_script.diff.gz` |
-| native-tu | `ded/l_struct.o` | `defaults` | `current-native-tu-botlib-ded-l_struct.diff.gz` |
-| native-tu | `client/cl_avi.o` | `defaults` | `current-native-tu-client-client-cl_avi.diff.gz` |
-| native-tu | `client/cl_cgame.o` | `defaults` | `current-native-tu-client-client-cl_cgame.diff.gz` |
-| native-tu | `client/cl_cin.o` | `defaults` | `current-native-tu-client-client-cl_cin.diff.gz` |
-| native-tu | `client/cl_console.o` | `defaults` | `current-native-tu-client-client-cl_console.diff.gz` |
-| native-tu | `client/cl_curl.o` | `defaults` | `current-native-tu-client-client-cl_curl.diff.gz` |
-| native-tu | `client/cl_input.o` | `defaults` | `current-native-tu-client-client-cl_input.diff.gz` |
-| native-tu | `client/cl_jpeg.o` | `defaults` | `current-native-tu-client-client-cl_jpeg.diff.gz` |
-| native-tu | `client/cl_keys.o` | `defaults` | `current-native-tu-client-client-cl_keys.diff.gz` |
-| native-tu | `client/cl_main.o` | `defaults` | `current-native-tu-client-client-cl_main.diff.gz` |
-| native-tu | `client/cl_net_chan.o` | `defaults` | `current-native-tu-client-client-cl_net_chan.diff.gz` |
-| native-tu | `client/cl_parse.o` | `defaults` | `current-native-tu-client-client-cl_parse.diff.gz` |
-| native-tu | `client/cl_scrn.o` | `defaults` | `current-native-tu-client-client-cl_scrn.diff.gz` |
-| native-tu | `client/cl_ui.o` | `defaults` | `current-native-tu-client-client-cl_ui.diff.gz` |
-| native-tu | `client/snd_dma.o` | `defaults` | `current-native-tu-client-client-snd_dma.diff.gz` |
-| native-tu | `client/snd_mem.o` | `defaults` | `current-native-tu-client-client-snd_mem.diff.gz` |
-| native-tu | `client/snd_mix.o` | `defaults` | `current-native-tu-client-client-snd_mix.diff.gz` |
-| native-tu | `ded/cm_load.o` | `defaults` | `current-native-tu-qcommon-ded-cm_load.diff.gz` |
-| native-tu | `ded/cm_patch.o` | `defaults` | `current-native-tu-qcommon-ded-cm_patch.diff.gz` |
-| native-tu | `ded/cm_trace.o` | `defaults` | `current-native-tu-qcommon-ded-cm_trace.diff.gz` |
-| native-tu | `ded/cmd.o` | `defaults` | `current-native-tu-qcommon-ded-cmd.diff.gz` |
-| native-tu | `ded/common.o` | `defaults` | `current-native-tu-qcommon-ded-common.diff.gz` |
-| native-tu | `ded/cvar.o` | `defaults` | `current-native-tu-qcommon-ded-cvar.diff.gz` |
-| native-tu | `ded/files.o` | `defaults` | `current-native-tu-qcommon-ded-files.diff.gz` |
-| native-tu | `ded/history.o` | `defaults` | `current-native-tu-qcommon-ded-history.diff.gz` |
-| native-tu | `ded/huffman.o` | `defaults` | `current-native-tu-qcommon-ded-huffman.diff.gz` |
-| native-tu | `ded/keys.o` | `defaults` | `current-native-tu-qcommon-ded-keys.diff.gz` |
-| native-tu | `ded/md5.o` | `defaults` | `current-native-tu-qcommon-ded-md5.diff.gz` |
-| native-tu | `ded/msg.o` | `defaults` | `current-native-tu-qcommon-ded-msg.diff.gz` |
-| native-tu | `ded/net_chan.o` | `defaults` | `current-native-tu-qcommon-ded-net_chan.diff.gz` |
-| native-tu | `ded/net_ip.o` | `defaults` | `current-native-tu-qcommon-ded-net_ip.diff.gz` |
-| native-tu | `client/puff.o` | `defaults` | `current-native-tu-qcommon-client-puff.diff.gz` |
-| native-tu | `ded/q_shared.o` | `defaults` | `current-native-tu-qcommon-ded-q_shared.diff.gz` |
-| native-tu | `ded/unzip.o` | `defaults` | `current-native-tu-qcommon-ded-unzip.diff.gz` |
-| native-tu | `ded/qvm/vm.o` | `defaults` | `current-native-tu-qcommon-ded-qvm-vm.diff.gz` |
-| native-tu | `ded/qvm/vm_interpreted.o` | `defaults` | `current-native-tu-qcommon-ded-qvm-vm_interpreted.diff.gz` |
-| native-tu | `ded/qvm/vm_x86.o` | `defaults` | `current-native-tu-qcommon-ded-qvm-vm_x86.diff.gz` |
-| native-tu | `rend1/tr_animation.o` | `defaults` | `current-native-tu-renderer-rend1-tr_animation.diff.gz` |
-| native-tu | `rend1/tr_arb.o` | `defaults` | `current-native-tu-renderer-rend1-tr_arb.diff.gz` |
-| native-tu | `rend1/tr_backend.o` | `defaults` | `current-native-tu-renderer-rend1-tr_backend.diff.gz` |
-| native-tu | `rend1/tr_bsp.o` | `defaults` | `current-native-tu-renderer-rend1-tr_bsp.diff.gz` |
-| native-tu | `rend1/tr_cmds.o` | `defaults` | `current-native-tu-renderer-rend1-tr_cmds.diff.gz` |
-| native-tu | `rend1/tr_curve.o` | `defaults` | `current-native-tu-renderer-rend1-tr_curve.diff.gz` |
-| native-tu | `rend1/tr_flares.o` | `defaults` | `current-native-tu-renderer-rend1-tr_flares.diff.gz` |
-| native-tu | `rend1/tr_image.o` | `defaults` | `current-native-tu-renderer-rend1-tr_image.diff.gz` |
-| native-tu | `rend1/tr_init.o` | `defaults` | `current-native-tu-renderer-rend1-tr_init.diff.gz` |
-| native-tu | `rend1/tr_light.o` | `defaults` | `current-native-tu-renderer-rend1-tr_light.diff.gz` |
-| native-tu | `rend1/tr_main.o` | `defaults` | `current-native-tu-renderer-rend1-tr_main.diff.gz` |
-| native-tu | `rend1/tr_mesh.o` | `defaults` | `current-native-tu-renderer-rend1-tr_mesh.diff.gz` |
-| native-tu | `rend1/tr_model.o` | `defaults` | `current-native-tu-renderer-rend1-tr_model.diff.gz` |
-| native-tu | `rend1/tr_model_iqm.o` | `defaults` | `current-native-tu-renderer-rend1-tr_model_iqm.diff.gz` |
-| native-tu | `rend1/tr_scene.o` | `defaults` | `current-native-tu-renderer-rend1-tr_scene.diff.gz` |
-| native-tu | `rend1/tr_shade.o` | `defaults` | `current-native-tu-renderer-rend1-tr_shade.diff.gz` |
-| native-tu | `rend1/tr_shade_calc.o` | `defaults` | `current-native-tu-renderer-rend1-tr_shade_calc.diff.gz` |
-| native-tu | `rend1/tr_shader.o` | `defaults` | `current-native-tu-renderer-rend1-tr_shader.diff.gz` |
-| native-tu | `rend1/tr_shadows.o` | `defaults` | `current-native-tu-renderer-rend1-tr_shadows.diff.gz` |
-| native-tu | `rend1/tr_sky.o` | `defaults` | `current-native-tu-renderer-rend1-tr_sky.diff.gz` |
-| native-tu | `rend1/tr_surface.o` | `defaults` | `current-native-tu-renderer-rend1-tr_surface.diff.gz` |
-| native-tu | `rend1/tr_vbo.o` | `defaults` | `current-native-tu-renderer-rend1-tr_vbo.diff.gz` |
-| native-tu | `rend1/tr_world.o` | `defaults` | `current-native-tu-renderer-rend1-tr_world.diff.gz` |
-| native-tu | `rend1/tr_image_tga.o` | `defaults` | `current-native-tu-renderercommon-rend1-tr_image_tga.diff.gz` |
-| native-tu | `rend1/tr_noise.o` | `defaults` | `current-native-tu-renderercommon-rend1-tr_noise.diff.gz` |
-| native-tu | `rendv/tr_animation.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_animation.diff.gz` |
-| native-tu | `rendv/tr_backend.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_backend.diff.gz` |
-| native-tu | `rendv/tr_bsp.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_bsp.diff.gz` |
-| native-tu | `rendv/tr_cmds.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_cmds.diff.gz` |
-| native-tu | `rendv/tr_curve.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_curve.diff.gz` |
-| native-tu | `rendv/tr_image.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_image.diff.gz` |
-| native-tu | `rendv/tr_init.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_init.diff.gz` |
-| native-tu | `rendv/tr_light.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_light.diff.gz` |
-| native-tu | `rendv/tr_main.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_main.diff.gz` |
-| native-tu | `rendv/tr_mesh.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_mesh.diff.gz` |
-| native-tu | `rendv/tr_model.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_model.diff.gz` |
-| native-tu | `rendv/tr_model_iqm.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_model_iqm.diff.gz` |
-| native-tu | `rendv/tr_scene.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_scene.diff.gz` |
-| native-tu | `rendv/tr_shade.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_shade.diff.gz` |
-| native-tu | `rendv/tr_shade_calc.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_shade_calc.diff.gz` |
-| native-tu | `rendv/tr_shader.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_shader.diff.gz` |
-| native-tu | `rendv/tr_shadows.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_shadows.diff.gz` |
-| native-tu | `rendv/tr_sky.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_sky.diff.gz` |
-| native-tu | `rendv/tr_surface.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_surface.diff.gz` |
-| native-tu | `rendv/tr_world.o` | `defaults` | `current-native-tu-renderervk-rendv-tr_world.diff.gz` |
-| native-tu | `rendv/vk.o` | `defaults` | `current-native-tu-renderervk-rendv-vk.diff.gz` |
-| native-tu | `rendv/vk_flares.o` | `defaults` | `current-native-tu-renderervk-rendv-vk_flares.diff.gz` |
-| native-tu | `rendv/vk_vbo.o` | `defaults` | `current-native-tu-renderervk-rendv-vk_vbo.diff.gz` |
-| native-tu | `client/sdl_input.o` | `defaults` | `current-native-tu-sdl-client-sdl_input.diff.gz` |
-| native-tu | `ded/sv_bot.o` | `defaults` | `current-native-tu-server-ded-sv_bot.diff.gz` |
-| native-tu | `ded/sv_ccmds.o` | `defaults` | `current-native-tu-server-ded-sv_ccmds.diff.gz` |
-| native-tu | `ded/sv_filter.o` | `defaults` | `current-native-tu-server-ded-sv_filter.diff.gz` |
-| native-tu | `ded/sv_game.o` | `defaults` | `current-native-tu-server-ded-sv_game.diff.gz` |
-| native-tu | `ded/sv_init.o` | `defaults` | `current-native-tu-server-ded-sv_init.diff.gz` |
-| native-tu | `ded/sv_main.o` | `defaults` | `current-native-tu-server-ded-sv_main.diff.gz` |
-| native-tu | `ded/sv_net_chan.o` | `defaults` | `current-native-tu-server-ded-sv_net_chan.diff.gz` |
-| native-tu | `ded/sv_snapshot.o` | `defaults` | `current-native-tu-server-ded-sv_snapshot.diff.gz` |
-| native-tu | `ded/sv_world.o` | `defaults` | `current-native-tu-server-ded-sv_world.diff.gz` |
-| native-tu | `client/linux_glimp.o` | `USE_SDL=0` | `current-native-tu-unix-client-linux_glimp.diff.gz` |
-| native-tu | `client/linux_joystick.o` | `USE_SDL=0 CFLAGS=-DUSE_JOYSTICK` | `current-native-tu-unix-client-linux_joystick.diff.gz` |
-| native-tu | `client/linux_qgl.o` | `USE_SDL=0` | `current-native-tu-unix-client-linux_qgl.diff.gz` |
-| native-tu | `client/linux_snd.o` | `USE_SDL=0` | `current-native-tu-unix-client-linux_snd.diff.gz` |
-| native-tu | `ded/unix_main.o` | `defaults` | `current-native-tu-unix-ded-unix_main.diff.gz` |
-| native-tu | `ded/unix_shared.o` | `defaults` | `current-native-tu-unix-ded-unix_shared.diff.gz` |
-| mingw64 | `client/be_aas_bspq3.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_bspq3.diff.gz` |
-| mingw64 | `client/be_aas_cluster.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_cluster.diff.gz` |
-| mingw64 | `client/be_aas_debug.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_debug.diff.gz` |
-| mingw64 | `client/be_aas_entity.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_entity.diff.gz` |
-| mingw64 | `client/be_aas_file.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_file.diff.gz` |
-| mingw64 | `client/be_aas_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_move.diff.gz` |
-| mingw64 | `client/be_aas_optimize.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_optimize.diff.gz` |
-| mingw64 | `client/be_aas_reach.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_reach.diff.gz` |
-| mingw64 | `client/be_aas_route.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_route.diff.gz` |
-| mingw64 | `client/be_aas_sample.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_aas_sample.diff.gz` |
-| mingw64 | `client/be_ai_char.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_ai_char.diff.gz` |
-| mingw64 | `client/be_ai_chat.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_ai_chat.diff.gz` |
-| mingw64 | `client/be_ai_goal.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_ai_goal.diff.gz` |
-| mingw64 | `client/be_ai_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-be_ai_move.diff.gz` |
-| mingw64 | `client/cl_avi.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_avi.diff.gz` |
-| mingw64 | `client/cl_cgame.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_cgame.diff.gz` |
-| mingw64 | `client/cl_console.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_console.diff.gz` |
-| mingw64 | `client/cl_curl.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_curl.diff.gz` |
-| mingw64 | `client/cl_input.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_input.diff.gz` |
-| mingw64 | `client/cl_jpeg.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_jpeg.diff.gz` |
-| mingw64 | `client/cl_keys.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_keys.diff.gz` |
-| mingw64 | `client/cl_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_main.diff.gz` |
-| mingw64 | `client/cl_net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_net_chan.diff.gz` |
-| mingw64 | `client/cl_parse.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_parse.diff.gz` |
-| mingw64 | `client/cl_scrn.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_scrn.diff.gz` |
-| mingw64 | `client/cl_ui.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cl_ui.diff.gz` |
-| mingw64 | `client/cm_load.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cm_load.diff.gz` |
-| mingw64 | `client/cm_patch.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cm_patch.diff.gz` |
-| mingw64 | `client/cm_test.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cm_test.diff.gz` |
-| mingw64 | `client/cm_trace.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cm_trace.diff.gz` |
-| mingw64 | `client/cmd.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cmd.diff.gz` |
-| mingw64 | `client/common.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-common.diff.gz` |
-| mingw64 | `client/cvar.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-cvar.diff.gz` |
-| mingw64 | `client/files.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-files.diff.gz` |
-| mingw64 | `client/history.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-history.diff.gz` |
-| mingw64 | `client/huffman.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-huffman.diff.gz` |
-| mingw64 | `client/keys.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-keys.diff.gz` |
-| mingw64 | `client/l_memory.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-l_memory.diff.gz` |
-| mingw64 | `client/l_precomp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-l_precomp.diff.gz` |
-| mingw64 | `client/l_script.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-l_script.diff.gz` |
-| mingw64 | `client/l_struct.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-l_struct.diff.gz` |
-| mingw64 | `client/md5.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-md5.diff.gz` |
-| mingw64 | `client/msg.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-msg.diff.gz` |
-| mingw64 | `client/net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-net_chan.diff.gz` |
-| mingw64 | `client/net_ip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-net_ip.diff.gz` |
-| mingw64 | `client/puff.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-puff.diff.gz` |
-| mingw64 | `client/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-q_math.diff.gz` |
-| mingw64 | `client/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-q_shared.diff.gz` |
-| mingw64 | `client/qvm/vm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-qvm-vm.diff.gz` |
-| mingw64 | `client/qvm/vm_interpreted.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-qvm-vm_interpreted.diff.gz` |
-| mingw64 | `client/qvm/vm_x86.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-qvm-vm_x86.diff.gz` |
-| mingw64 | `client/snd_dma.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-snd_dma.diff.gz` |
-| mingw64 | `client/snd_mem.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-snd_mem.diff.gz` |
-| mingw64 | `client/snd_mix.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-snd_mix.diff.gz` |
-| mingw64 | `client/sv_bot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_bot.diff.gz` |
-| mingw64 | `client/sv_ccmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_ccmds.diff.gz` |
-| mingw64 | `client/sv_filter.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_filter.diff.gz` |
-| mingw64 | `client/sv_game.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_game.diff.gz` |
-| mingw64 | `client/sv_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_init.diff.gz` |
-| mingw64 | `client/sv_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_main.diff.gz` |
-| mingw64 | `client/sv_net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_net_chan.diff.gz` |
-| mingw64 | `client/sv_snapshot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_snapshot.diff.gz` |
-| mingw64 | `client/sv_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-sv_world.diff.gz` |
-| mingw64 | `client/unzip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-unzip.diff.gz` |
-| mingw64 | `client/win_glimp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_glimp.diff.gz` |
-| mingw64 | `client/win_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_main.diff.gz` |
-| mingw64 | `client/win_minimize.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_minimize.diff.gz` |
-| mingw64 | `client/win_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_shared.diff.gz` |
-| mingw64 | `client/win_syscon.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_syscon.diff.gz` |
-| mingw64 | `client/win_wndproc.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-client-win_wndproc.diff.gz` |
-| mingw64 | `ded/be_aas_bspq3.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_bspq3.diff.gz` |
-| mingw64 | `ded/be_aas_cluster.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_cluster.diff.gz` |
-| mingw64 | `ded/be_aas_debug.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_debug.diff.gz` |
-| mingw64 | `ded/be_aas_entity.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_entity.diff.gz` |
-| mingw64 | `ded/be_aas_file.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_file.diff.gz` |
-| mingw64 | `ded/be_aas_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_move.diff.gz` |
-| mingw64 | `ded/be_aas_optimize.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_optimize.diff.gz` |
-| mingw64 | `ded/be_aas_reach.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_reach.diff.gz` |
-| mingw64 | `ded/be_aas_route.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_route.diff.gz` |
-| mingw64 | `ded/be_aas_sample.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_aas_sample.diff.gz` |
-| mingw64 | `ded/be_ai_char.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_ai_char.diff.gz` |
-| mingw64 | `ded/be_ai_chat.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_ai_chat.diff.gz` |
-| mingw64 | `ded/be_ai_goal.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_ai_goal.diff.gz` |
-| mingw64 | `ded/be_ai_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-be_ai_move.diff.gz` |
-| mingw64 | `ded/cm_load.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cm_load.diff.gz` |
-| mingw64 | `ded/cm_patch.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cm_patch.diff.gz` |
-| mingw64 | `ded/cm_test.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cm_test.diff.gz` |
-| mingw64 | `ded/cm_trace.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cm_trace.diff.gz` |
-| mingw64 | `ded/cmd.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cmd.diff.gz` |
-| mingw64 | `ded/common.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-common.diff.gz` |
-| mingw64 | `ded/cvar.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-cvar.diff.gz` |
-| mingw64 | `ded/files.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-files.diff.gz` |
-| mingw64 | `ded/history.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-history.diff.gz` |
-| mingw64 | `ded/huffman.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-huffman.diff.gz` |
-| mingw64 | `ded/keys.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-keys.diff.gz` |
-| mingw64 | `ded/l_memory.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-l_memory.diff.gz` |
-| mingw64 | `ded/l_precomp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-l_precomp.diff.gz` |
-| mingw64 | `ded/l_script.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-l_script.diff.gz` |
-| mingw64 | `ded/l_struct.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-l_struct.diff.gz` |
-| mingw64 | `ded/md5.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-md5.diff.gz` |
-| mingw64 | `ded/msg.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-msg.diff.gz` |
-| mingw64 | `ded/net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-net_chan.diff.gz` |
-| mingw64 | `ded/net_ip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-net_ip.diff.gz` |
-| mingw64 | `ded/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-q_math.diff.gz` |
-| mingw64 | `ded/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-q_shared.diff.gz` |
-| mingw64 | `ded/qvm/vm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-qvm-vm.diff.gz` |
-| mingw64 | `ded/qvm/vm_interpreted.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-qvm-vm_interpreted.diff.gz` |
-| mingw64 | `ded/qvm/vm_x86.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-qvm-vm_x86.diff.gz` |
-| mingw64 | `ded/sv_bot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_bot.diff.gz` |
-| mingw64 | `ded/sv_ccmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_ccmds.diff.gz` |
-| mingw64 | `ded/sv_filter.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_filter.diff.gz` |
-| mingw64 | `ded/sv_game.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_game.diff.gz` |
-| mingw64 | `ded/sv_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_init.diff.gz` |
-| mingw64 | `ded/sv_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_main.diff.gz` |
-| mingw64 | `ded/sv_net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_net_chan.diff.gz` |
-| mingw64 | `ded/sv_snapshot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_snapshot.diff.gz` |
-| mingw64 | `ded/sv_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-sv_world.diff.gz` |
-| mingw64 | `ded/unzip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-unzip.diff.gz` |
-| mingw64 | `ded/win_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-win_main.diff.gz` |
-| mingw64 | `ded/win_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-win_shared.diff.gz` |
-| mingw64 | `ded/win_syscon.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-ded-win_syscon.diff.gz` |
-| mingw64 | `rend1/puff.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-puff.diff.gz` |
-| mingw64 | `rend1/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-q_math.diff.gz` |
-| mingw64 | `rend1/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-q_shared.diff.gz` |
-| mingw64 | `rend1/tr_animation.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_animation.diff.gz` |
-| mingw64 | `rend1/tr_arb.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_arb.diff.gz` |
-| mingw64 | `rend1/tr_backend.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_backend.diff.gz` |
-| mingw64 | `rend1/tr_bsp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_bsp.diff.gz` |
-| mingw64 | `rend1/tr_cmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_cmds.diff.gz` |
-| mingw64 | `rend1/tr_curve.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_curve.diff.gz` |
-| mingw64 | `rend1/tr_flares.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_flares.diff.gz` |
-| mingw64 | `rend1/tr_image.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_image.diff.gz` |
-| mingw64 | `rend1/tr_image_tga.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_image_tga.diff.gz` |
-| mingw64 | `rend1/tr_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_init.diff.gz` |
-| mingw64 | `rend1/tr_light.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_light.diff.gz` |
-| mingw64 | `rend1/tr_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_main.diff.gz` |
-| mingw64 | `rend1/tr_marks.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_marks.diff.gz` |
-| mingw64 | `rend1/tr_mesh.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_mesh.diff.gz` |
-| mingw64 | `rend1/tr_model.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_model.diff.gz` |
-| mingw64 | `rend1/tr_model_iqm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_model_iqm.diff.gz` |
-| mingw64 | `rend1/tr_scene.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_scene.diff.gz` |
-| mingw64 | `rend1/tr_shade.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_shade.diff.gz` |
-| mingw64 | `rend1/tr_shade_calc.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_shade_calc.diff.gz` |
-| mingw64 | `rend1/tr_shader.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_shader.diff.gz` |
-| mingw64 | `rend1/tr_shadows.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_shadows.diff.gz` |
-| mingw64 | `rend1/tr_sky.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_sky.diff.gz` |
-| mingw64 | `rend1/tr_surface.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_surface.diff.gz` |
-| mingw64 | `rend1/tr_vbo.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_vbo.diff.gz` |
-| mingw64 | `rend1/tr_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rend1-tr_world.diff.gz` |
-| mingw64 | `rendv/puff.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-puff.diff.gz` |
-| mingw64 | `rendv/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-q_math.diff.gz` |
-| mingw64 | `rendv/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-q_shared.diff.gz` |
-| mingw64 | `rendv/tr_animation.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_animation.diff.gz` |
-| mingw64 | `rendv/tr_backend.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_backend.diff.gz` |
-| mingw64 | `rendv/tr_bsp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_bsp.diff.gz` |
-| mingw64 | `rendv/tr_cmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_cmds.diff.gz` |
-| mingw64 | `rendv/tr_curve.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_curve.diff.gz` |
-| mingw64 | `rendv/tr_image.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_image.diff.gz` |
-| mingw64 | `rendv/tr_image_tga.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_image_tga.diff.gz` |
-| mingw64 | `rendv/tr_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_init.diff.gz` |
-| mingw64 | `rendv/tr_light.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_light.diff.gz` |
-| mingw64 | `rendv/tr_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_main.diff.gz` |
-| mingw64 | `rendv/tr_marks.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_marks.diff.gz` |
-| mingw64 | `rendv/tr_mesh.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_mesh.diff.gz` |
-| mingw64 | `rendv/tr_model.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_model.diff.gz` |
-| mingw64 | `rendv/tr_model_iqm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_model_iqm.diff.gz` |
-| mingw64 | `rendv/tr_scene.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_scene.diff.gz` |
-| mingw64 | `rendv/tr_shade.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_shade.diff.gz` |
-| mingw64 | `rendv/tr_shade_calc.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_shade_calc.diff.gz` |
-| mingw64 | `rendv/tr_shader.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_shader.diff.gz` |
-| mingw64 | `rendv/tr_shadows.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_shadows.diff.gz` |
-| mingw64 | `rendv/tr_sky.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_sky.diff.gz` |
-| mingw64 | `rendv/tr_surface.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_surface.diff.gz` |
-| mingw64 | `rendv/tr_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-tr_world.diff.gz` |
-| mingw64 | `rendv/vk.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-vk.diff.gz` |
-| mingw64 | `rendv/vk_flares.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-vk_flares.diff.gz` |
-| mingw64 | `rendv/vk_vbo.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `current-cross-mingw64-rendv-vk_vbo.diff.gz` |
-| aarch64 | `ded/be_aas_bspq3.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_bspq3.diff.gz` |
-| aarch64 | `ded/be_aas_cluster.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_cluster.diff.gz` |
-| aarch64 | `ded/be_aas_debug.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_debug.diff.gz` |
-| aarch64 | `ded/be_aas_file.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_file.diff.gz` |
-| aarch64 | `ded/be_aas_reach.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_reach.diff.gz` |
-| aarch64 | `ded/be_aas_route.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_route.diff.gz` |
-| aarch64 | `ded/be_aas_routealt.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_routealt.diff.gz` |
-| aarch64 | `ded/be_aas_sample.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_aas_sample.diff.gz` |
-| aarch64 | `ded/be_ai_char.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_ai_char.diff.gz` |
-| aarch64 | `ded/be_ai_chat.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_ai_chat.diff.gz` |
-| aarch64 | `ded/be_ai_move.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-be_ai_move.diff.gz` |
-| aarch64 | `ded/cm_load.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-cm_load.diff.gz` |
-| aarch64 | `ded/cm_patch.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-cm_patch.diff.gz` |
-| aarch64 | `ded/cm_trace.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-cm_trace.diff.gz` |
-| aarch64 | `ded/cmd.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-cmd.diff.gz` |
-| aarch64 | `ded/common.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-common.diff.gz` |
-| aarch64 | `ded/cvar.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-cvar.diff.gz` |
-| aarch64 | `ded/files.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-files.diff.gz` |
-| aarch64 | `ded/history.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-history.diff.gz` |
-| aarch64 | `ded/huffman.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-huffman.diff.gz` |
-| aarch64 | `ded/keys.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-keys.diff.gz` |
-| aarch64 | `ded/l_memory.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-l_memory.diff.gz` |
-| aarch64 | `ded/l_precomp.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-l_precomp.diff.gz` |
-| aarch64 | `ded/l_script.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-l_script.diff.gz` |
-| aarch64 | `ded/l_struct.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-l_struct.diff.gz` |
-| aarch64 | `ded/md5.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-md5.diff.gz` |
-| aarch64 | `ded/msg.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-msg.diff.gz` |
-| aarch64 | `ded/net_chan.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-net_chan.diff.gz` |
-| aarch64 | `ded/net_ip.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-net_ip.diff.gz` |
-| aarch64 | `ded/q_shared.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-q_shared.diff.gz` |
-| aarch64 | `ded/qvm/vm.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-qvm-vm.diff.gz` |
-| aarch64 | `ded/qvm/vm_aarch64.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-qvm-vm_aarch64.diff.gz` |
-| aarch64 | `ded/qvm/vm_interpreted.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-qvm-vm_interpreted.diff.gz` |
-| aarch64 | `ded/sv_bot.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_bot.diff.gz` |
-| aarch64 | `ded/sv_ccmds.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_ccmds.diff.gz` |
-| aarch64 | `ded/sv_filter.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_filter.diff.gz` |
-| aarch64 | `ded/sv_game.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_game.diff.gz` |
-| aarch64 | `ded/sv_init.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_init.diff.gz` |
-| aarch64 | `ded/sv_main.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_main.diff.gz` |
-| aarch64 | `ded/sv_net_chan.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_net_chan.diff.gz` |
-| aarch64 | `ded/sv_snapshot.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_snapshot.diff.gz` |
-| aarch64 | `ded/sv_world.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-sv_world.diff.gz` |
-| aarch64 | `ded/unix_main.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-unix_main.diff.gz` |
-| aarch64 | `ded/unix_shared.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-unix_shared.diff.gz` |
-| aarch64 | `ded/unzip.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `current-cross-aarch64-ded-unzip.diff.gz` |
-| arm | `ded/be_aas_bspq3.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_bspq3.diff.gz` |
-| arm | `ded/be_aas_cluster.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_cluster.diff.gz` |
-| arm | `ded/be_aas_debug.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_debug.diff.gz` |
-| arm | `ded/be_aas_file.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_file.diff.gz` |
-| arm | `ded/be_aas_reach.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_reach.diff.gz` |
-| arm | `ded/be_aas_route.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_route.diff.gz` |
-| arm | `ded/be_aas_routealt.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_routealt.diff.gz` |
-| arm | `ded/be_aas_sample.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_aas_sample.diff.gz` |
-| arm | `ded/be_ai_char.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_ai_char.diff.gz` |
-| arm | `ded/be_ai_chat.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_ai_chat.diff.gz` |
-| arm | `ded/be_ai_move.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-be_ai_move.diff.gz` |
-| arm | `ded/cm_load.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-cm_load.diff.gz` |
-| arm | `ded/cm_patch.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-cm_patch.diff.gz` |
-| arm | `ded/cm_trace.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-cm_trace.diff.gz` |
-| arm | `ded/cmd.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-cmd.diff.gz` |
-| arm | `ded/common.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-common.diff.gz` |
-| arm | `ded/cvar.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-cvar.diff.gz` |
-| arm | `ded/files.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-files.diff.gz` |
-| arm | `ded/history.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-history.diff.gz` |
-| arm | `ded/huffman.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-huffman.diff.gz` |
-| arm | `ded/keys.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-keys.diff.gz` |
-| arm | `ded/l_memory.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-l_memory.diff.gz` |
-| arm | `ded/l_precomp.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-l_precomp.diff.gz` |
-| arm | `ded/l_script.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-l_script.diff.gz` |
-| arm | `ded/l_struct.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-l_struct.diff.gz` |
-| arm | `ded/md5.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-md5.diff.gz` |
-| arm | `ded/msg.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-msg.diff.gz` |
-| arm | `ded/net_chan.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-net_chan.diff.gz` |
-| arm | `ded/net_ip.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-net_ip.diff.gz` |
-| arm | `ded/q_math.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-q_math.diff.gz` |
-| arm | `ded/q_shared.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-q_shared.diff.gz` |
-| arm | `ded/qvm/vm.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-qvm-vm.diff.gz` |
-| arm | `ded/qvm/vm_armv7l.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-qvm-vm_armv7l.diff.gz` |
-| arm | `ded/qvm/vm_interpreted.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-qvm-vm_interpreted.diff.gz` |
-| arm | `ded/sv_bot.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_bot.diff.gz` |
-| arm | `ded/sv_ccmds.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_ccmds.diff.gz` |
-| arm | `ded/sv_filter.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_filter.diff.gz` |
-| arm | `ded/sv_game.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_game.diff.gz` |
-| arm | `ded/sv_init.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_init.diff.gz` |
-| arm | `ded/sv_main.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_main.diff.gz` |
-| arm | `ded/sv_net_chan.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_net_chan.diff.gz` |
-| arm | `ded/sv_snapshot.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_snapshot.diff.gz` |
-| arm | `ded/sv_world.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-sv_world.diff.gz` |
-| arm | `ded/unix_main.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-unix_main.diff.gz` |
-| arm | `ded/unix_shared.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-unix_shared.diff.gz` |
-| arm | `ded/unzip.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `current-cross-arm-ded-unzip.diff.gz` |
-| ppc64le | `ded/be_aas_bspq3.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_bspq3.diff.gz` |
-| ppc64le | `ded/be_aas_cluster.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_cluster.diff.gz` |
-| ppc64le | `ded/be_aas_debug.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_debug.diff.gz` |
-| ppc64le | `ded/be_aas_entity.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_entity.diff.gz` |
-| ppc64le | `ded/be_aas_file.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_file.diff.gz` |
-| ppc64le | `ded/be_aas_main.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_main.diff.gz` |
-| ppc64le | `ded/be_aas_move.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_move.diff.gz` |
-| ppc64le | `ded/be_aas_optimize.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_optimize.diff.gz` |
-| ppc64le | `ded/be_aas_reach.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_reach.diff.gz` |
-| ppc64le | `ded/be_aas_route.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_route.diff.gz` |
-| ppc64le | `ded/be_aas_routealt.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_routealt.diff.gz` |
-| ppc64le | `ded/be_aas_sample.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_aas_sample.diff.gz` |
-| ppc64le | `ded/be_ai_char.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_char.diff.gz` |
-| ppc64le | `ded/be_ai_chat.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_chat.diff.gz` |
-| ppc64le | `ded/be_ai_gen.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_gen.diff.gz` |
-| ppc64le | `ded/be_ai_goal.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_goal.diff.gz` |
-| ppc64le | `ded/be_ai_move.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_move.diff.gz` |
-| ppc64le | `ded/be_ai_weap.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_weap.diff.gz` |
-| ppc64le | `ded/be_ai_weight.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ai_weight.diff.gz` |
-| ppc64le | `ded/be_ea.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_ea.diff.gz` |
-| ppc64le | `ded/be_interface.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-be_interface.diff.gz` |
-| ppc64le | `ded/cm_load.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cm_load.diff.gz` |
-| ppc64le | `ded/cm_patch.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cm_patch.diff.gz` |
-| ppc64le | `ded/cm_polylib.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cm_polylib.diff.gz` |
-| ppc64le | `ded/cm_test.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cm_test.diff.gz` |
-| ppc64le | `ded/cm_trace.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cm_trace.diff.gz` |
-| ppc64le | `ded/cmd.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cmd.diff.gz` |
-| ppc64le | `ded/common.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-common.diff.gz` |
-| ppc64le | `ded/cvar.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-cvar.diff.gz` |
-| ppc64le | `ded/files.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-files.diff.gz` |
-| ppc64le | `ded/history.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-history.diff.gz` |
-| ppc64le | `ded/huffman.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-huffman.diff.gz` |
-| ppc64le | `ded/huffman_static.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-huffman_static.diff.gz` |
-| ppc64le | `ded/keys.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-keys.diff.gz` |
-| ppc64le | `ded/l_crc.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_crc.diff.gz` |
-| ppc64le | `ded/l_libvar.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_libvar.diff.gz` |
-| ppc64le | `ded/l_log.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_log.diff.gz` |
-| ppc64le | `ded/l_memory.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_memory.diff.gz` |
-| ppc64le | `ded/l_precomp.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_precomp.diff.gz` |
-| ppc64le | `ded/l_script.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_script.diff.gz` |
-| ppc64le | `ded/l_struct.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-l_struct.diff.gz` |
-| ppc64le | `ded/linux_signals.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-linux_signals.diff.gz` |
-| ppc64le | `ded/md4.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-md4.diff.gz` |
-| ppc64le | `ded/md5.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-md5.diff.gz` |
-| ppc64le | `ded/msg.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-msg.diff.gz` |
-| ppc64le | `ded/net_chan.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-net_chan.diff.gz` |
-| ppc64le | `ded/net_ip.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-net_ip.diff.gz` |
-| ppc64le | `ded/q_math.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-q_math.diff.gz` |
-| ppc64le | `ded/q_shared.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-q_shared.diff.gz` |
-| ppc64le | `ded/qvm/vm.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-qvm-vm.diff.gz` |
-| ppc64le | `ded/qvm/vm_interpreted.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-qvm-vm_interpreted.diff.gz` |
-| ppc64le | `ded/qvm/vm_powerpc.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-qvm-vm_powerpc.diff.gz` |
-| ppc64le | `ded/sv_bot.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_bot.diff.gz` |
-| ppc64le | `ded/sv_ccmds.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_ccmds.diff.gz` |
-| ppc64le | `ded/sv_filter.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_filter.diff.gz` |
-| ppc64le | `ded/sv_game.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_game.diff.gz` |
-| ppc64le | `ded/sv_init.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_init.diff.gz` |
-| ppc64le | `ded/sv_main.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_main.diff.gz` |
-| ppc64le | `ded/sv_net_chan.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_net_chan.diff.gz` |
-| ppc64le | `ded/sv_snapshot.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_snapshot.diff.gz` |
-| ppc64le | `ded/sv_world.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-sv_world.diff.gz` |
-| ppc64le | `ded/unix_main.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-unix_main.diff.gz` |
-| ppc64le | `ded/unix_shared.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-unix_shared.diff.gz` |
-| ppc64le | `ded/unzip.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `current-cross-ppc64le-ded-unzip.diff.gz` |
-| native | `client/be_aas_bspq3.o` | `defaults` | `current-native-context-native-client-be_aas_bspq3.diff.gz` |
-| native | `client/be_aas_cluster.o` | `defaults` | `current-native-context-native-client-be_aas_cluster.diff.gz` |
-| native | `client/be_aas_debug.o` | `defaults` | `current-native-context-native-client-be_aas_debug.diff.gz` |
-| native | `client/be_aas_file.o` | `defaults` | `current-native-context-native-client-be_aas_file.diff.gz` |
-| native | `client/be_aas_reach.o` | `defaults` | `current-native-context-native-client-be_aas_reach.diff.gz` |
-| native | `client/be_aas_route.o` | `defaults` | `current-native-context-native-client-be_aas_route.diff.gz` |
-| native | `client/be_aas_routealt.o` | `defaults` | `current-native-context-native-client-be_aas_routealt.diff.gz` |
-| native | `client/be_aas_sample.o` | `defaults` | `current-native-context-native-client-be_aas_sample.diff.gz` |
-| native | `client/be_ai_char.o` | `defaults` | `current-native-context-native-client-be_ai_char.diff.gz` |
-| native | `client/be_ai_chat.o` | `defaults` | `current-native-context-native-client-be_ai_chat.diff.gz` |
-| native | `client/be_ai_move.o` | `defaults` | `current-native-context-native-client-be_ai_move.diff.gz` |
-| native | `client/cl_avi.o` | `defaults` | `current-native-context-native-client-cl_avi.diff.gz` |
-| native | `client/cl_cgame.o` | `defaults` | `current-native-context-native-client-cl_cgame.diff.gz` |
-| native | `client/cl_cin.o` | `defaults` | `current-native-context-native-client-cl_cin.diff.gz` |
-| native | `client/cl_console.o` | `defaults` | `current-native-context-native-client-cl_console.diff.gz` |
-| native | `client/cl_curl.o` | `defaults` | `current-native-context-native-client-cl_curl.diff.gz` |
-| native | `client/cl_input.o` | `defaults` | `current-native-context-native-client-cl_input.diff.gz` |
-| native | `client/cl_jpeg.o` | `defaults` | `current-native-context-native-client-cl_jpeg.diff.gz` |
-| native | `client/cl_keys.o` | `defaults` | `current-native-context-native-client-cl_keys.diff.gz` |
-| native | `client/cl_main.o` | `defaults` | `current-native-context-native-client-cl_main.diff.gz` |
-| native | `client/cl_net_chan.o` | `defaults` | `current-native-context-native-client-cl_net_chan.diff.gz` |
-| native | `client/cl_parse.o` | `defaults` | `current-native-context-native-client-cl_parse.diff.gz` |
-| native | `client/cl_scrn.o` | `defaults` | `current-native-context-native-client-cl_scrn.diff.gz` |
-| native | `client/cl_ui.o` | `defaults` | `current-native-context-native-client-cl_ui.diff.gz` |
-| native | `client/cm_load.o` | `defaults` | `current-native-context-native-client-cm_load.diff.gz` |
-| native | `client/cm_patch.o` | `defaults` | `current-native-context-native-client-cm_patch.diff.gz` |
-| native | `client/cm_trace.o` | `defaults` | `current-native-context-native-client-cm_trace.diff.gz` |
-| native | `client/cmd.o` | `defaults` | `current-native-context-native-client-cmd.diff.gz` |
-| native | `client/common.o` | `defaults` | `current-native-context-native-client-common.diff.gz` |
-| native | `client/cvar.o` | `defaults` | `current-native-context-native-client-cvar.diff.gz` |
-| native | `client/files.o` | `defaults` | `current-native-context-native-client-files.diff.gz` |
-| native | `client/history.o` | `defaults` | `current-native-context-native-client-history.diff.gz` |
-| native | `client/huffman.o` | `defaults` | `current-native-context-native-client-huffman.diff.gz` |
-| native | `client/keys.o` | `defaults` | `current-native-context-native-client-keys.diff.gz` |
-| native | `client/l_memory.o` | `defaults` | `current-native-context-native-client-l_memory.diff.gz` |
-| native | `client/l_precomp.o` | `defaults` | `current-native-context-native-client-l_precomp.diff.gz` |
-| native | `client/l_script.o` | `defaults` | `current-native-context-native-client-l_script.diff.gz` |
-| native | `client/l_struct.o` | `defaults` | `current-native-context-native-client-l_struct.diff.gz` |
-| native | `client/md5.o` | `defaults` | `current-native-context-native-client-md5.diff.gz` |
-| native | `client/msg.o` | `defaults` | `current-native-context-native-client-msg.diff.gz` |
-| native | `client/net_chan.o` | `defaults` | `current-native-context-native-client-net_chan.diff.gz` |
-| native | `client/net_ip.o` | `defaults` | `current-native-context-native-client-net_ip.diff.gz` |
-| native | `client/puff.o` | `defaults` | `current-native-context-native-client-puff.diff.gz` |
-| native | `client/q_shared.o` | `defaults` | `current-native-context-native-client-q_shared.diff.gz` |
-| native | `client/qvm/vm.o` | `defaults` | `current-native-context-native-client-qvm-vm.diff.gz` |
-| native | `client/qvm/vm_interpreted.o` | `defaults` | `current-native-context-native-client-qvm-vm_interpreted.diff.gz` |
-| native | `client/qvm/vm_x86.o` | `defaults` | `current-native-context-native-client-qvm-vm_x86.diff.gz` |
-| native | `client/sdl_input.o` | `defaults` | `current-native-context-native-client-sdl_input.diff.gz` |
-| native | `client/snd_dma.o` | `defaults` | `current-native-context-native-client-snd_dma.diff.gz` |
-| native | `client/snd_mem.o` | `defaults` | `current-native-context-native-client-snd_mem.diff.gz` |
-| native | `client/snd_mix.o` | `defaults` | `current-native-context-native-client-snd_mix.diff.gz` |
-| native | `client/sv_bot.o` | `defaults` | `current-native-context-native-client-sv_bot.diff.gz` |
-| native | `client/sv_ccmds.o` | `defaults` | `current-native-context-native-client-sv_ccmds.diff.gz` |
-| native | `client/sv_filter.o` | `defaults` | `current-native-context-native-client-sv_filter.diff.gz` |
-| native | `client/sv_game.o` | `defaults` | `current-native-context-native-client-sv_game.diff.gz` |
-| native | `client/sv_init.o` | `defaults` | `current-native-context-native-client-sv_init.diff.gz` |
-| native | `client/sv_main.o` | `defaults` | `current-native-context-native-client-sv_main.diff.gz` |
-| native | `client/sv_net_chan.o` | `defaults` | `current-native-context-native-client-sv_net_chan.diff.gz` |
-| native | `client/sv_snapshot.o` | `defaults` | `current-native-context-native-client-sv_snapshot.diff.gz` |
-| native | `client/sv_world.o` | `defaults` | `current-native-context-native-client-sv_world.diff.gz` |
-| native | `client/unix_main.o` | `defaults` | `current-native-context-native-client-unix_main.diff.gz` |
-| native | `client/unix_shared.o` | `defaults` | `current-native-context-native-client-unix_shared.diff.gz` |
-| native | `client/unzip.o` | `defaults` | `current-native-context-native-client-unzip.diff.gz` |
-| native | `ded/be_aas_bspq3.o` | `defaults` | `current-native-context-native-ded-be_aas_bspq3.diff.gz` |
-| native | `ded/be_aas_cluster.o` | `defaults` | `current-native-context-native-ded-be_aas_cluster.diff.gz` |
-| native | `ded/be_aas_debug.o` | `defaults` | `current-native-context-native-ded-be_aas_debug.diff.gz` |
-| native | `ded/be_aas_file.o` | `defaults` | `current-native-context-native-ded-be_aas_file.diff.gz` |
-| native | `ded/be_aas_reach.o` | `defaults` | `current-native-context-native-ded-be_aas_reach.diff.gz` |
-| native | `ded/be_aas_route.o` | `defaults` | `current-native-context-native-ded-be_aas_route.diff.gz` |
-| native | `ded/be_aas_routealt.o` | `defaults` | `current-native-context-native-ded-be_aas_routealt.diff.gz` |
-| native | `ded/be_aas_sample.o` | `defaults` | `current-native-context-native-ded-be_aas_sample.diff.gz` |
-| native | `ded/be_ai_char.o` | `defaults` | `current-native-context-native-ded-be_ai_char.diff.gz` |
-| native | `ded/be_ai_chat.o` | `defaults` | `current-native-context-native-ded-be_ai_chat.diff.gz` |
-| native | `ded/be_ai_move.o` | `defaults` | `current-native-context-native-ded-be_ai_move.diff.gz` |
-| native | `ded/cm_load.o` | `defaults` | `current-native-context-native-ded-cm_load.diff.gz` |
-| native | `ded/cm_patch.o` | `defaults` | `current-native-context-native-ded-cm_patch.diff.gz` |
-| native | `ded/cm_trace.o` | `defaults` | `current-native-context-native-ded-cm_trace.diff.gz` |
-| native | `ded/cmd.o` | `defaults` | `current-native-context-native-ded-cmd.diff.gz` |
-| native | `ded/common.o` | `defaults` | `current-native-context-native-ded-common.diff.gz` |
-| native | `ded/cvar.o` | `defaults` | `current-native-context-native-ded-cvar.diff.gz` |
-| native | `ded/files.o` | `defaults` | `current-native-context-native-ded-files.diff.gz` |
-| native | `ded/history.o` | `defaults` | `current-native-context-native-ded-history.diff.gz` |
-| native | `ded/huffman.o` | `defaults` | `current-native-context-native-ded-huffman.diff.gz` |
-| native | `ded/keys.o` | `defaults` | `current-native-context-native-ded-keys.diff.gz` |
-| native | `ded/l_memory.o` | `defaults` | `current-native-context-native-ded-l_memory.diff.gz` |
-| native | `ded/l_precomp.o` | `defaults` | `current-native-context-native-ded-l_precomp.diff.gz` |
-| native | `ded/l_script.o` | `defaults` | `current-native-context-native-ded-l_script.diff.gz` |
-| native | `ded/l_struct.o` | `defaults` | `current-native-context-native-ded-l_struct.diff.gz` |
-| native | `ded/md5.o` | `defaults` | `current-native-context-native-ded-md5.diff.gz` |
-| native | `ded/msg.o` | `defaults` | `current-native-context-native-ded-msg.diff.gz` |
-| native | `ded/net_chan.o` | `defaults` | `current-native-context-native-ded-net_chan.diff.gz` |
-| native | `ded/net_ip.o` | `defaults` | `current-native-context-native-ded-net_ip.diff.gz` |
-| native | `ded/q_shared.o` | `defaults` | `current-native-context-native-ded-q_shared.diff.gz` |
-| native | `ded/qvm/vm.o` | `defaults` | `current-native-context-native-ded-qvm-vm.diff.gz` |
-| native | `ded/qvm/vm_interpreted.o` | `defaults` | `current-native-context-native-ded-qvm-vm_interpreted.diff.gz` |
-| native | `ded/qvm/vm_x86.o` | `defaults` | `current-native-context-native-ded-qvm-vm_x86.diff.gz` |
-| native | `ded/sv_bot.o` | `defaults` | `current-native-context-native-ded-sv_bot.diff.gz` |
-| native | `ded/sv_ccmds.o` | `defaults` | `current-native-context-native-ded-sv_ccmds.diff.gz` |
-| native | `ded/sv_filter.o` | `defaults` | `current-native-context-native-ded-sv_filter.diff.gz` |
-| native | `ded/sv_game.o` | `defaults` | `current-native-context-native-ded-sv_game.diff.gz` |
-| native | `ded/sv_init.o` | `defaults` | `current-native-context-native-ded-sv_init.diff.gz` |
-| native | `ded/sv_main.o` | `defaults` | `current-native-context-native-ded-sv_main.diff.gz` |
-| native | `ded/sv_net_chan.o` | `defaults` | `current-native-context-native-ded-sv_net_chan.diff.gz` |
-| native | `ded/sv_snapshot.o` | `defaults` | `current-native-context-native-ded-sv_snapshot.diff.gz` |
-| native | `ded/sv_world.o` | `defaults` | `current-native-context-native-ded-sv_world.diff.gz` |
-| native | `ded/unix_main.o` | `defaults` | `current-native-context-native-ded-unix_main.diff.gz` |
-| native | `ded/unix_shared.o` | `defaults` | `current-native-context-native-ded-unix_shared.diff.gz` |
-| native | `ded/unzip.o` | `defaults` | `current-native-context-native-ded-unzip.diff.gz` |
-| native | `rend1/puff.o` | `defaults` | `current-native-context-native-rend1-puff.diff.gz` |
-| native | `rend1/q_shared.o` | `defaults` | `current-native-context-native-rend1-q_shared.diff.gz` |
-| native | `rend1/tr_animation.o` | `defaults` | `current-native-context-native-rend1-tr_animation.diff.gz` |
-| native | `rend1/tr_arb.o` | `defaults` | `current-native-context-native-rend1-tr_arb.diff.gz` |
-| native | `rend1/tr_backend.o` | `defaults` | `current-native-context-native-rend1-tr_backend.diff.gz` |
-| native | `rend1/tr_bsp.o` | `defaults` | `current-native-context-native-rend1-tr_bsp.diff.gz` |
-| native | `rend1/tr_cmds.o` | `defaults` | `current-native-context-native-rend1-tr_cmds.diff.gz` |
-| native | `rend1/tr_curve.o` | `defaults` | `current-native-context-native-rend1-tr_curve.diff.gz` |
-| native | `rend1/tr_flares.o` | `defaults` | `current-native-context-native-rend1-tr_flares.diff.gz` |
-| native | `rend1/tr_image.o` | `defaults` | `current-native-context-native-rend1-tr_image.diff.gz` |
-| native | `rend1/tr_image_tga.o` | `defaults` | `current-native-context-native-rend1-tr_image_tga.diff.gz` |
-| native | `rend1/tr_init.o` | `defaults` | `current-native-context-native-rend1-tr_init.diff.gz` |
-| native | `rend1/tr_light.o` | `defaults` | `current-native-context-native-rend1-tr_light.diff.gz` |
-| native | `rend1/tr_main.o` | `defaults` | `current-native-context-native-rend1-tr_main.diff.gz` |
-| native | `rend1/tr_mesh.o` | `defaults` | `current-native-context-native-rend1-tr_mesh.diff.gz` |
-| native | `rend1/tr_model.o` | `defaults` | `current-native-context-native-rend1-tr_model.diff.gz` |
-| native | `rend1/tr_model_iqm.o` | `defaults` | `current-native-context-native-rend1-tr_model_iqm.diff.gz` |
-| native | `rend1/tr_noise.o` | `defaults` | `current-native-context-native-rend1-tr_noise.diff.gz` |
-| native | `rend1/tr_scene.o` | `defaults` | `current-native-context-native-rend1-tr_scene.diff.gz` |
-| native | `rend1/tr_shade.o` | `defaults` | `current-native-context-native-rend1-tr_shade.diff.gz` |
-| native | `rend1/tr_shade_calc.o` | `defaults` | `current-native-context-native-rend1-tr_shade_calc.diff.gz` |
-| native | `rend1/tr_shader.o` | `defaults` | `current-native-context-native-rend1-tr_shader.diff.gz` |
-| native | `rend1/tr_shadows.o` | `defaults` | `current-native-context-native-rend1-tr_shadows.diff.gz` |
-| native | `rend1/tr_sky.o` | `defaults` | `current-native-context-native-rend1-tr_sky.diff.gz` |
-| native | `rend1/tr_surface.o` | `defaults` | `current-native-context-native-rend1-tr_surface.diff.gz` |
-| native | `rend1/tr_vbo.o` | `defaults` | `current-native-context-native-rend1-tr_vbo.diff.gz` |
-| native | `rend1/tr_world.o` | `defaults` | `current-native-context-native-rend1-tr_world.diff.gz` |
-| native | `rendv/puff.o` | `defaults` | `current-native-context-native-rendv-puff.diff.gz` |
-| native | `rendv/q_shared.o` | `defaults` | `current-native-context-native-rendv-q_shared.diff.gz` |
-| native | `rendv/tr_animation.o` | `defaults` | `current-native-context-native-rendv-tr_animation.diff.gz` |
-| native | `rendv/tr_backend.o` | `defaults` | `current-native-context-native-rendv-tr_backend.diff.gz` |
-| native | `rendv/tr_bsp.o` | `defaults` | `current-native-context-native-rendv-tr_bsp.diff.gz` |
-| native | `rendv/tr_cmds.o` | `defaults` | `current-native-context-native-rendv-tr_cmds.diff.gz` |
-| native | `rendv/tr_curve.o` | `defaults` | `current-native-context-native-rendv-tr_curve.diff.gz` |
-| native | `rendv/tr_image.o` | `defaults` | `current-native-context-native-rendv-tr_image.diff.gz` |
-| native | `rendv/tr_image_tga.o` | `defaults` | `current-native-context-native-rendv-tr_image_tga.diff.gz` |
-| native | `rendv/tr_init.o` | `defaults` | `current-native-context-native-rendv-tr_init.diff.gz` |
-| native | `rendv/tr_light.o` | `defaults` | `current-native-context-native-rendv-tr_light.diff.gz` |
-| native | `rendv/tr_main.o` | `defaults` | `current-native-context-native-rendv-tr_main.diff.gz` |
-| native | `rendv/tr_mesh.o` | `defaults` | `current-native-context-native-rendv-tr_mesh.diff.gz` |
-| native | `rendv/tr_model.o` | `defaults` | `current-native-context-native-rendv-tr_model.diff.gz` |
-| native | `rendv/tr_model_iqm.o` | `defaults` | `current-native-context-native-rendv-tr_model_iqm.diff.gz` |
-| native | `rendv/tr_noise.o` | `defaults` | `current-native-context-native-rendv-tr_noise.diff.gz` |
-| native | `rendv/tr_scene.o` | `defaults` | `current-native-context-native-rendv-tr_scene.diff.gz` |
-| native | `rendv/tr_shade.o` | `defaults` | `current-native-context-native-rendv-tr_shade.diff.gz` |
-| native | `rendv/tr_shade_calc.o` | `defaults` | `current-native-context-native-rendv-tr_shade_calc.diff.gz` |
-| native | `rendv/tr_shader.o` | `defaults` | `current-native-context-native-rendv-tr_shader.diff.gz` |
-| native | `rendv/tr_shadows.o` | `defaults` | `current-native-context-native-rendv-tr_shadows.diff.gz` |
-| native | `rendv/tr_sky.o` | `defaults` | `current-native-context-native-rendv-tr_sky.diff.gz` |
-| native | `rendv/tr_surface.o` | `defaults` | `current-native-context-native-rendv-tr_surface.diff.gz` |
-| native | `rendv/tr_world.o` | `defaults` | `current-native-context-native-rendv-tr_world.diff.gz` |
-| native | `rendv/vk.o` | `defaults` | `current-native-context-native-rendv-vk.diff.gz` |
-| native | `rendv/vk_flares.o` | `defaults` | `current-native-context-native-rendv-vk_flares.diff.gz` |
-| native | `rendv/vk_vbo.o` | `defaults` | `current-native-context-native-rendv-vk_vbo.diff.gz` |
-| native-nosdl | `client/be_aas_bspq3.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_bspq3.diff.gz` |
-| native-nosdl | `client/be_aas_cluster.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_cluster.diff.gz` |
-| native-nosdl | `client/be_aas_debug.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_debug.diff.gz` |
-| native-nosdl | `client/be_aas_file.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_file.diff.gz` |
-| native-nosdl | `client/be_aas_reach.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_reach.diff.gz` |
-| native-nosdl | `client/be_aas_route.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_route.diff.gz` |
-| native-nosdl | `client/be_aas_routealt.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_routealt.diff.gz` |
-| native-nosdl | `client/be_aas_sample.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_aas_sample.diff.gz` |
-| native-nosdl | `client/be_ai_char.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_ai_char.diff.gz` |
-| native-nosdl | `client/be_ai_chat.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_ai_chat.diff.gz` |
-| native-nosdl | `client/be_ai_move.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-be_ai_move.diff.gz` |
-| native-nosdl | `client/cl_avi.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_avi.diff.gz` |
-| native-nosdl | `client/cl_cgame.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_cgame.diff.gz` |
-| native-nosdl | `client/cl_cin.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_cin.diff.gz` |
-| native-nosdl | `client/cl_console.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_console.diff.gz` |
-| native-nosdl | `client/cl_curl.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_curl.diff.gz` |
-| native-nosdl | `client/cl_input.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_input.diff.gz` |
-| native-nosdl | `client/cl_jpeg.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_jpeg.diff.gz` |
-| native-nosdl | `client/cl_keys.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_keys.diff.gz` |
-| native-nosdl | `client/cl_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_main.diff.gz` |
-| native-nosdl | `client/cl_net_chan.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_net_chan.diff.gz` |
-| native-nosdl | `client/cl_parse.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_parse.diff.gz` |
-| native-nosdl | `client/cl_scrn.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_scrn.diff.gz` |
-| native-nosdl | `client/cl_ui.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cl_ui.diff.gz` |
-| native-nosdl | `client/cm_load.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cm_load.diff.gz` |
-| native-nosdl | `client/cm_patch.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cm_patch.diff.gz` |
-| native-nosdl | `client/cm_trace.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cm_trace.diff.gz` |
-| native-nosdl | `client/cmd.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cmd.diff.gz` |
-| native-nosdl | `client/common.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-common.diff.gz` |
-| native-nosdl | `client/cvar.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-cvar.diff.gz` |
-| native-nosdl | `client/files.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-files.diff.gz` |
-| native-nosdl | `client/history.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-history.diff.gz` |
-| native-nosdl | `client/huffman.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-huffman.diff.gz` |
-| native-nosdl | `client/keys.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-keys.diff.gz` |
-| native-nosdl | `client/l_memory.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-l_memory.diff.gz` |
-| native-nosdl | `client/l_precomp.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-l_precomp.diff.gz` |
-| native-nosdl | `client/l_script.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-l_script.diff.gz` |
-| native-nosdl | `client/l_struct.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-l_struct.diff.gz` |
-| native-nosdl | `client/linux_glimp.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-linux_glimp.diff.gz` |
-| native-nosdl | `client/linux_qgl.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-linux_qgl.diff.gz` |
-| native-nosdl | `client/linux_snd.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-linux_snd.diff.gz` |
-| native-nosdl | `client/md5.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-md5.diff.gz` |
-| native-nosdl | `client/msg.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-msg.diff.gz` |
-| native-nosdl | `client/net_chan.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-net_chan.diff.gz` |
-| native-nosdl | `client/net_ip.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-net_ip.diff.gz` |
-| native-nosdl | `client/puff.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-puff.diff.gz` |
-| native-nosdl | `client/q_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-q_shared.diff.gz` |
-| native-nosdl | `client/qvm/vm.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-qvm-vm.diff.gz` |
-| native-nosdl | `client/qvm/vm_interpreted.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-qvm-vm_interpreted.diff.gz` |
-| native-nosdl | `client/qvm/vm_x86.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-qvm-vm_x86.diff.gz` |
-| native-nosdl | `client/snd_dma.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-snd_dma.diff.gz` |
-| native-nosdl | `client/snd_mem.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-snd_mem.diff.gz` |
-| native-nosdl | `client/snd_mix.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-snd_mix.diff.gz` |
-| native-nosdl | `client/sv_bot.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_bot.diff.gz` |
-| native-nosdl | `client/sv_ccmds.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_ccmds.diff.gz` |
-| native-nosdl | `client/sv_filter.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_filter.diff.gz` |
-| native-nosdl | `client/sv_game.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_game.diff.gz` |
-| native-nosdl | `client/sv_init.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_init.diff.gz` |
-| native-nosdl | `client/sv_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_main.diff.gz` |
-| native-nosdl | `client/sv_net_chan.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_net_chan.diff.gz` |
-| native-nosdl | `client/sv_snapshot.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_snapshot.diff.gz` |
-| native-nosdl | `client/sv_world.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-sv_world.diff.gz` |
-| native-nosdl | `client/unix_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-unix_main.diff.gz` |
-| native-nosdl | `client/unix_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-unix_shared.diff.gz` |
-| native-nosdl | `client/unzip.o` | `USE_SDL=0` | `current-native-context-native-nosdl-client-unzip.diff.gz` |
-| native-nosdl | `ded/be_aas_bspq3.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_bspq3.diff.gz` |
-| native-nosdl | `ded/be_aas_cluster.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_cluster.diff.gz` |
-| native-nosdl | `ded/be_aas_debug.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_debug.diff.gz` |
-| native-nosdl | `ded/be_aas_file.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_file.diff.gz` |
-| native-nosdl | `ded/be_aas_reach.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_reach.diff.gz` |
-| native-nosdl | `ded/be_aas_route.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_route.diff.gz` |
-| native-nosdl | `ded/be_aas_routealt.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_routealt.diff.gz` |
-| native-nosdl | `ded/be_aas_sample.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_aas_sample.diff.gz` |
-| native-nosdl | `ded/be_ai_char.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_ai_char.diff.gz` |
-| native-nosdl | `ded/be_ai_chat.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_ai_chat.diff.gz` |
-| native-nosdl | `ded/be_ai_move.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-be_ai_move.diff.gz` |
-| native-nosdl | `ded/cm_load.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-cm_load.diff.gz` |
-| native-nosdl | `ded/cm_patch.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-cm_patch.diff.gz` |
-| native-nosdl | `ded/cm_trace.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-cm_trace.diff.gz` |
-| native-nosdl | `ded/cmd.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-cmd.diff.gz` |
-| native-nosdl | `ded/common.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-common.diff.gz` |
-| native-nosdl | `ded/cvar.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-cvar.diff.gz` |
-| native-nosdl | `ded/files.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-files.diff.gz` |
-| native-nosdl | `ded/history.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-history.diff.gz` |
-| native-nosdl | `ded/huffman.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-huffman.diff.gz` |
-| native-nosdl | `ded/keys.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-keys.diff.gz` |
-| native-nosdl | `ded/l_memory.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-l_memory.diff.gz` |
-| native-nosdl | `ded/l_precomp.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-l_precomp.diff.gz` |
-| native-nosdl | `ded/l_script.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-l_script.diff.gz` |
-| native-nosdl | `ded/l_struct.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-l_struct.diff.gz` |
-| native-nosdl | `ded/md5.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-md5.diff.gz` |
-| native-nosdl | `ded/msg.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-msg.diff.gz` |
-| native-nosdl | `ded/net_chan.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-net_chan.diff.gz` |
-| native-nosdl | `ded/net_ip.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-net_ip.diff.gz` |
-| native-nosdl | `ded/q_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-q_shared.diff.gz` |
-| native-nosdl | `ded/qvm/vm.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-qvm-vm.diff.gz` |
-| native-nosdl | `ded/qvm/vm_interpreted.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-qvm-vm_interpreted.diff.gz` |
-| native-nosdl | `ded/qvm/vm_x86.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-qvm-vm_x86.diff.gz` |
-| native-nosdl | `ded/sv_bot.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_bot.diff.gz` |
-| native-nosdl | `ded/sv_ccmds.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_ccmds.diff.gz` |
-| native-nosdl | `ded/sv_filter.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_filter.diff.gz` |
-| native-nosdl | `ded/sv_game.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_game.diff.gz` |
-| native-nosdl | `ded/sv_init.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_init.diff.gz` |
-| native-nosdl | `ded/sv_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_main.diff.gz` |
-| native-nosdl | `ded/sv_net_chan.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_net_chan.diff.gz` |
-| native-nosdl | `ded/sv_snapshot.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_snapshot.diff.gz` |
-| native-nosdl | `ded/sv_world.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-sv_world.diff.gz` |
-| native-nosdl | `ded/unix_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-unix_main.diff.gz` |
-| native-nosdl | `ded/unix_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-unix_shared.diff.gz` |
-| native-nosdl | `ded/unzip.o` | `USE_SDL=0` | `current-native-context-native-nosdl-ded-unzip.diff.gz` |
-| native-nosdl | `rend1/puff.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-puff.diff.gz` |
-| native-nosdl | `rend1/q_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-q_shared.diff.gz` |
-| native-nosdl | `rend1/tr_animation.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_animation.diff.gz` |
-| native-nosdl | `rend1/tr_arb.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_arb.diff.gz` |
-| native-nosdl | `rend1/tr_backend.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_backend.diff.gz` |
-| native-nosdl | `rend1/tr_bsp.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_bsp.diff.gz` |
-| native-nosdl | `rend1/tr_cmds.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_cmds.diff.gz` |
-| native-nosdl | `rend1/tr_curve.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_curve.diff.gz` |
-| native-nosdl | `rend1/tr_flares.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_flares.diff.gz` |
-| native-nosdl | `rend1/tr_image.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_image.diff.gz` |
-| native-nosdl | `rend1/tr_image_tga.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_image_tga.diff.gz` |
-| native-nosdl | `rend1/tr_init.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_init.diff.gz` |
-| native-nosdl | `rend1/tr_light.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_light.diff.gz` |
-| native-nosdl | `rend1/tr_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_main.diff.gz` |
-| native-nosdl | `rend1/tr_mesh.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_mesh.diff.gz` |
-| native-nosdl | `rend1/tr_model.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_model.diff.gz` |
-| native-nosdl | `rend1/tr_model_iqm.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_model_iqm.diff.gz` |
-| native-nosdl | `rend1/tr_noise.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_noise.diff.gz` |
-| native-nosdl | `rend1/tr_scene.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_scene.diff.gz` |
-| native-nosdl | `rend1/tr_shade.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_shade.diff.gz` |
-| native-nosdl | `rend1/tr_shade_calc.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_shade_calc.diff.gz` |
-| native-nosdl | `rend1/tr_shader.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_shader.diff.gz` |
-| native-nosdl | `rend1/tr_shadows.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_shadows.diff.gz` |
-| native-nosdl | `rend1/tr_sky.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_sky.diff.gz` |
-| native-nosdl | `rend1/tr_surface.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_surface.diff.gz` |
-| native-nosdl | `rend1/tr_vbo.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_vbo.diff.gz` |
-| native-nosdl | `rend1/tr_world.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rend1-tr_world.diff.gz` |
-| native-nosdl | `rendv/puff.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-puff.diff.gz` |
-| native-nosdl | `rendv/q_shared.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-q_shared.diff.gz` |
-| native-nosdl | `rendv/tr_animation.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_animation.diff.gz` |
-| native-nosdl | `rendv/tr_backend.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_backend.diff.gz` |
-| native-nosdl | `rendv/tr_bsp.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_bsp.diff.gz` |
-| native-nosdl | `rendv/tr_cmds.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_cmds.diff.gz` |
-| native-nosdl | `rendv/tr_curve.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_curve.diff.gz` |
-| native-nosdl | `rendv/tr_image.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_image.diff.gz` |
-| native-nosdl | `rendv/tr_image_tga.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_image_tga.diff.gz` |
-| native-nosdl | `rendv/tr_init.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_init.diff.gz` |
-| native-nosdl | `rendv/tr_light.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_light.diff.gz` |
-| native-nosdl | `rendv/tr_main.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_main.diff.gz` |
-| native-nosdl | `rendv/tr_mesh.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_mesh.diff.gz` |
-| native-nosdl | `rendv/tr_model.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_model.diff.gz` |
-| native-nosdl | `rendv/tr_model_iqm.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_model_iqm.diff.gz` |
-| native-nosdl | `rendv/tr_noise.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_noise.diff.gz` |
-| native-nosdl | `rendv/tr_scene.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_scene.diff.gz` |
-| native-nosdl | `rendv/tr_shade.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_shade.diff.gz` |
-| native-nosdl | `rendv/tr_shade_calc.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_shade_calc.diff.gz` |
-| native-nosdl | `rendv/tr_shader.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_shader.diff.gz` |
-| native-nosdl | `rendv/tr_shadows.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_shadows.diff.gz` |
-| native-nosdl | `rendv/tr_sky.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_sky.diff.gz` |
-| native-nosdl | `rendv/tr_surface.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_surface.diff.gz` |
-| native-nosdl | `rendv/tr_world.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-tr_world.diff.gz` |
-| native-nosdl | `rendv/vk.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-vk.diff.gz` |
-| native-nosdl | `rendv/vk_flares.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-vk_flares.diff.gz` |
-| native-nosdl | `rendv/vk_vbo.o` | `USE_SDL=0` | `current-native-context-native-nosdl-rendv-vk_vbo.diff.gz` |
-| native-nosdl | `client/linux_joystick.o` | `USE_SDL=0 CFLAGS=-DUSE_JOYSTICK` | `current-native-context-native-nosdl-client-linux_joystick.diff.gz` |
-| static-opengl | `client/cl_main.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl` | `current-static-opengl-cl_main.diff.gz` |
-| static-opengl | `rend1/tr_init.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl` | `current-static-opengl-tr_init.diff.gz` |
-| static-vulkan | `client/cl_main.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan` | `current-static-vulkan-cl_main.diff.gz` |
-| static-vulkan | `rendv/tr_init.o` | `USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan` | `current-static-vulkan-tr_init.diff.gz` |
+| Family | Target | Object | Make variables | Diff |
+|---|---|---|---|---|
+| native | native | `client/be_aas_bspq3.o` | `` | `phase3-native-native-client-be_aas_bspq3.diff.gz` |
+| native | native | `client/be_aas_cluster.o` | `` | `phase3-native-native-client-be_aas_cluster.diff.gz` |
+| native | native | `client/be_aas_debug.o` | `` | `phase3-native-native-client-be_aas_debug.diff.gz` |
+| native | native | `client/be_aas_file.o` | `` | `phase3-native-native-client-be_aas_file.diff.gz` |
+| native | native | `client/be_aas_reach.o` | `` | `phase3-native-native-client-be_aas_reach.diff.gz` |
+| native | native | `client/be_aas_route.o` | `` | `phase3-native-native-client-be_aas_route.diff.gz` |
+| native | native | `client/be_aas_routealt.o` | `` | `phase3-native-native-client-be_aas_routealt.diff.gz` |
+| native | native | `client/be_aas_sample.o` | `` | `phase3-native-native-client-be_aas_sample.diff.gz` |
+| native | native | `client/be_ai_char.o` | `` | `phase3-native-native-client-be_ai_char.diff.gz` |
+| native | native | `client/be_ai_chat.o` | `` | `phase3-native-native-client-be_ai_chat.diff.gz` |
+| native | native | `client/be_ai_move.o` | `` | `phase3-native-native-client-be_ai_move.diff.gz` |
+| native | native | `client/cl_avi.o` | `` | `phase3-native-native-client-cl_avi.diff.gz` |
+| native | native | `client/cl_cgame.o` | `` | `phase3-native-native-client-cl_cgame.diff.gz` |
+| native | native | `client/cl_cin.o` | `` | `phase3-native-native-client-cl_cin.diff.gz` |
+| native | native | `client/cl_console.o` | `` | `phase3-native-native-client-cl_console.diff.gz` |
+| native | native | `client/cl_curl.o` | `` | `phase3-native-native-client-cl_curl.diff.gz` |
+| native | native | `client/cl_input.o` | `` | `phase3-native-native-client-cl_input.diff.gz` |
+| native | native | `client/cl_jpeg.o` | `` | `phase3-native-native-client-cl_jpeg.diff.gz` |
+| native | native | `client/cl_keys.o` | `` | `phase3-native-native-client-cl_keys.diff.gz` |
+| native | native | `client/cl_main.o` | `` | `phase3-native-native-client-cl_main.diff.gz` |
+| native | native | `client/cl_net_chan.o` | `` | `phase3-native-native-client-cl_net_chan.diff.gz` |
+| native | native | `client/cl_parse.o` | `` | `phase3-native-native-client-cl_parse.diff.gz` |
+| native | native | `client/cl_scrn.o` | `` | `phase3-native-native-client-cl_scrn.diff.gz` |
+| native | native | `client/cl_ui.o` | `` | `phase3-native-native-client-cl_ui.diff.gz` |
+| native | native | `client/cm_load.o` | `` | `phase3-native-native-client-cm_load.diff.gz` |
+| native | native | `client/cm_patch.o` | `` | `phase3-native-native-client-cm_patch.diff.gz` |
+| native | native | `client/cm_trace.o` | `` | `phase3-native-native-client-cm_trace.diff.gz` |
+| native | native | `client/cmd.o` | `` | `phase3-native-native-client-cmd.diff.gz` |
+| native | native | `client/common.o` | `` | `phase3-native-native-client-common.diff.gz` |
+| native | native | `client/cvar.o` | `` | `phase3-native-native-client-cvar.diff.gz` |
+| native | native | `client/files.o` | `` | `phase3-native-native-client-files.diff.gz` |
+| native | native | `client/history.o` | `` | `phase3-native-native-client-history.diff.gz` |
+| native | native | `client/huffman.o` | `` | `phase3-native-native-client-huffman.diff.gz` |
+| native | native | `client/keys.o` | `` | `phase3-native-native-client-keys.diff.gz` |
+| native | native | `client/l_memory.o` | `` | `phase3-native-native-client-l_memory.diff.gz` |
+| native | native | `client/l_precomp.o` | `` | `phase3-native-native-client-l_precomp.diff.gz` |
+| native | native | `client/l_script.o` | `` | `phase3-native-native-client-l_script.diff.gz` |
+| native | native | `client/l_struct.o` | `` | `phase3-native-native-client-l_struct.diff.gz` |
+| native | native | `client/md5.o` | `` | `phase3-native-native-client-md5.diff.gz` |
+| native | native | `client/msg.o` | `` | `phase3-native-native-client-msg.diff.gz` |
+| native | native | `client/net_chan.o` | `` | `phase3-native-native-client-net_chan.diff.gz` |
+| native | native | `client/net_ip.o` | `` | `phase3-native-native-client-net_ip.diff.gz` |
+| native | native | `client/puff.o` | `` | `phase3-native-native-client-puff.diff.gz` |
+| native | native | `client/q_shared.o` | `` | `phase3-native-native-client-q_shared.diff.gz` |
+| native | native | `client/qvm/vm.o` | `` | `phase3-native-native-client-qvm-vm.diff.gz` |
+| native | native | `client/qvm/vm_interpreted.o` | `` | `phase3-native-native-client-qvm-vm_interpreted.diff.gz` |
+| native | native | `client/qvm/vm_x86.o` | `` | `phase3-native-native-client-qvm-vm_x86.diff.gz` |
+| native | native | `client/sdl_input.o` | `` | `phase3-native-native-client-sdl_input.diff.gz` |
+| native | native | `client/snd_dma.o` | `` | `phase3-native-native-client-snd_dma.diff.gz` |
+| native | native | `client/snd_mem.o` | `` | `phase3-native-native-client-snd_mem.diff.gz` |
+| native | native | `client/snd_mix.o` | `` | `phase3-native-native-client-snd_mix.diff.gz` |
+| native | native | `client/sv_bot.o` | `` | `phase3-native-native-client-sv_bot.diff.gz` |
+| native | native | `client/sv_ccmds.o` | `` | `phase3-native-native-client-sv_ccmds.diff.gz` |
+| native | native | `client/sv_client.o` | `` | `phase3-native-native-client-sv_client.diff.gz` |
+| native | native | `client/sv_filter.o` | `` | `phase3-native-native-client-sv_filter.diff.gz` |
+| native | native | `client/sv_game.o` | `` | `phase3-native-native-client-sv_game.diff.gz` |
+| native | native | `client/sv_init.o` | `` | `phase3-native-native-client-sv_init.diff.gz` |
+| native | native | `client/sv_main.o` | `` | `phase3-native-native-client-sv_main.diff.gz` |
+| native | native | `client/sv_net_chan.o` | `` | `phase3-native-native-client-sv_net_chan.diff.gz` |
+| native | native | `client/sv_snapshot.o` | `` | `phase3-native-native-client-sv_snapshot.diff.gz` |
+| native | native | `client/sv_world.o` | `` | `phase3-native-native-client-sv_world.diff.gz` |
+| native | native | `client/unix_main.o` | `` | `phase3-native-native-client-unix_main.diff.gz` |
+| native | native | `client/unix_shared.o` | `` | `phase3-native-native-client-unix_shared.diff.gz` |
+| native | native | `client/unzip.o` | `` | `phase3-native-native-client-unzip.diff.gz` |
+| native | native | `ded/be_aas_bspq3.o` | `` | `phase3-native-native-ded-be_aas_bspq3.diff.gz` |
+| native | native | `ded/be_aas_cluster.o` | `` | `phase3-native-native-ded-be_aas_cluster.diff.gz` |
+| native | native | `ded/be_aas_debug.o` | `` | `phase3-native-native-ded-be_aas_debug.diff.gz` |
+| native | native | `ded/be_aas_file.o` | `` | `phase3-native-native-ded-be_aas_file.diff.gz` |
+| native | native | `ded/be_aas_reach.o` | `` | `phase3-native-native-ded-be_aas_reach.diff.gz` |
+| native | native | `ded/be_aas_route.o` | `` | `phase3-native-native-ded-be_aas_route.diff.gz` |
+| native | native | `ded/be_aas_routealt.o` | `` | `phase3-native-native-ded-be_aas_routealt.diff.gz` |
+| native | native | `ded/be_aas_sample.o` | `` | `phase3-native-native-ded-be_aas_sample.diff.gz` |
+| native | native | `ded/be_ai_char.o` | `` | `phase3-native-native-ded-be_ai_char.diff.gz` |
+| native | native | `ded/be_ai_chat.o` | `` | `phase3-native-native-ded-be_ai_chat.diff.gz` |
+| native | native | `ded/be_ai_move.o` | `` | `phase3-native-native-ded-be_ai_move.diff.gz` |
+| native | native | `ded/cm_load.o` | `` | `phase3-native-native-ded-cm_load.diff.gz` |
+| native | native | `ded/cm_patch.o` | `` | `phase3-native-native-ded-cm_patch.diff.gz` |
+| native | native | `ded/cm_trace.o` | `` | `phase3-native-native-ded-cm_trace.diff.gz` |
+| native | native | `ded/cmd.o` | `` | `phase3-native-native-ded-cmd.diff.gz` |
+| native | native | `ded/common.o` | `` | `phase3-native-native-ded-common.diff.gz` |
+| native | native | `ded/cvar.o` | `` | `phase3-native-native-ded-cvar.diff.gz` |
+| native | native | `ded/files.o` | `` | `phase3-native-native-ded-files.diff.gz` |
+| native | native | `ded/history.o` | `` | `phase3-native-native-ded-history.diff.gz` |
+| native | native | `ded/huffman.o` | `` | `phase3-native-native-ded-huffman.diff.gz` |
+| native | native | `ded/keys.o` | `` | `phase3-native-native-ded-keys.diff.gz` |
+| native | native | `ded/l_memory.o` | `` | `phase3-native-native-ded-l_memory.diff.gz` |
+| native | native | `ded/l_precomp.o` | `` | `phase3-native-native-ded-l_precomp.diff.gz` |
+| native | native | `ded/l_script.o` | `` | `phase3-native-native-ded-l_script.diff.gz` |
+| native | native | `ded/l_struct.o` | `` | `phase3-native-native-ded-l_struct.diff.gz` |
+| native | native | `ded/md5.o` | `` | `phase3-native-native-ded-md5.diff.gz` |
+| native | native | `ded/msg.o` | `` | `phase3-native-native-ded-msg.diff.gz` |
+| native | native | `ded/net_chan.o` | `` | `phase3-native-native-ded-net_chan.diff.gz` |
+| native | native | `ded/net_ip.o` | `` | `phase3-native-native-ded-net_ip.diff.gz` |
+| native | native | `ded/q_shared.o` | `` | `phase3-native-native-ded-q_shared.diff.gz` |
+| native | native | `ded/qvm/vm.o` | `` | `phase3-native-native-ded-qvm-vm.diff.gz` |
+| native | native | `ded/qvm/vm_interpreted.o` | `` | `phase3-native-native-ded-qvm-vm_interpreted.diff.gz` |
+| native | native | `ded/qvm/vm_x86.o` | `` | `phase3-native-native-ded-qvm-vm_x86.diff.gz` |
+| native | native | `ded/sv_bot.o` | `` | `phase3-native-native-ded-sv_bot.diff.gz` |
+| native | native | `ded/sv_ccmds.o` | `` | `phase3-native-native-ded-sv_ccmds.diff.gz` |
+| native | native | `ded/sv_client.o` | `` | `phase3-native-native-ded-sv_client.diff.gz` |
+| native | native | `ded/sv_filter.o` | `` | `phase3-native-native-ded-sv_filter.diff.gz` |
+| native | native | `ded/sv_game.o` | `` | `phase3-native-native-ded-sv_game.diff.gz` |
+| native | native | `ded/sv_init.o` | `` | `phase3-native-native-ded-sv_init.diff.gz` |
+| native | native | `ded/sv_main.o` | `` | `phase3-native-native-ded-sv_main.diff.gz` |
+| native | native | `ded/sv_net_chan.o` | `` | `phase3-native-native-ded-sv_net_chan.diff.gz` |
+| native | native | `ded/sv_snapshot.o` | `` | `phase3-native-native-ded-sv_snapshot.diff.gz` |
+| native | native | `ded/sv_world.o` | `` | `phase3-native-native-ded-sv_world.diff.gz` |
+| native | native | `ded/unix_main.o` | `` | `phase3-native-native-ded-unix_main.diff.gz` |
+| native | native | `ded/unix_shared.o` | `` | `phase3-native-native-ded-unix_shared.diff.gz` |
+| native | native | `ded/unzip.o` | `` | `phase3-native-native-ded-unzip.diff.gz` |
+| native | native | `rend1/puff.o` | `` | `phase3-native-native-rend1-puff.diff.gz` |
+| native | native | `rend1/q_shared.o` | `` | `phase3-native-native-rend1-q_shared.diff.gz` |
+| native | native | `rend1/tr_animation.o` | `` | `phase3-native-native-rend1-tr_animation.diff.gz` |
+| native | native | `rend1/tr_arb.o` | `` | `phase3-native-native-rend1-tr_arb.diff.gz` |
+| native | native | `rend1/tr_backend.o` | `` | `phase3-native-native-rend1-tr_backend.diff.gz` |
+| native | native | `rend1/tr_bsp.o` | `` | `phase3-native-native-rend1-tr_bsp.diff.gz` |
+| native | native | `rend1/tr_cmds.o` | `` | `phase3-native-native-rend1-tr_cmds.diff.gz` |
+| native | native | `rend1/tr_curve.o` | `` | `phase3-native-native-rend1-tr_curve.diff.gz` |
+| native | native | `rend1/tr_flares.o` | `` | `phase3-native-native-rend1-tr_flares.diff.gz` |
+| native | native | `rend1/tr_image.o` | `` | `phase3-native-native-rend1-tr_image.diff.gz` |
+| native | native | `rend1/tr_image_tga.o` | `` | `phase3-native-native-rend1-tr_image_tga.diff.gz` |
+| native | native | `rend1/tr_init.o` | `` | `phase3-native-native-rend1-tr_init.diff.gz` |
+| native | native | `rend1/tr_light.o` | `` | `phase3-native-native-rend1-tr_light.diff.gz` |
+| native | native | `rend1/tr_main.o` | `` | `phase3-native-native-rend1-tr_main.diff.gz` |
+| native | native | `rend1/tr_mesh.o` | `` | `phase3-native-native-rend1-tr_mesh.diff.gz` |
+| native | native | `rend1/tr_model.o` | `` | `phase3-native-native-rend1-tr_model.diff.gz` |
+| native | native | `rend1/tr_model_iqm.o` | `` | `phase3-native-native-rend1-tr_model_iqm.diff.gz` |
+| native | native | `rend1/tr_noise.o` | `` | `phase3-native-native-rend1-tr_noise.diff.gz` |
+| native | native | `rend1/tr_scene.o` | `` | `phase3-native-native-rend1-tr_scene.diff.gz` |
+| native | native | `rend1/tr_shade.o` | `` | `phase3-native-native-rend1-tr_shade.diff.gz` |
+| native | native | `rend1/tr_shade_calc.o` | `` | `phase3-native-native-rend1-tr_shade_calc.diff.gz` |
+| native | native | `rend1/tr_shader.o` | `` | `phase3-native-native-rend1-tr_shader.diff.gz` |
+| native | native | `rend1/tr_shadows.o` | `` | `phase3-native-native-rend1-tr_shadows.diff.gz` |
+| native | native | `rend1/tr_sky.o` | `` | `phase3-native-native-rend1-tr_sky.diff.gz` |
+| native | native | `rend1/tr_surface.o` | `` | `phase3-native-native-rend1-tr_surface.diff.gz` |
+| native | native | `rend1/tr_vbo.o` | `` | `phase3-native-native-rend1-tr_vbo.diff.gz` |
+| native | native | `rend1/tr_world.o` | `` | `phase3-native-native-rend1-tr_world.diff.gz` |
+| native | native | `rendv/puff.o` | `` | `phase3-native-native-rendv-puff.diff.gz` |
+| native | native | `rendv/q_shared.o` | `` | `phase3-native-native-rendv-q_shared.diff.gz` |
+| native | native | `rendv/tr_animation.o` | `` | `phase3-native-native-rendv-tr_animation.diff.gz` |
+| native | native | `rendv/tr_backend.o` | `` | `phase3-native-native-rendv-tr_backend.diff.gz` |
+| native | native | `rendv/tr_bsp.o` | `` | `phase3-native-native-rendv-tr_bsp.diff.gz` |
+| native | native | `rendv/tr_cmds.o` | `` | `phase3-native-native-rendv-tr_cmds.diff.gz` |
+| native | native | `rendv/tr_curve.o` | `` | `phase3-native-native-rendv-tr_curve.diff.gz` |
+| native | native | `rendv/tr_image.o` | `` | `phase3-native-native-rendv-tr_image.diff.gz` |
+| native | native | `rendv/tr_image_tga.o` | `` | `phase3-native-native-rendv-tr_image_tga.diff.gz` |
+| native | native | `rendv/tr_init.o` | `` | `phase3-native-native-rendv-tr_init.diff.gz` |
+| native | native | `rendv/tr_light.o` | `` | `phase3-native-native-rendv-tr_light.diff.gz` |
+| native | native | `rendv/tr_main.o` | `` | `phase3-native-native-rendv-tr_main.diff.gz` |
+| native | native | `rendv/tr_mesh.o` | `` | `phase3-native-native-rendv-tr_mesh.diff.gz` |
+| native | native | `rendv/tr_model.o` | `` | `phase3-native-native-rendv-tr_model.diff.gz` |
+| native | native | `rendv/tr_model_iqm.o` | `` | `phase3-native-native-rendv-tr_model_iqm.diff.gz` |
+| native | native | `rendv/tr_noise.o` | `` | `phase3-native-native-rendv-tr_noise.diff.gz` |
+| native | native | `rendv/tr_scene.o` | `` | `phase3-native-native-rendv-tr_scene.diff.gz` |
+| native | native | `rendv/tr_shade.o` | `` | `phase3-native-native-rendv-tr_shade.diff.gz` |
+| native | native | `rendv/tr_shade_calc.o` | `` | `phase3-native-native-rendv-tr_shade_calc.diff.gz` |
+| native | native | `rendv/tr_shader.o` | `` | `phase3-native-native-rendv-tr_shader.diff.gz` |
+| native | native | `rendv/tr_shadows.o` | `` | `phase3-native-native-rendv-tr_shadows.diff.gz` |
+| native | native | `rendv/tr_sky.o` | `` | `phase3-native-native-rendv-tr_sky.diff.gz` |
+| native | native | `rendv/tr_surface.o` | `` | `phase3-native-native-rendv-tr_surface.diff.gz` |
+| native | native | `rendv/tr_world.o` | `` | `phase3-native-native-rendv-tr_world.diff.gz` |
+| native | native | `rendv/vk.o` | `` | `phase3-native-native-rendv-vk.diff.gz` |
+| native | native | `rendv/vk_flares.o` | `` | `phase3-native-native-rendv-vk_flares.diff.gz` |
+| native | native | `rendv/vk_vbo.o` | `` | `phase3-native-native-rendv-vk_vbo.diff.gz` |
+| native | native-nosdl | `client/be_aas_bspq3.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_aas_bspq3.diff.gz` |
+| native | native-nosdl | `client/be_aas_cluster.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_aas_cluster.diff.gz` |
+| native | native-nosdl | `client/be_aas_debug.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_aas_debug.diff.gz` |
+| native | native-nosdl | `client/be_aas_file.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_aas_file.diff.gz` |
+| native | native-nosdl | `client/be_aas_reach.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_aas_reach.diff.gz` |
+| native | native-nosdl | `client/be_aas_route.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_aas_route.diff.gz` |
+| native | native-nosdl | `client/be_aas_routealt.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_aas_routealt.diff.gz` |
+| native | native-nosdl | `client/be_aas_sample.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_aas_sample.diff.gz` |
+| native | native-nosdl | `client/be_ai_char.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_ai_char.diff.gz` |
+| native | native-nosdl | `client/be_ai_chat.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_ai_chat.diff.gz` |
+| native | native-nosdl | `client/be_ai_move.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-be_ai_move.diff.gz` |
+| native | native-nosdl | `client/cl_avi.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_avi.diff.gz` |
+| native | native-nosdl | `client/cl_cgame.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_cgame.diff.gz` |
+| native | native-nosdl | `client/cl_cin.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_cin.diff.gz` |
+| native | native-nosdl | `client/cl_console.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_console.diff.gz` |
+| native | native-nosdl | `client/cl_curl.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_curl.diff.gz` |
+| native | native-nosdl | `client/cl_input.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_input.diff.gz` |
+| native | native-nosdl | `client/cl_jpeg.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_jpeg.diff.gz` |
+| native | native-nosdl | `client/cl_keys.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_keys.diff.gz` |
+| native | native-nosdl | `client/cl_main.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_main.diff.gz` |
+| native | native-nosdl | `client/cl_net_chan.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_net_chan.diff.gz` |
+| native | native-nosdl | `client/cl_parse.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_parse.diff.gz` |
+| native | native-nosdl | `client/cl_scrn.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_scrn.diff.gz` |
+| native | native-nosdl | `client/cl_ui.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cl_ui.diff.gz` |
+| native | native-nosdl | `client/cm_load.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cm_load.diff.gz` |
+| native | native-nosdl | `client/cm_patch.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cm_patch.diff.gz` |
+| native | native-nosdl | `client/cm_trace.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cm_trace.diff.gz` |
+| native | native-nosdl | `client/cmd.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cmd.diff.gz` |
+| native | native-nosdl | `client/common.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-common.diff.gz` |
+| native | native-nosdl | `client/cvar.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-cvar.diff.gz` |
+| native | native-nosdl | `client/files.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-files.diff.gz` |
+| native | native-nosdl | `client/history.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-history.diff.gz` |
+| native | native-nosdl | `client/huffman.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-huffman.diff.gz` |
+| native | native-nosdl | `client/keys.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-keys.diff.gz` |
+| native | native-nosdl | `client/l_memory.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-l_memory.diff.gz` |
+| native | native-nosdl | `client/l_precomp.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-l_precomp.diff.gz` |
+| native | native-nosdl | `client/l_script.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-l_script.diff.gz` |
+| native | native-nosdl | `client/l_struct.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-l_struct.diff.gz` |
+| native | native-nosdl | `client/linux_glimp.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-linux_glimp.diff.gz` |
+| native | native-nosdl | `client/linux_qgl.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-linux_qgl.diff.gz` |
+| native | native-nosdl | `client/linux_snd.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-linux_snd.diff.gz` |
+| native | native-nosdl | `client/md5.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-md5.diff.gz` |
+| native | native-nosdl | `client/msg.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-msg.diff.gz` |
+| native | native-nosdl | `client/net_chan.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-net_chan.diff.gz` |
+| native | native-nosdl | `client/net_ip.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-net_ip.diff.gz` |
+| native | native-nosdl | `client/puff.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-puff.diff.gz` |
+| native | native-nosdl | `client/q_shared.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-q_shared.diff.gz` |
+| native | native-nosdl | `client/qvm/vm.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-qvm-vm.diff.gz` |
+| native | native-nosdl | `client/qvm/vm_interpreted.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-qvm-vm_interpreted.diff.gz` |
+| native | native-nosdl | `client/qvm/vm_x86.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-qvm-vm_x86.diff.gz` |
+| native | native-nosdl | `client/snd_dma.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-snd_dma.diff.gz` |
+| native | native-nosdl | `client/snd_mem.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-snd_mem.diff.gz` |
+| native | native-nosdl | `client/snd_mix.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-snd_mix.diff.gz` |
+| native | native-nosdl | `client/sv_bot.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-sv_bot.diff.gz` |
+| native | native-nosdl | `client/sv_ccmds.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-sv_ccmds.diff.gz` |
+| native | native-nosdl | `client/sv_client.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-sv_client.diff.gz` |
+| native | native-nosdl | `client/sv_filter.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-sv_filter.diff.gz` |
+| native | native-nosdl | `client/sv_game.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-sv_game.diff.gz` |
+| native | native-nosdl | `client/sv_init.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-sv_init.diff.gz` |
+| native | native-nosdl | `client/sv_main.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-sv_main.diff.gz` |
+| native | native-nosdl | `client/sv_net_chan.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-sv_net_chan.diff.gz` |
+| native | native-nosdl | `client/sv_snapshot.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-sv_snapshot.diff.gz` |
+| native | native-nosdl | `client/sv_world.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-sv_world.diff.gz` |
+| native | native-nosdl | `client/unix_main.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-unix_main.diff.gz` |
+| native | native-nosdl | `client/unix_shared.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-unix_shared.diff.gz` |
+| native | native-nosdl | `client/unzip.o` | `USE_SDL=0` | `phase3-native-native-nosdl-client-unzip.diff.gz` |
+| native | native-nosdl | `ded/be_aas_bspq3.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_aas_bspq3.diff.gz` |
+| native | native-nosdl | `ded/be_aas_cluster.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_aas_cluster.diff.gz` |
+| native | native-nosdl | `ded/be_aas_debug.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_aas_debug.diff.gz` |
+| native | native-nosdl | `ded/be_aas_file.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_aas_file.diff.gz` |
+| native | native-nosdl | `ded/be_aas_reach.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_aas_reach.diff.gz` |
+| native | native-nosdl | `ded/be_aas_route.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_aas_route.diff.gz` |
+| native | native-nosdl | `ded/be_aas_routealt.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_aas_routealt.diff.gz` |
+| native | native-nosdl | `ded/be_aas_sample.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_aas_sample.diff.gz` |
+| native | native-nosdl | `ded/be_ai_char.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_ai_char.diff.gz` |
+| native | native-nosdl | `ded/be_ai_chat.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_ai_chat.diff.gz` |
+| native | native-nosdl | `ded/be_ai_move.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-be_ai_move.diff.gz` |
+| native | native-nosdl | `ded/cm_load.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-cm_load.diff.gz` |
+| native | native-nosdl | `ded/cm_patch.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-cm_patch.diff.gz` |
+| native | native-nosdl | `ded/cm_trace.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-cm_trace.diff.gz` |
+| native | native-nosdl | `ded/cmd.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-cmd.diff.gz` |
+| native | native-nosdl | `ded/common.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-common.diff.gz` |
+| native | native-nosdl | `ded/cvar.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-cvar.diff.gz` |
+| native | native-nosdl | `ded/files.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-files.diff.gz` |
+| native | native-nosdl | `ded/history.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-history.diff.gz` |
+| native | native-nosdl | `ded/huffman.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-huffman.diff.gz` |
+| native | native-nosdl | `ded/keys.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-keys.diff.gz` |
+| native | native-nosdl | `ded/l_memory.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-l_memory.diff.gz` |
+| native | native-nosdl | `ded/l_precomp.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-l_precomp.diff.gz` |
+| native | native-nosdl | `ded/l_script.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-l_script.diff.gz` |
+| native | native-nosdl | `ded/l_struct.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-l_struct.diff.gz` |
+| native | native-nosdl | `ded/md5.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-md5.diff.gz` |
+| native | native-nosdl | `ded/msg.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-msg.diff.gz` |
+| native | native-nosdl | `ded/net_chan.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-net_chan.diff.gz` |
+| native | native-nosdl | `ded/net_ip.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-net_ip.diff.gz` |
+| native | native-nosdl | `ded/q_shared.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-q_shared.diff.gz` |
+| native | native-nosdl | `ded/qvm/vm.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-qvm-vm.diff.gz` |
+| native | native-nosdl | `ded/qvm/vm_interpreted.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-qvm-vm_interpreted.diff.gz` |
+| native | native-nosdl | `ded/qvm/vm_x86.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-qvm-vm_x86.diff.gz` |
+| native | native-nosdl | `ded/sv_bot.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-sv_bot.diff.gz` |
+| native | native-nosdl | `ded/sv_ccmds.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-sv_ccmds.diff.gz` |
+| native | native-nosdl | `ded/sv_client.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-sv_client.diff.gz` |
+| native | native-nosdl | `ded/sv_filter.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-sv_filter.diff.gz` |
+| native | native-nosdl | `ded/sv_game.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-sv_game.diff.gz` |
+| native | native-nosdl | `ded/sv_init.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-sv_init.diff.gz` |
+| native | native-nosdl | `ded/sv_main.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-sv_main.diff.gz` |
+| native | native-nosdl | `ded/sv_net_chan.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-sv_net_chan.diff.gz` |
+| native | native-nosdl | `ded/sv_snapshot.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-sv_snapshot.diff.gz` |
+| native | native-nosdl | `ded/sv_world.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-sv_world.diff.gz` |
+| native | native-nosdl | `ded/unix_main.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-unix_main.diff.gz` |
+| native | native-nosdl | `ded/unix_shared.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-unix_shared.diff.gz` |
+| native | native-nosdl | `ded/unzip.o` | `USE_SDL=0` | `phase3-native-native-nosdl-ded-unzip.diff.gz` |
+| native | native-nosdl | `rend1/puff.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-puff.diff.gz` |
+| native | native-nosdl | `rend1/q_shared.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-q_shared.diff.gz` |
+| native | native-nosdl | `rend1/tr_animation.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_animation.diff.gz` |
+| native | native-nosdl | `rend1/tr_arb.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_arb.diff.gz` |
+| native | native-nosdl | `rend1/tr_backend.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_backend.diff.gz` |
+| native | native-nosdl | `rend1/tr_bsp.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_bsp.diff.gz` |
+| native | native-nosdl | `rend1/tr_cmds.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_cmds.diff.gz` |
+| native | native-nosdl | `rend1/tr_curve.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_curve.diff.gz` |
+| native | native-nosdl | `rend1/tr_flares.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_flares.diff.gz` |
+| native | native-nosdl | `rend1/tr_image.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_image.diff.gz` |
+| native | native-nosdl | `rend1/tr_image_tga.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_image_tga.diff.gz` |
+| native | native-nosdl | `rend1/tr_init.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_init.diff.gz` |
+| native | native-nosdl | `rend1/tr_light.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_light.diff.gz` |
+| native | native-nosdl | `rend1/tr_main.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_main.diff.gz` |
+| native | native-nosdl | `rend1/tr_mesh.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_mesh.diff.gz` |
+| native | native-nosdl | `rend1/tr_model.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_model.diff.gz` |
+| native | native-nosdl | `rend1/tr_model_iqm.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_model_iqm.diff.gz` |
+| native | native-nosdl | `rend1/tr_noise.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_noise.diff.gz` |
+| native | native-nosdl | `rend1/tr_scene.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_scene.diff.gz` |
+| native | native-nosdl | `rend1/tr_shade.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_shade.diff.gz` |
+| native | native-nosdl | `rend1/tr_shade_calc.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_shade_calc.diff.gz` |
+| native | native-nosdl | `rend1/tr_shader.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_shader.diff.gz` |
+| native | native-nosdl | `rend1/tr_shadows.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_shadows.diff.gz` |
+| native | native-nosdl | `rend1/tr_sky.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_sky.diff.gz` |
+| native | native-nosdl | `rend1/tr_surface.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_surface.diff.gz` |
+| native | native-nosdl | `rend1/tr_vbo.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_vbo.diff.gz` |
+| native | native-nosdl | `rend1/tr_world.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rend1-tr_world.diff.gz` |
+| native | native-nosdl | `rendv/puff.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-puff.diff.gz` |
+| native | native-nosdl | `rendv/q_shared.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-q_shared.diff.gz` |
+| native | native-nosdl | `rendv/tr_animation.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_animation.diff.gz` |
+| native | native-nosdl | `rendv/tr_backend.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_backend.diff.gz` |
+| native | native-nosdl | `rendv/tr_bsp.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_bsp.diff.gz` |
+| native | native-nosdl | `rendv/tr_cmds.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_cmds.diff.gz` |
+| native | native-nosdl | `rendv/tr_curve.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_curve.diff.gz` |
+| native | native-nosdl | `rendv/tr_image.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_image.diff.gz` |
+| native | native-nosdl | `rendv/tr_image_tga.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_image_tga.diff.gz` |
+| native | native-nosdl | `rendv/tr_init.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_init.diff.gz` |
+| native | native-nosdl | `rendv/tr_light.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_light.diff.gz` |
+| native | native-nosdl | `rendv/tr_main.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_main.diff.gz` |
+| native | native-nosdl | `rendv/tr_mesh.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_mesh.diff.gz` |
+| native | native-nosdl | `rendv/tr_model.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_model.diff.gz` |
+| native | native-nosdl | `rendv/tr_model_iqm.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_model_iqm.diff.gz` |
+| native | native-nosdl | `rendv/tr_noise.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_noise.diff.gz` |
+| native | native-nosdl | `rendv/tr_scene.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_scene.diff.gz` |
+| native | native-nosdl | `rendv/tr_shade.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_shade.diff.gz` |
+| native | native-nosdl | `rendv/tr_shade_calc.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_shade_calc.diff.gz` |
+| native | native-nosdl | `rendv/tr_shader.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_shader.diff.gz` |
+| native | native-nosdl | `rendv/tr_shadows.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_shadows.diff.gz` |
+| native | native-nosdl | `rendv/tr_sky.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_sky.diff.gz` |
+| native | native-nosdl | `rendv/tr_surface.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_surface.diff.gz` |
+| native | native-nosdl | `rendv/tr_world.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-tr_world.diff.gz` |
+| native | native-nosdl | `rendv/vk.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-vk.diff.gz` |
+| native | native-nosdl | `rendv/vk_flares.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-vk_flares.diff.gz` |
+| native | native-nosdl | `rendv/vk_vbo.o` | `USE_SDL=0` | `phase3-native-native-nosdl-rendv-vk_vbo.diff.gz` |
+| native | native-nosdl | `client/linux_joystick.o` | `USE_SDL=0 CFLAGS=-DUSE_JOYSTICK` | `phase3-native-native-nosdl-client-linux_joystick.diff.gz` |
+| cross | mingw64 | `client/be_aas_bspq3.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_aas_bspq3.diff.gz` |
+| cross | mingw64 | `client/be_aas_cluster.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_aas_cluster.diff.gz` |
+| cross | mingw64 | `client/be_aas_debug.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_aas_debug.diff.gz` |
+| cross | mingw64 | `client/be_aas_entity.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_aas_entity.diff.gz` |
+| cross | mingw64 | `client/be_aas_file.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_aas_file.diff.gz` |
+| cross | mingw64 | `client/be_aas_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_aas_move.diff.gz` |
+| cross | mingw64 | `client/be_aas_optimize.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_aas_optimize.diff.gz` |
+| cross | mingw64 | `client/be_aas_reach.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_aas_reach.diff.gz` |
+| cross | mingw64 | `client/be_aas_route.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_aas_route.diff.gz` |
+| cross | mingw64 | `client/be_aas_sample.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_aas_sample.diff.gz` |
+| cross | mingw64 | `client/be_ai_char.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_ai_char.diff.gz` |
+| cross | mingw64 | `client/be_ai_chat.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_ai_chat.diff.gz` |
+| cross | mingw64 | `client/be_ai_goal.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_ai_goal.diff.gz` |
+| cross | mingw64 | `client/be_ai_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-be_ai_move.diff.gz` |
+| cross | mingw64 | `client/cl_avi.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_avi.diff.gz` |
+| cross | mingw64 | `client/cl_cgame.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_cgame.diff.gz` |
+| cross | mingw64 | `client/cl_console.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_console.diff.gz` |
+| cross | mingw64 | `client/cl_curl.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_curl.diff.gz` |
+| cross | mingw64 | `client/cl_input.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_input.diff.gz` |
+| cross | mingw64 | `client/cl_jpeg.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_jpeg.diff.gz` |
+| cross | mingw64 | `client/cl_keys.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_keys.diff.gz` |
+| cross | mingw64 | `client/cl_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_main.diff.gz` |
+| cross | mingw64 | `client/cl_net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_net_chan.diff.gz` |
+| cross | mingw64 | `client/cl_parse.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_parse.diff.gz` |
+| cross | mingw64 | `client/cl_scrn.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_scrn.diff.gz` |
+| cross | mingw64 | `client/cl_ui.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cl_ui.diff.gz` |
+| cross | mingw64 | `client/cm_load.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cm_load.diff.gz` |
+| cross | mingw64 | `client/cm_patch.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cm_patch.diff.gz` |
+| cross | mingw64 | `client/cm_test.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cm_test.diff.gz` |
+| cross | mingw64 | `client/cm_trace.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cm_trace.diff.gz` |
+| cross | mingw64 | `client/cmd.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cmd.diff.gz` |
+| cross | mingw64 | `client/common.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-common.diff.gz` |
+| cross | mingw64 | `client/cvar.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-cvar.diff.gz` |
+| cross | mingw64 | `client/files.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-files.diff.gz` |
+| cross | mingw64 | `client/history.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-history.diff.gz` |
+| cross | mingw64 | `client/huffman.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-huffman.diff.gz` |
+| cross | mingw64 | `client/keys.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-keys.diff.gz` |
+| cross | mingw64 | `client/l_memory.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-l_memory.diff.gz` |
+| cross | mingw64 | `client/l_precomp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-l_precomp.diff.gz` |
+| cross | mingw64 | `client/l_script.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-l_script.diff.gz` |
+| cross | mingw64 | `client/l_struct.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-l_struct.diff.gz` |
+| cross | mingw64 | `client/md5.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-md5.diff.gz` |
+| cross | mingw64 | `client/msg.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-msg.diff.gz` |
+| cross | mingw64 | `client/net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-net_chan.diff.gz` |
+| cross | mingw64 | `client/net_ip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-net_ip.diff.gz` |
+| cross | mingw64 | `client/puff.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-puff.diff.gz` |
+| cross | mingw64 | `client/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-q_math.diff.gz` |
+| cross | mingw64 | `client/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-q_shared.diff.gz` |
+| cross | mingw64 | `client/qvm/vm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-qvm-vm.diff.gz` |
+| cross | mingw64 | `client/qvm/vm_interpreted.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-qvm-vm_interpreted.diff.gz` |
+| cross | mingw64 | `client/qvm/vm_x86.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-qvm-vm_x86.diff.gz` |
+| cross | mingw64 | `client/snd_dma.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-snd_dma.diff.gz` |
+| cross | mingw64 | `client/snd_mem.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-snd_mem.diff.gz` |
+| cross | mingw64 | `client/snd_mix.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-snd_mix.diff.gz` |
+| cross | mingw64 | `client/sv_bot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-sv_bot.diff.gz` |
+| cross | mingw64 | `client/sv_ccmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-sv_ccmds.diff.gz` |
+| cross | mingw64 | `client/sv_client.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-sv_client.diff.gz` |
+| cross | mingw64 | `client/sv_filter.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-sv_filter.diff.gz` |
+| cross | mingw64 | `client/sv_game.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-sv_game.diff.gz` |
+| cross | mingw64 | `client/sv_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-sv_init.diff.gz` |
+| cross | mingw64 | `client/sv_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-sv_main.diff.gz` |
+| cross | mingw64 | `client/sv_net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-sv_net_chan.diff.gz` |
+| cross | mingw64 | `client/sv_snapshot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-sv_snapshot.diff.gz` |
+| cross | mingw64 | `client/sv_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-sv_world.diff.gz` |
+| cross | mingw64 | `client/unzip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-unzip.diff.gz` |
+| cross | mingw64 | `client/win_glimp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-win_glimp.diff.gz` |
+| cross | mingw64 | `client/win_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-win_main.diff.gz` |
+| cross | mingw64 | `client/win_minimize.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-win_minimize.diff.gz` |
+| cross | mingw64 | `client/win_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-win_shared.diff.gz` |
+| cross | mingw64 | `client/win_snd.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-win_snd.diff.gz` |
+| cross | mingw64 | `client/win_syscon.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-win_syscon.diff.gz` |
+| cross | mingw64 | `client/win_wndproc.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-client-win_wndproc.diff.gz` |
+| cross | mingw64 | `ded/be_aas_bspq3.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_aas_bspq3.diff.gz` |
+| cross | mingw64 | `ded/be_aas_cluster.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_aas_cluster.diff.gz` |
+| cross | mingw64 | `ded/be_aas_debug.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_aas_debug.diff.gz` |
+| cross | mingw64 | `ded/be_aas_entity.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_aas_entity.diff.gz` |
+| cross | mingw64 | `ded/be_aas_file.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_aas_file.diff.gz` |
+| cross | mingw64 | `ded/be_aas_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_aas_move.diff.gz` |
+| cross | mingw64 | `ded/be_aas_optimize.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_aas_optimize.diff.gz` |
+| cross | mingw64 | `ded/be_aas_reach.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_aas_reach.diff.gz` |
+| cross | mingw64 | `ded/be_aas_route.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_aas_route.diff.gz` |
+| cross | mingw64 | `ded/be_aas_sample.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_aas_sample.diff.gz` |
+| cross | mingw64 | `ded/be_ai_char.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_ai_char.diff.gz` |
+| cross | mingw64 | `ded/be_ai_chat.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_ai_chat.diff.gz` |
+| cross | mingw64 | `ded/be_ai_goal.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_ai_goal.diff.gz` |
+| cross | mingw64 | `ded/be_ai_move.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-be_ai_move.diff.gz` |
+| cross | mingw64 | `ded/cm_load.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-cm_load.diff.gz` |
+| cross | mingw64 | `ded/cm_patch.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-cm_patch.diff.gz` |
+| cross | mingw64 | `ded/cm_test.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-cm_test.diff.gz` |
+| cross | mingw64 | `ded/cm_trace.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-cm_trace.diff.gz` |
+| cross | mingw64 | `ded/cmd.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-cmd.diff.gz` |
+| cross | mingw64 | `ded/common.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-common.diff.gz` |
+| cross | mingw64 | `ded/cvar.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-cvar.diff.gz` |
+| cross | mingw64 | `ded/files.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-files.diff.gz` |
+| cross | mingw64 | `ded/history.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-history.diff.gz` |
+| cross | mingw64 | `ded/huffman.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-huffman.diff.gz` |
+| cross | mingw64 | `ded/keys.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-keys.diff.gz` |
+| cross | mingw64 | `ded/l_memory.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-l_memory.diff.gz` |
+| cross | mingw64 | `ded/l_precomp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-l_precomp.diff.gz` |
+| cross | mingw64 | `ded/l_script.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-l_script.diff.gz` |
+| cross | mingw64 | `ded/l_struct.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-l_struct.diff.gz` |
+| cross | mingw64 | `ded/md5.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-md5.diff.gz` |
+| cross | mingw64 | `ded/msg.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-msg.diff.gz` |
+| cross | mingw64 | `ded/net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-net_chan.diff.gz` |
+| cross | mingw64 | `ded/net_ip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-net_ip.diff.gz` |
+| cross | mingw64 | `ded/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-q_math.diff.gz` |
+| cross | mingw64 | `ded/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-q_shared.diff.gz` |
+| cross | mingw64 | `ded/qvm/vm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-qvm-vm.diff.gz` |
+| cross | mingw64 | `ded/qvm/vm_interpreted.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-qvm-vm_interpreted.diff.gz` |
+| cross | mingw64 | `ded/qvm/vm_x86.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-qvm-vm_x86.diff.gz` |
+| cross | mingw64 | `ded/sv_bot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-sv_bot.diff.gz` |
+| cross | mingw64 | `ded/sv_ccmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-sv_ccmds.diff.gz` |
+| cross | mingw64 | `ded/sv_client.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-sv_client.diff.gz` |
+| cross | mingw64 | `ded/sv_filter.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-sv_filter.diff.gz` |
+| cross | mingw64 | `ded/sv_game.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-sv_game.diff.gz` |
+| cross | mingw64 | `ded/sv_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-sv_init.diff.gz` |
+| cross | mingw64 | `ded/sv_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-sv_main.diff.gz` |
+| cross | mingw64 | `ded/sv_net_chan.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-sv_net_chan.diff.gz` |
+| cross | mingw64 | `ded/sv_snapshot.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-sv_snapshot.diff.gz` |
+| cross | mingw64 | `ded/sv_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-sv_world.diff.gz` |
+| cross | mingw64 | `ded/unzip.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-unzip.diff.gz` |
+| cross | mingw64 | `ded/win_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-win_main.diff.gz` |
+| cross | mingw64 | `ded/win_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-win_shared.diff.gz` |
+| cross | mingw64 | `ded/win_syscon.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-ded-win_syscon.diff.gz` |
+| cross | mingw64 | `rend1/puff.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-puff.diff.gz` |
+| cross | mingw64 | `rend1/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-q_math.diff.gz` |
+| cross | mingw64 | `rend1/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-q_shared.diff.gz` |
+| cross | mingw64 | `rend1/tr_animation.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_animation.diff.gz` |
+| cross | mingw64 | `rend1/tr_arb.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_arb.diff.gz` |
+| cross | mingw64 | `rend1/tr_backend.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_backend.diff.gz` |
+| cross | mingw64 | `rend1/tr_bsp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_bsp.diff.gz` |
+| cross | mingw64 | `rend1/tr_cmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_cmds.diff.gz` |
+| cross | mingw64 | `rend1/tr_curve.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_curve.diff.gz` |
+| cross | mingw64 | `rend1/tr_flares.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_flares.diff.gz` |
+| cross | mingw64 | `rend1/tr_image.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_image.diff.gz` |
+| cross | mingw64 | `rend1/tr_image_tga.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_image_tga.diff.gz` |
+| cross | mingw64 | `rend1/tr_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_init.diff.gz` |
+| cross | mingw64 | `rend1/tr_light.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_light.diff.gz` |
+| cross | mingw64 | `rend1/tr_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_main.diff.gz` |
+| cross | mingw64 | `rend1/tr_marks.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_marks.diff.gz` |
+| cross | mingw64 | `rend1/tr_mesh.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_mesh.diff.gz` |
+| cross | mingw64 | `rend1/tr_model.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_model.diff.gz` |
+| cross | mingw64 | `rend1/tr_model_iqm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_model_iqm.diff.gz` |
+| cross | mingw64 | `rend1/tr_scene.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_scene.diff.gz` |
+| cross | mingw64 | `rend1/tr_shade.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_shade.diff.gz` |
+| cross | mingw64 | `rend1/tr_shade_calc.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_shade_calc.diff.gz` |
+| cross | mingw64 | `rend1/tr_shader.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_shader.diff.gz` |
+| cross | mingw64 | `rend1/tr_shadows.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_shadows.diff.gz` |
+| cross | mingw64 | `rend1/tr_sky.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_sky.diff.gz` |
+| cross | mingw64 | `rend1/tr_surface.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_surface.diff.gz` |
+| cross | mingw64 | `rend1/tr_vbo.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_vbo.diff.gz` |
+| cross | mingw64 | `rend1/tr_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rend1-tr_world.diff.gz` |
+| cross | mingw64 | `rendv/puff.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-puff.diff.gz` |
+| cross | mingw64 | `rendv/q_math.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-q_math.diff.gz` |
+| cross | mingw64 | `rendv/q_shared.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-q_shared.diff.gz` |
+| cross | mingw64 | `rendv/tr_animation.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_animation.diff.gz` |
+| cross | mingw64 | `rendv/tr_backend.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_backend.diff.gz` |
+| cross | mingw64 | `rendv/tr_bsp.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_bsp.diff.gz` |
+| cross | mingw64 | `rendv/tr_cmds.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_cmds.diff.gz` |
+| cross | mingw64 | `rendv/tr_curve.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_curve.diff.gz` |
+| cross | mingw64 | `rendv/tr_image.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_image.diff.gz` |
+| cross | mingw64 | `rendv/tr_image_tga.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_image_tga.diff.gz` |
+| cross | mingw64 | `rendv/tr_init.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_init.diff.gz` |
+| cross | mingw64 | `rendv/tr_light.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_light.diff.gz` |
+| cross | mingw64 | `rendv/tr_main.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_main.diff.gz` |
+| cross | mingw64 | `rendv/tr_marks.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_marks.diff.gz` |
+| cross | mingw64 | `rendv/tr_mesh.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_mesh.diff.gz` |
+| cross | mingw64 | `rendv/tr_model.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_model.diff.gz` |
+| cross | mingw64 | `rendv/tr_model_iqm.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_model_iqm.diff.gz` |
+| cross | mingw64 | `rendv/tr_scene.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_scene.diff.gz` |
+| cross | mingw64 | `rendv/tr_shade.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_shade.diff.gz` |
+| cross | mingw64 | `rendv/tr_shade_calc.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_shade_calc.diff.gz` |
+| cross | mingw64 | `rendv/tr_shader.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_shader.diff.gz` |
+| cross | mingw64 | `rendv/tr_shadows.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_shadows.diff.gz` |
+| cross | mingw64 | `rendv/tr_sky.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_sky.diff.gz` |
+| cross | mingw64 | `rendv/tr_surface.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_surface.diff.gz` |
+| cross | mingw64 | `rendv/tr_world.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-tr_world.diff.gz` |
+| cross | mingw64 | `rendv/vk.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-vk.diff.gz` |
+| cross | mingw64 | `rendv/vk_flares.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-vk_flares.diff.gz` |
+| cross | mingw64 | `rendv/vk_vbo.o` | `PLATFORM=mingw64 ARCH=x86_64 USE_SDL=0 OPTIMIZE=-O2 -ffast-math -fno-lto` | `phase3-cross-mingw64-rendv-vk_vbo.diff.gz` |
+| cross | aarch64 | `ded/be_aas_bspq3.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_aas_bspq3.diff.gz` |
+| cross | aarch64 | `ded/be_aas_cluster.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_aas_cluster.diff.gz` |
+| cross | aarch64 | `ded/be_aas_debug.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_aas_debug.diff.gz` |
+| cross | aarch64 | `ded/be_aas_file.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_aas_file.diff.gz` |
+| cross | aarch64 | `ded/be_aas_reach.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_aas_reach.diff.gz` |
+| cross | aarch64 | `ded/be_aas_route.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_aas_route.diff.gz` |
+| cross | aarch64 | `ded/be_aas_routealt.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_aas_routealt.diff.gz` |
+| cross | aarch64 | `ded/be_aas_sample.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_aas_sample.diff.gz` |
+| cross | aarch64 | `ded/be_ai_char.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_ai_char.diff.gz` |
+| cross | aarch64 | `ded/be_ai_chat.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_ai_chat.diff.gz` |
+| cross | aarch64 | `ded/be_ai_move.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-be_ai_move.diff.gz` |
+| cross | aarch64 | `ded/cm_load.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-cm_load.diff.gz` |
+| cross | aarch64 | `ded/cm_patch.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-cm_patch.diff.gz` |
+| cross | aarch64 | `ded/cm_trace.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-cm_trace.diff.gz` |
+| cross | aarch64 | `ded/cmd.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-cmd.diff.gz` |
+| cross | aarch64 | `ded/common.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-common.diff.gz` |
+| cross | aarch64 | `ded/cvar.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-cvar.diff.gz` |
+| cross | aarch64 | `ded/files.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-files.diff.gz` |
+| cross | aarch64 | `ded/history.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-history.diff.gz` |
+| cross | aarch64 | `ded/huffman.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-huffman.diff.gz` |
+| cross | aarch64 | `ded/keys.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-keys.diff.gz` |
+| cross | aarch64 | `ded/l_memory.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-l_memory.diff.gz` |
+| cross | aarch64 | `ded/l_precomp.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-l_precomp.diff.gz` |
+| cross | aarch64 | `ded/l_script.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-l_script.diff.gz` |
+| cross | aarch64 | `ded/l_struct.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-l_struct.diff.gz` |
+| cross | aarch64 | `ded/md5.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-md5.diff.gz` |
+| cross | aarch64 | `ded/msg.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-msg.diff.gz` |
+| cross | aarch64 | `ded/net_chan.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-net_chan.diff.gz` |
+| cross | aarch64 | `ded/net_ip.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-net_ip.diff.gz` |
+| cross | aarch64 | `ded/q_shared.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-q_shared.diff.gz` |
+| cross | aarch64 | `ded/qvm/vm.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-qvm-vm.diff.gz` |
+| cross | aarch64 | `ded/qvm/vm_aarch64.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-qvm-vm_aarch64.diff.gz` |
+| cross | aarch64 | `ded/qvm/vm_interpreted.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-qvm-vm_interpreted.diff.gz` |
+| cross | aarch64 | `ded/sv_bot.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-sv_bot.diff.gz` |
+| cross | aarch64 | `ded/sv_ccmds.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-sv_ccmds.diff.gz` |
+| cross | aarch64 | `ded/sv_client.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-sv_client.diff.gz` |
+| cross | aarch64 | `ded/sv_filter.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-sv_filter.diff.gz` |
+| cross | aarch64 | `ded/sv_game.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-sv_game.diff.gz` |
+| cross | aarch64 | `ded/sv_init.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-sv_init.diff.gz` |
+| cross | aarch64 | `ded/sv_main.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-sv_main.diff.gz` |
+| cross | aarch64 | `ded/sv_net_chan.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-sv_net_chan.diff.gz` |
+| cross | aarch64 | `ded/sv_snapshot.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-sv_snapshot.diff.gz` |
+| cross | aarch64 | `ded/sv_world.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-sv_world.diff.gz` |
+| cross | aarch64 | `ded/unix_main.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-unix_main.diff.gz` |
+| cross | aarch64 | `ded/unix_shared.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-unix_shared.diff.gz` |
+| cross | aarch64 | `ded/unzip.o` | `ARCH=aarch64 CC=aarch64-linux-gnu-gcc` | `phase3-cross-aarch64-ded-unzip.diff.gz` |
+| cross | arm | `ded/be_aas_bspq3.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_aas_bspq3.diff.gz` |
+| cross | arm | `ded/be_aas_cluster.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_aas_cluster.diff.gz` |
+| cross | arm | `ded/be_aas_debug.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_aas_debug.diff.gz` |
+| cross | arm | `ded/be_aas_file.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_aas_file.diff.gz` |
+| cross | arm | `ded/be_aas_reach.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_aas_reach.diff.gz` |
+| cross | arm | `ded/be_aas_route.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_aas_route.diff.gz` |
+| cross | arm | `ded/be_aas_routealt.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_aas_routealt.diff.gz` |
+| cross | arm | `ded/be_aas_sample.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_aas_sample.diff.gz` |
+| cross | arm | `ded/be_ai_char.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_ai_char.diff.gz` |
+| cross | arm | `ded/be_ai_chat.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_ai_chat.diff.gz` |
+| cross | arm | `ded/be_ai_move.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-be_ai_move.diff.gz` |
+| cross | arm | `ded/cm_load.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-cm_load.diff.gz` |
+| cross | arm | `ded/cm_patch.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-cm_patch.diff.gz` |
+| cross | arm | `ded/cm_trace.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-cm_trace.diff.gz` |
+| cross | arm | `ded/cmd.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-cmd.diff.gz` |
+| cross | arm | `ded/common.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-common.diff.gz` |
+| cross | arm | `ded/cvar.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-cvar.diff.gz` |
+| cross | arm | `ded/files.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-files.diff.gz` |
+| cross | arm | `ded/history.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-history.diff.gz` |
+| cross | arm | `ded/huffman.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-huffman.diff.gz` |
+| cross | arm | `ded/keys.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-keys.diff.gz` |
+| cross | arm | `ded/l_memory.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-l_memory.diff.gz` |
+| cross | arm | `ded/l_precomp.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-l_precomp.diff.gz` |
+| cross | arm | `ded/l_script.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-l_script.diff.gz` |
+| cross | arm | `ded/l_struct.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-l_struct.diff.gz` |
+| cross | arm | `ded/md5.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-md5.diff.gz` |
+| cross | arm | `ded/msg.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-msg.diff.gz` |
+| cross | arm | `ded/net_chan.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-net_chan.diff.gz` |
+| cross | arm | `ded/net_ip.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-net_ip.diff.gz` |
+| cross | arm | `ded/q_math.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-q_math.diff.gz` |
+| cross | arm | `ded/q_shared.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-q_shared.diff.gz` |
+| cross | arm | `ded/qvm/vm.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-qvm-vm.diff.gz` |
+| cross | arm | `ded/qvm/vm_armv7l.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-qvm-vm_armv7l.diff.gz` |
+| cross | arm | `ded/qvm/vm_interpreted.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-qvm-vm_interpreted.diff.gz` |
+| cross | arm | `ded/sv_bot.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-sv_bot.diff.gz` |
+| cross | arm | `ded/sv_ccmds.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-sv_ccmds.diff.gz` |
+| cross | arm | `ded/sv_client.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-sv_client.diff.gz` |
+| cross | arm | `ded/sv_filter.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-sv_filter.diff.gz` |
+| cross | arm | `ded/sv_game.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-sv_game.diff.gz` |
+| cross | arm | `ded/sv_init.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-sv_init.diff.gz` |
+| cross | arm | `ded/sv_main.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-sv_main.diff.gz` |
+| cross | arm | `ded/sv_net_chan.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-sv_net_chan.diff.gz` |
+| cross | arm | `ded/sv_snapshot.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-sv_snapshot.diff.gz` |
+| cross | arm | `ded/sv_world.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-sv_world.diff.gz` |
+| cross | arm | `ded/unix_main.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-unix_main.diff.gz` |
+| cross | arm | `ded/unix_shared.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-unix_shared.diff.gz` |
+| cross | arm | `ded/unzip.o` | `ARCH=arm CC=arm-linux-gnueabihf-gcc LONG_BIT=32` | `phase3-cross-arm-ded-unzip.diff.gz` |
+| cross | ppc64le | `ded/be_aas_bspq3.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_bspq3.diff.gz` |
+| cross | ppc64le | `ded/be_aas_cluster.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_cluster.diff.gz` |
+| cross | ppc64le | `ded/be_aas_debug.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_debug.diff.gz` |
+| cross | ppc64le | `ded/be_aas_entity.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_entity.diff.gz` |
+| cross | ppc64le | `ded/be_aas_file.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_file.diff.gz` |
+| cross | ppc64le | `ded/be_aas_main.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_main.diff.gz` |
+| cross | ppc64le | `ded/be_aas_move.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_move.diff.gz` |
+| cross | ppc64le | `ded/be_aas_optimize.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_optimize.diff.gz` |
+| cross | ppc64le | `ded/be_aas_reach.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_reach.diff.gz` |
+| cross | ppc64le | `ded/be_aas_route.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_route.diff.gz` |
+| cross | ppc64le | `ded/be_aas_routealt.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_routealt.diff.gz` |
+| cross | ppc64le | `ded/be_aas_sample.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_aas_sample.diff.gz` |
+| cross | ppc64le | `ded/be_ai_char.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_ai_char.diff.gz` |
+| cross | ppc64le | `ded/be_ai_chat.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_ai_chat.diff.gz` |
+| cross | ppc64le | `ded/be_ai_gen.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_ai_gen.diff.gz` |
+| cross | ppc64le | `ded/be_ai_goal.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_ai_goal.diff.gz` |
+| cross | ppc64le | `ded/be_ai_move.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_ai_move.diff.gz` |
+| cross | ppc64le | `ded/be_ai_weap.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_ai_weap.diff.gz` |
+| cross | ppc64le | `ded/be_ai_weight.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_ai_weight.diff.gz` |
+| cross | ppc64le | `ded/be_ea.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_ea.diff.gz` |
+| cross | ppc64le | `ded/be_interface.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-be_interface.diff.gz` |
+| cross | ppc64le | `ded/cm_load.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-cm_load.diff.gz` |
+| cross | ppc64le | `ded/cm_patch.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-cm_patch.diff.gz` |
+| cross | ppc64le | `ded/cm_polylib.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-cm_polylib.diff.gz` |
+| cross | ppc64le | `ded/cm_test.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-cm_test.diff.gz` |
+| cross | ppc64le | `ded/cm_trace.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-cm_trace.diff.gz` |
+| cross | ppc64le | `ded/cmd.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-cmd.diff.gz` |
+| cross | ppc64le | `ded/common.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-common.diff.gz` |
+| cross | ppc64le | `ded/cvar.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-cvar.diff.gz` |
+| cross | ppc64le | `ded/files.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-files.diff.gz` |
+| cross | ppc64le | `ded/history.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-history.diff.gz` |
+| cross | ppc64le | `ded/huffman.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-huffman.diff.gz` |
+| cross | ppc64le | `ded/huffman_static.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-huffman_static.diff.gz` |
+| cross | ppc64le | `ded/keys.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-keys.diff.gz` |
+| cross | ppc64le | `ded/l_crc.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-l_crc.diff.gz` |
+| cross | ppc64le | `ded/l_libvar.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-l_libvar.diff.gz` |
+| cross | ppc64le | `ded/l_log.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-l_log.diff.gz` |
+| cross | ppc64le | `ded/l_memory.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-l_memory.diff.gz` |
+| cross | ppc64le | `ded/l_precomp.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-l_precomp.diff.gz` |
+| cross | ppc64le | `ded/l_script.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-l_script.diff.gz` |
+| cross | ppc64le | `ded/l_struct.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-l_struct.diff.gz` |
+| cross | ppc64le | `ded/linux_signals.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-linux_signals.diff.gz` |
+| cross | ppc64le | `ded/md4.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-md4.diff.gz` |
+| cross | ppc64le | `ded/md5.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-md5.diff.gz` |
+| cross | ppc64le | `ded/msg.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-msg.diff.gz` |
+| cross | ppc64le | `ded/net_chan.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-net_chan.diff.gz` |
+| cross | ppc64le | `ded/net_ip.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-net_ip.diff.gz` |
+| cross | ppc64le | `ded/q_math.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-q_math.diff.gz` |
+| cross | ppc64le | `ded/q_shared.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-q_shared.diff.gz` |
+| cross | ppc64le | `ded/qvm/vm.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-qvm-vm.diff.gz` |
+| cross | ppc64le | `ded/qvm/vm_interpreted.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-qvm-vm_interpreted.diff.gz` |
+| cross | ppc64le | `ded/qvm/vm_powerpc.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-qvm-vm_powerpc.diff.gz` |
+| cross | ppc64le | `ded/sv_bot.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-sv_bot.diff.gz` |
+| cross | ppc64le | `ded/sv_ccmds.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-sv_ccmds.diff.gz` |
+| cross | ppc64le | `ded/sv_client.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-sv_client.diff.gz` |
+| cross | ppc64le | `ded/sv_filter.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-sv_filter.diff.gz` |
+| cross | ppc64le | `ded/sv_game.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-sv_game.diff.gz` |
+| cross | ppc64le | `ded/sv_init.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-sv_init.diff.gz` |
+| cross | ppc64le | `ded/sv_main.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-sv_main.diff.gz` |
+| cross | ppc64le | `ded/sv_net_chan.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-sv_net_chan.diff.gz` |
+| cross | ppc64le | `ded/sv_snapshot.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-sv_snapshot.diff.gz` |
+| cross | ppc64le | `ded/sv_world.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-sv_world.diff.gz` |
+| cross | ppc64le | `ded/unix_main.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-unix_main.diff.gz` |
+| cross | ppc64le | `ded/unix_shared.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-unix_shared.diff.gz` |
+| cross | ppc64le | `ded/unzip.o` | `ARCH=ppc64le CC=powerpc64le-linux-gnu-gcc` | `phase3-cross-ppc64le-ded-unzip.diff.gz` |
+
+Later per-file G4: `phase3-msvc-vm_aarch64.diff.gz`; same Linux AArch64 body with one Windows-only T1 cast.
 
 ## T24/T25 continuation decisions
 
@@ -1256,3 +1178,6 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 - G8 scoped the sanitizer-only maybe-uninitialized suppression to GCC: Clang does not recognize that warning option. C++ GCC ASan/UBSan dedicated q3dm17/two-bot smoke exits cleanly with the same two original alignment suppressions and leak checking disabled; no new runtime diagnostics.
 
 - qcommon/vm_aarch64.cpp: MSVC ARM64 reports C2440 at 2283, VirtualAlloc LPVOID to byte*. Added one T1 (byte *) cast, matching the existing field. AArch64 strict compile/G2/G3 PASS; G4 retained in phase3-msvc-vm_aarch64.diff.gz. Windows ARM64 verification continues in CI; MSVC x64 Debug/Release now pass.
+
+- T25 cleanup reproducer: `python3 tools/port/reproduce_t25_cleanup.py "$PWD" /tmp/port-cleanup-proof`. Success means the documented incompatibility was reproduced, **not** that cleanup passed. It records actual Make recipes, compiler versions, all variant hashes, raw DWARF and precisely locates the 16-byte MD5 region (offset depends on output-path length). Archived original/blank Clang objects are t25-cleanup-clang-default-{original,blank}.o.gz. Source remains unchanged.
+- MSVC final catalog loop: run 34804759804 at commit 4ffcd649 passes Debug/Release x64 and ARM64 after the one Windows-only vm_aarch64 T1 cast. No remaining MSVC error needs a new transformation.

@@ -1,0 +1,9 @@
+Read-only T25 cleanup preflight
+
+Literal all-C++-object checksum requirement cannot be met with existing default Clang debug flags. Actual Make debug recipes were replayed using identical temporary source/output filenames for original, plain removal, and line-preserving blank replacement. All variants compile strictly.
+
+Plain removal changes both GCC and Clang debug hashes due to shifted line positions. Blank replacement leaves the active cast line at 1640 and all later lines unchanged: GCC default debug objects are byte-identical (63bc0890bfe9b82ee2507db4349b9705e654b40c89f77e1d9fa73424239fe97d). Clang default DWARF5 changes exactly 16 bytes at offsets 69567-69582, its source-file MD5 field in .debug_line; both objects are 158776 bytes and all other bytes match. Original SHA256 14015309c7608e9e061adac4a78b3a956bfcb1b8dd158fa1c6a0dce362d342a8; blank SHA256 bf7c20601c22866dbd89aff9f3fc46f997998a4501549dd1f321b9844bf0b570.
+
+Diagnostic control: using -gdwarf-4 identically on original and blank gives identical Clang objects (484fcb1ef80a3fa73e53e37cc917faeeffa0042072effda5bc4e9bc3a1ad6822). This demonstrates the default discrepancy is source checksum metadata, not behavior. It is not a PASS under the existing flags and does not authorize changing production debug format or normalizing hashes.
+
+Minimal source cleanup candidate is replacing the four removed preprocessor/C-only lines with blank lines, but it still fails the required Clang checksum. Under the explicit no-exception rule, retain the source and record cleanup blocked with this concrete evidence unless the requirement is explicitly amended. Do not patch object metadata, introduce source aliases, or attempt checksum-preserving filler. No repository edits by reviewer.
