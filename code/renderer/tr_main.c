@@ -479,7 +479,7 @@ static void R_SetFarClip( void )
 		}
 	}
 
-	tr.viewParms.zFar = sqrt( farthestCornerDistance );
+	tr.viewParms.zFar = sqrt( (double)(farthestCornerDistance) );
 }
 
 
@@ -502,7 +502,7 @@ static void R_SetupFrustum( viewParms_t *dest, float xmin, float xmax, float yma
 		// symmetric case can be simplified
 		VectorCopy(dest->orientation.origin, ofsorigin);
 
-		length = sqrt(xmax * xmax + zProj * zProj);
+		length = sqrt((double)(xmax * xmax + zProj * zProj));
 		oppleg = xmax / length;
 		adjleg = zProj / length;
 
@@ -519,17 +519,17 @@ static void R_SetupFrustum( viewParms_t *dest, float xmin, float xmax, float yma
 		VectorMA(dest->orientation.origin, stereoSep, dest->orientation.axis[1], ofsorigin);
 	
 		oppleg = xmax + stereoSep;
-		length = sqrt(oppleg * oppleg + zProj * zProj);
+		length = sqrt((double)(oppleg * oppleg + zProj * zProj));
 		VectorScale(dest->orientation.axis[0], oppleg / length, dest->frustum[0].normal);
 		VectorMA(dest->frustum[0].normal, zProj / length, dest->orientation.axis[1], dest->frustum[0].normal);
 
 		oppleg = xmin + stereoSep;
-		length = sqrt(oppleg * oppleg + zProj * zProj);
+		length = sqrt((double)(oppleg * oppleg + zProj * zProj));
 		VectorScale(dest->orientation.axis[0], -oppleg / length, dest->frustum[1].normal);
 		VectorMA(dest->frustum[1].normal, -zProj / length, dest->orientation.axis[1], dest->frustum[1].normal);
 	}
 
-	length = sqrt(ymax * ymax + zProj * zProj);
+	length = sqrt((double)(ymax * ymax + zProj * zProj));
 	oppleg = ymax / length;
 	adjleg = zProj / length;
 
@@ -836,7 +836,7 @@ static qboolean R_GetPortalOrientations( const drawSurf_t *drawSurf, int entityN
 				CrossProduct( camera->axis[0], camera->axis[1], camera->axis[2] );
 			} else {
 				// bobbing rotate, with skinNum being the rotation offset
-				d = sin( tr.refdef.time * 0.003f );
+				d = sin( (double)(tr.refdef.time * 0.003f) );
 				d = e->e.skinNum + d * 4;
 				VectorCopy( camera->axis[1], transformed );
 				RotatePointAroundVector( camera->axis[1], camera->axis[0], transformed, d );
