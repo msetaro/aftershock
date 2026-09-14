@@ -511,7 +511,7 @@ static void Autosprite2Deform( void ) {
 			v1 = xyz + 4 * edgeVerts[nums[j]][0];
 			v2 = xyz + 4 * edgeVerts[nums[j]][1];
 
-			l = 0.5 * sqrt( lengths[j] );
+			l = 0.5 * sqrt( (double)(lengths[j]) );
 			
 			// we need to see which direction this edge
 			// is used to determine direction of projection
