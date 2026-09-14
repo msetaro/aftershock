@@ -1,4 +1,0 @@
-code/botlib/be_aas_reach.c:2196:9: warning: ‘beststart’ may be used uninitialized [-Wmaybe-uninitialized]
- 2196 |         VectorMiddle(beststart, beststart2, beststart);
-code/botlib/be_aas_reach.c:2124:16: note: ‘beststart’ declared here
- 2124 |         vec3_t beststart, beststart2 = { 0 }, bestend, bestend2 = { 0 };

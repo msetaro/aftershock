@@ -4,6 +4,17 @@ Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed c
 
 **Engine port and phases 0–3 pass, including all 14 active CI build jobs. The required T25 cleanup now passes the maintainer-approved metadata comparison.** All 257 inventory entries are done (including the two explicit exclusions). Native GCC/Clang C and strict C++ configurations all build. MinGW, ARM, AArch64 and PPC64LE C++ full links pass. T24/T25 resolve all reviewed blockers with unchanged C hashes. C++ dedicated runtime matches C under G6, and the client loads OpenGL/Vulkan renderers under Xvfb.
 
+## Evidence archive
+
+Full logs, object hashes, gate diffs, exact command inventories, and review fixtures are archived on the independent orphan branch `port-evidence`, commit [`823d6f1e7b0603980bb743cbba2cf6d9c9b405da`](https://github.com/msetaro/aftershock/tree/823d6f1e7b0603980bb743cbba2cf6d9c9b405da/tools/port/evidence). Every historical filename reference below is relative to that archived directory. Only the small current summary remains in-tree: `tools/port/results/review-acceptance.json`. The archive has no engine/main commit parents; prior branch history is preserved without rewriting.
+
+```sh
+mkdir -p /tmp/port-evidence
+git fetch origin port-evidence
+git archive 823d6f1e7b0603980bb743cbba2cf6d9c9b405da tools/port/evidence | tar -x -C /tmp/port-evidence
+export PORT_EVIDENCE=/tmp/port-evidence/tools/port/evidence
+```
+
 ## Next action
 
 PR #32 review follow-up: origin/main merged; implement generator T18 emission and byte-identical regeneration, T25 cleanup using release/stripped-debug hashes, publish evidence on orphan port-evidence, record final acceptance, answer/resolve all 15 threads, refresh CI and PR readiness.
@@ -1203,3 +1214,5 @@ Later per-file G4: `phase3-msvc-vm_aarch64.diff.gz`; same Linux AArch64 body wit
 | clang | debug | ded | stripped | `f4e52fe200a027a244d701e2e879e1f05aefbc778628e384ca86996deefe5909` |
 
 - PR32 verification tools: reproduce_t25_cleanup.py now checks the approved raw-release/stripped-debug rule against pre-cleanup commit 629700fa; eight pairs pass. cross_gates.py accepts PORT_EVIDENCE for archived oracle manifests. Previous /tmp artifacts were absent in this session; the frozen C oracle was reconstructed from e49b8259, without installing tools.
+
+- PR32 evidence move complete: every file was compared byte-for-byte against the pushed orphan snapshot before removal from this branch; archive SHA 823d6f1e7b0603980bb743cbba2cf6d9c9b405da. Cross sweeps read their manifests via PORT_EVIDENCE; the active tree retains only the compact review-acceptance JSON.
