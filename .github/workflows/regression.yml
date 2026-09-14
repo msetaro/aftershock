@@ -22,6 +22,8 @@ jobs:
       - name: Install libc++
         if: matrix.cc == 'clang'
         run: sudo apt-get update && sudo apt-get install -y libc++-dev libc++abi-dev
+      - name: Frame evidence negative controls
+        run: python3 tests/check_frames.py
       - name: Differential goldens and one-ULP negative control
         run: python3 tests/run.py unit --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}' --negative-control
 

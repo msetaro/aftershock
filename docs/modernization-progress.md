@@ -126,3 +126,17 @@ tolerance or golden fallback is introduced. The saved-evidence checker enables a
 local explicit regeneration command after reviewing a hosted artifact; CI itself
 never regenerates goldens. Next: validate real OpenGL1, review local/hosted frames,
 commit the new initial profiles, and rerun all gates before ready/merge.
+
+Hosted evidence run 34866295338 on 145939aa passes both content oracles and all
+replay-pair checks with real OpenGL1 and Vulkan. It fails only because the initial
+Mesa 25.2.8 profile is not yet committed. Downloaded runtime-diagnostics, reviewed
+all twelve sampled screenshots and renderer logs, then ran the documented LOCAL
+command `python3 tests/frames.py --output /tmp/aftershock-ci-runtime4/aftershock-demo-tests
+--content openarena --regenerate`. The command verifies all twenty-four screenshots
+(two repeats) and writes the new exact-hash profile; CI never regenerates anything.
+The fixed demo hashes match those committed before the run. Local Mesa 26.0.8
+Quake 3/OpenArena replay passes again with real OpenGL1, and runnable negative
+checks reject wrong-renderer logs and unequal repeats. Full build workflow
+34866295171 passed. Next: commit this reviewed initial hosted profile, require
+current-head CI green, update the checkpoint/issue, ready/merge #33, and verify the
+merged-tree workflow before starting #31.

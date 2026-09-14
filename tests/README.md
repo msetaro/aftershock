@@ -8,6 +8,7 @@ isolated allocator/log/file stubs and instrumentation; production code is unchan
 python3 tests/run.py unit --negative-control
 python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
 python3 tests/check_known_bugs.py
+python3 tests/check_frames.py
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
 ```
 

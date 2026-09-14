@@ -30,6 +30,8 @@ def compare(name, actual, regenerate):
         path.write_bytes(actual)
         print('GENERATED', path.relative_to(ROOT), hashlib.sha256(actual).hexdigest())
         return
+    if not path.is_file():
+        raise SystemExit('FAIL: missing reviewed golden: ' + name)
     expected = path.read_bytes()
     if expected != actual:
         print(''.join(difflib.unified_diff(expected.decode().splitlines(True), actual.decode().splitlines(True), fromfile=str(path), tofile='actual')))
