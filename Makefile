@@ -726,6 +726,10 @@ ifeq ($(BUILD_CXX),1)
   ENGINE_CFLAGS = $(filter-out -Wstrict-prototypes -Wimplicit,$(CFLAGS)) \
     -x c++ -std=c++20 -fno-exceptions -fno-rtti $(CXX_FROZEN_WARNINGS)
   ENGINE_LD = $(CXX)
+  ifdef MINGW
+    # T24 must precede SDK headers reached transitively through curl as well.
+    ENGINE_CFLAGS += -DCINTERFACE=
+  endif
 endif
 
 # DO_CC also serves the vendored C libraries. Select by the actual source path,

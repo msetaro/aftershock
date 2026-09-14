@@ -1220,3 +1220,6 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 - T25 production release-linux-x86_64/ded/sv_client.o: original and T25 SHA256 `4a9f0e564093f0277ee5c558d269fc3a00b01b92a5d40665d06df0a14298815c`. Dedicated and client G2/G3 PASS; G4 `sv_client.codegen.diff.gz` and `t25-client-sv_client.diff.gz`.
 
 - T24 win_local.h verification: all 300 MinGW original C hashes unchanged; client win_main G2/G3 passes. Header defines CINTERFACE only under __cplusplus. Next win_input.c.
+
+- T24 include-order resolution: client.h reaches Windows SDK through curl before win_local.h. Windows C++ Make commands therefore predefine the same empty CINTERFACE macro (`-DCINTERFACE=`), matching the approved header definition with no redefinition diagnostic. This is required to satisfy before-any-SDK-include; C flags remain untouched. win_input C hash and strict release/debug/G2/G3/G4 now all PASS. MSVC project definitions will carry the same early setting in phase 3.
+- win_input adds two more required T15 lexical lines to the previously documented -w heuristic exception; no formatting-only edits.
