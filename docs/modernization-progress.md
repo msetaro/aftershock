@@ -49,7 +49,10 @@ Current branch: `issue/1-error-model`. Section 11 now records option 1 and its
 rationale. Added a Clang AST lifetime check using actual Make client/server flags
 for OpenGL and Vulkan, with seven-object rejection and trivial-object acceptance
 controls. All controls and the full 140-translation-unit scan pass. CI installs its own
-clang-tools and build headers. No engine or golden changes. Next: open #1 PR and run hosted regression/full-build gates, then self-review/merge.
+clang-tools and build headers. No engine or golden changes. PR #48 is open. Directory controls also verify core inclusion and platform exclusion.
+Next: run hosted regression/full-build gates on the updated controls, self-review/merge,
+then begin #2. Read-only preparation cloned official GPL sources at dbe4ddb1 into
+/tmp/aftershock-q3-gpl; nothing imported or changed for #2 yet.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation

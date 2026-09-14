@@ -29,7 +29,8 @@ def query(tool, files, flags, location, log):
 
 
 def self_check(tool, output):
-    source = output / 'control.cpp'
+    source = output / 'code/qcommon/control.cpp'
+    source.parent.mkdir(parents=True, exist_ok=True)
     source.write_text('''#include <string>
 struct Plain { int value; ~Plain() = default; };
 struct Owned { ~Owned() {} };
@@ -43,14 +44,19 @@ void check(Owned parameter) {
 }
 ''')
     bad = query(tool, [str(source)], ['--', '-std=c++20', '-fno-exceptions', '-fno-rtti'],
-                'isExpansionInMainFile()', output / 'negative.log')
+                LOCATION, output / 'negative.log')
     assert len(bad) == 7, f'negative control: expected 7 rejected objects, got {len(bad)}'
+    platform = output / 'code/unix/control.cpp'
+    platform.parent.mkdir(parents=True, exist_ok=True)
+    platform.write_text(source.read_text())
+    assert not query(tool, [str(platform)], ['--', '-std=c++20'],
+                     LOCATION, output / 'platform.log')
     source.write_text('''struct Plain { int value; ~Plain() = default; };
 Plain global;
 void check(Plain parameter) { Plain local[2]; Plain *pointer = local; Plain(); }
 ''')
     assert not query(tool, [str(source)], ['--', '-std=c++20'],
-                     'isExpansionInMainFile()', output / 'positive.log')
+                     LOCATION, output / 'positive.log')
 
 
 def main():
