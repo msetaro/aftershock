@@ -37,14 +37,20 @@ Correct void-pointer signatures and direct assignments pass the unit sanitizer
 and pointer checks. Upstream C fails before and passes after:
 https://github.com/ec-/Quake3e/pull/430. Production codegen/symbol gates pass;
 unit/collision regeneration, normal smoke, GCC UBSan smoke and fixed-demo replay
-retain all goldens. No allocation behavior change. Next: open PR and finish CI/self-review.
+retain all goldens. No allocation behavior change. PR #43 is open at source
+74b15fd6; regression 34886950022 and build 34886949860 passed. Self-review passes.
+Next: mark ready, merge, verify merged-tree regression, then fix the filesystem
+extension out-parameter on issue/31-extension-output.
 
-Broader Clang experiments remain distinct from the GCC runtime gate: ASan/UBSan
-with faketime timed out before output; UBSan alone exposed zcalloc/zcfree callback
-signature mismatches. Recovery then segfaulted when starting the legacy QVM.
-Those observations are on #31; fix the callback types separately; do not fold them
-into the packed-read fix. No new suppression or unexercised known-bug entry was added.
-Existing Clang unit ASan/UBSan and pointer checks stay required.
+Clang runtime observation classified: VM_CallCompiled's instrumented indirect
+call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
+starts at codeBase and has no preceding metadata. Disassembly confirms that load.
+A temporary relink with only vm_x86.o built with -fno-sanitize=function passes both
+original Q3 smoke goldens; all other UBSan instrumentation remains. No source or
+CI flag/suppression changes were made. This is an instrumentation/JIT compatibility
+limit of the transition oracle; #2 removes that JIT. The allocator callback bug
+is independently covered by the permanent Clang unit test. The ASan/faketime
+experiment still timed out before output and is not a claimed runtime gate.
 
 ## Issue status and remaining sequence
 
@@ -243,4 +249,5 @@ only private callback mangled names change. All callers are in unzip.cpp.
 Upstream C regression fails before and passes after:
 https://github.com/ec-/Quake3e/pull/430. Self-review: one callback ABI bug; no
 allocation arithmetic, per-frame allocation, layout, FP, destructor or engine
-OS-access changes. Hosted gates pending.
+OS-access changes. Regression 34886950022 and full build 34886949860 pass
+on source 74b15fd6. Final checkpoint is documentation only; self-review passes.

@@ -113,9 +113,10 @@ A #31 fix removes its entry and updates the policy self-check if applicable.
 The existing bot smoke also runs under GCC UBSan (`runtime --sanitize`), comparing
 the same content goldens and treating every unsuppressed diagnostic as fatal.
 Both compile and link steps enable UBSan. This uses the original GCC runtime
-baseline; Clang's function checks expose callback type mismatches, and a recovery
-survey later crashed at QVM startup (cause not isolated), as recorded in #31 and
-the bug notes. Unit ASan/UBSan coverage remains required;
+baseline; Clang's function check reads metadata before the generated JIT entry,
+which can fall outside its mmap region. A diagnostic relink without that check
+only in vm_x86.cpp passes both smoke goldens; no CI flag or suppression changed.
+The transition JIT is removed in #2. Unit ASan/UBSan coverage remains required;
 the ASan runtime experiment with faketime timed out before producing output.
 The unit driver also initializes and frees real zlib state through its default
 allocator callbacks, under the existing sanitizer modes. It reads no content and

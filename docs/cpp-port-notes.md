@@ -165,3 +165,13 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   and GCC UBSan smoke and fixed-demo replay pass unchanged. Upstream C test/fix:
   https://github.com/ec-/Quake3e/pull/430. The separate Clang QVM startup observation
   remains unclassified; this fix resolves the callback diagnostics only.
+
+- Clang QVM crash classification: instrumented VM_CallCompiled emits a function
+  signature probe at codeBase-8 before the indirect JIT entry call. VM_Alloc_Compiled
+  supplies a fresh mmap region beginning at codeBase, without preceding sanitizer
+  metadata. Disassembly confirms the probe. Temporary relink with only vm_x86.o
+  built using -fno-sanitize=function passes both original Q3 smoke goldens; every
+  other UBSan check remains. Evidence: /tmp/aftershock-clang-jit-check.py and .log.
+  This is a transition-JIT instrumentation compatibility limitation, addressed by
+  JIT removal in #2. No engine fix, CI flag change or suppression was added.
+  Callback fork PR #43 passed regression 34886950022 and full build 34886949860.
