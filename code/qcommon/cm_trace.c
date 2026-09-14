@@ -107,7 +107,7 @@ static float CM_DistanceFromLineSquared( const vec3_t p, const vec3_t lp1, const
 			(proj[j] < lp1[j] && proj[j] < lp2[j]))
 			break;
 	if (j < 3) {
-		if (fabs(proj[j] - lp1[j]) < fabs(proj[j] - lp2[j]))
+		if (fabs((double)(proj[j] - lp1[j])) < fabs((double)(proj[j] - lp2[j])))
 			VectorSubtract(p, lp1, t);
 		else
 			VectorSubtract(p, lp2, t);
@@ -1292,11 +1292,11 @@ static void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, co
 	if ( tw.sphere.use ) {
 		for ( i = 0 ; i < 3 ; i++ ) {
 			if ( tw.start[i] < tw.end[i] ) {
-				tw.bounds[0][i] = tw.start[i] - fabs(tw.sphere.offset[i]) - tw.sphere.radius;
-				tw.bounds[1][i] = tw.end[i] + fabs(tw.sphere.offset[i]) + tw.sphere.radius;
+				tw.bounds[0][i] = tw.start[i] - fabs((double)(tw.sphere.offset[i])) - tw.sphere.radius;
+				tw.bounds[1][i] = tw.end[i] + fabs((double)(tw.sphere.offset[i])) + tw.sphere.radius;
 			} else {
-				tw.bounds[0][i] = tw.end[i] - fabs(tw.sphere.offset[i]) - tw.sphere.radius;
-				tw.bounds[1][i] = tw.start[i] + fabs(tw.sphere.offset[i]) + tw.sphere.radius;
+				tw.bounds[0][i] = tw.end[i] - fabs((double)(tw.sphere.offset[i])) - tw.sphere.radius;
+				tw.bounds[1][i] = tw.start[i] + fabs((double)(tw.sphere.offset[i])) + tw.sphere.radius;
 			}
 		}
 	}
