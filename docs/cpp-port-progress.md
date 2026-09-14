@@ -65,6 +65,8 @@ G5: complete C-driver differential coverage beyond math; then G7 static analysis
 
 ## Harness status
 
+- Final G7: `python3 tools/port/static_gate.py` completed 99 changed native C sources with zero tool/compile failures; nine Windows files skipped because target tooling is unavailable. It reports 236 bugprone-narrowing-conversions findings separately, not a warning-free pass. Existing narrowing expressions are retained for review; no warning cleanup. Evidence: static-summary.txt, static-warnings.json, clang-tidy.log.gz under tools/port/evidence. The exact source contexts come from the per-file table and Make dry-run commands; checks are the frozen .clang-tidy subset and changed-line filter.
+
 - Final G1/G7 native matrix: all eight C configurations PASS (six GCC, two Clang); all eight C++ configurations FAIL only in recorded blocked source files. See table below. `python3 tools/port/build_matrix.py /tmp/aftershock-cpp-port/matrix` reproduces the complete matrix and returns 1 while blockers remain. The initial run used fresh directories; after reviewer feedback, subsequent runs now allocate a unique build root to prevent stale objects. Every exact compiler/make command and exit/error count is in tools/port/evidence/build-matrix-results.json; all 16 complete build logs are retained as *.build.log.gz there.
 
 | Configuration | Exit | Compiler errors |
