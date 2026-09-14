@@ -12,9 +12,11 @@ Failing test commit 3993d575 reproduces stale movement result fields. The shared
 entry now clears the complete result; GCC and Clang probes pass. Both native/QVM
 Quake 3 smoke logs match after the explained q3dm7 golden update. OpenArena smoke
 repeats with reviewed changed gameplay logs; all fixed-demo frame hashes remain
-unchanged for both content sets/renderers. Next: publish the #31 fix PR, get its
-regression/full-build gates green, self-review and merge, verify the merged tree,
-then merge modernization into #2 and continue native C parity/C++ port/static work.
+unchanged for both content sets/renderers. PR #51 source
+fc49615d4be82ff41110f6d521ee6945dd376739 passed regression 34900480717 and full
+build 34900480656. Self-review passes; this final checkpoint is documentation only.
+Next: merge #51 with a merge commit, verify the merged-tree regression, then merge
+modernization into #2 and continue native C parity/C++ port/static work.
 
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
@@ -450,4 +452,9 @@ and two rather than one say events (5a511a91). Both maps repeat identically befo
 these explicit golden writes. No recording/frame golden changes. Fixed replay
 passes both maps/renderers for Quake 3 (b38004b1) and OpenArena (5b89d338).
 No expected-failure entry or UBSan suppression covered uninitialized movement output.
-CI and final self-review are pending; do not claim the PR merged yet.
+Regression 34900480717 and full build 34900480656 pass on source
+fc49615d4be82ff41110f6d521ee6945dd376739. GCC UBSan Quake 3 smoke also passes both
+updated goldens. Self-review: one #31 initialization defect, production-body test
+first, explained golden changes only, unchanged file/wire layout and FP expressions,
+no new engine OS calls, non-trivial destructors or allocations. Issue updated;
+upstream #435 open. This final checkpoint changes documentation only.
