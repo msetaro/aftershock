@@ -149,8 +149,8 @@ static DWORD WINAPI ThreadProc( HANDLE hInited )
 	hAVRT = LoadLibraryW( L"avrt" );
 	if ( hAVRT )
 	{
-		pAvSetMmThreadCharacteristicsW = (void*)GetProcAddress( hAVRT, "AvSetMmThreadCharacteristicsW" );
-		pAvRevertMmThreadCharacteristics = (void*)GetProcAddress( hAVRT, "AvRevertMmThreadCharacteristics" );
+		pAvSetMmThreadCharacteristicsW = (HANDLE (WINAPI *)(LPCWSTR, LPDWORD))(void*)GetProcAddress( hAVRT, "AvSetMmThreadCharacteristicsW" );
+		pAvRevertMmThreadCharacteristics = (BOOL (WINAPI *)(HANDLE))(void*)GetProcAddress( hAVRT, "AvRevertMmThreadCharacteristics" );
 		if ( pAvRevertMmThreadCharacteristics && pAvSetMmThreadCharacteristicsW )
 		{
 			th = pAvSetMmThreadCharacteristicsW( L"Pro Audio", &taskIndex );
