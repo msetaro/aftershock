@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/win32/win_shared.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/win32/win_snd.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -358,6 +358,8 @@ Phase 1: next `code/win32/win_shared.c`. Resume there; do not redo done files. B
 
 ## Blocked files
 
+- `code/win32/win_shared.c`: Unverified (no MinGW/Windows SDK). No obvious catalog edits; unchanged. Optional USE_PROFILES calls FARPROC with arguments despite C++ zero-argument type, requiring an uncataloged function-pointer signature cast. Target gates unavailable.
+
 - `code/win32/win_qvk.c`: Unverified (no MinGW/Windows SDK). T1: 3 library/proc casts by inspection. VK_GetInstanceProcAddr still returns a function pointer as void*, outside T1. Target gates unavailable.
 
 - `code/win32/win_qgl.c`: Unverified (no MinGW/Windows SDK). T1: 2 source sites (library handle and proc macro with APIENTRY preserved). GL_GetProcAddress still assigns a function pointer to void*, outside T1. Target gates unavailable.
@@ -682,7 +684,7 @@ Phase 1: next `code/win32/win_shared.c`. Resume there; do not redo done files. B
 | `code/win32/win_minimize.c` | blocked | Unverified (no MinGW/Windows SDK). Inspection found no required catalog transformations in key-token table/parser; unchanged, target gates unavailable. |
 | `code/win32/win_qgl.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 source sites (library handle and proc macro with APIENTRY preserved). GL_GetProcAddress still assigns a function pointer to void*, outside T1. Target gates unavailable. |
 | `code/win32/win_qvk.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 3 library/proc casts by inspection. VK_GetInstanceProcAddr still returns a function pointer as void*, outside T1. Target gates unavailable. |
-| `code/win32/win_shared.c` | todo | Pending module pass. |
+| `code/win32/win_shared.c` | blocked | Unverified (no MinGW/Windows SDK). No obvious catalog edits; unchanged. Optional USE_PROFILES calls FARPROC with arguments despite C++ zero-argument type, requiring an uncataloged function-pointer signature cast. Target gates unavailable. |
 | `code/win32/win_snd.c` | todo | Pending module pass. |
 | `code/win32/win_syscon.c` | todo | Pending module pass. |
 | `code/win32/win_wndproc.c` | todo | Pending module pass. |
