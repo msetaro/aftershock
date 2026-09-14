@@ -684,8 +684,10 @@ ifdef MINGW
 endif
 
 ifneq ($(findstring -fsanitize=,$(CFLAGS)),)
-  # One existing C/C++ sanitizer diagnostic: be_aas_reach beststart.
-  CXX_FROZEN_WARNINGS += -Wno-maybe-uninitialized
+  ifeq ($(findstring clang,$(CXX)),)
+    # One existing GCC C/C++ sanitizer diagnostic: be_aas_reach beststart.
+    CXX_FROZEN_WARNINGS += -Wno-maybe-uninitialized
+  endif
 endif
 
 ifeq ($(PLATFORM),darwin)
