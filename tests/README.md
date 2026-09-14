@@ -20,7 +20,9 @@ libc++abi-dev. Cross compilation and MSVC builds run in CI; Linux executable tes
 do not claim to execute on those targets.
 
 `python3 tests/download.py` checks the real download begin/cleanup path with
-libcurl, without performing a transfer. It requires libcurl development headers
+libcurl, without a network transfer. It also compiles the option wrapper with
+`-Werror=varargs` and checks long/pointer/offset forwarding through a local-file
+transfer, including body suppression, private-data identity and a size limit. It requires libcurl development headers
 and the library (`libcurl4-openssl-dev` on Ubuntu); hosted runtime CI installs them.
 The URL cases cover bases with/without a trailing slash, `%1` templates, escaping,
 and an empty base. File/cvar/UI operations are isolated by test stubs. Explicit

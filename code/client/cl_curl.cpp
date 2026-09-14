@@ -256,12 +256,13 @@ static size_t CL_cURL_CallbackWrite( void *buffer, size_t size, size_t nmemb, vo
 }
 
 
-CURLcode qcurl_easy_setopt_warn(CURL *curl, CURLoption option, ...)
+CURLcode qcurl_easy_setopt_warn(CURL *curl, int optionValue, ...)
 {
 	CURLcode result;
+	CURLoption option = (CURLoption)optionValue;
 
 	va_list argp;
-	va_start(argp, option);
+	va_start(argp, optionValue);
 
 	if(option < CURLOPTTYPE_OBJECTPOINT) {
 		long longValue = va_arg(argp, long);

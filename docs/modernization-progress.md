@@ -17,28 +17,36 @@ Filesystem PR #37 merged as 73108eab after regression 34877286456 and full build
 Download PR #38 merged as 02b16def after regression 34878247137 and full build
 34878247337 passed; merged-tree regression 34878892522 passed.
 
-Current branch: `issue/31-audio-threads`, PR #39. Source/test head 4dcfa075 passed
-regression 34879358567 and full build 34879358584. Final checkpoint changes only
-documentation. Self-review passed: platform callback signatures/registration/return
-only, no mixing arithmetic, simulation FP, layouts, allocation or core-lifetime changes.
-Next: mark #39 ready, merge with a merge commit, verify merged-tree regression,
-then create `issue/31-curl-varargs`. Prepared Clang C++ test fails at va_start;
-change the named enum parameter to its promoted integer representation, retain the
-CURLoption local for calls, remove -Wno-varargs, and run the prepared local-file
-transfer checks for long/pointer/offset arguments. C++ test: /tmp/aftershock-curl-options.cpp.
+ALSA PR #39 merged as 811c6f7a after regression 34879358567 and full build
+34879358584 passed; merged-tree regression 34879983585 passed.
 
-New ruling from direct comparison: this va_start defect is specific to the C++
-port on our toolchains. The original C source compiles with Clang -Werror=varargs;
-a C11 type probe reports CURLoption compatible with its promoted type (unsigned int).
-C++ compilation rejects it. Do not claim a failing upstream C test or open an
-upstream bug-fix PR without one. Record this correction on #31 with the fork fix.
+Current branch: `issue/31-curl-varargs`, PR #40. Source/test head e89829fc passed
+regression 34880567812 and full build 34880567796. Final checkpoint changes only
+documentation. Self-review passed: one port varargs defect; routing branches,
+public headers, simulation FP, layouts, allocation and core lifetimes unchanged.
+Next: mark #40 ready, merge with a merge commit, verify merged-tree regression,
+then create `issue/31-zip-alignment`. Reuse the existing dedicated-server smoke
+against valid content for the remaining alignment checks; do not add loader targets.
+Build UBSan into the runtime with both CFLAGS and LDFLAGS, remove only the ZIP
+suppression before capturing failure, then copy the two packed fields through a
+32-bit signed temporary so the existing conversion to uLong stays identical.
+
+Preparation: /tmp/aftershock-runtime-ubsan is building with Clang -fsanitize=undefined.
+The full ASan/UBSan binary built, but the existing faketime smoke timed out before
+output (90 seconds); do not treat that as an engine failure or a test pass. Existing
+unit ASan coverage stays required. The new runtime alignment check can use UBSan
+without adding runtime-clock workarounds. Verify that its normal smoke hashes agree.
+
+The curl defect is port-specific on our toolchains: original C/C11 passes Clang's
+varargs check and CURLoption matches its promoted C type, while C++ rejects it.
+No failing upstream C test or upstream PR is claimed. This correction is on #31.
 
 ## Issue status and remaining sequence
 
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA thread signatures in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -165,3 +173,15 @@ The dynamic-ALSA production object builds. Explicit unit/collision regeneration
 produces no golden diff; serial both-map smoke and both-renderer replay pass unchanged.
 Upstream C test/fix: https://github.com/ec-/Quake3e/pull/427.
 Fork PR: https://github.com/msetaro/aftershock/pull/39. CI runs are above.
+
+## #31 curl varargs validation
+
+The permanent Clang test fails before at va_start and passes after changing the last
+named argument to int and retaining a CURLoption local. Removed -Wno-varargs.
+GCC/Clang local-file tests verify long/pointer/offset forwarding, body suppression,
+private-data identity, bounded partial output on size-limit rejection and exact
+returned bytes. No network transfer. Explicit URL regeneration changes no golden.
+Normalized GCC codegen/symbol gates pass; the internal mangled name changes with
+its parameter type, and all callers are in cl_curl.cpp. Unit/one-ULP, collision,
+serial both-map smoke and both-renderer replay pass unchanged.
+Fork PR: https://github.com/msetaro/aftershock/pull/40. CI runs are above.

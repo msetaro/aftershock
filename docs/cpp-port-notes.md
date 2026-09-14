@@ -98,3 +98,21 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   Upstream C test/fix: https://github.com/ec-/Quake3e/pull/427. Unit/collision
   regeneration produces no golden diff; both-map smoke and both-renderer replay pass.
   Fork PR #39 passed regression 34879358567 and full build 34879358584.
+
+- #31 curl va_start fix: the last named argument is now int; a CURLoption local
+  preserves the forwarding logic. `python3 tests/download.py --cc clang --cxx
+  'clang++ -stdlib=libc++' --output /tmp/tests-curl` fails before on -Werror=varargs
+  and passes after, including a local-file transfer verifying long/pointer/offset
+  options. Removed the Makefile's -Wno-varargs. URL golden is unchanged.
+  Correction to the original classification: Clang C/C11 accepts the upstream
+  source, and a type probe finds CURLoption compatible with its promoted C type
+  (unsigned int). C++ distinguishes the enum and rejects va_start. This is a port
+  defect on our toolchains; no failing upstream C test or upstream PR is claimed.
+  The pre-C++26 parameter restriction is described in WG21 P2537R2:
+  https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2537r2.html.
+  GCC production codegen and symbol gates are identical. Unit/one-ULP, collision,
+  serial both-map smoke and both-renderer replay pass unchanged. All callers are
+  within cl_curl.cpp; no public header declaration or wire layout changes.
+  Fork PR #40 passed regression 34880567812 and full build 34880567796.
+  The normalized symbol gate passes; the internal C++ mangled name changes with
+  the parameter type, and all callers rebuild in the same translation unit.

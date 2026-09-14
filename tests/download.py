@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check download URL construction without performing a transfer."""
+"""Check download URLs and curl options without network access."""
 import argparse
 from pathlib import Path
 import shlex
@@ -29,6 +29,14 @@ def main():
          '-lcurl', '-o', binary])
     actual = run([binary], stdout=subprocess.PIPE).stdout
     compare('download.txt', actual, args.regenerate)
+    options = args.output / 'curl-options'
+    run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti',
+         '-O2', '-fno-strict-aliasing', '-DUSE_CURL', '-Werror=varargs',
+         '-ffunction-sections', '-fdata-sections', 'tests/probes/curl.cpp',
+         '-Wl,--gc-sections', '-lcurl', '-o', options])
+    fixture = args.output / 'curl-input.txt'
+    fixture.write_text('aftershock curl options\n')
+    run([options, fixture.as_uri()], timeout=10)
 
 
 if __name__ == '__main__':

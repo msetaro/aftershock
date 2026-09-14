@@ -698,8 +698,7 @@ endif
 
 ifneq ($(findstring clang,$(CXX)),)
   # Clang: two unchanged HasFCOM C warnings per full configuration.
-  # One C++ enum/va_start diagnostic in cl_curl.c; retained and logged, not fixed.
-  CXX_FROZEN_WARNINGS += -Wno-unused-function -Wno-varargs
+  CXX_FROZEN_WARNINGS += -Wno-unused-function
 endif
 
 ENGINE_CC = $(CXX)
