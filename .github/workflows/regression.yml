@@ -35,6 +35,8 @@ jobs:
         run: python3 tests/check_known_bugs.py
       - name: ASan and UBSan with the existing suppression file
         run: python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs
+      - name: ASan pointer comparisons
+        run: python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
 
   fuzz:
     continue-on-error: true # pending #35

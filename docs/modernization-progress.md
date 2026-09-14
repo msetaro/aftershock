@@ -7,24 +7,30 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-PR #33 is merged into modernization as **8692b422643f7b5169c623bbb6bb755f7c35c46d**.
-Merged-tree regression workflow **34867621821** passed; #3 is complete. Current branch is `issue/31-huffman-alignment`
-in the supplied workspace `/home/matt/.t3/worktrees/aftershock/t3code-99571af6`.
-Huffman alignment reproduces under fatal UBSan before the fix. Replaced the
-unaligned typed load with memcpy; removed its known-bugs expectation. Validation
-and upstream PR are next. No other bug fix is included.
+#3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
+alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
+build 34868566674 passed; its merged-tree run 34869117306 passed.
 
-Continue #31 one bug per PR, starting with HuffmanGetSymbol's unaligned read. Run
-its existing fatal sanitizer reproducer before editing, make the smallest fix,
-prove codegen/behavior, remove its known-bugs entry, and offer the non-port-specific
-fix upstream in C. Then address the remaining recorded defects individually.
+Current branch: `issue/31-extension-validation`. The new permanent assertions plus
+`--sanitize --pointer-compare` fail on the original FS_AllowedExtension (NULL vs
+filename+3). Moving the NULL check first and using a same-string offset passes
+with the unchanged unit golden. Pointer checks run separately from UBSan because
+combining both under local Clang 21 diagnoses generated comparisons in COM_ParseExt;
+separate ASan/UBSan and ASan/pointer-comparison runs retain both sets of checks.
+GCC/Clang units, both sanitizer modes, collision, both-map smoke and both-renderer
+replay pass. Explicit unit/collision regeneration changes no golden. The symbol
+gate passes; of 99 production functions only FS_AllowedExtension changes assembly,
+as expected for its NULL guard and offset check. Upstream C regression also fails
+before and passes after. Upstream C PR: https://github.com/ec-/Quake3e/pull/425.
+Next: open the fork PR, get CI green,
+self-review and merge before the next #31 bug.
 
 ## Issue status and remaining sequence
 
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman alignment fix in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem extension validation in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -109,5 +115,4 @@ Production GCC assembly and symbols pass the existing port gates before/after.
 The explicit unit and differential regeneration commands produce zero golden
 diff. Local q3dm17/q3dm7 smoke and both-renderer fixed-demo replay pass unchanged.
 An upstream C regression tests every symbol at 32 bit offsets: sanitizer fails
-before, passes after, and GCC C assembly is also identical. Upstream PR: https://github.com/ec-/Quake3e/pull/424. Fork PR/CI/self-review remain
-before merge.
+before, passes after, and GCC C assembly is also identical. Upstream PR: https://github.com/ec-/Quake3e/pull/424. Fork PR #36 merged after full CI and self-review; merged-tree regression passed.

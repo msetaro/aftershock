@@ -55,3 +55,22 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   fixed-demo frames remain identical. Removed its known-bugs entry; it never had
   a UBSan suppression. Upstream C regression covers 256 symbols at 32 bit offsets.
   Upstream C fix/test: https://github.com/ec-/Quake3e/pull/424.
+
+  Huffman fork fix merged: https://github.com/msetaro/aftershock/pull/36.
+
+- #31 filesystem extension validation: extensionless names (`"no_extension"`,
+  `"a"`, `""`) and short dotted names (`"."`, `".x"`) now have permanent assertions.
+  Reproducer: `python3 tests/run.py unit --cc clang --cxx clang++ --sanitize
+  --pointer-compare --output /tmp/tests-pointers`. Before: ASan invalid-pointer-pair
+  in FS_AllowedExtension, NULL versus filename+3, exit 1. After moving the NULL
+  check first and using `(e - fileName) >= 3`: pass with unchanged unit hash.
+  Separate UBSan and pointer-comparison runs avoid combined-instrumentation
+  interference seen with Clang 21 while retaining both checks in CI. Upstream C
+  fix and failing-then-passing test: https://github.com/ec-/Quake3e/pull/425.
+
+- #31 caller audit finding (separate fix pending): Unix and Windows Sys_LoadLibrary
+  pass an uninitialized local `ext` to Com_Error when FS_AllowedExtension returns
+  true. The latter only writes `ext` when rejecting an executable extension.
+  Reproducer path: Sys_LoadLibrary with an extensionless or non-executable name
+  reaches the error formatter with an indeterminate `%s` pointer. Recorded from
+  call-flow inspection, not executed; no loader test or source fix in this PR.

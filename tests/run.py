@@ -56,7 +56,8 @@ def build(output, variables, targets=()):
 
 def differential(args):
     objects = args.output / 'unit-build/release-linux-x86_64/ded'
-    instrument = ['-fsanitize=address,undefined', '-fno-omit-frame-pointer'] if args.sanitize else []
+    sanitizers = 'address,pointer-compare' if args.pointer_compare else 'address,undefined'
+    instrument = ['-fsanitize=' + sanitizers, '-fno-omit-frame-pointer'] if args.sanitize else []
     variables = [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0', 'USE_SDL=0', 'USE_CURL=0', 'CFLAGS=-ffunction-sections -fdata-sections ' + ' '.join(instrument)]
     build(args.output / 'unit-build', variables, [objects / (s + '.o') for s in SOURCES])
     binary = args.output / 'differential'
@@ -195,6 +196,7 @@ def main():
     parser.add_argument('--cc', default='gcc')
     parser.add_argument('--cxx', default='g++')
     parser.add_argument('--sanitize', action='store_true')
+    parser.add_argument('--pointer-compare', action='store_true', help='run ASan pointer comparisons separately from UBSan')
     parser.add_argument('--negative-control', action='store_true')
     parser.add_argument('--regenerate', action='store_true', help='explicitly replace goldens; prohibited in CI')
     args = parser.parse_args()
@@ -202,12 +204,14 @@ def main():
         parser.error('CI must never regenerate goldens')
     if args.negative_control and (args.check != 'unit' or args.sanitize or args.regenerate):
         parser.error('--negative-control requires unit without regeneration/sanitizers')
+    if args.pointer_compare and (not args.sanitize or args.known_bugs):
+        parser.error('--pointer-compare requires --sanitize without --known-bugs')
     if args.sanitize and args.check == 'runtime':
         parser.error('runtime sanitizer runner is not implemented yet')
     if args.known_bugs and (not args.sanitize or args.regenerate):
         parser.error('--known-bugs requires sanitizers without regeneration')
     if args.sanitize:
-        ENV['ASAN_OPTIONS'] = 'detect_leaks=0:halt_on_error=1'
+        ENV['ASAN_OPTIONS'] = 'detect_leaks=0:halt_on_error=1:detect_invalid_pointer_pairs=2'
         ENV['UBSAN_OPTIONS'] = f'halt_on_error={0 if args.known_bugs else 1}:suppressions={ROOT / "tools/port/ubsan.supp"}'
     args.output = args.output.resolve()
     args.data = args.data.resolve()
