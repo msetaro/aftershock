@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: renderer; next `code/renderer/tr_mesh.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: renderer; next `code/renderer/tr_shade_calc.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/renderer/tr_mesh.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_mesh.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_mesh.o /tmp/aftershock-cpp-port/renderer-tr_mesh ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderer/tr_main.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_main.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_main.o /tmp/aftershock-cpp-port/renderer-tr_main ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -509,7 +511,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/renderer/tr_local.h` | done | T4: 5 occurrences (prerequisite); actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderer/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; T21/T22: 6 argument casts at 6 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_main.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_marks.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_marks.o, default); G4 PASS. |
-| `code/renderer/tr_mesh.c` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_mesh.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderer/tr_mesh.c` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_mesh.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_model.c` | done | T1: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_model.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_model_iqm.c` | done | T1: 4, T2: 2, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_model_iqm.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_scene.c` | done | T4: 4 occurrences (prerequisite), T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_scene.o, default); G4 advisory FAIL, full diff retained. |
