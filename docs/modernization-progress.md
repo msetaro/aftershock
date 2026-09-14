@@ -50,9 +50,18 @@ rationale. Added a Clang AST lifetime check using actual Make client/server flag
 for OpenGL and Vulkan, with seven-object rejection and trivial-object acceptance
 controls. All controls and the full 140-translation-unit scan pass. CI installs its own
 clang-tools and build headers. No engine or golden changes. PR #48 is open. Directory controls also verify core inclusion and platform exclusion.
-Next: run hosted regression/full-build gates on the updated controls, self-review/merge,
-then begin #2. Read-only preparation cloned official GPL sources at dbe4ddb1 into
-/tmp/aftershock-q3-gpl; nothing imported or changed for #2 yet.
+Regression 34892972996 passes on source e0013d90, including hosted lifetime
+analysis. Full build 34892972994 also passes on e0013d90. Self-review: only
+decision/enforcement/docs, no engine/golden or unrelated workflow changes. Final
+checkpoint is docs-only. Next: merge #48, verify merged-tree regression, then begin #2.
+Preparation cloned official GPL sources dbe4ddb10315479fc00086f08e25d968b4b43c49
+into /tmp/aftershock-q3-gpl. A temporary base-game C shared module compiles using
+the official Q3GOBJ source list with intptr_t entry-point/syscall return widths.
+No repository source imported or #2 engine changes yet, and no native parity claim.
+Temporary script/log: /tmp/aftershock-native-preflight.py and
+/tmp/aftershock-native-preflight/code/build.log. Initial wildcard build included
+optional rankings sources; the actual upstream manifest excludes them. Source
+headers also require ui/menudef.h. These are import/build dependencies, not fixes.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -340,3 +349,15 @@ is empty. Self-review: one vendor bounds bug, existing unit runner, no file load
 FP, layout, engine OS-access, allocation or destructor change. Regression
 34891606879 and full build 34891606634 pass on source 01f2dd40. Final checkpoint
 changes documentation only; self-review passes.
+
+## #1 acceptance evidence
+
+Source e0013d9085f56ddd4d726a15e5c5a724dc9272f3 passed regression 34892972996 and
+full build 34892972994. Local Clang 21 and hosted Clang analysis pass 140 engine
+translation units using 356 compilation commands across both renderer configurations.
+Controls reject seven owning objects, accept trivial/defaulted objects and pointers,
+and verify core inclusion/platform exclusion. Clang's AST `destroyed` annotation
+comes directly from VarDecl::needsDestruction; the controls detect format drift.
+Section 11 records the retained longjmp rationale, wrapper restriction, and inactive
+preprocessor-branch/self-review limitation. AGENTS.md and README document the command.
+No engine source or golden changed. Final self-review passes; docs checkpoint only.
