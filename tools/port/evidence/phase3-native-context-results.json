@@ -1,0 +1,4878 @@
+[
+  {
+    "target": "native",
+    "object": "client/be_aas_bspq3.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_aas_bspq3.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_cluster.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_aas_cluster.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_debug.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_aas_debug.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_entity.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_file.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_aas_file.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_main.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_move.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_optimize.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_reach.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_aas_reach.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_route.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_aas_route.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_routealt.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_aas_routealt.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_aas_sample.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_aas_sample.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_ai_char.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_ai_char.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_ai_chat.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_ai_chat.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_ai_gen.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/be_ai_goal.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/be_ai_move.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-be_ai_move.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/be_ai_weap.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/be_ai_weight.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/be_ea.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/be_interface.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/cl_avi.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_avi.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_cgame.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_cgame.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_cin.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_cin.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_console.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_console.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_curl.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_curl.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_input.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_input.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_jpeg.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_jpeg.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_keys.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_keys.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_main.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_main.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_net_chan.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_net_chan.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_parse.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_parse.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_scrn.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_scrn.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cl_ui.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cl_ui.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cm_load.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cm_load.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cm_patch.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cm_patch.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cm_polylib.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/cm_test.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/cm_trace.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cm_trace.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cmd.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cmd.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/common.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-common.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/cvar.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-cvar.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/files.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-files.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/history.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-history.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/huffman.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-huffman.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/huffman_static.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/keys.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-keys.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/l_crc.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/l_libvar.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/l_log.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/l_memory.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-l_memory.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/l_precomp.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-l_precomp.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/l_script.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-l_script.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/l_struct.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-l_struct.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/linux_signals.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/md4.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/md5.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-md5.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/msg.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-msg.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/net_chan.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-net_chan.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/net_ip.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-net_ip.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/puff.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-puff.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/q_math.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/q_shared.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-q_shared.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/qvm/vm.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-qvm-vm.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/qvm/vm_interpreted.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-qvm-vm_interpreted.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/qvm/vm_x86.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-qvm-vm_x86.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sdl_gamma.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/sdl_glimp.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/sdl_input.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sdl_input.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sdl_snd.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/snd_adpcm.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/snd_codec.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/snd_codec_ogg.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/snd_codec_wav.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/snd_dma.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-snd_dma.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/snd_main.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/snd_mem.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-snd_mem.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/snd_mix.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-snd_mix.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/snd_wavelet.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "client/sv_bot.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sv_bot.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sv_ccmds.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sv_ccmds.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sv_client.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sv_client.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sv_filter.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sv_filter.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sv_game.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sv_game.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sv_init.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sv_init.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sv_main.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sv_main.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sv_net_chan.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sv_net_chan.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sv_snapshot.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sv_snapshot.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/sv_world.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-sv_world.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/unix_main.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-unix_main.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/unix_shared.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-unix_shared.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "client/unzip.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-client-unzip.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_bspq3.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_aas_bspq3.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_cluster.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_aas_cluster.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_debug.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_aas_debug.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_entity.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_file.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_aas_file.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_main.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_move.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_optimize.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_reach.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_aas_reach.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_route.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_aas_route.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_routealt.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_aas_routealt.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_aas_sample.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_aas_sample.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_ai_char.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_ai_char.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_ai_chat.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_ai_chat.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_ai_gen.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/be_ai_goal.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/be_ai_move.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-be_ai_move.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/be_ai_weap.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/be_ai_weight.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/be_ea.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/be_interface.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/cm_load.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-cm_load.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/cm_patch.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-cm_patch.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/cm_polylib.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/cm_test.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/cm_trace.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-cm_trace.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/cmd.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-cmd.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/common.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-common.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/cvar.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-cvar.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/files.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-files.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/history.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-history.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/huffman.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-huffman.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/huffman_static.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/keys.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-keys.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/l_crc.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/l_libvar.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/l_log.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/l_memory.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-l_memory.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/l_precomp.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-l_precomp.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/l_script.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-l_script.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/l_struct.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-l_struct.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/linux_signals.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/md4.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/md5.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-md5.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/msg.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-msg.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/net_chan.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-net_chan.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/net_ip.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-net_ip.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/q_math.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "ded/q_shared.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-q_shared.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/qvm/vm.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-qvm-vm.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/qvm/vm_interpreted.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-qvm-vm_interpreted.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/qvm/vm_x86.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-qvm-vm_x86.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/sv_bot.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-sv_bot.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/sv_ccmds.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-sv_ccmds.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/sv_client.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-sv_client.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/sv_filter.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-sv_filter.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/sv_game.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-sv_game.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/sv_init.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-sv_init.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/sv_main.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-sv_main.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/sv_net_chan.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-sv_net_chan.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/sv_snapshot.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-sv_snapshot.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/sv_world.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-sv_world.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/unix_main.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-unix_main.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/unix_shared.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-unix_shared.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "ded/unzip.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-ded-unzip.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/puff.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-puff.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/q_math.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rend1/q_shared.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-q_shared.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_animation.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_animation.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_arb.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_arb.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_backend.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_backend.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_bsp.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_bsp.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_cmds.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_cmds.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_curve.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_curve.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_flares.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_flares.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_font.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_image.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_image.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_image_bmp.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_image_jpg.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_image_pcx.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_image_png.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_image_tga.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_image_tga.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_init.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_init.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_light.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_light.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_main.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_main.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_marks.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_mesh.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_mesh.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_model.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_model.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_model_iqm.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_model_iqm.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_noise.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_noise.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_scene.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_scene.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_shade.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_shade.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_shade_calc.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_shade_calc.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_shader.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_shader.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_shadows.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_shadows.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_sky.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_sky.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_surface.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_surface.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_vbo.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_vbo.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rend1/tr_world.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rend1-tr_world.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/puff.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-puff.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/q_math.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rendv/q_shared.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-q_shared.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_animation.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_animation.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_backend.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_backend.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_bsp.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_bsp.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_cmds.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_cmds.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_curve.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_curve.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_font.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_image.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_image.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_image_bmp.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_image_jpg.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_image_pcx.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_image_png.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_image_tga.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_image_tga.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_init.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_init.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_light.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_light.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_main.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_main.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_marks.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_mesh.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_mesh.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_model.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_model.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_model_iqm.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_model_iqm.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_noise.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_noise.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_scene.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_scene.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_shade.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_shade.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_shade_calc.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_shade_calc.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_shader.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_shader.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_shadows.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_shadows.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_sky.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_sky.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_surface.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_surface.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/tr_world.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-tr_world.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/vk.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-vk.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/vk_flares.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-vk_flares.diff.gz"
+  },
+  {
+    "target": "native",
+    "object": "rendv/vk_vbo.o",
+    "variables": [],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-rendv-vk_vbo.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_bspq3.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_aas_bspq3.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_cluster.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_aas_cluster.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_debug.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_aas_debug.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_entity.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_file.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_aas_file.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_main.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_move.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_optimize.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_reach.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_aas_reach.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_route.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_aas_route.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_routealt.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_aas_routealt.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_aas_sample.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_aas_sample.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_ai_char.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_ai_char.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_ai_chat.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_ai_chat.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_ai_gen.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_ai_goal.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_ai_move.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-be_ai_move.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_ai_weap.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_ai_weight.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_ea.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/be_interface.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_avi.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_avi.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_cgame.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_cgame.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_cin.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_cin.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_console.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_console.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_curl.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_curl.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_input.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_input.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_jpeg.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_jpeg.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_keys.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_keys.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_main.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_main.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_net_chan.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_net_chan.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_parse.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_parse.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_scrn.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_scrn.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cl_ui.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cl_ui.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cm_load.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cm_load.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cm_patch.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cm_patch.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cm_polylib.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cm_test.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cm_trace.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cm_trace.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cmd.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cmd.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/common.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-common.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/cvar.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-cvar.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/files.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-files.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/history.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-history.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/huffman.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-huffman.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/huffman_static.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/keys.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-keys.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/l_crc.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/l_libvar.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/l_log.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/l_memory.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-l_memory.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/l_precomp.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-l_precomp.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/l_script.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-l_script.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/l_struct.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-l_struct.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/linux_glimp.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-linux_glimp.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/linux_qgl.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-linux_qgl.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/linux_qvk.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/linux_signals.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/linux_snd.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-linux_snd.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/md4.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/md5.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-md5.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/msg.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-msg.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/net_chan.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-net_chan.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/net_ip.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-net_ip.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/puff.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-puff.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/q_math.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/q_shared.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-q_shared.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/qvm/vm.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-qvm-vm.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/qvm/vm_interpreted.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-qvm-vm_interpreted.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/qvm/vm_x86.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-qvm-vm_x86.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/snd_adpcm.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/snd_codec.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/snd_codec_ogg.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/snd_codec_wav.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/snd_dma.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-snd_dma.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/snd_main.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/snd_mem.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-snd_mem.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/snd_mix.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-snd_mix.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/snd_wavelet.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/sv_bot.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-sv_bot.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/sv_ccmds.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-sv_ccmds.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/sv_client.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-sv_client.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/sv_filter.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-sv_filter.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/sv_game.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-sv_game.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/sv_init.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-sv_init.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/sv_main.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-sv_main.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/sv_net_chan.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-sv_net_chan.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/sv_snapshot.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-sv_snapshot.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/sv_world.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-sv_world.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/unix_main.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-unix_main.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/unix_shared.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-unix_shared.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/unzip.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-unzip.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/x11_dga.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/x11_randr.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/x11_vidmode.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_bspq3.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_aas_bspq3.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_cluster.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_aas_cluster.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_debug.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_aas_debug.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_entity.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_file.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_aas_file.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_main.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_move.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_optimize.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_reach.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_aas_reach.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_route.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_aas_route.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_routealt.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_aas_routealt.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_aas_sample.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_aas_sample.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_ai_char.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_ai_char.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_ai_chat.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_ai_chat.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_ai_gen.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_ai_goal.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_ai_move.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-be_ai_move.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_ai_weap.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_ai_weight.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_ea.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/be_interface.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/cm_load.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-cm_load.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/cm_patch.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-cm_patch.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/cm_polylib.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/cm_test.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/cm_trace.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-cm_trace.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/cmd.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-cmd.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/common.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-common.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/cvar.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-cvar.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/files.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-files.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/history.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-history.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/huffman.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-huffman.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/huffman_static.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/keys.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-keys.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/l_crc.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/l_libvar.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/l_log.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/l_memory.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-l_memory.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/l_precomp.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-l_precomp.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/l_script.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-l_script.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/l_struct.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-l_struct.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/linux_signals.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/md4.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/md5.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-md5.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/msg.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-msg.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/net_chan.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-net_chan.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/net_ip.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-net_ip.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/q_math.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/q_shared.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-q_shared.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/qvm/vm.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-qvm-vm.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/qvm/vm_interpreted.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-qvm-vm_interpreted.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/qvm/vm_x86.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-qvm-vm_x86.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/sv_bot.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-sv_bot.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/sv_ccmds.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-sv_ccmds.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/sv_client.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-sv_client.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/sv_filter.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-sv_filter.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/sv_game.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-sv_game.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/sv_init.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-sv_init.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/sv_main.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-sv_main.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/sv_net_chan.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-sv_net_chan.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/sv_snapshot.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-sv_snapshot.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/sv_world.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-sv_world.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/unix_main.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-unix_main.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/unix_shared.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-unix_shared.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "ded/unzip.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-ded-unzip.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/puff.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-puff.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/q_math.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/q_shared.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-q_shared.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_animation.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_animation.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_arb.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_arb.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_backend.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_backend.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_bsp.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_bsp.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_cmds.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_cmds.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_curve.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_curve.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_flares.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_flares.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_font.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_image.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_image.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_image_bmp.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_image_jpg.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_image_pcx.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_image_png.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_image_tga.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_image_tga.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_init.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_init.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_light.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_light.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_main.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_main.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_marks.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_mesh.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_mesh.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_model.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_model.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_model_iqm.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_model_iqm.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_noise.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_noise.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_scene.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_scene.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_shade.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_shade.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_shade_calc.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_shade_calc.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_shader.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_shader.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_shadows.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_shadows.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_sky.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_sky.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_surface.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_surface.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_vbo.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_vbo.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rend1/tr_world.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rend1-tr_world.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/puff.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-puff.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/q_math.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/q_shared.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-q_shared.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_animation.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_animation.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_backend.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_backend.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_bsp.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_bsp.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_cmds.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_cmds.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_curve.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_curve.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_font.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_image.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_image.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_image_bmp.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_image_jpg.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_image_pcx.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_image_png.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_image_tga.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_image_tga.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_init.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_init.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_light.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_light.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_main.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_main.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_marks.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_mesh.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_mesh.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_model.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_model.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_model_iqm.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_model_iqm.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_noise.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_noise.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_scene.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_scene.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_shade.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_shade.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_shade_calc.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_shade_calc.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_shader.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_shader.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_shadows.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_shadows.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_sky.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_sky.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_surface.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_surface.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/tr_world.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-tr_world.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/vk.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-vk.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/vk_flares.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-vk_flares.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "rendv/vk_vbo.o",
+    "variables": [
+      "USE_SDL=0"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-rendv-vk_vbo.diff.gz"
+  },
+  {
+    "target": "native-nosdl",
+    "object": "client/linux_joystick.o",
+    "variables": [
+      "USE_SDL=0",
+      "CFLAGS=-DUSE_JOYSTICK"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1,
+    "diff": "phase3-native-native-nosdl-client-linux_joystick.diff.gz"
+  }
+]

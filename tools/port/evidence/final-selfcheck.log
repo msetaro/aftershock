@@ -1,0 +1,19 @@
+/tmp/tmp.ZMH52GsV3d/md4.c.o
+/tmp/tmp.ZMH52GsV3d/md4.c.s
+/tmp/tmp.ZMH52GsV3d/md4.cxx.o
+/tmp/tmp.ZMH52GsV3d/md4.cxx.s
+PASS: layout /tmp/tmp.ZMH52GsV3d/md4.c.o /tmp/tmp.ZMH52GsV3d/md4.cxx.o
+PASS: symbol /tmp/tmp.ZMH52GsV3d/md4.c.o /tmp/tmp.ZMH52GsV3d/md4.cxx.o
+PASS: codegen /tmp/tmp.ZMH52GsV3d/md4.c.s /tmp/tmp.ZMH52GsV3d/md4.cxx.s
+@@ -1,11 +1,7 @@
+@@ -1,2 +1,2 @@
+PASS: symbol /tmp/tmp.ZMH52GsV3d/private-cpuid.c.o /tmp/tmp.ZMH52GsV3d/private-cpuid.cxx.o
+@@ -1,2 +1,2 @@
+/tmp/tmp.ZMH52GsV3d/md5.c.o
+/tmp/tmp.ZMH52GsV3d/md5.c.s
+/tmp/tmp.ZMH52GsV3d/md5.cxx.o
+/tmp/tmp.ZMH52GsV3d/md5.cxx.s
+PASS: layout /tmp/tmp.ZMH52GsV3d/md5.c.o /tmp/tmp.ZMH52GsV3d/md5.cxx.o
+PASS: layout /tmp/tmp.ZMH52GsV3d/nested.c.o /tmp/tmp.ZMH52GsV3d/nested.cxx.o
+@@ -1,6 +1,6 @@
+PASS: gate positive and negative controls

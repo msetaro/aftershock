@@ -1,0 +1,19 @@
+{
+  "findings": {
+    "4002047478": "Keep the named assembly boundary. The claim that namespace-scope variables never mangle is not portable: local Clang targeting x86_64-pc-windows-msvc emits ?snd_p@@3PEAHEA without extern C and snd_p with it. These annotations are substantive for the supported MSVC ABI, not merely documentation. No BEGIN/END abstraction is necessary for two existing blocks.",
+    "4002047480": "Keep GPU export C linkage. MSVC ABI fixture emits ?NvOptimusEnablement@@3KA and a decorated /EXPORT directive without extern C; extern C emits the required raw NvOptimusEnablement in both symbol table and export directive. dllexport alone does not ensure the raw external name.",
+    "4002047482": "Retain the explicitly listed function-pointer typedef annotations as boundary documentation. Do not claim they independently enforce exported symbol names or that G3 tests type language linkage; actual definitions/imports and raw symbol checks enforce names.",
+    "4002047484": "Keep all five casts. q_shared.h:418 defines fallback M_PI as 3.14159265358979323846f; fovX/fovY and mingrappleangle are float. In that supported configuration the entire original argument is float. Fixture with actual header fallback emits C tan, uncast C++ tanf, cast C++ tan. The cast is redundant only on configurations whose system M_PI is double.",
+    "4002047485": "(int)args[2] already exists verbatim in original 8a7e8ed2 cl_cgame.c:720 and sv_game.c:976. The port adds only (char*) to the output-buffer argument under T1. No printf vararg conversion was introduced, and no new rule or format-warning suppression is appropriate. The seven recorded T21 argument casts belong to sin/cos/atan2(two arguments)/sqrt/floor/ceil.",
+    "4002047487": "Original 8a7e8ed2 sdl_input.c:252 already says key = (int)keysym->sym. The added outer keyNum_t cast is T3 and preserves the entire preexisting expression. Removing its inner cast would be unrelated cleanup.",
+    "4002047488": "Already guarded by defined(__GNUC__) && !defined(_WIN32) && (defined(__arm__) || defined(__aarch64__)); ordinary MSVC cannot see this declaration.",
+    "4002047489": "Retain T18 to preserve the original external-linkage contract and exact symbol gate even though current callers stay in the TU; no claim of a current behavior bug is needed.",
+    "4002047491": "Keep both identical empty definitions intentionally: the command definition is necessary before SDK headers reached through client.h/curl, while win_local.h preserves its own C-vtable boundary for consumers not built with those flags. Avoid saying win_local.h is fully self-contained: it requires core qboolean types first. Prior full-TU controls show dropping command definition fails lpVtbl, using =1 fails redefinition, and simply swapping includes fails qboolean/winsock ordering.",
+    "4002047495": "Tightening is sound only across supported configurations: do not cast arguments already double in every supported configuration. The five M_PI sites are not such cases because the engine fallback is float."
+  },
+  "evidence": {
+    "msvc_abi": "/tmp/port-review-pr32-linkage-y6yp3j1x",
+    "fallback_mpi": "/tmp/port-review-pr32-mpi-uup64cdh",
+    "include_order": "/tmp/port-review-t24-order-c7sdmsfm"
+  }
+}

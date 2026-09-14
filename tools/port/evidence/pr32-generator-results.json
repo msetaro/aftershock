@@ -1,0 +1,12 @@
+{
+  "arrays": 74,
+  "original_sha256": "700724298e78e98017adeeceb34b56af6243fe6cdbdce94da60751b1fb187367",
+  "regenerated_sha256": "700724298e78e98017adeeceb34b56af6243fe6cdbdce94da60751b1fb187367",
+  "size_fixture": "PASS",
+  "source": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505/code/renderervk/shaders/spirv/shader_data.cpp",
+  "command": [
+    "python3",
+    "tools/port/check_shader_generator.py",
+    "/tmp/port-pr32/shaders"
+  ]
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "compiler": "gcc",
+    "dwarf": "default",
+    "variant": "original",
+    "status": 0,
+    "sha256": "63bc0890bfe9b82ee2507db4349b9705e654b40c89f77e1d9fa73424239fe97d"
+  },
+  {
+    "compiler": "gcc",
+    "dwarf": "default",
+    "variant": "plain",
+    "status": 0,
+    "sha256": "cfa0e2c26e8279687c52b0893e505b68916cd26265f0adf7bcc3fa093009df26"
+  },
+  {
+    "compiler": "gcc",
+    "dwarf": "default",
+    "variant": "blank",
+    "status": 0,
+    "sha256": "63bc0890bfe9b82ee2507db4349b9705e654b40c89f77e1d9fa73424239fe97d"
+  },
+  {
+    "compiler": "gcc",
+    "dwarf": "dwarf4",
+    "variant": "original",
+    "status": 0,
+    "sha256": "994ca00286f8547b31c169d87d206ecee28d2d0d328882be94984211c085a45a"
+  },
+  {
+    "compiler": "gcc",
+    "dwarf": "dwarf4",
+    "variant": "plain",
+    "status": 0,
+    "sha256": "d3318a474b78e484d33f7472a6ed1f31d8b5571f2dbdec00959d01f23f9ffb4a"
+  },
+  {
+    "compiler": "gcc",
+    "dwarf": "dwarf4",
+    "variant": "blank",
+    "status": 0,
+    "sha256": "994ca00286f8547b31c169d87d206ecee28d2d0d328882be94984211c085a45a"
+  },
+  {
+    "compiler": "clang",
+    "dwarf": "default",
+    "variant": "original",
+    "status": 0,
+    "sha256": "14015309c7608e9e061adac4a78b3a956bfcb1b8dd158fa1c6a0dce362d342a8"
+  },
+  {
+    "compiler": "clang",
+    "dwarf": "default",
+    "variant": "plain",
+    "status": 0,
+    "sha256": "5f9a4265c821d7614ca4e52bb0386f7842bf27bb0b7e20abae5ca3143ecf602f"
+  },
+  {
+    "compiler": "clang",
+    "dwarf": "default",
+    "variant": "blank",
+    "status": 0,
+    "sha256": "bf7c20601c22866dbd89aff9f3fc46f997998a4501549dd1f321b9844bf0b570"
+  },
+  {
+    "compiler": "clang",
+    "dwarf": "dwarf4",
+    "variant": "original",
+    "status": 0,
+    "sha256": "484fcb1ef80a3fa73e53e37cc917faeeffa0042072effda5bc4e9bc3a1ad6822"
+  },
+  {
+    "compiler": "clang",
+    "dwarf": "dwarf4",
+    "variant": "plain",
+    "status": 0,
+    "sha256": "5837b7bce267a51beb17ab1ade01cae84e5f479c1b76b6c8f4d6e17eaa76339e"
+  },
+  {
+    "compiler": "clang",
+    "dwarf": "dwarf4",
+    "variant": "blank",
+    "status": 0,
+    "sha256": "484fcb1ef80a3fa73e53e37cc917faeeffa0042072effda5bc4e9bc3a1ad6822"
+  }
+]

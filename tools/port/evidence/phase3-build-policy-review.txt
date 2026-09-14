@@ -1,0 +1,9 @@
+Read-only G8 build-policy review
+
+Darwin -Wno-deprecated-declarations is scoped to PLATFORM=darwin and supported by two existing sprintf deprecation diagnostics per observed CI leg. Calls remain the original C calls, with only earlier T1 destination casts. No source warning cleanup; separate DEVIATION and counts recorded. Fits frozen-warning policy.
+
+MSVC /Zc:strictStrings- is confined to five engine projects and implements the accepted legacy literal-to-char* policy without changing declarations/literals. Independently deduplicated initial botlib logs: 136 Debug and 118 Release diagnostics per architecture; all are const char[] to char* conversion failures. No global conformance-disable option introduced. Fits accepted write-strings policy; final CI behavior remains separately validated by root.
+
+Sanitizer -Wno-maybe-uninitialized matches the recorded original C warning at be_aas_reach.c:2196 (beststart), which remains logged as an unfixed bug. Found initial suppression also reached Clang; Clang21 rejects that GCC-only warning option under -Werror. Reported to root and verified resulting guard excludes Clang in addition to requiring -fsanitize=. No substitute unobserved Clang warning suppression added. No remaining policy issue found.
+
+T25 reproduction: python3 /tmp/aftershock-cpp-port/reproduce_t25_cleanup.py /path/to/repository [OUTPUT_DIRECTORY]. Test completed at /tmp/port-review-t25-repro-amrg7wwl/results.json. Exact commands, compiler versions, raw DWARF, object hashes and automatically verified MD5 byte offsets are saved there. Current test source-MD5 offsets 69559 through 69574; output path length accounts for the difference from the earlier 69567 through 69582. Script uses identical temporary source/output filenames across all variants, never edits repository sources, and explicitly distinguishes reproducing the conflict from passing the unchanged-object gate.

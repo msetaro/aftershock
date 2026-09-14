@@ -1,0 +1,16 @@
+PASS: gcc-c0-release-sdl, exit 0, 0 compiler errors
+PASS: gcc-c0-debug-nosdl, exit 0, 0 compiler errors
+PASS: gcc-c0-debug-sdl, exit 0, 0 compiler errors
+PASS: gcc-c0-release-nosdl, exit 0, 0 compiler errors
+PASS: gcc-c0-static-opengl, exit 0, 0 compiler errors
+PASS: gcc-c0-static-vulkan, exit 0, 0 compiler errors
+FAIL: gcc-c1-release-sdl, exit 2, 143 compiler errors
+FAIL: gcc-c1-debug-nosdl, exit 2, 104 compiler errors
+FAIL: gcc-c1-debug-sdl, exit 2, 143 compiler errors
+FAIL: gcc-c1-release-nosdl, exit 2, 104 compiler errors
+FAIL: gcc-c1-static-opengl, exit 2, 95 compiler errors
+FAIL: gcc-c1-static-vulkan, exit 2, 130 compiler errors
+PASS: clang-c0-release-sdl, exit 0, 0 compiler errors
+PASS: clang-c0-debug-nosdl, exit 0, 0 compiler errors
+FAIL: clang-c1-release-sdl, exit 2, 105 compiler errors
+FAIL: clang-c1-debug-nosdl, exit 2, 77 compiler errors

@@ -1,0 +1,5520 @@
+[
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_bspq3.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_cluster.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_debug.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_entity.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_file.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_main.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_move.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_optimize.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_reach.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_route.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_routealt.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_aas_sample.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_ai_char.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_ai_chat.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_ai_gen.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_ai_goal.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_ai_move.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_ai_weap.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_ai_weight.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_ea.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/be_interface.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_avi.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_cgame.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_cin.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_console.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_curl.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_input.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_jpeg.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_keys.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_main.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_net_chan.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_parse.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_scrn.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cl_ui.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cm_load.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cm_patch.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cm_polylib.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cm_test.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cm_trace.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cmd.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/common.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/cvar.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/files.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/history.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/huffman.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/huffman_static.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/keys.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/l_crc.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/l_libvar.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/l_log.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/l_memory.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/l_precomp.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/l_script.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/l_struct.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/md4.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/md5.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/msg.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/net_chan.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/net_ip.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/puff.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/q_math.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/q_shared.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/qvm/vm.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/qvm/vm_interpreted.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/qvm/vm_x86.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/snd_adpcm.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/snd_codec.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/snd_codec_ogg.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/snd_codec_wav.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/snd_dma.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/snd_main.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/snd_mem.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/snd_mix.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/snd_wavelet.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/sv_bot.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/sv_ccmds.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/sv_filter.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/sv_game.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/sv_init.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/sv_main.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/sv_net_chan.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/sv_snapshot.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/sv_world.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/unzip.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/win_gamma.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/win_glimp.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/win_main.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/win_minimize.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/win_qgl.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/win_qvk.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "client/win_shared.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/win_syscon.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "client/win_wndproc.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_bspq3.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_cluster.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_debug.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_entity.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_file.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_main.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_move.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_optimize.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_reach.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_route.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_routealt.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_aas_sample.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_ai_char.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_ai_chat.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_ai_gen.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_ai_goal.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_ai_move.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_ai_weap.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_ai_weight.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_ea.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/be_interface.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/cm_load.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/cm_patch.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/cm_polylib.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/cm_test.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/cm_trace.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/cmd.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/common.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/cvar.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/files.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/history.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/huffman.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/huffman_static.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/keys.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/l_crc.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/l_libvar.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/l_log.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/l_memory.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/l_precomp.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/l_script.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/l_struct.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/md4.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/md5.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/msg.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/net_chan.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/net_ip.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/q_math.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/q_shared.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/qvm/vm.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/qvm/vm_interpreted.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/qvm/vm_x86.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/sv_bot.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/sv_ccmds.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/sv_filter.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/sv_game.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/sv_init.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/sv_main.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/sv_net_chan.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/sv_snapshot.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/sv_world.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/unzip.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/win_main.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/win_shared.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "ded/win_syscon.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/puff.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/q_math.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/q_shared.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_animation.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_arb.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_backend.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_bsp.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_cmds.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_curve.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_flares.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_font.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_image.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_image_bmp.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_image_jpg.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_image_pcx.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_image_png.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_image_tga.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_init.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_light.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_main.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_marks.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_mesh.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_model.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_model_iqm.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_noise.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_scene.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_shade.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_shade_calc.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_shader.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_shadows.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_sky.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_surface.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_vbo.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rend1/tr_world.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/puff.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/q_math.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/q_shared.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_animation.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_backend.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_bsp.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_cmds.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_curve.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_font.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_image.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_image_bmp.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_image_jpg.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_image_pcx.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_image_png.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_image_tga.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_init.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_light.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_main.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_marks.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_mesh.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_model.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_model_iqm.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_noise.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_scene.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_shade.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_shade_calc.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_shader.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_shadows.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_sky.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_surface.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/tr_world.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/vk.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/vk_flares.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "mingw64",
+    "object": "rendv/vk_vbo.o",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_bspq3.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_cluster.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_debug.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_entity.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_file.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_main.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_move.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_optimize.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_reach.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_route.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_routealt.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_aas_sample.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_ai_char.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_ai_chat.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_ai_gen.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_ai_goal.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_ai_move.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_ai_weap.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_ai_weight.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_ea.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/be_interface.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/cm_load.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/cm_patch.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/cm_polylib.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/cm_test.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/cm_trace.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/cmd.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/common.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/cvar.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/files.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/history.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/huffman.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/huffman_static.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/keys.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/l_crc.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/l_libvar.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/l_log.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/l_memory.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/l_precomp.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/l_script.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/l_struct.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/linux_signals.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/md4.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/md5.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/msg.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/net_chan.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/net_ip.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/q_math.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/q_shared.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/qvm/vm.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/qvm/vm_aarch64.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/qvm/vm_interpreted.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/sv_bot.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/sv_ccmds.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/sv_filter.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/sv_game.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/sv_init.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/sv_main.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/sv_net_chan.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/sv_snapshot.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/sv_world.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/unix_main.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/unix_shared.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "aarch64",
+    "object": "ded/unzip.o",
+    "variables": [
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_bspq3.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_cluster.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_debug.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_entity.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_file.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_main.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_move.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_optimize.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_reach.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_route.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_routealt.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_aas_sample.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_ai_char.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_ai_chat.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_ai_gen.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_ai_goal.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_ai_move.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_ai_weap.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_ai_weight.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_ea.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/be_interface.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/cm_load.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/cm_patch.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/cm_polylib.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/cm_test.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/cm_trace.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/cmd.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/common.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/cvar.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/files.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/history.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/huffman.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/huffman_static.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/keys.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/l_crc.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/l_libvar.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/l_log.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/l_memory.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/l_precomp.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/l_script.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/l_struct.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/linux_signals.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/md4.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "target": "arm",
+    "object": "ded/md5.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/msg.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/net_chan.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/net_ip.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/q_math.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/q_shared.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/qvm/vm.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/qvm/vm_armv7l.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/qvm/vm_interpreted.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/sv_bot.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/sv_ccmds.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/sv_filter.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/sv_game.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/sv_init.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/sv_main.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/sv_net_chan.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/sv_snapshot.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/sv_world.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/unix_main.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/unix_shared.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "arm",
+    "object": "ded/unzip.o",
+    "variables": [
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_bspq3.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_cluster.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_debug.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_entity.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_file.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_main.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_move.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_optimize.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_reach.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_route.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_routealt.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_aas_sample.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_ai_char.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_ai_chat.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_ai_gen.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_ai_goal.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_ai_move.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_ai_weap.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_ai_weight.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_ea.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/be_interface.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/cm_load.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/cm_patch.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/cm_polylib.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/cm_test.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/cm_trace.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/cmd.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/common.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/cvar.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/files.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/history.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/huffman.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/huffman_static.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/keys.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/l_crc.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/l_libvar.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/l_log.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/l_memory.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/l_precomp.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/l_script.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/l_struct.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/linux_signals.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/md4.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/md5.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/msg.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/net_chan.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/net_ip.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/q_math.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/q_shared.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/qvm/vm.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/qvm/vm_interpreted.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/qvm/vm_powerpc.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/sv_bot.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/sv_ccmds.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/sv_filter.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/sv_game.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/sv_init.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/sv_main.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/sv_net_chan.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/sv_snapshot.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/sv_world.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/unix_main.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/unix_shared.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  },
+  {
+    "target": "ppc64le",
+    "object": "ded/unzip.o",
+    "variables": [
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc"
+    ],
+    "compile": 0,
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 1
+  }
+]

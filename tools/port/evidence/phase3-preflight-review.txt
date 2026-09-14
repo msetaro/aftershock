@@ -1,0 +1,21 @@
+Read-only phase-3 preflight and T24/T25 review
+
+Rename inventory: 171 tracked engine .c files in scoped module directories, excluding vendors, renderer2 and sv_rankings.c. Only included engine .c is renderervk/shaders/spirv/shader_data.c at vk.c:2758. It must remain an included data file, not become another TU.
+
+Mandatory exception: after phases 0-2 gates pass, use a separate justified DEVIATION commit moving shader_data.c to shader_data.cpp byte-identically and updating vk.c's single include plus compile.bat's two output paths. Existing C and C++ compilers can both include the .cpp file, so this stays buildable. Then git mv the remaining 170 sources byte-identically in the main phase-3 rename commit with authorized build/project path changes. Verify each moved blob with git hash-object or git diff --raw -M100%; do not use working-tree text roundtrips for renames. Do not introduce alias files or generated forwarding includes solely to avoid the one mandatory include change. No shader_data vcxproj entry currently exists.
+
+Make: change only engine source-pattern prerequisites to .cpp, retain three vendor .c patterns and assembly/resource rules, unconditionally select the current strict C++ compiler/link driver and flags, remove BUILD_CXX branching. Remove R2 directory variables, target selection, object lists, stringify/glsl generation rules and direct-object rules; preserve renderer2 source files. Fresh output directories avoid stale pre-rename C objects. CXX prefix derivation remains before ccache mutation.
+
+MSVC: change actual renamed source paths in five engine projects and matching .filters using byte-preserving CRLF edits. Add required stdcpp20/no-EH/no-RTTI settings; existing projects currently have none. Preserve three vendor projects as C. Remove renderer2 project and its GUID AB424155-FBED-4D8D-B007-5B6CF93EA396 mappings from quake3e.sln. Existing shader_data inclusion means no new ClCompile entry. Maintain CMake paths if touched but do not repair unsupported CMake behavior.
+
+CI: eliminate x86 entries and dependent obsolete artifact/archive entries; preserve x86_64 Linux. If renaming ubuntu-x86 job identifier, update needs dependencies. Current push trigger is main-only, so feature-branch push alone will not run workflow: an authorized draft PR or workflow_dispatch is required for the specified CI watch. Remove or make blocking the advisory CXX probe rather than leaving a false-green final build.
+
+Harness: compile_pair/build_matrix BUILD_CXX=0/1 becomes ignored after switch removal and would silently compare C++ against C++; adapt to an explicit recorded pre-rename C oracle. Static/completed-gate source discovery and target exclusions need .cpp. Preserve driver C compilation. Following mandated T25 cleanup, historical pre-cleanup C is essential because the remaining pure C++ enum spelling no longer has the exact-hash C branch. Verify T25 cleanup separately with unchanged C++ hashes as authorized.
+
+T24: win_local macros exactly match plan, but client.h transitively includes SDK via curl first in win_input. Empty C++-Windows-only command definition -DCINTERFACE= implements the before-any-SDK requirement without vendor or source-include changes. Independent full strict TU evidence: /tmp/port-review-t24-order-c7sdmsfm; empty=PASS; absent=lpVtbl errors; 1=redefinition error; swapping includes=missing qboolean and winsock ordering error. MSVC must likewise specify empty CINTERFACE= rather than bare CINTERFACE (1). This is authorized T24 build configuration.
+
+Committed win_snd 8e0e6faa: 13 identifier occurrences this->self (T4), eight Q_REFGUID outgoing args and two Q_REFGUID_PTR incoming pointer uses (T24), two additional Lock void** casts (T1), and two same-file extern GUID declarations (T18). Found two accidental prose comment rewrites to self; root restored both before commit and this was independently confirmed. No unresolved uncatalog changes found. win_input has two T24 sites including Q_REFGUID(*guid) as expressly authorized; its literal spacing is T15.
+
+SV T25 review: the C #else line is original verbatim; the C++ branch is cast of original promoted bitwise result with unchanged operand order. Other changes are T1/T2/T20. No source behavior edit found.
+
+No repository edits by reviewer.

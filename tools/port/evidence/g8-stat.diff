@@ -1,0 +1,20 @@
+--- /tmp/aftershock-cpp-port/g8-shape.txt	2026-09-13 22:56:02.274013479 -0400
++++ /tmp/aftershock-cpp-port/g8-shape-w.txt	2026-09-13 22:56:02.322014656 -0400
+@@ -23,7 +23,7 @@
+ 2	2	code/client/snd_codec.c
+ 4	3	code/client/snd_codec_ogg.c
+ 1	1	code/client/snd_codec_wav.c
+-2	2	code/client/snd_dma.c
++1	1	code/client/snd_dma.c
+ 4	4	code/client/snd_mem.c
+ 11	5	code/client/snd_mix.c
+ 28	28	code/qcommon/cm_load.c
+@@ -32,7 +32,7 @@
+ 1	1	code/qcommon/cm_test.c
+ 5	5	code/qcommon/cm_trace.c
+ 2	2	code/qcommon/cmd.c
+-38	38	code/qcommon/common.c
++16	16	code/qcommon/common.c
+ 8	8	code/qcommon/cvar.c
+ 15	15	code/qcommon/files.c
+ 1	0	code/qcommon/huffman_static.c

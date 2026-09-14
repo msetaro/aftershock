@@ -1,0 +1,18 @@
+--- /tmp/aftershock-cpp-port/sv_client/original.dis	2026-09-13 21:57:50.983739272 -0400
++++ /tmp/aftershock-cpp-port/sv_client/changed.dis	2026-09-13 21:57:50.978132740 -0400
+@@ -1,5 +1,5 @@
+ 
+-/tmp/aftershock-cpp-port/sv_client/original.c.o:     file format elf64-x86-64
++/tmp/aftershock-cpp-port/sv_client/changed.c.o:     file format elf64-x86-64
+ 
+ 
+ Disassembly of section .text:
+@@ -1839,7 +1839,7 @@
+     196f:	39 05 00 00 00 00    	cmp    %eax,0x0(%rip)        # 1975 <SV_VerifyPaks_f+0x115>
+ 			1971: R_X86_64_PC32	sv+0xc
+     1975:	0f 85 f5 00 00 00    	jne    1a70 <SV_VerifyPaks_f+0x210>
+-    197b:	45 85 fe             	test   %r15d,%r14d
++    197b:	45 85 f7             	test   %r14d,%r15d
+     197e:	74 99                	je     1919 <SV_VerifyPaks_f+0xb9>
+     1980:	83 fd 05             	cmp    $0x5,%ebp
+     1983:	7e 94                	jle    1919 <SV_VerifyPaks_f+0xb9>
