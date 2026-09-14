@@ -654,7 +654,7 @@ static qboolean NET_GetPacket( netadr_t *net_from, msg_t *net_message, const fd_
 	if(ip_socket != INVALID_SOCKET && FD_ISSET(ip_socket, fdr))
 	{
 		fromlen = sizeof(from);
-		ret = recvfrom( ip_socket, (void *)net_message->data, net_message->maxsize, 0, (struct sockaddr *) &from, &fromlen );
+		ret = recvfrom( ip_socket, (char *)(void *)net_message->data, net_message->maxsize, 0, (struct sockaddr *) &from, &fromlen );
 
 		if (ret == SOCKET_ERROR)
 		{
@@ -699,7 +699,7 @@ static qboolean NET_GetPacket( netadr_t *net_from, msg_t *net_message, const fd_
 	if(ip6_socket != INVALID_SOCKET && FD_ISSET(ip6_socket, fdr))
 	{
 		fromlen = sizeof(from);
-		ret = recvfrom(ip6_socket, (void *)net_message->data, net_message->maxsize, 0, (struct sockaddr *) &from, &fromlen);
+		ret = recvfrom(ip6_socket, (char *)(void *)net_message->data, net_message->maxsize, 0, (struct sockaddr *) &from, &fromlen);
 
 		if (ret == SOCKET_ERROR)
 		{
@@ -728,7 +728,7 @@ static qboolean NET_GetPacket( netadr_t *net_from, msg_t *net_message, const fd_
 	if(multicast6_socket != INVALID_SOCKET && multicast6_socket != ip6_socket && FD_ISSET(multicast6_socket, fdr))
 	{
 		fromlen = sizeof(from);
-		ret = recvfrom(multicast6_socket, (void *)net_message->data, net_message->maxsize, 0, (struct sockaddr *) &from, &fromlen);
+		ret = recvfrom(multicast6_socket, (char *)(void *)net_message->data, net_message->maxsize, 0, (struct sockaddr *) &from, &fromlen);
 
 		if (ret == SOCKET_ERROR)
 		{
@@ -815,10 +815,10 @@ void Sys_SendPacket( int length, const void *data, const netadr_t *to ) {
 	}
 	else {
 		if ( addr.ss.ss_family == AF_INET )
-			ret = sendto( ip_socket, data, length, 0, (struct sockaddr *) &addr, sizeof(struct sockaddr_in) );
+			ret = sendto( ip_socket, (const char *)data, length, 0, (struct sockaddr *) &addr, sizeof(struct sockaddr_in) );
 #ifdef USE_IPV6
 		else if ( addr.ss.ss_family == AF_INET6 )
-			ret = sendto( ip6_socket, data, length, 0, (struct sockaddr *) &addr, sizeof(struct sockaddr_in6) );
+			ret = sendto( ip6_socket, (const char *)data, length, 0, (struct sockaddr *) &addr, sizeof(struct sockaddr_in6) );
 #endif
 	}
 
@@ -1264,13 +1264,13 @@ static void NET_OpenSocks( int port ) {
 		len = 3;
 	}
 
-	if ( send( socks_socket, (void *)buf, len, 0 ) == SOCKET_ERROR ) {
+	if ( send( socks_socket, (const char *)(void *)buf, len, 0 ) == SOCKET_ERROR ) {
 		Com_Printf( "%s: send: %s\n", __func__, NET_ErrorString() );
 		return;
 	}
 
 	// get the response
-	len = recv( socks_socket, (void *)buf, 32, 0 );
+	len = recv( socks_socket, (char *)(void *)buf, 32, 0 );
 	if ( len == SOCKET_ERROR ) {
 		Com_Printf( "%s: recv: %s\n", __func__, NET_ErrorString() );
 		return;
@@ -1314,13 +1314,13 @@ static void NET_OpenSocks( int port ) {
 		}
 
 		// send it
-		if ( send( socks_socket, (void *)buf, 3 + ulen + plen, 0 ) == SOCKET_ERROR ) {
+		if ( send( socks_socket, (const char *)(void *)buf, 3 + ulen + plen, 0 ) == SOCKET_ERROR ) {
 			Com_Printf( "%s: send: %s\n", __func__, NET_ErrorString() );
 			return;
 		}
 
 		// get the response
-		len = recv( socks_socket, (void *)buf, 64, 0 );
+		len = recv( socks_socket, (char *)(void *)buf, 64, 0 );
 		if ( len == SOCKET_ERROR ) {
 			Com_Printf( "%s: recv: %s\n", __func__, NET_ErrorString() );
 			return;
@@ -1338,13 +1338,13 @@ static void NET_OpenSocks( int port ) {
 	cmd.addrtype = 1; // address type: IPV4
 	cmd.u.v4.addr.s_addr = INADDR_ANY;
 	cmd.u.v4.port = htons( port );
-	if ( send( socks_socket, (void *)&cmd, 10, 0 ) == SOCKET_ERROR ) {
+	if ( send( socks_socket, (const char *)(void *)&cmd, 10, 0 ) == SOCKET_ERROR ) {
 		Com_Printf( "%s: send: %s\n", __func__, NET_ErrorString() );
 		return;
 	}
 
 	// get the response
-	len = recv( socks_socket, (void *)&cmd, sizeof( cmd ), 0 );
+	len = recv( socks_socket, (char *)(void *)&cmd, sizeof( cmd ), 0 );
 	if ( len == SOCKET_ERROR ) {
 		Com_Printf( "%s: recv: %s\n", __func__, NET_ErrorString() );
 		return;
