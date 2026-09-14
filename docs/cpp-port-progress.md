@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: sdl; next `code/sdl/sdl_input.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: client; next `code/client/cl_main.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -145,6 +145,10 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/client/cl_curl.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_curl.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_curl.o /tmp/aftershock-cpp-port/cl_curl ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
+
+- `code/client/cl_curl.c`: G4 advisory FAIL; full diff `tools/port/evidence/cl_curl.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py client/cl_curl.o /tmp/aftershock-cpp-port/cl_curl ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/unix/unix_shared.c`: G4 advisory FAIL; full diff `tools/port/evidence/unix_shared.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/unix_shared.o /tmp/aftershock-cpp-port/unix_shared ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -460,7 +464,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/client/cl_cgame.c` | done | T1: 116, T2: 1, T3: 6; T21/T22: 7 argument casts at 6 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_cgame.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_cin.c` | done | T1: 2, T2: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_cin.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_console.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_console.o, default); G4 advisory FAIL, full diff retained. |
-| `code/client/cl_curl.c` | blocked | At :967 strrchr(const char*localName) assigned to char*s. Local pointer is read-only and adding const would preserve behavior, but T8 is explicitly string-literal constness; this library-overload const propagation is outside literal catalog scope (G8 reviewed). 35 T1 sites also pending; source unchanged. |
+| `code/client/cl_curl.c` | done | T1: 35; T20: 1 receiving local const; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_curl.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_curl.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/cl_input.c` | done | T1-T17: 0 (already compatible); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_input.o, default); G4 advisory FAIL, full diff retained. |
 | `code/client/cl_jpeg.c` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_jpeg.o, default); G4 advisory FAIL, full diff retained. |
@@ -658,3 +662,5 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 
 - New C-oracle blocker: T3 expansion of bGood &= FS_FileIsInPAK into bGood = (qboolean)( bGood & FS_FileIsInPAK(...) ) changes one test instruction register order in the client C object (45 85 fe -> 45 85 f7). Both logical operations are equivalent, but the mandatory SHA256 fails. Commuted and ternary alternatives also failed the hash; commutation additionally exceeds T3. All candidate source changes reverted. Exact patch and C disassembly diff: tools/port/evidence/sv_client-t3-attempt.patch and sv_client-c-oracle.diff. No oracle relaxation is authorized; continue every independent file and cross target, then report this remaining blocker if no catalog form clears it.
 - Warm-up plus two runs of the C dedicated binary under the prescribed faketime increment produces byte-identical 124-line logs, exit 0; acceptance first stage PASS.
+
+- Whitespace gate uses `git diff --minimal --stat` and `git diff --minimal -w --stat` (with identical per-file counts). Git default heuristics matched repeated curl assignment blocks differently: 37 vs 40 lines despite only 36 substantive changed lines. Minimal diff gives 36/36 in both modes without source churn.

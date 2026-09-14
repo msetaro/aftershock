@@ -123,25 +123,25 @@ qboolean CL_cURL_Init( void )
 
 	clc.cURLEnabled = qtrue;
 
-	qcurl_version = GPA("curl_version");
+	qcurl_version = (char * (*)())GPA("curl_version");
 
-	qcurl_easy_init = GPA("curl_easy_init");
-	qcurl_easy_setopt = GPA("curl_easy_setopt");
-	qcurl_easy_perform = GPA("curl_easy_perform");
-	qcurl_easy_cleanup = GPA("curl_easy_cleanup");
-	qcurl_easy_getinfo = GPA("curl_easy_getinfo");
-	qcurl_easy_duphandle = GPA("curl_easy_duphandle");
-	qcurl_easy_reset = GPA("curl_easy_reset");
-	qcurl_easy_strerror = GPA("curl_easy_strerror");
+	qcurl_easy_init = (CURL * (*)())GPA("curl_easy_init");
+	qcurl_easy_setopt = (CURLcode ( *)(CURL*, CURLoption, ...))GPA("curl_easy_setopt");
+	qcurl_easy_perform = (CURLcode ( *)(CURL*))GPA("curl_easy_perform");
+	qcurl_easy_cleanup = (void ( *)(CURL*))GPA("curl_easy_cleanup");
+	qcurl_easy_getinfo = (CURLcode ( *)(CURL*, CURLINFO, ...))GPA("curl_easy_getinfo");
+	qcurl_easy_duphandle = (CURL * (*)(CURL*))GPA("curl_easy_duphandle");
+	qcurl_easy_reset = (void ( *)(CURL*))GPA("curl_easy_reset");
+	qcurl_easy_strerror = (const char * (*)(CURLcode))GPA("curl_easy_strerror");
 	
-	qcurl_multi_init = GPA("curl_multi_init");
-	qcurl_multi_add_handle = GPA("curl_multi_add_handle");
-	qcurl_multi_remove_handle = GPA("curl_multi_remove_handle");
-	qcurl_multi_fdset = GPA("curl_multi_fdset");
-	qcurl_multi_perform = GPA("curl_multi_perform");
-	qcurl_multi_cleanup = GPA("curl_multi_cleanup");
-	qcurl_multi_info_read = GPA("curl_multi_info_read");
-	qcurl_multi_strerror = GPA("curl_multi_strerror");
+	qcurl_multi_init = (CURLM * (*)())GPA("curl_multi_init");
+	qcurl_multi_add_handle = (CURLMcode ( *)(CURLM*, CURL*))GPA("curl_multi_add_handle");
+	qcurl_multi_remove_handle = (CURLMcode ( *)(CURLM*, CURL*))GPA("curl_multi_remove_handle");
+	qcurl_multi_fdset = (CURLMcode ( *)(CURLM*, fd_set*, fd_set*, fd_set*, int*))GPA("curl_multi_fdset");
+	qcurl_multi_perform = (CURLMcode ( *)(CURLM*, int*))GPA("curl_multi_perform");
+	qcurl_multi_cleanup = (CURLMcode ( *)(CURLM*))GPA("curl_multi_cleanup");
+	qcurl_multi_info_read = (CURLMsg * (*)(CURLM*, int*))GPA("curl_multi_info_read");
+	qcurl_multi_strerror = (const char * (*)(CURLMcode))GPA("curl_multi_strerror");
 
 	if(!clc.cURLEnabled)
 	{
@@ -238,7 +238,7 @@ static int CL_cURL_CallbackProgress( void *dummy, double dltotal, double dlnow,
 static size_t CL_cURL_CallbackWrite( void *buffer, size_t size, size_t nmemb, void *stream )
 {
 	if ( clc.download == FS_INVALID_HANDLE ) {
-		if ( !CL_ValidPakSignature( buffer, size*nmemb ) ) {
+		if ( !CL_ValidPakSignature( (const byte *)buffer, size*nmemb ) ) {
 			Com_Error( ERR_DROP, "CL_cURL_CallbackWrite: invalid pak signature for %s", 
 				clc.downloadName );
 			return (size_t)-1;
@@ -569,24 +569,24 @@ qboolean Com_DL_Init( download_t *dl )
 
 	Sys_LoadFunctionErrors(); // reset error count;
 
-	dl->func.version = Sys_LoadFunction( dl->func.lib, "curl_version" );
-	dl->func.easy_escape = Sys_LoadFunction( dl->func.lib, "curl_easy_escape" );
-	dl->func.free = Sys_LoadFunction( dl->func.lib, "curl_free" );
+	dl->func.version = (char * (*)())Sys_LoadFunction( dl->func.lib, "curl_version" );
+	dl->func.easy_escape = (char * (*)(CURL*, const char*, int))Sys_LoadFunction( dl->func.lib, "curl_easy_escape" );
+	dl->func.free = (void ( *)(char*))Sys_LoadFunction( dl->func.lib, "curl_free" );
 
-	dl->func.easy_init = Sys_LoadFunction( dl->func.lib, "curl_easy_init" );
-	dl->func.easy_setopt = Sys_LoadFunction( dl->func.lib, "curl_easy_setopt" );
-	dl->func.easy_perform = Sys_LoadFunction( dl->func.lib, "curl_easy_perform" );
-	dl->func.easy_cleanup = Sys_LoadFunction( dl->func.lib, "curl_easy_cleanup" );
-	dl->func.easy_getinfo = Sys_LoadFunction( dl->func.lib, "curl_easy_getinfo" );
-	dl->func.easy_strerror = Sys_LoadFunction( dl->func.lib, "curl_easy_strerror" );
+	dl->func.easy_init = (CURL * (*)())Sys_LoadFunction( dl->func.lib, "curl_easy_init" );
+	dl->func.easy_setopt = (CURLcode ( *)(CURL*, CURLoption, ...))Sys_LoadFunction( dl->func.lib, "curl_easy_setopt" );
+	dl->func.easy_perform = (CURLcode ( *)(CURL*))Sys_LoadFunction( dl->func.lib, "curl_easy_perform" );
+	dl->func.easy_cleanup = (void ( *)(CURL*))Sys_LoadFunction( dl->func.lib, "curl_easy_cleanup" );
+	dl->func.easy_getinfo = (CURLcode ( *)(CURL*, CURLINFO, ...))Sys_LoadFunction( dl->func.lib, "curl_easy_getinfo" );
+	dl->func.easy_strerror = (const char * (*)(CURLcode))Sys_LoadFunction( dl->func.lib, "curl_easy_strerror" );
 	
-	dl->func.multi_init = Sys_LoadFunction( dl->func.lib, "curl_multi_init" );
-	dl->func.multi_add_handle = Sys_LoadFunction( dl->func.lib, "curl_multi_add_handle" );
-	dl->func.multi_remove_handle = Sys_LoadFunction( dl->func.lib, "curl_multi_remove_handle" );
-	dl->func.multi_perform = Sys_LoadFunction( dl->func.lib, "curl_multi_perform" );
-	dl->func.multi_cleanup = Sys_LoadFunction( dl->func.lib, "curl_multi_cleanup" );
-	dl->func.multi_info_read = Sys_LoadFunction( dl->func.lib, "curl_multi_info_read" );
-	dl->func.multi_strerror = Sys_LoadFunction( dl->func.lib, "curl_multi_strerror" );
+	dl->func.multi_init = (CURLM * (*)())Sys_LoadFunction( dl->func.lib, "curl_multi_init" );
+	dl->func.multi_add_handle = (CURLMcode ( *)(CURLM*, CURL*))Sys_LoadFunction( dl->func.lib, "curl_multi_add_handle" );
+	dl->func.multi_remove_handle = (CURLMcode ( *)(CURLM*, CURL*))Sys_LoadFunction( dl->func.lib, "curl_multi_remove_handle" );
+	dl->func.multi_perform = (CURLMcode ( *)(CURLM*, int*))Sys_LoadFunction( dl->func.lib, "curl_multi_perform" );
+	dl->func.multi_cleanup = (CURLMcode ( *)(CURLM*))Sys_LoadFunction( dl->func.lib, "curl_multi_cleanup" );
+	dl->func.multi_info_read = (CURLMsg * (*)(CURLM*, int*))Sys_LoadFunction( dl->func.lib, "curl_multi_info_read" );
+	dl->func.multi_strerror = (const char * (*)(CURLMcode))Sys_LoadFunction( dl->func.lib, "curl_multi_strerror" );
 
 	if ( Sys_LoadFunctionErrors() )
 	{
@@ -785,7 +785,7 @@ static size_t Com_DL_CallbackWrite( void *ptr, size_t size, size_t nmemb, void *
 
 	if ( dl->fHandle == FS_INVALID_HANDLE )
 	{
-		if ( !CL_ValidPakSignature( ptr, size*nmemb ) ) 
+		if ( !CL_ValidPakSignature( (const byte *)ptr, size*nmemb ) )
 		{
 			Com_Printf( S_COLOR_YELLOW "Com_DL_CallbackWrite(): invalid pak signature for %s.\n",
 				dl->Name );
@@ -905,7 +905,7 @@ Start downloading file from remoteURL and save it under fs_game/localName
 */
 qboolean Com_DL_Begin( download_t *dl, const char *localName, const char *remoteURL, qboolean autoDownload )
 {
-	char *s;
+	const char *s;
 
 	if ( Com_DL_InProgress( dl ) )
 	{
