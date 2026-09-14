@@ -2,7 +2,7 @@
 
 Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed continuation starts at `6a990e7c` (T1–T23 plan amendment). All 171 scoped engine implementation/data files now use .cpp; each moved blob was verified unchanged. No engine bug fixes, vendor edits, renderer2 port, main pushes, force pushes, or history rewrites were made.
 
-**Engine port and phases 0–3 pass, including all 14 active CI build jobs. One required post-rename cleanup remains blocked by the unchanged-hash rule.** All 257 inventory entries are done (including the two explicit exclusions). Native GCC/Clang C and strict C++ configurations all build. MinGW, ARM, AArch64 and PPC64LE C++ full links pass. T24/T25 resolve all reviewed blockers with unchanged C hashes. C++ dedicated runtime matches C under G6, and the client loads OpenGL/Vulkan renderers under Xvfb.
+**Engine port and phases 0–3 pass, including all 14 active CI build jobs. The required T25 cleanup now passes the maintainer-approved metadata comparison.** All 257 inventory entries are done (including the two explicit exclusions). Native GCC/Clang C and strict C++ configurations all build. MinGW, ARM, AArch64 and PPC64LE C++ full links pass. T24/T25 resolve all reviewed blockers with unchanged C hashes. C++ dedicated runtime matches C under G6, and the client loads OpenGL/Vulkan renderers under Xvfb.
 
 ## Next action
 
@@ -15,16 +15,12 @@ PR #32 review follow-up: origin/main merged; implement generator T18 emission an
 - [x] Phase 2: required external linkage, G2/G3, full native links, deterministic dedicated smoke, client-driven renderer load.
 - [x] Phase 3 rename, fresh native/cross builds, gates, and runtime.
 - [x] MSVC x64 and ARM64 Debug/Release CI (34804759804).
-- [ ] T25 cleanup: blocked by Clang DWARF5 source checksum under the unchanged-object rule.
+- [x] T25 cleanup: GCC/Clang raw release and stripped-debug hashes unchanged (client and ded).
 - [x] Final CI evidence and cold-readable checkpoint, committed and pushed to the feature branch.
 
 ## Remaining blockers
 
-The engine port itself has no unresolved native/cross compiler or G2/G3 failures. The remaining cleanup in `code/server/sv_client.cpp` cannot meet the literal requirement that **every C++ object hash remain unchanged**. Removing the T25 C-only branch changes debug line positions; retaining blank lines preserves GCC debug objects but changes exactly the 16-byte source MD5 embedded by Clang DWARF5. All other Clang object bytes remain identical. No hash exception was granted, so the T25 guard and C-only branch remain. No production debug flags or object metadata were changed to hide this result.
-
-Measured with identical paths and actual Make debug recipes: original Clang object `14015309c7608e9e061adac4a78b3a956bfcb1b8dd158fa1c6a0dce362d342a8`; line-preserving cleanup `bf7c20601c22866dbd89aff9f3fc46f997998a4501549dd1f321b9844bf0b570`. Both are 158776 bytes; only offsets 69567–69582 differ. GCC line-preserving original/cleanup both hash `63bc0890bfe9b82ee2507db4349b9705e654b40c89f77e1d9fa73424239fe97d`. A diagnostic DWARF4 control also matches, but changing the flags is not an accepted workaround. Full evidence: `t25-cleanup-review.txt`, `t25-cleanup-results.json`.
-
-The former sv_client C-hash/Windows COM blockers were resolved by T24/T25 with unchanged C hashes. Their original evidence is retained for audit, not listed as an active engine blocker.
+None. PR32 review corrected the T25 verification rule: GCC/Clang release objects must match raw, and debug objects must match after objcopy --strip-debug. The C-only branch is removed; all eight client/ded compiler/configuration comparisons pass. Historical raw-DWARF source-checksum differences remain archived as the reason for the narrow, explicitly approved metadata exception.
 
 ## Module inventory
 
@@ -410,7 +406,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/server/server.h` | done | T1-T17: 0; unchanged header verified through server consumers, strict native release/debug and G2/G3 PASS. |
 | `code/server/sv_bot.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_bot.o); G4 advisory difference retained. |
 | `code/server/sv_ccmds.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory difference retained. |
-| `code/server/sv_client.cpp` | done | Port/runtime pass; only post-rename T25 cleanup blocked by Clang source checksum as detailed above.  T1: 2; T2: 4; T20: 1; T25: 1 preserving original C compound line; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_client.o, default); G4 advisory FAIL, full diff retained. |
+| `code/server/sv_client.cpp` | done | Port/runtime and approved T25 cleanup pass.  T1: 2; T2: 4; T20: 1; T25: 1 preserving original C compound line; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_client.o, default); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_filter.cpp` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory difference retained. |
 | `code/server/sv_game.cpp` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (ded/sv_game.o); G4 advisory difference retained. |
 | `code/server/sv_init.cpp` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory difference retained. |
@@ -1192,3 +1188,16 @@ Later per-file G4: `phase3-msvc-vm_aarch64.diff.gz`; same Linux AArch64 body wit
 - Plan wording now exempts T15 token-boundary spacing, limits T21 to arguments that can select float overloads (including target-dependent M_PI), and records the approved T25 debug-metadata comparison. Make documents explicit CXX for versioned CC names. The obsolete advisory CXX probe was already removed in 7856982f.
 
 - PR32 generator T18 fix: bin2hex.cpp now emits the preceding extern declaration for arrays and its existing disabled _size-constant output path. Regenerated all 74 arrays from their committed SPIR-V payloads; shader_data.cpp is byte-identical, SHA256 700724298e78e98017adeeceb34b56af6243fe6cdbdce94da60751b1fb187367. No glslangValidator is installed; this verifies binary-to-source regeneration without recompiling/replacing shader bytecode. The disabled _size path is separately enabled in a temporary fixture and both symbols have external linkage. Reproduce: `python3 tools/port/check_shader_generator.py /tmp/port-shaders`. shader_data.cpp is generated: never hand-edit it.
+
+- PR32 T25 cleanup removed the four preprocessor/C-only lines, retaining the exact active cast expression. Eight actual Make compiler recipes ran before/after at identical repository source and object paths.
+
+| Compiler | Configuration | Context | Comparison | Identical SHA256 |
+|---|---|---|---|---|
+| gcc | release | client | raw | `b7010e61adc2ea2ec82f89642dd35f6842d1456063e398851e12391a5f7762cc` |
+| gcc | release | ded | raw | `0416faec94095e85c87111dfdf06ef513b8b4035735f8e9580210aeb6bd5a3a6` |
+| gcc | debug | client | stripped | `aa61af63af849757dbbd8d6639ae968b5b95c69b7949b9580e847a5919b480e9` |
+| gcc | debug | ded | stripped | `34d8e684144da45d9919652ef082f4aeb8e22469feb819bc6f0482b8c5d057a7` |
+| clang | release | client | raw | `3bff7c8638aa501848f2794898d802fd544ceb95cccb6634f60124af6e94a881` |
+| clang | release | ded | raw | `5188a5047a73f4503ae79a0a9d0878fe1c86cb7e1f3db685938f33abab17bf0e` |
+| clang | debug | client | stripped | `02e3999d9429b04e5422bbad35b0ea2254ac07d325993cf44f11785b79645379` |
+| clang | debug | ded | stripped | `f4e52fe200a027a244d701e2e879e1f05aefbc778628e384ca86996deefe5909` |

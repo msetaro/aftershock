@@ -1636,11 +1636,7 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 
 		// we run the game, so determine which cgame and ui the client "should" be running
 		bGood = FS_FileIsInPAK( "vm/cgame.qvm", &nChkSum1, NULL );
-#ifdef __cplusplus
 		bGood = (qboolean)( bGood & FS_FileIsInPAK( "vm/ui.qvm", &nChkSum2, NULL ) );
-#else
-		bGood &= FS_FileIsInPAK( "vm/ui.qvm", &nChkSum2, NULL );
-#endif
 
 		nClientPaks = Cmd_Argc();
 
