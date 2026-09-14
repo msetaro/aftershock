@@ -3863,7 +3863,7 @@ static int AAS_Reachability_Grapple(int area1num, int area2num)
 		if (hordist > 2000) continue;
 		//check the minimal angle of the movement
 		mingrappleangle = 15; //15 degrees
-		if (z / hordist < tan(2 * M_PI * mingrappleangle / 360)) continue;
+		if (z / hordist < tan((double)(2 * M_PI * mingrappleangle / 360))) continue;
 		//
 		VectorCopy(facecenter, start);
 		VectorMA(facecenter, -500, aasworld.planes[face2->planenum].normal, end);
