@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: qcommon; next `code/qcommon/cvar.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: qcommon; next `code/server/sv_game.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -146,6 +146,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 ## Codegen differences
 
+- `code/qcommon/cvar.c`: G4 advisory FAIL; full diff `tools/port/evidence/cvar.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cvar.o /tmp/aftershock-cpp-port/cvar ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
+
 - `code/qcommon/cm_trace.c`: G4 advisory FAIL; full diff `tools/port/evidence/cm_trace.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cm_trace.o /tmp/aftershock-cpp-port/cm_trace ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/qcommon/cm_patch.c`: G4 advisory FAIL; full diff `tools/port/evidence/cm_patch.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cm_patch.o /tmp/aftershock-cpp-port/cm_patch ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
@@ -193,7 +195,7 @@ Every nonempty completed-source G4 diff is listed below. Read each with `gzip -d
 | `code/qcommon/cm_trace.c` | done | T1-T17: 0 (already compatible); T21/T22: 6 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_trace.o, default); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/cmd.c` | `tools/port/evidence/cmd.codegen.diff.gz` |
 | `code/qcommon/common.c` | `tools/port/evidence/common.codegen.diff.gz` |
-| `code/qcommon/cvar.c` | `tools/port/evidence/cvar.codegen.diff.gz` |
+| `code/qcommon/cvar.c` | done | T2: 2, T3: 4 (cast compound-assignment result); T21/T22: 2 argument casts at 2 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cvar.o, default); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/files.c` | `tools/port/evidence/files.codegen.diff.gz` |
 | `code/qcommon/history.c` | `tools/port/evidence/history.codegen.diff.gz` |
 | `code/qcommon/huffman.c` | `tools/port/evidence/huffman.codegen.diff.gz` |
@@ -432,7 +434,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/qcommon/cm_trace.c` | done | T1-T17: 0 (already compatible); T21/T22: 6 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_trace.o, default); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/cmd.c` | done | T1: 1, T2: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cmd.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/common.c` | done | T1: 5, T2: 2, T3: 1, T15: 29; T5: 2 conditional MSVC CPUID_EX declarations/definitions (target-unverified); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/common.o, default); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/cvar.c` | done | T2: 2, T3: 4 (cast compound-assignment result); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cvar.o); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/cvar.c` | done | T2: 2, T3: 4 (cast compound-assignment result); T21/T22: 2 argument casts at 2 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cvar.o, default); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/files.c` | done | T1: 13, T2: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/files.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/history.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/history.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/huffman.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/huffman.o); G4 advisory FAIL, full diff retained. |

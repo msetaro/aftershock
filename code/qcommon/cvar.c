@@ -1216,12 +1216,12 @@ static void Cvar_Op( funcType_t ftype, int *ival, float *fval )
 
 		case FT_SIN:
 				*ival = sin( imod );
-				*fval = sin( fmod );
+				*fval = sin( (double)(fmod) );
 				break;
 
 		case FT_COS:
 				*ival = cos( imod );
-				*fval = cos( fmod );
+				*fval = cos( (double)(fmod) );
 				break;
 		default: 
 			break;
