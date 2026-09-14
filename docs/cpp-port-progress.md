@@ -6,7 +6,7 @@ Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed c
 
 ## Next action
 
-Finish the refreshed native context gates, then enter phase 3: separate embedded-shader path prerequisite, archive the pre-rename C oracle, pure engine rename with build/project/CI updates, fresh builds/gates/runtime, CI, and separate T25 cleanup with unchanged C++ hashes.
+Continuation: renderervk; next `phase3` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -344,7 +344,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/renderercommon/vulkan/vulkan_xlib_xrandr.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderervk/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderervk/shaders/bin2hex.c` | done | Unchanged standalone build utility, not linked engine code; gcc/g++ strict native -O2 compile PASS, fixed 259-byte input and append output byte-identical. Engine layout gate not applicable (no engine records). |
-| `code/renderervk/shaders/spirv/shader_data.c` | done | T18: 74 preceding extern const declarations; unchanged initialized bytes. Verified through sole consumer rendv/vk.o: C SHA256 unchanged, strict release/debug C++, G2/G3 PASS; G4 advisory diff retained under vk.c. vk.c and this include require each other for C++ gates; consecutive per-file commits record the pair. |
+| `code/renderervk/shaders/spirv/shader_data.cpp` | done | T18: 74 preceding extern const declarations; unchanged initialized bytes. Verified through sole consumer rendv/vk.o: C SHA256 unchanged, strict release/debug C++, G2/G3 PASS; G4 advisory diff retained under vk.c. vk.c and this include require each other for C++ gates; consecutive per-file commits record the pair. |
 | `code/renderervk/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_animation.o, default); G4 advisory difference retained. |
 | `code/renderervk/tr_backend.c` | done | T4: 11 occurrences (prerequisite), T1: 4, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_backend.o, default); G4 advisory difference retained. |
 | `code/renderervk/tr_bsp.c` | done | T1: 42, T3: 2; T21/T22: 94 argument casts at 94 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_bsp.o, default); G4 advisory difference retained. |
@@ -368,7 +368,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/renderervk/tr_sky.c` | done | T4: 7 occurrences (prerequisite); T21/T22: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_sky.o, default); G4 advisory difference retained. |
 | `code/renderervk/tr_surface.c` | done | T4: 25 occurrences (prerequisite); T21: 4 argument casts at 4 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_surface.o, default); G4 advisory difference retained. |
 | `code/renderervk/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_world.o, default); G4 advisory difference retained. |
-| `code/renderervk/vk.c` | done | T1: 2 macro sites (17 expansions); T3: 14; included shader T18 prerequisite; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk.o, default); G4 advisory difference retained. |
+| `code/renderervk/vk.c` | done | Filename dependency update for embedded shader rename; separate DEVIATION; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/vk.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderervk/vk_flares.c` | done | T4: 3 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_flares.o, default); G4 advisory difference retained. |
 | `code/renderervk/vk_vbo.c` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_vbo.o, default); G4 advisory difference retained. |
@@ -1232,3 +1232,5 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 - ARM full link exposed four libgcc assembler imports (__aeabi_idiv/uidiv/idivmod/uidivmod) with mangled names. T5 applies because these are resolved from external assembly by name, unlike internal static JIT callbacks. Add Q_EXTERN_C to the existing declarations and enforce raw names in G3. No signatures or call expressions change.
 
 - Current integration evidence: t25-build-matrix-results.json (16/16 PASS), t25-cross-build-results.json (4/4 full links PASS), t25-cross-gate-results.json (424/424 G2/G3 PASS; every advisory diff named in each row). ARM libgcc raw-linkage gate also passes after the four T5 annotations. OpenGL, Vulkan and static Vulkan clients load q3dm17 and shut down cleanly under Xvfb; logs t25-client-*.log.gz.
+
+- DEVIATION: embedded shader path prerequisite to phase 3. shader_data.c is included directly by vk.c. Move its blob unchanged to .cpp and update the one include plus two generator output paths separately, leaving the later vk.c rename content-free. Both C and C++ can include the .cpp data. This is a necessary filename dependency update, not an engine logic change. Reviewer preflight approved this minimal sequence.
