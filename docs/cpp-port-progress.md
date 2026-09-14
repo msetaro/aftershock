@@ -596,7 +596,7 @@ Phase 1: next `code/renderervk/shaders/bin2hex.c`. Resume there; do not redo don
 | `code/renderervk/tr_backend.c` | done | T4: 11 occurrences (prerequisite), T1: 4, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_backend.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_bsp.c` | done | T1: 42, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_bsp.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_cmds.c` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_cmds.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderervk/tr_common.h` | todo | Pending module pass. |
+| `code/renderervk/tr_common.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderervk/tr_curve.c` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_curve.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_image.c` | done | T1: 8, T2: 1, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_image.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/tr_init.c` | blocked | Five T1 casts compile with original C hash/G2 PASS; G3 fails only GetRefAPI mangling. Reverted; reapply with phase-2 T5. Patch /tmp/aftershock-cpp-port/renderervk-tr_init-phase1.patch. |
