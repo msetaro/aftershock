@@ -17,7 +17,7 @@ export PORT_EVIDENCE=/tmp/port-evidence/tools/port/evidence
 
 ## Next action
 
-PR #32 implementation and acceptance complete; push review commits, answer/resolve all 15 threads, and verify fresh CI and PR readiness.
+No implementation action remains. PR #32 is ready for maintainer review: all 15 threads answered and resolved, origin/main merged, evidence archived and pushed, and all 14 active CI jobs pass on the merged review tree; do not merge or push main without a new instruction.
 
 ## Phase checklist
 
@@ -28,6 +28,7 @@ PR #32 implementation and acceptance complete; push review commits, answer/resol
 - [x] MSVC x64 and ARM64 Debug/Release CI (34804759804).
 - [x] T25 cleanup: GCC/Clang raw release and stripped-debug hashes unchanged (client and ded).
 - [x] Final CI evidence and cold-readable checkpoint, committed and pushed to the feature branch.
+- [x] PR #32: both reviews addressed, all 15 threads replied/resolved, merged-tree CI green, PR ready.
 
 ## Remaining blockers
 
@@ -70,6 +71,8 @@ None. PR32 review corrected the T25 verification rule: GCC/Clang release objects
 Historical results at 7ec7e925 and intermediate T24/T25 checkpoints remain in git/evidence (`resumed-*`, `final-*`, `t25-*`). They are superseded by the current results above.
 
 ## PR #32 final acceptance (merged tree)
+
+**Review complete:** all 15 first-review threads have a one-sentence response and are resolved; the second review’s six required actions are complete. GitHub confirms `isDraft: false` and `mergeable: MERGEABLE`; the stale draft/pending PR description is replaced. [Merged-tree CI 34849295399](https://github.com/msetaro/aftershock/actions/runs/34849295399) passes all 14 active builds at `aec9fb49082534fb5b01711086112de45b6f6f77`, including MSVC x64/ARM64 Debug/Release and both MinGW builds; the final checkpoint commit changes documentation only. Evidence branch and implementation branch are published separately, with no main push or history rewrite. Recheck CI using `gh run watch 34849295399 -R msetaro/aftershock --exit-status` and `gh run view 34849295399 -R msetaro/aftershock --log-failed`.
 
 Merged `origin/main` at `841b35d5` in `cc114e79`; full fresh C (main) and C++ dedicated/client/both dlopen renderer builds pass. Generator fix `6ef22a39` regenerates all 74 arrays byte-identically (SHA256 `700724298e78e98017adeeceb34b56af6243fe6cdbdce94da60751b1fb187367`), including a separate `_size` linkage fixture for the existing disabled emission path. Committed SPIR-V bytes were reused because glslangValidator is unavailable; no shader compilation or bytecode substitution is claimed. T25 cleanup `80763bd2` passes all eight GCC/Clang release/debug client/ded comparisons: release hashes match raw; debug hashes match after `objcopy --strip-debug`. Full before/after hashes are in the small acceptance JSON and archived `pr32-cleanup-results.json`; G2/G3 on sv_client pass and G4 remains advisory.
 
