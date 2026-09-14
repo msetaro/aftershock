@@ -639,13 +639,13 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				imgFlags_t flags = IMGFLAG_NONE;
 
 				if (!shader.noMipMaps)
-					flags |= IMGFLAG_MIPMAP;
+					flags = (imgFlags_t)( flags | ( IMGFLAG_MIPMAP ) );
 
 				if (!shader.noPicMip)
-					flags |= IMGFLAG_PICMIP;
+					flags = (imgFlags_t)( flags | ( IMGFLAG_PICMIP ) );
 
 				if (shader.noLightScale)
-					flags |= IMGFLAG_NOLIGHTSCALE;
+					flags = (imgFlags_t)( flags | ( IMGFLAG_NOLIGHTSCALE ) );
 
 				stage->bundle[0].image[0] = R_FindImageFile( token, flags );
 
@@ -685,13 +685,13 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			}
 
 			if (!shader.noMipMaps)
-				flags |= IMGFLAG_MIPMAP;
+				flags = (imgFlags_t)( flags | ( IMGFLAG_MIPMAP ) );
 
 			if (!shader.noPicMip)
-				flags |= IMGFLAG_PICMIP;
+				flags = (imgFlags_t)( flags | ( IMGFLAG_PICMIP ) );
 
 			if (shader.noLightScale)
-				flags |= IMGFLAG_NOLIGHTSCALE;
+				flags = (imgFlags_t)( flags | ( IMGFLAG_NOLIGHTSCALE ) );
 
 			stage->bundle[0].image[0] = R_FindImageFile( token, flags );
 			if ( !stage->bundle[0].image[0] )
@@ -729,13 +729,13 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 					imgFlags_t flags = IMGFLAG_NONE;
 
 					if (!shader.noMipMaps)
-						flags |= IMGFLAG_MIPMAP;
+						flags = (imgFlags_t)( flags | ( IMGFLAG_MIPMAP ) );
 
 					if (!shader.noPicMip)
-						flags |= IMGFLAG_PICMIP;
+						flags = (imgFlags_t)( flags | ( IMGFLAG_PICMIP ) );
 
 					if (shader.noLightScale)
-						flags |= IMGFLAG_NOLIGHTSCALE;
+						flags = (imgFlags_t)( flags | ( IMGFLAG_NOLIGHTSCALE ) );
 
 					stage->bundle[0].image[num] = R_FindImageFile( token, flags );
 					if ( !stage->bundle[0].image[num] )
@@ -765,7 +765,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			handle = ri.CIN_PlayCinematic( token, 0, 0, 256, 256, (CIN_loop | CIN_silent | CIN_shader) );
 			if ( handle != -1 ) {
 				if ( !tr.scratchImage[ handle ] ) {
-					tr.scratchImage[ handle ] = R_CreateImage( va( "*scratch%i", handle ), NULL, NULL, 256, 256, IMGFLAG_CLAMPTOEDGE | IMGFLAG_RGB | IMGFLAG_NOSCALE );
+					tr.scratchImage[ handle ] = R_CreateImage( va( "*scratch%i", handle ), NULL, NULL, 256, 256, (imgFlags_t)( IMGFLAG_CLAMPTOEDGE | IMGFLAG_RGB | IMGFLAG_NOSCALE ) );
 				}
 				stage->bundle[0].isVideoMap = qtrue;
 				stage->bundle[0].videoMapHandle = handle;
@@ -1128,7 +1128,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		}
 	}
 
-	if ( depthMaskExplicit && shader.sort == SS_BAD ) {
+	if ( depthMaskExplicit && shader.sort == (float)SS_BAD ) {
 		// fix decals on q3wcp18 and other maps
 		if ( blendSrcBits == GLS_SRCBLEND_SRC_ALPHA && blendDstBits == GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA /*&& stage->rgbGen == CGEN_VERTEX*/ ) {
 			if ( stage->alphaGen != AGEN_SKIP ) {
@@ -1141,7 +1141,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				// skip for q3wcp14 jumppads and similar
 				// q3wcp14 @ "textures/ctf_unified/bounce_blue" : AGEN_SKIP, CGEN_IDENTITY
 			}
-			shader.sort = shader.polygonOffset ? SS_DECAL : SS_OPAQUE + 0.01f;
+			shader.sort = shader.polygonOffset ? (float)SS_DECAL : (float)SS_OPAQUE + 0.01f;
 		} else if ( blendSrcBits == GLS_SRCBLEND_ZERO && blendDstBits == GLS_DSTBLEND_ONE_MINUS_SRC_COLOR && stage->rgbGen == CGEN_EXACT_VERTEX ) {
 			depthMaskBits &= ~GLS_DEPTHMASK_TRUE;
 			shader.sort = SS_SEE_THROUGH;
@@ -1230,7 +1230,7 @@ static void ParseDeform( const char **text ) {
 		if ( n < 0 || n > 7 ) {
 			n = 0;
 		}
-		ds->deformation = DEFORM_TEXT0 + n;
+		ds->deformation = (deform_t)( DEFORM_TEXT0 + n );
 		return;
 	}
 
@@ -1344,7 +1344,7 @@ static void ParseSkyParms( const char **text ) {
 	static const char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 	char		pathname[MAX_QPATH];
 	int			i;
-	imgFlags_t imgFlags = IMGFLAG_MIPMAP | IMGFLAG_PICMIP;
+	imgFlags_t imgFlags = (imgFlags_t)( IMGFLAG_MIPMAP | IMGFLAG_PICMIP );
 
 	if ( r_neatsky->integer ) {
 		imgFlags = IMGFLAG_NONE;
@@ -1360,7 +1360,7 @@ static void ParseSkyParms( const char **text ) {
 		for (i=0 ; i<6 ; i++) {
 			Com_sprintf( pathname, sizeof(pathname), "%s_%s.tga"
 				, token, suf[i] );
-			shader.sky.outerbox[i] = R_FindImageFile( pathname, imgFlags | IMGFLAG_CLAMPTOEDGE );
+			shader.sky.outerbox[i] = R_FindImageFile( pathname, (imgFlags_t)( imgFlags | IMGFLAG_CLAMPTOEDGE ) );
 
 			if ( !shader.sky.outerbox[i] ) {
 				shader.sky.outerbox[i] = tr.defaultImage;
@@ -1453,7 +1453,7 @@ static const infoParm_t infoParms[] = {
 	{"lava",		1,	0,	CONTENTS_LAVA },		// very damaging
 	{"playerclip",	1,	0,	CONTENTS_PLAYERCLIP },
 	{"monsterclip",	1,	0,	CONTENTS_MONSTERCLIP },
-	{"nodrop",		1,	0,	CONTENTS_NODROP },		// don't drop items or leave bodies (death fog, lava, etc)
+	{"nodrop",		1,	0,	(int)CONTENTS_NODROP },		// don't drop items or leave bodies (death fog, lava, etc)
 	{"nonsolid",	1,	SURF_NONSOLID,	0},						// clears the solid flag
 
 	// utility relevant attributes
@@ -2045,7 +2045,7 @@ static qboolean ParseShader( const char **text )
 			if ( branch == brELSE )
 				res = res_invalid; // finalize branch
 			else
-				res ^= 1; // or toggle for possible "elif" / "else" statements
+				res = (resultType)( res ^ 1 ); // or toggle for possible "elif" / "else" statements
 
 			continue;
 		}
@@ -2421,7 +2421,7 @@ static void FindLightingBundle( void )
 
 	shader.lightingStage = -1;
 
-	if ( /*shader.isSky || (shader.surfaceFlags & (SURF_SKY)) || */ shader.sort == SS_ENVIRONMENT || shader.sort >= SS_FOG ) {
+	if ( /*shader.isSky || (shader.surfaceFlags & (SURF_SKY)) || */ shader.sort == (float)SS_ENVIRONMENT || shader.sort >= (float)SS_FOG ) {
 		return;
 	}
 
@@ -2595,7 +2595,7 @@ static shader_t *GeneratePermanentShader( void ) {
 		return tr.defaultShader;
 	}
 
-	newShader = ri.Hunk_Alloc( sizeof( shader_t ), h_low );
+	newShader = (shader_t *)ri.Hunk_Alloc( sizeof( shader_t ), h_low );
 
 	*newShader = shader;
 
@@ -2611,13 +2611,13 @@ static shader_t *GeneratePermanentShader( void ) {
 		if ( !stages[i].active ) {
 			break;
 		}
-		newShader->stages[i] = ri.Hunk_Alloc( sizeof( stages[i] ), h_low );
+		newShader->stages[i] = (shaderStage_t *)ri.Hunk_Alloc( sizeof( stages[i] ), h_low );
 		*newShader->stages[i] = stages[i];
 
 		for ( b = 0 ; b < NUM_TEXTURE_BUNDLES ; b++ ) {
 			size = newShader->stages[i]->bundle[b].numTexMods * sizeof( texModInfo_t );
 			if ( size ) {
-				newShader->stages[i]->bundle[b].texMods = ri.Hunk_Alloc( size, h_low );
+				newShader->stages[i]->bundle[b].texMods = (texModInfo_t *)ri.Hunk_Alloc( size, h_low );
 				Com_Memcpy( newShader->stages[i]->bundle[b].texMods, stages[i].bundle[b].texMods, size );
 			}
 		}
@@ -2650,7 +2650,7 @@ static void VertexLightingCollapse( void ) {
 	qboolean vertexColors;
 
 	// if we aren't opaque, just use the first pass
-	if ( shader.sort == SS_OPAQUE ) {
+	if ( shader.sort == (float)SS_OPAQUE ) {
 
 		// pick the best texture for the single pass
 		bestStage = &stages[0];
@@ -2838,7 +2838,7 @@ static shader_t *FinishShader( void ) {
 	//
 	// set polygon offset
 	//
-	if ( shader.polygonOffset && shader.sort == SS_BAD ) {
+	if ( shader.polygonOffset && shader.sort == (float)SS_BAD ) {
 		shader.sort = SS_DECAL;
 	}
 
@@ -2950,7 +2950,7 @@ static shader_t *FinishShader( void ) {
 
 	// there are times when you will need to manually apply a sort to
 	// opaque alpha tested shaders that have later blend passes
-	if ( shader.sort == SS_BAD ) {
+	if ( shader.sort == (float)SS_BAD ) {
 		if ( colorBlend ) {
 			// see through item, like a grill or grate
 			if ( depthMask ) {
@@ -3053,7 +3053,7 @@ static shader_t *FinishShader( void ) {
 	if ( stage == 0 && !shader.isSky )
 		shader.sort = SS_FOG;
 
-	if ( shader.sort <= SS_OPAQUE ) {
+	if ( shader.sort <= (float)SS_OPAQUE ) {
 		shader.fogPass = FP_EQUAL;
 	} else if ( shader.contentFlags & CONTENTS_FOG ) {
 		shader.fogPass = FP_LE;
@@ -3326,11 +3326,11 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 
 		if (mipRawImage)
 		{
-			flags |= IMGFLAG_MIPMAP | IMGFLAG_PICMIP;
+			flags = (imgFlags_t)( flags | ( IMGFLAG_MIPMAP | IMGFLAG_PICMIP ) );
 		}
 		else
 		{
-			flags |= IMGFLAG_CLAMPTOEDGE;
+			flags = (imgFlags_t)( flags | ( IMGFLAG_CLAMPTOEDGE ) );
 		}
 
 		image = R_FindImageFile( name, flags );
@@ -3740,7 +3740,7 @@ static void ScanAndLoadShaderFiles( void )
 	sum += loadShaderBuffers( shaderFiles, numShaderFiles, buffers );
 
 	// build single large buffer
-	s_shaderText = ri.Hunk_Alloc( sum + numShaderxFiles*2 + numShaderFiles*2 + 1, h_low );
+	s_shaderText = (char *)ri.Hunk_Alloc( sum + numShaderxFiles*2 + numShaderFiles*2 + 1, h_low );
 	s_shaderText[ 0 ] = s_shaderText[ sum + numShaderxFiles*2 + numShaderFiles*2 ] = '\0';
 
 	textEnd = s_shaderText;
@@ -3793,7 +3793,7 @@ static void ScanAndLoadShaderFiles( void )
 
 	size += MAX_SHADERTEXT_HASH;
 
-	hashMem = ri.Hunk_Alloc( size * sizeof(char *), h_low );
+	hashMem = (const char *)ri.Hunk_Alloc( size * sizeof(char *), h_low );
 
 	for (i = 0; i < MAX_SHADERTEXT_HASH; i++) {
 		shaderTextHashTable[i] = (const char **) hashMem;
