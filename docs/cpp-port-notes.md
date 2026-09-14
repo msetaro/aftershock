@@ -216,3 +216,15 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   Upstream C fix: https://github.com/ec-/Quake3e/pull/433. Explicit unit/collision
   regeneration has no golden diff, and normal both-map smoke passes.
   Fork PR #46 passed regression 34890358367 and full build 34890358307.
+
+- #31 JPEG Huffman table index: get_dht now selects the AC/DC array before the
+  existing index check and adds the index only afterward. The permanent Clang
+  sanitizer unit fails before at index 5 outside JHUFF_TBL *[4], then passes after.
+  The actual routine and probe compile as C inside the existing unit driver; all
+  legal table slots, expected index errors and table destinations are checked.
+  No file loading or new runner. Error codes/index normalization stay unchanged.
+  Pointer checks also pass. Explicit unit/collision regeneration has no golden
+  diff; one-ULP control, smoke and replay pass unchanged. Production symbols pass;
+  only get_dht changes normalized assembly among 15 functions. No gate weakening,
+  known-bug entry or suppression. Upstream C test also fails before and passes after.
+  Upstream C regression/fix: https://github.com/ec-/Quake3e/pull/434.

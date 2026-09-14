@@ -121,6 +121,9 @@ the ASan runtime experiment with faketime timed out before producing output.
 The unit driver also initializes and frees real zlib state through its default
 allocator callbacks, under the existing sanitizer modes. It reads no content and
 reuses the unit allocation stubs; the ordinary unit golden stays unchanged.
+The JPEG table-index check also lives in the unit driver. It compiles the actual
+vendor routine and its probe as C, checking legal AC/DC table destinations and
+expected index errors without file loading.
 Pointer comparisons run separately from UBSan: combining both instruments Clang's
 generated pointer-overflow checks and reports invalid pairs in otherwise valid
 pointer increments. Both runs compare the same unit golden; neither replaces the

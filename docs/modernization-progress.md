@@ -38,20 +38,20 @@ build 34887856072 passed; merged-tree regression 34888464336 passed.
 AAS PR #45 merged as 481d008a after regression 34889484418 and full build
 34889484412 passed; merged-tree regression 34889992769 passed.
 
-Current branch: `issue/31-png-header-alignment`. Added size/alignment assertions
-for the byte-packed PNG chunk header to the existing renderer source, before
-changing its layout. The standalone assertion fails at alignment 4 instead of 1;
-the permanent demo command also failed at that assertion. Scoped packing now
-gives the header byte alignment without changing its eight-byte size, fields or
-byte-order conversion. GCC production codegen/symbol gates and both-renderer fixed
-replay pass unchanged. Upstream C assertions fail before and pass after with GCC
-and Clang: https://github.com/ec-/Quake3e/pull/433. Unit/collision regeneration
-changes no golden, and normal both-map smoke passes. PR #46 is open at source
-becd4b27; regression 34890358367 and full build 34890358307 passed. Self-review
-below passes. Next: mark ready, merge, verify merged-tree regression, then branch
-issue/31-jpeg-table-index. Extend the existing unit driver with a C table-index
-check using the actual vendor routine, then move table-pointer arithmetic after
-validation. Vendor code stays C. No fixture recording.
+PNG PR #46 merged as f46f48c7 after regression 34890358367 and full build
+34890358307 passed; merged-tree regression 34890928632 passed.
+
+Current branch: `issue/31-jpeg-table-index`. Added a C probe to the existing unit
+driver using the actual vendor get_dht routine. It checks all legal DC/AC slots,
+expected index errors and table destinations, with no file loading. Vendor code
+and its probe compile as C. The permanent Clang sanitizer unit fails before at
+index 5 outside the four-entry table. Selecting the array first and adding the
+index after validation passes sanitizer/pointer checks and preserves error codes.
+Explicit unit/collision regeneration, one-ULP control, smoke and replay retain all
+goldens. Symbols pass; only get_dht changes normalized assembly among 15 functions.
+Upstream C also fails before and passes after:
+https://github.com/ec-/Quake3e/pull/434. Next: open PR and complete hosted
+CI/self-review; audit all #31 dispositions before closing it.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -68,7 +68,7 @@ experiment still timed out before output and is not a claimed runtime gate.
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -323,3 +323,17 @@ covered this type. Self-review: one alignment bug; persistent layout assertions
 in the existing renderer build, no new content/recording, FP, allocation, OS-access
 or destructor changes. Regression 34890358367 and full build 34890358307 pass
 on source becd4b27. Final checkpoint changes documentation only; self-review passes.
+
+## #31 JPEG table-index validation
+
+The permanent Clang sanitizer unit fails before at index 5 outside JHUFF_TBL *[4].
+get_dht now chooses the AC/DC base array first and applies the index after its
+existing validation. All legal slot destinations and expected error code/index
+values pass, with the routine and probe compiled as C. Pointer mode also passes.
+Explicit unit/collision regeneration has no golden diff; one-ULP control, normal
+smoke and fixed-demo replay pass unchanged. Symbols pass; only get_dht changes
+normalized assembly among 15 functions, reviewed as the expected pointer-lifetime
+change. No gate weakening. Upstream C test fails before and passes after:
+https://github.com/ec-/Quake3e/pull/434. Known-bugs has no entries, and ubsan.supp
+is empty. Self-review: one vendor bounds bug, existing unit runner, no file loading,
+FP, layout, engine OS-access, allocation or destructor change. Hosted gates pending.
