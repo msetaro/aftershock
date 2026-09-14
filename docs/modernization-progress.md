@@ -45,32 +45,30 @@ JPEG PR #47 merged as 9a7c2625 after regression 34891606879 and full build
 34891606634 passed on source 01f2dd40. Its merged-tree regression 34892331846 passed. The disposition audit accounts for all twelve defects; CMake remains #5.
 #31 is complete; all twelve fixes are merged and linked in the closed notes ledger.
 
-Longjmp decision #1 merged as PR #48 / 95b418b0 after regression 34892972996 and
-full build 34892972994 passed on source e0013d90. Its merged-tree regression
-34893585998 passed.
+#1 merged as PR #48 / 95b418b0 after regression 34892972996 and full build
+34892972994 passed on e0013d90; merged-tree regression 34893585998 passed.
 
-Current branch: `issue/2-native-game`. Imported the official GPL 1.32 base-game,
-cgame and base UI C sources verbatim, with SHA256 provenance in
-`docs/native-game-import.json`. Existing engine ABI headers are retained and
-listed separately. Sources are not wired into the engine build yet. The upstream
-Unix Make Q3GOBJ/Q3CGOBJ/Q3UIOBJ lists select the base modules; ui_syscalls.c lives
-in upstream code/ui despite the stale q3_ui recipe. ui/menudef.h is a required
-source header, not game content. GPL notices remain intact.
+#2 exact GPL C import is committed/pushed on issue/2-native-game: b3ef1acd plus
+checkpoint a937d710. Its 125 imported files and four retained ABI headers have
+SHA256 provenance. Native preflight found an LP64 Q_rsqrt overread; no fix was made
+on #2. The source is not wired into the engine yet.
 
-Exact import committed as b3ef1acd. Native math preflight exposed an LP64 defect:
-code/game/q_math.c Q_rsqrt reads four-byte y through eight-byte long*. Clang -O2
-returns 4 for input 4; -O0 ASan reports an eight-byte stack overread. Reproducers:
-/tmp/aftershock-native-math-check.c, /tmp/aftershock-native-math-before.log and
-/tmp/aftershock-native-math-before-debug.log. No fix on #2. Next: separate #31
-PR importing only this shared math dependency with its failing test/fix, merge it
-back into #2 without rewriting the import history, then establish C native ABI/layout,
-then measure QVM/native bot smoke and fixed-demo parity before any C++ port or
-VM/JIT removal. Keep the last QVM binaries/fixtures as transition evidence. No
-accepted golden or fixture regeneration. Every new bug remains a separate #31 PR.
-Preparation: official GPL dbe4ddb10315479fc00086f08e25d968b4b43c49 is cloned at
-/tmp/aftershock-q3-gpl. /tmp/aftershock-native-preflight.py compiles the original
-base-game list as a temporary C shared module with intptr_t entry-point/syscall
-return widths; this is build evidence only, not a gameplay parity claim.
+Native math PR #49 merged as 2018564f after regression 34894597080 and full build
+34894597081 passed on source 152cc6e2. Its merged-tree regression is pending.
+
+Current branch: `issue/2-native-game`. Merging modernization retains the original
+GPL import commit b3ef1acd and resolves the q_math add/add to the reviewed #49 fix.
+The progress conflict is resolved to the latest #31 evidence plus this #2 state.
+No history rewritten. Sources still compile only in temporary native preflight,
+not the permanent engine build. Original headers match seven shared ABI sizes and
+three offsets. Temporary native game/cgame/UI modules compile as C after pointer
+entry-point adaptation and linking original bg_lib support; all 36 q3dm17 gameplay
+events match the accepted QVM log. Full log differences are implementation-loading
+metadata, compile date and bot-skill printf padding. Both-renderer fixed-demo
+native preflight is running, with unchanged fixtures/goldens and existing engine
+binaries. Next: inspect its result, import the required ui_shared.h header with
+provenance, then wire reproducible C native ABI/layout/smoke/replay checks before
+any C++ port or VM/JIT removal. Keep all new fixes in separate #31 PRs.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -87,9 +85,9 @@ experiment still timed out before output and is not a claimed runtime gate.
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); complete, final merged-tree regression 34892331846 passed. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
-| 3 | #1 error model | Merged #48; rationale and Clang lifetime CI check passed local/hosted gates; merged-tree regression 34893585998 passed. |
-| 4 | #2 native game | In progress: exact GPL 1.32 C import, not built yet; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); thirteen fixes merged through #49; latest merged-tree regression pending. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 3 | #1 error model | Complete: merged #48, merged-tree regression 34893585998 passed. |
+| 4 | #2 native game | In progress: exact C import and native preflight; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
 | 6 | #5 CMake | Repair as primary, object parity before removing Makefile; generated MSVC projects, 64-bit little-endian only. |
 | 7 | #8 code rules | Warning class per PR; one codegen-identical tree-wide clang-format commit; tidy subsets; fixed-width wire/file types and layout traits; release-identical Q_ASSERT. |
@@ -370,3 +368,23 @@ comes directly from VarDecl::needsDestruction; the controls detect format drift.
 Section 11 records the retained longjmp rationale, wrapper restriction, and inactive
 preprocessor-branch/self-review limitation. AGENTS.md and README document the command.
 No engine source or golden changed. Final self-review passes; docs checkpoint only.
+
+## #31 native math acceptance evidence
+
+Source 152cc6e294a37772c0d942fb1ce69dadb1d57c9d passed regression 34894597080 and
+full build 34894597081. GCC/Clang optimized and ASan C checks pass all eight words
+from the unmodified 32-bit SSE C executable. Explicit unit/collision regeneration
+has zero diff. Symbols pass; only Q_rsqrt changes normalized assembly among 47
+functions, with unchanged FP arithmetic order. No expectation/suppression existed.
+Self-review: one LP64 native word-width defect, three prerequisite GPL source/header
+imports, no production engine/FP/layout/OS/allocation/destructor change. This C
+math dependency is test-only until #2. Final checkpoint changes documentation only.
+
+Independent temporary #2 preflight: seven shared ABI sizes and three offsets match
+between original GPL C headers and engine C++ headers (/tmp/aftershock-native-layout-*.txt).
+Base-game native smoke with original bg_lib support reproduces all 36 accepted
+q3dm17 gameplay events. Full text differs only in module-loading metadata, build
+date and bot-skill padding (custom VM printf vs native libc). This is preliminary
+single-map evidence, not completed parity. Temporary UI compiles; cgame additionally
+requires upstream code/ui/ui_shared.h, an include omitted from the initial #2 import.
+Do not remove VM/JIT paths or change accepted fixtures before full native parity.
