@@ -116,3 +116,28 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   Fork PR #40 passed regression 34880567812 and full build 34880567796.
   The normalized symbol gate passes; the internal C++ mangled name changes with
   the parameter type, and all callers rebuild in the same translation unit.
+
+- #31 ZIP packed reads: removed unzlocal_GetCurrentFileInfoInternal's alignment
+  suppression. `python3 tests/run.py runtime --sanitize --output /tmp/tests-runtime-ubsan`
+  is the existing valid-content bot smoke under GCC UBSan. The original ZIP object
+  fails at the unaligned int load; CopyLittleLong through a signed temporary passes
+  both original Q3 map goldens. Keeping the temporary signed preserves the original
+  conversion to the wider uLong fields. All archive iteration paths use the same
+  shared function (file-info queries and first/next/position navigation). Both OA
+  smoke maps and normal unit/collision/smoke/replay gates also pass unchanged.
+  Symbol gate passes; GCC assembly only exchanges stack slots 64/68 and matching
+  sign-extending consumers, reviewed acceptable under #31. No gate weakening.
+  Upstream C reproducer fails before and passes after:
+  https://github.com/ec-/Quake3e/pull/428. Fork PR #41 passed regression
+  34885119593 and full build 34885119668 on source 09e7cc96.
+
+- Additional #31 finding during runtime expansion: Clang UBSan reports zcalloc
+  and zcfree calls through incompatible function-pointer types. Their private
+  signatures use byte pointers while z_stream callbacks use void pointers.
+  Reproduce after the ZIP alignment fix with `python3 tests/run.py runtime --cc clang
+  --cxx clang++ --sanitize --output /tmp/tests-clang-runtime`. The error occurs
+  during ordinary valid-pak startup. A recovery survey reports both callback kinds
+  before a later SIGSEGV at legacy QVM startup (cause not yet isolated). No callback
+  fix or new suppression in the ZIP PR; the GCC runtime baseline and existing
+  Clang unit sanitizer checks remain the required gates. The ASan/faketime runtime
+  experiment timed out before output; it is not treated as an engine failure or pass.

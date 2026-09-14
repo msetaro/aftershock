@@ -151,7 +151,10 @@ def content_settings(content):
 
 
 def runtime(args):
-    binary = build(args.output / 'runtime-build', [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0']) / 'quake3e.ded.x64'
+    variables = [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0']
+    if args.sanitize:
+        variables += ['CFLAGS=-fsanitize=undefined -fno-omit-frame-pointer', 'LDFLAGS=-fsanitize=undefined']
+    binary = build(args.output / 'runtime-build', variables) / 'quake3e.ded.x64'
     for map_name in content_maps(args.content):
         results = []
         # Isolated home prevents the user's config and pak cache influencing fixtures.
@@ -204,12 +207,10 @@ def main():
         parser.error('CI must never regenerate goldens')
     if args.negative_control and (args.check != 'unit' or args.sanitize or args.regenerate):
         parser.error('--negative-control requires unit without regeneration/sanitizers')
-    if args.pointer_compare and (not args.sanitize or args.known_bugs):
-        parser.error('--pointer-compare requires --sanitize without --known-bugs')
-    if args.sanitize and args.check == 'runtime':
-        parser.error('runtime sanitizer runner is not implemented yet')
-    if args.known_bugs and (not args.sanitize or args.regenerate):
-        parser.error('--known-bugs requires sanitizers without regeneration')
+    if args.pointer_compare and (not args.sanitize or args.known_bugs or args.check == 'runtime'):
+        parser.error('--pointer-compare requires sanitized unit/differential without --known-bugs')
+    if args.known_bugs and (not args.sanitize or args.regenerate or args.check == 'runtime'):
+        parser.error('--known-bugs requires sanitized unit/differential without regeneration')
     if args.sanitize:
         ENV['ASAN_OPTIONS'] = 'detect_leaks=0:halt_on_error=1:detect_invalid_pointer_pairs=2'
         ENV['UBSAN_OPTIONS'] = f'halt_on_error={0 if args.known_bugs else 1}:suppressions={ROOT / "tools/port/ubsan.supp"}'

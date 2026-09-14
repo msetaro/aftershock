@@ -20,33 +20,38 @@ Download PR #38 merged as 02b16def after regression 34878247137 and full build
 ALSA PR #39 merged as 811c6f7a after regression 34879358567 and full build
 34879358584 passed; merged-tree regression 34879983585 passed.
 
-Current branch: `issue/31-curl-varargs`, PR #40. Source/test head e89829fc passed
-regression 34880567812 and full build 34880567796. Final checkpoint changes only
-documentation. Self-review passed: one port varargs defect; routing branches,
-public headers, simulation FP, layouts, allocation and core lifetimes unchanged.
-Next: mark #40 ready, merge with a merge commit, verify merged-tree regression,
-then create `issue/31-zip-alignment`. Reuse the existing dedicated-server smoke
-against valid content for the remaining alignment checks; do not add loader targets.
-Build UBSan into the runtime with both CFLAGS and LDFLAGS, remove only the ZIP
-suppression before capturing failure, then copy the two packed fields through a
-32-bit signed temporary so the existing conversion to uLong stays identical.
+Curl PR #40 merged as 998f21c3 after regression 34880567812 and full build
+34880567796 passed; merged-tree regression 34881337473 passed.
 
-Preparation: /tmp/aftershock-runtime-ubsan is building with Clang -fsanitize=undefined.
-The full ASan/UBSan binary built, but the existing faketime smoke timed out before
-output (90 seconds); do not treat that as an engine failure or a test pass. Existing
-unit ASan coverage stays required. The new runtime alignment check can use UBSan
-without adding runtime-clock workarounds. Verify that its normal smoke hashes agree.
+Current branch: `issue/31-zip-alignment`. The existing bot smoke now supports
+`runtime --sanitize` with GCC UBSan and compares the same goldens. Removed only
+the ZIP alignment suppression. Both original packed loads fail under UBSan; the
+CopyLittleLong fix uses a signed int temporary to preserve conversion to uLong.
+The GCC before test links the original ZIP object into the same runtime; it fails
+at the original load. The fixed runtime passes both Q3 and both OpenArena map
+goldens. Normal unit,
+collision, serial smoke and both-renderer replay pass unchanged. Symbol gate passes;
+codegen differs only by exchanged stack slots with matching signed consumers,
+reviewed as acceptable under #31. Upstream C fails before and passes after the same
+fix: https://github.com/ec-/Quake3e/pull/428. Fork PR #41 is open at source
+09e7cc96; regression 34885119593 and full build 34885119668 passed.
+Self-review below passes. Next: mark #41 ready, merge with a merge commit, verify
+merged-tree regression, then branch issue/31-vm-alignment for the remaining packed
+operand load and remove its suppression.
 
-The curl defect is port-specific on our toolchains: original C/C11 passes Clang's
-varargs check and CURLoption matches its promoted C type, while C++ rejects it.
-No failing upstream C test or upstream PR is claimed. This correction is on #31.
+Broader Clang experiments remain distinct from the GCC runtime gate: ASan/UBSan
+with faketime timed out before output; UBSan alone exposed zcalloc/zcfree callback
+signature mismatches. Recovery then segfaulted when starting the legacy QVM.
+Those observations are on #31; fix the callback types separately; do not fold them
+into the packed-read fix. No new suppression or unexercised known-bug entry was added.
+Existing Clang unit ASan/UBSan and pointer checks stay required.
 
 ## Issue status and remaining sequence
 
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -185,3 +190,26 @@ Normalized GCC codegen/symbol gates pass; the internal mangled name changes with
 its parameter type, and all callers are in cl_curl.cpp. Unit/one-ULP, collision,
 serial both-map smoke and both-renderer replay pass unchanged.
 Fork PR: https://github.com/msetaro/aftershock/pull/40. CI runs are above.
+
+## #31 ZIP validation
+
+The existing GCC UBSan bot smoke fails with the original ZIP object and passes
+with CopyLittleLong through a signed int temporary. Removed only the ZIP alignment
+suppression. Q3 and OpenArena both-map goldens pass unchanged. Explicit unit/collision
+regeneration produces no golden diff; normal serial smoke and fixed-demo replay
+pass. GCC production symbol gate passes. Codegen gate reports only stack slots
+64/68 exchanged with their matching sign-extending consumers; field destinations
+and operations are unchanged. This reviewed difference is acceptable under #31's
+codegen ruling; the gate is not weakened or reported as identical.
+Upstream C UBSan startup on valid installed paks fails before and exits cleanly
+after: https://github.com/ec-/Quake3e/pull/428. No new content or loader target.
+Self-review: one packed-read bug, shared function covers all callers; no simulation
+FP edit, layout change, allocation, destructor or new engine OS call. Runtime
+sanitizer coverage reuses the existing smoke runner and compares existing goldens.
+Regression 34885119593 passed on source 09e7cc96, including hosted GCC UBSan smoke.
+Full build 34885119668 passed on the same source. Final checkpoint changes only
+documentation; self-review passes and no goldens changed.
+
+Next bug reproduction is ready without a source change: the same GCC runtime
+with UBSAN_OPTIONS=halt_on_error=1 (no suppressions) exits 1 at vm.cpp:1181.
+Evidence: /tmp/aftershock-vm-before-runtime.log. Follow with its own branch/PR.
