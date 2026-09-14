@@ -1253,7 +1253,7 @@ void RB_StageIteratorGeneric( void )
 #endif
 
 #ifdef USE_FOG_COLLAPSE
-	fogCollapse = tess.fogNum && tess.shader->fogPass && tess.shader->fogCollapse;
+	fogCollapse = (qboolean)( tess.fogNum && tess.shader->fogPass && tess.shader->fogCollapse );
 #endif
 
 	// call shader function
@@ -1264,7 +1264,7 @@ void RB_StageIteratorGeneric( void )
 #ifdef USE_PMLIGHT
 	if ( r_dlightMode->integer == 0 )
 #endif
-	if ( tess.dlightBits && tess.shader->sort <= SS_OPAQUE && !(tess.shader->surfaceFlags & (SURF_NODLIGHT | SURF_SKY) ) ) {
+	if ( tess.dlightBits && tess.shader->sort <= (float)SS_OPAQUE && !(tess.shader->surfaceFlags & (SURF_NODLIGHT | SURF_SKY) ) ) {
 		if ( !fogCollapse ) {
 #ifdef USE_VULKAN
 			rebindIndex = ProjectDlightTexture();
