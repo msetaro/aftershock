@@ -652,6 +652,7 @@ ifneq ($(BUILD_CLIENT),0)
 endif
 
 # Match the selected C compiler prefix unless CXX was explicitly supplied.
+# Versioned drivers require an explicit pair, e.g. CC=gcc-15 CXX=g++-15.
 ifneq ($(filter default undefined,$(origin CXX)),)
   CXX := $(CC:gcc=g++)
   CXX := $(CXX:clang=clang++)

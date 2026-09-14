@@ -1188,3 +1188,5 @@ Later per-file G4: `phase3-msvc-vm_aarch64.diff.gz`; same Linux AArch64 body wit
 ## PR 32 maintainer review follow-up
 
 - Merged origin/main 841b35d5 without conflicts; its deterministic runtime and toolchain notes are retained. Review authorizes T25 cleanup with raw release hashes and objcopy --strip-debug hashes for debug objects on GCC/Clang. No code/data hash exception is allowed.
+
+- Plan wording now exempts T15 token-boundary spacing, limits T21 to arguments that can select float overloads (including target-dependent M_PI), and records the approved T25 debug-metadata comparison. Make documents explicit CXX for versioned CC names. The obsolete advisory CXX probe was already removed in 7856982f.

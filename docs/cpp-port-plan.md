@@ -254,8 +254,11 @@ T19. Hoist an enum nested in a struct immediately above that struct as a typedef
 T20. At strchr/strrchr/strstr/strpbrk/memchr calls whose C++ overload returns const, add
      const to the receiving local if compilation then succeeds; otherwise cast the call
      result to (char *). Never remove const from a parameter.
-T21. At a C math call where C++ selects a float overload, cast each float argument to
+T21. At a C math call where at least one argument would otherwise select a float overload,
+     cast each float argument to
      (double), selecting the same double function as C. Leave result conversion unchanged.
+     Do not cast arguments that are already double in every supported configuration.
+     Conditional headers may make the same argument float on another supported target.
      This pins C semantics and does not permit expression restructuring.
 T22. At abs() with a non-integer argument, cast that argument to (int).
 T23. Wrap a feature-test macro definition in #ifndef when the C++ compiler predefines it.
@@ -290,7 +293,9 @@ T25. Dual-source compound assignment on an enum. Only when the ordinary T3 form
 
      Still measure the unchanged C object hash; no hash exception is granted.
      After phase 3 remove these #else branches in a separate cleanup commit,
-     verified by unchanged C++ object hashes. Review measured sv_client.c:1639:
+     verified on GCC and Clang by unchanged raw release-object hashes and unchanged
+     debug-object hashes after objcopy --strip-debug (source/line metadata may change).
+     This exception covers debug metadata only, never code/data. Review measured sv_client.c:1639:
      original C 4a9f0e56..., single-source casts 96b95b5a..., T25 path 4a9f0e56....
      These reviewer prefixes supplement the exact local artifact hashes in progress.md.
 
@@ -345,7 +350,7 @@ compilers and 32-bit targets are out of the port's matrix.
 - PR description template: module, list of transformation counts by catalog ID, DEVIATION
   commits with reasons, gate results (paste the commands and their outputs), anything logged to
   `docs/cpp-port-notes.md`.
-- Reviewer agent checklist: every hunk maps to T1-T25; no whitespace-only churn; no reordering;
+- Reviewer agent checklist: every hunk maps to T1-T25; no whitespace-only hunks except T15 literal-suffix spacing; no reordering;
   no removed code; no new includes except `<cstdint>`-style shims if a header needs one;
   gates pass; diff proportion sane.
 
@@ -411,7 +416,7 @@ Two phases, two rule sets. The port phase rules are enforced now and are copied 
 |---|---|---|
 | Language features | None. No `nullptr`, `auto`, references, classes, templates, STL, `constexpr`, namespaces, `using`. | C++20, feature-by-feature allowlist; never "because it is new". |
 | Warnings | `-Werror` with a **frozen, checked-in list of disabled warnings** matching what the C build already tolerates (C build: 279 warnings under `-Wall -Wextra`; C++ adds ~800, mostly `-Wwrite-strings` and `-Wmissing-field-initializers`). | Re-enable one warning class per PR, each verified by the gates. Vendored libs stay `-w`. |
-| Formatting | Match the surrounding line exactly: tabs, spaces inside parentheses `( a, b )`, `NULL`, C casts, `qboolean`. `.clang-format` is advisory. Enforce no whitespace-only engine hunks: per-file `git diff --stat` with and without `-w` must agree. No tree-wide reformat. | One tree-wide reformat commit after the port is verified, checked by byte-identical `-S` output before and after. From then on clang-format is authoritative. |
+| Formatting | Match the surrounding line exactly: tabs, spaces inside parentheses `( a, b )`, `NULL`, C casts, `qboolean`. `.clang-format` is advisory. Enforce no whitespace-only engine hunks except required T15 literal-suffix spacing: per-file `git diff --stat` with and without `-w` must agree. No tree-wide reformat. | One tree-wide reformat commit after the port is verified, checked by byte-identical `-S` output before and after. From then on clang-format is authoritative. |
 | clang-tidy | Small `bugprone-*` + `portability-*` subset, changed lines only (`clang-tidy-diff`). No `modernize-*`, no `cppcoreguidelines-*`. | Add `performance-*` and a readability subset. `modernize-*` advisory, enabled one check at a time. `cppcoreguidelines-*` cherry-picked, never wholesale. |
 | Sanitizers | ASan + UBSan run on the **C build first** to record the baseline (needs game data); anything new in the C++ build is a port bug. UBSan blocklist for known-benign alignment in BSP loading. Same source has more UB as C++ than as C (union punning is defined in C11, undefined in C++). | ASan + UBSan on every CI run; TSan periodically for the SDL audio callback, WASAPI thread, and curl. |
 | Memory / ownership | Untouched. | Ownership is expressed by arena (hunk = level lifetime with mark/free-to-mark, zone = tagged small allocs, temp hunk), not by per-object smart pointers. RAII only for OS/GPU resources at the platform boundary. `new`/`delete`/`malloc` forbidden outside the allocator layer. |
