@@ -549,8 +549,8 @@ static void DoRailDiscs( int numSegs, const vec3_t start, const vec3_t dir, cons
 
 	for ( i = 0; i < 4; i++ )
 	{
-		c = cos( DEG2RAD( 45 + i * 90 ) );
-		s = sin( DEG2RAD( 45 + i * 90 ) );
+		c = cos( (double)(DEG2RAD( 45 + i * 90 )) );
+		s = sin( (double)(DEG2RAD( 45 + i * 90 )) );
 		v[0] = ( right[0] * c + up[0] * s ) * scale * spanWidth;
 		v[1] = ( right[1] * c + up[1] * s ) * scale * spanWidth;
 		v[2] = ( right[2] * c + up[2] * s ) * scale * spanWidth;
