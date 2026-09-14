@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `phase-2 boundary inventory`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `code/qcommon/qcommon.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -23,6 +23,9 @@ Phase 1: next `phase-2 boundary inventory`. Resume there; do not redo done files
 - [ ] Final G1-G8, differential/runtime/sanitizer checks
 
 ## Decisions
+
+- Windows G8 review complete: 14 T1 + 8 T2 casts in nine files; redundant same-type cast removed in 289755ce. Host full/default and dedicated C builds PASS. All engine source/header rows assessed; 32-bit qasm preprocessing also blocked by missing multilib headers.
+- Phase 2 begins with guarded Q_EXTERN_C macro (empty in C), Q_setjmp_c/Q_longjmp_c prototypes. Full C rebuild PASS and 295/295 original hashes unchanged; md4 consumer strict C++/G2/G3 PASS. Windows declarations remain target-unverified.
 
 - Windows inspection follows the user's explicit missing-MinGW exception: retain only catalog casts/keyword fixes whose source types can be established, commit each file, mark blocked/unverified because no C oracle, C++ build or G2/G3 can run. Known noncatalog issues remain in place. No system packages installed.
 
@@ -570,7 +573,7 @@ Phase 1: next `phase-2 boundary inventory`. Resume there; do not redo done files
 | `code/qcommon/q_math.c` | blocked | G2/G3 PASS, but G5 fixed-input hashes differ in RotatePointAroundVector and vectoangles; AngleVectors chain differs too. C++ float overloads change results; double-argument casts are outside T1-T17. No source changes. |
 | `code/qcommon/q_platform.h` | done | T1-T17: 0; unchanged header checked via md4.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/q_shared.c` | done | T1: 4, T2: 3; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_shared.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/q_shared.h` | done | T1-T17: 0; unchanged header checked via q_shared.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
+| `code/qcommon/q_shared.h` | done | T5: guarded Q_EXTERN_C macro plus 2 Windows assembly prototypes; native md4 consumer G2/G3 PASS and all 295 C hashes unchanged; Windows branch unverified. |
 | `code/qcommon/qcommon.h` | done | T1-T17: 0; unchanged header checked via md4.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/qfiles.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/surfaceflags.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
