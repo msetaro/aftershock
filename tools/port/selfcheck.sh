@@ -46,14 +46,20 @@ printf 'static void CPUID_EX(void) {} void invoke(void) { CPUID_EX(); }\n' > "$p
 gcc -c "$port_tmp/private-cpuid.c" -o "$port_tmp/private-cpuid.c.o"
 g++ -x c++ -c "$port_tmp/private-cpuid.c" -o "$port_tmp/private-cpuid.cxx.o"
 tools/port/symbol_gate.sh "$port_tmp/private-cpuid.c.o" "$port_tmp/private-cpuid.cxx.o"
-# Optimized JIT clones must retain the boundary's C spelling too.
+# Address-taken/static JIT helpers are not external name boundaries.
 printf 'static __attribute__((noinline)) int BadJump(int x) { return x+1; } int wrapper(void) { return BadJump(2); }\n' > "$port_tmp/clone.c"
 gcc -O2 -c "$port_tmp/clone.c" -o "$port_tmp/clone.c.o"
 g++ -x c++ -O2 -c "$port_tmp/clone.c" -o "$port_tmp/clone.cxx.o"
-if tools/port/symbol_gate.sh "$port_tmp/clone.c.o" "$port_tmp/clone.cxx.o" > "$port_tmp/clone.log"; then
-    echo 'FAIL: symbol gate missed mangled JIT clone'; exit 1
+tools/port/symbol_gate.sh "$port_tmp/clone.c.o" "$port_tmp/clone.cxx.o"
+# A new float libm reference is a behavior-relevant undefined-symbol difference.
+printf 'extern double sin(double); double compute(double x) { return sin(x); }\n' > "$port_tmp/libm-c.c"
+printf 'extern float sinf(float); double compute(double x) { return sinf(x); }\n' > "$port_tmp/libm-cxx.c"
+gcc -O2 -c "$port_tmp/libm-c.c" -o "$port_tmp/libm-c.o"
+gcc -O2 -c "$port_tmp/libm-cxx.c" -o "$port_tmp/libm-cxx.o"
+if tools/port/symbol_gate.sh "$port_tmp/libm-c.o" "$port_tmp/libm-cxx.o" > "$port_tmp/libm.log"; then
+    echo 'FAIL: symbol gate missed float libm reference'; exit 1
 fi
-grep '^@@' "$port_tmp/clone.log"
+grep '^@@' "$port_tmp/libm.log"
 python3 tools/port/compile_pair.py ded/md5.o "$port_tmp"
 tools/port/layout_gate.sh "$port_tmp/md5.c.o" "$port_tmp/md5.cxx.o"
 # C++ scopes named nested records inside the parent; compare their members too.

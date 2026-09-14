@@ -55,16 +55,9 @@ def symbols(path):
             'snd_linear_count', 'Q_setjmp_c', 'Q_longjmp_c', 'CPUID_EX',
             'Q_GetFPUCW', 'Q_SetFPUCW', 'NvOptimusEnablement',
             'AmdPowerXpressRequestHighPerformance',
-            'SV_GameSystemCalls', 'CL_CgameSystemCalls', 'CL_UISystemCalls',
-            'SV_DllSyscall', 'CL_DllSyscall', 'UI_DllSyscall',
-            'ErrJump', 'BadJump', 'BadStack', 'BadOpStack', 'BadDataRead',
-            'BadDataWrite', 'OutJump', 'ErrBadProgramStack', 'ErrBadOpStack',
-            'ErrBadDataRead', 'ErrBadDataWrite', 'ErrHighBitsSet',
         } or boundary_name.startswith('S_WriteLinearBlastStereo16_')
         if boundary_name == 'CPUID_EX' and kind == 't':
             boundary = False  # GNU private helper is not the MSVC assembly entry.
-        if kind in ('U', 'w', 'v') and not boundary:
-            continue  # Undefined ordinary C++ references are intentionally mangled.
         if boundary:
             normalized = re.sub(r'\.(\d+)(?=\.|$)', '', name)  # Preserve raw ABI spelling, ignoring clone numbering.
         rows.append(f'{kind} {normalized}\n')

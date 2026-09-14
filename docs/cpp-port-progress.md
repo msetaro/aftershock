@@ -122,6 +122,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 ## Decisions and harness details
 
+- Continuation G3 now compares all undefined references after demangling; raw name requirements follow clarified T5. Reran all 143 previously completed pairs: 33 failures, with full diffs in tools/port/evidence/expanded-symbols-initial.json. These include expected float math references and independently observed libc header/optimizer substitutions; neither is silently ignored. A G3-only probe configuration is being evaluated to compare source linkage without optimizer-created libc call differences; G4/G5 will keep the production optimization settings.
+
 - Read AGENTS.md and the full plan before port work. GNU Make only: plan section 7 supersedes early CMake references, and section 9 defers vcxproj lists to rename. Existing t3code worktree/branch used; per-file commits and module pushes, no main push, force push, history rewrite, source rename, vendor or renderer2 port.
 - All 257 engine .c/.h outside the excluded vendor/renderer2 directories are in the table; final filesystem inventory found zero missing/stale rows. There are no bg implementation files in this checkout, only the four shared cgame/game/ui headers listed.
 - Make BUILD_CXX=1 uses C++20, no exceptions/RTTI and no permissive mode, filters C-only flags, keeps vendored C and assembly unchanged, and skips renderer2 even for direct objects. Explicit object proxies support make -k and current source dependencies. The initial proxy freshness bug was corrected and independently revalidated with a forced C rebuild: all 295 original hashes matched; final full rebuild confirms them again. SOURCE_DATE_EPOCH preserves __DATE__/__TIME__ checksums without source edits.
