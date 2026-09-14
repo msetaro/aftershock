@@ -1,37 +1,100 @@
 # Modernization checkpoint
 
-Integration branch: `modernization`; issue branches: `issue/<number>-<slug>`. Strict C++20 port is merged in main (PR #32). Never push main, force-push, rewrite history, or alter port-evidence. Work stops after #8 and a design-only note for #6; #6/#7 implementation is excluded.
+Integration: `modernization`. Issue branches: `issue/<number>-<slug>`, one bug per
+#31 PR and one warning class per #8 PR. Merge commits only after gates/self-review.
+Never push main, force-push, rewrite history, or touch port-evidence. Stop after #8
+and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Start #3 on issue/3-regression-suite: inspect and reuse tools/port, inventory installed tools and content, establish explicit golden generation and read-only comparison, then add runtime/demo/network/fuzz/sanitizer/CI coverage. Do not merge until the issue's gates and self-review pass; record exact blockers rather than weaken acceptance.
+#3 has passed acceptance on 98096f97. Mark PR #33 ready, merge into modernization
+with a merge commit, then require the regression workflow on the merged tree to
+pass before starting #31. This final checkpoint commit changes documentation only;
+all executable/test/golden files remain exactly the tested 98096f97 tree.
 
-## Issue status
+Continue #31 one bug per PR, starting with HuffmanGetSymbol's unaligned read. Run
+its existing fatal sanitizer reproducer before editing, make the smallest fix,
+prove codegen/behavior, remove its known-bugs entry, and offer the non-port-specific
+fix upstream in C. Then address the remaining recorded defects individually.
 
-| Order | Issue | Status | Outcome / next step |
-|---|---|---|---|
-| 1 | #3 regression suite | todo | Permanent differential hashes, q3dm17/q3dm7 smoke/demo goldens, software-rendered frames, sanitizers, network simulation, fuzzers, compiler matrix, one-ULP negative control. |
-| 2 | #31 recorded bugs | todo | One failing-test-first bug fix and upstream PR per eligible bug; remove repaired suppressions. |
-| 3 | #1 error model | decided; implementation todo | Option 1: retain longjmp, trivial engine lifetimes, RAII only at safe platform/GPU boundaries; enforce in CI. |
-| 4 | #2 native game | decided; implementation todo | GPL 1.32 game source import as C, QVM/native parity, catalog port, static modules, remove QVM; ends Quake 3 mod compatibility. |
-| 5 | #4 boundaries | todo | Hash-preserving directory moves, include/OS checks, subsystem docs, bugs ledger rename. |
-| 6 | #5 CMake | decided; implementation todo | Repair CMake, prove object parity before deleting Make; generated MSVC projects; 64-bit little-endian only. |
-| 7 | #8 code rules | todo | Warning-class PRs, codegen-identical format commit, tidy, wire/file layout and fixed-width checks, release-identical Q_ASSERT. |
-| 8 | #6 design note only | todo | docs/design/rhi.md; no RHI or ImGui implementation. |
+## Issue status and remaining sequence
 
-## Decisions
+| Order | Issue | Status / required work |
+|---|---|---|
+| 1 | #3 regression suite | Acceptance passed; ready/merge and merged-tree verification next. |
+| 2 | #31 bugs | Not started. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
+| 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
+| 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
+| 6 | #5 CMake | Repair as primary, object parity before removing Makefile; generated MSVC projects, 64-bit little-endian only. |
+| 7 | #8 code rules | Warning class per PR; one codegen-identical tree-wide clang-format commit; tidy subsets; fixed-width wire/file types and layout traits; release-identical Q_ASSERT. |
+| 8 | #6 design only | Write docs/design/rhi.md after #8, then stop. |
 
-- User's explicit sequence supersedes the older tracking-issue ordering. Read AGENTS.md on origin/modernization, plan sections 10/11, and issues #25, #1–#8, #31 before starting.
-- Existing QVM/dlopen paths remain only as the required regression/parity oracle until their sequenced retirement; do not add new JIT/dlopen usage. No simulation-affecting floating-point edits except tested #31 fixes.
-- Match surrounding style until #8; no tree-wide formatting before its dedicated verified commit.
-- Tests may own their resources outside the engine; engine core gains no non-trivial destruction, OS calls, or per-frame allocation.
-- No system package installation. Proprietary game paks remain outside git; CI content provisioning must be explicit and cannot silently skip required tests.
-- One issue per PR against modernization, with separate PRs for individual #31 bugs / #8 warning classes as explicitly requested. Merge commits only after required gates and scope self-review pass.
+## Rulings in force
 
-## Measurements and reproducible commands
+- The user's 2026-09-14 continuation supersedes the older roadmap order and handoff.
+  Preserve fixed-timestep simulation, prediction/snapshots, cvars/pk3, arena/POD data,
+  no per-frame allocation. No simulation FP restructuring except tested #31 fixes.
+- C++20, no exceptions/RTTI, longjmp/trivial core lifetimes. Existing VM/dlopen paths
+  are the transition oracle only. Match surrounding style until #8.
+- Local system packages must not be installed. Each CI job installs prerequisites.
+  Proprietary paks stay outside git and uploads. Missing content/tools fail tests.
+- Network coverage is finished. This thread ran `python3 tests/network.py --max-error 0`
+  exactly once: exit 1, `FAIL: prediction bound exceeded`, measured 8.875 against zero.
+  Do not modify or rerun that harness in this continuation.
+- Normal demo checks replay fixed fixtures; recording is intentionally not reproducible.
+  Golden creation/replacement is explicit, reviewed, and forbidden in CI.
+- Engine/vendor bug fixes belong only in individual #31 PRs. No production source
+  changed in #3. The independent scope adjustment on issue #3 remains in force.
 
-Pending #3 baseline. Existing port evidence remains reachable through docs/cpp-port-progress.md and the untouched orphan port-evidence branch. New regression goldens will be generated only through an explicit documented command that CI never invokes.
+## #3 acceptance evidence
 
-## Blockers
+Source/test/golden head: **98096f9710b29fb99464ac2464b356b7a28799cc**.
 
-None established yet; tool/data inventory is next. Missing prerequisites will be recorded here and in the affected issue, with partial work preserved on its issue branch rather than falsely marked complete.
+- Regression workflow **34866966536: success**. GCC, Clang/libc++, aarch64/mingw,
+  sanitizer expectations, OpenArena collision/both-map smoke, and both real software
+  renderer replay gates pass. The independently assigned job is non-blocking per
+  the issue's scope ruling.
+- Full build workflow **34866966514: success**, including Linux/macOS, MSVC x64/ARM64
+  Debug/Release and Windows mingw. Skipped release-publishing jobs are inapplicable.
+- Local GCC/Clang unit hashes and active Q_rsqrt one-ULP controls pass. Original
+  accepted unit/collision/Quake 3 smoke goldens are byte-identical to d754d683.
+  Local collision, both smoke maps, and final fixed-demo replays pass again.
+- The sanitizer unit run reports HuffmanGetSymbol alignment as `known, tracked in #31`
+  while comparing all thirteen groups. Unknown diagnostics, ASan failures, and stale
+  expectations fail. `tests/check_known_bugs.py` verifies the classification policy.
+  PNG alignment and JPEG table-index defects/reproducers are already on #31 and in
+  docs/cpp-port-notes.md; they are not exercised by the unit driver.
+- OpenArena uses oa_dm1/oa_dm7, Sarge/Beret, fs_game=baseoa, networking disabled and
+  900 waits for combat. Hosted collision/smoke match locally generated goldens.
+  Ubuntu paks contain native-module markers; tests/openarena.py adds official GPL
+  oaxB52 QVMs with a pinned SHA256. Source/license/provisioning are in tests/README.md.
+- Review rejected initial q3dm17 idle-player death-screen samples; final Quake 3
+  fixtures follow a bot. Review also corrected the inherited opengl1 Make value to
+  opengl: previous two-renderer claims were incorrect. Both renderer identities are
+  now asserted; tests/check_frames.py rejects mislabeled logs and unequal repeats.
+- Exact frame profiles use Mesa 26.0.8 locally and Mesa 25.2.8 on Ubuntu 24.04.
+  No pixel tolerance or fallback. The hosted profile was generated LOCALLY with
+  tests/frames.py --regenerate after visual review of run **34866295338** on
+  **145939aa**. All 24 saved frames (12 samples, two repeats), renderer identities,
+  and fixed fixture hashes were checked. CI never generated a golden.
+- Golden-writing modes reject CI. AGENTS.md lists permanent tests/ commands.
+
+## Self-review
+
+#3 contains only tests/CI/docs and initial public-content/demo fixtures. No engine
+or vendor changes, new core destructors, allocations, OS calls, simulation FP edits,
+or layout changes. Original accepted goldens and port-evidence remain untouched.
+README documents prerequisites, both content sets, provenance, exact profiles,
+known-failure policy, and explicit fixture/evidence commands. Issue #3 and PR #33
+record the measurements and corrected renderer finding.
+
+## Local recovery paths
+
+#3 worktree: `/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505`.
+The supplied workspace was at the integration baseline when this thread began.
+`/tmp/aftershock-openarena-baseoa` is staged public content; original downloaded
+packages were extracted under `/tmp/aftershock-openarena`, never installed.
+`/tmp/aftershock-demo-tests` and `/tmp/aftershock-oa-demo` contain final local replay
+evidence. `/tmp/aftershock-ci-runtime4/aftershock-demo-tests` contains reviewed hosted
+baseline evidence. These paths are disposable; source and README commands suffice.

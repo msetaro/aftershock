@@ -1,0 +1,94 @@
+name: regression
+on:
+  pull_request:
+    branches: [modernization]
+  push:
+    branches: [modernization]
+  workflow_dispatch:
+
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cc: gcc
+            cxx: g++
+          - cc: clang
+            cxx: clang++ -stdlib=libc++
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install libc++
+        if: matrix.cc == 'clang'
+        run: sudo apt-get update && sudo apt-get install -y libc++-dev libc++abi-dev
+      - name: Frame evidence negative controls
+        run: python3 tests/check_frames.py
+      - name: Differential goldens and one-ULP negative control
+        run: python3 tests/run.py unit --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}' --negative-control
+
+  sanitizers:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check known-bug classification
+        run: python3 tests/check_known_bugs.py
+      - name: ASan and UBSan with the existing suppression file
+        run: python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs
+
+  fuzz:
+    continue-on-error: true # pending #35
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [parse, msg, tga, png, jpeg]
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 tests/fuzz/run.py '${{ matrix.target }}' --runs 10000
+
+  runtime:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install runtime tools and OpenArena content
+        run: sudo apt-get update && sudo apt-get install -y faketime xvfb mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev mesa-common-dev openarena-data
+      - name: Stage pinned upstream OpenArena gamecode
+        run: python3 tests/openarena.py
+      - name: Collision and both-map bot goldens
+        run: |
+          python3 tests/run.py differential --content openarena --data /tmp/aftershock-openarena-baseoa
+          python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Both-map Mesa timedemo frames
+        run: python3 tests/demo.py --content openarena --data /tmp/aftershock-openarena-baseoa
+      - uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: runtime-diagnostics
+          path: |
+            /tmp/aftershock-tests/**/*.log
+            /tmp/aftershock-demo-tests/**/*.log
+            /tmp/aftershock-demo-tests/*.tga
+
+  cross:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cc: aarch64-linux-gnu-gcc
+            cxx: aarch64-linux-gnu-g++
+            packages: gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+            settings: ARCH=aarch64
+          - cc: x86_64-w64-mingw32-gcc
+            cxx: x86_64-w64-mingw32-g++
+            packages: gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64
+            settings: PLATFORM=mingw64 ARCH=x86_64
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install cross compiler
+        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
+      - name: Cross-build dedicated server
+        run: make -j4 BUILD_CLIENT=0 CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' ${{ matrix.settings }}
+
+  # Existing build.yml also builds MSVC x64/ARM64 Debug/Release for this PR.

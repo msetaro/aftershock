@@ -1,0 +1,132 @@
+# Permanent regression suite (#3)
+
+Run from the repository root with Python 3, GNU Make, GCC or Clang, and binutils.
+Tests call real engine functions with production flags. Test drivers provide only
+isolated allocator/log/file stubs and instrumentation; production code is unchanged.
+
+```
+python3 tests/run.py unit --negative-control
+python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
+python3 tests/check_known_bugs.py
+python3 tests/check_frames.py
+python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
+```
+
+The thirteen asset-free groups include wire/file layout. The negative control
+moves the active GCC SSE Q_rsqrt return one ULP toward infinity in a temporary
+source copy; the golden comparison must reject it. Clang requires libc++-dev and
+libc++abi-dev. Cross compilation and MSVC builds run in CI; Linux executable tests
+do not claim to execute on those targets.
+
+## Local Quake 3 content
+
+```
+python3 tests/run.py differential
+python3 tests/run.py runtime
+python3 tests/demo.py
+```
+
+These use the user's installed `~/.q3a/baseq3` paks and maps q3dm17/q3dm7.
+`--data /path/to/baseq3` selects another installation. No Quake 3 paks are copied
+into git or uploaded anywhere. The original unit, collision and smoke goldens
+remain unchanged. Runtime needs faketime; demos also need Xvfb and Mesa's
+llvmpipe/lavapipe. Tests fail when required content or tools are missing.
+
+The completed in-process network check is `python3 tests/network.py`: both sides
+use real engine loopback with `net_enabled=0`, test-only latency/loss/reordering,
+and a 64-unit correction bound. Its `--max-error 0` negative control was run once
+on 2026-09-14 and rejected the measured 8.875-unit correction. This requires local
+Quake 3 content and is not run on the public-content hosted runtime runner.
+
+## Hosted OpenArena content
+
+The runtime CI job installs `openarena-data`, `faketime`, `xvfb`, and
+`mesa-vulkan-drivers`, `libsdl2-dev`, `libcurl4-openssl-dev`, and `mesa-common-dev` for client compilation. It then runs:
+
+```
+python3 tests/openarena.py
+python3 tests/run.py differential --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/demo.py --content openarena --data /tmp/aftershock-openarena-baseoa
+```
+
+OpenArena uses `+set fs_game baseoa`, oa_dm1/oa_dm7, Sarge/Beret, and separate
+`tests/golden/openarena/` outputs. The collision sweep uses oa_dm1. Its smoke
+runs 900 waits to exercise combat; the accepted Quake 3 scenario stays at 300.
+
+Ubuntu/Debian data packages replace QVMs with native-module markers unsupported
+by this engine. `openarena.py` symlinks installed paks into temporary storage and
+adds the official OpenArena gamecode oaxB52 release, verified by SHA256
+`91cb4e677d1a9f1741391ebc5fe06054ed25073addf050baf80cfc7550f98c94`.
+Release/source: https://github.com/OpenArena/gamecode/releases/tag/oaxB52
+(GPL-2.0-or-later, source commit 331464ca396d80e91cf9be273588f2b5f4b7afc8).
+Its license is retained alongside the staged data; no downloaded paks enter git.
+Use `openarena.py --data /path/to/baseoa` for data extracted without installing
+packages. Local system package installation is prohibited; runner installs are
+expected. A download/checksum/content failure fails CI.
+
+## Runtime and fixed-demo oracle
+
+Dedicated smoke warms the pak cache and requires two identical traces before
+comparing the golden. Timeout wraps faketime, SOURCE_DATE_EPOCH is fixed, and each
+map has an isolated home. Normalization removes cached-paks/working-directory
+lines and replaces home/data installation prefixes. OpenArena additionally
+normalizes the CPU model label and disables networking; gameplay events are kept.
+Raw logs are retained in `--output`, including failed invocations.
+
+Normal demo runs **never record**. They replay each committed `.dm_68` twice per
+software renderer, sample TGA frames at waits 50/100/200, require changing samples
+and repeated byte-identical frame hashes, then compare `frames-mesa-VERSION.json`. Unknown Mesa versions fail. Pixel hashes
+are exact within each version; cross-version rasterization is not assumed identical. Screenshots
+and logs remain in `--output` for review. Fixtures are small engine-generated
+artifacts, not game-content archives. Recording is intentionally not reproducible:
+SDL/X11/Mesa clock calls affect faketime's call count and ping-derived demo bytes.
+
+## Sanitizer known failures
+
+`tests/known-bugs.txt` contains regexes for UBSan diagnostics exercised by the
+sanitizer unit job. Each diagnostic must match; every listed pattern must occur.
+A matching error prints `known, tracked in #31`. An unknown error, an ASan crash,
+a nonzero subprocess exit, a changed unit golden, or a disappeared known error
+fails. The test still runs and prints its diagnostics; this is not suppression.
+A #31 fix removes its entry and updates the policy self-check if applicable.
+PNG chunk alignment and JPEG table-index reproducers are already recorded in
+issue #31 and `docs/cpp-port-notes.md`; they are not exercised by the unit driver.
+
+The inherited `tools/port/ubsan.supp` remains unchanged. Leak checks are disabled
+because the inherited isolated test allocator retains hunk allocations to exit.
+Omit `--known-bugs` for fatal-on-first-error UBSan behavior.
+
+## Explicit golden regeneration
+
+Only an intentional issue-scoped change may replace affected goldens. Initial
+OpenArena and demo baselines are established in #3; accepted Quake 3 baselines
+must not be regenerated for infrastructure edits.
+
+```
+python3 tests/run.py unit --regenerate
+python3 tests/run.py differential --regenerate
+python3 tests/run.py runtime --regenerate
+python3 tests/demo.py --record-fixtures
+python3 tests/demo.py --regenerate
+```
+
+`demo.py --record-fixtures` explicitly records one new demo per map and replaces
+frame goldens; `--regenerate` alone replaces frame goldens using existing demos.
+Initial Mesa profiles can also be established from reviewed hosted artifacts,
+without ever running regeneration in CI:
+
+```
+gh run download RUN_ID -R msetaro/aftershock -n runtime-diagnostics -D /tmp/replay-evidence
+python3 tests/frames.py --output /tmp/replay-evidence/aftershock-demo-tests --content openarena --regenerate
+```
+
+Review the job's fixture hashes and all screenshots first. The evidence checker
+requires both repetitions, both renderer identities, one Mesa version, and three
+changing samples per map. This explicit local command hashes the downloaded TGA
+files itself; it does not trust a hash manifest supplied by CI. Each initial
+profile and its run/source provenance must be explained in the PR.
+Add the same `--content openarena --data /tmp/aftershock-openarena-baseoa` arguments
+to select that content set. Review demo logs/screenshots and explain every changed
+hash or gameplay event in the PR. All golden writes are rejected when `CI` is set;
+CI compares committed outputs and never regenerates them.

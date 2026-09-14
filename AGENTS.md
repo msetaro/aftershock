@@ -94,18 +94,25 @@ found automatically; never commit or copy pak files into the repo.
 
 ## Verification commands
 
-Deterministic dedicated-server smoke (the runtime oracle; `timeout` must wrap `faketime`):
+Permanent regression commands (see `tests/README.md` for content and prerequisites):
 
 ```
-timeout 90 faketime -f "@2026-01-01 00:00:00 i0.01" build/release-linux-x86_64/quake3e.ded.x64 \
-  +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17 +addbot sarge 3 +addbot major 3 \
-  +wait 300 +quit
+python3 tests/run.py unit --negative-control
+python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
+python3 tests/run.py differential
+python3 tests/run.py runtime
+python3 tests/demo.py
+python3 tests/check_known_bugs.py
+python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
 ```
 
-Two runs must be byte-identical (ignore the "cached paks" and "Working directory" lines).
-Port-era gates: `tools/port/selfcheck.sh`, `tools/port/math_gate.sh`, and the layout/symbol/codegen
-scripts documented in `docs/cpp-port-plan.md` section 5. Once #3 lands, `tests/` replaces these
-and this section lists its commands.
+Local runtime/differential/demo commands use installed Quake 3 paks. Hosted CI uses
+OpenArena: stage with `python3 tests/openarena.py`, then pass
+`--content openarena --data /tmp/aftershock-openarena-baseoa` to those three commands.
+The finished local network command is `python3 tests/network.py`; run its negative
+control only when required by the issue. `tests/README.md` documents explicit fixture
+regeneration; CI never regenerates. Existing port-era layout/symbol/codegen oracles
+remain available under `tools/port` for changes requiring those gates.
 
 ## Conventions
 
