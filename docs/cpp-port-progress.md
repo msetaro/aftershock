@@ -582,7 +582,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/qcommon/vm_armv7l.c` | done | T1: 2 allocator result casts; T11 cache prototype in vm_local.h; arm original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_armv7l.o); G4 advisory difference retained. |
 | `code/qcommon/vm_interpreted.c` | done | T1: 1; literal retained under frozen warning policy; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_interpreted.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/vm_local.h` | done | Existing T4 edits; T11: correctly typed C-linkage declaration of existing GNU ARM runtime __clear_cache dependency. ARM/AArch64 65/65 C hashes unchanged; ARM vm_interpreted consumer strict C++/G2/G3 PASS; G4 advisory evidence cross-arm-vm_interpreted.codegen.diff.gz. |
-| `code/qcommon/vm_optimize.h` | blocked | Unchanged; all consuming JIT translation units are blocked/unverified, so complete-object gates cannot verify this header. |
+| `code/qcommon/vm_optimize.h` | done | Unchanged; real native x86_64 and cross ARM/AArch64/PPC JIT consumers pass strict C++, G2/G3 and original C hashes. |
 | `code/qcommon/vm_powerpc.c` | done | T1: 7 pointer conversions including debug-only callback; ppc64le original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_powerpc.o); G4 advisory difference retained. |
 | `code/qcommon/vm_x86.c` | done | T1: 1 function-to-object pointer cast; T3: 1 macro_op_t cast; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_x86.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
@@ -747,3 +747,5 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 - Revalidated code/asm/qasm.h: Not applicable: included only by assembly .s files; explicitly outside C++ inputs. No rename.
 
 - Revalidated code/server/sv_rankings.c: Excluded by accepted scope: never built, proprietary rankings SDK; unchanged and must not be renamed.
+
+- Revalidated code/qcommon/vm_optimize.h: Unchanged; real native x86_64 and cross ARM/AArch64/PPC JIT consumers pass strict C++, G2/G3 and original C hashes.
