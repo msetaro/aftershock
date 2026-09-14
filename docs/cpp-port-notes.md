@@ -4,9 +4,8 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
 
 ## Current disposition
 
-Each recorded engine/vendor defect has its own tested fix below. PR #47 awaits
-merge; the other eleven are merged. Issue #31 remains open until its merged-tree
-regression passes. `tests/known-bugs.txt` has no active entries and
+Closed for #31: all twelve recorded engine/vendor defects have merged tested
+fixes below. Final merged-tree regression 34892331846 passed on 9a7c2625. `tests/known-bugs.txt` has no active entries and
 `tools/port/ubsan.supp` is empty.
 
 | Defect | Fork fix | Upstream |
