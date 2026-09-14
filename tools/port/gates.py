@@ -3,6 +3,7 @@
 import difflib
 import re
 import subprocess
+import tempfile
 import sys
 from pathlib import Path
 
@@ -19,6 +20,20 @@ def plain_symbol(name):
 
 
 def layout(path):
+    if Path(path).read_bytes()[:2] == b'\x64\x86':
+        # Resolve COFF DWARF relocations before converting for pahole. This
+        # temporary carrier is never executed and is used only by G2; G3
+        # always examines the original object and its real undefined symbols.
+        with tempfile.TemporaryDirectory(prefix='port-layout-coff-') as directory:
+            pe = str(Path(directory) / 'layout.exe')
+            elf = str(Path(directory) / 'layout.elf')
+            names = [line.split()[0] for line in run(
+                'x86_64-w64-mingw32-nm', '-u', '--format=posix', path).splitlines()]
+            run('x86_64-w64-mingw32-ld', '--image-base=0x10000000', '--entry=0',
+                '--disable-auto-import', path, '-o', pe,
+                *['--defsym=' + name + '=0' for name in names])
+            run('objcopy', '-O', 'elf64-x86-64', pe, elf)
+            return layout(elf)
     if '.debug_info' not in run('readelf', '-S', '-W', path):
         raise ValueError(f'{path}: missing DWARF; compile with -g -fno-eliminate-unused-debug-types')
     raw = run('pahole', '--sort', '-a', '-A', '-I', '-M', '--show_private_classes', path)

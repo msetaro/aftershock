@@ -36,7 +36,9 @@ for mode, tag in [('0', 'c'), ('1', 'cxx')]:
                           ('sym.o', ['-g0', '-O2', '-fno-builtin', '-fno-inline-functions', '-D__NO_CTYPE=1', '-U_FORTIFY_SOURCE', '-c']),
                           ('s', ['-g0', '-O2', '-S'])]:
         artifact = output / f'{Path(obj).stem}.{tag}.{suffix}'
-        command = [*args, *flags, '-o', str(artifact)]
+        # Inspect real machine code/DWARF, not serialized LTO IR.
+        lto = ['-fno-lto'] if any(a.startswith('-flto') for a in args) else []
+        command = [*args, *flags, *lto, '-o', str(artifact)]
         artifact.with_suffix(artifact.suffix + '.command').write_text(shlex.join(command) + '\n')
         subprocess.run(command, env=env, check=True)
         print(artifact)
