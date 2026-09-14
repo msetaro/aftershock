@@ -28,9 +28,15 @@ static portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
 static int snd_vol;
 
 // bk001119 - these not static, required by unix/snd_mixa.s
+#ifdef __cplusplus
+Q_EXTERN_C {
+#endif
 int		*snd_p;
 int		snd_linear_count;
 short	*snd_out;
+#ifdef __cplusplus
+}
+#endif
 
 void S_WriteLinearBlastStereo16( void )
 {
@@ -52,12 +58,12 @@ void S_WriteLinearBlastStereo16( void )
 
 #if id386 && defined (_MSC_VER)
 
-void S_WriteLinearBlastStereo16_MMX( void );
-void S_WriteLinearBlastStereo16_SSE( void );
+Q_EXTERN_C void S_WriteLinearBlastStereo16_MMX( void );
+Q_EXTERN_C void S_WriteLinearBlastStereo16_SSE( void );
 
 #ifdef _WIN32
 
-void S_WriteLinearBlastStereo16_MMX( void ) 
+Q_EXTERN_C void S_WriteLinearBlastStereo16_MMX( void )
 {
 __asm {
 	push ebx
@@ -159,7 +165,7 @@ LExit:
 }
 
 
-void S_WriteLinearBlastStereo16_SSE( void ) 
+Q_EXTERN_C void S_WriteLinearBlastStereo16_SSE( void )
 {
 __asm {
 	push ebx
@@ -266,7 +272,7 @@ LExit:
 #endif // id386
 
 #if idx64 && (!defined (_MSC_VER) || defined(USE_WIN32_ASM))
-void S_WriteLinearBlastStereo16_SSE_x64( int*, short*, int );
+Q_EXTERN_C void S_WriteLinearBlastStereo16_SSE_x64( int*, short*, int );
 #endif
 
 void S_TransferStereo16( unsigned long *pbuf, int endtime )
