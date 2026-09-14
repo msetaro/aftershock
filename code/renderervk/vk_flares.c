@@ -427,7 +427,7 @@ static void RB_RenderFlare( flare_t *f ) {
  * The coefficient flareCoeff will determine the falloff speed with increasing distance.
  */
 
-	factor = distance + size * sqrt( r_flareCoeff->value );
+	factor = distance + size * sqrt( (double)(r_flareCoeff->value) );
 
 	intensity = r_flareCoeff->value * size * size / ( factor * factor );
 

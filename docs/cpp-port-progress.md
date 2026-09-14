@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: renderervk; next `code/renderervk/vk_flares.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: renderervk; next `remaining native conversions` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/renderervk/vk_flares.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-vk_flares.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/vk_flares.o /tmp/aftershock-cpp-port/renderervk-vk_flares ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderervk/tr_surface.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_surface.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_surface.o /tmp/aftershock-cpp-port/renderervk-tr_surface ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -592,7 +594,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/renderervk/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_world.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/vk.c` | blocked | Catalog casts compile with unchanged C hash/G2 PASS, but G3 reports 74 generated const shader arrays changing external R to internal r. No existing extern declarations to move; adding new declarations is outside catalog. Attempt reverted. Evidence tools/port/evidence/vulkan-shader-linkage.diff. |
 | `code/renderervk/vk.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderervk/vk_flares.c` | done | T4: 3 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_flares.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderervk/vk_flares.c` | done | T4: 3 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_flares.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/vk_vbo.c` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_vbo.o, default); G4 advisory FAIL, full diff retained. |
 | `code/sdl/sdl_gamma.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_gamma.o, default); G4 PASS. |
 | `code/sdl/sdl_glimp.c` | blocked | At :763 returns PFN_vkVoidFunction as void*: function-pointer-to-object-pointer conversion is outside T1. Eight additional T1/T3 diagnostics remain; source unchanged. |
