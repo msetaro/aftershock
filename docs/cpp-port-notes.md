@@ -186,3 +186,20 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   bytes among 99 functions (the text diff also renames an FS_Seek switch-table label).
   Upstream C regression/fix: https://github.com/ec-/Quake3e/pull/431.
   Extension fork PR #44 passed regression 34887856044 and full build 34887856072.
+
+- #31 AAS missing jump candidate: the correct function name is
+  AAS_Reachability_Jump, not the earlier JumpArea wording. If bestdist retains
+  its initial 999999 sentinel, return false before calculating midpoints from
+  unset endpoint vectors. Candidate arithmetic is unchanged. Removed the Makefile
+  GCC sanitizer warning exception that explicitly names this defect. The existing
+  runtime --sanitize build fails before on beststart and passes after, then compares
+  original smoke goldens. Upstream C compilation reproduces the same warning/error.
+  Production codegen/symbol gates differ: jump/grapple functions use an outlined
+  VectorLength helper, with register/stack changes and removal of the direct sqrtf
+  import. Source expressions are unchanged. The actual emitted helper matches a
+  libm reference for 4 million finite-input cases across four rounding modes:
+  /tmp/aftershock-aas-length-check.cpp and .log. Differences reviewed acceptable
+  for this tested bug fix; no gate weakening or identical-codegen claim.
+  Upstream C fix: https://github.com/ec-/Quake3e/pull/432. Unit/collision
+  regeneration changes no golden; final Q3/OA UBSan smoke, normal smoke and
+  fixed-demo replay pass unchanged.

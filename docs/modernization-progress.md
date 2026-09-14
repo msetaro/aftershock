@@ -32,20 +32,22 @@ VM PR #42 merged as 62dad842 after regression 34886047536 and full build
 zlib callback PR #43 merged as fed755d6 after regression 34886950022 and full
 build 34886949860 passed; merged-tree regression 34887353903 passed.
 
-Current branch: `issue/31-extension-output`. Caller audit confirms both platform
-Sys_LoadLibrary functions print the extension out-parameter on an allowed return,
-while the shared FS_AllowedExtension only wrote it on a rejected return. Added
-output-contract assertions to the existing unit driver; they fail before and pass
-after initializing the output for every return. Classification and .so.N handling
-are unchanged. Unit/sanitizer/pointer/negative-control, collision, smoke and replay
-pass; explicit unit/collision regeneration has no golden diff. Upstream C test
-fails before and passes after: https://github.com/ec-/Quake3e/pull/431. Symbols
-pass, and only FS_AllowedExtension changes bytes among 99 functions. PR #44 is
-open at source 8fd57208; regression 34887856044 and full build 34887856072 passed.
-Self-review below passes. Next: mark ready, merge, verify merged-tree regression,
-then branch issue/31-aas-jump-candidate. Remove its specific GCC sanitizer warning
-exception before the failing runtime build, guard the missing-candidate sentinel
-before midpoint arithmetic, then rerun gates and offer upstream.
+Extension output PR #44 merged as bdef99f4 after regression 34887856044 and full
+build 34887856072 passed; merged-tree regression 34888464336 passed.
+
+Current branch: `issue/31-aas-jump-candidate`. Removed the Makefile's specific
+GCC sanitizer -Wno-maybe-uninitialized exception before changing engine code.
+The existing runtime --sanitize command is compiling a fresh output directory;
+it failed on beststart at line 2196, before any source fix. Added a return for the
+unchanged 999999 missing-candidate sentinel before midpoint calculations. The
+same permanent GCC UBSan runtime command passes after the fix. Upstream C
+compilation fails before and passes after. Unit/collision regeneration has no
+golden diff; final Q3/OA UBSan smoke, normal smoke and fixed-demo replay pass.
+Codegen/symbol gates differ: jump/grapple code uses an outlined VectorLength helper.
+Its production bytes match a libm oracle on 4 million finite vectors across four
+rounding modes. No source FP expression changed; reviewed compiler differences
+are recorded without weakening gates. Upstream C fix:
+https://github.com/ec-/Quake3e/pull/432. Next: open PR and complete hosted CI/self-review.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -62,7 +64,7 @@ experiment still timed out before output and is not a claimed runtime gate.
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -283,3 +285,21 @@ return before VectorMiddle compiles cleanly; engine source is unchanged so far.
 The Makefile exception explicitly names this one defect and can be removed in
 its own #31 PR. Evidence: /tmp/aftershock-aas-warning-before.log and
 /tmp/aftershock-aas-guard-check.log.
+
+## #31 AAS candidate validation
+
+The existing runtime --sanitize build fails before on the recorded beststart
+warning once its specific Makefile exception is removed. AAS_Reachability_Jump
+now returns false when bestdist retains its initial sentinel, before midpoint
+reads. The edge selector only replaces bestdist when it supplies endpoints; no
+candidate arithmetic was rewritten. Upstream C compilation likewise fails before
+and passes after: https://github.com/ec-/Quake3e/pull/432.
+Explicit unit/collision regeneration has no golden diff. Final Q3 and OA UBSan
+both-map smoke, normal serial smoke and both-renderer replay pass unchanged.
+The production symbol/codegen gates are not identical: only jump/grapple functions
+change, with an added private VectorLength body and no direct sqrtf import.
+Register/stack/inlining changes were reviewed; actual emitted VectorLength matches
+a libm oracle for four million finite-input vectors across all four rounding modes.
+No source FP expression change or gate weakening. Self-review: one missing-candidate
+bug, existing compile/runtime regression, no layout/OS/allocation/destructor change.
+Hosted gates pending.
