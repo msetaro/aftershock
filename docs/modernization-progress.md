@@ -34,7 +34,9 @@ all 26 function-section bytes are unchanged; the text gate differs only in the
 compiler-generated switch-table name CSWTCH.89/90. Unit/collision regeneration
 changes no golden. Normal smoke and both-renderer fixed-demo replay pass unchanged.
 Upstream C startup fails before and passes after: https://github.com/ec-/Quake3e/pull/429.
-Next: open PR and complete CI/self-review.
+Fork PR #42 at source f320dee6 passed regression 34886047536 and full build
+34886047431. Self-review below passes. Next: mark ready, merge, verify merged-tree
+regression, then fix zlib allocator callback signatures on its own branch.
 
 Broader Clang experiments remain distinct from the GCC runtime gate: ASan/UBSan
 with faketime timed out before output; UBSan alone exposed zcalloc/zcfree callback
@@ -224,4 +226,5 @@ fails before and passes after: https://github.com/ec-/Quake3e/pull/429.
 Self-review: one packed-read bug in the shared caller path; no instruction format,
 FP, JIT behavior, allocation, destructor, layout or engine OS changes. No new
 known-bug entry or test target; existing runtime CI is the permanent regression.
-Hosted gates pending.
+Regression 34886047536 and full build 34886047431 pass on source f320dee6.
+Final checkpoint changes documentation only. Self-review passes.

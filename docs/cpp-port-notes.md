@@ -153,3 +153,4 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   qagame QVM fails before and passes after (only its separate ZIP bug suppressed).
   Upstream fix: https://github.com/ec-/Quake3e/pull/429. Explicit unit/collision
   regeneration has no golden diff; normal smoke and fixed-demo replay pass unchanged.
+  Fork PR #42 passed regression 34886047536 and full build 34886047431.
