@@ -1,6 +1,40 @@
-# C++ port notes — record bugs, do not fix them
+# C++ port notes — bug dispositions
 
 The strict port made no engine bug fixes. Modernization #31 dispositions are recorded below.
+
+## Current disposition
+
+Each recorded engine/vendor defect has its own tested fix below. PR #47 awaits
+merge; the other eleven are merged. Issue #31 remains open until its merged-tree
+regression passes. `tests/known-bugs.txt` has no active entries and
+`tools/port/ubsan.supp` is empty.
+
+| Defect | Fork fix | Upstream |
+|---|---|---|
+| Huffman packed read | [#36](https://github.com/msetaro/aftershock/pull/36) | [#424](https://github.com/ec-/Quake3e/pull/424) |
+| Extension NULL comparison | [#37](https://github.com/msetaro/aftershock/pull/37) | [#425](https://github.com/ec-/Quake3e/pull/425) |
+| Download trailing slash | [#38](https://github.com/msetaro/aftershock/pull/38) | [#426](https://github.com/ec-/Quake3e/pull/426) |
+| ALSA thread signatures | [#39](https://github.com/msetaro/aftershock/pull/39) | [#427](https://github.com/ec-/Quake3e/pull/427) |
+| curl va_start enum | [#40](https://github.com/msetaro/aftershock/pull/40) | Port-specific |
+| ZIP packed fields | [#41](https://github.com/msetaro/aftershock/pull/41) | [#428](https://github.com/ec-/Quake3e/pull/428) |
+| VM packed operands | [#42](https://github.com/msetaro/aftershock/pull/42) | [#429](https://github.com/ec-/Quake3e/pull/429) |
+| zlib allocator callbacks | [#43](https://github.com/msetaro/aftershock/pull/43) | [#430](https://github.com/ec-/Quake3e/pull/430) |
+| Extension diagnostic output | [#44](https://github.com/msetaro/aftershock/pull/44) | [#431](https://github.com/ec-/Quake3e/pull/431) |
+| AAS missing jump candidate | [#45](https://github.com/msetaro/aftershock/pull/45) | [#432](https://github.com/ec-/Quake3e/pull/432) |
+| PNG chunk-header alignment | [#46](https://github.com/msetaro/aftershock/pull/46) | [#433](https://github.com/ec-/Quake3e/pull/433) |
+| JPEG table index | [#47](https://github.com/msetaro/aftershock/pull/47) | [#434](https://github.com/ec-/Quake3e/pull/434) |
+
+CMake defects belong to #5. T21 resolved the math-overload compatibility hazard.
+Clock-dependent smoke/recording observations are verification limitations handled
+by the documented smoke clock and fixed-demo replay. The Clang JIT instrumentation
+and ASan/faketime observations below are verification limits, not passing gates;
+#2 removes the transitional JIT. No other recorded engine defect remains unassigned.
+
+## Historical observations and validation
+
+The entries below preserve what was known at each checkpoint. Statements such as
+“unchanged”, “pending” and “suppressed” describe that checkpoint; the disposition
+table above and subsequent validation entries give the current state.
 
 - Upstream CMake defects already documented in cpp-port-plan.md section 7 remain untouched.
 - Phase 0 found that C++ math-header overload resolution changes unchanged q_math.c

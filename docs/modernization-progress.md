@@ -50,8 +50,10 @@ index after validation passes sanitizer/pointer checks and preserves error codes
 Explicit unit/collision regeneration, one-ULP control, smoke and replay retain all
 goldens. Symbols pass; only get_dht changes normalized assembly among 15 functions.
 Upstream C also fails before and passes after:
-https://github.com/ec-/Quake3e/pull/434. Next: open PR and complete hosted
-CI/self-review; audit all #31 dispositions before closing it.
+https://github.com/ec-/Quake3e/pull/434. Fork PR #47: regression 34891606879 and
+full build 34891606634 pass on source 01f2dd40. The disposition audit accounts for
+all twelve defects; CMake remains assigned to #5. Next: merge after this docs-only
+checkpoint and verify merged-tree regression, close #31, then begin #1.
 
 Clang runtime observation classified: VM_CallCompiled's instrumented indirect
 call reads metadata at codeBase-8 before entering JIT code; the mmap allocation
@@ -336,4 +338,6 @@ normalized assembly among 15 functions, reviewed as the expected pointer-lifetim
 change. No gate weakening. Upstream C test fails before and passes after:
 https://github.com/ec-/Quake3e/pull/434. Known-bugs has no entries, and ubsan.supp
 is empty. Self-review: one vendor bounds bug, existing unit runner, no file loading,
-FP, layout, engine OS-access, allocation or destructor change. Hosted gates pending.
+FP, layout, engine OS-access, allocation or destructor change. Regression
+34891606879 and full build 34891606634 pass on source 01f2dd40. Final checkpoint
+changes documentation only; self-review passes.
