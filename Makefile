@@ -44,12 +44,11 @@ USE_SYSTEM_VORBIS = 0
 
 USE_VULKAN       = 1
 USE_OPENGL       = 1
-USE_OPENGL2      = 0
 USE_OPENGL_API   = 1
 USE_VULKAN_API   = 1
 USE_RENDERER_DLOPEN = 1
 
-# valid options: opengl, vulkan, opengl2
+# valid options: opengl, vulkan
 RENDERER_DEFAULT = opengl
 
 CNAME            = quake3e
@@ -137,17 +136,6 @@ ifndef BUILD_DIR
 BUILD_DIR=build
 endif
 
-# C and C++ objects must never share an output directory.
-ifeq ($(BUILD_CXX),1)
-  ifeq ($(origin BUILD_DIR),file)
-    BUILD_DIR=build/cxx
-  endif
-  override USE_OPENGL2=0
-  ifeq ($(RENDERER_DEFAULT),opengl2)
-    $(error renderer2 is outside the C++ port)
-  endif
-endif
-
 ifndef GENERATE_DEPENDENCIES
 GENERATE_DEPENDENCIES=1
 endif
@@ -188,21 +176,12 @@ endif
 ifeq ($(USE_RENDERER_DLOPEN),0)
   ifeq ($(RENDERER_DEFAULT),opengl)
     USE_OPENGL=1
-    USE_OPENGL2=0
-    USE_VULKAN=0
-    USE_OPENGL_API=1
-    USE_VULKAN_API=0
-  endif
-  ifeq ($(RENDERER_DEFAULT),opengl2)
-    USE_OPENGL=0
-    USE_OPENGL2=1
     USE_VULKAN=0
     USE_OPENGL_API=1
     USE_VULKAN_API=0
   endif
   ifeq ($(RENDERER_DEFAULT),vulkan)
     USE_OPENGL=0
-    USE_OPENGL2=0
     USE_VULKAN=1
     USE_OPENGL_API=0
   endif
@@ -222,7 +201,6 @@ CDIR=$(MOUNT_DIR)/client
 SDIR=$(MOUNT_DIR)/server
 RCDIR=$(MOUNT_DIR)/renderercommon
 R1DIR=$(MOUNT_DIR)/renderer
-R2DIR=$(MOUNT_DIR)/renderer2
 RVDIR=$(MOUNT_DIR)/renderervk
 SDLDIR=$(MOUNT_DIR)/sdl
 SDLHDIR=$(MOUNT_DIR)/libsdl/include/SDL2
@@ -650,12 +628,10 @@ endif # !MINGW
 TARGET_CLIENT = $(CNAME)$(ARCHEXT)$(BINEXT)
 
 TARGET_REND1 = $(RENDERER_PREFIX)_opengl_$(SHLIBNAME)
-TARGET_REND2 = $(RENDERER_PREFIX)_opengl2_$(SHLIBNAME)
 TARGET_RENDV = $(RENDERER_PREFIX)_vulkan_$(SHLIBNAME)
 
 TARGET_SERVER = $(DNAME)$(ARCHEXT)$(BINEXT)
 
-STRINGIFY = $(B)/rend2/stringify$(BINEXT)
 
 TARGETS =
 
@@ -669,9 +645,6 @@ ifneq ($(BUILD_CLIENT),0)
     ifeq ($(USE_OPENGL),1)
       TARGETS += $(B)/$(TARGET_REND1)
     endif
-    ifeq ($(USE_OPENGL2),1)
-      TARGETS += $(B)/$(TARGET_REND2)
-    endif
     ifeq ($(USE_VULKAN),1)
       TARGETS += $(B)/$(TARGET_RENDV)
     endif
@@ -679,12 +652,10 @@ ifneq ($(BUILD_CLIENT),0)
 endif
 
 # Match the selected C compiler prefix unless CXX was explicitly supplied.
-ifeq ($(BUILD_CXX),1)
-  ifneq ($(filter default undefined,$(origin CXX)),)
-    CXX := $(CC:gcc=g++)
-    CXX := $(CXX:clang=clang++)
-    CXX := $(CXX:cc=c++)
-  endif
+ifneq ($(filter default undefined,$(origin CXX)),)
+  CXX := $(CC:gcc=g++)
+  CXX := $(CXX:clang=clang++)
+  CXX := $(CXX:cc=c++)
 endif
 
 ifeq ($(USE_CCACHE),1)
@@ -718,18 +689,13 @@ ifneq ($(findstring clang,$(CXX)),)
   CXX_FROZEN_WARNINGS += -Wno-unused-function -Wno-varargs
 endif
 
-ENGINE_CC = $(CC)
-ENGINE_CFLAGS = $(CFLAGS)
-ENGINE_LD = $(CC)
-ifeq ($(BUILD_CXX),1)
-  ENGINE_CC = $(CXX)
-  ENGINE_CFLAGS = $(filter-out -Wstrict-prototypes -Wimplicit,$(CFLAGS)) \
-    -x c++ -std=c++20 -fno-exceptions -fno-rtti $(CXX_FROZEN_WARNINGS)
-  ENGINE_LD = $(CXX)
-  ifdef MINGW
-    # T24 must precede SDK headers reached transitively through curl as well.
-    ENGINE_CFLAGS += -DCINTERFACE=
-  endif
+ENGINE_CC = $(CXX)
+ENGINE_CFLAGS = $(filter-out -Wstrict-prototypes -Wimplicit,$(CFLAGS)) \
+  -std=c++20 -fno-exceptions -fno-rtti $(CXX_FROZEN_WARNINGS)
+ENGINE_LD = $(CXX)
+ifdef MINGW
+  # T24 must precede SDK headers reached transitively through curl as well.
+  ENGINE_CFLAGS += -DCINTERFACE=
 endif
 
 # DO_CC also serves the vendored C libraries. Select by the actual source path,
@@ -754,13 +720,6 @@ define DO_REND_CC
 $(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "REND_CC $<"
 $(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) $(RENDCFLAGS) -o $@ -c $<
-endef
-
-define DO_REF_STR
-$(Q)$(MKDIR) $(dir $@)
-$(echo_cmd) "REF_STR $<"
-$(Q)rm -f $@
-$(Q)$(STRINGIFY) $< $@
 endef
 
 define DO_BOT_CC
@@ -891,8 +850,6 @@ ifeq ($(USE_SYSTEM_VORBIS),0)
 	@if [ ! -d $(B)/client/vorbis ];then $(MKDIR) $(B)/client/vorbis;fi
 endif
 	@if [ ! -d $(B)/rend1 ];then $(MKDIR) $(B)/rend1;fi
-	@if [ ! -d $(B)/rend2 ];then $(MKDIR) $(B)/rend2;fi
-	@if [ ! -d $(B)/rend2/glsl ];then $(MKDIR) $(B)/rend2/glsl;fi
 	@if [ ! -d $(B)/rendv ];then $(MKDIR) $(B)/rendv;fi
 ifneq ($(BUILD_SERVER),0)
 	@if [ ! -d $(B)/ded ];then $(MKDIR) $(B)/ded/qvm;fi
@@ -941,82 +898,6 @@ ifneq ($(USE_RENDERER_DLOPEN), 0)
     $(B)/rend1/puff.o \
     $(B)/rend1/q_math.o
 endif
-
-Q3REND2OBJ = \
-  $(B)/rend2/tr_animation.o \
-  $(B)/rend2/tr_backend.o \
-  $(B)/rend2/tr_bsp.o \
-  $(B)/rend2/tr_cmds.o \
-  $(B)/rend2/tr_curve.o \
-  $(B)/rend2/tr_dsa.o \
-  $(B)/rend2/tr_extramath.o \
-  $(B)/rend2/tr_extensions.o \
-  $(B)/rend2/tr_fbo.o \
-  $(B)/rend2/tr_flares.o \
-  $(B)/rend2/tr_font.o \
-  $(B)/rend2/tr_glsl.o \
-  $(B)/rend2/tr_image.o \
-  $(B)/rend2/tr_image_bmp.o \
-  $(B)/rend2/tr_image_jpg.o \
-  $(B)/rend2/tr_image_pcx.o \
-  $(B)/rend2/tr_image_png.o \
-  $(B)/rend2/tr_image_tga.o \
-  $(B)/rend2/tr_image_dds.o \
-  $(B)/rend2/tr_init.o \
-  $(B)/rend2/tr_light.o \
-  $(B)/rend2/tr_main.o \
-  $(B)/rend2/tr_marks.o \
-  $(B)/rend2/tr_mesh.o \
-  $(B)/rend2/tr_model.o \
-  $(B)/rend2/tr_model_iqm.o \
-  $(B)/rend2/tr_noise.o \
-  $(B)/rend2/tr_postprocess.o \
-  $(B)/rend2/tr_scene.o \
-  $(B)/rend2/tr_shade.o \
-  $(B)/rend2/tr_shade_calc.o \
-  $(B)/rend2/tr_shader.o \
-  $(B)/rend2/tr_shadows.o \
-  $(B)/rend2/tr_sky.o \
-  $(B)/rend2/tr_surface.o \
-  $(B)/rend2/tr_vbo.o \
-  $(B)/rend2/tr_world.o
-
-ifneq ($(USE_RENDERER_DLOPEN), 0)
-  Q3REND2OBJ += \
-    $(B)/rend2/q_shared.o \
-    $(B)/rend2/puff.o \
-    $(B)/rend2/q_math.o
-endif
-
-Q3REND2STROBJ = \
-  $(B)/rend2/glsl/bokeh_fp.o \
-  $(B)/rend2/glsl/bokeh_vp.o \
-  $(B)/rend2/glsl/calclevels4x_fp.o \
-  $(B)/rend2/glsl/calclevels4x_vp.o \
-  $(B)/rend2/glsl/depthblur_fp.o \
-  $(B)/rend2/glsl/depthblur_vp.o \
-  $(B)/rend2/glsl/dlight_fp.o \
-  $(B)/rend2/glsl/dlight_vp.o \
-  $(B)/rend2/glsl/down4x_fp.o \
-  $(B)/rend2/glsl/down4x_vp.o \
-  $(B)/rend2/glsl/fogpass_fp.o \
-  $(B)/rend2/glsl/fogpass_vp.o \
-  $(B)/rend2/glsl/generic_fp.o \
-  $(B)/rend2/glsl/generic_vp.o \
-  $(B)/rend2/glsl/lightall_fp.o \
-  $(B)/rend2/glsl/lightall_vp.o \
-  $(B)/rend2/glsl/pshadow_fp.o \
-  $(B)/rend2/glsl/pshadow_vp.o \
-  $(B)/rend2/glsl/shadowfill_fp.o \
-  $(B)/rend2/glsl/shadowfill_vp.o \
-  $(B)/rend2/glsl/shadowmask_fp.o \
-  $(B)/rend2/glsl/shadowmask_vp.o \
-  $(B)/rend2/glsl/ssao_fp.o \
-  $(B)/rend2/glsl/ssao_vp.o \
-  $(B)/rend2/glsl/texturecolor_fp.o \
-  $(B)/rend2/glsl/texturecolor_vp.o \
-  $(B)/rend2/glsl/tonemap_fp.o \
-  $(B)/rend2/glsl/tonemap_vp.o
 
 Q3RENDVOBJ = \
   $(B)/rendv/tr_animation.o \
@@ -1242,12 +1123,7 @@ ifneq ($(USE_RENDERER_DLOPEN),1)
   ifeq ($(USE_VULKAN),1)
     Q3OBJ += $(Q3RENDVOBJ)
   else
-    ifeq ($(USE_OPENGL2),1)
-      Q3OBJ += $(Q3REND2OBJ)
-      Q3OBJ += $(Q3REND2STROBJ)
-    else
-      Q3OBJ += $(Q3REND1OBJ)
-    endif
+    Q3OBJ += $(Q3REND1OBJ)
   endif
 endif
 
@@ -1370,14 +1246,6 @@ $(B)/$(TARGET_CLIENT): $(Q3OBJ)
 $(B)/$(TARGET_REND1): $(Q3REND1OBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(ENGINE_LD) -o $@ $(Q3REND1OBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
-
-$(STRINGIFY): $(MOUNT_DIR)/renderer2/stringify.c
-	$(echo_cmd) "LD $@"
-	$(Q)$(CC) -o $@ $(MOUNT_DIR)/renderer2/stringify.c $(LDFLAGS)
-
-$(B)/$(TARGET_REND2): $(Q3REND2OBJ) $(Q3REND2STROBJ)
-	$(echo_cmd) "LD $@"
-	$(Q)$(CC) -o $@ $(Q3REND2OBJ) $(Q3REND2STROBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
 
 $(B)/$(TARGET_RENDV): $(Q3RENDVOBJ)
 	$(echo_cmd) "LD $@"
@@ -1502,19 +1370,19 @@ $(B)/$(TARGET_SERVER): $(Q3DOBJ)
 $(B)/client/%.o: $(ADIR)/%.s
 	$(DO_AS)
 
-$(B)/client/%.o: $(CDIR)/%.c
+$(B)/client/%.o: $(CDIR)/%.cpp
 	$(DO_CC)
 
-$(B)/client/%.o: $(SDIR)/%.c
+$(B)/client/%.o: $(SDIR)/%.cpp
 	$(DO_CC)
 
-$(B)/client/%.o: $(CMDIR)/%.c
+$(B)/client/%.o: $(CMDIR)/%.cpp
 	$(DO_CC)
 
-$(B)/client/qvm/%.o: $(CMDIR)/%.c
+$(B)/client/qvm/%.o: $(CMDIR)/%.cpp
 	$(DO_CC_QVM)
 
-$(B)/client/%.o: $(BLIBDIR)/%.c
+$(B)/client/%.o: $(BLIBDIR)/%.cpp
 	$(DO_BOT_CC)
 
 $(B)/client/jpeg/%.o: $(JPDIR)/%.c
@@ -1526,49 +1394,31 @@ $(B)/client/ogg/%.o: $(OGGDIR)/src/%.c
 $(B)/client/vorbis/%.o: $(VORBISDIR)/lib/%.c
 	$(DO_CC)
 
-$(B)/client/%.o: $(SDLDIR)/%.c
+$(B)/client/%.o: $(SDLDIR)/%.cpp
 	$(DO_CC)
 
-$(B)/rend1/%.o: $(R1DIR)/%.c
+$(B)/rend1/%.o: $(R1DIR)/%.cpp
 	$(DO_REND_CC)
 
-$(B)/rend1/%.o: $(RCDIR)/%.c
+$(B)/rend1/%.o: $(RCDIR)/%.cpp
 	$(DO_REND_CC)
 
-$(B)/rend1/%.o: $(CMDIR)/%.c
+$(B)/rend1/%.o: $(CMDIR)/%.cpp
 	$(DO_REND_CC)
 
-ifneq ($(BUILD_CXX),1)
-$(B)/rend2/glsl/%.c: $(R2DIR)/glsl/%.glsl $(STRINGIFY)
-	$(DO_REF_STR)
-
-$(B)/rend2/glsl/%.o: $(B)/renderer2/glsl/%.c
+$(B)/rendv/%.o: $(RVDIR)/%.cpp
 	$(DO_REND_CC)
 
-$(B)/rend2/%.o: $(R2DIR)/%.c
+$(B)/rendv/%.o: $(RCDIR)/%.cpp
 	$(DO_REND_CC)
 
-$(B)/rend2/%.o: $(RCDIR)/%.c
+$(B)/rendv/%.o: $(CMDIR)/%.cpp
 	$(DO_REND_CC)
 
-$(B)/rend2/%.o: $(CMDIR)/%.c
-	$(DO_REND_CC)
-
-endif
-
-$(B)/rendv/%.o: $(RVDIR)/%.c
-	$(DO_REND_CC)
-
-$(B)/rendv/%.o: $(RCDIR)/%.c
-	$(DO_REND_CC)
-
-$(B)/rendv/%.o: $(CMDIR)/%.c
-	$(DO_REND_CC)
-
-$(B)/client/%.o: $(UDIR)/%.c
+$(B)/client/%.o: $(UDIR)/%.cpp
 	$(DO_CC)
 
-$(B)/client/%.o: $(W32DIR)/%.c
+$(B)/client/%.o: $(W32DIR)/%.cpp
 	$(DO_CC)
 
 $(B)/client/%.o: $(W32DIR)/%.rc
@@ -1577,22 +1427,22 @@ $(B)/client/%.o: $(W32DIR)/%.rc
 $(B)/ded/%.o: $(ADIR)/%.s
 	$(DO_AS)
 
-$(B)/ded/%.o: $(SDIR)/%.c
+$(B)/ded/%.o: $(SDIR)/%.cpp
 	$(DO_DED_CC)
 
-$(B)/ded/%.o: $(CMDIR)/%.c
+$(B)/ded/%.o: $(CMDIR)/%.cpp
 	$(DO_DED_CC)
 
-$(B)/ded/qvm/%.o: $(CMDIR)/%.c
+$(B)/ded/qvm/%.o: $(CMDIR)/%.cpp
 	$(DO_DED_CC_QVM)
 
-$(B)/ded/%.o: $(BLIBDIR)/%.c
+$(B)/ded/%.o: $(BLIBDIR)/%.cpp
 	$(DO_BOT_CC)
 
-$(B)/ded/%.o: $(UDIR)/%.c
+$(B)/ded/%.o: $(UDIR)/%.cpp
 	$(DO_DED_CC)
 
-$(B)/ded/%.o: $(W32DIR)/%.c
+$(B)/ded/%.o: $(W32DIR)/%.cpp
 	$(DO_DED_CC)
 
 $(B)/ded/%.o: $(W32DIR)/%.rc

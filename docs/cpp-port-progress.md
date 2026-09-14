@@ -1,12 +1,12 @@
 # C++20 port checkpoint
 
-Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed continuation starts at `6a990e7c` (T1–T23 plan amendment). No engine files have been renamed. No engine bug fixes, vendor edits, renderer2 port, main pushes, force pushes, or history rewrites were made.
+Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed continuation starts at `6a990e7c` (T1–T23 plan amendment). All 171 scoped engine implementation/data files now use .cpp; each moved blob was verified unchanged. No engine bug fixes, vendor edits, renderer2 port, main pushes, force pushes, or history rewrites were made.
 
 **Phases 0–2 complete.** All 257 inventory entries are done (including the two explicit exclusions). Native GCC/Clang C and strict C++ configurations all build. MinGW, ARM, AArch64 and PPC64LE C++ full links pass. T24/T25 resolve all reviewed blockers with unchanged C hashes. C++ dedicated runtime matches C under G6, and the client loads OpenGL/Vulkan renderers under Xvfb.
 
 ## Next action
 
-Continuation: renderervk; next `phase3` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Phase 3 files renamed: validate fresh C++ build matrix, full native/cross gates against PORT_C_ORACLE, runtime, then push and dispatch/watch CI. Separate T25 cleanup remains.
 
 ## Phase checklist
 
@@ -166,174 +166,174 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/botlib/aasfile.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_bsp.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_bspq3.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_bspq3.o); G4 advisory difference retained. |
-| `code/botlib/be_aas_cluster.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_cluster.o); G4 advisory difference retained. |
+| `code/botlib/be_aas_bspq3.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_bspq3.o); G4 advisory difference retained. |
+| `code/botlib/be_aas_cluster.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_cluster.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_cluster.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_debug.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_debug.o); G4 advisory difference retained. |
+| `code/botlib/be_aas_debug.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_debug.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_debug.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_def.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_entity.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_entity.o); G4 PASS. |
+| `code/botlib/be_aas_entity.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_entity.o); G4 PASS. |
 | `code/botlib/be_aas_entity.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_file.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_file.o); G4 advisory difference retained. |
+| `code/botlib/be_aas_file.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_file.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_file.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_funcs.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_main.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_main.o); G4 PASS. |
+| `code/botlib/be_aas_main.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_main.o); G4 PASS. |
 | `code/botlib/be_aas_main.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_move.c` | done | T1-T17: 0 (already compatible); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_move.o, default); G4 PASS. |
+| `code/botlib/be_aas_move.cpp` | done | T1-T17: 0 (already compatible); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_move.o, default); G4 PASS. |
 | `code/botlib/be_aas_move.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_optimize.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_optimize.o); G4 PASS. |
+| `code/botlib/be_aas_optimize.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_optimize.o); G4 PASS. |
 | `code/botlib/be_aas_optimize.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_reach.c` | done | T1-T17: 0 (already compatible); T21: 15 argument casts at 15 calls (native and fallback M_PI); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_reach.o, default); G4 advisory difference retained. |
+| `code/botlib/be_aas_reach.cpp` | done | T1-T17: 0 (already compatible); T21: 15 argument casts at 15 calls (native and fallback M_PI); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_reach.o, default); G4 advisory difference retained. |
 | `code/botlib/be_aas_reach.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_route.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_route.o); G4 advisory difference retained. |
+| `code/botlib/be_aas_route.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_route.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_route.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_routealt.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_routealt.o); G4 advisory difference retained. |
+| `code/botlib/be_aas_routealt.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_routealt.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_routealt.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_aas_sample.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_sample.o); G4 advisory difference retained. |
+| `code/botlib/be_aas_sample.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_sample.o); G4 advisory difference retained. |
 | `code/botlib/be_aas_sample.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ai_char.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_char.o); G4 advisory difference retained. |
+| `code/botlib/be_ai_char.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_char.o); G4 advisory difference retained. |
 | `code/botlib/be_ai_char.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_char.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ai_chat.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_chat.o); G4 advisory difference retained. |
+| `code/botlib/be_ai_chat.cpp` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_chat.o); G4 advisory difference retained. |
 | `code/botlib/be_ai_chat.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_chat.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ai_gen.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_gen.o); G4 PASS. |
+| `code/botlib/be_ai_gen.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_gen.o); G4 PASS. |
 | `code/botlib/be_ai_gen.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_gen.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ai_goal.c` | done | T1: 1, T16: 1 macro site (8 expanded casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_goal.o, default); G4 PASS. |
+| `code/botlib/be_ai_goal.cpp` | done | T1: 1, T16: 1 macro site (8 expanded casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_goal.o, default); G4 PASS. |
 | `code/botlib/be_ai_goal.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_goal.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ai_move.c` | done | T1: 1; T21/T22: 12 argument casts at 12 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_move.o, default); G4 advisory difference retained. |
+| `code/botlib/be_ai_move.cpp` | done | T1: 1; T21/T22: 12 argument casts at 12 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_move.o, default); G4 advisory difference retained. |
 | `code/botlib/be_ai_move.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_goal.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ai_weap.c` | done | T1: 1, T16: 2 macro sites (36 expanded casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_weap.o, default); G4 PASS. |
+| `code/botlib/be_ai_weap.cpp` | done | T1: 1, T16: 2 macro sites (36 expanded casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_weap.o, default); G4 PASS. |
 | `code/botlib/be_ai_weap.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_weap.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ai_weight.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_weight.o); G4 PASS. |
+| `code/botlib/be_ai_weight.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_weight.o); G4 PASS. |
 | `code/botlib/be_ai_weight.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_goal.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_ea.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ea.o); G4 PASS. |
+| `code/botlib/be_ea.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ea.o); G4 PASS. |
 | `code/botlib/be_ea.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_ai_chat.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/be_interface.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_interface.o); G4 PASS. |
+| `code/botlib/be_interface.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_interface.o); G4 PASS. |
 | `code/botlib/be_interface.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_debug.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/botlib.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_crc.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_crc.o); G4 PASS. |
+| `code/botlib/l_crc.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_crc.o); G4 PASS. |
 | `code/botlib/l_crc.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_route.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_libvar.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_libvar.o); G4 PASS. |
+| `code/botlib/l_libvar.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_libvar.o); G4 PASS. |
 | `code/botlib/l_libvar.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_cluster.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_log.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_log.o); G4 PASS. |
+| `code/botlib/l_log.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_log.o); G4 PASS. |
 | `code/botlib/l_log.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_cluster.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_memory.c` | done | T1: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_memory.o); G4 advisory difference retained. |
+| `code/botlib/l_memory.cpp` | done | T1: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_memory.o); G4 advisory difference retained. |
 | `code/botlib/l_memory.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_precomp.c` | done | T1: 3 (one in inactive LoadSourceMemory), T4: 1 field (10 occurrences); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_precomp.o, default); G4 advisory difference retained. |
+| `code/botlib/l_precomp.cpp` | done | T1: 3 (one in inactive LoadSourceMemory), T4: 1 field (10 occurrences); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_precomp.o, default); G4 advisory difference retained. |
 | `code/botlib/l_precomp.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_script.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_script.o); G4 advisory difference retained. |
+| `code/botlib/l_script.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_script.o); G4 advisory difference retained. |
 | `code/botlib/l_script.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
-| `code/botlib/l_struct.c` | done | T3: 14; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_struct.o); G4 advisory difference retained. |
+| `code/botlib/l_struct.cpp` | done | T3: 14; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/l_struct.o); G4 advisory difference retained. |
 | `code/botlib/l_struct.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/l_utils.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_entity.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/cgame/cg_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through cl_cgame.c actual dependency and native strict builds/G2/G3. |
-| `code/client/cl_avi.c` | done | T1: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_avi.o, default); G4 advisory difference retained. |
-| `code/client/cl_cgame.c` | done | T1: 116, T2: 1, T3: 6; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (client/cl_cgame.o); G4 advisory difference retained. |
-| `code/client/cl_cin.c` | done | T1: 2, T2: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_cin.o, default); G4 advisory difference retained. |
-| `code/client/cl_console.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_console.o, default); G4 advisory difference retained. |
-| `code/client/cl_curl.c` | done | T1: 35; T20: 1 receiving local const; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_curl.o, default); G4 advisory difference retained. |
+| `code/client/cl_avi.cpp` | done | T1: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_avi.o, default); G4 advisory difference retained. |
+| `code/client/cl_cgame.cpp` | done | T1: 116, T2: 1, T3: 6; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (client/cl_cgame.o); G4 advisory difference retained. |
+| `code/client/cl_cin.cpp` | done | T1: 2, T2: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_cin.o, default); G4 advisory difference retained. |
+| `code/client/cl_console.cpp` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_console.o, default); G4 advisory difference retained. |
+| `code/client/cl_curl.cpp` | done | T1: 35; T20: 1 receiving local const; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_curl.o, default); G4 advisory difference retained. |
 | `code/client/cl_curl.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
-| `code/client/cl_input.c` | done | T1-T17: 0 (already compatible); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_input.o, default); G4 advisory difference retained. |
-| `code/client/cl_jpeg.c` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_jpeg.o, default); G4 advisory difference retained. |
-| `code/client/cl_keys.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_keys.o, default); G4 advisory difference retained. |
-| `code/client/cl_main.c` | done | T1: 1; T2: 1; T3: 6 compound-assignment result casts; T20: 1 receiving local const; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_main.o, default); G4 advisory difference retained. |
-| `code/client/cl_net_chan.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_net_chan.o, default); G4 advisory difference retained. |
-| `code/client/cl_parse.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_parse.o, default); G4 advisory difference retained. |
-| `code/client/cl_scrn.c` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_scrn.o, default); G4 advisory difference retained. |
-| `code/client/cl_ui.c` | done | T1: 80, T2: 1, T3: 8; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (client/cl_ui.o); G4 advisory difference retained. |
+| `code/client/cl_input.cpp` | done | T1-T17: 0 (already compatible); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_input.o, default); G4 advisory difference retained. |
+| `code/client/cl_jpeg.cpp` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_jpeg.o, default); G4 advisory difference retained. |
+| `code/client/cl_keys.cpp` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_keys.o, default); G4 advisory difference retained. |
+| `code/client/cl_main.cpp` | done | T1: 1; T2: 1; T3: 6 compound-assignment result casts; T20: 1 receiving local const; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_main.o, default); G4 advisory difference retained. |
+| `code/client/cl_net_chan.cpp` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_net_chan.o, default); G4 advisory difference retained. |
+| `code/client/cl_parse.cpp` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_parse.o, default); G4 advisory difference retained. |
+| `code/client/cl_scrn.cpp` | done | T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/cl_scrn.o, default); G4 advisory difference retained. |
+| `code/client/cl_ui.cpp` | done | T1: 80, T2: 1, T3: 8; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (client/cl_ui.o); G4 advisory difference retained. |
 | `code/client/client.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/keycodes.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
 | `code/client/keys.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
-| `code/client/snd_adpcm.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_adpcm.o, default); G4 PASS. |
-| `code/client/snd_codec.c` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_codec.o, default); G4 PASS. |
+| `code/client/snd_adpcm.cpp` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_adpcm.o, default); G4 PASS. |
+| `code/client/snd_codec.cpp` | done | T1: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_codec.o, default); G4 PASS. |
 | `code/client/snd_codec.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/snd_codec.c; native GCC strict builds and G2/G3 PASS. |
-| `code/client/snd_codec_ogg.c` | done | T1: 3; T18: 1 preceding extern const declaration; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_codec_ogg.o, default); G4 PASS. |
-| `code/client/snd_codec_wav.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_codec_wav.o, default); G4 PASS. |
-| `code/client/snd_dma.c` | done | T1: 1, T15: 2 (non-SDL branch); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_dma.o, default); G4 advisory difference retained. |
+| `code/client/snd_codec_ogg.cpp` | done | T1: 3; T18: 1 preceding extern const declaration; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_codec_ogg.o, default); G4 PASS. |
+| `code/client/snd_codec_wav.cpp` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_codec_wav.o, default); G4 PASS. |
+| `code/client/snd_dma.cpp` | done | T1: 1, T15: 2 (non-SDL branch); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_dma.o, default); G4 advisory difference retained. |
 | `code/client/snd_local.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
-| `code/client/snd_main.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_main.o, default); G4 PASS. |
-| `code/client/snd_mem.c` | done | T1: 4; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mem.o, default); G4 advisory difference retained. |
-| `code/client/snd_mix.c` | done | T5: C linkage block for 3 assembly globals plus 5 assembly declarations/conditional definitions; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mix.o, default); G4 advisory difference retained. |
+| `code/client/snd_main.cpp` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_main.o, default); G4 PASS. |
+| `code/client/snd_mem.cpp` | done | T1: 4; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mem.o, default); G4 advisory difference retained. |
+| `code/client/snd_mix.cpp` | done | T5: C linkage block for 3 assembly globals plus 5 assembly declarations/conditional definitions; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_mix.o, default); G4 advisory difference retained. |
 | `code/client/snd_public.h` | done | T1-T17: 0; unchanged header in actual dependencies of code/client/cl_avi.c; native GCC strict builds and G2/G3 PASS. |
-| `code/client/snd_wavelet.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_wavelet.o, default); G4 PASS. |
+| `code/client/snd_wavelet.cpp` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/snd_wavelet.o, default); G4 PASS. |
 | `code/game/bg_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through sv_game.c actual dependency and native strict builds/G2/G3. |
 | `code/game/g_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through sv_game.c actual dependency and native strict builds/G2/G3. |
-| `code/qcommon/cm_load.c` | done | T1: 28; native ded C SHA256 unchanged (df42e0cabff475c22ebf8383e443cfe34d558abf817baf6f5cd8ad0c96700017); strict C++/G2/G3 PASS (ded/cm_load.o, default); G4 advisory difference retained. |
+| `code/qcommon/cm_load.cpp` | done | T1: 28; native ded C SHA256 unchanged (df42e0cabff475c22ebf8383e443cfe34d558abf817baf6f5cd8ad0c96700017); strict C++/G2/G3 PASS (ded/cm_load.o, default); G4 advisory difference retained. |
 | `code/qcommon/cm_local.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/cm_patch.c` | done | T1: 3, T2: 6, T3: 3; T21/T22: 14 argument casts at 14 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_patch.o, default); G4 advisory difference retained. |
+| `code/qcommon/cm_patch.cpp` | done | T1: 3, T2: 6, T3: 3; T21/T22: 14 argument casts at 14 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_patch.o, default); G4 advisory difference retained. |
 | `code/qcommon/cm_patch.h` | done | T1-T17: 0; unchanged header checked via cm_patch.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/cm_polylib.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_polylib.o); G4 PASS. |
+| `code/qcommon/cm_polylib.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_polylib.o); G4 PASS. |
 | `code/qcommon/cm_polylib.h` | done | T1-T17: 0; unchanged header checked via cm_polylib.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/cm_public.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/cm_test.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_test.o); G4 PASS. |
-| `code/qcommon/cm_trace.c` | done | T1-T17: 0 (already compatible); T21/T22: 6 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_trace.o, default); G4 advisory difference retained. |
-| `code/qcommon/cmd.c` | done | T1: 1, T2: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cmd.o); G4 advisory difference retained. |
-| `code/qcommon/common.c` | done | T1: 5, T2: 2, T3: 1, T15: 29; T5: 2 conditional MSVC CPUID_EX declarations/definitions; T21: six conditional rint calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/common.o, default); G4 advisory difference retained. |
-| `code/qcommon/cvar.c` | done | T2: 2, T3: 4 (cast compound-assignment result); T21/T22: 2 argument casts at 2 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cvar.o, default); G4 advisory difference retained. |
-| `code/qcommon/files.c` | done | T1: 13, T2: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/files.o); G4 advisory difference retained. |
-| `code/qcommon/history.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/history.o); G4 advisory difference retained. |
-| `code/qcommon/huffman.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/huffman.o); G4 advisory difference retained. |
-| `code/qcommon/huffman_static.c` | done | T18: one preceding extern const declaration; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/huffman_static.o, default); G4 PASS. |
+| `code/qcommon/cm_test.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_test.o); G4 PASS. |
+| `code/qcommon/cm_trace.cpp` | done | T1-T17: 0 (already compatible); T21/T22: 6 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_trace.o, default); G4 advisory difference retained. |
+| `code/qcommon/cmd.cpp` | done | T1: 1, T2: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cmd.o); G4 advisory difference retained. |
+| `code/qcommon/common.cpp` | done | T1: 5, T2: 2, T3: 1, T15: 29; T5: 2 conditional MSVC CPUID_EX declarations/definitions; T21: six conditional rint calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/common.o, default); G4 advisory difference retained. |
+| `code/qcommon/cvar.cpp` | done | T2: 2, T3: 4 (cast compound-assignment result); T21/T22: 2 argument casts at 2 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cvar.o, default); G4 advisory difference retained. |
+| `code/qcommon/files.cpp` | done | T1: 13, T2: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/files.o); G4 advisory difference retained. |
+| `code/qcommon/history.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/history.o); G4 advisory difference retained. |
+| `code/qcommon/huffman.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/huffman.o); G4 advisory difference retained. |
+| `code/qcommon/huffman_static.cpp` | done | T18: one preceding extern const declaration; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/huffman_static.o, default); G4 PASS. |
 | `code/qcommon/json.h` | done | Excluded: whole-tree include search finds only renderer2/tr_bsp.c; implementation is solely for excluded renderer2. Left unchanged. |
-| `code/qcommon/keys.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/keys.o); G4 advisory difference retained. |
-| `code/qcommon/md4.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/md4.o); G4 PASS. |
-| `code/qcommon/md5.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/md5.o); G4 advisory difference retained. |
-| `code/qcommon/msg.c` | done | T16: 3 sites (1 mask, 99 expanded field-offset casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/msg.o, default); G4 advisory difference retained. |
-| `code/qcommon/net_chan.c` | done | T1: 1, T4: 1 identifier (12 occurrences); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/net_chan.o); G4 advisory difference retained. |
-| `code/qcommon/net_ip.c` | done | T1: 2, T2: 1; T1: 11 additional Winsock casts; native and MinGW C hashes, strict release/debug and G2/G3 PASS (ded/net_ip.o); G4 advisory difference retained. |
-| `code/qcommon/puff.c` | done | T1-T17: 0 (already compatible); 3 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/puff.o); G4 advisory difference retained. |
+| `code/qcommon/keys.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/keys.o); G4 advisory difference retained. |
+| `code/qcommon/md4.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/md4.o); G4 PASS. |
+| `code/qcommon/md5.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/md5.o); G4 advisory difference retained. |
+| `code/qcommon/msg.cpp` | done | T16: 3 sites (1 mask, 99 expanded field-offset casts); clang narrowing follow-up; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/msg.o, default); G4 advisory difference retained. |
+| `code/qcommon/net_chan.cpp` | done | T1: 1, T4: 1 identifier (12 occurrences); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/net_chan.o); G4 advisory difference retained. |
+| `code/qcommon/net_ip.cpp` | done | T1: 2, T2: 1; T1: 11 additional Winsock casts; native and MinGW C hashes, strict release/debug and G2/G3 PASS (ded/net_ip.o); G4 advisory difference retained. |
+| `code/qcommon/puff.cpp` | done | T1-T17: 0 (already compatible); 3 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/puff.o); G4 advisory difference retained. |
 | `code/qcommon/puff.h` | done | T1-T17: 0; unchanged header checked via puff.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/q_math.c` | done | T21: 20 argument casts at 18 calls, redundant cast correction; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_math.o, default); G4 PASS. |
+| `code/qcommon/q_math.cpp` | done | T21: 20 argument casts at 18 calls, redundant cast correction; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_math.o, default); G4 PASS. |
 | `code/qcommon/q_platform.h` | done | T1-T17: 0; unchanged header checked via md4.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/q_shared.c` | done | T1: 4, T2: 3; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_shared.o); G4 advisory difference retained. |
+| `code/qcommon/q_shared.cpp` | done | T1: 4, T2: 3; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_shared.o); G4 advisory difference retained. |
 | `code/qcommon/q_shared.h` | done | T5: guarded Q_EXTERN_C macro plus 2 Windows assembly prototypes; native md4 consumer G2/G3 PASS and all 295 C hashes unchanged; Windows branch unverified. |
 | `code/qcommon/qcommon.h` | done | T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: ded/vm.o, client/cl_cgame.o. |
 | `code/qcommon/qfiles.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/surfaceflags.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/unzip.c` | done | T1: 10, T14: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unzip.o); G4 advisory difference retained. |
+| `code/qcommon/unzip.cpp` | done | T1: 10, T14: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unzip.o); G4 advisory difference retained. |
 | `code/qcommon/unzip.h` | done | T1-T17: 0; unchanged header checked via unzip.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/vm.c` | done | T1: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm.o); G4 advisory difference retained. |
-| `code/qcommon/vm_aarch64.c` | done | T1: 2 allocator result casts; T11 cache prototype in vm_local.h; aarch64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_aarch64.o); G4 advisory difference retained. |
-| `code/qcommon/vm_armv7l.c` | done | T5 four external libgcc assembly imports; arm original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_armv7l.o); G4 advisory difference retained. |
-| `code/qcommon/vm_interpreted.c` | done | T1: 1; literal retained under frozen warning policy; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_interpreted.o); G4 advisory difference retained. |
+| `code/qcommon/vm.cpp` | done | T1: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm.o); G4 advisory difference retained. |
+| `code/qcommon/vm_aarch64.cpp` | done | T1: 2 allocator result casts; T11 cache prototype in vm_local.h; aarch64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_aarch64.o); G4 advisory difference retained. |
+| `code/qcommon/vm_armv7l.cpp` | done | T5 four external libgcc assembly imports; arm original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_armv7l.o); G4 advisory difference retained. |
+| `code/qcommon/vm_interpreted.cpp` | done | T1: 1; literal retained under frozen warning policy; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_interpreted.o); G4 advisory difference retained. |
 | `code/qcommon/vm_local.h` | done | Existing T4 edits; T11: correctly typed C-linkage declaration of existing GNU ARM runtime __clear_cache dependency. ARM/AArch64 65/65 C hashes unchanged; ARM vm_interpreted consumer strict C++/G2/G3 PASS; G4 advisory evidence cross-arm-vm_interpreted.codegen.diff.gz. |
 | `code/qcommon/vm_optimize.h` | done | Unchanged; real native x86_64 and cross ARM/AArch64/PPC JIT consumers pass strict C++, G2/G3 and original C hashes. |
-| `code/qcommon/vm_powerpc.c` | done | T1: 7 pointer conversions including debug-only callback; ppc64le original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_powerpc.o); G4 advisory difference retained. |
-| `code/qcommon/vm_x86.c` | done | T1: 1 function-to-object pointer cast; T3: 1 macro_op_t cast; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_x86.o, default); G4 advisory difference retained. |
+| `code/qcommon/vm_powerpc.cpp` | done | T1: 7 pointer conversions including debug-only callback; ppc64le original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_powerpc.o); G4 advisory difference retained. |
+| `code/qcommon/vm_x86.cpp` | done | T1: 1 function-to-object pointer cast; T3: 1 macro_op_t cast; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_x86.o, default); G4 advisory difference retained. |
 | `code/renderer/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderer/qgl.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderer/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_animation.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_arb.c` | done | T4: 3 occurrences (prerequisite), T2: 5, T3: 4, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_arb.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_backend.c` | done | T4: 9 occurrences (prerequisite), T1: 4, T2: 2, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_backend.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_bsp.c` | done | T1: 42, T3: 2; T21/T22: 94 argument casts at 94 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_bsp.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_cmds.c` | done | T1: 11; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_cmds.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_animation.cpp` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_animation.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_arb.cpp` | done | T4: 3 occurrences (prerequisite), T2: 5, T3: 4, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_arb.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_backend.cpp` | done | T4: 9 occurrences (prerequisite), T1: 4, T2: 2, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_backend.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_bsp.cpp` | done | T1: 42, T3: 2; T21/T22: 94 argument casts at 94 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_bsp.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_cmds.cpp` | done | T1: 11; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_cmds.o, default); G4 advisory difference retained. |
 | `code/renderer/tr_common.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderer/tr_curve.c` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_curve.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_flares.c` | done | T4: 3 occurrences (prerequisite), T2: 1; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_flares.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_image.c` | done | T1: 9, T2: 2, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_init.c` | done | T1: 10, T2: 1, T3: 1, T5: dlopen definition only; T21: 1 fallback M_PI argument cast; static GetRefAPI C linkage removed; C hash/strict C++/G2/G3 PASS (rend1/tr_init.o); G4 advisory difference retained. |
-| `code/renderer/tr_light.c` | done | T4: 10 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_light.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_curve.cpp` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_curve.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_flares.cpp` | done | T4: 3 occurrences (prerequisite), T2: 1; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_flares.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_image.cpp` | done | T1: 9, T2: 2, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_init.cpp` | done | T1: 10, T2: 1, T3: 1, T5: dlopen definition only; T21: 1 fallback M_PI argument cast; static GetRefAPI C linkage removed; C hash/strict C++/G2/G3 PASS (rend1/tr_init.o); G4 advisory difference retained. |
+| `code/renderer/tr_light.cpp` | done | T4: 10 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_light.o, default); G4 advisory difference retained. |
 | `code/renderer/tr_local.h` | done | T4: 5 occurrences (prerequisite); actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderer/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; T21: 8 argument casts at 8 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_main.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_marks.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_marks.o, default); G4 PASS. |
-| `code/renderer/tr_mesh.c` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_mesh.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_model.c` | done | T1: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_model.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_model_iqm.c` | done | T1: 4, T2: 2, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_model_iqm.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_scene.c` | done | T4: 4 occurrences (prerequisite), T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_scene.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_shade.c` | done | T4: 1 occurrence (prerequisite), T3: 1, T17: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shade.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_shade_calc.c` | done | T4: 50 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shade_calc.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_shader.c` | done | T1: 5, T3: 16, T16: 1, T17: 9; T21/T22: 5 argument casts at 5 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shader.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_shadows.c` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shadows.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_sky.c` | done | T4: 7 occurrences (prerequisite); T21: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_sky.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_surface.c` | done | T4: 25 occurrences (prerequisite); T21: 4 argument casts at 4 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_surface.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_vbo.c` | done | T4: 3 occurrences (prerequisite), T1: 7, T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_vbo.o, default); G4 advisory difference retained. |
-| `code/renderer/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_world.o, default); G4 advisory difference retained. |
-| `code/renderercommon/tr_font.c` | done | T1: 1; dormant BUILD_FREETYPE body unverified (missing dependency); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_font.o, default); G4 PASS. |
-| `code/renderercommon/tr_image_bmp.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_bmp.o, default); G4 PASS. |
-| `code/renderercommon/tr_image_jpg.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_jpg.o, default); G4 PASS. |
-| `code/renderercommon/tr_image_pcx.c` | done | T1: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_pcx.o, default); G4 PASS. |
-| `code/renderercommon/tr_image_png.c` | done | T1: 18; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_png.o, default); G4 PASS. |
-| `code/renderercommon/tr_image_tga.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_tga.o, default); G4 advisory difference retained. |
-| `code/renderercommon/tr_noise.c` | done | T1-T17: 0 (already compatible); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_noise.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_main.cpp` | done | T4: 113 occurrences (prerequisite), T17: 2; T21: 8 argument casts at 8 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_main.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_marks.cpp` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_marks.o, default); G4 PASS. |
+| `code/renderer/tr_mesh.cpp` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_mesh.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_model.cpp` | done | T1: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_model.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_model_iqm.cpp` | done | T1: 4, T2: 2, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_model_iqm.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_scene.cpp` | done | T4: 4 occurrences (prerequisite), T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_scene.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_shade.cpp` | done | T4: 1 occurrence (prerequisite), T3: 1, T17: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shade.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_shade_calc.cpp` | done | T4: 50 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shade_calc.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_shader.cpp` | done | T1: 5, T3: 16, T16: 1, T17: 9; T21/T22: 5 argument casts at 5 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shader.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_shadows.cpp` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shadows.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_sky.cpp` | done | T4: 7 occurrences (prerequisite); T21: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_sky.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_surface.cpp` | done | T4: 25 occurrences (prerequisite); T21: 4 argument casts at 4 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_surface.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_vbo.cpp` | done | T4: 3 occurrences (prerequisite), T1: 7, T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_vbo.o, default); G4 advisory difference retained. |
+| `code/renderer/tr_world.cpp` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_world.o, default); G4 advisory difference retained. |
+| `code/renderercommon/tr_font.cpp` | done | T1: 1; dormant BUILD_FREETYPE body unverified (missing dependency); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_font.o, default); G4 PASS. |
+| `code/renderercommon/tr_image_bmp.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_bmp.o, default); G4 PASS. |
+| `code/renderercommon/tr_image_jpg.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_jpg.o, default); G4 PASS. |
+| `code/renderercommon/tr_image_pcx.cpp` | done | T1: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_pcx.o, default); G4 PASS. |
+| `code/renderercommon/tr_image_png.cpp` | done | T1: 18; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_png.o, default); G4 PASS. |
+| `code/renderercommon/tr_image_tga.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image_tga.o, default); G4 advisory difference retained. |
+| `code/renderercommon/tr_noise.cpp` | done | T1-T17: 0 (already compatible); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_noise.o, default); G4 advisory difference retained. |
 | `code/renderercommon/tr_public.h` | done | T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: rend1/tr_init.o, rendv/tr_init.o. |
 | `code/renderercommon/tr_types.h` | done | T1-T17: 0; unchanged header verified through code/renderercommon/tr_font.c, strict native builds/G2/G3 PASS. |
 | `code/renderercommon/vulkan/vk_platform.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
@@ -343,82 +343,82 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/renderercommon/vulkan/vulkan_xlib.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderercommon/vulkan/vulkan_xlib_xrandr.h` | done | T1-T17: 0; unchanged generated Khronos header; C and strict C++20 Xlib/Xrandr header fixture G2/G3 PASS. |
 | `code/renderervk/iqm.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderervk/shaders/bin2hex.c` | done | Unchanged standalone build utility, not linked engine code; gcc/g++ strict native -O2 compile PASS, fixed 259-byte input and append output byte-identical. Engine layout gate not applicable (no engine records). |
+| `code/renderervk/shaders/bin2hex.cpp` | done | Unchanged standalone build utility, not linked engine code; gcc/g++ strict native -O2 compile PASS, fixed 259-byte input and append output byte-identical. Engine layout gate not applicable (no engine records). |
 | `code/renderervk/shaders/spirv/shader_data.cpp` | done | T18: 74 preceding extern const declarations; unchanged initialized bytes. Verified through sole consumer rendv/vk.o: C SHA256 unchanged, strict release/debug C++, G2/G3 PASS; G4 advisory diff retained under vk.c. vk.c and this include require each other for C++ gates; consecutive per-file commits record the pair. |
-| `code/renderervk/tr_animation.c` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_animation.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_backend.c` | done | T4: 11 occurrences (prerequisite), T1: 4, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_backend.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_bsp.c` | done | T1: 42, T3: 2; T21/T22: 94 argument casts at 94 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_bsp.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_cmds.c` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_cmds.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_animation.cpp` | done | T1: 3, T2: 1, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_animation.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_backend.cpp` | done | T4: 11 occurrences (prerequisite), T1: 4, T3: 3, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_backend.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_bsp.cpp` | done | T1: 42, T3: 2; T21/T22: 94 argument casts at 94 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_bsp.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_cmds.cpp` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_cmds.o, default); G4 advisory difference retained. |
 | `code/renderervk/tr_common.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderervk/tr_curve.c` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_curve.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_image.c` | done | T1: 8, T2: 1, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_image.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_init.c` | done | T1: 5, T5: dlopen definition only; T21: 1 fallback M_PI argument cast; static GetRefAPI C linkage removed; C hash/strict C++/G2/G3 PASS (rendv/tr_init.o); G4 advisory difference retained. |
-| `code/renderervk/tr_light.c` | done | T4: 10 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_light.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_curve.cpp` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_curve.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_image.cpp` | done | T1: 8, T2: 1, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_image.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_init.cpp` | done | T1: 5, T5: dlopen definition only; T21: 1 fallback M_PI argument cast; static GetRefAPI C linkage removed; C hash/strict C++/G2/G3 PASS (rendv/tr_init.o); G4 advisory difference retained. |
+| `code/renderervk/tr_light.cpp` | done | T4: 10 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_light.o, default); G4 advisory difference retained. |
 | `code/renderervk/tr_local.h` | done | T4: 5 occurrences (prerequisite); actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderervk/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; T21: 8 argument casts at 8 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_main.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_marks.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_marks.o, default); G4 PASS. |
-| `code/renderervk/tr_mesh.c` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_mesh.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_model.c` | done | T1: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_model.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_model_iqm.c` | done | T1: 4, T2: 2, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_model_iqm.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_scene.c` | done | T4: 4 occurrences (prerequisite), T1: 2, T3: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_scene.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_shade.c` | done | T4: 4 occurrences (prerequisite), T2: 1, T17: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shade.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_shade_calc.c` | done | T4: 50 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shade_calc.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_shader.c` | done | T1: 5, T3: 17, T16: 1, T17: 9; T21/T22: 5 argument casts at 5 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shader.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_shadows.c` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shadows.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_sky.c` | done | T4: 7 occurrences (prerequisite); T21/T22: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_sky.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_surface.c` | done | T4: 25 occurrences (prerequisite); T21: 4 argument casts at 4 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_surface.o, default); G4 advisory difference retained. |
-| `code/renderervk/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_world.o, default); G4 advisory difference retained. |
-| `code/renderervk/vk.c` | done | Filename dependency update for embedded shader rename; separate DEVIATION; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderervk/tr_main.cpp` | done | T4: 113 occurrences (prerequisite), T17: 2; T21: 8 argument casts at 8 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_main.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_marks.cpp` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_marks.o, default); G4 PASS. |
+| `code/renderervk/tr_mesh.cpp` | done | T4: 4 occurrences (prerequisite), T1: 4, T2: 1, T17: 2; T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_mesh.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_model.cpp` | done | T1: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_model.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_model_iqm.cpp` | done | T1: 4, T2: 2, T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_model_iqm.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_scene.cpp` | done | T4: 4 occurrences (prerequisite), T1: 2, T3: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_scene.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_shade.cpp` | done | T4: 4 occurrences (prerequisite), T2: 1, T17: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shade.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_shade_calc.cpp` | done | T4: 50 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shade_calc.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_shader.cpp` | done | T1: 5, T3: 17, T16: 1, T17: 9; T21/T22: 5 argument casts at 5 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shader.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_shadows.cpp` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_shadows.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_sky.cpp` | done | T4: 7 occurrences (prerequisite); T21/T22: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_sky.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_surface.cpp` | done | T4: 25 occurrences (prerequisite); T21: 4 argument casts at 4 calls (native and fallback M_PI); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_surface.o, default); G4 advisory difference retained. |
+| `code/renderervk/tr_world.cpp` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/tr_world.o, default); G4 advisory difference retained. |
+| `code/renderervk/vk.cpp` | done | Filename dependency update for embedded shader rename; separate DEVIATION; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderervk/vk.h` | done | T1-T17: 0; unchanged header; actual consumer code/renderervk/tr_animation.c strict native builds/G2/G3 PASS. |
-| `code/renderervk/vk_flares.c` | done | T4: 3 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_flares.o, default); G4 advisory difference retained. |
-| `code/renderervk/vk_vbo.c` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_vbo.o, default); G4 advisory difference retained. |
-| `code/sdl/sdl_gamma.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_gamma.o, default); G4 PASS. |
-| `code/sdl/sdl_glimp.c` | done | T1: 4; T3: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_glimp.o, default); G4 PASS. |
+| `code/renderervk/vk_flares.cpp` | done | T4: 3 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_flares.o, default); G4 advisory difference retained. |
+| `code/renderervk/vk_vbo.cpp` | done | T1: 6; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rendv/vk_vbo.o, default); G4 advisory difference retained. |
+| `code/sdl/sdl_gamma.cpp` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_gamma.o, default); G4 PASS. |
+| `code/sdl/sdl_glimp.cpp` | done | T1: 4; T3: 5; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_glimp.o, default); G4 PASS. |
 | `code/sdl/sdl_glw.h` | done | T1-T17: 0; unchanged header verified through sdl_gamma.c; native strict builds and G2/G3 PASS. |
 | `code/sdl/sdl_icon.h` | done | Unchanged initializer; sdl_glimp.c consuming object passes original C hash, strict C++ and G2/G3. |
-| `code/sdl/sdl_input.c` | done | T19: 1 enum hoisted with original body indentation; T3: 25 keyNum_t casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_input.o, default); G4 advisory difference retained. |
-| `code/sdl/sdl_snd.c` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_snd.o, default); G4 PASS. |
+| `code/sdl/sdl_input.cpp` | done | T19: 1 enum hoisted with original body indentation; T3: 25 keyNum_t casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_input.o, default); G4 advisory difference retained. |
+| `code/sdl/sdl_snd.cpp` | done | T1: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/sdl_snd.o, default); G4 PASS. |
 | `code/server/server.h` | done | T1-T17: 0; unchanged header verified through server consumers, strict native release/debug and G2/G3 PASS. |
-| `code/server/sv_bot.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_bot.o); G4 advisory difference retained. |
-| `code/server/sv_ccmds.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory difference retained. |
-| `code/server/sv_client.c` | done | T1: 2; T2: 4; T20: 1; T25: 1 preserving original C compound line; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_client.o, default); G4 advisory FAIL, full diff retained. |
-| `code/server/sv_filter.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory difference retained. |
-| `code/server/sv_game.c` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (ded/sv_game.o); G4 advisory difference retained. |
-| `code/server/sv_init.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory difference retained. |
-| `code/server/sv_main.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_main.o); G4 advisory difference retained. |
-| `code/server/sv_net_chan.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_net_chan.o); G4 advisory difference retained. |
+| `code/server/sv_bot.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_bot.o); G4 advisory difference retained. |
+| `code/server/sv_ccmds.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory difference retained. |
+| `code/server/sv_client.cpp` | done | T1: 2; T2: 4; T20: 1; T25: 1 preserving original C compound line; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_client.o, default); G4 advisory FAIL, full diff retained. |
+| `code/server/sv_filter.cpp` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory difference retained. |
+| `code/server/sv_game.cpp` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (ded/sv_game.o); G4 advisory difference retained. |
+| `code/server/sv_init.cpp` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory difference retained. |
+| `code/server/sv_main.cpp` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_main.o); G4 advisory difference retained. |
+| `code/server/sv_net_chan.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_net_chan.o); G4 advisory difference retained. |
 | `code/server/sv_rankings.c` | done | Excluded by accepted scope: never built, proprietary rankings SDK; unchanged and must not be renamed. |
-| `code/server/sv_snapshot.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_snapshot.o); G4 advisory difference retained. |
-| `code/server/sv_world.c` | done | T3: 2 (includes bitwise assignment result); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_world.o); G4 advisory difference retained. |
+| `code/server/sv_snapshot.cpp` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_snapshot.o); G4 advisory difference retained. |
+| `code/server/sv_world.cpp` | done | T3: 2 (includes bitwise assignment result); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_world.o); G4 advisory difference retained. |
 | `code/server/tlds.h` | done | Unchanged initializer; T25 unblocks actual dedicated and client sv_client consumers. Both C hashes unchanged; strict C++ and G2/G3 PASS. |
 | `code/ui/ui_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through cl_ui.c actual dependency and native strict builds/G2/G3. |
-| `code/unix/linux_glimp.c` | done | T1: 2 sites (4 expanded casts), T2: 3, T3: 2, T4: 1 identifier (3 occurrences); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_glimp.o, nosdl); G4 advisory difference retained. |
-| `code/unix/linux_joystick.c` | done | T1-T17: 0; dormant USE_JOYSTICK body explicitly compiled; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_joystick.o, nosdl); G4 advisory difference retained. |
+| `code/unix/linux_glimp.cpp` | done | T1: 2 sites (4 expanded casts), T2: 3, T3: 2, T4: 1 identifier (3 occurrences); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_glimp.o, nosdl); G4 advisory difference retained. |
+| `code/unix/linux_joystick.cpp` | done | T1-T17: 0; dormant USE_JOYSTICK body explicitly compiled; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_joystick.o, nosdl); G4 advisory difference retained. |
 | `code/unix/linux_local.h` | done | T1-T17: 0; unchanged header verified through unix_main.c and linux_glimp.c; native strict builds and G2/G3 PASS. |
-| `code/unix/linux_qgl.c` | done | T1: 1 macro site (6 expanded casts); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_qgl.o, nosdl); G4 advisory difference retained. |
-| `code/unix/linux_qvk.c` | done | T1: 1 function-to-object pointer return cast; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_qvk.o, nosdl); G4 PASS. |
-| `code/unix/linux_signals.c` | done | T1-T17: 0; renderer header T4 prerequisite resolves prior blocker; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/linux_signals.o, default); G4 PASS. |
-| `code/unix/linux_snd.c` | done | T1: 5; original thread-function casts retained inside typed casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_snd.o, nosdl); G4 advisory difference retained. |
+| `code/unix/linux_qgl.cpp` | done | T1: 1 macro site (6 expanded casts); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_qgl.o, nosdl); G4 advisory difference retained. |
+| `code/unix/linux_qvk.cpp` | done | T1: 1 function-to-object pointer return cast; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_qvk.o, nosdl); G4 PASS. |
+| `code/unix/linux_signals.cpp` | done | T1-T17: 0; renderer header T4 prerequisite resolves prior blocker; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/linux_signals.o, default); G4 PASS. |
+| `code/unix/linux_snd.cpp` | done | T1: 5; original thread-function casts retained inside typed casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_snd.o, nosdl); G4 advisory difference retained. |
 | `code/unix/unix_glw.h` | done | T1-T17: 0; unchanged header verified through non-SDL linux_glimp.c, linux_qgl.c and X11 extensions; G2/G3 PASS. |
-| `code/unix/unix_main.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_main.o, default); G4 advisory difference retained. |
-| `code/unix/unix_shared.c` | done | T1: 1; T23: 1 feature-test guard; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_shared.o, default); G4 advisory difference retained. |
-| `code/unix/x11_dga.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_dga.o, nosdl); G4 PASS. |
-| `code/unix/x11_randr.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_randr.o, nosdl); G4 PASS. |
-| `code/unix/x11_vidmode.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_vidmode.o, nosdl); G4 PASS. |
+| `code/unix/unix_main.cpp` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_main.o, default); G4 advisory difference retained. |
+| `code/unix/unix_shared.cpp` | done | T1: 1; T23: 1 feature-test guard; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_shared.o, default); G4 advisory difference retained. |
+| `code/unix/x11_dga.cpp` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_dga.o, nosdl); G4 PASS. |
+| `code/unix/x11_randr.cpp` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_randr.o, nosdl); G4 PASS. |
+| `code/unix/x11_vidmode.cpp` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_vidmode.o, nosdl); G4 PASS. |
 | `code/win32/glw_win.h` | done | Unchanged; actual MinGW win_glimp.c and win_qgl.c consumers pass C hashes, strict release/debug C++ and G2/G3. |
 | `code/win32/resource.h` | done | Unchanged; actual MinGW win_main.c and win_syscon.c consumers pass C hashes, strict release/debug C++ and G2/G3. |
-| `code/win32/win_gamma.c` | done | T1: 1 previously inspected HMODULE cast, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_gamma.o); G4 PASS. |
-| `code/win32/win_glimp.c` | done | T1: 2 including optional procedure macro; T2: 4; T5: 2 GPU exports; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_glimp.o); G4 advisory difference retained. |
-| `code/win32/win_input.c` | done | T24: 2 GUID arguments; T15: 2 required lexical spaces; prior T2 retained; CINTERFACE predeclared by Windows C++ compiler flags before transitive curl SDK headers; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_input.o); G4 PASS. Explicit USE_WASAPI=0/1: original C hashes, strict release/debug C++, G2/G3 PASS; G4 recorded. |
+| `code/win32/win_gamma.cpp` | done | T1: 1 previously inspected HMODULE cast, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_gamma.o); G4 PASS. |
+| `code/win32/win_glimp.cpp` | done | T1: 2 including optional procedure macro; T2: 4; T5: 2 GPU exports; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_glimp.o); G4 advisory difference retained. |
+| `code/win32/win_input.cpp` | done | T24: 2 GUID arguments; T15: 2 required lexical spaces; prior T2 retained; CINTERFACE predeclared by Windows C++ compiler flags before transitive curl SDK headers; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_input.o); G4 PASS. Explicit USE_WASAPI=0/1: original C hashes, strict release/debug C++, G2/G3 PASS; G4 recorded. |
 | `code/win32/win_local.h` | done | T24 exact approved macros before SDK includes; all 300 original MinGW C object hashes unchanged; win_main C++/G2/G3 PASS. |
-| `code/win32/win_main.c` | done | T1: 4 total, including FARPROC to void*; existing inspection casts now C-oracle verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_main.o); G4 advisory difference retained. |
-| `code/win32/win_minimize.c` | done | T1-T23: 0, already compatible; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_minimize.o); G4 advisory difference retained. |
-| `code/win32/win_qgl.c` | done | T1: 3 sites including function-to-object pointer conversion; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_qgl.o); G4 PASS. |
-| `code/win32/win_qvk.c` | done | T1: 4 sites including function-to-object pointer conversion; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_qvk.o); G4 PASS. |
-| `code/win32/win_shared.c` | done | T1-T23: 0; default profile configuration; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_shared.o); G4 advisory difference retained. |
-| `code/win32/win_snd.c` | done | T24: 8 outgoing GUID arguments and 2 incoming pointer uses; T4: this identifier to self; T1: 2 Lock casts plus prior loader casts; T18: 2 GUID const declarations; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_snd.o); G4 advisory difference retained. Explicit USE_WASAPI=0/1: original C hashes, strict release/debug C++, G2/G3 PASS; G4 recorded. |
-| `code/win32/win_syscon.c` | done | T2: 1 previously inspected boolean toggle, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_syscon.o); G4 advisory difference retained. |
-| `code/win32/win_wndproc.c` | done | T1: 2; T2: 2 previously inspected edits, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_wndproc.o); G4 advisory difference retained. |
+| `code/win32/win_main.cpp` | done | T1: 4 total, including FARPROC to void*; existing inspection casts now C-oracle verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_main.o); G4 advisory difference retained. |
+| `code/win32/win_minimize.cpp` | done | T1-T23: 0, already compatible; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_minimize.o); G4 advisory difference retained. |
+| `code/win32/win_qgl.cpp` | done | T1: 3 sites including function-to-object pointer conversion; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_qgl.o); G4 PASS. |
+| `code/win32/win_qvk.cpp` | done | T1: 4 sites including function-to-object pointer conversion; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_qvk.o); G4 PASS. |
+| `code/win32/win_shared.cpp` | done | T1-T23: 0; default profile configuration; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_shared.o); G4 advisory difference retained. |
+| `code/win32/win_snd.cpp` | done | T24: 8 outgoing GUID arguments and 2 incoming pointer uses; T4: this identifier to self; T1: 2 Lock casts plus prior loader casts; T18: 2 GUID const declarations; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_snd.o); G4 advisory difference retained. Explicit USE_WASAPI=0/1: original C hashes, strict release/debug C++, G2/G3 PASS; G4 recorded. |
+| `code/win32/win_syscon.cpp` | done | T2: 1 previously inspected boolean toggle, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_syscon.o); G4 advisory difference retained. |
+| `code/win32/win_wndproc.cpp` | done | T1: 2; T2: 2 previously inspected edits, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_wndproc.o); G4 advisory difference retained. |
 
 ## Every retained current G4 difference
 
@@ -1236,3 +1236,9 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 - DEVIATION: embedded shader path prerequisite to phase 3. shader_data.c is included directly by vk.c. Move its blob unchanged to .cpp and update the one include plus two generator output paths separately, leaving the later vk.c rename content-free. Both C and C++ can include the .cpp data. This is a necessary filename dependency update, not an engine logic change. Reviewer preflight approved this minimal sequence.
 
 - Pre-rename refresh: 454 native object contexts pass strict compilation, G2 and G3; every G4 diff is indexed in t25-native-context-results.json. Original C manifest recheck: native 295/295, non-SDL 299/299, ARM/AArch64/PPC64LE 65/65 each, MinGW non-SDL 300/300. Shader include path consumer additionally passes native/non-SDL/MinGW C hashes/G2/G3 (phase3-shader-results.json).
+
+- Phase 3: 170 byte-identical engine moves after the separate shader-data move; exact old/new/blob inventory phase3-renames.json. GNU Make now compiles engine sources only as C++20; vendored C and assembly retain original rules. Five engine MSVC projects/filters updated with C++20, no exceptions/RTTI, and early empty CINTERFACE. renderer2 removed from GNU/solution builds. x86 Windows/Linux CI entries removed, x86_64 preserved. Branch workflow dispatch is guarded from publishing the public latest release; this enables the requested CI verification without release publication.
+
+- Frozen pre-rename C oracle: `e49b82595c7b1a25c70d9e86b72b3ed147adbdb3`. Reproduce with `mkdir -p /tmp/port-c-oracle; git archive e49b82595c7b1a25c70d9e86b72b3ed147adbdb3 | tar -x -C /tmp/port-c-oracle`; export `PORT_C_ORACLE=/tmp/port-c-oracle` for every post-rename gate/matrix invocation. That checkout retains BUILD_CXX=0 and the original C T25 branch.
+
+- Main rename G8: reviewer verified all 170 R100 moves, correct native/Clang/cross/explicit-CXX compiler selection, unchanged vendor C flags, valid MSVC XML/paths and CRLF, and feature-branch CI publication guard. Removed final two dead rend2 mkdir lines. Fresh build directories are mandatory after the language change.

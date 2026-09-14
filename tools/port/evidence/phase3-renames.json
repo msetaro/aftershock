@@ -1,0 +1,852 @@
+[
+  {
+    "old": "code/botlib/be_aas_bspq3.c",
+    "new": "code/botlib/be_aas_bspq3.cpp",
+    "blob": "f3b2fc4749624fa1a8988aa6095e00a5709e5f9c"
+  },
+  {
+    "old": "code/botlib/be_aas_cluster.c",
+    "new": "code/botlib/be_aas_cluster.cpp",
+    "blob": "13361b62b3903ea8fdaabec2b1f22eba5eb0afc8"
+  },
+  {
+    "old": "code/botlib/be_aas_debug.c",
+    "new": "code/botlib/be_aas_debug.cpp",
+    "blob": "31859047f1314f7d1d684b2bfbb01170c91f4f82"
+  },
+  {
+    "old": "code/botlib/be_aas_entity.c",
+    "new": "code/botlib/be_aas_entity.cpp",
+    "blob": "9e8cfd390680e2463656662615864b66e6dcb5de"
+  },
+  {
+    "old": "code/botlib/be_aas_file.c",
+    "new": "code/botlib/be_aas_file.cpp",
+    "blob": "65dc5d0a1099684d8a32ead157e926ca6f3408b7"
+  },
+  {
+    "old": "code/botlib/be_aas_main.c",
+    "new": "code/botlib/be_aas_main.cpp",
+    "blob": "def8aabaa31e673a13f415eec1aa2d6aed12b8e8"
+  },
+  {
+    "old": "code/botlib/be_aas_move.c",
+    "new": "code/botlib/be_aas_move.cpp",
+    "blob": "2004c223cb05d51a2c0a34433a99d65638f88c0d"
+  },
+  {
+    "old": "code/botlib/be_aas_optimize.c",
+    "new": "code/botlib/be_aas_optimize.cpp",
+    "blob": "02db13c023b58b9b9d74f2dac79c2e28086160a0"
+  },
+  {
+    "old": "code/botlib/be_aas_reach.c",
+    "new": "code/botlib/be_aas_reach.cpp",
+    "blob": "f9eaa35fda8d09ff86f1844bdd4bf58be0b1d84f"
+  },
+  {
+    "old": "code/botlib/be_aas_route.c",
+    "new": "code/botlib/be_aas_route.cpp",
+    "blob": "fe761a21b5c0b98928f2ba3b6af204c91fb6c7a0"
+  },
+  {
+    "old": "code/botlib/be_aas_routealt.c",
+    "new": "code/botlib/be_aas_routealt.cpp",
+    "blob": "8107fa2dd1c1abe4cec2e915de5ecd3ab48536c5"
+  },
+  {
+    "old": "code/botlib/be_aas_sample.c",
+    "new": "code/botlib/be_aas_sample.cpp",
+    "blob": "249b89f04f8f765430f07b660ae0beb9af9b67d6"
+  },
+  {
+    "old": "code/botlib/be_ai_char.c",
+    "new": "code/botlib/be_ai_char.cpp",
+    "blob": "d00b2e14abca92eb520b0a743e3e431223293feb"
+  },
+  {
+    "old": "code/botlib/be_ai_chat.c",
+    "new": "code/botlib/be_ai_chat.cpp",
+    "blob": "1d7ade2098b6791798fb91302e05cdccd36945bd"
+  },
+  {
+    "old": "code/botlib/be_ai_gen.c",
+    "new": "code/botlib/be_ai_gen.cpp",
+    "blob": "19c332c8322cc2b40d7dcecd5684638f745d42bb"
+  },
+  {
+    "old": "code/botlib/be_ai_goal.c",
+    "new": "code/botlib/be_ai_goal.cpp",
+    "blob": "e8167583ff2e2eaa5695b4147e9639e13bdc17b7"
+  },
+  {
+    "old": "code/botlib/be_ai_move.c",
+    "new": "code/botlib/be_ai_move.cpp",
+    "blob": "a5c9ac94881357a7609b578150e0cce62475874a"
+  },
+  {
+    "old": "code/botlib/be_ai_weap.c",
+    "new": "code/botlib/be_ai_weap.cpp",
+    "blob": "e4a3af4b6a449f51aa2e438b4f54f6ddcddfbe5c"
+  },
+  {
+    "old": "code/botlib/be_ai_weight.c",
+    "new": "code/botlib/be_ai_weight.cpp",
+    "blob": "df29751f36d373e3ea9b85f11c76928c6d721dc9"
+  },
+  {
+    "old": "code/botlib/be_ea.c",
+    "new": "code/botlib/be_ea.cpp",
+    "blob": "840ae3633eed6e5f8d21bb093b4dc6e5e771411d"
+  },
+  {
+    "old": "code/botlib/be_interface.c",
+    "new": "code/botlib/be_interface.cpp",
+    "blob": "b914ed7cb58135d5c687edd3a1a8d8c410fd8a9c"
+  },
+  {
+    "old": "code/botlib/l_crc.c",
+    "new": "code/botlib/l_crc.cpp",
+    "blob": "bb316b52f2a382fa65cb0d4d300cef0c4c56a93d"
+  },
+  {
+    "old": "code/botlib/l_libvar.c",
+    "new": "code/botlib/l_libvar.cpp",
+    "blob": "072c16dcd27fc0facbe32060927420f753f0d629"
+  },
+  {
+    "old": "code/botlib/l_log.c",
+    "new": "code/botlib/l_log.cpp",
+    "blob": "68c8e9facfec07cf760ee89eb27694bdab7c26eb"
+  },
+  {
+    "old": "code/botlib/l_memory.c",
+    "new": "code/botlib/l_memory.cpp",
+    "blob": "361e006aa299c124f7141a00cda6d81a666ebec5"
+  },
+  {
+    "old": "code/botlib/l_precomp.c",
+    "new": "code/botlib/l_precomp.cpp",
+    "blob": "8e448e8fac274281f8e26c93cf7d1d06edf5618a"
+  },
+  {
+    "old": "code/botlib/l_script.c",
+    "new": "code/botlib/l_script.cpp",
+    "blob": "941806dcbf95c6ea7bce46ebf0693900bd652702"
+  },
+  {
+    "old": "code/botlib/l_struct.c",
+    "new": "code/botlib/l_struct.cpp",
+    "blob": "87ad4e61131b65e81d76ec5e0ec3365dbf7a9f3a"
+  },
+  {
+    "old": "code/client/cl_avi.c",
+    "new": "code/client/cl_avi.cpp",
+    "blob": "f2606949914c27a162af75f16fc8b3b0646ad0b2"
+  },
+  {
+    "old": "code/client/cl_cgame.c",
+    "new": "code/client/cl_cgame.cpp",
+    "blob": "4484b0a2cafe0986c8aacf794010e6bbe4b2f1d1"
+  },
+  {
+    "old": "code/client/cl_cin.c",
+    "new": "code/client/cl_cin.cpp",
+    "blob": "5b4bfdaa1d860e0421debe78bd30c41daf676660"
+  },
+  {
+    "old": "code/client/cl_console.c",
+    "new": "code/client/cl_console.cpp",
+    "blob": "67052b879afb1aa6b9304ff3fe9271ffc241e7eb"
+  },
+  {
+    "old": "code/client/cl_curl.c",
+    "new": "code/client/cl_curl.cpp",
+    "blob": "e54b3f98657dd0bfdb704d52e0414da34f895c1f"
+  },
+  {
+    "old": "code/client/cl_input.c",
+    "new": "code/client/cl_input.cpp",
+    "blob": "4202d76f67cb453cd7777dae4ba2bd2572125ef3"
+  },
+  {
+    "old": "code/client/cl_jpeg.c",
+    "new": "code/client/cl_jpeg.cpp",
+    "blob": "4d3d644eb78429965684cda8cc87125f383174aa"
+  },
+  {
+    "old": "code/client/cl_keys.c",
+    "new": "code/client/cl_keys.cpp",
+    "blob": "a9d6a9aab3229574ff4efbb294949e47c6855619"
+  },
+  {
+    "old": "code/client/cl_main.c",
+    "new": "code/client/cl_main.cpp",
+    "blob": "748a71131407a99666a019fb6f95adde0d2e8c10"
+  },
+  {
+    "old": "code/client/cl_net_chan.c",
+    "new": "code/client/cl_net_chan.cpp",
+    "blob": "7ffce36f389143693ab942c5a051f3ab79963400"
+  },
+  {
+    "old": "code/client/cl_parse.c",
+    "new": "code/client/cl_parse.cpp",
+    "blob": "994f103761c8f984615015deae78bb9c9306f074"
+  },
+  {
+    "old": "code/client/cl_scrn.c",
+    "new": "code/client/cl_scrn.cpp",
+    "blob": "e2a33aec4c4a76b2d53ff611dde326057ee4692c"
+  },
+  {
+    "old": "code/client/cl_ui.c",
+    "new": "code/client/cl_ui.cpp",
+    "blob": "dec81c271488d67b22f068bde91cac286a660732"
+  },
+  {
+    "old": "code/client/snd_adpcm.c",
+    "new": "code/client/snd_adpcm.cpp",
+    "blob": "1a114edf0f20659d20465e2d7d733ce59e37f2fe"
+  },
+  {
+    "old": "code/client/snd_codec.c",
+    "new": "code/client/snd_codec.cpp",
+    "blob": "9b58409a5dfb3a3561ba38da6688a57764c0d87c"
+  },
+  {
+    "old": "code/client/snd_codec_ogg.c",
+    "new": "code/client/snd_codec_ogg.cpp",
+    "blob": "5c3e81d9a3e80540a05f1948b19246c6085385ca"
+  },
+  {
+    "old": "code/client/snd_codec_wav.c",
+    "new": "code/client/snd_codec_wav.cpp",
+    "blob": "a29230e39a37d0abe656b9d288cb1ff3721c49ec"
+  },
+  {
+    "old": "code/client/snd_dma.c",
+    "new": "code/client/snd_dma.cpp",
+    "blob": "3a37fb63a68547eb0983cf135271564f43c6ffae"
+  },
+  {
+    "old": "code/client/snd_main.c",
+    "new": "code/client/snd_main.cpp",
+    "blob": "16d50ec79e00f3b8bd0b49431eff067a5fcf955c"
+  },
+  {
+    "old": "code/client/snd_mem.c",
+    "new": "code/client/snd_mem.cpp",
+    "blob": "2999c5582b59f0c81e0143e6ed7e0f7ad5bfa746"
+  },
+  {
+    "old": "code/client/snd_mix.c",
+    "new": "code/client/snd_mix.cpp",
+    "blob": "17895da235d88493e9fece345562d2c0378818b1"
+  },
+  {
+    "old": "code/client/snd_wavelet.c",
+    "new": "code/client/snd_wavelet.cpp",
+    "blob": "df4c8f2fd1eaa7605c3d3dc29f07141a63b9c333"
+  },
+  {
+    "old": "code/qcommon/cm_load.c",
+    "new": "code/qcommon/cm_load.cpp",
+    "blob": "83b867f0e898dcbb03f06c1a6ca67258498d5919"
+  },
+  {
+    "old": "code/qcommon/cm_patch.c",
+    "new": "code/qcommon/cm_patch.cpp",
+    "blob": "98b4ea58dd2cc57c10c3d4f35d663b070d99b294"
+  },
+  {
+    "old": "code/qcommon/cm_polylib.c",
+    "new": "code/qcommon/cm_polylib.cpp",
+    "blob": "6dd7884142a6ab82432eb723cab16187b8adfabd"
+  },
+  {
+    "old": "code/qcommon/cm_test.c",
+    "new": "code/qcommon/cm_test.cpp",
+    "blob": "26b2f6eecfac15829743c4323e6670fb0a19a836"
+  },
+  {
+    "old": "code/qcommon/cm_trace.c",
+    "new": "code/qcommon/cm_trace.cpp",
+    "blob": "948456615b9ee3a136da67ee60222ec5740a0610"
+  },
+  {
+    "old": "code/qcommon/cmd.c",
+    "new": "code/qcommon/cmd.cpp",
+    "blob": "86c9107858d7be03de6f466855c44df96b00b178"
+  },
+  {
+    "old": "code/qcommon/common.c",
+    "new": "code/qcommon/common.cpp",
+    "blob": "cb8828407866edf3ddb255eaa10a68fef02b91f7"
+  },
+  {
+    "old": "code/qcommon/cvar.c",
+    "new": "code/qcommon/cvar.cpp",
+    "blob": "6f65054fa773db713ce45d4f1e39e1e6545233bf"
+  },
+  {
+    "old": "code/qcommon/files.c",
+    "new": "code/qcommon/files.cpp",
+    "blob": "f9c3f586b0e2819687c3e818d65110f16ae51d5c"
+  },
+  {
+    "old": "code/qcommon/history.c",
+    "new": "code/qcommon/history.cpp",
+    "blob": "64c3806380d1fc2f1d5b8e60410fcecd96ee5bf6"
+  },
+  {
+    "old": "code/qcommon/huffman.c",
+    "new": "code/qcommon/huffman.cpp",
+    "blob": "a54a3529b1fa04fc1464dfa6174a197add7b55d4"
+  },
+  {
+    "old": "code/qcommon/huffman_static.c",
+    "new": "code/qcommon/huffman_static.cpp",
+    "blob": "b140e4d17c44a9524ef846c5d382ca516bf6e6c6"
+  },
+  {
+    "old": "code/qcommon/keys.c",
+    "new": "code/qcommon/keys.cpp",
+    "blob": "84e0a9afc4c661ebf49946b0d281570d4ad64bbd"
+  },
+  {
+    "old": "code/qcommon/md4.c",
+    "new": "code/qcommon/md4.cpp",
+    "blob": "d1005d1658a9365f95e916449ac5b177a18ae215"
+  },
+  {
+    "old": "code/qcommon/md5.c",
+    "new": "code/qcommon/md5.cpp",
+    "blob": "c7458282f25ce9ad6c351561e4a6a69b5e3c9f3b"
+  },
+  {
+    "old": "code/qcommon/msg.c",
+    "new": "code/qcommon/msg.cpp",
+    "blob": "3887ed711ff057ae08c43decb5a69533e3383c2c"
+  },
+  {
+    "old": "code/qcommon/net_chan.c",
+    "new": "code/qcommon/net_chan.cpp",
+    "blob": "495f10a6a7a011fe9c5ea797529f8d148f695e6a"
+  },
+  {
+    "old": "code/qcommon/net_ip.c",
+    "new": "code/qcommon/net_ip.cpp",
+    "blob": "c4eb2612bdca771815436876ecd7d7a518e49257"
+  },
+  {
+    "old": "code/qcommon/puff.c",
+    "new": "code/qcommon/puff.cpp",
+    "blob": "9f149718a3bea1ad5c60e578d8d57e392fad5198"
+  },
+  {
+    "old": "code/qcommon/q_math.c",
+    "new": "code/qcommon/q_math.cpp",
+    "blob": "a85fcc298428ff84804ade9d4cd0555a4050c62b"
+  },
+  {
+    "old": "code/qcommon/q_shared.c",
+    "new": "code/qcommon/q_shared.cpp",
+    "blob": "dccff0913914a07d023a20257e1e40e495901d94"
+  },
+  {
+    "old": "code/qcommon/unzip.c",
+    "new": "code/qcommon/unzip.cpp",
+    "blob": "de05efad8c0d1696b03a8ca257229d14cea8ba3a"
+  },
+  {
+    "old": "code/qcommon/vm.c",
+    "new": "code/qcommon/vm.cpp",
+    "blob": "cfa7f9fb8d2edeaace41e4496e5025556dd4f60c"
+  },
+  {
+    "old": "code/qcommon/vm_aarch64.c",
+    "new": "code/qcommon/vm_aarch64.cpp",
+    "blob": "50616aa1b314e7fc715adf6b75298c40d0108aea"
+  },
+  {
+    "old": "code/qcommon/vm_armv7l.c",
+    "new": "code/qcommon/vm_armv7l.cpp",
+    "blob": "6b27acdd9e42c5e89e083dae6208917bb0f9ffe7"
+  },
+  {
+    "old": "code/qcommon/vm_interpreted.c",
+    "new": "code/qcommon/vm_interpreted.cpp",
+    "blob": "f97310d646e76e84eec2ee85bdc74ffd62cd51a5"
+  },
+  {
+    "old": "code/qcommon/vm_powerpc.c",
+    "new": "code/qcommon/vm_powerpc.cpp",
+    "blob": "44c4be4eca23697d718b61b32344210901015df7"
+  },
+  {
+    "old": "code/qcommon/vm_x86.c",
+    "new": "code/qcommon/vm_x86.cpp",
+    "blob": "b6bb6d39cf744cc33e815cc13100e243dfbd30e6"
+  },
+  {
+    "old": "code/renderer/tr_animation.c",
+    "new": "code/renderer/tr_animation.cpp",
+    "blob": "9b976b7c5b1470b7873eb791aa9bcf5b63ab90dd"
+  },
+  {
+    "old": "code/renderer/tr_arb.c",
+    "new": "code/renderer/tr_arb.cpp",
+    "blob": "e6bbbd9dcb4433abdb893503b9fd81f7c8d0940a"
+  },
+  {
+    "old": "code/renderer/tr_backend.c",
+    "new": "code/renderer/tr_backend.cpp",
+    "blob": "7837cd164d4be010391b45c943726521acb3bf65"
+  },
+  {
+    "old": "code/renderer/tr_bsp.c",
+    "new": "code/renderer/tr_bsp.cpp",
+    "blob": "142fb0794f12334e62030c60a2831b7e05221444"
+  },
+  {
+    "old": "code/renderer/tr_cmds.c",
+    "new": "code/renderer/tr_cmds.cpp",
+    "blob": "2c003578f5d8a6cbf1d6334b514a29546a64408f"
+  },
+  {
+    "old": "code/renderer/tr_curve.c",
+    "new": "code/renderer/tr_curve.cpp",
+    "blob": "e243f1dbc2ec801c850acf3258b23dc3019b7f33"
+  },
+  {
+    "old": "code/renderer/tr_flares.c",
+    "new": "code/renderer/tr_flares.cpp",
+    "blob": "bbf6e73184c13023c15efd0a727983f618552856"
+  },
+  {
+    "old": "code/renderer/tr_image.c",
+    "new": "code/renderer/tr_image.cpp",
+    "blob": "54330ce0baac9abeec5e8ebc2026b23c816122be"
+  },
+  {
+    "old": "code/renderer/tr_init.c",
+    "new": "code/renderer/tr_init.cpp",
+    "blob": "b6c4d920885c7ad2c587b883fec73b8421eea217"
+  },
+  {
+    "old": "code/renderer/tr_light.c",
+    "new": "code/renderer/tr_light.cpp",
+    "blob": "ed5011776acc2c3e746e2552ecb3c6ae1397c7a9"
+  },
+  {
+    "old": "code/renderer/tr_main.c",
+    "new": "code/renderer/tr_main.cpp",
+    "blob": "61a3509323f5640db5ed891d42c75ae46192627c"
+  },
+  {
+    "old": "code/renderer/tr_marks.c",
+    "new": "code/renderer/tr_marks.cpp",
+    "blob": "6893b4744c454ff46712b198dcd78013b04265e1"
+  },
+  {
+    "old": "code/renderer/tr_mesh.c",
+    "new": "code/renderer/tr_mesh.cpp",
+    "blob": "38322353d189c6c11fd9abe2e88f6ba1f08924d6"
+  },
+  {
+    "old": "code/renderer/tr_model.c",
+    "new": "code/renderer/tr_model.cpp",
+    "blob": "98cebbc925cdcb07c2c3f75640d0ed7e198629c5"
+  },
+  {
+    "old": "code/renderer/tr_model_iqm.c",
+    "new": "code/renderer/tr_model_iqm.cpp",
+    "blob": "26df25efcb9b108d3683b68f19ecad7ab661ab5a"
+  },
+  {
+    "old": "code/renderer/tr_scene.c",
+    "new": "code/renderer/tr_scene.cpp",
+    "blob": "e680dd4fd4825a533ce7a077e883284b4298ff0a"
+  },
+  {
+    "old": "code/renderer/tr_shade.c",
+    "new": "code/renderer/tr_shade.cpp",
+    "blob": "8ed67ebc081fee2071467fe40be8b9fc61aaaee7"
+  },
+  {
+    "old": "code/renderer/tr_shade_calc.c",
+    "new": "code/renderer/tr_shade_calc.cpp",
+    "blob": "43b557814d2bcba48612896132e232355e6b12c2"
+  },
+  {
+    "old": "code/renderer/tr_shader.c",
+    "new": "code/renderer/tr_shader.cpp",
+    "blob": "467124a6b879497f8cb0b1bf6dd1bce48c2156ed"
+  },
+  {
+    "old": "code/renderer/tr_shadows.c",
+    "new": "code/renderer/tr_shadows.cpp",
+    "blob": "aeddfcd2b8090fd3473dbfa1ccad69a5120459e5"
+  },
+  {
+    "old": "code/renderer/tr_sky.c",
+    "new": "code/renderer/tr_sky.cpp",
+    "blob": "785c2010bd1532b9788683d0a213fa8f4acf757e"
+  },
+  {
+    "old": "code/renderer/tr_surface.c",
+    "new": "code/renderer/tr_surface.cpp",
+    "blob": "0afe246d45273547ed3f50daac0264ca5e3c4826"
+  },
+  {
+    "old": "code/renderer/tr_vbo.c",
+    "new": "code/renderer/tr_vbo.cpp",
+    "blob": "9a43123c25695f80e2de4f587bde711a69ec5af7"
+  },
+  {
+    "old": "code/renderer/tr_world.c",
+    "new": "code/renderer/tr_world.cpp",
+    "blob": "a7ac00d62d471e23e84b1c0f2f606f7883119d94"
+  },
+  {
+    "old": "code/renderercommon/tr_font.c",
+    "new": "code/renderercommon/tr_font.cpp",
+    "blob": "ecfa879b9debb65c61ebc667e1467e9898131e73"
+  },
+  {
+    "old": "code/renderercommon/tr_image_bmp.c",
+    "new": "code/renderercommon/tr_image_bmp.cpp",
+    "blob": "8b5876f7371ce26c0082190121f48470bed8c68d"
+  },
+  {
+    "old": "code/renderercommon/tr_image_jpg.c",
+    "new": "code/renderercommon/tr_image_jpg.cpp",
+    "blob": "cc59005caa8373ce514555ce4b36b77875b07067"
+  },
+  {
+    "old": "code/renderercommon/tr_image_pcx.c",
+    "new": "code/renderercommon/tr_image_pcx.cpp",
+    "blob": "5af3f0733d1aceb299f99c9e765d0067f49dd3f2"
+  },
+  {
+    "old": "code/renderercommon/tr_image_png.c",
+    "new": "code/renderercommon/tr_image_png.cpp",
+    "blob": "e2f084fcaf0d27e7f213a66f250400f5605f6481"
+  },
+  {
+    "old": "code/renderercommon/tr_image_tga.c",
+    "new": "code/renderercommon/tr_image_tga.cpp",
+    "blob": "1e372ea6f107daafb6258fe076cb4028603f298e"
+  },
+  {
+    "old": "code/renderercommon/tr_noise.c",
+    "new": "code/renderercommon/tr_noise.cpp",
+    "blob": "4d3037bc3da235807fedbd6770644933a7555ba5"
+  },
+  {
+    "old": "code/renderervk/shaders/bin2hex.c",
+    "new": "code/renderervk/shaders/bin2hex.cpp",
+    "blob": "b657f0291003e8920690dc48875c57118f96db93"
+  },
+  {
+    "old": "code/renderervk/tr_animation.c",
+    "new": "code/renderervk/tr_animation.cpp",
+    "blob": "c9f06f7900fa49d74ffd2a77ed3d8c161320403b"
+  },
+  {
+    "old": "code/renderervk/tr_backend.c",
+    "new": "code/renderervk/tr_backend.cpp",
+    "blob": "c282dc932921f2e80eef1a74baaa6c6aa73f2125"
+  },
+  {
+    "old": "code/renderervk/tr_bsp.c",
+    "new": "code/renderervk/tr_bsp.cpp",
+    "blob": "8da72061c142a1105cdfc1c3f2dbb5442509ac7b"
+  },
+  {
+    "old": "code/renderervk/tr_cmds.c",
+    "new": "code/renderervk/tr_cmds.cpp",
+    "blob": "d7c583af5b92586aeae32b184359cfc061757b10"
+  },
+  {
+    "old": "code/renderervk/tr_curve.c",
+    "new": "code/renderervk/tr_curve.cpp",
+    "blob": "e243f1dbc2ec801c850acf3258b23dc3019b7f33"
+  },
+  {
+    "old": "code/renderervk/tr_image.c",
+    "new": "code/renderervk/tr_image.cpp",
+    "blob": "919838fcba5a99bf31c1af51b69ff385fd0d113e"
+  },
+  {
+    "old": "code/renderervk/tr_init.c",
+    "new": "code/renderervk/tr_init.cpp",
+    "blob": "b35a18aa3210ff8871d3b2fc0ec3b46d2ea85161"
+  },
+  {
+    "old": "code/renderervk/tr_light.c",
+    "new": "code/renderervk/tr_light.cpp",
+    "blob": "13e16d5b533d7f55b19343c48d40f9c3487b95e0"
+  },
+  {
+    "old": "code/renderervk/tr_main.c",
+    "new": "code/renderervk/tr_main.cpp",
+    "blob": "9d4a3111347b08d5e44a25164ccf8222e87ee7f8"
+  },
+  {
+    "old": "code/renderervk/tr_marks.c",
+    "new": "code/renderervk/tr_marks.cpp",
+    "blob": "6893b4744c454ff46712b198dcd78013b04265e1"
+  },
+  {
+    "old": "code/renderervk/tr_mesh.c",
+    "new": "code/renderervk/tr_mesh.cpp",
+    "blob": "a2b3a80eca50d2c2516ab597e0a995ad99c914c0"
+  },
+  {
+    "old": "code/renderervk/tr_model.c",
+    "new": "code/renderervk/tr_model.cpp",
+    "blob": "46ac28fe8bdea09be436b7c6973093adad149b5a"
+  },
+  {
+    "old": "code/renderervk/tr_model_iqm.c",
+    "new": "code/renderervk/tr_model_iqm.cpp",
+    "blob": "9c01d7c1627fea4d87d872eb943fa4885273dcaf"
+  },
+  {
+    "old": "code/renderervk/tr_scene.c",
+    "new": "code/renderervk/tr_scene.cpp",
+    "blob": "9adcabe583af72e68131975c5cc83b50ae23c4ce"
+  },
+  {
+    "old": "code/renderervk/tr_shade.c",
+    "new": "code/renderervk/tr_shade.cpp",
+    "blob": "81fc907d34c41bf980873cf71ca145075e7cbfba"
+  },
+  {
+    "old": "code/renderervk/tr_shade_calc.c",
+    "new": "code/renderervk/tr_shade_calc.cpp",
+    "blob": "fc5fb75bfa8e48b5d211094dde98320b609b170b"
+  },
+  {
+    "old": "code/renderervk/tr_shader.c",
+    "new": "code/renderervk/tr_shader.cpp",
+    "blob": "125fb062739442e9edbd5a133cfefd5ef2249861"
+  },
+  {
+    "old": "code/renderervk/tr_shadows.c",
+    "new": "code/renderervk/tr_shadows.cpp",
+    "blob": "3478e350b15b0adc080be9e2738b33e69001f805"
+  },
+  {
+    "old": "code/renderervk/tr_sky.c",
+    "new": "code/renderervk/tr_sky.cpp",
+    "blob": "dd8ab6133f506e340d18a1bebb88aec79e436698"
+  },
+  {
+    "old": "code/renderervk/tr_surface.c",
+    "new": "code/renderervk/tr_surface.cpp",
+    "blob": "579035cb6a4112af5287a5f2e257c6c83524463a"
+  },
+  {
+    "old": "code/renderervk/tr_world.c",
+    "new": "code/renderervk/tr_world.cpp",
+    "blob": "d708ea07dc442aa3aa5553ae65aab899a2ef453e"
+  },
+  {
+    "old": "code/renderervk/vk.c",
+    "new": "code/renderervk/vk.cpp",
+    "blob": "4aed6626b719c647043d33584f832b4b644a5f09"
+  },
+  {
+    "old": "code/renderervk/vk_flares.c",
+    "new": "code/renderervk/vk_flares.cpp",
+    "blob": "a8971684a2f049a0b6fd7e1491538356d8b7f8ae"
+  },
+  {
+    "old": "code/renderervk/vk_vbo.c",
+    "new": "code/renderervk/vk_vbo.cpp",
+    "blob": "49760eed22e44421159f7fae82ecafff1e9fd14e"
+  },
+  {
+    "old": "code/sdl/sdl_gamma.c",
+    "new": "code/sdl/sdl_gamma.cpp",
+    "blob": "b758858b16ea92e9b81f1cde817db910217f705d"
+  },
+  {
+    "old": "code/sdl/sdl_glimp.c",
+    "new": "code/sdl/sdl_glimp.cpp",
+    "blob": "76779b3325e15c44e057e68bcadfcad1c46f8361"
+  },
+  {
+    "old": "code/sdl/sdl_input.c",
+    "new": "code/sdl/sdl_input.cpp",
+    "blob": "cc297855608df3959b21d9acea871072ca6b619e"
+  },
+  {
+    "old": "code/sdl/sdl_snd.c",
+    "new": "code/sdl/sdl_snd.cpp",
+    "blob": "2f2561b845d4a2b56cb302b0ac454b439dc9fd91"
+  },
+  {
+    "old": "code/server/sv_bot.c",
+    "new": "code/server/sv_bot.cpp",
+    "blob": "5eb5a6114bca54b818d58111cb1e8a81566a6b70"
+  },
+  {
+    "old": "code/server/sv_ccmds.c",
+    "new": "code/server/sv_ccmds.cpp",
+    "blob": "5321e4c429a2d985650b7c4efbfc58e99b98eac0"
+  },
+  {
+    "old": "code/server/sv_client.c",
+    "new": "code/server/sv_client.cpp",
+    "blob": "009a24fa9fd19988a062c62e3edfac2e65f6e87c"
+  },
+  {
+    "old": "code/server/sv_filter.c",
+    "new": "code/server/sv_filter.cpp",
+    "blob": "4c1fe1ed0528aec5302b8cc632f4f6ee9cbb9e77"
+  },
+  {
+    "old": "code/server/sv_game.c",
+    "new": "code/server/sv_game.cpp",
+    "blob": "3e69d86da00f4feaca4b6ae7fab6eec7b23a3f90"
+  },
+  {
+    "old": "code/server/sv_init.c",
+    "new": "code/server/sv_init.cpp",
+    "blob": "56c68c7a4c3593f5d39907b227528f6a4fee5b95"
+  },
+  {
+    "old": "code/server/sv_main.c",
+    "new": "code/server/sv_main.cpp",
+    "blob": "4ff2d9dfc400ba5e0e198b525dea7296f46e6d85"
+  },
+  {
+    "old": "code/server/sv_net_chan.c",
+    "new": "code/server/sv_net_chan.cpp",
+    "blob": "c9152086af2f74e9742ac83e44741c3a0a588391"
+  },
+  {
+    "old": "code/server/sv_snapshot.c",
+    "new": "code/server/sv_snapshot.cpp",
+    "blob": "ba350c7a00c53ec497b960571a22360750919ab5"
+  },
+  {
+    "old": "code/server/sv_world.c",
+    "new": "code/server/sv_world.cpp",
+    "blob": "f10e59cd2797cb5221fd3d4a11d76c068fa0a5d5"
+  },
+  {
+    "old": "code/unix/linux_glimp.c",
+    "new": "code/unix/linux_glimp.cpp",
+    "blob": "8b132897abf678b58d8168899bfe54e84615321a"
+  },
+  {
+    "old": "code/unix/linux_joystick.c",
+    "new": "code/unix/linux_joystick.cpp",
+    "blob": "a7271934315084fbe81cc2ab5ba89d7412fb7605"
+  },
+  {
+    "old": "code/unix/linux_qgl.c",
+    "new": "code/unix/linux_qgl.cpp",
+    "blob": "24991ed040d56856f6c08b91dfb7743d9d99ddc2"
+  },
+  {
+    "old": "code/unix/linux_qvk.c",
+    "new": "code/unix/linux_qvk.cpp",
+    "blob": "827feeb9d36788d1cd08c9ab04a51b28ea5a351b"
+  },
+  {
+    "old": "code/unix/linux_signals.c",
+    "new": "code/unix/linux_signals.cpp",
+    "blob": "b37ced71b748a9256a06bc1c85999f3deda436b9"
+  },
+  {
+    "old": "code/unix/linux_snd.c",
+    "new": "code/unix/linux_snd.cpp",
+    "blob": "2ff46f432dcaa0453c0647df19309f3c44aab8f9"
+  },
+  {
+    "old": "code/unix/unix_main.c",
+    "new": "code/unix/unix_main.cpp",
+    "blob": "15e4d3982b59c9fdfd979fe2aae4daf2b54e5aaa"
+  },
+  {
+    "old": "code/unix/unix_shared.c",
+    "new": "code/unix/unix_shared.cpp",
+    "blob": "0eb02427c84230583e42086d04a80462db39bbf2"
+  },
+  {
+    "old": "code/unix/x11_dga.c",
+    "new": "code/unix/x11_dga.cpp",
+    "blob": "bf153a4363b72308a60b6a717bd1beaa67c15595"
+  },
+  {
+    "old": "code/unix/x11_randr.c",
+    "new": "code/unix/x11_randr.cpp",
+    "blob": "1ccb1b54f0bb46a8c055678aa46a88d491c389a7"
+  },
+  {
+    "old": "code/unix/x11_vidmode.c",
+    "new": "code/unix/x11_vidmode.cpp",
+    "blob": "c38ae2c9ba71eba5f3535a0b1a4235f4f1de05f7"
+  },
+  {
+    "old": "code/win32/win_gamma.c",
+    "new": "code/win32/win_gamma.cpp",
+    "blob": "0772efbe84a911a7b38b6c007a99a65c27d648f1"
+  },
+  {
+    "old": "code/win32/win_glimp.c",
+    "new": "code/win32/win_glimp.cpp",
+    "blob": "e8dde07fc2817d069ac7c6cf119faf6df8de17cc"
+  },
+  {
+    "old": "code/win32/win_input.c",
+    "new": "code/win32/win_input.cpp",
+    "blob": "5d98c504ccce94b6866684e2dc15bd1b3df801ff"
+  },
+  {
+    "old": "code/win32/win_main.c",
+    "new": "code/win32/win_main.cpp",
+    "blob": "b5262e3040a0906bda49a064a8e7cdec70a58816"
+  },
+  {
+    "old": "code/win32/win_minimize.c",
+    "new": "code/win32/win_minimize.cpp",
+    "blob": "8e95f201508ebd45b37d44d0a8e5b38bd3d705e2"
+  },
+  {
+    "old": "code/win32/win_qgl.c",
+    "new": "code/win32/win_qgl.cpp",
+    "blob": "8481745107ea0546cd187e4f48df84f38e392f5b"
+  },
+  {
+    "old": "code/win32/win_qvk.c",
+    "new": "code/win32/win_qvk.cpp",
+    "blob": "2e4d18014dc81aa78c602d509badf0f70d3dd326"
+  },
+  {
+    "old": "code/win32/win_shared.c",
+    "new": "code/win32/win_shared.cpp",
+    "blob": "5729a37d1fa9bfde4e5a5d13036380469296b031"
+  },
+  {
+    "old": "code/win32/win_snd.c",
+    "new": "code/win32/win_snd.cpp",
+    "blob": "cbcb2a3d1cc5324761f82ad4201598549df54183"
+  },
+  {
+    "old": "code/win32/win_syscon.c",
+    "new": "code/win32/win_syscon.cpp",
+    "blob": "5b424d1a7cda99b6c6fd6981a9da8d77f3662b53"
+  },
+  {
+    "old": "code/win32/win_wndproc.c",
+    "new": "code/win32/win_wndproc.cpp",
+    "blob": "4081463165ca30b9b7b423364b3ab0f25ff7794f"
+  }
+]

@@ -18,97 +18,97 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\renderervk\tr_animation.c">
+    <ClCompile Include="..\..\renderervk\tr_animation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_backend.c">
+    <ClCompile Include="..\..\renderervk\tr_backend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_bsp.c">
+    <ClCompile Include="..\..\renderervk\tr_bsp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_cmds.c">
+    <ClCompile Include="..\..\renderervk\tr_cmds.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_curve.c">
+    <ClCompile Include="..\..\renderervk\tr_curve.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_image.c">
+    <ClCompile Include="..\..\renderervk\tr_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderercommon\tr_font.c">
+    <ClCompile Include="..\..\renderercommon\tr_font.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderercommon\tr_image_bmp.c">
+    <ClCompile Include="..\..\renderercommon\tr_image_bmp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderercommon\tr_image_jpg.c">
+    <ClCompile Include="..\..\renderercommon\tr_image_jpg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderercommon\tr_image_pcx.c">
+    <ClCompile Include="..\..\renderercommon\tr_image_pcx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderercommon\tr_image_png.c">
+    <ClCompile Include="..\..\renderercommon\tr_image_png.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderercommon\tr_image_tga.c">
+    <ClCompile Include="..\..\renderercommon\tr_image_tga.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_init.c">
+    <ClCompile Include="..\..\renderervk\tr_init.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_light.c">
+    <ClCompile Include="..\..\renderervk\tr_light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_main.c">
+    <ClCompile Include="..\..\renderervk\tr_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_marks.c">
+    <ClCompile Include="..\..\renderervk\tr_marks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_mesh.c">
+    <ClCompile Include="..\..\renderervk\tr_mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_model.c">
+    <ClCompile Include="..\..\renderervk\tr_model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_model_iqm.c">
+    <ClCompile Include="..\..\renderervk\tr_model_iqm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_scene.c">
+    <ClCompile Include="..\..\renderervk\tr_scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_shade.c">
+    <ClCompile Include="..\..\renderervk\tr_shade.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_shade_calc.c">
+    <ClCompile Include="..\..\renderervk\tr_shade_calc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_shader.c">
+    <ClCompile Include="..\..\renderervk\tr_shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_shadows.c">
+    <ClCompile Include="..\..\renderervk\tr_shadows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_sky.c">
+    <ClCompile Include="..\..\renderervk\tr_sky.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_surface.c">
+    <ClCompile Include="..\..\renderervk\tr_surface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\tr_world.c">
+    <ClCompile Include="..\..\renderervk\tr_world.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\vk.c">
+    <ClCompile Include="..\..\renderervk\vk.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderercommon\tr_noise.c">
+    <ClCompile Include="..\..\renderercommon\tr_noise.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\vk_flares.c">
+    <ClCompile Include="..\..\renderervk\vk_flares.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderervk\vk_vbo.c">
+    <ClCompile Include="..\..\renderervk\vk_vbo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
