@@ -533,7 +533,7 @@ static qboolean IN_InitDIMouse( void ) {
 	}
 
 	// obtain an interface to the system mouse device.
-	hr = IDirectInput_CreateDevice(g_pdi, &GUID_SysMouse, &g_pMouse, NULL);
+	hr = IDirectInput_CreateDevice(g_pdi, Q_REFGUID( GUID_SysMouse ), &g_pMouse, NULL);
 
 	if (FAILED(hr)) {
 		Com_DPrintf ("Couldn't open DI mouse device\n");
@@ -563,7 +563,7 @@ static qboolean IN_InitDIMouse( void ) {
 	// the buffer size is a DWORD property associated with the device
 	{
 		const GUID *guid = (const GUID *)(size_t)(1);
-		hr = IDirectInputDevice_SetProperty( g_pMouse, guid, &dipdw.diph );
+		hr = IDirectInputDevice_SetProperty( g_pMouse, Q_REFGUID( *guid ), &dipdw.diph );
 	}
 
 	if (FAILED(hr)) {
@@ -1008,7 +1008,7 @@ static void IN_GetHotkey( cvar_t *var, int *pHotKey ) {
 				&& code != VK_SHIFT && code != VK_LSHIFT && code != VK_RSHIFT
 				&& code != (VK_LWIN|HK_MOD_LWIN) && code != (VK_RWIN|HK_MOD_RWIN)
 				&& *pHotKey & 0xFF )) {
-			Com_Printf( "%s:"S_COLOR_YELLOW" invalid token %s\n", var->name, buf );
+			Com_Printf( "%s:" S_COLOR_YELLOW " invalid token %s\n", var->name, buf );
 			*pHotKey = 0;
 			break;
 		}
@@ -1043,7 +1043,7 @@ static void IN_GetHotkey( cvar_t *var, int *pHotKey ) {
 			|| *pHotKey == (HK_MOD_WIN|HK_MOD_RWIN)
 			|| *pHotKey == (VK_RETURN|HK_MOD_ALT)
 			|| *pHotKey == (HK_MOD_CONTROL|VK_PAUSE)) {
-		Com_Printf( "%s:"S_COLOR_YELLOW" invalid hotkey %s\n", var->name, var->string );
+		Com_Printf( "%s:" S_COLOR_YELLOW " invalid hotkey %s\n", var->name, var->string );
 		*pHotKey = 0;
 	}
 

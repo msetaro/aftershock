@@ -6,7 +6,7 @@ Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed c
 
 ## Next action
 
-T25 server and tlds.h verified; next Windows win_local.h T24, win_input.c, win_snd.c, then full native/runtime and cross acceptance before rename.
+Cross verification: next `win_snd.c`; T25 server hash blocker resolved. Then full native/cross sweeps and runtime acceptance; no rename until prerequisites pass.
 
 ## Phase checklist
 
@@ -414,7 +414,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/win32/resource.h` | done | Unchanged; actual MinGW win_main.c and win_syscon.c consumers pass C hashes, strict release/debug C++ and G2/G3. |
 | `code/win32/win_gamma.c` | done | T1: 1 previously inspected HMODULE cast, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_gamma.o); G4 PASS. |
 | `code/win32/win_glimp.c` | done | T1: 2 including optional procedure macro; T2: 4; T5: 2 GPU exports; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_glimp.o); G4 advisory difference retained. |
-| `code/win32/win_input.c` | blocked | Real MinGW verification: :536/:566 cannot convert const GUID* to const GUID&. CINTERFACE preserves vtables but GUID arguments still require pointer/reference adapters outside T1-T23. Two T15 literal-suffix errors are independently cataloged, but no partial candidate retained. Prior inspected T2 cast remains; C oracle hash matches. G1-G4 incomplete. |
+| `code/win32/win_input.c` | done | T24: 2 GUID arguments; T15: 2 required lexical spaces; prior T2 retained; CINTERFACE predeclared by Windows C++ compiler flags before transitive curl SDK headers; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_input.o); G4 PASS. |
 | `code/win32/win_local.h` | done | T24 exact approved macros before SDK includes; all 300 original MinGW C object hashes unchanged; win_main C++/G2/G3 PASS. |
 | `code/win32/win_main.c` | done | T1: 4 total, including FARPROC to void*; existing inspection casts now C-oracle verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_main.o); G4 advisory difference retained. |
 | `code/win32/win_minimize.c` | done | T1-T23: 0, already compatible; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_minimize.o); G4 advisory difference retained. |
