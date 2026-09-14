@@ -448,7 +448,7 @@ Full notes: `docs/cpp-port-notes.md`.
 
 | File | Status | Evidence / reason |
 |---|---|---|
-| `code/asm/qasm.h` | blocked | Unchanged assembly preprocessing header. Explicit gcc -m32 assembler check fails because 32-bit libc bits/wordsize.h is unavailable through q_platform.h/endian.h; no target gates or package installation. |
+| `code/asm/qasm.h` | done | Not applicable: included only by assembly .s files; explicitly outside C++ inputs. No rename. |
 | `code/botlib/aasfile.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
 | `code/botlib/be_aas_bsp.h` | done | T1-T17: 0; unchanged header verified in actual preprocessor dependencies of code/botlib/be_aas_bspq3.c; native strict C++ and G2/G3 PASS. Inactive BSPC/MEMDEBUG branches are outside native matrix. |
@@ -743,3 +743,5 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 - Phase 2 code/qcommon/qcommon.h: T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: ded/vm.o, client/cl_cgame.o.
 
 - Phase 2 code/renderercommon/tr_public.h: T5 review removes internal-only annotations; 295/295 C object hashes unchanged; actual consuming objects G2/G3 PASS, G4 advisory evidence retained: rend1/tr_init.o, rendv/tr_init.o.
+
+- Revalidated code/asm/qasm.h: Not applicable: included only by assembly .s files; explicitly outside C++ inputs. No rename.
