@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: renderervk; next `phase 2 headers and static renderer verification` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Finish fresh native/cross sweeps, resolve newly exposed compiler/gate diagnostics within the catalog, then consolidate this checkpoint. Phase 2 annotation cleanup is done. Native runtime/rename remain blocked by sv_client C hash; Windows SDK blockers are now real MinGW diagnoses.
 
 ## Phase checklist
 
@@ -763,3 +763,5 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 - Revalidated code/win32/win_input.c: Real MinGW verification: :536/:566 cannot convert const GUID* to const GUID&. CINTERFACE preserves vtables but GUID arguments still require pointer/reference adapters outside T1-T23. Two T15 literal-suffix errors are independently cataloged, but no partial candidate retained. Prior inspected T2 cast remains; C oracle hash matches. G1-G4 incomplete.
 
 - Revalidated code/win32/win_snd.c: Real MinGW verification: SDK C++ interfaces lack lpVtbl; CINTERFACE plus T4 this rename still fails GUID/reference calls at :300/:393/:422/:578/:853/:855. Eight outgoing GUID arguments and two memcmp addresses need uncataloged adaptation. USE_WASAPI=0 still fails DirectSound GUID calls. Prior two inspected T1 casts remain and C hash matches; new candidate edits not retained. G1-G4 incomplete.
+
+- Fresh native completed sweep: 154 translation units compile and pass G2/G3. All 13 G5 groups and standalone math gate still PASS after T5 cleanup. Every cross oracle object is now rechecked with tools/port/cross_gates.py (excluding blocked translation units and vendored objects); full cross compiler logs retained.
