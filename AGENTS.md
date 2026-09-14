@@ -1,92 +1,115 @@
 # Aftershock — agent instructions
 
-Aftershock is Matt's fork of the Quake3e engine (upstream: ec-/Quake3e). It is a C codebase
-(~300 engine files, ~308k lines, plus vendored libjpeg/libogg/libvorbis/libcurl/libsdl).
+Aftershock is Matt's fork of the Quake3e engine (upstream: ec-/Quake3e). The engine is now C++20
+(strict port merged 2026-09-14, PR #32). Vendored libraries under `code/libjpeg`, `code/libogg`,
+`code/libvorbis`, `code/libcurl`, `code/libsdl` and the `code/asm` sources stay C/assembly.
 
-## Current project goal: strict C -> C++20 port
+## Current phase: modernization
 
-The ONLY goal right now is to port the engine sources from C to C++ **with no behavioral change**.
-This is not a modernization, cleanup, or refactor. Read `docs/cpp-port-plan.md` before doing any
-port work; it defines the allowed transformations, the verification gates, and the PR rules.
+Goal: modernize the engine for building old-school Call of Duty style games (CoD 4 to Ghosts era)
+while preserving the classic id Tech 3 feel: fixed-timestep simulation, snapshot netcode with
+client prediction, cvars, pk3 content, flat POD data, no per-frame allocation, deterministic
+movement. Consoles are a long-term target, so console constraints apply now.
 
-Hard rules for port work:
-- No new behavior, no bug fixes, no "while I'm here" cleanups. If you find a bug, record it in
-  `docs/cpp-port-notes.md` and leave the code as-is.
-- Only apply transformations from the allowed catalog in the plan. Anything else needs a separate
-  commit prefixed `DEVIATION:` with a justification.
-- Do not introduce classes, references, templates, STL, `auto`, `nullptr`, `constexpr`, or any
-  C++ idiom. The result must read as the same C code that happens to compile as C++20.
-- Vendored third-party libraries under `code/libjpeg`, `code/libogg`, `code/libvorbis`,
-  `code/libcurl`, `code/libsdl` are NOT ported. Leave them as C. `code/renderer2` is not ported either.
-- Do not rename files (`.c` -> `.cpp`) until the plan's rename phase; that phase is a separate,
-  content-free `git mv` change.
-- The C build is the oracle. Every change must keep the C build green until the rename phase.
+The roadmap is GitHub issues #1-#31, tracked in #25. Work them in the order the tracking issue
+gives: Wave 1 foundations first (#3 regression suite, #31 recorded bugs, #1 and #2 decisions,
+#4 boundaries, #5 build system, #8 code rules, then #6 RHI and #7 tooling). Read the issue before
+starting it; the issue is the spec. `docs/cpp-port-plan.md` sections 10 and 11 are the reference
+for the constraints and code rules below.
 
-## Code rules for the port phase
+## Constraints in force (from plan section 10)
 
-Full table with the modernization-phase counterpart is in `docs/cpp-port-plan.md` section 11.
-- Style is "match the surrounding line": tabs, spaces inside parentheses `( a, b )`, `NULL`,
-  C-style casts, `qboolean`. Writing `nullptr` in a file full of `NULL` fails review even if
-  the code is correct. clang-format runs on changed lines only; never reformat untouched lines.
-- Warnings: `-Werror` against a frozen list of disabled warnings. Do not "fix" pre-existing
-  warnings (a signed/unsigned change can change behavior); that is a later, separate PR class.
-- Never restructure a floating-point expression in `qcommon/cm_*`, `q_math.c`, `bg_*`, `msg.c`
-  or snapshot code. Cross-build determinism is what netcode and demos depend on.
-- Keep intentional undefined-behavior patterns as they are (`Q_rsqrt` punning, file buffers
-  cast to structs). They define behavior. Do not replace with `memcpy`/`std::bit_cast`.
-- No assertions, no RAII, no smart pointers, no namespaces, no fixed-width type changes. The
-  memory model (hunk/zone) and `Com_Error` (a `longjmp`) are untouched.
-- Subsystem boundaries are the existing prefixes (`Sys_`, `Com_`, `FS_`, `CL_`, `SV_`, `R_`,
-  `S_`) and `*_public.h` vs `*_local.h`. Include only other subsystems' public headers.
-- Definition of done: C and C++ builds green, every verification gate green, every hunk maps to
-  a catalog entry T1-T17, diff size proportionate, PR description lists transformation counts
-  and pasted gate output.
+- C++20, `-fno-exceptions -fno-rtti`. No exceptions, no RTTI, no `dynamic_cast`.
+- Fixed-width integers where representation matters; `long` is banned (32-bit on MSVC/Xbox);
+  explicit `char` signedness where it matters (unsigned on aarch64).
+- No JIT, no runtime `dlopen` in engine code; static linking is the primary configuration.
+- OS access only inside the platform directories (`code/unix`, `code/win32`, `code/sdl`) and the
+  filesystem layer (`files.cpp`). Portable code never calls POSIX, Win32, or SDL directly.
+- 64-bit little-endian only.
+- Error handling: `Com_Error` is a `longjmp` (decision #1, option 1). Engine core uses only
+  trivially destructible types on the stack and as globals. RAII is allowed only in platform
+  and GPU/OS resource wrappers whose destructors never run across a `Com_Error` unwind.
+- Never restructure a floating-point expression in simulation, collision, movement, message,
+  or snapshot code except in a bug-fix PR with a failing-then-passing test. Cross-build
+  determinism is what netcode and demos depend on.
+- Memory: ownership is by arena (hunk for level lifetime, zone for tagged small allocations,
+  temp hunk). No `new`/`delete`/`malloc` outside the allocator layer. No smart pointers in
+  engine core.
+- Keep intentional undefined-behavior patterns (float punning, file buffers cast to structs)
+  unless a PR replaces them with a proven-identical form and the codegen gate agrees.
+
+## Workflow
+
+- One issue per branch named `issue/<number>-<slug>`, one PR per issue against the integration
+  branch `modernization`. After your gates pass and the self-review below, merge with a merge
+  commit and continue. Never push `main`; never force-push; never rewrite history. The
+  maintainer reviews `modernization` -> `main`.
+- Checkpoint in `docs/modernization-progress.md`: per-issue status, decisions, "next action".
+  Update after every meaningful step; on start, resume from it.
+- Bugs found while doing something else go in `docs/cpp-port-notes.md` (moves to `docs/bugs.md`
+  in #4) and are fixed only in their own PR with a test. No unrelated refactoring in any PR.
+- Style: until #8 lands, match the surrounding code exactly (tabs, `( a, b )` spacing, `NULL`,
+  C casts, `qboolean`). After #8, clang-format is authoritative.
+
+## Definition of done for a PR
+
+Builds on every CI leg. Regression suite green, or goldens regenerated in the same PR with the
+diff explained and the issue calling for the behavior change. Self-review: change matches the
+issue scope; no unrelated refactoring; no new OS calls outside platform code; no non-trivial
+destructors in engine core; no allocation added to per-frame paths; layout assertions kept for
+every wire and file-format struct; issue updated with what changed and what was measured.
 
 ## Layout
 
-- `code/qcommon` shared core: cvars, commands, filesystem, network, collision (cm_*), QVM (vm_*)
+- `code/qcommon` shared core: cvars, commands, filesystem, network, collision (cm_*), VM
 - `code/server`, `code/client` server and client
 - `code/botlib` bot AI library
-- `code/renderercommon`, `code/renderer` (OpenGL1), `code/renderervk` (Vulkan); `code/renderer2` (OpenGL2) is out of scope and not ported
+- `code/renderercommon`, `code/renderer` (OpenGL1, legacy), `code/renderervk` (Vulkan, reference
+  renderer); `code/renderer2` is not built and will be deleted
 - `code/unix`, `code/win32`, `code/sdl` platform layers
-- `code/asm` hand-written assembly (referenced by C symbol name; needs `extern "C"` after the port)
-- `code/cgame`, `code/game`, `code/ui` only the shared public headers / bg code for the QVM ABI
+- `code/asm` hand-written assembly; symbols it references carry `Q_EXTERN_C`
+- `code/cgame`, `code/game`, `code/ui` shared ABI headers today; native game code lands here in #2
+- `code/renderervk/shaders/spirv/shader_data.cpp` is generated by `bin2hex.cpp`; never hand-edit
+- `tools/port` the port-era gates (layout, symbol, codegen, differential, math, build matrix);
+  #3 turns them into `tests/`
 
 ## Building
 
-The GNU Makefile is the only supported build. CMake exists but is broken upstream (wrong arch
-suffix, renderers not linked with -lm, missing asm source); do not use it. MSVC projects live in
-`code/win32/msvc2017` and are CI-only. Output goes to `build/<config>-<platform>-<arch>/`.
+The GNU Makefile is the supported build until #5 makes CMake primary. CMake is broken upstream;
+do not use it before #5. MSVC projects in `code/win32/msvc2017` are CI-only. Output goes to
+`build/<config>-<platform>-<arch>/`.
 
 ```
 make -j$(nproc)                                  # client + server + dlopen renderers
-make -j$(nproc) BUILD_CLIENT=0                   # dedicated server only (no SDL/X11/curl needed)
+make -j$(nproc) BUILD_CLIENT=0                   # dedicated server only
 make -j$(nproc) BUILD_SERVER=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan
-make debug -j$(nproc)                            # -O0 -g build
-make clean
+make debug -j$(nproc)
+make PLATFORM=mingw64 ARCH=x86_64 ...            # Windows cross-build (auto-detects mingw)
 ```
 
-C++ probe build (until the Makefile gains a proper C++ mode; see plan):
-
-```
-make -k -j$(nproc) BUILD_DIR=/tmp/cxx CC="g++ -x c++ -std=c++20 -fpermissive"
-```
-
-Local machine: gcc 15.2, clang 21, 20 cores, all dev packages installed; every Makefile
-configuration builds. No display in agent shells: client runtime tests need a desktop session
-or Xvfb + Mesa software drivers; the dedicated server runs headless. Game data is in
-`~/.q3a/baseq3/` and is found automatically; never commit or copy pak files into the repo.
+Local machine: gcc 15.2, clang 21 (+libc++), cross compilers for mingw x86_64, aarch64, armhf,
+ppc64le, faketime, Xvfb, Mesa software drivers, 20 cores. Agent shells have no `DISPLAY`: run
+the client under `Xvfb` with Mesa's llvmpipe/lavapipe. Game data is in `~/.q3a/baseq3/` and is
+found automatically; never commit or copy pak files into the repo.
 
 ## Verification commands
 
-See `docs/cpp-port-plan.md` section "Verification gates". Minimum before any port PR:
-1. C build: `make -j$(nproc)` and `make -j$(nproc) BUILD_CLIENT=0` are green.
-2. C++ build of the touched module compiles with zero new errors and zero new `-fpermissive`
-   warnings compared to the previous commit.
-3. `git diff --stat` is proportionate: a mechanical port touches a few percent of lines at most.
+Deterministic dedicated-server smoke (the runtime oracle; `timeout` must wrap `faketime`):
+
+```
+timeout 90 faketime -f "@2026-01-01 00:00:00 i0.01" build/release-linux-x86_64/quake3e.ded.x64 \
+  +set dedicated 1 +set sv_pure 0 +set com_logfile 0 +map q3dm17 +addbot sarge 3 +addbot major 3 \
+  +wait 300 +quit
+```
+
+Two runs must be byte-identical (ignore the "cached paks" and "Working directory" lines).
+Port-era gates: `tools/port/selfcheck.sh`, `tools/port/math_gate.sh`, and the layout/symbol/codegen
+scripts documented in `docs/cpp-port-plan.md` section 5. Once #3 lands, `tests/` replaces these
+and this section lists its commands.
 
 ## Conventions
 
-- Keep the existing code style exactly (tabs, brace placement, `qboolean`, `NULL`, C casts).
-- Commit messages: `<module>: <what>` like upstream, e.g. `qcommon: C++ compatibility for net_chan`.
-- One module (or one coherent file group) per PR.
+- Commit messages: `<module>: <what>` like upstream, e.g. `qcommon: add layout assertions for msg_t`.
+- Subsystem prefixes (`Sys_`, `Com_`, `FS_`, `CL_`, `SV_`, `R_`, `S_`, `Cvar_`, `Cmd_`) and
+  `*_public.h` vs `*_local.h` are the subsystem boundaries; include only other subsystems' public
+  headers. #4 makes CI enforce this.
