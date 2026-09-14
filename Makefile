@@ -683,6 +683,11 @@ ifdef MINGW
   CXX_FROZEN_WARNINGS += -Wno-cast-function-type
 endif
 
+ifeq ($(PLATFORM),darwin)
+  # Apple SDK: two existing sprintf deprecations per initial CI configuration.
+  CXX_FROZEN_WARNINGS += -Wno-deprecated-declarations
+endif
+
 ifneq ($(findstring clang,$(CXX)),)
   # Clang: two unchanged HasFCOM C warnings per full configuration.
   # One C++ enum/va_start diagnostic in cl_curl.c; retained and logged, not fixed.
