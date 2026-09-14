@@ -399,7 +399,7 @@ static void SV_InjectLocation( const char *tld, const char *country ) {
 		if ( seqs[i] != svs.clients[i].reliableSequence ) {
 			for ( n = seqs[i]; n != svs.clients[i].reliableSequence + 1; n++ ) {
 				cmd = svs.clients[i].reliableCommands[n & (MAX_RELIABLE_COMMANDS-1)];
-				str = strstr( cmd, "connected\n\"" );
+				str = (char *)strstr( cmd, "connected\n\"" );
 				if ( str && str[11] == '\0' && str < cmd + 512 ) {
 					if ( *tld == '\0' )
 						sprintf( str, S_COLOR_WHITE "connected (%s)\n\"", country );
@@ -792,7 +792,7 @@ gotnewcl:
 	denied = VM_Call( gvm, 3, GAME_CLIENT_CONNECT, clientNum, qtrue, qfalse ); // firstTime = qtrue
 	if ( denied ) {
 		// we can't just use VM_ArgPtr, because that is only valid inside a VM_Call
-		const char *str = GVM_ArgPtr( denied );
+		const char *str = (const char *)GVM_ArgPtr( denied );
 
 		NET_OutOfBandPrint( NS_SERVER, from, "print\n%s\n", str );
 		Com_DPrintf( "Game rejected a connection: %s.\n", str );
@@ -872,7 +872,7 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 		return;		// already dropped
 	}
 
-	isBot = drop->netchan.remoteAddress.type == NA_BOT;
+	isBot = (qboolean)( drop->netchan.remoteAddress.type == NA_BOT );
 
 	Q_strncpyz( name, drop->name, sizeof( name ) );	// for further DPrintf() because drop->name will be nuked in SV_SetUserinfo()
 
@@ -1162,7 +1162,7 @@ void SV_ClientEnterWorld( client_t *client ) {
 	qboolean isBot;
 	int clientNum;
 
-	isBot = client->netchan.remoteAddress.type == NA_BOT;
+	isBot = (qboolean)( client->netchan.remoteAddress.type == NA_BOT );
 
 	if ( !isBot ) {
 		SV_PrintClientStateChange( client, CS_ACTIVE );
@@ -1375,7 +1375,7 @@ static int SV_WriteDownloadToClient( client_t *cl )
 						// now that we know the file is referenced,
 						// check whether it's legal to download it.
 						missionPack = FS_idPak(pakbuf, BASETA, NUM_TA_PAKS);
-						idPack = missionPack || FS_idPak(pakbuf, BASEGAME, NUM_ID_PAKS);
+						idPack = (qboolean)( missionPack || FS_idPak(pakbuf, BASEGAME, NUM_ID_PAKS) );
 
 						break;
 					}
@@ -1463,7 +1463,7 @@ static int SV_WriteDownloadToClient( client_t *cl )
 		curindex = (cl->downloadCurrentBlock % MAX_DOWNLOAD_WINDOW);
 
 		if (!cl->downloadBlocks[curindex])
-			cl->downloadBlocks[curindex] = Z_Malloc( MAX_DOWNLOAD_BLKSIZE );
+			cl->downloadBlocks[curindex] = (unsigned char *)Z_Malloc( MAX_DOWNLOAD_BLKSIZE );
 
 		cl->downloadBlockSize[curindex] = FS_Read( cl->downloadBlocks[curindex], MAX_DOWNLOAD_BLKSIZE, cl->download );
 
@@ -1636,7 +1636,11 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 
 		// we run the game, so determine which cgame and ui the client "should" be running
 		bGood = FS_FileIsInPAK( "vm/cgame.qvm", &nChkSum1, NULL );
+#ifdef __cplusplus
+		bGood = (qboolean)( bGood & FS_FileIsInPAK( "vm/ui.qvm", &nChkSum2, NULL ) );
+#else
 		bGood &= FS_FileIsInPAK( "vm/ui.qvm", &nChkSum2, NULL );
+#endif
 
 		nClientPaks = Cmd_Argc();
 
@@ -2037,7 +2041,7 @@ qboolean SV_ExecuteClientCommand( client_t *cl, const char *s ) {
 	// We don't do this when the client hasn't been active yet since it's
 	// normal to spam a lot of commands when downloading
 	isBot = cl->netchan.remoteAddress.type == NA_BOT ? qtrue: qfalse;
-	bFloodProtect = !isBot && cl->state >= CS_ACTIVE;
+	bFloodProtect = (qboolean)( !isBot && cl->state >= CS_ACTIVE );
 
 	// see if it is a server level command
 	for ( ucmd = ucmds; ucmd->name; ucmd++ ) {

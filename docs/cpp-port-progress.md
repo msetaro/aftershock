@@ -6,7 +6,7 @@ Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed c
 
 ## Next action
 
-Resumed from 7ec7e925 with accepted T24/T25 and no C hash exception. Next: sv_client.c T25 plus prior catalog patch, then tlds.h; Windows T24; full builds/runtime; refresh cross gates; rename only after acceptance, CI, then separately remove T25 C branches with unchanged C++ hashes.
+Continuation: server; next `code/server/tlds.h then Windows T24` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -386,7 +386,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/server/server.h` | done | T1-T17: 0; unchanged header verified through server consumers, strict native release/debug and G2/G3 PASS. |
 | `code/server/sv_bot.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_bot.o); G4 advisory difference retained. |
 | `code/server/sv_ccmds.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_ccmds.o); G4 advisory difference retained. |
-| `code/server/sv_client.c` | blocked | New C-oracle blocker: T3 expansion of bGood &= FS_FileIsInPAK into bGood = (qboolean)( bGood & FS_FileIsInPAK(...) ) changes one test instruction register order in the client C object (45 85 fe -> 45 85 f7). Both logical operations are equivalent, but the mandatory SHA256 fails. Commuted and ternary alternatives also failed the hash; commutation additionally exceeds T3. All candidate source changes reverted. Exact patch and C disassembly diff: tools/port/evidence/sv_client-t3-attempt.patch and sv_client-c-oracle.diff. |
+| `code/server/sv_client.c` | done | T1: 2; T2: 4; T20: 1; T25: 1 preserving original C compound line; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_client.o, default); G4 advisory FAIL, full diff retained. |
 | `code/server/sv_filter.c` | done | T3: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_filter.o); G4 advisory difference retained. |
 | `code/server/sv_game.c` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; T5 internal callback annotations removed; current C hashes/strict builds/G2/G3 PASS (ded/sv_game.o); G4 advisory difference retained. |
 | `code/server/sv_init.c` | done | T1: 4; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_init.o); G4 advisory difference retained. |
