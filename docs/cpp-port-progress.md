@@ -65,6 +65,28 @@ G5: complete C-driver differential coverage beyond math; then G7 static analysis
 
 ## Harness status
 
+- Final G1/G7 native matrix: all eight C configurations PASS (six GCC, two Clang); all eight C++ configurations FAIL only in recorded blocked source files. See table below. `python3 tools/port/build_matrix.py /tmp/aftershock-cpp-port/matrix` reproduces the complete matrix and returns 1 while blockers remain. The initial run used fresh directories; after reviewer feedback, subsequent runs now allocate a unique build root to prevent stale objects. Every exact compiler/make command and exit/error count is in tools/port/evidence/build-matrix-results.json; all 16 complete build logs are retained as *.build.log.gz there.
+
+| Configuration | Exit | Compiler errors |
+|---|---:|---:|
+| gcc-c0-release-sdl | 0 | 0 |
+| gcc-c0-debug-nosdl | 0 | 0 |
+| gcc-c0-debug-sdl | 0 | 0 |
+| gcc-c0-release-nosdl | 0 | 0 |
+| gcc-c0-static-opengl | 0 | 0 |
+| gcc-c0-static-vulkan | 0 | 0 |
+| gcc-c1-release-sdl | 2 | 143 |
+| gcc-c1-debug-nosdl | 2 | 104 |
+| gcc-c1-debug-sdl | 2 | 143 |
+| gcc-c1-release-nosdl | 2 | 104 |
+| gcc-c1-static-opengl | 2 | 95 |
+| gcc-c1-static-vulkan | 2 | 130 |
+| clang-c0-release-sdl | 0 | 0 |
+| clang-c0-debug-nosdl | 0 | 0 |
+| clang-c1-release-sdl | 2 | 105 |
+| clang-c1-debug-nosdl | 2 | 77 |
+
+
 - Final G8 found no uncatalog engine-source hunks across 113 changed files (1,310 insertions / 1,274 deletions, about 0.5% of the 257,480 engine C/header lines). Gate review caught an optimized-clone boundary blind spot; G3 now recognizes the base name before clone suffixes and preserves raw ABI spelling. Added negative BadJump clone and positive private GNU CPUID_EX controls. Full selfcheck PASS, then all 143 fresh native pairs reran strengthened G3: zero failures. Evidence: final-selfcheck.log and final-native-gates.log.gz under tools/port/evidence.
 
 - G5 complete native function-group coverage added in tools/port/differential_check.c and differential_gate.py. One GCC-compiled C driver links to both C and C++ engine objects; test-only objcopy aliases normalize global symbol spelling without changing code/data/visibility, and linker --wrap substitutes file access only. Allocator/log stubs isolate pure behavior; this does not bypass production G3 or prove memory-system/runtime equivalence. Reviewer independently ran both executables successfully and confirmed mismatch handling. Assertions remain enabled in the C driver.
