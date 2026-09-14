@@ -1,0 +1,32 @@
+[
+  {
+    "source": "code/win32/win_input.c",
+    "wasapi": 0,
+    "c_sha256": "3a02f70ee975c673204548c0727afd4611fa56b779f98470efb6b9dd1dda272b",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto",
+      "CFLAGS=-DUSE_WASAPI=0"
+    ],
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  },
+  {
+    "source": "code/win32/win_input.c",
+    "wasapi": 1,
+    "c_sha256": "3a02f70ee975c673204548c0727afd4611fa56b779f98470efb6b9dd1dda272b",
+    "variables": [
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto",
+      "CFLAGS=-DUSE_WASAPI=1"
+    ],
+    "layout": 0,
+    "symbol": 0,
+    "codegen": 0
+  }
+]
