@@ -56,6 +56,8 @@ Phase 1: next `phase-2 boundary inventory`. Resume there; do not redo done files
 
 ## Harness status
 
+- G8 Windows correction: removed a redundant same-type HMODULE cast at win_main GetModuleHandleExA lookup; only three actual void-pointer/allocator casts remain. win_gamma local hKernel32 is HANDLE/void*, so its cast remains T1.
+
 - Vulkan assessed: 22 successful linked-engine sources and four headers pass original C hashes, strict native release/debug, G2/G3; tr_init deferred to phase 2, vk.c and its generated shader_data.c blocked by const linkage. Full default/ded C PASS (`renderervk-{full,ded}-c.log`). G8 approves through shader089a5011 and identical no-op T4 consumers; vk_vbo6T1 checked locally. Clang++21 syntax: 141 saved completed engine commands PASS; one standalone utility skipped by that probe and separately gcc/g++ checked. bin2hex reproduction: compile unchanged source with gcc and g++ -x c++ -std=c++20 -fno-exceptions -fno-rtti, both -O2 -Wall -Wextra -Werror -Wno-sign-compare; feed bytes(range(256))+bytes([0,255,1]) in ordinary and +append output modes, outputs identical.
 
 - OpenGL renderer: 24/25 sources and all four headers completed with original C hashes, strict native release/debug and G2/G3 PASS. tr_init is deferred to phase-2 GetRefAPI T5 (cast attempt reverted). Full default, dedicated and non-SDL C builds PASS (`renderer-{full,ded,nosdl}-c.log`). G8 approves retained edits through shader f50e7609; no-op files and vbo T1/T2 checked locally. Clang++21 syntax probe now 119 completed native sources PASS. G4 advisory diffs are retained with module-prefixed filenames to avoid colliding with Vulkan counterparts.
@@ -378,7 +380,7 @@ Phase 1: next `phase-2 boundary inventory`. Resume there; do not redo done files
 
 - `code/win32/win_minimize.c`: Unverified (no MinGW/Windows SDK). Inspection found no required catalog transformations in key-token table/parser; unchanged, target gates unavailable.
 
-- `code/win32/win_main.c`: Unverified (no MinGW/Windows SDK). T1: 4 allocator/void-handle casts by inspection. Sys_LoadFunction still assigns FARPROC to void*, outside T1; C checksum and G1-G4 unavailable.
+- `code/win32/win_main.c`: Unverified (no MinGW/Windows SDK). T1: 3 allocator/void-handle casts by inspection. Sys_LoadFunction still assigns FARPROC to void*, outside T1; C checksum and G1-G4 unavailable.
 
 - `code/win32/win_input.c`: Unverified (no MinGW/Windows SDK). T2: 1 boolean return cast by inspection. DirectInput SDK interface macros and optional joystick/MIDI paths require target compile; C checksum and G1-G4 unavailable.
 
@@ -692,7 +694,7 @@ Phase 1: next `phase-2 boundary inventory`. Resume there; do not redo done files
 | `code/win32/win_glimp.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 1 allocator cast, T2: 4 boolean-expression casts by inspection; C checksum and G1-G4 unavailable. |
 | `code/win32/win_input.c` | blocked | Unverified (no MinGW/Windows SDK). T2: 1 boolean return cast by inspection. DirectInput SDK interface macros and optional joystick/MIDI paths require target compile; C checksum and G1-G4 unavailable. |
 | `code/win32/win_local.h` | blocked | Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable. |
-| `code/win32/win_main.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 4 allocator/void-handle casts by inspection. Sys_LoadFunction still assigns FARPROC to void*, outside T1; C checksum and G1-G4 unavailable. |
+| `code/win32/win_main.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 3 allocator/void-handle casts by inspection. Sys_LoadFunction still assigns FARPROC to void*, outside T1; C checksum and G1-G4 unavailable. |
 | `code/win32/win_minimize.c` | blocked | Unverified (no MinGW/Windows SDK). Inspection found no required catalog transformations in key-token table/parser; unchanged, target gates unavailable. |
 | `code/win32/win_qgl.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 source sites (library handle and proc macro with APIENTRY preserved). GL_GetProcAddress still assigns a function pointer to void*, outside T1. Target gates unavailable. |
 | `code/win32/win_qvk.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 3 library/proc casts by inspection. VK_GetInstanceProcAddr still returns a function pointer as void*, outside T1. Target gates unavailable. |

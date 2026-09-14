@@ -731,7 +731,7 @@ static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 			typedef BOOL (WINAPI *PFN_GetModuleHandleExA)( DWORD dwFlags, LPCSTR lpModuleName, HMODULE *phModule );
 			PFN_GetModuleHandleExA pGetModuleHandleExA;
 
-			pGetModuleHandleExA = (PFN_GetModuleHandleExA) GetProcAddress( (HMODULE)hKernel32, "GetModuleHandleExA" );
+			pGetModuleHandleExA = (PFN_GetModuleHandleExA) GetProcAddress( hKernel32, "GetModuleHandleExA" );
 			if ( pGetModuleHandleExA != NULL ) {
 				if ( pGetModuleHandleExA( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)addr, &hModule ) ) {
 					if (GetModuleFileNameA( hModule, name, ARRAY_LEN(name) - 1) != 0 ) {
