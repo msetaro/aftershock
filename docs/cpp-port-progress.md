@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: qcommon; next `code/qcommon/cm_patch.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: qcommon; next `code/qcommon/cm_trace.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -146,6 +146,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 ## Codegen differences
 
+- `code/qcommon/cm_patch.c`: G4 advisory FAIL; full diff `tools/port/evidence/cm_patch.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/cm_patch.o /tmp/aftershock-cpp-port/cm_patch ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
+
 Final current-header sweep: 143 compiled native TUs pass G2/G3; 33 G4 PASS, 110 advisory differences. The standalone bin2hex utility is tested separately. G4 differences require human review and do not establish C++ behavioral equivalence. In addition, blocked q_math.c has its complete 730-line phase-0 diff in `tools/port/evidence/q_math.codegen.diff`; G5 proves a behavioral difference there.
 
 Reproduce all current completed sources with `python3 tools/port/completed_gates.py /tmp/aftershock-cpp-port/final-gates` (expected exit 0 for compilation/G2/G3; G4 remains advisory). It always rebuilds pairs from current sources using the actual recorded Make contexts. Per-file object/variant and statuses: `tools/port/evidence/completed-gates.json`. For one file: `python3 tools/port/compile_pair.py OBJECT OUTPUT [MAKE_VARIABLE=value ...]`, then `tools/port/{layout,symbol}_gate.sh OUTPUT/STEM.c.o OUTPUT/STEM.cxx.o` and `tools/port/codegen_gate.sh OUTPUT/STEM.c.s OUTPUT/STEM.cxx.s`.
@@ -185,7 +187,7 @@ Every nonempty completed-source G4 diff is listed below. Read each with `gzip -d
 | `code/client/snd_mem.c` | `tools/port/evidence/snd_mem.codegen.diff.gz` |
 | `code/client/snd_mix.c` | `tools/port/evidence/snd_mix.codegen.diff.gz` |
 | `code/qcommon/cm_load.c` | `tools/port/evidence/cm_load.codegen.diff.gz` |
-| `code/qcommon/cm_patch.c` | `tools/port/evidence/cm_patch.codegen.diff.gz` |
+| `code/qcommon/cm_patch.c` | done | T1: 3, T2: 6, T3: 3; T21/T22: 14 argument casts at 14 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_patch.o, default); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/cm_trace.c` | `tools/port/evidence/cm_trace.codegen.diff.gz` |
 | `code/qcommon/cmd.c` | `tools/port/evidence/cmd.codegen.diff.gz` |
 | `code/qcommon/common.c` | `tools/port/evidence/common.codegen.diff.gz` |
@@ -419,7 +421,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/game/g_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through sv_game.c actual dependency and native strict builds/G2/G3. |
 | `code/qcommon/cm_load.c` | done | T1: 28; native ded C SHA256 unchanged (df42e0cabff475c22ebf8383e443cfe34d558abf817baf6f5cd8ad0c96700017); strict C++/G2/G3 PASS (ded/cm_load.o, default); G4 advisory diff retained. |
 | `code/qcommon/cm_local.h` | done | T1-T17: 0; unchanged header checked via cm_load.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/cm_patch.c` | done | T1: 3, T2: 6, T3: 3; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_patch.o); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/cm_patch.c` | done | T1: 3, T2: 6, T3: 3; T21/T22: 14 argument casts at 14 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_patch.o, default); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/cm_patch.h` | done | T1-T17: 0; unchanged header checked via cm_patch.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/cm_polylib.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_polylib.o); G4 PASS. |
 | `code/qcommon/cm_polylib.h` | done | T1-T17: 0; unchanged header checked via cm_polylib.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
