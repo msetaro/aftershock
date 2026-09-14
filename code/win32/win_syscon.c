@@ -350,7 +350,7 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 	case WM_TIMER:
 		if ( wParam == ERROR_TIMER_ID )
 		{
-			s_timePolarity = !s_timePolarity;
+			s_timePolarity = (qboolean)( !s_timePolarity );
 			if ( s_wcd.hwndErrorBox )
 			{
 				InvalidateRect( s_wcd.hwndErrorBox, NULL, FALSE );
