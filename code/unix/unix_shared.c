@@ -19,7 +19,9 @@ along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <sched.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -233,7 +235,7 @@ char** Sys_ListFiles( const char *directory, const char *extension, const char *
 	nfiles = Sys_ListExtFiles( directory, "", extension, filter, list, ARRAY_LEN( list ), subdirs );
 
 	// copy list from stack, reserve extra space for NULL
-	listCopy = Z_Malloc( (nfiles + 1) * sizeof( listCopy[0] ) );
+	listCopy = (char **)Z_Malloc( (nfiles + 1) * sizeof( listCopy[0] ) );
 	for ( i = 0; i < nfiles; i++ ) {
 		listCopy[i] = list[i];
 	}

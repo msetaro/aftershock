@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: unix; next `code/unix/unix_shared.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: unix; next `code/sdl/sdl_glimp.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -145,6 +145,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/unix/unix_shared.c`: G4 advisory FAIL; full diff `tools/port/evidence/unix_shared.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/unix_shared.o /tmp/aftershock-cpp-port/unix_shared ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/qcommon/vm_x86.c`: G4 advisory FAIL; full diff `tools/port/evidence/vm_x86.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/qvm/vm_x86.o /tmp/aftershock-cpp-port/vm_x86 ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -629,7 +631,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/unix/linux_snd.c` | done | T1: 5; original thread-function casts retained inside typed casts; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_snd.o, nosdl); G4 advisory FAIL, full diff retained. |
 | `code/unix/unix_glw.h` | done | T1-T17: 0; unchanged header verified through non-SDL linux_glimp.c, linux_qgl.c and X11 extensions; G2/G3 PASS. |
 | `code/unix/unix_main.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_main.o, default); G4 advisory FAIL, full diff retained. |
-| `code/unix/unix_shared.c` | blocked | At :22 _GNU_SOURCE is redefined: source defines it empty, g++ predefines it as 1. Adding an ifndef guard or changing macro value is outside T1-T17; diagnostic has no named -W class to freeze. T1 char** allocation at :236 also pending; source unchanged. |
+| `code/unix/unix_shared.c` | done | T1: 1; T23: 1 feature-test guard; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/unix_shared.o, default); G4 advisory FAIL, full diff retained. |
 | `code/unix/x11_dga.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_dga.o, nosdl); G4 PASS. |
 | `code/unix/x11_randr.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_randr.o, nosdl); G4 PASS. |
 | `code/unix/x11_vidmode.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_vidmode.o, nosdl); G4 PASS. |
