@@ -41,6 +41,19 @@ if tools/port/symbol_gate.sh "$port_tmp/import.c.o" "$port_tmp/import.cxx.o" > "
     echo 'FAIL: symbol gate missed mangled assembly reference'; exit 1
 fi
 grep '^@@' "$port_tmp/import.log"
+# The GNU private CPUID helper is not the external MSVC assembly entry.
+printf 'static void CPUID_EX(void) {} void invoke(void) { CPUID_EX(); }\n' > "$port_tmp/private-cpuid.c"
+gcc -c "$port_tmp/private-cpuid.c" -o "$port_tmp/private-cpuid.c.o"
+g++ -x c++ -c "$port_tmp/private-cpuid.c" -o "$port_tmp/private-cpuid.cxx.o"
+tools/port/symbol_gate.sh "$port_tmp/private-cpuid.c.o" "$port_tmp/private-cpuid.cxx.o"
+# Optimized JIT clones must retain the boundary's C spelling too.
+printf 'static __attribute__((noinline)) int BadJump(int x) { return x+1; } int wrapper(void) { return BadJump(2); }\n' > "$port_tmp/clone.c"
+gcc -O2 -c "$port_tmp/clone.c" -o "$port_tmp/clone.c.o"
+g++ -x c++ -O2 -c "$port_tmp/clone.c" -o "$port_tmp/clone.cxx.o"
+if tools/port/symbol_gate.sh "$port_tmp/clone.c.o" "$port_tmp/clone.cxx.o" > "$port_tmp/clone.log"; then
+    echo 'FAIL: symbol gate missed mangled JIT clone'; exit 1
+fi
+grep '^@@' "$port_tmp/clone.log"
 python3 tools/port/compile_pair.py ded/md5.o "$port_tmp"
 tools/port/layout_gate.sh "$port_tmp/md5.c.o" "$port_tmp/md5.cxx.o"
 # C++ scopes named nested records inside the parent; compare their members too.
