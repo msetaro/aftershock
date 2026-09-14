@@ -17,6 +17,8 @@ rows = re.findall(r'^\| `(code/[^`]+\.c)` \| done \| (.*)',
 
 def check(row):
     source, detail = row
+    if Path(source).parts[1] == 'win32' or Path(source).name in ('vm_aarch64.c', 'vm_armv7l.c', 'vm_powerpc.c'):
+        return dict(source=source, skipped='separate cross-target gate results')
     context = re.search(r'\(([^() ]+\.o)(?:,|\))', detail)
     if not context:
         return dict(source=source, skipped=detail)
@@ -48,5 +50,5 @@ with ThreadPoolExecutor(8) as pool:
 failed = [row for row in results if any(row.get(key, 0) for key in ('compile', 'layout', 'symbol'))]
 skipped = [row for row in results if 'skipped' in row]
 print(f'{"FAIL" if failed else "PASS"}: {len(results)-len(skipped)} native TUs, '
-      f'{len(failed)} blocking failures, {len(skipped)} standalone utility skips; G4 advisory differences retained')
+      f'{len(failed)} blocking failures, {len(skipped)} cross-target/include/utility skips; G4 advisory differences retained')
 sys.exit(bool(failed))

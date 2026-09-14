@@ -1,0 +1,27 @@
+/tmp/tmp.PdiPEUCybh/md4.c.o
+/tmp/tmp.PdiPEUCybh/md4.c.sym.o
+/tmp/tmp.PdiPEUCybh/md4.c.s
+/tmp/tmp.PdiPEUCybh/md4.cxx.o
+/tmp/tmp.PdiPEUCybh/md4.cxx.sym.o
+/tmp/tmp.PdiPEUCybh/md4.cxx.s
+PASS: layout /tmp/tmp.PdiPEUCybh/md4.c.o /tmp/tmp.PdiPEUCybh/md4.cxx.o
+PASS: symbol /tmp/tmp.PdiPEUCybh/md4.c.o /tmp/tmp.PdiPEUCybh/md4.cxx.o
+PASS: codegen /tmp/tmp.PdiPEUCybh/md4.c.s /tmp/tmp.PdiPEUCybh/md4.cxx.s
+@@ -1,11 +1,7 @@
+@@ -1,2 +1,2 @@
+PASS: symbol /tmp/tmp.PdiPEUCybh/private-cpuid.c.o /tmp/tmp.PdiPEUCybh/private-cpuid.cxx.o
+PASS: symbol /tmp/tmp.PdiPEUCybh/clone.c.o /tmp/tmp.PdiPEUCybh/clone.cxx.o
+@@ -1,2 +1,2 @@
+/tmp/tmp.PdiPEUCybh/md5.c.o
+/tmp/tmp.PdiPEUCybh/md5.c.sym.o
+/tmp/tmp.PdiPEUCybh/md5.c.s
+/tmp/tmp.PdiPEUCybh/md5.cxx.o
+/tmp/tmp.PdiPEUCybh/md5.cxx.sym.o
+/tmp/tmp.PdiPEUCybh/md5.cxx.s
+PASS: layout /tmp/tmp.PdiPEUCybh/md5.c.o /tmp/tmp.PdiPEUCybh/md5.cxx.o
+PASS: layout /tmp/tmp.PdiPEUCybh/nested.c.o /tmp/tmp.PdiPEUCybh/nested.cxx.o
+@@ -1,6 +1,6 @@
+PASS: layout /tmp/tmp.PdiPEUCybh/coff.c.o /tmp/tmp.PdiPEUCybh/coff.cxx.o
+PASS: symbol /tmp/tmp.PdiPEUCybh/coff-symbol.c.o /tmp/tmp.PdiPEUCybh/coff-symbol.cxx.o
+@@ -1,6 +1,6 @@
+PASS: gate positive and negative controls

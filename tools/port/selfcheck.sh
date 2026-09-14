@@ -79,6 +79,9 @@ if command -v x86_64-w64-mingw32-g++ >/dev/null 2>&1; then
     x86_64-w64-mingw32-g++ -x c++ -g -fdebug-prefix-map="$port_tmp=code/port-gate-selfcheck" -c "$port_tmp/nested.c" -o "$port_tmp/coff.cxx.o"
     x86_64-w64-mingw32-g++ -x c++ -g -fdebug-prefix-map="$port_tmp=code/port-gate-selfcheck" -c "$port_tmp/nested-bad.c" -o "$port_tmp/coff-bad.o"
     tools/port/layout_gate.sh "$port_tmp/coff.c.o" "$port_tmp/coff.cxx.o"
+    x86_64-w64-mingw32-gcc -ffunction-sections -c "$port_tmp/private-cpuid.c" -o "$port_tmp/coff-symbol.c.o"
+    x86_64-w64-mingw32-g++ -x c++ -ffunction-sections -c "$port_tmp/private-cpuid.c" -o "$port_tmp/coff-symbol.cxx.o"
+    tools/port/symbol_gate.sh "$port_tmp/coff-symbol.c.o" "$port_tmp/coff-symbol.cxx.o"
     if tools/port/layout_gate.sh "$port_tmp/coff.c.o" "$port_tmp/coff-bad.o" > "$port_tmp/coff.log"; then
         echo 'FAIL: COFF layout gate missed changed nested members'; exit 1
     fi

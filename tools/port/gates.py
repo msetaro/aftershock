@@ -61,7 +61,9 @@ def symbols(path):
         name, kind = fields[:2]
         if name.startswith(('.L', '__func__.', '__FUNCTION__.', '__PRETTY_FUNCTION__.')) or kind in ('a', 'N'):
             continue  # compiler labels, function-name strings, debug/file metadata
-        demangled = run('c++filt', name).strip()
+        # COFF also embeds function names in .text$/.pdata$/.xdata$
+        # section symbols; retain those records after the same demangling.
+        demangled = re.sub(r'_Z\w+', lambda match: run('c++filt', match[0]).strip(), name)
         # Local statics have function scope in C++ demangling only.
         normalized = plain_symbol(demangled).split('::')[-1]
         boundary_name = normalized.split('.')[0]
