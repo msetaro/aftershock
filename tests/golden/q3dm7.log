@@ -1,0 +1,110 @@
+Q3 1.32e linux-x86_64 Sep 13 2026
+----- FS_Startup -----
+...loaded in 10 milliseconds
+----------------------
+4073 files in 9 pk3 files
+execing default.cfg
+execing q3config_server.cfg
+couldn't exec autoexec.cfg
+fs_basepath is write protected.
+fs_homepath is write protected.
+Hunk_Clear: reset the hunk ok
+...detecting CPU, found 13th Gen Intel(R) Core(TM) i5-13600K
+--- Common Initialization Complete ---
+Hostname: ironforge
+IP: 127.0.0.1
+IP: 192.168.86.30
+IP: 100.100.77.127
+IP6: ::1
+IP6: fd8f:d617:e496:4f9d:5cdb:72a2:cb31:a0c7
+IP6: fd8f:d617:e496:4f9d:55c5:9c24:88cf:aaa7
+IP6: fe80::93d1:ae04:7d9:4593%wlx00c0cabcf426
+IP6: fd7a:115c:a1e0::2301:4db4
+IP6: fe80::7f51:f99b:3e04:809d%tailscale0
+Opening IP socket: 0.0.0.0:27960
+stdin is not a tty, tty console mode failed
+------ Server Initialization ------
+Server: q3dm7
+Hunk_Clear: reset the hunk ok
+----- FS_Startup -----
+...loaded in 10 milliseconds
+----------------------
+4073 files in 9 pk3 files
+Loading vm file vm/qagame.qvm...
+VM file qagame compiled to 474854 bytes of code
+qagame loaded in 2098176 bytes on the hunk
+------- Game Initialization -------
+gamename: baseq3
+gamedate: Sep 30 2002
+------------------------------------------------------------
+InitGame: \dmflags\0\fraglimit\20\g_gametype\0\mapname\q3dm7\protocol\68\sv_allowDownload\1\sv_dlRate\100\sv_floodProtect\1\sv_hostname\noname\sv_maxRate\0\sv_maxclients\8\sv_minRate\0\sv_privateClients\0\timelimit\0\version\Q3 1.32e linux-x86_64 Sep 13 2026\capturelimit\8\g_maxGameClients\0\g_needpass\0\gamename\baseq3
+info_firstplace doesn't have a spawn function
+info_secondplace doesn't have a spawn function
+info_thirdplace doesn't have a spawn function
+0 teams with 0 entities
+20 items registered
+-----------------------------------
+------- BotLib Initialization -------
+loaded weapons.c
+loaded items.c
+loaded syn.c
+loaded rnd.c
+loaded match.c
+loaded rchat.c
+------------ Map Loading ------------
+trying to load maps/q3dm7.aas
+loaded maps/q3dm7.aas
+camp spot at 1180.0 -148.0 188.0 in solid
+found 67 level items
+-------------------------------------
+32 bots parsed
+35 arenas parsed
+AAS initialized.
+-----------------------------------
+loaded skill 1 from bots/default_c.c
+loaded skill 1 from bots/sarge_c.c
+loaded skill 4 from bots/default_c.c
+loaded skill 4 from bots/sarge_c.c
+loaded bots/sarge_i.c
+loaded bots/sarge_w.c
+loaded sarge from bots/sarge_t.c
+ClientConnect: 0
+ClientUserinfoChanged: 0 n\Sarge\t\0\model\sarge\hmodel\sarge\c1\4\c2\5\hc\90\w\0\l\0\skill\    3.00\tt\0\tl\0
+broadcast: print "Sarge^7 connected\n"
+broadcast: print "Sarge^7 entered the game\n"
+ClientBegin: 0
+loaded cached skill 1.000000 from bots/default_c.c
+loaded skill 1 from bots/major_c.c
+loaded cached skill 4.000000 from bots/default_c.c
+loaded skill 4 from bots/major_c.c
+loaded bots/major_i.c
+loaded bots/major_w.c
+loaded major from bots/major_t.c
+ClientConnect: 1
+ClientUserinfoChanged: 1 n\Major\t\0\model\major\hmodel\major\c1\4\c2\5\hc\90\w\0\l\0\skill\    3.00\tt\0\tl\0
+broadcast: print "Major^7 connected\n"
+broadcast: print "Major^7 entered the game\n"
+ClientBegin: 1
+Item: 1 ammo_shells
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 1 ammo_bullets
+Item: 1 ammo_bullets
+Item: 0 weapon_rocketlauncher
+Kill: 0 1 6: Sarge killed Major by MOD_ROCKET
+Item: 0 weapon_rocketlauncher
+Item: 1 weapon_rocketlauncher
+Item: 1 holdable_teleporter
+Item: 1 ammo_bullets
+Item: 1 ammo_bullets
+Item: 1 weapon_rocketlauncher
+Item: 1 weapon_rocketlauncher
+Item: 1 ammo_shells
+----- Server Shutdown (Server quit) -----
+==== ShutdownGame ====
+ShutdownGame:
+------------------------------------------------------------
+AAS shutdown.
+---------------------------

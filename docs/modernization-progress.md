@@ -4,13 +4,13 @@ Integration branch: `modernization`; issue branches: `issue/<number>-<slug>`. St
 
 ## Next action
 
-Start #3 on issue/3-regression-suite: inspect and reuse tools/port, inventory installed tools and content, establish explicit golden generation and read-only comparison, then add runtime/demo/network/fuzz/sanitizer/CI coverage. Do not merge until the issue's gates and self-review pass; record exact blockers rather than weaken acceptance.
+Continue #3 on issue/3-regression-suite: deterministic software-rendered demo recording/replay, network/fuzz coverage and CI; preserve the existing Huff_Decode sanitizer failure for a separate #31 fix. Unit/differential/runtime goldens and explicit regeneration are implemented; do not merge incomplete acceptance.
 
 ## Issue status
 
 | Order | Issue | Status | Outcome / next step |
 |---|---|---|---|
-| 1 | #3 regression suite | todo | Permanent differential hashes, q3dm17/q3dm7 smoke/demo goldens, software-rendered frames, sanitizers, network simulation, fuzzers, compiler matrix, one-ULP negative control. |
+| 1 | #3 regression suite | in progress | Permanent differential hashes, q3dm17/q3dm7 smoke/demo goldens, software-rendered frames, sanitizers, network simulation, fuzzers, compiler matrix, one-ULP negative control. |
 | 2 | #31 recorded bugs | todo | One failing-test-first bug fix and upstream PR per eligible bug; remove repaired suppressions. |
 | 3 | #1 error model | decided; implementation todo | Option 1: retain longjmp, trivial engine lifetimes, RAII only at safe platform/GPU boundaries; enforce in CI. |
 | 4 | #2 native game | decided; implementation todo | GPL 1.32 game source import as C, QVM/native parity, catalog port, static modules, remove QVM; ends Quake 3 mod compatibility. |
@@ -30,8 +30,10 @@ Start #3 on issue/3-regression-suite: inspect and reuse tools/port, inventory in
 
 ## Measurements and reproducible commands
 
-Pending #3 baseline. Existing port evidence remains reachable through docs/cpp-port-progress.md and the untouched orphan port-evidence branch. New regression goldens will be generated only through an explicit documented command that CI never invokes.
+Initial #3 baseline: 12 asset-free groups pass GCC and Clang/libc++; full G5 adds the original collision sweep. vector_math remains 5c00b4de. q3dm17 and q3dm7 bot traces repeat identically and have committed goldens; tests/README.md gives commands. Test sources reuse the port driver as C++ with the same test stubs, without requiring a historical C checkout. One-ULP negative control targets the active GCC SSE return; its initial fallback-only mutant correctly revealed that it had not changed the active implementation, and was corrected. Existing port evidence remains reachable through docs/cpp-port-progress.md and the untouched orphan port-evidence branch. New regression goldens will be generated only through an explicit documented command that CI never invokes.
 
 ## Blockers
 
-None established yet; tool/data inventory is next. Missing prerequisites will be recorded here and in the affected issue, with partial work preserved on its issue branch rather than falsely marked complete.
+1. #3 sanitizer run finds existing Huff_Decode unaligned uint32_t read at huffman_static.cpp:206 during MSG roundtrip; recorded in #31 and cpp-port-notes.md, no added suppression or engine change. Reproducer: python3 tests/run.py unit --cc clang --cxx "clang++ -stdlib=libc++" --sanitize --output /tmp/aftershock-san-tests.
+2. #3 hosted runtime CI cannot access required q3dm17/q3dm7 paks: gh secret list is empty and gh api repos/msetaro/aftershock/actions/runners returns total_count 0. Local licensed assets exist; do not upload paks or count missing-data jobs as passing.
+3. ffmpeg and glslangValidator are absent; native TGA screenshot support avoids needing ffmpeg for fixed-frame hashing. No packages installed. GCC, Clang/libc++, both requested cross compilers, faketime, Xvfb and Mesa lvp ICD are present.

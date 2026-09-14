@@ -31,3 +31,10 @@ No engine bug fixes have been made.
 - Clang C++ warns that qcurl_easy_setopt_warn uses a CURLoption enum as the last named va_start argument (cl_curl.c:264); the enum undergoes default argument promotion. This preexisting source pattern is left intact; no public signature or varargs logic is changed.
 
 - Sanitized GCC build warns that AAS_Reachability_JumpArea beststart may be uninitialized at be_aas_reach.cpp:2196. The original C sanitizer build reports the same warning. If the nested qualifying-face/edge loops never supply a candidate, VectorMiddle reads beststart before the later bestdist check. Recorded without initialization/control-flow changes.
+
+- Modernization #3 differential driver under Clang ASan/UBSan reports an unaligned
+  `const uint32_t` load in `Huff_Decode` at huffman_static.cpp:206 when reading the
+  existing MSG roundtrip fixture (buffer offset one). Reproduce:
+  `python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --sanitize --output /tmp/aftershock-san-tests`.
+  Existing tools/port/ubsan.supp does not cover this function; no new suppression or
+  engine fix was added. Repair belongs in a separate #31 failing-test-first PR.
