@@ -33,6 +33,14 @@ g++ -x c++ -c "$port_tmp/export.c" -o "$port_tmp/export.cxx.o"
 if tools/port/symbol_gate.sh "$port_tmp/export.c.o" "$port_tmp/export.cxx.o" > "$port_tmp/export.log"; then
     echo 'FAIL: symbol gate missed mangled external ABI'; exit 1
 fi
+# Assembly callees can be undefined in the calling object: test those too.
+printf 'void S_WriteLinearBlastStereo16_SSE_x64(int*, short*, int); void invoke(void) { S_WriteLinearBlastStereo16_SSE_x64(0, 0, 0); }\n' > "$port_tmp/import.c"
+gcc -c "$port_tmp/import.c" -o "$port_tmp/import.c.o"
+g++ -x c++ -c "$port_tmp/import.c" -o "$port_tmp/import.cxx.o"
+if tools/port/symbol_gate.sh "$port_tmp/import.c.o" "$port_tmp/import.cxx.o" > "$port_tmp/import.log"; then
+    echo 'FAIL: symbol gate missed mangled assembly reference'; exit 1
+fi
+grep '^@@' "$port_tmp/import.log"
 python3 tools/port/compile_pair.py ded/md5.o "$port_tmp"
 tools/port/layout_gate.sh "$port_tmp/md5.c.o" "$port_tmp/md5.cxx.o"
 # C++ scopes named nested records inside the parent; compare their members too.

@@ -41,7 +41,7 @@ def layout(path):
 
 def symbols(path):
     rows = []
-    for line in run('nm', '--defined-only', '--format=posix', path).splitlines():
+    for line in run('nm', '--format=posix', path).splitlines():
         fields = line.split()
         name, kind = fields[:2]
         if name.startswith(('.L', '__func__.', '__FUNCTION__.', '__PRETTY_FUNCTION__.')) or kind in ('a', 'N'):
@@ -49,12 +49,15 @@ def symbols(path):
         demangled = run('c++filt', name).strip()
         # Local statics have function scope in C++ demangling only.
         normalized = plain_symbol(demangled).split('::')[-1]
-        if normalized in {
+        boundary = normalized in {
             'GetRefAPI', 'dllEntry', 'vmMain', 'snd_p', 'snd_out',
             'snd_linear_count', 'Q_setjmp_c', 'Q_longjmp_c', 'CPUID_EX',
             'Q_GetFPUCW', 'Q_SetFPUCW', 'NvOptimusEnablement',
             'AmdPowerXpressRequestHighPerformance',
-        } or normalized.startswith('S_WriteLinearBlastStereo16_'):
+        } or normalized.startswith('S_WriteLinearBlastStereo16_')
+        if kind in ('U', 'w', 'v') and not boundary:
+            continue  # Undefined ordinary C++ references are intentionally mangled.
+        if boundary:
             normalized = name  # External loaders/assembly require the C spelling.
         rows.append(f'{kind} {normalized}\n')
     if not rows:

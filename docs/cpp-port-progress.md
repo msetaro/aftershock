@@ -24,6 +24,8 @@ Phase 1: renderervk; next `code/client/snd_mix.c`. Resume there; do not redo fil
 
 ## Decisions
 
+- G3 now checks raw names of undefined enumerated ABI references as well as definitions. Added a negative assembly-call control; full gate selfcheck PASS (`phase2-selfcheck.log`). This catches the previously invisible snd_mix SSE_x64 reference; ordinary undefined C++ symbols remain outside the defined-symbol comparison.
+
 - Windows G8 review complete: 14 T1 + 8 T2 casts in nine files; redundant same-type cast removed in 289755ce. Host full/default and dedicated C builds PASS. All engine source/header rows assessed; 32-bit qasm preprocessing also blocked by missing multilib headers.
 - Phase 2 begins with guarded Q_EXTERN_C macro (empty in C), Q_setjmp_c/Q_longjmp_c prototypes. Full C rebuild PASS and 295/295 original hashes unchanged; md4 consumer strict C++/G2/G3 PASS. Windows declarations remain target-unverified.
 
