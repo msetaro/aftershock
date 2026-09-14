@@ -2,15 +2,15 @@
 
 Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`.
 
-The port is blocked, not complete. Every one of the 257 in-scope engine C/header files has been assessed: **221 done, 36 blocked, zero todo**. Completed native files retain the original C object hashes; 143 current native translation units pass strict C++ compilation, layout and symbol gates. Full C++ executables cannot link, and unchanged q_math.c fails behavioral comparison. No files have been renamed.
+The port has resumed under the accepted T1–T23 catalog and revised gates. Prior blockers below are historical diagnoses pending revalidation, not unresolved requests for guidance. `q_math.c` now passes C hashes, strict C++, G2/G3 and G4 after T21. Remaining work: tree-wide math conversions, native blockers, full links/runtime, cross-target verification, T5 review, rename and CI. No files have been renamed. The old aggregate results below are retained until the replacement sweep completes.
 
 ## Next action
 
-Continuation: qcommon; next `remaining math inventory` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: qcommon; next `code/qcommon/cm_patch.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
-- [ ] Phase 0 fully satisfies all criteria: all six artifacts exist, checksums and gate controls pass; formatter <3% requirement remains unmet under the recorded DEVIATION.
+- [ ] Phase 0 fully satisfies all criteria: all six artifacts exist, checksums and gate controls pass; formatter is now advisory; per-file whitespace checks are enforced.
 - [ ] Phase 1 qcommon: assessed, seven blocked entries.
 - [ ] Phase 1 server: assessed, three blocked entries.
 - [x] Phase 1 botlib: native per-file strict builds/G2/G3 and C builds pass; integrated runtime blocked elsewhere.
@@ -20,7 +20,7 @@ Continuation: qcommon; next `remaining math inventory` under amended T1-T23. Pre
 - [x] Phase 1 renderer: all native objects pass; C++ OpenGL shared renderer builds and loads.
 - [ ] Phase 1 renderervk: assessed; vk.c/generated shader data blocked by const linkage.
 - [ ] Phase 1 win32: all files inspected; all target verification unavailable.
-- [ ] Phase 2 complete: available native boundaries pass; internal JIT error targets and foreign-target verification blocked.
+- [ ] Phase 2 complete: available native boundaries pass; foreign-target verification and removal of unnecessary internal callback linkage remain.
 - [ ] Phase 3: intentionally not started because prerequisites fail.
 - [x] Final available G1-G8 checks executed and evidence recorded; failures are not presented as passes.
 
@@ -442,7 +442,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/qcommon/net_ip.c` | done | T1: 2, T2: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/net_ip.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/puff.c` | done | T1-T17: 0 (already compatible); 3 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/puff.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/puff.h` | done | T1-T17: 0; unchanged header checked via puff.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
-| `code/qcommon/q_math.c` | done | T21: 20 argument casts at 18 calls; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_math.o, default); G4 PASS. |
+| `code/qcommon/q_math.c` | done | T21: 20 argument casts at 18 calls, redundant cast correction; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_math.o, default); G4 PASS. |
 | `code/qcommon/q_platform.h` | done | T1-T17: 0; unchanged header checked via md4.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/q_shared.c` | done | T1: 4, T2: 3; 4 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/q_shared.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/q_shared.h` | done | T5: guarded Q_EXTERN_C macro plus 2 Windows assembly prototypes; native md4 consumer G2/G3 PASS and all 295 C hashes unchanged; Windows branch unverified. |
@@ -579,3 +579,5 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/win32/win_snd.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 casts around existing void* loader casts, WINAPI preserved. WASAPI explicitly uses C lpVtbl interfaces/REFIID pointer arguments; C++ SDK interface selection requires uncataloged changes. Target gates unavailable. |
 | `code/win32/win_syscon.c` | blocked | Unverified (no MinGW/Windows SDK). T2: 1 boolean-toggle cast by inspection; target C/C++ builds and G1-G4 unavailable. |
 | `code/win32/win_wndproc.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 clipboard-pointer casts, T2: 2 boolean-toggle casts by inspection; target gates unavailable. |
+
+Continuation correction: the first q_math T21 edit contained seven redundant nested casts from an AST inventory that also selected explicit casts. Removed those redundant casts in a new commit without rewriting history; the scanner now selects only implicit conversions. The intended 20 argument casts at 18 calls remain.

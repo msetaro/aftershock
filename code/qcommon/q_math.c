@@ -353,8 +353,8 @@ void SetupRotationMatrix( vec3_t matrix[3], const vec3_t dir, float degrees ) {
 	vec_t	angle, s, c, one_c, xx, yy, zz, xy, yz, zx, xs, ys, zs;
 
 	angle = DEG2RAD(degrees);
-	s = sin((double)((double)(angle)));
-	c = cos((double)((double)(angle)));
+	s = sin((double)(angle));
+	c = cos((double)(angle));
 	one_c = 1.0F - c;
 
 	xx = dir[0] * dir[0];
@@ -432,7 +432,7 @@ void vectoangles( const vec3_t value1, vec3_t angles ) {
 	}
 	else {
 		if ( value1[0] ) {
-			yaw = ( atan2 ( (double)((double)(value1[1])), (double)((double)(value1[0])) ) * 180 / M_PI );
+			yaw = ( atan2 ( (double)(value1[1]), (double)(value1[0]) ) * 180 / M_PI );
 		}
 		else if ( value1[1] > 0 ) {
 			yaw = 90;
@@ -444,8 +444,8 @@ void vectoangles( const vec3_t value1, vec3_t angles ) {
 			yaw += 360;
 		}
 
-		forward = sqrt ( (double)((double)(value1[0]*value1[0] + value1[1]*value1[1])) );
-		pitch = ( atan2((double)((double)(value1[2])), (double)((double)(forward))) * 180 / M_PI );
+		forward = sqrt ( (double)(value1[0]*value1[0] + value1[1]*value1[1]) );
+		pitch = ( atan2((double)(value1[2]), (double)(forward)) * 180 / M_PI );
 		if ( pitch < 0 ) {
 			pitch += 360;
 		}
