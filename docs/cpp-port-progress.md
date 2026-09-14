@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/renderer/tr_init.c`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: renderer; next `code/renderervk/tr_init.c`. Resume there; do not redo files marked done. Harness formatter threshold remains an explicit deviation; final gates/rename are not authorized by a partial native pass.
 
 ## Phases
 
@@ -134,6 +134,8 @@ Phase 1: next `code/renderer/tr_init.c`. Resume there; do not redo done files. B
 - `DEVIATION: preserve source style despite formatter threshold`: after 16 real formatter trials varying declaration alignment, array/cast spaces and operand alignment, best whole-file change counts are cvar.c 547/2141 (25.549%) and cl_main.c 914/5120 (17.852%). The requested <3% full-file threshold is unmet. Existing files mix tab alignment, braces and expression spacing. A global clang-format configuration cannot encode every surrounding line's style; disabling formatting to claim 0% would be a false pass. Keep the closest id-style configuration, use changed-line output only as an advisory review aid, and manually preserve surrounding style as the authoritative plan requires. No engine file was reformatted. Phase 0's threshold remains a documented limitation; all other harness work and subsequent independently verifiable source work continue unattended.
 
 ## Codegen differences
+
+- `code/renderer/tr_init.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_init.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_init.o /tmp/aftershock-cpp-port/renderer-tr_init ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderervk/vk_vbo.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-vk_vbo.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/vk_vbo.o /tmp/aftershock-cpp-port/renderervk-vk_vbo ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -399,7 +401,6 @@ Phase 1: next `code/renderer/tr_init.c`. Resume there; do not redo done files. B
 
 - `code/renderervk/tr_init.c`: Five T1 casts compile with original C hash/G2 PASS; G3 fails only GetRefAPI mangling. Reverted; reapply with phase-2 T5. Patch /tmp/aftershock-cpp-port/renderervk-tr_init-phase1.patch.
 
-- `code/renderer/tr_init.c`: 12 catalog casts compile with original C hash and G2 PASS, but G3 fails only GetRefAPI mangling. Cast attempt reverted; reapply with phase-2 T5 boundary after module source passes. Patch /tmp/aftershock-cpp-port/renderer-tr_init-phase1.patch.
 
 - `code/renderercommon/vulkan/vulkan_win32.h`: Unverified: unchanged generated Khronos Windows header; no MinGW cross-compiler/Windows SDK available.
 
@@ -598,7 +599,7 @@ Phase 1: next `code/renderer/tr_init.c`. Resume there; do not redo done files. B
 | `code/renderer/tr_curve.c` | done | T1: 3; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_curve.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_flares.c` | done | T4: 3 occurrences (prerequisite), T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_flares.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_image.c` | done | T1: 9, T2: 2, T3: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_image.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_init.c` | blocked | 12 catalog casts compile with original C hash and G2 PASS, but G3 fails only GetRefAPI mangling. Cast attempt reverted; reapply with phase-2 T5 boundary after module source passes. Patch /tmp/aftershock-cpp-port/renderer-tr_init-phase1.patch. |
+| `code/renderer/tr_init.c` | done | T1: 10, T2: 1, T3: 1, T5: 2 conditional definitions; phase-2 GetRefAPI blocker resolved; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_init.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_light.c` | done | T4: 10 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_light.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_local.h` | done | T4: 5 occurrences (prerequisite); actual consumer code/renderer/tr_animation.c strict native builds/G2/G3 PASS. |
 | `code/renderer/tr_main.c` | done | T4: 113 occurrences (prerequisite), T17: 2; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_main.o, default); G4 advisory FAIL, full diff retained. |

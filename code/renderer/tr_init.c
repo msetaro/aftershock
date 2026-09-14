@@ -293,7 +293,7 @@ static qboolean R_HaveExtension( const char *ext )
 	if (ptr == NULL)
 		return qfalse;
 	ptr += strlen(ext);
-	return ((*ptr == ' ') || (*ptr == '\0'));  // verify its complete string.
+	return (qboolean)( ((*ptr == ' ') || (*ptr == '\0')) );  // verify its complete string.
 }
 
 
@@ -428,9 +428,9 @@ static void R_InitExtensions( void )
 	{
 		if ( r_ext_multitexture->integer )
 		{
-			qglMultiTexCoord2fARB = ri.GL_GetProcAddress( "glMultiTexCoord2fARB" );
-			qglActiveTextureARB = ri.GL_GetProcAddress( "glActiveTextureARB" );
-			qglClientActiveTextureARB = ri.GL_GetProcAddress( "glClientActiveTextureARB" );
+			qglMultiTexCoord2fARB = (void (APIENTRY *)(GLenum, GLfloat, GLfloat))ri.GL_GetProcAddress( "glMultiTexCoord2fARB" );
+			qglActiveTextureARB = (void (APIENTRY *)(GLenum))ri.GL_GetProcAddress( "glActiveTextureARB" );
+			qglClientActiveTextureARB = (void (APIENTRY *)(GLenum))ri.GL_GetProcAddress( "glClientActiveTextureARB" );
 
 			if ( qglActiveTextureARB && qglClientActiveTextureARB )
 			{
@@ -479,8 +479,8 @@ static void R_InitExtensions( void )
 		if ( r_ext_compiled_vertex_array->integer )
 		{
 			ri.Printf( PRINT_ALL, "...using GL_EXT_compiled_vertex_array\n" );
-			qglLockArraysEXT = ri.GL_GetProcAddress( "glLockArraysEXT" );
-			qglUnlockArraysEXT = ri.GL_GetProcAddress( "glUnlockArraysEXT" );
+			qglLockArraysEXT = (void (APIENTRY *)(GLint, GLint))ri.GL_GetProcAddress( "glLockArraysEXT" );
+			qglUnlockArraysEXT = (void (APIENTRY *)(void))ri.GL_GetProcAddress( "glUnlockArraysEXT" );
 			if ( !qglLockArraysEXT || !qglUnlockArraysEXT ) {
 				ri.Error( ERR_FATAL, "bad getprocaddress" );
 			}
@@ -794,8 +794,8 @@ static byte *RB_ReadPixels(int x, int y, int width, int height, size_t *offset, 
 	bufAlign = MAX( packAlign, 16 ); // for SIMD
 
 	// Allocate a few more bytes so that we can choose an alignment we like
-	buffer = ri.Hunk_AllocateTempMemory(padwidth * height + *offset + bufAlign - 1);
-	bufstart = PADP((intptr_t) buffer + *offset, bufAlign);
+	buffer = (byte *)ri.Hunk_AllocateTempMemory(padwidth * height + *offset + bufAlign - 1);
+	bufstart = (byte *)PADP((intptr_t) buffer + *offset, bufAlign);
 
 	qglReadPixels( x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, bufstart );
 
@@ -1062,7 +1062,7 @@ static void R_LevelShot( void ) {
 	allsource = RB_ReadPixels(0, 0, gls.captureWidth, gls.captureHeight, &offset, &padlen, 0 );
 	source = allsource + offset;
 
-	buffer = ri.Hunk_AllocateTempMemory(128 * 128*3 + 18);
+	buffer = (byte *)ri.Hunk_AllocateTempMemory(128 * 128*3 + 18);
 	Com_Memset (buffer, 0, 18);
 	buffer[2] = 2;		// uncompressed type
 	buffer[12] = 128;
@@ -1211,7 +1211,7 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 	avipadwidth = PAD(linelen, AVI_LINE_PADDING);
 	avipadlen = avipadwidth - linelen;
 
-	cBuf = PADP(cmd->captureBuffer, packAlign);
+	cBuf = (byte *)PADP(cmd->captureBuffer, packAlign);
 
 	qglReadPixels(0, 0, cmd->width, cmd->height, GL_RGB,
 		GL_UNSIGNED_BYTE, cBuf);
@@ -1283,7 +1283,7 @@ static void GL_SetDefaultState( void )
 	qglClearDepth( 1.0f );
 
 	qglCullFace( GL_FRONT );
-	glState.faceCulling = -1;
+	glState.faceCulling = (cullType_t)( -1 );
 
 	qglColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
@@ -1882,7 +1882,7 @@ void R_Init( void ) {
 	max_polys = r_maxpolys->integer;
 	max_polyverts = r_maxpolyverts->integer;
 
-	ptr = ri.Hunk_Alloc( sizeof( *backEndData ) + sizeof(srfPoly_t) * max_polys + sizeof(polyVert_t) * max_polyverts, h_low);
+	ptr = (byte *)ri.Hunk_Alloc( sizeof( *backEndData ) + sizeof(srfPoly_t) * max_polys + sizeof(polyVert_t) * max_polyverts, h_low);
 	backEndData = (backEndData_t *) ptr;
 	backEndData->polys = (srfPoly_t *) ((char *) ptr + sizeof( *backEndData ));
 	backEndData->polyVerts = (polyVert_t *) ((char *) ptr + sizeof( *backEndData ) + sizeof(srfPoly_t) * max_polys);
@@ -1987,9 +1987,9 @@ GetRefAPI
 @@@@@@@@@@@@@@@@@@@@@
 */
 #ifdef USE_RENDERER_DLOPEN
-Q_EXPORT refexport_t* QDECL GetRefAPI ( int apiVersion, refimport_t *rimp ) {
+Q_EXTERN_C Q_EXPORT refexport_t* QDECL GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 #else
-refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
+Q_EXTERN_C refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 #endif
 
 	static refexport_t	re;
