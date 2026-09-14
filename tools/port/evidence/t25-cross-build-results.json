@@ -1,0 +1,65 @@
+[
+  {
+    "target": "mingw64",
+    "command": [
+      "make",
+      "-k",
+      "-j5",
+      "BUILD_CXX=1",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/final-cross-mingw64",
+      "PLATFORM=mingw64",
+      "ARCH=x86_64",
+      "USE_SDL=0",
+      "USE_CURL=0",
+      "OPTIMIZE=-O2 -ffast-math -fno-lto"
+    ],
+    "status": 0,
+    "errors": []
+  },
+  {
+    "target": "aarch64",
+    "command": [
+      "make",
+      "-k",
+      "-j5",
+      "BUILD_CXX=1",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/final-cross-aarch64",
+      "ARCH=aarch64",
+      "CC=aarch64-linux-gnu-gcc",
+      "BUILD_CLIENT=0"
+    ],
+    "status": 0,
+    "errors": []
+  },
+  {
+    "target": "arm",
+    "command": [
+      "make",
+      "-k",
+      "-j5",
+      "BUILD_CXX=1",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/final-cross-arm",
+      "ARCH=arm",
+      "CC=arm-linux-gnueabihf-gcc",
+      "LONG_BIT=32",
+      "BUILD_CLIENT=0"
+    ],
+    "status": 0,
+    "errors": []
+  },
+  {
+    "target": "ppc64le",
+    "command": [
+      "make",
+      "-k",
+      "-j5",
+      "BUILD_CXX=1",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/final-cross-ppc64le",
+      "ARCH=ppc64le",
+      "CC=powerpc64le-linux-gnu-gcc",
+      "BUILD_CLIENT=0"
+    ],
+    "status": 0,
+    "errors": []
+  }
+]

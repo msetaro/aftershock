@@ -84,7 +84,8 @@ def symbols(path, renderer_boundary=True):
         boundary = boundary_name in {
             'GetRefAPI', 'dllEntry', 'vmMain', 'snd_p', 'snd_out',
             'snd_linear_count', 'Q_setjmp_c', 'Q_longjmp_c', 'CPUID_EX',
-            'Q_GetFPUCW', 'Q_SetFPUCW', '__clear_cache', 'NvOptimusEnablement',
+            'Q_GetFPUCW', 'Q_SetFPUCW', '__clear_cache',
+            '__aeabi_idiv', '__aeabi_uidiv', '__aeabi_idivmod', '__aeabi_uidivmod', 'NvOptimusEnablement',
             'AmdPowerXpressRequestHighPerformance',
         } or boundary_name.startswith('S_WriteLinearBlastStereo16_')
         if boundary_name == 'GetRefAPI' and not renderer_boundary:

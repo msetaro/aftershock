@@ -1,0 +1,266 @@
+[
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c0-release-sdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=0",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c0-release-sdl"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c0-debug-nosdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=0",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c0-debug-nosdl",
+      "debug",
+      "USE_SDL=0"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c0-debug-sdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=0",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c0-debug-sdl",
+      "debug"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c0-release-nosdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=0",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c0-release-nosdl",
+      "USE_SDL=0"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c0-static-opengl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=0",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c0-static-opengl",
+      "BUILD_SERVER=0",
+      "USE_RENDERER_DLOPEN=0",
+      "RENDERER_DEFAULT=opengl"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c0-static-vulkan",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=0",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c0-static-vulkan",
+      "BUILD_SERVER=0",
+      "USE_RENDERER_DLOPEN=0",
+      "RENDERER_DEFAULT=vulkan"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c1-release-sdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=1",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c1-release-sdl"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c1-debug-nosdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=1",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c1-debug-nosdl",
+      "debug",
+      "USE_SDL=0"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c1-debug-sdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=1",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c1-debug-sdl",
+      "debug"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c1-release-nosdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=1",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c1-release-nosdl",
+      "USE_SDL=0"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c1-static-opengl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=1",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c1-static-opengl",
+      "BUILD_SERVER=0",
+      "USE_RENDERER_DLOPEN=0",
+      "RENDERER_DEFAULT=opengl"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "gcc-c1-static-vulkan",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=1",
+      "CC=gcc",
+      "CXX=g++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/gcc-c1-static-vulkan",
+      "BUILD_SERVER=0",
+      "USE_RENDERER_DLOPEN=0",
+      "RENDERER_DEFAULT=vulkan"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "clang-c0-release-sdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=0",
+      "CC=clang",
+      "CXX=clang++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/clang-c0-release-sdl"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "clang-c0-debug-nosdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=0",
+      "CC=clang",
+      "CXX=clang++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/clang-c0-debug-nosdl",
+      "debug",
+      "USE_SDL=0"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "clang-c1-release-sdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=1",
+      "CC=clang",
+      "CXX=clang++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/clang-c1-release-sdl"
+    ]
+  },
+  {
+    "cwd": "/home/matt/.t3/worktrees/aftershock/t3code-b3a8e505",
+    "name": "clang-c1-debug-nosdl",
+    "status": 0,
+    "errors": 0,
+    "command": [
+      "make",
+      "-k",
+      "-j20",
+      "BUILD_CXX=1",
+      "CC=clang",
+      "CXX=clang++",
+      "BUILD_DIR=/tmp/aftershock-cpp-port/t25-matrix/build-xk3fjfo2/clang-c1-debug-nosdl",
+      "debug",
+      "USE_SDL=0"
+    ]
+  }
+]

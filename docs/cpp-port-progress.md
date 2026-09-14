@@ -2,28 +2,23 @@
 
 Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed continuation starts at `6a990e7c` (T1–T23 plan amendment). No engine files have been renamed. No engine bug fixes, vendor edits, renderer2 port, main pushes, force pushes, or history rewrites were made.
 
-**Continuation active under T24/T25.** The following 7ec7e925 results are historical until replaced. All independently buildable files have been handled: 253 of 257 inventory entries are done (including two explicit exclusions), four are blocked. Three source blockers prevent complete executables; `tlds.h` is blocked only through its sole consumer. Every completed native/cross object inspected passes mandatory layout and symbol gates. Phase 3 and its MSVC CI loop have not started because the native C++ executable/runtime prerequisites fail.
+**Phases 0–2 complete.** All 257 inventory entries are done (including the two explicit exclusions). Native GCC/Clang C and strict C++ configurations all build. MinGW, ARM, AArch64 and PPC64LE C++ full links pass. T24/T25 resolve all reviewed blockers with unchanged C hashes. C++ dedicated runtime matches C under G6, and the client loads OpenGL/Vulkan renderers under Xvfb.
 
 ## Next action
 
-Cross verification: next `phase 3 preflight`; T25 server hash blocker resolved. Then full native/cross sweeps and runtime acceptance; no rename until prerequisites pass.
+Finish the refreshed native context gates, then enter phase 3: separate embedded-shader path prerequisite, archive the pre-rename C oracle, pure engine rename with build/project/CI updates, fresh builds/gates/runtime, CI, and separate T25 cleanup with unchanged C++ hashes.
 
 ## Phase checklist
 
-- [x] Phase 0: all six harness artifacts, frozen observed warnings, C hash proof, q_math/md4 gate runs and positive/negative controls. Formatter advisory under amended plan; T15/stat exception documented below.
-- [x] Phase 1: every file assessed and every independent native/cross transformation completed; per-file commits retained. Full native C builds are green.
-- [ ] Phase 1 full integration: three source blockers remain; complete C++ ded/client/static builds and runtime cannot pass.
-- [x] Phase 2 source/linkage review: unnecessary internal annotations removed; all buildable native/cross objects pass G3. Both C++ dlopen renderer libraries load and resolve GetRefAPI.
-- [ ] Phase 2 client-driven renderer/runtime proof: full C++ client cannot link through the server blocker; library dlopen/dlsym proof is separate.
-- [ ] Phase 3 rename and MSVC CI: deliberately unstarted; prerequisites fail.
-- [x] Final available checks and review recorded; advisory G4 differences and unavailable checks are not represented as passes.
+- [x] Phase 0: harness, frozen warnings, C hash proof, controls; formatter advisory.
+- [x] Phase 1: all scoped sources and headers, unchanged C hashes, strict native/cross builds.
+- [x] Phase 2: required external linkage, G2/G3, full native links, deterministic dedicated smoke, client-driven renderer load.
+- [ ] Phase 3: rename, fresh build/gates/runtime, MSVC CI.
+- [ ] Post-rename T25 cleanup, unchanged C++ hashes, final checkpoint.
 
 ## Remaining blockers
 
-1. `code/server/sv_client.c`: the required T3 conversion of `bGood &= FS_FileIsInPAK(...)` at line 1639 into `bGood = (qboolean)( bGood & FS_FileIsInPAK(...) )` changes one C instruction's commutative operand encoding: `45 85 fe` (`test %r15d,%r14d`) becomes `45 85 f7` (`test %r14d,%r15d`). This is not evidence of changed behavior, but it fails the user's mandatory raw C SHA256 rule. The straightforward T3 form, alternate parentheses/ternary attempts, and a commuted trial did not preserve the hash; commutation also exceeds T3. All candidate edits were reverted. Both dedicated and client contexts fail to compile, with eight native errors each while the file is reverted. The independently cataloged T1/T2/T20 sites cannot make the whole file pass. Exact attempted patch and disassembly: `tools/port/evidence/sv_client-t3-attempt.patch`, `sv_client-c-oracle.diff`.
-2. `code/win32/win_input.c`: actual MinGW errors at 536/566 convert `const GUID*` to `const GUID&`. `CINTERFACE` does not change these SDK reference aliases. Two T15 literal-suffix sites are cataloged, but pointer/reference adaptation is outside T1–T23. No partial new candidate is retained; the earlier inspected T2 cast remains and its C hash is verified.
-3. `code/win32/win_snd.c`: C++ SDK interfaces lack the source's `lpVtbl` members. A temporary CINTERFACE/T4 probe restores the vtables but still fails GUID/reference calls at 300/393/422/578/853/855: eight outgoing GUID arguments plus two `memcmp` address adaptations are uncataloged. Disabling WASAPI still leaves DirectSound GUID calls. Existing two T1 loader casts have verified C hashes; new trial edits were not retained. Full errors and temporary SDK probe logs: `tools/port/evidence/mingw-full-diagnostics.log.gz`, `win-snd-sdk-{wasapi,dsound,cobjmacros}.log.gz`.
-4. `code/server/tlds.h`: unchanged initializer fragment; complete-object C++/G2/G3 verification depends on the blocked `sv_client.c`. No independent source defect was identified.
+None currently. Historical sv_client hash and Windows COM evidence remains below; T24/T25 resolved those failures without granting hash exceptions.
 
 ## Module inventory
 
@@ -41,12 +36,12 @@ Cross verification: next `phase 3 preflight`; T25 server hash blocker resolved. 
 | renderercommon | 15 | 0 |
 | renderervk | 30 | 0 |
 | sdl | 6 | 0 |
-| server | 11 | 2 |
+| server | 13 | 0 |
 | ui | 1 | 0 |
 | unix | 13 | 0 |
-| win32 | 12 | 2 |
+| win32 | 14 | 0 |
 
-## Verification results
+## Historical verification results at 7ec7e925 (superseded by continuation results below)
 
 - C oracle: default native 295/295 hashes and non-SDL 299/299 hashes unchanged. Full client/ded/renderers C links pass. Each ARM, AArch64 and PPC64LE dedicated oracle retains 65/65 hashes and links. MinGW non-SDL retains 300/300 hashes; its default curl-enabled client lacks target zlib, while ded and both DLLs link. The matching USE_CURL=0 baseline/current build links client/ded/both renderers and retains 299/299 C hashes (mingw-client-c-results.json, cross-mingw64-nocurl-c.sha256). Original-base cross builds were extracted with git archive into /tmp; port work stayed in this worktree.
 - Native matrix: all eight C configurations pass; all eight C++ configurations fail only in sv_client.c. GCC release/debug SDL and non-SDL plus static OpenGL/Vulkan; Clang release SDL and debug non-SDL. Exact commands and error counts: `tools/port/evidence/resumed-build-matrix-results.json`; full logs `resumed-*.log.gz`.
@@ -1235,3 +1230,5 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 - Post-rename harness safeguards: PORT_C_ORACLE selects the recorded pre-rename source checkout for C recipes; compile_pair fails if the alleged C command is C++. Compiler command and cwd are both recorded. Source discovery accepts .cpp, and clang-tidy follows rename pairs for changed-line filtering.
 
 - ARM full link exposed four libgcc assembler imports (__aeabi_idiv/uidiv/idivmod/uidivmod) with mangled names. T5 applies because these are resolved from external assembly by name, unlike internal static JIT callbacks. Add Q_EXTERN_C to the existing declarations and enforce raw names in G3. No signatures or call expressions change.
+
+- Current integration evidence: t25-build-matrix-results.json (16/16 PASS), t25-cross-build-results.json (4/4 full links PASS), t25-cross-gate-results.json (424/424 G2/G3 PASS; every advisory diff named in each row). ARM libgcc raw-linkage gate also passes after the four T5 annotations. OpenGL, Vulkan and static Vulkan clients load q3dm17 and shut down cleanly under Xvfb; logs t25-client-*.log.gz.
