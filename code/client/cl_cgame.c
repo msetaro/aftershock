@@ -707,18 +707,18 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		Q_strncpy( (char *)VMA(1), (char *)VMA(2), args[3] );
 		return args[1];
 	case TRAP_SIN:
-		return FloatAsInt( sin( VMF(1) ) );
+		return FloatAsInt( sin( (double)(VMF(1)) ) );
 	case TRAP_COS:
-		return FloatAsInt( cos( VMF(1) ) );
+		return FloatAsInt( cos( (double)(VMF(1)) ) );
 	case TRAP_ATAN2:
-		return FloatAsInt( atan2( VMF(1), VMF(2) ) );
+		return FloatAsInt( atan2( (double)(VMF(1)), (double)(VMF(2)) ) );
 	case TRAP_SQRT:
-		return FloatAsInt( sqrt( VMF(1) ) );
+		return FloatAsInt( sqrt( (double)(VMF(1)) ) );
 
 	case CG_FLOOR:
-		return FloatAsInt( floor( VMF(1) ) );
+		return FloatAsInt( floor( (double)(VMF(1)) ) );
 	case CG_CEIL:
-		return FloatAsInt( ceil( VMF(1) ) );
+		return FloatAsInt( ceil( (double)(VMF(1)) ) );
 	case CG_TESTPRINTINT:
 		return sprintf( (char *)VMA(1), "%i", (int)args[2] );
 	case CG_TESTPRINTFLOAT:
