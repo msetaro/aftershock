@@ -1864,9 +1864,9 @@ static qboolean ParseShader( const char **text )
 			b = Q_atof( token );
 			b = b / 180 * M_PI;
 
-			tr.sunDirection[0] = cos( a ) * cos( b );
-			tr.sunDirection[1] = sin( a ) * cos( b );
-			tr.sunDirection[2] = sin( b );
+			tr.sunDirection[0] = cos( (double)(a) ) * cos( (double)(b) );
+			tr.sunDirection[1] = sin( (double)(a) ) * cos( (double)(b) );
+			tr.sunDirection[2] = sin( (double)(b) );
 
 			SkipRestOfLine( text );
 			continue;
