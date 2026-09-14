@@ -67,6 +67,7 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   Separate UBSan and pointer-comparison runs avoid combined-instrumentation
   interference seen with Clang 21 while retaining both checks in CI. Upstream C
   fix and failing-then-passing test: https://github.com/ec-/Quake3e/pull/425.
+  Fork PR #37 passed regression 34877286456 and full build 34877286443.
 
 - #31 caller audit finding (separate fix pending): Unix and Windows Sys_LoadLibrary
   pass an uninitialized local `ext` to Com_Error when FS_AllowedExtension returns

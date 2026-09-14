@@ -11,19 +11,15 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
 build 34868566674 passed; its merged-tree run 34869117306 passed.
 
-Current branch: `issue/31-extension-validation`. The new permanent assertions plus
-`--sanitize --pointer-compare` fail on the original FS_AllowedExtension (NULL vs
-filename+3). Moving the NULL check first and using a same-string offset passes
-with the unchanged unit golden. Pointer checks run separately from UBSan because
-combining both under local Clang 21 diagnoses generated comparisons in COM_ParseExt;
-separate ASan/UBSan and ASan/pointer-comparison runs retain both sets of checks.
-GCC/Clang units, both sanitizer modes, collision, both-map smoke and both-renderer
-replay pass. Explicit unit/collision regeneration changes no golden. The symbol
-gate passes; of 99 production functions only FS_AllowedExtension changes assembly,
-as expected for its NULL guard and offset check. Upstream C regression also fails
-before and passes after. Upstream C PR: https://github.com/ec-/Quake3e/pull/425.
-Next: open the fork PR, get CI green,
-self-review and merge before the next #31 bug.
+Current branch: `issue/31-extension-validation`, PR #37. Source/test head ae390e6f
+passed regression 34877286456 and full build 34877286443. Final checkpoint changes
+only documentation. Self-review passed: one filesystem bug, no OS calls, allocation,
+non-trivial core destructors, layout or simulation FP changes; all goldens unchanged.
+Next: mark #37 ready, merge with a merge commit, verify the merged-tree regression,
+then branch `issue/31-download-url` for Com_DL_Begin. A temporary test already
+confirms a trailing slash generates `maps//map%20name.pk3`; preserve the no-slash,
+percent-1 template and empty-base behavior while fixing the final-character check.
+The test calls the real begin/cleanup path with libcurl but never performs a transfer.
 
 ## Issue status and remaining sequence
 
@@ -116,3 +112,19 @@ The explicit unit and differential regeneration commands produce zero golden
 diff. Local q3dm17/q3dm7 smoke and both-renderer fixed-demo replay pass unchanged.
 An upstream C regression tests every symbol at 32 bit offsets: sanitizer fails
 before, passes after, and GCC C assembly is also identical. Upstream PR: https://github.com/ec-/Quake3e/pull/424. Fork PR #36 merged after full CI and self-review; merged-tree regression passed.
+
+## #31 filesystem validation
+
+The permanent `--sanitize --pointer-compare` command fails before the fix with
+NULL versus filename+3, and passes afterward with the original unit golden.
+Separate ASan/UBSan and ASan/pointer-comparison runs retain both checks: combining
+them under Clang 21 instruments generated pointer-overflow comparisons in COM_ParseExt
+(disassembly shows `__sanitizer_ptr_cmp(pointer, -3)`). No suppression/expectation
+covered this bug. GCC/Clang/libc++ units, the one-ULP control, both sanitizer modes,
+collision, both-map smoke and both-renderer replay pass. Explicit unit/collision
+regeneration changes no golden. Symbol gate passes; normalized per-function assembly
+changes only FS_AllowedExtension among 99 functions, as expected for the new guard.
+Upstream C test fails before and passes after: https://github.com/ec-/Quake3e/pull/425.
+Fork: https://github.com/msetaro/aftershock/pull/37. Regression/full build runs above
+include public-content runtime and all platform legs. The caller audit's separate
+Sys_LoadLibrary uninitialized diagnostic pointer is recorded in notes and issue #31.
