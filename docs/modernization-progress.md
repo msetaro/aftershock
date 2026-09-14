@@ -11,22 +11,29 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
 build 34868566674 passed; its merged-tree run 34869117306 passed.
 
-Current branch: `issue/31-extension-validation`, PR #37. Source/test head ae390e6f
-passed regression 34877286456 and full build 34877286443. Final checkpoint changes
-only documentation. Self-review passed: one filesystem bug, no OS calls, allocation,
-non-trivial core destructors, layout or simulation FP changes; all goldens unchanged.
-Next: mark #37 ready, merge with a merge commit, verify the merged-tree regression,
-then branch `issue/31-download-url` for Com_DL_Begin. A temporary test already
-confirms a trailing slash generates `maps//map%20name.pk3`; preserve the no-slash,
-percent-1 template and empty-base behavior while fixing the final-character check.
-The test calls the real begin/cleanup path with libcurl but never performs a transfer.
+Filesystem PR #37 merged as 73108eab after regression 34877286456 and full build
+34877286443 passed; merged-tree regression 34877819880 passed.
+
+Current branch: `issue/31-download-url`. Permanent `python3 tests/download.py`
+failed before the fix on a base ending in `/` (doubled separator). The one-line
+last-character check now handles the empty base safely and preserves `%1` behavior.
+GCC and Clang/libc++ checks pass. `--regenerate` created the new download.txt URL
+fixture only; existing goldens stay unchanged. CI runs this in the runtime job
+using its installed libcurl development package. Next:
+fork PR, hosted CI, self-review and merge.
+
+Upstream C PR: https://github.com/ec-/Quake3e/pull/426; its standalone test fails
+before and passes after. Unit/negative-control, collision, smoke and replay gates
+pass. One smoke attempt overlapped demo replay and differed only in the occupied
+UDP port diagnostic; a serial rerun passed both original map goldens. Run these
+two local runtime gates serially. No golden was changed to accommodate the collision.
 
 ## Issue status and remaining sequence
 
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem extension validation in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |

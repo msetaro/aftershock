@@ -75,3 +75,14 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   Reproducer path: Sys_LoadLibrary with an extensionless or non-executable name
   reaches the error formatter with an indeterminate `%s` pointer. Recorded from
   call-flow inspection, not executed; no loader test or source fix in this PR.
+
+- #31 download URL separator fix: Com_DL_Begin indexed the terminating NUL instead
+  of the last character. `python3 tests/download.py` fails before on a trailing-slash
+  base producing a double separator and passes after the guarded last-character
+  check. GCC/Clang test calls real begin/cleanup with libcurl, but never performs
+  a transfer. New golden `tests/golden/download.txt` records bases with/without `/`,
+  percent-1 replacement/escaping and the preserved empty-base result. No existing
+  gameplay or frame golden changes. Caller audit: CL_Download is the sole caller
+  and already rejects empty configured URLs; the shared fix still guards empty input.
+  Upstream C test/fix: https://github.com/ec-/Quake3e/pull/426.
+  Local unit/negative-control, collision, smoke and replay gates pass unchanged.
