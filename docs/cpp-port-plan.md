@@ -180,6 +180,17 @@ G6. Runtime differential. Dedicated server: `+set dedicated 1 +set sv_pure 0 +ma
     Quake III `pak0.pk3` was found on this machine. Options: Matt's own Q3A install for local
     runs, and OpenArena (free) paks for CI.
 
+    Verified deterministic procedure (2026-09-13): the bot smoke is nondeterministic on its own
+    because the server and game module seed from the millisecond clock. Under libfaketime's
+    increment mode the clock is a pure function of the call sequence and three consecutive C runs
+    produced byte-identical logs (124 lines, 28 item events, ~1 s wall each):
+      timeout 90 faketime -f "@2026-01-01 00:00:00 i0.01" <binary> +set dedicated 1 +set sv_pure 0 \
+        +set com_logfile 0 +map q3dm17 +addbot sarge 3 +addbot major 3 +wait 300 +quit
+    `timeout` must wrap `faketime`, not the reverse, or its clock is faked too and never fires.
+    Increment 0.001 works but takes minutes; 0.01 finishes in about a second. Do one warm-up run
+    or ignore the "...found N cached paks" line, which differs only between a cold and warm pak
+    cache. Acceptance order: two C runs identical, then C vs C++ identical.
+
 G7. Static analysis. Build with both gcc and clang (clang is not installed yet). clang-tidy with
     a deliberately tiny check list aimed at port mistakes only (e.g. `bugprone-signed-char-misuse`,
     `bugprone-narrowing-conversions`, `bugprone-suspicious-string-compare`), not style. No
@@ -257,6 +268,13 @@ Optional: `gcc-multilib` for `ARCH=x86` builds (the x87 JIT and 32-bit determini
 `mingw-w64` for cross-checking `code/win32` locally.
 
 Game data: `~/.q3a/baseq3/pak0-8.pk3` (from the Steam install). Needed for G6 only.
+
+Cross toolchains installed 2026-09-13 and verified with a C++20 test program: mingw
+`x86_64-w64-mingw32-g++` 13 (the Makefile auto-detects it with `PLATFORM=mingw64 ARCH=x86_64`;
+a dedicated-server cross-build produced a valid PE32+ executable), `aarch64-linux-gnu-g++`,
+`arm-linux-gnueabihf-g++`, `powerpc64le-linux-gnu-g++` (all gcc 15.2), clang with libc++,
+faketime, Xvfb. 32-bit multilib is deliberately not installed: it conflicts with the cross
+compilers and 32-bit targets are out of the port's matrix.
 
 ## 8. Agent workflow
 
