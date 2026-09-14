@@ -1882,7 +1882,7 @@ qboolean FBO_Bloom( const float gamma, const float obScale, qboolean finalStage 
 		GL_BindTexture( 0, dst->color );
 		GL_State( GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE );
 		qglViewport( 0, 0, dst->width, dst->height );
-		R_Bloom_LensEffect( fabs( r_bloom_reflection->value ) );
+		R_Bloom_LensEffect( fabs( (double)(r_bloom_reflection->value) ) );
 		
 		// restore color and blend mode
 		qglColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
