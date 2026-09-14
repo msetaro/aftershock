@@ -114,13 +114,14 @@ TODO: If the SDL_Scancode situation improves, use it instead of
 */
 static qboolean IN_IsConsoleKey( keyNum_t key, int character )
 {
-	typedef struct consoleKey_s
-	{
-		enum
+	typedef enum
 		{
 			QUAKE_KEY,
 			CHARACTER
-		} type;
+		} consoleKeyType_t;
+	typedef struct consoleKey_s
+	{
+		consoleKeyType_t type;
 
 		union
 		{
@@ -161,7 +162,7 @@ static qboolean IN_IsConsoleKey( keyNum_t key, int character )
 			else
 			{
 				c->type = QUAKE_KEY;
-				c->u.key = Key_StringToKeynum( token );
+				c->u.key = (keyNum_t)( Key_StringToKeynum( token ) );
 
 				// 0 isn't a key
 				if ( c->u.key <= 0 )
@@ -174,7 +175,7 @@ static qboolean IN_IsConsoleKey( keyNum_t key, int character )
 
 	// If the character is the same as the key, prefer the character
 	if ( key == character )
-		key = 0;
+		key = (keyNum_t)( 0 );
 
 	for ( i = 0; i < numConsoleKeys; i++ )
 	{
@@ -205,7 +206,7 @@ IN_TranslateSDLToQ3Key
 */
 static keyNum_t IN_TranslateSDLToQ3Key( SDL_Keysym *keysym, qboolean down )
 {
-	keyNum_t key = 0;
+	keyNum_t key = (keyNum_t)( 0 );
 
 	if ( keysym->scancode >= SDL_SCANCODE_1 && keysym->scancode <= SDL_SCANCODE_0 )
 	{
@@ -214,31 +215,31 @@ static keyNum_t IN_TranslateSDLToQ3Key( SDL_Keysym *keysym, qboolean down )
 		// This is required for SDL before 2.0.6, except on Windows
 		// which already had this behavior.
 		if( keysym->scancode == SDL_SCANCODE_0 )
-			key = '0';
+			key = (keyNum_t)( '0' );
 		else
-			key = '1' + keysym->scancode - SDL_SCANCODE_1;
+			key = (keyNum_t)( '1' + keysym->scancode - SDL_SCANCODE_1 );
 	}
 	else if ( in_forceCharset->integer > 0 )
 	{
 		if ( keysym->scancode >= SDL_SCANCODE_A && keysym->scancode <= SDL_SCANCODE_Z )
 		{
-			key = 'a' + keysym->scancode - SDL_SCANCODE_A;
+			key = (keyNum_t)( 'a' + keysym->scancode - SDL_SCANCODE_A );
 		}
 		else
 		{
 			switch ( keysym->scancode )
 			{
-				case SDL_SCANCODE_MINUS:        key = '-';  break;
-				case SDL_SCANCODE_EQUALS:       key = '=';  break;
-				case SDL_SCANCODE_LEFTBRACKET:  key = '[';  break;
-				case SDL_SCANCODE_RIGHTBRACKET: key = ']';  break;
+				case SDL_SCANCODE_MINUS:        key = (keyNum_t)( '-' );  break;
+				case SDL_SCANCODE_EQUALS:       key = (keyNum_t)( '=' );  break;
+				case SDL_SCANCODE_LEFTBRACKET:  key = (keyNum_t)( '[' );  break;
+				case SDL_SCANCODE_RIGHTBRACKET: key = (keyNum_t)( ']' );  break;
 				case SDL_SCANCODE_NONUSBACKSLASH:
-				case SDL_SCANCODE_BACKSLASH:    key = '\\'; break;
-				case SDL_SCANCODE_SEMICOLON:    key = ';';  break;
-				case SDL_SCANCODE_APOSTROPHE:   key = '\''; break;
-				case SDL_SCANCODE_COMMA:        key = ',';  break;
-				case SDL_SCANCODE_PERIOD:       key = '.';  break;
-				case SDL_SCANCODE_SLASH:        key = '/';  break;
+				case SDL_SCANCODE_BACKSLASH:    key = (keyNum_t)( '\\' ); break;
+				case SDL_SCANCODE_SEMICOLON:    key = (keyNum_t)( ';' );  break;
+				case SDL_SCANCODE_APOSTROPHE:   key = (keyNum_t)( '\'' ); break;
+				case SDL_SCANCODE_COMMA:        key = (keyNum_t)( ',' );  break;
+				case SDL_SCANCODE_PERIOD:       key = (keyNum_t)( '.' );  break;
+				case SDL_SCANCODE_SLASH:        key = (keyNum_t)( '/' );  break;
 				default:
 					/* key = 0 */
 					break;
@@ -249,7 +250,7 @@ static keyNum_t IN_TranslateSDLToQ3Key( SDL_Keysym *keysym, qboolean down )
 	if( !key && keysym->sym >= SDLK_SPACE && keysym->sym < SDLK_DELETE )
 	{
 		// These happen to match the ASCII chars
-		key = (int)keysym->sym;
+		key = (keyNum_t)( (int)keysym->sym );
 	}
 	else if( !key )
 	{
@@ -316,7 +317,7 @@ static keyNum_t IN_TranslateSDLToQ3Key( SDL_Keysym *keysym, qboolean down )
 			case SDLK_KP_5:         key = K_KP_5;          break;
 			case SDLK_INSERT:       key = K_INS;           break;
 			case SDLK_KP_0:         key = K_KP_INS;        break;
-			case SDLK_KP_MULTIPLY:  key = '*'; /*K_KP_STAR;*/ break;
+			case SDLK_KP_MULTIPLY:  key = (keyNum_t)( '*' ); /*K_KP_STAR;*/ break;
 			case SDLK_KP_PLUS:      key = K_KP_PLUS;       break;
 			case SDLK_KP_MINUS:     key = K_KP_MINUS;      break;
 			case SDLK_KP_DIVIDE:    key = K_KP_SLASH;      break;
@@ -335,7 +336,7 @@ static keyNum_t IN_TranslateSDLToQ3Key( SDL_Keysym *keysym, qboolean down )
 
 			default:
 #if 1
-				key = 0;
+				key = (keyNum_t)( 0 );
 #else
 				if( !( keysym->sym & SDLK_SCANCODE_MASK ) && keysym->scancode <= 95 )
 				{
@@ -1145,8 +1146,8 @@ HandleEvents
 void HandleEvents( void )
 {
 	SDL_Event e;
-	keyNum_t key = 0;
-	static keyNum_t lastKeyDown = 0;
+	keyNum_t key = (keyNum_t)( 0 );
+	static keyNum_t lastKeyDown = (keyNum_t)( 0 );
 
 	if ( !SDL_WasInit( SDL_INIT_VIDEO ) )
 			return;
@@ -1192,7 +1193,7 @@ void HandleEvents( void )
 				if( ( key = IN_TranslateSDLToQ3Key( &e.key.keysym, qfalse ) ) )
 					Com_QueueEvent( in_eventTime, SE_KEY, key, qfalse, 0, NULL );
 
-				lastKeyDown = 0;
+				lastKeyDown = (keyNum_t)( 0 );
 				break;
 
 			case SDL_TEXTINPUT:
@@ -1233,7 +1234,7 @@ void HandleEvents( void )
 
 						if( utf32 != 0 )
 						{
-							if ( IN_IsConsoleKey( 0, utf32 ) )
+							if ( IN_IsConsoleKey( (keyNum_t)( 0 ), utf32 ) )
 							{
 								Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, qtrue, 0, NULL );
 								Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, qfalse, 0, NULL );
@@ -1316,8 +1317,8 @@ void HandleEvents( void )
 					case SDL_WINDOWEVENT_RESTORED:
 					case SDL_WINDOWEVENT_MAXIMIZED:		gw_minimized = qfalse; break;
 					// keyboard focus:
-					case SDL_WINDOWEVENT_FOCUS_LOST:	lastKeyDown = 0; Key_ClearStates(); IN_SyncModifiers(); gw_active = qfalse; break;
-					case SDL_WINDOWEVENT_FOCUS_GAINED:	lastKeyDown = 0; Key_ClearStates(); IN_SyncModifiers(); gw_active = qtrue; gw_minimized = qfalse;
+					case SDL_WINDOWEVENT_FOCUS_LOST:	lastKeyDown = (keyNum_t)( 0 ); Key_ClearStates(); IN_SyncModifiers(); gw_active = qfalse; break;
+					case SDL_WINDOWEVENT_FOCUS_GAINED:	lastKeyDown = (keyNum_t)( 0 ); Key_ClearStates(); IN_SyncModifiers(); gw_active = qtrue; gw_minimized = qfalse;
 														if ( re.SetColorMappings ) {
 															re.SetColorMappings();
 														}
