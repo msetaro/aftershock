@@ -468,7 +468,7 @@ static void CL_MouseMove( usercmd_t *cmd )
 			float accelSensitivity;
 			float rate;
 
-			rate = sqrt(mx * mx + my * my) / (float) frame_msec;
+			rate = sqrt((double)(mx * mx + my * my)) / (float) frame_msec;
 
 			accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
 			mx *= accelSensitivity;
