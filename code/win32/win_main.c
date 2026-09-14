@@ -402,7 +402,7 @@ char** Sys_ListFiles( const char *directory, const char *extension, const char *
 	nfiles = Sys_ListExtFiles( directory, "", extension, filter, list, ARRAY_LEN( list ), subdirs );
 
 	// copy list from stack, reserve extra space for NULL
-	listCopy = Z_Malloc( (nfiles + 1) * sizeof( listCopy[0] ) );
+	listCopy = (char **)Z_Malloc( (nfiles + 1) * sizeof( listCopy[0] ) );
 	for ( i = 0; i < nfiles; i++ ) {
 		listCopy[i] = list[i];
 	}
@@ -518,7 +518,7 @@ void *Sys_LoadFunction( void *handle, const char *name )
 		return NULL;
 	}
 
-	symbol = GetProcAddress( handle, name );
+	symbol = GetProcAddress( (HMODULE)handle, name );
 	if ( !symbol )
 		dll_err_count++;
 
@@ -547,7 +547,7 @@ Sys_UnloadLibrary
 void Sys_UnloadLibrary( void *handle )
 {
 	if ( handle )
-		FreeLibrary( handle );
+		FreeLibrary( (HMODULE)handle );
 }
 
 
@@ -731,7 +731,7 @@ static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 			typedef BOOL (WINAPI *PFN_GetModuleHandleExA)( DWORD dwFlags, LPCSTR lpModuleName, HMODULE *phModule );
 			PFN_GetModuleHandleExA pGetModuleHandleExA;
 
-			pGetModuleHandleExA = (PFN_GetModuleHandleExA) GetProcAddress( hKernel32, "GetModuleHandleExA" );
+			pGetModuleHandleExA = (PFN_GetModuleHandleExA) GetProcAddress( (HMODULE)hKernel32, "GetModuleHandleExA" );
 			if ( pGetModuleHandleExA != NULL ) {
 				if ( pGetModuleHandleExA( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)addr, &hModule ) ) {
 					if (GetModuleFileNameA( hModule, name, ARRAY_LEN(name) - 1) != 0 ) {
