@@ -204,3 +204,15 @@ The strict port made no engine bug fixes. Modernization #31 dispositions are rec
   regeneration changes no golden; final Q3/OA UBSan smoke, normal smoke and
   fixed-demo replay pass unchanged.
   Fork PR #45 passed regression 34889484418 and full build 34889484412.
+
+- #31 PNG chunk header alignment: chunks follow variable-length data, so the
+  shared header type needs byte alignment. Scoped packing fixes all six buffered
+  header reads in FindChunk, DecompressIDATs and R_LoadPNG. Its two uint32_t fields,
+  eight-byte size and BigLong conversions are unchanged. Size/alignment assertions
+  in the existing renderer build fail before at alignment 4 instead of 1, then
+  pass after. Upstream C compile-only assertions likewise fail before and pass
+  after with GCC and Clang. Production GCC codegen/symbol gates and both-renderer
+  fixed-demo frame hashes are identical. No new fixture recording.
+  Upstream C fix: https://github.com/ec-/Quake3e/pull/433. Explicit unit/collision
+  regeneration has no golden diff, and normal both-map smoke passes.
+  Fork PR #46 passed regression 34890358367 and full build 34890358307.
