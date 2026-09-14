@@ -163,7 +163,7 @@ R_AddDrawSurfCmd
 void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	drawSurfsCommand_t	*cmd;
 
-	cmd = R_GetCommandBuffer( sizeof( *cmd ) );
+	cmd = (drawSurfsCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
 	if ( !cmd ) {
 		return;
 	}
@@ -190,7 +190,7 @@ void RE_SetColor( const float *rgba ) {
 	if ( !tr.registered ) {
 		return;
 	}
-	cmd = R_GetCommandBuffer( sizeof( *cmd ) );
+	cmd = (setColorCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
 	if ( !cmd ) {
 		return;
 	}
@@ -218,7 +218,7 @@ void RE_StretchPic( float x, float y, float w, float h,
 	if ( !tr.registered ) {
 		return;
 	}
-	cmd = R_GetCommandBuffer( sizeof( *cmd ) );
+	cmd = (stretchPicCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
 	if ( !cmd ) {
 		return;
 	}
@@ -307,7 +307,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	// check for errors
 	GL_CheckErrors();
 
-	if ( ( cmd = R_GetCommandBuffer( sizeof( *cmd ) ) ) == NULL )
+	if ( ( cmd = (drawBufferCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) ) ) == NULL )
 		return;
 	cmd->commandId = RC_DRAW_BUFFER;
 
@@ -331,7 +331,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		{
 			if ( r_anaglyphMode->modified )
 			{
-				clrcmd = R_GetCommandBuffer( sizeof( *clrcmd ) );
+				clrcmd = (clearColorCommand_t *)R_GetCommandBuffer( sizeof( *clrcmd ) );
 				if ( clrcmd ) {
 					Com_Memset( clrcmd, 0, sizeof( *clrcmd ) );
 					clrcmd->commandId = RC_CLEARCOLOR;
@@ -356,7 +356,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 			{
 				clearDepthCommand_t *cldcmd;
 				
-				if ( (cldcmd = R_GetCommandBuffer(sizeof(*cldcmd))) == NULL )
+				if ( (cldcmd = (clearDepthCommand_t *)R_GetCommandBuffer(sizeof(*cldcmd))) == NULL )
 					return;
 
 				cldcmd->commandId = RC_CLEARDEPTH;
@@ -364,7 +364,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 			else
 				ri.Error( ERR_FATAL, "RE_BeginFrame: Stereo is enabled, but stereoFrame was %i", stereoFrame );
 
-			if ( (colcmd = R_GetCommandBuffer(sizeof(*colcmd))) == NULL )
+			if ( (colcmd = (colorMaskCommand_t *)R_GetCommandBuffer(sizeof(*colcmd))) == NULL )
 				return;
 
 			R_SetColorMode( colcmd->rgba, stereoFrame, r_anaglyphMode->integer );
@@ -377,7 +377,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 
 			// reset color mask
 			if ( r_anaglyphMode->modified )	{
-				if ( ( colcmd = R_GetCommandBuffer( sizeof( *colcmd ) ) ) == NULL )
+				if ( ( colcmd = (colorMaskCommand_t *)R_GetCommandBuffer( sizeof( *colcmd ) ) ) == NULL )
 					return;
 
 				R_SetColorMode( colcmd->rgba, stereoFrame, r_anaglyphMode->integer );
@@ -389,7 +389,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	if ( r_fastsky->integer ) {
 		if ( stereoFrame != STEREO_RIGHT ) {
 			if ( !clrcmd ) {
-				clrcmd = R_GetCommandBuffer( sizeof( *clrcmd ) );
+				clrcmd = (clearColorCommand_t *)R_GetCommandBuffer( sizeof( *clrcmd ) );
 				if ( clrcmd ) {
 					Com_Memset( clrcmd, 0, sizeof( *clrcmd ) );
 					clrcmd->commandId = RC_CLEARCOLOR;
@@ -423,7 +423,7 @@ void RE_EndFrame( int *frontEndMsec, int *backEndMsec ) {
 		return;
 	}
 
-	cmd = R_GetCommandBufferReserved( sizeof( *cmd ), 0 );
+	cmd = (swapBuffersCommand_t *)R_GetCommandBufferReserved( sizeof( *cmd ), 0 );
 	if ( !cmd ) {
 		return;
 	}
@@ -509,7 +509,7 @@ void RE_FinishBloom( void )
 		return;
 	}
 
-	cmd = R_GetCommandBuffer( sizeof( *cmd ) );
+	cmd = (finishBloomCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
 	if ( !cmd ) {
 		return;
 	}
