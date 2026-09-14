@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `G5 differential harness, G7 analysis, final blocker audit`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+G5: complete C-driver differential coverage beyond math; then G7 static analysis and final G1 matrix/blocker audit. Phase 2 native boundaries assessed, JIT/foreign-target blockers remain. Do not rename while blockers persist.
 
 ## Phases
 
