@@ -44,7 +44,10 @@ def build(output, variables, targets=()):
     refresh = [] if manifest.exists() and manifest.read_text() == settings else ['-B']
     command = ['make', '-j8', *refresh, f'BUILD_DIR={output}', *variables, *targets]
     with (output / 'build.log').open('w') as log:
-        run(command, stdout=log, stderr=subprocess.STDOUT)
+        result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV, stdout=log, stderr=subprocess.STDOUT)
+    if result.returncode:
+        print((output / 'build.log').read_text())
+        result.check_returncode()
     manifest.write_text(settings)
     return output / 'release-linux-x86_64'
 

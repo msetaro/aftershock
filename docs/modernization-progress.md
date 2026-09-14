@@ -95,3 +95,10 @@ f5a407f330241906e1e5055f225ce7966ac1b390b2cd6e3b937513fcb21b71ad;
 q3dm7 ca6950d578ccf17dfcb9bd0f72388783a2901029e6770f0494b1bc130fbe91b2.
 Each replays identical frames twice per renderer. No previously accepted golden,
 production source, or port-evidence was changed. Hosted verification is next.
+
+Hosted run 34865213291 on 358c0fec passed GCC, Clang, both cross builds, sanitizers,
+and OpenArena collision/both smoke goldens. Runtime stopped compiling the client:
+its job lacked SDL development prerequisites installed by the separate build
+workflow. Added libsdl2-dev to the runtime job and exposed build logs on failure;
+replay on hosted CI remains to verify. Final local Quake 3 collision/smoke/replay
+comparison also passed without changing accepted baselines.
