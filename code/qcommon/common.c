@@ -3411,9 +3411,9 @@ static void CPUID( int func, unsigned int *regs )
 
 #ifdef USE_AFFINITY_MASK
 #if idx64
-extern void CPUID_EX( int func, int param, unsigned int *regs );
+Q_EXTERN_C void CPUID_EX( int func, int param, unsigned int *regs );
 #else
-void CPUID_EX( int func, int param, unsigned int *regs )
+Q_EXTERN_C void CPUID_EX( int func, int param, unsigned int *regs )
 {
 	__asm {
 		push edi
