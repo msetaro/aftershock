@@ -142,77 +142,72 @@ Item: 1 ammo_grenades
 Item: 1 ammo_rockets
 Item: 1 ammo_lightning
 Item: 0 ammo_cells
-Item: 0 ammo_cells
-Item: 1 ammo_rockets
-Item: 1 holdable_teleporter
-Item: 1 ammo_shells
-Item: 1 ammo_grenades
-Item: 0 item_health
-Item: 0 weapon_shotgun
-Item: 1 weapon_grenadelauncher
-Item: 0 item_health
-Item: 0 weapon_plasmagun
+Kill: 1 0 4: Beret killed Sarge by MOD_GRENADE
+PlayerScore: 1 1: Beret now has 1 points
+Item: 1 weapon_rocketlauncher
+Item: 0 weapon_rocketlauncher
 Item: 1 ammo_cells
-Item: 1 ammo_rockets
-Item: 0 ammo_shells
-Item: 1 weapon_rocketlauncher
-Item: 1 item_health
-Item: 0 ammo_cells
-Item: 0 item_armor_body
-Item: 0 item_health_small
-Item: 0 item_health_small
-Item: 0 item_health_small
-Item: 0 item_health_small
-Item: 0 item_health_small
-Item: 1 weapon_shotgun
-Item: 1 item_health
-Item: 1 item_health
-Item: 0 ammo_shells
-Item: 1 weapon_plasmagun
 Item: 0 ammo_rockets
-Item: 0 ammo_lightning
-Item: 0 ammo_bullets
-Item: 0 weapon_lightning
-Item: 1 ammo_rockets
-Kill: 0 1 11: Sarge killed Beret by MOD_LIGHTNING
+Item: 0 ammo_cells
+Kill: 0 1 6: Sarge killed Beret by MOD_ROCKET
 PlayerScore: 0 1: Sarge now has 1 points
-Item: 1 weapon_plasmagun
-Item: 0 ammo_cells
 Item: 0 weapon_rocketlauncher
-Item: 1 ammo_grenades
-Item: 1 ammo_rockets
-Item: 0 ammo_cells
-Item: 1 ammo_lightning
 Item: 1 weapon_rocketlauncher
-Item: 1 ammo_rockets
-Item: 1 ammo_bullets
-Item: 1 ammo_shells
-Item: 0 weapon_plasmagun
-Item: 1 ammo_grenades
-Item: 0 item_health
-Item: 0 weapon_shotgun
-Item: 0 item_health
-say: Sarge: Is it true that Bill Frist is a bot?
-Sarge^7: Is it true that Bill Frist is a bot?
-Item: 1 item_health
+Item: 0 ammo_grenades
+Item: 0 ammo_rockets
+Item: 0 holdable_teleporter
 Item: 0 ammo_shells
+Item: 0 weapon_rocketlauncher
+Item: 0 item_health
+Item: 0 weapon_plasmagun
 Item: 1 item_health
 Item: 1 weapon_shotgun
-Item: 0 ammo_shells
-Item: 0 item_armor_body
-Item: 0 item_health_small
-Item: 0 item_health_small
-Item: 0 item_health_small
-Item: 0 item_health_small
-Item: 0 item_health_small
-Item: 0 ammo_cells
-Item: 1 ammo_bullets
-Item: 0 item_armor_body
-Kill: 0 1 11: Sarge killed Beret by MOD_LIGHTNING
+Item: 0 item_health
+Kill: 0 1 6: Sarge killed Beret by MOD_ROCKET
 PlayerScore: 0 2: Sarge now has 2 points
+say: Beret: Care to show how that move is accomplished in slow motion?
+Beret^7: Care to show how that move is accomplished in slow motion?
 Item: 1 weapon_rocketlauncher
+say: Sarge: My great-uncle's cousin's half-sister could do better.
+Sarge^7: My great-uncle's cousin's half-sister could do better.
+Item: 1 ammo_rockets
+Item: 0 weapon_shotgun
+Item: 1 ammo_grenades
+Item: 1 weapon_rocketlauncher
+Kill: 1 0 6: Beret killed Sarge by MOD_ROCKET
+PlayerScore: 1 2: Beret now has 2 points
 Item: 0 weapon_rocketlauncher
-Item: 1 ammo_lightning
+Item: 1 weapon_shotgun
+Item: 0 ammo_rockets
+Item: 0 ammo_cells
+Item: 1 ammo_cells
+Item: 1 ammo_cells
+Item: 0 ammo_lightning
+Kill: 0 1 7: Sarge killed Beret by MOD_ROCKET_SPLASH
+PlayerScore: 0 3: Sarge now has 3 points
+Item: 0 weapon_rocketlauncher
+Item: 1 weapon_grenadelauncher
+Item: 1 item_invis
+Item: 0 weapon_plasmagun
+Item: 0 weapon_shotgun
+Item: 1 weapon_rocketlauncher
+Item: 0 ammo_shells
+Item: 1 weapon_plasmagun
+Item: 0 ammo_bullets
+Item: 0 ammo_cells
+Item: 0 item_armor_body
+Item: 0 item_health_small
+Item: 0 item_health_small
+Item: 0 item_health_small
+Item: 0 item_health_small
+Item: 0 item_health_small
+Item: 1 weapon_shotgun
+Item: 1 ammo_rockets
+Item: 1 ammo_grenades
+Item: 1 ammo_shells
+Item: 1 ammo_bullets
+Item: 1 holdable_teleporter
+Item: 0 item_armor_body
 ----- Server Shutdown (Server quit) -----
 ==== ShutdownGame ====
 ShutdownGame:

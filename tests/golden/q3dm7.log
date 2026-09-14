@@ -102,6 +102,8 @@ Item: 1 ammo_bullets
 Item: 1 weapon_rocketlauncher
 Item: 1 weapon_rocketlauncher
 Item: 1 ammo_shells
+say: Major: Go home and play with your dollies, sarge ... or are they too scary?
+Major^7: Go home and play with your dollies, sarge ... or are they too scary?
 ----- Server Shutdown (Server quit) -----
 ==== ShutdownGame ====
 ShutdownGame:
