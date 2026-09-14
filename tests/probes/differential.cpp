@@ -103,6 +103,14 @@ int main( int argc, char **argv )
 	number( Cvar_VariableIntegerValue( "port_value" ) ); string( Cvar_VariableString( "port_value" ) );
 	Cvar_Reset( "port_value" ); string( Cvar_VariableString( "port_value" ) ); result( "Cvar" );
 	string( FS_BuildOSPath( "/base", "baseq3", "maps\\q3dm17.bsp" ) );
+	assert( FS_AllowedExtension( "no_extension", qfalse, NULL ) == qtrue );
+	assert( FS_AllowedExtension( "a", qfalse, NULL ) == qtrue );
+	assert( FS_AllowedExtension( "", qfalse, NULL ) == qtrue );
+	assert( FS_AllowedExtension( ".", qfalse, NULL ) == qtrue );
+	assert( FS_AllowedExtension( ".x", qfalse, NULL ) == qtrue );
+	assert( FS_AllowedExtension( ".SO.9", qfalse, NULL ) == qfalse );
+	assert( FS_AllowedExtension( "a.1", qfalse, NULL ) == qtrue );
+	assert( FS_AllowedExtension( "data.pk3", qfalse, NULL ) == qfalse );
 	number( FS_AllowedExtension( "module.so.1", qfalse, NULL ) );
 	number( FS_AllowedExtension( "data.pk3", qtrue, NULL ) );
 	COM_StripExtension( "maps/test.bsp", text, sizeof( text ) ); string( text ); result( "FS_paths" );

@@ -10,6 +10,7 @@ python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tm
 python3 tests/check_known_bugs.py
 python3 tests/check_frames.py
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
+python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
 ```
 
 The thirteen asset-free groups include wire/file layout. The negative control
@@ -90,6 +91,11 @@ A matching error prints `known, tracked in #31`. An unknown error, an ASan crash
 a nonzero subprocess exit, a changed unit golden, or a disappeared known error
 fails. The test still runs and prints its diagnostics; this is not suppression.
 A #31 fix removes its entry and updates the policy self-check if applicable.
+Pointer comparisons run separately from UBSan: combining both instruments Clang's
+generated pointer-overflow checks and reports invalid pairs in otherwise valid
+pointer increments. Both runs compare the same unit golden; neither replaces the
+other. The pointer run catches extensionless names in `FS_AllowedExtension` before
+the #31 fix, with `ASAN_OPTIONS=detect_invalid_pointer_pairs=2`.
 PNG chunk alignment and JPEG table-index reproducers are already recorded in
 issue #31 and `docs/cpp-port-notes.md`; they are not exercised by the unit driver.
 

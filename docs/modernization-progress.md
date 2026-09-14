@@ -7,24 +7,26 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-PR #33 is merged into modernization as **8692b422643f7b5169c623bbb6bb755f7c35c46d**.
-Merged-tree regression workflow **34867621821** passed; #3 is complete. Current branch is `issue/31-huffman-alignment`
-in the supplied workspace `/home/matt/.t3/worktrees/aftershock/t3code-99571af6`.
-Huffman alignment reproduces under fatal UBSan before the fix. Replaced the
-unaligned typed load with memcpy; removed its known-bugs expectation. Validation
-and upstream PR are next. No other bug fix is included.
+#3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
+alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
+build 34868566674 passed; its merged-tree run 34869117306 passed.
 
-Continue #31 one bug per PR, starting with HuffmanGetSymbol's unaligned read. Run
-its existing fatal sanitizer reproducer before editing, make the smallest fix,
-prove codegen/behavior, remove its known-bugs entry, and offer the non-port-specific
-fix upstream in C. Then address the remaining recorded defects individually.
+Current branch: `issue/31-extension-validation`, PR #37. Source/test head ae390e6f
+passed regression 34877286456 and full build 34877286443. Final checkpoint changes
+only documentation. Self-review passed: one filesystem bug, no OS calls, allocation,
+non-trivial core destructors, layout or simulation FP changes; all goldens unchanged.
+Next: mark #37 ready, merge with a merge commit, verify the merged-tree regression,
+then branch `issue/31-download-url` for Com_DL_Begin. A temporary test already
+confirms a trailing slash generates `maps//map%20name.pk3`; preserve the no-slash,
+percent-1 template and empty-base behavior while fixing the final-character check.
+The test calls the real begin/cleanup path with libcurl but never performs a transfer.
 
 ## Issue status and remaining sequence
 
 | Order | Issue | Status / required work |
 |---|---|---|
 | 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman alignment fix in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
+| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem extension validation in progress. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
 | 3 | #1 error model | Decided: retain longjmp; record rationale in plan section 11 and enforce trivial engine destructors in CI. |
 | 4 | #2 native game | Import GPL 1.32 game sources as C; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
 | 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
@@ -109,5 +111,20 @@ Production GCC assembly and symbols pass the existing port gates before/after.
 The explicit unit and differential regeneration commands produce zero golden
 diff. Local q3dm17/q3dm7 smoke and both-renderer fixed-demo replay pass unchanged.
 An upstream C regression tests every symbol at 32 bit offsets: sanitizer fails
-before, passes after, and GCC C assembly is also identical. Upstream PR: https://github.com/ec-/Quake3e/pull/424. Fork PR/CI/self-review remain
-before merge.
+before, passes after, and GCC C assembly is also identical. Upstream PR: https://github.com/ec-/Quake3e/pull/424. Fork PR #36 merged after full CI and self-review; merged-tree regression passed.
+
+## #31 filesystem validation
+
+The permanent `--sanitize --pointer-compare` command fails before the fix with
+NULL versus filename+3, and passes afterward with the original unit golden.
+Separate ASan/UBSan and ASan/pointer-comparison runs retain both checks: combining
+them under Clang 21 instruments generated pointer-overflow comparisons in COM_ParseExt
+(disassembly shows `__sanitizer_ptr_cmp(pointer, -3)`). No suppression/expectation
+covered this bug. GCC/Clang/libc++ units, the one-ULP control, both sanitizer modes,
+collision, both-map smoke and both-renderer replay pass. Explicit unit/collision
+regeneration changes no golden. Symbol gate passes; normalized per-function assembly
+changes only FS_AllowedExtension among 99 functions, as expected for the new guard.
+Upstream C test fails before and passes after: https://github.com/ec-/Quake3e/pull/425.
+Fork: https://github.com/msetaro/aftershock/pull/37. Regression/full build runs above
+include public-content runtime and all platform legs. The caller audit's separate
+Sys_LoadLibrary uninitialized diagnostic pointer is recorded in notes and issue #31.
