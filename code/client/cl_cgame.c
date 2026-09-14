@@ -474,6 +474,9 @@ CL_CgameSystemCalls
 The cgame module is making a system call
 ====================
 */
+#ifdef __cplusplus
+Q_EXTERN_C {
+#endif
 static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	switch( args[0] ) {
 	case CG_PRINT:
@@ -839,6 +842,9 @@ static intptr_t QDECL CL_DllSyscall( intptr_t arg, ... ) {
 	return CL_CgameSystemCalls( &arg );
 #endif
 }
+#ifdef __cplusplus
+}
+#endif
 
 
 /*
