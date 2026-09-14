@@ -7,16 +7,26 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: `issue/31-bot-move-result`, isolated from native draft PR #50.
-Failing test commit 3993d575 reproduces stale movement result fields. The shared
-entry now clears the complete result; GCC and Clang probes pass. Both native/QVM
-Quake 3 smoke logs match after the explained q3dm7 golden update. OpenArena smoke
-repeats with reviewed changed gameplay logs; all fixed-demo frame hashes remain
-unchanged for both content sets/renderers. PR #51 source
-fc49615d4be82ff41110f6d521ee6945dd376739 passed regression 34900480717 and full
-build 34900480656. Self-review passes; this final checkpoint is documentation only.
-Next: merge #51 with a merge commit, verify the merged-tree regression, then merge
-modernization into #2 and continue native C parity/C++ port/static work.
+Active work: `issue/31-native-dispatch`, based on modernization. #2 is checkpointed
+on issue/2-native-game at b167c637 / draft PR #50. #31 movement-result fix PR #51
+merged as 5ecf43e52dbc5a62efd2fe62c13a1c5a17065e95 after regression 34900480717 and
+full build 34900480656 passed on fc49615d. Merged-tree regression 34900871236 passed.
+Merge 21ad2eea brings this fix into #2, retaining both CI/test documentation additions.
+Permanent GCC native smoke passes both maps (6dad7c18 / a15c9c91 normalized hashes).
+Clang native smoke loads the DLL then catches SIGSEGV before bots start: GDB locates
+VM_Call's native argument-copy loop. That branch reads args[0..2] even for nargs=0;
+Clang exploits the undefined uninitialized reads and removes the zero-count exit,
+then overruns the stack. No source fix on #2. Separately, native C diagnostics found
+the same teamleader[sizeof(teamleader)] out-of-bounds terminator in ai_cmd.c:1311
+and ai_team.c:1963; both are #31 work, not inline port edits.
+The separate dispatch regression is committed first as 6d4710b4 and fails with
+SIGSEGV under Clang before the fix. Initializing the three-slot array now passes
+GCC/Clang stub calls for counts 0–3 and both native Clang bot smoke logs. Upstream
+C reproduces SIGSEGV before and passes after with Clang. No golden changes.
+Next: publish/gate/self-review/merge the native-dispatch fix and verify its merged
+tree, then the separate #31 teamleader bounds fix. Resume #2 native C compiler
+parity, OpenArena native support, T1–T25 C++ gates, static calls and VM/JIT removal.
+Accepted goldens may change only in an explained #31 fix, never on #2.
 
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
@@ -458,3 +468,25 @@ updated goldens. Self-review: one #31 initialization defect, production-body tes
 first, explained golden changes only, unchanged file/wire layout and FP expressions,
 no new engine OS calls, non-trivial destructors or allocations. Issue updated;
 upstream #435 open. This final checkpoint changes documentation only.
+
+#2 preparation only: OpenArena oaxB52 source tag resolves to
+331464ca396d80e91cf9be273588f2b5f4b7afc8, matching the release used by hosted QVM
+fixtures. Clone is /tmp/aftershock-oa-native-source; no native OA build or code change
+yet. GCC and Clang both accept their binary32 literal flags in C++20 as well as C.
+Temporary C++ compilation of the base game lists expected enum/pointer/constness,
+FOFS pointer-to-int and old-style definition conversions; no C++ source port begun.
+
+## #31 native dispatch validation
+
+The test at 6d4710b4 uses the actual production VM_Call and a native entry stub;
+counts 3, 0, 1, 2 check every delivered argument, return value and restored call
+depth. Clang 21 crashes before at the zero-count call. After initializing unused
+slots, GCC and Clang/libc++ pass. The native Clang module from #2 then reproduces
+both QVM Quake 3 logs through the transition driver (6dad7c18 / a15c9c91 normalized).
+Default QVM bot smoke and both-map/both-renderer fixed replay remain unchanged.
+Explicit unit/collision regeneration has zero diff. Symbols pass; only VM_Call
+changes among 26 assembly functions: zero stores and native-path control flow;
+no source FP, layout, OS, allocation or destructor changes. No known-bug entry or
+suppression covered the native uninitialized arguments. CI/self-review pending.
+
+Native dispatch upstream C fix/test: https://github.com/ec-/Quake3e/pull/436.
