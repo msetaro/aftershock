@@ -3724,9 +3724,9 @@ __asm {
 #if arm64 || arm32
 void Sys_SnapVector( float *vector )
 {
-	vector[0] = rint( vector[0] );
-	vector[1] = rint( vector[1] );
-	vector[2] = rint( vector[2] );
+	vector[0] = rint( (double)vector[0] );
+	vector[1] = rint( (double)vector[1] );
+	vector[2] = rint( (double)vector[2] );
 }
 #endif
 
@@ -3763,9 +3763,9 @@ void Sys_SnapVector( float *vector )
 
 void Sys_SnapVector( float *vector )
 {
-	vector[0] = rint( vector[0] );
-	vector[1] = rint( vector[1] );
-	vector[2] = rint( vector[2] );
+	vector[0] = rint( (double)vector[0] );
+	vector[1] = rint( (double)vector[1] );
+	vector[2] = rint( (double)vector[2] );
 }
 
 #endif

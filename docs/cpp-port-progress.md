@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: renderervk; next `remaining native conversions` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: qcommon; next `code/qcommon/huffman_static.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -146,6 +146,8 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 ## Codegen differences
 
+- `code/qcommon/common.c`: G4 advisory FAIL; full diff `tools/port/evidence/common.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py ded/common.o /tmp/aftershock-cpp-port/common ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
+
 - `code/renderervk/vk_flares.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-vk_flares.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/vk_flares.o /tmp/aftershock-cpp-port/renderervk-vk_flares ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderervk/tr_surface.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderervk-tr_surface.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rendv/tr_surface.o /tmp/aftershock-cpp-port/renderervk-tr_surface ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
@@ -222,14 +224,14 @@ Every nonempty completed-source G4 diff is listed below. Read each with `gzip -d
 | `code/botlib/be_aas_cluster.c` | `tools/port/evidence/be_aas_cluster.codegen.diff.gz` |
 | `code/botlib/be_aas_debug.c` | `tools/port/evidence/be_aas_debug.codegen.diff.gz` |
 | `code/botlib/be_aas_file.c` | `tools/port/evidence/be_aas_file.codegen.diff.gz` |
-| `code/botlib/be_aas_move.c` | done | T1-T17: 0 (already compatible); T21/T22: 3 argument casts at 3 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_move.o, default); G4 PASS. |
-| `code/botlib/be_aas_reach.c` | done | T1-T17: 0 (already compatible); T21/T22: 14 argument casts at 14 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_aas_reach.o, default); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_aas_move.c` | `tools/port/evidence/be_aas_move.codegen.diff.gz` |
+| `code/botlib/be_aas_reach.c` | `tools/port/evidence/be_aas_reach.codegen.diff.gz` |
 | `code/botlib/be_aas_route.c` | `tools/port/evidence/be_aas_route.codegen.diff.gz` |
 | `code/botlib/be_aas_routealt.c` | `tools/port/evidence/be_aas_routealt.codegen.diff.gz` |
 | `code/botlib/be_aas_sample.c` | `tools/port/evidence/be_aas_sample.codegen.diff.gz` |
 | `code/botlib/be_ai_char.c` | `tools/port/evidence/be_ai_char.codegen.diff.gz` |
 | `code/botlib/be_ai_chat.c` | `tools/port/evidence/be_ai_chat.codegen.diff.gz` |
-| `code/botlib/be_ai_move.c` | done | T1: 1; T21/T22: 12 argument casts at 12 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/be_ai_move.o, default); G4 advisory FAIL, full diff retained. |
+| `code/botlib/be_ai_move.c` | `tools/port/evidence/be_ai_move.codegen.diff.gz` |
 | `code/botlib/l_memory.c` | `tools/port/evidence/l_memory.codegen.diff.gz` |
 | `code/botlib/l_precomp.c` | `tools/port/evidence/l_precomp.codegen.diff.gz` |
 | `code/botlib/l_script.c` | `tools/port/evidence/l_script.codegen.diff.gz` |
@@ -249,11 +251,11 @@ Every nonempty completed-source G4 diff is listed below. Read each with `gzip -d
 | `code/client/snd_mem.c` | `tools/port/evidence/snd_mem.codegen.diff.gz` |
 | `code/client/snd_mix.c` | `tools/port/evidence/snd_mix.codegen.diff.gz` |
 | `code/qcommon/cm_load.c` | `tools/port/evidence/cm_load.codegen.diff.gz` |
-| `code/qcommon/cm_patch.c` | done | T1: 3, T2: 6, T3: 3; T21/T22: 14 argument casts at 14 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_patch.o, default); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/cm_trace.c` | done | T1-T17: 0 (already compatible); T21/T22: 6 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_trace.o, default); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/cm_patch.c` | `tools/port/evidence/cm_patch.codegen.diff.gz` |
+| `code/qcommon/cm_trace.c` | `tools/port/evidence/cm_trace.codegen.diff.gz` |
 | `code/qcommon/cmd.c` | `tools/port/evidence/cmd.codegen.diff.gz` |
 | `code/qcommon/common.c` | `tools/port/evidence/common.codegen.diff.gz` |
-| `code/qcommon/cvar.c` | done | T2: 2, T3: 4 (cast compound-assignment result); T21/T22: 2 argument casts at 2 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cvar.o, default); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/cvar.c` | `tools/port/evidence/cvar.codegen.diff.gz` |
 | `code/qcommon/files.c` | `tools/port/evidence/files.codegen.diff.gz` |
 | `code/qcommon/history.c` | `tools/port/evidence/history.codegen.diff.gz` |
 | `code/qcommon/huffman.c` | `tools/port/evidence/huffman.codegen.diff.gz` |
@@ -317,7 +319,7 @@ Every nonempty completed-source G4 diff is listed below. Read each with `gzip -d
 | `code/server/sv_bot.c` | `tools/port/evidence/sv_bot.codegen.diff.gz` |
 | `code/server/sv_ccmds.c` | `tools/port/evidence/sv_ccmds.codegen.diff.gz` |
 | `code/server/sv_filter.c` | `tools/port/evidence/sv_filter.codegen.diff.gz` |
-| `code/server/sv_game.c` | done | T1: 199, T3: 7; T21/T22: 7 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_game.o, default); G4 advisory FAIL, full diff retained. |
+| `code/server/sv_game.c` | `tools/port/evidence/sv_game.codegen.diff.gz` |
 | `code/server/sv_init.c` | `tools/port/evidence/sv_init.codegen.diff.gz` |
 | `code/server/sv_main.c` | `tools/port/evidence/sv_main.codegen.diff.gz` |
 | `code/server/sv_net_chan.c` | `tools/port/evidence/sv_net_chan.codegen.diff.gz` |
@@ -491,7 +493,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/qcommon/cm_test.c` | done | T1: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_test.o); G4 PASS. |
 | `code/qcommon/cm_trace.c` | done | T1-T17: 0 (already compatible); T21/T22: 6 argument casts at 6 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cm_trace.o, default); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/cmd.c` | done | T1: 1, T2: 1; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cmd.o); G4 advisory FAIL, full diff retained. |
-| `code/qcommon/common.c` | done | T1: 5, T2: 2, T3: 1, T15: 29; T5: 2 conditional MSVC CPUID_EX declarations/definitions (target-unverified); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/common.o, default); G4 advisory FAIL, full diff retained. |
+| `code/qcommon/common.c` | done | T1: 4, T2: 5, T3: 4, T5: CPUID; T21: six conditional rint calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/common.o, default); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/cvar.c` | done | T2: 2, T3: 4 (cast compound-assignment result); T21/T22: 2 argument casts at 2 calls; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/cvar.o, default); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/files.c` | done | T1: 13, T2: 2; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/files.o); G4 advisory FAIL, full diff retained. |
 | `code/qcommon/history.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/history.o); G4 advisory FAIL, full diff retained. |
@@ -645,3 +647,5 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/win32/win_wndproc.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 2 clipboard-pointer casts, T2: 2 boolean-toggle casts by inspection; target gates unavailable. |
 
 Continuation correction: the first q_math T21 edit contained seven redundant nested casts from an AST inventory that also selected explicit casts. Removed those redundant casts in a new commit without rewriting history; the scanner now selects only implicit conversions. The intended 20 argument casts at 18 calls remain.
+
+Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_gate.py /tmp/aftershock-cpp-port/differential-resumed` PASS, all 13 groups equal; vector_math C/C++ `5c00b4de`. Evidence `tools/port/evidence/g5-resumed.log`. Six conditional Sys_SnapVector rint calls are also pinned with T21 after the reviewer found them outside the first inventory. Native AST and source review found no in-scope non-integer abs arguments, so no T22 casts were necessary in the native configuration.
