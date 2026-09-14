@@ -6,7 +6,7 @@ The port has resumed under the accepted T1–T23 catalog and revised gates. Prio
 
 ## Next action
 
-Continuation: renderer; next `code/renderer/tr_sky.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+Continuation: renderer; next `code/renderer/tr_surface.c` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
 
 ## Phase checklist
 
@@ -145,6 +145,10 @@ Both final runtime commands returned 0; the suppressed sanitizer run emitted no 
 
 
 ## Codegen differences
+
+- `code/renderer/tr_sky.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_sky.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_sky.o /tmp/aftershock-cpp-port/renderer-tr_sky ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
+
+- `code/renderer/tr_sky.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_sky.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_sky.o /tmp/aftershock-cpp-port/renderer-tr_sky ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
 - `code/renderer/tr_shader.c`: G4 advisory FAIL; full diff `tools/port/evidence/renderer-tr_shader.codegen.diff.gz` (`gzip -dc`). C objects unchanged, G2/G3 PASS. Reproduce: `python3 tools/port/compile_pair.py rend1/tr_shader.o /tmp/aftershock-cpp-port/renderer-tr_shader ` then the three gate entry points on emitted objects/assembly. Diff requires human review; no identical C++ behavior claim.
 
@@ -523,7 +527,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/renderer/tr_shade_calc.c` | done | T4: 50 occurrences (prerequisite); T21/T22: 1 argument casts at 1 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shade_calc.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_shader.c` | done | T1: 5, T3: 16, T16: 1, T17: 9; T21/T22: 5 argument casts at 5 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shader.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_shadows.c` | done | T4: 4 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_shadows.o, default); G4 advisory FAIL, full diff retained. |
-| `code/renderer/tr_sky.c` | done | T4: 7 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_sky.o, default); G4 advisory FAIL, full diff retained. |
+| `code/renderer/tr_sky.c` | done | T4: 7 occurrences (prerequisite); T21: 12 argument casts at 12 calls; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_sky.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_surface.c` | done | T4: 25 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_surface.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_vbo.c` | done | T4: 3 occurrences (prerequisite), T1: 7, T2: 1; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_vbo.o, default); G4 advisory FAIL, full diff retained. |
 | `code/renderer/tr_world.c` | done | T4: 2 occurrences (prerequisite); no further transformations; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (rend1/tr_world.o, default); G4 advisory FAIL, full diff retained. |
