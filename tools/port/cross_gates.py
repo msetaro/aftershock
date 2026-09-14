@@ -15,14 +15,17 @@ progress = Path('docs/cpp-port-progress.md').read_text()
 sources = re.findall(r'^\| `(code/[^`]+\.c(?:pp)?)` \| done \|', progress, re.M)
 stems = {Path(source).stem for source in sources}
 tasks = []
-targets = json.loads(Path('tools/port/evidence/cross-oracles.json').read_text())
+evidence = Path(os.environ.get('PORT_EVIDENCE', 'tools/port/evidence')).resolve()
+if not (evidence / 'cross-oracles.json').is_file():
+    sys.exit('Set PORT_EVIDENCE to the extracted port-evidence archive; see docs/cpp-port-progress.md')
+targets = json.loads((evidence / 'cross-oracles.json').read_text())
 if len(sys.argv) > 2 and sys.argv[2] == 'native':
     targets = {'native': {'variables': [], 'manifest': 'phase0-c.sha256'},
                'native-nosdl': {'variables': ['USE_SDL=0'], 'manifest': 'nosdl-c.sha256'}}
 for name, target in targets.items():
     suffix = '-nolto-nosdl' if name == 'mingw64' else ''
     variables = target['variables'] + (['USE_SDL=0', 'OPTIMIZE=-O2 -ffast-math -fno-lto'] if suffix else [])
-    manifest = Path('tools/port/evidence') / target.get('manifest', f'cross-{name}{suffix}-c.sha256')
+    manifest = evidence / target.get('manifest', f'cross-{name}{suffix}-c.sha256')
     for line in manifest.read_text().splitlines():
         _, path = line.split()
         if Path(path).stem in stems:

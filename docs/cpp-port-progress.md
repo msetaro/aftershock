@@ -1201,3 +1201,5 @@ Later per-file G4: `phase3-msvc-vm_aarch64.diff.gz`; same Linux AArch64 body wit
 | clang | release | ded | raw | `5188a5047a73f4503ae79a0a9d0878fe1c86cb7e1f3db685938f33abab17bf0e` |
 | clang | debug | client | stripped | `02e3999d9429b04e5422bbad35b0ea2254ac07d325993cf44f11785b79645379` |
 | clang | debug | ded | stripped | `f4e52fe200a027a244d701e2e879e1f05aefbc778628e384ca86996deefe5909` |
+
+- PR32 verification tools: reproduce_t25_cleanup.py now checks the approved raw-release/stripped-debug rule against pre-cleanup commit 629700fa; eight pairs pass. cross_gates.py accepts PORT_EVIDENCE for archived oracle manifests. Previous /tmp artifacts were absent in this session; the frozen C oracle was reconstructed from e49b8259, without installing tools.
