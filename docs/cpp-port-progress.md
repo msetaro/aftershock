@@ -4,7 +4,7 @@ Base: `8a7e8ed2`; branch: `t3code/port-engine-to-cpp20`. Work is incomplete.
 
 ## Next action
 
-Phase 1: next `code/win32/glw_win.h`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
+Phase 1: next `phase-2 boundary inventory`. Resume there; do not redo done files. Blocked files remain unchanged; final gates/rename remain pending.
 
 ## Phases
 
@@ -358,6 +358,8 @@ Phase 1: next `code/win32/glw_win.h`. Resume there; do not redo done files. Bloc
 
 ## Blocked files
 
+- `code/win32/glw_win.h`: Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable.
+
 - `code/win32/win_wndproc.c`: Unverified (no MinGW/Windows SDK). T1: 2 clipboard-pointer casts, T2: 2 boolean-toggle casts by inspection; target gates unavailable.
 
 - `code/win32/win_syscon.c`: Unverified (no MinGW/Windows SDK). T2: 1 boolean-toggle cast by inspection; target C/C++ builds and G1-G4 unavailable.
@@ -680,7 +682,7 @@ Phase 1: next `code/win32/glw_win.h`. Resume there; do not redo done files. Bloc
 | `code/unix/x11_dga.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_dga.o, nosdl); G4 PASS. |
 | `code/unix/x11_randr.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_randr.o, nosdl); G4 PASS. |
 | `code/unix/x11_vidmode.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_vidmode.o, nosdl); G4 PASS. |
-| `code/win32/glw_win.h` | todo | Pending module pass. |
+| `code/win32/glw_win.h` | blocked | Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable. |
 | `code/win32/resource.h` | todo | Pending module pass. |
 | `code/win32/win_gamma.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 1 HANDLE/void-pointer to HMODULE argument cast by inspection; all gamma behavior unchanged. C checksum and G1-G4 unavailable. |
 | `code/win32/win_glimp.c` | blocked | Unverified (no MinGW/Windows SDK). T1: 1 allocator cast, T2: 4 boolean-expression casts by inspection; C checksum and G1-G4 unavailable. |
