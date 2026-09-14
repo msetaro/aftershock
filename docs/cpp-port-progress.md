@@ -692,7 +692,7 @@ Full notes: `docs/cpp-port-notes.md`.
 | `code/unix/x11_randr.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_randr.o, nosdl); G4 PASS. |
 | `code/unix/x11_vidmode.c` | done | T1-T17: 0 (already compatible); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/x11_vidmode.o, nosdl); G4 PASS. |
 | `code/win32/glw_win.h` | done | Unchanged; actual MinGW win_glimp.c and win_qgl.c consumers pass C hashes, strict release/debug C++ and G2/G3. |
-| `code/win32/resource.h` | blocked | Unverified (no MinGW/Windows SDK). Unchanged header inspected; no required catalog transformation identified, target consuming-object gates unavailable. |
+| `code/win32/resource.h` | done | Unchanged; actual MinGW win_main.c and win_syscon.c consumers pass C hashes, strict release/debug C++ and G2/G3. |
 | `code/win32/win_gamma.c` | done | T1: 1 previously inspected HMODULE cast, now verified; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_gamma.o); G4 PASS. |
 | `code/win32/win_glimp.c` | done | T1: 2 including optional procedure macro; T2: 4; T5: 2 GPU exports; mingw64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (client/win_glimp.o); G4 advisory difference retained. |
 | `code/win32/win_input.c` | blocked | Unverified (no MinGW/Windows SDK). T2: 1 boolean return cast by inspection. DirectInput SDK interface macros and optional joystick/MIDI paths require target compile; C checksum and G1-G4 unavailable. |
@@ -755,3 +755,5 @@ Resumed G5: `tools/port/math_gate.sh` PASS and `python3 tools/port/differential_
 - Revalidated code/renderercommon/vulkan/vulkan_win32.h: Unchanged Khronos header; actual MinGW win_qvk.c consumer passes C hash, strict release/debug C++ and G2/G3.
 
 - Revalidated code/win32/glw_win.h: Unchanged; actual MinGW win_glimp.c and win_qgl.c consumers pass C hashes, strict release/debug C++ and G2/G3.
+
+- Revalidated code/win32/resource.h: Unchanged; actual MinGW win_main.c and win_syscon.c consumers pass C hashes, strict release/debug C++ and G2/G3.
