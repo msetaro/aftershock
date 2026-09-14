@@ -550,3 +550,21 @@ it in three g_main.c paths. This is an external OpenArena game-source #31 item;
 no patch has been made. Quake 3 native compiler/replay parity is complete, so its
 C++ catalog port can proceed independently while OA remains a failing prerequisite.
 The permanent native OA build and UI source mapping are not yet implemented.
+
+## #2 C++ compatibility deviations
+
+Baseline 3306d55d compiles 103 native C release objects (module-local shared sources
+included) with GCC -O2 -DNDEBUG and the established native ABI flags. Hash manifest:
+/tmp/aftershock-native-c-object-gate/before/sha256.json. This precedes all C++ edits.
+Two necessary syntax adaptations outside T1–T25 are isolated in their own commit:
+- FOFS uses `(int)offsetof(gentity_t, x)` plus stddef.h instead of narrowing a pointer
+  expression directly to int, rejected by 64-bit C++. The int field representation
+  and every measured offset stay the same; no entity layout change.
+- Three bg_lib sort helper definitions use prototype parameter lists with their
+  original types, replacing K&R definitions that C++ cannot parse. Bodies unchanged.
+All 103 C release objects remain byte-identical after these changes (zero changed
+SHA256s), including the field table and sort code. Evidence command:
+python3 /tmp/aftershock-native-c-object-gate.py deviations. No simulation expression
+or golden change; no new algorithm or bug fix. Ordinary catalog casts/renames follow
+in separate commits. C++ syntax preflight initially reports 50 of 100 module TUs
+failing; bg_lib adds old-style-definition errors. No permissive flags are enabled.
