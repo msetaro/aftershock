@@ -11,13 +11,13 @@ import sys
 os.chdir(Path(__file__).resolve().parents[2])
 output = Path(sys.argv[1] if len(sys.argv) > 1 else '/tmp/aftershock-cpp-port/final-gates').resolve()
 output.mkdir(parents=True, exist_ok=True)
-rows = re.findall(r'^\| `(code/[^`]+\.c)` \| done \| (.*)',
+rows = re.findall(r'^\| `(code/[^`]+\.c(?:pp)?)` \| done \| (.*)',
                   Path('docs/cpp-port-progress.md').read_text(), re.M)
 
 
 def check(row):
     source, detail = row
-    if Path(source).parts[1] == 'win32' or Path(source).name in ('vm_aarch64.c', 'vm_armv7l.c', 'vm_powerpc.c'):
+    if Path(source).parts[1] == 'win32' or Path(source).stem in ('vm_aarch64', 'vm_armv7l', 'vm_powerpc'):
         return dict(source=source, skipped='separate cross-target gate results')
     context = re.search(r'\(([^() ]+\.o)(?:,|\))', detail)
     if not context:
@@ -26,7 +26,7 @@ def check(row):
     target = output / Path(source).parts[1] / stem
     target.mkdir(parents=True, exist_ok=True)
     variables = ['USE_SDL=0'] if 'nosdl' in detail else []
-    if source == 'code/unix/linux_joystick.c':
+    if Path(source).stem == 'linux_joystick':
         variables.append('CFLAGS=-DUSE_JOYSTICK')
     with (target / 'compile.log').open('w') as log:
         status = subprocess.run(['python3', 'tools/port/compile_pair.py', context[1], str(target),

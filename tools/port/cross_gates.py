@@ -12,7 +12,7 @@ os.chdir(Path(__file__).resolve().parents[2])
 output = Path(sys.argv[1] if len(sys.argv) > 1 else '/tmp/aftershock-cpp-port/cross-gates').resolve()
 output.mkdir(parents=True, exist_ok=True)
 progress = Path('docs/cpp-port-progress.md').read_text()
-sources = re.findall(r'^\| `(code/[^`]+\.c)` \| done \|', progress, re.M)
+sources = re.findall(r'^\| `(code/[^`]+\.c(?:pp)?)` \| done \|', progress, re.M)
 stems = {Path(source).stem for source in sources}
 tasks = []
 targets = json.loads(Path('tools/port/evidence/cross-oracles.json').read_text())

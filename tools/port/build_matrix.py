@@ -12,6 +12,10 @@ import tempfile
 os.chdir(Path(__file__).resolve().parents[2])
 output = Path(sys.argv[1] if len(sys.argv) > 1 else '/tmp/aftershock-cpp-port/matrix').resolve()
 output.mkdir(parents=True, exist_ok=True)
+repo = Path.cwd()
+oracle = Path(os.environ.get('PORT_C_ORACLE', str(repo))).resolve()
+if 'BUILD_CXX' not in (oracle / 'Makefile').read_text():
+    sys.exit('FAIL: set PORT_C_ORACLE to the recorded pre-rename C checkout')
 env = dict(os.environ, SOURCE_DATE_EPOCH='1789257600', LC_ALL='C')
 build = Path(tempfile.mkdtemp(prefix='build-', dir=output))
 results = []
@@ -34,9 +38,9 @@ for compiler in ('gcc', 'clang'):
             with log.open('w') as stream:
                 stream.write(shlex.join(command) + '\n')
                 stream.flush()
-                status = subprocess.run(command, env=env, stdout=stream, stderr=subprocess.STDOUT).returncode
+                status = subprocess.run(command, env=env, cwd=oracle if mode == 0 else repo, stdout=stream, stderr=subprocess.STDOUT).returncode
             errors = len(re.findall(r'\berror:', log.read_text()))
-            results.append(dict(name=name, status=status, errors=errors, command=command))
+            results.append(dict(cwd=str(oracle if mode == 0 else repo), name=name, status=status, errors=errors, command=command))
             (output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
             print(f'{"PASS" if not status else "FAIL"}: {name}, exit {status}, {errors} compiler errors', flush=True)
 sys.exit(any(result['status'] for result in results))

@@ -11,7 +11,8 @@ progress=Path('docs/cpp-port-progress.md').read_text()
 files=subprocess.check_output(['git','diff','--name-only','8a7e8ed2','HEAD','--','code'],text=True).splitlines()
 filters=[]
 for source in files:
- diff=subprocess.check_output(['git','diff','--unified=0','8a7e8ed2','HEAD','--',source],text=True)
+ paths=[str(Path(source).with_suffix('.c')),source] if source.endswith('.cpp') else [source]
+ diff=subprocess.check_output(['git','diff','-M','--unified=0','8a7e8ed2','HEAD','--',*paths],text=True)
  ranges=[]
  for start,count in re.findall(r'^@@ .* \+(\d+)(?:,(\d+))? @@',diff,re.M):
   n=int(count or '1')
@@ -19,14 +20,14 @@ for source in files:
  if ranges:filters.append({'name':source,'lines':ranges})
 line_filter=json.dumps(filters)
 def probe(source):
- if '/win32/' in source or Path(source).name in ('vm_aarch64.c','vm_armv7l.c','vm_powerpc.c'):
+ if '/win32/' in source or Path(source).stem in ('vm_aarch64','vm_armv7l','vm_powerpc'):
   return source,None,'SKIP: native clang-tidy has no target SDK; real cross builds/gates are separate\n'
  row=next((line for line in progress.splitlines() if line.startswith('| `'+source+'` | done |')), '')
  match=re.search(r'\(([^() ]+\.o)(?:,|\))',row)
  if not match or '| done |' not in row:return source,None,'SKIP: no verified native object context\n'
  target=str(base/'commands'/'release-linux-x86_64'/match[1])
  variables=['USE_SDL=0'] if 'nosdl' in row else []
- if source == 'code/unix/linux_joystick.c':variables.append('CFLAGS=-DUSE_JOYSTICK')
+ if Path(source).stem == 'linux_joystick':variables.append('CFLAGS=-DUSE_JOYSTICK')
  recipe=subprocess.check_output(['make','-Bn','V=1','BUILD_CXX=1','CXX=clang++','BUILD_DIR='+str(base/'commands'),*variables,target],text=True)
  commands=[shlex.split(line) for line in recipe.splitlines() if ' -c code/' in line]
  args=next(args for args in commands if '-o' in args and args[args.index('-o')+1]==target)[1:]
@@ -34,7 +35,7 @@ def probe(source):
  args=[arg for arg in args if arg not in ('-MMD','-MP')]
  r=subprocess.run(['clang-tidy',source,'--quiet','--line-filter='+line_filter,'--',*args],capture_output=True,text=True)
  return source,r.returncode,r.stdout+r.stderr
-with ThreadPoolExecutor(4) as pool:results=list(pool.map(probe,[f for f in files if f.endswith('.c')]))
+with ThreadPoolExecutor(4) as pool:results=list(pool.map(probe,[f for f in files if Path(f).suffix in ('.c', '.cpp') and Path(f).exists()]))
 (base/'clang-tidy.log').write_text(''.join(source+'\n'+err for source,_,err in results))
 print('clang-tidy:',sum(status is not None for _,status,_ in results),'checked,',sum(bool(status) for _,status,_ in results),'failed,',sum(status is None for _,status,_ in results),'skipped')
 

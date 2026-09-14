@@ -6,7 +6,7 @@ Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed c
 
 ## Next action
 
-Cross verification: next `explicit WASAPI modes then full runtime`; T25 server hash blocker resolved. Then full native/cross sweeps and runtime acceptance; no rename until prerequisites pass.
+T24/T25 source blockers cleared. Full native C++ ded/client/dlopen renderers/static Vulkan link; warmed C/C/C++ bot logs match after only the authorized cached-pak line removal. Next refresh cross gates/builds, freeze pre-rename C oracle, handle embedded shader rename reference, then content-free main rename, rebuild/runtime/CI and separate T25 cleanup.
 
 ## Phase checklist
 
@@ -1227,3 +1227,9 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 - win_input: explicit WASAPI=0/1 verification [{"source": "code/win32/win_input.c", "wasapi": 0, "c_sha256": "3a02f70ee975c673204548c0727afd4611fa56b779f98470efb6b9dd1dda272b", "variables": ["PLATFORM=mingw64", "ARCH=x86_64", "USE_SDL=0", "OPTIMIZE=-O2 -ffast-math -fno-lto", "CFLAGS=-DUSE_WASAPI=0"], "layout": 0, "symbol": 0, "codegen": 0}, {"source": "code/win32/win_input.c", "wasapi": 1, "c_sha256": "3a02f70ee975c673204548c0727afd4611fa56b779f98470efb6b9dd1dda272b", "variables": ["PLATFORM=mingw64", "ARCH=x86_64", "USE_SDL=0", "OPTIMIZE=-O2 -ffast-math -fno-lto", "CFLAGS=-DUSE_WASAPI=1"], "layout": 0, "symbol": 0, "codegen": 0}]
 
 - win_snd: explicit WASAPI=0/1 verification [{"source": "code/win32/win_snd.c", "wasapi": 0, "c_sha256": "48775a7a2b2aa5937b8389918e55122524625743ba36b4f93e639637a908cf51", "variables": ["PLATFORM=mingw64", "ARCH=x86_64", "USE_SDL=0", "OPTIMIZE=-O2 -ffast-math -fno-lto", "CFLAGS=-DUSE_WASAPI=0"], "layout": 0, "symbol": 0, "codegen": 0}, {"source": "code/win32/win_snd.c", "wasapi": 1, "c_sha256": "d775a18c66a7ecece6be67e165cbf69d36ff4d08afe49d647c51c7371204f431", "variables": ["PLATFORM=mingw64", "ARCH=x86_64", "USE_SDL=0", "OPTIMIZE=-O2 -ffast-math -fno-lto", "CFLAGS=-DUSE_WASAPI=1"], "layout": 0, "symbol": 0, "codegen": 1}]
+
+- T24/T25 native integration PASS: dedicated, client, OpenGL/Vulkan dlopen renderers, static Vulkan; G5 all 13 groups and math PASS. Runtime uses sequential C/C++ executable copies at one temporary installation path to match the printed working directory. Cache counts still fluctuate between 0 and 9 despite warm-ups; apply only the existing G6 allowance to remove that line. All 123 remaining lines are byte-identical. Raw and normalized logs retained; no other normalization or engine timing change.
+- Runtime c 1 raw SHA256 `e995c70a11859559aa280ac47252d4e0b8dd7b9c5bf56469674b081139911a83`; normalized SHA256 `e0428e406c541d3de1640f4a07d0a2dd252cb2859f94f1743fe653a537c854f7`.
+- Runtime c 2 raw SHA256 `694dcaafed5c2bce289015cda34a318155dd8d53a8830199832011097a629125`; normalized SHA256 `e0428e406c541d3de1640f4a07d0a2dd252cb2859f94f1743fe653a537c854f7`.
+- Runtime cxx 1 raw SHA256 `e995c70a11859559aa280ac47252d4e0b8dd7b9c5bf56469674b081139911a83`; normalized SHA256 `e0428e406c541d3de1640f4a07d0a2dd252cb2859f94f1743fe653a537c854f7`.
+- Post-rename harness safeguards: PORT_C_ORACLE selects the recorded pre-rename source checkout for C recipes; compile_pair fails if the alleged C command is C++. Compiler command and cwd are both recorded. Source discovery accepts .cpp, and clang-tidy follows rename pairs for changed-line filtering.
