@@ -199,8 +199,8 @@ vmCvar_t	cg_obeliskRespawnDelay;
 
 typedef struct {
 	vmCvar_t	*vmCvar;
-	char		*cvarName;
-	char		*defaultString;
+	const char	*cvarName;
+	const char	*defaultString;
 	int			cvarFlags;
 } cvarTable_t;
 
@@ -491,7 +491,7 @@ The server says this item is used on this level
 static void CG_RegisterItemSounds( int itemNum ) {
 	gitem_t			*item;
 	char			data[MAX_QPATH];
-	char			*s, *start;
+	const char		*s, *start;
 	int				len;
 
 	item = &bg_itemlist[ itemNum ];

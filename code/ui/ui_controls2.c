@@ -38,8 +38,8 @@ CONTROLS MENU
 
 
 typedef struct {
-	char	*command;
-	char	*label;
+	const char	*command;
+	const char	*label;
 	int		id;
 	int		anim;
 	int		defaultbind1;
@@ -50,7 +50,7 @@ typedef struct {
 
 typedef struct
 {
-	char*	name;
+	const char*	name;
 	float	defaultvalue;
 	float	value;	
 } configcvar_t;
@@ -756,7 +756,7 @@ static void Controls_DrawPlayer( void *self ) {
 Controls_GetKeyAssignment
 =================
 */
-static void Controls_GetKeyAssignment (char *command, int *twokeys)
+static void Controls_GetKeyAssignment (const char *command, int *twokeys)
 {
 	int		count;
 	int		j;

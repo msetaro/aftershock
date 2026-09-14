@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define LOW_MEMORY			(5 * 1024 * 1024)
 
-static char* playermodel_artlist[] =
+static const char* playermodel_artlist[] =
 {
 	MODEL_BACK0,	
 	MODEL_BACK1,	

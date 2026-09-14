@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define SERVERINFO_BACK0	"menu/art/back_0"
 #define SERVERINFO_BACK1	"menu/art/back_1"
 
-static char* serverinfo_artlist[] =
+static const char* serverinfo_artlist[] =
 {
 	SERVERINFO_FRAMEL,	
 	SERVERINFO_FRAMER,

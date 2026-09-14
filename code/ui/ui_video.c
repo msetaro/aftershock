@@ -38,7 +38,7 @@ DRIVER INFORMATION MENU
 #define DRIVERINFO_BACK0	"menu/art/back_0"
 #define DRIVERINFO_BACK1	"menu/art/back_1"
 
-static char* driverinfo_artlist[] = 
+static const char* driverinfo_artlist[] = 
 {
 	DRIVERINFO_FRAMEL,
 	DRIVERINFO_FRAMER,

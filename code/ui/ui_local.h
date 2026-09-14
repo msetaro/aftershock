@@ -237,8 +237,8 @@ typedef struct
 typedef struct
 {
 	menucommon_s	generic;
-	char*			focuspic;	
-	char*			errorpic;
+	const char*		focuspic;	
+	const char*		errorpic;
 	qhandle_t		shader;
 	qhandle_t		focusshader;
 	int				width;
@@ -295,9 +295,9 @@ extern vec4_t		text_color_disabled;
 extern vec4_t		text_color_normal;
 extern vec4_t		text_color_highlight;
 
-extern char	*ui_medalNames[];
-extern char	*ui_medalPicNames[];
-extern char	*ui_medalSounds[];
+extern const char	*ui_medalNames[];
+extern const char	*ui_medalPicNames[];
+extern const char	*ui_medalSounds[];
 
 //
 // ui_mfield.c

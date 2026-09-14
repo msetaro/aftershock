@@ -63,7 +63,7 @@ typedef struct {
 
 static cinematicsMenuInfo_t	cinematicsMenuInfo;
 
-static char *cinematics[] = {
+static const char *cinematics[] = {
 	"idlogo",
 	"intro",
 	"tier1",

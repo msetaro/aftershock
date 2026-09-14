@@ -580,3 +580,12 @@ replacement also changed two string literals; those were restored before this
 passing gate and are not part of the commit. Strict C++ syntax now proceeds to
 string-literal constness under -Werror=write-strings; no warning suppression.
 Evidence: /tmp/aftershock-native-c-catalog-final.log; 103 unchanged hashes.
+
+T8 read-only declarations now cover the three cvar tables, item names/media, spawn
+and command names, menu artwork fields and fifteen diagnosed string-pointer arrays.
+Receiving locals and existing extern array declarations retain matching qualifiers.
+Public function signatures are unchanged; the one parameter qualified is a static
+UI helper. menutext_s.string remains mutable because several menus fill its backing
+buffer; their literal assignments still need call-site casts. All 103 native C
+release objects remain byte-identical (const-final log). Next: remaining T8 literal
+casts at unchanged public APIs/return sites, then C++ exports and full module gates.

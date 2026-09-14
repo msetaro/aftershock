@@ -122,7 +122,7 @@ static const char *sortkey_items[] = {
 	0
 };
 
-static char* gamenames[] = {
+static const char* gamenames[] = {
 	"DM ",	// deathmatch
 	"1v1",	// tournament
 	"SP ",	// single player
@@ -139,7 +139,7 @@ static char* gamenames[] = {
 	0
 };
 
-static char* netnames[] = {
+static const char* netnames[] = {
 	"???",
 	"UDP",
 	"IPX",

@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ID_SPECIFYSERVERBACK	102
 #define ID_SPECIFYSERVERGO		103
 
-static char* specifyserver_artlist[] =
+static const char* specifyserver_artlist[] =
 {
 	SPECIFYSERVER_FRAMEL,
 	SPECIFYSERVER_FRAMER,

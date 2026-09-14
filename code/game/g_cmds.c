@@ -1157,7 +1157,7 @@ static void Cmd_VoiceTaunt_f( gentity_t *ent ) {
 
 
 
-static char	*gc_orders[] = {
+static const char	*gc_orders[] = {
 	"hold your position",
 	"hold this position",
 	"come here",
