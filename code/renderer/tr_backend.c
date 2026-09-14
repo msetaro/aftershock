@@ -158,10 +158,10 @@ void GL_Cull( cullType_t cullType ) {
 		qboolean cullFront;
 		qglEnable( GL_CULL_FACE );
 
-		cullFront = (cullType == CT_FRONT_SIDED);
+		cullFront = (qboolean)( (cullType == CT_FRONT_SIDED) );
 		if ( backEnd.viewParms.portalView == PV_MIRROR )
 		{
-			cullFront = !cullFront;
+			cullFront = (qboolean)( !cullFront );
 		}
 
 		qglCullFace( cullFront ? GL_FRONT : GL_BACK );
@@ -544,7 +544,7 @@ static void RB_BeginDrawingView( void ) {
 		backEnd.isHyperspace = qfalse;
 	}
 
-	glState.faceCulling = -1;		// force face culling to set next time
+	glState.faceCulling = (cullType_t)( -1 );		// force face culling to set next time
 
 	// we will only draw a sun if there was sky rendered in this view
 	backEnd.skyRenderedThisView = qfalse;
@@ -609,7 +609,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			}
 #ifdef USE_PMLIGHT
 			#define INSERT_POINT SS_FOG
-			if ( backEnd.refdef.numLitSurfs && oldShaderSort < INSERT_POINT && shader->sort >= INSERT_POINT ) {
+			if ( backEnd.refdef.numLitSurfs && oldShaderSort < (float)INSERT_POINT && shader->sort >= (float)INSERT_POINT ) {
 				//RB_BeginDrawingLitSurfs(); // no need, already setup in RB_BeginDrawingView()
 				if ( depthRange ) {
 					qglDepthRange( 0, 1 );
@@ -769,7 +769,7 @@ static void RB_BeginDrawingLitSurfs( void )
 	//
 	SetViewportAndScissor();
 
-	glState.faceCulling = -1;		// force face culling to set next time
+	glState.faceCulling = (cullType_t)( -1 );		// force face culling to set next time
 }
 
 
@@ -1036,7 +1036,7 @@ void RE_UploadCinematic( int w, int h, int cols, int rows, byte *data, int clien
 	image_t *image;
 
 	if ( !tr.scratchImage[ client ] ) {
-		tr.scratchImage[ client ] = R_CreateImage( va( "*scratch%i", client ), NULL, data, cols, rows, IMGFLAG_CLAMPTOEDGE | IMGFLAG_RGB | IMGFLAG_NOSCALE );
+		tr.scratchImage[ client ] = R_CreateImage( va( "*scratch%i", client ), NULL, data, cols, rows, (imgFlags_t)( IMGFLAG_CLAMPTOEDGE | IMGFLAG_RGB | IMGFLAG_NOSCALE ) );
 		return;
 	}
 
@@ -1394,7 +1394,7 @@ RB_ColorMask
 */
 static const void *RB_ColorMask( const void *data )
 {
-	const colorMaskCommand_t *cmd = data;
+	const colorMaskCommand_t *cmd = (const colorMaskCommand_t *)data;
 
 	qglColorMask( cmd->rgba[0], cmd->rgba[1], cmd->rgba[2], cmd->rgba[3] );
 
@@ -1409,7 +1409,7 @@ RB_ClearDepth
 */
 static const void *RB_ClearDepth( const void *data )
 {
-	const clearDepthCommand_t *cmd = data;
+	const clearDepthCommand_t *cmd = (const clearDepthCommand_t *)data;
 
 	RB_EndSurface();
 
@@ -1426,7 +1426,7 @@ RB_ClearColor
 */
 static const void *RB_ClearColor( const void *data )
 {
-	const clearColorCommand_t *cmd = data;
+	const clearColorCommand_t *cmd = (const clearColorCommand_t *)data;
 
 	if ( cmd->fullscreen )
 	{
@@ -1462,7 +1462,7 @@ RB_FinishBloom
 #ifdef USE_FBO
 static const void *RB_FinishBloom( const void *data )
 {
-	const finishBloomCommand_t *cmd = data;
+	const finishBloomCommand_t *cmd = (const finishBloomCommand_t *)data;
 
 	RB_EndSurface();
 
