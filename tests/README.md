@@ -188,3 +188,10 @@ Add the same `--content openarena --data /tmp/aftershock-openarena-baseoa` argum
 to select that content set. Review demo logs/screenshots and explain every changed
 hash or gameplay event in the PR. All golden writes are rejected when `CI` is set;
 CI compares committed outputs and never regenerates them.
+
+### Bot movement result regression
+
+`python3 tests/bot_move.py` calls the production `BotMoveToGoal` early return with
+two poisoned output buffers and checks all result fields. It links the dedicated
+server objects with a test entry point, so no content is required. `--cc`, `--cxx`
+and `--output` select the same compiler matrix as the other unit checks.

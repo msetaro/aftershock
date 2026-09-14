@@ -107,6 +107,7 @@ python3 tests/run.py runtime --sanitize --output /tmp/tests-runtime-ubsan
 python3 tests/demo.py
 python3 tests/download.py
 python3 tests/audio.py
+python3 tests/bot_move.py
 python3 tests/check_known_bugs.py
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
