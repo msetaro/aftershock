@@ -6,7 +6,7 @@ Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed c
 
 ## Next action
 
-Continuation: server; next `code/server/tlds.h then Windows T24` under amended T1-T23. Preserve completed transformations; continue native math, remaining native blockers, cross targets, T5 review, then rename only after native gates/runtime pass.
+T25 server and tlds.h verified; next Windows win_local.h T24, win_input.c, win_snd.c, then full native/runtime and cross acceptance before rename.
 
 ## Phase checklist
 
@@ -395,7 +395,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/server/sv_rankings.c` | done | Excluded by accepted scope: never built, proprietary rankings SDK; unchanged and must not be renamed. |
 | `code/server/sv_snapshot.c` | done | T1-T17: 0 (already compatible); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_snapshot.o); G4 advisory difference retained. |
 | `code/server/sv_world.c` | done | T3: 2 (includes bitwise assignment result); 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/sv_world.o); G4 advisory difference retained. |
-| `code/server/tlds.h` | blocked | Unchanged initializer fragment; sole consumer sv_client.c is blocked, so complete-object C++/G2/G3 verification is unavailable. |
+| `code/server/tlds.h` | done | Unchanged initializer; T25 unblocks actual dedicated and client sv_client consumers. Both C hashes unchanged; strict C++ and G2/G3 PASS. |
 | `code/ui/ui_public.h` | done | T1-T17: 0; unchanged shared ABI header verified through cl_ui.c actual dependency and native strict builds/G2/G3. |
 | `code/unix/linux_glimp.c` | done | T1: 2 sites (4 expanded casts), T2: 3, T3: 2, T4: 1 identifier (3 occurrences); 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_glimp.o, nosdl); G4 advisory difference retained. |
 | `code/unix/linux_joystick.c` | done | T1-T17: 0; dormant USE_JOYSTICK body explicitly compiled; 1 C object SHA256s unchanged; strict C++/G2/G3 PASS (client/linux_joystick.o, nosdl); G4 advisory difference retained. |
@@ -1214,3 +1214,7 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 
 - First commit adds the exact authorized catalog entries. No C SHA256 exception. Reviewer prefixes: original/T25 4a9f0e56..., single-source cast 96b95b5a.... Existing local diagnostic artifacts use a different command: original af7af4b97d9a5753c8c3451059cbb6c4b61bdef5e38d55813b235c0bfc2f8c91; single-source cast 737a9615cf6a8499e41fb05d92966c6bb74ed1abe161bc8f5c25f08300869110. Production manifest hashes will be measured again.
 - The T24 site list contains ten outgoing arguments total (two in win_input, eight in win_snd), despite the prompt introductory count of eight. Apply the explicit sites, plus the two incoming memcmp pointer uses.
+
+- T25 production release-linux-x86_64/client/sv_client.o: original and T25 SHA256 `af7af4b97d9a5753c8c3451059cbb6c4b61bdef5e38d55813b235c0bfc2f8c91`. Dedicated and client G2/G3 PASS; G4 `sv_client.codegen.diff.gz` and `t25-client-sv_client.diff.gz`.
+
+- T25 production release-linux-x86_64/ded/sv_client.o: original and T25 SHA256 `4a9f0e564093f0277ee5c558d269fc3a00b01b92a5d40665d06df0a14298815c`. Dedicated and client G2/G3 PASS; G4 `sv_client.codegen.diff.gz` and `t25-client-sv_client.diff.gz`.
