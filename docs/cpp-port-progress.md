@@ -6,7 +6,7 @@ Branch: `t3code/port-engine-to-cpp20`. Original C oracle: `8a7e8ed2`. Reviewed c
 
 ## Next action
 
-T24/T25 source blockers cleared. Full native C++ ded/client/dlopen renderers/static Vulkan link; warmed C/C/C++ bot logs match after only the authorized cached-pak line removal. Next refresh cross gates/builds, freeze pre-rename C oracle, handle embedded shader rename reference, then content-free main rename, rebuild/runtime/CI and separate T25 cleanup.
+Cross verification: next `phase 3 preflight`; T25 server hash blocker resolved. Then full native/cross sweeps and runtime acceptance; no rename until prerequisites pass.
 
 ## Phase checklist
 
@@ -298,7 +298,7 @@ All 257 scoped .c/.h entries appear exactly once in this table. Native status re
 | `code/qcommon/unzip.h` | done | T1-T17: 0; unchanged header checked via unzip.c native objects, G2/G3 PASS. Platform-specific branches await target matrix. |
 | `code/qcommon/vm.c` | done | T1: 5; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm.o); G4 advisory difference retained. |
 | `code/qcommon/vm_aarch64.c` | done | T1: 2 allocator result casts; T11 cache prototype in vm_local.h; aarch64 original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_aarch64.o); G4 advisory difference retained. |
-| `code/qcommon/vm_armv7l.c` | done | T1: 2 allocator result casts; T11 cache prototype in vm_local.h; arm original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_armv7l.o); G4 advisory difference retained. |
+| `code/qcommon/vm_armv7l.c` | done | T5 four external libgcc assembly imports; arm original C SHA256 unchanged; strict release/debug C++ and G2/G3 PASS (ded/qvm/vm_armv7l.o); G4 advisory difference retained. |
 | `code/qcommon/vm_interpreted.c` | done | T1: 1; literal retained under frozen warning policy; 2 C object SHA256s unchanged; strict C++/G2/G3 PASS (ded/qvm/vm_interpreted.o); G4 advisory difference retained. |
 | `code/qcommon/vm_local.h` | done | Existing T4 edits; T11: correctly typed C-linkage declaration of existing GNU ARM runtime __clear_cache dependency. ARM/AArch64 65/65 C hashes unchanged; ARM vm_interpreted consumer strict C++/G2/G3 PASS; G4 advisory evidence cross-arm-vm_interpreted.codegen.diff.gz. |
 | `code/qcommon/vm_optimize.h` | done | Unchanged; real native x86_64 and cross ARM/AArch64/PPC JIT consumers pass strict C++, G2/G3 and original C hashes. |
@@ -1233,3 +1233,5 @@ G4 is advisory. These are complete normalized -O2 C/C++ assembly diffs, not acce
 - Runtime c 2 raw SHA256 `694dcaafed5c2bce289015cda34a318155dd8d53a8830199832011097a629125`; normalized SHA256 `e0428e406c541d3de1640f4a07d0a2dd252cb2859f94f1743fe653a537c854f7`.
 - Runtime cxx 1 raw SHA256 `e995c70a11859559aa280ac47252d4e0b8dd7b9c5bf56469674b081139911a83`; normalized SHA256 `e0428e406c541d3de1640f4a07d0a2dd252cb2859f94f1743fe653a537c854f7`.
 - Post-rename harness safeguards: PORT_C_ORACLE selects the recorded pre-rename source checkout for C recipes; compile_pair fails if the alleged C command is C++. Compiler command and cwd are both recorded. Source discovery accepts .cpp, and clang-tidy follows rename pairs for changed-line filtering.
+
+- ARM full link exposed four libgcc assembler imports (__aeabi_idiv/uidiv/idivmod/uidivmod) with mangled names. T5 applies because these are resolved from external assembly by name, unlike internal static JIT callbacks. Add Q_EXTERN_C to the existing declarations and enforce raw names in G3. No signatures or call expressions change.

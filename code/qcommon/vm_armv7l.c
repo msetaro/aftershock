@@ -144,10 +144,10 @@ static	qboolean	forceDataMask;
 
 /* arm eabi, builtin gcc functions */
 #ifndef _WIN32
-int __aeabi_idiv(int, int);
-unsigned __aeabi_uidiv(unsigned, unsigned);
-void __aeabi_idivmod(void);
-void __aeabi_uidivmod(void);
+Q_EXTERN_C int __aeabi_idiv(int, int);
+Q_EXTERN_C unsigned __aeabi_uidiv(unsigned, unsigned);
+Q_EXTERN_C void __aeabi_idivmod(void);
+Q_EXTERN_C void __aeabi_uidivmod(void);
 #endif
 
 #ifdef _MSC_VER
