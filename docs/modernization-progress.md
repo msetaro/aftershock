@@ -22,6 +22,16 @@ compile-command contexts; foreign OpenArena source keeps its own upstream Makefi
 as import metadata. Keep archived port-oracle revisions intact. No source behavior
 or accepted golden changes are authorized here. First capture the current Make
 configuration/objects, then repair CMake and compare before any Make retirement.
+Baseline capture is complete: 11 configurations, 3,757 raw object hashes and their
+actual compiler commands in /tmp/aftershock-cmake-before (source 4018c08a, engine
+identical to 4a952854). Driver: /tmp/aftershock-cmake-baseline.py. All builds pass.
+Includes GCC release/debug static OpenGL/Vulkan/dynamic, Clang+libc++ static
+OpenGL/Vulkan, MinGW static OpenGL/Vulkan and aarch64 dedicated. #4 merged-tree
+regression 34942323875 has passed all completed required jobs; runtime remains.
+CMake and engine sources are still untouched for #5. Preserve this source while
+establishing build parity; retire inactive 32-bit/platform paths afterward so
+source-line changes cannot obscure the build-system comparison.
+
 
 #4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects
 per renderer on 239cbc34. Pure move 85381cda moves 757 files with identical Git
