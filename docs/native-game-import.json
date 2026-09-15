@@ -135,7 +135,8 @@
     "8b5264c5": "#4 include/build path repair; all 710 production objects byte-identical before/after",
     "52e57708": "#4 shared game/input headers published at subsystem boundaries; game implementation changes only include paths",
     "9c170ddd": "#5 retires inactive x86/PowerPC math and header branches; all 103 GCC x64 native production objects remain byte-identical, with unchanged C/C++ layouts and symbols",
-    "a5c199bf": "#8 implicit-fallthrough warning: comments document existing transitions; source line counts and native object behavior retained"
+    "a5c199bf": "#8 implicit-fallthrough warning: comments document existing transitions; source line counts and native object behavior retained",
+    "c58e2751": "#31 explicitly signed bot chat offset sentinel; engine/game layout and x86 instructions unchanged, ARM64 now preserves -1"
   },
   "files": [
     {
@@ -523,7 +524,10 @@
       "source": "code/game/be_ai_chat.h",
       "path": "game/game/be_ai_chat.h",
       "sha256": "7b5806810ad6cbdf362d436fb834da9d255e1cd6c9c7ca8905d31dd817ed08cf",
-      "disposition": "verbatim import"
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "c58e2751"
+      ]
     },
     {
       "source": "code/game/be_ai_gen.h",

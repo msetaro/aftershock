@@ -394,3 +394,9 @@ platform helper and public apply path under ASan/UBSan. It covers decimal/hex co
 64-bit values, core aliases, mixed `+`/`-` expressions and invalid hex prefixes. The OS setter is intercepted;
 the test does not alter process affinity. Pass `--cxx 'clang++ -stdlib=libc++'` for
 the second CI compiler. No content or golden files are required.
+
+`python3 tests/chat_offset.py` checks bot chat's unmatched-variable marker with
+both signed-char and unsigned-char compiler defaults under ASan/UBSan. It uses
+actual template matching, variable extraction and message expansion, tests valid
+offsets alongside the absent variable, and checks mirrored engine/game layouts.
+`--cxx` selects GCC or Clang. It needs no content or external services.

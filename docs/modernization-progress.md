@@ -7,26 +7,50 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-ignored-qualifiers, PR #70, based on #69 merge 2d9fa2ca.
-#69 source dc3a6a81 passed build 34995107292 and regression 34995107235; its
-merged-tree regression 35015162588 passed. Both affinity fixes are merged; upstream
-C contributions are ec-/Quake3e #440 and #441. #5 is complete; #8 fallthrough PR
-#67 is merged. All other #8 warning classes and rules remain pending.
+Active: issue/31-chat-offset, draft PR #71. PR #70 passed full build 35016076778 and
+regression 35016076784 at 17a9dae2, then merged as 9d9dc4f6. That merge is
+integrated into this branch; its merged-tree regression remains to check.
+#69 merged-tree regression 35015162588 passed. #5 and #8 fallthrough are complete.
 
-Next: verify PR #70 hosted build and regression gates and self-review before merge.
-Regression 35015487624 passed at d56ab00b. The build workflow skipped that change
-because its inherited *.txt ignore also matched CMakeLists.txt. Remove that broad
-ignore from pull requests and pushes so future CMake-only changes run the matrix.
-The single warning flag removal preserves all 590 captured client objects byte for
-byte across both renderers. GCC/Clang production-flag controls confirm the diagnostic
-is now an error. No test, engine source, golden or fixture changes are needed.
+Test-first commit 36410f00 records the failing chat-offset regression. Both
+offset declarations now use signed char, preserving the negative sentinel and
+existing x86 range/layout. Next: verify codegen, local/hosted gates and upstream C.
+Both BotMatchVariable and BotExpandChatMessage return Q instead of empty under
+unsigned-char; real BotFindMatch supplied the -1 sentinel. Signed-char passes.
+The mirrored game declaration also loses the sentinel. Both compiler modes use
+ASan/UBSan and unchanged layout assertions. /tmp/aftershock-chat-offset-before.log.
+Review all offset writers/consumers and mirror declarations; preserve x86 semantics
+and layout. Follow with codegen, explicit explained golden regeneration, runtime,
+fixed replay, hosted gates, upstream C contribution and merge-commit self-review.
+No known-bugs entry or UBSan suppression currently covers this new test.
 
-Continue one warning class per PR, followed by verified tree-wide formatting, tidy
-subsets, fixed-width representation types/layout assertions and release-identical
-Q_ASSERT. MSVC release inventory from #69 job 104469265974 also records C4267,
-C4459, C4456, C4065, C4457 and C4644; address these before enabling the MSVC /WX
-gate. Raw log: /tmp/aftershock-msvc-warning-inventory.log. Do not treat the GCC/Clang
-suppression list as the whole warning scope. Finish #8, write design-only
+Fix c58e2751 passes GCC/Clang ASan+UBSan with both char defaults. The same
+bounded regression fails on upstream C f694bbbc under unsigned-char and passes
+with the one-line header fix under both compilers/defaults. Codegen covers 26
+objects across GCC/Clang release, GCC debug, MinGW and aarch64: 12 raw objects
+identical, six MinGW incremental-LTO native objects identical, six GCC debug
+objects differ only in debug sections (stripped copies identical). Two ARM64
+objects change only four chat-offset consumer functions, with no functions added
+or removed. Expected signed loads and missing-variable branches are present;
+all unrelated functions retain identical instructions/relocations. Artifacts:
+/tmp/aftershock-chat-offset-codegen/{before,after}.json and per-object diffs.
+Source floating-point expressions, allocations, lifetimes and OS calls unchanged.
+The original GPL import hash is retained; c58e2751 is recorded as a transformation.
+Local Q3 runtime passes unchanged (6dad7c18/a15c9c91); both-renderer fixed replay
+passes unchanged (b38004b1), with original demo hashes retained. Explicit unit and
+collision regeneration is identical (8d44421d/9674cd22). Upstream C fix 98691272 is
+submitted as ec-/Quake3e #442. Next: verify hosted build/regression at the final
+PR #71 head, complete self-review, ready/merge with a merge commit, then verify
+the merged-tree regression. No accepted golden or fixture diff.
+
+After this fix, resume #8 unused-function diagnostics in its own PR. Temporary
+production-flag checks preserve 364 Clang engine objects across both renderers and
+reject an unused static function when the suppression is removed:
+/tmp/aftershock-unused-function/{results.json,control-after.log}. No source changes
+for this warning class have been made. MSVC #69 release inventory records C4267,
+C4459, C4456, C4065, C4457 and C4644; address before /WX. Continue one warning class
+per PR, then verified tree-wide formatting, tidy subsets, fixed-width representation
+types/layout assertions and release-identical Q_ASSERT. Finish #8, write design-only
 docs/design/rhi.md for #6, then stop; no implementation.
 
 ## Completed affinity fixes and #8 baseline evidence

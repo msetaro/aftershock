@@ -742,3 +742,19 @@ Nine production object comparisons show only parseAffinityMask changes, with no
 function additions/removals and identical unrelated instructions/relocations.
 Explicit unit/collision golden regeneration is byte-identical (8d44421d/9674cd22).
 Runtime/hosted gates and self-review remain before this separate fix merges.
+
+- #31 bot chat unmatched-variable sentinel (found during #8 warning review):
+  `bot_matchvariable_t.offset` is plain char in both engine and imported game
+  declarations. `BotFindMatch` stores -1 for missing variables, but unsigned-char
+  targets read it as 255. Both `BotMatchVariable` and `BotExpandChatMessage` then
+  treat it as present. Reproducer: `python3 tests/chat_offset.py`; signed-char
+  passes and unsigned-char returns Q instead of an empty string from both paths.
+  The bounded probe uses real template matching and both consumers, with a byte
+  at string[255] and a one-byte length. It also checks the mirrored game type and
+  unchanged 8/328-byte layouts under ASan/UBSan. No file loading or game assets.
+  Test-first 36410f00; fix c58e2751 makes both declarations signed char. PR #71
+  passes GCC/Clang ASan/UBSan under both defaults and preserves x86 instructions.
+  ARM64 changes only offset consumers. Unit/collision regeneration, Q3 smoke and
+  fixed replay are unchanged. Upstream C has the same failing/passing evidence:
+  https://github.com/ec-/Quake3e/pull/442 (98691272). No existing expectation or
+  suppression applies. Offsets above 127 are outside this fix.
