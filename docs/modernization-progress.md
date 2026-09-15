@@ -7,17 +7,21 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unused-function. PR #71 passed build 35017297266 and regression
-35017297166 at 98b457cc, then merged as c04ba916. That merge is integrated into
-this branch; its merged-tree regression remains to check. PR #70 passed build
-35016076778 and regression 35016076784, merged as 9d9dc4f6, and merged-tree
-regression 35016803376 passed. #5 and #8 fallthrough/ignored qualifiers are complete.
+Active: issue/8-unneeded-internal. PR #72 passed build 35018151616 and regression
+35018151602 at e6dfa0ba, then merged as 01a1dda8. That merge is integrated into
+this branch; its merged-tree regression remains to check. PR #71 merged c04ba916
+after build 35017297266/regression 35017297166; merged-tree run 35018077437 passed.
+PR #70 merged-tree regression 35016803376 passed. #5 is complete.
 
-The only #8 source-tree change is removal of -Wno-unused-function from the Clang
-engine warning list. The existing temporary production controls reject unused
-static functions and all 364 Clang engine release objects remain identical across
-both renderers. Next: open the unused-function PR, verify hosted build/regression and self-review,
-then merge and check the merged-tree run. No engine source or golden changes.
+Next: open the unneeded-internal-declaration PR, verify its hosted gates and
+self-review, merge with a merge commit, then check the merged-tree regression.
+
+The only new warning change removes -Wno-unneeded-internal-declaration from Clang
+native compilation. All 206 native release objects across both renderers match
+raw hashes; the production-flag control rejects a function referenced only by
+decltype. No engine/game source, floating-point, layout or golden changes. #72's
+separate unused-function change preserves 364 Clang engine objects and has its
+own passing diagnostic control. Await each PR's hosted gates before merging.
 
 Test-first commit 36410f00 records the failing chat-offset regression. Both
 offset declarations now use signed char, preserving the negative sentinel and
@@ -55,9 +59,31 @@ referenced only by decltype. Removing unused-const-variable preserves 412 GCC/Cl
 native objects; Clang's diagnostic control passes. GCC does not enable that warning
 with -Wall/-Wextra in C++, so merely deleting the suppression is not a diagnostic
 gate. Explicit -Wunused-const-variable=1 additionally compiles all 206 GCC native
-objects with identical raw hashes. These future flags have not been changed in the
-repository. Artifacts: /tmp/aftershock-native-warning-check and
+objects with identical raw hashes. The unneeded-internal suppression is now removed on this branch; the
+unused-constant flag is still only a preflight experiment. Artifacts: /tmp/aftershock-native-warning-check and
 /tmp/aftershock-unused-const-gcc. Keep each warning class in a separate PR.
+The follow-up native-wrapper control is significant: GCC level 1 excludes included
+source files. Level 2 rejects numValidOrders in cg_servercmds.cpp (both renderers),
+which is used only inside MISSIONPACK. Future unused-constant work must enable
+level 2 and move the table/type/count under the existing MISSIONPACK guard, then
+prove parity. Do not delete the declaration needed by that conditional function. Clang does not diagnose unused constants in included
+files even with this warning enabled; the GCC job provides that gate. The separate
+unneeded-internal control DOES fail through the actual native wrapper as intended.
+Artifacts: /tmp/aftershock-unused-const-gcc-all and native-warning-check/*included*.
+A temporary source preview moves the existing MISSIONPACK guard above the
+order-table declarations while preserving line count. GCC/Clang release objects
+match, as do MinGW native objects after incremental LTO. Two debug objects need
+further relocation/constant review before accepting that future change. The
+MISSIONPACK compile control fails in the unchanged baseline at cg_servercmds.cpp:936
+(int to qboolean); do not fix that inactive configuration in the warning PR.
+Verify that its preprocessed tokens are preserved. Preview artifacts:
+/tmp/aftershock-unused-constant-preview. No repository source edit yet.
+
+Type-limits preflight after the #31 affinity/chat fixes: replacing the suppression
+with explicit -Wtype-limits preserves all 728 GCC/Clang engine release objects
+across both renderers. GCC diagnoses the control after suppression removal;
+Clang needs the explicit positive flag. /tmp/aftershock-type-limits-{control,check}.
+This future flag change is not yet applied; keep it in a separate PR.
 
 The #8 unused-function removal is now prepared on this separate branch. Temporary
 production-flag checks preserve 364 Clang engine objects across both renderers and
