@@ -480,7 +480,7 @@
       "source": "code/game/g_main.c",
       "path": "code/game/g_main.c",
       "sha256": "fdc9abc73283c57a27e25c15fbcac7cc7b63d0a82d6fe9ce8f8af8252548ee4a",
-      "disposition": "verbatim import followed by #2 native intptr_t return and three-argument engine entry ABI adaptation; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)"
+      "disposition": "verbatim import followed by #2 native intptr_t return and three-argument engine entry ABI adaptation; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged); #31 PR #58 bounds team-voter reset to its two-element array"
     },
     {
       "source": "code/game/g_mem.c",

@@ -7,28 +7,31 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/2-native-game, draft PR #50. PR #57 merged as 4b68ccda after
-regression 34923921313/full build 34923921329 passed on 630ae8e1. Its merged-tree
-regression 34924317093 passed. This integration retains #2's catalog changes and
-adapts enum casts to #57's signed pendingWeapon storage and SetInfo input. Normal
-weapon fields remain enums; state size/offsets and accepted fixtures are unchanged.
-Test-first 63f86e7b reproduces the invalid enum load; GCC/Clang/libc++ pass after.
-A temporary complete Clang C++ UI module also passed real SetInfo calls for clearing,
-queuing a valid weapon and preserving the current weapon on the new-model sentinel.
+Active work: issue/2-native-game, draft PR #50. PR #58 merged as 4c816c7e after
+regression 34925252301/full build 34925252282 passed on source/test 9e1f9411. Its
+one-line CalculateRanks fix bounds the two team-voter counters, preserving adjacent
+spawn state. Test-first 10ed8eb4/5c5217f5 fail at index 2 on GCC/Clang before, pass
+after; layouts/symbols unchanged, only CalculateRanks assembly changes. Temporary
+full native C++ GCC/Clang modules with the fix match both accepted Q3 bot logs.
+Unit/collision/Q3 runtime explicit regeneration is byte-identical. This integration
+retains #2's catalog and ABI edits and its local-header team-leader check.
 
-The resolved merge passes the permanent UI sentinel test on GCC/Clang, all three
-Clang native C++ module builds and fixed Q3 replay on both maps/renderers (unchanged
-frame hash b38004b1). Actual -O2 -Wall/-Wextra compilation completed all 412
-compiler/language/module objects without errors. It exposed an original CalculateRanks
-bug: TEAM_NUM_TEAMS is four but numteamVotingClients has two entries. The loop clears
-spawning/numSpawnVars past the array; every caller and consumer is inventoried in #31.
-No fix is made on #2. Artifacts: /tmp/aftershock-native-warning-optimized/results.json.
+#57 merged 4b68ccda; merged-tree regression 34924317093 passed. Its #2 integration
+bb869f79 passed regression 34924891632, GCC/Clang UI sentinel tests, Clang native
+C++ module builds and fixed replay on both maps/renderers with unchanged frames.
 
-Next: park #2 after this integration commit and fix that array overrun in a separate
-#31 PR with a failing test first. Then finish the strict G1 warning freeze, G4/G7
-review and permanent artifact reproduction before the content-free .cpp rename,
-static calls and VM/JIT removal. No VM/JIT removal has started. No accepted golden
-or fixture changes on #2.
+The resolved integration passes GCC/Clang team-voter tests and the team-leader
+check. Its g_main source matches the temporary GCC/Clang native runtime preflight
+byte-for-byte. The voter test now includes #2's native ABI header for its adapted
+entry point. Merged-tree regression 34925562788 is pending.
+
+Next: commit/push this integration and verify that run, then freeze the observed original C warnings and require strict G1 native builds.
+Finish G4/G7 review and permanent artifact reproduction before the content-free
+.cpp rename, static calls and VM/JIT removal. No VM/JIT removal has started.
+No accepted golden or fixture changes on #2. Additional assembly review through
+the small/medium diffs and several large functions is recorded in
+/tmp/aftershock-native-review-checkpoint.md. Post-#57/#58 UI/game artifacts need
+refreshing; full optimized warning inventory is /tmp/aftershock-native-warning-optimized.
 
 Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95
 (regression 34922352537 passed); portable Q3 binary32 literals 5592a1eb (regression

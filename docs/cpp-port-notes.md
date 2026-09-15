@@ -455,16 +455,34 @@ A temporary complete Clang C++ UI module with this fix passes real SetInfo calls
 for clearing a pending change, queuing a valid weapon and the new-model sentinel
 path. Self-review passes; accepted goldens and fixtures remain unchanged.
 
-### Native team-voter reset overruns adjacent state (#31, pending)
+### Native team-voter reset overruns adjacent state (#31)
 
-The original GPL CalculateRanks loop in code/game/g_main.c uses TEAM_NUM_TEAMS (4)
-to reset level.numteamVotingClients[2]. Indices 2 and 3 overwrite spawning and
-numSpawnVars. GCC -O2 -Wall -Wextra diagnoses the invalid iterations in both C and
-C++; the native optimized warning inventory exposed it during #2. The correct
-bound is the actual array length; red/blue consumers use only indices 0/1.
-Callers: g_client connect/begin/disconnect, g_combat scoring, g_arenas tournament
-updates and g_team score/status updates. CheckTeamVote consumes the two counts.
-Reproducer to make permanent in its own #31 PR: call the real CalculateRanks with
-zero clients, seeded vote counts and adjacent spawning/numSpawnVars sentinels;
-require both counts reset and adjacent state preserved, under UBSan bounds checks.
-No fix is on #2. No corresponding ec-/Quake3e game implementation exists.
+CalculateRanks in the original GPL g_main.c clears TEAM_NUM_TEAMS (4) entries of
+numteamVotingClients[2], overwriting spawning and numSpawnVars. Red/blue consumers
+use only indices 0/1. All callers route through this reset: client lifecycle,
+combat scores, tournament updates and team scores/status; CheckTeamVote consumes
+these counts. The optimized #2 C/C++ warning inventory exposed both invalid writes.
+
+`python3 tests/team_voters.py` calls the real function under UBSan, failing at index
+2 before the fix. It checks zero-client reset, human red/blue counts, bot exclusion
+and preservation of seeded adjacent fields. Only the two unrelated end-level notification symbols are weakened with objcopy
+and replaced by test stubs; the actual rank calculation remains intact. Fix the bound to the actual array length in this #31 PR;
+no floating-point expression, wire layout or accepted golden needs to change.
+
+Three verbatim prerequisites retain GPL notices from id-Software/Quake-III-Arena
+at dbe4ddb10315479fc00086f08e25d968b4b43c49:
+- code/game/g_main.c: fdc9abc73283c57a27e25c15fbcac7cc7b63d0a82d6fe9ce8f8af8252548ee4a
+- code/game/g_local.h: de98d3c7212f026650cf581baf102908c359667eb55f1bc65ef5c5b8819283e0
+- code/game/g_team.h: 0df64a2d49ce05fc5cb569792ee4d2fffdd93db6ba1fee106a2a11613a16d9bb
+No corresponding game implementation exists in ec-/Quake3e. The #2 native port is
+parked at bb869f79, with its source adaptation and unchanged replay verified.
+
+Test-first 10ed8eb4 and notification-isolation 5c5217f5 reproduce index 2 on both
+GCC/Clang. The array-length fix passes both. All G2 layouts and G3 symbols match;
+only CalculateRanks changes assembly among 39 functions. No unrelated source fix.
+
+PR #58 source/test head 9e1f9411 passed regression 34925252301 and full build
+34925252282. Temporary full native C++ GCC/Clang game modules with the fix match
+both accepted Q3 bot logs, with repeated identical runs. Explicit unit/collision/
+Q3 runtime golden regeneration is byte-identical. Self-review passes; no expected
+bug entry or UBSan suppression was needed, and no accepted golden changes.
