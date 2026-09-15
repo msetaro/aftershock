@@ -7,17 +7,19 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unused-function. PR #71 passed build 35017297266 and regression
-35017297166 at 98b457cc, then merged as c04ba916. That merge is integrated into
-this branch; its merged-tree regression remains to check. PR #70 passed build
-35016076778 and regression 35016076784, merged as 9d9dc4f6, and merged-tree
-regression 35016803376 passed. #5 and #8 fallthrough/ignored qualifiers are complete.
+Active: issue/8-unneeded-internal, based on pending PR #72 head e6dfa0ba.
+PR #72 remains on issue/8-unused-function. Verify build 35018151616 and regression
+35018151602, self-review, merge it, then integrate origin/modernization into this
+branch before opening the next separate warning PR. PR #71 merged c04ba916 after
+build 35017297266/regression 35017297166; merged-tree run 35018077437 is pending.
+PR #70 merged-tree regression 35016803376 passed. #5 is complete.
 
-The only #8 source-tree change is removal of -Wno-unused-function from the Clang
-engine warning list. The existing temporary production controls reject unused
-static functions and all 364 Clang engine release objects remain identical across
-both renderers. Next: open the unused-function PR, verify hosted build/regression and self-review,
-then merge and check the merged-tree run. No engine source or golden changes.
+The only new warning change removes -Wno-unneeded-internal-declaration from Clang
+native compilation. All 206 native release objects across both renderers match
+raw hashes; the production-flag control rejects a function referenced only by
+decltype. No engine/game source, floating-point, layout or golden changes. #72's
+separate unused-function change preserves 364 Clang engine objects and has its
+own passing diagnostic control. Await each PR's hosted gates before merging.
 
 Test-first commit 36410f00 records the failing chat-offset regression. Both
 offset declarations now use signed char, preserving the negative sentinel and
@@ -55,8 +57,8 @@ referenced only by decltype. Removing unused-const-variable preserves 412 GCC/Cl
 native objects; Clang's diagnostic control passes. GCC does not enable that warning
 with -Wall/-Wextra in C++, so merely deleting the suppression is not a diagnostic
 gate. Explicit -Wunused-const-variable=1 additionally compiles all 206 GCC native
-objects with identical raw hashes. These future flags have not been changed in the
-repository. Artifacts: /tmp/aftershock-native-warning-check and
+objects with identical raw hashes. The unneeded-internal suppression is now removed on this branch; the
+unused-constant flag is still only a preflight experiment. Artifacts: /tmp/aftershock-native-warning-check and
 /tmp/aftershock-unused-const-gcc. Keep each warning class in a separate PR.
 
 The #8 unused-function removal is now prepared on this separate branch. Temporary
