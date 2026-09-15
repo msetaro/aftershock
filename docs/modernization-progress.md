@@ -7,12 +7,11 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unused-constants, based on pending PR #74 head 644741e9.
-PR #74 remains on issue/8-type-limits; verify its final build/regression gates,
-self-review and merge first. Integrate origin/modernization before opening this
-separate unused-constant PR. #73 merged be2186e0 after build 35018897499 and
-regression 35018897591; its merged-tree run remains to check. #72 merged-tree
-regression 35018822894 passed. #5 is complete.
+Active: issue/8-unused-constants. PR #74 passed build 35019711765 and regression
+35019711780 at 644741e9, then merged as 5fb78853. That merge is integrated into
+this branch; its merged-tree regression remains to check. #73 merged-tree
+regression 35019634702 and #72 merged-tree regression 35018822894 passed.
+#5 is complete; #8 warning ratchet remains active.
 
 This branch removes the native unused-constant suppressions and enables GCC
 -Wunused-const-variable=2, which includes native source files pulled through the
@@ -26,8 +25,9 @@ native production commands pass with unused constants treated as errors, includi
 GCC/Clang/debug/MinGW/ARM64; all 412 captured GCC/Clang release objects match raw
 hashes. Artifacts /tmp/aftershock-unused-constant-builds. The legacy standalone
 C/C++ native helper also had a frozen unused-constant entry: remove it from both
-compiler lists and explicitly enable the diagnostic there. Verify all four helper
-compiler/language combinations, then open this PR after #74 merges. No golden regeneration. Hosted build/regression and self-review are
+compiler lists and explicitly enable the diagnostic there. All four standalone GCC/Clang C/C++ helper builds pass, including ABI layout
+checks. Next: open this PR, verify hosted build/regression and self-review, then
+merge with a merge commit and check the merged tree. No golden regeneration. Hosted build/regression and self-review are
 required before merge. The preceding #74 type-limits change preserves 728 raw
 GCC/Clang engine objects and has passing diagnostic controls for both compilers.
 
@@ -123,6 +123,9 @@ while the helper freeze list remains. Other frozen helper classes track the
 remaining production warning work.
 
 ## Completed affinity fixes and #8 baseline evidence
+
+The entries below preserve historical evidence. Only the Next action above directs
+resumed work; earlier next-action wording below describes its original checkpoint.
 
 Hex test-first 985a3f1f extends the existing affinity test with exactly 0xZ and
 bare 0x and enables ASan alongside UBSan. It fails on the wrong mask and terminator
