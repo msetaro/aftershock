@@ -289,68 +289,68 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\qcommon\cmd.cpp" />
-    <ClCompile Include="..\..\qcommon\cm_load.cpp" />
-    <ClCompile Include="..\..\qcommon\cm_patch.cpp" />
-    <ClCompile Include="..\..\qcommon\cm_polylib.cpp" />
-    <ClCompile Include="..\..\qcommon\cm_test.cpp" />
-    <ClCompile Include="..\..\qcommon\cm_trace.cpp" />
-    <ClCompile Include="..\..\qcommon\common.cpp" />
-    <ClCompile Include="..\..\qcommon\cvar.cpp" />
-    <ClCompile Include="..\..\qcommon\files.cpp" />
-    <ClCompile Include="..\..\qcommon\history.cpp" />
-    <ClCompile Include="..\..\qcommon\huffman.cpp" />
-    <ClCompile Include="..\..\qcommon\huffman_static.cpp" />
-    <ClCompile Include="..\..\qcommon\keys.cpp" />
-    <ClCompile Include="..\..\qcommon\md4.cpp" />
-    <ClCompile Include="..\..\qcommon\md5.cpp" />
-    <ClCompile Include="..\..\qcommon\msg.cpp" />
-    <ClCompile Include="..\..\qcommon\net_chan.cpp" />
-    <ClCompile Include="..\..\qcommon\net_ip.cpp" />
-    <ClCompile Include="..\..\qcommon\q_math.cpp" />
-    <ClCompile Include="..\..\qcommon\q_shared.cpp" />
-    <ClCompile Include="..\..\qcommon\unzip.cpp" />
-    <ClCompile Include="..\..\server\sv_bot.cpp" />
-    <ClCompile Include="..\..\server\sv_ccmds.cpp" />
-    <ClCompile Include="..\..\server\sv_client.cpp" />
-    <ClCompile Include="..\..\server\sv_filter.cpp" />
-    <ClCompile Include="..\..\server\sv_game.cpp" />
-    <ClCompile Include="..\..\server\sv_init.cpp" />
-    <ClCompile Include="..\..\server\sv_main.cpp" />
-    <ClCompile Include="..\..\server\sv_net_chan.cpp" />
-    <ClCompile Include="..\..\server\sv_snapshot.cpp" />
-    <ClCompile Include="..\..\server\sv_world.cpp" />
-    <ClCompile Include="..\win_main.cpp" />
-    <ClCompile Include="..\win_shared.cpp" />
-    <ClCompile Include="..\win_syscon.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\cmd.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\cm_load.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\cm_patch.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\cm_polylib.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\cm_test.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\cm_trace.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\common.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\cvar.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\files.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\history.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\huffman.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\huffman_static.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\keys.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\md4.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\md5.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\msg.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\net_chan.cpp" />
+    <ClCompile Include="..\..\engine\platform\net_ip.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\q_math.cpp" />
+    <ClCompile Include="..\..\engine\qcommon\q_shared.cpp" />
+    <ClCompile Include="..\..\third_party\minizip\unzip.cpp" />
+    <ClCompile Include="..\..\engine\server\sv_bot.cpp" />
+    <ClCompile Include="..\..\engine\server\sv_ccmds.cpp" />
+    <ClCompile Include="..\..\engine\server\sv_client.cpp" />
+    <ClCompile Include="..\..\engine\server\sv_filter.cpp" />
+    <ClCompile Include="..\..\engine\server\sv_game.cpp" />
+    <ClCompile Include="..\..\engine\server\sv_init.cpp" />
+    <ClCompile Include="..\..\engine\server\sv_main.cpp" />
+    <ClCompile Include="..\..\engine\server\sv_net_chan.cpp" />
+    <ClCompile Include="..\..\engine\server\sv_snapshot.cpp" />
+    <ClCompile Include="..\..\engine\server\sv_world.cpp" />
+    <ClCompile Include="..\..\engine\platform\win32\win_main.cpp" />
+    <ClCompile Include="..\..\engine\platform\win32\win_shared.cpp" />
+    <ClCompile Include="..\..\engine\platform\win32\win_syscon.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\cgame\cg_public.h" />
-    <ClInclude Include="..\..\client\client.h" />
-    <ClInclude Include="..\..\client\keycodes.h" />
-    <ClInclude Include="..\..\client\keys.h" />
-    <ClInclude Include="..\..\game\bg_public.h" />
-    <ClInclude Include="..\..\game\g_public.h" />
-    <ClInclude Include="..\..\qcommon\cm_local.h" />
-    <ClInclude Include="..\..\qcommon\cm_patch.h" />
-    <ClInclude Include="..\..\qcommon\cm_polylib.h" />
-    <ClInclude Include="..\..\qcommon\cm_public.h" />
-    <ClInclude Include="..\..\qcommon\qcommon.h" />
-    <ClInclude Include="..\..\qcommon\qfiles.h" />
-    <ClInclude Include="..\..\qcommon\q_platform.h" />
-    <ClInclude Include="..\..\qcommon\q_shared.h" />
-    <ClInclude Include="..\..\qcommon\surfaceflags.h" />
-    <ClInclude Include="..\..\qcommon\unzip.h" />
-    <ClInclude Include="..\..\server\server.h" />
-    <ClInclude Include="..\..\ui\ui_public.h" />
-    <ClInclude Include="..\resource.h" />
-    <ClInclude Include="..\win_local.h" />
+    <ClInclude Include="..\..\engine\public\cg_public.h" />
+    <ClInclude Include="..\..\engine\client\client.h" />
+    <ClInclude Include="..\..\engine\client\keycodes.h" />
+    <ClInclude Include="..\..\engine\qcommon\keys_public.h" />
+    <ClInclude Include="..\..\engine\public\bg_public.h" />
+    <ClInclude Include="..\..\engine\public\g_public.h" />
+    <ClInclude Include="..\..\engine\qcommon\cm_local.h" />
+    <ClInclude Include="..\..\engine\qcommon\cm_patch.h" />
+    <ClInclude Include="..\..\engine\qcommon\cm_polylib.h" />
+    <ClInclude Include="..\..\engine\qcommon\cm_public.h" />
+    <ClInclude Include="..\..\engine\qcommon\qcommon_public.h" />
+    <ClInclude Include="..\..\engine\qcommon\qfiles_public.h" />
+    <ClInclude Include="..\..\engine\platform\platform_public.h" />
+    <ClInclude Include="..\..\engine\qcommon\q_shared.h" />
+    <ClInclude Include="..\..\engine\qcommon\surfaceflags_public.h" />
+    <ClInclude Include="..\..\third_party\minizip\unzip.h" />
+    <ClInclude Include="..\..\engine\server\server.h" />
+    <ClInclude Include="..\..\engine\public\ui_public.h" />
+    <ClInclude Include="..\..\engine\platform\win32\resource.h" />
+    <ClInclude Include="..\..\engine\platform\win32\win_local.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\qe3.ico" />
+    <Image Include="..\..\engine\platform\win32\qe3.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\win_resource.rc" />
+    <ResourceCompile Include="..\..\engine\platform\win32\win_resource.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="botlib.vcxproj">
@@ -359,7 +359,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\asm\common_x64.asm">
+    <CustomBuild Include="..\..\engine\platform\asm\common_x64.asm">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ml64 /c /Zi /Fo"$(IntDir)%(Filename)%(Extension).obj" "%(FullPath)"</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 /c /Zi /Fo"$(IntDir)%(Filename)%(Extension).obj" "%(FullPath)"</Command>

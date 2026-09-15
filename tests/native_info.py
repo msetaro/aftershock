@@ -15,8 +15,8 @@ args.output.mkdir(parents=True, exist_ok=True)
 binary = args.output.resolve() / 'check'
 run([*shlex.split(args.cc), '-x', 'c', '-std=gnu99', '-O2', '-g',
      '-fsanitize=address', '-fno-omit-frame-pointer', '-fno-builtin',
-     '-ffunction-sections', '-fdata-sections', '-Icode/game',
-     'code/game/q_shared.cpp', 'tests/probes/native_info.c',
+     '-ffunction-sections', '-fdata-sections', '-Igame/bg',
+     'game/bg/q_shared.cpp', 'tests/probes/native_info.c',
      '-Wl,--gc-sections', '-lm', '-o', binary])
 for variant in ([args.variant] if args.variant else ['small', 'big']):
     run([binary, variant])

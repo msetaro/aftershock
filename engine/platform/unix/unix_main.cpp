@@ -54,14 +54,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // FIXME TTimo should we gard this? most *nix system should comply?
 #include <termios.h>
 
-#include "../qcommon/q_shared.h"
-#include "../qcommon/qcommon.h"
-#include "../renderercommon/tr_public.h"
+#include "../../qcommon/q_shared.h"
+#include "../../qcommon/qcommon_public.h"
+#include "../../renderercommon/tr_public.h"
 
 #include "linux_local.h" // bk001204
 
 #ifndef DEDICATED
-#include "../client/client.h"
+#include "../../client/client.h"
 #endif
 
 unsigned sys_frame_time;

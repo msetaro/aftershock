@@ -1,4 +1,4 @@
-#include "../../code/game/g_team.cpp"
+#include "../../game/game/g_team.cpp"
 #include <assert.h>
 
 vmCvar_t g_gametype;

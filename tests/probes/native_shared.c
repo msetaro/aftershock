@@ -1,4 +1,4 @@
-#include "../../code/game/q_shared.h"
+#include "../../game/bg/q_shared.h"
 #include <stdint.h>
 
 static uint32_t state = 0x12345678;

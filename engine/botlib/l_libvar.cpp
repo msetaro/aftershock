@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
-#include "botlib.h"
+#include "botlib_public.h"
 #include "l_memory.h"
 #include "l_libvar.h"
 #include "be_interface.h"

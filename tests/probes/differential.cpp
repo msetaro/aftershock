@@ -1,8 +1,8 @@
 /* Permanent G5 driver. Test stubs isolate engine functions, never production code. */
-#include "../../code/qcommon/q_shared.h"
-#include "../../code/qcommon/qcommon.h"
+#include "../../engine/qcommon/q_shared.h"
+#include "../../engine/qcommon/qcommon_public.h"
 #include <assert.h>
-#include "../../code/qcommon/qfiles.h"
+#include "../../engine/qcommon/qfiles_public.h"
 #include <stddef.h>
 
 qboolean com_errorEntered;

@@ -11,7 +11,7 @@ Active: issue/4-subsystem-boundaries from modernization 239cbc34 (#64 merge).
 #2 is complete: PR #50 merged 6069cf2a; merged regression 34937376623 passed after
 one runtime-only retry for an OpenArena download reset. #64 source e38d9335 passed
 regression 34937896536/full build 34937896427; upstream C fix is ec-/Quake3e#439.
-Verify #64 merged-tree regression, then keep moving through #4 -> #5 -> #8 and
+#64 merged-tree regression 34938271942 passed. Keep moving through #4 -> #5 -> #8 and
 write design-only docs/design/rhi.md for #6. No #6/#7 implementation.
 
 #4 issue read. First capture both-renderer native object baselines on 239cbc34,
@@ -23,7 +23,23 @@ static module wrapper with game implementation. Public engine/game ABI headers
 belong to engine/public so engine never includes game implementation headers.
 Rename cpp-port-notes.md to docs/bugs.md as requested.
 
-Next: capture baseline objects and source hashes, then the pure move commit.
+Baseline capture completed: /tmp/aftershock-boundary-before contains 355 objects
+per renderer and their hashes (source 239cbc34). Pure move 85381cda moves 757 files;
+every Git blob ID, file mode and SHA256 is unchanged. Mapping/artifacts:
+/tmp/aftershock-subsystem-moves.json and /tmp/aftershock-subsystem-moves-numstat.txt.
+The numstat display checker initially treated binary "-" fields as changed lines;
+independent blob/mode/hash comparison confirms all 757 moves are content-identical.
+
+Path repair is in the working tree: 137 quoted-include files, Make/native rules,
+MSVC references, tests and current documentation. Dedicated build, unit plus the
+one-ULP negative control, and all three static OA C objects pass. Client build passes. Both production object sets are byte-identical to the
+baseline: 355/355 Vulkan and 355/355 OpenGL objects, without normalization.
+Artifacts: /tmp/aftershock-boundary-after and its JSON comparisons. Active MSVC
+project source references resolve; unbuilt renderer2 retains its pre-existing
+stale C/generated-source references until its planned retirement. Reusable port
+gates now recognize engine/game source paths while retaining historical oracles.
+No boundary refactoring/checks yet. Next: commit path repairs, then enforce
+public/OS boundaries and document subsystem ownership.
 After path repair, compare object hashes before boundary adaptations. Enforce
 public cross-subsystem includes and OS access in platform/filesystem code, add
 actual public declarations where needed, and route existing OS operations through

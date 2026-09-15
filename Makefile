@@ -129,7 +129,7 @@ DESTDIR=/usr/local/games/quake3
 endif
 
 ifndef MOUNT_DIR
-MOUNT_DIR=code
+MOUNT_DIR=engine
 endif
 
 ifndef BUILD_DIR
@@ -196,22 +196,23 @@ endif
 
 BD=$(BUILD_DIR)/debug-$(PLATFORM)-$(ARCH)
 BR=$(BUILD_DIR)/release-$(PLATFORM)-$(ARCH)
-ADIR=$(MOUNT_DIR)/asm
+ADIR=$(MOUNT_DIR)/platform/asm
 CDIR=$(MOUNT_DIR)/client
+SNDDIR=$(MOUNT_DIR)/sound
 SDIR=$(MOUNT_DIR)/server
 RCDIR=$(MOUNT_DIR)/renderercommon
 R1DIR=$(MOUNT_DIR)/renderer
 RVDIR=$(MOUNT_DIR)/renderervk
-SDLDIR=$(MOUNT_DIR)/sdl
-SDLHDIR=$(MOUNT_DIR)/libsdl/include/SDL2
+SDLDIR=$(MOUNT_DIR)/platform/sdl
+SDLHDIR=third_party/libsdl/include/SDL2
 
 CMDIR=$(MOUNT_DIR)/qcommon
-UDIR=$(MOUNT_DIR)/unix
-W32DIR=$(MOUNT_DIR)/win32
+UDIR=$(MOUNT_DIR)/platform/unix
+W32DIR=$(MOUNT_DIR)/platform/win32
 BLIBDIR=$(MOUNT_DIR)/botlib
-JPDIR=$(MOUNT_DIR)/libjpeg
-OGGDIR=$(MOUNT_DIR)/libogg
-VORBISDIR=$(MOUNT_DIR)/libvorbis
+JPDIR=third_party/libjpeg
+OGGDIR=third_party/libogg
+VORBISDIR=third_party/libvorbis
 
 bin_path=$(shell which $(1) 2> /dev/null)
 
@@ -413,22 +414,22 @@ ifdef MINGW
     BASE_CFLAGS += -DUSE_LOCAL_HEADERS=1 -I$(SDLHDIR)
     #CLIENT_CFLAGS += -DUSE_LOCAL_HEADERS=1
     ifeq ($(ARCH),x86)
-      CLIENT_LDFLAGS += -L$(MOUNT_DIR)/libsdl/windows/mingw/lib32
+      CLIENT_LDFLAGS += -Lthird_party/libsdl/windows/mingw/lib32
       CLIENT_LDFLAGS += -lSDL2
-      CLIENT_EXTRA_FILES += $(MOUNT_DIR)/libsdl/windows/mingw/lib32/SDL2.dll
+      CLIENT_EXTRA_FILES += third_party/libsdl/windows/mingw/lib32/SDL2.dll
     else
-      CLIENT_LDFLAGS += -L$(MOUNT_DIR)/libsdl/windows/mingw/lib64
+      CLIENT_LDFLAGS += -Lthird_party/libsdl/windows/mingw/lib64
       CLIENT_LDFLAGS += -lSDL264
-      CLIENT_EXTRA_FILES += $(MOUNT_DIR)/libsdl/windows/mingw/lib64/SDL264.dll
+      CLIENT_EXTRA_FILES += third_party/libsdl/windows/mingw/lib64/SDL264.dll
     endif
   endif
 
   ifeq ($(USE_CURL),1)
-    BASE_CFLAGS += -I$(MOUNT_DIR)/libcurl/windows/include
+    BASE_CFLAGS += -Ithird_party/libcurl/windows/include
     ifeq ($(ARCH),x86)
-      CLIENT_LDFLAGS += -L$(MOUNT_DIR)/libcurl/windows/mingw/lib32
+      CLIENT_LDFLAGS += -Lthird_party/libcurl/windows/mingw/lib32
     else
-      CLIENT_LDFLAGS += -L$(MOUNT_DIR)/libcurl/windows/mingw/lib64
+      CLIENT_LDFLAGS += -Lthird_party/libcurl/windows/mingw/lib64
     endif
     CLIENT_LDFLAGS += -lcurl -lz -lcrypt32
   endif
@@ -475,7 +476,7 @@ ifeq ($(COMPILE_PLATFORM),darwin)
   endif
 
   ifeq ($(USE_LOCAL_HEADERS),1)
-    MACLIBSDIR=$(MOUNT_DIR)/libsdl/macosx
+    MACLIBSDIR=third_party/libsdl/macosx
     BASE_CFLAGS += -I$(SDLHDIR)
     CLIENT_LDFLAGS += $(MACLIBSDIR)/libSDL2-2.0.0.dylib
     CLIENT_EXTRA_FILES += $(MACLIBSDIR)/libSDL2-2.0.0.dylib
@@ -1175,7 +1176,7 @@ endif # !USE_SDL
 
 endif # !MINGW
 
-include code/native/modules.mk
+include game/modules.mk
 Q3OBJ += $(NATIVE_GAME_OBJECTS) $(NATIVE_CGAME_OBJECTS) $(NATIVE_UI_OBJECTS)
 
 # client binary
@@ -1293,10 +1294,22 @@ $(B)/client/%.o: $(ADIR)/%.s
 $(B)/client/%.o: $(CDIR)/%.cpp
 	$(DO_CC)
 
+$(B)/client/%.o: $(SNDDIR)/%.cpp
+	$(DO_CC)
+
 $(B)/client/%.o: $(SDIR)/%.cpp
 	$(DO_CC)
 
 $(B)/client/%.o: $(CMDIR)/%.cpp
+	$(DO_CC)
+
+$(B)/client/%.o: $(MOUNT_DIR)/platform/%.cpp
+	$(DO_CC)
+
+$(B)/client/%.o: third_party/minizip/%.cpp
+	$(DO_CC)
+
+$(B)/client/%.o: third_party/zlib/%.cpp
 	$(DO_CC)
 
 $(B)/client/%.o: $(BLIBDIR)/%.cpp
@@ -1323,6 +1336,9 @@ $(B)/rend1/%.o: $(RCDIR)/%.cpp
 $(B)/rend1/%.o: $(CMDIR)/%.cpp
 	$(DO_REND_CC)
 
+$(B)/rend1/%.o: third_party/zlib/%.cpp
+	$(DO_REND_CC)
+
 $(B)/rendv/%.o: $(RVDIR)/%.cpp
 	$(DO_REND_CC)
 
@@ -1330,6 +1346,9 @@ $(B)/rendv/%.o: $(RCDIR)/%.cpp
 	$(DO_REND_CC)
 
 $(B)/rendv/%.o: $(CMDIR)/%.cpp
+	$(DO_REND_CC)
+
+$(B)/rendv/%.o: third_party/zlib/%.cpp
 	$(DO_REND_CC)
 
 $(B)/client/%.o: $(UDIR)/%.cpp
@@ -1348,6 +1367,15 @@ $(B)/ded/%.o: $(SDIR)/%.cpp
 	$(DO_DED_CC)
 
 $(B)/ded/%.o: $(CMDIR)/%.cpp
+	$(DO_DED_CC)
+
+$(B)/ded/%.o: $(MOUNT_DIR)/platform/%.cpp
+	$(DO_DED_CC)
+
+$(B)/ded/%.o: third_party/minizip/%.cpp
+	$(DO_DED_CC)
+
+$(B)/ded/%.o: third_party/zlib/%.cpp
 	$(DO_DED_CC)
 
 $(B)/ded/%.o: $(BLIBDIR)/%.cpp

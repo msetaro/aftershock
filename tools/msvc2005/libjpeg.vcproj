@@ -264,187 +264,187 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\libjpeg\jaricom.c"
+				RelativePath="..\..\third_party\libjpeg\jaricom.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcapimin.c"
+				RelativePath="..\..\third_party\libjpeg\jcapimin.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcapistd.c"
+				RelativePath="..\..\third_party\libjpeg\jcapistd.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcarith.c"
+				RelativePath="..\..\third_party\libjpeg\jcarith.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jccoefct.c"
+				RelativePath="..\..\third_party\libjpeg\jccoefct.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jccolor.c"
+				RelativePath="..\..\third_party\libjpeg\jccolor.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcdctmgr.c"
+				RelativePath="..\..\third_party\libjpeg\jcdctmgr.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jchuff.c"
+				RelativePath="..\..\third_party\libjpeg\jchuff.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcinit.c"
+				RelativePath="..\..\third_party\libjpeg\jcinit.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcmainct.c"
+				RelativePath="..\..\third_party\libjpeg\jcmainct.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcmarker.c"
+				RelativePath="..\..\third_party\libjpeg\jcmarker.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcmaster.c"
+				RelativePath="..\..\third_party\libjpeg\jcmaster.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcomapi.c"
+				RelativePath="..\..\third_party\libjpeg\jcomapi.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcparam.c"
+				RelativePath="..\..\third_party\libjpeg\jcparam.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcprepct.c"
+				RelativePath="..\..\third_party\libjpeg\jcprepct.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jcsample.c"
+				RelativePath="..\..\third_party\libjpeg\jcsample.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jctrans.c"
+				RelativePath="..\..\third_party\libjpeg\jctrans.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdapimin.c"
+				RelativePath="..\..\third_party\libjpeg\jdapimin.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdapistd.c"
+				RelativePath="..\..\third_party\libjpeg\jdapistd.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdarith.c"
+				RelativePath="..\..\third_party\libjpeg\jdarith.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdatadst.c"
+				RelativePath="..\..\third_party\libjpeg\jdatadst.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdatasrc.c"
+				RelativePath="..\..\third_party\libjpeg\jdatasrc.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdcoefct.c"
+				RelativePath="..\..\third_party\libjpeg\jdcoefct.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdcolor.c"
+				RelativePath="..\..\third_party\libjpeg\jdcolor.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jddctmgr.c"
+				RelativePath="..\..\third_party\libjpeg\jddctmgr.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdhuff.c"
+				RelativePath="..\..\third_party\libjpeg\jdhuff.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdinput.c"
+				RelativePath="..\..\third_party\libjpeg\jdinput.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdmainct.c"
+				RelativePath="..\..\third_party\libjpeg\jdmainct.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdmarker.c"
+				RelativePath="..\..\third_party\libjpeg\jdmarker.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdmaster.c"
+				RelativePath="..\..\third_party\libjpeg\jdmaster.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdmerge.c"
+				RelativePath="..\..\third_party\libjpeg\jdmerge.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdpostct.c"
+				RelativePath="..\..\third_party\libjpeg\jdpostct.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdsample.c"
+				RelativePath="..\..\third_party\libjpeg\jdsample.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdtrans.c"
+				RelativePath="..\..\third_party\libjpeg\jdtrans.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jerror.c"
+				RelativePath="..\..\third_party\libjpeg\jerror.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jfdctflt.c"
+				RelativePath="..\..\third_party\libjpeg\jfdctflt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jfdctfst.c"
+				RelativePath="..\..\third_party\libjpeg\jfdctfst.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jfdctint.c"
+				RelativePath="..\..\third_party\libjpeg\jfdctint.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jidctflt.c"
+				RelativePath="..\..\third_party\libjpeg\jidctflt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jidctfst.c"
+				RelativePath="..\..\third_party\libjpeg\jidctfst.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jidctint.c"
+				RelativePath="..\..\third_party\libjpeg\jidctint.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jmemmgr.c"
+				RelativePath="..\..\third_party\libjpeg\jmemmgr.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jmemnobs.c"
+				RelativePath="..\..\third_party\libjpeg\jmemnobs.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jquant1.c"
+				RelativePath="..\..\third_party\libjpeg\jquant1.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jquant2.c"
+				RelativePath="..\..\third_party\libjpeg\jquant2.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jutils.c"
+				RelativePath="..\..\third_party\libjpeg\jutils.c"
 				>
 			</File>
 		</Filter>
@@ -454,39 +454,39 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\libjpeg\jconfig.h"
+				RelativePath="..\..\third_party\libjpeg\jconfig.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jdct.h"
+				RelativePath="..\..\third_party\libjpeg\jdct.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jerror.h"
+				RelativePath="..\..\third_party\libjpeg\jerror.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jinclude.h"
+				RelativePath="..\..\third_party\libjpeg\jinclude.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jmemsys.h"
+				RelativePath="..\..\third_party\libjpeg\jmemsys.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jmorecfg.h"
+				RelativePath="..\..\third_party\libjpeg\jmorecfg.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jpegint.h"
+				RelativePath="..\..\third_party\libjpeg\jpegint.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jpeglib.h"
+				RelativePath="..\..\third_party\libjpeg\jpeglib.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libjpeg\jversion.h"
+				RelativePath="..\..\third_party\libjpeg\jversion.h"
 				>
 			</File>
 		</Filter>

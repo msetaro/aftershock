@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // sv_bot.c
 
 #include "server.h"
-#include "../game/g_native_public.h"
-#include "../botlib/botlib.h"
+#include "../public/g_native_public.h"
+#include "../botlib/botlib_public.h"
 
 typedef struct bot_debugpoly_s
 {

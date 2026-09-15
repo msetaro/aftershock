@@ -187,13 +187,13 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libogg\src\bitwise.c" />
-    <ClCompile Include="..\..\libogg\src\framing.c" />
+    <ClCompile Include="..\..\third_party\libogg\src\bitwise.c" />
+    <ClCompile Include="..\..\third_party\libogg\src\framing.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\libogg\include\ogg\ogg.h" />
-    <ClInclude Include="..\..\libogg\include\ogg\os_types.h" />
-    <ClInclude Include="..\..\libogg\src\crctable.h" />
+    <ClInclude Include="..\..\third_party\libogg\include\ogg\ogg.h" />
+    <ClInclude Include="..\..\third_party\libogg\include\ogg\os_types.h" />
+    <ClInclude Include="..\..\third_party\libogg\src\crctable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

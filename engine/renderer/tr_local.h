@@ -40,12 +40,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 #include "../qcommon/q_shared.h"
-#include "../qcommon/qfiles.h"
-#include "../qcommon/qcommon.h"
+#include "../qcommon/qfiles_public.h"
+#include "../qcommon/qcommon_public.h"
 #include "../renderercommon/tr_public.h"
 #include "tr_common.h"
 #include "iqm.h"
-#include "qgl.h"
+#include "../renderercommon/qgl_public.h"
 
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 

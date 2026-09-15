@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cvar.c -- dynamic variable tracking
 
 #include "q_shared.h"
-#include "qcommon.h"
+#include "qcommon_public.h"
 
 static cvar_t	*cvar_vars = NULL;
 static cvar_t	*cvar_cheats;

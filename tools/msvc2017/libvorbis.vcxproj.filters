@@ -11,138 +11,138 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libvorbis\lib\analysis.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\analysis.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\bitrate.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\bitrate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\block.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\block.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\codebook.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\codebook.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\envelope.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\envelope.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\floor0.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\floor0.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\floor1.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\floor1.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\info.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\info.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\lookup.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\lookup.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\lpc.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\lpc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\lsp.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\lsp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\mapping0.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\mapping0.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\mdct.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\mdct.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\psy.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\psy.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\registry.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\registry.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\res0.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\res0.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\sharedbook.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\sharedbook.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\smallft.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\smallft.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\synthesis.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\synthesis.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\vorbisfile.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\vorbisfile.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libvorbis\lib\window.c">
+    <ClCompile Include="..\..\third_party\libvorbis\lib\window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\libvorbis\lib\backends.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\backends.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\bitrate.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\bitrate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\codebook.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\codebook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\codec_internal.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\codec_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\envelope.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\envelope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\highlevel.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\highlevel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\lookup.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\lookup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\lookup_data.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\lookup_data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\lpc.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\lpc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\lsp.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\lsp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\masking.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\masking.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\mdct.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\mdct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\misc.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\misc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\os.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\os.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\psy.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\psy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\registry.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\registry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\scales.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\scales.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\smallft.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\smallft.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\window.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\books\coupled\res_books_51.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\books\coupled\res_books_51.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\books\coupled\res_books_stereo.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\books\coupled\res_books_stereo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\books\floor\floor_books.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\books\floor\floor_books.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libvorbis\lib\books\uncoupled\res_books_uncoupled.h">
+    <ClInclude Include="..\..\third_party\libvorbis\lib\books\uncoupled\res_books_uncoupled.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

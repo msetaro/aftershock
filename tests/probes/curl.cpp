@@ -1,5 +1,5 @@
 /* Real option forwarding and a local-file transfer; no network access. */
-#include "../../code/client/cl_curl.cpp"
+#include "../../engine/client/cl_curl.cpp"
 #include <assert.h>
 
 void QDECL Com_DPrintf( const char *fmt, ... ) { (void)fmt; }

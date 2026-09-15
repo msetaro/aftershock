@@ -267,127 +267,127 @@
 			Filter="c;cpp;def;bat;asm"
 			>
 			<File
-				RelativePath="..\..\renderer\tr_animation.c"
+				RelativePath="..\..\engine\renderer\tr_animation.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_arb.c"
+				RelativePath="..\..\engine\renderer\tr_arb.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_backend.c"
+				RelativePath="..\..\engine\renderer\tr_backend.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_bsp.c"
+				RelativePath="..\..\engine\renderer\tr_bsp.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_cmds.c"
+				RelativePath="..\..\engine\renderer\tr_cmds.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_curve.c"
+				RelativePath="..\..\engine\renderer\tr_curve.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_flares.c"
+				RelativePath="..\..\engine\renderer\tr_flares.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_font.c"
+				RelativePath="..\..\engine\renderercommon\tr_font.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_image.c"
+				RelativePath="..\..\engine\renderer\tr_image.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_image_bmp.c"
+				RelativePath="..\..\engine\renderercommon\tr_image_bmp.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_image_jpg.c"
+				RelativePath="..\..\engine\renderercommon\tr_image_jpg.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_image_pcx.c"
+				RelativePath="..\..\engine\renderercommon\tr_image_pcx.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_image_png.c"
+				RelativePath="..\..\engine\renderercommon\tr_image_png.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_image_tga.c"
+				RelativePath="..\..\engine\renderercommon\tr_image_tga.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_init.c"
+				RelativePath="..\..\engine\renderer\tr_init.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_light.c"
+				RelativePath="..\..\engine\renderer\tr_light.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_main.c"
+				RelativePath="..\..\engine\renderer\tr_main.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_marks.c"
+				RelativePath="..\..\engine\renderer\tr_marks.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_mesh.c"
+				RelativePath="..\..\engine\renderer\tr_mesh.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_model.c"
+				RelativePath="..\..\engine\renderer\tr_model.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_model_iqm.c"
+				RelativePath="..\..\engine\renderer\tr_model_iqm.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_noise.c"
+				RelativePath="..\..\engine\renderercommon\tr_noise.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_scene.c"
+				RelativePath="..\..\engine\renderer\tr_scene.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_shade.c"
+				RelativePath="..\..\engine\renderer\tr_shade.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_shade_calc.c"
+				RelativePath="..\..\engine\renderer\tr_shade_calc.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_shader.c"
+				RelativePath="..\..\engine\renderer\tr_shader.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_shadows.c"
+				RelativePath="..\..\engine\renderer\tr_shadows.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_sky.c"
+				RelativePath="..\..\engine\renderer\tr_sky.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_surface.c"
+				RelativePath="..\..\engine\renderer\tr_surface.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_vbo.c"
+				RelativePath="..\..\engine\renderer\tr_vbo.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_world.c"
+				RelativePath="..\..\engine\renderer\tr_world.c"
 				>
 			</File>
 		</Filter>
@@ -396,39 +396,39 @@
 			Filter="h;hpp;inc"
 			>
 			<File
-				RelativePath="..\..\qcommon\q_shared.h"
+				RelativePath="..\..\engine\qcommon\q_shared.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\qcommon.h"
+				RelativePath="..\..\engine\qcommon\qcommon_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\qfiles.h"
+				RelativePath="..\..\engine\qcommon\qfiles_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\qgl.h"
+				RelativePath="..\..\engine\renderercommon\qgl_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\surfaceflags.h"
+				RelativePath="..\..\engine\qcommon\surfaceflags_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_common.h"
+				RelativePath="..\..\engine\renderer\tr_common.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_local.h"
+				RelativePath="..\..\engine\renderer\tr_local.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_public.h"
+				RelativePath="..\..\engine\renderercommon\tr_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_types.h"
+				RelativePath="..\..\engine\renderercommon\tr_types_public.h"
 				>
 			</File>
 		</Filter>

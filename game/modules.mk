@@ -1,110 +1,110 @@
 # Native game objects; each source keeps its own translation unit.
 NATIVE_GAME_SOURCES := \
-  code/game/ai_chat.cpp \
-  code/game/ai_cmd.cpp \
-  code/game/ai_dmnet.cpp \
-  code/game/ai_dmq3.cpp \
-  code/game/ai_main.cpp \
-  code/game/ai_team.cpp \
-  code/game/ai_vcmd.cpp \
-  code/game/bg_misc.cpp \
-  code/game/bg_pmove.cpp \
-  code/game/bg_slidemove.cpp \
-  code/game/g_active.cpp \
-  code/game/g_arenas.cpp \
-  code/game/g_bot.cpp \
-  code/game/g_client.cpp \
-  code/game/g_cmds.cpp \
-  code/game/g_combat.cpp \
-  code/game/g_items.cpp \
-  code/game/g_main.cpp \
-  code/game/g_mem.cpp \
-  code/game/g_misc.cpp \
-  code/game/g_missile.cpp \
-  code/game/g_mover.cpp \
-  code/game/g_session.cpp \
-  code/game/g_spawn.cpp \
-  code/game/g_svcmds.cpp \
-  code/game/g_native.cpp \
-  code/game/g_target.cpp \
-  code/game/g_team.cpp \
-  code/game/g_trigger.cpp \
-  code/game/g_utils.cpp \
-  code/game/g_weapon.cpp \
-  code/game/q_math.cpp \
-  code/game/q_shared.cpp \
-  code/game/bg_lib.cpp
+  game/game/ai_chat.cpp \
+  game/game/ai_cmd.cpp \
+  game/game/ai_dmnet.cpp \
+  game/game/ai_dmq3.cpp \
+  game/game/ai_main.cpp \
+  game/game/ai_team.cpp \
+  game/game/ai_vcmd.cpp \
+  game/bg/bg_misc.cpp \
+  game/bg/bg_pmove.cpp \
+  game/bg/bg_slidemove.cpp \
+  game/game/g_active.cpp \
+  game/game/g_arenas.cpp \
+  game/game/g_bot.cpp \
+  game/game/g_client.cpp \
+  game/game/g_cmds.cpp \
+  game/game/g_combat.cpp \
+  game/game/g_items.cpp \
+  game/game/g_main.cpp \
+  game/game/g_mem.cpp \
+  game/game/g_misc.cpp \
+  game/game/g_missile.cpp \
+  game/game/g_mover.cpp \
+  game/game/g_session.cpp \
+  game/game/g_spawn.cpp \
+  game/game/g_svcmds.cpp \
+  game/game/g_native.cpp \
+  game/game/g_target.cpp \
+  game/game/g_team.cpp \
+  game/game/g_trigger.cpp \
+  game/game/g_utils.cpp \
+  game/game/g_weapon.cpp \
+  game/bg/q_math.cpp \
+  game/bg/q_shared.cpp \
+  game/bg/bg_lib.cpp
 NATIVE_CGAME_SOURCES := \
-  code/game/bg_misc.cpp \
-  code/game/bg_pmove.cpp \
-  code/game/bg_slidemove.cpp \
-  code/cgame/cg_consolecmds.cpp \
-  code/cgame/cg_draw.cpp \
-  code/cgame/cg_drawtools.cpp \
-  code/cgame/cg_effects.cpp \
-  code/cgame/cg_ents.cpp \
-  code/cgame/cg_event.cpp \
-  code/cgame/cg_info.cpp \
-  code/cgame/cg_localents.cpp \
-  code/cgame/cg_main.cpp \
-  code/cgame/cg_marks.cpp \
-  code/cgame/cg_players.cpp \
-  code/cgame/cg_playerstate.cpp \
-  code/cgame/cg_predict.cpp \
-  code/cgame/cg_scoreboard.cpp \
-  code/cgame/cg_servercmds.cpp \
-  code/cgame/cg_snapshot.cpp \
-  code/cgame/cg_native.cpp \
-  code/cgame/cg_view.cpp \
-  code/cgame/cg_weapons.cpp \
-  code/game/q_math.cpp \
-  code/game/q_shared.cpp \
-  code/game/bg_lib.cpp
+  game/bg/bg_misc.cpp \
+  game/bg/bg_pmove.cpp \
+  game/bg/bg_slidemove.cpp \
+  game/cgame/cg_consolecmds.cpp \
+  game/cgame/cg_draw.cpp \
+  game/cgame/cg_drawtools.cpp \
+  game/cgame/cg_effects.cpp \
+  game/cgame/cg_ents.cpp \
+  game/cgame/cg_event.cpp \
+  game/cgame/cg_info.cpp \
+  game/cgame/cg_localents.cpp \
+  game/cgame/cg_main.cpp \
+  game/cgame/cg_marks.cpp \
+  game/cgame/cg_players.cpp \
+  game/cgame/cg_playerstate.cpp \
+  game/cgame/cg_predict.cpp \
+  game/cgame/cg_scoreboard.cpp \
+  game/cgame/cg_servercmds.cpp \
+  game/cgame/cg_snapshot.cpp \
+  game/cgame/cg_native.cpp \
+  game/cgame/cg_view.cpp \
+  game/cgame/cg_weapons.cpp \
+  game/bg/q_math.cpp \
+  game/bg/q_shared.cpp \
+  game/bg/bg_lib.cpp
 NATIVE_UI_SOURCES := \
-  code/game/bg_misc.cpp \
-  code/ui/ui_addbots.cpp \
-  code/ui/ui_atoms.cpp \
-  code/ui/ui_cdkey.cpp \
-  code/ui/ui_cinematics.cpp \
-  code/ui/ui_confirm.cpp \
-  code/ui/ui_connect.cpp \
-  code/ui/ui_controls2.cpp \
-  code/ui/ui_credits.cpp \
-  code/ui/ui_demo2.cpp \
-  code/ui/ui_display.cpp \
-  code/ui/ui_gameinfo.cpp \
-  code/ui/ui_ingame.cpp \
-  code/ui/ui_loadconfig.cpp \
-  code/ui/ui_main.cpp \
-  code/ui/ui_menu.cpp \
-  code/ui/ui_mfield.cpp \
-  code/ui/ui_mods.cpp \
-  code/ui/ui_network.cpp \
-  code/ui/ui_options.cpp \
-  code/ui/ui_playermodel.cpp \
-  code/ui/ui_players.cpp \
-  code/ui/ui_playersettings.cpp \
-  code/ui/ui_preferences.cpp \
-  code/ui/ui_qmenu.cpp \
-  code/ui/ui_removebots.cpp \
-  code/ui/ui_saveconfig.cpp \
-  code/ui/ui_serverinfo.cpp \
-  code/ui/ui_servers2.cpp \
-  code/ui/ui_setup.cpp \
-  code/ui/ui_sound.cpp \
-  code/ui/ui_sparena.cpp \
-  code/ui/ui_specifyserver.cpp \
-  code/ui/ui_splevel.cpp \
-  code/ui/ui_sppostgame.cpp \
-  code/ui/ui_spskill.cpp \
-  code/ui/ui_startserver.cpp \
-  code/ui/ui_native.cpp \
-  code/ui/ui_team.cpp \
-  code/ui/ui_teamorders.cpp \
-  code/ui/ui_video.cpp \
-  code/game/q_math.cpp \
-  code/game/q_shared.cpp \
-  code/game/bg_lib.cpp
+  game/bg/bg_misc.cpp \
+  game/ui/ui_addbots.cpp \
+  game/ui/ui_atoms.cpp \
+  game/ui/ui_cdkey.cpp \
+  game/ui/ui_cinematics.cpp \
+  game/ui/ui_confirm.cpp \
+  game/ui/ui_connect.cpp \
+  game/ui/ui_controls2.cpp \
+  game/ui/ui_credits.cpp \
+  game/ui/ui_demo2.cpp \
+  game/ui/ui_display.cpp \
+  game/ui/ui_gameinfo.cpp \
+  game/ui/ui_ingame.cpp \
+  game/ui/ui_loadconfig.cpp \
+  game/ui/ui_main.cpp \
+  game/ui/ui_menu.cpp \
+  game/ui/ui_mfield.cpp \
+  game/ui/ui_mods.cpp \
+  game/ui/ui_network.cpp \
+  game/ui/ui_options.cpp \
+  game/ui/ui_playermodel.cpp \
+  game/ui/ui_players.cpp \
+  game/ui/ui_playersettings.cpp \
+  game/ui/ui_preferences.cpp \
+  game/ui/ui_qmenu.cpp \
+  game/ui/ui_removebots.cpp \
+  game/ui/ui_saveconfig.cpp \
+  game/ui/ui_serverinfo.cpp \
+  game/ui/ui_servers2.cpp \
+  game/ui/ui_setup.cpp \
+  game/ui/ui_sound.cpp \
+  game/ui/ui_sparena.cpp \
+  game/ui/ui_specifyserver.cpp \
+  game/ui/ui_splevel.cpp \
+  game/ui/ui_sppostgame.cpp \
+  game/ui/ui_spskill.cpp \
+  game/ui/ui_startserver.cpp \
+  game/ui/ui_native.cpp \
+  game/ui/ui_team.cpp \
+  game/ui/ui_teamorders.cpp \
+  game/ui/ui_video.cpp \
+  game/bg/q_math.cpp \
+  game/bg/q_shared.cpp \
+  game/bg/bg_lib.cpp
 
 NATIVE_WARNINGS = -Wall -Wextra -Werror
 ifneq ($(findstring clang,$(CXX)),)
@@ -123,14 +123,14 @@ NATIVE_CFLAGS = $(filter-out -Wstrict-prototypes -Wimplicit -ffast-math,$(CFLAGS
 
 # A shared wrapper gives each module a namespace without amalgamating its sources.
 define NATIVE_OBJECT
-$(B)/native/$(1)-$(notdir $(2:.cpp=.o)): code/native/module.cpp $(2)
+$(B)/native/$(1)-$(notdir $(2:.cpp=.o)): game/module.cpp $(2)
 	$(Q)$(MKDIR) $$(dir $$@)
 	$(echo_cmd) "NATIVE_CC $(2)"
 	$(Q)$(ENGINE_CC) $(NATIVE_CFLAGS) -D$(3) -DNATIVE_NAMESPACE=$(1) \
-	  '-DNATIVE_SOURCE="../$(patsubst code/%,%,$(2))"' \
-	  $(if $(filter %/$(4)_main.cpp,$(2)),'-DNATIVE_EXPORTS="../$(1)/$(4)_native_exports.inc"') \
+	  '-DNATIVE_SOURCE="$(patsubst game/%,%,$(2))"' \
+	  $(if $(filter %/$(4)_main.cpp,$(2)),'-DNATIVE_EXPORTS="$(1)/$(4)_native_exports.inc"') \
 	  $(if $(and $(findstring clang,$(CXX)),$(filter %/bg_lib.cpp,$(2))),-D__NO_INLINE__) \
-	  -o $$@ -c code/native/module.cpp
+	  -o $$@ -c game/module.cpp
 endef
 $(foreach source,$(NATIVE_GAME_SOURCES),$(eval $(call NATIVE_OBJECT,game,$(source),QAGAME,g)))
 $(foreach source,$(NATIVE_CGAME_SOURCES),$(eval $(call NATIVE_OBJECT,cgame,$(source),CGAME,cg)))

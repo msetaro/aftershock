@@ -15,7 +15,7 @@
  * will fill a supplied 16-byte array with the digest.
  */
 #include "q_shared.h"
-#include "qcommon.h"
+#include "qcommon_public.h"
 
 #define MD5_BLOCK_SIZE 64
 #define MD5_DIGEST_SIZE 16

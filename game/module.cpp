@@ -10,10 +10,10 @@
 #include <time.h>
 #include <ctype.h>
 #include <limits.h>
-#include "../game/g_native_public.h"
-#include "../cgame/cg_native_public.h"
-#include "../ui/ui_native_public.h"
-#include "../game/native_abi.h"
+#include "../engine/public/g_native_public.h"
+#include "../engine/public/cg_native_public.h"
+#include "../engine/public/ui_native_public.h"
+#include "bg/native_abi.h"
 
 #define NATIVE_JOIN_INNER(a,b) a##b
 #define NATIVE_JOIN(a,b) NATIVE_JOIN_INNER(a,b)

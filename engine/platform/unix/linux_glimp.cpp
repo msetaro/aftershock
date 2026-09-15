@@ -49,12 +49,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "../client/client.h"
+#include "../../client/client.h"
 #include "linux_local.h"
 #include "unix_glw.h"
 
 #ifdef USE_OPENGL_API
-#include "../renderer/qgl.h"
+#include "../../renderercommon/qgl_public.h"
 #endif
 
 #include <X11/Xlib.h>

@@ -34,17 +34,19 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
     if language != 'c':
         raise ValueError('the pinned OpenArena test dependency builds as C')
     output = stage_source(output)
-    abi = (ROOT / 'code/game/native_abi.h').read_text().replace('#define BASEGAME "baseq3"\n', '')
+    abi = (ROOT / 'game/bg/native_abi.h').read_text().replace('#define BASEGAME "baseq3"\n', '')
     (output / 'native_abi.h').write_text(abi)
     compiler = shlex.split(cc)
     version = subprocess.check_output([*compiler, '--version'], text=True)
     precision = '-cl-single-precision-constant' if 'clang' in version.lower() else '-fsingle-precision-constant'
     # OA appends eye vectors to refEntity; the engine consumes its 140-byte prefix.
     probe = (ROOT / 'tests/probes/native_layout.c').read_text()
-    probe = probe.replace('../../code/game/q_shared.h', '../../code/qcommon/q_shared.h')
-    probe = probe.replace('../../code/cgame/tr_types.h', '../../code/renderer/tr_types.h')
+    probe = probe.replace('../../game/bg/q_shared.h', '../../code/qcommon/q_shared.h')
+    probe = probe.replace('../../game/cgame/tr_types.h', '../../code/renderer/tr_types.h')
     for name in ('botlib', 'be_aas', 'be_ai_goal', 'be_ai_move', 'be_ai_chat', 'be_ai_weap'):
-        probe = probe.replace('../../code/game/' + name + '.h', '../../code/botlib/' + name + '.h')
+        probe = probe.replace('../../game/game/' + name + '.h', '../../code/botlib/' + name + '.h')
+    for module, prefix in (('game', 'g'), ('cgame', 'cg'), ('ui', 'ui')):
+        probe = probe.replace('../../engine/public/' + prefix + '_public.h', '../../code/' + module + '/' + prefix + '_public.h')
     probe = probe.replace('#ifdef __cplusplus\n#define ALIGN', '#undef ALIGN\n#ifdef __cplusplus\n#define ALIGN')
     probe = probe.replace('SHOW(refEntity_t);', 'printf("refEntity_t %zu %zu\\n", offsetof(refEntity_t, eyepos), (size_t)ALIGN(refEntity_t));')
     probe = probe.replace('    printf("extension trap %d\\n", G_TRAP_GETVALUE);\n', '')
@@ -105,22 +107,22 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
         sources.append(str(calls))
         binary = output / (module + '.o' if static else ('qagame' if module == 'game' else module) + 'x86_64.so')
         if static:
-            public = ROOT / 'code' / module / (prefix + '_native_public.h')
-            direct = (ROOT / 'code' / module / (prefix + '_native.cpp')).read_text()
+            public = ROOT / 'engine/public' / (prefix + '_native_public.h')
+            direct = (ROOT / 'game' / module / (prefix + '_native.cpp')).read_text()
             if module == 'cgame':
                 # This optional OA extension also fails in the original engine dispatch.
                 direct += '\nvoid trap_R_LFX_ParticleEffect(int effect, const vec3_t origin, const vec3_t velocity) {\n'
                 direct += '    CGameImport_Error("Unsupported native service: CG_R_LFX_PARTICLEEFFECT");\n}\n'
             (output / calls).write_text('#include "' + str(public) + '"\n' + direct)
-            exports = (ROOT / 'code' / module / (prefix + '_native_exports.inc')).read_text()
+            exports = (ROOT / 'game' / module / (prefix + '_native_exports.inc')).read_text()
             exports = exports.replace(module + '::', '')
             main.write_text(main.read_text() + '\n#include "' + str(public) + '"\n' + exports)
         command = [*compiler, '-x', 'c', '-std=gnu99', '-O2', '-fPIC', '-shared', precision,
                    '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv', '-fno-builtin',
                    '-include', 'native_abi.h', '-DPRODUCT_VERSION="1.35"',
                    '-D' + {'game': 'QAGAME', 'cgame': 'CGAME', 'ui': 'UI'}[module],
-                   '-Wl,-Bsymbolic,-z,defs', *sources, str(ROOT / 'code/game/bg_lib.cpp'),
-                   '-I' + str(ROOT / 'code/game'), '-lm', '-o', str(binary)]
+                   '-Wl,-Bsymbolic,-z,defs', *sources, str(ROOT / 'game/bg/bg_lib.cpp'),
+                   '-I' + str(ROOT / 'game/bg'), '-lm', '-o', str(binary)]
         if static:
             command = [a for a in command if a not in ('-shared', '-Wl,-Bsymbolic,-z,defs', '-lm')]
             command += ['-r', '-nostdlib']

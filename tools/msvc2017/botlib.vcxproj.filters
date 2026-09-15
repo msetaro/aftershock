@@ -11,192 +11,192 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\botlib\be_aas_bspq3.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_bspq3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_cluster.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_cluster.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_debug.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_entity.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_entity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_file.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_file.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_main.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_move.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_move.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_optimize.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_optimize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_reach.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_reach.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_route.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_route.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_routealt.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_routealt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_aas_sample.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_aas_sample.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_ai_char.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_ai_char.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_ai_chat.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_ai_chat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_ai_gen.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_ai_gen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_ai_goal.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_ai_goal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_ai_move.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_ai_move.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_ai_weap.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_ai_weap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_ai_weight.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_ai_weight.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_ea.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_ea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\be_interface.cpp">
+    <ClCompile Include="..\..\engine\botlib\be_interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\l_crc.cpp">
+    <ClCompile Include="..\..\engine\botlib\l_crc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\l_libvar.cpp">
+    <ClCompile Include="..\..\engine\botlib\l_libvar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\l_log.cpp">
+    <ClCompile Include="..\..\engine\botlib\l_log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\l_memory.cpp">
+    <ClCompile Include="..\..\engine\botlib\l_memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\l_precomp.cpp">
+    <ClCompile Include="..\..\engine\botlib\l_precomp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\l_script.cpp">
+    <ClCompile Include="..\..\engine\botlib\l_script.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\botlib\l_struct.cpp">
+    <ClCompile Include="..\..\engine\botlib\l_struct.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\botlib\aasfile.h">
+    <ClInclude Include="..\..\engine\botlib\aasfile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_bsp.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_bsp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_cluster.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_cluster.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_debug.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_def.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_def.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_entity.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_file.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_funcs.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_funcs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_main.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_move.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_move.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_optimize.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_optimize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_reach.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_reach.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_route.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_route.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_routealt.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_routealt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_aas_sample.h">
+    <ClInclude Include="..\..\engine\botlib\be_aas_sample.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_ai_weight.h">
+    <ClInclude Include="..\..\engine\botlib\be_ai_weight.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\be_interface.h">
+    <ClInclude Include="..\..\engine\botlib\be_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\game\bg_public.h">
+    <ClInclude Include="..\..\engine\public\bg_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\botlib.h">
+    <ClInclude Include="..\..\engine\botlib\botlib_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\qcommon\cm_public.h">
+    <ClInclude Include="..\..\engine\qcommon\cm_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\game\g_public.h">
+    <ClInclude Include="..\..\engine\public\g_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\l_crc.h">
+    <ClInclude Include="..\..\engine\botlib\l_crc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\l_libvar.h">
+    <ClInclude Include="..\..\engine\botlib\l_libvar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\l_log.h">
+    <ClInclude Include="..\..\engine\botlib\l_log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\l_memory.h">
+    <ClInclude Include="..\..\engine\botlib\l_memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\l_precomp.h">
+    <ClInclude Include="..\..\engine\botlib\l_precomp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\l_script.h">
+    <ClInclude Include="..\..\engine\botlib\l_script.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\l_struct.h">
+    <ClInclude Include="..\..\engine\botlib\l_struct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\botlib\l_utils.h">
+    <ClInclude Include="..\..\engine\botlib\l_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\qcommon\q_shared.h">
+    <ClInclude Include="..\..\engine\qcommon\q_shared.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\qcommon\qcommon.h">
+    <ClInclude Include="..\..\engine\qcommon\qcommon_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\qcommon\qfiles.h">
+    <ClInclude Include="..\..\engine\qcommon\qfiles_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\server\server.h">
+    <ClInclude Include="..\..\engine\server\server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\qcommon\surfaceflags.h">
+    <ClInclude Include="..\..\engine\qcommon\surfaceflags_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

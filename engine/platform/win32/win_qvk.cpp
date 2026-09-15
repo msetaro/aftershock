@@ -32,14 +32,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef USE_VULKAN_API
 
-#include "../qcommon/q_shared.h"
-#include "../qcommon/qcommon.h"
-#include "../renderercommon/tr_types.h"
+#include "../../qcommon/q_shared.h"
+#include "../../qcommon/qcommon_public.h"
+#include "../../renderercommon/tr_types_public.h"
 #include "glw_win.h"
 #include "win_local.h"
 
 #define VK_USE_PLATFORM_WIN32_KHR
-#include "../renderercommon/vulkan/vulkan.h"
+#include "../../../third_party/vulkan/vulkan.h"
 
 static PFN_vkGetInstanceProcAddr qvkGetInstanceProcAddr;
 static PFN_vkCreateWin32SurfaceKHR qvkCreateWin32SurfaceKHR;

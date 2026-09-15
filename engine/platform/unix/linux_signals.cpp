@@ -28,10 +28,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <unistd.h>
 #endif
 
-#include "../qcommon/q_shared.h"
-#include "../qcommon/qcommon.h"
+#include "../../qcommon/q_shared.h"
+#include "../../qcommon/qcommon_public.h"
 #ifndef DEDICATED
-#include "../renderer/tr_local.h"
+#include "../../renderer/tr_local.h"
 #endif
 
 static qboolean signalcaught = qfalse;

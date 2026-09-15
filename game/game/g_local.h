@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 // g_local.h -- local definitions for game module
 
-#include "q_shared.h"
-#include "bg_public.h"
-#include "g_public.h"
+#include "../bg/q_shared.h"
+#include "../../engine/public/bg_public.h"
+#include "../../engine/public/g_public.h"
 
 //==================================================================
 

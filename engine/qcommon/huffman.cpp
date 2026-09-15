@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  * by the location of a node within a doubly-linked list */
 
 #include "q_shared.h"
-#include "qcommon.h"
+#include "qcommon_public.h"
 
 #define NYT HMAX					/* NYT = Not Yet Transmitted */
 #define INTERNAL_NODE (HMAX+1)

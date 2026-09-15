@@ -267,115 +267,115 @@
 			Filter="c;cpp;def;bat;asm"
 			>
 			<File
-				RelativePath="..\..\botlib\be_aas_bspq3.c"
+				RelativePath="..\..\engine\botlib\be_aas_bspq3.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_cluster.c"
+				RelativePath="..\..\engine\botlib\be_aas_cluster.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_debug.c"
+				RelativePath="..\..\engine\botlib\be_aas_debug.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_entity.c"
+				RelativePath="..\..\engine\botlib\be_aas_entity.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_file.c"
+				RelativePath="..\..\engine\botlib\be_aas_file.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_main.c"
+				RelativePath="..\..\engine\botlib\be_aas_main.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_move.c"
+				RelativePath="..\..\engine\botlib\be_aas_move.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_optimize.c"
+				RelativePath="..\..\engine\botlib\be_aas_optimize.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_reach.c"
+				RelativePath="..\..\engine\botlib\be_aas_reach.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_route.c"
+				RelativePath="..\..\engine\botlib\be_aas_route.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_routealt.c"
+				RelativePath="..\..\engine\botlib\be_aas_routealt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_sample.c"
+				RelativePath="..\..\engine\botlib\be_aas_sample.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_ai_char.c"
+				RelativePath="..\..\engine\botlib\be_ai_char.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_ai_chat.c"
+				RelativePath="..\..\engine\botlib\be_ai_chat.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_ai_gen.c"
+				RelativePath="..\..\engine\botlib\be_ai_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_ai_goal.c"
+				RelativePath="..\..\engine\botlib\be_ai_goal.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_ai_move.c"
+				RelativePath="..\..\engine\botlib\be_ai_move.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_ai_weap.c"
+				RelativePath="..\..\engine\botlib\be_ai_weap.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_ai_weight.c"
+				RelativePath="..\..\engine\botlib\be_ai_weight.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_ea.c"
+				RelativePath="..\..\engine\botlib\be_ea.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_interface.c"
+				RelativePath="..\..\engine\botlib\be_interface.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_crc.c"
+				RelativePath="..\..\engine\botlib\l_crc.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_libvar.c"
+				RelativePath="..\..\engine\botlib\l_libvar.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_log.c"
+				RelativePath="..\..\engine\botlib\l_log.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_memory.c"
+				RelativePath="..\..\engine\botlib\l_memory.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_precomp.c"
+				RelativePath="..\..\engine\botlib\l_precomp.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_script.c"
+				RelativePath="..\..\engine\botlib\l_script.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_struct.c"
+				RelativePath="..\..\engine\botlib\l_struct.c"
 				>
 			</File>
 		</Filter>
@@ -384,139 +384,139 @@
 			Filter="h;hpp;inc"
 			>
 			<File
-				RelativePath="..\..\botlib\aasfile.h"
+				RelativePath="..\..\engine\botlib\aasfile.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_bsp.h"
+				RelativePath="..\..\engine\botlib\be_aas_bsp.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_cluster.h"
+				RelativePath="..\..\engine\botlib\be_aas_cluster.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_debug.h"
+				RelativePath="..\..\engine\botlib\be_aas_debug.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_def.h"
+				RelativePath="..\..\engine\botlib\be_aas_def.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_entity.h"
+				RelativePath="..\..\engine\botlib\be_aas_entity.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_file.h"
+				RelativePath="..\..\engine\botlib\be_aas_file.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_funcs.h"
+				RelativePath="..\..\engine\botlib\be_aas_funcs.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_main.h"
+				RelativePath="..\..\engine\botlib\be_aas_main.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_move.h"
+				RelativePath="..\..\engine\botlib\be_aas_move.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_optimize.h"
+				RelativePath="..\..\engine\botlib\be_aas_optimize.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_reach.h"
+				RelativePath="..\..\engine\botlib\be_aas_reach.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_route.h"
+				RelativePath="..\..\engine\botlib\be_aas_route.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_routealt.h"
+				RelativePath="..\..\engine\botlib\be_aas_routealt.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_aas_sample.h"
+				RelativePath="..\..\engine\botlib\be_aas_sample.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_ai_weight.h"
+				RelativePath="..\..\engine\botlib\be_ai_weight.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\be_interface.h"
+				RelativePath="..\..\engine\botlib\be_interface.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\game\bg_public.h"
+				RelativePath="..\..\engine\public\bg_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\botlib.h"
+				RelativePath="..\..\engine\botlib\botlib_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_public.h"
+				RelativePath="..\..\engine\qcommon\cm_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\\..\game\g_public.h"
+				RelativePath="..\..\engine\public\g_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_crc.h"
+				RelativePath="..\..\engine\botlib\l_crc.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_libvar.h"
+				RelativePath="..\..\engine\botlib\l_libvar.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_log.h"
+				RelativePath="..\..\engine\botlib\l_log.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_memory.h"
+				RelativePath="..\..\engine\botlib\l_memory.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_precomp.h"
+				RelativePath="..\..\engine\botlib\l_precomp.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_script.h"
+				RelativePath="..\..\engine\botlib\l_script.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_struct.h"
+				RelativePath="..\..\engine\botlib\l_struct.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\botlib\l_utils.h"
+				RelativePath="..\..\engine\botlib\l_utils.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\q_shared.h"
+				RelativePath="..\..\engine\qcommon\q_shared.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\qcommon.h"
+				RelativePath="..\..\engine\qcommon\qcommon_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\qfiles.h"
+				RelativePath="..\..\engine\qcommon\qfiles_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\\..\server\server.h"
+				RelativePath="..\..\engine\server\server.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\surfaceflags.h"
+				RelativePath="..\..\engine\qcommon\surfaceflags_public.h"
 				>
 			</File>
 		</Filter>

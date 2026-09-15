@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // sv_game.c -- interface to the game dll
 
 #include "server.h"
-#include "../game/g_native_public.h"
+#include "../public/g_native_public.h"
 
-#include "../botlib/botlib.h"
+#include "../botlib/botlib_public.h"
 
 botlib_export_t	*botlib_export;
 

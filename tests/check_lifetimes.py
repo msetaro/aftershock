@@ -10,8 +10,8 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE = ('qcommon', 'client', 'server', 'botlib', 'renderercommon', 'renderer',
-        'renderervk', 'cgame', 'game', 'ui', 'native')
-LOCATION = 'isExpansionInFileMatching("(^|/)code/(' + '|'.join(CORE) + ')/")'
+        'renderervk', 'sound', 'public')
+LOCATION = 'isExpansionInFileMatching("(^|/)(engine/(' + '|'.join(CORE) + ')/|game/|third_party/(minizip|zlib)/)")'
 # clang-query's AST dump marks VarDecl/ParmVarDecl with needsDestruction as
 # "destroyed". CXXBindTemporaryExpr represents a non-trivial temporary destructor.
 BAD = re.compile(r'^(?:(?:Parm)?VarDecl\b.*\bdestroyed\b|CXXBindTemporaryExpr\b)', re.M)
@@ -29,7 +29,7 @@ def query(tool, files, flags, location, log):
 
 
 def self_check(tool, output):
-    source = output / 'code/qcommon/control.cpp'
+    source = output / 'engine/qcommon/control.cpp'
     source.parent.mkdir(parents=True, exist_ok=True)
     source.write_text('''#include <string>
 struct Plain { int value; ~Plain() = default; };
@@ -46,7 +46,7 @@ void check(Owned parameter) {
     bad = query(tool, [str(source)], ['--', '-std=c++20', '-fno-exceptions', '-fno-rtti'],
                 LOCATION, output / 'negative.log')
     assert len(bad) == 7, f'negative control: expected 7 rejected objects, got {len(bad)}'
-    platform = output / 'code/unix/control.cpp'
+    platform = output / 'engine/platform/unix/control.cpp'
     platform.parent.mkdir(parents=True, exist_ok=True)
     platform.write_text(source.read_text())
     assert not query(tool, [str(platform)], ['--', '-std=c++20'],
@@ -78,11 +78,13 @@ def main():
              f'RENDERER_DEFAULT={renderer}', f'BUILD_DIR={args.output / renderer}'],
             cwd=ROOT, text=True)
         for line in recipe.splitlines():
-            if ' -c code/' not in line:
+            if not re.search(r' -c (engine|game|third_party)/', line):
                 continue
             command = shlex.split(line)
             source = Path(command[command.index('-c') + 1])
-            if source.suffix != '.cpp' or source.parts[1] not in CORE:
+            if source.suffix != '.cpp' or not (source.parts[0] == 'game' or
+                    source.parts[0] == 'engine' and source.parts[1] in CORE or
+                    source.parts[0] == 'third_party' and source.parts[1] in ('minizip', 'zlib')):
                 continue
             commands.append({'directory': str(ROOT), 'file': str(source),
                              'arguments': [a for a in command if a != '-MMD']})

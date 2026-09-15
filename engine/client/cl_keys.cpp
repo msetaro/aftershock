@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "client.h"
-#include "../cgame/cg_native_public.h"
-#include "../ui/ui_native_public.h"
+#include "../public/cg_native_public.h"
+#include "../public/ui_native_public.h"
 
 /*
 

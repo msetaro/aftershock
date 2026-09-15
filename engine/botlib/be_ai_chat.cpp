@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
-#include "../qcommon/qcommon.h"
+#include "../qcommon/qcommon_public.h"
 #include "l_memory.h"
 #include "l_libvar.h"
 #include "l_script.h"
@@ -39,7 +39,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "l_utils.h"
 #include "l_log.h"
 #include "aasfile.h"
-#include "botlib.h"
+#include "botlib_public.h"
 #include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"

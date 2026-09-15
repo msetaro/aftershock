@@ -1,5 +1,5 @@
 #include "q_shared.h"
-#include "qcommon.h"
+#include "qcommon_public.h"
 
 // alternative huffman encoder and decoder, backported from uberdemotools project
 // https://github.com/mightycow/uberdemotools/blob/develop/UDT_DLL/src/message.cpp

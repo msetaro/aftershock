@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // common.c -- misc functions used in client and server
 
 #include "q_shared.h"
-#include "qcommon.h"
+#include "qcommon_public.h"
 #include <setjmp.h>
 #ifndef _WIN32
 #include <netinet/in.h>
@@ -31,11 +31,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #else
 #include <winsock.h>
 #if defined(_DEBUG)
-#include "../win32/win_local.h"
+#include "../platform/win32/win_local.h"
 #endif
 #endif
 
-#include "../client/keys.h"
+#include "keys_public.h"
 
 const int demo_protocols[] = { 66, 67, OLD_PROTOCOL_VERSION, NEW_PROTOCOL_VERSION, 0 };
 

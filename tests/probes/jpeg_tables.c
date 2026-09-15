@@ -1,5 +1,5 @@
 /* Table-index contract for the actual vendor routine; compiled as C. */
-#include "../../code/libjpeg/jdmarker.c"
+#include "../../third_party/libjpeg/jdmarker.c"
 #include <assert.h>
 #include <setjmp.h>
 

@@ -356,35 +356,35 @@
 			Filter="c;cpp;def;bat;asm"
 			>
 			<File
-				RelativePath="..\..\qcommon\cm_load.c"
+				RelativePath="..\..\engine\qcommon\cm_load.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_patch.c"
+				RelativePath="..\..\engine\qcommon\cm_patch.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_polylib.c"
+				RelativePath="..\..\engine\qcommon\cm_polylib.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_test.c"
+				RelativePath="..\..\engine\qcommon\cm_test.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_trace.c"
+				RelativePath="..\..\engine\qcommon\cm_trace.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cmd.c"
+				RelativePath="..\..\engine\qcommon\cmd.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\common.c"
+				RelativePath="..\..\engine\qcommon\common.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\asm\common_x64.asm"
+				RelativePath="..\..\engine\platform\asm\common_x64.asm"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -424,123 +424,123 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cvar.c"
+				RelativePath="..\..\engine\qcommon\cvar.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\files.c"
+				RelativePath="..\..\engine\qcommon\files.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\history.c"
+				RelativePath="..\..\engine\qcommon\history.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\huffman.c"
+				RelativePath="..\..\engine\qcommon\huffman.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\huffman_static.c"
+				RelativePath="..\..\engine\qcommon\huffman_static.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\keys.c"
+				RelativePath="..\..\engine\qcommon\keys.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\md4.c"
+				RelativePath="..\..\engine\qcommon\md4.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\md5.c"
+				RelativePath="..\..\engine\qcommon\md5.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\msg.c"
+				RelativePath="..\..\engine\qcommon\msg.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\net_chan.c"
+				RelativePath="..\..\engine\qcommon\net_chan.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\net_ip.c"
+				RelativePath="..\..\engine\qcommon\net_ip.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\.\qcommon\q_math.c"
+				RelativePath="..\..\engine\qcommon\q_math.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\.\qcommon\q_shared.c"
+				RelativePath="..\..\engine\qcommon\q_shared.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_bot.c"
+				RelativePath="..\..\engine\server\sv_bot.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_ccmds.c"
+				RelativePath="..\..\engine\server\sv_ccmds.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_client.c"
+				RelativePath="..\..\engine\server\sv_client.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_filter.c"
+				RelativePath="..\..\engine\server\sv_filter.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_game.c"
+				RelativePath="..\..\engine\server\sv_game.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_init.c"
+				RelativePath="..\..\engine\server\sv_init.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_main.c"
+				RelativePath="..\..\engine\server\sv_main.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_net_chan.c"
+				RelativePath="..\..\engine\server\sv_net_chan.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_snapshot.c"
+				RelativePath="..\..\engine\server\sv_snapshot.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_world.c"
+				RelativePath="..\..\engine\server\sv_world.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\unzip.c"
+				RelativePath="..\..\engine\qcommon\unzip.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\vm.c"
+				RelativePath="..\..\engine\qcommon\vm.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\vm_interpreted.c"
+				RelativePath="..\..\engine\qcommon\vm_interpreted.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\vm_x86.c"
+				RelativePath="..\..\engine\qcommon\vm_x86.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\win32\win_main.c"
+				RelativePath="..\..\engine\platform\win32\win_main.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\win32\win_shared.c"
+				RelativePath="..\..\engine\platform\win32\win_shared.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\win32\win_syscon.c"
+				RelativePath="..\..\engine\platform\win32\win_syscon.c"
 				>
 			</File>
 		</Filter>
@@ -549,91 +549,91 @@
 			Filter="h;hpp;inc"
 			>
 			<File
-				RelativePath="..\..\game\bg_public.h"
+				RelativePath="..\..\engine\public\bg_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\cgame\cg_public.h"
+				RelativePath="..\..\engine\public\cg_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\client.h"
+				RelativePath="..\..\engine\client\client.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_local.h"
+				RelativePath="..\..\engine\qcommon\cm_local.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_patch.h"
+				RelativePath="..\..\engine\qcommon\cm_patch.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_polylib.h"
+				RelativePath="..\..\engine\qcommon\cm_polylib.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_public.h"
+				RelativePath="..\..\engine\qcommon\cm_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\game\g_public.h"
+				RelativePath="..\..\engine\public\g_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\keycodes.h"
+				RelativePath="..\..\engine\client\keycodes.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\keys.h"
+				RelativePath="..\..\engine\qcommon\keys_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\q_platform.h"
+				RelativePath="..\..\engine\platform\platform_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\.\qcommon\q_shared.h"
+				RelativePath="..\..\engine\qcommon\q_shared.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\qcommon.h"
+				RelativePath="..\..\engine\qcommon\qcommon_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\qfiles.h"
+				RelativePath="..\..\engine\qcommon\qfiles_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\win32\resource.h"
+				RelativePath="..\..\engine\platform\win32\resource.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\server.h"
+				RelativePath="..\..\engine\server\server.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\.\qcommon\surfaceflags.h"
+				RelativePath="..\..\engine\qcommon\surfaceflags_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\ui\ui_public.h"
+				RelativePath="..\..\engine\public\ui_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\unzip.h"
+				RelativePath="..\..\third_party\minizip\unzip.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\vm_local.h"
+				RelativePath="..\..\engine\qcommon\vm_local.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\vm_optimize.h"
+				RelativePath="..\..\engine\qcommon\vm_optimize.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\win32\win_local.h"
+				RelativePath="..\..\engine\platform\win32\win_local.h"
 				>
 			</File>
 		</Filter>
@@ -642,11 +642,11 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="..\..\win32\qe3.ico"
+				RelativePath="..\..\engine\platform\win32\qe3.ico"
 				>
 			</File>
 			<File
-				RelativePath="..\win_resource.rc"
+				RelativePath="..\..\engine\platform\win32\win_resource.rc"
 				>
 			</File>
 		</Filter>

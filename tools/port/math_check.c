@@ -1,5 +1,5 @@
 /* G5 fixed-input probe; compiled in each language, never part of the engine. */
-#include "../../code/qcommon/q_shared.h"
+#include "../../engine/qcommon/q_shared.h"
 
 void QDECL Com_Error( errorParm_t level, const char *fmt, ... )
 {

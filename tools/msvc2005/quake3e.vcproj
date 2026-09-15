@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\libogg\include;..\..\libvorbis\include;..\..\libcurl\windows\include;$(NOINHERIT)"
+				AdditionalIncludeDirectories="..\..\third_party\libogg\include;..\..\third_party\libvorbis\include;..\..\third_party\libcurl\windows\include;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_CURL;CURL_STATICLIB;USE_OPENGL_API;USE_VULKAN_API;USE_OGG_VORBIS;USE_WIN32_ASM;_CRT_SECURE_NO_DEPRECATE;DISABLE_IPV6;$(NOINHERIT)"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -67,7 +67,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib wsock32.lib ws2_32.lib iphlpapi.lib ..\..\libcurl\windows\vs2005\lib32\libcurl_a_debug.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wsock32.lib ws2_32.lib iphlpapi.lib ..\..\third_party\libcurl\windows\vs2005\lib32\libcurl_a_debug.lib"
 				OutputFile="$(OutDir)\quake3e-debug.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -130,7 +130,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\libogg\include;..\..\libvorbis\include;..\..\libcurl\windows\include;$(NOINHERIT)"
+				AdditionalIncludeDirectories="..\..\third_party\libogg\include;..\..\third_party\libvorbis\include;..\..\third_party\libcurl\windows\include;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_CURL;CURL_STATICLIB;USE_OPENGL_API;USE_VULKAN_API;USE_OGG_VORBIS;USE_WIN32_ASM;_CRT_SECURE_NO_DEPRECATE;$(NOINHERIT)"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -154,7 +154,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib wsock32.lib ws2_32.lib iphlpapi.lib crypt32.lib ..\..\libcurl\windows\vs2005\lib64\libcurl_a_debug.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wsock32.lib ws2_32.lib iphlpapi.lib crypt32.lib ..\..\third_party\libcurl\windows\vs2005\lib64\libcurl_a_debug.lib"
 				OutputFile="$(OutDir)\quake3e-debug.x64.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -217,7 +217,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\libogg\include;..\..\libvorbis\include;..\..\libcurl\windows\include;$(NOINHERIT)"
+				AdditionalIncludeDirectories="..\..\third_party\libogg\include;..\..\third_party\libvorbis\include;..\..\third_party\libcurl\windows\include;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32;_WIN32;NDEBUG;_WINDOWS;USE_SKIPIDLOGO;USE_CURL;CURL_STATICLIB;USE_OPENGL_API;USE_VULKAN_API;USE_OGG_VORBIS;USE_WIN32_ASM;_CRT_SECURE_NO_DEPRECATE;DISABLE_IPV6;$(NOINHERIT)"
 				AssemblerListingLocation="$(IntDir)\"
 			/>
@@ -233,7 +233,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/DYNAMICBASE"
-				AdditionalDependencies="comctl32.lib winmm.lib wsock32.lib ws2_32.lib iphlpapi.lib ..\..\libcurl\windows\vs2005\lib32\libcurl_a.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wsock32.lib ws2_32.lib iphlpapi.lib ..\..\third_party\libcurl\windows\vs2005\lib32\libcurl_a.lib"
 				OutputFile="$(OutDir)\quake3e.exe"
 				GenerateMapFile="true"
 				MapFileName="$(IntDir)\quake3e.map"
@@ -297,7 +297,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\libogg\include;..\..\libvorbis\include;..\..\libcurl\windows\include;$(NOINHERIT)"
+				AdditionalIncludeDirectories="..\..\third_party\libogg\include;..\..\third_party\libvorbis\include;..\..\third_party\libcurl\windows\include;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32;_WIN32;NDEBUG;_WINDOWS;USE_SKIPIDLOGO;USE_CURL;CURL_STATICLIB;USE_OPENGL_API;USE_VULKAN_API;USE_OGG_VORBIS;USE_WIN32_ASM;_CRT_SECURE_NO_DEPRECATE;$(NOINHERIT)"
 				AssemblerListingLocation="$(IntDir)\"
 			/>
@@ -313,7 +313,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/DYNAMICBASE"
-				AdditionalDependencies="comctl32.lib winmm.lib wsock32.lib ws2_32.lib iphlpapi.lib crypt32.lib ..\..\libcurl\windows\vs2005\lib64\libcurl_a.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wsock32.lib ws2_32.lib iphlpapi.lib crypt32.lib ..\..\third_party\libcurl\windows\vs2005\lib64\libcurl_a.lib"
 				OutputFile="$(OutDir)\quake3e.x64.exe"
 				GenerateMapFile="true"
 				MapFileName="$(IntDir)\quake3e.x64.map"
@@ -360,87 +360,87 @@
 			Filter="cpp;c;bat"
 			>
 			<File
-				RelativePath="..\..\client\cl_avi.c"
+				RelativePath="..\..\engine\client\cl_avi.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_cgame.c"
+				RelativePath="..\..\engine\client\cl_cgame.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_cin.c"
+				RelativePath="..\..\engine\client\cl_cin.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_console.c"
+				RelativePath="..\..\engine\client\cl_console.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_curl.c"
+				RelativePath="..\..\engine\client\cl_curl.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_input.c"
+				RelativePath="..\..\engine\client\cl_input.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_jpeg.c"
+				RelativePath="..\..\engine\client\cl_jpeg.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_keys.c"
+				RelativePath="..\..\engine\client\cl_keys.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_main.c"
+				RelativePath="..\..\engine\client\cl_main.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_net_chan.c"
+				RelativePath="..\..\engine\client\cl_net_chan.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_parse.c"
+				RelativePath="..\..\engine\client\cl_parse.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_scrn.c"
+				RelativePath="..\..\engine\client\cl_scrn.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_ui.c"
+				RelativePath="..\..\engine\client\cl_ui.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_load.c"
+				RelativePath="..\..\engine\qcommon\cm_load.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_patch.c"
+				RelativePath="..\..\engine\qcommon\cm_patch.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_polylib.c"
+				RelativePath="..\..\engine\qcommon\cm_polylib.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_test.c"
+				RelativePath="..\..\engine\qcommon\cm_test.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_trace.c"
+				RelativePath="..\..\engine\qcommon\cm_trace.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cmd.c"
+				RelativePath="..\..\engine\qcommon\cmd.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\common.c"
+				RelativePath="..\..\engine\qcommon\common.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\asm\common_x64.asm"
+				RelativePath="..\..\engine\platform\asm\common_x64.asm"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -480,95 +480,95 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cvar.c"
+				RelativePath="..\..\engine\qcommon\cvar.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\files.c"
+				RelativePath="..\..\engine\qcommon\files.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\history.c"
+				RelativePath="..\..\engine\qcommon\history.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\huffman.c"
+				RelativePath="..\..\engine\qcommon\huffman.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\huffman_static.c"
+				RelativePath="..\..\engine\qcommon\huffman_static.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\keys.c"
+				RelativePath="..\..\engine\qcommon\keys.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\md4.c"
+				RelativePath="..\..\engine\qcommon\md4.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\md5.c"
+				RelativePath="..\..\engine\qcommon\md5.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\msg.c"
+				RelativePath="..\..\engine\qcommon\msg.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\net_chan.c"
+				RelativePath="..\..\engine\qcommon\net_chan.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\net_ip.c"
+				RelativePath="..\..\engine\qcommon\net_ip.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\puff.c"
+				RelativePath="..\..\engine\qcommon\puff.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\.\qcommon\q_math.c"
+				RelativePath="..\..\engine\qcommon\q_math.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\.\qcommon\q_shared.c"
+				RelativePath="..\..\engine\qcommon\q_shared.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_adpcm.c"
+				RelativePath="..\..\engine\client\snd_adpcm.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_codec.c"
+				RelativePath="..\..\engine\client\snd_codec.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_codec_ogg.c"
+				RelativePath="..\..\engine\client\snd_codec_ogg.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_codec_wav.c"
+				RelativePath="..\..\engine\client\snd_codec_wav.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_dma.c"
+				RelativePath="..\..\engine\client\snd_dma.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_main.c"
+				RelativePath="..\..\engine\client\snd_main.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_mem.c"
+				RelativePath="..\..\engine\client\snd_mem.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_mix.c"
+				RelativePath="..\..\engine\client\snd_mix.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\asm\snd_mix_x64.asm"
+				RelativePath="..\..\engine\platform\asm\snd_mix_x64.asm"
 				>
 				<FileConfiguration
 					Name="Debug|x64"
@@ -592,107 +592,107 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_wavelet.c"
+				RelativePath="..\..\engine\client\snd_wavelet.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_bot.c"
+				RelativePath="..\..\engine\server\sv_bot.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_ccmds.c"
+				RelativePath="..\..\engine\server\sv_ccmds.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_client.c"
+				RelativePath="..\..\engine\server\sv_client.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_filter.c"
+				RelativePath="..\..\engine\server\sv_filter.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_game.c"
+				RelativePath="..\..\engine\server\sv_game.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_init.c"
+				RelativePath="..\..\engine\server\sv_init.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_main.c"
+				RelativePath="..\..\engine\server\sv_main.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_net_chan.c"
+				RelativePath="..\..\engine\server\sv_net_chan.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_snapshot.c"
+				RelativePath="..\..\engine\server\sv_snapshot.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\sv_world.c"
+				RelativePath="..\..\engine\server\sv_world.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\unzip.c"
+				RelativePath="..\..\engine\qcommon\unzip.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\vm.c"
+				RelativePath="..\..\engine\qcommon\vm.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\vm_interpreted.c"
+				RelativePath="..\..\engine\qcommon\vm_interpreted.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\vm_x86.c"
+				RelativePath="..\..\engine\qcommon\vm_x86.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_gamma.c"
+				RelativePath="..\..\engine\platform\win32\win_gamma.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_glimp.c"
+				RelativePath="..\..\engine\platform\win32\win_glimp.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_input.c"
+				RelativePath="..\..\engine\platform\win32\win_input.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_main.c"
+				RelativePath="..\..\engine\platform\win32\win_main.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_minimize.c"
+				RelativePath="..\..\engine\platform\win32\win_minimize.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_qgl.c"
+				RelativePath="..\..\engine\platform\win32\win_qgl.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_qvk.c"
+				RelativePath="..\..\engine\platform\win32\win_qvk.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_shared.c"
+				RelativePath="..\..\engine\platform\win32\win_shared.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_snd.c"
+				RelativePath="..\..\engine\platform\win32\win_snd.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_syscon.c"
+				RelativePath="..\..\engine\platform\win32\win_syscon.c"
 				>
 			</File>
 			<File
-				RelativePath="..\win_wndproc.c"
+				RelativePath="..\..\engine\platform\win32\win_wndproc.c"
 				>
 			</File>
 		</Filter>
@@ -701,135 +701,135 @@
 			Filter="h;hpp;inc"
 			>
 			<File
-				RelativePath="..\..\game\bg_public.h"
+				RelativePath="..\..\engine\public\bg_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\cgame\cg_public.h"
+				RelativePath="..\..\engine\public\cg_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\cl_curl.h"
+				RelativePath="..\..\engine\client\cl_curl.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\client.h"
+				RelativePath="..\..\engine\client\client.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_local.h"
+				RelativePath="..\..\engine\qcommon\cm_local.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_patch.h"
+				RelativePath="..\..\engine\qcommon\cm_patch.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_polylib.h"
+				RelativePath="..\..\engine\qcommon\cm_polylib.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\cm_public.h"
+				RelativePath="..\..\engine\qcommon\cm_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\game\g_public.h"
+				RelativePath="..\..\engine\public\g_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\glw_win.h"
+				RelativePath="..\..\engine\platform\win32\glw_win.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\keycodes.h"
+				RelativePath="..\..\engine\client\keycodes.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\keys.h"
+				RelativePath="..\..\engine\qcommon\keys_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\puff.h"
+				RelativePath="..\..\third_party\zlib\puff.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\q_platform.h"
+				RelativePath="..\..\engine\platform\platform_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\q_shared.h"
+				RelativePath="..\..\engine\qcommon\q_shared.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\qal.h"
+				RelativePath="..\..\engine\client\qal.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\qcommon.h"
+				RelativePath="..\..\engine\qcommon\qcommon_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\qfiles.h"
+				RelativePath="..\..\engine\qcommon\qfiles_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\qgl.h"
+				RelativePath="..\..\engine\renderercommon\qgl_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\resource.h"
+				RelativePath="..\..\engine\platform\win32\resource.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\server.h"
+				RelativePath="..\..\engine\server\server.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_local.h"
+				RelativePath="..\..\engine\sound\snd_local.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\client\snd_public.h"
+				RelativePath="..\..\engine\sound\snd_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\.\qcommon\surfaceflags.h"
+				RelativePath="..\..\engine\qcommon\surfaceflags_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\tlds.h"
+				RelativePath="..\..\engine\server\tlds.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderer\tr_local.h"
+				RelativePath="..\..\engine\renderer\tr_local.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_public.h"
+				RelativePath="..\..\engine\renderercommon\tr_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\renderercommon\tr_types.h"
+				RelativePath="..\..\engine\renderercommon\tr_types_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\ui\ui_public.h"
+				RelativePath="..\..\engine\public\ui_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\unzip.h"
+				RelativePath="..\..\third_party\minizip\unzip.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\vm_local.h"
+				RelativePath="..\..\engine\qcommon\vm_local.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\qcommon\vm_optimize.h"
+				RelativePath="..\..\engine\qcommon\vm_optimize.h"
 				>
 			</File>
 			<File
-				RelativePath="..\win_local.h"
+				RelativePath="..\..\engine\platform\win32\win_local.h"
 				>
 			</File>
 		</Filter>
@@ -838,11 +838,11 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="..\qe3.ico"
+				RelativePath="..\..\engine\platform\win32\qe3.ico"
 				>
 			</File>
 			<File
-				RelativePath="..\win_resource.rc"
+				RelativePath="..\..\engine\platform\win32\win_resource.rc"
 				>
 			</File>
 		</Filter>

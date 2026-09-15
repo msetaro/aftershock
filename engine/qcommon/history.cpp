@@ -1,7 +1,7 @@
 // console history handling functions
 
 #include "q_shared.h"
-#include "qcommon.h"
+#include "qcommon_public.h"
 
 static      qboolean historyLoaded = qfalse;
 

@@ -15,7 +15,7 @@ for mode, flags in [('base', []), ('missionpack', ['-DMISSIONPACK'])]:
     binary = args.output.resolve() / mode
     run([*shlex.split(args.cc), '-std=gnu99', '-O2', *flags,
          '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined',
-         '-fno-sanitize-recover=all', '-include', 'code/game/native_abi.h',
+         '-fno-sanitize-recover=all', '-include', 'game/bg/native_abi.h',
          'tests/probes/team_flags.c', '-Wl,--gc-sections', '-lm', '-o', binary])
     run([binary])
     print('PASS:', mode, 'flag initialization and updates')

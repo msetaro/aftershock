@@ -259,11 +259,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\libogg\src\bitwise.c"
+				RelativePath="..\..\third_party\libogg\src\bitwise.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libogg\src\framing.c"
+				RelativePath="..\..\third_party\libogg\src\framing.c"
 				>
 			</File>
 		</Filter>
@@ -273,15 +273,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\libogg\src\crctable.h"
+				RelativePath="..\..\third_party\libogg\src\crctable.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libogg\include\ogg\ogg.h"
+				RelativePath="..\..\third_party\libogg\include\ogg\ogg.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libogg\include\ogg\os_types.h"
+				RelativePath="..\..\third_party\libogg\include\ogg\os_types.h"
 				>
 			</File>
 		</Filter>

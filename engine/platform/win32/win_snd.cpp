@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
-#include "../client/snd_local.h"
+#include "../../sound/snd_local.h"
 #include "win_local.h"
 
 extern cvar_t *s_khz;

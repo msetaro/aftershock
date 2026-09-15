@@ -1,4 +1,4 @@
-#include "../client/client.h"
+#include "../../client/client.h"
 #include "unix_glw.h"
 
 #include <X11/Xlib.h>

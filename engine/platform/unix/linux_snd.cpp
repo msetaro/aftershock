@@ -9,8 +9,8 @@
 #include <alsa/asoundlib.h>
 #include <pthread.h>
 
-#include "../client/snd_local.h"
-#include "../qcommon/q_shared.h"
+#include "../../sound/snd_local.h"
+#include "../../qcommon/q_shared.h"
 
 #define USE_SPINLOCK
 
@@ -1111,8 +1111,8 @@ static void async_proc( snd_async_handler_t *ahandler )
 #endif
 #include <stdio.h>
 
-#include "../client/snd_local.h"
-#include "../qcommon/q_shared.h"
+#include "../../sound/snd_local.h"
+#include "../../qcommon/q_shared.h"
 
 static qboolean snd_inited = qfalse;
 static int audio_fd;
