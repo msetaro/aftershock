@@ -26,6 +26,17 @@ dd1fe5c3be6e1133ce2305819f8f1dffbe51e8917d9258292e035fec1aa23a79. Evidence:
 Explicitly bind module memmove along with rand/srand/qsort/atof; reset all required
 module-lifetime state and include generated native TUs in lifetime analysis.
 
+A permanent lifecycle comparison now reproduces the missing storage reset:
+python3 tests/native_lifecycle.py. It compares ordinary native DLL reloads against
+retained module storage across a restart and map change; the latter fails before
+integration changes (/tmp/aftershock-native-lifecycle/persistent-1.diff). It keeps
+all paks as external symlinks, records diagnostics and never regenerates goldens.
+Next implementation: reset the existing game arena and per-level caches/timers at
+their initialization points, retaining the same first-load behavior. The mutable
+object inventory is /tmp/aftershock-native-game-state-inventory.txt. Reuse the
+existing bot maxclients global initialized by BotSetupDeathmatchAI. Static ABI
+adapters remain scratch-only until lifecycle parity passes.
+
 Earlier checkpoints below describe how this integration was reached.
 
 

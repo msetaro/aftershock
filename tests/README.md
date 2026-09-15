@@ -348,3 +348,9 @@ ASan. Seven valid-string cases per helper cover removal at the beginning, middle
 and end, single-pair removal and unchanged inputs. --variant small/big isolates
 one helper; --cc/--output select compiler and output. Both unit compiler jobs run
 it. No game assets or generated goldens are needed.
+
+`python3 tests/native_lifecycle.py` compares a restart followed by a map change with
+fresh versus retained native module storage. It requires installed Quake 3 content
+and the normal runtime tools. A process-local dlclose shim models static storage;
+the ordinary DLL run supplies the comparison. Diagnostics remain under --output.
+This transitional lifecycle gate never records demos or regenerates goldens.
