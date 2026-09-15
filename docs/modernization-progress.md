@@ -7,27 +7,24 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: `issue/31-teamleader-name`, based on modernization. #2 is checkpointed
-on issue/2-native-game at b167c637 / draft PR #50. Movement-result PR #51 merged
-as 5ecf43e5; native-dispatch PR #52 merged as 99f3b2b5405ef023afaf16c03233a8b842465b9e.
-#52 source 3201b7fa passed regression 34908517245 and full build 34908517199;
-merged-tree regression 34908936239 passed. Upstream C counterparts: #435 and #436.
-#2 already includes #51; merge modernization after this bounds fix to include #52
-and the two corrected prerequisite C imports. Resolve their add/add conflicts to
-the reviewed #31 versions and update the #2 provenance dispositions.
+Active work: `issue/31-openarena-target`, based on modernization f908cd8e.
+#2 is checkpointed/pushed at 869df0ab on issue/2-native-game (draft PR #50).
+GCC/Clang C++ native Q3 smoke/replay, 29 layouts/three offsets and shared-function
+comparisons pass. Regression 34912410405 passed on c386658a. Artifact review remains
+open before static integration; no VM/JIT removal or native OA integration yet.
 
-The team-leader regression and exact two-file GPL prerequisite import are committed
-first as fc665341. Both original functions fail Clang's array-bounds diagnostic:
-they write index 32 of teamleader[32]. Replacing each copy/terminator pair with
-Q_strncpyz now passes both real GPL translation units. Defined symbols are unchanged;
-only BotMatch_StartTeamLeaderShip and BotTeamAI change normalized GCC assembly.
-No engine source or simulation expression changes. ec-/Quake3e does not contain
-these game files, so there is no corresponding engine upstream patch to submit.
-PR #53 source 0ff62c30 passed regression 34909591046 and full build 34909591164
-(attempt 2, retrying only a transient artifact-upload timeout). Self-review passes.
-Next: merge PR #53 with a merge commit and verify the merged tree. Then resume #2 native C
-compiler parity, OpenArena native support, T1–T25 C++ gates, static calls and VM/JIT
-removal. Accepted goldens may change only in an explained #31 fix, never on #2.
+This #31 follow-up fixes OpenArena oaxB52's nullable name comparison for the CI
+content configuration. Test-first 43a3dac3 compiles the actual pinned header helper
+and fails under UBSan when one name is NULL. A three-line static inline replacement
+now passes GCC/Clang, checking missing/empty/different/equal/case-different names and
+single evaluation of arguments. It is maintained as a patch to the pinned public
+source, not an engine/game import into this branch. Native OA smoke now matches both accepted gameplay logs after using the existing
+QVM random/sort compatibility library and normalizing only VM-loading metadata.
+Accepted fixtures/goldens remain unchanged.
+PR #54 source 07ea4fe3ba218df52f062fcd503fb520e61e94cd passed regression
+34913347473 and full build 34913347479. Self-review passes. Next: merge PR #54
+with a merge commit and verify its merged tree. Resume #2 native OA support,
+artifact review, static integration and VM/JIT removal afterward.
 
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
@@ -537,3 +534,183 @@ only two bounded-copy changes; no new OS access, non-trivial lifetime, allocatio
 wire/file layout or FP expression changes. Defined-symbol/codegen review and the
 failing-before/passing-after test pass. Goldens/fixtures remain unchanged; no
 expectation or suppression applies. This final checkpoint changes documentation only.
+
+#2 resumed at merge 383c53e0. Permanent Clang C native smoke passes both Q3 maps
+(6dad7c18 / a15c9c91 normalized accepted logs); Clang C native fixed replay passes
+both maps/renderers with the unchanged frame hash b38004b1 and original fixtures.
+Commands use --game-code native --cc clang --cxx 'clang++ -stdlib=libc++'; logs:
+/tmp/aftershock-native-runtime-clang-final.log and
+/tmp/aftershock-native-demo-clang-final.log. GCC parity was already measured before
+this bounds-only fix; the unused team paths are now covered by tests/teamleader.py.
+OpenArena C native preflight is confined to /tmp/aftershock-oa-native-work from the
+pinned source: transitional intptr_t syscall words, entry signatures and the same
+binary32 ABI header. No repository OA source import or golden changes yet.
+
+OpenArena native preflight builds game/cgame C modules but oa_dm1 stops before bot
+startup: SP_func_door passes NULL ent->targetname through strequals to libc strcmp.
+GDB confirms __strcmp_avx2 -> SP_func_door -> G_CallSpawn -> G_InitGame. Reproducer:
+/tmp/aftershock-oa-native-smoke.py and /tmp/aftershock-oa-native-gdb.py (logs alongside).
+The original macro is code/qcommon/q_shared.h:712; nullable targetname also reaches
+it in three g_main.c paths. This is an external OpenArena game-source #31 item;
+no patch has been made. Quake 3 native compiler/replay parity is complete, so its
+C++ catalog port can proceed independently while OA remains a failing prerequisite.
+The permanent native OA build and UI source mapping are not yet implemented.
+
+## #2 C++ compatibility deviations
+
+Baseline 3306d55d compiles 103 native C release objects (module-local shared sources
+included) with GCC -O2 -DNDEBUG and the established native ABI flags. Hash manifest:
+/tmp/aftershock-native-c-object-gate/before/sha256.json. This precedes all C++ edits.
+Two necessary syntax adaptations outside T1–T25 are isolated in their own commit:
+- FOFS uses `(int)offsetof(gentity_t, x)` plus stddef.h instead of narrowing a pointer
+  expression directly to int, rejected by 64-bit C++. The int field representation
+  and every measured offset stay the same; no entity layout change.
+- Three bg_lib sort helper definitions use prototype parameter lists with their
+  original types, replacing K&R definitions that C++ cannot parse. Bodies unchanged.
+All 103 C release objects remain byte-identical after these changes (zero changed
+SHA256s), including the field table and sort code. Evidence command:
+python3 /tmp/aftershock-native-c-object-gate.py deviations. No simulation expression
+or golden change; no new algorithm or bug fix. Ordinary catalog casts/renames follow
+in separate commits. C++ syntax preflight initially reports 50 of 100 module TUs
+failing; bg_lib adds old-style-definition errors. No permissive flags are enabled.
+
+First ordinary catalog pass: T1 pointer casts, T2 boolean-expression casts, T3 enum
+casts, T4 delete member -> deleteButton, T14 register removal, T20 const search
+results (or casts where the shared receiving pointer also mutates writable text).
+All 103 native C release objects remain byte-identical to 3306d55d; including
+uis.debug's T3 compound-assignment spelling, so no T25 branch is needed. The field
+rename leaves the menu asset paths unchanged. During review a broad temporary
+replacement also changed two string literals; those were restored before this
+passing gate and are not part of the commit. Strict C++ syntax now proceeds to
+string-literal constness under -Werror=write-strings; no warning suppression.
+Evidence: /tmp/aftershock-native-c-catalog-final.log; 103 unchanged hashes.
+
+T8 read-only declarations now cover the three cvar tables, item names/media, spawn
+and command names, menu artwork fields and fifteen diagnosed string-pointer arrays.
+Receiving locals and existing extern array declarations retain matching qualifiers.
+Public function signatures are unchanged; the one parameter qualified is a static
+UI helper. menutext_s.string remains mutable because several menus fill its backing
+buffer; their literal assignments still need call-site casts. All 103 native C
+release objects remain byte-identical (const-final log). Next: remaining T8 literal
+casts at unchanged public APIs/return sites, then C++ exports and full module gates.
+
+Remaining T8 sites retain the existing public char* interfaces and mutable UI text
+fields: 1,060 diagnosed literal/macro-expression casts across 71 files. Macro
+constants and concatenated string contents are unchanged; casts are at use sites.
+All 103 TUs now pass GCC C++20 syntax with -Werror=write-strings and
+-Werror=register, no permissive flags. All 103 C release objects still have the
+original byte hashes (literal-casts gate). Next: T5 exports, Clang C++ diagnostics,
+linked C++ native ABI/symbol/codegen comparison and permanent smoke/replay parity.
+
+T5 marks exactly dllEntry/vmMain in all three modules with guarded Q_EXTERN_C.
+T15 adds eleven required literal/macro separator spaces in ai_team/g_cmds. GCC
+and Clang now pass all 103 C++20 syntax checks. All 103 C release objects remain
+byte-identical (exports gate). No other C-linkage annotations or math edits.
+
+Native build/check commands now expose --language c++ (module builder) and
+--game-language c++ (runtime/replay). GCC and Clang/libc++ link all three modules
+and match the 29 ABI layouts/three offsets. GCC C++ bot smoke matches both accepted
+Q3 logs; fixed replay is running. The linked-module check uses -z defs.
+
+Isolated build compatibility deviation: Clang C++ at -O2 rejects bg_lib.c's atof
+because glibc has already defined an optimized extern-inline atof. The builder
+compiles only this compatibility TU separately with -D__NO_INLINE__; this controls
+glibc header definitions, not optimizer inlining. Other TUs are unchanged. Clang
+C bg_lib raw object SHA256 is identical with/without the setting:
+028960a967ce3710c7b994aa6743e7eb640ca8bc9a40e10d7fdd822f0b2578c0.
+GCC does not receive it (its object would change). Evidence:
+/tmp/aftershock-native-bg-lib-inline; all-module Clang C++ link now passes.
+The function bodies, caller arithmetic and external atof symbol are retained.
+
+GCC C++ fixed replay passes all original Q3 samples (b38004b1); Clang C++ all-module
+links pass after the scoped header setting. Artifact gates identify real pending
+C/C++ library/header differences plus compiler symbol/table numbering; they are
+not yet marked passed. CI also exposed the standalone #31 team-leader check's
+missing COM_TRAP_GETVALUE definition after #2 imported the complete local headers.
+The check now uses the native ABI header and local bot-state types, removing its
+obsolete external header fetch; it passes locally. No bug fix or gate suppression.
+
+Artifact review caught the two T22 sites in ai_main: AngleDifference(...) and
+forward[2] passed to abs. Explicit int casts preserve the C call's conversion;
+these are port compatibility edits, not FP expression restructuring. The C++
+front-end's default _GNU_SOURCE also redirected scanf/strtol to C23 symbols while
+the C99 reference used C99/legacy entries. The native C++ builder now uses
+-U_GNU_SOURCE -D_DEFAULT_SOURCE, matching the C feature set; focused GCC/Clang
+objects both reference __isoc99_sscanf and strtol again. Seven of 103 objects
+still differ in undefined library dependencies (ctype macro vs function calls,
+plus strstr-to-strchr optimization); no defined-symbol difference is reported.
+These require explicit review, not a blanket normalizer. Artifact reports:
+/tmp/aftershock-native-cpp-gates-pinned/results.json and per-object diffs.
+
+Permanent native_shared.py compares actual shared math (4,096 samples including
+zero/quadrant angles) and Q_strlwr/Q_strupr for all nonzero bytes in the C locale.
+GCC C vs C++ and Clang C vs C++ agree: math 67988592, case 676e85f5. This covers
+AngleVectors' packed/scalar compiler variation and libc ctype macro/function paths;
+no fixture/golden writes. CI now builds C++ modules and runs this differential in
+both unit compiler jobs. Clang C++ smoke and fixed replay pass both maps/renderers,
+using unchanged Q3 fixtures/frame hash b38004b1. Logs:
+/tmp/aftershock-native-runtime-cpp-clang.log and
+/tmp/aftershock-native-demo-cpp-clang.log. GCC C++ passed those same outputs earlier;
+T22 and feature-setting changes still require its final runtime/replay rerun.
+Regression 34911920499 passed on checkpoint 42675c08; current CI will validate the
+new permanent shared-function and C++ build steps. Artifact G3/G4 review remains
+open (seven dependency diffs; no defined-symbol mismatch; per-object reports under
+/tmp/aftershock-native-cpp-gates-pinned). Do not label those gates complete yet.
+
+Final GCC C++ rerun after T22/library-feature pinning passes both smoke logs and
+all fixed replay frames; Clang C++ passes the same. Regression 34912410405 passed
+on c386658a, including both C++ module builds and shared-function differentials.
+All 103 defined-symbol sets and raw dllEntry/vmMain spellings match the C baseline;
+the seven remaining undefined-dependency diffs are fully enumerated in the reports.
+Artifact codegen review remains open before static integration. Next is the separate
+#31 OpenArena nullable-target helper fix, keeping #2 checkpointed on this branch.
+
+## #31 OpenArena absent target names
+
+Pinned public OpenArena source: 331464ca396d80e91cf9be273588f2b5f4b7afc8 (oaxB52).
+The header macro strequals calls strcmp directly. Native oa_dm1 crashes because
+SP_func_door passes absent targetname; three g_main elimination-target paths use
+the same helper with nullable names. All call sites were checked. The fixed helper
+returns false if either name is absent and evaluates each argument once, retaining
+case-sensitive comparison and equality for present empty strings. All non-null
+call behavior remains strcmp equality. This fixes the shared cause once.
+
+`python3 tests/openarena_strings.py` reads three public headers from the exact Git
+revision into its own output directory, preserving notices. It applies the checked-in
+patch there and compiles the real helper with UBSan; no game assets or new loader
+are involved. Test-first 43a3dac3 fails (argument 2 NULL); GCC/Clang pass after.
+No expected-failure entry or suppression covered this newly observed external-source
+bug. ec-/Quake3e lacks the helper and corresponding game code, so no applicable
+engine upstream PR exists. #2 will consume this patch for its native CI build.
+
+Native OA smoke now passes both maps with the patch: normalized hashes 51d66d9a
+(oa_dm1) and 0f2e6b68 (oa_dm7). The first startup succeeded but still used libc rand;
+linking #2's already verified QVM rand/sort compatibility library restored gameplay
+parity. Three additional VM-loader metadata lines are excluded in the temporary
+native comparison; no gameplay text is removed. This build adaptation belongs to
+#2 and is not an additional source fix in this PR. Temporary driver:
+/tmp/aftershock-oa-target-fix-smoke.py; no native OA fixture recordings.
+
+All 13 source files that call strequals pass defined/undefined-symbol comparison
+before/after. Nineteen function bodies change codegen through null checks and
+associated branch/register allocation; no function is added or removed at -O2.
+The helper preserves strcmp equality whenever both pointers are present. The
+G_FindTeams pair already guards both team pointers before comparison; missing
+names never become matching team names. Explicit unit/collision regeneration has
+zero golden diff. Existing engine/runtime source is unchanged by this patch-only
+CI dependency fix. CI and PR self-review are still required before merge.
+
+PR #54 source 07ea4fe3 passed regression 34913347473 and full build 34913347479.
+Self-review: one external dependency bug, tested before/after; patch scoped to the
+shared helper; no new engine OS access, allocation, lifetime, layout or FP edits;
+all caller symbols preserved, null-guard codegen reviewed, goldens unchanged.
+No expectation/suppression applies. This checkpoint is documentation only.
+
+Additional #2 client preflight while CI ran: native OA cgame/UI compile and load.
+Fixed oa_dm7 replay matches all six accepted samples; oa_dm1 differs on both
+renderers in a roughly 107x108 pixel region (about 4,690 pixels at sample 50).
+No replay is regenerated or claimed passing. Artifacts:
+/tmp/aftershock-oa-native-demo and /tmp/aftershock-oa-native-demo-preflight.py.
+Client build helper /tmp/aftershock-oa-native-client-build.py maps base UI objects
+to code/q3_ui, uses code/ui/ui_syscalls.c, maps bg_* to code/game and links #2's
+QVM random/sort library. Native OA frame parity remains #2 work after this fix.
