@@ -510,3 +510,8 @@ passes GCC/Clang in base and missionpack modes. G2 layouts/G3 symbols remain
 identical; only Team_InitGame changes assembly (36 base/46 missionpack functions).
 The initial configstring is now complete on its first publication, with no invalid
 intermediate state. Subsequent setter behavior is unchanged.
+
+PR #59 source 622ae3af passed regression 34926290647/full build 34926290657.
+Temporary complete #2 GCC/Clang C++ flag checks also pass UBSan. Unit/collision/
+Q3 runtime explicit regeneration is byte-identical. Self-review passes; no expected
+bug entry, suppression or accepted golden changed.

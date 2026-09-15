@@ -20,10 +20,17 @@ G2 layouts and G3 symbols match in both builds; only Team_InitGame changes assem
 among 36 base/46 missionpack functions. Artifacts: /tmp/aftershock-team-flags-gates.py
 and /tmp/aftershock-team-flags-gates. No FP expressions or wire layouts change.
 
-Next: finish this separate #31 PR's regression/build/golden verification and
-self-review, then merge and bring it into #2 retaining its catalog edits. No engine
-fix is made on #2. Source/catalog audit, final G4/G7 review, .cpp rename, static
-integration and VM/JIT removal remain after this fix.
+PR #59 source 622ae3af passed regression 34926290647 and full build 34926290657.
+Temporary complete #2 C++ flag paths also pass GCC/Clang UBSan after the same fix:
+/tmp/aftershock-team-flags-native.py/.log. Unit/collision/Q3 runtime explicit golden
+regeneration is byte-identical. Self-review passes: one initialization defect,
+caller audit complete, no OS calls/allocations/non-trivial objects, no FP expression
+or wire-layout change, no expected-bug entry/suppression or accepted golden change.
+
+Next: ready/merge #59, verify merged-tree regression, and merge into #2 retaining
+its catalog edits. Add pahole to the GCC regression job's own apt step (the new
+native gate requires it). Source/catalog audit, final G4/G7 review, .cpp rename,
+static integration and VM/JIT removal remain. No source fix is made on #2.
 
 #58 merged 4c816c7e and merged-tree regression 34925562788 passed. #2 integration
 7d9bc04a retains the fixed two-element voter bound and passes GCC/Clang tests.
@@ -32,7 +39,10 @@ Warning freeze 7c4f8302 builds all native modules as C/C++ with GCC/Clang, under
 both passed. Permanent native_gates.py (75d81a11) reproduces
 103/103 matching G2/G3 objects, 63 advisory assembly diffs and all G7 diagnostics
 (1365 narrowing, 55 signed-char, nine string-result; zero tool/compile failures).
-The focused review exposed this flag bug. No accepted fixture/golden changes on
+The focused review exposed this flag bug. The new #2 gate run 34926088385
+failed because the GCC CI job lacks pahole; the comparison did not run and is not
+an ABI failure. Install the pahole package in that CI job when resuming #2 (local
+packages remain untouched). Its full build 34926088404 passed. No accepted fixture/golden changes on
 #2; source/catalog audit, final G4/G7 review, .cpp rename, static integration and
 VM/JIT removal remain. Temporary artifacts: /tmp/aftershock-native-gates-final,
 /tmp/aftershock-native-review-checkpoint.md. The flag-domain assumption in the
