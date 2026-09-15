@@ -7,46 +7,25 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/2-native-game, draft PR #50, primary worktree. Static integration
-440089eb passed regression 34936092538 and full build 34936092520 (all platform
-legs). VM removal is committed/pushed as 6d21bef2. No simulation FP edits or
-accepted golden/fixture changes. The later #4/#5/#8/design-only #6 sequence remains.
+Active: issue/31-sdl-windows-headers from modernization merge 6069cf2a.
+#2 PR #50 merged after final source 7382120a passed regression 34936939258 and
+full build 34936939100; docs/self-review 45ab4731. Verify merged-tree regression.
+Native game/cgame/UI are static; VM/interpreter/JITs removed; Q3/OA bot/replay,
+movement-debug lifecycle and lifetime gates passed with accepted goldens unchanged.
 
-Test-first a8879635 rejects VM implementation symbols and requires static init
-exports. Removal deletes eight VM/interpreter/JIT files, active Make/MSVC entries,
-startup/unload API hooks and the obsolete VM_Call probe. C/C++ import compiler
-oracles and file-layout declarations remain as historical evidence; there is no
-runtime game loader. Native game/cgame/UI link into the executables.
+The optional MinGW SDL/no-curl build needs Windows declarations at file scope.
+Without curl's transitive headers, sdl_glimp.cpp lacks clipboard types/functions;
+sdl_gamma.cpp includes windows.h inside a function, which rejects SDK declarations.
+The new cross-job step compiles both real objects without curl and must fail before
+this fix. Reproducer: make -B -k PLATFORM=mingw64 ARCH=x86_64 USE_CURL=0 USE_SDL=1
+BUILD_DIR=/tmp/aftershock-sdl-headers-before followed by client/sdl_glimp.o and
+client/sdl_gamma.o under its release-mingw64-x86_64 output directory.
 
-After removal, dedicated linking/no-VM symbols and both accepted Q3 bot logs pass.
-Lifecycle fixed replay matches both maps/renderers at b38004b1. Lifetime analysis
-passes 550 compile commands/138 source paths, including native modules. Artifacts:
-/tmp/aftershock-native-no-vm-{runtime,demo,lifetimes}. Movement-debug lifecycle passes
-twice at e87382ec (/tmp/aftershock-native-no-vm-lifecycle). OpenArena fixed replay
-also matches both renderers at 5b89d338 (/tmp/aftershock-native-no-vm-oa-demo).
-Source 7382120a passed regression 34936939258 and full build 34936939100. The earlier orphaned workflow step was corrected and all step actions
-validated. Provenance rechecks all 130 original hashes; existing goldens unchanged.
-
-Self-review passes: native-only scope; catalog/provenance and layout/symbol/codegen
-review complete; static parity/lifecycle and lifetime gates pass; no FP expression
-restructuring, new OS access, per-frame allocation or non-trivial lifetime. Plan
-records the native-only compatibility decision. This checkpoint is documentation only.
-Next: ready/merge PR #50 and verify merged-tree regression. Then fix the separately recorded #31
-optional MinGW SDL/no-curl Windows header defect before #4. No SDL source fix here.
-
-Separate allocator PR #62 merged 0c3ef426; merged regression 34934836544 passed.
-PR #63 merged 555f0771; merged regression 34935816610 passed. Its source be9a9bc3
-passed regression 34935436665/full build 34935436703. #2 integration 3a09baa0
-applies both reviewed patches to pinned OpenArena C; permanent static OA UBSan
-passes accepted hashes 51d66d9a/0f2e6b68.
-
-Platform adaptations 090b7a3c: 17 DEBUG T8 casts preserve GCC/Clang -O0 C objects;
-_MSC_VER limits MSVC pragmas; _WIN32 selects platform definitions; unused legacy
-Windows/PPC helpers removed. Compiler debug traps replace MSVC-only inline int3.
-MSVC generates separate IntDir wrappers matching all 103 Make source selections,
-with strict FP and disabled intrinsics. 440089eb retains the engine's existing
-Apple SDK deprecation freeze. Debug Linux and native-Windows MinGW builds pass;
-all macOS/MSVC/MinGW CI configurations passed on 440089eb before VM retirement.
+Next: record the failing build, commit the check, move the Windows includes to
+file scope in these two SDL translation units, verify unchanged generated code
+against the existing build/header workaround and run CI/self-review. Merge this
+separate #31 fix, then #4 boundaries/moves -> #5 CMake -> #8 rules -> design-only #6.
+No local package installation or accepted golden/fixture regeneration.
 
 ## Earlier #2 integration checkpoints (historical)
 

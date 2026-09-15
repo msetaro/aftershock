@@ -154,5 +154,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
       - name: Cross-build dedicated server
         run: make -j4 BUILD_CLIENT=0 CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' ${{ matrix.settings }}
+      - name: Compile SDL Windows interfaces without curl headers
+        if: startsWith(matrix.cc, 'x86_64-w64-mingw32-')
+        run: >-
+          make -k -j4 BUILD_SERVER=0 USE_SDL=1 USE_CURL=0
+          CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' ${{ matrix.settings }}
+          build/release-mingw64-x86_64/client/sdl_glimp.o
+          build/release-mingw64-x86_64/client/sdl_gamma.o
 
   # Existing build.yml also builds MSVC x64/ARM64 Debug/Release for this PR.
