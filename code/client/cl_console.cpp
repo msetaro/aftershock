@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // console.c
 
 #include "client.h"
+#include "../cgame/cg_native_public.h"
+#include "../ui/ui_native_public.h"
 
 #define  DEFAULT_CONSOLE_WIDTH 78
 #define  MAX_CONSOLE_WIDTH 120
@@ -133,7 +135,7 @@ Con_MessageMode3_f
 ================
 */
 static void Con_MessageMode3_f( void ) {
-	chat_playerNum = cgvm ? VM_Call( cgvm, 0, CG_CROSSHAIR_PLAYER ) : -1;
+	chat_playerNum = NativeCGame_Running ? NativeCGame_CrosshairPlayer(  ) : -1;
 	if ( chat_playerNum < 0 || chat_playerNum >= MAX_CLIENTS ) {
 		chat_playerNum = -1;
 		return;
@@ -151,7 +153,7 @@ Con_MessageMode4_f
 ================
 */
 static void Con_MessageMode4_f( void ) {
-	chat_playerNum = cgvm ? VM_Call( cgvm, 0, CG_LAST_ATTACKER ) : -1;
+	chat_playerNum = NativeCGame_Running ? NativeCGame_LastAttacker(  ) : -1;
 	if ( chat_playerNum < 0 || chat_playerNum >= MAX_CLIENTS ) {
 		chat_playerNum = -1;
 		return;

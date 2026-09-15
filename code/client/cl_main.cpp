@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_main.c  -- client main loop
 
 #include "client.h"
+#include "../cgame/cg_native_public.h"
+#include "../ui/ui_native_public.h"
 #include <limits.h>
 
 cvar_t	*cl_noprint;
@@ -97,7 +99,6 @@ cvar_t *cl_drawBuffer;
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
-vm_t				*cgvm = NULL;
 
 netadr_t			rcon_address;
 
@@ -1240,7 +1241,7 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 		CL_CloseAVI( qfalse );
 	}
 
-	if ( cgvm ) {
+	if ( NativeCGame_Running ) {
 		// do that right after we rendered last video frame
 		CL_ShutdownCGame();
 	}
@@ -1249,8 +1250,8 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 	S_StopAllSounds();
 	Key_ClearStates();
 
-	if ( uivm && showMainMenu ) {
-		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_NONE );
+	if ( NativeUI_Running && showMainMenu ) {
+		NativeUI_SetActiveMenu( UIMENU_NONE );
 	}
 
 	// Remove pure paks
@@ -1499,7 +1500,7 @@ void CL_Disconnect_f( void ) {
 	SCR_StopCinematic();
 	Cvar_Set( "ui_singlePlayerActive", "0" );
 	if ( cls.state != CA_DISCONNECTED && cls.state != CA_CINEMATIC ) {
-		if ( (uivm && uivm->callLevel) || (cgvm && cgvm->callLevel) ) {
+		if ( (NativeUI_Running && NativeUI_CallDepth) || (NativeCGame_Running && NativeCGame_CallDepth) ) {
 			Com_Error( ERR_DISCONNECT, "Disconnected from server" );
 		} else {
 			// clear any previous "server full" type messages
@@ -1514,8 +1515,8 @@ void CL_Disconnect_f( void ) {
 			if ( !CL_Disconnect( qfalse ) ) { // restart client if not done already
 				CL_FlushMemory();
 			}
-			if ( uivm ) {
-				VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
+			if ( NativeUI_Running ) {
+				NativeUI_SetActiveMenu( UIMENU_MAIN );
 			}
 		}
 	}
@@ -2901,8 +2902,8 @@ static void CL_CheckTimeout( void ) {
 			if ( !CL_Disconnect( qfalse ) ) { // restart client if not done already
 				CL_FlushMemory();
 			}
-			if ( uivm ) {
-				VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
+			if ( NativeUI_Running ) {
+				NativeUI_SetActiveMenu( UIMENU_MAIN );
 			}
 			return;
 		}
@@ -3018,12 +3019,12 @@ void CL_Frame( int msec, int realMsec ) {
 	if ( cls.cddialog ) {
 		// bring up the cd error dialog if needed
 		cls.cddialog = qfalse;
-		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_NEED_CD );
+		NativeUI_SetActiveMenu( UIMENU_NEED_CD );
 	} else	if ( cls.state == CA_DISCONNECTED && !( Key_GetCatcher( ) & KEYCATCH_UI )
-		&& !com_sv_running->integer && uivm ) {
+		&& !com_sv_running->integer && NativeUI_Running ) {
 		// if disconnected, bring up the menu
 		S_StopAllSounds();
-		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
+		NativeUI_SetActiveMenu( UIMENU_MAIN );
 	}
 
 	// if recording an avi, lock to a fixed fps

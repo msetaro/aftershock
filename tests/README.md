@@ -189,46 +189,52 @@ to select that content set. Review demo logs/screenshots and explain every chang
 hash or gameplay event in the PR. All golden writes are rejected when `CI` is set;
 CI compares committed outputs and never regenerates them.
 
-### Native C transition (#2, in progress)
+### Native game integration (#2)
 
-The pinned GPL C imports and provenance are in `docs/native-game-import.json`.
-These Linux x86_64 commands build the native modules and compare their shared ABI
-layouts against the engine; installed Quake 3 content is required for runtime/replay:
+The pinned GPL imports and provenance are in `docs/native-game-import.json`.
+The engine statically links the C++20 game, cgame and UI. Each imported source
+remains a separate translation unit inside its module namespace. Typed imports
+and exports replace numbered calls; the module's rand/srand/qsort/atof/memmove
+remain isolated from the engine and other modules.
 
 ```
 python3 tests/native.py
-python3 tests/native.py --cc clang --cxx clang++ --output /tmp/native-clang
-python3 tests/run.py runtime --game-code native
-python3 tests/demo.py --game-code native
+python3 tests/native.py --language c++
+python3 tests/run.py runtime
+python3 tests/demo.py
+python3 tests/demo.py --lifecycle
 ```
 
-The native ABI uses binary32 literals and rounds host math results to float, as
-the QVM compiler does; `bg_lib.cpp` preserves the QVM random sequence. Temporary DLL
-entry points marshal pointer-width words until static integration removes them.
-Replay uses the same committed demos/frame hashes. Smoke removes only module load
-metadata, build date and bot-skill printf padding before comparing the accepted QVM
-log. Gameplay text is retained. The OpenArena comparison also removes its VM-only
-magic/version and jump-table compilation metadata. Both Quake 3 maps and both-renderer
-replay pass after #31 PR #51 fixed the engine's uninitialized movement result.
-Native parity commands reject regeneration; the accepted QVM default is unchanged.
+The first two commands retain the C/C++ import checks. Runtime/replay use the
+static production build and require installed Quake 3 content. The native ABI
+uses binary32 literals and rounds host math results to float, as the QVM compiler
+did; bg_lib preserves its random sequence. Smoke normalizes module-load metadata,
+build date and bot-skill printf padding when comparing accepted QVM logs; gameplay
+text remains intact. Replay uses the unchanged demos and frame hashes.
 
-Hosted native parity uses the pinned OpenArena B52 C source and the #31 patches:
+Hosted CI uses the pinned OpenArena B52 C source and the reviewed #31 patches:
 
 ```
-python3 tests/native.py --content openarena
-python3 tests/run.py runtime --game-code native --content openarena --data /tmp/aftershock-openarena-baseoa
-python3 tests/demo.py --game-code native --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/openarena_native.py --static
+python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/demo.py --content openarena --data /tmp/aftershock-openarena-baseoa
 ```
 
-The runtime job runs both commands against the existing OpenArena goldens. Source is
-exported from revision 331464ca396d80e91cf9be273588f2b5f4b7afc8 into the test output;
-its original GPL notices remain. Only native ABI entry/call adaptation is generated;
-reviewed bug patches remain separate. Original module lists select the base q3_ui
-sources, and bg_lib preserves QVM random/sort behavior. This external dependency
-builds as C with GCC or Clang; --game-language c++ applies to the imported Q3 port.
-Its 28 identical structure sizes and three offsets are compared to the engine,
-plus the consumed 140-byte refEntity prefix (OpenArena appends 36 eye-vector bytes).
-No native game content is downloaded or committed.
+The runtime/replay commands stage C module objects automatically and link them to
+the same engine interface. GNU objcopy prefixes each module's private global
+symbols; typed public exports remain visible. No game DLL is loaded. Source is
+exported from revision 331464ca396d80e91cf9be273588f2b5f4b7afc8 into the test output,
+retaining GPL notices. The original lists select base q3_ui sources; bg_lib
+preserves the QVM random/sort behavior. These are hosted-content test objects;
+the production game remains the imported Q3 C++ implementation. Runtime --sanitize
+instruments both engine and OpenArena game code.
+
+OpenArena builds as C with GCC or Clang. Its 28 structure sizes and three offsets
+match the engine, including the consumed 140-byte refEntity prefix (OA appends
+36 eye-vector bytes). Its optional LFX service remains unsupported, as in the
+original engine; ordinary fixture settings do not call it. No game paks are
+copied into the repository. The OpenArena log comparison removes its old VM-only
+magic/version and jump-table compilation metadata.
 
 ### Bot movement result regression
 
@@ -247,9 +253,8 @@ Clang's bounds diagnostics as errors. It uses the imported bot-state declaration
 and native ABI header. No game content or external header checkout is required.
 The original #31 failing test used pinned GPL headers before #2 imported them.
 
-Native C++ port checks use `python3 tests/native.py --language c++` and append
-`--game-language c++` to native runtime/demo commands. C remains the transitional
-reference (the default). Both languages compare the same 29 layouts and three
+Native C++ import checks use `python3 tests/native.py --language c++`.
+C remains the import-comparison reference; runtime/replay use the static C++ game. Both languages compare the same 29 layouts and three
 offsets with the engine; module links reject unresolved symbols. GCC and Clang
 use explicit binary32 source literals without compiler-specific literal flags. For
 Clang C++ only, bg_lib.cpp is
@@ -349,15 +354,16 @@ and end, single-pair removal and unchanged inputs. --variant small/big isolates
 one helper; --cc/--output select compiler and output. Both unit compiler jobs run
 it. No game assets or generated goldens are needed.
 
-`python3 tests/native_lifecycle.py` compares a restart followed by a map change with
-fresh versus retained native module storage. It requires installed Quake 3 content
-and the normal runtime tools. A process-local dlclose shim models static storage;
-the ordinary DLL run supplies the comparison. Diagnostics remain under --output.
-`--debug-movement` also checks the per-module movement diagnostic counter.
-This transitional lifecycle gate never records demos or regenerates goldens.
+`python3 tests/native_lifecycle.py` compares static restart/map-change logs with
+reviewed ordinary-DLL references captured before static integration. The added
+native-lifecycle.log and native-lifecycle-debug.log baselines are those existing
+reference outputs (dd1fe5c3/e87382ec), not regenerated gameplay. Both repetitions
+must match; --debug-movement includes the per-module movement counter. Installed
+Quake 3 content and normal runtime tools are required. Diagnostics stay in --output.
+There is no regeneration mode for this reference comparison.
 
-`python3 tests/demo.py --game-code native --game-language c++ --lifecycle` replays
-a fixed fixture, restarts video, then samples another replay in the same process.
-It compares ordinary DLL unloading with retained module storage on both renderers;
-this transition comparison does not read or write accepted frame goldens. The
-ordinary demo command remains the accepted-golden gate. Both require real content.
+`python3 tests/demo.py --lifecycle` replays a fixed fixture, restarts video, then
+samples another replay in the same process. On Quake 3 content both repetitions
+must match the existing accepted frame goldens, just like ordinary replay. No
+additional frame golden was needed. This tests the production Q3 module reset;
+hosted OA parity runs each fixture in a fresh process.

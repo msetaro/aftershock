@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // sv_client.c -- server code for dealing with clients
 
 #include "server.h"
+#include "../game/g_native_public.h"
 
 static void SV_CloseDownload( client_t *cl );
 
@@ -480,7 +481,7 @@ void SV_DirectConnect( const netadr_t *from ) {
 	int			challenge;
 	const char		*password;
 	int			startIndex;
-	intptr_t	denied;
+	const char	*denied;
 	int			count;
 	int			cl_proto, sv_proto;
 	const char	*ip, *info, *v;
@@ -681,7 +682,7 @@ void SV_DirectConnect( const netadr_t *from ) {
 			if ( newcl->state >= CS_CONNECTED ) {
 				// call QVM disconnect function before calling connect again
 				// fixes issues such as disappearing CTF flags in unpatched mods
-				VM_Call( gvm, 1, GAME_CLIENT_DISCONNECT, newcl - svs.clients );
+				Game_ClientDisconnect( newcl - svs.clients );
 
 				// don't leak memory or file handles due to e.g. downloads in progress
 				SV_FreeClient( newcl );
@@ -789,10 +790,9 @@ gotnewcl:
 	}
 
 	// get the game a chance to reject this connection or modify the userinfo
-	denied = VM_Call( gvm, 3, GAME_CLIENT_CONNECT, clientNum, qtrue, qfalse ); // firstTime = qtrue
+	denied = Game_ClientConnect( clientNum, qtrue, qfalse ); // firstTime = qtrue
 	if ( denied ) {
-		// we can't just use VM_ArgPtr, because that is only valid inside a VM_Call
-		const char *str = (const char *)GVM_ArgPtr( denied );
+		const char *str = (const char *)denied;
 
 		NET_OutOfBandPrint( NS_SERVER, from, "print\n%s\n", str );
 		Com_DPrintf( "Game rejected a connection: %s.\n", str );
@@ -886,7 +886,7 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 
 	// call the prog function for removing a client
 	// this will remove the body, among other things
-	VM_Call( gvm, 1, GAME_CLIENT_DISCONNECT, drop - svs.clients );
+	Game_ClientDisconnect( drop - svs.clients );
 
 	// add the disconnect command
 	if ( reason ) {
@@ -1191,7 +1191,7 @@ void SV_ClientEnterWorld( client_t *client ) {
 	client->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
 
 	// call the game begin function
-	VM_Call( gvm, 1, GAME_CLIENT_BEGIN, clientNum );
+	Game_ClientBegin( clientNum );
 }
 
 
@@ -1773,7 +1773,6 @@ into a more C friendly form.
 =================
 */
 void SV_UserinfoChanged( client_t *cl, qboolean updateUserinfo, qboolean runFilter ) {
-	char buf[ MAX_NAME_LENGTH ];
 	const char *val;
 	const char *ip;
 	int	i;
@@ -1836,12 +1835,7 @@ void SV_UserinfoChanged( client_t *cl, qboolean updateUserinfo, qboolean runFilt
 
 	// name for C code
 	val = Info_ValueForKey( cl->userinfo, "name" );
-	// truncate if it is too long as it may cause memory corruption in OSP mod
-	if ( gvm->forceDataMask && strlen( val ) >= sizeof( buf ) ) {
-		Q_strncpyz( buf, val, sizeof( buf ) );
-		Info_SetValueForKey( cl->userinfo, "name", buf );
-		val = buf;
-	}
+
 	Q_strncpyz( cl->name, val, sizeof( cl->name ) );
 
 	val = Info_ValueForKey( cl->userinfo, "handicap" );
@@ -1898,7 +1892,7 @@ static void SV_UpdateUserinfo_f( client_t *cl ) {
 
 	SV_UserinfoChanged( cl, qtrue, qtrue ); // update userinfo, run filter
 	// call prog code to allow overrides
-	VM_Call( gvm, 1, GAME_CLIENT_USERINFO_CHANGED, cl - svs.clients );
+	Game_ClientUserinfoChanged( cl - svs.clients );
 }
 
 extern int SV_Strlen( const char *str );
@@ -2072,11 +2066,8 @@ qboolean SV_ExecuteClientCommand( client_t *cl, const char *s ) {
 	} else {
 		// pass unknown strings to the game
 		if ( !ucmd->name && sv.state == SS_GAME && cl->state >= CS_PRIMED ) {
-			if ( gvm->forceDataMask )
-				Cmd_Args_Sanitize( "\n\r;" ); // handle ';' for OSP
-			else
-				Cmd_Args_Sanitize( "\n\r" );
-			VM_Call( gvm, 1, GAME_CLIENT_COMMAND, cl - svs.clients );
+			Cmd_Args_Sanitize( "\n\r" );
+			Game_ClientCommand( cl - svs.clients );
 		}
 	}
 
@@ -2138,7 +2129,7 @@ void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
 		return;		// may have been kicked during the last usercmd
 	}
 
-	VM_Call( gvm, 1, GAME_CLIENT_THINK, cl - svs.clients );
+	Game_ClientThink( cl - svs.clients );
 }
 
 

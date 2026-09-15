@@ -29,7 +29,7 @@ def stage_source(output, source=Path('/tmp/aftershock-oa-native-source')):
     return output
 
 
-def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', language='c'):
+def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', language='c', static=False):
     if language != 'c':
         raise ValueError('the pinned OpenArena test dependency builds as C')
     output = stage_source(output)
@@ -102,16 +102,39 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
             text = text[:start] + replacement + text[end:]
         (output / calls).write_text(text)
         sources.append(str(calls))
-        binary = output / (('qagame' if module == 'game' else module) + 'x86_64.so')
+        binary = output / (module + '.o' if static else ('qagame' if module == 'game' else module) + 'x86_64.so')
+        if static:
+            public = ROOT / 'code' / module / (prefix + '_native_public.h')
+            direct = (ROOT / 'code' / module / (prefix + '_native.cpp')).read_text()
+            if module == 'cgame':
+                # This optional OA extension also fails in the original engine dispatch.
+                direct += '\nvoid trap_R_LFX_ParticleEffect(int effect, const vec3_t origin, const vec3_t velocity) {\n'
+                direct += '    CGameImport_Error("Unsupported native service: CG_R_LFX_PARTICLEEFFECT");\n}\n'
+            (output / calls).write_text('#include "' + str(public) + '"\n' + direct)
+            exports = (ROOT / 'code' / module / (prefix + '_native_exports.inc')).read_text()
+            exports = exports.replace(module + '::', '')
+            main.write_text(main.read_text() + '\n#include "' + str(public) + '"\n' + exports)
         command = [*compiler, '-x', 'c', '-std=gnu99', '-O2', '-fPIC', '-shared', precision,
                    '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv', '-fno-builtin',
                    '-include', 'native_abi.h', '-DPRODUCT_VERSION="1.35"',
                    '-D' + {'game': 'QAGAME', 'cgame': 'CGAME', 'ui': 'UI'}[module],
                    '-Wl,-Bsymbolic,-z,defs', *sources, str(ROOT / 'code/game/bg_lib.cpp'),
                    '-I' + str(ROOT / 'code/game'), '-lm', '-o', str(binary)]
+        if static:
+            command = [a for a in command if a not in ('-shared', '-Wl,-Bsymbolic,-z,defs', '-lm')]
+            command += ['-r', '-nostdlib']
         (output / (module + '.command')).write_text(shlex.join(command) + '\n')
         with (output / (module + '.log')).open('w') as log:
             subprocess.run(command, cwd=output, env=ENV, stdout=log, stderr=subprocess.STDOUT, check=True)
+        if static:
+            # Preserve C compilation and each module's original private symbol scope.
+            names = subprocess.check_output(['nm', '--defined-only', '--extern-only', binary], text=True)
+            names = [line.split()[-1] for line in names.splitlines() if line.split()]
+            symbols = output / (module + '.symbols')
+            symbols.write_text(''.join(name + ' oa_' + module + '_' + name + '\n'
+                                      for name in sorted(names)
+                                      if not name.startswith(('Game_', 'NativeCGame_', 'NativeUI_'))))
+            subprocess.run(['objcopy', '--redefine-syms=' + str(symbols), binary], check=True)
         binaries[module] = binary
     return binaries
 
@@ -119,7 +142,8 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cc', default='gcc')
+    parser.add_argument('--static', action='store_true', help='emit isolated C objects for the native engine')
     parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-openarena-native'))
     args = parser.parse_args()
-    for module, binary in build_modules(args.output, args.cc).items():
+    for module, binary in build_modules(args.output, args.cc, static=args.static).items():
         print(module, binary)

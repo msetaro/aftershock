@@ -32,6 +32,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "client.h"
+#include "../cgame/cg_native_public.h"
+#include "../ui/ui_native_public.h"
 #include "snd_local.h"
 
 #define MAXSIZE				8
@@ -1477,8 +1479,8 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 
 	if (cinTable[currentHandle].alterGameState) {
 		// close the menu
-		if ( uivm ) {
-			VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_NONE );
+		if ( NativeUI_Running ) {
+			NativeUI_SetActiveMenu( UIMENU_NONE );
 		}
 	} else {
 		cinTable[currentHandle].playonwalls = cl_inGameVideo->integer;

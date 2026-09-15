@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // sv_game.c -- interface to the game dll
 
 #include "server.h"
+#include "../game/g_native_public.h"
 
 #include "../botlib/botlib.h"
 
@@ -271,22 +272,8 @@ SV_LocateGameData
 static void SV_LocateGameData( sharedEntity_t *gEnts, unsigned numGEntities, unsigned sizeofGEntity_t,
 							   playerState_t *clients, unsigned sizeofGameClient ) {
 
-	if ( !gvm->entryPoint ) {
-		if ( numGEntities > MAX_GENTITIES ) {
-			Com_Error( ERR_DROP, "%s: bad entity count %u", __func__, numGEntities );
-		}
-
-		if ( sizeofGEntity_t < sizeof(sharedEntity_t) || sizeofGEntity_t > gvm->exactDataLength / MAX_GENTITIES ) {
-			Com_Error( ERR_DROP, "%s: bad entity size %u", __func__, sizeofGEntity_t );
-		} else if ( (byte*)gEnts - gvm->dataBase > gvm->exactDataLength - sizeofGEntity_t * MAX_GENTITIES ) {
-			Com_Error( ERR_DROP, "%s: entities located out of data segment", __func__ );
-		}
-
-		if ( sizeofGameClient < sizeof(playerState_t) || sizeofGameClient > gvm->exactDataLength / MAX_CLIENTS ) {
-			Com_Error( ERR_DROP, "%s: bad game client size %u", __func__, sizeofGameClient );
-		} else if ( (byte*)clients - gvm->dataBase > gvm->exactDataLength - sizeofGameClient * MAX_CLIENTS ) {
-			Com_Error( ERR_DROP, "%s: clients located out of data segment", __func__ );
-		}
+	if ( numGEntities > MAX_GENTITIES || sizeofGEntity_t < sizeof(sharedEntity_t) || sizeofGameClient < sizeof(playerState_t) ) {
+		Com_Error( ERR_DROP, "%s: invalid native game layout", __func__ );
 	}
 
 	sv.gentities = gEnts;
@@ -314,708 +301,736 @@ static void SV_GetUsercmd( int clientNum, usercmd_t *cmd ) {
 
 //==============================================
 
-static int FloatAsInt( float f ) {
-	floatint_t fi;
-	fi.f = f;
-	return fi.i;
+
+
+
+void GameImport_Printf( const char * fmt ) {
+	Com_Printf( "%s", (const char*)fmt );
+	return;
 }
-
-
-/*
-====================
-VM_ArgPtr
-====================
-*/
-static void *VM_ArgPtr( intptr_t intValue ) {
-
-	if ( !intValue || gvm == NULL )
-		return NULL;
-
-	if ( gvm->entryPoint )
-		return (void *)(intValue);
-	else
-		return (void *)(gvm->dataBase + (intValue & gvm->dataMask));
+void GameImport_Error( const char * fmt ) {
+	Com_Error( ERR_DROP, "%s", (const char*)fmt );
+	return;
 }
-
-
-/*
-====================
-GVM_ArgPtr
-
-exported version
-====================
-*/
-void *GVM_ArgPtr( intptr_t intValue ) 
-{
-	return VM_ArgPtr( intValue );
+int GameImport_Milliseconds( void ) {
+	return Sys_Milliseconds();
 }
+int GameImport_Argc( void ) {
+	return Cmd_Argc();
+}
+void GameImport_Argv( int n, char * buffer, int bufferLength ) {
 
+	Cmd_ArgvBuffer( n, (char *)buffer, bufferLength );
+	return;
+}
+int GameImport_FS_FOpenFile( const char * qpath, void * f, int mode ) {
+	return FS_VM_OpenFile( (const char *)qpath, (fileHandle_t *)f, (fsMode_t)mode, H_QAGAME );
+}
+void GameImport_FS_Read( void * buffer, int len, int f ) {
+	if ( f == 0 ) // UrT may pass this with len=-1 and cause false bounds check error
+		return;
 
-static qboolean SV_GetValue( char* value, int valueSize, const char* key )
-{
-	if ( !Q_stricmp( key, "SVF_SELF_PORTAL2_Q3E" ) )
+	FS_VM_ReadFile( buffer, len, f, H_QAGAME );
+	return;
+}
+void GameImport_FS_Write( const void * buffer, int len, int f ) {
+
+	FS_VM_WriteFile( (void *)buffer, len, f, H_QAGAME );
+	return;
+}
+void GameImport_FS_FCloseFile( int f ) {
+	FS_VM_CloseFile( f, H_QAGAME );
+	return;
+}
+int GameImport_FS_GetFileList( const char * path, const char * extension, char * listbuf, int bufsize ) {
+
+	return FS_GetFileList( (const char *)path, (const char *)extension, (char *)listbuf, bufsize );
+
+}
+int GameImport_FS_Seek( int f, int64_t offset, int origin ) {
+	return FS_VM_SeekFile( f, offset, (fsOrigin_t)origin, H_QAGAME );
+
+}
+void GameImport_SendConsoleCommand( int exec_when, const char * text ) {
+	Cbuf_ExecuteText( (cbufExec_t)exec_when, (const char *)text );
+	return;
+
+}
+void GameImport_Cvar_Register( void * cvar, const char * var_name, const char * value, int flags ) {
+	Cvar_Register( (vmCvar_t *)cvar, (const char *)var_name, (const char *)value, flags, 0 );
+	return;
+}
+void GameImport_Cvar_Update( void * cvar ) {
+	Cvar_Update( (vmCvar_t *)cvar, 0 );
+	return;
+}
+void GameImport_Cvar_Set( const char * var_name, const char * value ) {
+	Cvar_SetSafe( (const char *)var_name, (const char *)value );
+	return;
+}
+int GameImport_Cvar_VariableIntegerValue( const char * var_name ) {
+	return Cvar_VariableIntegerValue( (const char *)var_name );
+}
+void GameImport_Cvar_VariableStringBuffer( const char * var_name, char * buffer, int bufsize ) {
+
+	Cvar_VariableStringBufferSafe( (const char *)var_name, (char *)buffer, bufsize, 0 );
+	return;
+}
+void GameImport_LocateGameData( void * gEnts, int numGEntities, int sizeofGEntity_t, void * clients, int sizeofGClient ) {
+	SV_LocateGameData( (sharedEntity_t *)gEnts, numGEntities, sizeofGEntity_t, (playerState_t *)clients, sizeofGClient );
+	return;
+}
+void GameImport_DropClient( int clientNum, const char * reason ) {
+	SV_GameDropClient( clientNum, (const char *)reason );
+	return;
+}
+void GameImport_SendServerCommand( int clientNum, const char * text ) {
+	SV_GameSendServerCommand( clientNum, (const char *)text );
+	return;
+}
+void GameImport_SetConfigstring( int num, const char * string ) {
+	SV_SetConfigstring( num, (const char *)string );
+	return;
+}
+void GameImport_GetConfigstring( int num, char * buffer, int bufferSize ) {
+
+	SV_GetConfigstring( num, (char *)buffer, bufferSize );
+	return;
+}
+void GameImport_GetUserinfo( int num, char * buffer, int bufferSize ) {
+
+	SV_GetUserinfo( num, (char *)buffer, bufferSize );
+	return;
+}
+void GameImport_SetUserinfo( int num, const char * buffer ) {
+	SV_SetUserinfo( num, (const char *)buffer );
+	return;
+}
+void GameImport_GetServerinfo( char * buffer, int bufferSize ) {
+
+	SV_GetServerinfo( (char *)buffer, bufferSize );
+	return;
+}
+void GameImport_SetBrushModel( void * ent, const char * name ) {
+	SV_SetBrushModel( (sharedEntity_t *)ent, (const char *)name );
+	return;
+}
+void GameImport_Trace( void * results, const float * start, const float * mins, const float * maxs, const float * end, int passEntityNum, int contentmask ) {
+	SV_Trace( (trace_t *)results, (const vec_t *)start, (const vec_t *)mins, (const vec_t *)maxs, (const vec_t *)end, passEntityNum, contentmask, /*int capsule*/ qfalse );
+	return;
+}
+void GameImport_TraceCapsule( void * results, const float * start, const float * mins, const float * maxs, const float * end, int passEntityNum, int contentmask ) {
+	SV_Trace( (trace_t *)results, (const vec_t *)start, (const vec_t *)mins, (const vec_t *)maxs, (const vec_t *)end, passEntityNum, contentmask, /*int capsule*/ qtrue );
+	return;
+}
+int GameImport_PointContents( const float * point, int passEntityNum ) {
+	return SV_PointContents( (const vec_t *)point, passEntityNum );
+}
+int GameImport_InPVS( const float * p1, const float * p2 ) {
+	return SV_inPVS( (const vec_t *)p1, (const vec_t *)p2 );
+}
+int GameImport_InPVSIgnorePortals( const float * p1, const float * p2 ) {
+	return SV_inPVSIgnorePortals( (const vec_t *)p1, (const vec_t *)p2 );
+
+}
+void GameImport_AdjustAreaPortalState( void * ent, int open ) {
+	SV_AdjustAreaPortalState( (sharedEntity_t *)ent, (qboolean)open );
+	return;
+}
+int GameImport_AreasConnected( int area1, int area2 ) {
+	return CM_AreasConnected( area1, area2 );
+
+}
+void GameImport_LinkEntity( void * ent ) {
+	SV_LinkEntity( (sharedEntity_t *)ent );
+	return;
+}
+void GameImport_UnlinkEntity( void * ent ) {
+	SV_UnlinkEntity( (sharedEntity_t *)ent );
+	return;
+}
+int GameImport_EntitiesInBox( const float * mins, const float * maxs, int * list, int maxcount ) {
+
+	return SV_AreaEntities( (const vec_t *)mins, (const vec_t *)maxs, (int *)list, maxcount );
+}
+int GameImport_EntityContact( const float * mins, const float * maxs, const void * ent ) {
+	return SV_EntityContact( (const vec_t *)mins, (const vec_t *)maxs, (const sharedEntity_t *)ent, /*int capsule*/ qfalse );
+}
+int GameImport_EntityContactCapsule( const float * mins, const float * maxs, const void * ent ) {
+	return SV_EntityContact( (const vec_t *)mins, (const vec_t *)maxs, (const sharedEntity_t *)ent, /*int capsule*/ qtrue );
+}
+int GameImport_BotAllocateClient( void ) {
+	return SV_BotAllocateClient();
+}
+void GameImport_BotFreeClient( int clientNum ) {
+	SV_BotFreeClient( clientNum );
+	return;
+
+}
+void GameImport_GetUsercmd( int clientNum, void * cmd ) {
+	SV_GetUsercmd( clientNum, (usercmd_t *)cmd );
+	return;
+}
+int GameImport_GetEntityToken( char * buffer, int bufferSize ) {
 	{
-		Com_sprintf( value, valueSize, "%i", SVF_SELF_PORTAL2 );
-		return qtrue;
-	}
+		char *s = (char*)COM_Parse( &sv.entityParsePoint );
 
-	if ( !Q_stricmp( key, "trap_Cvar_SetDescription_Q3E" ) )
-	{
-		Com_sprintf( value, valueSize, "%i", G_CVAR_SETDESCRIPTION );
-		return qtrue;
-	}
-
-	return qfalse;
-}
-
-
-/*
-====================
-SV_GameSystemCalls
-
-The module is making a system call
-====================
-*/
-static intptr_t SV_GameSystemCalls( intptr_t *args ) {
-
-	// detect infinite loops in QVM code by counting syscalls per VM_Call invocation
-	// the stock id 1.32 qagame.qvm has a bug in ClientSpawn() where a do/while(1) loop
-	// retrying spawn point selection can loop forever if all spawn points have FL_NO_BOTS
-	// set, causing the server to hang at 100% CPU
-	if ( gvm->syscallCount >= 1024 * 1024 ) {
-		Com_Error( ERR_DROP, "game VM syscall overflow - Loss of control in VM" );
-	}
-	++gvm->syscallCount;
-
-	switch( args[0] ) {
-	case G_PRINT:
-		Com_Printf( "%s", (const char*)VMA(1) );
-		return 0;
-	case G_ERROR:
-		Com_Error( ERR_DROP, "%s", (const char*)VMA(1) );
-		return 0;
-	case G_MILLISECONDS:
-		return Sys_Milliseconds();
-	case G_CVAR_REGISTER:
-		Cvar_Register( (vmCvar_t *)VMA(1), (const char *)VMA(2), (const char *)VMA(3), args[4], gvm->privateFlag );
-		return 0;
-	case G_CVAR_UPDATE:
-		Cvar_Update( (vmCvar_t *)VMA(1), gvm->privateFlag );
-		return 0;
-	case G_CVAR_SET:
-		Cvar_SetSafe( (const char *)VMA(1), (const char *)VMA(2) );
-		return 0;
-	case G_CVAR_VARIABLE_INTEGER_VALUE:
-		return Cvar_VariableIntegerValue( (const char *)VMA(1) );
-	case G_CVAR_VARIABLE_STRING_BUFFER:
-		VM_CHECKBOUNDS( gvm, args[2], args[3] );
-		Cvar_VariableStringBufferSafe( (const char *)VMA(1), (char *)VMA(2), args[3], gvm->privateFlag );
-		return 0;
-	case G_ARGC:
-		return Cmd_Argc();
-	case G_ARGV:
-		VM_CHECKBOUNDS( gvm, args[2], args[3] );
-		Cmd_ArgvBuffer( args[1], (char *)VMA(2), args[3] );
-		return 0;
-	case G_SEND_CONSOLE_COMMAND:
-		Cbuf_ExecuteText( (cbufExec_t)args[1], (const char *)VMA(2) );
-		return 0;
-
-	case G_FS_FOPEN_FILE:
-		return FS_VM_OpenFile( (const char *)VMA(1), (fileHandle_t *)VMA(2), (fsMode_t)args[3], H_QAGAME );
-	case G_FS_READ:
-		if ( args[3] == 0 ) // UrT may pass this with args[2]=-1 and cause false bounds check error
-			return 0;
-		VM_CHECKBOUNDS( gvm, args[1], args[2] );
-		return FS_VM_ReadFile( VMA(1), args[2], args[3], H_QAGAME );
-	case G_FS_WRITE:
-		VM_CHECKBOUNDS( gvm, args[1], args[2] );
-		FS_VM_WriteFile( VMA(1), args[2], args[3], H_QAGAME );
-		return 0;
-	case G_FS_FCLOSE_FILE:
-		FS_VM_CloseFile( args[1], H_QAGAME );
-		return 0;
-	case G_FS_SEEK:
-		return FS_VM_SeekFile( args[1], args[2], (fsOrigin_t)args[3], H_QAGAME );
-
-	case G_FS_GETFILELIST:
-		VM_CHECKBOUNDS( gvm, args[3], args[4] );
-		return FS_GetFileList( (const char *)VMA(1), (const char *)VMA(2), (char *)VMA(3), args[4] );
-
-	case G_LOCATE_GAME_DATA:
-		SV_LocateGameData( (sharedEntity_t *)VMA(1), args[2], args[3], (playerState_t *)VMA(4), args[5] );
-		return 0;
-	case G_DROP_CLIENT:
-		SV_GameDropClient( args[1], (const char *)VMA(2) );
-		return 0;
-	case G_SEND_SERVER_COMMAND:
-		SV_GameSendServerCommand( args[1], (const char *)VMA(2) );
-		return 0;
-	case G_LINKENTITY:
-		SV_LinkEntity( (sharedEntity_t *)VMA(1) );
-		return 0;
-	case G_UNLINKENTITY:
-		SV_UnlinkEntity( (sharedEntity_t *)VMA(1) );
-		return 0;
-	case G_ENTITIES_IN_BOX:
-		VM_CHECKBOUNDS3( gvm, args[3], args[4], sizeof( int ) );
-		return SV_AreaEntities( (const vec_t *)VMA(1), (const vec_t *)VMA(2), (int *)VMA(3), args[4] );
-	case G_ENTITY_CONTACT:
-		return SV_EntityContact( (const vec_t *)VMA(1), (const vec_t *)VMA(2), (const sharedEntity_t *)VMA(3), /*int capsule*/ qfalse );
-	case G_ENTITY_CONTACTCAPSULE:
-		return SV_EntityContact( (const vec_t *)VMA(1), (const vec_t *)VMA(2), (const sharedEntity_t *)VMA(3), /*int capsule*/ qtrue );
-	case G_TRACE:
-		SV_Trace( (trace_t *)VMA(1), (const vec_t *)VMA(2), (const vec_t *)VMA(3), (const vec_t *)VMA(4), (const vec_t *)VMA(5), args[6], args[7], /*int capsule*/ qfalse );
-		return 0;
-	case G_TRACECAPSULE:
-		SV_Trace( (trace_t *)VMA(1), (const vec_t *)VMA(2), (const vec_t *)VMA(3), (const vec_t *)VMA(4), (const vec_t *)VMA(5), args[6], args[7], /*int capsule*/ qtrue );
-		return 0;
-	case G_POINT_CONTENTS:
-		return SV_PointContents( (const vec_t *)VMA(1), args[2] );
-	case G_SET_BRUSH_MODEL:
-		SV_SetBrushModel( (sharedEntity_t *)VMA(1), (const char *)VMA(2) );
-		return 0;
-	case G_IN_PVS:
-		return SV_inPVS( (const vec_t *)VMA(1), (const vec_t *)VMA(2) );
-	case G_IN_PVS_IGNORE_PORTALS:
-		return SV_inPVSIgnorePortals( (const vec_t *)VMA(1), (const vec_t *)VMA(2) );
-
-	case G_SET_CONFIGSTRING:
-		SV_SetConfigstring( args[1], (const char *)VMA(2) );
-		return 0;
-	case G_GET_CONFIGSTRING:
-		VM_CHECKBOUNDS( gvm, args[2], args[3] );
-		SV_GetConfigstring( args[1], (char *)VMA(2), args[3] );
-		return 0;
-	case G_SET_USERINFO:
-		SV_SetUserinfo( args[1], (const char *)VMA(2) );
-		return 0;
-	case G_GET_USERINFO:
-		VM_CHECKBOUNDS( gvm, args[2], args[3] );
-		SV_GetUserinfo( args[1], (char *)VMA(2), args[3] );
-		return 0;
-	case G_GET_SERVERINFO:
-		VM_CHECKBOUNDS( gvm, args[1], args[2] );
-		SV_GetServerinfo( (char *)VMA(1), args[2] );
-		return 0;
-	case G_ADJUST_AREA_PORTAL_STATE:
-		SV_AdjustAreaPortalState( (sharedEntity_t *)VMA(1), (qboolean)args[2] );
-		return 0;
-	case G_AREAS_CONNECTED:
-		return CM_AreasConnected( args[1], args[2] );
-
-	case G_BOT_ALLOCATE_CLIENT:
-		return SV_BotAllocateClient();
-	case G_BOT_FREE_CLIENT:
-		SV_BotFreeClient( args[1] );
-		return 0;
-
-	case G_GET_USERCMD:
-		SV_GetUsercmd( args[1], (usercmd_t *)VMA(2) );
-		return 0;
-	case G_GET_ENTITY_TOKEN:
+		//Q_strncpyz( buffer, s, bufferSize );
+		// we can't use our optimized Q_strncpyz() function
+		// because of uninitialized memory bug in defrag mod
 		{
-			char *s = (char*)COM_Parse( &sv.entityParsePoint );
-			VM_CHECKBOUNDS( gvm, args[1], args[2] );
-			//Q_strncpyz( VMA(1), s, args[2] );
-			// we can't use our optimized Q_strncpyz() function
-			// because of uninitialized memory bug in defrag mod
-			{
-				char *dst = (char*)VMA(1);
-				const int size = args[2]-1;
-				if ( size >= 0 ) {
-					Q_strncpy( dst, s, size );
-					dst[size] = '\0';
-				}
-			}
-			if ( !sv.entityParsePoint && s[0] == '\0' ) {
-				return qfalse;
-			} else {
-				return qtrue;
+			char *dst = (char*)buffer;
+			const int size = bufferSize-1;
+			if ( size >= 0 ) {
+				Q_strncpy( dst, s, size );
+				dst[size] = '\0';
 			}
 		}
-
-	case G_DEBUG_POLYGON_CREATE:
-		return BotImport_DebugPolygonCreate( args[1], args[2], (vec_t ( *)[3])VMA(3) );
-	case G_DEBUG_POLYGON_DELETE:
-		BotImport_DebugPolygonDelete( args[1] );
-		return 0;
-	case G_REAL_TIME:
-		return Com_RealTime( (qtime_t *)VMA(1) );
-	case G_SNAPVECTOR:
-		Sys_SnapVector( (float *)VMA(1) );
-		return 0;
-
-		//====================================
-
-	case BOTLIB_SETUP:
-		return SV_BotLibSetup();
-	case BOTLIB_SHUTDOWN:
-		return SV_BotLibShutdown();
-	case BOTLIB_LIBVAR_SET:
-		return botlib_export->BotLibVarSet( (const char *)VMA(1), (const char *)VMA(2) );
-	case BOTLIB_LIBVAR_GET:
-		VM_CHECKBOUNDS( gvm, args[2], args[3] );
-		return botlib_export->BotLibVarGet( (const char *)VMA(1), (char *)VMA(2), args[3] );
-
-	case BOTLIB_PC_ADD_GLOBAL_DEFINE:
-		return botlib_export->PC_AddGlobalDefine( (const char *)VMA(1) );
-	case BOTLIB_PC_LOAD_SOURCE:
-		return botlib_export->PC_LoadSourceHandle( (const char *)VMA(1) );
-	case BOTLIB_PC_FREE_SOURCE:
-		return botlib_export->PC_FreeSourceHandle( args[1] );
-	case BOTLIB_PC_READ_TOKEN:
-		VM_CHECKBOUNDS( gvm, args[2], sizeof( pc_token_t ) );
-		return botlib_export->PC_ReadTokenHandle( args[1], (pc_token_t *)VMA(2) );
-	case BOTLIB_PC_SOURCE_FILE_AND_LINE:
-		return botlib_export->PC_SourceFileAndLine( args[1], (char *)VMA(2), (int *)VMA(3) );
-
-	case BOTLIB_START_FRAME:
-		return botlib_export->BotLibStartFrame( VMF(1) );
-	case BOTLIB_LOAD_MAP:
-		return botlib_export->BotLibLoadMap( (const char *)VMA(1) );
-	case BOTLIB_UPDATENTITY:
-		return botlib_export->BotLibUpdateEntity( args[1], (bot_entitystate_t *)VMA(2) );
-	case BOTLIB_TEST:
-		return botlib_export->Test( args[1], (char *)VMA(2), (vec_t *)VMA(3), (vec_t *)VMA(4) );
-
-	case BOTLIB_GET_SNAPSHOT_ENTITY:
-		return SV_BotGetSnapshotEntity( args[1], args[2] );
-	case BOTLIB_GET_CONSOLE_MESSAGE:
-		VM_CHECKBOUNDS( gvm, args[2], args[3] );
-		return SV_BotGetConsoleMessage( args[1], (char *)VMA(2), args[3] );
-	case BOTLIB_USER_COMMAND:
-		{
-			unsigned clientNum = args[1];
-			if ( clientNum < sv.maxclients )
-			{
-				SV_ClientThink( &svs.clients[ clientNum ], (usercmd_t *)VMA(2) );
-			}
+		if ( !sv.entityParsePoint && s[0] == '\0' ) {
+			return qfalse;
+		} else {
+			return qtrue;
 		}
-		return 0;
-
-	case BOTLIB_AAS_BBOX_AREAS:
-		return botlib_export->aas.AAS_BBoxAreas( (vec_t *)VMA(1), (vec_t *)VMA(2), (int *)VMA(3), args[4] );
-	case BOTLIB_AAS_AREA_INFO:
-		return botlib_export->aas.AAS_AreaInfo( args[1], (struct aas_areainfo_s *)VMA(2) );
-	case BOTLIB_AAS_ALTERNATIVE_ROUTE_GOAL:
-		return botlib_export->aas.AAS_AlternativeRouteGoals( (vec_t *)VMA(1), args[2], (vec_t *)VMA(3), args[4], args[5], (struct aas_altroutegoal_s *)VMA(6), args[7], args[8] );
-	case BOTLIB_AAS_ENTITY_INFO:
-		botlib_export->aas.AAS_EntityInfo( args[1], (struct aas_entityinfo_s *)VMA(2) );
-		return 0;
-
-	case BOTLIB_AAS_INITIALIZED:
-		return botlib_export->aas.AAS_Initialized();
-	case BOTLIB_AAS_PRESENCE_TYPE_BOUNDING_BOX:
-		botlib_export->aas.AAS_PresenceTypeBoundingBox( args[1], (vec_t *)VMA(2), (vec_t *)VMA(3) );
-		return 0;
-	case BOTLIB_AAS_TIME:
-		return FloatAsInt( botlib_export->aas.AAS_Time() );
-
-	case BOTLIB_AAS_POINT_AREA_NUM:
-		return botlib_export->aas.AAS_PointAreaNum( (vec_t *)VMA(1) );
-	case BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX:
-		return botlib_export->aas.AAS_PointReachabilityAreaIndex( (vec_t *)VMA(1) );
-	case BOTLIB_AAS_TRACE_AREAS:
-		return botlib_export->aas.AAS_TraceAreas( (vec_t *)VMA(1), (vec_t *)VMA(2), (int *)VMA(3), (vec_t ( *)[3])VMA(4), args[5] );
-
-	case BOTLIB_AAS_POINT_CONTENTS:
-		return botlib_export->aas.AAS_PointContents( (vec_t *)VMA(1) );
-	case BOTLIB_AAS_NEXT_BSP_ENTITY:
-		return botlib_export->aas.AAS_NextBSPEntity( args[1] );
-	case BOTLIB_AAS_VALUE_FOR_BSP_EPAIR_KEY:
-		VM_CHECKBOUNDS( gvm, args[3], args[4] );
-		return botlib_export->aas.AAS_ValueForBSPEpairKey( args[1], (const char *)VMA(2), (char *)VMA(3), args[4] );
-	case BOTLIB_AAS_VECTOR_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_VectorForBSPEpairKey( args[1], (const char *)VMA(2), (vec_t *)VMA(3) );
-	case BOTLIB_AAS_FLOAT_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_FloatForBSPEpairKey( args[1], (const char *)VMA(2), (float *)VMA(3) );
-	case BOTLIB_AAS_INT_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_IntForBSPEpairKey( args[1], (const char *)VMA(2), (int *)VMA(3) );
-
-	case BOTLIB_AAS_AREA_REACHABILITY:
-		return botlib_export->aas.AAS_AreaReachability( args[1] );
-
-	case BOTLIB_AAS_AREA_TRAVEL_TIME_TO_GOAL_AREA:
-		return botlib_export->aas.AAS_AreaTravelTimeToGoalArea( args[1], (vec_t *)VMA(2), args[3], args[4] );
-	case BOTLIB_AAS_ENABLE_ROUTING_AREA:
-		return botlib_export->aas.AAS_EnableRoutingArea( args[1], args[2] );
-	case BOTLIB_AAS_PREDICT_ROUTE:
-		return botlib_export->aas.AAS_PredictRoute( (struct aas_predictroute_s *)VMA(1), args[2], (vec_t *)VMA(3), args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11] );
-
-	case BOTLIB_AAS_SWIMMING:
-		return botlib_export->aas.AAS_Swimming( (vec_t *)VMA(1) );
-	case BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT:
-		return botlib_export->aas.AAS_PredictClientMovement( (struct aas_clientmove_s *)VMA(1), args[2], (const vec_t *)VMA(3), args[4], args[5],
-			(const vec_t *)VMA(6), (const vec_t *)VMA(7), args[8], args[9], VMF(10), args[11], args[12], args[13] );
-
-	case BOTLIB_EA_SAY:
-		botlib_export->ea.EA_Say( args[1], (const char *)VMA(2) );
-		return 0;
-	case BOTLIB_EA_SAY_TEAM:
-		botlib_export->ea.EA_SayTeam( args[1], (const char *)VMA(2) );
-		return 0;
-	case BOTLIB_EA_COMMAND:
-		botlib_export->ea.EA_Command( args[1], (const char *)VMA(2) );
-		return 0;
-
-	case BOTLIB_EA_ACTION:
-		botlib_export->ea.EA_Action( args[1], args[2] );
-		return 0;
-	case BOTLIB_EA_GESTURE:
-		botlib_export->ea.EA_Gesture( args[1] );
-		return 0;
-	case BOTLIB_EA_TALK:
-		botlib_export->ea.EA_Talk( args[1] );
-		return 0;
-	case BOTLIB_EA_ATTACK:
-		botlib_export->ea.EA_Attack( args[1] );
-		return 0;
-	case BOTLIB_EA_USE:
-		botlib_export->ea.EA_Use( args[1] );
-		return 0;
-	case BOTLIB_EA_RESPAWN:
-		botlib_export->ea.EA_Respawn( args[1] );
-		return 0;
-	case BOTLIB_EA_CROUCH:
-		botlib_export->ea.EA_Crouch( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_UP:
-		botlib_export->ea.EA_MoveUp( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_DOWN:
-		botlib_export->ea.EA_MoveDown( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_FORWARD:
-		botlib_export->ea.EA_MoveForward( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_BACK:
-		botlib_export->ea.EA_MoveBack( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_LEFT:
-		botlib_export->ea.EA_MoveLeft( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_RIGHT:
-		botlib_export->ea.EA_MoveRight( args[1] );
-		return 0;
-
-	case BOTLIB_EA_SELECT_WEAPON:
-		botlib_export->ea.EA_SelectWeapon( args[1], args[2] );
-		return 0;
-	case BOTLIB_EA_JUMP:
-		botlib_export->ea.EA_Jump( args[1] );
-		return 0;
-	case BOTLIB_EA_DELAYED_JUMP:
-		botlib_export->ea.EA_DelayedJump( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE:
-		botlib_export->ea.EA_Move( args[1], (vec_t *)VMA(2), VMF(3) );
-		return 0;
-	case BOTLIB_EA_VIEW:
-		botlib_export->ea.EA_View( args[1], (vec_t *)VMA(2) );
-		return 0;
-
-	case BOTLIB_EA_END_REGULAR:
-		botlib_export->ea.EA_EndRegular( args[1], VMF(2) );
-		return 0;
-	case BOTLIB_EA_GET_INPUT:
-		botlib_export->ea.EA_GetInput( args[1], VMF(2), (bot_input_t *)VMA(3) );
-		return 0;
-	case BOTLIB_EA_RESET_INPUT:
-		botlib_export->ea.EA_ResetInput( args[1] );
-		return 0;
-
-	case BOTLIB_AI_LOAD_CHARACTER:
-		return botlib_export->ai.BotLoadCharacter( (const char *)VMA(1), VMF(2) );
-	case BOTLIB_AI_FREE_CHARACTER:
-		botlib_export->ai.BotFreeCharacter( args[1] );
-		return 0;
-	case BOTLIB_AI_CHARACTERISTIC_FLOAT:
-		return FloatAsInt( botlib_export->ai.Characteristic_Float( args[1], args[2] ) );
-	case BOTLIB_AI_CHARACTERISTIC_BFLOAT:
-		return FloatAsInt( botlib_export->ai.Characteristic_BFloat( args[1], args[2], VMF(3), VMF(4) ) );
-	case BOTLIB_AI_CHARACTERISTIC_INTEGER:
-		return botlib_export->ai.Characteristic_Integer( args[1], args[2] );
-	case BOTLIB_AI_CHARACTERISTIC_BINTEGER:
-		return botlib_export->ai.Characteristic_BInteger( args[1], args[2], args[3], args[4] );
-	case BOTLIB_AI_CHARACTERISTIC_STRING:
-		VM_CHECKBOUNDS( gvm, args[3], args[4] );
-		botlib_export->ai.Characteristic_String( args[1], args[2], (char *)VMA(3), args[4] );
-		return 0;
-
-	case BOTLIB_AI_ALLOC_CHAT_STATE:
-		return botlib_export->ai.BotAllocChatState();
-	case BOTLIB_AI_FREE_CHAT_STATE:
-		botlib_export->ai.BotFreeChatState( args[1] );
-		return 0;
-	case BOTLIB_AI_QUEUE_CONSOLE_MESSAGE:
-		botlib_export->ai.BotQueueConsoleMessage( args[1], args[2], (const char *)VMA(3) );
-		return 0;
-	case BOTLIB_AI_REMOVE_CONSOLE_MESSAGE:
-		botlib_export->ai.BotRemoveConsoleMessage( args[1], args[2] );
-		return 0;
-	case BOTLIB_AI_NEXT_CONSOLE_MESSAGE:
-		return botlib_export->ai.BotNextConsoleMessage( args[1], (struct bot_consolemessage_qvm_s *)VMA(2) );
-	case BOTLIB_AI_NUM_CONSOLE_MESSAGE:
-		return botlib_export->ai.BotNumConsoleMessages( args[1] );
-	case BOTLIB_AI_INITIAL_CHAT:
-		botlib_export->ai.BotInitialChat( args[1], (const char *)VMA(2), args[3], (const char *)VMA(4), (const char *)VMA(5), (const char *)VMA(6), (const char *)VMA(7), (const char *)VMA(8), (const char *)VMA(9), (const char *)VMA(10), (const char *)VMA(11) );
-		return 0;
-	case BOTLIB_AI_NUM_INITIAL_CHATS:
-		return botlib_export->ai.BotNumInitialChats( args[1], (const char *)VMA(2) );
-	case BOTLIB_AI_REPLY_CHAT:
-		return botlib_export->ai.BotReplyChat( args[1], (const char *)VMA(2), args[3], args[4], (const char *)VMA(5), (const char *)VMA(6), (const char *)VMA(7), (const char *)VMA(8), (const char *)VMA(9), (const char *)VMA(10), (const char *)VMA(11), (const char *)VMA(12) );
-	case BOTLIB_AI_CHAT_LENGTH:
-		return botlib_export->ai.BotChatLength( args[1] );
-	case BOTLIB_AI_ENTER_CHAT:
-		botlib_export->ai.BotEnterChat( args[1], args[2], args[3] );
-		return 0;
-	case BOTLIB_AI_GET_CHAT_MESSAGE:
-		VM_CHECKBOUNDS( gvm, args[2], args[3] );
-		botlib_export->ai.BotGetChatMessage( args[1], (char *)VMA(2), args[3] );
-		return 0;
-	case BOTLIB_AI_STRING_CONTAINS:
-		return botlib_export->ai.StringContains( (const char *)VMA(1), (const char *)VMA(2), args[3] );
-	case BOTLIB_AI_FIND_MATCH:
-		return botlib_export->ai.BotFindMatch( (const char *)VMA(1), (struct bot_match_s *)VMA(2), args[3] );
-	case BOTLIB_AI_MATCH_VARIABLE:
-		VM_CHECKBOUNDS( gvm, args[3], args[4] );
-		botlib_export->ai.BotMatchVariable( (struct bot_match_s *)VMA(1), args[2], (char *)VMA(3), args[4] );
-		return 0;
-	case BOTLIB_AI_UNIFY_WHITE_SPACES:
-		botlib_export->ai.UnifyWhiteSpaces( (char *)VMA(1) );
-		return 0;
-	case BOTLIB_AI_REPLACE_SYNONYMS:
-		botlib_export->ai.BotReplaceSynonyms( (char *)VMA(1), VM_DATA_GUARD_SIZE, args[2] );
-		return 0;
-	case BOTLIB_AI_LOAD_CHAT_FILE:
-		return botlib_export->ai.BotLoadChatFile( args[1], (const char *)VMA(2), (const char *)VMA(3) );
-	case BOTLIB_AI_SET_CHAT_GENDER:
-		botlib_export->ai.BotSetChatGender( args[1], args[2] );
-		return 0;
-	case BOTLIB_AI_SET_CHAT_NAME:
-		botlib_export->ai.BotSetChatName( args[1], (const char *)VMA(2), args[3] );
-		return 0;
-
-	case BOTLIB_AI_RESET_GOAL_STATE:
-		botlib_export->ai.BotResetGoalState( args[1] );
-		return 0;
-	case BOTLIB_AI_RESET_AVOID_GOALS:
-		botlib_export->ai.BotResetAvoidGoals( args[1] );
-		return 0;
-	case BOTLIB_AI_REMOVE_FROM_AVOID_GOALS:
-		botlib_export->ai.BotRemoveFromAvoidGoals( args[1], args[2] );
-		return 0;
-	case BOTLIB_AI_PUSH_GOAL:
-		botlib_export->ai.BotPushGoal( args[1], (struct bot_goal_s *)VMA(2) );
-		return 0;
-	case BOTLIB_AI_POP_GOAL:
-		botlib_export->ai.BotPopGoal( args[1] );
-		return 0;
-	case BOTLIB_AI_EMPTY_GOAL_STACK:
-		botlib_export->ai.BotEmptyGoalStack( args[1] );
-		return 0;
-	case BOTLIB_AI_DUMP_AVOID_GOALS:
-		botlib_export->ai.BotDumpAvoidGoals( args[1] );
-		return 0;
-	case BOTLIB_AI_DUMP_GOAL_STACK:
-		botlib_export->ai.BotDumpGoalStack( args[1] );
-		return 0;
-	case BOTLIB_AI_GOAL_NAME:
-		VM_CHECKBOUNDS( gvm, args[2], args[3] );
-		botlib_export->ai.BotGoalName( args[1], (char *)VMA(2), args[3] );
-		return 0;
-	case BOTLIB_AI_GET_TOP_GOAL:
-		return botlib_export->ai.BotGetTopGoal( args[1], (struct bot_goal_s *)VMA(2) );
-	case BOTLIB_AI_GET_SECOND_GOAL:
-		return botlib_export->ai.BotGetSecondGoal( args[1], (struct bot_goal_s *)VMA(2) );
-	case BOTLIB_AI_CHOOSE_LTG_ITEM:
-		return botlib_export->ai.BotChooseLTGItem( args[1], (vec_t *)VMA(2), (int *)VMA(3), args[4] );
-	case BOTLIB_AI_CHOOSE_NBG_ITEM:
-		return botlib_export->ai.BotChooseNBGItem( args[1], (vec_t *)VMA(2), (int *)VMA(3), args[4], (struct bot_goal_s *)VMA(5), VMF(6) );
-	case BOTLIB_AI_TOUCHING_GOAL:
-		return botlib_export->ai.BotTouchingGoal( (const vec_t *)VMA(1), (const struct bot_goal_s *)VMA(2) );
-	case BOTLIB_AI_ITEM_GOAL_IN_VIS_BUT_NOT_VISIBLE:
-		return botlib_export->ai.BotItemGoalInVisButNotVisible( args[1], (vec_t *)VMA(2), (vec_t *)VMA(3), (struct bot_goal_s *)VMA(4) );
-	case BOTLIB_AI_GET_LEVEL_ITEM_GOAL:
-		return botlib_export->ai.BotGetLevelItemGoal( args[1], (const char *)VMA(2), (struct bot_goal_s *)VMA(3) );
-	case BOTLIB_AI_GET_NEXT_CAMP_SPOT_GOAL:
-		return botlib_export->ai.BotGetNextCampSpotGoal( args[1], (struct bot_goal_s *)VMA(2) );
-	case BOTLIB_AI_GET_MAP_LOCATION_GOAL:
-		return botlib_export->ai.BotGetMapLocationGoal( (const char *)VMA(1), (struct bot_goal_s *)VMA(2) );
-	case BOTLIB_AI_AVOID_GOAL_TIME:
-		return FloatAsInt( botlib_export->ai.BotAvoidGoalTime( args[1], args[2] ) );
-	case BOTLIB_AI_SET_AVOID_GOAL_TIME:
-		botlib_export->ai.BotSetAvoidGoalTime( args[1], args[2], VMF(3));
-		return 0;
-	case BOTLIB_AI_INIT_LEVEL_ITEMS:
-		botlib_export->ai.BotInitLevelItems();
-		return 0;
-	case BOTLIB_AI_UPDATE_ENTITY_ITEMS:
-		botlib_export->ai.BotUpdateEntityItems();
-		return 0;
-	case BOTLIB_AI_LOAD_ITEM_WEIGHTS:
-		return botlib_export->ai.BotLoadItemWeights( args[1], (const char *)VMA(2) );
-	case BOTLIB_AI_FREE_ITEM_WEIGHTS:
-		botlib_export->ai.BotFreeItemWeights( args[1] );
-		return 0;
-	case BOTLIB_AI_INTERBREED_GOAL_FUZZY_LOGIC:
-		botlib_export->ai.BotInterbreedGoalFuzzyLogic( args[1], args[2], args[3] );
-		return 0;
-	case BOTLIB_AI_SAVE_GOAL_FUZZY_LOGIC:
-		botlib_export->ai.BotSaveGoalFuzzyLogic( args[1], (const char *)VMA(2) );
-		return 0;
-	case BOTLIB_AI_MUTATE_GOAL_FUZZY_LOGIC:
-		botlib_export->ai.BotMutateGoalFuzzyLogic( args[1], VMF(2) );
-		return 0;
-	case BOTLIB_AI_ALLOC_GOAL_STATE:
-		return botlib_export->ai.BotAllocGoalState( args[1] );
-	case BOTLIB_AI_FREE_GOAL_STATE:
-		botlib_export->ai.BotFreeGoalState( args[1] );
-		return 0;
-
-	case BOTLIB_AI_RESET_MOVE_STATE:
-		botlib_export->ai.BotResetMoveState( args[1] );
-		return 0;
-	case BOTLIB_AI_ADD_AVOID_SPOT:
-		botlib_export->ai.BotAddAvoidSpot( args[1], (const vec_t *)VMA(2), VMF(3), args[4] );
-		return 0;
-	case BOTLIB_AI_MOVE_TO_GOAL:
-		botlib_export->ai.BotMoveToGoal( (struct bot_moveresult_s *)VMA(1), args[2], (struct bot_goal_s *)VMA(3), args[4] );
-		return 0;
-	case BOTLIB_AI_MOVE_IN_DIRECTION:
-		return botlib_export->ai.BotMoveInDirection( args[1], (vec_t *)VMA(2), VMF(3), args[4] );
-	case BOTLIB_AI_RESET_AVOID_REACH:
-		botlib_export->ai.BotResetAvoidReach( args[1] );
-		return 0;
-	case BOTLIB_AI_RESET_LAST_AVOID_REACH:
-		botlib_export->ai.BotResetLastAvoidReach( args[1] );
-		return 0;
-	case BOTLIB_AI_REACHABILITY_AREA:
-		return botlib_export->ai.BotReachabilityArea( (vec_t *)VMA(1), args[2] );
-	case BOTLIB_AI_MOVEMENT_VIEW_TARGET:
-		return botlib_export->ai.BotMovementViewTarget( args[1], (struct bot_goal_s *)VMA(2), args[3], VMF(4), (vec_t *)VMA(5) );
-	case BOTLIB_AI_PREDICT_VISIBLE_POSITION:
-		return botlib_export->ai.BotPredictVisiblePosition( (vec_t *)VMA(1), args[2], (struct bot_goal_s *)VMA(3), args[4], (vec_t *)VMA(5) );
-	case BOTLIB_AI_ALLOC_MOVE_STATE:
-		return botlib_export->ai.BotAllocMoveState();
-	case BOTLIB_AI_FREE_MOVE_STATE:
-		botlib_export->ai.BotFreeMoveState( args[1] );
-		return 0;
-	case BOTLIB_AI_INIT_MOVE_STATE:
-		botlib_export->ai.BotInitMoveState( args[1], (struct bot_initmove_s *)VMA(2) );
-		return 0;
-
-	case BOTLIB_AI_CHOOSE_BEST_FIGHT_WEAPON:
-		return botlib_export->ai.BotChooseBestFightWeapon( args[1], (int *)VMA(2) );
-	case BOTLIB_AI_GET_WEAPON_INFO:
-		botlib_export->ai.BotGetWeaponInfo( args[1], args[2], (struct weaponinfo_s *)VMA(3) );
-		return 0;
-	case BOTLIB_AI_LOAD_WEAPON_WEIGHTS:
-		return botlib_export->ai.BotLoadWeaponWeights( args[1], (const char *)VMA(2) );
-	case BOTLIB_AI_ALLOC_WEAPON_STATE:
-		return botlib_export->ai.BotAllocWeaponState();
-	case BOTLIB_AI_FREE_WEAPON_STATE:
-		botlib_export->ai.BotFreeWeaponState( args[1] );
-		return 0;
-	case BOTLIB_AI_RESET_WEAPON_STATE:
-		botlib_export->ai.BotResetWeaponState( args[1] );
-		return 0;
-
-	case BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION:
-		return botlib_export->ai.GeneticParentsAndChildSelection(args[1], (float *)VMA(2), (int *)VMA(3), (int *)VMA(4), (int *)VMA(5));
-
-	// shared syscalls
-
-	case TRAP_MEMSET:
-		VM_CHECKBOUNDS( gvm, args[1], args[3] );
-		Com_Memset( VMA(1), args[2], args[3] );
-		return args[1];
-
-	case TRAP_MEMCPY:
-		VM_CHECKBOUNDS2( gvm, args[1], args[2], args[3] );
-		Com_Memcpy( VMA(1), VMA(2), args[3] );
-		return args[1];
-
-	case TRAP_STRNCPY:
-		VM_CHECKBOUNDS( gvm, args[1], args[3] );
-		Q_strncpy( (char *)VMA(1), (char *)VMA(2), args[3] );
-		return args[1];
-
-	case TRAP_SIN:
-		return FloatAsInt( sin( (double)(VMF(1)) ) );
-
-	case TRAP_COS:
-		return FloatAsInt( cos( (double)(VMF(1)) ) );
-
-	case TRAP_ATAN2:
-		return FloatAsInt( atan2( (double)(VMF(1)), (double)(VMF(2)) ) );
-
-	case TRAP_SQRT:
-		return FloatAsInt( sqrt( (double)(VMF(1)) ) );
-
-	case G_MATRIXMULTIPLY:
-		MatrixMultiply( (float ( *)[3])VMA(1), (float ( *)[3])VMA(2), (float ( *)[3])VMA(3) );
-		return 0;
-
-	case G_ANGLEVECTORS:
-		AngleVectors( (const vec_t *)VMA(1), (vec_t *)VMA(2), (vec_t *)VMA(3), (vec_t *)VMA(4) );
-		return 0;
-
-	case G_PERPENDICULARVECTOR:
-		PerpendicularVector( (vec_t *)VMA(1), (const vec_t *)VMA(2) );
-		return 0;
-
-	case G_FLOOR:
-		return FloatAsInt( floor( (double)(VMF(1)) ) );
-
-	case G_CEIL:
-		return FloatAsInt( ceil( (double)(VMF(1)) ) );
-
-	case G_TESTPRINTINT:
-		return sprintf( (char *)VMA(1), "%i", (int)args[2] );
-
-	case G_TESTPRINTFLOAT:
-		return sprintf( (char *)VMA(1), "%f", VMF(2) );
-
-	case G_CVAR_SETDESCRIPTION:
-		Cvar_SetDescription2( (const char*)VMA(1), (const char*)VMA(2) );
-		return 0;
-
-	case G_TRAP_GETVALUE:
-		VM_CHECKBOUNDS( gvm, args[1], args[2] );
-		return SV_GetValue( (char *)VMA(1), args[2], (const char *)VMA(3) );
-
-	default:
-		Com_Error( ERR_DROP, "Bad game system trap: %ld", (long int) args[0] );
 	}
-	return 0;
+
+}
+int GameImport_DebugPolygonCreate( int color, int numPoints, void * points ) {
+	return BotImport_DebugPolygonCreate( color, numPoints, (vec_t ( *)[3])points );
+}
+void GameImport_DebugPolygonDelete( int id ) {
+	BotImport_DebugPolygonDelete( id );
+	return;
+}
+int GameImport_RealTime( void * qtime ) {
+	return Com_RealTime( (qtime_t *)qtime );
+}
+void GameImport_SnapVector( float * v ) {
+	Sys_SnapVector( (float *)v );
+	return;
+
+	//====================================
+
+}
+int GameImport_BotLibSetup( void ) {
+	return SV_BotLibSetup();
+}
+int GameImport_BotLibShutdown( void ) {
+	return SV_BotLibShutdown();
+}
+int GameImport_BotLibVarSet( char * var_name, char * value ) {
+	return botlib_export->BotLibVarSet( (const char *)var_name, (const char *)value );
+}
+int GameImport_BotLibVarGet( char * var_name, char * value, int size ) {
+
+	return botlib_export->BotLibVarGet( (const char *)var_name, (char *)value, size );
+
+}
+int GameImport_BotLibDefine( char * string ) {
+	return botlib_export->PC_AddGlobalDefine( (const char *)string );
+}
+int GameImport_BotLibStartFrame( float time ) {
+	return botlib_export->BotLibStartFrame( time );
+}
+int GameImport_BotLibLoadMap( const char * mapname ) {
+	return botlib_export->BotLibLoadMap( (const char *)mapname );
+}
+int GameImport_BotLibUpdateEntity( int ent, void  * bue ) {
+	return botlib_export->BotLibUpdateEntity( ent, (bot_entitystate_t *)bue );
+}
+int GameImport_BotLibTest( int parm0, char * parm1, float * parm2, float * parm3 ) {
+	return botlib_export->Test( parm0, (char *)parm1, (vec_t *)parm2, (vec_t *)parm3 );
+
+}
+int GameImport_BotGetSnapshotEntity( int clientNum, int sequence ) {
+	return SV_BotGetSnapshotEntity( clientNum, sequence );
+}
+int GameImport_BotGetServerCommand( int clientNum, char * message, int size ) {
+
+	return SV_BotGetConsoleMessage( clientNum, (char *)message, size );
+}
+void GameImport_BotUserCommand( int clientNum, void * ucmd ) {
+	{
+		unsigned clientIndex = clientNum;
+		if ( clientIndex < sv.maxclients )
+		{
+			SV_ClientThink( &svs.clients[ clientIndex ], (usercmd_t *)ucmd );
+		}
+	}
+	return;
+
+}
+void GameImport_AAS_EntityInfo( int entnum, void  * info ) {
+	botlib_export->aas.AAS_EntityInfo( entnum, (struct aas_entityinfo_s *)info );
+	return;
+
+}
+int GameImport_AAS_Initialized( void ) {
+	return botlib_export->aas.AAS_Initialized();
+}
+void GameImport_AAS_PresenceTypeBoundingBox( int presencetype, float * mins, float * maxs ) {
+	botlib_export->aas.AAS_PresenceTypeBoundingBox( presencetype, (vec_t *)mins, (vec_t *)maxs );
+	return;
+}
+float GameImport_AAS_Time( void ) {
+	return  botlib_export->aas.AAS_Time() ;
+
+}
+int GameImport_AAS_PointAreaNum( float * point ) {
+	return botlib_export->aas.AAS_PointAreaNum( (vec_t *)point );
+}
+int GameImport_AAS_PointReachabilityAreaIndex( float * point ) {
+	return botlib_export->aas.AAS_PointReachabilityAreaIndex( (vec_t *)point );
+}
+int GameImport_AAS_TraceAreas( float * start, float * end, int * areas, void * points, int maxareas ) {
+	return botlib_export->aas.AAS_TraceAreas( (vec_t *)start, (vec_t *)end, (int *)areas, (vec_t ( *)[3])points, maxareas );
+
+}
+int GameImport_AAS_BBoxAreas( float * absmins, float * absmaxs, int * areas, int maxareas ) {
+	return botlib_export->aas.AAS_BBoxAreas( (vec_t *)absmins, (vec_t *)absmaxs, (int *)areas, maxareas );
+}
+int GameImport_AAS_AreaInfo( int areanum, void  * info ) {
+	return botlib_export->aas.AAS_AreaInfo( areanum, (struct aas_areainfo_s *)info );
+}
+int GameImport_AAS_PointContents( float * point ) {
+	return botlib_export->aas.AAS_PointContents( (vec_t *)point );
+}
+int GameImport_AAS_NextBSPEntity( int ent ) {
+	return botlib_export->aas.AAS_NextBSPEntity( ent );
+}
+int GameImport_AAS_ValueForBSPEpairKey( int ent, char * key, char * value, int size ) {
+
+	return botlib_export->aas.AAS_ValueForBSPEpairKey( ent, (const char *)key, (char *)value, size );
+}
+int GameImport_AAS_VectorForBSPEpairKey( int ent, char * key, float * v ) {
+	return botlib_export->aas.AAS_VectorForBSPEpairKey( ent, (const char *)key, (vec_t *)v );
+}
+int GameImport_AAS_FloatForBSPEpairKey( int ent, char * key, float * value ) {
+	return botlib_export->aas.AAS_FloatForBSPEpairKey( ent, (const char *)key, (float *)value );
+}
+int GameImport_AAS_IntForBSPEpairKey( int ent, char * key, int * value ) {
+	return botlib_export->aas.AAS_IntForBSPEpairKey( ent, (const char *)key, (int *)value );
+
+}
+int GameImport_AAS_AreaReachability( int areanum ) {
+	return botlib_export->aas.AAS_AreaReachability( areanum );
+
+}
+int GameImport_AAS_AreaTravelTimeToGoalArea( int areanum, float * origin, int goalareanum, int travelflags ) {
+	return botlib_export->aas.AAS_AreaTravelTimeToGoalArea( areanum, (vec_t *)origin, goalareanum, travelflags );
+}
+int GameImport_AAS_EnableRoutingArea( int areanum, int enable ) {
+	return botlib_export->aas.AAS_EnableRoutingArea( areanum, enable );
+}
+int GameImport_AAS_PredictRoute( void  * route, int areanum, float * origin, int goalareanum, int travelflags, int maxareas, int maxtime, int stopevent, int stopcontents, int stoptfl, int stopareanum ) {
+	return botlib_export->aas.AAS_PredictRoute( (struct aas_predictroute_s *)route, areanum, (vec_t *)origin, goalareanum, travelflags, maxareas, maxtime, stopevent, stopcontents, stoptfl, stopareanum );
+
+}
+int GameImport_AAS_AlternativeRouteGoals( float * start, int startareanum, float * goal, int goalareanum, int travelflags, void  * altroutegoals, int maxaltroutegoals, int type ) {
+	return botlib_export->aas.AAS_AlternativeRouteGoals( (vec_t *)start, startareanum, (vec_t *)goal, goalareanum, travelflags, (struct aas_altroutegoal_s *)altroutegoals, maxaltroutegoals, type );
+}
+int GameImport_AAS_Swimming( float * origin ) {
+	return botlib_export->aas.AAS_Swimming( (vec_t *)origin );
+}
+int GameImport_AAS_PredictClientMovement( void  * move, int entnum, float * origin, int presencetype, int onground, float * velocity, float * cmdmove, int cmdframes, int maxframes, float frametime, int stopevent, int stopareanum, int visualize ) {
+	return botlib_export->aas.AAS_PredictClientMovement( (struct aas_clientmove_s *)move, entnum, (const vec_t *)origin, presencetype, onground,
+		(const vec_t *)velocity, (const vec_t *)cmdmove, cmdframes, maxframes, frametime, stopevent, stopareanum, visualize );
+
+}
+void GameImport_EA_Say( int client, char * str ) {
+	botlib_export->ea.EA_Say( client, (const char *)str );
+	return;
+}
+void GameImport_EA_SayTeam( int client, char * str ) {
+	botlib_export->ea.EA_SayTeam( client, (const char *)str );
+	return;
+}
+void GameImport_EA_Command( int client, char * command ) {
+	botlib_export->ea.EA_Command( client, (const char *)command );
+	return;
+
+}
+void GameImport_EA_Action( int client, int action ) {
+	botlib_export->ea.EA_Action( client, action );
+	return;
+}
+void GameImport_EA_Gesture( int client ) {
+	botlib_export->ea.EA_Gesture( client );
+	return;
+}
+void GameImport_EA_Talk( int client ) {
+	botlib_export->ea.EA_Talk( client );
+	return;
+}
+void GameImport_EA_Attack( int client ) {
+	botlib_export->ea.EA_Attack( client );
+	return;
+}
+void GameImport_EA_Use( int client ) {
+	botlib_export->ea.EA_Use( client );
+	return;
+}
+void GameImport_EA_Respawn( int client ) {
+	botlib_export->ea.EA_Respawn( client );
+	return;
+}
+void GameImport_EA_Crouch( int client ) {
+	botlib_export->ea.EA_Crouch( client );
+	return;
+}
+void GameImport_EA_MoveUp( int client ) {
+	botlib_export->ea.EA_MoveUp( client );
+	return;
+}
+void GameImport_EA_MoveDown( int client ) {
+	botlib_export->ea.EA_MoveDown( client );
+	return;
+}
+void GameImport_EA_MoveForward( int client ) {
+	botlib_export->ea.EA_MoveForward( client );
+	return;
+}
+void GameImport_EA_MoveBack( int client ) {
+	botlib_export->ea.EA_MoveBack( client );
+	return;
+}
+void GameImport_EA_MoveLeft( int client ) {
+	botlib_export->ea.EA_MoveLeft( client );
+	return;
+}
+void GameImport_EA_MoveRight( int client ) {
+	botlib_export->ea.EA_MoveRight( client );
+	return;
+
+}
+void GameImport_EA_SelectWeapon( int client, int weapon ) {
+	botlib_export->ea.EA_SelectWeapon( client, weapon );
+	return;
+}
+void GameImport_EA_Jump( int client ) {
+	botlib_export->ea.EA_Jump( client );
+	return;
+}
+void GameImport_EA_DelayedJump( int client ) {
+	botlib_export->ea.EA_DelayedJump( client );
+	return;
+}
+void GameImport_EA_Move( int client, float * dir, float speed ) {
+	botlib_export->ea.EA_Move( client, (vec_t *)dir, speed );
+	return;
+}
+void GameImport_EA_View( int client, float * viewangles ) {
+	botlib_export->ea.EA_View( client, (vec_t *)viewangles );
+	return;
+
+}
+void GameImport_EA_EndRegular( int client, float thinktime ) {
+	botlib_export->ea.EA_EndRegular( client, thinktime );
+	return;
+}
+void GameImport_EA_GetInput( int client, float thinktime, void  * input ) {
+	botlib_export->ea.EA_GetInput( client, thinktime, (bot_input_t *)input );
+	return;
+}
+void GameImport_EA_ResetInput( int client ) {
+	botlib_export->ea.EA_ResetInput( client );
+	return;
+
+}
+int GameImport_BotLoadCharacter( char * charfile, float skill ) {
+	return botlib_export->ai.BotLoadCharacter( (const char *)charfile, skill );
+}
+void GameImport_BotFreeCharacter( int character ) {
+	botlib_export->ai.BotFreeCharacter( character );
+	return;
+}
+float GameImport_Characteristic_Float( int character, int index ) {
+	return  botlib_export->ai.Characteristic_Float( character, index ) ;
+}
+float GameImport_Characteristic_BFloat( int character, int index, float min, float max ) {
+	return  botlib_export->ai.Characteristic_BFloat( character, index, min, max ) ;
+}
+int GameImport_Characteristic_Integer( int character, int index ) {
+	return botlib_export->ai.Characteristic_Integer( character, index );
+}
+int GameImport_Characteristic_BInteger( int character, int index, int min, int max ) {
+	return botlib_export->ai.Characteristic_BInteger( character, index, min, max );
+}
+void GameImport_Characteristic_String( int character, int index, char * buf, int size ) {
+
+	botlib_export->ai.Characteristic_String( character, index, (char *)buf, size );
+	return;
+
+}
+int GameImport_BotAllocChatState( void ) {
+	return botlib_export->ai.BotAllocChatState();
+}
+void GameImport_BotFreeChatState( int handle ) {
+	botlib_export->ai.BotFreeChatState( handle );
+	return;
+}
+void GameImport_BotQueueConsoleMessage( int chatstate, int type, char * message ) {
+	botlib_export->ai.BotQueueConsoleMessage( chatstate, type, (const char *)message );
+	return;
+}
+void GameImport_BotRemoveConsoleMessage( int chatstate, int handle ) {
+	botlib_export->ai.BotRemoveConsoleMessage( chatstate, handle );
+	return;
+}
+int GameImport_BotNextConsoleMessage( int chatstate, void  * cm ) {
+	return botlib_export->ai.BotNextConsoleMessage( chatstate, (struct bot_consolemessage_qvm_s *)cm );
+}
+int GameImport_BotNumConsoleMessages( int chatstate ) {
+	return botlib_export->ai.BotNumConsoleMessages( chatstate );
+}
+void GameImport_BotInitialChat( int chatstate, char * type, int mcontext, char * var0, char * var1, char * var2, char * var3, char * var4, char * var5, char * var6, char * var7 ) {
+	botlib_export->ai.BotInitialChat( chatstate, (const char *)type, mcontext, (const char *)var0, (const char *)var1, (const char *)var2, (const char *)var3, (const char *)var4, (const char *)var5, (const char *)var6, (const char *)var7 );
+	return;
+}
+int GameImport_BotNumInitialChats( int chatstate, char * type ) {
+	return botlib_export->ai.BotNumInitialChats( chatstate, (const char *)type );
+}
+int GameImport_BotReplyChat( int chatstate, char * message, int mcontext, int vcontext, char * var0, char * var1, char * var2, char * var3, char * var4, char * var5, char * var6, char * var7 ) {
+	return botlib_export->ai.BotReplyChat( chatstate, (const char *)message, mcontext, vcontext, (const char *)var0, (const char *)var1, (const char *)var2, (const char *)var3, (const char *)var4, (const char *)var5, (const char *)var6, (const char *)var7 );
+}
+int GameImport_BotChatLength( int chatstate ) {
+	return botlib_export->ai.BotChatLength( chatstate );
+}
+void GameImport_BotEnterChat( int chatstate, int client, int sendto ) {
+	botlib_export->ai.BotEnterChat( chatstate, client, sendto );
+	return;
+}
+void GameImport_BotGetChatMessage( int chatstate, char * buf, int size ) {
+
+	botlib_export->ai.BotGetChatMessage( chatstate, (char *)buf, size );
+	return;
+}
+int GameImport_StringContains( char * str1, char * str2, int casesensitive ) {
+	return botlib_export->ai.StringContains( (const char *)str1, (const char *)str2, casesensitive );
+}
+int GameImport_BotFindMatch( char * str, void  * match, unsigned long int context ) {
+	return botlib_export->ai.BotFindMatch( (const char *)str, (struct bot_match_s *)match, context );
+}
+void GameImport_BotMatchVariable( void  * match, int variable, char * buf, int size ) {
+
+	botlib_export->ai.BotMatchVariable( (struct bot_match_s *)match, variable, (char *)buf, size );
+	return;
+}
+void GameImport_UnifyWhiteSpaces( char * string ) {
+	botlib_export->ai.UnifyWhiteSpaces( (char *)string );
+	return;
+}
+void GameImport_BotReplaceSynonyms( char * string, unsigned long int context ) {
+	botlib_export->ai.BotReplaceSynonyms( (char *)string, VM_DATA_GUARD_SIZE, context );
+	return;
+}
+int GameImport_BotLoadChatFile( int chatstate, char * chatfile, char * chatname ) {
+	return botlib_export->ai.BotLoadChatFile( chatstate, (const char *)chatfile, (const char *)chatname );
+}
+void GameImport_BotSetChatGender( int chatstate, int gender ) {
+	botlib_export->ai.BotSetChatGender( chatstate, gender );
+	return;
+}
+void GameImport_BotSetChatName( int chatstate, char * name, int client ) {
+	botlib_export->ai.BotSetChatName( chatstate, (const char *)name, client );
+	return;
+
+}
+void GameImport_BotResetGoalState( int goalstate ) {
+	botlib_export->ai.BotResetGoalState( goalstate );
+	return;
+}
+void GameImport_BotResetAvoidGoals( int goalstate ) {
+	botlib_export->ai.BotResetAvoidGoals( goalstate );
+	return;
+}
+void GameImport_BotRemoveFromAvoidGoals( int goalstate, int number ) {
+	botlib_export->ai.BotRemoveFromAvoidGoals( goalstate, number );
+	return;
+}
+void GameImport_BotPushGoal( int goalstate, void  * goal ) {
+	botlib_export->ai.BotPushGoal( goalstate, (struct bot_goal_s *)goal );
+	return;
+}
+void GameImport_BotPopGoal( int goalstate ) {
+	botlib_export->ai.BotPopGoal( goalstate );
+	return;
+}
+void GameImport_BotEmptyGoalStack( int goalstate ) {
+	botlib_export->ai.BotEmptyGoalStack( goalstate );
+	return;
+}
+void GameImport_BotDumpAvoidGoals( int goalstate ) {
+	botlib_export->ai.BotDumpAvoidGoals( goalstate );
+	return;
+}
+void GameImport_BotDumpGoalStack( int goalstate ) {
+	botlib_export->ai.BotDumpGoalStack( goalstate );
+	return;
+}
+void GameImport_BotGoalName( int number, char * name, int size ) {
+
+	botlib_export->ai.BotGoalName( number, (char *)name, size );
+	return;
+}
+int GameImport_BotGetTopGoal( int goalstate, void  * goal ) {
+	return botlib_export->ai.BotGetTopGoal( goalstate, (struct bot_goal_s *)goal );
+}
+int GameImport_BotGetSecondGoal( int goalstate, void  * goal ) {
+	return botlib_export->ai.BotGetSecondGoal( goalstate, (struct bot_goal_s *)goal );
+}
+int GameImport_BotChooseLTGItem( int goalstate, float * origin, int * inventory, int travelflags ) {
+	return botlib_export->ai.BotChooseLTGItem( goalstate, (vec_t *)origin, (int *)inventory, travelflags );
+}
+int GameImport_BotChooseNBGItem( int goalstate, float * origin, int * inventory, int travelflags, void  * ltg, float maxtime ) {
+	return botlib_export->ai.BotChooseNBGItem( goalstate, (vec_t *)origin, (int *)inventory, travelflags, (struct bot_goal_s *)ltg, maxtime );
+}
+int GameImport_BotTouchingGoal( float * origin, void  * goal ) {
+	return botlib_export->ai.BotTouchingGoal( (const vec_t *)origin, (const struct bot_goal_s *)goal );
+}
+int GameImport_BotItemGoalInVisButNotVisible( int viewer, float * eye, float * viewangles, void  * goal ) {
+	return botlib_export->ai.BotItemGoalInVisButNotVisible( viewer, (vec_t *)eye, (vec_t *)viewangles, (struct bot_goal_s *)goal );
+}
+int GameImport_BotGetLevelItemGoal( int index, char * classname, void  * goal ) {
+	return botlib_export->ai.BotGetLevelItemGoal( index, (const char *)classname, (struct bot_goal_s *)goal );
+}
+int GameImport_BotGetNextCampSpotGoal( int num, void  * goal ) {
+	return botlib_export->ai.BotGetNextCampSpotGoal( num, (struct bot_goal_s *)goal );
+}
+int GameImport_BotGetMapLocationGoal( char * name, void  * goal ) {
+	return botlib_export->ai.BotGetMapLocationGoal( (const char *)name, (struct bot_goal_s *)goal );
+}
+float GameImport_BotAvoidGoalTime( int goalstate, int number ) {
+	return  botlib_export->ai.BotAvoidGoalTime( goalstate, number ) ;
+}
+void GameImport_BotSetAvoidGoalTime( int goalstate, int number, float avoidtime ) {
+	botlib_export->ai.BotSetAvoidGoalTime( goalstate, number, avoidtime);
+	return;
+}
+void GameImport_BotInitLevelItems( void ) {
+	botlib_export->ai.BotInitLevelItems();
+	return;
+}
+void GameImport_BotUpdateEntityItems( void ) {
+	botlib_export->ai.BotUpdateEntityItems();
+	return;
+}
+int GameImport_BotLoadItemWeights( int goalstate, char * filename ) {
+	return botlib_export->ai.BotLoadItemWeights( goalstate, (const char *)filename );
+}
+void GameImport_BotFreeItemWeights( int goalstate ) {
+	botlib_export->ai.BotFreeItemWeights( goalstate );
+	return;
+}
+void GameImport_BotInterbreedGoalFuzzyLogic( int parent1, int parent2, int child ) {
+	botlib_export->ai.BotInterbreedGoalFuzzyLogic( parent1, parent2, child );
+	return;
+}
+void GameImport_BotSaveGoalFuzzyLogic( int goalstate, char * filename ) {
+	botlib_export->ai.BotSaveGoalFuzzyLogic( goalstate, (const char *)filename );
+	return;
+}
+void GameImport_BotMutateGoalFuzzyLogic( int goalstate, float range ) {
+	botlib_export->ai.BotMutateGoalFuzzyLogic( goalstate, range );
+	return;
+}
+int GameImport_BotAllocGoalState( int state ) {
+	return botlib_export->ai.BotAllocGoalState( state );
+}
+void GameImport_BotFreeGoalState( int handle ) {
+	botlib_export->ai.BotFreeGoalState( handle );
+	return;
+
+}
+void GameImport_BotResetMoveState( int movestate ) {
+	botlib_export->ai.BotResetMoveState( movestate );
+	return;
+}
+void GameImport_BotAddAvoidSpot( int movestate, float * origin, float radius, int type ) {
+	botlib_export->ai.BotAddAvoidSpot( movestate, (const vec_t *)origin, radius, type );
+	return;
+}
+void GameImport_BotMoveToGoal( void  * result, int movestate, void  * goal, int travelflags ) {
+	botlib_export->ai.BotMoveToGoal( (struct bot_moveresult_s *)result, movestate, (struct bot_goal_s *)goal, travelflags );
+	return;
+}
+int GameImport_BotMoveInDirection( int movestate, float * dir, float speed, int type ) {
+	return botlib_export->ai.BotMoveInDirection( movestate, (vec_t *)dir, speed, type );
+}
+void GameImport_BotResetAvoidReach( int movestate ) {
+	botlib_export->ai.BotResetAvoidReach( movestate );
+	return;
+}
+void GameImport_BotResetLastAvoidReach( int movestate ) {
+	botlib_export->ai.BotResetLastAvoidReach( movestate );
+	return;
+}
+int GameImport_BotReachabilityArea( float * origin, int testground ) {
+	return botlib_export->ai.BotReachabilityArea( (vec_t *)origin, testground );
+}
+int GameImport_BotMovementViewTarget( int movestate, void  * goal, int travelflags, float lookahead, float * target ) {
+	return botlib_export->ai.BotMovementViewTarget( movestate, (struct bot_goal_s *)goal, travelflags, lookahead, (vec_t *)target );
+}
+int GameImport_BotPredictVisiblePosition( float * origin, int areanum, void  * goal, int travelflags, float * target ) {
+	return botlib_export->ai.BotPredictVisiblePosition( (vec_t *)origin, areanum, (struct bot_goal_s *)goal, travelflags, (vec_t *)target );
+}
+int GameImport_BotAllocMoveState( void ) {
+	return botlib_export->ai.BotAllocMoveState();
+}
+void GameImport_BotFreeMoveState( int handle ) {
+	botlib_export->ai.BotFreeMoveState( handle );
+	return;
+}
+void GameImport_BotInitMoveState( int handle, void  * initmove ) {
+	botlib_export->ai.BotInitMoveState( handle, (struct bot_initmove_s *)initmove );
+	return;
+
+}
+int GameImport_BotChooseBestFightWeapon( int weaponstate, int * inventory ) {
+	return botlib_export->ai.BotChooseBestFightWeapon( weaponstate, (int *)inventory );
+}
+void GameImport_BotGetWeaponInfo( int weaponstate, int weapon, void  * weaponinfo ) {
+	botlib_export->ai.BotGetWeaponInfo( weaponstate, weapon, (struct weaponinfo_s *)weaponinfo );
+	return;
+}
+int GameImport_BotLoadWeaponWeights( int weaponstate, char * filename ) {
+	return botlib_export->ai.BotLoadWeaponWeights( weaponstate, (const char *)filename );
+}
+int GameImport_BotAllocWeaponState( void ) {
+	return botlib_export->ai.BotAllocWeaponState();
+}
+void GameImport_BotFreeWeaponState( int weaponstate ) {
+	botlib_export->ai.BotFreeWeaponState( weaponstate );
+	return;
+}
+void GameImport_BotResetWeaponState( int weaponstate ) {
+	botlib_export->ai.BotResetWeaponState( weaponstate );
+	return;
+
+}
+int GameImport_GeneticParentsAndChildSelection( int numranks, float * ranks, int * parent1, int * parent2, int * child ) {
+	return botlib_export->ai.GeneticParentsAndChildSelection(numranks, (float *)ranks, (int *)parent1, (int *)parent2, (int *)child);
+
+// shared syscalls
+
+}
+int GameImport_PC_LoadSource( const char * filename ) {
+	return botlib_export->PC_LoadSourceHandle( (const char *)filename );
+}
+int GameImport_PC_FreeSource( int handle ) {
+	return botlib_export->PC_FreeSourceHandle( handle );
+}
+int GameImport_PC_ReadToken( int handle, void * pc_token ) {
+
+	return botlib_export->PC_ReadTokenHandle( handle, (pc_token_t *)pc_token );
+}
+int GameImport_PC_SourceFileAndLine( int handle, char * filename, int * line ) {
+	return botlib_export->PC_SourceFileAndLine( handle, (char *)filename, (int *)line );
+
 }
 
 
-/*
-====================
-SV_DllSyscall
-====================
-*/
-static intptr_t QDECL SV_DllSyscall( intptr_t arg, ... ) {
-#if !id386 || defined __clang__
-	intptr_t	args[14]; // max.count for qagame
-	va_list	ap;
-	int i;
-
-	args[0] = arg;
-	va_start( ap, arg );
-	for (i = 1; i < ARRAY_LEN( args ); i++ )
-		args[ i ] = va_arg( ap, intptr_t );
-	va_end( ap );
-
-	return SV_GameSystemCalls( args );
-#else
-	return SV_GameSystemCalls( &arg );
-#endif
-}
-
+static bool gameRunning;
+bool SV_GameRunning( void ) { return gameRunning; }
 
 /*
 ===============
@@ -1025,24 +1040,23 @@ Called every time a map changes
 ===============
 */
 void SV_ShutdownGameProgs( void ) {
-	if ( !gvm ) {
+	if ( !gameRunning ) {
 		return;
 	}
-	VM_Call( gvm, 1, GAME_SHUTDOWN, qfalse );
-	VM_Free( gvm );
-	gvm = NULL;
+	Game_Shutdown( qfalse );
+	gameRunning = false;
 	FS_VM_CloseFiles( H_QAGAME );
 }
 
 
 /*
 ==================
-SV_InitGameVM
+SV_InitNativeGame
 
 Called for both a full init and a restart
 ==================
 */
-static void SV_InitGameVM( qboolean restart ) {
+static void SV_InitNativeGame( qboolean restart ) {
 	int		i;
 
 	// start the entity parsing at the beginning
@@ -1058,7 +1072,7 @@ static void SV_InitGameVM( qboolean restart ) {
 	
 	// use the current msec count for a random seed
 	// init for this gamestate
-	VM_Call( gvm, 3, GAME_INIT, sv.time, Com_Milliseconds(), restart );
+	Game_Init( sv.time, Com_Milliseconds( ), restart );
 }
 
 
@@ -1070,20 +1084,15 @@ Called on a map_restart, but not on a normal map change
 ===================
 */
 void SV_RestartGameProgs( void ) {
-	if ( !gvm ) {
+	if ( !gameRunning ) {
 		return;
 	}
-	VM_Call( gvm, 1, GAME_SHUTDOWN, qtrue );
+	Game_Shutdown( qtrue );
 
 	Hunk_AllocPreference( h_high );
 
-	// do a restart instead of a free
-	gvm = VM_Restart( gvm );
-	if ( !gvm ) {
-		Com_Error( ERR_DROP, "VM_Restart on game failed" );
-	}
 
-	SV_InitGameVM( qtrue );
+	SV_InitNativeGame( qtrue );
 
 	// load userinfo filters
 	SV_LoadFilters( sv_filter->string );
@@ -1110,13 +1119,10 @@ void SV_InitGameProgs( void ) {
 		bot_enable = 0;
 	}
 
-	// load the dll or bytecode
-	gvm = VM_Create( VM_GAME, SV_GameSystemCalls, SV_DllSyscall, (vmInterpret_t)Cvar_VariableIntegerValue( "vm_game" ) );
-	if ( !gvm ) {
-		Com_Error( ERR_DROP, "VM_Create on game failed" );
-	}
+	gameRunning = true;
+	Com_Printf( "Static game loaded.\n" );
 
-	SV_InitGameVM( qfalse );
+	SV_InitNativeGame( qfalse );
 
 	// load userinfo filters
 	SV_LoadFilters( sv_filter->string );
@@ -1135,5 +1141,5 @@ qboolean SV_GameCommand( void ) {
 		return qfalse;
 	}
 
-	return (qboolean)VM_Call( gvm, 0, GAME_CONSOLE_COMMAND );
+	return (qboolean)Game_ConsoleCommand(  );
 }

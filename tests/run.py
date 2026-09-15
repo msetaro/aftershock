@@ -162,16 +162,15 @@ def content_settings(content):
 
 
 def runtime(args):
+    from native import engine_objects, normalize_log
     variables = [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0']
+    native_cc = args.cc
     if args.sanitize:
         variables += ['CFLAGS=-fsanitize=undefined -fno-omit-frame-pointer', 'LDFLAGS=-fsanitize=undefined']
+        native_cc += ' -fsanitize=undefined -fno-omit-frame-pointer'
+    variables += engine_objects(args.output / 'native', args.content, native_cc, args.cxx, ('game',))
     binary = build(args.output / 'runtime-build', variables) / 'quake3e.ded.x64'
-    modules = {}
-    normalize = None
-    if args.game_code == 'native':
-        from native import build_modules, normalize_log
-        modules = build_modules(args.output / 'native', args.cc, ('game',), args.cxx, args.game_language, args.content)
-        normalize = normalize_log
+    normalize = normalize_log
     for map_name in content_maps(args.content):
         results = []
         # Isolated home prevents the user's config and pak cache influencing fixtures.
@@ -180,14 +179,11 @@ def runtime(args):
             base.mkdir()
             for pak in args.data.glob('*.pk3'):
                 (base / pak.name).symlink_to(pak)
-            for module in modules.values():
-                (base / module.name).symlink_to(module)
             if not list(base.glob('*.pk3')):
                 raise SystemExit('FAIL: installed content paks are required')
             command = ['timeout', '90', 'faketime', '-f', '@2026-01-01 00:00:00 i0.01', binary,
                        '+set', 'fs_basepath', home, '+set', 'fs_homepath', home,
                        *content_settings(args.content),
-                       *(['+set', 'vm_game', '0'] if modules else []),
                        '+set', 'dedicated', '1', '+set', 'sv_pure', '0', '+set', 'com_logfile', '0',
                        '+map', map_name, '+addbot', content_bots(args.content)[0], '3', '+addbot', content_bots(args.content)[1], '3', '+wait', '900' if args.content == 'openarena' else '300', '+quit']
             for iteration in ('warmup', '1', '2'):
@@ -195,8 +191,8 @@ def runtime(args):
                 log = result.stdout
                 (args.output / f'{map_name}-{iteration}.log').write_bytes(log)
                 result.check_returncode()
-                if modules and (b'VM_LoadDll(qagame) succeeded!' not in log or b'Failed to load dll' in log):
-                    raise SystemExit('FAIL: native qagame was not loaded')
+                if b'Static game loaded.' not in log:
+                    raise SystemExit('FAIL: static game was not initialized')
                 # Only installation metadata is normalized; gameplay text is retained.
                 normalized = re.sub(rb'^\.\.\.found [0-9]+ cached paks\r?\n|^Working directory:.*\r?\n', b'', log, flags=re.M)
                 normalized = normalized.replace(home.encode(), b'<HOME>').replace(str(args.data.parent).encode(), b'<DATA>')
@@ -219,8 +215,6 @@ def main():
     parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-tests'))
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
-    parser.add_argument('--game-code', choices=['qvm', 'native'], default='qvm')
-    parser.add_argument('--game-language', choices=['c', 'c++'], default='c')
     parser.add_argument('--known-bugs', action='store_true')
     parser.add_argument('--cc', default='gcc')
     parser.add_argument('--cxx', default='g++')
@@ -229,8 +223,6 @@ def main():
     parser.add_argument('--negative-control', action='store_true')
     parser.add_argument('--regenerate', action='store_true', help='explicitly replace goldens; prohibited in CI')
     args = parser.parse_args()
-    if args.game_code == 'native' and (args.check != 'runtime' or args.regenerate):
-        parser.error('native parity requires runtime without regeneration')
     if args.regenerate and os.environ.get('CI'):
         parser.error('CI must never regenerate goldens')
     if args.negative_control and (args.check != 'unit' or args.sanitize or args.regenerate):

@@ -7,6 +7,24 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
+Active integration checkpoint: issue/2-native-game, draft PR #50. Pause the static
+integration for a separate #31 OpenArena allocator alignment fix. The newly expanded
+native runtime UBSan gate fails in ai_main.c:1210: BG_Alloc returns a payload after
+its four-byte size header, misaligning the eight-byte bot_state_t. Reproducer and
+root cause are in cpp-port-notes.md; no fix/suppression has been applied. Next:
+commit this #2 checkpoint, open issue/31-openarena-allocation-alignment from
+modernization, add the focused failing allocator test, fix it, run gates and merge
+with the usual self-review. Then integrate that patch into this branch and resume.
+
+Static Q3 and OA bot logs and both-renderer fixed replay match accepted goldens.
+The integrated Q3 video-restart replay also matches all existing frames; the
+movement-debug restart/map-change reference passes twice. Lifetime analysis covers
+562 compile commands/141 source paths, including all native namespace selections.
+Client lifecycle checkpoint e40ac443 passed regression 34932294456 and full build
+34932294429. Current static integration has local evidence but is not CI-complete:
+MSVC/native test/compiler integration and VM/JIT removal are still pending.
+The later #4/#5/#8/design-only #6 sequence remains outstanding.
+
 Active: issue/2-native-game, draft PR #50. #3, the recorded #31 fixes through
 PR #61, and #1 are merged. #2 import, C/QVM parity, catalog port, advisory review,
 and byte-identical .cpp rename are complete. Static engine adapters are still
@@ -42,11 +60,55 @@ PR #61 merged 35a2c75c; merged regression 34930596490 passed. Its #2 integration
 1def16ce passed regression 34930663280 and full build 34930663236. Both overlapping
 info-removal helpers are fixed identically in q_shared.cpp; provenance retained.
 
-Next: checkpoint/push the client lifecycle implementation and provenance, verify
-its CI, then integrate the proven direct-call adapters and native module build.
+Client source 436bbab1/provenance e40ac443 are pushed; regression 34932294456
+passed and full build 34932294429 remains to check. Earlier full build 34931874993
+passed too.
+
+Working-tree static integration now replaces the six server/nine client dispatch
+sites with typed calls. A single module.cpp wrapper compiles each imported source
+in its module namespace, with all five compatibility functions bound locally;
+there are no generated translation-unit files. The first actual Make dedicated
+build links (/tmp/aftershock-native-integrated). Client build and bot smoke are
+running. VM code is still linked but no longer serves these direct game exports;
+its removal and test-suite adaptation remain pending. These integration edits are
+not committed yet, and CI still describes the previous lifecycle checkpoint.
+
+OpenArena preflight now compiles its pinned C sources with typed imports/exports,
+combines each module into a relocatable object and prefixes its internal global
+symbols using objcopy. The public typed exports remain visible. All three C objects
+compile, and the game links against the same direct-call server; runtime/replay
+parity remains to verify. This preserves a static hosted-content test executable
+without importing OA implementation into production game source. Artifacts:
+/tmp/aftershock-oa-static-preflight and its driver script. This approach still
+needs permanent test/build integration, state-reset audit and verification.
+
+Next: verify static Q3/OA bot logs and client fixed replay, integrate permanent
+native builds/tests (including lifetime analysis), then remove the VM/JIT code.
 Keep OpenArena coverage and accepted goldens; PR #50 remains draft until static
 linking, VM/JIT removal, build/lifetime/layout/runtime/replay gates and self-review
 are complete. The full later #4/#5/#8/design-only #6 sequence remains outstanding.
+
+The integrated Q3 static server passes both accepted bot logs, both static client
+renderers pass fixed replay (b38004b1), and lifetime analysis passes 562 compile
+commands including 206 native commands across both renderer configurations. The
+Clang AST log contains private state from game, cgame and UI, confirming all
+wrapper source selections were analyzed. Engine builds use the existing fixed
+SOURCE_DATE_EPOCH; a first standalone build omitted it and differed only in the
+version date, then passed after rebuilding the two date-bearing engine objects.
+
+Static OA C game bot logs pass both accepted hashes; static OA clients pass both
+renderers and maps (5b89d33). Permanent openarena_native.py --static now builds the
+same isolated C objects. Runtime/demo now use static modules by default and the
+redundant former native-DLL CI pass is removed. OA runtime --sanitize includes its
+C game object as well as engine code and is running. Test arguments --game-code
+and --game-language are retired; C/C++ import compiler checks remain separate.
+
+The permanent Q3 lifecycle gate now compares against the already-recorded DLL
+reference logs (new native-lifecycle*.log files, dd1fe5c3/e87382ec), preserving all
+existing accepted goldens. Static movement-debug restart/map-change passes twice.
+Client lifecycle frames were also checked against the original frame golden and
+match it, so --lifecycle now uses that existing golden directly. No extra frame
+fixture or regeneration is needed. These integration changes are still uncommitted.
 
 Earlier checkpoints below describe how this integration was reached.
 

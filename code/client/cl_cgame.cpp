@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_cgame.c  -- client system interaction with client game
 
 #include "client.h"
+#include "../cgame/cg_native_public.h"
+#include "../ui/ui_native_public.h"
 
 #include "../botlib/botlib.h"
 
@@ -389,455 +391,475 @@ void CL_ShutdownCGame( void ) {
 	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CGAME );
 	cls.cgameStarted = qfalse;
 
-	if ( !cgvm ) {
+	if ( !NativeCGame_Running ) {
 		return;
 	}
 
 	re.VertexLighting( qfalse );
 
-	VM_Call( cgvm, 0, CG_SHUTDOWN );
-	VM_Free( cgvm );
-	cgvm = NULL;
+	NativeCGame_Shutdown(  );
+	NativeCGame_Running = false;
+	NativeCGame_CallDepth = 0;
 	FS_VM_CloseFiles( H_CGAME );
 }
 
 
-static int FloatAsInt( float f ) {
-	floatint_t fi;
-	fi.f = f;
-	return fi.i;
+void CGameImport_Print( const char * fmt ) {
+
+	Com_Printf( "%s", (const char*)fmt );
+	return;
 }
+void CGameImport_Error( const char * fmt ) {
 
-
-static void *VM_ArgPtr( intptr_t intValue ) {
-
-	if ( !intValue || cgvm == NULL )
-	  return NULL;
-
-	if ( cgvm->entryPoint )
-		return (void *)(intValue);
-	else
-		return (void *)(cgvm->dataBase + (intValue & cgvm->dataMask));
+	Com_Error( ERR_DROP, "%s", (const char*)fmt );
+	return;
 }
+int CGameImport_Milliseconds( void ) {
 
-
-static qboolean CL_GetValue( char* value, int valueSize, const char* key ) {
-
-	if ( !Q_stricmp( key, "trap_R_AddRefEntityToScene2" ) ) {
-		Com_sprintf( value, valueSize, "%i", CG_R_ADDREFENTITYTOSCENE2 );
-		return qtrue;
-	}
-
-	if ( !Q_stricmp( key, "trap_R_ForceFixedDLights" ) ) {
-		Com_sprintf( value, valueSize, "%i", CG_R_FORCEFIXEDDLIGHTS );
-		return qtrue;
-	}
-
-	if ( !Q_stricmp( key, "trap_R_AddLinearLightToScene_Q3E" ) && re.AddLinearLightToScene ) {
-		Com_sprintf( value, valueSize, "%i", CG_R_ADDLINEARLIGHTTOSCENE );
-		return qtrue;
-	}
-
-	if ( !Q_stricmp( key, "trap_IsRecordingDemo" ) ) {
-		Com_sprintf( value, valueSize, "%i", CG_IS_RECORDING_DEMO );
-		return qtrue;
-	}
-
-	if ( !Q_stricmp( key, "trap_Cvar_SetDescription_Q3E" ) ) {
-		Com_sprintf( value, valueSize, "%i", CG_CVAR_SETDESCRIPTION );
-		return qtrue;
-	}
-
-	if ( !Q_stricmp( key, "trap_Key_CapsLockOn_Q3E" ) ) {
-		Com_sprintf( value, valueSize, "%i", CG_KEY_CAPSLOCK_ON );
-		return qtrue;
-	}
-
-	return qfalse;
+	return Sys_Milliseconds();
 }
+void CGameImport_Cvar_Register( void * vmCvar, const char * varName, const char * defaultValue, int flags ) {
 
-
-static void CL_ForceFixedDlights( void ) {
-	cvar_t *cv;
-
-	cv = Cvar_Get( "r_dlightMode", "1", 0 );
-	if ( cv ) {
-		Cvar_CheckRange( cv, "1", "2", CV_INTEGER );
-	}
+	Cvar_Register( (vmCvar_t *)vmCvar, (const char *)varName, (const char *)defaultValue, flags, 0 );
+	return;
 }
+void CGameImport_Cvar_Update( void * vmCvar ) {
+
+	Cvar_Update( (vmCvar_t *)vmCvar, 0 );
+	return;
+}
+void CGameImport_Cvar_Set( const char * var_name, const char * value ) {
+
+	Cvar_SetSafe( (const char *)var_name, (const char *)value );
+	return;
+}
+void CGameImport_Cvar_VariableStringBuffer( const char * var_name, char * buffer, int bufsize ) {
+
+	Cvar_VariableStringBufferSafe( (const char *)var_name, (char *)buffer, bufsize, CVAR_PRIVATE );
+	return;
+}
+int CGameImport_Argc( void ) {
+
+	return Cmd_Argc();
+}
+void CGameImport_Argv( int n, char * buffer, int bufferLength ) {
+
+	Cmd_ArgvBuffer( n, (char *)buffer, bufferLength );
+	return;
+}
+void CGameImport_Args( char * buffer, int bufferLength ) {
+
+	Cmd_ArgsBuffer( (char *)buffer, bufferLength );
+	return;
+
+}
+int CGameImport_FS_FOpenFile( const char * qpath, void * f, int mode ) {
+
+	return FS_VM_OpenFile( (const char *)qpath, (fileHandle_t *)f, (fsMode_t)mode, H_CGAME );
+}
+void CGameImport_FS_Read( void * buffer, int len, int f ) {
+
+	FS_VM_ReadFile( buffer, len, f, H_CGAME );
+	return;
+}
+void CGameImport_FS_Write( const void * buffer, int len, int f ) {
+
+	FS_VM_WriteFile( (void *)buffer, len, f, H_CGAME );
+	return;
+}
+void CGameImport_FS_FCloseFile( int f ) {
+
+	FS_VM_CloseFile( f, H_CGAME );
+	return;
+}
+int CGameImport_FS_Seek( int f, int64_t offset, int origin ) {
+
+	return FS_VM_SeekFile( f, offset, (fsOrigin_t)origin, H_CGAME );
+
+}
+void CGameImport_SendConsoleCommand( const char * text ) {
+ {
+	const char *cmd = (const char *)text;
+	Cbuf_NestedAdd( cmd );
+	return;
+}
+}
+void CGameImport_AddCommand( const char * cmdName ) {
+
+	CL_AddCgameCommand( (const char *)cmdName );
+	return;
+}
+void CGameImport_RemoveCommand( const char * cmdName ) {
+
+	Cmd_RemoveCommandSafe( (const char *)cmdName );
+	return;
+}
+void CGameImport_SendClientCommand( const char * s ) {
+
+	CL_AddReliableCommand( (const char *)s, qfalse );
+	return;
+}
+void CGameImport_UpdateScreen( void ) {
+
+	// this is used during lengthy level loading, so pump message loop
+	// Com_EventLoop();	// FIXME: if a server restarts here, BAD THINGS HAPPEN!
+	// We can't call Com_EventLoop here, a restart will crash and this _does_ happen
+	// if there is a map change while we are downloading at pk3.
+	// ZOID
+	SCR_UpdateScreen();
+	return;
+}
+void CGameImport_CM_LoadMap( const char * mapname ) {
+
+	CL_CM_LoadMap( (const char *)mapname );
+	return;
+}
+int CGameImport_CM_NumInlineModels( void ) {
+
+	return CM_NumInlineModels();
+}
+int CGameImport_CM_InlineModel( int index ) {
+
+	return CM_InlineModel( index );
+}
+int CGameImport_CM_TempBoxModel( const float * mins, const float * maxs ) {
+
+	return CM_TempBoxModel( (const vec_t *)mins, (const vec_t *)maxs,  qfalse );
+}
+int CGameImport_CM_TempCapsuleModel( const float * mins, const float * maxs ) {
+
+	return CM_TempBoxModel( (const vec_t *)mins, (const vec_t *)maxs,  qtrue );
+}
+int CGameImport_CM_PointContents( const float * p, int model ) {
+
+	return CM_PointContents( (const vec_t *)p, model );
+}
+int CGameImport_CM_TransformedPointContents( const float * p, int model, const float * origin, const float * angles ) {
+
+	return CM_TransformedPointContents( (const vec_t *)p, model, (const vec_t *)origin, (const vec_t *)angles );
+}
+void CGameImport_CM_BoxTrace( void * results, const float * start, const float * end, const float * mins, const float * maxs, int model, int brushmask ) {
+
+	CM_BoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask,  qfalse );
+	return;
+}
+void CGameImport_CM_CapsuleTrace( void * results, const float * start, const float * end, const float * mins, const float * maxs, int model, int brushmask ) {
+
+	CM_BoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask,  qtrue );
+	return;
+}
+void CGameImport_CM_TransformedBoxTrace( void * results, const float * start, const float * end, const float * mins, const float * maxs, int model, int brushmask, const float * origin, const float * angles ) {
+
+	CM_TransformedBoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask, (const vec_t *)origin, (const vec_t *)angles,  qfalse );
+	return;
+}
+void CGameImport_CM_TransformedCapsuleTrace( void * results, const float * start, const float * end, const float * mins, const float * maxs, int model, int brushmask, const float * origin, const float * angles ) {
+
+	CM_TransformedBoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask, (const vec_t *)origin, (const vec_t *)angles,  qtrue );
+	return;
+}
+int CGameImport_CM_MarkFragments( int numPoints, const void * points, const float * projection, int maxPoints, float * pointBuffer, int maxFragments, void * fragmentBuffer ) {
 
 
-/*
-====================
-CL_CgameSystemCalls
 
-The cgame module is making a system call
-====================
-*/
-static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
-	switch( args[0] ) {
-	case CG_PRINT:
-		Com_Printf( "%s", (const char*)VMA(1) );
-		return 0;
-	case CG_ERROR:
-		Com_Error( ERR_DROP, "%s", (const char*)VMA(1) );
-		return 0;
-	case CG_MILLISECONDS:
-		return Sys_Milliseconds();
-	case CG_CVAR_REGISTER:
-		Cvar_Register( (vmCvar_t *)VMA(1), (const char *)VMA(2), (const char *)VMA(3), args[4], cgvm->privateFlag );
-		return 0;
-	case CG_CVAR_UPDATE:
-		Cvar_Update( (vmCvar_t *)VMA(1), cgvm->privateFlag );
-		return 0;
-	case CG_CVAR_SET:
-		Cvar_SetSafe( (const char *)VMA(1), (const char *)VMA(2) );
-		return 0;
-	case CG_CVAR_VARIABLESTRINGBUFFER:
-		VM_CHECKBOUNDS( cgvm, args[2], args[3] );
-		Cvar_VariableStringBufferSafe( (const char *)VMA(1), (char *)VMA(2), args[3], CVAR_PRIVATE );
-		return 0;
-	case CG_ARGC:
-		return Cmd_Argc();
-	case CG_ARGV:
-		VM_CHECKBOUNDS( cgvm, args[2], args[3] );
-		Cmd_ArgvBuffer( args[1], (char *)VMA(2), args[3] );
-		return 0;
-	case CG_ARGS:
-		VM_CHECKBOUNDS( cgvm, args[1], args[2] );
-		Cmd_ArgsBuffer( (char *)VMA(1), args[2] );
-		return 0;
+	return re.MarkFragments( numPoints, (const vec_t ( *)[3])points, (const vec_t *)projection, maxPoints, (vec_t *)pointBuffer, maxFragments, (markFragment_t *)fragmentBuffer );
+}
+void CGameImport_S_StartSound( float * origin, int entityNum, int entchannel, int sfx ) {
 
-	case CG_FS_FOPENFILE:
-		return FS_VM_OpenFile( (const char *)VMA(1), (fileHandle_t *)VMA(2), (fsMode_t)args[3], H_CGAME );
-	case CG_FS_READ:
-		VM_CHECKBOUNDS( cgvm, args[1], args[2] );
-		FS_VM_ReadFile( VMA(1), args[2], args[3], H_CGAME );
-		return 0;
-	case CG_FS_WRITE:
-		VM_CHECKBOUNDS( cgvm, args[1], args[2] );
-		FS_VM_WriteFile( VMA(1), args[2], args[3], H_CGAME );
-		return 0;
-	case CG_FS_FCLOSEFILE:
-		FS_VM_CloseFile( args[1], H_CGAME );
-		return 0;
-	case CG_FS_SEEK:
-		return FS_VM_SeekFile( args[1], args[2], (fsOrigin_t)args[3], H_CGAME );
+	S_StartSound( (vec_t *)origin, entityNum, entchannel, sfx );
+	return;
+}
+void CGameImport_S_StartLocalSound( int sfx, int channelNum ) {
 
-	case CG_SENDCONSOLECOMMAND: {
-		const char *cmd = (const char *)VMA(1);
-		Cbuf_NestedAdd( cmd );
-		return 0;
-	}
-	case CG_ADDCOMMAND:
-		CL_AddCgameCommand( (const char *)VMA(1) );
-		return 0;
-	case CG_REMOVECOMMAND:
-		Cmd_RemoveCommandSafe( (const char *)VMA(1) );
-		return 0;
-	case CG_SENDCLIENTCOMMAND:
-		CL_AddReliableCommand( (const char *)VMA(1), qfalse );
-		return 0;
-	case CG_UPDATESCREEN:
-		// this is used during lengthy level loading, so pump message loop
-		// Com_EventLoop();	// FIXME: if a server restarts here, BAD THINGS HAPPEN!
-		// We can't call Com_EventLoop here, a restart will crash and this _does_ happen
-		// if there is a map change while we are downloading at pk3.
-		// ZOID
-		SCR_UpdateScreen();
-		return 0;
-	case CG_CM_LOADMAP:
-		CL_CM_LoadMap( (const char *)VMA(1) );
-		return 0;
-	case CG_CM_NUMINLINEMODELS:
-		return CM_NumInlineModels();
-	case CG_CM_INLINEMODEL:
-		return CM_InlineModel( args[1] );
-	case CG_CM_TEMPBOXMODEL:
-		return CM_TempBoxModel( (const vec_t *)VMA(1), (const vec_t *)VMA(2), /*int capsule*/ qfalse );
-	case CG_CM_TEMPCAPSULEMODEL:
-		return CM_TempBoxModel( (const vec_t *)VMA(1), (const vec_t *)VMA(2), /*int capsule*/ qtrue );
-	case CG_CM_POINTCONTENTS:
-		return CM_PointContents( (const vec_t *)VMA(1), args[2] );
-	case CG_CM_TRANSFORMEDPOINTCONTENTS:
-		return CM_TransformedPointContents( (const vec_t *)VMA(1), args[2], (const vec_t *)VMA(3), (const vec_t *)VMA(4) );
-	case CG_CM_BOXTRACE:
-		CM_BoxTrace( (trace_t *)VMA(1), (const vec_t *)VMA(2), (const vec_t *)VMA(3), (const vec_t *)VMA(4), (const vec_t *)VMA(5), args[6], args[7], /*int capsule*/ qfalse );
-		return 0;
-	case CG_CM_CAPSULETRACE:
-		CM_BoxTrace( (trace_t *)VMA(1), (const vec_t *)VMA(2), (const vec_t *)VMA(3), (const vec_t *)VMA(4), (const vec_t *)VMA(5), args[6], args[7], /*int capsule*/ qtrue );
-		return 0;
-	case CG_CM_TRANSFORMEDBOXTRACE:
-		CM_TransformedBoxTrace( (trace_t *)VMA(1), (const vec_t *)VMA(2), (const vec_t *)VMA(3), (const vec_t *)VMA(4), (const vec_t *)VMA(5), args[6], args[7], (const vec_t *)VMA(8), (const vec_t *)VMA(9), /*int capsule*/ qfalse );
-		return 0;
-	case CG_CM_TRANSFORMEDCAPSULETRACE:
-		CM_TransformedBoxTrace( (trace_t *)VMA(1), (const vec_t *)VMA(2), (const vec_t *)VMA(3), (const vec_t *)VMA(4), (const vec_t *)VMA(5), args[6], args[7], (const vec_t *)VMA(8), (const vec_t *)VMA(9), /*int capsule*/ qtrue );
-		return 0;
-	case CG_CM_MARKFRAGMENTS:
-		VM_CHECKBOUNDS3( cgvm, args[2], args[1], sizeof( vec3_t ) );
-		VM_CHECKBOUNDS3( cgvm, args[5], args[4], sizeof( vec3_t ) );
-		VM_CHECKBOUNDS3( cgvm, args[7], args[6], sizeof( markFragment_t ) );
-		return re.MarkFragments( args[1], (const vec_t ( *)[3])VMA(2), (const vec_t *)VMA(3), args[4], (vec_t *)VMA(5), args[6], (markFragment_t *)VMA(7) );
-	case CG_S_STARTSOUND:
-		S_StartSound( (vec_t *)VMA(1), args[2], args[3], args[4] );
-		return 0;
-	case CG_S_STARTLOCALSOUND:
-		S_StartLocalSound( args[1], args[2] );
-		return 0;
-	case CG_S_CLEARLOOPINGSOUNDS:
-		S_ClearLoopingSounds((qboolean)args[1]);
-		return 0;
-	case CG_S_ADDLOOPINGSOUND:
-		S_AddLoopingSound( args[1], (const vec_t *)VMA(2), (const vec_t *)VMA(3), args[4] );
-		return 0;
-	case CG_S_ADDREALLOOPINGSOUND:
-		S_AddRealLoopingSound( args[1], (const vec_t *)VMA(2), (const vec_t *)VMA(3), args[4] );
-		return 0;
-	case CG_S_STOPLOOPINGSOUND:
-		S_StopLoopingSound( args[1] );
-		return 0;
-	case CG_S_UPDATEENTITYPOSITION:
-		S_UpdateEntityPosition( args[1], (const vec_t *)VMA(2) );
-		return 0;
-	case CG_S_RESPATIALIZE:
-		S_Respatialize( args[1], (const vec_t *)VMA(2), (vec_t ( *)[3])VMA(3), args[4] );
-		return 0;
-	case CG_S_REGISTERSOUND:
-		return S_RegisterSound( (const char *)VMA(1), (qboolean)args[2] );
-	case CG_S_STARTBACKGROUNDTRACK:
-		S_StartBackgroundTrack( (const char *)VMA(1), (const char *)VMA(2) );
-		return 0;
-	case CG_R_LOADWORLDMAP:
-		re.LoadWorld( (const char *)VMA(1) );
-		return 0;
-	case CG_R_REGISTERMODEL:
-		return re.RegisterModel( (const char *)VMA(1) );
-	case CG_R_REGISTERSKIN:
-		return re.RegisterSkin( (const char *)VMA(1) );
-	case CG_R_REGISTERSHADER:
-		return re.RegisterShader( (const char *)VMA(1) );
-	case CG_R_REGISTERSHADERNOMIP:
-		return re.RegisterShaderNoMip( (const char *)VMA(1) );
-	case CG_R_REGISTERFONT:
-		re.RegisterFont( (const char *)VMA(1), args[2], (fontInfo_t *)VMA(3));
-		return 0;
-	case CG_R_CLEARSCENE:
-		re.ClearScene();
-		return 0;
-	case CG_R_ADDREFENTITYTOSCENE:
-		re.AddRefEntityToScene( (const refEntity_t *)VMA(1), qfalse );
-		return 0;
-	case CG_R_ADDPOLYTOSCENE:
-		re.AddPolyToScene( args[1], args[2], (const polyVert_t *)VMA(3), 1 );
-		return 0;
-	case CG_R_ADDPOLYSTOSCENE:
-		re.AddPolyToScene( args[1], args[2], (const polyVert_t *)VMA(3), args[4] );
-		return 0;
-	case CG_R_LIGHTFORPOINT:
-		return re.LightForPoint( (vec_t *)VMA(1), (vec_t *)VMA(2), (vec_t *)VMA(3), (vec_t *)VMA(4) );
-	case CG_R_ADDLIGHTTOSCENE:
-		re.AddLightToScene( (const vec_t *)VMA(1), VMF(2), VMF(3), VMF(4), VMF(5) );
-		return 0;
-	case CG_R_ADDADDITIVELIGHTTOSCENE:
-		re.AddAdditiveLightToScene( (const vec_t *)VMA(1), VMF(2), VMF(3), VMF(4), VMF(5) );
-		return 0;
-	case CG_R_RENDERSCENE:
-		re.RenderScene( (const refdef_t *)VMA(1) );
-		return 0;
-	case CG_R_SETCOLOR:
-		re.SetColor( (const float *)VMA(1) );
-		return 0;
-	case CG_R_DRAWSTRETCHPIC:
-		re.DrawStretchPic( VMF(1), VMF(2), VMF(3), VMF(4), VMF(5), VMF(6), VMF(7), VMF(8), args[9] );
-		return 0;
-	case CG_R_MODELBOUNDS:
-		re.ModelBounds( args[1], (vec_t *)VMA(2), (vec_t *)VMA(3) );
-		return 0;
-	case CG_R_LERPTAG:
-		return re.LerpTag( (orientation_t *)VMA(1), args[2], args[3], args[4], VMF(5), (const char *)VMA(6) );
-	case CG_GETGLCONFIG:
-		VM_CHECKBOUNDS( cgvm, args[1], sizeof( glconfig_t ) );
-		CL_GetGlconfig( (glconfig_t *)VMA(1) );
-		return 0;
-	case CG_GETGAMESTATE:
-		VM_CHECKBOUNDS( cgvm, args[1], sizeof( gameState_t ) );
-		CL_GetGameState( (gameState_t *)VMA(1) );
-		return 0;
-	case CG_GETCURRENTSNAPSHOTNUMBER:
-		CL_GetCurrentSnapshotNumber( (int *)VMA(1), (int *)VMA(2) );
-		return 0;
-	case CG_GETSNAPSHOT:
-		return CL_GetSnapshot( args[1], (snapshot_t *)VMA(2) );
-	case CG_GETSERVERCOMMAND:
-		return CL_GetServerCommand( args[1] );
-	case CG_GETCURRENTCMDNUMBER:
-		return CL_GetCurrentCmdNumber();
-	case CG_GETUSERCMD:
-		return CL_GetUserCmd( args[1], (usercmd_t *)VMA(2) );
-	case CG_SETUSERCMDVALUE:
-		CL_SetUserCmdValue( args[1], VMF(2) );
-		return 0;
-	case CG_MEMORY_REMAINING:
-		return Hunk_MemoryRemaining();
-	case CG_KEY_ISDOWN:
-		return Key_IsDown( args[1] );
-	case CG_KEY_GETCATCHER:
-		return Key_GetCatcher();
-	case CG_KEY_SETCATCHER:
-		// Don't allow the cgame module to close the console
-		Key_SetCatcher( args[1] | ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) );
-		return 0;
-	case CG_KEY_GETKEY:
-		return Key_GetKey( (const char *)VMA(1) );
+	S_StartLocalSound( sfx, channelNum );
+	return;
+}
+void CGameImport_S_ClearLoopingSounds( int killall ) {
 
-	// shared syscalls
-	case TRAP_MEMSET:
-		VM_CHECKBOUNDS( cgvm, args[1], args[3] );
-		Com_Memset( VMA(1), args[2], args[3] );
-		return args[1];
-	case TRAP_MEMCPY:
-		VM_CHECKBOUNDS2( cgvm, args[1], args[2], args[3] );
-		Com_Memcpy( VMA(1), VMA(2), args[3] );
-		return args[1];
-	case TRAP_STRNCPY:
-		VM_CHECKBOUNDS( cgvm, args[1], args[3] );
-		Q_strncpy( (char *)VMA(1), (char *)VMA(2), args[3] );
-		return args[1];
-	case TRAP_SIN:
-		return FloatAsInt( sin( (double)(VMF(1)) ) );
-	case TRAP_COS:
-		return FloatAsInt( cos( (double)(VMF(1)) ) );
-	case TRAP_ATAN2:
-		return FloatAsInt( atan2( (double)(VMF(1)), (double)(VMF(2)) ) );
-	case TRAP_SQRT:
-		return FloatAsInt( sqrt( (double)(VMF(1)) ) );
+	S_ClearLoopingSounds((qboolean)killall);
+	return;
+}
+void CGameImport_S_AddLoopingSound( int entityNum, const float * origin, const float * velocity, int sfx ) {
 
-	case CG_FLOOR:
-		return FloatAsInt( floor( (double)(VMF(1)) ) );
-	case CG_CEIL:
-		return FloatAsInt( ceil( (double)(VMF(1)) ) );
-	case CG_TESTPRINTINT:
-		return sprintf( (char *)VMA(1), "%i", (int)args[2] );
-	case CG_TESTPRINTFLOAT:
-		return sprintf( (char *)VMA(1), "%f", VMF(2) );
-	case CG_ACOS:
-		return FloatAsInt( Q_acos( VMF(1) ) );
+	S_AddLoopingSound( entityNum, (const vec_t *)origin, (const vec_t *)velocity, sfx );
+	return;
+}
+void CGameImport_S_AddRealLoopingSound( int entityNum, const float * origin, const float * velocity, int sfx ) {
 
-	case CG_PC_ADD_GLOBAL_DEFINE:
-		return botlib_export->PC_AddGlobalDefine( (const char *)VMA(1) );
-	case CG_PC_LOAD_SOURCE:
-		return botlib_export->PC_LoadSourceHandle( (const char *)VMA(1) );
-	case CG_PC_FREE_SOURCE:
-		return botlib_export->PC_FreeSourceHandle( args[1] );
-	case CG_PC_READ_TOKEN:
-		return botlib_export->PC_ReadTokenHandle( args[1], (pc_token_t *)VMA(2) );
-	case CG_PC_SOURCE_FILE_AND_LINE:
-		return botlib_export->PC_SourceFileAndLine( args[1], (char *)VMA(2), (int *)VMA(3) );
+	S_AddRealLoopingSound( entityNum, (const vec_t *)origin, (const vec_t *)velocity, sfx );
+	return;
+}
+void CGameImport_S_StopLoopingSound( int entityNum ) {
 
-	case CG_S_STOPBACKGROUNDTRACK:
-		S_StopBackgroundTrack();
-		return 0;
+	S_StopLoopingSound( entityNum );
+	return;
+}
+void CGameImport_S_UpdateEntityPosition( int entityNum, const float * origin ) {
 
-	case CG_REAL_TIME:
-		return Com_RealTime( (qtime_t *)VMA(1) );
-	case CG_SNAPVECTOR:
-		Sys_SnapVector( (float *)VMA(1) );
-		return 0;
+	S_UpdateEntityPosition( entityNum, (const vec_t *)origin );
+	return;
+}
+void CGameImport_S_Respatialize( int entityNum, const float * origin, void * axis, int inwater ) {
 
-	case CG_CIN_PLAYCINEMATIC:
-		return CIN_PlayCinematic((const char *)VMA(1), args[2], args[3], args[4], args[5], args[6]);
+	S_Respatialize( entityNum, (const vec_t *)origin, (vec_t ( *)[3])axis, inwater );
+	return;
+}
+int CGameImport_S_RegisterSound( const char * sample, int compressed ) {
 
-	case CG_CIN_STOPCINEMATIC:
-		return CIN_StopCinematic(args[1]);
+	return S_RegisterSound( (const char *)sample, (qboolean)compressed );
+}
+void CGameImport_S_StartBackgroundTrack( const char * intro, const char * loop ) {
 
-	case CG_CIN_RUNCINEMATIC:
-		return CIN_RunCinematic(args[1]);
+	S_StartBackgroundTrack( (const char *)intro, (const char *)loop );
+	return;
+}
+void CGameImport_R_LoadWorldMap( const char * mapname ) {
 
-	case CG_CIN_DRAWCINEMATIC:
-		CIN_DrawCinematic(args[1]);
-		return 0;
+	re.LoadWorld( (const char *)mapname );
+	return;
+}
+int CGameImport_R_RegisterModel( const char * name ) {
 
-	case CG_CIN_SETEXTENTS:
-		CIN_SetExtents(args[1], args[2], args[3], args[4], args[5]);
-		return 0;
+	return re.RegisterModel( (const char *)name );
+}
+int CGameImport_R_RegisterSkin( const char * name ) {
 
-	case CG_R_REMAP_SHADER:
-		re.RemapShader( (const char *)VMA(1), (const char *)VMA(2), (const char *)VMA(3) );
-		return 0;
+	return re.RegisterSkin( (const char *)name );
+}
+int CGameImport_R_RegisterShader( const char * name ) {
 
-/*
-	case CG_LOADCAMERA:
-		return loadCamera(VMA(1));
+	return re.RegisterShader( (const char *)name );
+}
+int CGameImport_R_RegisterShaderNoMip( const char * name ) {
 
-	case CG_STARTCAMERA:
-		startCamera(args[1]);
-		return 0;
+	return re.RegisterShaderNoMip( (const char *)name );
+}
+void CGameImport_R_RegisterFont( const char * fontName, int pointSize, void * font ) {
 
-	case CG_GETCAMERAINFO:
-		return getCameraInfo(args[1], VMA(2), VMA(3));
-*/
-	case CG_GET_ENTITY_TOKEN:
-		VM_CHECKBOUNDS( cgvm, args[1], args[2] );
-		return re.GetEntityToken( (char *)VMA(1), args[2] );
+	re.RegisterFont( (const char *)fontName, pointSize, (fontInfo_t *)font);
+	return;
+}
+void CGameImport_R_ClearScene( void ) {
 
-	case CG_R_INPVS:
-		return re.inPVS( (const vec_t *)VMA(1), (const vec_t *)VMA(2) );
+	re.ClearScene();
+	return;
+}
+void CGameImport_R_AddRefEntityToScene( const void * entity ) {
 
-	// engine extensions
-	case CG_R_ADDREFENTITYTOSCENE2:
-		re.AddRefEntityToScene( (const refEntity_t *)VMA(1), qtrue );
-		return 0;
+	re.AddRefEntityToScene( (const refEntity_t *)entity, qfalse );
+	return;
+}
+void CGameImport_R_AddPolyToScene( int hShader, int numVerts, const void * verts ) {
 
-	case CG_R_ADDLINEARLIGHTTOSCENE:
-		re.AddLinearLightToScene( (const vec_t *)VMA(1), (const vec_t *)VMA(2), VMF(3), VMF(4), VMF(5), VMF(6) );
-		return 0;
+	re.AddPolyToScene( hShader, numVerts, (const polyVert_t *)verts, 1 );
+	return;
+}
+void CGameImport_R_AddPolysToScene( int hShader, int numVerts, const void * verts, int num ) {
 
-	case CG_R_FORCEFIXEDDLIGHTS:
-		CL_ForceFixedDlights();
-		return 0;
+	re.AddPolyToScene( hShader, numVerts, (const polyVert_t *)verts, num );
+	return;
+}
+int CGameImport_R_LightForPoint( float * point, float * ambientLight, float * directedLight, float * lightDir ) {
 
-	case CG_IS_RECORDING_DEMO:
-		return clc.demorecording;
+	return re.LightForPoint( (vec_t *)point, (vec_t *)ambientLight, (vec_t *)directedLight, (vec_t *)lightDir );
+}
+void CGameImport_R_AddLightToScene( const float * org, float intensity, float r, float g, float b ) {
 
-	case CG_CVAR_SETDESCRIPTION:
-		Cvar_SetDescription2( (const char*)VMA(1), (const char*)VMA(2) );
-		return 0;
+	re.AddLightToScene( (const vec_t *)org, intensity, r, g, b );
+	return;
+}
+void CGameImport_R_AddAdditiveLightToScene( const float * org, float intensity, float r, float g, float b ) {
 
-	case CG_KEY_CAPSLOCK_ON:
-		return Key_CapsLockOn();
+	re.AddAdditiveLightToScene( (const vec_t *)org, intensity, r, g, b );
+	return;
+}
+void CGameImport_R_RenderScene( const void * fd ) {
 
-	case CG_TRAP_GETVALUE:
-		VM_CHECKBOUNDS( cgvm, args[1], args[2] );
-		return CL_GetValue( (char *)VMA(1), args[2], (const char *)VMA(3) );
+	re.RenderScene( (const refdef_t *)fd );
+	return;
+}
+void CGameImport_R_SetColor( const float * rgba ) {
 
-	default:
-		Com_Error( ERR_DROP, "Bad cgame system trap: %ld", (long int) args[0] );
-	}
+	re.SetColor( (const float *)rgba );
+	return;
+}
+void CGameImport_R_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, int hShader ) {
+
+	re.DrawStretchPic( x, y, w, h, s1, t1, s2, t2, hShader );
+	return;
+}
+void CGameImport_R_ModelBounds( int model, float * mins, float * maxs ) {
+
+	re.ModelBounds( model, (vec_t *)mins, (vec_t *)maxs );
+	return;
+}
+int CGameImport_R_LerpTag( void * tag, int mod, int startFrame, int endFrame, float frac, const char * tagName ) {
+
+	return re.LerpTag( (orientation_t *)tag, mod, startFrame, endFrame, frac, (const char *)tagName );
+}
+void CGameImport_R_RemapShader( const char * oldShader, const char * newShader, const char * timeOffset ) {
+
+	re.RemapShader( (const char *)oldShader, (const char *)newShader, (const char *)timeOffset );
+	return;
+
+
+}
+void CGameImport_GetGlconfig( void * glconfig ) {
+
+	CL_GetGlconfig( (glconfig_t *)glconfig );
+	return;
+}
+void CGameImport_GetGameState( void * gamestate ) {
+
+	CL_GetGameState( (gameState_t *)gamestate );
+	return;
+}
+void CGameImport_GetCurrentSnapshotNumber( int * snapshotNumber, int * serverTime ) {
+
+	CL_GetCurrentSnapshotNumber( (int *)snapshotNumber, (int *)serverTime );
+	return;
+}
+int CGameImport_GetSnapshot( int snapshotNumber, void * snapshot ) {
+
+	return CL_GetSnapshot( snapshotNumber, (snapshot_t *)snapshot );
+}
+int CGameImport_GetServerCommand( int serverCommandNumber ) {
+
+	return CL_GetServerCommand( serverCommandNumber );
+}
+int CGameImport_GetCurrentCmdNumber( void ) {
+
+	return CL_GetCurrentCmdNumber();
+}
+int CGameImport_GetUserCmd( int cmdNumber, void * ucmd ) {
+
+	return CL_GetUserCmd( cmdNumber, (usercmd_t *)ucmd );
+}
+void CGameImport_SetUserCmdValue( int stateValue, float sensitivityScale ) {
+
+	CL_SetUserCmdValue( stateValue, sensitivityScale );
+	return;
+}
+void CGameImport_testPrintInt( char * string, int i ) {
+
+	sprintf( (char *)string, "%i", (int)i );
+	return;
+}
+void CGameImport_testPrintFloat( char * string, float f ) {
+
+	sprintf( (char *)string, "%f", f );
+	return;
+}
+int CGameImport_MemoryRemaining( void ) {
+
+	return Hunk_MemoryRemaining();
+}
+int CGameImport_Key_IsDown( int keynum ) {
+
+	return Key_IsDown( keynum );
+}
+int CGameImport_Key_GetCatcher( void ) {
+
+	return Key_GetCatcher();
+}
+void CGameImport_Key_SetCatcher( int catcher ) {
+
+	// Don't allow the cgame module to close the console
+	Key_SetCatcher( catcher | ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) );
+	return;
+}
+int CGameImport_Key_GetKey( const char * binding ) {
+
+	return Key_GetKey( (const char *)binding );
+
+// shared syscalls
+}
+int CGameImport_PC_AddGlobalDefine( char * define ) {
+
+	return botlib_export->PC_AddGlobalDefine( (const char *)define );
+}
+int CGameImport_PC_LoadSource( const char * filename ) {
+
+	return botlib_export->PC_LoadSourceHandle( (const char *)filename );
+}
+int CGameImport_PC_FreeSource( int handle ) {
+
+	return botlib_export->PC_FreeSourceHandle( handle );
+}
+int CGameImport_PC_ReadToken( int handle, void * pc_token ) {
+
+	return botlib_export->PC_ReadTokenHandle( handle, (pc_token_t *)pc_token );
+}
+int CGameImport_PC_SourceFileAndLine( int handle, char * filename, int * line ) {
+
+	return botlib_export->PC_SourceFileAndLine( handle, (char *)filename, (int *)line );
+
+}
+void CGameImport_S_StopBackgroundTrack( void ) {
+
+	S_StopBackgroundTrack();
+	return;
+
+}
+int CGameImport_RealTime( void * qtime ) {
+
+	return Com_RealTime( (qtime_t *)qtime );
+}
+void CGameImport_SnapVector( float * v ) {
+
+	Sys_SnapVector( (float *)v );
+	return;
+
+}
+int CGameImport_CIN_PlayCinematic( const char * arg0, int xpos, int ypos, int width, int height, int bits ) {
+
+	return CIN_PlayCinematic((const char *)arg0, xpos, ypos, width, height, bits);
+
+}
+int CGameImport_CIN_StopCinematic( int handle ) {
+
+	return CIN_StopCinematic(handle);
+
+}
+int CGameImport_CIN_RunCinematic( int handle ) {
+
+	return CIN_RunCinematic(handle);
+
+}
+void CGameImport_CIN_DrawCinematic( int handle ) {
+
+	CIN_DrawCinematic(handle);
+	return;
+
+}
+void CGameImport_CIN_SetExtents( int handle, int x, int y, int w, int h ) {
+
+	CIN_SetExtents(handle, x, y, w, h);
+	return;
+
+}
+int CGameImport_loadCamera( const char * name ) {
+	Com_Error( ERR_DROP, "Unsupported native service: CG_LOADCAMERA" );
 	return 0;
 }
+void CGameImport_startCamera( int time ) {
+	Com_Error( ERR_DROP, "Unsupported native service: CG_STARTCAMERA" );
+	return;
+}
+int CGameImport_getCameraInfo( int time, void * origin, void * angles ) {
+	Com_Error( ERR_DROP, "Unsupported native service: CG_GETCAMERAINFO" );
+	return 0;
+}
+int CGameImport_GetEntityToken( char * buffer, int bufferSize ) {
 
+	return re.GetEntityToken( (char *)buffer, bufferSize );
 
-/*
-====================
-CL_DllSyscall
-====================
-*/
-static intptr_t QDECL CL_DllSyscall( intptr_t arg, ... ) {
-#if !id386 || defined __clang__
-	intptr_t	args[10]; // max.count for cgame
-	va_list	ap;
-	int i;
+}
+int CGameImport_R_inPVS( const float * p1, const float * p2 ) {
 
-	args[0] = arg;
-	va_start( ap, arg );
-	for (i = 1; i < ARRAY_LEN( args ); i++ )
-		args[ i ] = va_arg( ap, intptr_t );
-	va_end( ap );
+	return re.inPVS( (const vec_t *)p1, (const vec_t *)p2 );
 
-	return CL_CgameSystemCalls( args );
-#else
-	return CL_CgameSystemCalls( &arg );
-#endif
+// engine extensions
 }
 
 
@@ -852,7 +874,6 @@ void CL_InitCGame( void ) {
 	const char			*info;
 	const char			*mapname;
 	int					t1, t2;
-	vmInterpret_t		interpret;
 
 	Cbuf_NestedReset();
 
@@ -869,25 +890,14 @@ void CL_InitCGame( void ) {
 	// allow vertex lighting for in-game elements
 	re.VertexLighting( qtrue );
 
-	// load the dll or bytecode
-	interpret = (vmInterpret_t)Cvar_VariableIntegerValue( "vm_cgame" );
-	if ( cl_connectedToPureServer )
-	{
-		// if sv_pure is set we only allow qvms to be loaded
-		if ( interpret != VMI_COMPILED && interpret != VMI_BYTECODE )
-			interpret = VMI_COMPILED;
-	}
-
-	cgvm = VM_Create( VM_CGAME, CL_CgameSystemCalls, CL_DllSyscall, interpret );
-	if ( !cgvm ) {
-		Com_Error( ERR_DROP, "VM_Create on cgame failed" );
-	}
+	NativeCGame_Running = true;
+	Com_Printf( "Static cgame loaded.\n" );
 	cls.state = CA_LOADING;
 
 	// init for this gamestate
 	// use the lastExecutedServerCommand instead of the serverCommandSequence
 	// otherwise server commands sent just before a gamestate are dropped
-	VM_Call( cgvm, 3, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand, clc.clientNum );
+	NativeCGame_Init( clc.serverMessageSequence, clc.lastExecutedServerCommand, clc.clientNum );
 
 	// reset any CVAR_CHEAT cvars registered by cgame
 	if ( !clc.demoplaying && !cl_connectedToCheatServer )
@@ -929,11 +939,11 @@ See if the current console command is claimed by the cgame
 qboolean CL_GameCommand( void ) {
 	qboolean bRes;
 
-	if ( !cgvm ) {
+	if ( !NativeCGame_Running ) {
 		return qfalse;
 	}
 
-	bRes = (qboolean)VM_Call( cgvm, 0, CG_CONSOLE_COMMAND );
+	bRes = (qboolean)NativeCGame_ConsoleCommand(  );
 
 	Cbuf_NestedReset();
 
@@ -947,7 +957,7 @@ CL_CGameRendering
 =====================
 */
 void CL_CGameRendering( stereoFrame_t stereo ) {
-	VM_Call( cgvm, 3, CG_DRAW_ACTIVE_FRAME, cl.serverTime, stereo, clc.demoplaying );
+	NativeCGame_DrawActiveFrame( cl.serverTime, stereo, clc.demoplaying );
 #ifdef DEBUG
 	VM_Debug( 0 );
 #endif

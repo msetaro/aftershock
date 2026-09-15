@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-"""Compare fresh and persistent native module storage across restart/map changes."""
+"""Compare static restart/map changes with the reviewed DLL-reload reference."""
 import argparse
-import difflib
-import hashlib
 from pathlib import Path
 import re
 import subprocess
 import tempfile
 
-from native import build_modules, normalize_log
-from run import ROOT, ENV, build, run
+from native import normalize_log
+from run import ROOT, ENV, build, compare
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
@@ -21,42 +19,33 @@ output.mkdir(parents=True, exist_ok=True)
 paks = sorted(args.data.resolve().glob('*.pk3'))
 if not paks:
     parser.error('installed Quake 3 content is required')
-module = build_modules(output / 'modules', modules=('game',), language='c++')['game']
 binary = build(output / 'engine', ['BUILD_CLIENT=0']) / 'quake3e.ded.x64'
-shim = output / 'retain-modules.so'
-run(['cc', '-Wall', '-Wextra', '-Werror', '-shared', '-fPIC',
-     'tests/probes/retain_modules.c', '-o', shim])
-results = {}
-for mode in ('fresh', 'persistent-1', 'persistent-2'):
+# Captured from ordinary module reloads with the d6c2ac52 game, before static integration.
+golden = 'native-lifecycle-debug.log' if args.debug_movement else 'native-lifecycle.log'
+for mode in ('1', '2'):
     with tempfile.TemporaryDirectory(prefix='aftershock-native-lifecycle-') as home:
         base = Path(home) / 'baseq3'
         base.mkdir()
         for pak in paks:
             (base / pak.name).symlink_to(pak)
-        (base / module.name).symlink_to(module)
         command = ['timeout', '90', 'faketime', '-f', '@2026-01-01 00:00:00 i0.01', binary,
                    '+set', 'fs_basepath', home, '+set', 'fs_homepath', home,
-                   '+set', 'vm_game', '0', '+set', 'dedicated', '1',
+                   '+set', 'dedicated', '1',
                    '+set', 'sv_pure', '0', '+set', 'g_debugMove', str(int(args.debug_movement)), '+set', 'com_logfile', '0',
                    '+map', 'q3dm17', '+addbot', 'sarge', '3', '+addbot', 'major', '3',
                    '+wait', '150', '+map_restart', '0', '+wait', '150',
                    '+map', 'q3dm7', '+addbot', 'sarge', '3', '+addbot', 'major', '3',
                    '+wait', '150', '+quit']
-        env = ENV if mode == 'fresh' else {**ENV, 'LD_PRELOAD': str(shim)}
-        result = subprocess.run([str(x) for x in command], cwd=ROOT, env=env,
+        result = subprocess.run([str(x) for x in command], cwd=ROOT, env=ENV,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         (output / (mode + '.log')).write_bytes(result.stdout)
         result.check_returncode()
-        if result.stdout.count(b'VM_LoadDll(qagame) succeeded!') != 3:
+        if (b'Static game loaded.' not in result.stdout or
+                result.stdout.count(b'------- Game Initialization -------') != 3):
             raise SystemExit('FAIL: expected native game initialization, restart and map change')
         normalized = normalize_log(result.stdout).replace(home.encode(), b'<HOME>')
         normalized = re.sub(rb'^\.\.\.found [0-9]+ cached paks\r?\n|^Working directory:.*\r?\n',
                             b'', normalized, flags=re.M)
-        results[mode] = normalized
         (output / (mode + '.normalized')).write_bytes(normalized)
-        if normalized != results['fresh']:
-            (output / (mode + '.diff')).write_text(''.join(difflib.unified_diff(
-                results['fresh'].decode().splitlines(True), normalized.decode().splitlines(True),
-                fromfile='fresh module storage', tofile=mode)))
-            raise SystemExit('FAIL: module storage survives reload; see ' + str(output / (mode + '.diff')))
-print('PASS: persistent module restart/map change', hashlib.sha256(results['fresh']).hexdigest())
+        compare(golden, normalized, False)
+print('PASS: static restart/map change matches the DLL-reload reference twice')

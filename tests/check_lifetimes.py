@@ -10,7 +10,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE = ('qcommon', 'client', 'server', 'botlib', 'renderercommon', 'renderer',
-        'renderervk', 'cgame', 'game', 'ui')
+        'renderervk', 'cgame', 'game', 'ui', 'native')
 LOCATION = 'isExpansionInFileMatching("(^|/)code/(' + '|'.join(CORE) + ')/")'
 # clang-query's AST dump marks VarDecl/ParmVarDecl with needsDestruction as
 # "destroyed". CXXBindTemporaryExpr represents a non-trivial temporary destructor.
@@ -94,7 +94,7 @@ def main():
                 args.output / 'engine.log')
     if bad:
         raise RuntimeError('non-trivial engine lifetimes:\n' + '\n'.join(bad))
-    print(f'PASS: {len(files)} engine translation units, both renderer configurations; '
+    print(f'PASS: {len(commands)} compilation commands ({len(files)} source paths), both renderer configurations; '
           'positive and seven-object negative controls passed')
 
 

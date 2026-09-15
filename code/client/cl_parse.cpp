@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_parse.c  -- parse a message received from the server
 
 #include "client.h"
+#include "../cgame/cg_native_public.h"
+#include "../ui/ui_native_public.h"
 
 static const char *svc_strings[] = {
 	"svc_bad",
@@ -807,9 +809,9 @@ static void CL_ParseCommandString( msg_t *msg ) {
 #ifdef USE_CURL
 	if ( !clc.cURLUsed )
 #endif
-	// -EC- : we may stuck on downloading because of non-working cgvm
+	// -EC- : we may stuck on downloading because of non-working NativeCGame_Running
 	// or in "awaiting snapshot..." state so handle "disconnect" here
-	if ( ( !cgvm && cls.state == CA_CONNECTED && clc.download != FS_INVALID_HANDLE ) || ( cgvm && cls.state == CA_PRIMED ) ) {
+	if ( ( !NativeCGame_Running && cls.state == CA_CONNECTED && clc.download != FS_INVALID_HANDLE ) || ( NativeCGame_Running && cls.state == CA_PRIMED ) ) {
 		const char *text;
 		Cmd_TokenizeString( s );
 		if ( !Q_stricmp( Cmd_Argv(0), "disconnect" ) ) {

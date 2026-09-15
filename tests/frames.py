@@ -9,7 +9,7 @@ import re
 from run import compare, content_maps
 
 
-def check_frames(output, content, regenerate, compare_goldens=True):
+def check_frames(output, content, regenerate):
     frames = {}
     versions = set()
     for map_name in content_maps(content):
@@ -36,10 +36,7 @@ def check_frames(output, content, regenerate, compare_goldens=True):
     if len(versions) != 1:
         raise SystemExit('FAIL: replay evidence mixes Mesa versions')
     name = ('openarena/' if content == 'openarena' else '') + f'frames-mesa-{versions.pop()}.json'
-    if compare_goldens:
-        compare(name, (json.dumps(frames, indent=2, sort_keys=True) + '\n').encode(), regenerate)
-    else:
-        print('PASS: fresh and retained module replay frames agree')
+    compare(name, (json.dumps(frames, indent=2, sort_keys=True) + '\n').encode(), regenerate)
 
 
 if __name__ == '__main__':

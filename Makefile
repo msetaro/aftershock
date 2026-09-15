@@ -1240,6 +1240,9 @@ endif # !USE_SDL
 
 endif # !MINGW
 
+include code/native/modules.mk
+Q3OBJ += $(NATIVE_GAME_OBJECTS) $(NATIVE_CGAME_OBJECTS) $(NATIVE_UI_OBJECTS)
+
 # client binary
 
 $(B)/$(TARGET_CLIENT): $(Q3OBJ)
@@ -1362,6 +1365,8 @@ ifeq ($(HAVE_VM_COMPILED),true)
     Q3DOBJ += $(B)/ded/qvm/vm_powerpc.o
   endif
 endif
+
+Q3DOBJ += $(NATIVE_GAME_OBJECTS)
 
 $(B)/$(TARGET_SERVER): $(Q3DOBJ)
 	$(echo_cmd) $(Q3DOBJ)

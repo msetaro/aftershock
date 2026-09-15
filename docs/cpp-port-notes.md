@@ -583,3 +583,19 @@ PR #61 source cdcbb7df passed regression 34930264125 and full build 34930264136.
 Native C++ smoke and fixed replay also match both Q3 maps/renderers. Self-review
 passes with no unrelated edits, allocations, OS calls or non-trivial lifetimes.
 The reviewed two-line source fix is the only difference from the GPL prerequisite.
+
+## OpenArena native allocator alignment (#31, found during #2 static integration)
+
+Pinned OpenArena 331464ca396d80e91cf9be273588f2b5f4b7afc8 bg_alloc.c rounds blocks
+to 32 bytes but places the payload immediately after a four-byte int header.
+On the native 64-bit build, ai_main.c:1210 then accesses bot_state_t through an
+address ending in ...e4, although its pointers require eight-byte alignment.
+The static runtime sanitizer reports this before the first bot is initialized.
+Reproducer on the parked #2 integration: python3 tests/run.py runtime --sanitize
+--content openarena --data /tmp/aftershock-openarena-baseoa
+--output /tmp/aftershock-native-integrated-oa-ubsan. Diagnostic is in its
+ oa_dm1-warmup.log. Ordinary static OA bot/replay gates pass; this sanitizer failure
+is not suppressed or accepted. The allocator base is also a char array with no
+explicit pointer-alignment guarantee. BG_CanAlloc/BG_Alloc/BG_Free must agree on
+an aligned header, and the pool must have suitable alignment. A separate #31
+failing test and patch are next; no allocator source fix belongs to #2.

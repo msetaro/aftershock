@@ -114,6 +114,8 @@ python3 tests/run.py differential
 python3 tests/run.py runtime
 python3 tests/run.py runtime --sanitize --output /tmp/tests-runtime-ubsan
 python3 tests/demo.py
+python3 tests/demo.py --lifecycle
+python3 tests/native_lifecycle.py --debug-movement
 python3 tests/download.py
 python3 tests/audio.py
 python3 tests/teamleader.py

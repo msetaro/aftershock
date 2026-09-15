@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl.input.c  -- builds an intended movement command to send to the server
 
 #include "client.h"
+#include "../cgame/cg_native_public.h"
+#include "../ui/ui_native_public.h"
 
 static unsigned frame_msec;
 static int old_com_frameTime;
@@ -369,9 +371,9 @@ CL_MouseEvent
 */
 void CL_MouseEvent( int dx, int dy /*, int time*/ ) {
 	if ( Key_GetCatcher() & KEYCATCH_UI ) {
-		VM_Call( uivm, 2, UI_MOUSE_EVENT, dx, dy );
+		NativeUI_MouseEvent( dx, dy );
 	} else if ( Key_GetCatcher() & KEYCATCH_CGAME ) {
-		VM_Call( cgvm, 2, CG_MOUSE_EVENT, dx, dy );
+		NativeCGame_MouseEvent( dx, dy );
 	} else {
 		cl.mouseDx[cl.mouseIndex] += dx;
 		cl.mouseDy[cl.mouseIndex] += dy;
