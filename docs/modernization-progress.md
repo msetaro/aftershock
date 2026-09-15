@@ -23,8 +23,20 @@ Clang a0be349110f562f03f44568856bc0d792cc495251988a758d74f09aae97fc26a.
 Artifacts/reproduction: /tmp/aftershock-bot-command-gates.py and its output folder.
 The existing team-leader check also passes after sharing pinned header staging.
 
-Next: run this fix's CI/golden checks and native instrumented preflight, self-review,
-merge and resume #2. No clamping, FP restructuring or source fix on #2.
+PR #60 source 0366fa06 passed regression 34927341670 and full build 34927341749.
+A temporary full #2 native C++ build with this fix passes the complete UBSan bot
+smoke on both Q3 maps, with identical repeats and accepted normalized logs:
+/tmp/aftershock-bot-command-native.py/.log. Explicit unit/collision/Q3 runtime
+golden regeneration is byte-identical. Self-review passes: one conversion defect,
+sole caller checked, no FP restructuring/clamping, OS calls, allocations or
+non-trivial objects; layouts, symbols and raw C objects unchanged. No expected-bug
+entry or suppression is needed. No upstream engine game implementation exists.
+
+Next: ready/merge #60, verify merged-tree regression and integrate into #2, retaining
+its T22 abs conversions, float suffixes and other catalog changes. The bot-command
+check can use #2's imported local headers and native ABI helper after integration.
+Finish G4/G7/catalog review, rename .c files to .cpp without source-content changes,
+then static direct calls and VM/JIT removal. No source fix is made on #2.
 
 #59 merged 11781f44; merged-tree regression 34926638834 passed. #2 integration and
 pahole installation are d8691015; regression 34926764924/full build 34926765230 were

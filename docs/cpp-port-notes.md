@@ -542,3 +542,9 @@ Test-first 02a9ddeb fails at 254 on both GCC/Clang. All 18 expected-byte cases p
 after; both compilers produce byte-identical C release objects and identical G2,
 G3 and G4 output. No floating-point expression or command representation changes.
 Artifacts: /tmp/aftershock-bot-command-gates.py and /tmp/aftershock-bot-command-gates.
+
+PR #60 source 0366fa06 passed regression 34927341670/full build 34927341749.
+Temporary complete #2 native C++ UBSan smoke now passes both Q3 maps with identical
+repeats and accepted logs. Explicit unit/collision/Q3 runtime regeneration gives
+no diff. Self-review passes; no suppression, expected-bug entry or accepted golden
+changes. The full native runtime reproducer is /tmp/aftershock-bot-command-native.py.
