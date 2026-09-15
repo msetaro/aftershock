@@ -40,6 +40,8 @@ jobs:
         run: python3 tests/teamleader.py
       - name: Native bot command byte conversion
         run: python3 tests/bot_command.py --cc '${{ matrix.cc }}'
+      - name: Native info-string overlap
+        run: python3 tests/native_info.py --cc '${{ matrix.cc }}'
       - name: Native flag initialization
         run: python3 tests/team_flags.py --cc '${{ matrix.cc }}'
       - name: Native team voter bounds

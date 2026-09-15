@@ -548,3 +548,19 @@ Temporary complete #2 native C++ UBSan smoke now passes both Q3 maps with identi
 repeats and accepted logs. Explicit unit/collision/Q3 runtime regeneration gives
 no diff. Self-review passes; no suppression, expected-bug entry or accepted golden
 changes. The full native runtime reproducer is /tmp/aftershock-bot-command-native.py.
+
+## Native info-string overlap (#31, found during #2 static preflight)
+
+Original GPL Info_RemoveKey and Info_RemoveKey_Big use strcpy(start, s) when
+removing a pair. The source suffix overlaps its destination. Native DLL map-change
+preflight exposed corrupted userinfo; ASan confirms strcpy-param-overlap directly
+in both helpers. `python3 tests/native_info.py --variant small` and `--variant big`
+exercise seven valid-string cases each. GCC and Clang fail before the fix.
+
+The sole verbatim prerequisite import code/game/q_shared.c is from
+id-Software/Quake-III-Arena dbe4ddb10315479fc00086f08e25d968b4b43c49, SHA256
+a8ddd2b1093ee69df7d0826aad75180ac2ff27bb45f25389e4313efeb51c4be2.
+Its GPL notice is retained. Caller audit includes both Info_SetValueForKey variants
+and direct game/UI callers on #2. The engine/upstream helper already uses memmove;
+there is no additional ec-/Quake3e fix to submit. Static module reset requirements
+remain separate #2 integration work; no simulation FP edits belong to this fix.

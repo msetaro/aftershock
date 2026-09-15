@@ -7,6 +7,23 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
+Active: issue/31-native-info-overlap. #2 is parked at f4199c0e (draft PR #50);
+its progress file has the complete static preflight/lifecycle checkpoint. Rename
+634decac and checkpoint 526a77b7 passed all CI (34928509506/34928509462 and
+34928947087/34928947114). No static engine changes are committed on #2.
+
+New #31 test-first target imports the original GPL q_shared.c unchanged and checks
+Info_RemoveKey/Info_RemoveKey_Big under ASan. Both copy overlapping suffixes with
+strcpy; native DLL map changes corrupt userinfo. GCC/Clang focused failures are
+recorded under /tmp/aftershock-native-info-before. Next: commit the failing test,
+replace both overlapping copies with memmove, run focused/codegen/ABI/golden gates,
+open the separate PR, pass CI/self-review and merge. Then return to #2's lifecycle
+reset and static integration work. No expected-bug entry/suppression is added.
+
+Earlier checkpoints below are historical; the active next action above supersedes
+the previous #60 completion text.
+
+
 Active work: issue/31-bot-command-bytes. #2 is parked at e4853819, draft PR #50.
 Full native C++ UBSan smoke on q3dm17 fails at BotInputToUserCommand's direct float
 to signed-byte assignment (-6280.11). The real-function failing-first test uses
