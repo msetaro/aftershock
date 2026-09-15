@@ -7,21 +7,25 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unneeded-internal. PR #72 passed build 35018151616 and regression
-35018151602 at e6dfa0ba, then merged as 01a1dda8. That merge is integrated into
-this branch; its merged-tree regression remains to check. PR #71 merged c04ba916
-after build 35017297266/regression 35017297166; merged-tree run 35018077437 passed.
-PR #70 merged-tree regression 35016803376 passed. #5 is complete.
+Active: issue/8-type-limits, based on pending PR #73 head 248dca68.
+PR #73 remains on issue/8-unneeded-internal; verify its hosted build/regression,
+self-review and merge first, then integrate origin/modernization into this branch
+before opening the separate type-limits PR. PR #72 merged 01a1dda8 after build
+35018151616/regression 35018151602; its merged-tree run remains to check. PR #71
+merged-tree regression 35018077437 passed. #5 is complete.
 
-Next: open the unneeded-internal-declaration PR, verify its hosted gates and
-self-review, merge with a merge commit, then check the merged-tree regression.
+This branch replaces -Wno-type-limits with explicit -Wtype-limits on engine C++
+compilation. All 728 GCC/Clang engine release objects across both renderers retain
+identical raw hashes. Both compiler controls reject an unsigned comparison with
+zero when enabled; Clang needs the explicit positive flag. The relevant affinity
+and chat-sentinel bugs were fixed in separate #31 PRs. No engine source, floating-
+point, layout, lifetime, allocation, OS or golden changes in this warning class.
 
-The only new warning change removes -Wno-unneeded-internal-declaration from Clang
-native compilation. All 206 native release objects across both renderers match
-raw hashes; the production-flag control rejects a function referenced only by
-decltype. No engine/game source, floating-point, layout or golden changes. #72's
-separate unused-function change preserves 364 Clang engine objects and has its
-own passing diagnostic control. Await each PR's hosted gates before merging.
+Next: merge accepted #73, open the type-limits PR, verify hosted gates/self-review,
+merge with a merge commit, and check the merged-tree regression. #73 independently
+preserves 206 Clang native objects and rejects its control through the actual
+namespace wrapper. Keep the unused-constant cleanup separate until its remaining
+debug relocation and conditional-source review is complete.
 
 Test-first commit 36410f00 records the failing chat-offset regression. Both
 offset declarations now use signed char, preserving the negative sentinel and
@@ -83,7 +87,7 @@ Type-limits preflight after the #31 affinity/chat fixes: replacing the suppressi
 with explicit -Wtype-limits preserves all 728 GCC/Clang engine release objects
 across both renderers. GCC diagnoses the control after suppression removal;
 Clang needs the explicit positive flag. /tmp/aftershock-type-limits-{control,check}.
-This future flag change is not yet applied; keep it in a separate PR.
+The explicit type-limits flag is now applied only on this separate branch.
 
 The #8 unused-function removal is now prepared on this separate branch. Temporary
 production-flag checks preserve 364 Clang engine objects across both renderers and
