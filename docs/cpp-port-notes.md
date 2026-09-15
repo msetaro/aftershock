@@ -480,3 +480,9 @@ parked at bb869f79, with its source adaptation and unchanged replay verified.
 Test-first 10ed8eb4 and notification-isolation 5c5217f5 reproduce index 2 on both
 GCC/Clang. The array-length fix passes both. All G2 layouts and G3 symbols match;
 only CalculateRanks changes assembly among 39 functions. No unrelated source fix.
+
+PR #58 source/test head 9e1f9411 passed regression 34925252301 and full build
+34925252282. Temporary full native C++ GCC/Clang game modules with the fix match
+both accepted Q3 bot logs, with repeated identical runs. Explicit unit/collision/
+Q3 runtime golden regeneration is byte-identical. Self-review passes; no expected
+bug entry or UBSan suppression was needed, and no accepted golden changes.

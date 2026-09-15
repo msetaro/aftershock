@@ -30,11 +30,20 @@ needs COM_TRAP_GETVALUE=700 for the retained engine ABI header. The test command
 provides that existing constant; no engine change. #2 integration bb869f79 passed
 regression 34924891632. Unit/collision/Q3 runtime explicit regeneration is byte-identical.
 
-Next: run the regression/full-build gates on the updated test command and reviewed PR merge, then integrate
-into #2 retaining its catalog/ABI changes. Continue strict warning freeze, G4/G7
-review, permanent artifact reproduction, content-free .cpp rename, static calls
-and VM/JIT removal. No accepted fixture/golden changes on #2 and no VM/JIT removal
-has started. Earlier #2 checkpoints and artifacts remain recorded below.
+PR #58 source/test head 9e1f9411 passed regression 34925252301 and full build
+34925252282. A temporary complete #2 native C++ game build with the one-line fix
+matches both accepted Q3 bot logs on GCC and Clang, with repeated identical runs:
+/tmp/aftershock-team-voters-native.py/.log. Unit/collision/Q3 runtime regeneration
+produces no diff. Self-review passes: one array bound fix, caller/consumer audit,
+no new OS calls/non-trivial objects/allocations, no FP expression or layout changes,
+no golden/expectation/suppression changes. No upstream engine game implementation.
+
+Next: ready/merge #58, verify its merged-tree regression, then integrate into #2
+retaining its catalog/ABI changes. Continue strict warning freeze, G4/G7 review,
+permanent artifact reproduction, content-free .cpp rename, static calls and VM/JIT
+removal. Additional advisory assembly review is recorded in
+/tmp/aftershock-native-review-checkpoint.md. No accepted fixture/golden changes on
+#2 and no VM/JIT removal has started. Earlier checkpoints remain below.
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
