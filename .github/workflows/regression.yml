@@ -33,7 +33,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libc++-dev libc++abi-dev
       - name: Frame evidence negative controls
         run: python3 tests/check_frames.py
-      - name: OpenArena nullable name comparison
+      - name: OpenArena string helpers
         run: python3 tests/openarena_strings.py --cc '${{ matrix.cc }}'
       - name: GPL team-leader name bounds
         if: matrix.cc == 'clang'

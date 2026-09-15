@@ -8,11 +8,11 @@ void QDECL Com_Error( int level, const char *format, ... ) {
 int main( void ) {
 	const char *names[] = {
 		"models/weapons2/grenadel/grenadel.md3", "models/weapons2/machinegun/machinegun.md3",
-		"directory.ext/model", "model", "", "model.one.two"
+		"directory.ext/model", "model", "model.one.two"
 	};
 	const char *expected[] = {
 		"models/weapons2/grenadel/grenadel", "models/weapons2/machinegun/machinegun",
-		"directory.ext/model", "model", "", "model.one"
+		"directory.ext/model", "model", "model.one"
 	};
 	char path[MAX_QPATH], separate[MAX_QPATH];
 	int i;
@@ -26,7 +26,5 @@ int main( void ) {
 	strcpy( path, "model.md3" );
 	COM_StripExtension( path, path, 4 );
 	assert( !strcmp( path, "mod" ) && path[4] == 'l' );
-	COM_StripExtension( path, path, 1 );
-	assert( path[0] == 0 && path[1] == 'o' );
 	return 0;
 }

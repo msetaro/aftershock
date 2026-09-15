@@ -384,3 +384,26 @@ PR #54 source 07ea4fe3 passed regression 34913347473/full build 34913347479;
 self-review passes. Native OA replay preflight matches oa_dm7 but not oa_dm1;
 that outstanding #2 compatibility investigation is not claimed as a fixed bug
 or passing frame gate. The source helper test and both native bot smoke logs pass.
+
+### OpenArena in-place extension overlap (#31)
+
+Pinned B52 code/qcommon/q_shared.c:COM_StripExtension copies out onto itself through
+Q_strncpyz/strncpy. Native model suffix paths become truncated on this libc; the
+fixed oa_dm1 replay loses part of the grenade-launcher model. Callers include cgame
+weapon registration and both UI weapon previews; separate-buffer UI filename paths
+use the same helper. Engine/ec-/Quake3e already handles equal pointers, so there is
+no corresponding upstream engine fix.
+
+Test-first 02f74cd3: `python3 tests/openarena_strings.py` links actual pinned source
+and ASan reports strncpy-param-overlap. The source patch avoids the identical-pointer
+copy, retains bounded termination and routes invalid parameters through the existing
+checks. GCC and Clang pass after. All 58 function symbols match; only this helper's
+assembly changes. Temporary native OA fixed replay matches both maps/renderers with
+no golden change. The existing name-comparison UBSan regression still runs.
+
+### OpenArena empty extension output (#31, pending separate PR)
+
+The combined extension probe also exposed a distinct stack-buffer underflow: empty
+output makes length -1 and `if (length)` writes out[-1]. Empty input and output
+capacity one reproduce it under ASan. These cases will be added in the next separate
+#31 PR; the overlap PR retains nonempty input and bounded-truncation coverage.
