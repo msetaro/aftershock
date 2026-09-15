@@ -18,12 +18,17 @@ state. The permanent failing-first test calls the real function with UBSan; it
 fails at index 2. Three exact GPL prerequisite imports retain their notices and
 hashes in cpp-port-notes.md. No engine fix is made on #2.
 
-Next: commit the failing test, fix the reset bound to the actual array length in
-this separate #31 PR, verify GCC/Clang and gates, self-review and merge. Then merge
-back into #2, retaining its catalog/ABI changes. Continue strict warning freeze,
-G4/G7 review, permanent artifact reproduction, content-free .cpp rename, static
-calls and VM/JIT removal. No accepted fixture/golden changes on #2 and no VM/JIT
-removal has started. Earlier #2 checkpoints and artifacts remain recorded below.
+Test-first commits 10ed8eb4/5c5217f5 fail with UBSan index 2 on GCC and Clang.
+The one-line fix uses the actual array length. Both compiler checks pass after;
+G2 layouts and G3 symbols are identical, and only CalculateRanks changes assembly
+among 39 functions. Artifacts: /tmp/aftershock-team-voters-gates and
+/tmp/aftershock-team-voters-final-before-{gcc,clang}.log.
+
+Next: run the regression/full-build gates and reviewed PR merge, then integrate
+into #2 retaining its catalog/ABI changes. Continue strict warning freeze, G4/G7
+review, permanent artifact reproduction, content-free .cpp rename, static calls
+and VM/JIT removal. No accepted fixture/golden changes on #2 and no VM/JIT removal
+has started. Earlier #2 checkpoints and artifacts remain recorded below.
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full

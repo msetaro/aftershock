@@ -476,3 +476,7 @@ at dbe4ddb10315479fc00086f08e25d968b4b43c49:
 - code/game/g_team.h: 0df64a2d49ce05fc5cb569792ee4d2fffdd93db6ba1fee106a2a11613a16d9bb
 No corresponding game implementation exists in ec-/Quake3e. The #2 native port is
 parked at bb869f79, with its source adaptation and unchanged replay verified.
+
+Test-first 10ed8eb4 and notification-isolation 5c5217f5 reproduce index 2 on both
+GCC/Clang. The array-length fix passes both. All G2 layouts and G3 symbols match;
+only CalculateRanks changes assembly among 39 functions. No unrelated source fix.
