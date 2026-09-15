@@ -404,9 +404,13 @@ passed regression 34914627444 and full build 34914627413. GCC and Clang native O
 smoke/replay pass both maps and renderers; final guarded patch frame hash is
 5b89d338. Self-review passes; no expectation or suppression is introduced.
 
-### OpenArena empty extension output (#31, pending separate PR)
+### OpenArena empty extension output (#31)
 
 The combined extension probe also exposed a distinct stack-buffer underflow: empty
 output makes length -1 and `if (length)` writes out[-1]. Empty input and output
-capacity one reproduce it under ASan. These cases will be added in the next separate
-#31 PR; the overlap PR retains nonempty input and bounded-truncation coverage.
+capacity one reproduce it under ASan. Test-first c5a2ab4c adds both forms, in place and into a separate buffer, and ASan
+fails in COM_StripExtension. The one-condition patch requires a positive index.
+GCC/Clang pass after. All 58 symbols match; the sole assembly change removes the
+branch allowing the negative-index store. The overlap fix is already merged as
+PR #55 / b051c915. No corresponding ec-/Quake3e change applies: its engine helper
+uses a different implementation and handles empty strings already.
