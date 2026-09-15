@@ -7,31 +7,30 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-ui-skill-range, based on pending PR #79 (self-assign)
-b2594ea9. #79 build 35024926886/regression 35024926889 must pass and merge
-before this separate bug PR opens. #78 merged 74caf6e6 after build
-35023238777/regression 35023238813; merged-tree run 35024847153 is pending.
+Active: issue/8-null-subtraction, based on pending UI skill PR #80 head
+53569f88. PR #80 remains on issue/31-ui-skill-range; require its hosted gates,
+merge it first, then integrate modernization before opening this warning PR.
+#79 merged 82a434c6 after build 35024926886/regression 35024926889 passed.
+#78 merged-tree regression 35024847153 passed; #79 merged-tree run still to check.
 
-The permanent test tests/ui_skill.py exercises the real skill event and best-score
-storage with large finite values, INT_MIN, 2^31, invalid small values and every
-valid skill including fractional values. Test-first cea0a882 fails under
-both GCC/Clang in the callback and score storage. Source fix 2475e0d2 passes
-both paths under ASan/UBSan, including libc++ (35cc5796 adds hosted checks).
-Use a shared bounded UI skill reader while preserving each caller's invalid-value
-policy; trace all five readers. This is UI game code absent from ec-/Quake3e.
-No expected-failure entry or suppression applies. No source fix is in #79.
+This branch enables Clang's null-pointer-subtraction diagnostic in production
+and standalone native helpers. qsort alignment uses uintptr_t with an explicit
+stdint.h include; the existing long-sized swap algorithm is retained. The prior
+25-object preview proves identical release/MinGW-native bytes and identical
+instructions/relocations in debug (six objects differ only in debug sections).
+This is the proven-identical replacement permitted by the port constraints.
+No simulation FP, allocation, lifetime, layout, OS call or accepted fixture change.
 
 Next:
-1. Local gates are complete (evidence below). Wait for #79, integrate its merge
-   and open this #31 PR with full hosted build/regression gates.
-2. Merge #79 after gates/self-review, integrate modernization, open this #31 PR,
-   then require full hosted build/regression and self-review before merging it.
-3. Resume #8 null-subtraction and address class PRs, then the larger warning
-   classes and MSVC /WX. One class per PR, no golden regeneration for warnings.
-4. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
-   representation types/layout assertions and release-identical Q_ASSERT. Update
-   the plan's rules table to in force; finish #8, write design-only
-   docs/design/rhi.md for #6, then stop. No #6/#7 implementation.
+1. Run both Clang C/C++ native helpers, check their library hashes/ABI layouts,
+   record source provenance, and require hosted build/regression plus self-review.
+2. Verify and merge #80; integrate modernization and open this class PR, then
+   verify its gates before merge. Check merged-tree regressions.
+3. Continue #8 address/pointer-bool and larger warning classes, MSVC /WX, one
+   verified tree-wide clang-format commit, tidy subsets, fixed-width representation
+   types/layout assertions and release-identical Q_ASSERT. Update plan rules to
+   in force, finish #8, write design-only docs/design/rhi.md for #6, then stop.
+   No #6/#7 implementation and no golden regeneration for warning work.
 
 Recent merges (all self-reviewed; merge commits):
 - #70 ignored qualifiers: 17a9dae2, build 35016076778/regression 35016076784;
@@ -110,7 +109,7 @@ Retained #8 warning evidence and upcoming previews:
   explicitly include stdint.h; retain the existing long-sized swap algorithm.
   All 25 production objects preserve instructions/relocations; release/MinGW native
   hashes match and six debug objects differ only in debug sections. Clang controls
-  fail before/pass after. /tmp/aftershock-null-subtraction-preview. Not applied.
+  fail before/pass after. /tmp/aftershock-null-subtraction-preview. Applied here.
 - Address/pointer-bool preview: remove the impossible !classname stack-array guard
   in BotGetActivateGoal; preserve existing empty-classname behavior. x86 release
   and MinGW native objects match; two debug objects differ only in debug sections.
