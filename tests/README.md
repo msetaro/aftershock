@@ -244,3 +244,9 @@ UBSan float-cast-overflow checks the conversion; explicit expected bytes check
 legacy truncation/wrapping. --cc/--source/--output select compiler, pinned GPL header
 cache and output. The header staging helper is shared with the team-leader check.
 Both unit compiler jobs run it. No assets are needed.
+
+`python3 tests/native_info.py` checks both real GPL info-removal helpers under
+ASan. Seven valid-string cases per helper cover removal at the beginning, middle
+and end, single-pair removal and unchanged inputs. --variant small/big isolates
+one helper; --cc/--output select compiler and output. Both unit compiler jobs run
+it. No game assets or generated goldens are needed.
