@@ -7,31 +7,31 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-self-assign. PR #78 passed build 35023238777 and regression
-35023238813 and merged; this branch has integrated origin/modernization.
-#77 merged-tree regression 35023041315 passed. Open the self-assign PR next;
-require its hosted gates and self-review before merging.
+Active: issue/31-ui-skill-range, based on pending PR #79 (self-assign)
+b2594ea9. #79 build 35024926886/regression 35024926889 must pass and merge
+before this separate bug PR opens. #78 merged 74caf6e6 after build
+35023238777/regression 35023238813; merged-tree run 35024847153 is pending.
 
-This branch replaces the fov_x self-assignment with a comment and enables Clang's
-self-assign diagnostic in production and the standalone helper. It keeps the
-existing branch, arithmetic and cg.refdef.fov_x assignment. All eight previewed
-production/native objects match, including GCC debug. Clang wrapper controls fail
-before and pass after. Native provenance records 9e4d45f0; both Clang C/C++ helper builds and ABI checks pass,
-and all six shared-library hashes match (/tmp/aftershock-self-assign-{c,cpp}.log). No golden regeneration.
+The permanent test tests/ui_skill.py exercises the real skill event and best-score
+storage with large finite values, INT_MIN, 2^31, invalid small values and every
+valid skill including fractional values. Test-first cea0a882 fails under
+both GCC/Clang in the callback and score storage. Source fix 2475e0d2 passes
+both paths under ASan/UBSan, including libc++ (35cc5796 adds hosted checks).
+Use a shared bounded UI skill reader while preserving each caller's invalid-value
+policy; trace all five readers. This is UI game code absent from ec-/Quake3e.
+No expected-failure entry or suppression applies. No source fix is in #79.
 
 Next:
-1. Open this self-assign PR. Require hosted build/
-   regression and self-review before merging; check the merged-tree runs.
-2. Fix the newly confirmed UI g_spSkill conversion bug in a separate test-first
-   #31 PR (see docs/bugs.md), then continue the null-subtraction and address cleanups
-   in separate class PRs, including native provenance and helper freeze removal.
-3. Continue the remaining warning classes one per PR. Ready source previews below
-   cover parentheses-equality and self-assign. Then finish the larger warning
-   classes, MSVC warnings and /WX, one verified tree-wide clang-format commit,
-   tidy subsets, fixed-width representation types/layout assertions and
-   release-identical Q_ASSERT. Update the plan's rules table to in force.
-4. Finish #8, write design-only docs/design/rhi.md for #6, then stop. No #6/#7
-   implementation. No accepted golden or fixture regeneration for warning work.
+1. Local gates are complete (evidence below). Wait for #79, integrate its merge
+   and open this #31 PR with full hosted build/regression gates.
+2. Merge #79 after gates/self-review, integrate modernization, open this #31 PR,
+   then require full hosted build/regression and self-review before merging it.
+3. Resume #8 null-subtraction and address class PRs, then the larger warning
+   classes and MSVC /WX. One class per PR, no golden regeneration for warnings.
+4. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
+   representation types/layout assertions and release-identical Q_ASSERT. Update
+   the plan's rules table to in force; finish #8, write design-only
+   docs/design/rhi.md for #6, then stop. No #6/#7 implementation.
 
 Recent merges (all self-reviewed; merge commits):
 - #70 ignored qualifiers: 17a9dae2, build 35016076778/regression 35016076784;
@@ -1319,3 +1319,25 @@ validation. Record and fix separately under #31; no bug fix in this warning PR.
 Local reproducer/logs: /tmp/aftershock-ui-skill-probe.cpp and
 /tmp/aftershock-ui-skill-before{,-gcc}.log. Preserve each reader's existing
 valid-value behavior and invalid-value policy.
+
+UI skill fix evidence (2475e0d2): all five UI readers use UI_GetSkill, which
+clamps the finite cvar value to 0..6 before conversion. Values outside 1..5 remain
+invalid for existing callers, including truncation of 5.9 to 5. Level-menu reset,
+score rejection, menu clamping and selected button behavior are preserved. The
+new helper is UI-internal; no engine/public contract or layout changes.
+
+Both Clang C/C++ helper builds and 103-object ABI gates pass with no layout or
+symbol differences and the same 60 advisory C/C++ codegen differences. Across
+32 production UI objects (GCC/Clang release, GCC debug, MinGW), only the skill
+readers change instructions and UI_GetSkill is added. 122 shifted constant
+references were checked against their actual bytes; unrelated instructions are
+preserved. Artifacts /tmp/aftershock-ui-skill-codegen/{after,review}.json.
+ARM64 server configurations do not contain UI; hosted client cross-builds remain.
+
+Explicit unit/collision regeneration is byte-identical (8d44421d/9674cd22).
+Q3 bot logs retain 6dad7c18/a15c9c91 and fixed replay retains b38004b1 with the
+original two demo fixture hashes. No accepted file changed. Native provenance
+records 2475e0d2 for the five imported files, preserving original GPL hashes.
+Local logs /tmp/aftershock-ui-skill-{unit,differential,runtime,demo,native-*}.log.
+The initial default /tmp/aftershock-tests configure encountered an old CMake
+cache; the clean task-specific /tmp/aftershock-ui-skill-unit passed.

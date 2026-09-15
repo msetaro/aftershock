@@ -973,7 +973,8 @@
       "sha256": "6d294093cd9bdf759fba3375af8adf51f3f727ba999599db1a2c50afeb8762be",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "2475e0d2"
       ]
     },
     {
@@ -1076,7 +1077,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "436bbab1"
+        "436bbab1",
+        "2475e0d2"
       ]
     },
     {
@@ -1109,7 +1111,8 @@
         "bb869f79",
         "436bbab1",
         "8b5264c5",
-        "52e57708"
+        "52e57708",
+        "2475e0d2"
       ]
     },
     {
@@ -1330,7 +1333,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "2475e0d2"
       ]
     },
     {
@@ -1350,7 +1354,8 @@
       "sha256": "76f007cb790078d9f01244cd95b70095ee9d11892eb6f9b02a5eb7bf1757eca4",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "2475e0d2"
       ]
     },
     {

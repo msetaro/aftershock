@@ -790,3 +790,10 @@ The exact local probe is /tmp/aftershock-ui-skill-probe.cpp; logs are
 UI skill readers in a separate #31 PR, preserving their distinct range policies.
 This is imported game UI code, which ec-/Quake3e does not contain. No applicable
 engine upstream PR, expected-failure entry or suppression exists for this bug.
+
+UI skill test-first cea0a882 fails in both the real callback and score writer
+under GCC/Clang float-cast-overflow. Fix 2475e0d2 shares a bounded UI_GetSkill
+reader across all five consumers; 0/6 remain invalid sentinels while valid
+fractions still truncate as before. Both sanitized paths pass; native C/C++
+layout/symbol gates pass. Unit/collision regeneration, Q3 smoke and fixed replay
+are unchanged. No expectation/suppression entry applies. Hosted gates pending.

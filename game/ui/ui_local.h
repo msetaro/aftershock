@@ -754,6 +754,7 @@ char *UI_GetBotInfoByNumber( int num );
 char *UI_GetBotInfoByName( const char *name );
 int UI_GetNumBots( void );
 
+int UI_GetSkill( void );
 void UI_GetBestScore( int level, int *score, int *skill );
 void UI_SetBestScore( int level, int score );
 int UI_TierCompleted( int levelWon );
