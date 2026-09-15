@@ -9,7 +9,7 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 Active work: `issue/2-native-game`, draft PR #50. OpenArena absent-name fix PR #54
 merged as 0c3d4dcccb64395cc3242dc4907ec8b8810dba4b after regression 34913347473
-and full build 34913347479 passed on 07ea4fe3. Its merged-tree regression is pending.
+and full build 34913347479 passed on 07ea4fe3. Its merged-tree regression 34913731858 passed.
 This merge retains all native C/C++ checks and the new OpenArena helper regression.
 
 GCC/Clang native C and C++ Q3 smoke/replay, 29 layouts/three offsets and shared math/
@@ -17,14 +17,16 @@ string comparisons pass. Regression 34912410405 passed on c386658a. The catalog
 port still needs its final G3/G4 artifact review (reports below), portable literal
 handling for MSVC and static integration; no VM/JIT removal has started.
 
-Next: verify #54 merged-tree regression; complete permanent OpenArena native build
-support using the pinned source plus #54 patch and QVM rand/sort library. Temporary
-native OA smoke matches both maps. Fixed replay matches oa_dm7 but oa_dm1 is missing
-the grenade launcher's barrel model; samples differ only in that roughly 107x108
-region. Native cgame/UI now build from the correct base UI sources under /tmp.
-Trace model registration and barrel submission before changing anything; keep new
-bugs in separate #31 PRs. No accepted golden or fixture change is authorized on #2.
-Then finish artifact review, static native calls and VM/JIT removal.
+Next: park #2 and fix OpenArena COM_StripExtension in a separate #31 PR. Native
+trace shows truncated paths (grenadel -> grenad, machinegun -> mach); its in-place
+Q_strncpyz calls reach overlapping strncpy. A production-source ASan reproducer
+exits 1 with strncpy-param-overlap (/tmp/aftershock-oa-extension-before.log).
+All callers were inventoried: cgame weapon suffixes, both UI weapon previews and
+separate-buffer UI filename handling. Temporary helper fix/replay is in progress.
+No accepted golden or fixture change is authorized on #2. After that fix, complete
+permanent pinned OpenArena native build support, final artifact review, portable
+literals, static native calls and VM/JIT removal.
+
 
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
