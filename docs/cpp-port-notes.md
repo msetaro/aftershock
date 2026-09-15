@@ -602,3 +602,17 @@ member access. No assets are required. All callers route through BG_Alloc/BG_Fre
 BG_CanAlloc must use the same padded header size. No FP expression change is needed.
 No suppression/known-bug entry applies. ec-/Quake3e lacks this external game
 allocator; there is no applicable engine upstream patch.
+
+Test-first f576a3d2 fails with GCC and Clang. The fix uses a union size header
+aligned like a pointer; allocation, capacity checks and free use its common size.
+A pool union guarantees freeMemNode_t alignment without changing pool capacity.
+On native 64-bit this pads the header from four to eight bytes; 32-bit QVM pointer
+alignment/header size remains four. This is private allocator bookkeeping, with
+no wire/file layout or floating-point change. Callers remain unchanged.
+
+Focused ASan/UBSan passes both compilers, including allocation/free/reuse and live
+payload checks. G3 symbols remain identical; G2 adds only private allocHeader_u,
+with existing layouts unchanged. Of six functions, G4 changes only BG_CanAlloc,
+BG_Alloc and BG_Free. Artifacts: /tmp/aftershock-oa-allocation-gates. Explicit
+unit/collision/Q3 runtime golden regeneration has zero diff. Full #2 static OA
+sanitizer smoke is being checked using the patched object and original engine.

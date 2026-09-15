@@ -35,6 +35,8 @@ jobs:
         run: python3 tests/check_frames.py
       - name: OpenArena string helpers
         run: python3 tests/openarena_strings.py --cc '${{ matrix.cc }}'
+      - name: OpenArena native allocation alignment
+        run: python3 tests/openarena_alloc.py --cc '${{ matrix.cc }}'
       - name: GPL team-leader name bounds
         if: matrix.cc == 'clang'
         run: python3 tests/teamleader.py

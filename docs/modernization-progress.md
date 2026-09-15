@@ -21,10 +21,15 @@ member access. This confirms the same cause as ai_main.c:1210 in #2's static OA
 runtime sanitizer. All BG_Alloc/BG_Free/BG_CanAlloc callers were reviewed: bots,
 entity strings, arena/bot metadata, admin records and kill-spree configuration.
 
-Next: commit this failing test, introduce a consistently aligned size header and
-pool in a pinned-source patch, then check reuse/free payload preservation, gates,
-unchanged goldens and full #2 static OA sanitizer smoke. No allocator fix has been
-applied yet. No suppression/expected-bug entry exists; this failure remains fatal.
+Test-first f576a3d2 fails on GCC/Clang. The patch now uses a pointer-aligned size
+header consistently in capacity/allocation/free, and a union gives the pool its
+free-node alignment. Focused ASan/UBSan checks pass with both compilers. Symbols
+are identical; the only new layout is the private eight-byte allocHeader union;
+G4 changes only BG_CanAlloc/BG_Alloc/BG_Free (six functions total). Explicit
+unit/collision/Q3 runtime regeneration is byte-identical. Full #2 static OA
+runtime UBSan is running with the patched C object and unchanged engine objects.
+Next: finish that check, push the source/test CI change, open a draft PR, and
+complete CI/self-review before merge. No suppression/expected-bug entry exists; this failure remains fatal.
 The ec-/Quake3e engine lacks this external OA/Tremulous game allocator, so an engine
 upstream PR is not applicable. Complete this #31 PR and merge after gates/review,
 then integrate its patch on #2 and resume the recorded sequence.
