@@ -24,7 +24,13 @@ G2 layouts and G3 symbols are identical, and only CalculateRanks changes assembl
 among 39 functions. Artifacts: /tmp/aftershock-team-voters-gates and
 /tmp/aftershock-team-voters-final-before-{gcc,clang}.log.
 
-Next: run the regression/full-build gates and reviewed PR merge, then integrate
+PR #58 source 4054a2a0 exposed a test integration omission in regression 34925157744:
+the existing team-leader check now resolves the newly imported local g_local.h and
+needs COM_TRAP_GETVALUE=700 for the retained engine ABI header. The test command now
+provides that existing constant; no engine change. #2 integration bb869f79 passed
+regression 34924891632. Unit/collision/Q3 runtime explicit regeneration is byte-identical.
+
+Next: run the regression/full-build gates on the updated test command and reviewed PR merge, then integrate
 into #2 retaining its catalog/ABI changes. Continue strict warning freeze, G4/G7
 review, permanent artifact reproduction, content-free .cpp rename, static calls
 and VM/JIT removal. No accepted fixture/golden changes on #2 and no VM/JIT removal
