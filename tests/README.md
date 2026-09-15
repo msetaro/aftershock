@@ -211,8 +211,8 @@ native modules and retains their import provenance.
 
 `python3 tests/openarena_strings.py` verifies the OpenArena native CI dependency's
 case-sensitive name comparison (missing names and single argument evaluation) and
-in-place extension stripping (model suffix paths and bounded truncation). It fetches
-pinned public source from OpenArena/gamecode
+in-place extension stripping (model suffix paths, bounded truncation, empty input
+and capacity one). It fetches pinned public source from OpenArena/gamecode
 revision 331464ca396d80e91cf9be273588f2b5f4b7afc8 when the source cache is absent,
 then applies the name-comparison and extension patches in tests/patches to its output
 directory. The extension probe links the actual q_shared.c helper.
