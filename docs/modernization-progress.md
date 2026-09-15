@@ -7,6 +7,19 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
+Active: issue/31-openarena-free-list, branched from alignment merge 0c3ef426.
+PR #62 passed its source gates and merged; merged regression 34934836544 is pending.
+#2 remains parked at 956eebfa, draft PR #50. Finish this separate allocator bug,
+then integrate both patches there and resume static/platform/VM-removal work.
+
+The allocator check now fills the pool via BG_CanAlloc/BG_Alloc, frees it and
+requires the same full allocation count on reuse. Before the free-list fix, GCC
+and Clang ASan/UBSan fail at the first release: BG_Free writes freeHead->prev while
+freeHead is NULL. Reproducer: python3 tests/openarena_alloc.py, artifacts under
+/tmp/aftershock-openarena-free-before-{gcc,clang}. Next: commit the failing test,
+guard only that old-head backlink, run checks/gates and unchanged-golden validation,
+then draft/review/merge the separate #31 PR. No fix is applied yet.
+
 Active: issue/31-openarena-allocation-alignment. #2 is parked and pushed at
 956eebfa (draft PR #50). Its progress file contains the full static integration
 checkpoint: static Q3/OA bot/replay parity and lifetime gates pass locally; MSVC,

@@ -632,3 +632,8 @@ UBSan reports member access within null pointer at bg_alloc.c:168 after the
 alignment patch. Files: /tmp/aftershock-openarena-full-pool.c and .log. This is a
 separate original allocator bug, not fixed by #62; a separate test-first PR is
 next. No game content is required and no FP expression is involved.
+
+The permanent openarena_alloc check now fills through BG_CanAlloc/BG_Alloc,
+frees the complete pool and repeats its full allocation count. GCC/Clang fail
+at the first free before this separate fix. Alignment PR #62 is merged as
+0c3ef426; it deliberately did not alter this free-list transition.

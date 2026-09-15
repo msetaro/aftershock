@@ -24,9 +24,10 @@ archive = subprocess.check_output(['git', '-C', source, 'archive', REVISION, 'co
 output.mkdir(parents=True, exist_ok=True)
 with tarfile.open(fileobj=io.BytesIO(archive)) as package:
     package.extractall(output, filter='data')
-patch = ROOT / 'tests/patches/openarena-allocation-alignment.patch'
-if patch.exists():
-    subprocess.run(['git', 'apply', str(patch)], cwd=output, check=True)
+for name in ('openarena-allocation-alignment.patch', 'openarena-free-list.patch'):
+    patch = ROOT / 'tests/patches' / name
+    if patch.exists():
+        subprocess.run(['git', 'apply', str(patch)], cwd=output, check=True)
 binary = output / 'check'
 run([*shlex.split(args.cc), '-std=gnu99', '-O2', '-fno-builtin',
      '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined,address',
