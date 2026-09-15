@@ -220,3 +220,10 @@ No game content is fetched by this check. --cc, --source and --output select the
 compiler/cache/output. Both unit compiler jobs run name comparisons under UBSan and
 extension stripping under ASan. The source patch is for #2's native OpenArena configuration; the existing QVM fixtures remain
 unchanged. Original GPL notices remain in the fetched headers.
+
+`python3 tests/ui_weapon.py` checks the GPL UI's negative pending-weapon sentinel
+under UBSan, its signed setter signature, and its unchanged state size/offsets.
+It uses the actual UI header and accepts --cxx/--output; both unit compiler jobs
+run it. No content is required. Four prerequisite GPL files are imported for this
+#31 fix; their pinned provenance is recorded in docs/cpp-port-notes.md. The full
+native integration remains #2.

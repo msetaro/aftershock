@@ -7,28 +7,32 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/31-openarena-empty-extension, draft PR #56, following overlap PR #55.
-#55 merged as b051c915c63529d9ace9a90914327fc679159585 after regression
-34914627444/full build 34914627413 passed on d1e58dcb; its merged-tree regression
-34914963107 passed. #2 remains parked at c8e62d81, draft PR #50.
+Active work: issue/31-ui-weapon-sentinel. #2 is parked at af8ba5e7, draft PR #50.
+Test-first 63f86e7b imports four exact GPL UI prerequisite files and reproduces an
+invalid weapon_t load under UBSan. The fix changes pendingWeapon and SetInfo's
+sentinel-bearing input to int, retaining all normal weapon fields/enum values.
+GCC, Clang and Clang/libc++ tests pass. The state remains 1128 bytes, pendingWeapon
+at 1076 and weaponTimer at 1080; the setter accepts a signed integer. C symbols are
+identical across 11 functions. Three functions use an identical {-1,0} constant
+load instead of an immediate; remaining instruction differences are label/register
+changes. No FP expression or game behavior/golden change. CI is not started yet.
 
-Test-first c5a2ab4c reproduces empty-output out[-1] under ASan. The one-condition
-patch changes if(length) to if(length > 0). GCC/Clang pass empty input and capacity
-one, both in place and in a separate output buffer, plus all previous model/name
-checks. All 58 symbols remain identical; the only assembly change removes the
-branch that allowed a negative index store. No engine source, golden, expectation
-or suppression change. Clang native OA smoke/replay passes both maps/renderers
-with this patch. Regression 34915071172 and full build 34915071248 passed on
-source a1f04017. Self-review passes: one helper condition, all callers covered by
-the shared fix, no engine OS calls, allocation, layout or FP changes. #31 updated;
-no golden/expectation/suppression change. Ready to merge #56.
+Next: finish this fix's gates/self-review/merge, then merge it into #2. Resolve the
+UI import overlap to retain #2's catalog edits and the reviewed signed sentinel.
+In #2 only, remove obsolete enum casts on the now-integer sentinel/input and add
+T3 casts where guarded valid integer weapon values enter normal enum fields.
+Then complete G3/G4/G7 review, strict warning freeze, static direct calls and VM/JIT
+removal. No UI implementation is present in ec-/Quake3e, so no upstream fix applies.
 
-Next: finish this PR's gates/self-review/merge and verify both merged-tree runs.
-Then merge #55/this fix into #2. GCC/Clang native C/C++ Q3 smoke/replay, layout and
-shared math checks pass; with #55 both compilers' native OA smoke/replay also match
-both maps/renderers. Complete permanent pinned OpenArena native support, final
-G3/G4 review, portable literals, static native calls and VM/JIT removal. No accepted
-golden or fixture changes on #2.
+Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95
+(regression 34922352537 passed); portable Q3 binary32 literals 5592a1eb (regression
+34922727256 passed). 103 C and 103 C++ objects remained byte-identical, Clang native
+Q3 replay/smoke passes, and OA native smoke/replay passes both maps/renderers.
+Full G2/G3: 103/103 objects match; G3 adds artifact-only -U__OPTIMIZE__ to the usual
+header/optimizer isolation flags, while production assembly differences are retained.
+Three T17 ui_ingame casts preserve C/C++ objects. Final G4/G7 review remains open;
+artifacts: /tmp/aftershock-native-function-review, /tmp/aftershock-native-g2-g3-headers,
+/tmp/aftershock-native-warning-inventory. No VM/JIT removal has started.
 
 
 
