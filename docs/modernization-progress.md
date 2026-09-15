@@ -14,11 +14,13 @@ Continue #5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementat
 Next: verify CMake-only build/artifact jobs for e67f397e and the inactive-platform
 cleanup gates, update native import provenance for the two edited shared GPL files,
 then complete PR #66 self-review and merge only after all required checks pass.
+Cleanup source 9c170ddd is pushed; native provenance now records its two shared
+GPL file transformations, preserving original source hashes and notices.
 Migration checkpoint 390a20f4 passed every hosted raw-object and generated MSVC
 gate in 34946471284. Embedded-debug 48733686 passed migration 34946795374,
 regression 34946795290 and full build 34946795283. MSVC x64 debug reports 720/720
 cacheable calls with 52 hits. Make retirement e67f397e is pushed; its CMake-only
-build 34947650438 and regression 34947650429 are running.
+build 34947650438 passed. Regression 34947650429 remains to check.
 
 Makefile, game/modules.mk and handwritten MSVC projects are removed after parity.
 CMake-only build.yml keeps Linux/macOS/Windows release/debug binaries and release
@@ -44,8 +46,8 @@ has one changed trailing alignment nop outside function size. Reports and driver
 /tmp/aftershock-64bit-functions*. All 103 native C/C++ layout/symbol gates pass;
 the same 60 advisory outcomes remain. Boundary check passes 383 files (one retired
 assembly-only header fewer). Unit/one-ULP, shared math/case, both Q3 smoke logs and
-fixed replay pass unchanged. Lifetime and OpenArena sanitizer/replay checks are
-running. Artifacts /tmp/aftershock-64bit-*. Goldens/fixtures remain unchanged.
+fixed replay pass unchanged. Both OpenArena sanitizer smoke maps and fixed replay
+also pass unchanged. Lifetime analysis is running. Artifacts /tmp/aftershock-64bit-*. Goldens/fixtures remain unchanged.
 
 
 Make reference checkpoint a08e7275 fixes reproducibility; CMake repair 6987587a;
