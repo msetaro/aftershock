@@ -7,11 +7,11 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-null-subtraction, based on pending UI skill PR #80 head
-53569f88 (build 35025644781/regression 35025644789). PR #80 remains on issue/31-ui-skill-range; require its hosted gates,
-merge it first, then integrate modernization before opening this warning PR.
-#79 merged 82a434c6 after build 35024926886/regression 35024926889 passed.
-#78 merged-tree regression 35024847153 passed; #79 merged-tree run still to check.
+Active: issue/8-null-subtraction. UI skill PR #80 passed full build
+35025644781/regression 35025644789 and merged 8b74ad07; this branch has integrated
+modernization. #79 merged-tree regression 35025630301 passed. Open this qsort
+warning PR, then require its hosted gates and self-review before merging.
+Check #80's merged-tree regression when available.
 
 This branch enables Clang's null-pointer-subtraction diagnostic in production
 and standalone native helpers. qsort alignment uses uintptr_t with an explicit
@@ -25,8 +25,8 @@ Next:
 1. Local checks pass: both Clang C/C++ helper builds/ABI checks and all six
    library hashes are unchanged. Source b6927331 is recorded in provenance by
    c6ac4086. Require hosted build/regression plus self-review.
-2. Verify and merge #80; integrate modernization and open this class PR, then
-   verify its gates before merge. Check merged-tree regressions.
+2. Open this class PR and verify its gates before merge. Check merged-tree
+   regressions, then continue the next class in a separate branch.
 3. Continue #8 address/pointer-bool and larger warning classes, MSVC /WX, one
    verified tree-wide clang-format commit, tidy subsets, fixed-width representation
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to
@@ -1355,3 +1355,14 @@ debug, MinGW and ARM64. GCC actual-source controls reject the old declaration
 and accept the new one. No source change applied here; a later one-class PR can
 remove -Wno-parentheses and change only that macro. Artifacts:
 /tmp/aftershock-parentheses-declaration-preview/{results.json,*-control.log}.
+
+UI skill PR #80 final: head 53569f88 passed full build 35025644781 and regression
+35025644789; self-reviewed and merged 8b74ad07. Issue #31 comment 5688396029
+records the complete validation and upstream applicability decision.
+
+Unused-result preview (not applied): explicitly bind discarded console-write
+results to [[maybe_unused]] auto locals. All five optimized GCC/Clang x86 and ARM
+objects retain raw hashes; debug changes are confined to stores in the four
+console functions. Existing output remains best-effort; no new error policy is
+introduced. A separate class PR still needs review of those debug differences,
+flag removal and hosted gates. /tmp/aftershock-unused-result-preview.
