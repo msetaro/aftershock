@@ -9,7 +9,9 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 Active: issue/31-sdl-windows-headers from modernization merge 6069cf2a.
 #2 PR #50 merged after final source 7382120a passed regression 34936939258 and
-full build 34936939100; docs/self-review 45ab4731. Verify merged-tree regression.
+full build 34936939100; docs/self-review 45ab4731. Merged regression 34937376623
+failed before tests when the OpenArena download connection reset; only its runtime
+job 104278137382 was rerun. Verify that retry.
 Native game/cgame/UI are static; VM/interpreter/JITs removed; Q3/OA bot/replay,
 movement-debug lifecycle and lifetime gates passed with accepted goldens unchanged.
 
@@ -21,11 +23,19 @@ this fix. Reproducer: make -B -k PLATFORM=mingw64 ARCH=x86_64 USE_CURL=0 USE_SDL
 BUILD_DIR=/tmp/aftershock-sdl-headers-before followed by client/sdl_glimp.o and
 client/sdl_gamma.o under its release-mingw64-x86_64 output directory.
 
-Next: record the failing build, commit the check, move the Windows includes to
-file scope in these two SDL translation units, verify unchanged generated code
-against the existing build/header workaround and run CI/self-review. Merge this
-separate #31 fix, then #4 boundaries/moves -> #5 CMake -> #8 rules -> design-only #6.
-No local package installation or accepted golden/fixture regeneration.
+Test-first 73fb26b8 fails compiling both SDL objects. File-scope Windows includes
+now make both pass without curl; the in-function include is removed. G3 symbols
+and G4 generated code match an explicit-Windows-header baseline for each object:
+/tmp/aftershock-sdl-header-gates. No function body/layout/FP edit is required.
+Original upstream C f694bbbc fails the same two objects and passes with the same
+patch, so an ec-/Quake3e PR is applicable. Source branch:
+/tmp/aftershock-upstream-huffman, issue/31-sdl-headers-upstream. No push/PR yet.
+
+Explicit unit/collision regeneration is byte-identical; no golden/fixture diff.
+Next: push/open the separate #31 PR and upstream
+PR, then CI/self-review/merge. Verify #2 merged runtime retry. Continue with #4
+boundaries/moves -> #5 CMake -> #8 rules -> design-only #6. No local package installs
+or fixture changes; no expected-failure entry/suppression applies to this build bug.
 
 ## Earlier #2 integration checkpoints (historical)
 

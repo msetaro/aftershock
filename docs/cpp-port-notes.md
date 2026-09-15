@@ -671,3 +671,18 @@ BUILD_DIR=/tmp/aftershock-native-platform-mingw followed by the two object targe
 /tmp/aftershock-native-platform-mingw/release-mingw64-x86_64/client/sdl_gamma.o
 Diagnostics: /tmp/aftershock-mingw-sdl-headers.log. Record a separate failing-build
 then passing-build #31 fix; no suppression or expected-runtime-failure entry.
+
+Test-first 73fb26b8 adds the actual two-object compile to the MinGW CI leg. Both
+fail before and pass after explicit file-scope Windows includes; the old include
+inside GLimp_SetGamma is removed. G3 symbols and G4 codegen for both objects match
+the build with Windows headers supplied explicitly before the old source. The
+compared release assembly excludes debug metadata and LTO representation; production
+compilation retains LTO. Artifacts: /tmp/aftershock-sdl-header-gates and its driver.
+The patch changes no function body, type layout, FP operation or OS call.
+
+Original upstream C f694bbbc also fails both objects with curl disabled and passes
+the same header fix. Logs: /tmp/aftershock-upstream-sdl-before.log and
+/tmp/aftershock-upstream-sdl-after/build.log. This is not confined to the C++ port;
+an upstream PR is applicable. No known-bug entry or suppression covers build errors.
+
+Explicit unit/collision golden regeneration is byte-identical after this header fix.
