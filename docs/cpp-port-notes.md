@@ -537,3 +537,8 @@ Fix all three components in this separate #31 PR by making the intermediate int
 conversion explicit around the whole expression. No clamping or FP arithmetic
 restructuring. No corresponding ec-/Quake3e game implementation exists. Native
 port integration remains #2.
+
+Test-first 02a9ddeb fails at 254 on both GCC/Clang. All 18 expected-byte cases pass
+after; both compilers produce byte-identical C release objects and identical G2,
+G3 and G4 output. No floating-point expression or command representation changes.
+Artifacts: /tmp/aftershock-bot-command-gates.py and /tmp/aftershock-bot-command-gates.

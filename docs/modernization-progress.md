@@ -14,14 +14,21 @@ controlled horizontal/vertical bases and explicit expected command bytes; UBSan
 fails at 254 before the fix. One exact GPL prerequisite import retains its notice
 and source hash. The test shares pinned header staging with the team-leader check.
 
-Next: commit the failing test, then make the existing intermediate int conversion
-explicit around each of the three complete movement expressions in this #31 PR.
-Verify command bytes, C codegen, GCC/Clang sanitizer checks and CI/goldens/self-review;
-merge and resume the full native C++ UBSan smoke on #2. No FP restructuring or clamp.
+Test-first 02a9ddeb fails at 254 on GCC/Clang with float-cast-overflow enabled.
+The fix wraps each complete movement expression in an explicit int conversion;
+all 18 horizontal/vertical cases pass on both compilers. Original C release object
+bytes, G2 layouts, G3 symbols and G4 assembly are identical before/after on both:
+GCC 5ef9e1517d814b30021cfc1c0451842a29b3fbecbff94f8ddc16021ed033f9c4,
+Clang a0be349110f562f03f44568856bc0d792cc495251988a758d74f09aae97fc26a.
+Artifacts/reproduction: /tmp/aftershock-bot-command-gates.py and its output folder.
+The existing team-leader check also passes after sharing pinned header staging.
+
+Next: run this fix's CI/golden checks and native instrumented preflight, self-review,
+merge and resume #2. No clamping, FP restructuring or source fix on #2.
 
 #59 merged 11781f44; merged-tree regression 34926638834 passed. #2 integration and
 pahole installation are d8691015; regression 34926764924/full build 34926765230 were
-pending. Its native comparison job now passes. Provenance checkpoint e4853819
+both passed, including the native comparison job. Provenance checkpoint e4853819
 verifies 130 pinned original hashes (30 verbatim, 96 modified, four retained ABI
 headers), with commit references per changed file. Native G2/G3 pass 103 objects;
 G4/G7 review, source/catalog audit completion, .cpp rename, static integration and
