@@ -137,7 +137,8 @@
     "9c170ddd": "#5 retires inactive x86/PowerPC math and header branches; all 103 GCC x64 native production objects remain byte-identical, with unchanged C/C++ layouts and symbols",
     "a5c199bf": "#8 implicit-fallthrough warning: comments document existing transitions; source line counts and native object behavior retained",
     "c58e2751": "#31 explicitly signed bot chat offset sentinel; engine/game layout and x86 instructions unchanged, ARM64 now preserves -1",
-    "68919a83": "#8 unused-constant diagnostics: order table/type/count share the existing MISSIONPACK guard; release objects and conditional preprocessed output unchanged"
+    "68919a83": "#8 unused-constant diagnostics: order table/type/count share the existing MISSIONPACK guard; release objects and conditional preprocessed output unchanged",
+    "639fb07e": "#8 parentheses-equality: remove redundant inner parentheses in G_VoiceTo; comparison, source line count and executable code unchanged"
   },
   "files": [
     {
@@ -693,7 +694,8 @@
         "8889ea0e",
         "e8e98ab2",
         "0b575fa9",
-        "52e57708"
+        "52e57708",
+        "639fb07e"
       ]
     },
     {

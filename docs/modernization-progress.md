@@ -7,24 +7,24 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-native-fallthrough. PR #76 passed build 35021362798 and regression
-35021362817 at 4c598f3e, then merged as 7f5f90b8. That merge is integrated here;
-its merged-tree regression remains to check. #75 merged-tree run 35021218286 and
-#74 merged-tree run 35020339038 passed.
+Active: issue/8-parentheses-equality. PR #77 passed build 35022303013 and
+regression 35022302958 at 2c17b152, then merged as 28b89692. That merge is
+integrated here; its merged-tree regression remains to check. #76 merged-tree
+run 35022204641 and #75 merged-tree regression 35021218286 passed.
 
-This branch removes only GCC's implicit-fallthrough helper freeze. Production
-fallthrough was enabled in #67; the completed source annotations are unchanged.
-All six GCC C/C++ helper libraries retain identical hashes with this flag removed,
-and both helper-flag controls reject an unannotated fallthrough. Artifacts:
-/tmp/aftershock-native-fallthrough-preview. No engine source or golden changes.
-The preceding #76 helper change preserves all six Clang libraries and rejects
-its diagnostic controls in both languages.
+This branch removes redundant inner parentheses from the tournament comparison
+in g_cmds.cpp and enables Clang's parentheses-equality diagnostic in production
+and the standalone native helper. Source line count, comparison and behavior are
+unchanged. Nine-object preview: release/MinGW native objects match; two debug
+objects differ only in debug metadata. Actual-wrapper controls fail before and
+pass after. Native provenance records source commit 639fb07e. Both Clang C/C++ helper builds and ABI checks pass, and all six shared-library
+hashes match. Logs: /tmp/aftershock-parentheses-{c,cpp}.log. No golden regeneration.
 
 Next:
-1. Open this GCC fallthrough helper PR. Require hosted build/regression and
-   self-review before merging; check its and #76's merged-tree runs.
-2. Continue with the previewed parentheses-equality and self-assign cleanups in
-   separate class PRs, including native provenance and helper freeze removal.
+1. Open this parentheses-equality PR. Require hosted build/regression and
+   self-review before merging; check its and #77's merged-tree runs.
+2. Continue with the previewed self-assign, null-subtraction and address cleanups
+   in separate class PRs, including native provenance and helper freeze removal.
 3. Continue the remaining warning classes one per PR. Ready source previews below
    cover parentheses-equality and self-assign. Then finish the larger warning
    classes, MSVC warnings and /WX, one verified tree-wide clang-format commit,
@@ -48,7 +48,9 @@ Recent merges (all self-reviewed; merge commits):
 - #75 unused constants: da94649e, build 35020481804/regression 35020481815;
   merged b28beab5, merged-tree regression 35021218286 passed.
 - #76 native helper internal declarations: 4c598f3e, build 35021362798/regression
-  35021362817; merged 7f5f90b8, merged-tree regression pending verification.
+  35021362817; merged 7f5f90b8, merged-tree regression 35022204641 passed.
+- #77 native helper fallthrough: 2c17b152, build 35022303013/regression 35022302958;
+  merged 28b89692, merged-tree regression pending verification.
 #5 is complete. #8 warning ratchet remains active; later #8 rules are not done.
 
 Completed PR #75 evidence:
@@ -118,6 +120,10 @@ Retained #8 warning evidence and upcoming previews:
   further condition reads. No source FP expression changes; all other instructions
   and relocations match. Full regression remains required for the eventual PR.
   /tmp/aftershock-address-preview. Not applied.
+- Formatting preflight: local clang-format is 21.1.8. VK_CHECK stringifies its
+  argument, so its call whitespace must be preserved by the eventual formatter
+  configuration. Allocator __LINE__ macros are debug-only. Do not start the single
+  tree-wide formatting commit until the warning ratchet is complete.
 - MSVC release inventory: C4267, C4459, C4456, C4065, C4457 and C4644, from #69 job
   104469265974. /tmp/aftershock-msvc-warning-inventory.log. Address before /WX.
 
