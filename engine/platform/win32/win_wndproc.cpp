@@ -57,7 +57,7 @@ static LRESULT CALLBACK WinKeyHook( int code, WPARAM wParam, LPARAM lParam )
 		if ( key->vkCode == VK_SNAPSHOT ) {
 			Sys_QueEvent( 0, SE_KEY, K_PRINT, qtrue, 0, NULL );
 			return 1;
-		}
+		} // fall through
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
 		if ( ( key->vkCode == VK_LWIN || key->vkCode == VK_RWIN ) && !(Key_GetCatcher() & KEYCATCH_CONSOLE) ) {

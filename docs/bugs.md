@@ -691,3 +691,28 @@ Upstream PR: https://github.com/ec-/Quake3e/pull/439 (C source 88524c13).
 Aftershock PR #64 source e38d9335 passed regression 34937896536 and full build
 34937896427. Self-review passes: explicit platform header dependencies, identical
 symbols/codegen, no executable/type/FP/OS-call/allocation/lifetime changes.
+
+## Affinity expression operators (#31, found during #8)
+
+`engine/platform/sys_runtime.cpp::parseAffinityMask` saves neither `+` nor `-`
+before recursively parsing its operand. Its switch examines the character after
+the operand instead. On source 470d44da, valid masks `1+2` and `3-1` produce 1
+and 3 instead of 3 and 2. `1+2-1` produces 1 instead of 2. Both the public
+Sys_ApplyAffinityMask path and recursive expressions use this helper.
+
+Reproducer `/tmp/aftershock-affinity-observe.cpp` includes the real sys_runtime.cpp
+and calls the private helper with those literals, without applying CPU affinity.
+Compile with `g++ -std=c++20 -fno-exceptions -fno-rtti -O2 -ffunction-sections
+-fdata-sections /tmp/aftershock-affinity-observe.cpp -Wl,--gc-sections -lm
+-o /tmp/aftershock-affinity-observe`, then run that binary. Add a permanent failing
+unit check and fix in its own #31 PR; no fix is included in warning PR #67.
+
+## Affinity hexadecimal sentinel (#31, found during #8)
+
+The same helper assigns signed `hex_code`'s -1 sentinel to uint64_t `v` before
+checking `>= 0`. The check is always true. The observation probe above reports
+`0xZ` as UINT64_MAX; `0x1` correctly reports 1. A bare prefix also advances beyond
+its terminator and needs a bounded regression in the separate fix. This is a
+second root cause; keep its test/fix separate from expression-operator handling.
+The existing -Wtype-limits diagnostic identifies the exact condition. No fix or
+new expected-failure entry is included in #67; these are recorded #31 follow-ups.

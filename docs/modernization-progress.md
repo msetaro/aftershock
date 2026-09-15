@@ -7,13 +7,57 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/5-cmake-build, draft PR #66, based on #4 merge 4a952854.
-#3/#31/#1/#2/#4 are complete. #4 merged-tree regression 34942323875 passed.
-Continue #5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementation.
+Active: issue/8-implicit-fallthrough, draft PR #67, based on #5 merge 1412c2eb.
+#3/#31/#1/#2/#4/#5 are complete. PR #66 final 112fa4ff passes build 34949329755
+and regression 34949329729; merged tree is identical to that tested checkpoint.
+Merged-tree regression 34949976994 passed.
 
-Next: mark PR #66 ready and merge with a merge commit after the final whitespace/
-documentation checkpoint checks pass, then verify merged-tree regression. Read #8
-and start one warning class per PR. No #8 source changes yet.
+Next: verify the vendor warning-policy correction and rerun PR #67 hosted gates,
+then complete self-review and merge. Address the newly confirmed affinity bugs in
+separate #31 test-first PRs before resuming other #8 warning classes. One warning class per PR. After the warning ratchet: one verified
+tree-wide clang-format commit, tidy subsets, fixed-width representation types and
+layout assertions, release-identical Q_ASSERT. Finish #8, write design-only
+`docs/design/rhi.md` for #6, then stop. No #6/#7 implementation.
+
+#8 baseline: 2,380 production C++ objects/diagnostics across GCC/Clang release,
+GCC debug, MinGW and aarch64 server configurations. Both renderers covered where
+applicable. /tmp/aftershock-warning-before and /tmp/aftershock-warning-cross-before
+contain compiler commands, raw hashes and logs. Six full compilation controls fail
+with -Werror=implicit-fallthrough, including debug game and native Windows paths;
+syntax-only compilation does not emit GCC's fallthrough diagnostic and is not used
+as the gate. /tmp/aftershock-fallthrough-before-*.log records those expected failures.
+Potential behavior bugs from other warning classes require #31 disposition; do not
+correct them in this PR. No goldens/fixtures are regenerated.
+
+#8 fallthrough implementation: six comments document existing transitions in file
+append mode, preprocessor subtraction, SDL fallback settings, Windows key dispatch,
+UI radio input and the debug game error path. Existing comments suffice for the
+GCC warning and preserve the retained C oracle sources; no new portability macro
+is needed. Source line counts are preserved so debug metadata can also match.
+The warning suppression is removed from engine and native C++ compiler lists.
+Unit golden 8d44421d and the one-ULP negative control pass. Object review passes: 2,372/2,380 raw objects match; the eight MinGW LTO
+containers differ, but incremental LTO linking produces byte-identical native
+objects (including data and relocations) for all eight. No LTO option is removed
+from production. Thirteen initial Unix differences were unpinned __TIME__; the
+focused before/after repeat uses the existing test SOURCE_DATE_EPOCH and all 13
+match. Original hashes/diagnostics remain recorded. Review evidence and driver:
+/tmp/aftershock-fallthrough-review*, /tmp/aftershock-fallthrough-results.json.
+Original imports/notices/hashes are retained; provenance records a5c199bf.
+Hosted gates and final self-review remain required.
+
+First hosted #67 run found vendored minizip still inheriting engine warnings.
+The CMake correction applies the plan's -w (/w on MSVC) vendor policy through
+explicit existing source lists. Owned engine/game code retains the fallthrough
+gate. Full local non-SDL debug client/server build passes; vendor raw-object
+comparison across nine configurations is running. No vendored source is edited.
+
+Two affinity-helper bugs are confirmed by direct calls that do not apply CPU
+affinity: valid 1+2 and 3-1 yield 1 and 3; 0xZ yields UINT64_MAX. docs/bugs.md
+records the distinct operator-consumption and unsigned-sentinel causes with their
+reproducer. Fix only in separate #31 PRs with failing tests first. Other warning
+candidates remain unconfirmed and must not be silently changed during the ratchet.
+
+## #5 completed verification
 
 Final source 9c170ddd passes full build 34948420894 and regression 34948420906.
 Provenance checkpoint 3f91d501 passes build 34948630311 and regression 34948630289.
