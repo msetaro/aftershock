@@ -486,3 +486,18 @@ PR #58 source/test head 9e1f9411 passed regression 34925252301 and full build
 both accepted Q3 bot logs, with repeated identical runs. Explicit unit/collision/
 Q3 runtime golden regeneration is byte-identical. Self-review passes; no expected
 bug entry or UBSan suppression was needed, and no accepted golden changes.
+
+### CTF startup indexes an invalid flag status (#31, pending)
+
+Team_InitGame sets both redStatus and blueStatus to -1, then Team_SetFlagStatus
+updates red and formats both statuses. The still-invalid blue value indexes before
+ctfFlagStatusRemap[5]; C++ also rejects reading the invalid enum. The real C path
+fails UBSan with index 4294967295 at g_team.c:225. Reproducer:
+/tmp/aftershock-team-flags-before.c, compiled with the native ABI header, -O2,
+-fsanitize=undefined -fno-sanitize-recover=all and section garbage collection.
+
+Root fix belongs in a separate #31 PR: publish the fully initialized at-base
+configstring directly in Team_InitGame, retaining zeroed valid enum states, with
+the same approach for one-flag initialization. Other setter callers (dropped flags,
+reset and pickup paths) pass valid statuses. Init is called from SaveRegisteredItems.
+No fix is on #2. No corresponding ec-/Quake3e game implementation exists.

@@ -304,3 +304,18 @@ are the inherited bg_lib qsort alignment idiom (one per module), retained under 
 plan's intentional-UB rule. The remaining classes are unchanged C diagnostics;
 extra C++ missing-field warnings reflect aggregate zero initialization. No new
 warning class is disabled just to make C++ build.
+
+`python3 -B tests/native_gates.py` reproduces G2 layouts, G3 symbols and advisory G4
+assembly for all 103 native Q3 objects using the existing `tools/port/gates.py`
+normalizers. Layout/symbol differences fail; assembly differences remain visible
+for review. --tidy also runs the three focused G7 checks, failing on tool/compile
+errors and retaining every diagnostic for disposition. --jobs/--output control
+concurrency/artifact location. The output records source hashes, compiler versions,
+exact commands, logs and diffs. GCC CI runs G2/G3 and uploads comparison evidence.
+
+The G3 objects use the port oracle's optimizer/header isolation flags plus
+-U__OPTIMIZE__: glibc otherwise forces single-character strstr calls into strchr in
+C++ headers even with -fno-builtin. This flag is limited to symbol artifacts;
+production flags and assembly retain those library transformations. The current
+G7 report contains 1,365 narrowing, 55 signed-char and nine implicit string-result
+comparisons; it is a review report, not a claim of zero findings.

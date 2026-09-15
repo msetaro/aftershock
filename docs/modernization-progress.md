@@ -23,7 +23,7 @@ C++ module builds and fixed replay on both maps/renderers with unchanged frames.
 The resolved integration passes GCC/Clang team-voter tests and the team-leader
 check. Its g_main source matches the temporary GCC/Clang native runtime preflight
 byte-for-byte. The voter test now includes #2's native ABI header for its adapted
-entry point. Merged-tree regression 34925562788 is pending.
+entry point. Merged-tree regression 34925562788 passed.
 
 The integration is committed as 7d9bc04a. The native warning freeze now enables
 -Wall -Wextra -Werror on both C and C++ Q3 modules. tests/native-warnings.json records
@@ -33,13 +33,25 @@ The UI array diagnostics have valid [0,4] indices; inherited qsort alignment
 warnings remain under the intentional-UB ruling. The confirmed rank/sentinel bugs
 were fixed in separate #31 PRs. No new source changes for this freeze.
 
-Next: commit/push the warning freeze and verify CI plus merged-tree run 34925562788.
-Finish G4/G7 review and permanent artifact reproduction before the content-free
+Warning freeze is committed as 7c4f8302; regression 34925774876/full build
+34925774880 are pending. Permanent native_gates.py passes all 103 G2/G3 objects
+on the actual merged tree and records 63 advisory assembly differences. --tidy
+finishes every object with 1365 narrowing, 55 signed-char and nine string-result
+findings, no tool/compile failures. Exact commands/source hashes are retained in
+/tmp/aftershock-native-gates-final; G2/G3 now run in the GCC CI job.
+
+Next: park #2 after committing this reproduction tool and fix the confirmed CTF
+startup bug in a separate #31 PR. Team_InitGame seeds both flag statuses with -1;
+its first setter indexes the remap table using the still-invalid blue status.
+The actual C function fails UBSan at index 4294967295. Publish the already-zeroed
+valid at-base states directly, test-first, including one-flag initialization.
+Caller audit and reproducer are in cpp-port-notes.md. No fix is made on #2.
+
+Then finish G4/G7 review and source provenance/catalog audit before the content-free
 .cpp rename, static calls and VM/JIT removal. No VM/JIT removal has started.
-No accepted golden or fixture changes on #2. Additional assembly review through
-the small/medium diffs and several large functions is recorded in
-/tmp/aftershock-native-review-checkpoint.md. Post-#57/#58 UI/game artifacts need
-refreshing; full optimized warning inventory is /tmp/aftershock-native-warning-optimized.
+No accepted golden or fixture changes on #2. Additional advisory review is in
+/tmp/aftershock-native-review-checkpoint.md; its claim that flag statuses stay
+nonnegative is superseded by the newly confirmed startup bug above.
 
 Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95
 (regression 34922352537 passed); portable Q3 binary32 literals 5592a1eb (regression

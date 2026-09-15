@@ -39,6 +39,19 @@ jobs:
         run: |
           python3 tests/native.py --language c++ --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}' --output /tmp/native-cpp
           python3 tests/native_shared.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+      - name: Native C/C++ layout and symbol gates
+        if: matrix.cc == 'gcc'
+        run: python3 -B tests/native_gates.py
+      - name: Native comparison evidence
+        if: always() && matrix.cc == 'gcc'
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-comparisons
+          path: |
+            /tmp/aftershock-native-gates/*.json
+            /tmp/aftershock-native-gates/**/*.diff
+            /tmp/aftershock-native-gates/**/*.command
+            /tmp/aftershock-native-gates/**/*.log
       - name: OpenArena string helpers
         run: python3 tests/openarena_strings.py --cc '${{ matrix.cc }}'
       - name: GPL team-leader name bounds
