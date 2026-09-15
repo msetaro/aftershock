@@ -7,24 +7,27 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-affinity-hex, temporarily based on #68 source 83899a7d.
-#68 operator fix is awaiting build 34951709954 and regression 34951709967; its
-self-review/local gates pass and exact remote head is recorded below. #67 merged
-as 43ad68ab and merged regression 34951493059 passed. #5 is complete.
+Active: issue/31-affinity-hex, with failing test 985a3f1f committed and the
+hex-sentinel source fix passing GCC/Clang ASan+UBSan locally. #68 merged as
+b4db52c4 after build 34951709954 and regression 34951709967 passed; integrate
+origin/modernization before opening this separate PR. #67 merged as 43ad68ab
+with merged regression 34951493059 passing. #5 is complete.
 
-Next: commit the two-case ASan/UBSan test extension failing first, fix only the
-signed hex sentinel before advancing the input, and verify both compilers.
-When #68 gates pass, ready/merge it at exact head 83899a7d, then integrate
-origin/modernization before opening the separate hex fix PR. Reproduce/fix the
-upstream C helper and submit its separate PR. Complete gates/self-review before
-merge. Resume #8's remaining warning classes, verified formatting, tidy, types/
-layouts and Q_ASSERT afterward. Finish #8, write design-only docs/design/rhi.md
-for #6, then stop. No #6/#7 implementation.
+Next: commit the hex fix, integrate #68, open the Aftershock and upstream PRs,
+then finish codegen, golden/runtime/hosted gates and self-review before merge.
+Resume #8's remaining warning classes, verified formatting, tidy, types/layouts
+and Q_ASSERT afterward. Finish #8, write design-only docs/design/rhi.md for #6,
+then stop. No #6/#7 implementation.
 
-Hex test-first checkpoint: the existing affinity test now adds just 0xZ and bare
-0x and enables ASan alongside UBSan. These reproduce the incorrect sentinel and
-terminator read on the unfixed source. The test still intercepts the OS setter;
-there are no real affinity changes. No hex engine fix exists at this checkpoint.
+Hex test-first 985a3f1f extends the existing affinity test with exactly 0xZ and
+bare 0x and enables ASan alongside UBSan. It fails on the wrong mask and terminator
+read before the fix. Keeping hex_code's result in signed int until validation
+fixes all 18 cases through the private helper and intercepted public apply path.
+Both common.cpp callers and recursion were already reviewed. There is no real
+OS affinity change in the test. Upstream C f694bbbc independently reproduces both
+failures and passes the same hex-only fix under GCC/Clang ASan+UBSan; its ten cases
+exclude the separate pending operator bug. /tmp/aftershock-affinity-hex-*.log.
+No expected-failure entry/suppression covers this new regression.
 
 Operator fix: preserve the + or - before recursive operand consumption. Test-first
 e84a1f6e fails; all 16 valid cases now pass GCC/Clang UBSan through both helper and
@@ -42,8 +45,8 @@ empty string is omitted. Seven explicit byte checks verify the referenced consta
 are identical. Artifacts /tmp/aftershock-affinity-codegen/{results,constants}.json;
 /tmp/aftershock-affinity-{runtime,demo}.log. Scope self-review passes: one operator
 bug, no FP/layout/OS-call/allocation/lifetime changes, no applicable expectation or
-suppression. Build 34951709954 and regression 34951709967 remain to pass before
-ready/merge. Exact PR head: 83899a7de9e25ff2cfa6b2c105eb322ecad7a60d.
+suppression. Build 34951709954 and regression 34951709967 passed; PR #68 merged b4db52c4.
+Verified PR head: 83899a7de9e25ff2cfa6b2c105eb322ecad7a60d.
 
 The separate hex-sentinel reproducer now confirms both symptoms: 0xZ becomes
 UINT64_MAX and bare 0x causes ASan global-buffer-overflow. Temporary two-case
