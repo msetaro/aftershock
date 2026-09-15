@@ -8,10 +8,13 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 ## Next action
 
 Active: issue/2-native-game, draft PR #50, platform worktree
-/tmp/aftershock-native-platform at 956eebfa plus local compiler adaptations.
+/tmp/aftershock-native-platform. Static checkpoint 956eebfa; compiler adaptation
+090b7a3c.
 Allocator PR #62 merged 0c3ef426 with merged regression 34934836544 passed.
-Separate free-list PR #63 is in CI on issue/31-openarena-free-list; it must merge
-before integrating both OA patches here. Neither source fix is made on #2.
+Free-list PR #63 merged 555f0771 after regression 34935436665/full build
+34935436703 passed; its merged regression 34935816610 is pending. This merge
+integrates both separately reviewed OA patches and the allocator check.
+openarena_native.py now applies both patches to its pinned C sources.
 
 Static integration source 956eebfa exposed DEBUG-only string literals, legacy
 MSVC pragmas on MinGW, PPC assembly on modern macOS and absent MSVC native
@@ -25,8 +28,8 @@ from an explicit list matching all 103 Make objects; native sources retain stric
 FP and disabled intrinsics. Actual MSVC/macOS/all-client MinGW CI remains pending.
 No simulation FP edits.
 
-Next: finish #63 in the primary worktree and merge both patches into this branch;
-complete compiler adaptations and MSVC native object integration, then remove
+Next: verify merged #63 CI and this integration; finish compiler/MSVC native
+object builds, then remove
 obsolete VM/JIT code and finish remaining native test/provenance review.
 
 Static Q3 and OA bot logs and both-renderer fixed replay match accepted goldens.
@@ -37,6 +40,8 @@ Client lifecycle checkpoint e40ac443 passed regression 34932294456 and full buil
 34932294429. Current static integration has local evidence but is not CI-complete:
 MSVC/native test/compiler integration and VM/JIT removal are still pending.
 The later #4/#5/#8/design-only #6 sequence remains outstanding.
+
+## Earlier #2 integration checkpoints (historical)
 
 Active: issue/2-native-game, draft PR #50. #3, the recorded #31 fixes through
 PR #61, and #1 are merged. #2 import, C/QVM parity, catalog port, advisory review,
@@ -916,3 +921,6 @@ No replay is regenerated or claimed passing. Artifacts:
 Client build helper /tmp/aftershock-oa-native-client-build.py maps base UI objects
 to code/q3_ui, uses code/ui/ui_syscalls.c, maps bg_* to code/game and links #2's
 QVM random/sort library. Native OA frame parity remains #2 work after this fix.
+
+#63 explicit unit/collision golden regeneration is byte-identical; static OA
+smoke also matches both accepted bot logs. No golden/fixture change.

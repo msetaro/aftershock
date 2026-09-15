@@ -24,7 +24,8 @@ def stage_source(output, source=Path('/tmp/aftershock-oa-native-source')):
     output.mkdir(parents=True, exist_ok=True)
     with tarfile.open(fileobj=io.BytesIO(archive)) as package:
         package.extractall(output, filter='data')
-    for name in ('openarena-name-comparison.patch', 'openarena-extension.patch'):
+    for name in ('openarena-name-comparison.patch', 'openarena-extension.patch',
+                 'openarena-allocation-alignment.patch', 'openarena-free-list.patch'):
         subprocess.run(['git', 'apply', str(ROOT / 'tests/patches' / name)], cwd=output, check=True)
     return output
 

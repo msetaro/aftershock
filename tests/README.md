@@ -367,3 +367,9 @@ samples another replay in the same process. On Quake 3 content both repetitions
 must match the existing accepted frame goldens, just like ordinary replay. No
 additional frame golden was needed. This tests the production Q3 module reset;
 hosted OA parity runs each fixture in a fresh process.
+
+`python3 tests/openarena_alloc.py` checks the real pinned OpenArena allocator with
+ASan/UBSan: native structure/pointer alignment, allocation/free/reuse, preservation
+of live payloads, defragmentation and reuse after completely filling the pool.
+--cc/--source/--output select compiler, source
+cache and diagnostics. Both unit compiler jobs run it; no game content is needed.
