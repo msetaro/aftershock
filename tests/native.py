@@ -14,7 +14,7 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=True)
     compiler = shlex.split(cc if language == 'c' else cxx)
-    mode = ['-std=gnu99'] if language == 'c' else ['-x', 'c++', '-std=c++20', '-fno-exceptions', '-fno-rtti', '-Werror=write-strings', '-Werror=register']
+    mode = ['-std=gnu99'] if language == 'c' else ['-x', 'c++', '-std=c++20', '-fno-exceptions', '-fno-rtti', '-Werror=write-strings', '-Werror=register', '-U_GNU_SOURCE', '-D_DEFAULT_SOURCE']
     version = subprocess.check_output([*compiler, '--version'], text=True)
     precision = '-cl-single-precision-constant' if 'clang' in version.lower() else '-fsingle-precision-constant'
     manifest = json.loads((ROOT / 'docs/native-game-import.json').read_text())
