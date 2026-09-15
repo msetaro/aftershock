@@ -4,7 +4,7 @@
 // compiled for the virtual machine
 
 #include "q_shared.h"
-
+#include <stdint.h>
 /*-
  * Copyright (c) 1992, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -71,7 +71,7 @@ static void	 swapfunc(char *, char *, int, int);
         } while (--i > 0);				\
 }
 
-#define SWAPINIT(a, es) swaptype = ((char *)a - (char *)0) % sizeof(long) || \
+#define SWAPINIT(a, es) swaptype = ((uintptr_t)a) % sizeof(long) || \
 	es % sizeof(long) ? 2 : es == sizeof(long)? 0 : 1;
 
 static void

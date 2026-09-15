@@ -7,31 +7,31 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-ui-skill-range, based on pending PR #79 (self-assign)
-b2594ea9. #79 build 35024926886/regression 35024926889 must pass and merge
-before this separate bug PR opens. #78 merged 74caf6e6 after build
-35023238777/regression 35023238813; merged-tree run 35024847153 is pending.
+Active: issue/8-null-subtraction. UI skill PR #80 passed full build
+35025644781/regression 35025644789 and merged 8b74ad07; this branch has integrated
+modernization. #79 merged-tree regression 35025630301 passed. Open this qsort
+warning PR, then require its hosted gates and self-review before merging.
+Check #80's merged-tree regression when available.
 
-The permanent test tests/ui_skill.py exercises the real skill event and best-score
-storage with large finite values, INT_MIN, 2^31, invalid small values and every
-valid skill including fractional values. Test-first cea0a882 fails under
-both GCC/Clang in the callback and score storage. Source fix 2475e0d2 passes
-both paths under ASan/UBSan, including libc++ (35cc5796 adds hosted checks).
-Use a shared bounded UI skill reader while preserving each caller's invalid-value
-policy; trace all five readers. This is UI game code absent from ec-/Quake3e.
-No expected-failure entry or suppression applies. No source fix is in #79.
+This branch enables Clang's null-pointer-subtraction diagnostic in production
+and standalone native helpers. qsort alignment uses uintptr_t with an explicit
+stdint.h include; the existing long-sized swap algorithm is retained. The prior
+25-object preview proves identical release/MinGW-native bytes and identical
+instructions/relocations in debug (six objects differ only in debug sections).
+This is the proven-identical replacement permitted by the port constraints.
+No simulation FP, allocation, lifetime, layout, OS call or accepted fixture change.
 
 Next:
-1. Local gates are complete (evidence below). Wait for #79, integrate its merge
-   and open this #31 PR with full hosted build/regression gates.
-2. Merge #79 after gates/self-review, integrate modernization, open this #31 PR,
-   then require full hosted build/regression and self-review before merging it.
-3. Resume #8 null-subtraction and address class PRs, then the larger warning
-   classes and MSVC /WX. One class per PR, no golden regeneration for warnings.
-4. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
-   representation types/layout assertions and release-identical Q_ASSERT. Update
-   the plan's rules table to in force; finish #8, write design-only
-   docs/design/rhi.md for #6, then stop. No #6/#7 implementation.
+1. Local checks pass: both Clang C/C++ helper builds/ABI checks and all six
+   library hashes are unchanged. Source b6927331 is recorded in provenance by
+   c6ac4086. Require hosted build/regression plus self-review.
+2. Open this class PR and verify its gates before merge. Check merged-tree
+   regressions, then continue the next class in a separate branch.
+3. Continue #8 address/pointer-bool and larger warning classes, MSVC /WX, one
+   verified tree-wide clang-format commit, tidy subsets, fixed-width representation
+   types/layout assertions and release-identical Q_ASSERT. Update plan rules to
+   in force, finish #8, write design-only docs/design/rhi.md for #6, then stop.
+   No #6/#7 implementation and no golden regeneration for warning work.
 
 Recent merges (all self-reviewed; merge commits):
 - #70 ignored qualifiers: 17a9dae2, build 35016076778/regression 35016076784;
@@ -110,7 +110,7 @@ Retained #8 warning evidence and upcoming previews:
   explicitly include stdint.h; retain the existing long-sized swap algorithm.
   All 25 production objects preserve instructions/relocations; release/MinGW native
   hashes match and six debug objects differ only in debug sections. Clang controls
-  fail before/pass after. /tmp/aftershock-null-subtraction-preview. Not applied.
+  fail before/pass after. /tmp/aftershock-null-subtraction-preview. Applied here.
 - Address/pointer-bool preview: remove the impossible !classname stack-array guard
   in BotGetActivateGoal; preserve existing empty-classname behavior. x86 release
   and MinGW native objects match; two debug objects differ only in debug sections.
@@ -1341,3 +1341,28 @@ records 2475e0d2 for the five imported files, preserving original GPL hashes.
 Local logs /tmp/aftershock-ui-skill-{unit,differential,runtime,demo,native-*}.log.
 The initial default /tmp/aftershock-tests configure encountered an old CMake
 cache; the clean task-specific /tmp/aftershock-ui-skill-unit passed.
+
+Null-subtraction source b6927331 matches the reviewed 25-object preview. The
+explicit stdint.h include preserves line count. Both Clang native helper builds
+pass, including their layout checks, and all six library hashes are unchanged:
+/tmp/aftershock-null-subtraction-before.json and null-subtraction-{c,cpp}.log.
+No accepted golden regeneration. PR #79 merged-tree run is 35025630301.
+
+General parentheses preview: all 27 bot_moveresult_t_cleared callers pass the
+simple identifier result. Removing declaration parentheses from the macro leaves
+all 51 production/native objects byte-identical across GCC/Clang release, GCC
+debug, MinGW and ARM64. GCC actual-source controls reject the old declaration
+and accept the new one. No source change applied here; a later one-class PR can
+remove -Wno-parentheses and change only that macro. Artifacts:
+/tmp/aftershock-parentheses-declaration-preview/{results.json,*-control.log}.
+
+UI skill PR #80 final: head 53569f88 passed full build 35025644781 and regression
+35025644789; self-reviewed and merged 8b74ad07. Issue #31 comment 5688396029
+records the complete validation and upstream applicability decision.
+
+Unused-result preview (not applied): explicitly bind discarded console-write
+results to [[maybe_unused]] auto locals. All five optimized GCC/Clang x86 and ARM
+objects retain raw hashes; debug changes are confined to stores in the four
+console functions. Existing output remains best-effort; no new error policy is
+introduced. A separate class PR still needs review of those debug differences,
+flag removal and hosted gates. /tmp/aftershock-unused-result-preview.
