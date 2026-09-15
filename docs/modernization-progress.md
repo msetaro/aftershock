@@ -17,8 +17,8 @@ This branch replaces the fov_x self-assignment with a comment and enables Clang'
 self-assign diagnostic in production and the standalone helper. It keeps the
 existing branch, arithmetic and cg.refdef.fov_x assignment. All eight previewed
 production/native objects match, including GCC debug. Clang wrapper controls fail
-before and pass after. Native provenance records 9e4d45f0; both Clang helper languages are
-being checked against six saved library hashes. No golden regeneration.
+before and pass after. Native provenance records 9e4d45f0; both Clang C/C++ helper builds and ABI checks pass,
+and all six shared-library hashes match (/tmp/aftershock-self-assign-{c,cpp}.log). No golden regeneration.
 
 Next:
 1. Verify and merge #78, then open this self-assign PR. Require hosted build/
