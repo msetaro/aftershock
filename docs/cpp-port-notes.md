@@ -648,3 +648,10 @@ entry or suppression applies, and ec-/Quake3e has no corresponding OA allocator.
 Full static OA UBSan smoke passes both accepted map logs with the patched C
 object and unchanged #2 engine objects: /tmp/aftershock-oa-free-static. Unit
 golden remains 8d44421d; no golden or fixture change is required.
+
+PR #63 source be9a9bc3 passed regression 34935436665 and full build 34935436703.
+Self-review passes with one guarded backlink, unchanged layouts/symbols and no
+FP, OS, allocation or non-trivial lifetime changes.
+
+#63 explicit unit/collision golden regeneration is byte-identical; static OA
+smoke also matches both accepted bot logs. No golden/fixture change.

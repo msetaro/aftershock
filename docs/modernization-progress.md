@@ -23,8 +23,11 @@ the patched C object and unchanged engine objects (/tmp/aftershock-oa-free-stati
 Accepted bot hashes remain 51d66d9a and 0f2e6b68; unit hash remains 8d44421d.
 No goldens changed.
 
-Next: record issue #31, push the source and open its separate draft PR;
-complete CI/self-review before merging. No known-bug
+PR #63 source be9a9bc3 passed regression 34935436665 and full build 34935436703.
+Self-review passes: one allocator free-list transition; callers audited, focused
+failure-first checks and static OA UBSan pass, existing layouts/symbols unchanged,
+only BG_Free codegen differs. No FP, OS, allocation or lifetime edits.
+Next: ready/merge #63 and verify merged-tree CI, then integrate both patches into #2. No known-bug
 entry/suppression applies. ec-/Quake3e has no corresponding external OA allocator.
 
 Alignment PR #62 source d7fb120b passed regression 34934306507 and full build
@@ -777,3 +780,6 @@ No replay is regenerated or claimed passing. Artifacts:
 Client build helper /tmp/aftershock-oa-native-client-build.py maps base UI objects
 to code/q3_ui, uses code/ui/ui_syscalls.c, maps bg_* to code/game and links #2's
 QVM random/sort library. Native OA frame parity remains #2 work after this fix.
+
+#63 explicit unit/collision golden regeneration is byte-identical; static OA
+smoke also matches both accepted bot logs. No golden/fixture change.
