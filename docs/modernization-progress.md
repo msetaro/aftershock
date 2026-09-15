@@ -7,18 +7,21 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-affinity-hex, with failing test 985a3f1f committed and the
-hex-sentinel source fix passing GCC/Clang ASan+UBSan locally. #68 merged as
-b4db52c4 after build 34951709954 and regression 34951709967 passed; it is integrated
-and its merged-tree regression 34952399676 passed. #67 merged as 43ad68ab
-with merged regression 34951493059 passing. #5 is complete.
+Active: issue/8-ignored-qualifiers, based on #69 merge 2d9fa2ca.
+#69 source dc3a6a81 passed build 34995107292 and regression 34995107235; its
+merged-tree regression remains to check. Both affinity fixes are merged; upstream
+C contributions are ec-/Quake3e #440 and #441. #5 is complete; #8 fallthrough PR
+#67 is merged. All other #8 warning classes and rules remain pending.
 
-Next: open the hex-fix Aftershock PR and finish runtime/hosted gates and self-review
-before merge. Source e25cf588 follows failing test 985a3f1f. Upstream C source
-38238103 is ec-/Quake3e PR #441, based independently on upstream main.
-Resume #8's remaining warning classes, verified formatting, tidy, types/layouts
-and Q_ASSERT afterward. Finish #8, write design-only docs/design/rhi.md for #6,
-then stop. No #6/#7 implementation.
+Next: open the ignored-qualifier PR, then verify hosted gates and self-review
+before merge. The single CMake flag removal preserves all 590 captured client
+objects byte for byte across both renderers. GCC/Clang production-flag controls
+confirm the diagnostic is now an error. No test or engine source change is needed. No engine source changes. Continue
+one warning class per PR, followed by verified tree-wide formatting, tidy subsets,
+fixed-width representation types/layout assertions and release-identical Q_ASSERT.
+Finish #8, write design-only docs/design/rhi.md for #6, then stop; no implementation.
+
+## Completed affinity fixes and #8 baseline evidence
 
 Hex test-first 985a3f1f extends the existing affinity test with exactly 0xZ and
 bare 0x and enables ASan alongside UBSan. It fails on the wrong mask and terminator
@@ -34,9 +37,18 @@ Hex codegen review covers nine GCC/Clang/debug/MinGW/aarch64 production objects:
 only parseAffinityMask changes; no function is added/removed and all unrelated
 function instructions/relocations match. Artifacts /tmp/aftershock-affinity-hex-codegen.
 Explicit unit/collision regeneration is byte-identical (8d44421d / 9674cd22).
-Local Q3 runtime/fixed replay and hosted gates remain to finish. No source FP,
+Local Q3 bot logs and fixed replay pass unchanged (6dad7c18/a15c9c91, b38004b1).
+Hosted build 34995107292 and regression 34995107235 passed; #69 merged 2d9fa2ca. No source FP,
 wire/file layout, allocation or OS-call change; signed int hex is trivially
 destructible. No golden/fixture change is intended or accepted for this fix.
+
+Next #8 class: ignored qualifiers. The broad warning inventory reports no existing
+diagnostics in this class, so only its CMake suppression needs removal. GCC and
+Clang production-flag controls accept a const-qualified scalar return while the
+suppression is present and reject it when enabled. Captured 590 current client
+objects across both renderers at dc3a6a81 for direct before/after hash comparison:
+/tmp/aftershock-ignored-qualifiers-before. No engine source or fixture change is
+needed for that class. Keep it in a separate #8 branch/PR after #69 is ready.
 
 Operator fix: preserve the + or - before recursive operand consumption. Test-first
 e84a1f6e fails; all 16 valid cases now pass GCC/Clang UBSan through both helper and
