@@ -127,7 +127,8 @@
     "622ae3af": "#31 PR #59: publish complete initial flag configstring with valid states",
     "0366fa06": "#31 PR #60: explicit intermediate int conversion for movement command bytes; original C objects unchanged",
     "cdcbb7df": "Separate #31 fix: preserve overlapping info-string suffixes (PR #61).",
-    "d6c2ac52": "#2 static module lifecycle: explicit per-level initialization replaces DLL storage reset"
+    "d6c2ac52": "#2 static module lifecycle: explicit per-level initialization replaces DLL storage reset",
+    "436bbab1": "#2 static client/UI lifecycle: reset module state at initialization"
   },
   "files": [
     {
@@ -149,7 +150,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "436bbab1"
       ]
     },
     {
@@ -167,7 +169,8 @@
       "sha256": "ca31c30eddb244e15b1605d4796ca2ccd7bc0a6217a34d2b351cc9b1c21df2fa",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 23 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
-        "5592a1eb"
+        "5592a1eb",
+        "436bbab1"
       ]
     },
     {
@@ -197,7 +200,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "436bbab1"
       ]
     },
     {
@@ -206,7 +210,8 @@
       "sha256": "950d17d47d3419cc6f3c0684ba6ea6285073b5dd777984f2ebd71b0cb042918a",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
-        "5592a1eb"
+        "5592a1eb",
+        "436bbab1"
       ]
     },
     {
@@ -229,7 +234,8 @@
         "8889ea0e",
         "e8e98ab2",
         "0b575fa9",
-        "5592a1eb"
+        "5592a1eb",
+        "436bbab1"
       ]
     },
     {
@@ -241,7 +247,8 @@
         "6ea3a3bb",
         "8889ea0e",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "436bbab1"
       ]
     },
     {
@@ -272,7 +279,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "6ea3a3bb",
-        "5592a1eb"
+        "5592a1eb",
+        "436bbab1"
       ]
     },
     {
@@ -455,7 +463,7 @@
       "source": "code/game/ai_team.h",
       "path": "code/game/ai_team.h",
       "sha256": "5fa4071caa55ca8f23ff7a7f19bd9e3b594e50c2e673b2b755e41293ee9c6f6b",
-      "disposition": "verbatim import",
+      "disposition": "GPL import with recorded transformations",
       "transformations": [
         "d6c2ac52"
       ]
@@ -708,7 +716,7 @@
       "source": "code/game/g_mem.c",
       "path": "code/game/g_mem.cpp",
       "sha256": "2bc6b384305c8a1036ed2a0a12ddc0accb2366623896ec003331c6abb2c6a84d",
-      "disposition": "verbatim import",
+      "disposition": "GPL import with recorded transformations",
       "transformations": [
         "d6c2ac52"
       ]
@@ -932,7 +940,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 26 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "436bbab1"
       ]
     },
     {
@@ -1023,7 +1032,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "6ea3a3bb",
-        "e8e98ab2"
+        "e8e98ab2",
+        "436bbab1"
       ]
     },
     {
@@ -1053,7 +1063,8 @@
       "transformations": [
         "8889ea0e",
         "630ae8e1",
-        "bb869f79"
+        "bb869f79",
+        "436bbab1"
       ]
     },
     {
@@ -1213,7 +1224,8 @@
       "transformations": [
         "6ea3a3bb",
         "8889ea0e",
-        "e8e98ab2"
+        "e8e98ab2",
+        "436bbab1"
       ]
     },
     {

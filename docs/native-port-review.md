@@ -9,8 +9,9 @@ Static integration and VM removal are still pending at this checkpoint.
 
 `native-game-import.json` records the original repository/revision, source/destination
 paths and SHA256 values. All 130 original hashes were verified against revision
-dbe4ddb10315479fc00086f08e25d968b4b43c49. Thirty files remain verbatim, 96 have recorded
-changes, and four retain existing engine ABI headers. Each changed file references
+dbe4ddb10315479fc00086f08e25d968b4b43c49. At the catalog-port checkpoint, 30 files were verbatim, 96 had recorded
+changes, and four retained existing engine ABI headers. Later static-lifecycle
+adaptations are recorded per file in the same manifest. Each changed file references
 its ABI adaptation, catalog or separate #31 fix commits. GPL notices are retained.
 
 The C native baseline is 3306d55d. The ordinary catalog changes comprise T1 pointer
@@ -86,3 +87,25 @@ against existing QVM goldens; they prohibit native regeneration.
 
 The ABI/type audit and advisory decisions apply before static integration. All 93 implementation files were renamed with identical source bytes (100% git
 rename similarity). The later static/direct-call change must rerun the runtime, layout and build gates before PR #50 is ready.
+
+## Resident module initialization
+
+Game d6c2ac52 and client/UI 436bbab1 restore state previously reset by DLL reloads.
+The game arena is cleared at level initialization; bot pointers, timing counters,
+preferences, spawn queue and per-level counts reset at their existing entry points.
+Bot client-count consumers reuse the existing map-initialized global. Death and
+movement diagnostic counters retain their original per-module lifetime.
+
+The client resets its random/effect seeds, score-plum history, draw statistics,
+loading counts, prediction state and particle rotation at module initialization.
+The UI clears its state/arena and cached server counts. Menu structures initialize
+on entry; resource handles are refreshed by existing cache functions. Temporary
+string/math buffers are written before consumption and require no blanket reset.
+The enabled base-game paths are covered; this does not claim missionpack coverage.
+
+Test-first 413f1ed8 and a1cf3223 reproduce resident game/client differences. After
+the adaptations, game restart/map-change logs match ordinary reloads twice, with
+and without movement diagnostics. Fixed replay after video restart matches on both
+maps/renderers with normal and retained storage. The separate accepted-golden
+replay remains b38004b1. GCC/Clang native C++ builds and all 103 C/C++ layout/symbol
+comparisons pass. Floating-point expressions and accepted fixtures remain unchanged.
