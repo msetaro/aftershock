@@ -414,3 +414,7 @@ GCC/Clang pass after. All 58 symbols match; the sole assembly change removes the
 branch allowing the negative-index store. The overlap fix is already merged as
 PR #55 / b051c915. No corresponding ec-/Quake3e change applies: its engine helper
 uses a different implementation and handles empty strings already.
+
+PR #56 source a1f04017 passed regression 34915071172/full build 34915071248.
+Clang native OA bot smoke and fixed replay match both maps and renderers after
+this patch; no accepted golden change. Self-review passes.

@@ -7,17 +7,21 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/31-openarena-empty-extension, following overlap PR #55.
+Active work: issue/31-openarena-empty-extension, draft PR #56, following overlap PR #55.
 #55 merged as b051c915c63529d9ace9a90914327fc679159585 after regression
 34914627444/full build 34914627413 passed on d1e58dcb; its merged-tree regression
-34914963107 is running. #2 remains parked at c8e62d81, draft PR #50.
+34914963107 passed. #2 remains parked at c8e62d81, draft PR #50.
 
 Test-first c5a2ab4c reproduces empty-output out[-1] under ASan. The one-condition
 patch changes if(length) to if(length > 0). GCC/Clang pass empty input and capacity
 one, both in place and in a separate output buffer, plus all previous model/name
 checks. All 58 symbols remain identical; the only assembly change removes the
 branch that allowed a negative index store. No engine source, golden, expectation
-or suppression change. Fixed native OA smoke/replay will be rerun with this patch.
+or suppression change. Clang native OA smoke/replay passes both maps/renderers
+with this patch. Regression 34915071172 and full build 34915071248 passed on
+source a1f04017. Self-review passes: one helper condition, all callers covered by
+the shared fix, no engine OS calls, allocation, layout or FP changes. #31 updated;
+no golden/expectation/suppression change. Ready to merge #56.
 
 Next: finish this PR's gates/self-review/merge and verify both merged-tree runs.
 Then merge #55/this fix into #2. GCC/Clang native C/C++ Q3 smoke/replay, layout and
