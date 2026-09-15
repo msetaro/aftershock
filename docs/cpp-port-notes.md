@@ -465,8 +465,8 @@ these counts. The optimized #2 C/C++ warning inventory exposed both invalid writ
 
 `python3 tests/team_voters.py` calls the real function under UBSan, failing at index
 2 before the fix. It checks zero-client reset, human red/blue counts, bot exclusion
-and preservation of seeded adjacent fields. Link wrappers isolate only unrelated
-end-level notifications. Fix the bound to the actual array length in this #31 PR;
+and preservation of seeded adjacent fields. Only the two unrelated end-level notification symbols are weakened with objcopy
+and replaced by test stubs; the actual rank calculation remains intact. Fix the bound to the actual array length in this #31 PR;
 no floating-point expression, wire layout or accepted golden needs to change.
 
 Three verbatim prerequisites retain GPL notices from id-Software/Quake-III-Arena

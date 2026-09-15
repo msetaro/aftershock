@@ -231,4 +231,4 @@ native integration remains #2.
 `python3 tests/team_voters.py` calls the actual GPL CalculateRanks under UBSan.
 It verifies zero-client reset, red/blue human counts, bot exclusion and preservation
 of adjacent spawn state. --cc/--output select the compiler and output; both unit
-compiler jobs run it. Only unrelated end-level notifications are link-wrapped.
+compiler jobs run it. Only unrelated end-level notifications use test stubs.

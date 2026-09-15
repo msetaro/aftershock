@@ -13,11 +13,14 @@ args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 binary = args.output.resolve() / 'check'
 # Keep the real rank calculation; isolate its unrelated end-level notifications.
-run([*shlex.split(args.cc), '-std=gnu99', '-O2', '-fno-inline',
-     '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined',
-     '-fno-sanitize-recover=all', '-DCOM_TRAP_GETVALUE=700', '-Icode/game',
-     'code/game/g_main.c', 'tests/probes/team_voters.c', '-Wl,--gc-sections',
-     '-Wl,--wrap=CheckExitRules,--wrap=SendScoreboardMessageToAllClients',
+flags = [*shlex.split(args.cc), '-std=gnu99', '-O2', '-fno-inline', '-fPIC',
+         '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined',
+         '-fno-sanitize-recover=all', '-DCOM_TRAP_GETVALUE=700', '-Icode/game']
+obj = args.output.resolve() / 'g_main.o'
+run([*flags, '-c', 'code/game/g_main.c', '-o', obj])
+run(['objcopy', '--weaken-symbol=CheckExitRules',
+     '--weaken-symbol=SendScoreboardMessageToAllClients', obj])
+run([*flags, obj, 'tests/probes/team_voters.c', '-Wl,--gc-sections',
      '-lm', '-o', binary])
 run([binary])
 print('PASS: team voter reset preserves adjacent state and excludes bots')

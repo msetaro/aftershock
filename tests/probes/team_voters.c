@@ -3,8 +3,8 @@
 
 void trap_SetConfigstring( int index, const char *value ) { (void)index; (void)value; }
 char * QDECL va( char *format, ... ) { (void)format; return ""; }
-void __wrap_CheckExitRules( void ) {}
-void __wrap_SendScoreboardMessageToAllClients( void ) {}
+void CheckExitRules( void ) {}
+void SendScoreboardMessageToAllClients( void ) {}
 
 int main( void ) {
 	static gclient_t clients[MAX_CLIENTS];
