@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check native alignment and payload preservation in OpenArena's real allocator."""
+"""Check alignment, live payloads and full-pool reuse in OpenArena's allocator."""
 import argparse
 import io
 from pathlib import Path
@@ -24,9 +24,10 @@ archive = subprocess.check_output(['git', '-C', source, 'archive', REVISION, 'co
 output.mkdir(parents=True, exist_ok=True)
 with tarfile.open(fileobj=io.BytesIO(archive)) as package:
     package.extractall(output, filter='data')
-patch = ROOT / 'tests/patches/openarena-allocation-alignment.patch'
-if patch.exists():
-    subprocess.run(['git', 'apply', str(patch)], cwd=output, check=True)
+for name in ('openarena-allocation-alignment.patch', 'openarena-free-list.patch'):
+    patch = ROOT / 'tests/patches' / name
+    if patch.exists():
+        subprocess.run(['git', 'apply', str(patch)], cwd=output, check=True)
 binary = output / 'check'
 run([*shlex.split(args.cc), '-std=gnu99', '-O2', '-fno-builtin',
      '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined,address',
@@ -34,4 +35,4 @@ run([*shlex.split(args.cc), '-std=gnu99', '-O2', '-fno-builtin',
      output / 'code/game/bg_alloc.c', 'tests/probes/openarena_alloc.c',
      '-Wl,--gc-sections', '-o', binary])
 run([binary])
-print('PASS: OpenArena allocator aligns native payloads and preserves live allocations')
+print('PASS: OpenArena allocator aligns payloads, preserves live allocations and reuses a full pool')

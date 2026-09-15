@@ -630,5 +630,28 @@ the head. If allocations completely consumed the pool, freeHead is NULL. A small
 reproducer fills it through BG_CanAlloc(16)/BG_Alloc(16), then frees one block;
 UBSan reports member access within null pointer at bg_alloc.c:168 after the
 alignment patch. Files: /tmp/aftershock-openarena-full-pool.c and .log. This is a
-separate original allocator bug, not fixed by #62; a separate test-first PR is
-next. No game content is required and no FP expression is involved.
+separate original allocator bug, not fixed by #62; test-first commit 2a4e4aad
+covers it. No game content is required and no FP expression is involved.
+
+The permanent openarena_alloc check now fills through BG_CanAlloc/BG_Alloc,
+frees the complete pool and repeats its full allocation count. GCC/Clang fail
+at the first free before this separate fix. Alignment PR #62 is merged as
+0c3ef426; it deliberately did not alter this free-list transition.
+
+The separate patch guards the previous head's backlink when the list is empty.
+The new block still becomes the head, and the non-empty transition is unchanged.
+GCC/Clang ASan/UBSan pass full allocation/free/reallocation and existing live-data
+checks. Layouts and symbols are identical; only BG_Free changes codegen, out of
+six allocator functions. Artifacts: /tmp/aftershock-oa-free-gates. No expected-bug
+entry or suppression applies, and ec-/Quake3e has no corresponding OA allocator.
+
+Full static OA UBSan smoke passes both accepted map logs with the patched C
+object and unchanged #2 engine objects: /tmp/aftershock-oa-free-static. Unit
+golden remains 8d44421d; no golden or fixture change is required.
+
+PR #63 source be9a9bc3 passed regression 34935436665 and full build 34935436703.
+Self-review passes with one guarded backlink, unchanged layouts/symbols and no
+FP, OS, allocation or non-trivial lifetime changes.
+
+#63 explicit unit/collision golden regeneration is byte-identical; static OA
+smoke also matches both accepted bot logs. No golden/fixture change.
