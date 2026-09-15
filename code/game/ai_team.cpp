@@ -63,6 +63,10 @@ typedef struct bot_ctftaskpreference_s
 
 bot_ctftaskpreference_t ctftaskpreferences[MAX_CLIENTS];
 
+void BotResetTeamPreferences(void) {
+	memset( ctftaskpreferences, 0, sizeof(ctftaskpreferences) );
+}
+
 
 /*
 ==================
@@ -83,10 +87,7 @@ BotNumTeamMates
 int BotNumTeamMates(bot_state_t *bs) {
 	int i, numplayers;
 	char buf[MAX_INFO_STRING];
-	static int maxclients;
 
-	if (!maxclients)
-		maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");
 
 	numplayers = 0;
 	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {
@@ -127,7 +128,6 @@ int BotSortTeamMatesByBaseTravelTime(bot_state_t *bs, int *teammates, int maxtea
 
 	int i, j, k, numteammates, traveltime;
 	char buf[MAX_INFO_STRING];
-	static int maxclients;
 	int traveltimes[MAX_CLIENTS];
 	bot_goal_t *goal = NULL;
 
@@ -145,8 +145,6 @@ int BotSortTeamMatesByBaseTravelTime(bot_state_t *bs, int *teammates, int maxtea
 			goal = &blueobelisk;
 	}
 #endif
-	if (!maxclients)
-		maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");
 
 	numteammates = 0;
 	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {
@@ -880,10 +878,7 @@ void BotTeamOrders(bot_state_t *bs) {
 	int teammates[MAX_CLIENTS];
 	int numteammates, i;
 	char buf[MAX_INFO_STRING];
-	static int maxclients;
 
-	if (!maxclients)
-		maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");
 
 	numteammates = 0;
 	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {

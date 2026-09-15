@@ -241,6 +241,7 @@ void G_ProcessIPBans(void)
 	char *s, *t;
 	char		str[MAX_CVAR_VALUE_STRING];
 
+	numIPFilters = 0;
 	Q_strncpyz( str, g_banIPs.string, sizeof(str) );
 
 	for (t = s = g_banIPs.string; *t; /* */ ) {

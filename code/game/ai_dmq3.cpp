@@ -1426,10 +1426,7 @@ ClientFromName
 int ClientFromName(char *name) {
 	int i;
 	char buf[MAX_INFO_STRING];
-	static int maxclients;
 
-	if (!maxclients)
-		maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");
 	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {
 		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
 		Q_CleanStr( buf );
@@ -1446,10 +1443,7 @@ ClientOnSameTeamFromName
 int ClientOnSameTeamFromName(bot_state_t *bs, char *name) {
 	int i;
 	char buf[MAX_INFO_STRING];
-	static int maxclients;
 
-	if (!maxclients)
-		maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");
 	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {
 		if (!BotSameTeam(bs, i))
 			continue;
@@ -5389,6 +5383,20 @@ BotSetupDeathmatchAI
 void BotSetupDeathmatchAI(void) {
 	int ent, modelnum;
 	char model[128];
+
+	VectorClear(lastteleport_origin);
+	lastteleport_time = 0;
+	memset(&ctf_redflag, 0, sizeof(ctf_redflag));
+	memset(&ctf_blueflag, 0, sizeof(ctf_blueflag));
+#ifdef MISSIONPACK
+	memset(&ctf_neutralflag, 0, sizeof(ctf_neutralflag));
+	memset(&redobelisk, 0, sizeof(redobelisk));
+	memset(&blueobelisk, 0, sizeof(blueobelisk));
+	memset(&neutralobelisk, 0, sizeof(neutralobelisk));
+#endif
+	altroutegoals_setup = qfalse;
+	red_numaltroutegoals = 0;
+	blue_numaltroutegoals = 0;
 
 	gametype = trap_Cvar_VariableIntegerValue("g_gametype");
 	maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");

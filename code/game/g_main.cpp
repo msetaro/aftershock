@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 level_locals_t	level;
 
+static int passwordLastMod = -1;
+
 typedef struct {
 	vmCvar_t	*vmCvar;
 	const char	*cvarName;
@@ -413,6 +415,10 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	G_Printf ("gamedate: %s\n", __DATE__);
 
 	srand( randomSeed );
+	passwordLastMod = -1;
+	BG_ResetPmove();
+	G_InitCombat();
+	G_ResetShaderRemaps();
 
 	G_RegisterCvars();
 
@@ -1666,10 +1672,8 @@ CheckCvars
 ==================
 */
 void CheckCvars( void ) {
-	static int lastMod = -1;
-
-	if ( g_password.modificationCount != lastMod ) {
-		lastMod = g_password.modificationCount;
+	if ( g_password.modificationCount != passwordLastMod ) {
+		passwordLastMod = g_password.modificationCount;
 		if ( *g_password.string && Q_stricmp( g_password.string, "none" ) ) {
 			trap_Cvar_Set( "g_needpass", "1" );
 		} else {

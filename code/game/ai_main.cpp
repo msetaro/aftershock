@@ -48,6 +48,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ai_chat.h"
 #include "ai_cmd.h"
 #include "ai_dmnet.h"
+#include "ai_team.h"
 #include "ai_vcmd.h"
 
 //
@@ -69,6 +70,9 @@ float regularupdate_time;
 //
 int bot_interbreed;
 int bot_interbreedmatchcount;
+static int local_time;
+static int botlib_residual;
+static int lastbotthink_time;
 //
 vmCvar_t bot_thinktime;
 vmCvar_t bot_memorydump;
@@ -1379,9 +1383,6 @@ int BotAIStartFrame(int time) {
 	gentity_t	*ent;
 	bot_entitystate_t state;
 	int elapsed_time, thinktime;
-	static int local_time;
-	static int botlib_residual;
-	static int lastbotthink_time;
 
 	G_CheckBotSpawn();
 
@@ -1642,6 +1643,19 @@ BotAISetup
 int BotAISetup( int restart ) {
 	int			errnum;
 
+	// Static modules retain storage that DLL reloads used to clear.
+	memset( botstates, 0, sizeof(botstates) );
+	memset( notleader, 0, sizeof(notleader) );
+	numbots = 0;
+	floattime = 0;
+	regularupdate_time = 0;
+	bot_interbreed = 0;
+	bot_interbreedmatchcount = 0;
+	local_time = 0;
+	botlib_residual = 0;
+	lastbotthink_time = 0;
+	BotResetTeamPreferences();
+
 	trap_Cvar_Register(&bot_thinktime, "bot_thinktime", "100", CVAR_CHEAT);
 	trap_Cvar_Register(&bot_memorydump, "bot_memorydump", "0", CVAR_CHEAT);
 	trap_Cvar_Register(&bot_saveroutingcache, "bot_saveroutingcache", "0", CVAR_CHEAT);
@@ -1659,9 +1673,6 @@ int BotAISetup( int restart ) {
 	if (restart) {
 		return qtrue;
 	}
-
-	//initialize the bot states
-	memset( botstates, 0, sizeof(botstates) );
 
 	errnum = BotInitLibrary();
 	if (errnum != BLERR_NOERROR) return qfalse;

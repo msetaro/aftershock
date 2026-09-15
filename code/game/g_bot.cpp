@@ -46,6 +46,8 @@ typedef struct {
 //static int			botBeginDelay = 0;  // bk001206 - unused, init
 static botSpawnQueue_t	botSpawnQueue[BOT_SPAWN_QUEUE_DEPTH];
 
+static int checkminimumplayers_time;
+
 vmCvar_t bot_minplayers;
 
 extern gentity_t	*podium1;
@@ -397,7 +399,6 @@ G_CheckMinimumPlayers
 void G_CheckMinimumPlayers( void ) {
 	int minplayers;
 	int humanplayers, botplayers;
-	static int checkminimumplayers_time;
 
 	if (level.intermissiontime) return;
 	//only check once each 10 seconds
@@ -967,6 +968,12 @@ void G_InitBots( qboolean restart ) {
 	int			basedelay;
 	char		map[MAX_QPATH];
 	char		serverinfo[MAX_INFO_STRING];
+
+	memset( botSpawnQueue, 0, sizeof(botSpawnQueue) );
+	checkminimumplayers_time = 0;
+	podium1 = NULL;
+	podium2 = NULL;
+	podium3 = NULL;
 
 	G_LoadBots();
 	G_LoadArenas();

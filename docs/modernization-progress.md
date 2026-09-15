@@ -13,7 +13,8 @@ Test-first e5fd1033 reproduces overlapping strcpy in both helpers. All 14 C/C++
 ASan cases pass on GCC/Clang after the two-line memmove fix; G2 matches, G3 adds
 only memmove, G4 changes only the two removal functions. Native smoke/replay and
 explicit unit/collision/Q3 runtime golden regeneration have zero diff. Self-review
-passed. Merged-tree regression 34930596490 is pending.
+passed. Merged-tree regression 34930596490 passed. Integration 1def16ce
+also passed regression 34930663280 and full build 34930663236.
 
 Integration applies those exact two lines to renamed q_shared.cpp, removes the
 prerequisite q_shared.c duplicate, updates the test path and import provenance.
@@ -36,6 +37,17 @@ their initialization points, retaining the same first-load behavior. The mutable
 object inventory is /tmp/aftershock-native-game-state-inventory.txt. Reuse the
 existing bot maxclients global initialized by BotSetupDeathmatchAI. Static ABI
 adapters remain scratch-only until lifecycle parity passes.
+
+The first lifecycle implementation passes both persistent repeats against normal
+DLL reloads (dd1fe5c3). It clears the existing arena, bot pointers/timers, team
+preferences, spawn queue, per-level shader/IP counts and death-animation counter;
+14 redundant bot maxclients caches now use the existing per-map global. A separate
+movement debug-counter reset restores its module lifetime too. Its debug-log
+comparison passes (e87382ec). This is #2 static storage integration, not a
+pre-existing engine fix. Existing Q3 native bot smoke passes both accepted logs;
+all 103 C/C++ layouts/symbols, bot-command/team-leader/shared checks pass. Fixed
+replay is running. Client/UI lifecycle audit and actual static integration remain.
+No accepted fixtures/goldens changed.
 
 Earlier checkpoints below describe how this integration was reached.
 

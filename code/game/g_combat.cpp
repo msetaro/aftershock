@@ -24,6 +24,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "g_local.h"
 
+static int deathAnimationIndex;
+
+void G_InitCombat( void ) {
+	deathAnimationIndex = 0;
+}
+
 
 /*
 ============
@@ -636,9 +642,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		GibEntity( self, killer );
 	} else {
 		// normal death
-		static int i;
-
-		switch ( i ) {
+		switch ( deathAnimationIndex ) {
 		case 0:
 			anim = BOTH_DEATH1;
 			break;
@@ -662,13 +666,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		self->client->ps.torsoAnim = 
 			( ( self->client->ps.torsoAnim & ANIM_TOGGLEBIT ) ^ ANIM_TOGGLEBIT ) | anim;
 
-		G_AddEvent( self, EV_DEATH1 + i, killer );
+		G_AddEvent( self, EV_DEATH1 + deathAnimationIndex, killer );
 
 		// the body can still be gibbed
 		self->die = body_die;
 
 		// globally cycle through the different death animations
-		i = ( i + 1 ) % 3;
+		deathAnimationIndex = ( deathAnimationIndex + 1 ) % 3;
 
 #ifdef MISSIONPACK
 		if (self->s.eFlags & EF_KAMIKAZE) {

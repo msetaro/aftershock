@@ -353,4 +353,5 @@ it. No game assets or generated goldens are needed.
 fresh versus retained native module storage. It requires installed Quake 3 content
 and the normal runtime tools. A process-local dlclose shim models static storage;
 the ordinary DLL run supplies the comparison. Diagnostics remain under --output.
+`--debug-movement` also checks the per-module movement diagnostic counter.
 This transitional lifecycle gate never records demos or regenerates goldens.

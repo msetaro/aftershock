@@ -13,6 +13,7 @@ from run import ROOT, ENV, build, run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
+parser.add_argument('--debug-movement', action='store_true', help='also compare movement debug counters')
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-native-lifecycle'))
 args = parser.parse_args()
 output = args.output.resolve()
@@ -36,7 +37,7 @@ for mode in ('fresh', 'persistent-1', 'persistent-2'):
         command = ['timeout', '90', 'faketime', '-f', '@2026-01-01 00:00:00 i0.01', binary,
                    '+set', 'fs_basepath', home, '+set', 'fs_homepath', home,
                    '+set', 'vm_game', '0', '+set', 'dedicated', '1',
-                   '+set', 'sv_pure', '0', '+set', 'com_logfile', '0',
+                   '+set', 'sv_pure', '0', '+set', 'g_debugMove', str(int(args.debug_movement)), '+set', 'com_logfile', '0',
                    '+map', 'q3dm17', '+addbot', 'sarge', '3', '+addbot', 'major', '3',
                    '+wait', '150', '+map_restart', '0', '+wait', '150',
                    '+map', 'q3dm7', '+addbot', 'sarge', '3', '+addbot', 'major', '3',

@@ -53,6 +53,7 @@ void *G_Alloc( int size ) {
 }
 
 void G_InitMemory( void ) {
+	memset( memoryPool, 0, sizeof( memoryPool ) );
 	allocPoint = 0;
 }
 

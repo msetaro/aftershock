@@ -48,6 +48,10 @@ float	pm_spectatorfriction = 5.0f;
 
 int		c_pmove = 0;
 
+void BG_ResetPmove( void ) {
+	c_pmove = 0;
+}
+
 
 /*
 ===============
