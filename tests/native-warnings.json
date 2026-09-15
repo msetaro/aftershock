@@ -38,10 +38,6 @@
       "c": 1,
       "cpp": 1
     },
-    "-Wself-assign": {
-      "c": 1,
-      "cpp": 1
-    },
     "-Wsign-compare": {
       "c": 60,
       "cpp": 25
