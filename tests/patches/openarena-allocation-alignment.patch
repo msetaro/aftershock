@@ -1,0 +1,110 @@
+--- a/code/game/bg_alloc.c
++++ b/code/game/bg_alloc.c
+@@ -43,7 +43,17 @@
+   struct freeMemNode_s *prev, *next;
+ } freeMemNode_t;
+ 
+-static char           memoryPool[POOLSIZE];
++typedef union allocHeader_u
++{
++  int size;
++  void *align;
++} allocHeader_t;
++
++static union
++{
++  freeMemNode_t align;
++  char bytes[POOLSIZE];
++} memoryPool;
+ static freeMemNode_t  *freeHead;
+ static int            freeMem;
+ 
+@@ -52,7 +62,7 @@
+  */
+ qboolean BG_CanAlloc( unsigned int size) {
+     freeMemNode_t *fmn;
+-    int allocsize = ( size + sizeof(int) + ROUNDBITS ) & ~ROUNDBITS;    // Round to 32-byte boundary
++    int allocsize = ( size + sizeof(allocHeader_t) + ROUNDBITS ) & ~ROUNDBITS;    // Round to 32-byte boundary
+     for( fmn = freeHead; fmn; fmn = fmn->next ) {
+         if( fmn->cookie != FREEMEMCOOKIE ) {
+             //Memory curroption
+@@ -73,9 +83,9 @@
+   freeMemNode_t *fmn, *prev, *next, *smallest;
+   int allocsize, smallestsize;
+   char *endptr;
+-  int *ptr;
+-
+-  allocsize = ( size + sizeof(int) + ROUNDBITS ) & ~ROUNDBITS;    // Round to 32-byte boundary
++  allocHeader_t *ptr;
++
++  allocsize = ( size + sizeof(allocHeader_t) + ROUNDBITS ) & ~ROUNDBITS;    // Round to 32-byte boundary
+   ptr = NULL;
+ 
+   smallest = NULL;
+@@ -97,7 +107,7 @@
+           next->prev = prev;      // Point next node to previous
+         if( fmn == freeHead )
+           freeHead = next;      // Set head pointer to next
+-        ptr = (int *) fmn;
++        ptr = (allocHeader_t *) fmn;
+         break;              // Stop the loop, this is fine
+       } else {
+         // Keep track of the smallest free slot
+@@ -113,14 +123,14 @@
+     // We found a slot big enough
+     smallest->size -= allocsize;
+     endptr = (char *) smallest + smallest->size;
+-    ptr = (int *) endptr;
++    ptr = (allocHeader_t *) endptr;
+   }
+ 
+   if( ptr ) {
+     freeMem -= allocsize;
+     memset( ptr, 0, allocsize );
+-    *ptr++ = allocsize;        // Store a copy of size for deallocation
+-    return( (void *) ptr );
++    ptr->size = allocsize;        // Store a copy of size for deallocation
++    return( (void *) (ptr + 1) );
+   }
+ 
+   Com_Error( ERR_DROP, "BG_Alloc: failed on allocation of %i bytes\n", size );
+@@ -132,26 +142,26 @@
+ 
+   freeMemNode_t *fmn;
+   char *freeend;
+-  int *freeptr;
++  allocHeader_t *freeptr;
+ 
+   freeptr = ptr;
+   freeptr--;
+ 
+-  freeMem += *freeptr;
++  freeMem += freeptr->size;
+ 
+   for( fmn = freeHead; fmn; fmn = fmn->next ) {
+     freeend = ((char *) fmn) + fmn->size;
+     if( freeend == (char *) freeptr ) {
+       // Released block can be merged to an existing node
+ 
+-      fmn->size += *freeptr;    // Add size of node.
++      fmn->size += freeptr->size;    // Add size of node.
+       return;
+     }
+   }
+   // No merging, add to head of list
+ 
+   fmn = (freeMemNode_t *) freeptr;
+-  fmn->size = *freeptr;        // Set this first to avoid corrupting *freeptr
++  fmn->size = freeptr->size;        // Set this first to avoid corrupting *freeptr
+   fmn->cookie = FREEMEMCOOKIE;
+   fmn->prev = NULL;
+   fmn->next = freeHead;
+@@ -162,7 +172,7 @@
+ void BG_InitMemory( void ) {
+   // Set up the initial node
+ 
+-  freeHead = (freeMemNode_t *)memoryPool;
++  freeHead = (freeMemNode_t *)memoryPool.bytes;
+   freeHead->cookie = FREEMEMCOOKIE;
+   freeHead->size = POOLSIZE;
+   freeHead->next = NULL;
