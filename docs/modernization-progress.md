@@ -617,3 +617,11 @@ C bg_lib raw object SHA256 is identical with/without the setting:
 GCC does not receive it (its object would change). Evidence:
 /tmp/aftershock-native-bg-lib-inline; all-module Clang C++ link now passes.
 The function bodies, caller arithmetic and external atof symbol are retained.
+
+GCC C++ fixed replay passes all original Q3 samples (b38004b1); Clang C++ all-module
+links pass after the scoped header setting. Artifact gates identify real pending
+C/C++ library/header differences plus compiler symbol/table numbering; they are
+not yet marked passed. CI also exposed the standalone #31 team-leader check's
+missing COM_TRAP_GETVALUE definition after #2 imported the complete local headers.
+The check now uses the native ABI header and local bot-state types, removing its
+obsolete external header fetch; it passes locally. No bug fix or gate suppression.
