@@ -7,31 +7,31 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-self-assign. PR #78 passed build 35023238777 and regression
-35023238813 and merged; this branch has integrated origin/modernization.
-#77 merged-tree regression 35023041315 passed. Open the self-assign PR next;
-require its hosted gates and self-review before merging.
+Active: issue/31-ui-skill-range, based on pending PR #79 (self-assign)
+b2594ea9. #79 build 35024926886/regression 35024926889 must pass and merge
+before this separate bug PR opens. #78 merged 74caf6e6 after build
+35023238777/regression 35023238813; merged-tree run 35024847153 is pending.
 
-This branch replaces the fov_x self-assignment with a comment and enables Clang's
-self-assign diagnostic in production and the standalone helper. It keeps the
-existing branch, arithmetic and cg.refdef.fov_x assignment. All eight previewed
-production/native objects match, including GCC debug. Clang wrapper controls fail
-before and pass after. Native provenance records 9e4d45f0; both Clang C/C++ helper builds and ABI checks pass,
-and all six shared-library hashes match (/tmp/aftershock-self-assign-{c,cpp}.log). No golden regeneration.
+The permanent test tests/ui_skill.py exercises the real skill event and best-score
+storage with large finite values, INT_MIN, 2^31, invalid small values and every
+valid skill including fractional values. The event fails before the fix under
+GCC at ui_spskill.cpp:114. Commit this failing test before any source fix.
+Use a shared bounded UI skill reader while preserving each caller's invalid-value
+policy; trace all five readers. This is UI game code absent from ec-/Quake3e.
+No expected-failure entry or suppression applies. No source fix is in #79.
 
 Next:
-1. Open this self-assign PR. Require hosted build/
-   regression and self-review before merging; check the merged-tree runs.
-2. Fix the newly confirmed UI g_spSkill conversion bug in a separate test-first
-   #31 PR (see docs/bugs.md), then continue the null-subtraction and address cleanups
-   in separate class PRs, including native provenance and helper freeze removal.
-3. Continue the remaining warning classes one per PR. Ready source previews below
-   cover parentheses-equality and self-assign. Then finish the larger warning
-   classes, MSVC warnings and /WX, one verified tree-wide clang-format commit,
-   tidy subsets, fixed-width representation types/layout assertions and
-   release-identical Q_ASSERT. Update the plan's rules table to in force.
-4. Finish #8, write design-only docs/design/rhi.md for #6, then stop. No #6/#7
-   implementation. No accepted golden or fixture regeneration for warning work.
+1. Confirm both probe paths fail under GCC/Clang, commit test first, then fix
+   UI skill conversion in this #31 branch. Update native provenance, run local
+   gates and relevant regression/golden commands and review codegen changes.
+2. Merge #79 after gates/self-review, integrate modernization, open this #31 PR,
+   then require full hosted build/regression and self-review before merging it.
+3. Resume #8 null-subtraction and address class PRs, then the larger warning
+   classes and MSVC /WX. One class per PR, no golden regeneration for warnings.
+4. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
+   representation types/layout assertions and release-identical Q_ASSERT. Update
+   the plan's rules table to in force; finish #8, write design-only
+   docs/design/rhi.md for #6, then stop. No #6/#7 implementation.
 
 Recent merges (all self-reviewed; merge commits):
 - #70 ignored qualifiers: 17a9dae2, build 35016076778/regression 35016076784;
