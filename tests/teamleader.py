@@ -19,6 +19,6 @@ if revision != REVISION:
     raise SystemExit('FAIL: unexpected GPL header revision: ' + revision)
 run(['git', '-C', source, 'diff', '--quiet', REVISION, '--', 'code/game/*.h', 'code/botlib/*.h', 'code/qcommon/*.h'])
 for name in ('ai_cmd.c', 'ai_team.c'):
-    run(['clang', '-std=gnu99', '-O2', '-Werror=array-bounds', '-fsyntax-only',
+    run(['clang', '-std=gnu99', '-O2', '-Werror=array-bounds', '-fsyntax-only', '-DCOM_TRAP_GETVALUE=700',
          '-I' + str(source / 'code/game'), 'code/game/' + name])
 print('PASS: both team-leader writes stay within the real GPL bot-state bounds')

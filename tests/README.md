@@ -227,3 +227,8 @@ It uses the actual UI header and accepts --cxx/--output; both unit compiler jobs
 run it. No content is required. Four prerequisite GPL files are imported for this
 #31 fix; their pinned provenance is recorded in docs/cpp-port-notes.md. The full
 native integration remains #2.
+
+`python3 tests/team_voters.py` calls the actual GPL CalculateRanks under UBSan.
+It verifies zero-client reset, red/blue human counts, bot exclusion and preservation
+of adjacent spawn state. --cc/--output select the compiler and output; both unit
+compiler jobs run it. Only unrelated end-level notifications use test stubs.

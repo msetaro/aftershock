@@ -7,42 +7,43 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/31-ui-weapon-sentinel, draft PR #57. #2 is parked at af8ba5e7, draft PR #50.
-Test-first 63f86e7b imports four exact GPL UI prerequisite files and reproduces an
-invalid weapon_t load under UBSan. The fix changes pendingWeapon and SetInfo's
-sentinel-bearing input to int, retaining all normal weapon fields/enum values.
-GCC, Clang and Clang/libc++ tests pass. The state remains 1128 bytes, pendingWeapon
-at 1076 and weaponTimer at 1080; the setter accepts a signed integer. C symbols are
-identical across 11 functions. Three functions use an identical {-1,0} constant
-load instead of an immediate; remaining instruction differences are label/register
-changes. No FP expression or accepted golden changes. Regression 34923921313
-and full build 34923921329 passed on 630ae8e1. A temporary complete #2
-Clang C++ UI build with this fix also passes calls to the real SetInfo function:
--1 clears pending state/timer, a valid weapon queues, and the new-model sentinel
-path preserves the current weapon. Artifacts: /tmp/aftershock-ui-sentinel-native
-and /tmp/aftershock-ui-native-preflight.py/.log. No source fix is made on #2.
-Self-review passes: one sentinel representation fix, every caller inventoried,
-no new OS calls/non-trivial objects/allocations, no FP or wire-layout changes,
-no golden/expectation/suppression changes; #31 updated. Ready to merge #57.
+Active work: issue/31-team-voter-reset. #2 is parked at bb869f79, draft PR #50.
+Its #57 integration passes GCC/Clang UI sentinel tests, Clang native C++ module
+builds and unchanged fixed replay on both Q3 maps/renderers. #57 merged 4b68ccda;
+merged-tree regression 34924317093 passed.
 
-Next: finish this fix's gates/self-review/merge, then merge it into #2. Resolve the
-UI import overlap to retain #2's catalog edits and the reviewed signed sentinel.
-In #2 only, remove obsolete enum casts on the now-integer sentinel/input and add
-T3 casts where guarded valid integer weapon values enter normal enum fields.
-Then complete G3/G4/G7 review, strict warning freeze, static direct calls and VM/JIT
-removal. No UI implementation is present in ec-/Quake3e, so no upstream fix applies.
+The actual optimized C/C++ warning inventory found a CalculateRanks array overrun:
+four team constants reset a two-element team-voter array, clearing adjacent spawn
+state. The permanent failing-first test calls the real function with UBSan; it
+fails at index 2. Three exact GPL prerequisite imports retain their notices and
+hashes in cpp-port-notes.md. No engine fix is made on #2.
 
-Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95
-(regression 34922352537 passed); portable Q3 binary32 literals 5592a1eb (regression
-34922727256 passed). 103 C and 103 C++ objects remained byte-identical, Clang native
-Q3 replay/smoke passes, and OA native smoke/replay passes both maps/renderers.
-Full G2/G3: 103/103 objects match; G3 adds artifact-only -U__OPTIMIZE__ to the usual
-header/optimizer isolation flags, while production assembly differences are retained.
-Three T17 ui_ingame casts preserve C/C++ objects. Final G4/G7 review remains open;
-artifacts: /tmp/aftershock-native-function-review, /tmp/aftershock-native-g2-g3-headers,
-/tmp/aftershock-native-warning-inventory. No VM/JIT removal has started.
+Test-first commits 10ed8eb4/5c5217f5 fail with UBSan index 2 on GCC and Clang.
+The one-line fix uses the actual array length. Both compiler checks pass after;
+G2 layouts and G3 symbols are identical, and only CalculateRanks changes assembly
+among 39 functions. Artifacts: /tmp/aftershock-team-voters-gates and
+/tmp/aftershock-team-voters-final-before-{gcc,clang}.log.
 
+PR #58 source 4054a2a0 exposed a test integration omission in regression 34925157744:
+the existing team-leader check now resolves the newly imported local g_local.h and
+needs COM_TRAP_GETVALUE=700 for the retained engine ABI header. The test command now
+provides that existing constant; no engine change. #2 integration bb869f79 passed
+regression 34924891632. Unit/collision/Q3 runtime explicit regeneration is byte-identical.
 
+PR #58 source/test head 9e1f9411 passed regression 34925252301 and full build
+34925252282. A temporary complete #2 native C++ game build with the one-line fix
+matches both accepted Q3 bot logs on GCC and Clang, with repeated identical runs:
+/tmp/aftershock-team-voters-native.py/.log. Unit/collision/Q3 runtime regeneration
+produces no diff. Self-review passes: one array bound fix, caller/consumer audit,
+no new OS calls/non-trivial objects/allocations, no FP expression or layout changes,
+no golden/expectation/suppression changes. No upstream engine game implementation.
+
+Next: ready/merge #58, verify its merged-tree regression, then integrate into #2
+retaining its catalog/ABI changes. Continue strict warning freeze, G4/G7 review,
+permanent artifact reproduction, content-free .cpp rename, static calls and VM/JIT
+removal. Additional advisory assembly review is recorded in
+/tmp/aftershock-native-review-checkpoint.md. No accepted fixture/golden changes on
+#2 and no VM/JIT removal has started. Earlier checkpoints remain below.
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
