@@ -12,7 +12,7 @@ Active: issue/2-native-game, draft PR #50, platform worktree
 090b7a3c.
 Allocator PR #62 merged 0c3ef426 with merged regression 34934836544 passed.
 Free-list PR #63 merged 555f0771 after regression 34935436665/full build
-34935436703 passed; its merged regression 34935816610 is pending. This merge
+34935436703 passed; its merged regression 34935816610 passed. This merge
 integrates both separately reviewed OA patches and the allocator check.
 openarena_native.py now applies both patches to its pinned C sources.
 
@@ -34,7 +34,7 @@ Permanent static OA UBSan passes both accepted bot hashes after patch integratio
 All MinGW native objects compiled; the first local client link lacked cross zlib
 via curl defaults, so the CI USE_CURL=0 configuration is being checked.
 
-Next: verify merged #63 CI and this integration; finish compiler/MSVC native
+Next: verify this integration; finish compiler/MSVC native
 object builds, then remove
 obsolete VM/JIT code and finish remaining native test/provenance review.
 
@@ -930,3 +930,9 @@ QVM random/sort library. Native OA frame parity remains #2 work after this fix.
 
 #63 explicit unit/collision golden regeneration is byte-identical; static OA
 smoke also matches both accepted bot logs. No golden/fixture change.
+
+Platform checkpoint: all macOS configurations and the completed MSVC configurations
+pass on 440089eb in build 34936092520; remaining build jobs are running. Local
+MinGW native-Windows client (USE_CURL=0 USE_SDL=0, matching CI) links successfully.
+The optional MinGW SDL/no-curl build exposed old missing Windows header context;
+record it separately for #31 without changing those engine sources here.

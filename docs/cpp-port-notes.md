@@ -655,3 +655,19 @@ FP, OS, allocation or non-trivial lifetime changes.
 
 #63 explicit unit/collision golden regeneration is byte-identical; static OA
 smoke also matches both accepted bot logs. No golden/fixture change.
+
+## MinGW SDL without curl: Windows headers (#31)
+
+The optional PLATFORM=mingw64 ARCH=x86_64 USE_SDL=1 USE_CURL=0 configuration
+fails before native integration: sdl_glimp.cpp's clipboard helper lacks Windows
+types/functions, and sdl_gamma.cpp includes windows.h inside GLimp_SetGamma,
+where SDK extern-C declarations are invalid in C++. Curl's transitive headers
+hide this in other configurations. #2 changes neither SDL source. The native
+Windows CI configuration uses USE_SDL=0 and builds successfully.
+
+Reproduce with make -B -k PLATFORM=mingw64 ARCH=x86_64 USE_CURL=0 USE_SDL=1
+BUILD_DIR=/tmp/aftershock-native-platform-mingw followed by the two object targets:
+/tmp/aftershock-native-platform-mingw/release-mingw64-x86_64/client/sdl_glimp.o
+/tmp/aftershock-native-platform-mingw/release-mingw64-x86_64/client/sdl_gamma.o
+Diagnostics: /tmp/aftershock-mingw-sdl-headers.log. Record a separate failing-build
+then passing-build #31 fix; no suppression or expected-runtime-failure entry.

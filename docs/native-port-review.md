@@ -3,7 +3,7 @@
 The native-only decision retires legacy QVM/mod compatibility. The imported GPL
 base-game sources become the game, cgame and UI implementations; the engine keeps
 its existing simulation expressions, allocation model and longjmp error handling.
-Static integration and VM removal are still pending at this checkpoint.
+Static integration is committed; VM removal and final CI review remain pending.
 
 ## Source and transformation audit
 
@@ -109,3 +109,26 @@ and without movement diagnostics. Fixed replay after video restart matches on bo
 maps/renderers with normal and retained storage. The separate accepted-golden
 replay remains b38004b1. GCC/Clang native C++ builds and all 103 C/C++ layout/symbol
 comparisons pass. Floating-point expressions and accepted fixtures remain unchanged.
+
+## Static integration and platform follow-through
+
+956eebfa replaces numbered engine dispatch with typed game/cgame/UI imports and
+exports. A common wrapper compiles each production translation unit in its module
+namespace; rand/srand/qsort/atof/memmove remain module-local compatibility functions.
+OpenArena CI builds pinned C modules as isolated static objects with objcopy symbol
+prefixes. Its alignment/free-list fixes came from separate #31 PRs #62/#63.
+Static Q3/OA bot logs and fixed replay retain every accepted hash. The added Q3
+lifecycle log references were existing reviewed DLL outputs; original goldens are
+unchanged. Static lifecycle frames use the original accepted frame golden.
+
+090b7a3c adds 17 T8 casts in enabled DEBUG AI diagnostics. GCC and Clang -O0 DEBUG
+C objects for both changed files are byte-identical before/after. Uncalled Windows
+byte-swap helpers and old macOS PPC helpers were removed from the imported header;
+no game/cgame/UI caller exists. _WIN32 selects Windows definitions and _MSC_VER
+limits MSVC pragmas. The old MSVC-only inline int3 becomes __debugbreak on MSVC
+and __builtin_trap elsewhere; this preserves a debug failure at the same overflow
+condition on new toolchains (GCC's trap terminates rather than resuming int3).
+Release behavior and all FP expressions are unchanged. MSVC generates separate
+build-directory wrappers matching the 103 Make source selections; /fp:strict and
+disabled intrinsics preserve the native arithmetic/library configuration. Apple
+SDK deprecations use the existing engine platform freeze (440089eb).

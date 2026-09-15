@@ -128,7 +128,9 @@
     "0366fa06": "#31 PR #60: explicit intermediate int conversion for movement command bytes; original C objects unchanged",
     "cdcbb7df": "Separate #31 fix: preserve overlapping info-string suffixes (PR #61).",
     "d6c2ac52": "#2 static module lifecycle: explicit per-level initialization replaces DLL storage reset",
-    "436bbab1": "#2 static client/UI lifecycle: reset module state at initialization"
+    "436bbab1": "#2 static client/UI lifecycle: reset module state at initialization",
+    "956eebfa": "#2 static integration: typed engine/module services, isolated module namespaces and retained compatibility math/library bindings",
+    "090b7a3c": "#2 platform adaptation: DEBUG T8 casts with unchanged C objects; MSVC pragmas, Win32 selection, unused legacy helpers and compiler debug trap"
   },
   "files": [
     {
@@ -383,7 +385,8 @@
         "0ff62c30",
         "e8e98ab2",
         "5592a1eb",
-        "d6c2ac52"
+        "d6c2ac52",
+        "090b7a3c"
       ]
     },
     {
@@ -399,7 +402,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 36 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "090b7a3c"
       ]
     },
     {
@@ -892,7 +896,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "e8e98ab2",
-        "cdcbb7df"
+        "cdcbb7df",
+        "090b7a3c"
       ]
     },
     {
@@ -903,7 +908,8 @@
       "transformations": [
         "152cc6e2",
         "bdf81ac0",
-        "5592a1eb"
+        "5592a1eb",
+        "090b7a3c"
       ]
     },
     {
