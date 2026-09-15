@@ -7,11 +7,10 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-native-fallthrough, based on pending PR #76 head 4c598f3e.
-PR #76 remains on issue/8-native-internal; verify its hosted gates and merge first,
-then integrate origin/modernization before opening this separate class follow-up.
-PR #75 merged b28beab5 after build 35020481804/regression 35020481815; its
-merged-tree run remains to check. #74 merged-tree run 35020339038 passed.
+Active: issue/8-native-fallthrough. PR #76 passed build 35021362798 and regression
+35021362817 at 4c598f3e, then merged as 7f5f90b8. That merge is integrated here;
+its merged-tree regression remains to check. #75 merged-tree run 35021218286 and
+#74 merged-tree run 35020339038 passed.
 
 This branch removes only GCC's implicit-fallthrough helper freeze. Production
 fallthrough was enabled in #67; the completed source annotations are unchanged.
@@ -22,8 +21,8 @@ The preceding #76 helper change preserves all six Clang libraries and rejects
 its diagnostic controls in both languages.
 
 Next:
-1. Verify and merge #76, then open this GCC fallthrough helper PR. Require hosted
-   build/regression and self-review before merging; check both merged-tree runs.
+1. Open this GCC fallthrough helper PR. Require hosted build/regression and
+   self-review before merging; check its and #76's merged-tree runs.
 2. Continue with the previewed parentheses-equality and self-assign cleanups in
    separate class PRs, including native provenance and helper freeze removal.
 3. Continue the remaining warning classes one per PR. Ready source previews below
@@ -47,7 +46,9 @@ Recent merges (all self-reviewed; merge commits):
 - #74 type limits: 644741e9, build 35019711765/regression 35019711780;
   merged 5fb78853, merged-tree regression 35020339038 passed.
 - #75 unused constants: da94649e, build 35020481804/regression 35020481815;
-  merged b28beab5, merged-tree regression pending verification.
+  merged b28beab5, merged-tree regression 35021218286 passed.
+- #76 native helper internal declarations: 4c598f3e, build 35021362798/regression
+  35021362817; merged 7f5f90b8, merged-tree regression pending verification.
 #5 is complete. #8 warning ratchet remains active; later #8 rules are not done.
 
 Completed PR #75 evidence:
@@ -111,8 +112,11 @@ Retained #8 warning evidence and upcoming previews:
 - Address/pointer-bool preview: remove the impossible !classname stack-array guard
   in BotGetActivateGoal; preserve existing empty-classname behavior. x86 release
   and MinGW native objects match; two debug objects differ only in debug sections.
-  ARM64 swaps operands of one fcmp feeding b.ne. That comparison/flags review is
-  still required before accepting this preview; no source FP expression changed.
+  ARM64 swaps operands of one fcmp feeding b.ne. Review confirms equality/unordered
+  results are symmetric; fallthrough immediately overwrites flags with another
+  fcmp, and the taken path overwrites them with the stack-canary subs before any
+  further condition reads. No source FP expression changes; all other instructions
+  and relocations match. Full regression remains required for the eventual PR.
   /tmp/aftershock-address-preview. Not applied.
 - MSVC release inventory: C4267, C4459, C4456, C4065, C4457 and C4644, from #69 job
   104469265974. /tmp/aftershock-msvc-warning-inventory.log. Address before /WX.
