@@ -7,38 +7,31 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-sdl-windows-headers from modernization merge 6069cf2a.
-#2 PR #50 merged after final source 7382120a passed regression 34936939258 and
-full build 34936939100; docs/self-review 45ab4731. Merged regression 34937376623
-initially failed before tests when the OpenArena download connection reset; its
-runtime-only retry passed, so merged regression 34937376623 is green.
-Native game/cgame/UI are static; VM/interpreter/JITs removed; Q3/OA bot/replay,
-movement-debug lifecycle and lifetime gates passed with accepted goldens unchanged.
+Active: issue/4-subsystem-boundaries from modernization 239cbc34 (#64 merge).
+#2 is complete: PR #50 merged 6069cf2a; merged regression 34937376623 passed after
+one runtime-only retry for an OpenArena download reset. #64 source e38d9335 passed
+regression 34937896536/full build 34937896427; upstream C fix is ec-/Quake3e#439.
+Verify #64 merged-tree regression, then keep moving through #4 -> #5 -> #8 and
+write design-only docs/design/rhi.md for #6. No #6/#7 implementation.
 
-The optional MinGW SDL/no-curl build needs Windows declarations at file scope.
-Without curl's transitive headers, sdl_glimp.cpp lacks clipboard types/functions;
-sdl_gamma.cpp includes windows.h inside a function, which rejects SDK declarations.
-The new cross-job step compiles both real objects without curl and must fail before
-this fix. Reproducer: make -B -k PLATFORM=mingw64 ARCH=x86_64 USE_CURL=0 USE_SDL=1
-BUILD_DIR=/tmp/aftershock-sdl-headers-before followed by client/sdl_glimp.o and
-client/sdl_gamma.o under its release-mingw64-x86_64 output directory.
+#4 issue read. First capture both-renderer native object baselines on 239cbc34,
+then perform byte/hash-verified git moves in a separate content-preserving commit.
+Path/build/test references follow separately. Layout: engine/{qcommon,client,server,
+renderer,renderervk,renderercommon,sound,botlib,platform}, game/{game,cgame,ui,bg},
+third_party for vendored libraries/headers, tools for build/shader tools. Move the
+static module wrapper with game implementation. Public engine/game ABI headers
+belong to engine/public so engine never includes game implementation headers.
+Rename cpp-port-notes.md to docs/bugs.md as requested.
 
-Test-first 73fb26b8 fails compiling both SDL objects. File-scope Windows includes
-now make both pass without curl; the in-function include is removed. G3 symbols
-and G4 generated code match an explicit-Windows-header baseline for each object:
-/tmp/aftershock-sdl-header-gates. No function body/layout/FP edit is required.
-Original upstream C f694bbbc fails the same two objects and passes with the same
-patch, so upstream PR ec-/Quake3e#439 is open (source 88524c13).
-Aftershock PR #64 source e38d9335 passed regression 34937896536 and full
-build 34937896427. Upstream worktree: /tmp/aftershock-upstream-huffman.
-
-Explicit unit/collision regeneration is byte-identical; no golden/fixture diff.
-Self-review passes: two explicit platform includes, no executable statement/type/
-FP/allocation/lifetime change; failing-first real builds, identical symbols/codegen,
-full CI and upstream C reproduction confirmed. No suppression/known-bug entry.
-Next: ready/merge PR #64 and verify merged regression. Continue with #4
-boundaries/moves -> #5 CMake -> #8 rules -> design-only #6. No local package installs
-or fixture changes; no expected-failure entry/suppression applies to this build bug.
+Next: capture baseline objects and source hashes, then the pure move commit.
+After path repair, compare object hashes before boundary adaptations. Enforce
+public cross-subsystem includes and OS access in platform/filesystem code, add
+actual public declarations where needed, and route existing OS operations through
+those boundaries without simulation FP edits. Existing raw socket implementation
+moves into platform. Preliminary include/OS inventory is retained in /tmp;
+commented examples, local helpers and member callbacks must not become false hits.
+Finish docs/subsystems.md and CI checks, full runtime/replay/lifetime/build gates,
+issue update/self-review, then merge #4. No accepted goldens or fixtures changed.
 
 ## Earlier #2 integration checkpoints (historical)
 
