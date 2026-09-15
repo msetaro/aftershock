@@ -7,11 +7,19 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unused-constants. PR #74 passed build 35019711765 and regression
-35019711780 at 644741e9, then merged as 5fb78853. That merge is integrated into
-this branch; its merged-tree regression remains to check. #73 merged-tree
-regression 35019634702 and #72 merged-tree regression 35018822894 passed.
-#5 is complete; #8 warning ratchet remains active.
+Active: issue/8-native-internal, based on pending PR #75 head da94649e.
+PR #75 remains on issue/8-unused-constants; verify its final hosted gates,
+self-review and merge first, then integrate origin/modernization before opening
+this separate helper follow-up. #74 merged 5fb78853 after build 35019711765 and
+regression 35019711780; its merged-tree run remains to check. #73 merged-tree
+regression 35019634702 passed. #5 is complete; #8 warning ratchet remains active.
+
+The new change only removes Clang's unneeded-internal-declaration entry from the
+standalone native helper freeze list. Its production warning was enabled in #73;
+#75 moves the unused order-table declarations under their existing conditional.
+Next: verify standalone Clang C/C++ helper builds, then open this separate class
+follow-up after #75 merges. No engine source or golden changes in this follow-up.
+The preceding unused-constant evidence is retained below.
 
 This branch removes the native unused-constant suppressions and enables GCC
 -Wunused-const-variable=2, which includes native source files pulled through the
