@@ -7,12 +7,11 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-type-limits, based on pending PR #73 head 248dca68.
-PR #73 remains on issue/8-unneeded-internal; verify its hosted build/regression,
-self-review and merge first, then integrate origin/modernization into this branch
-before opening the separate type-limits PR. PR #72 merged 01a1dda8 after build
-35018151616/regression 35018151602; its merged-tree run remains to check. PR #71
-merged-tree regression 35018077437 passed. #5 is complete.
+Active: issue/8-type-limits. PR #73 passed build 35018897499 and regression
+35018897591 at 248dca68, then merged as be2186e0. That merge is integrated into
+this branch; its merged-tree regression remains to check. PR #72 merged-tree
+regression 35018822894 and #71 merged-tree regression 35018077437 passed.
+#5 is complete. #8 warning classes through unneeded-internal-declaration are merged.
 
 This branch replaces -Wno-type-limits with explicit -Wtype-limits on engine C++
 compilation. All 728 GCC/Clang engine release objects across both renderers retain
@@ -21,7 +20,7 @@ zero when enabled; Clang needs the explicit positive flag. The relevant affinity
 and chat-sentinel bugs were fixed in separate #31 PRs. No engine source, floating-
 point, layout, lifetime, allocation, OS or golden changes in this warning class.
 
-Next: merge accepted #73, open the type-limits PR, verify hosted gates/self-review,
+Next: open the type-limits PR, verify hosted gates/self-review,
 merge with a merge commit, and check the merged-tree regression. #73 independently
 preserves 206 Clang native objects and rejects its control through the actual
 namespace wrapper. Keep the unused-constant cleanup separate until its remaining
@@ -98,6 +97,17 @@ C4459, C4456, C4065, C4457 and C4644; address before /WX. Continue one warning c
 per PR, then verified tree-wide formatting, tidy subsets, fixed-width representation
 types/layout assertions and release-identical Q_ASSERT. Finish #8, write design-only
 docs/design/rhi.md for #6, then stop; no implementation.
+
+Additional isolated source previews (not applied to the repository):
+- Parentheses-equality: remove the redundant inner parentheses from g_cmds.cpp's
+  tournament test. Nine objects checked: GCC/Clang/ARM release and MinGW native
+  objects match; the two GCC debug objects differ only in debug sections.
+- Self-assign: replace the fov_x self-assignment with a comment, keeping the existing
+  branch and all arithmetic intact. All eight GCC/Clang/debug and MinGW native
+  objects match. The distinct cg.refdef.fov_x assignment is retained.
+Clang actual-wrapper controls fail before and pass after each preview. Artifacts:
+/tmp/aftershock-small-warning-preview. Each class still needs its own branch/PR,
+provenance record, enabled diagnostic and hosted gates. Do not combine classes.
 
 ## Completed affinity fixes and #8 baseline evidence
 
