@@ -46,7 +46,7 @@ def layout(path):
         if not declaration:
             continue
         source = declaration[1]
-        if not re.search(r'(?:^|/)code/(?!libjpeg/|libogg/|libvorbis/|libcurl/|libsdl/|renderer2/)', source):
+        if not re.search(r'(?:^|/)(?:engine/(?!renderer2/)|game/|third_party/(?:minizip|zlib)/|code/(?!libjpeg/|libogg/|libvorbis/|libcurl/|libsdl/|renderer2/))', source):
             continue
         block = re.sub(r'/\* Used at:.*?\*/\n|/\* <[0-9a-f]+> .*?\*/\n', '', block)
         records.append(re.sub(r'[ \t]+', ' ', block).strip() + '\n')

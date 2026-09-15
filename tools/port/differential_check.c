@@ -1,6 +1,6 @@
 /* G5 C driver. Allocation/log/file stubs isolate the tested engine functions. */
-#include "../../code/qcommon/q_shared.h"
-#include "../../code/qcommon/qcommon.h"
+#include "../../engine/qcommon/q_shared.h"
+#include "../../engine/qcommon/qcommon_public.h"
 #include <assert.h>
 
 qboolean com_errorEntered;

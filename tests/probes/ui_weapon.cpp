@@ -1,4 +1,4 @@
-#include "../../code/ui/ui_local.h"
+#include "../../game/ui/ui_local.h"
 #include <assert.h>
 #include <stddef.h>
 #include <type_traits>

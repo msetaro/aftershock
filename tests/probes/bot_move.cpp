@@ -1,7 +1,7 @@
-#include "../../code/qcommon/q_shared.h"
-#include "../../code/botlib/botlib.h"
-#include "../../code/botlib/be_ai_goal.h"
-#include "../../code/botlib/be_ai_move.h"
+#include "../../engine/qcommon/q_shared.h"
+#include "../../engine/botlib/botlib_public.h"
+#include "../../engine/botlib/be_ai_goal.h"
+#include "../../engine/botlib/be_ai_move.h"
 
 extern botlib_import_t botimport;
 static int diagnostics;

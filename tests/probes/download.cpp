@@ -1,5 +1,5 @@
 /* Real URL setup/cleanup with libcurl; no transfer or file I/O. */
-#include "../../code/client/client.h"
+#include "../../engine/client/client.h"
 #include <assert.h>
 
 clientStatic_t cls;

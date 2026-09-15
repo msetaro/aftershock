@@ -7,6 +7,7 @@ isolated allocator/log/file stubs and instrumentation; production code is unchan
 ```
 python3 tests/native_math.py
 python3 tests/check_lifetimes.py
+python3 tests/check_boundaries.py
 python3 tests/run.py unit --negative-control
 python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
 python3 tests/check_known_bugs.py
@@ -54,7 +55,7 @@ in optimized and ASan builds. Eight fixed result words come from the unmodified
 GPL routine measured in a freestanding 32-bit SSE C executable. CI needs no 32-bit
 runtime: it checks those words using the selected native C compiler. This source
 is a dependency of #2 and is not linked into the engine yet. Its original GPL
-source and import hashes are documented in docs/cpp-port-notes.md.
+source and import hashes are documented in docs/bugs.md.
 
 ## Local Quake 3 content
 
@@ -147,7 +148,7 @@ pointer increments. Both runs compare the same unit golden; neither replaces the
 other. The pointer run catches extensionless names in `FS_AllowedExtension` before
 the #31 fix, with `ASAN_OPTIONS=detect_invalid_pointer_pairs=2`.
 PNG chunk alignment and JPEG table-index reproducers are already recorded in
-issue #31 and `docs/cpp-port-notes.md`; they are not exercised by the unit driver.
+issue #31 and `docs/bugs.md`; they are not exercised by the unit driver.
 
 The inherited `tools/port/ubsan.supp` remains unchanged. Leak checks are disabled
 because the inherited isolated test allocator retains hunk allocations to exit.
@@ -280,7 +281,7 @@ configuration; the existing QVM fixtures remain unchanged. Original GPL notices 
 under UBSan, its signed setter signature, and its unchanged state size/offsets.
 It uses the actual UI header and accepts --cxx/--output; both unit compiler jobs
 run it. No content is required. Four prerequisite GPL files are imported for this
-#31 fix; their pinned provenance is recorded in docs/cpp-port-notes.md. The full
+#31 fix; their pinned provenance is recorded in docs/bugs.md. The full
 native integration remains #2.
 
 `python3 tests/team_voters.py` calls the actual GPL CalculateRanks under UBSan.
@@ -372,3 +373,6 @@ init exports must exist and no VM_* implementation symbol may remain. The old
 VM_Call argument-slot probe was retired with VM_Call; its #31 history remains in
 the bug ledger. Retained C/C++ import oracles are compiler evidence, not a runtime
 module-loading path. Native game objects are linked into the executables.
+
+The boundary check scans engine/game includes and OS calls, with built-in negative
+controls. See `docs/subsystems.md` for the public-header and OS ownership rules.

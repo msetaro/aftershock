@@ -117,7 +117,7 @@ def check_known_bugs(diagnostics, patterns=None):
 
 
 def negative_control(args, objects, binary):
-    original = (ROOT / 'code/qcommon/q_math.cpp').read_text()
+    original = (ROOT / 'engine/qcommon/q_math.cpp').read_text()
     begin = original.index('float Q_rsqrt( float number )\n{')
     end = original.index('float Q_fabs', begin)
     body = original[begin:end]
@@ -127,13 +127,13 @@ def negative_control(args, objects, binary):
     target = objects / 'q_math.o'
     recipe = run(['make', '-Bn', 'V=1', f'BUILD_DIR={args.output / "unit-build"}',
                   f'CC={args.cc}', f'CXX={args.cxx}', str(target)], stdout=subprocess.PIPE).stdout.decode()
-    commands = [shlex.split(line) for line in recipe.splitlines() if ' -c code/qcommon/q_math.cpp' in line]
+    commands = [shlex.split(line) for line in recipe.splitlines() if ' -c engine/qcommon/q_math.cpp' in line]
     assert len(commands) == 1
     command = commands[0]
-    command[command.index('code/qcommon/q_math.cpp')] = str(mutant)
+    command[command.index('engine/qcommon/q_math.cpp')] = str(mutant)
     obj = args.output / 'q_math-one-ulp.o'
     command[command.index('-o') + 1] = str(obj)
-    run([*command, '-Icode/qcommon', '-ffunction-sections', '-fdata-sections'])
+    run([*command, '-Iengine/qcommon', '-ffunction-sections', '-fdata-sections'])
     mutated_binary = args.output / 'differential-one-ulp'
     run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti', '-O2',
          '-fno-strict-aliasing', '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',

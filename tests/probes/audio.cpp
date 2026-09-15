@@ -1,5 +1,5 @@
 /* Type-check pthread callbacks and run both paths against ALSA null output. */
-#include "../../code/unix/linux_snd.cpp"
+#include "../../engine/platform/unix/linux_snd.cpp"
 #include <assert.h>
 
 typedef void *(*thread_callback_t)( void * );

@@ -32,7 +32,7 @@ metadata = {
     'revision': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
     'compilers': {cc: subprocess.check_output([cc, '--version'], text=True) for cc in ('gcc', 'g++')},
     'sha256': {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-               for name in [*[row['path'] for row in manifest['files']], 'code/game/native_abi.h']},
+               for name in [*[row['path'] for row in manifest['files']], 'game/bg/native_abi_public.h']},
 }
 (output / 'metadata.json').write_text(json.dumps(metadata, indent=2) + '\n')
 
@@ -43,7 +43,7 @@ def check(item):
     folder = output / name
     folder.mkdir(exist_ok=True)
     flags = ['-O2', '-fPIC', '-ffp-contract=off', '-fno-strict-aliasing',
-             '-fwrapv', '-fno-builtin', '-include', 'code/game/native_abi.h',
+             '-fwrapv', '-fno-builtin', '-include', 'game/bg/native_abi_public.h',
              '-D' + {'game': 'QAGAME', 'cgame': 'CGAME', 'ui': 'UI'}[module]]
     # Existing port symbol-oracle flags, including header optimization isolation.
     symbol_flags = ['-g0', '-fno-inline-functions', '-D__NO_CTYPE=1',
@@ -79,7 +79,7 @@ def check(item):
         command = ['clang-tidy', source, '--quiet',
                    '--checks=-*,bugprone-signed-char-misuse,bugprone-narrowing-conversions,bugprone-suspicious-string-compare',
                    '--', *cpp_mode, *flags]
-        if source == 'code/game/bg_lib.cpp':
+        if source == 'game/bg/bg_lib.cpp':
             command += ['-D__NO_INLINE__']
         (folder / 'tidy.command').write_text(shlex.join(command) + '\n')
         analysis = subprocess.run(command, cwd=ROOT, env=ENV, text=True,
@@ -91,7 +91,7 @@ def check(item):
 
 
 tasks = [(module, source) for module, sources in manifest['modules'].items()
-         for source in [*sources, 'code/game/bg_lib.cpp']]
+         for source in [*sources, 'game/bg/bg_lib.cpp']]
 with ThreadPoolExecutor(max_workers=args.jobs) as pool:
     results = dict(pool.map(check, tasks))
 (output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')

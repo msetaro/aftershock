@@ -23,7 +23,7 @@ for mode, tag in [('0', 'c'), ('1', 'cxx')]:
     recipe = subprocess.check_output(
         ['make', '-Bn', 'V=1', f'BUILD_CXX={mode}', f'BUILD_DIR={build}', *variables, str(target)],
         text=True, env=env, cwd=source_root)
-    commands = [shlex.split(line) for line in recipe.splitlines() if ' -c code/' in line]
+    commands = [shlex.split(line) for line in recipe.splitlines() if any(' -c ' + root in line for root in ('code/', 'engine/', 'game/'))]
     commands = [args for args in commands if '-o' in args and args[args.index('-o') + 1] == str(target)]
     if len(commands) != 1:
         sys.exit(f'FAIL: expected one compiler command for {obj}, got {len(commands)}')

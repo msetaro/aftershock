@@ -7,38 +7,52 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-sdl-windows-headers from modernization merge 6069cf2a.
-#2 PR #50 merged after final source 7382120a passed regression 34936939258 and
-full build 34936939100; docs/self-review 45ab4731. Merged regression 34937376623
-initially failed before tests when the OpenArena download connection reset; its
-runtime-only retry passed, so merged regression 34937376623 is green.
-Native game/cgame/UI are static; VM/interpreter/JITs removed; Q3/OA bot/replay,
-movement-debug lifecycle and lifetime gates passed with accepted goldens unchanged.
+#4 is ready to merge as PR #65 (issue/4-subsystem-boundaries). Source ffaa1ea7
+passed regression 34941722921 and full build 34941722886 on every required leg,
+including GCC/Clang, cross builds, all Windows MSVC configurations and macOS.
+Merge this documentation/line-ending checkpoint with a merge commit, verify the
+merged-tree regression, then continue #5 -> #8 -> design-only docs/design/rhi.md
+for #6. No #6/#7 implementation. #2 PR #50 and #31 PR #64 are already complete;
+#64 merged-tree regression 34938271942 passed.
 
-The optional MinGW SDL/no-curl build needs Windows declarations at file scope.
-Without curl's transitive headers, sdl_glimp.cpp lacks clipboard types/functions;
-sdl_gamma.cpp includes windows.h inside a function, which rejects SDK declarations.
-The new cross-job step compiles both real objects without curl and must fail before
-this fix. Reproducer: make -B -k PLATFORM=mingw64 ARCH=x86_64 USE_CURL=0 USE_SDL=1
-BUILD_DIR=/tmp/aftershock-sdl-headers-before followed by client/sdl_glimp.o and
-client/sdl_gamma.o under its release-mingw64-x86_64 output directory.
+#4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects
+per renderer on 239cbc34. Pure move 85381cda moves 757 files with identical Git
+blob IDs, modes and SHA256; mapping /tmp/aftershock-subsystem-moves.json. Separate
+path repair 8b5264c5 preserves 355/355 Vulkan and 355/355 OpenGL object hashes,
+without normalization (/tmp/aftershock-boundary-after). The numstat display check
+initially rejected binary '-' fields; independent blob/mode/hash checks verified
+the moves. No accepted golden or fixture changed anywhere in #4.
 
-Test-first 73fb26b8 fails compiling both SDL objects. File-scope Windows includes
-now make both pass without curl; the in-function include is removed. G3 symbols
-and G4 generated code match an explicit-Windows-header baseline for each object:
-/tmp/aftershock-sdl-header-gates. No function body/layout/FP edit is required.
-Original upstream C f694bbbc fails the same two objects and passes with the same
-patch, so upstream PR ec-/Quake3e#439 is open (source 88524c13).
-Aftershock PR #64 source e38d9335 passed regression 34937896536 and full
-build 34937896427. Upstream worktree: /tmp/aftershock-upstream-huffman.
+Boundary source 52e57708 publishes client/sound/shared game/input interfaces,
+moves clock/CPU/debug/AVI process operations to platform, and routes raw filter/bot
+file operations through files.cpp. The 384-file include/OS check and controls run
+in CI. Five public client operations replace sound's private client-state access.
+All five Sys_SnapVector bodies, clock bodies and CPU-detection bodies compare
+byte-identical with their originals. The AVI arithmetic/order is retained. Inline
+platform debug wrappers preserve renderer ABI. Raw stdio adapters preserve return
+values and encoding; /tmp/aftershock-boundary-stream-check.cpp exercised formatted
+write, item counts, seek/tell, EOF, close and missing-file behavior against files.o.
+Unused renderer2 and absent-tool parser integrations were retired per the plan.
+Ownership: docs/subsystems.md. Bug records: docs/bugs.md. All 130 original GPL
+source hashes remain verified; e24495b2 records import path transformations.
 
-Explicit unit/collision regeneration is byte-identical; no golden/fixture diff.
-Self-review passes: two explicit platform includes, no executable statement/type/
-FP/allocation/lifetime change; failing-first real builds, identical symbols/codegen,
-full CI and upstream C reproduction confirmed. No suppression/known-bug entry.
-Next: ready/merge PR #64 and verify merged regression. Continue with #4
-boundaries/moves -> #5 CMake -> #8 rules -> design-only #6. No local package installs
-or fixture changes; no expected-failure entry/suppression applies to this build bug.
+Local final gates: unit/one-ULP control; both Q3 bot hashes; both-renderer Q3
+lifecycle replay (b38004b1); OA UBSan bot hashes and fixed replay (5b89d338);
+103 native C/C++ layout/symbol comparisons; ALSA callbacks/thread joins and curl
+transfer; GCC client/server and MinGW Windows client; lifetimes 546 commands/137
+paths across both renderers. The four-command/one-path lifetime reduction from
+#2 is raw net_ip moving into platform. Artifacts: /tmp/aftershock-boundary-*.
+
+Hosted first build found Ogg/Vorbis $(ProjectName) include directories missed by
+literal path repair. ffaa1ea7 repairs them; expanded include/library directories
+were checked and all MSVC legs pass. Final review restored build.yml's original
+CRLF bytes (normalized text exactly equals tested ffaa1ea7); no source change.
+
+Self-review: one issue, public/OS ownership scope, content-only move evidence kept
+separate from boundary changes; no new OS calls outside platform/filesystem;
+no non-trivial core lifetimes or per-frame allocation; no simulation FP expression
+change; existing wire/file layout assertions retained and native layouts match;
+all goldens/fixtures unchanged. CI and local gates pass. Ready for merge.
 
 ## Earlier #2 integration checkpoints (historical)
 

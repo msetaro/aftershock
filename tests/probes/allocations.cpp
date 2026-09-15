@@ -1,5 +1,5 @@
 /* Exercise the private zlib allocator callbacks without reading content. */
-#include "../../code/qcommon/unzip.cpp"
+#include "../../third_party/minizip/unzip.cpp"
 #include <assert.h>
 
 void TestInflateAllocations( void )

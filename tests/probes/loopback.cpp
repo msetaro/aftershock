@@ -1,6 +1,6 @@
 /* Test-only link wrappers. Both sides remain in the engine's in-process loopback. */
-#include "../../code/qcommon/q_shared.h"
-#include "../../code/qcommon/qcommon.h"
+#include "../../engine/qcommon/q_shared.h"
+#include "../../engine/qcommon/qcommon_public.h"
 #include <stdint.h>
 
 extern "C" qboolean __real__Z17NET_GetLoopPacket8netsrc_tP8netadr_tP5msg_t( netsrc_t sock, netadr_t *from, msg_t *msg );
