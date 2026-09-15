@@ -49,6 +49,17 @@ all 103 C/C++ layouts/symbols, bot-command/team-leader/shared checks pass. Fixed
 replay is running. Client/UI lifecycle audit and actual static integration remain.
 No accepted fixtures/goldens changed.
 
+Game lifecycle source d6c2ac52 and provenance 1591cc93 are pushed. Existing native
+fixed replay passes both maps/renderers against b38004b1. A new transitional
+`demo.py --game-code native --game-language c++ --lifecycle` gate now fails before
+client changes: retained storage differs from ordinary unloading after a fixed
+replay/video restart (/tmp/aftershock-native-client-lifecycle-before). This checks
+transition parity independently of the unchanged accepted-golden demo gate.
+Client state inventory: /tmp/aftershock-native-client-state-inventory.txt. Next:
+reset client RNG/effect/draw/loading/prediction state and UI storage at module init,
+then rerun both lifecycle and ordinary replay. Menu structs already reset on entry;
+do not add blanket state registration/snapshots. Static adapters remain scratch.
+
 Earlier checkpoints below describe how this integration was reached.
 
 

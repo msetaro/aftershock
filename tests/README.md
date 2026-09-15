@@ -355,3 +355,9 @@ and the normal runtime tools. A process-local dlclose shim models static storage
 the ordinary DLL run supplies the comparison. Diagnostics remain under --output.
 `--debug-movement` also checks the per-module movement diagnostic counter.
 This transitional lifecycle gate never records demos or regenerates goldens.
+
+`python3 tests/demo.py --game-code native --game-language c++ --lifecycle` replays
+a fixed fixture, restarts video, then samples another replay in the same process.
+It compares ordinary DLL unloading with retained module storage on both renderers;
+this transition comparison does not read or write accepted frame goldens. The
+ordinary demo command remains the accepted-golden gate. Both require real content.

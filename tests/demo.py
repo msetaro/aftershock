@@ -19,9 +19,12 @@ parser.add_argument('--game-code', choices=['qvm', 'native'], default='qvm')
 parser.add_argument('--game-language', choices=['c', 'c++'], default='c')
 parser.add_argument('--cc', default='gcc')
 parser.add_argument('--cxx', default='g++')
+parser.add_argument('--lifecycle', action='store_true', help='compare fresh and retained modules after replay and video restart')
 parser.add_argument('--record-fixtures', action='store_true', help='explicitly replace demos and frame goldens')
 parser.add_argument('--regenerate', action='store_true', help='explicitly replace frame goldens only')
 args = parser.parse_args()
+if args.lifecycle and (args.game_code != 'native' or args.record_fixtures or args.regenerate):
+    parser.error('lifecycle comparison requires native modules and fixed fixtures')
 if args.game_code == 'native' and (args.record_fixtures or args.regenerate):
     parser.error('native parity requires fixed fixtures without regeneration')
 if args.record_fixtures:
@@ -41,6 +44,10 @@ ENV.update(LIBGL_ALWAYS_SOFTWARE='1', GALLIUM_DRIVER='llvmpipe', LP_NUM_THREADS=
            VK_ICD_FILENAMES=str(icds[0]), VK_DRIVER_FILES=str(icds[0]))
 shim = output / 'fixed-random.so'
 run(['cc', '-Wall', '-Wextra', '-Werror', '-shared', '-fPIC', 'tests/probes/fixed_random.c', '-ldl', '-o', shim])
+retain_shim = output / 'retain-modules.so'
+if args.lifecycle:
+    run(['cc', '-Wall', '-Wextra', '-Werror', '-shared', '-fPIC',
+         'tests/probes/retain_modules.c', '-o', retain_shim])
 modules = {}
 if args.game_code == 'native':
     from native import build_modules
@@ -51,9 +58,11 @@ for backend in ('vulkan', 'opengl1'):
     binaries[backend] = directory / 'quake3e.x64'
 
 
-def client(binary, home, commands, log_name, fixed_random=False):
+def client(binary, home, commands, log_name, fixed_random=False, retain_modules=False):
     # Loading a fixture is restricted to this offline invocation, never Xvfb itself.
     preload = ['env', 'LD_PRELOAD=' + str(shim)] if fixed_random else []
+    if retain_modules:
+        preload = ['env', 'LD_PRELOAD=' + str(retain_shim)]
     command = ['timeout', '90', 'xvfb-run', '-a', *preload, 'faketime', '-f', '@2026-01-01 00:00:00 i0.01', binary,
                '+set', 'fs_basepath', home, '+set', 'fs_homepath', home,
                *content_settings(args.content),
@@ -67,6 +76,8 @@ def client(binary, home, commands, log_name, fixed_random=False):
     result.check_returncode()
     if modules and (any(f'VM_LoadDll({name}) succeeded!'.encode() not in log for name in modules) or b'Failed to load dll' in log):
         raise SystemExit('FAIL: native UI/cgame were not loaded')
+    if args.lifecycle and any(log.count(f'VM_LoadDll({name}) succeeded!'.encode()) < 2 for name in modules):
+        raise SystemExit('FAIL: native modules were not restarted: ' + log_name)
     if b'Unknown command' in log or b'ERROR:' in log:
         raise SystemExit('FAIL: client reported an error: ' + log_name)
     marker = b'GL_RENDERER:' if binary == binaries['opengl1'] else b'VK_RENDERER:'
@@ -110,12 +121,16 @@ for map_name in content_maps(args.content):
                 base = prepare(home)
                 shutil.copyfile(fixture, base / 'demos' / fixture.name)
                 client(binary, home,
-                       ['+set', 'timedemo', '1', '+demo', map_name,
+                       ['+set', 'timedemo', '1',
+                        *(['+demo', map_name, '+wait', '200', '+disconnect', '+wait', '2',
+                           '+vid_restart', '+wait', '2'] if args.lifecycle else []),
+                        '+demo', map_name,
                         '+wait', '50', '+screenshot', 'frame050',
                         '+wait', '50', '+screenshot', 'frame100',
                         '+wait', '100', '+screenshot', 'frame200', '+wait', '2', '+quit'],
-                       f'{map_name}-{backend}-replay-{iteration}.log')
+                       f'{map_name}-{backend}-replay-{iteration}.log',
+                       retain_modules=args.lifecycle and iteration == 2)
                 for name in ('frame050', 'frame100', 'frame200'):
                     shutil.copyfile(base / 'screenshots' / (name + '.tga'),
                                     output / f'{map_name}-{backend}-{iteration}-{name}.tga')
-check_frames(output, args.content, args.regenerate)
+check_frames(output, args.content, args.regenerate, compare_goldens=not args.lifecycle)
