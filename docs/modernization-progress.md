@@ -35,8 +35,15 @@ UI radio input and the debug game error path. Existing comments suffice for the
 GCC warning and preserve the retained C oracle sources; no new portability macro
 is needed. Source line counts are preserved so debug metadata can also match.
 The warning suppression is removed from engine and native C++ compiler lists.
-Unit golden 8d44421d and the one-ULP negative control pass. Full 2,380-object
-comparison is running; hosted gates and self-review are still required.
+Unit golden 8d44421d and the one-ULP negative control pass. Object review passes: 2,372/2,380 raw objects match; the eight MinGW LTO
+containers differ, but incremental LTO linking produces byte-identical native
+objects (including data and relocations) for all eight. No LTO option is removed
+from production. Thirteen initial Unix differences were unpinned __TIME__; the
+focused before/after repeat uses the existing test SOURCE_DATE_EPOCH and all 13
+match. Original hashes/diagnostics remain recorded. Review evidence and driver:
+/tmp/aftershock-fallthrough-review*, /tmp/aftershock-fallthrough-results.json.
+Original imports/notices/hashes are retained; provenance records a5c199bf.
+Hosted gates and final self-review remain required.
 
 ## #5 completed verification
 

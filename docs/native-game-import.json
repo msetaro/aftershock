@@ -134,7 +134,8 @@
     "85381cda": "#4 content-identical directory moves; original import source names and hashes retained",
     "8b5264c5": "#4 include/build path repair; all 710 production objects byte-identical before/after",
     "52e57708": "#4 shared game/input headers published at subsystem boundaries; game implementation changes only include paths",
-    "9c170ddd": "#5 retires inactive x86/PowerPC math and header branches; all 103 GCC x64 native production objects remain byte-identical, with unchanged C/C++ layouts and symbols"
+    "9c170ddd": "#5 retires inactive x86/PowerPC math and header branches; all 103 GCC x64 native production objects remain byte-identical, with unchanged C/C++ layouts and symbols",
+    "a5c199bf": "#8 implicit-fallthrough warning: comments document existing transitions; source line counts and native object behavior retained"
   },
   "files": [
     {
@@ -586,7 +587,8 @@
         "6ea3a3bb",
         "8889ea0e",
         "5592a1eb",
-        "8b5264c5"
+        "8b5264c5",
+        "a5c199bf"
       ]
     },
     {
@@ -1216,7 +1218,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "a5c199bf"
       ]
     },
     {
