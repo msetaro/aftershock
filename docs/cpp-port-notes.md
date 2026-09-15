@@ -686,3 +686,8 @@ the same header fix. Logs: /tmp/aftershock-upstream-sdl-before.log and
 an upstream PR is applicable. No known-bug entry or suppression covers build errors.
 
 Explicit unit/collision golden regeneration is byte-identical after this header fix.
+
+Upstream PR: https://github.com/ec-/Quake3e/pull/439 (C source 88524c13).
+Aftershock PR #64 source e38d9335 passed regression 34937896536 and full build
+34937896427. Self-review passes: explicit platform header dependencies, identical
+symbols/codegen, no executable/type/FP/OS-call/allocation/lifetime changes.
