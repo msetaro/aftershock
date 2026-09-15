@@ -7,23 +7,23 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-parentheses-equality. PR #77 passed build 35022303013 and
-regression 35022302958 at 2c17b152, then merged as 28b89692. That merge is
-integrated here; its merged-tree regression remains to check. #76 merged-tree
-run 35022204641 and #75 merged-tree regression 35021218286 passed.
+Active: issue/8-self-assign, based on pending PR #78 head 97abd1b9.
+PR #78 remains on issue/8-parentheses-equality; verify its hosted gates and merge
+first, then integrate origin/modernization before opening this separate class PR.
+#77 merged 28b89692 after build 35022303013/regression 35022302958; its merged-tree
+run remains to check. #76 merged-tree regression 35022204641 passed.
 
-This branch removes redundant inner parentheses from the tournament comparison
-in g_cmds.cpp and enables Clang's parentheses-equality diagnostic in production
-and the standalone native helper. Source line count, comparison and behavior are
-unchanged. Nine-object preview: release/MinGW native objects match; two debug
-objects differ only in debug metadata. Actual-wrapper controls fail before and
-pass after. Native provenance records source commit 639fb07e. Both Clang C/C++ helper builds and ABI checks pass, and all six shared-library
-hashes match. Logs: /tmp/aftershock-parentheses-{c,cpp}.log. No golden regeneration.
+This branch replaces the fov_x self-assignment with a comment and enables Clang's
+self-assign diagnostic in production and the standalone helper. It keeps the
+existing branch, arithmetic and cg.refdef.fov_x assignment. All eight previewed
+production/native objects match, including GCC debug. Clang wrapper controls fail
+before and pass after. Next local work: record native provenance and verify both
+Clang helper languages against six saved library hashes. No golden regeneration.
 
 Next:
-1. Open this parentheses-equality PR. Require hosted build/regression and
-   self-review before merging; check its and #77's merged-tree runs.
-2. Continue with the previewed self-assign, null-subtraction and address cleanups
+1. Verify and merge #78, then open this self-assign PR. Require hosted build/
+   regression and self-review before merging; check the merged-tree runs.
+2. Continue with the previewed null-subtraction and address cleanups
    in separate class PRs, including native provenance and helper freeze removal.
 3. Continue the remaining warning classes one per PR. Ready source previews below
    cover parentheses-equality and self-assign. Then finish the larger warning

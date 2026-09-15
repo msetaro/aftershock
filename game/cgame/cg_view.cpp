@@ -514,7 +514,7 @@ static int CG_CalcFov( void ) {
 		} else {
 			f = ( cg.time - cg.zoomTime ) / (float)ZOOM_TIME;
 			if ( f > 1.0f ) {
-				fov_x = fov_x;
+				// The normal field of view is already set.
 			} else {
 				fov_x = zoomFov + f * ( fov_x - zoomFov );
 			}
