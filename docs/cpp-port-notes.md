@@ -399,7 +399,10 @@ and ASan reports strncpy-param-overlap. The source patch avoids the identical-po
 copy, retains bounded termination and routes invalid parameters through the existing
 checks. GCC and Clang pass after. All 58 function symbols match; only this helper's
 assembly changes. Temporary native OA fixed replay matches both maps/renderers with
-no golden change. The existing name-comparison UBSan regression still runs.
+no golden change. The existing name-comparison UBSan regression still runs. PR #55 source d1e58dcb
+passed regression 34914627444 and full build 34914627413. GCC and Clang native OA
+smoke/replay pass both maps and renderers; final guarded patch frame hash is
+5b89d338. Self-review passes; no expectation or suppression is introduced.
 
 ### OpenArena empty extension output (#31, pending separate PR)
 

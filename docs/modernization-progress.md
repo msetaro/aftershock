@@ -7,14 +7,19 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/31-openarena-extension, split from #2 (parked at c8e62d81,
+Active work: issue/31-openarena-extension, draft PR #55, split from #2 (parked at c8e62d81,
 draft PR #50). Test-first commit 02f74cd3 reproduces overlapping strncpy in pinned
 OpenArena COM_StripExtension under ASan. Its shared helper now avoids copying when
 input and output are equal, preserves bounded termination and retains invalid-input
 checks through Q_strncpyz. GCC/Clang helper checks pass. Symbols match for all 58
 functions; only COM_StripExtension assembly changes. Temporary native fixed-demo
 replay now matches every accepted frame on both maps/renderers (5b89d338); no
-fixture/golden regeneration. Final guarded patch replay and CI remain pending.
+fixture/golden regeneration. Final guarded patch replay also passes. Regression
+34914627444 and full build 34914627413 passed on d1e58dcb. Unit/collision goldens
+pass unchanged. Clang native OA smoke and fixed replay also pass both maps/renderers.
+Self-review: only the pinned dependency helper changes behavior; all callers use it;
+no engine source, FP expression, per-frame allocation, OS-access or layout changes;
+no golden/expectation/suppression changes; #31 updated. Ready to merge #55.
 
 The initial combined test also found empty-output out[-1] in the same helper;
 that is a distinct bug and is recorded on #31 for the next separate PR. Its test
