@@ -25,9 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define QDECL
 
-#define id386 0
 #define idx64 0
-#define arm32 0
 #define arm64 0
 
 // ============================== Win32 ====================================
@@ -62,15 +60,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define PATH_SEP_FOREIGN '/'
 #define DLL_EXT ".dll"
 
-#if defined( _M_IX86 )
-#define ARCH_STRING "x86"
-#define Q3_LITTLE_ENDIAN
-#undef id386
-#define id386 1
-#ifndef __WORDSIZE
-#define __WORDSIZE 32
-#endif
-#endif
 
 #if defined( _M_AMD64 )
 #define ARCH_STRING "x86_64"
@@ -93,12 +82,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 #endif
 
-#if defined( _M_ARM )
-#define ARCH_STRING "arm32"
-#define Q3_LITTLE_ENDIAN
-#undef arm32
-#define arm32 1
-#endif
 
 #else // !defined _WIN32
 
@@ -109,12 +92,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define PATH_SEP_FOREIGN '\\'
 #define DLL_EXT ".so"
 
-#if defined (__i386__)
-#define ARCH_STRING "i386"
-#define Q3_LITTLE_ENDIAN
-#undef id386
-#define id386 1
-#endif // __i386__
 
 #if defined (__x86_64__) || defined (__amd64__)
 #define ARCH_STRING "x86_64"
@@ -123,12 +100,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define idx64 1
 #endif // __x86_64__ || __amd64__
 
-#if defined (__arm__)
-#define ARCH_STRING "arm"
-#define Q3_LITTLE_ENDIAN
-#undef arm32
-#define arm32 1
-#endif // __arm__
 
 #if defined (__aarch64__)
 #define ARCH_STRING "aarch64"
@@ -137,15 +108,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define arm64 1
 #endif // __arm64__
 
-#if defined (__PPC64__)
-#if defined (__LITTLE_ENDIAN__) || defined (__LITTLE_ENDIAN)
-#define ARCH_STRING "ppc64le"
-#define Q3_LITTLE_ENDIAN
-#else
-#define ARCH_STRING "ppc64"
-#define Q3_BIG_ENDIAN
-#endif // !__LITTLE_ENDIAN__
-#endif // __PPC64__
 
 #endif // !_WIN32
 
@@ -177,11 +139,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 #define ID_INLINE inline
-#if BYTE_ORDER == BIG_ENDIAN
-#define Q3_BIG_ENDIAN
-#else
-#define Q3_LITTLE_ENDIAN
-#endif
 
 #endif // __FreeBSD__ || __NetBSD__ || __OpenBSD__
 
@@ -223,24 +180,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #error "DLL_EXT not defined"
 #endif
 
-// Endianess
-
-#if defined( Q3_BIG_ENDIAN ) && defined( Q3_LITTLE_ENDIAN )
-
-#error "Endianness defined as both big and little"
-
-#elif defined( Q3_BIG_ENDIAN )
-
-#define CopyLittleShort(dest, src) CopyShortSwap(dest, src)
-#define CopyLittleLong(dest, src) CopyLongSwap(dest, src)
-#define LittleShort(x) ShortSwap(x)
-#define LittleLong(x) LongSwap(x)
-#define LittleFloat(x) FloatSwap(&x)
-#define BigShort
-#define BigLong
-#define BigFloat
-
-#elif defined( Q3_LITTLE_ENDIAN )
+// Only the supported 64-bit little-endian targets may include engine headers.
+#if !idx64 && !arm64
+#error "Architecture not supported: use x86_64 or aarch64"
+#endif
+#if defined( __SIZEOF_POINTER__ ) && __SIZEOF_POINTER__ != 8
+#error "Aftershock requires 64-bit pointers"
+#endif
+#if defined( _WIN32 ) && !defined( _WIN64 )
+#error "Aftershock requires 64-bit Windows"
+#endif
+#if defined( __BYTE_ORDER__ ) && __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+#error "Aftershock requires little-endian byte order"
+#endif
 
 #define CopyLittleShort(dest, src) Com_Memcpy(dest, src, 2)
 #define CopyLittleLong(dest, src) Com_Memcpy(dest, src, 4)
@@ -250,12 +202,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define BigShort(x) ShortSwap(x)
 #define BigLong(x) LongSwap(x)
 #define BigFloat(x) FloatSwap(&x)
-
-#else
-
-#error "Endianness not defined"
-
-#endif
 
 // Platform string
 
@@ -273,16 +219,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 #endif // idx64
 
-#if defined(__VSX__)
-#define _GCC_VSX
-#endif // __VSX__
 
 // Modifier for printing size_t values portably
 
 #if (defined _WIN64)
 #define PRIz "I64"
-#elif (defined _WIN32)
-#define PRIz "I32"
 #elif (defined Q3_VM)
 #define PRIz ""
 #else

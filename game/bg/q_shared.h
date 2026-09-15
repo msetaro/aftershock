@@ -98,25 +98,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 
-// this is the define for determining if we have an asm version of a C function
-#if (defined _M_IX86 || defined __i386__) && !defined __sun__  && !defined __LCC__
-#define id386	1
-#else
-#define id386	0
-#endif
-
-#if (defined(powerc) || defined(powerpc) || defined(ppc) || defined(__ppc) || defined(__ppc__)) && !defined(C_ONLY)
-#define idppc	1
-#if defined(__VEC__)
-#define idppc_altivec 1
-#else
-#define idppc_altivec 0
-#endif
-#else
-#define idppc	0
-#define idppc_altivec 0
-#endif
-
 // for windows fastcall option
 
 #define	QDECL
@@ -134,21 +115,6 @@ float	FloatSwap (const float *f);
 #undef QDECL
 #define	QDECL	__cdecl
 
-// buildstring will be incorporated into the version string
-#ifdef NDEBUG
-#ifdef _M_IX86
-#define	CPUSTRING	"win-x86"
-#elif defined _M_ALPHA
-#define	CPUSTRING	"win-AXP"
-#endif
-#else
-#ifdef _M_IX86
-#define	CPUSTRING	"win-x86-debug"
-#elif defined _M_ALPHA
-#define	CPUSTRING	"win-AXP-debug"
-#endif
-#endif
-
 #define ID_INLINE __inline 
 
 #define	PATH_SEP '\\'
@@ -165,13 +131,6 @@ float	FloatSwap (const float *f);
 #define stricmp strcasecmp
 #define ID_INLINE inline 
 
-#ifdef __ppc__
-#define CPUSTRING	"MacOSX-ppc"
-#elif defined __i386__
-#define CPUSTRING	"MacOSX-i386"
-#else
-#define CPUSTRING	"MacOSX-other"
-#endif
 
 #define	PATH_SEP	'/'
 
@@ -180,26 +139,6 @@ float	FloatSwap (const float *f);
 
 //======================= MAC DEFINES =================================
 
-#ifdef __MACOS__
-
-#include <MacTypes.h>
-#define	MAC_STATIC
-#define ID_INLINE inline 
-
-#define	CPUSTRING	"MacOS-PPC"
-
-#define	PATH_SEP ':'
-
-void Sys_PumpEvents( void );
-
-#define BigShort
-static inline short LittleShort(short l) { return ShortSwap(l); }
-#define BigLong
-static inline int LittleLong (int l) { return LongSwap(l); }
-#define BigFloat
-static inline float LittleFloat (const float l) { return FloatSwap(&l); }
-
-#endif
 
 //======================= LINUX DEFINES =================================
 
@@ -213,13 +152,6 @@ static inline float LittleFloat (const float l) { return FloatSwap(&l); }
 #define	MAC_STATIC // bk: FIXME
 #define ID_INLINE inline 
 
-#ifdef __i386__
-#define	CPUSTRING	"linux-i386"
-#elif defined __axp__
-#define	CPUSTRING	"linux-alpha"
-#else
-#define	CPUSTRING	"linux-other"
-#endif
 
 #define	PATH_SEP '/'
 
@@ -231,21 +163,12 @@ static inline float LittleFloat (const float l) { return FloatSwap(&l); }
 #define	BOTLIB_HARD_LINKED
 #endif
 
-#if !idppc
 inline static short BigShort( short l) { return ShortSwap(l); }
 #define LittleShort
 inline static int BigLong(int l) { return LongSwap(l); }
 #define LittleLong
 inline static float BigFloat(const float *l) { return FloatSwap(l); }
 #define LittleFloat
-#else
-#define BigShort
-inline static short LittleShort(short l) { return ShortSwap(l); }
-#define BigLong
-inline static int LittleLong (int l) { return LongSwap(l); }
-#define BigFloat
-inline static float LittleFloat (const float *l) { return FloatSwap(l); }
-#endif
 
 #endif
 
@@ -257,33 +180,17 @@ inline static float LittleFloat (const float *l) { return FloatSwap(l); }
 #define MAC_STATIC
 #define ID_INLINE inline 
 
-#ifdef __i386__
-#define CPUSTRING       "freebsd-i386"
-#elif defined __axp__
-#define CPUSTRING       "freebsd-alpha"
-#else
-#define CPUSTRING       "freebsd-other"
-#endif
 
 #define	PATH_SEP '/'
 
 // bk010116 - omitted Q3STATIC (see Linux above), broken target
 
-#if !idppc
 static short BigShort( short l) { return ShortSwap(l); }
 #define LittleShort
 static int BigLong(int l) { LongSwap(l); }
 #define LittleLong
 static float BigFloat(const float *l) { FloatSwap(l); }
 #define LittleFloat
-#else
-#define BigShort
-static short LittleShort(short l) { return ShortSwap(l); }
-#define BigLong
-static int LittleLong (int l) { return LongSwap(l); }
-#define BigFloat
-static float LittleFloat (const float *l) { return FloatSwap(l); }
-#endif
 
 #endif
 
@@ -531,34 +438,8 @@ extern	vec3_t	axisDefault[3];
 
 #define	IS_NAN(x) (((*(int *)&x)&nanmask)==nanmask)
 
-#if idppc
-
-static inline float Q_rsqrt( float number ) {
-		float x = 0.5f * number;
-                float y;
-#ifdef __GNUC__            
-                asm("frsqrte %0,%1" : "=f" (y) : "f" (number));
-#else
-		y = __frsqrte( number );
-#endif
-		return y * (1.5f - (x * y * y));
-	}
-
-#ifdef __GNUC__            
-static inline float Q_fabs(float x) {
-    float abs_x;
-    
-    asm("fabs %0,%1" : "=f" (abs_x) : "f" (x));
-    return abs_x;
-}
-#else
-#define Q_fabs __fabsf
-#endif
-
-#else
 float Q_fabs( float f );
 float Q_rsqrt( float f );		// reciprocal square root
-#endif
 
 #define SQRTFAST( x ) ( (x) * Q_rsqrt( x ) )
 

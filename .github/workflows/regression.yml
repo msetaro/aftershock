@@ -16,6 +16,15 @@ jobs:
           key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install Clang analysis and build headers
         run: sudo apt-get update && sudo apt-get install -y ninja-build clang-tools libsdl2-dev libcurl4-openssl-dev mesa-common-dev
+      - name: Reject unsupported build architectures
+        run: |
+          for arch in i686 armv7 ppc64le; do
+            if cmake -S . -B "/tmp/reject-$arch" -G Ninja -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR="$arch" > "/tmp/reject-$arch.log" 2>&1; then
+              echo "FAIL: unsupported architecture $arch configured"
+              exit 1
+            fi
+            grep -F 'Aftershock supports 64-bit little-endian x86_64 and aarch64' "/tmp/reject-$arch.log"
+          done
       - name: Enforce subsystem and OS boundaries
         run: python3 tests/check_boundaries.py
       - name: Enforce trivial engine lifetimes

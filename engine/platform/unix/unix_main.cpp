@@ -41,11 +41,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <dlfcn.h>
 
-#ifdef __linux__
-#ifdef __GLIBC__
-  #include <fpu_control.h> // bk001213 - force dumps on divide by zero
-#endif
-#endif
 
 #if defined(__sun)
   #include <sys/file.h>
@@ -773,35 +768,6 @@ void QDECL Sys_SetStatus( const char *format, ... )
 }
 
 
-void Sys_ConfigureFPU( void )  // bk001213 - divide by zero
-{
-#ifdef __linux__
-#ifdef __i386
-#ifdef __GLIBC__
-#ifndef NDEBUG
-	// bk0101022 - enable FPE's in debug mode
-	static int fpu_word = _FPU_DEFAULT & ~(_FPU_MASK_ZM | _FPU_MASK_IM);
-	int current = 0;
-	_FPU_GETCW( current );
-	if ( current!=fpu_word)
-	{
-#if 0
-		Com_Printf("FPU Control 0x%x (was 0x%x)\n", fpu_word, current );
-		_FPU_SETCW( fpu_word );
-		_FPU_GETCW( current );
-		assert(fpu_word==current);
-#endif
-	}
-#else // NDEBUG
-	static int fpu_word = _FPU_DEFAULT;
-	_FPU_SETCW( fpu_word );
-#endif // NDEBUG
-#endif // __GLIBC__
-#endif // __i386
-#endif // __linux
-}
-
-
 void Sys_PrintBinVersion( const char* name )
 {
 	const char *date = __DATE__;
@@ -1053,9 +1019,6 @@ int main( int argc, const char* argv[] )
 
 	while (1)
 	{
-#ifdef __linux__
-		Sys_ConfigureFPU();
-#endif
 
 #ifdef DEDICATED
 		// run the game

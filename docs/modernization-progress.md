@@ -11,23 +11,41 @@ Active: issue/5-cmake-build, draft PR #66, based on #4 merge 4a952854.
 #3/#31/#1/#2/#4 are complete. #4 merged-tree regression 34942323875 passed.
 Continue #5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementation.
 
-Next: verify the CMake-only build/artifact workflow and MSVC embedded debug cache
-setting, then remove inactive 32-bit/PowerPC source paths and run final regression,
-layout/lifetime/boundary gates and self-review before merging PR #66. Migration
-390a20f4 has passed every hosted raw-object and generated MSVC build gate in
-34946471284; supported build 34946471250 also passed. Regression 34946471246 is
-still running with no required failures at the last check.
+Next: verify CMake-only build/artifact jobs for e67f397e and the inactive-platform
+cleanup gates, update native import provenance for the two edited shared GPL files,
+then complete PR #66 self-review and merge only after all required checks pass.
+Migration checkpoint 390a20f4 passed every hosted raw-object and generated MSVC
+gate in 34946471284. Embedded-debug 48733686 passed migration 34946795374,
+regression 34946795290 and full build 34946795283. MSVC x64 debug reports 720/720
+cacheable calls with 52 hits. Make retirement e67f397e is pushed; its CMake-only
+build 34947650438 and regression 34947650429 are running.
 
-Makefile, game/modules.mk and handwritten MSVC projects are now removed in the
-working tree, after those gates. CMake-only build.yml retains Linux/macOS/Windows
-release/debug binaries and release-artifact jobs, adds Clang and caches, and uses
-generated VS projects. Its original CRLF convention is retained. The temporary
-migration workflow is retired; replay tools/port/check_cmake_parity.py at 390a20f4.
-CMake install staging and the release workflow preset pass locally; staged Linux
-client/server binaries are byte-identical to build outputs. No game data is staged.
-The bundled macOS SDL library names @executable_path, matching adjacent staging.
-Engine/game source is still unchanged. No accepted golden/fixture changes or
-engine bug fixes are authorized in #5.
+Makefile, game/modules.mk and handwritten MSVC projects are removed after parity.
+CMake-only build.yml keeps Linux/macOS/Windows release/debug binaries and release
+artifact jobs, adds Clang and caches, and builds generated VS projects. Its CRLF
+convention is retained. Replay the retired migration oracle at 390a20f4. Release
+workflow and install staging pass locally; staged Linux binaries match build
+outputs byte for byte. Bundled macOS SDL uses @executable_path for adjacent staging.
+The local optional MinGW curl configuration compiles but cannot link absent target
+zlib; hosted MSYS installs zlib explicitly. No local packages or assets are copied.
+
+Inactive-platform cleanup removes x86/ARM32/PowerPC branches, unused x87 state and
+helpers, old 32-bit mixers and the unused Sys_ConfigureFPU hook. Three supported
+Sys_SnapVector bodies and retained MSVC setjmp/longjmp/CPUID assembly are byte-
+identical to their old bodies. CMake/header checks reject unsupported architectures,
+32-bit pointers and big-endian targets. Configure negative controls for i686,
+armv7 and ppc64le pass and run in CI. No active FP expression is rearranged.
+
+After cleanup, 356/358 GCC Vulkan objects and 96/97 aarch64 server objects remain
+raw-byte identical to the original baselines. Only unix_main objects differ.
+Function/relocation review finds exactly the removed empty Sys_ConfigureFPU;
+all retained functions have identical instructions and symbolic targets. ARM64
+has one changed trailing alignment nop outside function size. Reports and driver:
+/tmp/aftershock-64bit-functions*. All 103 native C/C++ layout/symbol gates pass;
+the same 60 advisory outcomes remain. Boundary check passes 383 files (one retired
+assembly-only header fewer). Unit/one-ULP, shared math/case, both Q3 smoke logs and
+fixed replay pass unchanged. Lifetime and OpenArena sanitizer/replay checks are
+running. Artifacts /tmp/aftershock-64bit-*. Goldens/fixtures remain unchanged.
 
 
 Make reference checkpoint a08e7275 fixes reproducibility; CMake repair 6987587a;
