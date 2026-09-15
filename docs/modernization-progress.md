@@ -7,7 +7,8 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-native-internal, based on pending PR #75 head da94649e.
+Active: issue/8-native-internal. PR #75 merged b28beab5 after passing build
+35020481804 and regression 35020481815 at da94649e; that merge is integrated here.
 The branch removes only Clang's unneeded-internal-declaration freeze from the
 standalone native helper. Source commit 0662297d; Clang C/C++ helper builds and
 ABI checks pass, all six shared-library hashes are unchanged, and both helper
@@ -15,12 +16,12 @@ flag controls fail with the diagnostic enabled. Artifacts:
 /tmp/aftershock-native-internal-{before.json,control,c.log,cpp.log}.
 
 Next:
-1. Verify PR #75 at da94649eb2b6fe7187a39539b1b295cbd2f9d117: build
-   35020481804 and regression 35020481815. Complete self-review and merge it,
-   then integrate origin/modernization into this branch before opening the
-   separate internal-declaration helper PR. Check #74 merged-tree run 35020339038.
-2. Verify that helper PR's full hosted gates, self-review and merge. Then remove
-   the remaining GCC implicit-fallthrough helper freeze in a separate class PR.
+1. Open the internal-declaration helper PR, verify its hosted build/regression,
+   self-review and merge with a merge commit, then check its merged-tree run.
+   Check #75's merged-tree regression. #74 merged-tree run 35020339038 passed.
+2. Remove the remaining GCC implicit-fallthrough helper freeze in a separate class
+   PR. Preview compilation of all six C/C++ helper libraries retains identical
+   hashes and both diagnostic controls pass: /tmp/aftershock-native-fallthrough-preview.
    Production fallthrough was enabled in #67; do not redo that source work.
 3. Continue the remaining warning classes one per PR. Ready source previews below
    cover parentheses-equality and self-assign. Then finish the larger warning
@@ -41,10 +42,12 @@ Recent merges (all self-reviewed; merge commits):
 - #73 internal declarations: 248dca68, build 35018897499/regression 35018897591;
   merged be2186e0, merged-tree regression 35019634702 passed.
 - #74 type limits: 644741e9, build 35019711765/regression 35019711780;
-  merged 5fb78853, merged-tree regression 35020339038 pending verification.
+  merged 5fb78853, merged-tree regression 35020339038 passed.
+- #75 unused constants: da94649e, build 35020481804/regression 35020481815;
+  merged b28beab5, merged-tree regression pending verification.
 #5 is complete. #8 warning ratchet remains active; later #8 rules are not done.
 
-Pending PR #75 evidence:
+Completed PR #75 evidence:
 - Source 68919a83 moves the order table/type/count in cg_servercmds.cpp under the
   existing MISSIONPACK guard with its sole user, retaining source line count.
   Original GPL hashes remain; the transformation is recorded in native provenance.
