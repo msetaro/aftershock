@@ -65,7 +65,7 @@ qboolean	PM_SlideMove( qboolean gravity ) {
 	if ( gravity ) {
 		VectorCopy( pm->ps->velocity, endVelocity );
 		endVelocity[2] -= pm->ps->gravity * pml.frametime;
-		pm->ps->velocity[2] = ( pm->ps->velocity[2] + endVelocity[2] ) * 0.5;
+		pm->ps->velocity[2] = ( pm->ps->velocity[2] + endVelocity[2] ) * 0.5f;
 		primal_velocity[2] = endVelocity[2];
 		if ( pml.groundPlane ) {
 			// slide along the ground plane
@@ -128,7 +128,7 @@ qboolean	PM_SlideMove( qboolean gravity ) {
 		// non-axial planes
 		//
 		for ( i = 0 ; i < numplanes ; i++ ) {
-			if ( DotProduct( trace.plane.normal, planes[i] ) > 0.99 ) {
+			if ( DotProduct( trace.plane.normal, planes[i] ) > 0.99f ) {
 				VectorAdd( trace.plane.normal, pm->ps->velocity, pm->ps->velocity );
 				break;
 			}
@@ -146,7 +146,7 @@ qboolean	PM_SlideMove( qboolean gravity ) {
 		// find a plane that it enters
 		for ( i = 0 ; i < numplanes ; i++ ) {
 			into = DotProduct( pm->ps->velocity, planes[i] );
-			if ( into >= 0.1 ) {
+			if ( into >= 0.1f ) {
 				continue;		// move doesn't interact with the plane
 			}
 
@@ -166,7 +166,7 @@ qboolean	PM_SlideMove( qboolean gravity ) {
 				if ( j == i ) {
 					continue;
 				}
-				if ( DotProduct( clipVelocity, planes[j] ) >= 0.1 ) {
+				if ( DotProduct( clipVelocity, planes[j] ) >= 0.1f ) {
 					continue;		// move doesn't interact with the plane
 				}
 
@@ -195,7 +195,7 @@ qboolean	PM_SlideMove( qboolean gravity ) {
 					if ( k == i || k == j ) {
 						continue;
 					}
-					if ( DotProduct( clipVelocity, planes[k] ) >= 0.1 ) {
+					if ( DotProduct( clipVelocity, planes[k] ) >= 0.1f ) {
 						continue;		// move doesn't interact with the plane
 					}
 
@@ -251,8 +251,8 @@ void PM_StepSlideMove( qboolean gravity ) {
 	pm->trace (&trace, start_o, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
 	VectorSet(up, 0, 0, 1);
 	// never step up when you still have up velocity
-	if ( pm->ps->velocity[2] > 0 && (trace.fraction == 1.0 ||
-										DotProduct(trace.plane.normal, up) < 0.7)) {
+	if ( pm->ps->velocity[2] > 0 && (trace.fraction == 1.0f ||
+										DotProduct(trace.plane.normal, up) < 0.7f)) {
 		return;
 	}
 
@@ -285,14 +285,14 @@ void PM_StepSlideMove( qboolean gravity ) {
 	if ( !trace.allsolid ) {
 		VectorCopy (trace.endpos, pm->ps->origin);
 	}
-	if ( trace.fraction < 1.0 ) {
+	if ( trace.fraction < 1.0f ) {
 		PM_ClipVelocity( pm->ps->velocity, trace.plane.normal, pm->ps->velocity, OVERCLIP );
 	}
 
 #if 0
 	// if the down trace can trace back to the original position directly, don't step
 	pm->trace( &trace, pm->ps->origin, pm->mins, pm->maxs, start_o, pm->ps->clientNum, pm->tracemask);
-	if ( trace.fraction == 1.0 ) {
+	if ( trace.fraction == 1.0f ) {
 		// use the original move
 		VectorCopy (down_o, pm->ps->origin);
 		VectorCopy (down_v, pm->ps->velocity);

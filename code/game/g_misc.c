@@ -234,7 +234,7 @@ void SP_misc_portal_camera(gentity_t *ent) {
 
 	G_SpawnFloat( "roll", "0", &roll );
 
-	ent->s.clientNum = roll/360.0 * 256;
+	ent->s.clientNum = roll/360.0f * 256;
 }
 
 /*
@@ -301,7 +301,7 @@ void InitShooter( gentity_t *ent, int weapon ) {
 	G_SetMovedir( ent->s.angles, ent->movedir );
 
 	if ( !ent->random ) {
-		ent->random = 1.0;
+		ent->random = 1.0f;
 	}
 	ent->random = sin( M_PI * ent->random / 180 );
 	// target might be a moving object, so we can't set movedir for it

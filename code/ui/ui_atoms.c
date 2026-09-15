@@ -179,8 +179,8 @@ void UI_LerpColor(vec4_t a, vec4_t b, vec4_t c, float t)
 		c[i] = a[i] + t*(b[i]-a[i]);
 		if (c[i] < 0)
 			c[i] = 0;
-		else if (c[i] > 1.0)
-			c[i] = 1.0;
+		else if (c[i] > 1.0f)
+			c[i] = 1.0f;
 	}
 }
 
@@ -505,7 +505,7 @@ float UI_ProportionalSizeScale( int style ) {
 		return PROP_SMALL_SIZE_SCALE;
 	}
 
-	return 1.00;
+	return 1.00f;
 }
 
 
@@ -544,25 +544,25 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 	}
 
 	if ( style & UI_INVERSE ) {
-		drawcolor[0] = color[0] * 0.7;
-		drawcolor[1] = color[1] * 0.7;
-		drawcolor[2] = color[2] * 0.7;
+		drawcolor[0] = color[0] * 0.7f;
+		drawcolor[1] = color[1] * 0.7f;
+		drawcolor[2] = color[2] * 0.7f;
 		drawcolor[3] = color[3];
 		UI_DrawProportionalString2( x, y, str, drawcolor, sizeScale, uis.charsetProp );
 		return;
 	}
 
 	if ( style & UI_PULSE ) {
-		drawcolor[0] = color[0] * 0.7;
-		drawcolor[1] = color[1] * 0.7;
-		drawcolor[2] = color[2] * 0.7;
+		drawcolor[0] = color[0] * 0.7f;
+		drawcolor[1] = color[1] * 0.7f;
+		drawcolor[2] = color[2] * 0.7f;
 		drawcolor[3] = color[3];
 		UI_DrawProportionalString2( x, y, str, color, sizeScale, uis.charsetProp );
 
 		drawcolor[0] = color[0];
 		drawcolor[1] = color[1];
 		drawcolor[2] = color[2];
-		drawcolor[3] = 0.5 + 0.5 * sin( uis.realtime / PULSE_DIVISOR );
+		drawcolor[3] = 0.5f + 0.5f * sin( uis.realtime / PULSE_DIVISOR );
 		UI_DrawProportionalString2( x, y, str, drawcolor, sizeScale, uis.charsetPropGlow );
 		return;
 	}
@@ -682,9 +682,9 @@ static void UI_DrawString2( int x, int y, const char* str, vec4_t color, int cha
 		ch = *s & 255;
 		if (ch != ' ')
 		{
-			frow = (ch>>4)*0.0625;
-			fcol = (ch&15)*0.0625;
-			trap_R_DrawStretchPic( ax, ay, aw, ah, fcol, frow, fcol + 0.0625, frow + 0.0625, uis.charset );
+			frow = (ch>>4)*0.0625f;
+			fcol = (ch&15)*0.0625f;
+			trap_R_DrawStretchPic( ax, ay, aw, ah, fcol, frow, fcol + 0.0625f, frow + 0.0625f, uis.charset );
 		}
 
 		ax += aw;
@@ -734,11 +734,11 @@ void UI_DrawString( int x, int y, const char* str, int style, vec4_t color )
 
 	if (style & UI_PULSE)
 	{
-		lowlight[0] = 0.8*color[0]; 
-		lowlight[1] = 0.8*color[1];
-		lowlight[2] = 0.8*color[2];
-		lowlight[3] = 0.8*color[3];
-		UI_LerpColor(color,lowlight,newcolor,0.5+0.5*sin(uis.realtime/PULSE_DIVISOR));
+		lowlight[0] = 0.8f*color[0]; 
+		lowlight[1] = 0.8f*color[1];
+		lowlight[2] = 0.8f*color[2];
+		lowlight[3] = 0.8f*color[3];
+		UI_LerpColor(color,lowlight,newcolor,0.5f+0.5f*sin(uis.realtime/PULSE_DIVISOR));
 		drawcolor = newcolor;
 	}	
 	else
@@ -1073,10 +1073,10 @@ void UI_Init( void ) {
 	trap_GetGlconfig( &uis.glconfig );
 
 	// for 640x480 virtualized screen
-	uis.scale = uis.glconfig.vidHeight * (1.0/480.0);
+	uis.scale = uis.glconfig.vidHeight * (1.0f/480.0f);
 	if ( uis.glconfig.vidWidth * 480 > uis.glconfig.vidHeight * 640 ) {
 		// wide screen
-		uis.bias = 0.5 * ( uis.glconfig.vidWidth - ( uis.glconfig.vidHeight * (640.0/480.0) ) );
+		uis.bias = 0.5f * ( uis.glconfig.vidWidth - ( uis.glconfig.vidHeight * (640.0f/480.0f) ) );
 	}
 	else {
 		// no wide screen

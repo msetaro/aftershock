@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // by the server in the server stored userinfos, or stashed in a cvar.
 
 #ifdef MISSIONPACK
-#define CG_FONT_THRESHOLD 0.1
+#define CG_FONT_THRESHOLD 0.1f
 #endif
 
 #define	POWERUP_BLINKS		5
@@ -57,7 +57,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	ATTACKER_HEAD_TIME	10000
 #define	REWARD_TIME			3000
 
-#define	PULSE_SCALE			1.5			// amount to scale up the icons when activating
+#define	PULSE_SCALE			1.5f			// amount to scale up the icons when activating
 
 #define	MAX_STEP_CHANGE		32
 

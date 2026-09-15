@@ -970,7 +970,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		if ( ( dflags & DAMAGE_RADIUS ) || ( mod == MOD_FALLING ) ) {
 			return;
 		}
-		damage *= 0.5;
+		damage *= 0.5f;
 	}
 
 	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
@@ -988,7 +988,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	// always give half damage if hurting self
 	// calculated after knockback, so rocket jumping works
 	if ( targ == attacker) {
-		damage *= 0.5;
+		damage *= 0.5f;
 	}
 
 	if ( damage < 1 ) {
@@ -1083,41 +1083,41 @@ qboolean CanDamage (gentity_t *targ, vec3_t origin) {
 	// use the midpoint of the bounds instead of the origin, because
 	// bmodels may have their origin is 0,0,0
 	VectorAdd (targ->r.absmin, targ->r.absmax, midpoint);
-	VectorScale (midpoint, 0.5, midpoint);
+	VectorScale (midpoint, 0.5f, midpoint);
 
 	VectorCopy (midpoint, dest);
 	trap_Trace ( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID);
-	if (tr.fraction == 1.0 || tr.entityNum == targ->s.number)
+	if (tr.fraction == 1.0f || tr.entityNum == targ->s.number)
 		return qtrue;
 
 	// this should probably check in the plane of projection, 
 	// rather than in world coordinate, and also include Z
 	VectorCopy (midpoint, dest);
-	dest[0] += 15.0;
-	dest[1] += 15.0;
+	dest[0] += 15.0f;
+	dest[1] += 15.0f;
 	trap_Trace ( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID);
-	if (tr.fraction == 1.0)
+	if (tr.fraction == 1.0f)
 		return qtrue;
 
 	VectorCopy (midpoint, dest);
-	dest[0] += 15.0;
-	dest[1] -= 15.0;
+	dest[0] += 15.0f;
+	dest[1] -= 15.0f;
 	trap_Trace ( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID);
-	if (tr.fraction == 1.0)
+	if (tr.fraction == 1.0f)
 		return qtrue;
 
 	VectorCopy (midpoint, dest);
-	dest[0] -= 15.0;
-	dest[1] += 15.0;
+	dest[0] -= 15.0f;
+	dest[1] += 15.0f;
 	trap_Trace ( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID);
-	if (tr.fraction == 1.0)
+	if (tr.fraction == 1.0f)
 		return qtrue;
 
 	VectorCopy (midpoint, dest);
-	dest[0] -= 15.0;
-	dest[1] -= 15.0;
+	dest[0] -= 15.0f;
+	dest[1] -= 15.0f;
 	trap_Trace ( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID);
-	if (tr.fraction == 1.0)
+	if (tr.fraction == 1.0f)
 		return qtrue;
 
 
@@ -1177,7 +1177,7 @@ qboolean G_RadiusDamage ( vec3_t origin, gentity_t *attacker, float damage, floa
 			continue;
 		}
 
-		points = damage * ( 1.0 - dist / radius );
+		points = damage * ( 1.0f - dist / radius );
 
 		if( CanDamage (ent, origin) ) {
 			if( LogAccuracyHit( ent, attacker ) ) {

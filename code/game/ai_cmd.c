@@ -435,7 +435,7 @@ int BotAddressedToBot(bot_state_t *bs, bot_match_t *match) {
 		if (!trap_BotFindMatch(match->string, &tellmatch, MTCONTEXT_REPLYCHAT) ||
 				tellmatch.type != MSG_CHATTELL) {
 			//make sure not everyone reacts to this message
-			if (random() > (float ) 1.0 / (NumPlayersOnSameTeam(bs)-1)) return qfalse;
+			if (random() > (float ) 1.0f / (NumPlayersOnSameTeam(bs)-1)) return qfalse;
 		}
 	}
 	return qtrue;
@@ -590,7 +590,7 @@ void BotMatch_HelpAccompany(bot_state_t *bs, bot_match_t *match) {
 	else {
 		bs->ltgtype = LTG_TEAMACCOMPANY;
 		if (!bs->teamgoal_time) bs->teamgoal_time = FloatTime() + TEAM_ACCOMPANY_TIME;
-		bs->formation_dist = 3.5 * 32;		//3.5 meter
+		bs->formation_dist = 3.5f * 32;		//3.5 meter
 		bs->arrive_time = 0;
 		//
 		BotSetTeamStatus(bs);
@@ -1187,7 +1187,7 @@ void BotMatch_CheckPoint(bot_state_t *bs, bot_match_t *match) {
 	client = ClientFromName(netname);
 	//BotGPSToPosition(buf, position);
 	sscanf(buf, "%f %f %f", &position[0], &position[1], &position[2]);
-	position[2] += 0.5;
+	position[2] += 0.5f;
 	areanum = BotPointAreaNum(position);
 	if (!areanum) {
 		if (BotAddressedToBot(bs, match)) {
@@ -1238,7 +1238,7 @@ void BotMatch_FormationSpace(bot_state_t *bs, bot_match_t *match) {
 	//
 	trap_BotMatchVariable(match, NUMBER, buf, MAX_MESSAGE_SIZE);
 	//if it's the distance in feet
-	if (match->subtype & ST_FEET) space = 0.3048 * 32 * atof(buf);
+	if (match->subtype & ST_FEET) space = 0.3048f * 32 * atof(buf);
 	//else it's in meters
 	else space = 32 * atof(buf);
 	//check if the formation intervening space is valid
@@ -1497,7 +1497,7 @@ float BotNearestVisibleItem(bot_state_t *bs, char *itemname, bot_goal_t *goal) {
 		if (dist < bestdist) {
 			//trace from start to end
 			BotAI_Trace(&trace, bs->eye, NULL, NULL, tmpgoal.origin, bs->client, CONTENTS_SOLID|CONTENTS_PLAYERCLIP);
-			if (trace.fraction >= 1.0) {
+			if (trace.fraction >= 1.0f) {
 				bestdist = dist;
 				memcpy(goal, &tmpgoal, sizeof(bot_goal_t));
 			}
@@ -1573,10 +1573,10 @@ void BotMatch_WhereAreYou(bot_state_t *bs, bot_match_t *match) {
 			) {
 			redtt = trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, ctf_redflag.areanum, TFL_DEFAULT);
 			bluett = trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, ctf_blueflag.areanum, TFL_DEFAULT);
-			if (redtt < (redtt + bluett) * 0.4) {
+			if (redtt < (redtt + bluett) * 0.4f) {
 				BotAI_BotInitialChat(bs, (char *)"teamlocation", nearbyitems[bestitem], "red", NULL);
 			}
-			else if (bluett < (redtt + bluett) * 0.4) {
+			else if (bluett < (redtt + bluett) * 0.4f) {
 				BotAI_BotInitialChat(bs, (char *)"teamlocation", nearbyitems[bestitem], "blue", NULL);
 			}
 			else {
@@ -1587,10 +1587,10 @@ void BotMatch_WhereAreYou(bot_state_t *bs, bot_match_t *match) {
 		else if (gametype == GT_OBELISK || gametype == GT_HARVESTER) {
 			redtt = trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, redobelisk.areanum, TFL_DEFAULT);
 			bluett = trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, blueobelisk.areanum, TFL_DEFAULT);
-			if (redtt < (redtt + bluett) * 0.4) {
+			if (redtt < (redtt + bluett) * 0.4f) {
 				BotAI_BotInitialChat(bs, "teamlocation", nearbyitems[bestitem], "red", NULL);
 			}
-			else if (bluett < (redtt + bluett) * 0.4) {
+			else if (bluett < (redtt + bluett) * 0.4f) {
 				BotAI_BotInitialChat(bs, "teamlocation", nearbyitems[bestitem], "blue", NULL);
 			}
 			else {

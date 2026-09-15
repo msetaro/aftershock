@@ -1204,7 +1204,7 @@ static void CG_RunLerpFrame( clientInfo_t *ci, lerpFrame_t *lf, int newAnimation
 	if ( lf->frameTime == lf->oldFrameTime ) {
 		lf->backlerp = 0;
 	} else {
-		lf->backlerp = 1.0 - (float)( cg.time - lf->oldFrameTime ) / ( lf->frameTime - lf->oldFrameTime );
+		lf->backlerp = 1.0f - (float)( cg.time - lf->oldFrameTime ) / ( lf->frameTime - lf->oldFrameTime );
 	}
 }
 
@@ -1240,7 +1240,7 @@ static void CG_PlayerAnimation( centity_t *cent, int *legsOld, int *legs, float 
 	}
 
 	if ( cent->currentState.powerups & ( 1 << PW_HASTE ) ) {
-		speedScale = 1.5;
+		speedScale = 1.5f;
 	} else {
 		speedScale = 1;
 	}
@@ -1300,12 +1300,12 @@ static void CG_SwingAngles( float destination, float swingTolerance, float clamp
 	// so it doesn't seem so linear
 	swing = AngleSubtract( destination, *angle );
 	scale = fabs( swing );
-	if ( scale < swingTolerance * 0.5 ) {
-		scale = 0.5;
+	if ( scale < swingTolerance * 0.5f ) {
+		scale = 0.5f;
 	} else if ( scale < swingTolerance ) {
-		scale = 1.0;
+		scale = 1.0f;
 	} else {
-		scale = 2.0;
+		scale = 2.0f;
 	}
 
 	// swing towards the destination angle
@@ -1348,7 +1348,7 @@ static void CG_AddPainTwitch( centity_t *cent, vec3_t torsoAngles ) {
 		return;
 	}
 
-	f = 1.0 - (float)t / PAIN_TWITCH_TIME;
+	f = 1.0f - (float)t / PAIN_TWITCH_TIME;
 
 	if ( cent->pe.painDirection ) {
 		torsoAngles[ROLL] += 20 * f;
@@ -1408,7 +1408,7 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 		}
 	}
 	legsAngles[YAW] = headAngles[YAW] + movementOffsets[ dir ];
-	torsoAngles[YAW] = headAngles[YAW] + 0.25 * movementOffsets[ dir ];
+	torsoAngles[YAW] = headAngles[YAW] + 0.25f * movementOffsets[ dir ];
 
 	// torso
 	CG_SwingAngles( torsoAngles[YAW], 25, 90, cg_swingSpeed.value, &cent->pe.torso.yawAngle, &cent->pe.torso.yawing );
@@ -1688,7 +1688,7 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hSkin, refEntity_t *torso 
 		VectorNormalize( dir );
 		d = DotProduct(pole.axis[2], dir);
 		// if there is anough movement orthogonal to the flag pole
-		if (fabs(d) < 0.9) {
+		if (fabs(d) < 0.9f) {
 			//
 			d = DotProduct(pole.axis[0], dir);
 			if (d > 1.0f) {
@@ -1854,7 +1854,7 @@ static void CG_PlayerPowerups( centity_t *cent, refEntity_t *torso ) {
 		else {
 			CG_TrailItem( cent, cgs.media.redFlagModel );
 		}
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 1.0, 0.2f, 0.2f );
+		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 1.0f, 0.2f, 0.2f );
 	}
 
 	// blueflag
@@ -1865,7 +1865,7 @@ static void CG_PlayerPowerups( centity_t *cent, refEntity_t *torso ) {
 		else {
 			CG_TrailItem( cent, cgs.media.blueFlagModel );
 		}
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 0.2f, 0.2f, 1.0 );
+		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 0.2f, 0.2f, 1.0f );
 	}
 
 	// neutralflag
@@ -1876,7 +1876,7 @@ static void CG_PlayerPowerups( centity_t *cent, refEntity_t *torso ) {
 		else {
 			CG_TrailItem( cent, cgs.media.neutralFlagModel );
 		}
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 1.0, 1.0, 1.0 );
+		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 1.0f, 1.0f, 1.0f );
 	}
 
 	// haste leaves smoke trails
@@ -2013,7 +2013,7 @@ static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
 	trap_CM_BoxTrace( &trace, cent->lerpOrigin, end, mins, maxs, 0, MASK_PLAYERSOLID );
 
 	// no shadow if too high
-	if ( trace.fraction == 1.0 || trace.startsolid || trace.allsolid ) {
+	if ( trace.fraction == 1.0f || trace.startsolid || trace.allsolid ) {
 		return qfalse;
 	}
 
@@ -2024,7 +2024,7 @@ static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
 	}
 
 	// fade the shadow out with height
-	alpha = 1.0 - trace.fraction;
+	alpha = 1.0f - trace.fraction;
 
 	// bk0101022 - hack / FPE - bogus planes?
 	//assert( DotProduct( trace.plane.normal, trace.plane.normal ) != 0.0f ) 
@@ -2077,7 +2077,7 @@ static void CG_PlayerSplash( centity_t *cent ) {
 	// trace down to find the surface
 	trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) );
 
-	if ( trace.fraction == 1.0 ) {
+	if ( trace.fraction == 1.0f ) {
 		return;
 	}
 
@@ -2410,7 +2410,7 @@ void CG_Player( centity_t *cent ) {
 			dir[2] = cos(angle) * 20;
 			VectorAdd(torso.origin, dir, skull.origin);
 
-			angles[0] = cos(angle - 0.5 * M_PI) * 30;
+			angles[0] = cos(angle - 0.5f * M_PI) * 30;
 			angles[1] = 360 - (angle * 180 / M_PI);
 			if (angles[1] > 360)
 				angles[1] -= 360;
@@ -2430,7 +2430,7 @@ void CG_Player( centity_t *cent ) {
 			skull.hModel = cgs.media.kamikazeHeadTrail;
 			trap_R_AddRefEntityToScene( &skull );
 
-			angle = ((cg.time / 3) & 255) * (M_PI * 2) / 255 + 0.5 * M_PI;
+			angle = ((cg.time / 3) & 255) * (M_PI * 2) / 255 + 0.5f * M_PI;
 			if (angle > M_PI * 2)
 				angle -= (float)M_PI * 2;
 			dir[0] = sin(angle) * 20;

@@ -17,11 +17,9 @@ output.mkdir(parents=True, exist_ok=True)
 results = []
 for language, compiler in [('c', args.cc), ('c++', args.cxx)]:
     compiler = shlex.split(compiler)
-    clang = 'clang' in subprocess.check_output([*compiler, '--version'], text=True).lower()
     mode = ['-std=gnu99'] if language == 'c' else ['-std=c++20', '-fno-exceptions', '-fno-rtti', '-U_GNU_SOURCE', '-D_DEFAULT_SOURCE']
     binary = output / language.replace('+', 'p')
     command = [*compiler, '-x', language, *mode, '-O2', '-DNDEBUG', '-fno-builtin',
-               '-cl-single-precision-constant' if clang else '-fsingle-precision-constant',
                '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv',
                '-include', 'code/game/native_abi.h', '-ffunction-sections', '-fdata-sections',
                'code/game/q_math.c', 'code/game/q_shared.c', 'tests/probes/native_shared.c',

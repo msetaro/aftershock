@@ -5,15 +5,16 @@
 #include <stdint.h>
 #include <math.h>
 
+/* Use q_shared.h's binary32 constant on every compiler. */
+#undef M_PI
+
 #define BASEGAME "baseq3"
 #define COM_TRAP_GETVALUE 700
 
 #ifdef __cplusplus
 #define Q_EXTERN_C extern "C"
-static_assert( sizeof( 1.0 ) == 4, "native game needs binary32 literals" );
 #else
 #define Q_EXTERN_C
-_Static_assert( sizeof( 1.0 ) == 4, "native game needs binary32 literals" );
 #endif
 
 /* The engine's VM math calls evaluate in host double and return one float word. */

@@ -607,7 +607,7 @@ static void GraphicsOptions_TQEvent( void *ptr, int event ) {
 	if( event != QM_ACTIVATED ) {
 	 	return;
 	}
-	s_graphicsoptions.tq.curvalue = (int)(s_graphicsoptions.tq.curvalue + 0.5);
+	s_graphicsoptions.tq.curvalue = (int)(s_graphicsoptions.tq.curvalue + 0.5f);
 }
 
 

@@ -211,7 +211,7 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 #if 0
 	// display password field
 	if ( passwordNeeded ) {
-		s_ingame_menu.x = SCREEN_WIDTH * 0.50 - 128;
+		s_ingame_menu.x = SCREEN_WIDTH * 0.50f - 128;
 		s_ingame_menu.nitems = 0;
 		s_ingame_menu.wrapAround = qtrue;
 

@@ -259,7 +259,7 @@ void CG_AddFragment( localEntity_t *le ) {
 			VectorCopy( le->refEntity.origin, le->refEntity.lightingOrigin );
 			le->refEntity.renderfx |= RF_LIGHTING_ORIGIN;
 			oldZ = le->refEntity.origin[2];
-			le->refEntity.origin[2] -= 16 * ( 1.0 - (float)t / SINK_TIME );
+			le->refEntity.origin[2] -= 16 * ( 1.0f - (float)t / SINK_TIME );
 			trap_R_AddRefEntityToScene( &le->refEntity );
 			le->refEntity.origin[2] = oldZ;
 		} else {
@@ -274,7 +274,7 @@ void CG_AddFragment( localEntity_t *le ) {
 
 	// trace a line from previous position to new position
 	CG_Trace( &trace, le->refEntity.origin, NULL, NULL, newOrigin, -1, CONTENTS_SOLID );
-	if ( trace.fraction == 1.0 ) {
+	if ( trace.fraction == 1.0f ) {
 		// still in free fall
 		VectorCopy( newOrigin, le->refEntity.origin );
 
@@ -361,7 +361,7 @@ static void CG_AddMoveScaleFade( localEntity_t *le ) {
 
 	if ( le->fadeInTime > le->startTime && cg.time < le->fadeInTime ) {
 		// fade / grow time
-		c = 1.0 - (float) ( le->fadeInTime - cg.time ) / ( le->fadeInTime - le->startTime );
+		c = 1.0f - (float) ( le->fadeInTime - cg.time ) / ( le->fadeInTime - le->startTime );
 	}
 	else {
 		// fade / grow time
@@ -371,7 +371,7 @@ static void CG_AddMoveScaleFade( localEntity_t *le ) {
 	re->shaderRGBA[3] = 0xff * c * le->color[3];
 
 	if ( !( le->leFlags & LEF_PUFF_DONT_SCALE ) ) {
-		re->radius = le->radius * ( 1.0 - c ) + 8;
+		re->radius = le->radius * ( 1.0f - c ) + 8;
 	}
 
 	BG_EvaluateTrajectory( &le->pos, cg.time, re->origin );
@@ -410,7 +410,7 @@ static void CG_AddScaleFade( localEntity_t *le ) {
 	c = ( le->endTime - cg.time ) * le->lifeRate;
 
 	re->shaderRGBA[3] = 0xff * c * le->color[3];
-	re->radius = le->radius * ( 1.0 - c ) + 8;
+	re->radius = le->radius * ( 1.0f - c ) + 8;
 
 	// if the view would be "inside" the sprite, kill the sprite
 	// so it doesn't add too much overdraw
@@ -448,9 +448,9 @@ static void CG_AddFallScaleFade( localEntity_t *le ) {
 
 	re->shaderRGBA[3] = 0xff * c * le->color[3];
 
-	re->origin[2] = le->pos.trBase[2] - ( 1.0 - c ) * le->pos.trDelta[2];
+	re->origin[2] = le->pos.trBase[2] - ( 1.0f - c ) * le->pos.trDelta[2];
 
-	re->radius = le->radius * ( 1.0 - c ) + 16;
+	re->radius = le->radius * ( 1.0f - c ) + 16;
 
 	// if the view would be "inside" the sprite, kill the sprite
 	// so it doesn't add too much overdraw
@@ -484,10 +484,10 @@ static void CG_AddExplosion( localEntity_t *ex ) {
 		float		light;
 
 		light = (float)( cg.time - ex->startTime ) / ( ex->endTime - ex->startTime );
-		if ( light < 0.5 ) {
-			light = 1.0;
+		if ( light < 0.5f ) {
+			light = 1.0f;
 		} else {
-			light = 1.0 - ( light - 0.5 ) * 2;
+			light = 1.0f - ( light - 0.5f ) * 2;
 		}
 		light = ex->light * light;
 		trap_R_AddLightToScene(ent->origin, light, ex->lightColor[0], ex->lightColor[1], ex->lightColor[2] );
@@ -507,16 +507,16 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 
 	c = ( le->endTime - cg.time ) / ( float ) ( le->endTime - le->startTime );
 	if ( c > 1 ) {
-		c = 1.0;	// can happen during connection problems
+		c = 1.0f;	// can happen during connection problems
 	}
 
 	re.shaderRGBA[0] = 0xff;
 	re.shaderRGBA[1] = 0xff;
 	re.shaderRGBA[2] = 0xff;
-	re.shaderRGBA[3] = 0xff * c * 0.33;
+	re.shaderRGBA[3] = 0xff * c * 0.33f;
 
 	re.reType = RT_SPRITE;
-	re.radius = 42 * ( 1.0 - c ) + 30;
+	re.radius = 42 * ( 1.0f - c ) + 30;
 
 	trap_R_AddRefEntityToScene( &re );
 
@@ -525,10 +525,10 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 		float		light;
 
 		light = (float)( cg.time - le->startTime ) / ( le->endTime - le->startTime );
-		if ( light < 0.5 ) {
-			light = 1.0;
+		if ( light < 0.5f ) {
+			light = 1.0f;
 		} else {
-			light = 1.0 - ( light - 0.5 ) * 2;
+			light = 1.0f - ( light - 0.5f ) * 2;
 		}
 		light = le->light * light;
 		trap_R_AddLightToScene(re.origin, light, le->lightColor[0], le->lightColor[1], le->lightColor[2] );
@@ -617,7 +617,7 @@ void CG_AddKamikaze( localEntity_t *le ) {
 
 		trap_R_AddRefEntityToScene( re );
 		// add the dlight
-		trap_R_AddLightToScene( re->origin, c * 1000.0, 1.0, 1.0, c );
+		trap_R_AddLightToScene( re->origin, c * 1000.0f, 1.0f, 1.0f, c );
 	}
 
 	if (t > KAMI_SHOCKWAVE2_STARTTIME && t < KAMI_SHOCKWAVE2_ENDTIME) {
@@ -684,9 +684,9 @@ void CG_AddInvulnerabilityJuiced( localEntity_t *le ) {
 
 	t = cg.time - le->startTime;
 	if ( t > 3000 ) {
-		le->refEntity.axis[0][0] = (float) 1.0 + 0.3 * (t - 3000) / 2000;
-		le->refEntity.axis[1][1] = (float) 1.0 + 0.3 * (t - 3000) / 2000;
-		le->refEntity.axis[2][2] = (float) 0.7 + 0.3 * (2000 - (t - 3000)) / 2000;
+		le->refEntity.axis[0][0] = (float) 1.0f + 0.3f * (t - 3000) / 2000;
+		le->refEntity.axis[1][1] = (float) 1.0f + 0.3f * (t - 3000) / 2000;
+		le->refEntity.axis[2][2] = (float) 0.7f + 0.3f * (2000 - (t - 3000)) / 2000;
 	}
 	if ( t > 5000 ) {
 		le->endTime = 0;
@@ -749,7 +749,7 @@ void CG_AddScorePlum( localEntity_t *le ) {
 		}
 
 	}
-	if (c < 0.25)
+	if (c < 0.25f)
 		re->shaderRGBA[3] = 0xff * 4 * c;
 	else
 		re->shaderRGBA[3] = 0xff;

@@ -158,7 +158,7 @@ void CG_ImpactMark( qhandle_t markShader, const vec3_t origin, const vec3_t dir,
 	RotatePointAroundVector( axis[2], axis[0], axis[1], orientation );
 	CrossProduct( axis[0], axis[2], axis[1] );
 
-	texCoordScale = 0.5 * 1.0 / radius;
+	texCoordScale = 0.5f * 1.0f / radius;
 
 	// create the full polygon
 	for ( i = 0 ; i < 3 ; i++ ) {
@@ -195,8 +195,8 @@ void CG_ImpactMark( qhandle_t markShader, const vec3_t origin, const vec3_t dir,
 			VectorCopy( markPoints[mf->firstPoint + j], v->xyz );
 
 			VectorSubtract( v->xyz, origin, delta );
-			v->st[0] = 0.5 + DotProduct( delta, axis[1] ) * texCoordScale;
-			v->st[1] = 0.5 + DotProduct( delta, axis[2] ) * texCoordScale;
+			v->st[0] = 0.5f + DotProduct( delta, axis[1] ) * texCoordScale;
+			v->st[1] = 0.5f + DotProduct( delta, axis[2] ) * texCoordScale;
 			*(int *)v->modulate = *(int *)colors;
 		}
 
@@ -255,7 +255,7 @@ void CG_AddMarks( void ) {
 		// fade out the energy bursts
 		if ( mp->markShader == cgs.media.energyMarkShader ) {
 
-			fade = 450 - 450 * ( (cg.time - mp->time ) / 3000.0 );
+			fade = 450 - 450 * ( (cg.time - mp->time ) / 3000.0f );
 			if ( fade < 255 ) {
 				if ( fade < 0 ) {
 					fade = 0;
@@ -586,7 +586,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 		vec3_t	rr, ru;
 		vec3_t	rotate_ang;
 
-		VectorSet (color, 1.0, 1.0, 0.5);
+		VectorSet (color, 1.0f, 1.0f, 0.5f);
 		time = cg.time - p->time;
 		time2 = p->endtime - p->time;
 		ratio = time / time2;
@@ -673,14 +673,14 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 				len = 1;
 
 			val = 4096/len;
-			greyit = 0.25 * val;
-			if (greyit > 0.5)
-				greyit = 0.5;
+			greyit = 0.25f * val;
+			if (greyit > 0.5f)
+				greyit = 0.5f;
 
 			VectorSet (color, greyit, greyit, greyit);
 		}
 		else
-			VectorSet (color, 1.0, 1.0, 1.0);
+			VectorSet (color, 1.0f, 1.0f, 1.0f);
 
 		time = cg.time - p->time;
 		time2 = p->endtime - p->time;
@@ -718,7 +718,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 
 			vectoangles (rforward, temp);
 			p->accumroll += p->roll;
-			temp[ROLL] += p->accumroll * 0.1;
+			temp[ROLL] += p->accumroll * 0.1f;
 			AngleVectors ( temp, NULL, rright2, rup2);
 		}
 		else
@@ -872,7 +872,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 		if (p->color == BLOODRED)
 			VectorSet (color, 1, 1, 1);
 		else
-			VectorSet (color, 0.5, 0.5, 0.5);
+			VectorSet (color, 0.5f, 0.5f, 0.5f);
 		
 		time = cg.time - p->time;
 		time2 = p->endtime - p->time;
@@ -991,7 +991,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 		height = p->height + ( ratio * ( p->endheight - p->height) );
 
 		// if we are "inside" this sprite, don't draw
-		if (Distance( cg.snap->ps.origin, org ) < width/1.5) {
+		if (Distance( cg.snap->ps.origin, org ) < width/1.5f) {
 			return;
 		}
 
@@ -1075,7 +1075,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 }
 
 // Ridah, made this static so it doesn't interfere with other files
-static float roll = 0.0;
+static float roll = 0.0f;
 
 /*
 ===============
@@ -1101,8 +1101,8 @@ void CG_AddParticles (void)
 	VectorCopy( cg.refdef.viewaxis[2], pvup );
 
 	vectoangles( cg.refdef.viewaxis[0], rotate_ang );
-	roll += ((cg.time - oldtime) * 0.1) ;
-	rotate_ang[ROLL] += (roll*0.9);
+	roll += ((cg.time - oldtime) * 0.1f) ;
+	rotate_ang[ROLL] += (roll*0.9f);
 	AngleVectors ( rotate_ang, rforward, rright, rup);
 	
 	oldtime = cg.time;
@@ -1115,7 +1115,7 @@ void CG_AddParticles (void)
 
 		next = p->next;
 
-		time = (cg.time - p->time)*0.001;
+		time = (cg.time - p->time)*0.001f;
 
 		alpha = p->alpha + time*p->alphavel;
 		if (alpha <= 0)
@@ -1192,7 +1192,7 @@ void CG_AddParticles (void)
 			tail = p;
 		}
 
-		if (alpha > 1.0)
+		if (alpha > 1.0f)
 			alpha = 1;
 
 		color = p->color;
@@ -1312,7 +1312,7 @@ void CG_ParticleSnow (qhandle_t pshader, vec3_t origin, vec3_t origin2, int turb
 	if (turb)
 	{
 		p->type = P_WEATHER_TURBULENT;
-		p->vel[2] = -50 * 1.3;
+		p->vel[2] = -50 * 1.3f;
 	}
 	else
 	{
@@ -1363,7 +1363,7 @@ void CG_ParticleBubble (qhandle_t pshader, vec3_t origin, vec3_t origin2, int tu
 	p->end = origin2[2];
 	p->pshader = pshader;
 	
-	randsize = 1 + (crandom() * 0.5);
+	randsize = 1 + (crandom() * 0.5f);
 	
 	p->height = randsize;
 	p->width = randsize;
@@ -1373,7 +1373,7 @@ void CG_ParticleBubble (qhandle_t pshader, vec3_t origin, vec3_t origin2, int tu
 	if (turb)
 	{
 		p->type = P_BUBBLE_TURBULENT;
-		p->vel[2] = 50 * 1.3;
+		p->vel[2] = 50 * 1.3f;
 	}
 	else
 	{
@@ -1424,7 +1424,7 @@ void CG_ParticleSmoke (qhandle_t pshader, centity_t *cent)
 	p->startfade = cg.time + cent->currentState.time2;
 	
 	p->color = 0;
-	p->alpha = 1.0;
+	p->alpha = 1.0f;
 	p->alphavel = 0;
 	p->start = cent->currentState.origin[2];
 	p->end = cent->currentState.origin2[2];
@@ -1467,13 +1467,13 @@ void CG_ParticleBulletDebris (vec3_t org, vec3_t vel, int duration)
 	p->startfade = cg.time + duration/2;
 	
 	p->color = EMISIVEFADE;
-	p->alpha = 1.0;
+	p->alpha = 1.0f;
 	p->alphavel = 0;
 
-	p->height = 0.5;
-	p->width = 0.5;
-	p->endheight = 0.5;
-	p->endwidth = 0.5;
+	p->height = 0.5f;
+	p->width = 0.5f;
+	p->endheight = 0.5f;
+	p->endwidth = 0.5f;
 
 	p->pshader = cgs.media.tracerShader;
 
@@ -1522,7 +1522,7 @@ void CG_ParticleExplosion (char *animStr, vec3_t origin, vec3_t vel, int duratio
 	p->next = active_particles;
 	active_particles = p;
 	p->time = cg.time;
-	p->alpha = 0.5;
+	p->alpha = 0.5f;
 	p->alphavel = 0;
 
 	if (duration < 0) {
@@ -1667,7 +1667,7 @@ void CG_ParticleImpactSmokePuff (qhandle_t pshader, vec3_t origin)
 	p->next = active_particles;
 	active_particles = p;
 	p->time = cg.time;
-	p->alpha = 0.25;
+	p->alpha = 0.25f;
 	p->alphavel = 0;
 	p->roll = crandom()*179;
 
@@ -1707,7 +1707,7 @@ void CG_Particle_Bleed (qhandle_t pshader, vec3_t start, vec3_t dir, int fleshEn
 	p->next = active_particles;
 	active_particles = p;
 	p->time = cg.time;
-	p->alpha = 1.0;
+	p->alpha = 1.0f;
 	p->alphavel = 0;
 	p->roll = 0;
 
@@ -1739,7 +1739,7 @@ void CG_Particle_Bleed (qhandle_t pshader, vec3_t start, vec3_t dir, int fleshEn
 	p->roll = rand()%179;
 	
 	p->color = BLOODRED;
-	p->alpha = 0.75;
+	p->alpha = 0.75f;
 
 }
 
@@ -1768,7 +1768,7 @@ void CG_Particle_OilParticle (qhandle_t pshader, centity_t *cent)
 	p->next = active_particles;
 	active_particles = p;
 	p->time = cg.time;
-	p->alpha = 1.0;
+	p->alpha = 1.0f;
 	p->alphavel = 0;
 	p->roll = 0;
 
@@ -1802,7 +1802,7 @@ void CG_Particle_OilParticle (qhandle_t pshader, centity_t *cent)
 
 	p->roll = rand()%179;
 	
-	p->alpha = 0.75;
+	p->alpha = 0.75f;
 
 }
 
@@ -1829,7 +1829,7 @@ void CG_Particle_OilSlick (qhandle_t pshader, centity_t *cent)
 
 	p->startfade = p->endtime;
 
-	p->alpha = 1.0;
+	p->alpha = 1.0f;
 	p->alphavel = 0;
 	p->roll = 0;
 
@@ -1854,11 +1854,11 @@ void CG_Particle_OilSlick (qhandle_t pshader, centity_t *cent)
 
 	p->type = P_FLAT_SCALEUP;
 
-	p->snum = 1.0;
+	p->snum = 1.0f;
 
 	VectorCopy(cent->currentState.origin, p->org );
 	
-	p->org[2]+= 0.55 + (crandom() * 0.5);
+	p->org[2]+= 0.55f + (crandom() * 0.5f);
 
 	p->vel[0] = 0;
 	p->vel[1] = 0;
@@ -1869,7 +1869,7 @@ void CG_Particle_OilSlick (qhandle_t pshader, centity_t *cent)
 
 	p->roll = rand()%179;
 	
-	p->alpha = 0.75;
+	p->alpha = 0.75f;
 
 }
 
@@ -1903,7 +1903,7 @@ void CG_OilSlickRemove (centity_t *cent)
 
 qboolean ValidBloodPool (vec3_t start)
 {
-#define EXTRUDE_DIST	0.5
+#define EXTRUDE_DIST	0.5f
 
 	vec3_t	angles;
 	vec3_t	right, up;
@@ -1975,13 +1975,13 @@ void CG_BloodPool (localEntity_t *le, qhandle_t pshader, trace_t *tr)
 	p->endtime = cg.time + 3000;
 	p->startfade = p->endtime;
 
-	p->alpha = 1.0;
+	p->alpha = 1.0f;
 	p->alphavel = 0;
 	p->roll = 0;
 
 	p->pshader = pshader;
 
-	rndSize = 0.4 + random()*0.6;
+	rndSize = 0.4f + random()*0.6f;
 
 	p->width = 8*rndSize;
 	p->height = 8*rndSize;
@@ -2002,7 +2002,7 @@ void CG_BloodPool (localEntity_t *le, qhandle_t pshader, trace_t *tr)
 
 	p->roll = rand()%179;
 	
-	p->alpha = 0.75;
+	p->alpha = 0.75f;
 	
 	p->color = BLOODRED;
 }
@@ -2049,7 +2049,7 @@ void CG_ParticleBloodCloud (centity_t *cent, vec3_t origin, vec3_t dir)
 		active_particles = p;
 
 		p->time = cg.time;
-		p->alpha = 1.0;
+		p->alpha = 1.0f;
 		p->alphavel = 0;
 		p->roll = 0;
 
@@ -2080,7 +2080,7 @@ void CG_ParticleBloodCloud (centity_t *cent, vec3_t origin, vec3_t dir)
 		
 		p->color = BLOODRED;
 		
-		p->alpha = 0.75;
+		p->alpha = 0.75f;
 		
 	}
 
@@ -2106,10 +2106,10 @@ void CG_ParticleSparks (vec3_t org, vec3_t vel, int duration, float x, float y, 
 	p->alpha = 0.4f;
 	p->alphavel = 0;
 
-	p->height = 0.5;
-	p->width = 0.5;
-	p->endheight = 0.5;
-	p->endwidth = 0.5;
+	p->height = 0.5f;
+	p->width = 0.5f;
+	p->endheight = 0.5f;
+	p->endwidth = 0.5f;
 
 	p->pshader = cgs.media.tracerShader;
 
@@ -2175,7 +2175,7 @@ void CG_ParticleDust (centity_t *cent, vec3_t origin, vec3_t dir)
 		active_particles = p;
 
 		p->time = cg.time;
-		p->alpha = 5.0;
+		p->alpha = 5.0f;
 		p->alphavel = 0;
 		p->roll = 0;
 
@@ -2193,8 +2193,8 @@ void CG_ParticleDust (centity_t *cent, vec3_t origin, vec3_t dir)
 		p->height = LARGESIZE;
 
 		// RF, expand while falling
-		p->endheight = LARGESIZE*3.0;
-		p->endwidth = LARGESIZE*3.0;
+		p->endheight = LARGESIZE*3.0f;
+		p->endwidth = LARGESIZE*3.0f;
 
 		if (!length)
 		{
@@ -2216,7 +2216,7 @@ void CG_ParticleDust (centity_t *cent, vec3_t origin, vec3_t dir)
 		// RF, add some gravity/randomness
 		p->accel[0] = crandom()*3;
 		p->accel[1] = crandom()*3;
-		p->accel[2] = -PARTICLE_GRAVITY*0.4;
+		p->accel[2] = -PARTICLE_GRAVITY*0.4f;
 
 		VectorClear( p->accel );
 
@@ -2224,7 +2224,7 @@ void CG_ParticleDust (centity_t *cent, vec3_t origin, vec3_t dir)
 
 		p->roll = rand()%179;
 		
-		p->alpha = 0.75;
+		p->alpha = 0.75f;
 		
 	}
 
@@ -2246,7 +2246,7 @@ void CG_ParticleMisc (qhandle_t pshader, vec3_t origin, int size, int duration, 
 	p->next = active_particles;
 	active_particles = p;
 	p->time = cg.time;
-	p->alpha = 1.0;
+	p->alpha = 1.0f;
 	p->alphavel = 0;
 	p->roll = rand()%179;
 

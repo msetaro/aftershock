@@ -162,7 +162,7 @@ static void Main_MenuDraw( void ) {
 	vec3_t			angles;
 	float			adjust;
 	float			x, y, w, h;
-	vec4_t			color = {0.5, 0, 0, 1};
+	vec4_t			color = {0.5f, 0, 0, 1};
 
 	// setup the refdef
 
@@ -184,7 +184,7 @@ static void Main_MenuDraw( void ) {
 
 	adjust = 0; // JDC: Kenneth asked me to stop this 1.0 * sin( (float)uis.realtime / 1000 );
 	refdef.fov_x = 60 + adjust;
-	refdef.fov_y = 19.6875 + adjust;
+	refdef.fov_y = 19.6875f + adjust;
 
 	refdef.time = uis.realtime;
 
@@ -198,7 +198,7 @@ static void Main_MenuDraw( void ) {
 
 	memset( &ent, 0, sizeof(ent) );
 
-	adjust = 5.0 * sin( (float)uis.realtime / 5000 );
+	adjust = 5.0f * sin( (float)uis.realtime / 5000 );
 	VectorSet( angles, 0, 180 + adjust, 0 );
 	AnglesToAxis( angles, ent.axis );
 	ent.hModel = s_main.bannerModel;

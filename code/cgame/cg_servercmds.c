@@ -987,7 +987,7 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "cp" ) ) {
-		CG_CenterPrint( CG_Argv(1), SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
+		CG_CenterPrint( CG_Argv(1), SCREEN_HEIGHT * 0.30f, BIGCHAR_WIDTH );
 		return;
 	}
 

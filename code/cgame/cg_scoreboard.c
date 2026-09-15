@@ -211,7 +211,7 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 			hcolor[2] = 0.7f;
 		}
 
-		hcolor[3] = fade * 0.7;
+		hcolor[3] = fade * 0.7f;
 		CG_FillRect( SB_SCORELINE_X + BIGCHAR_WIDTH + (SB_RATING_WIDTH / 2), y, 
 			640 - SB_SCORELINE_X - BIGCHAR_WIDTH, BIGCHAR_HEIGHT+1, hcolor );
 	}
@@ -236,7 +236,7 @@ static int CG_TeamScoreboard( int y, team_t team, float fade, int maxClients, in
 	int		count;
 	clientInfo_t	*ci;
 
-	color[0] = color[1] = color[2] = 1.0;
+	color[0] = color[1] = color[2] = 1.0f;
 	color[3] = fade;
 
 	count = 0;
@@ -290,7 +290,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 
 	if ( cg.showScores || cg.predictedPlayerState.pm_type == PM_DEAD ||
 		 cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
-		fade = 1.0;
+		fade = 1.0f;
 		fadeColor = colorWhite;
 	} else {
 		fadeColor = CG_FadeColor( cg.scoreFadeTime, FADE_TIME );
@@ -437,7 +437,7 @@ static void CG_CenterGiantLine( float y, const char *string ) {
 	color[2] = 1;
 	color[3] = 1;
 
-	x = 0.5 * ( 640 - GIANT_WIDTH * CG_DrawStrlen( string ) );
+	x = 0.5f * ( 640 - GIANT_WIDTH * CG_DrawStrlen( string ) );
 
 	CG_DrawStringExt( x, y, string, color, qtrue, qtrue, GIANT_WIDTH, GIANT_HEIGHT, 0 );
 }

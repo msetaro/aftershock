@@ -305,7 +305,7 @@ static float PM_CmdScale( usercmd_t *cmd ) {
 
 	total = sqrt( cmd->forwardmove * cmd->forwardmove
 		+ cmd->rightmove * cmd->rightmove + cmd->upmove * cmd->upmove );
-	scale = (float)pm->ps->speed * max / ( 127.0 * total );
+	scale = (float)pm->ps->speed * max / ( 127.0f * total );
 
 	return scale;
 }
@@ -760,8 +760,8 @@ static void PM_WalkMove( void ) {
 	if ( pm->waterlevel ) {
 		float	waterScale;
 
-		waterScale = pm->waterlevel / 3.0;
-		waterScale = 1.0 - ( 1.0 - pm_swimScale ) * waterScale;
+		waterScale = pm->waterlevel / 3.0f;
+		waterScale = 1.0f - ( 1.0f - pm_swimScale ) * waterScale;
 		if ( wishspeed > pm->ps->speed * waterScale ) {
 			wishspeed = pm->ps->speed * waterScale;
 		}
@@ -861,7 +861,7 @@ static void PM_NoclipMove( void ) {
 	{
 		drop = 0;
 
-		friction = pm_friction*1.5;	// extra friction
+		friction = pm_friction*1.5f;	// extra friction
 		control = speed < pm_stopspeed ? pm_stopspeed : speed;
 		drop += control*friction*pml.frametime;
 
@@ -953,7 +953,7 @@ static void PM_CrashLand( void ) {
 	t = (-b - sqrt( den ) ) / ( 2 * a );
 
 	delta = vel + t * acc;
-	delta = delta*delta * 0.0001;
+	delta = delta*delta * 0.0001f;
 
 	// ducking while falling doubles damage
 	if ( pm->ps->pm_flags & PMF_DUCKED ) {
@@ -967,10 +967,10 @@ static void PM_CrashLand( void ) {
 
 	// reduce falling damage if there is standing water
 	if ( pm->waterlevel == 2 ) {
-		delta *= 0.25;
+		delta *= 0.25f;
 	}
 	if ( pm->waterlevel == 1 ) {
-		delta *= 0.5;
+		delta *= 0.5f;
 	}
 
 	if ( delta < 1 ) {
@@ -1041,7 +1041,7 @@ static int PM_CorrectAllSolid( trace_t *trace ) {
 				if ( !trace->allsolid ) {
 					point[0] = pm->ps->origin[0];
 					point[1] = pm->ps->origin[1];
-					point[2] = pm->ps->origin[2] - 0.25;
+					point[2] = pm->ps->origin[2] - 0.25f;
 
 					pm->trace (trace, pm->ps->origin, pm->mins, pm->maxs, point, pm->ps->clientNum, pm->tracemask);
 					pml.groundTrace = *trace;
@@ -1082,7 +1082,7 @@ static void PM_GroundTraceMissed( void ) {
 		point[2] -= 64;
 
 		pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, point, pm->ps->clientNum, pm->tracemask);
-		if ( trace.fraction == 1.0 ) {
+		if ( trace.fraction == 1.0f ) {
 			if ( pm->cmd.forwardmove >= 0 ) {
 				PM_ForceLegsAnim( LEGS_JUMP );
 				pm->ps->pm_flags &= ~PMF_BACKWARDS_JUMP;
@@ -1110,7 +1110,7 @@ static void PM_GroundTrace( void ) {
 
 	point[0] = pm->ps->origin[0];
 	point[1] = pm->ps->origin[1];
-	point[2] = pm->ps->origin[2] - 0.25;
+	point[2] = pm->ps->origin[2] - 0.25f;
 
 	pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, point, pm->ps->clientNum, pm->tracemask);
 	pml.groundTrace = trace;
@@ -1122,7 +1122,7 @@ static void PM_GroundTrace( void ) {
 	}
 
 	// if the trace didn't hit anything, we are in free fall
-	if ( trace.fraction == 1.0 ) {
+	if ( trace.fraction == 1.0f ) {
 		PM_GroundTraceMissed();
 		pml.groundPlane = qfalse;
 		pml.walking = qfalse;
@@ -1360,7 +1360,7 @@ static void PM_Footsteps( void ) {
 	footstep = qfalse;
 
 	if ( pm->ps->pm_flags & PMF_DUCKED ) {
-		bobmove = 0.5;	// ducked characters bob much faster
+		bobmove = 0.5f;	// ducked characters bob much faster
 		if ( pm->ps->pm_flags & PMF_BACKWARDS_RUN ) {
 			PM_ContinueLegsAnim( LEGS_BACKCR );
 		}
@@ -1690,16 +1690,16 @@ static void PM_Weapon( void ) {
 
 #ifdef MISSIONPACK
 	if( bg_itemlist[pm->ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_SCOUT ) {
-		addTime /= 1.5;
+		addTime /= 1.5f;
 	}
 	else
 	if( bg_itemlist[pm->ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_AMMOREGEN ) {
-		addTime /= 1.3;
+		addTime /= 1.3f;
   }
   else
 #endif
 	if ( pm->ps->powerups[PW_HASTE] ) {
-		addTime /= 1.3;
+		addTime /= 1.3f;
 	}
 
 	pm->ps->weaponTime += addTime;
@@ -1906,7 +1906,7 @@ void PmoveSingle (pmove_t *pmove) {
 	// save old velocity for crashlanding
 	VectorCopy (pm->ps->velocity, pml.previous_velocity);
 
-	pml.frametime = pml.msec * 0.001;
+	pml.frametime = pml.msec * 0.001f;
 
 	// update the viewangles
 	PM_UpdateViewAngles( pm->ps, &pm->cmd );

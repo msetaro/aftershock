@@ -65,8 +65,8 @@ void P_DamageFeedback( gentity_t *player ) {
 		client->damage_fromWorld = qfalse;
 	} else {
 		vectoangles( client->damage_from, angles );
-		client->ps.damagePitch = angles[PITCH]/360.0 * 256;
-		client->ps.damageYaw = angles[YAW]/360.0 * 256;
+		client->ps.damagePitch = angles[PITCH]/360.0f * 256;
+		client->ps.damageYaw = angles[YAW]/360.0f * 256;
 	}
 
 	// play an apropriate pain sound
@@ -426,8 +426,8 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 		if( maxHealth ) {
 			if ( ent->health < maxHealth ) {
 				ent->health += 15;
-				if ( ent->health > maxHealth * 1.1 ) {
-					ent->health = maxHealth * 1.1;
+				if ( ent->health > maxHealth * 1.1f ) {
+					ent->health = maxHealth * 1.1f;
 				}
 				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
 			} else if ( ent->health < maxHealth * 2) {
@@ -441,8 +441,8 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 		if ( client->ps.powerups[PW_REGEN] ) {
 			if ( ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
 				ent->health += 15;
-				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 1.1 ) {
-					ent->health = client->ps.stats[STAT_MAX_HEALTH] * 1.1;
+				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 1.1f ) {
+					ent->health = client->ps.stats[STAT_MAX_HEALTH] * 1.1f;
 				}
 				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
 			} else if ( ent->health < client->ps.stats[STAT_MAX_HEALTH] * 2) {
@@ -844,12 +844,12 @@ void ClientThink_real( gentity_t *ent ) {
 
 #ifdef MISSIONPACK
 	if( bg_itemlist[client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_SCOUT ) {
-		client->ps.speed *= 1.5;
+		client->ps.speed *= 1.5f;
 	}
 	else
 #endif
 	if ( client->ps.powerups[PW_HASTE] ) {
-		client->ps.speed *= 1.3;
+		client->ps.speed *= 1.3f;
 	}
 
 	// Let go of the hook if we aren't firing

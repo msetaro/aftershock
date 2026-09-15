@@ -164,7 +164,7 @@ void AimAtTarget( gentity_t *self ) {
 	float		dist;
 
 	VectorAdd( self->r.absmin, self->r.absmax, origin );
-	VectorScale ( origin, 0.5, origin );
+	VectorScale ( origin, 0.5f, origin );
 
 	ent = G_PickTarget( self->target );
 	if ( !ent ) {
@@ -174,7 +174,7 @@ void AimAtTarget( gentity_t *self ) {
 
 	height = ent->s.origin[2] - origin[2];
 	gravity = g_gravity.value;
-	time = sqrt( height / ( .5 * gravity ) );
+	time = sqrt( height / ( .5f * gravity ) );
 	if ( !time ) {
 		G_FreeEntity( self );
 		return;

@@ -718,10 +718,10 @@ float AngleDifference(float ang1, float ang2) {
 
 	diff = ang1 - ang2;
 	if (ang1 > ang2) {
-		if (diff > 180.0) diff -= 360.0;
+		if (diff > 180.0f) diff -= 360.0f;
 	}
 	else {
-		if (diff < -180.0) diff += 360.0;
+		if (diff < -180.0f) diff += 360.0f;
 	}
 	return diff;
 }
@@ -739,10 +739,10 @@ float BotChangeViewAngle(float angle, float ideal_angle, float speed) {
 	if (angle == ideal_angle) return angle;
 	move = ideal_angle - angle;
 	if (ideal_angle > angle) {
-		if (move > 180.0) move -= 360.0;
+		if (move > 180.0f) move -= 360.0f;
 	}
 	else {
-		if (move < -180.0) move += 360.0;
+		if (move < -180.0f) move += 360.0f;
 	}
 	if (move > 0) {
 		if (move > speed) move = speed;
@@ -799,7 +799,7 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 			bs->viewangles[i] += anglespeed;
 			bs->viewangles[i] = AngleMod(bs->viewangles[i]);
 			//demping
-			bs->viewanglespeed[i] *= 0.45 * (1 - factor);
+			bs->viewanglespeed[i] *= 0.45f * (1 - factor);
 		}
 		//BotAI_Print(PRT_MESSAGE, "ideal_angles %f %f\n", bs->ideal_viewangles[0], bs->ideal_viewangles[1], bs->ideal_viewangles[2]);`
 		//bs->viewangles[i] = bs->ideal_viewangles[i];
@@ -928,7 +928,7 @@ BotAIRegularUpdate
 void BotAIRegularUpdate(void) {
 	if (regularupdate_time < FloatTime()) {
 		trap_BotUpdateEntityItems();
-		regularupdate_time = FloatTime() + 0.3;
+		regularupdate_time = FloatTime() + 0.3f;
 	}
 }
 

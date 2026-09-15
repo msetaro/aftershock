@@ -240,7 +240,7 @@ void G_UseTargets( gentity_t *ent, gentity_t *activator ) {
 	}
 
 	if (ent->targetShaderName && ent->targetShaderNewName) {
-		float f = level.time * 0.001;
+		float f = level.time * 0.001f;
 		AddRemap(ent->targetShaderName, ent->targetShaderNewName, f);
 		trap_SetConfigstring(CS_SHADERSTATE, BuildShaderStateConfig());
 	}
@@ -652,7 +652,7 @@ int DebugLine(vec3_t start, vec3_t end, int color) {
 	VectorSubtract(end, start, dir);
 	VectorNormalize(dir);
 	dot = DotProduct(dir, up);
-	if (dot > 0.99 || dot < -0.99) VectorSet(cross, 1, 0, 0);
+	if (dot > 0.99f || dot < -0.99f) VectorSet(cross, 1, 0, 0);
 	else CrossProduct(dir, up, cross);
 
 	VectorNormalize(cross);

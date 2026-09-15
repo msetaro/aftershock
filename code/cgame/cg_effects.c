@@ -62,7 +62,7 @@ void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing ) {
 		le->leType = LE_MOVE_SCALE_FADE;
 		le->startTime = cg.time;
 		le->endTime = cg.time + 1000 + random() * 250;
-		le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+		le->lifeRate = 1.0f / ( le->endTime - le->startTime );
 
 		re = &le->refEntity;
 		re->shaderTime = cg.time / 1000.0f;
@@ -76,7 +76,7 @@ void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing ) {
 		re->shaderRGBA[2] = 0xff;
 		re->shaderRGBA[3] = 0xff;
 
-		le->color[3] = 1.0;
+		le->color[3] = 1.0f;
 
 		le->pos.trType = TR_LINEAR;
 		le->pos.trTime = cg.time;
@@ -123,10 +123,10 @@ localEntity_t *CG_SmokePuff( const vec3_t p, const vec3_t vel,
 	le->fadeInTime = fadeInTime;
 	le->endTime = startTime + duration;
 	if ( fadeInTime > startTime ) {
-		le->lifeRate = 1.0 / ( le->endTime - le->fadeInTime );
+		le->lifeRate = 1.0f / ( le->endTime - le->fadeInTime );
 	}
 	else {
-		le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+		le->lifeRate = 1.0f / ( le->endTime - le->startTime );
 	}
 	le->color[0] = r;
 	le->color[1] = g; 
@@ -178,9 +178,9 @@ void CG_SpawnEffect( vec3_t org ) {
 	le->leType = LE_FADE_RGB;
 	le->startTime = cg.time;
 	le->endTime = cg.time + 500;
-	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+	le->lifeRate = 1.0f / ( le->endTime - le->startTime );
 
-	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
+	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0f;
 
 	re = &le->refEntity;
 
@@ -242,9 +242,9 @@ void CG_KamikazeEffect( vec3_t org ) {
 	le->leType = LE_KAMIKAZE;
 	le->startTime = cg.time;
 	le->endTime = cg.time + 3000;//2250;
-	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+	le->lifeRate = 1.0f / ( le->endTime - le->startTime );
 
-	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
+	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0f;
 
 	VectorClear(le->angles.trBase);
 
@@ -277,8 +277,8 @@ void CG_ObeliskExplode( vec3_t org, int entityNum ) {
 						   600, qtrue );
 	le->light = 300;
 	le->lightColor[0] = 1;
-	le->lightColor[1] = 0.75;
-	le->lightColor[2] = 0.0;
+	le->lightColor[1] = 0.75f;
+	le->lightColor[2] = 0.0f;
 }
 
 /*
@@ -319,9 +319,9 @@ void CG_InvulnerabilityImpact( vec3_t org, vec3_t angles ) {
 	le->leType = LE_INVULIMPACT;
 	le->startTime = cg.time;
 	le->endTime = cg.time + 1000;
-	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+	le->lifeRate = 1.0f / ( le->endTime - le->startTime );
 
-	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
+	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0f;
 
 	re = &le->refEntity;
 
@@ -359,9 +359,9 @@ void CG_InvulnerabilityJuiced( vec3_t org ) {
 	le->leType = LE_INVULJUICED;
 	le->startTime = cg.time;
 	le->endTime = cg.time + 10000;
-	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+	le->lifeRate = 1.0f / ( le->endTime - le->startTime );
 
-	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
+	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0f;
 
 	re = &le->refEntity;
 
@@ -400,10 +400,10 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 	le->leType = LE_SCOREPLUM;
 	le->startTime = cg.time;
 	le->endTime = cg.time + 4000;
-	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+	le->lifeRate = 1.0f / ( le->endTime - le->startTime );
 
 	
-	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
+	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0f;
 	le->radius = score;
 	
 	VectorCopy( org, le->pos.trBase );
@@ -480,7 +480,7 @@ localEntity_t *CG_MakeExplosion( vec3_t origin, vec3_t dir,
 	VectorCopy( newOrigin, ex->refEntity.origin );
 	VectorCopy( newOrigin, ex->refEntity.oldorigin );
 
-	ex->color[0] = ex->color[1] = ex->color[2] = 1.0;
+	ex->color[0] = ex->color[1] = ex->color[2] = 1.0f;
 
 	return ex;
 }
@@ -698,20 +698,20 @@ void CG_BigExplode( vec3_t playerOrigin ) {
 	CG_LaunchExplode( origin, velocity, cgs.media.smoke2 );
 
 	VectorCopy( playerOrigin, origin );
-	velocity[0] = crandom()*EXP_VELOCITY*1.5;
-	velocity[1] = crandom()*EXP_VELOCITY*1.5;
+	velocity[0] = crandom()*EXP_VELOCITY*1.5f;
+	velocity[1] = crandom()*EXP_VELOCITY*1.5f;
 	velocity[2] = EXP_JUMP + crandom()*EXP_VELOCITY;
 	CG_LaunchExplode( origin, velocity, cgs.media.smoke2 );
 
 	VectorCopy( playerOrigin, origin );
-	velocity[0] = crandom()*EXP_VELOCITY*2.0;
-	velocity[1] = crandom()*EXP_VELOCITY*2.0;
+	velocity[0] = crandom()*EXP_VELOCITY*2.0f;
+	velocity[1] = crandom()*EXP_VELOCITY*2.0f;
 	velocity[2] = EXP_JUMP + crandom()*EXP_VELOCITY;
 	CG_LaunchExplode( origin, velocity, cgs.media.smoke2 );
 
 	VectorCopy( playerOrigin, origin );
-	velocity[0] = crandom()*EXP_VELOCITY*2.5;
-	velocity[1] = crandom()*EXP_VELOCITY*2.5;
+	velocity[0] = crandom()*EXP_VELOCITY*2.5f;
+	velocity[1] = crandom()*EXP_VELOCITY*2.5f;
 	velocity[2] = EXP_JUMP + crandom()*EXP_VELOCITY;
 	CG_LaunchExplode( origin, velocity, cgs.media.smoke2 );
 }

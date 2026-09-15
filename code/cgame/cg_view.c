@@ -250,7 +250,7 @@ static void CG_OffsetThirdPersonView( void ) {
 
 	view[2] += 8;
 
-	cg.refdefViewAngles[PITCH] *= 0.5;
+	cg.refdefViewAngles[PITCH] *= 0.5f;
 
 	AngleVectors( cg.refdefViewAngles, forward, right, up );
 
@@ -265,9 +265,9 @@ static void CG_OffsetThirdPersonView( void ) {
 	if (!cg_cameraMode.integer) {
 		CG_Trace( &trace, cg.refdef.vieworg, mins, maxs, view, cg.predictedPlayerState.clientNum, MASK_SOLID );
 
-		if ( trace.fraction != 1.0 ) {
+		if ( trace.fraction != 1.0f ) {
 			VectorCopy( trace.endpos, view );
-			view[2] += (1.0 - trace.fraction) * 32;
+			view[2] += (1.0f - trace.fraction) * 32;
 			// try another trace to this position, because a tunnel may have the ceiling
 			// close enogh that this is poking out
 
@@ -346,7 +346,7 @@ static void CG_OffsetFirstPersonView( void ) {
 			angles[PITCH] += ratio * cg.v_dmg_pitch;
 			angles[ROLL] += ratio * cg.v_dmg_roll;
 		} else {
-			ratio = 1.0 - ( ratio - DAMAGE_DEFLECT_TIME ) / DAMAGE_RETURN_TIME;
+			ratio = 1.0f - ( ratio - DAMAGE_DEFLECT_TIME ) / DAMAGE_RETURN_TIME;
 			if ( ratio > 0 ) {
 				angles[PITCH] += ratio * cg.v_dmg_pitch;
 				angles[ROLL] += ratio * cg.v_dmg_roll;
@@ -415,7 +415,7 @@ static void CG_OffsetFirstPersonView( void ) {
 		cg.refdef.vieworg[2] += cg.landChange * f;
 	} else if ( delta < LAND_DEFLECT_TIME + LAND_RETURN_TIME ) {
 		delta -= LAND_DEFLECT_TIME;
-		f = 1.0 - ( delta / LAND_RETURN_TIME );
+		f = 1.0f - ( delta / LAND_RETURN_TIME );
 		cg.refdef.vieworg[2] += cg.landChange * f;
 	}
 
@@ -467,7 +467,7 @@ Fixed fov at intermissions, otherwise account for fov variable and zooms.
 ====================
 */
 #define	WAVE_AMPLITUDE	1
-#define	WAVE_FREQUENCY	0.4
+#define	WAVE_FREQUENCY	0.4f
 
 static int CG_CalcFov( void ) {
 	float	x;
@@ -506,14 +506,14 @@ static int CG_CalcFov( void ) {
 
 		if ( cg.zoomed ) {
 			f = ( cg.time - cg.zoomTime ) / (float)ZOOM_TIME;
-			if ( f > 1.0 ) {
+			if ( f > 1.0f ) {
 				fov_x = zoomFov;
 			} else {
 				fov_x = fov_x + f * ( zoomFov - fov_x );
 			}
 		} else {
 			f = ( cg.time - cg.zoomTime ) / (float)ZOOM_TIME;
-			if ( f > 1.0 ) {
+			if ( f > 1.0f ) {
 				fov_x = fov_x;
 			} else {
 				fov_x = zoomFov + f * ( fov_x - zoomFov );
@@ -528,7 +528,7 @@ static int CG_CalcFov( void ) {
 	// warp if underwater
 	contents = CG_PointContents( cg.refdef.vieworg, -1 );
 	if ( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ){
-		phase = cg.time / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
+		phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
 		v = WAVE_AMPLITUDE * sin( phase );
 		fov_x += v;
 		fov_y -= v;
@@ -546,7 +546,7 @@ static int CG_CalcFov( void ) {
 	if ( !cg.zoomed ) {
 		cg.zoomSensitivity = 1;
 	} else {
-		cg.zoomSensitivity = cg.refdef.fov_y / 75.0;
+		cg.zoomSensitivity = cg.refdef.fov_y / 75.0f;
 	}
 
 	return inwater;
@@ -598,7 +598,7 @@ static void CG_DamageBlendBlob( void ) {
 	ent.shaderRGBA[0] = 255;
 	ent.shaderRGBA[1] = 255;
 	ent.shaderRGBA[2] = 255;
-	ent.shaderRGBA[3] = 200 * ( 1.0 - ((float)t / maxTime) );
+	ent.shaderRGBA[3] = 200 * ( 1.0f - ((float)t / maxTime) );
 	trap_R_AddRefEntityToScene( &ent );
 }
 
@@ -646,7 +646,7 @@ static int CG_CalcViewValues( void ) {
 	}
 
 	cg.bobcycle = ( ps->bobCycle & 128 ) >> 7;
-	cg.bobfracsin = fabs( sin( ( ps->bobCycle & 127 ) / 127.0 * M_PI ) );
+	cg.bobfracsin = fabs( sin( ( ps->bobCycle & 127 ) / 127.0f * M_PI ) );
 	cg.xyspeed = sqrt( ps->velocity[0] * ps->velocity[0] +
 		ps->velocity[1] * ps->velocity[1] );
 

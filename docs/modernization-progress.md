@@ -20,18 +20,26 @@ pass after; each changes only that helper's assembly and preserves all 58 symbol
 Native OA smoke/replay matches both maps/renderers on GCC/Clang with #55, and on
 Clang with both fixes. No accepted fixture/golden, expectation or suppression changed.
 
-Next: finish permanent OpenArena native parity verification and commit this #2
-checkpoint. The adapter now builds all three modules with GCC/Clang from a clean
-pinned export, shares source staging with the string-helper checks, and compares
-28 structure sizes/three offsets plus the consumed 140-byte refEntity prefix.
-OpenArena appends 36 eye-vector bytes, which remain local. Permanent GCC runtime
-matches both accepted normalized logs. Permanent fixed replay passes every accepted
-frame on both maps/renderers (5b89d338). CI now includes native OA smoke/replay;
-push this checkpoint and check its run. No accepted goldens or fixtures changed.
+OpenArena native support is committed as d0013d95; regression 34922352537 passed. The permanent adapter builds GCC/Clang modules
+and checks 28 structure sizes/three offsets plus the consumed 140-byte refEntity
+prefix. Both permanent GCC bot logs and all fixed replay frames match.
+
+Next: commit the verified portable-literal checkpoint, then finish G3/G4 review. The
+imported game sources now carry 2,783 explicit f suffixes in 57 files (including
+the retained ARMOR_PROTECTION macro, used only by two native functions). No string,
+comment or expression structure changed. Native ABI undefines host M_PI so the
+existing q_shared.h binary32 definition is used. This removes compiler-specific
+literal flags from the Q3 native build; the unported OA C dependency keeps them.
+All 103 C objects match the 3306d55d reference byte-for-byte; all 103 C++ objects
+match the final pinned catalog artifacts byte-for-byte. GCC/Clang shared math and
+case hashes remain 67988592/676e85f5; native math and team-leader checks pass.
+This is a documented native ABI portability deviation, with no simulation behavior
+change and no golden regeneration. Clang native C++ smoke/fixed replay passes both
+Q3 maps and all frames (b38004b1) without the compiler-specific literal flag.
 
 GCC/Clang native C/C++ Q3 smoke/replay, layouts and shared math checks already pass.
-Remaining #2 work: final G3/G4 artifact review, portable binary32 literal handling
-for MSVC, static direct calls and VM/JIT removal. No VM/JIT removal has started.
+Remaining #2 work: final G3/G4 artifact review, static direct calls and VM/JIT
+removal. Binary32 literal handling now uses portable source suffixes. No VM/JIT removal has started.
 Per-function review artifacts are in /tmp/aftershock-native-function-review; no
 functions are added/removed across 103 objects. Triage/review is incomplete; details
 are in /tmp/aftershock-native-review-checkpoint.md. No accepted golden changes on #2.

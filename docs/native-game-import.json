@@ -114,85 +114,85 @@
       "source": "code/cgame/cg_consolecmds.c",
       "path": "code/cgame/cg_consolecmds.c",
       "sha256": "6db7e3bb57607e5dada54dad68d0a419c7ae0f9819e9c00d3386457884e9c584",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_draw.c",
       "path": "code/cgame/cg_draw.c",
       "sha256": "6ac7267402f16d77a403aed8bb987830a5567e4ca65909c52decce14955612ef",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 37 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_drawtools.c",
       "path": "code/cgame/cg_drawtools.c",
       "sha256": "d15e172774f61c0f63cf7e0346f5657db8c950ef709647099098b6ee6b64b224",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 29 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_effects.c",
       "path": "code/cgame/cg_effects.c",
       "sha256": "ca31c30eddb244e15b1605d4796ca2ccd7bc0a6217a34d2b351cc9b1c21df2fa",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 23 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_ents.c",
       "path": "code/cgame/cg_ents.c",
       "sha256": "c8670d557ea9326d546f0b75fee2cfd0f1aaef8c025b3d8a4b17eb8ce74fe020",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 11 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_event.c",
       "path": "code/cgame/cg_event.c",
       "sha256": "5d76552ac9427ef8f3f2e94bc6793aa1f28e5dbb8015cb9bcf741c5f6b17fcc3",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 4 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_info.c",
       "path": "code/cgame/cg_info.c",
       "sha256": "1563f624984cc4c226b44cdfe07b1bf5f31ecb2b98f6bf66ae690913435a78ee",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_local.h",
       "path": "code/cgame/cg_local.h",
       "sha256": "950d17d47d3419cc6f3c0684ba6ea6285073b5dd777984f2ebd71b0cb042918a",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_localents.c",
       "path": "code/cgame/cg_localents.c",
       "sha256": "d8631eb29b5ae6f4bc0cc0216def511afa8897166dbfe61dcc0b8dddec0721d3",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 28 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_main.c",
       "path": "code/cgame/cg_main.c",
       "sha256": "5b0223fa2b2facff8ab80130ab39c1a1fe94bf2aa55b3ab9f3f30e329136bf15",
-      "disposition": "verbatim import followed by #2 native intptr_t return and three-argument engine entry ABI adaptation"
+      "disposition": "verbatim import followed by #2 native intptr_t return and three-argument engine entry ABI adaptation; #2 native binary32 ABI: 3 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_marks.c",
       "path": "code/cgame/cg_marks.c",
       "sha256": "2268dc21d415b5057aeaf3f352aa074f75bef95c95c66c11d7a8e496d771078f",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 61 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_players.c",
       "path": "code/cgame/cg_players.c",
       "sha256": "842e8d808f8637187f9d2f288ddbaf348b8ac0219f07b2fb00dc2aa74a942dc5",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 19 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_playerstate.c",
       "path": "code/cgame/cg_playerstate.c",
       "sha256": "bd96e421d73c66ad6732fa2a3c714fe6a12e1b6c265164330d95cebaba6cb6a5",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 13 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_predict.c",
       "path": "code/cgame/cg_predict.c",
       "sha256": "3b2cf78980613834ba191d1d0f8087935e463396a2e52141a2d7fbf45a6a83ee",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_public.h",
@@ -204,13 +204,13 @@
       "source": "code/cgame/cg_scoreboard.c",
       "path": "code/cgame/cg_scoreboard.c",
       "sha256": "6fa1f43b66fbac44255b1993ed5572a8420ce6f7af8374f9136d8cd064ba90a4",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 4 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_servercmds.c",
       "path": "code/cgame/cg_servercmds.c",
       "sha256": "1152a47762b427820d713d90c3573ce002edd5fd8dddcdafc5b3cc25799a0cb8",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_snapshot.c",
@@ -228,13 +228,13 @@
       "source": "code/cgame/cg_view.c",
       "path": "code/cgame/cg_view.c",
       "sha256": "78bb45bf5d51ce3c20d7e40b55386b133df4d6e1003c7795dd670450390ccf3b",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 12 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/cg_weapons.c",
       "path": "code/cgame/cg_weapons.c",
       "sha256": "aee4f5bc39cfc697a6a9ae83addf37c633e8237df9dd5373bd6f80373777da98",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 37 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/cgame/tr_types.h",
@@ -246,7 +246,7 @@
       "source": "code/game/ai_chat.c",
       "path": "code/game/ai_chat.c",
       "sha256": "ca8c93d5673dcb1205af9e8a68aca73bb918c05a55ab49f09ec26ae6f06d7135",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/ai_chat.h",
@@ -258,7 +258,7 @@
       "source": "code/game/ai_cmd.c",
       "path": "code/game/ai_cmd.c",
       "sha256": "a999dc8d989afac9d108ca5ce693d6c43c37ed8df0ad294446ab63b030ef907d",
-      "disposition": "GPL import with reviewed #31 team-leader bounds fix from PR #53"
+      "disposition": "GPL import with reviewed #31 team-leader bounds fix from PR #53; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/ai_cmd.h",
@@ -270,7 +270,7 @@
       "source": "code/game/ai_dmnet.c",
       "path": "code/game/ai_dmnet.c",
       "sha256": "7f5277bd9530caa9cb9a1a3c7625c3ee60878b4e64897c344d62d611b3d96042",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 36 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/ai_dmnet.h",
@@ -282,7 +282,7 @@
       "source": "code/game/ai_dmq3.c",
       "path": "code/game/ai_dmq3.c",
       "sha256": "6452f29f14b9042a8e921166149ede046d24e36734a74925d68cf46dd1a1fb46",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 66 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/ai_dmq3.h",
@@ -294,7 +294,7 @@
       "source": "code/game/ai_main.c",
       "path": "code/game/ai_main.c",
       "sha256": "e969a606253b2d0aa69e9dc1c46981ef3a2ed352140ee3ce637cf456fc23497e",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 10 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/ai_main.h",
@@ -306,7 +306,7 @@
       "source": "code/game/ai_team.c",
       "path": "code/game/ai_team.c",
       "sha256": "6c72ba41c01f181ae4f7ffe29be4c2962d4cee12327f01f883dc1f8fe9384165",
-      "disposition": "GPL import with reviewed #31 team-leader bounds fix from PR #53"
+      "disposition": "GPL import with reviewed #31 team-leader bounds fix from PR #53; #2 native binary32 ABI: 74 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/ai_team.h",
@@ -318,7 +318,7 @@
       "source": "code/game/ai_vcmd.c",
       "path": "code/game/ai_vcmd.c",
       "sha256": "04f2626aa631367b3c0f735873c0bc913242d47743bc5514a7ea7f320f3a602a",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/ai_vcmd.h",
@@ -378,7 +378,7 @@
       "source": "code/game/bg_lib.c",
       "path": "code/game/bg_lib.c",
       "sha256": "a7cfee75e1f8b751012a95912d8c756d75ac0727f156dd2d27acc64ae2e3bbe0",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2058 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/bg_lib.h",
@@ -396,25 +396,25 @@
       "source": "code/game/bg_misc.c",
       "path": "code/game/bg_misc.c",
       "sha256": "6ac561b647882e2e5a45ceb9da86f7ae88ec9714cd54ec29ad78440b3e991bbb",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 6 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/bg_pmove.c",
       "path": "code/game/bg_pmove.c",
       "sha256": "e4560cbd9e1bb1479e586018433fc4c2b7cc61f9798097944609b1e661aba182",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 17 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/bg_public.h",
       "path": "code/game/bg_public.h",
       "sha256": "1a5a1b6c8defbfd3346a924dabc68b34a76f7ab8ced3e847cb8dc01a870c66aa",
-      "disposition": "existing engine ABI header retained"
+      "disposition": "existing engine ABI header retained; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/bg_slidemove.c",
       "path": "code/game/bg_slidemove.c",
       "sha256": "39dbf1b27be3da0c855db7e31937ac38512d6f05016fa3210044b990d5e9b322",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/botlib.h",
@@ -432,7 +432,7 @@
       "source": "code/game/g_active.c",
       "path": "code/game/g_active.c",
       "sha256": "11917f653856ed5c244bb3e8bb7fd7343b6ec1f219d58c4e3c87305ba18df166",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 8 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_arenas.c",
@@ -462,13 +462,13 @@
       "source": "code/game/g_combat.c",
       "path": "code/game/g_combat.c",
       "sha256": "249b6e0804d5c137b4f7b2ff0cc8f5c2fbf3114936a040cb0696688ab296a014",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 17 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_items.c",
       "path": "code/game/g_items.c",
       "sha256": "752cde38645acdb3e8105933943ceff1235fa46f784edc4e9f2d1f03d3e99ca4",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 4 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_local.h",
@@ -480,7 +480,7 @@
       "source": "code/game/g_main.c",
       "path": "code/game/g_main.c",
       "sha256": "fdc9abc73283c57a27e25c15fbcac7cc7b63d0a82d6fe9ce8f8af8252548ee4a",
-      "disposition": "verbatim import followed by #2 native intptr_t return and three-argument engine entry ABI adaptation"
+      "disposition": "verbatim import followed by #2 native intptr_t return and three-argument engine entry ABI adaptation; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_mem.c",
@@ -492,19 +492,19 @@
       "source": "code/game/g_misc.c",
       "path": "code/game/g_misc.c",
       "sha256": "0c356b7ef5364cfa59f3ed257c81db602085e869f360085727b7bd2594097425",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_missile.c",
       "path": "code/game/g_missile.c",
       "sha256": "ea7de647cfce347f3ae2b1b14f2377991950b3b53bdf6a6f41fc55bf75d143c7",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 6 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_mover.c",
       "path": "code/game/g_mover.c",
       "sha256": "f6ad545eec11f46eb4ab7abe21f6ffea34c3d3c1b2e07d4c7ced37316c17fc62",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 6 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_public.h",
@@ -546,13 +546,13 @@
       "source": "code/game/g_target.c",
       "path": "code/game/g_target.c",
       "sha256": "5d47e01aaacfe997cc5b956a2364ed47d762259d1083dbd8616bf5f53e61c3bf",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_team.c",
       "path": "code/game/g_team.c",
       "sha256": "d004609c19db6949e3d4fe3d3a2d911fbb10f2d7f04249fd13218fb0aa928182",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_team.h",
@@ -564,19 +564,19 @@
       "source": "code/game/g_trigger.c",
       "path": "code/game/g_trigger.c",
       "sha256": "df5cc13f5e9d4f55ccc858ffe829690dfbd9443dcc0b9502e80ddcdd3eafd8a3",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_utils.c",
       "path": "code/game/g_utils.c",
       "sha256": "2bd8d6664a1d731dc5862cae00442adb564d53654ffa7e3de77f7c9813278bac",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 3 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/g_weapon.c",
       "path": "code/game/g_weapon.c",
       "sha256": "6c977ca2b5eca4d4a265a887259a187d83e86c738539f5beb907c392131bea1a",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 3 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/inv.h",
@@ -594,7 +594,7 @@
       "source": "code/game/q_math.c",
       "path": "code/game/q_math.c",
       "sha256": "571cffb6357b3f34fb4a5c000e22d7108f2f3380a49b55f8a993f0b0ce0ba239",
-      "disposition": "verbatim import in b3ef1acd; LP64 word fix merged from PR #49"
+      "disposition": "verbatim import in b3ef1acd; LP64 word fix merged from PR #49; #2 native binary32 ABI: 49 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/q_shared.c",
@@ -606,7 +606,7 @@
       "source": "code/game/q_shared.h",
       "path": "code/game/q_shared.h",
       "sha256": "9083a35790991b674bc58c3800b068a9a978898508c5fb08123ea52e1dc8597a",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 7 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/game/surfaceflags.h",
@@ -636,13 +636,13 @@
       "source": "code/q3_ui/ui_atoms.c",
       "path": "code/ui/ui_atoms.c",
       "sha256": "d221b463c8458f3e192562e512a6e3c7c48f501401fa81207f4758087f331498",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 26 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_cdkey.c",
       "path": "code/ui/ui_cdkey.c",
       "sha256": "603c3d3e471f13288376810e19d3fea7707409a0a61a5c85ebc069ed33899c4c",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_cinematics.c",
@@ -660,19 +660,19 @@
       "source": "code/q3_ui/ui_connect.c",
       "path": "code/ui/ui_connect.c",
       "sha256": "1558c7db8f47415ed6884f5a6b8ca8ccc389727c19dcecc07ed65da9a2e796f2",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_controls2.c",
       "path": "code/ui/ui_controls2.c",
       "sha256": "87ec01656e0b29981e3d994666555a8ddd5f76a3ac2d363594a8708ffe8ba8f6",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 8 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_credits.c",
       "path": "code/ui/ui_credits.c",
       "sha256": "507dca6d093b49e236ced02bcb0e762595a8ad810c52ba77f95cbbefaac6bb5b",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_demo2.c",
@@ -720,7 +720,7 @@
       "source": "code/q3_ui/ui_menu.c",
       "path": "code/ui/ui_menu.c",
       "sha256": "8694408c371f9aada5832fcfcfaa57a9b5482f4bf1975723589fa345893c8e2f",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 3 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_mfield.c",
@@ -756,7 +756,7 @@
       "source": "code/q3_ui/ui_players.c",
       "path": "code/ui/ui_players.c",
       "sha256": "6e7c12e92ec1858f3e5508dfe48f98f3ace8c67a53882ca4836b414692843cc1",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 25 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_playersettings.c",
@@ -780,7 +780,7 @@
       "source": "code/q3_ui/ui_qmenu.c",
       "path": "code/ui/ui_qmenu.c",
       "sha256": "bb532514f8652dd6b83be5064c8339c80e6d3d50d803be374999756835b9284a",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_removebots.c",
@@ -798,7 +798,7 @@
       "source": "code/q3_ui/ui_serverinfo.c",
       "path": "code/ui/ui_serverinfo.c",
       "sha256": "7b7e5bc9694c0612df99169c92aefc78b8361aa17d3d3881f9ae82553192825b",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_servers2.c",
@@ -816,13 +816,13 @@
       "source": "code/ui/ui_shared.h",
       "path": "code/ui/ui_shared.h",
       "sha256": "b249e8d18be4379c1606a58e2f9fea6ec4ac4ef910de75e4d600bbe18a3d9902",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 5 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_sound.c",
       "path": "code/ui/ui_sound.c",
       "sha256": "ecef9153dce421ce157b60fbdea79775dc551ca780c1818083010555aee03133",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_sparena.c",
@@ -840,7 +840,7 @@
       "source": "code/q3_ui/ui_splevel.c",
       "path": "code/ui/ui_splevel.c",
       "sha256": "47ef0e3422d053b7991cea9fdb7d4805462d84f3640513e9e9b29aa45cb4f55f",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "code/q3_ui/ui_sppostgame.c",
@@ -882,7 +882,7 @@
       "source": "code/q3_ui/ui_video.c",
       "path": "code/ui/ui_video.c",
       "sha256": "fa0817b1191a8eb91dd9a185f841c3a610aeeae142ab49ca1bb61154022fa64f",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)"
     },
     {
       "source": "ui/menudef.h",

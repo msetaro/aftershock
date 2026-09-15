@@ -79,7 +79,7 @@ static void CG_MachineGunEjectBrass( centity_t *cent ) {
 	AxisCopy( axisDefault, re->axis );
 	re->hModel = cgs.media.machinegunBrassModel;
 
-	le->bounceFactor = 0.4 * waterScale;
+	le->bounceFactor = 0.4f * waterScale;
 
 	le->angles.trType = TR_LINEAR;
 	le->angles.trTime = cg.time;
@@ -163,7 +163,7 @@ static void CG_ShotgunEjectBrass( centity_t *cent ) {
 		le->angles.trBase[1] = rand()&31;
 		le->angles.trBase[2] = rand()&31;
 		le->angles.trDelta[0] = 1;
-		le->angles.trDelta[1] = 0.5;
+		le->angles.trDelta[1] = 0.5f;
 		le->angles.trDelta[2] = 0;
 
 		le->leFlags = LEF_TUMBLE;
@@ -239,7 +239,7 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
 	le->leType = LE_FADE_RGB;
 	le->startTime = cg.time;
 	le->endTime = cg.time + cg_railTrailTime.value;
-	le->lifeRate = 1.0 / (le->endTime - le->startTime);
+	le->lifeRate = 1.0f / (le->endTime - le->startTime);
  
 	re->shaderTime = cg.time / 1000.0f;
 	re->reType = RT_RAIL_CORE;
@@ -253,9 +253,9 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
     re->shaderRGBA[2] = ci->color1[2] * 255;
     re->shaderRGBA[3] = 255;
 
-	le->color[0] = ci->color1[0] * 0.75;
-	le->color[1] = ci->color1[1] * 0.75;
-	le->color[2] = ci->color1[2] * 0.75;
+	le->color[0] = ci->color1[0] * 0.75f;
+	le->color[1] = ci->color1[1] * 0.75f;
+	le->color[2] = ci->color1[2] * 0.75f;
 	le->color[3] = 1.0f;
 
 	AxisClear( re->axis );
@@ -282,7 +282,7 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
 			le->leType = LE_MOVE_SCALE_FADE;
             le->startTime = cg.time;
             le->endTime = cg.time + (i>>1) + 600;
-            le->lifeRate = 1.0 / (le->endTime - le->startTime);
+            le->lifeRate = 1.0f / (le->endTime - le->startTime);
 
             re->shaderTime = cg.time / 1000.0f;
             re->reType = RT_SPRITE;
@@ -294,9 +294,9 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
             re->shaderRGBA[2] = ci->color2[2] * 255;
             re->shaderRGBA[3] = 255;
 
-            le->color[0] = ci->color2[0] * 0.75;
-            le->color[1] = ci->color2[1] * 0.75;
-            le->color[2] = ci->color2[2] * 0.75;
+            le->color[0] = ci->color2[0] * 0.75f;
+            le->color[1] = ci->color2[1] * 0.75f;
+            le->color[2] = ci->color2[2] * 0.75f;
             le->color[3] = 1.0f;
 
             le->pos.trType = TR_LINEAR;
@@ -533,9 +533,9 @@ static void CG_PlasmaTrail( centity_t *cent, const weaponInfo_t *wi ) {
     re->shaderRGBA[2] = wi->flashDlightColor[2] * 63;
     re->shaderRGBA[3] = 63;
 
-    le->color[0] = wi->flashDlightColor[0] * 0.2;
-    le->color[1] = wi->flashDlightColor[1] * 0.2;
-    le->color[2] = wi->flashDlightColor[2] * 0.2;
+    le->color[0] = wi->flashDlightColor[0] * 0.2f;
+    le->color[1] = wi->flashDlightColor[1] * 0.2f;
+    le->color[2] = wi->flashDlightColor[2] * 0.2f;
     le->color[3] = 0.25f;
 
 	le->angles.trType = TR_LINEAR;
@@ -544,7 +544,7 @@ static void CG_PlasmaTrail( centity_t *cent, const weaponInfo_t *wi ) {
 	le->angles.trBase[1] = rand()&31;
 	le->angles.trBase[2] = rand()&31;
 	le->angles.trDelta[0] = 1;
-	le->angles.trDelta[1] = 0.5;
+	le->angles.trDelta[1] = 0.5f;
 	le->angles.trDelta[2] = 0;
 
 }
@@ -640,7 +640,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 	// calc midpoint for rotation
 	trap_R_ModelBounds( weaponInfo->weaponModel, mins, maxs );
 	for ( i = 0 ; i < 3 ; i++ ) {
-		weaponInfo->weaponMidpoint[i] = mins[i] + 0.5 * ( maxs[i] - mins[i] );
+		weaponInfo->weaponMidpoint[i] = mins[i] + 0.5f * ( maxs[i] - mins[i] );
 	}
 
 	weaponInfo->weaponIcon = trap_R_RegisterShader( item->icon );
@@ -928,16 +928,16 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	}
 
 	// gun angles from bobbing
-	angles[ROLL] += scale * cg.bobfracsin * 0.005;
-	angles[YAW] += scale * cg.bobfracsin * 0.01;
-	angles[PITCH] += cg.xyspeed * cg.bobfracsin * 0.005;
+	angles[ROLL] += scale * cg.bobfracsin * 0.005f;
+	angles[YAW] += scale * cg.bobfracsin * 0.01f;
+	angles[PITCH] += cg.xyspeed * cg.bobfracsin * 0.005f;
 
 	// drop the weapon when landing
 	delta = cg.time - cg.landTime;
 	if ( delta < LAND_DEFLECT_TIME ) {
-		origin[2] += cg.landChange*0.25 * delta / LAND_DEFLECT_TIME;
+		origin[2] += cg.landChange*0.25f * delta / LAND_DEFLECT_TIME;
 	} else if ( delta < LAND_DEFLECT_TIME + LAND_RETURN_TIME ) {
-		origin[2] += cg.landChange*0.25 * 
+		origin[2] += cg.landChange*0.25f * 
 			(LAND_DEFLECT_TIME + LAND_RETURN_TIME - delta) / LAND_RETURN_TIME;
 	}
 
@@ -945,18 +945,18 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	// drop the weapon when stair climbing
 	delta = cg.time - cg.stepTime;
 	if ( delta < STEP_TIME/2 ) {
-		origin[2] -= cg.stepChange*0.25 * delta / (STEP_TIME/2);
+		origin[2] -= cg.stepChange*0.25f * delta / (STEP_TIME/2);
 	} else if ( delta < STEP_TIME ) {
-		origin[2] -= cg.stepChange*0.25 * (STEP_TIME - delta) / (STEP_TIME/2);
+		origin[2] -= cg.stepChange*0.25f * (STEP_TIME - delta) / (STEP_TIME/2);
 	}
 #endif
 
 	// idle drift
 	scale = cg.xyspeed + 40;
-	fracsin = sin( cg.time * 0.001 );
-	angles[ROLL] += scale * fracsin * 0.01;
-	angles[YAW] += scale * fracsin * 0.01;
-	angles[PITCH] += scale * fracsin * 0.01;
+	fracsin = sin( cg.time * 0.001f );
+	angles[ROLL] += scale * fracsin * 0.01f;
+	angles[YAW] += scale * fracsin * 0.01f;
+	angles[PITCH] += scale * fracsin * 0.01f;
 }
 
 
@@ -997,7 +997,7 @@ static void CG_LightningBolt( centity_t *cent, vec3_t origin ) {
 				a += 360;
 			}
 
-			angle[i] = cg.refdefViewAngles[i] + a * (1.0 - cg_trueLightning.value);
+			angle[i] = cg.refdefViewAngles[i] + a * (1.0f - cg_trueLightning.value);
 			if (angle[i] < 0) {
 				angle[i] += 360;
 			}
@@ -1039,7 +1039,7 @@ static void CG_LightningBolt( centity_t *cent, vec3_t origin ) {
 	trap_R_AddRefEntityToScene( &beam );
 
 	// add the impact flare if it hit something
-	if ( trace.fraction < 1.0 ) {
+	if ( trace.fraction < 1.0f ) {
 		vec3_t	angles;
 		vec3_t	dir;
 
@@ -1151,7 +1151,7 @@ static void CG_SpawnRailTrail( centity_t *cent, vec3_t origin ) {
 CG_MachinegunSpinAngle
 ======================
 */
-#define		SPIN_SPEED	0.9
+#define		SPIN_SPEED	0.9f
 #define		COAST_TIME	1000
 static float	CG_MachinegunSpinAngle( centity_t *cent ) {
 	int		delta;
@@ -1166,7 +1166,7 @@ static float	CG_MachinegunSpinAngle( centity_t *cent ) {
 			delta = COAST_TIME;
 		}
 
-		speed = 0.5 * ( SPIN_SPEED + (float)( COAST_TIME - delta ) / COAST_TIME );
+		speed = 0.5f * ( SPIN_SPEED + (float)( COAST_TIME - delta ) / COAST_TIME );
 		angle = cent->pe.barrelAngle + delta * speed;
 	}
 
@@ -1249,7 +1249,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 			f = (float)cg.predictedPlayerState.weaponTime / 1500;
 			gun.shaderRGBA[1] = 0;
 			gun.shaderRGBA[0] = 
-			gun.shaderRGBA[2] = 255 * ( 1.0 - f );
+			gun.shaderRGBA[2] = 255 * ( 1.0f - f );
 		} else {
 			gun.shaderRGBA[0] = 255;
 			gun.shaderRGBA[1] = 255;
@@ -1411,7 +1411,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 	// drop gun lower at higher fov
 	if ( cg_fov.integer > 90 ) {
-		fovOffset = -0.2 * ( cg_fov.integer - 90 );
+		fovOffset = -0.2f * ( cg_fov.integer - 90 );
 	} else {
 		fovOffset = 0;
 	}
@@ -1837,8 +1837,8 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, im
 		isSprite = qtrue;
 		duration = 1000;
 		lightColor[0] = 1;
-		lightColor[1] = 0.75;
-		lightColor[2] = 0.0;
+		lightColor[1] = 0.75f;
+		lightColor[2] = 0.0f;
 		if (cg_oldRocket.integer == 0) {
 			// explosion sprite animation
 			VectorMA( origin, 24, dir, sprOrg );
@@ -2177,9 +2177,9 @@ void CG_Tracer( vec3_t source, vec3_t dest ) {
 
 	trap_R_AddPolyToScene( cgs.media.tracerShader, 4, verts );
 
-	midpoint[0] = ( start[0] + finish[0] ) * 0.5;
-	midpoint[1] = ( start[1] + finish[1] ) * 0.5;
-	midpoint[2] = ( start[2] + finish[2] ) * 0.5;
+	midpoint[0] = ( start[0] + finish[0] ) * 0.5f;
+	midpoint[1] = ( start[1] + finish[1] ) * 0.5f;
+	midpoint[2] = ( start[2] + finish[2] ) * 0.5f;
 
 	// add the tracer sound
 	trap_S_StartSound( midpoint, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.tracerSound );
