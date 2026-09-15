@@ -15,8 +15,11 @@ its progress file has the complete static preflight/lifecycle checkpoint. Rename
 New #31 test-first target imports the original GPL q_shared.c unchanged and checks
 Info_RemoveKey/Info_RemoveKey_Big under ASan. Both copy overlapping suffixes with
 strcpy; native DLL map changes corrupt userinfo. GCC/Clang focused failures are
-recorded under /tmp/aftershock-native-info-before. Next: commit the failing test,
-replace both overlapping copies with memmove, run focused/codegen/ABI/golden gates,
+recorded under /tmp/aftershock-native-info-before. Test-first e5fd1033 fails on both compilers/helpers. Both copies now use memmove;
+14 C and full-port C++ ASan cases pass on GCC/Clang. G2 is identical, G3 adds only
+memmove, and G4 changes only the two removal routines. Explicit unit/collision/Q3
+runtime regeneration is byte-identical. The fixed DLL reference and scratch #2
+restart/map-change output agree twice (dd1fe5c3). Next: finish native smoke/replay,
 open the separate PR, pass CI/self-review and merge. Then return to #2's lifecycle
 reset and static integration work. No expected-bug entry/suppression is added.
 

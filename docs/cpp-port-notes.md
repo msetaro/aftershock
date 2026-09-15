@@ -561,6 +561,20 @@ The sole verbatim prerequisite import code/game/q_shared.c is from
 id-Software/Quake-III-Arena dbe4ddb10315479fc00086f08e25d968b4b43c49, SHA256
 a8ddd2b1093ee69df7d0826aad75180ac2ff27bb45f25389e4313efeb51c4be2.
 Its GPL notice is retained. Caller audit includes both Info_SetValueForKey variants
-and direct game/UI callers on #2. The engine/upstream helper already uses memmove;
+whose callers include game/UI code on #2. The engine/upstream helper already uses memmove;
 there is no additional ec-/Quake3e fix to submit. Static module reset requirements
 remain separate #2 integration work; no simulation FP edits belong to this fix.
+
+Test-first e5fd1033 fails with strcpy-param-overlap for both helpers on GCC/Clang.
+The fix replaces only the two copies with memmove, including the suffix terminator.
+All 14 cases pass in C and in temporary full-port C++ under both compilers' ASan.
+G2 layouts stay identical. G3 adds only the expected undefined memmove reference;
+G4 changes only the two removal routines (GCC splits them into .part.0 bodies).
+No floating-point code changes. Artifacts: /tmp/aftershock-native-info-gates.py and
+/tmp/aftershock-native-info-gates. Explicit unit/collision/Q3 runtime regeneration
+is byte-identical. No suppression or expected-bug entry is used.
+
+The complete #2 restart/map-change comparison now matches the fixed native DLL
+reference twice at dd1fe5c3be6e1133ce2305819f8f1dffbe51e8917d9258292e035fec1aa23a79.
+That comparison also includes the separate scratch #2 bot-state reset and explicit
+module memmove binding; neither integration change is part of this #31 PR.
