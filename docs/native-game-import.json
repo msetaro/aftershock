@@ -138,7 +138,8 @@
     "a5c199bf": "#8 implicit-fallthrough warning: comments document existing transitions; source line counts and native object behavior retained",
     "c58e2751": "#31 explicitly signed bot chat offset sentinel; engine/game layout and x86 instructions unchanged, ARM64 now preserves -1",
     "68919a83": "#8 unused-constant diagnostics: order table/type/count share the existing MISSIONPACK guard; release objects and conditional preprocessed output unchanged",
-    "639fb07e": "#8 parentheses-equality: remove redundant inner parentheses in G_VoiceTo; comparison, source line count and executable code unchanged"
+    "639fb07e": "#8 parentheses-equality: remove redundant inner parentheses in G_VoiceTo; comparison, source line count and executable code unchanged",
+    "9e4d45f0": "#8 self-assign: remove the redundant fov_x assignment while retaining the branch and arithmetic; all compared production/native objects unchanged"
   },
   "files": [
     {
@@ -354,7 +355,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "9e4d45f0"
       ]
     },
     {
