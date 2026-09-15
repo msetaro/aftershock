@@ -19,6 +19,8 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
     compiler = shlex.split(cc if language == 'c' else cxx)
     mode = ['-std=gnu99'] if language == 'c' else ['-x', 'c++', '-std=c++20', '-fno-exceptions', '-fno-rtti', '-Werror=write-strings', '-Werror=register', '-U_GNU_SOURCE', '-D_DEFAULT_SOURCE']
     version = subprocess.check_output([*compiler, '--version'], text=True)
+    frozen = json.loads((ROOT / 'tests/native-warnings.json').read_text())
+    warnings = ['-Wall', '-Wextra', '-Werror', *['-Wno-' + name[2:] for name in frozen['clang' if 'clang' in version.lower() else 'gcc']]]
     manifest = json.loads((ROOT / 'docs/native-game-import.json').read_text())
     layouts = []
     for name, command in [
@@ -33,7 +35,7 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
         layouts.append(layout)
     if layouts[0] != layouts[1]:
         raise RuntimeError('native/engine ABI layout differs; see layout-*.txt')
-    flags = [*compiler, *mode, '-fPIC', '-O2',
+    flags = [*compiler, *mode, *warnings, '-fPIC', '-O2',
              '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv', '-fno-builtin',
              '-include', 'code/game/native_abi.h']
     library = ['code/game/bg_lib.c']

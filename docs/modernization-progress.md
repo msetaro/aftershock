@@ -25,7 +25,15 @@ check. Its g_main source matches the temporary GCC/Clang native runtime prefligh
 byte-for-byte. The voter test now includes #2's native ABI header for its adapted
 entry point. Merged-tree regression 34925562788 is pending.
 
-Next: commit/push this integration and verify that run, then freeze the observed original C warnings and require strict G1 native builds.
+The integration is committed as 7d9bc04a. The native warning freeze now enables
+-Wall -Wextra -Werror on both C and C++ Q3 modules. tests/native-warnings.json records
+all 103 optimized objects per compiler/language; each disabled class is present in
+C. GCC/Clang (Clang C++ with libc++) build all three modules in both languages.
+The UI array diagnostics have valid [0,4] indices; inherited qsort alignment
+warnings remain under the intentional-UB ruling. The confirmed rank/sentinel bugs
+were fixed in separate #31 PRs. No new source changes for this freeze.
+
+Next: commit/push the warning freeze and verify CI plus merged-tree run 34925562788.
 Finish G4/G7 review and permanent artifact reproduction before the content-free
 .cpp rename, static calls and VM/JIT removal. No VM/JIT removal has started.
 No accepted golden or fixture changes on #2. Additional assembly review through
