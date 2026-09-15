@@ -7,10 +7,9 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-chat-offset, branched from PR #70 head 17a9dae2 while its
-hosted gates finish. #70 remains pending merge; merge its accepted integration
-commit into this branch before opening the #31 PR. Regression 35015487624 passed
-at d56ab00b; corrected-trigger build 35016076778 and regression 35016076784 pending.
+Active: issue/31-chat-offset. PR #70 passed full build 35016076778 and
+regression 35016076784 at 17a9dae2, then merged as 9d9dc4f6. That merge is
+integrated into this branch; its merged-tree regression remains to check.
 #69 merged-tree regression 35015162588 passed. #5 and #8 fallthrough are complete.
 
 Test-first commit 36410f00 records the failing chat-offset regression. Both
@@ -24,6 +23,20 @@ Review all offset writers/consumers and mirror declarations; preserve x86 semant
 and layout. Follow with codegen, explicit explained golden regeneration, runtime,
 fixed replay, hosted gates, upstream C contribution and merge-commit self-review.
 No known-bugs entry or UBSan suppression currently covers this new test.
+
+Fix c58e2751 passes GCC/Clang ASan+UBSan with both char defaults. The same
+bounded regression fails on upstream C f694bbbc under unsigned-char and passes
+with the one-line header fix under both compilers/defaults. Codegen covers 26
+objects across GCC/Clang release, GCC debug, MinGW and aarch64: 12 raw objects
+identical, six MinGW incremental-LTO native objects identical, six GCC debug
+objects differ only in debug sections (stripped copies identical). Two ARM64
+objects change only four chat-offset consumer functions, with no functions added
+or removed. Expected signed loads and missing-variable branches are present;
+all unrelated functions retain identical instructions/relocations. Artifacts:
+/tmp/aftershock-chat-offset-codegen/{before,after}.json and per-object diffs.
+Source floating-point expressions, allocations, lifetimes and OS calls unchanged.
+The original GPL import hash is retained; c58e2751 is recorded as a transformation.
+Runtime/fixed replay and explicit unit/collision regeneration remain in progress.
 
 After this fix, resume #8 unused-function diagnostics in its own PR. Temporary
 production-flag checks preserve 364 Clang engine objects across both renderers and
