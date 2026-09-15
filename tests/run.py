@@ -170,7 +170,7 @@ def runtime(args):
     normalize = None
     if args.game_code == 'native':
         from native import build_modules, normalize_log
-        modules = build_modules(args.output / 'native', args.cc, ('game',), args.cxx)
+        modules = build_modules(args.output / 'native', args.cc, ('game',), args.cxx, args.game_language)
         normalize = normalize_log
     for map_name in content_maps(args.content):
         results = []
@@ -220,6 +220,7 @@ def main():
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
     parser.add_argument('--game-code', choices=['qvm', 'native'], default='qvm')
+    parser.add_argument('--game-language', choices=['c', 'c++'], default='c')
     parser.add_argument('--known-bugs', action='store_true')
     parser.add_argument('--cc', default='gcc')
     parser.add_argument('--cxx', default='g++')

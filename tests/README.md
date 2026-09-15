@@ -231,3 +231,13 @@ headers into /tmp/aftershock-q3-gpl when absent (`--source` overrides the checko
 It verifies the revision and header cleanliness. No game content is required.
 The two C files are prerequisite imports for this #31 fix; #2 integrates the full
 native modules and retains their import provenance.
+
+Native C++ port checks use `python3 tests/native.py --language c++` and append
+`--game-language c++` to native runtime/demo commands. C remains the transitional
+reference (the default). Both languages compare the same 29 layouts and three
+offsets with the engine; module links reject unresolved symbols. GCC and Clang
+use their corresponding binary32 literal flags. For Clang C++ only, bg_lib.c is
+compiled separately with __NO_INLINE__ to avoid glibc's conflicting inline atof
+definition; this header setting preserves the Clang C object byte-for-byte and
+does not disable the optimizer's inlining. Other translation units keep their
+original standard-library headers and calls.

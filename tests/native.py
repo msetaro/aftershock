@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build C native modules for QVM/native parity before static integration."""
+"""Build native modules for C/C++ and QVM parity before static integration."""
 import argparse
 import json
 from pathlib import Path
@@ -10,16 +10,17 @@ import subprocess
 from run import ROOT, ENV
 
 
-def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++'):
+def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', language='c'):
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=True)
-    compiler = shlex.split(cc)
+    compiler = shlex.split(cc if language == 'c' else cxx)
+    mode = ['-std=gnu99'] if language == 'c' else ['-x', 'c++', '-std=c++20', '-fno-exceptions', '-fno-rtti', '-Werror=write-strings', '-Werror=register']
     version = subprocess.check_output([*compiler, '--version'], text=True)
     precision = '-cl-single-precision-constant' if 'clang' in version.lower() else '-fsingle-precision-constant'
     manifest = json.loads((ROOT / 'docs/native-game-import.json').read_text())
     layouts = []
     for name, command in [
-        ('native', [*compiler, '-std=gnu99', precision, '-include', 'code/game/native_abi.h']),
+        ('native', [*compiler, *mode, precision, '-include', 'code/game/native_abi.h']),
         ('engine', [*shlex.split(cxx), '-x', 'c++', '-std=c++20', '-DENGINE'])
     ]:
         binary = output / ('layout-' + name)
@@ -30,16 +31,25 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++'):
         layouts.append(layout)
     if layouts[0] != layouts[1]:
         raise RuntimeError('native/engine ABI layout differs; see layout-*.txt')
+    flags = [*compiler, *mode, '-fPIC', '-O2', precision,
+             '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv', '-fno-builtin',
+             '-include', 'code/game/native_abi.h']
+    library = ['code/game/bg_lib.c']
+    if language == 'c++' and 'clang' in version.lower():
+        # glibc's inline atof conflicts with this file's compatibility definition.
+        obj = output / 'bg_lib.o'
+        command = [*flags, '-D__NO_INLINE__', '-c', 'code/game/bg_lib.c', '-o', str(obj)]
+        (output / 'bg_lib.command').write_text(shlex.join(command) + '\n')
+        with (output / 'bg_lib.log').open('w') as log:
+            subprocess.run(command, cwd=ROOT, env=ENV, stdout=log, stderr=subprocess.STDOUT, check=True)
+        library = ['-x', 'none', str(obj)]
     binaries = {}
     for module in modules:
         binary = output / (('qagame' if module == 'game' else module) + 'x86_64.so')
-        sources = [*manifest['modules'][module], 'code/game/bg_lib.c']
-        command = [*compiler, '-std=gnu99', '-fPIC', '-shared', '-O2', precision,
-                   '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv', '-fno-builtin',
-                   '-include', 'code/game/native_abi.h',
+        command = [*flags, '-shared',
                    '-D' + {'game': 'QAGAME', 'cgame': 'CGAME', 'ui': 'UI'}[module],
-                   '-Wl,-Bsymbolic',
-                   *sources, '-lm', '-o', str(binary)]
+                   '-Wl,-Bsymbolic,-z,defs',
+                   *manifest['modules'][module], *library, '-lm', '-o', str(binary)]
         (output / (module + '.command')).write_text(shlex.join(command) + '\n')
         with (output / (module + '.log')).open('w') as log:
             subprocess.run(command, cwd=ROOT, env=ENV, stdout=log, stderr=subprocess.STDOUT, check=True)
@@ -57,7 +67,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cc', default='cc')
     parser.add_argument('--cxx', default='c++')
+    parser.add_argument('--language', choices=['c', 'c++'], default='c')
     parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-native'))
     args = parser.parse_args()
-    for module, binary in build_modules(args.output, args.cc, cxx=args.cxx).items():
+    for module, binary in build_modules(args.output, args.cc, cxx=args.cxx, language=args.language).items():
         print(module, binary)

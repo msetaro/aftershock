@@ -16,6 +16,7 @@ parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-demo-te
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 parser.add_argument('--game-code', choices=['qvm', 'native'], default='qvm')
+parser.add_argument('--game-language', choices=['c', 'c++'], default='c')
 parser.add_argument('--cc', default='gcc')
 parser.add_argument('--cxx', default='g++')
 parser.add_argument('--record-fixtures', action='store_true', help='explicitly replace demos and frame goldens')
@@ -43,7 +44,7 @@ run(['cc', '-Wall', '-Wextra', '-Werror', '-shared', '-fPIC', 'tests/probes/fixe
 modules = {}
 if args.game_code == 'native':
     from native import build_modules
-    modules = build_modules(output / 'native', args.cc, ('cgame', 'ui'), args.cxx)
+    modules = build_modules(output / 'native', args.cc, ('cgame', 'ui'), args.cxx, args.game_language)
 binaries = {}
 for backend in ('vulkan', 'opengl1'):
     directory = build(output / ('build-' + backend), ['BUILD_SERVER=0', 'USE_RENDERER_DLOPEN=0', 'RENDERER_DEFAULT=' + ('opengl' if backend == 'opengl1' else backend)])

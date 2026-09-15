@@ -602,3 +602,18 @@ T5 marks exactly dllEntry/vmMain in all three modules with guarded Q_EXTERN_C.
 T15 adds eleven required literal/macro separator spaces in ai_team/g_cmds. GCC
 and Clang now pass all 103 C++20 syntax checks. All 103 C release objects remain
 byte-identical (exports gate). No other C-linkage annotations or math edits.
+
+Native build/check commands now expose --language c++ (module builder) and
+--game-language c++ (runtime/replay). GCC and Clang/libc++ link all three modules
+and match the 29 ABI layouts/three offsets. GCC C++ bot smoke matches both accepted
+Q3 logs; fixed replay is running. The linked-module check uses -z defs.
+
+Isolated build compatibility deviation: Clang C++ at -O2 rejects bg_lib.c's atof
+because glibc has already defined an optimized extern-inline atof. The builder
+compiles only this compatibility TU separately with -D__NO_INLINE__; this controls
+glibc header definitions, not optimizer inlining. Other TUs are unchanged. Clang
+C bg_lib raw object SHA256 is identical with/without the setting:
+028960a967ce3710c7b994aa6743e7eb640ca8bc9a40e10d7fdd822f0b2578c0.
+GCC does not receive it (its object would change). Evidence:
+/tmp/aftershock-native-bg-lib-inline; all-module Clang C++ link now passes.
+The function bodies, caller arithmetic and external atof symbol are retained.
