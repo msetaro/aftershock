@@ -7,13 +7,12 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-affinity-operators, based on #67 source 8e9b649d pending the
-merge of origin/modernization. #5 merged as 1412c2eb with merged regression
+Active: issue/31-affinity-operators, with #67 merge 43ad68ab integrated. #5 merged as 1412c2eb with merged regression
 34949976994 passing. First #8 warning-class PR #67 merged as 43ad68ab after build
 34950827218 and regression 34950827333 passed. Its merged-tree run remains to check.
 
-Next: merge origin/modernization, open the #31 affinity-operator PR and upstream
-C fix PR, finish codegen/runtime/hosted gates and self-review, then merge. The
+Next: finish codegen/runtime/hosted gates and self-review for the affinity-operator
+PR, then merge. Upstream C fix edee6fef is ec-/Quake3e PR #440. The
 hex-sentinel bug stays a separate test-first #31 PR. After those fixes resume #8:
 one warning class per PR, one verified tree-wide clang-format commit, tidy subsets,
 fixed-width representation types/layout assertions, and release-identical Q_ASSERT.
