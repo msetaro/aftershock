@@ -487,17 +487,31 @@ both accepted Q3 bot logs, with repeated identical runs. Explicit unit/collision
 Q3 runtime golden regeneration is byte-identical. Self-review passes; no expected
 bug entry or UBSan suppression was needed, and no accepted golden changes.
 
-### CTF startup indexes an invalid flag status (#31, pending)
+### CTF initialization indexes an invalid flag status (#31)
 
-Team_InitGame sets both redStatus and blueStatus to -1, then Team_SetFlagStatus
-updates red and formats both statuses. The still-invalid blue value indexes before
-ctfFlagStatusRemap[5]; C++ also rejects reading the invalid enum. The real C path
-fails UBSan with index 4294967295 at g_team.c:225. Reproducer:
-/tmp/aftershock-team-flags-before.c, compiled with the native ABI header, -O2,
--fsanitize=undefined -fno-sanitize-recover=all and section garbage collection.
+Team_InitGame sets both flag statuses to -1, then Team_SetFlagStatus updates red
+and formats both values. The still-invalid blue status indexes ctfFlagStatusRemap
+out of bounds; C++ also rejects the invalid enum. `python3 tests/team_flags.py`
+calls the real function and fails UBSan at index 4294967295 in the original C.
+It checks base-game/one-flag initialization, valid pickup/drop updates, duplicate
+update elimination and reinitialization. SaveRegisteredItems calls initialization;
+all other setters (dropped flags, reset and pickup) already pass valid statuses.
 
-Root fix belongs in a separate #31 PR: publish the fully initialized at-base
-configstring directly in Team_InitGame, retaining zeroed valid enum states, with
-the same approach for one-flag initialization. Other setter callers (dropped flags,
-reset and pickup paths) pass valid statuses. Init is called from SaveRegisteredItems.
-No fix is on #2. No corresponding ec-/Quake3e game implementation exists.
+Fix initialization in this separate #31 PR: keep valid zeroed at-base states and
+publish the complete initial configstring directly, including one-flag mode.
+No corresponding ec-/Quake3e game implementation exists. The single verbatim GPL
+prerequisite code/game/g_team.c is from id-Software/Quake-III-Arena at revision
+dbe4ddb10315479fc00086f08e25d968b4b43c49, SHA256
+d004609c19db6949e3d4fe3d3a2d911fbb10f2d7f04249fd13218fb0aa928182.
+Its GPL notice remains intact. Native C++ integration stays on #2.
+
+Test-first a6c34e5b fails at the invalid C table index. The initialization fix
+passes GCC/Clang in base and missionpack modes. G2 layouts/G3 symbols remain
+identical; only Team_InitGame changes assembly (36 base/46 missionpack functions).
+The initial configstring is now complete on its first publication, with no invalid
+intermediate state. Subsequent setter behavior is unchanged.
+
+PR #59 source 622ae3af passed regression 34926290647/full build 34926290657.
+Temporary complete #2 GCC/Clang C++ flag checks also pass UBSan. Unit/collision/
+Q3 runtime explicit regeneration is byte-identical. Self-review passes; no expected
+bug entry, suppression or accepted golden changed.

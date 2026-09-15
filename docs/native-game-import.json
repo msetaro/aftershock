@@ -552,7 +552,7 @@
       "source": "code/game/g_team.c",
       "path": "code/game/g_team.c",
       "sha256": "d004609c19db6949e3d4fe3d3a2d911fbb10f2d7f04249fd13218fb0aa928182",
-      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)"
+      "disposition": "verbatim import; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged); #31 PR #59 initializes flags without invalid enum/table sentinels"
     },
     {
       "source": "code/game/g_team.h",

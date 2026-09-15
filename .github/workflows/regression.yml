@@ -39,6 +39,9 @@ jobs:
         run: |
           python3 tests/native.py --language c++ --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}' --output /tmp/native-cpp
           python3 tests/native_shared.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+      - name: Install native layout tool
+        if: matrix.cc == 'gcc'
+        run: sudo apt-get update && sudo apt-get install -y pahole
       - name: Native C/C++ layout and symbol gates
         if: matrix.cc == 'gcc'
         run: python3 -B tests/native_gates.py
@@ -57,6 +60,8 @@ jobs:
       - name: GPL team-leader name bounds
         if: matrix.cc == 'clang'
         run: python3 tests/teamleader.py
+      - name: Native flag initialization
+        run: python3 tests/team_flags.py --cc '${{ matrix.cc }}'
       - name: Native team voter bounds
         run: python3 tests/team_voters.py --cc '${{ matrix.cc }}'
       - name: Native UI weapon sentinel

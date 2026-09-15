@@ -47,14 +47,11 @@ void Team_InitGame( void ) {
 
 	switch( g_gametype.integer ) {
 	case GT_CTF:
-		teamgame.redStatus = teamgame.blueStatus = (flagStatus_t)-1; // Invalid to force update
-		Team_SetFlagStatus( TEAM_RED, FLAG_ATBASE );
-		Team_SetFlagStatus( TEAM_BLUE, FLAG_ATBASE );
+		trap_SetConfigstring( CS_FLAGSTATUS, "00" );
 		break;
 #ifdef MISSIONPACK
 	case GT_1FCTF:
-		teamgame.flagStatus = -1; // Invalid to force update
-		Team_SetFlagStatus( TEAM_FREE, FLAG_ATBASE );
+		trap_SetConfigstring( CS_FLAGSTATUS, "0" );
 		break;
 #endif
 	default:

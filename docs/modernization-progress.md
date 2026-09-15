@@ -7,51 +7,42 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/2-native-game, draft PR #50. PR #58 merged as 4c816c7e after
-regression 34925252301/full build 34925252282 passed on source/test 9e1f9411. Its
-one-line CalculateRanks fix bounds the two team-voter counters, preserving adjacent
-spawn state. Test-first 10ed8eb4/5c5217f5 fail at index 2 on GCC/Clang before, pass
-after; layouts/symbols unchanged, only CalculateRanks assembly changes. Temporary
-full native C++ GCC/Clang modules with the fix match both accepted Q3 bot logs.
-Unit/collision/Q3 runtime explicit regeneration is byte-identical. This integration
-retains #2's catalog and ABI edits and its local-header team-leader check.
+Active work: issue/2-native-game, draft PR #50. PR #59 merged as 11781f44 after
+regression 34926290647/full build 34926290657 passed on 622ae3af. Its initializer
+publishes complete "00"/"0" configstrings while keeping valid zeroed flag states.
+Test-first a6c34e5b fails at the original table index; GCC/Clang base/missionpack
+checks pass after. Layouts/symbols unchanged; only Team_InitGame assembly changes.
+Temporary complete #2 C++ flag paths also pass GCC/Clang UBSan. Explicit unit,
+collision and Q3 runtime regeneration is byte-identical. This merge retains all
+#2 catalog edits and adapts the test to include its existing native ABI header.
 
-#57 merged 4b68ccda; merged-tree regression 34924317093 passed. Its #2 integration
-bb869f79 passed regression 34924891632, GCC/Clang UI sentinel tests, Clang native
-C++ module builds and fixed replay on both maps/renderers with unchanged frames.
+#58 merged 4c816c7e; merged-tree regression 34925562788 passed. #2 integration
+7d9bc04a retains the voter reset fix. #57 merged 4b68ccda; merged-tree regression
+34924317093 passed. #2 integration bb869f79 passed regression 34924891632, native
+C++ build and fixed replay on both maps/renderers with unchanged frames.
 
-The resolved integration passes GCC/Clang team-voter tests and the team-leader
-check. Its g_main source matches the temporary GCC/Clang native runtime preflight
-byte-for-byte. The voter test now includes #2's native ABI header for its adapted
-entry point. Merged-tree regression 34925562788 passed.
+Strict warning checkpoint 7c4f8302 passed regression 34925774876/full build
+34925774880. Both C/C++ native module builds use -Wall -Wextra -Werror and only
+warning classes observed in C. Native evidence checkpoint 75d81a11 passed full
+build 34926088404; its regression 34926088385 lacked pahole and never reached
+comparison. This merge adds pahole in the GCC job's own apt step. Local package
+installation remains prohibited. No artifact normalizer or gate is weakened.
 
-The integration is committed as 7d9bc04a. The native warning freeze now enables
--Wall -Wextra -Werror on both C and C++ Q3 modules. tests/native-warnings.json records
-all 103 optimized objects per compiler/language; each disabled class is present in
-C. GCC/Clang (Clang C++ with libc++) build all three modules in both languages.
-The UI array diagnostics have valid [0,4] indices; inherited qsort alignment
-warnings remain under the intentional-UB ruling. The confirmed rank/sentinel bugs
-were fixed in separate #31 PRs. No new source changes for this freeze.
+Permanent native_gates.py passes all 103 G2/G3 comparisons on the local post-#58
+tree and retains 63 advisory assembly diffs. --tidy completes all objects with
+1365 narrowing, 55 signed-char and nine string-result findings; zero tool failures.
+Commands/source hashes: /tmp/aftershock-native-gates-final. Per-function review:
+/tmp/aftershock-native-function-review-current and /tmp/aftershock-native-review-checkpoint.md.
+The flag-domain assumption in the latter is corrected by the reviewed #59 fix.
 
-Warning freeze is committed as 7c4f8302; regression 34925774876/full build
-34925774880 are pending. Permanent native_gates.py passes all 103 G2/G3 objects
-on the actual merged tree and records 63 advisory assembly differences. --tidy
-finishes every object with 1365 narrowing, 55 signed-char and nine string-result
-findings, no tool/compile failures. Exact commands/source hashes are retained in
-/tmp/aftershock-native-gates-final; G2/G3 now run in the GCC CI job.
+The resolved merge passes GCC/Clang base and missionpack flag tests. Its g_team
+source is byte-identical to the successful temporary native C++ checks. #59
+merged-tree regression 34926638834 is pending.
 
-Next: park #2 after committing this reproduction tool and fix the confirmed CTF
-startup bug in a separate #31 PR. Team_InitGame seeds both flag statuses with -1;
-its first setter indexes the remap table using the still-invalid blue status.
-The actual C function fails UBSan at index 4294967295. Publish the already-zeroed
-valid at-base states directly, test-first, including one-flag initialization.
-Caller audit and reproducer are in cpp-port-notes.md. No fix is made on #2.
-
-Then finish G4/G7 review and source provenance/catalog audit before the content-free
-.cpp rename, static calls and VM/JIT removal. No VM/JIT removal has started.
-No accepted golden or fixture changes on #2. Additional advisory review is in
-/tmp/aftershock-native-review-checkpoint.md; its claim that flag statuses stay
-nonnegative is superseded by the newly confirmed startup bug above.
+Next: commit/push this integration and verify that run plus #2 CI with pahole
+installed. Complete source provenance/catalog and final G4/G7 review,
+then a content-free .cpp rename, static integration and VM/JIT removal. No VM/JIT
+removal has started, and no accepted fixture/golden changes have been made on #2.
 
 Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95
 (regression 34922352537 passed); portable Q3 binary32 literals 5592a1eb (regression

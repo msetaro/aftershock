@@ -104,6 +104,7 @@ python3 tests/native.py --content openarena
 python3 tests/openarena_strings.py
 python3 tests/ui_weapon.py
 python3 tests/team_voters.py
+python3 tests/team_flags.py
 python3 tests/check_lifetimes.py
 python3 tests/run.py unit --negative-control
 python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
