@@ -7,13 +7,29 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/5-cmake-build, draft PR #66, based on #4 merge 4a952854.
-#3/#31/#1/#2/#4 are complete. #4 merged-tree regression 34942323875 passed.
-Continue #5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementation.
+Active: issue/8-implicit-fallthrough, based on #5 merge 1412c2eb.
+#3/#31/#1/#2/#4/#5 are complete. PR #66 final 112fa4ff passes build 34949329755
+and regression 34949329729; merged tree is identical to that tested checkpoint.
+Merged-tree regression is running; confirm it before the first #8 PR merges.
 
-Next: mark PR #66 ready and merge with a merge commit after the final whitespace/
-documentation checkpoint checks pass, then verify merged-tree regression. Read #8
-and start one warning class per PR. No #8 source changes yet.
+Next: annotate six existing fallthrough paths, enable the warning, compare raw
+objects against the captured baseline, then run full regression/build gates and
+self-review. One warning class per PR. After the warning ratchet: one verified
+tree-wide clang-format commit, tidy subsets, fixed-width representation types and
+layout assertions, release-identical Q_ASSERT. Finish #8, write design-only
+`docs/design/rhi.md` for #6, then stop. No #6/#7 implementation.
+
+#8 baseline: 2,380 production C++ objects/diagnostics across GCC/Clang release,
+GCC debug, MinGW and aarch64 server configurations. Both renderers covered where
+applicable. /tmp/aftershock-warning-before and /tmp/aftershock-warning-cross-before
+contain compiler commands, raw hashes and logs. Six full compilation controls fail
+with -Werror=implicit-fallthrough, including debug game and native Windows paths;
+syntax-only compilation does not emit GCC's fallthrough diagnostic and is not used
+as the gate. /tmp/aftershock-fallthrough-before-*.log records those expected failures.
+Potential behavior bugs from other warning classes require #31 disposition; do not
+correct them in this PR. No goldens/fixtures are regenerated.
+
+## #5 completed verification
 
 Final source 9c170ddd passes full build 34948420894 and regression 34948420906.
 Provenance checkpoint 3f91d501 passes build 34948630311 and regression 34948630289.
