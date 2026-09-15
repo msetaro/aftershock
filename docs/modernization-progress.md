@@ -7,13 +7,146 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-#4 is ready to merge as PR #65 (issue/4-subsystem-boundaries). Source ffaa1ea7
-passed regression 34941722921 and full build 34941722886 on every required leg,
-including GCC/Clang, cross builds, all Windows MSVC configurations and macOS.
-Merge this documentation/line-ending checkpoint with a merge commit, verify the
-merged-tree regression, then continue #5 -> #8 -> design-only docs/design/rhi.md
-for #6. No #6/#7 implementation. #2 PR #50 and #31 PR #64 are already complete;
-#64 merged-tree regression 34938271942 passed.
+Active: issue/5-cmake-build, draft PR #66, based on #4 merge 4a952854.
+#3/#31/#1/#2/#4 are complete. #4 merged-tree regression 34942323875 passed.
+Continue #5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementation.
+
+Next: mark PR #66 ready and merge with a merge commit after the final whitespace/
+documentation checkpoint checks pass, then verify merged-tree regression. Read #8
+and start one warning class per PR. No #8 source changes yet.
+
+Final source 9c170ddd passes full build 34948420894 and regression 34948420906.
+Provenance checkpoint 3f91d501 passes build 34948630311 and regression 34948630289.
+CMake-only retirement e67f397e passed build 34947650438 and regression 34947650429,
+including hosted MinGW curl/zlib linkage and artifact staging. Migration checkpoint
+390a20f4 passed every hosted raw-object and generated MSVC gate in 34946471284.
+Embedded-debug 48733686 passed migration 34946795374, regression 34946795290 and
+full build 34946795283; MSVC x64 debug reports 720/720 cacheable calls, 52 hits.
+Native provenance records both shared GPL file transformations in 9c170ddd,
+preserving original source hashes and notices.
+
+Self-review: #5 build/platform scope only; no new portable OS access, non-trivial
+core destructors, per-frame allocation or simulation FP expression changes.
+Supported function bodies and raw-object differences are reviewed below. Existing
+wire/file assertions remain; all 103 native layout/symbol gates pass. No accepted
+golden or fixture changed. Regression probes use production CMake objects. Generated
+MSVC and every required hosted compiler/configuration pass. Final review removes
+one trailing empty CMake line; no command or source setting changes.
+
+Makefile, game/modules.mk and handwritten MSVC projects are removed after parity.
+CMake-only build.yml keeps Linux/macOS/Windows release/debug binaries and release
+artifact jobs, adds Clang and caches, and builds generated VS projects. Its CRLF
+convention is retained. Replay the retired migration oracle at 390a20f4. Release
+workflow and install staging pass locally; staged Linux binaries match build
+outputs byte for byte. Bundled macOS SDL uses @executable_path for adjacent staging.
+The local optional MinGW curl configuration compiles but cannot link absent target
+zlib; hosted MSYS installs zlib explicitly. No local packages or assets are copied.
+
+Inactive-platform cleanup removes x86/ARM32/PowerPC branches, unused x87 state and
+helpers, old 32-bit mixers and the unused Sys_ConfigureFPU hook. Three supported
+Sys_SnapVector bodies and retained MSVC setjmp/longjmp/CPUID assembly are byte-
+identical to their old bodies. CMake/header checks reject unsupported architectures,
+32-bit pointers and big-endian targets. Configure negative controls for i686,
+armv7 and ppc64le pass and run in CI. No active FP expression is rearranged.
+
+After cleanup, 356/358 GCC Vulkan objects and 96/97 aarch64 server objects remain
+raw-byte identical to the original baselines. Only unix_main objects differ.
+Function/relocation review finds exactly the removed empty Sys_ConfigureFPU;
+all retained functions have identical instructions and symbolic targets. ARM64
+has one changed trailing alignment nop outside function size. Reports and driver:
+/tmp/aftershock-64bit-functions*. All 103 native C/C++ layout/symbol gates pass;
+the same 60 advisory outcomes remain. Boundary check passes 383 files (one retired
+assembly-only header fewer). Unit/one-ULP, shared math/case, both Q3 smoke logs and
+fixed replay pass unchanged. Both OpenArena sanitizer smoke maps and fixed replay
+also pass unchanged. Lifetime analysis passes 546 commands/137 source paths and
+seven negative controls. Artifacts /tmp/aftershock-64bit-*. Goldens/fixtures remain unchanged.
+
+
+## #5 migration history (completed; pending statements below are historical)
+
+Make reference checkpoint a08e7275 fixes reproducibility; CMake repair 6987587a;
+test-helper migration f111b28c. Original baseline: 11 successful Make configurations,
+3,757 raw object hashes and actual compiler commands under
+/tmp/aftershock-cmake-before (source 4018c08a, engine identical to 4a952854).
+Driver: /tmp/aftershock-cmake-baseline.py. All 3,757 local objects match CMake:
+GCC release/debug OpenGL/Vulkan/dynamic, Clang+libc++ both static renderers,
+MinGW both static renderers, aarch64 dedicated. No hash normalization.
+
+Original MinGW -flto objects change hashes even with an identical repeated command
+(/tmp/aftershock-cmake-lto-repeat.json). GCC records random section IDs and the
+unmapped working directory with relative LTO locations
+([upstream diagnosis](https://gcc.gnu.org/pipermail/gcc-patches/2022-November/606205.html)).
+Both build systems now use the same per-TU seed, absolute source/include spelling
+and stable absolute debug-source prefix; separate macro mapping preserves relative
+__FILE__ strings. LTO and all object sections remain intact. Deterministic Make
+references: /tmp/aftershock-cmake-mingw-repro-make[-opengl]. Focused proof:
+/tmp/aftershock-lto-absolute.py. Debug assembly additionally needs its compilation
+directory mapped; /tmp/aftershock-cmake-mingw-debug-parity now passes 361/361.
+GCC debug dynamic also preserves compiler flag order for raw DWARF equality.
+
+Repository oracle tools/port/check_cmake_parity.py builds both systems and saves
+actual commands, raw hashes and explicit differences; its local GCC Vulkan gate
+passes 358/358 (/tmp/aftershock-cmake-permanent-parity). Replay this oracle at the
+recorded Make-retirement checkpoint after Make disappears. Candidate artifacts:
+/tmp/aftershock-cmake-*; initial comparator /tmp/aftershock-cmake-compare.py.
+
+Hosted source 6987587a passes existing regression 34945736264 and build
+34945736251. New migration 34945736467 and follow-up 34946061800 prove raw parity
+on macOS Intel/ARM64 and Linux GCC/Clang/native ARM64, release/debug, both renderers.
+MinGW debug's single assembly difference is fixed locally as above; hosted rerun
+remains. MSVC Ninja now compiles ARM64 (359/359 cacheable calls), but automatic
+CMake manifest generation duplicates the engine's existing resource manifest.
+Use /MANIFEST:NO to retain that resource, and correct x64 vcvars selection to
+amd64 (ARM64 uses amd64_arm64). Generated Visual Studio build still needs to pass.
+No source fix, warning suppression or dropped resource is involved.
+
+Permanent unit/download/lifetime helpers consume CMake production objects and
+compile_commands.json. Engine link instrumentation is target-specific so probe
+entry points do not enter CMake's compiler-identification checks. Locally pass:
+unit + one-ULP negative control; Clang+libc++; ASan/UBSan with known-bug classifier;
+curl options/download; complete bot result; lifetime 546 commands/137 paths with
+seven negative controls; both Q3 smoke logs; both-renderer Q3 fixed replay
+(b38004b1); both OpenArena UBSan smoke logs; OA fixed replay (5b89d338).
+Logs/artifacts /tmp/aftershock-cmake-{unit,unit-clang,unit-sanitized,download,
+bot-move,lifetimes,runtime,demo,oa-runtime,oa-demo}*. Goldens/fixtures unchanged.
+
+Regression workflow migration now adds job caches and uses CMake for cross-server
+builds and the two existing Windows SDL interface compile checks. The latter pass
+locally (/tmp/aftershock-cmake-sdl-cross). The supported build.yml is being switched to CMake after the migration gates;
+preserve its original CRLF.
+CMake keeps explicit source lists, strict native FP, precise MSVC engine FP, fast
+MSVC release renderer FP and static CRT. MSVC ARM64 curl remains disabled as in
+the old projects. External OA native objects remain static test inputs.
+
+
+Correction checkpoint 390a20f4 is pushed. Prior f111b28c passed regression
+34946061849 and the supported full build 34946061751. Its migration proved every
+Linux/macOS compiler/configuration/renderer combination; only MinGW debug metadata
+and MSVC environment/manifest steps needed the corrections above. New migration
+34946471284 has already passed MSVC ARM64 debug, including generated VS projects;
+other legs are pending. Runtime goldens and both fixed content replays pass locally.
+
+MSVC debug's /Zi made all 359 compilation calls uncacheable with the installed
+ccache 4.9; release is 359/359 cacheable. The build now selects CMake's Embedded
+MSVC debug format (/Z7), keeping symbols in objects for ccache and final linked
+PDBs. This changes debug metadata format, not optimization or runtime checks.
+[ccache 4.9 option handling](https://github.com/ccache/ccache/blob/v4.9/src/argprocessing.cpp#L1152)
+explicitly supports /Z7 and rejects /Zi. Hosted cache statistics must confirm the
+change. Build instructions and compile-database documentation are being updated;
+Make/handwritten-project retirement and inactive platform cleanup remain undone.
+
+
+Embedded-debug source 48733686 passes migration 34946795374 on every leg. MSVC
+x64 debug now reports 720/720 cacheable compilation calls, including 52 hits,
+while retaining the generated VS build. Native Windows curl needs target zlib;
+the local optional curl build compiles but cannot link -lz because that cross
+library is absent. Hosted MSYS now installs its target zlib explicitly; the
+local cross example uses USE_CURL=OFF, matching the verified cross configuration.
+No local package is installed and the optional local curl link is not claimed
+passing. CMake-only workflow/artifact staging still needs its own hosted run.
+
+
+## #4 completed evidence
 
 #4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects
 per renderer on 239cbc34. Pure move 85381cda moves 757 files with identical Git
@@ -52,7 +185,7 @@ Self-review: one issue, public/OS ownership scope, content-only move evidence ke
 separate from boundary changes; no new OS calls outside platform/filesystem;
 no non-trivial core lifetimes or per-frame allocation; no simulation FP expression
 change; existing wire/file layout assertions retained and native layouts match;
-all goldens/fixtures unchanged. CI and local gates pass. Ready for merge.
+all goldens/fixtures unchanged. CI and local gates pass. PR #65 merged as 4a952854.
 
 ## Earlier #2 integration checkpoints (historical)
 
@@ -943,3 +1076,8 @@ pass on 440089eb in build 34936092520; remaining build jobs are running. Local
 MinGW native-Windows client (USE_CURL=0 USE_SDL=0, matching CI) links successfully.
 The optional MinGW SDL/no-curl build exposed old missing Windows header context;
 record it separately for #31 without changing those engine sources here.
+
+#5 documentation correction: the untouched finished network driver belongs to
+#3 merge 8692b422, before both path and build migrations, not the 390a20f4 build
+parity checkpoint. It is not rerun or adapted here. README and AGENTS now identify
+its historical revision explicitly.

@@ -11,8 +11,20 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install Clang analysis and build headers
-        run: sudo apt-get update && sudo apt-get install -y clang-tools libsdl2-dev libcurl4-openssl-dev mesa-common-dev
+        run: sudo apt-get update && sudo apt-get install -y ninja-build clang-tools libsdl2-dev libcurl4-openssl-dev mesa-common-dev
+      - name: Reject unsupported build architectures
+        run: |
+          for arch in i686 armv7 ppc64le; do
+            if cmake -S . -B "/tmp/reject-$arch" -G Ninja -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR="$arch" > "/tmp/reject-$arch.log" 2>&1; then
+              echo "FAIL: unsupported architecture $arch configured"
+              exit 1
+            fi
+            grep -F 'Aftershock supports 64-bit little-endian x86_64 and aarch64' "/tmp/reject-$arch.log"
+          done
       - name: Enforce subsystem and OS boundaries
         run: python3 tests/check_boundaries.py
       - name: Enforce trivial engine lifetimes
@@ -30,9 +42,12 @@ jobs:
             cxx: clang++ -stdlib=libc++
     steps:
       - uses: actions/checkout@v7
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install libc++
         if: matrix.cc == 'clang'
-        run: sudo apt-get update && sudo apt-get install -y libc++-dev libc++abi-dev
+        run: sudo apt-get update && sudo apt-get install -y ninja-build libc++-dev libc++abi-dev
       - name: Frame evidence negative controls
         run: python3 tests/check_frames.py
       - name: Build C native modules and compare ABI layouts
@@ -85,6 +100,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Check known-bug classification
         run: python3 tests/check_known_bugs.py
       - name: ASan and UBSan with the existing suppression file
@@ -107,8 +125,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install runtime tools and OpenArena content
-        run: sudo apt-get update && sudo apt-get install -y faketime xvfb mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data
+        run: sudo apt-get update && sudo apt-get install -y ninja-build faketime xvfb mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data
       - name: Stage pinned upstream OpenArena gamecode
         run: python3 tests/openarena.py
       - name: Download URL construction
@@ -145,23 +166,26 @@ jobs:
           - cc: aarch64-linux-gnu-gcc
             cxx: aarch64-linux-gnu-g++
             packages: gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-            settings: ARCH=aarch64
+            toolchain: aarch64-linux
           - cc: x86_64-w64-mingw32-gcc
             cxx: x86_64-w64-mingw32-g++
             packages: gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64
-            settings: PLATFORM=mingw64 ARCH=x86_64
+            toolchain: mingw64
     steps:
       - uses: actions/checkout@v7
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install cross compiler
-        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build ${{ matrix.packages }}
       - name: Cross-build dedicated server
-        run: make -j4 BUILD_CLIENT=0 CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' ${{ matrix.settings }}
+        run: |
+          cmake -S . -B build/cross -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/${{ matrix.toolchain }}.cmake -DBUILD_CLIENT=OFF -DUSE_SDL=OFF -DUSE_CURL=OFF
+          cmake --build build/cross -j4
       - name: Compile SDL Windows interfaces without curl headers
         if: startsWith(matrix.cc, 'x86_64-w64-mingw32-')
-        run: >-
-          make -k -j4 BUILD_SERVER=0 USE_SDL=1 USE_CURL=0
-          CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' ${{ matrix.settings }}
-          build/release-mingw64-x86_64/client/sdl_glimp.o
-          build/release-mingw64-x86_64/client/sdl_gamma.o
+        run: |
+          cmake -S . -B build/sdl -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/mingw64.cmake -DBUILD_SERVER=OFF -DUSE_SDL=ON -DUSE_CURL=OFF
+          cmake --build build/sdl -j4 --target CMakeFiles/client.dir/engine/platform/sdl/sdl_glimp.cpp.obj CMakeFiles/client.dir/engine/platform/sdl/sdl_gamma.cpp.obj
 
   # Existing build.yml also builds MSVC x64/ARM64 Debug/Release for this PR.

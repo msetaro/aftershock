@@ -133,7 +133,8 @@
     "090b7a3c": "#2 platform adaptation: DEBUG T8 casts with unchanged C objects; MSVC pragmas, Win32 selection, unused legacy helpers and compiler debug trap",
     "85381cda": "#4 content-identical directory moves; original import source names and hashes retained",
     "8b5264c5": "#4 include/build path repair; all 710 production objects byte-identical before/after",
-    "52e57708": "#4 shared game/input headers published at subsystem boundaries; game implementation changes only include paths"
+    "52e57708": "#4 shared game/input headers published at subsystem boundaries; game implementation changes only include paths",
+    "9c170ddd": "#5 retires inactive x86/PowerPC math and header branches; all 103 GCC x64 native production objects remain byte-identical, with unchanged C/C++ layouts and symbols"
   },
   "files": [
     {
@@ -905,10 +906,11 @@
       "source": "code/game/q_math.c",
       "path": "game/bg/q_math.cpp",
       "sha256": "571cffb6357b3f34fb4a5c000e22d7108f2f3380a49b55f8a993f0b0ce0ba239",
-      "disposition": "GPL import with recorded transformations in b3ef1acd; LP64 word fix merged from PR #49; #2 native binary32 ABI: 49 explicit float literal suffixes (C/C++ objects unchanged)",
+      "disposition": "GPL import with recorded transformations in b3ef1acd; LP64 word fix merged from PR #49; #2 native binary32 ABI: 49 explicit float literal suffixes (C/C++ objects unchanged); #5 inactive 32-bit/PowerPC paths retired without changing supported function bodies",
       "transformations": [
         "152cc6e2",
-        "5592a1eb"
+        "5592a1eb",
+        "9c170ddd"
       ]
     },
     {
@@ -926,12 +928,13 @@
       "source": "code/game/q_shared.h",
       "path": "game/bg/q_shared.h",
       "sha256": "9083a35790991b674bc58c3800b068a9a978898508c5fb08123ea52e1dc8597a",
-      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 7 explicit float literal suffixes (C/C++ objects unchanged)",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 7 explicit float literal suffixes (C/C++ objects unchanged); #5 inactive 32-bit/PowerPC paths retired without changing supported function bodies",
       "transformations": [
         "152cc6e2",
         "bdf81ac0",
         "5592a1eb",
-        "090b7a3c"
+        "090b7a3c",
+        "9c170ddd"
       ]
     },
     {

@@ -43,36 +43,79 @@ def compare(name, actual, regenerate, normalize=None):
     print('PASS', name, hashlib.sha256(actual).hexdigest())
 
 
-def build(output, variables, targets=()):
+def configure(output, variables):
     output.mkdir(parents=True, exist_ok=True)
     settings = json.dumps(variables)
     manifest = output / 'settings.json'
-    refresh = [] if manifest.exists() and manifest.read_text() == settings else ['-B']
-    command = ['make', '-j8', *refresh, f'BUILD_DIR={output}', *variables, *targets]
-    with (output / 'build.log').open('w') as log:
-        result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV, stdout=log, stderr=subprocess.STDOUT)
+    refresh = [] if manifest.exists() and manifest.read_text() == settings else ['--fresh']
+    flags = []
+    for variable in variables:
+        key, value = variable.split('=', 1)
+        if key in ('CC', 'CXX'):
+            language = 'C' if key == 'CC' else 'CXX'
+            compiler = shlex.split(value)
+            flags += [f'-DCMAKE_{language}_COMPILER={compiler[0]}',
+                      f'-DCMAKE_{language}_FLAGS={shlex.join(compiler[1:])}']
+        else:
+            key = {'CFLAGS': 'AFTERSHOCK_EXTRA_FLAGS',
+                   'LDFLAGS': 'AFTERSHOCK_EXTRA_LINK_FLAGS'}.get(key, key)
+            flags.append('-D' + key + '=' + value)
+    command = ['cmake', *refresh, '-S', ROOT, '-B', output, '-G', 'Ninja',
+               '-DCMAKE_BUILD_TYPE=Release', *flags]
+    build_command(output, command, 'w')
+    manifest.write_text(settings)
+
+
+def build_command(output, command, mode='a'):
+    with (output / 'build.log').open(mode) as log:
+        result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV,
+                                stdout=log, stderr=subprocess.STDOUT)
     if result.returncode:
         print((output / 'build.log').read_text())
         result.check_returncode()
-    manifest.write_text(settings)
+
+
+def compilation_commands(output):
+    commands = json.loads((output / 'compile_commands.json').read_text())
+    for row in commands:
+        row['arguments'] = row.get('arguments') or shlex.split(row['command'])
+        path = Path(row.get('output') or row['arguments'][row['arguments'].index('-o') + 1])
+        row['output'] = str(path if path.is_absolute() else Path(row['directory']) / path)
+    return commands
+
+
+def build(output, variables):
+    configure(output, variables)
+    build_command(output, ['cmake', '--build', output, '-j8'])
     return output / 'release-linux-x86_64'
 
 
+def build_objects(output, variables, target, sources):
+    configure(output, variables)
+    rows = [row for row in compilation_commands(output)
+            if f'{target}.dir' in Path(row['output']).parts and Path(row['file']).stem in sources]
+    objects = {Path(row['file']).stem: Path(row['output']) for row in rows}
+    if len(rows) != len(sources) or set(objects) != set(sources):
+        raise RuntimeError('production object selection differs: ' + str(objects))
+    build_command(output, ['cmake', '--build', output, '-j8', '--target',
+                          *[str(path.relative_to(output)) for path in objects.values()]])
+    return objects
+
+
 def differential(args):
-    objects = args.output / 'unit-build/release-linux-x86_64/ded'
     sanitizers = 'address,pointer-compare' if args.pointer_compare else 'address,undefined'
     instrument = ['-fsanitize=' + sanitizers, '-fno-omit-frame-pointer'] if args.sanitize else []
     jpeg_tables = args.output / 'jpeg-tables.o'
     run([*shlex.split(args.cc), '-std=c11', '-O2', *instrument, '-fno-strict-aliasing',
          '-ffunction-sections', '-fdata-sections', '-c', 'tests/probes/jpeg_tables.c', '-o', jpeg_tables])
     variables = [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0', 'USE_SDL=0', 'USE_CURL=0', 'CFLAGS=-ffunction-sections -fdata-sections ' + ' '.join(instrument)]
-    build(args.output / 'unit-build', variables, [objects / (s + '.o') for s in SOURCES])
+    objects = build_objects(args.output / 'unit-build', variables, 'server', SOURCES)
     binary = args.output / 'differential'
     run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti', '-O2',
          *instrument, '-fno-strict-aliasing', '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',
          'tests/probes/allocations.cpp',
          jpeg_tables,
-         *[objects / (s + '.o') for s in SOURCES], '-Wl,--gc-sections',
+         *[objects[s] for s in SOURCES], '-Wl,--gc-sections',
          '-Wl,--wrap=_Z11FS_ReadFilePKcPPv', '-o', binary, '-lm'])
     command = [binary]
     if args.check == 'differential':
@@ -124,13 +167,16 @@ def negative_control(args, objects, binary):
     assert body.count('return 1.0f / sqrtf( number );') == 1
     mutant = args.output / 'q_math-one-ulp.cpp'
     mutant.write_text(original[:begin] + body.replace('return 1.0f / sqrtf( number );', 'return nextafterf( 1.0f / sqrtf( number ), INFINITY );') + original[end:])
-    target = objects / 'q_math.o'
-    recipe = run(['make', '-Bn', 'V=1', f'BUILD_DIR={args.output / "unit-build"}',
-                  f'CC={args.cc}', f'CXX={args.cxx}', str(target)], stdout=subprocess.PIPE).stdout.decode()
-    commands = [shlex.split(line) for line in recipe.splitlines() if ' -c engine/qcommon/q_math.cpp' in line]
-    assert len(commands) == 1
-    command = commands[0]
-    command[command.index('engine/qcommon/q_math.cpp')] = str(mutant)
+    row = next(row for row in compilation_commands(args.output / 'unit-build')
+               if Path(row['output']) == objects['q_math'])
+    command = []
+    arguments = iter(row['arguments'])
+    for argument in arguments:
+        if argument in ('-MF', '-MT', '-MQ'):
+            next(arguments)
+        elif argument not in ('-MD', '-MMD'):
+            command.append(argument)
+    command[command.index(row['file'])] = str(mutant)
     obj = args.output / 'q_math-one-ulp.o'
     command[command.index('-o') + 1] = str(obj)
     run([*command, '-Iengine/qcommon', '-ffunction-sections', '-fdata-sections'])
@@ -139,7 +185,7 @@ def negative_control(args, objects, binary):
          '-fno-strict-aliasing', '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',
          'tests/probes/allocations.cpp',
          args.output / 'jpeg-tables.o',
-         *[obj if stem == 'q_math' else objects / (stem + '.o') for stem in SOURCES],
+         *[obj if stem == 'q_math' else objects[stem] for stem in SOURCES],
          '-Wl,--gc-sections', '-Wl,--wrap=_Z11FS_ReadFilePKcPPv', '-o', mutated_binary, '-lm'])
     changed = run([mutated_binary], stdout=subprocess.PIPE).stdout
     expected = (ROOT / 'tests/golden/unit.txt').read_bytes()

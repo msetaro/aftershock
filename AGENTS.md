@@ -76,17 +76,31 @@ every wire and file-format struct; issue updated with what changed and what was 
 
 ## Building
 
-The GNU Makefile is the supported build until #5 makes CMake primary. CMake is broken upstream;
-do not use it before #5. MSVC projects in `tools/msvc2017` are CI-only. Output goes to
-`build/<config>-<platform>-<arch>/`.
+CMake 3.25+ is the primary build for #5. Use Ninja on Linux/macOS and in an MSVC
+developer shell. Visual Studio projects are generated from the same source lists.
+The default builds the client and dedicated server with a static Vulkan renderer;
+OpenGL and optional renderer modules use separate build directories.
 
 ```
-make -j$(nproc)                                  # client + server + dlopen renderers
-make -j$(nproc) BUILD_CLIENT=0                   # dedicated server only
-make -j$(nproc) BUILD_SERVER=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan
-make debug -j$(nproc)
-make PLATFORM=mingw64 ARCH=x86_64 ...            # Windows cross-build (auto-detects mingw)
+cmake --workflow --preset release
+cmake --workflow --preset debug
+cmake --workflow --preset msvc-x64               # Windows: generate and build VS 2022
+cmake --workflow --preset msvc-arm64             # Windows ARM64 cross-build
+cmake -S . -B build/opengl -G Ninja -DRENDERER_DEFAULT=opengl
+cmake --build build/opengl
+cmake -S . -B build/mingw -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/mingw64.cmake -DUSE_CURL=OFF
+cmake --build build/mingw
 ```
+
+Set `BUILD_CLIENT=OFF` for server-only, `BUILD_SERVER=OFF` for client-only, or
+`USE_RENDERER_DLOPEN=ON` for loadable renderers. Outputs are inside each CMake build
+directory under `<config>-<platform>-<arch>/`. `cmake/Sources.cmake` owns the explicit
+source lists; do not add source globs. ccache is detected automatically. MinGW curl builds also require target zlib (installed in hosted MSYS CI). Game
+libraries remain static in every configuration; renderer modules are optional.
+
+The migration checkpoint in docs/modernization-progress.md records raw Make/CMake
+object comparisons and hosted gates. Historical port commands must be run at
+their recorded revisions. Never regenerate accepted test goldens for build changes.
 
 Local machine: gcc 15.2, clang 21 (+libc++), cross compilers for mingw x86_64, aarch64, armhf,
 ppc64le, faketime, Xvfb, Mesa software drivers, 20 cores. Agent shells have no `DISPLAY`: run
@@ -130,8 +144,8 @@ python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare 
 Local runtime/differential/demo commands use installed Quake 3 paks. Hosted CI uses
 OpenArena: stage with `python3 tests/openarena.py`, then pass
 `--content openarena --data /tmp/aftershock-openarena-baseoa` to those three commands.
-The finished local network command is `python3 tests/network.py`; run its negative
-control only when required by the issue. `tests/README.md` documents explicit fixture
+The finished network driver is retained unchanged; its evidence belongs to #3
+merge `8692b422`, before the path/build migrations. Do not rerun its negative control. `tests/README.md` documents explicit fixture
 regeneration; CI never regenerates. Existing port-era layout/symbol/codegen oracles
 remain available under `tools/port` for changes requiring those gates.
 

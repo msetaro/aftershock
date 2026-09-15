@@ -4,9 +4,10 @@ import argparse
 import json
 from pathlib import Path
 import re
-import shlex
 import shutil
 import subprocess
+
+from run import configure, compilation_commands
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE = ('qcommon', 'client', 'server', 'botlib', 'renderercommon', 'renderer',
@@ -73,21 +74,16 @@ def main():
     commands = []
     # Read the supported build's actual flags; no parallel build or engine edits.
     for renderer in ('opengl', 'vulkan'):
-        recipe = subprocess.check_output(
-            ['make', '-Bn', 'V=1', 'CC=clang', 'CXX=clang++', 'USE_RENDERER_DLOPEN=0',
-             f'RENDERER_DEFAULT={renderer}', f'BUILD_DIR={args.output / renderer}'],
-            cwd=ROOT, text=True)
-        for line in recipe.splitlines():
-            if not re.search(r' -c (engine|game|third_party)/', line):
-                continue
-            command = shlex.split(line)
-            source = Path(command[command.index('-c') + 1])
+        directory = args.output / renderer
+        configure(directory, ['CC=clang', 'CXX=clang++', 'USE_RENDERER_DLOPEN=0',
+                              f'RENDERER_DEFAULT={renderer}'])
+        for row in compilation_commands(directory):
+            source = Path(row['file']).relative_to(ROOT)
             if source.suffix != '.cpp' or not (source.parts[0] == 'game' or
                     source.parts[0] == 'engine' and source.parts[1] in CORE or
                     source.parts[0] == 'third_party' and source.parts[1] in ('minizip', 'zlib')):
                 continue
-            commands.append({'directory': str(ROOT), 'file': str(source),
-                             'arguments': [a for a in command if a != '-MMD']})
+            commands.append(row)
     if not commands:
         raise RuntimeError('no engine compilation commands found')
     (args.output / 'compile_commands.json').write_text(json.dumps(commands))

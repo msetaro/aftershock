@@ -5,7 +5,7 @@ from pathlib import Path
 import shlex
 import subprocess
 
-from run import build, compare, run
+from run import build_objects, compare, run
 
 
 def main():
@@ -16,16 +16,15 @@ def main():
     parser.add_argument('--regenerate', action='store_true')
     args = parser.parse_args()
     args.output = args.output.resolve()
-    objects = args.output / 'build/release-linux-x86_64/client'
     sources = ['cl_curl', 'q_shared']
-    build(args.output / 'build', [f'CC={args.cc}', f'CXX={args.cxx}',
+    objects = build_objects(args.output / 'build', [f'CC={args.cc}', f'CXX={args.cxx}',
           'BUILD_CLIENT=1', 'BUILD_SERVER=0', 'USE_SDL=0', 'USE_CURL=1',
           'USE_CURL_DLOPEN=0', 'CFLAGS=-ffunction-sections -fdata-sections'],
-          [objects / (name + '.o') for name in sources])
+          'client', sources)
     binary = args.output / 'download'
     run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti',
          '-DUSE_CURL', '-ffunction-sections', '-fdata-sections', 'tests/probes/download.cpp',
-         *[objects / (name + '.o') for name in sources], '-Wl,--gc-sections',
+         *[objects[name] for name in sources], '-Wl,--gc-sections',
          '-lcurl', '-o', binary])
     actual = run([binary], stdout=subprocess.PIPE).stdout
     compare('download.txt', actual, args.regenerate)

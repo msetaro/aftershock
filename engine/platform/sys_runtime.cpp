@@ -108,7 +108,7 @@ static uint64_t pCoreMask;
 static uint64_t affinityMask; // saved at startup
 #endif
 
-#if (idx64 || id386)
+#if idx64
 
 #if defined _MSC_VER
 #include <intrin.h>
@@ -118,25 +118,7 @@ static void CPUID( int func, unsigned int *regs )
 }
 
 #ifdef USE_AFFINITY_MASK
-#if idx64
 Q_EXTERN_C void CPUID_EX( int func, int param, unsigned int *regs );
-#else
-Q_EXTERN_C void CPUID_EX( int func, int param, unsigned int *regs )
-{
-	__asm {
-		push edi
-		mov eax, func
-		mov ecx, param
-		cpuid
-		mov edi, regs
-		mov [edi +0], eax
-		mov [edi +4], ebx
-		mov [edi +8], ecx
-		mov [edi+12], edx
-		pop edi
-	}
-}
-#endif // !idx64
 #endif // USE_AFFINITY_MASK
 
 #else // clang/gcc/mingw
@@ -173,11 +155,7 @@ void Sys_GetProcessorId( char *vendor )
 	char vendor_str[12 + 1]; // short CPU vendor string
 
 	// setup initial features
-#if idx64
 	CPU_Flags |= CPU_SSE | CPU_SSE2 | CPU_FCOM;
-#else
-	CPU_Flags = 0;
-#endif
 	vendor[0] = '\0';
 
 	CPUID( 0x80000000, regs );
@@ -309,54 +287,12 @@ void Sys_GetProcessorId( char *vendor )
 
 #else // __linux__
 
-#include <sys/auxv.h>
 
-#if arm32
-#include <asm/hwcap.h>
-#endif
 
 void Sys_GetProcessorId( char *vendor )
 {
-#if arm32
-	const char *platform;
-	long hwcaps;
 	CPU_Flags = 0;
-
-	platform = (const char*)getauxval( AT_PLATFORM );
-
-	if ( !platform || *platform == '\0' ) {
-		platform = "(unknown)";
-	}
-
-	if ( platform[0] == 'v' || platform[0] == 'V' ) {
-		if ( atoi( platform + 1 ) >= 7 ) {
-			CPU_Flags |= CPU_ARMv7;
-		}
-	}
-
-	Com_sprintf( vendor, 100, "ARM %s", platform );
-	hwcaps = getauxval( AT_HWCAP );
-	if ( hwcaps & ( HWCAP_IDIVA | HWCAP_VFPv3 ) ) {
-		strcat( vendor, " /w" );
-
-		if ( hwcaps & HWCAP_IDIVA ) {
-			CPU_Flags |= CPU_IDIVA;
-			strcat( vendor, " IDIVA" );
-		}
-
-		if ( hwcaps & HWCAP_VFPv3 ) {
-			CPU_Flags |= CPU_VFPv3;
-			strcat( vendor, " VFPv3" );
-		}
-	}
-#else // !arm32
-	CPU_Flags = 0;
-#if arm64
 	Com_sprintf( vendor, 100, "%s", ARCH_STRING );
-#else
-	Com_sprintf( vendor, 128, "%s %s", ARCH_STRING, (const char*)getauxval( AT_PLATFORM ) );
-#endif
-#endif // !arm32
 }
 
 #endif // __linux__
@@ -395,37 +331,8 @@ void Sys_SnapVector( float *vector )
 }
 #endif // idx64
 
-#if id386
-void Sys_SnapVector( float *vector )
-{
-	static const DWORD cw037F = 0x037F;
-	DWORD cwCurr;
-__asm {
-	fnstcw word ptr [cwCurr]
-	mov ecx, vector
-	fldcw word ptr [cw037F]
 
-	fld   dword ptr[ecx+8]
-	fistp dword ptr[ecx+8]
-	fild  dword ptr[ecx+8]
-	fstp  dword ptr[ecx+8]
-
-	fld   dword ptr[ecx+4]
-	fistp dword ptr[ecx+4]
-	fild  dword ptr[ecx+4]
-	fstp  dword ptr[ecx+4]
-
-	fld   dword ptr[ecx+0]
-	fistp dword ptr[ecx+0]
-	fild  dword ptr[ecx+0]
-	fstp  dword ptr[ecx+0]
-
-	fldcw word ptr cwCurr
-	}; // __asm
-}
-#endif // id386
-
-#if arm64 || arm32
+#if arm64
 void Sys_SnapVector( float *vector )
 {
 	vector[0] = rint( (double)vector[0] );
@@ -436,34 +343,6 @@ void Sys_SnapVector( float *vector )
 
 #else // clang/gcc/mingw
 
-#if id386
-
-#define QROUNDX87(src) \
-	"flds " src "\n" \
-	"fistpl " src "\n" \
-	"fildl " src "\n" \
-	"fstps " src "\n"
-
-void Sys_SnapVector( float *vector )
-{
-	static const unsigned short cw037F = 0x037F;
-	unsigned short cwCurr;
-
-	__asm__ volatile
-	(
-		"fnstcw %1\n" \
-		"fldcw %2\n" \
-		QROUNDX87("0(%0)")
-		QROUNDX87("4(%0)")
-		QROUNDX87("8(%0)")
-		"fldcw %1\n" \
-		:
-		: "r" (vector), "m"(cwCurr), "m"(cw037F)
-		: "memory", "st"
-	);
-}
-
-#else // idx64, non-x86
 
 void Sys_SnapVector( float *vector )
 {
@@ -472,7 +351,6 @@ void Sys_SnapVector( float *vector )
 	vector[2] = rint( (double)vector[2] );
 }
 
-#endif
 
 #endif // clang/gcc/mingw
 
@@ -574,7 +452,7 @@ void Sys_InitAffinity( void )
 {
 	// get initial process affinity - we will respect it when setting custom affinity masks
 	eCoreMask = pCoreMask = affinityMask = Sys_GetAffinityMask();
-#if (idx64 || id386)
+#if idx64
 	DetectCPUCoresConfig();
 #endif
 }

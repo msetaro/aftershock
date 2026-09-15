@@ -66,7 +66,9 @@ minizip and zlib code. Existing C libraries stay C; the already-ported minizip a
 puff C++ files keep their language and lifetime-analysis coverage. Dependencies
 are not engine subsystems and keep their upstream API conventions.
 
-`tools` owns build/shader generators, MSVC project files and historical port gates.
+`tools` owns shader generators and historical port gates. `cmake` owns production
+source lists and cross toolchains; Visual Studio projects are generated in the
+build directory.
 Reusable artifact gates recognize the new layout and old oracle paths. Historical
 port drivers that refer to recorded source revisions remain historical evidence.
 `tests` owns permanent build, runtime, fixed-replay and boundary verification;

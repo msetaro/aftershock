@@ -49,11 +49,6 @@ const int demo_protocols[] = { 66, 67, OLD_PROTOCOL_VERSION, NEW_PROTOCOL_VERSIO
 static jmp_buf abortframe;	// an ERR_DROP occurred, exit the entire frame
 
 int		CPU_Flags = 0;
-#ifdef USE_X87
-int32_t	x87_cw_orig = 0;
-int32_t	x87_cw_rint = 0;
-int32_t	x87_cw_cvfi = 0;
-#endif
 
 static fileHandle_t logfile = FS_INVALID_HANDLE;
 static fileHandle_t com_journalFile = FS_INVALID_HANDLE ; // events are written here
@@ -3253,42 +3248,6 @@ void Com_AppendCDKey( const char *filename ) {
 
 
 
-#ifdef USE_X87
-#ifdef _MSC_VER
-#if id386
-/*
-=================
-Q_GetFPUCW
-=================
-*/
-void Q_GetFPUCW( unsigned short *cw )
-{
-	__asm {
-		mov ecx, cw;
-		fnstcw [ecx];
-	}
-}
-void Q_SetFPUCW( unsigned short *cw )
-{
-	__asm {
-		mov ecx, cw;
-		fldcw [ecx];
-	}
-}
-#else // idx64
-// .asm versions
-#endif // idx64
-#else // GCC/clang
-void Q_GetFPUCW( unsigned short *cw )
-{
-	asm volatile("fnstcw %0" : "=m" (*cw));
-}
-void Q_SetFPUCW( unsigned short *cw )
-{
-	asm volatile("fldcw %0" : "=m" (*cw));
-}
-#endif // GCC/clang
-#endif // USE_X87
 
 
 /*
@@ -3511,16 +3470,6 @@ void Com_Init( char *commandLine ) {
 	}
 	Com_Printf( "%s\n", Cvar_VariableString( "sys_cpustring" ) );
 
-#ifdef USE_X87
-	// initialize x87 FPU control words:
-	Q_GetFPUCW( (unsigned short*) &x87_cw_orig );
-	x87_cw_orig |= 0x003F; // set all exception mask bits
-	x87_cw_orig = (x87_cw_orig & 0xFCFF) | 0x0200; // default rounding, *enforced* double precision
-	x87_cw_rint = (x87_cw_orig & 0xFCFF) | 0x0000; // default rounding, single precision
-	x87_cw_cvfi = (x87_cw_orig & 0xF0FF) | 0x0C00; // round to zero, single precision
-	// this is mostly for MINGW/GCC to reset extended precision:
-	Q_SetFPUCW( (unsigned short*) &x87_cw_orig );
-#endif
 
 #ifdef USE_AFFINITY_MASK
 	Sys_InitAffinity();
