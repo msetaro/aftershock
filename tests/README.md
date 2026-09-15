@@ -388,3 +388,9 @@ module-loading path. Native game objects are linked into the executables.
 
 The boundary check scans engine/game includes and OS calls, with built-in negative
 controls. See `docs/subsystems.md` for the public-header and OS ownership rules.
+
+`python3 tests/affinity.py` checks valid CPU-affinity expressions against the actual
+platform helper and public apply path under UBSan. It covers decimal/hex constants,
+64-bit values, core aliases and mixed `+`/`-` expressions. The OS setter is intercepted;
+the test does not alter process affinity. Pass `--cxx 'clang++ -stdlib=libc++'` for
+the second CI compiler. No content or golden files are required.

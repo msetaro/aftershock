@@ -7,17 +7,31 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-implicit-fallthrough, draft PR #67, based on #5 merge 1412c2eb.
-#3/#31/#1/#2/#4/#5 are complete. PR #66 final 112fa4ff passes build 34949329755
-and regression 34949329729; merged tree is identical to that tested checkpoint.
-Merged-tree regression 34949976994 passed.
+Active: issue/31-affinity-operators, with #67 merge 43ad68ab integrated. #5 merged as 1412c2eb with merged regression
+34949976994 passing. First #8 warning-class PR #67 merged as 43ad68ab after build
+34950827218 and regression 34950827333 passed. Its merged-tree run remains to check.
 
-Next: verify the vendor warning-policy correction and rerun PR #67 hosted gates,
-then complete self-review and merge. Address the newly confirmed affinity bugs in
-separate #31 test-first PRs before resuming other #8 warning classes. One warning class per PR. After the warning ratchet: one verified
-tree-wide clang-format commit, tidy subsets, fixed-width representation types and
-layout assertions, release-identical Q_ASSERT. Finish #8, write design-only
-`docs/design/rhi.md` for #6, then stop. No #6/#7 implementation.
+Next: finish codegen/runtime/hosted gates and self-review for the affinity-operator
+PR, then merge. Upstream C fix edee6fef is ec-/Quake3e PR #440. The
+hex-sentinel bug stays a separate test-first #31 PR. After those fixes resume #8:
+one warning class per PR, one verified tree-wide clang-format commit, tidy subsets,
+fixed-width representation types/layout assertions, and release-identical Q_ASSERT.
+Finish #8, write design-only `docs/design/rhi.md` for #6, then stop; no implementation.
+
+Operator fix: preserve the + or - before recursive operand consumption. Test-first
+e84a1f6e fails; all 16 valid cases now pass GCC/Clang UBSan through both helper and
+public entry point. Common initialization and cvar-update callers were reviewed.
+Upstream C f694bbbc fails the same probe (with its original Com_SetAffinityMask
+name) and passes the same fix under both compilers. Explicit unit and collision
+golden regeneration is unchanged (8d44421d / 9674cd22). No engine FP, layout,
+allocation, OS call or lifetime change. No expectation/suppression applies.
+
+#31 operator test-first checkpoint: tests/affinity.py compiles the actual private
+parser/public apply implementation with UBSan. Sixteen valid expression cases
+cover constants, 64-bit values, aliases and mixed operator order. The OS setter
+is intercepted. The permanent test fails on the current source as expected
+(/tmp/aftershock-affinity-test-first.log); both compiler CI unit jobs now run it.
+This was the failing checkpoint before the operator fix.
 
 #8 baseline: 2,380 production C++ objects/diagnostics across GCC/Clang release,
 GCC debug, MinGW and aarch64 server configurations. Both renderers covered where
@@ -48,14 +62,28 @@ Hosted gates and final self-review remain required.
 First hosted #67 run found vendored minizip still inheriting engine warnings.
 The CMake correction applies the plan's -w (/w on MSVC) vendor policy through
 explicit existing source lists. Owned engine/game code retains the fallthrough
-gate. Full local non-SDL debug client/server build passes; vendor raw-object
-comparison across nine configurations is running. No vendored source is edited.
+gate. Full local non-SDL debug client/server build passes; vendor comparison across nine configurations passes: 433/577 raw objects
+match and all 144 differing MinGW LTO containers produce byte-identical native
+objects after LTO linking. Artifacts /tmp/aftershock-vendor-warning-parity and
+/tmp/aftershock-vendor-lto-review. No vendored source is edited.
 
 Two affinity-helper bugs are confirmed by direct calls that do not apply CPU
 affinity: valid 1+2 and 3-1 yield 1 and 3; 0xZ yields UINT64_MAX. docs/bugs.md
 records the distinct operator-consumption and unsigned-sentinel causes with their
 reproducer. Fix only in separate #31 PRs with failing tests first. Other warning
 candidates remain unconfirmed and must not be silently changed during the ratchet.
+The operator bug's temporary UBSan probe covers 16 valid numeric/alias/compound
+expressions through both the private parser and public apply path. It fails on
+compound expressions before any fix. Sys_SetAffinityMask is intercepted, so the
+probe changes no process affinity. /tmp/aftershock-affinity-operators-probe.cpp and
+/tmp/aftershock-affinity-operators-before.log. Copy this to a permanent test in its
+own #31 branch and commit the failing test before changing engine code.
+
+#67 self-review: one warning class; six comments preserve control flow and line
+counts; explicit source lists scope vendor flags. No FP/layout/OS-call/allocation
+or lifetime changes; accepted goldens/fixtures unchanged. Native provenance and
+object/LTO review are recorded. Corrected hosted runs 34950827218 (build) and
+34950827333 (regression) passed; #67 merged as 43ad68ab.
 
 ## #5 completed verification
 
