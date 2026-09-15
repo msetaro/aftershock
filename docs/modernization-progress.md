@@ -7,24 +7,29 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-type-limits. PR #73 passed build 35018897499 and regression
-35018897591 at 248dca68, then merged as be2186e0. That merge is integrated into
-this branch; its merged-tree regression remains to check. PR #72 merged-tree
-regression 35018822894 and #71 merged-tree regression 35018077437 passed.
-#5 is complete. #8 warning classes through unneeded-internal-declaration are merged.
+Active: issue/8-unused-constants. PR #74 passed build 35019711765 and regression
+35019711780 at 644741e9, then merged as 5fb78853. That merge is integrated into
+this branch; its merged-tree regression remains to check. #73 merged-tree
+regression 35019634702 and #72 merged-tree regression 35018822894 passed.
+#5 is complete; #8 warning ratchet remains active.
 
-This branch replaces -Wno-type-limits with explicit -Wtype-limits on engine C++
-compilation. All 728 GCC/Clang engine release objects across both renderers retain
-identical raw hashes. Both compiler controls reject an unsigned comparison with
-zero when enabled; Clang needs the explicit positive flag. The relevant affinity
-and chat-sentinel bugs were fixed in separate #31 PRs. No engine source, floating-
-point, layout, lifetime, allocation, OS or golden changes in this warning class.
+This branch removes the native unused-constant suppressions and enables GCC
+-Wunused-const-variable=2, which includes native source files pulled through the
+namespace wrapper. The order table/type/count in cg_servercmds.cpp now share the
+existing MISSIONPACK guard with their sole user. Source line count is unchanged.
+Clang does not diagnose unused constants in included files; the GCC job enforces
+this class. Its actual-wrapper negative control rejects an unused constant.
 
-Next: open the type-limits PR, verify hosted gates/self-review,
-merge with a merge commit, and check the merged-tree regression. #73 independently
-preserves 206 Clang native objects and rejects its control through the actual
-namespace wrapper. Keep the unused-constant cleanup separate until its remaining
-debug relocation and conditional-source evidence below is incorporated into its own PR.
+Source transformation 68919a83 is recorded in native provenance. All 858 actual
+native production commands pass with unused constants treated as errors, including
+GCC/Clang/debug/MinGW/ARM64; all 412 captured GCC/Clang release objects match raw
+hashes. Artifacts /tmp/aftershock-unused-constant-builds. The legacy standalone
+C/C++ native helper also had a frozen unused-constant entry: remove it from both
+compiler lists and explicitly enable the diagnostic there. All four standalone GCC/Clang C/C++ helper builds pass, including ABI layout
+checks. Next: open this PR, verify hosted build/regression and self-review, then
+merge with a merge commit and check the merged tree. No golden regeneration. Hosted build/regression and self-review are
+required before merge. The preceding #74 type-limits change preserves 728 raw
+GCC/Clang engine objects and has passing diagnostic controls for both compilers.
 
 Test-first commit 36410f00 records the failing chat-offset regression. Both
 offset declarations now use signed char, preserving the negative sentinel and
@@ -81,7 +86,7 @@ object preserve the referenced bytes. No function is added or removed. The
 MISSIONPACK compile control fails in the unchanged baseline at cg_servercmds.cpp:936
 (int to qboolean); do not fix that inactive configuration in the warning PR.
 Its before/after preprocessed MISSIONPACK output is byte-identical. Preview artifacts:
-/tmp/aftershock-unused-constant-preview. No repository source edit yet.
+/tmp/aftershock-unused-constant-preview. The same guard move is now applied on this separate unused-constant branch.
 
 Type-limits preflight after the #31 affinity/chat fixes: replacing the suppression
 with explicit -Wtype-limits preserves all 728 GCC/Clang engine release objects
@@ -109,7 +114,18 @@ Clang actual-wrapper controls fail before and pass after each preview. Artifacts
 /tmp/aftershock-small-warning-preview. Each class still needs its own branch/PR,
 provenance record, enabled diagnostic and hosted gates. Do not combine classes.
 
+Remaining legacy native-helper warning scope: tests/native-warnings.json still
+freezes GCC implicit-fallthrough and Clang unneeded-internal-declaration even
+though their production CMake gates are enabled. Remove these remaining helper
+freezes in separate class follow-ups and check the standalone C/C++ paths. Do not
+combine those classes with the current unused-constant PR or declare #8 complete
+while the helper freeze list remains. Other frozen helper classes track the
+remaining production warning work.
+
 ## Completed affinity fixes and #8 baseline evidence
+
+The entries below preserve historical evidence. Only the Next action above directs
+resumed work; earlier next-action wording below describes its original checkpoint.
 
 Hex test-first 985a3f1f extends the existing affinity test with exactly 0xZ and
 bare 0x and enables ASan alongside UBSan. It fails on the wrong mask and terminator
