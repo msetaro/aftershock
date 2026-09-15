@@ -7,19 +7,27 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-ignored-qualifiers, based on #69 merge 2d9fa2ca.
+Active: issue/8-ignored-qualifiers, PR #70, based on #69 merge 2d9fa2ca.
 #69 source dc3a6a81 passed build 34995107292 and regression 34995107235; its
-merged-tree regression remains to check. Both affinity fixes are merged; upstream
+merged-tree regression 35015162588 passed. Both affinity fixes are merged; upstream
 C contributions are ec-/Quake3e #440 and #441. #5 is complete; #8 fallthrough PR
 #67 is merged. All other #8 warning classes and rules remain pending.
 
-Next: open the ignored-qualifier PR, then verify hosted gates and self-review
-before merge. The single CMake flag removal preserves all 590 captured client
-objects byte for byte across both renderers. GCC/Clang production-flag controls
-confirm the diagnostic is now an error. No test or engine source change is needed. No engine source changes. Continue
-one warning class per PR, followed by verified tree-wide formatting, tidy subsets,
-fixed-width representation types/layout assertions and release-identical Q_ASSERT.
-Finish #8, write design-only docs/design/rhi.md for #6, then stop; no implementation.
+Next: verify PR #70 hosted build and regression gates and self-review before merge.
+Regression 35015487624 passed at d56ab00b. The build workflow skipped that change
+because its inherited *.txt ignore also matched CMakeLists.txt. Remove that broad
+ignore from pull requests and pushes so future CMake-only changes run the matrix.
+The single warning flag removal preserves all 590 captured client objects byte for
+byte across both renderers. GCC/Clang production-flag controls confirm the diagnostic
+is now an error. No test, engine source, golden or fixture changes are needed.
+
+Continue one warning class per PR, followed by verified tree-wide formatting, tidy
+subsets, fixed-width representation types/layout assertions and release-identical
+Q_ASSERT. MSVC release inventory from #69 job 104469265974 also records C4267,
+C4459, C4456, C4065, C4457 and C4644; address these before enabling the MSVC /WX
+gate. Raw log: /tmp/aftershock-msvc-warning-inventory.log. Do not treat the GCC/Clang
+suppression list as the whole warning scope. Finish #8, write design-only
+docs/design/rhi.md for #6, then stop; no implementation.
 
 ## Completed affinity fixes and #8 baseline evidence
 
