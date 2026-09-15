@@ -14,16 +14,16 @@ before this separate bug PR opens. #78 merged 74caf6e6 after build
 
 The permanent test tests/ui_skill.py exercises the real skill event and best-score
 storage with large finite values, INT_MIN, 2^31, invalid small values and every
-valid skill including fractional values. The event fails before the fix under
-GCC at ui_spskill.cpp:114. Commit this failing test before any source fix.
+valid skill including fractional values. Test-first cea0a882 fails under
+both GCC/Clang in the callback and score storage. Source fix 2475e0d2 passes
+both paths under ASan/UBSan, including libc++ (35cc5796 adds hosted checks).
 Use a shared bounded UI skill reader while preserving each caller's invalid-value
 policy; trace all five readers. This is UI game code absent from ec-/Quake3e.
 No expected-failure entry or suppression applies. No source fix is in #79.
 
 Next:
-1. Confirm both probe paths fail under GCC/Clang, commit test first, then fix
-   UI skill conversion in this #31 branch. Update native provenance, run local
-   gates and relevant regression/golden commands and review codegen changes.
+1. Local gates are complete (evidence below). Wait for #79, integrate its merge
+   and open this #31 PR with full hosted build/regression gates.
 2. Merge #79 after gates/self-review, integrate modernization, open this #31 PR,
    then require full hosted build/regression and self-review before merging it.
 3. Resume #8 null-subtraction and address class PRs, then the larger warning
@@ -1319,3 +1319,25 @@ validation. Record and fix separately under #31; no bug fix in this warning PR.
 Local reproducer/logs: /tmp/aftershock-ui-skill-probe.cpp and
 /tmp/aftershock-ui-skill-before{,-gcc}.log. Preserve each reader's existing
 valid-value behavior and invalid-value policy.
+
+UI skill fix evidence (2475e0d2): all five UI readers use UI_GetSkill, which
+clamps the finite cvar value to 0..6 before conversion. Values outside 1..5 remain
+invalid for existing callers, including truncation of 5.9 to 5. Level-menu reset,
+score rejection, menu clamping and selected button behavior are preserved. The
+new helper is UI-internal; no engine/public contract or layout changes.
+
+Both Clang C/C++ helper builds and 103-object ABI gates pass with no layout or
+symbol differences and the same 60 advisory C/C++ codegen differences. Across
+32 production UI objects (GCC/Clang release, GCC debug, MinGW), only the skill
+readers change instructions and UI_GetSkill is added. 122 shifted constant
+references were checked against their actual bytes; unrelated instructions are
+preserved. Artifacts /tmp/aftershock-ui-skill-codegen/{after,review}.json.
+ARM64 server configurations do not contain UI; hosted client cross-builds remain.
+
+Explicit unit/collision regeneration is byte-identical (8d44421d/9674cd22).
+Q3 bot logs retain 6dad7c18/a15c9c91 and fixed replay retains b38004b1 with the
+original two demo fixture hashes. No accepted file changed. Native provenance
+records 2475e0d2 for the five imported files, preserving original GPL hashes.
+Local logs /tmp/aftershock-ui-skill-{unit,differential,runtime,demo,native-*}.log.
+The initial default /tmp/aftershock-tests configure encountered an old CMake
+cache; the clean task-specific /tmp/aftershock-ui-skill-unit passed.
