@@ -752,5 +752,9 @@ Runtime/hosted gates and self-review remain before this separate fix merges.
   The bounded probe uses real template matching and both consumers, with a byte
   at string[255] and a one-byte length. It also checks the mirrored game type and
   unchanged 8/328-byte layouts under ASan/UBSan. No file loading or game assets.
-  Fix pending in a separate #31 PR; no existing expectation/suppression applies.
-  Keep x86 signed-char semantics and ABI; offsets above 127 are outside this fix.
+  Test-first 36410f00; fix c58e2751 makes both declarations signed char. PR #71
+  passes GCC/Clang ASan/UBSan under both defaults and preserves x86 instructions.
+  ARM64 changes only offset consumers. Unit/collision regeneration, Q3 smoke and
+  fixed replay are unchanged. Upstream C has the same failing/passing evidence:
+  https://github.com/ec-/Quake3e/pull/442 (98691272). No existing expectation or
+  suppression applies. Offsets above 127 are outside this fix.

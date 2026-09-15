@@ -7,7 +7,7 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-chat-offset. PR #70 passed full build 35016076778 and
+Active: issue/31-chat-offset, draft PR #71. PR #70 passed full build 35016076778 and
 regression 35016076784 at 17a9dae2, then merged as 9d9dc4f6. That merge is
 integrated into this branch; its merged-tree regression remains to check.
 #69 merged-tree regression 35015162588 passed. #5 and #8 fallthrough are complete.
@@ -36,7 +36,12 @@ all unrelated functions retain identical instructions/relocations. Artifacts:
 /tmp/aftershock-chat-offset-codegen/{before,after}.json and per-object diffs.
 Source floating-point expressions, allocations, lifetimes and OS calls unchanged.
 The original GPL import hash is retained; c58e2751 is recorded as a transformation.
-Runtime/fixed replay and explicit unit/collision regeneration remain in progress.
+Local Q3 runtime passes unchanged (6dad7c18/a15c9c91); both-renderer fixed replay
+passes unchanged (b38004b1), with original demo hashes retained. Explicit unit and
+collision regeneration is identical (8d44421d/9674cd22). Upstream C fix 98691272 is
+submitted as ec-/Quake3e #442. Next: verify hosted build/regression at the final
+PR #71 head, complete self-review, ready/merge with a merge commit, then verify
+the merged-tree regression. No accepted golden or fixture diff.
 
 After this fix, resume #8 unused-function diagnostics in its own PR. Temporary
 production-flag checks preserve 364 Clang engine objects across both renderers and
