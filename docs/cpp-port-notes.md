@@ -515,3 +515,25 @@ PR #59 source 622ae3af passed regression 34926290647/full build 34926290657.
 Temporary complete #2 GCC/Clang C++ flag checks also pass UBSan. Unit/collision/
 Q3 runtime explicit regeneration is byte-identical. Self-review passes; no expected
 bug entry, suppression or accepted golden changed.
+
+### Native bot command floats narrow outside byte range (#31)
+
+The full native C++ UBSan q3dm17 smoke reports -6280.11 outside signed char range
+at BotInputToUserCommand (ai_main.c:877). All three float movement expressions
+assign directly into signed command bytes. BotUpdateInput is the sole caller.
+The native instruction sequence already truncates to int then stores the low byte,
+but the direct float-to-byte source conversion is undefined outside byte range.
+
+`python3 tests/bot_command.py` calls the real conversion with controlled horizontal
+and vertical AngleVectors bases. Its explicit expected bytes cover sign, endpoints,
+fractional truncation and modulo storage; float-cast-overflow fails at 254 before
+the fix. A shared helper stages unchanged pinned GPL headers for this and the
+existing team-leader check. The sole verbatim source prerequisite ai_main.c retains
+its GPL notice from id-Software/Quake-III-Arena revision
+dbe4ddb10315479fc00086f08e25d968b4b43c49, SHA256
+e969a606253b2d0aa69e9dc1c46981ef3a2ed352140ee3ce637cf456fc23497e.
+
+Fix all three components in this separate #31 PR by making the intermediate int
+conversion explicit around the whole expression. No clamping or FP arithmetic
+restructuring. No corresponding ec-/Quake3e game implementation exists. Native
+port integration remains #2.
