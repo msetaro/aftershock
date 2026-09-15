@@ -326,7 +326,7 @@ first (6d4710b4, Clang SIGSEGV), then initializes unused slots. GCC/Clang pass c
 0–3 and Clang native bot smoke matches both QVM maps. Upstream C also fails before
 and passes after. No golden changes; no fix made on #2.
 
-## #31 team-leader name termination (merged #53, found during #2)
+## #31 team-leader name termination (open, found during #2)
 
 Clang's C build diagnoses `bs->teamleader[sizeof(bs->teamleader)] = '\0'` in
 BotMatch_StartTeamLeaderShip (ai_cmd.c:1311) and BotTeamAI (ai_team.c:1963).
@@ -353,7 +353,7 @@ Team-leader fix PR #53 source 0ff62c30 passed regression 34909591046 and full bu
 Defined symbols are unchanged and only the two affected functions change codegen;
 unit/collision regeneration has zero golden diff. No expectation/suppression applies.
 
-## #31 OpenArena native door target comparison (open, found during #2)
+## #31 OpenArena native door target comparison (merged #54, found during #2)
 
 Pinned OpenArena oaxB52 source 331464ca396d80e91cf9be273588f2b5f4b7afc8 defines
 strequals(s1,s2) as strcmp(s1,s2)==0 in code/qcommon/q_shared.h:712. SP_func_door
@@ -364,3 +364,23 @@ Temporary C native ABI preflight plus /tmp/aftershock-oa-native-smoke.py reprodu
 G_SpawnGEntityFromSpawnVars -> G_InitGame. No patch, golden edit, suppression or
 claimed OA native pass. These external game sources are absent from ec-/Quake3e;
 resolve in a separate #31 PR if retained for the native CI content configuration.
+
+Separate branch issue/31-openarena-target commits test 43a3dac3 first; UBSan reports
+a NULL argument in the actual pinned header's strcmp expansion. The scoped source
+patch replaces the macro with an inline helper that checks both names and evaluates
+arguments once. `python3 tests/openarena_strings.py` passes with GCC/Clang after;
+16 name pairs, case sensitivity and argument evaluation are checked. Patch lives
+under tests/patches for #2's native OpenArena CI dependency; no engine source change,
+expected-failure entry or suppression. No corresponding ec-/Quake3e source exists.
+
+Native OA startup now completes and both bot smoke logs match their accepted
+gameplay after #2's QVM rand/sort library is linked (the original OA native build
+uses libc rand). Only VM loading metadata is normalized; no golden change. All 13
+caller translation units retain their symbol sets; 19 functions gain null guards
+and related compiler branch/register changes. Full source patch remains isolated
+from #2's build adaptation. No corresponding engine source exists upstream.
+
+PR #54 source 07ea4fe3 passed regression 34913347473/full build 34913347479;
+self-review passes. Native OA replay preflight matches oa_dm7 but not oa_dm1;
+that outstanding #2 compatibility investigation is not claimed as a fixed bug
+or passing frame gate. The source helper test and both native bot smoke logs pass.

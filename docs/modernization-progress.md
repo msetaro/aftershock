@@ -7,20 +7,24 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: `issue/2-native-game`, draft PR #50. #31 team-leader bounds PR #53
-merged as f908cd8e81556a8292bb9bcd841389942e8fdb8e after regression 34909591046
-and full build 34909591164 attempt 2 passed on 0ff62c30. Merged-tree regression
-34910099630 passed. #52 merged as 99f3b2b5; its merged-tree regression
-34908936239 passed. This merge brings #52/#53 into #2, preserves all three native
-CI probes, and resolves the two add/add GPL files to the reviewed #53 versions.
-Their manifest dispositions now reference #53; original import hashes are retained.
+Active work: `issue/2-native-game`, draft PR #50. OpenArena absent-name fix PR #54
+merged as 0c3d4dcccb64395cc3242dc4907ec8b8810dba4b after regression 34913347473
+and full build 34913347479 passed on 07ea4fe3. Its merged-tree regression is pending.
+This merge retains all native C/C++ checks and the new OpenArena helper regression.
 
-Next: finish native C/C++ artifact review (reports below), resolve the separate
-#31 OpenArena nullable-target bug and complete its native CI support. GCC/Clang
-C++ native smoke and fixed replay now pass the original Q3 goldens. Both compilers
-also pass 29 layouts/three offsets and shared-function differential checks.
-Then static integration and VM/JIT removal; neither has started. Accepted goldens remain unchanged on #2. Keep newly found bugs in
-separate #31 failing-test-first PRs.
+GCC/Clang native C and C++ Q3 smoke/replay, 29 layouts/three offsets and shared math/
+string comparisons pass. Regression 34912410405 passed on c386658a. The catalog
+port still needs its final G3/G4 artifact review (reports below), portable literal
+handling for MSVC and static integration; no VM/JIT removal has started.
+
+Next: verify #54 merged-tree regression; complete permanent OpenArena native build
+support using the pinned source plus #54 patch and QVM rand/sort library. Temporary
+native OA smoke matches both maps. Fixed replay matches oa_dm7 but oa_dm1 is missing
+the grenade launcher's barrel model; samples differ only in that roughly 107x108
+region. Native cgame/UI now build from the correct base UI sources under /tmp.
+Trace model registration and barrel submission before changing anything; keep new
+bugs in separate #31 PRs. No accepted golden or fixture change is authorized on #2.
+Then finish artifact review, static native calls and VM/JIT removal.
 
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
@@ -660,3 +664,53 @@ All 103 defined-symbol sets and raw dllEntry/vmMain spellings match the C baseli
 the seven remaining undefined-dependency diffs are fully enumerated in the reports.
 Artifact codegen review remains open before static integration. Next is the separate
 #31 OpenArena nullable-target helper fix, keeping #2 checkpointed on this branch.
+
+## #31 OpenArena absent target names
+
+Pinned public OpenArena source: 331464ca396d80e91cf9be273588f2b5f4b7afc8 (oaxB52).
+The header macro strequals calls strcmp directly. Native oa_dm1 crashes because
+SP_func_door passes absent targetname; three g_main elimination-target paths use
+the same helper with nullable names. All call sites were checked. The fixed helper
+returns false if either name is absent and evaluates each argument once, retaining
+case-sensitive comparison and equality for present empty strings. All non-null
+call behavior remains strcmp equality. This fixes the shared cause once.
+
+`python3 tests/openarena_strings.py` reads three public headers from the exact Git
+revision into its own output directory, preserving notices. It applies the checked-in
+patch there and compiles the real helper with UBSan; no game assets or new loader
+are involved. Test-first 43a3dac3 fails (argument 2 NULL); GCC/Clang pass after.
+No expected-failure entry or suppression covered this newly observed external-source
+bug. ec-/Quake3e lacks the helper and corresponding game code, so no applicable
+engine upstream PR exists. #2 will consume this patch for its native CI build.
+
+Native OA smoke now passes both maps with the patch: normalized hashes 51d66d9a
+(oa_dm1) and 0f2e6b68 (oa_dm7). The first startup succeeded but still used libc rand;
+linking #2's already verified QVM rand/sort compatibility library restored gameplay
+parity. Three additional VM-loader metadata lines are excluded in the temporary
+native comparison; no gameplay text is removed. This build adaptation belongs to
+#2 and is not an additional source fix in this PR. Temporary driver:
+/tmp/aftershock-oa-target-fix-smoke.py; no native OA fixture recordings.
+
+All 13 source files that call strequals pass defined/undefined-symbol comparison
+before/after. Nineteen function bodies change codegen through null checks and
+associated branch/register allocation; no function is added or removed at -O2.
+The helper preserves strcmp equality whenever both pointers are present. The
+G_FindTeams pair already guards both team pointers before comparison; missing
+names never become matching team names. Explicit unit/collision regeneration has
+zero golden diff. Existing engine/runtime source is unchanged by this patch-only
+CI dependency fix. CI and PR self-review are still required before merge.
+
+PR #54 source 07ea4fe3 passed regression 34913347473 and full build 34913347479.
+Self-review: one external dependency bug, tested before/after; patch scoped to the
+shared helper; no new engine OS access, allocation, lifetime, layout or FP edits;
+all caller symbols preserved, null-guard codegen reviewed, goldens unchanged.
+No expectation/suppression applies. This checkpoint is documentation only.
+
+Additional #2 client preflight while CI ran: native OA cgame/UI compile and load.
+Fixed oa_dm7 replay matches all six accepted samples; oa_dm1 differs on both
+renderers in a roughly 107x108 pixel region (about 4,690 pixels at sample 50).
+No replay is regenerated or claimed passing. Artifacts:
+/tmp/aftershock-oa-native-demo and /tmp/aftershock-oa-native-demo-preflight.py.
+Client build helper /tmp/aftershock-oa-native-client-build.py maps base UI objects
+to code/q3_ui, uses code/ui/ui_syscalls.c, maps bg_* to code/game and links #2's
+QVM random/sort library. Native OA frame parity remains #2 work after this fix.

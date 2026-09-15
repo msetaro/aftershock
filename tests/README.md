@@ -246,3 +246,13 @@ the C locale. It compares raw result words, requires no assets or golden writes,
 and accepts --cc/--cxx/--output. Both unit compiler jobs run it. The C++ native build
 pins the C library feature set to the C99 reference, avoiding C23 scanf/strtol
 redirection from the C++ compiler's default _GNU_SOURCE.
+
+`python3 tests/openarena_strings.py` verifies the OpenArena native CI dependency's
+case-sensitive name comparison, including missing names and single argument
+evaluation. It fetches only pinned public source headers from OpenArena/gamecode
+revision 331464ca396d80e91cf9be273588f2b5f4b7afc8 when the source cache is absent,
+then applies tests/patches/openarena-name-comparison.patch in its output directory.
+No game content is fetched by this check. --cc, --source and --output select the
+compiler/cache/output. Both unit compiler jobs run it under UBSan. The source
+patch is for #2's native OpenArena configuration; the existing QVM fixtures remain
+unchanged. Original GPL notices remain in the fetched headers.
