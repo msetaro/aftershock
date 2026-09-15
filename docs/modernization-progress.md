@@ -13,7 +13,9 @@ commit into this branch before opening the #31 PR. Regression 35015487624 passed
 at d56ab00b; corrected-trigger build 35016076778 and regression 35016076784 pending.
 #69 merged-tree regression 35015162588 passed. #5 and #8 fallthrough are complete.
 
-Next: commit the failing chat-offset regression, then make the separate #31 fix.
+Test-first commit 36410f00 records the failing chat-offset regression. Both
+offset declarations now use signed char, preserving the negative sentinel and
+existing x86 range/layout. Next: verify codegen, local/hosted gates and upstream C.
 Both BotMatchVariable and BotExpandChatMessage return Q instead of empty under
 unsigned-char; real BotFindMatch supplied the -1 sentinel. Signed-char passes.
 The mirrored game declaration also loses the sentinel. Both compiler modes use
