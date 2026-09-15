@@ -628,7 +628,7 @@ or wire-layout change, no added allocation/OS/non-trivial lifetime, no suppressi
 BG_Free unconditionally writes freeHead->prev after putting a released block at
 the head. If allocations completely consumed the pool, freeHead is NULL. A small
 reproducer fills it through BG_CanAlloc(16)/BG_Alloc(16), then frees one block;
-UBSan reports member access within null pointer at bg_alloc.c:173 after the
+UBSan reports member access within null pointer at bg_alloc.c:168 after the
 alignment patch. Files: /tmp/aftershock-openarena-full-pool.c and .log. This is a
 separate original allocator bug, not fixed by #62; a separate test-first PR is
 next. No game content is required and no FP expression is involved.

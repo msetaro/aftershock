@@ -51,7 +51,7 @@ suppression or simulation edits. The #2 runtime CI failure is its static OA sani
 A separate allocator review reproducer confirms BG_Free dereferences freeHead
 when the pool is completely allocated and freeHead is NULL. It is not changed in
 #62. /tmp/aftershock-openarena-full-pool.c fills via BG_CanAlloc/BG_Alloc and frees
-one block; UBSan fails at bg_alloc.c:173. Record/fix it in the next separate #31
+one block; UBSan fails at bg_alloc.c:168. Record/fix it in the next separate #31
 PR after #62 merges, then integrate both patches into #2 and resume static work.
 
 ## Earlier checkpoints (historical)
