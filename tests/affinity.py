@@ -13,7 +13,7 @@ args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 binary = args.output.resolve() / 'check'
 run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti', '-O2',
-     '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined',
+     '-ffunction-sections', '-fdata-sections', '-fsanitize=address,undefined',
      '-fno-sanitize-recover=all', 'tests/probes/affinity.cpp',
      '-Wl,--gc-sections', '-lm', '-o', binary])
 run([binary])
