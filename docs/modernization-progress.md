@@ -21,8 +21,9 @@ single evaluation of arguments. It is maintained as a patch to the pinned public
 source, not an engine/game import into this branch. Native OA smoke now matches both accepted gameplay logs after using the existing
 QVM random/sort compatibility library and normalizing only VM-loading metadata.
 Accepted fixtures/goldens remain unchanged.
-Next: finish patch/codegen/runtime validation, CI and self-review; merge this #31
-PR with a merge commit and verify its merged tree. Resume #2 native OA support,
+PR #54 source 07ea4fe3ba218df52f062fcd503fb520e61e94cd passed regression
+34913347473 and full build 34913347479. Self-review passes. Next: merge PR #54
+with a merge commit and verify its merged tree. Resume #2 native OA support,
 artifact review, static integration and VM/JIT removal afterward.
 
 
@@ -698,3 +699,18 @@ G_FindTeams pair already guards both team pointers before comparison; missing
 names never become matching team names. Explicit unit/collision regeneration has
 zero golden diff. Existing engine/runtime source is unchanged by this patch-only
 CI dependency fix. CI and PR self-review are still required before merge.
+
+PR #54 source 07ea4fe3 passed regression 34913347473 and full build 34913347479.
+Self-review: one external dependency bug, tested before/after; patch scoped to the
+shared helper; no new engine OS access, allocation, lifetime, layout or FP edits;
+all caller symbols preserved, null-guard codegen reviewed, goldens unchanged.
+No expectation/suppression applies. This checkpoint is documentation only.
+
+Additional #2 client preflight while CI ran: native OA cgame/UI compile and load.
+Fixed oa_dm7 replay matches all six accepted samples; oa_dm1 differs on both
+renderers in a roughly 107x108 pixel region (about 4,690 pixels at sample 50).
+No replay is regenerated or claimed passing. Artifacts:
+/tmp/aftershock-oa-native-demo and /tmp/aftershock-oa-native-demo-preflight.py.
+Client build helper /tmp/aftershock-oa-native-client-build.py maps base UI objects
+to code/q3_ui, uses code/ui/ui_syscalls.c, maps bg_* to code/game and links #2's
+QVM random/sort library. Native OA frame parity remains #2 work after this fix.

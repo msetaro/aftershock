@@ -379,3 +379,8 @@ uses libc rand). Only VM loading metadata is normalized; no golden change. All 1
 caller translation units retain their symbol sets; 19 functions gain null guards
 and related compiler branch/register changes. Full source patch remains isolated
 from #2's build adaptation. No corresponding engine source exists upstream.
+
+PR #54 source 07ea4fe3 passed regression 34913347473/full build 34913347479;
+self-review passes. Native OA replay preflight matches oa_dm7 but not oa_dm1;
+that outstanding #2 compatibility investigation is not claimed as a fixed bug
+or passing frame gate. The source helper test and both native bot smoke logs pass.
