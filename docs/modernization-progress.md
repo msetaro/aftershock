@@ -7,46 +7,45 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/31-team-flag-init. #2 is parked at 75d81a11, draft PR #50.
-CTF initialization sets both flag statuses to -1; the first setter updates red
-then indexes a five-byte remap using the still-invalid blue status. The permanent
-real-function C UBSan test fails at index 4294967295. One exact GPL prerequisite
-import retains its notice/hash in cpp-port-notes.md; no source fix is made on #2.
+Active work: issue/31-bot-command-bytes. #2 is parked at e4853819, draft PR #50.
+Full native C++ UBSan smoke on q3dm17 fails at BotInputToUserCommand's direct float
+to signed-byte assignment (-6280.11). The real-function failing-first test uses
+controlled horizontal/vertical bases and explicit expected command bytes; UBSan
+fails at 254 before the fix. One exact GPL prerequisite import retains its notice
+and source hash. The test shares pinned header staging with the team-leader check.
 
-Test-first a6c34e5b fails in the actual C initializer. The fix publishes "00" for
-CTF and "0" for one-flag mode directly after the state is cleared. Both GCC/Clang
-base/missionpack checks pass, including ordinary updates and duplicate suppression.
-G2 layouts and G3 symbols match in both builds; only Team_InitGame changes assembly
-among 36 base/46 missionpack functions. Artifacts: /tmp/aftershock-team-flags-gates.py
-and /tmp/aftershock-team-flags-gates. No FP expressions or wire layouts change.
+Test-first 02a9ddeb fails at 254 on GCC/Clang with float-cast-overflow enabled.
+The fix wraps each complete movement expression in an explicit int conversion;
+all 18 horizontal/vertical cases pass on both compilers. Original C release object
+bytes, G2 layouts, G3 symbols and G4 assembly are identical before/after on both:
+GCC 5ef9e1517d814b30021cfc1c0451842a29b3fbecbff94f8ddc16021ed033f9c4,
+Clang a0be349110f562f03f44568856bc0d792cc495251988a758d74f09aae97fc26a.
+Artifacts/reproduction: /tmp/aftershock-bot-command-gates.py and its output folder.
+The existing team-leader check also passes after sharing pinned header staging.
 
-PR #59 source 622ae3af passed regression 34926290647 and full build 34926290657.
-Temporary complete #2 C++ flag paths also pass GCC/Clang UBSan after the same fix:
-/tmp/aftershock-team-flags-native.py/.log. Unit/collision/Q3 runtime explicit golden
-regeneration is byte-identical. Self-review passes: one initialization defect,
-caller audit complete, no OS calls/allocations/non-trivial objects, no FP expression
-or wire-layout change, no expected-bug entry/suppression or accepted golden change.
+PR #60 source 0366fa06 passed regression 34927341670 and full build 34927341749.
+A temporary full #2 native C++ build with this fix passes the complete UBSan bot
+smoke on both Q3 maps, with identical repeats and accepted normalized logs:
+/tmp/aftershock-bot-command-native.py/.log. Explicit unit/collision/Q3 runtime
+golden regeneration is byte-identical. Self-review passes: one conversion defect,
+sole caller checked, no FP restructuring/clamping, OS calls, allocations or
+non-trivial objects; layouts, symbols and raw C objects unchanged. No expected-bug
+entry or suppression is needed. No upstream engine game implementation exists.
 
-Next: ready/merge #59, verify merged-tree regression, and merge into #2 retaining
-its catalog edits. Add pahole to the GCC regression job's own apt step (the new
-native gate requires it). Source/catalog audit, final G4/G7 review, .cpp rename,
-static integration and VM/JIT removal remain. No source fix is made on #2.
+Next: ready/merge #60, verify merged-tree regression and integrate into #2, retaining
+its T22 abs conversions, float suffixes and other catalog changes. The bot-command
+check can use #2's imported local headers and native ABI helper after integration.
+Finish G4/G7/catalog review, rename .c files to .cpp without source-content changes,
+then static direct calls and VM/JIT removal. No source fix is made on #2.
 
-#58 merged 4c816c7e and merged-tree regression 34925562788 passed. #2 integration
-7d9bc04a retains the fixed two-element voter bound and passes GCC/Clang tests.
-Warning freeze 7c4f8302 builds all native modules as C/C++ with GCC/Clang, under
--Wall -Wextra -Werror using only classes observed in C; CI 34925774876/34925774880
-both passed. Permanent native_gates.py (75d81a11) reproduces
-103/103 matching G2/G3 objects, 63 advisory assembly diffs and all G7 diagnostics
-(1365 narrowing, 55 signed-char, nine string-result; zero tool/compile failures).
-The focused review exposed this flag bug. The new #2 gate run 34926088385
-failed because the GCC CI job lacks pahole; the comparison did not run and is not
-an ABI failure. Install the pahole package in that CI job when resuming #2 (local
-packages remain untouched). Its full build 34926088404 passed. No accepted fixture/golden changes on
-#2; source/catalog audit, final G4/G7 review, .cpp rename, static integration and
-VM/JIT removal remain. Temporary artifacts: /tmp/aftershock-native-gates-final,
-/tmp/aftershock-native-review-checkpoint.md. The flag-domain assumption in the
-latter is superseded by this confirmed initialization bug.
+#59 merged 11781f44; merged-tree regression 34926638834 passed. #2 integration and
+pahole installation are d8691015; regression 34926764924/full build 34926765230 were
+both passed, including the native comparison job. Provenance checkpoint e4853819
+verifies 130 pinned original hashes (30 verbatim, 96 modified, four retained ABI
+headers), with commit references per changed file. Native G2/G3 pass 103 objects;
+G4/G7 review, source/catalog audit completion, .cpp rename, static integration and
+VM/JIT removal remain. No accepted fixture/golden changes on #2; no VM/JIT removal
+has started. Detailed existing checkpoints remain below.
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full

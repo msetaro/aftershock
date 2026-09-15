@@ -237,3 +237,10 @@ compiler jobs run it. Only unrelated end-level notifications use test stubs.
 UBSan in base-game and MISSIONPACK builds. Initial flag configstrings are complete;
 pickups, drops, repeated updates and reinitialization preserve valid flag states.
 --cc/--output select compiler/output. Both unit compiler jobs run it, without assets.
+
+`python3 tests/bot_command.py` exercises the real BotInputToUserCommand with
+horizontal/vertical bases, byte endpoints, fractions and larger signed inputs.
+UBSan float-cast-overflow checks the conversion; explicit expected bytes check
+legacy truncation/wrapping. --cc/--source/--output select compiler, pinned GPL header
+cache and output. The header staging helper is shared with the team-leader check.
+Both unit compiler jobs run it. No assets are needed.
