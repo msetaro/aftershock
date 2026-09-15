@@ -25,8 +25,10 @@ b.ne; equality/unordered results are symmetric and subsequent flags are overwrit
 before use on both paths. All other instructions/relocations match (details below).
 
 Next:
-1. Run GCC/Clang C/C++ native helpers/ABI checks, record provenance and compare
-   relevant library hashes. Require hosted regression for the reviewed ARM64 diff.
+1. Four GCC/Clang C/C++ helper builds and ABI checks pass. Source d59136ef is
+   recorded by 8f7b14ef. All six Clang libraries and GCC game/cgame libraries
+   retain hashes; GCC UI baselines predate #80 and are not used for parity.
+   Require hosted regression for the reviewed ARM64 diff.
 2. Verify and merge #81, integrate modernization, open this class PR, then require
    its hosted build/regression plus self-review before merging. Check merged trees.
 3. Continue #8 with declaration parentheses (51-object identical preview), array
@@ -1369,3 +1371,21 @@ objects retain raw hashes; debug changes are confined to stores in the four
 console functions. Existing output remains best-effort; no new error policy is
 introduced. A separate class PR still needs review of those debug differences,
 flag removal and hosted gates. /tmp/aftershock-unused-result-preview.
+
+Address class local validation: all four GCC/Clang C/C++ native helpers/ABI
+checks pass. Clang's six libraries match and GCC's game/cgame libraries match;
+the GCC UI baselines predate the separately merged #80 fix. Artifacts:
+/tmp/aftershock-address-before.json and address-{gcc,clang}-{c,cpp}.log.
+
+Array-bounds preview is still under review: GCC 15 reports [0,4] outside qhandle_t[5]
+on both skill-picture reads even after #80. Equivalent explicit dereference
+*(skillMenuInfo.skillpics + (skill - 1)) removes the diagnostic. Clang objects
+match, but GCC/MinGW/debug emit address-calculation changes requiring review.
+No source change applied. /tmp/aftershock-array-bounds-preview. Do not use the
+earlier ungrouped pointer variant; retain the original integer subtraction.
+
+Fresh unused-parameter syntax inventory is running independently in
+/tmp/aftershock-unused-parameter-inventory (driver .py, log .log). No source edits.
+Both local GCC/Clang accept [[maybe_unused]] parameters in gnu99 helper mode;
+Clang rejects nameless C definitions, so do not remove native parameter names.
+A later class PR must verify hosted compiler compatibility and object hashes.
