@@ -7,120 +7,101 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unused-constants. PR #74 passed build 35019711765 and regression
-35019711780 at 644741e9, then merged as 5fb78853. That merge is integrated into
-this branch; its merged-tree regression remains to check. #73 merged-tree
-regression 35019634702 and #72 merged-tree regression 35018822894 passed.
-#5 is complete; #8 warning ratchet remains active.
+Active: issue/8-native-internal. PR #75 merged b28beab5 after passing build
+35020481804 and regression 35020481815 at da94649e; that merge is integrated here.
+The branch removes only Clang's unneeded-internal-declaration freeze from the
+standalone native helper. Source commit 0662297d; Clang C/C++ helper builds and
+ABI checks pass, all six shared-library hashes are unchanged, and both helper
+flag controls fail with the diagnostic enabled. Artifacts:
+/tmp/aftershock-native-internal-{before.json,control,c.log,cpp.log}.
 
-This branch removes the native unused-constant suppressions and enables GCC
--Wunused-const-variable=2, which includes native source files pulled through the
-namespace wrapper. The order table/type/count in cg_servercmds.cpp now share the
-existing MISSIONPACK guard with their sole user. Source line count is unchanged.
-Clang does not diagnose unused constants in included files; the GCC job enforces
-this class. Its actual-wrapper negative control rejects an unused constant.
+Next:
+1. Open the internal-declaration helper PR, verify its hosted build/regression,
+   self-review and merge with a merge commit, then check its merged-tree run.
+   Check #75's merged-tree regression. #74 merged-tree run 35020339038 passed.
+2. Remove the remaining GCC implicit-fallthrough helper freeze in a separate class
+   PR. Preview compilation of all six C/C++ helper libraries retains identical
+   hashes and both diagnostic controls pass: /tmp/aftershock-native-fallthrough-preview.
+   Production fallthrough was enabled in #67; do not redo that source work.
+3. Continue the remaining warning classes one per PR. Ready source previews below
+   cover parentheses-equality and self-assign. Then finish the larger warning
+   classes, MSVC warnings and /WX, one verified tree-wide clang-format commit,
+   tidy subsets, fixed-width representation types/layout assertions and
+   release-identical Q_ASSERT. Update the plan's rules table to in force.
+4. Finish #8, write design-only docs/design/rhi.md for #6, then stop. No #6/#7
+   implementation. No accepted golden or fixture regeneration for warning work.
 
-Source transformation 68919a83 is recorded in native provenance. All 858 actual
-native production commands pass with unused constants treated as errors, including
-GCC/Clang/debug/MinGW/ARM64; all 412 captured GCC/Clang release objects match raw
-hashes. Artifacts /tmp/aftershock-unused-constant-builds. The legacy standalone
-C/C++ native helper also had a frozen unused-constant entry: remove it from both
-compiler lists and explicitly enable the diagnostic there. All four standalone GCC/Clang C/C++ helper builds pass, including ABI layout
-checks. Next: open this PR, verify hosted build/regression and self-review, then
-merge with a merge commit and check the merged tree. No golden regeneration. Hosted build/regression and self-review are
-required before merge. The preceding #74 type-limits change preserves 728 raw
-GCC/Clang engine objects and has passing diagnostic controls for both compilers.
+Recent merges (all self-reviewed; merge commits):
+- #70 ignored qualifiers: 17a9dae2, build 35016076778/regression 35016076784;
+  merged 9d9dc4f6, merged-tree regression 35016803376 passed. The broad *.txt CI
+  ignore was removed because it incorrectly excluded CMakeLists.txt.
+- #71 chat sentinel: 98b457cc, build 35017297266/regression 35017297166;
+  merged c04ba916, merged-tree regression 35018077437 passed; upstream #442.
+- #72 unused functions: e6dfa0ba, build 35018151616/regression 35018151602;
+  merged 01a1dda8, merged-tree regression 35018822894 passed.
+- #73 internal declarations: 248dca68, build 35018897499/regression 35018897591;
+  merged be2186e0, merged-tree regression 35019634702 passed.
+- #74 type limits: 644741e9, build 35019711765/regression 35019711780;
+  merged 5fb78853, merged-tree regression 35020339038 passed.
+- #75 unused constants: da94649e, build 35020481804/regression 35020481815;
+  merged b28beab5, merged-tree regression pending verification.
+#5 is complete. #8 warning ratchet remains active; later #8 rules are not done.
 
-Test-first commit 36410f00 records the failing chat-offset regression. Both
-offset declarations now use signed char, preserving the negative sentinel and
-existing x86 range/layout. Next: verify codegen, local/hosted gates and upstream C.
-Both BotMatchVariable and BotExpandChatMessage return Q instead of empty under
-unsigned-char; real BotFindMatch supplied the -1 sentinel. Signed-char passes.
-The mirrored game declaration also loses the sentinel. Both compiler modes use
-ASan/UBSan and unchanged layout assertions. /tmp/aftershock-chat-offset-before.log.
-Review all offset writers/consumers and mirror declarations; preserve x86 semantics
-and layout. Follow with codegen, explicit explained golden regeneration, runtime,
-fixed replay, hosted gates, upstream C contribution and merge-commit self-review.
-No known-bugs entry or UBSan suppression currently covers this new test.
+Completed PR #75 evidence:
+- Source 68919a83 moves the order table/type/count in cg_servercmds.cpp under the
+  existing MISSIONPACK guard with its sole user, retaining source line count.
+  Original GPL hashes remain; the transformation is recorded in native provenance.
+- Production GCC uses -Wunused-const-variable=2 because level 1 excludes source
+  files included by the native namespace wrapper. Actual-wrapper negative control
+  verifies level 2. Clang omits unused constants in included files; GCC enforces
+  that case. Both compiler freezes are removed from tests/native-warnings.json,
+  and the standalone helper explicitly enables the class.
+- All 858 native production commands pass with this class treated as an error,
+  covering GCC/Clang release, GCC debug, MinGW and ARM64. All 412 captured native
+  GCC/Clang release objects retain identical raw hashes. Four standalone GCC/Clang
+  C/C++ helper builds and ABI layout checks pass. Artifacts:
+  /tmp/aftershock-unused-constant-builds and unused-constant-native-*.
+- Affected MinGW native objects match after incremental LTO. Debug .text is
+  identical; remaining .rodata is an exact suffix after 88 unused bytes, and all
+  71 shifted references per object preserve referenced bytes. No function changes.
+  MISSIONPACK preprocessed output is identical. Its unchanged compile baseline has
+  an int-to-qboolean error at cg_servercmds.cpp:936; this unsupported configuration
+  limitation is recorded in docs/bugs.md/#31, not repaired in the warning PR.
+  /tmp/aftershock-unused-constant-preview/{results,review}.json.
+- No FP expressions, OS access, lifetimes, allocations or goldens/fixtures changed.
 
-Fix c58e2751 passes GCC/Clang ASan+UBSan with both char defaults. The same
-bounded regression fails on upstream C f694bbbc under unsigned-char and passes
-with the one-line header fix under both compilers/defaults. Codegen covers 26
-objects across GCC/Clang release, GCC debug, MinGW and aarch64: 12 raw objects
-identical, six MinGW incremental-LTO native objects identical, six GCC debug
-objects differ only in debug sections (stripped copies identical). Two ARM64
-objects change only four chat-offset consumer functions, with no functions added
-or removed. Expected signed loads and missing-variable branches are present;
-all unrelated functions retain identical instructions/relocations. Artifacts:
-/tmp/aftershock-chat-offset-codegen/{before,after}.json and per-object diffs.
-Source floating-point expressions, allocations, lifetimes and OS calls unchanged.
-The original GPL import hash is retained; c58e2751 is recorded as a transformation.
-Local Q3 runtime passes unchanged (6dad7c18/a15c9c91); both-renderer fixed replay
-passes unchanged (b38004b1), with original demo hashes retained. Explicit unit and
-collision regeneration is identical (8d44421d/9674cd22). Upstream C fix 98691272 is
-submitted as ec-/Quake3e #442. PR #71 passed hosted gates and self-review, then
-merged as c04ba916. No accepted golden or fixture diff.
+Completed #71 evidence:
+Test-first 36410f00 exercises actual BotFindMatch, BotMatchVariable and
+BotExpandChatMessage: unsigned-char returns Q instead of empty for the -1 marker;
+signed-char passes. Fix c58e2751 makes both engine/game declarations signed char.
+GCC/Clang ASan+UBSan pass with both defaults, preserving 8/328-byte layouts.
+Across 26 production objects: 12 raw matches, six MinGW native matches, six debug
+objects differ only in debug sections, and two ARM64 objects change only four
+chat-offset consumers. No added/removed functions or unrelated instructions.
+Unit/collision regeneration was byte-identical (8d44421d/9674cd22); Q3 smoke
+6dad7c18/a15c9c91 and fixed replay b38004b1 are unchanged. Upstream C f694bbbc
+reproduces the failure and passes 98691272 in ec-/Quake3e #442. No expected-failure
+entry/suppression applied. Artifacts /tmp/aftershock-chat-offset-*.
 
-Future warning-class preflight: removing unneeded-internal-declaration preserves
-206 Clang native object hashes and its production-flag control rejects a function
-referenced only by decltype. Removing unused-const-variable preserves 412 GCC/Clang
-native objects; Clang's diagnostic control passes. GCC does not enable that warning
-with -Wall/-Wextra in C++, so merely deleting the suppression is not a diagnostic
-gate. Explicit -Wunused-const-variable=1 additionally compiles all 206 GCC native
-objects with identical raw hashes. The unneeded-internal suppression is now removed on this branch; the
-unused-constant flag is still only a preflight experiment. Artifacts: /tmp/aftershock-native-warning-check and
-/tmp/aftershock-unused-const-gcc. Keep each warning class in a separate PR.
-The follow-up native-wrapper control is significant: GCC level 1 excludes included
-source files. Level 2 rejects numValidOrders in cg_servercmds.cpp (both renderers),
-which is used only inside MISSIONPACK. Future unused-constant work must enable
-level 2 and move the table/type/count under the existing MISSIONPACK guard, then
-prove parity. Do not delete the declaration needed by that conditional function. Clang does not diagnose unused constants in included
-files even with this warning enabled; the GCC job provides that gate. The separate
-unneeded-internal control DOES fail through the actual native wrapper as intended.
-Artifacts: /tmp/aftershock-unused-const-gcc-all and native-warning-check/*included*.
-A temporary source preview moves the existing MISSIONPACK guard above the
-order-table declarations while preserving line count. GCC/Clang release objects
-match, as do MinGW native objects after incremental LTO. Both debug objects have byte-identical .text; the remaining .rodata is an exact
-suffix after removing 88 unused bytes, and all 71 changed relocation targets per
-object preserve the referenced bytes. No function is added or removed. The
-MISSIONPACK compile control fails in the unchanged baseline at cg_servercmds.cpp:936
-(int to qboolean); do not fix that inactive configuration in the warning PR.
-Its before/after preprocessed MISSIONPACK output is byte-identical. Preview artifacts:
-/tmp/aftershock-unused-constant-preview. The same guard move is now applied on this separate unused-constant branch.
-
-Type-limits preflight after the #31 affinity/chat fixes: replacing the suppression
-with explicit -Wtype-limits preserves all 728 GCC/Clang engine release objects
-across both renderers. GCC diagnoses the control after suppression removal;
-Clang needs the explicit positive flag. /tmp/aftershock-type-limits-{control,check}.
-The explicit type-limits flag is now applied only on this separate branch.
-
-The #8 unused-function removal is now prepared on this separate branch. Temporary
-production-flag checks preserve 364 Clang engine objects across both renderers and
-reject an unused static function when the suppression is removed:
-/tmp/aftershock-unused-function/{results.json,control-after.log}. Only its CMake suppression has been removed. MSVC #69 release inventory records C4267,
-C4459, C4456, C4065, C4457 and C4644; address before /WX. Continue one warning class
-per PR, then verified tree-wide formatting, tidy subsets, fixed-width representation
-types/layout assertions and release-identical Q_ASSERT. Finish #8, write design-only
-docs/design/rhi.md for #6, then stop; no implementation.
-
-Additional isolated source previews (not applied to the repository):
-- Parentheses-equality: remove the redundant inner parentheses from g_cmds.cpp's
-  tournament test. Nine objects checked: GCC/Clang/ARM release and MinGW native
-  objects match; the two GCC debug objects differ only in debug sections.
-- Self-assign: replace the fov_x self-assignment with a comment, keeping the existing
-  branch and all arithmetic intact. All eight GCC/Clang/debug and MinGW native
-  objects match. The distinct cg.refdef.fov_x assignment is retained.
-Clang actual-wrapper controls fail before and pass after each preview. Artifacts:
-/tmp/aftershock-small-warning-preview. Each class still needs its own branch/PR,
-provenance record, enabled diagnostic and hosted gates. Do not combine classes.
-
-Remaining legacy native-helper warning scope: tests/native-warnings.json still
-freezes GCC implicit-fallthrough and Clang unneeded-internal-declaration even
-though their production CMake gates are enabled. Remove these remaining helper
-freezes in separate class follow-ups and check the standalone C/C++ paths. Do not
-combine those classes with the current unused-constant PR or declare #8 complete
-while the helper freeze list remains. Other frozen helper classes track the
-remaining production warning work.
+Retained #8 warning evidence and upcoming previews:
+- Ignored qualifiers: 590 GCC client objects match; GCC/Clang flag controls pass.
+  /tmp/aftershock-ignored-qualifiers-before.
+- Unused functions: 364 Clang engine objects match and flag control passes.
+  /tmp/aftershock-unused-function.
+- Internal declarations: 206 Clang native objects match; actual-wrapper control
+  rejects a function used only by decltype. /tmp/aftershock-native-warning-check.
+- Type limits: 728 GCC/Clang engine objects match. Clang needs explicit -Wtype-limits;
+  both controls reject unsigned < 0. /tmp/aftershock-type-limits-{control,check}.
+- Parentheses-equality preview: remove redundant inner parentheses from the
+  tournament test in g_cmds.cpp. Nine objects checked: release/native objects match;
+  two GCC debug objects differ only in debug sections. Not yet applied.
+- Self-assign preview: replace fov_x self-assignment with a comment; retain the
+  existing branch, arithmetic and distinct cg.refdef.fov_x assignment. All eight
+  GCC/Clang/debug and MinGW native objects match. Not yet applied.
+  Both source previews have failing/passing Clang wrapper controls:
+  /tmp/aftershock-small-warning-preview. Each needs its own PR and provenance.
+- MSVC release inventory: C4267, C4459, C4456, C4065, C4457 and C4644, from #69 job
+  104469265974. /tmp/aftershock-msvc-warning-inventory.log. Address before /WX.
 
 ## Completed affinity fixes and #8 baseline evidence
 

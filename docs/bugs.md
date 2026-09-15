@@ -758,3 +758,14 @@ Runtime/hosted gates and self-review remain before this separate fix merges.
   fixed replay are unchanged. Upstream C has the same failing/passing evidence:
   https://github.com/ec-/Quake3e/pull/442 (98691272). No existing expectation or
   suppression applies. Offsets above 127 are outside this fix.
+
+- #8 conditional-source review found a latent C++ build limitation in the retained
+  MISSIONPACK path: `CG_VoiceChat` assigns `atoi` directly to enum `qboolean` at
+  `game/cgame/cg_servercmds.cpp:936`. Reproduce with
+  `g++ -std=c++20 -fno-exceptions -fno-rtti -include game/bg/native_abi_public.h
+  -DCGAME -DMISSIONPACK -c game/cgame/cg_servercmds.cpp -o /tmp/missionpack.o`.
+  The unchanged baseline fails before the unused-constant guard move; before/after
+  preprocessed MISSIONPACK output is identical. Current CMake presets do not enable
+  MISSIONPACK. Decision: retain this as a #31 item if that configuration is enabled;
+  do not expand #8 into unsupported gameplay configuration work. No supported build
+  gate is skipped and no engine fix is folded into the warning PR.
