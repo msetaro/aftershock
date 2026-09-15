@@ -625,3 +625,15 @@ not yet marked passed. CI also exposed the standalone #31 team-leader check's
 missing COM_TRAP_GETVALUE definition after #2 imported the complete local headers.
 The check now uses the native ABI header and local bot-state types, removing its
 obsolete external header fetch; it passes locally. No bug fix or gate suppression.
+
+Artifact review caught the two T22 sites in ai_main: AngleDifference(...) and
+forward[2] passed to abs. Explicit int casts preserve the C call's conversion;
+these are port compatibility edits, not FP expression restructuring. The C++
+front-end's default _GNU_SOURCE also redirected scanf/strtol to C23 symbols while
+the C99 reference used C99/legacy entries. The native C++ builder now uses
+-U_GNU_SOURCE -D_DEFAULT_SOURCE, matching the C feature set; focused GCC/Clang
+objects both reference __isoc99_sscanf and strtol again. Seven of 103 objects
+still differ in undefined library dependencies (ctype macro vs function calls,
+plus strstr-to-strchr optimization); no defined-symbol difference is reported.
+These require explicit review, not a blanket normalizer. Artifact reports:
+/tmp/aftershock-native-cpp-gates-pinned/results.json and per-object diffs.
