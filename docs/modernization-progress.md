@@ -7,12 +7,14 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unneeded-internal, based on pending PR #72 head e6dfa0ba.
-PR #72 remains on issue/8-unused-function. Verify build 35018151616 and regression
-35018151602, self-review, merge it, then integrate origin/modernization into this
-branch before opening the next separate warning PR. PR #71 merged c04ba916 after
-build 35017297266/regression 35017297166; merged-tree run 35018077437 is pending.
+Active: issue/8-unneeded-internal. PR #72 passed build 35018151616 and regression
+35018151602 at e6dfa0ba, then merged as 01a1dda8. That merge is integrated into
+this branch; its merged-tree regression remains to check. PR #71 merged c04ba916
+after build 35017297266/regression 35017297166; merged-tree run 35018077437 passed.
 PR #70 merged-tree regression 35016803376 passed. #5 is complete.
+
+Next: open the unneeded-internal-declaration PR, verify its hosted gates and
+self-review, merge with a merge commit, then check the merged-tree regression.
 
 The only new warning change removes -Wno-unneeded-internal-declaration from Clang
 native compilation. All 206 native release objects across both renderers match
@@ -68,6 +70,14 @@ prove parity. Do not delete the declaration needed by that conditional function.
 files even with this warning enabled; the GCC job provides that gate. The separate
 unneeded-internal control DOES fail through the actual native wrapper as intended.
 Artifacts: /tmp/aftershock-unused-const-gcc-all and native-warning-check/*included*.
+A temporary source preview moves the existing MISSIONPACK guard above the
+order-table declarations while preserving line count. GCC/Clang release objects
+match, as do MinGW native objects after incremental LTO. Two debug objects need
+further relocation/constant review before accepting that future change. The
+MISSIONPACK compile control fails in the unchanged baseline at cg_servercmds.cpp:936
+(int to qboolean); do not fix that inactive configuration in the warning PR.
+Verify that its preprocessed tokens are preserved. Preview artifacts:
+/tmp/aftershock-unused-constant-preview. No repository source edit yet.
 
 Type-limits preflight after the #31 affinity/chat fixes: replacing the suppression
 with explicit -Wtype-limits preserves all 728 GCC/Clang engine release objects
