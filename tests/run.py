@@ -22,8 +22,10 @@ def run(args, **kwargs):
     return subprocess.run([str(a) for a in args], cwd=ROOT, env=ENV, check=True, **kwargs)
 
 
-def compare(name, actual, regenerate):
+def compare(name, actual, regenerate, normalize=None):
     path = ROOT / 'tests/golden' / name
+    if regenerate and normalize:
+        raise SystemExit('FAIL: normalized native parity cannot regenerate QVM goldens')
     if regenerate:
         if os.environ.get('CI'):
             raise SystemExit('FAIL: CI must never regenerate goldens')
@@ -33,6 +35,8 @@ def compare(name, actual, regenerate):
     if not path.is_file():
         raise SystemExit('FAIL: missing reviewed golden: ' + name)
     expected = path.read_bytes()
+    if normalize:
+        expected, actual = normalize(expected), normalize(actual)
     if expected != actual:
         print(''.join(difflib.unified_diff(expected.decode().splitlines(True), actual.decode().splitlines(True), fromfile=str(path), tofile='actual')))
         raise SystemExit('FAIL: ' + name)
@@ -158,10 +162,16 @@ def content_settings(content):
 
 
 def runtime(args):
+    from native import engine_objects, normalize_log, verify_static
     variables = [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0']
+    native_cc = args.cc
     if args.sanitize:
         variables += ['CFLAGS=-fsanitize=undefined -fno-omit-frame-pointer', 'LDFLAGS=-fsanitize=undefined']
+        native_cc += ' -fsanitize=undefined -fno-omit-frame-pointer'
+    variables += engine_objects(args.output / 'native', args.content, native_cc, args.cxx, ('game',))
     binary = build(args.output / 'runtime-build', variables) / 'quake3e.ded.x64'
+    verify_static(binary, ('game',))
+    normalize = normalize_log
     for map_name in content_maps(args.content):
         results = []
         # Isolated home prevents the user's config and pak cache influencing fixtures.
@@ -182,18 +192,22 @@ def runtime(args):
                 log = result.stdout
                 (args.output / f'{map_name}-{iteration}.log').write_bytes(log)
                 result.check_returncode()
+                if b'Static game loaded.' not in log:
+                    raise SystemExit('FAIL: static game was not initialized')
                 # Only installation metadata is normalized; gameplay text is retained.
                 normalized = re.sub(rb'^\.\.\.found [0-9]+ cached paks\r?\n|^Working directory:.*\r?\n', b'', log, flags=re.M)
                 normalized = normalized.replace(home.encode(), b'<HOME>').replace(str(args.data.parent).encode(), b'<DATA>')
                 if args.content == 'openarena':
                     normalized = re.sub(rb'^\.\.\.detecting CPU, found .*$', b'...detecting CPU, found <CPU>', normalized, flags=re.M)
+                if normalize:
+                    normalized = normalize(normalized)
                 if iteration != 'warmup':
                     results.append(normalized)
             if results[0] != results[1]:
                 raise SystemExit('FAIL: repeated runtime differs: ' + map_name)
             if b'ClientBegin: 1' not in results[0] or b'Kill:' not in results[0]:
                 raise SystemExit('FAIL: runtime did not exercise both bots: ' + map_name)
-            compare(('openarena/' if args.content == 'openarena' else '') + map_name + '.log', results[0], args.regenerate)
+            compare(('openarena/' if args.content == 'openarena' else '') + map_name + '.log', results[0], args.regenerate, normalize)
 
 
 def main():

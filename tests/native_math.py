@@ -14,9 +14,9 @@ args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)
 for mode, flags in [('release', ['-O2']), ('asan', ['-O0', '-fsanitize=address'])]:
     binary = args.output / mode
-    command = [*shlex.split(args.cc), '-std=c99', *flags, '-fno-strict-aliasing',
+    command = [*shlex.split(args.cc), '-x', 'c', '-std=c99', *flags, '-fno-strict-aliasing',
                '-ffp-contract=off', '-ffunction-sections', '-fdata-sections',
-               'code/game/q_math.c', 'tests/probes/native_math.c', '-Wl,--gc-sections',
+               'code/game/q_math.cpp', 'tests/probes/native_math.c', '-Wl,--gc-sections',
                '-lm', '-o', str(binary)]
     with (args.output / (mode + '.log')).open('w') as log:
         subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)

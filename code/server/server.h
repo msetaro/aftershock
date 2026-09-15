@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
-#include "../qcommon/vm_local.h"
 #include "../game/g_public.h"
 #include "../game/bg_public.h"
 
@@ -280,7 +279,7 @@ typedef struct
 
 extern	serverStatic_t	svs;				// persistant server info across maps
 extern	server_t		sv;					// cleared each map
-extern	vm_t			*gvm;				// game virtual machine
+bool SV_GameRunning( void );
 
 extern	cvar_t	*sv_fps;
 extern	cvar_t	*sv_timeout;

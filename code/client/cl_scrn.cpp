@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_scrn.c -- master for refresh, status bar, console, chat, notify, etc
 
 #include "client.h"
+#include "../cgame/cg_native_public.h"
+#include "../ui/ui_native_public.h"
 
 static qboolean	scr_initialized;		// ready to draw
 
@@ -524,7 +526,7 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 
 	re.BeginFrame( stereoFrame );
 
-	uiFullscreen = (qboolean)(uivm && VM_Call( uivm, 0, UI_IS_FULLSCREEN ));
+	uiFullscreen = (qboolean)(NativeUI_Running && NativeUI_IsFullscreen(  ));
 
 	// wide aspect ratio screens need to have the sides cleared
 	// unless they are displaying game renderings
@@ -541,7 +543,7 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 
 	// if the menu is going to cover the entire screen, we
 	// don't need to render anything under it
-	if ( uivm && !uiFullscreen ) {
+	if ( NativeUI_Running && !uiFullscreen ) {
 		switch( cls.state ) {
 		default:
 			Com_Error( ERR_FATAL, "SCR_DrawScreenField: bad cls.state" );
@@ -552,27 +554,27 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 		case CA_DISCONNECTED:
 			// force menu up
 			S_StopAllSounds();
-			VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
+			NativeUI_SetActiveMenu( UIMENU_MAIN );
 			break;
 		case CA_CONNECTING:
 		case CA_CHALLENGING:
 		case CA_CONNECTED:
 			// connecting clients will only show the connection dialog
 			// refresh to update the time
-			VM_Call( uivm, 1, UI_REFRESH, cls.realtime );
-			VM_Call( uivm, 1, UI_DRAW_CONNECT_SCREEN, qfalse );
+			NativeUI_Refresh( cls.realtime );
+			NativeUI_DrawConnectScreen( qfalse );
 			break;
 		case CA_LOADING:
 		case CA_PRIMED:
 			// draw the game information screen and loading progress
-			if ( cgvm ) {
+			if ( NativeCGame_Running ) {
 				CL_CGameRendering( stereoFrame );
 			}
 			// also draw the connection information, so it doesn't
 			// flash away too briefly on local or lan games
 			// refresh to update the time
-			VM_Call( uivm, 1, UI_REFRESH, cls.realtime );
-			VM_Call( uivm, 1, UI_DRAW_CONNECT_SCREEN, qtrue );
+			NativeUI_Refresh( cls.realtime );
+			NativeUI_DrawConnectScreen( qtrue );
 			break;
 		case CA_ACTIVE:
 			// always supply STEREO_CENTER as vieworg offset is now done by the engine.
@@ -586,8 +588,8 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	}
 
 	// the menu draws next
-	if ( Key_GetCatcher( ) & KEYCATCH_UI && uivm ) {
-		VM_Call( uivm, 1, UI_REFRESH, cls.realtime );
+	if ( Key_GetCatcher( ) & KEYCATCH_UI && NativeUI_Running ) {
+		NativeUI_Refresh( cls.realtime );
 	}
 
 	// console draws next
@@ -635,7 +637,7 @@ void SCR_UpdateScreen( void ) {
 
 	// If there is no VM, there are also no rendering commands issued. Stop the renderer in
 	// that case.
-	if ( uivm )
+	if ( NativeUI_Running )
 	{
 		// XXX
 		int in_anaglyphMode = Cvar_VariableIntegerValue("r_anaglyphMode");

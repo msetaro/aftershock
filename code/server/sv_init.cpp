@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "server.h"
+#include "../game/g_native_public.h"
 
 
 /*
@@ -575,7 +576,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	for ( i = 0; i < 3; i++ ) {
 		Cbuf_Wait();
 		sv.time += 100;
-		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+		Game_RunFrame( sv.time );
 		SV_BotFrame( sv.time );
 	}
 
@@ -599,7 +600,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 			}
 
 			// connect the client again
-			denied = (const char *)GVM_ArgPtr( VM_Call( gvm, 3, GAME_CLIENT_CONNECT, i, qfalse, isBot ) );	// firstTime = qfalse
+			denied = (const char *)Game_ClientConnect( i, qfalse, isBot );	// firstTime = qfalse
 			if ( denied ) {
 				// this generally shouldn't happen, because the client
 				// was connected before the level change
@@ -621,7 +622,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// run another frame to allow things to look at all the players
 	Cbuf_Wait();
 	sv.time += 100;
-	VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+	Game_RunFrame( sv.time );
 	SV_BotFrame( sv.time );
 	svs.time += 100;
 

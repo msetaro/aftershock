@@ -362,88 +362,6 @@ enum clc_ops_e {
 /*
 ==============================================================
 
-VIRTUAL MACHINE
-
-==============================================================
-*/
-typedef struct vm_s vm_t;
-
-typedef enum {
-	VMI_NATIVE,
-	VMI_BYTECODE,
-	VMI_COMPILED
-} vmInterpret_t;
-
-typedef enum {
-	TRAP_MEMSET = 100,
-	TRAP_MEMCPY,
-	TRAP_STRNCPY,
-	TRAP_SIN,
-	TRAP_COS,
-	TRAP_ATAN2,
-	TRAP_SQRT,
-} sharedTraps_t;
-
-typedef enum {
-	VM_BAD = -1,
-	VM_GAME = 0,
-#ifndef USE_DEDICATED
-	VM_CGAME,
-	VM_UI,
-#endif
-	VM_COUNT
-} vmIndex_t;
-
-// we don't need more than 4 arguments (counting callnum) for vmMain, at least in Vanilla Quake3
-#define MAX_VMMAIN_CALL_ARGS 4
-
-Q_EXTERN_C typedef intptr_t (QDECL *vmMainFunc_t)( int command, int arg0, int arg1, int arg2 );
-
-typedef intptr_t (*syscall_t)( intptr_t *parms );
-typedef intptr_t (QDECL *dllSyscall_t)( intptr_t callNum, ... );
-Q_EXTERN_C typedef void (QDECL *dllEntry_t)( dllSyscall_t syscallptr );
-
-void	VM_Init( void );
-vm_t	*VM_Create( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllSyscalls, vmInterpret_t interpret );
-
-void	VM_Free( vm_t *vm );
-void	VM_Clear(void);
-void	VM_Forced_Unload_Start(void);
-void	VM_Forced_Unload_Done(void);
-vm_t	*VM_Restart( vm_t *vm );
-
-intptr_t	QDECL VM_Call( vm_t *vm, int nargs, int callNum, ... );
-
-void	VM_Debug( int level );
-void	VM_CheckBounds( const vm_t *vm, unsigned int address, unsigned int length );
-void	VM_CheckBounds2( const vm_t *vm, unsigned int addr1, unsigned int addr2, unsigned int length );
-void	VM_CheckBounds3( const vm_t *vm, unsigned int address, unsigned int count, unsigned int size );
-
-#if 1
-#define VM_CHECKBOUNDS VM_CheckBounds
-#define VM_CHECKBOUNDS2 VM_CheckBounds2
-#define VM_CHECKBOUNDS3 VM_CheckBounds3
-#else // for performance evaluation purposes
-#define VM_CHECKBOUNDS(vm,a,b)
-#define VM_CHECKBOUNDS2(vm,a,b,c)
-#define VM_CHECKBOUNDS3(vm,a,b,c)
-#endif
-
-void	*GVM_ArgPtr( intptr_t intValue );
-
-#define	VMA(x) VM_ArgPtr(args[x])
-static ID_INLINE float _vmf(intptr_t x)
-{
-	floatint_t v;
-	v.i = (int)x;
-	return v.f;
-}
-#define	VMF(x)	_vmf(args[x])
-
-
-/*
-==============================================================
-
 CMD
 
 Command text buffering and command execution
@@ -1063,7 +981,6 @@ extern	cvar_t	*com_cl_running;
 extern	cvar_t	*com_yieldCPU;
 #endif
 
-extern	cvar_t	*vm_rtChecks;
 #ifdef USE_AFFINITY_MASK
 extern	cvar_t	*com_affinityMask;
 #endif

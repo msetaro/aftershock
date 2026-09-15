@@ -10,14 +10,20 @@ import tempfile
 
 from run import ROOT, ENV, build, run, content_maps, content_bots, content_settings
 from frames import check_frames
+from native import engine_objects, verify_static
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-demo-tests'))
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
+parser.add_argument('--cc', default='gcc')
+parser.add_argument('--cxx', default='g++')
+parser.add_argument('--lifecycle', action='store_true', help='check fixed frames after replay and video restart')
 parser.add_argument('--record-fixtures', action='store_true', help='explicitly replace demos and frame goldens')
 parser.add_argument('--regenerate', action='store_true', help='explicitly replace frame goldens only')
 args = parser.parse_args()
+if args.lifecycle and (args.record_fixtures or args.regenerate):
+    parser.error('lifecycle comparison requires fixed fixtures')
 if args.record_fixtures:
     args.regenerate = True
 if args.regenerate and os.environ.get('CI'):
@@ -27,7 +33,7 @@ output.mkdir(parents=True, exist_ok=True)
 data = args.data.resolve()
 paks = sorted(data.glob('*.pk3'))
 if not paks:
-    parser.error('user-owned baseq3 paks are required; see tests/README.md')
+    parser.error('installed content paks are required; see tests/README.md')
 icds = list(Path('/usr/share/vulkan/icd.d').glob('lvp*.json'))
 if len(icds) != 1:
     parser.error('exactly one installed Mesa lavapipe ICD is required')
@@ -35,10 +41,13 @@ ENV.update(LIBGL_ALWAYS_SOFTWARE='1', GALLIUM_DRIVER='llvmpipe', LP_NUM_THREADS=
            VK_ICD_FILENAMES=str(icds[0]), VK_DRIVER_FILES=str(icds[0]))
 shim = output / 'fixed-random.so'
 run(['cc', '-Wall', '-Wextra', '-Werror', '-shared', '-fPIC', 'tests/probes/fixed_random.c', '-ldl', '-o', shim])
+objects = engine_objects(output / 'native', args.content, args.cc, args.cxx)
 binaries = {}
 for backend in ('vulkan', 'opengl1'):
-    directory = build(output / ('build-' + backend), ['BUILD_SERVER=0', 'USE_RENDERER_DLOPEN=0', 'RENDERER_DEFAULT=' + ('opengl' if backend == 'opengl1' else backend)])
+    directory = build(output / ('build-' + backend), [f'CC={args.cc}', f'CXX={args.cxx}', *objects,
+                      'BUILD_SERVER=0', 'USE_RENDERER_DLOPEN=0', 'RENDERER_DEFAULT=' + ('opengl' if backend == 'opengl1' else backend)])
     binaries[backend] = directory / 'quake3e.x64'
+    verify_static(binaries[backend], ('game', 'cgame', 'ui'))
 
 
 def client(binary, home, commands, log_name, fixed_random=False):
@@ -54,6 +63,10 @@ def client(binary, home, commands, log_name, fixed_random=False):
     log = result.stdout
     (output / log_name).write_bytes(log)
     result.check_returncode()
+    if any(f'Static {name} loaded.'.encode() not in log for name in ('cgame', 'ui')):
+        raise SystemExit('FAIL: static UI/cgame were not initialized')
+    if args.lifecycle and any(log.count(f'Static {name} loaded.'.encode()) < 2 for name in ('cgame', 'ui')):
+        raise SystemExit('FAIL: native modules were not restarted: ' + log_name)
     if b'Unknown command' in log or b'ERROR:' in log:
         raise SystemExit('FAIL: client reported an error: ' + log_name)
     marker = b'GL_RENDERER:' if binary == binaries['opengl1'] else b'VK_RENDERER:'
@@ -95,7 +108,10 @@ for map_name in content_maps(args.content):
                 base = prepare(home)
                 shutil.copyfile(fixture, base / 'demos' / fixture.name)
                 client(binary, home,
-                       ['+set', 'timedemo', '1', '+demo', map_name,
+                       ['+set', 'timedemo', '1',
+                        *(['+demo', map_name, '+wait', '200', '+disconnect', '+wait', '2',
+                           '+vid_restart', '+wait', '2'] if args.lifecycle else []),
+                        '+demo', map_name,
                         '+wait', '50', '+screenshot', 'frame050',
                         '+wait', '50', '+screenshot', 'frame100',
                         '+wait', '100', '+screenshot', 'frame200', '+wait', '2', '+quit'],

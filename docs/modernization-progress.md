@@ -7,91 +7,239 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-openarena-free-list, branched from alignment merge 0c3ef426.
-PR #62 merged-tree regression 34934836544 passed. #2 remains parked at 956eebfa,
-draft PR #50. Finish this separate allocator bug, then integrate both patches
-there and resume static/platform/VM-removal work.
+Active: issue/2-native-game, draft PR #50, primary worktree. Static integration
+440089eb passed regression 34936092538 and full build 34936092520 (all platform
+legs). VM removal is committed/pushed as 6d21bef2. No simulation FP edits or
+accepted golden/fixture changes. The later #4/#5/#8/design-only #6 sequence remains.
 
-Test-first 2a4e4aad fills the pool via BG_CanAlloc/BG_Alloc, frees it and requires
-the same full allocation count on reuse. GCC and Clang ASan/UBSan failed at the
-first release: BG_Free writes freeHead->prev while freeHead is NULL. Artifacts:
-/tmp/aftershock-openarena-free-before-{gcc,clang}. The fix guards only that old-head
-backlink; focused checks now pass both compilers. G2 layouts and G3 symbols are
-identical; G4 changes only BG_Free of six functions on each compiler. Artifacts:
-/tmp/aftershock-oa-free-gates. Full #2 static OA UBSan passes both maps with
-the patched C object and unchanged engine objects (/tmp/aftershock-oa-free-static).
-Accepted bot hashes remain 51d66d9a and 0f2e6b68; unit hash remains 8d44421d.
-No goldens changed.
+Test-first a8879635 rejects VM implementation symbols and requires static init
+exports. Removal deletes eight VM/interpreter/JIT files, active Make/MSVC entries,
+startup/unload API hooks and the obsolete VM_Call probe. C/C++ import compiler
+oracles and file-layout declarations remain as historical evidence; there is no
+runtime game loader. Native game/cgame/UI link into the executables.
 
-PR #63 source be9a9bc3 passed regression 34935436665 and full build 34935436703.
-Self-review passes: one allocator free-list transition; callers audited, focused
-failure-first checks and static OA UBSan pass, existing layouts/symbols unchanged,
-only BG_Free codegen differs. No FP, OS, allocation or lifetime edits.
-Next: ready/merge #63 and verify merged-tree CI, then integrate both patches into #2. No known-bug
-entry/suppression applies. ec-/Quake3e has no corresponding external OA allocator.
+After removal, dedicated linking/no-VM symbols and both accepted Q3 bot logs pass.
+Lifecycle fixed replay matches both maps/renderers at b38004b1. Lifetime analysis
+passes 550 compile commands/138 source paths, including native modules. Artifacts:
+/tmp/aftershock-native-no-vm-{runtime,demo,lifetimes}. Movement-debug lifecycle passes
+twice at e87382ec (/tmp/aftershock-native-no-vm-lifecycle). OpenArena fixed replay
+also matches both renderers at 5b89d338 (/tmp/aftershock-native-no-vm-oa-demo).
+Source 7382120a passed regression 34936939258 and full build 34936939100. The earlier orphaned workflow step was corrected and all step actions
+validated. Provenance rechecks all 130 original hashes; existing goldens unchanged.
 
-Alignment PR #62 source d7fb120b passed regression 34934306507 and full build
-34934306523, then merged as 0c3ef426. Its pointer-aligned allocation header and
-pool preserve existing layouts; GCC/Clang focused checks and full static OA UBSan
-passed. Explicit unit/collision/Q3/OA runtime regeneration had zero golden diff.
-All BG_Alloc/BG_Free/BG_CanAlloc callers were reviewed: bots, entity strings,
-arena/bot metadata, admin records and kill-spree configuration. The full-pool
-free-list defect is separate and was not changed by that alignment fix.
+Self-review passes: native-only scope; catalog/provenance and layout/symbol/codegen
+review complete; static parity/lifecycle and lifetime gates pass; no FP expression
+restructuring, new OS access, per-frame allocation or non-trivial lifetime. Plan
+records the native-only compatibility decision. This checkpoint is documentation only.
+Next: ready/merge PR #50 and verify merged-tree regression. Then fix the separately recorded #31
+optional MinGW SDL/no-curl Windows header defect before #4. No SDL source fix here.
 
-Parked #2 CI on 956eebfa exposed expected remaining platform integration work:
-Debug-only AI code still passes literals to char*; MinGW
-reaches MSVC-only pragmas; macOS reaches original PPC register/assembly helpers;
-MSVC projects lack native objects. Reports: /tmp/aftershock-native-956e-ci. Address
-these as #2 catalog/build adaptations after this bug fix, without broad warning
-suppression or simulation edits. The #2 runtime CI failure is its static OA sanitizer step (covered by this fix); local static smoke/replay/lifetimes passed as recorded on that branch.
+Separate allocator PR #62 merged 0c3ef426; merged regression 34934836544 passed.
+PR #63 merged 555f0771; merged regression 34935816610 passed. Its source be9a9bc3
+passed regression 34935436665/full build 34935436703. #2 integration 3a09baa0
+applies both reviewed patches to pinned OpenArena C; permanent static OA UBSan
+passes accepted hashes 51d66d9a/0f2e6b68.
 
-A separate allocator review reproducer confirms BG_Free dereferences freeHead
-when the pool is completely allocated and freeHead is NULL. It is not changed in
-#62. /tmp/aftershock-openarena-full-pool.c fills via BG_CanAlloc/BG_Alloc and frees
-one block; UBSan fails at bg_alloc.c:168. Record/fix it in the next separate #31
-PR after #62 merges, then integrate both patches into #2 and resume static work.
+Platform adaptations 090b7a3c: 17 DEBUG T8 casts preserve GCC/Clang -O0 C objects;
+_MSC_VER limits MSVC pragmas; _WIN32 selects platform definitions; unused legacy
+Windows/PPC helpers removed. Compiler debug traps replace MSVC-only inline int3.
+MSVC generates separate IntDir wrappers matching all 103 Make source selections,
+with strict FP and disabled intrinsics. 440089eb retains the engine's existing
+Apple SDK deprecation freeze. Debug Linux and native-Windows MinGW builds pass;
+all macOS/MSVC/MinGW CI configurations passed on 440089eb before VM retirement.
 
-## Earlier checkpoints (historical)
+## Earlier #2 integration checkpoints (historical)
 
-Active work: issue/31-bot-command-bytes. #2 is parked at e4853819, draft PR #50.
-Full native C++ UBSan smoke on q3dm17 fails at BotInputToUserCommand's direct float
-to signed-byte assignment (-6280.11). The real-function failing-first test uses
-controlled horizontal/vertical bases and explicit expected command bytes; UBSan
-fails at 254 before the fix. One exact GPL prerequisite import retains its notice
-and source hash. The test shares pinned header staging with the team-leader check.
+Active: issue/2-native-game, draft PR #50. #3, the recorded #31 fixes through
+PR #61, and #1 are merged. #2 import, C/QVM parity, catalog port, advisory review,
+and byte-identical .cpp rename are complete. Static engine adapters are still
+scratch-only; repository integration, OpenArena static coverage and VM/JIT removal
+are next. Do not rerun finished network work or regenerate accepted fixtures.
 
-Test-first 02a9ddeb fails at 254 on GCC/Clang with float-cast-overflow enabled.
-The fix wraps each complete movement expression in an explicit int conversion;
-all 18 horizontal/vertical cases pass on both compilers. Original C release object
-bytes, G2 layouts, G3 symbols and G4 assembly are identical before/after on both:
-GCC 5ef9e1517d814b30021cfc1c0451842a29b3fbecbff94f8ddc16021ed033f9c4,
-Clang a0be349110f562f03f44568856bc0d792cc495251988a758d74f09aae97fc26a.
-Artifacts/reproduction: /tmp/aftershock-bot-command-gates.py and its output folder.
-The existing team-leader check also passes after sharing pinned header staging.
+Game lifecycle test-first 413f1ed8 fails when native module storage survives unload.
+Source d6c2ac52 restores per-level arena/bot/cache/counter state. Both persistent
+restart/map-change repeats match DLL reloads (dd1fe5c3); the movement-debug variant
+also matches (e87382ec). Existing Q3 native bot logs and all accepted replay frames
+remain unchanged. Provenance 1591cc93 passed regression 34931875059; full build
+34931874993 must still be checked.
 
-PR #60 source 0366fa06 passed regression 34927341670 and full build 34927341749.
-A temporary full #2 native C++ build with this fix passes the complete UBSan bot
-smoke on both Q3 maps, with identical repeats and accepted normalized logs:
-/tmp/aftershock-bot-command-native.py/.log. Explicit unit/collision/Q3 runtime
-golden regeneration is byte-identical. Self-review passes: one conversion defect,
-sole caller checked, no FP restructuring/clamping, OS calls, allocations or
-non-trivial objects; layouts, symbols and raw C objects unchanged. No expected-bug
-entry or suppression is needed. No upstream engine game implementation exists.
+Client lifecycle test-first a1cf3223 fails after fixed replay/video restart with
+retained modules. The client now resets RNG/effect history, draw/loading/prediction
+state and particle rotation at module init; UI resets its state, arena and server
+cache counts. Existing menu structs already reset on entry. Both maps/renderers
+now pass the ordinary-versus-retained transition comparison and the separate
+accepted-golden replay (b38004b1). GCC/Clang C++ modules build; all 103 C/C++ layouts
+and symbol comparisons pass, with advisory codegen reports retained. No FP
+expression was rearranged, no per-frame allocation or OS access was added.
+These resets implement #2's new static storage lifetime, not pre-existing fixes.
 
-Next: ready/merge #60, verify merged-tree regression and integrate into #2, retaining
-its T22 abs conversions, float suffixes and other catalog changes. The bot-command
-check can use #2's imported local headers and native ABI helper after integration.
-Finish G4/G7/catalog review, rename .c files to .cpp without source-content changes,
-then static direct calls and VM/JIT removal. No source fix is made on #2.
+Current evidence: /tmp/aftershock-native-lifecycle-{debug,smoke,demo,gates},
+/tmp/aftershock-native-client-lifecycle-{before,after,golden,clang,gates}.
+Mutable-state audits: /tmp/aftershock-native-game-state-inventory.txt and
+/tmp/aftershock-native-client-state-inventory.txt. Module wrappers must bind all
+five compatibility functions (rand/srand/qsort/atof/memmove), and lifetime analysis
+must cover their generated translation units. Base-game lifecycle was exercised;
+missionpack is not an enabled imported-module configuration.
 
-#59 merged 11781f44; merged-tree regression 34926638834 passed. #2 integration and
-pahole installation are d8691015; regression 34926764924/full build 34926765230 were
-both passed, including the native comparison job. Provenance checkpoint e4853819
-verifies 130 pinned original hashes (30 verbatim, 96 modified, four retained ABI
-headers), with commit references per changed file. Native G2/G3 pass 103 objects;
-G4/G7 review, source/catalog audit completion, .cpp rename, static integration and
-VM/JIT removal remain. No accepted fixture/golden changes on #2; no VM/JIT removal
-has started. Detailed existing checkpoints remain below.
+PR #61 merged 35a2c75c; merged regression 34930596490 passed. Its #2 integration
+1def16ce passed regression 34930663280 and full build 34930663236. Both overlapping
+info-removal helpers are fixed identically in q_shared.cpp; provenance retained.
+
+Client source 436bbab1/provenance e40ac443 are pushed; regression 34932294456
+passed and full build 34932294429 remains to check. Earlier full build 34931874993
+passed too.
+
+Working-tree static integration now replaces the six server/nine client dispatch
+sites with typed calls. A single module.cpp wrapper compiles each imported source
+in its module namespace, with all five compatibility functions bound locally;
+there are no generated translation-unit files. The first actual Make dedicated
+build links (/tmp/aftershock-native-integrated). Client build and bot smoke are
+running. VM code is still linked but no longer serves these direct game exports;
+its removal and test-suite adaptation remain pending. These integration edits are
+not committed yet, and CI still describes the previous lifecycle checkpoint.
+
+OpenArena preflight now compiles its pinned C sources with typed imports/exports,
+combines each module into a relocatable object and prefixes its internal global
+symbols using objcopy. The public typed exports remain visible. All three C objects
+compile, and the game links against the same direct-call server; runtime/replay
+parity remains to verify. This preserves a static hosted-content test executable
+without importing OA implementation into production game source. Artifacts:
+/tmp/aftershock-oa-static-preflight and its driver script. This approach still
+needs permanent test/build integration, state-reset audit and verification.
+
+Next: verify static Q3/OA bot logs and client fixed replay, integrate permanent
+native builds/tests (including lifetime analysis), then remove the VM/JIT code.
+Keep OpenArena coverage and accepted goldens; PR #50 remains draft until static
+linking, VM/JIT removal, build/lifetime/layout/runtime/replay gates and self-review
+are complete. The full later #4/#5/#8/design-only #6 sequence remains outstanding.
+
+The integrated Q3 static server passes both accepted bot logs, both static client
+renderers pass fixed replay (b38004b1), and lifetime analysis passes 562 compile
+commands including 206 native commands across both renderer configurations. The
+Clang AST log contains private state from game, cgame and UI, confirming all
+wrapper source selections were analyzed. Engine builds use the existing fixed
+SOURCE_DATE_EPOCH; a first standalone build omitted it and differed only in the
+version date, then passed after rebuilding the two date-bearing engine objects.
+
+Static OA C game bot logs pass both accepted hashes; static OA clients pass both
+renderers and maps (5b89d33). Permanent openarena_native.py --static now builds the
+same isolated C objects. Runtime/demo now use static modules by default and the
+redundant former native-DLL CI pass is removed. OA runtime --sanitize includes its
+C game object as well as engine code and is running. Test arguments --game-code
+and --game-language are retired; C/C++ import compiler checks remain separate.
+
+The permanent Q3 lifecycle gate now compares against the already-recorded DLL
+reference logs (new native-lifecycle*.log files, dd1fe5c3/e87382ec), preserving all
+existing accepted goldens. Static movement-debug restart/map-change passes twice.
+Client lifecycle frames were also checked against the original frame golden and
+match it, so --lifecycle now uses that existing golden directly. No extra frame
+fixture or regeneration is needed. These integration changes are still uncommitted.
+
+Earlier checkpoints below describe how this integration was reached.
+
+
+Active work: issue/2-native-game, draft PR #50. PR #60 merged as 8e3ecf78 after
+regression 34927341670/full build 34927341749 passed on 0366fa06. Test-first
+02a9ddeb reproduces float-to-signed-byte UB. The three complete movement expressions
+now explicitly truncate through int; GCC/Clang original C objects, layouts, symbols
+and assembly are byte-identical before/after. All 18 command cases pass. Temporary
+complete #2 native C++ UBSan bot smoke passes both maps with identical repeats and
+accepted logs. Explicit unit/collision/Q3 runtime regeneration is byte-identical.
+This integration retains T22 abs casts, float suffixes and all catalog edits.
+The command test uses the complete local headers; the temporary header-fetch helper
+is unnecessary here and removed, retaining #2's local-header team-leader test.
+
+#59 merged 11781f44; merged-tree regression 34926638834 passed. Its #2 integration
+and job-local pahole installation d8691015 passed regression 34926764924/full build
+34926765230, including the 103-object native comparison. #58 merged-tree regression
+34925562788 and #57 merged-tree regression 34924317093 passed.
+
+Strict native warning freeze 7c4f8302 passed regression 34925774876/full build
+34925774880. Both C/C++ native builds use -Wall -Wextra -Werror with only classes
+observed in C. Provenance checkpoint e4853819 verified all 130 original GPL hashes:
+30 verbatim files, 96 modified, four retained ABI headers. Per-file transformation
+references identify native ABI/catalog edits and each separate #31 fix.
+
+Permanent native_gates.py passes all 103 G2/G3 comparisons locally and in hosted
+CI; it retains 63 advisory assembly diffs. --tidy completed all objects with 1365
+narrowing, 55 signed-char and nine string-result findings; no tool/compile failures.
+Latest local artifacts precede #60: /tmp/aftershock-native-gates-final; function
+review: /tmp/aftershock-native-function-review-current and
+/tmp/aftershock-native-review-checkpoint.md. Flag initialization/command-byte bugs
+found during this review have now been fixed in separate #31 PRs. No unconfirmed
+G7 warning is being called a sanitizer failure or hidden.
+
+The resolved integration passes GCC/Clang command checks and the team-leader
+check; ai_main.c is byte-identical to the successful complete native UBSan preflight.
+
+#60 merged-tree regression 34927724919 passed. The resolved #2 integration
+f92ae456 passed regression 34927833819/full build 34927833852.
+
+The advisory G4/G7/catalog review and acceptance decision are committed in
+58d86036 (docs/native-port-review.md) and recorded on #2. Diagnostics remain visible;
+confirmed bugs are separately tracked/fixed.
+
+The .cpp rename now preserves all bytes of 93 implementation files (git reports
+100% similarity for every rename; /tmp/aftershock-native-rename-hashes.json records
+SHA256 before/after). The manifest retains original upstream source paths/hashes.
+C oracles explicitly select -x c. GCC/Clang C and C++ strict module builds pass;
+OpenArena C module build passes. Math/shared, team leader/voters, base/missionpack
+flags and bot command checks pass. No accepted fixtures/goldens changed.
+
+Rename 634decac passed regression 34928509506 and full build 34928509462
+(the single failed MSYS2 package-download job passed on retry). Checkpoint 526a77b7
+passed regression 34928947087/full build 34928947114.
+
+Static preflight remains scratch-only. Six server objects now use typed game
+exports; 183 typed imports replace game syscalls. Both bot logs still match.
+Nine client objects use typed cgame/UI exports with explicit call-depth counters;
+94 cgame and 87 UI direct imports compile. Fixed replay on both renderers matches
+all accepted frames. This is not yet repository integration or VM removal.
+
+Additional restart/map-change checking found two distinct issues. Static linking
+must reset module state previously reset by DLL reload: botstates points into the
+reset game arena, and bot timing statics persist. A scratch reset clears those
+pointers/counters and restores the restart portion, but the full state audit is
+unfinished. Also the unchanged DLL reference itself corrupts info strings on map
+change: original GPL Info_RemoveKey and Info_RemoveKey_Big use overlapping strcpy.
+ASan reproduces strcpy-param-overlap in current q_shared.cpp. That existing bug
+must be fixed separately under #31 before accepting map-change parity.
+
+The separate #31 info-string fix is now merged as #61. Resume native lifecycle
+reset and static integration,
+retaining OpenArena coverage. Native module library audit must also bind memmove
+inside each namespace: bg_lib defines it in addition to rand/srand/qsort/atof; the
+first scratch wrappers omitted that local prototype. Do not claim complete static
+parity until this is corrected and verified. No accepted fixtures/goldens changed.
+
+Scratch evidence: /tmp/aftershock-native-static-preflight (exports, client-imports,
+client-exports, reset). Scripts: /tmp/aftershock-game-direct-preflight.py,
+/tmp/aftershock-native-direct-preflight.py, /tmp/aftershock-game-static-link.py,
+/tmp/aftershock-game-export-preflight.py, /tmp/aftershock-client-direct-link.py,
+/tmp/aftershock-client-export-preflight.py, /tmp/aftershock-static-reset-preflight.py.
+Runtime/replay output: /tmp/aftershock-game-exports-runtime,
+/tmp/aftershock-client-exports-demo. Restart comparisons:
+/tmp/aftershock-static-restart.py, /tmp/aftershock-static-reset-restart.py,
+/tmp/aftershock-static-reset-original-reference.py. ASan reproducer/log:
+/tmp/aftershock-native-info-overlap. Full earlier native UBSan evidence:
+/tmp/aftershock-bot-command-native.py/.log. No static engine edits are committed.
+
+Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95
+(regression 34922352537 passed); portable Q3 binary32 literals 5592a1eb (regression
+34922727256 passed). All 103 C and 103 C++ objects stayed byte-identical in the
+literal conversion. Clang native Q3 smoke/replay and GCC/Clang native OA smoke/replay
+match both maps/renderers. Three T17 ui_ingame casts also preserve C/C++ objects.
+Full G2/G3 before the sentinel merge: 103/103 objects match. G3 adds artifact-only
+-U__OPTIMIZE__ to the existing header/optimizer isolation flags; production assembly
+differences are retained. The completed G4 review is in native-port-review.md; no
+functions were added/removed across 103 objects. G7 on the temporary merged UI tree completed all
+103 objects without tool/compile failures: 1365 narrowing, 55 signed-char and nine
+implicit strcmp-result findings. The nine strcmp comparisons are equivalent nonzero
+checks. The disposition in native-port-review.md retains inherited conversions for
+#8 and routes confirmed defects through #31.
+Artifacts: /tmp/aftershock-native-function-review, /tmp/aftershock-native-g2-g3-headers,
+/tmp/aftershock-native-warning-inventory and /tmp/aftershock-native-tidy/results.json.
+Earlier #54/#55/#56 merged-tree regressions 34913731858/34914963107/34915431579 passed.
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
@@ -783,3 +931,9 @@ QVM random/sort library. Native OA frame parity remains #2 work after this fix.
 
 #63 explicit unit/collision golden regeneration is byte-identical; static OA
 smoke also matches both accepted bot logs. No golden/fixture change.
+
+Platform checkpoint: all macOS configurations and the completed MSVC configurations
+pass on 440089eb in build 34936092520; remaining build jobs are running. Local
+MinGW native-Windows client (USE_CURL=0 USE_SDL=0, matching CI) links successfully.
+The optional MinGW SDL/no-curl build exposed old missing Windows header context;
+record it separately for #31 without changing those engine sources here.

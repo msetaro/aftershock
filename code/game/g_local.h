@@ -79,7 +79,7 @@ struct gentity_s {
 
 	qboolean	inuse;
 
-	char		*classname;			// set in QuakeEd
+	const char	*classname;			// set in QuakeEd
 	int			spawnflags;			// set in QuakeEd
 
 	qboolean	neverFree;			// if true, FreeEntity will only unlink
@@ -489,12 +489,14 @@ float vectoyaw( const vec3_t vec );
 void G_AddPredictableEvent( gentity_t *ent, int event, int eventParm );
 void G_AddEvent( gentity_t *ent, int event, int eventParm );
 void G_SetOrigin( gentity_t *ent, vec3_t origin );
+void G_ResetShaderRemaps( void );
 void AddRemap(const char *oldShader, const char *newShader, float timeOffset);
 const char *BuildShaderStateConfig();
 
 //
 // g_combat.c
 //
+void G_InitCombat( void );
 qboolean CanDamage (gentity_t *targ, vec3_t origin);
 void G_Damage (gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t point, int damage, int dflags, int mod);
 qboolean G_RadiusDamage (vec3_t origin, gentity_t *attacker, float damage, float radius, gentity_t *ignore, int mod);
@@ -712,7 +714,7 @@ void BotTestAAS(vec3_t origin);
 extern	level_locals_t	level;
 extern	gentity_t		g_entities[MAX_GENTITIES];
 
-#define	FOFS(x) ((int)&(((gentity_t *)0)->x))
+#define	FOFS(x) ((int)offsetof(gentity_t, x))
 
 extern	vmCvar_t	g_gametype;
 extern	vmCvar_t	g_dedicated;

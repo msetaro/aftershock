@@ -1,0 +1,78 @@
+{
+  "gcc": {
+    "-Waddress": {
+      "c": 1,
+      "cpp": 1
+    },
+    "-Warray-bounds": {
+      "c": 2,
+      "cpp": 2
+    },
+    "-Wimplicit-fallthrough": {
+      "c": 4,
+      "cpp": 4
+    },
+    "-Wmissing-field-initializers": {
+      "c": 66,
+      "cpp": 100
+    },
+    "-Wsign-compare": {
+      "c": 63,
+      "cpp": 25
+    },
+    "-Wunused-but-set-variable": {
+      "c": 30,
+      "cpp": 20
+    },
+    "-Wunused-const-variable": {
+      "c": 1,
+      "cpp": 0
+    },
+    "-Wunused-parameter": {
+      "c": 152,
+      "cpp": 152
+    }
+  },
+  "clang": {
+    "-Wmissing-field-initializers": {
+      "c": 70,
+      "cpp": 70
+    },
+    "-Wnull-pointer-subtraction": {
+      "c": 3,
+      "cpp": 3
+    },
+    "-Wparentheses-equality": {
+      "c": 1,
+      "cpp": 1
+    },
+    "-Wpointer-bool-conversion": {
+      "c": 1,
+      "cpp": 1
+    },
+    "-Wself-assign": {
+      "c": 1,
+      "cpp": 1
+    },
+    "-Wsign-compare": {
+      "c": 60,
+      "cpp": 25
+    },
+    "-Wunneeded-internal-declaration": {
+      "c": 1,
+      "cpp": 1
+    },
+    "-Wunused-but-set-variable": {
+      "c": 25,
+      "cpp": 25
+    },
+    "-Wunused-const-variable": {
+      "c": 1,
+      "cpp": 1
+    },
+    "-Wunused-parameter": {
+      "c": 152,
+      "cpp": 152
+    }
+  }
+}

@@ -98,6 +98,9 @@ Permanent regression commands (see `tests/README.md` for content and prerequisit
 
 ```
 python3 tests/native_math.py
+python3 tests/native_shared.py
+python3 -B tests/native_gates.py --tidy
+python3 tests/native.py --content openarena
 python3 tests/openarena_strings.py
 python3 tests/ui_weapon.py
 python3 tests/team_voters.py
@@ -111,10 +114,11 @@ python3 tests/run.py differential
 python3 tests/run.py runtime
 python3 tests/run.py runtime --sanitize --output /tmp/tests-runtime-ubsan
 python3 tests/demo.py
+python3 tests/demo.py --lifecycle
+python3 tests/native_lifecycle.py --debug-movement
 python3 tests/download.py
 python3 tests/audio.py
 python3 tests/teamleader.py
-python3 tests/native_dispatch.py
 python3 tests/bot_move.py
 python3 tests/check_known_bugs.py
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized

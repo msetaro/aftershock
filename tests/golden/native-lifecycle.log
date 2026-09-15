@@ -1,0 +1,252 @@
+Q3 1.32e linux-x86_64 Sep 13 2026
+----- FS_Startup -----
+...loaded in 10 milliseconds
+----------------------
+4073 files in 9 pk3 files
+execing default.cfg
+couldn't exec q3config_server.cfg
+couldn't exec autoexec.cfg
+fs_basepath is write protected.
+fs_homepath is write protected.
+Hunk_Clear: reset the hunk ok
+...detecting CPU, found 13th Gen Intel(R) Core(TM) i5-13600K
+--- Common Initialization Complete ---
+Hostname: ironforge
+IP: 127.0.0.1
+IP: 192.168.86.30
+IP: 100.100.77.127
+IP6: ::1
+IP6: fd8f:d617:e496:4f9d:5cdb:72a2:cb31:a0c7
+IP6: fd8f:d617:e496:4f9d:55c5:9c24:88cf:aaa7
+IP6: fe80::93d1:ae04:7d9:4593%wlx00c0cabcf426
+IP6: fd7a:115c:a1e0::2301:4db4
+IP6: fe80::7f51:f99b:3e04:809d%tailscale0
+Opening IP socket: 0.0.0.0:27960
+stdin is not a tty, tty console mode failed
+------ Server Initialization ------
+Server: q3dm17
+Hunk_Clear: reset the hunk ok
+----- FS_Startup -----
+...loaded in 10 milliseconds
+----------------------
+4073 files in 9 pk3 files
+------- Game Initialization -------
+gamename: baseq3
+------------------------------------------------------------
+InitGame: \dmflags\0\fraglimit\20\g_gametype\0\mapname\q3dm17\protocol\68\sv_allowDownload\1\sv_dlRate\100\sv_floodProtect\1\sv_hostname\noname\sv_maxRate\0\sv_maxclients\8\sv_minRate\0\sv_privateClients\0\timelimit\0\version\Q3 1.32e linux-x86_64 Sep 13 2026\capturelimit\8\g_maxGameClients\0\g_needpass\0\gamename\baseq3
+0 teams with 0 entities
+16 items registered
+-----------------------------------
+------- BotLib Initialization -------
+loaded weapons.c
+loaded items.c
+loaded syn.c
+loaded rnd.c
+loaded match.c
+loaded rchat.c
+------------ Map Loading ------------
+trying to load maps/q3dm17.aas
+loaded maps/q3dm17.aas
+found 29 level items
+-------------------------------------
+32 bots parsed
+35 arenas parsed
+AAS initialized.
+-----------------------------------
+loaded skill 1 from bots/default_c.c
+loaded skill 1 from bots/sarge_c.c
+loaded skill 4 from bots/default_c.c
+loaded skill 4 from bots/sarge_c.c
+loaded bots/sarge_i.c
+loaded bots/sarge_w.c
+loaded sarge from bots/sarge_t.c
+ClientConnect: 0
+ClientUserinfoChanged: 0 n\Sarge\t\0\model\sarge\hmodel\sarge\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Sarge^7 connected\n"
+broadcast: print "Sarge^7 entered the game\n"
+ClientBegin: 0
+loaded cached skill 1.000000 from bots/default_c.c
+loaded skill 1 from bots/major_c.c
+loaded cached skill 4.000000 from bots/default_c.c
+loaded skill 4 from bots/major_c.c
+loaded bots/major_i.c
+loaded bots/major_w.c
+loaded major from bots/major_t.c
+ClientConnect: 1
+ClientUserinfoChanged: 1 n\Major\t\0\model\major\hmodel\major\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Major^7 connected\n"
+broadcast: print "Major^7 entered the game\n"
+ClientBegin: 1
+Item: 1 ammo_rockets
+Item: 0 weapon_rocketlauncher
+Kill: 1022 1 22: <world> killed Major by MOD_TRIGGER_HURT
+Item: 0 item_armor_body
+Item: 0 item_health_large
+Item: 1 ammo_rockets
+Item: 1 weapon_rocketlauncher
+Item: 0 ammo_slugs
+Item: 1 ammo_bullets
+Item: 0 weapon_railgun
+Kill: 1022 1 22: <world> killed Major by MOD_TRIGGER_HURT
+Item: 1 weapon_rocketlauncher
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_combat
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 1 ammo_bullets
+Item: 0 item_armor_shard
+Kill: 1022 0 22: <world> killed Sarge by MOD_TRIGGER_HURT
+==== ShutdownGame ====
+ShutdownGame:
+------------------------------------------------------------
+------- Game Initialization -------
+gamename: baseq3
+------------------------------------------------------------
+InitGame: \bot_minplayers\0\dmflags\0\fraglimit\20\g_gametype\0\mapname\q3dm17\protocol\68\sv_allowDownload\1\sv_dlRate\100\sv_floodProtect\1\sv_hostname\noname\sv_maxRate\0\sv_maxclients\8\sv_minRate\0\sv_privateClients\0\timelimit\0\version\Q3 1.32e linux-x86_64 Sep 13 2026\capturelimit\8\g_maxGameClients\0\g_needpass\0\gamename\baseq3
+0 teams with 0 entities
+16 items registered
+-----------------------------------
+32 bots parsed
+35 arenas parsed
+loaded cached skill 3.000000 from bots/sarge_c.c
+ClientConnect: 0
+ClientUserinfoChanged: 0 n\Sarge\t\0\model\sarge\hmodel\sarge\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Sarge^7 entered the game\n"
+ClientBegin: 0
+loaded cached skill 3.000000 from bots/major_c.c
+ClientConnect: 1
+ClientUserinfoChanged: 1 n\Major\t\0\model\major\hmodel\major\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Major^7 entered the game\n"
+ClientBegin: 1
+Item: 0 ammo_rockets
+Item: 1 weapon_rocketlauncher
+Item: 0 item_armor_body
+Item: 1 ammo_bullets
+Item: 1 item_health_large
+Item: 0 ammo_rockets
+Item: 0 weapon_rocketlauncher
+Item: 0 ammo_bullets
+Item: 1 item_armor_body
+Kill: 1022 0 22: <world> killed Sarge by MOD_TRIGGER_HURT
+==== ShutdownGame ====
+ShutdownGame:
+------------------------------------------------------------
+AAS shutdown.
+------ Server Initialization ------
+Server: q3dm7
+Hunk_Clear: reset the hunk ok
+----- FS_Startup -----
+...loaded in 10 milliseconds
+----------------------
+4073 files in 9 pk3 files
+------- Game Initialization -------
+gamename: baseq3
+------------------------------------------------------------
+InitGame: \bot_minplayers\0\dmflags\0\fraglimit\20\g_gametype\0\mapname\q3dm7\protocol\68\sv_allowDownload\1\sv_dlRate\100\sv_floodProtect\1\sv_hostname\noname\sv_maxRate\0\sv_maxclients\8\sv_minRate\0\sv_privateClients\0\timelimit\0\version\Q3 1.32e linux-x86_64 Sep 13 2026\capturelimit\8\g_maxGameClients\0\g_needpass\0\gamename\baseq3
+info_firstplace doesn't have a spawn function
+info_secondplace doesn't have a spawn function
+info_thirdplace doesn't have a spawn function
+0 teams with 0 entities
+20 items registered
+-----------------------------------
+------- BotLib Initialization -------
+loaded weapons.c
+loaded items.c
+loaded syn.c
+loaded rnd.c
+loaded match.c
+loaded rchat.c
+------------ Map Loading ------------
+trying to load maps/q3dm7.aas
+loaded maps/q3dm7.aas
+camp spot at 1180.0 -148.0 188.0 in solid
+found 67 level items
+-------------------------------------
+32 bots parsed
+35 arenas parsed
+AAS initialized.
+loaded skill 1 from bots/default_c.c
+loaded skill 1 from bots/sarge_c.c
+loaded skill 4 from bots/default_c.c
+loaded skill 4 from bots/sarge_c.c
+loaded bots/sarge_i.c
+loaded bots/sarge_w.c
+loaded sarge from bots/sarge_t.c
+ClientConnect: 0
+ClientUserinfoChanged: 0 n\Sarge\t\0\model\sarge\hmodel\sarge\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Sarge^7 entered the game\n"
+ClientBegin: 0
+loaded cached skill 1.000000 from bots/default_c.c
+loaded skill 1 from bots/major_c.c
+loaded cached skill 4.000000 from bots/default_c.c
+loaded skill 4 from bots/major_c.c
+loaded bots/major_i.c
+loaded bots/major_w.c
+loaded major from bots/major_t.c
+ClientConnect: 1
+ClientUserinfoChanged: 1 n\Major\t\0\model\major\hmodel\major\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Major^7 entered the game\n"
+ClientBegin: 1
+-----------------------------------
+loaded cached skill 3.000000 from bots/sarge_c.c
+ClientConnect: 2
+ClientUserinfoChanged: 2 n\Sarge\t\0\model\sarge\hmodel\sarge\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Sarge^7 connected\n"
+broadcast: print "Sarge^7 entered the game\n"
+ClientBegin: 2
+loaded cached skill 3.000000 from bots/major_c.c
+ClientConnect: 3
+ClientUserinfoChanged: 3 n\Major\t\0\model\major\hmodel\major\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Major^7 connected\n"
+broadcast: print "Major^7 entered the game\n"
+ClientBegin: 3
+Item: 2 ammo_shells
+Item: 3 item_armor_shard
+Item: 3 item_armor_shard
+Item: 3 item_armor_shard
+Item: 3 item_armor_shard
+say: Sarge: I am back!
+Sarge^7: I am back!
+say: Major: You do know that I'm a VERY poor loser.
+Major^7: You do know that I'm a VERY poor loser.
+Item: 2 ammo_bullets
+Item: 2 ammo_bullets
+Item: 1 item_armor_combat
+Item: 1 ammo_slugs
+Item: 3 weapon_rocketlauncher
+Item: 0 item_health_large
+Item: 1 ammo_shells
+Item: 1 ammo_shells
+Item: 0 ammo_bullets
+Item: 0 ammo_bullets
+Item: 1 weapon_plasmagun
+Item: 3 item_health
+Item: 3 item_health
+Item: 3 ammo_slugs
+Kill: 2 0 3: Sarge killed Sarge by MOD_MACHINEGUN
+Kill: 1022 3 16: <world> killed Major by MOD_LAVA
+say: Major: that is like Africa hot.
+Major^7: that is like Africa hot.
+Item: 3 weapon_plasmagun
+Item: 3 item_health_small
+Item: 3 item_health_small
+say: Sarge: Why are you fond of that?
+Sarge^7: Why are you fond of that?
+Item: 3 ammo_slugs
+Item: 1 item_health_large
+Item: 2 item_health
+Item: 2 item_health
+say: Major: What do you mean?
+Major^7: What do you mean?
+Item: 0 weapon_rocketlauncher
+Item: 2 weapon_plasmagun
+Item: 1 item_health_small
+Kill: 3 1 9: Major killed Major by MOD_PLASMA_SPLASH
+----- Server Shutdown (Server quit) -----
+==== ShutdownGame ====
+ShutdownGame:
+------------------------------------------------------------
+AAS shutdown.
+---------------------------

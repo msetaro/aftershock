@@ -348,14 +348,12 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 	Cbuf_Init();
 
 	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT ) {
-		VM_Forced_Unload_Start();
 		SV_Shutdown( "Server disconnected" );
 		Com_EndRedirect();
 #ifndef DEDICATED
 		CL_Disconnect( qfalse );
 		CL_FlushMemory();
 #endif
-		VM_Forced_Unload_Done();
 
 		// make sure we can get at our local stuff
 		FS_PureServerSetLoadedPaks( "", "" );
@@ -365,14 +363,12 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 	} else if ( code == ERR_DROP ) {
 		Com_Printf( "********************\nERROR: %s\n********************\n",
 			com_errorMessage );
-		VM_Forced_Unload_Start();
 		SV_Shutdown( va( "Server crashed: %s",  com_errorMessage ) );
 		Com_EndRedirect();
 #ifndef DEDICATED
 		CL_Disconnect( qfalse );
 		CL_FlushMemory();
 #endif
-		VM_Forced_Unload_Done();
 
 		FS_PureServerSetLoadedPaks( "", "" );
 		com_errorEntered = qfalse;
@@ -384,9 +380,7 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 #ifndef DEDICATED
 		if ( com_cl_running && com_cl_running->integer ) {
 			CL_Disconnect( qfalse );
-			VM_Forced_Unload_Start();
 			CL_FlushMemory();
-			VM_Forced_Unload_Done();
 			CL_CDDialog();
 		} else {
 			Com_Printf( "Server didn't have CD\n" );
@@ -397,13 +391,11 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 
 		Q_longjmp( abortframe, 1 );
 	} else {
-		VM_Forced_Unload_Start();
 #ifndef DEDICATED
 		CL_Shutdown( va( "Server fatal crashed: %s", com_errorMessage ), qtrue );
 #endif
 		SV_Shutdown( va( "Server fatal crashed: %s", com_errorMessage ) );
 		Com_EndRedirect();
-		VM_Forced_Unload_Done();
 	}
 
 	Com_Shutdown();
@@ -425,16 +417,10 @@ void Com_Quit_f( void ) {
 	const char *p = Cmd_ArgsFrom( 1 );
 	// don't try to shutdown if we are in a recursive error
 	if ( !com_errorEntered ) {
-		// Some VMs might execute "quit" command directly,
-		// which would trigger an unload of active VM error.
-		// Sys_Quit will kill this process anyways, so
-		// a corrupt call stack makes no difference
-		VM_Forced_Unload_Start();
 		SV_Shutdown( p[0] ? p : "Server quit" );
 #ifndef DEDICATED
 		CL_Shutdown( p[0] ? p : "Client quit", qtrue );
 #endif
-		VM_Forced_Unload_Done();
 		Com_Shutdown();
 		FS_Shutdown( qtrue );
 	}
@@ -2292,7 +2278,6 @@ void Hunk_Clear( void ) {
 	hunk_temp = &hunk_high;
 
 	Com_Printf( "Hunk_Clear: reset the hunk ok\n" );
-	VM_Clear();
 #ifdef HUNK_DEBUG
 	hunkblocks = NULL;
 #endif
@@ -3640,10 +3625,6 @@ static void Sys_GetProcessorId( char *vendor )
 			CPU_Flags |= CPU_VFPv3;
 			strcat( vendor, " VFPv3" );
 		}
-
-		if ( ( CPU_Flags & ( CPU_ARMv7 | CPU_VFPv3 ) ) == ( CPU_ARMv7 | CPU_VFPv3 ) ) {
-			strcat( vendor, " QVM-bytecode" );
-		}
 	}
 #else // !arm32
 	CPU_Flags = 0;
@@ -3954,13 +3935,6 @@ void Com_Init( char *commandLine ) {
 	com_developer = Cvar_Get( "developer", "0", CVAR_TEMP );
 	Cvar_CheckRange( com_developer, NULL, NULL, CV_INTEGER );
 
-	Com_StartupVariable( "vm_rtChecks" );
-	vm_rtChecks = Cvar_Get( "vm_rtChecks", "15", CVAR_INIT | CVAR_PROTECTED );
-	Cvar_CheckRange( vm_rtChecks, "0", "15", CV_INTEGER );
-	Cvar_SetDescription( vm_rtChecks,
-		"Runtime checks in compiled vm code, bitmask:\n 1 - program stack overflow\n" \
-		" 2 - opcode stack overflow\n 4 - jump target range\n 8 - data read/write range" );
-
 	Com_StartupVariable( "journal" );
 	com_journal = Cvar_Get( "journal", "0", CVAR_INIT | CVAR_PROTECTED );
 	Cvar_CheckRange( com_journal, "0", "2", CV_INTEGER );
@@ -4158,7 +4132,6 @@ void Com_Init( char *commandLine ) {
 	Com_RandomBytes( (byte*)&qport, sizeof( qport ) );
 	Netchan_Init( qport & 0xffff );
 
-	VM_Init();
 	SV_Init();
 
 	com_dedicated->modified = qfalse;

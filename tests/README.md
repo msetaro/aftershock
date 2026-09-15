@@ -131,12 +131,10 @@ fails. The test still runs and prints its diagnostics; this is not suppression.
 A #31 fix removes its entry and updates the policy self-check if applicable.
 The existing bot smoke also runs under GCC UBSan (`runtime --sanitize`), comparing
 the same content goldens and treating every unsuppressed diagnostic as fatal.
-Both compile and link steps enable UBSan. This uses the original GCC runtime
-baseline; Clang's function check reads metadata before the generated JIT entry,
-which can fall outside its mmap region. A diagnostic relink without that check
-only in vm_x86.cpp passes both smoke goldens; no CI flag or suppression changed.
-The transition JIT is removed in #2. Unit ASan/UBSan coverage remains required;
-the ASan runtime experiment with faketime timed out before producing output.
+Both compile and link steps enable UBSan, including the hosted OpenArena C objects.
+The earlier Clang/JIT metadata limitation is retired with the VM implementation;
+its diagnostic history remains in the bug ledger. Unit ASan/UBSan coverage remains
+required; the earlier ASan runtime experiment with faketime timed out before output.
 The unit driver also initializes and frees real zlib state through its default
 allocator callbacks, under the existing sanitizer modes. It reads no content and
 reuses the unit allocation stubs; the ordinary unit golden stays unchanged.
@@ -189,6 +187,53 @@ to select that content set. Review demo logs/screenshots and explain every chang
 hash or gameplay event in the PR. All golden writes are rejected when `CI` is set;
 CI compares committed outputs and never regenerates them.
 
+### Native game integration (#2)
+
+The pinned GPL imports and provenance are in `docs/native-game-import.json`.
+The engine statically links the C++20 game, cgame and UI. Each imported source
+remains a separate translation unit inside its module namespace. Typed imports
+and exports replace numbered calls; the module's rand/srand/qsort/atof/memmove
+remain isolated from the engine and other modules.
+
+```
+python3 tests/native.py
+python3 tests/native.py --language c++
+python3 tests/run.py runtime
+python3 tests/demo.py
+python3 tests/demo.py --lifecycle
+```
+
+The first two commands retain the C/C++ import checks. Runtime/replay use the
+static production build and require installed Quake 3 content. The native ABI
+uses binary32 literals and rounds host math results to float, as the QVM compiler
+did; bg_lib preserves its random sequence. Smoke normalizes module-load metadata,
+build date and bot-skill printf padding when comparing accepted QVM logs; gameplay
+text remains intact. Replay uses the unchanged demos and frame hashes.
+
+Hosted CI uses the pinned OpenArena B52 C source and the reviewed #31 patches:
+
+```
+python3 tests/openarena_native.py --static
+python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/demo.py --content openarena --data /tmp/aftershock-openarena-baseoa
+```
+
+The runtime/replay commands stage C module objects automatically and link them to
+the same engine interface. GNU objcopy prefixes each module's private global
+symbols; typed public exports remain visible. No game DLL is loaded. Source is
+exported from revision 331464ca396d80e91cf9be273588f2b5f4b7afc8 into the test output,
+retaining GPL notices. The original lists select base q3_ui sources; bg_lib
+preserves the QVM random/sort behavior. These are hosted-content test objects;
+the production game remains the imported Q3 C++ implementation. Runtime --sanitize
+instruments both engine and OpenArena game code.
+
+OpenArena builds as C with GCC or Clang. Its 28 structure sizes and three offsets
+match the engine, including the consumed 140-byte refEntity prefix (OA appends
+36 eye-vector bytes). Its optional LFX service remains unsupported, as in the
+original engine; ordinary fixture settings do not call it. No game paks are
+copied into the repository. The OpenArena log comparison removes its old VM-only
+magic/version and jump-table compilation metadata.
+
 ### Bot movement result regression
 
 `python3 tests/bot_move.py` calls the production `BotMoveToGoal` early return with
@@ -196,18 +241,28 @@ two poisoned output buffers and checks all result fields. It links the dedicated
 server objects with a test entry point, so no content is required. `--cc`, `--cxx`
 and `--output` select the same compiler matrix as the other unit checks.
 
-`python3 tests/native_dispatch.py` checks native engine calls with zero through
-three arguments, including zero-filled unused slots and balanced call depth. It
-uses the production VM_Call body and requires no game content. The same compiler
-and output options as bot_move.py apply.
-
 `python3 tests/teamleader.py` compiles both imported GPL C team-leader paths with
-Clang's bounds diagnostics as errors. It uses the original bot-state declarations
-from pinned GPL commit dbe4ddb10315479fc00086f08e25d968b4b43c49, fetching source
-headers into /tmp/aftershock-q3-gpl when absent (`--source` overrides the checkout).
-It verifies the revision and header cleanliness. No game content is required.
-The two C files are prerequisite imports for this #31 fix; #2 integrates the full
-native modules and retains their import provenance.
+Clang's bounds diagnostics as errors. It uses the imported bot-state declarations
+and native ABI header. No game content or external header checkout is required.
+The original #31 failing test used pinned GPL headers before #2 imported them.
+
+Native C++ import checks use `python3 tests/native.py --language c++`.
+C remains the import-comparison reference; runtime/replay use the static C++ game. Both languages compare the same 29 layouts and three
+offsets with the engine; module links reject unresolved symbols. GCC and Clang
+use explicit binary32 source literals without compiler-specific literal flags. For
+Clang C++ only, bg_lib.cpp is
+compiled separately with __NO_INLINE__ to avoid glibc's conflicting inline atof
+definition; this header setting preserves the Clang C object byte-for-byte and
+does not disable the optimizer's inlining. Other translation units keep their
+original standard-library headers and calls.
+
+`python3 tests/native_shared.py` compares the real shared native C and C++ functions
+on the same host: 4,096 angle/vector/normalization/inverse-square-root cases (including
+zero and quadrant angles), plus all nonzero byte values through Q_strlwr/Q_strupr in
+the C locale. It compares raw result words, requires no assets or golden writes,
+and accepts --cc/--cxx/--output. Both unit compiler jobs run it. The C++ native build
+pins the C library feature set to the C99 reference, avoiding C23 scanf/strtol
+redirection from the C++ compiler's default _GNU_SOURCE.
 
 `python3 tests/openarena_strings.py` verifies the OpenArena native CI dependency's
 case-sensitive name comparison (missing names and single argument evaluation) and
@@ -218,8 +273,8 @@ then applies the name-comparison and extension patches in tests/patches to its o
 directory. The extension probe links the actual q_shared.c helper.
 No game content is fetched by this check. --cc, --source and --output select the
 compiler/cache/output. Both unit compiler jobs run name comparisons under UBSan and
-extension stripping under ASan. The source patch is for #2's native OpenArena configuration; the existing QVM fixtures remain
-unchanged. Original GPL notices remain in the fetched headers.
+extension stripping under ASan. The source patches are for #2's native OpenArena
+configuration; the existing QVM fixtures remain unchanged. Original GPL notices remain in the fetched headers.
 
 `python3 tests/ui_weapon.py` checks the GPL UI's negative pending-weapon sentinel
 under UBSan, its signed setter signature, and its unchanged state size/offsets.
@@ -233,17 +288,58 @@ It verifies zero-client reset, red/blue human counts, bot exclusion and preserva
 of adjacent spawn state. --cc/--output select the compiler and output; both unit
 compiler jobs run it. Only unrelated end-level notifications use test stubs.
 
+Native Q3 builds use `-Wall -Wextra -Werror` with the frozen compiler-specific
+classes in `tests/native-warnings.json`. Counts are from all 103 module-specific
+objects compiled at -O2 with GCC 15.2 and Clang 21, in both C and C++. Every disabled
+class occurs in C; #8 removes them one class at a time. C++ literal/register errors
+remain enabled. OpenArena remains an external C test dependency.
+
+The two GCC array diagnostics are ui_spskill.cpp's skillpics[skill-1] accesses: menu
+callbacks supply IDs for skills 1..5, and initialization clamps to 1..5; the reported
+index interval [0,4] lies inside the five-element array. The actual CalculateRanks
+array bug was fixed separately in #58. The Clang null-pointer subtraction warnings
+are the inherited bg_lib qsort alignment idiom (one per module), retained under the
+plan's intentional-UB rule. The remaining classes are unchanged C diagnostics;
+extra C++ missing-field warnings reflect aggregate zero initialization. No new
+warning class is disabled just to make C++ build.
+
+`python3 -B tests/native_gates.py` reproduces G2 layouts, G3 symbols and advisory G4
+assembly for all 103 native Q3 objects using the existing `tools/port/gates.py`
+normalizers. Layout/symbol differences fail; assembly differences remain visible
+for review. --tidy also runs the three focused G7 checks, failing on tool/compile
+errors and retaining every diagnostic for disposition. --jobs/--output control
+concurrency/artifact location. The output records source hashes, compiler versions,
+exact commands, logs and diffs. GCC/binutils and pahole are required (plus
+clang-tidy for --tidy). GCC CI installs pahole, runs G2/G3 and uploads evidence.
+
+The G3 objects use the port oracle's optimizer/header isolation flags plus
+-U__OPTIMIZE__: glibc otherwise forces single-character strstr calls into strchr in
+C++ headers even with -fno-builtin. This flag is limited to symbol artifacts;
+production flags and assembly retain those library transformations. The current
+G7 report contains 1,365 narrowing, 55 signed-char and nine implicit string-result
+comparisons; it is a review report, not a claim of zero findings.
+
 `python3 tests/team_flags.py` checks actual Team_InitGame/Team_SetFlagStatus under
 UBSan in base-game and MISSIONPACK builds. Initial flag configstrings are complete;
 pickups, drops, repeated updates and reinitialization preserve valid flag states.
 --cc/--output select compiler/output. Both unit compiler jobs run it, without assets.
 
+The import manifest's SHA256 values always identify the pinned original GPL files.
+Its per-file transformation references link the native ABI adaptations, catalog
+passes and separate #31 fixes to their commits; retained engine ABI headers are
+identified explicitly. The audit before renaming verified all 130 original hashes:
+30 files remain verbatim, 96 carry recorded changes, and four retain engine headers.
+
 `python3 tests/bot_command.py` exercises the real BotInputToUserCommand with
 horizontal/vertical bases, byte endpoints, fractions and larger signed inputs.
 UBSan float-cast-overflow checks the conversion; explicit expected bytes check
-legacy truncation/wrapping. --cc/--source/--output select compiler, pinned GPL header
-cache and output. The header staging helper is shared with the team-leader check.
+legacy truncation/wrapping. --cc/--output select compiler and output; it uses the
+imported local headers and native ABI configuration.
 Both unit compiler jobs run it. No assets are needed.
+
+The 93 imported implementation files use `.cpp` names. C comparison builds select
+`-x c` explicitly; the pinned OpenArena dependency remains C. The rename preserves
+every source byte and the provenance manifest retains original upstream paths.
 
 `python3 tests/native_info.py` checks both real GPL info-removal helpers under
 ASan. Seven valid-string cases per helper cover removal at the beginning, middle
@@ -251,8 +347,28 @@ and end, single-pair removal and unchanged inputs. --variant small/big isolates
 one helper; --cc/--output select compiler and output. Both unit compiler jobs run
 it. No game assets or generated goldens are needed.
 
+`python3 tests/native_lifecycle.py` compares static restart/map-change logs with
+reviewed ordinary-DLL references captured before static integration. The added
+native-lifecycle.log and native-lifecycle-debug.log baselines are those existing
+reference outputs (dd1fe5c3/e87382ec), not regenerated gameplay. Both repetitions
+must match; --debug-movement includes the per-module movement counter. Installed
+Quake 3 content and normal runtime tools are required. Diagnostics stay in --output.
+There is no regeneration mode for this reference comparison.
+
+`python3 tests/demo.py --lifecycle` replays a fixed fixture, restarts video, then
+samples another replay in the same process. On Quake 3 content both repetitions
+must match the existing accepted frame goldens, just like ordinary replay. No
+additional frame golden was needed. This tests the production Q3 module reset;
+hosted OA parity runs each fixture in a fresh process.
+
 `python3 tests/openarena_alloc.py` checks the real pinned OpenArena allocator with
 ASan/UBSan: native structure/pointer alignment, allocation/free/reuse, preservation
 of live payloads, defragmentation and reuse after completely filling the pool.
 --cc/--source/--output select compiler, source
 cache and diagnostics. Both unit compiler jobs run it; no game content is needed.
+
+Runtime and replay also inspect their built binaries: all required static module
+init exports must exist and no VM_* implementation symbol may remain. The old
+VM_Call argument-slot probe was retired with VM_Call; its #31 history remains in
+the bug ledger. Retained C/C++ import oracles are compiler evidence, not a runtime
+module-loading path. Native game objects are linked into the executables.

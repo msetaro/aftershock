@@ -342,18 +342,6 @@
     <ClCompile Include="..\..\qcommon\q_math.cpp" />
     <ClCompile Include="..\..\qcommon\q_shared.cpp" />
     <ClCompile Include="..\..\qcommon\unzip.cpp" />
-    <ClCompile Include="..\..\qcommon\vm.cpp" />
-    <ClCompile Include="..\..\qcommon\vm_aarch64.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\qcommon\vm_interpreted.cpp" />
-    <ClCompile Include="..\..\qcommon\vm_x86.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\server\sv_bot.cpp" />
     <ClCompile Include="..\..\server\sv_ccmds.cpp" />
     <ClCompile Include="..\..\server\sv_client.cpp" />
@@ -413,8 +401,6 @@
     <ClInclude Include="..\..\qcommon\q_shared.h" />
     <ClInclude Include="..\..\qcommon\surfaceflags.h" />
     <ClInclude Include="..\..\qcommon\unzip.h" />
-    <ClInclude Include="..\..\qcommon\vm_local.h" />
-    <ClInclude Include="..\..\qcommon\vm_optimize.h" />
     <ClInclude Include="..\..\renderer\qgl.h" />
     <ClInclude Include="..\..\renderercommon\tr_public.h" />
     <ClInclude Include="..\..\renderercommon\tr_types.h" />
@@ -459,6 +445,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
     </CustomBuild>
   </ItemGroup>
+  <Import Project="native.targets" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define	DEFAULT_GRAVITY		800
 #define	GIB_HEALTH			-40
-#define	ARMOR_PROTECTION	0.66
+#define	ARMOR_PROTECTION	0.66f
 
 #define	MAX_ITEMS			256
 
@@ -196,6 +196,7 @@ typedef struct {
 
 // if a full pmove isn't done on the client, you can just update the angles
 void PM_UpdateViewAngles( playerState_t *ps, const usercmd_t *cmd );
+void BG_ResetPmove( void );
 void Pmove (pmove_t *pmove);
 
 //===================================================================================
@@ -627,20 +628,20 @@ typedef enum {
 #define MAX_ITEM_MODELS 4
 
 typedef struct gitem_s {
-	char		*classname;	// spawning name
-	char		*pickup_sound;
-	char		*world_model[MAX_ITEM_MODELS];
+	const char	*classname;	// spawning name
+	const char	*pickup_sound;
+	const char	*world_model[MAX_ITEM_MODELS];
 
-	char		*icon;
-	char		*pickup_name;	// for printing on pickup
+	const char	*icon;
+	const char	*pickup_name;	// for printing on pickup
 
 	int			quantity;		// for ammo how much, or duration of powerup
 	itemType_t  giType;			// IT_* flags
 
 	int			giTag;
 
-	char		*precaches;		// string of all models and images this item will use
-	char		*sounds;		// string of all sounds this item will use
+	const char	*precaches;		// string of all models and images this item will use
+	const char	*sounds;		// string of all sounds this item will use
 } gitem_t;
 
 // included in both the game dll and the client

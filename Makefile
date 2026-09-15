@@ -275,38 +275,10 @@ else
 VERSION=1.32e
 endif
 
-# common qvm definition
-ifeq ($(ARCH),x86_64)
-  HAVE_VM_COMPILED = true
-else
-ifeq ($(ARCH),x86)
-  HAVE_VM_COMPILED = true
-else
-  HAVE_VM_COMPILED = false
-endif
-endif
-
-ifeq ($(ARCH),arm)
-  HAVE_VM_COMPILED = true
-endif
-ifeq ($(ARCH),aarch64)
-  HAVE_VM_COMPILED = true
-endif
-ifeq ($(ARCH),ppc64le)
-  HAVE_VM_COMPILED = true
-endif
-ifeq ($(ARCH),ppc64)
-  HAVE_VM_COMPILED = true
-endif
-
 BASE_CFLAGS =
 
 ifeq ($(USE_SYSTEM_JPEG),1)
   BASE_CFLAGS += -DUSE_SYSTEM_JPEG
-endif
-
-ifneq ($(HAVE_VM_COMPILED),true)
-  BASE_CFLAGS += -DNO_VM_COMPILED
 endif
 
 ifneq ($(USE_RENDERER_DLOPEN),0)
@@ -715,12 +687,6 @@ $(echo_cmd) "CC $<"
 $(Q)$(SOURCE_CC) $(SOURCE_CFLAGS) -o $@ -c $<
 endef
 
-define DO_CC_QVM
-$(Q)$(MKDIR) $(dir $@)
-$(echo_cmd) "CC_QVM $<"
-$(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) -fno-fast-math -o $@ -c $<
-endef
-
 define DO_REND_CC
 $(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "REND_CC $<"
@@ -743,12 +709,6 @@ define DO_DED_CC
 $(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "DED_CC $<"
 $(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) -DDEDICATED -o $@ -c $<
-endef
-
-define DO_DED_CC_QVM
-$(Q)$(MKDIR) $(dir $@)
-$(echo_cmd) "DED_CC_QVM $<"
-$(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) -fno-fast-math -DDEDICATED -o $@ -c $<
 endef
 
 define DO_WINDRES
@@ -846,7 +806,7 @@ endif
 makedirs:
 	@if [ ! -d $(BUILD_DIR) ];then $(MKDIR) $(BUILD_DIR);fi
 	@if [ ! -d $(B) ];then $(MKDIR) $(B);fi
-	@if [ ! -d $(B)/client ];then $(MKDIR) $(B)/client/qvm;fi
+	@if [ ! -d $(B)/client ];then $(MKDIR) $(B)/client;fi
 	@if [ ! -d $(B)/client/jpeg ];then $(MKDIR) $(B)/client/jpeg;fi
 ifeq ($(USE_SYSTEM_OGG),0)
 	@if [ ! -d $(B)/client/ogg ];then $(MKDIR) $(B)/client/ogg;fi
@@ -857,7 +817,7 @@ endif
 	@if [ ! -d $(B)/rend1 ];then $(MKDIR) $(B)/rend1;fi
 	@if [ ! -d $(B)/rendv ];then $(MKDIR) $(B)/rendv;fi
 ifneq ($(BUILD_SERVER),0)
-	@if [ ! -d $(B)/ded ];then $(MKDIR) $(B)/ded/qvm;fi
+	@if [ ! -d $(B)/ded ];then $(MKDIR) $(B)/ded;fi
 endif
 
 #############################################################################
@@ -1145,31 +1105,6 @@ ifeq ($(ARCH),x86_64)
     $(B)/client/snd_mix_x86_64.o
 endif
 
-Q3OBJ += \
-  $(B)/client/qvm/vm.o \
-  $(B)/client/qvm/vm_interpreted.o
-
-ifeq ($(HAVE_VM_COMPILED),true)
-  ifeq ($(ARCH),x86)
-    Q3OBJ += $(B)/client/qvm/vm_x86.o
-  endif
-  ifeq ($(ARCH),x86_64)
-    Q3OBJ += $(B)/client/qvm/vm_x86.o
-  endif
-  ifeq ($(ARCH),arm)
-    Q3OBJ += $(B)/client/qvm/vm_armv7l.o
-  endif
-  ifeq ($(ARCH),aarch64)
-    Q3OBJ += $(B)/client/qvm/vm_aarch64.o
-  endif
-  ifeq ($(ARCH),ppc64le)
-    Q3OBJ += $(B)/client/qvm/vm_powerpc.o
-  endif
-  ifeq ($(ARCH),ppc64)
-    Q3OBJ += $(B)/client/qvm/vm_powerpc.o
-  endif
-endif
-
 ifeq ($(USE_CURL),1)
   Q3OBJ += $(B)/client/cl_curl.o
 endif
@@ -1239,6 +1174,9 @@ endif
 endif # !USE_SDL
 
 endif # !MINGW
+
+include code/native/modules.mk
+Q3OBJ += $(NATIVE_GAME_OBJECTS) $(NATIVE_CGAME_OBJECTS) $(NATIVE_UI_OBJECTS)
 
 # client binary
 
@@ -1338,30 +1276,7 @@ else
   $(B)/ded/unix_shared.o
 endif
 
-  Q3DOBJ += \
-  $(B)/ded/qvm/vm.o \
-  $(B)/ded/qvm/vm_interpreted.o
-
-ifeq ($(HAVE_VM_COMPILED),true)
-  ifeq ($(ARCH),x86)
-    Q3DOBJ += $(B)/ded/qvm/vm_x86.o
-  endif
-  ifeq ($(ARCH),x86_64)
-    Q3DOBJ += $(B)/ded/qvm/vm_x86.o
-  endif
-  ifeq ($(ARCH),arm)
-    Q3DOBJ += $(B)/ded/qvm/vm_armv7l.o
-  endif
-  ifeq ($(ARCH),aarch64)
-    Q3DOBJ += $(B)/ded/qvm/vm_aarch64.o
-  endif
-  ifeq ($(ARCH),ppc64le)
-    Q3DOBJ += $(B)/ded/qvm/vm_powerpc.o
-  endif
-  ifeq ($(ARCH),ppc64)
-    Q3DOBJ += $(B)/ded/qvm/vm_powerpc.o
-  endif
-endif
+Q3DOBJ += $(NATIVE_GAME_OBJECTS)
 
 $(B)/$(TARGET_SERVER): $(Q3DOBJ)
 	$(echo_cmd) $(Q3DOBJ)
@@ -1383,9 +1298,6 @@ $(B)/client/%.o: $(SDIR)/%.cpp
 
 $(B)/client/%.o: $(CMDIR)/%.cpp
 	$(DO_CC)
-
-$(B)/client/qvm/%.o: $(CMDIR)/%.cpp
-	$(DO_CC_QVM)
 
 $(B)/client/%.o: $(BLIBDIR)/%.cpp
 	$(DO_BOT_CC)
@@ -1437,9 +1349,6 @@ $(B)/ded/%.o: $(SDIR)/%.cpp
 
 $(B)/ded/%.o: $(CMDIR)/%.cpp
 	$(DO_DED_CC)
-
-$(B)/ded/qvm/%.o: $(CMDIR)/%.cpp
-	$(DO_DED_CC_QVM)
 
 $(B)/ded/%.o: $(BLIBDIR)/%.cpp
 	$(DO_BOT_CC)

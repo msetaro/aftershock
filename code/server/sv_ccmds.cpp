@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "server.h"
+#include "../game/g_native_public.h"
 
 /*
 ===============================================================================
@@ -316,7 +317,7 @@ static void SV_MapRestart_f( void ) {
 	{
 		Cbuf_Wait();
 		sv.time += 100;
-		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+		Game_RunFrame( sv.time );
 	}
 
 	sv.state = SS_GAME;
@@ -344,7 +345,7 @@ static void SV_MapRestart_f( void ) {
 		SV_AddServerCommand( client, "map_restart\n" );
 
 		// connect the client again, without the firstTime flag
-		denied = (const char *)GVM_ArgPtr( VM_Call( gvm, 3, GAME_CLIENT_CONNECT, i, qfalse, isBot ) );
+		denied = (const char *)Game_ClientConnect( i, qfalse, isBot );
 		if ( denied ) {
 			// this generally shouldn't happen, because the client
 			// was connected before the level change
@@ -361,7 +362,7 @@ static void SV_MapRestart_f( void ) {
 	// run another frame to allow things to look at all the players
 	Cbuf_Wait();
 	sv.time += 100;
-	VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+	Game_RunFrame( sv.time );
 	svs.time += 100;
 
 	for ( i = 0; i < sv.maxclients; i++ ) {

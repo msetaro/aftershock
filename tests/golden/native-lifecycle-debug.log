@@ -1,0 +1,926 @@
+Q3 1.32e linux-x86_64 Sep 13 2026
+----- FS_Startup -----
+...loaded in 10 milliseconds
+----------------------
+4073 files in 9 pk3 files
+execing default.cfg
+couldn't exec q3config_server.cfg
+couldn't exec autoexec.cfg
+fs_basepath is write protected.
+fs_homepath is write protected.
+Hunk_Clear: reset the hunk ok
+...detecting CPU, found 13th Gen Intel(R) Core(TM) i5-13600K
+--- Common Initialization Complete ---
+Hostname: ironforge
+IP: 127.0.0.1
+IP: 192.168.86.30
+IP: 100.100.77.127
+IP6: ::1
+IP6: fd8f:d617:e496:4f9d:5cdb:72a2:cb31:a0c7
+IP6: fd8f:d617:e496:4f9d:55c5:9c24:88cf:aaa7
+IP6: fe80::93d1:ae04:7d9:4593%wlx00c0cabcf426
+IP6: fd7a:115c:a1e0::2301:4db4
+IP6: fe80::7f51:f99b:3e04:809d%tailscale0
+Opening IP socket: 0.0.0.0:27960
+stdin is not a tty, tty console mode failed
+------ Server Initialization ------
+Server: q3dm17
+Hunk_Clear: reset the hunk ok
+----- FS_Startup -----
+...loaded in 10 milliseconds
+----------------------
+4073 files in 9 pk3 files
+------- Game Initialization -------
+gamename: baseq3
+------------------------------------------------------------
+InitGame: \dmflags\0\fraglimit\20\g_gametype\0\mapname\q3dm17\protocol\68\sv_allowDownload\1\sv_dlRate\100\sv_floodProtect\1\sv_hostname\noname\sv_maxRate\0\sv_maxclients\8\sv_minRate\0\sv_privateClients\0\timelimit\0\version\Q3 1.32e linux-x86_64 Sep 13 2026\capturelimit\8\g_maxGameClients\0\g_needpass\0\gamename\baseq3
+0 teams with 0 entities
+16 items registered
+-----------------------------------
+------- BotLib Initialization -------
+loaded weapons.c
+loaded items.c
+loaded syn.c
+loaded rnd.c
+loaded match.c
+loaded rchat.c
+------------ Map Loading ------------
+trying to load maps/q3dm17.aas
+loaded maps/q3dm17.aas
+found 29 level items
+-------------------------------------
+32 bots parsed
+35 arenas parsed
+AAS initialized.
+-----------------------------------
+loaded skill 1 from bots/default_c.c
+loaded skill 1 from bots/sarge_c.c
+loaded skill 4 from bots/default_c.c
+loaded skill 4 from bots/sarge_c.c
+loaded bots/sarge_i.c
+loaded bots/sarge_w.c
+loaded sarge from bots/sarge_t.c
+ClientConnect: 0
+ClientUserinfoChanged: 0 n\Sarge\t\0\model\sarge\hmodel\sarge\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Sarge^7 connected\n"
+broadcast: print "Sarge^7 entered the game\n"
+ClientBegin: 0
+loaded cached skill 1.000000 from bots/default_c.c
+loaded skill 1 from bots/major_c.c
+loaded cached skill 4.000000 from bots/default_c.c
+loaded skill 4 from bots/major_c.c
+loaded bots/major_i.c
+loaded bots/major_w.c
+loaded major from bots/major_t.c
+ClientConnect: 1
+ClientUserinfoChanged: 1 n\Major\t\0\model\major\hmodel\major\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Major^7 connected\n"
+broadcast: print "Major^7 entered the game\n"
+ClientBegin: 1
+1:lift
+3:stepped
+3:Land
+4:lift
+6:stepped
+6:Land
+Item: 1 ammo_rockets
+Item: 0 weapon_rocketlauncher
+152:stepped
+154:stepped
+156:stepped
+171:stepped
+171:Land
+201:kickoff
+202:kickoff
+213:stepped
+213:Land
+253:stepped
+263:stepped
+273:stepped
+286:stepped
+297:lift
+297:stepped
+297:Land
+Kill: 1022 1 22: <world> killed Major by MOD_TRIGGER_HURT
+Item: 0 item_armor_body
+322:Land
+327:lift
+363:Land
+380:lift
+382:stepped
+382:Land
+Item: 0 item_health_large
+Item: 1 ammo_rockets
+Item: 1 weapon_rocketlauncher
+574:stepped
+577:lift
+578:lift
+579:stepped
+579:Land
+584:stepped
+584:Land
+Item: 0 ammo_slugs
+613:stepped
+615:stepped
+619:kickoff
+Item: 1 ammo_bullets
+644:stepped
+664:kickoff
+705:stepped
+705:Land
+Item: 0 weapon_railgun
+726:Land
+749:kickoff
+794:stepped
+794:Land
+839:Land
+Kill: 1022 1 22: <world> killed Major by MOD_TRIGGER_HURT
+913:stepped
+917:kickoff
+920:Land
+979:Land
+990:lift
+992:stepped
+992:Land
+1061:stepped
+1065:stepped
+1079:stepped
+1081:stepped
+1085:kickoff
+Item: 1 weapon_rocketlauncher
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_combat
+1147:Land
+1189:stepped
+1193:kickoff
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 1 ammo_bullets
+Item: 0 item_armor_shard
+1240:stepped
+1246:kickoff
+1255:Land
+1285:stepped
+1285:Land
+1299:kickoff
+1299:stepped
+1299:Land
+1323:stepped
+1328:Land
+1354:stepped
+1358:kickoff
+Kill: 1022 0 22: <world> killed Sarge by MOD_TRIGGER_HURT
+1420:Land
+1423:Land
+==== ShutdownGame ====
+ShutdownGame:
+------------------------------------------------------------
+------- Game Initialization -------
+gamename: baseq3
+------------------------------------------------------------
+InitGame: \bot_minplayers\0\dmflags\0\fraglimit\20\g_gametype\0\mapname\q3dm17\protocol\68\sv_allowDownload\1\sv_dlRate\100\sv_floodProtect\1\sv_hostname\noname\sv_maxRate\0\sv_maxclients\8\sv_minRate\0\sv_privateClients\0\timelimit\0\version\Q3 1.32e linux-x86_64 Sep 13 2026\capturelimit\8\g_maxGameClients\0\g_needpass\0\gamename\baseq3
+0 teams with 0 entities
+16 items registered
+-----------------------------------
+32 bots parsed
+35 arenas parsed
+loaded cached skill 3.000000 from bots/sarge_c.c
+ClientConnect: 0
+ClientUserinfoChanged: 0 n\Sarge\t\0\model\sarge\hmodel\sarge\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Sarge^7 entered the game\n"
+ClientBegin: 0
+loaded cached skill 3.000000 from bots/major_c.c
+ClientConnect: 1
+ClientUserinfoChanged: 1 n\Major\t\0\model\major\hmodel\major\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Major^7 entered the game\n"
+ClientBegin: 1
+1:lift
+3:stepped
+3:Land
+5:lift
+7:stepped
+7:Land
+62:lift
+94:Land
+Item: 0 ammo_rockets
+Item: 1 weapon_rocketlauncher
+202:kickoff
+202:stepped
+202:Land
+203:stepped
+205:stepped
+207:lift
+207:stepped
+207:Land
+Item: 0 item_armor_body
+239:lift
+246:stepped
+252:lift
+260:stepped
+260:Land
+275:Land
+293:stepped
+312:stepped
+317:lift
+Item: 1 ammo_bullets
+325:stepped
+325:Land
+345:stepped
+352:stepped
+358:kickoff
+369:lift
+375:stepped
+375:Land
+391:stepped
+409:lift
+417:stepped
+417:Land
+420:Land
+437:stepped
+443:kickoff
+449:stepped
+449:Land
+467:lift
+Item: 1 item_health_large
+473:stepped
+473:Land
+485:stepped
+492:stepped
+494:stepped
+494:lift
+505:stepped
+505:lift
+515:stepped
+517:stepped
+517:Land
+519:stepped
+521:stepped
+523:stepped
+525:stepped
+526:Land
+527:stepped
+529:stepped
+531:stepped
+548:stepped
+550:stepped
+564:stepped
+574:stepped
+594:stepped
+608:stepped
+612:lift
+612:stepped
+612:Land
+613:stepped
+619:stepped
+621:kickoff
+640:lift
+676:Land
+723:stepped
+723:Land
+725:kickoff
+732:stepped
+750:lift
+756:stepped
+756:Land
+770:stepped
+792:lift
+798:stepped
+798:Land
+812:stepped
+819:stepped
+819:Land
+834:lift
+840:stepped
+840:Land
+856:stepped
+859:lift
+859:stepped
+859:Land
+872:lift
+880:stepped
+880:Land
+898:stepped
+924:lift
+934:stepped
+934:Land
+952:stepped
+969:stepped
+974:lift
+982:stepped
+982:Land
+1046:stepped
+1048:stepped
+1050:stepped
+Item: 0 ammo_rockets
+1068:stepped
+Item: 0 weapon_rocketlauncher
+1086:kickoff
+1188:stepped
+1188:Land
+1190:kickoff
+Item: 0 ammo_bullets
+1221:stepped
+1243:lift
+1249:stepped
+1249:Land
+1267:stepped
+1279:kickoff
+1284:stepped
+1284:Land
+1308:lift
+1308:stepped
+1308:Land
+Item: 1 item_armor_body
+1341:Land
+1384:lift
+1393:lift
+1395:stepped
+1397:stepped
+1420:Land
+1470:kickoff
+1486:stepped
+1486:Land
+Kill: 1022 0 22: <world> killed Sarge by MOD_TRIGGER_HURT
+1503:Land
+==== ShutdownGame ====
+ShutdownGame:
+------------------------------------------------------------
+AAS shutdown.
+------ Server Initialization ------
+Server: q3dm7
+Hunk_Clear: reset the hunk ok
+----- FS_Startup -----
+...loaded in 10 milliseconds
+----------------------
+4073 files in 9 pk3 files
+------- Game Initialization -------
+gamename: baseq3
+------------------------------------------------------------
+InitGame: \bot_minplayers\0\dmflags\0\fraglimit\20\g_gametype\0\mapname\q3dm7\protocol\68\sv_allowDownload\1\sv_dlRate\100\sv_floodProtect\1\sv_hostname\noname\sv_maxRate\0\sv_maxclients\8\sv_minRate\0\sv_privateClients\0\timelimit\0\version\Q3 1.32e linux-x86_64 Sep 13 2026\capturelimit\8\g_maxGameClients\0\g_needpass\0\gamename\baseq3
+info_firstplace doesn't have a spawn function
+info_secondplace doesn't have a spawn function
+info_thirdplace doesn't have a spawn function
+0 teams with 0 entities
+20 items registered
+-----------------------------------
+------- BotLib Initialization -------
+loaded weapons.c
+loaded items.c
+loaded syn.c
+loaded rnd.c
+loaded match.c
+loaded rchat.c
+------------ Map Loading ------------
+trying to load maps/q3dm7.aas
+loaded maps/q3dm7.aas
+camp spot at 1180.0 -148.0 188.0 in solid
+found 67 level items
+-------------------------------------
+32 bots parsed
+35 arenas parsed
+AAS initialized.
+loaded skill 1 from bots/default_c.c
+loaded skill 1 from bots/sarge_c.c
+loaded skill 4 from bots/default_c.c
+loaded skill 4 from bots/sarge_c.c
+loaded bots/sarge_i.c
+loaded bots/sarge_w.c
+loaded sarge from bots/sarge_t.c
+ClientConnect: 0
+ClientUserinfoChanged: 0 n\Sarge\t\0\model\sarge\hmodel\sarge\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Sarge^7 entered the game\n"
+ClientBegin: 0
+loaded cached skill 1.000000 from bots/default_c.c
+loaded skill 1 from bots/major_c.c
+loaded cached skill 4.000000 from bots/default_c.c
+loaded skill 4 from bots/major_c.c
+loaded bots/major_i.c
+loaded bots/major_w.c
+loaded major from bots/major_t.c
+ClientConnect: 1
+ClientUserinfoChanged: 1 n\Major\t\0\model\major\hmodel\major\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Major^7 entered the game\n"
+ClientBegin: 1
+1:lift
+3:stepped
+3:Land
+5:lift
+7:stepped
+7:Land
+-----------------------------------
+loaded cached skill 3.000000 from bots/sarge_c.c
+ClientConnect: 2
+ClientUserinfoChanged: 2 n\Sarge\t\0\model\sarge\hmodel\sarge\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Sarge^7 connected\n"
+broadcast: print "Sarge^7 entered the game\n"
+ClientBegin: 2
+loaded cached skill 3.000000 from bots/major_c.c
+ClientConnect: 3
+ClientUserinfoChanged: 3 n\Major\t\0\model\major\hmodel\major\c1\4\c2\5\hc\90\w\0\l\0\skill\3.00\tt\0\tl\0
+broadcast: print "Major^7 connected\n"
+broadcast: print "Major^7 entered the game\n"
+ClientBegin: 3
+11:lift
+13:stepped
+13:Land
+14:lift
+16:stepped
+16:Land
+Item: 2 ammo_shells
+Item: 3 item_armor_shard
+Item: 3 item_armor_shard
+Item: 3 item_armor_shard
+187:stepped
+Item: 3 item_armor_shard
+191:stepped
+195:stepped
+203:stepped
+207:stepped
+211:stepped
+215:stepped
+219:stepped
+say: Sarge: I am back!
+Sarge^7: I am back!
+say: Major: You do know that I'm a VERY poor loser.
+Major^7: You do know that I'm a VERY poor loser.
+Item: 2 ammo_bullets
+Item: 2 ammo_bullets
+Item: 1 item_armor_combat
+Item: 1 ammo_slugs
+364:lift
+373:stepped
+374:stepped
+377:stepped
+378:stepped
+381:stepped
+382:stepped
+383:kickoff
+383:stepped
+383:Land
+386:stepped
+389:lift
+390:stepped
+396:Land
+399:lift
+400:lift
+401:stepped
+401:Land
+412:stepped
+412:Land
+427:stepped
+427:Land
+437:stepped
+441:stepped
+443:lift
+449:stepped
+453:stepped
+455:stepped
+455:Land
+457:stepped
+463:lift
+465:stepped
+Item: 3 weapon_rocketlauncher
+473:stepped
+479:Land
+481:stepped
+501:stepped
+517:stepped
+547:stepped
+567:lift
+583:Land
+597:kickoff
+609:stepped
+609:Land
+636:stepped
+637:stepped
+639:stepped
+640:stepped
+643:stepped
+644:stepped
+647:stepped
+648:stepped
+657:stepped
+664:lift
+669:stepped
+681:kickoff
+685:stepped
+685:Land
+696:Land
+697:lift
+698:stepped
+700:lift
+709:stepped
+716:Land
+741:stepped
+741:Land
+771:stepped
+783:stepped
+799:stepped
+Item: 0 item_health_large
+803:stepped
+807:stepped
+811:stepped
+815:stepped
+827:stepped
+Item: 1 ammo_shells
+Item: 1 ammo_shells
+889:lift
+901:stepped
+901:Land
+911:lift
+940:lift
+948:stepped
+952:stepped
+952:Land
+956:stepped
+960:stepped
+963:stepped
+963:Land
+Item: 0 ammo_bullets
+992:stepped
+Item: 0 ammo_bullets
+1011:lift
+1023:stepped
+1023:Land
+1029:stepped
+1033:kickoff
+1037:stepped
+1037:Land
+1041:stepped
+1045:stepped
+1049:stepped
+Item: 1 weapon_plasmagun
+1100:stepped
+1101:lift
+1104:stepped
+1108:stepped
+1112:stepped
+1121:stepped
+1121:Land
+1125:stepped
+1128:lift
+1136:Land
+1159:stepped
+1164:stepped
+1174:lift
+1202:stepped
+1202:Land
+1209:stepped
+1216:stepped
+1220:stepped
+1226:lift
+1229:stepped
+1233:stepped
+1237:stepped
+1239:lift
+1242:stepped
+1242:Land
+1246:lift
+1251:stepped
+1251:Land
+1265:stepped
+Item: 3 item_health
+Item: 3 item_health
+1269:stepped
+1270:stepped
+1270:Land
+1273:stepped
+1274:lift
+1294:stepped
+1294:Land
+1298:lift
+1315:stepped
+Item: 3 ammo_slugs
+1317:stepped
+1318:stepped
+1319:stepped
+1321:stepped
+1322:stepped
+1322:Land
+1325:stepped
+1329:stepped
+1355:stepped
+1367:stepped
+1377:stepped
+Kill: 2 0 3: Sarge killed Sarge by MOD_MACHINEGUN
+1391:stepped
+1394:lift
+1395:stepped
+1396:stepped
+1399:stepped
+1400:stepped
+1403:stepped
+1407:stepped
+1408:stepped
+1410:stepped
+1410:Land
+1411:stepped
+1412:stepped
+1415:stepped
+1419:stepped
+1420:stepped
+1423:stepped
+1427:stepped
+1428:stepped
+1431:stepped
+1435:stepped
+1439:stepped
+1440:stepped
+1443:stepped
+1444:stepped
+1447:stepped
+1448:stepped
+1451:stepped
+1452:stepped
+1455:stepped
+1459:stepped
+1463:stepped
+1467:stepped
+1471:stepped
+1475:stepped
+1479:stepped
+1483:stepped
+1487:stepped
+1491:stepped
+1495:stepped
+1499:stepped
+1503:stepped
+1507:stepped
+1511:stepped
+1515:stepped
+1519:stepped
+1523:stepped
+1526:lift
+1527:stepped
+1531:stepped
+1534:Land
+1535:stepped
+1537:lift
+1539:stepped
+1539:Land
+1541:stepped
+1545:stepped
+1549:stepped
+1550:lift
+1553:stepped
+1557:stepped
+1561:stepped
+1565:stepped
+1569:stepped
+1573:stepped
+1577:stepped
+1581:stepped
+1585:stepped
+1589:stepped
+1593:stepped
+1597:stepped
+1601:stepped
+1605:stepped
+1609:stepped
+1613:stepped
+1617:stepped
+1621:stepped
+1622:Land
+1625:stepped
+1629:stepped
+1633:stepped
+1637:stepped
+1641:stepped
+Kill: 1022 3 16: <world> killed Major by MOD_LAVA
+1645:stepped
+1649:stepped
+1651:stepped
+1653:stepped
+1658:lift
+1666:Land
+1670:lift
+1678:Land
+1682:lift
+1690:Land
+1694:lift
+1702:Land
+1706:lift
+1714:Land
+1718:lift
+1726:Land
+1730:lift
+1738:Land
+1742:lift
+1747:stepped
+1748:stepped
+1750:Land
+1751:lift
+1752:stepped
+1754:lift
+1762:Land
+1766:lift
+1767:Land
+1769:stepped
+1773:stepped
+1774:Land
+1778:lift
+1786:Land
+1790:lift
+1797:stepped
+1798:Land
+1802:lift
+1805:stepped
+1810:Land
+1814:lift
+1822:Land
+1826:lift
+1834:Land
+say: Major: that is like Africa hot.
+Major^7: that is like Africa hot.
+1838:lift
+1842:lift
+1844:stepped
+1844:Land
+1862:stepped
+1866:stepped
+1870:stepped
+1874:stepped
+1881:lift
+1886:lift
+1889:Land
+1891:stepped
+1894:Land
+1903:stepped
+1909:lift
+1910:stepped
+1911:stepped
+1913:stepped
+1913:Land
+1914:stepped
+1915:stepped
+1917:stepped
+1918:stepped
+1919:stepped
+1923:stepped
+Item: 3 weapon_plasmagun
+1933:lift
+1941:Land
+1953:stepped
+1967:lift
+1981:lift
+1983:stepped
+1983:Land
+1989:Land
+2033:lift
+2037:stepped
+2037:Land
+2041:stepped
+2086:stepped
+2090:stepped
+2094:stepped
+2098:stepped
+2102:stepped
+2110:stepped
+Item: 3 item_health_small
+Item: 3 item_health_small
+2117:stepped
+2121:stepped
+2125:stepped
+2129:stepped
+2133:stepped
+2141:stepped
+2145:stepped
+2153:stepped
+say: Sarge: Why are you fond of that?
+Sarge^7: Why are you fond of that?
+2161:stepped
+2165:stepped
+2169:stepped
+2173:stepped
+2177:stepped
+2181:stepped
+2193:stepped
+2201:stepped
+Item: 3 ammo_slugs
+2238:stepped
+2242:stepped
+2245:stepped
+2246:stepped
+2249:stepped
+2250:stepped
+2287:stepped
+2297:stepped
+2301:stepped
+2317:stepped
+2329:stepped
+2333:stepped
+Item: 1 item_health_large
+2337:stepped
+2345:stepped
+2349:stepped
+2357:stepped
+2365:stepped
+Item: 2 item_health
+Item: 2 item_health
+2381:stepped
+2397:stepped
+2401:stepped
+2409:stepped
+2417:stepped
+2423:stepped
+2427:stepped
+2437:stepped
+say: Major: What do you mean?
+Major^7: What do you mean?
+2469:stepped
+2499:stepped
+2503:stepped
+2506:stepped
+2510:stepped
+2511:stepped
+2514:stepped
+2518:stepped
+2519:stepped
+2522:stepped
+2530:stepped
+2535:stepped
+2538:stepped
+2543:stepped
+2547:stepped
+2551:stepped
+2554:stepped
+2555:stepped
+2563:stepped
+2567:stepped
+Item: 0 weapon_rocketlauncher
+2575:stepped
+2583:stepped
+2586:stepped
+2587:stepped
+2590:stepped
+2594:stepped
+2595:stepped
+2599:stepped
+2603:stepped
+2607:stepped
+2618:stepped
+2622:stepped
+2626:stepped
+2630:stepped
+2634:stepped
+Item: 2 weapon_plasmagun
+Item: 1 item_health_small
+2832:stepped
+2832:Land
+2852:stepped
+2856:stepped
+2865:stepped
+2867:kickoff
+2867:Land
+2869:stepped
+2871:kickoff
+2871:stepped
+2871:Land
+2873:stepped
+2875:kickoff
+2877:stepped
+2879:stepped
+2879:Land
+2881:stepped
+2883:kickoff
+2885:stepped
+2887:stepped
+2887:Land
+2889:stepped
+2890:kickoff
+2893:stepped
+2894:stepped
+2894:Land
+2899:kickoff
+2899:stepped
+2899:Land
+2906:kickoff
+2907:kickoff
+2907:Land
+2910:stepped
+2910:Land
+2914:kickoff
+2914:Land
+2915:kickoff
+2916:stepped
+2918:stepped
+2919:stepped
+2919:Land
+2920:stepped
+Kill: 3 1 9: Major killed Major by MOD_PLASMA_SPLASH
+2931:kickoff
+2931:stepped
+2931:Land
+2936:stepped
+2936:Land
+2940:kickoff
+2952:stepped
+2952:Land
+----- Server Shutdown (Server quit) -----
+==== ShutdownGame ====
+ShutdownGame:
+------------------------------------------------------------
+AAS shutdown.
+---------------------------

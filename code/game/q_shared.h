@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define MAX_TEAMNAME 32
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 #pragma warning(disable : 4018)     // signed/unsigned mismatch
 #pragma warning(disable : 4032)
@@ -81,6 +81,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdlib.h>
@@ -126,7 +127,7 @@ float	FloatSwap (const float *f);
 
 //======================= WIN32 DEFINES =================================
 
-#ifdef WIN32
+#ifdef _WIN32
 
 #define	MAC_STATIC
 
@@ -149,13 +150,6 @@ float	FloatSwap (const float *f);
 #endif
 
 #define ID_INLINE __inline 
-
-static ID_INLINE short BigShort( short l) { return ShortSwap(l); }
-#define LittleShort
-static ID_INLINE int BigLong(int l) { LongSwap(l); }
-#define LittleLong
-static ID_INLINE float BigFloat(const float *l) { FloatSwap(l); }
-#define LittleFloat
 
 #define	PATH_SEP '\\'
 
@@ -181,37 +175,6 @@ static ID_INLINE float BigFloat(const float *l) { FloatSwap(l); }
 
 #define	PATH_SEP	'/'
 
-#define __rlwimi(out, in, shift, maskBegin, maskEnd) asm("rlwimi %0,%1,%2,%3,%4" : "=r" (out) : "r" (in), "i" (shift), "i" (maskBegin), "i" (maskEnd))
-#define __dcbt(addr, offset) asm("dcbt %0,%1" : : "b" (addr), "r" (offset))
-
-static inline unsigned int __lwbrx(register void *addr, register int offset) {
-    register unsigned int word;
-    
-    asm("lwbrx %0,%2,%1" : "=r" (word) : "r" (addr), "b" (offset));
-    return word;
-}
-
-static inline unsigned short __lhbrx(register void *addr, register int offset) {
-    register unsigned short halfword;
-    
-    asm("lhbrx %0,%2,%1" : "=r" (halfword) : "r" (addr), "b" (offset));
-    return halfword;
-}
-
-static inline float __fctiw(register float f) {
-    register float fi;
-    
-    asm("fctiw %0,%1" : "=f" (fi) : "f" (f));
-
-    return fi;
-}
-
-#define BigShort
-static inline short LittleShort(short l) { return ShortSwap(l); }
-#define BigLong
-static inline int LittleLong (int l) { return LongSwap(l); }
-#define BigFloat
-static inline float LittleFloat (const float l) { return FloatSwap(&l); }
 
 #endif
 
@@ -418,7 +381,7 @@ typedef enum {
 #define PROP_GAP_WIDTH			3
 #define PROP_SPACE_WIDTH		8
 #define PROP_HEIGHT				27
-#define PROP_SMALL_SIZE_SCALE	0.75
+#define PROP_SMALL_SIZE_SCALE	0.75f
 
 #define BLINK_DIVISOR			200
 #define PULSE_DIVISOR			75
@@ -748,7 +711,7 @@ float	Q_random( int *seed );
 float	Q_crandom( int *seed );
 
 #define random()	((rand () & 0x7fff) / ((float)0x7fff))
-#define crandom()	(2.0 * (random() - 0.5))
+#define crandom()	(2.0f * (random() - 0.5f))
 
 void vectoangles( const vec3_t value1, vec3_t angles);
 void AnglesToAxis( const vec3_t angles, vec3_t axis[3] );
@@ -1003,7 +966,7 @@ PlaneTypeForNormal
 =================
 */
 
-#define PlaneTypeForNormal(x) (x[0] == 1.0 ? PLANE_X : (x[1] == 1.0 ? PLANE_Y : (x[2] == 1.0 ? PLANE_Z : PLANE_NON_AXIAL) ) )
+#define PlaneTypeForNormal(x) (x[0] == 1.0f ? PLANE_X : (x[1] == 1.0f ? PLANE_Y : (x[2] == 1.0f ? PLANE_Z : PLANE_NON_AXIAL) ) )
 
 // plane_t structure
 // !!! if this is changed, it must be changed in asm code too !!!
@@ -1080,7 +1043,7 @@ typedef enum {
 */
 
 #define	ANGLE2SHORT(x)	((int)((x)*65536/360) & 65535)
-#define	SHORT2ANGLE(x)	((x)*(360.0/65536))
+#define	SHORT2ANGLE(x)	((x)*(360.0f/65536))
 
 #define	SNAPFLAG_RATE_DELAYED	1
 #define	SNAPFLAG_NOT_ACTIVE		2	// snapshot used during connection and for zombies
