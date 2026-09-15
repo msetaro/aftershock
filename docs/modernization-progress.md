@@ -7,7 +7,7 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/31-ui-weapon-sentinel. #2 is parked at af8ba5e7, draft PR #50.
+Active work: issue/31-ui-weapon-sentinel, draft PR #57. #2 is parked at af8ba5e7, draft PR #50.
 Test-first 63f86e7b imports four exact GPL UI prerequisite files and reproduces an
 invalid weapon_t load under UBSan. The fix changes pendingWeapon and SetInfo's
 sentinel-bearing input to int, retaining all normal weapon fields/enum values.
@@ -15,7 +15,15 @@ GCC, Clang and Clang/libc++ tests pass. The state remains 1128 bytes, pendingWea
 at 1076 and weaponTimer at 1080; the setter accepts a signed integer. C symbols are
 identical across 11 functions. Three functions use an identical {-1,0} constant
 load instead of an immediate; remaining instruction differences are label/register
-changes. No FP expression or game behavior/golden change. CI is not started yet.
+changes. No FP expression or accepted golden changes. Regression 34923921313
+and full build 34923921329 passed on 630ae8e1. A temporary complete #2
+Clang C++ UI build with this fix also passes calls to the real SetInfo function:
+-1 clears pending state/timer, a valid weapon queues, and the new-model sentinel
+path preserves the current weapon. Artifacts: /tmp/aftershock-ui-sentinel-native
+and /tmp/aftershock-ui-native-preflight.py/.log. No source fix is made on #2.
+Self-review passes: one sentinel representation fix, every caller inventoried,
+no new OS calls/non-trivial objects/allocations, no FP or wire-layout changes,
+no golden/expectation/suppression changes; #31 updated. Ready to merge #57.
 
 Next: finish this fix's gates/self-review/merge, then merge it into #2. Resolve the
 UI import overlap to retain #2's catalog edits and the reviewed signed sentinel.

@@ -449,3 +449,8 @@ revision dbe4ddb10315479fc00086f08e25d968b4b43c49, all verbatim in 63f86e7b:
 The native integration/C++ catalog changes remain on #2, including the necessary
 cast adaptation when these signed types are merged. No engine upstream UI source
 exists to receive this native-port-specific fix. No expectation/suppression added.
+
+PR #57 source 630ae8e1 passed regression 34923921313/full build 34923921329.
+A temporary complete Clang C++ UI module with this fix passes real SetInfo calls
+for clearing a pending change, queuing a valid weapon and the new-model sentinel
+path. Self-review passes; accepted goldens and fixtures remain unchanged.
