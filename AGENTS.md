@@ -88,14 +88,14 @@ cmake --workflow --preset msvc-x64               # Windows: generate and build V
 cmake --workflow --preset msvc-arm64             # Windows ARM64 cross-build
 cmake -S . -B build/opengl -G Ninja -DRENDERER_DEFAULT=opengl
 cmake --build build/opengl
-cmake -S . -B build/mingw -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/mingw64.cmake
+cmake -S . -B build/mingw -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/mingw64.cmake -DUSE_CURL=OFF
 cmake --build build/mingw
 ```
 
 Set `BUILD_CLIENT=OFF` for server-only, `BUILD_SERVER=OFF` for client-only, or
 `USE_RENDERER_DLOPEN=ON` for loadable renderers. Outputs are inside each CMake build
 directory under `<config>-<platform>-<arch>/`. `cmake/Sources.cmake` owns the explicit
-source lists; do not add source globs. ccache is detected automatically. Game
+source lists; do not add source globs. ccache is detected automatically. MinGW curl builds also require target zlib (installed in hosted MSYS CI). Game
 libraries remain static in every configuration; renderer modules are optional.
 
 The migration checkpoint in docs/modernization-progress.md records raw Make/CMake
@@ -144,8 +144,8 @@ python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare 
 Local runtime/differential/demo commands use installed Quake 3 paks. Hosted CI uses
 OpenArena: stage with `python3 tests/openarena.py`, then pass
 `--content openarena --data /tmp/aftershock-openarena-baseoa` to those three commands.
-The finished local network command is `python3 tests/network.py`; run its negative
-control only when required by the issue. `tests/README.md` documents explicit fixture
+The finished network driver is retained unchanged; its evidence belongs to #3
+merge `8692b422`, before the path/build migrations. Do not rerun its negative control. `tests/README.md` documents explicit fixture
 regeneration; CI never regenerates. Existing port-era layout/symbol/codegen oracles
 remain available under `tools/port` for changes requiring those gates.
 

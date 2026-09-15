@@ -86,7 +86,9 @@ The completed in-process network check is `python3 tests/network.py`: both sides
 use real engine loopback with `net_enabled=0`, test-only latency/loss/reordering,
 and a 64-unit correction bound. Its `--max-error 0` negative control was run once
 on 2026-09-14 and rejected the measured 8.875-unit correction. This requires local
-Quake 3 content and is not run on the public-content hosted runtime runner.
+Quake 3 content and is not run on the public-content hosted runtime runner. The
+driver is retained unchanged by request; reproduce this completed evidence at
+#3 merge `8692b422`, before the #4 path and #5 build migrations.
 
 ## Hosted OpenArena content
 

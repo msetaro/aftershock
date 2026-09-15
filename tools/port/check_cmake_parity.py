@@ -54,6 +54,8 @@ def main():
     parser.add_argument('--make-setting', action='append', default=[])
     parser.add_argument('--cmake-setting', action='append', default=[])
     args = parser.parse_args()
+    if not (ROOT / 'Makefile').is_file():
+        raise SystemExit('Replay this migration oracle at checkpoint 390a20f4, before Make retirement')
     args.output = args.output.resolve()
     before, after = args.output / 'make', args.output / 'cmake'
     before.mkdir(parents=True, exist_ok=True)

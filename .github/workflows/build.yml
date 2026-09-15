@@ -20,372 +20,246 @@ on:
 
   workflow_dispatch:
 
+env:
+  SOURCE_DATE_EPOCH: "1789257600"
+  CMAKE_BUILD_PARALLEL_LEVEL: "8"
 jobs:
-  windows-msys:
-    name: ${{ matrix.btype }} Windows-${{ matrix.cc }} ${{ matrix.arch }}
+  unix:
+    name: ${{ matrix.config }} ${{ matrix.tool }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - Release
+        - Debug
+        tool:
+        - gcc
+        - clang
+        - linux-arm64
+        - macos-x64
+        - macos-arm64
+        include:
+        - tool: gcc
+          runner: ubuntu-24.04
+          cc: gcc
+          cxx: g++
+          artifact: linux-x86_64
+        - tool: clang
+          runner: ubuntu-24.04
+          cc: clang
+          cxx: clang++
+          artifact: linux-clang-x86_64
+        - tool: linux-arm64
+          runner: ubuntu-22.04-arm
+          cc: gcc
+          cxx: g++
+          artifact: linux-arm64
+        - tool: macos-x64
+          runner: macos-14
+          cc: clang
+          cxx: clang++
+          make_arch: x86_64
+          cmake_arch: x86_64
+          artifact: macos-x86_64
+        - tool: macos-arm64
+          runner: macos-14
+          cc: clang
+          cxx: clang++
+          make_arch: aarch64
+          cmake_arch: arm64
+          artifact: macos-aarch64
+    steps:
+    - uses: actions/checkout@v7
+    - name: Linux dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get -qq update
+        sudo apt-get install -y ninja-build libsdl2-dev libcurl4-openssl-dev mesa-common-dev libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound-dev libc++-dev libc++abi-dev
+    - uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: cmake-${{ matrix.tool }}-${{ matrix.config }}
+    - name: Build and stage binaries
+      shell: bash
+      run: |
+        extra=()
+        if [ '${{ matrix.tool }}' = clang ]; then
+          extra+=('-DCMAKE_CXX_FLAGS=-stdlib=libc++')
+        fi
+        if [ '${{ runner.os }}' = macOS ]; then
+          extra+=('-DCMAKE_OSX_ARCHITECTURES=${{ matrix.cmake_arch }}')
+        fi
+        for renderer in opengl vulkan; do
+          name=quake3e
+          if [ "$renderer" = vulkan ]; then name=quake3e-vulkan; fi
+          cmake -S . -B "build/$renderer" -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            -DRENDERER_DEFAULT="$renderer" -DCNAME="$name" "${extra[@]}"
+          cmake --build "build/$renderer"
+          cmake --install "build/$renderer" --config '${{ matrix.config }}' --prefix "$GITHUB_WORKSPACE/bin"
+        done
+    - uses: actions/upload-artifact@v7
+      if: matrix.config == 'Release'
+      with:
+        name: ${{ matrix.artifact }}
+        path: bin
+        if-no-files-found: error
+        retention-days: 5
+  windows-msvc:
+    name: ${{ matrix.config }} Windows-MSVC ${{ matrix.arch }}
     runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
-        arch: [x86_64]
-        cc: [gcc]
-        btype: [Release, Debug]
+        arch:
+        - x64
+        - arm64
+        config:
+        - Release
+        - Debug
         include:
-          - arch: x86_64
-            msystem: MINGW64
-            prefix: mingw-w64-x86_64
-
-          - btype: Release
-            rule: install
-
-          - btype: Debug
-            rule: debug
-
+        - arch: x64
+          vcvars: amd64
+          artifact: windows-msvc-x86_64
+        - arch: arm64
+          vcvars: amd64_arm64
+          artifact: windows-msvc-arm64
+    steps:
+    - uses: actions/checkout@v7
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.vcvars }}
+    - uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: cmake-msvc-${{ matrix.arch }}-${{ matrix.config }}
+    - name: Build through ccache
+      shell: pwsh
+      run: |
+        foreach ($renderer in @('opengl', 'vulkan')) {
+          $name = if ($renderer -eq 'vulkan') { 'quake3e-vulkan' } else { 'quake3e' }
+          cmake -S . -B "build/cmake-$renderer" -G Ninja -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=${{ matrix.config }} "-DRENDERER_DEFAULT=$renderer" "-DCNAME=$name"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cmake --build "build/cmake-$renderer"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cmake --install "build/cmake-$renderer" --config ${{ matrix.config }} --prefix "$env:GITHUB_WORKSPACE/bin"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+        }
+    - name: Generate and build Visual Studio projects
+      run: |
+        cmake --preset msvc-${{ matrix.arch }}
+        cmake --build --preset msvc-${{ matrix.arch }} --config ${{ matrix.config }}
+    - uses: actions/upload-artifact@v7
+      if: matrix.config == 'Release'
+      with:
+        name: ${{ matrix.artifact }}
+        path: bin
+        if-no-files-found: error
+        retention-days: 5
+  windows-msys:
+    name: ${{ matrix.config }} Windows-MinGW x86_64
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - Release
+        - Debug
     defaults:
       run:
         shell: msys2 {0}
-
     steps:
-
+    - uses: actions/checkout@v7
     - uses: msys2/setup-msys2@v2
       with:
-        install: base-devel ${{ matrix.prefix }}-binutils ${{ matrix.prefix }}-make ${{ matrix.prefix }}-${{ matrix.cc }}
-        msystem: ${{ matrix.msystem }}
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-ccache mingw-w64-x86_64-zlib
+        msystem: MINGW64
         path-type: minimal
         release: false
         update: false
         cache: false
-
-    - uses: actions/checkout@v7
+    - uses: actions/cache@v5
       with:
-        submodules: recursive
-
-    - name: Build
-      if: ${{ github.event_name != 'release' || matrix.btype != 'Debug' }} # skip Debug configuration in Release build
+        path: .ccache
+        key: ccache-msys-${{ matrix.config }}-${{ github.sha }}
+        restore-keys: ccache-msys-${{ matrix.config }}-
+    - name: Build and stage binaries
       run: |
-        make ${{ matrix.rule }} -j$(nproc) ARCH=${{ matrix.arch }} COMPILE_ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=quake3e-vulkan BUILD_SERVER=0
-        make clean ARCH=${{ matrix.arch }}
-        make ${{ matrix.rule }} -j$(nproc) ARCH=${{ matrix.arch }} COMPILE_ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl
-
+        export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
+        for renderer in opengl vulkan; do
+          name=quake3e
+          if [ "$renderer" = vulkan ]; then name=quake3e-vulkan; fi
+          cmake -S . -B "build/$renderer" -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
+            -DUSE_SDL=OFF -DRENDERER_DEFAULT="$renderer" -DCNAME="$name"
+          cmake --build "build/$renderer"
+          cmake --install "build/$renderer" --config '${{ matrix.config }}' --prefix "$GITHUB_WORKSPACE/bin"
+        done
+        ccache -s
     - uses: actions/upload-artifact@v7
-      if: matrix.cc == 'gcc' && matrix.btype == 'Release'
+      if: matrix.config == 'Release'
       with:
-        name: windows-${{ matrix.cc }}-${{ matrix.arch }}
+        name: windows-gcc-x86_64
         path: bin
         if-no-files-found: error
         retention-days: 5
-
-  windows-msvc:
-    name: ${{ matrix.btype }} Windows-MSVC ${{ matrix.arch }}
-    runs-on: windows-2022
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [arm64, x64]
-        btype: [Release, Debug]
-        include:
-          - arch: arm64
-            platform: ARM64
-            suffix: .arm64
-            pkg_suffix: arm64
-
-          - arch: x64
-            platform: x64
-            suffix: .x64
-            pkg_suffix: x86_64
-
-    steps:
-
-    - uses: microsoft/setup-msbuild@v3
-
-    - uses: actions/checkout@v7
-      with:
-        submodules: recursive
-
-    - name: Build
-      if: ${{ github.event_name != 'release' || matrix.btype != 'Debug' }} # skip Debug configuration in Release build
-      run: |
-        mkdir bin
-
-        msbuild tools\msvc2017\quake3e-ded.vcxproj -p:TargetName=quake3e.ded,Configuration=${{ matrix.btype }},Platform=${{ matrix.platform }} /p:PlatformToolset=v143
-        copy tools\msvc2017\output\quake3e.ded.exe bin\quake3e.ded${{ matrix.suffix }}.exe
-        msbuild tools\msvc2017\quake3e-ded.vcxproj -p:TargetName=quake3e.ded,Configuration=${{ matrix.btype }},Platform=${{ matrix.platform }} -t:Clean
-
-        msbuild tools\msvc2017\renderer.vcxproj -p:Configuration=${{ matrix.btype }},Platform=${{ matrix.platform }} /p:PlatformToolset=v143
-        msbuild tools\msvc2017\quake3e.vcxproj -p:TargetName=quake3e,Configuration=${{ matrix.btype }},Platform=${{ matrix.platform }},UseWasapi=USE_WASAPI=0 /p:PlatformToolset=v143
-        copy tools\msvc2017\output\quake3e.exe bin\quake3e${{ matrix.suffix }}.exe
-        msbuild tools\msvc2017\renderer.vcxproj -p:Configuration=${{ matrix.btype }},Platform=${{ matrix.platform }} -t:Clean
-        msbuild tools\msvc2017\quake3e.vcxproj -p:TargetName=quake3e,Configuration=${{ matrix.btype }},Platform=${{ matrix.platform }},UseWasapi=USE_WASAPI=0 -t:Clean
-
-        msbuild tools\msvc2017\renderervk.vcxproj -p:Configuration=${{ matrix.btype }},Platform=${{ matrix.platform }} /p:PlatformToolset=v143
-        msbuild tools\msvc2017\quake3e.vcxproj -p:TargetName=quake3e,Configuration=${{ matrix.btype }},Platform=${{ matrix.platform }},UseWasapi=USE_WASAPI=0 /p:PlatformToolset=v143
-        copy tools\msvc2017\output\quake3e.exe bin\quake3e-vulkan${{ matrix.suffix }}.exe
-        msbuild tools\msvc2017\renderervk.vcxproj -p:Configuration=${{ matrix.btype }},Platform=${{ matrix.platform }} -t:Clean
-        msbuild tools\msvc2017\quake3e.vcxproj -p:TargetName=quake3e,Configuration=${{ matrix.btype }},Platform=${{ matrix.platform }},UseWasapi=USE_WASAPI=0 -t:Clean
-
-    - uses: actions/upload-artifact@v7
-      if: ${{ matrix.btype == 'Release' }}
-      with:
-        name: windows-msvc-${{ matrix.pkg_suffix }}
-        path: bin
-        if-no-files-found: error
-        retention-days: 5
-        
-  ubuntu-x86_64:
-    name: ${{ matrix.btype }} Ubuntu ${{ matrix.arch }}
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [x86_64]
-        cc: [gcc]
-        btype: [Release, Debug]
-        include:
-          - btype: Release
-            rule: install
-
-          - btype: Debug
-            if: ${{ github.event_name != 'release' }}
-            rule: debug
-
-          - arch: x86_64
-            use_sdl: USE_SDL=1
-
-    steps:
-
-    - name: Install tools
-      run: |
-        sudo apt-get -qq update
-        sudo apt-get -y install libcurl4-openssl-dev mesa-common-dev libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound-dev libsdl2-dev
-
-    - uses: actions/checkout@v7
-      with:
-        submodules: recursive
-
-    - name: Build
-      if: ${{ github.event_name != 'release' || matrix.btype != 'Debug' }} # skip in Release builds
-      run: |
-        make ${{ matrix.rule }} -j$(nproc) ARCH=${{ matrix.arch }} COMPILE_ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin ${{ matrix.use_sdl }} USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=quake3e-vulkan BUILD_SERVER=0
-        make clean ARCH=${{ matrix.arch }} 
-        make ${{ matrix.rule }} -j$(nproc) ARCH=${{ matrix.arch }} COMPILE_ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin ${{ matrix.use_sdl }} USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl
-
-    - uses: actions/upload-artifact@v7
-      if: matrix.cc == 'gcc' && matrix.btype == 'Release'
-      with:
-        name: linux-${{ matrix.arch }}
-        path: bin
-        if-no-files-found: error
-        retention-days: 5
-
-  ubuntu-arm:
-    name: ${{ matrix.btype }} Ubuntu [ARM] ${{ matrix.arch }}
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [aarch64, armv7]
-        cc: [gcc]
-        btype: [Release, Debug]
-        include:
-          - btype: Release
-            rule: install
-
-          - btype: Debug
-            rule: debug
-
-    steps:
-
-    - uses: actions/checkout@v7
-      if: false
-      with:
-        submodules: recursive
-
-    - name: Build ${{ matrix.arch }}
-      #if: ${{ github.event_name != 'release' || matrix.btype != 'Debug' }} # skip Debug configuration in Release build
-      if: false
-      uses: uraimo/run-on-arch-action@v3
-      with:
-        arch: ${{ matrix.arch }}
-        distro: ubuntu24.04
-        githubToken: ${{ github.token }}
-        shell: /bin/sh
-        run: |
-          apt-get -qq update
-          apt-get install -y make gcc g++
-          apt-get -y install libcurl4-openssl-dev mesa-common-dev libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound-dev
-
-          make ${{ matrix.rule }} -j$(nproc) ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=quake3e-vulkan BUILD_SERVER=0
-          make clean ARCH=${{ matrix.arch }} 
-          make ${{ matrix.rule }} -j$(nproc) ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl
-
-    - uses: actions/upload-artifact@v7
-      if: false
-      #if: matrix.cc == 'gcc' && matrix.btype == 'Release'
-      with:
-        name: linux-${{ matrix.arch }}
-        path: bin
-        if-no-files-found: error
-        retention-days: 5
-
-  ubuntu-arm64:
-    name: ${{ matrix.btype }} Ubuntu ${{ matrix.arch }}
-    runs-on: ubuntu-22.04-arm
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [arm64]
-        cc: [gcc]
-        btype: [Release, Debug]
-        include:
-          - btype: Release
-            rule: install
-
-          - btype: Debug
-            rule: debug
-
-    steps:
-
-    - name: Install tools
-      run: |
-        sudo apt-get -qq update
-        sudo apt-get install -y make gcc g++
-        sudo apt-get -y install libcurl4-openssl-dev mesa-common-dev libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound-dev libsdl2-dev
-
-    - uses: actions/checkout@v7
-      with:
-        submodules: recursive
-
-    - name: Build
-      if: ${{ github.event_name != 'release' || matrix.btype != 'Debug' }} # skip Debug configuration in Release build
-      run: |
-          make ${{ matrix.rule }} -j$(nproc) ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=quake3e-vulkan BUILD_SERVER=0
-          make clean ARCH=${{ matrix.arch }} 
-          make ${{ matrix.rule }} -j$(nproc) ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl
-
-    - uses: actions/upload-artifact@v7
-      if: matrix.cc == 'gcc' && matrix.btype == 'Release'
-      with:
-        name: linux-${{ matrix.arch }}
-        path: bin
-        if-no-files-found: error
-        retention-days: 5
-
-  macos-x86:
-    name: ${{ matrix.btype }} macOS ${{ matrix.arch }}
-    runs-on: macos-14
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [x86_64, aarch64]
-        cc: [clang]
-        btype: [Release, Debug]
-        include:
-          - btype: Release
-            rule: install
-
-          - btype: Debug
-            rule: debug
-
-    steps:
-
-    - name: Trust taps
-      run: brew trust aws/tap azure/bicep
-
-    - name: Install tools
-      run: brew install coreutils sdl2 # pkg-config
-
-    - uses: actions/checkout@v7
-      with:
-        submodules: recursive
-
-    - name: Build
-      if: ${{ github.event_name != 'release' || matrix.btype != 'Debug' }} # skip Debug configuration in Release build
-      run: |
-        make ${{ matrix.rule }} -j$(sysctl -n hw.logicalcpu) ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin INSTALL=ginstall USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan CNAME=quake3e-vulkan BUILD_SERVER=0 STRIP=echo
-        make clean ARCH=${{ matrix.arch }} 
-        make ${{ matrix.rule }} -j$(sysctl -n hw.logicalcpu) ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} DESTDIR=bin INSTALL=ginstall USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=opengl STRIP=echo
-
-    - uses: actions/upload-artifact@v7
-      if: matrix.cc == 'clang' && matrix.btype == 'Release'
-      with:
-        name: macos-${{ matrix.arch }}
-        path: bin
-        if-no-files-found: error
-        retention-days: 5
-
   create-testing:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    needs: [windows-msys, windows-msvc, ubuntu-x86_64, ubuntu-arm64, macos-x86]
+    needs:
+    - unix
+    - windows-msvc
+    - windows-msys
     runs-on: ubuntu-latest
     steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v8
-
-      - name: Create binary archives
-        run: |
-          7z a -r quake3e-linux-x86_64.zip         ./linux-x86_64/*
-          7z a -r quake3e-linux-arm64.zip          ./linux-arm64/*
-          7z a -r quake3e-windows-mingw-x86_64.zip ./windows-gcc-x86_64/*
-          7z a -r quake3e-windows-msvc-arm64.zip   ./windows-msvc-arm64/*
-          7z a -r quake3e-macos-x86_64.zip         ./macos-x86_64/*
-          7z a -r quake3e-macos-aarch64.zip        ./macos-aarch64/*
-#         7z a -r quake3e-linux-aarch64.zip        ./linux-aarch64/*
-#         7z a -r quake3e-linux-armv7.zip          ./linux-armv7/*
-#         7z a -r quake3e-windows-msvc-x86_64.zip  ./windows-msvc-x86_64/*
-
-      - name: Create latest build
-        uses: czietz/action-automatic-releases@latest
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          automatic_release_tag: "latest"
-          prerelease: false
-          title: Latest Build
-          files: |
-            *.zip
-
+    - name: Download Artifacts
+      uses: actions/download-artifact@v8
+    - name: Create binary archives
+      run: |
+        7z a -r quake3e-linux-x86_64.zip         ./linux-x86_64/*
+        7z a -r quake3e-linux-arm64.zip          ./linux-arm64/*
+        7z a -r quake3e-windows-mingw-x86_64.zip ./windows-gcc-x86_64/*
+        7z a -r quake3e-windows-msvc-arm64.zip   ./windows-msvc-arm64/*
+        7z a -r quake3e-macos-x86_64.zip         ./macos-x86_64/*
+        7z a -r quake3e-macos-aarch64.zip        ./macos-aarch64/*
+    - name: Create latest build
+      uses: czietz/action-automatic-releases@latest
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        automatic_release_tag: latest
+        prerelease: false
+        title: Latest Build
+        files: |
+          *.zip
   update-release:
     if: ${{ github.event_name == 'release' }}
-    needs: [windows-msys, windows-msvc, ubuntu-x86_64, ubuntu-arm, macos-x86]
+    needs:
+    - unix
+    - windows-msvc
+    - windows-msys
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         include:
-#         - artifact_dir: linux-aarch64
-#           artifact_name: quake3e-linux-aarch64.zip
-
-#         - artifact_dir: linux-armv7
-#           artifact_name: quake3e-linux-armv7.zip
-
-          - artifact_dir: linux-x86_64
-            artifact_name: quake3e-linux-x86_64.zip
-
-          - artifact_dir: linux-arm64
-            artifact_name: quake3e-linux-arm64.zip
-
-          - artifact_dir: windows-gcc-x86_64
-            artifact_name: quake3e-windows-x86_64.zip
-
-          - artifact_dir: windows-msvc-arm64
-            artifact_name: quake3e-windows-arm64.zip
-
-          - artifact_dir: macos-x86_64
-            artifact_name: quake3e-macos-x86_64.zip
-
-          - artifact_dir: macos-aarch64
-            artifact_name: quake3e-macos-aarch64.zip
-
+        - artifact_dir: linux-x86_64
+          artifact_name: quake3e-linux-x86_64.zip
+        - artifact_dir: linux-arm64
+          artifact_name: quake3e-linux-arm64.zip
+        - artifact_dir: windows-gcc-x86_64
+          artifact_name: quake3e-windows-x86_64.zip
+        - artifact_dir: windows-msvc-arm64
+          artifact_name: quake3e-windows-arm64.zip
+        - artifact_dir: macos-x86_64
+          artifact_name: quake3e-macos-x86_64.zip
+        - artifact_dir: macos-aarch64
+          artifact_name: quake3e-macos-aarch64.zip
     steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v8
-
-      - name: Create archive
-        run: 7z a -r ${{ matrix.artifact_name }} ./${{ matrix.artifact_dir }}/*
-
-      - name: Upload archive
-        uses: "svenstaro/upload-release-action@latest"
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
-          overwrite: true
-          file: ${{ matrix.artifact_name }}
+    - name: Download Artifacts
+      uses: actions/download-artifact@v8
+    - name: Create archive
+      run: |
+        7z a -r ${{ matrix.artifact_name }} ./${{ matrix.artifact_dir }}/*
+    - name: Upload archive
+      uses: svenstaro/upload-release-action@latest
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref }}
+        overwrite: true
+        file: ${{ matrix.artifact_name }}

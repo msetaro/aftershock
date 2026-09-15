@@ -11,13 +11,24 @@ Active: issue/5-cmake-build, draft PR #66, based on #4 merge 4a952854.
 #3/#31/#1/#2/#4 are complete. #4 merged-tree regression 34942323875 passed.
 Continue #5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementation.
 
-Next: verify hosted CMake migration and migrated regression jobs for 390a20f4;
-then validate the MSVC embedded debug-info setting needed for ccache. Keep engine/game
-source fixed until hosted build parity is recorded. Only then retire Make and
-handwritten MSVC projects, remove inactive 32-bit/PowerPC paths, finish build/test
-documentation and run final gates/self-review before merging PR #66. One-command
-CMake presets are present; primary workflow migration and cleanup are incomplete.
-No accepted golden/fixture changes or engine bug fixes are authorized in #5.
+Next: verify the CMake-only build/artifact workflow and MSVC embedded debug cache
+setting, then remove inactive 32-bit/PowerPC source paths and run final regression,
+layout/lifetime/boundary gates and self-review before merging PR #66. Migration
+390a20f4 has passed every hosted raw-object and generated MSVC build gate in
+34946471284; supported build 34946471250 also passed. Regression 34946471246 is
+still running with no required failures at the last check.
+
+Makefile, game/modules.mk and handwritten MSVC projects are now removed in the
+working tree, after those gates. CMake-only build.yml retains Linux/macOS/Windows
+release/debug binaries and release-artifact jobs, adds Clang and caches, and uses
+generated VS projects. Its original CRLF convention is retained. The temporary
+migration workflow is retired; replay tools/port/check_cmake_parity.py at 390a20f4.
+CMake install staging and the release workflow preset pass locally; staged Linux
+client/server binaries are byte-identical to build outputs. No game data is staged.
+The bundled macOS SDL library names @executable_path, matching adjacent staging.
+Engine/game source is still unchanged. No accepted golden/fixture changes or
+engine bug fixes are authorized in #5.
+
 
 Make reference checkpoint a08e7275 fixes reproducibility; CMake repair 6987587a;
 test-helper migration f111b28c. Original baseline: 11 successful Make configurations,
@@ -67,8 +78,8 @@ bot-move,lifetimes,runtime,demo,oa-runtime,oa-demo}*. Goldens/fixtures unchanged
 
 Regression workflow migration now adds job caches and uses CMake for cross-server
 builds and the two existing Windows SDL interface compile checks. The latter pass
-locally (/tmp/aftershock-cmake-sdl-cross). The supported build.yml still uses Make
-and handwritten projects until migration gates pass; preserve its original CRLF.
+locally (/tmp/aftershock-cmake-sdl-cross). The supported build.yml is being switched to CMake after the migration gates;
+preserve its original CRLF.
 CMake keeps explicit source lists, strict native FP, precise MSVC engine FP, fast
 MSVC release renderer FP and static CRT. MSVC ARM64 curl remains disabled as in
 the old projects. External OA native objects remain static test inputs.
@@ -89,6 +100,16 @@ PDBs. This changes debug metadata format, not optimization or runtime checks.
 explicitly supports /Z7 and rejects /Zi. Hosted cache statistics must confirm the
 change. Build instructions and compile-database documentation are being updated;
 Make/handwritten-project retirement and inactive platform cleanup remain undone.
+
+
+Embedded-debug source 48733686 passes migration 34946795374 on every leg. MSVC
+x64 debug now reports 720/720 cacheable compilation calls, including 52 hits,
+while retaining the generated VS build. Native Windows curl needs target zlib;
+the local optional curl build compiles but cannot link -lz because that cross
+library is absent. Hosted MSYS now installs its target zlib explicitly; the
+local cross example uses USE_CURL=OFF, matching the verified cross configuration.
+No local package is installed and the optional local curl link is not claimed
+passing. CMake-only workflow/artifact staging still needs its own hosted run.
 
 
 #4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects
@@ -1019,3 +1040,8 @@ pass on 440089eb in build 34936092520; remaining build jobs are running. Local
 MinGW native-Windows client (USE_CURL=0 USE_SDL=0, matching CI) links successfully.
 The optional MinGW SDL/no-curl build exposed old missing Windows header context;
 record it separately for #31 without changing those engine sources here.
+
+#5 documentation correction: the untouched finished network driver belongs to
+#3 merge 8692b422, before both path and build migrations, not the 390a20f4 build
+parity checkpoint. It is not rerun or adapted here. README and AGENTS now identify
+its historical revision explicitly.
