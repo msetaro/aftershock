@@ -3,7 +3,7 @@
 The native-only decision retires legacy QVM/mod compatibility. The imported GPL
 base-game sources become the game, cgame and UI implementations; the engine keeps
 its existing simulation expressions, allocation model and longjmp error handling.
-Static integration is committed; VM removal and final CI review remain pending.
+Static integration and VM removal are implemented; final CI review remains pending.
 
 ## Source and transformation audit
 
@@ -132,3 +132,18 @@ Release behavior and all FP expressions are unchanged. MSVC generates separate
 build-directory wrappers matching the 103 Make source selections; /fp:strict and
 disabled intrinsics preserve the native arithmetic/library configuration. Apple
 SDK deprecations use the existing engine platform freeze (440089eb).
+
+VM retirement test-first a8879635 rejects the linked old implementation. The
+retirement removes eight VM/interpreter/JIT files plus active Make/MSVC and
+startup/unload API hooks. File-format declarations remain for historical layout
+oracles; no QVM parser/interpreter/compiler or game DLL loader remains. Static
+smoke and replay inspect every executable for required init exports and absence
+of VM_* implementation symbols. The old VM_Call probe and retained-DLL comparison
+shim are retired with those obsolete paths. Original C/C++ compiler oracles remain.
+
+After retirement, both Q3 bot logs and both-map/both-renderer lifecycle replay
+retain accepted hashes. Lifetime analysis passes 550 compile commands/138 source
+paths, including all native wrapper selections. No new wire/file structure layout,
+simulation FP expression, OS access or allocation was introduced by the deletion.
+The bot synonym import keeps the same 1024-byte legacy limit via MAX_STRING_CHARS;
+retiring its VM constant changes no service behavior.

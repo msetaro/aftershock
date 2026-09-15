@@ -243,11 +243,6 @@ two poisoned output buffers and checks all result fields. It links the dedicated
 server objects with a test entry point, so no content is required. `--cc`, `--cxx`
 and `--output` select the same compiler matrix as the other unit checks.
 
-`python3 tests/native_dispatch.py` checks native engine calls with zero through
-three arguments, including zero-filled unused slots and balanced call depth. It
-uses the production VM_Call body and requires no game content. The same compiler
-and output options as bot_move.py apply.
-
 `python3 tests/teamleader.py` compiles both imported GPL C team-leader paths with
 Clang's bounds diagnostics as errors. It uses the imported bot-state declarations
 and native ABI header. No game content or external header checkout is required.
@@ -373,3 +368,9 @@ ASan/UBSan: native structure/pointer alignment, allocation/free/reuse, preservat
 of live payloads, defragmentation and reuse after completely filling the pool.
 --cc/--source/--output select compiler, source
 cache and diagnostics. Both unit compiler jobs run it; no game content is needed.
+
+Runtime and replay also inspect their built binaries: all required static module
+init exports must exist and no VM_* implementation symbol may remain. The old
+VM_Call argument-slot probe was retired with VM_Call; its #31 history remains in
+the bug ledger. Retained C/C++ import oracles are compiler evidence, not a runtime
+module-loading path. Native game objects are linked into the executables.

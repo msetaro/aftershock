@@ -38,9 +38,16 @@ Static source 440089eb passed regression 34936092538 and full build 34936092520,
 including every MSVC/macOS/MinGW leg. The new symbol check rejects linked VM_*
 implementation symbols and requires each static module init export. It fails on
 the existing binary as expected (/tmp/aftershock-static-link-before.log).
-Next: commit this retirement check, remove obsolete VM/JIT implementations and
-build/startup hooks, retire their obsolete dispatch probe, then run runtime/replay,
-lifetimes and CI again. Finish remaining native test/provenance review.
+Test-first a8879635 is committed. The working tree removes the eight VM/interpreter/
+JIT implementation files, their Make/MSVC entries, public dispatch API and startup/
+forced-unload hooks. Native lifecycle shutdown already owns the retained state.
+The obsolete VM_Call probe and retained-DLL shim are retired; import compiler
+oracles remain. Dedicated linking, the no-VM symbol check and both accepted Q3 bot logs pass.
+Lifecycle fixed replay passes both maps/renderers at b38004b1. Lifetime analysis
+passes 550 compile commands/138 source paths, including native modules. Artifacts:
+/tmp/aftershock-native-no-vm-{runtime,demo,lifetimes}. Next: commit/push retirement,
+complete CI and static movement-debug lifecycle, then final review. The
+separate optional Windows SDL/header build defect still needs its #31 fix.
 
 Static Q3 and OA bot logs and both-renderer fixed replay match accepted goldens.
 The integrated Q3 video-restart replay also matches all existing frames; the

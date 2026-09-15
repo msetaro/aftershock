@@ -94,18 +94,6 @@
     <ClCompile Include="..\..\qcommon\unzip.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\qcommon\vm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\qcommon\vm_aarch64.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\qcommon\vm_interpreted.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\qcommon\vm_x86.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\win_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -174,13 +162,7 @@
     <ClInclude Include="..\..\qcommon\unzip.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\qcommon\vm_local.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\win_local.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\qcommon\vm_optimize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

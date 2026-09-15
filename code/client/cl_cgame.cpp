@@ -958,9 +958,6 @@ CL_CGameRendering
 */
 void CL_CGameRendering( stereoFrame_t stereo ) {
 	NativeCGame_DrawActiveFrame( cl.serverTime, stereo, clc.demoplaying );
-#ifdef DEBUG
-	VM_Debug( 0 );
-#endif
 }
 
 

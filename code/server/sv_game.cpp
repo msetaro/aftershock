@@ -820,7 +820,7 @@ void GameImport_UnifyWhiteSpaces( char * string ) {
 	return;
 }
 void GameImport_BotReplaceSynonyms( char * string, unsigned long int context ) {
-	botlib_export->ai.BotReplaceSynonyms( (char *)string, VM_DATA_GUARD_SIZE, context );
+	botlib_export->ai.BotReplaceSynonyms( (char *)string, MAX_STRING_CHARS, context );
 	return;
 }
 int GameImport_BotLoadChatFile( int chatstate, char * chatfile, char * chatname ) {
