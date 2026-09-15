@@ -91,7 +91,7 @@ static void Demos_MenuEvent( void *ptr, int event ) {
 	switch( ((menucommon_s*)ptr)->id ) {
 	case ID_GO:
 		UI_ForceMenuOff ();
-		trap_Cmd_ExecuteText( EXEC_APPEND, va( "demo %s\n",
+		trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"demo %s\n",
 								s_demos.list.itemnames[s_demos.list.curvalue]) );
 		break;
 
@@ -145,7 +145,7 @@ static void Demos_MenuInit( void ) {
 	s_demos.banner.generic.type		= MTYPE_BTEXT;
 	s_demos.banner.generic.x		= 320;
 	s_demos.banner.generic.y		= 16;
-	s_demos.banner.string			= "DEMOS";
+	s_demos.banner.string			= (char *)"DEMOS";
 	s_demos.banner.color			= color_white;
 	s_demos.banner.style			= UI_CENTER;
 

@@ -75,7 +75,7 @@ void Favorites_Add( void )
 	best = 0;
 	for (i=0; i<MAX_FAVORITESERVERS; i++)
 	{
-		trap_Cvar_VariableStringBuffer( va("server%d",i+1), adrstr, sizeof(adrstr) );
+		trap_Cvar_VariableStringBuffer( va((char *)"server%d",i+1), adrstr, sizeof(adrstr) );
 		if (!Q_stricmp(serverbuff,adrstr))
 		{
 			// already in list
@@ -88,7 +88,7 @@ void Favorites_Add( void )
 	}
 
 	if (best)
-		trap_Cvar_Set( va("server%d",best), serverbuff);
+		trap_Cvar_Set( va((char *)"server%d",best), serverbuff);
 }
 
 
@@ -201,7 +201,7 @@ void UI_ServerInfoMenu( void )
 	s_serverinfo.banner.generic.type  = MTYPE_BTEXT;
 	s_serverinfo.banner.generic.x	  = 320;
 	s_serverinfo.banner.generic.y	  = 16;
-	s_serverinfo.banner.string		  = "SERVER INFO";
+	s_serverinfo.banner.string		  = (char *)"SERVER INFO";
 	s_serverinfo.banner.color	      = color_white;
 	s_serverinfo.banner.style	      = UI_CENTER;
 
@@ -227,7 +227,7 @@ void UI_ServerInfoMenu( void )
 	s_serverinfo.add.generic.id	      = ID_ADD;
 	s_serverinfo.add.generic.x		  = 320;
 	s_serverinfo.add.generic.y		  = 371;
-	s_serverinfo.add.string  		  = "ADD TO FAVORITES";
+	s_serverinfo.add.string  		  = (char *)"ADD TO FAVORITES";
 	s_serverinfo.add.style  		  = UI_CENTER|UI_SMALLFONT;
 	s_serverinfo.add.color			  =	color_red;
 	if( trap_Cvar_VariableValue( "sv_running" ) ) {

@@ -610,38 +610,38 @@ void Parse1DMatrix (char **buf_p, int x, float *m) {
 	char	*token;
 	int		i;
 
-	COM_MatchToken( buf_p, "(" );
+	COM_MatchToken( buf_p, (char *)"(" );
 
 	for (i = 0 ; i < x ; i++) {
 		token = COM_Parse(buf_p);
 		m[i] = atof(token);
 	}
 
-	COM_MatchToken( buf_p, ")" );
+	COM_MatchToken( buf_p, (char *)")" );
 }
 
 void Parse2DMatrix (char **buf_p, int y, int x, float *m) {
 	int		i;
 
-	COM_MatchToken( buf_p, "(" );
+	COM_MatchToken( buf_p, (char *)"(" );
 
 	for (i = 0 ; i < y ; i++) {
 		Parse1DMatrix (buf_p, x, m + i * x);
 	}
 
-	COM_MatchToken( buf_p, ")" );
+	COM_MatchToken( buf_p, (char *)")" );
 }
 
 void Parse3DMatrix (char **buf_p, int z, int y, int x, float *m) {
 	int		i;
 
-	COM_MatchToken( buf_p, "(" );
+	COM_MatchToken( buf_p, (char *)"(" );
 
 	for (i = 0 ; i < z ; i++) {
 		Parse2DMatrix (buf_p, y, x, m + i * x*y);
 	}
 
-	COM_MatchToken( buf_p, ")" );
+	COM_MatchToken( buf_p, (char *)")" );
 }
 
 
@@ -941,7 +941,7 @@ char *Info_ValueForKey( const char *s, const char *key ) {
 	char	*o;
 	
 	if ( !s || !key ) {
-		return "";
+		return (char *)"";
 	}
 
 	if ( strlen( s ) >= BIG_INFO_STRING ) {
@@ -957,7 +957,7 @@ char *Info_ValueForKey( const char *s, const char *key ) {
 		while (*s != '\\')
 		{
 			if (!*s)
-				return "";
+				return (char *)"";
 			*o++ = *s++;
 		}
 		*o = 0;
@@ -979,7 +979,7 @@ char *Info_ValueForKey( const char *s, const char *key ) {
 		s++;
 	}
 
-	return "";
+	return (char *)"";
 }
 
 

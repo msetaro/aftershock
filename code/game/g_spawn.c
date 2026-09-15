@@ -409,7 +409,7 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 	int			i;
 	gentity_t	*ent;
 	char		*s, *value, *gametypeName;
-	static char *gametypeNames[] = {"ffa", "tournament", "single", "team", "ctf", "oneflag", "obelisk", "harvester", "teamtournament"};
+	static char *gametypeNames[] = {(char *)"ffa", (char *)"tournament", (char *)"single", (char *)"team", (char *)"ctf", (char *)"oneflag", (char *)"obelisk", (char *)"harvester", (char *)"teamtournament"};
 
 	// get the next free entity
 	ent = G_Spawn();
@@ -577,7 +577,7 @@ void SP_worldspawn( void ) {
 	// make some data visible to connecting client
 	trap_SetConfigstring( CS_GAME_VERSION, GAME_VERSION );
 
-	trap_SetConfigstring( CS_LEVEL_START_TIME, va("%i", level.startTime ) );
+	trap_SetConfigstring( CS_LEVEL_START_TIME, va((char *)"%i", level.startTime ) );
 
 	G_SpawnString( "music", "", &s );
 	trap_SetConfigstring( CS_MUSIC, s );
@@ -606,7 +606,7 @@ void SP_worldspawn( void ) {
 		level.warmupTime = 0;
 	} else if ( g_doWarmup.integer ) { // Turn it on
 		level.warmupTime = -1;
-		trap_SetConfigstring( CS_WARMUP, va("%i", level.warmupTime) );
+		trap_SetConfigstring( CS_WARMUP, va((char *)"%i", level.warmupTime) );
 		G_LogPrintf( "Warmup:\n" );
 	}
 

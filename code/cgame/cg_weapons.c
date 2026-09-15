@@ -1275,7 +1275,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		}
 	}
 
-	CG_PositionEntityOnTag( &gun, parent, parent->hModel, "tag_weapon");
+	CG_PositionEntityOnTag( &gun, parent, parent->hModel, (char *)"tag_weapon");
 
 	CG_AddWeaponWithPowerups( &gun, cent->currentState.powerups );
 
@@ -1292,7 +1292,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		angles[ROLL] = CG_MachinegunSpinAngle( cent );
 		AnglesToAxis( angles, barrel.axis );
 
-		CG_PositionRotatedEntityOnTag( &barrel, &gun, weapon->weaponModel, "tag_barrel" );
+		CG_PositionRotatedEntityOnTag( &barrel, &gun, weapon->weaponModel, (char *)"tag_barrel" );
 
 		CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
 	}
@@ -1343,7 +1343,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		flash.shaderRGBA[2] = 255 * ci->color1[2];
 	}
 
-	CG_PositionRotatedEntityOnTag( &flash, &gun, weapon->weaponModel, "tag_flash");
+	CG_PositionRotatedEntityOnTag( &flash, &gun, weapon->weaponModel, (char *)"tag_flash");
 	trap_R_AddRefEntityToScene( &flash );
 
 	if ( ps || cg.renderingThirdPerson ||
@@ -1844,7 +1844,7 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, im
 			VectorMA( origin, 24, dir, sprOrg );
 			VectorScale( dir, 64, sprVel );
 
-			CG_ParticleExplosion( "explode1", sprOrg, sprVel, 1400, 20, 30 );
+			CG_ParticleExplosion( (char *)"explode1", sprOrg, sprVel, 1400, 20, 30 );
 		}
 		break;
 	case WP_RAILGUN:

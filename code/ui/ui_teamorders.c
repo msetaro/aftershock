@@ -280,7 +280,7 @@ static void UI_TeamOrdersMenu_ListEvent( void *ptr, int event ) {
 		Com_sprintf( message, sizeof(message), teamMessages[selection], teamOrdersMenuInfo.botNames[teamOrdersMenuInfo.selectedBot] );
 	}
 
-	trap_Cmd_ExecuteText( EXEC_APPEND, va( "say_team \"%s\"\n", message ) );
+	trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"say_team \"%s\"\n", message ) );
 	UI_PopMenu();
 }
 
@@ -356,7 +356,7 @@ static void UI_TeamOrdersMenu_Init( void ) {
 	teamOrdersMenuInfo.banner.generic.type		= MTYPE_BTEXT;
 	teamOrdersMenuInfo.banner.generic.x			= 320;
 	teamOrdersMenuInfo.banner.generic.y			= 16;
-	teamOrdersMenuInfo.banner.string			= "TEAM ORDERS";
+	teamOrdersMenuInfo.banner.string			= (char *)"TEAM ORDERS";
 	teamOrdersMenuInfo.banner.color				= color_white;
 	teamOrdersMenuInfo.banner.style				= UI_CENTER;
 

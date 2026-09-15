@@ -82,7 +82,7 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 		stringlength += j;
 	}
 
-	trap_SendServerCommand( ent-g_entities, va("scores %i %i %i%s", i, 
+	trap_SendServerCommand( ent-g_entities, va((char *)"scores %i %i %i%s", i, 
 		level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE],
 		string ) );
 }
@@ -108,11 +108,11 @@ CheatsOk
 */
 qboolean	CheatsOk( gentity_t *ent ) {
 	if ( !g_cheats.integer ) {
-		trap_SendServerCommand( ent-g_entities, va("print \"Cheats are not enabled on this server.\n\""));
+		trap_SendServerCommand( ent-g_entities, va((char *)"print \"Cheats are not enabled on this server.\n\""));
 		return qfalse;
 	}
 	if ( ent->health <= 0 ) {
-		trap_SendServerCommand( ent-g_entities, va("print \"You must be alive to use this command.\n\""));
+		trap_SendServerCommand( ent-g_entities, va((char *)"print \"You must be alive to use this command.\n\""));
 		return qfalse;
 	}
 	return qtrue;
@@ -192,13 +192,13 @@ int ClientNumberFromString( gentity_t *to, char *s ) {
 	if (s[0] >= '0' && s[0] <= '9') {
 		idnum = atoi( s );
 		if ( idnum < 0 || idnum >= level.maxclients ) {
-			trap_SendServerCommand( to-g_entities, va("print \"Bad client slot: %i\n\"", idnum));
+			trap_SendServerCommand( to-g_entities, va((char *)"print \"Bad client slot: %i\n\"", idnum));
 			return -1;
 		}
 
 		cl = &level.clients[idnum];
 		if ( cl->pers.connected != CON_CONNECTED ) {
-			trap_SendServerCommand( to-g_entities, va("print \"Client %i is not active\n\"", idnum));
+			trap_SendServerCommand( to-g_entities, va((char *)"print \"Client %i is not active\n\"", idnum));
 			return -1;
 		}
 		return idnum;
@@ -216,7 +216,7 @@ int ClientNumberFromString( gentity_t *to, char *s ) {
 		}
 	}
 
-	trap_SendServerCommand( to-g_entities, va("print \"User %s is not on the server\n\"", s));
+	trap_SendServerCommand( to-g_entities, va((char *)"print \"User %s is not on the server\n\"", s));
 	return -1;
 }
 
@@ -340,11 +340,11 @@ void Cmd_God_f (gentity_t *ent)
 
 	ent->flags ^= FL_GODMODE;
 	if (!(ent->flags & FL_GODMODE) )
-		msg = "godmode OFF\n";
+		msg = (char *)"godmode OFF\n";
 	else
-		msg = "godmode ON\n";
+		msg = (char *)"godmode ON\n";
 
-	trap_SendServerCommand( ent-g_entities, va("print \"%s\"", msg));
+	trap_SendServerCommand( ent-g_entities, va((char *)"print \"%s\"", msg));
 }
 
 
@@ -366,11 +366,11 @@ void Cmd_Notarget_f( gentity_t *ent ) {
 
 	ent->flags ^= FL_NOTARGET;
 	if (!(ent->flags & FL_NOTARGET) )
-		msg = "notarget OFF\n";
+		msg = (char *)"notarget OFF\n";
 	else
-		msg = "notarget ON\n";
+		msg = (char *)"notarget ON\n";
 
-	trap_SendServerCommand( ent-g_entities, va("print \"%s\"", msg));
+	trap_SendServerCommand( ent-g_entities, va((char *)"print \"%s\"", msg));
 }
 
 
@@ -389,13 +389,13 @@ void Cmd_Noclip_f( gentity_t *ent ) {
 	}
 
 	if ( ent->client->noclip ) {
-		msg = "noclip OFF\n";
+		msg = (char *)"noclip OFF\n";
 	} else {
-		msg = "noclip ON\n";
+		msg = (char *)"noclip ON\n";
 	}
 	ent->client->noclip = (qboolean)( !ent->client->noclip );
 
-	trap_SendServerCommand( ent-g_entities, va("print \"%s\"", msg));
+	trap_SendServerCommand( ent-g_entities, va((char *)"print \"%s\"", msg));
 }
 
 
@@ -449,7 +449,7 @@ void Cmd_TeamTask_f( gentity_t *ent ) {
 	task = atoi( arg );
 
 	trap_GetUserinfo(client, userinfo, sizeof(userinfo));
-	Info_SetValueForKey(userinfo, "teamtask", va("%d", task));
+	Info_SetValueForKey(userinfo, "teamtask", va((char *)"%d", task));
 	trap_SetUserinfo(client, userinfo);
 	ClientUserinfoChanged(client);
 }
@@ -483,16 +483,16 @@ Let everyone know about a team change
 void BroadcastTeamChange( gclient_t *client, int oldTeam )
 {
 	if ( client->sess.sessionTeam == TEAM_RED ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
+		trap_SendServerCommand( -1, va((char *)"cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
 			client->pers.netname) );
 	} else if ( client->sess.sessionTeam == TEAM_BLUE ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the blue team.\n\"",
+		trap_SendServerCommand( -1, va((char *)"cp \"%s" S_COLOR_WHITE " joined the blue team.\n\"",
 		client->pers.netname));
 	} else if ( client->sess.sessionTeam == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the spectators.\n\"",
+		trap_SendServerCommand( -1, va((char *)"cp \"%s" S_COLOR_WHITE " joined the spectators.\n\"",
 		client->pers.netname));
 	} else if ( client->sess.sessionTeam == TEAM_FREE ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the battle.\n\"",
+		trap_SendServerCommand( -1, va((char *)"cp \"%s" S_COLOR_WHITE " joined the battle.\n\"",
 		client->pers.netname));
 	}
 }
@@ -739,7 +739,7 @@ void Cmd_Follow_f( gentity_t *ent ) {
 
 	// first set them to spectator
 	if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR ) {
-		SetTeam( ent, "spectator" );
+		SetTeam( ent, (char *)"spectator" );
 	}
 
 	ent->client->sess.spectatorState = SPECTATOR_FOLLOW;
@@ -762,7 +762,7 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 	}
 	// first set them to spectator
 	if ( ent->client->sess.spectatorState == SPECTATOR_NOT ) {
-		SetTeam( ent, "spectator" );
+		SetTeam( ent, (char *)"spectator" );
 	}
 
 	if ( dir != 1 && dir != -1 ) {
@@ -829,7 +829,7 @@ static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, cons
 		return;
 	}
 
-	trap_SendServerCommand( other-g_entities, va("%s \"%s%c%c%s\"", 
+	trap_SendServerCommand( other-g_entities, va((char *)"%s \"%s%c%c%s\"", 
 		mode == SAY_TEAM ? "tchat" : "chat",
 		name, Q_COLOR_ESCAPE, color, message));
 }
@@ -982,18 +982,18 @@ static void G_VoiceTo( gentity_t *ent, gentity_t *other, int mode, const char *i
 
 	if (mode == SAY_TEAM) {
 		color = COLOR_CYAN;
-		cmd = "vtchat";
+		cmd = (char *)"vtchat";
 	}
 	else if (mode == SAY_TELL) {
 		color = COLOR_MAGENTA;
-		cmd = "vtell";
+		cmd = (char *)"vtell";
 	}
 	else {
 		color = COLOR_GREEN;
-		cmd = "vchat";
+		cmd = (char *)"vchat";
 	}
 
-	trap_SendServerCommand( other-g_entities, va("%s %d %d %d %s", cmd, voiceonly, ent->s.number, color, id));
+	trap_SendServerCommand( other-g_entities, va((char *)"%s %d %d %d %s", cmd, voiceonly, ent->s.number, color, id));
 }
 
 void G_Voice( gentity_t *ent, gentity_t *target, int mode, const char *id, qboolean voiceonly ) {
@@ -1193,7 +1193,7 @@ Cmd_Where_f
 ==================
 */
 void Cmd_Where_f( gentity_t *ent ) {
-	trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", vtos( ent->s.origin ) ) );
+	trap_SendServerCommand( ent-g_entities, va((char *)"print \"%s\n\"", vtos( ent->s.origin ) ) );
 }
 
 static const char *gameNames[] = {
@@ -1262,7 +1262,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	// if there is still a vote to be executed
 	if ( level.voteExecuteTime ) {
 		level.voteExecuteTime = 0;
-		trap_SendConsoleCommand( EXEC_APPEND, va("%s\n", level.voteString ) );
+		trap_SendConsoleCommand( EXEC_APPEND, va((char *)"%s\n", level.voteString ) );
 	}
 
 	// special case for g_gametype, check for bad values
@@ -1302,7 +1302,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
 	}
 
-	trap_SendServerCommand( -1, va("print \"%s called a vote.\n\"", ent->client->pers.netname ) );
+	trap_SendServerCommand( -1, va((char *)"print \"%s called a vote.\n\"", ent->client->pers.netname ) );
 
 	// start the voting, the caller autoamtically votes yes
 	level.voteTime = level.time;
@@ -1314,10 +1314,10 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	}
 	ent->client->ps.eFlags |= EF_VOTED;
 
-	trap_SetConfigstring( CS_VOTE_TIME, va("%i", level.voteTime ) );
+	trap_SetConfigstring( CS_VOTE_TIME, va((char *)"%i", level.voteTime ) );
 	trap_SetConfigstring( CS_VOTE_STRING, level.voteDisplayString );	
-	trap_SetConfigstring( CS_VOTE_YES, va("%i", level.voteYes ) );
-	trap_SetConfigstring( CS_VOTE_NO, va("%i", level.voteNo ) );	
+	trap_SetConfigstring( CS_VOTE_YES, va((char *)"%i", level.voteYes ) );
+	trap_SetConfigstring( CS_VOTE_NO, va((char *)"%i", level.voteNo ) );	
 }
 
 /*
@@ -1349,10 +1349,10 @@ void Cmd_Vote_f( gentity_t *ent ) {
 
 	if ( msg[0] == 'y' || msg[1] == 'Y' || msg[1] == '1' ) {
 		level.voteYes++;
-		trap_SetConfigstring( CS_VOTE_YES, va("%i", level.voteYes ) );
+		trap_SetConfigstring( CS_VOTE_YES, va((char *)"%i", level.voteYes ) );
 	} else {
 		level.voteNo++;
-		trap_SetConfigstring( CS_VOTE_NO, va("%i", level.voteNo ) );	
+		trap_SetConfigstring( CS_VOTE_NO, va((char *)"%i", level.voteNo ) );	
 	}
 
 	// a majority will be determined in CheckVote, which will also account
@@ -1424,12 +1424,12 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 			if ( i >= 3 || !arg2[i]) {
 				i = atoi( arg2 );
 				if ( i < 0 || i >= level.maxclients ) {
-					trap_SendServerCommand( ent-g_entities, va("print \"Bad client slot: %i\n\"", i) );
+					trap_SendServerCommand( ent-g_entities, va((char *)"print \"Bad client slot: %i\n\"", i) );
 					return;
 				}
 
 				if ( !g_entities[i].inuse ) {
-					trap_SendServerCommand( ent-g_entities, va("print \"Client %i is not active\n\"", i) );
+					trap_SendServerCommand( ent-g_entities, va((char *)"print \"Client %i is not active\n\"", i) );
 					return;
 				}
 			}
@@ -1448,7 +1448,7 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 					}
 				}
 				if ( i >= level.maxclients ) {
-					trap_SendServerCommand( ent-g_entities, va("print \"%s is not a valid player on your team.\n\"", arg2) );
+					trap_SendServerCommand( ent-g_entities, va((char *)"print \"%s is not a valid player on your team.\n\"", arg2) );
 					return;
 				}
 			}
@@ -1466,7 +1466,7 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 		if ( level.clients[i].pers.connected == CON_DISCONNECTED )
 			continue;
 		if (level.clients[i].sess.sessionTeam == team)
-			trap_SendServerCommand( i, va("print \"%s called a team vote.\n\"", ent->client->pers.netname ) );
+			trap_SendServerCommand( i, va((char *)"print \"%s called a team vote.\n\"", ent->client->pers.netname ) );
 	}
 
 	// start the voting, the caller autoamtically votes yes
@@ -1480,10 +1480,10 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 	}
 	ent->client->ps.eFlags |= EF_TEAMVOTED;
 
-	trap_SetConfigstring( CS_TEAMVOTE_TIME + cs_offset, va("%i", level.teamVoteTime[cs_offset] ) );
+	trap_SetConfigstring( CS_TEAMVOTE_TIME + cs_offset, va((char *)"%i", level.teamVoteTime[cs_offset] ) );
 	trap_SetConfigstring( CS_TEAMVOTE_STRING + cs_offset, level.teamVoteString[cs_offset] );
-	trap_SetConfigstring( CS_TEAMVOTE_YES + cs_offset, va("%i", level.teamVoteYes[cs_offset] ) );
-	trap_SetConfigstring( CS_TEAMVOTE_NO + cs_offset, va("%i", level.teamVoteNo[cs_offset] ) );
+	trap_SetConfigstring( CS_TEAMVOTE_YES + cs_offset, va((char *)"%i", level.teamVoteYes[cs_offset] ) );
+	trap_SetConfigstring( CS_TEAMVOTE_NO + cs_offset, va((char *)"%i", level.teamVoteNo[cs_offset] ) );
 }
 
 /*
@@ -1524,10 +1524,10 @@ void Cmd_TeamVote_f( gentity_t *ent ) {
 
 	if ( msg[0] == 'y' || msg[1] == 'Y' || msg[1] == '1' ) {
 		level.teamVoteYes[cs_offset]++;
-		trap_SetConfigstring( CS_TEAMVOTE_YES + cs_offset, va("%i", level.teamVoteYes[cs_offset] ) );
+		trap_SetConfigstring( CS_TEAMVOTE_YES + cs_offset, va((char *)"%i", level.teamVoteYes[cs_offset] ) );
 	} else {
 		level.teamVoteNo[cs_offset]++;
-		trap_SetConfigstring( CS_TEAMVOTE_NO + cs_offset, va("%i", level.teamVoteNo[cs_offset] ) );	
+		trap_SetConfigstring( CS_TEAMVOTE_NO + cs_offset, va((char *)"%i", level.teamVoteNo[cs_offset] ) );	
 	}
 
 	// a majority will be determined in TeamCheckVote, which will also account
@@ -1546,11 +1546,11 @@ void Cmd_SetViewpos_f( gentity_t *ent ) {
 	int			i;
 
 	if ( !g_cheats.integer ) {
-		trap_SendServerCommand( ent-g_entities, va("print \"Cheats are not enabled on this server.\n\""));
+		trap_SendServerCommand( ent-g_entities, va((char *)"print \"Cheats are not enabled on this server.\n\""));
 		return;
 	}
 	if ( trap_Argc() != 5 ) {
-		trap_SendServerCommand( ent-g_entities, va("print \"usage: setviewpos x y z yaw\n\""));
+		trap_SendServerCommand( ent-g_entities, va((char *)"print \"usage: setviewpos x y z yaw\n\""));
 		return;
 	}
 
@@ -1697,5 +1697,5 @@ void ClientCommand( int clientNum ) {
 	else if (Q_stricmp (cmd, "stats") == 0)
 		Cmd_Stats_f( ent );
 	else
-		trap_SendServerCommand( clientNum, va("print \"unknown cmd %s\n\"", cmd ) );
+		trap_SendServerCommand( clientNum, va((char *)"print \"unknown cmd %s\n\"", cmd ) );
 }

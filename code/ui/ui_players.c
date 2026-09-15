@@ -349,7 +349,7 @@ static void UI_SetLerpFrameAnimation( playerInfo_t *ci, lerpFrame_t *lf, int new
 	newAnimation &= ~ANIM_TOGGLEBIT;
 
 	if ( newAnimation < 0 || newAnimation >= MAX_ANIMATIONS ) {
-		trap_Error( va("Bad animation number: %i", newAnimation) );
+		trap_Error( va((char *)"Bad animation number: %i", newAnimation) );
 	}
 
 	anim = &ci->animations[ newAnimation ];
@@ -790,7 +790,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 
 	VectorCopy( origin, torso.lightingOrigin );
 
-	UI_PositionRotatedEntityOnTag( &torso, &legs, pi->legsModel, "tag_torso");
+	UI_PositionRotatedEntityOnTag( &torso, &legs, pi->legsModel, (char *)"tag_torso");
 
 	torso.renderfx = renderfx;
 
@@ -807,7 +807,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 
 	VectorCopy( origin, head.lightingOrigin );
 
-	UI_PositionRotatedEntityOnTag( &head, &torso, pi->torsoModel, "tag_head");
+	UI_PositionRotatedEntityOnTag( &head, &torso, pi->torsoModel, (char *)"tag_head");
 
 	head.renderfx = renderfx;
 
@@ -820,7 +820,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 		memset( &gun, 0, sizeof(gun) );
 		gun.hModel = pi->weaponModel;
 		VectorCopy( origin, gun.lightingOrigin );
-		UI_PositionEntityOnTag( &gun, &torso, pi->torsoModel, "tag_weapon");
+		UI_PositionEntityOnTag( &gun, &torso, pi->torsoModel, (char *)"tag_weapon");
 		gun.renderfx = renderfx;
 		trap_R_AddRefEntityToScene( &gun );
 	}
@@ -845,7 +845,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 		}
 		AnglesToAxis( angles, barrel.axis );
 
-		UI_PositionRotatedEntityOnTag( &barrel, &gun, pi->weaponModel, "tag_barrel");
+		UI_PositionRotatedEntityOnTag( &barrel, &gun, pi->weaponModel, (char *)"tag_barrel");
 
 		trap_R_AddRefEntityToScene( &barrel );
 	}
@@ -858,7 +858,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 			memset( &flash, 0, sizeof(flash) );
 			flash.hModel = pi->flashModel;
 			VectorCopy( origin, flash.lightingOrigin );
-			UI_PositionEntityOnTag( &flash, &gun, pi->weaponModel, "tag_flash");
+			UI_PositionEntityOnTag( &flash, &gun, pi->weaponModel, (char *)"tag_flash");
 			flash.renderfx = renderfx;
 			trap_R_AddRefEntityToScene( &flash );
 		}

@@ -418,7 +418,7 @@ static void PlayerModel_BuildList( void )
 			continue;
 			
 		// iterate all skin files in directory
-		numfiles = trap_FS_GetFileList( va("models/players/%s",dirptr), "tga", filelist, 2048 );
+		numfiles = trap_FS_GetFileList( va((char *)"models/players/%s",dirptr), "tga", filelist, 2048 );
 		fileptr  = filelist;
 		for (j=0; j<numfiles && s_playermodel.nummodels < MAX_PLAYERMODELS;j++,fileptr+=filelen+1)
 		{
@@ -437,7 +437,7 @@ static void PlayerModel_BuildList( void )
 			}
 
 			if( precache ) {
-				trap_S_RegisterSound( va( "sound/player/announce/%s_wins.wav", skinname), qfalse );
+				trap_S_RegisterSound( va( (char *)"sound/player/announce/%s_wins.wav", skinname), qfalse );
 			}
 		}
 	}	
@@ -535,7 +535,7 @@ static void PlayerModel_MenuInit( void )
 	s_playermodel.banner.generic.type  = MTYPE_BTEXT;
 	s_playermodel.banner.generic.x     = 320;
 	s_playermodel.banner.generic.y     = 16;
-	s_playermodel.banner.string        = "PLAYER MODEL";
+	s_playermodel.banner.string        = (char *)"PLAYER MODEL";
 	s_playermodel.banner.color         = color_white;
 	s_playermodel.banner.style         = UI_CENTER;
 

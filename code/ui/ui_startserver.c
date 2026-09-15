@@ -397,7 +397,7 @@ static void StartServer_MenuInit( void ) {
 	s_startserver.banner.generic.type  = MTYPE_BTEXT;
 	s_startserver.banner.generic.x	   = 320;
 	s_startserver.banner.generic.y	   = 16;
-	s_startserver.banner.string        = "GAME SERVER";
+	s_startserver.banner.string        = (char *)"GAME SERVER";
 	s_startserver.banner.color         = color_white;
 	s_startserver.banner.style         = UI_CENTER;
 
@@ -790,7 +790,7 @@ static void ServerOptions_Start( void ) {
 	trap_Cvar_SetValue( "sv_punkbuster", s_serveroptions.punkbuster.curvalue );
 
 	// the wait commands will allow the dedicated to take effect
-	trap_Cmd_ExecuteText( EXEC_APPEND, va( "wait ; wait ; map %s\n", s_startserver.maplist[s_startserver.currentmap] ) );
+	trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"wait ; wait ; map %s\n", s_startserver.maplist[s_startserver.currentmap] ) );
 
 	// add bots
 	trap_Cmd_ExecuteText( EXEC_APPEND, "wait 3\n" );
@@ -816,7 +816,7 @@ static void ServerOptions_Start( void ) {
 
 	// set player's team
 	if( dedicated == 0 && s_serveroptions.gametype >= GT_TEAM ) {
-		trap_Cmd_ExecuteText( EXEC_APPEND, va( "wait 5; team %s\n", playerTeam_list[s_serveroptions.playerTeam[0].curvalue] ) );
+		trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"wait 5; team %s\n", playerTeam_list[s_serveroptions.playerTeam[0].curvalue] ) );
 	}
 }
 
@@ -892,13 +892,13 @@ static void ServerOptions_SetPlayerItems( void ) {
 
 	// names
 	if( s_serveroptions.dedicated.curvalue == 0 ) {
-		s_serveroptions.player0.string = "Human";
+		s_serveroptions.player0.string = (char *)"Human";
 		s_serveroptions.playerName[0].generic.flags &= ~QMF_HIDDEN;
 
 		start = 1;
 	}
 	else {
-		s_serveroptions.player0.string = "Open";
+		s_serveroptions.player0.string = (char *)"Open";
 		start = 0;
 	}
 	for( n = start; n < PLAYER_SLOTS; n++ ) {
@@ -1242,7 +1242,7 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	s_serveroptions.banner.generic.type			= MTYPE_BTEXT;
 	s_serveroptions.banner.generic.x			= 320;
 	s_serveroptions.banner.generic.y			= 16;
-	s_serveroptions.banner.string  				= "GAME SERVER";
+	s_serveroptions.banner.string  				= (char *)"GAME SERVER";
 	s_serveroptions.banner.color  				= color_white;
 	s_serveroptions.banner.style  				= UI_CENTER;
 
@@ -1613,7 +1613,7 @@ static void ServerPlayerIcon( const char *modelAndSkin, char *iconName, int icon
 		*skin++ = '\0';
 	}
 	else {
-		skin = "default";
+		skin = (char *)"default";
 	}
 
 	Com_sprintf(iconName, iconNameMaxSize, "models/players/%s/icon_%s.tga", model, skin );
@@ -1846,7 +1846,7 @@ static void UI_BotSelectMenu_Init( char *bot ) {
 	botSelectInfo.banner.generic.type	= MTYPE_BTEXT;
 	botSelectInfo.banner.generic.x		= 320;
 	botSelectInfo.banner.generic.y		= 16;
-	botSelectInfo.banner.string			= "SELECT BOT";
+	botSelectInfo.banner.string			= (char *)"SELECT BOT";
 	botSelectInfo.banner.color			= color_white;
 	botSelectInfo.banner.style			= UI_CENTER;
 

@@ -239,9 +239,9 @@ void BotVoiceChat_Patrol(bot_state_t *bs, int client, int mode) {
 	bs->lead_time = 0;
 	bs->lastgoal_ltgtype = 0;
 	//
-	BotAI_BotInitialChat(bs, "dismissed", NULL);
+	BotAI_BotInitialChat(bs, (char *)"dismissed", NULL);
 	trap_BotEnterChat(bs->cs, client, CHAT_TELL);
-	BotVoiceChatOnly(bs, -1, VOICECHAT_ONPATROL);
+	BotVoiceChatOnly(bs, -1, (char *)VOICECHAT_ONPATROL);
 	//
 	BotSetTeamStatus(bs);
 #ifdef DEBUG
@@ -278,7 +278,7 @@ void BotVoiceChat_Camp(bot_state_t *bs, int client, int mode) {
 	}
 	//if the other is not visible
 	if (bs->teamgoal.entitynum < 0) {
-		BotAI_BotInitialChat(bs, "whereareyou", EasyClientName(client, netname, sizeof(netname)), NULL);
+		BotAI_BotInitialChat(bs, (char *)"whereareyou", EasyClientName(client, netname, sizeof(netname)), NULL);
 		trap_BotEnterChat(bs->cs, client, CHAT_TELL);
 		return;
 	}
@@ -330,7 +330,7 @@ void BotVoiceChat_FollowMe(bot_state_t *bs, int client, int mode) {
 	}
 	//if the other is not visible
 	if (bs->teamgoal.entitynum < 0) {
-		BotAI_BotInitialChat(bs, "whereareyou", EasyClientName(client, netname, sizeof(netname)), NULL);
+		BotAI_BotInitialChat(bs, (char *)"whereareyou", EasyClientName(client, netname, sizeof(netname)), NULL);
 		trap_BotEnterChat(bs->cs, client, CHAT_TELL);
 		return;
 	}
@@ -443,9 +443,9 @@ void BotVoiceChat_WhoIsLeader(bot_state_t *bs, int client, int mode) {
 	ClientName(bs->client, netname, sizeof(netname));
 	//if this bot IS the team leader
 	if (!Q_stricmp(netname, bs->teamleader)) {
-		BotAI_BotInitialChat(bs, "iamteamleader", NULL);
+		BotAI_BotInitialChat(bs, (char *)"iamteamleader", NULL);
 		trap_BotEnterChat(bs->cs, 0, CHAT_TEAM);
-		BotVoiceChatOnly(bs, -1, VOICECHAT_STARTLEADER);
+		BotVoiceChatOnly(bs, -1, (char *)VOICECHAT_STARTLEADER);
 	}
 }
 
@@ -464,9 +464,9 @@ void BotVoiceChat_WantOnDefense(bot_state_t *bs, int client, int mode) {
 	BotSetTeamMateTaskPreference(bs, client, preference);
 	//
 	EasyClientName(client, netname, sizeof(netname));
-	BotAI_BotInitialChat(bs, "keepinmind", netname, NULL);
+	BotAI_BotInitialChat(bs, (char *)"keepinmind", netname, NULL);
 	trap_BotEnterChat(bs->cs, client, CHAT_TELL);
-	BotVoiceChatOnly(bs, client, VOICECHAT_YES);
+	BotVoiceChatOnly(bs, client, (char *)VOICECHAT_YES);
 	trap_EA_Action(bs->client, ACTION_AFFIRMATIVE);
 }
 
@@ -485,9 +485,9 @@ void BotVoiceChat_WantOnOffense(bot_state_t *bs, int client, int mode) {
 	BotSetTeamMateTaskPreference(bs, client, preference);
 	//
 	EasyClientName(client, netname, sizeof(netname));
-	BotAI_BotInitialChat(bs, "keepinmind", netname, NULL);
+	BotAI_BotInitialChat(bs, (char *)"keepinmind", netname, NULL);
 	trap_BotEnterChat(bs->cs, client, CHAT_TELL);
-	BotVoiceChatOnly(bs, client, VOICECHAT_YES);
+	BotVoiceChatOnly(bs, client, (char *)VOICECHAT_YES);
 	trap_EA_Action(bs->client, ACTION_AFFIRMATIVE);
 }
 
@@ -495,20 +495,20 @@ void BotVoiceChat_Dummy(bot_state_t *bs, int client, int mode) {
 }
 
 voiceCommand_t voiceCommands[] = {
-	{VOICECHAT_GETFLAG, BotVoiceChat_GetFlag},
-	{VOICECHAT_OFFENSE, BotVoiceChat_Offense },
-	{VOICECHAT_DEFEND, BotVoiceChat_Defend },
-	{VOICECHAT_DEFENDFLAG, BotVoiceChat_DefendFlag },
-	{VOICECHAT_PATROL, BotVoiceChat_Patrol },
-	{VOICECHAT_CAMP, BotVoiceChat_Camp },
-	{VOICECHAT_FOLLOWME, BotVoiceChat_FollowMe },
-	{VOICECHAT_FOLLOWFLAGCARRIER, BotVoiceChat_FollowFlagCarrier },
-	{VOICECHAT_RETURNFLAG, BotVoiceChat_ReturnFlag },
-	{VOICECHAT_STARTLEADER, BotVoiceChat_StartLeader },
-	{VOICECHAT_STOPLEADER, BotVoiceChat_StopLeader },
-	{VOICECHAT_WHOISLEADER, BotVoiceChat_WhoIsLeader },
-	{VOICECHAT_WANTONDEFENSE, BotVoiceChat_WantOnDefense },
-	{VOICECHAT_WANTONOFFENSE, BotVoiceChat_WantOnOffense },
+	{(char *)VOICECHAT_GETFLAG, BotVoiceChat_GetFlag},
+	{(char *)VOICECHAT_OFFENSE, BotVoiceChat_Offense },
+	{(char *)VOICECHAT_DEFEND, BotVoiceChat_Defend },
+	{(char *)VOICECHAT_DEFENDFLAG, BotVoiceChat_DefendFlag },
+	{(char *)VOICECHAT_PATROL, BotVoiceChat_Patrol },
+	{(char *)VOICECHAT_CAMP, BotVoiceChat_Camp },
+	{(char *)VOICECHAT_FOLLOWME, BotVoiceChat_FollowMe },
+	{(char *)VOICECHAT_FOLLOWFLAGCARRIER, BotVoiceChat_FollowFlagCarrier },
+	{(char *)VOICECHAT_RETURNFLAG, BotVoiceChat_ReturnFlag },
+	{(char *)VOICECHAT_STARTLEADER, BotVoiceChat_StartLeader },
+	{(char *)VOICECHAT_STOPLEADER, BotVoiceChat_StopLeader },
+	{(char *)VOICECHAT_WHOISLEADER, BotVoiceChat_WhoIsLeader },
+	{(char *)VOICECHAT_WANTONDEFENSE, BotVoiceChat_WantOnDefense },
+	{(char *)VOICECHAT_WANTONOFFENSE, BotVoiceChat_WantOnOffense },
 	{NULL, BotVoiceChat_Dummy}
 };
 

@@ -41,7 +41,7 @@ void CG_TargetCommand_f( void ) {
 	}
 
 	trap_Argv( 1, test, 4 );
-	trap_SendConsoleCommand( va( "gc %i %i", targetNum, atoi( test ) ) );
+	trap_SendConsoleCommand( va( (char *)"gc %i %i", targetNum, atoi( test ) ) );
 }
 
 
@@ -54,7 +54,7 @@ Keybinding command
 =================
 */
 static void CG_SizeUp_f (void) {
-	trap_Cvar_Set("cg_viewsize", va("%i",(int)(cg_viewsize.integer+10)));
+	trap_Cvar_Set("cg_viewsize", va((char *)"%i",(int)(cg_viewsize.integer+10)));
 }
 
 
@@ -66,7 +66,7 @@ Keybinding command
 =================
 */
 static void CG_SizeDown_f (void) {
-	trap_Cvar_Set("cg_viewsize", va("%i",(int)(cg_viewsize.integer-10)));
+	trap_Cvar_Set("cg_viewsize", va((char *)"%i",(int)(cg_viewsize.integer-10)));
 }
 
 

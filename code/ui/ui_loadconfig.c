@@ -88,7 +88,7 @@ static void LoadConfig_MenuEvent( void *ptr, int event ) {
 
 	switch ( ((menucommon_s*)ptr)->id ) {
 	case ID_GO:
-		trap_Cmd_ExecuteText( EXEC_APPEND, va( "exec %s\n", s_configs.list.itemnames[s_configs.list.curvalue] ) );
+		trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"exec %s\n", s_configs.list.itemnames[s_configs.list.curvalue] ) );
 		UI_PopMenu();
 		break;
 
@@ -126,7 +126,7 @@ static void LoadConfig_MenuInit( void ) {
 	s_configs.banner.generic.type	= MTYPE_BTEXT;
 	s_configs.banner.generic.x		= 320;
 	s_configs.banner.generic.y		= 16;
-	s_configs.banner.string			= "LOAD CONFIG";
+	s_configs.banner.string			= (char *)"LOAD CONFIG";
 	s_configs.banner.color			= color_white;
 	s_configs.banner.style			= UI_CENTER;
 

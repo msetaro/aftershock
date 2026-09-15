@@ -100,7 +100,7 @@ static void DriverInfo_MenuDraw( void )
 	UI_DrawString( 320, 80+16, uis.glconfig.vendor_string, UI_CENTER|UI_SMALLFONT, text_color_normal );
 	UI_DrawString( 320, 96+16, uis.glconfig.version_string, UI_CENTER|UI_SMALLFONT, text_color_normal );
 	UI_DrawString( 320, 112+16, uis.glconfig.renderer_string, UI_CENTER|UI_SMALLFONT, text_color_normal );
-	UI_DrawString( 320, 152+16, va ("color(%d-bits) Z(%d-bits) stencil(%d-bits)", uis.glconfig.colorBits, uis.glconfig.depthBits, uis.glconfig.stencilBits), UI_CENTER|UI_SMALLFONT, text_color_normal );
+	UI_DrawString( 320, 152+16, va ((char *)"color(%d-bits) Z(%d-bits) stencil(%d-bits)", uis.glconfig.colorBits, uis.glconfig.depthBits, uis.glconfig.stencilBits), UI_CENTER|UI_SMALLFONT, text_color_normal );
 
 	// double column
 	y = 192+16;
@@ -154,7 +154,7 @@ static void UI_DriverInfo_Menu( void )
 	s_driverinfo.banner.generic.type  = MTYPE_BTEXT;
 	s_driverinfo.banner.generic.x	  = 320;
 	s_driverinfo.banner.generic.y	  = 16;
-	s_driverinfo.banner.string		  = "DRIVER INFO";
+	s_driverinfo.banner.string		  = (char *)"DRIVER INFO";
 	s_driverinfo.banner.color	      = color_white;
 	s_driverinfo.banner.style	      = UI_CENTER;
 
@@ -809,7 +809,7 @@ void GraphicsOptions_MenuInit( void )
 	s_graphicsoptions.banner.generic.type  = MTYPE_BTEXT;
 	s_graphicsoptions.banner.generic.x	   = 320;
 	s_graphicsoptions.banner.generic.y	   = 16;
-	s_graphicsoptions.banner.string  	   = "SYSTEM SETUP";
+	s_graphicsoptions.banner.string  	   = (char *)"SYSTEM SETUP";
 	s_graphicsoptions.banner.color         = color_white;
 	s_graphicsoptions.banner.style         = UI_CENTER;
 
@@ -835,7 +835,7 @@ void GraphicsOptions_MenuInit( void )
 	s_graphicsoptions.graphics.generic.callback	= GraphicsOptions_Event;
 	s_graphicsoptions.graphics.generic.x		= 216;
 	s_graphicsoptions.graphics.generic.y		= 240 - 2 * PROP_HEIGHT;
-	s_graphicsoptions.graphics.string			= "GRAPHICS";
+	s_graphicsoptions.graphics.string			= (char *)"GRAPHICS";
 	s_graphicsoptions.graphics.style			= UI_RIGHT;
 	s_graphicsoptions.graphics.color			= color_red;
 
@@ -845,7 +845,7 @@ void GraphicsOptions_MenuInit( void )
 	s_graphicsoptions.display.generic.callback	= GraphicsOptions_Event;
 	s_graphicsoptions.display.generic.x			= 216;
 	s_graphicsoptions.display.generic.y			= 240 - PROP_HEIGHT;
-	s_graphicsoptions.display.string			= "DISPLAY";
+	s_graphicsoptions.display.string			= (char *)"DISPLAY";
 	s_graphicsoptions.display.style				= UI_RIGHT;
 	s_graphicsoptions.display.color				= color_red;
 
@@ -855,7 +855,7 @@ void GraphicsOptions_MenuInit( void )
 	s_graphicsoptions.sound.generic.callback	= GraphicsOptions_Event;
 	s_graphicsoptions.sound.generic.x			= 216;
 	s_graphicsoptions.sound.generic.y			= 240;
-	s_graphicsoptions.sound.string				= "SOUND";
+	s_graphicsoptions.sound.string				= (char *)"SOUND";
 	s_graphicsoptions.sound.style				= UI_RIGHT;
 	s_graphicsoptions.sound.color				= color_red;
 
@@ -865,7 +865,7 @@ void GraphicsOptions_MenuInit( void )
 	s_graphicsoptions.network.generic.callback	= GraphicsOptions_Event;
 	s_graphicsoptions.network.generic.x			= 216;
 	s_graphicsoptions.network.generic.y			= 240 + PROP_HEIGHT;
-	s_graphicsoptions.network.string			= "NETWORK";
+	s_graphicsoptions.network.string			= (char *)"NETWORK";
 	s_graphicsoptions.network.style				= UI_RIGHT;
 	s_graphicsoptions.network.color				= color_red;
 
@@ -980,7 +980,7 @@ void GraphicsOptions_MenuInit( void )
 	s_graphicsoptions.driverinfo.generic.id       = ID_DRIVERINFO;
 	s_graphicsoptions.driverinfo.generic.x        = 320;
 	s_graphicsoptions.driverinfo.generic.y        = y;
-	s_graphicsoptions.driverinfo.string           = "Driver Info";
+	s_graphicsoptions.driverinfo.string           = (char *)"Driver Info";
 	s_graphicsoptions.driverinfo.style            = UI_CENTER|UI_SMALLFONT;
 	s_graphicsoptions.driverinfo.color            = color_red;
 	y += BIGCHAR_HEIGHT+2;

@@ -116,7 +116,7 @@ void QDECL PrintMsg( gentity_t *ent, const char *fmt, ... ) {
 	while ((p = strchr(msg, '"')) != NULL)
 		*p = '\'';
 
-	trap_SendServerCommand ( ( (ent == NULL) ? -1 : ent-g_entities ), va("print \"%s\"", msg ));
+	trap_SendServerCommand ( ( (ent == NULL) ? -1 : ent-g_entities ), va((char *)"print \"%s\"", msg ));
 }
 
 /*
@@ -417,10 +417,10 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker
 	// find the flag
 	switch (attacker->client->sess.sessionTeam) {
 	case TEAM_RED:
-		c = "team_CTF_redflag";
+		c = (char *)"team_CTF_redflag";
 		break;
 	case TEAM_BLUE:
-		c = "team_CTF_blueflag";
+		c = (char *)"team_CTF_blueflag";
 		break;		
 	default:
 		return;
@@ -530,13 +530,13 @@ gentity_t *Team_ResetFlag( int team ) {
 
 	switch (team) {
 	case TEAM_RED:
-		c = "team_CTF_redflag";
+		c = (char *)"team_CTF_redflag";
 		break;
 	case TEAM_BLUE:
-		c = "team_CTF_blueflag";
+		c = (char *)"team_CTF_blueflag";
 		break;
 	case TEAM_FREE:
-		c = "team_CTF_neutralflag";
+		c = (char *)"team_CTF_neutralflag";
 		break;
 	default:
 		return NULL;
@@ -989,16 +989,16 @@ gentity_t *SelectRandomTeamSpawnPoint( int teamstate, team_t team ) {
 
 	if (teamstate == TEAM_BEGIN) {
 		if (team == TEAM_RED)
-			classname = "team_CTF_redplayer";
+			classname = (char *)"team_CTF_redplayer";
 		else if (team == TEAM_BLUE)
-			classname = "team_CTF_blueplayer";
+			classname = (char *)"team_CTF_blueplayer";
 		else
 			return NULL;
 	} else {
 		if (team == TEAM_RED)
-			classname = "team_CTF_redspawn";
+			classname = (char *)"team_CTF_redspawn";
 		else if (team == TEAM_BLUE)
-			classname = "team_CTF_bluespawn";
+			classname = (char *)"team_CTF_bluespawn";
 		else
 			return NULL;
 	}
@@ -1117,7 +1117,7 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 		}
 	}
 
-	trap_SendServerCommand( ent-g_entities, va("tinfo %i %s", cnt, string) );
+	trap_SendServerCommand( ent-g_entities, va((char *)"tinfo %i %s", cnt, string) );
 }
 
 void CheckTeamStatus(void) {

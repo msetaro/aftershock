@@ -161,8 +161,8 @@ static void UI_Mods_LoadMods( void ) {
 
 	// always start off with baseq3
 	s_mods.list.numitems = 1;
-	s_mods.list.itemnames[0] = s_mods.descriptionList[0] = "Quake III Arena";
-	s_mods.fs_gameList[0] = "";
+	s_mods.list.itemnames[0] = s_mods.descriptionList[0] = (char *)"Quake III Arena";
+	s_mods.fs_gameList[0] = (char *)"";
 
 	numdirs = trap_FS_GetFileList( "$modlist", "", dirlist, sizeof(dirlist) );
 	dirptr  = dirlist;
@@ -173,7 +173,7 @@ static void UI_Mods_LoadMods( void ) {
     dirptr += dirlen + strlen(descptr) + 1;
 	}
 
-	trap_Print( va( "%i mods parsed\n", s_mods.list.numitems ) );
+	trap_Print( va( (char *)"%i mods parsed\n", s_mods.list.numitems ) );
 	if (s_mods.list.numitems > MAX_MODS) {
 		s_mods.list.numitems = MAX_MODS;
 	}
@@ -195,7 +195,7 @@ static void UI_Mods_MenuInit( void ) {
 	s_mods.banner.generic.type		= MTYPE_BTEXT;
 	s_mods.banner.generic.x			= 320;
 	s_mods.banner.generic.y			= 16;
-	s_mods.banner.string			= "MODS";
+	s_mods.banner.string			= (char *)"MODS";
 	s_mods.banner.color				= color_white;
 	s_mods.banner.style				= UI_CENTER;
 

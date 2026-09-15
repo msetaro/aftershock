@@ -253,17 +253,17 @@ void BotTestAAS(vec3_t origin) {
 	if (bot_testsolid.integer) {
 		if (!trap_AAS_Initialized()) return;
 		areanum = BotPointAreaNum(origin);
-		if (areanum) BotAI_Print(PRT_MESSAGE, "\remtpy area");
-		else BotAI_Print(PRT_MESSAGE, "\r^1SOLID area");
+		if (areanum) BotAI_Print(PRT_MESSAGE, (char *)"\remtpy area");
+		else BotAI_Print(PRT_MESSAGE, (char *)"\r^1SOLID area");
 	}
 	else if (bot_testclusters.integer) {
 		if (!trap_AAS_Initialized()) return;
 		areanum = BotPointAreaNum(origin);
 		if (!areanum)
-			BotAI_Print(PRT_MESSAGE, "\r^1Solid!                              ");
+			BotAI_Print(PRT_MESSAGE, (char *)"\r^1Solid!                              ");
 		else {
 			trap_AAS_AreaInfo(areanum, &info);
-			BotAI_Print(PRT_MESSAGE, "\rarea %d, cluster %d       ", areanum, info.cluster);
+			BotAI_Print(PRT_MESSAGE, (char *)"\rarea %d, cluster %d       ", areanum, info.cluster);
 		}
 	}
 }
@@ -279,8 +279,8 @@ void BotReportStatus(bot_state_t *bs) {
 	char *leader, flagstatus[32];
 	//
 	ClientName(bs->client, netname, sizeof(netname));
-	if (Q_stricmp(netname, bs->teamleader) == 0) leader = "L";
-	else leader = " ";
+	if (Q_stricmp(netname, bs->teamleader) == 0) leader = (char *)"L";
+	else leader = (char *)" ";
 
 	strcpy(flagstatus, "  ");
 	if (gametype == GT_CTF) {
@@ -308,72 +308,72 @@ void BotReportStatus(bot_state_t *bs) {
 		case LTG_TEAMHELP:
 		{
 			EasyClientName(bs->teammate, goalname, sizeof(goalname));
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: helping %s\n", netname, leader, flagstatus, goalname);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: helping %s\n", netname, leader, flagstatus, goalname);
 			break;
 		}
 		case LTG_TEAMACCOMPANY:
 		{
 			EasyClientName(bs->teammate, goalname, sizeof(goalname));
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: accompanying %s\n", netname, leader, flagstatus, goalname);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: accompanying %s\n", netname, leader, flagstatus, goalname);
 			break;
 		}
 		case LTG_DEFENDKEYAREA:
 		{
 			trap_BotGoalName(bs->teamgoal.number, goalname, sizeof(goalname));
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: defending %s\n", netname, leader, flagstatus, goalname);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: defending %s\n", netname, leader, flagstatus, goalname);
 			break;
 		}
 		case LTG_GETITEM:
 		{
 			trap_BotGoalName(bs->teamgoal.number, goalname, sizeof(goalname));
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: getting item %s\n", netname, leader, flagstatus, goalname);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: getting item %s\n", netname, leader, flagstatus, goalname);
 			break;
 		}
 		case LTG_KILL:
 		{
 			ClientName(bs->teamgoal.entitynum, goalname, sizeof(goalname));
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: killing %s\n", netname, leader, flagstatus, goalname);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: killing %s\n", netname, leader, flagstatus, goalname);
 			break;
 		}
 		case LTG_CAMP:
 		case LTG_CAMPORDER:
 		{
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: camping\n", netname, leader, flagstatus);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: camping\n", netname, leader, flagstatus);
 			break;
 		}
 		case LTG_PATROL:
 		{
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: patrolling\n", netname, leader, flagstatus);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: patrolling\n", netname, leader, flagstatus);
 			break;
 		}
 		case LTG_GETFLAG:
 		{
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: capturing flag\n", netname, leader, flagstatus);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: capturing flag\n", netname, leader, flagstatus);
 			break;
 		}
 		case LTG_RUSHBASE:
 		{
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: rushing base\n", netname, leader, flagstatus);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: rushing base\n", netname, leader, flagstatus);
 			break;
 		}
 		case LTG_RETURNFLAG:
 		{
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: returning flag\n", netname, leader, flagstatus);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: returning flag\n", netname, leader, flagstatus);
 			break;
 		}
 		case LTG_ATTACKENEMYBASE:
 		{
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: attacking the enemy base\n", netname, leader, flagstatus);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: attacking the enemy base\n", netname, leader, flagstatus);
 			break;
 		}
 		case LTG_HARVEST:
 		{
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: harvesting\n", netname, leader, flagstatus);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: harvesting\n", netname, leader, flagstatus);
 			break;
 		}
 		default:
 		{
-			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: roaming\n", netname, leader, flagstatus);
+			BotAI_Print(PRT_MESSAGE, (char *)"%-20s%s%s: roaming\n", netname, leader, flagstatus);
 			break;
 		}
 	}
@@ -388,7 +388,7 @@ void BotTeamplayReport(void) {
 	int i;
 	char buf[MAX_INFO_STRING];
 
-	BotAI_Print(PRT_MESSAGE, S_COLOR_RED"RED\n");
+	BotAI_Print(PRT_MESSAGE, (char *)S_COLOR_RED"RED\n");
 	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {
 		//
 		if ( !botstates[i] || !botstates[i]->inuse ) continue;
@@ -401,7 +401,7 @@ void BotTeamplayReport(void) {
 			BotReportStatus(botstates[i]);
 		}
 	}
-	BotAI_Print(PRT_MESSAGE, S_COLOR_BLUE"BLUE\n");
+	BotAI_Print(PRT_MESSAGE, (char *)S_COLOR_BLUE"BLUE\n");
 	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {
 		//
 		if ( !botstates[i] || !botstates[i]->inuse ) continue;
@@ -429,8 +429,8 @@ void BotSetInfoConfigString(bot_state_t *bs) {
 	bot_goal_t goal;
 	//
 	ClientName(bs->client, netname, sizeof(netname));
-	if (Q_stricmp(netname, bs->teamleader) == 0) leader = "L";
-	else leader = " ";
+	if (Q_stricmp(netname, bs->teamleader) == 0) leader = (char *)"L";
+	else leader = (char *)" ";
 
 	strcpy(carrying, "  ");
 	if (gametype == GT_CTF) {
@@ -527,7 +527,7 @@ void BotSetInfoConfigString(bot_state_t *bs) {
 			break;
 		}
 	}
-  	cs = va("l\\%s\\c\\%s\\a\\%s",
+  	cs = va((char *)"l\\%s\\c\\%s\\a\\%s",
 				leader,
 				carrying,
 				action);
@@ -654,7 +654,7 @@ void BotInterbreeding(void) {
 	if (!strlen(bot_interbreedchar.string)) return;
 	//make sure we are in tournament mode
 	if (gametype != GT_TOURNAMENT) {
-		trap_Cvar_Set("g_gametype", va("%d", GT_TOURNAMENT));
+		trap_Cvar_Set("g_gametype", va((char *)"%d", GT_TOURNAMENT));
 		ExitLevel();
 		return;
 	}
@@ -665,10 +665,10 @@ void BotInterbreeding(void) {
 		}
 	}
 	//make sure all item weight configs are reloaded and Not shared
-	trap_BotLibVarSet("bot_reloadcharacters", "1");
+	trap_BotLibVarSet((char *)"bot_reloadcharacters", (char *)"1");
 	//add a number of bots using the desired bot character
 	for (i = 0; i < bot_interbreedbots.integer; i++) {
-		trap_SendConsoleCommand( EXEC_INSERT, va("addbot %s 4 free %i %s%d\n",
+		trap_SendConsoleCommand( EXEC_INSERT, va((char *)"addbot %s 4 free %i %s%d\n",
 						bot_interbreedchar.string, i * 50, bot_interbreedchar.string, i) );
 	}
 	//
@@ -967,7 +967,7 @@ int BotAI(int client, float thinktime) {
 	//
 	bs = botstates[client];
 	if (!bs || !bs->inuse) {
-		BotAI_Print(PRT_FATAL, "BotAI: client %d is not setup\n", client);
+		BotAI_Print(PRT_FATAL, (char *)"BotAI: client %d is not setup\n", client);
 		return qfalse;
 	}
 
@@ -1079,7 +1079,7 @@ void BotWriteSessionData(bot_state_t *bs) {
 	const char	*var;
 
 	s = va(
-			"%i %i %i %i %i %i %i %i"
+			(char *)"%i %i %i %i %i %i %i %i"
 			" %f %f %f"
 			" %f %f %f"
 			" %f %f %f",
@@ -1102,7 +1102,7 @@ void BotWriteSessionData(bot_state_t *bs) {
 		bs->lastgoal_teamgoal.maxs[2]
 		);
 
-	var = va( "botsession%i", bs->client );
+	var = va( (char *)"botsession%i", bs->client );
 
 	trap_Cvar_Set( var, s );
 }
@@ -1116,7 +1116,7 @@ void BotReadSessionData(bot_state_t *bs) {
 	char	s[MAX_STRING_CHARS];
 	const char	*var;
 
-	var = va( "botsession%i", bs->client );
+	var = va( (char *)"botsession%i", bs->client );
 	trap_Cvar_VariableStringBuffer( var, s, sizeof(s) );
 
 	sscanf(s,
@@ -1158,19 +1158,19 @@ int BotAISetupClient(int client, struct bot_settings_s *settings, qboolean resta
 	bs = botstates[client];
 
 	if (bs && bs->inuse) {
-		BotAI_Print(PRT_FATAL, "BotAISetupClient: client %d already setup\n", client);
+		BotAI_Print(PRT_FATAL, (char *)"BotAISetupClient: client %d already setup\n", client);
 		return qfalse;
 	}
 
 	if (!trap_AAS_Initialized()) {
-		BotAI_Print(PRT_FATAL, "AAS not initialized\n");
+		BotAI_Print(PRT_FATAL, (char *)"AAS not initialized\n");
 		return qfalse;
 	}
 
 	//load the bot character
 	bs->character = trap_BotLoadCharacter(settings->characterfile, settings->skill);
 	if (!bs->character) {
-		BotAI_Print(PRT_FATAL, "couldn't load skill %f from %s\n", settings->skill, settings->characterfile);
+		BotAI_Print(PRT_FATAL, (char *)"couldn't load skill %f from %s\n", settings->skill, settings->characterfile);
 		return qfalse;
 	}
 	//copy the settings
@@ -1223,7 +1223,7 @@ int BotAISetupClient(int client, struct bot_settings_s *settings, qboolean resta
 	numbots++;
 
 	if (trap_Cvar_VariableIntegerValue("bot_testichat")) {
-		trap_BotLibVarSet("bot_testichat", "1");
+		trap_BotLibVarSet((char *)"bot_testichat", (char *)"1");
 		BotChatTest(bs);
 	}
 	//NOTE: reschedule the bot thinking
@@ -1422,11 +1422,11 @@ int BotAIStartFrame(int time) {
 	}
 
 	if (bot_memorydump.integer) {
-		trap_BotLibVarSet("memorydump", "1");
+		trap_BotLibVarSet((char *)"memorydump", (char *)"1");
 		trap_Cvar_Set("bot_memorydump", "0");
 	}
 	if (bot_saveroutingcache.integer) {
-		trap_BotLibVarSet("saveroutingcache", "1");
+		trap_BotLibVarSet((char *)"saveroutingcache", (char *)"1");
 		trap_Cvar_Set("bot_saveroutingcache", "0");
 	}
 	//check if bot interbreeding is activated
@@ -1573,59 +1573,59 @@ int BotInitLibrary(void) {
 	//set the maxclients and maxentities library variables before calling BotSetupLibrary
 	trap_Cvar_VariableStringBuffer("sv_maxclients", buf, sizeof(buf));
 	if (!strlen(buf)) strcpy(buf, "8");
-	trap_BotLibVarSet("maxclients", buf);
+	trap_BotLibVarSet((char *)"maxclients", buf);
 	Com_sprintf(buf, sizeof(buf), "%d", MAX_GENTITIES);
-	trap_BotLibVarSet("maxentities", buf);
+	trap_BotLibVarSet((char *)"maxentities", buf);
 	//bsp checksum
 	trap_Cvar_VariableStringBuffer("sv_mapChecksum", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("sv_mapChecksum", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"sv_mapChecksum", buf);
 	//maximum number of aas links
 	trap_Cvar_VariableStringBuffer("max_aaslinks", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("max_aaslinks", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"max_aaslinks", buf);
 	//maximum number of items in a level
 	trap_Cvar_VariableStringBuffer("max_levelitems", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("max_levelitems", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"max_levelitems", buf);
 	//game type
 	trap_Cvar_VariableStringBuffer("g_gametype", buf, sizeof(buf));
 	if (!strlen(buf)) strcpy(buf, "0");
-	trap_BotLibVarSet("g_gametype", buf);
+	trap_BotLibVarSet((char *)"g_gametype", buf);
 	//bot developer mode and log file
-	trap_BotLibVarSet("bot_developer", bot_developer.string);
-	trap_BotLibVarSet("log", buf);
+	trap_BotLibVarSet((char *)"bot_developer", bot_developer.string);
+	trap_BotLibVarSet((char *)"log", buf);
 	//no chatting
 	trap_Cvar_VariableStringBuffer("bot_nochat", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("nochat", "0");
+	if (strlen(buf)) trap_BotLibVarSet((char *)"nochat", (char *)"0");
 	//visualize jump pads
 	trap_Cvar_VariableStringBuffer("bot_visualizejumppads", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("bot_visualizejumppads", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"bot_visualizejumppads", buf);
 	//forced clustering calculations
 	trap_Cvar_VariableStringBuffer("bot_forceclustering", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("forceclustering", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"forceclustering", buf);
 	//forced reachability calculations
 	trap_Cvar_VariableStringBuffer("bot_forcereachability", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("forcereachability", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"forcereachability", buf);
 	//force writing of AAS to file
 	trap_Cvar_VariableStringBuffer("bot_forcewrite", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("forcewrite", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"forcewrite", buf);
 	//no AAS optimization
 	trap_Cvar_VariableStringBuffer("bot_aasoptimize", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("aasoptimize", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"aasoptimize", buf);
 	//
 	trap_Cvar_VariableStringBuffer("bot_saveroutingcache", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("saveroutingcache", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"saveroutingcache", buf);
 	//reload instead of cache bot character files
 	trap_Cvar_VariableStringBuffer("bot_reloadcharacters", buf, sizeof(buf));
 	if (!strlen(buf)) strcpy(buf, "0");
-	trap_BotLibVarSet("bot_reloadcharacters", buf);
+	trap_BotLibVarSet((char *)"bot_reloadcharacters", buf);
 	//base directory
 	trap_Cvar_VariableStringBuffer("fs_basepath", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("basedir", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"basedir", buf);
 	//game directory
 	trap_Cvar_VariableStringBuffer("fs_game", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("gamedir", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"gamedir", buf);
 	//cd directory
 	trap_Cvar_VariableStringBuffer("fs_cdpath", buf, sizeof(buf));
-	if (strlen(buf)) trap_BotLibVarSet("cddir", buf);
+	if (strlen(buf)) trap_BotLibVarSet((char *)"cddir", buf);
 	//
 #ifdef MISSIONPACK
 	trap_BotLibDefine("MISSIONPACK");

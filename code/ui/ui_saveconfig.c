@@ -86,7 +86,7 @@ static void UI_SaveConfigMenu_SaveEvent( void *ptr, int event ) {
 	}
 
 	COM_StripExtension(saveConfig.savename.field.buffer, configname );
-	trap_Cmd_ExecuteText( EXEC_APPEND, va( "writeconfig %s.cfg\n", configname ) );
+	trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"writeconfig %s.cfg\n", configname ) );
 	UI_PopMenu();
 }
 
@@ -133,7 +133,7 @@ static void UI_SaveConfigMenu_Init( void ) {
 	saveConfig.banner.generic.type		= MTYPE_BTEXT;
 	saveConfig.banner.generic.x			= 320;
 	saveConfig.banner.generic.y			= 16;
-	saveConfig.banner.string			= "SAVE CONFIG";
+	saveConfig.banner.string			= (char *)"SAVE CONFIG";
 	saveConfig.banner.color				= color_white;
 	saveConfig.banner.style				= UI_CENTER;
 

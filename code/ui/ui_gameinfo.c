@@ -123,7 +123,7 @@ int UI_ParseInfos( char *buf, int max, char *infos[] ) {
 			Info_SetValueForKey( info, key, token );
 		}
 		//NOTE: extra space for arena number
-		infos[count] = (char *)UI_Alloc(strlen(info) + strlen("\\num\\") + strlen(va("%d", MAX_ARENAS)) + 1);
+		infos[count] = (char *)UI_Alloc(strlen(info) + strlen("\\num\\") + strlen(va((char *)"%d", MAX_ARENAS)) + 1);
 		if (infos[count]) {
 			strcpy(infos[count], info);
 			count++;
@@ -144,11 +144,11 @@ static void UI_LoadArenasFromFile( char *filename ) {
 
 	len = trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( !f ) {
-		trap_Print( va( S_COLOR_RED "file not found: %s\n", filename ) );
+		trap_Print( va( (char *)S_COLOR_RED "file not found: %s\n", filename ) );
 		return;
 	}
 	if ( len >= MAX_ARENAS_TEXT ) {
-		trap_Print( va( S_COLOR_RED "file too large: %s is %i, max allowed is %i", filename, len, MAX_ARENAS_TEXT ) );
+		trap_Print( va( (char *)S_COLOR_RED "file too large: %s is %i, max allowed is %i", filename, len, MAX_ARENAS_TEXT ) );
 		trap_FS_FCloseFile( f );
 		return;
 	}
@@ -184,7 +184,7 @@ static void UI_LoadArenas( void ) {
 		UI_LoadArenasFromFile(arenasFile.string);
 	}
 	else {
-		UI_LoadArenasFromFile("scripts/arenas.txt");
+		UI_LoadArenasFromFile((char *)"scripts/arenas.txt");
 	}
 
 	// get all arenas from .arena files
@@ -196,12 +196,12 @@ static void UI_LoadArenas( void ) {
 		strcat(filename, dirptr);
 		UI_LoadArenasFromFile(filename);
 	}
-	trap_Print( va( "%i arenas parsed\n", ui_numArenas ) );
+	trap_Print( va( (char *)"%i arenas parsed\n", ui_numArenas ) );
 	if (outOfMemory) trap_Print(S_COLOR_YELLOW"WARNING: not anough memory in pool to load all arenas\n");
 
 	// set initial numbers
 	for( n = 0; n < ui_numArenas; n++ ) {
-		Info_SetValueForKey( ui_arenaInfos[n], "num", va( "%i", n ) );
+		Info_SetValueForKey( ui_arenaInfos[n], "num", va( (char *)"%i", n ) );
 	}
 
 	// go through and count single players levels
@@ -231,7 +231,7 @@ static void UI_LoadArenas( void ) {
 	n = ui_numSinglePlayerArenas % ARENAS_PER_TIER;
 	if( n != 0 ) {
 		ui_numSinglePlayerArenas -= n;
-		trap_Print( va( "%i arenas ignored to make count divisible by %i\n", n, ARENAS_PER_TIER ) );
+		trap_Print( va( (char *)"%i arenas ignored to make count divisible by %i\n", n, ARENAS_PER_TIER ) );
 	}
 
 	// go through once more and assign number to the levels
@@ -248,16 +248,16 @@ static void UI_LoadArenas( void ) {
 				// check for special single player arenas (training, final)
 				tag = Info_ValueForKey( ui_arenaInfos[n], "special" );
 				if( *tag ) {
-					Info_SetValueForKey( ui_arenaInfos[n], "num", va( "%i", specialNum++ ) );
+					Info_SetValueForKey( ui_arenaInfos[n], "num", va( (char *)"%i", specialNum++ ) );
 					continue;
 				}
 
-				Info_SetValueForKey( ui_arenaInfos[n], "num", va( "%i", singlePlayerNum++ ) );
+				Info_SetValueForKey( ui_arenaInfos[n], "num", va( (char *)"%i", singlePlayerNum++ ) );
 				continue;
 			}
 		}
 
-		Info_SetValueForKey( ui_arenaInfos[n], "num", va( "%i", otherNum++ ) );
+		Info_SetValueForKey( ui_arenaInfos[n], "num", va( (char *)"%i", otherNum++ ) );
 	}
 }
 
@@ -271,7 +271,7 @@ const char *UI_GetArenaInfoByNumber( int num ) {
 	char	*value;
 
 	if( num < 0 || num >= ui_numArenas ) {
-		trap_Print( va( S_COLOR_RED "Invalid arena number: %i\n", num ) );
+		trap_Print( va( (char *)S_COLOR_RED "Invalid arena number: %i\n", num ) );
 		return NULL;
 	}
 
@@ -333,11 +333,11 @@ static void UI_LoadBotsFromFile( char *filename ) {
 
 	len = trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( !f ) {
-		trap_Print( va( S_COLOR_RED "file not found: %s\n", filename ) );
+		trap_Print( va( (char *)S_COLOR_RED "file not found: %s\n", filename ) );
 		return;
 	}
 	if ( len >= MAX_BOTS_TEXT ) {
-		trap_Print( va( S_COLOR_RED "file too large: %s is %i, max allowed is %i", filename, len, MAX_BOTS_TEXT ) );
+		trap_Print( va( (char *)S_COLOR_RED "file too large: %s is %i, max allowed is %i", filename, len, MAX_BOTS_TEXT ) );
 		trap_FS_FCloseFile( f );
 		return;
 	}
@@ -371,7 +371,7 @@ static void UI_LoadBots( void ) {
 		UI_LoadBotsFromFile(botsFile.string);
 	}
 	else {
-		UI_LoadBotsFromFile("scripts/bots.txt");
+		UI_LoadBotsFromFile((char *)"scripts/bots.txt");
 	}
 
 	// get all bots from .bot files
@@ -383,7 +383,7 @@ static void UI_LoadBots( void ) {
 		strcat(filename, dirptr);
 		UI_LoadBotsFromFile(filename);
 	}
-	trap_Print( va( "%i bots parsed\n", ui_numBots ) );
+	trap_Print( va( (char *)"%i bots parsed\n", ui_numBots ) );
 }
 
 
@@ -394,7 +394,7 @@ UI_GetBotInfoByNumber
 */
 char *UI_GetBotInfoByNumber( int num ) {
 	if( num < 0 || num >= ui_numBots ) {
-		trap_Print( va( S_COLOR_RED "Invalid bot number: %i\n", num ) );
+		trap_Print( va( (char *)S_COLOR_RED "Invalid bot number: %i\n", num ) );
 		return NULL;
 	}
 	return ui_botInfos[num];
@@ -452,7 +452,7 @@ void UI_GetBestScore( int level, int *score, int *skill ) {
 	bestScoreSkill = 0;
 
 	for( n = 1; n <= 5; n++ ) {
-		trap_Cvar_VariableStringBuffer( va( "g_spScores%i", n ), scores, MAX_INFO_VALUE );
+		trap_Cvar_VariableStringBuffer( va( (char *)"g_spScores%i", n ), scores, MAX_INFO_VALUE );
 
 		Com_sprintf( arenaKey, sizeof( arenaKey ), "l%i", level );
 		skillScore = atoi( Info_ValueForKey( scores, arenaKey ) );
@@ -497,7 +497,7 @@ void UI_SetBestScore( int level, int score ) {
 	}
 
 	// get scores
-	trap_Cvar_VariableStringBuffer( va( "g_spScores%i", skill ), scores, MAX_INFO_VALUE );
+	trap_Cvar_VariableStringBuffer( va( (char *)"g_spScores%i", skill ), scores, MAX_INFO_VALUE );
 
 	// see if this is better
 	Com_sprintf( arenaKey, sizeof( arenaKey ), "l%i", level );
@@ -507,8 +507,8 @@ void UI_SetBestScore( int level, int score ) {
 	}
 
 	// update scores
-	Info_SetValueForKey( scores, arenaKey, va( "%i", score ) );
-	trap_Cvar_Set( va( "g_spScores%i", skill ), scores );
+	Info_SetValueForKey( scores, arenaKey, va( (char *)"%i", score ) );
+	trap_Cvar_Set( va( (char *)"g_spScores%i", skill ), scores );
 }
 
 
@@ -527,7 +527,7 @@ void UI_LogAwardData( int award, int data ) {
 	}
 
 	if( award > AWARD_PERFECT ) {
-		trap_Print( va( S_COLOR_RED "Bad award %i in UI_LogAwardData\n", award ) );
+		trap_Print( va( (char *)S_COLOR_RED "Bad award %i in UI_LogAwardData\n", award ) );
 		return;
 	}
 
@@ -536,7 +536,7 @@ void UI_LogAwardData( int award, int data ) {
 	Com_sprintf( key, sizeof(key), "a%i", award );
 	oldValue = atoi( Info_ValueForKey( awardData, key ) );
 
-	Info_SetValueForKey( awardData, key, va( "%i", oldValue + data ) );
+	Info_SetValueForKey( awardData, key, va( (char *)"%i", oldValue + data ) );
 	trap_Cvar_Set( "g_spAwards", awardData );
 }
 
@@ -615,7 +615,7 @@ qboolean UI_ShowTierVideo( int tier ) {
 		return qfalse;
 	}
 
-	Info_SetValueForKey( videos, key, va( "%i", 1 ) );
+	Info_SetValueForKey( videos, key, va( (char *)"%i", 1 ) );
 	trap_Cvar_Set( "g_spVideos", videos );
 
 	return qtrue;

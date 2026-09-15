@@ -231,7 +231,7 @@ static void Preferences_MenuInit( void ) {
 	s_preferences.banner.generic.type  = MTYPE_BTEXT;
 	s_preferences.banner.generic.x	   = 320;
 	s_preferences.banner.generic.y	   = 16;
-	s_preferences.banner.string		   = "GAME OPTIONS";
+	s_preferences.banner.string		   = (char *)"GAME OPTIONS";
 	s_preferences.banner.color         = color_white;
 	s_preferences.banner.style         = UI_CENTER;
 
@@ -403,7 +403,7 @@ void Preferences_Cache( void ) {
 	trap_R_RegisterShaderNoMip( ART_BACK0 );
 	trap_R_RegisterShaderNoMip( ART_BACK1 );
 	for( n = 0; n < NUM_CROSSHAIRS; n++ ) {
-		s_preferences.crosshairShader[n] = trap_R_RegisterShaderNoMip( va("gfx/2d/crosshair%c", 'a' + n ) );
+		s_preferences.crosshairShader[n] = trap_R_RegisterShaderNoMip( va((char *)"gfx/2d/crosshair%c", 'a' + n ) );
 	}
 }
 

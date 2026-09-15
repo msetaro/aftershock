@@ -416,7 +416,7 @@ void CG_ClearParticles (void)
 		int j;
 
 		for (j=0; j<shaderAnimCounts[i]; j++) {
-			shaderAnims[i][j] = trap_R_RegisterShader( va("%s%i", shaderAnimNames[i], j+1) );
+			shaderAnims[i][j] = trap_R_RegisterShader( va((char *)"%s%i", shaderAnimNames[i], j+1) );
 		}
 	}
 	numShaderAnims = i;

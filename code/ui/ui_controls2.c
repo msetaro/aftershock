@@ -806,14 +806,14 @@ static void Controls_GetConfig( void )
 		bindptr->bind2 = twokeys[1];
 	}
 
-	s_controls.invertmouse.curvalue  = Controls_GetCvarValue( "m_pitch" ) < 0;
-	s_controls.smoothmouse.curvalue  = UI_ClampCvar( 0, 1, Controls_GetCvarValue( "m_filter" ) );
-	s_controls.alwaysrun.curvalue    = UI_ClampCvar( 0, 1, Controls_GetCvarValue( "cl_run" ) );
-	s_controls.autoswitch.curvalue   = UI_ClampCvar( 0, 1, Controls_GetCvarValue( "cg_autoswitch" ) );
-	s_controls.sensitivity.curvalue  = UI_ClampCvar( 2, 30, Controls_GetCvarValue( "sensitivity" ) );
-	s_controls.joyenable.curvalue    = UI_ClampCvar( 0, 1, Controls_GetCvarValue( "in_joystick" ) );
-	s_controls.joythreshold.curvalue = UI_ClampCvar( 0.05f, 0.75f, Controls_GetCvarValue( "joy_threshold" ) );
-	s_controls.freelook.curvalue     = UI_ClampCvar( 0, 1, Controls_GetCvarValue( "cl_freelook" ) );
+	s_controls.invertmouse.curvalue  = Controls_GetCvarValue( (char *)"m_pitch" ) < 0;
+	s_controls.smoothmouse.curvalue  = UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"m_filter" ) );
+	s_controls.alwaysrun.curvalue    = UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"cl_run" ) );
+	s_controls.autoswitch.curvalue   = UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"cg_autoswitch" ) );
+	s_controls.sensitivity.curvalue  = UI_ClampCvar( 2, 30, Controls_GetCvarValue( (char *)"sensitivity" ) );
+	s_controls.joyenable.curvalue    = UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"in_joystick" ) );
+	s_controls.joythreshold.curvalue = UI_ClampCvar( 0.05f, 0.75f, Controls_GetCvarValue( (char *)"joy_threshold" ) );
+	s_controls.freelook.curvalue     = UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"cl_freelook" ) );
 }
 
 /*
@@ -882,14 +882,14 @@ static void Controls_SetDefaults( void )
 		bindptr->bind2 = bindptr->defaultbind2;
 	}
 
-	s_controls.invertmouse.curvalue  = Controls_GetCvarDefault( "m_pitch" ) < 0;
-	s_controls.smoothmouse.curvalue  = Controls_GetCvarDefault( "m_filter" );
-	s_controls.alwaysrun.curvalue    = Controls_GetCvarDefault( "cl_run" );
-	s_controls.autoswitch.curvalue   = Controls_GetCvarDefault( "cg_autoswitch" );
-	s_controls.sensitivity.curvalue  = Controls_GetCvarDefault( "sensitivity" );
-	s_controls.joyenable.curvalue    = Controls_GetCvarDefault( "in_joystick" );
-	s_controls.joythreshold.curvalue = Controls_GetCvarDefault( "joy_threshold" );
-	s_controls.freelook.curvalue     = Controls_GetCvarDefault( "cl_freelook" );
+	s_controls.invertmouse.curvalue  = Controls_GetCvarDefault( (char *)"m_pitch" ) < 0;
+	s_controls.smoothmouse.curvalue  = Controls_GetCvarDefault( (char *)"m_filter" );
+	s_controls.alwaysrun.curvalue    = Controls_GetCvarDefault( (char *)"cl_run" );
+	s_controls.autoswitch.curvalue   = Controls_GetCvarDefault( (char *)"cg_autoswitch" );
+	s_controls.sensitivity.curvalue  = Controls_GetCvarDefault( (char *)"sensitivity" );
+	s_controls.joyenable.curvalue    = Controls_GetCvarDefault( (char *)"in_joystick" );
+	s_controls.joythreshold.curvalue = Controls_GetCvarDefault( (char *)"joy_threshold" );
+	s_controls.freelook.curvalue     = Controls_GetCvarDefault( (char *)"cl_freelook" );
 }
 
 /*
@@ -1202,7 +1202,7 @@ static void Controls_MenuInit( void )
 	s_controls.banner.generic.flags	= QMF_CENTER_JUSTIFY;
 	s_controls.banner.generic.x		= 320;
 	s_controls.banner.generic.y		= 16;
-	s_controls.banner.string		= "CONTROLS";
+	s_controls.banner.string		= (char *)"CONTROLS";
 	s_controls.banner.color			= color_white;
 	s_controls.banner.style			= UI_CENTER;
 
@@ -1228,7 +1228,7 @@ static void Controls_MenuInit( void )
 	s_controls.looking.generic.callback	= Controls_MenuEvent;
 	s_controls.looking.generic.x	    = 152;
 	s_controls.looking.generic.y	    = 240 - 2 * PROP_HEIGHT;
-	s_controls.looking.string			= "LOOK";
+	s_controls.looking.string			= (char *)"LOOK";
 	s_controls.looking.style			= UI_RIGHT;
 	s_controls.looking.color			= color_red;
 
@@ -1238,7 +1238,7 @@ static void Controls_MenuInit( void )
 	s_controls.movement.generic.callback = Controls_MenuEvent;
 	s_controls.movement.generic.x	     = 152;
 	s_controls.movement.generic.y	     = 240 - PROP_HEIGHT;
-	s_controls.movement.string			= "MOVE";
+	s_controls.movement.string			= (char *)"MOVE";
 	s_controls.movement.style			= UI_RIGHT;
 	s_controls.movement.color			= color_red;
 
@@ -1248,7 +1248,7 @@ static void Controls_MenuInit( void )
 	s_controls.weapons.generic.callback	= Controls_MenuEvent;
 	s_controls.weapons.generic.x	    = 152;
 	s_controls.weapons.generic.y	    = 240;
-	s_controls.weapons.string			= "SHOOT";
+	s_controls.weapons.string			= (char *)"SHOOT";
 	s_controls.weapons.style			= UI_RIGHT;
 	s_controls.weapons.color			= color_red;
 
@@ -1258,7 +1258,7 @@ static void Controls_MenuInit( void )
 	s_controls.misc.generic.callback = Controls_MenuEvent;
 	s_controls.misc.generic.x		 = 152;
 	s_controls.misc.generic.y		 = 240 + PROP_HEIGHT;
-	s_controls.misc.string			= "MISC";
+	s_controls.misc.string			= (char *)"MISC";
 	s_controls.misc.style			= UI_RIGHT;
 	s_controls.misc.color			= color_red;
 

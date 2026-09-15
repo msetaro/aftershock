@@ -365,18 +365,18 @@ void CheckAlmostCapture( gentity_t *self, gentity_t *attacker ) {
 		// get the goal flag this player should have been going for
 		if ( g_gametype.integer == GT_CTF ) {
 			if ( self->client->sess.sessionTeam == TEAM_BLUE ) {
-				classname = "team_CTF_blueflag";
+				classname = (char *)"team_CTF_blueflag";
 			}
 			else {
-				classname = "team_CTF_redflag";
+				classname = (char *)"team_CTF_redflag";
 			}
 		}
 		else {
 			if ( self->client->sess.sessionTeam == TEAM_BLUE ) {
-				classname = "team_CTF_redflag";
+				classname = (char *)"team_CTF_redflag";
 			}
 			else {
-				classname = "team_CTF_blueflag";
+				classname = (char *)"team_CTF_blueflag";
 			}
 		}
 		ent = NULL;
@@ -411,10 +411,10 @@ void CheckAlmostScored( gentity_t *self, gentity_t *attacker ) {
 	// if the player was carrying cubes
 	if ( self->client->ps.generic1 ) {
 		if ( self->client->sess.sessionTeam == TEAM_BLUE ) {
-			classname = "team_redobelisk";
+			classname = (char *)"team_redobelisk";
 		}
 		else {
-			classname = "team_blueobelisk";
+			classname = (char *)"team_blueobelisk";
 		}
 		ent = G_Find(NULL, FOFS(classname), classname);
 		// if we found the destination obelisk

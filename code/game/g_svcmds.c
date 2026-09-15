@@ -152,7 +152,7 @@ static void UpdateIPBans (void)
 			if (m[j]!=255)
 				Q_strcat(ip, sizeof(ip), "*");
 			else
-				Q_strcat(ip, sizeof(ip), va("%i", b[j]));
+				Q_strcat(ip, sizeof(ip), va((char *)"%i", b[j]));
 			Q_strcat(ip, sizeof(ip), (j<3) ? "." : " ");
 		}		
 		if (strlen(iplist_final)+strlen(ip) < MAX_CVAR_VALUE_STRING)
@@ -495,11 +495,11 @@ qboolean	ConsoleCommand( void ) {
 
 	if (g_dedicated.integer) {
 		if (Q_stricmp (cmd, "say") == 0) {
-			trap_SendServerCommand( -1, va("print \"server: %s\"", ConcatArgs(1) ) );
+			trap_SendServerCommand( -1, va((char *)"print \"server: %s\"", ConcatArgs(1) ) );
 			return qtrue;
 		}
 		// everything else will also be printed as a say command
-		trap_SendServerCommand( -1, va("print \"server: %s\"", ConcatArgs(0) ) );
+		trap_SendServerCommand( -1, va((char *)"print \"server: %s\"", ConcatArgs(0) ) );
 		return qtrue;
 	}
 

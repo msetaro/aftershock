@@ -860,7 +860,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 				cg_timescale.value = cg_timescaleFadeEnd.value;
 		}
 		if (cg_timescaleFadeSpeed.value) {
-			trap_Cvar_Set("timescale", va("%f", cg_timescale.value));
+			trap_Cvar_Set("timescale", va((char *)"%f", cg_timescale.value));
 		}
 	}
 

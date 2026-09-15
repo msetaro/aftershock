@@ -316,19 +316,19 @@ static qboolean	CG_FindClientModelFile( char *filename, int length, clientInfo_t
 	if ( cgs.gametype >= GT_TEAM ) {
 		switch ( ci->team ) {
 			case TEAM_BLUE: {
-				team = "blue";
+				team = (char *)"blue";
 				break;
 			}
 			default: {
-				team = "red";
+				team = (char *)"red";
 				break;
 			}
 		}
 	}
 	else {
-		team = "default";
+		team = (char *)"default";
 	}
-	charactersFolder = "";
+	charactersFolder = (char *)"";
 	while(1) {
 		for ( i = 0; i < 2; i++ ) {
 			if ( i == 0 && teamName && *teamName ) {
@@ -373,7 +373,7 @@ static qboolean	CG_FindClientModelFile( char *filename, int length, clientInfo_t
 		if ( charactersFolder[0] ) {
 			break;
 		}
-		charactersFolder = "characters/";
+		charactersFolder = (char *)"characters/";
 	}
 
 	return qfalse;
@@ -391,25 +391,25 @@ static qboolean	CG_FindClientHeadFile( char *filename, int length, clientInfo_t 
 	if ( cgs.gametype >= GT_TEAM ) {
 		switch ( ci->team ) {
 			case TEAM_BLUE: {
-				team = "blue";
+				team = (char *)"blue";
 				break;
 			}
 			default: {
-				team = "red";
+				team = (char *)"red";
 				break;
 			}
 		}
 	}
 	else {
-		team = "default";
+		team = (char *)"default";
 	}
 
 	if ( headModelName[0] == '*' ) {
-		headsFolder = "heads/";
+		headsFolder = (char *)"heads/";
 		headModelName++;
 	}
 	else {
-		headsFolder = "";
+		headsFolder = (char *)"";
 	}
 	while(1) {
 		for ( i = 0; i < 2; i++ ) {
@@ -449,7 +449,7 @@ static qboolean	CG_FindClientHeadFile( char *filename, int length, clientInfo_t 
 		if ( headsFolder[0] ) {
 			break;
 		}
-		headsFolder = "heads/";
+		headsFolder = (char *)"heads/";
 	}
 
 	return qfalse;
@@ -714,10 +714,10 @@ static void CG_LoadClientInfo( clientInfo_t *ci ) {
 		ci->sounds[i] = 0;
 		// if the model didn't load use the sounds of the default model
 		if (modelloaded) {
-			ci->sounds[i] = trap_S_RegisterSound( va("sound/player/%s/%s", dir, s + 1), qfalse );
+			ci->sounds[i] = trap_S_RegisterSound( va((char *)"sound/player/%s/%s", dir, s + 1), qfalse );
 		}
 		if ( !ci->sounds[i] ) {
-			ci->sounds[i] = trap_S_RegisterSound( va("sound/player/%s/%s", fallback, s + 1), qfalse );
+			ci->sounds[i] = trap_S_RegisterSound( va((char *)"sound/player/%s/%s", fallback, s + 1), qfalse );
 		}
 	}
 
@@ -952,7 +952,7 @@ void CG_NewClientInfo( int clientNum ) {
 		} else {
 			trap_Cvar_VariableStringBuffer( "model", modelStr, sizeof( modelStr ) );
 			if ( ( skin = strchr( modelStr, '/' ) ) == NULL) {
-				skin = "default";
+				skin = (char *)"default";
 			} else {
 				*skin++ = 0;
 			}
@@ -996,7 +996,7 @@ void CG_NewClientInfo( int clientNum ) {
 		} else {
 			trap_Cvar_VariableStringBuffer( "headmodel", modelStr, sizeof( modelStr ) );
 			if ( ( skin = strchr( modelStr, '/' ) ) == NULL) {
-				skin = "default";
+				skin = (char *)"default";
 			} else {
 				*skin++ = 0;
 			}
@@ -1655,7 +1655,7 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hSkin, refEntity_t *torso 
 	VectorCopy( torso->lightingOrigin, pole.lightingOrigin );
 	pole.shadowPlane = torso->shadowPlane;
 	pole.renderfx = torso->renderfx;
-	CG_PositionEntityOnTag( &pole, torso, torso->hModel, "tag_flag" );
+	CG_PositionEntityOnTag( &pole, torso, torso->hModel, (char *)"tag_flag" );
 	trap_R_AddRefEntityToScene( &pole );
 
 	// show the flag model
@@ -1747,7 +1747,7 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hSkin, refEntity_t *torso 
 	flag.backlerp = cent->pe.flag.backlerp;
 
 	AnglesToAxis( angles, flag.axis );
-	CG_PositionRotatedEntityOnTag( &flag, &pole, pole.hModel, "tag_flag" );
+	CG_PositionRotatedEntityOnTag( &flag, &pole, pole.hModel, (char *)"tag_flag" );
 
 	trap_R_AddRefEntityToScene( &flag );
 }
@@ -2333,7 +2333,7 @@ void CG_Player( centity_t *cent ) {
 
 	VectorCopy( cent->lerpOrigin, torso.lightingOrigin );
 
-	CG_PositionRotatedEntityOnTag( &torso, &legs, ci->legsModel, "tag_torso");
+	CG_PositionRotatedEntityOnTag( &torso, &legs, ci->legsModel, (char *)"tag_torso");
 
 	torso.shadowPlane = shadowPlane;
 	torso.renderfx = renderfx;
@@ -2555,7 +2555,7 @@ void CG_Player( centity_t *cent ) {
 
 	VectorCopy( cent->lerpOrigin, head.lightingOrigin );
 
-	CG_PositionRotatedEntityOnTag( &head, &torso, ci->torsoModel, "tag_head");
+	CG_PositionRotatedEntityOnTag( &head, &torso, ci->torsoModel, (char *)"tag_head");
 
 	head.shadowPlane = shadowPlane;
 	head.renderfx = renderfx;

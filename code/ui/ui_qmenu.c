@@ -1322,7 +1322,7 @@ void Menu_AddItem( menuframework_s *menu, void *item )
 				break;
 
 			default:
-				trap_Error( va("Menu_Init: unknown type %d", itemptr->type) );
+				trap_Error( va((char *)"Menu_Init: unknown type %d", itemptr->type) );
 		}
 	}
 
@@ -1514,7 +1514,7 @@ void Menu_Draw( menuframework_s *menu )
 					break;
 
 				default:
-					trap_Error( va("Menu_Draw: unknown type %d", itemptr->type) );
+					trap_Error( va((char *)"Menu_Draw: unknown type %d", itemptr->type) );
 			}
 		}
 #ifndef NDEBUG

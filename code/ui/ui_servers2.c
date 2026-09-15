@@ -339,7 +339,7 @@ static void ArenaServers_Go( void ) {
 
 	servernode = g_arenaservers.table[g_arenaservers.list.curvalue].servernode;
 	if( servernode ) {
-		trap_Cmd_ExecuteText( EXEC_APPEND, va( "connect %s\n", servernode->adrstr ) );
+		trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"connect %s\n", servernode->adrstr ) );
 	}
 }
 
@@ -387,7 +387,7 @@ static void ArenaServers_UpdateMenu( void ) {
 		if( g_arenaservers.refreshservers && ( g_arenaservers.currentping <= g_arenaservers.numqueriedservers ) ) {
 			// show progress
 			Com_sprintf( g_arenaservers.status.string, MAX_STATUSLENGTH, "%d of %d Arena Servers.", g_arenaservers.currentping, g_arenaservers.numqueriedservers);
-			g_arenaservers.statusbar.string  = "Press SPACE to stop";
+			g_arenaservers.statusbar.string  = (char *)"Press SPACE to stop";
 			qsort( g_arenaservers.serverlist, *g_arenaservers.numservers, sizeof( servernode_t ), ArenaServers_Compare);
 		}
 		else {
@@ -407,7 +407,7 @@ static void ArenaServers_UpdateMenu( void ) {
 				g_arenaservers.statusbar.string = quake3worldMessage;
 			}
 			else {
-				g_arenaservers.statusbar.string = "";
+				g_arenaservers.statusbar.string = (char *)"";
 			}
 
 		}
@@ -416,7 +416,7 @@ static void ArenaServers_UpdateMenu( void ) {
 		// no servers found
 		if( g_arenaservers.refreshservers ) {
 			strcpy( g_arenaservers.status.string,"Scanning For Servers." );
-			g_arenaservers.statusbar.string = "Press SPACE to stop";
+			g_arenaservers.statusbar.string = (char *)"Press SPACE to stop";
 
 			// disable controls during refresh
 			g_arenaservers.master.generic.flags		|= QMF_GRAYED;
@@ -442,7 +442,7 @@ static void ArenaServers_UpdateMenu( void ) {
 				g_arenaservers.statusbar.string = quake3worldMessage;
 			}
 			else {
-				g_arenaservers.statusbar.string = "";
+				g_arenaservers.statusbar.string = (char *)"";
 			}
 
 			// end of refresh - set control state
@@ -514,19 +514,19 @@ static void ArenaServers_UpdateMenu( void ) {
 		}
 
 		if( servernodeptr->pingtime < servernodeptr->minPing ) {
-			pingColor = S_COLOR_BLUE;
+			pingColor = (char *)S_COLOR_BLUE;
 		}
 		else if( servernodeptr->maxPing && servernodeptr->pingtime > servernodeptr->maxPing ) {
-			pingColor = S_COLOR_BLUE;
+			pingColor = (char *)S_COLOR_BLUE;
 		}
 		else if( servernodeptr->pingtime < 200 ) {
-			pingColor = S_COLOR_GREEN;
+			pingColor = (char *)S_COLOR_GREEN;
 		}
 		else if( servernodeptr->pingtime < 400 ) {
-			pingColor = S_COLOR_YELLOW;
+			pingColor = (char *)S_COLOR_YELLOW;
 		}
 		else {
-			pingColor = S_COLOR_RED;
+			pingColor = (char *)S_COLOR_RED;
 		}
 
 		Com_sprintf( buff, MAX_LISTBOXWIDTH, "%-20.20s %-12.12s %2d/%2d %-8.8s %3s %s%3d " S_COLOR_YELLOW "%s", 
@@ -747,7 +747,7 @@ void ArenaServers_LoadFavorites( void )
 	// resync existing results with new or deleted cvars
 	for (i=0; i<MAX_FAVORITESERVERS; i++)
 	{
-		trap_Cvar_VariableStringBuffer( va("server%d",i+1), adrstr, MAX_ADDRESSLENGTH );
+		trap_Cvar_VariableStringBuffer( va((char *)"server%d",i+1), adrstr, MAX_ADDRESSLENGTH );
 		if (!adrstr[0])
 			continue;
 
@@ -956,7 +956,7 @@ static void ArenaServers_DoRefresh( void )
 		strcpy( g_arenaservers.pinglist[j].adrstr, adrstr );
 		g_arenaservers.pinglist[j].start = uis.realtime;
 
-		trap_Cmd_ExecuteText( EXEC_NOW, va( "ping %s\n", adrstr )  );
+		trap_Cmd_ExecuteText( EXEC_NOW, va( (char *)"ping %s\n", adrstr )  );
 		
 		// advance to next server
 		g_arenaservers.currentping++;
@@ -1052,10 +1052,10 @@ static void ArenaServers_StartRefresh( void )
 		protocol[0] = '\0';
 		trap_Cvar_VariableStringBuffer( "debug_protocol", protocol, sizeof(protocol) );
 		if (strlen(protocol)) {
-			trap_Cmd_ExecuteText( EXEC_APPEND, va( "globalservers %d %s%s\n", i, protocol, myargs ));
+			trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"globalservers %d %s%s\n", i, protocol, myargs ));
 		}
 		else {
-			trap_Cmd_ExecuteText( EXEC_APPEND, va( "globalservers %d %d%s\n", i, (int)trap_Cvar_VariableValue( "protocol" ), myargs ) );
+			trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"globalservers %d %d%s\n", i, (int)trap_Cvar_VariableValue( "protocol" ), myargs ) );
 		}
 	}
 }
@@ -1071,10 +1071,10 @@ void ArenaServers_SaveChanges( void )
 	int	i;
 
 	for (i=0; i<g_arenaservers.numfavoriteaddresses; i++)
-		trap_Cvar_Set( va("server%d",i+1), g_arenaservers.favoriteaddresses[i] );
+		trap_Cvar_Set( va((char *)"server%d",i+1), g_arenaservers.favoriteaddresses[i] );
 
 	for (; i<MAX_FAVORITESERVERS; i++)
-		trap_Cvar_Set( va("server%d",i+1), "" );
+		trap_Cvar_Set( va((char *)"server%d",i+1), "" );
 }
 
 
@@ -1344,7 +1344,7 @@ static void ArenaServers_MenuInit( void ) {
 	g_arenaservers.banner.generic.flags = QMF_CENTER_JUSTIFY;
 	g_arenaservers.banner.generic.x	    = 320;
 	g_arenaservers.banner.generic.y	    = 16;
-	g_arenaservers.banner.string  		= "ARENA SERVERS";
+	g_arenaservers.banner.string  		= (char *)"ARENA SERVERS";
 	g_arenaservers.banner.style  	    = UI_CENTER;
 	g_arenaservers.banner.color  	    = color_white;
 
@@ -1459,7 +1459,7 @@ static void ArenaServers_MenuInit( void ) {
 	g_arenaservers.statusbar.generic.type   = MTYPE_TEXT;
 	g_arenaservers.statusbar.generic.x	    = 320;
 	g_arenaservers.statusbar.generic.y	    = y;
-	g_arenaservers.statusbar.string	        = "";
+	g_arenaservers.statusbar.string	        = (char *)"";
 	g_arenaservers.statusbar.style	        = UI_CENTER|UI_SMALLFONT;
 	g_arenaservers.statusbar.color	        = text_color_normal;
 

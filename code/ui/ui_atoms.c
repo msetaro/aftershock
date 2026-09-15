@@ -41,7 +41,7 @@ void QDECL Com_Error( int level, const char *error, ... ) {
 	vsprintf (text, error, argptr);
 	va_end (argptr);
 
-	trap_Error( va("%s", text) );
+	trap_Error( va((char *)"%s", text) );
 }
 
 void QDECL Com_Printf( const char *msg, ... ) {
@@ -52,7 +52,7 @@ void QDECL Com_Printf( const char *msg, ... ) {
 	vsprintf (text, msg, argptr);
 	va_end (argptr);
 
-	trap_Print( va("%s", text) );
+	trap_Print( va((char *)"%s", text) );
 }
 
 #endif
@@ -1235,7 +1235,7 @@ void UI_Refresh( int realtime )
 	if (uis.debug)
 	{
 		// cursor coordinates
-		UI_DrawString( 0, 0, va("(%d,%d)",uis.cursorx,uis.cursory), UI_LEFT|UI_SMALLFONT, colorRed );
+		UI_DrawString( 0, 0, va((char *)"(%d,%d)",uis.cursorx,uis.cursory), UI_LEFT|UI_SMALLFONT, colorRed );
 	}
 #endif
 

@@ -135,7 +135,7 @@ static void PlayerIcon( const char *modelAndSkin, char *iconName, int iconNameMa
 		*skin++ = '\0';
 	}
 	else {
-		skin = "default";
+		skin = (char *)"default";
 	}
 
 	Com_sprintf(iconName, iconNameMaxSize, "models/players/%s/icon_%s.tga", model, skin );
@@ -231,7 +231,7 @@ static void UI_SPLevelMenu_SetMenuArena( int n, int level, const char *arenaInfo
 		levelMenuInfo.levelScores[n] = 8;
 	}
 
-	strcpy( levelMenuInfo.levelPicNames[n], va( "levelshots/%s.tga", map ) );
+	strcpy( levelMenuInfo.levelPicNames[n], va( (char *)"levelshots/%s.tga", map ) );
 	if( !trap_R_RegisterShaderNoMip( levelMenuInfo.levelPicNames[n] ) ) {
 		strcpy( levelMenuInfo.levelPicNames[n], ART_MAP_UNKNOWN );
 	}
@@ -596,7 +596,7 @@ static void UI_SPLevelMenu_MenuDraw( void ) {
 		}
 	}
 
-	UI_DrawProportionalString( 18, 38, va( "Tier %i", selectedArenaSet + 1 ), UI_LEFT|UI_SMALLFONT, color_orange );
+	UI_DrawProportionalString( 18, 38, va( (char *)"Tier %i", selectedArenaSet + 1 ), UI_LEFT|UI_SMALLFONT, color_orange );
 
 	for ( n = 0; n < levelMenuInfo.numMaps; n++ ) {
 		x = levelMenuInfo.item_maps[n].generic.x;
@@ -733,7 +733,7 @@ static void UI_SPLevelMenu_Init( void ) {
 	levelMenuInfo.item_banner.generic.type			= MTYPE_BTEXT;
 	levelMenuInfo.item_banner.generic.x				= 320;
 	levelMenuInfo.item_banner.generic.y				= 16;
-	levelMenuInfo.item_banner.string				= "CHOOSE LEVEL";
+	levelMenuInfo.item_banner.string				= (char *)"CHOOSE LEVEL";
 	levelMenuInfo.item_banner.color					= color_red;
 	levelMenuInfo.item_banner.style					= UI_CENTER;
 

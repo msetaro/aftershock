@@ -82,7 +82,7 @@ static void SpecifyServer_Event( void* ptr, int event )
 				if (s_specifyserver.port.field.buffer[0])
 					Com_sprintf( buff+strlen(buff), 128, ":%s", s_specifyserver.port.field.buffer );
 
-				trap_Cmd_ExecuteText( EXEC_APPEND, va( "connect %s\n", buff ) );
+				trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"connect %s\n", buff ) );
 			}
 			break;
 
@@ -113,7 +113,7 @@ void SpecifyServer_MenuInit( void )
 	s_specifyserver.banner.generic.type	 = MTYPE_BTEXT;
 	s_specifyserver.banner.generic.x     = 320;
 	s_specifyserver.banner.generic.y     = 16;
-	s_specifyserver.banner.string		 = "SPECIFY SERVER";
+	s_specifyserver.banner.string		 = (char *)"SPECIFY SERVER";
 	s_specifyserver.banner.color  		 = color_white;
 	s_specifyserver.banner.style  		 = UI_CENTER;
 

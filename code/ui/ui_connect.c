@@ -103,7 +103,7 @@ static void UI_DisplayDownloadInfo( const char *downloadName ) {
 	UI_DrawProportionalString( 8, 224, xferText, style, color_white );
 
 	if (downloadSize > 0) {
-		s = va( "%s (%d%%)", downloadName, downloadCount * 100 / downloadSize );
+		s = va( (char *)"%s (%d%%)", downloadName, downloadCount * 100 / downloadSize );
 	} else {
 		s = downloadName;
 	}
@@ -116,7 +116,7 @@ static void UI_DisplayDownloadInfo( const char *downloadName ) {
 	if (downloadCount < 4096 || !downloadTime) {
 		UI_DrawProportionalString( leftWidth, 160, "estimating", style, color_white );
 		UI_DrawProportionalString( leftWidth, 192, 
-			va("(%s of %s copied)", dlSizeBuf, totalSizeBuf), style, color_white );
+			va((char *)"(%s of %s copied)", dlSizeBuf, totalSizeBuf), style, color_white );
 	} else {
 	  // bk010108
 	  //float elapsedTime = (float)(uis.realtime - downloadTime); // current - start (msecs)
@@ -147,22 +147,22 @@ static void UI_DisplayDownloadInfo( const char *downloadName ) {
 			UI_DrawProportionalString( leftWidth, 160, 
 				dlTimeBuf, style, color_white );
 			UI_DrawProportionalString( leftWidth, 192, 
-				va("(%s of %s copied)", dlSizeBuf, totalSizeBuf), style, color_white );
+				va((char *)"(%s of %s copied)", dlSizeBuf, totalSizeBuf), style, color_white );
 		} else {
 			UI_DrawProportionalString( leftWidth, 160, 
 				"estimating", style, color_white );
 			if (downloadSize) {
 				UI_DrawProportionalString( leftWidth, 192, 
-					va("(%s of %s copied)", dlSizeBuf, totalSizeBuf), style, color_white );
+					va((char *)"(%s of %s copied)", dlSizeBuf, totalSizeBuf), style, color_white );
 			} else {
 				UI_DrawProportionalString( leftWidth, 192, 
-					va("(%s copied)", dlSizeBuf), style, color_white );
+					va((char *)"(%s copied)", dlSizeBuf), style, color_white );
 			}
 		}
 
 		if (xferRate) {
 			UI_DrawProportionalString( leftWidth, 224, 
-				va("%s/Sec", xferRateBuf), style, color_white );
+				va((char *)"%s/Sec", xferRateBuf), style, color_white );
 		}
 	}
 }
@@ -193,10 +193,10 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 
 	info[0] = '\0';
 	if( trap_GetConfigString( CS_SERVERINFO, info, sizeof(info) ) ) {
-		UI_DrawProportionalString( 320, 16, va( "Loading %s", Info_ValueForKey( info, "mapname" ) ), UI_BIGFONT|UI_CENTER|UI_DROPSHADOW, color_white );
+		UI_DrawProportionalString( 320, 16, va( (char *)"Loading %s", Info_ValueForKey( info, "mapname" ) ), UI_BIGFONT|UI_CENTER|UI_DROPSHADOW, color_white );
 	}
 
-	UI_DrawProportionalString( 320, 64, va("Connecting to %s", cstate.servername), UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, menu_text_color );
+	UI_DrawProportionalString( 320, 64, va((char *)"Connecting to %s", cstate.servername), UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, menu_text_color );
 	//UI_DrawProportionalString( 320, 96, "Press Esc to abort", UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, menu_text_color );
 
 	// display global MOTD at bottom
@@ -239,10 +239,10 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 
 	switch ( cstate.connState ) {
 	case CA_CONNECTING:
-		s = va("Awaiting challenge...%i", cstate.connectPacketCount);
+		s = va((char *)"Awaiting challenge...%i", cstate.connectPacketCount);
 		break;
 	case CA_CHALLENGING:
-		s = va("Awaiting connection...%i", cstate.connectPacketCount);
+		s = va((char *)"Awaiting connection...%i", cstate.connectPacketCount);
 		break;
 	case CA_CONNECTED: {
 		char downloadName[MAX_INFO_VALUE];
@@ -253,7 +253,7 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 				return;
 			}
 		}
-		s = "Awaiting gamestate...";
+		s = (char *)"Awaiting gamestate...";
 		break;
 	case CA_LOADING:
 		return;

@@ -43,31 +43,31 @@ const char	*CG_PlaceString( int rank ) {
 
 	if ( rank & RANK_TIED_FLAG ) {
 		rank &= ~RANK_TIED_FLAG;
-		t = "Tied for ";
+		t = (char *)"Tied for ";
 	} else {
-		t = "";
+		t = (char *)"";
 	}
 
 	if ( rank == 1 ) {
-		s = S_COLOR_BLUE "1st" S_COLOR_WHITE;		// draw in blue
+		s = (char *)S_COLOR_BLUE "1st" S_COLOR_WHITE;		// draw in blue
 	} else if ( rank == 2 ) {
-		s = S_COLOR_RED "2nd" S_COLOR_WHITE;		// draw in red
+		s = (char *)S_COLOR_RED "2nd" S_COLOR_WHITE;		// draw in red
 	} else if ( rank == 3 ) {
-		s = S_COLOR_YELLOW "3rd" S_COLOR_WHITE;		// draw in yellow
+		s = (char *)S_COLOR_YELLOW "3rd" S_COLOR_WHITE;		// draw in yellow
 	} else if ( rank == 11 ) {
-		s = "11th";
+		s = (char *)"11th";
 	} else if ( rank == 12 ) {
-		s = "12th";
+		s = (char *)"12th";
 	} else if ( rank == 13 ) {
-		s = "13th";
+		s = (char *)"13th";
 	} else if ( rank % 10 == 1 ) {
-		s = va("%ist", rank);
+		s = va((char *)"%ist", rank);
 	} else if ( rank % 10 == 2 ) {
-		s = va("%ind", rank);
+		s = va((char *)"%ind", rank);
 	} else if ( rank % 10 == 3 ) {
-		s = va("%ird", rank);
+		s = va((char *)"%ird", rank);
 	} else {
-		s = va("%ith", rank);
+		s = va((char *)"%ith", rank);
 	}
 
 	Com_sprintf( str, sizeof( str ), "%s%s", t, s );
@@ -114,34 +114,34 @@ static void CG_Obituary( entityState_t *ent ) {
 	Q_strncpyz( targetName, Info_ValueForKey( targetInfo, "n" ), sizeof(targetName) - 2);
 	strcat( targetName, S_COLOR_WHITE );
 
-	message2 = "";
+	message2 = (char *)"";
 
 	// check for single client messages
 
 	switch( mod ) {
 	case MOD_SUICIDE:
-		message = "suicides";
+		message = (char *)"suicides";
 		break;
 	case MOD_FALLING:
-		message = "cratered";
+		message = (char *)"cratered";
 		break;
 	case MOD_CRUSH:
-		message = "was squished";
+		message = (char *)"was squished";
 		break;
 	case MOD_WATER:
-		message = "sank like a rock";
+		message = (char *)"sank like a rock";
 		break;
 	case MOD_SLIME:
-		message = "melted";
+		message = (char *)"melted";
 		break;
 	case MOD_LAVA:
-		message = "does a back flip into the lava";
+		message = (char *)"does a back flip into the lava";
 		break;
 	case MOD_TARGET_LASER:
-		message = "saw the light";
+		message = (char *)"saw the light";
 		break;
 	case MOD_TRIGGER_HURT:
-		message = "was in the wrong place";
+		message = (char *)"was in the wrong place";
 		break;
 	default:
 		message = NULL;
@@ -158,30 +158,30 @@ static void CG_Obituary( entityState_t *ent ) {
 #endif
 		case MOD_GRENADE_SPLASH:
 			if ( gender == GENDER_FEMALE )
-				message = "tripped on her own grenade";
+				message = (char *)"tripped on her own grenade";
 			else if ( gender == GENDER_NEUTER )
-				message = "tripped on its own grenade";
+				message = (char *)"tripped on its own grenade";
 			else
-				message = "tripped on his own grenade";
+				message = (char *)"tripped on his own grenade";
 			break;
 		case MOD_ROCKET_SPLASH:
 			if ( gender == GENDER_FEMALE )
-				message = "blew herself up";
+				message = (char *)"blew herself up";
 			else if ( gender == GENDER_NEUTER )
-				message = "blew itself up";
+				message = (char *)"blew itself up";
 			else
-				message = "blew himself up";
+				message = (char *)"blew himself up";
 			break;
 		case MOD_PLASMA_SPLASH:
 			if ( gender == GENDER_FEMALE )
-				message = "melted herself";
+				message = (char *)"melted herself";
 			else if ( gender == GENDER_NEUTER )
-				message = "melted itself";
+				message = (char *)"melted itself";
 			else
-				message = "melted himself";
+				message = (char *)"melted himself";
 			break;
 		case MOD_BFG_SPLASH:
-			message = "should have used a smaller gun";
+			message = (char *)"should have used a smaller gun";
 			break;
 #ifdef MISSIONPACK
 		case MOD_PROXIMITY_MINE:
@@ -196,11 +196,11 @@ static void CG_Obituary( entityState_t *ent ) {
 #endif
 		default:
 			if ( gender == GENDER_FEMALE )
-				message = "killed herself";
+				message = (char *)"killed herself";
 			else if ( gender == GENDER_NEUTER )
-				message = "killed itself";
+				message = (char *)"killed itself";
 			else
-				message = "killed himself";
+				message = (char *)"killed himself";
 			break;
 		}
 	}
@@ -215,11 +215,11 @@ static void CG_Obituary( entityState_t *ent ) {
 		char	*s;
 
 		if ( cgs.gametype < GT_TEAM ) {
-			s = va("You fragged %s\n%s place with %i", targetName, 
+			s = va((char *)"You fragged %s\n%s place with %i", targetName, 
 				CG_PlaceString( cg.snap->ps.persistant[PERS_RANK] + 1 ),
 				cg.snap->ps.persistant[PERS_SCORE] );
 		} else {
-			s = va("You fragged %s", targetName );
+			s = va((char *)"You fragged %s", targetName );
 		}
 #ifdef MISSIONPACK
 		if (!(cg_singlePlayerActive.integer && cg_cameraOrbit.integer)) {
@@ -248,51 +248,51 @@ static void CG_Obituary( entityState_t *ent ) {
 	if ( attacker != ENTITYNUM_WORLD ) {
 		switch (mod) {
 		case MOD_GRAPPLE:
-			message = "was caught by";
+			message = (char *)"was caught by";
 			break;
 		case MOD_GAUNTLET:
-			message = "was pummeled by";
+			message = (char *)"was pummeled by";
 			break;
 		case MOD_MACHINEGUN:
-			message = "was machinegunned by";
+			message = (char *)"was machinegunned by";
 			break;
 		case MOD_SHOTGUN:
-			message = "was gunned down by";
+			message = (char *)"was gunned down by";
 			break;
 		case MOD_GRENADE:
-			message = "ate";
-			message2 = "'s grenade";
+			message = (char *)"ate";
+			message2 = (char *)"'s grenade";
 			break;
 		case MOD_GRENADE_SPLASH:
-			message = "was shredded by";
-			message2 = "'s shrapnel";
+			message = (char *)"was shredded by";
+			message2 = (char *)"'s shrapnel";
 			break;
 		case MOD_ROCKET:
-			message = "ate";
-			message2 = "'s rocket";
+			message = (char *)"ate";
+			message2 = (char *)"'s rocket";
 			break;
 		case MOD_ROCKET_SPLASH:
-			message = "almost dodged";
-			message2 = "'s rocket";
+			message = (char *)"almost dodged";
+			message2 = (char *)"'s rocket";
 			break;
 		case MOD_PLASMA:
-			message = "was melted by";
-			message2 = "'s plasmagun";
+			message = (char *)"was melted by";
+			message2 = (char *)"'s plasmagun";
 			break;
 		case MOD_PLASMA_SPLASH:
-			message = "was melted by";
-			message2 = "'s plasmagun";
+			message = (char *)"was melted by";
+			message2 = (char *)"'s plasmagun";
 			break;
 		case MOD_RAILGUN:
-			message = "was railed by";
+			message = (char *)"was railed by";
 			break;
 		case MOD_LIGHTNING:
-			message = "was electrocuted by";
+			message = (char *)"was electrocuted by";
 			break;
 		case MOD_BFG:
 		case MOD_BFG_SPLASH:
-			message = "was blasted by";
-			message2 = "'s BFG";
+			message = (char *)"was blasted by";
+			message2 = (char *)"'s BFG";
 			break;
 #ifdef MISSIONPACK
 		case MOD_NAIL:
@@ -315,11 +315,11 @@ static void CG_Obituary( entityState_t *ent ) {
 			break;
 #endif
 		case MOD_TELEFRAG:
-			message = "tried to invade";
-			message2 = "'s personal space";
+			message = (char *)"tried to invade";
+			message2 = (char *)"'s personal space";
 			break;
 		default:
-			message = "was killed by";
+			message = (char *)"was killed by";
 			break;
 		}
 
@@ -360,7 +360,7 @@ static void CG_UseItem( centity_t *cent ) {
 			CG_CenterPrint( "No item to use", SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
 		} else {
 			item = BG_FindItemForHoldable( (holdable_t)itemNum );
-			CG_CenterPrint( va("Use %s", item->pickup_name), SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
+			CG_CenterPrint( va((char *)"Use %s", item->pickup_name), SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
 		}
 	}
 
@@ -435,13 +435,13 @@ void CG_PainEvent( centity_t *cent, int health ) {
 	}
 
 	if ( health < 25 ) {
-		snd = "*pain25_1.wav";
+		snd = (char *)"*pain25_1.wav";
 	} else if ( health < 50 ) {
-		snd = "*pain50_1.wav";
+		snd = (char *)"*pain50_1.wav";
 	} else if ( health < 75 ) {
-		snd = "*pain75_1.wav";
+		snd = (char *)"*pain75_1.wav";
 	} else {
-		snd = "*pain100_1.wav";
+		snd = (char *)"*pain100_1.wav";
 	}
 	trap_S_StartSound( NULL, cent->currentState.number, CHAN_VOICE, 
 		CG_CustomSound( cent->currentState.number, snd ) );
@@ -1097,7 +1097,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_DEATH3:
 		DEBUGNAME("EV_DEATHx");
 		trap_S_StartSound( NULL, es->number, CHAN_VOICE, 
-				CG_CustomSound( es->number, va("*death%i.wav", event - EV_DEATH1 + 1) ) );
+				CG_CustomSound( es->number, va((char *)"*death%i.wav", event - EV_DEATH1 + 1) ) );
 		break;
 
 

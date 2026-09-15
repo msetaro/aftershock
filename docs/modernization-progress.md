@@ -589,3 +589,11 @@ UI helper. menutext_s.string remains mutable because several menus fill its back
 buffer; their literal assignments still need call-site casts. All 103 native C
 release objects remain byte-identical (const-final log). Next: remaining T8 literal
 casts at unchanged public APIs/return sites, then C++ exports and full module gates.
+
+Remaining T8 sites retain the existing public char* interfaces and mutable UI text
+fields: 1,060 diagnosed literal/macro-expression casts across 71 files. Macro
+constants and concatenated string contents are unchanged; casts are at use sites.
+All 103 TUs now pass GCC C++20 syntax with -Werror=write-strings and
+-Werror=register, no permissive flags. All 103 C release objects still have the
+original byte hashes (literal-casts gate). Next: T5 exports, Clang C++ diagnostics,
+linked C++ native ABI/symbol/codegen comparison and permanent smoke/replay parity.

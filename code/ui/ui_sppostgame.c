@@ -284,7 +284,7 @@ static void UI_SPPostgameMenu_MenuDrawScoreLine( int n, int y ) {
 	Q_strncpyz( name, Info_ValueForKey( info, "n" ), sizeof(name) );
 	Q_CleanStr( name );
 
-	UI_DrawString( 640 - 25 * SMALLCHAR_WIDTH, y, va( "#%i: %-16s %2i", rank + 1, name, postgameMenuInfo.scores[n] ), UI_LEFT|UI_SMALLFONT, color_white );
+	UI_DrawString( 640 - 25 * SMALLCHAR_WIDTH, y, va( (char *)"#%i: %-16s %2i", rank + 1, name, postgameMenuInfo.scores[n] ), UI_LEFT|UI_SMALLFONT, color_white );
 }
 
 
@@ -363,7 +363,7 @@ static void UI_SPPostgameMenu_MenuDraw( void ) {
 
 			trap_Cvar_SetValue( "ui_spSelection", postgameMenuInfo.won * ARENAS_PER_TIER );
 			trap_Cvar_Set( "nextmap", "levelselect" );
-			trap_Cmd_ExecuteText( EXEC_APPEND, va( "disconnect; cinematic tier%i.RoQ\n", postgameMenuInfo.won + 1 ) );
+			trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"disconnect; cinematic tier%i.RoQ\n", postgameMenuInfo.won + 1 ) );
 			return;
 		}
 
@@ -627,7 +627,7 @@ void UI_SPPostgameMenu_f( void ) {
 	Prepname( 2 );
 
 	if ( playerGameRank != 1 ) {
-		postgameMenuInfo.winnerSound = trap_S_RegisterSound( va( "sound/player/announce/%s_wins.wav", postgameMenuInfo.placeNames[0] ), qfalse );
+		postgameMenuInfo.winnerSound = trap_S_RegisterSound( va( (char *)"sound/player/announce/%s_wins.wav", postgameMenuInfo.placeNames[0] ), qfalse );
 		trap_Cmd_ExecuteText( EXEC_APPEND, "music music/loss\n" );
 	}
 	else {

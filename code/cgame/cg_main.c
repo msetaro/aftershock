@@ -810,17 +810,17 @@ static void CG_RegisterGraphics( void ) {
 	int			i;
 	char		items[MAX_ITEMS+1];
 	static char		*sb_nums[11] = {
-		"gfx/2d/numbers/zero_32b",
-		"gfx/2d/numbers/one_32b",
-		"gfx/2d/numbers/two_32b",
-		"gfx/2d/numbers/three_32b",
-		"gfx/2d/numbers/four_32b",
-		"gfx/2d/numbers/five_32b",
-		"gfx/2d/numbers/six_32b",
-		"gfx/2d/numbers/seven_32b",
-		"gfx/2d/numbers/eight_32b",
-		"gfx/2d/numbers/nine_32b",
-		"gfx/2d/numbers/minus_32b",
+		(char *)"gfx/2d/numbers/zero_32b",
+		(char *)"gfx/2d/numbers/one_32b",
+		(char *)"gfx/2d/numbers/two_32b",
+		(char *)"gfx/2d/numbers/three_32b",
+		(char *)"gfx/2d/numbers/four_32b",
+		(char *)"gfx/2d/numbers/five_32b",
+		(char *)"gfx/2d/numbers/six_32b",
+		(char *)"gfx/2d/numbers/seven_32b",
+		(char *)"gfx/2d/numbers/eight_32b",
+		(char *)"gfx/2d/numbers/nine_32b",
+		(char *)"gfx/2d/numbers/minus_32b",
 	};
 
 	// clear any references to old media
@@ -871,7 +871,7 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.selectShader = trap_R_RegisterShader( "gfx/2d/select" );
 
 	for ( i = 0 ; i < NUM_CROSSHAIRS ; i++ ) {
-		cgs.media.crosshairShader[i] = trap_R_RegisterShader( va("gfx/2d/crosshair%c", 'a'+i) );
+		cgs.media.crosshairShader[i] = trap_R_RegisterShader( va((char *)"gfx/2d/crosshair%c", 'a'+i) );
 	}
 
 	cgs.media.backTileShader = trap_R_RegisterShader( "gfx/2d/backtile" );
@@ -1119,7 +1119,7 @@ void CG_BuildSpectatorString() {
 	cg.spectatorList[0] = 0;
 	for (i = 0; i < MAX_CLIENTS; i++) {
 		if (cgs.clientinfo[i].infoValid && cgs.clientinfo[i].team == TEAM_SPECTATOR ) {
-			Q_strcat(cg.spectatorList, sizeof(cg.spectatorList), va("%s     ", cgs.clientinfo[i].name));
+			Q_strcat(cg.spectatorList, sizeof(cg.spectatorList), va((char *)"%s     ", cgs.clientinfo[i].name));
 		}
 	}
 	i = strlen(cg.spectatorList);

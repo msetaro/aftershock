@@ -107,7 +107,7 @@ static void UI_RemoveBotsMenu_DeleteEvent( void* ptr, int event ) {
 		return;
 	}
 
-	trap_Cmd_ExecuteText( EXEC_APPEND, va("clientkick %i\n", removeBotsMenuInfo.botClientNums[removeBotsMenuInfo.baseBotNum + removeBotsMenuInfo.selectedBotNum]) );
+	trap_Cmd_ExecuteText( EXEC_APPEND, va((char *)"clientkick %i\n", removeBotsMenuInfo.botClientNums[removeBotsMenuInfo.baseBotNum + removeBotsMenuInfo.selectedBotNum]) );
 }
 
 
@@ -240,7 +240,7 @@ static void UI_RemoveBotsMenu_Init( void ) {
 	removeBotsMenuInfo.banner.generic.type		= MTYPE_BTEXT;
 	removeBotsMenuInfo.banner.generic.x			= 320;
 	removeBotsMenuInfo.banner.generic.y			= 16;
-	removeBotsMenuInfo.banner.string			= "REMOVE BOTS";
+	removeBotsMenuInfo.banner.string			= (char *)"REMOVE BOTS";
 	removeBotsMenuInfo.banner.color				= color_white;
 	removeBotsMenuInfo.banner.style				= UI_CENTER;
 

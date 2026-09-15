@@ -44,7 +44,7 @@ void G_WriteClientSessionData( gclient_t *client ) {
 	const char	*s;
 	const char	*var;
 
-	s = va("%i %i %i %i %i %i %i", 
+	s = va((char *)"%i %i %i %i %i %i %i", 
 		client->sess.sessionTeam,
 		client->sess.spectatorTime,
 		client->sess.spectatorState,
@@ -54,7 +54,7 @@ void G_WriteClientSessionData( gclient_t *client ) {
 		client->sess.teamLeader
 		);
 
-	var = va( "session%i", client - level.clients );
+	var = va( (char *)"session%i", client - level.clients );
 
 	trap_Cvar_Set( var, s );
 }
@@ -75,7 +75,7 @@ void G_ReadSessionData( gclient_t *client ) {
 	int spectatorState;
 	int sessionTeam;
 
-	var = va( "session%i", client - level.clients );
+	var = va( (char *)"session%i", client - level.clients );
 	trap_Cvar_VariableStringBuffer( var, s, sizeof(s) );
 
 	sscanf( s, "%i %i %i %i %i %i %i",
@@ -183,7 +183,7 @@ G_WriteSessionData
 void G_WriteSessionData( void ) {
 	int		i;
 
-	trap_Cvar_Set( "session", va("%i", g_gametype.integer) );
+	trap_Cvar_Set( "session", va((char *)"%i", g_gametype.integer) );
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		if ( level.clients[i].pers.connected == CON_CONNECTED ) {
