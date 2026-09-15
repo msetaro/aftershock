@@ -9,12 +9,13 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 Active: issue/31-affinity-hex, with failing test 985a3f1f committed and the
 hex-sentinel source fix passing GCC/Clang ASan+UBSan locally. #68 merged as
-b4db52c4 after build 34951709954 and regression 34951709967 passed; integrate
-origin/modernization before opening this separate PR. #67 merged as 43ad68ab
+b4db52c4 after build 34951709954 and regression 34951709967 passed; it is integrated
+and its merged-tree regression 34952399676 passed. #67 merged as 43ad68ab
 with merged regression 34951493059 passing. #5 is complete.
 
-Next: commit the hex fix, integrate #68, open the Aftershock and upstream PRs,
-then finish codegen, golden/runtime/hosted gates and self-review before merge.
+Next: open the hex-fix Aftershock PR and finish runtime/hosted gates and self-review
+before merge. Source e25cf588 follows failing test 985a3f1f. Upstream C source
+38238103 is ec-/Quake3e PR #441, based independently on upstream main.
 Resume #8's remaining warning classes, verified formatting, tidy, types/layouts
 and Q_ASSERT afterward. Finish #8, write design-only docs/design/rhi.md for #6,
 then stop. No #6/#7 implementation.
@@ -28,6 +29,14 @@ OS affinity change in the test. Upstream C f694bbbc independently reproduces bot
 failures and passes the same hex-only fix under GCC/Clang ASan+UBSan; its ten cases
 exclude the separate pending operator bug. /tmp/aftershock-affinity-hex-*.log.
 No expected-failure entry/suppression covers this new regression.
+
+Hex codegen review covers nine GCC/Clang/debug/MinGW/aarch64 production objects:
+only parseAffinityMask changes; no function is added/removed and all unrelated
+function instructions/relocations match. Artifacts /tmp/aftershock-affinity-hex-codegen.
+Explicit unit/collision regeneration is byte-identical (8d44421d / 9674cd22).
+Local Q3 runtime/fixed replay and hosted gates remain to finish. No source FP,
+wire/file layout, allocation or OS-call change; signed int hex is trivially
+destructible. No golden/fixture change is intended or accepted for this fix.
 
 Operator fix: preserve the + or - before recursive operand consumption. Test-first
 e84a1f6e fails; all 16 valid cases now pass GCC/Clang UBSan through both helper and

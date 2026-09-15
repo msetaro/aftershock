@@ -735,3 +735,10 @@ then widens valid digits to uint64_t. All 18 expressions and the intercepted pub
 apply path pass GCC/Clang ASan+UBSan. Upstream C f694bbbc independently fails and
 passes the same hex-only fix with ten cases; its unrelated operator bug remains
 outside that upstream branch. No expectation/suppression entry applies.
+
+Hex source e25cf588 follows failing test 985a3f1f. Upstream C fix 38238103 is
+https://github.com/ec-/Quake3e/pull/441, based independently on upstream main.
+Nine production object comparisons show only parseAffinityMask changes, with no
+function additions/removals and identical unrelated instructions/relocations.
+Explicit unit/collision golden regeneration is byte-identical (8d44421d/9674cd22).
+Runtime/hosted gates and self-review remain before this separate fix merges.
