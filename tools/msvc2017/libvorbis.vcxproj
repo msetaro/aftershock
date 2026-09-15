@@ -84,32 +84,32 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\libogg\include;$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
   </PropertyGroup>

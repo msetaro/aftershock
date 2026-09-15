@@ -55,10 +55,22 @@ passed 546 commands/137 paths; raw net_ip moved out of core into platform, which
 explains the four-command/one-path reduction. Final lifetime and Q3 fixed replay
 are running. Logs/artifacts use /tmp/aftershock-boundary-*.
 
-Next: finish replay/lifetime verification, check OA runtime/replay, push a draft
-#4 PR, run hosted regression/full builds, review the final diff and merge only
-after gates. No accepted golden or fixture is changed. Then continue #5 -> #8 ->
-design-only docs/design/rhi.md for #6, with no #6/#7 implementation.
+Boundary source 52e57708 and provenance e24495b2 are in draft PR #65. Local final
+lifetime analysis and Q3 lifecycle replay pass. OA UBSan runtime passes both maps;
+OA replay is running. ALSA callback/thread and curl transfer regressions pass.
+All five Sys_SnapVector bodies and clock/CPU-detection bodies were compared with
+8b5264c5 and are byte-identical. All 130 original GPL source hashes were verified.
+
+Hosted regression 34941457454 and build 34941457509 are running. MSVC exposed
+unexpanded $(ProjectName) include directories in the Ogg/Vorbis projects; these
+now point into third_party. Every explicit/expanded project include and library
+directory was checked after that repair. Linux/macOS legs passed; Windows jobs
+need the corrected projects. No source/golden change is involved in this repair.
+
+Next: finish hosted regression/full builds and OA replay, review the final diff,
+update #4 and merge PR #65 only after gates. No accepted golden or fixture is
+changed. Then continue #5 -> #8 -> design-only docs/design/rhi.md for #6, with no
+#6/#7 implementation.
 
 ## Earlier #2 integration checkpoints (historical)
 

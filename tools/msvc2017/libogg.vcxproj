@@ -90,32 +90,32 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <IncludePath>$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <IncludePath>$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <IncludePath>$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <IncludePath>$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <IncludePath>$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <OutDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <IncludePath>$(ProjectDir)..\..\$(ProjectName)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\third_party\$(ProjectName)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
