@@ -7,30 +7,49 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/5-cmake-build from #4 merge 4a952854. PR #65 is merged; source
-ffaa1ea7 passed regression 34941722921 and full build 34941722886 on every
-required leg. Verify the merged-tree regression before changing the build system.
-#2 PR #50 and #31 PR #64 are already complete; #64 merged-tree regression
-34938271942 passed. Continue #5 -> #8 -> design-only docs/design/rhi.md for #6.
-No #6/#7 implementation.
+Active: issue/5-cmake-build from #4 merge 4a952854. PR #65 and its
+merged-tree regression 34942323875 passed. #2/#31/#1/#4 are complete. Continue
+#5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementation.
 
-#5 issue read. Decision: repair CMake as primary; prove production object parity
-against the supported Make configurations before deleting Makefile. Generated
-MSVC projects, 64-bit little-endian only, ccache on CI. Existing CMake still points
-at the old C/VM layout and has not been run. Permanent tests need CMake build and
-compile-command contexts; foreign OpenArena source keeps its own upstream Makefile
-as import metadata. Keep archived port-oracle revisions intact. No source behavior
-or accepted golden changes are authorized here. First capture the current Make
-configuration/objects, then repair CMake and compare before any Make retirement.
-Baseline capture is complete: 11 configurations, 3,757 raw object hashes and their
-actual compiler commands in /tmp/aftershock-cmake-before (source 4018c08a, engine
-identical to 4a952854). Driver: /tmp/aftershock-cmake-baseline.py. All builds pass.
-Includes GCC release/debug static OpenGL/Vulkan/dynamic, Clang+libc++ static
-OpenGL/Vulkan, MinGW static OpenGL/Vulkan and aarch64 dedicated. #4 merged-tree
-regression 34942323875 has passed all completed required jobs; runtime remains.
-CMake and engine sources are still untouched for #5. Preserve this source while
-establishing build parity; retire inactive 32-bit/platform paths afterward so
-source-line changes cannot obscure the build-system comparison.
+#5 decision: CMake becomes primary after raw production-object parity; then retire
+Makefile and hand-maintained MSVC projects. Support 64-bit little-endian
+x86_64/aarch64, with ccache in CI. No engine behavior or accepted golden changes.
+Baseline: 11 successful Make configurations, 3,757 raw object hashes and actual
+compiler commands under /tmp/aftershock-cmake-before (source 4018c08a, engine
+identical to 4a952854); driver /tmp/aftershock-cmake-baseline.py.
+
+Initial CMake repair builds native game/client/server, both renderer configurations
+and cross targets from explicit source lists. Raw object parity already passes
+GCC release Vulkan/OpenGL/dynamic, GCC debug Vulkan, Clang+libc++ Vulkan, and
+aarch64 dedicated: 1,924 objects, no hash normalization. Candidate builds are
+/tmp/aftershock-cmake-{first,gcc-debug-vulkan,gcc-release-opengl,
+gcc-release-dynamic,clang-release-vulkan,aarch64-release-ded}; comparator
+/tmp/aftershock-cmake-compare.py. Other configurations still need comparison.
+
+MinGW LTO itself is not reproducible with the original flags: repeating the exact
+Make command changes the object hash (/tmp/aftershock-cmake-lto-repeat.json).
+A fixed per-translation-unit random seed removes random section IDs; GCC still
+streams the unremapped working directory with relative source locations
+([upstream diagnosis](https://gcc.gnu.org/pipermail/gcc-patches/2022-November/606205.html)).
+Focused proof /tmp/aftershock-lto-absolute.py gives identical raw md4 objects from
+Make and CMake after both use absolute source/include spelling, the same stable
+absolute debug-source prefix and per-TU seed. Separate macro mapping preserves
+relative __FILE__ strings. LTO remains enabled; no sections are stripped.
+These build-only reproducibility settings are now being verified across the full
+MinGW production set before Make retirement. Original baseline is preserved.
+
+All 11 local configurations now pass: 3,757/3,757 raw object hashes, including
+both MinGW resource objects. The MinGW comparisons use the deterministically
+rebuilt Make baseline (/tmp/aftershock-cmake-mingw-repro-make[-opengl]); all others
+use the original capture. GCC debug dynamic needed renderer flags in the original
+order because DWARF records them; CMake's empty default build type also needed an
+explicit Release default. Neither fix changes source or compiler policy.
+
+Checkpoint the Make reproducibility settings separately before the CMake repair,
+so the reference configuration remains reviewable in history. Engine/game
+implementation is unchanged. Next: hosted macOS/Windows build verification,
+permanent tests/CI migration, then inactive platform cleanup. Permanent test builders still use Make. Generated MSVC,
+macOS, one-command presets, ccache CI, 64-bit cleanup and final gates remain.
 
 
 #4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects

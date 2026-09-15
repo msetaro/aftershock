@@ -126,11 +126,11 @@ define NATIVE_OBJECT
 $(B)/native/$(1)-$(notdir $(2:.cpp=.o)): game/module.cpp $(2)
 	$(Q)$(MKDIR) $$(dir $$@)
 	$(echo_cmd) "NATIVE_CC $(2)"
-	$(Q)$(ENGINE_CC) $(NATIVE_CFLAGS) -D$(3) -DNATIVE_NAMESPACE=$(1) \
+	$(Q)$(ENGINE_CC) $$(call COMPILE_FLAGS,$$(NATIVE_CFLAGS)) -D$(3) -DNATIVE_NAMESPACE=$(1) \
 	  '-DNATIVE_SOURCE="$(patsubst game/%,%,$(2))"' \
 	  $(if $(filter %/$(4)_main.cpp,$(2)),'-DNATIVE_EXPORTS="$(1)/$(4)_native_exports.inc"') \
 	  $(if $(and $(findstring clang,$(CXX)),$(filter %/bg_lib.cpp,$(2))),-D__NO_INLINE__) \
-	  -o $$@ -c game/module.cpp
+	  -o $$@ -c $(call COMPILE_SOURCE,game/module.cpp)
 endef
 $(foreach source,$(NATIVE_GAME_SOURCES),$(eval $(call NATIVE_OBJECT,game,$(source),QAGAME,g)))
 $(foreach source,$(NATIVE_CGAME_SOURCES),$(eval $(call NATIVE_OBJECT,cgame,$(source),CGAME,cg)))

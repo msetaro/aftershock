@@ -682,22 +682,33 @@ VENDORED_SOURCE = $(filter $(JPDIR)/% $(OGGDIR)/% $(VORBISDIR)/%,$<)
 SOURCE_CC = $(if $(VENDORED_SOURCE),$(CC),$(ENGINE_CC))
 SOURCE_CFLAGS = $(if $(VENDORED_SOURCE),$(CFLAGS),$(ENGINE_CFLAGS))
 
+# GCC LTO records source directories and random section identifiers. Keep those
+# deterministic while retaining relative __FILE__ strings and every LTO section.
+COMPILE_SOURCE = $(if $(MINGW),$(abspath $(1)),$(1))
+COMPILE_FLAGS = $(1)
+ifdef MINGW
+OBJECT_TARGET = $(patsubst ded,server,$(patsubst rend1,opengl,$(patsubst rendv,vulkan,$(firstword $(subst /, ,$(patsubst $(B)/%,%,$@))))))
+OBJECT_SEED = $(if $(filter native,$(OBJECT_TARGET)),native_$(subst -,_,$(basename $(notdir $@))),$(OBJECT_TARGET))/$<
+COMPILE_FLAGS = $(foreach flag,$(1),$(if $(filter -I%,$(flag)),-I$(abspath $(patsubst -I%,%,$(flag))),$(flag))) \
+  -frandom-seed=$(OBJECT_SEED) -fdebug-prefix-map=$(CURDIR)=/aftershock-source -fmacro-prefix-map=$(CURDIR)/=
+endif
+
 define DO_CC
 $(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "CC $<"
-$(Q)$(SOURCE_CC) $(SOURCE_CFLAGS) -o $@ -c $<
+$(Q)$(SOURCE_CC) $(call COMPILE_FLAGS,$(SOURCE_CFLAGS)) -o $@ -c $(call COMPILE_SOURCE,$<)
 endef
 
 define DO_REND_CC
 $(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "REND_CC $<"
-$(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) $(RENDCFLAGS) -o $@ -c $<
+$(Q)$(ENGINE_CC) $(call COMPILE_FLAGS,$(ENGINE_CFLAGS) $(RENDCFLAGS)) -o $@ -c $(call COMPILE_SOURCE,$<)
 endef
 
 define DO_BOT_CC
 $(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "BOT_CC $<"
-$(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) $(BOTCFLAGS) -DBOTLIB -o $@ -c $<
+$(Q)$(ENGINE_CC) $(call COMPILE_FLAGS,$(ENGINE_CFLAGS) $(BOTCFLAGS)) -DBOTLIB -o $@ -c $(call COMPILE_SOURCE,$<)
 endef
 
 define DO_AS
@@ -709,7 +720,7 @@ endef
 define DO_DED_CC
 $(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "DED_CC $<"
-$(Q)$(ENGINE_CC) $(ENGINE_CFLAGS) -DDEDICATED -o $@ -c $<
+$(Q)$(ENGINE_CC) $(call COMPILE_FLAGS,$(ENGINE_CFLAGS)) -DDEDICATED -o $@ -c $(call COMPILE_SOURCE,$<)
 endef
 
 define DO_WINDRES
