@@ -10,7 +10,7 @@ import tempfile
 
 from run import ROOT, ENV, build, run, content_maps, content_bots, content_settings
 from frames import check_frames
-from native import engine_objects
+from native import engine_objects, verify_static
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-demo-tests'))
@@ -47,6 +47,7 @@ for backend in ('vulkan', 'opengl1'):
     directory = build(output / ('build-' + backend), [f'CC={args.cc}', f'CXX={args.cxx}', *objects,
                       'BUILD_SERVER=0', 'USE_RENDERER_DLOPEN=0', 'RENDERER_DEFAULT=' + ('opengl' if backend == 'opengl1' else backend)])
     binaries[backend] = directory / 'quake3e.x64'
+    verify_static(binaries[backend], ('game', 'cgame', 'ui'))
 
 
 def client(binary, home, commands, log_name, fixed_random=False):

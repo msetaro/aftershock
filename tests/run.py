@@ -162,7 +162,7 @@ def content_settings(content):
 
 
 def runtime(args):
-    from native import engine_objects, normalize_log
+    from native import engine_objects, normalize_log, verify_static
     variables = [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0']
     native_cc = args.cc
     if args.sanitize:
@@ -170,6 +170,7 @@ def runtime(args):
         native_cc += ' -fsanitize=undefined -fno-omit-frame-pointer'
     variables += engine_objects(args.output / 'native', args.content, native_cc, args.cxx, ('game',))
     binary = build(args.output / 'runtime-build', variables) / 'quake3e.ded.x64'
+    verify_static(binary, ('game',))
     normalize = normalize_log
     for map_name in content_maps(args.content):
         results = []

@@ -7,8 +7,8 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/2-native-game, draft PR #50, platform worktree
-/tmp/aftershock-native-platform. Static checkpoint 956eebfa; compiler adaptation
+Active: issue/2-native-game, draft PR #50, primary worktree
+/home/matt/.t3/worktrees/aftershock/t3code-99571af6. Static checkpoint 956eebfa; compiler adaptation
 090b7a3c.
 Allocator PR #62 merged 0c3ef426 with merged regression 34934836544 passed.
 Free-list PR #63 merged 555f0771 after regression 34935436665/full build
@@ -34,9 +34,13 @@ Permanent static OA UBSan passes both accepted bot hashes after patch integratio
 All MinGW native objects compiled; the first local client link lacked cross zlib
 via curl defaults, so the CI USE_CURL=0 configuration is being checked.
 
-Next: verify this integration; finish compiler/MSVC native
-object builds, then remove
-obsolete VM/JIT code and finish remaining native test/provenance review.
+Static source 440089eb passed regression 34936092538 and full build 34936092520,
+including every MSVC/macOS/MinGW leg. The new symbol check rejects linked VM_*
+implementation symbols and requires each static module init export. It fails on
+the existing binary as expected (/tmp/aftershock-static-link-before.log).
+Next: commit this retirement check, remove obsolete VM/JIT implementations and
+build/startup hooks, retire their obsolete dispatch probe, then run runtime/replay,
+lifetimes and CI again. Finish remaining native test/provenance review.
 
 Static Q3 and OA bot logs and both-renderer fixed replay match accepted goldens.
 The integrated Q3 video-restart replay also matches all existing frames; the

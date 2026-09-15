@@ -10,6 +10,17 @@ import subprocess
 from run import ROOT, ENV
 
 
+def verify_static(binary, modules):
+    symbols = subprocess.check_output(['nm', '-C', '--defined-only', binary], text=True)
+    old = sorted(set(re.findall(r'\bVM_\w+', symbols)))
+    if old:
+        raise RuntimeError('obsolete VM code remains linked: ' + ', '.join(old))
+    for module in modules:
+        name = {'game': 'Game_Init', 'cgame': 'NativeCGame_Init', 'ui': 'NativeUI_Init'}[module]
+        if not re.search(r'\b' + name + r'$', symbols, re.M):
+            raise RuntimeError('missing static module export: ' + name)
+
+
 def engine_objects(output, content, cc='cc', cxx='c++', modules=('game', 'cgame', 'ui')):
     if content == 'quake3':
         return []
