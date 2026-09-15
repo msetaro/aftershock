@@ -7,29 +7,32 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-affinity-operators, temporarily based on #67 source 8e9b649d.
-#3/#31 earlier fixes/#1/#2/#4/#5 are complete. #5 merged as 1412c2eb and its
-merged-tree regression 34949976994 passed. #8 first warning-class PR #67 awaits
-corrected build 34950827218 and regression 34950827333. Its self-review and local
-object/LTO evidence are recorded below. Keep #67's exact remote head 8e9b649d for
-merge; new #31 work is isolated on this branch and has no PR yet.
+Active: issue/31-affinity-operators, based on #67 source 8e9b649d pending the
+merge of origin/modernization. #5 merged as 1412c2eb with merged regression
+34949976994 passing. First #8 warning-class PR #67 merged as 43ad68ab after build
+34950827218 and regression 34950827333 passed. Its merged-tree run remains to check.
 
-Next: commit the failing affinity-operator unit test first, then fix only operator
-consumption. Once #67 gates pass, mark it ready and merge with a merge commit;
-merge origin/modernization into this branch before opening the #31 PR. Verify the
-operator fix, explain any golden changes, reproduce/fix the upstream C source and
-open its applicable ec-/Quake3e PR. The hex-sentinel bug stays a separate #31 PR.
-After those fixes, resume #8 one warning class per PR, one verified tree-wide
-clang-format commit, tidy subsets, fixed-width representation types and layout
-assertions, and release-identical Q_ASSERT. Finish #8, write design-only
-`docs/design/rhi.md` for #6, then stop. No #6/#7 implementation.
+Next: merge origin/modernization, open the #31 affinity-operator PR and upstream
+C fix PR, finish codegen/runtime/hosted gates and self-review, then merge. The
+hex-sentinel bug stays a separate test-first #31 PR. After those fixes resume #8:
+one warning class per PR, one verified tree-wide clang-format commit, tidy subsets,
+fixed-width representation types/layout assertions, and release-identical Q_ASSERT.
+Finish #8, write design-only `docs/design/rhi.md` for #6, then stop; no implementation.
+
+Operator fix: preserve the + or - before recursive operand consumption. Test-first
+e84a1f6e fails; all 16 valid cases now pass GCC/Clang UBSan through both helper and
+public entry point. Common initialization and cvar-update callers were reviewed.
+Upstream C f694bbbc fails the same probe (with its original Com_SetAffinityMask
+name) and passes the same fix under both compilers. Explicit unit and collision
+golden regeneration is unchanged (8d44421d / 9674cd22). No engine FP, layout,
+allocation, OS call or lifetime change. No expectation/suppression applies.
 
 #31 operator test-first checkpoint: tests/affinity.py compiles the actual private
 parser/public apply implementation with UBSan. Sixteen valid expression cases
 cover constants, 64-bit values, aliases and mixed operator order. The OS setter
 is intercepted. The permanent test fails on the current source as expected
 (/tmp/aftershock-affinity-test-first.log); both compiler CI unit jobs now run it.
-No engine fix has been made at this checkpoint.
+This was the failing checkpoint before the operator fix.
 
 #8 baseline: 2,380 production C++ objects/diagnostics across GCC/Clang release,
 GCC debug, MinGW and aarch64 server configurations. Both renderers covered where
@@ -81,7 +84,7 @@ own #31 branch and commit the failing test before changing engine code.
 counts; explicit source lists scope vendor flags. No FP/layout/OS-call/allocation
 or lifetime changes; accepted goldens/fixtures unchanged. Native provenance and
 object/LTO review are recorded. Corrected hosted runs 34950827218 (build) and
-34950827333 (regression) must pass before readiness/merge.
+34950827333 (regression) passed; #67 merged as 43ad68ab.
 
 ## #5 completed verification
 

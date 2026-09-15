@@ -707,6 +707,15 @@ Compile with `g++ -std=c++20 -fno-exceptions -fno-rtti -O2 -ffunction-sections
 -o /tmp/aftershock-affinity-observe`, then run that binary. Add a permanent failing
 unit check and fix in its own #31 PR; no fix is included in warning PR #67.
 
+The permanent test-first commit e84a1f6e fails on the actual helper and public
+apply path. Saving the operator before consuming its operand fixes all 16 valid
+cases under GCC/Clang UBSan. Both common.cpp callers (initialization and cvar
+updates) use the same public path. No affinity OS call occurs in the test.
+Upstream C f694bbbc reproduces the same failures through Com_SetAffinityMask and
+passes the same source fix under GCC/Clang; an upstream PR is applicable.
+Explicit unit/collision regeneration is byte-identical (8d44421d / 9674cd22).
+The hex-sentinel issue below is deliberately unchanged in this operator fix.
+
 ## Affinity hexadecimal sentinel (#31, found during #8)
 
 The same helper assigns signed `hex_code`'s -1 sentinel to uint64_t `v` before
