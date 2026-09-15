@@ -727,3 +727,18 @@ its terminator and needs a bounded regression in the separate fix. This is a
 second root cause; keep its test/fix separate from expression-operator handling.
 The existing -Wtype-limits diagnostic identifies the exact condition. No fix or
 new expected-failure entry is included in #67; these are recorded #31 follow-ups.
+
+Hex test-first 985a3f1f adds two cases to the existing affinity test and enables
+ASan with UBSan. It confirms 0xZ becomes UINT64_MAX and bare 0x reads beyond its
+terminator. The fix keeps hex_code's return in signed int until it is validated,
+then widens valid digits to uint64_t. All 18 expressions and the intercepted public
+apply path pass GCC/Clang ASan+UBSan. Upstream C f694bbbc independently fails and
+passes the same hex-only fix with ten cases; its unrelated operator bug remains
+outside that upstream branch. No expectation/suppression entry applies.
+
+Hex source e25cf588 follows failing test 985a3f1f. Upstream C fix 38238103 is
+https://github.com/ec-/Quake3e/pull/441, based independently on upstream main.
+Nine production object comparisons show only parseAffinityMask changes, with no
+function additions/removals and identical unrelated instructions/relocations.
+Explicit unit/collision golden regeneration is byte-identical (8d44421d/9674cd22).
+Runtime/hosted gates and self-review remain before this separate fix merges.

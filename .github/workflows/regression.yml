@@ -89,7 +89,7 @@ jobs:
         run: python3 tests/team_voters.py --cc '${{ matrix.cc }}'
       - name: Native UI weapon sentinel
         run: python3 tests/ui_weapon.py --cxx '${{ matrix.cxx }}'
-      - name: CPU affinity expression operators
+      - name: CPU affinity expressions
         run: python3 tests/affinity.py --cxx '${{ matrix.cxx }}'
       - name: Complete bot movement result
         run: python3 tests/bot_move.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
