@@ -7,11 +7,10 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-parentheses-equality, based on pending PR #77 head 2c17b152.
-PR #77 remains on issue/8-native-fallthrough; verify its hosted gates and merge
-first, then integrate origin/modernization before opening this separate class PR.
-#76 merged 7f5f90b8 after build 35021362798/regression 35021362817; its merged-tree
-run remains to check. #75 merged-tree regression 35021218286 passed.
+Active: issue/8-parentheses-equality. PR #77 passed build 35022303013 and
+regression 35022302958 at 2c17b152, then merged as 28b89692. That merge is
+integrated here; its merged-tree regression remains to check. #76 merged-tree
+run 35022204641 and #75 merged-tree regression 35021218286 passed.
 
 This branch removes redundant inner parentheses from the tournament comparison
 in g_cmds.cpp and enables Clang's parentheses-equality diagnostic in production
@@ -22,8 +21,8 @@ pass after. Native provenance records source commit 639fb07e. Both Clang C/C++ h
 hashes match. Logs: /tmp/aftershock-parentheses-{c,cpp}.log. No golden regeneration.
 
 Next:
-1. Verify and merge #77, then open this parentheses-equality PR. Require hosted
-   build/regression and self-review before merging; check the merged-tree runs.
+1. Open this parentheses-equality PR. Require hosted build/regression and
+   self-review before merging; check its and #77's merged-tree runs.
 2. Continue with the previewed self-assign, null-subtraction and address cleanups
    in separate class PRs, including native provenance and helper freeze removal.
 3. Continue the remaining warning classes one per PR. Ready source previews below
@@ -49,7 +48,9 @@ Recent merges (all self-reviewed; merge commits):
 - #75 unused constants: da94649e, build 35020481804/regression 35020481815;
   merged b28beab5, merged-tree regression 35021218286 passed.
 - #76 native helper internal declarations: 4c598f3e, build 35021362798/regression
-  35021362817; merged 7f5f90b8, merged-tree regression pending verification.
+  35021362817; merged 7f5f90b8, merged-tree regression 35022204641 passed.
+- #77 native helper fallthrough: 2c17b152, build 35022303013/regression 35022302958;
+  merged 28b89692, merged-tree regression pending verification.
 #5 is complete. #8 warning ratchet remains active; later #8 rules are not done.
 
 Completed PR #75 evidence:
@@ -119,6 +120,10 @@ Retained #8 warning evidence and upcoming previews:
   further condition reads. No source FP expression changes; all other instructions
   and relocations match. Full regression remains required for the eventual PR.
   /tmp/aftershock-address-preview. Not applied.
+- Formatting preflight: local clang-format is 21.1.8. VK_CHECK stringifies its
+  argument, so its call whitespace must be preserved by the eventual formatter
+  configuration. Allocator __LINE__ macros are debug-only. Do not start the single
+  tree-wide formatting commit until the warning ratchet is complete.
 - MSVC release inventory: C4267, C4459, C4456, C4065, C4457 and C4644, from #69 job
   104469265974. /tmp/aftershock-msvc-warning-inventory.log. Address before /WX.
 
