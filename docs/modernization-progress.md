@@ -7,24 +7,25 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-native-fallthrough. PR #76 passed build 35021362798 and regression
-35021362817 at 4c598f3e, then merged as 7f5f90b8. That merge is integrated here;
-its merged-tree regression remains to check. #75 merged-tree run 35021218286 and
-#74 merged-tree run 35020339038 passed.
+Active: issue/8-parentheses-equality, based on pending PR #77 head 2c17b152.
+PR #77 remains on issue/8-native-fallthrough; verify its hosted gates and merge
+first, then integrate origin/modernization before opening this separate class PR.
+#76 merged 7f5f90b8 after build 35021362798/regression 35021362817; its merged-tree
+run remains to check. #75 merged-tree regression 35021218286 passed.
 
-This branch removes only GCC's implicit-fallthrough helper freeze. Production
-fallthrough was enabled in #67; the completed source annotations are unchanged.
-All six GCC C/C++ helper libraries retain identical hashes with this flag removed,
-and both helper-flag controls reject an unannotated fallthrough. Artifacts:
-/tmp/aftershock-native-fallthrough-preview. No engine source or golden changes.
-The preceding #76 helper change preserves all six Clang libraries and rejects
-its diagnostic controls in both languages.
+This branch removes redundant inner parentheses from the tournament comparison
+in g_cmds.cpp and enables Clang's parentheses-equality diagnostic in production
+and the standalone native helper. Source line count, comparison and behavior are
+unchanged. Nine-object preview: release/MinGW native objects match; two debug
+objects differ only in debug metadata. Actual-wrapper controls fail before and
+pass after. Next local work: record native provenance and check both Clang helper
+languages against the six saved shared-library hashes. No golden regeneration.
 
 Next:
-1. Open this GCC fallthrough helper PR. Require hosted build/regression and
-   self-review before merging; check its and #76's merged-tree runs.
-2. Continue with the previewed parentheses-equality and self-assign cleanups in
-   separate class PRs, including native provenance and helper freeze removal.
+1. Verify and merge #77, then open this parentheses-equality PR. Require hosted
+   build/regression and self-review before merging; check the merged-tree runs.
+2. Continue with the previewed self-assign, null-subtraction and address cleanups
+   in separate class PRs, including native provenance and helper freeze removal.
 3. Continue the remaining warning classes one per PR. Ready source previews below
    cover parentheses-equality and self-assign. Then finish the larger warning
    classes, MSVC warnings and /WX, one verified tree-wide clang-format commit,
