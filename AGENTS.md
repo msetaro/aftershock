@@ -118,6 +118,7 @@ python3 -B tests/native_gates.py --tidy
 python3 tests/native.py --content openarena
 python3 tests/openarena_strings.py
 python3 tests/ui_weapon.py
+python3 tests/ui_skill.py
 python3 tests/team_voters.py
 python3 tests/team_flags.py
 python3 tests/bot_command.py

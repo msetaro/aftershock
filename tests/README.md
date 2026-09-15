@@ -400,3 +400,12 @@ both signed-char and unsigned-char compiler defaults under ASan/UBSan. It uses
 actual template matching, variable extraction and message expansion, tests valid
 offsets alongside the absent variable, and checks mirrored engine/game layouts.
 `--cxx` selects GCC or Clang. It needs no content or external services.
+
+`python3 tests/ui_skill.py` exercises the actual GPL UI skill callback and score
+storage under ASan/UBSan including float-cast-overflow. Large finite cvar values,
+integer conversion boundaries and invalid low values are handled without an
+unbounded float-to-int conversion. Valid values (including fractional skills)
+retain truncation and select the same score cvar. The shared UI reader preserves
+out-of-range sentinels so menus retain their own reset/clamp policies. The engine
+already filters non-finite cvar values. `--cxx` selects GCC or Clang; no assets or
+expected-failure entry are needed.
