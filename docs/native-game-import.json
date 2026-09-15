@@ -130,7 +130,10 @@
     "d6c2ac52": "#2 static module lifecycle: explicit per-level initialization replaces DLL storage reset",
     "436bbab1": "#2 static client/UI lifecycle: reset module state at initialization",
     "956eebfa": "#2 static integration: typed engine/module services, isolated module namespaces and retained compatibility math/library bindings",
-    "090b7a3c": "#2 platform adaptation: DEBUG T8 casts with unchanged C objects; MSVC pragmas, Win32 selection, unused legacy helpers and compiler debug trap"
+    "090b7a3c": "#2 platform adaptation: DEBUG T8 casts with unchanged C objects; MSVC pragmas, Win32 selection, unused legacy helpers and compiler debug trap",
+    "85381cda": "#4 content-identical directory moves; original import source names and hashes retained",
+    "8b5264c5": "#4 include/build path repair; all 710 production objects byte-identical before/after",
+    "52e57708": "#4 shared game/input headers published at subsystem boundaries; game implementation changes only include paths"
   },
   "files": [
     {
@@ -141,7 +144,8 @@
       "transformations": [
         "8889ea0e",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "52e57708"
       ]
     },
     {
@@ -153,7 +157,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "5592a1eb",
-        "436bbab1"
+        "436bbab1",
+        "52e57708"
       ]
     },
     {
@@ -192,7 +197,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "52e57708"
       ]
     },
     {
@@ -213,7 +219,9 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "5592a1eb",
-        "436bbab1"
+        "436bbab1",
+        "8b5264c5",
+        "52e57708"
       ]
     },
     {
@@ -237,7 +245,8 @@
         "e8e98ab2",
         "0b575fa9",
         "5592a1eb",
-        "436bbab1"
+        "436bbab1",
+        "52e57708"
       ]
     },
     {
@@ -310,7 +319,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "52e57708"
       ]
     },
     {
@@ -367,7 +377,8 @@
       "transformations": [
         "e8e98ab2",
         "5592a1eb",
-        "d6c2ac52"
+        "d6c2ac52",
+        "52e57708"
       ]
     },
     {
@@ -386,7 +397,8 @@
         "e8e98ab2",
         "5592a1eb",
         "d6c2ac52",
-        "090b7a3c"
+        "090b7a3c",
+        "52e57708"
       ]
     },
     {
@@ -403,7 +415,8 @@
       "transformations": [
         "e8e98ab2",
         "5592a1eb",
-        "090b7a3c"
+        "090b7a3c",
+        "52e57708"
       ]
     },
     {
@@ -421,7 +434,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "5592a1eb",
-        "d6c2ac52"
+        "d6c2ac52",
+        "52e57708"
       ]
     },
     {
@@ -441,7 +455,8 @@
         "8dff7805",
         "5592a1eb",
         "0366fa06",
-        "d6c2ac52"
+        "d6c2ac52",
+        "8b5264c5"
       ]
     },
     {
@@ -460,7 +475,8 @@
         "e8e98ab2",
         "0b575fa9",
         "5592a1eb",
-        "d6c2ac52"
+        "d6c2ac52",
+        "52e57708"
       ]
     },
     {
@@ -479,7 +495,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "52e57708"
       ]
     },
     {
@@ -567,7 +584,8 @@
       "transformations": [
         "6ea3a3bb",
         "8889ea0e",
-        "5592a1eb"
+        "5592a1eb",
+        "8b5264c5"
       ]
     },
     {
@@ -577,7 +595,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 17 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "5592a1eb",
-        "d6c2ac52"
+        "d6c2ac52",
+        "8b5264c5"
       ]
     },
     {
@@ -598,7 +617,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "6ea3a3bb",
-        "5592a1eb"
+        "5592a1eb",
+        "8b5264c5"
       ]
     },
     {
@@ -663,7 +683,8 @@
         "6ea3a3bb",
         "8889ea0e",
         "e8e98ab2",
-        "0b575fa9"
+        "0b575fa9",
+        "52e57708"
       ]
     },
     {
@@ -697,7 +718,8 @@
       "transformations": [
         "bdf81ac0",
         "8889ea0e",
-        "d6c2ac52"
+        "d6c2ac52",
+        "8b5264c5"
       ]
     },
     {
@@ -1070,7 +1092,9 @@
         "8889ea0e",
         "630ae8e1",
         "bb869f79",
-        "436bbab1"
+        "436bbab1",
+        "8b5264c5",
+        "52e57708"
       ]
     },
     {
@@ -1249,7 +1273,9 @@
       "sha256": "b249e8d18be4379c1606a58e2f9fea6ec4ac4ef910de75e4d600bbe18a3d9902",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 5 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
-        "5592a1eb"
+        "5592a1eb",
+        "8b5264c5",
+        "52e57708"
       ]
     },
     {
