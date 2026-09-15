@@ -7,13 +7,21 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-#4 is ready to merge as PR #65 (issue/4-subsystem-boundaries). Source ffaa1ea7
-passed regression 34941722921 and full build 34941722886 on every required leg,
-including GCC/Clang, cross builds, all Windows MSVC configurations and macOS.
-Merge this documentation/line-ending checkpoint with a merge commit, verify the
-merged-tree regression, then continue #5 -> #8 -> design-only docs/design/rhi.md
-for #6. No #6/#7 implementation. #2 PR #50 and #31 PR #64 are already complete;
-#64 merged-tree regression 34938271942 passed.
+Active: issue/5-cmake-build from #4 merge 4a952854. PR #65 is merged; source
+ffaa1ea7 passed regression 34941722921 and full build 34941722886 on every
+required leg. Verify the merged-tree regression before changing the build system.
+#2 PR #50 and #31 PR #64 are already complete; #64 merged-tree regression
+34938271942 passed. Continue #5 -> #8 -> design-only docs/design/rhi.md for #6.
+No #6/#7 implementation.
+
+#5 issue read. Decision: repair CMake as primary; prove production object parity
+against the supported Make configurations before deleting Makefile. Generated
+MSVC projects, 64-bit little-endian only, ccache on CI. Existing CMake still points
+at the old C/VM layout and has not been run. Permanent tests need CMake build and
+compile-command contexts; foreign OpenArena source keeps its own upstream Makefile
+as import metadata. Keep archived port-oracle revisions intact. No source behavior
+or accepted golden changes are authorized here. First capture the current Make
+configuration/objects, then repair CMake and compare before any Make retirement.
 
 #4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects
 per renderer on 239cbc34. Pure move 85381cda moves 757 files with identical Git
@@ -52,7 +60,7 @@ Self-review: one issue, public/OS ownership scope, content-only move evidence ke
 separate from boundary changes; no new OS calls outside platform/filesystem;
 no non-trivial core lifetimes or per-frame allocation; no simulation FP expression
 change; existing wire/file layout assertions retained and native layouts match;
-all goldens/fixtures unchanged. CI and local gates pass. Ready for merge.
+all goldens/fixtures unchanged. CI and local gates pass. PR #65 merged as 4a952854.
 
 ## Earlier #2 integration checkpoints (historical)
 
