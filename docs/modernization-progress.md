@@ -37,11 +37,21 @@ The flag-domain assumption in the latter is corrected by the reviewed #59 fix.
 
 The resolved merge passes GCC/Clang base and missionpack flag tests. Its g_team
 source is byte-identical to the successful temporary native C++ checks. #59
-merged-tree regression 34926638834 is pending.
+merged-tree regression 34926638834 passed.
 
-Next: commit/push this integration and verify that run plus #2 CI with pahole
-installed. Complete source provenance/catalog and final G4/G7 review,
-then a content-free .cpp rename, static integration and VM/JIT removal. No VM/JIT
+Integration/pahole fix is committed as d8691015; regression 34926764924/full build
+34926765230 are pending, with the native comparison job now passing. The import
+manifest audit verifies all 130 original GPL hashes and records per-file native
+ABI/catalog/#31 commit references: 30 verbatim, 96 modified, four retained ABI headers.
+
+Next: park #2 after this provenance checkpoint and fix the newly confirmed native
+bot command conversion in a separate #31 PR. Full native C++ UBSan smoke stops at
+ai_main.c:877 converting -6280.11 directly to signed char. All three movement
+components need the existing integer-truncation stage made explicit, with a
+failing real-function test and byte/codegen parity; no clamping or FP restructuring.
+The single caller is BotUpdateInput. Details/command/log are in cpp-port-notes.md.
+No source fix is made on #2. Resume the instrumented smoke after that fix, then
+finish G4/G7/catalog review, .cpp rename, static calls and VM/JIT removal. No VM/JIT
 removal has started, and no accepted fixture/golden changes have been made on #2.
 
 Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95

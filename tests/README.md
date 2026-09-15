@@ -325,3 +325,9 @@ comparisons; it is a review report, not a claim of zero findings.
 UBSan in base-game and MISSIONPACK builds. Initial flag configstrings are complete;
 pickups, drops, repeated updates and reinitialization preserve valid flag states.
 --cc/--output select compiler/output. Both unit compiler jobs run it, without assets.
+
+The import manifest's SHA256 values always identify the pinned original GPL files.
+Its per-file transformation references link the native ABI adaptations, catalog
+passes and separate #31 fixes to their commits; retained engine ABI headers are
+identified explicitly. The audit before renaming verified all 130 original hashes:
+30 files remain verbatim, 96 carry recorded changes, and four retain engine headers.
