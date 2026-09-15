@@ -615,4 +615,20 @@ payload checks. G3 symbols remain identical; G2 adds only private allocHeader_u,
 with existing layouts unchanged. Of six functions, G4 changes only BG_CanAlloc,
 BG_Alloc and BG_Free. Artifacts: /tmp/aftershock-oa-allocation-gates. Explicit
 unit/collision/Q3 runtime golden regeneration has zero diff. Full #2 static OA
-sanitizer smoke is being checked using the patched object and original engine.
+sanitizer smoke passes both maps with unchanged accepted bot logs, using the patched
+C object and original engine objects (/tmp/aftershock-oa-allocation-static).
+
+PR #62 source d7fb120b passed regression 34934306507 and full build 34934306523.
+Explicit OpenArena QVM runtime regeneration also has zero golden diff. Self-review
+passes: one alignment cause, shared allocation/free/capacity paths audited, no FP
+or wire-layout change, no added allocation/OS/non-trivial lifetime, no suppression.
+
+## OpenArena freeing from an empty free list (#31, separate from alignment)
+
+BG_Free unconditionally writes freeHead->prev after putting a released block at
+the head. If allocations completely consumed the pool, freeHead is NULL. A small
+reproducer fills it through BG_CanAlloc(16)/BG_Alloc(16), then frees one block;
+UBSan reports member access within null pointer at bg_alloc.c:173 after the
+alignment patch. Files: /tmp/aftershock-openarena-full-pool.c and .log. This is a
+separate original allocator bug, not fixed by #62; a separate test-first PR is
+next. No game content is required and no FP expression is involved.

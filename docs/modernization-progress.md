@@ -28,11 +28,31 @@ are identical; the only new layout is the private eight-byte allocHeader union;
 G4 changes only BG_CanAlloc/BG_Alloc/BG_Free (six functions total). Explicit
 unit/collision/Q3 runtime regeneration is byte-identical. Full #2 static OA
 runtime UBSan is running with the patched C object and unchanged engine objects.
-Next: finish that check, push the source/test CI change, open a draft PR, and
-complete CI/self-review before merge. No suppression/expected-bug entry exists; this failure remains fatal.
+Full #2 static OA runtime UBSan now passes both accepted bot logs after the patch,
+using unchanged engine objects (/tmp/aftershock-oa-allocation-static.py and output).
+PR #62 source d7fb120b passed regression 34934306507 and full build 34934306523.
+Explicit OpenArena QVM runtime regeneration also has zero golden diff. Self-review
+passes: one allocator-alignment fix; all capacity/allocation/free callers audited;
+no FP, wire-layout, OS, per-frame allocation or non-trivial lifetime changes;
+GCC/Clang focused tests and full static OA UBSan pass. No suppression/known-bug
+entry applies; no corresponding ec-/Quake3e allocator exists. This checkpoint
+changes documentation only. Next: ready/merge #62 and verify merged-tree CI. No suppression/expected-bug entry exists; this failure remains fatal.
 The ec-/Quake3e engine lacks this external OA/Tremulous game allocator, so an engine
 upstream PR is not applicable. Complete this #31 PR and merge after gates/review,
 then integrate its patch on #2 and resume the recorded sequence.
+
+Parked #2 CI on 956eebfa exposed expected remaining platform integration work:
+Debug-only AI code still passes literals to char*; MinGW
+reaches MSVC-only pragmas; macOS reaches original PPC register/assembly helpers;
+MSVC projects lack native objects. Reports: /tmp/aftershock-native-956e-ci. Address
+these as #2 catalog/build adaptations after this bug fix, without broad warning
+suppression or simulation edits. The #2 runtime CI failure is its static OA sanitizer step (covered by this fix); local static smoke/replay/lifetimes passed as recorded on that branch.
+
+A separate allocator review reproducer confirms BG_Free dereferences freeHead
+when the pool is completely allocated and freeHead is NULL. It is not changed in
+#62. /tmp/aftershock-openarena-full-pool.c fills via BG_CanAlloc/BG_Alloc and frees
+one block; UBSan fails at bg_alloc.c:173. Record/fix it in the next separate #31
+PR after #62 merges, then integrate both patches into #2 and resume static work.
 
 ## Earlier checkpoints (historical)
 
