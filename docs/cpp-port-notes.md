@@ -583,3 +583,22 @@ PR #61 source cdcbb7df passed regression 34930264125 and full build 34930264136.
 Native C++ smoke and fixed replay also match both Q3 maps/renderers. Self-review
 passes with no unrelated edits, allocations, OS calls or non-trivial lifetimes.
 The reviewed two-line source fix is the only difference from the GPL prerequisite.
+
+## OpenArena native allocator alignment (#31)
+
+Pinned gamecode 331464ca396d80e91cf9be273588f2b5f4b7afc8 bg_alloc.c rounds block
+sizes to 32 bytes but returns the payload after a four-byte int size header.
+Native pointer-bearing structures require eight-byte alignment; the char-array
+pool also has no explicit pointer-alignment guarantee. #2 static OA runtime
+UBSan reports bot_state_t member access at ai_main.c:1210. Its parked reproducer
+is python3 tests/run.py runtime --sanitize --content openarena
+--data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-native-integrated-oa-ubsan
+on issue/2-native-game checkpoint 956eebfa.
+
+python3 tests/openarena_alloc.py stages the exact public allocator/headers and
+checks real gentity_t access plus payload alignment, free/reuse and preservation
+of live allocations. GCC and Clang fail before the patch, with UBSan's misaligned
+member access. No assets are required. All callers route through BG_Alloc/BG_Free;
+BG_CanAlloc must use the same padded header size. No FP expression change is needed.
+No suppression/known-bug entry applies. ec-/Quake3e lacks this external game
+allocator; there is no applicable engine upstream patch.
