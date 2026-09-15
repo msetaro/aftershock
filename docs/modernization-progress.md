@@ -7,24 +7,32 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: `issue/31-openarena-target`, based on modernization f908cd8e.
-#2 is checkpointed/pushed at 869df0ab on issue/2-native-game (draft PR #50).
-GCC/Clang C++ native Q3 smoke/replay, 29 layouts/three offsets and shared-function
-comparisons pass. Regression 34912410405 passed on c386658a. Artifact review remains
-open before static integration; no VM/JIT removal or native OA integration yet.
+Active work: issue/31-openarena-extension, draft PR #55, split from #2 (parked at c8e62d81,
+draft PR #50). Test-first commit 02f74cd3 reproduces overlapping strncpy in pinned
+OpenArena COM_StripExtension under ASan. Its shared helper now avoids copying when
+input and output are equal, preserves bounded termination and retains invalid-input
+checks through Q_strncpyz. GCC/Clang helper checks pass. Symbols match for all 58
+functions; only COM_StripExtension assembly changes. Temporary native fixed-demo
+replay now matches every accepted frame on both maps/renderers (5b89d338); no
+fixture/golden regeneration. Final guarded patch replay also passes. Regression
+34914627444 and full build 34914627413 passed on d1e58dcb. Unit/collision goldens
+pass unchanged. Clang native OA smoke and fixed replay also pass both maps/renderers.
+Self-review: only the pinned dependency helper changes behavior; all callers use it;
+no engine source, FP expression, per-frame allocation, OS-access or layout changes;
+no golden/expectation/suppression changes; #31 updated. Ready to merge #55.
 
-This #31 follow-up fixes OpenArena oaxB52's nullable name comparison for the CI
-content configuration. Test-first 43a3dac3 compiles the actual pinned header helper
-and fails under UBSan when one name is NULL. A three-line static inline replacement
-now passes GCC/Clang, checking missing/empty/different/equal/case-different names and
-single evaluation of arguments. It is maintained as a patch to the pinned public
-source, not an engine/game import into this branch. Native OA smoke now matches both accepted gameplay logs after using the existing
-QVM random/sort compatibility library and normalizing only VM-loading metadata.
-Accepted fixtures/goldens remain unchanged.
-PR #54 source 07ea4fe3ba218df52f062fcd503fb520e61e94cd passed regression
-34913347473 and full build 34913347479. Self-review passes. Next: merge PR #54
-with a merge commit and verify its merged tree. Resume #2 native OA support,
-artifact review, static integration and VM/JIT removal afterward.
+The initial combined test also found empty-output out[-1] in the same helper;
+that is a distinct bug and is recorded on #31 for the next separate PR. Its test
+cases were separated from the overlap check without rewriting history. Fix it
+before resuming #2. No expected failure or suppression is added for either fix.
+
+Next: finish overlap PR gates/self-review/merge, fix empty-output in its own #31
+PR, then merge both into #2. #54 merged-tree regression 34913731858 passed.
+#2's GCC/Clang native C/C++ Q3 smoke/replay, layout and shared math checks pass;
+OA native smoke also matches both maps. Complete permanent pinned OpenArena
+native support, final G3/G4 review, portable literals, static native calls and
+VM/JIT removal. No accepted golden or fixture changes on #2.
+
 
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
