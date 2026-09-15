@@ -207,10 +207,28 @@ the QVM compiler does; `bg_lib.c` preserves the QVM random sequence. Temporary D
 entry points marshal pointer-width words until static integration removes them.
 Replay uses the same committed demos/frame hashes. Smoke removes only module load
 metadata, build date and bot-skill printf padding before comparing the accepted QVM
-log. Gameplay text is retained. Both Quake 3 maps and both-renderer replay pass after
-#31 PR #51 fixed the engine's uninitialized movement result. Native OpenArena support
-is still required before VM removal.
+log. Gameplay text is retained. The OpenArena comparison also removes its VM-only
+magic/version and jump-table compilation metadata. Both Quake 3 maps and both-renderer
+replay pass after #31 PR #51 fixed the engine's uninitialized movement result.
 Native parity commands reject regeneration; the accepted QVM default is unchanged.
+
+Hosted native parity uses the pinned OpenArena B52 C source and the #31 patches:
+
+```
+python3 tests/native.py --content openarena
+python3 tests/run.py runtime --game-code native --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/demo.py --game-code native --content openarena --data /tmp/aftershock-openarena-baseoa
+```
+
+The runtime job runs both commands against the existing OpenArena goldens. Source is
+exported from revision 331464ca396d80e91cf9be273588f2b5f4b7afc8 into the test output;
+its original GPL notices remain. Only native ABI entry/call adaptation is generated;
+reviewed bug patches remain separate. Original module lists select the base q3_ui
+sources, and bg_lib preserves QVM random/sort behavior. This external dependency
+builds as C with GCC or Clang; --game-language c++ applies to the imported Q3 port.
+Its 28 identical structure sizes and three offsets are compared to the engine,
+plus the consumed 140-byte refEntity prefix (OpenArena appends 36 eye-vector bytes).
+No native game content is downloaded or committed.
 
 ### Bot movement result regression
 
@@ -256,5 +274,5 @@ then applies the name-comparison and extension patches in tests/patches to its o
 directory. The extension probe links the actual q_shared.c helper.
 No game content is fetched by this check. --cc, --source and --output select the
 compiler/cache/output. Both unit compiler jobs run name comparisons under UBSan and
-extension stripping under ASan. The source patch is for #2's native OpenArena configuration; the existing QVM fixtures remain
-unchanged. Original GPL notices remain in the fetched headers.
+extension stripping under ASan. The source patches are for #2's native OpenArena
+configuration; the existing QVM fixtures remain unchanged. Original GPL notices remain in the fetched headers.

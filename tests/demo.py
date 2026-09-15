@@ -22,8 +22,8 @@ parser.add_argument('--cxx', default='g++')
 parser.add_argument('--record-fixtures', action='store_true', help='explicitly replace demos and frame goldens')
 parser.add_argument('--regenerate', action='store_true', help='explicitly replace frame goldens only')
 args = parser.parse_args()
-if args.game_code == 'native' and (args.content != 'quake3' or args.record_fixtures or args.regenerate):
-    parser.error('native parity currently requires fixed Quake 3 fixtures without regeneration')
+if args.game_code == 'native' and (args.record_fixtures or args.regenerate):
+    parser.error('native parity requires fixed fixtures without regeneration')
 if args.record_fixtures:
     args.regenerate = True
 if args.regenerate and os.environ.get('CI'):
@@ -33,7 +33,7 @@ output.mkdir(parents=True, exist_ok=True)
 data = args.data.resolve()
 paks = sorted(data.glob('*.pk3'))
 if not paks:
-    parser.error('user-owned baseq3 paks are required; see tests/README.md')
+    parser.error('installed content paks are required; see tests/README.md')
 icds = list(Path('/usr/share/vulkan/icd.d').glob('lvp*.json'))
 if len(icds) != 1:
     parser.error('exactly one installed Mesa lavapipe ICD is required')
@@ -44,7 +44,7 @@ run(['cc', '-Wall', '-Wextra', '-Werror', '-shared', '-fPIC', 'tests/probes/fixe
 modules = {}
 if args.game_code == 'native':
     from native import build_modules
-    modules = build_modules(output / 'native', args.cc, ('cgame', 'ui'), args.cxx, args.game_language)
+    modules = build_modules(output / 'native', args.cc, ('cgame', 'ui'), args.cxx, args.game_language, args.content)
 binaries = {}
 for backend in ('vulkan', 'opengl1'):
     directory = build(output / ('build-' + backend), ['BUILD_SERVER=0', 'USE_RENDERER_DLOPEN=0', 'RENDERER_DEFAULT=' + ('opengl' if backend == 'opengl1' else backend)])

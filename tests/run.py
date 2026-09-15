@@ -170,7 +170,7 @@ def runtime(args):
     normalize = None
     if args.game_code == 'native':
         from native import build_modules, normalize_log
-        modules = build_modules(args.output / 'native', args.cc, ('game',), args.cxx, args.game_language)
+        modules = build_modules(args.output / 'native', args.cc, ('game',), args.cxx, args.game_language, args.content)
         normalize = normalize_log
     for map_name in content_maps(args.content):
         results = []
@@ -229,8 +229,8 @@ def main():
     parser.add_argument('--negative-control', action='store_true')
     parser.add_argument('--regenerate', action='store_true', help='explicitly replace goldens; prohibited in CI')
     args = parser.parse_args()
-    if args.game_code == 'native' and (args.check != 'runtime' or args.content != 'quake3' or args.regenerate):
-        parser.error('native parity currently requires Quake 3 runtime without regeneration')
+    if args.game_code == 'native' and (args.check != 'runtime' or args.regenerate):
+        parser.error('native parity requires runtime without regeneration')
     if args.regenerate and os.environ.get('CI'):
         parser.error('CI must never regenerate goldens')
     if args.negative_control and (args.check != 'unit' or args.sanitize or args.regenerate):

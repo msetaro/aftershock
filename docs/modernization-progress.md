@@ -11,7 +11,7 @@ Active work: issue/2-native-game, draft PR #50. This merge brings in OpenArena
 helper fixes #55/#56 and retains all native C/C++ checks. #55 merged b051c915 after
 regression 34914627444/full build 34914627413 passed on d1e58dcb; merged-tree
 regression 34914963107 passed. #56 merged 3a975506 after regression 34915071172/
-full build 34915071248 passed on a1f04017. Its merged-tree regression is pending.
+full build 34915071248 passed on a1f04017. Its merged-tree regression 34915431579 passed.
 #54 merged-tree regression 34913731858 also passed.
 
 The two separate #31 fixes have failing-first ASan tests (02f74cd3/c5a2ab4c):
@@ -20,11 +20,14 @@ pass after; each changes only that helper's assembly and preserves all 58 symbol
 Native OA smoke/replay matches both maps/renderers on GCC/Clang with #55, and on
 Clang with both fixes. No accepted fixture/golden, expectation or suppression changed.
 
-Next: verify #56 merged-tree regression, then finish permanent OpenArena native
-build/smoke/replay support. /tmp/aftershock-openarena-native.py is a prepared but
-unrun prototype; test it before adoption. OA refEntity is 176 bytes with eye vectors
-appended after the engine's matching 140-byte prefix; other 28 shared sizes and three
-offsets match. The adapter must check that consumed prefix explicitly.
+Next: finish permanent OpenArena native parity verification and commit this #2
+checkpoint. The adapter now builds all three modules with GCC/Clang from a clean
+pinned export, shares source staging with the string-helper checks, and compares
+28 structure sizes/three offsets plus the consumed 140-byte refEntity prefix.
+OpenArena appends 36 eye-vector bytes, which remain local. Permanent GCC runtime
+matches both accepted normalized logs. Permanent fixed replay passes every accepted
+frame on both maps/renderers (5b89d338). CI now includes native OA smoke/replay;
+push this checkpoint and check its run. No accepted goldens or fixtures changed.
 
 GCC/Clang native C/C++ Q3 smoke/replay, layouts and shared math checks already pass.
 Remaining #2 work: final G3/G4 artifact review, portable binary32 literal handling

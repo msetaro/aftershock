@@ -99,6 +99,7 @@ Permanent regression commands (see `tests/README.md` for content and prerequisit
 ```
 python3 tests/native_math.py
 python3 tests/native_shared.py
+python3 tests/native.py --content openarena
 python3 tests/openarena_strings.py
 python3 tests/check_lifetimes.py
 python3 tests/run.py unit --negative-control
