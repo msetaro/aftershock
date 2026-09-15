@@ -331,3 +331,10 @@ Its per-file transformation references link the native ABI adaptations, catalog
 passes and separate #31 fixes to their commits; retained engine ABI headers are
 identified explicitly. The audit before renaming verified all 130 original hashes:
 30 files remain verbatim, 96 carry recorded changes, and four retain engine headers.
+
+`python3 tests/bot_command.py` exercises the real BotInputToUserCommand with
+horizontal/vertical bases, byte endpoints, fractions and larger signed inputs.
+UBSan float-cast-overflow checks the conversion; explicit expected bytes check
+legacy truncation/wrapping. --cc/--output select compiler and output; it uses the
+imported local headers and native ABI configuration.
+Both unit compiler jobs run it. No assets are needed.

@@ -516,23 +516,35 @@ Temporary complete #2 GCC/Clang C++ flag checks also pass UBSan. Unit/collision/
 Q3 runtime explicit regeneration is byte-identical. Self-review passes; no expected
 bug entry, suppression or accepted golden changed.
 
-### Native bot movement narrows float directly to command bytes (#31, pending)
+### Native bot command floats narrow outside byte range (#31)
 
-A fully UBSan-instrumented native C++ bot smoke stops at ai_main.c:877:
--6280.11 is outside signed char's range. BotInputToUserCommand assigns its three
-float movement expressions directly to usercmd_t signed-byte fields. The native
-instruction path already truncates to a 32-bit integer then keeps its low byte;
-C/C++ direct float-to-byte conversion is undefined outside the byte range.
-BotUpdateInput is the single caller, using the botlib input and current delta angles.
+The full native C++ UBSan q3dm17 smoke reports -6280.11 outside signed char range
+at BotInputToUserCommand (ai_main.c:877). All three float movement expressions
+assign directly into signed command bytes. BotUpdateInput is the sole caller.
+The native instruction sequence already truncates to int then stores the low byte,
+but the direct float-to-byte source conversion is undefined outside byte range.
 
-Reproducer: LD_LIBRARY_PATH=/usr/lib/llvm-21/lib/clang/21/lib/linux python3 tests/run.py
-runtime --game-code native --game-language c++ --cxx 'clang++ -fsanitize=undefined
--fno-sanitize-recover=all -shared-libsan' --output /tmp/aftershock-native-cpp-ubsan-shared.
-The real q3dm17 warmup log records the failure. Clang's shared sanitizer runtime is
-needed to satisfy -z defs when linking instrumented native modules; no suppression.
+`python3 tests/bot_command.py` calls the real conversion with controlled horizontal
+and vertical AngleVectors bases. Its explicit expected bytes cover sign, endpoints,
+fractional truncation and modulo storage; float-cast-overflow fails at 254 before
+the fix. A shared helper stages unchanged pinned GPL headers for this and the
+existing team-leader check. The sole verbatim source prerequisite ai_main.c retains
+its GPL notice from id-Software/Quake-III-Arena revision
+dbe4ddb10315479fc00086f08e25d968b4b43c49, SHA256
+e969a606253b2d0aa69e9dc1c46981ef3a2ed352140ee3ce637cf456fc23497e.
 
-Fix only in a separate #31 PR with a failing test: make the existing intermediate
-integer truncation explicit for all three command components, keeping each entire
-FP expression unchanged. Prove original C codegen and command-byte output parity;
-do not clamp or restructure movement arithmetic. No fix is on #2. No corresponding
-ec-/Quake3e game implementation exists.
+Fix all three components in this separate #31 PR by making the intermediate int
+conversion explicit around the whole expression. No clamping or FP arithmetic
+restructuring. No corresponding ec-/Quake3e game implementation exists. Native
+port integration remains #2.
+
+Test-first 02a9ddeb fails at 254 on both GCC/Clang. All 18 expected-byte cases pass
+after; both compilers produce byte-identical C release objects and identical G2,
+G3 and G4 output. No floating-point expression or command representation changes.
+Artifacts: /tmp/aftershock-bot-command-gates.py and /tmp/aftershock-bot-command-gates.
+
+PR #60 source 0366fa06 passed regression 34927341670/full build 34927341749.
+Temporary complete #2 native C++ UBSan smoke now passes both Q3 maps with identical
+repeats and accepted logs. Explicit unit/collision/Q3 runtime regeneration gives
+no diff. Self-review passes; no suppression, expected-bug entry or accepted golden
+changes. The full native runtime reproducer is /tmp/aftershock-bot-command-native.py.

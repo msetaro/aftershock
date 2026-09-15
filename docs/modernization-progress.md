@@ -7,52 +7,44 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/2-native-game, draft PR #50. PR #59 merged as 11781f44 after
-regression 34926290647/full build 34926290657 passed on 622ae3af. Its initializer
-publishes complete "00"/"0" configstrings while keeping valid zeroed flag states.
-Test-first a6c34e5b fails at the original table index; GCC/Clang base/missionpack
-checks pass after. Layouts/symbols unchanged; only Team_InitGame assembly changes.
-Temporary complete #2 C++ flag paths also pass GCC/Clang UBSan. Explicit unit,
-collision and Q3 runtime regeneration is byte-identical. This merge retains all
-#2 catalog edits and adapts the test to include its existing native ABI header.
+Active work: issue/2-native-game, draft PR #50. PR #60 merged as 8e3ecf78 after
+regression 34927341670/full build 34927341749 passed on 0366fa06. Test-first
+02a9ddeb reproduces float-to-signed-byte UB. The three complete movement expressions
+now explicitly truncate through int; GCC/Clang original C objects, layouts, symbols
+and assembly are byte-identical before/after. All 18 command cases pass. Temporary
+complete #2 native C++ UBSan bot smoke passes both maps with identical repeats and
+accepted logs. Explicit unit/collision/Q3 runtime regeneration is byte-identical.
+This integration retains T22 abs casts, float suffixes and all catalog edits.
+The command test uses the complete local headers; the temporary header-fetch helper
+is unnecessary here and removed, retaining #2's local-header team-leader test.
 
-#58 merged 4c816c7e; merged-tree regression 34925562788 passed. #2 integration
-7d9bc04a retains the voter reset fix. #57 merged 4b68ccda; merged-tree regression
-34924317093 passed. #2 integration bb869f79 passed regression 34924891632, native
-C++ build and fixed replay on both maps/renderers with unchanged frames.
+#59 merged 11781f44; merged-tree regression 34926638834 passed. Its #2 integration
+and job-local pahole installation d8691015 passed regression 34926764924/full build
+34926765230, including the 103-object native comparison. #58 merged-tree regression
+34925562788 and #57 merged-tree regression 34924317093 passed.
 
-Strict warning checkpoint 7c4f8302 passed regression 34925774876/full build
-34925774880. Both C/C++ native module builds use -Wall -Wextra -Werror and only
-warning classes observed in C. Native evidence checkpoint 75d81a11 passed full
-build 34926088404; its regression 34926088385 lacked pahole and never reached
-comparison. This merge adds pahole in the GCC job's own apt step. Local package
-installation remains prohibited. No artifact normalizer or gate is weakened.
+Strict native warning freeze 7c4f8302 passed regression 34925774876/full build
+34925774880. Both C/C++ native builds use -Wall -Wextra -Werror with only classes
+observed in C. Provenance checkpoint e4853819 verified all 130 original GPL hashes:
+30 verbatim files, 96 modified, four retained ABI headers. Per-file transformation
+references identify native ABI/catalog edits and each separate #31 fix.
 
-Permanent native_gates.py passes all 103 G2/G3 comparisons on the local post-#58
-tree and retains 63 advisory assembly diffs. --tidy completes all objects with
-1365 narrowing, 55 signed-char and nine string-result findings; zero tool failures.
-Commands/source hashes: /tmp/aftershock-native-gates-final. Per-function review:
-/tmp/aftershock-native-function-review-current and /tmp/aftershock-native-review-checkpoint.md.
-The flag-domain assumption in the latter is corrected by the reviewed #59 fix.
+Permanent native_gates.py passes all 103 G2/G3 comparisons locally and in hosted
+CI; it retains 63 advisory assembly diffs. --tidy completed all objects with 1365
+narrowing, 55 signed-char and nine string-result findings; no tool/compile failures.
+Latest local artifacts precede #60: /tmp/aftershock-native-gates-final; function
+review: /tmp/aftershock-native-function-review-current and
+/tmp/aftershock-native-review-checkpoint.md. Flag initialization/command-byte bugs
+found during this review have now been fixed in separate #31 PRs. No unconfirmed
+G7 warning is being called a sanitizer failure or hidden.
 
-The resolved merge passes GCC/Clang base and missionpack flag tests. Its g_team
-source is byte-identical to the successful temporary native C++ checks. #59
-merged-tree regression 34926638834 passed.
+The resolved integration passes GCC/Clang command checks and the team-leader
+check; ai_main.c is byte-identical to the successful complete native UBSan preflight.
 
-Integration/pahole fix is committed as d8691015; regression 34926764924/full build
-34926765230 are pending, with the native comparison job now passing. The import
-manifest audit verifies all 130 original GPL hashes and records per-file native
-ABI/catalog/#31 commit references: 30 verbatim, 96 modified, four retained ABI headers.
-
-Next: park #2 after this provenance checkpoint and fix the newly confirmed native
-bot command conversion in a separate #31 PR. Full native C++ UBSan smoke stops at
-ai_main.c:877 converting -6280.11 directly to signed char. All three movement
-components need the existing integer-truncation stage made explicit, with a
-failing real-function test and byte/codegen parity; no clamping or FP restructuring.
-The single caller is BotUpdateInput. Details/command/log are in cpp-port-notes.md.
-No source fix is made on #2. Resume the instrumented smoke after that fix, then
-finish G4/G7/catalog review, .cpp rename, static calls and VM/JIT removal. No VM/JIT
-removal has started, and no accepted fixture/golden changes have been made on #2.
+Next: commit/push this integration and verify #60 merged-tree plus #2 CI. Complete the advisory G4/G7/catalog review record, then perform the content-free
+.cpp rename, static direct calls and VM/JIT removal. No VM/JIT removal has started;
+no accepted fixture/golden changes have been made on #2. Full native UBSan evidence:
+/tmp/aftershock-bot-command-native.py/.log, including the shared Clang runtime setup.
 
 Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95
 (regression 34922352537 passed); portable Q3 binary32 literals 5592a1eb (regression
