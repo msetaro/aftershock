@@ -447,7 +447,7 @@ call a path that can longjmp while an owned resource is live. A renderer directo
 is not a blanket exception: new wrappers require a reviewed boundary and error flow.
 
 `python3 tests/check_lifetimes.py` enforces the rule with Clang's AST through
-clang-query, using Make's actual client/server flags for both renderers. It rejects
+clang-query, using CMake's actual client/server compile database for both renderers. It rejects
 objects Clang marks as requiring destruction and non-trivial temporaries, including
 aliases, inherited destructors and standard-library objects. Positive and negative
 controls run every time. This checks active Linux configurations and engine headers

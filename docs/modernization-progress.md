@@ -11,8 +11,8 @@ Active: issue/5-cmake-build, draft PR #66, based on #4 merge 4a952854.
 #3/#31/#1/#2/#4 are complete. #4 merged-tree regression 34942323875 passed.
 Continue #5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementation.
 
-Next: push the MSVC environment/manifest and MinGW assembly-metadata corrections,
-then verify hosted CMake migration and migrated regression jobs. Keep engine/game
+Next: verify hosted CMake migration and migrated regression jobs for 390a20f4;
+then validate the MSVC embedded debug-info setting needed for ccache. Keep engine/game
 source fixed until hosted build parity is recorded. Only then retire Make and
 handwritten MSVC projects, remove inactive 32-bit/PowerPC paths, finish build/test
 documentation and run final gates/self-review before merging PR #66. One-command
@@ -61,7 +61,7 @@ entry points do not enter CMake's compiler-identification checks. Locally pass:
 unit + one-ULP negative control; Clang+libc++; ASan/UBSan with known-bug classifier;
 curl options/download; complete bot result; lifetime 546 commands/137 paths with
 seven negative controls; both Q3 smoke logs; both-renderer Q3 fixed replay
-(b38004b1); both OpenArena UBSan smoke logs. OA fixed replay is running.
+(b38004b1); both OpenArena UBSan smoke logs; OA fixed replay (5b89d338).
 Logs/artifacts /tmp/aftershock-cmake-{unit,unit-clang,unit-sanitized,download,
 bot-move,lifetimes,runtime,demo,oa-runtime,oa-demo}*. Goldens/fixtures unchanged.
 
@@ -72,6 +72,23 @@ and handwritten projects until migration gates pass; preserve its original CRLF.
 CMake keeps explicit source lists, strict native FP, precise MSVC engine FP, fast
 MSVC release renderer FP and static CRT. MSVC ARM64 curl remains disabled as in
 the old projects. External OA native objects remain static test inputs.
+
+
+Correction checkpoint 390a20f4 is pushed. Prior f111b28c passed regression
+34946061849 and the supported full build 34946061751. Its migration proved every
+Linux/macOS compiler/configuration/renderer combination; only MinGW debug metadata
+and MSVC environment/manifest steps needed the corrections above. New migration
+34946471284 has already passed MSVC ARM64 debug, including generated VS projects;
+other legs are pending. Runtime goldens and both fixed content replays pass locally.
+
+MSVC debug's /Zi made all 359 compilation calls uncacheable with the installed
+ccache 4.9; release is 359/359 cacheable. The build now selects CMake's Embedded
+MSVC debug format (/Z7), keeping symbols in objects for ccache and final linked
+PDBs. This changes debug metadata format, not optimization or runtime checks.
+[ccache 4.9 option handling](https://github.com/ccache/ccache/blob/v4.9/src/argprocessing.cpp#L1152)
+explicitly supports /Z7 and rejects /Zi. Hosted cache statistics must confirm the
+change. Build instructions and compile-database documentation are being updated;
+Make/handwritten-project retirement and inactive platform cleanup remain undone.
 
 
 #4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects

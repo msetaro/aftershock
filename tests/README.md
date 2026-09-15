@@ -1,8 +1,18 @@
 # Permanent regression suite (#3)
 
-Run from the repository root with Python 3, GNU Make, GCC or Clang, and binutils.
-Tests call real engine functions with production flags. Test drivers provide only
+Run from the repository root with Python 3, CMake 3.25+, Ninja, GCC or Clang, and binutils.
+Tests call real engine functions with production flags from CMake's compile database. Test drivers provide only
 isolated allocator/log/file stubs and instrumentation; production code is unchanged.
+
+Test build directories contain `compile_commands.json` and `build.log`. Separate
+output directories isolate compiler and instrumentation settings; changing a
+setting refreshes the CMake cache before building. Unit and download probes select
+actual client/server objects, and lifetime analysis retains every native wrapper
+command across both renderer configurations. ccache is used when installed.
+
+For a normal engine build, `cmake --workflow --preset release` configures and builds
+all targets. `debug`, `msvc-x64` and `msvc-arm64` presets are also available; Windows
+Visual Studio projects are generated. See `AGENTS.md` for renderer/cross settings.
 
 ```
 python3 tests/native_math.py
