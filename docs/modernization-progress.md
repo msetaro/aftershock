@@ -1347,3 +1347,11 @@ explicit stdint.h include preserves line count. Both Clang native helper builds
 pass, including their layout checks, and all six library hashes are unchanged:
 /tmp/aftershock-null-subtraction-before.json and null-subtraction-{c,cpp}.log.
 No accepted golden regeneration. PR #79 merged-tree run is 35025630301.
+
+General parentheses preview: all 27 bot_moveresult_t_cleared callers pass the
+simple identifier result. Removing declaration parentheses from the macro leaves
+all 51 production/native objects byte-identical across GCC/Clang release, GCC
+debug, MinGW and ARM64. GCC actual-source controls reject the old declaration
+and accept the new one. No source change applied here; a later one-class PR can
+remove -Wno-parentheses and change only that macro. Artifacts:
+/tmp/aftershock-parentheses-declaration-preview/{results.json,*-control.log}.
