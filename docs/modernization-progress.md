@@ -652,3 +652,11 @@ Regression 34911920499 passed on checkpoint 42675c08; current CI will validate t
 new permanent shared-function and C++ build steps. Artifact G3/G4 review remains
 open (seven dependency diffs; no defined-symbol mismatch; per-object reports under
 /tmp/aftershock-native-cpp-gates-pinned). Do not label those gates complete yet.
+
+Final GCC C++ rerun after T22/library-feature pinning passes both smoke logs and
+all fixed replay frames; Clang C++ passes the same. Regression 34912410405 passed
+on c386658a, including both C++ module builds and shared-function differentials.
+All 103 defined-symbol sets and raw dllEntry/vmMain spellings match the C baseline;
+the seven remaining undefined-dependency diffs are fully enumerated in the reports.
+Artifact codegen review remains open before static integration. Next is the separate
+#31 OpenArena nullable-target helper fix, keeping #2 checkpointed on this branch.
