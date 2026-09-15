@@ -3,7 +3,7 @@
 The native-only decision retires legacy QVM/mod compatibility. The imported GPL
 base-game sources become the game, cgame and UI implementations; the engine keeps
 its existing simulation expressions, allocation model and longjmp error handling.
-Static integration and VM removal are implemented; final CI review remains pending.
+Static integration and VM removal are implemented; CI and self-review passed on source 7382120a.
 
 ## Source and transformation audit
 
@@ -147,3 +147,11 @@ paths, including all native wrapper selections. No new wire/file structure layou
 simulation FP expression, OS access or allocation was introduced by the deletion.
 The bot synonym import keeps the same 1024-byte legacy limit via MAX_STRING_CHARS;
 retiring its VM constant changes no service behavior.
+
+Final local retirement checks: movement-debug lifecycle passes twice at e87382ec;
+OpenArena replay matches both maps/renderers at 5b89d338. Provenance revalidation
+checks all 130 original hashes and every per-file transformation reference. Only
+the two documented lifecycle log references are added; accepted goldens are intact.
+Source 7382120a passed regression 34936939258 and full build 34936939100.
+Self-review passes for scope, OS/allocator/lifetime constraints, preserved layouts
+and FP expressions, provenance and recorded native-only compatibility tradeoff.

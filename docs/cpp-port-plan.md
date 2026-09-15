@@ -454,3 +454,19 @@ controls run every time. This checks active Linux configurations and engine head
 included by them; inactive preprocessor branches and future platform wrappers still
 require the AGENTS.md self-review. The check does not claim whole-program longjmp
 reachability analysis. Directory coverage must follow the moves in #4.
+
+### Native game decision (#2)
+
+Use native-only game, cgame and UI, statically linked into each executable through
+typed imports/exports. The GPL 1.32 sources were imported as C, compared against
+QVM bot/replay references, then ported to C++20 through the recorded catalog and
+gates. Module namespaces keep shared helpers and mutable state separate; explicit
+initialization resets replace DLL reload semantics. The VM interpreter, JITs and
+runtime game loader are removed. Legacy QVM and game-DLL mods are no longer supported.
+
+Keep fixed binary32 simulation expressions and the verified module-local math,
+random, sort and memory compatibility functions. Preserve wire/file layouts,
+arena ownership, longjmp and trivial engine lifetimes. Pinned OpenArena C objects
+provide hosted-content regression coverage; Q3 paks stay local. Fixed replay and
+bot goldens remain the behavioral reference. `docs/native-port-review.md` records
+source provenance, C/C++ layout/symbol/codegen review and static lifecycle evidence.

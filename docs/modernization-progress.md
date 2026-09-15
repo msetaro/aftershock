@@ -21,13 +21,17 @@ runtime game loader. Native game/cgame/UI link into the executables.
 After removal, dedicated linking/no-VM symbols and both accepted Q3 bot logs pass.
 Lifecycle fixed replay matches both maps/renderers at b38004b1. Lifetime analysis
 passes 550 compile commands/138 source paths, including native modules. Artifacts:
-/tmp/aftershock-native-no-vm-{runtime,demo,lifetimes}. Movement-debug lifecycle is
-running at /tmp/aftershock-native-no-vm-lifecycle. CI full build 34936868053 is
-running. Regression 34936863764 rejected an orphaned step name after the obsolete
-probe command was removed; this follow-up removes that step name too.
+/tmp/aftershock-native-no-vm-{runtime,demo,lifetimes}. Movement-debug lifecycle passes
+twice at e87382ec (/tmp/aftershock-native-no-vm-lifecycle). OpenArena fixed replay
+also matches both renderers at 5b89d338 (/tmp/aftershock-native-no-vm-oa-demo).
+Source 7382120a passed regression 34936939258 and full build 34936939100. The earlier orphaned workflow step was corrected and all step actions
+validated. Provenance rechecks all 130 original hashes; existing goldens unchanged.
 
-Next: push the workflow correction, verify runtime/full CI and movement-debug
-lifecycle, finish self-review and merge #2. Then fix the separately recorded #31
+Self-review passes: native-only scope; catalog/provenance and layout/symbol/codegen
+review complete; static parity/lifecycle and lifetime gates pass; no FP expression
+restructuring, new OS access, per-frame allocation or non-trivial lifetime. Plan
+records the native-only compatibility decision. This checkpoint is documentation only.
+Next: ready/merge PR #50 and verify merged-tree regression. Then fix the separately recorded #31
 optional MinGW SDL/no-curl Windows header defect before #4. No SDL source fix here.
 
 Separate allocator PR #62 merged 0c3ef426; merged regression 34934836544 passed.
