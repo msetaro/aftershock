@@ -22,6 +22,9 @@
     <ClCompile Include="..\..\engine\qcommon\common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\engine\platform\sys_runtime.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\engine\qcommon\cvar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,7 +132,7 @@
     <ClInclude Include="..\..\engine\public\g_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\engine\client\keycodes.h">
+    <ClInclude Include="..\..\engine\qcommon\keycodes_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\engine\qcommon\keys_public.h">

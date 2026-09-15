@@ -19,42 +19,23 @@ along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
-#ifndef KEYS_PUBLIC_H
-#define KEYS_PUBLIC_H
+// common.c -- misc functions used in client and server
 
-#include "q_shared.h"
-#include "keycodes_public.h"
+#ifndef RUNTIME_PUBLIC_H
+#define RUNTIME_PUBLIC_H
 
-typedef struct {
-	qboolean	down;
-	qboolean	bound;
-	int			repeats;		// if > 1, it is autorepeating
-	char		*binding;
-} qkey_t;
+#include "../qcommon/q_shared.h"
 
-extern	qboolean	key_overstrikeMode;
-extern	qkey_t		keys[MAX_KEYS];
-
-extern  int         anykeydown;
-
-// NOTE TTimo the declaration of field_t and Field_Clear is now in qcommon/qcommon.h
-
-void Key_WriteBindings( fileHandle_t f );
-void Key_SetBinding( int keynum, const char *binding );
-const char *Key_GetBinding( int keynum );
-void Key_ParseBinding( int key, qboolean down, unsigned time );
-
-int Key_GetKey( const char *binding );
-const char *Key_KeynumToString( int keynum );
-int Key_StringToKeynum( const char *str );
-
-qboolean Key_IsDown( int keynum );
-qboolean Key_CapsLockOn( void );
-void Key_ClearStates( void );
-
-qboolean Key_GetOverstrikeMode( void );
-void Key_SetOverstrikeMode( qboolean state );
-
-void Com_InitKeyCommands( void );
+void Sys_GetProcessorId( char *vendor );
+#ifdef USE_AFFINITY_MASK
+void Sys_InitAffinity( void );
+void Sys_ApplyAffinityMask( const char *str );
+#endif
+#if defined(_WIN32) && defined(_DEBUG)
+void Sys_DebugBreak( void );
+#endif
+time_t Sys_Time( time_t *result );
+char *Sys_CTime( const time_t *value );
+struct tm *Sys_LocalTime( const time_t *value );
 
 #endif

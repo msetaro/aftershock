@@ -1707,7 +1707,7 @@ int Q_CountChar(const char *string, char tocount)
 
 
 #if	defined(_DEBUG) && defined(_WIN32)
-#include <windows.h>
+#include "../platform/debug_public.h"
 #endif
 
 int QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
@@ -1720,7 +1720,7 @@ int QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
 	{
 		Com_Error( ERR_FATAL, "Com_sprintf: NULL dest" );
 #if	defined(_DEBUG) && defined(_WIN32)
-		DebugBreak();
+		Sys_DebugBreakpoint();
 #endif
 		return 0;
 	}
@@ -1733,7 +1733,7 @@ int QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
 	{
 		Com_Error( ERR_FATAL, "Com_sprintf: overflowed bigbuffer" );
 #if	defined(_DEBUG) && defined(_WIN32)
-		DebugBreak();
+		Sys_DebugBreakpoint();
 #endif
 		return 0;
 	}
@@ -1742,7 +1742,7 @@ int QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
 	{
 		Com_Printf( S_COLOR_YELLOW "Com_sprintf: overflow of %i in %i\n", len, size );
 #if	defined(_DEBUG) && defined(_WIN32)
-		DebugBreak();
+		Sys_DebugBreakpoint();
 #endif
 		len = size - 1;
 	}

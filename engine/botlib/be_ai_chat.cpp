@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *****************************************************************************/
 
+#include "../qcommon/filesystem_public.h"
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon_public.h"
 #include "l_memory.h"
@@ -600,13 +601,13 @@ static void BotDumpSynonymList(bot_synonymlist_t *synlist)
 	if (!fp) return;
 	for (syn = synlist; syn; syn = syn->next)
 	{
-	        fprintf(fp, "%ld : [", syn->context);
+	        FS_OSPrintf(fp, "%ld : [", syn->context);
 		for (synonym = syn->firstsynonym; synonym; synonym = synonym->next)
 		{
-			fprintf(fp, "(\"%s\", %1.2f)", synonym->string, synonym->weight);
-			if (synonym->next) fprintf(fp, ", ");
+			FS_OSPrintf(fp, "(\"%s\", %1.2f)", synonym->string, synonym->weight);
+			if (synonym->next) FS_OSPrintf(fp, ", ");
 		} //end for
-		fprintf(fp, "]\n");
+		FS_OSPrintf(fp, "]\n");
 	} //end for
 } //end of the function BotDumpSynonymList
 #endif
@@ -998,12 +999,12 @@ static void BotDumpRandomStringList(bot_randomlist_t *randomlist)
 	if (!fp) return;
 	for (random = randomlist; random; random = random->next)
 	{
-		fprintf(fp, "%s = {", random->string);
+		FS_OSPrintf(fp, "%s = {", random->string);
 		for (rs = random->firstrandomstring; rs; rs = rs->next)
 		{
-			fprintf(fp, "\"%s\"", rs->string);
-			if (rs->next) fprintf(fp, ", ");
-			else fprintf(fp, "}\n");
+			FS_OSPrintf(fp, "\"%s\"", rs->string);
+			if (rs->next) FS_OSPrintf(fp, ", ");
+			else FS_OSPrintf(fp, "}\n");
 		} //end for
 	} //end for
 } //end of the function BotDumpRandomStringList
@@ -1163,24 +1164,24 @@ static void BotDumpMatchTemplates(bot_matchtemplate_t *matches)
 	if (!fp) return;
 	for (mt = matches; mt; mt = mt->next)
 	{
-	        fprintf(fp, "{ " );
+	        FS_OSPrintf(fp, "{ " );
 		for (mp = mt->first; mp; mp = mp->next)
 		{
 			if (mp->type == MT_STRING)
 			{
 				for (ms = mp->firststring; ms; ms = ms->next)
 				{
-					fprintf(fp, "\"%s\"", ms->string);
-					if (ms->next) fprintf(fp, "|");
+					FS_OSPrintf(fp, "\"%s\"", ms->string);
+					if (ms->next) FS_OSPrintf(fp, "|");
 				} //end for
 			} //end if
 			else if (mp->type == MT_VARIABLE)
 			{
-				fprintf(fp, "%d", mp->variable);
+				FS_OSPrintf(fp, "%d", mp->variable);
 			} //end else if
-			if (mp->next) fprintf(fp, ", ");
+			if (mp->next) FS_OSPrintf(fp, ", ");
 		} //end for
-		fprintf(fp, " = (%d, %d);}\n", mt->type, mt->subtype);
+		FS_OSPrintf(fp, " = (%d, %d);}\n", mt->type, mt->subtype);
 	} //end for
 } //end of the function BotDumpMatchTemplates
 #endif
@@ -1723,43 +1724,43 @@ static void BotDumpReplyChat(bot_replychat_t *replychat)
 
 	fp = Log_FilePointer();
 	if (!fp) return;
-	fprintf(fp, "BotDumpReplyChat:\n");
+	FS_OSPrintf(fp, "BotDumpReplyChat:\n");
 	for (rp = replychat; rp; rp = rp->next)
 	{
-		fprintf(fp, "[");
+		FS_OSPrintf(fp, "[");
 		for (key = rp->keys; key; key = key->next)
 		{
-			if (key->flags & RCKFL_AND) fprintf(fp, "&");
-			else if (key->flags & RCKFL_NOT) fprintf(fp, "!");
+			if (key->flags & RCKFL_AND) FS_OSPrintf(fp, "&");
+			else if (key->flags & RCKFL_NOT) FS_OSPrintf(fp, "!");
 			//
-			if (key->flags & RCKFL_NAME) fprintf(fp, "name");
-			else if (key->flags & RCKFL_GENDERFEMALE) fprintf(fp, "female");
-			else if (key->flags & RCKFL_GENDERMALE) fprintf(fp, "male");
-			else if (key->flags & RCKFL_GENDERLESS) fprintf(fp, "it");
+			if (key->flags & RCKFL_NAME) FS_OSPrintf(fp, "name");
+			else if (key->flags & RCKFL_GENDERFEMALE) FS_OSPrintf(fp, "female");
+			else if (key->flags & RCKFL_GENDERMALE) FS_OSPrintf(fp, "male");
+			else if (key->flags & RCKFL_GENDERLESS) FS_OSPrintf(fp, "it");
 			else if (key->flags & RCKFL_VARIABLES)
 			{
-				fprintf(fp, "(");
+				FS_OSPrintf(fp, "(");
 				for (mp = key->match; mp; mp = mp->next)
 				{
-					if (mp->type == MT_STRING) fprintf(fp, "\"%s\"", mp->firststring->string);
-					else fprintf(fp, "%d", mp->variable);
-					if (mp->next) fprintf(fp, ", ");
+					if (mp->type == MT_STRING) FS_OSPrintf(fp, "\"%s\"", mp->firststring->string);
+					else FS_OSPrintf(fp, "%d", mp->variable);
+					if (mp->next) FS_OSPrintf(fp, ", ");
 				} //end for
-				fprintf(fp, ")");
+				FS_OSPrintf(fp, ")");
 			} //end if
 			else if (key->flags & RCKFL_STRING)
 			{
-				fprintf(fp, "\"%s\"", key->string);
+				FS_OSPrintf(fp, "\"%s\"", key->string);
 			} //end if
-			if (key->next) fprintf(fp, ", ");
-			else fprintf(fp, "] = %1.0f\n", rp->priority);
+			if (key->next) FS_OSPrintf(fp, ", ");
+			else FS_OSPrintf(fp, "] = %1.0f\n", rp->priority);
 		} //end for
-		fprintf(fp, "{\n");
+		FS_OSPrintf(fp, "{\n");
 		for (cm = rp->firstchatmessage; cm; cm = cm->next)
 		{
-			fprintf(fp, "\t\"%s\";\n", cm->chatmessage);
+			FS_OSPrintf(fp, "\t\"%s\";\n", cm->chatmessage);
 		} //end for
-		fprintf(fp, "}\n");
+		FS_OSPrintf(fp, "}\n");
 	} //end for
 } //end of the function BotDumpReplyChat
 #endif

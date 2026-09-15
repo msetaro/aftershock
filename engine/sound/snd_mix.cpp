@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // snd_mix.c -- portable code to mix sounds for snd_dma.c
 
-#include "../client/client.h"
+#include "../client/client_public.h"
 #include "snd_local.h"
 
 static portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
@@ -404,7 +404,7 @@ static void S_TransferPaintBuffer( int endtime, byte *buffer )
 
 	if ( CL_VideoRecording() ) {
 		//count = (endtime - s_paintedtime) * dma.channels;
-		count = (clc.aviFrameEndTime - s_paintedtime) * dma.channels;
+		count = (CL_VideoAudioEndTime() - s_paintedtime) * dma.channels;
 		out_idx = ( s_paintedtime * dma.channels ) % dma.samples;
 		while ( count > 0 ) {
 			int n = count;

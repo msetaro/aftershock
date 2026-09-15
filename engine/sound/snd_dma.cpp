@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "snd_local.h"
 #include "snd_codec.h"
-#include "../client/client.h"
+#include "../client/client_public.h"
 
 static void S_Update_( int msec );
 static void S_UpdateBackgroundTrack( void );
@@ -755,7 +755,7 @@ void S_Base_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t ve
 		lena = DistanceSquared(loopSounds[listener_number].origin, loopSounds[entityNum].origin);
 		VectorAdd(loopSounds[entityNum].origin, loopSounds[entityNum].velocity, out);
 		lenb = DistanceSquared(loopSounds[listener_number].origin, out);
-		if ((loopSounds[entityNum].framenum+1) != cls.framecount) {
+		if ((loopSounds[entityNum].framenum+1) != CL_FrameCount()) {
 			loopSounds[entityNum].oldDopplerScale = 1.0;
 		} else {
 			loopSounds[entityNum].oldDopplerScale = loopSounds[entityNum].dopplerScale;
@@ -768,7 +768,7 @@ void S_Base_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t ve
 		}
 	}
 
-	loopSounds[entityNum].framenum = cls.framecount;
+	loopSounds[entityNum].framenum = CL_FrameCount();
 }
 
 
@@ -1158,18 +1158,7 @@ static void S_GetSoundtime( void )
 
 	if ( CL_VideoRecording() )
 	{
-		const float duration = MAX( (float)dma.speed / cl_aviFrameRate->value, 1.0f );
-		const float frameDuration = duration + clc.aviSoundFrameRemainder;
-		const int msec = (int)frameDuration;
-
-		s_soundtime += msec;
-		clc.aviSoundFrameRemainder = frameDuration - msec;
-
-		// use same offset as in game
-		s_paintedtime = s_soundtime + (int)(s_mixOffset->value * (float)dma.speed);
-
-		// render exactly one frame of audio data
-		clc.aviFrameEndTime = s_paintedtime + (int)(duration + clc.aviSoundFrameRemainder);
+		CL_AdvanceVideoAudio( dma.speed, s_mixOffset->value, &s_soundtime, &s_paintedtime );
 		return;
 	}
 
@@ -1479,7 +1468,7 @@ static void S_Base_Shutdown( void ) {
 
 	Cmd_RemoveCommand( "s_info" );
 
-	cls.soundRegistered = qfalse;
+	CL_SoundRegistrationCleared();
 }
 
 

@@ -1008,6 +1008,8 @@ Q3OBJ = \
   \
   $(B)/client/cmd.o \
   $(B)/client/common.o \
+  $(B)/client/sys_runtime.o \
+  $(B)/client/sys_video.o \
   $(B)/client/cvar.o \
   $(B)/client/files.o \
   $(B)/client/history.o \
@@ -1218,6 +1220,7 @@ Q3DOBJ = \
   $(B)/ded/cm_trace.o \
   $(B)/ded/cmd.o \
   $(B)/ded/common.o \
+  $(B)/ded/sys_runtime.o \
   $(B)/ded/cvar.o \
   $(B)/ded/files.o \
   $(B)/ded/history.o \

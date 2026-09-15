@@ -4,7 +4,7 @@
 #if defined (_DEBUG)
 #if defined (_WIN32)
 #define USE_VK_VALIDATION
-#include <windows.h> // for win32 debug callback
+#include "../platform/debug_public.h"
 #endif
 #endif
 
@@ -1246,10 +1246,7 @@ static void vk_alloc_staging_buffer( VkDeviceSize size )
 static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT object_type, uint64_t object, size_t location,
 	int32_t message_code, const char* layer_prefix, const char* message, void* user_data) {
 #ifdef _WIN32
-	MessageBoxA( 0, message, layer_prefix, MB_ICONWARNING );
-	OutputDebugString(message);
-	OutputDebugString("\n");
-	DebugBreak();
+	Sys_GraphicsDebugMessage( message, layer_prefix );
 #endif
 	return VK_FALSE;
 }

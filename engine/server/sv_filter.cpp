@@ -1,3 +1,4 @@
+#include "../qcommon/filesystem_public.h"
 #include <string.h>
 #include "server.h"
 
@@ -215,16 +216,16 @@ static void dump_nodes( const filter_node_t *node, int level, int skip_tagged, F
 		}
 
 		for ( i = 0; i < level ; i++ )
-			fwrite( "\t", 1, 1, f );
+			FS_OSWrite( "\t", 1, 1, f );
 
 		if ( node->fop == FOP_DROP ) // final action
 		{
 			if ( *node->p1 )
 			{
 				n = sprintf( buf, "drop \"%s\"", node->p1 );
-				fwrite( buf, n, 1, f );
+				FS_OSWrite( buf, n, 1, f );
 			} else
-				fwrite( "drop", 4, 1, f );
+				FS_OSWrite( "drop", 4, 1, f );
 		}
 		else
 		{
@@ -254,29 +255,29 @@ static void dump_nodes( const filter_node_t *node, int level, int skip_tagged, F
 				}
 			}
 
-			fwrite( buf, n, 1, f );
+			FS_OSWrite( buf, n, 1, f );
 
 			if ( node->child )
 			{
-				fwrite( " {\n", 3, 1, f );
+				FS_OSWrite( " {\n", 3, 1, f );
 
 				dump_nodes( node->child, level + 1, skip_tagged, f );
 
-				fwrite( "\n", 1, 1, f );
+				FS_OSWrite( "\n", 1, 1, f );
 
 				for ( i = 0; i < level; i++ )
-					fwrite( "\t", 1, 1, f );
+					FS_OSWrite( "\t", 1, 1, f );
 
-				fwrite( "}", 1, 1, f );
+				FS_OSWrite( "}", 1, 1, f );
 
 				if ( node->next ) 
-					fwrite( "\n", 1, 1, f );
+					FS_OSWrite( "\n", 1, 1, f );
 			}
 
 		}
 		node = node->next;
 //		if ( node && level == 0 )
-//			fwrite( "\n", 1, 1, f );
+//			FS_OSWrite( "\n", 1, 1, f );
 	}
 }
 
@@ -680,31 +681,31 @@ static qboolean parse_file( const char *filename )
 	if ( !filename || !*filename )
 		return qfalse;
 
-	f = fopen( filename, "rb" );
+	f = FS_OSOpen( filename, "rb" );
 	if ( f == NULL )
 		return qfalse;
 
 	//Com_Printf( "...loading userinfo filters form '%s'\n", filename );
 
-	fseek( f, 0, SEEK_END );
-	size = ftell( f );
-	fseek( f, 0, SEEK_SET );
+	FS_OSSeek( f, 0, SEEK_END );
+	size = FS_OSTell( f );
+	FS_OSSeek( f, 0, SEEK_SET );
 	if ( size < 0 || size >= INT_MAX )
 	{
-		fclose( f );
+		FS_OSClose( f );
 		return qfalse;
 	}
 
 	data = (char*) Z_Malloc( size + 1 );
-	if ( fread( data, size, 1, f ) != 1 )
+	if ( FS_OSRead( data, size, 1, f ) != 1 )
 	{
 		Z_Free( data );
-		fclose( f );
+		FS_OSClose( f );
 		return qfalse;
 	}
 
 	data[ size ] = '\0';
-	fclose( f );
+	FS_OSClose( f );
 
 	COM_BeginParseSession( filename );
 
@@ -800,7 +801,7 @@ static void SV_ReloadFilters( const char *filename, filter_node_t *new_node )
 			if ( f ) 
 			{
 				dump_nodes( nodes, 0, 1, f ); // skip tagged
-				fclose( f );
+				FS_OSClose( f );
 			}
 		}
 	}

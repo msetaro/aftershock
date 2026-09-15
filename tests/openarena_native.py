@@ -34,7 +34,7 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
     if language != 'c':
         raise ValueError('the pinned OpenArena test dependency builds as C')
     output = stage_source(output)
-    abi = (ROOT / 'game/bg/native_abi.h').read_text().replace('#define BASEGAME "baseq3"\n', '')
+    abi = (ROOT / 'game/bg/native_abi_public.h').read_text().replace('#define BASEGAME "baseq3"\n', '')
     (output / 'native_abi.h').write_text(abi)
     compiler = shlex.split(cc)
     version = subprocess.check_output([*compiler, '--version'], text=True)
@@ -42,7 +42,7 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
     # OA appends eye vectors to refEntity; the engine consumes its 140-byte prefix.
     probe = (ROOT / 'tests/probes/native_layout.c').read_text()
     probe = probe.replace('../../game/bg/q_shared.h', '../../code/qcommon/q_shared.h')
-    probe = probe.replace('../../game/cgame/tr_types.h', '../../code/renderer/tr_types.h')
+    probe = probe.replace('../../game/bg/tr_types_public.h', '../../code/renderer/tr_types.h')
     for name in ('botlib', 'be_aas', 'be_ai_goal', 'be_ai_move', 'be_ai_chat', 'be_ai_weap'):
         probe = probe.replace('../../game/game/' + name + '.h', '../../code/botlib/' + name + '.h')
     for module, prefix in (('game', 'g'), ('cgame', 'cg'), ('ui', 'ui')):

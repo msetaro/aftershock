@@ -14,7 +14,7 @@ args.output.mkdir(parents=True, exist_ok=True)
 binary = args.output.resolve() / 'check'
 run([*shlex.split(args.cc), '-x', 'c', '-std=gnu99', '-O2', '-ffp-contract=off',
      '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined,float-cast-overflow',
-     '-fno-sanitize-recover=all', '-include', 'game/bg/native_abi.h',
+     '-fno-sanitize-recover=all', '-include', 'game/bg/native_abi_public.h',
      '-Igame/game', 'game/game/ai_main.cpp',
      'tests/probes/bot_command.c', '-Wl,--gc-sections', '-lm', '-o', binary])
 run([binary])

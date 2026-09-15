@@ -21,7 +21,7 @@ for language, compiler in [('c', args.cc), ('c++', args.cxx)]:
     binary = output / language.replace('+', 'p')
     command = [*compiler, '-x', language, *mode, '-O2', '-DNDEBUG', '-fno-builtin',
                '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv',
-               '-include', 'game/bg/native_abi.h', '-ffunction-sections', '-fdata-sections',
+               '-include', 'game/bg/native_abi_public.h', '-ffunction-sections', '-fdata-sections',
                'game/bg/q_math.cpp', 'game/bg/q_shared.cpp', 'tests/probes/native_shared.c',
                '-Wl,--gc-sections', '-lm', '-o', str(binary)]
     (output / (binary.name + '.command')).write_text(shlex.join(command) + '\n')

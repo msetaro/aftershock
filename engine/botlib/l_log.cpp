@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *****************************************************************************/
 
+#include "../qcommon/filesystem_public.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -96,7 +97,7 @@ void Log_Open( const char *filename )
 static void Log_Close(void)
 {
 	if (!logfile.fp) return;
-	if (fclose(logfile.fp))
+	if (FS_OSClose(logfile.fp))
 	{
 		botimport.Print(PRT_ERROR, "can't close log file %s\n", logfile.filename);
 		return;
@@ -126,10 +127,10 @@ void QDECL Log_Write(char *fmt, ...)
 
 	if (!logfile.fp) return;
 	va_start(ap, fmt);
-	vfprintf(logfile.fp, fmt, ap);
+	FS_OSVPrintf(logfile.fp, fmt, ap);
 	va_end(ap);
-	//fprintf(logfile.fp, "\r\n");
-	fflush(logfile.fp);
+	//FS_OSPrintf(logfile.fp, "\r\n");
+	FS_OSFlush(logfile.fp);
 } //end of the function Log_Write
 #if 0
 //===========================================================================
@@ -143,7 +144,7 @@ void QDECL Log_WriteTimeStamped(char *fmt, ...)
 	va_list ap;
 
 	if (!logfile.fp) return;
-	fprintf(logfile.fp, "%d   %02d:%02d:%02d:%02d   ",
+	FS_OSPrintf(logfile.fp, "%d   %02d:%02d:%02d:%02d   ",
 					logfile.numwrites,
 					(int) (botlibglobals.time / 60 / 60),
 					(int) (botlibglobals.time / 60),
@@ -151,11 +152,11 @@ void QDECL Log_WriteTimeStamped(char *fmt, ...)
 					(int) ((int) (botlibglobals.time * 100)) -
 							((int) botlibglobals.time) * 100);
 	va_start(ap, fmt);
-	vfprintf(logfile.fp, fmt, ap);
+	FS_OSVPrintf(logfile.fp, fmt, ap);
 	va_end(ap);
-	fprintf(logfile.fp, "\r\n");
+	FS_OSPrintf(logfile.fp, "\r\n");
 	logfile.numwrites++;
-	fflush(logfile.fp);
+	FS_OSFlush(logfile.fp);
 } //end of the function Log_WriteTimeStamped
 #endif
 //===========================================================================
@@ -176,6 +177,6 @@ FILE *Log_FilePointer(void)
 //===========================================================================
 void Log_Flush(void)
 {
-	if (logfile.fp) fflush(logfile.fp);
+	if (logfile.fp) FS_OSFlush(logfile.fp);
 } //end of the function Log_Flush
 

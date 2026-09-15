@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *****************************************************************************/
 
+#include "../qcommon/filesystem_public.h"
 #include "../qcommon/q_shared.h"
 #include "l_memory.h"
 #include "l_log.h"
@@ -452,19 +453,19 @@ static qboolean WriteFuzzyWeight(FILE *fp, fuzzyseperator_t *fs)
 {
 	if (fs->type == WT_BALANCE)
 	{
-		if (fprintf(fp, " return balance(") < 0) return qfalse;
+		if (FS_OSPrintf(fp, " return balance(") < 0) return qfalse;
 		if (!WriteFloat(fp, fs->weight)) return qfalse;
-		if (fprintf(fp, ",") < 0) return qfalse;
+		if (FS_OSPrintf(fp, ",") < 0) return qfalse;
 		if (!WriteFloat(fp, fs->minweight)) return qfalse;
-		if (fprintf(fp, ",") < 0) return qfalse;
+		if (FS_OSPrintf(fp, ",") < 0) return qfalse;
 		if (!WriteFloat(fp, fs->maxweight)) return qfalse;
-		if (fprintf(fp, ");\n") < 0) return qfalse;
+		if (FS_OSPrintf(fp, ");\n") < 0) return qfalse;
 	} //end if
 	else
 	{
-		if (fprintf(fp, " return ") < 0) return qfalse;
+		if (FS_OSPrintf(fp, " return ") < 0) return qfalse;
 		if (!WriteFloat(fp, fs->weight)) return qfalse;
-		if (fprintf(fp, ";\n") < 0) return qfalse;
+		if (FS_OSPrintf(fp, ";\n") < 0) return qfalse;
 	} //end else
 	return qtrue;
 } //end of the function WriteFuzzyWeight
@@ -477,35 +478,35 @@ static qboolean WriteFuzzyWeight(FILE *fp, fuzzyseperator_t *fs)
 static qboolean WriteFuzzySeperators_r(FILE *fp, fuzzyseperator_t *fs, int indent)
 {
 	if (!WriteIndent(fp, indent)) return qfalse;
-	if (fprintf(fp, "switch(%d)\n", fs->index) < 0) return qfalse;
+	if (FS_OSPrintf(fp, "switch(%d)\n", fs->index) < 0) return qfalse;
 	if (!WriteIndent(fp, indent)) return qfalse;
-	if (fprintf(fp, "{\n") < 0) return qfalse;
+	if (FS_OSPrintf(fp, "{\n") < 0) return qfalse;
 	indent++;
 	do
 	{
 		if (!WriteIndent(fp, indent)) return qfalse;
 		if (fs->next)
 		{
-			if (fprintf(fp, "case %d:", fs->value) < 0) return qfalse;
+			if (FS_OSPrintf(fp, "case %d:", fs->value) < 0) return qfalse;
 		} //end if
 		else
 		{
-			if (fprintf(fp, "default:") < 0) return qfalse;
+			if (FS_OSPrintf(fp, "default:") < 0) return qfalse;
 		} //end else
 		if (fs->child)
 		{
-			if (fprintf(fp, "\n") < 0) return qfalse;
+			if (FS_OSPrintf(fp, "\n") < 0) return qfalse;
 			if (!WriteIndent(fp, indent)) return qfalse;
-			if (fprintf(fp, "{\n") < 0) return qfalse;
+			if (FS_OSPrintf(fp, "{\n") < 0) return qfalse;
 			if (!WriteFuzzySeperators_r(fp, fs->child, indent + 1)) return qfalse;
 			if (!WriteIndent(fp, indent)) return qfalse;
 			if (fs->next)
 			{
-				if (fprintf(fp, "} //end case\n") < 0) return qfalse;
+				if (FS_OSPrintf(fp, "} //end case\n") < 0) return qfalse;
 			} //end if
 			else
 			{
-				if (fprintf(fp, "} //end default\n") < 0) return qfalse;
+				if (FS_OSPrintf(fp, "} //end default\n") < 0) return qfalse;
 			} //end else
 		} //end if
 		else
@@ -516,7 +517,7 @@ static qboolean WriteFuzzySeperators_r(FILE *fp, fuzzyseperator_t *fs, int inden
 	} while(fs);
 	indent--;
 	if (!WriteIndent(fp, indent)) return qfalse;
-	if (fprintf(fp, "} //end switch\n") < 0) return qfalse;
+	if (FS_OSPrintf(fp, "} //end switch\n") < 0) return qfalse;
 	return qtrue;
 } //end of the function WriteItemFuzzyWeights_r
 //===========================================================================
@@ -537,8 +538,8 @@ qboolean WriteWeightConfig(char *filename, weightconfig_t *config)
 	for (i = 0; i < config->numweights; i++)
 	{
 		ifw = &config->weights[i];
-		if (fprintf(fp, "\nweight \"%s\"\n", ifw->name) < 0) return qfalse;
-		if (fprintf(fp, "{\n") < 0) return qfalse;
+		if (FS_OSPrintf(fp, "\nweight \"%s\"\n", ifw->name) < 0) return qfalse;
+		if (FS_OSPrintf(fp, "{\n") < 0) return qfalse;
 		if (ifw->firstseperator->index > 0)
 		{
 			if (!WriteFuzzySeperators_r(fp, ifw->firstseperator, 1)) return qfalse;
@@ -548,9 +549,9 @@ qboolean WriteWeightConfig(char *filename, weightconfig_t *config)
 			if (!WriteIndent(fp, 1)) return qfalse;
 			if (!WriteFuzzyWeight(fp, ifw->firstseperator)) return qfalse;
 		} //end else
-		if (fprintf(fp, "} //end weight\n") < 0) return qfalse;
+		if (FS_OSPrintf(fp, "} //end weight\n") < 0) return qfalse;
 	} //end for
-	fclose(fp);
+	FS_OSClose(fp);
 	return qtrue;
 } //end of the function WriteWeightConfig
 #endif

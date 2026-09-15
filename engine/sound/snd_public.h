@@ -21,6 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 
+#ifndef SND_PUBLIC_H
+#define SND_PUBLIC_H
+
+#include "../qcommon/q_shared.h"
+
 void S_Init( void );
 void S_Shutdown( void );
 
@@ -68,3 +73,40 @@ void S_DisplayFreeMemory(void);
 void S_ClearSoundBuffer( void );
 
 void SNDDMA_Activate( void );
+
+typedef struct {
+	unsigned int channels;
+	unsigned int samples;				// mono samples in buffer
+	int			fullsamples;			// samples with all channels in buffer (samples divided by channels)
+	int			submission_chunk;		// don't mix less than this #
+	int			samplebits;
+	int			isfloat;
+	int			speed;
+	byte		*buffer;
+	const char	*driver;
+} dma_t;
+
+extern byte *dma_buffer2;
+
+// initializes cycling through a DMA buffer and returns information on it
+qboolean SNDDMA_Init(void);
+
+// gets the current DMA position
+int		SNDDMA_GetDMAPos(void);
+
+// shutdown the DMA xfer.
+void	SNDDMA_Shutdown(void);
+
+void	SNDDMA_BeginPainting (void);
+
+void	SNDDMA_Submit(void);
+
+extern	int		s_soundtime;
+extern	int		s_paintedtime;
+extern	int		s_rawend;
+extern	dma_t	dma;
+extern cvar_t *s_volume;
+#define WAV_FORMAT_PCM			0x0001
+#define WAVE_FORMAT_IEEE_FLOAT	0x0003
+
+#endif

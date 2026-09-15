@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 // win_syscon.h
-#include "../../client/client.h"
+#include "../../client/client_public.h"
 #include "win_local.h"
 #include "resource.h"
 

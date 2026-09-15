@@ -23,23 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "cm_local.h"
 
-#ifdef BSPC
-
-#include "../bspc/l_qfiles.h"
-
-void SetPlaneSignbits( cplane_t *out ) {
-	int	bits, j;
-
-	// for fast box on planeside test
-	bits = 0;
-	for ( j = 0; j < 3; j++) {
-		if ( out->normal[j] < 0 ) {
-			bits |= 1<<j;
-		}
-	}
-	out->signbits = bits;
-}
-#endif //BSPC
 
 // to allow boxes to be treated as brush models, we allocate
 // some extra indexes along with those needed by the map
@@ -58,11 +41,9 @@ int			c_traces, c_brush_traces, c_patch_traces;
 
 static byte *cmod_base;
 
-#ifndef BSPC
 cvar_t		*cm_noAreas;
 cvar_t		*cm_noCurves;
 cvar_t		*cm_playerCurveClip;
-#endif
 
 static cmodel_t box_model;
 static cplane_t *box_planes;
@@ -699,14 +680,12 @@ void *CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 		Com_Error( ERR_DROP, "%s: NULL name", __func__ );
 	}
 
-#ifndef BSPC
 	cm_noAreas = Cvar_Get( "cm_noAreas", "0", CVAR_CHEAT );
 	Cvar_SetDescription( cm_noAreas, "Do not use areaportals, all areas are connected." );
 	cm_noCurves = Cvar_Get( "cm_noCurves", "0", CVAR_CHEAT );
 	Cvar_SetDescription( cm_noCurves, "Do not collide against curves." );
 	cm_playerCurveClip = Cvar_Get( "cm_playerCurveClip", "1", CVAR_ARCHIVE_ND | CVAR_CHEAT );
 	Cvar_SetDescription( cm_playerCurveClip, "Collide player against curves." );
-#endif
 
 	Com_DPrintf( "%s( '%s', %i )\n", __func__, name, clientload );
 
@@ -732,11 +711,7 @@ void *CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	//
 	// load the file
 	//
-#ifndef BSPC
 	length = FS_ReadFile( name, &buf );
-#else
-	length = LoadQuakeFile( (quakefile_t *) name, &buf );
-#endif
 
 	if ( !buf ) {
 		Com_Error( ERR_DROP, "%s: couldn't load %s", __func__, name );

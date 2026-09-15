@@ -144,11 +144,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  **********************************************************************/
 
-#ifdef Q3_VM
-
-#include "../../game/bg/bg_lib.h"
-
-#else
 
 #include <assert.h>
 #include <math.h>
@@ -160,8 +155,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <time.h>
 #include <ctype.h>
 #include <limits.h>
-
-#endif
 
 //endianness
 short ShortSwap( short l );

@@ -30,24 +30,35 @@ every Git blob ID, file mode and SHA256 is unchanged. Mapping/artifacts:
 The numstat display checker initially treated binary "-" fields as changed lines;
 independent blob/mode/hash comparison confirms all 757 moves are content-identical.
 
-Path repair is in the working tree: 137 quoted-include files, Make/native rules,
-MSVC references, tests and current documentation. Dedicated build, unit plus the
-one-ULP negative control, and all three static OA C objects pass. Client build passes. Both production object sets are byte-identical to the
-baseline: 355/355 Vulkan and 355/355 OpenGL objects, without normalization.
+Path repair committed as 8b5264c5. Both production object sets are byte-identical
+to the baseline: 355/355 Vulkan and 355/355 OpenGL objects, without normalization.
 Artifacts: /tmp/aftershock-boundary-after and its JSON comparisons. Active MSVC
-project source references resolve; unbuilt renderer2 retains its pre-existing
-stale C/generated-source references until its planned retirement. Reusable port
-gates now recognize engine/game source paths while retaining historical oracles.
-No boundary refactoring/checks yet. Next: commit path repairs, then enforce
-public/OS boundaries and document subsystem ownership.
-After path repair, compare object hashes before boundary adaptations. Enforce
-public cross-subsystem includes and OS access in platform/filesystem code, add
-actual public declarations where needed, and route existing OS operations through
-those boundaries without simulation FP edits. Existing raw socket implementation
-moves into platform. Preliminary include/OS inventory is retained in /tmp;
-commented examples, local helpers and member callbacks must not become false hits.
-Finish docs/subsystems.md and CI checks, full runtime/replay/lifetime/build gates,
-issue update/self-review, then merge #4. No accepted goldens or fixtures changed.
+project references resolve. Reusable port gates recognize new and oracle paths.
+
+Boundary implementation is now in the working tree: public client/sound and
+shared game/input headers, platform clock/CPU/debug/AVI pipe implementations,
+file stream adapters in files.cpp and a public include/OS-access CI check. The
+check passes all 384 source/header files and negative controls. Five client
+operations replace sound's private client-state access; AVI arithmetic and
+Sys_SnapVector bodies are unchanged. Existing Windows debug calls are isolated
+in tiny inline platform wrappers without changing renderer ABI. File adapters
+preserve stdio return values and encoding. The unused renderer2 implementation
+and obsolete absent-tool parser branches are removed (port-plan decision).
+Ownership is documented in docs/subsystems.md; bugs live in docs/bugs.md.
+
+Verification so far: GCC client/dedicated and MinGW native-Windows builds pass;
+Q3 native runtime matches both accepted bot logs; unit hash and one-ULP control
+pass; all three static OpenArena modules compile; all 103 native C/C++ layout
+and symbol comparisons pass. Codegen differences are the prior C/C++ advisory
+set (game implementation changed only includes). The path-repair lifetime gate
+passed 546 commands/137 paths; raw net_ip moved out of core into platform, which
+explains the four-command/one-path reduction. Final lifetime and Q3 fixed replay
+are running. Logs/artifacts use /tmp/aftershock-boundary-*.
+
+Next: finish replay/lifetime verification, check OA runtime/replay, push a draft
+#4 PR, run hosted regression/full builds, review the final diff and merge only
+after gates. No accepted golden or fixture is changed. Then continue #5 -> #8 ->
+design-only docs/design/rhi.md for #6, with no #6/#7 implementation.
 
 ## Earlier #2 integration checkpoints (historical)
 

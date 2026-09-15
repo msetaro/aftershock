@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../../qcommon/q_shared.h"
 #include "../../qcommon/qcommon_public.h"
 #ifndef DEDICATED
-#include "../../client/client.h"
+#include "../../client/client_public.h"
 #endif
 #include "win_local.h"
 #include "resource.h"
@@ -838,3 +838,11 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	// never gets here
 	return 0;
 }
+
+#ifdef _DEBUG
+void Sys_DebugBreak( void )
+{
+	ShowWindow( g_wv.hWnd, SW_MINIMIZE );
+	DebugBreak();
+}
+#endif

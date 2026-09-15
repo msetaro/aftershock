@@ -19,42 +19,21 @@ along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
-#ifndef KEYS_PUBLIC_H
-#define KEYS_PUBLIC_H
+#ifndef FILESYSTEM_PUBLIC_H
+#define FILESYSTEM_PUBLIC_H
 
 #include "q_shared.h"
-#include "keycodes_public.h"
 
-typedef struct {
-	qboolean	down;
-	qboolean	bound;
-	int			repeats;		// if > 1, it is autorepeating
-	char		*binding;
-} qkey_t;
-
-extern	qboolean	key_overstrikeMode;
-extern	qkey_t		keys[MAX_KEYS];
-
-extern  int         anykeydown;
-
-// NOTE TTimo the declaration of field_t and Field_Clear is now in qcommon/qcommon.h
-
-void Key_WriteBindings( fileHandle_t f );
-void Key_SetBinding( int keynum, const char *binding );
-const char *Key_GetBinding( int keynum );
-void Key_ParseBinding( int key, qboolean down, unsigned time );
-
-int Key_GetKey( const char *binding );
-const char *Key_KeynumToString( int keynum );
-int Key_StringToKeynum( const char *str );
-
-qboolean Key_IsDown( int keynum );
-qboolean Key_CapsLockOn( void );
-void Key_ClearStates( void );
-
-qboolean Key_GetOverstrikeMode( void );
-void Key_SetOverstrikeMode( qboolean state );
-
-void Com_InitKeyCommands( void );
+// Raw OS-path streams used by the existing filter and bot developer tools.
+// Keep stdio return values and encoding; qpaths continue to use FS_Read/FS_Write.
+FILE * FS_OSOpen( const char *path, const char *mode );
+size_t FS_OSRead( void *buffer, size_t size, size_t count, FILE *file );
+size_t FS_OSWrite( const void *buffer, size_t size, size_t count, FILE *file );
+int FS_OSClose( FILE *file );
+int FS_OSSeek( FILE *file, long offset, int origin );
+long FS_OSTell( FILE *file );
+int FS_OSFlush( FILE *file );
+int FS_OSVPrintf( FILE *file, const char *format, va_list args );
+int QDECL FS_OSPrintf( FILE *file, const char *format, ... ) __attribute__((format(printf, 2, 3)));
 
 #endif

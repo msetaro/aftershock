@@ -62,20 +62,6 @@ typedef struct sfx_s {
 	struct sfx_s	*next;
 } sfx_t;
 
-typedef struct {
-	unsigned int channels;
-	unsigned int samples;				// mono samples in buffer
-	int			fullsamples;			// samples with all channels in buffer (samples divided by channels)
-	int			submission_chunk;		// don't mix less than this #
-	int			samplebits;
-	int			isfloat;
-	int			speed;
-	byte		*buffer;
-	const char	*driver;
-} dma_t;
-
-extern byte *dma_buffer2;
-
 #define START_SAMPLE_IMMEDIATE	0x7fffffff
 
 #define MAX_DOPPLER_SCALE 50.0f //arbitrary
@@ -111,8 +97,6 @@ typedef struct
 } channel_t;
 
 
-#define WAV_FORMAT_PCM			0x0001
-#define WAVE_FORMAT_IEEE_FLOAT	0x0003
 
 typedef struct {
 	int			format;
@@ -157,19 +141,6 @@ typedef struct
 ====================================================================
 */
 
-// initializes cycling through a DMA buffer and returns information on it
-qboolean SNDDMA_Init(void);
-
-// gets the current DMA position
-int		SNDDMA_GetDMAPos(void);
-
-// shutdown the DMA xfer.
-void	SNDDMA_Shutdown(void);
-
-void	SNDDMA_BeginPainting (void);
-
-void	SNDDMA_Submit(void);
-
 //====================================================================
 
 #define	MAX_CHANNELS			96
@@ -178,18 +149,13 @@ extern	channel_t   s_channels[MAX_CHANNELS];
 extern	channel_t   loop_channels[MAX_CHANNELS];
 extern	int		numLoopChannels;
 
-extern	int		s_soundtime;
-extern	int		s_paintedtime;
-extern	int		s_rawend;
 extern	vec3_t	listener_forward;
 extern	vec3_t	listener_right;
 extern	vec3_t	listener_up;
-extern	dma_t	dma;
 
 #define	MAX_RAW_SAMPLES	16384
 extern	portable_samplepair_t	s_rawsamples[MAX_RAW_SAMPLES];
 
-extern cvar_t *s_volume;
 extern cvar_t *s_musicVolume;
 extern cvar_t *s_doppler;
 extern cvar_t *s_muteWhenUnfocused;

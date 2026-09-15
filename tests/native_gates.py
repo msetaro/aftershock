@@ -32,7 +32,7 @@ metadata = {
     'revision': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
     'compilers': {cc: subprocess.check_output([cc, '--version'], text=True) for cc in ('gcc', 'g++')},
     'sha256': {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-               for name in [*[row['path'] for row in manifest['files']], 'game/bg/native_abi.h']},
+               for name in [*[row['path'] for row in manifest['files']], 'game/bg/native_abi_public.h']},
 }
 (output / 'metadata.json').write_text(json.dumps(metadata, indent=2) + '\n')
 
@@ -43,7 +43,7 @@ def check(item):
     folder = output / name
     folder.mkdir(exist_ok=True)
     flags = ['-O2', '-fPIC', '-ffp-contract=off', '-fno-strict-aliasing',
-             '-fwrapv', '-fno-builtin', '-include', 'game/bg/native_abi.h',
+             '-fwrapv', '-fno-builtin', '-include', 'game/bg/native_abi_public.h',
              '-D' + {'game': 'QAGAME', 'cgame': 'CGAME', 'ui': 'UI'}[module]]
     # Existing port symbol-oracle flags, including header optimization isolation.
     symbol_flags = ['-g0', '-fno-inline-functions', '-D__NO_CTYPE=1',

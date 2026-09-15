@@ -5119,3 +5119,18 @@ static void CL_Download_f( void )
 	CL_Download( Cmd_Argv( 0 ), Cmd_Argv( 1 ), qfalse );
 }
 #endif // USE_CURL
+
+int CL_FrameCount( void )
+{
+	return cls.framecount;
+}
+
+void CL_SoundStopped( void )
+{
+	cls.soundStarted = qfalse;
+}
+
+void CL_SoundRegistrationCleared( void )
+{
+	cls.soundRegistered = qfalse;
+}

@@ -355,7 +355,7 @@
     },
     {
       "source": "code/cgame/tr_types.h",
-      "path": "game/cgame/tr_types.h",
+      "path": "game/bg/tr_types_public.h",
       "sha256": "6ce0e5cfd49d0ec6ca6907e0c80985b41c9b2963958ce3583bd6a3918ca16dd0",
       "disposition": "verbatim import"
     },
@@ -1245,7 +1245,7 @@
     },
     {
       "source": "code/ui/ui_shared.h",
-      "path": "game/ui/ui_shared.h",
+      "path": "game/ui/ui_shared_public.h",
       "sha256": "b249e8d18be4379c1606a58e2f9fea6ec4ac4ef910de75e4d600bbe18a3d9902",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 5 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
@@ -1365,7 +1365,7 @@
     },
     {
       "source": "ui/menudef.h",
-      "path": "ui/menudef.h",
+      "path": "game/bg/menudef_public.h",
       "sha256": "e32d5303f38e32ec4820a87e98747b41b9a4579f07dbcc358ac1d2e876a26aef",
       "disposition": "verbatim import"
     }

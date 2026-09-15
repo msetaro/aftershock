@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _QCOMMON_H_
 #define _QCOMMON_H_
 
-#include <sys/types.h>
+#include "../platform/file_types_public.h"
 #include "cm_public.h"
 
 //Ignore __attribute__ on non-gcc/clang platforms
@@ -633,12 +633,7 @@ typedef enum {
 #define CONSOLE_HISTORY_FILE "q3history"
 #endif
 
-typedef	time_t fileTime_t;
-#if defined  (_MSC_VER) && defined (__clang__)
-typedef	_off_t  fileOffset_t;
-#else
-typedef	off_t  fileOffset_t;
-#endif
+
 
 qboolean FS_Initialized( void );
 
@@ -679,6 +674,7 @@ qboolean FS_ResetReadOnlyAttribute( const char *filename );
 
 qboolean FS_SV_FileExists( const char *file );
 
+void FS_WriteCDKey( const char *filename, const char *key );
 fileHandle_t FS_SV_FOpenFileWrite( const char *filename );
 int		FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp );
 void	FS_SV_Rename( const char *from, const char *to );

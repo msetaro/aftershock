@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *****************************************************************************/
 
-#ifdef BOTLIB
+#include "../qcommon/filesystem_public.h"
 #include "../qcommon/q_shared.h"
 #include "botlib_public.h"				//for the include of be_interface.h
 #include "l_script.h"
@@ -37,19 +37,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "l_struct.h"
 #include "l_utils.h"
 #include "be_interface.h"
-#endif //BOTLIB
 
-#ifdef BSPC
-//include files for usage in the BSP Converter
-#include "../bspc/qbsp.h"
-#include "../bspc/l_log.h"
-#include "../bspc/l_mem.h"
-#include "l_precomp.h"
-#include "l_struct.h"
-
-#define qtrue	true
-#define qfalse	false
-#endif //BSPC
 
 //===========================================================================
 //
@@ -328,7 +316,7 @@ int WriteIndent(FILE *fp, int indent)
 {
 	while(indent-- > 0)
 	{
-		if (fprintf(fp, "\t") < 0) return qfalse;
+		if (FS_OSPrintf(fp, "\t") < 0) return qfalse;
 	} //end while
 	return qtrue;
 } //end of the function WriteIndent
@@ -357,7 +345,7 @@ int WriteFloat(FILE *fp, float value)
 		buf[l] = 0;
 	} //end while
 	//write the float to file
-	if (fprintf(fp, "%s", buf) < 0) return 0;
+	if (FS_OSPrintf(fp, "%s", buf) < 0) return 0;
 	return 1;
 } //end of the function WriteFloat
 //===========================================================================
@@ -373,19 +361,19 @@ static int WriteStructWithIndent(FILE *fp, const structdef_t *def, const char *s
 	const fielddef_t *fd;
 
 	if (!WriteIndent(fp, indent)) return qfalse;
-	if (fprintf(fp, "{\r\n") < 0) return qfalse;
+	if (FS_OSPrintf(fp, "{\r\n") < 0) return qfalse;
 
 	indent++;
 	for (i = 0; def->fields[i].name; i++)
 	{
 		fd = &def->fields[i];
 		if (!WriteIndent(fp, indent)) return qfalse;
-		if (fprintf(fp, "%s\t", fd->name) < 0) return qfalse;
+		if (FS_OSPrintf(fp, "%s\t", fd->name) < 0) return qfalse;
 		p = (void *)(structure + fd->offset);
 		if (fd->type & FT_ARRAY)
 		{
 			num = fd->maxarray;
-			if (fprintf(fp, "{") < 0) return qfalse;
+			if (FS_OSPrintf(fp, "{") < 0) return qfalse;
 		} //end if
 		else
 		{
@@ -397,13 +385,13 @@ static int WriteStructWithIndent(FILE *fp, const structdef_t *def, const char *s
 			{
 				case FT_CHAR:
 				{
-					if (fprintf(fp, "%d", *(char *) p) < 0) return qfalse;
+					if (FS_OSPrintf(fp, "%d", *(char *) p) < 0) return qfalse;
 					p = (char *) p + sizeof(char);
 					break;
 				} //end case
 				case FT_INT:
 				{
-					if (fprintf(fp, "%d", *(int *) p) < 0) return qfalse;
+					if (FS_OSPrintf(fp, "%d", *(int *) p) < 0) return qfalse;
 					p = (char *) p + sizeof(int);
 					break;
 				} //end case
@@ -415,7 +403,7 @@ static int WriteStructWithIndent(FILE *fp, const structdef_t *def, const char *s
 				} //end case
 				case FT_STRING:
 				{
-					if (fprintf(fp, "\"%s\"", (char *) p) < 0) return qfalse;
+					if (FS_OSPrintf(fp, "\"%s\"", (char *) p) < 0) return qfalse;
 					p = (char *) p + MAX_STRINGFIELD;
 					break;
 				} //end case
@@ -430,20 +418,20 @@ static int WriteStructWithIndent(FILE *fp, const structdef_t *def, const char *s
 			{
 				if (num > 0)
 				{
-					if (fprintf(fp, ",") < 0) return qfalse;
+					if (FS_OSPrintf(fp, ",") < 0) return qfalse;
 				} //end if
 				else
 				{
-					if (fprintf(fp, "}") < 0) return qfalse;
+					if (FS_OSPrintf(fp, "}") < 0) return qfalse;
 				} //end else
 			} //end if
 		} //end while
-		if (fprintf(fp, "\r\n") < 0) return qfalse;
+		if (FS_OSPrintf(fp, "\r\n") < 0) return qfalse;
 	} //end for
 	indent--;
 
 	if (!WriteIndent(fp, indent)) return qfalse;
-	if (fprintf(fp, "}\r\n") < 0) return qfalse;
+	if (FS_OSPrintf(fp, "}\r\n") < 0) return qfalse;
 	return qtrue;
 } //end of the function WriteStructWithIndent
 //===========================================================================

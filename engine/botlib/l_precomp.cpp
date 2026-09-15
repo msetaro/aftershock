@@ -32,65 +32,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 //Notes:			fix: PC_StringizeTokens
 
-//#define SCREWUP
-//#define BOTLIB
 //#define QUAKE
 //#define QUAKEC
-//#define MEQCC
 
-#ifdef SCREWUP
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <string.h>
-#include <stdarg.h>
-#include <time.h>
-#include "l_memory.h"
-#include "l_script.h"
-#include "l_precomp.h"
 
-typedef enum {qfalse, qtrue}	qboolean;
-#endif //SCREWUP
-
-#ifdef BOTLIB
 #include "../qcommon/q_shared.h"
+#include "../platform/runtime_public.h"
 #include "botlib_public.h"
 #include "be_interface.h"
 #include "l_memory.h"
 #include "l_script.h"
 #include "l_precomp.h"
 #include "l_log.h"
-#endif //BOTLIB
 
-#ifdef MEQCC
-#include "qcc.h"
-#include "time.h"   //time & ctime
-#include "math.h"   //fabs
-#include "l_memory.h"
-#include "l_script.h"
-#include "l_precomp.h"
-#include "l_log.h"
 
-#define qtrue	true
-#define qfalse	false
-#endif //MEQCC
 
-#ifdef BSPC
-//include files for usage in the BSP Converter
-#include "../bspc/qbsp.h"
-#include "../bspc/l_log.h"
-#include "../bspc/l_mem.h"
-#include "l_precomp.h"
-
-#define qtrue	true
-#define qfalse	false
-#define Q_stricmp	stricmp
-
-#endif //BSPC
-
-#if defined(QUAKE) && !defined(BSPC)
-#include "l_utils.h"
-#endif //QUAKE
 
 //#define DEBUG_EVAL
 
@@ -133,15 +89,7 @@ void QDECL SourceError(source_t *source, const char *fmt, ...)
 	va_start(ap, fmt);
 	Q_vsnprintf(text, sizeof(text), fmt, ap);
 	va_end(ap);
-#ifdef BOTLIB
 	botimport.Print(PRT_ERROR, "file %s, line %d: %s\n", source->scriptstack->filename, source->scriptstack->line, text);
-#endif	//BOTLIB
-#ifdef MEQCC
-	printf("error: file %s, line %d: %s\n", source->scriptstack->filename, source->scriptstack->line, text);
-#endif //MEQCC
-#ifdef BSPC
-	Log_Print("error: file %s, line %d: %s\n", source->scriptstack->filename, source->scriptstack->line, text);
-#endif //BSPC
 } //end of the function SourceError
 //===========================================================================
 //
@@ -157,15 +105,7 @@ void QDECL SourceWarning(source_t *source, const char *fmt, ...)
 	va_start(ap, fmt);
 	Q_vsnprintf(text, sizeof(text), fmt, ap);
 	va_end(ap);
-#ifdef BOTLIB
 	botimport.Print(PRT_WARNING, "file %s, line %d: %s\n", source->scriptstack->filename, source->scriptstack->line, text);
-#endif //BOTLIB
-#ifdef MEQCC
-	printf("warning: file %s, line %d: %s\n", source->scriptstack->filename, source->scriptstack->line, text);
-#endif //MEQCC
-#ifdef BSPC
-	Log_Print("warning: file %s, line %d: %s\n", source->scriptstack->filename, source->scriptstack->line, text);
-#endif //BSPC
 } //end of the function ScriptWarning
 //============================================================================
 //
@@ -268,11 +208,7 @@ static token_t *PC_CopyToken(token_t *token)
 //	t = freetokens;
 	if (!t)
 	{
-#ifdef BSPC
-		Error("out of token space");
-#else
 		Com_Error(ERR_FATAL, "out of token space");
-#endif
 		return NULL;
 	} //end if
 //	freetokens = freetokens->next;
@@ -753,8 +689,8 @@ static int PC_ExpandBuiltinDefine(source_t *source, token_t *deftoken, define_t 
 		} //end case
 		case BUILTIN_DATE:
 		{
-			t = time(NULL);
-			curtime = ctime(( const time_t *)&t);
+			t = Sys_Time(NULL);
+			curtime = Sys_CTime(( const time_t *)&t);
 			strcpy(token->string, "\"");
 			strncat(token->string, curtime+4, 7);
 			strncat(token->string+7, curtime+20, 4);
@@ -767,8 +703,8 @@ static int PC_ExpandBuiltinDefine(source_t *source, token_t *deftoken, define_t 
 		} //end case
 		case BUILTIN_TIME:
 		{
-			t = time(NULL);
-			curtime = ctime(( const time_t *)&t);
+			t = Sys_Time(NULL);
+			curtime = Sys_CTime(( const time_t *)&t);
 			strcpy(token->string, "\"");
 			strncat(token->string, curtime+11, 8);
 			strcat(token->string, "\"");
@@ -987,9 +923,6 @@ static int PC_Directive_include(source_t *source)
 	script_t *script;
 	token_t token;
 	char path[MAX_PATH];
-#ifdef QUAKE
-	foundfile_t file;
-#endif //QUAKE
 
 	if (source->skip > 0) return qtrue;
 	//
@@ -1045,23 +978,10 @@ static int PC_Directive_include(source_t *source)
 		SourceError(source, "#include without file name");
 		return qfalse;
 	} //end else
-#ifdef QUAKE
 	if (!script)
 	{
-		Com_Memset(&file, 0, sizeof(foundfile_t));
-		script = LoadScriptFile(path);
-		if (script) Q_strncpyz(script->filename, path, sizeof(script->filename));
-	} //end if
-#endif //QUAKE
-	if (!script)
-	{
-#ifdef SCREWUP
-		SourceWarning(source, "file %s not found", path);
-		return qtrue;
-#else
 		SourceError(source, "file %s not found", path);
 		return qfalse;
-#endif //SCREWUP
 	} //end if
 	PC_PushScript(source, script);
 	return qtrue;
@@ -3249,9 +3169,7 @@ void PC_CheckOpenSourceHandles( void )
 	{
 		if (sourceFiles[i])
 		{
-#ifdef BOTLIB
 			botimport.Print(PRT_ERROR, "file %s still open in precompiler\n", sourceFiles[i]->scriptstack->filename);
-#endif	//BOTLIB
 		} //end if
 	} //end for
 } //end of the function PC_CheckOpenSourceHandles

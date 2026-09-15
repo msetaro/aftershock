@@ -1,4 +1,4 @@
-#include "../../client/client.h"
+#include "../../client/client_public.h"
 #include "win_local.h"
 
 struct hk_token 

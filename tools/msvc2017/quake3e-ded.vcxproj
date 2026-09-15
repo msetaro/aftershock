@@ -296,6 +296,7 @@
     <ClCompile Include="..\..\engine\qcommon\cm_test.cpp" />
     <ClCompile Include="..\..\engine\qcommon\cm_trace.cpp" />
     <ClCompile Include="..\..\engine\qcommon\common.cpp" />
+    <ClCompile Include="..\..\engine\platform\sys_runtime.cpp" />
     <ClCompile Include="..\..\engine\qcommon\cvar.cpp" />
     <ClCompile Include="..\..\engine\qcommon\files.cpp" />
     <ClCompile Include="..\..\engine\qcommon\history.cpp" />
@@ -327,7 +328,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\engine\public\cg_public.h" />
     <ClInclude Include="..\..\engine\client\client.h" />
-    <ClInclude Include="..\..\engine\client\keycodes.h" />
+    <ClInclude Include="..\..\engine\qcommon\keycodes_public.h" />
     <ClInclude Include="..\..\engine\qcommon\keys_public.h" />
     <ClInclude Include="..\..\engine\public\bg_public.h" />
     <ClInclude Include="..\..\engine\public\g_public.h" />

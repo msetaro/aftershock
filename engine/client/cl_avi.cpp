@@ -21,16 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "client.h"
-#include "../sound/snd_local.h"
+#include "../sound/snd_public.h"
 
 #define INDEX_FILE_EXTENSION ".index.dat"
 
 #define MAX_RIFF_CHUNKS 16
 
 #ifdef _WIN32
-#include <windows.h>
+#include "../platform/video_public.h"
 #define USE_WIN32_NAMED_PIPES
-#define WIN32_HANDLE_VALID(h) ((h) && (h) != INVALID_HANDLE_VALUE)
 #endif
 
 typedef struct audioFormat_s
@@ -49,12 +48,7 @@ typedef struct aviFileData_s
   qboolean      fileOpen;
   qboolean      pipe;
 #ifdef USE_WIN32_NAMED_PIPES
-  struct {
-    HANDLE      hNamedPipe;
-    HANDLE      hProcess;
-    HANDLE      hThread;
-    HANDLE      hStdErr;
-  } ffmpeg;
+  sysVideoPipe_t ffmpeg;
 #endif
   fileHandle_t  f;
   char          fileName[ MAX_QPATH ];
@@ -99,15 +93,8 @@ SafeFS_Write
 static ID_INLINE void SafeFS_Write( const void *buf, unsigned int len, fileHandle_t f )
 {
 #ifdef USE_WIN32_NAMED_PIPES
-	if ( afd.pipe && WIN32_HANDLE_VALID( afd.ffmpeg.hNamedPipe ) ) {
-		DWORD n = 0;
-		WriteFile( afd.ffmpeg.hNamedPipe, buf, len, &n, NULL );
-		if ( n != len ) {
-			// ffmpeg died most likely, we should close all handles here to avoid recursive errors
-			Com_Error( ERR_DROP, "Failed to write avi file to pipe" );
-		}
+	if ( afd.pipe && Sys_WriteVideoPipe( &afd.ffmpeg, buf, len ) )
 		return;
-	}
 #endif
 
 	if ( FS_Write( buf, len, f ) < len )
@@ -413,97 +400,8 @@ qboolean CL_OpenAVIForWriting( const char *fileName, const char *pipeFormat, qbo
 	{
 		const char* ospath = FS_BuildOSPath( Cvar_VariableString( "fs_homepath" ), "", fileName );;
 #ifdef USE_WIN32_NAMED_PIPES
-		char cmd[MAX_OSPATH*2];
-		char namedPipeName[128];		// base length is 15 chars for "\\.\pipe\LOCAL\", rest is for "q3a-*" suffix reserved
-		char logName[MAX_OSPATH*2 + 8];	// fileName + strlen("-log.txt")
-		int namedPipeRand[1];			// one 32bit random id should be enough to avoid collisions
-		SECURITY_ATTRIBUTES sAttr;
-
-		// we can't use "2> " stderr log file redirection with named pipes
-		// so will create and inherit corresponding file handles
-		const char* cmd_fmt2 = "ffmpeg -threads 0 -f avi -i %s -y %s \"%s\"";
-
-		Com_sprintf( logName, sizeof( logName ), "%s-log.txt", ospath );
-		// make sure log file dir exists before file creation
-		FS_CreatePath( logName );
-
-		// create security attributes to inherit log file handle
-		memset( &sAttr, 0x0, sizeof( sAttr ) );
-		sAttr.nLength = sizeof( SECURITY_ATTRIBUTES );
-		sAttr.bInheritHandle = TRUE;
-
-		afd.ffmpeg.hStdErr = CreateFileA( logName, GENERIC_WRITE, FILE_SHARE_READ, &sAttr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
-
-		// generate random pipe suffix
-		Sys_RandomBytes( (byte*)namedPipeRand, sizeof( namedPipeRand ) );
-		Com_sprintf( namedPipeName, sizeof( namedPipeName ), "\\\\.\\pipe\\LOCAL\\q3a-%x", namedPipeRand[0] );
-
-		afd.ffmpeg.hNamedPipe = CreateNamedPipeA( namedPipeName, PIPE_ACCESS_OUTBOUND, PIPE_TYPE_MESSAGE | PIPE_REJECT_REMOTE_CLIENTS, 1, 0, 0, 0, NULL );
-		if ( afd.ffmpeg.hNamedPipe != INVALID_HANDLE_VALUE )
-		{
-			STARTUPINFOA si = { sizeof( STARTUPINFOA ) };
-			PROCESS_INFORMATION pi = { 0 };
-			BOOL bResult;
-
-			// hide ffmpeg console window
-			si.dwFlags = STARTF_USESHOWWINDOW;
-			si.wShowWindow = SW_HIDE;
-
-			// enable stdout/stderr redirection for a log file
-			if ( afd.ffmpeg.hStdErr != INVALID_HANDLE_VALUE )
-			{
-				si.dwFlags |= STARTF_USESTDHANDLES;
-				si.hStdInput = GetStdHandle( STD_INPUT_HANDLE );
-				si.hStdOutput = afd.ffmpeg.hStdErr;
-				si.hStdError = afd.ffmpeg.hStdErr;
-			}
-
-			// create ffmpeg command line using name pipe and aviPipeFormat
-			Com_sprintf( cmd, sizeof( cmd ), cmd_fmt2, namedPipeName, pipeFormat, ospath );
-
-			// create ffmpeg process
-			bResult = CreateProcessA( NULL, cmd, NULL,	NULL, si.dwFlags & STARTF_USESTDHANDLES ? TRUE : FALSE, 
-				0, NULL, NULL, &si, &pi );
-
-			if ( bResult == TRUE )
-			{
-				afd.ffmpeg.hProcess = pi.hProcess;
-				afd.ffmpeg.hThread = pi.hThread;
-				// wait till ffmpeg client connects to the pipe
-				ConnectNamedPipe( afd.ffmpeg.hNamedPipe, NULL );
-			}
-			else
-			{
-				int err = (int)GetLastError();
-				if ( err == ERROR_FILE_NOT_FOUND ) {
-					Com_Printf( S_COLOR_ERROR "%s: ffmpeg binary not found!\n", __func__ );
-				} else {
-					Com_Printf( S_COLOR_ERROR "%s: ffmpeg startup error %d\n", __func__, err );
-				}
-
-				// cleanup pipe and log handle
-				CloseHandle( afd.ffmpeg.hNamedPipe );
-				afd.ffmpeg.hNamedPipe = INVALID_HANDLE_VALUE;
-				if ( WIN32_HANDLE_VALID( afd.ffmpeg.hStdErr ) )
-				{
-					CloseHandle( afd.ffmpeg.hStdErr );
-					afd.ffmpeg.hStdErr = INVALID_HANDLE_VALUE;
-				}
-
-				return qfalse;
-			}
-		}
-		else
-		{
-			Com_Printf( S_COLOR_ERROR "%s: error %i creating named pipe %s\n", __func__, (int)GetLastError(), namedPipeName );
-			// cleanup log handle
-			if ( WIN32_HANDLE_VALID( afd.ffmpeg.hStdErr ) )
-			{
-				CloseHandle( afd.ffmpeg.hStdErr );
-				afd.ffmpeg.hStdErr = INVALID_HANDLE_VALUE;
-			}
+		if ( !Sys_OpenVideoPipe( &afd.ffmpeg, ospath, pipeFormat, __func__ ) )
 			return qfalse;
-		}
 #else // ! USE_WIN32_NAMED_PIPES
 		char cmd[MAX_OSPATH*3];
 		const char *cmd_fmt = "ffmpeg -threads 0 -f avi -i - -y %s \"%s\" 2> \"%s-log.txt\"";
@@ -823,24 +721,7 @@ qboolean CL_CloseAVI( qboolean reopen )
 			afd.f = FS_INVALID_HANDLE;
 		}
 #ifdef USE_WIN32_NAMED_PIPES
-		if ( WIN32_HANDLE_VALID( afd.ffmpeg.hNamedPipe ) )
-		{
-			FlushFileBuffers( afd.ffmpeg.hNamedPipe );
-			DisconnectNamedPipe( afd.ffmpeg.hNamedPipe );
-			CloseHandle( afd.ffmpeg.hNamedPipe );
-			if ( WIN32_HANDLE_VALID( afd.ffmpeg.hProcess ) )
-			{
-				WaitForSingleObject( afd.ffmpeg.hProcess, INFINITE );
-				CloseHandle( afd.ffmpeg.hProcess );
-			}
-			CloseHandle( afd.ffmpeg.hThread );
-			if ( WIN32_HANDLE_VALID( afd.ffmpeg.hStdErr ) )
-				CloseHandle( afd.ffmpeg.hStdErr );
-			afd.ffmpeg.hNamedPipe = INVALID_HANDLE_VALUE;
-			afd.ffmpeg.hProcess = INVALID_HANDLE_VALUE;
-			afd.ffmpeg.hThread = INVALID_HANDLE_VALUE;
-			afd.ffmpeg.hStdErr = INVALID_HANDLE_VALUE;
-		}
+		Sys_CloseVideoPipe( &afd.ffmpeg );
 #endif
 		afd.fileOpen = qfalse;
 		afd.pipe = qfalse;
@@ -919,4 +800,25 @@ CL_VideoRecording
 qboolean CL_VideoRecording( void )
 {
 	return afd.fileOpen;
+}
+
+void CL_AdvanceVideoAudio( int speed, float mixOffset, int *soundtime, int *paintedtime )
+{
+	const float duration = MAX( (float)speed / cl_aviFrameRate->value, 1.0f );
+	const float frameDuration = duration + clc.aviSoundFrameRemainder;
+	const int msec = (int)frameDuration;
+
+	*soundtime += msec;
+	clc.aviSoundFrameRemainder = frameDuration - msec;
+
+	// use same offset as in game
+	*paintedtime = *soundtime + (int)(mixOffset * (float)speed);
+
+	// render exactly one frame of audio data
+	clc.aviFrameEndTime = *paintedtime + (int)(duration + clc.aviSoundFrameRemainder);
+}
+
+int CL_VideoAudioEndTime( void )
+{
+	return clc.aviFrameEndTime;
 }

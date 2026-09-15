@@ -282,9 +282,9 @@ static int Huff_Receive(node_t *node, int *ch, byte *fin) {
 }
 
 /* Send the prefix code for this node */
-static void send(node_t *node, node_t *child, byte *fout) {
+static void Huff_Send(node_t *node, node_t *child, byte *fout) {
 	if (node->parent) {
-		send(node->parent, node, fout);
+		Huff_Send(node->parent, node, fout);
 	}
 	if (child) {
 		if (node->right == child) {
@@ -305,7 +305,7 @@ static void Huff_transmit( huff_t *huff, int ch, byte *fout ) {
 			add_bit((char)((ch >> i) & 0x1), fout);
 		}
 	} else {
-		send(huff->loc[ch], NULL, fout);
+		Huff_Send(huff->loc[ch], NULL, fout);
 	}
 }
 

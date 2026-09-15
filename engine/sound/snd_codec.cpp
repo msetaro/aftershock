@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
-#include "../client/client.h"
+#include "../client/client_public.h"
 #include "snd_codec.h"
 
 static snd_codec_t *codecs;

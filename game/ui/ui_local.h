@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __UI_LOCAL_H__
 
 #include "../bg/q_shared.h"
-#include "../cgame/tr_types.h"
+#include "../bg/tr_types_public.h"
 //NOTE: include the ui_public.h from the new UI
 #include "../../engine/public/ui_public.h" // bk001205 - yes, do have to use this
 //redefine to old API version

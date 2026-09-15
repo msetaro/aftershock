@@ -44,7 +44,7 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
     manifest = json.loads((ROOT / 'docs/native-game-import.json').read_text())
     layouts = []
     for name, command in [
-        ('native', [*compiler, *mode, '-include', 'game/bg/native_abi.h']),
+        ('native', [*compiler, *mode, '-include', 'game/bg/native_abi_public.h']),
         ('engine', [*shlex.split(cxx), '-x', 'c++', '-std=c++20', '-DENGINE'])
     ]:
         binary = output / ('layout-' + name)
@@ -57,7 +57,7 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
         raise RuntimeError('native/engine ABI layout differs; see layout-*.txt')
     flags = [*compiler, *mode, *warnings, '-fPIC', '-O2',
              '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv', '-fno-builtin',
-             '-include', 'game/bg/native_abi.h']
+             '-include', 'game/bg/native_abi_public.h']
     library = ['game/bg/bg_lib.cpp']
     if language == 'c++' and 'clang' in version.lower():
         # glibc's inline atof conflicts with this file's compatibility definition.

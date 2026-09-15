@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // client.h -- primary header for client
 
-#include "../qcommon/q_shared.h"
+#include "client_public.h"
 #include "../qcommon/qcommon_public.h"
 #include "../renderercommon/tr_public.h"
 #include "../public/ui_public.h"
@@ -377,7 +377,6 @@ qboolean	CL_Download( const char *cmd, const char *pakname, qboolean autoDownloa
 
 //=============================================================================
 
-extern	refexport_t		re;		// interface to refresh .dll
 
 
 //
@@ -392,7 +391,6 @@ extern	cvar_t	*cl_timeNudge;
 extern	cvar_t	*cl_showTimeDelta;
 
 extern	cvar_t	*com_timedemo;
-extern	cvar_t	*cl_aviFrameRate;
 extern	cvar_t	*cl_aviMotionJpeg;
 extern	cvar_t	*cl_aviPipeFormat;
 
@@ -411,27 +409,12 @@ extern	cvar_t	*cl_lanForcePackets;
 extern	cvar_t	*cl_autoRecordDemo;
 extern	cvar_t	*cl_drawRecording;
 
-extern	cvar_t	*com_maxfps;
 
-extern	cvar_t	*vid_xpos;
-extern	cvar_t	*vid_ypos;
-extern	cvar_t	*r_noborder;
 
-extern	cvar_t	*r_allowSoftwareGL;
-extern	cvar_t	*r_swapInterval;
-extern	cvar_t	*r_glDriver;
 
-extern	cvar_t	*r_displayRefresh;
-extern	cvar_t	*r_fullscreen;
-extern	cvar_t	*r_mode;
-extern	cvar_t	*r_modeFullscreen;
 extern	cvar_t	*r_customwidth;
 extern	cvar_t	*r_customheight;
 extern	cvar_t	*r_customPixelAspect;
-extern	cvar_t	*r_colorbits;
-extern	cvar_t	*cl_stencilbits;
-extern	cvar_t	*cl_depthbits;
-extern	cvar_t	*cl_drawBuffer;
 
 //=================================================
 
@@ -459,9 +442,7 @@ void CL_ClearState( void );
 int CL_ServerStatus( const char *serverAddress, char *serverStatusString, int maxLen );
 
 qboolean CL_CheckPaused( void );
-qboolean CL_NoDelay( void );
 
-qboolean CL_GetModeInfo( int *width, int *height, float *windowAspect, int mode, const char *modeFS, int dw, int dh, qboolean fullscreen );
 
 
 //
@@ -570,7 +551,6 @@ void CL_SetCGameTime( void );
 //
 void CL_InitUI( void );
 void CL_ShutdownUI( void );
-int Key_GetCatcher( void );
 void Key_SetCatcher( int catcher );
 
 
@@ -588,9 +568,7 @@ qboolean CL_OpenAVIForWriting( const char *filename, const char *pipeFormat, qbo
 qboolean CL_ValidatePipeFormat( const char *s );
 void CL_TakeVideoFrame( void );
 void CL_WriteAVIVideoFrame( const byte *imageBuffer, int size );
-void CL_WriteAVIAudioFrame( const byte *pcmBuffer, int size );
 qboolean CL_CloseAVI( qboolean reopen );
-qboolean CL_VideoRecording( void );
 
 //
 // cl_jpeg.c
@@ -601,24 +579,13 @@ void	CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
 
 
 // base backend functions
-void	HandleEvents( void );
 
 // platform-specific
-void	GLimp_InitGamma(glconfig_t *config);
-void	GLimp_SetGamma(unsigned char red[256], unsigned char green[256], unsigned char blue[256]);
 
 // OpenGL
 #ifdef USE_OPENGL_API
-void	GLimp_Init( glconfig_t *config );
-void	GLimp_Shutdown( qboolean unloadDLL );
-void	GLimp_EndFrame( void );
-void	*GL_GetProcAddress( const char *name );
 #endif
 
 // Vulkan
 #ifdef USE_VULKAN_API
-void	VKimp_Init( glconfig_t *config );
-void	VKimp_Shutdown( qboolean unloadDLL );
-void	*VK_GetInstanceProcAddr( VkInstance instance, const char *name );
-qboolean VK_CreateSurface( VkInstance instance, VkSurfaceKHR* pSurface );
 #endif

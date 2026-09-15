@@ -7,6 +7,7 @@ isolated allocator/log/file stubs and instrumentation; production code is unchan
 ```
 python3 tests/native_math.py
 python3 tests/check_lifetimes.py
+python3 tests/check_boundaries.py
 python3 tests/run.py unit --negative-control
 python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
 python3 tests/check_known_bugs.py
@@ -372,3 +373,6 @@ init exports must exist and no VM_* implementation symbol may remain. The old
 VM_Call argument-slot probe was retired with VM_Call; its #31 history remains in
 the bug ledger. Retained C/C++ import oracles are compiler evidence, not a runtime
 module-loading path. Native game objects are linked into the executables.
+
+The boundary check scans engine/game includes and OS calls, with built-in negative
+controls. See `docs/subsystems.md` for the public-header and OS ownership rules.

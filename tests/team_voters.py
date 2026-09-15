@@ -15,7 +15,7 @@ binary = args.output.resolve() / 'check'
 # Keep the real rank calculation; isolate its unrelated end-level notifications.
 flags = [*shlex.split(args.cc), '-std=gnu99', '-O2', '-fno-inline', '-fPIC',
          '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined',
-         '-fno-sanitize-recover=all', '-include', 'game/bg/native_abi.h', '-Igame/game']
+         '-fno-sanitize-recover=all', '-include', 'game/bg/native_abi_public.h', '-Igame/game']
 obj = args.output.resolve() / 'g_main.o'
 run([*flags, '-x', 'c', '-c', 'game/game/g_main.cpp', '-o', obj])
 run(['objcopy', '--weaken-symbol=CheckExitRules',

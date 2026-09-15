@@ -16,7 +16,7 @@
 #else
 #include "../../game/bg/q_shared.h"
 #include "../../engine/public/g_public.h"
-#include "../../game/cgame/tr_types.h"
+#include "../../game/bg/tr_types_public.h"
 #include "../../engine/public/cg_public.h"
 #include "../../engine/public/ui_public.h"
 #include "../../game/game/botlib.h"
