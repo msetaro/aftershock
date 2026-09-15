@@ -8,10 +8,6 @@
       "c": 2,
       "cpp": 2
     },
-    "-Wimplicit-fallthrough": {
-      "c": 4,
-      "cpp": 4
-    },
     "-Wmissing-field-initializers": {
       "c": 66,
       "cpp": 100

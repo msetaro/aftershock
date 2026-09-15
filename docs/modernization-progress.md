@@ -7,22 +7,25 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-native-internal. PR #75 merged b28beab5 after passing build
-35020481804 and regression 35020481815 at da94649e; that merge is integrated here.
-The branch removes only Clang's unneeded-internal-declaration freeze from the
-standalone native helper. Source commit 0662297d; Clang C/C++ helper builds and
-ABI checks pass, all six shared-library hashes are unchanged, and both helper
-flag controls fail with the diagnostic enabled. Artifacts:
-/tmp/aftershock-native-internal-{before.json,control,c.log,cpp.log}.
+Active: issue/8-native-fallthrough, based on pending PR #76 head 4c598f3e.
+PR #76 remains on issue/8-native-internal; verify its hosted gates and merge first,
+then integrate origin/modernization before opening this separate class follow-up.
+PR #75 merged b28beab5 after build 35020481804/regression 35020481815; its
+merged-tree run remains to check. #74 merged-tree run 35020339038 passed.
+
+This branch removes only GCC's implicit-fallthrough helper freeze. Production
+fallthrough was enabled in #67; the completed source annotations are unchanged.
+All six GCC C/C++ helper libraries retain identical hashes with this flag removed,
+and both helper-flag controls reject an unannotated fallthrough. Artifacts:
+/tmp/aftershock-native-fallthrough-preview. No engine source or golden changes.
+The preceding #76 helper change preserves all six Clang libraries and rejects
+its diagnostic controls in both languages.
 
 Next:
-1. Open the internal-declaration helper PR, verify its hosted build/regression,
-   self-review and merge with a merge commit, then check its merged-tree run.
-   Check #75's merged-tree regression. #74 merged-tree run 35020339038 passed.
-2. Remove the remaining GCC implicit-fallthrough helper freeze in a separate class
-   PR. Preview compilation of all six C/C++ helper libraries retains identical
-   hashes and both diagnostic controls pass: /tmp/aftershock-native-fallthrough-preview.
-   Production fallthrough was enabled in #67; do not redo that source work.
+1. Verify and merge #76, then open this GCC fallthrough helper PR. Require hosted
+   build/regression and self-review before merging; check both merged-tree runs.
+2. Continue with the previewed parentheses-equality and self-assign cleanups in
+   separate class PRs, including native provenance and helper freeze removal.
 3. Continue the remaining warning classes one per PR. Ready source previews below
    cover parentheses-equality and self-assign. Then finish the larger warning
    classes, MSVC warnings and /WX, one verified tree-wide clang-format commit,
