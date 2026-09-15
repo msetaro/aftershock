@@ -45,11 +45,25 @@ use the original capture. GCC debug dynamic needed renderer flags in the origina
 order because DWARF records them; CMake's empty default build type also needed an
 explicit Release default. Neither fix changes source or compiler policy.
 
-Checkpoint the Make reproducibility settings separately before the CMake repair,
-so the reference configuration remains reviewable in history. Engine/game
+Make reproducibility settings are committed separately as a08e7275, preserving
+the reference configuration in history. Engine/game
 implementation is unchanged. Next: hosted macOS/Windows build verification,
 permanent tests/CI migration, then inactive platform cleanup. Permanent test builders still use Make. Generated MSVC,
 macOS, one-command presets, ccache CI, 64-bit cleanup and final gates remain.
+
+
+CMake repair checkpoint includes explicit production sources, static/dynamic
+renderers, external native-object inputs for OpenArena, x86_64/aarch64 toolchains,
+Release/Debug workflow presets and generated Visual Studio presets. The new
+migration workflow will compare raw Make/CMake objects on Linux, native ARM64,
+macOS Intel/ARM64 and MinGW, and build MSVC x64/ARM64 through Ninja/ccache plus
+generated Visual Studio projects. Existing supported-build workflow remains until
+these gates pass. MSVC retains strict native FP, precise engine FP, fast release
+renderer FP and static CRT; ARM64 curl remains disabled as in the old projects.
+The repository migration oracle tools/port/check_cmake_parity.py passes 358/358
+GCC Vulkan objects locally (/tmp/aftershock-cmake-permanent-parity), writing actual
+commands, raw hashes and explicit differences. It belongs to this historical
+Make-retirement checkpoint; replay it at this revision after Make is removed.
 
 
 #4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects
