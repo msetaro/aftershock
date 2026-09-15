@@ -7,24 +7,25 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-type-limits. PR #73 passed build 35018897499 and regression
-35018897591 at 248dca68, then merged as be2186e0. That merge is integrated into
-this branch; its merged-tree regression remains to check. PR #72 merged-tree
-regression 35018822894 and #71 merged-tree regression 35018077437 passed.
-#5 is complete. #8 warning classes through unneeded-internal-declaration are merged.
+Active: issue/8-unused-constants, based on pending PR #74 head 644741e9.
+PR #74 remains on issue/8-type-limits; verify its final build/regression gates,
+self-review and merge first. Integrate origin/modernization before opening this
+separate unused-constant PR. #73 merged be2186e0 after build 35018897499 and
+regression 35018897591; its merged-tree run remains to check. #72 merged-tree
+regression 35018822894 passed. #5 is complete.
 
-This branch replaces -Wno-type-limits with explicit -Wtype-limits on engine C++
-compilation. All 728 GCC/Clang engine release objects across both renderers retain
-identical raw hashes. Both compiler controls reject an unsigned comparison with
-zero when enabled; Clang needs the explicit positive flag. The relevant affinity
-and chat-sentinel bugs were fixed in separate #31 PRs. No engine source, floating-
-point, layout, lifetime, allocation, OS or golden changes in this warning class.
+This branch removes the native unused-constant suppressions and enables GCC
+-Wunused-const-variable=2, which includes native source files pulled through the
+namespace wrapper. The order table/type/count in cg_servercmds.cpp now share the
+existing MISSIONPACK guard with their sole user. Source line count is unchanged.
+Clang does not diagnose unused constants in included files; the GCC job enforces
+this class. Its actual-wrapper negative control rejects an unused constant.
 
-Next: open the type-limits PR, verify hosted gates/self-review,
-merge with a merge commit, and check the merged-tree regression. #73 independently
-preserves 206 Clang native objects and rejects its control through the actual
-namespace wrapper. Keep the unused-constant cleanup separate until its remaining
-debug relocation and conditional-source evidence below is incorporated into its own PR.
+Next: record the source transformation in native provenance, verify actual-source
+warning builds and the retained object evidence below, then open this PR after
+#74 merges. No golden regeneration. Hosted build/regression and self-review are
+required before merge. The preceding #74 type-limits change preserves 728 raw
+GCC/Clang engine objects and has passing diagnostic controls for both compilers.
 
 Test-first commit 36410f00 records the failing chat-offset regression. Both
 offset declarations now use signed char, preserving the negative sentinel and
@@ -81,7 +82,7 @@ object preserve the referenced bytes. No function is added or removed. The
 MISSIONPACK compile control fails in the unchanged baseline at cg_servercmds.cpp:936
 (int to qboolean); do not fix that inactive configuration in the warning PR.
 Its before/after preprocessed MISSIONPACK output is byte-identical. Preview artifacts:
-/tmp/aftershock-unused-constant-preview. No repository source edit yet.
+/tmp/aftershock-unused-constant-preview. The same guard move is now applied on this separate unused-constant branch.
 
 Type-limits preflight after the #31 affinity/chat fixes: replacing the suppression
 with explicit -Wtype-limits preserves all 728 GCC/Clang engine release objects
