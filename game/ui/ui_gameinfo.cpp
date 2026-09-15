@@ -426,6 +426,13 @@ char *UI_GetBotInfoByName( const char *name ) {
 // single player game info
 //
 
+// Keep invalid skills outside 1..5 without converting an unbounded cvar float.
+// The engine cvar reader already filters non-finite values.
+int UI_GetSkill( void ) {
+	return (int)Com_Clamp( 0, 6, trap_Cvar_VariableValue( "g_spSkill" ) );
+}
+
+
 /*
 ===============
 UI_GetBestScore
@@ -492,7 +499,7 @@ void UI_SetBestScore( int level, int score ) {
 	}
 
 	// validate skill
-	skill = (int)trap_Cvar_VariableValue( "g_spSkill" );
+	skill = UI_GetSkill();
 	if( skill < 1 || skill > 5 ) {
 		return;
 	}
