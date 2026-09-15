@@ -84,6 +84,17 @@ if(USE_CCACHE)
 endif()
 include(cmake/Sources.cmake)
 
+# The warning ratchet applies to owned code; vendored libraries keep their policy.
+foreach(source IN LISTS COMMON_SOURCES CLIENT_SOURCES JPEG_SOURCES OGG_SOURCES VORBIS_SOURCES OPENGL_SOURCES VULKAN_SOURCES)
+  if(source MATCHES "^third_party/")
+    if(MSVC)
+      set_property(SOURCE ${source} APPEND PROPERTY COMPILE_OPTIONS /w)
+    else()
+      set_property(SOURCE ${source} APPEND PROPERTY COMPILE_OPTIONS -w)
+    endif()
+  endif()
+endforeach()
+
 set(USE_OPENGL_API OFF)
 set(USE_VULKAN_API OFF)
 if(USE_RENDERER_DLOPEN OR RENDERER_DEFAULT STREQUAL "opengl")

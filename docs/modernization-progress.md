@@ -7,14 +7,14 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-implicit-fallthrough, based on #5 merge 1412c2eb.
+Active: issue/8-implicit-fallthrough, draft PR #67, based on #5 merge 1412c2eb.
 #3/#31/#1/#2/#4/#5 are complete. PR #66 final 112fa4ff passes build 34949329755
 and regression 34949329729; merged tree is identical to that tested checkpoint.
-Merged-tree regression is running; confirm it before the first #8 PR merges.
+Merged-tree regression 34949976994 passed.
 
-Next: annotate six existing fallthrough paths, enable the warning, compare raw
-objects against the captured baseline, then run full regression/build gates and
-self-review. One warning class per PR. After the warning ratchet: one verified
+Next: verify the vendor warning-policy correction and rerun PR #67 hosted gates,
+then complete self-review and merge. Address the newly confirmed affinity bugs in
+separate #31 test-first PRs before resuming other #8 warning classes. One warning class per PR. After the warning ratchet: one verified
 tree-wide clang-format commit, tidy subsets, fixed-width representation types and
 layout assertions, release-identical Q_ASSERT. Finish #8, write design-only
 `docs/design/rhi.md` for #6, then stop. No #6/#7 implementation.
@@ -44,6 +44,18 @@ match. Original hashes/diagnostics remain recorded. Review evidence and driver:
 /tmp/aftershock-fallthrough-review*, /tmp/aftershock-fallthrough-results.json.
 Original imports/notices/hashes are retained; provenance records a5c199bf.
 Hosted gates and final self-review remain required.
+
+First hosted #67 run found vendored minizip still inheriting engine warnings.
+The CMake correction applies the plan's -w (/w on MSVC) vendor policy through
+explicit existing source lists. Owned engine/game code retains the fallthrough
+gate. Full local non-SDL debug client/server build passes; vendor raw-object
+comparison across nine configurations is running. No vendored source is edited.
+
+Two affinity-helper bugs are confirmed by direct calls that do not apply CPU
+affinity: valid 1+2 and 3-1 yield 1 and 3; 0xZ yields UINT64_MAX. docs/bugs.md
+records the distinct operator-consumption and unsigned-sentinel causes with their
+reproducer. Fix only in separate #31 PRs with failing tests first. Other warning
+candidates remain unconfirmed and must not be silently changed during the ratchet.
 
 ## #5 completed verification
 
