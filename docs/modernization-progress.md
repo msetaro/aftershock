@@ -13,16 +13,23 @@ then indexes a five-byte remap using the still-invalid blue status. The permanen
 real-function C UBSan test fails at index 4294967295. One exact GPL prerequisite
 import retains its notice/hash in cpp-port-notes.md; no source fix is made on #2.
 
-Next: commit the failing test, fix initialization to publish the complete at-base
-configstring while keeping valid zeroed statuses, verify base/one-flag modes on
-GCC/Clang and run gates/self-review before merging this separate #31 PR. Then merge
-back into #2 retaining its catalog edits.
+Test-first a6c34e5b fails in the actual C initializer. The fix publishes "00" for
+CTF and "0" for one-flag mode directly after the state is cleared. Both GCC/Clang
+base/missionpack checks pass, including ordinary updates and duplicate suppression.
+G2 layouts and G3 symbols match in both builds; only Team_InitGame changes assembly
+among 36 base/46 missionpack functions. Artifacts: /tmp/aftershock-team-flags-gates.py
+and /tmp/aftershock-team-flags-gates. No FP expressions or wire layouts change.
+
+Next: finish this separate #31 PR's regression/build/golden verification and
+self-review, then merge and bring it into #2 retaining its catalog edits. No engine
+fix is made on #2. Source/catalog audit, final G4/G7 review, .cpp rename, static
+integration and VM/JIT removal remain after this fix.
 
 #58 merged 4c816c7e and merged-tree regression 34925562788 passed. #2 integration
 7d9bc04a retains the fixed two-element voter bound and passes GCC/Clang tests.
 Warning freeze 7c4f8302 builds all native modules as C/C++ with GCC/Clang, under
 -Wall -Wextra -Werror using only classes observed in C; CI 34925774876/34925774880
-was pending at this checkpoint. Permanent native_gates.py (75d81a11) reproduces
+both passed. Permanent native_gates.py (75d81a11) reproduces
 103/103 matching G2/G3 objects, 63 advisory assembly diffs and all G7 diagnostics
 (1365 narrowing, 55 signed-char, nine string-result; zero tool/compile failures).
 The focused review exposed this flag bug. No accepted fixture/golden changes on

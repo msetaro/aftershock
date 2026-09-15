@@ -504,3 +504,9 @@ prerequisite code/game/g_team.c is from id-Software/Quake-III-Arena at revision
 dbe4ddb10315479fc00086f08e25d968b4b43c49, SHA256
 d004609c19db6949e3d4fe3d3a2d911fbb10f2d7f04249fd13218fb0aa928182.
 Its GPL notice remains intact. Native C++ integration stays on #2.
+
+Test-first a6c34e5b fails at the invalid C table index. The initialization fix
+passes GCC/Clang in base and missionpack modes. G2 layouts/G3 symbols remain
+identical; only Team_InitGame changes assembly (36 base/46 missionpack functions).
+The initial configstring is now complete on its first publication, with no invalid
+intermediate state. Subsequent setter behavior is unchanged.
