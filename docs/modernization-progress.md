@@ -7,10 +7,18 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-chat-offset, draft PR #71. PR #70 passed full build 35016076778 and
-regression 35016076784 at 17a9dae2, then merged as 9d9dc4f6. That merge is
-integrated into this branch; its merged-tree regression remains to check.
-#69 merged-tree regression 35015162588 passed. #5 and #8 fallthrough are complete.
+Active: issue/8-unused-function, based on pending PR #71 head 98b457cc.
+PR #71 retains its own issue/31-chat-offset branch; verify its final hosted gates,
+self-review and merge first, then merge origin/modernization into this branch
+before opening the separate #8 PR. Its local codegen/runtime/replay gates pass.
+PR #70 passed build 35016076778 and regression 35016076784, merged as 9d9dc4f6;
+merged-tree regression 35016803376 remains to check. #5 is complete.
+
+The only #8 source-tree change is removal of -Wno-unused-function from the Clang
+engine warning list. The existing temporary production controls reject unused
+static functions and all 364 Clang engine release objects remain identical across
+both renderers. Next: verify this source at hosted gates in its own PR after #71
+merges; no engine source or golden changes for the warning class.
 
 Test-first commit 36410f00 records the failing chat-offset regression. Both
 offset declarations now use signed char, preserving the negative sentinel and
@@ -43,11 +51,10 @@ submitted as ec-/Quake3e #442. Next: verify hosted build/regression at the final
 PR #71 head, complete self-review, ready/merge with a merge commit, then verify
 the merged-tree regression. No accepted golden or fixture diff.
 
-After this fix, resume #8 unused-function diagnostics in its own PR. Temporary
+The #8 unused-function removal is now prepared on this separate branch. Temporary
 production-flag checks preserve 364 Clang engine objects across both renderers and
 reject an unused static function when the suppression is removed:
-/tmp/aftershock-unused-function/{results.json,control-after.log}. No source changes
-for this warning class have been made. MSVC #69 release inventory records C4267,
+/tmp/aftershock-unused-function/{results.json,control-after.log}. Only its CMake suppression has been removed. MSVC #69 release inventory records C4267,
 C4459, C4456, C4065, C4457 and C4644; address before /WX. Continue one warning class
 per PR, then verified tree-wide formatting, tidy subsets, fixed-width representation
 types/layout assertions and release-identical Q_ASSERT. Finish #8, write design-only
