@@ -103,6 +103,17 @@ Retained #8 warning evidence and upcoming previews:
   GCC/Clang/debug and MinGW native objects match. Not yet applied.
   Both source previews have failing/passing Clang wrapper controls:
   /tmp/aftershock-small-warning-preview. Each needs its own PR and provenance.
+- Null-pointer-subtraction preview: use (uintptr_t)a for qsort alignment and
+  explicitly include stdint.h; retain the existing long-sized swap algorithm.
+  All 25 production objects preserve instructions/relocations; release/MinGW native
+  hashes match and six debug objects differ only in debug sections. Clang controls
+  fail before/pass after. /tmp/aftershock-null-subtraction-preview. Not applied.
+- Address/pointer-bool preview: remove the impossible !classname stack-array guard
+  in BotGetActivateGoal; preserve existing empty-classname behavior. x86 release
+  and MinGW native objects match; two debug objects differ only in debug sections.
+  ARM64 swaps operands of one fcmp feeding b.ne. That comparison/flags review is
+  still required before accepting this preview; no source FP expression changed.
+  /tmp/aftershock-address-preview. Not applied.
 - MSVC release inventory: C4267, C4459, C4456, C4065, C4457 and C4644, from #69 job
   104469265974. /tmp/aftershock-msvc-warning-inventory.log. Address before /WX.
 
