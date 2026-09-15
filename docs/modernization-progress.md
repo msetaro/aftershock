@@ -7,56 +7,42 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/2-native-game, draft PR #50, primary worktree
-/home/matt/.t3/worktrees/aftershock/t3code-99571af6. Static checkpoint 956eebfa; compiler adaptation
-090b7a3c.
-Allocator PR #62 merged 0c3ef426 with merged regression 34934836544 passed.
-Free-list PR #63 merged 555f0771 after regression 34935436665/full build
-34935436703 passed; its merged regression 34935816610 passed. This merge
-integrates both separately reviewed OA patches and the allocator check.
-openarena_native.py now applies both patches to its pinned C sources.
+Active: issue/2-native-game, draft PR #50, primary worktree. Static integration
+440089eb passed regression 34936092538 and full build 34936092520 (all platform
+legs). VM removal is committed/pushed as 6d21bef2. No simulation FP edits or
+accepted golden/fixture changes. The later #4/#5/#8/design-only #6 sequence remains.
 
-Static integration source 956eebfa exposed DEBUG-only string literals, legacy
-MSVC pragmas on MinGW, PPC assembly on modern macOS and absent MSVC native
-objects. Seventeen T8 literal casts now cover enabled DEBUG calls; GCC/Clang -O0 DEBUG
-C object bytes are identical before/after for both changed AI files. Platform
-header changes guard MSVC pragmas correctly, use _WIN32, and remove uncalled
-Windows byte-swap/PPC helpers. The old MSVC inline int3 in Com_sprintf is expressed
-using compiler traps for supported native toolchains. Local debug Linux client/server and
-MinGW dedicated builds pass. MSVC now generates per-source wrappers under IntDir
-from an explicit list matching all 103 Make objects; native sources retain strict
-FP and disabled intrinsics. Actual MSVC/macOS/all-client MinGW CI remains pending.
-No simulation FP edits.
-CI 34935976035 reached the Apple SDK deprecation of unchanged vsprintf calls;
-native objects now use the same darwin-only deprecated-declarations freeze already
-recorded in the engine Makefile. No function replacement/behavior change.
-Permanent static OA UBSan passes both accepted bot hashes after patch integration.
-All MinGW native objects compiled; the first local client link lacked cross zlib
-via curl defaults, so the CI USE_CURL=0 configuration is being checked.
+Test-first a8879635 rejects VM implementation symbols and requires static init
+exports. Removal deletes eight VM/interpreter/JIT files, active Make/MSVC entries,
+startup/unload API hooks and the obsolete VM_Call probe. C/C++ import compiler
+oracles and file-layout declarations remain as historical evidence; there is no
+runtime game loader. Native game/cgame/UI link into the executables.
 
-Static source 440089eb passed regression 34936092538 and full build 34936092520,
-including every MSVC/macOS/MinGW leg. The new symbol check rejects linked VM_*
-implementation symbols and requires each static module init export. It fails on
-the existing binary as expected (/tmp/aftershock-static-link-before.log).
-Test-first a8879635 is committed. The working tree removes the eight VM/interpreter/
-JIT implementation files, their Make/MSVC entries, public dispatch API and startup/
-forced-unload hooks. Native lifecycle shutdown already owns the retained state.
-The obsolete VM_Call probe and retained-DLL shim are retired; import compiler
-oracles remain. Dedicated linking, the no-VM symbol check and both accepted Q3 bot logs pass.
-Lifecycle fixed replay passes both maps/renderers at b38004b1. Lifetime analysis
+After removal, dedicated linking/no-VM symbols and both accepted Q3 bot logs pass.
+Lifecycle fixed replay matches both maps/renderers at b38004b1. Lifetime analysis
 passes 550 compile commands/138 source paths, including native modules. Artifacts:
-/tmp/aftershock-native-no-vm-{runtime,demo,lifetimes}. Next: commit/push retirement,
-complete CI and static movement-debug lifecycle, then final review. The
-separate optional Windows SDL/header build defect still needs its #31 fix.
+/tmp/aftershock-native-no-vm-{runtime,demo,lifetimes}. Movement-debug lifecycle is
+running at /tmp/aftershock-native-no-vm-lifecycle. CI full build 34936868053 is
+running. Regression 34936863764 rejected an orphaned step name after the obsolete
+probe command was removed; this follow-up removes that step name too.
 
-Static Q3 and OA bot logs and both-renderer fixed replay match accepted goldens.
-The integrated Q3 video-restart replay also matches all existing frames; the
-movement-debug restart/map-change reference passes twice. Lifetime analysis covers
-562 compile commands/141 source paths, including all native namespace selections.
-Client lifecycle checkpoint e40ac443 passed regression 34932294456 and full build
-34932294429. Current static integration has local evidence but is not CI-complete:
-MSVC/native test/compiler integration and VM/JIT removal are still pending.
-The later #4/#5/#8/design-only #6 sequence remains outstanding.
+Next: push the workflow correction, verify runtime/full CI and movement-debug
+lifecycle, finish self-review and merge #2. Then fix the separately recorded #31
+optional MinGW SDL/no-curl Windows header defect before #4. No SDL source fix here.
+
+Separate allocator PR #62 merged 0c3ef426; merged regression 34934836544 passed.
+PR #63 merged 555f0771; merged regression 34935816610 passed. Its source be9a9bc3
+passed regression 34935436665/full build 34935436703. #2 integration 3a09baa0
+applies both reviewed patches to pinned OpenArena C; permanent static OA UBSan
+passes accepted hashes 51d66d9a/0f2e6b68.
+
+Platform adaptations 090b7a3c: 17 DEBUG T8 casts preserve GCC/Clang -O0 C objects;
+_MSC_VER limits MSVC pragmas; _WIN32 selects platform definitions; unused legacy
+Windows/PPC helpers removed. Compiler debug traps replace MSVC-only inline int3.
+MSVC generates separate IntDir wrappers matching all 103 Make source selections,
+with strict FP and disabled intrinsics. 440089eb retains the engine's existing
+Apple SDK deprecation freeze. Debug Linux and native-Windows MinGW builds pass;
+all macOS/MSVC/MinGW CI configurations passed on 440089eb before VM retirement.
 
 ## Earlier #2 integration checkpoints (historical)
 

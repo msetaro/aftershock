@@ -72,7 +72,6 @@ jobs:
         run: python3 tests/team_voters.py --cc '${{ matrix.cc }}'
       - name: Native UI weapon sentinel
         run: python3 tests/ui_weapon.py --cxx '${{ matrix.cxx }}'
-      - name: Native dispatch argument counts
       - name: Complete bot movement result
         run: python3 tests/bot_move.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
       - name: Native game math word regression

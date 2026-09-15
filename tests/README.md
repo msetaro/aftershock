@@ -131,12 +131,10 @@ fails. The test still runs and prints its diagnostics; this is not suppression.
 A #31 fix removes its entry and updates the policy self-check if applicable.
 The existing bot smoke also runs under GCC UBSan (`runtime --sanitize`), comparing
 the same content goldens and treating every unsuppressed diagnostic as fatal.
-Both compile and link steps enable UBSan. This uses the original GCC runtime
-baseline; Clang's function check reads metadata before the generated JIT entry,
-which can fall outside its mmap region. A diagnostic relink without that check
-only in vm_x86.cpp passes both smoke goldens; no CI flag or suppression changed.
-The transition JIT is removed in #2. Unit ASan/UBSan coverage remains required;
-the ASan runtime experiment with faketime timed out before producing output.
+Both compile and link steps enable UBSan, including the hosted OpenArena C objects.
+The earlier Clang/JIT metadata limitation is retired with the VM implementation;
+its diagnostic history remains in the bug ledger. Unit ASan/UBSan coverage remains
+required; the earlier ASan runtime experiment with faketime timed out before output.
 The unit driver also initializes and frees real zlib state through its default
 allocator callbacks, under the existing sanitizer modes. It reads no content and
 reuses the unit allocation stubs; the ordinary unit golden stays unchanged.
