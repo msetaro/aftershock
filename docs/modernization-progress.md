@@ -7,6 +7,28 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
+Active: issue/2-native-game, draft PR #50. Info-string overlap PR #61 merged as
+35a2c75c after regression 34930264125/full build 34930264136 passed on cdcbb7df.
+Test-first e5fd1033 reproduces overlapping strcpy in both helpers. All 14 C/C++
+ASan cases pass on GCC/Clang after the two-line memmove fix; G2 matches, G3 adds
+only memmove, G4 changes only the two removal functions. Native smoke/replay and
+explicit unit/collision/Q3 runtime golden regeneration have zero diff. Self-review
+passed. Merged-tree regression 34930596490 is pending.
+
+Integration applies those exact two lines to renamed q_shared.cpp, removes the
+prerequisite q_shared.c duplicate, updates the test path and import provenance.
+Next: verify the merge/new check and CI, then finish static module lifecycle/reset
+work and repository integration. No static engine edits are committed yet.
+The fixed native DLL and scratch static reset match restart/map-change twice at
+dd1fe5c3be6e1133ce2305819f8f1dffbe51e8917d9258292e035fec1aa23a79. Evidence:
+/tmp/aftershock-native-info-port, /tmp/aftershock-native-info-static-compare.py,
+/tmp/aftershock-native-info-restart-comparison.py and its output directory.
+Explicitly bind module memmove along with rand/srand/qsort/atof; reset all required
+module-lifetime state and include generated native TUs in lifetime analysis.
+
+Earlier checkpoints below describe how this integration was reached.
+
+
 Active work: issue/2-native-game, draft PR #50. PR #60 merged as 8e3ecf78 after
 regression 34927341670/full build 34927341749 passed on 0366fa06. Test-first
 02a9ddeb reproduces float-to-signed-byte UB. The three complete movement expressions
@@ -74,8 +96,8 @@ change: original GPL Info_RemoveKey and Info_RemoveKey_Big use overlapping strcp
 ASan reproduces strcpy-param-overlap in current q_shared.cpp. That existing bug
 must be fixed separately under #31 before accepting map-change parity.
 
-Next: park #2 for the #31 info-string overlap fix (failing test first, both helper
-variants/callers audited). Then resume native lifecycle reset and static integration,
+The separate #31 info-string fix is now merged as #61. Resume native lifecycle
+reset and static integration,
 retaining OpenArena coverage. Native module library audit must also bind memmove
 inside each namespace: bg_lib defines it in addition to rand/srand/qsort/atof; the
 first scratch wrappers omitted that local prototype. Do not claim complete static

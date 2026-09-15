@@ -342,3 +342,9 @@ Both unit compiler jobs run it. No assets are needed.
 The 93 imported implementation files use `.cpp` names. C comparison builds select
 `-x c` explicitly; the pinned OpenArena dependency remains C. The rename preserves
 every source byte and the provenance manifest retains original upstream paths.
+
+`python3 tests/native_info.py` checks both real GPL info-removal helpers under
+ASan. Seven valid-string cases per helper cover removal at the beginning, middle
+and end, single-pair removal and unchanged inputs. --variant small/big isolates
+one helper; --cc/--output select compiler and output. Both unit compiler jobs run
+it. No game assets or generated goldens are needed.

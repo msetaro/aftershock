@@ -125,7 +125,8 @@
     "bb869f79": "#2 merge PR #57: retain catalog changes and adapt enum casts to signed weapon sentinel",
     "4054a2a0": "#31 PR #58: bound two-element team-voter reset",
     "622ae3af": "#31 PR #59: publish complete initial flag configstring with valid states",
-    "0366fa06": "#31 PR #60: explicit intermediate int conversion for movement command bytes; original C objects unchanged"
+    "0366fa06": "#31 PR #60: explicit intermediate int conversion for movement command bytes; original C objects unchanged",
+    "cdcbb7df": "Separate #31 fix: preserve overlapping info-string suffixes (PR #61)."
   },
   "files": [
     {
@@ -862,7 +863,8 @@
       "sha256": "a8ddd2b1093ee69df7d0826aad75180ac2ff27bb45f25389e4313efeb51c4be2",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "cdcbb7df"
       ]
     },
     {
