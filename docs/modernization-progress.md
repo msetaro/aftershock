@@ -62,8 +62,9 @@ unused-constant flag is still only a preflight experiment. Artifacts: /tmp/after
 /tmp/aftershock-unused-const-gcc. Keep each warning class in a separate PR.
 The follow-up native-wrapper control is significant: GCC level 1 excludes included
 source files. Level 2 rejects numValidOrders in cg_servercmds.cpp (both renderers),
-which has no users. Future unused-constant work must enable level 2 and remove that
-constant, then prove parity. Clang does not diagnose unused constants in included
+which is used only inside MISSIONPACK. Future unused-constant work must enable
+level 2 and move the table/type/count under the existing MISSIONPACK guard, then
+prove parity. Do not delete the declaration needed by that conditional function. Clang does not diagnose unused constants in included
 files even with this warning enabled; the GCC job provides that gate. The separate
 unneeded-internal control DOES fail through the actual native wrapper as intended.
 Artifacts: /tmp/aftershock-unused-const-gcc-all and native-warning-check/*included*.
