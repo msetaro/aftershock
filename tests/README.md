@@ -232,3 +232,8 @@ native integration remains #2.
 It verifies zero-client reset, red/blue human counts, bot exclusion and preservation
 of adjacent spawn state. --cc/--output select the compiler and output; both unit
 compiler jobs run it. Only unrelated end-level notifications use test stubs.
+
+`python3 tests/team_flags.py` checks actual Team_InitGame/Team_SetFlagStatus under
+UBSan in base-game and MISSIONPACK builds. Initial flag configstrings are complete;
+pickups, drops, repeated updates and reinitialization preserve valid flag states.
+--cc/--output select compiler/output. Both unit compiler jobs run it, without assets.

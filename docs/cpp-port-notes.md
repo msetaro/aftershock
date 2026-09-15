@@ -486,3 +486,21 @@ PR #58 source/test head 9e1f9411 passed regression 34925252301 and full build
 both accepted Q3 bot logs, with repeated identical runs. Explicit unit/collision/
 Q3 runtime golden regeneration is byte-identical. Self-review passes; no expected
 bug entry or UBSan suppression was needed, and no accepted golden changes.
+
+### CTF initialization indexes an invalid flag status (#31)
+
+Team_InitGame sets both flag statuses to -1, then Team_SetFlagStatus updates red
+and formats both values. The still-invalid blue status indexes ctfFlagStatusRemap
+out of bounds; C++ also rejects the invalid enum. `python3 tests/team_flags.py`
+calls the real function and fails UBSan at index 4294967295 in the original C.
+It checks base-game/one-flag initialization, valid pickup/drop updates, duplicate
+update elimination and reinitialization. SaveRegisteredItems calls initialization;
+all other setters (dropped flags, reset and pickup) already pass valid statuses.
+
+Fix initialization in this separate #31 PR: keep valid zeroed at-base states and
+publish the complete initial configstring directly, including one-flag mode.
+No corresponding ec-/Quake3e game implementation exists. The single verbatim GPL
+prerequisite code/game/g_team.c is from id-Software/Quake-III-Arena at revision
+dbe4ddb10315479fc00086f08e25d968b4b43c49, SHA256
+d004609c19db6949e3d4fe3d3a2d911fbb10f2d7f04249fd13218fb0aa928182.
+Its GPL notice remains intact. Native C++ integration stays on #2.
