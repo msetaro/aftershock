@@ -7,43 +7,46 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/31-team-voter-reset. #2 is parked at bb869f79, draft PR #50.
-Its #57 integration passes GCC/Clang UI sentinel tests, Clang native C++ module
-builds and unchanged fixed replay on both Q3 maps/renderers. #57 merged 4b68ccda;
-merged-tree regression 34924317093 passed.
+Active work: issue/31-team-flag-init. #2 is parked at 75d81a11, draft PR #50.
+CTF initialization sets both flag statuses to -1; the first setter updates red
+then indexes a five-byte remap using the still-invalid blue status. The permanent
+real-function C UBSan test fails at index 4294967295. One exact GPL prerequisite
+import retains its notice/hash in cpp-port-notes.md; no source fix is made on #2.
 
-The actual optimized C/C++ warning inventory found a CalculateRanks array overrun:
-four team constants reset a two-element team-voter array, clearing adjacent spawn
-state. The permanent failing-first test calls the real function with UBSan; it
-fails at index 2. Three exact GPL prerequisite imports retain their notices and
-hashes in cpp-port-notes.md. No engine fix is made on #2.
+Test-first a6c34e5b fails in the actual C initializer. The fix publishes "00" for
+CTF and "0" for one-flag mode directly after the state is cleared. Both GCC/Clang
+base/missionpack checks pass, including ordinary updates and duplicate suppression.
+G2 layouts and G3 symbols match in both builds; only Team_InitGame changes assembly
+among 36 base/46 missionpack functions. Artifacts: /tmp/aftershock-team-flags-gates.py
+and /tmp/aftershock-team-flags-gates. No FP expressions or wire layouts change.
 
-Test-first commits 10ed8eb4/5c5217f5 fail with UBSan index 2 on GCC and Clang.
-The one-line fix uses the actual array length. Both compiler checks pass after;
-G2 layouts and G3 symbols are identical, and only CalculateRanks changes assembly
-among 39 functions. Artifacts: /tmp/aftershock-team-voters-gates and
-/tmp/aftershock-team-voters-final-before-{gcc,clang}.log.
+PR #59 source 622ae3af passed regression 34926290647 and full build 34926290657.
+Temporary complete #2 C++ flag paths also pass GCC/Clang UBSan after the same fix:
+/tmp/aftershock-team-flags-native.py/.log. Unit/collision/Q3 runtime explicit golden
+regeneration is byte-identical. Self-review passes: one initialization defect,
+caller audit complete, no OS calls/allocations/non-trivial objects, no FP expression
+or wire-layout change, no expected-bug entry/suppression or accepted golden change.
 
-PR #58 source 4054a2a0 exposed a test integration omission in regression 34925157744:
-the existing team-leader check now resolves the newly imported local g_local.h and
-needs COM_TRAP_GETVALUE=700 for the retained engine ABI header. The test command now
-provides that existing constant; no engine change. #2 integration bb869f79 passed
-regression 34924891632. Unit/collision/Q3 runtime explicit regeneration is byte-identical.
+Next: ready/merge #59, verify merged-tree regression, and merge into #2 retaining
+its catalog edits. Add pahole to the GCC regression job's own apt step (the new
+native gate requires it). Source/catalog audit, final G4/G7 review, .cpp rename,
+static integration and VM/JIT removal remain. No source fix is made on #2.
 
-PR #58 source/test head 9e1f9411 passed regression 34925252301 and full build
-34925252282. A temporary complete #2 native C++ game build with the one-line fix
-matches both accepted Q3 bot logs on GCC and Clang, with repeated identical runs:
-/tmp/aftershock-team-voters-native.py/.log. Unit/collision/Q3 runtime regeneration
-produces no diff. Self-review passes: one array bound fix, caller/consumer audit,
-no new OS calls/non-trivial objects/allocations, no FP expression or layout changes,
-no golden/expectation/suppression changes. No upstream engine game implementation.
-
-Next: ready/merge #58, verify its merged-tree regression, then integrate into #2
-retaining its catalog/ABI changes. Continue strict warning freeze, G4/G7 review,
-permanent artifact reproduction, content-free .cpp rename, static calls and VM/JIT
-removal. Additional advisory assembly review is recorded in
-/tmp/aftershock-native-review-checkpoint.md. No accepted fixture/golden changes on
-#2 and no VM/JIT removal has started. Earlier checkpoints remain below.
+#58 merged 4c816c7e and merged-tree regression 34925562788 passed. #2 integration
+7d9bc04a retains the fixed two-element voter bound and passes GCC/Clang tests.
+Warning freeze 7c4f8302 builds all native modules as C/C++ with GCC/Clang, under
+-Wall -Wextra -Werror using only classes observed in C; CI 34925774876/34925774880
+both passed. Permanent native_gates.py (75d81a11) reproduces
+103/103 matching G2/G3 objects, 63 advisory assembly diffs and all G7 diagnostics
+(1365 narrowing, 55 signed-char, nine string-result; zero tool/compile failures).
+The focused review exposed this flag bug. The new #2 gate run 34926088385
+failed because the GCC CI job lacks pahole; the comparison did not run and is not
+an ABI failure. Install the pahole package in that CI job when resuming #2 (local
+packages remain untouched). Its full build 34926088404 passed. No accepted fixture/golden changes on
+#2; source/catalog audit, final G4/G7 review, .cpp rename, static integration and
+VM/JIT removal remain. Temporary artifacts: /tmp/aftershock-native-gates-final,
+/tmp/aftershock-native-review-checkpoint.md. The flag-domain assumption in the
+latter is superseded by this confirmed initialization bug.
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
