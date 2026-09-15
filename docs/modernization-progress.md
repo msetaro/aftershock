@@ -597,3 +597,8 @@ All 103 TUs now pass GCC C++20 syntax with -Werror=write-strings and
 -Werror=register, no permissive flags. All 103 C release objects still have the
 original byte hashes (literal-casts gate). Next: T5 exports, Clang C++ diagnostics,
 linked C++ native ABI/symbol/codegen comparison and permanent smoke/replay parity.
+
+T5 marks exactly dllEntry/vmMain in all three modules with guarded Q_EXTERN_C.
+T15 adds eleven required literal/macro separator spaces in ai_team/g_cmds. GCC
+and Clang now pass all 103 C++20 syntax checks. All 103 C release objects remain
+byte-identical (exports gate). No other C-linkage annotations or math edits.

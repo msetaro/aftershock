@@ -9,8 +9,10 @@
 #define COM_TRAP_GETVALUE 700
 
 #ifdef __cplusplus
+#define Q_EXTERN_C extern "C"
 static_assert( sizeof( 1.0 ) == 4, "native game needs binary32 literals" );
 #else
+#define Q_EXTERN_C
 _Static_assert( sizeof( 1.0 ) == 4, "native game needs binary32 literals" );
 #endif
 
