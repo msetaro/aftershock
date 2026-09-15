@@ -1065,6 +1065,11 @@ UI_Init
 =================
 */
 void UI_Init( void ) {
+	srand( 0 );
+	memset( &uis, 0, sizeof(uis) );
+	m_entersound = qfalse;
+	UI_InitServers();
+
 	UI_RegisterCvars();
 
 	UI_InitGameinfo();

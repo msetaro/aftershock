@@ -243,6 +243,13 @@ static servernode_t		g_favoriteserverlist[MAX_FAVORITESERVERS];
 static int				g_numfavoriteservers;
 static servernode_t		g_mplayerserverlist[MAX_GLOBALSERVERS];
 static int				g_nummplayerservers;
+
+void UI_InitServers( void ) {
+	g_numglobalservers = 0;
+	g_numlocalservers = 0;
+	g_numfavoriteservers = 0;
+	g_nummplayerservers = 0;
+}
 static int				g_servertype;
 static int				g_gametype;
 static int				g_sortkey;

@@ -48,6 +48,7 @@ This is called at startup and for tournement restarts
 void	CG_InitMarkPolys( void ) {
 	int		i;
 
+	markTotal = 0;
 	memset( cg_markPolys, 0, sizeof(cg_markPolys) );
 
 	cg_activeMarkPolys.nextMark = &cg_activeMarkPolys;
@@ -1076,6 +1077,10 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 
 // Ridah, made this static so it doesn't interfere with other files
 static float roll = 0.0f;
+
+void CG_InitParticles( void ) {
+	roll = 0.0f;
+}
 
 /*
 ===============

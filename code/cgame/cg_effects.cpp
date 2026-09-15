@@ -25,6 +25,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "cg_local.h"
 
+static int smokeSeed = 0x92;
+static vec3_t scorePlumLastPos;
+
+void CG_InitEffects( void ) {
+	smokeSeed = 0x92;
+	VectorClear( scorePlumLastPos );
+}
+
 
 /*
 ==================
@@ -104,7 +112,6 @@ localEntity_t *CG_SmokePuff( const vec3_t p, const vec3_t vel,
 				   int fadeInTime,
 				   int leFlags,
 				   qhandle_t hShader ) {
-	static int	seed = 0x92;
 	localEntity_t	*le;
 	refEntity_t		*re;
 //	int fadeInTime = startTime + duration / 2;
@@ -114,7 +121,7 @@ localEntity_t *CG_SmokePuff( const vec3_t p, const vec3_t vel,
 	le->radius = radius;
 
 	re = &le->refEntity;
-	re->rotation = Q_random( &seed ) * 360;
+	re->rotation = Q_random( &smokeSeed ) * 360;
 	re->radius = radius;
 	re->shaderTime = startTime / 1000.0f;
 
@@ -388,7 +395,6 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 	localEntity_t	*le;
 	refEntity_t		*re;
 	vec3_t			angles;
-	static vec3_t lastPos;
 
 	// only visualize for the client that scored
 	if (client != cg.predictedPlayerState.clientNum || cg_scorePlum.integer == 0) {
@@ -407,12 +413,12 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 	le->radius = score;
 	
 	VectorCopy( org, le->pos.trBase );
-	if (org[2] >= lastPos[2] - 20 && org[2] <= lastPos[2] + 20) {
+	if (org[2] >= scorePlumLastPos[2] - 20 && org[2] <= scorePlumLastPos[2] + 20) {
 		le->pos.trBase[2] -= 20;
 	}
 
-	//CG_Printf( "Plum origin %i %i %i -- %i\n", (int)org[0], (int)org[1], (int)org[2], (int)Distance(org, lastPos));
-	VectorCopy(org, lastPos);
+	//CG_Printf( "Plum origin %i %i %i -- %i\n", (int)org[0], (int)org[1], (int)org[2], (int)Distance(org, scorePlumLastPos));
+	VectorCopy(org, scorePlumLastPos);
 
 
 	re = &le->refEntity;

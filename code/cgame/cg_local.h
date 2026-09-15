@@ -1259,6 +1259,7 @@ void CG_DrawTopBottom(float x, float y, float w, float h, float size);
 //
 // cg_draw.c, cg_newDraw.c
 //
+void CG_InitDraw( void );
 extern	int sortedTeamPlayers[TEAM_MAXOVERLAY];
 extern	int	numSortedTeamPlayers;
 extern	int drawTeamOverlayModificationCount;
@@ -1310,6 +1311,7 @@ sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );
 //
 // cg_predict.c
 //
+void CG_InitPrediction( void );
 void CG_BuildSolidList( void );
 int	CG_PointContents( const vec3_t point, int passEntityNum );
 void CG_Trace( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, 
@@ -1388,6 +1390,7 @@ void	CG_AddLocalEntities( void );
 //
 // cg_effects.c
 //
+void CG_InitEffects( void );
 localEntity_t *CG_SmokePuff( const vec3_t p, 
 				   const vec3_t vel, 
 				   float radius,
@@ -1426,6 +1429,7 @@ void CG_ProcessSnapshots( void );
 //
 // cg_info.c
 //
+void CG_InitLoading( void );
 void CG_LoadingString( const char *s );
 void CG_LoadingItem( int itemNum );
 void CG_LoadingClient( int clientNum );
@@ -1652,6 +1656,7 @@ qboolean	trap_getCameraInfo(int time, vec3_t *origin, vec3_t *angles);
 
 qboolean	trap_GetEntityToken( char *buffer, int bufferSize );
 
+void CG_InitParticles( void );
 void	CG_ClearParticles (void);
 void	CG_AddParticles (void);
 void	CG_ParticleSnow (qhandle_t pshader, vec3_t origin, vec3_t origin2, int turb, float range, int snum);

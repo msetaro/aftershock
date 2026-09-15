@@ -72,6 +72,7 @@ UI_InitMemory
 ===============
 */
 void UI_InitMemory( void ) {
+	memset( memoryPool, 0, sizeof(memoryPool) );
 	allocPoint = 0;
 	outOfMemory = qfalse;
 }

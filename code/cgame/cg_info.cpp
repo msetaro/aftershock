@@ -32,6 +32,11 @@ static int			loadingItemIconCount;
 static qhandle_t	loadingPlayerIcons[MAX_LOADING_PLAYER_ICONS];
 static qhandle_t	loadingItemIcons[MAX_LOADING_ITEM_ICONS];
 
+void CG_InitLoading( void ) {
+	loadingPlayerIconCount = 0;
+	loadingItemIconCount = 0;
+}
+
 
 /*
 ===================

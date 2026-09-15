@@ -7,58 +7,46 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/2-native-game, draft PR #50. Info-string overlap PR #61 merged as
-35a2c75c after regression 34930264125/full build 34930264136 passed on cdcbb7df.
-Test-first e5fd1033 reproduces overlapping strcpy in both helpers. All 14 C/C++
-ASan cases pass on GCC/Clang after the two-line memmove fix; G2 matches, G3 adds
-only memmove, G4 changes only the two removal functions. Native smoke/replay and
-explicit unit/collision/Q3 runtime golden regeneration have zero diff. Self-review
-passed. Merged-tree regression 34930596490 passed. Integration 1def16ce
-also passed regression 34930663280 and full build 34930663236.
+Active: issue/2-native-game, draft PR #50. #3, the recorded #31 fixes through
+PR #61, and #1 are merged. #2 import, C/QVM parity, catalog port, advisory review,
+and byte-identical .cpp rename are complete. Static engine adapters are still
+scratch-only; repository integration, OpenArena static coverage and VM/JIT removal
+are next. Do not rerun finished network work or regenerate accepted fixtures.
 
-Integration applies those exact two lines to renamed q_shared.cpp, removes the
-prerequisite q_shared.c duplicate, updates the test path and import provenance.
-Next: verify the merge/new check and CI, then finish static module lifecycle/reset
-work and repository integration. No static engine edits are committed yet.
-The fixed native DLL and scratch static reset match restart/map-change twice at
-dd1fe5c3be6e1133ce2305819f8f1dffbe51e8917d9258292e035fec1aa23a79. Evidence:
-/tmp/aftershock-native-info-port, /tmp/aftershock-native-info-static-compare.py,
-/tmp/aftershock-native-info-restart-comparison.py and its output directory.
-Explicitly bind module memmove along with rand/srand/qsort/atof; reset all required
-module-lifetime state and include generated native TUs in lifetime analysis.
+Game lifecycle test-first 413f1ed8 fails when native module storage survives unload.
+Source d6c2ac52 restores per-level arena/bot/cache/counter state. Both persistent
+restart/map-change repeats match DLL reloads (dd1fe5c3); the movement-debug variant
+also matches (e87382ec). Existing Q3 native bot logs and all accepted replay frames
+remain unchanged. Provenance 1591cc93 passed regression 34931875059; full build
+34931874993 must still be checked.
 
-A permanent lifecycle comparison now reproduces the missing storage reset:
-python3 tests/native_lifecycle.py. It compares ordinary native DLL reloads against
-retained module storage across a restart and map change; the latter fails before
-integration changes (/tmp/aftershock-native-lifecycle/persistent-1.diff). It keeps
-all paks as external symlinks, records diagnostics and never regenerates goldens.
-Next implementation: reset the existing game arena and per-level caches/timers at
-their initialization points, retaining the same first-load behavior. The mutable
-object inventory is /tmp/aftershock-native-game-state-inventory.txt. Reuse the
-existing bot maxclients global initialized by BotSetupDeathmatchAI. Static ABI
-adapters remain scratch-only until lifecycle parity passes.
+Client lifecycle test-first a1cf3223 fails after fixed replay/video restart with
+retained modules. The client now resets RNG/effect history, draw/loading/prediction
+state and particle rotation at module init; UI resets its state, arena and server
+cache counts. Existing menu structs already reset on entry. Both maps/renderers
+now pass the ordinary-versus-retained transition comparison and the separate
+accepted-golden replay (b38004b1). GCC/Clang C++ modules build; all 103 C/C++ layouts
+and symbol comparisons pass, with advisory codegen reports retained. No FP
+expression was rearranged, no per-frame allocation or OS access was added.
+These resets implement #2's new static storage lifetime, not pre-existing fixes.
 
-The first lifecycle implementation passes both persistent repeats against normal
-DLL reloads (dd1fe5c3). It clears the existing arena, bot pointers/timers, team
-preferences, spawn queue, per-level shader/IP counts and death-animation counter;
-14 redundant bot maxclients caches now use the existing per-map global. A separate
-movement debug-counter reset restores its module lifetime too. Its debug-log
-comparison passes (e87382ec). This is #2 static storage integration, not a
-pre-existing engine fix. Existing Q3 native bot smoke passes both accepted logs;
-all 103 C/C++ layouts/symbols, bot-command/team-leader/shared checks pass. Fixed
-replay is running. Client/UI lifecycle audit and actual static integration remain.
-No accepted fixtures/goldens changed.
+Current evidence: /tmp/aftershock-native-lifecycle-{debug,smoke,demo,gates},
+/tmp/aftershock-native-client-lifecycle-{before,after,golden,clang,gates}.
+Mutable-state audits: /tmp/aftershock-native-game-state-inventory.txt and
+/tmp/aftershock-native-client-state-inventory.txt. Module wrappers must bind all
+five compatibility functions (rand/srand/qsort/atof/memmove), and lifetime analysis
+must cover their generated translation units. Base-game lifecycle was exercised;
+missionpack is not an enabled imported-module configuration.
 
-Game lifecycle source d6c2ac52 and provenance 1591cc93 are pushed. Existing native
-fixed replay passes both maps/renderers against b38004b1. A new transitional
-`demo.py --game-code native --game-language c++ --lifecycle` gate now fails before
-client changes: retained storage differs from ordinary unloading after a fixed
-replay/video restart (/tmp/aftershock-native-client-lifecycle-before). This checks
-transition parity independently of the unchanged accepted-golden demo gate.
-Client state inventory: /tmp/aftershock-native-client-state-inventory.txt. Next:
-reset client RNG/effect/draw/loading/prediction state and UI storage at module init,
-then rerun both lifecycle and ordinary replay. Menu structs already reset on entry;
-do not add blanket state registration/snapshots. Static adapters remain scratch.
+PR #61 merged 35a2c75c; merged regression 34930596490 passed. Its #2 integration
+1def16ce passed regression 34930663280 and full build 34930663236. Both overlapping
+info-removal helpers are fixed identically in q_shared.cpp; provenance retained.
+
+Next: checkpoint/push the client lifecycle implementation and provenance, verify
+its CI, then integrate the proven direct-call adapters and native module build.
+Keep OpenArena coverage and accepted goldens; PR #50 remains draft until static
+linking, VM/JIT removal, build/lifetime/layout/runtime/replay gates and self-review
+are complete. The full later #4/#5/#8/design-only #6 sequence remains outstanding.
 
 Earlier checkpoints below describe how this integration was reached.
 

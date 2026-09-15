@@ -34,6 +34,12 @@ static	centity_t	*cg_solidEntities[MAX_ENTITIES_IN_SNAPSHOT];
 static	int			cg_numTriggerEntities;
 static	centity_t	*cg_triggerEntities[MAX_ENTITIES_IN_SNAPSHOT];
 
+void CG_InitPrediction( void ) {
+	memset( &cg_pmove, 0, sizeof(cg_pmove) );
+	cg_numSolidEntities = 0;
+	cg_numTriggerEntities = 0;
+}
+
 /*
 ====================
 CG_BuildSolidList
