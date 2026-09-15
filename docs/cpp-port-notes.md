@@ -548,3 +548,15 @@ Temporary complete #2 native C++ UBSan smoke now passes both Q3 maps with identi
 repeats and accepted logs. Explicit unit/collision/Q3 runtime regeneration gives
 no diff. Self-review passes; no suppression, expected-bug entry or accepted golden
 changes. The full native runtime reproducer is /tmp/aftershock-bot-command-native.py.
+
+## Native info-string overlap (#31, found during #2 static preflight)
+
+Original GPL Info_RemoveKey and Info_RemoveKey_Big call strcpy(start, s) to remove
+an entry in place. The remaining suffix overlaps its destination. Reproducer:
+compile code/game/q_shared.cpp as C with Clang ASan and call Info_RemoveKey on
+"\\a\\1\\b\\23456789\\c\\xyz", removing "a". ASan reports strcpy-param-overlap.
+The current native DLL reference also produces corrupted userinfo after map changes.
+Scratch evidence: /tmp/aftershock-native-info-overlap/asan.log and
+/tmp/aftershock-static-reset-original-reference. Fix both variants in a separate
+#31 PR with focused tests. The existing engine helper already uses memmove; no
+simulation FP edits or accepted golden changes are proposed on #2.
