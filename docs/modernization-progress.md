@@ -18,8 +18,8 @@ in g_cmds.cpp and enables Clang's parentheses-equality diagnostic in production
 and the standalone native helper. Source line count, comparison and behavior are
 unchanged. Nine-object preview: release/MinGW native objects match; two debug
 objects differ only in debug metadata. Actual-wrapper controls fail before and
-pass after. Native provenance records source commit 639fb07e. Both Clang helper
-languages are being checked against the six saved shared-library hashes. No golden regeneration.
+pass after. Native provenance records source commit 639fb07e. Both Clang C/C++ helper builds and ABI checks pass, and all six shared-library
+hashes match. Logs: /tmp/aftershock-parentheses-{c,cpp}.log. No golden regeneration.
 
 Next:
 1. Verify and merge #77, then open this parentheses-equality PR. Require hosted
