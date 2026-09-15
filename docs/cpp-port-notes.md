@@ -578,3 +578,8 @@ The complete #2 restart/map-change comparison now matches the fixed native DLL
 reference twice at dd1fe5c3be6e1133ce2305819f8f1dffbe51e8917d9258292e035fec1aa23a79.
 That comparison also includes the separate scratch #2 bot-state reset and explicit
 module memmove binding; neither integration change is part of this #31 PR.
+
+PR #61 source cdcbb7df passed regression 34930264125 and full build 34930264136.
+Native C++ smoke and fixed replay also match both Q3 maps/renderers. Self-review
+passes with no unrelated edits, allocations, OS calls or non-trivial lifetimes.
+The reviewed two-line source fix is the only difference from the GPL prerequisite.
