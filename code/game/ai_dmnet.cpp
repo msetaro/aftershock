@@ -308,7 +308,7 @@ int BotGetItemLongTermGoal(bot_state_t *bs, int tfl, bot_goal_t *goal) {
 #ifdef DEBUG
 			char netname[128];
 
-			BotAI_Print(PRT_MESSAGE, "%s: no valid ltg (probably stuck)\n", ClientName(bs->client, netname, sizeof(netname)));
+			BotAI_Print(PRT_MESSAGE, (char *)"%s: no valid ltg (probably stuck)\n", ClientName(bs->client, netname, sizeof(netname)));
 #endif
 			//trap_BotDumpAvoidGoals(bs->gs);
 			//reset the avoid goals and the avoid reach
@@ -1509,7 +1509,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 		// if the entity the bot shoots at moved
 		if (!VectorCompare(bs->activatestack->origin, entinfo.origin)) {
 #ifdef DEBUG
-			BotAI_Print(PRT_MESSAGE, "hit shootable button or trigger\n");
+			BotAI_Print(PRT_MESSAGE, (char *)"hit shootable button or trigger\n");
 #endif //DEBUG
 			bs->activatestack->time = 0;
 		}
@@ -1536,7 +1536,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 			//if the bot touches the current goal
 			if (trap_BotTouchingGoal(bs->origin, goal)) {
 #ifdef DEBUG
-				BotAI_Print(PRT_MESSAGE, "touched button or trigger\n");
+				BotAI_Print(PRT_MESSAGE, (char *)"touched button or trigger\n");
 #endif //DEBUG
 				bs->activatestack->time = 0;
 			}
@@ -2007,7 +2007,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	//if there is another better enemy
 	if (BotFindEnemy(bs, bs->enemy)) {
 #ifdef DEBUG
-		BotAI_Print(PRT_MESSAGE, "found new better enemy\n");
+		BotAI_Print(PRT_MESSAGE, (char *)"found new better enemy\n");
 #endif
 	}
 	//if no enemy
@@ -2323,7 +2323,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	//if there is another better enemy
 	if (BotFindEnemy(bs, bs->enemy)) {
 #ifdef DEBUG
-		BotAI_Print(PRT_MESSAGE, "found new better enemy\n");
+		BotAI_Print(PRT_MESSAGE, (char *)"found new better enemy\n");
 #endif
 	}
 	//

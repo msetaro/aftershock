@@ -7,14 +7,27 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active integration checkpoint: issue/2-native-game, draft PR #50. Pause the static
-integration for a separate #31 OpenArena allocator alignment fix. The newly expanded
-native runtime UBSan gate fails in ai_main.c:1210: BG_Alloc returns a payload after
-its four-byte size header, misaligning the eight-byte bot_state_t. Reproducer and
-root cause are in cpp-port-notes.md; no fix/suppression has been applied. Next:
-commit this #2 checkpoint, open issue/31-openarena-allocation-alignment from
-modernization, add the focused failing allocator test, fix it, run gates and merge
-with the usual self-review. Then integrate that patch into this branch and resume.
+Active: issue/2-native-game, draft PR #50, platform worktree
+/tmp/aftershock-native-platform at 956eebfa plus local compiler adaptations.
+Allocator PR #62 merged 0c3ef426 with merged regression 34934836544 passed.
+Separate free-list PR #63 is in CI on issue/31-openarena-free-list; it must merge
+before integrating both OA patches here. Neither source fix is made on #2.
+
+Static integration source 956eebfa exposed DEBUG-only string literals, legacy
+MSVC pragmas on MinGW, PPC assembly on modern macOS and absent MSVC native
+objects. Seventeen T8 literal casts now cover enabled DEBUG calls; GCC/Clang -O0 DEBUG
+C object bytes are identical before/after for both changed AI files. Platform
+header changes guard MSVC pragmas correctly, use _WIN32, and remove uncalled
+Windows byte-swap/PPC helpers. The old MSVC inline int3 in Com_sprintf is expressed
+using compiler traps for supported native toolchains. Local debug Linux client/server and
+MinGW dedicated builds pass. MSVC now generates per-source wrappers under IntDir
+from an explicit list matching all 103 Make objects; native sources retain strict
+FP and disabled intrinsics. Actual MSVC/macOS/all-client MinGW CI remains pending.
+No simulation FP edits.
+
+Next: finish #63 in the primary worktree and merge both patches into this branch;
+complete compiler adaptations and MSVC native object integration, then remove
+obsolete VM/JIT code and finish remaining native test/provenance review.
 
 Static Q3 and OA bot logs and both-renderer fixed replay match accepted goldens.
 The integrated Q3 video-restart replay also matches all existing frames; the

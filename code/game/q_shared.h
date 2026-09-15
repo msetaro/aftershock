@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define MAX_TEAMNAME 32
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 #pragma warning(disable : 4018)     // signed/unsigned mismatch
 #pragma warning(disable : 4032)
@@ -127,7 +127,7 @@ float	FloatSwap (const float *f);
 
 //======================= WIN32 DEFINES =================================
 
-#ifdef WIN32
+#ifdef _WIN32
 
 #define	MAC_STATIC
 
@@ -150,13 +150,6 @@ float	FloatSwap (const float *f);
 #endif
 
 #define ID_INLINE __inline 
-
-static ID_INLINE short BigShort( short l) { return ShortSwap(l); }
-#define LittleShort
-static ID_INLINE int BigLong(int l) { LongSwap(l); }
-#define LittleLong
-static ID_INLINE float BigFloat(const float *l) { FloatSwap(l); }
-#define LittleFloat
 
 #define	PATH_SEP '\\'
 
@@ -182,37 +175,6 @@ static ID_INLINE float BigFloat(const float *l) { FloatSwap(l); }
 
 #define	PATH_SEP	'/'
 
-#define __rlwimi(out, in, shift, maskBegin, maskEnd) asm("rlwimi %0,%1,%2,%3,%4" : "=r" (out) : "r" (in), "i" (shift), "i" (maskBegin), "i" (maskEnd))
-#define __dcbt(addr, offset) asm("dcbt %0,%1" : : "b" (addr), "r" (offset))
-
-static inline unsigned int __lwbrx(register void *addr, register int offset) {
-    register unsigned int word;
-    
-    asm("lwbrx %0,%2,%1" : "=r" (word) : "r" (addr), "b" (offset));
-    return word;
-}
-
-static inline unsigned short __lhbrx(register void *addr, register int offset) {
-    register unsigned short halfword;
-    
-    asm("lhbrx %0,%2,%1" : "=r" (halfword) : "r" (addr), "b" (offset));
-    return halfword;
-}
-
-static inline float __fctiw(register float f) {
-    register float fi;
-    
-    asm("fctiw %0,%1" : "=f" (fi) : "f" (f));
-
-    return fi;
-}
-
-#define BigShort
-static inline short LittleShort(short l) { return ShortSwap(l); }
-#define BigLong
-static inline int LittleLong (int l) { return LongSwap(l); }
-#define BigFloat
-static inline float LittleFloat (const float l) { return FloatSwap(&l); }
 
 #endif
 
