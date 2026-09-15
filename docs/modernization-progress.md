@@ -7,10 +7,17 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/31-chat-offset, draft PR #71. PR #70 passed full build 35016076778 and
-regression 35016076784 at 17a9dae2, then merged as 9d9dc4f6. That merge is
-integrated into this branch; its merged-tree regression remains to check.
-#69 merged-tree regression 35015162588 passed. #5 and #8 fallthrough are complete.
+Active: issue/8-unused-function. PR #71 passed build 35017297266 and regression
+35017297166 at 98b457cc, then merged as c04ba916. That merge is integrated into
+this branch; its merged-tree regression remains to check. PR #70 passed build
+35016076778 and regression 35016076784, merged as 9d9dc4f6, and merged-tree
+regression 35016803376 passed. #5 and #8 fallthrough/ignored qualifiers are complete.
+
+The only #8 source-tree change is removal of -Wno-unused-function from the Clang
+engine warning list. The existing temporary production controls reject unused
+static functions and all 364 Clang engine release objects remain identical across
+both renderers. Next: open the unused-function PR, verify hosted build/regression and self-review,
+then merge and check the merged-tree run. No engine source or golden changes.
 
 Test-first commit 36410f00 records the failing chat-offset regression. Both
 offset declarations now use signed char, preserving the negative sentinel and
@@ -39,15 +46,23 @@ The original GPL import hash is retained; c58e2751 is recorded as a transformati
 Local Q3 runtime passes unchanged (6dad7c18/a15c9c91); both-renderer fixed replay
 passes unchanged (b38004b1), with original demo hashes retained. Explicit unit and
 collision regeneration is identical (8d44421d/9674cd22). Upstream C fix 98691272 is
-submitted as ec-/Quake3e #442. Next: verify hosted build/regression at the final
-PR #71 head, complete self-review, ready/merge with a merge commit, then verify
-the merged-tree regression. No accepted golden or fixture diff.
+submitted as ec-/Quake3e #442. PR #71 passed hosted gates and self-review, then
+merged as c04ba916. No accepted golden or fixture diff.
 
-After this fix, resume #8 unused-function diagnostics in its own PR. Temporary
+Future warning-class preflight: removing unneeded-internal-declaration preserves
+206 Clang native object hashes and its production-flag control rejects a function
+referenced only by decltype. Removing unused-const-variable preserves 412 GCC/Clang
+native objects; Clang's diagnostic control passes. GCC does not enable that warning
+with -Wall/-Wextra in C++, so merely deleting the suppression is not a diagnostic
+gate. Explicit -Wunused-const-variable=1 additionally compiles all 206 GCC native
+objects with identical raw hashes. These future flags have not been changed in the
+repository. Artifacts: /tmp/aftershock-native-warning-check and
+/tmp/aftershock-unused-const-gcc. Keep each warning class in a separate PR.
+
+The #8 unused-function removal is now prepared on this separate branch. Temporary
 production-flag checks preserve 364 Clang engine objects across both renderers and
 reject an unused static function when the suppression is removed:
-/tmp/aftershock-unused-function/{results.json,control-after.log}. No source changes
-for this warning class have been made. MSVC #69 release inventory records C4267,
+/tmp/aftershock-unused-function/{results.json,control-after.log}. Only its CMake suppression has been removed. MSVC #69 release inventory records C4267,
 C4459, C4456, C4065, C4457 and C4644; address before /WX. Continue one warning class
 per PR, then verified tree-wide formatting, tidy subsets, fixed-width representation
 types/layout assertions and release-identical Q_ASSERT. Finish #8, write design-only
