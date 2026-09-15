@@ -112,6 +112,10 @@ ifneq ($(findstring clang,$(CXX)),)
 else
   NATIVE_WARNINGS += -Wno-address -Wno-array-bounds -Wno-implicit-fallthrough -Wno-missing-field-initializers -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-const-variable -Wno-unused-parameter
 endif
+# Same Apple SDK C deprecations already frozen for the engine.
+ifeq ($(PLATFORM),darwin)
+  NATIVE_WARNINGS += -Wno-deprecated-declarations
+endif
 NATIVE_CFLAGS = $(filter-out -Wstrict-prototypes -Wimplicit -ffast-math,$(CFLAGS)) \
   -std=c++20 -fno-exceptions -fno-rtti -fno-fast-math -ffp-contract=off \
   -fno-strict-aliasing -fwrapv -fno-builtin -fPIC -U_GNU_SOURCE -D_DEFAULT_SOURCE \

@@ -27,6 +27,12 @@ MinGW dedicated builds pass. MSVC now generates per-source wrappers under IntDir
 from an explicit list matching all 103 Make objects; native sources retain strict
 FP and disabled intrinsics. Actual MSVC/macOS/all-client MinGW CI remains pending.
 No simulation FP edits.
+CI 34935976035 reached the Apple SDK deprecation of unchanged vsprintf calls;
+native objects now use the same darwin-only deprecated-declarations freeze already
+recorded in the engine Makefile. No function replacement/behavior change.
+Permanent static OA UBSan passes both accepted bot hashes after patch integration.
+All MinGW native objects compiled; the first local client link lacked cross zlib
+via curl defaults, so the CI USE_CURL=0 configuration is being checked.
 
 Next: verify merged #63 CI and this integration; finish compiler/MSVC native
 object builds, then remove
