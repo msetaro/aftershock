@@ -41,7 +41,12 @@ G7 warning is being called a sanitizer failure or hidden.
 The resolved integration passes GCC/Clang command checks and the team-leader
 check; ai_main.c is byte-identical to the successful complete native UBSan preflight.
 
-Next: commit/push this integration and verify #60 merged-tree plus #2 CI. Complete the advisory G4/G7/catalog review record, then perform the content-free
+#60 merged-tree regression 34927724919 passed. The resolved #2 integration
+f92ae456 passed regression 34927833819/full build 34927833852.
+
+Next: the advisory G4/G7/catalog review and
+acceptance decision are recorded in docs/native-port-review.md; diagnostics remain
+visible and confirmed bugs are separately tracked/fixed. Perform the content-free
 .cpp rename, static direct calls and VM/JIT removal. No VM/JIT removal has started;
 no accepted fixture/golden changes have been made on #2. Full native UBSan evidence:
 /tmp/aftershock-bot-command-native.py/.log, including the shared Clang runtime setup.
@@ -53,17 +58,15 @@ literal conversion. Clang native Q3 smoke/replay and GCC/Clang native OA smoke/r
 match both maps/renderers. Three T17 ui_ingame casts also preserve C/C++ objects.
 Full G2/G3 before the sentinel merge: 103/103 objects match. G3 adds artifact-only
 -U__OPTIMIZE__ to the existing header/optimizer isolation flags; production assembly
-differences are retained. G4 function review remains incomplete, with no functions
-added/removed across 103 objects. G7 on the temporary merged UI tree completed all
+differences are retained. The completed G4 review is in native-port-review.md; no
+functions were added/removed across 103 objects. G7 on the temporary merged UI tree completed all
 103 objects without tool/compile failures: 1365 narrowing, 55 signed-char and nine
 implicit strcmp-result findings. The nine strcmp comparisons are equivalent nonzero
-checks, deferred as style to #8; remaining findings still require disposition.
+checks. The disposition in native-port-review.md retains inherited conversions for
+#8 and routes confirmed defects through #31.
 Artifacts: /tmp/aftershock-native-function-review, /tmp/aftershock-native-g2-g3-headers,
 /tmp/aftershock-native-warning-inventory and /tmp/aftershock-native-tidy/results.json.
 Earlier #54/#55/#56 merged-tree regressions 34913731858/34914963107/34915431579 passed.
-
-
-
 
 #3 is complete (PR #33, merged-tree regression 34867621821 passed). The Huffman
 alignment fix merged as PR #36 / bb4474db after regression 34868566671 and full
