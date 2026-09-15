@@ -55,8 +55,26 @@ C oracles explicitly select -x c. GCC/Clang C and C++ strict module builds pass;
 OpenArena C module build passes. Math/shared, team leader/voters, base/missionpack
 flags and bot command checks pass. No accepted fixtures/goldens changed.
 
-Next: push/watch rename CI, then implement static direct calls and VM/JIT removal.
-No VM/JIT removal has started. Full pre-rename native UBSan evidence:
+Rename 634decac passed regression 34928509506. Full build 34928509462 failed
+only during MSYS2 package download (libwinpthread signature mirror timed out); the
+failed job was rerun. Other build legs passed.
+
+Static integration preflight (scratch only, no engine edits committed): all 103
+objects compile inside separate game/cgame/ui namespaces and link together without
+collisions. Module-local rand/srand/qsort/atof remain isolated. Bot logs and fixed
+replay on both renderers still match (namespace-runtime/demo artifacts below).
+A dedicated executable with game objects linked statically and 183 typed direct
+imports also matches both Q3 bot logs with identical repeats. It still uses the old
+VM entry dispatcher as a temporary adapter; this is not completed VM removal.
+
+Next: verify the retried build, then finish static game export calls, client/UI
+integration and VM/JIT removal. Preserve hosted OpenArena coverage. No accepted
+fixtures/goldens have changed. Scratch evidence under
+/tmp/aftershock-native-static-preflight; generation scripts:
+/tmp/aftershock-game-direct-preflight.py, /tmp/aftershock-game-static-link.py,
+/tmp/aftershock-game-static-runtime.py. Runtime output:
+/tmp/aftershock-game-static-runtime, /tmp/aftershock-native-namespace-runtime and
+/tmp/aftershock-native-namespace-demo. Full pre-rename native UBSan evidence:
 /tmp/aftershock-bot-command-native.py/.log, including the shared Clang runtime setup.
 
 Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95
