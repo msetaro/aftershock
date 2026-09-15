@@ -769,3 +769,24 @@ Runtime/hosted gates and self-review remain before this separate fix merges.
   MISSIONPACK. Decision: retain this as a #31 item if that configuration is enabled;
   do not expand #8 into unsupported gameplay configuration work. No supported build
   gate is skipped and no engine fix is folded into the warning PR.
+
+## UI skill conversion before validation (#31, found during #8)
+
+The real UI_SPSkillMenu_SkillEvent callback casts g_spSkill to int before
+checking it. A large finite value (1e38) is accepted by Q_atof and causes
+float-cast-overflow; NaN/Inf are filtered by Q_atof and are not the reproducer.
+Sibling UI readers in ui_splevel.cpp, ui_gameinfo.cpp and ui_addbots.cpp also
+convert before validation. ui_spskill.cpp initialization already clamps first.
+
+Bounded reproducer: include game/ui/ui_spskill.cpp in a standalone translation
+unit; stub trap_Cvar_VariableValue to return volatile float 1e38f, stub
+trap_Cvar_SetValue and trap_S_StartLocalSound, and define color_red/color_white.
+Invoke UI_SPSkillMenu_SkillEvent with menucommon_s.id=ID_EASY and QM_ACTIVATED.
+Compile with -DCOM_TRAP_GETVALUE=700 -ffunction-sections -fdata-sections
+-fsanitize=undefined,float-cast-overflow -fno-sanitize-recover=all and
+-Wl,--gc-sections. GCC and Clang both fail at ui_spskill.cpp:114 before any fix.
+The exact local probe is /tmp/aftershock-ui-skill-probe.cpp; logs are
+/tmp/aftershock-ui-skill-before{,-gcc}.log. Add a permanent test first and fix all
+UI skill readers in a separate #31 PR, preserving their distinct range policies.
+This is imported game UI code, which ec-/Quake3e does not contain. No applicable
+engine upstream PR, expected-failure entry or suppression exists for this bug.

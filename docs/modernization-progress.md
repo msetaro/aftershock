@@ -7,11 +7,10 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-self-assign, based on pending PR #78 head 97abd1b9.
-PR #78 remains on issue/8-parentheses-equality; verify its hosted gates and merge
-first, then integrate origin/modernization before opening this separate class PR.
-#77 merged 28b89692 after build 35022303013/regression 35022302958; its merged-tree
-run remains to check. #76 merged-tree regression 35022204641 passed.
+Active: issue/8-self-assign. PR #78 passed build 35023238777 and regression
+35023238813 and merged; this branch has integrated origin/modernization.
+#77 merged-tree regression 35023041315 passed. Open the self-assign PR next;
+require its hosted gates and self-review before merging.
 
 This branch replaces the fov_x self-assignment with a comment and enables Clang's
 self-assign diagnostic in production and the standalone helper. It keeps the
@@ -21,9 +20,10 @@ before and pass after. Native provenance records 9e4d45f0; both Clang C/C++ help
 and all six shared-library hashes match (/tmp/aftershock-self-assign-{c,cpp}.log). No golden regeneration.
 
 Next:
-1. Verify and merge #78, then open this self-assign PR. Require hosted build/
+1. Open this self-assign PR. Require hosted build/
    regression and self-review before merging; check the merged-tree runs.
-2. Continue with the previewed null-subtraction and address cleanups
+2. Fix the newly confirmed UI g_spSkill conversion bug in a separate test-first
+   #31 PR (see docs/bugs.md), then continue the null-subtraction and address cleanups
    in separate class PRs, including native provenance and helper freeze removal.
 3. Continue the remaining warning classes one per PR. Ready source previews below
    cover parentheses-equality and self-assign. Then finish the larger warning
@@ -50,7 +50,7 @@ Recent merges (all self-reviewed; merge commits):
 - #76 native helper internal declarations: 4c598f3e, build 35021362798/regression
   35021362817; merged 7f5f90b8, merged-tree regression 35022204641 passed.
 - #77 native helper fallthrough: 2c17b152, build 35022303013/regression 35022302958;
-  merged 28b89692, merged-tree regression pending verification.
+  merged 28b89692, merged-tree regression 35023041315 passed.
 #5 is complete. #8 warning ratchet remains active; later #8 rules are not done.
 
 Completed PR #75 evidence:
@@ -100,10 +100,10 @@ Retained #8 warning evidence and upcoming previews:
   both controls reject unsigned < 0. /tmp/aftershock-type-limits-{control,check}.
 - Parentheses-equality preview: remove redundant inner parentheses from the
   tournament test in g_cmds.cpp. Nine objects checked: release/native objects match;
-  two GCC debug objects differ only in debug sections. Not yet applied.
+  two GCC debug objects differ only in debug sections. Applied and merged in #78.
 - Self-assign preview: replace fov_x self-assignment with a comment; retain the
   existing branch, arithmetic and distinct cg.refdef.fov_x assignment. All eight
-  GCC/Clang/debug and MinGW native objects match. Not yet applied.
+  GCC/Clang/debug and MinGW native objects match. Applied on this branch.
   Both source previews have failing/passing Clang wrapper controls:
   /tmp/aftershock-small-warning-preview. Each needs its own PR and provenance.
 - Null-pointer-subtraction preview: use (uintptr_t)a for qsort alignment and
@@ -1310,3 +1310,12 @@ record it separately for #31 without changing those engine sources here.
 #3 merge 8692b422, before both path and build migrations, not the 390a20f4 build
 parity checkpoint. It is not rerun or adapted here. README and AGENTS now identify
 its historical revision explicitly.
+
+UI skill investigation during #8: a bounded real UI_SPSkillMenu_SkillEvent call
+with g_spSkill=1e38 and a valid ID_EASY event fails GCC and Clang
+undefined,float-cast-overflow checks at ui_spskill.cpp:114. Q_atof rejects
+NaN/Inf but accepts this large finite value. Other UI readers also cast before
+validation. Record and fix separately under #31; no bug fix in this warning PR.
+Local reproducer/logs: /tmp/aftershock-ui-skill-probe.cpp and
+/tmp/aftershock-ui-skill-before{,-gcc}.log. Preserve each reader's existing
+valid-value behavior and invalid-value policy.
