@@ -25,7 +25,7 @@ Next: merge accepted #73, open the type-limits PR, verify hosted gates/self-revi
 merge with a merge commit, and check the merged-tree regression. #73 independently
 preserves 206 Clang native objects and rejects its control through the actual
 namespace wrapper. Keep the unused-constant cleanup separate until its remaining
-debug relocation and conditional-source review is complete.
+debug relocation and conditional-source evidence below is incorporated into its own PR.
 
 Test-first commit 36410f00 records the failing chat-offset regression. Both
 offset declarations now use signed char, preserving the negative sentinel and
@@ -76,11 +76,12 @@ unneeded-internal control DOES fail through the actual native wrapper as intende
 Artifacts: /tmp/aftershock-unused-const-gcc-all and native-warning-check/*included*.
 A temporary source preview moves the existing MISSIONPACK guard above the
 order-table declarations while preserving line count. GCC/Clang release objects
-match, as do MinGW native objects after incremental LTO. Two debug objects need
-further relocation/constant review before accepting that future change. The
+match, as do MinGW native objects after incremental LTO. Both debug objects have byte-identical .text; the remaining .rodata is an exact
+suffix after removing 88 unused bytes, and all 71 changed relocation targets per
+object preserve the referenced bytes. No function is added or removed. The
 MISSIONPACK compile control fails in the unchanged baseline at cg_servercmds.cpp:936
 (int to qboolean); do not fix that inactive configuration in the warning PR.
-Verify that its preprocessed tokens are preserved. Preview artifacts:
+Its before/after preprocessed MISSIONPACK output is byte-identical. Preview artifacts:
 /tmp/aftershock-unused-constant-preview. No repository source edit yet.
 
 Type-limits preflight after the #31 affinity/chat fixes: replacing the suppression
