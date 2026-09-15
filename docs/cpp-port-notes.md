@@ -418,3 +418,18 @@ uses a different implementation and handles empty strings already.
 PR #56 source a1f04017 passed regression 34915071172/full build 34915071248.
 Clang native OA bot smoke and fixed replay match both maps and renderers after
 this patch; no accepted golden change. Self-review passes.
+
+### Native UI negative weapon sentinel (#31, pending)
+
+UI_DrawPlayer and UI_PlayerInfo_SetInfo compare weapon_t values with -1, while the
+GPL UI stores that sentinel in playerInfo_t.pendingWeapon and takes it through the
+SetInfo enum parameter. Native C++ enum conversion/load cannot represent that value:
+Clang UBSan reports load of 4294967295, invalid for weapon_t. The original C interface
+used the integer bit pattern. Reproducer: compile /tmp/aftershock-ui-sentinel.cpp
+against the #2 header with Clang -O2 -fsanitize=undefined -fno-sanitize-recover=all,
+then run with -1; it fails at the field read. Controls_UpdateModel supplies the
+integer sentinel; model/settings callers supply ordinary weapon constants.
+
+Fix only in a separate #31 PR: use signed integer storage/parameter for the two
+sentinel-bearing values, preserving normal weapon fields and the enum definition.
+No corresponding ec-/Quake3e UI implementation exists. No fix is on #2 yet.

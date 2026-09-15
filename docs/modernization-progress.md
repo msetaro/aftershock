@@ -24,18 +24,26 @@ OpenArena native support is committed as d0013d95; regression 34922352537 passed
 and checks 28 structure sizes/three offsets plus the consumed 140-byte refEntity
 prefix. Both permanent GCC bot logs and all fixed replay frames match.
 
-Next: commit the verified portable-literal checkpoint, then finish G3/G4 review. The
-imported game sources now carry 2,783 explicit f suffixes in 57 files (including
-the retained ARMOR_PROTECTION macro, used only by two native functions). No string,
-comment or expression structure changed. Native ABI undefines host M_PI so the
-existing q_shared.h binary32 definition is used. This removes compiler-specific
-literal flags from the Q3 native build; the unported OA C dependency keeps them.
-All 103 C objects match the 3306d55d reference byte-for-byte; all 103 C++ objects
-match the final pinned catalog artifacts byte-for-byte. GCC/Clang shared math and
-case hashes remain 67988592/676e85f5; native math and team-leader checks pass.
-This is a documented native ABI portability deviation, with no simulation behavior
-change and no golden regeneration. Clang native C++ smoke/fixed replay passes both
-Q3 maps and all frames (b38004b1) without the compiler-specific literal flag.
+Portable-literal checkpoint 5592a1eb passed regression 34922727256. All 103 C and
+103 C++ objects remained byte-identical; Clang native C++ smoke/replay passes.
+Three subsequent T17 casts in ui_ingame.c also preserve C/C++ objects exactly.
+
+Full native G2: 103/103 layout objects match, including internal structures. G3:
+103/103 symbol objects match using the existing comparison flags plus artifact-only
+-U__OPTIMIZE__ to prevent glibc's forced inline strstr-to-strchr substitution.
+Production compilation is untouched; its advisory differences remain visible.
+Commands/results: /tmp/aftershock-native-g2-g3-headers.py/.log and its output tree.
+The ordinary -Wall/-Wextra inventory has no compilation errors; original C warning
+classes are retained for #8. T17 removes three new enum/float diagnostics.
+
+Next: park #2 and fix its newly confirmed UI sentinel bug in a separate #31 PR.
+UBSan rejects reading playerInfo_t.pendingWeapon = -1 as weapon_t; Clang identifies
+the three sentinel comparisons as tautological. The caller audit is on #31. Store
+sentinel-bearing pendingWeapon and UI_PlayerInfo_SetInfo's input as signed integers,
+leaving the weapon enum/normal fields intact. A header-based UBSan reproducer is in
+/tmp/aftershock-ui-sentinel.cpp and its failing output in ...-before.log. No UI fix
+has been made on #2. Then resume final artifact review, warning freeze, static direct
+calls and VM/JIT removal. No accepted golden or fixture changes.
 
 GCC/Clang native C/C++ Q3 smoke/replay, layouts and shared math checks already pass.
 Remaining #2 work: final G3/G4 artifact review, static direct calls and VM/JIT
