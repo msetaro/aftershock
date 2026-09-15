@@ -8,7 +8,7 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 ## Next action
 
 Active: issue/8-null-subtraction, based on pending UI skill PR #80 head
-53569f88. PR #80 remains on issue/31-ui-skill-range; require its hosted gates,
+53569f88 (build 35025644781/regression 35025644789). PR #80 remains on issue/31-ui-skill-range; require its hosted gates,
 merge it first, then integrate modernization before opening this warning PR.
 #79 merged 82a434c6 after build 35024926886/regression 35024926889 passed.
 #78 merged-tree regression 35024847153 passed; #79 merged-tree run still to check.
@@ -22,8 +22,9 @@ This is the proven-identical replacement permitted by the port constraints.
 No simulation FP, allocation, lifetime, layout, OS call or accepted fixture change.
 
 Next:
-1. Run both Clang C/C++ native helpers, check their library hashes/ABI layouts,
-   record source provenance, and require hosted build/regression plus self-review.
+1. Local checks pass: both Clang C/C++ helper builds/ABI checks and all six
+   library hashes are unchanged. Source b6927331 is recorded in provenance by
+   c6ac4086. Require hosted build/regression plus self-review.
 2. Verify and merge #80; integrate modernization and open this class PR, then
    verify its gates before merge. Check merged-tree regressions.
 3. Continue #8 address/pointer-bool and larger warning classes, MSVC /WX, one
@@ -1340,3 +1341,9 @@ records 2475e0d2 for the five imported files, preserving original GPL hashes.
 Local logs /tmp/aftershock-ui-skill-{unit,differential,runtime,demo,native-*}.log.
 The initial default /tmp/aftershock-tests configure encountered an old CMake
 cache; the clean task-specific /tmp/aftershock-ui-skill-unit passed.
+
+Null-subtraction source b6927331 matches the reviewed 25-object preview. The
+explicit stdint.h include preserves line count. Both Clang native helper builds
+pass, including their layout checks, and all six library hashes are unchanged:
+/tmp/aftershock-null-subtraction-before.json and null-subtraction-{c,cpp}.log.
+No accepted golden regeneration. PR #79 merged-tree run is 35025630301.
