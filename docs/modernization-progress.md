@@ -7,82 +7,71 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/5-cmake-build from #4 merge 4a952854. PR #65 and its
-merged-tree regression 34942323875 passed. #2/#31/#1/#4 are complete. Continue
-#5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementation.
+Active: issue/5-cmake-build, draft PR #66, based on #4 merge 4a952854.
+#3/#31/#1/#2/#4 are complete. #4 merged-tree regression 34942323875 passed.
+Continue #5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementation.
 
-#5 decision: CMake becomes primary after raw production-object parity; then retire
-Makefile and hand-maintained MSVC projects. Support 64-bit little-endian
-x86_64/aarch64, with ccache in CI. No engine behavior or accepted golden changes.
-Baseline: 11 successful Make configurations, 3,757 raw object hashes and actual
-compiler commands under /tmp/aftershock-cmake-before (source 4018c08a, engine
-identical to 4a952854); driver /tmp/aftershock-cmake-baseline.py.
+Next: push the MSVC environment/manifest and MinGW assembly-metadata corrections,
+then verify hosted CMake migration and migrated regression jobs. Keep engine/game
+source fixed until hosted build parity is recorded. Only then retire Make and
+handwritten MSVC projects, remove inactive 32-bit/PowerPC paths, finish build/test
+documentation and run final gates/self-review before merging PR #66. One-command
+CMake presets are present; primary workflow migration and cleanup are incomplete.
+No accepted golden/fixture changes or engine bug fixes are authorized in #5.
 
-Initial CMake repair builds native game/client/server, both renderer configurations
-and cross targets from explicit source lists. Raw object parity already passes
-GCC release Vulkan/OpenGL/dynamic, GCC debug Vulkan, Clang+libc++ Vulkan, and
-aarch64 dedicated: 1,924 objects, no hash normalization. Candidate builds are
-/tmp/aftershock-cmake-{first,gcc-debug-vulkan,gcc-release-opengl,
-gcc-release-dynamic,clang-release-vulkan,aarch64-release-ded}; comparator
-/tmp/aftershock-cmake-compare.py. Other configurations still need comparison.
+Make reference checkpoint a08e7275 fixes reproducibility; CMake repair 6987587a;
+test-helper migration f111b28c. Original baseline: 11 successful Make configurations,
+3,757 raw object hashes and actual compiler commands under
+/tmp/aftershock-cmake-before (source 4018c08a, engine identical to 4a952854).
+Driver: /tmp/aftershock-cmake-baseline.py. All 3,757 local objects match CMake:
+GCC release/debug OpenGL/Vulkan/dynamic, Clang+libc++ both static renderers,
+MinGW both static renderers, aarch64 dedicated. No hash normalization.
 
-MinGW LTO itself is not reproducible with the original flags: repeating the exact
-Make command changes the object hash (/tmp/aftershock-cmake-lto-repeat.json).
-A fixed per-translation-unit random seed removes random section IDs; GCC still
-streams the unremapped working directory with relative source locations
+Original MinGW -flto objects change hashes even with an identical repeated command
+(/tmp/aftershock-cmake-lto-repeat.json). GCC records random section IDs and the
+unmapped working directory with relative LTO locations
 ([upstream diagnosis](https://gcc.gnu.org/pipermail/gcc-patches/2022-November/606205.html)).
-Focused proof /tmp/aftershock-lto-absolute.py gives identical raw md4 objects from
-Make and CMake after both use absolute source/include spelling, the same stable
-absolute debug-source prefix and per-TU seed. Separate macro mapping preserves
-relative __FILE__ strings. LTO remains enabled; no sections are stripped.
-These build-only reproducibility settings are now being verified across the full
-MinGW production set before Make retirement. Original baseline is preserved.
+Both build systems now use the same per-TU seed, absolute source/include spelling
+and stable absolute debug-source prefix; separate macro mapping preserves relative
+__FILE__ strings. LTO and all object sections remain intact. Deterministic Make
+references: /tmp/aftershock-cmake-mingw-repro-make[-opengl]. Focused proof:
+/tmp/aftershock-lto-absolute.py. Debug assembly additionally needs its compilation
+directory mapped; /tmp/aftershock-cmake-mingw-debug-parity now passes 361/361.
+GCC debug dynamic also preserves compiler flag order for raw DWARF equality.
 
-All 11 local configurations now pass: 3,757/3,757 raw object hashes, including
-both MinGW resource objects. The MinGW comparisons use the deterministically
-rebuilt Make baseline (/tmp/aftershock-cmake-mingw-repro-make[-opengl]); all others
-use the original capture. GCC debug dynamic needed renderer flags in the original
-order because DWARF records them; CMake's empty default build type also needed an
-explicit Release default. Neither fix changes source or compiler policy.
+Repository oracle tools/port/check_cmake_parity.py builds both systems and saves
+actual commands, raw hashes and explicit differences; its local GCC Vulkan gate
+passes 358/358 (/tmp/aftershock-cmake-permanent-parity). Replay this oracle at the
+recorded Make-retirement checkpoint after Make disappears. Candidate artifacts:
+/tmp/aftershock-cmake-*; initial comparator /tmp/aftershock-cmake-compare.py.
 
-Make reproducibility settings are committed separately as a08e7275, preserving
-the reference configuration in history. Engine/game
-implementation is unchanged. Next: hosted macOS/Windows build verification,
-permanent tests/CI migration, then inactive platform cleanup. Permanent test builders still use Make. Generated MSVC,
-macOS, one-command presets, ccache CI, 64-bit cleanup and final gates remain.
+Hosted source 6987587a passes existing regression 34945736264 and build
+34945736251. New migration 34945736467 and follow-up 34946061800 prove raw parity
+on macOS Intel/ARM64 and Linux GCC/Clang/native ARM64, release/debug, both renderers.
+MinGW debug's single assembly difference is fixed locally as above; hosted rerun
+remains. MSVC Ninja now compiles ARM64 (359/359 cacheable calls), but automatic
+CMake manifest generation duplicates the engine's existing resource manifest.
+Use /MANIFEST:NO to retain that resource, and correct x64 vcvars selection to
+amd64 (ARM64 uses amd64_arm64). Generated Visual Studio build still needs to pass.
+No source fix, warning suppression or dropped resource is involved.
 
+Permanent unit/download/lifetime helpers consume CMake production objects and
+compile_commands.json. Engine link instrumentation is target-specific so probe
+entry points do not enter CMake's compiler-identification checks. Locally pass:
+unit + one-ULP negative control; Clang+libc++; ASan/UBSan with known-bug classifier;
+curl options/download; complete bot result; lifetime 546 commands/137 paths with
+seven negative controls; both Q3 smoke logs; both-renderer Q3 fixed replay
+(b38004b1); both OpenArena UBSan smoke logs. OA fixed replay is running.
+Logs/artifacts /tmp/aftershock-cmake-{unit,unit-clang,unit-sanitized,download,
+bot-move,lifetimes,runtime,demo,oa-runtime,oa-demo}*. Goldens/fixtures unchanged.
 
-CMake repair checkpoint includes explicit production sources, static/dynamic
-renderers, external native-object inputs for OpenArena, x86_64/aarch64 toolchains,
-Release/Debug workflow presets and generated Visual Studio presets. The new
-migration workflow will compare raw Make/CMake objects on Linux, native ARM64,
-macOS Intel/ARM64 and MinGW, and build MSVC x64/ARM64 through Ninja/ccache plus
-generated Visual Studio projects. Existing supported-build workflow remains until
-these gates pass. MSVC retains strict native FP, precise engine FP, fast release
-renderer FP and static CRT; ARM64 curl remains disabled as in the old projects.
-The repository migration oracle tools/port/check_cmake_parity.py passes 358/358
-GCC Vulkan objects locally (/tmp/aftershock-cmake-permanent-parity), writing actual
-commands, raw hashes and explicit differences. It belongs to this historical
-Make-retirement checkpoint; replay it at this revision after Make is removed.
-
-
-PR #66 is draft; CMake source checkpoint 6987587a. Hosted migration run
-34945736467 already passes GCC debug, native Linux ARM64 debug and macOS x64
-release raw parity; remaining jobs are pending. Its MSVC jobs initially failed
-before building: Ninja selected the wrong compiler on ARM64 and PowerShell passed
-an unexpanded renderer argument. Explicit x64-host target environment, cl compiler
-selection and quoted CMake arguments correct the workflow; rerun still required.
-
-Permanent regression helpers now configure CMake and select actual production
-objects/flags from compile_commands.json. Lifetime analysis keeps every native
-wrapper command; one-ULP mutation reuses the real compiler command. Download and
-bot-movement checks consume the same objects/engine link. Test link instrumentation
-is target-specific so it does not enter CMake's compiler-identification link.
-Local migrated checks pass unit/one-ULP, curl options/download, bot movement and
-both Q3 smoke logs, with unchanged accepted hashes. Clang/libc++, sanitizer,
-lifetime analysis and fixed replay are running. Logs: /tmp/aftershock-cmake-*.
-No accepted golden or fixture changed. Tests/CI migration and platform cleanup are
-still incomplete; Make and handwritten projects remain pending hosted gates.
+Regression workflow migration now adds job caches and uses CMake for cross-server
+builds and the two existing Windows SDL interface compile checks. The latter pass
+locally (/tmp/aftershock-cmake-sdl-cross). The supported build.yml still uses Make
+and handwritten projects until migration gates pass; preserve its original CRLF.
+CMake keeps explicit source lists, strict native FP, precise MSVC engine FP, fast
+MSVC release renderer FP and static CRT. MSVC ARM64 curl remains disabled as in
+the old projects. External OA native objects remain static test inputs.
 
 
 #4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects

@@ -714,7 +714,7 @@ endef
 define DO_AS
 $(Q)$(MKDIR) $(dir $@)
 $(echo_cmd) "AS $<"
-$(Q)$(CC) $(CFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
+$(Q)$(CC) $(call COMPILE_FLAGS,$(CFLAGS)) -DELF -x assembler-with-cpp -o $@ -c $(call COMPILE_SOURCE,$<)
 endef
 
 define DO_DED_CC

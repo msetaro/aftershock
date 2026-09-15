@@ -89,11 +89,16 @@ jobs:
       matrix:
         arch: [x64, arm64]
         config: [Release, Debug]
+        include:
+          - arch: x64
+            vcvars: amd64
+          - arch: arm64
+            vcvars: amd64_arm64
     steps:
       - uses: actions/checkout@v7
       - uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: x64_${{ matrix.arch }}
+          arch: ${{ matrix.vcvars }}
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: cmake-msvc-${{ matrix.arch }}-${{ matrix.config }}
