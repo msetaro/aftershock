@@ -7,31 +7,34 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-null-subtraction. UI skill PR #80 passed full build
-35025644781/regression 35025644789 and merged 8b74ad07; this branch has integrated
-modernization. #79 merged-tree regression 35025630301 passed. Open this qsort
-warning PR, then require its hosted gates and self-review before merging.
-Check #80's merged-tree regression when available.
+Active: issue/8-address-warning, based on pending qsort PR #81 head a0987364
+(build 35026347546/regression 35026347521). Merge #81 after gates/self-review,
+then integrate modernization before opening this separate warning-class PR.
+#80 merged 8b74ad07 after build 35025644781/regression 35025644789 passed;
+its merged-tree run 35026295235 remains to verify. #79 merged-tree passed.
 
-This branch enables Clang's null-pointer-subtraction diagnostic in production
-and standalone native helpers. qsort alignment uses uintptr_t with an explicit
-stdint.h include; the existing long-sized swap algorithm is retained. The prior
-25-object preview proves identical release/MinGW-native bytes and identical
-instructions/relocations in debug (six objects differ only in debug sections).
-This is the proven-identical replacement permitted by the port constraints.
-No simulation FP, allocation, lifetime, layout, OS call or accepted fixture change.
+This branch removes the unreachable !classname test in BotGetActivateGoal:
+classname is a local char[128], and the AAS key reader always initializes the
+buffer. The existing empty-classname behavior is preserved. Enable GCC address
+and Clang pointer-bool-conversion diagnostics in production and native helpers;
+these are two compiler names for the same class. No FP source expression changes.
+
+The nine-object preview preserves x86 release and MinGW native bytes; two debug
+objects differ only in debug sections. ARM64 swaps operands of one fcmp feeding
+b.ne; equality/unordered results are symmetric and subsequent flags are overwritten
+before use on both paths. All other instructions/relocations match (details below).
 
 Next:
-1. Local checks pass: both Clang C/C++ helper builds/ABI checks and all six
-   library hashes are unchanged. Source b6927331 is recorded in provenance by
-   c6ac4086. Require hosted build/regression plus self-review.
-2. Open this class PR and verify its gates before merge. Check merged-tree
-   regressions, then continue the next class in a separate branch.
-3. Continue #8 address/pointer-bool and larger warning classes, MSVC /WX, one
-   verified tree-wide clang-format commit, tidy subsets, fixed-width representation
+1. Run GCC/Clang C/C++ native helpers/ABI checks, record provenance and compare
+   relevant library hashes. Require hosted regression for the reviewed ARM64 diff.
+2. Verify and merge #81, integrate modernization, open this class PR, then require
+   its hosted build/regression plus self-review before merging. Check merged trees.
+3. Continue #8 with declaration parentheses (51-object identical preview), array
+   bounds and unused-result previews, then the larger classes and MSVC /WX.
+4. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to
    in force, finish #8, write design-only docs/design/rhi.md for #6, then stop.
-   No #6/#7 implementation and no golden regeneration for warning work.
+   No #6/#7 implementation or accepted golden regeneration for warning work.
 
 Recent merges (all self-reviewed; merge commits):
 - #70 ignored qualifiers: 17a9dae2, build 35016076778/regression 35016076784;
@@ -119,7 +122,7 @@ Retained #8 warning evidence and upcoming previews:
   fcmp, and the taken path overwrites them with the stack-canary subs before any
   further condition reads. No source FP expression changes; all other instructions
   and relocations match. Full regression remains required for the eventual PR.
-  /tmp/aftershock-address-preview. Not applied.
+  /tmp/aftershock-address-preview. Applied on this branch.
 - Formatting preflight: local clang-format is 21.1.8. VK_CHECK stringifies its
   argument, so its call whitespace must be preserved by the eventual formatter
   configuration. Allocator __LINE__ macros are debug-only. Do not start the single
