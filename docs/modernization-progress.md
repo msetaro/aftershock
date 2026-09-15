@@ -66,6 +66,25 @@ commands, raw hashes and explicit differences. It belongs to this historical
 Make-retirement checkpoint; replay it at this revision after Make is removed.
 
 
+PR #66 is draft; CMake source checkpoint 6987587a. Hosted migration run
+34945736467 already passes GCC debug, native Linux ARM64 debug and macOS x64
+release raw parity; remaining jobs are pending. Its MSVC jobs initially failed
+before building: Ninja selected the wrong compiler on ARM64 and PowerShell passed
+an unexpanded renderer argument. Explicit x64-host target environment, cl compiler
+selection and quoted CMake arguments correct the workflow; rerun still required.
+
+Permanent regression helpers now configure CMake and select actual production
+objects/flags from compile_commands.json. Lifetime analysis keeps every native
+wrapper command; one-ULP mutation reuses the real compiler command. Download and
+bot-movement checks consume the same objects/engine link. Test link instrumentation
+is target-specific so it does not enter CMake's compiler-identification link.
+Local migrated checks pass unit/one-ULP, curl options/download, bot movement and
+both Q3 smoke logs, with unchanged accepted hashes. Clang/libc++, sanitizer,
+lifetime analysis and fixed replay are running. Logs: /tmp/aftershock-cmake-*.
+No accepted golden or fixture changed. Tests/CI migration and platform cleanup are
+still incomplete; Make and handwritten projects remain pending hosted gates.
+
+
 #4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects
 per renderer on 239cbc34. Pure move 85381cda moves 757 files with identical Git
 blob IDs, modes and SHA256; mapping /tmp/aftershock-subsystem-moves.json. Separate

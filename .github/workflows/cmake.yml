@@ -93,7 +93,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: ${{ matrix.arch }}
+          arch: x64_${{ matrix.arch }}
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: cmake-msvc-${{ matrix.arch }}-${{ matrix.config }}
@@ -101,7 +101,7 @@ jobs:
         shell: pwsh
         run: |
           foreach ($renderer in @('opengl', 'vulkan')) {
-            cmake -S . -B "build/cmake-$renderer" -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DRENDERER_DEFAULT=$renderer
+            cmake -S . -B "build/cmake-$renderer" -G Ninja -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=${{ matrix.config }} "-DRENDERER_DEFAULT=$renderer"
             if ($LASTEXITCODE) { exit $LASTEXITCODE }
             cmake --build "build/cmake-$renderer"
             if ($LASTEXITCODE) { exit $LASTEXITCODE }
