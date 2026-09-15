@@ -253,5 +253,6 @@ it. No game assets or generated goldens are needed.
 
 `python3 tests/openarena_alloc.py` checks the real pinned OpenArena allocator with
 ASan/UBSan: native structure/pointer alignment, allocation/free/reuse, preservation
-of live payloads and defragmentation. --cc/--source/--output select compiler, source
+of live payloads, defragmentation and reuse after completely filling the pool.
+--cc/--source/--output select compiler, source
 cache and diagnostics. Both unit compiler jobs run it; no game content is needed.

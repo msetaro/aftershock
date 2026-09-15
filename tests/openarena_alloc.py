@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check native alignment and payload preservation in OpenArena's real allocator."""
+"""Check alignment, live payloads and full-pool reuse in OpenArena's allocator."""
 import argparse
 import io
 from pathlib import Path
@@ -35,4 +35,4 @@ run([*shlex.split(args.cc), '-std=gnu99', '-O2', '-fno-builtin',
      output / 'code/game/bg_alloc.c', 'tests/probes/openarena_alloc.c',
      '-Wl,--gc-sections', '-o', binary])
 run([binary])
-print('PASS: OpenArena allocator aligns native payloads and preserves live allocations')
+print('PASS: OpenArena allocator aligns payloads, preserves live allocations and reuses a full pool')

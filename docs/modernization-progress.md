@@ -8,51 +8,32 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 ## Next action
 
 Active: issue/31-openarena-free-list, branched from alignment merge 0c3ef426.
-PR #62 passed its source gates and merged; merged regression 34934836544 is pending.
-#2 remains parked at 956eebfa, draft PR #50. Finish this separate allocator bug,
-then integrate both patches there and resume static/platform/VM-removal work.
+PR #62 merged-tree regression 34934836544 passed. #2 remains parked at 956eebfa,
+draft PR #50. Finish this separate allocator bug, then integrate both patches
+there and resume static/platform/VM-removal work.
 
-The allocator check now fills the pool via BG_CanAlloc/BG_Alloc, frees it and
-requires the same full allocation count on reuse. Before the free-list fix, GCC
-and Clang ASan/UBSan fail at the first release: BG_Free writes freeHead->prev while
-freeHead is NULL. Reproducer: python3 tests/openarena_alloc.py, artifacts under
-/tmp/aftershock-openarena-free-before-{gcc,clang}. Next: commit the failing test,
-guard only that old-head backlink, run checks/gates and unchanged-golden validation,
-then draft/review/merge the separate #31 PR. No fix is applied yet.
+Test-first 2a4e4aad fills the pool via BG_CanAlloc/BG_Alloc, frees it and requires
+the same full allocation count on reuse. GCC and Clang ASan/UBSan failed at the
+first release: BG_Free writes freeHead->prev while freeHead is NULL. Artifacts:
+/tmp/aftershock-openarena-free-before-{gcc,clang}. The fix guards only that old-head
+backlink; focused checks now pass both compilers. G2 layouts and G3 symbols are
+identical; G4 changes only BG_Free of six functions on each compiler. Artifacts:
+/tmp/aftershock-oa-free-gates. Full #2 static OA UBSan passes both maps with
+the patched C object and unchanged engine objects (/tmp/aftershock-oa-free-static).
+Accepted bot hashes remain 51d66d9a and 0f2e6b68; unit hash remains 8d44421d.
+No goldens changed.
 
-Active: issue/31-openarena-allocation-alignment. #2 is parked and pushed at
-956eebfa (draft PR #50). Its progress file contains the full static integration
-checkpoint: static Q3/OA bot/replay parity and lifetime gates pass locally; MSVC,
-remaining test adaptation and VM/JIT removal are still pending. The expanded OA
-native sanitizer found the allocator defect below. Do not restart completed work.
+Next: record issue #31, push the source and open its separate draft PR;
+complete CI/self-review before merging. No known-bug
+entry/suppression applies. ec-/Quake3e has no corresponding external OA allocator.
 
-Pinned OpenArena BG_Alloc places payloads after a four-byte int header, violating
-eight-byte alignment required by native pointer-bearing game structures. The pool
-itself is a char array with no explicit pointer alignment. The focused test
-python3 tests/openarena_alloc.py fails under GCC/Clang UBSan at its real gentity_t
-member access. This confirms the same cause as ai_main.c:1210 in #2's static OA
-runtime sanitizer. All BG_Alloc/BG_Free/BG_CanAlloc callers were reviewed: bots,
-entity strings, arena/bot metadata, admin records and kill-spree configuration.
-
-Test-first f576a3d2 fails on GCC/Clang. The patch now uses a pointer-aligned size
-header consistently in capacity/allocation/free, and a union gives the pool its
-free-node alignment. Focused ASan/UBSan checks pass with both compilers. Symbols
-are identical; the only new layout is the private eight-byte allocHeader union;
-G4 changes only BG_CanAlloc/BG_Alloc/BG_Free (six functions total). Explicit
-unit/collision/Q3 runtime regeneration is byte-identical. Full #2 static OA
-runtime UBSan is running with the patched C object and unchanged engine objects.
-Full #2 static OA runtime UBSan now passes both accepted bot logs after the patch,
-using unchanged engine objects (/tmp/aftershock-oa-allocation-static.py and output).
-PR #62 source d7fb120b passed regression 34934306507 and full build 34934306523.
-Explicit OpenArena QVM runtime regeneration also has zero golden diff. Self-review
-passes: one allocator-alignment fix; all capacity/allocation/free callers audited;
-no FP, wire-layout, OS, per-frame allocation or non-trivial lifetime changes;
-GCC/Clang focused tests and full static OA UBSan pass. No suppression/known-bug
-entry applies; no corresponding ec-/Quake3e allocator exists. This checkpoint
-changes documentation only. Next: ready/merge #62 and verify merged-tree CI. No suppression/expected-bug entry exists; this failure remains fatal.
-The ec-/Quake3e engine lacks this external OA/Tremulous game allocator, so an engine
-upstream PR is not applicable. Complete this #31 PR and merge after gates/review,
-then integrate its patch on #2 and resume the recorded sequence.
+Alignment PR #62 source d7fb120b passed regression 34934306507 and full build
+34934306523, then merged as 0c3ef426. Its pointer-aligned allocation header and
+pool preserve existing layouts; GCC/Clang focused checks and full static OA UBSan
+passed. Explicit unit/collision/Q3/OA runtime regeneration had zero golden diff.
+All BG_Alloc/BG_Free/BG_CanAlloc callers were reviewed: bots, entity strings,
+arena/bot metadata, admin records and kill-spree configuration. The full-pool
+free-list defect is separate and was not changed by that alignment fix.
 
 Parked #2 CI on 956eebfa exposed expected remaining platform integration work:
 Debug-only AI code still passes literals to char*; MinGW
