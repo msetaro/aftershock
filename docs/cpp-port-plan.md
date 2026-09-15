@@ -399,7 +399,7 @@ when that phase starts, not now:
   `char` signedness where it matters (unsigned on aarch64).
 - No JIT (console cert forbids executable memory): QVM compilers are PC-only, game code goes native.
 - No runtime `dlopen`: static renderer linking becomes the primary configuration.
-- OS access only inside `code/<platform>` and `files.c`; portable code never calls SDL/POSIX/Win32.
+- OS access only inside `engine/platform` and `engine/qcommon/files.cpp`; portable code never calls SDL/POSIX/Win32. Enforced by #4.
 - Renderer behind an RHI with the Vulkan renderer as the base (D3D12 for Xbox, AGC for PS5,
   Vulkan/NVN for Switch). `renderer2` dropped; OpenGL1 renderer is legacy.
 - CI proxies for console toolchains: clang + libc++ (x86_64 and aarch64 cross) and MSVC.
@@ -426,7 +426,7 @@ Two phases, two rule sets. The port phase rules are enforced now and are copied 
 | Undefined-behavior patterns | Keep them: `Q_rsqrt` punning, file buffers cast to structs, `-ffast-math` on mingw. They define behavior demos and netcode depend on. | Replace with `std::bit_cast`/`memcpy` only when the codegen gate shows identical output. |
 | Floating point / determinism | No floating-point expression restructuring in `qcommon/cm_*`, `q_math.c`, `bg_*`, `msg.c`, or server snapshot code; only T21/T22 argument casts that restore C evaluation are permitted. | Same rule, permanently. Cross-build determinism is what netcode and demos rest on. |
 | Layout | `static_assert(sizeof)` table for wire/file/QVM structs, generated from the C build (gate G2). | Add `is_trivially_copyable` / `is_standard_layout` assertions for the same structs. |
-| Subsystem boundaries | Keep the existing encoding: `Sys_`/`Com_`/`FS_`/`CL_`/`SV_`/`R_`/`S_`/`Cvar_`/`Cmd_` prefixes and `*_public.h` vs `*_local.h`. A subsystem includes only other subsystems' public headers. | Enforce with a CI grep. Namespaces, if ever, map one-to-one onto the prefixes. Each subsystem gets a short responsibility/ownership paragraph in `docs/`. |
+| Subsystem boundaries | Keep the existing encoding: `Sys_`/`Com_`/`FS_`/`CL_`/`SV_`/`R_`/`S_`/`Cvar_`/`Cmd_` prefixes and `*_public.h` vs `*_local.h`. A subsystem includes only other subsystems' public headers. | In force (#4): `tests/check_boundaries.py` checks public includes and OS ownership across engine/game sources. `docs/subsystems.md` records responsibility and ownership. Namespaces, if ever, map one-to-one onto the prefixes. |
 | Scope per PR | One module or file group, only catalog transformations, `DEVIATION:` commits for anything else. | One feature or one warning class per PR. No unrelated refactoring. |
 | Definition of done | Both builds green, every gate green, every hunk mapped to T1-T25, diff size proportionate, PR description lists transformation counts and gate output. | Builds green, sanitizers clean, tests (the differential harness plus whatever the feature adds) green, style checks green. |
 
@@ -453,7 +453,7 @@ aliases, inherited destructors and standard-library objects. Positive and negati
 controls run every time. This checks active Linux configurations and engine headers
 included by them; inactive preprocessor branches and future platform wrappers still
 require the AGENTS.md self-review. The check does not claim whole-program longjmp
-reachability analysis. Directory coverage must follow the moves in #4.
+reachability analysis. Directory coverage follows the #4 engine/game layout; platform socket/runtime code is outside core, and the already-ported minizip/zlib C++ remains covered.
 
 ### Native game decision (#2)
 

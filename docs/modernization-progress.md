@@ -7,70 +7,52 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/4-subsystem-boundaries from modernization 239cbc34 (#64 merge).
-#2 is complete: PR #50 merged 6069cf2a; merged regression 34937376623 passed after
-one runtime-only retry for an OpenArena download reset. #64 source e38d9335 passed
-regression 34937896536/full build 34937896427; upstream C fix is ec-/Quake3e#439.
-#64 merged-tree regression 34938271942 passed. Keep moving through #4 -> #5 -> #8 and
-write design-only docs/design/rhi.md for #6. No #6/#7 implementation.
+#4 is ready to merge as PR #65 (issue/4-subsystem-boundaries). Source ffaa1ea7
+passed regression 34941722921 and full build 34941722886 on every required leg,
+including GCC/Clang, cross builds, all Windows MSVC configurations and macOS.
+Merge this documentation/line-ending checkpoint with a merge commit, verify the
+merged-tree regression, then continue #5 -> #8 -> design-only docs/design/rhi.md
+for #6. No #6/#7 implementation. #2 PR #50 and #31 PR #64 are already complete;
+#64 merged-tree regression 34938271942 passed.
 
-#4 issue read. First capture both-renderer native object baselines on 239cbc34,
-then perform byte/hash-verified git moves in a separate content-preserving commit.
-Path/build/test references follow separately. Layout: engine/{qcommon,client,server,
-renderer,renderervk,renderercommon,sound,botlib,platform}, game/{game,cgame,ui,bg},
-third_party for vendored libraries/headers, tools for build/shader tools. Move the
-static module wrapper with game implementation. Public engine/game ABI headers
-belong to engine/public so engine never includes game implementation headers.
-Rename cpp-port-notes.md to docs/bugs.md as requested.
+#4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects
+per renderer on 239cbc34. Pure move 85381cda moves 757 files with identical Git
+blob IDs, modes and SHA256; mapping /tmp/aftershock-subsystem-moves.json. Separate
+path repair 8b5264c5 preserves 355/355 Vulkan and 355/355 OpenGL object hashes,
+without normalization (/tmp/aftershock-boundary-after). The numstat display check
+initially rejected binary '-' fields; independent blob/mode/hash checks verified
+the moves. No accepted golden or fixture changed anywhere in #4.
 
-Baseline capture completed: /tmp/aftershock-boundary-before contains 355 objects
-per renderer and their hashes (source 239cbc34). Pure move 85381cda moves 757 files;
-every Git blob ID, file mode and SHA256 is unchanged. Mapping/artifacts:
-/tmp/aftershock-subsystem-moves.json and /tmp/aftershock-subsystem-moves-numstat.txt.
-The numstat display checker initially treated binary "-" fields as changed lines;
-independent blob/mode/hash comparison confirms all 757 moves are content-identical.
+Boundary source 52e57708 publishes client/sound/shared game/input interfaces,
+moves clock/CPU/debug/AVI process operations to platform, and routes raw filter/bot
+file operations through files.cpp. The 384-file include/OS check and controls run
+in CI. Five public client operations replace sound's private client-state access.
+All five Sys_SnapVector bodies, clock bodies and CPU-detection bodies compare
+byte-identical with their originals. The AVI arithmetic/order is retained. Inline
+platform debug wrappers preserve renderer ABI. Raw stdio adapters preserve return
+values and encoding; /tmp/aftershock-boundary-stream-check.cpp exercised formatted
+write, item counts, seek/tell, EOF, close and missing-file behavior against files.o.
+Unused renderer2 and absent-tool parser integrations were retired per the plan.
+Ownership: docs/subsystems.md. Bug records: docs/bugs.md. All 130 original GPL
+source hashes remain verified; e24495b2 records import path transformations.
 
-Path repair committed as 8b5264c5. Both production object sets are byte-identical
-to the baseline: 355/355 Vulkan and 355/355 OpenGL objects, without normalization.
-Artifacts: /tmp/aftershock-boundary-after and its JSON comparisons. Active MSVC
-project references resolve. Reusable port gates recognize new and oracle paths.
+Local final gates: unit/one-ULP control; both Q3 bot hashes; both-renderer Q3
+lifecycle replay (b38004b1); OA UBSan bot hashes and fixed replay (5b89d338);
+103 native C/C++ layout/symbol comparisons; ALSA callbacks/thread joins and curl
+transfer; GCC client/server and MinGW Windows client; lifetimes 546 commands/137
+paths across both renderers. The four-command/one-path lifetime reduction from
+#2 is raw net_ip moving into platform. Artifacts: /tmp/aftershock-boundary-*.
 
-Boundary implementation is now in the working tree: public client/sound and
-shared game/input headers, platform clock/CPU/debug/AVI pipe implementations,
-file stream adapters in files.cpp and a public include/OS-access CI check. The
-check passes all 384 source/header files and negative controls. Five client
-operations replace sound's private client-state access; AVI arithmetic and
-Sys_SnapVector bodies are unchanged. Existing Windows debug calls are isolated
-in tiny inline platform wrappers without changing renderer ABI. File adapters
-preserve stdio return values and encoding. The unused renderer2 implementation
-and obsolete absent-tool parser branches are removed (port-plan decision).
-Ownership is documented in docs/subsystems.md; bugs live in docs/bugs.md.
+Hosted first build found Ogg/Vorbis $(ProjectName) include directories missed by
+literal path repair. ffaa1ea7 repairs them; expanded include/library directories
+were checked and all MSVC legs pass. Final review restored build.yml's original
+CRLF bytes (normalized text exactly equals tested ffaa1ea7); no source change.
 
-Verification so far: GCC client/dedicated and MinGW native-Windows builds pass;
-Q3 native runtime matches both accepted bot logs; unit hash and one-ULP control
-pass; all three static OpenArena modules compile; all 103 native C/C++ layout
-and symbol comparisons pass. Codegen differences are the prior C/C++ advisory
-set (game implementation changed only includes). The path-repair lifetime gate
-passed 546 commands/137 paths; raw net_ip moved out of core into platform, which
-explains the four-command/one-path reduction. Final lifetime and Q3 fixed replay
-are running. Logs/artifacts use /tmp/aftershock-boundary-*.
-
-Boundary source 52e57708 and provenance e24495b2 are in draft PR #65. Local final
-lifetime analysis and Q3 lifecycle replay pass. OA UBSan runtime passes both maps;
-OA replay is running. ALSA callback/thread and curl transfer regressions pass.
-All five Sys_SnapVector bodies and clock/CPU-detection bodies were compared with
-8b5264c5 and are byte-identical. All 130 original GPL source hashes were verified.
-
-Hosted regression 34941457454 and build 34941457509 are running. MSVC exposed
-unexpanded $(ProjectName) include directories in the Ogg/Vorbis projects; these
-now point into third_party. Every explicit/expanded project include and library
-directory was checked after that repair. Linux/macOS legs passed; Windows jobs
-need the corrected projects. No source/golden change is involved in this repair.
-
-Next: finish hosted regression/full builds and OA replay, review the final diff,
-update #4 and merge PR #65 only after gates. No accepted golden or fixture is
-changed. Then continue #5 -> #8 -> design-only docs/design/rhi.md for #6, with no
-#6/#7 implementation.
+Self-review: one issue, public/OS ownership scope, content-only move evidence kept
+separate from boundary changes; no new OS calls outside platform/filesystem;
+no non-trivial core lifetimes or per-frame allocation; no simulation FP expression
+change; existing wire/file layout assertions retained and native layouts match;
+all goldens/fixtures unchanged. CI and local gates pass. Ready for merge.
 
 ## Earlier #2 integration checkpoints (historical)
 
