@@ -15,11 +15,11 @@ and full build 34909591164 attempt 2 passed on 0ff62c30. Merged-tree regression
 CI probes, and resolves the two add/add GPL files to the reviewed #53 versions.
 Their manifest dispositions now reference #53; original import hashes are retained.
 
-Next: continue the native C++ catalog port (string constness next), then its
-layout/symbol/codegen/smoke/replay gates. GCC/Clang native C parity is verified.
-OpenArena native support remains blocked by its separately recorded nullable-name
-bug. Complete that support before static integration and VM/JIT removal. No VM
-removal has started. Accepted goldens remain unchanged on #2. Keep newly found bugs in
+Next: finish native C/C++ artifact review (reports below), resolve the separate
+#31 OpenArena nullable-target bug and complete its native CI support. GCC/Clang
+C++ native smoke and fixed replay now pass the original Q3 goldens. Both compilers
+also pass 29 layouts/three offsets and shared-function differential checks.
+Then static integration and VM/JIT removal; neither has started. Accepted goldens remain unchanged on #2. Keep newly found bugs in
 separate #31 failing-test-first PRs.
 
 
@@ -637,3 +637,18 @@ still differ in undefined library dependencies (ctype macro vs function calls,
 plus strstr-to-strchr optimization); no defined-symbol difference is reported.
 These require explicit review, not a blanket normalizer. Artifact reports:
 /tmp/aftershock-native-cpp-gates-pinned/results.json and per-object diffs.
+
+Permanent native_shared.py compares actual shared math (4,096 samples including
+zero/quadrant angles) and Q_strlwr/Q_strupr for all nonzero bytes in the C locale.
+GCC C vs C++ and Clang C vs C++ agree: math 67988592, case 676e85f5. This covers
+AngleVectors' packed/scalar compiler variation and libc ctype macro/function paths;
+no fixture/golden writes. CI now builds C++ modules and runs this differential in
+both unit compiler jobs. Clang C++ smoke and fixed replay pass both maps/renderers,
+using unchanged Q3 fixtures/frame hash b38004b1. Logs:
+/tmp/aftershock-native-runtime-cpp-clang.log and
+/tmp/aftershock-native-demo-cpp-clang.log. GCC C++ passed those same outputs earlier;
+T22 and feature-setting changes still require its final runtime/replay rerun.
+Regression 34911920499 passed on checkpoint 42675c08; current CI will validate the
+new permanent shared-function and C++ build steps. Artifact G3/G4 review remains
+open (seven dependency diffs; no defined-symbol mismatch; per-object reports under
+/tmp/aftershock-native-cpp-gates-pinned). Do not label those gates complete yet.

@@ -238,3 +238,11 @@ compiled separately with __NO_INLINE__ to avoid glibc's conflicting inline atof
 definition; this header setting preserves the Clang C object byte-for-byte and
 does not disable the optimizer's inlining. Other translation units keep their
 original standard-library headers and calls.
+
+`python3 tests/native_shared.py` compares the real shared native C and C++ functions
+on the same host: 4,096 angle/vector/normalization/inverse-square-root cases (including
+zero and quadrant angles), plus all nonzero byte values through Q_strlwr/Q_strupr in
+the C locale. It compares raw result words, requires no assets or golden writes,
+and accepts --cc/--cxx/--output. Both unit compiler jobs run it. The C++ native build
+pins the C library feature set to the C99 reference, avoiding C23 scanf/strtol
+redirection from the C++ compiler's default _GNU_SOURCE.
