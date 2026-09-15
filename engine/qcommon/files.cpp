@@ -5613,7 +5613,7 @@ int	FS_FOpenFileByMode( const char *qpath, fileHandle_t *f, fsMode_t mode ) {
 		*f = FS_FOpenFileWrite( qpath );
 		break;
 	case FS_APPEND_SYNC:
-		sync = qtrue;
+		sync = qtrue; // fall through
 	case FS_APPEND:
 		if ( f == NULL )
 			return -1;

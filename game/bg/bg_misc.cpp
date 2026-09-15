@@ -1174,7 +1174,7 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 		return qtrue;
 
         case IT_BAD:
-            Com_Error( ERR_DROP, "BG_CanItemBeGrabbed: IT_BAD" );
+            Com_Error( ERR_DROP, "BG_CanItemBeGrabbed: IT_BAD" ); // fall through
         default:
 #ifndef Q3_VM
 #ifndef NDEBUG // bk0001204

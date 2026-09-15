@@ -29,6 +29,15 @@ as the gate. /tmp/aftershock-fallthrough-before-*.log records those expected fai
 Potential behavior bugs from other warning classes require #31 disposition; do not
 correct them in this PR. No goldens/fixtures are regenerated.
 
+#8 fallthrough implementation: six comments document existing transitions in file
+append mode, preprocessor subtraction, SDL fallback settings, Windows key dispatch,
+UI radio input and the debug game error path. Existing comments suffice for the
+GCC warning and preserve the retained C oracle sources; no new portability macro
+is needed. Source line counts are preserved so debug metadata can also match.
+The warning suppression is removed from engine and native C++ compiler lists.
+Unit golden 8d44421d and the one-ULP negative control pass. Full 2,380-object
+comparison is running; hosted gates and self-review are still required.
+
 ## #5 completed verification
 
 Final source 9c170ddd passes full build 34948420894 and regression 34948420906.
