@@ -7,25 +7,32 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: `issue/2-native-game`, draft PR #50. OpenArena absent-name fix PR #54
-merged as 0c3d4dcccb64395cc3242dc4907ec8b8810dba4b after regression 34913347473
-and full build 34913347479 passed on 07ea4fe3. Its merged-tree regression 34913731858 passed.
-This merge retains all native C/C++ checks and the new OpenArena helper regression.
+Active work: issue/2-native-game, draft PR #50. This merge brings in OpenArena
+helper fixes #55/#56 and retains all native C/C++ checks. #55 merged b051c915 after
+regression 34914627444/full build 34914627413 passed on d1e58dcb; merged-tree
+regression 34914963107 passed. #56 merged 3a975506 after regression 34915071172/
+full build 34915071248 passed on a1f04017. Its merged-tree regression is pending.
+#54 merged-tree regression 34913731858 also passed.
 
-GCC/Clang native C and C++ Q3 smoke/replay, 29 layouts/three offsets and shared math/
-string comparisons pass. Regression 34912410405 passed on c386658a. The catalog
-port still needs its final G3/G4 artifact review (reports below), portable literal
-handling for MSVC and static integration; no VM/JIT removal has started.
+The two separate #31 fixes have failing-first ASan tests (02f74cd3/c5a2ab4c):
+overlapping strncpy in COM_StripExtension and its empty-output out[-1]. GCC/Clang
+pass after; each changes only that helper's assembly and preserves all 58 symbols.
+Native OA smoke/replay matches both maps/renderers on GCC/Clang with #55, and on
+Clang with both fixes. No accepted fixture/golden, expectation or suppression changed.
 
-Next: park #2 and fix OpenArena COM_StripExtension in a separate #31 PR. Native
-trace shows truncated paths (grenadel -> grenad, machinegun -> mach); its in-place
-Q_strncpyz calls reach overlapping strncpy. A production-source ASan reproducer
-exits 1 with strncpy-param-overlap (/tmp/aftershock-oa-extension-before.log).
-All callers were inventoried: cgame weapon suffixes, both UI weapon previews and
-separate-buffer UI filename handling. Temporary helper fix/replay is in progress.
-No accepted golden or fixture change is authorized on #2. After that fix, complete
-permanent pinned OpenArena native build support, final artifact review, portable
-literals, static native calls and VM/JIT removal.
+Next: verify #56 merged-tree regression, then finish permanent OpenArena native
+build/smoke/replay support. /tmp/aftershock-openarena-native.py is a prepared but
+unrun prototype; test it before adoption. OA refEntity is 176 bytes with eye vectors
+appended after the engine's matching 140-byte prefix; other 28 shared sizes and three
+offsets match. The adapter must check that consumed prefix explicitly.
+
+GCC/Clang native C/C++ Q3 smoke/replay, layouts and shared math checks already pass.
+Remaining #2 work: final G3/G4 artifact review, portable binary32 literal handling
+for MSVC, static direct calls and VM/JIT removal. No VM/JIT removal has started.
+Per-function review artifacts are in /tmp/aftershock-native-function-review; no
+functions are added/removed across 103 objects. Triage/review is incomplete; details
+are in /tmp/aftershock-native-review-checkpoint.md. No accepted golden changes on #2.
+
 
 
 

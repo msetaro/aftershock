@@ -39,7 +39,7 @@ jobs:
         run: |
           python3 tests/native.py --language c++ --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}' --output /tmp/native-cpp
           python3 tests/native_shared.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
-      - name: OpenArena nullable name comparison
+      - name: OpenArena string helpers
         run: python3 tests/openarena_strings.py --cc '${{ matrix.cc }}'
       - name: GPL team-leader name bounds
         if: matrix.cc == 'clang'

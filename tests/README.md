@@ -248,11 +248,13 @@ pins the C library feature set to the C99 reference, avoiding C23 scanf/strtol
 redirection from the C++ compiler's default _GNU_SOURCE.
 
 `python3 tests/openarena_strings.py` verifies the OpenArena native CI dependency's
-case-sensitive name comparison, including missing names and single argument
-evaluation. It fetches only pinned public source headers from OpenArena/gamecode
+case-sensitive name comparison (missing names and single argument evaluation) and
+in-place extension stripping (model suffix paths, bounded truncation, empty input
+and capacity one). It fetches pinned public source from OpenArena/gamecode
 revision 331464ca396d80e91cf9be273588f2b5f4b7afc8 when the source cache is absent,
-then applies tests/patches/openarena-name-comparison.patch in its output directory.
+then applies the name-comparison and extension patches in tests/patches to its output
+directory. The extension probe links the actual q_shared.c helper.
 No game content is fetched by this check. --cc, --source and --output select the
-compiler/cache/output. Both unit compiler jobs run it under UBSan. The source
-patch is for #2's native OpenArena configuration; the existing QVM fixtures remain
+compiler/cache/output. Both unit compiler jobs run name comparisons under UBSan and
+extension stripping under ASan. The source patch is for #2's native OpenArena configuration; the existing QVM fixtures remain
 unchanged. Original GPL notices remain in the fetched headers.
