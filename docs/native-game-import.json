@@ -666,7 +666,7 @@
       "source": "code/q3_ui/ui_controls2.c",
       "path": "code/ui/ui_controls2.c",
       "sha256": "87ec01656e0b29981e3d994666555a8ddd5f76a3ac2d363594a8708ffe8ba8f6",
-      "disposition": "verbatim import; #2 native binary32 ABI: 8 explicit float literal suffixes (C/C++ objects unchanged)"
+      "disposition": "verbatim import; #2 native binary32 ABI: 8 explicit float literal suffixes (C/C++ objects unchanged); #2 remove obsolete SetInfo enum cast after #31 PR #57"
     },
     {
       "source": "code/q3_ui/ui_credits.c",
@@ -708,7 +708,7 @@
       "source": "code/q3_ui/ui_local.h",
       "path": "code/ui/ui_local.h",
       "sha256": "a6646ebf728fa741c1638a630e8d8c3e6979e75218108831b48e53490418a807",
-      "disposition": "verbatim import"
+      "disposition": "GPL import; #2 T8 read-only artwork/medal pointers; #31 PR #57 signed pending-weapon storage and setter input"
     },
     {
       "source": "code/q3_ui/ui_main.c",
@@ -756,7 +756,7 @@
       "source": "code/q3_ui/ui_players.c",
       "path": "code/ui/ui_players.c",
       "sha256": "6e7c12e92ec1858f3e5508dfe48f98f3ace8c67a53882ca4836b414692843cc1",
-      "disposition": "verbatim import; #2 native binary32 ABI: 25 explicit float literal suffixes (C/C++ objects unchanged)"
+      "disposition": "verbatim import; #2 native binary32 ABI: 25 explicit float literal suffixes (C/C++ objects unchanged); #31 PR #57 signed setter input; #2 T3 valid weapon conversions and removal of obsolete sentinel casts"
     },
     {
       "source": "code/q3_ui/ui_playersettings.c",

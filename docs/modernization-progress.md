@@ -7,50 +7,44 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active work: issue/2-native-game, draft PR #50. This merge brings in OpenArena
-helper fixes #55/#56 and retains all native C/C++ checks. #55 merged b051c915 after
-regression 34914627444/full build 34914627413 passed on d1e58dcb; merged-tree
-regression 34914963107 passed. #56 merged 3a975506 after regression 34915071172/
-full build 34915071248 passed on a1f04017. Its merged-tree regression 34915431579 passed.
-#54 merged-tree regression 34913731858 also passed.
+Active work: issue/2-native-game, draft PR #50. PR #57 merged as 4b68ccda after
+regression 34923921313/full build 34923921329 passed on 630ae8e1. Its merged-tree
+regression 34924317093 passed. This integration retains #2's catalog changes and
+adapts enum casts to #57's signed pendingWeapon storage and SetInfo input. Normal
+weapon fields remain enums; state size/offsets and accepted fixtures are unchanged.
+Test-first 63f86e7b reproduces the invalid enum load; GCC/Clang/libc++ pass after.
+A temporary complete Clang C++ UI module also passed real SetInfo calls for clearing,
+queuing a valid weapon and preserving the current weapon on the new-model sentinel.
 
-The two separate #31 fixes have failing-first ASan tests (02f74cd3/c5a2ab4c):
-overlapping strncpy in COM_StripExtension and its empty-output out[-1]. GCC/Clang
-pass after; each changes only that helper's assembly and preserves all 58 symbols.
-Native OA smoke/replay matches both maps/renderers on GCC/Clang with #55, and on
-Clang with both fixes. No accepted fixture/golden, expectation or suppression changed.
+The resolved merge passes the permanent UI sentinel test on GCC/Clang, all three
+Clang native C++ module builds and fixed Q3 replay on both maps/renderers (unchanged
+frame hash b38004b1). Actual -O2 -Wall/-Wextra compilation completed all 412
+compiler/language/module objects without errors. It exposed an original CalculateRanks
+bug: TEAM_NUM_TEAMS is four but numteamVotingClients has two entries. The loop clears
+spawning/numSpawnVars past the array; every caller and consumer is inventoried in #31.
+No fix is made on #2. Artifacts: /tmp/aftershock-native-warning-optimized/results.json.
 
-OpenArena native support is committed as d0013d95; regression 34922352537 passed. The permanent adapter builds GCC/Clang modules
-and checks 28 structure sizes/three offsets plus the consumed 140-byte refEntity
-prefix. Both permanent GCC bot logs and all fixed replay frames match.
+Next: park #2 after this integration commit and fix that array overrun in a separate
+#31 PR with a failing test first. Then finish the strict G1 warning freeze, G4/G7
+review and permanent artifact reproduction before the content-free .cpp rename,
+static calls and VM/JIT removal. No VM/JIT removal has started. No accepted golden
+or fixture changes on #2.
 
-Portable-literal checkpoint 5592a1eb passed regression 34922727256. All 103 C and
-103 C++ objects remained byte-identical; Clang native C++ smoke/replay passes.
-Three subsequent T17 casts in ui_ingame.c also preserve C/C++ objects exactly.
-
-Full native G2: 103/103 layout objects match, including internal structures. G3:
-103/103 symbol objects match using the existing comparison flags plus artifact-only
--U__OPTIMIZE__ to prevent glibc's forced inline strstr-to-strchr substitution.
-Production compilation is untouched; its advisory differences remain visible.
-Commands/results: /tmp/aftershock-native-g2-g3-headers.py/.log and its output tree.
-The ordinary -Wall/-Wextra inventory has no compilation errors; original C warning
-classes are retained for #8. T17 removes three new enum/float diagnostics.
-
-Next: park #2 and fix its newly confirmed UI sentinel bug in a separate #31 PR.
-UBSan rejects reading playerInfo_t.pendingWeapon = -1 as weapon_t; Clang identifies
-the three sentinel comparisons as tautological. The caller audit is on #31. Store
-sentinel-bearing pendingWeapon and UI_PlayerInfo_SetInfo's input as signed integers,
-leaving the weapon enum/normal fields intact. A header-based UBSan reproducer is in
-/tmp/aftershock-ui-sentinel.cpp and its failing output in ...-before.log. No UI fix
-has been made on #2. Then resume final artifact review, warning freeze, static direct
-calls and VM/JIT removal. No accepted golden or fixture changes.
-
-GCC/Clang native C/C++ Q3 smoke/replay, layouts and shared math checks already pass.
-Remaining #2 work: final G3/G4 artifact review, static direct calls and VM/JIT
-removal. Binary32 literal handling now uses portable source suffixes. No VM/JIT removal has started.
-Per-function review artifacts are in /tmp/aftershock-native-function-review; no
-functions are added/removed across 103 objects. Triage/review is incomplete; details
-are in /tmp/aftershock-native-review-checkpoint.md. No accepted golden changes on #2.
+Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95
+(regression 34922352537 passed); portable Q3 binary32 literals 5592a1eb (regression
+34922727256 passed). All 103 C and 103 C++ objects stayed byte-identical in the
+literal conversion. Clang native Q3 smoke/replay and GCC/Clang native OA smoke/replay
+match both maps/renderers. Three T17 ui_ingame casts also preserve C/C++ objects.
+Full G2/G3 before the sentinel merge: 103/103 objects match. G3 adds artifact-only
+-U__OPTIMIZE__ to the existing header/optimizer isolation flags; production assembly
+differences are retained. G4 function review remains incomplete, with no functions
+added/removed across 103 objects. G7 on the temporary merged UI tree completed all
+103 objects without tool/compile failures: 1365 narrowing, 55 signed-char and nine
+implicit strcmp-result findings. The nine strcmp comparisons are equivalent nonzero
+checks, deferred as style to #8; remaining findings still require disposition.
+Artifacts: /tmp/aftershock-native-function-review, /tmp/aftershock-native-g2-g3-headers,
+/tmp/aftershock-native-warning-inventory and /tmp/aftershock-native-tidy/results.json.
+Earlier #54/#55/#56 merged-tree regressions 34913731858/34914963107/34915431579 passed.
 
 
 

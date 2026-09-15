@@ -419,7 +419,7 @@ PR #56 source a1f04017 passed regression 34915071172/full build 34915071248.
 Clang native OA bot smoke and fixed replay match both maps and renderers after
 this patch; no accepted golden change. Self-review passes.
 
-### Native UI negative weapon sentinel (#31, pending)
+### Native UI negative weapon sentinel (#31)
 
 UI_DrawPlayer and UI_PlayerInfo_SetInfo compare weapon_t values with -1, while the
 GPL UI stores that sentinel in playerInfo_t.pendingWeapon and takes it through the
@@ -432,4 +432,39 @@ integer sentinel; model/settings callers supply ordinary weapon constants.
 
 Fix only in a separate #31 PR: use signed integer storage/parameter for the two
 sentinel-bearing values, preserving normal weapon fields and the enum definition.
-No corresponding ec-/Quake3e UI implementation exists. No fix is on #2 yet.
+No corresponding ec-/Quake3e UI implementation exists. Test-first 63f86e7b adds `python3 tests/ui_weapon.py`; UBSan fails at the actual
+state field read. The separate #31 fix uses int for the pending field and setter
+input. GCC/Clang/libc++ pass the sentinel, normal weapon, signature and layout checks.
+State size 1128, pending offset 1076 and timer offset 1080 remain unchanged. C symbol
+sets match for all 11 functions; three functions load the same {-1,0} pair from a
+constant instead of an immediate. No floating-point expressions change.
+
+Prerequisite imports retain GPL notices from id-Software/Quake-III-Arena at
+revision dbe4ddb10315479fc00086f08e25d968b4b43c49, all verbatim in 63f86e7b:
+- code/q3_ui/ui_local.h -> code/ui/ui_local.h: a6646ebf728fa741c1638a630e8d8c3e6979e75218108831b48e53490418a807
+- code/q3_ui/ui_players.c -> code/ui/ui_players.c: 6e7c12e92ec1858f3e5508dfe48f98f3ace8c67a53882ca4836b414692843cc1
+- code/q3_ui/keycodes.h -> code/ui/keycodes.h: dd0f7c5cba444a3399ca70684d1292d82aec5094b607cf222ad67aa50b5342df
+- code/cgame/tr_types.h: 6ce0e5cfd49d0ec6ca6907e0c80985b41c9b2963958ce3583bd6a3918ca16dd0
+
+The native integration/C++ catalog changes remain on #2, including the necessary
+cast adaptation when these signed types are merged. No engine upstream UI source
+exists to receive this native-port-specific fix. No expectation/suppression added.
+
+PR #57 source 630ae8e1 passed regression 34923921313/full build 34923921329.
+A temporary complete Clang C++ UI module with this fix passes real SetInfo calls
+for clearing a pending change, queuing a valid weapon and the new-model sentinel
+path. Self-review passes; accepted goldens and fixtures remain unchanged.
+
+### Native team-voter reset overruns adjacent state (#31, pending)
+
+The original GPL CalculateRanks loop in code/game/g_main.c uses TEAM_NUM_TEAMS (4)
+to reset level.numteamVotingClients[2]. Indices 2 and 3 overwrite spawning and
+numSpawnVars. GCC -O2 -Wall -Wextra diagnoses the invalid iterations in both C and
+C++; the native optimized warning inventory exposed it during #2. The correct
+bound is the actual array length; red/blue consumers use only indices 0/1.
+Callers: g_client connect/begin/disconnect, g_combat scoring, g_arenas tournament
+updates and g_team score/status updates. CheckTeamVote consumes the two counts.
+Reproducer to make permanent in its own #31 PR: call the real CalculateRanks with
+zero clients, seeded vote counts and adjacent spawning/numSpawnVars sentinels;
+require both counts reset and adjacent state preserved, under UBSan bounds checks.
+No fix is on #2. No corresponding ec-/Quake3e game implementation exists.
