@@ -203,7 +203,7 @@ python3 tests/demo.py --game-code native
 ```
 
 The native ABI uses binary32 literals and rounds host math results to float, as
-the QVM compiler does; `bg_lib.c` preserves the QVM random sequence. Temporary DLL
+the QVM compiler does; `bg_lib.cpp` preserves the QVM random sequence. Temporary DLL
 entry points marshal pointer-width words until static integration removes them.
 Replay uses the same committed demos/frame hashes. Smoke removes only module load
 metadata, build date and bot-skill printf padding before comparing the accepted QVM
@@ -252,7 +252,7 @@ Native C++ port checks use `python3 tests/native.py --language c++` and append
 reference (the default). Both languages compare the same 29 layouts and three
 offsets with the engine; module links reject unresolved symbols. GCC and Clang
 use explicit binary32 source literals without compiler-specific literal flags. For
-Clang C++ only, bg_lib.c is
+Clang C++ only, bg_lib.cpp is
 compiled separately with __NO_INLINE__ to avoid glibc's conflicting inline atof
 definition; this header setting preserves the Clang C object byte-for-byte and
 does not disable the optimizer's inlining. Other translation units keep their
@@ -296,7 +296,7 @@ objects compiled at -O2 with GCC 15.2 and Clang 21, in both C and C++. Every dis
 class occurs in C; #8 removes them one class at a time. C++ literal/register errors
 remain enabled. OpenArena remains an external C test dependency.
 
-The two GCC array diagnostics are ui_spskill.c's skillpics[skill-1] accesses: menu
+The two GCC array diagnostics are ui_spskill.cpp's skillpics[skill-1] accesses: menu
 callbacks supply IDs for skills 1..5, and initialization clamps to 1..5; the reported
 index interval [0,4] lies inside the five-element array. The actual CalculateRanks
 array bug was fixed separately in #58. The Clang null-pointer subtraction warnings
@@ -338,3 +338,7 @@ UBSan float-cast-overflow checks the conversion; explicit expected bytes check
 legacy truncation/wrapping. --cc/--output select compiler and output; it uses the
 imported local headers and native ABI configuration.
 Both unit compiler jobs run it. No assets are needed.
+
+The 93 imported implementation files use `.cpp` names. C comparison builds select
+`-x c` explicitly; the pinned OpenArena dependency remains C. The rename preserves
+every source byte and the provenance manifest retains original upstream paths.

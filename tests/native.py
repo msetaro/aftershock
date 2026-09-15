@@ -17,7 +17,7 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=True)
     compiler = shlex.split(cc if language == 'c' else cxx)
-    mode = ['-std=gnu99'] if language == 'c' else ['-x', 'c++', '-std=c++20', '-fno-exceptions', '-fno-rtti', '-Werror=write-strings', '-Werror=register', '-U_GNU_SOURCE', '-D_DEFAULT_SOURCE']
+    mode = ['-x', 'c', '-std=gnu99'] if language == 'c' else ['-x', 'c++', '-std=c++20', '-fno-exceptions', '-fno-rtti', '-Werror=write-strings', '-Werror=register', '-U_GNU_SOURCE', '-D_DEFAULT_SOURCE']
     version = subprocess.check_output([*compiler, '--version'], text=True)
     frozen = json.loads((ROOT / 'tests/native-warnings.json').read_text())
     warnings = ['-Wall', '-Wextra', '-Werror', *['-Wno-' + name[2:] for name in frozen['clang' if 'clang' in version.lower() else 'gcc']]]
@@ -38,11 +38,11 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
     flags = [*compiler, *mode, *warnings, '-fPIC', '-O2',
              '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv', '-fno-builtin',
              '-include', 'code/game/native_abi.h']
-    library = ['code/game/bg_lib.c']
+    library = ['code/game/bg_lib.cpp']
     if language == 'c++' and 'clang' in version.lower():
         # glibc's inline atof conflicts with this file's compatibility definition.
         obj = output / 'bg_lib.o'
-        command = [*flags, '-D__NO_INLINE__', '-c', 'code/game/bg_lib.c', '-o', str(obj)]
+        command = [*flags, '-D__NO_INLINE__', '-c', 'code/game/bg_lib.cpp', '-o', str(obj)]
         (output / 'bg_lib.command').write_text(shlex.join(command) + '\n')
         with (output / 'bg_lib.log').open('w') as log:
             subprocess.run(command, cwd=ROOT, env=ENV, stdout=log, stderr=subprocess.STDOUT, check=True)

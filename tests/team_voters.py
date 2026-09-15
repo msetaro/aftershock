@@ -17,7 +17,7 @@ flags = [*shlex.split(args.cc), '-std=gnu99', '-O2', '-fno-inline', '-fPIC',
          '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined',
          '-fno-sanitize-recover=all', '-include', 'code/game/native_abi.h', '-Icode/game']
 obj = args.output.resolve() / 'g_main.o'
-run([*flags, '-c', 'code/game/g_main.c', '-o', obj])
+run([*flags, '-x', 'c', '-c', 'code/game/g_main.cpp', '-o', obj])
 run(['objcopy', '--weaken-symbol=CheckExitRules',
      '--weaken-symbol=SendScoreboardMessageToAllClients', obj])
 run([*flags, obj, 'tests/probes/team_voters.c', '-Wl,--gc-sections',

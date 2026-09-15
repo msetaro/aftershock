@@ -52,7 +52,7 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
     path.write_text(probe)
     layouts = []
     for name, command in [
-        ('native', [*compiler, '-std=gnu99', precision, '-include', str(output / 'native_abi.h'), str(path)]),
+        ('native', [*compiler, '-x', 'c', '-std=gnu99', precision, '-include', str(output / 'native_abi.h'), str(path)]),
         ('engine', [*shlex.split(cxx), '-x', 'c++', '-std=c++20', '-DENGINE', 'tests/probes/native_layout.c'])
     ]:
         binary = output / ('layout-' + name)
@@ -103,11 +103,11 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
         (output / calls).write_text(text)
         sources.append(str(calls))
         binary = output / (('qagame' if module == 'game' else module) + 'x86_64.so')
-        command = [*compiler, '-std=gnu99', '-O2', '-fPIC', '-shared', precision,
+        command = [*compiler, '-x', 'c', '-std=gnu99', '-O2', '-fPIC', '-shared', precision,
                    '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv', '-fno-builtin',
                    '-include', 'native_abi.h', '-DPRODUCT_VERSION="1.35"',
                    '-D' + {'game': 'QAGAME', 'cgame': 'CGAME', 'ui': 'UI'}[module],
-                   '-Wl,-Bsymbolic,-z,defs', *sources, str(ROOT / 'code/game/bg_lib.c'),
+                   '-Wl,-Bsymbolic,-z,defs', *sources, str(ROOT / 'code/game/bg_lib.cpp'),
                    '-I' + str(ROOT / 'code/game'), '-lm', '-o', str(binary)]
         (output / (module + '.command')).write_text(shlex.join(command) + '\n')
         with (output / (module + '.log')).open('w') as log:

@@ -44,11 +44,19 @@ check; ai_main.c is byte-identical to the successful complete native UBSan prefl
 #60 merged-tree regression 34927724919 passed. The resolved #2 integration
 f92ae456 passed regression 34927833819/full build 34927833852.
 
-Next: the advisory G4/G7/catalog review and
-acceptance decision are recorded in docs/native-port-review.md; diagnostics remain
-visible and confirmed bugs are separately tracked/fixed. Perform the content-free
-.cpp rename, static direct calls and VM/JIT removal. No VM/JIT removal has started;
-no accepted fixture/golden changes have been made on #2. Full native UBSan evidence:
+The advisory G4/G7/catalog review and acceptance decision are committed in
+58d86036 (docs/native-port-review.md) and recorded on #2. Diagnostics remain visible;
+confirmed bugs are separately tracked/fixed.
+
+The .cpp rename now preserves all bytes of 93 implementation files (git reports
+100% similarity for every rename; /tmp/aftershock-native-rename-hashes.json records
+SHA256 before/after). The manifest retains original upstream source paths/hashes.
+C oracles explicitly select -x c. GCC/Clang C and C++ strict module builds pass;
+OpenArena C module build passes. Math/shared, team leader/voters, base/missionpack
+flags and bot command checks pass. No accepted fixtures/goldens changed.
+
+Next: push/watch rename CI, then implement static direct calls and VM/JIT removal.
+No VM/JIT removal has started. Full pre-rename native UBSan evidence:
 /tmp/aftershock-bot-command-native.py/.log, including the shared Clang runtime setup.
 
 Completed #2 checkpoints: permanent OpenArena native build/smoke/replay d0013d95

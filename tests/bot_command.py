@@ -12,10 +12,10 @@ parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-bot-com
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 binary = args.output.resolve() / 'check'
-run([*shlex.split(args.cc), '-std=gnu99', '-O2', '-ffp-contract=off',
+run([*shlex.split(args.cc), '-x', 'c', '-std=gnu99', '-O2', '-ffp-contract=off',
      '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined,float-cast-overflow',
      '-fno-sanitize-recover=all', '-include', 'code/game/native_abi.h',
-     '-Icode/game', 'code/game/ai_main.c',
+     '-Icode/game', 'code/game/ai_main.cpp',
      'tests/probes/bot_command.c', '-Wl,--gc-sections', '-lm', '-o', binary])
 run([binary])
 print('PASS: bot command bytes preserve truncation and wrapping')

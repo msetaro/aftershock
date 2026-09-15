@@ -84,6 +84,5 @@ external C modules also match both hosted-content bot logs and fixed replay.
 The permanent runtime/replay tools require successful native loading and compare
 against existing QVM goldens; they prohibit native regeneration.
 
-The ABI/type audit and advisory decisions apply before static integration. The
-file rename must preserve every source byte, and the later static/direct-call
-change must rerun the runtime, layout and build gates before PR #50 is ready.
+The ABI/type audit and advisory decisions apply before static integration. All 93 implementation files were renamed with identical source bytes (100% git
+rename similarity). The later static/direct-call change must rerun the runtime, layout and build gates before PR #50 is ready.

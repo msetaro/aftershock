@@ -22,7 +22,7 @@ for language, compiler in [('c', args.cc), ('c++', args.cxx)]:
     command = [*compiler, '-x', language, *mode, '-O2', '-DNDEBUG', '-fno-builtin',
                '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv',
                '-include', 'code/game/native_abi.h', '-ffunction-sections', '-fdata-sections',
-               'code/game/q_math.c', 'code/game/q_shared.c', 'tests/probes/native_shared.c',
+               'code/game/q_math.cpp', 'code/game/q_shared.cpp', 'tests/probes/native_shared.c',
                '-Wl,--gc-sections', '-lm', '-o', str(binary)]
     (output / (binary.name + '.command')).write_text(shlex.join(command) + '\n')
     with (output / (binary.name + '.log')).open('w') as log:

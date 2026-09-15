@@ -79,7 +79,7 @@ def check(item):
         command = ['clang-tidy', source, '--quiet',
                    '--checks=-*,bugprone-signed-char-misuse,bugprone-narrowing-conversions,bugprone-suspicious-string-compare',
                    '--', *cpp_mode, *flags]
-        if source == 'code/game/bg_lib.c':
+        if source == 'code/game/bg_lib.cpp':
             command += ['-D__NO_INLINE__']
         (folder / 'tidy.command').write_text(shlex.join(command) + '\n')
         analysis = subprocess.run(command, cwd=ROOT, env=ENV, text=True,
@@ -91,7 +91,7 @@ def check(item):
 
 
 tasks = [(module, source) for module, sources in manifest['modules'].items()
-         for source in [*sources, 'code/game/bg_lib.c']]
+         for source in [*sources, 'code/game/bg_lib.cpp']]
 with ThreadPoolExecutor(max_workers=args.jobs) as pool:
     results = dict(pool.map(check, tasks))
 (output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
