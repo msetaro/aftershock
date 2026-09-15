@@ -21,9 +21,13 @@ existing MISSIONPACK guard with their sole user. Source line count is unchanged.
 Clang does not diagnose unused constants in included files; the GCC job enforces
 this class. Its actual-wrapper negative control rejects an unused constant.
 
-Next: record the source transformation in native provenance, verify actual-source
-warning builds and the retained object evidence below, then open this PR after
-#74 merges. No golden regeneration. Hosted build/regression and self-review are
+Source transformation 68919a83 is recorded in native provenance. All 858 actual
+native production commands pass with unused constants treated as errors, including
+GCC/Clang/debug/MinGW/ARM64; all 412 captured GCC/Clang release objects match raw
+hashes. Artifacts /tmp/aftershock-unused-constant-builds. The legacy standalone
+C/C++ native helper also had a frozen unused-constant entry: remove it from both
+compiler lists and explicitly enable the diagnostic there. Verify all four helper
+compiler/language combinations, then open this PR after #74 merges. No golden regeneration. Hosted build/regression and self-review are
 required before merge. The preceding #74 type-limits change preserves 728 raw
 GCC/Clang engine objects and has passing diagnostic controls for both compilers.
 
@@ -109,6 +113,14 @@ Additional isolated source previews (not applied to the repository):
 Clang actual-wrapper controls fail before and pass after each preview. Artifacts:
 /tmp/aftershock-small-warning-preview. Each class still needs its own branch/PR,
 provenance record, enabled diagnostic and hosted gates. Do not combine classes.
+
+Remaining legacy native-helper warning scope: tests/native-warnings.json still
+freezes GCC implicit-fallthrough and Clang unneeded-internal-declaration even
+though their production CMake gates are enabled. Remove these remaining helper
+freezes in separate class follow-ups and check the standalone C/C++ paths. Do not
+combine those classes with the current unused-constant PR or declare #8 complete
+while the helper freeze list remains. Other frozen helper classes track the
+remaining production warning work.
 
 ## Completed affinity fixes and #8 baseline evidence
 

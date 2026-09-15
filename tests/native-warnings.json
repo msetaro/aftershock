@@ -24,10 +24,6 @@
       "c": 30,
       "cpp": 20
     },
-    "-Wunused-const-variable": {
-      "c": 1,
-      "cpp": 0
-    },
     "-Wunused-parameter": {
       "c": 152,
       "cpp": 152
@@ -65,10 +61,6 @@
     "-Wunused-but-set-variable": {
       "c": 25,
       "cpp": 25
-    },
-    "-Wunused-const-variable": {
-      "c": 1,
-      "cpp": 1
     },
     "-Wunused-parameter": {
       "c": 152,
