@@ -11,16 +11,27 @@ Active: issue/5-cmake-build, draft PR #66, based on #4 merge 4a952854.
 #3/#31/#1/#2/#4 are complete. #4 merged-tree regression 34942323875 passed.
 Continue #5 -> #8 -> design-only docs/design/rhi.md for #6; no #6/#7 implementation.
 
-Next: verify CMake-only build/artifact jobs for e67f397e and the inactive-platform
-cleanup gates, update native import provenance for the two edited shared GPL files,
-then complete PR #66 self-review and merge only after all required checks pass.
-Cleanup source 9c170ddd is pushed; native provenance now records its two shared
-GPL file transformations, preserving original source hashes and notices.
-Migration checkpoint 390a20f4 passed every hosted raw-object and generated MSVC
-gate in 34946471284. Embedded-debug 48733686 passed migration 34946795374,
-regression 34946795290 and full build 34946795283. MSVC x64 debug reports 720/720
-cacheable calls with 52 hits. Make retirement e67f397e is pushed; its CMake-only
-build 34947650438 passed. Regression 34947650429 remains to check.
+Next: mark PR #66 ready and merge with a merge commit after the final whitespace/
+documentation checkpoint checks pass, then verify merged-tree regression. Read #8
+and start one warning class per PR. No #8 source changes yet.
+
+Final source 9c170ddd passes full build 34948420894 and regression 34948420906.
+Provenance checkpoint 3f91d501 passes build 34948630311 and regression 34948630289.
+CMake-only retirement e67f397e passed build 34947650438 and regression 34947650429,
+including hosted MinGW curl/zlib linkage and artifact staging. Migration checkpoint
+390a20f4 passed every hosted raw-object and generated MSVC gate in 34946471284.
+Embedded-debug 48733686 passed migration 34946795374, regression 34946795290 and
+full build 34946795283; MSVC x64 debug reports 720/720 cacheable calls, 52 hits.
+Native provenance records both shared GPL file transformations in 9c170ddd,
+preserving original source hashes and notices.
+
+Self-review: #5 build/platform scope only; no new portable OS access, non-trivial
+core destructors, per-frame allocation or simulation FP expression changes.
+Supported function bodies and raw-object differences are reviewed below. Existing
+wire/file assertions remain; all 103 native layout/symbol gates pass. No accepted
+golden or fixture changed. Regression probes use production CMake objects. Generated
+MSVC and every required hosted compiler/configuration pass. Final review removes
+one trailing empty CMake line; no command or source setting changes.
 
 Makefile, game/modules.mk and handwritten MSVC projects are removed after parity.
 CMake-only build.yml keeps Linux/macOS/Windows release/debug binaries and release
@@ -47,8 +58,11 @@ has one changed trailing alignment nop outside function size. Reports and driver
 the same 60 advisory outcomes remain. Boundary check passes 383 files (one retired
 assembly-only header fewer). Unit/one-ULP, shared math/case, both Q3 smoke logs and
 fixed replay pass unchanged. Both OpenArena sanitizer smoke maps and fixed replay
-also pass unchanged. Lifetime analysis is running. Artifacts /tmp/aftershock-64bit-*. Goldens/fixtures remain unchanged.
+also pass unchanged. Lifetime analysis passes 546 commands/137 source paths and
+seven negative controls. Artifacts /tmp/aftershock-64bit-*. Goldens/fixtures remain unchanged.
 
+
+## #5 migration history (completed; pending statements below are historical)
 
 Make reference checkpoint a08e7275 fixes reproducibility; CMake repair 6987587a;
 test-helper migration f111b28c. Original baseline: 11 successful Make configurations,
@@ -131,6 +145,8 @@ local cross example uses USE_CURL=OFF, matching the verified cross configuration
 No local package is installed and the optional local curl link is not claimed
 passing. CMake-only workflow/artifact staging still needs its own hosted run.
 
+
+## #4 completed evidence
 
 #4 evidence: baseline /tmp/aftershock-boundary-before has 355 production objects
 per renderer on 239cbc34. Pure move 85381cda moves 757 files with identical Git

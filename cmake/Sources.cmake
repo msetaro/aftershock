@@ -344,4 +344,3 @@ set(NATIVE_UI_SOURCES
   game/bg/q_shared.cpp
   game/bg/bg_lib.cpp
 )
-
