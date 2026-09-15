@@ -353,7 +353,7 @@ Team-leader fix PR #53 source 0ff62c30 passed regression 34909591046 and full bu
 Defined symbols are unchanged and only the two affected functions change codegen;
 unit/collision regeneration has zero golden diff. No expectation/suppression applies.
 
-## #31 OpenArena native door target comparison (open, found during #2)
+## #31 OpenArena native door target comparison (merged #54, found during #2)
 
 Pinned OpenArena oaxB52 source 331464ca396d80e91cf9be273588f2b5f4b7afc8 defines
 strequals(s1,s2) as strcmp(s1,s2)==0 in code/qcommon/q_shared.h:712. SP_func_door
@@ -418,3 +418,39 @@ uses a different implementation and handles empty strings already.
 PR #56 source a1f04017 passed regression 34915071172/full build 34915071248.
 Clang native OA bot smoke and fixed replay match both maps and renderers after
 this patch; no accepted golden change. Self-review passes.
+
+### Native UI negative weapon sentinel (#31)
+
+UI_DrawPlayer and UI_PlayerInfo_SetInfo compare weapon_t values with -1, while the
+GPL UI stores that sentinel in playerInfo_t.pendingWeapon and takes it through the
+SetInfo enum parameter. Native C++ enum conversion/load cannot represent that value:
+Clang UBSan reports load of 4294967295, invalid for weapon_t. The original C interface
+used the integer bit pattern. Reproducer: compile /tmp/aftershock-ui-sentinel.cpp
+against the #2 header with Clang -O2 -fsanitize=undefined -fno-sanitize-recover=all,
+then run with -1; it fails at the field read. Controls_UpdateModel supplies the
+integer sentinel; model/settings callers supply ordinary weapon constants.
+
+Fix only in a separate #31 PR: use signed integer storage/parameter for the two
+sentinel-bearing values, preserving normal weapon fields and the enum definition.
+No corresponding ec-/Quake3e UI implementation exists. Test-first 63f86e7b adds `python3 tests/ui_weapon.py`; UBSan fails at the actual
+state field read. The separate #31 fix uses int for the pending field and setter
+input. GCC/Clang/libc++ pass the sentinel, normal weapon, signature and layout checks.
+State size 1128, pending offset 1076 and timer offset 1080 remain unchanged. C symbol
+sets match for all 11 functions; three functions load the same {-1,0} pair from a
+constant instead of an immediate. No floating-point expressions change.
+
+Prerequisite imports retain GPL notices from id-Software/Quake-III-Arena at
+revision dbe4ddb10315479fc00086f08e25d968b4b43c49, all verbatim in 63f86e7b:
+- code/q3_ui/ui_local.h -> code/ui/ui_local.h: a6646ebf728fa741c1638a630e8d8c3e6979e75218108831b48e53490418a807
+- code/q3_ui/ui_players.c -> code/ui/ui_players.c: 6e7c12e92ec1858f3e5508dfe48f98f3ace8c67a53882ca4836b414692843cc1
+- code/q3_ui/keycodes.h -> code/ui/keycodes.h: dd0f7c5cba444a3399ca70684d1292d82aec5094b607cf222ad67aa50b5342df
+- code/cgame/tr_types.h: 6ce0e5cfd49d0ec6ca6907e0c80985b41c9b2963958ce3583bd6a3918ca16dd0
+
+The native integration/C++ catalog changes remain on #2, including the necessary
+cast adaptation when these signed types are merged. No engine upstream UI source
+exists to receive this native-port-specific fix. No expectation/suppression added.
+
+PR #57 source 630ae8e1 passed regression 34923921313/full build 34923921329.
+A temporary complete Clang C++ UI module with this fix passes real SetInfo calls
+for clearing a pending change, queuing a valid weapon and the new-model sentinel
+path. Self-review passes; accepted goldens and fixtures remain unchanged.
