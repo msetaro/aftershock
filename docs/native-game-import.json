@@ -126,7 +126,8 @@
     "4054a2a0": "#31 PR #58: bound two-element team-voter reset",
     "622ae3af": "#31 PR #59: publish complete initial flag configstring with valid states",
     "0366fa06": "#31 PR #60: explicit intermediate int conversion for movement command bytes; original C objects unchanged",
-    "cdcbb7df": "Separate #31 fix: preserve overlapping info-string suffixes (PR #61)."
+    "cdcbb7df": "Separate #31 fix: preserve overlapping info-string suffixes (PR #61).",
+    "d6c2ac52": "#2 static module lifecycle: explicit per-level initialization replaces DLL storage reset"
   },
   "files": [
     {
@@ -355,7 +356,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "d6c2ac52"
       ]
     },
     {
@@ -372,7 +374,8 @@
       "transformations": [
         "0ff62c30",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "d6c2ac52"
       ]
     },
     {
@@ -405,7 +408,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "d6c2ac52"
       ]
     },
     {
@@ -424,7 +428,8 @@
         "e8e98ab2",
         "8dff7805",
         "5592a1eb",
-        "0366fa06"
+        "0366fa06",
+        "d6c2ac52"
       ]
     },
     {
@@ -442,14 +447,18 @@
         "0ff62c30",
         "e8e98ab2",
         "0b575fa9",
-        "5592a1eb"
+        "5592a1eb",
+        "d6c2ac52"
       ]
     },
     {
       "source": "code/game/ai_team.h",
       "path": "code/game/ai_team.h",
       "sha256": "5fa4071caa55ca8f23ff7a7f19bd9e3b594e50c2e673b2b755e41293ee9c6f6b",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "d6c2ac52"
+      ]
     },
     {
       "source": "code/game/ai_vcmd.c",
@@ -555,7 +564,8 @@
       "sha256": "e4560cbd9e1bb1479e586018433fc4c2b7cc61f9798097944609b1e661aba182",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 17 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
-        "5592a1eb"
+        "5592a1eb",
+        "d6c2ac52"
       ]
     },
     {
@@ -565,7 +575,8 @@
       "disposition": "existing engine ABI header retained; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "8889ea0e",
-        "5592a1eb"
+        "5592a1eb",
+        "d6c2ac52"
       ]
     },
     {
@@ -617,7 +628,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "6ea3a3bb",
-        "e8e98ab2"
+        "e8e98ab2",
+        "d6c2ac52"
       ]
     },
     {
@@ -651,7 +663,8 @@
         "6ea3a3bb",
         "8889ea0e",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "d6c2ac52"
       ]
     },
     {
@@ -671,7 +684,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "bdf81ac0",
-        "8889ea0e"
+        "8889ea0e",
+        "d6c2ac52"
       ]
     },
     {
@@ -686,14 +700,18 @@
         "e8e98ab2",
         "0b575fa9",
         "5592a1eb",
-        "4054a2a0"
+        "4054a2a0",
+        "d6c2ac52"
       ]
     },
     {
       "source": "code/game/g_mem.c",
       "path": "code/game/g_mem.cpp",
       "sha256": "2bc6b384305c8a1036ed2a0a12ddc0accb2366623896ec003331c6abb2c6a84d",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "d6c2ac52"
+      ]
     },
     {
       "source": "code/game/g_misc.c",
@@ -764,7 +782,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "6ea3a3bb",
-        "e8e98ab2"
+        "e8e98ab2",
+        "d6c2ac52"
       ]
     },
     {
@@ -823,7 +842,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 3 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "d6c2ac52"
       ]
     },
     {
