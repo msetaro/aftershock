@@ -454,3 +454,25 @@ PR #57 source 630ae8e1 passed regression 34923921313/full build 34923921329.
 A temporary complete Clang C++ UI module with this fix passes real SetInfo calls
 for clearing a pending change, queuing a valid weapon and the new-model sentinel
 path. Self-review passes; accepted goldens and fixtures remain unchanged.
+
+### Native team-voter reset overruns adjacent state (#31)
+
+CalculateRanks in the original GPL g_main.c clears TEAM_NUM_TEAMS (4) entries of
+numteamVotingClients[2], overwriting spawning and numSpawnVars. Red/blue consumers
+use only indices 0/1. All callers route through this reset: client lifecycle,
+combat scores, tournament updates and team scores/status; CheckTeamVote consumes
+these counts. The optimized #2 C/C++ warning inventory exposed both invalid writes.
+
+`python3 tests/team_voters.py` calls the real function under UBSan, failing at index
+2 before the fix. It checks zero-client reset, human red/blue counts, bot exclusion
+and preservation of seeded adjacent fields. Link wrappers isolate only unrelated
+end-level notifications. Fix the bound to the actual array length in this #31 PR;
+no floating-point expression, wire layout or accepted golden needs to change.
+
+Three verbatim prerequisites retain GPL notices from id-Software/Quake-III-Arena
+at dbe4ddb10315479fc00086f08e25d968b4b43c49:
+- code/game/g_main.c: fdc9abc73283c57a27e25c15fbcac7cc7b63d0a82d6fe9ce8f8af8252548ee4a
+- code/game/g_local.h: de98d3c7212f026650cf581baf102908c359667eb55f1bc65ef5c5b8819283e0
+- code/game/g_team.h: 0df64a2d49ce05fc5cb569792ee4d2fffdd93db6ba1fee106a2a11613a16d9bb
+No corresponding game implementation exists in ec-/Quake3e. The #2 native port is
+parked at bb869f79, with its source adaptation and unchanged replay verified.
