@@ -48,6 +48,9 @@ for the constraints and code rules below.
   Update after every meaningful step; on start, resume from it.
 - Bugs found while doing something else go in `docs/cpp-port-notes.md` (moves to `docs/bugs.md`
   in #4) and are fixed only in their own PR with a test. No unrelated refactoring in any PR.
+- Nothing leaves this repository. Never open, update, or comment on pull requests or issues on
+  ec-/Quake3e or any other external repository, and never publish anything outside
+  msetaro/aftershock. The maintainer decides if and when something is shared upstream.
 - Style: until #8 lands, match the surrounding code exactly (tabs, `( a, b )` spacing, `NULL`,
   C casts, `qboolean`). After #8, clang-format is authoritative.
 
