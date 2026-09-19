@@ -46,9 +46,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 typedef struct q_jpeg_error_mgr_s
 {
   struct jpeg_error_mgr pub;  /* "public" fields */
+#if defined(_MSC_VER) && defined(_M_X64)
+  byte setjmp_padding[8];  /* Preserve the 16-byte-aligned MSVC jump-buffer offset. */
+#endif
   jmp_buf setjmp_buffer;  /* for return to caller */
 }
 q_jpeg_error_mgr_t;
+#if defined(_MSC_VER) && defined(_M_X64)
+static_assert( offsetof( q_jpeg_error_mgr_t, setjmp_buffer ) == 176 );
+static_assert( sizeof( q_jpeg_error_mgr_t ) == 432 );
+#endif
 
 
 static void CL_JPGErrorExit(j_common_ptr cinfo)
