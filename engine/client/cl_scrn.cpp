@@ -378,10 +378,10 @@ static void SCR_DrawDemoRecording( void ) {
 	pos = FS_FTell( clc.recordfile );
 
 	if (cl_drawRecording->integer == 1) {
-		sprintf(string, "RECORDING %s: %ik", clc.recordNameShort, pos / 1024);
+		snprintf(string, sizeof(string), "RECORDING %s: %ik", clc.recordNameShort, pos / 1024);
 		SCR_DrawStringExt((int)( 320 - strlen(string) * 4 ), 20, 8, string, g_color_table[ColorIndex(COLOR_WHITE)], qtrue, qfalse);
 	} else if (cl_drawRecording->integer == 2) {
-		sprintf(string, "RECORDING: %ik", pos / 1024);
+		snprintf(string, sizeof(string), "RECORDING: %ik", pos / 1024);
 		SCR_DrawStringExt((int)( 320 - strlen(string) * 4 ), 20, 8, string, g_color_table[ColorIndex(COLOR_WHITE)], qtrue, qfalse);
 	}
 }
@@ -421,7 +421,7 @@ static void SCR_DrawVoipMeter( void ) {
 		buffer[i++] = ' ';
 	buffer[i] = '\0';
 
-	sprintf( string, "VoIP: [%s]", buffer );
+	snprintf( string, sizeof( string ), "VoIP: [%s]", buffer );
 	SCR_DrawStringExt( 320 - strlen( string ) * 4, 10, 8, string, g_color_table[ ColorIndex( COLOR_WHITE ) ], qtrue, qfalse );
 }
 #endif

@@ -5070,9 +5070,9 @@ const char *FS_LoadedPakChecksums( qboolean *overflowed ) {
 			continue;
 
 		if ( info[0] )
-			len = sprintf( buf, " %i", search->pack->checksum );
+			len = snprintf( buf, sizeof( buf ), " %i", search->pack->checksum );
 		else
-			len = sprintf( buf, "%i", search->pack->checksum );
+			len = snprintf( buf, sizeof( buf ), "%i", search->pack->checksum );
 
 		if ( s + len > max ) {
 			*overflowed = qtrue;

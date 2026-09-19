@@ -632,7 +632,7 @@ static const char *spriteFP = {
 
 
 #ifdef USE_FBO
-static char *ARB_BuildGreyscaleProgram( char *buf ) {
+static char *ARB_BuildGreyscaleProgram( char *buf, size_t size ) {
 	char *s;
 
 	if ( r_greyscale->value == 0 ) {
@@ -647,7 +647,7 @@ static char *ARB_BuildGreyscaleProgram( char *buf ) {
 	} else {
 		s = Q_stradd( s, "TEMP luma; \n" );
 		s = Q_stradd( s, "DP3 luma, base, sRGB; \n" );
-		/*s +=*/ sprintf( s, "LRP base.xyz, %1.2f, luma, base; \n", r_greyscale->value );
+		/*s +=*/ snprintf( s, size - ( s - buf ), "LRP base.xyz, %1.2f, luma, base; \n", r_greyscale->value );
 	}
 
 	return buf;
@@ -1039,7 +1039,7 @@ qboolean ARB_UpdatePrograms( void )
 		return qfalse;
 
 #ifdef USE_FBO
-	if ( !ARB_CompileProgram( Fragment, va( gammaFP, ARB_BuildGreyscaleProgram( buf ) ), programs[ GAMMA_FRAGMENT ] ) )
+	if ( !ARB_CompileProgram( Fragment, va( gammaFP, ARB_BuildGreyscaleProgram( buf, sizeof( buf ) ) ), programs[ GAMMA_FRAGMENT ] ) )
 		return qfalse;
 
 	if ( !ARB_CompileProgram( Fragment, ARB_BuildBloomProgram( buf ), programs[ BLOOM_EXTRACT_FRAGMENT ] ) )
@@ -1060,7 +1060,7 @@ qboolean ARB_UpdatePrograms( void )
 	if ( !ARB_CompileProgram( Fragment, blend2FP, programs[ BLEND2_FRAGMENT ] ) )
 		return qfalse;
 
-	if ( !ARB_CompileProgram( Fragment, va( blend2gammaFP, ARB_BuildGreyscaleProgram( buf ) ), programs[ BLEND2_GAMMA_FRAGMENT ] ) )
+	if ( !ARB_CompileProgram( Fragment, va( blend2gammaFP, ARB_BuildGreyscaleProgram( buf, sizeof( buf ) ) ), programs[ BLEND2_GAMMA_FRAGMENT ] ) )
 		return qfalse;
 #endif // USE_FBO
 
@@ -1238,7 +1238,7 @@ static const char *glDefToStr( GLint define )
 		CASE_STR(GL_FRAMEBUFFER_UNSUPPORTED);
 	}
 	s = buf[ index ]; // to handle multiple invocations as function parameters
-	sprintf( s, "0x%04x", define );
+	snprintf( s, sizeof( buf[ index ] ), "0x%04x", define );
 	index = ( index + 1 ) & 7;
 	return s;
 }
