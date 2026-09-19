@@ -23,8 +23,17 @@ Nine production objects reviewed: two Clang release objects are raw-identical.
 GCC/MinGW differences are equivalent member-base/index address calculations plus
 code placement/alignment. No functions added/removed. Both forms resolve to the
 same base + 0x6d8 + index*4 and store shader at +0x5b8. Actual GCC release commands
-fail before/pass after; existing UI sanitizer checks and native helper builds are
-next. Persistent evidence: array-bounds-preview/{results.json,*/functions.diff}.
+fail before/pass after. GCC/Clang UI skill ASan/UBSan checks pass. All twelve
+native helper libraries build with matching ABI layouts; ten retain raw hashes.
+The two GCC UI libraries differ only in these same address calculations in the
+callback and initialization. Fixed Q3 replay under both software renderers retains
+frame hash b38004b1. Source 1c82acae/provenance 81d4315d. Persistent evidence: array-bounds-preview/{results.json,*/functions.diff}.
+
+Unused-result preview (not applied): eight console write return values bind to
+maybe_unused const auto locals, retaining best-effort output behavior. Thirteen
+production objects checked: nine release/ARM64 raw-identical; four GCC debug
+objects add dead return-value stores/stack slots in four console functions. GCC
+release and ARM64 controls fail before/pass after. Artifacts: unused-result-preview.
 
 Initializer #85 local evidence: 2,380 syntax configurations; 188/194 affected
 objects raw/native-identical, four debug objects change only allocator __LINE__
@@ -33,8 +42,8 @@ Twelve native libraries retain hashes/layouts. Full local MinGW debug client/ser
 build passes. Source 708b7114/provenance 3e42dfc6. No golden regeneration.
 
 Next:
-1. Run the existing UI skill sanitizer probe with GCC/Clang and native C/C++
-   helper builds; review library differences. Record source/provenance.
+1. Local array-bounds validation is complete: array-bounds-native-review.json,
+   array-bounds-ui-{gcc,clang}.log and array-bounds-demo.log in persistent cache.
 2. Merge #85 after hosted gates/self-review, integrate modernization, open this
    class PR and require full hosted gates. Continue unused-result and other classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
