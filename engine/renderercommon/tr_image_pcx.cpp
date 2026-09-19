@@ -46,8 +46,8 @@ typedef struct {
 	unsigned short	palette_type;
 	unsigned short	hscreensize, vscreensize;
 	char	filler[54];
-	unsigned char	data[];
 } pcx_t;
+static_assert( sizeof( pcx_t ) == 128 );
 
 void R_LoadPCX ( const char *filename, byte **pic, int *width, int *height)
 {
@@ -111,7 +111,7 @@ void R_LoadPCX ( const char *filename, byte **pic, int *width, int *height)
 
 	pix = pic8 = (byte *)ri.Malloc ( size );
 
-	raw.b = pcx->data;
+	raw.b = (byte *)(pcx + 1);
 	// FIXME: should use bytes_per_line but original q3 didn't do that either
 	while(pix < pic8+size)
 	{
