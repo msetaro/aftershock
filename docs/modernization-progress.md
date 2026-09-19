@@ -23,7 +23,8 @@ native consumers. Engine versions are retained. Owned CMake warning flags now
 have no -Wno-* list; MSVC /W4 /WX remains in force. The plan's warning row records
 this policy. Other #8 work is still pending.
 
-Next: record native GPL provenance, run full hosted build/regression and local
+Native GPL provenance records source 05eca339 with original hashes unchanged.
+Next: run full hosted build/regression and local
 fixed replay, verify #130 merged-tree regression, self-review and merge. Then
 record the final warning-tree twelve-helper baseline and refresh the single
 formatting proof with the 20 whitespace-sensitive macro names. No accepted golden
