@@ -12,7 +12,18 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-msvc-sign-compare. PR #108 at 9cb8854e passed build
+Active: issue/8-msvc-unused-parameter. PR #109 head 768cc133 passed build
+35464448737 and regression 35464448740; merged aaef418c after self-review. Check its
+merged-tree regression. PR #108 merged-tree regression 35464396511 passes.
+
+Applied the verified msvc-parameter-preview and promoted /we4100 on owned C++
+sources. Source annotations already landed in #84; this only removes both inherited
+MSVC disables. All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only)
+and all twelve helper hashes/layouts match the baseline. Source b4696ba0 is recorded
+on the native header with original GPL import hashes preserved. Run full hosted gates, then self-review before merging. Next: C4057
+(pointer base-type mismatch) suppression removal, one class per PR.
+
+Previous C4018 checkpoint: PR #108 at 9cb8854e passed build
 35464042113 and regression 35464042135, with self-review on #108/#8; merged
 5a3e194a. Check its merged-tree regression. PR #107 merged-tree regression
 35463998687 and #106 merged-tree regression 35463424264 pass.
@@ -23,18 +34,29 @@ landed in #90. All 85 sampled production objects preserve code/data (67 raw/nati
 18 debug-only), and all twelve GCC/Clang C/C++ helper hashes/layouts match
 post-formatter-native.json. Real MSVC W4 inventory exposes this class without
 warnings. Source 464d4faa is recorded on the native header, preserving original
-GPL import hashes. Run full hosted gates,
+GPL import hashes. PR #109 head 768cc133 runs build 35464448737 and
+regression 35464448740. Run full hosted gates,
 then self-review before merging. No arithmetic, allocation, OS access, lifetime,
 wire/file layout, accepted fixture or golden changes.
 
 Next remove remaining MSVC suppression classes individually, starting with C4100
-(the source annotations already landed in #84). A read-only preview removing all
+(the source annotations already landed in #84).
+Prepared msvc-parameter-preview removes only that suppression from both shared
+headers. All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only)
+and all twelve helper hashes/layouts match post-formatter-native.json. Applied on the current branch; record native-header provenance and run hosted gates.
+ A read-only preview removing all
 16 inherited active MSVC pragma classes preserves all 70 sampled non-MSVC
 preprocessor streams: every directive is inside an MSVC-only conditional. Evidence:
-msvc-quiet-preview/classes.json and msvc-quiet-preprocess/results.json. No batch
-removal was applied; each class still requires its own hosted gates. C4514/C4711
-are optimizer informational diagnostics, so review their default warning levels
-before changing policy. Do not enable /Wall merely to enforce informational output.
+msvc-quiet-preview/classes.json and msvc-quiet-preprocess/results.json.
+Refreshed real MSVC inventory at a83363a2 (run 35463911574) has zero owned-source
+warnings across x64/ARM64 Debug/Release with all inherited header suppressions
+exposed and /W4 active. Evidence: v2-msvc-*.log and v2-msvc-warning-unique.json.
+ No batch
+removal was applied; each class still requires its own hosted gates. Microsoft documents [C4514](https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4514?view=msvc-170)
+and [C4711](https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4711?view=msvc-170)
+as off by default (C4711 is informational). Decision: remove their legacy disables
+individually, retain compiler defaults, and do not promote optimizer reports or
+enable /Wall merely to manufacture them.
 
 Merged C4701 evidence: debug-reach-v2-preview initializes missing reachability in
 the existing DEBUG-only else while keeping printing conditional. All 17 syntax
@@ -91,7 +113,13 @@ by exactly one allocation source-line byte (207 -> 214), with every other stripp
 byte identical. Artifacts: alignment-padding-* and msvc-jpeg-layout-*.log.
 
 Next finish remaining warnings/Apple deprecations, format/tidy/layout/assert rules,
-and #6 design only. All work and PRs stay in msetaro/aftershock.
+and #6 design only.
+A design-only draft is prepared in cache/rhi-design-draft.md from issue #6 and the
+current renderer contracts. It covers the thin static RHI, explicit ownership and
+longjmp boundaries, preserved SPIR-V/replay hashes, a compile-only second backend,
+and a later render-graph phase. Do not publish it as completed work or start RHI
+implementation before #8 is complete; refresh it then into docs/design/rhi.md.
+ All work and PRs stay in msetaro/aftershock.
 
 Read-only layout inventory at 63615d82: GCC/Clang agree on sizes, alignment and
 trivial standard layout for 59 central wire/model/BSP/AAS records. Cache evidence:
