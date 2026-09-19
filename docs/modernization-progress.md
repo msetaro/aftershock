@@ -7,10 +7,10 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unused-parameters, based on pending declaration PR #83 head
-197dbf70. Merge #83 after hosted gates/self-review, then integrate modernization
-before opening this separate warning-class PR. #82 merged 779ea472 after full
-build 35448976170/regression 35448976134; check its merged-tree run next.
+Active: issue/8-unused-parameters. Declaration PR #83 passed full build
+35449378669/regression 35449378735 and merged after self-review; this branch has
+integrated modernization. Open its unused-parameter PR next. #82 merged-tree
+regression 35449359464 passed; check #83's merged-tree run when available.
 
 This branch enables unused-parameter diagnostics in production and native helpers.
 275 [[maybe_unused]] parameter annotations span 88 source files. Parameter names,
@@ -30,7 +30,7 @@ Validation is in /home/matt/.cache/aftershock-modernization:
 Next:
 1. Source 05cb1e37 is reviewed: annotations only, plus two trailing-space removals.
    Provenance 3a3fca15 records 37 GPL files; the UI export include is owned code.
-   Check #83's gates, merge it, integrate modernization, and open this class PR.
+   Open this class PR after the completed #83 merge.
    Require full hosted build/regression plus self-review before merging.
 2. Finish array-bounds and unused-result reviews, then the remaining larger classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
@@ -1423,3 +1423,10 @@ function-declaration lines (win_main.cpp/common.cpp). Source 05cb1e37 and GPL
 provenance 3a3fca15 are committed. The UI export include's eight consuming production
 objects are included in the 833-object comparison. Both compiler C/C++ helper
 comparisons completed successfully, all twelve libraries retaining hashes.
+
+Missing-initializer preview is outside the repository in the persistent cache:
+15 files explicitly zero omitted members or use empty aggregate initialization.
+The static allocator string blocks use a constexpr initializer to zero conditional
+debug members without changing the layout. Compiler checks are running in
+missing-initializers-check; object, C99 helper and conditional-build verification
+remain before this separate warning-class change can be applied.
