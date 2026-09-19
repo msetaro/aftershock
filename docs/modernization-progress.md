@@ -12,52 +12,56 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-debug-reachability. PR #107 passed build 35463628573 and
-regression 35463628559, with self-review on #107/#8; merged 937d7cee.
-Check its merged-tree regression. PR #106 at bea6347c passes build 35462676712
-and regression 35462676707, with self-review on #106/#8; merged c4047adf.
-The build's sole initial failure was an MSYS mirror timeout before compilation;
-its isolated retry passed. Check the merged-tree regression next.
+Active: issue/8-msvc-sign-compare. PR #108 at 9cb8854e passed build
+35464042113 and regression 35464042135, with self-review on #108/#8; merged
+5a3e194a. Check its merged-tree regression. PR #107 merged-tree regression
+35463998687 and #106 merged-tree regression 35463424264 pass.
 
-Applied the reviewed C4702 preview to 15 source/header files and promoted C4702
-on owned C++ sources. Real MSVC x64/ARM64 Debug/Release diagnostic run 35462960543
-passes with C4244/C4702 promoted. All 151 affected syntax configurations and four
-game helper hashes/layouts pass. Of 169 production objects, 127 are raw/native
-identical and 24 differ only in debug information. The final 18 debug objects
-change only allocation diagnostic source-line immediates; every other stripped
-byte is identical (unreachable-line-review.json). No reachable arithmetic change,
-new OS calls, allocation, non-trivial lifetime, layout, accepted fixture or golden
-change. Source 6bd5c657 records the cleanup; original GPL import hashes retain the
-transformation for both native files. PR #107 head 2c6f02c5 passed build 35463628573 and regression 35463628559
-and is merged.
-Optional MISSIONPACK object comparison also compiles all nine configurations:
-five release objects are identical; two Clang release objects share the lightning
-bounce decrement/check between continuing paths, and two GCC debug objects move
-the same increment onto its sole continue edge. Ten-bounce limit and arithmetic
-are retained. This cache-only comparison demotes the pre-existing enum arithmetic
-warning at g_weapon.cpp:1099; no production warning policy changed. Evidence:
-unreachable-missionpack/results.json and unreachable-missionpack-*.diff.
-Next class: original debug-reach-preview preserves all 13 release objects but
-still emits C4701 on MSVC Debug (diagnostic run 35463680431). Do not apply it.
-Revised debug-reach-v2-preview initializes the missing record in the existing
-DEBUG-only else, keeping the print conditional. No release initialization or
-arithmetic change. All 17 syntax configurations and 13 raw/native release objects pass. The six
-debug objects change one conditional branch destination so missing records are
-zeroed even when debug printing is disabled; all other normalized instructions
-match. Real-MSVC diagnostic run 35463911574 at a83363a2 passes all four x64/ARM64
-Debug/Release configurations with C4701 promoted.
-The before/after debug bot smoke exercises botDeveloper diagnostics, but not the
-specific rare missing-goal message. Raw repeated logs differ in loading-time
-measurements. With only those measurements normalized, both repeated before/after
-logs match 9fd54408d336da36721fcf82e709d1b1e62b510cb54f2c0fbeb574887c17ec89
-(debug-reach-v2-runtime/results.json). No accepted fixture/golden changes. Applied the revised preview and promoted C4701 on owned C++ sources.
-Run full hosted gates, then self-review before merging. Next remove the remaining
-MSVC warning suppressions one class per PR, starting with C4018; the signed/unsigned
-source fixes already landed in #90.
+Applied msvc-sign-preview: remove only C4018 suppression from both shared headers
+and promote /we4018 on owned C++ sources. Signed/unsigned source fixes already
+landed in #90. All 85 sampled production objects preserve code/data (67 raw/native,
+18 debug-only), and all twelve GCC/Clang C/C++ helper hashes/layouts match
+post-formatter-native.json. Real MSVC W4 inventory exposes this class without
+warnings. Source 464d4faa is recorded on the native header, preserving original
+GPL import hashes. Run full hosted gates,
+then self-review before merging. No arithmetic, allocation, OS access, lifetime,
+wire/file layout, accepted fixture or golden changes.
 
-PR #106 merged-tree regression 35463424264 passes. #107 build 35463628573 and
-regression 35463628559 pass. All work remains in our repository.
+Next remove remaining MSVC suppression classes individually, starting with C4100
+(the source annotations already landed in #84). A read-only preview removing all
+16 inherited active MSVC pragma classes preserves all 70 sampled non-MSVC
+preprocessor streams: every directive is inside an MSVC-only conditional. Evidence:
+msvc-quiet-preview/classes.json and msvc-quiet-preprocess/results.json. No batch
+removal was applied; each class still requires its own hosted gates. C4514/C4711
+are optimizer informational diagnostics, so review their default warning levels
+before changing policy. Do not enable /Wall merely to enforce informational output.
 
+Merged C4701 evidence: debug-reach-v2-preview initializes missing reachability in
+the existing DEBUG-only else while keeping printing conditional. All 17 syntax
+configurations and 13 raw/native-identical release objects pass. Six debug objects
+change one conditional branch destination around the existing zeroing operation;
+other normalized instructions match. Real MSVC x64/ARM64 Debug/Release diagnostic
+run 35463911574 at a83363a2 passes with C4701 promoted. Repeated before/after debug
+bot smoke (bot_developer=1) matches 9fd54408 after loading-time normalization; it
+exercises developer diagnostics but did not emit the rare missing-goal message.
+The earlier combined-guard preview still warned in MSVC run 35463680431 and must
+not be applied. Artifacts: debug-reach-v2-*; no accepted golden changes.
+
+Merged C4702 evidence: PR #107 source 6bd5c657/head 2c6f02c5 passed build
+35463628573 and regression 35463628559; merged 937d7cee. All 151 syntax checks,
+four game helper hashes/layouts and real MSVC diagnostic run 35462960543 pass.
+Of 169 production objects, 127 are raw/native-identical and 24 debug-only; the
+remaining 18 debug objects differ only in allocation source-line immediates, with
+every other stripped byte identical (unreachable-line-review.json). Nine optional
+MISSIONPACK comparisons compile with their pre-existing enum warning demoted
+only for comparison: five release objects identical, two Clang release objects
+share the lightning decrement/check, and two GCC debug objects move the same
+increment onto its continuing edge. Ten-bounce limit and arithmetic retained.
+
+PR #106 at bea6347c passed build 35462676712 and regression 35462676707; merged
+c4047adf after self-review. The sole initial build failure was an MSYS mirror
+package-signature timeout before compilation; its isolated retry passed.
+All work and PRs remain in msetaro/aftershock.
 
 The C4611 annotation is merged: only standard-MSVC Q_setjmp is annotated, the #1
 trivial-lifetime gate remains, and C4611 is an error on owned C++ sources. All 28
