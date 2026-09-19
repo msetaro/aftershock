@@ -249,7 +249,7 @@ if(MSVC)
   string(REPLACE "/GR" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 
-set(CXX_WARNINGS -Wall -Wextra -Werror -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers -Wtype-limits -Wno-write-strings -Wno-parentheses)
+set(CXX_WARNINGS -Wall -Wextra -Werror -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers -Wtype-limits -Wno-write-strings)
 set(NATIVE_WARNINGS -Wall -Wextra -Werror)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   list(APPEND NATIVE_WARNINGS -Wno-missing-field-initializers -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-parameter)
