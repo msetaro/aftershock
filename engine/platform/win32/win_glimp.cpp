@@ -149,7 +149,6 @@ static int GLW_ChoosePFD( HDC hDC, PIXELFORMATDESCRIPTOR *pPFD )
 	}
 	__except ( EXCEPTION_EXECUTE_HANDLER ) {
 		Com_Error( ERR_FATAL, "DescribePixelFormat() crashed" );
-		return 0;
 	}
 #else
 	maxPFD = DescribePixelFormat( hDC, 1, sizeof( PIXELFORMATDESCRIPTOR ), NULL );
@@ -657,7 +656,6 @@ static qboolean GLW_CreateWindow( int width, int height, int colorbits, qboolean
 		if ( !RegisterClass( &wc ) )
 		{
 			Com_Error( ERR_FATAL, "%s: could not register window class", __func__ );
-			return qfalse;
 		}
 		s_classRegistered = qtrue;
 		// Com_Printf( "...registered window class\n" );
@@ -747,7 +745,6 @@ static qboolean GLW_CreateWindow( int width, int height, int colorbits, qboolean
 		{
 			glw_state.cdsFullscreen = oldFullscreen;
 			Com_Error( ERR_FATAL, "GLW_CreateWindow() - Couldn't create window" );
-			return qfalse;
 		}
 
 		// we must reflect actual drawable dimensions in glconfig
@@ -1332,7 +1329,6 @@ static qboolean GLW_StartOpenGL( void )
 		}
 
 		Com_Error( ERR_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem\n" );
-		return qfalse;
 	}
 
 	return qtrue;
@@ -1493,7 +1489,6 @@ static qboolean GLW_StartVulkan( void )
 	//
 	if ( !GLW_LoadVulkan() ) {
 		Com_Error( ERR_FATAL, "GLW_StartVulkan() - could not load Vulkan subsystem\n" );
-		return qfalse;
 	}
 
 	return qtrue;

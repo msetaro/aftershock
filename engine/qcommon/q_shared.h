@@ -74,7 +74,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //#pragma warning(disable : 4310)		// cast truncates constant value
 //#pragma warning(disable:  4505) 	// unreferenced local function has been removed
 //#pragma warning(disable : 4514)
-#pragma warning(disable : 4702)		// unreachable code
 #pragma warning(disable : 4711)		// selected for automatic inline expansion
 #pragma warning(disable : 4220)		// varargs matches remaining parameters
 #pragma warning(disable : 4091)		// 'typedef': ignored on lef of <..> when no variable is declared

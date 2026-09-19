@@ -794,7 +794,6 @@ static int CM_EdgePlaneNum( const cGrid_t *grid, int gridPlanes[MAX_GRID_SIZE][M
 	}
 
 	Com_Error( ERR_DROP, "CM_EdgePlaneNum: bad k" );
-	return -1;
 }
 
 
@@ -831,8 +830,6 @@ static void CM_SetBorderInward( facet_t *facet, const cGrid_t *grid, int gridPla
 		break;
 	default:
 		Com_Error( ERR_FATAL, "CM_SetBorderInward: bad parameter" );
-		numPoints = 0;
-		break;
 	}
 
 	for ( k = 0 ; k < facet->numBorders ; k++ ) {

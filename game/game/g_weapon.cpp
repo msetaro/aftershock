@@ -178,7 +178,7 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage ) {
 	VectorMA (end, u, up, end);
 
 	passent = ent->s.number;
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; ) {
 
 		trap_Trace (&tr, muzzle, NULL, NULL, end, passent, MASK_SHOT);
 		if ( tr.surfaceFlags & SURF_NOIMPACT ) {
@@ -216,7 +216,7 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage ) {
 					VectorCopy( tr.endpos, muzzle );
 					passent = traceEnt->s.number;
 				}
-				continue;
+				i++; continue;
 			}
 			else {
 #endif
@@ -274,7 +274,7 @@ qboolean ShotgunPellet( vec3_t start, vec3_t end, gentity_t *ent ) {
 	passent = ent->s.number;
 	VectorCopy( start, tr_start );
 	VectorCopy( end, tr_end );
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; ) {
 		trap_Trace (&tr, tr_start, NULL, NULL, tr_end, passent, MASK_SHOT);
 		traceEnt = &g_entities[ tr.entityNum ];
 
@@ -297,7 +297,7 @@ qboolean ShotgunPellet( vec3_t start, vec3_t end, gentity_t *ent ) {
 					VectorCopy( tr.endpos, tr_start );
 					passent = traceEnt->s.number;
 				}
-				continue;
+				i++; continue;
 			}
 			else {
 				G_Damage( traceEnt, ent, ent, forward, tr.endpos,
@@ -621,7 +621,7 @@ void Weapon_LightningFire( gentity_t *ent ) {
 	damage = (int)( 8 * s_quadFactor );
 
 	passent = ent->s.number;
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; ) {
 		VectorMA( muzzle, LIGHTNING_RANGE, forward, end );
 
 		trap_Trace( &tr, muzzle, NULL, NULL, end, passent, MASK_SHOT );
@@ -659,7 +659,7 @@ void Weapon_LightningFire( gentity_t *ent ) {
 					VectorCopy( tr.endpos, muzzle );
 					passent = traceEnt->s.number;
 				}
-				continue;
+				i++; continue;
 			}
 			else {
 				G_Damage( traceEnt, ent, ent, forward, tr.endpos,

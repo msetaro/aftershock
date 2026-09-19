@@ -119,13 +119,13 @@ static void S_ByteSwapRawSamples( int samples, int width, int s_channels, const 
 	}
 	if constexpr ( LittleShort( 256 ) == 256 ) {
 		return;
-	}
-
-	if ( s_channels == 2 ) {
-		samples <<= 1;
-	}
-	for ( i = 0 ; i < samples ; i++ ) {
-		((short *)data)[i] = LittleShort( ((short *)data)[i] );
+	} else {
+		if ( s_channels == 2 ) {
+			samples <<= 1;
+		}
+		for ( i = 0 ; i < samples ; i++ ) {
+			((short *)data)[i] = LittleShort( ((short *)data)[i] );
+		}
 	}
 }
 
