@@ -406,7 +406,7 @@ static void ProjectDlightTexture( void ) {
 #endif
 	}
 
-	for ( l = 0 ; l < backEnd.refdef.num_dlights ; l++ ) {
+	for ( l = 0 ; (unsigned int)l < backEnd.refdef.num_dlights ; l++ ) {
 
 		if ( !( tess.dlightBits & ( 1 << l ) ) ) {
 			continue;	// this surface definitely doesn't have any of this light
@@ -980,7 +980,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 #ifdef USE_VULKAN
 		tess_flags |= pStage->tessFlags;
 
-		for ( i = 0;  i < pStage->numTexBundles; i++ ) {
+		for ( i = 0;  (uint32_t)i < pStage->numTexBundles; i++ ) {
 			if ( pStage->bundle[i].image[0] != NULL ) {
 				GL_SelectTexture( i );
 				R_BindAnimatedImage( &pStage->bundle[i] );
@@ -1190,7 +1190,7 @@ void VK_LightingPass( void )
 		tess.dlightUpdateParams = qfalse;
 	}
 
-	if ( uniform_offset == ~0 )
+	if ( uniform_offset == (uint32_t)( ~0 ) )
 		return; // no space left...
 
 	cull = tess.shader->cullType;

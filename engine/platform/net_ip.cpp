@@ -417,7 +417,7 @@ static qboolean Sys_StringToSockaddr( const char *s, sockaddr_t *sadr, int sadr_
 
 		if ( search )
 		{
-			size_t addrlen = MIN( search->ai_addrlen, sadr_len );
+			size_t addrlen = MIN( search->ai_addrlen, (decltype(search->ai_addrlen))sadr_len );
 
 			memcpy ( sadr, search->ai_addr, addrlen );
 			freeaddrinfo( res );
@@ -802,7 +802,7 @@ void Sys_SendPacket( int length, const void *data, const netadr_t *to ) {
 	if ( usingSocks && to->type == NA_IP ) {
 		socks5_udp_request_t cmd;
 
-		if ( length <= sizeof( cmd.s.u.v4.data ) ) {
+		if ( (size_t)length <= sizeof( cmd.s.u.v4.data ) ) {
 			cmd.s.reserved[0] = 0;
 			cmd.s.reserved[1] = 0;
 			cmd.s.fragnum = 0;  // not fragmented

@@ -1130,7 +1130,7 @@ static void RB_LightingPass( void )
 
 	tess.dlightPass = qtrue;
 
-	for ( i = 0; i < backEnd.viewParms.num_dlights; i++ )
+	for ( i = 0; (unsigned int)i < backEnd.viewParms.num_dlights; i++ )
 	{
 		dl = &backEnd.viewParms.dlights[i];
 		if ( dl->head )

@@ -350,7 +350,7 @@ static void GraphicsOptions_CheckConfig( void )
 {
 	int i;
 
-	for ( i = 0; i < NUM_IVO_TEMPLATES; i++ )
+	for ( i = 0; (size_t)i < NUM_IVO_TEMPLATES; i++ )
 	{
 		if ( s_ivo_templates[i].colordepth != s_graphicsoptions.colordepth.curvalue )
 			continue;
@@ -358,7 +358,7 @@ static void GraphicsOptions_CheckConfig( void )
 			continue;
 		if ( s_ivo_templates[i].mode != s_graphicsoptions.mode.curvalue )
 			continue;
-		if ( s_ivo_templates[i].fullscreen != s_graphicsoptions.fs.curvalue )
+		if ( (int)s_ivo_templates[i].fullscreen != s_graphicsoptions.fs.curvalue )
 			continue;
 		if ( s_ivo_templates[i].tq != s_graphicsoptions.tq.curvalue )
 			continue;
@@ -418,11 +418,11 @@ static void GraphicsOptions_UpdateMenuItems( void )
 	{
 		s_graphicsoptions.apply.generic.flags &= ~(QMF_HIDDEN|QMF_INACTIVE);
 	}
-	if ( s_ivo.fullscreen != s_graphicsoptions.fs.curvalue )
+	if ( (int)s_ivo.fullscreen != s_graphicsoptions.fs.curvalue )
 	{
 		s_graphicsoptions.apply.generic.flags &= ~(QMF_HIDDEN|QMF_INACTIVE);
 	}
-	if ( s_ivo.extensions != s_graphicsoptions.allow_extensions.curvalue )
+	if ( (int)s_ivo.extensions != s_graphicsoptions.allow_extensions.curvalue )
 	{
 		s_graphicsoptions.apply.generic.flags &= ~(QMF_HIDDEN|QMF_INACTIVE);
 	}

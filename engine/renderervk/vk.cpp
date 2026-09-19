@@ -1408,7 +1408,7 @@ static VkFormat get_depth_format( VkPhysicalDevice physical_device ) {
 		formats[1] = VK_FORMAT_D32_SFLOAT;
 	}
 
-	for ( i = 0; i < ARRAY_LEN( formats ); i++ ) {
+	for ( i = 0; (size_t)i < ARRAY_LEN( formats ); i++ ) {
 		qvkGetPhysicalDeviceFormatProperties( physical_device, formats[i], &props );
 		if ( ( props.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT ) != 0 ) {
 			return formats[i];
@@ -1473,7 +1473,7 @@ static void get_present_format( int present_bits, VkFormat *bgr, VkFormat *rgb )
 
 	sel = NULL;
 	pf = present_formats;
-	for ( i = 0; i < ARRAY_LEN( present_formats ); i++, pf++ ) {
+	for ( i = 0; (size_t)i < ARRAY_LEN( present_formats ); i++, pf++ ) {
 		if ( pf->bits <= present_bits  ) {
 			sel = pf;
 		}
@@ -1987,7 +1987,7 @@ static void init_vulkan_library( void )
 	device_index = r_device->integer;
 
 	ri.Printf( PRINT_ALL, ".......................\nAvailable physical devices:\n" );
-	for ( i = 0; i < device_count; i++ ) {
+	for ( i = 0; (uint32_t)i < device_count; i++ ) {
 		qvkGetPhysicalDeviceProperties( physical_devices[ i ], &props );
 		ri.Printf( PRINT_ALL, " %i: %s\n", i, renderer_name( &props ) );
 		if ( device_index == -1 && props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ) {
@@ -1999,8 +1999,8 @@ static void init_vulkan_library( void )
 	ri.Printf( PRINT_ALL, ".......................\n" );
 
 	vk.physical_device = VK_NULL_HANDLE;
-	for ( i = 0; i < device_count; i++, device_index++ ) {
-		if ( device_index >= device_count || device_index < 0 ) {
+	for ( i = 0; (uint32_t)i < device_count; i++, device_index++ ) {
+		if ( (uint32_t)device_index >= device_count || device_index < 0 ) {
 			device_index = 0;
 		}
 		if ( vk_create_device( physical_devices[ device_index ], device_index ) ) {
@@ -2730,9 +2730,9 @@ qboolean vk_alloc_vbo( const byte *vbo_data, int vbo_size )
 #endif
 	// utilize existing staging buffer
 	uploadDone = 0;
-	while ( uploadDone < vbo_size ) {
+	while ( uploadDone < (VkDeviceSize)vbo_size ) {
 		VkDeviceSize uploadSize = vk.staging_buffer.size;
-		if ( uploadDone + uploadSize > vbo_size ) {
+		if ( uploadDone + uploadSize > (VkDeviceSize)vbo_size ) {
 			uploadSize = vbo_size - uploadDone;
 		}
 		memcpy(vk.staging_buffer.ptr + 0, vbo_data + uploadDone, uploadSize);
@@ -3990,7 +3990,7 @@ void vk_initialize( void )
 	if ( /*vk.fboActive &&*/ vk.msaaActive ) {
 		VkSampleCountFlags mask = vkMaxSamples;
 		vkSamples = MAX( (VkSampleCountFlagBits)log2pad( r_ext_multisample->integer, 1 ), VK_SAMPLE_COUNT_2_BIT );
-		while ( vkSamples > mask )
+		while ( (VkSampleCountFlags)vkSamples > mask )
 				vkSamples >>= 1;
 		ri.Printf( PRINT_ALL, "...using %ix MSAA\n", vkSamples );
 	} else {
@@ -4703,7 +4703,7 @@ void vk_release_resources( void ) {
 
 	// vk_destroy_samplers();
 
-	for ( i = vk.pipelines_world_base; i < vk.pipelines_count; i++ ) {
+	for ( i = vk.pipelines_world_base; (uint32_t)i < vk.pipelines_count; i++ ) {
 		for ( j = 0; j < RENDER_PASS_COUNT; j++ ) {
 			if ( vk.pipelines[i].handle[j] != VK_NULL_HANDLE ) {
 				qvkDestroyPipeline( vk.device, vk.pipelines[i].handle[j], NULL );
@@ -4950,7 +4950,7 @@ void vk_upload_image_data( image_t *image, int x, int y, int width, int height, 
 
 		buffer_size += width * height * n;
 
-		if ( num_regions >= mipmaps || (width == 1 && height == 1) || num_regions >= ARRAY_LEN( regions ) )
+		if ( num_regions >= mipmaps || (width == 1 && height == 1) || (size_t)num_regions >= ARRAY_LEN( regions ) )
 			break;
 
 		x >>= 1;
@@ -5009,7 +5009,7 @@ void vk_upload_image_data( image_t *image, int x, int y, int width, int height, 
 	// final transition after upload comleted
 	record_image_layout_transition( command_buffer, image->handle, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0 );
 #else
-	if ( vk.staging_buffer.size < buffer_size ) {
+	if ( vk.staging_buffer.size < (VkDeviceSize)buffer_size ) {
 		vk_alloc_staging_buffer( buffer_size );
 	}
 
@@ -6723,9 +6723,9 @@ static void get_scissor_rect(VkRect2D *r) {
 		if (r->offset.y < 0)
 			r->offset.y = 0;
 
-		if (r->offset.x + r->extent.width > glConfig.vidWidth)
+		if (r->offset.x + r->extent.width > (uint32_t)glConfig.vidWidth)
 			r->extent.width = glConfig.vidWidth - r->offset.x;
-		if (r->offset.y + r->extent.height > glConfig.vidHeight)
+		if (r->offset.y + r->extent.height > (uint32_t)glConfig.vidHeight)
 			r->extent.height = glConfig.vidHeight - r->offset.y;
 	}
 }
@@ -7066,8 +7066,8 @@ void vk_reset_descriptor( int index )
 void vk_update_descriptor( int index, VkDescriptorSet descriptor )
 {
 	if ( vk.cmd->descriptor_set.current[ index ] != descriptor ) {
-		vk.cmd->descriptor_set.start = ( index < vk.cmd->descriptor_set.start ) ? index : vk.cmd->descriptor_set.start;
-		vk.cmd->descriptor_set.end = ( index > vk.cmd->descriptor_set.end ) ? index : vk.cmd->descriptor_set.end;
+		vk.cmd->descriptor_set.start = ( (uint32_t)index < vk.cmd->descriptor_set.start ) ? index : vk.cmd->descriptor_set.start;
+		vk.cmd->descriptor_set.end = ( (uint32_t)index > vk.cmd->descriptor_set.end ) ? index : vk.cmd->descriptor_set.end;
 	}
 	vk.cmd->descriptor_set.current[ index ] = descriptor;
 }
@@ -7748,7 +7748,7 @@ void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height )
 	// host_cached bit is desirable for fast reads
 	memory_reqs = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 	alloc_info.memoryTypeIndex = find_memory_type2( memory_requirements.memoryTypeBits, memory_reqs, &memory_flags );
-	if ( alloc_info.memoryTypeIndex == ~0 ) {
+	if ( alloc_info.memoryTypeIndex == (uint32_t)( ~0 ) ) {
 		// try less explicit flags, without host_coherent
 		memory_reqs = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 		alloc_info.memoryTypeIndex = find_memory_type2( memory_requirements.memoryTypeBits, memory_reqs, &memory_flags );

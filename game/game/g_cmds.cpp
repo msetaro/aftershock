@@ -1180,7 +1180,7 @@ void Cmd_GameCommand_f( gentity_t *ent ) {
 	if ( player < 0 || player >= MAX_CLIENTS ) {
 		return;
 	}
-	if ( order < 0 || order > sizeof(gc_orders)/sizeof(char *) ) {
+	if ( order < 0 || (size_t)order > sizeof(gc_orders)/sizeof(char *) ) {
 		return;
 	}
 	G_Say( ent, &g_entities[player], SAY_TELL, gc_orders[order] );
@@ -1439,7 +1439,7 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 				for ( i = 0 ; i < level.maxclients ; i++ ) {
 					if ( level.clients[i].pers.connected == CON_DISCONNECTED )
 						continue;
-					if (level.clients[i].sess.sessionTeam != team)
+					if ((int)level.clients[i].sess.sessionTeam != team)
 						continue;
 					Q_strncpyz(netname, level.clients[i].pers.netname, sizeof(netname));
 					Q_CleanStr(netname);
@@ -1465,7 +1465,7 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		if ( level.clients[i].pers.connected == CON_DISCONNECTED )
 			continue;
-		if (level.clients[i].sess.sessionTeam == team)
+		if ((int)level.clients[i].sess.sessionTeam == team)
 			trap_SendServerCommand( i, va((char *)"print \"%s called a team vote.\n\"", ent->client->pers.netname ) );
 	}
 
@@ -1475,7 +1475,7 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 	level.teamVoteNo[cs_offset] = 0;
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam == team)
+		if ((int)level.clients[i].sess.sessionTeam == team)
 			level.clients[i].ps.eFlags &= ~EF_TEAMVOTED;
 	}
 	ent->client->ps.eFlags |= EF_TEAMVOTED;

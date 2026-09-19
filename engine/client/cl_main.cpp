@@ -2528,10 +2528,10 @@ static void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean
 		{
 			buffptr++;
 
-			if (buffend - buffptr < sizeof(addresses[numservers].ipv._4) + sizeof(addresses[numservers].port) + 1)
+			if ((size_t)( buffend - buffptr ) < sizeof(addresses[numservers].ipv._4) + sizeof(addresses[numservers].port) + 1)
 				break;
 
-			for(i = 0; i < sizeof(addresses[numservers].ipv._4); i++)
+			for(i = 0; (size_t)i < sizeof(addresses[numservers].ipv._4); i++)
 				addresses[numservers].ipv._4[i] = *buffptr++;
 
 			addresses[numservers].type = NA_IP;
@@ -2542,10 +2542,10 @@ static void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean
 		{
 			buffptr++;
 
-			if (buffend - buffptr < sizeof(addresses[numservers].ipv._6) + sizeof(addresses[numservers].port) + 1)
+			if ((size_t)( buffend - buffptr ) < sizeof(addresses[numservers].ipv._6) + sizeof(addresses[numservers].port) + 1)
 				break;
 
-			for(i = 0; i < sizeof(addresses[numservers].ipv._6); i++)
+			for(i = 0; (size_t)i < sizeof(addresses[numservers].ipv._6); i++)
 				addresses[numservers].ipv._6[i] = *buffptr++;
 
 			addresses[numservers].type = NA_IP6;
@@ -4764,7 +4764,7 @@ static ping_t* CL_GetFreePing( void )
 
 	msec = Sys_Milliseconds();
 	pingptr = cl_pinglist;
-	for ( i = 0; i < ARRAY_LEN( cl_pinglist ); i++, pingptr++ )
+	for ( i = 0; (size_t)i < ARRAY_LEN( cl_pinglist ); i++, pingptr++ )
 	{
 		// find free ping slot
 		if ( pingptr->adr.port )
@@ -4793,7 +4793,7 @@ static ping_t* CL_GetFreePing( void )
 	pingptr = cl_pinglist;
 	best    = cl_pinglist;
 	oldest  = INT_MIN;
-	for ( i = 0; i < ARRAY_LEN( cl_pinglist ); i++, pingptr++ )
+	for ( i = 0; (size_t)i < ARRAY_LEN( cl_pinglist ); i++, pingptr++ )
 	{
 		// scan for oldest
 		time = msec - pingptr->start;

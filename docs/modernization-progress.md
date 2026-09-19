@@ -12,13 +12,36 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-cast-function-type. #88 merged 40543f38 after head 5ebd6e4a
-passed build 35451993616 and regression 35451993498; self-review is recorded on
-#88/#8. Its merged-tree regression remains to check. Integration is merged here.
-#87 merged-tree regression 35451971187 passes. Open this Windows cast warning PR
-and require full hosted gates/self-review before merging.
+Active: issue/8-sign-compare, based on pending Windows cast PR #89 head a2a8f973.
+Require #89 build 35452451335/regression 35452451212 and self-review/merge, then
+integrate modernization before opening this separate signedness class PR.
+#88 merged 40543f38 after gates; merged-tree regression 35452425588 remains to
+check. #87 merged-tree regression 35451971187 passes.
 
-This branch uses the existing platform conversion through void* at nine
+This branch contains 412 signedness edits across 91 source files. Explicit casts
+follow the original integral conversions; compound arithmetic remains inside the
+cast so it evaluates in its original type. Platform-dependent unsigned widths
+use existing typedefs or decltype. Twenty-nine C-only enum equality diagnostics
+use enum-to-int casts; both 32-bit equality representations and C++ promotions are
+preserved. Ordered enum comparisons are not changed. The last native helper freeze
+is removed with its now-unused JSON/configuration logic; production signedness
+warnings are enabled. Six already-touched lines lose existing trailing spaces.
+Source/provenance must be recorded before its PR.
+
+Final local validation: all 2,667 syntax configurations pass, including MinGW
+debug. Of 905 production objects, 755 retain raw/native hashes and 150 differ only
+in debug sections; code and data match throughout. All twelve native helper builds
+and ABI layouts pass; ten libraries retain raw hashes. GCC C game/UI differ only
+in Pickup_Team (reuse the team register), PrintTeam (independent moves), SetLeader
+and GraphicsOptions_MenuDraw (reversed equality comparisons). Calls, comparison
+values and equality branches are unchanged; subsequent comparisons/flag-setting
+instructions replace flags before other conditions. No added/removed functions.
+Persistent artifacts: sign-compare-{preview,final-check,objects,extra-objects,
+final-review.json,native.json,native-review.json}; per-library diffs are retained.
+No FP expressions, new OS access, allocation, lifetime/layout or accepted fixture
+changes. No golden regeneration.
+
+Parent #89 uses the existing platform conversion through void* at nine
 GetProcAddress bindings in four Windows source files. Function signatures and
 calls remain unchanged. The MinGW warning freeze is removed. All fifteen affected
 MinGW release/debug native objects retain identical hashes; actual-command controls
@@ -69,20 +92,14 @@ All 861 MinGW release/debug syntax configurations pass with the class enabled.
 No signature, call, layout or behavior changes. Artifacts: cast-function-{preview,objects}.
 
 Next:
-1. Source 1d29ae1a/2481f9f8 is ready; open this Windows class PR and require all
-   hosted gates/self-review.
-2. Sign-compare preview: 383 edits in 86 files follow existing integral conversions,
-   with explicit handling for Windows and macros. The 2,380 syntax checks pass.
-   Initial 838-object comparison preserves code/data (698 raw/native matches;
-   140 debug-only differences); all six C++ native libraries retain hashes.
-   The C helper finds enum equality warnings: explicit enum-to-int casts preserve
-   equality bits and C++ promotions. Game helper now passes; six cgame/UI sites
-   remain, followed by final helper/object checks. This parent cast change is
-   carried into that preview. No signedness edits are applied to repository sources.
-3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
-   fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
-   rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then
-   stop. No #6/#7 implementation or accepted golden regeneration for warnings.
+1. Record source/GPL provenance and complete self-review. Merge #89 after its
+   hosted gates/self-review, integrate modernization, then open this signedness
+   class PR and require all hosted gates before merging.
+2. Finish write-strings, Apple deprecations and MSVC warning classes /WX.
+3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
+   types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
+   force; finish #8, write design-only docs/design/rhi.md for #6, then stop.
+   No #6/#7 implementation or accepted golden regeneration for warning changes.
 
 Recent merges (all self-reviewed; merge commits):
 - #70 ignored qualifiers: 17a9dae2, build 35016076778/regression 35016076784;

@@ -525,7 +525,7 @@ team_t TeamCount( int ignoreClientNum, int team ) {
 		if ( level.clients[i].pers.connected == CON_DISCONNECTED ) {
 			continue;
 		}
-		if ( level.clients[i].sess.sessionTeam == team ) {
+		if ( (int)level.clients[i].sess.sessionTeam == team ) {
 			count++;
 		}
 	}
@@ -547,7 +547,7 @@ int TeamLeader( int team ) {
 		if ( level.clients[i].pers.connected == CON_DISCONNECTED ) {
 			continue;
 		}
-		if ( level.clients[i].sess.sessionTeam == team ) {
+		if ( (int)level.clients[i].sess.sessionTeam == team ) {
 			if ( level.clients[i].sess.teamLeader )
 				return i;
 		}

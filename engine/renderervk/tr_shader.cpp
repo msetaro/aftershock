@@ -1707,7 +1707,7 @@ static void FinishStage( shaderStage_t *stage )
 		return;
 	}
 
-	for ( i = 0; i < ARRAY_LEN( stage->bundle ); i++ ) {
+	for ( i = 0; (size_t)i < ARRAY_LEN( stage->bundle ); i++ ) {
 		textureBundle_t *bundle = &stage->bundle[i];
 		// offset lightmap coordinates
 		if ( bundle->lightmap >= LIGHTMAP_INDEX_OFFSET ) {
@@ -2522,7 +2522,7 @@ static void FindLightingBundle( void )
 		if ( !st->active ) {
 			break;
 		}
-		for ( n = 0; n < st->numTexBundles; n++ ) {
+		for ( n = 0; (uint32_t)n < st->numTexBundles; n++ ) {
 			if ( st->bundle[n].dlight ) {
 				shader.lightingStage = i;
 				shader.lightingBundle = n;
@@ -3569,7 +3569,7 @@ static shader_t *FinishShader( void ) {
 				}
 			} // switch mtEnv3 / mtEnv
 
-			for ( env_mask = 0, n = 0; n < pStage->numTexBundles; n++ ) {
+			for ( env_mask = 0, n = 0; (uint32_t)n < pStage->numTexBundles; n++ ) {
 				if ( pStage->bundle[n].numTexMods ) {
 					continue;
 				}
@@ -3656,7 +3656,7 @@ static shader_t *FinishShader( void ) {
 		if ( !stages[i].active ) {
 			continue;
 		}
-		for ( n = 0; n < stages[i].numTexBundles; n++ ) {
+		for ( n = 0; (uint32_t)n < stages[i].numTexBundles; n++ ) {
 			for ( m = 0; m < stages[i].bundle[n].numTexMods; m++ ) {
 				if ( stages[i].bundle[n].texMods[m].type == TMOD_STRETCH ) {
 					if ( fabsf( stages[i].bundle[n].texMods[m].wave.amplitude ) < 1e-6f ) {

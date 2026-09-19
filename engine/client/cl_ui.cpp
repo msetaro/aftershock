@@ -57,7 +57,7 @@ static void LAN_LoadCachedServers( void ) {
 	cls.numGlobalServerAddresses = 0;
 
 	file_size = FS_Home_FOpenFileRead( "servercache.dat", &fileIn );
-	if ( file_size < (3*sizeof(int)) ) {
+	if ( (size_t)file_size < (3*sizeof(int)) ) {
 		if ( fileIn != FS_INVALID_HANDLE ) {
 			FS_FCloseFile( fileIn );
 		}

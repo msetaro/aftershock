@@ -249,7 +249,7 @@ static void RE_AddDynamicLightToScene( const vec3_t org, float intensity, float 
 	if ( !tr.registered ) {
 		return;
 	}
-	if ( r_numdlights >= ARRAY_LEN( backEndData->dlights ) ) {
+	if ( (size_t)r_numdlights >= ARRAY_LEN( backEndData->dlights ) ) {
 		return;
 	}
 	if ( intensity <= 0 ) {
@@ -304,7 +304,7 @@ void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float inten
 	if ( !tr.registered ) {
 		return;
 	}
-	if ( r_numdlights >= ARRAY_LEN( backEndData->dlights ) ) {
+	if ( (size_t)r_numdlights >= ARRAY_LEN( backEndData->dlights ) ) {
 		return;
 	}
 	if ( intensity <= 0 ) {
@@ -420,7 +420,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 		// compare the area bits
 		areaDiff = 0;
-		for ( i = 0; i < MAX_MAP_AREA_BYTES/sizeof(int); i++ ) {
+		for ( i = 0; (size_t)i < MAX_MAP_AREA_BYTES/sizeof(int); i++ ) {
 			areaDiff |= ((int *)tr.refdef.areamask)[i] ^ ((int *)fd->areamask)[i];
 			((int *)tr.refdef.areamask)[i] = ((int *)fd->areamask)[i];
 		}

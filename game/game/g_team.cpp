@@ -104,7 +104,7 @@ void QDECL PrintMsg( gentity_t *ent, const char *fmt, ... ) {
 	char		*p;
 	
 	va_start (argptr,fmt);
-	if (vsprintf (msg, fmt, argptr) > sizeof(msg)) {
+	if ((size_t)( vsprintf (msg, fmt, argptr) ) > sizeof(msg)) {
 		G_Error ( "PrintMsg overrun" );
 	}
 	va_end (argptr);
@@ -258,7 +258,7 @@ void Team_ForceGesture(int team) {
 			continue;
 		if (!ent->client)
 			continue;
-		if (ent->client->sess.sessionTeam != team)
+		if ((int)ent->client->sess.sessionTeam != team)
 			continue;
 		//
 		ent->flags |= FL_FORCE_GESTURE;
@@ -326,7 +326,7 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor [[maybe_unused]], ge
 		// field on the other team
 		for (i = 0; i < g_maxclients.integer; i++) {
 			ent = g_entities + i;
-			if (ent->inuse && ent->client->sess.sessionTeam == otherteam)
+			if (ent->inuse && (int)ent->client->sess.sessionTeam == otherteam)
 				ent->client->pers.teamState.lasthurtcarrier = 0;
 		}
 		return;
@@ -344,7 +344,7 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor [[maybe_unused]], ge
 		// field on the other team
 		for (i = 0; i < g_maxclients.integer; i++) {
 			ent = g_entities + i;
-			if (ent->inuse && ent->client->sess.sessionTeam == otherteam)
+			if (ent->inuse && (int)ent->client->sess.sessionTeam == otherteam)
 				ent->client->pers.teamState.lasthurtcarrier = 0;
 		}
 		return;
@@ -893,7 +893,7 @@ int Pickup_Team( gentity_t *ent, gentity_t *other ) {
 	}
 #endif
 	// GT_CTF
-	if( team == cl->sess.sessionTeam) {
+	if( team == (int)cl->sess.sessionTeam) {
 		return Team_TouchOurFlag( ent, other, team );
 	}
 	return Team_TouchEnemyFlag( ent, other, team );
@@ -1106,7 +1106,7 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 				i, player->client->pers.teamState.location, h, a, 
 				player->client->ps.weapon, player->s.powerups);
 			j = strlen(entry);
-			if (stringlength + j > sizeof(string))
+			if ((size_t)( stringlength + j ) > sizeof(string))
 				break;
 			strcpy (string + stringlength, entry);
 			stringlength += j;

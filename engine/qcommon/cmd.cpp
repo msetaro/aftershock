@@ -502,7 +502,7 @@ Cmd_Argv
 ============
 */
 const char *Cmd_Argv( int arg ) {
-	if ( (unsigned)arg >= cmd_argc ) {
+	if ( (unsigned)arg >= (unsigned int)cmd_argc ) {
 		return "";
 	}
 	return cmd_argv[arg];
@@ -633,7 +633,7 @@ static void Cmd_TokenizeString2( const char *text_in, qboolean ignoreQuotes ) {
 	textOut = cmd_tokenized;
 
 	while ( 1 ) {
-		if ( cmd_argc >= ARRAY_LEN( cmd_argv ) ) {
+		if ( (size_t)cmd_argc >= ARRAY_LEN( cmd_argv ) ) {
 			return;			// this is usually something malicious
 		}
 

@@ -291,7 +291,7 @@ SV_GetUsercmd
 ===============
 */
 static void SV_GetUsercmd( int clientNum, usercmd_t *cmd ) {
-	if ( (unsigned) clientNum < sv.maxclients ) {
+	if ( (unsigned) clientNum < (unsigned int)sv.maxclients ) {
 		*cmd = svs.clients[ clientNum ].lastUsercmd;
 	} else {
 		Com_Error( ERR_DROP, "%s(): bad clientNum: %i", __func__, clientNum );
@@ -551,7 +551,7 @@ int GameImport_BotGetServerCommand( int clientNum, char * message, int size ) {
 void GameImport_BotUserCommand( int clientNum, void * ucmd ) {
 	{
 		unsigned clientIndex = clientNum;
-		if ( clientIndex < sv.maxclients )
+		if ( clientIndex < (unsigned int)sv.maxclients )
 		{
 			SV_ClientThink( &svs.clients[ clientIndex ], (usercmd_t *)ucmd );
 		}

@@ -62,9 +62,9 @@ void wt1(float a[], unsigned long n, int isign)
 {
 	unsigned long nn;
 	int inverseStartLength = n/4;
-	if (n < inverseStartLength) return;
+	if (n < (decltype(n))inverseStartLength) return;
 	if (isign >= 0) {
-		for (nn=n;nn>=inverseStartLength;nn>>=1) daub4(a,nn,isign);
+		for (nn=n;nn>=(decltype(nn))inverseStartLength;nn>>=1) daub4(a,nn,isign);
 	} else {
 		for (nn=inverseStartLength;nn<=n;nn<<=1) daub4(a,nn,isign);
 	}

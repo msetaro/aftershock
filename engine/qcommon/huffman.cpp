@@ -335,7 +335,7 @@ void Huff_Decompress(msg_t *mbuf, int offset) {
 	if ( cch > mbuf->maxsize - offset ) {
 		cch = mbuf->maxsize - offset;
 	}
-	if ( cch > sizeof( seq ) ) {
+	if ( (size_t)cch > sizeof( seq ) ) {
 		cch = sizeof( seq );
 	}
 	bloc = 16;

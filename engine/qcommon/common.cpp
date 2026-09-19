@@ -763,7 +763,7 @@ qboolean Com_FilterExt( const char *filter, const char *name )
 	while ( *filter ) {
 		if ( *filter == '*' ) {
 			filter++;
-			for ( i = 0; *filter != '\0' && i < sizeof(buf)-1; i++ ) {
+			for ( i = 0; *filter != '\0' && (size_t)i < sizeof(buf)-1; i++ ) {
 				if ( *filter == '*' || *filter == '?' )
 					break;
 				buf[i] = *filter++;
@@ -1401,7 +1401,7 @@ void *Z_TagMalloc( size_t size, memtag_t tag ) {
 	// found a block big enough
 	//
 	extra = base->size - size;
-	if ( extra >= minfragment ) {
+	if ( extra >= (size_t)minfragment ) {
 		memblock_t *fragment = SplitBlock( base, size, extra );
 #ifdef USE_MULTI_SEGMENT
 		InsertFree( zone, fragment );
@@ -2296,7 +2296,7 @@ void *Hunk_Alloc( size_t size, ha_pref preference ) {
 	// round to cacheline
 	size = PAD( size, 64 );
 
-	if ( hunk_low.temp + hunk_high.temp + size > s_hunkTotal ) {
+	if ( hunk_low.temp + hunk_high.temp + size > (size_t)s_hunkTotal ) {
 #ifdef HUNK_DEBUG
 		Hunk_Log();
 		Hunk_SmallLog();
@@ -2365,7 +2365,7 @@ void *Hunk_AllocateTempMemory( size_t size ) {
 
 	size = PAD(size, sizeof(intptr_t)) + sizeof( hunkHeader_t );
 
-	if ( hunk_temp->temp + hunk_permanent->permanent + size > s_hunkTotal ) {
+	if ( hunk_temp->temp + hunk_permanent->permanent + size > (size_t)s_hunkTotal ) {
 		Com_Error( ERR_DROP, "Hunk_AllocateTempMemory: failed on %" PRIz"u", size );
 	}
 
@@ -4165,7 +4165,7 @@ void Field_CompleteKeyBind( int key )
 		vlen += 2;
 	}
 
-	if ( vlen + blen > sizeof( completionField->buffer ) - 1 )
+	if ( (size_t)( vlen + blen ) > sizeof( completionField->buffer ) - 1 )
 	{
 		//vlen = sizeof( completionField->buffer ) - 1 - blen;
 		return;
@@ -4211,7 +4211,7 @@ static void Field_CompleteCvarValue( const char *value, const char *current )
 		vlen += 2;
 	}
 
-	if ( vlen + blen > sizeof( completionField->buffer ) - 1 )
+	if ( (size_t)( vlen + blen ) > sizeof( completionField->buffer ) - 1 )
 	{
 		//vlen = sizeof( completionField->buffer ) - 1 - blen;
 		return;

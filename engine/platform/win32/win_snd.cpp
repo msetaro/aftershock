@@ -232,7 +232,7 @@ static DWORD WINAPI ThreadProc( HANDLE hInited )
 			// fill pData with numFramesAvailable
 			do
 			{
-				if ( bufferPosition + samples > dma.fullsamples )
+				if ( bufferPosition + samples > (UINT32)dma.fullsamples )
 					n = dma.fullsamples - bufferPosition;
 				else
 					n = samples;
@@ -560,9 +560,9 @@ static qboolean SNDDMA_InitWASAPI( void )
 	dma.samplebits = desiredFormat.Format.wBitsPerSample;
 
 	dma.fullsamples = log2pad( bufferFrameCount * 8, 1 );
-	while ( dma.fullsamples * desiredFormat.Format.nBlockAlign > sizeof( buffer ) )
+	while ( (size_t)( dma.fullsamples * desiredFormat.Format.nBlockAlign ) > sizeof( buffer ) )
 		dma.fullsamples >>= 1;
-	if ( dma.fullsamples < bufferFrameCount )
+	if ( (UINT32)dma.fullsamples < bufferFrameCount )
 	{
 		Com_Printf( S_COLOR_YELLOW "WASAPI: static sound buffer is too small\n" );
 		goto error5;
