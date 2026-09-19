@@ -12,11 +12,11 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-cast-function-type, based on pending unused-variable PR #88 head
-5ebd6e4a. Require build 35451993616/regression 35451993498, self-review and merge,
-then integrate modernization before opening this separate Windows cast warning PR.
-#87 merged c7d69b57 after gates; merged-tree regression 35451971187 remains to
-check. #86 merged-tree regression 35451559386 passes.
+Active: issue/8-cast-function-type. #88 merged 40543f38 after head 5ebd6e4a
+passed build 35451993616 and regression 35451993498; self-review is recorded on
+#88/#8. Its merged-tree regression remains to check. Integration is merged here.
+#87 merged-tree regression 35451971187 passes. Open this Windows cast warning PR
+and require full hosted gates/self-review before merging.
 
 This branch uses the existing platform conversion through void* at nine
 GetProcAddress bindings in four Windows source files. Function signatures and
@@ -69,11 +69,15 @@ All 861 MinGW release/debug syntax configurations pass with the class enabled.
 No signature, call, layout or behavior changes. Artifacts: cast-function-{preview,objects}.
 
 Next:
-1. Merge #88 after its hosted gates/self-review, integrate modernization, then
-   open this Windows class PR and require all hosted gates/self-review.
+1. Source 1d29ae1a/2481f9f8 is ready; open this Windows class PR and require all
+   hosted gates/self-review.
 2. Sign-compare preview: 383 edits in 86 files follow existing integral conversions,
-   with explicit handling for Windows and macros. The 2,380 syntax checks pass;
-   native helper/object gates and final review remain. This parent cast change is
+   with explicit handling for Windows and macros. The 2,380 syntax checks pass.
+   Initial 838-object comparison preserves code/data (698 raw/native matches;
+   140 debug-only differences); all six C++ native libraries retain hashes.
+   The C helper finds enum equality warnings: explicit enum-to-int casts preserve
+   equality bits and C++ promotions. Game helper now passes; six cgame/UI sites
+   remain, followed by final helper/object checks. This parent cast change is
    carried into that preview. No signedness edits are applied to repository sources.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
