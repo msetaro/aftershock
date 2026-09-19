@@ -14,6 +14,21 @@ jobs:
       - name: Enforce reviewed clang-format version and style
         run: python3 tests/check_format.py --clang-format 'pipx run --spec clang-format==21.1.8 clang-format'
 
+  tidy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Clang analysis and build headers
+        run: sudo apt-get update && sudo apt-get install -y ninja-build clang-tidy libsdl2-dev libcurl4-openssl-dev mesa-common-dev
+      - name: Enforce readability and report advisory checks
+        run: python3 tests/check_tidy.py
+      - name: Static analysis evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: clang-tidy
+          path: /tmp/aftershock-tidy
+
   lifetimes:
     runs-on: ubuntu-24.04
     steps:

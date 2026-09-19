@@ -127,6 +127,7 @@ python3 tests/native_diagnostics.py
 python3 tests/bot_command.py
 python3 tests/native_info.py
 python3 tests/check_format.py
+python3 tests/check_tidy.py
 python3 tests/check_lifetimes.py
 python3 tests/check_boundaries.py
 python3 tests/run.py unit --negative-control

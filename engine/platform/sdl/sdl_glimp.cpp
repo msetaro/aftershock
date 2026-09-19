@@ -477,8 +477,9 @@ static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qbool
 		return RSERR_INVALID_MODE;
 	}
 
-	if ( !fullscreen && r_noborder->integer )
+	if ( !fullscreen && r_noborder->integer ) {
 		SDL_SetWindowHitTest( SDL_window, SDL_HitTestFunc, NULL );
+	}
 
 #ifdef USE_VULKAN_API
 	if ( vulkan )
