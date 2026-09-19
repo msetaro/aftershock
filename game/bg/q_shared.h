@@ -44,7 +44,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma warning(disable : 4152)		// nonstandard extension, function/data pointer conversion in expression
 //#pragma warning(disable : 4201)
 //#pragma warning(disable : 4214)
-#pragma warning(disable : 4244)
 #pragma warning(disable : 4142)		// benign redefinition
 //#pragma warning(disable : 4305)		// truncation from const double to float
 //#pragma warning(disable : 4310)		// cast truncates constant value
@@ -486,7 +485,7 @@ typedef struct {
 #define VectorSet(v, x, y, z)	((v)[0]=(x), (v)[1]=(y), (v)[2]=(z))
 #define Vector4Copy(a,b)		((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
 
-#define	SnapVector(v) {v[0]=((int)(v[0]));v[1]=((int)(v[1]));v[2]=((int)(v[2]));}
+#define	SnapVector(v) {v[0]=(float)((int)(v[0]));v[1]=(float)((int)(v[1]));v[2]=(float)((int)(v[2]));}
 // just in case you do't want to use the macros
 vec_t _DotProduct( const vec3_t v1, const vec3_t v2 );
 void _VectorSubtract( const vec3_t veca, const vec3_t vecb, vec3_t out );

@@ -219,7 +219,7 @@ static void UI_SPPostgameMenu_DrawAwardsMedals( int max ) {
 		medal = postgameMenuInfo.awardsEarned[n];
 		amount = postgameMenuInfo.awardsLevels[n];
 
-		UI_DrawNamedPic( x, y, 48, 48, ui_medalPicNames[medal] );
+		UI_DrawNamedPic( (float)( x ), (float)( y ), (float)( 48 ), (float)( 48 ), ui_medalPicNames[medal] );
 
 		if( medal == AWARD_ACCURACY ) {
 			Com_sprintf( buf, sizeof(buf), "%i%%", amount );
@@ -361,7 +361,7 @@ static void UI_SPPostgameMenu_MenuDraw( void ) {
 				return;
 			}
 
-			trap_Cvar_SetValue( "ui_spSelection", postgameMenuInfo.won * ARENAS_PER_TIER );
+			trap_Cvar_SetValue( "ui_spSelection", (float)( postgameMenuInfo.won * ARENAS_PER_TIER ) );
 			trap_Cvar_Set( "nextmap", "levelselect" );
 			trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"disconnect; cinematic tier%i.RoQ\n", postgameMenuInfo.won + 1 ) );
 			return;

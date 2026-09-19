@@ -160,12 +160,12 @@ void CG_FragmentBounceMark( localEntity_t *le, trace_t *trace ) {
 
 		radius = 16 + (rand()&31);
 		CG_ImpactMark( cgs.media.bloodMarkShader, trace->endpos, trace->plane.normal, random()*360,
-			1,1,1,1, qtrue, radius, qfalse );
+			(float)( 1 ),(float)( 1 ),(float)( 1 ),(float)( 1 ), qtrue, (float)( radius ), qfalse );
 	} else if ( le->leMarkType == LEMT_BURN ) {
 
 		radius = 8 + (rand()&15);
 		CG_ImpactMark( cgs.media.burnMarkShader, trace->endpos, trace->plane.normal, random()*360,
-			1,1,1,1, qtrue, radius, qfalse );
+			(float)( 1 ),(float)( 1 ),(float)( 1 ),(float)( 1 ), qtrue, (float)( radius ), qfalse );
 	}
 
 
@@ -216,7 +216,7 @@ void CG_ReflectVelocity( localEntity_t *le, trace_t *trace ) {
 	int		hitTime;
 
 	// reflect the velocity on the trace plane
-	hitTime = cg.time - cg.frametime + cg.frametime * trace->fraction;
+	hitTime = (int)( cg.time - cg.frametime + cg.frametime * trace->fraction );
 	BG_EvaluateTrajectoryDelta( &le->pos, hitTime, velocity );
 	dot = DotProduct( velocity, trace->plane.normal );
 	VectorMA( velocity, -2*dot, trace->plane.normal, le->pos.trDelta );
@@ -338,10 +338,10 @@ void CG_AddFadeRGB( localEntity_t *le ) {
 	c = ( le->endTime - cg.time ) * le->lifeRate;
 	c *= 0xff;
 
-	re->shaderRGBA[0] = le->color[0] * c;
-	re->shaderRGBA[1] = le->color[1] * c;
-	re->shaderRGBA[2] = le->color[2] * c;
-	re->shaderRGBA[3] = le->color[3] * c;
+	re->shaderRGBA[0] = (unsigned char)( le->color[0] * c );
+	re->shaderRGBA[1] = (unsigned char)( le->color[1] * c );
+	re->shaderRGBA[2] = (unsigned char)( le->color[2] * c );
+	re->shaderRGBA[3] = (unsigned char)( le->color[3] * c );
 
 	trap_R_AddRefEntityToScene( re );
 }
@@ -368,7 +368,7 @@ static void CG_AddMoveScaleFade( localEntity_t *le ) {
 		c = ( le->endTime - cg.time ) * le->lifeRate;
 	}
 
-	re->shaderRGBA[3] = 0xff * c * le->color[3];
+	re->shaderRGBA[3] = (unsigned char)( 0xff * c * le->color[3] );
 
 	if ( !( le->leFlags & LEF_PUFF_DONT_SCALE ) ) {
 		re->radius = le->radius * ( 1.0f - c ) + 8;
@@ -409,7 +409,7 @@ static void CG_AddScaleFade( localEntity_t *le ) {
 	// fade / grow time
 	c = ( le->endTime - cg.time ) * le->lifeRate;
 
-	re->shaderRGBA[3] = 0xff * c * le->color[3];
+	re->shaderRGBA[3] = (unsigned char)( 0xff * c * le->color[3] );
 	re->radius = le->radius * ( 1.0f - c ) + 8;
 
 	// if the view would be "inside" the sprite, kill the sprite
@@ -446,7 +446,7 @@ static void CG_AddFallScaleFade( localEntity_t *le ) {
 	// fade time
 	c = ( le->endTime - cg.time ) * le->lifeRate;
 
-	re->shaderRGBA[3] = 0xff * c * le->color[3];
+	re->shaderRGBA[3] = (unsigned char)( 0xff * c * le->color[3] );
 
 	re->origin[2] = le->pos.trBase[2] - ( 1.0f - c ) * le->pos.trDelta[2];
 
@@ -513,7 +513,7 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 	re.shaderRGBA[0] = 0xff;
 	re.shaderRGBA[1] = 0xff;
 	re.shaderRGBA[2] = 0xff;
-	re.shaderRGBA[3] = 0xff * c * 0.33f;
+	re.shaderRGBA[3] = (unsigned char)( 0xff * c * 0.33f );
 
 	re.reType = RT_SPRITE;
 	re.radius = 42 * ( 1.0f - c ) + 30;
@@ -728,7 +728,7 @@ void CG_AddScorePlum( localEntity_t *le ) {
 
 	c = ( le->endTime - cg.time ) * le->lifeRate;
 
-	score = le->radius;
+	score = (int)( le->radius );
 	if (score < 0) {
 		re->shaderRGBA[0] = 0xff;
 		re->shaderRGBA[1] = 0x11;
@@ -750,7 +750,7 @@ void CG_AddScorePlum( localEntity_t *le ) {
 
 	}
 	if (c < 0.25f)
-		re->shaderRGBA[3] = 0xff * 4 * c;
+		re->shaderRGBA[3] = (unsigned char)( 0xff * 4 * c );
 	else
 		re->shaderRGBA[3] = 0xff;
 

@@ -666,7 +666,7 @@ void AAS_ShowReachability(aas_reachability_t *reach)
 		//NOTE: the edgenum is the horizontal velocity
 		VectorScale(dir, reach->edgenum, velocity);
 		//NOTE: the facenum is the Z velocity
-		velocity[2] = reach->facenum;
+		velocity[2] = (float)( reach->facenum );
 		//
 		AAS_PredictClientMovement(&move, -1, reach->start, PRESENCE_NORMAL, qtrue,
 									velocity, cmdmove, 30, 30, 0.1f,

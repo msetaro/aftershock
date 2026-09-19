@@ -875,7 +875,7 @@ static size_t Com_DL_HeaderCallback( void *ptr, size_t size, size_t nmemb, void 
 			// copy filename
 			while ( *s != '\0' && *s != quote ) 
 				*d++ = *s++;
-			len = d - name;
+			len = (int)( d - name );
 			*d++ = '\0';
 
 			// validate

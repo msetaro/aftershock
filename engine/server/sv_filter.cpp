@@ -77,7 +77,7 @@ static void CleanStr( char *dst, int dst_size, const char *src )
 			src += 2;
 			continue;
 		} else if ( c >= ' ' && c <= '~' ) {
-			*dst++ = c;
+			*dst++ = (char)( c );
 			if ( dst >= max )
 				break;
 		}

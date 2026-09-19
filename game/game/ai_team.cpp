@@ -383,9 +383,9 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 		}
 		default:
 		{
-			defenders = (int) (float) numteammates * 0.4f + 0.5f;
+			defenders = (int)( (int) (int)( (float) numteammates ) * 0.4f + 0.5f );
 			if (defenders > 4) defenders = 4;
-			attackers = (int) (float) numteammates * 0.5f + 0.5f;
+			attackers = (int)( (int) (int)( (float) numteammates ) * 0.5f + 0.5f );
 			if (attackers > 5) attackers = 5;
 			if (bs->flagcarrier != -1) {
 				ClientName(bs->flagcarrier, carriername, sizeof(carriername));
@@ -490,9 +490,9 @@ void BotCTFOrders_FlagNotAtBase(bot_state_t *bs) {
 			default:
 			{
 				//keep some people near the base for when the flag is returned
-				defenders = (int) (float) numteammates * 0.3f + 0.5f;
+				defenders = (int)( (int) (int)( (float) numteammates ) * 0.3f + 0.5f );
 				if (defenders > 3) defenders = 3;
-				attackers = (int) (float) numteammates * 0.7f + 0.5f;
+				attackers = (int)( (int) (int)( (float) numteammates ) * 0.7f + 0.5f );
 				if (attackers > 6) attackers = 6;
 				for (i = 0; i < defenders; i++) {
 					//
@@ -553,9 +553,9 @@ void BotCTFOrders_FlagNotAtBase(bot_state_t *bs) {
 			default:
 			{
 				//keep some people near the base for when the flag is returned
-				defenders = (int) (float) numteammates * 0.2f + 0.5f;
+				defenders = (int)( (int) (int)( (float) numteammates ) * 0.2f + 0.5f );
 				if (defenders > 2) defenders = 2;
-				attackers = (int) (float) numteammates * 0.7f + 0.5f;
+				attackers = (int)( (int) (int)( (float) numteammates ) * 0.7f + 0.5f );
 				if (attackers > 7) attackers = 7;
 				for (i = 0; i < defenders; i++) {
 					//
@@ -625,10 +625,10 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 		default:
 		{
 			//60% will defend the base
-			defenders = (int) (float) numteammates * 0.6f + 0.5f;
+			defenders = (int)( (int) (int)( (float) numteammates ) * 0.6f + 0.5f );
 			if (defenders > 6) defenders = 6;
 			//30% accompanies the flag carrier
-			attackers = (int) (float) numteammates * 0.3f + 0.5f;
+			attackers = (int)( (int) (int)( (float) numteammates ) * 0.3f + 0.5f );
 			if (attackers > 3) attackers = 3;
 			for (i = 0; i < defenders; i++) {
 				//
@@ -735,9 +735,9 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 			}
 			default:
 			{
-				defenders = (int) (float) numteammates * 0.5f + 0.5f;
+				defenders = (int)( (int) (int)( (float) numteammates ) * 0.5f + 0.5f );
 				if (defenders > 5) defenders = 5;
-				attackers = (int) (float) numteammates * 0.4f + 0.5f;
+				attackers = (int)( (int) (int)( (float) numteammates ) * 0.4f + 0.5f );
 				if (attackers > 4) attackers = 4;
 				for (i = 0; i < defenders; i++) {
 					//
@@ -797,9 +797,9 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 			}
 			default:
 			{
-				defenders = (int) (float) numteammates * 0.4f + 0.5f;
+				defenders = (int)( (int) (int)( (float) numteammates ) * 0.4f + 0.5f );
 				if (defenders > 4) defenders = 4;
-				attackers = (int) (float) numteammates * 0.5f + 0.5f;
+				attackers = (int)( (int) (int)( (float) numteammates ) * 0.5f + 0.5f );
 				if (attackers > 5) attackers = 5;
 				for (i = 0; i < defenders; i++) {
 					//

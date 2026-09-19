@@ -353,23 +353,23 @@ int COM_Compress( char *data_p ) {
                             
                             // copy quoted strings unmolested
                             if (c == '"') {
-                                    *out++ = c;
+                                    *out++ = (char)( c );
                                     in++;
                                     while (1) {
                                         c = *in;
                                         if (c && c != '"') {
-                                            *out++ = c;
+                                            *out++ = (char)( c );
                                             in++;
                                         } else {
                                             break;
                                         }
                                     }
                                     if (c == '"') {
-                                        *out++ = c;
+                                        *out++ = (char)( c );
                                         in++;
                                     }
                             } else {
-                                *out = c;
+                                *out = (char)( c );
                                 out++;
                                 in++;
                             }
@@ -377,7 +377,7 @@ int COM_Compress( char *data_p ) {
 		}
 	}
 	*out = 0;
-	return out - data_p;
+	return (int)( out - data_p );
 }
 
 char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
@@ -456,7 +456,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 			}
 			if (len < MAX_TOKEN_CHARS)
 			{
-				com_token[len] = c;
+				com_token[len] = (char)( c );
 				len++;
 			}
 		}
@@ -467,7 +467,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 	{
 		if (len < MAX_TOKEN_CHARS)
 		{
-			com_token[len] = c;
+			com_token[len] = (char)( c );
 			len++;
 		}
 		data++;
@@ -614,7 +614,7 @@ void Parse1DMatrix (char **buf_p, int x, float *m) {
 
 	for (i = 0 ; i < x ; i++) {
 		token = COM_Parse(buf_p);
-		m[i] = atof(token);
+		m[i] = (float)( atof(token) );
 	}
 
 	COM_MatchToken( buf_p, (char *)")" );
@@ -683,7 +683,7 @@ int Q_isalpha( int c )
 
 char* Q_strrchr( const char* string, int c )
 {
-	char cc = c;
+	char cc = (char)( c );
 	char *s;
 	char *sp=(char *)0;
 
@@ -792,7 +792,7 @@ char *Q_strlwr( char *s1 ) {
 
     s = s1;
 	while ( *s ) {
-		*s = tolower(*s);
+		*s = (char)( tolower(*s) );
 		s++;
 	}
     return s1;
@@ -803,7 +803,7 @@ char *Q_strupr( char *s1 ) {
 
     s = s1;
 	while ( *s ) {
-		*s = toupper(*s);
+		*s = (char)( toupper(*s) );
 		s++;
 	}
     return s1;
@@ -857,7 +857,7 @@ char *Q_CleanStr( char *string ) {
 			s++;
 		}		
 		else if ( c >= 0x20 && c <= 0x7E ) {
-			*d++ = c;
+			*d++ = (char)( c );
 		}
 		s++;
 	}

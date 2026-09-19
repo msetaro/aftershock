@@ -154,7 +154,7 @@ static gentity_t *SpawnModelOnVictoryPad( gentity_t *pad, vec3_t offset, gentity
 	body->s.eFlags = 0;				// clear EF_TALK, etc
 	body->s.powerups = 0;			// clear powerups
 	body->s.loopSound = 0;			// clear lava burning
-	body->s.number = body - g_entities;
+	body->s.number = (int)( body - g_entities );
 	body->timestamp = level.time;
 	body->physicsObject = qtrue;
 	body->physicsBounce = 0;		// don't bounce
@@ -300,7 +300,7 @@ static gentity_t *SpawnPodium( void ) {
 
 	podium->classname = "podium";
 	podium->s.eType = ET_GENERAL;
-	podium->s.number = podium - g_entities;
+	podium->s.number = (int)( podium - g_entities );
 	podium->clipmask = CONTENTS_SOLID;
 	podium->r.contents = CONTENTS_SOLID;
 	podium->s.modelindex = G_ModelIndex( (char *)SP_PODIUM_MODEL );

@@ -299,15 +299,15 @@ void Con_CheckResize( void )
 
 	con.viswidth = cls.glconfig.vidWidth;
 
-	smallchar_width = SMALLCHAR_WIDTH * scale * cls.con_factor;
-	smallchar_height = SMALLCHAR_HEIGHT * scale * cls.con_factor;
-	bigchar_width = BIGCHAR_WIDTH * scale * cls.con_factor;
-	bigchar_height = BIGCHAR_HEIGHT * scale * cls.con_factor;
+	smallchar_width = (int)( SMALLCHAR_WIDTH * scale * cls.con_factor );
+	smallchar_height = (int)( SMALLCHAR_HEIGHT * scale * cls.con_factor );
+	bigchar_width = (int)( BIGCHAR_WIDTH * scale * cls.con_factor );
+	bigchar_height = (int)( BIGCHAR_HEIGHT * scale * cls.con_factor );
 
 	if ( cls.glconfig.vidWidth == 0 ) // video hasn't been initialized yet
 	{
 		g_console_field_width = DEFAULT_CONSOLE_WIDTH;
-		width = DEFAULT_CONSOLE_WIDTH * scale;
+		width = (int)( DEFAULT_CONSOLE_WIDTH * scale );
 		con.linewidth = width;
 		con.totallines = CON_TEXTSIZE / con.linewidth;
 		con.vispage = 4;
@@ -594,7 +594,7 @@ void CL_ConsolePrint( const char *txt ) {
 			}
 			// display character and advance
 			y = con.current % con.totallines;
-			con.text[y * con.linewidth + con.x ] = (colorIndex << 8) | (c & 255);
+			con.text[y * con.linewidth + con.x ] = (short)( (colorIndex << 8) | (c & 255) );
 			con.x++;
 			if ( con.x >= con.linewidth ) {
 				Con_Linefeed( skipnotify );
@@ -644,9 +644,9 @@ static void Con_DrawInput( void ) {
 
 	re.SetColor( con.color );
 
-	SCR_DrawSmallChar( con.xadjust + 1 * smallchar_width, y, ']' );
+	SCR_DrawSmallChar( (int)( con.xadjust + 1 * smallchar_width ), y, ']' );
 
-	Field_Draw( &g_consoleField, con.xadjust + 2 * smallchar_width, y,
+	Field_Draw( &g_consoleField, (int)( con.xadjust + 2 * smallchar_width ), y,
 		SCREEN_WIDTH - 3 * smallchar_width, qtrue, qtrue );
 }
 
@@ -697,7 +697,7 @@ static void Con_DrawNotify( void )
 				currentColorIndex = colorIndex;
 				re.SetColor( g_color_table[ colorIndex ] );
 			}
-			SCR_DrawSmallChar( cl_conXOffset->integer + con.xadjust + (x+1)*smallchar_width, v, text[x] & 0xff );
+			SCR_DrawSmallChar( (int)( cl_conXOffset->integer + con.xadjust + (x+1)*smallchar_width ), v, text[x] & 0xff );
 		}
 
 		v += smallchar_height;
@@ -713,7 +713,7 @@ static void Con_DrawNotify( void )
 	if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE )
 	{
 		// rescale to virtual 640x480 space
-		v /= cls.glconfig.vidHeight / 480.0;
+		{ double expressionValue = cls.glconfig.vidHeight / 480.0; v = (int)( v / expressionValue ); }
 
 		if (chat_team)
 		{
@@ -755,7 +755,7 @@ static void Con_DrawSolidConsole( float frac ) {
 	float			yf, wf;
 	char			buf[ MAX_CVAR_VALUE_STRING ], *v[4];
 
-	lines = cls.glconfig.vidHeight * frac;
+	lines = (int)( cls.glconfig.vidHeight * frac );
 	if ( lines <= 0 )
 		return;
 
@@ -826,7 +826,7 @@ static void Con_DrawSolidConsole( float frac ) {
 		// draw arrows to show the buffer is backscrolled
 		re.SetColor( g_color_table[ ColorIndex( COLOR_RED ) ] );
 		for ( x = 0 ; x < con.linewidth ; x += 4 )
-			SCR_DrawSmallChar( con.xadjust + (x+1)*smallchar_width, y, '^' );
+			SCR_DrawSmallChar( (int)( con.xadjust + (x+1)*smallchar_width ), y, '^' );
 		y -= smallchar_height;
 		row--;
 	}
@@ -872,7 +872,7 @@ static void Con_DrawSolidConsole( float frac ) {
 				currentColorIndex = colorIndex;
 				re.SetColor( g_color_table[ colorIndex ] );
 			}
-			SCR_DrawSmallChar( con.xadjust + (x + 1) * smallchar_width, y, text[x] & 0xff );
+			SCR_DrawSmallChar( (int)( con.xadjust + (x + 1) * smallchar_width ), y, text[x] & 0xff );
 		}
 	}
 
@@ -931,14 +931,14 @@ void Con_RunConsole( void )
 	// scroll towards the destination height
 	if ( con.finalFrac < con.displayFrac )
 	{
-		con.displayFrac -= con_conspeed->value * cls.realFrametime * 0.001;
+		{ double expressionValue = con_conspeed->value * cls.realFrametime * 0.001; con.displayFrac = (float)( con.displayFrac - expressionValue ); }
 		if ( con.finalFrac > con.displayFrac )
 			con.displayFrac = con.finalFrac;
 
 	}
 	else if ( con.finalFrac > con.displayFrac )
 	{
-		con.displayFrac += con_conspeed->value * cls.realFrametime * 0.001;
+		{ double expressionValue = con_conspeed->value * cls.realFrametime * 0.001; con.displayFrac = (float)( con.displayFrac + expressionValue ); }
 		if ( con.finalFrac < con.displayFrac )
 			con.displayFrac = con.finalFrac;
 	}

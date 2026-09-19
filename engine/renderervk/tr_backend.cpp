@@ -472,7 +472,7 @@ static void RB_Hyperspace( void ) {
 	}
 	c.rgba[3] = 255;
 
-	RB_AddQuadStamp2( backEnd.refdef.x, backEnd.refdef.y, backEnd.refdef.width, backEnd.refdef.height,
+	RB_AddQuadStamp2( (float)( backEnd.refdef.x ), (float)( backEnd.refdef.y ), (float)( backEnd.refdef.width ), (float)( backEnd.refdef.height ),
 		0.0, 0.0, 0.0, 0.0, c );
 
 	RB_EndSurface();
@@ -1109,7 +1109,7 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, byte *data, 
 	}
 
 	tr.cinematicShader->stages[0]->bundle[0].image[0] = tr.scratchImage[client];
-	RE_StretchPic( x, y, w, h, 0.5f / cols, 0.5f / rows, 1.0f - 0.5f / cols, 1.0f - 0.5 / rows, tr.cinematicShader->index );
+	RE_StretchPic( (float)( x ), (float)( y ), (float)( w ), (float)( h ), 0.5f / (float)( cols ), 0.5f / (float)( rows ), 1.0f - 0.5f / (float)( cols ), (float)( 1.0f - 0.5 / rows ), tr.cinematicShader->index );
 }
 
 
@@ -1164,10 +1164,10 @@ static const void *RB_SetColor( const void *data ) {
 
 	cmd = (const setColorCommand_t *)data;
 
-	backEnd.color2D.rgba[0] = cmd->color[0] * 255;
-	backEnd.color2D.rgba[1] = cmd->color[1] * 255;
-	backEnd.color2D.rgba[2] = cmd->color[2] * 255;
-	backEnd.color2D.rgba[3] = cmd->color[3] * 255;
+	backEnd.color2D.rgba[0] = (unsigned char)( cmd->color[0] * 255 );
+	backEnd.color2D.rgba[1] = (unsigned char)( cmd->color[1] * 255 );
+	backEnd.color2D.rgba[2] = (unsigned char)( cmd->color[2] * 255 );
+	backEnd.color2D.rgba[3] = (unsigned char)( cmd->color[3] * 255 );
 
 	return (const void *)(cmd + 1);
 }
@@ -1527,8 +1527,8 @@ void RB_ShowImages( void )
 	for ( i = 0; i < tr.numImages; i++ ) {
 		image_t* image = tr.images[i];
 
-		float w = glConfig.vidWidth / 20;
-		float h = glConfig.vidHeight / 15;
+		float w = (float)( glConfig.vidWidth / 20 );
+		float h = (float)( glConfig.vidHeight / 15 );
 		float x = i % 20 * w;
 		float y = i / 20 * h;
 

@@ -328,7 +328,7 @@ int AAS_FloatForBSPEpairKey(int ent, const char *key, float *value)
 	
 	*value = 0;
 	if (!AAS_ValueForBSPEpairKey(ent, key, buf, sizeof( buf ))) return qfalse;
-	*value = atof(buf);
+	*value = (float)( atof(buf) );
 	return qtrue;
 } //end of the function AAS_FloatForBSPEpairKey
 //===========================================================================

@@ -199,13 +199,13 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 	VectorScale( f->color, d, f->color );
 
 	// save info needed to test
-	f->windowX = backEnd.viewParms.viewportX + window[0];
-	f->windowY = backEnd.viewParms.viewportY + window[1];
+	f->windowX = (int)( backEnd.viewParms.viewportX + window[0] );
+	f->windowY = (int)( backEnd.viewParms.viewportY + window[1] );
 
 	f->eyeZ = eye[2];
 
 #ifdef USE_REVERSED_DEPTH
-	f->drawZ = (clip[2]+0.20) / clip[3];
+	f->drawZ = (float)( (clip[2]+0.20) / clip[3] );
 #else
 	f->drawZ = (clip[2]-0.20) / clip[3];
 #endif
@@ -315,7 +315,7 @@ static void RB_TestFlare( flare_t *f ) {
 */
 
 	// we neeed only single uint32_t but take care of alignment
-	offset = (f - r_flareStructs) * vk.storage_alignment;
+	offset = (uint32_t)( (f - r_flareStructs) * vk.storage_alignment );
 
 	if ( f->testCount ) {
 		uint32_t *cnt = (uint32_t*)(vk.storage.buffer_ptr + offset);
@@ -332,12 +332,12 @@ static void RB_TestFlare( flare_t *f ) {
 	// reset test result in storage buffer
 	// *((uint32_t*)(vk.storage.buffer_ptr + offset)) = 0x00;
 
-	m = vk_ortho( backEnd.viewParms.viewportX, backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth,
-		backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight, 0, 1 );
+	m = vk_ortho( (float)( backEnd.viewParms.viewportX ), (float)( backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth ),
+		(float)( backEnd.viewParms.viewportY ), (float)( backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight ), (float)( 0 ), (float)( 1 ) );
 	vk_update_mvp( m );
 
-	tess.xyz[0][0] = f->windowX;
-	tess.xyz[0][1] = f->windowY;
+	tess.xyz[0][0] = (float)( f->windowX );
+	tess.xyz[0][1] = (float)( f->windowY );
 	tess.xyz[0][2] = -f->drawZ;
 	tess.numVertexes = 1;
 
@@ -427,7 +427,7 @@ static void RB_RenderFlare( flare_t *f ) {
  * The coefficient flareCoeff will determine the falloff speed with increasing distance.
  */
 
-	factor = distance + size * sqrt( (double)(r_flareCoeff->value) );
+	factor = (float)( distance + size * sqrt( (double)(r_flareCoeff->value) ) );
 
 	intensity = r_flareCoeff->value * size * size / ( factor * factor );
 
@@ -449,9 +449,9 @@ static void RB_RenderFlare( flare_t *f ) {
 
 	RB_BeginSurface( tr.flareShader, f->fogNum );
 
-	c.rgba[0] = color[0] * fogFactors[0];
-	c.rgba[1] = color[1] * fogFactors[1];
-	c.rgba[2] = color[2] * fogFactors[2];
+	c.rgba[0] = (unsigned char)( color[0] * fogFactors[0] );
+	c.rgba[1] = (unsigned char)( color[1] * fogFactors[1] );
+	c.rgba[2] = (unsigned char)( color[2] * fogFactors[2] );
 	c.rgba[3] = 255;
 
 	RB_AddQuadStamp2( f->windowX - size, f->windowY - size, size * 2, size * 2, 0, 0, 1, 1, c );
@@ -538,8 +538,8 @@ void RB_RenderFlares( void ) {
 	}
 
 #ifdef USE_REVERSED_DEPTH
-	m = vk_ortho( backEnd.viewParms.viewportX, backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth,
-		backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight, 1.0, 0.0 );
+	m = vk_ortho( (float)( backEnd.viewParms.viewportX ), (float)( backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth ),
+		(float)( backEnd.viewParms.viewportY ), (float)( backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight ), 1.0, 0.0 );
 #else
 	m = vk_ortho( backEnd.viewParms.viewportX, backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth,
 		backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight, 0.0, 1.0 );

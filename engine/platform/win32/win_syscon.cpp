@@ -336,7 +336,7 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 	case WM_ENTERSIZEMOVE:
 		if ( conTimerID == 0 && (v = GetTimerMsec()) > 0 ) {
-			conTimerID = SetTimer( s_wcd.hWnd, CON_TIMER_ID, v, NULL );
+			conTimerID = (UINT)( SetTimer( s_wcd.hWnd, CON_TIMER_ID, v, NULL ) );
 		}
 		break;
 
@@ -389,7 +389,7 @@ static LRESULT WINAPI BufferWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			}
 		} else {
 			if ( bufTimerID == 0 && (v = GetTimerMsec()) > 0 ) {
-				bufTimerID = SetTimer( hWnd, BUF_TIMER_ID, v, NULL );
+				bufTimerID = (UINT)( SetTimer( hWnd, BUF_TIMER_ID, v, NULL ) );
 			}
 		}
 		break;
@@ -397,7 +397,7 @@ static LRESULT WINAPI BufferWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 	case WM_CAPTURECHANGED:
 		if ( (HWND)lParam == hWnd ) {
 			if ( bufTimerID == 0 && (v = GetTimerMsec()) > 0 )
-				bufTimerID = SetTimer( hWnd, BUF_TIMER_ID, v, NULL );
+				bufTimerID = (UINT)( SetTimer( hWnd, BUF_TIMER_ID, v, NULL ) );
 		} else {
 			if ( bufTimerID != 0 ) {
 				KillTimer( hWnd, bufTimerID );
@@ -871,7 +871,7 @@ void Sys_CreateConsole( const char *title, int xPos, int yPos, qboolean useXYpos
 	SetForegroundWindow( s_wcd.hWnd );
 
 	SendMessage( s_wcd.hwndBuffer, EM_SETLIMITTEXT, MAX_CONSIZE, 0 );
-	maxConSize = SendMessage( s_wcd.hwndBuffer, EM_GETLIMITTEXT, 0, 0 );
+	maxConSize = (int)( SendMessage( s_wcd.hwndBuffer, EM_GETLIMITTEXT, 0, 0 ) );
 
 	SendMessage( s_wcd.hwndInputLine, EM_SETLIMITTEXT, MAX_EDIT_LINE, 0 );
 
@@ -1039,7 +1039,7 @@ void Conbuf_AppendText( const char *msg )
 	}
 
 	*b = '\0';
-	bufLen = b - buffer;
+	bufLen = (int)( b - buffer );
 
 	// not enough space in buffer -> flush
 	if ( (size_t)( bufLen + conBufPos ) >= sizeof( conBuffer )-1 ) {
@@ -1063,8 +1063,8 @@ void Conbuf_AppendText( const char *msg )
 
 	// set flush timer
 	if ( texTimerID == 0 ) {
-		texTimerID = SetTimer( s_wcd.hwndBuffer, TEX_TIMER_ID,
-			s_wcd.visLevel == 1 ? 25 : 100, NULL );
+		texTimerID = (UINT)( SetTimer( s_wcd.hwndBuffer, TEX_TIMER_ID,
+			s_wcd.visLevel == 1 ? 25 : 100, NULL ) );
 	}
 }
 
@@ -1075,13 +1075,13 @@ static void AddBufferText( const char *text, int textLength )
 	int pos, n;
 
 	if ( textLength + curConSize >= maxConSize ) {
-		lineCount = SendMessage( s_wcd.hwndBuffer, EM_GETLINECOUNT, 0, 0 );
+		lineCount = (int)( SendMessage( s_wcd.hwndBuffer, EM_GETLINECOUNT, 0, 0 ) );
 		// cut off half from total lines count
 		lineCount /= 2;
 		if ( lineCount <= 1 ) {
 			SetWindowText( s_wcd.hwndBuffer, T("") );
 		} else {
-			pos = SendMessage( s_wcd.hwndBuffer, EM_LINEINDEX, lineCount, 0 );
+			pos = (int)( SendMessage( s_wcd.hwndBuffer, EM_LINEINDEX, lineCount, 0 ) );
 			SendMessage( s_wcd.hwndBuffer, EM_SETSEL, 0, pos );
 			SendMessage( s_wcd.hwndBuffer, EM_REPLACESEL, FALSE, (LPARAM) TEXT("") );
 		}

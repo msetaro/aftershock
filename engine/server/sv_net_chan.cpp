@@ -61,7 +61,7 @@ static void SV_Netchan_Encode(client_t *client, msg_t *msg, const char *clientCo
 	string = (byte *) clientCommandString;
 	index = 0;
 	// xor the client challenge with the netchan sequence number
-	key = client->challenge ^ client->netchan.outgoingSequence;
+	key = (unsigned char)( client->challenge ^ client->netchan.outgoingSequence );
 	for (i = SV_ENCODE_START; i < msg->cursize; i++) {
 		// modify the key with the last received and with this message acknowledged client command
 		if (!string[index])
@@ -112,7 +112,7 @@ static void SV_Netchan_Decode( client_t *client, msg_t *msg ) {
 	string = (byte *)client->reliableCommands[ reliableAcknowledge & (MAX_RELIABLE_COMMANDS-1) ];
 	index = 0;
 	//
-	key = client->challenge ^ serverId ^ messageAcknowledge;
+	key = (unsigned char)( client->challenge ^ serverId ^ messageAcknowledge );
 	for (i = msg->readcount + SV_DECODE_START; i < msg->cursize; i++) {
 		// modify the key with the last sent and acknowledged server command
 		if (!string[index])

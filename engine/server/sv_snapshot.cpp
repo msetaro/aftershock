@@ -600,7 +600,7 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 
 	// this is the frame we are creating
 	frame = &client->frames[ client->netchan.outgoingSequence & PACKET_MASK ];
-	cl = client - svs.clients;
+	cl = (int)( client - svs.clients );
 
 	// clear everything in this snapshot
 	Com_Memset( frame->areabits, 0, sizeof( frame->areabits ) );

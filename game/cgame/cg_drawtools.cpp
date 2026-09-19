@@ -131,10 +131,10 @@ void CG_DrawChar( int x, int y, int width, int height, int ch ) {
 		return;
 	}
 
-	ax = x;
-	ay = y;
-	aw = width;
-	ah = height;
+	ax = (float)( x );
+	ay = (float)( y );
+	aw = (float)( width );
+	ah = (float)( height );
 	CG_AdjustFrom640( &ax, &ay, &aw, &ah );
 
 	row = ch>>4;
@@ -276,7 +276,7 @@ static void CG_TileClearBox( int x, int y, int w, int h, qhandle_t hShader ) {
 	t1 = y/64.0f;
 	s2 = (x+w)/64.0f;
 	t2 = (y+h)/64.0f;
-	trap_R_DrawStretchPic( x, y, w, h, s1, t1, s2, t2, hShader );
+	trap_R_DrawStretchPic( (float)( x ), (float)( y ), (float)( w ), (float)( h ), s1, t1, s2, t2, hShader );
 }
 
 
@@ -393,7 +393,7 @@ void CG_GetColorForHealth( int health, int armor, vec4_t hcolor ) {
 		return;
 	}
 	count = armor;
-	max = health * ARMOR_PROTECTION / ( 1.0f - ARMOR_PROTECTION );
+	max = (int)( health * ARMOR_PROTECTION / ( 1.0f - ARMOR_PROTECTION ) );
 	if ( max < count ) {
 		count = max;
 	}
@@ -775,12 +775,12 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 
 	switch( style & UI_FORMATMASK ) {
 		case UI_CENTER:
-			width = UI_ProportionalStringWidth( str ) * sizeScale;
+			width = (int)( UI_ProportionalStringWidth( str ) * sizeScale );
 			x -= width / 2;
 			break;
 
 		case UI_RIGHT:
-			width = UI_ProportionalStringWidth( str ) * sizeScale;
+			width = (int)( UI_ProportionalStringWidth( str ) * sizeScale );
 			x -= width;
 			break;
 

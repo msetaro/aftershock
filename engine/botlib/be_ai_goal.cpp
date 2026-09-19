@@ -1376,7 +1376,7 @@ int BotChooseLTGItem(int goalstate, vec3_t origin, int *inventory, int travelfla
 				if (avoidtime - t * 0.009 > 0)
 					continue;
 				//
-				weight /= (float) t * TRAVELTIME_SCALE;
+				{ double expressionValue = (float) t * TRAVELTIME_SCALE; weight = (float)( weight / expressionValue ); }
 				//
 				if (weight > bestweight)
 				{
@@ -1547,7 +1547,7 @@ int BotChooseNBGItem(int goalstate, vec3_t origin, int *inventory, int travelfla
 				if (avoidtime - t * 0.009 > 0)
 					continue;
 				//
-				weight /= (float) t * TRAVELTIME_SCALE;
+				{ double expressionValue = (float) t * TRAVELTIME_SCALE; weight = (float)( weight / expressionValue ); }
 				//
 				if (weight > bestweight)
 				{
@@ -1648,7 +1648,7 @@ int BotItemGoalInVisButNotVisible(int viewer, vec3_t eye, vec3_t viewangles [[ma
 	if (!(goal->flags & GFL_ITEM)) return qfalse;
 	//
 	VectorAdd(goal->mins, goal->mins, middle);
-	VectorScale(middle, 0.5, middle);
+	((middle)[0]=(float)((middle)[0]*(0.5)),(middle)[1]=(float)((middle)[1]*(0.5)),(middle)[2]=(float)((middle)[2]*(0.5)));
 	VectorAdd(goal->origin, middle, middle);
 	//
 	trace = AAS_Trace(eye, NULL, NULL, middle, viewer, CONTENTS_SOLID);
@@ -1781,7 +1781,7 @@ int BotSetupGoalAI(void)
 	const char *filename;
 
 	//check if teamplay is on
-	g_gametype = LibVarValue("g_gametype", "0");
+	g_gametype = (int)( LibVarValue("g_gametype", "0") );
 	//item configuration file
 	filename = LibVarString("itemconfig", "items.c");
 	//load the item configuration

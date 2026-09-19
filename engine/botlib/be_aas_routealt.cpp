@@ -151,8 +151,8 @@ int AAS_AlternativeRouteGoals(vec3_t start, int startareanum, vec3_t goal [[mayb
 		if (goaltime > (float) 0.8 * goaltraveltime) continue;
 		//this is a mid range area
 		midrangeareas[i].valid = qtrue;
-		midrangeareas[i].starttime = starttime;
-		midrangeareas[i].goaltime = goaltime;
+		midrangeareas[i].starttime = (unsigned short)( starttime );
+		midrangeareas[i].goaltime = (unsigned short)( goaltime );
 		Log_Write("%d midrange area %d", nummidrangeareas, i);
 		nummidrangeareas++;
 	} //end for
@@ -170,7 +170,7 @@ int AAS_AlternativeRouteGoals(vec3_t start, int startareanum, vec3_t goal [[mayb
 		{
 			VectorAdd(mid, aasworld.areas[clusterareas[j]].center, mid);
 		} //end for
-		VectorScale(mid, 1.0 / numclusterareas, mid);
+		((mid)[0]=(float)((mid)[0]*(1.0 / numclusterareas)),(mid)[1]=(float)((mid)[1]*(1.0 / numclusterareas)),(mid)[2]=(float)((mid)[2]*(1.0 / numclusterareas)));
 		//get the area closest to the center of the cluster
 		bestdist = 999999;
 		bestareanum = 0;
@@ -191,8 +191,8 @@ int AAS_AlternativeRouteGoals(vec3_t start, int startareanum, vec3_t goal [[mayb
 		altroutegoals[numaltroutegoals].starttraveltime = midrangeareas[bestareanum].starttime;
 		altroutegoals[numaltroutegoals].goaltraveltime = midrangeareas[bestareanum].goaltime;
 		altroutegoals[numaltroutegoals].extratraveltime =
-					(midrangeareas[bestareanum].starttime + midrangeareas[bestareanum].goaltime) -
-								goaltraveltime;
+					(unsigned short)( (midrangeareas[bestareanum].starttime + midrangeareas[bestareanum].goaltime) -
+								goaltraveltime );
 		numaltroutegoals++;
 		//
 #ifdef ALTROUTE_DEBUG

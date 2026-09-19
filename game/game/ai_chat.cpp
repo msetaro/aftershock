@@ -223,7 +223,7 @@ char *BotRandomOpponentName(bot_state_t *bs) {
 		opponents[numopponents] = i;
 		numopponents++;
 	}
-	count = random() * numopponents;
+	count = (int)( random() * numopponents );
 	for (i = 0; i < numopponents; i++) {
 		count--;
 		if (count <= 0) {
@@ -298,7 +298,7 @@ char *BotRandomWeaponName(void) {
 #ifdef MISSIONPACK
 	rnd = random() * 11.9f;
 #else
-	rnd = random() * 8.9f;
+	rnd = (int)( random() * 8.9f );
 #endif
 	switch(rnd) {
 		case 0: return (char *)"Gauntlet";

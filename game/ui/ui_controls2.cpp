@@ -687,7 +687,7 @@ static void Controls_DrawKeyBinding( void *self )
 
 	if (c)
 	{
-		UI_FillRect( a->generic.left, a->generic.top, a->generic.right-a->generic.left+1, a->generic.bottom-a->generic.top+1, listbar_color ); 
+		UI_FillRect( (float)( a->generic.left ), (float)( a->generic.top ), (float)( a->generic.right-a->generic.left+1 ), (float)( a->generic.bottom-a->generic.top+1 ), listbar_color );
 
 		UI_DrawString( x - SMALLCHAR_WIDTH, y, g_bindings[a->generic.id].label, UI_RIGHT|UI_SMALLFONT, text_color_highlight );
 		UI_DrawString( x + SMALLCHAR_WIDTH, y, name, UI_LEFT|UI_SMALLFONT|UI_PULSE, text_color_highlight );
@@ -695,13 +695,13 @@ static void Controls_DrawKeyBinding( void *self )
 		if (s_controls.waitingforkey)
 		{
 			UI_DrawChar( x, y, '=', UI_CENTER|UI_BLINK|UI_SMALLFONT, text_color_highlight);
-			UI_DrawString(SCREEN_WIDTH * 0.50f, SCREEN_HEIGHT * 0.80f, "Waiting for new key ... ESCAPE to cancel", UI_SMALLFONT|UI_CENTER|UI_PULSE, colorWhite );
+			UI_DrawString((int)( SCREEN_WIDTH * 0.50f ), (int)( SCREEN_HEIGHT * 0.80f ), "Waiting for new key ... ESCAPE to cancel", UI_SMALLFONT|UI_CENTER|UI_PULSE, colorWhite );
 		}
 		else
 		{
 			UI_DrawChar( x, y, 13, UI_CENTER|UI_BLINK|UI_SMALLFONT, text_color_highlight);
-			UI_DrawString(SCREEN_WIDTH * 0.50f, SCREEN_HEIGHT * 0.78f, "Press ENTER or CLICK to change", UI_SMALLFONT|UI_CENTER, colorWhite );
-			UI_DrawString(SCREEN_WIDTH * 0.50f, SCREEN_HEIGHT * 0.82f, "Press BACKSPACE to clear", UI_SMALLFONT|UI_CENTER, colorWhite );
+			UI_DrawString((int)( SCREEN_WIDTH * 0.50f ), (int)( SCREEN_HEIGHT * 0.78f ), "Press ENTER or CLICK to change", UI_SMALLFONT|UI_CENTER, colorWhite );
+			UI_DrawString((int)( SCREEN_WIDTH * 0.50f ), (int)( SCREEN_HEIGHT * 0.82f ), "Press BACKSPACE to clear", UI_SMALLFONT|UI_CENTER, colorWhite );
 		}
 	}
 	else
@@ -726,7 +726,7 @@ Controls_StatusBar
 */
 static void Controls_StatusBar( void *self [[maybe_unused]] )
 {
-	UI_DrawString(SCREEN_WIDTH * 0.50f, SCREEN_HEIGHT * 0.80f, "Use Arrow Keys or CLICK to change", UI_SMALLFONT|UI_CENTER, colorWhite );
+	UI_DrawString((int)( SCREEN_WIDTH * 0.50f ), (int)( SCREEN_HEIGHT * 0.80f ), "Use Arrow Keys or CLICK to change", UI_SMALLFONT|UI_CENTER, colorWhite );
 }
 
 
@@ -747,7 +747,7 @@ static void Controls_DrawPlayer( void *self ) {
 	}
 
 	b = (menubitmap_s*) self;
-	UI_DrawPlayer( b->generic.x, b->generic.y, b->width, b->height, &s_controls.playerinfo, uis.realtime/2 );
+	UI_DrawPlayer( (float)( b->generic.x ), (float)( b->generic.y ), (float)( b->width ), (float)( b->height ), &s_controls.playerinfo, uis.realtime/2 );
 }
 
 
@@ -807,13 +807,13 @@ static void Controls_GetConfig( void )
 	}
 
 	s_controls.invertmouse.curvalue  = Controls_GetCvarValue( (char *)"m_pitch" ) < 0;
-	s_controls.smoothmouse.curvalue  = UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"m_filter" ) );
-	s_controls.alwaysrun.curvalue    = UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"cl_run" ) );
-	s_controls.autoswitch.curvalue   = UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"cg_autoswitch" ) );
+	s_controls.smoothmouse.curvalue  = (int)( UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"m_filter" ) ) );
+	s_controls.alwaysrun.curvalue    = (int)( UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"cl_run" ) ) );
+	s_controls.autoswitch.curvalue   = (int)( UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"cg_autoswitch" ) ) );
 	s_controls.sensitivity.curvalue  = UI_ClampCvar( 2, 30, Controls_GetCvarValue( (char *)"sensitivity" ) );
-	s_controls.joyenable.curvalue    = UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"in_joystick" ) );
+	s_controls.joyenable.curvalue    = (int)( UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"in_joystick" ) ) );
 	s_controls.joythreshold.curvalue = UI_ClampCvar( 0.05f, 0.75f, Controls_GetCvarValue( (char *)"joy_threshold" ) );
-	s_controls.freelook.curvalue     = UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"cl_freelook" ) );
+	s_controls.freelook.curvalue     = (int)( UI_ClampCvar( 0, 1, Controls_GetCvarValue( (char *)"cl_freelook" ) ) );
 }
 
 /*
@@ -849,13 +849,13 @@ static void Controls_SetConfig( void )
 	else
 		trap_Cvar_SetValue( "m_pitch", fabs( trap_Cvar_VariableValue( "m_pitch" ) ) );
 
-	trap_Cvar_SetValue( "m_filter", s_controls.smoothmouse.curvalue );
-	trap_Cvar_SetValue( "cl_run", s_controls.alwaysrun.curvalue );
-	trap_Cvar_SetValue( "cg_autoswitch", s_controls.autoswitch.curvalue );
+	trap_Cvar_SetValue( "m_filter", (float)( s_controls.smoothmouse.curvalue ) );
+	trap_Cvar_SetValue( "cl_run", (float)( s_controls.alwaysrun.curvalue ) );
+	trap_Cvar_SetValue( "cg_autoswitch", (float)( s_controls.autoswitch.curvalue ) );
 	trap_Cvar_SetValue( "sensitivity", s_controls.sensitivity.curvalue );
-	trap_Cvar_SetValue( "in_joystick", s_controls.joyenable.curvalue );
+	trap_Cvar_SetValue( "in_joystick", (float)( s_controls.joyenable.curvalue ) );
 	trap_Cvar_SetValue( "joy_threshold", s_controls.joythreshold.curvalue );
-	trap_Cvar_SetValue( "cl_freelook", s_controls.freelook.curvalue );
+	trap_Cvar_SetValue( "cl_freelook", (float)( s_controls.freelook.curvalue ) );
 	trap_Cmd_ExecuteText( EXEC_APPEND, "in_restart\n" );
 }
 
@@ -883,13 +883,13 @@ static void Controls_SetDefaults( void )
 	}
 
 	s_controls.invertmouse.curvalue  = Controls_GetCvarDefault( (char *)"m_pitch" ) < 0;
-	s_controls.smoothmouse.curvalue  = Controls_GetCvarDefault( (char *)"m_filter" );
-	s_controls.alwaysrun.curvalue    = Controls_GetCvarDefault( (char *)"cl_run" );
-	s_controls.autoswitch.curvalue   = Controls_GetCvarDefault( (char *)"cg_autoswitch" );
+	s_controls.smoothmouse.curvalue  = (int)( Controls_GetCvarDefault( (char *)"m_filter" ) );
+	s_controls.alwaysrun.curvalue    = (int)( Controls_GetCvarDefault( (char *)"cl_run" ) );
+	s_controls.autoswitch.curvalue   = (int)( Controls_GetCvarDefault( (char *)"cg_autoswitch" ) );
 	s_controls.sensitivity.curvalue  = Controls_GetCvarDefault( (char *)"sensitivity" );
-	s_controls.joyenable.curvalue    = Controls_GetCvarDefault( (char *)"in_joystick" );
+	s_controls.joyenable.curvalue    = (int)( Controls_GetCvarDefault( (char *)"in_joystick" ) );
 	s_controls.joythreshold.curvalue = Controls_GetCvarDefault( (char *)"joy_threshold" );
-	s_controls.freelook.curvalue     = Controls_GetCvarDefault( (char *)"cl_freelook" );
+	s_controls.freelook.curvalue     = (int)( Controls_GetCvarDefault( (char *)"cl_freelook" ) );
 }
 
 /*

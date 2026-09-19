@@ -237,7 +237,7 @@ static void UI_NetworkOptionsMenu_Init( void ) {
 	Menu_AddItem( &networkOptionsInfo.menu, ( void * ) &networkOptionsInfo.rate );
 	Menu_AddItem( &networkOptionsInfo.menu, ( void * ) &networkOptionsInfo.back );
 
-	rate = trap_Cvar_VariableValue( "rate" );
+	rate = (int)( trap_Cvar_VariableValue( "rate" ) );
 	if( rate <= 2500 ) {
 		networkOptionsInfo.rate.curvalue = 0;
 	}

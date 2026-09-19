@@ -113,18 +113,18 @@ static void Field_VariableSizeDraw( field_t *edit, int x, int y, int width [[may
 
 	// draw it
 	if ( size == smallchar_width ) {
-		SCR_DrawSmallStringExt( x, y, str, g_color_table[ ColorIndexFromChar( curColor ) ],
+		SCR_DrawSmallStringExt( x, y, str, g_color_table[ ColorIndexFromChar( (char)( curColor ) ) ],
 			qfalse, noColorEscape );
 		if ( len > drawLen + prestep ) {
 			SCR_DrawSmallChar( x + ( edit->widthInChars - 1 ) * size, y, '>' );
 		}
 	} else {
 		if ( len > drawLen + prestep ) {
-			SCR_DrawStringExt( x + ( edit->widthInChars - 1 ) * BIGCHAR_WIDTH, y, size, ">",
+			SCR_DrawStringExt( x + ( edit->widthInChars - 1 ) * BIGCHAR_WIDTH, y, (float)( size ), ">",
 				g_color_table[ ColorIndex( COLOR_WHITE ) ], qfalse, noColorEscape );
 		}
 		// draw big string with drop shadow
-		SCR_DrawStringExt( x, y, BIGCHAR_WIDTH, str, g_color_table[ ColorIndexFromChar( curColor ) ],
+		SCR_DrawStringExt( x, y, BIGCHAR_WIDTH, str, g_color_table[ ColorIndexFromChar( (char)( curColor ) ) ],
 			qfalse, noColorEscape );
 	}
 
@@ -145,7 +145,7 @@ static void Field_VariableSizeDraw( field_t *edit, int x, int y, int width [[may
 		if ( size == smallchar_width ) {
 			SCR_DrawSmallChar( x + ( edit->cursor - prestep - i ) * size, y, cursorChar );
 		} else {
-			str[0] = cursorChar;
+			str[0] = (char)( cursorChar );
 			str[1] = '\0';
 			SCR_DrawBigString( x + ( edit->cursor - prestep - i ) * BIGCHAR_WIDTH, y, str, 1.0, qfalse );
 		}
@@ -345,7 +345,7 @@ static void Field_CharEvent( field_t *edit, int ch ) {
 		// - 2 to leave room for the leading slash and trailing \0
 		if ( edit->cursor == MAX_EDIT_LINE - 2 )
 			return;
-		edit->buffer[edit->cursor] = ch;
+		edit->buffer[edit->cursor] = (char)( ch );
 		edit->cursor++;
 	} else {	// insert mode
 		// - 2 to leave room for the leading slash and trailing \0
@@ -354,7 +354,7 @@ static void Field_CharEvent( field_t *edit, int ch ) {
 		}
 		memmove( edit->buffer + edit->cursor + 1,
 			edit->buffer + edit->cursor, len + 1 - edit->cursor );
-		edit->buffer[edit->cursor] = ch;
+		edit->buffer[edit->cursor] = (char)( ch );
 		edit->cursor++;
 	}
 

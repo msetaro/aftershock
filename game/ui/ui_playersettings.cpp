@@ -220,8 +220,8 @@ static void PlayerSettings_DrawEffects( void *self ) {
 
 	UI_DrawProportionalString( item->generic.x, item->generic.y, "Effects", style, color );
 
-	UI_DrawHandlePic( item->generic.x + 64, item->generic.y + PROP_HEIGHT + 8, 128, 8, s_playersettings.fxBasePic );
-	UI_DrawHandlePic( item->generic.x + 64 + item->curvalue * 16 + 8, item->generic.y + PROP_HEIGHT + 6, 16, 12, s_playersettings.fxPic[item->curvalue] );
+	UI_DrawHandlePic( (float)( item->generic.x + 64 ), (float)( item->generic.y + PROP_HEIGHT + 8 ), (float)( 128 ), (float)( 8 ), s_playersettings.fxBasePic );
+	UI_DrawHandlePic( (float)( item->generic.x + 64 + item->curvalue * 16 + 8 ), (float)( item->generic.y + PROP_HEIGHT + 6 ), (float)( 16 ), (float)( 12 ), s_playersettings.fxPic[item->curvalue] );
 }
 
 
@@ -247,7 +247,7 @@ static void PlayerSettings_DrawPlayer( void *self ) {
 	}
 
 	b = (menubitmap_s*) self;
-	UI_DrawPlayer( b->generic.x, b->generic.y, b->width, b->height, &s_playersettings.playerinfo, uis.realtime/2 );
+	UI_DrawPlayer( (float)( b->generic.x ), (float)( b->generic.y ), (float)( b->width ), (float)( b->height ), &s_playersettings.playerinfo, uis.realtime/2 );
 }
 
 
@@ -261,10 +261,10 @@ static void PlayerSettings_SaveChanges( void ) {
 	trap_Cvar_Set( "name", s_playersettings.name.field.buffer );
 
 	// handicap
-	trap_Cvar_SetValue( "handicap", 100 - s_playersettings.handicap.curvalue * 5 );
+	trap_Cvar_SetValue( "handicap", (float)( 100 - s_playersettings.handicap.curvalue * 5 ) );
 
 	// effects color
-	trap_Cvar_SetValue( "color1", uitogamecode[s_playersettings.effects.curvalue] );
+	trap_Cvar_SetValue( "color1", (float)( uitogamecode[s_playersettings.effects.curvalue] ) );
 }
 
 
@@ -295,7 +295,7 @@ static void PlayerSettings_SetMenuItems( void ) {
 	Q_strncpyz( s_playersettings.name.field.buffer, UI_Cvar_VariableString("name"), sizeof(s_playersettings.name.field.buffer) );
 
 	// effects color
-	c = trap_Cvar_VariableValue( "color1" ) - 1;
+	c = (int)( trap_Cvar_VariableValue( "color1" ) - 1 );
 	if( c < 0 || c > 6 ) {
 		c = 6;
 	}
@@ -312,7 +312,7 @@ static void PlayerSettings_SetMenuItems( void ) {
 	UI_PlayerInfo_SetInfo( &s_playersettings.playerinfo, LEGS_IDLE, TORSO_STAND, viewangles, vec3_origin, WP_MACHINEGUN, qfalse );
 
 	// handicap
-	h = Com_Clamp( 5, 100, trap_Cvar_VariableValue("handicap") );
+	h = (int)( Com_Clamp( 5, 100, trap_Cvar_VariableValue("handicap") ) );
 	s_playersettings.handicap.curvalue = 20 - h / 5;
 }
 

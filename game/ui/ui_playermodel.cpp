@@ -336,11 +336,11 @@ static void PlayerModel_PicEvent( void* ptr, int event )
 	if (pdest)
 	{
 		// track the whole model/skin name
-		Q_strncpyz(s_playermodel.modelskin,buffptr,pdest-buffptr+1);
+		Q_strncpyz(s_playermodel.modelskin,buffptr,(int)( pdest-buffptr+1 ));
 		strcat(s_playermodel.modelskin,pdest + 5);
 
 		// seperate the model name
-		maxlen = pdest-buffptr;
+		maxlen = (int)( pdest-buffptr );
 		if (maxlen > 16)
 			maxlen = 16;
 		Q_strncpyz( s_playermodel.modelname.string, buffptr, maxlen );
@@ -377,7 +377,7 @@ static void PlayerModel_DrawPlayer( void *self )
 		return;
 	}
 
-	UI_DrawPlayer( b->generic.x, b->generic.y, b->width, b->height, &s_playermodel.playerinfo, uis.realtime/2 );
+	UI_DrawPlayer( (float)( b->generic.x ), (float)( b->generic.y ), (float)( b->width ), (float)( b->height ), &s_playermodel.playerinfo, uis.realtime/2 );
 }
 
 /*
@@ -477,7 +477,7 @@ static void PlayerModel_SetMenuItems( void )
 		pdest    = strstr(buffptr,"icon_");
 		if (pdest)
 		{
-			Q_strncpyz(modelskin,buffptr,pdest-buffptr+1);
+			Q_strncpyz(modelskin,buffptr,(int)( pdest-buffptr+1 ));
 			strcat(modelskin,pdest + 5);
 		}
 		else
@@ -490,7 +490,7 @@ static void PlayerModel_SetMenuItems( void )
 			s_playermodel.modelpage     = i/MAX_MODELSPERPAGE;
 
 			// seperate the model name
-			maxlen = pdest-buffptr;
+			maxlen = (int)( pdest-buffptr );
 			if (maxlen > 16)
 				maxlen = 16;
 			Q_strncpyz( s_playermodel.modelname.string, buffptr, maxlen );

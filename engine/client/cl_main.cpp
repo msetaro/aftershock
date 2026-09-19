@@ -3221,12 +3221,12 @@ static void CL_InitRenderer( void ) {
 	cls.biasX = 0;
 	if ( cls.glconfig.vidWidth * 480 > cls.glconfig.vidHeight * 640 ) {
 		// wide screen, scale by height
-		cls.scale = cls.glconfig.vidHeight * (1.0/480.0);
-		cls.biasX = 0.5 * ( cls.glconfig.vidWidth - ( cls.glconfig.vidHeight * (640.0/480.0) ) );
+		cls.scale = (float)( cls.glconfig.vidHeight * (1.0/480.0) );
+		cls.biasX = (float)( 0.5 * ( cls.glconfig.vidWidth - ( cls.glconfig.vidHeight * (640.0/480.0) ) ) );
 	} else {
 		// no wide screen, scale by width
-		cls.scale = cls.glconfig.vidWidth * (1.0/640.0);
-		cls.biasY = 0.5 * ( cls.glconfig.vidHeight - ( cls.glconfig.vidWidth * (480.0/640) ) );
+		cls.scale = (float)( cls.glconfig.vidWidth * (1.0/640.0) );
+		cls.biasY = (float)( 0.5 * ( cls.glconfig.vidHeight - ( cls.glconfig.vidWidth * (480.0/640) ) ) );
 	}
 
 	SCR_Init();
@@ -3319,7 +3319,7 @@ CL_ScaledMilliseconds
 ============
 */
 int CL_ScaledMilliseconds( void ) {
-	return Sys_Milliseconds()*com_timescale->value;
+	return (int)( Sys_Milliseconds()*com_timescale->value );
 }
 
 

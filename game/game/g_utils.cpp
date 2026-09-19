@@ -371,7 +371,7 @@ float vectoyaw( const vec3_t vec ) {
 void G_InitGentity( gentity_t *e ) {
 	e->inuse = qtrue;
 	e->classname = "noclass";
-	e->s.number = e - g_entities;
+	e->s.number = (int)( e - g_entities );
 	e->r.ownerNum = ENTITYNUM_NONE;
 }
 

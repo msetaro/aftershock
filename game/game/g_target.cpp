@@ -96,7 +96,7 @@ void Think_Target_Delay( gentity_t *ent ) {
 }
 
 void Use_Target_Delay( gentity_t *ent, gentity_t *other [[maybe_unused]], gentity_t *activator ) {
-	ent->nextthink = level.time + ( ent->wait + ent->random * crandom() ) * 1000;
+	ent->nextthink = (int)( level.time + ( ent->wait + ent->random * crandom() ) * 1000 );
 	ent->think = Think_Target_Delay;
 	ent->activator = activator;
 }
@@ -141,7 +141,7 @@ If "private", only the activator gets the message.  If no checks, all clients ge
 */
 void Use_Target_Print (gentity_t *ent, gentity_t *other [[maybe_unused]], gentity_t *activator) {
 	if ( activator->client && ( ent->spawnflags & 4 ) ) {
-		trap_SendServerCommand( activator-g_entities, va((char *)"cp \"%s\"", ent->message ));
+		trap_SendServerCommand( (int)( activator-g_entities ), va((char *)"cp \"%s\"", ent->message ));
 		return;
 	}
 
@@ -222,8 +222,8 @@ void SP_target_speaker( gentity_t *ent ) {
 	// a repeating speaker can be done completely client side
 	ent->s.eType = ET_SPEAKER;
 	ent->s.eventParm = ent->noise_index;
-	ent->s.frame = ent->wait * 10;
-	ent->s.clientNum = ent->random * 10;
+	ent->s.frame = (int)( ent->wait * 10 );
+	ent->s.clientNum = (int)( ent->random * 10 );
 
 
 	// check for prestarted looping sound

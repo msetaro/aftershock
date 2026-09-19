@@ -194,9 +194,9 @@ static void CM_TestBoxInBrush( traceWork_t *tw, const cbrush_t *brush ) {
 #ifdef USE_FIXED_PRECISION
 			t = DotProductDP( plane->normal, tw->sphere.offset );
 			if ( t > 0 ) {
-				VectorSubtractDP( tw->start, tw->sphere.offset, startp );
+				((startp)[0]=(float)((double)((tw->start)[0]-(tw->sphere.offset)[0])),(startp)[1]=(float)((double)((tw->start)[1]-(tw->sphere.offset)[1])),(startp)[2]=(float)((double)((tw->start)[2]-(tw->sphere.offset)[2])));
 			} else {
-				VectorAddDP( tw->start, tw->sphere.offset, startp );
+				((startp)[0]=(float)((double)((tw->start)[0]+(tw->sphere.offset)[0])),(startp)[1]=(float)((double)((tw->start)[1]+(tw->sphere.offset)[1])),(startp)[2]=(float)((double)((tw->start)[2]+(tw->sphere.offset)[2])));
 			}
 			d1 = DotProductDP( startp, plane->normal ) - dist;
 #else
@@ -323,7 +323,7 @@ static void CM_TestCapsuleInCapsule( traceWork_t *tw, clipHandle_t model ) {
 	VectorAdd(tw->start, tw->sphere.offset, top);
 	VectorSubtract(tw->start, tw->sphere.offset, bottom);
 	for ( i = 0 ; i < 3 ; i++ ) {
-		offset[i] = ( mins[i] + maxs[i] ) * 0.5;
+		offset[i] = (float)( ( mins[i] + maxs[i] ) * 0.5 );
 		symetricSize[0][i] = mins[i] - offset[i];
 		symetricSize[1][i] = maxs[i] - offset[i];
 	}
@@ -391,7 +391,7 @@ static void CM_TestBoundingBoxInCapsule( traceWork_t *tw, clipHandle_t model ) {
 
 	// offset for capsule center
 	for ( i = 0 ; i < 3 ; i++ ) {
-		offset[i] = ( mins[i] + maxs[i] ) * 0.5;
+		offset[i] = (float)( ( mins[i] + maxs[i] ) * 0.5 );
 		size[0][i] = mins[i] - offset[i];
 		size[1][i] = maxs[i] - offset[i];
 		tw->start[i] -= offset[i];
@@ -542,13 +542,13 @@ static void CM_TraceThroughBrush( traceWork_t *tw, const cbrush_t *brush ) {
 			t = DotProductDP( plane->normal, tw->sphere.offset );
 			if ( t > 0 )
 			{
-				VectorSubtractDP( tw->start, tw->sphere.offset, startp );
-				VectorSubtractDP( tw->end, tw->sphere.offset, endp );
+				((startp)[0]=(float)((double)((tw->start)[0]-(tw->sphere.offset)[0])),(startp)[1]=(float)((double)((tw->start)[1]-(tw->sphere.offset)[1])),(startp)[2]=(float)((double)((tw->start)[2]-(tw->sphere.offset)[2])));
+				((endp)[0]=(float)((double)((tw->end)[0]-(tw->sphere.offset)[0])),(endp)[1]=(float)((double)((tw->end)[1]-(tw->sphere.offset)[1])),(endp)[2]=(float)((double)((tw->end)[2]-(tw->sphere.offset)[2])));
 			}
 			else
 			{
-				VectorAddDP( tw->start, tw->sphere.offset, startp );
-				VectorAddDP( tw->end, tw->sphere.offset, endp );
+				((startp)[0]=(float)((double)((tw->start)[0]+(tw->sphere.offset)[0])),(startp)[1]=(float)((double)((tw->start)[1]+(tw->sphere.offset)[1])),(startp)[2]=(float)((double)((tw->start)[2]+(tw->sphere.offset)[2])));
+				((endp)[0]=(float)((double)((tw->end)[0]+(tw->sphere.offset)[0])),(endp)[1]=(float)((double)((tw->end)[1]+(tw->sphere.offset)[1])),(endp)[2]=(float)((double)((tw->end)[2]+(tw->sphere.offset)[2])));
 			}
 
 			d1 = DotProductDP( startp, plane->normal ) - dist;
@@ -588,7 +588,7 @@ static void CM_TraceThroughBrush( traceWork_t *tw, const cbrush_t *brush ) {
 
 			// crosses face
 			if (d1 > d2) {	// enter
-				f = (d1-SURFACE_CLIP_EPSILON) / (d1-d2);
+				f = (float)( (d1-SURFACE_CLIP_EPSILON) / (d1-d2) );
 				if ( f < 0 ) {
 					f = 0;
 				}
@@ -598,7 +598,7 @@ static void CM_TraceThroughBrush( traceWork_t *tw, const cbrush_t *brush ) {
 					leadside = side;
 				}
 			} else {	// leave
-				f = (d1+SURFACE_CLIP_EPSILON) / (d1-d2);
+				f = (float)( (d1+SURFACE_CLIP_EPSILON) / (d1-d2) );
 				if ( f > 1 ) {
 					f = 1;
 				}
@@ -648,7 +648,7 @@ static void CM_TraceThroughBrush( traceWork_t *tw, const cbrush_t *brush ) {
 
 			// crosses face
 			if (d1 > d2) {	// enter
-				f = (d1-SURFACE_CLIP_EPSILON) / (d1-d2);
+				f = (float)( (d1-SURFACE_CLIP_EPSILON) / (d1-d2) );
 				if ( f < 0 ) {
 					f = 0;
 				}
@@ -658,7 +658,7 @@ static void CM_TraceThroughBrush( traceWork_t *tw, const cbrush_t *brush ) {
 					leadside = side;
 				}
 			} else {	// leave
-				f = (d1+SURFACE_CLIP_EPSILON) / (d1-d2);
+				f = (float)( (d1+SURFACE_CLIP_EPSILON) / (d1-d2) );
 				if ( f > 1 ) {
 					f = 1;
 				}
@@ -995,7 +995,7 @@ static void CM_TraceCapsuleThroughCapsule( traceWork_t *tw, clipHandle_t model )
 
 	// calculate top and bottom of the capsule spheres to collide with
 	for ( i = 0 ; i < 3 ; i++ ) {
-		offset[i] = ( mins[i] + maxs[i] ) * 0.5;
+		offset[i] = (float)( ( mins[i] + maxs[i] ) * 0.5 );
 		symetricSize[0][i] = mins[i] - offset[i];
 		symetricSize[1][i] = maxs[i] - offset[i];
 	}
@@ -1043,7 +1043,7 @@ static void CM_TraceBoundingBoxThroughCapsule( traceWork_t *tw, clipHandle_t mod
 
 	// offset for capsule center
 	for ( i = 0 ; i < 3 ; i++ ) {
-		offset[i] = ( mins[i] + maxs[i] ) * 0.5;
+		offset[i] = (float)( ( mins[i] + maxs[i] ) * 0.5 );
 		size[0][i] = mins[i] - offset[i];
 		size[1][i] = maxs[i] - offset[i];
 		tw->start[i] -= offset[i];
@@ -1139,15 +1139,15 @@ static void CM_TraceThroughTree( traceWork_t *tw, int num, float p1f, float p2f,
 
 	// put the crosspoint SURFACE_CLIP_EPSILON pixels on the near side
 	if ( t1 < t2 ) {
-		idist = 1.0/(t1-t2);
+		idist = (float)( 1.0/(t1-t2) );
 		side = 1;
-		frac2 = (t1 + offset + SURFACE_CLIP_EPSILON)*idist;
-		frac = (t1 - offset + SURFACE_CLIP_EPSILON)*idist;
+		frac2 = (float)( (t1 + offset + SURFACE_CLIP_EPSILON)*idist );
+		frac = (float)( (t1 - offset + SURFACE_CLIP_EPSILON)*idist );
 	} else if (t1 > t2) {
-		idist = 1.0/(t1-t2);
+		idist = (float)( 1.0/(t1-t2) );
 		side = 0;
-		frac2 = (t1 - offset - SURFACE_CLIP_EPSILON)*idist;
-		frac = (t1 + offset + SURFACE_CLIP_EPSILON)*idist;
+		frac2 = (float)( (t1 - offset - SURFACE_CLIP_EPSILON)*idist );
+		frac = (float)( (t1 + offset + SURFACE_CLIP_EPSILON)*idist );
 	} else {
 		side = 0;
 		frac = 1;
@@ -1233,7 +1233,7 @@ static void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, co
 	// avoids some complications with plane expanding of rotated
 	// bmodels
 	for ( i = 0 ; i < 3 ; i++ ) {
-		offset[i] = ( mins[i] + maxs[i] ) * 0.5;
+		offset[i] = (float)( ( mins[i] + maxs[i] ) * 0.5 );
 		tw.size[0][i] = mins[i] - offset[i];
 		tw.size[1][i] = maxs[i] - offset[i];
 		tw.start[i] = start[i] + offset[i];
@@ -1292,11 +1292,11 @@ static void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, co
 	if ( tw.sphere.use ) {
 		for ( i = 0 ; i < 3 ; i++ ) {
 			if ( tw.start[i] < tw.end[i] ) {
-				tw.bounds[0][i] = tw.start[i] - fabs((double)(tw.sphere.offset[i])) - tw.sphere.radius;
-				tw.bounds[1][i] = tw.end[i] + fabs((double)(tw.sphere.offset[i])) + tw.sphere.radius;
+				tw.bounds[0][i] = (float)( tw.start[i] - fabs((double)(tw.sphere.offset[i])) - tw.sphere.radius );
+				tw.bounds[1][i] = (float)( tw.end[i] + fabs((double)(tw.sphere.offset[i])) + tw.sphere.radius );
 			} else {
-				tw.bounds[0][i] = tw.end[i] - fabs((double)(tw.sphere.offset[i])) - tw.sphere.radius;
-				tw.bounds[1][i] = tw.start[i] + fabs((double)(tw.sphere.offset[i])) + tw.sphere.radius;
+				tw.bounds[0][i] = (float)( tw.end[i] - fabs((double)(tw.sphere.offset[i])) - tw.sphere.radius );
+				tw.bounds[1][i] = (float)( tw.start[i] + fabs((double)(tw.sphere.offset[i])) + tw.sphere.radius );
 			}
 		}
 	}
@@ -1396,7 +1396,7 @@ static void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, co
 		for ( i=0 ; i<3 ; i++ ) {
 #ifdef USE_FIXED_PRECISION
 			// fix ledge at {463, -1067, -39} on q3dm12
-			tw.trace.endpos[i] = start[i] + tw.trace.fraction * (double)(end[i] - start[i]);
+			tw.trace.endpos[i] = (float)( start[i] + tw.trace.fraction * (double)(end[i] - start[i]) );
 #else
 			tw.trace.endpos[i] = start[i] + tw.trace.fraction * (end[i] - start[i]);
 #endif
@@ -1460,7 +1460,7 @@ void CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t 
 	// avoids some complications with plane expanding of rotated
 	// bmodels
 	for ( i = 0 ; i < 3 ; i++ ) {
-		offset[i] = ( mins[i] + maxs[i] ) * 0.5;
+		offset[i] = (float)( ( mins[i] + maxs[i] ) * 0.5 );
 		symetricSize[0][i] = mins[i] - offset[i];
 		symetricSize[1][i] = maxs[i] - offset[i];
 		start_l[i] = start[i] + offset[i];

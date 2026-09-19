@@ -2968,8 +2968,8 @@ static void vk_alloc_persistent_pipelines( void )
 	{
 		Com_Memset(&def, 0, sizeof(def));
 		def.shader_type = TYPE_SIGNLE_TEXTURE_FIXED_COLOR;
-		def.color.rgb = tr.identityLightByte;
-		def.color.alpha = tr.identityLightByte;
+		def.color.rgb = (unsigned char)( tr.identityLightByte );
+		def.color.alpha = (unsigned char)( tr.identityLightByte );
 		def.face_culling = CT_FRONT_SIDED;
 		def.polygon_offset = qfalse;
 		def.mirror = qfalse;
@@ -3915,13 +3915,13 @@ static void vk_set_render_scale( void )
 				if ( windowAspect >= renderAspect )
 				{
 					float scale = (float)gls.windowHeight / ( float ) glConfig.vidHeight;
-					int bias = ( gls.windowWidth - scale * (float) glConfig.vidWidth ) / 2;
+					int bias = (int)( ( gls.windowWidth - scale * (float) glConfig.vidWidth ) / 2 );
 					vk.blitX0 += bias;
 				}
 				else
 				{
 					float scale = (float)gls.windowWidth / ( float ) glConfig.vidWidth;
-					int bias = ( gls.windowHeight - scale * (float) glConfig.vidHeight ) / 2;
+					int bias = (int)( ( gls.windowHeight - scale * (float) glConfig.vidHeight ) / 2 );
 					vk.blitY0 += bias;
 				}
 			}
@@ -3960,11 +3960,11 @@ void vk_initialize( void )
 	qvkGetPhysicalDeviceProperties( vk.physical_device, &props );
 
 	vk.cmd = vk.tess + 0;
-	vk.uniform_alignment = props.limits.minUniformBufferOffsetAlignment;
+	vk.uniform_alignment = (uint32_t)( props.limits.minUniformBufferOffsetAlignment );
 	vk.uniform_item_size = PAD( (uint32_t)sizeof( vkUniform_t ), vk.uniform_alignment );
 
 	// for flare visibility tests
-	vk.storage_alignment = MAX( props.limits.minStorageBufferOffsetAlignment, sizeof( uint32_t ) );
+	vk.storage_alignment = (uint32_t)( MAX( props.limits.minStorageBufferOffsetAlignment, sizeof( uint32_t ) ) );
 
 	vk.maxAnisotropy = props.limits.maxSamplerAnisotropy;
 
@@ -3999,11 +3999,11 @@ void vk_initialize( void )
 
 	vk.screenMapSamples = MIN( vkMaxSamples, VK_SAMPLE_COUNT_4_BIT );
 
-	vk.screenMapWidth = (float) glConfig.vidWidth / 16.0;
+	vk.screenMapWidth = (uint32_t)( (float) glConfig.vidWidth / 16.0 );
 	if ( vk.screenMapWidth < 4 )
 		vk.screenMapWidth = 4;
 
-	vk.screenMapHeight = (float) glConfig.vidHeight / 16.0;
+	vk.screenMapHeight = (uint32_t)( (float) glConfig.vidHeight / 16.0 );
 	if ( vk.screenMapHeight < 4 )
 		vk.screenMapHeight = 4;
 
@@ -4053,7 +4053,7 @@ void vk_initialize( void )
 	// fill glConfig information
 
 	// maxTextureSize must not exceed IMAGE_CHUNK_SIZE
-	maxSize = sqrtf( IMAGE_CHUNK_SIZE / 4 );
+	maxSize = (uint32_t)( sqrtf( IMAGE_CHUNK_SIZE / 4 ) );
 	// round down to next power of 2
 	glConfig.maxTextureSize = MIN( props.limits.maxImageDimension2D, log2pad( maxSize, 0 ) );
 
@@ -4063,7 +4063,7 @@ void vk_initialize( void )
 	// default chunk size, may be doubled on demand
 	vk.image_chunk_size = IMAGE_CHUNK_SIZE;
 
-	vk.maxLod = 1 + Q_log2( glConfig.maxTextureSize );
+	vk.maxLod = (float)( 1 + Q_log2( glConfig.maxTextureSize ) );
 
 	if ( props.limits.maxPerStageDescriptorSamplers != 0xFFFFFFFF )
 		glConfig.numTextureUnits = props.limits.maxPerStageDescriptorSamplers;
@@ -4864,10 +4864,10 @@ static byte *resample_image_data( const int target_format, byte *data, const int
 			byte g = data[i + 1];
 			byte b = data[i + 2];
 			byte a = data[i + 3];
-			*p = (uint32_t)((a / 255.0) * 15.0 + 0.5) |
+			*p = (uint16_t)( (uint32_t)((a / 255.0) * 15.0 + 0.5) |
 				((uint32_t)((r / 255.0) * 15.0 + 0.5) << 4) |
 				((uint32_t)((g / 255.0) * 15.0 + 0.5) << 8) |
-				((uint32_t)((b / 255.0) * 15.0 + 0.5) << 12);
+				((uint32_t)((b / 255.0) * 15.0 + 0.5) << 12) );
 		}
 		*bytes_per_pixel = 2;
 		return buffer; // must be freed after upload!
@@ -4879,10 +4879,10 @@ static byte *resample_image_data( const int target_format, byte *data, const int
 			byte r = data[i + 0];
 			byte g = data[i + 1];
 			byte b = data[i + 2];
-			*p = (uint32_t)((b / 255.0) * 31.0 + 0.5) |
+			*p = (uint16_t)( (uint32_t)((b / 255.0) * 31.0 + 0.5) |
 				((uint32_t)((g / 255.0) * 31.0 + 0.5) << 5) |
 				((uint32_t)((r / 255.0) * 31.0 + 0.5) << 10) |
-				(1 << 15);
+				(1 << 15) );
 		}
 		*bytes_per_pixel = 2;
 		return buffer; // must be freed after upload!
@@ -5224,7 +5224,7 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 	set_shader_stage_desc( shader_stages+0, VK_SHADER_STAGE_VERTEX_BIT, vk.modules.gamma_vs, "main" );
 	set_shader_stage_desc( shader_stages+1, VK_SHADER_STAGE_FRAGMENT_BIT, fsmodule, "main" );
 
-	frag_spec_data.gamma = 1.0 / (r_gamma->value);
+	frag_spec_data.gamma = (float)( 1.0 / (r_gamma->value) );
 	frag_spec_data.overbright = (float)(1 << tr.overbrightBits);
 	frag_spec_data.greyscale = r_greyscale->value;
 	frag_spec_data.bloom_threshold = r_bloom_threshold->value;
@@ -5301,25 +5301,25 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 	//
 	if ( program_index == 0 ) {
 		// gamma correction
-		viewport.x = 0.0 + vk.blitX0;
-		viewport.y = 0.0 + vk.blitY0;
-		viewport.width = gls.windowWidth - vk.blitX0 * 2;
-		viewport.height = gls.windowHeight - vk.blitY0 * 2;
+		viewport.x = (float)( 0.0 + vk.blitX0 );
+		viewport.y = (float)( 0.0 + vk.blitY0 );
+		viewport.width = (float)( gls.windowWidth - vk.blitX0 * 2 );
+		viewport.height = (float)( gls.windowHeight - vk.blitY0 * 2 );
 	} else {
 		// other post-processing
 		viewport.x = 0.0;
 		viewport.y = 0.0;
-		viewport.width = width;
-		viewport.height = height;
+		viewport.width = (float)( width );
+		viewport.height = (float)( height );
 	}
 
 	viewport.minDepth = 0.0;
 	viewport.maxDepth = 1.0;
 
-	scissor.offset.x = viewport.x;
-	scissor.offset.y = viewport.y;
-	scissor.extent.width = viewport.width;
-	scissor.extent.height = viewport.height;
+	scissor.offset.x = (int32_t)( viewport.x );
+	scissor.offset.y = (int32_t)( viewport.y );
+	scissor.extent.width = (uint32_t)( viewport.width );
+	scissor.extent.height = (uint32_t)( viewport.height );
 
 	viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	viewport_state.pNext = NULL;
@@ -5457,8 +5457,8 @@ void vk_create_blur_pipeline( uint32_t index, uint32_t width, uint32_t height, q
 	set_shader_stage_desc( shader_stages+0, VK_SHADER_STAGE_VERTEX_BIT, vk.modules.gamma_vs, "main" );
 	set_shader_stage_desc( shader_stages+1, VK_SHADER_STAGE_FRAGMENT_BIT, vk.modules.blur_fs, "main" );
 
-	frag_spec_data[0] = 1.2 / (float) width; // x offset
-	frag_spec_data[1] = 1.2 / (float) height; // y offset
+	frag_spec_data[0] = (float)( 1.2 / (float) width ); // x offset
+	frag_spec_data[1] = (float)( 1.2 / (float) height ); // y offset
 	frag_spec_data[2] = 1.0; // intensity?
 
 	if ( horizontal_pass ) {
@@ -5500,15 +5500,15 @@ void vk_create_blur_pipeline( uint32_t index, uint32_t width, uint32_t height, q
 	//
 	viewport.x = 0.0;
 	viewport.y = 0.0;
-	viewport.width = width;
-	viewport.height = height;
+	viewport.width = (float)( width );
+	viewport.height = (float)( height );
 	viewport.minDepth = 0.0;
 	viewport.maxDepth = 1.0;
 
-	scissor.offset.x = viewport.x;
-	scissor.offset.y = viewport.y;
-	scissor.extent.width = viewport.width;
-	scissor.extent.height = viewport.height;
+	scissor.offset.x = (int32_t)( viewport.x );
+	scissor.offset.y = (int32_t)( viewport.y );
+	scissor.extent.width = (uint32_t)( viewport.width );
+	scissor.extent.height = (uint32_t)( viewport.height );
 
 	viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	viewport_state.pNext = NULL;
@@ -5965,8 +5965,8 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 			break;
 	}
 
-	frag_spec_data[8].f = ((float)def->color.rgb) / 255.0;
-	frag_spec_data[9].f = ((float)def->color.alpha) / 255.0;
+	frag_spec_data[8].f = (float)( ((float)def->color.rgb) / 255.0 );
+	frag_spec_data[9].f = (float)( ((float)def->color.alpha) / 255.0 );
 
 	if ( def->fog_stage ) {
 		frag_spec_data[10].i = def->acff;
@@ -6648,10 +6648,10 @@ static void get_viewport_rect(VkRect2D *r)
 	}
 	else
 	{
-		r->offset.x = backEnd.viewParms.viewportX * vk.renderScaleX;
-		r->offset.y = vk.renderHeight - (backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight) * vk.renderScaleY;
-		r->extent.width = (float)backEnd.viewParms.viewportWidth * vk.renderScaleX;
-		r->extent.height = (float)backEnd.viewParms.viewportHeight * vk.renderScaleY;
+		r->offset.x = (int32_t)( backEnd.viewParms.viewportX * vk.renderScaleX );
+		r->offset.y = (int32_t)( vk.renderHeight - (backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight) * vk.renderScaleY );
+		r->extent.width = (uint32_t)( (float)backEnd.viewParms.viewportWidth * vk.renderScaleX );
+		r->extent.height = (uint32_t)( (float)backEnd.viewParms.viewportHeight * vk.renderScaleY );
 	}
 }
 
@@ -7363,7 +7363,7 @@ void vk_begin_frame( void )
 
 	if ( vk.cmd->waitForFence ) {
 		vk.cmd->waitForFence = qfalse;
-		res = qvkWaitForFences( vk.device, 1, &vk.cmd->rendering_finished_fence, VK_FALSE, 1e10 );
+		res = qvkWaitForFences( vk.device, 1, &vk.cmd->rendering_finished_fence, VK_FALSE, (uint64_t)1e10 );
 		if ( res != VK_SUCCESS ) {
 			if ( res == VK_ERROR_DEVICE_LOST ) {
 				// silently discard previous command buffer
@@ -7700,7 +7700,7 @@ void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height )
 	uint32_t i, n;
 	qboolean invalidate_ptr;
 
-	VK_CHECK( qvkWaitForFences( vk.device, 1, &vk.cmd->rendering_finished_fence, VK_FALSE, 1e12 ) );
+	VK_CHECK( qvkWaitForFences( vk.device, 1, &vk.cmd->rendering_finished_fence, VK_FALSE, (uint64_t)1e12 ) );
 
 	if ( vk.fboActive ) {
 		if ( vk.capture.image ) {

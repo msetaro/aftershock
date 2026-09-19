@@ -885,9 +885,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				VectorClear( color );
 
 				ParseVector( text, 3, color );
-				stage->bundle[0].constantColor.rgba[0] = 255 * color[0];
-				stage->bundle[0].constantColor.rgba[1] = 255 * color[1];
-				stage->bundle[0].constantColor.rgba[2] = 255 * color[2];
+				stage->bundle[0].constantColor.rgba[0] = (unsigned char)( 255 * color[0] );
+				stage->bundle[0].constantColor.rgba[1] = (unsigned char)( 255 * color[1] );
+				stage->bundle[0].constantColor.rgba[2] = (unsigned char)( 255 * color[2] );
 
 				stage->bundle[0].rgbGen = CGEN_CONST;
 			}
@@ -952,7 +952,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			else if ( !Q_stricmp( token, "const" ) )
 			{
 				token = COM_ParseExt( text, qfalse );
-				stage->bundle[0].constantColor.rgba[3] = 255 * Q_atof( token );
+				stage->bundle[0].constantColor.rgba[3] = (unsigned char)( 255 * Q_atof( token ) );
 				stage->bundle[0].alphaGen = AGEN_CONST;
 			}
 			else if ( !Q_stricmp( token, "identity" ) )
@@ -1864,9 +1864,9 @@ static qboolean ParseShader( const char **text )
 			b = Q_atof( token );
 			b = b / 180 * M_PI;
 
-			tr.sunDirection[0] = cos( (double)(a) ) * cos( (double)(b) );
-			tr.sunDirection[1] = sin( (double)(a) ) * cos( (double)(b) );
-			tr.sunDirection[2] = sin( (double)(b) );
+			tr.sunDirection[0] = (float)( cos( (double)(a) ) * cos( (double)(b) ) );
+			tr.sunDirection[1] = (float)( sin( (double)(a) ) * cos( (double)(b) ) );
+			tr.sunDirection[2] = (float)( sin( (double)(b) ) );
 
 			SkipRestOfLine( text );
 			continue;
@@ -3464,8 +3464,8 @@ static shader_t *FinishShader( void ) {
 							if ( pStage->bundle[0].alphaGen == AGEN_SKIP || pStage->bundle[0].alphaGen == AGEN_IDENTITY ) {
 								pStage->tessFlags = TESS_ST0 | TESS_ST1;
 								def.shader_type = TYPE_MULTI_TEXTURE_MUL2_FIXED_COLOR;
-								def.color.rgb = tr.identityLightByte;
-								def.color.alpha = pStage->bundle[0].alphaGen == AGEN_IDENTITY ? 255 : tr.identityLightByte;
+								def.color.rgb = (unsigned char)( tr.identityLightByte );
+								def.color.alpha = (unsigned char)( pStage->bundle[0].alphaGen == AGEN_IDENTITY ? 255 : tr.identityLightByte );
 							}
 						}
 					}
@@ -3484,8 +3484,8 @@ static shader_t *FinishShader( void ) {
 							if ( pStage->bundle[0].alphaGen == AGEN_SKIP || pStage->bundle[0].alphaGen == AGEN_IDENTITY ) {
 								pStage->tessFlags = TESS_ST0 | TESS_ST1;
 								def.shader_type = TYPE_MULTI_TEXTURE_ADD2_FIXED_COLOR;
-								def.color.rgb = tr.identityLightByte;
-								def.color.alpha = pStage->bundle[0].alphaGen == AGEN_IDENTITY ? 255 : tr.identityLightByte;
+								def.color.rgb = (unsigned char)( tr.identityLightByte );
+								def.color.alpha = (unsigned char)( pStage->bundle[0].alphaGen == AGEN_IDENTITY ? 255 : tr.identityLightByte );
 							}
 						}
 					}
@@ -3504,8 +3504,8 @@ static shader_t *FinishShader( void ) {
 							if ( pStage->bundle[0].alphaGen == AGEN_SKIP || pStage->bundle[0].alphaGen == AGEN_IDENTITY ) {
 								pStage->tessFlags = TESS_ST0 | TESS_ST1;
 								def.shader_type = TYPE_MULTI_TEXTURE_ADD2_FIXED_COLOR;
-								def.color.rgb = tr.identityLightByte;
-								def.color.alpha = pStage->bundle[0].alphaGen == AGEN_IDENTITY ? 255 : tr.identityLightByte;
+								def.color.rgb = (unsigned char)( tr.identityLightByte );
+								def.color.alpha = (unsigned char)( pStage->bundle[0].alphaGen == AGEN_IDENTITY ? 255 : tr.identityLightByte );
 							}
 						}
 					}
@@ -3554,8 +3554,8 @@ static shader_t *FinishShader( void ) {
 							if ( pStage->bundle[0].alphaGen == AGEN_SKIP || pStage->bundle[0].alphaGen == AGEN_IDENTITY ) {
 								pStage->tessFlags = TESS_ST0;
 								def.shader_type = TYPE_SIGNLE_TEXTURE_FIXED_COLOR;
-								def.color.rgb = tr.identityLightByte;
-								def.color.alpha = pStage->bundle[0].alphaGen == AGEN_IDENTITY ? 255 : tr.identityLightByte;
+								def.color.rgb = (unsigned char)( tr.identityLightByte );
+								def.color.alpha = (unsigned char)( pStage->bundle[0].alphaGen == AGEN_IDENTITY ? 255 : tr.identityLightByte );
 							}
 						}
 						else if ( pStage->bundle[0].rgbGen == CGEN_ENTITY ) {
@@ -4264,7 +4264,7 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 
 		if ( buffers[ i ] ) {
 			if ( shaderStart ) {
-				summand -= (shaderStart - buffers[i]);
+				summand = (long)( summand - ((shaderStart - buffers[i])) );
 				if ( summand >= 0 ) {
 					memmove( buffers[i], shaderStart, summand + 1 );
 				}

@@ -944,7 +944,7 @@ static void PM_CrashLand( void ) {
 	// calculate the exact velocity on landing
 	dist = pm->ps->origin[2] - pml.previous_origin[2];
 	vel = pml.previous_velocity[2];
-	acc = -pm->ps->gravity;
+	acc = (float)( -pm->ps->gravity );
 
 	a = acc / 2;
 	b = vel;
@@ -1703,7 +1703,7 @@ static void PM_Weapon( void ) {
   else
 #endif
 	if ( pm->ps->powerups[PW_HASTE] ) {
-		addTime /= 1.3f;
+		addTime = (int)( addTime / (1.3f) );
 	}
 
 	pm->ps->weaponTime += addTime;
@@ -1812,7 +1812,7 @@ void PM_UpdateViewAngles( playerState_t *ps, const usercmd_t *cmd ) {
 
 	// circularly clamp the angles with deltas
 	for (i=0 ; i<3 ; i++) {
-		temp = cmd->angles[i] + ps->delta_angles[i];
+		temp = (short)( cmd->angles[i] + ps->delta_angles[i] );
 		if ( i == PITCH ) {
 			// don't let the player look up or down more than 90 degrees
 			if ( temp > 16000 ) {

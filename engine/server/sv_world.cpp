@@ -124,7 +124,7 @@ static worldSector_t *SV_CreateworldSector( int depth, vec3_t mins, vec3_t maxs 
 		anode->axis = 1;
 	}
 
-	anode->dist = 0.5 * (maxs[anode->axis] + mins[anode->axis]);
+	anode->dist = (float)( 0.5 * (maxs[anode->axis] + mins[anode->axis]) );
 	VectorCopy (mins, mins1);	
 	VectorCopy (mins, mins2);	
 	VectorCopy (maxs, maxs1);	
@@ -224,21 +224,21 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 		gEnt->s.solid = SOLID_BMODEL;		// a solid_box will never create this value
 	} else if ( gEnt->r.contents & ( CONTENTS_SOLID | CONTENTS_BODY ) ) {
 		// assume that x/y are equal and symmetric
-		i = gEnt->r.maxs[0];
+		i = (int)( gEnt->r.maxs[0] );
 		if (i<1)
 			i = 1;
 		if (i>255)
 			i = 255;
 
 		// z is not symmetric
-		j = (-gEnt->r.mins[2]);
+		j = (int)( (-gEnt->r.mins[2]) );
 		if (j<1)
 			j = 1;
 		if (j>255)
 			j = 255;
 
 		// and z maxs can be negative...
-		k = (gEnt->r.maxs[2]+32);
+		k = (int)( (gEnt->r.maxs[2]+32) );
 		if (k<1)
 			k = 1;
 		if (k>255)
@@ -401,7 +401,7 @@ static void SV_AreaEntities_r( worldSector_t *node, areaParms_t *ap ) {
 			return;
 		}
 
-		ap->list[ap->count] = check - sv.svEntities;
+		ap->list[ap->count] = (int)( check - sv.svEntities );
 		ap->count++;
 	}
 	

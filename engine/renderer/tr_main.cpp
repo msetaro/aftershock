@@ -296,8 +296,8 @@ void R_TransformClipToWindow( const vec4_t clip, const viewParms_t *view, vec4_t
 	window[1] = 0.5f * ( 1.0f + normalized[1] ) * view->viewportHeight;
 	window[2] = normalized[2];
 
-	window[0] = (int) ( window[0] + 0.5 );
-	window[1] = (int) ( window[1] + 0.5 );
+	window[0] = (float)( (int) ( window[0] + 0.5 ) );
+	window[1] = (float)( (int) ( window[1] + 0.5 ) );
 }
 
 
@@ -479,7 +479,7 @@ static void R_SetFarClip( void )
 		}
 	}
 
-	tr.viewParms.zFar = sqrt( (double)(farthestCornerDistance) );
+	tr.viewParms.zFar = (float)( sqrt( (double)(farthestCornerDistance) ) );
 }
 
 
@@ -502,7 +502,7 @@ static void R_SetupFrustum( viewParms_t *dest, float xmin, float xmax, float yma
 		// symmetric case can be simplified
 		VectorCopy(dest->orientation.origin, ofsorigin);
 
-		length = sqrt((double)(xmax * xmax + zProj * zProj));
+		length = (float)( sqrt((double)(xmax * xmax + zProj * zProj)) );
 		oppleg = xmax / length;
 		adjleg = zProj / length;
 
@@ -519,17 +519,17 @@ static void R_SetupFrustum( viewParms_t *dest, float xmin, float xmax, float yma
 		VectorMA(dest->orientation.origin, stereoSep, dest->orientation.axis[1], ofsorigin);
 	
 		oppleg = xmax + stereoSep;
-		length = sqrt((double)(oppleg * oppleg + zProj * zProj));
+		length = (float)( sqrt((double)(oppleg * oppleg + zProj * zProj)) );
 		VectorScale(dest->orientation.axis[0], oppleg / length, dest->frustum[0].normal);
 		VectorMA(dest->frustum[0].normal, zProj / length, dest->orientation.axis[1], dest->frustum[0].normal);
 
 		oppleg = xmin + stereoSep;
-		length = sqrt((double)(oppleg * oppleg + zProj * zProj));
+		length = (float)( sqrt((double)(oppleg * oppleg + zProj * zProj)) );
 		VectorScale(dest->orientation.axis[0], -oppleg / length, dest->frustum[1].normal);
 		VectorMA(dest->frustum[1].normal, -zProj / length, dest->orientation.axis[1], dest->frustum[1].normal);
 	}
 
-	length = sqrt((double)(ymax * ymax + zProj * zProj));
+	length = (float)( sqrt((double)(ymax * ymax + zProj * zProj)) );
 	oppleg = ymax / length;
 	adjleg = zProj / length;
 
@@ -578,10 +578,10 @@ void R_SetupProjection( viewParms_t *dest, float zProj, qboolean computeFrustum 
 			stereoSep = 0;
 	}
 
-	ymax = zProj * tan((double)(dest->fovY * M_PI / 360.0f));
+	ymax = (float)( zProj * tan((double)(dest->fovY * M_PI / 360.0f)) );
 	ymin = -ymax;
 
-	xmax = zProj * tan((double)(dest->fovX * M_PI / 360.0f));
+	xmax = (float)( zProj * tan((double)(dest->fovX * M_PI / 360.0f)) );
 	xmin = -xmax;
 
 	width = xmax - xmin;
@@ -836,7 +836,7 @@ static qboolean R_GetPortalOrientations( const drawSurf_t *drawSurf, int entityN
 				CrossProduct( camera->axis[0], camera->axis[1], camera->axis[2] );
 			} else {
 				// bobbing rotate, with skinNum being the rotation offset
-				d = sin( (double)(tr.refdef.time * 0.003f) );
+				d = (float)( sin( (double)(tr.refdef.time * 0.003f) ) );
 				d = e->e.skinNum + d * 4;
 				VectorCopy( camera->axis[1], transformed );
 				RotatePointAroundVector( camera->axis[1], camera->axis[0], transformed, d );
@@ -844,7 +844,7 @@ static qboolean R_GetPortalOrientations( const drawSurf_t *drawSurf, int entityN
 			}
 		}
 		else if ( e->e.skinNum ) {
-			d = e->e.skinNum;
+			d = (float)( e->e.skinNum );
 			VectorCopy( camera->axis[1], transformed );
 			RotatePointAroundVector( camera->axis[1], camera->axis[0], transformed, d );
 			CrossProduct( camera->axis[0], camera->axis[1], camera->axis[2] );

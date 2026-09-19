@@ -158,9 +158,9 @@ void GLimp_InitGamma( glconfig_t *config )
 
 			for ( g = 0; g < 256; g++ )
 			{
-				s_oldHardwareGamma[0][g] = g << 8;
-				s_oldHardwareGamma[1][g] = g << 8;
-				s_oldHardwareGamma[2][g] = g << 8;
+				s_oldHardwareGamma[0][g] = (unsigned short)( g << 8 );
+				s_oldHardwareGamma[1][g] = (unsigned short)( g << 8 );
+				s_oldHardwareGamma[2][g] = (unsigned short)( g << 8 );
 			}
 		}
 	} // if ( config->deviceSupportsGamma )
@@ -224,7 +224,7 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 	for ( j = 0 ; j < 3 ; j++ ) {
 		for ( i = 0 ; i < 128 ; i++ ) {
 			if ( table[j][i] > ( (128+i) << 8 ) ) {
-				table[j][i] = (128+i) << 8;
+				table[j][i] = (unsigned short)( (128+i) << 8 );
 			}
 		}
 		if ( table[j][127] > 254<<8 ) {

@@ -178,11 +178,11 @@ static int ResampleSfx( sfx_t *sfx, int channels, int inrate, int inwidth, int s
 	
 	stepscale = (float)inrate / dma.speed;	// this is usually 0.5, 1, or 2
 
-	outcount = samples / stepscale;
+	outcount = (int)( samples / stepscale );
 
 	srcsample = 0;
 	samplefrac = 0;
-	fracstep = stepscale * 256 * channels;
+	fracstep = (int)( stepscale * 256 * channels );
 	chunk = sfx->soundData;
 
 	for (i=0 ; i<outcount ; i++)
@@ -209,7 +209,7 @@ static int ResampleSfx( sfx_t *sfx, int channels, int inrate, int inwidth, int s
 				chunk = newchunk;
 			}
 
-			chunk->sndChunk[part] = sample;
+			chunk->sndChunk[part] = (short)( sample );
 		}
 	}
 
@@ -232,11 +232,11 @@ static int ResampleSfxRaw( short *sfx, int channels, int inrate, int inwidth, in
 	
 	stepscale = (float)inrate / dma.speed;	// this is usually 0.5, 1, or 2
 
-	outcount = samples / stepscale;
+	outcount = (int)( samples / stepscale );
 
 	srcsample = 0;
 	samplefrac = 0;
-	fracstep = stepscale * 256 * channels;
+	fracstep = (int)( stepscale * 256 * channels );
 
 	for (i=0 ; i<outcount ; i++)
 	{
@@ -250,7 +250,7 @@ static int ResampleSfxRaw( short *sfx, int channels, int inrate, int inwidth, in
 			} else {
 				sample = (int)( (unsigned char)(data[srcsample+j]) - 128) << 8;
 			}
-			sfx[i*channels+j] = sample;
+			sfx[i*channels+j] = (short)( sample );
 		}
 	}
 	return outcount;

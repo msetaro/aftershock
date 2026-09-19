@@ -1889,7 +1889,7 @@ int AINode_Seek_LTG(bot_state_t *bs)
 		}
 #endif
 		//
-		if (BotNearbyGoal(bs, bs->tfl, &goal, range)) {
+		if (BotNearbyGoal(bs, bs->tfl, &goal, (float)( range ))) {
 			trap_BotResetLastAvoidReach(bs->ms);
 			//get the goal at the top of the stack
 			//trap_BotGetTopGoal(bs->gs, &tmpgoal);

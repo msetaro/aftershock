@@ -70,8 +70,8 @@ void SCR_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 #endif
 
 	// scale for screen sizes
-	xscale = cls.glconfig.vidWidth / 640.0;
-	yscale = cls.glconfig.vidHeight / 480.0;
+	xscale = (float)( cls.glconfig.vidWidth / 640.0 );
+	yscale = (float)( cls.glconfig.vidHeight / 480.0 );
 	if ( x ) {
 		*x *= xscale;
 	}
@@ -135,8 +135,8 @@ static void SCR_DrawChar( int x, int y, float size, int ch ) {
 		return;
 	}
 
-	ax = x;
-	ay = y;
+	ax = (float)( x );
+	ay = (float)( y );
 	aw = size;
 	ah = size;
 	SCR_AdjustFrom640( &ax, &ay, &aw, &ah );
@@ -144,8 +144,8 @@ static void SCR_DrawChar( int x, int y, float size, int ch ) {
 	row = ch>>4;
 	col = ch&15;
 
-	frow = row*0.0625;
-	fcol = col*0.0625;
+	frow = (float)( row*0.0625 );
+	fcol = (float)( col*0.0625 );
 	size = 0.0625;
 
 	re.DrawStretchPic( ax, ay, aw, ah,
@@ -177,11 +177,11 @@ void SCR_DrawSmallChar( int x, int y, int ch ) {
 	row = ch>>4;
 	col = ch&15;
 
-	frow = row*0.0625;
-	fcol = col*0.0625;
+	frow = (float)( row*0.0625 );
+	fcol = (float)( col*0.0625 );
 	size = 0.0625;
 
-	re.DrawStretchPic( x, y, smallchar_width, smallchar_height,
+	re.DrawStretchPic( (float)( x ), (float)( y ), (float)( smallchar_width ), (float)( smallchar_height ),
 					   fcol, frow, 
 					   fcol + size, frow + size, 
 					   cls.charSetShader );
@@ -208,10 +208,10 @@ void SCR_DrawSmallString( int x, int y, const char *s, int len ) {
 		row = ch>>4;
 		col = ch&15;
 
-		frow = row*0.0625;
-		fcol = col*0.0625;
+		frow = (float)( row*0.0625 );
+		fcol = (float)( col*0.0625 );
 
-		re.DrawStretchPic( x, y, smallchar_width, smallchar_height,
+		re.DrawStretchPic( (float)( x ), (float)( y ), (float)( smallchar_width ), (float)( smallchar_height ),
 						   fcol, frow, fcol + size, frow + size, 
 						   cls.charSetShader );
 
@@ -248,7 +248,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, const floa
 			continue;
 		}
 		SCR_DrawChar( xx+2, y+2, size, *s );
-		xx += size;
+		xx = (int)( xx + (size) );
 		s++;
 	}
 
@@ -270,7 +270,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, const floa
 			}
 		}
 		SCR_DrawChar( xx, y, size, *s );
-		xx += size;
+		xx = (int)( xx + (size) );
 		s++;
 	}
 	re.SetColor( NULL );
@@ -467,8 +467,8 @@ static void SCR_DrawDebugGraph( void )
 	x = 0;
 	y = cls.glconfig.vidHeight;
 	re.SetColor( g_color_table[ ColorIndex( COLOR_BLACK ) ] );
-	re.DrawStretchPic(x, y - cl_graphheight->integer, 
-		w, cl_graphheight->integer, 0, 0, 0, 0, cls.whiteShader );
+	re.DrawStretchPic((float)( x ), (float)( y - cl_graphheight->integer ),
+		(float)( w ), (float)( cl_graphheight->integer ), (float)( 0 ), (float)( 0 ), (float)( 0 ), (float)( 0 ), cls.whiteShader );
 	re.SetColor( NULL );
 
 	for (a=0 ; a<w ; a++)
@@ -480,7 +480,7 @@ static void SCR_DrawDebugGraph( void )
 		if (v < 0)
 			v += cl_graphheight->integer * (1+(int)(-v / cl_graphheight->integer));
 		h = (int)v % cl_graphheight->integer;
-		re.DrawStretchPic( x+w-1-a, y - h, 1, h, 0, 0, 0, 0, cls.whiteShader );
+		re.DrawStretchPic( (float)( x+w-1-a ), (float)( y - h ), (float)( 1 ), (float)( h ), (float)( 0 ), (float)( 0 ), (float)( 0 ), (float)( 0 ), cls.whiteShader );
 	}
 }
 
@@ -535,8 +535,8 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			// draw vertical bars on sides for legacy mods
 			const int w = (cls.glconfig.vidWidth - ((cls.glconfig.vidHeight * 640) / 480)) /2;
 			re.SetColor( g_color_table[ ColorIndex( COLOR_BLACK ) ] );
-			re.DrawStretchPic( 0, 0, w, cls.glconfig.vidHeight, 0, 0, 0, 0, cls.whiteShader );
-			re.DrawStretchPic( cls.glconfig.vidWidth - w, 0, w, cls.glconfig.vidHeight, 0, 0, 0, 0, cls.whiteShader );
+			re.DrawStretchPic( (float)( 0 ), (float)( 0 ), (float)( w ), (float)( cls.glconfig.vidHeight ), (float)( 0 ), (float)( 0 ), (float)( 0 ), (float)( 0 ), cls.whiteShader );
+			re.DrawStretchPic( (float)( cls.glconfig.vidWidth - w ), (float)( 0 ), (float)( w ), (float)( cls.glconfig.vidHeight ), (float)( 0 ), (float)( 0 ), (float)( 0 ), (float)( 0 ), cls.whiteShader );
 			re.SetColor( NULL );
 		}
 	}

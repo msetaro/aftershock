@@ -459,7 +459,7 @@ static qboolean R_LoadMD3( model_t *mod, int lod, void *buffer, int fileSize, co
 	for ( i = 0 ; i < hdr->numSurfaces; i++) {
 
 		// how many bytes are remaining before end of file
-		bytesToEnd = size - ((byte*)surf - (byte*)hdr);
+		bytesToEnd = (uint32_t)( size - ((byte*)surf - (byte*)hdr) );
 
 		if ( bytesToEnd < sizeof(*surf)) {
 			ri.Printf( PRINT_WARNING, "%s: %s has corrupted surface header\n", __func__, mod_name );
@@ -781,7 +781,7 @@ static qboolean R_LoadMDR( model_t *mod, void *buffer, int filesize, const char 
 			Q_strncpyz(surf->name, cursurf->name, sizeof(surf->name));
 			Q_strncpyz(surf->shader, cursurf->shader, sizeof(surf->shader));
 			
-			surf->ofsHeader = (byte *) mdr - (byte *) surf;
+			surf->ofsHeader = (int)( (byte *) mdr - (byte *) surf );
 			
 			surf->numVerts = LittleLong(cursurf->numVerts);
 			surf->numTriangles = LittleLong(cursurf->numTriangles);
@@ -881,7 +881,7 @@ static qboolean R_LoadMDR( model_t *mod, void *buffer, int filesize, const char 
 			}
 			
 			// tri now points to the end of the surface.
-			surf->ofsEnd = (byte *) tri - (byte *) surf;
+			surf->ofsEnd = (int)( (byte *) tri - (byte *) surf );
 			surf = (mdrSurface_t *) tri;
 
 			// find the next surface.
@@ -1040,7 +1040,7 @@ static md3Tag_t *R_GetAnimTag( mdrHeader_t *mod, int framenum, const char *tagNa
 
 			// uncompressed model...
 			//
-			frameSize = (intptr_t)( &((mdrFrame_t *)0)->bones[ mod->numBones ] );
+			frameSize = (int)( (intptr_t)( &((mdrFrame_t *)0)->bones[ mod->numBones ] ) );
 			frame = (mdrFrame_t *)((byte *)mod + mod->ofsFrames + framenum * frameSize );
 
 			for (j = 0; j < 3; j++)

@@ -263,7 +263,7 @@ void MField_CharEvent( mfield_t *edit, int ch ) {
 		memmove( edit->buffer + edit->cursor + 1, edit->buffer + edit->cursor, len + 1 - edit->cursor );
 	}
 
-	edit->buffer[edit->cursor] = ch;
+	edit->buffer[edit->cursor] = (char)( ch );
 	if (!edit->maxchars || edit->cursor < edit->maxchars-1)
 		edit->cursor++;
 
@@ -373,7 +373,7 @@ void MenuField_Draw( menufield_s *f )
 	if ( focus )
 	{
 		// draw cursor
-		UI_FillRect( f->generic.left, f->generic.top, f->generic.right-f->generic.left+1, f->generic.bottom-f->generic.top+1, listbar_color ); 
+		UI_FillRect( (float)( f->generic.left ), (float)( f->generic.top ), (float)( f->generic.right-f->generic.left+1 ), (float)( f->generic.bottom-f->generic.top+1 ), listbar_color );
 		UI_DrawChar( x, y, 13, UI_CENTER|UI_BLINK|style, color);
 	}
 

@@ -86,7 +86,7 @@ void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 	//index >>= FUNCTABLE_SIZE2;
 
 	v = tess.shaderTime * bundle->imageAnimationSpeed; // fix for frameloss bug -EC-
-	index = v;
+	index = (int64_t)( v );
 
 	if ( index < 0 ) {
 		index = 0;	// may happen with shader time offsets
@@ -169,7 +169,7 @@ static void DrawNormals( const shaderCommands_t *input [[maybe_unused]] ) {
 	GL_State( GLS_DEPTHMASK_TRUE );
 
 	for ( i = tess.numVertexes-1; i >= 0; i-- ) {
-		VectorMA( tess.xyz[i], 2.0, tess.normal[i], tess.xyz[i*2 + 1] );
+		((tess.xyz[i*2 + 1])[0]=(float)((tess.xyz[i])[0]+(tess.normal[i])[0]*(2.0)),(tess.xyz[i*2 + 1])[1]=(float)((tess.xyz[i])[1]+(tess.normal[i])[1]*(2.0)),(tess.xyz[i*2 + 1])[2]=(float)((tess.xyz[i])[2]+(tess.normal[i])[2]*(2.0)));
 		VectorCopy( tess.xyz[i], tess.xyz[i*2] );
 	}
 
@@ -412,7 +412,7 @@ static void ProjectDlightTexture( void ) {
 					}
 				}
 			}
-			clipBits[i] = clip;
+			clipBits[i] = (unsigned char)( clip );
 			colors[0] = dl->color[0] * modulate;
 			colors[1] = dl->color[1] * modulate;
 			colors[2] = dl->color[2] * modulate;
@@ -546,9 +546,9 @@ void R_ComputeColors( const shaderStage_t *pStage )
 			{
 				for ( i = 0; i < tess.numVertexes; i++ )
 				{
-					tess.svars.colors[i].rgba[0] = tess.vertexColors[i].rgba[0] * tr.identityLight;
-					tess.svars.colors[i].rgba[1] = tess.vertexColors[i].rgba[1] * tr.identityLight;
-					tess.svars.colors[i].rgba[2] = tess.vertexColors[i].rgba[2] * tr.identityLight;
+					tess.svars.colors[i].rgba[0] = (unsigned char)( tess.vertexColors[i].rgba[0] * tr.identityLight );
+					tess.svars.colors[i].rgba[1] = (unsigned char)( tess.vertexColors[i].rgba[1] * tr.identityLight );
+					tess.svars.colors[i].rgba[2] = (unsigned char)( tess.vertexColors[i].rgba[2] * tr.identityLight );
 					tess.svars.colors[i].rgba[3] = tess.vertexColors[i].rgba[3];
 				}
 			}
@@ -567,9 +567,9 @@ void R_ComputeColors( const shaderStage_t *pStage )
 			{
 				for ( i = 0; i < tess.numVertexes; i++ )
 				{
-					tess.svars.colors[i].rgba[0] = ( 255 - tess.vertexColors[i].rgba[0] ) * tr.identityLight;
-					tess.svars.colors[i].rgba[1] = ( 255 - tess.vertexColors[i].rgba[1] ) * tr.identityLight;
-					tess.svars.colors[i].rgba[2] = ( 255 - tess.vertexColors[i].rgba[2] ) * tr.identityLight;
+					tess.svars.colors[i].rgba[0] = (unsigned char)( ( 255 - tess.vertexColors[i].rgba[0] ) * tr.identityLight );
+					tess.svars.colors[i].rgba[1] = (unsigned char)( ( 255 - tess.vertexColors[i].rgba[1] ) * tr.identityLight );
+					tess.svars.colors[i].rgba[2] = (unsigned char)( ( 255 - tess.vertexColors[i].rgba[2] ) * tr.identityLight );
 				}
 			}
 			break;
@@ -655,7 +655,7 @@ void R_ComputeColors( const shaderStage_t *pStage )
 				}
 				else
 				{
-					alpha = len * 0xff;
+					alpha = (unsigned char)( len * 0xff );
 				}
 
 				tess.svars.colors[i].rgba[3] = alpha;

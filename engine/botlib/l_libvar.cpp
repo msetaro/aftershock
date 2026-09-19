@@ -70,7 +70,7 @@ static float LibVarStringValue( const char *string )
 		} //end if
 		else
 		{
-			value = value * 10.0 + (float) (*string - '0');
+			value = (float)( value * 10.0 + (float) (*string - '0') );
 		} //end else
 		string++;
 	} //end while

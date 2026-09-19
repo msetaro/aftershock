@@ -353,7 +353,7 @@ const char *Key_KeynumToString( int keynum ) {
 
 	// check for printable ascii (don't use quote)
 	if ( keynum > ' ' && keynum < '~' && keynum != '"' && keynum != ';' ) {
-		tinystr[0] = keynum;
+		tinystr[0] = (char)( keynum );
 		tinystr[1] = '\0';
 		return tinystr;
 	}
@@ -371,8 +371,8 @@ const char *Key_KeynumToString( int keynum ) {
 
 	tinystr[0] = '0';
 	tinystr[1] = 'x';
-	tinystr[2] = i > 9 ? i - 10 + 'a' : i + '0';
-	tinystr[3] = j > 9 ? j - 10 + 'a' : j + '0';
+	tinystr[2] = (char)( i > 9 ? i - 10 + 'a' : i + '0' );
+	tinystr[3] = (char)( j > 9 ? j - 10 + 'a' : j + '0' );
 	tinystr[4] = 0;
 
 	return tinystr;

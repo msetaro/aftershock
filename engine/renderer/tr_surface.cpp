@@ -226,9 +226,9 @@ static void RB_SurfaceSprite( void ) {
 		float	s, c;
 		float	ang;
 		
-		ang = M_PI * backEnd.currentEntity->e.rotation / 180.0;
-		s = sin( (double)(ang) );
-		c = cos( (double)(ang) );
+		ang = (float)( M_PI * backEnd.currentEntity->e.rotation / 180.0 );
+		s = (float)( sin( (double)(ang) ) );
+		c = (float)( cos( (double)(ang) ) );
 
 		VectorScale( backEnd.viewParms.orientation.axis[1], c * radius, left );
 		VectorMA( left, -s * radius, backEnd.viewParms.orientation.axis[2], left );
@@ -423,7 +423,7 @@ static void RB_SurfaceBeam( void )
 
 	for ( i = 0; i <= NUM_BEAM_SEGS; i++ )
 	{
-		RotatePointAroundVector( points[i][0], normalized_direction, perpvec, (360.0/NUM_BEAM_SEGS)*i );
+		RotatePointAroundVector( points[i][0], normalized_direction, perpvec, (float)( (360.0/NUM_BEAM_SEGS)*i ) );
 		VectorAdd( points[i][0], direction, points[i][1] );
 	}
 
@@ -459,9 +459,9 @@ static void DoRailCore( const vec3_t start, const vec3_t end, const vec3_t up, f
 	VectorMA( start, spanWidth, up, tess.xyz[tess.numVertexes] );
 	tess.texCoords[0][tess.numVertexes][0] = 0;
 	tess.texCoords[0][tess.numVertexes][1] = 0;
-	tess.vertexColors[tess.numVertexes].rgba[0] = backEnd.currentEntity->e.shader.rgba[0] * 0.25;
-	tess.vertexColors[tess.numVertexes].rgba[1] = backEnd.currentEntity->e.shader.rgba[1] * 0.25;
-	tess.vertexColors[tess.numVertexes].rgba[2] = backEnd.currentEntity->e.shader.rgba[2] * 0.25;
+	tess.vertexColors[tess.numVertexes].rgba[0] = (unsigned char)( backEnd.currentEntity->e.shader.rgba[0] * 0.25 );
+	tess.vertexColors[tess.numVertexes].rgba[1] = (unsigned char)( backEnd.currentEntity->e.shader.rgba[1] * 0.25 );
+	tess.vertexColors[tess.numVertexes].rgba[2] = (unsigned char)( backEnd.currentEntity->e.shader.rgba[2] * 0.25 );
 	tess.numVertexes++;
 
 	VectorMA( start, spanWidth2, up, tess.xyz[tess.numVertexes] );
@@ -517,8 +517,8 @@ static void DoRailDiscs( int numSegs, const vec3_t start, const vec3_t dir, cons
 
 	for ( i = 0; i < 4; i++ )
 	{
-		c = cos( (double)(DEG2RAD( 45 + i * 90 )) );
-		s = sin( (double)(DEG2RAD( 45 + i * 90 )) );
+		c = (float)( cos( (double)(DEG2RAD( 45 + i * 90 )) ) );
+		s = (float)( sin( (double)(DEG2RAD( 45 + i * 90 )) ) );
 		v[0] = ( right[0] * c + up[0] * s ) * scale * spanWidth;
 		v[1] = ( right[1] * c + up[1] * s ) * scale * spanWidth;
 		v[2] = ( right[2] * c + up[2] * s ) * scale * spanWidth;
@@ -578,9 +578,9 @@ static void RB_SurfaceRailRings( void ) {
 
 	// compute variables
 	VectorSubtract( end, start, vec );
-	len = VectorNormalize( vec );
+	len = (int)( VectorNormalize( vec ) );
 	MakeNormalVectors( vec, right, up );
-	numSegs = ( len ) / r_railSegmentLength->value;
+	numSegs = (int)( ( len ) / r_railSegmentLength->value );
 	if ( numSegs <= 0 ) {
 		numSegs = 1;
 	}
@@ -608,7 +608,7 @@ static void RB_SurfaceRailCore( void ) {
 	VectorCopy( e->origin, end );
 
 	VectorSubtract( end, start, vec );
-	len = VectorNormalize( vec );
+	len = (int)( VectorNormalize( vec ) );
 
 	// compute side vector
 	VectorSubtract( start, backEnd.viewParms.orientation.origin, v1 );
@@ -618,7 +618,7 @@ static void RB_SurfaceRailCore( void ) {
 	CrossProduct( v1, v2, right );
 	VectorNormalize( right );
 
-	DoRailCore( start, end, right, len, r_railCoreWidth->integer );
+	DoRailCore( start, end, right, (float)( len ), (float)( r_railCoreWidth->integer ) );
 }
 
 
@@ -641,7 +641,7 @@ static void RB_SurfaceLightningBolt( void ) {
 
 	// compute variables
 	VectorSubtract( end, start, vec );
-	len = VectorNormalize( vec );
+	len = (int)( VectorNormalize( vec ) );
 
 	// compute side vector
 	VectorSubtract( start, backEnd.viewParms.orientation.origin, v1 );
@@ -654,7 +654,7 @@ static void RB_SurfaceLightningBolt( void ) {
 	for ( i = 0 ; i < 4 ; i++ ) {
 		vec3_t	temp;
 
-		DoRailCore( start, end, right, len, 8 );
+		DoRailCore( start, end, right, (float)( len ), (float)( 8 ) );
 		RotatePointAroundVector( temp, vec, right, 45 );
 		VectorCopy( temp, right );
 	}
@@ -698,8 +698,8 @@ static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
 		+ (backEnd.currentEntity->e.frame * surf->numVerts * 4);
 	newNormals = newXyz + 3;
 
-	newXyzScale = MD3_XYZ_SCALE * (1.0 - backlerp);
-	newNormalScale = 1.0 - backlerp;
+	newXyzScale = (float)( MD3_XYZ_SCALE * (1.0 - backlerp) );
+	newNormalScale = (float)( 1.0 - backlerp );
 
 	numVerts = surf->numVerts;
 
@@ -737,7 +737,7 @@ static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
 			+ (backEnd.currentEntity->e.oldframe * surf->numVerts * 4);
 		oldNormals = oldXyz + 3;
 
-		oldXyzScale = MD3_XYZ_SCALE * backlerp;
+		oldXyzScale = (float)( MD3_XYZ_SCALE * backlerp );
 		oldNormalScale = backlerp;
 
 		for (vertNum=0 ; vertNum < numVerts ; vertNum++,

@@ -396,7 +396,7 @@ static void CG_AddToTeamChat( const char *str ) {
 			p = cgs.teamChatMsgs[cgs.teamChatPos % chatHeight];
 			*p = 0;
 			*p++ = Q_COLOR_ESCAPE;
-			*p++ = lastcolor;
+			*p++ = (char)( lastcolor );
 			len = 0;
 			ls = NULL;
 		}
@@ -685,7 +685,7 @@ int CG_GetVoiceChat( voiceChatList_t *voiceChatList, const char *id, sfxHandle_t
 
 	for ( i = 0; i < voiceChatList->numVoiceChats; i++ ) {
 		if ( !Q_stricmp( id, voiceChatList->voiceChats[i].id ) ) {
-			rnd = random() * voiceChatList->voiceChats[i].numSounds;
+			rnd = (int)( random() * voiceChatList->voiceChats[i].numSounds );
 			*snd = voiceChatList->voiceChats[i].sounds[rnd];
 			*chat = voiceChatList->voiceChats[i].chats[rnd];
 			return qtrue;
@@ -987,7 +987,7 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "cp" ) ) {
-		CG_CenterPrint( CG_Argv(1), SCREEN_HEIGHT * 0.30f, BIGCHAR_WIDTH );
+		CG_CenterPrint( CG_Argv(1), (int)( SCREEN_HEIGHT * 0.30f ), BIGCHAR_WIDTH );
 		return;
 	}
 

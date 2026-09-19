@@ -334,7 +334,7 @@ static void GraphicsOptions_GetInitialVideo( void )
 	s_ivo.mode        = s_graphicsoptions.mode.curvalue;
 	s_ivo.fullscreen  = (qboolean)s_graphicsoptions.fs.curvalue;
 	s_ivo.extensions  = (qboolean)s_graphicsoptions.allow_extensions.curvalue;
-	s_ivo.tq          = s_graphicsoptions.tq.curvalue;
+	s_ivo.tq          = (int)( s_graphicsoptions.tq.curvalue );
 	s_ivo.lighting    = s_graphicsoptions.lighting.curvalue;
 	s_ivo.geometry    = s_graphicsoptions.geometry.curvalue;
 	s_ivo.filter      = s_graphicsoptions.filter.curvalue;
@@ -481,9 +481,9 @@ static void GraphicsOptions_ApplyChanges( void *unused [[maybe_unused]], int not
 		break;
 	}
 	trap_Cvar_SetValue( "r_picmip", 3 - s_graphicsoptions.tq.curvalue );
-	trap_Cvar_SetValue( "r_allowExtensions", s_graphicsoptions.allow_extensions.curvalue );
-	trap_Cvar_SetValue( "r_mode", s_graphicsoptions.mode.curvalue );
-	trap_Cvar_SetValue( "r_fullscreen", s_graphicsoptions.fs.curvalue );
+	trap_Cvar_SetValue( "r_allowExtensions", (float)( s_graphicsoptions.allow_extensions.curvalue ) );
+	trap_Cvar_SetValue( "r_mode", (float)( s_graphicsoptions.mode.curvalue ) );
+	trap_Cvar_SetValue( "r_fullscreen", (float)( s_graphicsoptions.fs.curvalue ) );
 	trap_Cvar_Set( "r_glDriver", ( char * ) s_drivers[s_graphicsoptions.driver.curvalue] );
 	switch ( s_graphicsoptions.colordepth.curvalue )
 	{
@@ -502,7 +502,7 @@ static void GraphicsOptions_ApplyChanges( void *unused [[maybe_unused]], int not
 		trap_Cvar_SetValue( "r_depthbits", 24 );
 		break;
 	}
-	trap_Cvar_SetValue( "r_vertexLight", s_graphicsoptions.lighting.curvalue );
+	trap_Cvar_SetValue( "r_vertexLight", (float)( s_graphicsoptions.lighting.curvalue ) );
 
 	if ( s_graphicsoptions.geometry.curvalue == 2 )
 	{
@@ -560,7 +560,7 @@ static void GraphicsOptions_Event( void* ptr, int event ) {
 		ivo = &s_ivo_templates[s_graphicsoptions.list.curvalue];
 
 		s_graphicsoptions.mode.curvalue        = ivo->mode;
-		s_graphicsoptions.tq.curvalue          = ivo->tq;
+		s_graphicsoptions.tq.curvalue          = (float)( ivo->tq );
 		s_graphicsoptions.lighting.curvalue    = ivo->lighting;
 		s_graphicsoptions.colordepth.curvalue  = ivo->colordepth;
 		s_graphicsoptions.texturebits.curvalue = ivo->texturebits;
@@ -607,7 +607,7 @@ static void GraphicsOptions_TQEvent( void *ptr [[maybe_unused]], int event ) {
 	if( event != QM_ACTIVATED ) {
 	 	return;
 	}
-	s_graphicsoptions.tq.curvalue = (int)(s_graphicsoptions.tq.curvalue + 0.5f);
+	s_graphicsoptions.tq.curvalue = (float)( (int)(s_graphicsoptions.tq.curvalue + 0.5f) );
 }
 
 
@@ -631,13 +631,13 @@ GraphicsOptions_SetMenuItems
 */
 static void GraphicsOptions_SetMenuItems( void )
 {
-	s_graphicsoptions.mode.curvalue = trap_Cvar_VariableValue( "r_mode" );
+	s_graphicsoptions.mode.curvalue = (int)( trap_Cvar_VariableValue( "r_mode" ) );
 	if ( s_graphicsoptions.mode.curvalue < 0 )
 	{
 		s_graphicsoptions.mode.curvalue = 3;
 	}
-	s_graphicsoptions.fs.curvalue = trap_Cvar_VariableValue("r_fullscreen");
-	s_graphicsoptions.allow_extensions.curvalue = trap_Cvar_VariableValue("r_allowExtensions");
+	s_graphicsoptions.fs.curvalue = (int)( trap_Cvar_VariableValue("r_fullscreen") );
+	s_graphicsoptions.allow_extensions.curvalue = (int)( trap_Cvar_VariableValue("r_allowExtensions") );
 	s_graphicsoptions.tq.curvalue = 3-trap_Cvar_VariableValue( "r_picmip");
 	if ( s_graphicsoptions.tq.curvalue < 0 )
 	{

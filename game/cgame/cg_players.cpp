@@ -155,7 +155,7 @@ static qboolean	CG_ParseAnimationFile( const char *filename, clientInfo_t *ci ) 
 				if ( !token ) {
 					break;
 				}
-				ci->headOffset[i] = atof( token );
+				ci->headOffset[i] = (float)( atof( token ) );
 			}
 			continue;
 		} else if ( !Q_stricmp( token, "sex" ) ) {
@@ -237,12 +237,12 @@ static qboolean	CG_ParseAnimationFile( const char *filename, clientInfo_t *ci ) 
 		if ( !*token ) {
 			break;
 		}
-		fps = atof( token );
+		fps = (float)( atof( token ) );
 		if ( fps == 0 ) {
 			fps = 1;
 		}
-		animations[i].frameLerp = 1000 / fps;
-		animations[i].initialLerp = 1000 / fps;
+		animations[i].frameLerp = (int)( 1000 / fps );
+		animations[i].initialLerp = (int)( 1000 / fps );
 	}
 
 	if ( i != MAX_ANIMATIONS ) {
@@ -725,7 +725,7 @@ static void CG_LoadClientInfo( clientInfo_t *ci ) {
 
 	// reset any existing players and bodies, because they might be in bad
 	// frames for this new model
-	clientNum = ci - cgs.clientinfo;
+	clientNum = (int)( ci - cgs.clientinfo );
 	for ( i = 0 ; i < MAX_GENTITIES ; i++ ) {
 		if ( cg_entities[i].currentState.clientNum == clientNum
 			&& cg_entities[i].currentState.eType == ET_PLAYER ) {
@@ -1132,7 +1132,7 @@ static void CG_RunLerpFrame( clientInfo_t *ci, lerpFrame_t *lf, int newAnimation
 
 	// debugging tool to get no animations
 	if ( cg_animSpeed.integer == 0 ) {
-		lf->oldFrame = lf->frame = lf->backlerp = 0;
+		lf->oldFrame = lf->frame = (int)( lf->backlerp = 0 );
 		return;
 	}
 
@@ -1158,7 +1158,7 @@ static void CG_RunLerpFrame( clientInfo_t *ci, lerpFrame_t *lf, int newAnimation
 			lf->frameTime = lf->oldFrameTime + anim->frameLerp;
 		}
 		f = ( lf->frameTime - lf->animationTime ) / anim->frameLerp;
-		f *= speedScale;		// adjust for haste, etc
+		f = (int)( f * (speedScale) );		// adjust for haste, etc
 
 		numFrames = anim->numFrames;
 		if (anim->flipflop) {
@@ -1402,7 +1402,7 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 		// don't let dead bodies twitch
 		dir = 0;
 	} else {
-		dir = cent->currentState.angles2[YAW];
+		dir = (int)( cent->currentState.angles2[YAW] );
 		if ( dir < 0 || dir > 7 ) {
 			CG_Error( "Bad player movement angle" );
 		}
@@ -1837,7 +1837,7 @@ static void CG_PlayerPowerups( centity_t *cent, refEntity_t *torso ) {
 
 	// quad gives a dlight
 	if ( powerups & ( 1 << PW_QUAD ) ) {
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 0.2f, 0.2f, 1 );
+		trap_R_AddLightToScene( cent->lerpOrigin, (float)( 200 + (rand()&31) ), 0.2f, 0.2f, (float)( 1 ) );
 	}
 
 	// flight plays a looped sound
@@ -1854,7 +1854,7 @@ static void CG_PlayerPowerups( centity_t *cent, refEntity_t *torso ) {
 		else {
 			CG_TrailItem( cent, cgs.media.redFlagModel );
 		}
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 1.0f, 0.2f, 0.2f );
+		trap_R_AddLightToScene( cent->lerpOrigin, (float)( 200 + (rand()&31) ), 1.0f, 0.2f, 0.2f );
 	}
 
 	// blueflag
@@ -1865,7 +1865,7 @@ static void CG_PlayerPowerups( centity_t *cent, refEntity_t *torso ) {
 		else {
 			CG_TrailItem( cent, cgs.media.blueFlagModel );
 		}
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 0.2f, 0.2f, 1.0f );
+		trap_R_AddLightToScene( cent->lerpOrigin, (float)( 200 + (rand()&31) ), 0.2f, 0.2f, 1.0f );
 	}
 
 	// neutralflag
@@ -1876,7 +1876,7 @@ static void CG_PlayerPowerups( centity_t *cent, refEntity_t *torso ) {
 		else {
 			CG_TrailItem( cent, cgs.media.neutralFlagModel );
 		}
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 1.0f, 1.0f, 1.0f );
+		trap_R_AddLightToScene( cent->lerpOrigin, (float)( 200 + (rand()&31) ), 1.0f, 1.0f, 1.0f );
 	}
 
 	// haste leaves smoke trails
@@ -2192,29 +2192,29 @@ int CG_LightVerts( vec3_t normal, int numVerts, polyVert_t *verts )
 	for (i = 0; i < numVerts; i++) {
 		incoming = DotProduct (normal, lightDir);
 		if ( incoming <= 0 ) {
-			verts[i].modulate[0] = ambientLight[0];
-			verts[i].modulate[1] = ambientLight[1];
-			verts[i].modulate[2] = ambientLight[2];
+			verts[i].modulate[0] = (unsigned char)( ambientLight[0] );
+			verts[i].modulate[1] = (unsigned char)( ambientLight[1] );
+			verts[i].modulate[2] = (unsigned char)( ambientLight[2] );
 			verts[i].modulate[3] = 255;
 			continue;
 		} 
-		j = ( ambientLight[0] + incoming * directedLight[0] );
+		j = (int)( ( ambientLight[0] + incoming * directedLight[0] ) );
 		if ( j > 255 ) {
 			j = 255;
 		}
-		verts[i].modulate[0] = j;
+		verts[i].modulate[0] = (unsigned char)( j );
 
-		j = ( ambientLight[1] + incoming * directedLight[1] );
+		j = (int)( ( ambientLight[1] + incoming * directedLight[1] ) );
 		if ( j > 255 ) {
 			j = 255;
 		}
-		verts[i].modulate[1] = j;
+		verts[i].modulate[1] = (unsigned char)( j );
 
-		j = ( ambientLight[2] + incoming * directedLight[2] );
+		j = (int)( ( ambientLight[2] + incoming * directedLight[2] ) );
 		if ( j > 255 ) {
 			j = 255;
 		}
-		verts[i].modulate[2] = j;
+		verts[i].modulate[2] = (unsigned char)( j );
 
 		verts[i].modulate[3] = 255;
 	}

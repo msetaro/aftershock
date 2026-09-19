@@ -143,7 +143,7 @@ static void CMod_LoadSubmodels( const lump_t *l ) {
 		// make a "leaf" just to hold the model's brushes and surfaces
 		out->leaf.numLeafBrushes = numBrushes;
 		indexes = (int *)Hunk_Alloc( numBrushes * sizeof( *indexes ), h_current );
-		out->leaf.firstLeafBrush = indexes - cm.leafbrushes;
+		out->leaf.firstLeafBrush = (int)( indexes - cm.leafbrushes );
 		for ( j = 0 ; (unsigned int)j < numBrushes ; j++ ) {
 			indexes[j] = firstBrush + j;
 		}
@@ -156,7 +156,7 @@ static void CMod_LoadSubmodels( const lump_t *l ) {
 
 		out->leaf.numLeafSurfaces = numSurfaces;
 		indexes = (int *)Hunk_Alloc( numSurfaces * sizeof( *indexes ), h_current );
-		out->leaf.firstLeafSurface = indexes - cm.leafsurfaces;
+		out->leaf.firstLeafSurface = (int)( indexes - cm.leafsurfaces );
 		for ( j = 0 ; (unsigned int)j < numSurfaces ; j++ ) {
 			indexes[j] = firstSurface + j;
 		}
@@ -374,7 +374,7 @@ static void CMod_LoadPlanes( const lump_t *l )
 
 		out->dist = LittleFloat( in->dist );
 		out->type = PlaneTypeForNormal( out->normal );
-		out->signbits = bits;
+		out->signbits = (unsigned char)( bits );
 	}
 }
 
@@ -898,13 +898,13 @@ static void CM_InitBoxHull( void )
 
 		// planes
 		p = &box_planes[i * 2];
-		p->type = i >> 1;
+		p->type = (unsigned char)( i >> 1 );
 		p->signbits = 0;
 		VectorClear( p->normal );
 		p->normal[i >> 1] = 1;
 
 		p = &box_planes[i * 2 + 1];
-		p->type = 3 + ( i >> 1 );
+		p->type = (unsigned char)( 3 + ( i >> 1 ) );
 		p->signbits = 0;
 		VectorClear( p->normal );
 		p->normal[i >> 1] = -1;

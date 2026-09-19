@@ -184,8 +184,8 @@ static void PText_Init( menutext_s *t )
 
 	x = t->generic.x;
 	y = t->generic.y;
-	w = UI_ProportionalStringWidth( t->string ) * sizeScale;
-	h =	PROP_HEIGHT * sizeScale;
+	w = (int)( UI_ProportionalStringWidth( t->string ) * sizeScale );
+	h =	(int)( PROP_HEIGHT * sizeScale );
 
 	if( t->generic.flags & QMF_RIGHT_JUSTIFY ) {
 		x -= w;
@@ -194,8 +194,8 @@ static void PText_Init( menutext_s *t )
 		x -= w / 2;
 	}
 
-	t->generic.left   = x - PROP_GAP_WIDTH * sizeScale;
-	t->generic.right  = x + w + PROP_GAP_WIDTH * sizeScale;
+	t->generic.left   = (int)( x - PROP_GAP_WIDTH * sizeScale );
+	t->generic.right  = (int)( x + w + PROP_GAP_WIDTH * sizeScale );
 	t->generic.top    = y;
 	t->generic.bottom = y + h;
 }
@@ -288,10 +288,10 @@ void Bitmap_Draw( menubitmap_s *b )
 	vec4_t	tempcolor;
 	float*	color;
 
-	x = b->generic.x;
-	y = b->generic.y;
-	w = b->width;
-	h =	b->height;
+	x = (float)( b->generic.x );
+	y = (float)( b->generic.y );
+	w = (float)( b->width );
+	h =	(float)( b->height );
 
 	if (b->generic.flags & QMF_RIGHT_JUSTIFY)
 	{
@@ -519,7 +519,7 @@ static void RadioButton_Draw( menuradiobutton_s *rb )
 	if ( focus )
 	{
 		// draw cursor
-		UI_FillRect( rb->generic.left, rb->generic.top, rb->generic.right-rb->generic.left+1, rb->generic.bottom-rb->generic.top+1, listbar_color ); 
+		UI_FillRect( (float)( rb->generic.left ), (float)( rb->generic.top ), (float)( rb->generic.right-rb->generic.left+1 ), (float)( rb->generic.bottom-rb->generic.top+1 ), listbar_color );
 		UI_DrawChar( x, y, 13, UI_CENTER|UI_BLINK|UI_SMALLFONT, color);
 	}
 
@@ -528,12 +528,12 @@ static void RadioButton_Draw( menuradiobutton_s *rb )
 
 	if ( !rb->curvalue )
 	{
-		UI_DrawHandlePic( x + SMALLCHAR_WIDTH, y + 2, 16, 16, uis.rb_off);
+		UI_DrawHandlePic( (float)( x + SMALLCHAR_WIDTH ), (float)( y + 2 ), (float)( 16 ), (float)( 16 ), uis.rb_off);
 		UI_DrawString( x + SMALLCHAR_WIDTH + 16, y, "off", style, color );
 	}
 	else
 	{
-		UI_DrawHandlePic( x + SMALLCHAR_WIDTH, y + 2, 16, 16, uis.rb_on );
+		UI_DrawHandlePic( (float)( x + SMALLCHAR_WIDTH ), (float)( y + 2 ), (float)( 16 ), (float)( 16 ), uis.rb_on );
 		UI_DrawString( x + SMALLCHAR_WIDTH + 16, y, "on", style, color );
 	}
 }
@@ -574,7 +574,7 @@ static sfxHandle_t Slider_Key( menuslider_s *s, int key )
 	{
 		case K_MOUSE1:
 			x           = uis.cursorx - s->generic.x - 2*SMALLCHAR_WIDTH;
-			oldvalue    = s->curvalue;
+			oldvalue    = (int)( s->curvalue );
 			s->curvalue = (x/(float)(SLIDER_RANGE*SMALLCHAR_WIDTH)) * (s->maxvalue-s->minvalue) + s->minvalue;
 
 			if (s->curvalue < s->minvalue)
@@ -657,7 +657,7 @@ static void Slider_Draw( menuslider_s *s ) {
 
 	// draw slider
 	UI_SetColor( color );
-	UI_DrawHandlePic( x + SMALLCHAR_WIDTH, y, 96, 16, sliderBar );
+	UI_DrawHandlePic( (float)( x + SMALLCHAR_WIDTH ), (float)( y ), (float)( 96 ), (float)( 16 ), sliderBar );
 	UI_SetColor( NULL );
 
 	// clamp thumb
@@ -682,7 +682,7 @@ static void Slider_Draw( menuslider_s *s ) {
 		button = sliderButton_0;
 	}
 
-	UI_DrawHandlePic( (int)( x + 2*SMALLCHAR_WIDTH + (SLIDER_RANGE-1)*SMALLCHAR_WIDTH* s->range ) - 2, y - 2, 12, 20, button );
+	UI_DrawHandlePic( (float)( (int)( (float)( x + 2*SMALLCHAR_WIDTH ) + (float)( (SLIDER_RANGE-1)*SMALLCHAR_WIDTH )* s->range ) - 2 ), (float)( y - 2 ), (float)( 12 ), (float)( 20 ), button );
 }
 #else
 /*
@@ -871,7 +871,7 @@ static void SpinControl_Draw( menulist_s *s )
 	if ( focus )
 	{
 		// draw cursor
-		UI_FillRect( s->generic.left, s->generic.top, s->generic.right-s->generic.left+1, s->generic.bottom-s->generic.top+1, listbar_color ); 
+		UI_FillRect( (float)( s->generic.left ), (float)( s->generic.top ), (float)( s->generic.right-s->generic.left+1 ), (float)( s->generic.bottom-s->generic.top+1 ), listbar_color );
 		UI_DrawChar( x, y, 13, UI_CENTER|UI_BLINK|UI_SMALLFONT, color);
 	}
 
@@ -1228,7 +1228,7 @@ void ScrollList_Draw( menulist_s *l )
 					u -= (l->width * SMALLCHAR_WIDTH) / 2 + 1;
 				}
 
-				UI_FillRect(u,y,l->width*SMALLCHAR_WIDTH,SMALLCHAR_HEIGHT+2,listbar_color);
+				UI_FillRect((float)( u ),(float)( y ),(float)( l->width*SMALLCHAR_WIDTH ),(float)( SMALLCHAR_HEIGHT+2 ),listbar_color);
 				color = text_color_highlight;
 
 				if (hasfocus)
@@ -1531,10 +1531,10 @@ void Menu_Draw( menuframework_s *menu )
 				h =	itemptr->bottom - itemptr->top + 1;
 
 				if (itemptr->flags & QMF_HASMOUSEFOCUS) {
-					UI_DrawRect(x, y, w, h, colorYellow );
+					UI_DrawRect((float)x, (float)y, (float)w, (float)h, colorYellow );
 				}
 				else {
-					UI_DrawRect(x, y, w, h, colorWhite );
+					UI_DrawRect((float)x, (float)y, (float)w, (float)h, colorWhite );
 				}
 			}
 		}

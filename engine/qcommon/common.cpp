@@ -3644,9 +3644,9 @@ static int Com_ModifyMsec( int msec ) {
 	if ( com_fixedtime->integer ) {
 		msec = com_fixedtime->integer;
 	} else if ( com_timescale->value ) {
-		msec *= com_timescale->value;
+		msec = (int)( msec * (com_timescale->value) );
 	} else if (com_cameraMode->integer) {
-		msec *= com_timescale->value;
+		msec = (int)( msec * (com_timescale->value) );
 	}
 
 	// don't let it scale below 1 msec
@@ -4381,7 +4381,7 @@ void Com_RandomBytes( byte *string, int len )
 		return;
 
 	Com_Printf( S_COLOR_YELLOW "Com_RandomBytes: using weak randomization\n" );
-	srand( Sys_Time( NULL ) );
+	srand( (unsigned int)Sys_Time( NULL ) );
 	for( i = 0; i < len; i++ )
 		string[i] = (unsigned char)( rand() % 256 );
 }
