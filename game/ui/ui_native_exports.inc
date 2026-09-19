@@ -3,7 +3,7 @@
 int NativeUI_CallDepth;
 bool NativeUI_Running;
 
-void NativeUI_Init( int connected ) {
+void NativeUI_Init( int connected [[maybe_unused]] ) {
 	++NativeUI_CallDepth;
 	ui::UI_Init();
 	--NativeUI_CallDepth;

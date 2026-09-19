@@ -176,7 +176,7 @@ void GL_Cull( cullType_t cullType ) {
 /*
 ** GL_TexEnv
 */
-void GL_TexEnv( GLint env )
+void GL_TexEnv( GLint env [[maybe_unused]] )
 {
 #ifndef USE_VULKAN
 	if ( env == glState.texEnv[ glState.currenttmu ] )
@@ -206,7 +206,7 @@ void GL_TexEnv( GLint env )
 ** This routine is responsible for setting the most commonly changed state
 ** in Q3.
 */
-void GL_State( unsigned stateBits )
+void GL_State( unsigned stateBits [[maybe_unused]] )
 {
 #ifndef USE_VULKAN
 	unsigned diff = stateBits ^ glState.glStateBits;
@@ -1113,7 +1113,7 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, byte *data, 
 }
 
 
-void RE_UploadCinematic( int w, int h, int cols, int rows, byte *data, int client, qboolean dirty ) {
+void RE_UploadCinematic( int w [[maybe_unused]], int h [[maybe_unused]], int cols, int rows, byte *data, int client, qboolean dirty ) {
 
 	image_t *image;
 

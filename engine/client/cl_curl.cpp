@@ -220,8 +220,8 @@ void CL_cURL_Cleanup(void)
 }
 
 #if CURL_AT_LEAST_VERSION(7, 32, 0)
-static int CL_cURL_CallbackProgress( void *dummy, curl_off_t dltotal, curl_off_t dlnow,
-	curl_off_t ultotal, curl_off_t ulnow )
+static int CL_cURL_CallbackProgress( void *dummy [[maybe_unused]], curl_off_t dltotal, curl_off_t dlnow,
+	curl_off_t ultotal [[maybe_unused]], curl_off_t ulnow [[maybe_unused]] )
 #else
 static int CL_cURL_CallbackProgress( void *dummy, double dltotal, double dlnow,
 	double ultotal, double ulnow )
@@ -716,7 +716,7 @@ Com_DL_CallbackProgress
 =================
 */
 #if CURL_AT_LEAST_VERSION(7, 32, 0)
-static int Com_DL_CallbackProgress( void *data, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow )
+static int Com_DL_CallbackProgress( void *data, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal [[maybe_unused]], curl_off_t ulnow [[maybe_unused]] )
 #else
 static int Com_DL_CallbackProgress( void *data, double dltotal, double dlnow, double ultotal, double ulnow )
 #endif

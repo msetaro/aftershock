@@ -2069,7 +2069,7 @@ int AAS_RandomGoalArea(int areanum, int travelflags, int *goalareanum, vec3_t go
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-static int AAS_AreaVisible(int srcarea, int destarea)
+static int AAS_AreaVisible(int srcarea [[maybe_unused]], int destarea [[maybe_unused]])
 {
 	return qfalse;
 } //end of the function AAS_AreaVisible
@@ -2095,7 +2095,7 @@ float DistancePointToLine(vec3_t v1, vec3_t v2, vec3_t point)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-int AAS_NearestHideArea(int srcnum, vec3_t origin, int areanum, int enemynum, vec3_t enemyorigin, int enemyareanum, int travelflags)
+int AAS_NearestHideArea(int srcnum [[maybe_unused]], vec3_t origin, int areanum, int enemynum [[maybe_unused]], vec3_t enemyorigin, int enemyareanum, int travelflags)
 {
 	int i, j, nextareanum, badtravelflags, numreach, bestarea;
 	unsigned short int t, besttraveltime;

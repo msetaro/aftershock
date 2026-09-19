@@ -340,7 +340,7 @@ static boolean empty_output_buffer( j_compress_ptr cinfo )
  * for error exit.
  */
 
-static void term_destination(j_compress_ptr cinfo)
+static void term_destination(j_compress_ptr cinfo [[maybe_unused]])
 {
 }
 

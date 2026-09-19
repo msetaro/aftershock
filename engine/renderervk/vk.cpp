@@ -327,7 +327,7 @@ static VkCommandBuffer begin_command_buffer( void )
 }
 
 
-static void end_command_buffer( VkCommandBuffer command_buffer, const char *location )
+static void end_command_buffer( VkCommandBuffer command_buffer, const char *location [[maybe_unused]] )
 {
 #ifdef USE_UPLOAD_QUEUE
 	const VkPipelineStageFlags wait_dst_stage_mask = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -371,7 +371,7 @@ static void end_command_buffer( VkCommandBuffer command_buffer, const char *loca
 
 
 static void record_image_layout_transition( VkCommandBuffer command_buffer, VkImage image, VkImageAspectFlags image_aspect_flags, 
-	VkImageLayout old_layout, VkImageLayout new_layout, uint32_t src_stage_override, uint32_t dst_stage_override ) {
+	VkImageLayout old_layout, VkImageLayout new_layout, uint32_t src_stage_override, uint32_t dst_stage_override [[maybe_unused]] ) {
 	VkImageMemoryBarrier barrier;
 	uint32_t src_stage, dst_stage;
 
@@ -1243,8 +1243,8 @@ static void vk_alloc_staging_buffer( VkDeviceSize size )
 
 
 #ifdef USE_VK_VALIDATION
-static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT object_type, uint64_t object, size_t location,
-	int32_t message_code, const char* layer_prefix, const char* message, void* user_data) {
+static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT flags [[maybe_unused]], VkDebugReportObjectTypeEXT object_type [[maybe_unused]], uint64_t object [[maybe_unused]], size_t location [[maybe_unused]],
+	int32_t message_code [[maybe_unused]], const char* layer_prefix, const char* message, void* user_data [[maybe_unused]]) {
 #ifdef _WIN32
 	Sys_GraphicsDebugMessage( message, layer_prefix );
 #endif
@@ -3858,7 +3858,7 @@ static void vk_destroy_attachments( void );
 static void vk_destroy_render_passes( void );
 static void vk_destroy_pipelines( qboolean resetCount );
 
-static void vk_restart_swapchain( const char *funcname, VkResult res )
+static void vk_restart_swapchain( const char *funcname, VkResult res [[maybe_unused]] )
 {
 	uint32_t i;
 

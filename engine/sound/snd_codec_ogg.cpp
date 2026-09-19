@@ -192,7 +192,7 @@ int S_OGG_Callback_seek(void *datasource, ogg_int64_t offset, int whence)
 }
 
 // fclose() replacement
-int S_OGG_Callback_close(void *datasource)
+int S_OGG_Callback_close(void *datasource [[maybe_unused]])
 {
 	// we do nothing here and close all things manually in S_OGG_CodecCloseStream()
 	return 0;

@@ -656,7 +656,7 @@ static void CL_Record_f( void ) {
 CL_CompleteRecordName
 ====================
 */
-static void CL_CompleteRecordName(const char *args, int argNum )
+static void CL_CompleteRecordName(const char *args [[maybe_unused]], int argNum )
 {
 	if ( argNum == 2 )
 	{
@@ -825,7 +825,7 @@ static qboolean CL_DemoNameCallback_f( const char *filename, int length )
 CL_CompleteDemoName
 ====================
 */
-static void CL_CompleteDemoName(const char *args, int argNum )
+static void CL_CompleteDemoName(const char *args [[maybe_unused]], int argNum )
 {
 	if ( argNum == 2 )
 	{
@@ -3641,7 +3641,7 @@ static void CL_StopVideo_f( void )
 CL_CompleteRecordName
 ====================
 */
-static void CL_CompleteVideoName(const char *args, int argNum )
+static void CL_CompleteVideoName(const char *args [[maybe_unused]], int argNum )
 {
 	if ( argNum == 2 )
 	{

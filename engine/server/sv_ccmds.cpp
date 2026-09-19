@@ -1526,7 +1526,7 @@ static void SV_Locations_f( void ) {
 SV_CompleteMapName
 ==================
 */
-static void SV_CompleteMapName( const char *args, int argNum ) {
+static void SV_CompleteMapName( const char *args [[maybe_unused]], int argNum ) {
 	if ( argNum == 2 ) 	{
 		if ( sv.pure != 0 ) {
 			Field_CompleteFilename( "maps", "bsp", qtrue, FS_MATCH_PK3s | FS_MATCH_STICK );

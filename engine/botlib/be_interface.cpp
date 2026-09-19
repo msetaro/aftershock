@@ -305,7 +305,7 @@ float BotGapDistance(vec3_t origin, vec3_t hordir, int entnum);
 
 void AAS_FloodAreas(vec3_t origin);
 
-int BotExportTest(int parm0, char *parm1, vec3_t parm2, vec3_t parm3)
+int BotExportTest(int parm0 [[maybe_unused]], char *parm1 [[maybe_unused]], vec3_t parm2 [[maybe_unused]], vec3_t parm3 [[maybe_unused]])
 {
 
 //	return AAS_PointLight(parm2, NULL, NULL, NULL);

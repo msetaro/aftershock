@@ -243,7 +243,7 @@ static void StartServer_MapEvent( void* ptr, int event ) {
 StartServer_GametypeEvent
 =================
 */
-static void StartServer_GametypeEvent( void* ptr, int event ) {
+static void StartServer_GametypeEvent( void* ptr [[maybe_unused]], int event ) {
 	int			i;
 	int			count;
 	int			gamebits;
@@ -1732,7 +1732,7 @@ static void UI_BotSelectMenu_Default( char *bot ) {
 UI_BotSelectMenu_LeftEvent
 =================
 */
-static void UI_BotSelectMenu_LeftEvent( void* ptr, int event ) {
+static void UI_BotSelectMenu_LeftEvent( void* ptr [[maybe_unused]], int event ) {
 	if( event != QM_ACTIVATED ) {
 		return;
 	}
@@ -1749,7 +1749,7 @@ static void UI_BotSelectMenu_LeftEvent( void* ptr, int event ) {
 UI_BotSelectMenu_RightEvent
 =================
 */
-static void UI_BotSelectMenu_RightEvent( void* ptr, int event ) {
+static void UI_BotSelectMenu_RightEvent( void* ptr [[maybe_unused]], int event ) {
 	if( event != QM_ACTIVATED ) {
 		return;
 	}
@@ -1791,7 +1791,7 @@ static void UI_BotSelectMenu_BotEvent( void* ptr, int event ) {
 UI_BotSelectMenu_BackEvent
 =================
 */
-static void UI_BotSelectMenu_BackEvent( void* ptr, int event ) {
+static void UI_BotSelectMenu_BackEvent( void* ptr [[maybe_unused]], int event ) {
 	if( event != QM_ACTIVATED ) {
 		return;
 	}
@@ -1804,7 +1804,7 @@ static void UI_BotSelectMenu_BackEvent( void* ptr, int event ) {
 UI_BotSelectMenu_SelectEvent
 =================
 */
-static void UI_BotSelectMenu_SelectEvent( void* ptr, int event ) {
+static void UI_BotSelectMenu_SelectEvent( void* ptr [[maybe_unused]], int event ) {
 	if( event != QM_ACTIVATED ) {
 		return;
 	}

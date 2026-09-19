@@ -432,7 +432,7 @@ void CG_ClearParticles (void)
 CG_AddParticleToScene
 =====================
 */
-void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
+void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha [[maybe_unused]])
 {
 
 	vec3_t		point;
@@ -1556,7 +1556,7 @@ void CG_ParticleExplosion (char *animStr, vec3_t origin, vec3_t vel, int duratio
 }
 
 // Rafael Shrapnel
-void CG_AddParticleShrapnel (localEntity_t *le)
+void CG_AddParticleShrapnel (localEntity_t *le [[maybe_unused]])
 {
 	return;
 }
@@ -1698,7 +1698,7 @@ void CG_ParticleImpactSmokePuff (qhandle_t pshader, vec3_t origin)
 	p->rotate = qtrue;
 }
 
-void CG_Particle_Bleed (qhandle_t pshader, vec3_t start, vec3_t dir, int fleshEntityNum, int duration)
+void CG_Particle_Bleed (qhandle_t pshader, vec3_t start, vec3_t dir [[maybe_unused]], int fleshEntityNum, int duration)
 {
 	cparticle_t	*p;
 
@@ -1878,7 +1878,7 @@ void CG_Particle_OilSlick (qhandle_t pshader, centity_t *cent)
 
 }
 
-void CG_OilSlickRemove (centity_t *cent)
+void CG_OilSlickRemove (centity_t *cent [[maybe_unused]])
 {
 	cparticle_t		*p, *next;
 	int				id;
@@ -1952,7 +1952,7 @@ qboolean ValidBloodPool (vec3_t start)
 	return qtrue;
 }
 
-void CG_BloodPool (localEntity_t *le, qhandle_t pshader, trace_t *tr)
+void CG_BloodPool (localEntity_t *le [[maybe_unused]], qhandle_t pshader, trace_t *tr)
 {	
 	cparticle_t	*p;
 	qboolean	legit;
@@ -2015,7 +2015,7 @@ void CG_BloodPool (localEntity_t *le, qhandle_t pshader, trace_t *tr)
 #define NORMALSIZE	16
 #define LARGESIZE	32
 
-void CG_ParticleBloodCloud (centity_t *cent, vec3_t origin, vec3_t dir)
+void CG_ParticleBloodCloud (centity_t *cent [[maybe_unused]], vec3_t origin, vec3_t dir)
 {
 	float	length;
 	float	dist;
@@ -2140,7 +2140,7 @@ void CG_ParticleSparks (vec3_t org, vec3_t vel, int duration, float x, float y, 
 	
 }
 
-void CG_ParticleDust (centity_t *cent, vec3_t origin, vec3_t dir)
+void CG_ParticleDust (centity_t *cent [[maybe_unused]], vec3_t origin, vec3_t dir)
 {
 	float	length;
 	float	dist;
@@ -2236,7 +2236,7 @@ void CG_ParticleDust (centity_t *cent, vec3_t origin, vec3_t dir)
 	
 }
 
-void CG_ParticleMisc (qhandle_t pshader, vec3_t origin, int size, int duration, float alpha)
+void CG_ParticleMisc (qhandle_t pshader, vec3_t origin, int size, int duration, float alpha [[maybe_unused]])
 {
 	cparticle_t	*p;
 

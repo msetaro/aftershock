@@ -182,7 +182,7 @@ DrawNormals
 Draws vertex normals for debugging
 ================
 */
-static void DrawNormals( const shaderCommands_t *input ) {
+static void DrawNormals( const shaderCommands_t *input [[maybe_unused]] ) {
 	int		i;
 #ifdef USE_VULKAN
 #ifdef USE_VBO

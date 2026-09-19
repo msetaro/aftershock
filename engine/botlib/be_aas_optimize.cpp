@@ -75,7 +75,7 @@ typedef struct optimized_s
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-static int AAS_KeepEdge(aas_edge_t *edge)
+static int AAS_KeepEdge(aas_edge_t *edge [[maybe_unused]])
 {
 	return 1;
 } //end of the function AAS_KeepFace

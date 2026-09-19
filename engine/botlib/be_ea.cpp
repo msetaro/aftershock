@@ -413,7 +413,7 @@ void EA_View(int client, vec3_t viewangles)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-void EA_EndRegular(int client, float thinktime)
+void EA_EndRegular(int client [[maybe_unused]], float thinktime [[maybe_unused]])
 {
 } //end of the function EA_EndRegular
 //===========================================================================

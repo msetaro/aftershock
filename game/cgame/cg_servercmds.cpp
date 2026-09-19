@@ -804,7 +804,7 @@ bufferedVoiceChat_t voiceChatBuffer[MAX_VOICECHATBUFFER];
 CG_PlayVoiceChat
 =================
 */
-void CG_PlayVoiceChat( bufferedVoiceChat_t *vchat ) {
+void CG_PlayVoiceChat( bufferedVoiceChat_t *vchat [[maybe_unused]] ) {
 #ifdef MISSIONPACK
 	// if we are going into the intermission, don't start any voices
 	if ( cg.intermissionStarted ) {
@@ -857,7 +857,7 @@ void CG_PlayBufferedVoiceChats( void ) {
 CG_AddBufferedVoiceChat
 =====================
 */
-void CG_AddBufferedVoiceChat( bufferedVoiceChat_t *vchat ) {
+void CG_AddBufferedVoiceChat( bufferedVoiceChat_t *vchat [[maybe_unused]] ) {
 #ifdef MISSIONPACK
 	// if we are going into the intermission, don't start any voices
 	if ( cg.intermissionStarted ) {
@@ -878,7 +878,7 @@ void CG_AddBufferedVoiceChat( bufferedVoiceChat_t *vchat ) {
 CG_VoiceChatLocal
 =================
 */
-void CG_VoiceChatLocal( int mode, qboolean voiceOnly, int clientNum, int color, const char *cmd ) {
+void CG_VoiceChatLocal( int mode [[maybe_unused]], qboolean voiceOnly [[maybe_unused]], int clientNum [[maybe_unused]], int color [[maybe_unused]], const char *cmd [[maybe_unused]] ) {
 #ifdef MISSIONPACK
 	char *chat;
 	voiceChatList_t *voiceChatList;
@@ -927,7 +927,7 @@ void CG_VoiceChatLocal( int mode, qboolean voiceOnly, int clientNum, int color, 
 CG_VoiceChat
 =================
 */
-void CG_VoiceChat( int mode ) {
+void CG_VoiceChat( int mode [[maybe_unused]] ) {
 #ifdef MISSIONPACK
 	const char *cmd;
 	int clientNum, color;

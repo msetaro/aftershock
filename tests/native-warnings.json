@@ -15,10 +15,6 @@
     "-Wunused-but-set-variable": {
       "c": 30,
       "cpp": 20
-    },
-    "-Wunused-parameter": {
-      "c": 152,
-      "cpp": 152
     }
   },
   "clang": {
@@ -33,10 +29,6 @@
     "-Wunused-but-set-variable": {
       "c": 25,
       "cpp": 25
-    },
-    "-Wunused-parameter": {
-      "c": 152,
-      "cpp": 152
     }
   }
 }

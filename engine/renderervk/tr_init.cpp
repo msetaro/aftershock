@@ -697,7 +697,7 @@ Stores the length of padding after a line of pixels to address padlen
 Return value must be freed with ri.Hunk_FreeTempMemory()
 ==================
 */
-static byte *RB_ReadPixels(int x, int y, int width, int height, size_t *offset, int *padlen, int lineAlign )
+static byte *RB_ReadPixels(int x [[maybe_unused]], int y [[maybe_unused]], int width, int height, size_t *offset, int *padlen, int lineAlign [[maybe_unused]] )
 {
 #ifdef USE_VULKAN
 	byte *buffer, *bufstart;

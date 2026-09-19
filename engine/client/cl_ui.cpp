@@ -665,7 +665,7 @@ static void Key_GetBindingBuf( int keynum, char *buf, int buflen ) {
 CLUI_GetCDKey
 ====================
 */
-static void CLUI_GetCDKey( char *buf, int buflen ) {
+static void CLUI_GetCDKey( char *buf, int buflen [[maybe_unused]] ) {
 #ifndef STANDALONE
 	const char *gamedir;
 	gamedir = Cvar_VariableString( "fs_game" );
@@ -1230,7 +1230,7 @@ int UIImport_VerifyCDKey( const char * key, const char * chksum ) {
 
 // engine extensions
 }
-void UIImport_SetPbClStatus( int status ) {
+void UIImport_SetPbClStatus( int status [[maybe_unused]] ) {
 
 	return;
 

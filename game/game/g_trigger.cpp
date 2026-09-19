@@ -73,11 +73,11 @@ void multi_trigger( gentity_t *ent, gentity_t *activator ) {
 	}
 }
 
-void Use_Multi( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
+void Use_Multi( gentity_t *ent, gentity_t *other [[maybe_unused]], gentity_t *activator ) {
 	multi_trigger( ent, activator );
 }
 
-void Touch_Multi( gentity_t *self, gentity_t *other, trace_t *trace ) {
+void Touch_Multi( gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unused]] ) {
 	if( !other->client ) {
 		return;
 	}
@@ -140,7 +140,7 @@ trigger_push
 ==============================================================================
 */
 
-void trigger_push_touch (gentity_t *self, gentity_t *other, trace_t *trace ) {
+void trigger_push_touch (gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unused]] ) {
 
 	if ( !other->client ) {
 		return;
@@ -213,7 +213,7 @@ void SP_trigger_push( gentity_t *self ) {
 }
 
 
-void Use_target_push( gentity_t *self, gentity_t *other, gentity_t *activator ) {
+void Use_target_push( gentity_t *self, gentity_t *other [[maybe_unused]], gentity_t *activator ) {
 	if ( !activator->client ) {
 		return;
 	}
@@ -268,7 +268,7 @@ trigger_teleport
 ==============================================================================
 */
 
-void trigger_teleporter_touch (gentity_t *self, gentity_t *other, trace_t *trace ) {
+void trigger_teleporter_touch (gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unused]] ) {
 	gentity_t	*dest;
 
 	if ( !other->client ) {
@@ -343,7 +343,7 @@ NO_PROTECTION	*nothing* stops the damage
 "dmg"			default 5 (whole numbers only)
 
 */
-void hurt_use( gentity_t *self, gentity_t *other, gentity_t *activator ) {
+void hurt_use( gentity_t *self, gentity_t *other [[maybe_unused]], gentity_t *activator [[maybe_unused]] ) {
 	if ( self->r.linked ) {
 		trap_UnlinkEntity( self );
 	} else {
@@ -351,7 +351,7 @@ void hurt_use( gentity_t *self, gentity_t *other, gentity_t *activator ) {
 	}
 }
 
-void hurt_touch( gentity_t *self, gentity_t *other, trace_t *trace ) {
+void hurt_touch( gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unused]] ) {
 	int		dflags;
 
 	if ( !other->takedamage ) {
@@ -429,7 +429,7 @@ void func_timer_think( gentity_t *self ) {
 	self->nextthink = level.time + 1000 * ( self->wait + crandom() * self->random );
 }
 
-void func_timer_use( gentity_t *self, gentity_t *other, gentity_t *activator ) {
+void func_timer_use( gentity_t *self, gentity_t *other [[maybe_unused]], gentity_t *activator ) {
 	self->activator = activator;
 
 	// if on, turn it off

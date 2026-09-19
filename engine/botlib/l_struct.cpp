@@ -201,7 +201,7 @@ static qboolean ReadChar(source_t *source, const fielddef_t *fd, void *p)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-static int ReadString(source_t *source, const fielddef_t *fd, void *p)
+static int ReadString(source_t *source, const fielddef_t *fd [[maybe_unused]], void *p)
 {
 	token_t token;
 

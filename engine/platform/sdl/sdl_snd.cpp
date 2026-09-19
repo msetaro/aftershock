@@ -59,7 +59,7 @@ static float sdlMasterGain = 1.0f;
 SNDDMA_AudioCallback
 ===============
 */
-static void SNDDMA_AudioCallback(void *userdata, Uint8 *stream, int len)
+static void SNDDMA_AudioCallback(void *userdata [[maybe_unused]], Uint8 *stream, int len)
 {
 	int pos = (dmapos * (dma.samplebits/8));
 	if (pos >= dmasize)

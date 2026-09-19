@@ -427,7 +427,7 @@ int BotChooseBestFightWeapon(int weaponstate, int *inventory)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void BotResetWeaponState(int weaponstate)
+void BotResetWeaponState(int weaponstate [[maybe_unused]])
 {
 } //end of the function BotResetWeaponState
 //========================================================================

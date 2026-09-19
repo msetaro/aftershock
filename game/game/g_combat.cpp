@@ -275,7 +275,7 @@ void GibEntity( gentity_t *self, int killer ) {
 body_die
 ==================
 */
-void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath ) {
+void body_die( gentity_t *self, gentity_t *inflictor [[maybe_unused]], gentity_t *attacker [[maybe_unused]], int damage [[maybe_unused]], int meansOfDeath [[maybe_unused]] ) {
 	if ( self->health > GIB_HEALTH ) {
 		return;
 	}
@@ -442,7 +442,7 @@ void CheckAlmostScored( gentity_t *self, gentity_t *attacker ) {
 player_die
 ==================
 */
-void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath ) {
+void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage [[maybe_unused]], int meansOfDeath ) {
 	gentity_t	*ent;
 	int			anim;
 	int			contents;
@@ -823,7 +823,7 @@ dflags		these flags are used to control how T_Damage works
 */
 
 void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
-			   vec3_t dir, vec3_t point, int damage, int dflags, int mod ) {
+			   vec3_t dir, vec3_t point [[maybe_unused]], int damage, int dflags, int mod ) {
 	gclient_t	*client;
 	int			take;
 	int			save;

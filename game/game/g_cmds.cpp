@@ -1573,7 +1573,7 @@ void Cmd_SetViewpos_f( gentity_t *ent ) {
 Cmd_Stats_f
 =================
 */
-void Cmd_Stats_f( gentity_t *ent ) {
+void Cmd_Stats_f( gentity_t *ent [[maybe_unused]] ) {
 /*
 	int max, n, i;
 

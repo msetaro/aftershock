@@ -81,7 +81,7 @@ static const char *cinematics[] = {
 UI_CinematicsMenu_BackEvent
 ===============
 */
-static void UI_CinematicsMenu_BackEvent( void *ptr, int event ) {
+static void UI_CinematicsMenu_BackEvent( void *ptr [[maybe_unused]], int event ) {
 	if( event != QM_ACTIVATED ) {
 		return;
 	}

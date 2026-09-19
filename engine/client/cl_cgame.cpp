@@ -838,15 +838,15 @@ void CGameImport_CIN_SetExtents( int handle, int x, int y, int w, int h ) {
 	return;
 
 }
-int CGameImport_loadCamera( const char * name ) {
+int CGameImport_loadCamera( const char * name [[maybe_unused]] ) {
 	Com_Error( ERR_DROP, "Unsupported native service: CG_LOADCAMERA" );
 	return 0;
 }
-void CGameImport_startCamera( int time ) {
+void CGameImport_startCamera( int time [[maybe_unused]] ) {
 	Com_Error( ERR_DROP, "Unsupported native service: CG_STARTCAMERA" );
 	return;
 }
-int CGameImport_getCameraInfo( int time, void * origin, void * angles ) {
+int CGameImport_getCameraInfo( int time [[maybe_unused]], void * origin [[maybe_unused]], void * angles [[maybe_unused]] ) {
 	Com_Error( ERR_DROP, "Unsupported native service: CG_GETCAMERAINFO" );
 	return 0;
 }

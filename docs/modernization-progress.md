@@ -7,32 +7,41 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-declaration-parentheses. Address-warning PR #82 passed full
-build 35448976170/regression 35448976134 and merged 779ea472 after self-review.
-This branch has integrated modernization; open its declaration-parentheses PR.
-#81 merged-tree regression 35448913729 passed. Check #82's merged-tree run next.
+Active: issue/8-unused-parameters, PR #84. Initial head 0a8a0d68 passed regression
+35449780958 but build 35449780940 found six unused parameters in the Windows
+debug Vulkan validation callback. They are now annotated on this branch; the full
+local MinGW debug client/server build passes. Push the correction and require both
+hosted workflows again before merging. #83 merged-tree regression 35449777481 passed.
 
-This branch removes unnecessary declaration parentheses from the
-bot_moveresult_t_cleared macro and enables the general parentheses warning.
-All 27 callers pass the simple identifier result; initialization and FP expressions
-are unchanged. The prior 51-object preview was byte-identical across GCC/Clang,
-debug, MinGW and ARM64, with GCC failing/passing diagnostic controls.
+The separate initializer branch issue/8-missing-initializers is saved at 3e42dfc6.
+Merge this correction into it after pushing, preserve its checkpoint, and continue
+its local review while #84 gates run. It must not open until #84 has merged.
 
-On September 19, the old /tmp artifacts were found cleared between sessions.
-Historical results remain recorded below; do not repeat accepted work. New evidence
-and temporary PR bodies use /home/matt/.cache/aftershock-modernization. The unfinished
-unused-parameter preview must be recreated there; no repository edits were applied.
+This branch enables unused-parameter diagnostics in production and native helpers.
+281 [[maybe_unused]] parameter annotations span 88 source files. Parameter names,
+function bodies, line counts and original line endings remain unchanged. These
+are parameters retained by existing interfaces or conditional implementations.
+No headers, function signatures, simulation arithmetic or accepted fixtures change.
+
+Validation is in /home/matt/.cache/aftershock-modernization:
+- All 2,380 production syntax configurations pass with the class treated as errors.
+- 665 of 833 affected production/native objects match raw bytes; the other 168
+  are GCC debug objects identical after removing only debug sections from copies.
+- GCC/Clang standalone C/C++ helper builds and ABI checks pass. All twelve shared
+  libraries retain identical hashes, including the C99 helper configuration.
+- Objects: unused-parameter-objects/{results,debug-review}.json; helper results:
+  unused-parameter-native-{gcc,clang}.json. Syntax logs: unused-parameter-check.
 
 Next:
-1. Open this class PR and require full build/regression plus self-review before
-   merging. Check the merged-tree runs.
-2. Finish array-bounds and unused-result reviews, then the larger warning classes.
-   Recreate only the unfinished unused-parameter preview, using the current
-   production commands and accounting for tab-expanded diagnostic columns.
+1. Source 05cb1e37 is reviewed: annotations only, plus two trailing-space removals.
+   Provenance 3a3fca15 records 37 GPL files; the UI export include is owned code.
+   PR #84 is open; push the Windows debug correction and verify its new gates.
+   Require full hosted build/regression plus self-review before merging.
+2. Finish array-bounds and unused-result reviews, then the remaining larger classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
-   fixed-width types/layout assertions and release-identical Q_ASSERT. Update the
-   plan rules to in force; finish #8, write design-only docs/design/rhi.md for #6,
-   then stop. No #6/#7 implementation or accepted golden regeneration for warnings.
+   fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
+   rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then
+   stop. No #6/#7 implementation or accepted golden regeneration for warnings.
 
 Recent merges (all self-reviewed; merge commits):
 - #70 ignored qualifiers: 17a9dae2, build 35016076778/regression 35016076784;
@@ -1412,3 +1421,25 @@ match byte-for-byte. The other 168 are GCC debug objects and match after removin
 only debug sections from copies. No instruction/data changes. Evidence:
 unused-parameter-objects/{results,debug-review}.json in the persistent cache.
 Four standalone C/C++ helper comparisons are still running.
+
+Unused-parameter final local review: original source bytes are preserved after
+removing the new parameter attributes, except trailing spaces on two touched
+function-declaration lines (win_main.cpp/common.cpp). Source 05cb1e37 and GPL
+provenance 3a3fca15 are committed. The UI export include's eight consuming production
+objects are included in the 833-object comparison. Both compiler C/C++ helper
+comparisons completed successfully, all twelve libraries retaining hashes.
+
+Missing-initializer preview is outside the repository in the persistent cache:
+15 files explicitly zero omitted members or use empty aggregate initialization.
+The static allocator string blocks use a constexpr initializer to zero conditional
+debug members without changing the layout. Compiler checks are running in
+missing-initializers-check; object, C99 helper and conditional-build verification
+remain before this separate warning-class change can be applied.
+
+Windows debug follow-up: USE_VK_VALIDATION is enabled only for _DEBUG/_WIN32,
+which the original release cross-build inventory did not include. Its six unused
+callback parameters now carry the same annotations. The complete local MinGW
+debug build passes; an actual-command control fails before and passes after,
+with identical native instructions/relocations. Persistent evidence:
+validation-callback-check.log, validation-callback/ and mingw-debug-build.log.
+The initial regression passed; full hosted rebuild is required for the correction.

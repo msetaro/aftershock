@@ -605,7 +605,7 @@ void G_AddEvent( gentity_t *ent, int event, int eventParm ) {
 G_Sound
 =============
 */
-void G_Sound( gentity_t *ent, int channel, int soundIndex ) {
+void G_Sound( gentity_t *ent, int channel [[maybe_unused]], int soundIndex ) {
 	gentity_t	*te;
 
 	te = G_TempEntity( ent->r.currentOrigin, EV_GENERAL_SOUND );
