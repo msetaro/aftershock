@@ -15,18 +15,24 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-retire-print-test-services. Delete the unused testPrintInt and
-testPrintFloat services, declarations and forwarding wrappers (five files).
-Source searches found no consumers. Historical CG_TESTPRINT enum values remain
-unchanged so later service numbers retain their identity. All four GCC/Clang
-C/C++ helper builds/layouts pass; exactly the two retired exports disappear.
-18 production samples compile. Function removal changes objects/library hashes;
-full regression and fixed replay gates are required. Native GPL provenance records
-source 7c1db108, retaining every original import hash.
+Active: issue/31-team-message-capacity. The committed contract test is first:
+`python3 tests/team_message.py` fails on the full-capacity formatter result
+(expected error exit 42, observed dispatch exit 0). Only small text is formatted;
+the test substitutes the reported length and never makes an oversized write.
+Evidence: team-message-before.log and the earlier four-case control JSON.
+Failing-test commit: 1ef998b0. The reviewed single-function fix now passes the
+actual capacity to vsnprintf and rejects negative/full-capacity results after
+va_end. CI/docs include the permanent test command. Next: record GPL provenance
+and run local/hosted gates plus #127 merged-tree regression. Fix e8752ef1 is
+recorded in native-game-import.json with original GPL hashes unchanged. Both
+GCC and Clang/libc++ pass all eight base/MISSIONPACK contract cases; the optional
+MISSIONPACK source still emits the previously recorded constness warnings.
 
-Next: publish this #8 deletion, run gates and #126 merged-tree regression, then
-self-review/merge. Afterward publish the prepared test-first PrintMsg #31 fix.
-No accepted fixture/golden changes. Evidence: obsolete-print-* cache artifacts.
+PR #127 verification: source 7c1db108/head 44616990, build 35472963400,
+regression 35472963410, preceding merged-tree regression 35472915485 all pass.
+Four cgame helper/layout builds remove only the two retired exports; 18 production
+samples compile. Local fixed Quake 3 replay retains b38004b1. GPL hashes and
+accepted fixtures/goldens are unchanged. Evidence: obsolete-print-* artifacts.
 
 PR #126 verification: build 35472521203, regression 35472521080 and preceding
 merged-tree regression 35472483857 pass. 195 compilation configurations and the
@@ -83,13 +89,29 @@ code/data; twelve helper hashes/layouts match. Evidence: msvc-typedef-*.
 
 ## Prepared #8 work
 
+Queued #31 native diagnostic-output capacity fix: twelve active calls in g_main,
+cg_main, ui_atoms and ai_main. The small-text capacity/routing probe fails all
+twelve pre-fix contracts; the cached candidate passes 24 GCC/Clang ASan/UBSan
+cases. Evidence: native-diagnostic-before.json, native-diagnostic-contract.cpp,
+native-diagnostic-preview/{changes,results}.json. Decision recorded on #31:
+truncate diagnostic output to the actual buffer/remainder capacity, retaining
+error routing and the existing seven-byte log prefix offset. Keep this separate
+from PrintMsg's reject/error contract. Commit a failing test first, then the fix,
+GPL provenance and full gates. No oversized write is used in these probes.
+Native COM_ParseError/COM_ParseWarning have no consumers (only definitions and
+prototypes); their separate #8 deletion can retire the last unused diagnostic
+formatters before removing the Apple warning disable.
+
 Next #31 item: PrintMsg formatter-result contract. A small-text, cache-only probe
 substitutes return values without any oversized write. The full-capacity result
 incorrectly reaches message dispatch; valid/fitting/error cases behave as expected.
 Evidence: team-message-contract-before.json and team-message-contract.cpp; issue
 #31 records the finding. After the pending #8 cleanup, commit this failing test
 first on its own #31 branch, use the actual capacity and correct the boundary,
-then record GPL provenance and run gates. No engine fix is part of #126.
+then record GPL provenance and run gates. Cached corrected candidate passes all
+16 GCC/Clang base/MISSIONPACK contract cases under ASan/UBSan. Optional C++
+MISSIONPACK compilation exposes three pre-existing writable-string warnings in
+Team_FragBonuses; keep their constness cleanup in #8. No engine fix is part of #126.
 
 Unused print-test service preview: obsolete-print-preview removes only the two
 unreferenced services, their declarations and forwarding wrappers in five files.

@@ -409,3 +409,9 @@ retain truncation and select the same score cvar. The shared UI reader preserves
 out-of-range sentinels so menus retain their own reset/clamp policies. The engine
 already filters non-finite cvar values. `--cxx` selects GCC or Clang; no assets or
 expected-failure entry are needed.
+
+`python3 tests/team_message.py` checks the real native PrintMsg function in base
+and MISSIONPACK configurations under ASan/UBSan. Small ordinary text verifies
+quote replacement and broadcast routing; injected formatter results verify the
+fitting, full-capacity and error policies without making an oversized write.
+Use `--cxx 'clang++ -stdlib=libc++'` for the Clang/libc++ CI configuration.

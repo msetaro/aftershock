@@ -102,12 +102,14 @@ void QDECL PrintMsg( gentity_t *ent, const char *fmt, ... ) {
 	char		msg[1024];
 	va_list		argptr;
 	char		*p;
+	int			len;
 	
 	va_start (argptr,fmt);
-	if ((size_t)( vsprintf (msg, fmt, argptr) ) > sizeof(msg)) {
+	len = vsnprintf (msg, sizeof(msg), fmt, argptr);
+	va_end (argptr);
+	if (len < 0 || (size_t)len >= sizeof(msg)) {
 		G_Error ( "PrintMsg overrun" );
 	}
-	va_end (argptr);
 
 	// double quotes are bad
 	while ((p = strchr(msg, '"')) != NULL)
