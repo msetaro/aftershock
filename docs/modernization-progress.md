@@ -7,13 +7,18 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unused-parameters. Declaration PR #83 passed full build
-35449378669/regression 35449378735 and merged after self-review; this branch has
-integrated modernization. Open its unused-parameter PR next. #82 merged-tree
-regression 35449359464 passed; check #83's merged-tree run when available.
+Active: issue/8-unused-parameters, PR #84. Initial head 0a8a0d68 passed regression
+35449780958 but build 35449780940 found six unused parameters in the Windows
+debug Vulkan validation callback. They are now annotated on this branch; the full
+local MinGW debug client/server build passes. Push the correction and require both
+hosted workflows again before merging. #83 merged-tree regression 35449777481 passed.
+
+The separate initializer branch issue/8-missing-initializers is saved at 3e42dfc6.
+Merge this correction into it after pushing, preserve its checkpoint, and continue
+its local review while #84 gates run. It must not open until #84 has merged.
 
 This branch enables unused-parameter diagnostics in production and native helpers.
-275 [[maybe_unused]] parameter annotations span 88 source files. Parameter names,
+281 [[maybe_unused]] parameter annotations span 88 source files. Parameter names,
 function bodies, line counts and original line endings remain unchanged. These
 are parameters retained by existing interfaces or conditional implementations.
 No headers, function signatures, simulation arithmetic or accepted fixtures change.
@@ -30,7 +35,7 @@ Validation is in /home/matt/.cache/aftershock-modernization:
 Next:
 1. Source 05cb1e37 is reviewed: annotations only, plus two trailing-space removals.
    Provenance 3a3fca15 records 37 GPL files; the UI export include is owned code.
-   Open this class PR after the completed #83 merge.
+   PR #84 is open; push the Windows debug correction and verify its new gates.
    Require full hosted build/regression plus self-review before merging.
 2. Finish array-bounds and unused-result reviews, then the remaining larger classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
@@ -1430,3 +1435,11 @@ The static allocator string blocks use a constexpr initializer to zero condition
 debug members without changing the layout. Compiler checks are running in
 missing-initializers-check; object, C99 helper and conditional-build verification
 remain before this separate warning-class change can be applied.
+
+Windows debug follow-up: USE_VK_VALIDATION is enabled only for _DEBUG/_WIN32,
+which the original release cross-build inventory did not include. Its six unused
+callback parameters now carry the same annotations. The complete local MinGW
+debug build passes; an actual-command control fails before and passes after,
+with identical native instructions/relocations. Persistent evidence:
+validation-callback-check.log, validation-callback/ and mingw-debug-build.log.
+The initial regression passed; full hosted rebuild is required for the correction.

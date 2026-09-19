@@ -1243,8 +1243,8 @@ static void vk_alloc_staging_buffer( VkDeviceSize size )
 
 
 #ifdef USE_VK_VALIDATION
-static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT object_type, uint64_t object, size_t location,
-	int32_t message_code, const char* layer_prefix, const char* message, void* user_data) {
+static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT flags [[maybe_unused]], VkDebugReportObjectTypeEXT object_type [[maybe_unused]], uint64_t object [[maybe_unused]], size_t location [[maybe_unused]],
+	int32_t message_code [[maybe_unused]], const char* layer_prefix, const char* message, void* user_data [[maybe_unused]]) {
 #ifdef _WIN32
 	Sys_GraphicsDebugMessage( message, layer_prefix );
 #endif
