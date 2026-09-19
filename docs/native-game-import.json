@@ -164,7 +164,8 @@
     "0eb07ced": "#8 writable strings: const Team_FragBonuses search name and remove redundant casts; base/MISSIONPACK GCC/Clang release objects byte-identical",
     "05eca339": "#8 Apple deprecations: remove unused native COM_ParseError/COM_ParseWarning definitions and prototypes; engine diagnostics retained; no callers or syscall IDs change",
     "f3f6b3fa": "#8: one clang-format 21.1.8 pass; release assembly instructions/data unchanged; preserve whitespace-sensitive macro arguments",
-    "f0c9acc3": "#8 readability: brace the existing early return adjacent to MISSIONPACK preprocessing; native helper hashes and release objects unchanged"
+    "f0c9acc3": "#8 readability: brace the existing early return adjacent to MISSIONPACK preprocessing; native helper hashes and release objects unchanged",
+    "33bf6e07": "#8 fixed-width shared records: preserve seven state/font sizes, alignments and traits; explicit unsigned trajectory enum in C++; twelve native helpers byte-identical"
   },
   "files": [
     {
@@ -1240,7 +1241,8 @@
         "f7568d21",
         "3e6d66b8",
         "05eca339",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "33bf6e07"
       ]
     },
     {

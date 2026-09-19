@@ -19,6 +19,9 @@ along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
+
+#include <stdint.h>
+#include <type_traits>
 #ifndef __QFILES_H__
 #define __QFILES_H__
 
@@ -131,7 +134,7 @@ typedef struct {
 
 typedef struct {
 	char name[MAX_QPATH];
-	int shaderIndex; // for in-game use
+	int32_t shaderIndex; // for in-game use
 } md3Shader_t;
 
 typedef struct {
@@ -143,8 +146,8 @@ typedef struct {
 } md3St_t;
 
 typedef struct {
-	short xyz[3];
-	short normal;
+	int16_t xyz[3];
+	int16_t normal;
 } md3XyzNormal_t;
 
 typedef struct {
@@ -196,7 +199,7 @@ MDR file format
 #define MDR_MAX_BONES	128
 
 typedef struct {
-	int boneIndex; // these are indexes into the boneReferences,
+	int32_t boneIndex; // these are indexes into the boneReferences,
 	float boneWeight; // not the global per-frame bone list
 	vec3_t offset;
 } mdrWeight_t;
@@ -204,38 +207,38 @@ typedef struct {
 typedef struct {
 	vec3_t normal;
 	vec2_t texCoords;
-	int numWeights;
+	int32_t numWeights;
 	mdrWeight_t weights[1]; // variable sized
 } mdrVertex_t;
 
 typedef struct {
-	int indexes[3];
+	int32_t indexes[3];
 } mdrTriangle_t;
 
 typedef struct {
-	int ident;
+	int32_t ident;
 
 	char name[MAX_QPATH]; // polyset name
 	char shader[MAX_QPATH];
-	int shaderIndex; // for in-game use
+	int32_t shaderIndex; // for in-game use
 
-	int ofsHeader; // this will be a negative number
+	int32_t ofsHeader; // this will be a negative number
 
-	int numVerts;
-	int ofsVerts;
+	int32_t numVerts;
+	int32_t ofsVerts;
 
-	int numTriangles;
-	int ofsTriangles;
+	int32_t numTriangles;
+	int32_t ofsTriangles;
 
 	// Bone references are a set of ints representing all the bones
 	// present in any vertex weights for this surface.  This is
 	// needed because a model may have surfaces that need to be
 	// drawn at different sort times, and we don't want to have
 	// to re-interpolate all the bones for each surface.
-	int numBoneReferences;
-	int ofsBoneReferences;
+	int32_t numBoneReferences;
+	int32_t ofsBoneReferences;
 
-	int ofsEnd; // next surface follows
+	int32_t ofsEnd; // next surface follows
 } mdrSurface_t;
 
 typedef struct {
@@ -251,7 +254,7 @@ typedef struct {
 } mdrFrame_t;
 
 typedef struct {
-	unsigned char Comp[24]; // MC_COMP_BYTES is in MatComp.h, but don't want to couple
+	uint8_t Comp[24]; // MC_COMP_BYTES is in MatComp.h, but don't want to couple
 } mdrCompBone_t;
 
 typedef struct {
@@ -262,35 +265,35 @@ typedef struct {
 } mdrCompFrame_t;
 
 typedef struct {
-	int numSurfaces;
-	int ofsSurfaces; // first surface, others follow
-	int ofsEnd; // next lod follows
+	int32_t numSurfaces;
+	int32_t ofsSurfaces; // first surface, others follow
+	int32_t ofsEnd; // next lod follows
 } mdrLOD_t;
 
 typedef struct {
-	int boneIndex;
+	int32_t boneIndex;
 	char name[32];
 } mdrTag_t;
 
 typedef struct {
-	int ident;
-	int version;
+	int32_t ident;
+	int32_t version;
 
 	char name[MAX_QPATH]; // model name
 
 	// frames and bones are shared by all levels of detail
-	int numFrames;
-	int numBones;
-	int ofsFrames; // mdrFrame_t[numFrames]
+	int32_t numFrames;
+	int32_t numBones;
+	int32_t ofsFrames; // mdrFrame_t[numFrames]
 
 	// each level of detail has completely separate sets of surfaces
-	int numLODs;
-	int ofsLODs;
+	int32_t numLODs;
+	int32_t ofsLODs;
 
-	int numTags;
-	int ofsTags;
+	int32_t numTags;
+	int32_t ofsTags;
 
-	int ofsEnd; // end of file
+	int32_t ofsEnd; // end of file
 } mdrHeader_t;
 
 
@@ -380,22 +383,22 @@ typedef struct {
 #define HEADER_LUMPS		17
 
 typedef struct {
-	int ident;
-	int version;
+	int32_t ident;
+	int32_t version;
 
 	lump_t lumps[HEADER_LUMPS];
 } dheader_t;
 
 typedef struct {
 	float mins[3], maxs[3];
-	int firstSurface, numSurfaces;
-	int firstBrush, numBrushes;
+	int32_t firstSurface, numSurfaces;
+	int32_t firstBrush, numBrushes;
 } dmodel_t;
 
 typedef struct {
 	char shader[MAX_QPATH];
-	int surfaceFlags;
-	int contentFlags;
+	int32_t surfaceFlags;
+	int32_t contentFlags;
 } dshader_t;
 
 // planes x^1 is always the opposite of plane x
@@ -406,41 +409,41 @@ typedef struct {
 } dplane_t;
 
 typedef struct {
-	int planeNum;
-	int children[2]; // negative numbers are -(leafs+1), not nodes
-	int mins[3]; // for frustom culling
-	int maxs[3];
+	int32_t planeNum;
+	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
+	int32_t mins[3]; // for frustom culling
+	int32_t maxs[3];
 } dnode_t;
 
 typedef struct {
-	int cluster; // -1 = opaque cluster (do I still store these?)
-	int area;
+	int32_t cluster; // -1 = opaque cluster (do I still store these?)
+	int32_t area;
 
-	int mins[3]; // for frustum culling
-	int maxs[3];
+	int32_t mins[3]; // for frustum culling
+	int32_t maxs[3];
 
-	int firstLeafSurface;
-	int numLeafSurfaces;
+	int32_t firstLeafSurface;
+	int32_t numLeafSurfaces;
 
-	int firstLeafBrush;
-	int numLeafBrushes;
+	int32_t firstLeafBrush;
+	int32_t numLeafBrushes;
 } dleaf_t;
 
 typedef struct {
-	int planeNum; // positive plane side faces out of the leaf
-	int shaderNum;
+	int32_t planeNum; // positive plane side faces out of the leaf
+	int32_t shaderNum;
 } dbrushside_t;
 
 typedef struct {
-	int firstSide;
-	int numSides;
-	int shaderNum; // the shader that determines the contents flags
+	int32_t firstSide;
+	int32_t numSides;
+	int32_t shaderNum; // the shader that determines the contents flags
 } dbrush_t;
 
 typedef struct {
 	char shader[MAX_QPATH];
-	int brushNum;
-	int visibleSide; // the brush side that ray tests need to clip against (-1 == none)
+	int32_t brushNum;
+	int32_t visibleSide; // the brush side that ray tests need to clip against (-1 == none)
 } dfog_t;
 
 typedef struct {
@@ -460,26 +463,92 @@ typedef enum {
 } mapSurfaceType_t;
 
 typedef struct {
-	int shaderNum;
-	int fogNum;
-	int surfaceType;
+	int32_t shaderNum;
+	int32_t fogNum;
+	int32_t surfaceType;
 
-	int firstVert;
-	int numVerts;
+	int32_t firstVert;
+	int32_t numVerts;
 
-	int firstIndex;
-	int numIndexes;
+	int32_t firstIndex;
+	int32_t numIndexes;
 
-	int lightmapNum;
-	int lightmapX, lightmapY;
-	int lightmapWidth, lightmapHeight;
+	int32_t lightmapNum;
+	int32_t lightmapX, lightmapY;
+	int32_t lightmapWidth, lightmapHeight;
 
 	vec3_t lightmapOrigin;
 	vec3_t lightmapVecs[3]; // for patches, [0] and [1] are lodbounds
 
-	int patchWidth;
-	int patchHeight;
+	int32_t patchWidth;
+	int32_t patchHeight;
 } dsurface_t;
 
+
+// Preserve the existing file record layouts.
+static_assert( sizeof( vmHeader_t ) == 36 && alignof( vmHeader_t ) == 4 &&
+			   std::is_trivially_copyable_v<vmHeader_t> && std::is_standard_layout_v<vmHeader_t> );
+static_assert( sizeof( md3Frame_t ) == 56 && alignof( md3Frame_t ) == 4 &&
+			   std::is_trivially_copyable_v<md3Frame_t> && std::is_standard_layout_v<md3Frame_t> );
+static_assert( sizeof( md3Tag_t ) == 112 && alignof( md3Tag_t ) == 4 &&
+			   std::is_trivially_copyable_v<md3Tag_t> && std::is_standard_layout_v<md3Tag_t> );
+static_assert( sizeof( md3Surface_t ) == 108 && alignof( md3Surface_t ) == 4 &&
+			   std::is_trivially_copyable_v<md3Surface_t> && std::is_standard_layout_v<md3Surface_t> );
+static_assert( sizeof( md3Shader_t ) == 68 && alignof( md3Shader_t ) == 4 &&
+			   std::is_trivially_copyable_v<md3Shader_t> && std::is_standard_layout_v<md3Shader_t> );
+static_assert( sizeof( md3Triangle_t ) == 12 && alignof( md3Triangle_t ) == 4 &&
+			   std::is_trivially_copyable_v<md3Triangle_t> && std::is_standard_layout_v<md3Triangle_t> );
+static_assert( sizeof( md3St_t ) == 8 && alignof( md3St_t ) == 4 &&
+			   std::is_trivially_copyable_v<md3St_t> && std::is_standard_layout_v<md3St_t> );
+static_assert( sizeof( md3XyzNormal_t ) == 8 && alignof( md3XyzNormal_t ) == 2 &&
+			   std::is_trivially_copyable_v<md3XyzNormal_t> && std::is_standard_layout_v<md3XyzNormal_t> );
+static_assert( sizeof( md3Header_t ) == 108 && alignof( md3Header_t ) == 4 &&
+			   std::is_trivially_copyable_v<md3Header_t> && std::is_standard_layout_v<md3Header_t> );
+static_assert( sizeof( mdrWeight_t ) == 20 && alignof( mdrWeight_t ) == 4 &&
+			   std::is_trivially_copyable_v<mdrWeight_t> && std::is_standard_layout_v<mdrWeight_t> );
+static_assert( sizeof( mdrVertex_t ) == 44 && alignof( mdrVertex_t ) == 4 &&
+			   std::is_trivially_copyable_v<mdrVertex_t> && std::is_standard_layout_v<mdrVertex_t> );
+static_assert( sizeof( mdrTriangle_t ) == 12 && alignof( mdrTriangle_t ) == 4 &&
+			   std::is_trivially_copyable_v<mdrTriangle_t> && std::is_standard_layout_v<mdrTriangle_t> );
+static_assert( sizeof( mdrSurface_t ) == 168 && alignof( mdrSurface_t ) == 4 &&
+			   std::is_trivially_copyable_v<mdrSurface_t> && std::is_standard_layout_v<mdrSurface_t> );
+static_assert( sizeof( mdrBone_t ) == 48 && alignof( mdrBone_t ) == 4 &&
+			   std::is_trivially_copyable_v<mdrBone_t> && std::is_standard_layout_v<mdrBone_t> );
+static_assert( sizeof( mdrFrame_t ) == 104 && alignof( mdrFrame_t ) == 4 &&
+			   std::is_trivially_copyable_v<mdrFrame_t> && std::is_standard_layout_v<mdrFrame_t> );
+static_assert( sizeof( mdrCompBone_t ) == 24 && alignof( mdrCompBone_t ) == 1 &&
+			   std::is_trivially_copyable_v<mdrCompBone_t> && std::is_standard_layout_v<mdrCompBone_t> );
+static_assert( sizeof( mdrCompFrame_t ) == 64 && alignof( mdrCompFrame_t ) == 4 &&
+			   std::is_trivially_copyable_v<mdrCompFrame_t> && std::is_standard_layout_v<mdrCompFrame_t> );
+static_assert( sizeof( mdrLOD_t ) == 12 && alignof( mdrLOD_t ) == 4 &&
+			   std::is_trivially_copyable_v<mdrLOD_t> && std::is_standard_layout_v<mdrLOD_t> );
+static_assert( sizeof( mdrTag_t ) == 36 && alignof( mdrTag_t ) == 4 &&
+			   std::is_trivially_copyable_v<mdrTag_t> && std::is_standard_layout_v<mdrTag_t> );
+static_assert( sizeof( mdrHeader_t ) == 104 && alignof( mdrHeader_t ) == 4 &&
+			   std::is_trivially_copyable_v<mdrHeader_t> && std::is_standard_layout_v<mdrHeader_t> );
+static_assert( sizeof( lump_t ) == 8 && alignof( lump_t ) == 4 &&
+			   std::is_trivially_copyable_v<lump_t> && std::is_standard_layout_v<lump_t> );
+static_assert( sizeof( dheader_t ) == 144 && alignof( dheader_t ) == 4 &&
+			   std::is_trivially_copyable_v<dheader_t> && std::is_standard_layout_v<dheader_t> );
+static_assert( sizeof( dmodel_t ) == 40 && alignof( dmodel_t ) == 4 &&
+			   std::is_trivially_copyable_v<dmodel_t> && std::is_standard_layout_v<dmodel_t> );
+static_assert( sizeof( dshader_t ) == 72 && alignof( dshader_t ) == 4 &&
+			   std::is_trivially_copyable_v<dshader_t> && std::is_standard_layout_v<dshader_t> );
+static_assert( sizeof( dplane_t ) == 16 && alignof( dplane_t ) == 4 &&
+			   std::is_trivially_copyable_v<dplane_t> && std::is_standard_layout_v<dplane_t> );
+static_assert( sizeof( dnode_t ) == 36 && alignof( dnode_t ) == 4 &&
+			   std::is_trivially_copyable_v<dnode_t> && std::is_standard_layout_v<dnode_t> );
+static_assert( sizeof( dleaf_t ) == 48 && alignof( dleaf_t ) == 4 &&
+			   std::is_trivially_copyable_v<dleaf_t> && std::is_standard_layout_v<dleaf_t> );
+static_assert( sizeof( dbrushside_t ) == 8 && alignof( dbrushside_t ) == 4 &&
+			   std::is_trivially_copyable_v<dbrushside_t> && std::is_standard_layout_v<dbrushside_t> );
+static_assert( sizeof( dbrush_t ) == 12 && alignof( dbrush_t ) == 4 &&
+			   std::is_trivially_copyable_v<dbrush_t> && std::is_standard_layout_v<dbrush_t> );
+static_assert( sizeof( dfog_t ) == 72 && alignof( dfog_t ) == 4 &&
+			   std::is_trivially_copyable_v<dfog_t> && std::is_standard_layout_v<dfog_t> );
+static_assert( sizeof( drawVert_t ) == 44 && alignof( drawVert_t ) == 4 &&
+			   std::is_trivially_copyable_v<drawVert_t> && std::is_standard_layout_v<drawVert_t> );
+static_assert( sizeof( dsurface_t ) == 104 && alignof( dsurface_t ) == 4 &&
+			   std::is_trivially_copyable_v<dsurface_t> && std::is_standard_layout_v<dsurface_t> );
 
 #endif

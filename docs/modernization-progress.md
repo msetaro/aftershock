@@ -15,22 +15,22 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: #8 clang-tidy branch issue/8-clang-tidy. PR #132 merged as daa650ea; source format
-f3f6b3fa/head 39580afa passed build 35475695609, regression 35475695603 and
-preceding merged-tree regression 35475248201. #132 merged-tree regression 35476004982 is running; verify it
-before the next merge. clang-format 21.1.8 is now authoritative.
+Active: #8 record-width branch issue/8-record-widths. PR #133 merged after
+build 35476070964, regression 35476070992 and preceding merged-tree regression
+35476004982 passed. Query the new merged-tree regression before the next merge.
+clang-format and the selected clang-tidy checks are authoritative.
 
-Applied the reviewed tidy-readability preview: remove two duplicate includes,
-brace three preprocessor-adjacent statements with unchanged control flow. All
-570 Clang configurations pass selected readability checks. 67 sampled objects:
-51 raw-identical, ten debug-only, six differing only in assertion/allocation
-source-line metadata (tidy-readability-object-review.json). All twelve native
-helper hashes/layouts equal formatted-native.json. New tests/check_tidy.py uses
-both renderers' actual CMake flags, enforces duplicate includes and misleading
-indentation, and records the existing bugprone subset plus performance-* and
-modernize-redundant-void-arg as advisory. Positive/negative controls enforce the
-policy. The permanent driver passes 570 production configurations and its controls.
-Next: publish, verify hosted gates/self-review and merge. Fixed-width/layout and Q_ASSERT remain pending; #8 is not complete.
+Applied the six-file record-width-preview: 52 central file records and seven
+shared state/font records use explicit primitive widths and size/alignment/
+trivial-copy/standard-layout assertions. The C++ trajectory enum explicitly uses
+uint32_t, matching existing release behavior; C99 reference declarations remain.
+Native module wrappers include type_traits before entering module namespaces.
+All 159 object samples preserve code/data (125 raw/native-identical, 34 debug-only),
+and all twelve GCC/Clang C/C++ helper hashes/layouts match formatted-native.json.
+Evidence: record-width-object-review.json and record-width-native.json.
+Next: formatter/tidy/regression gates, import provenance, hosted gates/self-review,
+then merge. Image/cache records, remaining long/char policy and Q_ASSERT follow;
+#8 remains open. No accepted goldens or fixture regeneration.
 
 Final formatting evidence: all 410 files idempotent; 1,810 release assemblies
 preserve instructions/data (eight inline-assembly source-comment differences).
@@ -43,6 +43,33 @@ Fresh cache-only formatted-central-width and formatted-enum-unsigned previews
 preserve 56/85 sampled objects after stripping debug metadata; the shared-width
 candidate also retains all twelve formatted helper hashes. Do not reapply stale
 pre-format candidates. Refresh inputs if an intervening source edit touches them.
+
+PR #133 published: source f0c9acc3/head 73090b12, build 35476070964 and
+regression 35476070992 running. Hosted pinned formatting and clang-tidy jobs pass;
+other gates remain pending. #132 merged-tree regression is 35476004982.
+Combined cache-only record-width-preview preserves 159 sampled objects
+(125 raw/native-identical, 34 debug-only) and all twelve formatted helper hashes.
+Evidence: record-width-object-review.json, record-width-native.json. Its six files
+cover 52 central file records and seven shared state/font records, explicit
+uint32_t C++ trajectory enum, and a global type_traits include for native modules.
+C99 reference declarations and all recorded sizes/alignments are preserved.
+
+Further cache-only previews (not yet applied):
+- image-cache-width-preview adds eight image/cache record assertions. All 55
+  objects preserve code/data: 41 raw-identical, eight debug-only, six containing
+  only reviewed allocation source-line immediates. The PCX header uses explicit
+  uint8_t fields but preserves the existing host-char diagnostic interpretation;
+  BMP/TGA decoded struct layouts stay 1080/20 bytes, PNG IHDR stays 16 bytes
+  (its serialized fields occupy 13). No packing policy changes. Cache version zero
+  retains explicit Windows/non-Windows widths and its existing platform signature.
+  Evidence: image-cache-width-{object-review,line-review}.json. No new loader tests.
+- formatted-assert-preview uses Q_ASSERT as an object-like alias of assert for all
+  nineteen existing calls, with arguments unchanged. Its 205 object samples are
+  159 raw/native-identical and 46 debug-only; twelve native helpers retain their
+  hashes. Assertion-enabled Clang analysis passes 46 configurations and rejects
+  both increment and mutating-call controls. Evidence: formatted-assert-*.
+Both candidates include the record-width header baseline; compare inputs before
+applying after the record-width PR. Do not reuse older pre-format candidates.
 
 PR #131 verification: source 05eca339/head a296e69a, build 35474814153,
 regression 35474814201 and preceding merged-tree regression 35474771300 pass.
