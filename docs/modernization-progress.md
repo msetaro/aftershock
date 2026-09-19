@@ -7,11 +7,10 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-address-warning, based on pending qsort PR #81 head a0987364
-(build 35026347546/regression 35026347521). Merge #81 after gates/self-review,
-then integrate modernization before opening this separate warning-class PR.
-#80 merged 8b74ad07 after build 35025644781/regression 35025644789 passed;
-its merged-tree run 35026295235 remains to verify. #79 merged-tree passed.
+Active: issue/8-address-warning. Qsort PR #81 passed build 35026347546 and
+regression 35026347521, self-reviewed and merged 87907a26. This branch has
+integrated modernization; open its address-warning PR next. #80 merged-tree
+regression 35026295235 passed. Check #81's merged-tree regression when available.
 
 This branch removes the unreachable !classname test in BotGetActivateGoal:
 classname is a local char[128], and the AAS key reader always initializes the
@@ -29,8 +28,8 @@ Next:
    recorded by 8f7b14ef. All six Clang libraries and GCC game/cgame libraries
    retain hashes; GCC UI baselines predate #80 and are not used for parity.
    Require hosted regression for the reviewed ARM64 diff.
-2. Verify and merge #81, integrate modernization, open this class PR, then require
-   its hosted build/regression plus self-review before merging. Check merged trees.
+2. Open this class PR, then require hosted build/regression plus self-review
+   before merging. Check merged-tree regressions.
 3. Continue #8 with declaration parentheses (51-object identical preview), array
    bounds and unused-result previews, then the larger classes and MSVC /WX.
 4. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
@@ -1389,3 +1388,10 @@ Fresh unused-parameter syntax inventory is running independently in
 Both local GCC/Clang accept [[maybe_unused]] parameters in gnu99 helper mode;
 Clang rejects nameless C definitions, so do not remove native parameter names.
 A later class PR must verify hosted compiler compatibility and object hashes.
+
+2026-09-19 resume: #81 full build/regression and #80 merged-tree run passed.
+#81 merged 87907a26 after self-review; issue #8 comment 5742665588 records gates.
+Unused-parameter inventory completed: 829 syntax configurations, zero compile
+failures. The preview script stopped before edits because diagnostic columns
+expand tabs; fix the column mapping in the temporary script before continuing.
+No unused-parameter source edits have been applied to the repository.
