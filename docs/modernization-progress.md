@@ -16,14 +16,14 @@ Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names bel
 are relative to that persistent directory.
 
 Active: issue/8-msvc-type-redefinition. PR #113 head 0618ce14 passed build
-35466204076 and regression 35466204112 and merged after self-review. Check its
+35466204076 and regression 35466204112; merged ed9c0e93 after self-review. Check its
 merged-tree regression. PR #112 merged-tree regression 35466174914 passes.
 
 Applied msvc-redefinition-preview: remove only C4142 suppression from both shared
 headers and promote /we4142 on owned C++ sources. No declarations or expressions
 change. All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only),
-and all twelve helper hashes/layouts retain the baseline. Record native-header
-GPL provenance, run hosted gates, then self-review before merging. Next: C4220
+and all twelve helper hashes/layouts retain the baseline. Source 229ccb64 is recorded
+on the native header with original GPL hashes retained. Run hosted gates, then self-review before merging. Next: C4220
 varargs matching suppression, one class per PR.
 
 Merged C4152 evidence: source fe91948f/head 0618ce14 removes both function/data
