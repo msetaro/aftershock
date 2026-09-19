@@ -15,7 +15,7 @@ upstream; historical upstream PR references below are completed past work.
 Active: issue/8-default-switch. #92 merged 171aae59 after cf4f6f1e passed build
 35454263836 and regression 35454263796; self-review is recorded on #92/#8.
 Its merged-tree regression remains to check. #91 merged-tree regression
-35454219335 passes. Record the UI provenance and open this MSVC C4065 class PR;
+35454219335 passes. Source f9dbcb07 and its UI provenance are recorded. Open this MSVC C4065 PR;
 require all hosted gates/self-review before merging.
 
 This branch removes default-only switch wrappers from two AAS trace paths and
@@ -82,7 +82,7 @@ C4267 234, C4459 38, C4456 28, C4065 15, C4457 3, C4644 3. Review each class
 before enabling its error gate, then /WX. Local tools include clang-query-21.
 
 Next:
-1. Finish default-switch provenance/PR, require hosted gates/self-review and merge.
+1. Open the default-switch PR, require hosted gates/self-review and merge.
    Verify #92 merged-tree regression, then continue the prepared MSVC classes.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width

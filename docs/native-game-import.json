@@ -139,7 +139,8 @@
     "c58e2751": "#31 explicitly signed bot chat offset sentinel; engine/game layout and x86 instructions unchanged, ARM64 now preserves -1",
     "68919a83": "#8 unused-constant diagnostics: order table/type/count share the existing MISSIONPACK guard; release objects and conditional preprocessed output unchanged",
     "639fb07e": "#8 parentheses-equality: remove redundant inner parentheses in G_VoiceTo; comparison, source line count and executable code unchanged",
-    "9e4d45f0": "#8 self-assign: remove the redundant fov_x assignment while retaining the branch and arithmetic; all compared production/native objects unchanged"
+    "9e4d45f0": "#8 self-assign: remove the redundant fov_x assignment while retaining the branch and arithmetic; all compared production/native objects unchanged",
+    "f9dbcb07": "#8 MSVC C4065: remove the default-only UI status switch; release/native code unchanged"
   },
   "files": [
     {
@@ -1438,7 +1439,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "05cb1e37"
+        "05cb1e37",
+        "f9dbcb07"
       ]
     },
     {
