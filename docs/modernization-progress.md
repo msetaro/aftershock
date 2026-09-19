@@ -15,16 +15,21 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-msvc-type-redefinition. PR #113 head 0618ce14 passed build
-35466204076 and regression 35466204112; merged ed9c0e93 after self-review. Check its
-merged-tree regression. PR #112 merged-tree regression 35466174914 passes.
+Active: issue/8-msvc-varargs. PR #114 head be5a2878 passed build 35466715384
+and regression 35466715388 and merged after self-review. Check its merged-tree
+regression. PR #113 merged-tree regression 35466661455 passes.
 
-Applied msvc-redefinition-preview: remove only C4142 suppression from both shared
-headers and promote /we4142 on owned C++ sources. No declarations or expressions
-change. All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only),
-and all twelve helper hashes/layouts retain the baseline. Source 229ccb64 is recorded
-on the native header with original GPL hashes retained. Run hosted gates, then self-review before merging. Next: C4220
-varargs matching suppression, one class per PR.
+Applied msvc-varargs-preview: remove only C4220 suppression from both shared
+headers and promote /we4220 on owned C++ sources. No declarations, calls or
+expressions change. All 85 sampled objects preserve code/data (67 raw/native,
+18 debug-only), and all twelve helper hashes/layouts retain the baseline. Record
+native-header GPL provenance, run hosted gates, then self-review before merging.
+Next: C4206 empty-translation-unit suppression in the engine header.
+
+Merged C4142 evidence: source 229ccb64/head be5a2878 removes both type-redefinition
+suppressions and promotes /we4142. No declaration changes. All 85 sampled objects
+preserve code/data (67 raw/native, 18 debug-only), and all twelve helper hashes/
+layouts retain the baseline. Original GPL hashes retain native-header provenance.
 
 Merged C4152 evidence: source fe91948f/head 0618ce14 removes both function/data
 pointer conversion suppressions and promotes /we4152. No pointer expression changes.
@@ -70,11 +75,20 @@ and [C4711](https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnin
 as off by default (C4711 is informational). Decision: remove their legacy disables
 individually, retain compiler defaults, and do not promote optimizer reports or
 enable /Wall merely to manufacture them.
-Diagnostic-only 8ed19afc now tests the eventual strict policy in run 35466504710:
-/W4 /WX are owned-C++ source properties; vendor/other sources retain /W3 Debug and
-/W4 Release. Target-wide levels are removed to avoid duplicate warning options.
-Both Ninja and generated Visual Studio projects are checked. Never merge that
-branch; apply a reviewed policy-only change after individual suppressions are gone.
+Strict-policy diagnostic 8ed19afc passed Ninja and generated Visual Studio builds
+in run 35466504710, but review found its fallback source warning levels overrode
+vendor /w (D9025 and vendor warnings in msvc-strict-v1-x64-debug.log). Do not apply
+that version. Revised preview 48ffcf53 removes the unnecessary fallback: /W4 /WX are
+owned-C++ source properties, vendor /w stays untouched, and target-wide levels
+are removed. Remaining non-C++/vendor build sources are resources/assembly.
+The diagnostic branch is never merged; apply a reviewed policy-only change after
+individual suppressions are gone. Revised 48ffcf53 passes all four x64/ARM64
+Debug/Release legs in run 35466848347, both Ninja and generated Visual Studio.
+There are zero compiler C warnings. Visual Studio emits three D9025 notices per
+leg when vendor /w overrides its default /W1; the regular Visual Studio baseline emits the same three
+notices for /W3 -> /w. The regular baseline also emits 144 such Ninja notices;
+the revised policy emits none in Ninja. Vendor suppression is preserved. Evidence:
+msvc-strict-v2-*.log, msvc-strict-baseline-x64-debug.log, msvc-strict-v2-review.json.
 
 
 Merged C4701 evidence: debug-reach-v2-preview initializes missing reachability in
