@@ -24,19 +24,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef DEBUG_PUBLIC_H
 #define DEBUG_PUBLIC_H
 
-#if defined(_WIN32) && defined(_DEBUG)
+#if defined( _WIN32 ) && defined( _DEBUG )
 #include <windows.h>
 
-static inline void Sys_DebugBreakpoint( void )
-{
+static inline void Sys_DebugBreakpoint( void ) {
 	DebugBreak();
 }
 
-static inline void Sys_GraphicsDebugMessage( const char *message, const char *layer )
-{
+static inline void Sys_GraphicsDebugMessage( const char *message, const char *layer ) {
 	MessageBoxA( 0, message, layer, MB_ICONWARNING );
-	OutputDebugString(message);
-	OutputDebugString("\n");
+	OutputDebugString( message );
+	OutputDebugString( "\n" );
 	DebugBreak();
 }
 #endif

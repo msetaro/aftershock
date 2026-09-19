@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define QDECL __cdecl
 #define Q_NEWLINE "\r\n"
 
-#if defined (_WIN32_WINNT)
+#if defined( _WIN32_WINNT )
 #if _WIN32_WINNT < 0x0501
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
@@ -93,7 +93,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define DLL_EXT ".so"
 
 
-#if defined (__x86_64__) || defined (__amd64__)
+#if defined( __x86_64__ ) || defined( __amd64__ )
 #define ARCH_STRING "x86_64"
 #define Q3_LITTLE_ENDIAN
 #undef idx64
@@ -101,7 +101,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif // __x86_64__ || __amd64__
 
 
-#if defined (__aarch64__)
+#if defined( __aarch64__ )
 #define ARCH_STRING "aarch64"
 #define Q3_LITTLE_ENDIAN
 #undef arm64
@@ -124,17 +124,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // =============================== BSD =====================================
 
-#if defined (__FreeBSD__) || defined (__NetBSD__) || defined (__OpenBSD__)
+#if defined( __FreeBSD__ ) || defined( __NetBSD__ ) || defined( __OpenBSD__ )
 
 #include <sys/types.h>
 #include <machine/endian.h>
 
 
-#if defined (__FreeBSD__)
+#if defined( __FreeBSD__ )
 #define OS_STRING "freebsd"
-#elif defined (__NetBSD__)
+#elif defined( __NetBSD__ )
 #define OS_STRING "netbsd"
-#elif defined (__OpenBSD__)
+#elif defined( __OpenBSD__ )
 #define OS_STRING "openbsd"
 #endif
 
@@ -194,14 +194,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #error "Aftershock requires little-endian byte order"
 #endif
 
-#define CopyLittleShort(dest, src) Com_Memcpy(dest, src, 2)
-#define CopyLittleLong(dest, src) Com_Memcpy(dest, src, 4)
+#define CopyLittleShort( dest, src ) Com_Memcpy(dest, src, 2)
+#define CopyLittleLong( dest, src ) Com_Memcpy(dest, src, 4)
 #define LittleShort
 #define LittleLong
 #define LittleFloat
-#define BigShort(x) ShortSwap(x)
-#define BigLong(x) LongSwap(x)
-#define BigFloat(x) FloatSwap(&x)
+#define BigShort( x ) ShortSwap(x)
+#define BigLong( x ) LongSwap(x)
+#define BigFloat( x ) FloatSwap(&x)
 
 // Platform string
 
@@ -222,9 +222,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // Modifier for printing size_t values portably
 
-#if (defined _WIN64)
+#if ( defined _WIN64 )
 #define PRIz "I64"
-#elif (defined Q3_VM)
+#elif ( defined Q3_VM )
 #define PRIz ""
 #else
 #define PRIz "z"

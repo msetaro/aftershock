@@ -34,15 +34,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 Com_RealTime
 ================
 */
-int Com_RealTime(qtime_t *qtime) {
+int Com_RealTime( qtime_t *qtime ) {
 	time_t t;
 	struct tm *tms;
 
-	t = time(NULL);
-	if (!qtime)
+	t = time( NULL );
+	if ( !qtime )
 		return (int)( t );
-	tms = localtime(&t);
-	if (tms) {
+	tms = localtime( &t );
+	if ( tms ) {
 		qtime->tm_sec = tms->tm_sec;
 		qtime->tm_min = tms->tm_min;
 		qtime->tm_hour = tms->tm_hour;
@@ -62,20 +62,17 @@ int Com_RealTime(qtime_t *qtime) {
 Sys_Microseconds
 ================
 */
-int64_t Sys_Microseconds( void )
-{
+int64_t Sys_Microseconds( void ) {
 #ifdef _WIN32
 	static qboolean inited = qfalse;
 	static LARGE_INTEGER base;
 	static LARGE_INTEGER freq;
 	LARGE_INTEGER curr;
 
-	if ( !inited )
-	{
+	if ( !inited ) {
 		QueryPerformanceFrequency( &freq );
 		QueryPerformanceCounter( &base );
-		if ( !freq.QuadPart )
-		{
+		if ( !freq.QuadPart ) {
 			return (int64_t)Sys_Milliseconds() * 1000LL; // fallback
 		}
 		inited = qtrue;
@@ -84,7 +81,7 @@ int64_t Sys_Microseconds( void )
 
 	QueryPerformanceCounter( &curr );
 
-	return ((curr.QuadPart - base.QuadPart) * 1000000LL) / freq.QuadPart;
+	return ( ( curr.QuadPart - base.QuadPart ) * 1000000LL ) / freq.QuadPart;
 #else
 	struct timeval curr;
 	gettimeofday( &curr, NULL );
@@ -112,9 +109,8 @@ static uint64_t affinityMask; // saved at startup
 
 #if defined _MSC_VER
 #include <intrin.h>
-static void CPUID( int func, unsigned int *regs )
-{
-	__cpuid( (int*)regs, func );
+static void CPUID( int func, unsigned int *regs ) {
+	__cpuid( (int *)regs, func );
 }
 
 #ifdef USE_AFFINITY_MASK
@@ -123,33 +119,26 @@ Q_EXTERN_C void CPUID_EX( int func, int param, unsigned int *regs );
 
 #else // clang/gcc/mingw
 
-static void CPUID( int func, unsigned int *regs )
-{
-	__asm__ __volatile__( "cpuid" :
-		"=a"(regs[0]),
-		"=b"(regs[1]),
-		"=c"(regs[2]),
-		"=d"(regs[3]) :
-		"a"(func) );
+static void CPUID( int func, unsigned int *regs ) {
+	__asm__ __volatile__( "cpuid" : "=a"( regs[0] ),
+		"=b"( regs[1] ),
+		"=c"( regs[2] ),
+		"=d"( regs[3] ) : "a"( func ) );
 }
 
 #ifdef USE_AFFINITY_MASK
-static void CPUID_EX( int func, int param, unsigned int *regs )
-{
-	__asm__ __volatile__( "cpuid" :
-		"=a"(regs[0]),
-		"=b"(regs[1]),
-		"=c"(regs[2]),
-		"=d"(regs[3]) :
-		"a"(func),
-		"c"(param) );
+static void CPUID_EX( int func, int param, unsigned int *regs ) {
+	__asm__ __volatile__( "cpuid" : "=a"( regs[0] ),
+		"=b"( regs[1] ),
+		"=c"( regs[2] ),
+		"=d"( regs[3] ) : "a"( func ),
+		"c"( param ) );
 }
 #endif // USE_AFFINITY_MASK
 
-#endif  // clang/gcc/mingw
+#endif // clang/gcc/mingw
 
-void Sys_GetProcessorId( char *vendor )
-{
+void Sys_GetProcessorId( char *vendor ) {
 	uint32_t regs[4]; // EAX, EBX, ECX, EDX
 	uint32_t cpuid_level_ex;
 	char vendor_str[12 + 1]; // short CPU vendor string
@@ -163,9 +152,9 @@ void Sys_GetProcessorId( char *vendor )
 
 	// get CPUID level & short CPU vendor string
 	CPUID( 0x0, regs );
-	memcpy(vendor_str + 0, (char*)&regs[1], 4);
-	memcpy(vendor_str + 4, (char*)&regs[3], 4);
-	memcpy(vendor_str + 8, (char*)&regs[2], 4);
+	memcpy( vendor_str + 0, (char *)&regs[1], 4 );
+	memcpy( vendor_str + 4, (char *)&regs[3], 4 );
+	memcpy( vendor_str + 8, (char *)&regs[2], 4 );
 	vendor_str[12] = '\0';
 
 	// get CPU feature bits
@@ -192,40 +181,40 @@ void Sys_GetProcessorId( char *vendor )
 	//	CPU_Flags |= CPU_SSE3;
 
 	// bit 19 of ECX denotes SSE41 existence
-	if ( regs[ 2 ] & ( 1 << 19 ) )
+	if ( regs[2] & ( 1 << 19 ) )
 		CPU_Flags |= CPU_SSE41;
 
 	if ( vendor ) {
 		if ( cpuid_level_ex >= 0x80000004 ) {
 			// read CPU Brand string
 			uint32_t i;
-			for ( i = 0x80000002; i <= 0x80000004; i++) {
+			for ( i = 0x80000002; i <= 0x80000004; i++ ) {
 				CPUID( i, regs );
-				memcpy( vendor+0, (char*)&regs[0], 4 );
-				memcpy( vendor+4, (char*)&regs[1], 4 );
-				memcpy( vendor+8, (char*)&regs[2], 4 );
-				memcpy( vendor+12, (char*)&regs[3], 4 );
+				memcpy( vendor + 0, (char *)&regs[0], 4 );
+				memcpy( vendor + 4, (char *)&regs[1], 4 );
+				memcpy( vendor + 8, (char *)&regs[2], 4 );
+				memcpy( vendor + 12, (char *)&regs[3], 4 );
 				vendor[16] = '\0';
 				vendor += strlen( vendor );
 			}
 		} else {
 			const int print_flags = CPU_Flags;
 			vendor = Q_stradd( vendor, vendor_str );
-			if (print_flags) {
+			if ( print_flags ) {
 				// print features
-				strcat(vendor, " w/");
-				if (print_flags & CPU_FCOM)
-					strcat(vendor, " CMOV");
-				if (print_flags & CPU_MMX)
-					strcat(vendor, " MMX");
-				if (print_flags & CPU_SSE)
-					strcat(vendor, " SSE");
-				if (print_flags & CPU_SSE2)
-					strcat(vendor, " SSE2");
+				strcat( vendor, " w/" );
+				if ( print_flags & CPU_FCOM )
+					strcat( vendor, " CMOV" );
+				if ( print_flags & CPU_MMX )
+					strcat( vendor, " MMX" );
+				if ( print_flags & CPU_SSE )
+					strcat( vendor, " SSE" );
+				if ( print_flags & CPU_SSE2 )
+					strcat( vendor, " SSE2" );
 				//if ( CPU_Flags & CPU_SSE3 )
 				//	strcat( vendor, " SSE3" );
-				if (print_flags & CPU_SSE41)
-					strcat(vendor, " SSE4.1");
+				if ( print_flags & CPU_SSE41 )
+					strcat( vendor, " SSE4.1" );
 			}
 		}
 	}
@@ -233,8 +222,7 @@ void Sys_GetProcessorId( char *vendor )
 
 
 #ifdef USE_AFFINITY_MASK
-static void DetectCPUCoresConfig( void )
-{
+static void DetectCPUCoresConfig( void ) {
 	uint32_t regs[4];
 	uint32_t i;
 
@@ -251,14 +239,18 @@ static void DetectCPUCoresConfig( void )
 
 	for ( i = 0; i < sizeof( affinityMask ) * 8; i++ ) {
 		const uint64_t mask = 1ULL << i;
-		if ( (mask & affinityMask) && Sys_SetAffinityMask( mask ) ) {
+		if ( ( mask & affinityMask ) && Sys_SetAffinityMask( mask ) ) {
 			CPUID_EX( 0x1A, 0x0, regs );
-			switch ( (regs[0] >> 24) & 0xFF ) {
-				case 0x20: eCoreMask |= mask; break;
-				case 0x40: pCoreMask |= mask; break;
-				default: // non-existing leaf
-					eCoreMask = pCoreMask = 0;
-					break;
+			switch ( ( regs[0] >> 24 ) & 0xFF ) {
+			case 0x20:
+				eCoreMask |= mask;
+				break;
+			case 0x40:
+				pCoreMask |= mask;
+				break;
+			default: // non-existing leaf
+				eCoreMask = pCoreMask = 0;
+				break;
 			}
 		}
 	}
@@ -277,8 +269,7 @@ static void DetectCPUCoresConfig( void )
 
 #ifndef __linux__
 
-void Sys_GetProcessorId( char *vendor )
-{
+void Sys_GetProcessorId( char *vendor ) {
 	Com_sprintf( vendor, 100, "%s", ARCH_STRING );
 #ifdef _WIN32
 	CPU_Flags |= CPU_ARMv7 | CPU_IDIVA | CPU_VFPv3;
@@ -288,9 +279,7 @@ void Sys_GetProcessorId( char *vendor )
 #else // __linux__
 
 
-
-void Sys_GetProcessorId( char *vendor )
-{
+void Sys_GetProcessorId( char *vendor ) {
 	CPU_Flags = 0;
 	Com_sprintf( vendor, 100, "%s", ARCH_STRING );
 }
@@ -306,8 +295,7 @@ Sys_SnapVector
 */
 #ifdef _MSC_VER
 #if idx64
-void Sys_SnapVector( float *vector )
-{
+void Sys_SnapVector( float *vector ) {
 	__m128 vf0, vf1, vf2;
 	__m128i vi;
 	DWORD mxcsr;
@@ -320,8 +308,8 @@ void Sys_SnapVector( float *vector )
 	vi = _mm_cvtps_epi32( vf0 );
 	vf0 = _mm_cvtepi32_ps( vi );
 
-	vf1 = _mm_shuffle_ps(vf0, vf0, _MM_SHUFFLE(1,1,1,1));
-	vf2 = _mm_shuffle_ps(vf0, vf0, _MM_SHUFFLE(2,2,2,2));
+	vf1 = _mm_shuffle_ps( vf0, vf0, _MM_SHUFFLE( 1, 1, 1, 1 ) );
+	vf2 = _mm_shuffle_ps( vf0, vf0, _MM_SHUFFLE( 2, 2, 2, 2 ) );
 
 	_mm_setcsr( mxcsr ); // restore rounding mode
 
@@ -333,8 +321,7 @@ void Sys_SnapVector( float *vector )
 
 
 #if arm64
-void Sys_SnapVector( float *vector )
-{
+void Sys_SnapVector( float *vector ) {
 	vector[0] = (float)( rint( (double)vector[0] ) );
 	vector[1] = (float)( rint( (double)vector[1] ) );
 	vector[2] = (float)( rint( (double)vector[2] ) );
@@ -344,8 +331,7 @@ void Sys_SnapVector( float *vector )
 #else // clang/gcc/mingw
 
 
-void Sys_SnapVector( float *vector )
-{
+void Sys_SnapVector( float *vector ) {
 	vector[0] = rint( (double)vector[0] );
 	vector[1] = rint( (double)vector[1] );
 	vector[2] = rint( (double)vector[2] );
@@ -379,28 +365,24 @@ static const char *parseAffinityMask( const char *str, uint64_t *outv, int level
 			mask = affinityMask;
 			++str;
 			continue;
-		}
-		else if ( *str == 'P' || *str == 'p' ) {
+		} else if ( *str == 'P' || *str == 'p' ) {
 			mask = pCoreMask;
 			++str;
 			continue;
-		}
-		else if ( *str == 'E' || *str == 'e' ) {
+		} else if ( *str == 'E' || *str == 'e' ) {
 			mask = eCoreMask;
 			++str;
 			continue;
-		}
-		else if ( *str == '0' && (str[1] == 'x' || str[1] == 'X') && (hex = hex_code( str[2] )) >= 0 ) {
+		} else if ( *str == '0' && ( str[1] == 'x' || str[1] == 'X' ) && ( hex = hex_code( str[2] ) ) >= 0 ) {
 			v = hex;
 			str += 3; // 0xH
-			while ( (hex = hex_code( *str )) >= 0 ) {
+			while ( ( hex = hex_code( *str ) ) >= 0 ) {
 				v = v * 16 + hex;
 				str++;
 			}
 			mask = v;
 			continue;
-		}
-		else if ( *str >= '0' && *str <= '9' ) {
+		} else if ( *str >= '0' && *str <= '9' ) {
 			mask = *str++ - '0';
 			while ( *str >= '0' && *str <= '9' ) {
 				mask = mask * 10 + *str - '0';
@@ -414,9 +396,15 @@ static const char *parseAffinityMask( const char *str, uint64_t *outv, int level
 				const char op = *str;
 				str = parseAffinityMask( str + 1, &v, level + 1 );
 				switch ( op ) {
-					case '+': mask |= v; break;
-					case '-': mask &= ~v; break;
-					default: str = ""; break;
+				case '+':
+					mask |= v;
+					break;
+				case '-':
+					mask &= ~v;
+					break;
+				default:
+					str = "";
+					break;
 				}
 			}
 			if ( *str != '\0' ) {
@@ -433,8 +421,7 @@ static const char *parseAffinityMask( const char *str, uint64_t *outv, int level
 
 
 // parse and set affinity mask
-void Sys_ApplyAffinityMask( const char *str )
-{
+void Sys_ApplyAffinityMask( const char *str ) {
 	uint64_t mask = 0;
 
 	parseAffinityMask( str, &mask, 0 );
@@ -450,8 +437,7 @@ void Sys_ApplyAffinityMask( const char *str )
 #endif // USE_AFFINITY_MASK
 
 #ifdef USE_AFFINITY_MASK
-void Sys_InitAffinity( void )
-{
+void Sys_InitAffinity( void ) {
 	// get initial process affinity - we will respect it when setting custom affinity masks
 	eCoreMask = pCoreMask = affinityMask = Sys_GetAffinityMask();
 #if idx64
@@ -460,17 +446,14 @@ void Sys_InitAffinity( void )
 }
 #endif
 
-time_t Sys_Time( time_t *result )
-{
+time_t Sys_Time( time_t *result ) {
 	return time( result );
 }
 
-struct tm *Sys_LocalTime( const time_t *value )
-{
+struct tm *Sys_LocalTime( const time_t *value ) {
 	return localtime( value );
 }
 
-char *Sys_CTime( const time_t *value )
-{
+char *Sys_CTime( const time_t *value ) {
 	return ctime( value );
 }

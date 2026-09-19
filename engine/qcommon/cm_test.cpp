@@ -29,35 +29,34 @@ CM_PointLeafnum_r
 ==================
 */
 static int CM_PointLeafnum_r( const vec3_t p, int num ) {
-	float		d;
-	cNode_t		*node;
-	cplane_t	*plane;
+	float d;
+	cNode_t *node;
+	cplane_t *plane;
 
-	while (num >= 0)
-	{
+	while ( num >= 0 ) {
 		node = cm.nodes + num;
 		plane = node->plane;
-		
-		if (plane->type < 3)
+
+		if ( plane->type < 3 )
 			d = p[plane->type] - plane->dist;
 		else
-			d = DotProduct (plane->normal, p) - plane->dist;
-		if (d < 0)
+			d = DotProduct( plane->normal, p ) - plane->dist;
+		if ( d < 0 )
 			num = node->children[1];
 		else
 			num = node->children[0];
 	}
 
-	c_pointcontents++;		// optimize counter
+	c_pointcontents++; // optimize counter
 
 	return -1 - num;
 }
 
 int CM_PointLeafnum( const vec3_t p ) {
-	if ( !cm.numNodes ) {	// map not loaded
+	if ( !cm.numNodes ) { // map not loaded
 		return 0;
 	}
-	return CM_PointLeafnum_r (p, 0);
+	return CM_PointLeafnum_r( p, 0 );
 }
 
 
@@ -71,41 +70,41 @@ LEAF LISTING
 
 
 void CM_StoreLeafs( leafList_t *ll, int nodenum ) {
-	int		leafNum;
+	int leafNum;
 
 	leafNum = -1 - nodenum;
 
 	// store the lastLeaf even if the list is overflowed
-	if ( cm.leafs[ leafNum ].cluster != -1 ) {
+	if ( cm.leafs[leafNum].cluster != -1 ) {
 		ll->lastLeaf = leafNum;
 	}
 
-	if ( ll->count >= ll->maxcount) {
+	if ( ll->count >= ll->maxcount ) {
 		ll->overflowed = qtrue;
 		return;
 	}
-	ll->list[ ll->count++ ] = leafNum;
+	ll->list[ll->count++] = leafNum;
 }
 
 void CM_StoreBrushes( leafList_t *ll, int nodenum ) {
-	int			i, k;
-	int			leafnum;
-	int			brushnum;
-	cLeaf_t		*leaf;
-	cbrush_t	*b;
+	int i, k;
+	int leafnum;
+	int brushnum;
+	cLeaf_t *leaf;
+	cbrush_t *b;
 
 	leafnum = -1 - nodenum;
 
 	leaf = &cm.leafs[leafnum];
 
-	for ( k = 0 ; k < leaf->numLeafBrushes ; k++ ) {
-		brushnum = cm.leafbrushes[leaf->firstLeafBrush+k];
+	for ( k = 0; k < leaf->numLeafBrushes; k++ ) {
+		brushnum = cm.leafbrushes[leaf->firstLeafBrush + k];
 		b = &cm.brushes[brushnum];
 		if ( b->checkcount == cm.checkcount ) {
-			continue;	// already checked this brush in another leaf
+			continue; // already checked this brush in another leaf
 		}
 		b->checkcount = cm.checkcount;
-		for ( i = 0 ; i < 3 ; i++ ) {
+		for ( i = 0; i < 3; i++ ) {
 			if ( b->bounds[0][i] >= ll->bounds[1][i] || b->bounds[1][i] <= ll->bounds[0][i] ) {
 				break;
 			}
@@ -113,11 +112,11 @@ void CM_StoreBrushes( leafList_t *ll, int nodenum ) {
 		if ( i != 3 ) {
 			continue;
 		}
-		if ( ll->count >= ll->maxcount) {
+		if ( ll->count >= ll->maxcount ) {
 			ll->overflowed = qtrue;
 			return;
 		}
-		((cbrush_t **)ll->list)[ ll->count++ ] = b;
+		( (cbrush_t **)ll->list )[ll->count++] = b;
 	}
 #if 0
 	// store patches?
@@ -138,29 +137,28 @@ Fills in a list of all the leafs touched
 =============
 */
 void CM_BoxLeafnums_r( leafList_t *ll, int nodenum ) {
-	cplane_t	*plane;
-	cNode_t		*node;
-	int			s;
+	cplane_t *plane;
+	cNode_t *node;
+	int s;
 
-	while (1) {
-		if (nodenum < 0) {
+	while ( 1 ) {
+		if ( nodenum < 0 ) {
 			ll->storeLeafs( ll, nodenum );
 			return;
 		}
-	
+
 		node = &cm.nodes[nodenum];
 		plane = node->plane;
 		s = BoxOnPlaneSide( ll->bounds[0], ll->bounds[1], plane );
-		if (s == 1) {
+		if ( s == 1 ) {
 			nodenum = node->children[0];
-		} else if (s == 2) {
+		} else if ( s == 2 ) {
 			nodenum = node->children[1];
 		} else {
 			// go down both
 			CM_BoxLeafnums_r( ll, node->children[0] );
 			nodenum = node->children[1];
 		}
-
 	}
 }
 
@@ -169,8 +167,8 @@ void CM_BoxLeafnums_r( leafList_t *ll, int nodenum ) {
 CM_BoxLeafnums
 ==================
 */
-int	CM_BoxLeafnums( const vec3_t mins, const vec3_t maxs, int *list, int listsize, int *lastLeaf) {
-	leafList_t	ll;
+int CM_BoxLeafnums( const vec3_t mins, const vec3_t maxs, int *list, int listsize, int *lastLeaf ) {
+	leafList_t ll;
 
 	cm.checkcount++;
 
@@ -195,7 +193,7 @@ CM_BoxBrushes
 ==================
 */
 int CM_BoxBrushes( const vec3_t mins, const vec3_t maxs, cbrush_t **list, int listsize ) {
-	leafList_t	ll;
+	leafList_t ll;
 
 	cm.checkcount++;
 
@@ -207,7 +205,7 @@ int CM_BoxBrushes( const vec3_t mins, const vec3_t maxs, cbrush_t **list, int li
 	ll.storeLeafs = CM_StoreBrushes;
 	ll.lastLeaf = 0;
 	ll.overflowed = qfalse;
-	
+
 	CM_BoxLeafnums_r( &ll, 0 );
 
 	return ll.count;
@@ -224,16 +222,16 @@ CM_PointContents
 ==================
 */
 int CM_PointContents( const vec3_t p, clipHandle_t model ) {
-	int			leafnum;
-	int			i, k;
-	int			brushnum;
-	cLeaf_t		*leaf;
-	cbrush_t	*b;
-	int			contents;
-	float		d;
-	cmodel_t	*clipm;
+	int leafnum;
+	int i, k;
+	int brushnum;
+	cLeaf_t *leaf;
+	cbrush_t *b;
+	int contents;
+	float d;
+	cmodel_t *clipm;
 
-	if (!cm.numNodes) {	// map not loaded
+	if ( !cm.numNodes ) { // map not loaded
 		return 0;
 	}
 
@@ -241,13 +239,13 @@ int CM_PointContents( const vec3_t p, clipHandle_t model ) {
 		clipm = CM_ClipHandleToModel( model );
 		leaf = &clipm->leaf;
 	} else {
-		leafnum = CM_PointLeafnum_r (p, 0);
+		leafnum = CM_PointLeafnum_r( p, 0 );
 		leaf = &cm.leafs[leafnum];
 	}
 
 	contents = 0;
-	for (k=0 ; k<leaf->numLeafBrushes ; k++) {
-		brushnum = cm.leafbrushes[leaf->firstLeafBrush+k];
+	for ( k = 0; k < leaf->numLeafBrushes; k++ ) {
+		brushnum = cm.leafbrushes[leaf->firstLeafBrush + k];
 		b = &cm.brushes[brushnum];
 
 		if ( !CM_BoundsIntersectPoint( b->bounds[0], b->bounds[1], p ) ) {
@@ -255,10 +253,10 @@ int CM_PointContents( const vec3_t p, clipHandle_t model ) {
 		}
 
 		// see if the point is in the brush
-		for ( i = 0 ; i < b->numsides ; i++ ) {
+		for ( i = 0; i < b->numsides; i++ ) {
 			d = DotProduct( p, b->sides[i].plane->normal );
-// FIXME test for Cash
-//			if ( d >= b->sides[i].plane->dist ) {
+			// FIXME test for Cash
+			//			if ( d >= b->sides[i].plane->dist ) {
 			if ( d > b->sides[i].plane->dist ) {
 				break;
 			}
@@ -280,29 +278,27 @@ Handles offsetting and rotation of the end points for moving and
 rotating entities
 ==================
 */
-int	CM_TransformedPointContents( const vec3_t p, clipHandle_t model, const vec3_t origin, const vec3_t angles) {
-	vec3_t		p_l;
-	vec3_t		temp;
-	vec3_t		forward, right, up;
+int CM_TransformedPointContents( const vec3_t p, clipHandle_t model, const vec3_t origin, const vec3_t angles ) {
+	vec3_t p_l;
+	vec3_t temp;
+	vec3_t forward, right, up;
 
 	// subtract origin offset
-	VectorSubtract (p, origin, p_l);
+	VectorSubtract( p, origin, p_l );
 
 	// rotate start and end into the models frame of reference
-	if ( model != BOX_MODEL_HANDLE && 
-	(angles[0] || angles[1] || angles[2]) )
-	{
-		AngleVectors (angles, forward, right, up);
+	if ( model != BOX_MODEL_HANDLE &&
+		 ( angles[0] || angles[1] || angles[2] ) ) {
+		AngleVectors( angles, forward, right, up );
 
-		VectorCopy (p_l, temp);
-		p_l[0] = DotProduct (temp, forward);
-		p_l[1] = -DotProduct (temp, right);
-		p_l[2] = DotProduct (temp, up);
+		VectorCopy( p_l, temp );
+		p_l[0] = DotProduct( temp, forward );
+		p_l[1] = -DotProduct( temp, right );
+		p_l[2] = DotProduct( temp, up );
 	}
 
 	return CM_PointContents( p_l, model );
 }
-
 
 
 /*
@@ -313,14 +309,13 @@ PVS
 ===============================================================================
 */
 
-byte	*CM_ClusterPVS (int cluster) {
-	if (cluster < 0 || cluster >= cm.numClusters || !cm.visibility ) {
+byte *CM_ClusterPVS( int cluster ) {
+	if ( cluster < 0 || cluster >= cm.numClusters || !cm.visibility ) {
 		return cm.novis;
 	}
 
 	return cm.visibility + cluster * cm.clusterBytes;
 }
-
 
 
 /*
@@ -331,23 +326,23 @@ AREAPORTALS
 ===============================================================================
 */
 
-static void CM_FloodArea_r( int areaNum, int floodnum) {
-	int		i;
+static void CM_FloodArea_r( int areaNum, int floodnum ) {
+	int i;
 	cArea_t *area;
-	int		*con;
+	int *con;
 
-	area = &cm.areas[ areaNum ];
+	area = &cm.areas[areaNum];
 
 	if ( area->floodvalid == cm.floodvalid ) {
-		if (area->floodnum == floodnum)
+		if ( area->floodnum == floodnum )
 			return;
-		Com_Error (ERR_DROP, "FloodArea_r: reflooded");
+		Com_Error( ERR_DROP, "FloodArea_r: reflooded" );
 	}
 
 	area->floodnum = floodnum;
 	area->floodvalid = cm.floodvalid;
 	con = cm.areaPortals + areaNum * cm.numAreas;
-	for ( i=0 ; i < cm.numAreas  ; i++ ) {
+	for ( i = 0; i < cm.numAreas; i++ ) {
 		if ( con[i] > 0 ) {
 			CM_FloodArea_r( i, floodnum );
 		}
@@ -360,24 +355,23 @@ CM_FloodAreaConnections
 
 ====================
 */
-void	CM_FloodAreaConnections( void ) {
-	int		i;
-	cArea_t	*area;
-	int		floodnum;
+void CM_FloodAreaConnections( void ) {
+	int i;
+	cArea_t *area;
+	int floodnum;
 
 	// all current floods are now invalid
 	cm.floodvalid++;
 	floodnum = 0;
 
-	for (i = 0 ; i < cm.numAreas ; i++) {
+	for ( i = 0; i < cm.numAreas; i++ ) {
 		area = &cm.areas[i];
-		if (area->floodvalid == cm.floodvalid) {
-			continue;		// already flooded into
+		if ( area->floodvalid == cm.floodvalid ) {
+			continue; // already flooded into
 		}
 		floodnum++;
-		CM_FloodArea_r (i, floodnum);
+		CM_FloodArea_r( i, floodnum );
 	}
-
 }
 
 /*
@@ -386,27 +380,27 @@ CM_AdjustAreaPortalState
 
 ====================
 */
-void	CM_AdjustAreaPortalState( int area1, int area2, qboolean open ) {
+void CM_AdjustAreaPortalState( int area1, int area2, qboolean open ) {
 	if ( area1 < 0 || area2 < 0 ) {
 		return;
 	}
 
 	if ( area1 >= cm.numAreas || area2 >= cm.numAreas ) {
-		Com_Error (ERR_DROP, "CM_ChangeAreaPortalState: bad area number");
+		Com_Error( ERR_DROP, "CM_ChangeAreaPortalState: bad area number" );
 	}
 
 	if ( open ) {
-		cm.areaPortals[ area1 * cm.numAreas + area2 ]++;
-		cm.areaPortals[ area2 * cm.numAreas + area1 ]++;
+		cm.areaPortals[area1 * cm.numAreas + area2]++;
+		cm.areaPortals[area2 * cm.numAreas + area1]++;
 	} else {
-		cm.areaPortals[ area1 * cm.numAreas + area2 ]--;
-		cm.areaPortals[ area2 * cm.numAreas + area1 ]--;
-		if ( cm.areaPortals[ area2 * cm.numAreas + area1 ] < 0 ) {
-			Com_Error (ERR_DROP, "CM_AdjustAreaPortalState: negative reference count");
+		cm.areaPortals[area1 * cm.numAreas + area2]--;
+		cm.areaPortals[area2 * cm.numAreas + area1]--;
+		if ( cm.areaPortals[area2 * cm.numAreas + area1] < 0 ) {
+			Com_Error( ERR_DROP, "CM_AdjustAreaPortalState: negative reference count" );
 		}
 	}
 
-	CM_FloodAreaConnections ();
+	CM_FloodAreaConnections();
 }
 
 /*
@@ -415,7 +409,7 @@ CM_AreasConnected
 
 ====================
 */
-qboolean	CM_AreasConnected( int area1, int area2 ) {
+qboolean CM_AreasConnected( int area1, int area2 ) {
 #ifndef BSPC
 	if ( cm_noAreas->integer ) {
 		return qtrue;
@@ -426,11 +420,11 @@ qboolean	CM_AreasConnected( int area1, int area2 ) {
 		return qfalse;
 	}
 
-	if (area1 >= cm.numAreas || area2 >= cm.numAreas) {
-		Com_Error (ERR_DROP, "area >= cm.numAreas");
+	if ( area1 >= cm.numAreas || area2 >= cm.numAreas ) {
+		Com_Error( ERR_DROP, "area >= cm.numAreas" );
 	}
 
-	if (cm.areas[area1].floodnum == cm.areas[area2].floodnum) {
+	if ( cm.areas[area1].floodnum == cm.areas[area2].floodnum ) {
 		return qtrue;
 	}
 	return qfalse;
@@ -451,29 +445,25 @@ viewpoints and get the union of all visible areas.
 This is used to cull non-visible entities from snapshots
 =================
 */
-int CM_WriteAreaBits (byte *buffer, int area)
-{
-	int		i;
-	int		floodnum;
-	int		bytes;
+int CM_WriteAreaBits( byte *buffer, int area ) {
+	int i;
+	int floodnum;
+	int bytes;
 
-	bytes = (cm.numAreas+7)>>3;
+	bytes = ( cm.numAreas + 7 ) >> 3;
 
 #ifndef BSPC
-	if (cm_noAreas->integer || area == -1)
+	if ( cm_noAreas->integer || area == -1 )
 #else
-	if (area == -1)
+	if ( area == -1 )
 #endif
-	{	// for debugging, send everything
-		Com_Memset (buffer, 255, bytes);
-	}
-	else
-	{
+	{ // for debugging, send everything
+		Com_Memset( buffer, 255, bytes );
+	} else {
 		floodnum = cm.areas[area].floodnum;
-		for (i=0 ; i<cm.numAreas ; i++)
-		{
-			if (cm.areas[i].floodnum == floodnum)
-				buffer[i>>3] |= 1<<(i&7);
+		for ( i = 0; i < cm.numAreas; i++ ) {
+			if ( cm.areas[i].floodnum == floodnum )
+				buffer[i >> 3] |= 1 << ( i & 7 );
 		}
 	}
 
@@ -488,15 +478,13 @@ int CM_WriteAreaBits (byte *buffer, int area)
 CM_BoundsIntersect
 ====================
 */
-qboolean CM_BoundsIntersect( const vec3_t mins, const vec3_t maxs, const vec3_t mins2, const vec3_t maxs2 )
-{
-	if (maxs[0] < mins2[0] - BOUNDS_CLIP_EPSILON ||
-		maxs[1] < mins2[1] - BOUNDS_CLIP_EPSILON ||
-		maxs[2] < mins2[2] - BOUNDS_CLIP_EPSILON ||
-		mins[0] > maxs2[0] + BOUNDS_CLIP_EPSILON ||
-		mins[1] > maxs2[1] + BOUNDS_CLIP_EPSILON ||
-		mins[2] > maxs2[2] + BOUNDS_CLIP_EPSILON)
-	{
+qboolean CM_BoundsIntersect( const vec3_t mins, const vec3_t maxs, const vec3_t mins2, const vec3_t maxs2 ) {
+	if ( maxs[0] < mins2[0] - BOUNDS_CLIP_EPSILON ||
+		 maxs[1] < mins2[1] - BOUNDS_CLIP_EPSILON ||
+		 maxs[2] < mins2[2] - BOUNDS_CLIP_EPSILON ||
+		 mins[0] > maxs2[0] + BOUNDS_CLIP_EPSILON ||
+		 mins[1] > maxs2[1] + BOUNDS_CLIP_EPSILON ||
+		 mins[2] > maxs2[2] + BOUNDS_CLIP_EPSILON ) {
 		return qfalse;
 	}
 
@@ -509,15 +497,13 @@ qboolean CM_BoundsIntersect( const vec3_t mins, const vec3_t maxs, const vec3_t 
 CM_BoundsIntersectPoint
 ====================
 */
-qboolean CM_BoundsIntersectPoint( const vec3_t mins, const vec3_t maxs, const vec3_t point )
-{
-	if (maxs[0] < point[0] - BOUNDS_CLIP_EPSILON ||
-		maxs[1] < point[1] - BOUNDS_CLIP_EPSILON ||
-		maxs[2] < point[2] - BOUNDS_CLIP_EPSILON ||
-		mins[0] > point[0] + BOUNDS_CLIP_EPSILON ||
-		mins[1] > point[1] + BOUNDS_CLIP_EPSILON ||
-		mins[2] > point[2] + BOUNDS_CLIP_EPSILON)
-	{
+qboolean CM_BoundsIntersectPoint( const vec3_t mins, const vec3_t maxs, const vec3_t point ) {
+	if ( maxs[0] < point[0] - BOUNDS_CLIP_EPSILON ||
+		 maxs[1] < point[1] - BOUNDS_CLIP_EPSILON ||
+		 maxs[2] < point[2] - BOUNDS_CLIP_EPSILON ||
+		 mins[0] > point[0] + BOUNDS_CLIP_EPSILON ||
+		 mins[1] > point[1] + BOUNDS_CLIP_EPSILON ||
+		 mins[2] > point[2] + BOUNDS_CLIP_EPSILON ) {
 		return qfalse;
 	}
 

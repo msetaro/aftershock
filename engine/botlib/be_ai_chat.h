@@ -42,35 +42,31 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CHAT_TELL					2
 
 //a console message
-typedef struct bot_consolemessage_s
-{
-	struct bot_consolemessage_s *prev, *next;	//prev and next in list
-	char message[MAX_MESSAGE_SIZE];				//message
-	float time;									//message time
-	int type;									//message type
+typedef struct bot_consolemessage_s {
+	struct bot_consolemessage_s *prev, *next; //prev and next in list
+	char message[MAX_MESSAGE_SIZE]; //message
+	float time; //message time
+	int type; //message type
 	int handle;
 } bot_consolemessage_t;
 
 //a console message, fixed layout, exported to the QVM
-typedef struct bot_consolemessage_qvm_s
-{
+typedef struct bot_consolemessage_qvm_s {
 	int handle;
-	float time;									//message time
-	int type;									//message type
-	char message[MAX_MESSAGE_SIZE];				//message
-	int prev;									//non-portable/unused
-	int next;									//non-portable/unused
+	float time; //message time
+	int type; //message type
+	char message[MAX_MESSAGE_SIZE]; //message
+	int prev; //non-portable/unused
+	int next; //non-portable/unused
 } bot_consolemessage_qvm_t;
 
 //match variable
-typedef struct bot_matchvariable_s
-{
+typedef struct bot_matchvariable_s {
 	signed char offset;
 	int length;
 } bot_matchvariable_t;
 //returned to AI when a match is found
-typedef struct bot_match_s
-{
+typedef struct bot_match_s {
 	char string[MAX_MESSAGE_SIZE];
 	int type;
 	int subtype;
@@ -78,47 +74,46 @@ typedef struct bot_match_s
 } bot_match_t;
 
 //setup the chat AI
-int BotSetupChatAI(void);
+int BotSetupChatAI( void );
 //shutdown the chat AI
-void BotShutdownChatAI(void);
+void BotShutdownChatAI( void );
 //returns the handle to a newly allocated chat state
-int BotAllocChatState(void);
+int BotAllocChatState( void );
 //frees the chatstate
-void BotFreeChatState(int handle);
+void BotFreeChatState( int handle );
 //adds a console message to the chat state
-void BotQueueConsoleMessage(int chatstate, int type, const char *message);
+void BotQueueConsoleMessage( int chatstate, int type, const char *message );
 //removes the console message from the chat state
-void BotRemoveConsoleMessage(int chatstate, int handle);
+void BotRemoveConsoleMessage( int chatstate, int handle );
 //returns the next console message from the state
-int BotNextConsoleMessage(int chatstate, struct bot_consolemessage_qvm_s *cm);
+int BotNextConsoleMessage( int chatstate, struct bot_consolemessage_qvm_s *cm );
 //returns the number of console messages currently stored in the state
-int BotNumConsoleMessages(int chatstate);
+int BotNumConsoleMessages( int chatstate );
 //selects a chat message of the given type
-void BotInitialChat(int chatstate, const char *type, int mcontext, const char *var0, const char *var1, const char *var2, const char *var3, const char *var4, const char *var5, const char *var6, const char *var7);
+void BotInitialChat( int chatstate, const char *type, int mcontext, const char *var0, const char *var1, const char *var2, const char *var3, const char *var4, const char *var5, const char *var6, const char *var7 );
 //returns the number of initial chat messages of the given type
-int BotNumInitialChats(int chatstate, const char *type);
+int BotNumInitialChats( int chatstate, const char *type );
 //find and select a reply for the given message
-int BotReplyChat(int chatstate, const char *message, int mcontext, int vcontext, const char *var0, const char *var1, const char *var2, const char *var3, const char *var4, const char *var5, const char *var6, const char *var7);
+int BotReplyChat( int chatstate, const char *message, int mcontext, int vcontext, const char *var0, const char *var1, const char *var2, const char *var3, const char *var4, const char *var5, const char *var6, const char *var7 );
 //returns the length of the currently selected chat message
-int BotChatLength(int chatstate);
+int BotChatLength( int chatstate );
 //enters the selected chat message
-void BotEnterChat(int chatstate, int clientto, int sendto);
+void BotEnterChat( int chatstate, int clientto, int sendto );
 //get the chat message ready to be output
-void BotGetChatMessage(int chatstate, char *buf, int size);
+void BotGetChatMessage( int chatstate, char *buf, int size );
 //checks if the first string contains the second one, returns index into first string or -1 if not found
-int StringContains(const char *str1, const char *str2, int casesensitive);
+int StringContains( const char *str1, const char *str2, int casesensitive );
 //finds a match for the given string using the match templates
-int BotFindMatch(const char *str, bot_match_t *match, unsigned long int context);
+int BotFindMatch( const char *str, bot_match_t *match, unsigned long int context );
 //returns a variable from a match
-void BotMatchVariable(bot_match_t *match, int variable, char *buf, int size);
+void BotMatchVariable( bot_match_t *match, int variable, char *buf, int size );
 //unify all the white spaces in the string
-void UnifyWhiteSpaces(char *string);
+void UnifyWhiteSpaces( char *string );
 //replace all the context related synonyms in the string
-void BotReplaceSynonyms(char *string, int size, unsigned long int context);
+void BotReplaceSynonyms( char *string, int size, unsigned long int context );
 //loads a chat file for the chat state
-int BotLoadChatFile(int chatstate, const char *chatfile, const char *chatname);
+int BotLoadChatFile( int chatstate, const char *chatfile, const char *chatname );
 //store the gender of the bot in the chat state
-void BotSetChatGender(int chatstate, int gender);
+void BotSetChatGender( int chatstate, int gender );
 //store the bot name in the chat state
-void BotSetChatName(int chatstate, const char *name, int client);
-
+void BotSetChatName( int chatstate, const char *name, int client );

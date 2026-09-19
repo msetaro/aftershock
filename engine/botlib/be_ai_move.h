@@ -73,70 +73,66 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 //structure used to initialize the movement state
 //the or_moveflags MFL_ONGROUND, MFL_TELEPORTED and MFL_WATERJUMP come from the playerstate
-typedef struct bot_initmove_s
-{
-	vec3_t origin;				//origin of the bot
-	vec3_t velocity;			//velocity of the bot
-	vec3_t viewoffset;			//view offset
-	int entitynum;				//entity number of the bot
-	int client;					//client number of the bot
-	float thinktime;			//time the bot thinks
-	int presencetype;			//presencetype of the bot
-	vec3_t viewangles;			//view angles of the bot
-	int or_moveflags;			//values ored to the movement flags
+typedef struct bot_initmove_s {
+	vec3_t origin; //origin of the bot
+	vec3_t velocity; //velocity of the bot
+	vec3_t viewoffset; //view offset
+	int entitynum; //entity number of the bot
+	int client; //client number of the bot
+	float thinktime; //time the bot thinks
+	int presencetype; //presencetype of the bot
+	vec3_t viewangles; //view angles of the bot
+	int or_moveflags; //values ored to the movement flags
 } bot_initmove_t;
 
 //NOTE: the ideal_viewangles are only valid if MFL_MOVEMENTVIEW is set
-typedef struct bot_moveresult_s
-{
-	int failure;				//true if movement failed all together
-	int type;					//failure or blocked type
-	int blocked;				//true if blocked by an entity
-	int blockentity;			//entity blocking the bot
-	int traveltype;				//last executed travel type
-	int flags;					//result flags
-	int weapon;					//weapon used for movement
-	vec3_t movedir;				//movement direction
-	vec3_t ideal_viewangles;	//ideal viewangles for the movement
+typedef struct bot_moveresult_s {
+	int failure; //true if movement failed all together
+	int type; //failure or blocked type
+	int blocked; //true if blocked by an entity
+	int blockentity; //entity blocking the bot
+	int traveltype; //last executed travel type
+	int flags; //result flags
+	int weapon; //weapon used for movement
+	vec3_t movedir; //movement direction
+	vec3_t ideal_viewangles; //ideal viewangles for the movement
 } bot_moveresult_t;
 
-#define bot_moveresult_t_cleared(x) bot_moveresult_t x = {0, 0, 0, 0, 0, 0, 0, {0, 0, 0}, {0, 0, 0}}
+#define bot_moveresult_t_cleared( x ) bot_moveresult_t x = {0, 0, 0, 0, 0, 0, 0, {0, 0, 0}, {0, 0, 0}}
 
-typedef struct bot_avoidspot_s
-{
+typedef struct bot_avoidspot_s {
 	vec3_t origin;
 	float radius;
 	int type;
 } bot_avoidspot_t;
 
 //resets the whole move state
-void BotResetMoveState(int movestate);
+void BotResetMoveState( int movestate );
 //moves the bot to the given goal
-void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, int travelflags);
+void BotMoveToGoal( bot_moveresult_t *result, int movestate, bot_goal_t *goal, int travelflags );
 //moves the bot in the specified direction using the specified type of movement
-int BotMoveInDirection(int movestate, vec3_t dir, float speed, int type);
+int BotMoveInDirection( int movestate, vec3_t dir, float speed, int type );
 //reset avoid reachability
-void BotResetAvoidReach(int movestate);
+void BotResetAvoidReach( int movestate );
 //resets the last avoid reachability
-void BotResetLastAvoidReach(int movestate);
+void BotResetLastAvoidReach( int movestate );
 //returns a reachability area if the origin is in one
-int BotReachabilityArea(vec3_t origin, int client);
+int BotReachabilityArea( vec3_t origin, int client );
 //view target based on movement
-int BotMovementViewTarget(int movestate, bot_goal_t *goal, int travelflags, float lookahead, vec3_t target);
+int BotMovementViewTarget( int movestate, bot_goal_t *goal, int travelflags, float lookahead, vec3_t target );
 //predict the position of a player based on movement towards a goal
-int BotPredictVisiblePosition(vec3_t origin, int areanum, bot_goal_t *goal, int travelflags, vec3_t target);
+int BotPredictVisiblePosition( vec3_t origin, int areanum, bot_goal_t *goal, int travelflags, vec3_t target );
 //returns the handle of a newly allocated movestate
-int BotAllocMoveState(void);
+int BotAllocMoveState( void );
 //frees the movestate with the given handle
-void BotFreeMoveState(int handle);
+void BotFreeMoveState( int handle );
 //initialize movement state before performing any movement
-void BotInitMoveState(int handle, bot_initmove_t *initmove);
+void BotInitMoveState( int handle, bot_initmove_t *initmove );
 //add a spot to avoid (if type == AVOID_CLEAR all spots are removed)
-void BotAddAvoidSpot(int movestate, const vec3_t origin, float radius, int type);
+void BotAddAvoidSpot( int movestate, const vec3_t origin, float radius, int type );
 //must be called every map change
-void BotSetBrushModelTypes(void);
+void BotSetBrushModelTypes( void );
 //setup movement AI
-int BotSetupMoveAI(void);
+int BotSetupMoveAI( void );
 //shutdown movement AI
-void BotShutdownMoveAI(void);
-
+void BotShutdownMoveAI( void );

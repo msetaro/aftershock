@@ -50,17 +50,15 @@ QGL_Swp_PROCS;
 ** Unloads the specified DLL then nulls out all the proc pointers.  This
 ** is only called during a hard shutdown of the OGL subsystem (e.g. vid_restart).
 */
-void QGL_Shutdown( qboolean unloadDLL )
-{
+void QGL_Shutdown( qboolean unloadDLL ) {
 	Com_Printf( "...shutting down QGL\n" );
 
-	if ( glw_state.OpenGLLib && unloadDLL )
-	{
+	if ( glw_state.OpenGLLib && unloadDLL ) {
 		Com_Printf( "...unloading OpenGL DLL\n" );
 		Sys_UnloadLibrary( glw_state.OpenGLLib );
 		glw_state.OpenGLLib = NULL;
 	}
-	
+
 #define GLE( ret, name, ... ) q##name = NULL;
 	QGL_Win32_PROCS;
 	QGL_Swp_PROCS;
@@ -68,13 +66,11 @@ void QGL_Shutdown( qboolean unloadDLL )
 }
 
 
-void *GL_GetProcAddress( const char *name )
-{
+void *GL_GetProcAddress( const char *name ) {
 	void *ptr;
 
 	ptr = Sys_LoadFunction( glw_state.OpenGLLib, name );
-	if ( !ptr && qwglGetProcAddress )
-	{
+	if ( !ptr && qwglGetProcAddress ) {
 		ptr = (void *)qwglGetProcAddress( name );
 	}
 
@@ -91,8 +87,7 @@ void *GL_GetProcAddress( const char *name )
 ** operating systems we need to do the right thing, whatever that
 ** might be.
 */
-qboolean QGL_Init( const char *dllname )
-{
+qboolean QGL_Init( const char *dllname ) {
 	char libName[1024];
 #ifdef UNICODE
 	TCHAR buffer[1024];
@@ -112,8 +107,7 @@ qboolean QGL_Init( const char *dllname )
 
 	Com_Printf( "...initializing QGL\n" );
 
-	if ( glw_state.OpenGLLib == NULL )
-	{
+	if ( glw_state.OpenGLLib == NULL ) {
 		// NOTE: this assumes that 'dllname' is lower case (and it should be)!
 #if 0
 		if ( dllname[0] != '!' )
@@ -125,8 +119,7 @@ qboolean QGL_Init( const char *dllname )
 #endif
 		Q_strcat( libName, sizeof( libName ), ".dll" );
 		glw_state.OpenGLLib = (HINSTANCE)Sys_LoadLibrary( libName );
-		if ( glw_state.OpenGLLib == NULL )
-		{
+		if ( glw_state.OpenGLLib == NULL ) {
 			Com_Printf( "...loading '%s' : " S_COLOR_YELLOW "failed\n", libName );
 			return qfalse;
 		}
@@ -134,11 +127,11 @@ qboolean QGL_Init( const char *dllname )
 		// get exact loaded module name
 #ifdef UNICODE
 		GetModuleFileName( glw_state.OpenGLLib, buffer, ARRAY_LEN( buffer ) );
-		buffer[ ARRAY_LEN( buffer ) - 1 ] = '\0';
+		buffer[ARRAY_LEN( buffer ) - 1] = '\0';
 		Q_strncpyz( libName, WtoA( buffer ), sizeof( libName ) );
 #else
 		GetModuleFileName( glw_state.OpenGLLib, libName, sizeof( libName ) );
-		libName[ sizeof( libName ) - 1 ] = '\0';
+		libName[sizeof( libName ) - 1] = '\0';
 #endif
 		Com_Printf( "...loading '%s' : succeeded\n", libName );
 	}

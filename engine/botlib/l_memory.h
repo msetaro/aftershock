@@ -32,19 +32,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //#define MEMDEBUG
 
 #ifdef MEMDEBUG
-#define GetMemory(size)				GetMemoryDebug(size, #size, __FILE__, __LINE__);
-#define GetClearedMemory(size)		GetClearedMemoryDebug(size, #size, __FILE__, __LINE__);
+#define GetMemory( size )				GetMemoryDebug(size, #size, __FILE__, __LINE__);
+#define GetClearedMemory( size )		GetClearedMemoryDebug(size, #size, __FILE__, __LINE__);
 //allocate a memory block of the given size
-void *GetMemoryDebug(size_t size, const char *label, const char *file, int line);
+void *GetMemoryDebug( size_t size, const char *label, const char *file, int line );
 //allocate a memory block of the given size and clear it
-void *GetClearedMemoryDebug(size_t size, const char *label, const char *file, int line);
+void *GetClearedMemoryDebug( size_t size, const char *label, const char *file, int line );
 //
-#define GetHunkMemory(size)			GetHunkMemoryDebug(size, #size, __FILE__, __LINE__);
-#define GetClearedHunkMemory(size)	GetClearedHunkMemoryDebug(size, #size, __FILE__, __LINE__);
+#define GetHunkMemory( size )			GetHunkMemoryDebug(size, #size, __FILE__, __LINE__);
+#define GetClearedHunkMemory( size )	GetClearedHunkMemoryDebug(size, #size, __FILE__, __LINE__);
 //allocate a memory block of the given size
-void *GetHunkMemoryDebug(size_t size, const char *label, const char *file, int line);
+void *GetHunkMemoryDebug( size_t size, const char *label, const char *file, int line );
 //allocate a memory block of the given size and clear it
-void *GetClearedHunkMemoryDebug(size_t size, const char *label, const char *file, int line);
+void *GetClearedHunkMemoryDebug( size_t size, const char *label, const char *file, int line );
 #else
 //allocate a memory block of the given size
 void *GetMemory(size_t size);
@@ -63,14 +63,14 @@ void *GetClearedHunkMemory(size_t size);
 #endif
 
 //free the given memory block
-void FreeMemory(void *ptr);
+void FreeMemory( void *ptr );
 //returns the amount available memory
-int AvailableMemory(void);
+int AvailableMemory( void );
 //prints the total used memory size
-void PrintUsedMemorySize(void);
+void PrintUsedMemorySize( void );
 //print all memory blocks with label
-void PrintMemoryLabels(void);
+void PrintMemoryLabels( void );
 //returns the size of the memory block in bytes
-int MemoryByteSize(void *ptr);
+int MemoryByteSize( void *ptr );
 //free all allocated memory
-void DumpMemory(void);
+void DumpMemory( void );

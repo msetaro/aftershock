@@ -16,10 +16,10 @@ int main( void ) {
 	};
 	char path[MAX_QPATH], separate[MAX_QPATH];
 	int i;
-	for ( i = 0; i < sizeof(names) / sizeof(names[0]); i++ ) {
+	for ( i = 0; i < sizeof( names ) / sizeof( names[0] ); i++ ) {
 		strcpy( path, names[i] );
-		COM_StripExtension( path, path, sizeof(path) );
-		COM_StripExtension( names[i], separate, sizeof(separate) );
+		COM_StripExtension( path, path, sizeof( path ) );
+		COM_StripExtension( names[i], separate, sizeof( separate ) );
 		assert( !strcmp( path, expected[i] ) );
 		assert( !strcmp( separate, expected[i] ) );
 	}

@@ -29,10 +29,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 #include <windows.h>
 #include <GL/gl.h>
-#elif defined( __linux__ ) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined( __sun )
+#elif defined( __linux__ ) || defined( __FreeBSD__ ) || defined( __OpenBSD__ ) || defined( __sun )
 #include <GL/gl.h>
 #include <GL/glx.h>
-#elif defined(__APPLE__)
+#elif defined( __APPLE__ )
 #include <OpenGL/gl.h>
 #endif
 

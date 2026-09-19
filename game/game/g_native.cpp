@@ -7,10 +7,10 @@ void trap_Error( const char *fmt ) {
 	GameImport_Error( fmt );
 }
 int trap_Milliseconds( void ) {
-	return GameImport_Milliseconds(  );
+	return GameImport_Milliseconds();
 }
 int trap_Argc( void ) {
-	return GameImport_Argc(  );
+	return GameImport_Argc();
 }
 void trap_Argv( int n, char *buffer, int bufferLength ) {
 	GameImport_Argv( n, buffer, bufferLength );
@@ -52,7 +52,7 @@ void trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int buf
 	GameImport_Cvar_VariableStringBuffer( var_name, buffer, bufsize );
 }
 void trap_LocateGameData( gentity_t *gEnts, int numGEntities, int sizeofGEntity_t,
-						 playerState_t *clients, int sizeofGClient ) {
+	playerState_t *clients, int sizeofGClient ) {
 	GameImport_LocateGameData( gEnts, numGEntities, sizeofGEntity_t, clients, sizeofGClient );
 }
 void trap_DropClient( int clientNum, const char *reason ) {
@@ -116,7 +116,7 @@ qboolean trap_EntityContactCapsule( const vec3_t mins, const vec3_t maxs, const 
 	return (qboolean)GameImport_EntityContactCapsule( mins, maxs, ent );
 }
 int trap_BotAllocateClient( void ) {
-	return GameImport_BotAllocateClient(  );
+	return GameImport_BotAllocateClient();
 }
 void trap_BotFreeClient( int clientNum ) {
 	GameImport_BotFreeClient( clientNum );
@@ -140,10 +140,10 @@ void trap_SnapVector( float *v ) {
 	GameImport_SnapVector( v );
 }
 int trap_BotLibSetup( void ) {
-	return GameImport_BotLibSetup(  );
+	return GameImport_BotLibSetup();
 }
 int trap_BotLibShutdown( void ) {
-	return GameImport_BotLibShutdown(  );
+	return GameImport_BotLibShutdown();
 }
 int trap_BotLibVarSet( char *var_name, char *value ) {
 	return GameImport_BotLibVarSet( var_name, value );
@@ -160,7 +160,7 @@ int trap_BotLibStartFrame( float time ) {
 int trap_BotLibLoadMap( const char *mapname ) {
 	return GameImport_BotLibLoadMap( mapname );
 }
-int trap_BotLibUpdateEntity( int ent, void  *bue ) {
+int trap_BotLibUpdateEntity( int ent, void *bue ) {
 	return GameImport_BotLibUpdateEntity( ent, bue );
 }
 int trap_BotLibTest( int parm0, char *parm1, vec3_t parm2, vec3_t parm3 ) {
@@ -175,17 +175,17 @@ int trap_BotGetServerCommand( int clientNum, char *message, int size ) {
 void trap_BotUserCommand( int clientNum, usercmd_t *ucmd ) {
 	GameImport_BotUserCommand( clientNum, ucmd );
 }
-void trap_AAS_EntityInfo( int entnum, void  *info ) {
+void trap_AAS_EntityInfo( int entnum, void *info ) {
 	GameImport_AAS_EntityInfo( entnum, info );
 }
 int trap_AAS_Initialized( void ) {
-	return GameImport_AAS_Initialized(  );
+	return GameImport_AAS_Initialized();
 }
 void trap_AAS_PresenceTypeBoundingBox( int presencetype, vec3_t mins, vec3_t maxs ) {
 	GameImport_AAS_PresenceTypeBoundingBox( presencetype, mins, maxs );
 }
 float trap_AAS_Time( void ) {
-	return GameImport_AAS_Time(  );
+	return GameImport_AAS_Time();
 }
 int trap_AAS_PointAreaNum( vec3_t point ) {
 	return GameImport_AAS_PointAreaNum( point );
@@ -199,7 +199,7 @@ int trap_AAS_TraceAreas( vec3_t start, vec3_t end, int *areas, vec3_t *points, i
 int trap_AAS_BBoxAreas( vec3_t absmins, vec3_t absmaxs, int *areas, int maxareas ) {
 	return GameImport_AAS_BBoxAreas( absmins, absmaxs, areas, maxareas );
 }
-int trap_AAS_AreaInfo( int areanum, void  *info ) {
+int trap_AAS_AreaInfo( int areanum, void *info ) {
 	return GameImport_AAS_AreaInfo( areanum, info );
 }
 int trap_AAS_PointContents( vec3_t point ) {
@@ -229,20 +229,20 @@ int trap_AAS_AreaTravelTimeToGoalArea( int areanum, vec3_t origin, int goalarean
 int trap_AAS_EnableRoutingArea( int areanum, int enable ) {
 	return GameImport_AAS_EnableRoutingArea( areanum, enable );
 }
-int trap_AAS_PredictRoute( void  *route, int areanum, vec3_t origin,
-							int goalareanum, int travelflags, int maxareas, int maxtime,
-							int stopevent, int stopcontents, int stoptfl, int stopareanum ) {
+int trap_AAS_PredictRoute( void *route, int areanum, vec3_t origin,
+	int goalareanum, int travelflags, int maxareas, int maxtime,
+	int stopevent, int stopcontents, int stoptfl, int stopareanum ) {
 	return GameImport_AAS_PredictRoute( route, areanum, origin, goalareanum, travelflags, maxareas, maxtime, stopevent, stopcontents, stoptfl, stopareanum );
 }
 int trap_AAS_AlternativeRouteGoals( vec3_t start, int startareanum, vec3_t goal, int goalareanum, int travelflags,
-										void  *altroutegoals, int maxaltroutegoals,
-										int type ) {
+	void *altroutegoals, int maxaltroutegoals,
+	int type ) {
 	return GameImport_AAS_AlternativeRouteGoals( start, startareanum, goal, goalareanum, travelflags, altroutegoals, maxaltroutegoals, type );
 }
 int trap_AAS_Swimming( vec3_t origin ) {
 	return GameImport_AAS_Swimming( origin );
 }
-int trap_AAS_PredictClientMovement( void  *move, int entnum, vec3_t origin, int presencetype, int onground, vec3_t velocity, vec3_t cmdmove, int cmdframes, int maxframes, float frametime, int stopevent, int stopareanum, int visualize ) {
+int trap_AAS_PredictClientMovement( void *move, int entnum, vec3_t origin, int presencetype, int onground, vec3_t velocity, vec3_t cmdmove, int cmdframes, int maxframes, float frametime, int stopevent, int stopareanum, int visualize ) {
 	return GameImport_AAS_PredictClientMovement( move, entnum, origin, presencetype, onground, velocity, cmdmove, cmdframes, maxframes, frametime, stopevent, stopareanum, visualize );
 }
 void trap_EA_Say( int client, char *str ) {
@@ -311,7 +311,7 @@ void trap_EA_View( int client, vec3_t viewangles ) {
 void trap_EA_EndRegular( int client, float thinktime ) {
 	GameImport_EA_EndRegular( client, thinktime );
 }
-void trap_EA_GetInput( int client, float thinktime, void  *input ) {
+void trap_EA_GetInput( int client, float thinktime, void *input ) {
 	GameImport_EA_GetInput( client, thinktime, input );
 }
 void trap_EA_ResetInput( int client ) {
@@ -339,7 +339,7 @@ void trap_Characteristic_String( int character, int index, char *buf, int size )
 	GameImport_Characteristic_String( character, index, buf, size );
 }
 int trap_BotAllocChatState( void ) {
-	return GameImport_BotAllocChatState(  );
+	return GameImport_BotAllocChatState();
 }
 void trap_BotFreeChatState( int handle ) {
 	GameImport_BotFreeChatState( handle );
@@ -350,7 +350,7 @@ void trap_BotQueueConsoleMessage( int chatstate, int type, char *message ) {
 void trap_BotRemoveConsoleMessage( int chatstate, int handle ) {
 	GameImport_BotRemoveConsoleMessage( chatstate, handle );
 }
-int trap_BotNextConsoleMessage( int chatstate, void  *cm ) {
+int trap_BotNextConsoleMessage( int chatstate, void *cm ) {
 	return GameImport_BotNextConsoleMessage( chatstate, cm );
 }
 int trap_BotNumConsoleMessages( int chatstate ) {
@@ -377,10 +377,10 @@ void trap_BotGetChatMessage( int chatstate, char *buf, int size ) {
 int trap_StringContains( char *str1, char *str2, int casesensitive ) {
 	return GameImport_StringContains( str1, str2, casesensitive );
 }
-int trap_BotFindMatch( char *str, void  *match, unsigned long int context ) {
+int trap_BotFindMatch( char *str, void *match, unsigned long int context ) {
 	return GameImport_BotFindMatch( str, match, context );
 }
-void trap_BotMatchVariable( void  *match, int variable, char *buf, int size ) {
+void trap_BotMatchVariable( void *match, int variable, char *buf, int size ) {
 	GameImport_BotMatchVariable( match, variable, buf, size );
 }
 void trap_UnifyWhiteSpaces( char *string ) {
@@ -407,7 +407,7 @@ void trap_BotResetAvoidGoals( int goalstate ) {
 void trap_BotRemoveFromAvoidGoals( int goalstate, int number ) {
 	GameImport_BotRemoveFromAvoidGoals( goalstate, number );
 }
-void trap_BotPushGoal( int goalstate, void  *goal ) {
+void trap_BotPushGoal( int goalstate, void *goal ) {
 	GameImport_BotPushGoal( goalstate, goal );
 }
 void trap_BotPopGoal( int goalstate ) {
@@ -425,31 +425,31 @@ void trap_BotDumpGoalStack( int goalstate ) {
 void trap_BotGoalName( int number, char *name, int size ) {
 	GameImport_BotGoalName( number, name, size );
 }
-int trap_BotGetTopGoal( int goalstate, void  *goal ) {
+int trap_BotGetTopGoal( int goalstate, void *goal ) {
 	return GameImport_BotGetTopGoal( goalstate, goal );
 }
-int trap_BotGetSecondGoal( int goalstate, void  *goal ) {
+int trap_BotGetSecondGoal( int goalstate, void *goal ) {
 	return GameImport_BotGetSecondGoal( goalstate, goal );
 }
 int trap_BotChooseLTGItem( int goalstate, vec3_t origin, int *inventory, int travelflags ) {
 	return GameImport_BotChooseLTGItem( goalstate, origin, inventory, travelflags );
 }
-int trap_BotChooseNBGItem( int goalstate, vec3_t origin, int *inventory, int travelflags, void  *ltg, float maxtime ) {
+int trap_BotChooseNBGItem( int goalstate, vec3_t origin, int *inventory, int travelflags, void *ltg, float maxtime ) {
 	return GameImport_BotChooseNBGItem( goalstate, origin, inventory, travelflags, ltg, maxtime );
 }
-int trap_BotTouchingGoal( vec3_t origin, void  *goal ) {
+int trap_BotTouchingGoal( vec3_t origin, void *goal ) {
 	return GameImport_BotTouchingGoal( origin, goal );
 }
-int trap_BotItemGoalInVisButNotVisible( int viewer, vec3_t eye, vec3_t viewangles, void  *goal ) {
+int trap_BotItemGoalInVisButNotVisible( int viewer, vec3_t eye, vec3_t viewangles, void *goal ) {
 	return GameImport_BotItemGoalInVisButNotVisible( viewer, eye, viewangles, goal );
 }
-int trap_BotGetLevelItemGoal( int index, char *classname, void  *goal ) {
+int trap_BotGetLevelItemGoal( int index, char *classname, void *goal ) {
 	return GameImport_BotGetLevelItemGoal( index, classname, goal );
 }
-int trap_BotGetNextCampSpotGoal( int num, void  *goal ) {
+int trap_BotGetNextCampSpotGoal( int num, void *goal ) {
 	return GameImport_BotGetNextCampSpotGoal( num, goal );
 }
-int trap_BotGetMapLocationGoal( char *name, void  *goal ) {
+int trap_BotGetMapLocationGoal( char *name, void *goal ) {
 	return GameImport_BotGetMapLocationGoal( name, goal );
 }
 float trap_BotAvoidGoalTime( int goalstate, int number ) {
@@ -459,10 +459,10 @@ void trap_BotSetAvoidGoalTime( int goalstate, int number, float avoidtime ) {
 	GameImport_BotSetAvoidGoalTime( goalstate, number, avoidtime );
 }
 void trap_BotInitLevelItems( void ) {
-	GameImport_BotInitLevelItems(  );
+	GameImport_BotInitLevelItems();
 }
 void trap_BotUpdateEntityItems( void ) {
-	GameImport_BotUpdateEntityItems(  );
+	GameImport_BotUpdateEntityItems();
 }
 int trap_BotLoadItemWeights( int goalstate, char *filename ) {
 	return GameImport_BotLoadItemWeights( goalstate, filename );
@@ -491,7 +491,7 @@ void trap_BotResetMoveState( int movestate ) {
 void trap_BotAddAvoidSpot( int movestate, vec3_t origin, float radius, int type ) {
 	GameImport_BotAddAvoidSpot( movestate, origin, radius, type );
 }
-void trap_BotMoveToGoal( void  *result, int movestate, void  *goal, int travelflags ) {
+void trap_BotMoveToGoal( void *result, int movestate, void *goal, int travelflags ) {
 	GameImport_BotMoveToGoal( result, movestate, goal, travelflags );
 }
 int trap_BotMoveInDirection( int movestate, vec3_t dir, float speed, int type ) {
@@ -506,32 +506,32 @@ void trap_BotResetLastAvoidReach( int movestate ) {
 int trap_BotReachabilityArea( vec3_t origin, int testground ) {
 	return GameImport_BotReachabilityArea( origin, testground );
 }
-int trap_BotMovementViewTarget( int movestate, void  *goal, int travelflags, float lookahead, vec3_t target ) {
+int trap_BotMovementViewTarget( int movestate, void *goal, int travelflags, float lookahead, vec3_t target ) {
 	return GameImport_BotMovementViewTarget( movestate, goal, travelflags, lookahead, target );
 }
-int trap_BotPredictVisiblePosition( vec3_t origin, int areanum, void  *goal, int travelflags, vec3_t target ) {
+int trap_BotPredictVisiblePosition( vec3_t origin, int areanum, void *goal, int travelflags, vec3_t target ) {
 	return GameImport_BotPredictVisiblePosition( origin, areanum, goal, travelflags, target );
 }
 int trap_BotAllocMoveState( void ) {
-	return GameImport_BotAllocMoveState(  );
+	return GameImport_BotAllocMoveState();
 }
 void trap_BotFreeMoveState( int handle ) {
 	GameImport_BotFreeMoveState( handle );
 }
-void trap_BotInitMoveState( int handle, void  *initmove ) {
+void trap_BotInitMoveState( int handle, void *initmove ) {
 	GameImport_BotInitMoveState( handle, initmove );
 }
 int trap_BotChooseBestFightWeapon( int weaponstate, int *inventory ) {
 	return GameImport_BotChooseBestFightWeapon( weaponstate, inventory );
 }
-void trap_BotGetWeaponInfo( int weaponstate, int weapon, void  *weaponinfo ) {
+void trap_BotGetWeaponInfo( int weaponstate, int weapon, void *weaponinfo ) {
 	GameImport_BotGetWeaponInfo( weaponstate, weapon, weaponinfo );
 }
 int trap_BotLoadWeaponWeights( int weaponstate, char *filename ) {
 	return GameImport_BotLoadWeaponWeights( weaponstate, filename );
 }
 int trap_BotAllocWeaponState( void ) {
-	return GameImport_BotAllocWeaponState(  );
+	return GameImport_BotAllocWeaponState();
 }
 void trap_BotFreeWeaponState( int weaponstate ) {
 	GameImport_BotFreeWeaponState( weaponstate );

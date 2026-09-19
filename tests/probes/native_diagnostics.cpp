@@ -4,13 +4,13 @@
 [[maybe_unused]] static int TestVsnprintf( char *, size_t, const char *, va_list );
 #define vsprintf TestVsprintf
 #define vsnprintf TestVsnprintf
-#if defined(PROBE_GAME)
+#if defined( PROBE_GAME )
 #include "../../game/game/g_main.cpp"
-#elif defined(PROBE_CGAME)
+#elif defined( PROBE_CGAME )
 #include "../../game/cgame/cg_main.cpp"
-#elif defined(PROBE_UI)
+#elif defined( PROBE_UI )
 #include "../../game/ui/ui_atoms.cpp"
-#elif defined(PROBE_BOT)
+#elif defined( PROBE_BOT )
 #include "../../game/game/ai_main.cpp"
 #endif
 #undef vsprintf
@@ -32,9 +32,13 @@ static int TestVsnprintf( char *text, size_t size, const char *format, va_list a
 	return vsnprintf( text, size, format, args );
 }
 
-void trap_Error( const char *text ) { strcpy( output, text ); }
-#if defined(PROBE_GAME)
-void trap_Printf( const char *text ) { strcpy( output, text ); }
+void trap_Error( const char *text ) {
+	strcpy( output, text );
+}
+#if defined( PROBE_GAME )
+void trap_Printf( const char *text ) {
+	strcpy( output, text );
+}
 void trap_FS_Write( const void *text, int length, fileHandle_t ) {
 	assert( length == (int)strlen( (const char *)text ) );
 	strcpy( output, (const char *)text );
@@ -45,18 +49,22 @@ void QDECL Com_sprintf( char *text, int size, const char *format, ... ) {
 	vsnprintf( text, size, format, args );
 	va_end( args );
 }
-#elif defined(PROBE_BOT)
+#elif defined( PROBE_BOT )
 void QDECL G_Printf( const char *format, ... ) {
 	va_list args;
 	va_start( args, format );
 	vsnprintf( output, sizeof( output ), format, args );
 	va_end( args );
 }
-void QDECL G_Error( const char *, ... ) { abort(); }
+void QDECL G_Error( const char *, ... ) {
+	abort();
+}
 #else
-void trap_Print( const char *text ) { strcpy( output, text ); }
+void trap_Print( const char *text ) {
+	strcpy( output, text );
+}
 #endif
-#if defined(PROBE_UI)
+#if defined( PROBE_UI )
 char *QDECL va( char *format, ... ) {
 	static char text[2048];
 	va_list args;
@@ -69,11 +77,15 @@ char *QDECL va( char *format, ... ) {
 int main( int argc, char **argv ) {
 	assert( argc == 2 );
 	expectedCapacity = 1024;
-#if defined(PROBE_GAME)
-	if ( !strcmp( argv[1], "print" ) ) G_Printf( "%s:%d", "hello", 17 );
-	else if ( !strcmp( argv[1], "error" ) ) G_Error( "%s:%d", "hello", 17 );
-	else if ( !strcmp( argv[1], "shared-print" ) ) Com_Printf( "%s:%d", "hello", 17 );
-	else if ( !strcmp( argv[1], "shared-error" ) ) Com_Error( ERR_DROP, "%s:%d", "hello", 17 );
+#if defined( PROBE_GAME )
+	if ( !strcmp( argv[1], "print" ) )
+		G_Printf( "%s:%d", "hello", 17 );
+	else if ( !strcmp( argv[1], "error" ) )
+		G_Error( "%s:%d", "hello", 17 );
+	else if ( !strcmp( argv[1], "shared-print" ) )
+		Com_Printf( "%s:%d", "hello", 17 );
+	else if ( !strcmp( argv[1], "shared-error" ) )
+		Com_Error( ERR_DROP, "%s:%d", "hello", 17 );
 	else {
 		expectedCapacity = 1017;
 		level.time = 175000;
@@ -81,19 +93,26 @@ int main( int argc, char **argv ) {
 		G_LogPrintf( "%s:%d", "hello", 17 );
 		assert( !strcmp( output, "  2:55 hello:17" ) );
 	}
-#elif defined(PROBE_CGAME)
-	if ( !strcmp( argv[1], "print" ) ) CG_Printf( "%s:%d", "hello", 17 );
-	else if ( !strcmp( argv[1], "error" ) ) CG_Error( "%s:%d", "hello", 17 );
-	else if ( !strcmp( argv[1], "shared-print" ) ) Com_Printf( "%s:%d", "hello", 17 );
-	else Com_Error( ERR_DROP, "%s:%d", "hello", 17 );
-#elif defined(PROBE_UI)
-	if ( !strcmp( argv[1], "print" ) ) Com_Printf( "%s:%d", "hello", 17 );
-	else Com_Error( ERR_DROP, "%s:%d", "hello", 17 );
+#elif defined( PROBE_CGAME )
+	if ( !strcmp( argv[1], "print" ) )
+		CG_Printf( "%s:%d", "hello", 17 );
+	else if ( !strcmp( argv[1], "error" ) )
+		CG_Error( "%s:%d", "hello", 17 );
+	else if ( !strcmp( argv[1], "shared-print" ) )
+		Com_Printf( "%s:%d", "hello", 17 );
+	else
+		Com_Error( ERR_DROP, "%s:%d", "hello", 17 );
+#elif defined( PROBE_UI )
+	if ( !strcmp( argv[1], "print" ) )
+		Com_Printf( "%s:%d", "hello", 17 );
+	else
+		Com_Error( ERR_DROP, "%s:%d", "hello", 17 );
 #else
 	expectedCapacity = 2048;
 	BotAI_Print( PRT_MESSAGE, (char *)"%s:%d", "hello", 17 );
 #endif
-	if ( strcmp( argv[1], "log" ) ) assert( !strcmp( output, "hello:17" ) );
+	if ( strcmp( argv[1], "log" ) )
+		assert( !strcmp( output, "hello:17" ) );
 	if ( unbounded || !formats ) {
 		fprintf( stderr, "formatter was not given the destination capacity\n" );
 		return 1;

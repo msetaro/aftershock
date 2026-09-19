@@ -58,22 +58,19 @@ typedef struct rgb_s
 } rgb_t;
 #endif
 //bsp entity epair
-typedef struct bsp_epair_s
-{
+typedef struct bsp_epair_s {
 	char *key;
 	char *value;
 	struct bsp_epair_s *next;
 } bsp_epair_t;
 
 //bsp data entity
-typedef struct bsp_entity_s
-{
+typedef struct bsp_entity_s {
 	bsp_epair_t *epairs;
 } bsp_entity_t;
 
 //id Software BSP data
-typedef struct bsp_s
-{
+typedef struct bsp_s {
 	//true when bsp file is loaded
 	int loaded;
 	//entity data
@@ -89,39 +86,37 @@ static bsp_t bspworld;
 
 
 #ifdef BSP_DEBUG
-typedef struct cname_s
-{
+typedef struct cname_s {
 	int value;
 	char *name;
 } cname_t;
 
-cname_t contentnames[] =
-{
-	{CONTENTS_SOLID,"CONTENTS_SOLID"},
-	{CONTENTS_WINDOW,"CONTENTS_WINDOW"},
-	{CONTENTS_AUX,"CONTENTS_AUX"},
-	{CONTENTS_LAVA,"CONTENTS_LAVA"},
-	{CONTENTS_SLIME,"CONTENTS_SLIME"},
-	{CONTENTS_WATER,"CONTENTS_WATER"},
-	{CONTENTS_MIST,"CONTENTS_MIST"},
-	{LAST_VISIBLE_CONTENTS,"LAST_VISIBLE_CONTENTS"},
+cname_t contentnames[] = {
+	{ CONTENTS_SOLID, "CONTENTS_SOLID" },
+	{ CONTENTS_WINDOW, "CONTENTS_WINDOW" },
+	{ CONTENTS_AUX, "CONTENTS_AUX" },
+	{ CONTENTS_LAVA, "CONTENTS_LAVA" },
+	{ CONTENTS_SLIME, "CONTENTS_SLIME" },
+	{ CONTENTS_WATER, "CONTENTS_WATER" },
+	{ CONTENTS_MIST, "CONTENTS_MIST" },
+	{ LAST_VISIBLE_CONTENTS, "LAST_VISIBLE_CONTENTS" },
 
-	{CONTENTS_AREAPORTAL,"CONTENTS_AREAPORTAL"},
-	{CONTENTS_PLAYERCLIP,"CONTENTS_PLAYERCLIP"},
-	{CONTENTS_MONSTERCLIP,"CONTENTS_MONSTERCLIP"},
-	{CONTENTS_CURRENT_0,"CONTENTS_CURRENT_0"},
-	{CONTENTS_CURRENT_90,"CONTENTS_CURRENT_90"},
-	{CONTENTS_CURRENT_180,"CONTENTS_CURRENT_180"},
-	{CONTENTS_CURRENT_270,"CONTENTS_CURRENT_270"},
-	{CONTENTS_CURRENT_UP,"CONTENTS_CURRENT_UP"},
-	{CONTENTS_CURRENT_DOWN,"CONTENTS_CURRENT_DOWN"},
-	{CONTENTS_ORIGIN,"CONTENTS_ORIGIN"},
-	{CONTENTS_MONSTER,"CONTENTS_MONSTER"},
-	{CONTENTS_DEADMONSTER,"CONTENTS_DEADMONSTER"},
-	{CONTENTS_DETAIL,"CONTENTS_DETAIL"},
-	{CONTENTS_TRANSLUCENT,"CONTENTS_TRANSLUCENT"},
-	{CONTENTS_LADDER,"CONTENTS_LADDER"},
-	{0, 0}
+	{ CONTENTS_AREAPORTAL, "CONTENTS_AREAPORTAL" },
+	{ CONTENTS_PLAYERCLIP, "CONTENTS_PLAYERCLIP" },
+	{ CONTENTS_MONSTERCLIP, "CONTENTS_MONSTERCLIP" },
+	{ CONTENTS_CURRENT_0, "CONTENTS_CURRENT_0" },
+	{ CONTENTS_CURRENT_90, "CONTENTS_CURRENT_90" },
+	{ CONTENTS_CURRENT_180, "CONTENTS_CURRENT_180" },
+	{ CONTENTS_CURRENT_270, "CONTENTS_CURRENT_270" },
+	{ CONTENTS_CURRENT_UP, "CONTENTS_CURRENT_UP" },
+	{ CONTENTS_CURRENT_DOWN, "CONTENTS_CURRENT_DOWN" },
+	{ CONTENTS_ORIGIN, "CONTENTS_ORIGIN" },
+	{ CONTENTS_MONSTER, "CONTENTS_MONSTER" },
+	{ CONTENTS_DEADMONSTER, "CONTENTS_DEADMONSTER" },
+	{ CONTENTS_DETAIL, "CONTENTS_DETAIL" },
+	{ CONTENTS_TRANSLUCENT, "CONTENTS_TRANSLUCENT" },
+	{ CONTENTS_LADDER, "CONTENTS_LADDER" },
+	{ 0, 0 }
 };
 #if 0
 void PrintContents(int contents)
@@ -145,10 +140,9 @@ void PrintContents(int contents)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-bsp_trace_t AAS_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask)
-{
+bsp_trace_t AAS_Trace( vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask ) {
 	bsp_trace_t bsptrace;
-	botimport.Trace(&bsptrace, start, mins, maxs, end, passent, contentmask);
+	botimport.Trace( &bsptrace, start, mins, maxs, end, passent, contentmask );
 	return bsptrace;
 } //end of the function AAS_Trace
 //===========================================================================
@@ -158,9 +152,8 @@ bsp_trace_t AAS_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int pa
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int AAS_PointContents(vec3_t point)
-{
-	return botimport.PointContents(point);
+int AAS_PointContents( vec3_t point ) {
+	return botimport.PointContents( point );
 } //end of the function AAS_PointContents
 //===========================================================================
 //
@@ -168,16 +161,14 @@ int AAS_PointContents(vec3_t point)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-qboolean AAS_EntityCollision(int entnum,
-					vec3_t start, vec3_t boxmins, vec3_t boxmaxs, vec3_t end,
-								int contentmask, bsp_trace_t *trace)
-{
+qboolean AAS_EntityCollision( int entnum,
+	vec3_t start, vec3_t boxmins, vec3_t boxmaxs, vec3_t end,
+	int contentmask, bsp_trace_t *trace ) {
 	bsp_trace_t enttrace;
 
-	botimport.EntityTrace(&enttrace, start, boxmins, boxmaxs, end, entnum, contentmask);
-	if (enttrace.fraction < trace->fraction)
-	{
-		Com_Memcpy(trace, &enttrace, sizeof(bsp_trace_t));
+	botimport.EntityTrace( &enttrace, start, boxmins, boxmaxs, end, entnum, contentmask );
+	if ( enttrace.fraction < trace->fraction ) {
+		Com_Memcpy( trace, &enttrace, sizeof( bsp_trace_t ) );
 		return qtrue;
 	} //end if
 	return qfalse;
@@ -212,9 +203,8 @@ qboolean AAS_inPHS(vec3_t p1, vec3_t p2)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void AAS_BSPModelMinsMaxsOrigin(int modelnum, vec3_t angles, vec3_t mins, vec3_t maxs, vec3_t origin)
-{
-	botimport.BSPModelMinsMaxsOrigin(modelnum, angles, mins, maxs, origin);
+void AAS_BSPModelMinsMaxsOrigin( int modelnum, vec3_t angles, vec3_t mins, vec3_t maxs, vec3_t origin ) {
+	botimport.BSPModelMinsMaxsOrigin( modelnum, angles, mins, maxs, origin );
 } //end of the function AAS_BSPModelMinsMaxs
 //===========================================================================
 // unlinks the entity from all leaves
@@ -223,8 +213,7 @@ void AAS_BSPModelMinsMaxsOrigin(int modelnum, vec3_t angles, vec3_t mins, vec3_t
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void AAS_UnlinkFromBSPLeaves(bsp_link_t *leaves [[maybe_unused]])
-{
+void AAS_UnlinkFromBSPLeaves( bsp_link_t *leaves [[maybe_unused]] ) {
 } //end of the function AAS_UnlinkFromBSPLeaves
 //===========================================================================
 //
@@ -232,8 +221,7 @@ void AAS_UnlinkFromBSPLeaves(bsp_link_t *leaves [[maybe_unused]])
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-bsp_link_t *AAS_BSPLinkEntity(vec3_t absmins [[maybe_unused]], vec3_t absmaxs [[maybe_unused]], int entnum [[maybe_unused]], int modelnum [[maybe_unused]])
-{
+bsp_link_t *AAS_BSPLinkEntity( vec3_t absmins [[maybe_unused]], vec3_t absmaxs [[maybe_unused]], int entnum [[maybe_unused]], int modelnum [[maybe_unused]] ) {
 	return NULL;
 } //end of the function AAS_BSPLinkEntity
 #if 0
@@ -254,10 +242,10 @@ int AAS_BoxEntities(vec3_t absmins, vec3_t absmaxs, int *list, int maxcount)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-int AAS_NextBSPEntity(int ent)
-{
+int AAS_NextBSPEntity( int ent ) {
 	ent++;
-	if (ent >= 1 && ent < bspworld.numentities) return ent;
+	if ( ent >= 1 && ent < bspworld.numentities )
+		return ent;
 	return 0;
 } //end of the function AAS_NextBSPEntity
 //===========================================================================
@@ -266,11 +254,9 @@ int AAS_NextBSPEntity(int ent)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-static int AAS_BSPEntityInRange(int ent)
-{
-	if (ent <= 0 || ent >= bspworld.numentities)
-	{
-		botimport.Print(PRT_MESSAGE, "bsp entity out of range\n");
+static int AAS_BSPEntityInRange( int ent ) {
+	if ( ent <= 0 || ent >= bspworld.numentities ) {
+		botimport.Print( PRT_MESSAGE, "bsp entity out of range\n" );
 		return qfalse;
 	} //end if
 	return qtrue;
@@ -281,16 +267,14 @@ static int AAS_BSPEntityInRange(int ent)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-int AAS_ValueForBSPEpairKey(int ent, const char *key, char *value, int size)
-{
+int AAS_ValueForBSPEpairKey( int ent, const char *key, char *value, int size ) {
 	bsp_epair_t *epair;
 
 	value[0] = '\0';
-	if (!AAS_BSPEntityInRange(ent)) return qfalse;
-	for (epair = bspworld.entities[ent].epairs; epair; epair = epair->next)
-	{
-		if (!strcmp(epair->key, key))
-		{
+	if ( !AAS_BSPEntityInRange( ent ) )
+		return qfalse;
+	for ( epair = bspworld.entities[ent].epairs; epair; epair = epair->next ) {
+		if ( !strcmp( epair->key, key ) ) {
 			Q_strncpyz( value, epair->value, size );
 			return qtrue;
 		} //end if
@@ -303,12 +287,12 @@ int AAS_ValueForBSPEpairKey(int ent, const char *key, char *value, int size)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int AAS_VectorForBSPEpairKey(int ent, const char *key, vec3_t v)
-{
+int AAS_VectorForBSPEpairKey( int ent, const char *key, vec3_t v ) {
 	char buf[MAX_EPAIRKEY], *s[3];
 
-	VectorClear(v);
-	if (!AAS_ValueForBSPEpairKey(ent, key, buf, sizeof( buf ) )) return qfalse;
+	VectorClear( v );
+	if ( !AAS_ValueForBSPEpairKey( ent, key, buf, sizeof( buf ) ) )
+		return qfalse;
 	//scanf into doubles, then assign, so it is vec_t size independent
 	Com_Split( buf, s, 3, ' ' );
 	v[0] = Q_atof( s[0] );
@@ -322,13 +306,13 @@ int AAS_VectorForBSPEpairKey(int ent, const char *key, vec3_t v)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int AAS_FloatForBSPEpairKey(int ent, const char *key, float *value)
-{
+int AAS_FloatForBSPEpairKey( int ent, const char *key, float *value ) {
 	char buf[MAX_EPAIRKEY];
-	
+
 	*value = 0;
-	if (!AAS_ValueForBSPEpairKey(ent, key, buf, sizeof( buf ))) return qfalse;
-	*value = (float)( atof(buf) );
+	if ( !AAS_ValueForBSPEpairKey( ent, key, buf, sizeof( buf ) ) )
+		return qfalse;
+	*value = (float)( atof( buf ) );
 	return qtrue;
 } //end of the function AAS_FloatForBSPEpairKey
 //===========================================================================
@@ -337,13 +321,13 @@ int AAS_FloatForBSPEpairKey(int ent, const char *key, float *value)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int AAS_IntForBSPEpairKey(int ent, const char *key, int *value)
-{
+int AAS_IntForBSPEpairKey( int ent, const char *key, int *value ) {
 	char buf[MAX_EPAIRKEY];
-	
+
 	*value = 0;
-	if (!AAS_ValueForBSPEpairKey(ent, key, buf, sizeof( buf ))) return qfalse;
-	*value = atoi(buf);
+	if ( !AAS_ValueForBSPEpairKey( ent, key, buf, sizeof( buf ) ) )
+		return qfalse;
+	*value = atoi( buf );
 	return qtrue;
 } //end of the function AAS_IntForBSPEpairKey
 //===========================================================================
@@ -352,22 +336,21 @@ int AAS_IntForBSPEpairKey(int ent, const char *key, int *value)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-static void AAS_FreeBSPEntities(void)
-{
+static void AAS_FreeBSPEntities( void ) {
 	int i;
 	bsp_entity_t *ent;
 	bsp_epair_t *epair, *nextepair;
 
-	for (i = 1; i < bspworld.numentities; i++)
-	{
+	for ( i = 1; i < bspworld.numentities; i++ ) {
 		ent = &bspworld.entities[i];
-		for (epair = ent->epairs; epair; epair = nextepair)
-		{
+		for ( epair = ent->epairs; epair; epair = nextepair ) {
 			nextepair = epair->next;
 			//
-			if (epair->key) FreeMemory(epair->key);
-			if (epair->value) FreeMemory(epair->value);
-			FreeMemory(epair);
+			if ( epair->key )
+				FreeMemory( epair->key );
+			if ( epair->value )
+				FreeMemory( epair->value );
+			FreeMemory( epair );
 		} //end for
 	} //end for
 	bspworld.numentities = 0;
@@ -378,70 +361,63 @@ static void AAS_FreeBSPEntities(void)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-static void AAS_ParseBSPEntities(void)
-{
+static void AAS_ParseBSPEntities( void ) {
 	script_t *script;
 	token_t token;
 	bsp_entity_t *ent;
 	bsp_epair_t *epair;
 
-	script = LoadScriptMemory(bspworld.dentdata, bspworld.entdatasize, "entdata");
-	SetScriptFlags(script, SCFL_NOSTRINGWHITESPACES|SCFL_NOSTRINGESCAPECHARS);//SCFL_PRIMITIVE);
+	script = LoadScriptMemory( bspworld.dentdata, bspworld.entdatasize, "entdata" );
+	SetScriptFlags( script, SCFL_NOSTRINGWHITESPACES | SCFL_NOSTRINGESCAPECHARS ); //SCFL_PRIMITIVE);
 
 	bspworld.numentities = 1;
 
-	while(PS_ReadToken(script, &token))
-	{
-		if (strcmp(token.string, "{"))
-		{
-			ScriptError(script, "invalid %s", token.string);
+	while ( PS_ReadToken( script, &token ) ) {
+		if ( strcmp( token.string, "{" ) ) {
+			ScriptError( script, "invalid %s", token.string );
 			AAS_FreeBSPEntities();
-			FreeScript(script);
+			FreeScript( script );
 			return;
 		} //end if
-		if (bspworld.numentities >= MAX_BSPENTITIES)
-		{
-			botimport.Print(PRT_MESSAGE, "too many entities in BSP file\n");
+		if ( bspworld.numentities >= MAX_BSPENTITIES ) {
+			botimport.Print( PRT_MESSAGE, "too many entities in BSP file\n" );
 			break;
 		} //end if
 		ent = &bspworld.entities[bspworld.numentities];
 		bspworld.numentities++;
 		ent->epairs = NULL;
-		while(PS_ReadToken(script, &token))
-		{
-			if (!strcmp(token.string, "}")) break;
-			epair = (bsp_epair_t *) GetClearedHunkMemory(sizeof(bsp_epair_t));
+		while ( PS_ReadToken( script, &token ) ) {
+			if ( !strcmp( token.string, "}" ) )
+				break;
+			epair = (bsp_epair_t *)GetClearedHunkMemory(sizeof(bsp_epair_t));
 			epair->next = ent->epairs;
 			ent->epairs = epair;
-			if (token.type != TT_STRING)
-			{
-				ScriptError(script, "invalid %s", token.string);
+			if ( token.type != TT_STRING ) {
+				ScriptError( script, "invalid %s", token.string );
 				AAS_FreeBSPEntities();
-				FreeScript(script);
+				FreeScript( script );
 				return;
 			} //end if
-			StripDoubleQuotes(token.string);
-			epair->key = (char *) GetHunkMemory(strlen(token.string) + 1);
-			strcpy(epair->key, token.string);
-			if (!PS_ExpectTokenType(script, TT_STRING, 0, &token))
-			{
+			StripDoubleQuotes( token.string );
+			epair->key = (char *)GetHunkMemory(strlen(token.string) + 1);
+			strcpy( epair->key, token.string );
+			if ( !PS_ExpectTokenType( script, TT_STRING, 0, &token ) ) {
 				AAS_FreeBSPEntities();
-				FreeScript(script);
+				FreeScript( script );
 				return;
 			} //end if
-			StripDoubleQuotes(token.string);
-			epair->value = (char *) GetHunkMemory(strlen(token.string) + 1);
-			strcpy(epair->value, token.string);
+			StripDoubleQuotes( token.string );
+			epair->value = (char *)GetHunkMemory(strlen(token.string) + 1);
+			strcpy( epair->value, token.string );
 		} //end while
-		if (strcmp(token.string, "}"))
-		{
-			ScriptError(script, "missing }");
+		if ( strcmp( token.string, "}" ) ) {
+			ScriptError( script, "missing }" );
 			AAS_FreeBSPEntities();
-			FreeScript(script);
+			FreeScript( script );
 			return;
 		} //end if
 	} //end while
-	FreeScript(script);
+	FreeScript( script );
 } //end of the function AAS_ParseBSPEntities
 #if 0
 //===========================================================================
@@ -460,16 +436,16 @@ static int AAS_BSPTraceLight(vec3_t start, vec3_t end, vec3_t endpos, int *red, 
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void AAS_DumpBSPData(void)
-{
+void AAS_DumpBSPData( void ) {
 	AAS_FreeBSPEntities();
 
-	if (bspworld.dentdata) FreeMemory(bspworld.dentdata);
+	if ( bspworld.dentdata )
+		FreeMemory( bspworld.dentdata );
 	bspworld.dentdata = NULL;
 	bspworld.entdatasize = 0;
 	//
 	bspworld.loaded = qfalse;
-	Com_Memset( &bspworld, 0, sizeof(bspworld) );
+	Com_Memset( &bspworld, 0, sizeof( bspworld ) );
 } //end of the function AAS_DumpBSPData
 //===========================================================================
 // load a .bsp file
@@ -478,14 +454,12 @@ void AAS_DumpBSPData(void)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int AAS_LoadBSPFile(void)
-{
+int AAS_LoadBSPFile( void ) {
 	AAS_DumpBSPData();
-	bspworld.entdatasize = (int)( strlen(botimport.BSPEntityData()) + 1 );
-	bspworld.dentdata = (char *) GetClearedHunkMemory(bspworld.entdatasize);
-	Com_Memcpy(bspworld.dentdata, botimport.BSPEntityData(), bspworld.entdatasize);
+	bspworld.entdatasize = (int)( strlen( botimport.BSPEntityData() ) + 1 );
+	bspworld.dentdata = (char *)GetClearedHunkMemory(bspworld.entdatasize);
+	Com_Memcpy( bspworld.dentdata, botimport.BSPEntityData(), bspworld.entdatasize );
 	AAS_ParseBSPEntities();
 	bspworld.loaded = qtrue;
 	return BLERR_NOERROR;
 } //end of the function AAS_LoadBSPFile
-

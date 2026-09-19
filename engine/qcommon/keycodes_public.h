@@ -235,11 +235,11 @@ typedef enum {
 	K_PAD0_LEFTTRIGGER,
 	K_PAD0_RIGHTTRIGGER,
 
-	K_PAD0_MISC1,    /* Xbox Series X share button, PS5 microphone button, Nintendo Switch Pro capture button, Amazon Luna microphone button */
-	K_PAD0_PADDLE1,  /* Xbox Elite paddle P1 */
-	K_PAD0_PADDLE2,  /* Xbox Elite paddle P3 */
-	K_PAD0_PADDLE3,  /* Xbox Elite paddle P2 */
-	K_PAD0_PADDLE4,  /* Xbox Elite paddle P4 */
+	K_PAD0_MISC1, /* Xbox Series X share button, PS5 microphone button, Nintendo Switch Pro capture button, Amazon Luna microphone button */
+	K_PAD0_PADDLE1, /* Xbox Elite paddle P1 */
+	K_PAD0_PADDLE2, /* Xbox Elite paddle P3 */
+	K_PAD0_PADDLE3, /* Xbox Elite paddle P2 */
+	K_PAD0_PADDLE4, /* Xbox Elite paddle P4 */
 	K_PAD0_TOUCHPAD, /* PS4/PS5 touchpad button */
 
 	// Pseudo-key that brings the console down
@@ -256,6 +256,6 @@ typedef enum {
 // The menu code needs to get both key and char events, but
 // to avoid duplicating the paths, the char events are just
 // distinguished by or'ing in K_CHAR_FLAG (ugly)
-#define	K_CHAR_FLAG		1024
+#define K_CHAR_FLAG		1024
 
 #endif

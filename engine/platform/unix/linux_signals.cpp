@@ -35,12 +35,10 @@ static qboolean signalcaught = qfalse;
 
 extern void NORETURN Sys_Exit( int code );
 
-static void signal_handler( int sig )
-{
+static void signal_handler( int sig ) {
 	char msg[32];
 
-	if ( signalcaught == qtrue )
-	{
+	if ( signalcaught == qtrue ) {
 		printf( "DOUBLE SIGNAL FAULT: Received signal %d, exiting...\n", sig );
 		Sys_Exit( 1 ); // abstraction
 	}
@@ -48,8 +46,7 @@ static void signal_handler( int sig )
 	printf( "Received signal %d, exiting...\n", sig );
 
 #ifdef _DEBUG
-	if ( sig == SIGSEGV || sig == SIGILL || sig == SIGBUS )
-	{
+	if ( sig == SIGSEGV || sig == SIGILL || sig == SIGBUS ) {
 		void *syms[10];
 		const size_t size = backtrace( syms, ARRAY_LEN( syms ) );
 		backtrace_symbols_fd( syms, size, STDERR_FILENO );
@@ -66,8 +63,7 @@ static void signal_handler( int sig )
 }
 
 
-void InitSig( void )
-{
+void InitSig( void ) {
 	signal( SIGINT, SIG_IGN );
 	signal( SIGHUP, signal_handler );
 	signal( SIGQUIT, signal_handler );

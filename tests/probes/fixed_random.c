@@ -9,22 +9,20 @@
 
 static unsigned char input[4096];
 
-FILE *fopen( const char *name, const char *mode )
-{
-	FILE *(*next)( const char *, const char * );
+FILE *fopen( const char *name, const char *mode ) {
+	FILE *( *next )( const char *, const char * );
 	if ( !strcmp( name, "/dev/urandom" ) ) {
 		return fmemopen( input, sizeof( input ), "rb" );
 	}
-	next = (FILE *(*)( const char *, const char * ))dlsym( RTLD_NEXT, "fopen" );
+	next = ( FILE * (*)(const char *, const char *)) dlsym( RTLD_NEXT, "fopen" );
 	return next( name, mode );
 }
 
-FILE *fopen64( const char *name, const char *mode )
-{
-	FILE *(*next)( const char *, const char * );
+FILE *fopen64( const char *name, const char *mode ) {
+	FILE *( *next )( const char *, const char * );
 	if ( !strcmp( name, "/dev/urandom" ) ) {
 		return fmemopen( input, sizeof( input ), "rb" );
 	}
-	next = (FILE *(*)( const char *, const char * ))dlsym( RTLD_NEXT, "fopen64" );
+	next = ( FILE * (*)(const char *, const char *)) dlsym( RTLD_NEXT, "fopen64" );
 	return next( name, mode );
 }

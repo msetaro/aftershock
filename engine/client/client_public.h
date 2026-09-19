@@ -28,39 +28,39 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_public.h"
 #include "../qcommon/keys_public.h"
 
-extern	refexport_t		re;		// interface to refresh .dll
-extern	cvar_t	*cl_aviFrameRate;
-extern	cvar_t	*com_maxfps;
-extern	cvar_t	*vid_xpos;
-extern	cvar_t	*vid_ypos;
-extern	cvar_t	*r_noborder;
-extern	cvar_t	*r_allowSoftwareGL;
-extern	cvar_t	*r_swapInterval;
-extern	cvar_t	*r_glDriver;
-extern	cvar_t	*r_displayRefresh;
-extern	cvar_t	*r_fullscreen;
-extern	cvar_t	*r_mode;
-extern	cvar_t	*r_modeFullscreen;
-extern	cvar_t	*r_colorbits;
-extern	cvar_t	*cl_stencilbits;
-extern	cvar_t	*cl_depthbits;
-extern	cvar_t	*cl_drawBuffer;
+extern refexport_t re; // interface to refresh .dll
+extern cvar_t *cl_aviFrameRate;
+extern cvar_t *com_maxfps;
+extern cvar_t *vid_xpos;
+extern cvar_t *vid_ypos;
+extern cvar_t *r_noborder;
+extern cvar_t *r_allowSoftwareGL;
+extern cvar_t *r_swapInterval;
+extern cvar_t *r_glDriver;
+extern cvar_t *r_displayRefresh;
+extern cvar_t *r_fullscreen;
+extern cvar_t *r_mode;
+extern cvar_t *r_modeFullscreen;
+extern cvar_t *r_colorbits;
+extern cvar_t *cl_stencilbits;
+extern cvar_t *cl_depthbits;
+extern cvar_t *cl_drawBuffer;
 qboolean CL_NoDelay( void );
 qboolean CL_GetModeInfo( int *width, int *height, float *windowAspect, int mode, const char *modeFS, int dw, int dh, qboolean fullscreen );
 int Key_GetCatcher( void );
 void CL_WriteAVIAudioFrame( const byte *pcmBuffer, int size );
 qboolean CL_VideoRecording( void );
-void	HandleEvents( void );
-void	GLimp_InitGamma(glconfig_t *config);
-void	GLimp_SetGamma(unsigned char red[256], unsigned char green[256], unsigned char blue[256]);
-void	GLimp_Init( glconfig_t *config );
-void	GLimp_Shutdown( qboolean unloadDLL );
-void	GLimp_EndFrame( void );
-void	*GL_GetProcAddress( const char *name );
-void	VKimp_Init( glconfig_t *config );
-void	VKimp_Shutdown( qboolean unloadDLL );
-void	*VK_GetInstanceProcAddr( VkInstance instance, const char *name );
-qboolean VK_CreateSurface( VkInstance instance, VkSurfaceKHR* pSurface );
+void HandleEvents( void );
+void GLimp_InitGamma( glconfig_t *config );
+void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] );
+void GLimp_Init( glconfig_t *config );
+void GLimp_Shutdown( qboolean unloadDLL );
+void GLimp_EndFrame( void );
+void *GL_GetProcAddress( const char *name );
+void VKimp_Init( glconfig_t *config );
+void VKimp_Shutdown( qboolean unloadDLL );
+void *VK_GetInstanceProcAddr( VkInstance instance, const char *name );
+qboolean VK_CreateSurface( VkInstance instance, VkSurfaceKHR *pSurface );
 
 int CL_FrameCount( void );
 void CL_SoundStopped( void );

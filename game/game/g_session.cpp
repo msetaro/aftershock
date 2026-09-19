@@ -41,18 +41,17 @@ Called on game shutdown
 ================
 */
 void G_WriteClientSessionData( gclient_t *client ) {
-	const char	*s;
-	const char	*var;
+	const char *s;
+	const char *var;
 
-	s = va((char *)"%i %i %i %i %i %i %i", 
+	s = va( (char *)"%i %i %i %i %i %i %i",
 		client->sess.sessionTeam,
 		client->sess.spectatorTime,
 		client->sess.spectatorState,
 		client->sess.spectatorClient,
 		client->sess.wins,
 		client->sess.losses,
-		client->sess.teamLeader
-		);
+		client->sess.teamLeader );
 
 	var = va( (char *)"session%i", client - level.clients );
 
@@ -67,8 +66,8 @@ Called on a reconnect
 ================
 */
 void G_ReadSessionData( gclient_t *client ) {
-	char	s[MAX_STRING_CHARS];
-	const char	*var;
+	char s[MAX_STRING_CHARS];
+	const char *var;
 
 	// bk001205 - format
 	int teamLeader;
@@ -76,17 +75,17 @@ void G_ReadSessionData( gclient_t *client ) {
 	int sessionTeam;
 
 	var = va( (char *)"session%i", client - level.clients );
-	trap_Cvar_VariableStringBuffer( var, s, sizeof(s) );
+	trap_Cvar_VariableStringBuffer( var, s, sizeof( s ) );
 
 	sscanf( s, "%i %i %i %i %i %i %i",
-		&sessionTeam,                 // bk010221 - format
+		&sessionTeam, // bk010221 - format
 		&client->sess.spectatorTime,
-		&spectatorState,              // bk010221 - format
+		&spectatorState, // bk010221 - format
 		&client->sess.spectatorClient,
 		&client->sess.wins,
 		&client->sess.losses,
-		&teamLeader                   // bk010221 - format
-		);
+		&teamLeader // bk010221 - format
+	);
 
 	// bk001205 - format issues
 	client->sess.sessionTeam = (team_t)sessionTeam;
@@ -103,8 +102,8 @@ Called on a first-time connect
 ================
 */
 void G_InitSessionData( gclient_t *client, char *userinfo ) {
-	clientSession_t	*sess;
-	const char		*value;
+	clientSession_t *sess;
+	const char *value;
 
 	sess = &client->sess;
 
@@ -115,7 +114,7 @@ void G_InitSessionData( gclient_t *client, char *userinfo ) {
 			BroadcastTeamChange( client, -1 );
 		} else {
 			// always spawn as spectator in team games
-			sess->sessionTeam = TEAM_SPECTATOR;	
+			sess->sessionTeam = TEAM_SPECTATOR;
 		}
 	} else {
 		value = Info_ValueForKey( userinfo, "team" );
@@ -127,8 +126,8 @@ void G_InitSessionData( gclient_t *client, char *userinfo ) {
 			default:
 			case GT_FFA:
 			case GT_SINGLE_PLAYER:
-				if ( g_maxGameClients.integer > 0 && 
-					level.numNonSpectatorClients >= g_maxGameClients.integer ) {
+				if ( g_maxGameClients.integer > 0 &&
+					 level.numNonSpectatorClients >= g_maxGameClients.integer ) {
 					sess->sessionTeam = TEAM_SPECTATOR;
 				} else {
 					sess->sessionTeam = TEAM_FREE;
@@ -160,12 +159,12 @@ G_InitWorldSession
 ==================
 */
 void G_InitWorldSession( void ) {
-	char	s[MAX_STRING_CHARS];
-	int			gt;
+	char s[MAX_STRING_CHARS];
+	int gt;
 
-	trap_Cvar_VariableStringBuffer( "session", s, sizeof(s) );
+	trap_Cvar_VariableStringBuffer( "session", s, sizeof( s ) );
 	gt = atoi( s );
-	
+
 	// if the gametype changed since the last session, don't use any
 	// client sessions
 	if ( g_gametype.integer != gt ) {
@@ -181,11 +180,11 @@ G_WriteSessionData
 ==================
 */
 void G_WriteSessionData( void ) {
-	int		i;
+	int i;
 
-	trap_Cvar_Set( "session", va((char *)"%i", g_gametype.integer) );
+	trap_Cvar_Set( "session", va( (char *)"%i", g_gametype.integer ) );
 
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
+	for ( i = 0; i < level.maxclients; i++ ) {
 		if ( level.clients[i].pers.connected == CON_CONNECTED ) {
 			G_WriteClientSessionData( &level.clients[i] );
 		}

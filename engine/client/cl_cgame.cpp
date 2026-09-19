@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../botlib/botlib_public.h"
 
-extern	botlib_export_t	*botlib_export;
+extern botlib_export_t *botlib_export;
 
 //extern qboolean loadCamera(const char *name);
 //extern void startCamera(int time);
@@ -72,7 +72,7 @@ static qboolean CL_GetUserCmd( int cmdNumber, usercmd_t *ucmd ) {
 		return qfalse;
 	}
 
-	*ucmd = cl.cmds[ cmdNumber & CMD_MASK ];
+	*ucmd = cl.cmds[cmdNumber & CMD_MASK];
 
 	return qtrue;
 }
@@ -105,8 +105,8 @@ CL_GetSnapshot
 ====================
 */
 static qboolean CL_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
-	clSnapshot_t	*clSnap;
-	int				i, count;
+	clSnapshot_t *clSnap;
+	int i, count;
 
 	if ( cl.snap.messageNum - snapshotNumber < 0 ) {
 		Com_Error( ERR_DROP, "CL_GetSnapshot: snapshotNumber (%i) > cl.snapshot.messageNum (%i)", snapshotNumber, cl.snap.messageNum );
@@ -142,9 +142,9 @@ static qboolean CL_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
 		count = MAX_ENTITIES_IN_SNAPSHOT;
 	}
 	snapshot->numEntities = count;
-	for ( i = 0 ; i < count ; i++ ) {
+	for ( i = 0; i < count; i++ ) {
 		snapshot->entities[i] =
-			cl.parseEntities[ ( clSnap->parseEntitiesNum + i ) & (MAX_PARSE_ENTITIES-1) ];
+			cl.parseEntities[( clSnap->parseEntitiesNum + i ) & ( MAX_PARSE_ENTITIES - 1 )];
 	}
 
 	// FIXME: configstring changes and server commands!!!
@@ -180,22 +180,22 @@ CL_ConfigstringModified
 =====================
 */
 static void CL_ConfigstringModified( void ) {
-	const char	*old, *s;
-	int			i, index;
-	const char	*dup;
-	gameState_t	oldGs;
-	int			len;
+	const char *old, *s;
+	int i, index;
+	const char *dup;
+	gameState_t oldGs;
+	int len;
 
-	index = atoi( Cmd_Argv(1) );
-	if ( (unsigned) index >= MAX_CONFIGSTRINGS ) {
+	index = atoi( Cmd_Argv( 1 ) );
+	if ( (unsigned)index >= MAX_CONFIGSTRINGS ) {
 		Com_Error( ERR_DROP, "%s: bad configstring index %i", __func__, index );
 	}
 	// get everything after "cs <num>"
-	s = Cmd_ArgsFrom(2);
+	s = Cmd_ArgsFrom( 2 );
 
-	old = cl.gameState.stringData + cl.gameState.stringOffsets[ index ];
+	old = cl.gameState.stringData + cl.gameState.stringOffsets[index];
 	if ( !strcmp( old, s ) ) {
-		return;		// unchanged
+		return; // unchanged
 	}
 
 	// build the new gameState_t
@@ -210,10 +210,10 @@ static void CL_ConfigstringModified( void ) {
 		if ( i == index ) {
 			dup = s;
 		} else {
-			dup = oldGs.stringData + oldGs.stringOffsets[ i ];
+			dup = oldGs.stringData + oldGs.stringOffsets[i];
 		}
 		if ( !dup[0] ) {
-			continue;		// leave with the default empty string
+			continue; // leave with the default empty string
 		}
 
 		len = (int)( strlen( dup ) );
@@ -223,7 +223,7 @@ static void CL_ConfigstringModified( void ) {
 		}
 
 		// append it to the gameState string buffer
-		cl.gameState.stringOffsets[ i ] = cl.gameState.dataCount;
+		cl.gameState.stringOffsets[i] = cl.gameState.dataCount;
 		Com_Memcpy( cl.gameState.stringData + cl.gameState.dataCount, dup, len + 1 );
 		cl.gameState.dataCount += len + 1;
 	}
@@ -264,19 +264,19 @@ static qboolean CL_GetServerCommand( int serverCommandNumber ) {
 	}
 
 	index = serverCommandNumber & ( MAX_RELIABLE_COMMANDS - 1 );
-	s = clc.serverCommands[ index ];
+	s = clc.serverCommands[index];
 	clc.lastExecutedServerCommand = serverCommandNumber;
 
 	Com_DPrintf( "serverCommand: %i : %s\n", serverCommandNumber, s );
 
-	if ( clc.serverCommandsIgnore[ index ] ) {
+	if ( clc.serverCommandsIgnore[index] ) {
 		Cmd_Clear();
 		return qfalse;
 	}
 
 rescan:
 	Cmd_TokenizeString( s );
-	cmd = Cmd_Argv(0);
+	cmd = Cmd_Argv( 0 );
 	argc = Cmd_Argc();
 
 	if ( !strcmp( cmd, "disconnect" ) ) {
@@ -289,13 +289,13 @@ rescan:
 	}
 
 	if ( !strcmp( cmd, "bcs0" ) ) {
-		Com_sprintf( bigConfigString, BIG_INFO_STRING, "cs %s \"%s", Cmd_Argv(1), Cmd_Argv(2) );
+		Com_sprintf( bigConfigString, BIG_INFO_STRING, "cs %s \"%s", Cmd_Argv( 1 ), Cmd_Argv( 2 ) );
 		return qfalse;
 	}
 
 	if ( !strcmp( cmd, "bcs1" ) ) {
-		s = Cmd_Argv(2);
-		if( strlen(bigConfigString) + strlen(s) >= BIG_INFO_STRING ) {
+		s = Cmd_Argv( 2 );
+		if ( strlen( bigConfigString ) + strlen( s ) >= BIG_INFO_STRING ) {
 			Com_Error( ERR_DROP, "bcs exceeded BIG_INFO_STRING" );
 		}
 		strcat( bigConfigString, s );
@@ -303,8 +303,8 @@ rescan:
 	}
 
 	if ( !strcmp( cmd, "bcs2" ) ) {
-		s = Cmd_Argv(2);
-		if( strlen(bigConfigString) + strlen(s) + 1 >= BIG_INFO_STRING ) {
+		s = Cmd_Argv( 2 );
+		if ( strlen( bigConfigString ) + strlen( s ) + 1 >= BIG_INFO_STRING ) {
 			Com_Error( ERR_DROP, "bcs exceeded BIG_INFO_STRING" );
 		}
 		strcat( bigConfigString, s );
@@ -365,8 +365,8 @@ Just adds default parameters that cgame doesn't need to know about
 ====================
 */
 static void CL_CM_LoadMap( const char *mapname ) {
-	int		checksum;
-	void	*buf;
+	int checksum;
+	void *buf;
 
 	Hunk_AllocPreference( h_low );
 
@@ -386,7 +386,7 @@ CL_ShutdonwCGame
 */
 void CL_ShutdownCGame( void ) {
 
-	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CGAME );
+	Key_SetCatcher( Key_GetCatcher() & ~KEYCATCH_CGAME );
 	cls.cgameStarted = qfalse;
 
 	if ( !NativeCGame_Running ) {
@@ -395,43 +395,43 @@ void CL_ShutdownCGame( void ) {
 
 	re.VertexLighting( qfalse );
 
-	NativeCGame_Shutdown(  );
+	NativeCGame_Shutdown();
 	NativeCGame_Running = false;
 	NativeCGame_CallDepth = 0;
 	FS_VM_CloseFiles( H_CGAME );
 }
 
 
-void CGameImport_Print( const char * fmt ) {
+void CGameImport_Print( const char *fmt ) {
 
-	Com_Printf( "%s", (const char*)fmt );
+	Com_Printf( "%s", (const char *)fmt );
 	return;
 }
-void CGameImport_Error( const char * fmt ) {
+void CGameImport_Error( const char *fmt ) {
 
-	Com_Error( ERR_DROP, "%s", (const char*)fmt );
+	Com_Error( ERR_DROP, "%s", (const char *)fmt );
 	return;
 }
 int CGameImport_Milliseconds( void ) {
 
 	return Sys_Milliseconds();
 }
-void CGameImport_Cvar_Register( void * vmCvar, const char * varName, const char * defaultValue, int flags ) {
+void CGameImport_Cvar_Register( void *vmCvar, const char *varName, const char *defaultValue, int flags ) {
 
 	Cvar_Register( (vmCvar_t *)vmCvar, (const char *)varName, (const char *)defaultValue, flags, 0 );
 	return;
 }
-void CGameImport_Cvar_Update( void * vmCvar ) {
+void CGameImport_Cvar_Update( void *vmCvar ) {
 
 	Cvar_Update( (vmCvar_t *)vmCvar, 0 );
 	return;
 }
-void CGameImport_Cvar_Set( const char * var_name, const char * value ) {
+void CGameImport_Cvar_Set( const char *var_name, const char *value ) {
 
 	Cvar_SetSafe( (const char *)var_name, (const char *)value );
 	return;
 }
-void CGameImport_Cvar_VariableStringBuffer( const char * var_name, char * buffer, int bufsize ) {
+void CGameImport_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize ) {
 
 	Cvar_VariableStringBufferSafe( (const char *)var_name, (char *)buffer, bufsize, CVAR_PRIVATE );
 	return;
@@ -440,27 +440,26 @@ int CGameImport_Argc( void ) {
 
 	return Cmd_Argc();
 }
-void CGameImport_Argv( int n, char * buffer, int bufferLength ) {
+void CGameImport_Argv( int n, char *buffer, int bufferLength ) {
 
 	Cmd_ArgvBuffer( n, (char *)buffer, bufferLength );
 	return;
 }
-void CGameImport_Args( char * buffer, int bufferLength ) {
+void CGameImport_Args( char *buffer, int bufferLength ) {
 
 	Cmd_ArgsBuffer( (char *)buffer, bufferLength );
 	return;
-
 }
-int CGameImport_FS_FOpenFile( const char * qpath, void * f, int mode ) {
+int CGameImport_FS_FOpenFile( const char *qpath, void *f, int mode ) {
 
 	return FS_VM_OpenFile( (const char *)qpath, (fileHandle_t *)f, (fsMode_t)mode, H_CGAME );
 }
-void CGameImport_FS_Read( void * buffer, int len, int f ) {
+void CGameImport_FS_Read( void *buffer, int len, int f ) {
 
 	FS_VM_ReadFile( buffer, len, f, H_CGAME );
 	return;
 }
-void CGameImport_FS_Write( const void * buffer, int len, int f ) {
+void CGameImport_FS_Write( const void *buffer, int len, int f ) {
 
 	FS_VM_WriteFile( (void *)buffer, len, f, H_CGAME );
 	return;
@@ -473,26 +472,25 @@ void CGameImport_FS_FCloseFile( int f ) {
 int CGameImport_FS_Seek( int f, int64_t offset, int origin ) {
 
 	return FS_VM_SeekFile( f, (long)offset, (fsOrigin_t)origin, H_CGAME );
-
 }
-void CGameImport_SendConsoleCommand( const char * text ) {
- {
-	const char *cmd = (const char *)text;
-	Cbuf_NestedAdd( cmd );
-	return;
+void CGameImport_SendConsoleCommand( const char *text ) {
+	{
+		const char *cmd = (const char *)text;
+		Cbuf_NestedAdd( cmd );
+		return;
+	}
 }
-}
-void CGameImport_AddCommand( const char * cmdName ) {
+void CGameImport_AddCommand( const char *cmdName ) {
 
 	CL_AddCgameCommand( (const char *)cmdName );
 	return;
 }
-void CGameImport_RemoveCommand( const char * cmdName ) {
+void CGameImport_RemoveCommand( const char *cmdName ) {
 
 	Cmd_RemoveCommandSafe( (const char *)cmdName );
 	return;
 }
-void CGameImport_SendClientCommand( const char * s ) {
+void CGameImport_SendClientCommand( const char *s ) {
 
 	CL_AddReliableCommand( (const char *)s, qfalse );
 	return;
@@ -507,7 +505,7 @@ void CGameImport_UpdateScreen( void ) {
 	SCR_UpdateScreen();
 	return;
 }
-void CGameImport_CM_LoadMap( const char * mapname ) {
+void CGameImport_CM_LoadMap( const char *mapname ) {
 
 	CL_CM_LoadMap( (const char *)mapname );
 	return;
@@ -520,49 +518,48 @@ int CGameImport_CM_InlineModel( int index ) {
 
 	return CM_InlineModel( index );
 }
-int CGameImport_CM_TempBoxModel( const float * mins, const float * maxs ) {
+int CGameImport_CM_TempBoxModel( const float *mins, const float *maxs ) {
 
-	return CM_TempBoxModel( (const vec_t *)mins, (const vec_t *)maxs,  qfalse );
+	return CM_TempBoxModel( (const vec_t *)mins, (const vec_t *)maxs, qfalse );
 }
-int CGameImport_CM_TempCapsuleModel( const float * mins, const float * maxs ) {
+int CGameImport_CM_TempCapsuleModel( const float *mins, const float *maxs ) {
 
-	return CM_TempBoxModel( (const vec_t *)mins, (const vec_t *)maxs,  qtrue );
+	return CM_TempBoxModel( (const vec_t *)mins, (const vec_t *)maxs, qtrue );
 }
-int CGameImport_CM_PointContents( const float * p, int model ) {
+int CGameImport_CM_PointContents( const float *p, int model ) {
 
 	return CM_PointContents( (const vec_t *)p, model );
 }
-int CGameImport_CM_TransformedPointContents( const float * p, int model, const float * origin, const float * angles ) {
+int CGameImport_CM_TransformedPointContents( const float *p, int model, const float *origin, const float *angles ) {
 
 	return CM_TransformedPointContents( (const vec_t *)p, model, (const vec_t *)origin, (const vec_t *)angles );
 }
-void CGameImport_CM_BoxTrace( void * results, const float * start, const float * end, const float * mins, const float * maxs, int model, int brushmask ) {
+void CGameImport_CM_BoxTrace( void *results, const float *start, const float *end, const float *mins, const float *maxs, int model, int brushmask ) {
 
-	CM_BoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask,  qfalse );
+	CM_BoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask, qfalse );
 	return;
 }
-void CGameImport_CM_CapsuleTrace( void * results, const float * start, const float * end, const float * mins, const float * maxs, int model, int brushmask ) {
+void CGameImport_CM_CapsuleTrace( void *results, const float *start, const float *end, const float *mins, const float *maxs, int model, int brushmask ) {
 
-	CM_BoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask,  qtrue );
+	CM_BoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask, qtrue );
 	return;
 }
-void CGameImport_CM_TransformedBoxTrace( void * results, const float * start, const float * end, const float * mins, const float * maxs, int model, int brushmask, const float * origin, const float * angles ) {
+void CGameImport_CM_TransformedBoxTrace( void *results, const float *start, const float *end, const float *mins, const float *maxs, int model, int brushmask, const float *origin, const float *angles ) {
 
-	CM_TransformedBoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask, (const vec_t *)origin, (const vec_t *)angles,  qfalse );
+	CM_TransformedBoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask, (const vec_t *)origin, (const vec_t *)angles, qfalse );
 	return;
 }
-void CGameImport_CM_TransformedCapsuleTrace( void * results, const float * start, const float * end, const float * mins, const float * maxs, int model, int brushmask, const float * origin, const float * angles ) {
+void CGameImport_CM_TransformedCapsuleTrace( void *results, const float *start, const float *end, const float *mins, const float *maxs, int model, int brushmask, const float *origin, const float *angles ) {
 
-	CM_TransformedBoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask, (const vec_t *)origin, (const vec_t *)angles,  qtrue );
+	CM_TransformedBoxTrace( (trace_t *)results, (const vec_t *)start, (const vec_t *)end, (const vec_t *)mins, (const vec_t *)maxs, model, brushmask, (const vec_t *)origin, (const vec_t *)angles, qtrue );
 	return;
 }
-int CGameImport_CM_MarkFragments( int numPoints, const void * points, const float * projection, int maxPoints, float * pointBuffer, int maxFragments, void * fragmentBuffer ) {
+int CGameImport_CM_MarkFragments( int numPoints, const void *points, const float *projection, int maxPoints, float *pointBuffer, int maxFragments, void *fragmentBuffer ) {
 
 
-
-	return re.MarkFragments( numPoints, (const vec_t ( *)[3])points, (const vec_t *)projection, maxPoints, (vec_t *)pointBuffer, maxFragments, (markFragment_t *)fragmentBuffer );
+	return re.MarkFragments( numPoints, (const vec_t( * )[3])points, (const vec_t *)projection, maxPoints, (vec_t *)pointBuffer, maxFragments, (markFragment_t *)fragmentBuffer );
 }
-void CGameImport_S_StartSound( float * origin, int entityNum, int entchannel, int sfx ) {
+void CGameImport_S_StartSound( float *origin, int entityNum, int entchannel, int sfx ) {
 
 	S_StartSound( (vec_t *)origin, entityNum, entchannel, sfx );
 	return;
@@ -574,15 +571,15 @@ void CGameImport_S_StartLocalSound( int sfx, int channelNum ) {
 }
 void CGameImport_S_ClearLoopingSounds( int killall ) {
 
-	S_ClearLoopingSounds((qboolean)killall);
+	S_ClearLoopingSounds( (qboolean)killall );
 	return;
 }
-void CGameImport_S_AddLoopingSound( int entityNum, const float * origin, const float * velocity, int sfx ) {
+void CGameImport_S_AddLoopingSound( int entityNum, const float *origin, const float *velocity, int sfx ) {
 
 	S_AddLoopingSound( entityNum, (const vec_t *)origin, (const vec_t *)velocity, sfx );
 	return;
 }
-void CGameImport_S_AddRealLoopingSound( int entityNum, const float * origin, const float * velocity, int sfx ) {
+void CGameImport_S_AddRealLoopingSound( int entityNum, const float *origin, const float *velocity, int sfx ) {
 
 	S_AddRealLoopingSound( entityNum, (const vec_t *)origin, (const vec_t *)velocity, sfx );
 	return;
@@ -592,49 +589,49 @@ void CGameImport_S_StopLoopingSound( int entityNum ) {
 	S_StopLoopingSound( entityNum );
 	return;
 }
-void CGameImport_S_UpdateEntityPosition( int entityNum, const float * origin ) {
+void CGameImport_S_UpdateEntityPosition( int entityNum, const float *origin ) {
 
 	S_UpdateEntityPosition( entityNum, (const vec_t *)origin );
 	return;
 }
-void CGameImport_S_Respatialize( int entityNum, const float * origin, void * axis, int inwater ) {
+void CGameImport_S_Respatialize( int entityNum, const float *origin, void *axis, int inwater ) {
 
-	S_Respatialize( entityNum, (const vec_t *)origin, (vec_t ( *)[3])axis, inwater );
+	S_Respatialize( entityNum, (const vec_t *)origin, (vec_t( * )[3])axis, inwater );
 	return;
 }
-int CGameImport_S_RegisterSound( const char * sample, int compressed ) {
+int CGameImport_S_RegisterSound( const char *sample, int compressed ) {
 
 	return S_RegisterSound( (const char *)sample, (qboolean)compressed );
 }
-void CGameImport_S_StartBackgroundTrack( const char * intro, const char * loop ) {
+void CGameImport_S_StartBackgroundTrack( const char *intro, const char *loop ) {
 
 	S_StartBackgroundTrack( (const char *)intro, (const char *)loop );
 	return;
 }
-void CGameImport_R_LoadWorldMap( const char * mapname ) {
+void CGameImport_R_LoadWorldMap( const char *mapname ) {
 
 	re.LoadWorld( (const char *)mapname );
 	return;
 }
-int CGameImport_R_RegisterModel( const char * name ) {
+int CGameImport_R_RegisterModel( const char *name ) {
 
 	return re.RegisterModel( (const char *)name );
 }
-int CGameImport_R_RegisterSkin( const char * name ) {
+int CGameImport_R_RegisterSkin( const char *name ) {
 
 	return re.RegisterSkin( (const char *)name );
 }
-int CGameImport_R_RegisterShader( const char * name ) {
+int CGameImport_R_RegisterShader( const char *name ) {
 
 	return re.RegisterShader( (const char *)name );
 }
-int CGameImport_R_RegisterShaderNoMip( const char * name ) {
+int CGameImport_R_RegisterShaderNoMip( const char *name ) {
 
 	return re.RegisterShaderNoMip( (const char *)name );
 }
-void CGameImport_R_RegisterFont( const char * fontName, int pointSize, void * font ) {
+void CGameImport_R_RegisterFont( const char *fontName, int pointSize, void *font ) {
 
-	re.RegisterFont( (const char *)fontName, pointSize, (fontInfo_t *)font);
+	re.RegisterFont( (const char *)fontName, pointSize, (fontInfo_t *)font );
 	return;
 }
 void CGameImport_R_ClearScene( void ) {
@@ -642,41 +639,41 @@ void CGameImport_R_ClearScene( void ) {
 	re.ClearScene();
 	return;
 }
-void CGameImport_R_AddRefEntityToScene( const void * entity ) {
+void CGameImport_R_AddRefEntityToScene( const void *entity ) {
 
 	re.AddRefEntityToScene( (const refEntity_t *)entity, qfalse );
 	return;
 }
-void CGameImport_R_AddPolyToScene( int hShader, int numVerts, const void * verts ) {
+void CGameImport_R_AddPolyToScene( int hShader, int numVerts, const void *verts ) {
 
 	re.AddPolyToScene( hShader, numVerts, (const polyVert_t *)verts, 1 );
 	return;
 }
-void CGameImport_R_AddPolysToScene( int hShader, int numVerts, const void * verts, int num ) {
+void CGameImport_R_AddPolysToScene( int hShader, int numVerts, const void *verts, int num ) {
 
 	re.AddPolyToScene( hShader, numVerts, (const polyVert_t *)verts, num );
 	return;
 }
-int CGameImport_R_LightForPoint( float * point, float * ambientLight, float * directedLight, float * lightDir ) {
+int CGameImport_R_LightForPoint( float *point, float *ambientLight, float *directedLight, float *lightDir ) {
 
 	return re.LightForPoint( (vec_t *)point, (vec_t *)ambientLight, (vec_t *)directedLight, (vec_t *)lightDir );
 }
-void CGameImport_R_AddLightToScene( const float * org, float intensity, float r, float g, float b ) {
+void CGameImport_R_AddLightToScene( const float *org, float intensity, float r, float g, float b ) {
 
 	re.AddLightToScene( (const vec_t *)org, intensity, r, g, b );
 	return;
 }
-void CGameImport_R_AddAdditiveLightToScene( const float * org, float intensity, float r, float g, float b ) {
+void CGameImport_R_AddAdditiveLightToScene( const float *org, float intensity, float r, float g, float b ) {
 
 	re.AddAdditiveLightToScene( (const vec_t *)org, intensity, r, g, b );
 	return;
 }
-void CGameImport_R_RenderScene( const void * fd ) {
+void CGameImport_R_RenderScene( const void *fd ) {
 
 	re.RenderScene( (const refdef_t *)fd );
 	return;
 }
-void CGameImport_R_SetColor( const float * rgba ) {
+void CGameImport_R_SetColor( const float *rgba ) {
 
 	re.SetColor( (const float *)rgba );
 	return;
@@ -686,38 +683,36 @@ void CGameImport_R_DrawStretchPic( float x, float y, float w, float h, float s1,
 	re.DrawStretchPic( x, y, w, h, s1, t1, s2, t2, hShader );
 	return;
 }
-void CGameImport_R_ModelBounds( int model, float * mins, float * maxs ) {
+void CGameImport_R_ModelBounds( int model, float *mins, float *maxs ) {
 
 	re.ModelBounds( model, (vec_t *)mins, (vec_t *)maxs );
 	return;
 }
-int CGameImport_R_LerpTag( void * tag, int mod, int startFrame, int endFrame, float frac, const char * tagName ) {
+int CGameImport_R_LerpTag( void *tag, int mod, int startFrame, int endFrame, float frac, const char *tagName ) {
 
 	return re.LerpTag( (orientation_t *)tag, mod, startFrame, endFrame, frac, (const char *)tagName );
 }
-void CGameImport_R_RemapShader( const char * oldShader, const char * newShader, const char * timeOffset ) {
+void CGameImport_R_RemapShader( const char *oldShader, const char *newShader, const char *timeOffset ) {
 
 	re.RemapShader( (const char *)oldShader, (const char *)newShader, (const char *)timeOffset );
 	return;
-
-
 }
-void CGameImport_GetGlconfig( void * glconfig ) {
+void CGameImport_GetGlconfig( void *glconfig ) {
 
 	CL_GetGlconfig( (glconfig_t *)glconfig );
 	return;
 }
-void CGameImport_GetGameState( void * gamestate ) {
+void CGameImport_GetGameState( void *gamestate ) {
 
 	CL_GetGameState( (gameState_t *)gamestate );
 	return;
 }
-void CGameImport_GetCurrentSnapshotNumber( int * snapshotNumber, int * serverTime ) {
+void CGameImport_GetCurrentSnapshotNumber( int *snapshotNumber, int *serverTime ) {
 
 	CL_GetCurrentSnapshotNumber( (int *)snapshotNumber, (int *)serverTime );
 	return;
 }
-int CGameImport_GetSnapshot( int snapshotNumber, void * snapshot ) {
+int CGameImport_GetSnapshot( int snapshotNumber, void *snapshot ) {
 
 	return CL_GetSnapshot( snapshotNumber, (snapshot_t *)snapshot );
 }
@@ -729,7 +724,7 @@ int CGameImport_GetCurrentCmdNumber( void ) {
 
 	return CL_GetCurrentCmdNumber();
 }
-int CGameImport_GetUserCmd( int cmdNumber, void * ucmd ) {
+int CGameImport_GetUserCmd( int cmdNumber, void *ucmd ) {
 
 	return CL_GetUserCmd( cmdNumber, (usercmd_t *)ucmd );
 }
@@ -753,20 +748,20 @@ int CGameImport_Key_GetCatcher( void ) {
 void CGameImport_Key_SetCatcher( int catcher ) {
 
 	// Don't allow the cgame module to close the console
-	Key_SetCatcher( catcher | ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) );
+	Key_SetCatcher( catcher | ( Key_GetCatcher() & KEYCATCH_CONSOLE ) );
 	return;
 }
-int CGameImport_Key_GetKey( const char * binding ) {
+int CGameImport_Key_GetKey( const char *binding ) {
 
 	return Key_GetKey( (const char *)binding );
 
-// shared syscalls
+	// shared syscalls
 }
-int CGameImport_PC_AddGlobalDefine( char * define ) {
+int CGameImport_PC_AddGlobalDefine( char *define ) {
 
 	return botlib_export->PC_AddGlobalDefine( (const char *)define );
 }
-int CGameImport_PC_LoadSource( const char * filename ) {
+int CGameImport_PC_LoadSource( const char *filename ) {
 
 	return botlib_export->PC_LoadSourceHandle( (const char *)filename );
 }
@@ -774,78 +769,69 @@ int CGameImport_PC_FreeSource( int handle ) {
 
 	return botlib_export->PC_FreeSourceHandle( handle );
 }
-int CGameImport_PC_ReadToken( int handle, void * pc_token ) {
+int CGameImport_PC_ReadToken( int handle, void *pc_token ) {
 
 	return botlib_export->PC_ReadTokenHandle( handle, (pc_token_t *)pc_token );
 }
-int CGameImport_PC_SourceFileAndLine( int handle, char * filename, int * line ) {
+int CGameImport_PC_SourceFileAndLine( int handle, char *filename, int *line ) {
 
 	return botlib_export->PC_SourceFileAndLine( handle, (char *)filename, (int *)line );
-
 }
 void CGameImport_S_StopBackgroundTrack( void ) {
 
 	S_StopBackgroundTrack();
 	return;
-
 }
-int CGameImport_RealTime( void * qtime ) {
+int CGameImport_RealTime( void *qtime ) {
 
 	return Com_RealTime( (qtime_t *)qtime );
 }
-void CGameImport_SnapVector( float * v ) {
+void CGameImport_SnapVector( float *v ) {
 
 	Sys_SnapVector( (float *)v );
 	return;
-
 }
-int CGameImport_CIN_PlayCinematic( const char * arg0, int xpos, int ypos, int width, int height, int bits ) {
+int CGameImport_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits ) {
 
-	return CIN_PlayCinematic((const char *)arg0, xpos, ypos, width, height, bits);
-
+	return CIN_PlayCinematic( (const char *)arg0, xpos, ypos, width, height, bits );
 }
 int CGameImport_CIN_StopCinematic( int handle ) {
 
-	return CIN_StopCinematic(handle);
-
+	return CIN_StopCinematic( handle );
 }
 int CGameImport_CIN_RunCinematic( int handle ) {
 
-	return CIN_RunCinematic(handle);
-
+	return CIN_RunCinematic( handle );
 }
 void CGameImport_CIN_DrawCinematic( int handle ) {
 
-	CIN_DrawCinematic(handle);
+	CIN_DrawCinematic( handle );
 	return;
-
 }
 void CGameImport_CIN_SetExtents( int handle, int x, int y, int w, int h ) {
 
-	CIN_SetExtents(handle, x, y, w, h);
+	CIN_SetExtents( handle, x, y, w, h );
 	return;
-
 }
-int CGameImport_loadCamera( const char * name [[maybe_unused]] ) {
+int CGameImport_loadCamera( const char *name [[maybe_unused]] ) {
 	Com_Error( ERR_DROP, "Unsupported native service: CG_LOADCAMERA" );
 }
 void CGameImport_startCamera( int time [[maybe_unused]] ) {
 	Com_Error( ERR_DROP, "Unsupported native service: CG_STARTCAMERA" );
 	return;
 }
-int CGameImport_getCameraInfo( int time [[maybe_unused]], void * origin [[maybe_unused]], void * angles [[maybe_unused]] ) {
+int CGameImport_getCameraInfo( int time [[maybe_unused]], void *origin [[maybe_unused]], void *angles [[maybe_unused]] ) {
 	Com_Error( ERR_DROP, "Unsupported native service: CG_GETCAMERAINFO" );
 }
-int CGameImport_GetEntityToken( char * buffer, int bufferSize ) {
+int CGameImport_GetEntityToken( char *buffer, int bufferSize ) {
 
 	return re.GetEntityToken( (char *)buffer, bufferSize );
-
 }
-int CGameImport_R_inPVS( const float * p1, const float * p2 ) {
+int CGameImport_R_inPVS( const float *p1, const float *p2 ) {
 
 	return re.inPVS( (const vec_t *)p1, (const vec_t *)p2 );
 
-// engine extensions
+	// engine extensions
 }
 
 
@@ -857,9 +843,9 @@ Should only be called by CL_StartHunkUsers
 ====================
 */
 void CL_InitCGame( void ) {
-	const char			*info;
-	const char			*mapname;
-	int					t1, t2;
+	const char *info;
+	const char *mapname;
+	int t1, t2;
 
 	Cbuf_NestedReset();
 
@@ -869,7 +855,7 @@ void CL_InitCGame( void ) {
 	Con_Close();
 
 	// find the current mapname
-	info = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
+	info = cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO];
 	mapname = Info_ValueForKey( info, "mapname" );
 	Com_sprintf( cl.mapname, sizeof( cl.mapname ), "maps/%s.bsp", mapname );
 
@@ -895,19 +881,19 @@ void CL_InitCGame( void ) {
 
 	t2 = Sys_Milliseconds();
 
-	Com_Printf( "CL_InitCGame: %5.2f seconds\n", (t2-t1)/1000.0 );
+	Com_Printf( "CL_InitCGame: %5.2f seconds\n", ( t2 - t1 ) / 1000.0 );
 
 	// have the renderer touch all its images, so they are present
 	// on the card even if the driver does deferred loading
 	re.EndRegistration();
 
 	// make sure everything is paged in
-	if (!Sys_LowPhysicalMemory()) {
+	if ( !Sys_LowPhysicalMemory() ) {
 		Com_TouchMemory();
 	}
 
 	// clear anything that got printed
-	Con_ClearNotify ();
+	Con_ClearNotify();
 
 	// do not allow vid_restart for first time
 	cls.lastVidRestart = Sys_Milliseconds();
@@ -929,7 +915,7 @@ qboolean CL_GameCommand( void ) {
 		return qfalse;
 	}
 
-	bRes = (qboolean)NativeCGame_ConsoleCommand(  );
+	bRes = (qboolean)NativeCGame_ConsoleCommand();
 
 	Cbuf_NestedReset();
 
@@ -967,11 +953,11 @@ or bursted delayed packets.
 =================
 */
 
-#define	RESET_TIME	500
+#define RESET_TIME	500
 
 static void CL_AdjustTimeDelta( void ) {
-	int		newDelta;
-	int		deltaDelta;
+	int newDelta;
+	int deltaDelta;
 
 	cl.newSnapshots = qfalse;
 
@@ -985,7 +971,7 @@ static void CL_AdjustTimeDelta( void ) {
 
 	if ( deltaDelta > RESET_TIME ) {
 		cl.serverTimeDelta = newDelta;
-		cl.oldServerTime = cl.snap.serverTime;	// FIXME: is this a problem for cgame?
+		cl.oldServerTime = cl.snap.serverTime; // FIXME: is this a problem for cgame?
 		cl.serverTime = cl.snap.serverTime;
 		if ( cl_showTimeDelta->integer ) {
 			Com_Printf( "<RESET> " );
@@ -1080,7 +1066,7 @@ static float CL_AvgPing( void ) {
 	// sort ping array
 	for ( i = count - 1; i > 0; --i ) {
 		for ( j = 0; j < i; ++j ) {
-			if (ping[j] > ping[j + 1]) {
+			if ( ping[j] > ping[j + 1] ) {
 				iTemp = ping[j];
 				ping[j] = ping[j + 1];
 				ping[j + 1] = iTemp;
@@ -1089,8 +1075,8 @@ static float CL_AvgPing( void ) {
 	}
 
 	// use median average ping
-	if ( (count % 2) == 0 )
-		result = (ping[count / 2] + ping[(count / 2) - 1]) / 2.0f;
+	if ( ( count % 2 ) == 0 )
+		result = ( ping[count / 2] + ping[( count / 2 ) - 1] ) / 2.0f;
 	else
 		result = (float)( ping[count / 2] );
 
@@ -1109,7 +1095,7 @@ static int CL_TimeNudge( void ) {
 	float autoNudge = cl_autoNudge->value;
 
 	if ( autoNudge != 0.0f )
-		return (int)((CL_AvgPing() * autoNudge) + 0.5f) * -1;
+		return (int)( ( CL_AvgPing() * autoNudge ) + 0.5f ) * -1;
 	else
 		return cl_timeNudge->integer;
 }

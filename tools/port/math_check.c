@@ -1,20 +1,17 @@
 /* G5 fixed-input probe; compiled in each language, never part of the engine. */
 #include "../../engine/qcommon/q_shared.h"
 
-void QDECL Com_Error( errorParm_t level, const char *fmt, ... )
-{
+void QDECL Com_Error( errorParm_t level, const char *fmt, ... ) {
 	(void)level;
 	(void)fmt;
 	exit( 1 );
 }
 
-void QDECL Com_Printf( const char *fmt, ... )
-{
+void QDECL Com_Printf( const char *fmt, ... ) {
 	(void)fmt;
 }
 
-static unsigned hash_bytes( unsigned hash, const void *data, size_t size )
-{
+static unsigned hash_bytes( unsigned hash, const void *data, size_t size ) {
 	const unsigned char *bytes = (const unsigned char *)data;
 	size_t i;
 	for ( i = 0; i < size; i++ )
@@ -22,8 +19,7 @@ static unsigned hash_bytes( unsigned hash, const void *data, size_t size )
 	return hash;
 }
 
-int main( void )
-{
+int main( void ) {
 	unsigned rotate = 2166136261U, angles = rotate, vectors = rotate, roots = rotate;
 	vec3_t axis = { 0, 0, 1 }, point = { 1, 2, 3 }, out, forward, right, up;
 	float input, root;

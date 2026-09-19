@@ -30,47 +30,38 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 static unsigned short s_oldHardwareGamma[3][256];
 
-static BOOL IsCurrentSessionRemoteable( void )
-{
+static BOOL IsCurrentSessionRemoteable( void ) {
 	BOOL fIsRemoteable = FALSE;
 
-	if ( GetSystemMetrics( SM_REMOTESESSION ) )
-	{
+	if ( GetSystemMetrics( SM_REMOTESESSION ) ) {
 		fIsRemoteable = TRUE;
-	}
-	else
-	{
-		#define TERMINAL_SERVER_KEY TEXT( "SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\" )
-		#define GLASS_SESSION_ID TEXT( "GlassSessionId" )
+	} else {
+#define TERMINAL_SERVER_KEY TEXT( "SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\" )
+#define GLASS_SESSION_ID TEXT( "GlassSessionId" )
 
 		HKEY hRegKey = NULL;
 		LONG lResult;
 
-		lResult = RegOpenKeyEx( HKEY_LOCAL_MACHINE,	TERMINAL_SERVER_KEY, 0, KEY_READ, &hRegKey );
+		lResult = RegOpenKeyEx( HKEY_LOCAL_MACHINE, TERMINAL_SERVER_KEY, 0, KEY_READ, &hRegKey );
 
-		if ( lResult == ERROR_SUCCESS )
-		{
+		if ( lResult == ERROR_SUCCESS ) {
 			DWORD dwGlassSessionId;
-			DWORD cbGlassSessionId = sizeof(dwGlassSessionId);
+			DWORD cbGlassSessionId = sizeof( dwGlassSessionId );
 			DWORD dwType;
 
-			lResult = RegQueryValueEx( hRegKey, GLASS_SESSION_ID, NULL, &dwType, (BYTE*)&dwGlassSessionId, &cbGlassSessionId );
+			lResult = RegQueryValueEx( hRegKey, GLASS_SESSION_ID, NULL, &dwType, (BYTE *)&dwGlassSessionId, &cbGlassSessionId );
 
-			if ( lResult == ERROR_SUCCESS )
-			{
-				typedef BOOL (WINAPI *PFN_ProcessIdToSessionId)( DWORD dwProcessId, DWORD *pSessionId );
+			if ( lResult == ERROR_SUCCESS ) {
+				typedef BOOL( WINAPI * PFN_ProcessIdToSessionId )( DWORD dwProcessId, DWORD * pSessionId );
 				PFN_ProcessIdToSessionId pProcessIdToSessionId;
 				DWORD dwCurrentSessionId;
 				HANDLE hKernel32;
 
 				hKernel32 = GetModuleHandleA( "kernel32" );
-				if ( hKernel32 != NULL )
-				{
-					pProcessIdToSessionId = (PFN_ProcessIdToSessionId) (void *)GetProcAddress( (HMODULE)hKernel32, "ProcessIdToSessionId" );
-					if ( pProcessIdToSessionId != NULL )
-					{
-						if ( pProcessIdToSessionId( GetCurrentProcessId(), &dwCurrentSessionId  ) )
-						{
+				if ( hKernel32 != NULL ) {
+					pProcessIdToSessionId = (PFN_ProcessIdToSessionId)(void *)GetProcAddress( (HMODULE)hKernel32, "ProcessIdToSessionId" );
+					if ( pProcessIdToSessionId != NULL ) {
+						if ( pProcessIdToSessionId( GetCurrentProcessId(), &dwCurrentSessionId ) ) {
 							fIsRemoteable = ( dwCurrentSessionId != dwGlassSessionId );
 						}
 					}
@@ -78,8 +69,7 @@ static BOOL IsCurrentSessionRemoteable( void )
 			}
 		}
 
-		if ( hRegKey )
-		{
+		if ( hRegKey ) {
 			RegCloseKey( hRegKey );
 		}
 	}
@@ -93,55 +83,44 @@ static BOOL IsCurrentSessionRemoteable( void )
 **
 ** Determines if the underlying hardware supports the Win32 gamma correction API.
 */
-void GLimp_InitGamma( glconfig_t *config )
-{
-	HDC		hDC;
+void GLimp_InitGamma( glconfig_t *config ) {
+	HDC hDC;
 
 	config->deviceSupportsGamma = qfalse;
 
-	if ( IsCurrentSessionRemoteable() )
-	{
+	if ( IsCurrentSessionRemoteable() ) {
 		glw_state.deviceSupportsGamma = qfalse;
 		return; // no hardware gamma control via RDP
 	}
 
-	if ( glw_state.displayName[0] )
-	{
+	if ( glw_state.displayName[0] ) {
 		hDC = CreateDC( TEXT( "DISPLAY" ), glw_state.displayName, NULL, NULL );
 		config->deviceSupportsGamma = ( GetDeviceGammaRamp( hDC, s_oldHardwareGamma ) == FALSE ) ? qfalse : qtrue;
-		if ( config->deviceSupportsGamma )
-		{
+		if ( config->deviceSupportsGamma ) {
 			// do test setup
-			if ( SetDeviceGammaRamp( hDC, s_oldHardwareGamma ) == FALSE )
-			{
+			if ( SetDeviceGammaRamp( hDC, s_oldHardwareGamma ) == FALSE ) {
 				config->deviceSupportsGamma = qfalse;
 			}
 		}
 		DeleteDC( hDC );
-	}
-	else
-	{
+	} else {
 		hDC = GetDC( GetDesktopWindow() );
 		config->deviceSupportsGamma = ( GetDeviceGammaRamp( hDC, s_oldHardwareGamma ) == FALSE ) ? qfalse : qtrue;
-		if ( config->deviceSupportsGamma )
-		{
-			if ( SetDeviceGammaRamp( hDC, s_oldHardwareGamma ) == FALSE )
-			{
+		if ( config->deviceSupportsGamma ) {
+			if ( SetDeviceGammaRamp( hDC, s_oldHardwareGamma ) == FALSE ) {
 				config->deviceSupportsGamma = qfalse;
 			}
 		}
 		ReleaseDC( GetDesktopWindow(), hDC );
 	}
 
-	if ( config->deviceSupportsGamma )
-	{
+	if ( config->deviceSupportsGamma ) {
 		//
 		// do a sanity check on the gamma values
 		//
 		if ( ( HIBYTE( s_oldHardwareGamma[0][255] ) <= HIBYTE( s_oldHardwareGamma[0][0] ) ) ||
 			 ( HIBYTE( s_oldHardwareGamma[1][255] ) <= HIBYTE( s_oldHardwareGamma[1][0] ) ) ||
-			 ( HIBYTE( s_oldHardwareGamma[2][255] ) <= HIBYTE( s_oldHardwareGamma[2][0] ) ) )
-		{
+			 ( HIBYTE( s_oldHardwareGamma[2][255] ) <= HIBYTE( s_oldHardwareGamma[2][0] ) ) ) {
 			config->deviceSupportsGamma = qfalse;
 			Com_Printf( S_COLOR_YELLOW "WARNING: device has broken gamma support\n" );
 		}
@@ -150,14 +129,12 @@ void GLimp_InitGamma( glconfig_t *config )
 		// make sure that we didn't have a prior crash in the game, and if so we need to
 		// restore the gamma values to at least a linear value
 		//
-		if ( ( HIBYTE( s_oldHardwareGamma[0][181] ) == 255 ) )
-		{
+		if ( ( HIBYTE( s_oldHardwareGamma[0][181] ) == 255 ) ) {
 			int g;
 
 			Com_Printf( S_COLOR_YELLOW "WARNING: suspicious gamma tables, using linear ramp for restoration\n" );
 
-			for ( g = 0; g < 256; g++ )
-			{
+			for ( g = 0; g < 256; g++ ) {
 				s_oldHardwareGamma[0][g] = (unsigned short)( g << 8 );
 				s_oldHardwareGamma[1][g] = (unsigned short)( g << 8 );
 				s_oldHardwareGamma[2][g] = (unsigned short)( g << 8 );
@@ -204,39 +181,39 @@ void mapGammaMax( void ) {
 */
 void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] ) {
 	unsigned short table[3][256];
-	int		i, j;
-	BOOL	ret;
-	HDC		hDC;
+	int i, j;
+	BOOL ret;
+	HDC hDC;
 
 	if ( /*!glw_state.hDC* ||*/ !gw_active )
 		return;
 
-//mapGammaMax();
+	//mapGammaMax();
 
 	for ( i = 0; i < 256; i++ ) {
-		table[0][i] = ( ( ( unsigned short ) red[i] ) << 8 ) | red[i];
-		table[1][i] = ( ( ( unsigned short ) green[i] ) << 8 ) | green[i];
-		table[2][i] = ( ( ( unsigned short ) blue[i] ) << 8 ) | blue[i];
+		table[0][i] = ( ( (unsigned short)red[i] ) << 8 ) | red[i];
+		table[1][i] = ( ( (unsigned short)green[i] ) << 8 ) | green[i];
+		table[2][i] = ( ( (unsigned short)blue[i] ) << 8 ) | blue[i];
 	}
 
 	// Win2K and newer put this odd restriction on gamma ramps...
 	Com_DPrintf( "performing gamma clamp.\n" );
-	for ( j = 0 ; j < 3 ; j++ ) {
-		for ( i = 0 ; i < 128 ; i++ ) {
-			if ( table[j][i] > ( (128+i) << 8 ) ) {
-				table[j][i] = (unsigned short)( (128+i) << 8 );
+	for ( j = 0; j < 3; j++ ) {
+		for ( i = 0; i < 128; i++ ) {
+			if ( table[j][i] > ( ( 128 + i ) << 8 ) ) {
+				table[j][i] = (unsigned short)( ( 128 + i ) << 8 );
 			}
 		}
-		if ( table[j][127] > 254<<8 ) {
-			table[j][127] = 254<<8;
+		if ( table[j][127] > 254 << 8 ) {
+			table[j][127] = 254 << 8;
 		}
 	}
 
 	// enforce constantly increasing
-	for ( j = 0 ; j < 3 ; j++ ) {
-		for ( i = 1 ; i < 256 ; i++ ) {
-			if ( table[j][i] < table[j][i-1] ) {
-				table[j][i] = table[j][i-1];
+	for ( j = 0; j < 3; j++ ) {
+		for ( i = 1; i < 256; i++ ) {
+			if ( table[j][i] < table[j][i - 1] ) {
+				table[j][i] = table[j][i - 1];
 			}
 		}
 	}
@@ -262,8 +239,7 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 /*
 ** GLW_RestoreGamma
 */
-void GLW_RestoreGamma( void )
-{
+void GLW_RestoreGamma( void ) {
 	HDC hDC;
 	BOOL ret;
 
@@ -273,12 +249,12 @@ void GLW_RestoreGamma( void )
 
 	if ( !glw_state.deviceSupportsGamma ) {
 		return;
-	}	
+	}
 
 	if ( glw_state.displayName[0] ) {
 		hDC = CreateDC( TEXT( "DISPLAY" ), glw_state.displayName, NULL, NULL );
 		ret = SetDeviceGammaRamp( hDC, s_oldHardwareGamma );
-		DeleteDC( hDC);
+		DeleteDC( hDC );
 	} else {
 		hDC = GetDC( GetDesktopWindow() );
 		ret = SetDeviceGammaRamp( hDC, s_oldHardwareGamma );

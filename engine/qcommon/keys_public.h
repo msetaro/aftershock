@@ -26,16 +26,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "keycodes_public.h"
 
 typedef struct {
-	qboolean	down;
-	qboolean	bound;
-	int			repeats;		// if > 1, it is autorepeating
-	char		*binding;
+	qboolean down;
+	qboolean bound;
+	int repeats; // if > 1, it is autorepeating
+	char *binding;
 } qkey_t;
 
-extern	qboolean	key_overstrikeMode;
-extern	qkey_t		keys[MAX_KEYS];
+extern qboolean key_overstrikeMode;
+extern qkey_t keys[MAX_KEYS];
 
-extern  int         anykeydown;
+extern int anykeydown;
 
 // NOTE TTimo the declaration of field_t and Field_Clear is now in qcommon/qcommon.h
 

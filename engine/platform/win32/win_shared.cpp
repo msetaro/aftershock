@@ -36,11 +36,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 Sys_Milliseconds
 ================
 */
-int Sys_Milliseconds( void )
-{
-	static qboolean	initialized = qfalse;
+int Sys_Milliseconds( void ) {
+	static qboolean initialized = qfalse;
 	static DWORD sys_timeBase;
-	int	sys_curtime;
+	int sys_curtime;
 
 	if ( !initialized ) {
 		sys_timeBase = timeGetTime();
@@ -58,17 +57,16 @@ int Sys_Milliseconds( void )
 Sys_RandomBytes
 ================
 */
-qboolean Sys_RandomBytes( byte *string, int len )
-{
-	HCRYPTPROV  prov;
+qboolean Sys_RandomBytes( byte *string, int len ) {
+	HCRYPTPROV prov;
 
-	if( !CryptAcquireContext( &prov, NULL, NULL,
-		PROV_RSA_FULL, CRYPT_VERIFYCONTEXT ) )  {
+	if ( !CryptAcquireContext( &prov, NULL, NULL,
+			 PROV_RSA_FULL, CRYPT_VERIFYCONTEXT ) ) {
 
 		return qfalse;
 	}
 
-	if( !CryptGenRandom( prov, len, (BYTE *)string ) )  {
+	if ( !CryptGenRandom( prov, len, (BYTE *)string ) ) {
 		CryptReleaseContext( prov, 0 );
 		return qfalse;
 	}
@@ -78,16 +76,14 @@ qboolean Sys_RandomBytes( byte *string, int len )
 
 
 #ifdef UNICODE
-LPWSTR AtoW( const char *s ) 
-{
-	static WCHAR buffer[MAXPRINTMSG*2];
-	MultiByteToWideChar( CP_ACP, 0, s, strlen( s ) + 1, (LPWSTR) buffer, ARRAYSIZE( buffer ) );
+LPWSTR AtoW( const char *s ) {
+	static WCHAR buffer[MAXPRINTMSG * 2];
+	MultiByteToWideChar( CP_ACP, 0, s, strlen( s ) + 1, (LPWSTR)buffer, ARRAYSIZE( buffer ) );
 	return buffer;
 }
 
-const char *WtoA( const LPWSTR s ) 
-{
-	static char buffer[MAXPRINTMSG*2];
+const char *WtoA( const LPWSTR s ) {
+	static char buffer[MAXPRINTMSG * 2];
 	WideCharToMultiByte( CP_ACP, 0, s, -1, buffer, ARRAYSIZE( buffer ), NULL, NULL );
 	return buffer;
 }
@@ -99,48 +95,43 @@ const char *WtoA( const LPWSTR s )
 Sys_DefaultHomePath
 ================
 */
-const char *Sys_DefaultHomePath( void ) 
-{
+const char *Sys_DefaultHomePath( void ) {
 #ifdef USE_PROFILES
 	TCHAR szPath[MAX_PATH];
 	static char path[MAX_OSPATH];
 	FARPROC qSHGetFolderPath;
-	HMODULE shfolder = LoadLibrary("shfolder.dll");
-	
-	if(shfolder == NULL) {
-		Com_Printf("Unable to load SHFolder.dll\n");
+	HMODULE shfolder = LoadLibrary( "shfolder.dll" );
+
+	if ( shfolder == NULL ) {
+		Com_Printf( "Unable to load SHFolder.dll\n" );
 		return NULL;
 	}
 
-	qSHGetFolderPath = GetProcAddress(shfolder, "SHGetFolderPathA");
-	if(qSHGetFolderPath == NULL)
-	{
-		Com_Printf("Unable to find SHGetFolderPath in SHFolder.dll\n");
-		FreeLibrary(shfolder);
+	qSHGetFolderPath = GetProcAddress( shfolder, "SHGetFolderPathA" );
+	if ( qSHGetFolderPath == NULL ) {
+		Com_Printf( "Unable to find SHGetFolderPath in SHFolder.dll\n" );
+		FreeLibrary( shfolder );
 		return NULL;
 	}
 
-	if( !SUCCEEDED( qSHGetFolderPath( NULL, CSIDL_APPDATA,
-		NULL, 0, szPath ) ) )
-	{
-		Com_Printf("Unable to detect CSIDL_APPDATA\n");
-		FreeLibrary(shfolder);
+	if ( !SUCCEEDED( qSHGetFolderPath( NULL, CSIDL_APPDATA,
+			 NULL, 0, szPath ) ) ) {
+		Com_Printf( "Unable to detect CSIDL_APPDATA\n" );
+		FreeLibrary( shfolder );
 		return NULL;
 	}
-	Q_strncpyz( path, szPath, sizeof(path) );
-	Q_strcat( path, sizeof(path), "\\Quake3" );
-	FreeLibrary(shfolder);
-	if( !CreateDirectory( path, NULL ) )
-	{
-		if( GetLastError() != ERROR_ALREADY_EXISTS )
-		{
-			Com_Printf("Unable to create directory \"%s\"\n", path);
+	Q_strncpyz( path, szPath, sizeof( path ) );
+	Q_strcat( path, sizeof( path ), "\\Quake3" );
+	FreeLibrary( shfolder );
+	if ( !CreateDirectory( path, NULL ) ) {
+		if ( GetLastError() != ERROR_ALREADY_EXISTS ) {
+			Com_Printf( "Unable to create directory \"%s\"\n", path );
 			return NULL;
 		}
 	}
 	return path;
 #else
-    return NULL;
+	return NULL;
 #endif
 }
 
@@ -150,11 +141,10 @@ const char *Sys_DefaultHomePath( void )
 Sys_SteamPath
 ================
 */
-const char *Sys_SteamPath( void )
-{
-	static TCHAR steamPath[ MAX_OSPATH ]; // will be converted from TCHAR to ANSI
+const char *Sys_SteamPath( void ) {
+	static TCHAR steamPath[MAX_OSPATH]; // will be converted from TCHAR to ANSI
 
-#if defined(STEAMPATH_NAME) || defined(STEAMPATH_APPID)
+#if defined( STEAMPATH_NAME ) || defined( STEAMPATH_APPID )
 	HKEY steamRegKey;
 	DWORD pathLen = MAX_OSPATH;
 	qboolean finishPath = qfalse;
@@ -162,47 +152,44 @@ const char *Sys_SteamPath( void )
 
 #ifdef STEAMPATH_APPID
 	// Assuming Steam is a 32-bit app
-	if ( !steamPath[0] && RegOpenKeyEx(HKEY_LOCAL_MACHINE, AtoW("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App " STEAMPATH_APPID), 0, KEY_QUERY_VALUE | KEY_WOW64_32KEY, &steamRegKey ) == ERROR_SUCCESS ) 
-	{
+	if ( !steamPath[0] && RegOpenKeyEx( HKEY_LOCAL_MACHINE, AtoW( "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App " STEAMPATH_APPID ), 0, KEY_QUERY_VALUE | KEY_WOW64_32KEY, &steamRegKey ) == ERROR_SUCCESS ) {
 		pathLen = sizeof( steamPath );
-		if ( RegQueryValueEx( steamRegKey, AtoW("InstallLocation"), NULL, NULL, (LPBYTE)steamPath, &pathLen ) != ERROR_SUCCESS )
-			steamPath[ 0 ] = '\0';
+		if ( RegQueryValueEx( steamRegKey, AtoW( "InstallLocation" ), NULL, NULL, (LPBYTE)steamPath, &pathLen ) != ERROR_SUCCESS )
+			steamPath[0] = '\0';
 
 		RegCloseKey( steamRegKey );
 	}
 
 #ifdef STEAMPATH_NAME
-	if ( !steamPath[0] && RegOpenKeyEx(HKEY_CURRENT_USER, AtoW("Software\\Valve\\Steam"), 0, KEY_QUERY_VALUE, &steamRegKey ) == ERROR_SUCCESS )
-	{
+	if ( !steamPath[0] && RegOpenKeyEx( HKEY_CURRENT_USER, AtoW( "Software\\Valve\\Steam" ), 0, KEY_QUERY_VALUE, &steamRegKey ) == ERROR_SUCCESS ) {
 		pathLen = sizeof( steamPath );
-		if ( RegQueryValueEx( steamRegKey, AtoW("SteamPath"), NULL, NULL, (LPBYTE)steamPath, &pathLen ) != ERROR_SUCCESS ) {
+		if ( RegQueryValueEx( steamRegKey, AtoW( "SteamPath" ), NULL, NULL, (LPBYTE)steamPath, &pathLen ) != ERROR_SUCCESS ) {
 			pathLen = sizeof( steamPath );
-			if ( RegQueryValueEx( steamRegKey, AtoW("InstallPath"), NULL, NULL, (LPBYTE)steamPath, &pathLen ) != ERROR_SUCCESS )
-				steamPath[ 0 ] = '\0';
+			if ( RegQueryValueEx( steamRegKey, AtoW( "InstallPath" ), NULL, NULL, (LPBYTE)steamPath, &pathLen ) != ERROR_SUCCESS )
+				steamPath[0] = '\0';
 		}
 
-		if ( steamPath[ 0 ] )
+		if ( steamPath[0] )
 			finishPath = qtrue;
 
 		RegCloseKey( steamRegKey );
 	}
 #endif
 
-	if ( steamPath[ 0 ] )
-	{
+	if ( steamPath[0] ) {
 		if ( pathLen == sizeof( steamPath ) )
 			pathLen--;
 
-		*( ((char*)steamPath) + pathLen )  = '\0';
+		*( ( (char *)steamPath ) + pathLen ) = '\0';
 #ifdef UNICODE
-		strcpy( (char*)steamPath, WtoA( steamPath ) );
+		strcpy( (char *)steamPath, WtoA( steamPath ) );
 #endif
 		if ( finishPath )
-			Q_strcat( (char*)steamPath, MAX_OSPATH, "\\SteamApps\\common\\" STEAMPATH_NAME );
+			Q_strcat( (char *)steamPath, MAX_OSPATH, "\\SteamApps\\common\\" STEAMPATH_NAME );
 	}
 #endif
 
-	return (const char*)steamPath;
+	return (const char *)steamPath;
 }
 
 
@@ -214,16 +201,15 @@ Sys_SetAffinityMask
 #ifdef USE_AFFINITY_MASK
 static HANDLE hCurrentProcess = 0;
 
-uint64_t Sys_GetAffinityMask( void )
-{
+uint64_t Sys_GetAffinityMask( void ) {
 	DWORD_PTR dwProcessAffinityMask;
 	DWORD_PTR dwSystemAffinityMask;
 
-	if ( hCurrentProcess == 0 )	{
+	if ( hCurrentProcess == 0 ) {
 		hCurrentProcess = GetCurrentProcess();
 	}
 
-	if ( GetProcessAffinityMask( hCurrentProcess, &dwProcessAffinityMask, &dwSystemAffinityMask ) )	{
+	if ( GetProcessAffinityMask( hCurrentProcess, &dwProcessAffinityMask, &dwSystemAffinityMask ) ) {
 		return (uint64_t)dwProcessAffinityMask;
 	}
 
@@ -231,15 +217,14 @@ uint64_t Sys_GetAffinityMask( void )
 }
 
 
-qboolean Sys_SetAffinityMask( const uint64_t mask )
-{
+qboolean Sys_SetAffinityMask( const uint64_t mask ) {
 	DWORD_PTR dwProcessAffinityMask = (DWORD_PTR)mask;
 
 	if ( hCurrentProcess == 0 ) {
 		hCurrentProcess = GetCurrentProcess();
 	}
 
-	if ( SetProcessAffinityMask( hCurrentProcess, dwProcessAffinityMask ) )	{
+	if ( SetProcessAffinityMask( hCurrentProcess, dwProcessAffinityMask ) ) {
 		//Sleep( 0 );
 		return qtrue;
 	}

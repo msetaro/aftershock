@@ -54,12 +54,10 @@ static PFN_vkCreateXlibSurfaceKHR qvkCreateXlibSurfaceKHR;
 **
 ** Unloads the specified DLL then nulls out all the proc pointers.
 */
-void QVK_Shutdown( qboolean unloadDLL )
-{
+void QVK_Shutdown( qboolean unloadDLL ) {
 	Com_Printf( "...shutting down QVK\n" );
 
-	if ( glw_state.VulkanLib && unloadDLL )
-	{
+	if ( glw_state.VulkanLib && unloadDLL ) {
 		Com_Printf( "...unloading Vulkan DLL\n" );
 		dlclose( glw_state.VulkanLib );
 		glw_state.VulkanLib = NULL;
@@ -71,17 +69,15 @@ void QVK_Shutdown( qboolean unloadDLL )
 }
 
 
-void *VK_GetInstanceProcAddr( VkInstance instance, const char *name )
-{
+void *VK_GetInstanceProcAddr( VkInstance instance, const char *name ) {
 	return (void *)qvkGetInstanceProcAddr( instance, name );
 }
 
 
-qboolean VK_CreateSurface( VkInstance instance, VkSurfaceKHR *surface )
-{
+qboolean VK_CreateSurface( VkInstance instance, VkSurfaceKHR *surface ) {
 	VkXlibSurfaceCreateInfoKHR desc;
 
-	qvkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR) VK_GetInstanceProcAddr( instance, "vkCreateXlibSurfaceKHR" );
+	qvkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)VK_GetInstanceProcAddr( instance, "vkCreateXlibSurfaceKHR" );
 	if ( !qvkCreateXlibSurfaceKHR )
 		return qfalse;
 
@@ -98,16 +94,13 @@ qboolean VK_CreateSurface( VkInstance instance, VkSurfaceKHR *surface )
 }
 
 
-static void *load_vulkan_library( const char *dllname )
-{
+static void *load_vulkan_library( const char *dllname ) {
 	void *lib;
 
 	lib = Sys_LoadLibrary( dllname );
-	if ( lib )
-	{
-		qvkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr) Sys_LoadFunction( lib, "vkGetInstanceProcAddr" );
-		if ( qvkGetInstanceProcAddr )
-		{
+	if ( lib ) {
+		qvkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)Sys_LoadFunction( lib, "vkGetInstanceProcAddr" );
+		if ( qvkGetInstanceProcAddr ) {
 			return lib;
 		}
 		Sys_UnloadLibrary( lib );
@@ -121,29 +114,24 @@ static void *load_vulkan_library( const char *dllname )
 ** QVK_Init
 **
 */
-qboolean QVK_Init( void )
-{
+qboolean QVK_Init( void ) {
 
 	Com_Printf( "...initializing QVK\n" );
 
-	if ( glw_state.VulkanLib == NULL )
-	{
+	if ( glw_state.VulkanLib == NULL ) {
 		const char *dllnames[] = { "libvulkan.so.1", "libvulkan.so" };
 		int i;
 
-		for ( i = 0; i < ARRAY_LEN( dllnames ); i++ )
-		{
+		for ( i = 0; i < ARRAY_LEN( dllnames ); i++ ) {
 			glw_state.VulkanLib = load_vulkan_library( dllnames[i] );
 
 			Com_Printf( "...loading '%s' : %s\n", dllnames[i], glw_state.VulkanLib ? "success" : "failed" );
-			if ( glw_state.VulkanLib )
-			{
+			if ( glw_state.VulkanLib ) {
 				break;
 			}
 		}
 
-		if ( !glw_state.VulkanLib )
-		{
+		if ( !glw_state.VulkanLib ) {
 			return qfalse;
 		}
 	}

@@ -35,36 +35,36 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 typedef struct {
-	int		i2;
-	int		facing;
+	int i2;
+	int facing;
 } edgeDef_t;
 
-#define	MAX_EDGE_DEFS	32
+#define MAX_EDGE_DEFS	32
 
-static	edgeDef_t	edgeDefs[SHADER_MAX_VERTEXES][MAX_EDGE_DEFS];
-static	int			numEdgeDefs[SHADER_MAX_VERTEXES];
-static	int			facing[SHADER_MAX_INDEXES/3];
+static edgeDef_t edgeDefs[SHADER_MAX_VERTEXES][MAX_EDGE_DEFS];
+static int numEdgeDefs[SHADER_MAX_VERTEXES];
+static int facing[SHADER_MAX_INDEXES / 3];
 
 static void R_AddEdgeDef( int i1, int i2, int f ) {
-	int		c;
+	int c;
 
-	c = numEdgeDefs[ i1 ];
+	c = numEdgeDefs[i1];
 	if ( c == MAX_EDGE_DEFS ) {
-		return;		// overflow
+		return; // overflow
 	}
-	edgeDefs[ i1 ][ c ].i2 = i2;
-	edgeDefs[ i1 ][ c ].facing = f;
+	edgeDefs[i1][c].i2 = i2;
+	edgeDefs[i1][c].facing = f;
 
-	numEdgeDefs[ i1 ]++;
+	numEdgeDefs[i1]++;
 }
 
 
 static void R_CalcShadowEdges( void ) {
 	qboolean sil_edge;
-	int		i;
-	int		c, c2;
-	int		j, k;
-	int		i2;
+	int i;
+	int c, c2;
+	int j, k;
+	int i2;
 
 	tess.numIndexes = 0;
 
@@ -73,17 +73,17 @@ static void R_CalcShadowEdges( void ) {
 	// A well behaved polyhedron would have exactly two faces for each edge,
 	// but lots of models have dangling edges or overfanned edges
 	for ( i = 0; i < tess.numVertexes; i++ ) {
-		c = numEdgeDefs[ i ];
-		for ( j = 0 ; j < c ; j++ ) {
-			if ( !edgeDefs[ i ][ j ].facing ) {
+		c = numEdgeDefs[i];
+		for ( j = 0; j < c; j++ ) {
+			if ( !edgeDefs[i][j].facing ) {
 				continue;
 			}
 
 			sil_edge = qtrue;
-			i2 = edgeDefs[ i ][ j ].i2;
-			c2 = numEdgeDefs[ i2 ];
-			for ( k = 0 ; k < c2 ; k++ ) {
-				if ( edgeDefs[ i2 ][ k ].i2 == i && edgeDefs[ i2 ][ k ].facing ) {
+			i2 = edgeDefs[i][j].i2;
+			c2 = numEdgeDefs[i2];
+			for ( k = 0; k < c2; k++ ) {
+				if ( edgeDefs[i2][k].i2 == i && edgeDefs[i2][k].facing ) {
 					sil_edge = qfalse;
 					break;
 				}
@@ -96,12 +96,12 @@ static void R_CalcShadowEdges( void ) {
 					i = tess.numVertexes;
 					break;
 				}
-				tess.indexes[ tess.numIndexes + 0 ] = i;
-				tess.indexes[ tess.numIndexes + 1 ] = i + tess.numVertexes;
-				tess.indexes[ tess.numIndexes + 2 ] = i2;
-				tess.indexes[ tess.numIndexes + 3 ] = i2;
-				tess.indexes[ tess.numIndexes + 4 ] = i + tess.numVertexes;
-				tess.indexes[ tess.numIndexes + 5 ] = i2 + tess.numVertexes;
+				tess.indexes[tess.numIndexes + 0] = i;
+				tess.indexes[tess.numIndexes + 1] = i + tess.numVertexes;
+				tess.indexes[tess.numIndexes + 2] = i2;
+				tess.indexes[tess.numIndexes + 3] = i2;
+				tess.indexes[tess.numIndexes + 4] = i + tess.numVertexes;
+				tess.indexes[tess.numIndexes + 5] = i2 + tess.numVertexes;
 				tess.numIndexes += 6;
 			}
 		}
@@ -122,9 +122,9 @@ triangleFromEdge[ v1 ][ v2 ]
 =================
 */
 void RB_ShadowTessEnd( void ) {
-	int		i;
-	int		numTris;
-	vec3_t	lightDir;
+	int i;
+	int numTris;
+	vec3_t lightDir;
 	GLboolean rgba[4];
 
 	if ( glConfig.stencilBits < 4 ) {
@@ -146,26 +146,26 @@ void RB_ShadowTessEnd( void ) {
 
 	// project vertexes away from light direction
 	for ( i = 0; i < tess.numVertexes; i++ ) {
-		VectorMA( tess.xyz[i], -512, lightDir, tess.xyz[i+tess.numVertexes] );
+		VectorMA( tess.xyz[i], -512, lightDir, tess.xyz[i + tess.numVertexes] );
 	}
 
 	// decide which triangles face the light
 	Com_Memset( numEdgeDefs, 0, tess.numVertexes * sizeof( numEdgeDefs[0] ) );
 
 	numTris = tess.numIndexes / 3;
-	for ( i = 0 ; i < numTris ; i++ ) {
-		int		i1, i2, i3;
-		vec3_t	d1, d2, normal;
-		float	*v1, *v2, *v3;
-		float	d;
+	for ( i = 0; i < numTris; i++ ) {
+		int i1, i2, i3;
+		vec3_t d1, d2, normal;
+		float *v1, *v2, *v3;
+		float d;
 
-		i1 = tess.indexes[ i*3 + 0 ];
-		i2 = tess.indexes[ i*3 + 1 ];
-		i3 = tess.indexes[ i*3 + 2 ];
+		i1 = tess.indexes[i * 3 + 0];
+		i2 = tess.indexes[i * 3 + 1];
+		i3 = tess.indexes[i * 3 + 2];
 
-		v1 = tess.xyz[ i1 ];
-		v2 = tess.xyz[ i2 ];
-		v3 = tess.xyz[ i3 ];
+		v1 = tess.xyz[i1];
+		v2 = tess.xyz[i2];
+		v3 = tess.xyz[i3];
 
 		VectorSubtract( v2, v1, d1 );
 		VectorSubtract( v3, v1, d2 );
@@ -173,15 +173,15 @@ void RB_ShadowTessEnd( void ) {
 
 		d = DotProduct( normal, lightDir );
 		if ( d > 0 ) {
-			facing[ i ] = 1;
+			facing[i] = 1;
 		} else {
-			facing[ i ] = 0;
+			facing[i] = 0;
 		}
 
 		// create the edges
-		R_AddEdgeDef( i1, i2, facing[ i ] );
-		R_AddEdgeDef( i2, i3, facing[ i ] );
-		R_AddEdgeDef( i3, i1, facing[ i ] );
+		R_AddEdgeDef( i1, i2, facing[i] );
+		R_AddEdgeDef( i2, i3, facing[i] );
+		R_AddEdgeDef( i3, i1, facing[i] );
 	}
 
 	R_CalcShadowEdges();
@@ -192,7 +192,7 @@ void RB_ShadowTessEnd( void ) {
 	qglVertexPointer( 3, GL_FLOAT, sizeof( tess.xyz[0] ), tess.xyz );
 
 	if ( qglLockArraysEXT )
-		qglLockArraysEXT( 0, tess.numVertexes*2 );
+		qglLockArraysEXT( 0, tess.numVertexes * 2 );
 
 	// draw the silhouette edges
 
@@ -222,7 +222,7 @@ void RB_ShadowTessEnd( void ) {
 		qglUnlockArraysEXT();
 
 	// re-enable writing to the color buffer
-	qglColorMask(rgba[0], rgba[1], rgba[2], rgba[3]);
+	qglColorMask( rgba[0], rgba[1], rgba[2], rgba[3] );
 
 	qglEnable( GL_TEXTURE_2D );
 
@@ -246,9 +246,9 @@ void RB_ShadowFinish( void ) {
 
 	static const vec3_t verts[4] = {
 		{ -100, 100, -10 },
-		{  100, 100, -10 },
-		{ -100,-100, -10 },
-		{  100,-100, -10 }
+		{ 100, 100, -10 },
+		{ -100, -100, -10 },
+		{ 100, -100, -10 }
 	};
 
 	if ( !backEnd.doneShadows ) {
@@ -298,16 +298,16 @@ RB_ProjectionShadowDeform
 =================
 */
 void RB_ProjectionShadowDeform( void ) {
-	float	*xyz;
-	int		i;
-	float	h;
-	vec3_t	ground;
-	vec3_t	light;
-	float	groundDist;
-	float	d;
-	vec3_t	lightDir;
+	float *xyz;
+	int i;
+	float h;
+	vec3_t ground;
+	vec3_t light;
+	float groundDist;
+	float d;
+	vec3_t lightDir;
 
-	xyz = ( float * ) tess.xyz;
+	xyz = (float *)tess.xyz;
 
 	ground[0] = backEnd.orientation.axis[0][2];
 	ground[1] = backEnd.orientation.axis[1][2];
@@ -325,7 +325,7 @@ void RB_ProjectionShadowDeform( void ) {
 	d = DotProduct( lightDir, ground );
 	// don't let the shadows get too long or go negative
 	if ( d < 0.5 ) {
-		((lightDir)[0]=(float)((lightDir)[0]+(ground)[0]*((0.5 - d))),(lightDir)[1]=(float)((lightDir)[1]+(ground)[1]*((0.5 - d))),(lightDir)[2]=(float)((lightDir)[2]+(ground)[2]*((0.5 - d))));
+		( ( lightDir )[0] = (float)( ( lightDir )[0] + ( ground )[0] * ( ( 0.5 - d ) ) ), ( lightDir )[1] = (float)( ( lightDir )[1] + ( ground )[1] * ( ( 0.5 - d ) ) ), ( lightDir )[2] = (float)( ( lightDir )[2] + ( ground )[2] * ( ( 0.5 - d ) ) ) );
 		d = DotProduct( lightDir, ground );
 	}
 	d = (float)( 1.0 / d );

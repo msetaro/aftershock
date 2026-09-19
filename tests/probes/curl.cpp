@@ -2,10 +2,11 @@
 #include "../../engine/client/cl_curl.cpp"
 #include <assert.h>
 
-void QDECL Com_DPrintf( const char *fmt, ... ) { (void)fmt; }
+void QDECL Com_DPrintf( const char *fmt, ... ) {
+	(void)fmt;
+}
 
-int main( int argc, char **argv )
-{
+int main( int argc, char **argv ) {
 	char data[64] = { 0 }, *private_data = NULL;
 	CURL *curl;
 	FILE *output;

@@ -30,18 +30,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 //library variable
-typedef struct libvar_s
-{
-	char		*name;
-	char		*string;
-	int		flags;
-	qboolean	modified;	// set each time the cvar is changed
-	float		value;
-	struct	libvar_s *next;
+typedef struct libvar_s {
+	char *name;
+	char *string;
+	int flags;
+	qboolean modified; // set each time the cvar is changed
+	float value;
+	struct libvar_s *next;
 } libvar_t;
 
 //removes all library variables
-void LibVarDeAllocAll(void);
+void LibVarDeAllocAll( void );
 //gets the library variable with the given name
 libvar_t *LibVarGet( const char *var_name );
 //gets the string of the library variable with the given name

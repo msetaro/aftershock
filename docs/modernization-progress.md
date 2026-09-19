@@ -15,21 +15,32 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-apple-deprecations. Remove the two unreferenced native parser
-error/warning functions and declarations, then remove both Apple deprecation
-warning disables. All twelve refreshed GCC/Clang C/C++ helper/layout builds pass;
-exports remove exactly COM_ParseError/COM_ParseWarning. Source search found no
-native consumers. Engine versions are retained. Owned CMake warning flags now
-have no -Wno-* list; MSVC /W4 /WX remains in force. The plan's warning row records
-this policy. Other #8 work is still pending.
+Active: #8 formatting branch issue/8-clang-format. Applied the single tree-wide
+clang-format 21.1.8 pass to 399 of 410 owned source files. Final proof:
+1,810 release assemblies, 1,802 byte-identical; eight sys_runtime assemblies
+change only inline-assembly source-location comments. All 19 native export
+assemblies are byte-identical. Nineteen compiled sys_runtime samples preserve
+code/data (15 raw-identical, four debug-only). All 410 files are idempotent with
+AlignTrailingComments.Kind=Never and 20 whitespace-sensitive macros.
+Evidence: format-final-source.json, format-final-assembly-review.json,
+format-final-runtime-object-review.json and format-final-idempotence.log.
+Formatting source commit: f3f6b3fa. Twelve formatted native helpers preserve
+all ELF bytes except the two assertion source-line immediates and resulting
+build IDs (format-helper-review.json); their layouts pass. Unit golden and
+one-ULP negative control pass, and fixed Quake 3 replay retains b38004b1.
+Two test-source selectors now tolerate the authoritative whitespace: Q_rsqrt's
+opening brace and the OpenArena layout probe's extension-trap statement.
+OpenArena helper builds/layouts pass. No accepted golden was changed.
+Post-warning native baseline completed at a296e69a: post-warning-native.json.
+PR #131 merged-tree regression 35475248201 passes. Next: add the pinned format
+CI check and GPL provenance, run current-tree helpers/replay/hosted gates,
+self-review and merge. Then tidy, fixed-width/layout and Q_ASSERT; #8 remains open.
 
-Native GPL provenance records source 05eca339 with original hashes unchanged.
-Next: run full hosted build/regression and local
-fixed replay, verify #130 merged-tree regression, self-review and merge. Then
-record the final warning-tree twelve-helper baseline and refresh the single
-formatting proof with the 20 whitespace-sensitive macro names. No accepted golden
-changes. Evidence: pre-apple-final-native.json and unused-parser-diagnostics-final-*
-artifacts. The earlier preview is historical and superseded by this refreshed one.
+PR #131 verification: source 05eca339/head a296e69a, build 35474814153,
+regression 35474814201 and preceding merged-tree regression 35474771300 pass.
+All macOS legs pass with deprecation errors enabled. Twelve native helper/layout
+builds remove only the two unused diagnostic exports; local fixed replay keeps
+b38004b1. Original GPL hashes and accepted goldens remain unchanged.
 
 PR #130 verification: source 0eb07ced, head dc005462. Build 35474393459,
 regression 35474393491 and preceding merged-tree regression 35474358929 pass.
@@ -112,12 +123,17 @@ code/data; twelve helper hashes/layouts match. Evidence: msvc-typedef-*.
 
 ## Prepared #8 work
 
-Baseline rule for upcoming proofs: post-formatter-native.json is historical.
-Retiring the print-test exports changes cgame hashes, and the #31 formatting fixes
-change game/diagnostic code. After the remaining warning/formatter work, build and
-record a fresh twelve-helper baseline before refreshing the final format, width
-or assertion previews. Their earlier byte/hash results document those earlier
-revisions and must not be claimed as final-tree evidence.
+Final formatting proof is complete against #131 head a296e69a. All 410 input
+hashes matched before applying the cached result to the root worktree. The
+original trailing-comment alignment oscillated in l_precomp and needed a second
+pass in twelve other files; disabling trailing-comment alignment resolves this.
+Evidence: format-comment-alignment-review.json and format-fixedpoint-experiment.json.
+The pinned clang-format 21.1.8 package is available for hosted CI; no local
+package installation is needed. Accepted fixtures and goldens remain unchanged.
+
+Baseline rule: use post-warning-native.json (a296e69a) for upcoming proofs.
+post-formatter-native.json and earlier width/assertion previews are historical;
+refresh those candidates against the final formatted tree before claiming results.
 
 MISSIONPACK constness preview: missionpack-const-preview makes only the read-only
 Team_FragBonuses search-name pointer const and removes its two redundant casts.

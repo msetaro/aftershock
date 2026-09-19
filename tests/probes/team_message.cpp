@@ -16,9 +16,12 @@ static int sent;
 static int format_result( char *text, const char *format, va_list args ) {
 	// Intercept the formatter result with small text; never make an oversized write.
 	int result = vsnprintf( text, 1024, format, args );
-	if ( !strcmp( mode, "full" ) ) return 1024;
-	if ( !strcmp( mode, "error" ) ) return -1;
-	if ( !strcmp( mode, "fit" ) ) return 1023;
+	if ( !strcmp( mode, "full" ) )
+		return 1024;
+	if ( !strcmp( mode, "error" ) )
+		return -1;
+	if ( !strcmp( mode, "fit" ) )
+		return 1023;
 	return result;
 }
 

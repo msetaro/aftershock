@@ -20,13 +20,13 @@ int main( int argc, char **argv ) {
 		{ "", "a", "" },
 		{ "\\a\\1\\b\\2", "a\\b", "\\a\\1\\b\\2" }
 	};
-	void (*removeKey)( char *, const char * );
+	void ( *removeKey )( char *, const char * );
 	unsigned i;
 	char info[128];
 
 	assert( argc == 2 );
 	removeKey = !strcmp( argv[1], "big" ) ? Info_RemoveKey_Big : Info_RemoveKey;
-	for ( i = 0; i < sizeof(cases) / sizeof(cases[0]); i++ ) {
+	for ( i = 0; i < sizeof( cases ) / sizeof( cases[0] ); i++ ) {
 		strcpy( info, cases[i].input );
 		removeKey( info, cases[i].key );
 		assert( !strcmp( info, cases[i].expected ) );

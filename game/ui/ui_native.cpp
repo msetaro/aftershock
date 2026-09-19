@@ -7,7 +7,7 @@ void trap_Error( const char *string ) {
 	UIImport_Error( string );
 }
 int trap_Milliseconds( void ) {
-	return UIImport_Milliseconds(  );
+	return UIImport_Milliseconds();
 }
 void trap_Cvar_Register( vmCvar_t *cvar, const char *var_name, const char *value, int flags ) {
 	UIImport_Cvar_Register( cvar, var_name, value, flags );
@@ -37,7 +37,7 @@ void trap_Cvar_InfoStringBuffer( int bit, char *buffer, int bufsize ) {
 	UIImport_Cvar_InfoStringBuffer( bit, buffer, bufsize );
 }
 int trap_Argc( void ) {
-	return UIImport_Argc(  );
+	return UIImport_Argc();
 }
 void trap_Argv( int n, char *buffer, int bufferLength ) {
 	UIImport_Argv( n, buffer, bufferLength );
@@ -76,12 +76,12 @@ qhandle_t trap_R_RegisterShaderNoMip( const char *name ) {
 	return UIImport_R_RegisterShaderNoMip( name );
 }
 void trap_R_ClearScene( void ) {
-	UIImport_R_ClearScene(  );
+	UIImport_R_ClearScene();
 }
 void trap_R_AddRefEntityToScene( const refEntity_t *re ) {
 	UIImport_R_AddRefEntityToScene( re );
 }
-void trap_R_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts ) {
+void trap_R_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts ) {
 	UIImport_R_AddPolyToScene( hShader, numVerts, verts );
 }
 void trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
@@ -100,7 +100,7 @@ void trap_R_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs ) {
 	UIImport_R_ModelBounds( model, mins, maxs );
 }
 void trap_UpdateScreen( void ) {
-	UIImport_UpdateScreen(  );
+	UIImport_UpdateScreen();
 }
 int trap_CM_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName ) {
 	return UIImport_CM_LerpTag( tag, mod, startFrame, endFrame, frac, tagName );
@@ -124,16 +124,16 @@ qboolean trap_Key_IsDown( int keynum ) {
 	return (qboolean)UIImport_Key_IsDown( keynum );
 }
 qboolean trap_Key_GetOverstrikeMode( void ) {
-	return (qboolean)UIImport_Key_GetOverstrikeMode(  );
+	return (qboolean)UIImport_Key_GetOverstrikeMode();
 }
 void trap_Key_SetOverstrikeMode( qboolean state ) {
 	UIImport_Key_SetOverstrikeMode( state );
 }
 void trap_Key_ClearStates( void ) {
-	UIImport_Key_ClearStates(  );
+	UIImport_Key_ClearStates();
 }
 int trap_Key_GetCatcher( void ) {
-	return UIImport_Key_GetCatcher(  );
+	return UIImport_Key_GetCatcher();
 }
 void trap_Key_SetCatcher( int catcher ) {
 	UIImport_Key_SetCatcher( catcher );
@@ -147,7 +147,7 @@ void trap_GetClientState( uiClientState_t *state ) {
 void trap_GetGlconfig( glconfig_t *glconfig ) {
 	UIImport_GetGlconfig( glconfig );
 }
-int trap_GetConfigString( int index, char* buff, int buffsize ) {
+int trap_GetConfigString( int index, char *buff, int buffsize ) {
 	return UIImport_GetConfigString( index, buff, buffsize );
 }
 int trap_LAN_GetServerCount( int source ) {
@@ -163,16 +163,16 @@ int trap_LAN_GetServerPing( int source, int n ) {
 	return UIImport_LAN_GetServerPing( source, n );
 }
 int trap_LAN_GetPingQueueCount( void ) {
-	return UIImport_LAN_GetPingQueueCount(  );
+	return UIImport_LAN_GetPingQueueCount();
 }
 int trap_LAN_ServerStatus( const char *serverAddress, char *serverStatus, int maxLen ) {
 	return UIImport_LAN_ServerStatus( serverAddress, serverStatus, maxLen );
 }
-void trap_LAN_SaveCachedServers(  ) {
-	UIImport_LAN_SaveCachedServers(  );
+void trap_LAN_SaveCachedServers() {
+	UIImport_LAN_SaveCachedServers();
 }
-void trap_LAN_LoadCachedServers(  ) {
-	UIImport_LAN_LoadCachedServers(  );
+void trap_LAN_LoadCachedServers() {
+	UIImport_LAN_LoadCachedServers();
 }
 void trap_LAN_ResetPings( int n ) {
 	UIImport_LAN_ResetPings( n );
@@ -205,7 +205,7 @@ int trap_LAN_CompareServers( int source, int sortKey, int sortDir, int s1, int s
 	return UIImport_LAN_CompareServers( source, sortKey, sortDir, s1, s2 );
 }
 int trap_MemoryRemaining( void ) {
-	return UIImport_MemoryRemaining(  );
+	return UIImport_MemoryRemaining();
 }
 void trap_GetCDKey( char *buf, int buflen ) {
 	UIImport_GetCDKey( buf, buflen );
@@ -229,7 +229,7 @@ int trap_PC_SourceFileAndLine( int handle, char *filename, int *line ) {
 	return UIImport_PC_SourceFileAndLine( handle, filename, line );
 }
 void trap_S_StopBackgroundTrack( void ) {
-	UIImport_S_StopBackgroundTrack(  );
+	UIImport_S_StopBackgroundTrack();
 }
 void trap_S_StartBackgroundTrack( const char *intro, const char *loop ) {
 	UIImport_S_StartBackgroundTrack( intro, loop );
