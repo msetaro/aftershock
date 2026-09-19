@@ -15,7 +15,8 @@ args.output.mkdir(parents=True, exist_ok=True)
 for mode, flags in [('base', []), ('missionpack', ['-DMISSIONPACK'])]:
     binary = args.output.resolve() / mode
     run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
-         '-DCOM_TRAP_GETVALUE=700', *flags, '-ffunction-sections', '-fdata-sections',
+         '-DCOM_TRAP_GETVALUE=700', '-Werror=write-strings', *flags,
+         '-ffunction-sections', '-fdata-sections',
          '-fsanitize=address,undefined', '-fno-sanitize-recover=all',
          'tests/probes/team_message.cpp', '-Wl,--gc-sections', '-o', binary])
     for case, expected in [('valid', 0), ('fit', 0), ('full', 42), ('error', 42)]:

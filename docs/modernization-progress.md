@@ -15,16 +15,24 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/31-native-diagnostic-capacity. The test-first native diagnostic
-capacity/routing probe is committed before the fix. `python3 tests/native_diagnostics.py`
-fails on the game print contract because no destination capacity reaches the
-formatter. Earlier cached checks cover all twelve paths with the same failure.
-Only ordinary small text is used. Test commit a3652169 precedes the twelve-call
-fix now applied with CI/docs. Next: record GPL provenance, run local and hosted
-gates plus #128 merged-tree regression, then self-review/merge. Diagnostics
-truncate to their existing capacities; error routes and log prefix are retained.
-Fix f3facd3a is recorded with original GPL import hashes unchanged. GCC and
-Clang/libc++ both pass all twelve ASan/UBSan contract checks.
+Active: issue/8-missionpack-string-constness. The read-only Team_FragBonuses
+search-name pointer is const; two redundant literal casts are removed. G_Find
+already receives const char*. GCC/Clang base/MISSIONPACK release objects are
+byte-identical. The permanent team-message compile check now treats writable
+string conversions as errors in both configurations. No simulation or layout
+change; native GPL provenance retains original hashes.
+
+Next: run the permanent checks and full hosted gates, verify #129 merged-tree
+regression, self-review and merge. Then delete the unused native diagnostics and
+remove the Apple deprecation disable before refreshing the final #8 baselines.
+Evidence: missionpack-const-preview/{changes,results}.json and compiler logs.
+
+PR #129 verification: test a3652169, fix f3facd3a, head ef18757a. Build
+35473984319, regression 35473984309 and preceding merged-tree regression
+35473860807 pass. Twelve diagnostic paths pass with GCC and Clang/libc++ under
+ASan/UBSan. Local smoke retains fea77580/14c8ee7d with the documented host-address
+exclusion; fixed replay retains b38004b1. Original GPL hashes and accepted goldens
+stay unchanged. Evidence: native-diagnostics-* artifacts.
 
 PR #128 verification: test 1ef998b0, fix e8752ef1, head 901106f1. Build
 35473480437, regression 35473480441 and preceding merged-tree regression
