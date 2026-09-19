@@ -141,7 +141,8 @@
     "639fb07e": "#8 parentheses-equality: remove redundant inner parentheses in G_VoiceTo; comparison, source line count and executable code unchanged",
     "9e4d45f0": "#8 self-assign: remove the redundant fov_x assignment while retaining the branch and arithmetic; all compared production/native objects unchanged",
     "f9dbcb07": "#8 MSVC C4065: remove the default-only UI status switch; release/native code unchanged",
-    "3eaba64d": "#8 MSVC C4267: make existing size_t-to-int conversions explicit; production code/data unchanged"
+    "3eaba64d": "#8 MSVC C4267: make existing size_t-to-int conversions explicit; production code/data unchanged",
+    "74689b95": "#8 MSVC C4457: rename local bleed alpha; production/native code and data unchanged"
   },
   "files": [
     {
@@ -277,7 +278,8 @@
         "5592a1eb",
         "436bbab1",
         "05cb1e37",
-        "93d334db"
+        "93d334db",
+        "74689b95"
       ]
     },
     {

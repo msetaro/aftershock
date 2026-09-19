@@ -805,12 +805,12 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha [[maybe_unus
 	{
 		vec3_t	rr, ru;
 		vec3_t	rotate_ang;
-		float	alpha;
+		float	bleedAlpha;
 
-		alpha = p->alpha;
+		bleedAlpha = p->alpha;
 		
 		if ( cgs.glconfig.hardwareType == GLHW_RAGEPRO )
-			alpha = 1;
+			bleedAlpha = 1;
 
 		if (p->roll) 
 		{
@@ -832,7 +832,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha [[maybe_unus
 		verts[0].modulate[0] = 111;	
 		verts[0].modulate[1] = 19;	
 		verts[0].modulate[2] = 9;	
-		verts[0].modulate[3] = 255 * alpha;	
+		verts[0].modulate[3] = 255 * bleedAlpha;
 
 		VectorMA (org, -p->height, ru, point);	
 		VectorMA (point, p->width, rr, point);	
@@ -842,7 +842,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha [[maybe_unus
 		verts[1].modulate[0] = 111;	
 		verts[1].modulate[1] = 19;	
 		verts[1].modulate[2] = 9;	
-		verts[1].modulate[3] = 255 * alpha;	
+		verts[1].modulate[3] = 255 * bleedAlpha;
 
 		VectorMA (org, p->height, ru, point);	
 		VectorMA (point, p->width, rr, point);	
@@ -852,7 +852,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha [[maybe_unus
 		verts[2].modulate[0] = 111;	
 		verts[2].modulate[1] = 19;	
 		verts[2].modulate[2] = 9;	
-		verts[2].modulate[3] = 255 * alpha;	
+		verts[2].modulate[3] = 255 * bleedAlpha;
 
 		VectorMA (org, p->height, ru, point);	
 		VectorMA (point, -p->width, rr, point);	
@@ -862,7 +862,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha [[maybe_unus
 		verts[3].modulate[0] = 111;	
 		verts[3].modulate[1] = 19;	
 		verts[3].modulate[2] = 9;	
-		verts[3].modulate[3] = 255 * alpha;	
+		verts[3].modulate[3] = 255 * bleedAlpha;
 
 	}
 	else if (p->type == P_FLAT_SCALEUP)
