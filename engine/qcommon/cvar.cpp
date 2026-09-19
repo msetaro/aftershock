@@ -489,7 +489,7 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 	cvar_modifiedFlags |= var->flags;
 
 	hash = generateHashValue( var_name );
-	var->hashIndex = hash;
+	var->hashIndex = (int)hash;
 
 	var->hashNext = hashTable[hash];
 	if ( hashTable[hash] )

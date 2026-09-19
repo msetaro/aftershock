@@ -221,6 +221,12 @@ typedef union {
 typedef int32_t qhandle_t;
 typedef int32_t sfxHandle_t;
 typedef int32_t fileHandle_t;
+// Preserve the legacy seek and journal field width on each supported platform.
+#ifdef _WIN32
+typedef int32_t fsOffset_t;
+#else
+typedef int64_t fsOffset_t;
+#endif
 typedef int32_t clipHandle_t;
 
 #define PAD( base, alignment )	(((base)+(alignment)-1) & ~((alignment)-1))
@@ -720,7 +726,13 @@ void COM_StripExtension( const char *in, char *out, int destsize );
 qboolean COM_CompareExtension( const char *in, const char *ext );
 void COM_DefaultExtension( char *path, int maxSize, const char *extension );
 
-uint64_t Com_GenerateHashValue( const char *fname, const unsigned int size );
+// Keep existing hash buckets while making the accumulator width explicit.
+#ifdef _WIN32
+typedef uint32_t hashValue_t;
+#else
+typedef uint64_t hashValue_t;
+#endif
+hashValue_t Com_GenerateHashValue( const char *fname, const unsigned int size );
 
 void COM_BeginParseSession( const char *name );
 int COM_GetCurrentParseLine( void );

@@ -30,7 +30,7 @@ void trap_FS_FCloseFile( fileHandle_t f ) {
 int trap_FS_GetFileList( const char *path, const char *extension, char *listbuf, int bufsize ) {
 	return GameImport_FS_GetFileList( path, extension, listbuf, bufsize );
 }
-int trap_FS_Seek( fileHandle_t f, int64_t offset, int origin ) {
+int trap_FS_Seek( fileHandle_t f, fsOffset_t offset, int origin ) {
 	return GameImport_FS_Seek( f, offset, origin );
 }
 void trap_SendConsoleCommand( int exec_when, const char *text ) {

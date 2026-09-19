@@ -408,7 +408,7 @@ static void AAS_FileInfo( void ) {
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-static char *AAS_LoadAASLump( fileHandle_t fp, int64_t offset, unsigned length, int64_t *lastoffset, unsigned size ) {
+static char *AAS_LoadAASLump( fileHandle_t fp, fsOffset_t offset, unsigned length, fsOffset_t *lastoffset, unsigned size ) {
 	char *buf;
 	//
 	if ( !length ) {
@@ -466,7 +466,7 @@ static void AAS_DData( unsigned char *data, int size ) {
 int AAS_LoadAASFile( char *filename ) {
 	fileHandle_t fp;
 	aas_header_t header;
-	int64_t offset, lastoffset;
+	fsOffset_t offset, lastoffset;
 	unsigned length;
 	const char *err;
 

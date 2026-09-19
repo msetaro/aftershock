@@ -1961,7 +1961,7 @@ FS_Seek
 
 =================
 */
-int FS_Seek( fileHandle_t f, int64_t offset, fsOrigin_t origin ) {
+int FS_Seek( fileHandle_t f, fsOffset_t offset, fsOrigin_t origin ) {
 	int _origin;
 
 	if ( !fs_searchpaths ) {
@@ -2134,7 +2134,7 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 	fileHandle_t h;
 	byte *buf;
 	qboolean isConfig;
-	int64_t len;
+	fsOffset_t len;
 
 	if ( !fs_searchpaths ) {
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
@@ -2614,7 +2614,7 @@ static qboolean FS_SavePackToFile( const pack_t *pak, FILE *f ) {
 
 	// file entries
 	for ( i = 0; i < pak->numfiles; i++ ) {
-		it.name = (uint64_t)( pak->buildBuffer[i].name - namePtr );
+		it.name = (pk3cacheItemOffset_t)( pak->buildBuffer[i].name - namePtr );
 		it.size = pak->buildBuffer[i].size;
 		it.pos = pak->buildBuffer[i].pos;
 		fwrite( &it, sizeof( it ), 1, f );
@@ -5574,7 +5574,7 @@ void FS_VM_WriteFile( void *buffer, int len, fileHandle_t f, handleOwner_t owner
 }
 
 
-int FS_VM_SeekFile( fileHandle_t f, int64_t offset, fsOrigin_t origin, handleOwner_t owner ) {
+int FS_VM_SeekFile( fileHandle_t f, fsOffset_t offset, fsOrigin_t origin, handleOwner_t owner ) {
 	int r;
 
 	if ( f <= 0 || f >= MAX_FILE_HANDLES )

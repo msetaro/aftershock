@@ -168,9 +168,9 @@ static const byte hash_locase[256] = {
 	0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff
 };
 
-uint64_t Com_GenerateHashValue( const char *fname, const unsigned int size ) {
+hashValue_t Com_GenerateHashValue( const char *fname, const unsigned int size ) {
 	const byte *s;
-	uint64_t hash;
+	hashValue_t hash;
 	int c;
 
 	s = (byte *)fname;
