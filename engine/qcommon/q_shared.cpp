@@ -1726,7 +1726,7 @@ int QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
 	}
 
 	va_start( argptr, fmt );
-	len = vsprintf( bigbuffer, fmt, argptr );
+	len = Q_vsnprintf( bigbuffer, sizeof( bigbuffer ), fmt, argptr );
 	va_end( argptr );
 
 	if ( (size_t)len >= sizeof( bigbuffer ) || len < 0 )

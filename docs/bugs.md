@@ -45,6 +45,13 @@ Reproduction uses the real engine helper compiled as C++20 and the GPL helper co
 
 Artifacts: ~/.cache/aftershock-modernization/format-capacity.cpp, format-capacity-{engine,game}-{sprintf,va}.log, format-capacity-results.json. Permanent small regression commands will be added test-first in the respective #31 branches. The ordinary regression suite currently does not exercise these boundaries.
 
+Com_sprintf test-first commit b3c44459 adds `python3 tests/format.py`: the old
+implementation fails with ASan before its guard, while normal text, destination
+truncation and in-place formatting pass. Bounding the shared temporary with
+Q_vsnprintf (engine) / vsnprintf (native game) makes all six GCC/Clang C/C++
+variants pass under ASan/UBSan. Hosted gates and merge remain pending; the va
+defect is separate and still unfixed. No accepted golden changes.
+
 ## Historical observations and validation
 
 The entries below preserve what was known at each checkpoint. Statements such as
