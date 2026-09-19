@@ -12,18 +12,29 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-standard-offset. #91 merged d7f7a5ae after head 4a47cf0c passed
-build 35453776473 and regression 35453776521; self-review is recorded on #91/#8.
-Its merged-tree regression remains to check. #90 merged-tree regression
-35453396608 passes. Open this separate MSVC C4644 PR and require all hosted
-gates/self-review before merging.
+Active: issue/8-default-switch. #92 merged 171aae59 after cf4f6f1e passed build
+35454263836 and regression 35454263796; self-review is recorded on #92/#8.
+Its merged-tree regression remains to check. #91 merged-tree regression
+35454219335 passes. Source f9dbcb07 and its UI provenance are recorded. Open this MSVC C4065 PR;
+require all hosted gates/self-review before merging.
 
-This branch replaces the DirectInput wheel offset macro with standard
-`offsetof( DIMOUSESTATE, lZ )` and promotes MSVC C4644 to an error. q_shared.h
-already includes stddef.h. All three affected MinGW release/debug production
-objects preserve raw/native hashes. No calls, values, layouts, arithmetic,
-lifetimes or allocation change. Artifacts: offsetof-preview and offsetof-objects
-in /home/matt/.cache/aftershock-modernization.
+This branch removes default-only switch wrappers from two AAS trace paths and
+the UI status callback. Their unconditional statements and FP expressions remain
+unchanged; the unused callback parameter is marked maybe_unused. Disabled axial
+cases are replaced by their existing rationale: planes are not always positive-
+facing. MSVC C4065 becomes an error.
+
+All 28 affected production objects build: 19 release objects are raw/native-
+identical; nine debug objects differ only in no-ops and addresses, with all branch
+target instruction indices and remaining instructions/relocations verified.
+All four GCC/Clang C/C++ native UI libraries/layouts retain hashes. No new OS
+access, lifetimes, allocation or accepted golden changes. Persistent artifacts:
+default-switch-{preview,objects,native*,final-review.json,review.py}.
+
+Completed standard offset #92: source cf4f6f1e replaces the DirectInput wheel
+macro with standard offsetof and promotes MSVC C4644 to an error. All three
+MinGW release/debug production objects retain raw/native hashes; hosted MSVC
+x64/ARM64 debug/release pass. Artifacts: offsetof-preview and offsetof-objects.
 
 Completed string constness #91: sources c08ed1e9/4a47cf0c qualify sixteen
 read-only declarations/fields across thirteen engine files and enable GCC/Clang
@@ -36,20 +47,26 @@ and actual logs, and both maps pass (fea77580/14c8ee7d). No harness or accepted
 golden changes. Hosted OA runtime passes unmodified. Artifacts: write-strings-*.
 
 Prepared follow-up previews, not applied to the repository:
-- default-switch: MSVC C4065, two AAS and one UI default-only switches. Nineteen
-  of 28 production objects are raw/native-identical; nine debug objects differ
-  only in no-ops and addresses (branch-target instruction indices verified).
-  Four native UI libraries/layouts are byte-identical. Arithmetic is untouched.
 - size-conversion: MSVC C4267, 45 explicit existing-narrowing replacement rules
   in 25 GPL files. All 269 production objects preserve code/data (211 raw/native,
   58 debug-only). Nine helper libraries retain hashes. Three GCC C libraries have
   qsort's same 64-bit unsigned minimum comparison with a 32-bit selected result;
-  UI_PreferencesMenu likewise narrows a discarded high half. Complete the native
-  helper diff review before applying; no FP expressions change.
+  UI_PreferencesMenu likewise narrows a discarded high half. Review confirms
+  unchanged selected low 32 bits; 1,584 before/after qsort cases pass. No FP
+  expression changes. Nine other native libraries retain raw hashes.
 - parameter-shadow: MSVC C4457, seven uses of local bleed alpha renamed. Nine
-  production objects build (seven raw/native, two debug differences to review);
+  production objects preserve code/data (seven raw/native, two debug-only);
   all four native cgame libraries/layouts retain hashes.
+- global-shadow C4459: four files, 30 production objects preserve code/data
+  (24 raw/native, six debug-only); four native game libraries/layouts unchanged.
+- local-shadow C4456: three files, 19 production objects preserve code/data
+  (15 raw/native, four debug-only); four native cgame libraries/layouts unchanged.
 Each preview has source changes, commands, objects and logs in persistent cache.
+Formatting preview: clang-format 21.1.8 touches 397 of 404 first-party C/C++
+files, excluding assembly and generated shader_data.cpp. Eighteen stringifying
+macros are whitespace-sensitive. All 1,810 release assembly baselines compile;
+the formatted comparison is running. Rebase this preview on the final warning
+revision before the single formatting commit; do not apply it yet.
 
 Completed signedness #90 evidence: source 70b1f0b6/provenance 4a96ca16 records
 412 edits in 91 files (15 GPL files). All 2,667 syntax configurations pass. Of
@@ -65,8 +82,8 @@ C4267 234, C4459 38, C4456 28, C4065 15, C4457 3, C4644 3. Review each class
 before enabling its error gate, then /WX. Local tools include clang-query-21.
 
 Next:
-1. Open the standard-offset class PR, require hosted gates/self-review and merge.
-   Verify #91 merged-tree regression, then continue the prepared MSVC classes.
+1. Open the default-switch PR, require hosted gates/self-review and merge.
+   Verify #92 merged-tree regression, then continue the prepared MSVC classes.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
