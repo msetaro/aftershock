@@ -54,7 +54,7 @@ Handles horizontal scrolling and cursor blinking
 x, y, and width are in pixels
 ===================
 */
-static void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, qboolean showCursor,
+static void Field_VariableSizeDraw( field_t *edit, int x, int y, int width [[maybe_unused]], int size, qboolean showCursor,
 		qboolean noColorEscape ) {
 	int		len;
 	int		drawLen;

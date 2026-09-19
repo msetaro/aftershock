@@ -564,7 +564,7 @@ static int BotOnTopOfEntity(bot_movestate_t *ms)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-static int BotValidTravel(vec3_t origin, aas_reachability_t *reach, int travelflags)
+static int BotValidTravel(vec3_t origin [[maybe_unused]], aas_reachability_t *reach, int travelflags)
 {
 	//if the reachability uses an unwanted travel type
 	if (AAS_TravelFlagForType(reach->traveltype) & ~travelflags) return qfalse;
@@ -1093,7 +1093,7 @@ static int BotCheckBarrierJump(bot_movestate_t *ms, vec3_t dir, float speed)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-static int BotSwimInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type)
+static int BotSwimInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type [[maybe_unused]])
 {
 	vec3_t normdir;
 
@@ -2493,7 +2493,7 @@ static bot_moveresult_t BotFinishTravel_FuncBobbing(bot_movestate_t *ms, aas_rea
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-static int GrappleState(bot_movestate_t *ms, aas_reachability_t *reach)
+static int GrappleState(bot_movestate_t *ms, aas_reachability_t *reach [[maybe_unused]])
 {
 	int i;
 	aas_entityinfo_t entinfo;

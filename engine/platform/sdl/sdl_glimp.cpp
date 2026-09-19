@@ -107,7 +107,7 @@ void GLimp_Minimize( void )
 GLimp_LogComment
 ===============
 */
-void GLimp_LogComment( const char *comment )
+void GLimp_LogComment( const char *comment [[maybe_unused]] )
 {
 }
 
@@ -183,7 +183,7 @@ static int FindNearestDisplay( int *x, int *y, int w, int h )
 }
 
 
-static SDL_HitTestResult SDL_HitTestFunc( SDL_Window *win, const SDL_Point *area, void *data )
+static SDL_HitTestResult SDL_HitTestFunc( SDL_Window *win [[maybe_unused]], const SDL_Point *area [[maybe_unused]], void *data [[maybe_unused]] )
 {
 	if ( Key_GetCatcher() & KEYCATCH_CONSOLE && keys[ K_ALT ].down )
 		return SDL_HITTEST_DRAGGABLE;
@@ -197,7 +197,7 @@ static SDL_HitTestResult SDL_HitTestFunc( SDL_Window *win, const SDL_Point *area
 GLimp_SetMode
 ===============
 */
-static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qboolean vulkan )
+static int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qboolean vulkan [[maybe_unused]] )
 {
 	glconfig_t *config = glw_state.config;
 	int perChannelColorBits;
@@ -859,7 +859,7 @@ char *Sys_GetClipboardData( void )
 Sys_SetClipboardBitmap
 ===============
 */
-void Sys_SetClipboardBitmap( const byte *bitmap, int length )
+void Sys_SetClipboardBitmap( const byte *bitmap [[maybe_unused]], int length [[maybe_unused]] )
 {
 #ifdef _WIN32
 	HGLOBAL hMem;

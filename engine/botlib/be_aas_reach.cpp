@@ -4371,7 +4371,7 @@ static void AAS_StoreReachability(void)
 // Returns:				true if NOT finished
 // Changes Globals:		-
 //===========================================================================
-int AAS_ContinueInitReachability(float time)
+int AAS_ContinueInitReachability(float time [[maybe_unused]])
 {
 	int i, j, todo, start_time;
 	static float framereachability, reachability_delay;

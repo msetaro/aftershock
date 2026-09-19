@@ -134,7 +134,7 @@ static void UI_SPSkillMenu_SkillEvent( void *ptr, int notification ) {
 UI_SPSkillMenu_FightEvent
 =================
 */
-static void UI_SPSkillMenu_FightEvent( void *ptr, int notification ) {
+static void UI_SPSkillMenu_FightEvent( void *ptr [[maybe_unused]], int notification ) {
 	if (notification != QM_ACTIVATED)
 		return;
 
@@ -147,7 +147,7 @@ static void UI_SPSkillMenu_FightEvent( void *ptr, int notification ) {
 UI_SPSkillMenu_BackEvent
 =================
 */
-static void UI_SPSkillMenu_BackEvent( void* ptr, int notification ) {
+static void UI_SPSkillMenu_BackEvent( void* ptr [[maybe_unused]], int notification ) {
 	if (notification != QM_ACTIVATED) {
 		return;
 	}

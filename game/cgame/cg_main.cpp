@@ -441,7 +441,7 @@ void QDECL CG_Error( const char *msg, ... ) {
 #ifndef CGAME_HARD_LINKED
 // this is only here so the functions in q_shared.c and bg_*.c can link (FIXME)
 
-void QDECL Com_Error( int level, const char *error, ... ) {
+void QDECL Com_Error( int level [[maybe_unused]], const char *error, ... ) {
 	va_list		argptr;
 	char		text[1024];
 
@@ -1992,15 +1992,15 @@ CG_EventHandling
 
 */
 #ifndef MISSIONPACK
-void CG_EventHandling(int type) {
+void CG_EventHandling(int type [[maybe_unused]]) {
 }
 
 
 
-void CG_KeyEvent(int key, qboolean down) {
+void CG_KeyEvent(int key [[maybe_unused]], qboolean down [[maybe_unused]]) {
 }
 
-void CG_MouseEvent(int x, int y) {
+void CG_MouseEvent(int x [[maybe_unused]], int y [[maybe_unused]]) {
 }
 #endif
 

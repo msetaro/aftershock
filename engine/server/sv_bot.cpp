@@ -101,7 +101,7 @@ void SV_BotFreeClient( int clientNum ) {
 BotDrawDebugPolygons
 ==================
 */
-void BotDrawDebugPolygons(void (*drawPoly)(int color, int numPoints, float *points), int value) {
+void BotDrawDebugPolygons(void (*drawPoly)(int color, int numPoints, float *points), int value [[maybe_unused]]) {
 	static cvar_t *bot_debug, *bot_groundonly, *bot_reachability, *bot_highlightarea;
 	bot_debugpoly_t *poly;
 	int i, parm0;

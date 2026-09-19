@@ -7,32 +7,35 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-declaration-parentheses. Address-warning PR #82 passed full
-build 35448976170/regression 35448976134 and merged 779ea472 after self-review.
-This branch has integrated modernization; open its declaration-parentheses PR.
-#81 merged-tree regression 35448913729 passed. Check #82's merged-tree run next.
+Active: issue/8-unused-parameters, based on pending declaration PR #83 head
+197dbf70. Merge #83 after hosted gates/self-review, then integrate modernization
+before opening this separate warning-class PR. #82 merged 779ea472 after full
+build 35448976170/regression 35448976134; check its merged-tree run next.
 
-This branch removes unnecessary declaration parentheses from the
-bot_moveresult_t_cleared macro and enables the general parentheses warning.
-All 27 callers pass the simple identifier result; initialization and FP expressions
-are unchanged. The prior 51-object preview was byte-identical across GCC/Clang,
-debug, MinGW and ARM64, with GCC failing/passing diagnostic controls.
+This branch enables unused-parameter diagnostics in production and native helpers.
+275 [[maybe_unused]] parameter annotations span 88 source files. Parameter names,
+function bodies, line counts and original line endings remain unchanged. These
+are parameters retained by existing interfaces or conditional implementations.
+No headers, function signatures, simulation arithmetic or accepted fixtures change.
 
-On September 19, the old /tmp artifacts were found cleared between sessions.
-Historical results remain recorded below; do not repeat accepted work. New evidence
-and temporary PR bodies use /home/matt/.cache/aftershock-modernization. The unfinished
-unused-parameter preview must be recreated there; no repository edits were applied.
+Validation is in /home/matt/.cache/aftershock-modernization:
+- All 2,380 production syntax configurations pass with the class treated as errors.
+- 665 of 833 affected production/native objects match raw bytes; the other 168
+  are GCC debug objects identical after removing only debug sections from copies.
+- GCC/Clang standalone C/C++ helper builds and ABI checks pass. All twelve shared
+  libraries retain identical hashes, including the C99 helper configuration.
+- Objects: unused-parameter-objects/{results,debug-review}.json; helper results:
+  unused-parameter-native-{gcc,clang}.json. Syntax logs: unused-parameter-check.
 
 Next:
-1. Open this class PR and require full build/regression plus self-review before
-   merging. Check the merged-tree runs.
-2. Finish array-bounds and unused-result reviews, then the larger warning classes.
-   Recreate only the unfinished unused-parameter preview, using the current
-   production commands and accounting for tab-expanded diagnostic columns.
+1. Record native provenance for the imported files and self-review the exact diff.
+   Check #83's gates, merge it, integrate modernization, and open this class PR.
+   Require full hosted build/regression plus self-review before merging.
+2. Finish array-bounds and unused-result reviews, then the remaining larger classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
-   fixed-width types/layout assertions and release-identical Q_ASSERT. Update the
-   plan rules to in force; finish #8, write design-only docs/design/rhi.md for #6,
-   then stop. No #6/#7 implementation or accepted golden regeneration for warnings.
+   fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
+   rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then
+   stop. No #6/#7 implementation or accepted golden regeneration for warnings.
 
 Recent merges (all self-reviewed; merge commits):
 - #70 ignored qualifiers: 17a9dae2, build 35016076778/regression 35016076784;

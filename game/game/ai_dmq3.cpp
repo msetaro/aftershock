@@ -357,7 +357,7 @@ void BotRememberLastOrderedTask(bot_state_t *bs) {
 BotSetTeamStatus
 ==================
 */
-void BotSetTeamStatus(bot_state_t *bs) {
+void BotSetTeamStatus(bot_state_t *bs [[maybe_unused]]) {
 #ifdef MISSIONPACK
 	int teamtask;
 	aas_entityinfo_t entinfo;
@@ -1615,7 +1615,7 @@ void BotSetupForMovement(bot_state_t *bs) {
 BotCheckItemPickup
 ==================
 */
-void BotCheckItemPickup(bot_state_t *bs, int *oldinventory) {
+void BotCheckItemPickup(bot_state_t *bs [[maybe_unused]], int *oldinventory [[maybe_unused]]) {
 #ifdef MISSIONPACK
 	int offence, leader;
 
@@ -2363,7 +2363,7 @@ int BotWantsToChase(bot_state_t *bs) {
 BotWantsToHelp
 ==================
 */
-int BotWantsToHelp(bot_state_t *bs) {
+int BotWantsToHelp(bot_state_t *bs [[maybe_unused]]) {
 	return qtrue;
 }
 
@@ -3993,7 +3993,7 @@ int BotFuncDoorActivateGoal(bot_state_t *bs, int bspent, bot_activategoal_t *act
 BotTriggerMultipleGoal
 ==================
 */
-int BotTriggerMultipleActivateGoal(bot_state_t *bs, int bspent, bot_activategoal_t *activategoal) {
+int BotTriggerMultipleActivateGoal(bot_state_t *bs [[maybe_unused]], int bspent, bot_activategoal_t *activategoal) {
 	int i, areas[10], numareas, modelindex, entitynum;
 	char model[128];
 	vec3_t start, end, mins, maxs, angles;
@@ -5195,7 +5195,7 @@ void BotSetupAlternativeRouteGoals(void) {
 BotDeathmatchAI
 ==================
 */
-void BotDeathmatchAI(bot_state_t *bs, float thinktime) {
+void BotDeathmatchAI(bot_state_t *bs, float thinktime [[maybe_unused]]) {
 	char gender[144], name[144], buf[144];
 	char userinfo[MAX_INFO_STRING];
 	int i;

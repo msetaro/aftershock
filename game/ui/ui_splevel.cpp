@@ -370,7 +370,7 @@ static void UI_SPLevelMenu_ResetAction( qboolean result ) {
 	UI_SPLevelMenu();
 }
 
-static void UI_SPLevelMenu_ResetEvent( void* ptr, int event )
+static void UI_SPLevelMenu_ResetEvent( void* ptr [[maybe_unused]], int event )
 {
 	if (event != QM_ACTIVATED) {
 		return;
@@ -407,7 +407,7 @@ static void UI_SPLevelMenu_LevelEvent( void* ptr, int notification ) {
 UI_SPLevelMenu_LeftArrowEvent
 =================
 */
-static void UI_SPLevelMenu_LeftArrowEvent( void* ptr, int notification ) {
+static void UI_SPLevelMenu_LeftArrowEvent( void* ptr [[maybe_unused]], int notification ) {
 	if (notification != QM_ACTIVATED) {
 		return;
 	}
@@ -426,7 +426,7 @@ static void UI_SPLevelMenu_LeftArrowEvent( void* ptr, int notification ) {
 UI_SPLevelMenu_RightArrowEvent
 =================
 */
-static void UI_SPLevelMenu_RightArrowEvent( void* ptr, int notification ) {
+static void UI_SPLevelMenu_RightArrowEvent( void* ptr [[maybe_unused]], int notification ) {
 	if (notification != QM_ACTIVATED) {
 		return;
 	}
@@ -445,7 +445,7 @@ static void UI_SPLevelMenu_RightArrowEvent( void* ptr, int notification ) {
 UI_SPLevelMenu_PlayerEvent
 =================
 */
-static void UI_SPLevelMenu_PlayerEvent( void* ptr, int notification ) {
+static void UI_SPLevelMenu_PlayerEvent( void* ptr [[maybe_unused]], int notification ) {
 	if (notification != QM_ACTIVATED) {
 		return;
 	}
@@ -476,7 +476,7 @@ static void UI_SPLevelMenu_AwardEvent( void* ptr, int notification ) {
 UI_SPLevelMenu_NextEvent
 =================
 */
-static void UI_SPLevelMenu_NextEvent( void* ptr, int notification ) {
+static void UI_SPLevelMenu_NextEvent( void* ptr [[maybe_unused]], int notification ) {
 	if (notification != QM_ACTIVATED) {
 		return;
 	}
@@ -498,7 +498,7 @@ static void UI_SPLevelMenu_NextEvent( void* ptr, int notification ) {
 UI_SPLevelMenu_BackEvent
 =================
 */
-static void UI_SPLevelMenu_BackEvent( void* ptr, int notification ) {
+static void UI_SPLevelMenu_BackEvent( void* ptr [[maybe_unused]], int notification ) {
 	if (notification != QM_ACTIVATED) {
 		return;
 	}
@@ -516,7 +516,7 @@ static void UI_SPLevelMenu_BackEvent( void* ptr, int notification ) {
 UI_SPLevelMenu_CustomEvent
 =================
 */
-static void UI_SPLevelMenu_CustomEvent( void* ptr, int notification ) {
+static void UI_SPLevelMenu_CustomEvent( void* ptr [[maybe_unused]], int notification ) {
 	if (notification != QM_ACTIVATED) {
 		return;
 	}

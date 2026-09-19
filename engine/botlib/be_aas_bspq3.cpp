@@ -223,7 +223,7 @@ void AAS_BSPModelMinsMaxsOrigin(int modelnum, vec3_t angles, vec3_t mins, vec3_t
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void AAS_UnlinkFromBSPLeaves(bsp_link_t *leaves)
+void AAS_UnlinkFromBSPLeaves(bsp_link_t *leaves [[maybe_unused]])
 {
 } //end of the function AAS_UnlinkFromBSPLeaves
 //===========================================================================
@@ -232,7 +232,7 @@ void AAS_UnlinkFromBSPLeaves(bsp_link_t *leaves)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-bsp_link_t *AAS_BSPLinkEntity(vec3_t absmins, vec3_t absmaxs, int entnum, int modelnum)
+bsp_link_t *AAS_BSPLinkEntity(vec3_t absmins [[maybe_unused]], vec3_t absmaxs [[maybe_unused]], int entnum [[maybe_unused]], int modelnum [[maybe_unused]])
 {
 	return NULL;
 } //end of the function AAS_BSPLinkEntity

@@ -381,7 +381,7 @@ void Con_CheckResize( void )
 Cmd_CompleteTxtName
 ==================
 */
-static void Cmd_CompleteTxtName(const char *args, int argNum ) {
+static void Cmd_CompleteTxtName(const char *args [[maybe_unused]], int argNum ) {
 	if ( argNum == 2 ) {
 		Field_CompleteFilename( "", "txt", qfalse, FS_MATCH_EXTERN | FS_MATCH_STICK );
 	}

@@ -238,13 +238,13 @@ Reinitialize console input after receiving SIGCONT, as on Linux the terminal see
 set attributes if user did CTRL+Z and then does fg again.
 ==================
 */
-void CON_SigCont( int signum )
+void CON_SigCont( int signum [[maybe_unused]] )
 {
 	Sys_ConsoleInputInit();
 }
 
 
-void CON_SigTStp( int signum )
+void CON_SigTStp( int signum [[maybe_unused]] )
 {
 	sigset_t mask;
 
@@ -333,7 +333,7 @@ void NORETURN FORMAT_PRINTF(1, 2) QDECL Sys_Error( const char *format, ... )
 }
 
 
-void floating_point_exception_handler( int whatever )
+void floating_point_exception_handler( int whatever [[maybe_unused]] )
 {
 	signal( SIGFPE, floating_point_exception_handler );
 }
@@ -762,7 +762,7 @@ void Sys_Print( const char *msg )
 }
 
 
-void QDECL Sys_SetStatus( const char *format, ... )
+void QDECL Sys_SetStatus( const char *format [[maybe_unused]], ... )
 {
 	return;
 }

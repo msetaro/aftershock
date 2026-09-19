@@ -239,7 +239,7 @@ void BotInterbreedGoalFuzzyLogic(int parent1, int parent2, int child)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void BotSaveGoalFuzzyLogic(int goalstate, const char *filename)
+void BotSaveGoalFuzzyLogic(int goalstate [[maybe_unused]], const char *filename [[maybe_unused]])
 {
 	//bot_goalstate_t *gs;
 
@@ -254,7 +254,7 @@ void BotSaveGoalFuzzyLogic(int goalstate, const char *filename)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void BotMutateGoalFuzzyLogic(int goalstate, float range)
+void BotMutateGoalFuzzyLogic(int goalstate, float range [[maybe_unused]])
 {
 	bot_goalstate_t *gs;
 
@@ -1639,7 +1639,7 @@ int BotTouchingGoal(const vec3_t origin, const bot_goal_t *goal)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int BotItemGoalInVisButNotVisible(int viewer, vec3_t eye, vec3_t viewangles, bot_goal_t *goal)
+int BotItemGoalInVisButNotVisible(int viewer, vec3_t eye, vec3_t viewangles [[maybe_unused]], bot_goal_t *goal)
 {
 	aas_entityinfo_t entinfo;
 	bsp_trace_t trace;

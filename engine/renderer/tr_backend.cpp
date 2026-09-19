@@ -1031,7 +1031,7 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, byte *data, 
 }
 
 
-void RE_UploadCinematic( int w, int h, int cols, int rows, byte *data, int client, qboolean dirty ) {
+void RE_UploadCinematic( int w [[maybe_unused]], int h [[maybe_unused]], int cols, int rows, byte *data, int client, qboolean dirty ) {
 
 	image_t *image;
 

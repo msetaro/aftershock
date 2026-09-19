@@ -346,7 +346,7 @@ FILE *Sys_FOpen( const char *ospath, const char *mode )
 Sys_ResetReadOnlyAttribute
 ==============
 */
-qboolean Sys_ResetReadOnlyAttribute( const char *ospath )
+qboolean Sys_ResetReadOnlyAttribute( const char *ospath [[maybe_unused]] )
 {
 	return qfalse;
 }
@@ -447,7 +447,7 @@ const char *Sys_SteamPath( void )
 Sys_ShowConsole
 =================
 */
-void Sys_ShowConsole( int visLevel, qboolean quitOnClose )
+void Sys_ShowConsole( int visLevel [[maybe_unused]], qboolean quitOnClose [[maybe_unused]] )
 {
 	// not implemented
 }

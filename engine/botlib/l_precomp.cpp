@@ -1380,7 +1380,7 @@ void PC_RemoveAllGlobalDefines(void)
 // Returns:					-
 // Changes Globals:		-
 //============================================================================
-static define_t *PC_CopyDefine(source_t *source, const define_t *define)
+static define_t *PC_CopyDefine(source_t *source [[maybe_unused]], const define_t *define)
 {
 	define_t *newdefine;
 	token_t *token, *newtoken, *lasttoken;

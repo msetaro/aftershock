@@ -167,7 +167,7 @@ ResampleSfx
 resample / decimate to the current source rate
 ================
 */
-static int ResampleSfx( sfx_t *sfx, int channels, int inrate, int inwidth, int samples, byte *data, qboolean compressed ) {
+static int ResampleSfx( sfx_t *sfx, int channels, int inrate, int inwidth, int samples, byte *data, qboolean compressed [[maybe_unused]] ) {
 	int		outcount;
 	int		srcsample;
 	float	stepscale;

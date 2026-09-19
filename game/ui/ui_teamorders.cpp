@@ -108,7 +108,7 @@ static const char *teamMessages[] = {
 UI_TeamOrdersMenu_BackEvent
 ===============
 */
-static void UI_TeamOrdersMenu_BackEvent( void *ptr, int event ) {
+static void UI_TeamOrdersMenu_BackEvent( void *ptr [[maybe_unused]], int event ) {
 	if( event != QM_ACTIVATED ) {
 		return;
 	}

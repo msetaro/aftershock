@@ -463,7 +463,7 @@ static void GraphicsOptions_UpdateMenuItems( void )
 GraphicsOptions_ApplyChanges
 =================
 */
-static void GraphicsOptions_ApplyChanges( void *unused, int notification )
+static void GraphicsOptions_ApplyChanges( void *unused [[maybe_unused]], int notification )
 {
 	if (notification != QM_ACTIVATED)
 		return;
@@ -603,7 +603,7 @@ static void GraphicsOptions_Event( void* ptr, int event ) {
 GraphicsOptions_TQEvent
 ================
 */
-static void GraphicsOptions_TQEvent( void *ptr, int event ) {
+static void GraphicsOptions_TQEvent( void *ptr [[maybe_unused]], int event ) {
 	if( event != QM_ACTIVATED ) {
 	 	return;
 	}

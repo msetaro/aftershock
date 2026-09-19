@@ -415,7 +415,7 @@ void RespawnItem( gentity_t *ent ) {
 Touch_Item
 ===============
 */
-void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
+void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace [[maybe_unused]]) {
 	int			respawn;
 	qboolean	predict;
 
@@ -633,7 +633,7 @@ Use_Item
 Respawn the item
 ================
 */
-void Use_Item( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
+void Use_Item( gentity_t *ent, gentity_t *other [[maybe_unused]], gentity_t *activator [[maybe_unused]] ) {
 	RespawnItem( ent );
 }
 

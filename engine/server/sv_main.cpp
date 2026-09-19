@@ -425,7 +425,7 @@ SVC_BucketForAddress
 Find or allocate a bucket for an address
 ================
 */
-static leakyBucket_t *SVC_BucketForAddress( const netadr_t *address, int burst, int period ) {
+static leakyBucket_t *SVC_BucketForAddress( const netadr_t *address, int burst [[maybe_unused]], int period ) {
 	static leakyBucket_t dummy = { (netadrtype_t)0 };
 	static int		start = 0;
 	const int		hash = SVC_HashForAddress( address );

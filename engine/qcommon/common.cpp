@@ -933,7 +933,7 @@ static memzone_t *smallzone;
 
 
 #ifdef USE_MULTI_SEGMENT
-static int GetBucketIndex( const memzone_t *zone, uint32_t size ) 
+static int GetBucketIndex( const memzone_t *zone [[maybe_unused]], uint32_t size )
 {
 	const int index = size / BUCKET_SIZE;
 	return index > (BUCKET_COUNT - 1) ? BUCKET_COUNT - 1 : index;
@@ -1155,7 +1155,7 @@ static void Z_Init( memzone_t *zone, uint32_t size, const char *name )
 Z_AvailableZoneMemory
 ========================
 */
-static int Z_AvailableZoneMemory( const memzone_t *zone )
+static int Z_AvailableZoneMemory( const memzone_t *zone [[maybe_unused]] )
 {
 #ifdef USE_MULTI_SEGMENT
 	return (1024*1024*1024); // unlimited
@@ -3037,7 +3037,7 @@ Com_GameRestart
 Change to a new mod properly with cleaning up cvars before switching.
 ==================
 */
-void Com_GameRestart( int checksumFeed, qboolean clientRestart )
+void Com_GameRestart( int checksumFeed, qboolean clientRestart [[maybe_unused]] )
 {
 	static qboolean com_gameRestarting = qfalse;
 

@@ -724,7 +724,7 @@ static void Controls_DrawKeyBinding( void *self )
 Controls_StatusBar
 =================
 */
-static void Controls_StatusBar( void *self )
+static void Controls_StatusBar( void *self [[maybe_unused]] )
 {
 	UI_DrawString(SCREEN_WIDTH * 0.50f, SCREEN_HEIGHT * 0.80f, "Use Arrow Keys or CLICK to change", UI_SMALLFONT|UI_CENTER, colorWhite );
 }

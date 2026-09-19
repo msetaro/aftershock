@@ -129,7 +129,7 @@ Point teleporters at these.
 Now that we don't have teleport destination pads, this is just
 an info_notnull
 */
-void SP_misc_teleporter_dest( gentity_t *ent ) {
+void SP_misc_teleporter_dest( gentity_t *ent [[maybe_unused]] ) {
 }
 
 
@@ -245,7 +245,7 @@ void SP_misc_portal_camera(gentity_t *ent) {
 ======================================================================
 */
 
-void Use_Shooter( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
+void Use_Shooter( gentity_t *ent, gentity_t *other [[maybe_unused]], gentity_t *activator [[maybe_unused]] ) {
 	vec3_t		dir;
 	float		deg;
 	vec3_t		up, right;

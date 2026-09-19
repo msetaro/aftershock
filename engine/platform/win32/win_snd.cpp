@@ -325,7 +325,7 @@ static ULONG STDMETHODCALLTYPE Release( IMMNotificationClient *self )
 	return InterlockedDecrement( &cl->refcount );
 }
 
-static HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged( IMMNotificationClient *self, EDataFlow flow, ERole role, LPCWSTR pwstrDeviceId )
+static HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged( IMMNotificationClient *self [[maybe_unused]], EDataFlow flow, ERole role, LPCWSTR pwstrDeviceId [[maybe_unused]] )
 {
 	if ( flow == eRender && role == eMultimedia )
 	{
@@ -334,17 +334,17 @@ static HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged( IMMNotificationClient *
 	return S_OK;
 }
 
-static HRESULT STDMETHODCALLTYPE OnDeviceAdded( IMMNotificationClient *self, LPCWSTR pwstrDeviceId )
+static HRESULT STDMETHODCALLTYPE OnDeviceAdded( IMMNotificationClient *self [[maybe_unused]], LPCWSTR pwstrDeviceId [[maybe_unused]] )
 {
 	return S_OK;
 }
 
-static HRESULT STDMETHODCALLTYPE OnDeviceRemoved( IMMNotificationClient *self, LPCWSTR pwstrDeviceId )
+static HRESULT STDMETHODCALLTYPE OnDeviceRemoved( IMMNotificationClient *self [[maybe_unused]], LPCWSTR pwstrDeviceId [[maybe_unused]] )
 {
 	return S_OK;
 }
 
-static HRESULT STDMETHODCALLTYPE OnDeviceStateChanged( IMMNotificationClient *self, LPCWSTR pwstrDeviceId, DWORD dwNewState )
+static HRESULT STDMETHODCALLTYPE OnDeviceStateChanged( IMMNotificationClient *self [[maybe_unused]], LPCWSTR pwstrDeviceId, DWORD dwNewState )
 {
 	if ( DeviceID && wcscmp( DeviceID, pwstrDeviceId ) == 0 )
 	{
@@ -360,7 +360,7 @@ static HRESULT STDMETHODCALLTYPE OnDeviceStateChanged( IMMNotificationClient *se
 	return S_OK;
 }
 
-static HRESULT STDMETHODCALLTYPE OnPropertyValueChanged( IMMNotificationClient *self, LPCWSTR pwstrDeviceId, const PROPERTYKEY key )
+static HRESULT STDMETHODCALLTYPE OnPropertyValueChanged( IMMNotificationClient *self [[maybe_unused]], LPCWSTR pwstrDeviceId [[maybe_unused]], const PROPERTYKEY key [[maybe_unused]] )
 {
 	//MessageBox( 0, "PropertyValueChanged", "", MB_ICONWARNING );
 	return S_OK;

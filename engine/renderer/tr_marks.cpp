@@ -198,9 +198,9 @@ R_AddMarkFragments
 static void R_AddMarkFragments(int numClipPoints, vec3_t clipPoints[2][MAX_VERTS_ON_POLY],
 				   int numPlanes, vec3_t *normals, float *dists,
 				   int maxPoints, vec3_t pointBuffer,
-				   int maxFragments, markFragment_t *fragmentBuffer,
+				   int maxFragments [[maybe_unused]], markFragment_t *fragmentBuffer,
 				   int *returnedPoints, int *returnedFragments,
-				   vec3_t mins, vec3_t maxs) {
+				   vec3_t mins [[maybe_unused]], vec3_t maxs [[maybe_unused]]) {
 	int pingPong, i;
 	markFragment_t	*mf;
 

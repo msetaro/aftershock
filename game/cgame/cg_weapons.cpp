@@ -553,7 +553,7 @@ static void CG_PlasmaTrail( centity_t *cent, const weaponInfo_t *wi ) {
 CG_GrappleTrail
 ==========================
 */
-void CG_GrappleTrail( centity_t *ent, const weaponInfo_t *wi ) {
+void CG_GrappleTrail( centity_t *ent, const weaponInfo_t *wi [[maybe_unused]] ) {
 	vec3_t	origin;
 	entityState_t	*es;
 	vec3_t			forward, up;
@@ -1219,7 +1219,7 @@ The main player will have this called for BOTH cases, so effects like light and
 sound should only be done on the world model case.
 =============
 */
-void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, int team ) {
+void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, int team [[maybe_unused]] ) {
 	refEntity_t	gun;
 	refEntity_t	barrel;
 	refEntity_t	flash;
@@ -1749,7 +1749,7 @@ CG_MissileHitWall
 Caused by an EV_MISSILE_MISS event, or directly by local bullet tracing
 =================
 */
-void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, impactSound_t soundType ) {
+void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, impactSound_t soundType [[maybe_unused]] ) {
 	qhandle_t		mod;
 	qhandle_t		mark;
 	qhandle_t		shader;

@@ -156,7 +156,7 @@ DrawNormals
 Draws vertex normals for debugging
 ================
 */
-static void DrawNormals( const shaderCommands_t *input ) {
+static void DrawNormals( const shaderCommands_t *input [[maybe_unused]] ) {
 	int		i;
 
 	GL_ClientState( 0, CLS_NONE );

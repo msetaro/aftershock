@@ -631,7 +631,7 @@ static void UI_PlayerAngles( playerInfo_t *pi, vec3_t legs[3], vec3_t torso[3], 
 UI_PlayerFloatSprite
 ===============
 */
-static void UI_PlayerFloatSprite( playerInfo_t *pi, vec3_t origin, qhandle_t shader ) {
+static void UI_PlayerFloatSprite( playerInfo_t *pi [[maybe_unused]], vec3_t origin, qhandle_t shader ) {
 	refEntity_t		ent;
 
 	memset( &ent, 0, sizeof( ent ) );

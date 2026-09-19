@@ -773,7 +773,7 @@ static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 WinMain
 ==================
 */
-int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow ) 
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow [[maybe_unused]] )
 {
 	static char	sys_cmdline[ MAX_STRING_CHARS ];
 	char con_title[ MAX_CVAR_VALUE_STRING ];

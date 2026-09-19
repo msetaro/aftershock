@@ -191,7 +191,7 @@ void SP_team_blueobelisk( gentity_t *ent );
 void SP_team_redobelisk( gentity_t *ent );
 void SP_team_neutralobelisk( gentity_t *ent );
 #endif
-void SP_item_botroam( gentity_t *ent ) {};
+void SP_item_botroam( gentity_t *ent [[maybe_unused]] ) {};
 
 spawn_t	spawns[] = {
 	// info entities don't do anything at all, but provide positional

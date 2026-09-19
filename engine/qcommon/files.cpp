@@ -408,7 +408,7 @@ qboolean FS_Initialized( void ) {
 FS_PakIsPure
 =================
 */
-static qboolean FS_PakIsPure( const pack_t *pack ) {
+static qboolean FS_PakIsPure( const pack_t *pack [[maybe_unused]] ) {
 #ifndef DEDICATED
 	int i;
 	if ( fs_numServerPaks ) {
@@ -4091,7 +4091,7 @@ static void FS_TouchFile_f( void ) {
 FS_CompleteFileName
 ============
 */
-static void FS_CompleteFileName( const char *args, int argNum ) {
+static void FS_CompleteFileName( const char *args [[maybe_unused]], int argNum ) {
 	if( argNum == 2 ) {
 		Field_CompleteFilename( "", "", qfalse, FS_MATCH_ANY );
 	}
