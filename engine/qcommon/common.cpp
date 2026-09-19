@@ -1602,26 +1602,31 @@ typedef struct memstatic_s {
 	byte mem[2];
 } memstatic_t;
 
+static constexpr memstatic_t Z_MemStatic( char chr ) {
+	memstatic_t block = {};
+	block.b.size = sizeof( memstatic_t );
+	block.b.tag = TAG_STATIC;
 #ifdef USE_ZONE_ID
-#define MEM_STATIC(chr) { { NULL, NULL, sizeof(memstatic_t), TAG_STATIC, ZONE_ID }, {chr,'\0'} }
-#else
-#define MEM_STATIC(chr) { { NULL, NULL, sizeof(memstatic_t), TAG_STATIC }, {chr,'\0'} }
+	block.b.id = ZONE_ID;
 #endif
+	block.mem[0] = chr;
+	return block;
+}
 
 static const memstatic_t emptystring =
-	MEM_STATIC( '\0' );
+	Z_MemStatic( '\0' );
 
 static const memstatic_t numberstring[] = {
-	MEM_STATIC( '0' ),
-	MEM_STATIC( '1' ),
-	MEM_STATIC( '2' ),
-	MEM_STATIC( '3' ),
-	MEM_STATIC( '4' ),
-	MEM_STATIC( '5' ),
-	MEM_STATIC( '6' ),
-	MEM_STATIC( '7' ),
-	MEM_STATIC( '8' ),
-	MEM_STATIC( '9' )
+	Z_MemStatic( '0' ),
+	Z_MemStatic( '1' ),
+	Z_MemStatic( '2' ),
+	Z_MemStatic( '3' ),
+	Z_MemStatic( '4' ),
+	Z_MemStatic( '5' ),
+	Z_MemStatic( '6' ),
+	Z_MemStatic( '7' ),
+	Z_MemStatic( '8' ),
+	Z_MemStatic( '9' )
 };
 #endif // USE_STATIC_TAGS
 

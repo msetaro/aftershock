@@ -57,9 +57,11 @@ qboolean Sys_OpenVideoPipe( sysVideoPipe_t *pipe, const char *ospath, const char
 	pipe->hNamedPipe = CreateNamedPipeA( namedPipeName, PIPE_ACCESS_OUTBOUND, PIPE_TYPE_MESSAGE | PIPE_REJECT_REMOTE_CLIENTS, 1, 0, 0, 0, NULL );
 	if ( pipe->hNamedPipe != INVALID_HANDLE_VALUE )
 	{
-		STARTUPINFOA si = { sizeof( STARTUPINFOA ) };
-		PROCESS_INFORMATION pi = { 0 };
+		STARTUPINFOA si = {};
+		PROCESS_INFORMATION pi = {};
 		BOOL bResult;
+
+		si.cb = (DWORD)sizeof( si );
 
 		// hide ffmpeg console window
 		si.dwFlags = STARTF_USESHOWWINDOW;

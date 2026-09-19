@@ -7,32 +7,31 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unused-parameters. Declaration PR #83 passed full build
-35449378669/regression 35449378735 and merged after self-review; this branch has
-integrated modernization. Open its unused-parameter PR next. #82 merged-tree
-regression 35449359464 passed; check #83's merged-tree run when available.
+Active: issue/8-missing-initializers, based on pending unused-parameter PR #84
+head 0a8a0d68 (build 35449780940/regression 35449780958). Merge #84 after gates
+and self-review, then integrate modernization before opening this separate class.
+#83 merged 16b7d6d6 after build 35449378669/regression 35449378735 passed; its
+merged-tree run 35449777481 remains to check.
 
-This branch enables unused-parameter diagnostics in production and native helpers.
-275 [[maybe_unused]] parameter annotations span 88 source files. Parameter names,
-function bodies, line counts and original line endings remain unchanged. These
-are parameters retained by existing interfaces or conditional implementations.
-No headers, function signatures, simulation arithmetic or accepted fixtures change.
+This branch enables missing-field-initializer warnings. Fifteen source files use
+empty aggregate initialization or explicit zero members/sentinels. Static allocator
+string blocks use a constexpr initializer to zero conditional debug members.
+Windows STARTUPINFO is zeroed and its cb field is explicitly assigned before use.
+No struct layouts, function behavior, FP expressions or accepted fixtures change.
 
-Validation is in /home/matt/.cache/aftershock-modernization:
-- All 2,380 production syntax configurations pass with the class treated as errors.
-- 665 of 833 affected production/native objects match raw bytes; the other 168
-  are GCC debug objects identical after removing only debug sections from copies.
-- GCC/Clang standalone C/C++ helper builds and ABI checks pass. All twelve shared
-  libraries retain identical hashes, including the C99 helper configuration.
-- Objects: unused-parameter-objects/{results,debug-review}.json; helper results:
-  unused-parameter-native-{gcc,clang}.json. Syntax logs: unused-parameter-check.
+Local preview validation (persistent cache): all 2,380 syntax configurations pass;
+188 of 194 affected objects match raw/native bytes. Four debug common.cpp objects
+change only four allocator source-line constants by +5; two MinGW video objects
+only reorder independent stack stores and a comparison across flag-preserving movs.
+No functions are added/removed. All twelve GCC/Clang C/C++ native helper libraries
+retain hashes and ABI layouts, including C99 helper mode. Artifacts are
+missing-initializers-{objects,native,check} under the persistent cache.
 
 Next:
-1. Source 05cb1e37 is reviewed: annotations only, plus two trailing-space removals.
-   Provenance 3a3fca15 records 37 GPL files; the UI export include is owned code.
-   Open this class PR after the completed #83 merge.
-   Require full hosted build/regression plus self-review before merging.
-2. Finish array-bounds and unused-result reviews, then the remaining larger classes.
+1. Record source provenance, confirm the explicit Windows DWORD cast preserves
+   the reviewed objects, and complete self-review. Merge #84 after gates,
+   integrate modernization, then open this class PR. Require full hosted gates.
+2. Finish array-bounds and unused-result reviews, then the remaining classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
    rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then
