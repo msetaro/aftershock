@@ -12,12 +12,20 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-unused-result, based on pending array-bounds PR #86 head 91a2d6ed.
-#85 merged 820ed3f1 after build 35450763997/regression 35450764039 passed;
-merged-tree regression remains to check. #84 merged-tree run 35450735064 passes.
-Require #86 build 35451193767/regression 35451193709, self-review/merge, then
-integrate modernization before
-opening this separate unused-result class PR.
+Active: issue/8-unused-set-variables, based on pending unused-result branch
+80b14c0b (no PR yet), itself based on array-bounds PR #86 head 91a2d6ed. Require
+#86 build 35451193767/regression 35451193709 and self-review/merge, integrate into
+unused-result and open its PR, then merge it after gates before opening this
+separate unused-but-set-variable class PR. #85 merged 820ed3f1 after passing
+gates; merged-tree regression 35451178224 remains to check. #84 merged-tree passes.
+
+This branch enables unused-but-set-variable warnings in native production/helpers.
+Thirty-five declarations in eighteen GPL source files have maybe_unused attributes.
+All other source bytes remain unchanged: call counts (including clocks), floating
+point expressions, conditional uses and existing stores are preserved. All twelve
+native helper libraries retain hashes/layouts. Of 160 production objects, 146 are
+raw/native-identical and fourteen differ only in debug sections. GPL provenance
+must record this source commit before the eventual class PR.
 
 Eight existing console write calls bind their results to maybe_unused const auto
 locals. All calls, arguments and best-effort output behavior remain unchanged;
@@ -36,7 +44,7 @@ in those address calculations. GCC/Clang UI skill ASan/UBSan checks pass, fixed 
 replay on both software renderers retains b38004b1. Source 1c82acae, provenance
 81d4315d. Persistent artifacts array-bounds-{preview,native,ui-gcc,ui-clang,demo}.
 
-Unused-but-set-variable preview is separate and not applied: 35 declarations in
+Unused-but-set-variable validation: 35 declarations in
 18 files annotated to preserve all calls, FP evaluations and conditional uses.
 All other source bytes remain unchanged. All twelve GCC/Clang C/C++ native helper
 libraries retain raw hashes and ABI layouts, including eight vector locals only
@@ -47,9 +55,9 @@ Artifacts: unused-set-{inventory,preview,check,objects,extra-objects,native} and
 unused-set-final-review.json in the persistent cache.
 
 Next:
-1. Complete unused-result self-review; wait for #86 gates/merge, integrate, open
-   this warning PR and require full hosted gates before final self-review/merge.
-2. Finish unused-but-set-variable preview and remaining warning classes.
+1. Record source/provenance; progress #86 and the unused-result PR through their
+   hosted gates/self-reviews. Integrate parents before opening this class PR.
+2. Finish Windows cast-function-type preview and remaining warning classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
    rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then

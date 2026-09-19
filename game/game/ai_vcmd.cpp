@@ -513,7 +513,7 @@ voiceCommand_t voiceCommands[] = {
 };
 
 int BotVoiceChatCommand(bot_state_t *bs, int mode, char *voiceChat) {
-	int i, voiceOnly, clientNum, color;
+	int i, voiceOnly [[maybe_unused]], clientNum, color [[maybe_unused]];
 	char *ptr, buf[MAX_MESSAGE_SIZE], *cmd;
 
 	if (!TeamPlayIsOn()) {

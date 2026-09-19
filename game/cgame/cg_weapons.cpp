@@ -213,7 +213,7 @@ CG_RailTrail
 ==========================
 */
 void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
-	vec3_t axis[36], move, move2, next_move, vec, temp;
+	vec3_t axis[36], move, move2, next_move [[maybe_unused]], vec, temp;
 	float  len;
 	int    i, j, skip;
  
@@ -465,7 +465,7 @@ static void CG_PlasmaTrail( centity_t *cent, const weaponInfo_t *wi ) {
 	vec3_t			velocity, xvelocity, origin;
 	vec3_t			offset, xoffset;
 	vec3_t			v[3];
-	int				t, startTime, step;
+	int				t [[maybe_unused]], startTime, step;
 
 	float	waterScale = 1.0f;
 

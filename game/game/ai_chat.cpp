@@ -941,7 +941,7 @@ BotChatTime
 ==================
 */
 float BotChatTime(bot_state_t *bs) {
-	int cpm;
+	int cpm [[maybe_unused]];
 
 	cpm = trap_Characteristic_BInteger(bs->character, CHARACTERISTIC_CHAT_CPM, 1, 4000);
 

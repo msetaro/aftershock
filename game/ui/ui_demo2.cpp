@@ -116,7 +116,7 @@ UI_DemosMenu_Key
 =================
 */
 static sfxHandle_t UI_DemosMenu_Key( int key ) {
-	menucommon_s	*item;
+	menucommon_s	*item [[maybe_unused]];
 
 	item = (menucommon_s *)Menu_ItemAtCursor( &s_demos.menu );
 

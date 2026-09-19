@@ -4419,7 +4419,7 @@ open, which buttons to activate etc.
 */
 void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 	int movetype, bspent;
-	vec3_t hordir, start, end, mins, maxs, sideward, angles, up = {0, 0, 1};
+	vec3_t hordir, start, end [[maybe_unused]], mins [[maybe_unused]], maxs [[maybe_unused]], sideward, angles, up = {0, 0, 1};
 	aas_entityinfo_t entinfo;
 	bot_activategoal_t activategoal;
 

@@ -295,7 +295,7 @@ CG_CheckLocalSounds
 ==================
 */
 void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
-	int			highScore, health, armor, reward;
+	int			highScore, health [[maybe_unused]], armor [[maybe_unused]], reward;
 	sfxHandle_t sfx;
 
 	// don't play the sounds if the player just changed teams
