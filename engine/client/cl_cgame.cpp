@@ -738,16 +738,6 @@ void CGameImport_SetUserCmdValue( int stateValue, float sensitivityScale ) {
 	CL_SetUserCmdValue( stateValue, sensitivityScale );
 	return;
 }
-void CGameImport_testPrintInt( char * string, int i ) {
-
-	sprintf( (char *)string, "%i", (int)i );
-	return;
-}
-void CGameImport_testPrintFloat( char * string, float f ) {
-
-	sprintf( (char *)string, "%f", f );
-	return;
-}
 int CGameImport_MemoryRemaining( void ) {
 
 	return Hunk_MemoryRemaining();

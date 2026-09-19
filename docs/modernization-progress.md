@@ -15,19 +15,24 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-bounded-engine-formatting. Replaces 43 deprecated sprintf calls
-with snprintf in 16 engine files, passing actual array/remaining capacity. Formats,
-value arguments and arithmetic remain unchanged. This is #8 deprecation cleanup:
-reviewed numeric maxima and bounded inputs already fit the existing buffers.
-The greyscale shader helper now receives its caller's buffer size; pointer outputs
-retain their existing owners. 195 compile configurations and GCC/Clang capacity
-comparisons pass (numeric-format-preview and numeric-format-capacity.cpp).
+Active: issue/8-retire-print-test-services. Delete the unused testPrintInt and
+testPrintFloat services, declarations and forwarding wrappers (five files).
+Source searches found no consumers. Historical CG_TESTPRINT enum values remain
+unchanged so later service numbers retain their identity. All four GCC/Clang
+C/C++ helper builds/layouts pass; exactly the two retired exports disappear.
+18 production samples compile. Function removal changes objects/library hashes;
+full regression and fixed replay gates are required. Native GPL provenance records
+source 7c1db108, retaining every original import hash.
 
-Next: run local Quake 3 runtime/replay and full hosted build/regression, verify
-PR #125 merged-tree regression, then self-review and merge. Calls now use a
-different library ABI, so do not claim identical object hashes. No accepted golden
-regeneration. Native arbitrary-length diagnostics and the obsolete print-test
-interface remain to address separately before removing the Apple warning disable.
+Next: publish this #8 deletion, run gates and #126 merged-tree regression, then
+self-review/merge. Afterward publish the prepared test-first PrintMsg #31 fix.
+No accepted fixture/golden changes. Evidence: obsolete-print-* cache artifacts.
+
+PR #126 verification: build 35472521203, regression 35472521080 and preceding
+merged-tree regression 35472483857 pass. 195 compilation configurations and the
+capacity comparisons pass. Fixed Quake 3 replay retains b38004b1; both bot-smoke
+logs retain fea77580/14c8ee7d with the documented cache-only host-address exclusion.
+No committed golden or test-normalization changes. Source head 08c56d57.
 
 ## Recent MSVC merges
 
@@ -77,6 +82,23 @@ regression 35468827553 pass after self-review. Preceding merged-tree regression
 code/data; twelve helper hashes/layouts match. Evidence: msvc-typedef-*.
 
 ## Prepared #8 work
+
+Next #31 item: PrintMsg formatter-result contract. A small-text, cache-only probe
+substitutes return values without any oversized write. The full-capacity result
+incorrectly reaches message dispatch; valid/fitting/error cases behave as expected.
+Evidence: team-message-contract-before.json and team-message-contract.cpp; issue
+#31 records the finding. After the pending #8 cleanup, commit this failing test
+first on its own #31 branch, use the actual capacity and correct the boundary,
+then record GPL provenance and run gates. No engine fix is part of #126.
+
+Unused print-test service preview: obsolete-print-preview removes only the two
+unreferenced services, their declarations and forwarding wrappers in five files.
+All four GCC/Clang C/C++ native cgame helpers compile with unchanged layouts, and
+symbol review removes exactly testPrintInt/testPrintFloat without added exports.
+18 sampled production objects compile; code hashes change from function removal.
+Historical CG_TESTPRINT enum values are retained so later service numbers stay
+stable. Evidence: obsolete-print-{native,symbol-review}.json and objects/results.
+Publish as a separate #8 deletion after #126; record imported-file provenance.
 
 Fixed-capacity formatting preview: numeric-format-preview replaces 43 sprintf
 calls in 16 engine files with snprintf using the actual array or remaining
