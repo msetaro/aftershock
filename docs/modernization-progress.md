@@ -16,14 +16,14 @@ Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names bel
 are relative to that persistent directory.
 
 Active: issue/8-msvc-octal-escape. PR #111 head f11e7913 passed build
-35465396846 and regression 35465396778 and merged after self-review. Check its
+35465396846 and regression 35465396778; merged b5a715ed after self-review. Check its
 merged-tree regression. PR #110 merged-tree regression 35465371799 passes.
 
 Applied msvc-octal-preview: remove only C4125 suppression from both shared headers
 and promote /we4125 on owned C++ sources. No strings or parsing expressions change.
 All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only), and all
-twelve helper hashes/layouts retain post-formatter-native.json. Record native-header
-GPL provenance, run hosted gates, then self-review before merging. Next: C4152
+twelve helper hashes/layouts retain post-formatter-native.json. Source fe512b6e is
+recorded on the native header with original GPL hashes retained. Run hosted gates, then self-review before merging. Next: C4152
 function/data pointer conversion suppression, one class per PR.
 
 Merged C4057 evidence: source 769685fb/head f11e7913 removes only both inherited
