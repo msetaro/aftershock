@@ -7,12 +7,10 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-declaration-parentheses, based on pending address-warning PR #82
-head b44f5689 (build 35448976170/regression 35448976134). Require #82 hosted
-gates and self-review, merge it first, then
-integrate modernization before opening this separate class PR. #81 merged
-87907a26 after build 35026347546/regression 35026347521 passed. #80 merged-tree
-regression 35026295235 passed; check #81's merged-tree run when available.
+Active: issue/8-declaration-parentheses. Address-warning PR #82 passed full
+build 35448976170/regression 35448976134 and merged 779ea472 after self-review.
+This branch has integrated modernization; open its declaration-parentheses PR.
+#81 merged-tree regression 35448913729 passed. Check #82's merged-tree run next.
 
 This branch removes unnecessary declaration parentheses from the
 bot_moveresult_t_cleared macro and enables the general parentheses warning.
@@ -26,8 +24,8 @@ and temporary PR bodies use /home/matt/.cache/aftershock-modernization. The unfi
 unused-parameter preview must be recreated there; no repository edits were applied.
 
 Next:
-1. Check #82's hosted gates and merge after self-review; integrate modernization,
-   open this class PR, and require full build/regression before merging it.
+1. Open this class PR and require full build/regression plus self-review before
+   merging. Check the merged-tree runs.
 2. Finish array-bounds and unused-result reviews, then the larger warning classes.
    Recreate only the unfinished unused-parameter preview, using the current
    production commands and accounting for tab-expanded diagnostic columns.
@@ -1408,3 +1406,9 @@ The owned-code snapshot and changes.json are in unused-parameter-preview under
 the persistent cache. Raw production/native object comparisons are running in
 unused-parameter-objects; next verify C99 helper compatibility and review the diff
 before its own warning-class PR. No annotations are in the repository yet.
+
+Unused-parameter object preview complete: 665 of 833 production/native objects
+match byte-for-byte. The other 168 are GCC debug objects and match after removing
+only debug sections from copies. No instruction/data changes. Evidence:
+unused-parameter-objects/{results,debug-review}.json in the persistent cache.
+Four standalone C/C++ helper comparisons are still running.
