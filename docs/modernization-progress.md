@@ -28,7 +28,8 @@ Validation is in /home/matt/.cache/aftershock-modernization:
   unused-parameter-native-{gcc,clang}.json. Syntax logs: unused-parameter-check.
 
 Next:
-1. Record native provenance for the imported files and self-review the exact diff.
+1. Source 05cb1e37 is reviewed: annotations only, plus two trailing-space removals.
+   Provenance 3a3fca15 records 37 GPL files; the UI export include is owned code.
    Check #83's gates, merge it, integrate modernization, and open this class PR.
    Require full hosted build/regression plus self-review before merging.
 2. Finish array-bounds and unused-result reviews, then the remaining larger classes.
@@ -1415,3 +1416,10 @@ match byte-for-byte. The other 168 are GCC debug objects and match after removin
 only debug sections from copies. No instruction/data changes. Evidence:
 unused-parameter-objects/{results,debug-review}.json in the persistent cache.
 Four standalone C/C++ helper comparisons are still running.
+
+Unused-parameter final local review: original source bytes are preserved after
+removing the new parameter attributes, except trailing spaces on two touched
+function-declaration lines (win_main.cpp/common.cpp). Source 05cb1e37 and GPL
+provenance 3a3fca15 are committed. The UI export include's eight consuming production
+objects are included in the 833-object comparison. Both compiler C/C++ helper
+comparisons completed successfully, all twelve libraries retaining hashes.
