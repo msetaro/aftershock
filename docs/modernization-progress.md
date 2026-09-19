@@ -21,7 +21,8 @@ Source searches found no consumers. Historical CG_TESTPRINT enum values remain
 unchanged so later service numbers retain their identity. All four GCC/Clang
 C/C++ helper builds/layouts pass; exactly the two retired exports disappear.
 18 production samples compile. Function removal changes objects/library hashes;
-full regression and fixed replay gates are required. Record native GPL provenance.
+full regression and fixed replay gates are required. Native GPL provenance records
+source 7c1db108, retaining every original import hash.
 
 Next: publish this #8 deletion, run gates and #126 merged-tree regression, then
 self-review/merge. Afterward publish the prepared test-first PrintMsg #31 fix.
