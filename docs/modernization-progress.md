@@ -15,16 +15,21 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-msvc-octal-escape. PR #111 head f11e7913 passed build
-35465396846 and regression 35465396778; merged b5a715ed after self-review. Check its
-merged-tree regression. PR #110 merged-tree regression 35465371799 passes.
+Active: issue/8-msvc-function-pointer. PR #112 head a2bf708c passed build
+35465777872 and regression 35465777883 and merged after self-review. Check its
+merged-tree regression. PR #111 merged-tree regression 35465745301 passes.
 
-Applied msvc-octal-preview: remove only C4125 suppression from both shared headers
-and promote /we4125 on owned C++ sources. No strings or parsing expressions change.
+Applied msvc-function-pointer-preview: remove only C4152 suppression from both
+shared headers and promote /we4152 on owned C++ sources. No pointer conversions
+or source expressions change. All 85 sampled objects preserve code/data (67
+raw/native, 18 debug-only), and all twelve helper hashes/layouts retain the baseline.
+Record native-header GPL provenance, run hosted gates, then self-review before
+merging. Next: C4142 duplicate-type suppression, one class per PR.
+
+Merged C4125 evidence: source fe512b6e/head a2bf708c removes both octal-escape
+suppression directives and promotes /we4125. No string/parser expressions changed.
 All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only), and all
-twelve helper hashes/layouts retain post-formatter-native.json. Source fe512b6e is
-recorded on the native header with original GPL hashes retained. Run hosted gates, then self-review before merging. Next: C4152
-function/data pointer conversion suppression, one class per PR.
+twelve helpers/layouts retain the baseline. Original GPL hashes retain provenance.
 
 Merged C4057 evidence: source 769685fb/head f11e7913 removes only both inherited
 pointer base-type suppressions and promotes /we4057 on owned C++ files. No pointer
