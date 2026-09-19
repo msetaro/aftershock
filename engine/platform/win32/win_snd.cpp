@@ -54,7 +54,7 @@ static qboolean IsWindows7OrGreater( void ) {
 	if ( !ntdll )
 		return qfalse; // will never happen
 
-	rtl_get_version_f = (RtlGetVersionPtr)GetProcAddress( ntdll, "RtlGetVersion" );
+	rtl_get_version_f = (RtlGetVersionPtr)(void *)GetProcAddress( ntdll, "RtlGetVersion" );
 
 	if ( !rtl_get_version_f )
 		return qfalse; // will never happen

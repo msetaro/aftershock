@@ -327,9 +327,9 @@ static BOOL IN_InitRawMouse( void ) {
 		return FALSE;
 	}
 
-	GRRID = (PGRRID) GetProcAddress( dll, "GetRegisteredRawInputDevices" );
-	RRID  = (PRRID) GetProcAddress( dll, "RegisterRawInputDevices" );
-	GRID  = (PGRID) GetProcAddress( dll, "GetRawInputData" );
+	GRRID = (PGRRID) (void *)GetProcAddress( dll, "GetRegisteredRawInputDevices" );
+	RRID  = (PRRID) (void *)GetProcAddress( dll, "RegisterRawInputDevices" );
+	GRID  = (PGRID) (void *)GetProcAddress( dll, "GetRawInputData" );
 
 	//CloseHandle( dll );
 
@@ -516,7 +516,7 @@ static qboolean IN_InitDIMouse( void ) {
 
 	if (!pDirectInputCreate) {
 		pDirectInputCreate = (HRESULT (WINAPI *)(HINSTANCE, DWORD, LPDIRECTINPUT *, LPUNKNOWN))
-			GetProcAddress(hInstDI,"DirectInputCreateA");
+			(void *)GetProcAddress(hInstDI,"DirectInputCreateA");
 
 		if (!pDirectInputCreate) {
 			Com_DPrintf ("Couldn't get DI proc addr\n");
