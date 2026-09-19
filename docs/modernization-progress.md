@@ -1,3 +1,15 @@
+# Diagnostic-only fixed-width layout validation
+
+This branch is never merged. The integration sequence remains in the root
+worktree's progress file. This measurement applies the enum-unsigned and
+central-width cache previews to the existing strict-MSVC diagnostic configuration.
+It checks 52 central file records and seven shared engine/native records, with
+uint32_t trajectory enums in C++ and the C99 reference declarations retained.
+Local sampled objects and all twelve helper hashes/layouts preserve the baseline.
+Hosted x64/ARM64 Debug/Release builds validate both Ninja and generated Visual
+Studio projects. Final integration still needs native GPL provenance and full
+regression gates after the warning/formatting work.
+
 # Modernization checkpoint
 
 Integration: `modernization`. Issue branches: `issue/<number>-<slug>`, one bug per

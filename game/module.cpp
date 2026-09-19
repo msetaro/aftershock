@@ -1,4 +1,5 @@
 /* Compile each imported translation unit in its module's namespace. */
+#include <type_traits>
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
