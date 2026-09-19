@@ -15,18 +15,32 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-msvc-c4032. Removes only C4032 suppression and promotes it on owned C++ sources.
+Session-only helpers quiet-warning-step.py, finish-quiet-warning.py and
+quiet-warning-sequence.py automate the reviewed pragma-only C4032/C4051/C4115/
+C4136/C4214/C4514/C4711 sequence. The sequence waits for each PR's build/regression
+and its preceding merged-tree regression, checks the exact source/flag diff and
+GPL hashes, records the self-review, and merges only on success. Inspect the
+running process and quiet-warning-sequence.log before resuming or launching it
+again. Every class still has its own branch/PR. C4514/C4711 retain compiler defaults.
+The runner's PID/session is transient; the log and msvc-c*-published.json files
+record PR heads, merge IDs and gates. Stop on any unexpected failure.
+
+Active: issue/8-msvc-c4051. Removes only C4051 suppression and promotes it on owned C++ sources.
 No declarations, expressions, allocation, OS access, lifetime or layout changes.
-92 sampled objects preserve code/data (82 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4032-object-review.json and msvc-c4032-native.json.
+85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4051-object-review.json and msvc-c4051-native.json.
 Native GPL provenance retains original import hashes. No accepted golden changes.
 Run full hosted gates and self-review before merge; then continue the remaining
 MSVC suppression classes, strict MSVC policy, and the rest of #8.
-Previous PR #117 merged as 981c534d; verify its merged-tree regression.
-Source transformation fc7de3a5 recorded in native-game-import.json.
+Previous PR #118 merged as 21e4c41d; verify its merged-tree regression.
 
 
 ## Recent MSVC merges
+
+PR #118 C4032: source fc7de3a5, head e0c22d71, merged 21e4c41d.
+Build 35469216318 and regression 35469216328 pass after self-review.
+92 sampled objects preserve code/data (82 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4032-object-review.json and msvc-c4032-native.json.
 
 PR #117 C4091: head ad768fe4 merged 981c534d. Build 35468827516 and
 regression 35468827553 pass after self-review. Preceding merged-tree regression
