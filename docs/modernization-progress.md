@@ -15,18 +15,20 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/31-team-message-capacity. The committed contract test is first:
-`python3 tests/team_message.py` fails on the full-capacity formatter result
-(expected error exit 42, observed dispatch exit 0). Only small text is formatted;
-the test substitutes the reported length and never makes an oversized write.
-Evidence: team-message-before.log and the earlier four-case control JSON.
-Failing-test commit: 1ef998b0. The reviewed single-function fix now passes the
-actual capacity to vsnprintf and rejects negative/full-capacity results after
-va_end. CI/docs include the permanent test command. Next: record GPL provenance
-and run local/hosted gates plus #127 merged-tree regression. Fix e8752ef1 is
-recorded in native-game-import.json with original GPL hashes unchanged. Both
-GCC and Clang/libc++ pass all eight base/MISSIONPACK contract cases; the optional
-MISSIONPACK source still emits the previously recorded constness warnings.
+Active: issue/31-native-diagnostic-capacity. The test-first native diagnostic
+capacity/routing probe is committed before the fix. `python3 tests/native_diagnostics.py`
+fails on the game print contract because no destination capacity reaches the
+formatter. Earlier cached checks cover all twelve paths with the same failure.
+Only ordinary small text is used. Next: apply the twelve reviewed bounded calls,
+record GPL provenance and CI/docs, then run local and hosted gates plus #128
+merged-tree regression. Retain truncation policy and the existing log prefix.
+
+PR #128 verification: test 1ef998b0, fix e8752ef1, head 901106f1. Build
+35473480437, regression 35473480441 and preceding merged-tree regression
+35473365622 pass. GCC/Clang-libc++ base/MISSIONPACK contract checks pass under
+ASan/UBSan. Local smoke retains fea77580/14c8ee7d with the documented host-address
+exclusion, and fixed replay retains b38004b1. GPL import hashes and goldens stay
+unchanged. Evidence: team-message-* artifacts.
 
 PR #127 verification: source 7c1db108/head 44616990, build 35472963400,
 regression 35472963410, preceding merged-tree regression 35472915485 all pass.
@@ -89,10 +91,31 @@ code/data; twelve helper hashes/layouts match. Evidence: msvc-typedef-*.
 
 ## Prepared #8 work
 
+Baseline rule for upcoming proofs: post-formatter-native.json is historical.
+Retiring the print-test exports changes cgame hashes, and the #31 formatting fixes
+change game/diagnostic code. After the remaining warning/formatter work, build and
+record a fresh twelve-helper baseline before refreshing the final format, width
+or assertion previews. Their earlier byte/hash results document those earlier
+revisions and must not be claimed as final-tree evidence.
+
+MISSIONPACK constness preview: missionpack-const-preview makes only the read-only
+Team_FragBonuses search-name pointer const and removes its two redundant casts.
+G_Find already accepts const char*. GCC and Clang base/MISSIONPACK release objects
+are byte-identical before/after, and writable-string warnings disappear. Evidence:
+missionpack-const-preview/{changes,results}.json and compiler logs. Publish in #8
+separately after the formatter fixes; no source edits from this preview are active.
+
+Unused native parser-diagnostic preview: unused-parser-diagnostics-preview removes
+the two unreferenced definitions/prototypes in native q_shared. All twelve
+GCC/Clang C/C++ helper builds/layouts pass and exports remove exactly COM_ParseError
+and COM_ParseWarning. Evidence: unused-parser-diagnostics-{native,symbol-review}.json.
+Refresh helper measurements after the queued native formatter fix, record GPL
+provenance, and use this deletion with the final Apple deprecation ratchet PR.
+
 Queued #31 native diagnostic-output capacity fix: twelve active calls in g_main,
 cg_main, ui_atoms and ai_main. The small-text capacity/routing probe fails all
 twelve pre-fix contracts; the cached candidate passes 24 GCC/Clang ASan/UBSan
-cases. Evidence: native-diagnostic-before.json, native-diagnostic-contract.cpp,
+cases plus twelve Clang/libc++ cases. Evidence: native-diagnostic-before.json, native-diagnostic-contract.cpp,
 native-diagnostic-preview/{changes,results}.json. Decision recorded on #31:
 truncate diagnostic output to the actual buffer/remainder capacity, retaining
 error routing and the existing seven-byte log prefix offset. Keep this separate
