@@ -7,33 +7,36 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-missing-initializers. Parent #84 merged 5c2ce6be after corrected
-head 5623e8fe passed build 35450198604 and regression 35450198615; self-review is
-recorded on #84/#8. Its merged-tree regression remains to check. Integration is
-merged into this branch. #83 merged-tree regression 35449777481 passes.
-Full local MinGW debug Vulkan client/server build also passes for this initializer
-branch (missing-initializers-mingw-debug.log in the persistent cache). Open its
-separate draft PR, require hosted gates and self-review before merging.
+Active: issue/8-array-bounds, based on pending initializer PR #85 head bcbd1bad.
+#84 merged 5c2ce6be after build 35450198604/regression 35450198615 passed;
+merged-tree regression 35450735064 remains to check. #85 requires build
+35450763997 and regression 35450764039, self-review, then merge/integration before
+opening this separate array-bounds warning PR.
 
-This branch enables missing-field-initializer warnings. Fifteen source files use
-empty aggregate initialization or explicit zero members/sentinels. Static allocator
-string blocks use a constexpr initializer to zero conditional debug members.
-Windows STARTUPINFO is zeroed and its cb field is explicitly assigned before use.
-No struct layouts, function behavior, FP expressions or accepted fixtures change.
+Two UI skill-picture reads use the equivalent explicit pointer form, retaining
+(skill - 1), signed index arithmetic and all existing range policies. GCC's member
+array warning disappears, enabling the class in production and native helpers.
+Only the five registered button IDs reach the callback; initialization clamps
+UI_GetSkill() to 1..5. No bug fix, FP expression or accepted fixture change.
 
-Local preview validation (persistent cache): all 2,380 syntax configurations pass;
-188 of 194 affected objects match raw/native bytes. Four debug common.cpp objects
-change only four allocator source-line constants by +5; two MinGW video objects
-only reorder independent stack stores and a comparison across flag-preserving movs.
-No functions are added/removed. All twelve GCC/Clang C/C++ native helper libraries
-retain hashes and ABI layouts, including C99 helper mode. Artifacts are
-missing-initializers-{objects,native,check} under the persistent cache.
+Nine production objects reviewed: two Clang release objects are raw-identical.
+GCC/MinGW differences are equivalent member-base/index address calculations plus
+code placement/alignment. No functions added/removed. Both forms resolve to the
+same base + 0x6d8 + index*4 and store shader at +0x5b8. Actual GCC release commands
+fail before/pass after; existing UI sanitizer checks and native helper builds are
+next. Persistent evidence: array-bounds-preview/{results.json,*/functions.diff}.
+
+Initializer #85 local evidence: 2,380 syntax configurations; 188/194 affected
+objects raw/native-identical, four debug objects change only allocator __LINE__
+constants by +5, two MinGW video objects reorder independent stores/comparison.
+Twelve native libraries retain hashes/layouts. Full local MinGW debug client/server
+build passes. Source 708b7114/provenance 3e42dfc6. No golden regeneration.
 
 Next:
-1. Source 708b7114 and provenance 3e42dfc6 are recorded. The explicit DWORD cast
-   preserves both reviewed MinGW native objects. Parent #84 is merged; open this
-   class PR and require full hosted gates before final self-review/merge.
-2. Finish array-bounds and unused-result reviews, then the remaining classes.
+1. Run the existing UI skill sanitizer probe with GCC/Clang and native C/C++
+   helper builds; review library differences. Record source/provenance.
+2. Merge #85 after hosted gates/self-review, integrate modernization, open this
+   class PR and require full hosted gates. Continue unused-result and other classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
    rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then
