@@ -15,14 +15,14 @@ upstream; historical upstream PR references below are completed past work.
 Active: issue/8-parameter-shadow. #94 merged 6e5b7d65 after 36d419dd passed build
 35455191671 and regression 35455191669; self-review is recorded on #94/#8.
 Its merged-tree regression remains to check. #93 merged-tree regression
-35455087090 passes. Record cgame provenance, verify final helper hashes and open
-this MSVC C4457 class PR; require hosted gates/self-review before merging.
+35455087090 passes. Source 74689b95 and cgame provenance are recorded. All four edited-tree cgame
+helper hashes/layouts match #94. Open this MSVC C4457 class PR; require hosted gates/self-review before merging.
 
 This branch renames the bleed effect's local alpha to bleedAlpha (seven tokens),
 leaving the function parameter and particle member unchanged. MSVC C4457 becomes
 an error. All nine production objects preserve code/data (seven raw/native hashes,
 two debug-only differences). Four GCC/Clang C/C++ cgame helper libraries/layouts
-retain hashes in preview; final builds must compare with #94's updated baseline.
+retain hashes in preview and in final builds against #94's updated baseline.
 Four trailing tabs on touched vertex-color lines are removed. No FP expression,
 OS access, allocation, lifetime, layout, fixture or golden changes. Artifacts:
 parameter-shadow-{preview,objects,review.json,native*} in persistent cache.
@@ -98,8 +98,8 @@ C4267 234, C4459 38, C4456 28, C4065 15, C4457 3, C4644 3. Review each class
 before enabling its error gate, then /WX. Local tools include clang-query-21.
 
 Next:
-1. Finish parameter-shadow provenance/helper checks/PR and require hosted gates
-   and self-review before merging. Verify #94 merged-tree regression. Continue
+1. Open the parameter-shadow PR and require hosted gates/self-review before
+   merging. Verify #94 merged-tree regression 35455583704. Continue
    global/local shadow classes, then Apple deprecations and MSVC /WX.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
