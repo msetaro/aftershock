@@ -105,7 +105,7 @@ static qboolean	CG_ParseAnimationFile( const char *filename, clientInfo_t *ci ) 
 	if ( len <= 0 ) {
 		return qfalse;
 	}
-	if ( len >= sizeof( text ) - 1 ) {
+	if ( (size_t)len >= sizeof( text ) - 1 ) {
 		CG_Printf( "File %s too long\n", filename );
 		return qfalse;
 	}

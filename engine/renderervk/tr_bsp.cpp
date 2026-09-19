@@ -373,11 +373,11 @@ static void R_LoadMergedLightmaps( const lump_t *l, byte *image )
 			lightmapWidth, lightmapHeight, (imgFlags_t)( lightmapFlags | IMGFLAG_CLAMPTOBORDER ) );
 
 		for ( y = 0; y < lightmapCountY; y++ ) {
-			if ( offs >= l->filelen )
+			if ( (uint32_t)offs >= l->filelen )
 				break;
 
 			for ( x = 0; x < lightmapCountX; x++ ) {
-				if ( offs >= l->filelen )
+				if ( (uint32_t)offs >= l->filelen )
 					break;
 
 				R_ProcessLightmap( image, buf + offs, maxIntensity );
@@ -511,7 +511,7 @@ static void R_LoadVisibility( const lump_t *l ) {
 	if ( (uint64_t)numClusters * clusterBytes > len ) {
 		Com_Error( ERR_DROP, "%s: lump too short", __func__ );
 	}
-	if ( numClusters < s_worldData.numClusters ) {
+	if ( numClusters < (unsigned int)s_worldData.numClusters ) {
 		Com_Error( ERR_DROP, "%s: bad numClusters", __func__ );
 	}
 	if ( clusterBytes < (numClusters + 7) >> 3 ) {
@@ -716,7 +716,7 @@ static void ParseFace( const dsurface_t *ds, const drawVert_t *verts, int numPoi
 
 	for ( i = 0 ; i < numIndexes ; i++ ) {
 		unsigned num = LittleLong( srcIndexes[ i ] );
-		if ( num >= numPoints )
+		if ( num >= (unsigned int)numPoints )
 			ri.Error( ERR_DROP, "%s: bad index", __func__ );
 		indexes[i] = num;
 	}
@@ -811,10 +811,10 @@ static void ParseMesh( const dsurface_t *ds, const drawVert_t *verts, int numVer
 		ri.Error( ERR_DROP, "%s: bad patch size", __func__ );
 
 	numPoints = width * height;
-	if (numPoints > numVerts)
+	if (numPoints > (unsigned int)numVerts)
 		ri.Error( ERR_DROP, "%s: verts out of range", __func__ );
 
-	for ( i = 0 ; i < numPoints ; i++ ) {
+	for ( i = 0 ; (unsigned int)i < numPoints ; i++ ) {
 		for ( j = 0 ; j < 3 ; j++ ) {
 			points[i].xyz[j] = LittleFloat( verts[i].xyz[j] );
 			points[i].normal[j] = R_ClampDenorm( LittleFloat( verts[i].normal[j] ) );
@@ -1703,13 +1703,13 @@ static void R_LoadSurfaces( const lump_t *surfs, const lump_t *verts, const lump
 				numVerts = 0;	// use patch size
 			else
 				numVerts = LittleLong( in->numVerts );
-			if ( (uint64_t)firstVert + numVerts > totalVerts )
+			if ( (uint64_t)firstVert + numVerts > (uint64_t)totalVerts )
 				ri.Error( ERR_DROP, "%s: bad verts", __func__ );
 
 			if ( type != MST_PATCH ) {
 				firstIndex = LittleLong( in->firstIndex );
 				numIndexes = LittleLong( in->numIndexes );
-				if ( (uint64_t)firstIndex + numIndexes > totalIndexes )
+				if ( (uint64_t)firstIndex + numIndexes > (uint64_t)totalIndexes )
 					ri.Error( ERR_DROP, "%s: bad indexes", __func__ );
 
 				// don't allow partial triangles
@@ -1722,7 +1722,7 @@ static void R_LoadSurfaces( const lump_t *surfs, const lump_t *verts, const lump
 
 		// get fog volume
 		fogIndex = LittleLong( in->fogNum ) + 1U;
-		if ( fogIndex >= s_worldData.numfogs ) {
+		if ( fogIndex >= (unsigned int)s_worldData.numfogs ) {
 			if ( type != MST_FLARE )
 				ri.Printf( PRINT_WARNING, "%s: bad fog index: %u\n", __func__, fogIndex );
 			fogIndex = 0;
@@ -1804,7 +1804,7 @@ static void R_LoadSubmodels( const lump_t *l ) {
 
 		firstSurface = LittleLong( in->firstSurface );
 		numSurfaces = LittleLong( in->numSurfaces );
-		if ( (uint64_t)firstSurface + numSurfaces > s_worldData.numsurfaces ) {
+		if ( (uint64_t)firstSurface + numSurfaces > (uint64_t)s_worldData.numsurfaces ) {
 			ri.Error( ERR_DROP, "%s: bad surfaces", __func__ );
 		}
 
@@ -1827,7 +1827,7 @@ static void R_SetParent( mnode_t *node, mnode_t *parent )
 	if ( node->parent )
 		ri.Error( ERR_DROP, "%s: cycle encountered", __func__ );
 	node->parent = parent;
-	if ( node->contents != CONTENTS_NODE )
+	if ( (unsigned int)node->contents != CONTENTS_NODE )
 		return;
 	R_SetParent( node->children[0], node );
 	R_SetParent( node->children[1], node );
@@ -1871,7 +1871,7 @@ static void R_LoadNodesAndLeafs( const lump_t *nodeLump, const lump_t *leafLump 
 		}
 	
 		p = LittleLong(in->planeNum);
-		if ( p >= s_worldData.numplanes ) {
+		if ( p >= (unsigned int)s_worldData.numplanes ) {
 			ri.Error( ERR_DROP, "%s: bad planeNum", __func__ );
 		}
 		out->plane = s_worldData.planes + p;
@@ -1883,12 +1883,12 @@ static void R_LoadNodesAndLeafs( const lump_t *nodeLump, const lump_t *leafLump 
 			p = LittleLong (in->children[j]);
 			if (p & 0x80000000) {
 				p = ~p;
-				if ( p >= numLeafs ) {
+				if ( p >= (unsigned int)numLeafs ) {
 					ri.Error( ERR_DROP, "%s: bad leaf", __func__ );
 				}
 				out->children[j] = s_worldData.nodes + numNodes + p;
 			} else {
-				if ( p >= numNodes ) {
+				if ( p >= (unsigned int)numNodes ) {
 					ri.Error( ERR_DROP, "%s: bad node", __func__ );
 				}
 				out->children[j] = s_worldData.nodes + p;
@@ -1920,7 +1920,7 @@ static void R_LoadNodesAndLeafs( const lump_t *nodeLump, const lump_t *leafLump 
 
 		firstmarksurface = LittleLong(inLeaf->firstLeafSurface);
 		nummarksurfaces = LittleLong(inLeaf->numLeafSurfaces);
-		if ( (uint64_t)firstmarksurface + nummarksurfaces > s_worldData.nummarksurfaces ) {
+		if ( (uint64_t)firstmarksurface + nummarksurfaces > (uint64_t)s_worldData.nummarksurfaces ) {
 			ri.Error( ERR_DROP, "%s: bad marksurfaces", __func__ );
 		}
 
@@ -2006,7 +2006,7 @@ static void R_LoadMarksurfaces( const lump_t *l )
 	for ( i=0 ; i<count ; i++)
 	{
 		unsigned j = LittleLong(in[i]);
-		if ( j >= s_worldData.numsurfaces ) {
+		if ( j >= (unsigned int)s_worldData.numsurfaces ) {
 			if ( j == 0xFFFFFFFF ) {
 				j = 0; // fix for ut43_azurea_b1 map
 			} else {
@@ -2119,14 +2119,14 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 	for ( i=0 ; i<count ; i++, fogs++) {
 		out->originalBrushNumber = LittleLong( fogs->brushNum );
 
-		if ( (unsigned)out->originalBrushNumber >= brushesCount ) {
+		if ( (unsigned)out->originalBrushNumber >= (unsigned int)brushesCount ) {
 			ri.Error( ERR_DROP, "fog brushNumber out of range" );
 		}
 		brush = brushes + out->originalBrushNumber;
 
 		firstSide = LittleLong( brush->firstSide );
 
-		if ( firstSide > sidesCount - 6 ) {
+		if ( firstSide > (unsigned int)( sidesCount - 6 ) ) {
 			ri.Error( ERR_DROP, "fog brush sideNumber out of range" );
 		}
 
@@ -2134,7 +2134,7 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 		for ( j = 0; j < 6; j++ ) {
 			sideNum = firstSide + j;
 			planeNum = LittleLong( sides[ sideNum ].planeNum );
-			if ( planeNum >= s_worldData.numplanes ) {
+			if ( planeNum >= (unsigned int)s_worldData.numplanes ) {
 				ri.Error( ERR_DROP, "fog brush planeNum out of range" );
 			}
 			d = s_worldData.planes[ planeNum ].dist;
@@ -2170,7 +2170,7 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 		// set the gradient vector
 		sideNum = LittleLong( fogs->visibleSide );
 
-		if ( sideNum == -1 ) {
+		if ( sideNum == (unsigned int)( -1 ) ) {
 			out->hasSurface = qfalse;
 		} else {
 			if ( sideNum >= sidesCount - firstSide ) {
@@ -2179,7 +2179,7 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 			} else {
 				out->hasSurface = qtrue;
 				planeNum = LittleLong( sides[ firstSide + sideNum ].planeNum );
-				if ( planeNum >= s_worldData.numplanes ) {
+				if ( planeNum >= (unsigned int)s_worldData.numplanes ) {
 					ri.Error( ERR_DROP, "fog brush planeNum out of range" );
 				}
 				VectorSubtract( vec3_origin, s_worldData.planes[ planeNum ].normal, out->surface );
@@ -2249,7 +2249,7 @@ static void R_LoadLightGrid( const lump_t *l ) {
 	Com_Memcpy( w->lightGridData, (void *)(fileBase + l->fileofs), l->filelen );
 
 	// deal with overbright bits
-	for ( i = 0 ; i < numGridPoints ; i++ ) {
+	for ( i = 0 ; (unsigned int)i < numGridPoints ; i++ ) {
 		R_ColorShiftLightingBytes( &w->lightGridData[i*8], &w->lightGridData[i*8], qfalse );
 		R_ColorShiftLightingBytes( &w->lightGridData[i*8+3], &w->lightGridData[i*8+3], qfalse );
 	}
@@ -2400,7 +2400,7 @@ void RE_LoadWorldMap( const char *name ) {
 	if ( !buffer.b ) {
 		ri.Error( ERR_DROP, "%s: couldn't load %s", __func__, name );
 	}
-	if ( size < sizeof( dheader_t ) ) {
+	if ( (size_t)size < sizeof( dheader_t ) ) {
 		ri.Error( ERR_DROP, "%s: %s has truncated header", __func__, name );
 	}
 
@@ -2423,7 +2423,7 @@ void RE_LoadWorldMap( const char *name ) {
 	fileBase = (byte *)header;
 
 	// swap all the lumps
-	for ( i = 0; i < sizeof( dheader_t ) / 4; i++ ) {
+	for ( i = 0; (size_t)i < sizeof( dheader_t ) / 4; i++ ) {
 		( (int32_t *)header )[i] = LittleLong( ( (int32_t *)header )[i] );
 	}
 
@@ -2434,7 +2434,7 @@ void RE_LoadWorldMap( const char *name ) {
 	for ( i = 0; i < HEADER_LUMPS; i++ ) {
 		uint32_t ofs = header->lumps[i].fileofs;
 		uint32_t len = header->lumps[i].filelen;
-		if ( (uint64_t)ofs + len > size ) {
+		if ( (uint64_t)ofs + len > (uint64_t)size ) {
 			ri.Error( ERR_DROP, "%s: %s has wrong lump[%i] size/offset", __func__, name, i );
 		}
 	}

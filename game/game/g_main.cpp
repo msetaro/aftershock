@@ -1553,7 +1553,7 @@ void PrintTeam(int team, char *message) {
 	int i;
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam != team)
+		if ((int)level.clients[i].sess.sessionTeam != team)
 			continue;
 		trap_SendServerCommand( i, message );
 	}
@@ -1571,12 +1571,12 @@ void SetLeader(int team, int client) {
 		PrintTeam(team, va((char *)"print \"%s is not connected\n\"", level.clients[client].pers.netname) );
 		return;
 	}
-	if (level.clients[client].sess.sessionTeam != team) {
+	if ((int)level.clients[client].sess.sessionTeam != team) {
 		PrintTeam(team, va((char *)"print \"%s is not on the team anymore\n\"", level.clients[client].pers.netname) );
 		return;
 	}
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam != team)
+		if ((int)level.clients[i].sess.sessionTeam != team)
 			continue;
 		if (level.clients[i].sess.teamLeader) {
 			level.clients[i].sess.teamLeader = qfalse;
@@ -1597,14 +1597,14 @@ void CheckTeamLeader( int team ) {
 	int i;
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam != team)
+		if ((int)level.clients[i].sess.sessionTeam != team)
 			continue;
 		if (level.clients[i].sess.teamLeader)
 			break;
 	}
 	if (i >= level.maxclients) {
 		for ( i = 0 ; i < level.maxclients ; i++ ) {
-			if (level.clients[i].sess.sessionTeam != team)
+			if ((int)level.clients[i].sess.sessionTeam != team)
 				continue;
 			if (!(g_entities[i].r.svFlags & SVF_BOT)) {
 				level.clients[i].sess.teamLeader = qtrue;
@@ -1612,7 +1612,7 @@ void CheckTeamLeader( int team ) {
 			}
 		}
 		for ( i = 0 ; i < level.maxclients ; i++ ) {
-			if (level.clients[i].sess.sessionTeam != team)
+			if ((int)level.clients[i].sess.sessionTeam != team)
 				continue;
 			level.clients[i].sess.teamLeader = qtrue;
 			break;

@@ -193,7 +193,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		float *f;
 	} blendWeights;
 
-	if( filesize < sizeof(iqmHeader_t) ) {
+	if( (size_t)filesize < sizeof(iqmHeader_t) ) {
 		return qfalse;
 	}
 
@@ -210,7 +210,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 	}
 
 	LL( header->filesize );
-	if( header->filesize > filesize || header->filesize > 16<<20 ) {
+	if( header->filesize > (unsigned int)filesize || header->filesize > (unsigned int)( 16<<20 ) ) {
 		return qfalse;
 	}
 
@@ -253,7 +253,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			return qfalse;
 	}
 
-	for ( i = 0; i < ARRAY_LEN( vertexArrayFormat ); i++ ) {
+	for ( i = 0; (size_t)i < ARRAY_LEN( vertexArrayFormat ); i++ ) {
 		vertexArrayFormat[i] = -1;
 	}
 
@@ -271,7 +271,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			return qfalse;
 		}
 		vertexarray = (iqmVertexArray_t *)((byte *)header + header->ofs_vertexarrays);
-		for( i = 0; i < header->num_vertexarrays; i++, vertexarray++ ) {
+		for( i = 0; (unsigned int)i < header->num_vertexarrays; i++, vertexarray++ ) {
 			int	n, *intPtr;
 
 			if( vertexarray->size <= 0 || vertexarray->size > 4 ) {
@@ -387,7 +387,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			return qfalse;
 		}
 		triangle = (iqmTriangle_t *)((byte *)header + header->ofs_triangles);
-		for( i = 0; i < header->num_triangles; i++, triangle++ ) {
+		for( i = 0; (unsigned int)i < header->num_triangles; i++, triangle++ ) {
 			LL( triangle->vertex[0] );
 			LL( triangle->vertex[1] );
 			LL( triangle->vertex[2] );
@@ -405,7 +405,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			return qfalse;
 		}
 		mesh = (iqmMesh_t *)((byte *)header + header->ofs_meshes);
-		for( i = 0; i < header->num_meshes; i++, mesh++) {
+		for( i = 0; (unsigned int)i < header->num_meshes; i++, mesh++) {
 			LL( mesh->name );
 			LL( mesh->material );
 			LL( mesh->first_vertex );
@@ -444,7 +444,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 
 			// find number of unique blend influences per mesh
 			if( header->num_joints ) {
-				for( j = 0; j < mesh->num_vertexes; j++ ) {
+				for( j = 0; (unsigned int)j < mesh->num_vertexes; j++ ) {
 					int vtx = mesh->first_vertex + j;
 
 					for( k = 0; k < j; k++ ) {
@@ -492,7 +492,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			return qfalse;
 		}
 		joint = (iqmJoint_t *)((byte *)header + header->ofs_joints);
-		for( i = 0; i < header->num_joints; i++, joint++ ) {
+		for( i = 0; (unsigned int)i < header->num_joints; i++, joint++ ) {
 			LL( joint->name );
 			LL( joint->parent );
 			LL( joint->translate[0] );
@@ -525,7 +525,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			return qfalse;
 		}
 		pose = (iqmPose_t *)((byte *)header + header->ofs_poses);
-		for( i = 0; i < header->num_poses; i++, pose++ ) {
+		for( i = 0; (unsigned int)i < header->num_poses; i++, pose++ ) {
 			LL( pose->parent );
 			LL( pose->mask );
 			LL( pose->channeloffset[0] );
@@ -560,7 +560,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			return qfalse;
 		}
 		bounds = (iqmBounds_t *) ((byte *) header + header->ofs_bounds);
-		for(i = 0; i < header->num_frames; i++)
+		for(i = 0; (unsigned int)i < header->num_frames; i++)
 		{
 			LL(bounds->bbmin[0]);
 			LL(bounds->bbmin[1]);
@@ -704,7 +704,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		mesh = (iqmMesh_t *)((byte *)header + header->ofs_meshes);
 		surface = iqmData->surfaces;
 		str = (char *)header + header->ofs_text;
-		for( i = 0; i < header->num_meshes; i++, mesh++, surface++ ) {
+		for( i = 0; (unsigned int)i < header->num_meshes; i++, mesh++, surface++ ) {
 			surface->surfaceType = SF_IQM;
 			Q_strncpyz(surface->name, str + mesh->name, sizeof (surface->name));
 			Q_strlwr(surface->name); // lowercase the surface name so skin compares are faster
@@ -720,7 +720,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 
 		// copy triangles
 		triangle = (iqmTriangle_t *)((byte *)header + header->ofs_triangles);
-		for( i = 0; i < header->num_triangles; i++, triangle++ ) {
+		for( i = 0; (unsigned int)i < header->num_triangles; i++, triangle++ ) {
 			iqmData->triangles[3*i+0] = triangle->vertex[0];
 			iqmData->triangles[3*i+1] = triangle->vertex[1];
 			iqmData->triangles[3*i+2] = triangle->vertex[2];
@@ -728,7 +728,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 
 		// copy vertexarrays and indexes
 		vertexarray = (iqmVertexArray_t *)((byte *)header + header->ofs_vertexarrays);
-		for( i = 0; i < header->num_vertexarrays; i++, vertexarray++ ) {
+		for( i = 0; (unsigned int)i < header->num_vertexarrays; i++, vertexarray++ ) {
 			int	n;
 
 			// skip disabled arrays
@@ -776,7 +776,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 			int vtx, influence, totalInfluences = 0;
 
 			surface = iqmData->surfaces;
-			for( i = 0; i < header->num_meshes; i++, surface++ ) {
+			for( i = 0; (unsigned int)i < header->num_meshes; i++, surface++ ) {
 				surface->first_influence = totalInfluences;
 				surface->num_influences = 0;
 
@@ -839,7 +839,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		// copy joint names
 		str = iqmData->jointNames;
 		joint = (iqmJoint_t *)((byte *)header + header->ofs_joints);
-		for( i = 0; i < header->num_joints; i++, joint++ ) {
+		for( i = 0; (unsigned int)i < header->num_joints; i++, joint++ ) {
 			char *name = (char *)header + header->ofs_text +
 				joint->name;
 			int len = strlen( name ) + 1;
@@ -849,7 +849,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 
 		// copy joint parents
 		joint = (iqmJoint_t *)((byte *)header + header->ofs_joints);
-		for( i = 0; i < header->num_joints; i++, joint++ ) {
+		for( i = 0; (unsigned int)i < header->num_joints; i++, joint++ ) {
 			iqmData->jointParents[i] = joint->parent;
 		}
 
@@ -857,7 +857,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		mat = iqmData->bindJoints;
 		matInv = iqmData->invBindJoints;
 		joint = (iqmJoint_t *)((byte *)header + header->ofs_joints);
-		for( i = 0; i < header->num_joints; i++, joint++ ) {
+		for( i = 0; (unsigned int)i < header->num_joints; i++, joint++ ) {
 			float baseFrame[12], invBaseFrame[12];
 
 			QuatNormalize2( joint->rotate, joint->rotate );
@@ -887,9 +887,9 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		// calculate pose transforms
 		transform = iqmData->poses;
 		framedata = (unsigned short *)((byte *)header + header->ofs_frames);
-		for( i = 0; i < header->num_frames; i++ ) {
+		for( i = 0; (unsigned int)i < header->num_frames; i++ ) {
 			pose = (iqmPose_t *)((byte *)header + header->ofs_poses);
-			for( j = 0; j < header->num_poses; j++, pose++, transform++ ) {
+			for( j = 0; (unsigned int)j < header->num_poses; j++, pose++, transform++ ) {
 				vec3_t	translate;
 				quat_t	rotate;
 				vec3_t	scale;
@@ -939,7 +939,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 	{
 		mat = iqmData->bounds;
 		bounds = (iqmBounds_t *) ((byte *) header + header->ofs_bounds);
-		for(i = 0; i < header->num_frames; i++)
+		for(i = 0; (unsigned int)i < header->num_frames; i++)
 		{
 			mat[0] = bounds->bbmin[0];
 			mat[1] = bounds->bbmin[1];
@@ -957,7 +957,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		mat = iqmData->bounds;
 
 		ClearBounds( &iqmData->bounds[0], &iqmData->bounds[3] );
-		for ( i = 0 ; i < header->num_vertexes ; i++ ) {
+		for ( i = 0 ; (unsigned int)i < header->num_vertexes ; i++ ) {
 			AddPointToBounds( &iqmData->positions[i*3], &iqmData->bounds[0], &iqmData->bounds[3] );
 		}
 	}
@@ -1351,7 +1351,7 @@ void RB_IQMSurfaceAnim( const surfaceType_t *surface ) {
 				vtxMat[10] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4*influence + 0] + 10];
 				vtxMat[11] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4*influence + 0] + 11];
 
-				for( j = 1; j < ARRAY_LEN( blendWeights ); j++ ) {
+				for( j = 1; (size_t)j < ARRAY_LEN( blendWeights ); j++ ) {
 					if ( blendWeights[j] <= 0.0f ) {
 						break;
 					}

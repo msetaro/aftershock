@@ -406,7 +406,7 @@ static int PC_StringizeTokens( const token_t *tokens, token_t *token )
 	for (t = tokens; t; t = t->next)
 	{
 		len = (int)strlen( t->string );
-		if ( len + total >= sizeof( token->string ) - 1 ) // reserve space for '"' and '\0'
+		if ( (size_t)( len + total ) >= sizeof( token->string ) - 1 ) // reserve space for '"' and '\0'
 			return qfalse;
 		strcpy( token->string + total, t->string );
 		total += len;

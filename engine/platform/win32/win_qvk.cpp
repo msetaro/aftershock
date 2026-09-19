@@ -141,7 +141,7 @@ qboolean QVK_Init( void )
 		};
 		int i;
 
-		for ( i = 0; i < ARRAY_LEN( dllnames ); i++ )
+		for ( i = 0; (size_t)i < ARRAY_LEN( dllnames ); i++ )
 		{
 			glw_state.VulkanLib = load_vulkan_library( dllnames[i] );
 

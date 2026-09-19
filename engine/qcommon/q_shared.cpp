@@ -683,7 +683,7 @@ const char *COM_ParseExt( const char **data_p, qboolean allowLineBreaks )
 			{
 				com_lines++;
 			}
-			if ( len < ARRAY_LEN( com_token )-1 )
+			if ( (size_t)len < ARRAY_LEN( com_token )-1 )
 			{
 				com_token[ len ] = c;
 				len++;
@@ -694,7 +694,7 @@ const char *COM_ParseExt( const char **data_p, qboolean allowLineBreaks )
 	// parse a regular word
 	do
 	{
-		if ( len < ARRAY_LEN( com_token )-1 )
+		if ( (size_t)len < ARRAY_LEN( com_token )-1 )
 		{
 			com_token[ len ] = c;
 			len++;
@@ -1729,7 +1729,7 @@ int QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
 	len = vsprintf( bigbuffer, fmt, argptr );
 	va_end( argptr );
 
-	if ( len >= sizeof( bigbuffer ) || len < 0 ) 
+	if ( (size_t)len >= sizeof( bigbuffer ) || len < 0 )
 	{
 		Com_Error( ERR_FATAL, "Com_sprintf: overflowed bigbuffer" );
 #if	defined(_DEBUG) && defined(_WIN32)

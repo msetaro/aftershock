@@ -136,7 +136,7 @@ static void CMod_LoadSubmodels( const lump_t *l ) {
 
 		firstBrush = LittleLong( in->firstBrush );
 		numBrushes = LittleLong( in->numBrushes );
-		if ( (uint64_t)firstBrush + numBrushes > cm.numBrushes ) {
+		if ( (uint64_t)firstBrush + numBrushes > (uint64_t)cm.numBrushes ) {
 			Com_Error( ERR_DROP, "%s: bad brushes", __func__ );
 		}
 
@@ -144,20 +144,20 @@ static void CMod_LoadSubmodels( const lump_t *l ) {
 		out->leaf.numLeafBrushes = numBrushes;
 		indexes = (int *)Hunk_Alloc( numBrushes * sizeof( *indexes ), h_current );
 		out->leaf.firstLeafBrush = indexes - cm.leafbrushes;
-		for ( j = 0 ; j < numBrushes ; j++ ) {
+		for ( j = 0 ; (unsigned int)j < numBrushes ; j++ ) {
 			indexes[j] = firstBrush + j;
 		}
 
 		firstSurface = LittleLong( in->firstSurface );
 		numSurfaces = LittleLong( in->numSurfaces );
-		if ( (uint64_t)firstSurface + numSurfaces > cm.numSurfaces ) {
+		if ( (uint64_t)firstSurface + numSurfaces > (uint64_t)cm.numSurfaces ) {
 			Com_Error( ERR_DROP, "%s: bad surfaces", __func__ );
 		}
 
 		out->leaf.numLeafSurfaces = numSurfaces;
 		indexes = (int *)Hunk_Alloc( numSurfaces * sizeof( *indexes ), h_current );
 		out->leaf.firstLeafSurface = indexes - cm.leafsurfaces;
-		for ( j = 0 ; j < numSurfaces ; j++ ) {
+		for ( j = 0 ; (unsigned int)j < numSurfaces ; j++ ) {
 			indexes[j] = firstSurface + j;
 		}
 	}
@@ -192,7 +192,7 @@ static void CMod_LoadNodes( const lump_t *l ) {
 	for ( i = 0; i < count; i++, out++, in++ )
 	{
 		num = LittleLong( in->planeNum );
-		if ( num >= cm.numPlanes )
+		if ( num >= (unsigned int)cm.numPlanes )
 			Com_Error( ERR_DROP, "%s: bad planeNum", __func__ );
 
 		out->plane = cm.planes + num;
@@ -200,10 +200,10 @@ static void CMod_LoadNodes( const lump_t *l ) {
 		{
 			child = LittleLong( in->children[j] );
 			if ( child & 0x80000000 ) {
-				if ( ~child >= cm.numLeafs )
+				if ( ~child >= (unsigned int)cm.numLeafs )
 					Com_Error( ERR_DROP, "%s: bad leaf", __func__ );
 			} else {
-				if ( child >= count )
+				if ( child >= (unsigned int)count )
 					Com_Error( ERR_DROP, "%s: bad node", __func__ );
 			}
 			out->children[j] = child;
@@ -256,7 +256,7 @@ static void CMod_LoadBrushes( const lump_t *l ) {
 	for ( i = 0; i < count; i++, out++, in++ ) {
 		firstSide = LittleLong( in->firstSide );
 		numSides = LittleLong( in->numSides );
-		if ( (uint64_t)firstSide + numSides > cm.numBrushSides )
+		if ( (uint64_t)firstSide + numSides > (uint64_t)cm.numBrushSides )
 			Com_Error( ERR_DROP, "%s: bad brushsides", __func__ );
 
 		out->sides = cm.brushsides + firstSide;
@@ -311,7 +311,7 @@ static void CMod_LoadLeafs( const lump_t *l )
 
 		firstLeafBrush = LittleLong( in->firstLeafBrush );
 		numLeafBrushes = LittleLong( in->numLeafBrushes );
-		if ( (uint64_t)firstLeafBrush + numLeafBrushes > cm.numLeafBrushes )
+		if ( (uint64_t)firstLeafBrush + numLeafBrushes > (uint64_t)cm.numLeafBrushes )
 			Com_Error( ERR_DROP, "%s: bad leafbrushes", __func__ );
 
 		out->firstLeafBrush = firstLeafBrush;
@@ -319,7 +319,7 @@ static void CMod_LoadLeafs( const lump_t *l )
 
 		firstLeafSurface = LittleLong( in->firstLeafSurface );
 		numLeafSurfaces = LittleLong( in->numLeafSurfaces );
-		if ( (uint64_t)firstLeafSurface + numLeafSurfaces > cm.numLeafSurfaces )
+		if ( (uint64_t)firstLeafSurface + numLeafSurfaces > (uint64_t)cm.numLeafSurfaces )
 			Com_Error( ERR_DROP, "%s: bad leafsurfaces", __func__ );
 
 		out->firstLeafSurface = firstLeafSurface;
@@ -404,7 +404,7 @@ static void CMod_LoadLeafBrushes( const lump_t *l )
 
 	for ( i = 0; i < count; i++, in++, out++ ) {
 		unsigned j = LittleLong( *in );
-		if ( j >= cm.numBrushes )
+		if ( j >= (unsigned int)cm.numBrushes )
 			Com_Error( ERR_DROP, "%s: bad brush", __func__ );
 		*out = j;
 	}
@@ -436,7 +436,7 @@ static void CMod_LoadLeafSurfaces( const lump_t *l )
 
 	for ( i = 0; i < count; i++, in++, out++ ) {
 		unsigned j = LittleLong( *in );
-		if ( j >= cm.numSurfaces ) {
+		if ( j >= (unsigned int)cm.numSurfaces ) {
 			if ( j == 0xFFFFFFFF )
 				j = 0; // fix for ut43_azurea_b1 map
 			else
@@ -473,7 +473,7 @@ static void CMod_LoadBrushSides( const lump_t *l )
 
 	for ( i= 0; i < count; i++, in++, out++ ) {
 		num = LittleLong( in->planeNum );
-		if ( num >= cm.numPlanes ) {
+		if ( num >= (unsigned int)cm.numPlanes ) {
 			Com_Error( ERR_DROP, "%s: bad planeNum", __func__ );
 		}
 		out->plane = &cm.planes[num];
@@ -531,7 +531,7 @@ static void CMod_LoadVisibility( const lump_t *l ) {
 	if ( (uint64_t)numClusters * clusterBytes > len ) {
 		Com_Error( ERR_DROP, "%s: lump too short", __func__ );
 	}
-	if ( numClusters < cm.numClusters ) {
+	if ( numClusters < (unsigned int)cm.numClusters ) {
 		Com_Error( ERR_DROP, "%s: bad numClusters", __func__ );
 	}
 	if ( clusterBytes < (numClusters + 7) >> 3 ) {
@@ -599,14 +599,14 @@ static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts ) {
 		}
 
 		dv_p = dv + firstVert;
-		for ( j = 0 ; j < numVerts ; j++, dv_p++ ) {
+		for ( j = 0 ; (unsigned int)j < numVerts ; j++, dv_p++ ) {
 			points[j][0] = LittleFloat( dv_p->xyz[0] );
 			points[j][1] = LittleFloat( dv_p->xyz[1] );
 			points[j][2] = LittleFloat( dv_p->xyz[2] );
 		}
 
 		shaderNum = LittleLong( in->shaderNum );
-		if ( shaderNum >= cm.numShaders ) {
+		if ( shaderNum >= (unsigned int)cm.numShaders ) {
 			Com_Error( ERR_DROP, "%s: bad shaderNum", __func__ );
 		}
 		patch->contents = cm.shaders[shaderNum].contentFlags;
@@ -716,14 +716,14 @@ void *CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	if ( !buf ) {
 		Com_Error( ERR_DROP, "%s: couldn't load %s", __func__, name );
 	}
-	if ( length < sizeof( dheader_t ) ) {
+	if ( (size_t)length < sizeof( dheader_t ) ) {
 		Com_Error( ERR_DROP, "%s: %s has truncated header", __func__, name );
 	}
 
 	*checksum = cm.checksum = LittleLong( Com_BlockChecksum( buf, length ) );
 
 	header = *(dheader_t *)buf;
-	for ( i = 0; i < sizeof( dheader_t ) / sizeof( int32_t ); i++ ) {
+	for ( i = 0; (size_t)i < sizeof( dheader_t ) / sizeof( int32_t ); i++ ) {
 		( (int32_t *)&header )[i] = LittleLong( ( (int32_t *)&header )[i] );
 	}
 
@@ -734,7 +734,7 @@ void *CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	for ( i = 0; i < HEADER_LUMPS; i++ ) {
 		uint32_t ofs = header.lumps[i].fileofs;
 		uint32_t len = header.lumps[i].filelen;
-		if ( (uint64_t)ofs + len > length ) {
+		if ( (uint64_t)ofs + len > (uint64_t)length ) {
 			Com_Error( ERR_DROP, "%s: %s has wrong lump[%i] size/offset", __func__, name, i );
 		}
 	}

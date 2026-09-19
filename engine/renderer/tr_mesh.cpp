@@ -349,7 +349,7 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 	numDlights = 0;
 	if ( R_GetDlightMode() >= 2 && ( !personalModel || tr.viewParms.portalView != PV_NONE ) ) {
 		R_TransformDlights( tr.viewParms.num_dlights, tr.viewParms.dlights, &tr.orientation );
-		for ( n = 0; n < tr.viewParms.num_dlights; n++ ) {
+		for ( n = 0; (unsigned int)n < tr.viewParms.num_dlights; n++ ) {
 			dl = &tr.viewParms.dlights[ n ];
 			if ( !R_LightCullBounds( dl, bounds[0], bounds[1] ) ) 
 				dlights[ numDlights++ ] = dl;

@@ -311,14 +311,14 @@ char *Com_MD5File( const char *fn, int length, const char *prefix, int prefix_le
 			r = length - total;
 		total += r;
 		MD5Update( &md5 , buffer, r );
-		if ( r < sizeof( buffer ) || total >= length )
+		if ( (size_t)r < sizeof( buffer ) || total >= length )
 			break;
 	}
 	FS_FCloseFile( f );
 	MD5Final( &md5, digest );
 
 	final[0] = '\0';
-	for ( i = 0; i < sizeof( digest ); i++ ) {
+	for ( i = 0; (size_t)i < sizeof( digest ); i++ ) {
 		Q_strcat( final, sizeof( final ), va( "%02X", digest[i] & 0xFF ) );
 	}
 

@@ -879,7 +879,7 @@ void IN_RawMouseEvent( LPARAM lParam )
 	dwSize = sizeof( u.raw );
 
 	err = GRID( (HRAWINPUT) lParam, RID_INPUT, &u.raw, &dwSize, sizeof( RAWINPUTHEADER ) );
-	if ( err == -1 )
+	if ( err == (UINT)-1 )
 		return;
 
 	if ( u.raw.header.dwType != RIM_TYPEMOUSE || u.raw.data.mouse.usFlags != MOUSE_MOVE_RELATIVE )

@@ -254,7 +254,7 @@ void G_AddRandomBot( int team ) {
 			if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
 				continue;
 			}
-			if ( team >= 0 && cl->sess.sessionTeam != team ) {
+			if ( team >= 0 && (int)cl->sess.sessionTeam != team ) {
 				continue;
 			}
 			if ( !Q_stricmp( value, cl->pers.netname ) ) {
@@ -277,7 +277,7 @@ void G_AddRandomBot( int team ) {
 			if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
 				continue;
 			}
-			if ( team >= 0 && cl->sess.sessionTeam != team ) {
+			if ( team >= 0 && (int)cl->sess.sessionTeam != team ) {
 				continue;
 			}
 			if ( !Q_stricmp( value, cl->pers.netname ) ) {
@@ -319,7 +319,7 @@ int G_RemoveRandomBot( int team ) {
 		if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
 			continue;
 		}
-		if ( team >= 0 && cl->sess.sessionTeam != team ) {
+		if ( team >= 0 && (int)cl->sess.sessionTeam != team ) {
 			continue;
 		}
 		strcpy(netname, cl->pers.netname);
@@ -348,7 +348,7 @@ int G_CountHumanPlayers( int team ) {
 		if ( g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT ) {
 			continue;
 		}
-		if ( team >= 0 && cl->sess.sessionTeam != team ) {
+		if ( team >= 0 && (int)cl->sess.sessionTeam != team ) {
 			continue;
 		}
 		num++;
@@ -374,7 +374,7 @@ int G_CountBotPlayers( int team ) {
 		if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
 			continue;
 		}
-		if ( team >= 0 && cl->sess.sessionTeam != team ) {
+		if ( team >= 0 && (int)cl->sess.sessionTeam != team ) {
 			continue;
 		}
 		num++;

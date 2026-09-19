@@ -69,7 +69,7 @@ tryagain:
 		if ( item->giType != IT_WEAPON ) {
 			continue;
 		}
-		if ( item->giTag == weaponNum ) {
+		if ( item->giTag == (int)weaponNum ) {
 			break;
 		}
 	}
@@ -941,7 +941,7 @@ static qboolean UI_ParseAnimationFile( const char *filename, animation_t *animat
 	if ( len <= 0 ) {
 		return qfalse;
 	}
-	if ( len >= ( sizeof( text ) - 1 ) ) {
+	if ( (size_t)len >= ( sizeof( text ) - 1 ) ) {
 		Com_Printf( "File %s too long\n", filename );
 		return qfalse;
 	}

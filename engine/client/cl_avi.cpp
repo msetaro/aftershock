@@ -97,7 +97,7 @@ static ID_INLINE void SafeFS_Write( const void *buf, unsigned int len, fileHandl
 		return;
 #endif
 
-	if ( FS_Write( buf, len, f ) < len )
+	if ( (unsigned int)( FS_Write( buf, len, f ) ) < len )
 		Com_Error( ERR_DROP, "Failed to write avi file" );
 }
 

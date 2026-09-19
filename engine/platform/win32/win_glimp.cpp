@@ -939,7 +939,7 @@ void UpdateMonitorInfo( const RECT *target )
 		// try to detect DPI scale
 		// we can't properly handle it but at least detect monitor resolution 
 		// and inform user in console
-		if ( devMode.dmPelsWidth > w || devMode.dmPelsHeight > h ) {
+		if ( devMode.dmPelsWidth > (DWORD)w || devMode.dmPelsHeight > (DWORD)h ) {
 			int scaleX, scaleY;
 			scaleX = (devMode.dmPelsWidth * 100) / w;
 			scaleY = (devMode.dmPelsHeight * 100) / h;
@@ -1156,8 +1156,8 @@ static rserr_t GLW_SetMode( int mode, const char *modeFS, int colorbits, qboolea
 						modeNum = -1;
 						break;
 					}
-					if ( devmode.dmPelsWidth >= config->vidWidth 
-						&& devmode.dmPelsHeight >= config->vidHeight
+					if ( devmode.dmPelsWidth >= (DWORD)config->vidWidth
+						&& devmode.dmPelsHeight >= (DWORD)config->vidHeight
 						&& devmode.dmBitsPerPel >= 15 ) {
 						break;
 					}

@@ -301,20 +301,14 @@ It verifies zero-client reset, red/blue human counts, bot exclusion and preserva
 of adjacent spawn state. --cc/--output select the compiler and output; both unit
 compiler jobs run it. Only unrelated end-level notifications use test stubs.
 
-Native Q3 builds use `-Wall -Wextra -Werror` with the frozen compiler-specific
-classes in `tests/native-warnings.json`. Counts are from all 103 module-specific
-objects compiled at -O2 with GCC 15.2 and Clang 21, in both C and C++. Every disabled
-class occurs in C; #8 removes them one class at a time. C++ literal/register errors
-remain enabled. OpenArena remains an external C test dependency.
-
-The two GCC array diagnostics are ui_spskill.cpp's skillpics[skill-1] accesses: menu
-callbacks supply IDs for skills 1..5, and initialization clamps to 1..5; the reported
-index interval [0,4] lies inside the five-element array. The actual CalculateRanks
-array bug was fixed separately in #58. The Clang null-pointer subtraction warnings
-are the inherited bg_lib qsort alignment idiom (one per module), retained under the
-plan's intentional-UB rule. The remaining classes are unchanged C diagnostics;
-extra C++ missing-field warnings reflect aggregate zero initialization. No new
-warning class is disabled just to make C++ build.
+Native Q3 helper builds use `-Wall -Wextra -Werror -Wunused-const-variable` in
+both C and C++. All frozen helper warning classes were removed through separate
+#8 PRs; the final signedness class removes the empty freeze configuration.
+C++ literal/register errors remain enabled. OpenArena remains an external C test
+dependency. Signedness edits preserve the existing integer conversions; enum
+comparisons shared with C use explicit integer casts only for equality checks.
+Production object comparisons and native C/C++ helper results are recorded in
+`docs/modernization-progress.md`. Accepted fixtures and goldens are unchanged.
 
 `python3 -B tests/native_gates.py` reproduces G2 layouts, G3 symbols and advisory G4
 assembly for all 103 native Q3 objects using the existing `tools/port/gates.py`
