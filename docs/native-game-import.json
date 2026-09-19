@@ -160,7 +160,8 @@
     "3e6d66b8": "#8 C4711: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
     "7c1db108": "#8 deprecation cleanup: remove unused testPrintInt/testPrintFloat reference wrappers and declarations; historical syscall enum values retained",
     "e8752ef1": "#31 PrintMsg: bounded formatting and required-length/error checks before dispatch; test-first 1ef998b0; valid text and quote policy retained",
-    "f3facd3a": "#31 native diagnostics: twelve bounded formatting calls with original capacities/log offset; test-first a3652169; valid output unchanged"
+    "f3facd3a": "#31 native diagnostics: twelve bounded formatting calls with original capacities/log offset; test-first a3652169; valid output unchanged",
+    "0eb07ced": "#8 writable strings: const Team_FragBonuses search name and remove redundant casts; base/MISSIONPACK GCC/Clang release objects byte-identical"
   },
   "files": [
     {
@@ -991,7 +992,8 @@
         "70b1f0b6",
         "3eaba64d",
         "6709136c",
-        "e8752ef1"
+        "e8752ef1",
+        "0eb07ced"
       ]
     },
     {

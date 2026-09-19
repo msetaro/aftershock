@@ -284,7 +284,7 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor [[maybe_unused]], ge
 	int otherteam;
 	int tokens;
 	gentity_t *flag, *carrier = NULL;
-	char *c;
+	const char *c;
 	vec3_t v1, v2;
 	int team;
 
@@ -416,10 +416,10 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor [[maybe_unused]], ge
 	// find the flag
 	switch (attacker->client->sess.sessionTeam) {
 	case TEAM_RED:
-		c = (char *)"team_CTF_redflag";
+		c = "team_CTF_redflag";
 		break;
 	case TEAM_BLUE:
-		c = (char *)"team_CTF_blueflag";
+		c = "team_CTF_blueflag";
 		break;		
 	default:
 		return;
