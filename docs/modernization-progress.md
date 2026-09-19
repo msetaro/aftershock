@@ -15,22 +15,39 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: #8 record-width branch issue/8-record-widths. PR #133 merged after
-build 35476070964, regression 35476070992 and preceding merged-tree regression
-35476004982 passed. Query the new merged-tree regression before the next merge.
-clang-format and the selected clang-tidy checks are authoritative.
+Active: #8 image/cache branch issue/8-image-cache-layouts. PR #134 merged
+following build 35476468686, regression 35476468724 and preceding merged-tree
+regression 35476443471. Source 33bf6e07/head fba42e61. Query its merged-tree
+regression before the next merge. The 59 central/shared records are complete.
 
-Applied the six-file record-width-preview: 52 central file records and seven
-shared state/font records use explicit primitive widths and size/alignment/
-trivial-copy/standard-layout assertions. The C++ trajectory enum explicitly uses
-uint32_t, matching existing release behavior; C99 reference declarations remain.
-Native module wrappers include type_traits before entering module namespaces.
-All 159 object samples preserve code/data (125 raw/native-identical, 34 debug-only),
-and all twelve GCC/Clang C/C++ helper hashes/layouts match formatted-native.json.
-Evidence: record-width-object-review.json and record-width-native.json.
-Next: formatter/tidy/regression gates, import provenance, hosted gates/self-review,
-then merge. Image/cache records, remaining long/char policy and Q_ASSERT follow;
-#8 remains open. No accepted goldens or fixture regeneration.
+Applied image-cache-width-preview: eight image/cache records have fixed integer
+widths and size/alignment/trivial-copy/standard-layout assertions. Preserve decoded
+BMP/TGA sizes 1080/20 and PNG IHDR size 16 (serialized fields occupy 13); no packing
+changes. PCX file bytes use uint8_t, retaining the original host-char interpretation
+only in its existing diagnostic. Cache version zero retains explicit Windows/
+non-Windows widths and its platform signature. All 55 object samples preserve
+code/data: 41 raw/native-identical, eight debug-only, six exact allocation
+source-line metadata differences. Evidence: image-cache-width-{object-review,
+line-review}.json. No new loader targets or golden changes.
+Next: formatter/tidy gates, publish, current-head and merged-tree hosted gates,
+self-review and merge. Then finish remaining long/char policy and Q_ASSERT.
+#8 remains open; do not start RHI implementation.
+
+Long-width experiment is still CACHE ONLY and not accepted. V1 blanket widening
+was rejected because script integers feed float conversion. V2 preserves explicit
+scriptSigned_t/scriptUnsigned_t widths (Windows 32-bit, elsewhere 64-bit), uses
+minizip's declared member type for in-memory positions and explicit formatter
+widths. All 1,810 release configurations compile: 1,728 assemblies identical,
+82 Windows differences need detailed review; Linux GCC/Clang and AArch64 match.
+All twelve experimental native helper hashes match formatted-native.json.
+Foreign callback/variadic/stdio long contracts remain; long-policy-control.log
+shows clang-tidy can distinguish long warnings from advisory short warnings.
+Do not apply this candidate until Windows/MSVC and simulation review is complete.
+
+Q_ASSERT preview is also CACHE ONLY: formatted-assert-* preserves 205 samples
+(159 raw, 46 debug-only), twelve helper hashes, and passes 46 assertion-enabled
+analysis configurations with increment/mutating-call negative controls. Its header
+baseline predates the long work; refresh inputs/proofs before applying later.
 
 Final formatting evidence: all 410 files idempotent; 1,810 release assemblies
 preserve instructions/data (eight inline-assembly source-comment differences).
@@ -47,7 +64,7 @@ pre-format candidates. Refresh inputs if an intervening source edit touches them
 PR #133 published: source f0c9acc3/head 73090b12, build 35476070964 and
 regression 35476070992 running. Hosted pinned formatting and clang-tidy jobs pass;
 other gates remain pending. #132 merged-tree regression is 35476004982.
-Combined cache-only record-width-preview preserves 159 sampled objects
+Applied record-width-preview (PR #134) preserves 159 sampled objects
 (125 raw/native-identical, 34 debug-only) and all twelve formatted helper hashes.
 Evidence: record-width-object-review.json, record-width-native.json. Its six files
 cover 52 central file records and seven shared state/font records, explicit
@@ -156,7 +173,10 @@ regression 35468827553 pass after self-review. Preceding merged-tree regression
 35468824605 passes. 85 sampled objects (77 raw/native, 8 debug-only) preserve
 code/data; twelve helper hashes/layouts match. Evidence: msvc-typedef-*.
 
-## Prepared #8 work
+## Historical #8 preparation (superseded)
+
+These notes retain earlier experiments and their original context. The Next action
+section above controls current work; do not reapply a candidate already merged.
 
 Final formatting proof is complete against #131 head a296e69a. All 410 input
 hashes matched before applying the cached result to the root worktree. The
@@ -2105,3 +2125,14 @@ comparison; mov does not change condition flags, and final stored bytes/branch
 condition are unchanged. No added/removed functions or other instruction changes.
 The explicit DWORD cast on si.cb leaves both reviewed MinGW native objects
 byte-identical. All twelve native helper hashes/layouts are unchanged.
+
+Latest long experiment review: the blanket V1 replacement was rejected. Script
+integer widths feed float conversion, so V2 explicitly preserves scriptSigned_t/
+scriptUnsigned_t as 32-bit on Windows and 64-bit elsewhere. Minizip file positions
+retain their API-owned type via decltype(unz_file_info::uncompressed_size);
+formatters use explicit int64_t arguments/PRId64 while retaining the existing
+signed diagnostic interpretation. No such code is applied. Twelve experimental
+native helper hashes match formatted-native.json; 1,810-assembly comparison is
+being refreshed only for the filesystem rows. Review Windows changes and MSVC
+conversions before proposing a PR. Foreign long declarations still require a
+precise, documented policy; do not silently suppress a whole file or family.

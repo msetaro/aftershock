@@ -33,21 +33,22 @@ PCX files are used for 8 bit images
 */
 
 typedef struct {
-	char manufacturer;
-	char version;
-	char encoding;
-	char bits_per_pixel;
-	unsigned short xmin, ymin, xmax, ymax;
-	unsigned short hres, vres;
-	unsigned char palette[48];
-	char reserved;
-	char color_planes;
-	unsigned short bytes_per_line;
-	unsigned short palette_type;
-	unsigned short hscreensize, vscreensize;
-	char filler[54];
+	uint8_t manufacturer;
+	uint8_t version;
+	uint8_t encoding;
+	uint8_t bits_per_pixel;
+	uint16_t xmin, ymin, xmax, ymax;
+	uint16_t hres, vres;
+	uint8_t palette[48];
+	uint8_t reserved;
+	uint8_t color_planes;
+	uint16_t bytes_per_line;
+	uint16_t palette_type;
+	uint16_t hscreensize, vscreensize;
+	uint8_t filler[54];
 } pcx_t;
-static_assert( sizeof( pcx_t ) == 128 );
+static_assert( sizeof( pcx_t ) == 128 && alignof( pcx_t ) == 2 &&
+			   std::is_trivially_copyable_v<pcx_t> && std::is_standard_layout_v<pcx_t> );
 
 void R_LoadPCX( const char *filename, byte **pic, int *width, int *height ) {
 	union {
@@ -96,7 +97,8 @@ void R_LoadPCX( const char *filename, byte **pic, int *width, int *height ) {
 	size = w * h;
 
 	if ( pcx->manufacturer != 0x0a || pcx->version != 5 || pcx->encoding != 1 || pcx->color_planes != 1 || pcx->bits_per_pixel != 8 || w >= 1024 || h >= 1024 ) {
-		ri.Printf( PRINT_ALL, "Bad or unsupported pcx file %s (%dx%d@%d)\n", filename, w, h, pcx->bits_per_pixel );
+		// Retain the existing host-char interpretation in this diagnostic.
+		ri.Printf( PRINT_ALL, "Bad or unsupported pcx file %s (%dx%d@%d)\n", filename, w, h, (char)pcx->bits_per_pixel );
 		return;
 	}
 

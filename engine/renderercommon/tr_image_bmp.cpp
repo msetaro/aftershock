@@ -26,22 +26,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 typedef struct
 {
 	char id[2];
-	unsigned fileSize;
-	unsigned reserved0;
-	unsigned bitmapDataOffset;
-	unsigned bitmapHeaderSize;
-	unsigned width;
-	unsigned height;
-	unsigned short planes;
-	unsigned short bitsPerPixel;
-	unsigned compression;
-	unsigned bitmapDataSize;
-	unsigned hRes;
-	unsigned vRes;
-	unsigned colors;
-	unsigned importantColors;
-	unsigned char palette[256][4];
+	uint32_t fileSize;
+	uint32_t reserved0;
+	uint32_t bitmapDataOffset;
+	uint32_t bitmapHeaderSize;
+	uint32_t width;
+	uint32_t height;
+	uint16_t planes;
+	uint16_t bitsPerPixel;
+	uint32_t compression;
+	uint32_t bitmapDataSize;
+	uint32_t hRes;
+	uint32_t vRes;
+	uint32_t colors;
+	uint32_t importantColors;
+	uint8_t palette[256][4];
 } BMPHeader_t;
+static_assert( sizeof( BMPHeader_t ) == 1080 && alignof( BMPHeader_t ) == 4 &&
+			   std::is_trivially_copyable_v<BMPHeader_t> && std::is_standard_layout_v<BMPHeader_t> );
 
 void R_LoadBMP( const char *name, byte **pic, int *width, int *height ) {
 	int columns, rows;

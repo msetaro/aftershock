@@ -63,6 +63,8 @@ struct PNG_ChunkHeader {
 	uint32_t Length;
 	uint32_t Type;
 };
+static_assert( sizeof( PNG_ChunkHeader ) == 8 && alignof( PNG_ChunkHeader ) == 1 &&
+			   std::is_trivially_copyable_v<PNG_ChunkHeader> && std::is_standard_layout_v<PNG_ChunkHeader> );
 #pragma pack( pop )
 
 #define PNG_ChunkHeader_Size (8)
@@ -100,6 +102,8 @@ struct PNG_Chunk_IHDR {
 	uint8_t FilterMethod;
 	uint8_t InterlaceMethod;
 };
+static_assert( sizeof( PNG_Chunk_IHDR ) == 16 && alignof( PNG_Chunk_IHDR ) == 4 &&
+			   std::is_trivially_copyable_v<PNG_Chunk_IHDR> && std::is_standard_layout_v<PNG_Chunk_IHDR> );
 
 #define PNG_Chunk_IHDR_Size (13)
 
@@ -185,6 +189,8 @@ struct PNG_ZlibHeader {
 	uint8_t CompressionMethod;
 	uint8_t Flags;
 };
+static_assert( sizeof( PNG_ZlibHeader ) == 2 && alignof( PNG_ZlibHeader ) == 1 &&
+			   std::is_trivially_copyable_v<PNG_ZlibHeader> && std::is_standard_layout_v<PNG_ZlibHeader> );
 
 #define PNG_ZlibHeader_Size (2)
 

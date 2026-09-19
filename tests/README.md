@@ -35,6 +35,12 @@ unsigned 32-bit C++ representation. The native C reference remains buildable and
 its ABI comparison runs in both compiler jobs. These changes preserve all accepted
 wire, file, collision and replay goldens.
 
+Image header and PK3 cache records also assert layout/type traits in their owning
+sources. Decoded BMP, TGA and PNG IHDR structs retain their existing padding;
+the assertions do not pack them to the serialized header length. Cache version zero
+retains its existing platform signature and Windows/non-Windows field widths.
+PCX byte fields are unsigned; the diagnostic preserves its prior host-char display.
+
 The thirteen asset-free groups include wire/file layout. The negative control
 moves the active GCC SSE Q_rsqrt return one ULP toward infinity in a temporary
 source copy; the golden comparison must reject it. Clang requires libc++-dev and
