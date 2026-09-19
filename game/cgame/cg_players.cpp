@@ -1158,7 +1158,7 @@ static void CG_RunLerpFrame( clientInfo_t *ci, lerpFrame_t *lf, int newAnimation
 			lf->frameTime = lf->oldFrameTime + anim->frameLerp;
 		}
 		f = ( lf->frameTime - lf->animationTime ) / anim->frameLerp;
-		f *= speedScale;		// adjust for haste, etc
+		f = (int)( f * (speedScale) );		// adjust for haste, etc
 
 		numFrames = anim->numFrames;
 		if (anim->flipflop) {

@@ -2030,7 +2030,7 @@ void Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultVa
 	if (!vmCvar)
 		return;
 
-	vmCvar->handle = cv - cvar_indexes;
+	vmCvar->handle = (cvarHandle_t)( cv - cvar_indexes );
 	vmCvar->modificationCount = -1;
 
 	Cvar_Update( vmCvar, 0 );

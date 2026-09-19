@@ -577,7 +577,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 					bs->ltgtype = LTG_TEAMACCOMPANY;
 					bs->formation_dist = 3.5f * 32;		//3.5 meter
 					BotSetTeamStatus(bs);
-					bs->owndecision_time = FloatTime() + 5;
+					bs->owndecision_time = (int)( FloatTime() + 5 );
 				}
 			}
 		}
@@ -620,7 +620,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 				BotGetAlternateRouteGoal(bs, BotOppositeTeam(bs));
 				//
 				BotSetTeamStatus(bs);
-				bs->owndecision_time = FloatTime() + 5;
+				bs->owndecision_time = (int)( FloatTime() + 5 );
 			}
 		}
 		return;
@@ -655,7 +655,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 					bs->formation_dist = 3.5f * 32;		//3.5 meter
 					//
 					BotSetTeamStatus(bs);
-					bs->owndecision_time = FloatTime() + 5;
+					bs->owndecision_time = (int)( FloatTime() + 5 );
 				}
 				else {
 					BotRefuseOrder(bs);
@@ -671,7 +671,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 					BotGetAlternateRouteGoal(bs, BotOppositeTeam(bs));
 					//
 					BotSetTeamStatus(bs);
-					bs->owndecision_time = FloatTime() + 5;
+					bs->owndecision_time = (int)( FloatTime() + 5 );
 				}
 			}
 		}
@@ -762,7 +762,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 		bs->ctfroam_time = FloatTime() + CTF_ROAM_TIME;
 		BotSetTeamStatus(bs);
 	}
-	bs->owndecision_time = FloatTime() + 5;
+	bs->owndecision_time = (int)( FloatTime() + 5 );
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
 #endif //DEBUG

@@ -214,7 +214,7 @@ static void RB_CalcBulgeVertexes( deformStage_t *ds ) {
 		int64_t off;
 		float scale;
 
-		off = (float)( FUNCTABLE_SIZE / (M_PI*2) ) * ( st[0] * ds->bulgeWidth + now );
+		off = (int64_t)( (float)( FUNCTABLE_SIZE / (M_PI*2) ) * ( st[0] * ds->bulgeWidth + now ) );
 
 		scale = tr.sinTable[ off & FUNCTABLE_MASK ] * ds->bulgeHeight;
 			
@@ -742,9 +742,9 @@ void RB_CalcModulateColorsByFog( unsigned char *colors ) {
 
 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
 		float f = (float)( 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] ) );
-		colors[0] *= f;
-		colors[1] *= f;
-		colors[2] *= f;
+		colors[0] = (unsigned char)( colors[0] * (f) );
+		colors[1] = (unsigned char)( colors[1] * (f) );
+		colors[2] = (unsigned char)( colors[2] * (f) );
 	}
 }
 
@@ -763,7 +763,7 @@ void RB_CalcModulateAlphasByFog( unsigned char *colors ) {
 
 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
 		float f = (float)( 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] ) );
-		colors[3] *= f;
+		colors[3] = (unsigned char)( colors[3] * (f) );
 	}
 }
 
@@ -782,10 +782,10 @@ void RB_CalcModulateRGBAsByFog( unsigned char *colors ) {
 
 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
 		float f = (float)( 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] ) );
-		colors[0] *= f;
-		colors[1] *= f;
-		colors[2] *= f;
-		colors[3] *= f;
+		colors[0] = (unsigned char)( colors[0] * (f) );
+		colors[1] = (unsigned char)( colors[1] * (f) );
+		colors[2] = (unsigned char)( colors[2] * (f) );
+		colors[3] = (unsigned char)( colors[3] * (f) );
 	}
 }
 
@@ -1148,7 +1148,7 @@ void RB_CalcRotateTexCoords( float degsPerSecond, float *src, float *dst )
 	texModInfo_t tmi;
 
 	degs = -degsPerSecond * timeScale;
-	index = degs * ( FUNCTABLE_SIZE / 360.0f );
+	index = (int64_t)( degs * ( FUNCTABLE_SIZE / 360.0f ) );
 
 	sinValue = tr.sinTable[ index & FUNCTABLE_MASK ];
 	cosValue = tr.sinTable[ ( index + FUNCTABLE_SIZE / 4 ) & FUNCTABLE_MASK ];

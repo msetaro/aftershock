@@ -165,7 +165,7 @@ loop:	SWAPINIT(a, es);
 	}
 
 	pn = (char *)a + n * es;
-	r = min(pa - (char *)a, pb - pa);
+	r = (int)( min(pa - (char *)a, pb - pa) );
 	vecswap((char *)a, pb - r, r);
 	r = (int)( min((size_t)(pd - pc), pn - pd - es) );
 	vecswap(pb, pn - r, r);
@@ -827,7 +827,7 @@ double atof( const char *string ) {
 				break;
 			}
 			c -= '0';
-			value += c * fraction;
+			{ double fractionValue = c * fraction; value = (float)( value + fractionValue ); }
 			fraction *= 0.1f;
 		} while ( 1 );
 
@@ -894,7 +894,7 @@ double _atof( const char **stringPtr ) {
 				break;
 			}
 			c -= '0';
-			value += c * fraction;
+			{ double fractionValue = c * fraction; value = (float)( value + fractionValue ); }
 			fraction *= 0.1f;
 		} while ( 1 );
 

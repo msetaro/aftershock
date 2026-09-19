@@ -265,7 +265,7 @@ void G_AddRandomBot( int team ) {
 			num++;
 		}
 	}
-	num = random() * num;
+	num = (int)( random() * num );
 	for ( n = 0; n < g_numBots ; n++ ) {
 		value = Info_ValueForKey( g_botInfos[n], "name" );
 		//

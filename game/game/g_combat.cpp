@@ -710,7 +710,7 @@ int CheckArmor (gentity_t *ent, int damage, int dflags)
 
 	// armor
 	count = client->ps.stats[STAT_ARMOR];
-	save = ceil( damage * ARMOR_PROTECTION );
+	save = (int)( ceil( damage * ARMOR_PROTECTION ) );
 	if (save >= count)
 		save = count;
 
@@ -974,7 +974,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		if ( ( dflags & DAMAGE_RADIUS ) || ( mod == MOD_FALLING ) ) {
 			return;
 		}
-		damage *= 0.5f;
+		damage = (int)( damage * (0.5f) );
 	}
 
 	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
@@ -992,7 +992,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	// always give half damage if hurting self
 	// calculated after knockback, so rocket jumping works
 	if ( targ == attacker) {
-		damage *= 0.5f;
+		damage = (int)( damage * (0.5f) );
 	}
 
 	if ( damage < 1 ) {

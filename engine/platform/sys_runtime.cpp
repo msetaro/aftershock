@@ -40,7 +40,7 @@ int Com_RealTime(qtime_t *qtime) {
 
 	t = time(NULL);
 	if (!qtime)
-		return t;
+		return (int)( t );
 	tms = localtime(&t);
 	if (tms) {
 		qtime->tm_sec = tms->tm_sec;
@@ -53,7 +53,7 @@ int Com_RealTime(qtime_t *qtime) {
 		qtime->tm_yday = tms->tm_yday;
 		qtime->tm_isdst = tms->tm_isdst;
 	}
-	return t;
+	return (int)( t );
 }
 
 
@@ -335,9 +335,9 @@ void Sys_SnapVector( float *vector )
 #if arm64
 void Sys_SnapVector( float *vector )
 {
-	vector[0] = rint( (double)vector[0] );
-	vector[1] = rint( (double)vector[1] );
-	vector[2] = rint( (double)vector[2] );
+	vector[0] = (float)( rint( (double)vector[0] ) );
+	vector[1] = (float)( rint( (double)vector[1] ) );
+	vector[2] = (float)( rint( (double)vector[2] ) );
 }
 #endif
 

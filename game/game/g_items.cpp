@@ -518,7 +518,7 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace [[maybe_unused
 
 	// random can be used to vary the respawn time
 	if ( ent->random ) {
-		respawn += crandom() * ent->random;
+		{ float respawnOffset = crandom() * ent->random; respawn = (int)( respawn + respawnOffset ); }
 		if ( respawn < 1 ) {
 			respawn = 1;
 		}

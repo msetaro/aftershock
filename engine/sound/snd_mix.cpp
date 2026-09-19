@@ -292,8 +292,8 @@ static void S_PaintChannelFrom16_scalar( channel_t *ch, const sfx_t *sc, int cou
 				}
 			}
 			fdiv = (float)( 256 * (boff-aoff) / sc->soundChannels );
-			samp[i].left += (fdata[0] * fleftvol)/fdiv;
-			samp[i].right += (fdata[1] * frightvol)/fdiv;
+			{ float expressionValue = (fdata[0] * fleftvol)/fdiv; samp[i].left = (int)( samp[i].left + expressionValue ); }
+			{ float expressionValue = (fdata[1] * frightvol)/fdiv; samp[i].right = (int)( samp[i].right + expressionValue ); }
 		}
 	}
 }

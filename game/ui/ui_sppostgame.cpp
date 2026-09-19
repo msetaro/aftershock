@@ -361,7 +361,7 @@ static void UI_SPPostgameMenu_MenuDraw( void ) {
 				return;
 			}
 
-			trap_Cvar_SetValue( "ui_spSelection", postgameMenuInfo.won * ARENAS_PER_TIER );
+			trap_Cvar_SetValue( "ui_spSelection", (float)( postgameMenuInfo.won * ARENAS_PER_TIER ) );
 			trap_Cvar_Set( "nextmap", "levelselect" );
 			trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"disconnect; cinematic tier%i.RoQ\n", postgameMenuInfo.won + 1 ) );
 			return;

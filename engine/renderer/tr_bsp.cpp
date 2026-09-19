@@ -138,16 +138,16 @@ void R_ColorShiftLightingBytes( const byte in[4], byte out[4], qboolean hasAlpha
 	}
 
 	if ( r_mapGreyScale->integer ) {
-		const byte luma = LUMA( r, g, b );
+		const byte luma = (unsigned char)( LUMA( r, g, b ) );
 		out[0] = luma;
 		out[1] = luma;
 		out[2] = luma;
 	} else if( r_mapGreyScale->value ) {
 		const float scale = (float)( fabs( (double)(r_mapGreyScale->value) ) );
 		const float luma = LUMA( r, g, b );
-		out[0] = LERP( r, luma, scale );
-		out[1] = LERP( g, luma, scale );
-		out[2] = LERP( b, luma, scale );
+		out[0] = (unsigned char)( LERP( r, luma, scale ) );
+		out[1] = (unsigned char)( LERP( g, luma, scale ) );
+		out[2] = (unsigned char)( LERP( b, luma, scale ) );
 	} else {
 		out[0] = (unsigned char)( r );
 		out[1] = (unsigned char)( g );

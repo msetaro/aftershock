@@ -1199,7 +1199,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 
 	// draw solid shade
 	GL_State( GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
-	qglColor4f( color&1, (color>>1)&1, (color>>2)&1, 1 );
+	qglColor4f( (float)( color&1 ), (float)( (color>>1)&1 ), (float)( (color>>2)&1 ), 1 );
 	qglDrawArrays( GL_TRIANGLE_FAN, 0, numPoints );
 
 	// draw wireframe outline

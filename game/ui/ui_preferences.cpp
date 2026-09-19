@@ -214,7 +214,7 @@ static void Crosshair_Draw( void *self ) {
 	if( !s->curvalue ) {
 		return;
 	}
-	UI_DrawHandlePic( x + SMALLCHAR_WIDTH, (float)( y - 4 ), (float)( 24 ), (float)( 24 ), s_preferences.crosshairShader[s->curvalue] );
+	UI_DrawHandlePic( (float)( x + SMALLCHAR_WIDTH ), (float)( y - 4 ), (float)( 24 ), (float)( 24 ), s_preferences.crosshairShader[s->curvalue] );
 }
 
 

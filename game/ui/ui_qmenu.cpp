@@ -185,7 +185,7 @@ static void PText_Init( menutext_s *t )
 	x = t->generic.x;
 	y = t->generic.y;
 	w = (int)( UI_ProportionalStringWidth( t->string ) * sizeScale );
-	h =	PROP_HEIGHT * sizeScale;
+	h =	(int)( PROP_HEIGHT * sizeScale );
 
 	if( t->generic.flags & QMF_RIGHT_JUSTIFY ) {
 		x -= w;
@@ -528,12 +528,12 @@ static void RadioButton_Draw( menuradiobutton_s *rb )
 
 	if ( !rb->curvalue )
 	{
-		UI_DrawHandlePic( x + SMALLCHAR_WIDTH, (float)( y + 2 ), (float)( 16 ), (float)( 16 ), uis.rb_off);
+		UI_DrawHandlePic( (float)( x + SMALLCHAR_WIDTH ), (float)( y + 2 ), (float)( 16 ), (float)( 16 ), uis.rb_off);
 		UI_DrawString( x + SMALLCHAR_WIDTH + 16, y, "off", style, color );
 	}
 	else
 	{
-		UI_DrawHandlePic( x + SMALLCHAR_WIDTH, (float)( y + 2 ), (float)( 16 ), (float)( 16 ), uis.rb_on );
+		UI_DrawHandlePic( (float)( x + SMALLCHAR_WIDTH ), (float)( y + 2 ), (float)( 16 ), (float)( 16 ), uis.rb_on );
 		UI_DrawString( x + SMALLCHAR_WIDTH + 16, y, "on", style, color );
 	}
 }
@@ -657,7 +657,7 @@ static void Slider_Draw( menuslider_s *s ) {
 
 	// draw slider
 	UI_SetColor( color );
-	UI_DrawHandlePic( x + SMALLCHAR_WIDTH, (float)( y ), (float)( 96 ), (float)( 16 ), sliderBar );
+	UI_DrawHandlePic( (float)( x + SMALLCHAR_WIDTH ), (float)( y ), (float)( 96 ), (float)( 16 ), sliderBar );
 	UI_SetColor( NULL );
 
 	// clamp thumb
@@ -682,7 +682,7 @@ static void Slider_Draw( menuslider_s *s ) {
 		button = sliderButton_0;
 	}
 
-	UI_DrawHandlePic( (float)( (int)( x + 2*SMALLCHAR_WIDTH + (SLIDER_RANGE-1)*SMALLCHAR_WIDTH* s->range ) - 2 ), (float)( y - 2 ), (float)( 12 ), (float)( 20 ), button );
+	UI_DrawHandlePic( (float)( (int)( (float)( x + 2*SMALLCHAR_WIDTH ) + (float)( (SLIDER_RANGE-1)*SMALLCHAR_WIDTH )* s->range ) - 2 ), (float)( y - 2 ), (float)( 12 ), (float)( 20 ), button );
 }
 #else
 /*
@@ -1228,7 +1228,7 @@ void ScrollList_Draw( menulist_s *l )
 					u -= (l->width * SMALLCHAR_WIDTH) / 2 + 1;
 				}
 
-				UI_FillRect((float)( u ),(float)( y ),l->width*SMALLCHAR_WIDTH,SMALLCHAR_HEIGHT+2,listbar_color);
+				UI_FillRect((float)( u ),(float)( y ),(float)( l->width*SMALLCHAR_WIDTH ),(float)( SMALLCHAR_HEIGHT+2 ),listbar_color);
 				color = text_color_highlight;
 
 				if (hasfocus)
@@ -1531,10 +1531,10 @@ void Menu_Draw( menuframework_s *menu )
 				h =	itemptr->bottom - itemptr->top + 1;
 
 				if (itemptr->flags & QMF_HASMOUSEFOCUS) {
-					UI_DrawRect(x, y, w, h, colorYellow );
+					UI_DrawRect((float)x, (float)y, (float)w, (float)h, colorYellow );
 				}
 				else {
-					UI_DrawRect(x, y, w, h, colorWhite );
+					UI_DrawRect((float)x, (float)y, (float)w, (float)h, colorWhite );
 				}
 			}
 		}

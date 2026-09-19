@@ -248,7 +248,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, const floa
 			continue;
 		}
 		SCR_DrawChar( xx+2, y+2, size, *s );
-		xx += size;
+		xx = (int)( xx + (size) );
 		s++;
 	}
 
@@ -270,7 +270,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, const floa
 			}
 		}
 		SCR_DrawChar( xx, y, size, *s );
-		xx += size;
+		xx = (int)( xx + (size) );
 		s++;
 	}
 	re.SetColor( NULL );

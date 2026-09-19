@@ -133,8 +133,8 @@ static qboolean ReadNumber(source_t *source, const fielddef_t *fd, void *p)
 	{
 		if (fd->type & FT_BOUNDED)
 		{
-			intmin = Maximum(intmin, fd->floatmin);
-			intmax = Minimum(intmax, fd->floatmax);
+			intmin = (long)( Maximum(intmin, fd->floatmin) );
+			intmax = (long)( Minimum(intmax, fd->floatmax) );
 		} //end if
 		if (intval < intmin || intval > intmax)
 		{

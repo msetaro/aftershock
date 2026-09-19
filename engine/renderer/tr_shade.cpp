@@ -86,7 +86,7 @@ void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 	//index >>= FUNCTABLE_SIZE2;
 
 	v = tess.shaderTime * bundle->imageAnimationSpeed; // fix for frameloss bug -EC-
-	index = v;
+	index = (int64_t)( v );
 
 	if ( index < 0 ) {
 		index = 0;	// may happen with shader time offsets
@@ -169,7 +169,7 @@ static void DrawNormals( const shaderCommands_t *input [[maybe_unused]] ) {
 	GL_State( GLS_DEPTHMASK_TRUE );
 
 	for ( i = tess.numVertexes-1; i >= 0; i-- ) {
-		VectorMA( tess.xyz[i], 2.0, tess.normal[i], tess.xyz[i*2 + 1] );
+		((tess.xyz[i*2 + 1])[0]=(float)((tess.xyz[i])[0]+(tess.normal[i])[0]*(2.0)),(tess.xyz[i*2 + 1])[1]=(float)((tess.xyz[i])[1]+(tess.normal[i])[1]*(2.0)),(tess.xyz[i*2 + 1])[2]=(float)((tess.xyz[i])[2]+(tess.normal[i])[2]*(2.0)));
 		VectorCopy( tess.xyz[i], tess.xyz[i*2] );
 	}
 

@@ -486,20 +486,20 @@ static void DrawSkyBox( const shader_t *shader )
 		int sky_mins_subd[2], sky_maxs_subd[2];
 		int s, t;
 
-		sky_mins[0][i] = floor( (double)(sky_mins[0][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS;
-		sky_mins[1][i] = floor( (double)(sky_mins[1][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS;
-		sky_maxs[0][i] = ceil( (double)(sky_maxs[0][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS;
-		sky_maxs[1][i] = ceil( (double)(sky_maxs[1][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS;
+		sky_mins[0][i] = (float)( floor( (double)(sky_mins[0][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS );
+		sky_mins[1][i] = (float)( floor( (double)(sky_mins[1][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS );
+		sky_maxs[0][i] = (float)( ceil( (double)(sky_maxs[0][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS );
+		sky_maxs[1][i] = (float)( ceil( (double)(sky_maxs[1][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS );
 
 		if ( ( sky_mins[0][i] >= sky_maxs[0][i] ) || ( sky_mins[1][i] >= sky_maxs[1][i] ) )
 		{
 			continue;
 		}
 
-		sky_mins_subd[0] = sky_mins[0][i] * HALF_SKY_SUBDIVISIONS;
-		sky_mins_subd[1] = sky_mins[1][i] * HALF_SKY_SUBDIVISIONS;
-		sky_maxs_subd[0] = sky_maxs[0][i] * HALF_SKY_SUBDIVISIONS;
-		sky_maxs_subd[1] = sky_maxs[1][i] * HALF_SKY_SUBDIVISIONS;
+		sky_mins_subd[0] = (int)( sky_mins[0][i] * HALF_SKY_SUBDIVISIONS );
+		sky_mins_subd[1] = (int)( sky_mins[1][i] * HALF_SKY_SUBDIVISIONS );
+		sky_maxs_subd[0] = (int)( sky_maxs[0][i] * HALF_SKY_SUBDIVISIONS );
+		sky_maxs_subd[1] = (int)( sky_maxs[1][i] * HALF_SKY_SUBDIVISIONS );
 
 		if ( sky_mins_subd[0] < -HALF_SKY_SUBDIVISIONS ) 
 			sky_mins_subd[0] = -HALF_SKY_SUBDIVISIONS;
@@ -576,10 +576,10 @@ static void FillCloudBox( void )
 			}
 		}
 
-		sky_mins[0][i] = floor( (double)(sky_mins[0][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS;
-		sky_mins[1][i] = floor( (double)(sky_mins[1][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS;
-		sky_maxs[0][i] = ceil( (double)(sky_maxs[0][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS;
-		sky_maxs[1][i] = ceil( (double)(sky_maxs[1][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS;
+		sky_mins[0][i] = (float)( floor( (double)(sky_mins[0][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS );
+		sky_mins[1][i] = (float)( floor( (double)(sky_mins[1][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS );
+		sky_maxs[0][i] = (float)( ceil( (double)(sky_maxs[0][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS );
+		sky_maxs[1][i] = (float)( ceil( (double)(sky_maxs[1][i] * HALF_SKY_SUBDIVISIONS) ) / HALF_SKY_SUBDIVISIONS );
 
 		if ( ( sky_mins[0][i] >= sky_maxs[0][i] ) ||
 			 ( sky_mins[1][i] >= sky_maxs[1][i] ) )

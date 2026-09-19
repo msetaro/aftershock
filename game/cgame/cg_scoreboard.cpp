@@ -150,7 +150,7 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	VectorClear( headAngles );
 	headAngles[YAW] = 180;
 	if( largeFormat ) {
-		CG_DrawHead( (float)( headx ), (float)( y - ( ICON_SIZE - BIGCHAR_HEIGHT ) / 2 ), ICON_SIZE, ICON_SIZE, 
+		CG_DrawHead( (float)( headx ), (float)( y - ( ICON_SIZE - BIGCHAR_HEIGHT ) / 2 ), (float)( ICON_SIZE ), (float)( ICON_SIZE ), 
 			score->client, headAngles );
 	}
 	else {
@@ -212,7 +212,7 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 		}
 
 		hcolor[3] = fade * 0.7f;
-		CG_FillRect( SB_SCORELINE_X + BIGCHAR_WIDTH + (SB_RATING_WIDTH / 2), (float)( y ), 
+		CG_FillRect( (float)( SB_SCORELINE_X + BIGCHAR_WIDTH + (SB_RATING_WIDTH / 2) ), (float)( y ), 
 			640 - SB_SCORELINE_X - BIGCHAR_WIDTH, BIGCHAR_HEIGHT+1, hcolor );
 	}
 
@@ -343,10 +343,10 @@ qboolean CG_DrawOldScoreboard( void ) {
 	// scoreboard
 	y = SB_HEADER;
 
-	CG_DrawPic( SB_SCORE_X + (SB_RATING_WIDTH / 2), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardScore );
-	CG_DrawPic( SB_PING_X - (SB_RATING_WIDTH / 2), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardPing );
-	CG_DrawPic( SB_TIME_X - (SB_RATING_WIDTH / 2), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardTime );
-	CG_DrawPic( SB_NAME_X - (SB_RATING_WIDTH / 2), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardName );
+	CG_DrawPic( (float)( SB_SCORE_X + (SB_RATING_WIDTH / 2) ), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardScore );
+	CG_DrawPic( (float)( SB_PING_X - (SB_RATING_WIDTH / 2) ), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardPing );
+	CG_DrawPic( (float)( SB_TIME_X - (SB_RATING_WIDTH / 2) ), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardTime );
+	CG_DrawPic( (float)( SB_NAME_X - (SB_RATING_WIDTH / 2) ), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardName );
 
 	y = SB_TOP;
 

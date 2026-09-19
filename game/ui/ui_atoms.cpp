@@ -1256,8 +1256,8 @@ void UI_Refresh( int realtime )
 
 void UI_DrawTextBox (int x, int y, int width, int lines)
 {
-	UI_FillRect( (float)( x + BIGCHAR_WIDTH/2 ), (float)( y + BIGCHAR_HEIGHT/2 ), ( width + 1 ) * BIGCHAR_WIDTH, ( lines + 1 ) * BIGCHAR_HEIGHT, colorBlack );
-	UI_DrawRect( (float)( x + BIGCHAR_WIDTH/2 ), (float)( y + BIGCHAR_HEIGHT/2 ), ( width + 1 ) * BIGCHAR_WIDTH, ( lines + 1 ) * BIGCHAR_HEIGHT, colorWhite );
+	UI_FillRect( (float)( x + BIGCHAR_WIDTH/2 ), (float)( y + BIGCHAR_HEIGHT/2 ), (float)( ( width + 1 ) * BIGCHAR_WIDTH ), (float)( ( lines + 1 ) * BIGCHAR_HEIGHT ), colorBlack );
+	UI_DrawRect( (float)( x + BIGCHAR_WIDTH/2 ), (float)( y + BIGCHAR_HEIGHT/2 ), (float)( ( width + 1 ) * BIGCHAR_WIDTH ), (float)( ( lines + 1 ) * BIGCHAR_HEIGHT ), colorWhite );
 }
 
 qboolean UI_CursorInRect (int x, int y, int width, int height)

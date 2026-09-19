@@ -91,7 +91,7 @@ static void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 	//index >>= FUNCTABLE_SIZE2;
 
 	v = tess.shaderTime * bundle->imageAnimationSpeed; // fix for frameloss bug -EC-
-	index = v;
+	index = (int64_t)( v );
 
 	if ( index < 0 ) {
 		index = 0;	// may happen with shader time offsets
@@ -194,7 +194,7 @@ static void DrawNormals( const shaderCommands_t *input [[maybe_unused]] ) {
 
 	tess.numIndexes = 0;
 	for ( i = 0; i < tess.numVertexes; i++ ) {
-		VectorMA( tess.xyz[i], 2.0, tess.normal[i], tess.xyz[i + tess.numVertexes] );
+		((tess.xyz[i + tess.numVertexes])[0]=(float)((tess.xyz[i])[0]+(tess.normal[i])[0]*(2.0)),(tess.xyz[i + tess.numVertexes])[1]=(float)((tess.xyz[i])[1]+(tess.normal[i])[1]*(2.0)),(tess.xyz[i + tess.numVertexes])[2]=(float)((tess.xyz[i])[2]+(tess.normal[i])[2]*(2.0)));
 		tess.indexes[  tess.numIndexes + 0 ] = i;
 		tess.indexes[  tess.numIndexes + 1 ] = i + tess.numVertexes;
 		tess.numIndexes += 2;

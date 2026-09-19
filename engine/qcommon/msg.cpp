@@ -475,7 +475,7 @@ const char *MSG_ReadStringLine( msg_t *msg ) {
 
 
 float MSG_ReadAngle16( msg_t *msg ) {
-	return SHORT2ANGLE(MSG_ReadShort(msg));
+	return (float)( SHORT2ANGLE(MSG_ReadShort(msg)) );
 }
 
 

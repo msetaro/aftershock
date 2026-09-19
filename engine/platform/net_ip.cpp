@@ -1243,7 +1243,7 @@ static void NET_OpenSocks( int port ) {
 		return;
 	}
 
-	address.sin_port = htons( net_socksPort->integer );
+	address.sin_port = htons( (uint16_t)( net_socksPort->integer ) );
 
 	if ( connect( socks_socket, ( struct sockaddr * )&address, sizeof( struct sockaddr_in ) ) == SOCKET_ERROR ) {
 		Com_Printf( "%s: connect: %s\n", __func__, NET_ErrorString() );
@@ -1337,7 +1337,7 @@ static void NET_OpenSocks( int port ) {
 	cmd.reserved = 0; // reserved
 	cmd.addrtype = 1; // address type: IPV4
 	cmd.u.v4.addr.s_addr = INADDR_ANY;
-	cmd.u.v4.port = htons( port );
+	cmd.u.v4.port = htons( (uint16_t)( port ) );
 	if ( send( socks_socket, (const char *)(void *)&cmd, 10, 0 ) == SOCKET_ERROR ) {
 		Com_Printf( "%s: send: %s\n", __func__, NET_ErrorString() );
 		return;
@@ -1959,7 +1959,7 @@ qboolean NET_Sleep( int timeout )
 	tv.tv_sec = timeout / 1000000;
 	tv.tv_usec = timeout - tv.tv_sec * 1000000;
 
-	retval = select( highestfd + 1, &fdr, NULL, NULL, &tv );
+	retval = select( (int)( highestfd + 1 ), &fdr, NULL, NULL, &tv );
 
 	if ( retval > 0 ) {
 		NET_Event( &fdr );

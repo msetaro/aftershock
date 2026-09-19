@@ -194,9 +194,9 @@ static void CM_TestBoxInBrush( traceWork_t *tw, const cbrush_t *brush ) {
 #ifdef USE_FIXED_PRECISION
 			t = DotProductDP( plane->normal, tw->sphere.offset );
 			if ( t > 0 ) {
-				VectorSubtractDP( tw->start, tw->sphere.offset, startp );
+				((startp)[0]=(float)((double)((tw->start)[0]-(tw->sphere.offset)[0])),(startp)[1]=(float)((double)((tw->start)[1]-(tw->sphere.offset)[1])),(startp)[2]=(float)((double)((tw->start)[2]-(tw->sphere.offset)[2])));
 			} else {
-				VectorAddDP( tw->start, tw->sphere.offset, startp );
+				((startp)[0]=(float)((double)((tw->start)[0]+(tw->sphere.offset)[0])),(startp)[1]=(float)((double)((tw->start)[1]+(tw->sphere.offset)[1])),(startp)[2]=(float)((double)((tw->start)[2]+(tw->sphere.offset)[2])));
 			}
 			d1 = DotProductDP( startp, plane->normal ) - dist;
 #else
@@ -542,13 +542,13 @@ static void CM_TraceThroughBrush( traceWork_t *tw, const cbrush_t *brush ) {
 			t = DotProductDP( plane->normal, tw->sphere.offset );
 			if ( t > 0 )
 			{
-				VectorSubtractDP( tw->start, tw->sphere.offset, startp );
-				VectorSubtractDP( tw->end, tw->sphere.offset, endp );
+				((startp)[0]=(float)((double)((tw->start)[0]-(tw->sphere.offset)[0])),(startp)[1]=(float)((double)((tw->start)[1]-(tw->sphere.offset)[1])),(startp)[2]=(float)((double)((tw->start)[2]-(tw->sphere.offset)[2])));
+				((endp)[0]=(float)((double)((tw->end)[0]-(tw->sphere.offset)[0])),(endp)[1]=(float)((double)((tw->end)[1]-(tw->sphere.offset)[1])),(endp)[2]=(float)((double)((tw->end)[2]-(tw->sphere.offset)[2])));
 			}
 			else
 			{
-				VectorAddDP( tw->start, tw->sphere.offset, startp );
-				VectorAddDP( tw->end, tw->sphere.offset, endp );
+				((startp)[0]=(float)((double)((tw->start)[0]+(tw->sphere.offset)[0])),(startp)[1]=(float)((double)((tw->start)[1]+(tw->sphere.offset)[1])),(startp)[2]=(float)((double)((tw->start)[2]+(tw->sphere.offset)[2])));
+				((endp)[0]=(float)((double)((tw->end)[0]+(tw->sphere.offset)[0])),(endp)[1]=(float)((double)((tw->end)[1]+(tw->sphere.offset)[1])),(endp)[2]=(float)((double)((tw->end)[2]+(tw->sphere.offset)[2])));
 			}
 
 			d1 = DotProductDP( startp, plane->normal ) - dist;

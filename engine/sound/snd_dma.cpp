@@ -333,7 +333,7 @@ static sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
 			Com_DPrintf( S_COLOR_YELLOW "WARNING: could not find %s - using default\n", sfx->soundName );
 			return 0;
 		}
-		return sfx - s_knownSfx;
+		return (sfxHandle_t)( sfx - s_knownSfx );
 	}
 
 	sfx->inMemory = qfalse;
@@ -346,7 +346,7 @@ static sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
 		return 0;
 	}
 
-	return sfx - s_knownSfx;
+	return (sfxHandle_t)( sfx - s_knownSfx );
 }
 
 

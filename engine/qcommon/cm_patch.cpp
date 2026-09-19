@@ -144,7 +144,7 @@ static qboolean CM_PlaneFromPoints( vec4_t plane, const vec3_t a, const vec3_t b
 	}
 
 	dplane[3] = DotProduct( a, dplane );
-	Vector4Copy( dplane, plane );
+	((plane)[0]=(float)((dplane)[0]),(plane)[1]=(float)((dplane)[1]),(plane)[2]=(float)((dplane)[2]),(plane)[3]=(float)((dplane)[3]));
 #else
 	vec3_t d1, d2;
 
@@ -1013,7 +1013,7 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 		//if it's a degenerate edge
 		if ( VectorNormalizeDP( dvec ) < 0.5 )
 			continue;
-		VectorCopy( dvec, vec );
+		((vec)[0]=(float)((dvec)[0]),(vec)[1]=(float)((dvec)[1]),(vec)[2]=(float)((dvec)[2]));
 #else
 		k = (j+1)%w->numpoints;
 		VectorSubtract( w->p[j], w->p[k], vec );
@@ -1044,7 +1044,7 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 					continue;
 
 				dplane[3] = DotProduct( d1 /*w->p[j]*/, dplane );
-				Vector4Copy( dplane, plane );
+				((plane)[0]=(float)((dplane)[0]),(plane)[1]=(float)((dplane)[1]),(plane)[2]=(float)((dplane)[2]),(plane)[3]=(float)((dplane)[3]));
 #else
 				VectorClear( vec2 );
 				vec2[axis] = dir;
@@ -1644,7 +1644,7 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 			else {
 				// NOTE: this works even though the plane might be flipped because the bbox is centered
 				offset = DotProduct( tw->offsets[ pp->signbits ], plane );
-				plane[3] += fabs((double)(offset));
+				plane[3] = (float)( plane[3] + (fabs((double)(offset))) );
 				VectorCopy( tw->start, startp );
 				VectorCopy( tw->end, endp );
 			}
@@ -1764,7 +1764,7 @@ qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchColli
 			else {
 				// NOTE: this works even though the plane might be flipped because the bbox is centered
 				offset = DotProduct( tw->offsets[ pp->signbits ], plane);
-				plane[3] += fabs((double)(offset));
+				plane[3] = (float)( plane[3] + (fabs((double)(offset))) );
 				VectorCopy( tw->start, startp );
 			}
 
@@ -1870,7 +1870,7 @@ void CM_DrawDebugSurface( void (*drawPoly)(int color, int numPoints, float *poin
 				else v1[n] = mins[n];
 			} //end for
 			VectorNegate(plane, v2);
-			plane[3] += fabs((double)(DotProduct(v1, v2)));
+			plane[3] = (float)( plane[3] + (fabs((double)(DotProduct(v1, v2)))) );
 			//*/
 
 			w = BaseWindingForPlane( plane,  plane[3] );
@@ -1902,7 +1902,7 @@ void CM_DrawDebugSurface( void (*drawPoly)(int color, int numPoints, float *poin
 					else v1[n] = mins[n];
 				} //end for
 				VectorNegate(plane, v2);
-				plane[3] -= fabs((double)(DotProduct(v1, v2)));
+				plane[3] = (float)( plane[3] - (fabs((double)(DotProduct(v1, v2)))) );
 
 				ChopWindingInPlace( &w, plane, plane[3], 0.1f );
 			}

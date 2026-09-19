@@ -299,15 +299,15 @@ void Con_CheckResize( void )
 
 	con.viswidth = cls.glconfig.vidWidth;
 
-	smallchar_width = SMALLCHAR_WIDTH * scale * cls.con_factor;
-	smallchar_height = SMALLCHAR_HEIGHT * scale * cls.con_factor;
-	bigchar_width = BIGCHAR_WIDTH * scale * cls.con_factor;
-	bigchar_height = BIGCHAR_HEIGHT * scale * cls.con_factor;
+	smallchar_width = (int)( SMALLCHAR_WIDTH * scale * cls.con_factor );
+	smallchar_height = (int)( SMALLCHAR_HEIGHT * scale * cls.con_factor );
+	bigchar_width = (int)( BIGCHAR_WIDTH * scale * cls.con_factor );
+	bigchar_height = (int)( BIGCHAR_HEIGHT * scale * cls.con_factor );
 
 	if ( cls.glconfig.vidWidth == 0 ) // video hasn't been initialized yet
 	{
 		g_console_field_width = DEFAULT_CONSOLE_WIDTH;
-		width = DEFAULT_CONSOLE_WIDTH * scale;
+		width = (int)( DEFAULT_CONSOLE_WIDTH * scale );
 		con.linewidth = width;
 		con.totallines = CON_TEXTSIZE / con.linewidth;
 		con.vispage = 4;
@@ -713,7 +713,7 @@ static void Con_DrawNotify( void )
 	if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE )
 	{
 		// rescale to virtual 640x480 space
-		v /= cls.glconfig.vidHeight / 480.0;
+		{ double expressionValue = cls.glconfig.vidHeight / 480.0; v = (int)( v / expressionValue ); }
 
 		if (chat_team)
 		{
@@ -931,14 +931,14 @@ void Con_RunConsole( void )
 	// scroll towards the destination height
 	if ( con.finalFrac < con.displayFrac )
 	{
-		con.displayFrac -= con_conspeed->value * cls.realFrametime * 0.001;
+		{ double expressionValue = con_conspeed->value * cls.realFrametime * 0.001; con.displayFrac = (float)( con.displayFrac - expressionValue ); }
 		if ( con.finalFrac > con.displayFrac )
 			con.displayFrac = con.finalFrac;
 
 	}
 	else if ( con.finalFrac > con.displayFrac )
 	{
-		con.displayFrac += con_conspeed->value * cls.realFrametime * 0.001;
+		{ double expressionValue = con_conspeed->value * cls.realFrametime * 0.001; con.displayFrac = (float)( con.displayFrac + expressionValue ); }
 		if ( con.finalFrac < con.displayFrac )
 			con.displayFrac = con.finalFrac;
 	}

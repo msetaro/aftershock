@@ -1749,7 +1749,7 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 		//		because we can't directly calculate the exact travel time
 		//		to be more specific we don't know which reachability was used to travel
 		//		into the portal area
-		t += aasworld.portalmaxtraveltimes[portalnum];
+		{ int expressionValue = aasworld.portalmaxtraveltimes[portalnum]; t = (unsigned short)( t + expressionValue ); }
 		//
 		if (origin)
 		{
@@ -2023,7 +2023,7 @@ int AAS_RandomGoalArea(int areanum, int travelflags, int *goalareanum, vec3_t go
 	//if the area has no reachabilities
 	if (!AAS_AreaReachability(areanum)) return qfalse;
 	//
-	n = aasworld.numareas * random();
+	n = (int)( aasworld.numareas * random() );
 	for (i = 0; i < aasworld.numareas; i++)
 	{
 		if (n <= 0) n = 1;
@@ -2185,7 +2185,7 @@ int AAS_NearestHideArea(int srcnum [[maybe_unused]], vec3_t origin, int areanum,
 			//
 			if (dist2 < dist1)
 			{
-				t += (dist1 - dist2) * 10;
+				{ float expressionValue = (dist1 - dist2) * 10; t = (unsigned short)( t + expressionValue ); }
 			}
 			// if we weren't visible when starting, make sure we don't move into their view
 			if (!startVisible && AAS_AreaVisible(enemyareanum, nextareanum)) {

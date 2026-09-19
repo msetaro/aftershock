@@ -1703,7 +1703,7 @@ static void PM_Weapon( void ) {
   else
 #endif
 	if ( pm->ps->powerups[PW_HASTE] ) {
-		addTime /= 1.3f;
+		addTime = (int)( addTime / (1.3f) );
 	}
 
 	pm->ps->weaponTime += addTime;

@@ -149,7 +149,7 @@ static vec_t WindingArea( winding_t *w )
 		VectorSubtract (w->p[i-1], w->p[0], d1);
 		VectorSubtract (w->p[i], w->p[0], d2);
 		CrossProduct (d1, d2, cross);
-		total += 0.5 * VectorLength ( cross );
+		{ double expressionValue = 0.5 * VectorLength ( cross ); total = (float)( total + expressionValue ); }
 	}
 	return total;
 }
@@ -300,7 +300,7 @@ winding_t *BaseWindingForPlane( const vec3_t normal, vec_t dist )
 	VectorSubtract(org, dvright, p[3]);
 	VectorSubtract(p[3], dvup, p[3]);
 	for ( i = 0; i < 4; i++ ) {
-		VectorCopy(p[i], w->p[i]);
+		((w->p[i])[0]=(float)((p[i])[0]),(w->p[i])[1]=(float)((p[i])[1]),(w->p[i])[2]=(float)((p[i])[2]));
 	}
 #else
 	VectorSubtract( org, vright, w->p[0] );
@@ -586,7 +586,7 @@ void ChopWindingInPlace( winding_t **inout, const vec3_t normal, vec_t dist, vec
 			}
 		}
 			
-		VectorCopy (mid, f->p[f->numpoints]);
+		((f->p[f->numpoints])[0]=(float)((mid)[0]),(f->p[f->numpoints])[1]=(float)((mid)[1]),(f->p[f->numpoints])[2]=(float)((mid)[2]));
 		f->numpoints++;
 	}
 

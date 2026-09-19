@@ -1132,7 +1132,7 @@ static const char *RandomString( const char *name )
 	{
 		if ( strcmp( random->string, name ) == 0 )
 		{
-			i = random() * random->numstrings;
+			i = (int)( random() * random->numstrings );
 			for ( rs = random->firstrandomstring; rs; rs = rs->next )
 			{
 				if ( --i < 0 )
@@ -2539,7 +2539,7 @@ static const char *BotChooseInitialChatMessage(bot_chatstate_t *cs, const char *
 			} //end if
 			else //choose a chat message randomly
 			{
-				n = random() * numchatmessages;
+				n = (int)( random() * numchatmessages );
 				for (m = t->firstchatmessage; m; m = m->next)
 				{
 					if (m->time > AAS_Time()) continue;
@@ -2801,7 +2801,7 @@ int BotReplyChat(int chatstate, const char *message, int mcontext, int vcontext,
 					if (m->time > AAS_Time()) continue;
 					numchatmessages++;
 				} //end if
-				num = random() * numchatmessages;
+				num = (int)( random() * numchatmessages );
 				for (m = rchat->firstchatmessage; m; m = m->next)
 				{
 					if (--num < 0) break;

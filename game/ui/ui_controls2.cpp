@@ -695,13 +695,13 @@ static void Controls_DrawKeyBinding( void *self )
 		if (s_controls.waitingforkey)
 		{
 			UI_DrawChar( x, y, '=', UI_CENTER|UI_BLINK|UI_SMALLFONT, text_color_highlight);
-			UI_DrawString(SCREEN_WIDTH * 0.50f, SCREEN_HEIGHT * 0.80f, "Waiting for new key ... ESCAPE to cancel", UI_SMALLFONT|UI_CENTER|UI_PULSE, colorWhite );
+			UI_DrawString((int)( SCREEN_WIDTH * 0.50f ), (int)( SCREEN_HEIGHT * 0.80f ), "Waiting for new key ... ESCAPE to cancel", UI_SMALLFONT|UI_CENTER|UI_PULSE, colorWhite );
 		}
 		else
 		{
 			UI_DrawChar( x, y, 13, UI_CENTER|UI_BLINK|UI_SMALLFONT, text_color_highlight);
-			UI_DrawString(SCREEN_WIDTH * 0.50f, SCREEN_HEIGHT * 0.78f, "Press ENTER or CLICK to change", UI_SMALLFONT|UI_CENTER, colorWhite );
-			UI_DrawString(SCREEN_WIDTH * 0.50f, SCREEN_HEIGHT * 0.82f, "Press BACKSPACE to clear", UI_SMALLFONT|UI_CENTER, colorWhite );
+			UI_DrawString((int)( SCREEN_WIDTH * 0.50f ), (int)( SCREEN_HEIGHT * 0.78f ), "Press ENTER or CLICK to change", UI_SMALLFONT|UI_CENTER, colorWhite );
+			UI_DrawString((int)( SCREEN_WIDTH * 0.50f ), (int)( SCREEN_HEIGHT * 0.82f ), "Press BACKSPACE to clear", UI_SMALLFONT|UI_CENTER, colorWhite );
 		}
 	}
 	else
@@ -726,7 +726,7 @@ Controls_StatusBar
 */
 static void Controls_StatusBar( void *self [[maybe_unused]] )
 {
-	UI_DrawString(SCREEN_WIDTH * 0.50f, SCREEN_HEIGHT * 0.80f, "Use Arrow Keys or CLICK to change", UI_SMALLFONT|UI_CENTER, colorWhite );
+	UI_DrawString((int)( SCREEN_WIDTH * 0.50f ), (int)( SCREEN_HEIGHT * 0.80f ), "Use Arrow Keys or CLICK to change", UI_SMALLFONT|UI_CENTER, colorWhite );
 }
 
 

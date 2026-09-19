@@ -313,7 +313,7 @@ static float AAS_WeaponJumpZVelocity(vec3_t origin, float radiusdamage)
 	bsptrace = AAS_Trace(start, NULL, NULL, end, 1, CONTENTS_SOLID);
 	//calculate the damage the bot will get from the rocket impact
 	VectorAdd(botmins, botmaxs, v);
-	VectorMA(origin, 0.5, v, v);
+	((v)[0]=(float)((origin)[0]+(v)[0]*(0.5)),(v)[1]=(float)((origin)[1]+(v)[1]*(0.5)),(v)[2]=(float)((origin)[2]+(v)[2]*(0.5)));
 	VectorSubtract(bsptrace.endpos, v, v);
 	//
 	points = (float)( radiusdamage - 0.5 * VectorLength(v) );
@@ -328,7 +328,7 @@ static float AAS_WeaponJumpZVelocity(vec3_t origin, float radiusdamage)
 	VectorSubtract(origin, bsptrace.endpos, dir);
 	VectorNormalize(dir);
 	//damage velocity
-	VectorScale(dir, 1600.0 * (float)knockback / mass, kvel);	//the rocket jump hack...
+	((kvel)[0]=(float)((dir)[0]*(1600.0 * (float)knockback / mass)),(kvel)[1]=(float)((dir)[1]*(1600.0 * (float)knockback / mass)),(kvel)[2]=(float)((dir)[2]*(1600.0 * (float)knockback / mass)));	//the rocket jump hack...
 	//rocket impact velocity + jump velocity
 	return kvel[2] + aassettings.phys_jumpvel;
 } //end of the function AAS_WeaponJumpZVelocity
@@ -775,7 +775,7 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 				if (plane->normal[2] == 0 && (jump_frame < 0 || n - jump_frame > 2))
 				{
 					//check for a step
-					VectorMA(org, -0.25, plane->normal, start);
+					((start)[0]=(float)((org)[0]+(plane->normal)[0]*(-0.25)),(start)[1]=(float)((org)[1]+(plane->normal)[1]*(-0.25)),(start)[2]=(float)((org)[2]+(plane->normal)[2]*(-0.25)));
 					VectorCopy(start, stepend);
 					start[2] += phys_maxstep;
 					steptrace = AAS_TraceClientBBox(start, stepend, presencetype, entnum);

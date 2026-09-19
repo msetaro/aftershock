@@ -1534,7 +1534,7 @@ void CG_ParticleExplosion (char *animStr, vec3_t origin, vec3_t vel, int duratio
 		duration *= -1;
 		p->roll = 0;
 	} else {
-		p->roll = crandom()*179;
+		p->roll = (int)( crandom()*179 );
 	}
 
 	p->shaderAnim = anim;
@@ -1674,7 +1674,7 @@ void CG_ParticleImpactSmokePuff (qhandle_t pshader, vec3_t origin)
 	p->time = (float)( cg.time );
 	p->alpha = 0.25f;
 	p->alphavel = 0;
-	p->roll = crandom()*179;
+	p->roll = (int)( crandom()*179 );
 
 	p->pshader = pshader;
 

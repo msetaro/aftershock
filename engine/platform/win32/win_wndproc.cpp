@@ -358,11 +358,11 @@ static int MapChar( WPARAM wParam, byte scancode )
 
 	if ( directMap( wParam ) || scancode > 0x39 )
 	{
-		return wParam;
+		return (int)( wParam );
 	}
 	else 
 	{
-		char ch = s_scantochar[ scancode ];
+		char ch = (char)( s_scantochar[ scancode ] );
 		int shift = (GetKeyState( VK_SHIFT ) >> 15) & 1;
 		if ( ch >= 'a' && ch <= 'z' ) 
 		{
@@ -374,7 +374,7 @@ static int MapChar( WPARAM wParam, byte scancode )
 		} 
 		else 
 		{
-			ch = s_scantochar[ scancode | (shift<<6) ];
+			ch = (char)( s_scantochar[ scancode | (shift<<6) ] );
 		}
 
 		return ch;
@@ -512,7 +512,7 @@ void WIN_Minimize( void ) {
 			SetForegroundWindow( GetDesktopWindow() );
 		// and wait some time before minimizing
 		if ( !uTimerM )
-			uTimerM = SetTimer( g_wv.hWnd, TIMER_M, 50, NULL );
+			uTimerM = (UINT)( SetTimer( g_wv.hWnd, TIMER_M, 50, NULL ) );
 	} else {
 		ShowWindow( g_wv.hWnd, SW_MINIMIZE );
 	}
@@ -761,7 +761,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 			if ( uTimerT ) {
 				KillTimer( g_wv.hWnd, uTimerT );
 			}
-			uTimerT = SetTimer( g_wv.hWnd, TIMER_T, 20, NULL );
+			uTimerT = (UINT)( SetTimer( g_wv.hWnd, TIMER_T, 20, NULL ) );
 		}
 
 		SNDDMA_Activate();
@@ -945,13 +945,13 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 			return 0;
 		}
 		//Com_Printf( "^2k+^7 wParam:%08x lParam:%08x\n", wParam, lParam );
-		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( wParam, lParam ), qtrue, 0, NULL );
+		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( (int)wParam, (int)lParam ), qtrue, 0, NULL );
 		break;
 
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 		//Com_Printf( "^5k-^7 wParam:%08x lParam:%08x\n", wParam, lParam );
-		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( wParam, lParam ), qfalse, 0, NULL );
+		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( (int)wParam, (int)lParam ), qfalse, 0, NULL );
 		break;
 
 	case WM_CHAR:
@@ -1031,7 +1031,7 @@ char *Sys_GetClipboardData( void ) {
 		// GetClipboardData performs implicit CF_UNICODETEXT => CF_TEXT conversion
 		if ( ( hClipboardData = GetClipboardData( CF_TEXT ) ) != 0 ) {
 			if ( ( cliptext = (char *)GlobalLock( hClipboardData ) ) != 0 ) {
-				size = GlobalSize( hClipboardData ) + 1;
+				size = (DWORD)( GlobalSize( hClipboardData ) + 1 );
 				data = (char *)Z_Malloc( size );
 				Q_strncpyz( data, cliptext, size );
 				GlobalUnlock( hClipboardData );

@@ -49,7 +49,7 @@ static void CG_MachineGunEjectBrass( centity_t *cent ) {
 
 	le->leType = LE_FRAGMENT;
 	le->startTime = cg.time;
-	le->endTime = le->startTime + cg_brassTime.integer + ( cg_brassTime.integer / 4 ) * random();
+	le->endTime = (int)( le->startTime + cg_brassTime.integer + ( cg_brassTime.integer / 4 ) * random() );
 
 	le->pos.trType = TR_GRAVITY;
 	le->pos.trTime = cg.time - (rand()&15);
@@ -128,7 +128,7 @@ static void CG_ShotgunEjectBrass( centity_t *cent ) {
 
 		le->leType = LE_FRAGMENT;
 		le->startTime = cg.time;
-		le->endTime = le->startTime + cg_brassTime.integer*3 + cg_brassTime.integer * random();
+		le->endTime = (int)( le->startTime + cg_brassTime.integer*3 + cg_brassTime.integer * random() );
 
 		le->pos.trType = TR_GRAVITY;
 		le->pos.trTime = cg.time;

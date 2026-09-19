@@ -849,7 +849,7 @@ void ClientThink_real( gentity_t *ent ) {
 	else
 #endif
 	if ( client->ps.powerups[PW_HASTE] ) {
-		client->ps.speed *= 1.3f;
+		client->ps.speed = (int)( client->ps.speed * (1.3f) );
 	}
 
 	// Let go of the hook if we aren't firing

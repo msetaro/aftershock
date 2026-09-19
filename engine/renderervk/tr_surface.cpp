@@ -230,7 +230,7 @@ static void RB_SurfaceSprite( void ) {
 		float	s, c;
 		float	ang;
 		
-		ang = M_PI * backEnd.currentEntity->e.rotation / 180.0;
+		ang = (float)( M_PI * backEnd.currentEntity->e.rotation / 180.0 );
 		s = (float)( sin( (double)(ang) ) );
 		c = (float)( cos( (double)(ang) ) );
 
@@ -730,7 +730,7 @@ static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
 		+ (backEnd.currentEntity->e.frame * surf->numVerts * 4);
 	newNormals = newXyz + 3;
 
-	newXyzScale = MD3_XYZ_SCALE * (1.0 - backlerp);
+	newXyzScale = (float)( MD3_XYZ_SCALE * (1.0 - backlerp) );
 	newNormalScale = (float)( 1.0 - backlerp );
 
 	numVerts = surf->numVerts;
@@ -769,7 +769,7 @@ static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
 			+ (backEnd.currentEntity->e.oldframe * surf->numVerts * 4);
 		oldNormals = oldXyz + 3;
 
-		oldXyzScale = MD3_XYZ_SCALE * backlerp;
+		oldXyzScale = (float)( MD3_XYZ_SCALE * backlerp );
 		oldNormalScale = backlerp;
 
 		for (vertNum=0 ; vertNum < numVerts ; vertNum++,

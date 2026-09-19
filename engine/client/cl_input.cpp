@@ -91,7 +91,7 @@ static cvar_t *m_filter;
 static qboolean in_mlooking;
 
 static void IN_CenterView( void ) {
-	cl.viewangles[PITCH] = -SHORT2ANGLE(cl.snap.ps.delta_angles[PITCH]);
+	cl.viewangles[PITCH] = (float)( -SHORT2ANGLE(cl.snap.ps.delta_angles[PITCH]) );
 }
 
 static void IN_MLookDown( void ) {
@@ -344,19 +344,19 @@ static void CL_KeyMove( usercmd_t *cmd ) {
 	side = 0;
 	up = 0;
 	if ( in_strafe.active ) {
-		side += movespeed * CL_KeyState (&in_right);
-		side -= movespeed * CL_KeyState (&in_left);
+		{ float expressionValue = movespeed * CL_KeyState (&in_right); side = (int)( side + expressionValue ); }
+		{ float expressionValue = movespeed * CL_KeyState (&in_left); side = (int)( side - expressionValue ); }
 	}
 
-	side += movespeed * CL_KeyState (&in_moveright);
-	side -= movespeed * CL_KeyState (&in_moveleft);
+	{ float expressionValue = movespeed * CL_KeyState (&in_moveright); side = (int)( side + expressionValue ); }
+	{ float expressionValue = movespeed * CL_KeyState (&in_moveleft); side = (int)( side - expressionValue ); }
 
 
-	up += movespeed * CL_KeyState (&in_up);
-	up -= movespeed * CL_KeyState (&in_down);
+	{ float expressionValue = movespeed * CL_KeyState (&in_up); up = (int)( up + expressionValue ); }
+	{ float expressionValue = movespeed * CL_KeyState (&in_down); up = (int)( up - expressionValue ); }
 
-	forward += movespeed * CL_KeyState (&in_forward);
-	forward -= movespeed * CL_KeyState (&in_back);
+	{ float expressionValue = movespeed * CL_KeyState (&in_forward); forward = (int)( forward + expressionValue ); }
+	{ float expressionValue = movespeed * CL_KeyState (&in_back); forward = (int)( forward - expressionValue ); }
 
 	cmd->forwardmove = ClampCharMove( forward );
 	cmd->rightmove = ClampCharMove( side );

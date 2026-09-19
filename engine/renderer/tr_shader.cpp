@@ -3676,7 +3676,7 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 
 		if ( buffers[ i ] ) {
 			if ( shaderStart ) {
-				summand -= (shaderStart - buffers[i]);
+				summand = (long)( summand - ((shaderStart - buffers[i])) );
 				if ( summand >= 0 ) {
 					memmove( buffers[i], shaderStart, summand + 1 );
 				}

@@ -351,7 +351,7 @@ int BotExportTest(int parm0 [[maybe_unused]], char *parm1 [[maybe_unused]], vec3
 	//BotOnGround(parm2, PRESENCE_NORMAL, 1, &newarea, &newarea);
 	//botimport.Print(PRT_MESSAGE, "%f %f %f\n", parm2[0], parm2[1], parm2[2]);
 	//*
-	highlightarea = LibVarGetValue("bot_highlightarea");
+	highlightarea = (int)( LibVarGetValue("bot_highlightarea") );
 	if (highlightarea > 0)
 	{
 		newarea = highlightarea;
@@ -428,7 +428,7 @@ int BotExportTest(int parm0 [[maybe_unused]], char *parm1 [[maybe_unused]], vec3
 		*/
 	} //end if
 	//*
-	flood = LibVarGetValue("bot_flood");
+	flood = (int)( LibVarGetValue("bot_flood") );
 	if (parm0 & 1)
 	{
 		if (flood)

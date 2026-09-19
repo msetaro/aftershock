@@ -73,7 +73,7 @@ static int GeneticSelection(int numranks, const float *rankings)
 		} //end for
 	} //end if
 	//select a bot randomly
-	index = random() * numranks;
+	index = (int)( random() * numranks );
 	for (i = 0; i < numranks; i++)
 	{
 		if (rankings[index] >= 0) return index;

@@ -61,7 +61,7 @@ void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing ) {
 
 	VectorScale (vec, spacing, vec);
 
-	for ( ; i < len; i += spacing ) {
+	for ( ; i < len; i = (int)( i + (spacing) ) ) {
 		localEntity_t	*le;
 		refEntity_t		*re;
 

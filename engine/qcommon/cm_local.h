@@ -55,9 +55,9 @@ static ID_INLINE void CrossProductDP( const vec3_t v1, const vec3_t v2, vec3_t c
 	double d1[3], d2[3];
 	VectorCopy( v1, d1 );
 	VectorCopy( v2, d2 );
-	cross[0] = d1[1]*d2[2] - d1[2]*d2[1];
-	cross[1] = d1[2]*d2[0] - d1[0]*d2[2];
-	cross[2] = d1[0]*d2[1] - d1[1]*d2[0];
+	cross[0] = (float)( d1[1]*d2[2] - d1[2]*d2[1] );
+	cross[1] = (float)( d1[2]*d2[0] - d1[0]*d2[2] );
+	cross[2] = (float)( d1[0]*d2[1] - d1[1]*d2[0] );
 }
 
 #define CrossProduct_(v1,v2,o) ((o)[0]=(v1)[1]*(v2)[2]-v1[2]*(v2)[1],(o)[1]=(v1)[2]*(v2)[0]-v1[0]*(v2)[2],(o)[2]=(v1)[0]*(v2)[1]-v1[1]*(v2)[0])
