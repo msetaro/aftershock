@@ -71,18 +71,22 @@ again. Every class still has its own branch/PR. C4514/C4711 retain compiler defa
 The runner's PID/session is transient; the log and msvc-c*-published.json files
 record PR heads, merge IDs and gates. Stop on any unexpected failure.
 
-Active: issue/8-msvc-c4136. Removes only C4136 suppression and promotes it on owned C++ sources.
+Active: issue/8-msvc-c4214. Removes only C4214 suppression and promotes it on owned C++ sources.
 No declarations, expressions, allocation, OS access, lifetime or layout changes.
-85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4136-object-review.json and msvc-c4136-native.json.
+92 sampled objects preserve code/data (92 raw/native-identical, 0 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4214-object-review.json and msvc-c4214-native.json.
 Native GPL provenance retains original import hashes. No accepted golden changes.
 Run full hosted gates and self-review before merge; then continue the remaining
 MSVC suppression classes, strict MSVC policy, and the rest of #8.
-Previous PR #120 merged as be3f2b32; verify its merged-tree regression.
-Source transformation 0c220839 recorded in native-game-import.json.
+Previous PR #121 merged as 3b5ae1a5; verify its merged-tree regression.
 
 
 ## Recent MSVC merges
+
+PR #121 C4136: source 0c220839, head 9da7b602, merged 3b5ae1a5.
+Build 35470242725 and regression 35470242736 pass after self-review.
+85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4136-object-review.json and msvc-c4136-native.json.
 
 PR #120 C4115: source fae6f1a7, head 478bb626, merged be3f2b32.
 Build 35469905876 and regression 35469905875 pass after self-review.
