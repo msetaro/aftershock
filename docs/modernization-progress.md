@@ -12,11 +12,11 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-array-bounds, based on pending initializer PR #85 head bcbd1bad.
-#84 merged 5c2ce6be after build 35450198604/regression 35450198615 passed;
-merged-tree regression 35450735064 remains to check. #85 requires build
-35450763997 and regression 35450764039, self-review, then merge/integration before
-opening this separate array-bounds warning PR.
+Active: issue/8-array-bounds. Initializer #85 merged 820ed3f1 after head bcbd1bad
+passed build 35450763997 and regression 35450764039; self-review is recorded on
+#85/#8. Its merged-tree regression remains to check. Integration is merged here.
+#84 merged-tree regression 35450735064 passes. Open this array-bounds class PR,
+require hosted build/regression and self-review before merge.
 
 Two UI skill-picture reads use the equivalent explicit pointer form, retaining
 (skill - 1), signed index arithmetic and all existing range policies. GCC's member
@@ -49,8 +49,8 @@ build passes. Source 708b7114/provenance 3e42dfc6. No golden regeneration.
 Next:
 1. Local array-bounds validation is complete: array-bounds-native-review.json,
    array-bounds-ui-{gcc,clang}.log and array-bounds-demo.log in persistent cache.
-2. Merge #85 after hosted gates/self-review, integrate modernization, open this
-   class PR and require full hosted gates. Continue unused-result and other classes.
+2. Open this class PR and require full hosted gates. Continue unused-result and
+   unused-but-set-variable as separate warning PRs.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
    rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then
