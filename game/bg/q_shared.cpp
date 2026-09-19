@@ -873,7 +873,7 @@ void QDECL Com_sprintf( char *dest, int size, const char *fmt, ...) {
 	char	bigbuffer[32000];	// big, but small enough to fit in PPC stack
 
 	va_start (argptr,fmt);
-	len = vsprintf (bigbuffer,fmt,argptr);
+	len = vsnprintf (bigbuffer,sizeof(bigbuffer),fmt,argptr);
 	va_end (argptr);
 	if ( (size_t)len >= sizeof( bigbuffer ) ) {
 		Com_Error( ERR_FATAL, "Com_sprintf: overflowed bigbuffer" );

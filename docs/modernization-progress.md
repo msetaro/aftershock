@@ -26,11 +26,13 @@ three with ASan stack-buffer-overflow before the existing error guard. Evidence:
 format-test-before.json and format-test-before-*-overflow.log in persistent cache.
 The first draft's post-NUL canary assumed identical padding; it was corrected to
 check outside the supplied destination capacity because native Q_strncpyz pads.
-No engine fix yet. Commit the failing test, then bound the shared temporary write
-and preserve existing truncation/error behavior. Run both compiler tests and full
-hosted gates, record GPL provenance/self-review, then merge. Fix va's distinct
-static-slot overflow in its own #31 PR next; resume #8 afterwards. No accepted
-golden regeneration is needed if valid behavior remains unchanged.
+Test-first commit b3c44459 fails before the fix (sprintf-before.log).
+The two-line fix now bounds the temporary write with Q_vsnprintf/vsnprintf;
+existing error guards, destination truncation and in-place behavior remain.
+All six GCC/Clang engine C++/game C/game C++ ASan+UBSan variants pass. Record GPL
+provenance, run full hosted gates and self-review before merging. #98 merged-tree
+regression 35457856345 remains to check. Fix va's distinct static-slot overflow
+in its own #31 PR next; resume #8 afterwards. No accepted golden changes.
 
 #97 local-shadow source 91a4341b preserves 19 production objects (15 raw/native,
 four debug-only) and all four edited-tree cgame helper hashes/layouts. #96 global
