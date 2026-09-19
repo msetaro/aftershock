@@ -37,14 +37,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon_public.h"
 #include "botlib_public.h"
-#include "be_interface.h"			//for botimport.Print
+#include "be_interface.h" //for botimport.Print
 #include "l_libvar.h"
 #include "l_log.h"
 
 #define MAX_LOGFILENAMESIZE		1024
 
-typedef struct logfile_s
-{
+typedef struct logfile_s {
 	char filename[MAX_LOGFILENAMESIZE];
 	FILE *fp;
 	int numwrites;
@@ -58,29 +57,25 @@ static logfile_t logfile;
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void Log_Open( const char *filename )
-{
+void Log_Open( const char *filename ) {
 	const char *ospath;
 
-	if ( !LibVarValue( "log", "0" ) ) 
+	if ( !LibVarValue( "log", "0" ) )
 		return;
 
-	if ( !filename || !*filename )
-	{
+	if ( !filename || !*filename ) {
 		botimport.Print( PRT_MESSAGE, "openlog <filename>\n" );
 		return;
 	} //end if
 
-	if ( logfile.fp )
-	{
-		botimport.Print(PRT_ERROR, "log file %s is already opened\n", logfile.filename);
+	if ( logfile.fp ) {
+		botimport.Print( PRT_ERROR, "log file %s is already opened\n", logfile.filename );
 		return;
 	} //end if
 
 	ospath = FS_BuildOSPath( Cvar_VariableString( "fs_homepath" ), "", filename );
 	logfile.fp = Sys_FOpen( ospath, "wb" );
-	if ( !logfile.fp )
-	{
+	if ( !logfile.fp ) {
 		botimport.Print( PRT_ERROR, "can't open the log file %s\n", filename );
 		return;
 	} //end if
@@ -94,16 +89,15 @@ void Log_Open( const char *filename )
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-static void Log_Close(void)
-{
-	if (!logfile.fp) return;
-	if (FS_OSClose(logfile.fp))
-	{
-		botimport.Print(PRT_ERROR, "can't close log file %s\n", logfile.filename);
+static void Log_Close( void ) {
+	if ( !logfile.fp )
+		return;
+	if ( FS_OSClose( logfile.fp ) ) {
+		botimport.Print( PRT_ERROR, "can't close log file %s\n", logfile.filename );
 		return;
 	} //end if
 	logfile.fp = NULL;
-	botimport.Print(PRT_MESSAGE, "Closed log %s\n", logfile.filename);
+	botimport.Print( PRT_MESSAGE, "Closed log %s\n", logfile.filename );
 } //end of the function Log_Close
 //===========================================================================
 //
@@ -111,9 +105,9 @@ static void Log_Close(void)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void Log_Shutdown(void)
-{
-	if (logfile.fp) Log_Close();
+void Log_Shutdown( void ) {
+	if ( logfile.fp )
+		Log_Close();
 } //end of the function Log_Shutdown
 //===========================================================================
 //
@@ -121,16 +115,16 @@ void Log_Shutdown(void)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void QDECL Log_Write(const char *fmt, ...)
-{
+void QDECL Log_Write( const char *fmt, ... ) {
 	va_list ap;
 
-	if (!logfile.fp) return;
-	va_start(ap, fmt);
-	FS_OSVPrintf(logfile.fp, fmt, ap);
-	va_end(ap);
+	if ( !logfile.fp )
+		return;
+	va_start( ap, fmt );
+	FS_OSVPrintf( logfile.fp, fmt, ap );
+	va_end( ap );
 	//FS_OSPrintf(logfile.fp, "\r\n");
-	FS_OSFlush(logfile.fp);
+	FS_OSFlush( logfile.fp );
 } //end of the function Log_Write
 #if 0
 //===========================================================================
@@ -165,8 +159,7 @@ void QDECL Log_WriteTimeStamped(char *fmt, ...)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-FILE *Log_FilePointer(void)
-{
+FILE *Log_FilePointer( void ) {
 	return logfile.fp;
 } //end of the function Log_FilePointer
 //===========================================================================
@@ -175,8 +168,7 @@ FILE *Log_FilePointer(void)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void Log_Flush(void)
-{
-	if (logfile.fp) FS_OSFlush(logfile.fp);
+void Log_Flush( void ) {
+	if ( logfile.fp )
+		FS_OSFlush( logfile.fp );
 } //end of the function Log_Flush
-

@@ -25,13 +25,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "glw_win.h"
 
 #ifndef WM_MOUSEWHEEL
-#define WM_MOUSEWHEEL (WM_MOUSELAST+1)  // message that will be supported by the OS 
+#define WM_MOUSEWHEEL (WM_MOUSELAST+1)  // message that will be supported by the OS
 #endif
 
 //static UINT MSH_MOUSEWHEEL;
 
 // Console variables that we need to access from this module
-cvar_t		*in_forceCharset;
+cvar_t *in_forceCharset;
 
 static HHOOK WinHook;
 
@@ -40,15 +40,13 @@ static HHOOK WinHook;
 WinKeyHook
 ==================
 */
-static LRESULT CALLBACK WinKeyHook( int code, WPARAM wParam, LPARAM lParam )
-{
+static LRESULT CALLBACK WinKeyHook( int code, WPARAM wParam, LPARAM lParam ) {
 	PKBDLLHOOKSTRUCT key = (PKBDLLHOOKSTRUCT)lParam;
-	switch( wParam )
-	{
+	switch ( wParam ) {
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
-		if ( ( key->vkCode == VK_LWIN || key->vkCode == VK_RWIN ) && !(Key_GetCatcher() & KEYCATCH_CONSOLE) ) {
-			const char* bind = Key_GetBinding( K_SUPER );
+		if ( ( key->vkCode == VK_LWIN || key->vkCode == VK_RWIN ) && !( Key_GetCatcher() & KEYCATCH_CONSOLE ) ) {
+			const char *bind = Key_GetBinding( K_SUPER );
 			if ( bind && *bind != '\0' ) {
 				Sys_QueEvent( 0, SE_KEY, K_SUPER, qtrue, 0, NULL );
 				return 1;
@@ -60,8 +58,8 @@ static LRESULT CALLBACK WinKeyHook( int code, WPARAM wParam, LPARAM lParam )
 		} // fall through
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
-		if ( ( key->vkCode == VK_LWIN || key->vkCode == VK_RWIN ) && !(Key_GetCatcher() & KEYCATCH_CONSOLE) ) {
-			const char* bind = Key_GetBinding( K_SUPER );
+		if ( ( key->vkCode == VK_LWIN || key->vkCode == VK_RWIN ) && !( Key_GetCatcher() & KEYCATCH_CONSOLE ) ) {
+			const char *bind = Key_GetBinding( K_SUPER );
 			if ( bind && *bind != '\0' ) {
 				Sys_QueEvent( 0, SE_KEY, K_SUPER, qfalse, 0, NULL );
 				return 1;
@@ -81,8 +79,7 @@ static LRESULT CALLBACK WinKeyHook( int code, WPARAM wParam, LPARAM lParam )
 WIN_DisableHook
 ==================
 */
-void WIN_DisableHook( void  ) 
-{
+void WIN_DisableHook( void ) {
 	if ( WinHook ) {
 		UnhookWindowsHookEx( WinHook );
 		WinHook = NULL;
@@ -97,10 +94,8 @@ WIN_EnableHook
 Capture PrintScreen and Win* keys
 ==================
 */
-void WIN_EnableHook( void  ) 
-{
-	if ( !WinHook )
-	{
+void WIN_EnableHook( void ) {
+	if ( !WinHook ) {
 		WinHook = SetWindowsHookEx( WH_KEYBOARD_LL, WinKeyHook, g_wv.hInstance, 0 );
 	}
 }
@@ -113,8 +108,7 @@ static qboolean s_alttab_disabled;
 WIN_DisableAltTab
 ==================
 */
-void WIN_DisableAltTab( void )
-{
+void WIN_DisableAltTab( void ) {
 	BOOL old;
 
 	if ( s_alttab_disabled )
@@ -142,8 +136,7 @@ void WIN_DisableAltTab( void )
 WIN_EnableAltTab
 ==================
 */
-void WIN_EnableAltTab( void )
-{
+void WIN_EnableAltTab( void ) {
 	BOOL old;
 
 	if ( !s_alttab_disabled )
@@ -160,7 +153,7 @@ void WIN_EnableAltTab( void )
 
 	if ( !Q_stricmp( Cvar_VariableString( "arch" ), "winnt" ) )
 		UnregisterHotKey( NULL, 0 );
-	else 
+	else
 		SystemParametersInfo( SPI_SETSCREENSAVERRUNNING, 0, &old, 0 );
 
 	s_alttab_disabled = qfalse;
@@ -172,8 +165,7 @@ void WIN_EnableAltTab( void )
 VID_AppActivate
 ==================
 */
-static void VID_AppActivate( qboolean active )
-{
+static void VID_AppActivate( qboolean active ) {
 	Key_ClearStates();
 
 	IN_Activate( active );
@@ -189,27 +181,26 @@ static void VID_AppActivate( qboolean active )
 
 //==========================================================================
 
-static const int s_scantokey[ 128 ] = 
-{ 
-//	0        1       2       3       4       5       6       7 
-//	8        9       A       B       C       D       E       F 
-	0  , K_ESCAPE,  '1',    '2',    '3',    '4',    '5',    '6', 
-	'7',    '8',    '9',    '0',    '-',    '=',K_BACKSPACE,K_TAB,  // 0 
-	'q',    'w',    'e',    'r',    't',    'y',    'u',    'i', 
-	'o',    'p',    '[',    ']',  K_ENTER, K_CTRL,	'a',	's',	// 1 
-	'd',    'f',    'g',    'h',    'j',    'k',    'l',    ';', 
-	'\'',K_CONSOLE,K_SHIFT, '\\',   'z',    'x',    'c',    'v',	// 2 
-	'b',    'n',    'm',    ',',    '.',    '/',  K_SHIFT,  '*', 
-	K_ALT,  ' ',K_CAPSLOCK, K_F1,   K_F2,   K_F3,   K_F4,  K_F5,    // 3 
-	K_F6, K_F7,  K_F8,   K_F9,  K_F10, K_PAUSE, K_SCROLLOCK, K_HOME, 
-	K_UPARROW,K_PGUP,K_KP_MINUS,K_LEFTARROW,K_KP_5,K_RIGHTARROW,K_KP_PLUS,K_END, //4 
-	K_DOWNARROW,K_PGDN,K_INS,K_DEL, 0,      0,      0,    K_F11, 
-	K_F12,  0  ,    0  ,    0  ,    0  ,  K_MENU,   0  ,    0,     // 5
-	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0, 
-	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0,     // 6 
-	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0, 
-	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0      // 7 
-}; 
+static const int s_scantokey[128] = {
+	//	0        1       2       3       4       5       6       7
+	//	8        9       A       B       C       D       E       F
+	0, K_ESCAPE, '1', '2', '3', '4', '5', '6',
+	'7', '8', '9', '0', '-', '=', K_BACKSPACE, K_TAB, // 0
+	'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',
+	'o', 'p', '[', ']', K_ENTER, K_CTRL, 'a', 's', // 1
+	'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
+	'\'', K_CONSOLE, K_SHIFT, '\\', 'z', 'x', 'c', 'v', // 2
+	'b', 'n', 'm', ',', '.', '/', K_SHIFT, '*',
+	K_ALT, ' ', K_CAPSLOCK, K_F1, K_F2, K_F3, K_F4, K_F5, // 3
+	K_F6, K_F7, K_F8, K_F9, K_F10, K_PAUSE, K_SCROLLOCK, K_HOME,
+	K_UPARROW, K_PGUP, K_KP_MINUS, K_LEFTARROW, K_KP_5, K_RIGHTARROW, K_KP_PLUS, K_END, //4
+	K_DOWNARROW, K_PGDN, K_INS, K_DEL, 0, 0, 0, K_F11,
+	K_F12, 0, 0, 0, 0, K_MENU, 0, 0, // 5
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, // 6
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0 // 7
+};
 
 
 /*
@@ -219,8 +210,7 @@ MapKey
 Map from windows to quake keynums
 ==================
 */
-static int MapKey( int nVirtKey, int key )
-{
+static int MapKey( int nVirtKey, int key ) {
 	int result;
 	int modified;
 	qboolean is_extended;
@@ -230,12 +220,9 @@ static int MapKey( int nVirtKey, int key )
 	if ( modified > 127 )
 		return 0;
 
-	if ( key & ( 1 << 24 ) )
-	{
+	if ( key & ( 1 << 24 ) ) {
 		is_extended = qtrue;
-	}
-	else
-	{
+	} else {
 		is_extended = qfalse;
 	}
 
@@ -244,10 +231,8 @@ static int MapKey( int nVirtKey, int key )
 	//Com_Printf( "key: 0x%08x modified:%i extended:%i result:%i(%02x) vk=%i\n",
 	//	key, modified, is_extended, result, result, nVirtKey );
 
-	if ( !is_extended )
-	{
-		switch ( result )
-		{
+	if ( !is_extended ) {
+		switch ( result ) {
 		case K_HOME:
 			return K_KP_HOME;
 		case K_UPARROW:
@@ -275,11 +260,8 @@ static int MapKey( int nVirtKey, int key )
 		default:
 			return result;
 		}
-	}
-	else
-	{
-		switch ( result )
-		{
+	} else {
+		switch ( result ) {
 		case K_PAUSE:
 			return K_KP_NUMLOCK;
 		case K_ENTER:
@@ -288,8 +270,8 @@ static int MapKey( int nVirtKey, int key )
 			return K_KP_SLASH;
 		case 0xAF:
 			return K_KP_PLUS;
-		//case '*':
-		//	return K_KP_STAR;
+			//case '*':
+			//	return K_KP_STAR;
 		}
 		return result;
 	}
@@ -303,15 +285,15 @@ static qboolean directMap( const WPARAM chr ) {
 
 	switch ( chr ) // edit control sequences
 	{
-		case 'c'-'a'+1:
-		case 'v'-'a'+1:
-		case 'h'-'a'+1:
-		case 'a'-'a'+1:
-		case 'e'-'a'+1:
-		case 'n'-'a'+1:
-		case 'p'-'a'+1:
-		case 'l'-'a'+1: // CTRL+L
-			return qtrue;
+	case 'c' - 'a' + 1:
+	case 'v' - 'a' + 1:
+	case 'h' - 'a' + 1:
+	case 'a' - 'a' + 1:
+	case 'e' - 'a' + 1:
+	case 'n' - 'a' + 1:
+	case 'p' - 'a' + 1:
+	case 'l' - 'a' + 1: // CTRL+L
+		return qtrue;
 	}
 
 	if ( chr < ' ' || chr > 127 || in_forceCharset->integer > 1 )
@@ -328,53 +310,156 @@ MapChar
 Map input to ASCII charset
 ==================
 */
-static int MapChar( WPARAM wParam, byte scancode ) 
-{
-	static const int s_scantochar[ 128 ] = 
-	{ 
-//	0        1       2       3       4       5       6       7 
-//	8        9       A       B       C       D       E       F 
- 	 0,      0,     '1',    '2',    '3',    '4',    '5',    '6', 
-	'7',    '8',    '9',    '0',    '-',    '=',    0x8,    0x9,	// 0
-	'q',    'w',    'e',    'r',    't',    'y',    'u',    'i', 
-	'o',    'p',    '[',    ']',    0xD,     0,     'a',    's',	// 1
-	'd',    'f',    'g',    'h',    'j',    'k',    'l',    ';', 
-	'\'',    0,      0,     '\\',   'z',    'x',    'c',    'v',	// 2
-	'b',    'n',    'm',    ',',    '.',    '/',     0,     '*', 
-	 0,     ' ',     0,      0,      0,      0,      0,      0,     // 3
+static int MapChar( WPARAM wParam, byte scancode ) {
+	static const int s_scantochar[128] = {
+		//	0        1       2       3       4       5       6       7
+		//	8        9       A       B       C       D       E       F
+		0,
+		0,
+		'1',
+		'2',
+		'3',
+		'4',
+		'5',
+		'6',
+		'7',
+		'8',
+		'9',
+		'0',
+		'-',
+		'=',
+		0x8,
+		0x9, // 0
+		'q',
+		'w',
+		'e',
+		'r',
+		't',
+		'y',
+		'u',
+		'i',
+		'o',
+		'p',
+		'[',
+		']',
+		0xD,
+		0,
+		'a',
+		's', // 1
+		'd',
+		'f',
+		'g',
+		'h',
+		'j',
+		'k',
+		'l',
+		';',
+		'\'',
+		0,
+		0,
+		'\\',
+		'z',
+		'x',
+		'c',
+		'v', // 2
+		'b',
+		'n',
+		'm',
+		',',
+		'.',
+		'/',
+		0,
+		'*',
+		0,
+		' ',
+		0,
+		0,
+		0,
+		0,
+		0,
+		0, // 3
 
-	 0,      0,     '!',    '@',    '#',    '$',    '%',    '^', 
-	'&',    '*',    '(',    ')',    '_',    '+',    0x8,    0x9,	// 4
-	'Q',    'W',    'E',    'R',    'T',    'Y',    'U',    'I', 
-	'O',    'P',    '{',    '}',    0xD,     0,     'A',    'S',	// 5
-	'D',    'F',    'G',    'H',    'J',    'K',    'L',    ':',
-	'"',     0,      0,     '|',    'Z',    'X',    'C',    'V',	// 6
-	'B',    'N',    'M',    '<',    '>',    '?',     0,     '*', 
- 	 0,     ' ',     0,      0,      0,      0,      0,      0,     // 7
-	}; 
+		0,
+		0,
+		'!',
+		'@',
+		'#',
+		'$',
+		'%',
+		'^',
+		'&',
+		'*',
+		'(',
+		')',
+		'_',
+		'+',
+		0x8,
+		0x9, // 4
+		'Q',
+		'W',
+		'E',
+		'R',
+		'T',
+		'Y',
+		'U',
+		'I',
+		'O',
+		'P',
+		'{',
+		'}',
+		0xD,
+		0,
+		'A',
+		'S', // 5
+		'D',
+		'F',
+		'G',
+		'H',
+		'J',
+		'K',
+		'L',
+		':',
+		'"',
+		0,
+		0,
+		'|',
+		'Z',
+		'X',
+		'C',
+		'V', // 6
+		'B',
+		'N',
+		'M',
+		'<',
+		'>',
+		'?',
+		0,
+		'*',
+		0,
+		' ',
+		0,
+		0,
+		0,
+		0,
+		0,
+		0, // 7
+	};
 
 	if ( scancode == 0x53 )
 		return '.';
 
-	if ( directMap( wParam ) || scancode > 0x39 )
-	{
+	if ( directMap( wParam ) || scancode > 0x39 ) {
 		return (int)( wParam );
-	}
-	else 
-	{
-		char ch = (char)( s_scantochar[ scancode ] );
-		int shift = (GetKeyState( VK_SHIFT ) >> 15) & 1;
-		if ( ch >= 'a' && ch <= 'z' ) 
-		{
-			int  capital = GetKeyState( VK_CAPITAL ) & 1;
-			if ( capital ^ shift ) 
-			{
+	} else {
+		char ch = (char)( s_scantochar[scancode] );
+		int shift = ( GetKeyState( VK_SHIFT ) >> 15 ) & 1;
+		if ( ch >= 'a' && ch <= 'z' ) {
+			int capital = GetKeyState( VK_CAPITAL ) & 1;
+			if ( capital ^ shift ) {
 				ch = ch - 'a' + 'A';
 			}
-		} 
-		else 
-		{
-			ch = (char)( s_scantochar[ scancode | (shift<<6) ] );
+		} else {
+			ch = (char)( s_scantochar[scancode | ( shift << 6 )] );
 		}
 
 		return ch;
@@ -392,14 +477,13 @@ main window procedure
 extern cvar_t *in_mouse;
 extern cvar_t *in_logitechbug;
 
-int			HotKey = 0;
-int			hkinstalled = 0;
+int HotKey = 0;
+int hkinstalled = 0;
 
 extern void SetGameDisplaySettings( void );
 extern void SetDesktopDisplaySettings( void );
 
-void Win_AddHotkey( void ) 
-{
+void Win_AddHotkey( void ) {
 	UINT modifiers, vk;
 	ATOM atom;
 
@@ -408,10 +492,14 @@ void Win_AddHotkey( void )
 
 	modifiers = 0;
 
-	if ( HotKey & HK_MOD_ALT )		modifiers |= MOD_ALT;
-	if ( HotKey & HK_MOD_CONTROL )	modifiers |= MOD_CONTROL;
-	if ( HotKey & HK_MOD_SHIFT )	modifiers |= MOD_SHIFT;
-	if ( HotKey & HK_MOD_WIN )		modifiers |= MOD_WIN;
+	if ( HotKey & HK_MOD_ALT )
+		modifiers |= MOD_ALT;
+	if ( HotKey & HK_MOD_CONTROL )
+		modifiers |= MOD_CONTROL;
+	if ( HotKey & HK_MOD_SHIFT )
+		modifiers |= MOD_SHIFT;
+	if ( HotKey & HK_MOD_WIN )
+		modifiers |= MOD_WIN;
 
 	vk = HotKey & 0xFF;
 
@@ -424,8 +512,7 @@ void Win_AddHotkey( void )
 }
 
 
-void Win_RemoveHotkey( void ) 
-{
+void Win_RemoveHotkey( void ) {
 	ATOM atom;
 
 	if ( !g_wv.hWnd || !hkinstalled )
@@ -434,7 +521,7 @@ void Win_RemoveHotkey( void )
 	atom = GlobalFindAtom( TEXT( "Q3MinimizeHotkey" ) );
 	if ( atom ) {
 		UnregisterHotKey( g_wv.hWnd, atom );
- 		GlobalDeleteAtom( atom );
+		GlobalDeleteAtom( atom );
 		hkinstalled = 0;
 	}
 }
@@ -442,19 +529,27 @@ void Win_RemoveHotkey( void )
 
 BOOL Win_CheckHotkeyMod( void ) {
 
-	if ( !(HotKey & HK_MOD_XMASK) )
- 		return TRUE;
+	if ( !( HotKey & HK_MOD_XMASK ) )
+		return TRUE;
 
- 	if ((HotKey&HK_MOD_LALT) && !GetKeyState(VK_LMENU)) return FALSE;
- 	if ((HotKey&HK_MOD_RALT) && !GetKeyState(VK_RMENU)) return FALSE;
- 	if ((HotKey&HK_MOD_LSHIFT) && !GetKeyState(VK_LSHIFT)) return FALSE;
- 	if ((HotKey&HK_MOD_RSHIFT) && !GetKeyState(VK_RSHIFT)) return FALSE;
- 	if ((HotKey&HK_MOD_LCONTROL) && !GetKeyState(VK_LCONTROL)) return FALSE;
- 	if ((HotKey&HK_MOD_RCONTROL) && !GetKeyState(VK_RCONTROL)) return FALSE;
- 	if ((HotKey&HK_MOD_LWIN) && !GetKeyState(VK_LWIN)) return FALSE;
- 	if ((HotKey&HK_MOD_RWIN) && !GetKeyState(VK_RWIN)) return FALSE;
+	if ( ( HotKey & HK_MOD_LALT ) && !GetKeyState( VK_LMENU ) )
+		return FALSE;
+	if ( ( HotKey & HK_MOD_RALT ) && !GetKeyState( VK_RMENU ) )
+		return FALSE;
+	if ( ( HotKey & HK_MOD_LSHIFT ) && !GetKeyState( VK_LSHIFT ) )
+		return FALSE;
+	if ( ( HotKey & HK_MOD_RSHIFT ) && !GetKeyState( VK_RSHIFT ) )
+		return FALSE;
+	if ( ( HotKey & HK_MOD_LCONTROL ) && !GetKeyState( VK_LCONTROL ) )
+		return FALSE;
+	if ( ( HotKey & HK_MOD_RCONTROL ) && !GetKeyState( VK_RCONTROL ) )
+		return FALSE;
+	if ( ( HotKey & HK_MOD_LWIN ) && !GetKeyState( VK_LWIN ) )
+		return FALSE;
+	if ( ( HotKey & HK_MOD_RWIN ) && !GetKeyState( VK_RWIN ) )
+		return FALSE;
 
- 	return TRUE;
+	return TRUE;
 }
 
 
@@ -480,11 +575,9 @@ static int GetTimerMsec( void ) {
 
 static HWINEVENTHOOK hWinEventHook;
 
-static VOID CALLBACK WinEventProc( HWINEVENTHOOK h_WinEventHook [[maybe_unused]], DWORD dwEvent [[maybe_unused]], HWND hWnd, LONG idObject [[maybe_unused]], LONG idChild [[maybe_unused]], DWORD dwEventThread [[maybe_unused]], DWORD dwmsEventTime [[maybe_unused]] )
-{
-	if ( gw_active )
-	{
-		if ( glw_state.cdsFullscreen )// disable topmost window style
+static VOID CALLBACK WinEventProc( HWINEVENTHOOK h_WinEventHook [[maybe_unused]], DWORD dwEvent [[maybe_unused]], HWND hWnd, LONG idObject [[maybe_unused]], LONG idChild [[maybe_unused]], DWORD dwEventThread [[maybe_unused]], DWORD dwmsEventTime [[maybe_unused]] ) {
+	if ( gw_active ) {
+		if ( glw_state.cdsFullscreen ) // disable topmost window style
 		{
 			SetWindowPos( g_wv.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
 		}
@@ -524,9 +617,8 @@ void WIN_Minimize( void ) {
 }
 
 
-LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam )
-{
-	#define TIMER_ID 10
+LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam ) {
+#define TIMER_ID 10
 	//static UINT uTimerID;
 	static qboolean flip = qtrue;
 	static qboolean focused = qfalse;
@@ -557,46 +649,33 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 		}
 	} */
 
-	switch (uMsg)
-	{
+	switch ( uMsg ) {
 	case WM_MOUSEWHEEL:
 		// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/winui/windowsuserinterface/userinput/mouseinput/aboutmouseinput.asp
 		// Windows 98/Me, Windows NT 4.0 and later - uses WM_MOUSEWHEEL
 		// only relevant for non-DI input and when console is toggled in window mode
 		//   if console is toggled in window mode (KEYCATCH_CONSOLE) then mouse is released and DI doesn't see any mouse wheel
-		if ( in_mouse->integer == -1 || ((!glw_state.cdsFullscreen || glw_state.monitorCount > 1) && (Key_GetCatcher() & KEYCATCH_CONSOLE)) )
-		{
+		if ( in_mouse->integer == -1 || ( ( !glw_state.cdsFullscreen || glw_state.monitorCount > 1 ) && ( Key_GetCatcher() & KEYCATCH_CONSOLE ) ) ) {
 			// 120 increments, might be 240 and multiples if wheel goes too fast
 			// NOTE Logitech: logitech drivers are screwed and send the message twice?
 			//   could add a cvar to interpret the message as successive press/release events
-			zDelta = ( short ) HIWORD( wParam ) / WHEEL_DELTA;
-			if ( zDelta > 0 )
-			{
-				for(i=0; i<zDelta; i++)
-				{
-					if (!in_logitechbug->integer)
-					{
+			zDelta = (short)HIWORD( wParam ) / WHEEL_DELTA;
+			if ( zDelta > 0 ) {
+				for ( i = 0; i < zDelta; i++ ) {
+					if ( !in_logitechbug->integer ) {
 						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qtrue, 0, NULL );
 						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qfalse, 0, NULL );
-					}
-					else
-					{
+					} else {
 						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, flip, 0, NULL );
 						flip = (qboolean)( !flip );
 					}
 				}
-			}
-			else
-			{
-				for(i=0; i<-zDelta; i++)
-				{
-					if (!in_logitechbug->integer)
-					{
+			} else {
+				for ( i = 0; i < -zDelta; i++ ) {
+					if ( !in_logitechbug->integer ) {
 						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qtrue, 0, NULL );
 						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qfalse, 0, NULL );
-					}
-					else
-					{
+					} else {
 						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, flip, 0, NULL );
 						flip = (qboolean)( !flip );
 					}
@@ -609,11 +688,11 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 
 	case WM_CREATE:
 
-		//MSH_MOUSEWHEEL = RegisterWindowMessage( TEXT( "MSWHEEL_ROLLMSG" ) ); 
+		//MSH_MOUSEWHEEL = RegisterWindowMessage( TEXT( "MSWHEEL_ROLLMSG" ) );
 
 		WIN_EnableHook(); // for PrintScreen and Win* keys
 
-		hWinEventHook = SetWinEventHook( EVENT_SYSTEM_SWITCHSTART, EVENT_SYSTEM_SWITCHSTART, NULL, WinEventProc, 
+		hWinEventHook = SetWinEventHook( EVENT_SYSTEM_SWITCHSTART, EVENT_SYSTEM_SWITCHSTART, NULL, WinEventProc,
 			0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS );
 		g_wv.hWnd = hWnd;
 		GetWindowRect( hWnd, &g_wv.winRect );
@@ -646,10 +725,12 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 			UnhookWinEvent( hWinEventHook );
 		}
 		if ( uTimerM ) {
-			KillTimer( g_wv.hWnd, uTimerM ); uTimerM = 0;
+			KillTimer( g_wv.hWnd, uTimerM );
+			uTimerM = 0;
 		}
 		if ( uTimerT ) {
-			KillTimer( g_wv.hWnd, uTimerT ); uTimerT = 0;
+			KillTimer( g_wv.hWnd, uTimerT );
+			uTimerT = 0;
 		}
 		hWinEventHook = NULL;
 		g_wv.hWnd = NULL;
@@ -664,7 +745,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 		// filter this message or we may lose window before renderer shutdown ?
 		return 0;
 
-	/*
+		/*
 		on minimize:
 			WM_WINDOWPOSCHANGING WindowPlacement:ShowCmd = SW_SHOWMINIMIZED
 			WM_KILLFOCUS
@@ -711,7 +792,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 	*/
 
 	case WM_ACTIVATE:
-		active = (LOWORD( wParam ) != WA_INACTIVE) ? qtrue : qfalse;
+		active = ( LOWORD( wParam ) != WA_INACTIVE ) ? qtrue : qfalse;
 		minimized = (BOOL)HIWORD( wParam ) ? qtrue : qfalse;
 
 		// We can receive Active & Minimized when restoring from minimized state
@@ -786,7 +867,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 		IN_UpdateWindow( NULL, qtrue );
 		IN_Activate( gw_active );
 
-		if ( !glw_state.cdsFullscreen )	{
+		if ( !glw_state.cdsFullscreen ) {
 			Cvar_SetIntegerValue( "vid_xpos", g_wv.winRect.left );
 			Cvar_SetIntegerValue( "vid_ypos", g_wv.winRect.top );
 			vid_xpos->modified = qfalse;
@@ -809,12 +890,14 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 		//	return 0;
 		//}
 		if ( wParam == TIMER_M ) {
-			KillTimer( g_wv.hWnd, uTimerM ); uTimerM = 0;
+			KillTimer( g_wv.hWnd, uTimerM );
+			uTimerM = 0;
 			ShowWindow( hWnd, SW_MINIMIZE );
 			return 0;
 		}
 		if ( wParam == TIMER_T ) {
-			KillTimer( g_wv.hWnd, uTimerT ); uTimerT = 0;
+			KillTimer( g_wv.hWnd, uTimerT );
+			uTimerT = 0;
 			if ( gw_active && glw_state.cdsFullscreen ) {
 				// set TOPMOST style to avoid losing input focus because of other underlying topmost windows
 				// such as on-screen keyboard
@@ -824,53 +907,49 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 		}
 		break;
 
-	case WM_WINDOWPOSCHANGING:
-		{
-			WINDOWPLACEMENT wp;
+	case WM_WINDOWPOSCHANGING: {
+		WINDOWPLACEMENT wp;
 
-			// set minimized flag as early as possible
-			Com_Memset( &wp, 0, sizeof( wp ) );
-			wp.length = sizeof( WINDOWPLACEMENT );
-			if ( GetWindowPlacement( hWnd, &wp ) && wp.showCmd == SW_SHOWMINIMIZED )
-				gw_minimized = qtrue;
+		// set minimized flag as early as possible
+		Com_Memset( &wp, 0, sizeof( wp ) );
+		wp.length = sizeof( WINDOWPLACEMENT );
+		if ( GetWindowPlacement( hWnd, &wp ) && wp.showCmd == SW_SHOWMINIMIZED )
+			gw_minimized = qtrue;
 
-			if ( g_wv.borderless )
-			{
-				WINDOWPOS *pos = (LPWINDOWPOS) lParam;
-				const int threshold = 10;
-				HMONITOR hMonitor;
-				MONITORINFO mi;
-				const RECT *r;
-				RECT rr;
+		if ( g_wv.borderless ) {
+			WINDOWPOS *pos = (LPWINDOWPOS)lParam;
+			const int threshold = 10;
+			HMONITOR hMonitor;
+			MONITORINFO mi;
+			const RECT *r;
+			RECT rr;
 
-				rr.left = pos->x;
-				rr.right = pos->x + pos->cx;
-				rr.top = pos->y;
-				rr.bottom = pos->y + pos->cy;
-				hMonitor = MonitorFromRect( &rr, MONITOR_DEFAULTTONEAREST );
+			rr.left = pos->x;
+			rr.right = pos->x + pos->cx;
+			rr.top = pos->y;
+			rr.bottom = pos->y + pos->cy;
+			hMonitor = MonitorFromRect( &rr, MONITOR_DEFAULTTONEAREST );
 
-				if ( hMonitor )
-				{
-					mi.cbSize = sizeof( mi );
-					GetMonitorInfo( hMonitor, &mi );
-					r = &mi.rcWork;
+			if ( hMonitor ) {
+				mi.cbSize = sizeof( mi );
+				GetMonitorInfo( hMonitor, &mi );
+				r = &mi.rcWork;
 
-					// snap window to current monitor borders
-					if ( pos->x >= ( r->left - threshold ) && pos->x <= ( r->left + threshold ) )
-						pos->x = r->left;
-					else if ( ( pos->x + pos->cx ) >= ( r->right - threshold ) && ( pos->x + pos->cx ) <= ( r->right + threshold ) )
-						pos->x = ( r->right - pos->cx );
+				// snap window to current monitor borders
+				if ( pos->x >= ( r->left - threshold ) && pos->x <= ( r->left + threshold ) )
+					pos->x = r->left;
+				else if ( ( pos->x + pos->cx ) >= ( r->right - threshold ) && ( pos->x + pos->cx ) <= ( r->right + threshold ) )
+					pos->x = ( r->right - pos->cx );
 
-					if ( pos->y >= ( r->top - threshold ) && pos->y <= ( r->top + threshold ) )
-						pos->y = r->top;
-					else if ( ( pos->y + pos->cy ) >= ( r->bottom - threshold ) && ( pos->y + pos->cy ) <= ( r->bottom + threshold ) )
-						pos->y = ( r->bottom - pos->cy );
+				if ( pos->y >= ( r->top - threshold ) && pos->y <= ( r->top + threshold ) )
+					pos->y = r->top;
+				else if ( ( pos->y + pos->cy ) >= ( r->bottom - threshold ) && ( pos->y + pos->cy ) <= ( r->bottom + threshold ) )
+					pos->y = ( r->bottom - pos->cy );
 
-					return 0;
-				}
+				return 0;
 			}
 		}
-		break;
+	} break;
 
 	// this is complicated because Win32 seems to pack multiple mouse events into
 	// one update sometimes, so we always check all states and look for events
@@ -882,7 +961,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 	case WM_MBUTTONUP:
 	case WM_MOUSEMOVE:
 		if ( IN_MouseActive() ) {
-			int mstate = (wParam & (MK_LBUTTON|MK_RBUTTON)) + ((wParam & (MK_MBUTTON|MK_XBUTTON1|MK_XBUTTON2)) >> 2);
+			int mstate = ( wParam & ( MK_LBUTTON | MK_RBUTTON ) ) + ( ( wParam & ( MK_MBUTTON | MK_XBUTTON1 | MK_XBUTTON2 ) ) >> 2 );
 			IN_Win32MouseEvent( mstate );
 			return 0;
 		}
@@ -907,8 +986,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 			return 0;
 
 		// simulate drag move to avoid ~500ms delay between DefWindowProc() and further WM_ENTERSIZEMOVE
-		if ( wParam == SC_MOVE + HTCAPTION )
-		{
+		if ( wParam == SC_MOVE + HTCAPTION ) {
 			mouse_event( MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTDOWN, 7, 0, 0, 0 );
 			mouse_event( MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTDOWN, (DWORD)-7, 0, 0, 0 );
 		}
@@ -920,15 +998,11 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 
 	case WM_HOTKEY:
 		// check for left/right modifiers
-		if ( Win_CheckHotkeyMod() )
-		{
-			if ( gw_active )
-			{
+		if ( Win_CheckHotkeyMod() ) {
+			if ( gw_active ) {
 				if ( !CL_VideoRecording() || ( re.CanMinimize && re.CanMinimize() ) )
 					WIN_Minimize();
-			}
-			else
-			{
+			} else {
 				SetForegroundWindow( hWnd );
 				SetFocus( hWnd );
 				ShowWindow( hWnd, SW_RESTORE );
@@ -954,22 +1028,21 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( (int)wParam, (int)lParam ), qfalse, 0, NULL );
 		break;
 
-	case WM_CHAR:
-		{
-			byte scancode = ((lParam >> 16) & 0xFF);
-			if ( wParam != VK_NUMPAD0 && scancode != 0x29 ) {
-				Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, MapChar( wParam, scancode ), 0, 0, NULL );
-			}
+	case WM_CHAR: {
+		byte scancode = ( ( lParam >> 16 ) & 0xFF );
+		if ( wParam != VK_NUMPAD0 && scancode != 0x29 ) {
+			Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, MapChar( wParam, scancode ), 0, 0, NULL );
 		}
+	}
 		return 0;
 
 	case WM_NCHITTEST:
 		// in borderless mode - drag using client area when holding ALT
-		if ( g_wv.borderless && GetKeyState( VK_MENU ) & (1<<15) )
+		if ( g_wv.borderless && GetKeyState( VK_MENU ) & ( 1 << 15 ) )
 			return HTCAPTION;
 		break;
 
-	case WM_ERASEBKGND: 
+	case WM_ERASEBKGND:
 		// avoid GDI clearing the OpenGL window background in Vista/7
 		return 1;
 	}
@@ -1035,7 +1108,7 @@ char *Sys_GetClipboardData( void ) {
 				data = (char *)Z_Malloc( size );
 				Q_strncpyz( data, cliptext, size );
 				GlobalUnlock( hClipboardData );
-				
+
 				strtok( data, "\n\r\b" );
 			}
 		}
@@ -1050,8 +1123,7 @@ char *Sys_GetClipboardData( void ) {
 Sys_SetClipboardBitmap
 ================
 */
-void Sys_SetClipboardBitmap( const byte *bitmap, int length )
-{
+void Sys_SetClipboardBitmap( const byte *bitmap, int length ) {
 	HGLOBAL hMem;
 	byte *ptr;
 
@@ -1061,9 +1133,9 @@ void Sys_SetClipboardBitmap( const byte *bitmap, int length )
 	EmptyClipboard();
 	hMem = GlobalAlloc( GMEM_MOVEABLE | GMEM_DDESHARE, length );
 	if ( hMem != NULL ) {
-		ptr = ( byte* )GlobalLock( hMem );
+		ptr = (byte *)GlobalLock( hMem );
 		if ( ptr != NULL ) {
-			memcpy( ptr, bitmap, length ); 
+			memcpy( ptr, bitmap, length );
 		}
 		GlobalUnlock( hMem );
 		SetClipboardData( CF_DIB, hMem );
@@ -1077,7 +1149,6 @@ void Sys_SetClipboardBitmap( const byte *bitmap, int length )
 Key_CapsLockOn
 ===================
 */
-qboolean Key_CapsLockOn( void )
-{
+qboolean Key_CapsLockOn( void ) {
 	return ( GetKeyState( VK_CAPITAL ) & 1 ) ? qtrue : qfalse;
 }

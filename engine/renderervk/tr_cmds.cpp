@@ -34,33 +34,29 @@ static void R_PerformanceCounters( void ) {
 		return;
 	}
 
-	if (r_speeds->integer == 1) {
-		ri.Printf (PRINT_ALL, "%i/%i shaders/surfs %i leafs %i verts %i/%i tris %.2f mtex\n",
-			backEnd.pc.c_shaders, backEnd.pc.c_surfaces, tr.pc.c_leafs, backEnd.pc.c_vertexes, 
-			backEnd.pc.c_indexes/3, backEnd.pc.c_totalIndexes/3, R_SumOfUsedImages()/1000000.0); 
-	} else if (r_speeds->integer == 2) {
-		ri.Printf (PRINT_ALL, "(patch) %i sin %i sclip  %i sout %i bin %i bclip %i bout\n",
-			tr.pc.c_sphere_cull_patch_in, tr.pc.c_sphere_cull_patch_clip, tr.pc.c_sphere_cull_patch_out, 
+	if ( r_speeds->integer == 1 ) {
+		ri.Printf( PRINT_ALL, "%i/%i shaders/surfs %i leafs %i verts %i/%i tris %.2f mtex\n",
+			backEnd.pc.c_shaders, backEnd.pc.c_surfaces, tr.pc.c_leafs, backEnd.pc.c_vertexes,
+			backEnd.pc.c_indexes / 3, backEnd.pc.c_totalIndexes / 3, R_SumOfUsedImages() / 1000000.0 );
+	} else if ( r_speeds->integer == 2 ) {
+		ri.Printf( PRINT_ALL, "(patch) %i sin %i sclip  %i sout %i bin %i bclip %i bout\n",
+			tr.pc.c_sphere_cull_patch_in, tr.pc.c_sphere_cull_patch_clip, tr.pc.c_sphere_cull_patch_out,
 			tr.pc.c_box_cull_patch_in, tr.pc.c_box_cull_patch_clip, tr.pc.c_box_cull_patch_out );
-		ri.Printf (PRINT_ALL, "(md3) %i sin %i sclip  %i sout %i bin %i bclip %i bout\n",
-			tr.pc.c_sphere_cull_md3_in, tr.pc.c_sphere_cull_md3_clip, tr.pc.c_sphere_cull_md3_out, 
+		ri.Printf( PRINT_ALL, "(md3) %i sin %i sclip  %i sout %i bin %i bclip %i bout\n",
+			tr.pc.c_sphere_cull_md3_in, tr.pc.c_sphere_cull_md3_clip, tr.pc.c_sphere_cull_md3_out,
 			tr.pc.c_box_cull_md3_in, tr.pc.c_box_cull_md3_clip, tr.pc.c_box_cull_md3_out );
-	} else if (r_speeds->integer == 3) {
-		ri.Printf (PRINT_ALL, "viewcluster: %i\n", tr.viewCluster );
-	} else if (r_speeds->integer == 4) {
+	} else if ( r_speeds->integer == 3 ) {
+		ri.Printf( PRINT_ALL, "viewcluster: %i\n", tr.viewCluster );
+	} else if ( r_speeds->integer == 4 ) {
 		if ( backEnd.pc.c_dlightVertexes ) {
-			ri.Printf (PRINT_ALL, "dlight srf:%i  culled:%i  verts:%i  tris:%i\n", 
+			ri.Printf( PRINT_ALL, "dlight srf:%i  culled:%i  verts:%i  tris:%i\n",
 				tr.pc.c_dlightSurfaces, tr.pc.c_dlightSurfacesCulled,
 				backEnd.pc.c_dlightVertexes, backEnd.pc.c_dlightIndexes / 3 );
 		}
-	} 
-	else if (r_speeds->integer == 5 )
-	{
+	} else if ( r_speeds->integer == 5 ) {
 		ri.Printf( PRINT_ALL, "zFar: %.0f\n", tr.viewParms.zFar );
-	}
-	else if (r_speeds->integer == 6 )
-	{
-		ri.Printf( PRINT_ALL, "flare adds:%i tests:%i renders:%i\n", 
+	} else if ( r_speeds->integer == 6 ) {
+		ri.Printf( PRINT_ALL, "flare adds:%i tests:%i renders:%i\n",
 			backEnd.pc.c_flareAdds, backEnd.pc.c_flareTests, backEnd.pc.c_flareRenders );
 	}
 
@@ -75,12 +71,12 @@ R_IssueRenderCommands
 ====================
 */
 static void R_IssueRenderCommands( void ) {
-	renderCommandList_t	*cmdList;
+	renderCommandList_t *cmdList;
 
 	cmdList = &backEndData->commands;
 
 	// add an end-of-list command
-	*(int *)(cmdList->cmds + cmdList->used) = RC_END_OF_LIST;
+	*(int *)( cmdList->cmds + cmdList->used ) = RC_END_OF_LIST;
 
 	// clear it out, in case this is a sync and not a buffer flip
 	cmdList->used = 0;
@@ -115,10 +111,10 @@ make sure there is enough command space
 ============
 */
 static void *R_GetCommandBufferReserved( int bytes, int reservedBytes ) {
-	renderCommandList_t	*cmdList;
+	renderCommandList_t *cmdList;
 
 	cmdList = &backEndData->commands;
-	bytes = PAD(bytes, sizeof(void *));
+	bytes = PAD( bytes, sizeof( void * ) );
 
 	// always leave room for the end of list command
 	if ( cmdList->used + bytes + sizeof( int ) + reservedBytes > MAX_RENDER_COMMANDS ) {
@@ -145,7 +141,7 @@ void *R_GetCommandBuffer( int bytes ) {
 #ifdef USE_VULKAN
 	tr.lastRenderCommand = RC_END_OF_LIST;
 #endif
-	return R_GetCommandBufferReserved( bytes, PAD( sizeof( swapBuffersCommand_t ), sizeof(void *) ) );
+	return R_GetCommandBufferReserved( bytes, PAD( sizeof( swapBuffersCommand_t ), sizeof( void * ) ) );
 }
 
 
@@ -155,7 +151,7 @@ R_AddDrawSurfCmd
 =============
 */
 void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs ) {
-	drawSurfsCommand_t	*cmd;
+	drawSurfsCommand_t *cmd;
 
 	cmd = (drawSurfsCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
 	if ( !cmd ) {
@@ -186,7 +182,7 @@ Passing NULL will set the color to white
 =============
 */
 void RE_SetColor( const float *rgba ) {
-	setColorCommand_t	*cmd;
+	setColorCommand_t *cmd;
 
 	if ( !tr.registered ) {
 		return;
@@ -213,8 +209,8 @@ RE_StretchPic
 =============
 */
 void RE_StretchPic( float x, float y, float w, float h,
-					float s1, float t1, float s2, float t2, qhandle_t hShader ) {
-	stretchPicCommand_t	*cmd;
+	float s1, float t1, float s2, float t2, qhandle_t hShader ) {
+	stretchPicCommand_t *cmd;
 
 	if ( !tr.registered ) {
 		return;
@@ -242,38 +238,32 @@ void RE_StretchPic( float x, float y, float w, float h,
 #define MODE_MAX	MODE_GREEN_MAGENTA
 
 #ifndef USE_VULKAN
-static void R_SetColorMode(GLboolean *rgba, stereoFrame_t stereoFrame, int colormode)
-{
+static void R_SetColorMode( GLboolean *rgba, stereoFrame_t stereoFrame, int colormode ) {
 	rgba[0] = rgba[1] = rgba[2] = rgba[3] = GL_TRUE;
 
-	if(colormode > MODE_MAX)
-	{
-		if(stereoFrame == STEREO_LEFT)
+	if ( colormode > MODE_MAX ) {
+		if ( stereoFrame == STEREO_LEFT )
 			stereoFrame = STEREO_RIGHT;
-		else if(stereoFrame == STEREO_RIGHT)
+		else if ( stereoFrame == STEREO_RIGHT )
 			stereoFrame = STEREO_LEFT;
 
 		colormode -= MODE_MAX;
 	}
 
-	if(colormode == MODE_GREEN_MAGENTA)
-	{
-		if(stereoFrame == STEREO_LEFT)
+	if ( colormode == MODE_GREEN_MAGENTA ) {
+		if ( stereoFrame == STEREO_LEFT )
 			rgba[0] = rgba[2] = GL_FALSE;
-		else if(stereoFrame == STEREO_RIGHT)
+		else if ( stereoFrame == STEREO_RIGHT )
 			rgba[1] = GL_FALSE;
-	}
-	else
-	{
-		if(stereoFrame == STEREO_LEFT)
+	} else {
+		if ( stereoFrame == STEREO_LEFT )
 			rgba[1] = rgba[2] = GL_FALSE;
-		else if(stereoFrame == STEREO_RIGHT)
-		{
+		else if ( stereoFrame == STEREO_RIGHT ) {
 			rgba[0] = GL_FALSE;
 
-			if(colormode == MODE_RED_BLUE)
+			if ( colormode == MODE_RED_BLUE )
 				rgba[1] = GL_FALSE;
-			else if(colormode == MODE_RED_GREEN)
+			else if ( colormode == MODE_RED_GREEN )
 				rgba[2] = GL_FALSE;
 		}
 	}
@@ -346,7 +336,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	if ( r_fastsky->integer ) {
 #endif
 		if ( stereoFrame != STEREO_RIGHT ) {
-			clearColorCommand_t *clrcmd; 
+			clearColorCommand_t *clrcmd;
 			if ( ( clrcmd = R_GetCommandBuffer( sizeof( *clrcmd ) ) ) == NULL )
 				return;
 			clrcmd->commandId = RC_CLEARCOLOR;
@@ -425,11 +415,10 @@ RE_TakeVideoFrame
 =============
 */
 void RE_TakeVideoFrame( int width, int height,
-		byte *captureBuffer, byte *encodeBuffer, qboolean motionJpeg )
-{
-	videoFrameCommand_t	*cmd;
+	byte *captureBuffer, byte *encodeBuffer, qboolean motionJpeg ) {
+	videoFrameCommand_t *cmd;
 
-	if( !tr.registered ) {
+	if ( !tr.registered ) {
 		return;
 	}
 
@@ -447,14 +436,12 @@ void RE_TakeVideoFrame( int width, int height,
 }
 
 
-void RE_ThrottleBackend( void )
-{
+void RE_ThrottleBackend( void ) {
 	backEnd.throttle = qtrue;
 }
 
 
-void RE_FinishBloom( void )
-{
+void RE_FinishBloom( void ) {
 	finishBloomCommand_t *cmd;
 
 	if ( !tr.registered ) {
@@ -470,8 +457,7 @@ void RE_FinishBloom( void )
 }
 
 
-qboolean RE_CanMinimize( void )
-{
+qboolean RE_CanMinimize( void ) {
 #ifdef USE_VULKAN
 	if ( vk.fboActive || vk.offscreenRender )
 		return qtrue;
@@ -480,13 +466,11 @@ qboolean RE_CanMinimize( void )
 }
 
 
-const glconfig_t *RE_GetConfig( void )
-{
+const glconfig_t *RE_GetConfig( void ) {
 	return &glConfig;
 }
 
 
-void RE_VertexLighting( qboolean allowed )
-{
+void RE_VertexLighting( qboolean allowed ) {
 	tr.vertexLightingAllowed = allowed;
 }

@@ -26,10 +26,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "cg_local.h"
 
-#define	MAX_LOCAL_ENTITIES	512
-localEntity_t	cg_localEntities[MAX_LOCAL_ENTITIES];
-localEntity_t	cg_activeLocalEntities;		// double linked list
-localEntity_t	*cg_freeLocalEntities;		// single linked list
+#define MAX_LOCAL_ENTITIES	512
+localEntity_t cg_localEntities[MAX_LOCAL_ENTITIES];
+localEntity_t cg_activeLocalEntities; // double linked list
+localEntity_t *cg_freeLocalEntities; // single linked list
 
 /*
 ===================
@@ -38,15 +38,15 @@ CG_InitLocalEntities
 This is called at startup and for tournement restarts
 ===================
 */
-void	CG_InitLocalEntities( void ) {
-	int		i;
+void CG_InitLocalEntities( void ) {
+	int i;
 
 	memset( cg_localEntities, 0, sizeof( cg_localEntities ) );
 	cg_activeLocalEntities.next = &cg_activeLocalEntities;
 	cg_activeLocalEntities.prev = &cg_activeLocalEntities;
 	cg_freeLocalEntities = cg_localEntities;
-	for ( i = 0 ; i < MAX_LOCAL_ENTITIES - 1 ; i++ ) {
-		cg_localEntities[i].next = &cg_localEntities[i+1];
+	for ( i = 0; i < MAX_LOCAL_ENTITIES - 1; i++ ) {
+		cg_localEntities[i].next = &cg_localEntities[i + 1];
 	}
 }
 
@@ -77,8 +77,8 @@ CG_AllocLocalEntity
 Will allways succeed, even if it requires freeing an old active entity
 ===================
 */
-localEntity_t	*CG_AllocLocalEntity( void ) {
-	localEntity_t	*le;
+localEntity_t *CG_AllocLocalEntity( void ) {
+	localEntity_t *le;
 
 	if ( !cg_freeLocalEntities ) {
 		// no free entities, so free the one at the end of the chain
@@ -119,27 +119,27 @@ Leave expanding blood puffs behind gibs
 ================
 */
 void CG_BloodTrail( localEntity_t *le ) {
-	int		t;
-	int		t2;
-	int		step;
-	vec3_t	newOrigin;
-	localEntity_t	*blood;
+	int t;
+	int t2;
+	int step;
+	vec3_t newOrigin;
+	localEntity_t *blood;
 
 	step = 150;
-	t = step * ( (cg.time - cg.frametime + step ) / step );
+	t = step * ( ( cg.time - cg.frametime + step ) / step );
 	t2 = step * ( cg.time / step );
 
 	for ( ; t <= t2; t += step ) {
 		BG_EvaluateTrajectory( &le->pos, t, newOrigin );
 
-		blood = CG_SmokePuff( newOrigin, vec3_origin, 
-					  20,		// radius
-					  1, 1, 1, 1,	// color
-					  2000,		// trailTime
-					  t,		// startTime
-					  0,		// fadeInTime
-					  0,		// flags
-					  cgs.media.bloodTrailShader );
+		blood = CG_SmokePuff( newOrigin, vec3_origin,
+			20, // radius
+			1, 1, 1, 1, // color
+			2000, // trailTime
+			t, // startTime
+			0, // fadeInTime
+			0, // flags
+			cgs.media.bloodTrailShader );
 		// use the optimized version
 		blood->leType = LE_FALL_SCALE_FADE;
 		// drop a total of 40 units over its lifetime
@@ -154,18 +154,18 @@ CG_FragmentBounceMark
 ================
 */
 void CG_FragmentBounceMark( localEntity_t *le, trace_t *trace ) {
-	int			radius;
+	int radius;
 
 	if ( le->leMarkType == LEMT_BLOOD ) {
 
-		radius = 16 + (rand()&31);
-		CG_ImpactMark( cgs.media.bloodMarkShader, trace->endpos, trace->plane.normal, random()*360,
-			(float)( 1 ),(float)( 1 ),(float)( 1 ),(float)( 1 ), qtrue, (float)( radius ), qfalse );
+		radius = 16 + ( rand() & 31 );
+		CG_ImpactMark( cgs.media.bloodMarkShader, trace->endpos, trace->plane.normal, random() * 360,
+			(float)( 1 ), (float)( 1 ), (float)( 1 ), (float)( 1 ), qtrue, (float)( radius ), qfalse );
 	} else if ( le->leMarkType == LEMT_BURN ) {
 
-		radius = 8 + (rand()&15);
-		CG_ImpactMark( cgs.media.burnMarkShader, trace->endpos, trace->plane.normal, random()*360,
-			(float)( 1 ),(float)( 1 ),(float)( 1 ),(float)( 1 ), qtrue, (float)( radius ), qfalse );
+		radius = 8 + ( rand() & 15 );
+		CG_ImpactMark( cgs.media.burnMarkShader, trace->endpos, trace->plane.normal, random() * 360,
+			(float)( 1 ), (float)( 1 ), (float)( 1 ), (float)( 1 ), qtrue, (float)( radius ), qfalse );
 	}
 
 
@@ -183,8 +183,8 @@ void CG_FragmentBounceSound( localEntity_t *le, trace_t *trace ) {
 	if ( le->leBounceSoundType == LEBS_BLOOD ) {
 		// half the gibs will make splat sounds
 		if ( rand() & 1 ) {
-			int r = rand()&3;
-			sfxHandle_t	s;
+			int r = rand() & 3;
+			sfxHandle_t s;
 
 			if ( r == 0 ) {
 				s = cgs.media.gibBounce1Sound;
@@ -196,7 +196,6 @@ void CG_FragmentBounceSound( localEntity_t *le, trace_t *trace ) {
 			trap_S_StartSound( trace->endpos, ENTITYNUM_WORLD, CHAN_AUTO, s );
 		}
 	} else if ( le->leBounceSoundType == LEBS_BRASS ) {
-
 	}
 
 	// don't allow a fragment to make multiple bounce sounds,
@@ -211,15 +210,15 @@ CG_ReflectVelocity
 ================
 */
 void CG_ReflectVelocity( localEntity_t *le, trace_t *trace ) {
-	vec3_t	velocity;
-	float	dot;
-	int		hitTime;
+	vec3_t velocity;
+	float dot;
+	int hitTime;
 
 	// reflect the velocity on the trace plane
 	hitTime = (int)( cg.time - cg.frametime + cg.frametime * trace->fraction );
 	BG_EvaluateTrajectoryDelta( &le->pos, hitTime, velocity );
 	dot = DotProduct( velocity, trace->plane.normal );
-	VectorMA( velocity, -2*dot, trace->plane.normal, le->pos.trDelta );
+	VectorMA( velocity, -2 * dot, trace->plane.normal, le->pos.trDelta );
 
 	VectorScale( le->pos.trDelta, le->bounceFactor, le->pos.trDelta );
 
@@ -228,12 +227,11 @@ void CG_ReflectVelocity( localEntity_t *le, trace_t *trace ) {
 
 
 	// check for stop, making sure that even on low FPS systems it doesn't bobble
-	if ( trace->allsolid || 
-		( trace->plane.normal[2] > 0 && 
-		( le->pos.trDelta[2] < 40 || le->pos.trDelta[2] < -cg.frametime * le->pos.trDelta[2] ) ) ) {
+	if ( trace->allsolid ||
+		 ( trace->plane.normal[2] > 0 &&
+			 ( le->pos.trDelta[2] < 40 || le->pos.trDelta[2] < -cg.frametime * le->pos.trDelta[2] ) ) ) {
 		le->pos.trType = TR_STATIONARY;
 	} else {
-
 	}
 }
 
@@ -243,14 +241,14 @@ CG_AddFragment
 ================
 */
 void CG_AddFragment( localEntity_t *le ) {
-	vec3_t	newOrigin;
-	trace_t	trace;
+	vec3_t newOrigin;
+	trace_t trace;
 
 	if ( le->pos.trType == TR_STATIONARY ) {
 		// sink into the ground if near the removal time
-		int		t;
-		float	oldZ;
-		
+		int t;
+		float oldZ;
+
 		t = le->endTime - cg.time;
 		if ( t < SINK_TIME ) {
 			// we must use an explicit lighting origin, otherwise the
@@ -352,18 +350,17 @@ CG_AddMoveScaleFade
 ==================
 */
 static void CG_AddMoveScaleFade( localEntity_t *le ) {
-	refEntity_t	*re;
-	float		c;
-	vec3_t		delta;
-	float		len;
+	refEntity_t *re;
+	float c;
+	vec3_t delta;
+	float len;
 
 	re = &le->refEntity;
 
 	if ( le->fadeInTime > le->startTime && cg.time < le->fadeInTime ) {
 		// fade / grow time
-		c = 1.0f - (float) ( le->fadeInTime - cg.time ) / ( le->fadeInTime - le->startTime );
-	}
-	else {
+		c = 1.0f - (float)( le->fadeInTime - cg.time ) / ( le->fadeInTime - le->startTime );
+	} else {
 		// fade / grow time
 		c = ( le->endTime - cg.time ) * le->lifeRate;
 	}
@@ -399,10 +396,10 @@ There are often many of these, so it needs to be simple.
 ===================
 */
 static void CG_AddScaleFade( localEntity_t *le ) {
-	refEntity_t	*re;
-	float		c;
-	vec3_t		delta;
-	float		len;
+	refEntity_t *re;
+	float c;
+	vec3_t delta;
+	float len;
 
 	re = &le->refEntity;
 
@@ -436,10 +433,10 @@ There are often 100+ of these, so it needs to be simple.
 =================
 */
 static void CG_AddFallScaleFade( localEntity_t *le ) {
-	refEntity_t	*re;
-	float		c;
-	vec3_t		delta;
-	float		len;
+	refEntity_t *re;
+	float c;
+	vec3_t delta;
+	float len;
 
 	re = &le->refEntity;
 
@@ -465,23 +462,22 @@ static void CG_AddFallScaleFade( localEntity_t *le ) {
 }
 
 
-
 /*
 ================
 CG_AddExplosion
 ================
 */
 static void CG_AddExplosion( localEntity_t *ex ) {
-	refEntity_t	*ent;
+	refEntity_t *ent;
 
 	ent = &ex->refEntity;
 
 	// add the entity
-	trap_R_AddRefEntityToScene(ent);
+	trap_R_AddRefEntityToScene( ent );
 
 	// add the dlight
 	if ( ex->light ) {
-		float		light;
+		float light;
 
 		light = (float)( cg.time - ex->startTime ) / ( ex->endTime - ex->startTime );
 		if ( light < 0.5f ) {
@@ -490,7 +486,7 @@ static void CG_AddExplosion( localEntity_t *ex ) {
 			light = 1.0f - ( light - 0.5f ) * 2;
 		}
 		light = ex->light * light;
-		trap_R_AddLightToScene(ent->origin, light, ex->lightColor[0], ex->lightColor[1], ex->lightColor[2] );
+		trap_R_AddLightToScene( ent->origin, light, ex->lightColor[0], ex->lightColor[1], ex->lightColor[2] );
 	}
 }
 
@@ -500,14 +496,14 @@ CG_AddSpriteExplosion
 ================
 */
 static void CG_AddSpriteExplosion( localEntity_t *le ) {
-	refEntity_t	re;
+	refEntity_t re;
 	float c;
 
 	re = le->refEntity;
 
-	c = ( le->endTime - cg.time ) / ( float ) ( le->endTime - le->startTime );
+	c = ( le->endTime - cg.time ) / (float)( le->endTime - le->startTime );
 	if ( c > 1 ) {
-		c = 1.0f;	// can happen during connection problems
+		c = 1.0f; // can happen during connection problems
 	}
 
 	re.shaderRGBA[0] = 0xff;
@@ -522,7 +518,7 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 
 	// add the dlight
 	if ( le->light ) {
-		float		light;
+		float light;
 
 		light = (float)( cg.time - le->startTime ) / ( le->endTime - le->startTime );
 		if ( light < 0.5f ) {
@@ -531,7 +527,7 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 			light = 1.0f - ( light - 0.5f ) * 2;
 		}
 		light = le->light * light;
-		trap_R_AddLightToScene(re.origin, light, le->lightColor[0], le->lightColor[1], le->lightColor[2] );
+		trap_R_AddLightToScene( re.origin, light, le->lightColor[0], le->lightColor[1], le->lightColor[2] );
 	}
 }
 
@@ -543,11 +539,11 @@ CG_AddKamikaze
 ====================
 */
 void CG_AddKamikaze( localEntity_t *le ) {
-	refEntity_t	*re;
+	refEntity_t *re;
 	refEntity_t shockwave;
-	float		c;
-	vec3_t		test, axis[3];
-	int			t;
+	float c;
+	vec3_t test, axis[3];
+	int t;
 
 	re = &le->refEntity;
 
@@ -555,30 +551,29 @@ void CG_AddKamikaze( localEntity_t *le ) {
 	VectorClear( test );
 	AnglesToAxis( test, axis );
 
-	if (t > KAMI_SHOCKWAVE_STARTTIME && t < KAMI_SHOCKWAVE_ENDTIME) {
+	if ( t > KAMI_SHOCKWAVE_STARTTIME && t < KAMI_SHOCKWAVE_ENDTIME ) {
 
-		if (!(le->leFlags & LEF_SOUND1)) {
-//			trap_S_StartSound (re->origin, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.kamikazeExplodeSound );
-			trap_S_StartLocalSound(cgs.media.kamikazeExplodeSound, CHAN_AUTO);
+		if ( !( le->leFlags & LEF_SOUND1 ) ) {
+			//			trap_S_StartSound (re->origin, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.kamikazeExplodeSound );
+			trap_S_StartLocalSound( cgs.media.kamikazeExplodeSound, CHAN_AUTO );
 			le->leFlags |= LEF_SOUND1;
 		}
 		// 1st kamikaze shockwave
-		memset(&shockwave, 0, sizeof(shockwave));
+		memset( &shockwave, 0, sizeof( shockwave ) );
 		shockwave.hModel = cgs.media.kamikazeShockWave;
 		shockwave.reType = RT_MODEL;
 		shockwave.shaderTime = re->shaderTime;
-		VectorCopy(re->origin, shockwave.origin);
+		VectorCopy( re->origin, shockwave.origin );
 
-		c = (float)(t - KAMI_SHOCKWAVE_STARTTIME) / (float)(KAMI_SHOCKWAVE_ENDTIME - KAMI_SHOCKWAVE_STARTTIME);
+		c = (float)( t - KAMI_SHOCKWAVE_STARTTIME ) / (float)( KAMI_SHOCKWAVE_ENDTIME - KAMI_SHOCKWAVE_STARTTIME );
 		VectorScale( axis[0], c * KAMI_SHOCKWAVE_MAXRADIUS / KAMI_SHOCKWAVEMODEL_RADIUS, shockwave.axis[0] );
 		VectorScale( axis[1], c * KAMI_SHOCKWAVE_MAXRADIUS / KAMI_SHOCKWAVEMODEL_RADIUS, shockwave.axis[1] );
 		VectorScale( axis[2], c * KAMI_SHOCKWAVE_MAXRADIUS / KAMI_SHOCKWAVEMODEL_RADIUS, shockwave.axis[2] );
 		shockwave.nonNormalizedAxes = qtrue;
 
-		if (t > KAMI_SHOCKWAVEFADE_STARTTIME) {
-			c = (float)(t - KAMI_SHOCKWAVEFADE_STARTTIME) / (float)(KAMI_SHOCKWAVE_ENDTIME - KAMI_SHOCKWAVEFADE_STARTTIME);
-		}
-		else {
+		if ( t > KAMI_SHOCKWAVEFADE_STARTTIME ) {
+			c = (float)( t - KAMI_SHOCKWAVEFADE_STARTTIME ) / (float)( KAMI_SHOCKWAVE_ENDTIME - KAMI_SHOCKWAVEFADE_STARTTIME );
+		} else {
 			c = 0;
 		}
 		c *= 0xff;
@@ -590,7 +585,7 @@ void CG_AddKamikaze( localEntity_t *le ) {
 		trap_R_AddRefEntityToScene( &shockwave );
 	}
 
-	if (t > KAMI_EXPLODE_STARTTIME && t < KAMI_IMPLODE_ENDTIME) {
+	if ( t > KAMI_EXPLODE_STARTTIME && t < KAMI_IMPLODE_ENDTIME ) {
 		// explosion and implosion
 		c = ( le->endTime - cg.time ) * le->lifeRate;
 		c *= 0xff;
@@ -599,16 +594,15 @@ void CG_AddKamikaze( localEntity_t *le ) {
 		re->shaderRGBA[2] = le->color[2] * c;
 		re->shaderRGBA[3] = le->color[3] * c;
 
-		if( t < KAMI_IMPLODE_STARTTIME ) {
-			c = (float)(t - KAMI_EXPLODE_STARTTIME) / (float)(KAMI_IMPLODE_STARTTIME - KAMI_EXPLODE_STARTTIME);
-		}
-		else {
-			if (!(le->leFlags & LEF_SOUND2)) {
-//				trap_S_StartSound (re->origin, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.kamikazeImplodeSound );
-				trap_S_StartLocalSound(cgs.media.kamikazeImplodeSound, CHAN_AUTO);
+		if ( t < KAMI_IMPLODE_STARTTIME ) {
+			c = (float)( t - KAMI_EXPLODE_STARTTIME ) / (float)( KAMI_IMPLODE_STARTTIME - KAMI_EXPLODE_STARTTIME );
+		} else {
+			if ( !( le->leFlags & LEF_SOUND2 ) ) {
+				//				trap_S_StartSound (re->origin, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.kamikazeImplodeSound );
+				trap_S_StartLocalSound( cgs.media.kamikazeImplodeSound, CHAN_AUTO );
 				le->leFlags |= LEF_SOUND2;
 			}
-			c = (float)(KAMI_IMPLODE_ENDTIME - t) / (float) (KAMI_IMPLODE_ENDTIME - KAMI_IMPLODE_STARTTIME);
+			c = (float)( KAMI_IMPLODE_ENDTIME - t ) / (float)( KAMI_IMPLODE_ENDTIME - KAMI_IMPLODE_STARTTIME );
 		}
 		VectorScale( axis[0], c * KAMI_BOOMSPHERE_MAXRADIUS / KAMI_BOOMSPHEREMODEL_RADIUS, re->axis[0] );
 		VectorScale( axis[1], c * KAMI_BOOMSPHERE_MAXRADIUS / KAMI_BOOMSPHEREMODEL_RADIUS, re->axis[1] );
@@ -620,39 +614,37 @@ void CG_AddKamikaze( localEntity_t *le ) {
 		trap_R_AddLightToScene( re->origin, c * 1000.0f, 1.0f, 1.0f, c );
 	}
 
-	if (t > KAMI_SHOCKWAVE2_STARTTIME && t < KAMI_SHOCKWAVE2_ENDTIME) {
+	if ( t > KAMI_SHOCKWAVE2_STARTTIME && t < KAMI_SHOCKWAVE2_ENDTIME ) {
 		// 2nd kamikaze shockwave
-		if (le->angles.trBase[0] == 0 &&
-			le->angles.trBase[1] == 0 &&
-			le->angles.trBase[2] == 0) {
+		if ( le->angles.trBase[0] == 0 &&
+			 le->angles.trBase[1] == 0 &&
+			 le->angles.trBase[2] == 0 ) {
 			le->angles.trBase[0] = random() * 360;
 			le->angles.trBase[1] = random() * 360;
 			le->angles.trBase[2] = random() * 360;
-		}
-		else {
+		} else {
 			c = 0;
 		}
-		memset(&shockwave, 0, sizeof(shockwave));
+		memset( &shockwave, 0, sizeof( shockwave ) );
 		shockwave.hModel = cgs.media.kamikazeShockWave;
 		shockwave.reType = RT_MODEL;
 		shockwave.shaderTime = re->shaderTime;
-		VectorCopy(re->origin, shockwave.origin);
+		VectorCopy( re->origin, shockwave.origin );
 
 		test[0] = le->angles.trBase[0];
 		test[1] = le->angles.trBase[1];
 		test[2] = le->angles.trBase[2];
 		AnglesToAxis( test, axis );
 
-		c = (float)(t - KAMI_SHOCKWAVE2_STARTTIME) / (float)(KAMI_SHOCKWAVE2_ENDTIME - KAMI_SHOCKWAVE2_STARTTIME);
+		c = (float)( t - KAMI_SHOCKWAVE2_STARTTIME ) / (float)( KAMI_SHOCKWAVE2_ENDTIME - KAMI_SHOCKWAVE2_STARTTIME );
 		VectorScale( axis[0], c * KAMI_SHOCKWAVE2_MAXRADIUS / KAMI_SHOCKWAVEMODEL_RADIUS, shockwave.axis[0] );
 		VectorScale( axis[1], c * KAMI_SHOCKWAVE2_MAXRADIUS / KAMI_SHOCKWAVEMODEL_RADIUS, shockwave.axis[1] );
 		VectorScale( axis[2], c * KAMI_SHOCKWAVE2_MAXRADIUS / KAMI_SHOCKWAVEMODEL_RADIUS, shockwave.axis[2] );
 		shockwave.nonNormalizedAxes = qtrue;
 
-		if (t > KAMI_SHOCKWAVE2FADE_STARTTIME) {
-			c = (float)(t - KAMI_SHOCKWAVE2FADE_STARTTIME) / (float)(KAMI_SHOCKWAVE2_ENDTIME - KAMI_SHOCKWAVE2FADE_STARTTIME);
-		}
-		else {
+		if ( t > KAMI_SHOCKWAVE2FADE_STARTTIME ) {
+			c = (float)( t - KAMI_SHOCKWAVE2FADE_STARTTIME ) / (float)( KAMI_SHOCKWAVE2_ENDTIME - KAMI_SHOCKWAVE2FADE_STARTTIME );
+		} else {
 			c = 0;
 		}
 		c *= 0xff;
@@ -684,15 +676,14 @@ void CG_AddInvulnerabilityJuiced( localEntity_t *le ) {
 
 	t = cg.time - le->startTime;
 	if ( t > 3000 ) {
-		le->refEntity.axis[0][0] = (float) 1.0f + 0.3f * (t - 3000) / 2000;
-		le->refEntity.axis[1][1] = (float) 1.0f + 0.3f * (t - 3000) / 2000;
-		le->refEntity.axis[2][2] = (float) 0.7f + 0.3f * (2000 - (t - 3000)) / 2000;
+		le->refEntity.axis[0][0] = (float)1.0f + 0.3f * ( t - 3000 ) / 2000;
+		le->refEntity.axis[1][1] = (float)1.0f + 0.3f * ( t - 3000 ) / 2000;
+		le->refEntity.axis[2][2] = (float)0.7f + 0.3f * ( 2000 - ( t - 3000 ) ) / 2000;
 	}
 	if ( t > 5000 ) {
 		le->endTime = 0;
 		CG_GibPlayer( le->refEntity.origin );
-	}
-	else {
+	} else {
 		trap_R_AddRefEntityToScene( &le->refEntity );
 	}
 }
@@ -703,7 +694,7 @@ CG_AddRefEntity
 ===================
 */
 void CG_AddRefEntity( localEntity_t *le ) {
-	if (le->endTime < cg.time) {
+	if ( le->endTime < cg.time ) {
 		CG_FreeLocalEntity( le );
 		return;
 	}
@@ -719,51 +710,49 @@ CG_AddScorePlum
 #define NUMBER_SIZE		8
 
 void CG_AddScorePlum( localEntity_t *le ) {
-	refEntity_t	*re;
-	vec3_t		origin, delta, dir, vec, up = {0, 0, 1};
-	float		c, len;
-	int			i, score, digits[10], numdigits, negative;
+	refEntity_t *re;
+	vec3_t origin, delta, dir, vec, up = { 0, 0, 1 };
+	float c, len;
+	int i, score, digits[10], numdigits, negative;
 
 	re = &le->refEntity;
 
 	c = ( le->endTime - cg.time ) * le->lifeRate;
 
 	score = (int)( le->radius );
-	if (score < 0) {
+	if ( score < 0 ) {
 		re->shaderRGBA[0] = 0xff;
 		re->shaderRGBA[1] = 0x11;
 		re->shaderRGBA[2] = 0x11;
-	}
-	else {
+	} else {
 		re->shaderRGBA[0] = 0xff;
 		re->shaderRGBA[1] = 0xff;
 		re->shaderRGBA[2] = 0xff;
-		if (score >= 50) {
+		if ( score >= 50 ) {
 			re->shaderRGBA[1] = 0;
-		} else if (score >= 20) {
+		} else if ( score >= 20 ) {
 			re->shaderRGBA[0] = re->shaderRGBA[1] = 0;
-		} else if (score >= 10) {
+		} else if ( score >= 10 ) {
 			re->shaderRGBA[2] = 0;
-		} else if (score >= 2) {
+		} else if ( score >= 2 ) {
 			re->shaderRGBA[0] = re->shaderRGBA[2] = 0;
 		}
-
 	}
-	if (c < 0.25f)
+	if ( c < 0.25f )
 		re->shaderRGBA[3] = (unsigned char)( 0xff * 4 * c );
 	else
 		re->shaderRGBA[3] = 0xff;
 
 	re->radius = NUMBER_SIZE / 2;
 
-	VectorCopy(le->pos.trBase, origin);
+	VectorCopy( le->pos.trBase, origin );
 	origin[2] += 110 - c * 100;
 
-	VectorSubtract(cg.refdef.vieworg, origin, dir);
-	CrossProduct(dir, up, vec);
-	VectorNormalize(vec);
+	VectorSubtract( cg.refdef.vieworg, origin, dir );
+	CrossProduct( dir, up, vec );
+	VectorNormalize( vec );
 
-	VectorMA(origin, -10 + 20 * sin(c * 2 * M_PI), vec, origin);
+	VectorMA( origin, -10 + 20 * sin( c * 2 * M_PI ), vec, origin );
 
 	// if the view would be "inside" the sprite, kill the sprite
 	// so it doesn't add too much overdraw
@@ -775,29 +764,27 @@ void CG_AddScorePlum( localEntity_t *le ) {
 	}
 
 	negative = qfalse;
-	if (score < 0) {
+	if ( score < 0 ) {
 		negative = qtrue;
 		score = -score;
 	}
 
-	for (numdigits = 0; !(numdigits && !score); numdigits++) {
+	for ( numdigits = 0; !( numdigits && !score ); numdigits++ ) {
 		digits[numdigits] = score % 10;
 		score = score / 10;
 	}
 
-	if (negative) {
+	if ( negative ) {
 		digits[numdigits] = 10;
 		numdigits++;
 	}
 
-	for (i = 0; i < numdigits; i++) {
-		VectorMA(origin, (float) (((float) numdigits / 2) - i) * NUMBER_SIZE, vec, re->origin);
-		re->customShader = cgs.media.numberShaders[digits[numdigits-1-i]];
+	for ( i = 0; i < numdigits; i++ ) {
+		VectorMA( origin, (float)( ( (float)numdigits / 2 ) - i ) * NUMBER_SIZE, vec, re->origin );
+		re->customShader = cgs.media.numberShaders[digits[numdigits - 1 - i]];
 		trap_R_AddRefEntityToScene( re );
 	}
 }
-
-
 
 
 //==============================================================================
@@ -809,12 +796,12 @@ CG_AddLocalEntities
 ===================
 */
 void CG_AddLocalEntities( void ) {
-	localEntity_t	*le, *next;
+	localEntity_t *le, *next;
 
 	// walk the list backwards, so any new local entities generated
 	// (trails, marks, etc) will be present this frame
 	le = cg_activeLocalEntities.prev;
-	for ( ; le != &cg_activeLocalEntities ; le = next ) {
+	for ( ; le != &cg_activeLocalEntities; le = next ) {
 		// grab next now, so if the local entity is freed we
 		// still have it
 		next = le->prev;
@@ -839,15 +826,15 @@ void CG_AddLocalEntities( void ) {
 			CG_AddExplosion( le );
 			break;
 
-		case LE_FRAGMENT:			// gibs and brass
+		case LE_FRAGMENT: // gibs and brass
 			CG_AddFragment( le );
 			break;
 
-		case LE_MOVE_SCALE_FADE:		// water bubbles
+		case LE_MOVE_SCALE_FADE: // water bubbles
 			CG_AddMoveScaleFade( le );
 			break;
 
-		case LE_FADE_RGB:				// teleporters, railtrails
+		case LE_FADE_RGB: // teleporters, railtrails
 			CG_AddFadeRGB( le );
 			break;
 
@@ -855,7 +842,7 @@ void CG_AddLocalEntities( void ) {
 			CG_AddFallScaleFade( le );
 			break;
 
-		case LE_SCALE_FADE:		// rocket trails
+		case LE_SCALE_FADE: // rocket trails
 			CG_AddScaleFade( le );
 			break;
 
@@ -880,7 +867,3 @@ void CG_AddLocalEntities( void ) {
 		}
 	}
 }
-
-
-
-

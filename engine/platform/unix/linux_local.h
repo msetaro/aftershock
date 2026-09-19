@@ -24,9 +24,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // Input subsystem
 
-void IN_Init (void);
-void IN_Frame (void);
-void IN_Shutdown (void);
+void IN_Init( void );
+void IN_Frame( void );
+void IN_Shutdown( void );
 
 
 void IN_JoyMove( void );
@@ -44,9 +44,9 @@ void QVK_Shutdown( qboolean unloadDLL );
 // bk001130 - win32
 // void IN_JoystickCommands (void);
 
-char *strlwr (char *s);
+char *strlwr( char *s );
 
 // signals.c
-void InitSig(void);
+void InitSig( void );
 
 #endif // __LINUX_LOCAL_H__

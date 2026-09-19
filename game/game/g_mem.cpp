@@ -30,18 +30,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define POOLSIZE	(256 * 1024)
 
-static char		memoryPool[POOLSIZE];
-static int		allocPoint;
+static char memoryPool[POOLSIZE];
+static int allocPoint;
 
 void *G_Alloc( int size ) {
-	char	*p;
+	char *p;
 
 	if ( g_debugAlloc.integer ) {
 		G_Printf( "G_Alloc of %i bytes (%i left)\n", size, POOLSIZE - allocPoint - ( ( size + 31 ) & ~31 ) );
 	}
 
 	if ( allocPoint + size > POOLSIZE ) {
-	  G_Error( "G_Alloc: failed on allocation of %i bytes\n", size ); // bk010103 - was %u, but is signed
+		G_Error( "G_Alloc: failed on allocation of %i bytes\n", size ); // bk010103 - was %u, but is signed
 		return NULL;
 	}
 

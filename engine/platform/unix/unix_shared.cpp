@@ -55,35 +55,33 @@ unsigned long sys_timeBase = 0;
      0x7fffffff ms - ~24 days
    although timeval:tv_usec is an int, I'm not sure whether it is actually used as an unsigned int
      (which would affect the wrap period) */
-int Sys_Milliseconds( void )
-{
+int Sys_Milliseconds( void ) {
 	struct timeval tp;
 	int curtime;
 
 	gettimeofday( &tp, NULL );
-	
-	if ( !sys_timeBase )
-	{
+
+	if ( !sys_timeBase ) {
 		sys_timeBase = tp.tv_sec;
-		return tp.tv_usec/1000;
+		return tp.tv_usec / 1000;
 	}
 
-	curtime = (tp.tv_sec - sys_timeBase) * 1000 + tp.tv_usec / 1000;
-	
+	curtime = ( tp.tv_sec - sys_timeBase ) * 1000 + tp.tv_usec / 1000;
+
 	return curtime;
 }
 
 
 char *strlwr( char *s ) {
-  if ( s==NULL ) { // bk001204 - paranoia
-    assert(0);
-    return s;
-  }
-  while (*s) {
-    *s = tolower(*s);
-    s++;
-  }
-  return s; // bk001204 - duh
+	if ( s == NULL ) { // bk001204 - paranoia
+		assert(0);
+		return s;
+	}
+	while ( *s ) {
+		*s = tolower( *s );
+		s++;
+	}
+	return s; // bk001204 - duh
 }
 
 
@@ -92,12 +90,11 @@ char *strlwr( char *s ) {
 Sys_RandomBytes
 ==================
 */
-qboolean Sys_RandomBytes( byte *string, int len )
-{
+qboolean Sys_RandomBytes( byte *string, int len ) {
 	FILE *fp;
 
 	fp = fopen( "/dev/urandom", "r" );
-	if( !fp )
+	if ( !fp )
 		return qfalse;
 
 	setvbuf( fp, NULL, _IONBF, 0 ); // don't buffer reads from /dev/urandom
@@ -115,18 +112,17 @@ qboolean Sys_RandomBytes( byte *string, int len )
 //============================================
 
 
-static int Sys_ListExtFiles( const char *directory, const char *subdir, const char *extension, const char *filter, char **list, int maxfiles, int subdirs )
-{
-	char		search[MAX_OSPATH * 2 + MAX_QPATH + 1];
-	char		filename[MAX_OSPATH * 2];
-	int		nfiles;
-	struct dirent	*d;
-	DIR		*fdir;
-	int		extLen;
+static int Sys_ListExtFiles( const char *directory, const char *subdir, const char *extension, const char *filter, char **list, int maxfiles, int subdirs ) {
+	char search[MAX_OSPATH * 2 + MAX_QPATH + 1];
+	char filename[MAX_OSPATH * 2];
+	int nfiles;
+	struct dirent *d;
+	DIR *fdir;
+	int extLen;
 	struct stat st;
-	qboolean	hasPatterns;
-	const char	*x;
-	qboolean	dironly;
+	qboolean hasPatterns;
+	const char *x;
+	qboolean dironly;
 
 	if ( extension[0] == '/' && extension[1] == 0 ) {
 		extension = "";
@@ -149,21 +145,21 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 		Com_sprintf( search, sizeof( search ), "%s", directory );
 	}
 
-	if ((fdir = opendir(search)) == NULL) {
+	if ( ( fdir = opendir( search ) ) == NULL ) {
 		return nfiles;
 	}
 
 	// search
-	while ((d = readdir(fdir)) != NULL) {
+	while ( ( d = readdir( fdir ) ) != NULL ) {
 		if ( search[0] != '\0' ) {
 			Com_sprintf( filename, sizeof( filename ), "%s/%s", search, d->d_name );
 		} else {
 			Q_strncpyz( filename, d->d_name, sizeof( filename ) );
 		}
-		if (stat(filename, &st) == -1) {
+		if ( stat( filename, &st ) == -1 ) {
 			continue;
 		}
-		if (st.st_mode & S_IFDIR) {
+		if ( st.st_mode & S_IFDIR ) {
 			// handle recursion
 			if ( subdirs > 0 ) {
 				if ( !Q_streq( d->d_name, "." ) && !Q_streq( d->d_name, ".." ) ) {
@@ -176,7 +172,7 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 					if ( nfiles >= maxfiles ) {
 						break;
 					}
-					nfiles += Sys_ListExtFiles( directory, subdir2, extension, filter, list + nfiles, maxfiles - nfiles, subdirs - 1);
+					nfiles += Sys_ListExtFiles( directory, subdir2, extension, filter, list + nfiles, maxfiles - nfiles, subdirs - 1 );
 				}
 			}
 			if ( !dironly ) {
@@ -213,7 +209,7 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 		if ( nfiles >= maxfiles ) {
 			break;
 		}
-		list[ nfiles++ ] = FS_CopyString( filename );
+		list[nfiles++] = FS_CopyString( filename );
 	}
 
 	closedir( fdir );
@@ -222,11 +218,10 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 }
 
 
-char** Sys_ListFiles( const char *directory, const char *extension, const char *filter, int *numfiles, int subdirs )
-{
-	char**	listCopy;
-	char*	list[MAX_FOUND_FILES];
-	int	i, nfiles;
+char **Sys_ListFiles( const char *directory, const char *extension, const char *filter, int *numfiles, int subdirs ) {
+	char **listCopy;
+	char *list[MAX_FOUND_FILES];
+	int i, nfiles;
 
 	if ( extension == NULL ) {
 		extension = "";
@@ -247,8 +242,8 @@ char** Sys_ListFiles( const char *directory, const char *extension, const char *
 		if ( nfiles > 2 ) {
 			if ( Q_streq( listCopy[0], "." ) && Q_streq( listCopy[1], ".." ) ) {
 				// emulate old strgtr() function sort behavior for special entries
-				char* dot1 = listCopy[0];
-				char* dot2 = listCopy[1];
+				char *dot1 = listCopy[0];
+				char *dot2 = listCopy[1];
 				for ( i = 0; i < nfiles - 2; i++ ) {
 					listCopy[i] = listCopy[i + 2];
 				}
@@ -269,13 +264,13 @@ Sys_FreeFileList
 =================
 */
 void Sys_FreeFileList( char **list ) {
-	int		i;
+	int i;
 
 	if ( !list ) {
 		return;
 	}
 
-	for ( i = 0 ; list[i] ; i++ ) {
+	for ( i = 0; list[i]; i++ ) {
 		Z_Free( list[i] );
 	}
 
@@ -309,8 +304,7 @@ qboolean Sys_GetFileStats( const char *filename, fileOffset_t *size, fileTime_t 
 Sys_Mkdir
 =================
 */
-qboolean Sys_Mkdir( const char *path )
-{
+qboolean Sys_Mkdir( const char *path ) {
 
 	if ( mkdir( path, 0750 ) == 0 ) {
 		return qtrue;
@@ -329,8 +323,7 @@ qboolean Sys_Mkdir( const char *path )
 Sys_FOpen
 =================
 */
-FILE *Sys_FOpen( const char *ospath, const char *mode )
-{
+FILE *Sys_FOpen( const char *ospath, const char *mode ) {
 	struct stat buf;
 
 	// check if path exists and it is not a directory
@@ -346,8 +339,7 @@ FILE *Sys_FOpen( const char *ospath, const char *mode )
 Sys_ResetReadOnlyAttribute
 ==============
 */
-qboolean Sys_ResetReadOnlyAttribute( const char *ospath [[maybe_unused]] )
-{
+qboolean Sys_ResetReadOnlyAttribute( const char *ospath [[maybe_unused]] ) {
 	return qfalse;
 }
 
@@ -357,23 +349,20 @@ qboolean Sys_ResetReadOnlyAttribute( const char *ospath [[maybe_unused]] )
 Sys_Pwd
 =================
 */
-const char *Sys_Pwd( void ) 
-{
-	static char pwd[ MAX_OSPATH ];
+const char *Sys_Pwd( void ) {
+	static char pwd[MAX_OSPATH];
 
 	if ( pwd[0] )
 		return pwd;
 
 	// more reliable, linux-specific
-	if ( readlink( "/proc/self/exe", pwd, sizeof( pwd ) - 1 ) != -1 )
-	{
-		pwd[ sizeof( pwd ) - 1 ] = '\0';
+	if ( readlink( "/proc/self/exe", pwd, sizeof( pwd ) - 1 ) != -1 ) {
+		pwd[sizeof( pwd ) - 1] = '\0';
 		dirname( pwd );
 		return pwd;
 	}
 
-	if ( !getcwd( pwd, sizeof( pwd ) ) )
-	{
+	if ( !getcwd( pwd, sizeof( pwd ) ) ) {
 		pwd[0] = '\0';
 	}
 
@@ -386,28 +375,25 @@ const char *Sys_Pwd( void )
 Sys_DefaultHomePath
 =================
 */
-const char *Sys_DefaultHomePath( void )
-{
+const char *Sys_DefaultHomePath( void ) {
 	// Used to determine where to store user-specific files
-	static char homePath[ MAX_OSPATH ];
+	static char homePath[MAX_OSPATH];
 
 	const char *p;
 
 	if ( *homePath )
 		return homePath;
-            
-	if ( (p = getenv("HOME")) != NULL ) 
-	{
+
+	if ( ( p = getenv( "HOME" ) ) != NULL ) {
 		Q_strncpyz( homePath, p, sizeof( homePath ) );
 #ifdef MACOS_X
-		Q_strcat( homePath, sizeof(homePath), "/Library/Application Support/Quake3" );
+		Q_strcat( homePath, sizeof( homePath ), "/Library/Application Support/Quake3" );
 #else
 		Q_strcat( homePath, sizeof( homePath ), "/.q3a" );
 #endif
-		if ( mkdir( homePath, 0750 ) ) 
-		{
-			if ( errno != EEXIST ) 
-				Sys_Error( "Unable to create directory \"%s\", error is %s(%d)\n", 
+		if ( mkdir( homePath, 0750 ) ) {
+			if ( errno != EEXIST )
+				Sys_Error( "Unable to create directory \"%s\", error is %s(%d)\n",
 					homePath, strerror( errno ), errno );
 		}
 		return homePath;
@@ -421,9 +407,8 @@ const char *Sys_DefaultHomePath( void )
 Sys_SteamPath
 ================
 */
-const char *Sys_SteamPath( void )
-{
-	static char steamPath[ MAX_OSPATH ];
+const char *Sys_SteamPath( void ) {
+	static char steamPath[MAX_OSPATH];
 	// Disabled since Steam doesn't let you install Quake 3 on Mac/Linux
 #if 0
 	const char *p;
@@ -447,8 +432,7 @@ const char *Sys_SteamPath( void )
 Sys_ShowConsole
 =================
 */
-void Sys_ShowConsole( int visLevel [[maybe_unused]], qboolean quitOnClose [[maybe_unused]] )
-{
+void Sys_ShowConsole( int visLevel [[maybe_unused]], qboolean quitOnClose [[maybe_unused]] ) {
 	// not implemented
 }
 
@@ -470,13 +454,11 @@ static int dll_err_count = 0;
 Sys_LoadLibrary
 =================
 */
-void *Sys_LoadLibrary( const char *name )
-{
+void *Sys_LoadLibrary( const char *name ) {
 	const char *ext;
 	void *handle;
 
-	if ( FS_AllowedExtension( name, qfalse, &ext ) )
-	{
+	if ( FS_AllowedExtension( name, qfalse, &ext ) ) {
 		Com_Error( ERR_FATAL, "Sys_LoadLibrary: Unable to load library with '%s' extension", ext );
 	}
 
@@ -490,8 +472,7 @@ void *Sys_LoadLibrary( const char *name )
 Sys_UnloadLibrary
 =================
 */
-void Sys_UnloadLibrary( void *handle )
-{
+void Sys_UnloadLibrary( void *handle ) {
 	if ( handle != NULL )
 		dlclose( handle );
 }
@@ -502,15 +483,13 @@ void Sys_UnloadLibrary( void *handle )
 Sys_LoadFunction
 =================
 */
-void *Sys_LoadFunction( void *handle, const char *name )
-{
+void *Sys_LoadFunction( void *handle, const char *name ) {
 	const char *error;
 	char buf[1024];
 	void *symbol;
 	size_t nlen;
 
-	if ( handle == NULL || name == NULL || *name == '\0' ) 
-	{
+	if ( handle == NULL || name == NULL || *name == '\0' ) {
 		dll_err_count++;
 		return NULL;
 	}
@@ -518,13 +497,12 @@ void *Sys_LoadFunction( void *handle, const char *name )
 	dlerror(); /* clear old error state */
 	symbol = dlsym( handle, name );
 	error = dlerror();
-	if ( error != NULL )
-	{
+	if ( error != NULL ) {
 		nlen = strlen( name ) + 1;
 		if ( nlen >= sizeof( buf ) )
 			return NULL;
 		buf[0] = '_';
-		strcpy( buf+1, name );
+		strcpy( buf + 1, name );
 		dlerror(); /* clear old error state */
 		symbol = dlsym( handle, buf );
 	}
@@ -541,8 +519,7 @@ void *Sys_LoadFunction( void *handle, const char *name )
 Sys_LoadFunctionErrors
 =================
 */
-int Sys_LoadFunctionErrors( void )
-{
+int Sys_LoadFunctionErrors( void ) {
 	int result = dll_err_count;
 	dll_err_count = 0;
 	return result;
@@ -555,8 +532,7 @@ int Sys_LoadFunctionErrors( void )
 Sys_GetAffinityMask
 =================
 */
-uint64_t Sys_GetAffinityMask( void )
-{
+uint64_t Sys_GetAffinityMask( void ) {
 	cpu_set_t cpu_set;
 
 	if ( sched_getaffinity( getpid(), sizeof( cpu_set ), &cpu_set ) == 0 ) {
@@ -564,7 +540,7 @@ uint64_t Sys_GetAffinityMask( void )
 		int cpu;
 		for ( cpu = 0; (size_t)cpu < sizeof( mask ) * 8; cpu++ ) {
 			if ( CPU_ISSET( cpu, &cpu_set ) ) {
-				mask |= (1ULL << cpu);
+				mask |= ( 1ULL << cpu );
 			}
 		}
 		return mask;
@@ -579,14 +555,13 @@ uint64_t Sys_GetAffinityMask( void )
 Sys_SetAffinityMask
 =================
 */
-qboolean Sys_SetAffinityMask( const uint64_t mask )
-{
+qboolean Sys_SetAffinityMask( const uint64_t mask ) {
 	cpu_set_t cpu_set;
 	int cpu;
 
 	CPU_ZERO( &cpu_set );
 	for ( cpu = 0; (size_t)cpu < sizeof( mask ) * 8; cpu++ ) {
-		if ( mask & (1ULL << cpu) ) {
+		if ( mask & ( 1ULL << cpu ) ) {
 			CPU_SET( cpu, &cpu_set );
 		}
 	}

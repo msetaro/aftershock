@@ -70,8 +70,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define HK_MOD_RWIN		0x80000
 #define HK_MOD_XMASK	0xFF000
 
-#define	DIRECTSOUND_VERSION	0x0300
-#define	DIRECTINPUT_VERSION	0x0300
+#define DIRECTSOUND_VERSION	0x0300
+#define DIRECTINPUT_VERSION	0x0300
 
 #include <mmsystem.h>
 #include <dinput.h>
@@ -92,44 +92,44 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define MK_XBUTTON2         0x0040
 #endif
 
-#define	WINDOW_STYLE_NORMAL          (WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|WS_SYSMENU|WS_CAPTION|WS_MINIMIZEBOX|WS_BORDER)
-#define	WINDOW_STYLE_NORMAL_NB       (WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|WS_POPUP)
-#define	WINDOW_ESTYLE_NORMAL         (0)
-#define	WINDOW_STYLE_FULLSCREEN      (WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|WS_POPUP)
-#define	WINDOW_ESTYLE_FULLSCREEN     (0)
-#define	WINDOW_STYLE_FULLSCREEN_MIN  (WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS)
-#define	WINDOW_ESTYLE_FULLSCREEN_MIN (0)
+#define WINDOW_STYLE_NORMAL          (WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|WS_SYSMENU|WS_CAPTION|WS_MINIMIZEBOX|WS_BORDER)
+#define WINDOW_STYLE_NORMAL_NB       (WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|WS_POPUP)
+#define WINDOW_ESTYLE_NORMAL         (0)
+#define WINDOW_STYLE_FULLSCREEN      (WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|WS_POPUP)
+#define WINDOW_ESTYLE_FULLSCREEN     (0)
+#define WINDOW_STYLE_FULLSCREEN_MIN  (WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS)
+#define WINDOW_ESTYLE_FULLSCREEN_MIN (0)
 
 #define T TEXT
 #ifdef UNICODE
 LPWSTR AtoW( const char *s );
 const char *WtoA( const LPWSTR s );
 #else
-#define AtoW(S) (S)
-#define WtoA(S) (S)
+#define AtoW( S ) (S)
+#define WtoA( S ) (S)
 #endif
 
 qboolean IN_MouseActive( void );
-void	IN_Win32MouseEvent( int mstate );
-void	IN_RawMouseEvent( LPARAM lParam );
+void IN_Win32MouseEvent( int mstate );
+void IN_RawMouseEvent( LPARAM lParam );
 
-void	Sys_CreateConsole( const char *title, int xPos, int yPos, qboolean usePos );
-void	Sys_DestroyConsole( void );
+void Sys_CreateConsole( const char *title, int xPos, int yPos, qboolean usePos );
+void Sys_DestroyConsole( void );
 
 // Input subsystem
 
-void	IN_Init (void);
-void	IN_Shutdown (void);
-void	IN_JoystickCommands (void);
+void IN_Init( void );
+void IN_Shutdown( void );
+void IN_JoystickCommands( void );
 
-void	IN_Activate( qboolean active );
-void	IN_Frame( void );
+void IN_Activate( qboolean active );
+void IN_Frame( void );
 
-void	IN_UpdateWindow( RECT *window_rect, qboolean updateClipRegion );
-void	UpdateMonitorInfo( const RECT *target );
+void IN_UpdateWindow( RECT *window_rect, qboolean updateClipRegion );
+void UpdateMonitorInfo( const RECT *target );
 
 // window procedure
-LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM  lParam );
+LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 void HandleConsoleEvents( void );
 
 void Conbuf_AppendText( const char *msg );
@@ -140,24 +140,24 @@ void SNDDMA_Activate( void );
 
 typedef struct
 {
-	HINSTANCE		hInstance;
-	HWND			hWnd;
+	HINSTANCE hInstance;
+	HWND hWnd;
 
 	// Multi-monitor tracking
-	RECT			conRect;
+	RECT conRect;
 #ifndef DEDICATED
-	RECT			winRect;
-	qboolean		winRectValid;
+	RECT winRect;
+	qboolean winRectValid;
 
-	int				borderless;
+	int borderless;
 
 	// when we get a windows message, we store the time off so keyboard processing
 	// can know the exact time of an event
-	unsigned		sysMsgTime;
+	unsigned sysMsgTime;
 #endif
 } WinVars_t;
 
-extern WinVars_t	g_wv;
+extern WinVars_t g_wv;
 
 void WIN_DisableHook( void );
 void WIN_EnableHook( void );

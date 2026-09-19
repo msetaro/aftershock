@@ -29,8 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <X11/Xlib.h>
 #include <X11/Xfuncproto.h>
 
-typedef struct sym_s
-{
+typedef struct sym_s {
 	void **symbol;
 	const char *name;
 } sym_t;
@@ -41,7 +40,7 @@ typedef struct
 	void *VulkanLib; // instance of Vulkan library
 	FILE *log_fp;
 
-	int	monitorCount;
+	int monitorCount;
 
 	qboolean gammaSet;
 

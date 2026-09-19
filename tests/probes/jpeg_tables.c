@@ -5,37 +5,34 @@
 
 static jmp_buf table_error;
 
-static void table_error_exit( j_common_ptr cinfo )
-{
+static void table_error_exit( j_common_ptr cinfo ) {
 	int index = *(const int *)cinfo->client_data;
-	if ( index & 0x10 ) index -= 0x10;
+	if ( index & 0x10 )
+		index -= 0x10;
 	assert( index >= NUM_HUFF_TBLS );
 	assert( cinfo->err->msg_code == JERR_DHT_INDEX );
 	assert( cinfo->err->msg_parm.i[0] == index );
 	longjmp( table_error, 1 );
 }
 
-static void table_message( j_common_ptr cinfo, int level )
-{
+static void table_message( j_common_ptr cinfo, int level ) {
 	(void)cinfo;
 	(void)level;
 }
 
-JHUFF_TBL *jpeg_alloc_huff_table( j_common_ptr cinfo )
-{
+JHUFF_TBL *jpeg_alloc_huff_table( j_common_ptr cinfo ) {
 	(void)cinfo;
 	assert( 0 ); /* Every legal slot already has a table. */
 	return NULL;
 }
 
-static void check_table_index( int index )
-{
+static void check_table_index( int index ) {
 	struct jpeg_decompress_struct cinfo = { 0 };
 	struct jpeg_error_mgr error = { 0 };
 	struct jpeg_source_mgr source = { 0 };
 	JHUFF_TBL tables[2][NUM_HUFF_TBLS];
 	JOCTET bytes[20] = { 0, 20, 0, 1 };
-	int ac = (index & 0x10) != 0, slot = ac ? index - 0x10 : index;
+	int ac = ( index & 0x10 ) != 0, slot = ac ? index - 0x10 : index;
 	int i;
 	memset( tables, 0x7a, sizeof( tables ) );
 	bytes[2] = (JOCTET)index;
@@ -65,14 +62,13 @@ static void check_table_index( int index )
 	assert( tables[ac][slot].huffval[0] == 42 );
 }
 
-void TestJpegTables( void )
-{
+void TestJpegTables( void ) {
 	int i;
 	const int invalid[] = { 4, 5, 0x14, 0x15, 255 };
 	for ( i = 0; i < NUM_HUFF_TBLS; i++ ) {
 		check_table_index( i );
 		check_table_index( i | 0x10 );
 	}
-	for ( i = 0; i < (int)(sizeof( invalid ) / sizeof( invalid[0] )); i++ )
+	for ( i = 0; i < (int)( sizeof( invalid ) / sizeof( invalid[0] ) ); i++ )
 		check_table_index( invalid[i] );
 }

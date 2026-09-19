@@ -58,31 +58,31 @@ up to five or more times in a frame with 3D status bar icons).
 // flare states maintain visibility over multiple frames for fading
 // layers: view, mirror, menu
 typedef struct flare_s {
-	struct		flare_s	*next;		// for active chain
+	struct flare_s *next; // for active chain
 
-	int			addedFrame;
-	uint32_t	testCount;
+	int addedFrame;
+	uint32_t testCount;
 
 	portalView_t portalView;
-	int			frameSceneNum;
-	void		*surface;
-	int			fogNum;
+	int frameSceneNum;
+	void *surface;
+	int fogNum;
 
-	int			fadeTime;
+	int fadeTime;
 
-	qboolean	visible;			// state of last test
-	float		drawIntensity;		// may be non 0 even if !visible due to fading
+	qboolean visible; // state of last test
+	float drawIntensity; // may be non 0 even if !visible due to fading
 
-	int			windowX, windowY;
-	float		eyeZ;
-	float		drawZ;
+	int windowX, windowY;
+	float eyeZ;
+	float drawZ;
 
-	vec3_t		origin;
-	vec3_t		color;
+	vec3_t origin;
+	vec3_t color;
 } flare_t;
 
-static flare_t	r_flareStructs[ MAX_FLARES ];
-static flare_t	*r_activeFlares, *r_inactiveFlares;
+static flare_t r_flareStructs[MAX_FLARES];
+static flare_t *r_activeFlares, *r_inactiveFlares;
 
 
 /*
@@ -91,7 +91,7 @@ R_ClearFlares
 ==================
 */
 void R_ClearFlares( void ) {
-	int		i;
+	int i;
 
 	if ( !vk.fragmentStores )
 		return;
@@ -100,19 +100,18 @@ void R_ClearFlares( void ) {
 	r_activeFlares = NULL;
 	r_inactiveFlares = NULL;
 
-	for ( i = 0 ; i < MAX_FLARES ; i++ ) {
+	for ( i = 0; i < MAX_FLARES; i++ ) {
 		r_flareStructs[i].next = r_inactiveFlares;
 		r_inactiveFlares = &r_flareStructs[i];
 	}
 }
 
 
-static flare_t *R_SearchFlare( void *surface )
-{
+static flare_t *R_SearchFlare( void *surface ) {
 	flare_t *f;
 
 	// see if a flare with a matching surface, scene, and view exists
-	for ( f = r_activeFlares ; f ; f = f->next ) {
+	for ( f = r_activeFlares; f; f = f->next ) {
 		if ( f->surface == surface && f->frameSceneNum == backEnd.viewParms.frameSceneNum && f->portalView == backEnd.viewParms.portalView ) {
 			return f;
 		}
@@ -130,15 +129,15 @@ This is called at surface tesselation time
 ==================
 */
 void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t normal ) {
-	int				i;
-	flare_t			*f;
-	vec3_t			local;
-	float			d = 1;
-	vec4_t			eye, clip, normalized, window;
+	int i;
+	flare_t *f;
+	vec3_t local;
+	float d = 1;
+	vec4_t eye, clip, normalized, window;
 
 	backEnd.pc.c_flareAdds++;
 
-	if ( normal && (normal[0] || normal[1] || normal[2] ) )	{
+	if ( normal && ( normal[0] || normal[1] || normal[2] ) ) {
 		VectorSubtract( backEnd.viewParms.orientation.origin, point, local );
 		VectorNormalizeFast( local );
 		d = DotProduct( local, normal );
@@ -153,7 +152,7 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 	R_TransformModelToClip( point, backEnd.orientation.modelMatrix, backEnd.viewParms.projectionMatrix, eye, clip );
 
 	// check to see if the point is completely off screen
-	for ( i = 0 ; i < 3 ; i++ ) {
+	for ( i = 0; i < 3; i++ ) {
 		if ( clip[i] >= clip[3] || clip[i] <= -clip[3] ) {
 			return;
 		}
@@ -162,7 +161,7 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 	R_TransformClipToWindow( clip, &backEnd.viewParms, normalized, window );
 
 	if ( window[0] < 0 || window[0] >= backEnd.viewParms.viewportWidth || window[1] < 0 || window[1] >= backEnd.viewParms.viewportHeight ) {
-		return;	// shouldn't happen, since we check the clip[] above, except for FP rounding
+		return; // shouldn't happen, since we check the clip[] above, except for FP rounding
 	}
 
 	f = R_SearchFlare( surface );
@@ -205,11 +204,10 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 	f->eyeZ = eye[2];
 
 #ifdef USE_REVERSED_DEPTH
-	f->drawZ = (float)( (clip[2]+0.20) / clip[3] );
+	f->drawZ = (float)( ( clip[2] + 0.20 ) / clip[3] );
 #else
-	f->drawZ = (clip[2]-0.20) / clip[3];
+	f->drawZ = ( clip[2] - 0.20 ) / clip[3];
 #endif
-
 }
 
 
@@ -219,9 +217,9 @@ RB_AddDlightFlares
 ==================
 */
 void RB_AddDlightFlares( void ) {
-	dlight_t		*l;
-	int				i, j, k;
-	fog_t			*fog = NULL;
+	dlight_t *l;
+	int i, j, k;
+	fog_t *fog = NULL;
 
 	if ( !r_flares->integer ) {
 		return;
@@ -232,14 +230,13 @@ void RB_AddDlightFlares( void ) {
 	if ( tr.world )
 		fog = tr.world->fogs;
 
-	for ( i = 0 ; (unsigned int)i < backEnd.refdef.num_dlights; i++, l++ ) {
+	for ( i = 0; (unsigned int)i < backEnd.refdef.num_dlights; i++, l++ ) {
 
-		if ( fog )
-		{
+		if ( fog ) {
 			// find which fog volume the light is in
-			for ( j = 1 ; j < tr.world->numfogs ; j++ ) {
+			for ( j = 1; j < tr.world->numfogs; j++ ) {
 				fog = &tr.world->fogs[j];
-				for ( k = 0 ; k < 3 ; k++ ) {
+				for ( k = 0; k < 3; k++ ) {
 					if ( l->origin[k] < fog->bounds[0][k] || l->origin[k] > fog->bounds[1][k] ) {
 						break;
 					}
@@ -251,8 +248,7 @@ void RB_AddDlightFlares( void ) {
 			if ( j == tr.world->numfogs ) {
 				j = 0;
 			}
-		}
-		else
+		} else
 			j = 0;
 
 		RB_AddFlare( (void *)l, j, l->origin, l->color, NULL );
@@ -269,17 +265,17 @@ FLARE BACK END
 
 
 static float *vk_ortho( float x1, float x2,
-						float y2, float y1,
-						float z1, float z2 ) {
+	float y2, float y1,
+	float z1, float z2 ) {
 
 	static float m[16] = { 0 };
 
-	m[0] = 2.0f / (x2 - x1);
-	m[5] = 2.0f / (y2 - y1);
-	m[10] = 1.0f / (z1 - z2);
-	m[12] = -(x2 + x1) / (x2 - x1);
-	m[13] = -(y2 + y1) / (y2 - y1);
-	m[14] = z1 / (z1 - z2);
+	m[0] = 2.0f / ( x2 - x1 );
+	m[5] = 2.0f / ( y2 - y1 );
+	m[10] = 1.0f / ( z1 - z2 );
+	m[12] = -( x2 + x1 ) / ( x2 - x1 );
+	m[13] = -( y2 + y1 ) / ( y2 - y1 );
+	m[14] = z1 / ( z1 - z2 );
 	m[15] = 1.0f;
 
 	return m;
@@ -292,15 +288,15 @@ RB_TestFlare
 ==================
 */
 static void RB_TestFlare( flare_t *f ) {
-	qboolean		visible;
-	float			fade;
-	float			*m;
-	uint32_t		offset;
-	int				i;
+	qboolean visible;
+	float fade;
+	float *m;
+	uint32_t offset;
+	int i;
 
 	backEnd.pc.c_flareTests++;
 
-/*
+	/*
 	We don't have equivalent of glReadPixels() in vulkan
 	and explicit depth buffer reading may be very slow and require surface conversion.
 
@@ -315,10 +311,10 @@ static void RB_TestFlare( flare_t *f ) {
 */
 
 	// we neeed only single uint32_t but take care of alignment
-	offset = (uint32_t)( (f - r_flareStructs) * vk.storage_alignment );
+	offset = (uint32_t)( ( f - r_flareStructs ) * vk.storage_alignment );
 
 	if ( f->testCount ) {
-		uint32_t *cnt = (uint32_t*)(vk.storage.buffer_ptr + offset);
+		uint32_t *cnt = (uint32_t *)( vk.storage.buffer_ptr + offset );
 		if ( *cnt )
 			visible = qtrue;
 		else
@@ -361,7 +357,7 @@ static void RB_TestFlare( flare_t *f ) {
 			f->visible = qtrue;
 			f->fadeTime = backEnd.refdef.time - 1;
 		}
-		fade = ( ( backEnd.refdef.time - f->fadeTime ) /1000.0f ) * r_flareFade->value;
+		fade = ( ( backEnd.refdef.time - f->fadeTime ) / 1000.0f ) * r_flareFade->value;
 	} else {
 		if ( f->visible ) {
 			f->visible = qfalse;
@@ -386,11 +382,11 @@ RB_RenderFlare
 ==================
 */
 static void RB_RenderFlare( flare_t *f ) {
-	float			size;
-	vec3_t			color;
+	float size;
+	vec3_t color;
 	float distance, intensity, factor;
-	byte fogFactors[3] = {255, 255, 255};
-	color4ub_t		c;
+	byte fogFactors[3] = { 255, 255, 255 };
+	color4ub_t c;
 
 	//if ( f->drawIntensity == 0.0 )
 	//	return;
@@ -404,16 +400,16 @@ static void RB_RenderFlare( flare_t *f ) {
 		distance = -f->eyeZ;
 
 	// calculate the flare size..
-	size = backEnd.viewParms.viewportWidth * ( r_flareSize->value/640.0f + 8 / distance );
+	size = backEnd.viewParms.viewportWidth * ( r_flareSize->value / 640.0f + 8 / distance );
 
-/*
+	/*
  * This is an alternative to intensity scaling. It changes the size of the flare on screen instead
  * with growing distance. See in the description at the top why this is not the way to go.
 	// size will change ~ 1/r.
 	size = backEnd.viewParms.viewportWidth * (r_flareSize->value / (distance * -2.0f));
 */
 
-/*
+	/*
  * As flare sizes stay nearly constant with increasing distance we must decrease the intensity
  * to achieve a reasonable visual result. The intensity is ~ (size^2 / distance^2) which can be
  * got by considering the ratio of
@@ -427,15 +423,14 @@ static void RB_RenderFlare( flare_t *f ) {
  * The coefficient flareCoeff will determine the falloff speed with increasing distance.
  */
 
-	factor = (float)( distance + size * sqrt( (double)(r_flareCoeff->value) ) );
+	factor = (float)( distance + size * sqrt( (double)( r_flareCoeff->value ) ) );
 
 	intensity = r_flareCoeff->value * size * size / ( factor * factor );
 
 	VectorScale( f->color, f->drawIntensity * intensity, color );
 
 	// Calculations for fogging
-	if ( tr.world && f->fogNum > 0 && f->fogNum < tr.world->numfogs )
-	{
+	if ( tr.world && f->fogNum > 0 && f->fogNum < tr.world->numfogs ) {
 		tess.numVertexes = 1;
 		VectorCopy( f->origin, tess.xyz[0] );
 		tess.fogNum = f->fogNum;
@@ -443,7 +438,7 @@ static void RB_RenderFlare( flare_t *f ) {
 		RB_CalcModulateColorsByFog( fogFactors );
 
 		// We don't need to render the flare if colors are 0 anyways.
-		if ( !(fogFactors[0] || fogFactors[1] || fogFactors[2]) )
+		if ( !( fogFactors[0] || fogFactors[1] || fogFactors[2] ) )
 			return;
 	}
 
@@ -477,10 +472,10 @@ extend past the portal edge will be overwritten.
 ==================
 */
 void RB_RenderFlares( void ) {
-	flare_t		*f;
-	flare_t		**prev;
-	qboolean	draw;
-	float		*m;
+	flare_t *f;
+	flare_t **prev;
+	qboolean draw;
+	float *m;
 
 	if ( !r_flares->integer ) {
 		return;
@@ -534,7 +529,7 @@ void RB_RenderFlares( void ) {
 	}
 
 	if ( !draw ) {
-		return;		// none visible
+		return; // none visible
 	}
 
 #ifdef USE_REVERSED_DEPTH
@@ -547,7 +542,7 @@ void RB_RenderFlares( void ) {
 
 	vk_update_mvp( m );
 
-	for ( f = r_activeFlares ; f ; f = f->next ) {
+	for ( f = r_activeFlares; f; f = f->next ) {
 		if ( f->frameSceneNum == backEnd.viewParms.frameSceneNum && f->portalView == backEnd.viewParms.portalView && f->drawIntensity ) {
 			RB_RenderFlare( f );
 		}

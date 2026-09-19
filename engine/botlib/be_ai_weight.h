@@ -33,8 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define MAX_WEIGHTS			128
 
 //fuzzy separator
-typedef struct fuzzyseperator_s
-{
+typedef struct fuzzyseperator_s {
 	int index;
 	int value;
 	int type;
@@ -46,38 +45,36 @@ typedef struct fuzzyseperator_s
 } fuzzyseperator_t;
 
 //fuzzy weight
-typedef struct weight_s
-{
+typedef struct weight_s {
 	char *name;
 	struct fuzzyseperator_s *firstseperator;
 } weight_t;
 
 //weight configuration
-typedef struct weightconfig_s
-{
+typedef struct weightconfig_s {
 	int numweights;
 	weight_t weights[MAX_WEIGHTS];
-	char		filename[MAX_QPATH];
+	char filename[MAX_QPATH];
 } weightconfig_t;
 
 //reads a weight configuration
-weightconfig_t *ReadWeightConfig(const char *filename);
+weightconfig_t *ReadWeightConfig( const char *filename );
 //free a weight configuration
-void FreeWeightConfig(weightconfig_t *config);
+void FreeWeightConfig( weightconfig_t *config );
 //writes a weight configuration, returns true if successful
-qboolean WriteWeightConfig(char *filename, weightconfig_t *config);
+qboolean WriteWeightConfig( char *filename, weightconfig_t *config );
 //find the fuzzy weight with the given name
-int FindFuzzyWeight(const weightconfig_t *wc, const char *name);
+int FindFuzzyWeight( const weightconfig_t *wc, const char *name );
 //returns the fuzzy weight for the given inventory and weight
-float FuzzyWeight(int *inventory, weightconfig_t *wc, int weightnum);
-float FuzzyWeightUndecided(int *inventory, weightconfig_t *wc, int weightnum);
+float FuzzyWeight( int *inventory, weightconfig_t *wc, int weightnum );
+float FuzzyWeightUndecided( int *inventory, weightconfig_t *wc, int weightnum );
 //scales the weight with the given name
-void ScaleWeight(weightconfig_t *config, char *name, float scale);
+void ScaleWeight( weightconfig_t *config, char *name, float scale );
 //scale the balance range
-void ScaleBalanceRange(weightconfig_t *config, float scale);
+void ScaleBalanceRange( weightconfig_t *config, float scale );
 //evolves the weight configuration
-void EvolveWeightConfig(weightconfig_t *config);
+void EvolveWeightConfig( weightconfig_t *config );
 //interbreed the weight configurations and stores the interbreeded one in configout
-void InterbreedWeightConfigs(weightconfig_t *config1, weightconfig_t *config2, weightconfig_t *configout);
+void InterbreedWeightConfigs( weightconfig_t *config1, weightconfig_t *config2, weightconfig_t *configout );
 //frees cached weight configurations
-void BotShutdownWeights(void);
+void BotShutdownWeights( void );

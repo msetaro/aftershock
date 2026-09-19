@@ -15,19 +15,19 @@
 #include "../engine/public/ui_native_public.h"
 #include "bg/native_abi_public.h"
 
-#define NATIVE_JOIN_INNER(a,b) a##b
-#define NATIVE_JOIN(a,b) NATIVE_JOIN_INNER(a,b)
+#define NATIVE_JOIN_INNER( a, b ) a##b
+#define NATIVE_JOIN( a, b ) NATIVE_JOIN_INNER(a,b)
 #define vmMain NATIVE_JOIN(NATIVE_NAMESPACE,_vmMain)
 #define dllEntry NATIVE_JOIN(NATIVE_NAMESPACE,_dllEntry)
 
 namespace NATIVE_NAMESPACE {
-void qsort( void *, size_t, size_t, int (*)( const void *, const void * ) );
+void qsort( void *, size_t, size_t, int ( * )( const void *, const void * ) );
 void srand( unsigned );
 int rand( void );
 double atof( const char * );
 void *memmove( void *, const void *, size_t );
 #include NATIVE_SOURCE
-}
+} // namespace NATIVE_NAMESPACE
 
 #ifdef NATIVE_EXPORTS
 #include NATIVE_EXPORTS

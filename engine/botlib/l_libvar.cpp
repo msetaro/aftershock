@@ -44,33 +44,26 @@ libvar_t *libvarlist = NULL;
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-static float LibVarStringValue( const char *string )
-{
+static float LibVarStringValue( const char *string ) {
 	int dotfound = 0;
 	float value = 0;
 
-	while(*string)
-	{
-		if (*string < '0' || *string > '9')
-		{
-			if (dotfound || *string != '.')
-			{
+	while ( *string ) {
+		if ( *string < '0' || *string > '9' ) {
+			if ( dotfound || *string != '.' ) {
 				return 0;
 			} //end if
-			else
-			{
+			else {
 				dotfound = 10;
 				string++;
 			} //end if
 		} //end if
-		if (dotfound)
-		{
-			value = value + (float) (*string - '0') / (float) dotfound;
+		if ( dotfound ) {
+			value = value + (float)( *string - '0' ) / (float)dotfound;
 			dotfound *= 10;
 		} //end if
-		else
-		{
-			value = (float)( value * 10.0 + (float) (*string - '0') );
+		else {
+			value = (float)( value * 10.0 + (float)( *string - '0' ) );
 		} //end else
 		string++;
 	} //end while
@@ -82,13 +75,12 @@ static float LibVarStringValue( const char *string )
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-libvar_t *LibVarAlloc( const char *var_name )
-{
+libvar_t *LibVarAlloc( const char *var_name ) {
 	libvar_t *v;
 
-	v = (libvar_t *) GetMemory( sizeof( libvar_t ) );
+	v = (libvar_t *)GetMemory( sizeof( libvar_t ) );
 	Com_Memset( v, 0, sizeof( libvar_t ) );
-	v->name = (char *) GetMemory( strlen( var_name )+1 );
+	v->name = (char *)GetMemory( strlen( var_name )+1 );
 	strcpy( v->name, var_name );
 	//add the variable in the list
 	v->next = libvarlist;
@@ -101,8 +93,7 @@ libvar_t *LibVarAlloc( const char *var_name )
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void LibVarDeAlloc( libvar_t *v )
-{
+void LibVarDeAlloc( libvar_t *v ) {
 	if ( v->string )
 		FreeMemory( v->string );
 	FreeMemory( v->name );
@@ -114,12 +105,10 @@ void LibVarDeAlloc( libvar_t *v )
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void LibVarDeAllocAll(void)
-{
+void LibVarDeAllocAll( void ) {
 	libvar_t *v;
 
-	for ( v = libvarlist; v; v = libvarlist )
-	{
+	for ( v = libvarlist; v; v = libvarlist ) {
 		libvarlist = libvarlist->next;
 		LibVarDeAlloc( v );
 	} //end for
@@ -131,14 +120,11 @@ void LibVarDeAllocAll(void)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-libvar_t *LibVarGet( const char *var_name )
-{
+libvar_t *LibVarGet( const char *var_name ) {
 	libvar_t *v;
 
-	for ( v = libvarlist; v; v = v->next )
-	{
-		if ( !Q_stricmp( v->name, var_name ) )
-		{
+	for ( v = libvarlist; v; v = v->next ) {
+		if ( !Q_stricmp( v->name, var_name ) ) {
 			return v;
 		} //end if
 	} //end for
@@ -150,17 +136,14 @@ libvar_t *LibVarGet( const char *var_name )
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-const char *LibVarGetString( const char *var_name )
-{
+const char *LibVarGetString( const char *var_name ) {
 	libvar_t *v;
 
 	v = LibVarGet( var_name );
-	if ( v )
-	{
+	if ( v ) {
 		return v->string;
 	} //end if
-	else
-	{
+	else {
 		return "";
 	} //end else
 } //end of the function LibVarGetString
@@ -170,17 +153,14 @@ const char *LibVarGetString( const char *var_name )
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-float LibVarGetValue( const char *var_name )
-{
+float LibVarGetValue( const char *var_name ) {
 	libvar_t *v;
 
 	v = LibVarGet( var_name );
-	if ( v )
-	{
+	if ( v ) {
 		return v->value;
 	} //end if
-	else
-	{
+	else {
 		return 0;
 	} //end else
 } //end of the function LibVarGetValue
@@ -190,16 +170,15 @@ float LibVarGetValue( const char *var_name )
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-libvar_t *LibVar( const char *var_name, const char *value )
-{
+libvar_t *LibVar( const char *var_name, const char *value ) {
 	libvar_t *v;
 	v = LibVarGet( var_name );
-	if ( v ) 
+	if ( v )
 		return v;
 	//create new variable
 	v = LibVarAlloc( var_name );
 	//variable string
-	v->string = (char *) GetMemory( strlen( value ) + 1 );
+	v->string = (char *)GetMemory( strlen( value ) + 1 );
 	strcpy( v->string, value );
 	//the value
 	v->value = LibVarStringValue( v->string );
@@ -214,8 +193,7 @@ libvar_t *LibVar( const char *var_name, const char *value )
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-const char *LibVarString( const char *var_name, const char *value )
-{
+const char *LibVarString( const char *var_name, const char *value ) {
 	libvar_t *v;
 
 	v = LibVar( var_name, value );
@@ -227,29 +205,26 @@ const char *LibVarString( const char *var_name, const char *value )
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-float LibVarValue( const char *var_name, const char *value )
-{
+float LibVarValue( const char *var_name, const char *value ) {
 	libvar_t *v;
 
 	v = LibVar( var_name, value );
 	return v->value;
 } //end of the function LibVarValue
 
-int LibVarInteger( const char *var_name, const char *value, int min_v, int max_v )
-{
-	int v = (int) LibVarValue(var_name, value);
+int LibVarInteger( const char *var_name, const char *value, int min_v, int max_v ) {
+	int v = (int)LibVarValue( var_name, value );
 
 	// if less than minimum, reset to default value
 	// if more than maximum, set to maximum
-	if (v < min_v || v > max_v)
-	{
-		botimport.Print(PRT_ERROR, "%s = %d\n", var_name, v);
-		if (v < min_v) {
-			v = atoi(value);
-			LibVarSet(var_name, value);
+	if ( v < min_v || v > max_v ) {
+		botimport.Print( PRT_ERROR, "%s = %d\n", var_name, v );
+		if ( v < min_v ) {
+			v = atoi( value );
+			LibVarSet( var_name, value );
 		} else {
 			v = max_v;
-			LibVarSet(var_name, va("%d", max_v));
+			LibVarSet( var_name, va( "%d", max_v ) );
 		}
 	}
 
@@ -262,21 +237,18 @@ int LibVarInteger( const char *var_name, const char *value, int min_v, int max_v
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void LibVarSet( const char *var_name, const char *value )
-{
+void LibVarSet( const char *var_name, const char *value ) {
 	libvar_t *v;
 
-	v = LibVarGet(var_name);
-	if ( v )
-	{
+	v = LibVarGet( var_name );
+	if ( v ) {
 		FreeMemory( v->string );
 	} //end if
-	else
-	{
+	else {
 		v = LibVarAlloc( var_name );
 	} //end else
 	//variable string
-	v->string = (char *) GetMemory( strlen( value ) + 1 );
+	v->string = (char *)GetMemory( strlen( value ) + 1 );
 	strcpy( v->string, value );
 	//the value
 	v->value = LibVarStringValue( v->string );

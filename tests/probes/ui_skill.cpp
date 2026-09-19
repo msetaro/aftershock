@@ -30,9 +30,13 @@ void trap_Cvar_Set( const char *name, const char *value ) {
 	Q_strncpyz( scoreValue, value, sizeof( scoreValue ) );
 }
 
-void trap_S_StartLocalSound( sfxHandle_t, int ) {}
-void QDECL Com_Error( int, const char *, ... ) { abort(); }
-void QDECL Com_Printf( const char *, ... ) {}
+void trap_S_StartLocalSound( sfxHandle_t, int ) {
+}
+void QDECL Com_Error( int, const char *, ... ) {
+	abort();
+}
+void QDECL Com_Printf( const char *, ... ) {
+}
 
 int main( int argc, char **argv ) {
 	const float values[] = { 1e38f, -1e38f, -2147483648.0f, 2147483648.0f,

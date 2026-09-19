@@ -38,8 +38,8 @@ void S_StopBackgroundTrack( void );
 
 // cinematics and voice-over-network will send raw samples
 // 1.0 volume will be direct output of source samples
-void S_RawSamples (int samples, int rate, int width, int channels, 
-				   const byte *data, float volume);
+void S_RawSamples( int samples, int rate, int width, int channels,
+	const byte *data, float volume );
 
 // stop all sounds and the background track
 void S_StopAllSounds( void );
@@ -48,7 +48,7 @@ void S_StopAllSounds( void );
 void S_ClearLoopingSounds( qboolean killall );
 void S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
 void S_AddRealLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
-void S_StopLoopingSound(int entityNum );
+void S_StopLoopingSound( int entityNum );
 
 // recompute the relative volumes for all running sounds
 // relative to the given entityNum / orientation
@@ -66,9 +66,9 @@ void S_BeginRegistration( void );
 // RegisterSound will always return a valid sample, even if it
 // has to create a placeholder.  This prevents continuous filesystem
 // checks for missing files
-sfxHandle_t	S_RegisterSound( const char *sample, qboolean compressed );
+sfxHandle_t S_RegisterSound( const char *sample, qboolean compressed );
 
-void S_DisplayFreeMemory(void);
+void S_DisplayFreeMemory( void );
 
 void S_ClearSoundBuffer( void );
 
@@ -76,35 +76,35 @@ void SNDDMA_Activate( void );
 
 typedef struct {
 	unsigned int channels;
-	unsigned int samples;				// mono samples in buffer
-	int			fullsamples;			// samples with all channels in buffer (samples divided by channels)
-	int			submission_chunk;		// don't mix less than this #
-	int			samplebits;
-	int			isfloat;
-	int			speed;
-	byte		*buffer;
-	const char	*driver;
+	unsigned int samples; // mono samples in buffer
+	int fullsamples; // samples with all channels in buffer (samples divided by channels)
+	int submission_chunk; // don't mix less than this #
+	int samplebits;
+	int isfloat;
+	int speed;
+	byte *buffer;
+	const char *driver;
 } dma_t;
 
 extern byte *dma_buffer2;
 
 // initializes cycling through a DMA buffer and returns information on it
-qboolean SNDDMA_Init(void);
+qboolean SNDDMA_Init( void );
 
 // gets the current DMA position
-int		SNDDMA_GetDMAPos(void);
+int SNDDMA_GetDMAPos( void );
 
 // shutdown the DMA xfer.
-void	SNDDMA_Shutdown(void);
+void SNDDMA_Shutdown( void );
 
-void	SNDDMA_BeginPainting (void);
+void SNDDMA_BeginPainting( void );
 
-void	SNDDMA_Submit(void);
+void SNDDMA_Submit( void );
 
-extern	int		s_soundtime;
-extern	int		s_paintedtime;
-extern	int		s_rawend;
-extern	dma_t	dma;
+extern int s_soundtime;
+extern int s_paintedtime;
+extern int s_rawend;
+extern dma_t dma;
 extern cvar_t *s_volume;
 #define WAV_FORMAT_PCM			0x0001
 #define WAVE_FORMAT_IEEE_FLOAT	0x0003

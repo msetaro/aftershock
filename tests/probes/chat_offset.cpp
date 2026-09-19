@@ -35,7 +35,8 @@ int main( void ) {
 	for ( int offset : offsets ) {
 		if ( offset >= 0 )
 			match.variables[0].offset = offset;
-		const char *expected = offset < 0 ? "" : offset == 0 ? "h" : "P";
+		const char *expected = offset < 0 ? "" : offset == 0 ? "h"
+															 : "P";
 		char extracted[8] = {};
 		char expanded[8] = {};
 		BotMatchVariable( &match, 0, extracted, sizeof( extracted ) );

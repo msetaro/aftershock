@@ -38,32 +38,31 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define QKEY_FILE "qkey"
 #define QKEY_SIZE 2048
 
-#define	RECONNECT_TIMEOUT	3000	// time between packet retransmits at CA_CONNECTING / CA_CHALLENGING
-#define	RETRANSMIT_TIMEOUT	1000	// time between packet retransmits at CA_CONNECTED / CA_LOADING
+#define RECONNECT_TIMEOUT	3000	// time between packet retransmits at CA_CONNECTING / CA_CHALLENGING
+#define RETRANSMIT_TIMEOUT	1000	// time between packet retransmits at CA_CONNECTED / CA_LOADING
 
 // snapshots are a view of the server at a given time
 typedef struct {
-	qboolean		valid;			// cleared if delta parsing was invalid
-	int				snapFlags;		// rate delayed and dropped commands
+	qboolean valid; // cleared if delta parsing was invalid
+	int snapFlags; // rate delayed and dropped commands
 
-	int				serverTime;		// server time the message is valid for (in msec)
+	int serverTime; // server time the message is valid for (in msec)
 
-	int				messageNum;		// copied from netchan->incoming_sequence
-	int				deltaNum;		// messageNum the delta is from
-	int				ping;			// time from when cmdNum-1 was sent to time packet was received
-	int				areabytes;
-	byte			areamask[MAX_MAP_AREA_BYTES];		// portalarea visibility bits
+	int messageNum; // copied from netchan->incoming_sequence
+	int deltaNum; // messageNum the delta is from
+	int ping; // time from when cmdNum-1 was sent to time packet was received
+	int areabytes;
+	byte areamask[MAX_MAP_AREA_BYTES]; // portalarea visibility bits
 
-	int				cmdNum;			// the next cmdNum the server is expecting
-	playerState_t	ps;						// complete information about the current player at this time
+	int cmdNum; // the next cmdNum the server is expecting
+	playerState_t ps; // complete information about the current player at this time
 
-	int				numEntities;			// all of the entities that need to be presented
-	int				parseEntitiesNum;		// at the time of this snapshot
+	int numEntities; // all of the entities that need to be presented
+	int parseEntitiesNum; // at the time of this snapshot
 
-	int				serverCommandNum;		// execute all commands up to this before
-											// making the snapshot current
+	int serverCommandNum; // execute all commands up to this before
+	// making the snapshot current
 } clSnapshot_t;
-
 
 
 /*
@@ -76,74 +75,74 @@ new gamestate_t, potentially several times during an established connection
 */
 
 typedef struct {
-	int		p_cmdNumber;		// cl.cmdNumber when packet was sent
-	int		p_serverTime;		// usercmd->serverTime when packet was sent
-	int		p_realtime;			// cls.realtime when packet was sent
+	int p_cmdNumber; // cl.cmdNumber when packet was sent
+	int p_serverTime; // usercmd->serverTime when packet was sent
+	int p_realtime; // cls.realtime when packet was sent
 } outPacket_t;
 
 // the parseEntities array must be large enough to hold PACKET_BACKUP frames of
 // entities, so that when a delta compressed message arives from the server
-// it can be un-deltad from the original 
-#define	MAX_PARSE_ENTITIES	( PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES )
+// it can be un-deltad from the original
+#define MAX_PARSE_ENTITIES	( PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES )
 
 extern int g_console_field_width;
 
 typedef struct {
-	int			timeoutcount;		// it requres several frames in a timeout condition
-									// to disconnect, preventing debugging breaks from
-									// causing immediate disconnects on continue
-	clSnapshot_t	snap;			// latest received from server
+	int timeoutcount; // it requres several frames in a timeout condition
+	// to disconnect, preventing debugging breaks from
+	// causing immediate disconnects on continue
+	clSnapshot_t snap; // latest received from server
 
-	int			serverTime;			// may be paused during play
-	int			oldServerTime;		// to prevent time from flowing bakcwards
-	int			oldFrameServerTime;	// to check tournament restarts
-	int			serverTimeDelta;	// cl.serverTime = cls.realtime + cl.serverTimeDelta
-									// this value changes as net lag varies
-	qboolean	extrapolatedSnapshot;	// set if any cgame frame has been forced to extrapolate
-									// cleared when CL_AdjustTimeDelta looks at it
-	qboolean	newSnapshots;		// set on parse of any valid packet
+	int serverTime; // may be paused during play
+	int oldServerTime; // to prevent time from flowing bakcwards
+	int oldFrameServerTime; // to check tournament restarts
+	int serverTimeDelta; // cl.serverTime = cls.realtime + cl.serverTimeDelta
+	// this value changes as net lag varies
+	qboolean extrapolatedSnapshot; // set if any cgame frame has been forced to extrapolate
+	// cleared when CL_AdjustTimeDelta looks at it
+	qboolean newSnapshots; // set on parse of any valid packet
 
-	gameState_t	gameState;			// configstrings
-	char		mapname[MAX_QPATH];	// extracted from CS_SERVERINFO
+	gameState_t gameState; // configstrings
+	char mapname[MAX_QPATH]; // extracted from CS_SERVERINFO
 
-	int			parseEntitiesNum;	// index (not anded off) into cl_parse_entities[]
+	int parseEntitiesNum; // index (not anded off) into cl_parse_entities[]
 
-	int			mouseDx[2], mouseDy[2];	// added to by mouse events
-	int			mouseIndex;
-	int			joystickAxis[MAX_JOYSTICK_AXIS];	// set by joystick events
+	int mouseDx[2], mouseDy[2]; // added to by mouse events
+	int mouseIndex;
+	int joystickAxis[MAX_JOYSTICK_AXIS]; // set by joystick events
 
 	// cgame communicates a few values to the client system
-	int			cgameUserCmdValue;	// current weapon to add to usercmd_t
-	float		cgameSensitivity;
+	int cgameUserCmdValue; // current weapon to add to usercmd_t
+	float cgameSensitivity;
 
 	// cmds[cmdNumber] is the predicted command, [cmdNumber-1] is the last
 	// properly generated command
-	usercmd_t	cmds[CMD_BACKUP];	// each message will send several old cmds
-	int			cmdNumber;			// incremented each frame, because multiple
-									// frames may need to be packed into a single packet
+	usercmd_t cmds[CMD_BACKUP]; // each message will send several old cmds
+	int cmdNumber; // incremented each frame, because multiple
+	// frames may need to be packed into a single packet
 
-	outPacket_t	outPackets[PACKET_BACKUP];	// information about each packet we have sent out
+	outPacket_t outPackets[PACKET_BACKUP]; // information about each packet we have sent out
 
 	// the client maintains its own idea of view angles, which are
 	// sent to the server each frame.  It is cleared to 0 upon entering each level.
 	// the server sends a delta each frame which is added to the locally
 	// tracked view angles to account for standing on rotating objects,
 	// and teleport direction changes
-	vec3_t		viewangles;
+	vec3_t viewangles;
 
-	int			serverId;			// included in each client message so the server
-												// can tell if it is for a prior map_restart
+	int serverId; // included in each client message so the server
+	// can tell if it is for a prior map_restart
 	// big stuff at end of structure so most offsets are 15 bits or less
-	clSnapshot_t	snapshots[PACKET_BACKUP];
+	clSnapshot_t snapshots[PACKET_BACKUP];
 
-	entityState_t	entityBaselines[MAX_GENTITIES];	// for delta compression when not in previous frame
+	entityState_t entityBaselines[MAX_GENTITIES]; // for delta compression when not in previous frame
 
-	entityState_t	parseEntities[MAX_PARSE_ENTITIES];
+	entityState_t parseEntities[MAX_PARSE_ENTITIES];
 
-	byte			baselineUsed[MAX_GENTITIES];
+	byte baselineUsed[MAX_GENTITIES];
 } clientActive_t;
 
-extern	clientActive_t		cl;
+extern clientActive_t cl;
 
 #define EM_GAMESTATE 1
 #define EM_SNAPSHOT  2
@@ -163,22 +162,22 @@ demo through a file.
 
 typedef struct {
 
-	int			clientNum;
-	int			lastPacketSentTime;			// for retransmits during connection
-	int			lastPacketTime;				// for timeouts
+	int clientNum;
+	int lastPacketSentTime; // for retransmits during connection
+	int lastPacketTime; // for timeouts
 
-	netadr_t	serverAddress;
-	int			connectTime;				// for connection retransmits
-	int			connectPacketCount;			// for display on connection dialog
-	char		serverMessage[MAX_STRING_CHARS]; // for display on connection dialog
+	netadr_t serverAddress;
+	int connectTime; // for connection retransmits
+	int connectPacketCount; // for display on connection dialog
+	char serverMessage[MAX_STRING_CHARS]; // for display on connection dialog
 
-	int			challenge;					// from the server to use for connecting
-	int			checksumFeed;				// from the server for checksum calculations
+	int challenge; // from the server to use for connecting
+	int checksumFeed; // from the server for checksum calculations
 
 	// these are our reliable messages that go to the server
-	int			reliableSequence;
-	int			reliableAcknowledge;		// the last one the server has executed
-	char		reliableCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
+	int reliableSequence;
+	int reliableAcknowledge; // the last one the server has executed
+	char reliableCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
 
 	// server message (unreliable) and command (reliable) sequence
 	// numbers are NOT cleared at level changes, but continue to
@@ -186,74 +185,74 @@ typedef struct {
 
 	// message sequence is used by both the network layer and the
 	// delta compression layer
-	int			serverMessageSequence;
+	int serverMessageSequence;
 
 	// reliable messages received from server
-	int			serverCommandSequence;
-	int			lastExecutedServerCommand;		// last server command grabbed or executed with CL_GetServerCommand
-	char		serverCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
-	qboolean	serverCommandsIgnore[MAX_RELIABLE_COMMANDS];
+	int serverCommandSequence;
+	int lastExecutedServerCommand; // last server command grabbed or executed with CL_GetServerCommand
+	char serverCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
+	qboolean serverCommandsIgnore[MAX_RELIABLE_COMMANDS];
 
 	// file transfer from server
 	fileHandle_t download;
-	char		downloadName[MAX_OSPATH];
-	char		downloadTempName[MAX_OSPATH + 4]; // downloadName + ".tmp"
-	int			sv_allowDownload;
-	char		sv_dlURL[MAX_CVAR_VALUE_STRING];
-	int			downloadNumber;
-	int			downloadBlock;	// block we are waiting for
-	int			downloadCount;	// how many bytes we got
-	int			downloadSize;	// how many bytes we got
-	char		downloadList[BIG_INFO_STRING]; // list of paks we need to download
-	qboolean	downloadRestart;	// if true, we need to do another FS_Restart because we downloaded a pak
+	char downloadName[MAX_OSPATH];
+	char downloadTempName[MAX_OSPATH + 4]; // downloadName + ".tmp"
+	int sv_allowDownload;
+	char sv_dlURL[MAX_CVAR_VALUE_STRING];
+	int downloadNumber;
+	int downloadBlock; // block we are waiting for
+	int downloadCount; // how many bytes we got
+	int downloadSize; // how many bytes we got
+	char downloadList[BIG_INFO_STRING]; // list of paks we need to download
+	qboolean downloadRestart; // if true, we need to do another FS_Restart because we downloaded a pak
 
 #ifdef USE_CURL
-	qboolean	cURLEnabled;
-	qboolean	cURLUsed;
-	qboolean	cURLDisconnected;
-	char		downloadURL[MAX_OSPATH];
-	CURL		*downloadCURL;
-	CURLM		*downloadCURLM;
+	qboolean cURLEnabled;
+	qboolean cURLUsed;
+	qboolean cURLDisconnected;
+	char downloadURL[MAX_OSPATH];
+	CURL *downloadCURL;
+	CURLM *downloadCURLM;
 #endif /* USE_CURL */
 
 	// demo information
-	char		demoName[MAX_OSPATH];
-	char		recordName[MAX_OSPATH]; // without extension
-	qboolean	explicitRecordName;
-	char		recordNameShort[TRUNCATE_LENGTH]; // for recording message
-	qboolean	dm68compat;
-	qboolean	spDemoRecording;
-	qboolean	demorecording;
-	qboolean	demoplaying;
-	qboolean	demowaiting;	// don't record until a non-delta message is received
-	qboolean	firstDemoFrameSkipped;
-	fileHandle_t	demofile;
-	fileHandle_t	recordfile;
+	char demoName[MAX_OSPATH];
+	char recordName[MAX_OSPATH]; // without extension
+	qboolean explicitRecordName;
+	char recordNameShort[TRUNCATE_LENGTH]; // for recording message
+	qboolean dm68compat;
+	qboolean spDemoRecording;
+	qboolean demorecording;
+	qboolean demoplaying;
+	qboolean demowaiting; // don't record until a non-delta message is received
+	qboolean firstDemoFrameSkipped;
+	fileHandle_t demofile;
+	fileHandle_t recordfile;
 
-	int		timeDemoFrames;		// counter of rendered frames
-	int		timeDemoStart;		// cls.realtime before first frame
-	int		timeDemoBaseTime;	// each frame will be at this time + frameNum * 50
+	int timeDemoFrames; // counter of rendered frames
+	int timeDemoStart; // cls.realtime before first frame
+	int timeDemoBaseTime; // each frame will be at this time + frameNum * 50
 
-	float	aviVideoFrameRemainder;
-	float	aviSoundFrameRemainder;
-	int		aviFrameEndTime;
-	char	videoName[MAX_QPATH];
-	int		videoIndex;
+	float aviVideoFrameRemainder;
+	float aviSoundFrameRemainder;
+	int aviFrameEndTime;
+	char videoName[MAX_QPATH];
+	int videoIndex;
 
 	// big stuff at end of structure so most offsets are 15 bits or less
-	netchan_t	netchan;
+	netchan_t netchan;
 
 	qboolean compat;
 
 	// simultaneous demo playback and recording
-	int		eventMask;
-	int		demoCommandSequence;
-	int		demoDeltaNum;
-	int		demoMessageSequence;
+	int eventMask;
+	int demoCommandSequence;
+	int demoDeltaNum;
+	int demoMessageSequence;
 
 } clientConnection_t;
 
-extern	clientConnection_t clc;
+extern clientConnection_t clc;
 
 /*
 ==================================================================
@@ -265,91 +264,91 @@ no client connection is active at all
 */
 
 typedef struct {
-	netadr_t	adr;
-	int			start;
-	int			time;
-	char		info[MAX_INFO_STRING];
+	netadr_t adr;
+	int start;
+	int time;
+	char info[MAX_INFO_STRING];
 } ping_t;
 
 typedef struct {
-	netadr_t	adr;
-	char	  	hostName[MAX_NAME_LENGTH];
-	char	  	mapName[MAX_NAME_LENGTH];
-	char	  	game[MAX_NAME_LENGTH];
-	int			netType;
-	int			gameType;
-	int		  	clients;
-	int		  	maxClients;
-	int			minPing;
-	int			maxPing;
-	int			ping;
-	qboolean	visible;
-	int			punkbuster;
-	int			g_humanplayers;
-	int			g_needpass;
+	netadr_t adr;
+	char hostName[MAX_NAME_LENGTH];
+	char mapName[MAX_NAME_LENGTH];
+	char game[MAX_NAME_LENGTH];
+	int netType;
+	int gameType;
+	int clients;
+	int maxClients;
+	int minPing;
+	int maxPing;
+	int ping;
+	qboolean visible;
+	int punkbuster;
+	int g_humanplayers;
+	int g_needpass;
 } serverInfo_t;
 
 typedef struct {
-	connstate_t	state;				// connection status
-	qboolean	gameSwitch;
+	connstate_t state; // connection status
+	qboolean gameSwitch;
 
-	qboolean	cddialog;			// bring up the cd needed dialog next frame
+	qboolean cddialog; // bring up the cd needed dialog next frame
 
-	char		servername[MAX_OSPATH];		// name of server from original connect (used by reconnect)
+	char servername[MAX_OSPATH]; // name of server from original connect (used by reconnect)
 
 	// when the server clears the hunk, all of these must be restarted
-	qboolean	rendererStarted;
-	qboolean	soundStarted;
-	qboolean	soundRegistered;
-	qboolean	uiStarted;
-	qboolean	cgameStarted;
+	qboolean rendererStarted;
+	qboolean soundStarted;
+	qboolean soundRegistered;
+	qboolean uiStarted;
+	qboolean cgameStarted;
 
-	int			framecount;
-	int			frametime;			// msec since last frame
+	int framecount;
+	int frametime; // msec since last frame
 
-	int			realtime;			// ignores pause
-	int			realFrametime;		// ignoring pause, so console always works
+	int realtime; // ignores pause
+	int realFrametime; // ignoring pause, so console always works
 
-	int			numlocalservers;
-	serverInfo_t	localServers[MAX_OTHER_SERVERS];
+	int numlocalservers;
+	serverInfo_t localServers[MAX_OTHER_SERVERS];
 
-	int			numglobalservers;
-	serverInfo_t  globalServers[MAX_GLOBAL_SERVERS];
+	int numglobalservers;
+	serverInfo_t globalServers[MAX_GLOBAL_SERVERS];
 	// additional global servers
-	int			numGlobalServerAddresses;
-	netadr_t		globalServerAddresses[MAX_GLOBAL_SERVERS];
+	int numGlobalServerAddresses;
+	netadr_t globalServerAddresses[MAX_GLOBAL_SERVERS];
 
-	int			numfavoriteservers;
-	serverInfo_t	favoriteServers[MAX_OTHER_SERVERS];
+	int numfavoriteservers;
+	serverInfo_t favoriteServers[MAX_OTHER_SERVERS];
 
-	int pingUpdateSource;		// source currently pinging or updating
+	int pingUpdateSource; // source currently pinging or updating
 
 	// update server info
-	netadr_t	updateServer;
-	char		updateChallenge[MAX_TOKEN_CHARS];
-	char		updateInfoString[MAX_INFO_STRING];
+	netadr_t updateServer;
+	char updateChallenge[MAX_TOKEN_CHARS];
+	char updateInfoString[MAX_INFO_STRING];
 
-	netadr_t	authorizeServer;
+	netadr_t authorizeServer;
 
 	// rendering info
-	glconfig_t	glconfig;
-	qhandle_t	charSetShader;
-	qhandle_t	whiteShader;
-	qhandle_t	consoleShader;
+	glconfig_t glconfig;
+	qhandle_t charSetShader;
+	qhandle_t whiteShader;
+	qhandle_t consoleShader;
 
-	int			lastVidRestart;
-	int			soundMuted;
+	int lastVidRestart;
+	int soundMuted;
 
-	qboolean	startCgame;
+	qboolean startCgame;
 
-	int			captureWidth;
-	int			captureHeight;
+	int captureWidth;
+	int captureHeight;
 
-	float		con_factor;
+	float con_factor;
 
-	float		scale;
-	float		biasX;
-	float		biasY;
+	float scale;
+	float biasX;
+	float biasY;
 
 } clientStatic_t;
 
@@ -358,63 +357,60 @@ extern int bigchar_height;
 extern int smallchar_width;
 extern int smallchar_height;
 
-extern	clientStatic_t		cls;
+extern clientStatic_t cls;
 
-extern	char		cl_oldGame[MAX_QPATH];
-extern	qboolean	cl_oldGameSet;
+extern char cl_oldGame[MAX_QPATH];
+extern qboolean cl_oldGameSet;
 
 #ifdef USE_CURL
 
-extern		download_t	download;
-qboolean	Com_DL_Perform( download_t *dl );
-void		Com_DL_Cleanup( download_t *dl );
-qboolean	Com_DL_Begin( download_t *dl, const char *localName, const char *remoteURL, qboolean autoDownload );
-qboolean	Com_DL_InProgress( const download_t *dl );
-qboolean	Com_DL_ValidFileName( const char *fileName );
-qboolean	CL_Download( const char *cmd, const char *pakname, qboolean autoDownload );
+extern download_t download;
+qboolean Com_DL_Perform( download_t *dl );
+void Com_DL_Cleanup( download_t *dl );
+qboolean Com_DL_Begin( download_t *dl, const char *localName, const char *remoteURL, qboolean autoDownload );
+qboolean Com_DL_InProgress( const download_t *dl );
+qboolean Com_DL_ValidFileName( const char *fileName );
+qboolean CL_Download( const char *cmd, const char *pakname, qboolean autoDownload );
 
 #endif
 
 //=============================================================================
 
 
-
 //
 // cvars
 //
-extern	cvar_t	*cl_noprint;
-extern	cvar_t	*cl_debugMove;
-extern	cvar_t	*cl_timegraph;
-extern	cvar_t	*cl_shownet;
-extern	cvar_t	*cl_autoNudge;
-extern	cvar_t	*cl_timeNudge;
-extern	cvar_t	*cl_showTimeDelta;
+extern cvar_t *cl_noprint;
+extern cvar_t *cl_debugMove;
+extern cvar_t *cl_timegraph;
+extern cvar_t *cl_shownet;
+extern cvar_t *cl_autoNudge;
+extern cvar_t *cl_timeNudge;
+extern cvar_t *cl_showTimeDelta;
 
-extern	cvar_t	*com_timedemo;
-extern	cvar_t	*cl_aviMotionJpeg;
-extern	cvar_t	*cl_aviPipeFormat;
+extern cvar_t *com_timedemo;
+extern cvar_t *cl_aviMotionJpeg;
+extern cvar_t *cl_aviPipeFormat;
 
-extern	cvar_t	*cl_activeAction;
+extern cvar_t *cl_activeAction;
 
-extern	cvar_t	*cl_allowDownload;
+extern cvar_t *cl_allowDownload;
 #ifdef USE_CURL
-extern	cvar_t	*cl_mapAutoDownload;
-extern	cvar_t	*cl_dlDirectory;
+extern cvar_t *cl_mapAutoDownload;
+extern cvar_t *cl_dlDirectory;
 #endif
-extern	cvar_t	*cl_conXOffset;
-extern	cvar_t	*cl_conColor;
-extern	cvar_t	*cl_inGameVideo;
+extern cvar_t *cl_conXOffset;
+extern cvar_t *cl_conColor;
+extern cvar_t *cl_inGameVideo;
 
-extern	cvar_t	*cl_lanForcePackets;
-extern	cvar_t	*cl_autoRecordDemo;
-extern	cvar_t	*cl_drawRecording;
-
-
+extern cvar_t *cl_lanForcePackets;
+extern cvar_t *cl_autoRecordDemo;
+extern cvar_t *cl_drawRecording;
 
 
-extern	cvar_t	*r_customwidth;
-extern	cvar_t	*r_customheight;
-extern	cvar_t	*r_customPixelAspect;
+extern cvar_t *r_customwidth;
+extern cvar_t *r_customheight;
+extern cvar_t *r_customPixelAspect;
 
 //=================================================
 
@@ -444,7 +440,6 @@ int CL_ServerStatus( const char *serverAddress, char *serverStatusString, int ma
 qboolean CL_CheckPaused( void );
 
 
-
 //
 // cl_input
 //
@@ -456,8 +451,8 @@ void CL_WritePacket( int repeat );
 //
 // cl_keys.c
 //
-extern  field_t     chatField;
-extern  field_t     g_consoleField;
+extern field_t chatField;
+extern field_t g_consoleField;
 
 void Field_Draw( field_t *edit, int x, int y, int width, qboolean showCursor, qboolean noColorEscape );
 void Field_BigDraw( field_t *edit, int x, int y, int width, qboolean showCursor, qboolean noColorEscape );
@@ -501,41 +496,41 @@ void CL_SaveConsoleHistory( void );
 //
 // cl_scrn.c
 //
-void	SCR_Init( void );
-void	SCR_Done( void );
-void	SCR_UpdateScreen( void );
+void SCR_Init( void );
+void SCR_Done( void );
+void SCR_UpdateScreen( void );
 
-void	SCR_DebugGraph( float value );
+void SCR_DebugGraph( float value );
 
-int		SCR_GetBigStringWidth( const char *str );	// returns in virtual 640x480 coordinates
+int SCR_GetBigStringWidth( const char *str ); // returns in virtual 640x480 coordinates
 
-void	SCR_AdjustFrom640( float *x, float *y, float *w, float *h );
-void	SCR_FillRect( float x, float y, float width, float height, 
-					 const float *color );
-void	SCR_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
-void	SCR_DrawNamedPic( float x, float y, float width, float height, const char *picname );
+void SCR_AdjustFrom640( float *x, float *y, float *w, float *h );
+void SCR_FillRect( float x, float y, float width, float height,
+	const float *color );
+void SCR_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
+void SCR_DrawNamedPic( float x, float y, float width, float height, const char *picname );
 
-void	SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape );			// draws a string with embedded color control characters with fade
-void	SCR_DrawStringExt( int x, int y, float size, const char *string, const float *setColor, qboolean forceColor, qboolean noColorEscape );
-void	SCR_DrawSmallStringExt( int x, int y, const char *string, const float *setColor, qboolean forceColor, qboolean noColorEscape );
-void	SCR_DrawSmallChar( int x, int y, int ch );
-void	SCR_DrawSmallString( int x, int y, const char *s, int len );
+void SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape ); // draws a string with embedded color control characters with fade
+void SCR_DrawStringExt( int x, int y, float size, const char *string, const float *setColor, qboolean forceColor, qboolean noColorEscape );
+void SCR_DrawSmallStringExt( int x, int y, const char *string, const float *setColor, qboolean forceColor, qboolean noColorEscape );
+void SCR_DrawSmallChar( int x, int y, int ch );
+void SCR_DrawSmallString( int x, int y, const char *s, int len );
 
 //
 // cl_cin.c
 //
 
 void CL_PlayCinematic_f( void );
-void SCR_DrawCinematic (void);
-void SCR_RunCinematic (void);
-void SCR_StopCinematic (void);
-int CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits);
-e_status CIN_StopCinematic(int handle);
-e_status CIN_RunCinematic (int handle);
-void CIN_DrawCinematic (int handle);
-void CIN_SetExtents (int handle, int x, int y, int w, int h);
-void CIN_UploadCinematic(int handle);
-void CIN_CloseAllVideos(void);
+void SCR_DrawCinematic( void );
+void SCR_RunCinematic( void );
+void SCR_StopCinematic( void );
+int CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits );
+e_status CIN_StopCinematic( int handle );
+e_status CIN_RunCinematic( int handle );
+void CIN_DrawCinematic( int handle );
+void CIN_SetExtents( int handle, int x, int y, int w, int h );
+void CIN_UploadCinematic( int handle );
+void CIN_CloseAllVideos( void );
 
 //
 // cl_cgame.c
@@ -573,9 +568,9 @@ qboolean CL_CloseAVI( qboolean reopen );
 //
 // cl_jpeg.c
 //
-size_t	CL_SaveJPGToBuffer( byte *buffer, size_t bufSize, int quality, int image_width, int image_height, byte *image_buffer, int padding );
-void	CL_SaveJPG( const char *filename, int quality, int image_width, int image_height, byte *image_buffer, int padding );
-void	CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *height );
+size_t CL_SaveJPGToBuffer( byte *buffer, size_t bufSize, int quality, int image_width, int image_height, byte *image_buffer, int padding );
+void CL_SaveJPG( const char *filename, int quality, int image_width, int image_height, byte *image_buffer, int padding );
+void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *height );
 
 
 // base backend functions

@@ -27,11 +27,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <sys/types.h>
 #include <time.h>
 
-typedef	time_t fileTime_t;
-#if defined  (_MSC_VER) && defined (__clang__)
-typedef	_off_t  fileOffset_t;
+typedef time_t fileTime_t;
+#if defined( _MSC_VER ) && defined( __clang__ )
+typedef _off_t fileOffset_t;
 #else
-typedef	off_t  fileOffset_t;
+typedef off_t fileOffset_t;
 #endif
 
 #endif

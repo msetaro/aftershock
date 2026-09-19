@@ -38,7 +38,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 /*
 ** multitexture extension definitions
 */
-#if !defined(__sun)
+#if !defined( __sun )
 
 #define GL_ACTIVE_TEXTURE_ARB               0x84E0
 #define GL_CLIENT_ACTIVE_TEXTURE_ARB        0x84E1
@@ -269,11 +269,11 @@ typedef char GLchar;
 #ifndef __APPLE__
 
 #define GLE( ret, name, ... ) extern ret ( APIENTRY * q##name )( __VA_ARGS__ );
-	QGL_Swp_PROCS;
+QGL_Swp_PROCS;
 #ifdef _WIN32
-	QGL_Win32_PROCS;
+QGL_Win32_PROCS;
 #else // assume in opposition to win32
-	QGL_LinX11_PROCS;
+QGL_LinX11_PROCS;
 #endif
 #undef GLE
 

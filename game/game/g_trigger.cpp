@@ -24,11 +24,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 void InitTrigger( gentity_t *self ) {
-	if (!VectorCompare (self->s.angles, vec3_origin))
-		G_SetMovedir (self->s.angles, self->movedir);
+	if ( !VectorCompare( self->s.angles, vec3_origin ) )
+		G_SetMovedir( self->s.angles, self->movedir );
 
 	trap_SetBrushModel( self, self->model );
-	self->r.contents = CONTENTS_TRIGGER;		// replaces the -1 from trap_SetBrushModel
+	self->r.contents = CONTENTS_TRIGGER; // replaces the -1 from trap_SetBrushModel
 	self->r.svFlags = SVF_NOCLIENT;
 }
 
@@ -45,21 +45,21 @@ void multi_wait( gentity_t *ent ) {
 void multi_trigger( gentity_t *ent, gentity_t *activator ) {
 	ent->activator = activator;
 	if ( ent->nextthink ) {
-		return;		// can't retrigger until the wait is over
+		return; // can't retrigger until the wait is over
 	}
 
 	if ( activator->client ) {
 		if ( ( ent->spawnflags & 1 ) &&
-			activator->client->sess.sessionTeam != TEAM_RED ) {
+			 activator->client->sess.sessionTeam != TEAM_RED ) {
 			return;
 		}
 		if ( ( ent->spawnflags & 2 ) &&
-			activator->client->sess.sessionTeam != TEAM_BLUE ) {
+			 activator->client->sess.sessionTeam != TEAM_BLUE ) {
 			return;
 		}
 	}
 
-	G_UseTargets (ent, ent->activator);
+	G_UseTargets( ent, ent->activator );
 
 	if ( ent->wait > 0 ) {
 		ent->think = multi_wait;
@@ -78,7 +78,7 @@ void Use_Multi( gentity_t *ent, gentity_t *other [[maybe_unused]], gentity_t *ac
 }
 
 void Touch_Multi( gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unused]] ) {
-	if( !other->client ) {
+	if ( !other->client ) {
 		return;
 	}
 	multi_trigger( self, other );
@@ -104,9 +104,8 @@ void SP_trigger_multiple( gentity_t *ent ) {
 	ent->use = Use_Multi;
 
 	InitTrigger( ent );
-	trap_LinkEntity (ent);
+	trap_LinkEntity( ent );
 }
-
 
 
 /*
@@ -118,14 +117,14 @@ trigger_always
 */
 
 void trigger_always_think( gentity_t *ent ) {
-	G_UseTargets(ent, ent);
+	G_UseTargets( ent, ent );
 	G_FreeEntity( ent );
 }
 
 /*QUAKED trigger_always (.5 .5 .5) (-8 -8 -8) (8 8 8)
 This trigger will always fire.  It is activated by the world.
 */
-void SP_trigger_always (gentity_t *ent) {
+void SP_trigger_always( gentity_t *ent ) {
 	// we must have some delay to make sure our use targets are present
 	ent->nextthink = level.time + 300;
 	ent->think = trigger_always_think;
@@ -140,7 +139,7 @@ trigger_push
 ==============================================================================
 */
 
-void trigger_push_touch (gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unused]] ) {
+void trigger_push_touch( gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unused]] ) {
 
 	if ( !other->client ) {
 		return;
@@ -158,13 +157,13 @@ Calculate origin2 so the target apogee will be hit
 =================
 */
 void AimAtTarget( gentity_t *self ) {
-	gentity_t	*ent;
-	vec3_t		origin;
-	float		height, gravity, time, forward;
-	float		dist;
+	gentity_t *ent;
+	vec3_t origin;
+	float height, gravity, time, forward;
+	float dist;
 
 	VectorAdd( self->r.absmin, self->r.absmax, origin );
-	VectorScale ( origin, 0.5f, origin );
+	VectorScale( origin, 0.5f, origin );
 
 	ent = G_PickTarget( self->target );
 	if ( !ent ) {
@@ -181,9 +180,9 @@ void AimAtTarget( gentity_t *self ) {
 	}
 
 	// set s.origin2 to the push velocity
-	VectorSubtract ( ent->s.origin, origin, self->s.origin2 );
+	VectorSubtract( ent->s.origin, origin, self->s.origin2 );
 	self->s.origin2[2] = 0;
-	dist = VectorNormalize( self->s.origin2);
+	dist = VectorNormalize( self->s.origin2 );
 
 	forward = dist / time;
 	VectorScale( self->s.origin2, forward, self->s.origin2 );
@@ -197,19 +196,19 @@ Must point at a target_position, which will be the apex of the leap.
 This will be client side predicted, unlike target_push
 */
 void SP_trigger_push( gentity_t *self ) {
-	InitTrigger (self);
+	InitTrigger( self );
 
 	// unlike other triggers, we need to send this one to the client
 	self->r.svFlags &= ~SVF_NOCLIENT;
 
 	// make sure the client precaches this sound
-	G_SoundIndex((char *)"sound/world/jumppad.wav");
+	G_SoundIndex( (char *)"sound/world/jumppad.wav" );
 
 	self->s.eType = ET_PUSH_TRIGGER;
 	self->touch = trigger_push_touch;
 	self->think = AimAtTarget;
 	self->nextthink = level.time + FRAMETIME;
-	trap_LinkEntity (self);
+	trap_LinkEntity( self );
 }
 
 
@@ -225,7 +224,7 @@ void Use_target_push( gentity_t *self, gentity_t *other [[maybe_unused]], gentit
 		return;
 	}
 
-	VectorCopy (self->s.origin2, activator->client->ps.velocity);
+	VectorCopy( self->s.origin2, activator->client->ps.velocity );
 
 	// play fly sound every 1.5 seconds
 	if ( activator->fly_sound_debounce_time < level.time ) {
@@ -240,16 +239,16 @@ Pushes the activator in the direction.of angle, or towards a target apex.
 if "bouncepad", play bounce noise instead of windfly
 */
 void SP_target_push( gentity_t *self ) {
-	if (!self->speed) {
+	if ( !self->speed ) {
 		self->speed = 1000;
 	}
-	G_SetMovedir (self->s.angles, self->s.origin2);
-	VectorScale (self->s.origin2, self->speed, self->s.origin2);
+	G_SetMovedir( self->s.angles, self->s.origin2 );
+	VectorScale( self->s.origin2, self->speed, self->s.origin2 );
 
 	if ( self->spawnflags & 1 ) {
-		self->noise_index = G_SoundIndex((char *)"sound/world/jumppad.wav");
+		self->noise_index = G_SoundIndex( (char *)"sound/world/jumppad.wav" );
 	} else {
-		self->noise_index = G_SoundIndex((char *)"sound/misc/windfly.wav");
+		self->noise_index = G_SoundIndex( (char *)"sound/misc/windfly.wav" );
 	}
 	if ( self->target ) {
 		VectorCopy( self->s.origin, self->r.absmin );
@@ -268,8 +267,8 @@ trigger_teleport
 ==============================================================================
 */
 
-void trigger_teleporter_touch (gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unused]] ) {
-	gentity_t	*dest;
+void trigger_teleporter_touch( gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unused]] ) {
+	gentity_t *dest;
 
 	if ( !other->client ) {
 		return;
@@ -278,15 +277,15 @@ void trigger_teleporter_touch (gentity_t *self, gentity_t *other, trace_t *trace
 		return;
 	}
 	// Spectators only?
-	if ( ( self->spawnflags & 1 ) && 
-		other->client->sess.sessionTeam != TEAM_SPECTATOR ) {
+	if ( ( self->spawnflags & 1 ) &&
+		 other->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 		return;
 	}
 
 
-	dest = 	G_PickTarget( self->target );
-	if (!dest) {
-		G_Printf ("Couldn't find teleporter destination\n");
+	dest = G_PickTarget( self->target );
+	if ( !dest ) {
+		G_Printf( "Couldn't find teleporter destination\n" );
 		return;
 	}
 
@@ -303,7 +302,7 @@ Spectator teleporters are not normally placed in the editor, but are created
 automatically near doors to allow spectators to move through them
 */
 void SP_trigger_teleport( gentity_t *self ) {
-	InitTrigger (self);
+	InitTrigger( self );
 
 	// unlike other triggers, we need to send this one to the client
 	// unless is a spectator trigger
@@ -314,12 +313,12 @@ void SP_trigger_teleport( gentity_t *self ) {
 	}
 
 	// make sure the client precaches this sound
-	G_SoundIndex((char *)"sound/world/jumppad.wav");
+	G_SoundIndex( (char *)"sound/world/jumppad.wav" );
 
 	self->s.eType = ET_TELEPORT_TRIGGER;
 	self->touch = trigger_teleporter_touch;
 
-	trap_LinkEntity (self);
+	trap_LinkEntity( self );
 }
 
 
@@ -352,7 +351,7 @@ void hurt_use( gentity_t *self, gentity_t *other [[maybe_unused]], gentity_t *ac
 }
 
 void hurt_touch( gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unused]] ) {
-	int		dflags;
+	int dflags;
 
 	if ( !other->takedamage ) {
 		return;
@@ -369,19 +368,19 @@ void hurt_touch( gentity_t *self, gentity_t *other, trace_t *trace [[maybe_unuse
 	}
 
 	// play sound
-	if ( !(self->spawnflags & 4) ) {
+	if ( !( self->spawnflags & 4 ) ) {
 		G_Sound( other, CHAN_AUTO, self->noise_index );
 	}
 
-	if (self->spawnflags & 8)
+	if ( self->spawnflags & 8 )
 		dflags = DAMAGE_NO_PROTECTION;
 	else
 		dflags = 0;
-	G_Damage (other, self, self, NULL, NULL, self->damage, dflags, MOD_TRIGGER_HURT);
+	G_Damage( other, self, self, NULL, NULL, self->damage, dflags, MOD_TRIGGER_HURT );
 }
 
 void SP_trigger_hurt( gentity_t *self ) {
-	InitTrigger (self);
+	InitTrigger( self );
 
 	self->noise_index = G_SoundIndex( (char *)"sound/world/electro.wav" );
 	self->touch = hurt_touch;
@@ -397,8 +396,8 @@ void SP_trigger_hurt( gentity_t *self ) {
 	}
 
 	// link in to the world if starting active
-	if ( ! (self->spawnflags & 1) ) {
-		trap_LinkEntity (self);
+	if ( !( self->spawnflags & 1 ) ) {
+		trap_LinkEntity( self );
 	}
 }
 
@@ -424,7 +423,7 @@ so, the basic time between firing is a random time between
 
 */
 void func_timer_think( gentity_t *self ) {
-	G_UseTargets (self, self->activator);
+	G_UseTargets( self, self->activator );
 	// set time before next firing
 	self->nextthink = (int)( level.time + 1000 * ( self->wait + crandom() * self->random ) );
 }
@@ -439,11 +438,11 @@ void func_timer_use( gentity_t *self, gentity_t *other [[maybe_unused]], gentity
 	}
 
 	// turn it on
-	func_timer_think (self);
+	func_timer_think( self );
 }
 
 void SP_func_timer( gentity_t *self ) {
-	G_SpawnFloat( "random", "1", &self->random);
+	G_SpawnFloat( "random", "1", &self->random );
 	G_SpawnFloat( "wait", "1", &self->wait );
 
 	self->use = func_timer_use;
@@ -461,5 +460,3 @@ void SP_func_timer( gentity_t *self ) {
 
 	self->r.svFlags = SVF_NOCLIENT;
 }
-
-

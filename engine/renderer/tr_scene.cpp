@@ -22,21 +22,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 
-static int			r_firstSceneDrawSurf;
+static int r_firstSceneDrawSurf;
 #ifdef USE_PMLIGHT
-static int			r_firstSceneLitSurf;
+static int r_firstSceneLitSurf;
 #endif
 
-int			r_numdlights;
-static int			r_firstSceneDlight;
+int r_numdlights;
+static int r_firstSceneDlight;
 
-static int			r_numentities;
-static int			r_firstSceneEntity;
+static int r_numentities;
+static int r_firstSceneEntity;
 
-static int			r_numpolys;
-static int			r_firstScenePoly;
+static int r_numpolys;
+static int r_firstScenePoly;
 
-static int			r_numpolyverts;
+static int r_numpolyverts;
 
 
 /*
@@ -95,16 +95,16 @@ Adds all the scene's polys into this view's drawsurf list
 =====================
 */
 void R_AddPolygonSurfaces( void ) {
-	int			i;
-	shader_t	*sh;
-	const srfPoly_t	*poly;
+	int i;
+	shader_t *sh;
+	const srfPoly_t *poly;
 
 	tr.currentEntityNum = REFENTITYNUM_WORLD;
 	tr.shiftedEntityNum = tr.currentEntityNum << QSORT_REFENTITYNUM_SHIFT;
 
-	for ( i = 0, poly = tr.refdef.polys; i < tr.refdef.numPolys ; i++, poly++ ) {
+	for ( i = 0, poly = tr.refdef.polys; i < tr.refdef.numPolys; i++, poly++ ) {
 		sh = R_GetShaderByHandle( poly->hShader );
-		R_AddDrawSurf( (surfaceType_t *)( void * )poly, sh, poly->fogIndex, 0 );
+		R_AddDrawSurf( (surfaceType_t *)(void *)poly, sh, poly->fogIndex, 0 );
 	}
 }
 
@@ -115,11 +115,11 @@ RE_AddPolyToScene
 =====================
 */
 void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int numPolys ) {
-	srfPoly_t	*poly;
-	int			i, j;
-	int			fogIndex;
-	const fog_t		*fog;
-	vec3_t		bounds[2];
+	srfPoly_t *poly;
+	int i, j;
+	int fogIndex;
+	const fog_t *fog;
+	vec3_t bounds[2];
 
 	if ( !tr.registered ) {
 		return;
@@ -132,13 +132,13 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 #endif
 	for ( j = 0; j < numPolys; j++ ) {
 		if ( r_numpolyverts + numVerts > max_polyverts || r_numpolys >= max_polys ) {
-      /*
+			/*
       NOTE TTimo this was initially a PRINT_WARNING
       but it happens a lot with high fighting scenes and particles
       since we don't plan on changing the const and making for room for those effects
       simply cut this message to developer only
       */
-			ri.Printf( PRINT_DEVELOPER, "WARNING: RE_AddPolyToScene: r_max_polys or r_max_polyverts reached\n");
+			ri.Printf( PRINT_DEVELOPER, "WARNING: RE_AddPolyToScene: r_max_polys or r_max_polyverts reached\n" );
 			return;
 		}
 
@@ -147,8 +147,8 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 		poly->hShader = hShader;
 		poly->numVerts = numVerts;
 		poly->verts = &backEndData->polyVerts[r_numpolyverts];
-		
-		Com_Memcpy( poly->verts, &verts[numVerts*j], numVerts * sizeof( *verts ) );
+
+		Com_Memcpy( poly->verts, &verts[numVerts * j], numVerts * sizeof( *verts ) );
 #if 0
 		if ( glConfig.hardwareType == GLHW_RAGEPRO ) {
 			poly->verts->modulate[0] = 255;
@@ -172,17 +172,12 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 			// find which fog volume the poly is in
 			VectorCopy( poly->verts[0].xyz, bounds[0] );
 			VectorCopy( poly->verts[0].xyz, bounds[1] );
-			for ( i = 1 ; i < poly->numVerts ; i++ ) {
+			for ( i = 1; i < poly->numVerts; i++ ) {
 				AddPointToBounds( poly->verts[i].xyz, bounds[0], bounds[1] );
 			}
-			for ( fogIndex = 1 ; fogIndex < tr.world->numfogs ; fogIndex++ ) {
-				fog = &tr.world->fogs[fogIndex]; 
-				if ( bounds[1][0] >= fog->bounds[0][0]
-					&& bounds[1][1] >= fog->bounds[0][1]
-					&& bounds[1][2] >= fog->bounds[0][2]
-					&& bounds[0][0] <= fog->bounds[1][0]
-					&& bounds[0][1] <= fog->bounds[1][1]
-					&& bounds[0][2] <= fog->bounds[1][2] ) {
+			for ( fogIndex = 1; fogIndex < tr.world->numfogs; fogIndex++ ) {
+				fog = &tr.world->fogs[fogIndex];
+				if ( bounds[1][0] >= fog->bounds[0][0] && bounds[1][1] >= fog->bounds[0][1] && bounds[1][2] >= fog->bounds[0][2] && bounds[0][0] <= fog->bounds[1][0] && bounds[0][1] <= fog->bounds[1][1] && bounds[0][2] <= fog->bounds[1][2] ) {
 					break;
 				}
 			}
@@ -197,9 +192,8 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 
 //=================================================================================
 
-static int isnan_fp( const float *f )
-{
-	uint32_t u = *( (uint32_t*) f );
+static int isnan_fp( const float *f ) {
+	uint32_t u = *( (uint32_t *)f );
 	u = 0x7F800000 - ( u & 0x7FFFFFFF );
 	return (int)( u >> 31 );
 }
@@ -244,7 +238,7 @@ RE_AddDynamicLightToScene
 =====================
 */
 static void RE_AddDynamicLightToScene( const vec3_t org, float intensity, float r, float g, float b, int additive ) {
-	dlight_t	*dl;
+	dlight_t *dl;
 
 	if ( !tr.registered ) {
 		return;
@@ -271,8 +265,7 @@ static void RE_AddDynamicLightToScene( const vec3_t org, float intensity, float 
 	}
 #endif
 
-	if ( r_dlightSaturation->value != 1.0 )
-	{
+	if ( r_dlightSaturation->value != 1.0 ) {
 		float luminance = LUMA( r, g, b );
 		r = LERP( luminance, r, r_dlightSaturation->value );
 		g = LERP( luminance, g, r_dlightSaturation->value );
@@ -295,8 +288,8 @@ static void RE_AddDynamicLightToScene( const vec3_t org, float intensity, float 
 RE_AddLinearLightToScene
 =====================
 */
-void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float intensity, float r, float g, float b  ) {
-	dlight_t	*dl;
+void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float intensity, float r, float g, float b ) {
+	dlight_t *dl;
 	if ( VectorCompare( start, end ) ) {
 		RE_AddDynamicLightToScene( start, intensity, r, g, b, 0 );
 		return;
@@ -322,15 +315,14 @@ void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float inten
 	}
 #endif
 
-	if ( r_dlightSaturation->value != 1.0 )
-	{
+	if ( r_dlightSaturation->value != 1.0 ) {
 		float luminance = LUMA( r, g, b );
 		r = LERP( luminance, r, r_dlightSaturation->value );
 		g = LERP( luminance, g, r_dlightSaturation->value );
 		b = LERP( luminance, b, r_dlightSaturation->value );
 	}
 
-	dl = &backEndData->dlights[ r_numdlights++ ];
+	dl = &backEndData->dlights[r_numdlights++];
 	VectorCopy( start, dl->origin );
 	VectorCopy( end, dl->origin2 );
 	dl->radius = intensity;
@@ -340,7 +332,6 @@ void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float inten
 	dl->additive = 0;
 	dl->linear = qtrue;
 }
-
 
 
 /*
@@ -377,8 +368,8 @@ to handle mirrors,
 @@@@@@@@@@@@@@@@@@@@@
 */
 void RE_RenderScene( const refdef_t *fd ) {
-	viewParms_t		parms;
-	int				startTime;
+	viewParms_t parms;
+	int startTime;
 
 	if ( !tr.registered ) {
 		return;
@@ -390,8 +381,8 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 	startTime = ri.Milliseconds();
 
-	if (!tr.world && !( fd->rdflags & RDF_NOWORLDMODEL ) ) {
-		ri.Error (ERR_DROP, "R_RenderScene: NULL worldmodel");
+	if ( !tr.world && !( fd->rdflags & RDF_NOWORLDMODEL ) ) {
+		ri.Error( ERR_DROP, "R_RenderScene: NULL worldmodel" );
 	}
 
 	Com_Memcpy( tr.refdef.text, fd->text, sizeof( tr.refdef.text ) );
@@ -414,15 +405,15 @@ void RE_RenderScene( const refdef_t *fd ) {
 	// copy the areamask data over and note if it has changed, which
 	// will force a reset of the visible leafs even if the view hasn't moved
 	tr.refdef.areamaskModified = qfalse;
-	if ( ! (tr.refdef.rdflags & RDF_NOWORLDMODEL) ) {
-		int		areaDiff;
-		int		i;
+	if ( !( tr.refdef.rdflags & RDF_NOWORLDMODEL ) ) {
+		int areaDiff;
+		int i;
 
 		// compare the area bits
 		areaDiff = 0;
-		for ( i = 0; (size_t)i < MAX_MAP_AREA_BYTES/sizeof(int); i++ ) {
-			areaDiff |= ((int *)tr.refdef.areamask)[i] ^ ((int *)fd->areamask)[i];
-			((int *)tr.refdef.areamask)[i] = ((int *)fd->areamask)[i];
+		for ( i = 0; (size_t)i < MAX_MAP_AREA_BYTES / sizeof( int ); i++ ) {
+			areaDiff |= ( (int *)tr.refdef.areamask )[i] ^ ( (int *)fd->areamask )[i];
+			( (int *)tr.refdef.areamask )[i] = ( (int *)fd->areamask )[i];
 		}
 
 		if ( areaDiff ) {
@@ -493,7 +484,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 	parms.fovX = tr.refdef.fov_x;
 	parms.fovY = tr.refdef.fov_y;
-	
+
 	parms.stereoFrame = tr.refdef.stereoFrame;
 
 	VectorCopy( fd->vieworg, parms.orientation.origin );

@@ -50,12 +50,10 @@ QGL_Swp_PROCS;
 **
 ** Unloads the specified DLL then nulls out all the proc pointers.
 */
-void QGL_Shutdown( qboolean unloadDLL )
-{
+void QGL_Shutdown( qboolean unloadDLL ) {
 	Com_Printf( "...shutting down QGL\n" );
 
-	if ( glw_state.OpenGLLib && unloadDLL )
-	{
+	if ( glw_state.OpenGLLib && unloadDLL ) {
 		Com_Printf( "...unloading OpenGL DLL\n" );
 		// 25/09/05 Tim Angus <tim@ngus.net>
 		// Certain combinations of hardware and software, specifically
@@ -92,13 +90,11 @@ void QGL_Shutdown( qboolean unloadDLL )
 
 static int glErrorCount = 0;
 
-void *GL_GetProcAddress( const char *symbol )
-{
+void *GL_GetProcAddress( const char *symbol ) {
 	void *sym;
 
 	sym = dlsym( glw_state.OpenGLLib, symbol );
-	if ( !sym )
-	{
+	if ( !sym ) {
 		glErrorCount++;
 	}
 
@@ -118,18 +114,15 @@ void *GL_GetProcAddress( const char *symbol )
 ** might be.
 **
 */
-qboolean QGL_Init( const char *dllname )
-{
+qboolean QGL_Init( const char *dllname ) {
 	Com_Printf( "...initializing QGL\n" );
 
-	if ( glw_state.OpenGLLib == NULL )
-	{
+	if ( glw_state.OpenGLLib == NULL ) {
 		Com_Printf( "...loading '%s' : ", dllname );
 
 		glw_state.OpenGLLib = dlopen( dllname, RTLD_NOW | RTLD_GLOBAL );
 
-		if ( glw_state.OpenGLLib == NULL )
-		{
+		if ( glw_state.OpenGLLib == NULL ) {
 #if 0
 			char fn[1024];
 

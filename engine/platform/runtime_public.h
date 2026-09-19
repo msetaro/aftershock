@@ -31,7 +31,7 @@ void Sys_GetProcessorId( char *vendor );
 void Sys_InitAffinity( void );
 void Sys_ApplyAffinityMask( const char *str );
 #endif
-#if defined(_WIN32) && defined(_DEBUG)
+#if defined( _WIN32 ) && defined( _DEBUG )
 void Sys_DebugBreak( void );
 #endif
 time_t Sys_Time( time_t *result );

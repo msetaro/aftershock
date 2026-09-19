@@ -1,10 +1,18 @@
 #include "g_local.h"
 #include <assert.h>
 
-void trap_SetConfigstring( int index, const char *value ) { (void)index; (void)value; }
-char * QDECL va( char *format, ... ) { (void)format; return ""; }
-void CheckExitRules( void ) {}
-void SendScoreboardMessageToAllClients( void ) {}
+void trap_SetConfigstring( int index, const char *value ) {
+	(void)index;
+	(void)value;
+}
+char *QDECL va( char *format, ... ) {
+	(void)format;
+	return "";
+}
+void CheckExitRules( void ) {
+}
+void SendScoreboardMessageToAllClients( void ) {
+}
 
 int main( void ) {
 	static gclient_t clients[MAX_CLIENTS];

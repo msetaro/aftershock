@@ -13,7 +13,10 @@ void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up 
 }
 
 int main( void ) {
-	static const struct { float direction; int positive, negative; } cases[] = {
+	static const struct {
+		float direction;
+		int positive, negative;
+	} cases[] = {
 		{ 2, -2, 2 }, { -2, 2, -2 }, { 1, 127, -127 }, { -1, -127, 127 },
 		{ 0, 0, 0 }, { 0.5f, 63, -63 }, { -0.5f, -63, 63 },
 		{ 50, -50, 50 }, { -50, 50, -50 }
@@ -21,10 +24,10 @@ int main( void ) {
 	unsigned i;
 	int vertical;
 	for ( vertical = 0; vertical < 2; vertical++ ) {
-		for ( i = 0; i < sizeof(cases) / sizeof(cases[0]); i++ ) {
-			bot_input_t input = {0};
+		for ( i = 0; i < sizeof( cases ) / sizeof( cases[0] ); i++ ) {
+			bot_input_t input = { 0 };
 			usercmd_t command;
-			int delta[3] = {0};
+			int delta[3] = { 0 };
 			input.speed = 400;
 			input.weapon = 2;
 			input.dir[vertical ? 2 : 0] = cases[i].direction;

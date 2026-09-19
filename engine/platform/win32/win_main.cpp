@@ -37,7 +37,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define MEM_THRESHOLD (96*1024*1024)
 
-WinVars_t	g_wv;
+WinVars_t g_wv;
 
 #ifndef DEDICATED
 
@@ -47,19 +47,19 @@ Sys_LowPhysicalMemory
 ==================
 */
 qboolean Sys_LowPhysicalMemory( void ) {
-#if	_MSC_VER < 1600 // MSVC 2008 and lower, assume win9x compatibility builds
+#if _MSC_VER < 1600 // MSVC 2008 and lower, assume win9x compatibility builds
 	MEMORYSTATUS stat;
 	GlobalMemoryStatus( &stat );
-	return (stat.dwTotalPhys <= MEM_THRESHOLD) ? qtrue : qfalse;
+	return ( stat.dwTotalPhys <= MEM_THRESHOLD ) ? qtrue : qfalse;
 #else
 	MEMORYSTATUSEX stat;
-	stat.dwLength = sizeof(stat);
+	stat.dwLength = sizeof( stat );
 
 	if ( !GlobalMemoryStatusEx( &stat ) ) {
 		return qfalse;
 	}
 
-	return (stat.ullAvailPhys <= MEM_THRESHOLD) ? qtrue : qfalse;
+	return ( stat.ullAvailPhys <= MEM_THRESHOLD ) ? qtrue : qfalse;
 #endif
 }
 
@@ -82,10 +82,10 @@ Sys_Error
 Show the early console as an error dialog
 =============
 */
-void NORETURN FORMAT_PRINTF(1, 2) QDECL Sys_Error( const char *error, ... ) {
-	va_list	argptr;
-	char	text[4096];
-	MSG		msg;
+void NORETURN FORMAT_PRINTF( 1, 2 ) QDECL Sys_Error( const char *error, ... ) {
+	va_list argptr;
+	char text[4096];
+	MSG msg;
 
 	va_start( argptr, error );
 	Q_vsnprintf( text, sizeof( text ), error, argptr );
@@ -137,8 +137,7 @@ void NORETURN Sys_Quit( void ) {
 Sys_Print
 ==============
 */
-void Sys_Print( const char *msg )
-{
+void Sys_Print( const char *msg ) {
 	Conbuf_AppendText( msg );
 }
 
@@ -156,8 +155,7 @@ void Sys_Sleep( int msec ) {
 		msec = 300;
 		do {
 			dwResult = MsgWaitForMultipleObjects( 0, NULL, FALSE, msec, QS_ALLEVENTS );
-		}
-		while ( dwResult == WAIT_TIMEOUT && NET_Sleep( 10 * 1000 ) );
+		} while ( dwResult == WAIT_TIMEOUT && NET_Sleep( 10 * 1000 ) );
 		//WaitMessage();
 		return;
 	}
@@ -175,8 +173,7 @@ void Sys_Sleep( int msec ) {
 Sys_Mkdir
 ==============
 */
-qboolean Sys_Mkdir( const char *path )
-{
+qboolean Sys_Mkdir( const char *path ) {
 	if ( _mkdir( path ) == 0 ) {
 		return qtrue;
 	} else {
@@ -194,13 +191,12 @@ qboolean Sys_Mkdir( const char *path )
 Sys_FOpen
 ==============
 */
-FILE *Sys_FOpen( const char *ospath, const char *mode )
-{
+FILE *Sys_FOpen( const char *ospath, const char *mode ) {
 	size_t length;
 
 	// Windows API ignores all trailing spaces and periods which can get around Quake 3 file system restrictions.
 	length = strlen( ospath );
-	if ( length == 0 || ospath[length-1] == ' ' || ospath[length-1] == '.' ) {
+	if ( length == 0 || ospath[length - 1] == ' ' || ospath[length - 1] == '.' ) {
 		return NULL;
 	}
 
@@ -235,27 +231,26 @@ qboolean Sys_ResetReadOnlyAttribute( const char *ospath ) {
 Sys_Pwd
 ==============
 */
-const char *Sys_Pwd( void )
-{
-	static char pwd[ MAX_OSPATH ];
-	TCHAR	buffer[ MAX_OSPATH ];
+const char *Sys_Pwd( void ) {
+	static char pwd[MAX_OSPATH];
+	TCHAR buffer[MAX_OSPATH];
 	char *s;
 
 	if ( pwd[0] )
 		return pwd;
 
 	GetModuleFileName( NULL, buffer, ARRAY_LEN( buffer ) );
-	buffer[ ARRAY_LEN( buffer ) - 1 ] = '\0';
+	buffer[ARRAY_LEN( buffer ) - 1] = '\0';
 
 	Q_strncpyz( pwd, WtoA( buffer ), sizeof( pwd ) );
 
 	s = strrchr( pwd, PATH_SEP );
-	if ( s ) 
+	if ( s )
 		*s = '\0';
 	else // bogus case?
 	{
 		_getcwd( pwd, sizeof( pwd ) - 1 );
-		pwd[ sizeof( pwd ) - 1 ] = '\0';
+		pwd[sizeof( pwd ) - 1] = '\0';
 	}
 
 	return pwd;
@@ -267,8 +262,7 @@ const char *Sys_Pwd( void )
 Sys_DefaultBasePath
 ==============
 */
-const char *Sys_DefaultBasePath( void )
-{
+const char *Sys_DefaultBasePath( void ) {
 	return Sys_Pwd();
 }
 
@@ -288,15 +282,15 @@ Sys_ListExtFiles
 =============
 */
 static int Sys_ListExtFiles( const char *directory, const char *subdir, const char *extension, const char *filter, char **list, int maxfiles, int subdirs ) {
-	char		search[MAX_OSPATH*2+MAX_QPATH+1];
-	char		filename[MAX_OSPATH * 2];
-	int			nfiles;
+	char search[MAX_OSPATH * 2 + MAX_QPATH + 1];
+	char filename[MAX_OSPATH * 2];
+	int nfiles;
 	struct _finddata_t findinfo;
-	intptr_t	findhandle;
-	int			flag;
-	int			extLen;
-	const char	*x;
-	qboolean	hasPatterns;
+	intptr_t findhandle;
+	int flag;
+	int extLen;
+	const char *x;
+	qboolean hasPatterns;
 
 	// passing a slash as extension will find directories
 	if ( extension[0] == '/' && extension[1] == '\0' ) {
@@ -336,7 +330,7 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 						if ( nfiles >= maxfiles ) {
 							break;
 						}
-						nfiles += Sys_ListExtFiles( directory, subdir2, extension, filter, list + nfiles, maxfiles - nfiles, subdirs - 1);
+						nfiles += Sys_ListExtFiles( directory, subdir2, extension, filter, list + nfiles, maxfiles - nfiles, subdirs - 1 );
 					}
 				}
 			} while ( _findnext( findhandle, &findinfo ) == 0 );
@@ -379,21 +373,19 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 			if ( nfiles >= maxfiles ) {
 				break;
 			}
-			list[ nfiles++ ] = FS_CopyString( filename );
+			list[nfiles++] = FS_CopyString( filename );
 		}
 	} while ( _findnext( findhandle, &findinfo ) == 0 );
 
 	_findclose( findhandle );
 
 	return nfiles;
-
 }
 
-char** Sys_ListFiles( const char *directory, const char *extension, const char *filter, int *numfiles, int subdirs )
-{
-	char** listCopy;
-	char* list[MAX_FOUND_FILES];
-	int		i, nfiles;
+char **Sys_ListFiles( const char *directory, const char *extension, const char *filter, int *numfiles, int subdirs ) {
+	char **listCopy;
+	char *list[MAX_FOUND_FILES];
+	int i, nfiles;
 
 	if ( extension == NULL ) {
 		extension = "";
@@ -413,8 +405,8 @@ char** Sys_ListFiles( const char *directory, const char *extension, const char *
 		if ( nfiles > 2 ) {
 			if ( Q_streq( listCopy[0], "." ) && Q_streq( listCopy[1], ".." ) ) {
 				// emulate old strgtr() function sort behavior for special entries
-				char* dot1 = listCopy[0];
-				char* dot2 = listCopy[1];
+				char *dot1 = listCopy[0];
+				char *dot2 = listCopy[1];
 				for ( i = 0; i < nfiles - 2; i++ ) {
 					listCopy[i] = listCopy[i + 2];
 				}
@@ -435,13 +427,13 @@ Sys_FreeFileList
 =============
 */
 void Sys_FreeFileList( char **list ) {
-	int		i;
+	int i;
 
 	if ( !list ) {
 		return;
 	}
 
-	for ( i = 0 ; list[i] ; i++ ) {
+	for ( i = 0; list[i]; i++ ) {
 		Z_Free( list[i] );
 	}
 
@@ -487,15 +479,13 @@ static int dll_err_count = 0;
 Sys_LoadLibrary
 =================
 */
-void *Sys_LoadLibrary( const char *name )
-{
+void *Sys_LoadLibrary( const char *name ) {
 	const char *ext;
 
 	if ( !name || !*name )
 		return NULL;
 
-	if ( FS_AllowedExtension( name, qfalse, &ext ) )
-	{
+	if ( FS_AllowedExtension( name, qfalse, &ext ) ) {
 		Com_Error( ERR_FATAL, "Sys_LoadLibrary: Unable to load library with '%s' extension", ext );
 	}
 
@@ -508,12 +498,10 @@ void *Sys_LoadLibrary( const char *name )
 Sys_LoadFunction
 =================
 */
-void *Sys_LoadFunction( void *handle, const char *name )
-{
+void *Sys_LoadFunction( void *handle, const char *name ) {
 	void *symbol;
 
-	if ( handle == NULL || name == NULL || *name == '\0' ) 
-	{
+	if ( handle == NULL || name == NULL || *name == '\0' ) {
 		dll_err_count++;
 		return NULL;
 	}
@@ -531,8 +519,7 @@ void *Sys_LoadFunction( void *handle, const char *name )
 Sys_LoadFunctionErrors
 =================
 */
-int Sys_LoadFunctionErrors( void )
-{
+int Sys_LoadFunctionErrors( void ) {
 	int result = dll_err_count;
 	dll_err_count = 0;
 	return result;
@@ -544,8 +531,7 @@ int Sys_LoadFunctionErrors( void )
 Sys_UnloadLibrary
 =================
 */
-void Sys_UnloadLibrary( void *handle )
-{
+void Sys_UnloadLibrary( void *handle ) {
 	if ( handle )
 		FreeLibrary( (HMODULE)handle );
 }
@@ -558,14 +544,13 @@ Sys_SendKeyEvents
 Platform-dependent event handling
 =================
 */
-void Sys_SendKeyEvents( void )
-{
+void Sys_SendKeyEvents( void ) {
 #ifndef DEDICATED
 	if ( !com_dedicated->integer )
 		HandleEvents();
 	else
 #endif
-	HandleConsoleEvents();
+		HandleConsoleEvents();
 }
 
 
@@ -579,22 +564,19 @@ SetTimerResolution
 Try to set lower timer period
 ==================
 */
-static void SetTimerResolution( void )
-{
-	typedef HRESULT (WINAPI *pfnNtQueryTimerResolution)( PULONG MinRes, PULONG MaxRes, PULONG CurRes );
-	typedef HRESULT (WINAPI *pfnNtSetTimerResolution)( ULONG NewRes, BOOLEAN SetRes, PULONG CurRes );
+static void SetTimerResolution( void ) {
+	typedef HRESULT( WINAPI * pfnNtQueryTimerResolution )( PULONG MinRes, PULONG MaxRes, PULONG CurRes );
+	typedef HRESULT( WINAPI * pfnNtSetTimerResolution )( ULONG NewRes, BOOLEAN SetRes, PULONG CurRes );
 	pfnNtQueryTimerResolution pNtQueryTimerResolution;
 	pfnNtSetTimerResolution pNtSetTimerResolution;
 	ULONG curr, minr, maxr;
 	HMODULE dll;
 
 	dll = LoadLibrary( T( "ntdll" ) );
-	if ( dll )
-	{
-		pNtQueryTimerResolution = (pfnNtQueryTimerResolution) (void *)GetProcAddress( dll, "NtQueryTimerResolution" );
-		pNtSetTimerResolution = (pfnNtSetTimerResolution) (void *)GetProcAddress( dll, "NtSetTimerResolution" );
-		if ( pNtQueryTimerResolution && pNtSetTimerResolution )
-		{
+	if ( dll ) {
+		pNtQueryTimerResolution = (pfnNtQueryTimerResolution)(void *)GetProcAddress( dll, "NtQueryTimerResolution" );
+		pNtSetTimerResolution = (pfnNtSetTimerResolution)(void *)GetProcAddress( dll, "NtSetTimerResolution" );
+		if ( pNtQueryTimerResolution && pNtSetTimerResolution ) {
 			pNtQueryTimerResolution( &minr, &maxr, &curr );
 			if ( maxr < 5000 ) // well, we don't need less than 0.5ms periods for select()
 				maxr = 5000;
@@ -667,25 +649,36 @@ static void SetDPIAwareness( void )
 #endif
 
 
-static const char *GetExceptionName( DWORD code )
-{
-	static char buf[ 32 ];
+static const char *GetExceptionName( DWORD code ) {
+	static char buf[32];
 
-	switch ( code )
-	{
-		case EXCEPTION_ACCESS_VIOLATION: return "ACCESS_VIOLATION";
-		case EXCEPTION_DATATYPE_MISALIGNMENT: return "DATATYPE_MISALIGNMENT";
-		case EXCEPTION_ARRAY_BOUNDS_EXCEEDED: return "ARRAY_BOUNDS_EXCEEDED";
-		case EXCEPTION_PRIV_INSTRUCTION: return "PRIV_INSTRUCTION";
-		case EXCEPTION_IN_PAGE_ERROR: return "IN_PAGE_ERROR";
-		case EXCEPTION_ILLEGAL_INSTRUCTION: return "ILLEGAL_INSTRUCTION";
-		case EXCEPTION_NONCONTINUABLE_EXCEPTION: return "NONCONTINUABLE_EXCEPTION";
-		case EXCEPTION_STACK_OVERFLOW: return "STACK_OVERFLOW";
-		case EXCEPTION_INVALID_DISPOSITION: return "INVALID_DISPOSITION";
-		case EXCEPTION_GUARD_PAGE: return "GUARD_PAGE";
-		case EXCEPTION_INVALID_HANDLE: return "INVALID_HANDLE";
-		case EXCEPTION_INT_DIVIDE_BY_ZERO: return "INTEGER_DIVIDE_BY_ZERO";
-		default: break;
+	switch ( code ) {
+	case EXCEPTION_ACCESS_VIOLATION:
+		return "ACCESS_VIOLATION";
+	case EXCEPTION_DATATYPE_MISALIGNMENT:
+		return "DATATYPE_MISALIGNMENT";
+	case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+		return "ARRAY_BOUNDS_EXCEEDED";
+	case EXCEPTION_PRIV_INSTRUCTION:
+		return "PRIV_INSTRUCTION";
+	case EXCEPTION_IN_PAGE_ERROR:
+		return "IN_PAGE_ERROR";
+	case EXCEPTION_ILLEGAL_INSTRUCTION:
+		return "ILLEGAL_INSTRUCTION";
+	case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+		return "NONCONTINUABLE_EXCEPTION";
+	case EXCEPTION_STACK_OVERFLOW:
+		return "STACK_OVERFLOW";
+	case EXCEPTION_INVALID_DISPOSITION:
+		return "INVALID_DISPOSITION";
+	case EXCEPTION_GUARD_PAGE:
+		return "GUARD_PAGE";
+	case EXCEPTION_INVALID_HANDLE:
+		return "INVALID_HANDLE";
+	case EXCEPTION_INT_DIVIDE_BY_ZERO:
+		return "INTEGER_DIVIDE_BY_ZERO";
+	default:
+		break;
 	}
 
 	snprintf( buf, sizeof( buf ), "0x%08X", (unsigned int)code );
@@ -700,12 +693,11 @@ ExceptionFilter
 Restore gamma and hide fullscreen window in case of crash
 ==================
 */
-static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
-{
+static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo ) {
 #ifndef DEDICATED
 	if ( com_dedicated->integer == 0 ) {
 		extern cvar_t *com_cl_running;
-		if ( com_cl_running  && com_cl_running->integer ) {
+		if ( com_cl_running && com_cl_running->integer ) {
 			// assume we can restart client module
 		} else {
 			GLW_RestoreGamma();
@@ -714,8 +706,7 @@ static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 	}
 #endif
 
-	if ( ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT )
-	{
+	if ( ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT ) {
 		char msg[128], name[MAX_OSPATH];
 		const char *basename;
 		HMODULE hModule, hKernel32;
@@ -724,23 +715,22 @@ static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 		hModule = NULL;
 		name[0] = '\0';
 		basename = name;
-		addr = (byte*)ExceptionInfo->ExceptionRecord->ExceptionAddress;
+		addr = (byte *)ExceptionInfo->ExceptionRecord->ExceptionAddress;
 
 		hKernel32 = GetModuleHandleA( "kernel32" );
 		if ( hKernel32 != NULL ) {
-			typedef BOOL (WINAPI *PFN_GetModuleHandleExA)( DWORD dwFlags, LPCSTR lpModuleName, HMODULE *phModule );
+			typedef BOOL( WINAPI * PFN_GetModuleHandleExA )( DWORD dwFlags, LPCSTR lpModuleName, HMODULE * phModule );
 			PFN_GetModuleHandleExA pGetModuleHandleExA;
 
-			pGetModuleHandleExA = (PFN_GetModuleHandleExA) (void *)GetProcAddress( hKernel32, "GetModuleHandleExA" );
+			pGetModuleHandleExA = (PFN_GetModuleHandleExA)(void *)GetProcAddress( hKernel32, "GetModuleHandleExA" );
 			if ( pGetModuleHandleExA != NULL ) {
 				if ( pGetModuleHandleExA( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)addr, &hModule ) ) {
-					if (GetModuleFileNameA( hModule, name, ARRAY_LEN(name) - 1) != 0 ) {
-						name[ARRAY_LEN(name) - 1] = '\0';
+					if ( GetModuleFileNameA( hModule, name, ARRAY_LEN( name ) - 1 ) != 0 ) {
+						name[ARRAY_LEN( name ) - 1] = '\0';
 						basename = strrchr( name, '\\' );
 						if ( basename ) {
 							basename = basename + 1;
-						}
-						else {
+						} else {
 							basename = strrchr( name, '/' );
 							if ( basename ) {
 								basename = basename + 1;
@@ -754,7 +744,7 @@ static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 		if ( basename && *basename ) {
 			Com_sprintf( msg, sizeof( msg ), "Exception Code: %s\nException Address: %s@%x",
 				GetExceptionName( ExceptionInfo->ExceptionRecord->ExceptionCode ),
-				basename, (uint32_t)(addr - (byte*)hModule) );
+				basename, (uint32_t)( addr - (byte *)hModule ) );
 		} else {
 			Com_sprintf( msg, sizeof( msg ), "Exception Code: %s\nException Address: %p",
 				GetExceptionName( ExceptionInfo->ExceptionRecord->ExceptionCode ),
@@ -773,10 +763,9 @@ static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 WinMain
 ==================
 */
-int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow [[maybe_unused]] )
-{
-	static char	sys_cmdline[ MAX_STRING_CHARS ];
-	char con_title[ MAX_CVAR_VALUE_STRING ];
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow [[maybe_unused]] ) {
+	static char sys_cmdline[MAX_STRING_CHARS];
+	char con_title[MAX_CVAR_VALUE_STRING];
 	int xpos, ypos;
 	qboolean useXYpos;
 	HANDLE hProcess;
@@ -840,8 +829,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 }
 
 #ifdef _DEBUG
-void Sys_DebugBreak( void )
-{
+void Sys_DebugBreak( void ) {
 	ShowWindow( g_wv.hWnd, SW_MINIMIZE );
 	DebugBreak();
 }

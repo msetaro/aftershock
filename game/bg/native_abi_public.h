@@ -18,25 +18,25 @@
 #endif
 
 /* The engine's VM math calls evaluate in host double and return one float word. */
-#define sin(x) ((float)sin((double)(x)))
-#define cos(x) ((float)cos((double)(x)))
-#define tan(x) ((float)tan((double)(x)))
-#define asin(x) ((float)asin((double)(x)))
-#define acos(x) ((float)acos((double)(x)))
-#define atan(x) ((float)atan((double)(x)))
-#define atan2(y,x) ((float)atan2((double)(y),(double)(x)))
-#define sqrt(x) ((float)sqrt((double)(x)))
-#define floor(x) ((float)floor((double)(x)))
-#define ceil(x) ((float)ceil((double)(x)))
-#define fabs(x) ((float)fabs((double)(x)))
-#define pow(x,y) ((float)pow((double)(x),(double)(y)))
+#define sin( x ) ((float)sin((double)(x)))
+#define cos( x ) ((float)cos((double)(x)))
+#define tan( x ) ((float)tan((double)(x)))
+#define asin( x ) ((float)asin((double)(x)))
+#define acos( x ) ((float)acos((double)(x)))
+#define atan( x ) ((float)atan((double)(x)))
+#define atan2( y, x ) ((float)atan2((double)(y),(double)(x)))
+#define sqrt( x ) ((float)sqrt((double)(x)))
+#define floor( x ) ((float)floor((double)(x)))
+#define ceil( x ) ((float)ceil((double)(x)))
+#define fabs( x ) ((float)fabs((double)(x)))
+#define pow( x, y ) ((float)pow((double)(x),(double)(y)))
 
 /* Transitional DLL hosts read their maximum word count for every call. */
 #define NATIVE_ZEROS (intptr_t)0, (intptr_t)0, (intptr_t)0, (intptr_t)0, (intptr_t)0, (intptr_t)0, (intptr_t)0, (intptr_t)0, (intptr_t)0
 #ifdef QAGAME
-#define NATIVE_SYSCALL(...) (syscall)(__VA_ARGS__, NATIVE_ZEROS, (intptr_t)0, (intptr_t)0, (intptr_t)0, (intptr_t)0)
+#define NATIVE_SYSCALL( ... ) (syscall)(__VA_ARGS__, NATIVE_ZEROS, (intptr_t)0, (intptr_t)0, (intptr_t)0, (intptr_t)0)
 #else
-#define NATIVE_SYSCALL(...) (syscall)(__VA_ARGS__, NATIVE_ZEROS)
+#define NATIVE_SYSCALL( ... ) (syscall)(__VA_ARGS__, NATIVE_ZEROS)
 #endif
 
 #endif

@@ -7,13 +7,13 @@ static uint32_t hash = 2166136261u;
 static void bytes( const void *data, size_t size ) {
 	const unsigned char *p = (const unsigned char *)data;
 	while ( size-- ) {
-		hash = (hash ^ *p++) * 16777619u;
+		hash = ( hash ^ *p++ ) * 16777619u;
 	}
 }
 
 static float sample( void ) {
 	state = state * 1664525u + 1013904223u;
-	return ((int)(state >> 8) - 8388608) * (1.0f / 8192.0f);
+	return ( (int)( state >> 8 ) - 8388608 ) * ( 1.0f / 8192.0f );
 }
 
 void QDECL Com_Error( int level, const char *error, ... ) {
@@ -38,26 +38,26 @@ int main( void ) {
 			angles[j] = i < 4 ? i * 90.0f : sample();
 		}
 		AngleVectors( angles, forward, right, up );
-		bytes( forward, sizeof(forward) );
-		bytes( right, sizeof(right) );
-		bytes( up, sizeof(up) );
+		bytes( forward, sizeof( forward ) );
+		bytes( right, sizeof( right ) );
+		bytes( up, sizeof( up ) );
 		AnglesToAxis( angles, axis );
-		bytes( axis, sizeof(axis) );
+		bytes( axis, sizeof( axis ) );
 		length = VectorNormalize2( angles, normalized );
-		bytes( &length, sizeof(length) );
-		bytes( normalized, sizeof(normalized) );
+		bytes( &length, sizeof( length ) );
+		bytes( normalized, sizeof( normalized ) );
 		length = Q_rsqrt( length + 1.0f );
-		bytes( &length, sizeof(length) );
+		bytes( &length, sizeof( length ) );
 	}
 	printf( "math %08x\n", hash );
 	hash = 2166136261u;
 	for ( i = 1; i < 256; i++ ) {
 		char text[2] = { (char)i, 0 };
 		Q_strlwr( text );
-		bytes( text, sizeof(text) );
+		bytes( text, sizeof( text ) );
 		text[0] = (char)i;
 		Q_strupr( text );
-		bytes( text, sizeof(text) );
+		bytes( text, sizeof( text ) );
 	}
 	printf( "case %08x\n", hash );
 	return 0;

@@ -30,12 +30,12 @@ FGetLittleLong
 =================
 */
 static int FGetLittleLong( fileHandle_t f ) {
-	int		v;
+	int v;
 
-	if (FS_Read( &v, sizeof(v), f ) != sizeof(v))
+	if ( FS_Read( &v, sizeof( v ), f ) != sizeof( v ) )
 		return -1;
 
-	return LittleLong( v);
+	return LittleLong( v );
 }
 
 /*
@@ -44,12 +44,12 @@ FGetLittleShort
 =================
 */
 static short FGetLittleShort( fileHandle_t f ) {
-	short	v;
+	short v;
 
-	if (FS_Read( &v, sizeof(v), f ) != sizeof(v))
+	if ( FS_Read( &v, sizeof( v ), f ) != sizeof( v ) )
 		return -1;
 
-	return LittleShort( v);
+	return LittleShort( v );
 }
 
 /*
@@ -57,18 +57,17 @@ static short FGetLittleShort( fileHandle_t f ) {
 S_ReadChunkInfo
 =================
 */
-static int S_ReadChunkInfo(fileHandle_t f, char *name)
-{
+static int S_ReadChunkInfo( fileHandle_t f, char *name ) {
 	int len, r;
 
 	name[4] = 0;
 
-	r = FS_Read(name, 4, f);
-	if(r != 4)
+	r = FS_Read( name, 4, f );
+	if ( r != 4 )
 		return -1;
 
-	len = FGetLittleLong(f);
-	if( len < 0 ) {
+	len = FGetLittleLong( f );
+	if ( len < 0 ) {
 		Com_Printf( S_COLOR_YELLOW "WARNING: Negative chunk length\n" );
 		return -1;
 	}
@@ -84,13 +83,12 @@ Returns the length of the data in the chunk, or -1 if not found
 =================
 */
 static int S_FindRIFFChunk( fileHandle_t f, const char *chunk ) {
-	char	name[5];
-	int		len;
+	char name[5];
+	int len;
 
-	while( ( len = S_ReadChunkInfo(f, name) ) >= 0 )
-	{
+	while ( ( len = S_ReadChunkInfo( f, name ) ) >= 0 ) {
 		// If this is the right chunk, return
-		if( !Q_strncmp( name, chunk, 4 ) )
+		if ( !Q_strncmp( name, chunk, 4 ) )
 			return len;
 
 		len = PAD( len, 2 );
@@ -112,7 +110,7 @@ If raw data was calculated, as with ADPCM, this should not be called.
 =================
 */
 static void S_ByteSwapRawSamples( int samples, int width, int s_channels, const byte *data ) {
-	int		i;
+	int i;
 
 	if ( width != 2 ) {
 		return;
@@ -123,8 +121,8 @@ static void S_ByteSwapRawSamples( int samples, int width, int s_channels, const 
 		if ( s_channels == 2 ) {
 			samples <<= 1;
 		}
-		for ( i = 0 ; i < samples ; i++ ) {
-			((short *)data)[i] = LittleShort( ((short *)data)[i] );
+		for ( i = 0; i < samples; i++ ) {
+			( (short *)data )[i] = LittleShort( ( (short *)data )[i] );
 		}
 	}
 }
@@ -135,64 +133,57 @@ static void S_ByteSwapRawSamples( int samples, int width, int s_channels, const 
 S_ReadRIFFHeader
 =================
 */
-static qboolean S_ReadRIFFHeader(fileHandle_t file, snd_info_t *info)
-{
+static qboolean S_ReadRIFFHeader( fileHandle_t file, snd_info_t *info ) {
 	char dump[16];
 	int bits;
 	int fmtlen = 0;
 
 	// skip the riff wav header
-	if (FS_Read(dump, 12, file) != 12)
-	{
-		Com_Printf( S_COLOR_RED "ERROR: Couldn't read header\n");
+	if ( FS_Read( dump, 12, file ) != 12 ) {
+		Com_Printf( S_COLOR_RED "ERROR: Couldn't read header\n" );
 		return qfalse;
 	}
 
 	// Scan for the format chunk
-	if((fmtlen = S_FindRIFFChunk(file, "fmt ")) < 0)
-	{
-		Com_Printf( S_COLOR_RED "ERROR: Couldn't find \"fmt\" chunk\n");
+	if ( ( fmtlen = S_FindRIFFChunk( file, "fmt " ) ) < 0 ) {
+		Com_Printf( S_COLOR_RED "ERROR: Couldn't find \"fmt\" chunk\n" );
 		return qfalse;
 	}
 
 	// Save the parameters
-	FGetLittleShort(file); // wav_format
-	info->channels = FGetLittleShort(file);
-	info->rate = FGetLittleLong(file);
-	FGetLittleLong(file);
-	FGetLittleShort(file);
-	bits = FGetLittleShort(file);
+	FGetLittleShort( file ); // wav_format
+	info->channels = FGetLittleShort( file );
+	info->rate = FGetLittleLong( file );
+	FGetLittleLong( file );
+	FGetLittleShort( file );
+	bits = FGetLittleShort( file );
 
-	if( bits < 8 )
-	{
-	  Com_Printf( S_COLOR_RED "ERROR: Less than 8 bit sound is not supported\n");
-	  return qfalse;
+	if ( bits < 8 ) {
+		Com_Printf( S_COLOR_RED "ERROR: Less than 8 bit sound is not supported\n" );
+		return qfalse;
 	}
 
 	info->width = bits / 8;
 	info->dataofs = 0;
 
 	// Skip the rest of the format chunk if required
-	if(fmtlen > 16)
-	{
+	if ( fmtlen > 16 ) {
 		fmtlen -= 16;
 		FS_Seek( file, fmtlen, FS_SEEK_CUR );
 	}
 
 	// Scan for the data chunk
-	if( (info->size = S_FindRIFFChunk(file, "data")) < 0)
-	{
-		Com_Printf( S_COLOR_RED "ERROR: Couldn't find \"data\" chunk\n");
+	if ( ( info->size = S_FindRIFFChunk( file, "data" ) ) < 0 ) {
+		Com_Printf( S_COLOR_RED "ERROR: Couldn't find \"data\" chunk\n" );
 		return qfalse;
 	}
-	info->samples = (info->size / info->width) / info->channels;
+	info->samples = ( info->size / info->width ) / info->channels;
 
 	return qtrue;
 }
 
 // WAV codec
-snd_codec_t wav_codec =
-{
+snd_codec_t wav_codec = {
 	"wav",
 	S_WAV_CodecLoad,
 	S_WAV_CodecOpenStream,
@@ -206,50 +197,45 @@ snd_codec_t wav_codec =
 S_WAV_CodecLoad
 =================
 */
-void *S_WAV_CodecLoad(const char *filename, snd_info_t *info)
-{
+void *S_WAV_CodecLoad( const char *filename, snd_info_t *info ) {
 	fileHandle_t file;
 	void *buffer;
 
 	// Try to open the file
-	FS_FOpenFileRead(filename, &file, qtrue);
-	if ( file == FS_INVALID_HANDLE )
-	{
+	FS_FOpenFileRead( filename, &file, qtrue );
+	if ( file == FS_INVALID_HANDLE ) {
 		return NULL;
 	}
 
 	// Read the RIFF header
-	if(!S_ReadRIFFHeader(file, info))
-	{
-		FS_FCloseFile(file);
+	if ( !S_ReadRIFFHeader( file, info ) ) {
+		FS_FCloseFile( file );
 		Com_Printf( S_COLOR_RED "ERROR: Incorrect/unsupported format in \"%s\"\n",
-				filename);
+			filename );
 		return NULL;
 	}
 
 	// Allocate some memory
-	buffer = Hunk_AllocateTempMemory(info->size);
-	if(!buffer)
-	{
-		FS_FCloseFile(file);
+	buffer = Hunk_AllocateTempMemory( info->size );
+	if ( !buffer ) {
+		FS_FCloseFile( file );
 		Com_Printf( S_COLOR_RED "ERROR: Out of memory reading \"%s\"\n",
-				filename);
+			filename );
 		return NULL;
 	}
 
 	// Read, byteswap
-	if (FS_Read(buffer, info->size, file) != info->size)
-	{
-		Hunk_FreeTempMemory(buffer);
-		FS_FCloseFile(file);
-		Com_Printf( S_COLOR_RED "ERROR: Couldn't read \"%s\"\n", filename);
+	if ( FS_Read( buffer, info->size, file ) != info->size ) {
+		Hunk_FreeTempMemory( buffer );
+		FS_FCloseFile( file );
+		Com_Printf( S_COLOR_RED "ERROR: Couldn't read \"%s\"\n", filename );
 		return NULL;
 	}
 
-	S_ByteSwapRawSamples(info->samples, info->width, info->channels, (byte *)buffer);
+	S_ByteSwapRawSamples( info->samples, info->width, info->channels, (byte *)buffer );
 
 	// Close and return
-	FS_FCloseFile(file);
+	FS_FCloseFile( file );
 	return buffer;
 }
 
@@ -258,19 +244,17 @@ void *S_WAV_CodecLoad(const char *filename, snd_info_t *info)
 S_WAV_CodecOpenStream
 =================
 */
-snd_stream_t *S_WAV_CodecOpenStream(const char *filename)
-{
+snd_stream_t *S_WAV_CodecOpenStream( const char *filename ) {
 	snd_stream_t *rv;
 
 	// Open
-	rv = S_CodecUtilOpen(filename, &wav_codec);
-	if(!rv)
+	rv = S_CodecUtilOpen( filename, &wav_codec );
+	if ( !rv )
 		return NULL;
 
 	// Read the RIFF header
-	if(!S_ReadRIFFHeader(rv->file, &rv->info))
-	{
-		S_CodecUtilClose(&rv);
+	if ( !S_ReadRIFFHeader( rv->file, &rv->info ) ) {
+		S_CodecUtilClose( &rv );
 		return NULL;
 	}
 
@@ -282,9 +266,8 @@ snd_stream_t *S_WAV_CodecOpenStream(const char *filename)
 S_WAV_CodecCloseStream
 =================
 */
-void S_WAV_CodecCloseStream(snd_stream_t *stream)
-{
-	S_CodecUtilClose(&stream);
+void S_WAV_CodecCloseStream( snd_stream_t *stream ) {
+	S_CodecUtilClose( &stream );
 }
 
 /*
@@ -292,20 +275,19 @@ void S_WAV_CodecCloseStream(snd_stream_t *stream)
 S_WAV_CodecReadStream
 =================
 */
-int S_WAV_CodecReadStream(snd_stream_t *stream, int bytes, void *buffer)
-{
+int S_WAV_CodecReadStream( snd_stream_t *stream, int bytes, void *buffer ) {
 	int remaining = stream->info.size - stream->pos;
 	int samples;
 
-	if(remaining <= 0)
+	if ( remaining <= 0 )
 		return 0;
-	if(bytes > remaining)
+	if ( bytes > remaining )
 		bytes = remaining;
-	bytes = FS_Read(buffer, bytes, stream->file);
-	if (bytes <= 0)
+	bytes = FS_Read( buffer, bytes, stream->file );
+	if ( bytes <= 0 )
 		return 0;
 	stream->pos += bytes;
-	samples = (bytes / stream->info.width) / stream->info.channels;
-	S_ByteSwapRawSamples(samples, stream->info.width, stream->info.channels, (const byte *)buffer);
+	samples = ( bytes / stream->info.width ) / stream->info.channels;
+	S_ByteSwapRawSamples( samples, stream->info.width, stream->info.channels, (const byte *)buffer );
 	return bytes;
 }

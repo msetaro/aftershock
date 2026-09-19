@@ -7,7 +7,7 @@ void QDECL Com_Error( errorParm_t code, const char *message, ... ) {
 #else
 void QDECL Com_Error( int code, const char *message, ... ) {
 #endif
-	exit( code == ERR_FATAL && (!strcmp( message, "Com_sprintf: overflowed bigbuffer" ) || !strcmp( message, "va: overflowed buffer" )) ? 42 : 43 );
+	exit( code == ERR_FATAL && ( !strcmp( message, "Com_sprintf: overflowed bigbuffer" ) || !strcmp( message, "va: overflowed buffer" ) ) ? 42 : 43 );
 }
 
 void QDECL Com_Printf( const char *message, ... ) {

@@ -31,22 +31,20 @@ static int snd_vol;
 #ifdef __cplusplus
 Q_EXTERN_C {
 #endif
-int		*snd_p;
-int		snd_linear_count;
-short	*snd_out;
+	int *snd_p;
+	int snd_linear_count;
+	short *snd_out;
 #ifdef __cplusplus
 }
 #endif
 
-void S_WriteLinearBlastStereo16( void )
-{
-	int		i;
-	int		val;
-	int		*src = snd_p;
-	short	*dst = snd_out;
-	for ( i = 0; i < snd_linear_count; i++, src++, dst++ )
-	{
-		val = *src>>8;
+void S_WriteLinearBlastStereo16( void ) {
+	int i;
+	int val;
+	int *src = snd_p;
+	short *dst = snd_out;
+	for ( i = 0; i < snd_linear_count; i++, src++, dst++ ) {
+		val = *src >> 8;
 		if ( val > 32767 )
 			*dst = 32767;
 		else if ( val < -32768 )
@@ -57,39 +55,37 @@ void S_WriteLinearBlastStereo16( void )
 }
 
 
-#if idx64 && (!defined (_MSC_VER) || defined(USE_WIN32_ASM))
-Q_EXTERN_C void S_WriteLinearBlastStereo16_SSE_x64( int*, short*, int );
+#if idx64 && ( !defined( _MSC_VER ) || defined( USE_WIN32_ASM ) )
+Q_EXTERN_C void S_WriteLinearBlastStereo16_SSE_x64( int *, short *, int );
 #endif
 
-void S_TransferStereo16( unsigned long *pbuf, int endtime )
-{
-	int		lpos;
-	int		ls_paintedtime;
+void S_TransferStereo16( unsigned long *pbuf, int endtime ) {
+	int lpos;
+	int ls_paintedtime;
 
-	snd_p = (int *) paintbuffer;
+	snd_p = (int *)paintbuffer;
 	ls_paintedtime = s_paintedtime;
 
-	while (ls_paintedtime < endtime)
-	{
+	while ( ls_paintedtime < endtime ) {
 		// handle recirculating buffer issues
-		lpos = ls_paintedtime & ((dma.samples>>1)-1);
+		lpos = ls_paintedtime & ( ( dma.samples >> 1 ) - 1 );
 
-		snd_out = (short *) pbuf + (lpos<<1);
+		snd_out = (short *)pbuf + ( lpos << 1 );
 
-		snd_linear_count = (dma.samples>>1) - lpos;
-		if (ls_paintedtime + snd_linear_count > endtime)
+		snd_linear_count = ( dma.samples >> 1 ) - lpos;
+		if ( ls_paintedtime + snd_linear_count > endtime )
 			snd_linear_count = endtime - ls_paintedtime;
 
 		snd_linear_count <<= 1;
 
 		// write a linear blast of samples
-#if idx64 && (!defined (_MSC_VER) || defined (USE_WIN32_ASM))
+#if idx64 && ( !defined( _MSC_VER ) || defined( USE_WIN32_ASM ) )
 		S_WriteLinearBlastStereo16_SSE_x64( snd_p, snd_out, snd_linear_count );
 #else
 		S_WriteLinearBlastStereo16();
 #endif
 		snd_p += snd_linear_count;
-		ls_paintedtime += (snd_linear_count>>1);
+		ls_paintedtime += ( snd_linear_count >> 1 );
 	}
 }
 
@@ -100,96 +96,84 @@ S_TransferPaintBuffer
 
 ===================
 */
-static void S_TransferPaintBuffer( int endtime, byte *buffer )
-{
-	int 	out_idx;
-	int 	i, count;
-	int 	out_mask;
-	int 	*p;
-	int 	step;
-	int		val;
+static void S_TransferPaintBuffer( int endtime, byte *buffer ) {
+	int out_idx;
+	int i, count;
+	int out_mask;
+	int *p;
+	int step;
+	int val;
 	unsigned long *pbuf;
 
 	pbuf = (unsigned long *)buffer;
 
 	if ( s_testsound->integer ) {
 		// write a fixed sine wave
-		count = (endtime - s_paintedtime);
-		for (i=0 ; i<count ; i++)
-			paintbuffer[i].left = paintbuffer[i].right = (int)( sin((s_paintedtime+i)*0.1)*20000*256 );
+		count = ( endtime - s_paintedtime );
+		for ( i = 0; i < count; i++ )
+			paintbuffer[i].left = paintbuffer[i].right = (int)( sin( ( s_paintedtime + i ) * 0.1 ) * 20000 * 256 );
 	}
 
-	if ( dma.samplebits == 16 && dma.channels == 2 )
-	{	// optimized case
+	if ( dma.samplebits == 16 && dma.channels == 2 ) { // optimized case
 		S_TransferStereo16( pbuf, endtime );
-	}
-	else
-	{	// general case
-		p = (int *) paintbuffer;
-		count = (endtime - s_paintedtime) * dma.channels;
-		out_mask = dma.samples - 1; 
+	} else { // general case
+		p = (int *)paintbuffer;
+		count = ( endtime - s_paintedtime ) * dma.channels;
+		out_mask = dma.samples - 1;
 		out_idx = ( s_paintedtime * dma.channels ) & out_mask;
 		step = 3 - dma.channels;
 
-		if ( dma.samplebits == 32 && dma.isfloat )
-		{
-			const float rdiv = 1.0f / (32768.0f * 256.0f - 128.0f); // 8388480.0f
-			float *out = (float *) pbuf;
-			while ( count-- > 0 )
-			{
+		if ( dma.samplebits == 32 && dma.isfloat ) {
+			const float rdiv = 1.0f / ( 32768.0f * 256.0f - 128.0f ); // 8388480.0f
+			float *out = (float *)pbuf;
+			while ( count-- > 0 ) {
 				val = *p;
 				p += step;
-				if (val > 0x7fff00) {
+				if ( val > 0x7fff00 ) {
 					val = 0x7fff00;
-				} else if (val < -32768 * 256) {
+				} else if ( val < -32768 * 256 ) {
 					val = -32768 * 256;
 				}
-				out[out_idx] = (float)(val + 128) * rdiv;
-				out_idx = (out_idx + 1) & out_mask;
+				out[out_idx] = (float)( val + 128 ) * rdiv;
+				out_idx = ( out_idx + 1 ) & out_mask;
 			}
-		}
-		else if (dma.samplebits == 16)
-		{
-			short *out = (short *) pbuf;
-			while ( count-- > 0 )
-			{
+		} else if ( dma.samplebits == 16 ) {
+			short *out = (short *)pbuf;
+			while ( count-- > 0 ) {
 				val = *p >> 8;
 				p += step;
-				if (val > 0x7fff)
+				if ( val > 0x7fff )
 					val = 0x7fff;
-				else if (val < -32768)
+				else if ( val < -32768 )
 					val = -32768;
 				out[out_idx] = (short)( val );
-				out_idx = (out_idx + 1) & out_mask;
+				out_idx = ( out_idx + 1 ) & out_mask;
 			}
-		}
-		else if (dma.samplebits == 8)
-		{
-			unsigned char *out = (unsigned char *) pbuf;
-			while ( count-- > 0 )
-			{
+		} else if ( dma.samplebits == 8 ) {
+			unsigned char *out = (unsigned char *)pbuf;
+			while ( count-- > 0 ) {
 				val = *p >> 8;
 				p += step;
-				if (val > 0x7fff)
+				if ( val > 0x7fff )
 					val = 0x7fff;
-				else if (val < -32768)
+				else if ( val < -32768 )
 					val = -32768;
-				out[out_idx] = (unsigned char)( (val>>8) + 128 );
-				out_idx = (out_idx + 1) & out_mask;
+				out[out_idx] = (unsigned char)( ( val >> 8 ) + 128 );
+				out_idx = ( out_idx + 1 ) & out_mask;
 			}
 		}
 	}
 
 	if ( CL_VideoRecording() ) {
 		//count = (endtime - s_paintedtime) * dma.channels;
-		count = (CL_VideoAudioEndTime() - s_paintedtime) * dma.channels;
+		count = ( CL_VideoAudioEndTime() - s_paintedtime ) * dma.channels;
 		out_idx = ( s_paintedtime * dma.channels ) % dma.samples;
 		while ( count > 0 ) {
 			int n = count;
 			if ( (unsigned int)( n + out_idx ) > dma.samples )
 				n = dma.samples - out_idx;
 			CL_WriteAVIAudioFrame( buffer + out_idx * dma.samplebits / 8, n * dma.samplebits / 8 );
-			out_idx = (out_idx + n) % dma.samples;
+			out_idx = ( out_idx + n ) % dma.samples;
 			count -= n;
 		}
 	}
@@ -204,22 +188,22 @@ CHANNEL MIXING
 ===============================================================================
 */
 static void S_PaintChannelFrom16_scalar( channel_t *ch, const sfx_t *sc, int count, int sampleOffset, int bufferOffset ) {
-	int						data, aoff, boff;
-	int						leftvol, rightvol;
-	int						i, j;
-	portable_samplepair_t	*samp;
-	sndBuffer				*chunk;
-	short					*samples;
-	float					ooff, fdata[2], fdiv, fleftvol, frightvol;
+	int data, aoff, boff;
+	int leftvol, rightvol;
+	int i, j;
+	portable_samplepair_t *samp;
+	sndBuffer *chunk;
+	short *samples;
+	float ooff, fdata[2], fdiv, fleftvol, frightvol;
 
-	if (sc->soundChannels <= 0) {
+	if ( sc->soundChannels <= 0 ) {
 		return;
 	}
 
-	samp = &paintbuffer[ bufferOffset ];
+	samp = &paintbuffer[bufferOffset];
 
-	if (ch->doppler) {
-		sampleOffset = (int)( sampleOffset*ch->oldDopplerScale );
+	if ( ch->doppler ) {
+		sampleOffset = (int)( sampleOffset * ch->oldDopplerScale );
 	}
 
 	if ( sc->soundChannels == 2 ) {
@@ -231,30 +215,30 @@ static void S_PaintChannelFrom16_scalar( channel_t *ch, const sfx_t *sc, int cou
 	}
 
 	chunk = sc->soundData;
-	while (sampleOffset>=SND_CHUNK_SIZE) {
+	while ( sampleOffset >= SND_CHUNK_SIZE ) {
 		chunk = chunk->next;
 		sampleOffset -= SND_CHUNK_SIZE;
-		if (!chunk) {
+		if ( !chunk ) {
 			chunk = sc->soundData;
 		}
 	}
 
-	if (!ch->doppler || ch->dopplerScale==1.0f) {
-		leftvol = ch->leftvol*snd_vol;
-		rightvol = ch->rightvol*snd_vol;
+	if ( !ch->doppler || ch->dopplerScale == 1.0f ) {
+		leftvol = ch->leftvol * snd_vol;
+		rightvol = ch->rightvol * snd_vol;
 		samples = chunk->sndChunk;
-		for ( i=0 ; i<count ; i++ ) {
-			data  = samples[sampleOffset++];
-			samp[i].left += (data * leftvol)>>8;
+		for ( i = 0; i < count; i++ ) {
+			data = samples[sampleOffset++];
+			samp[i].left += ( data * leftvol ) >> 8;
 
 			if ( sc->soundChannels == 2 ) {
 				data = samples[sampleOffset++];
 			}
-			samp[i].right += (data * rightvol)>>8;
+			samp[i].right += ( data * rightvol ) >> 8;
 
-			if (sampleOffset == SND_CHUNK_SIZE) {
+			if ( sampleOffset == SND_CHUNK_SIZE ) {
 				chunk = chunk->next;
-				if (!chunk) {
+				if ( !chunk ) {
 					chunk = sc->soundData;
 				}
 				samples = chunk->sndChunk;
@@ -262,70 +246,75 @@ static void S_PaintChannelFrom16_scalar( channel_t *ch, const sfx_t *sc, int cou
 			}
 		}
 	} else {
-		fleftvol = (float)( ch->leftvol*snd_vol );
-		frightvol = (float)( ch->rightvol*snd_vol );
+		fleftvol = (float)( ch->leftvol * snd_vol );
+		frightvol = (float)( ch->rightvol * snd_vol );
 
 		ooff = (float)( sampleOffset );
 		samples = chunk->sndChunk;
 
-		for ( i=0 ; i<count ; i++ ) {
+		for ( i = 0; i < count; i++ ) {
 
 			aoff = (int)( ooff );
 			ooff = ooff + ch->dopplerScale * sc->soundChannels;
 			boff = (int)( ooff );
 			fdata[0] = fdata[1] = 0;
-			for (j=aoff; j<boff; j += sc->soundChannels) {
-				if (j == SND_CHUNK_SIZE) {
+			for ( j = aoff; j < boff; j += sc->soundChannels ) {
+				if ( j == SND_CHUNK_SIZE ) {
 					chunk = chunk->next;
-					if (!chunk) {
+					if ( !chunk ) {
 						chunk = sc->soundData;
 					}
 					samples = chunk->sndChunk;
 					ooff -= SND_CHUNK_SIZE;
 				}
 				if ( sc->soundChannels == 2 ) {
-					fdata[0] += samples[j&(SND_CHUNK_SIZE-1)];
-					fdata[1] += samples[(j+1)&(SND_CHUNK_SIZE-1)];
+					fdata[0] += samples[j & ( SND_CHUNK_SIZE - 1 )];
+					fdata[1] += samples[( j + 1 ) & ( SND_CHUNK_SIZE - 1 )];
 				} else {
-					fdata[0] += samples[j&(SND_CHUNK_SIZE-1)];
-					fdata[1] += samples[j&(SND_CHUNK_SIZE-1)];
+					fdata[0] += samples[j & ( SND_CHUNK_SIZE - 1 )];
+					fdata[1] += samples[j & ( SND_CHUNK_SIZE - 1 )];
 				}
 			}
-			fdiv = (float)( 256 * (boff-aoff) / sc->soundChannels );
-			{ float expressionValue = (fdata[0] * fleftvol)/fdiv; samp[i].left = (int)( samp[i].left + expressionValue ); }
-			{ float expressionValue = (fdata[1] * frightvol)/fdiv; samp[i].right = (int)( samp[i].right + expressionValue ); }
+			fdiv = (float)( 256 * ( boff - aoff ) / sc->soundChannels );
+			{
+				float expressionValue = ( fdata[0] * fleftvol ) / fdiv;
+				samp[i].left = (int)( samp[i].left + expressionValue );
+			}
+			{
+				float expressionValue = ( fdata[1] * frightvol ) / fdiv;
+				samp[i].right = (int)( samp[i].right + expressionValue );
+			}
 		}
 	}
 }
 
 
-static void S_PaintChannelFrom16( channel_t *ch, const sfx_t *sc, int count, int sampleOffset, int bufferOffset ) 
-{
+static void S_PaintChannelFrom16( channel_t *ch, const sfx_t *sc, int count, int sampleOffset, int bufferOffset ) {
 	S_PaintChannelFrom16_scalar( ch, sc, count, sampleOffset, bufferOffset );
 }
 
 
 static void S_PaintChannelFromWavelet( channel_t *ch, sfx_t *sc, int count, int sampleOffset, int bufferOffset ) {
-	int						data;
-	int						leftvol, rightvol;
-	int						i;
-	portable_samplepair_t	*samp;
-	sndBuffer				*chunk;
-	short					*samples;
+	int data;
+	int leftvol, rightvol;
+	int i;
+	portable_samplepair_t *samp;
+	sndBuffer *chunk;
+	short *samples;
 
-	leftvol = ch->leftvol*snd_vol;
-	rightvol = ch->rightvol*snd_vol;
+	leftvol = ch->leftvol * snd_vol;
+	rightvol = ch->rightvol * snd_vol;
 
 	i = 0;
-	samp = &paintbuffer[ bufferOffset ];
+	samp = &paintbuffer[bufferOffset];
 	chunk = sc->soundData;
-	while (sampleOffset>=(SND_CHUNK_SIZE_FLOAT*4)) {
+	while ( sampleOffset >= ( SND_CHUNK_SIZE_FLOAT * 4 ) ) {
 		chunk = chunk->next;
-		sampleOffset -= (SND_CHUNK_SIZE_FLOAT*4);
+		sampleOffset -= ( SND_CHUNK_SIZE_FLOAT * 4 );
 		i++;
 	}
 
-	if (i!=sfxScratchIndex || sfxScratchPointer != sc) {
+	if ( i != sfxScratchIndex || sfxScratchPointer != sc ) {
 		S_AdpcmGetSamples( chunk, sfxScratchBuffer );
 		sfxScratchIndex = i;
 		sfxScratchPointer = sc;
@@ -333,14 +322,14 @@ static void S_PaintChannelFromWavelet( channel_t *ch, sfx_t *sc, int count, int 
 
 	samples = sfxScratchBuffer;
 
-	for ( i=0 ; i<count ; i++ ) {
-		data  = samples[sampleOffset++];
-		samp[i].left += (data * leftvol)>>8;
-		samp[i].right += (data * rightvol)>>8;
+	for ( i = 0; i < count; i++ ) {
+		data = samples[sampleOffset++];
+		samp[i].left += ( data * leftvol ) >> 8;
+		samp[i].right += ( data * rightvol ) >> 8;
 
-		if (sampleOffset == SND_CHUNK_SIZE*2) {
+		if ( sampleOffset == SND_CHUNK_SIZE * 2 ) {
 			chunk = chunk->next;
-			decodeWavelet(chunk, sfxScratchBuffer);
+			decodeWavelet( chunk, sfxScratchBuffer );
 			sfxScratchIndex++;
 			sampleOffset = 0;
 		}
@@ -349,31 +338,31 @@ static void S_PaintChannelFromWavelet( channel_t *ch, sfx_t *sc, int count, int 
 
 
 static void S_PaintChannelFromADPCM( channel_t *ch, sfx_t *sc, int count, int sampleOffset, int bufferOffset ) {
-	int						data;
-	int						leftvol, rightvol;
-	int						i;
-	portable_samplepair_t	*samp;
-	sndBuffer				*chunk;
-	short					*samples;
+	int data;
+	int leftvol, rightvol;
+	int i;
+	portable_samplepair_t *samp;
+	sndBuffer *chunk;
+	short *samples;
 
-	leftvol = ch->leftvol*snd_vol;
-	rightvol = ch->rightvol*snd_vol;
+	leftvol = ch->leftvol * snd_vol;
+	rightvol = ch->rightvol * snd_vol;
 
 	i = 0;
-	samp = &paintbuffer[ bufferOffset ];
+	samp = &paintbuffer[bufferOffset];
 	chunk = sc->soundData;
 
-	if (ch->doppler) {
-		sampleOffset = (int)( sampleOffset*ch->oldDopplerScale );
+	if ( ch->doppler ) {
+		sampleOffset = (int)( sampleOffset * ch->oldDopplerScale );
 	}
 
-	while (sampleOffset>=(SND_CHUNK_SIZE*4)) {
+	while ( sampleOffset >= ( SND_CHUNK_SIZE * 4 ) ) {
 		chunk = chunk->next;
-		sampleOffset -= (SND_CHUNK_SIZE*4);
+		sampleOffset -= ( SND_CHUNK_SIZE * 4 );
 		i++;
 	}
 
-	if (i!=sfxScratchIndex || sfxScratchPointer != sc) {
+	if ( i != sfxScratchIndex || sfxScratchPointer != sc ) {
 		S_AdpcmGetSamples( chunk, sfxScratchBuffer );
 		sfxScratchIndex = i;
 		sfxScratchPointer = sc;
@@ -381,14 +370,14 @@ static void S_PaintChannelFromADPCM( channel_t *ch, sfx_t *sc, int count, int sa
 
 	samples = sfxScratchBuffer;
 
-	for ( i=0 ; i<count ; i++ ) {
-		data  = samples[sampleOffset++];
-		samp[i].left += (data * leftvol)>>8;
-		samp[i].right += (data * rightvol)>>8;
+	for ( i = 0; i < count; i++ ) {
+		data = samples[sampleOffset++];
+		samp[i].left += ( data * leftvol ) >> 8;
+		samp[i].right += ( data * rightvol ) >> 8;
 
-		if (sampleOffset == SND_CHUNK_SIZE*4) {
+		if ( sampleOffset == SND_CHUNK_SIZE * 4 ) {
 			chunk = chunk->next;
-			S_AdpcmGetSamples( chunk, sfxScratchBuffer);
+			S_AdpcmGetSamples( chunk, sfxScratchBuffer );
 			sampleOffset = 0;
 			sfxScratchIndex++;
 		}
@@ -397,35 +386,35 @@ static void S_PaintChannelFromADPCM( channel_t *ch, sfx_t *sc, int count, int sa
 
 
 static void S_PaintChannelFromMuLaw( channel_t *ch, sfx_t *sc, int count, int sampleOffset, int bufferOffset ) {
-	int						data;
-	int						leftvol, rightvol;
-	int						i;
-	portable_samplepair_t	*samp;
-	sndBuffer				*chunk;
-	byte					*samples;
-	float					ooff;
+	int data;
+	int leftvol, rightvol;
+	int i;
+	portable_samplepair_t *samp;
+	sndBuffer *chunk;
+	byte *samples;
+	float ooff;
 
-	leftvol = ch->leftvol*snd_vol;
-	rightvol = ch->rightvol*snd_vol;
+	leftvol = ch->leftvol * snd_vol;
+	rightvol = ch->rightvol * snd_vol;
 
-	samp = &paintbuffer[ bufferOffset ];
+	samp = &paintbuffer[bufferOffset];
 	chunk = sc->soundData;
-	while (sampleOffset>=(SND_CHUNK_SIZE*2)) {
+	while ( sampleOffset >= ( SND_CHUNK_SIZE * 2 ) ) {
 		chunk = chunk->next;
-		sampleOffset -= (SND_CHUNK_SIZE*2);
-		if (!chunk) {
+		sampleOffset -= ( SND_CHUNK_SIZE * 2 );
+		if ( !chunk ) {
 			chunk = sc->soundData;
 		}
 	}
 
-	if (!ch->doppler) {
+	if ( !ch->doppler ) {
 		samples = (byte *)chunk->sndChunk + sampleOffset;
-		for ( i=0 ; i<count ; i++ ) {
-			data  = mulawToShort[*samples];
-			samp[i].left += (data * leftvol)>>8;
-			samp[i].right += (data * rightvol)>>8;
+		for ( i = 0; i < count; i++ ) {
+			data = mulawToShort[*samples];
+			samp[i].left += ( data * leftvol ) >> 8;
+			samp[i].right += ( data * rightvol ) >> 8;
 			samples++;
-			if ( chunk != NULL && samples == (byte *)chunk->sndChunk+(SND_CHUNK_SIZE*2)) {
+			if ( chunk != NULL && samples == (byte *)chunk->sndChunk + ( SND_CHUNK_SIZE * 2 ) ) {
 				chunk = chunk->next;
 				samples = (byte *)chunk->sndChunk;
 			}
@@ -433,14 +422,14 @@ static void S_PaintChannelFromMuLaw( channel_t *ch, sfx_t *sc, int count, int sa
 	} else {
 		ooff = (float)( sampleOffset );
 		samples = (byte *)chunk->sndChunk;
-		for ( i=0 ; i<count ; i++ ) {
-			data  = mulawToShort[samples[(int)(ooff)]];
+		for ( i = 0; i < count; i++ ) {
+			data = mulawToShort[samples[(int)( ooff )]];
 			ooff = ooff + ch->dopplerScale;
-			samp[i].left += (data * leftvol)>>8;
-			samp[i].right += (data * rightvol)>>8;
-			if (ooff >= SND_CHUNK_SIZE*2) {
+			samp[i].left += ( data * leftvol ) >> 8;
+			samp[i].right += ( data * rightvol ) >> 8;
+			if ( ooff >= SND_CHUNK_SIZE * 2 ) {
 				chunk = chunk->next;
-				if (!chunk) {
+				if ( !chunk ) {
 					chunk = sc->soundData;
 				}
 				samples = (byte *)chunk->sndChunk;
@@ -458,29 +447,29 @@ S_PaintChannels
 */
 void S_PaintChannels( int endtime ) {
 	static qboolean muted = qfalse;
-	int 	i;
-	int 	end;
+	int i;
+	int end;
 	channel_t *ch;
-	sfx_t	*sc;
-	int		ltime, count;
-	int		sampleOffset;
-	byte	*buffer;
+	sfx_t *sc;
+	int ltime, count;
+	int sampleOffset;
+	byte *buffer;
 
 	snd_vol = (int)( s_volume->value * 255 );
 
-	if ( (!gw_active && !gw_minimized && s_muteWhenUnfocused->integer) || (gw_minimized && s_muteWhenMinimized->integer) ) {
+	if ( ( !gw_active && !gw_minimized && s_muteWhenUnfocused->integer ) || ( gw_minimized && s_muteWhenMinimized->integer ) ) {
 		buffer = dma_buffer2;
 		if ( !muted ) {
 			// switching to muted, clear hardware buffer
-			Com_Memset( dma.buffer, 0, dma.samples * dma.samplebits/8 );
+			Com_Memset( dma.buffer, 0, dma.samples * dma.samplebits / 8 );
 		}
 		muted = qtrue;
 	} else {
 		buffer = dma.buffer;
 		// switching to unmuted, clear both buffers
 		if ( muted ) {
-			Com_Memset( dma.buffer, 0, dma.samples * dma.samplebits/8 );
-			Com_Memset( dma_buffer2, 0, dma.samples * dma.samplebits/8 );
+			Com_Memset( dma.buffer, 0, dma.samples * dma.samplebits / 8 );
+			Com_Memset( dma_buffer2, 0, dma.samples * dma.samplebits / 8 );
 		}
 		muted = qfalse;
 	}
@@ -498,18 +487,18 @@ void S_PaintChannels( int endtime ) {
 		Com_Memset( paintbuffer, 0, sizeof( paintbuffer ) );
 		if ( s_rawend - s_paintedtime >= 0 ) {
 			// copy from the streaming sound source
-			const int stop = (end < s_rawend) ? end : s_rawend;
+			const int stop = ( end < s_rawend ) ? end : s_rawend;
 			for ( i = s_paintedtime; i < stop; i++ ) {
-				const int s = i&(MAX_RAW_SAMPLES-1);
-				paintbuffer[i-s_paintedtime].left += s_rawsamples[s].left;
-				paintbuffer[i-s_paintedtime].right += s_rawsamples[s].right;
+				const int s = i & ( MAX_RAW_SAMPLES - 1 );
+				paintbuffer[i - s_paintedtime].left += s_rawsamples[s].left;
+				paintbuffer[i - s_paintedtime].right += s_rawsamples[s].right;
 			}
 		}
 
 		// paint in the channels.
 		ch = s_channels;
-		for ( i = 0; i < MAX_CHANNELS ; i++, ch++ ) {
-			if ( !ch->thesfx || (!ch->leftvol && !ch->rightvol) ) {
+		for ( i = 0; i < MAX_CHANNELS; i++, ch++ ) {
+			if ( !ch->thesfx || ( !ch->leftvol && !ch->rightvol ) ) {
 				continue;
 			}
 
@@ -527,36 +516,36 @@ void S_PaintChannels( int endtime ) {
 			}
 
 			if ( count > 0 ) {
-				if( sc->soundCompressionMethod == 1) {
-					S_PaintChannelFromADPCM		(ch, sc, count, sampleOffset, ltime - s_paintedtime);
-				} else if( sc->soundCompressionMethod == 2) {
-					S_PaintChannelFromWavelet	(ch, sc, count, sampleOffset, ltime - s_paintedtime);
-				} else if( sc->soundCompressionMethod == 3) {
-					S_PaintChannelFromMuLaw	(ch, sc, count, sampleOffset, ltime - s_paintedtime);
+				if ( sc->soundCompressionMethod == 1 ) {
+					S_PaintChannelFromADPCM( ch, sc, count, sampleOffset, ltime - s_paintedtime );
+				} else if ( sc->soundCompressionMethod == 2 ) {
+					S_PaintChannelFromWavelet( ch, sc, count, sampleOffset, ltime - s_paintedtime );
+				} else if ( sc->soundCompressionMethod == 3 ) {
+					S_PaintChannelFromMuLaw( ch, sc, count, sampleOffset, ltime - s_paintedtime );
 				} else {
-					S_PaintChannelFrom16		(ch, sc, count, sampleOffset, ltime - s_paintedtime);
+					S_PaintChannelFrom16( ch, sc, count, sampleOffset, ltime - s_paintedtime );
 				}
 			}
 		}
 
 		// paint in the looped channels.
 		ch = loop_channels;
-		for ( i = 0; i < numLoopChannels ; i++, ch++ ) {
-			if ( !ch->thesfx || (!ch->leftvol && !ch->rightvol )) {
+		for ( i = 0; i < numLoopChannels; i++, ch++ ) {
+			if ( !ch->thesfx || ( !ch->leftvol && !ch->rightvol ) ) {
 				continue;
 			}
 
 			ltime = s_paintedtime;
 			sc = ch->thesfx;
 
-			if (sc->soundData==NULL || sc->soundLength==0) {
+			if ( sc->soundData == NULL || sc->soundLength == 0 ) {
 				continue;
 			}
 			// we might have to make two passes if it
 			// is a looping sound effect and the end of
 			// the sample is hit
 			do {
-				sampleOffset = (ltime % sc->soundLength);
+				sampleOffset = ( ltime % sc->soundLength );
 
 				count = end - ltime;
 				if ( sampleOffset + count > sc->soundLength ) {
@@ -564,14 +553,14 @@ void S_PaintChannels( int endtime ) {
 				}
 
 				if ( count > 0 ) {
-					if( sc->soundCompressionMethod == 1) {
-						S_PaintChannelFromADPCM		(ch, sc, count, sampleOffset, ltime - s_paintedtime);
-					} else if( sc->soundCompressionMethod == 2) {
-						S_PaintChannelFromWavelet	(ch, sc, count, sampleOffset, ltime - s_paintedtime);
-					} else if( sc->soundCompressionMethod == 3) {
-						S_PaintChannelFromMuLaw		(ch, sc, count, sampleOffset, ltime - s_paintedtime);
+					if ( sc->soundCompressionMethod == 1 ) {
+						S_PaintChannelFromADPCM( ch, sc, count, sampleOffset, ltime - s_paintedtime );
+					} else if ( sc->soundCompressionMethod == 2 ) {
+						S_PaintChannelFromWavelet( ch, sc, count, sampleOffset, ltime - s_paintedtime );
+					} else if ( sc->soundCompressionMethod == 3 ) {
+						S_PaintChannelFromMuLaw( ch, sc, count, sampleOffset, ltime - s_paintedtime );
 					} else {
-						S_PaintChannelFrom16		(ch, sc, count, sampleOffset, ltime - s_paintedtime);
+						S_PaintChannelFrom16( ch, sc, count, sampleOffset, ltime - s_paintedtime );
 					}
 					ltime += count;
 				}
