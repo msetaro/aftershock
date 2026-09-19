@@ -15,6 +15,31 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
+Final formatter preparation: format-final-stringifying-macros.json adds standard
+assert and Q_ASSERT to the existing 18 macro names whose tokens are stringified.
+Use that 20-name list when refreshing the final formatter preview, preserving
+assertion expression text as well as engine macro text. The older format-preview
+and its measurements remain historical evidence and do not cover this expanded
+configuration or the current warning tree. Rebuild the final formatting proof.
+
+assert-tidy-preview verifies clang-tidy 21's bugprone-assert-side-effect with
+assert/Q_ASSERT, function-call checking enabled, and an anchored allowlist for
+__builtin_expect, Q_fabs, VectorLengthSquared, isnan and __builtin_isnan. All 46
+Clang configurations containing assertions pass with -UNDEBUG; positive controls
+pass and both increment/mutating-call controls fail as required. Evidence:
+assert-tidy-preview/{config,results}.json and control logs. Integrate this check
+with the later Q_ASSERT/tidy change; no new runtime abstraction is needed.
+
+Cache-only assert-preview replaces the 19 active engine/native assert calls with
+Q_ASSERT and defines the object-like alias `#define Q_ASSERT assert` in both shared
+headers. Object-like expansion preserves standard assert argument stringification.
+All 205 sampled objects preserve code/data (159 raw/native, 46 debug-only), and
+all twelve native helper hashes/layouts match. Evidence: assert-object-review.json
+and assert-native.json. Existing arguments were reviewed for side effects: only
+read-only Q_fabs, VectorLengthSquared and isnan calls occur. No root edits yet;
+refresh after the warning/formatting tree, record native GPL provenance, include
+Q_ASSERT in the selected clang-tidy assert-side-effect check, and run hosted gates.
+
 Cache-only shared-width-preview converts primitive fields in the seven shared
 network/font records and handle aliases to exact-width equivalents, with matching
 size/alignment/trivial-copy/standard-layout assertions in engine and native headers.
@@ -46,18 +71,23 @@ again. Every class still has its own branch/PR. C4514/C4711 retain compiler defa
 The runner's PID/session is transient; the log and msvc-c*-published.json files
 record PR heads, merge IDs and gates. Stop on any unexpected failure.
 
-Active: issue/8-msvc-c4115. Removes only C4115 suppression and promotes it on owned C++ sources.
+Active: issue/8-msvc-c4136. Removes only C4136 suppression and promotes it on owned C++ sources.
 No declarations, expressions, allocation, OS access, lifetime or layout changes.
 85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4115-object-review.json and msvc-c4115-native.json.
+Evidence: msvc-c4136-object-review.json and msvc-c4136-native.json.
 Native GPL provenance retains original import hashes. No accepted golden changes.
 Run full hosted gates and self-review before merge; then continue the remaining
 MSVC suppression classes, strict MSVC policy, and the rest of #8.
-Previous PR #119 merged as 51366ebe; verify its merged-tree regression.
-Source transformation fae6f1a7 recorded in native-game-import.json.
+Previous PR #120 merged as be3f2b32; verify its merged-tree regression.
+Source transformation 0c220839 recorded in native-game-import.json.
 
 
 ## Recent MSVC merges
+
+PR #120 C4115: source fae6f1a7, head 478bb626, merged be3f2b32.
+Build 35469905876 and regression 35469905875 pass after self-review.
+85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4115-object-review.json and msvc-c4115-native.json.
 
 PR #119 C4051: source d005bccc, head b5d49d95, merged 51366ebe.
 Build 35469530847 and regression 35469530821 pass after self-review.
