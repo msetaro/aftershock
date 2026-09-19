@@ -12,7 +12,9 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-unreachable-code. PR #106 at bea6347c passes build 35462676712
+Active: issue/8-debug-reachability. PR #107 passed build 35463628573 and
+regression 35463628559, with self-review on #107/#8; merged 937d7cee.
+Check its merged-tree regression. PR #106 at bea6347c passes build 35462676712
 and regression 35462676707, with self-review on #106/#8; merged c4047adf.
 The build's sole initial failure was an MSYS mirror timeout before compilation;
 its isolated retry passed. Check the merged-tree regression next.
@@ -26,7 +28,8 @@ change only allocation diagnostic source-line immediates; every other stripped
 byte is identical (unreachable-line-review.json). No reachable arithmetic change,
 new OS calls, allocation, non-trivial lifetime, layout, accepted fixture or golden
 change. Source 6bd5c657 records the cleanup; original GPL import hashes retain the
-transformation for both native files. Run hosted gates, then self-review before merging.
+transformation for both native files. PR #107 head 2c6f02c5 passed build 35463628573 and regression 35463628559
+and is merged.
 Optional MISSIONPACK object comparison also compiles all nine configurations:
 five release objects are identical; two Clang release objects share the lightning
 bounce decrement/check between continuing paths, and two GCC debug objects move
@@ -34,7 +37,27 @@ the same increment onto its sole continue edge. Ten-bounce limit and arithmetic
 are retained. This cache-only comparison demotes the pre-existing enum arithmetic
 warning at g_weapon.cpp:1099; no production warning policy changed. Evidence:
 unreachable-missionpack/results.json and unreachable-missionpack-*.diff.
-Next warning: review the single C4701 debug bot diagnostic initialization guard.
+Next class: original debug-reach-preview preserves all 13 release objects but
+still emits C4701 on MSVC Debug (diagnostic run 35463680431). Do not apply it.
+Revised debug-reach-v2-preview initializes the missing record in the existing
+DEBUG-only else, keeping the print conditional. No release initialization or
+arithmetic change. All 17 syntax configurations and 13 raw/native release objects pass. The six
+debug objects change one conditional branch destination so missing records are
+zeroed even when debug printing is disabled; all other normalized instructions
+match. Real-MSVC diagnostic run 35463911574 at a83363a2 passes all four x64/ARM64
+Debug/Release configurations with C4701 promoted.
+The before/after debug bot smoke exercises botDeveloper diagnostics, but not the
+specific rare missing-goal message. Raw repeated logs differ in loading-time
+measurements. With only those measurements normalized, both repeated before/after
+logs match 9fd54408d336da36721fcf82e709d1b1e62b510cb54f2c0fbeb574887c17ec89
+(debug-reach-v2-runtime/results.json). No accepted fixture/golden changes. Applied the revised preview and promoted C4701 on owned C++ sources.
+Run full hosted gates, then self-review before merging. Next remove the remaining
+MSVC warning suppressions one class per PR, starting with C4018; the signed/unsigned
+source fixes already landed in #90.
+
+PR #106 merged-tree regression 35463424264 passes. #107 build 35463628573 and
+regression 35463628559 pass. All work remains in our repository.
+
 
 The C4611 annotation is merged: only standard-MSVC Q_setjmp is annotated, the #1
 trivial-lifetime gate remains, and C4611 is an error on owned C++ sources. All 28

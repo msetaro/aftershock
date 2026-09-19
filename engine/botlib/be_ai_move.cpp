@@ -3265,10 +3265,13 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 			} //end if
 #ifdef DEBUG
 			
-			else if (botDeveloper)
+			else
 			{
-				botimport.Print(PRT_MESSAGE, "goal not reachable\n");
-				Com_Memset(&reach, 0, sizeof(aas_reachability_t)); //make compiler happy
+				if (botDeveloper)
+				{
+					botimport.Print(PRT_MESSAGE, "goal not reachable\n");
+				} //end if
+				Com_Memset(&reach, 0, sizeof(aas_reachability_t));
 			} //end else
 			if (botDeveloper)
 			{
