@@ -60,7 +60,7 @@ void daub4( float b[], uint64_t n, int isign ) {
 
 void wt1( float a[], uint64_t n, int isign ) {
 	uint64_t nn;
-	int inverseStartLength = n / 4;
+	int inverseStartLength = (int)( n / 4 );
 	if ( n < (decltype( n ))inverseStartLength )
 		return;
 	if ( isign >= 0 ) {
