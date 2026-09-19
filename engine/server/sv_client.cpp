@@ -403,9 +403,9 @@ static void SV_InjectLocation( const char *tld, const char *country ) {
 				str = (char *)strstr( cmd, "connected\n\"" );
 				if ( str && str[11] == '\0' && str < cmd + 512 ) {
 					if ( *tld == '\0' )
-						sprintf( str, S_COLOR_WHITE "connected (%s)\n\"", country );
+						snprintf( str, sizeof( svs.clients[i].reliableCommands[0] ) - ( str - cmd ), S_COLOR_WHITE "connected (%s)\n\"", country );
 					else
-						sprintf( str, S_COLOR_WHITE "connected (" S_COLOR_RED "%s" S_COLOR_WHITE ", %s)\n\"", tld, country );
+						snprintf( str, sizeof( svs.clients[i].reliableCommands[0] ) - ( str - cmd ), S_COLOR_WHITE "connected (" S_COLOR_RED "%s" S_COLOR_WHITE ", %s)\n\"", tld, country );
 					break;
 				}
 			}

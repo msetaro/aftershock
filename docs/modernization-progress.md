@@ -15,21 +15,26 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-msvc-strict-warnings. PR #124 merged as 613c96b8 after build
-35471369036, regression 35471369005 and preceding merged-tree regression
-35471364358 passed. The individual MSVC suppression classes are complete.
+Active: issue/8-bounded-engine-formatting. Replaces 43 deprecated sprintf calls
+with snprintf in 16 engine files, passing actual array/remaining capacity. Formats,
+value arguments and arithmetic remain unchanged. This is #8 deprecation cleanup:
+reviewed numeric maxima and bounded inputs already fit the existing buffers.
+The greyscale shader helper now receives its caller's buffer size; pointer outputs
+retain their existing owners. 195 compile configurations and GCC/Clang capacity
+comparisons pass (numeric-format-preview and numeric-format-capacity.cpp).
 
-Next: enable /W4 /WX on owned engine/game C++ sources in every MSVC configuration,
-removing the target-wide warning-level flags. Vendor /w remains unchanged. The
-same policy passed diagnostic run 35466848347 on x64/ARM64 Debug/Release, Ninja
-and generated Visual Studio projects, with zero compiler C warnings. Three
-existing Visual Studio vendor flag-override notices remain per leg. Evidence:
-msvc-strict-v2-review.json. Full integration-tree build/regression and PR #124's
-merged-tree regression must pass before self-review and merge. This changes only
-warning policy; native GPL sources, optimization/FP flags and accepted goldens
-are unchanged. Afterward continue Apple deprecations, then the remaining #8 gates.
+Next: run local Quake 3 runtime/replay and full hosted build/regression, verify
+PR #125 merged-tree regression, then self-review and merge. Calls now use a
+different library ABI, so do not claim identical object hashes. No accepted golden
+regeneration. Native arbitrary-length diagnostics and the obsolete print-test
+interface remain to address separately before removing the Apple warning disable.
 
 ## Recent MSVC merges
+
+PR #125 strict MSVC policy: head e273e6eb, merged ebd40d5b.
+Build 35472155040 and regression 35472154997 pass after self-review; preceding
+merged-tree regression 35472119435 also passes. Owned engine/game C++ now uses
+/W4 /WX in all configurations; vendor warning policy and optimization are intact.
 
 PR #124 C4711: source 3e6d66b8, head 43605a7d, merged 613c96b8.
 Build 35471369036 and regression 35471369005 pass after self-review.
@@ -72,6 +77,20 @@ regression 35468827553 pass after self-review. Preceding merged-tree regression
 code/data; twelve helper hashes/layouts match. Evidence: msvc-typedef-*.
 
 ## Prepared #8 work
+
+Fixed-capacity formatting preview: numeric-format-preview replaces 43 sprintf
+calls in 16 engine files with snprintf using the actual array or remaining
+capacity. Formats and value arguments stay unchanged. The greyscale shader helper
+receives its caller's array size; existing pointer outputs were traced to their
+owners (filterDate, reliableCommands and the checked chat destination). Reviewed
+numeric maxima, bounded source strings and the fixed country table fit the
+existing buffers. 195 GCC/Clang/MinGW/AArch64 compilation configurations pass;
+numeric-format-capacity.cpp confirms identical lengths/text at representable
+numeric extremes, maximal bounded strings and every country table entry with
+GCC and Clang. Applied on the active issue branch. The library call ABI
+changes, so full runtime/replay gates are required rather than claiming identical
+objects. PR #125 has merged. Arbitrary-length native diagnostic
+formatters and the obsolete native print-test interface remain separate work.
 
 Real MSVC record-width diagnostic: 96bbfb58 on the never-merged
 issue/8-warning-inventory-current branch combines enum-unsigned and central-width

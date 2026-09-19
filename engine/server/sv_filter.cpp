@@ -132,7 +132,7 @@ static int eval_node( const filter_node_t *node )
 			{
 				qtime_t t;
 				Com_RealTime( &t );
-				sprintf( node->p1, "%04i-%02i-%02i %02i:%02i",
+				snprintf( node->p1, sizeof( filterDate ), "%04i-%02i-%02i %02i:%02i",
 					t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
 					t.tm_hour, t.tm_min );
 				filterDateMsec = filterCurrMsec;
@@ -222,7 +222,7 @@ static void dump_nodes( const filter_node_t *node, int level, int skip_tagged, F
 		{
 			if ( *node->p1 )
 			{
-				n = sprintf( buf, "drop \"%s\"", node->p1 );
+				n = snprintf( buf, sizeof( buf ), "drop \"%s\"", node->p1 );
 				FS_OSWrite( buf, n, 1, f );
 			} else
 				FS_OSWrite( "drop", 4, 1, f );
@@ -724,7 +724,7 @@ static qboolean parse_file( const char *filename )
 
 	// initialize date string
 	Com_RealTime( &t );
-	sprintf( filterDate, "%04i-%02i-%02i %02i:%02i",
+	snprintf( filterDate, sizeof( filterDate ), "%04i-%02i-%02i %02i:%02i",
 		t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
 		t.tm_hour, t.tm_min );
 

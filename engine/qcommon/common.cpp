@@ -3167,7 +3167,7 @@ qboolean Com_CDKeyValidate( const char *key, const char *checksum ) {
 		}
 	}
 
-	sprintf(chs, "%02x", sum);
+	snprintf(chs, sizeof(chs), "%02x", sum);
 
 	if (checksum && !Q_stricmp(chs, checksum)) {
 		return qtrue;

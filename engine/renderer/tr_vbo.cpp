@@ -202,16 +202,16 @@ static const char *BuildVP( int multitexture, int fogmode, int texgen )
 	switch ( multitexture ) {
 		case GL_ADD:
 		case GL_MODULATE:
-			sprintf( b,
+			snprintf( b, sizeof( b ),
 				"MOV result.texcoord[0], %s; \n"
 				"MOV result.texcoord[1], %s; \n",
 				tex0, tex1 );
 			break;
 		case GL_REPLACE:
-			sprintf( b, "MOV result.texcoord[1], %s; \n", tex1 );
+			snprintf( b, sizeof( b ), "MOV result.texcoord[1], %s; \n", tex1 );
 			break;
 		default:
-			sprintf( b, "MOV result.texcoord[0], %s; \n", tex0 );
+			snprintf( b, sizeof( b ), "MOV result.texcoord[0], %s; \n", tex0 );
 			break;
 	}
 

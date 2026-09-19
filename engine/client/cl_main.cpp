@@ -589,12 +589,12 @@ static void CL_Record_f( void ) {
 		ext = COM_GetExtension( demoName );
 		if ( *ext ) {
 			// strip demo extension
-			sprintf( demoExt, "%s%d", DEMOEXT, OLD_PROTOCOL_VERSION );
+			snprintf( demoExt, sizeof( demoExt ), "%s%d", DEMOEXT, OLD_PROTOCOL_VERSION );
 			if ( Q_stricmp( ext, demoExt ) == 0 ) {
 				*(strrchr( demoName, '.' )) = '\0';
 			} else {
 				// check both protocols
-				sprintf( demoExt, "%s%d", DEMOEXT, NEW_PROTOCOL_VERSION );
+				snprintf( demoExt, sizeof( demoExt ), "%s%d", DEMOEXT, NEW_PROTOCOL_VERSION );
 				if ( Q_stricmp( ext, demoExt ) == 0 ) {
 					*(strrchr( demoName, '.' )) = '\0';
 				}
@@ -1757,7 +1757,7 @@ static void CL_SendPureChecksums( void ) {
 		return;
 
 	// if we are pure we need to send back a command with our referenced pk3 checksums
-	len = sprintf( cMsg, "cp %d ", cl.serverId );
+	len = snprintf( cMsg, sizeof( cMsg ), "cp %d ", cl.serverId );
 	strcpy( cMsg + len, FS_ReferencedPakPureChecksums( sizeof( cMsg ) - len - 1 ) );
 
 	CL_AddReliableCommand( cMsg, qfalse );
@@ -4575,7 +4575,7 @@ static void CL_GlobalServers_f( void ) {
 		int numAddress = 0;
 
 		for ( i = 1; i <= MAX_MASTER_SERVERS; i++ ) {
-			sprintf( command, "sv_master%d", i );
+			snprintf( command, sizeof( command ), "sv_master%d", i );
 			masteraddress = Cvar_VariableString( command );
 
 			if ( !*masteraddress )
@@ -4593,7 +4593,7 @@ static void CL_GlobalServers_f( void ) {
 		return;
 	}
 
-	sprintf( command, "sv_master%d", masterNum );
+	snprintf( command, sizeof( command ), "sv_master%d", masterNum );
 	masteraddress = Cvar_VariableString( command );
 
 	if ( !*masteraddress )

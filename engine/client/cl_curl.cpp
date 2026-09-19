@@ -698,11 +698,11 @@ static const char *sizeToString( int size )
 {
 	static char buf[ 32 ];
 	if ( size < 1024 ) {
-		sprintf( buf, "%iB", size );
+		snprintf( buf, sizeof( buf ), "%iB", size );
 	} else if ( size < 1024*1024 ) {
-		sprintf( buf, "%iKB", size / 1024 );
+		snprintf( buf, sizeof( buf ), "%iKB", size / 1024 );
 	} else {
-		sprintf( buf, "%i.%iMB", size / (1024*1024), (size / (1024*1024/10 )) % 10 );
+		snprintf( buf, sizeof( buf ), "%i.%iMB", size / (1024*1024), (size / (1024*1024/10 )) % 10 );
 	}
 	return buf;
 }
@@ -753,9 +753,9 @@ static int Com_DL_CallbackProgress( void *data, double dltotal, double dlnow, do
 #else
 		percentage = ( dlnow / dltotal ) * 100.0;
 #endif
-		sprintf( dl->progress, " downloading %s: %s (%i%%)", dl->Name, sizeToString( dl->Count ), (int)percentage );
+		snprintf( dl->progress, sizeof( dl->progress ), " downloading %s: %s (%i%%)", dl->Name, sizeToString( dl->Count ), (int)percentage );
 	} else {
-		sprintf( dl->progress, " downloading %s: %s", dl->Name, sizeToString( dl->Count ) );
+		snprintf( dl->progress, sizeof( dl->progress ), " downloading %s: %s", dl->Name, sizeToString( dl->Count ) );
 	}
 
 #if CURL_AT_LEAST_VERSION(7, 55, 0)

@@ -57,7 +57,7 @@ static void signal_handler( int sig )
 #endif
 
 	signalcaught = qtrue;
-	sprintf( msg, "Signal caught (%d)", sig );
+	snprintf( msg, sizeof( msg ), "Signal caught (%d)", sig );
 #ifndef DEDICATED
 	CL_Shutdown( msg, qtrue );
 #endif
