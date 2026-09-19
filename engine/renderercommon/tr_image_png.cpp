@@ -452,7 +452,7 @@ static qboolean FindChunk(struct BufferedFile *BF, uint32_t ChunkType)
 	 *  cycle trough the chunks
 	 */
 
-	while(qtrue)
+	while(true)
 	{
 		/*
 		 *  Read the chunk-header.
@@ -566,7 +566,7 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer)
 	 *  Count the size of the uncompressed data
 	 */
 
-	while(qtrue)
+	while(true)
 	{
 		/*
 		 *  Read chunk header
@@ -641,7 +641,7 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer)
 	 *  Collect the compressed Data
 	 */
 
-	while(qtrue)
+	while(true)
 	{
 		/*
 		 *  Read chunk header

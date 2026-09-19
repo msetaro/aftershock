@@ -391,7 +391,7 @@ int S_OGG_CodecReadStream(snd_stream_t *stream, int bytes, void *buffer)
 	bufPtr = (char *)buffer;
 
 	// cycle until we have the requested or all available bytes read
-	while (-1)
+	while (true)
 	{
 		// read some bytes from the OGG codec
 		c = ov_read((OggVorbis_File *) stream->ptr, bufPtr, bytesLeft, IsBigEndian, OGG_SAMPLEWIDTH, 1, &BS);

@@ -117,7 +117,7 @@ static void S_ByteSwapRawSamples( int samples, int width, int s_channels, const 
 	if ( width != 2 ) {
 		return;
 	}
-	if ( LittleShort( 256 ) == 256 ) {
+	if constexpr ( LittleShort( 256 ) == 256 ) {
 		return;
 	}
 
