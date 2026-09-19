@@ -12,10 +12,29 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-numeric-conversions. PR #105 at 0287b14e passed build
-35460968139 and regression 35460968101, with self-review on #105/#8; merged
-0bc5e180. Its merged-tree regression 35461284543 passes. PR #104 merged-tree regression
-35460938185 passes; #103/#102 merged-tree regressions also passed.
+Active: issue/8-unreachable-code. PR #106 at bea6347c passes build 35462676712
+and regression 35462676707, with self-review on #106/#8; merged c4047adf.
+The build's sole initial failure was an MSYS mirror timeout before compilation;
+its isolated retry passed. Check the merged-tree regression next.
+
+Applied the reviewed C4702 preview to 15 source/header files and promoted C4702
+on owned C++ sources. Real MSVC x64/ARM64 Debug/Release diagnostic run 35462960543
+passes with C4244/C4702 promoted. All 151 affected syntax configurations and four
+game helper hashes/layouts pass. Of 169 production objects, 127 are raw/native
+identical and 24 differ only in debug information. The final 18 debug objects
+change only allocation diagnostic source-line immediates; every other stripped
+byte is identical (unreachable-line-review.json). No reachable arithmetic change,
+new OS calls, allocation, non-trivial lifetime, layout, accepted fixture or golden
+change. Source 6bd5c657 records the cleanup; original GPL import hashes retain the
+transformation for both native files. Run hosted gates, then self-review before merging.
+Optional MISSIONPACK object comparison also compiles all nine configurations:
+five release objects are identical; two Clang release objects share the lightning
+bounce decrement/check between continuing paths, and two GCC debug objects move
+the same increment onto its sole continue edge. Ten-bounce limit and arithmetic
+are retained. This cache-only comparison demotes the pre-existing enum arithmetic
+warning at g_weapon.cpp:1099; no production warning policy changed. Evidence:
+unreachable-missionpack/results.json and unreachable-missionpack-*.diff.
+Next warning: review the single C4701 debug bot diagnostic initialization guard.
 
 The C4611 annotation is merged: only standard-MSVC Q_setjmp is annotated, the #1
 trivial-lifetime gate remains, and C4611 is an error on owned C++ sources. All 28
@@ -26,8 +45,12 @@ Applied the reviewed narrowing-v5-preview to 174 source/header files and promote
 C4244 on owned C++ sources, removing both inherited C4244 suppressions. Source
 6709136c records the change; original GPL import hashes are retained with this
 transformation attached to all 70 changed native files. Only inherited trailing
-whitespace on 58 touched lines was trimmed after preview verification. Run all
-hosted gates, then self-review before merging.
+whitespace on 58 touched lines was trimmed after preview verification. PR #106 head bea6347c passes
+regression 35462676707. Build 35462676712 passed all compiled legs; the MinGW
+release leg failed before compilation while downloading a ccache package signature
+from an MSYS mirror. Only that failed leg was rerun and passed. All twelve committed-tree
+helper hashes/layouts match the post-formatter baseline (numeric-final-native.json).
+
 All conversions remain at their original arithmetic boundaries; RHS temporaries
 preserve compound-assignment evaluation order where needed. No dynamic allocation,
 new OS calls, non-trivial lifetime or wire/file layout change. Accepted fixtures

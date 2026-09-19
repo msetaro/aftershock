@@ -1719,10 +1719,7 @@ int QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
 	if ( !dest ) 
 	{
 		Com_Error( ERR_FATAL, "Com_sprintf: NULL dest" );
-#if	defined(_DEBUG) && defined(_WIN32)
-		Sys_DebugBreakpoint();
-#endif
-		return 0;
+
 	}
 
 	va_start( argptr, fmt );
@@ -1732,10 +1729,7 @@ int QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
 	if ( (size_t)len >= sizeof( bigbuffer ) || len < 0 )
 	{
 		Com_Error( ERR_FATAL, "Com_sprintf: overflowed bigbuffer" );
-#if	defined(_DEBUG) && defined(_WIN32)
-		Sys_DebugBreakpoint();
-#endif
-		return 0;
+
 	}
 
 	if ( len >= size ) 

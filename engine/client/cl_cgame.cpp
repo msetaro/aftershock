@@ -257,12 +257,10 @@ static qboolean CL_GetServerCommand( int serverCommandNumber ) {
 			return qfalse;
 		}
 		Com_Error( ERR_DROP, "CL_GetServerCommand: a reliable command was cycled out" );
-		return qfalse;
 	}
 
 	if ( clc.serverCommandSequence - serverCommandNumber < 0 ) {
 		Com_Error( ERR_DROP, "CL_GetServerCommand: requested a command not received" );
-		return qfalse;
 	}
 
 	index = serverCommandNumber & ( MAX_RELIABLE_COMMANDS - 1 );
@@ -840,7 +838,6 @@ void CGameImport_CIN_SetExtents( int handle, int x, int y, int w, int h ) {
 }
 int CGameImport_loadCamera( const char * name [[maybe_unused]] ) {
 	Com_Error( ERR_DROP, "Unsupported native service: CG_LOADCAMERA" );
-	return 0;
 }
 void CGameImport_startCamera( int time [[maybe_unused]] ) {
 	Com_Error( ERR_DROP, "Unsupported native service: CG_STARTCAMERA" );
@@ -848,7 +845,6 @@ void CGameImport_startCamera( int time [[maybe_unused]] ) {
 }
 int CGameImport_getCameraInfo( int time [[maybe_unused]], void * origin [[maybe_unused]], void * angles [[maybe_unused]] ) {
 	Com_Error( ERR_DROP, "Unsupported native service: CG_GETCAMERAINFO" );
-	return 0;
 }
 int CGameImport_GetEntityToken( char * buffer, int bufferSize ) {
 

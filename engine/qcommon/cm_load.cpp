@@ -810,7 +810,6 @@ cmodel_t *CM_ClipHandleToModel( clipHandle_t handle ) {
 	}
 	Com_Error( ERR_DROP, "CM_ClipHandleToModel: bad handle %i", handle + MAX_SUBMODELS );
 
-	return NULL;
 }
 
 

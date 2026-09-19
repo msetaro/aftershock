@@ -143,7 +143,8 @@
     "f9dbcb07": "#8 MSVC C4065: remove the default-only UI status switch; release/native code unchanged",
     "3eaba64d": "#8 MSVC C4267: make existing size_t-to-int conversions explicit; production code/data unchanged",
     "74689b95": "#8 MSVC C4457: rename local bleed alpha; production/native code and data unchanged",
-    "6709136c": "#8 C4244: explicit existing numeric conversions; full arithmetic and compound RHS evaluation order retained; twelve C/C++ helper hashes unchanged"
+    "6709136c": "#8 C4244: explicit existing numeric conversions; full arithmetic and compound RHS evaluation order retained; twelve C/C++ helper hashes unchanged",
+    "6bd5c657": "#8 C4702: remove unreachable-warning suppression; retain each weapon bounce increment on its sole continuing path; four game helper hashes unchanged"
   },
   "files": [
     {
@@ -1012,7 +1013,8 @@
         "05cb1e37",
         "93d334db",
         "af07f013",
-        "6709136c"
+        "6709136c",
+        "6bd5c657"
       ]
     },
     {
@@ -1067,7 +1069,8 @@
         "090b7a3c",
         "9c170ddd",
         "d4366ae7",
-        "6709136c"
+        "6709136c",
+        "6bd5c657"
       ]
     },
     {
