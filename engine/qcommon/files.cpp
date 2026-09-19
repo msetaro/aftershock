@@ -241,8 +241,8 @@ static const unsigned pak_checksums[] = {
 
 typedef struct fileInPack_s {
 	char *name; // name of the file
-	unsigned long pos; // file info position in zip
-	unsigned long size; // file size
+	decltype( unz_file_info::uncompressed_size ) pos; // minizip file info position
+	decltype( unz_file_info::uncompressed_size ) size; // minizip file size
 	struct fileInPack_s *next; // next file in the hash bucket
 } fileInPack_t;
 
@@ -1605,8 +1605,8 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 	pack_t *pak;
 	fileInPack_t *pakFile;
 	directory_t *dir;
-	long hash;
-	long fullHash;
+	int64_t hash;
+	int64_t fullHash;
 	FILE *temp;
 	int length;
 	fileHandleData_t *f;
@@ -1751,7 +1751,7 @@ FS_TouchFileInPak
 */
 void FS_TouchFileInPak( const char *filename, int refbits ) {
 	const searchpath_t *search;
-	long fullHash, hash;
+	int64_t fullHash, hash;
 	pack_t *pak;
 	fileInPack_t *pakFile;
 
@@ -1961,7 +1961,7 @@ FS_Seek
 
 =================
 */
-int FS_Seek( fileHandle_t f, long offset, fsOrigin_t origin ) {
+int FS_Seek( fileHandle_t f, int64_t offset, fsOrigin_t origin ) {
 	int _origin;
 
 	if ( !fs_searchpaths ) {
@@ -2060,8 +2060,8 @@ qboolean FS_FileIsInPAK( const char *filename, int *pChecksum, char *pakName ) {
 	const searchpath_t *search;
 	const pack_t *pak;
 	const fileInPack_t *pakFile;
-	long hash;
-	long fullHash;
+	int64_t hash;
+	int64_t fullHash;
 
 	if ( !fs_searchpaths ) {
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
@@ -2134,7 +2134,7 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 	fileHandle_t h;
 	byte *buf;
 	qboolean isConfig;
-	long len;
+	int64_t len;
 
 	if ( !fs_searchpaths ) {
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
@@ -2377,22 +2377,40 @@ static const byte cache_header[4] = {
 	( ( sizeof( fileOffset_t ) - 1 ) << 4 ) | ( sizeof( fileTime_t ) - 1 )
 };
 
+// Version-zero cache records retain each platform's established byte widths.
+#ifdef _WIN32
+using pk3cacheFileOffset_t = int32_t;
+using pk3cacheItemOffset_t = uint32_t;
+#else
+using pk3cacheFileOffset_t = int64_t;
+using pk3cacheItemOffset_t = uint64_t;
+#endif
+static_assert( sizeof( fileOffset_t ) == sizeof( pk3cacheFileOffset_t ) );
+static_assert( sizeof( fileTime_t ) == sizeof( int64_t ) );
+
 typedef struct pk3cacheHeader_s {
-	int pakNameLen; // full path
-	int namesLen;
-	int numFiles;
-	int numHeaderLongs; // including first uninitialized
-	int contentLen;
-	fileTime_t ctime; // creation/status change time
-	fileTime_t mtime; // modification time
-	fileOffset_t size; // zip file size
+	int32_t pakNameLen; // full path
+	int32_t namesLen;
+	int32_t numFiles;
+	int32_t numHeaderLongs; // including first uninitialized
+	int32_t contentLen;
+	int64_t ctime; // creation/status change time
+	int64_t mtime; // modification time
+	pk3cacheFileOffset_t size; // zip file size
 } pk3cacheHeader_t;
 
 typedef struct pk3cacheFileItem_s {
-	unsigned long name; // offset in namebuffer
-	unsigned long size;
-	unsigned long pos; // info position in pk3 file
+	pk3cacheItemOffset_t name; // offset in namebuffer
+	pk3cacheItemOffset_t size;
+	pk3cacheItemOffset_t pos; // info position in pk3 file
 } pk3cacheFileItem_t;
+
+static_assert( sizeof( pk3cacheHeader_t ) == 36 + sizeof( pk3cacheFileOffset_t ) &&
+			   alignof( pk3cacheHeader_t ) == 1 && std::is_trivially_copyable_v<pk3cacheHeader_t> &&
+			   std::is_standard_layout_v<pk3cacheHeader_t> );
+static_assert( sizeof( pk3cacheFileItem_t ) == 3 * sizeof( pk3cacheItemOffset_t ) &&
+			   alignof( pk3cacheFileItem_t ) == 1 && std::is_trivially_copyable_v<pk3cacheFileItem_t> &&
+			   std::is_standard_layout_v<pk3cacheFileItem_t> );
 
 #pragma pack( pop )
 
@@ -2596,7 +2614,7 @@ static qboolean FS_SavePackToFile( const pack_t *pak, FILE *f ) {
 
 	// file entries
 	for ( i = 0; i < pak->numfiles; i++ ) {
-		it.name = (unsigned long)( pak->buildBuffer[i].name - namePtr );
+		it.name = (uint64_t)( pak->buildBuffer[i].name - namePtr );
 		it.size = pak->buildBuffer[i].size;
 		it.pos = pak->buildBuffer[i].pos;
 		fwrite( &it, sizeof( it ), 1, f );
@@ -2639,7 +2657,7 @@ static qboolean FS_LoadPakFromFile( FILE *f ) {
 	int size, i;
 	int pakBaseLen;
 	int hashSize;
-	long hash;
+	int64_t hash;
 
 	if ( fread( &pk, sizeof( pk ), 1, f ) != 1 )
 		return qfalse; // probably EOF
@@ -2930,7 +2948,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile ) {
 	char filename_inzip[MAX_ZPATH];
 	unz_file_info file_info;
 	unsigned int i, namelen, hashSize, size;
-	long hash;
+	int64_t hash;
 	int fs_numHeaderLongs;
 	int *fs_headerLongs;
 	int filecount;
@@ -3997,7 +4015,7 @@ static void FS_Which_f( void ) {
 	pack_t *pak;
 	fileInPack_t *pakFile;
 	directory_t *dir;
-	long hash;
+	int64_t hash;
 	FILE *temp;
 	const char *filename;
 	char buf[MAX_OSPATH * 2 + 1];
@@ -5556,7 +5574,7 @@ void FS_VM_WriteFile( void *buffer, int len, fileHandle_t f, handleOwner_t owner
 }
 
 
-int FS_VM_SeekFile( fileHandle_t f, long offset, fsOrigin_t origin, handleOwner_t owner ) {
+int FS_VM_SeekFile( fileHandle_t f, int64_t offset, fsOrigin_t origin, handleOwner_t owner ) {
 	int r;
 
 	if ( f <= 0 || f >= MAX_FILE_HANDLES )

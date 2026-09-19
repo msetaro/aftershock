@@ -343,7 +343,7 @@ int GameImport_FS_GetFileList( const char *path, const char *extension, char *li
 	return FS_GetFileList( (const char *)path, (const char *)extension, (char *)listbuf, bufsize );
 }
 int GameImport_FS_Seek( int f, int64_t offset, int origin ) {
-	return FS_VM_SeekFile( f, (long)offset, (fsOrigin_t)origin, H_QAGAME );
+	return FS_VM_SeekFile( f, (int64_t)offset, (fsOrigin_t)origin, H_QAGAME );
 }
 void GameImport_SendConsoleCommand( int exec_when, const char *text ) {
 	Cbuf_ExecuteText( (cbufExec_t)exec_when, (const char *)text );
@@ -779,7 +779,7 @@ void GameImport_BotGetChatMessage( int chatstate, char *buf, int size ) {
 int GameImport_StringContains( char *str1, char *str2, int casesensitive ) {
 	return botlib_export->ai.StringContains( (const char *)str1, (const char *)str2, casesensitive );
 }
-int GameImport_BotFindMatch( char *str, void *match, unsigned long int context ) {
+int GameImport_BotFindMatch( char *str, void *match, uint64_t context ) {
 	return botlib_export->ai.BotFindMatch( (const char *)str, (struct bot_match_s *)match, context );
 }
 void GameImport_BotMatchVariable( void *match, int variable, char *buf, int size ) {
@@ -791,7 +791,7 @@ void GameImport_UnifyWhiteSpaces( char *string ) {
 	botlib_export->ai.UnifyWhiteSpaces( (char *)string );
 	return;
 }
-void GameImport_BotReplaceSynonyms( char *string, unsigned long int context ) {
+void GameImport_BotReplaceSynonyms( char *string, uint64_t context ) {
 	botlib_export->ai.BotReplaceSynonyms( (char *)string, MAX_STRING_CHARS, context );
 	return;
 }

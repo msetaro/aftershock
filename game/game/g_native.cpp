@@ -30,7 +30,7 @@ void trap_FS_FCloseFile( fileHandle_t f ) {
 int trap_FS_GetFileList( const char *path, const char *extension, char *listbuf, int bufsize ) {
 	return GameImport_FS_GetFileList( path, extension, listbuf, bufsize );
 }
-int trap_FS_Seek( fileHandle_t f, long offset, int origin ) {
+int trap_FS_Seek( fileHandle_t f, int64_t offset, int origin ) {
 	return GameImport_FS_Seek( f, offset, origin );
 }
 void trap_SendConsoleCommand( int exec_when, const char *text ) {
@@ -377,7 +377,7 @@ void trap_BotGetChatMessage( int chatstate, char *buf, int size ) {
 int trap_StringContains( char *str1, char *str2, int casesensitive ) {
 	return GameImport_StringContains( str1, str2, casesensitive );
 }
-int trap_BotFindMatch( char *str, void *match, unsigned long int context ) {
+int trap_BotFindMatch( char *str, void *match, uint64_t context ) {
 	return GameImport_BotFindMatch( str, match, context );
 }
 void trap_BotMatchVariable( void *match, int variable, char *buf, int size ) {
@@ -386,7 +386,7 @@ void trap_BotMatchVariable( void *match, int variable, char *buf, int size ) {
 void trap_UnifyWhiteSpaces( char *string ) {
 	GameImport_UnifyWhiteSpaces( string );
 }
-void trap_BotReplaceSynonyms( char *string, unsigned long int context ) {
+void trap_BotReplaceSynonyms( char *string, uint64_t context ) {
 	GameImport_BotReplaceSynonyms( string, context );
 }
 int trap_BotLoadChatFile( int chatstate, char *chatfile, char *chatname ) {

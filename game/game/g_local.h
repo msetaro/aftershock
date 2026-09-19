@@ -777,7 +777,7 @@ void trap_FS_Read( void *buffer, int len, fileHandle_t f );
 void trap_FS_Write( const void *buffer, int len, fileHandle_t f );
 void trap_FS_FCloseFile( fileHandle_t f );
 int trap_FS_GetFileList( const char *path, const char *extension, char *listbuf, int bufsize );
-int trap_FS_Seek( fileHandle_t f, long offset, int origin ); // fsOrigin_t
+int trap_FS_Seek( fileHandle_t f, int64_t offset, int origin ); // fsOrigin_t
 void trap_SendConsoleCommand( int exec_when, const char *text );
 void trap_Cvar_Register( vmCvar_t *cvar, const char *var_name, const char *value, int flags );
 void trap_Cvar_Update( vmCvar_t *cvar );
@@ -909,10 +909,10 @@ int trap_BotChatLength( int chatstate );
 void trap_BotEnterChat( int chatstate, int client, int sendto );
 void trap_BotGetChatMessage( int chatstate, char *buf, int size );
 int trap_StringContains( char *str1, char *str2, int casesensitive );
-int trap_BotFindMatch( char *str, void /* struct bot_match_s */ *match, unsigned long int context );
+int trap_BotFindMatch( char *str, void /* struct bot_match_s */ *match, uint64_t context );
 void trap_BotMatchVariable( void /* struct bot_match_s */ *match, int variable, char *buf, int size );
 void trap_UnifyWhiteSpaces( char *string );
-void trap_BotReplaceSynonyms( char *string, unsigned long int context );
+void trap_BotReplaceSynonyms( char *string, uint64_t context );
 int trap_BotLoadChatFile( int chatstate, char *chatfile, char *chatname );
 void trap_BotSetChatGender( int chatstate, int gender );
 void trap_BotSetChatName( int chatstate, char *name, int client );

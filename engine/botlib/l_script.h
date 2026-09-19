@@ -152,13 +152,23 @@ typedef struct punctuation_s {
 	struct punctuation_s *next; //next punctuation
 } punctuation_t;
 
+// Preserve the existing arithmetic widths used by script-to-float conversion.
+// Canonicalizing them requires a separate deterministic-behavior change.
+#ifdef _WIN32
+typedef uint32_t scriptUnsigned_t;
+typedef int32_t scriptSigned_t;
+#else
+typedef uint64_t scriptUnsigned_t;
+typedef int64_t scriptSigned_t;
+#endif
+
 //token
 typedef struct token_s {
 	char string[MAX_TOKEN]; //available token
 	int type; //last read token type
 	int subtype; //last read token sub type
 #ifdef NUMBERVALUE
-	unsigned long int intvalue; //integer value
+	scriptUnsigned_t intvalue; //integer value
 	float floatvalue; //floating point value
 #endif //NUMBERVALUE
 	char *whitespace_p; //start of white space before token
@@ -208,7 +218,7 @@ void PS_UnreadToken(script_t *script, token_t *token);
 //returns the next character of the read white space, returns NULL if none
 char PS_NextWhiteSpaceChar(script_t *script);
 //read a possible signed integer
-signed long int ReadSignedInt(script_t *script);
+scriptSigned_t ReadSignedInt(script_t *script);
 //read a possible signed floating point number
 float ReadSignedFloat(script_t *script);
 //get script flags

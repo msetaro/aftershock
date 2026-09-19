@@ -27,11 +27,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define C2 0.2241438680420134
 #define C3 -0.1294095225512604
 
-void daub4( float b[], unsigned long n, int isign ) {
+void daub4( float b[], uint64_t n, int isign ) {
 	float wksp[4097] = { 0.0f };
 #define a( x ) b[(x)-1]					// numerical recipes so a[1] = b[0]
 
-	unsigned long nh, nh1, i, j;
+	uint64_t nh, nh1, i, j;
 
 	if ( n < 4 )
 		return;
@@ -58,8 +58,8 @@ void daub4( float b[], unsigned long n, int isign ) {
 #undef a
 }
 
-void wt1( float a[], unsigned long n, int isign ) {
-	unsigned long nn;
+void wt1( float a[], uint64_t n, int isign ) {
+	uint64_t nn;
 	int inverseStartLength = n / 4;
 	if ( n < (decltype( n ))inverseStartLength )
 		return;
@@ -333,14 +333,14 @@ static unsigned char numBits[] = {
 };
 
 byte MuLawEncode( short s ) {
-	unsigned long adjusted;
+	uint64_t adjusted;
 	byte sign, exponent, mantissa;
 
 	sign = ( s < 0 ) ? 0 : 0x80;
 
 	if ( s < 0 )
 		s = -s;
-	adjusted = (long)s << ( 16 - sizeof( short ) * 8 );
+	adjusted = (int64_t)s << ( 16 - sizeof( short ) * 8 );
 	adjusted += 128L + 4L;
 	if ( adjusted > 32767 )
 		adjusted = 32767;
@@ -350,7 +350,7 @@ byte MuLawEncode( short s ) {
 }
 
 short MuLawDecode( byte uLaw ) {
-	signed long adjusted;
+	int64_t adjusted;
 	byte exponent, mantissa;
 
 	uLaw = ~uLaw;

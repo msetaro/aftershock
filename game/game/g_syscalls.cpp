@@ -80,7 +80,7 @@ int trap_FS_GetFileList( const char *path, const char *extension, char *listbuf,
 	return NATIVE_SYSCALL( (intptr_t)( G_FS_GETFILELIST ), (intptr_t)( path ), (intptr_t)( extension ), (intptr_t)( listbuf ), (intptr_t)( bufsize ) );
 }
 
-int trap_FS_Seek( fileHandle_t f, long offset, int origin ) {
+int trap_FS_Seek( fileHandle_t f, int64_t offset, int origin ) {
 	return NATIVE_SYSCALL( (intptr_t)( G_FS_SEEK ), (intptr_t)( f ), (intptr_t)( offset ), (intptr_t)( origin ) );
 }
 
@@ -551,7 +551,7 @@ int trap_StringContains( char *str1, char *str2, int casesensitive ) {
 	return NATIVE_SYSCALL( (intptr_t)( BOTLIB_AI_STRING_CONTAINS ), (intptr_t)( str1 ), (intptr_t)( str2 ), (intptr_t)( casesensitive ) );
 }
 
-int trap_BotFindMatch( char *str, void /* struct bot_match_s */ *match, unsigned long int context ) {
+int trap_BotFindMatch( char *str, void /* struct bot_match_s */ *match, uint64_t context ) {
 	return NATIVE_SYSCALL( (intptr_t)( BOTLIB_AI_FIND_MATCH ), (intptr_t)( str ), (intptr_t)( match ), (intptr_t)( context ) );
 }
 
@@ -563,7 +563,7 @@ void trap_UnifyWhiteSpaces( char *string ) {
 	NATIVE_SYSCALL( (intptr_t)( BOTLIB_AI_UNIFY_WHITE_SPACES ), (intptr_t)( string ) );
 }
 
-void trap_BotReplaceSynonyms( char *string, unsigned long int context ) {
+void trap_BotReplaceSynonyms( char *string, uint64_t context ) {
 	NATIVE_SYSCALL( (intptr_t)( BOTLIB_AI_REPLACE_SYNONYMS ), (intptr_t)( string ), (intptr_t)( context ) );
 }
 

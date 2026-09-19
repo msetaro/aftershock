@@ -829,7 +829,7 @@ int UIImport_FS_GetFileList( const char *path, const char *extension, char *list
 }
 int UIImport_FS_Seek( int f, int64_t offset, int origin ) {
 
-	return FS_VM_SeekFile( f, (long)offset, (fsOrigin_t)origin, H_Q3UI );
+	return FS_VM_SeekFile( f, (int64_t)offset, (fsOrigin_t)origin, H_Q3UI );
 }
 int UIImport_R_RegisterModel( const char *name ) {
 

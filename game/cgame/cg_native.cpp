@@ -42,7 +42,7 @@ void trap_FS_Write( const void *buffer, int len, fileHandle_t f ) {
 void trap_FS_FCloseFile( fileHandle_t f ) {
 	CGameImport_FS_FCloseFile( f );
 }
-int trap_FS_Seek( fileHandle_t f, long offset, int origin ) {
+int trap_FS_Seek( fileHandle_t f, int64_t offset, int origin ) {
 	return CGameImport_FS_Seek( f, offset, origin );
 }
 void trap_SendConsoleCommand( const char *text ) {

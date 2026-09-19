@@ -189,7 +189,7 @@ typedef struct botlib_import_s {
 	int ( *FS_Read )( void *buffer, int len, fileHandle_t f );
 	int ( *FS_Write )( const void *buffer, int len, fileHandle_t f );
 	void ( *FS_FCloseFile )( fileHandle_t f );
-	int ( *FS_Seek )( fileHandle_t f, long offset, int origin );
+	int ( *FS_Seek )( fileHandle_t f, int64_t offset, int origin );
 	//debug visualisation stuff
 	int ( *DebugLineCreate )( void );
 	void ( *DebugLineDelete )( int line );
@@ -316,10 +316,10 @@ typedef struct ai_export_s {
 	void ( *BotEnterChat )( int chatstate, int client, int sendto );
 	void ( *BotGetChatMessage )( int chatstate, char *buf, int size );
 	int ( *StringContains )( char *str1, char *str2, int casesensitive );
-	int ( *BotFindMatch )( char *str, struct bot_match_s *match, unsigned long int context );
+	int ( *BotFindMatch )( char *str, struct bot_match_s *match, uint64_t context );
 	void ( *BotMatchVariable )( struct bot_match_s *match, int variable, char *buf, int size );
 	void ( *UnifyWhiteSpaces )( char *string );
-	void ( *BotReplaceSynonyms )( char *string, unsigned long int context );
+	void ( *BotReplaceSynonyms )( char *string, uint64_t context );
 	int ( *BotLoadChatFile )( int chatstate, char *chatfile, char *chatname );
 	void ( *BotSetChatGender )( int chatstate, int gender );
 	void ( *BotSetChatName )( int chatstate, char *name, int client );
