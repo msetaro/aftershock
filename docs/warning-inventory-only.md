@@ -11,3 +11,5 @@ C4701 preview: put missing-reach initialization and debug diagnostic use under o
 The combined guard still emits C4701 in debug (run 35463680431). Revised preview zeroes the missing record in the existing DEBUG-only else, keeping printing conditional. No release initialization.
 
 Strict policy preview: /W4 /WX on owned C++ source properties; preserve vendor/other source warning levels (/W3 Debug, /W4 Release). Remove target-wide levels to avoid duplicate command-line levels. Test Ninja and generated Visual Studio projects. No source edits. Never merge this diagnostic branch.
+
+Review correction: the first strict preview passed, but fallback source levels overrode the existing vendor /w (D9025 in x64 Debug). Remove that unnecessary fallback entirely. Owned C++ gets /W4 /WX; vendored sources retain their existing /w; remaining build sources are resources/assembly.
