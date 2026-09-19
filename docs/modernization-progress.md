@@ -15,8 +15,8 @@ upstream; historical upstream PR references below are completed past work.
 Active: issue/8-write-strings. #90 merged f3f2ce83 after head d7e3ecc2 passed
 build 35452882116 and regression 35452882090; self-review is recorded on #90/#8.
 Its merged-tree regression remains to check. #89 merged-tree regression
-35452853439 passes. Complete local smoke/replay and self-review, then open this
-separate constness warning PR and require full hosted gates before merging.
+35452853439 passes. Local validation is complete; open this separate constness warning PR and
+require full hosted gates/self-review before merging.
 
 This branch enables string-constness warnings through sixteen declarations/fields
 across thirteen engine files. Logging formats, expected tokens, directive names,
@@ -32,7 +32,16 @@ objects have identical section headers/bytes, named relocations and symbol value
 with only COFF symbol ordering changed. Code/data is preserved throughout. All
 botlib sources were compared to cover the changed internal headers. Persistent
 artifacts: write-strings-{preview,check,objects,symbol-map.json,review.json,
-coff-review.json}. Existing runtime/demo commands are next; never regenerate.
+coff-review.json}. Source c08ed1e9 records these declarations. MSVC strict string
+checking is enabled for engine code as well as native game code.
+
+Fixed Q3 demo replay passes with accepted frame hash b38004b1. The unmodified
+local runtime command failed only because host IPv6 addresses rotated since the
+accepted log. A cache-only wrapper removes exactly `^IP6?: .*` lines from both
+actual and expected logs; both maps then pass (fea77580/14c8ee7d). No engine,
+harness or golden changes were made for this environment difference. The original
+failure, wrapper and results are retained as write-strings-runtime*. Hosted OA
+runtime disables networking and remains an unmodified required gate.
 
 Completed signedness #90 evidence: source 70b1f0b6/provenance 4a96ca16 records
 412 edits in 91 files (15 GPL files). All 2,667 syntax configurations pass. Of
@@ -48,8 +57,8 @@ C4267 234, C4459 38, C4456 28, C4065 15, C4457 3, C4644 3. Review each class
 before enabling its error gate, then /WX. Local tools include clang-query-21.
 
 Next:
-1. Finish local runtime/demo, record source and results, open this class PR and
-   require hosted gates/self-review before merging.
+1. Open the constness class PR, require hosted gates/self-review and merge.
+   Verify #90 merged-tree regression 35453396608.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
