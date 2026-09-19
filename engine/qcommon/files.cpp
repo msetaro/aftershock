@@ -474,7 +474,6 @@ static fileHandle_t	FS_HandleForFile( void )
 	}
 
 	Com_Error( ERR_DROP, "FS_HandleForFile: none free" );
-	return FS_INVALID_HANDLE;
 }
 
 
@@ -2001,7 +2000,6 @@ int FS_Seek( fileHandle_t f, long offset, fsOrigin_t origin ) {
 
 	if ( !fs_searchpaths ) {
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
-		return -1;
 	}
 
 	if ( fsh[f].zipFile == qtrue ) {
@@ -2061,7 +2059,6 @@ int FS_Seek( fileHandle_t f, long offset, fsOrigin_t origin ) {
 
 			default:
 				Com_Error( ERR_FATAL, "Bad origin in FS_Seek" );
-				return -1;
 		}
 	} else {
 		FILE *file;
@@ -2078,7 +2075,6 @@ int FS_Seek( fileHandle_t f, long offset, fsOrigin_t origin ) {
 			break;
 		default:
 			Com_Error( ERR_FATAL, "Bad origin in FS_Seek" );
-			return -1;
 		}
 
 		return fseek( file, offset, _origin );
@@ -5621,7 +5617,6 @@ int	FS_FOpenFileByMode( const char *qpath, fileHandle_t *f, fsMode_t mode ) {
 		break;
 	default:
 		Com_Error( ERR_FATAL, "FSH_FOpenFile: bad mode %i", mode );
-		return -1;
 	}
 
 	if ( !f )

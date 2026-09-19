@@ -241,13 +241,11 @@ static size_t CL_cURL_CallbackWrite( void *buffer, size_t size, size_t nmemb, vo
 		if ( !CL_ValidPakSignature( (const byte *)buffer, (int)( size*nmemb ) ) ) {
 			Com_Error( ERR_DROP, "CL_cURL_CallbackWrite: invalid pak signature for %s", 
 				clc.downloadName );
-			return (size_t)-1;
 		}
 		clc.download = FS_SV_FOpenFileWrite( clc.downloadTempName );
 		if ( clc.download == FS_INVALID_HANDLE ) {
 			Com_Error( ERR_DROP, "CL_cURL_CallbackWrite: failed to open %s for writing", 
 				clc.downloadTempName );
-			return (size_t)-1;
 		}
 	}
 

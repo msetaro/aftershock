@@ -1028,7 +1028,6 @@ static memblock_t *NewBlock( memzone_t *zone, uint32_t size )
 	if ( sep == NULL ) {
 		Com_Error( ERR_FATAL, "Z_Malloc: failed on allocation of %u bytes from the %s zone",
 			size, zone->name );
-		return NULL;
 	}
 	Com_Memset( sep, 0x0, sizeof( *sep ) + sizeof( *block ) );
 	block = sep + 1;
@@ -1083,7 +1082,6 @@ static memblock_t *SearchFree( memzone_t *zone, uint32_t size )
 			return base;
 		}
 	}
-	return NULL;
 }
 #endif // USE_MULTI_SEGMENT
 
@@ -1289,7 +1287,6 @@ int Z_FreeTags( memtag_t tag )
 
 	if ( tag == TAG_STATIC ) {
 		Com_Error( ERR_FATAL, "Z_FreeTags( TAG_STATIC )" );
-		return 0;
 	} else {
 		zone = (tag == TAG_SMALL) ? smallzone : mainzone;
 	}
@@ -2533,7 +2530,6 @@ void *Hunk_MoveTempMemory( ha_pref preference ) {
 		return dest;
 	}
 
-	return NULL;
 }
 
 
