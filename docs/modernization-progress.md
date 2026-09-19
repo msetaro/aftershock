@@ -8,8 +8,11 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 ## Next action
 
 Active: issue/8-missing-initializers, based on pending unused-parameter PR #84
-head 0a8a0d68 (build 35449780940/regression 35449780958). Merge #84 after gates
-and self-review, then integrate modernization before opening this separate class.
+head 5623e8fe. Its original regression passed, but the Windows debug build found
+six callback parameters missing annotations. The correction is integrated here;
+full local MinGW debug build and callback codegen pass. Require fresh hosted
+gates and self-review before #84 merges, then integrate modernization before
+opening this separate initializer class PR.
 #83 merged 16b7d6d6 after build 35449378669/regression 35449378735 passed; its
 merged-tree run 35449777481 remains to check.
 
@@ -28,8 +31,8 @@ retain hashes and ABI layouts, including C99 helper mode. Artifacts are
 missing-initializers-{objects,native,check} under the persistent cache.
 
 Next:
-1. Record source provenance, confirm the explicit Windows DWORD cast preserves
-   the reviewed objects, and complete self-review. Merge #84 after gates,
+1. Source 708b7114 and provenance 3e42dfc6 are recorded. The explicit DWORD cast
+   preserves both reviewed MinGW native objects. Complete self-review and merge #84 after gates,
    integrate modernization, then open this class PR. Require full hosted gates.
 2. Finish array-bounds and unused-result reviews, then the remaining classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
@@ -1429,3 +1432,19 @@ The static allocator string blocks use a constexpr initializer to zero condition
 debug members without changing the layout. Compiler checks are running in
 missing-initializers-check; object, C99 helper and conditional-build verification
 remain before this separate warning-class change can be applied.
+
+PR #84 follow-up 5623e8fe is integrated: all 281 parameter annotations retain
+names and bodies, including six Windows debug validation callback parameters.
+The full local MinGW debug client/server build passes and a before/after control
+preserves native callback instructions/relocations. The initial regression
+35449780958 passed; corrected-head full workflows are required. #83 merged-tree
+regression 35449777481 passed. Persistent evidence: validation-callback/ and
+validation-callback-check.log.
+
+Initializer review: the four GCC debug common.cpp objects differ only in four
+allocator __LINE__ immediates, each increasing by five source lines. Two MinGW
+Sys_OpenVideoPipe objects reorder stores to distinct stack locations around a
+comparison; mov does not change condition flags, and final stored bytes/branch
+condition are unchanged. No added/removed functions or other instruction changes.
+The explicit DWORD cast on si.cb leaves both reviewed MinGW native objects
+byte-identical. All twelve native helper hashes/layouts are unchanged.
