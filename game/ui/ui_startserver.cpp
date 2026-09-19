@@ -986,12 +986,8 @@ static void ServerOptions_PlayerNameEvent( void* ptr, int event ) {
 ServerOptions_StatusBar
 =================
 */
-static void ServerOptions_StatusBar( void* ptr ) {
-	switch( ((menucommon_s*)ptr)->id ) {
-	default:
-		UI_DrawString( 320, 440, "0 = NO LIMIT", UI_CENTER|UI_SMALLFONT, colorWhite );
-		break;
-	}
+static void ServerOptions_StatusBar( [[maybe_unused]] void* ptr ) {
+	UI_DrawString( 320, 440, "0 = NO LIMIT", UI_CENTER|UI_SMALLFONT, colorWhite );
 }
 
 
