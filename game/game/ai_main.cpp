@@ -573,7 +573,7 @@ void BotInterbreedBots(void) {
 	// get rankings for all the bots
 	for (i = 0; i < MAX_CLIENTS; i++) {
 		if ( botstates[i] && botstates[i]->inuse ) {
-			ranks[i] = botstates[i]->num_kills * 2 - botstates[i]->num_deaths;
+			ranks[i] = (float)( botstates[i]->num_kills * 2 - botstates[i]->num_deaths );
 		}
 		else {
 			ranks[i] = -1;
@@ -607,7 +607,7 @@ void BotWriteInterbreeded(char *filename) {
 	// get the best bot
 	for (i = 0; i < MAX_CLIENTS; i++) {
 		if ( botstates[i] && botstates[i]->inuse ) {
-			rank = botstates[i]->num_kills * 2 - botstates[i]->num_deaths;
+			rank = (float)( botstates[i]->num_kills * 2 - botstates[i]->num_deaths );
 		}
 		else {
 			rank = -1;
@@ -782,7 +782,7 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 		//
 		if (bot_challenge.integer) {
 			//smooth slowdown view model
-			diff = abs((int)AngleDifference(bs->viewangles[i], bs->ideal_viewangles[i]));
+			diff = (float)( abs((int)AngleDifference(bs->viewangles[i], bs->ideal_viewangles[i])) );
 			anglespeed = diff * factor;
 			if (anglespeed > maxchange) anglespeed = maxchange;
 			bs->viewangles[i] = BotChangeViewAngle(bs->viewangles[i],
@@ -849,7 +849,7 @@ void BotInputToUserCommand(bot_input_t *bi, usercmd_t *ucmd, int delta_angles[3]
 	if (bi->actionflags & ACTION_PATROL) ucmd->buttons |= BUTTON_PATROL;
 	if (bi->actionflags & ACTION_FOLLOWME) ucmd->buttons |= BUTTON_FOLLOWME;
 	//
-	ucmd->weapon = bi->weapon;
+	ucmd->weapon = (unsigned char)( bi->weapon );
 	//set the view angles
 	//NOTE: the ucmd->angles are the angles WITHOUT the delta angles
 	ucmd->angles[PITCH] = ANGLE2SHORT(bi->viewangles[PITCH]);
@@ -857,7 +857,7 @@ void BotInputToUserCommand(bot_input_t *bi, usercmd_t *ucmd, int delta_angles[3]
 	ucmd->angles[ROLL] = ANGLE2SHORT(bi->viewangles[ROLL]);
 	//subtract the delta angles
 	for (j = 0; j < 3; j++) {
-		temp = ucmd->angles[j] - delta_angles[j];
+		temp = (short)( ucmd->angles[j] - delta_angles[j] );
 		/*NOTE: disabled because temp should be mod first
 		if ( j == PITCH ) {
 			// don't let the player look up or down more than 90 degrees
@@ -878,9 +878,9 @@ void BotInputToUserCommand(bot_input_t *bi, usercmd_t *ucmd, int delta_angles[3]
 	//bot input speed is in the range [0, 400]
 	bi->speed = bi->speed * 127 / 400;
 	//set the view independent movement
-	ucmd->forwardmove = (int)( DotProduct(forward, bi->dir) * bi->speed );
-	ucmd->rightmove = (int)( DotProduct(right, bi->dir) * bi->speed );
-	ucmd->upmove = (int)( abs((int)forward[2]) * bi->dir[2] * bi->speed );
+	ucmd->forwardmove = (signed char)( (int)( DotProduct(forward, bi->dir) * bi->speed ) );
+	ucmd->rightmove = (signed char)( (int)( DotProduct(right, bi->dir) * bi->speed ) );
+	ucmd->upmove = (signed char)( (int)( abs((int)forward[2]) * bi->dir[2] * bi->speed ) );
 	//normal keyboard movement
 	if (bi->actionflags & ACTION_MOVEFORWARD) ucmd->forwardmove += 127;
 	if (bi->actionflags & ACTION_MOVEBACK) ucmd->forwardmove -= 127;

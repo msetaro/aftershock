@@ -731,12 +731,12 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 
 	AxisClear( refdef.viewaxis );
 
-	refdef.x = x;
-	refdef.y = y;
-	refdef.width = w;
-	refdef.height = h;
+	refdef.x = (int)( x );
+	refdef.y = (int)( y );
+	refdef.width = (int)( w );
+	refdef.height = (int)( h );
 
-	refdef.fov_x = (int)((float)refdef.width / 640.0f * 90.0f);
+	refdef.fov_x = (float)( (int)((float)(float)( refdef.width ) / 640.0f * 90.0f) );
 	xx = refdef.width / tan( refdef.fov_x / 360 * M_PI );
 	refdef.fov_y = atan2( refdef.height, xx );
 	refdef.fov_y *= ( 360 / M_PI );
@@ -865,7 +865,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 
 		// make a dlight for the flash
 		if ( pi->flashDlightColor[0] || pi->flashDlightColor[1] || pi->flashDlightColor[2] ) {
-			trap_R_AddLightToScene( flash.origin, 200 + (rand()&31), pi->flashDlightColor[0],
+			trap_R_AddLightToScene( flash.origin, (float)( 200 + (rand()&31) ), pi->flashDlightColor[0],
 				pi->flashDlightColor[1], pi->flashDlightColor[2] );
 		}
 	}
@@ -1023,12 +1023,12 @@ static qboolean UI_ParseAnimationFile( const char *filename, animation_t *animat
 		if ( !token ) {
 			break;
 		}
-		fps = atof( token );
+		fps = (float)( atof( token ) );
 		if ( fps == 0 ) {
 			fps = 1;
 		}
-		animations[i].frameLerp = 1000 / fps;
-		animations[i].initialLerp = 1000 / fps;
+		animations[i].frameLerp = (int)( 1000 / fps );
+		animations[i].initialLerp = (int)( 1000 / fps );
 	}
 
 	if ( i != MAX_ANIMATIONS ) {

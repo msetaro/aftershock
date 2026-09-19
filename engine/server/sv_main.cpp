@@ -1312,7 +1312,7 @@ void SV_Frame( int msec ) {
 
 	// if it isn't time for the next frame, do nothing
 
-	frameMsec = (1000 / sv_fps->integer) * com_timescale->value;
+	frameMsec = (int)( (1000 / sv_fps->integer) * com_timescale->value );
 	// don't let it scale below 1ms
 	if (frameMsec < 1)
 	{

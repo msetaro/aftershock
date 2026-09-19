@@ -2366,7 +2366,7 @@ static void FS_ConvertFilename( char *name )
 	int c;
 	while ( (c = *name) != '\0' ) {
 		if ( c <= 'Z' && c >= 'A' ) {
-			*name = c - 'A' + 'a';
+			*name = (char)( c - 'A' + 'a' );
 		} else if ( c == '\\' || c == ':' ) {
 			*name = '/';
 		}
@@ -2617,7 +2617,7 @@ static qboolean FS_SavePackToFile( const pack_t *pak, FILE *f )
 	pakNameLen = (int) strlen( pakName ) + 1;
 	pakNameLen = PAD( pakNameLen, sizeof( int ) );
 
-	namesLen = pakName - namePtr;
+	namesLen = (int)( pakName - namePtr );
 
 	// file content length
 	contentLen = 0;

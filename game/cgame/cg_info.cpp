@@ -50,7 +50,7 @@ static void CG_DrawLoadingIcons( void ) {
 	for( n = 0; n < loadingPlayerIconCount; n++ ) {
 		x = 16 + n * 78;
 		y = 324-40;
-		CG_DrawPic( x, y, 64, 64, loadingPlayerIcons[n] );
+		CG_DrawPic( (float)( x ), (float)( y ), (float)( 64 ), (float)( 64 ), loadingPlayerIcons[n] );
 	}
 
 	for( n = 0; n < loadingItemIconCount; n++ ) {
@@ -59,7 +59,7 @@ static void CG_DrawLoadingIcons( void ) {
 			y += 40;
 		}
 		x = 16 + n % 13 * 48;
-		CG_DrawPic( x, y, 32, 32, loadingItemIcons[n] );
+		CG_DrawPic( (float)( x ), (float)( y ), (float)( 32 ), (float)( 32 ), loadingItemIcons[n] );
 	}
 }
 
@@ -173,7 +173,7 @@ void CG_DrawInformation( void ) {
 
 	// blend a detail texture over it
 	detail = trap_R_RegisterShader( "levelShotDetail" );
-	trap_R_DrawStretchPic( 0, 0, cgs.glconfig.vidWidth, cgs.glconfig.vidHeight, 0, 0, 2.5f, 2, detail );
+	trap_R_DrawStretchPic( (float)( 0 ), (float)( 0 ), (float)( cgs.glconfig.vidWidth ), (float)( cgs.glconfig.vidHeight ), (float)( 0 ), (float)( 0 ), 2.5f, (float)( 2 ), detail );
 
 	// draw the icons of things as they are loaded
 	CG_DrawLoadingIcons();

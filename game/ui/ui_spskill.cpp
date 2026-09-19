@@ -115,7 +115,7 @@ static void UI_SPSkillMenu_SkillEvent( void *ptr, int notification ) {
 
 	id = ((menucommon_s*)ptr)->id;
 	skill = id - ID_BABY + 1;
-	trap_Cvar_SetValue( "g_spSkill", skill );
+	trap_Cvar_SetValue( "g_spSkill", (float)( skill ) );
 
 	SetSkillColor( skill, color_white );
 	skillMenuInfo.art_skillPic.shader = *(skillMenuInfo.skillpics + (skill - 1));
@@ -312,7 +312,7 @@ static void UI_SPSkillMenu_Init( void ) {
 	Menu_AddItem( &skillMenuInfo.menu, ( void * )&skillMenuInfo.item_back );
 	Menu_AddItem( &skillMenuInfo.menu, ( void * )&skillMenuInfo.item_fight );
 
-	skill = (int)Com_Clamp( 1, 5, UI_GetSkill() );
+	skill = (int)Com_Clamp( (float)( 1 ), (float)( 5 ), (float)( UI_GetSkill() ) );
 	SetSkillColor( skill, color_white );
 	skillMenuInfo.art_skillPic.shader = *(skillMenuInfo.skillpics + (skill - 1));
 	if( skill == 5 ) {

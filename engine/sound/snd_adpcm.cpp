@@ -138,17 +138,17 @@ void S_AdpcmEncode( short indata[], char outdata[], int len, struct adpcm_state 
 		if ( bufferstep ) {
 			outputbuffer = (delta << 4) & 0xf0;
 		} else {
-			*outp++ = (delta & 0x0f) | outputbuffer;
+			*outp++ = (signed char)( (delta & 0x0f) | outputbuffer );
 		}
 		bufferstep = !bufferstep;
     }
 
     /* Output last step, if needed */
     if ( !bufferstep )
-      *outp++ = outputbuffer;
+      *outp++ = (signed char)( outputbuffer );
     
-    state->sample = valpred;
-    state->index = index;
+    state->sample = (short)( valpred );
+    state->index = (char)( index );
 }
 
 
@@ -218,12 +218,12 @@ void S_AdpcmEncode( short indata[], char outdata[], int len, struct adpcm_state 
 		step = stepsizeTable[index];
 
 		/* Step 7 - Output value */
-		outdata[outp] = valpred;
+		outdata[outp] = (short)( valpred );
 		outp++;
     }
 
-    state->sample = valpred;
-    state->index = index;
+    state->sample = (short)( valpred );
+    state->index = (char)( index );
 }
 
 
@@ -245,7 +245,7 @@ int S_AdpcmMemoryNeeded( const wavinfo_t *info ) {
 	scale = (float)info->rate / dma.speed;
 
 	// calc number of samples at playback sampling rate
-	scaledSampleCount = info->samples / scale;
+	scaledSampleCount = (int)( info->samples / scale );
 
 	// calc memory need to store those samples using ADPCM at 4 bits per sample
 	sampleMemory = scaledSampleCount / 2;

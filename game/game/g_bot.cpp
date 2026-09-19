@@ -58,7 +58,7 @@ float trap_Cvar_VariableValue( const char *var_name ) {
 	char buf[128];
 
 	trap_Cvar_VariableStringBuffer(var_name, buf, sizeof(buf));
-	return atof(buf);
+	return (float)( atof(buf) );
 }
 
 
@@ -265,7 +265,7 @@ void G_AddRandomBot( int team ) {
 			num++;
 		}
 	}
-	num = random() * num;
+	num = (int)( random() * num );
 	for ( n = 0; n < g_numBots ; n++ ) {
 		value = Info_ValueForKey( g_botInfos[n], "name" );
 		//
@@ -547,7 +547,7 @@ qboolean G_BotConnect( int clientNum, qboolean restart ) {
 	trap_GetUserinfo( clientNum, userinfo, sizeof(userinfo) );
 
 	Q_strncpyz( settings.characterfile, Info_ValueForKey( userinfo, "characterfile" ), sizeof(settings.characterfile) );
-	settings.skill = atof( Info_ValueForKey( userinfo, "skill" ) );
+	settings.skill = (float)( atof( Info_ValueForKey( userinfo, "skill" ) ) );
 	Q_strncpyz( settings.team, Info_ValueForKey( userinfo, "team" ), sizeof(settings.team) );
 
 	if (!BotAISetupClient( clientNum, &settings, restart )) {
@@ -731,7 +731,7 @@ void Svcmd_AddBot_f( void ) {
 		skill = 4;
 	}
 	else {
-		skill = atof( string );
+		skill = (float)( atof( string ) );
 	}
 
 	// team

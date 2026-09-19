@@ -474,7 +474,7 @@ void CGameImport_FS_FCloseFile( int f ) {
 }
 int CGameImport_FS_Seek( int f, int64_t offset, int origin ) {
 
-	return FS_VM_SeekFile( f, offset, (fsOrigin_t)origin, H_CGAME );
+	return FS_VM_SeekFile( f, (long)offset, (fsOrigin_t)origin, H_CGAME );
 
 }
 void CGameImport_SendConsoleCommand( const char * text ) {
@@ -1106,7 +1106,7 @@ static float CL_AvgPing( void ) {
 	if ( (count % 2) == 0 )
 		result = (ping[count / 2] + ping[(count / 2) - 1]) / 2.0f;
 	else
-		result = ping[count / 2];
+		result = (float)( ping[count / 2] );
 
 	return result;
 }

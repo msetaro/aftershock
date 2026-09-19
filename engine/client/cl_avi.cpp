@@ -454,7 +454,7 @@ qboolean CL_OpenAVIForWriting( const char *fileName, const char *pipeFormat, qbo
 	afd.a.bits = dma.samplebits;
 	afd.a.sampleSize = (afd.a.bits * afd.a.channels) / 8;
 
-	afd.audioFrameSize = ceil( (double)((float)(afd.a.rate * afd.a.sampleSize) / (float)afd.frameRate) );
+	afd.audioFrameSize = (int)( ceil( (double)((float)(afd.a.rate * afd.a.sampleSize) / (float)afd.frameRate) ) );
 
 	if ( Cvar_VariableIntegerValue( "s_initsound" ) == 0 )
 	{

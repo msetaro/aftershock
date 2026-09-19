@@ -523,12 +523,12 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 
 	switch( style & UI_FORMATMASK ) {
 		case UI_CENTER:
-			width = UI_ProportionalStringWidth( str ) * sizeScale;
+			width = (int)( UI_ProportionalStringWidth( str ) * sizeScale );
 			x -= width / 2;
 			break;
 
 		case UI_RIGHT:
-			width = UI_ProportionalStringWidth( str ) * sizeScale;
+			width = (int)( UI_ProportionalStringWidth( str ) * sizeScale );
 			x -= width;
 			break;
 
@@ -596,7 +596,7 @@ void UI_DrawProportionalString_AutoWrapped( int x, int y, int xmax, int ystep, c
 		} while (*s3!=' ' && *s3!='\0');
 		c_bcp = *s3;
 		*s3 = '\0';
-		width = UI_ProportionalStringWidth(s1) * sizeScale;
+		width = (int)( UI_ProportionalStringWidth(s1) * sizeScale );
 		*s3 = c_bcp;
 		if (width > xmax) {
 			if (s1==s2)
@@ -782,7 +782,7 @@ void UI_DrawChar( int x, int y, int ch, int style, vec4_t color )
 {
 	char	buff[2];
 
-	buff[0] = ch;
+	buff[0] = (char)( ch );
 	buff[1] = '\0';
 
 	UI_DrawString( x, y, buff, style, color );
@@ -1234,7 +1234,7 @@ void UI_Refresh( int realtime )
 
 	// draw cursor
 	UI_SetColor( NULL );
-	UI_DrawHandlePic( uis.cursorx-16, uis.cursory-16, 32, 32, uis.cursor);
+	UI_DrawHandlePic( (float)( uis.cursorx-16 ), (float)( uis.cursory-16 ), (float)( 32 ), (float)( 32 ), uis.cursor);
 
 #ifndef NDEBUG
 	if (uis.debug)
@@ -1256,8 +1256,8 @@ void UI_Refresh( int realtime )
 
 void UI_DrawTextBox (int x, int y, int width, int lines)
 {
-	UI_FillRect( x + BIGCHAR_WIDTH/2, y + BIGCHAR_HEIGHT/2, ( width + 1 ) * BIGCHAR_WIDTH, ( lines + 1 ) * BIGCHAR_HEIGHT, colorBlack );
-	UI_DrawRect( x + BIGCHAR_WIDTH/2, y + BIGCHAR_HEIGHT/2, ( width + 1 ) * BIGCHAR_WIDTH, ( lines + 1 ) * BIGCHAR_HEIGHT, colorWhite );
+	UI_FillRect( (float)( x + BIGCHAR_WIDTH/2 ), (float)( y + BIGCHAR_HEIGHT/2 ), (float)( ( width + 1 ) * BIGCHAR_WIDTH ), (float)( ( lines + 1 ) * BIGCHAR_HEIGHT ), colorBlack );
+	UI_DrawRect( (float)( x + BIGCHAR_WIDTH/2 ), (float)( y + BIGCHAR_HEIGHT/2 ), (float)( ( width + 1 ) * BIGCHAR_WIDTH ), (float)( ( lines + 1 ) * BIGCHAR_HEIGHT ), colorWhite );
 }
 
 qboolean UI_CursorInRect (int x, int y, int width, int height)

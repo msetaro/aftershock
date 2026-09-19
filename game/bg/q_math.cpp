@@ -220,7 +220,7 @@ signed char ClampChar( int i ) {
 	if ( i > 127 ) {
 		return 127;
 	}
-	return i;
+	return (signed char)( i );
 }
 
 signed short ClampShort( int i ) {
@@ -230,7 +230,7 @@ signed short ClampShort( int i ) {
 	if ( i > 0x7fff ) {
 		return 0x7fff;
 	}
-	return i;
+	return (short)( i );
 }
 
 
@@ -270,9 +270,9 @@ void ByteToDir( int b, vec3_t dir ) {
 unsigned ColorBytes3 (float r, float g, float b) {
 	unsigned	i;
 
-	( (byte *)&i )[0] = r * 255;
-	( (byte *)&i )[1] = g * 255;
-	( (byte *)&i )[2] = b * 255;
+	( (byte *)&i )[0] = (unsigned char)( r * 255 );
+	( (byte *)&i )[1] = (unsigned char)( g * 255 );
+	( (byte *)&i )[2] = (unsigned char)( b * 255 );
 
 	return i;
 }
@@ -280,10 +280,10 @@ unsigned ColorBytes3 (float r, float g, float b) {
 unsigned ColorBytes4 (float r, float g, float b, float a) {
 	unsigned	i;
 
-	( (byte *)&i )[0] = r * 255;
-	( (byte *)&i )[1] = g * 255;
-	( (byte *)&i )[2] = b * 255;
-	( (byte *)&i )[3] = a * 255;
+	( (byte *)&i )[0] = (unsigned char)( r * 255 );
+	( (byte *)&i )[1] = (unsigned char)( g * 255 );
+	( (byte *)&i )[2] = (unsigned char)( b * 255 );
+	( (byte *)&i )[3] = (unsigned char)( a * 255 );
 
 	return i;
 }
@@ -692,7 +692,7 @@ void SetPlaneSignbits (cplane_t *out) {
 			bits |= 1<<j;
 		}
 	}
-	out->signbits = bits;
+	out->signbits = (unsigned char)( bits );
 }
 
 

@@ -577,7 +577,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 					bs->ltgtype = LTG_TEAMACCOMPANY;
 					bs->formation_dist = 3.5f * 32;		//3.5 meter
 					BotSetTeamStatus(bs);
-					bs->owndecision_time = FloatTime() + 5;
+					bs->owndecision_time = (int)( FloatTime() + 5 );
 				}
 			}
 		}
@@ -620,7 +620,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 				BotGetAlternateRouteGoal(bs, BotOppositeTeam(bs));
 				//
 				BotSetTeamStatus(bs);
-				bs->owndecision_time = FloatTime() + 5;
+				bs->owndecision_time = (int)( FloatTime() + 5 );
 			}
 		}
 		return;
@@ -655,7 +655,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 					bs->formation_dist = 3.5f * 32;		//3.5 meter
 					//
 					BotSetTeamStatus(bs);
-					bs->owndecision_time = FloatTime() + 5;
+					bs->owndecision_time = (int)( FloatTime() + 5 );
 				}
 				else {
 					BotRefuseOrder(bs);
@@ -671,7 +671,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 					BotGetAlternateRouteGoal(bs, BotOppositeTeam(bs));
 					//
 					BotSetTeamStatus(bs);
-					bs->owndecision_time = FloatTime() + 5;
+					bs->owndecision_time = (int)( FloatTime() + 5 );
 				}
 			}
 		}
@@ -762,7 +762,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 		bs->ctfroam_time = FloatTime() + CTF_ROAM_TIME;
 		BotSetTeamStatus(bs);
 	}
-	bs->owndecision_time = FloatTime() + 5;
+	bs->owndecision_time = (int)( FloatTime() + 5 );
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
 #endif //DEBUG
@@ -3362,7 +3362,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 		}
 	}
 	//check visibility of enemy
-	enemyvisible = BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->enemy);
+	enemyvisible = (int)( BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->enemy) );
 	//if the enemy is visible
 	if (enemyvisible) {
 		//
@@ -3410,7 +3410,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 					trap_AAS_PredictClientMovement(&move, bs->enemy, origin,
 														PRESENCE_CROUCH, qfalse,
 														dir, cmdmove, 0,
-														dist * 10 / wi.speed, 0.1f, 0, 0, qfalse);
+														(int)( dist * 10 / wi.speed ), 0.1f, 0, 0, qfalse);
 					VectorCopy(move.endpos, bestorigin);
 					//BotAI_Print(PRT_MESSAGE, "%1.1f predicted speed = %f, frames = %f\n", FloatTime(), VectorLength(dir), dist * 10 / wi.speed);
 				}
@@ -5093,7 +5093,7 @@ int BotGetAlternateRouteGoal(bot_state_t *bs, int base) {
 	}
 	if (!numaltroutegoals)
 		return qfalse;
-	rnd = (float) random() * numaltroutegoals;
+	rnd = (int)( (float) random() * numaltroutegoals );
 	if (rnd >= numaltroutegoals)
 		rnd = numaltroutegoals-1;
 	goal = &bs->altroutegoal;

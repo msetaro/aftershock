@@ -191,15 +191,15 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 	VectorScale( f->color, d, f->color ); 
 
 	// save info needed to test
-	f->windowX = backEnd.viewParms.viewportX + window[0];
-	f->windowY = backEnd.viewParms.viewportY + window[1];
+	f->windowX = (int)( backEnd.viewParms.viewportX + window[0] );
+	f->windowY = (int)( backEnd.viewParms.viewportY + window[1] );
 
 	f->eyeZ = eye[2];
 
 	if ( backEnd.viewParms.portalView )
-		f->drawZ = (clip[2] + clip[3] - 1.5 ) / ( 2 * clip[3] );
+		f->drawZ = (float)( (clip[2] + clip[3] - 1.5 ) / ( 2 * clip[3] ) );
 	else
-		f->drawZ = (clip[2] + clip[3] - 0.5 ) / ( 2 * clip[3] );
+		f->drawZ = (float)( (clip[2] + clip[3] - 0.5 ) / ( 2 * clip[3] ) );
 }
 
 
@@ -345,7 +345,7 @@ static void RB_RenderFlare( flare_t *f ) {
  * The coefficient flareCoeff will determine the falloff speed with increasing distance.
  */
 
-	factor = distance + size * sqrt( (double)(r_flareCoeff->value) );
+	factor = (float)( distance + size * sqrt( (double)(r_flareCoeff->value) ) );
 	
 	intensity = r_flareCoeff->value * size * size / (factor * factor);
 
@@ -367,9 +367,9 @@ static void RB_RenderFlare( flare_t *f ) {
 
 	RB_BeginSurface( tr.flareShader, f->fogNum );
 
-	c.rgba[0] = color[0] * fogFactors[0];
-	c.rgba[1] = color[1] * fogFactors[1];
-	c.rgba[2] = color[2] * fogFactors[2];
+	c.rgba[0] = (unsigned char)( color[0] * fogFactors[0] );
+	c.rgba[1] = (unsigned char)( color[1] * fogFactors[1] );
+	c.rgba[2] = (unsigned char)( color[2] * fogFactors[2] );
 	c.rgba[3] = 255;
 
 	RB_AddQuadStamp2( f->windowX - size, f->windowY - size, size * 2, size * 2, 0, 0, 1, 1, c );
@@ -470,8 +470,8 @@ void RB_RenderFlares (void) {
 	qglLoadIdentity();
 	qglMatrixMode( GL_PROJECTION );
 	qglPushMatrix();
-	qglLoadMatrixf( GL_Ortho( backEnd.viewParms.viewportX, backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth,
-		backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight, -99999, 99999 ) );
+	qglLoadMatrixf( GL_Ortho( (float)( backEnd.viewParms.viewportX ), (float)( backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth ),
+		(float)( backEnd.viewParms.viewportY ), (float)( backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight ), (float)( -99999 ), (float)( 99999 ) ) );
 
 	for ( f = r_activeFlares ; f ; f = f->next ) {
 		if ( f->frameSceneNum == backEnd.viewParms.frameSceneNum && f->portalView == backEnd.viewParms.portalView && f->drawIntensity ) {

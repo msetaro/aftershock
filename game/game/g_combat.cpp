@@ -229,11 +229,11 @@ void LookAtKiller( gentity_t *self, gentity_t *inflictor, gentity_t *attacker ) 
 	} else if ( inflictor && inflictor != self ) {
 		VectorSubtract (inflictor->s.pos.trBase, self->s.pos.trBase, dir);
 	} else {
-		self->client->ps.stats[STAT_DEAD_YAW] = self->s.angles[YAW];
+		self->client->ps.stats[STAT_DEAD_YAW] = (int)( self->s.angles[YAW] );
 		return;
 	}
 
-	self->client->ps.stats[STAT_DEAD_YAW] = vectoyaw ( dir );
+	self->client->ps.stats[STAT_DEAD_YAW] = (int)( vectoyaw ( dir ) );
 
 	angles[YAW] = vectoyaw ( dir );
 	angles[PITCH] = 0; 
@@ -710,7 +710,7 @@ int CheckArmor (gentity_t *ent, int damage, int dflags)
 
 	// armor
 	count = client->ps.stats[STAT_ARMOR];
-	save = ceil( damage * ARMOR_PROTECTION );
+	save = (int)( ceil( damage * ARMOR_PROTECTION ) );
 	if (save >= count)
 		save = count;
 
@@ -974,7 +974,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		if ( ( dflags & DAMAGE_RADIUS ) || ( mod == MOD_FALLING ) ) {
 			return;
 		}
-		damage *= 0.5f;
+		damage = (int)( damage * (0.5f) );
 	}
 
 	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
@@ -992,7 +992,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	// always give half damage if hurting self
 	// calculated after knockback, so rocket jumping works
 	if ( targ == attacker) {
-		damage *= 0.5f;
+		damage = (int)( damage * (0.5f) );
 	}
 
 	if ( damage < 1 ) {

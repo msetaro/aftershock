@@ -1610,10 +1610,10 @@ void CIN_DrawCinematic( int handle ) {
 		return;
 	}
 
-	x = cinTable[handle].xpos;
-	y = cinTable[handle].ypos;
-	w = cinTable[handle].width;
-	h = cinTable[handle].height;
+	x = (float)( cinTable[handle].xpos );
+	y = (float)( cinTable[handle].ypos );
+	w = (float)( cinTable[handle].width );
+	h = (float)( cinTable[handle].height );
 	buf = cinTable[handle].buf;
 
 #if 0 // keep aspect ratio for cinematics
@@ -1637,13 +1637,13 @@ void CIN_DrawCinematic( int handle ) {
 
 		CIN_ResampleCinematic(handle, buf2);
 
-		re.DrawStretchRaw( x, y, w, h, 256, 256, (byte *)buf2, handle, qtrue);
+		re.DrawStretchRaw( (int)( x ), (int)( y ), (int)( w ), (int)( h ), 256, 256, (byte *)buf2, handle, qtrue);
 		cinTable[handle].dirty = qfalse;
 		Hunk_FreeTempMemory(buf2);
 		return;
 	}
 
-	re.DrawStretchRaw( x, y, w, h, cinTable[handle].drawX, cinTable[handle].drawY, buf, handle, cinTable[handle].dirty);
+	re.DrawStretchRaw( (int)( x ), (int)( y ), (int)( w ), (int)( h ), cinTable[handle].drawX, cinTable[handle].drawY, buf, handle, cinTable[handle].dirty);
 	cinTable[handle].dirty = qfalse;
 }
 

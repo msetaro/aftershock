@@ -12,20 +12,27 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-longjmp-warning. PR #104 at 63615d82 passed build 35460528142
-and regression 35460528154, with self-review on #104/#8; merged 55936c12.
-Check its merged-tree regression. PR #103 merged-tree regression 35460476009 and
-PR #102 merged-tree regression 35459709579 pass.
+Active: issue/8-numeric-conversions. PR #105 at 0287b14e passed build
+35460968139 and regression 35460968101, with self-review on #105/#8; merged
+0bc5e180. Its merged-tree regression 35461284543 passes. PR #104 merged-tree regression
+35460938185 passes; #103/#102 merged-tree regressions also passed.
 
-This branch applies the verified C4611 annotation only to standard-MSVC Q_setjmp,
-retains the #1 trivial-lifetime gate, and promotes C4611 on owned C++ sources.
-Diagnostic run 35459234093 at 265fd6cf confirms bare setjmp fails /we4611 and the
-annotated call passes on MSVC x64/ARM64. All 28 local production objects are
-raw/native-identical, refreshed on 63615d82 after the JPEG padding. No exception
-model, arithmetic, OS access, allocation, lifetime, layout, fixture or golden
-changes. This localized annotation records the approved #1 model, rather than
-silencing the warning throughout a header. Artifacts: longjmp-warning-* and
-msvc-longjmp-*.log. Record source, hosted gates and self-review before merging.
+The C4611 annotation is merged: only standard-MSVC Q_setjmp is annotated, the #1
+trivial-lifetime gate remains, and C4611 is an error on owned C++ sources. All 28
+local production objects remain raw/native-identical; real MSVC x64/ARM64 controls
+confirm the bare call fails and the annotation passes. No exception-model change.
+
+Applied the reviewed narrowing-v5-preview to 174 source/header files and promoted
+C4244 on owned C++ sources, removing both inherited C4244 suppressions. Source
+6709136c records the change; original GPL import hashes are retained with this
+transformation attached to all 70 changed native files. Only inherited trailing
+whitespace on 58 touched lines was trimmed after preview verification. Run all
+hosted gates, then self-review before merging.
+All conversions remain at their original arithmetic boundaries; RHS temporaries
+preserve compound-assignment evaluation order where needed. No dynamic allocation,
+new OS calls, non-trivial lifetime or wire/file layout change. Accepted fixtures
+and goldens are unchanged. One Vulkan error diagnostic now stringifies the explicit
+(uint64_t) fence timeout cast; timeout value and normal rendering are unchanged.
 
 The merged C4324 declaration preserves real MSVC x64 JPEG jump offset 176 and
 record size/alignment 432/16; ARM64 remains offset 168 and size/alignment 360/8.
@@ -51,6 +58,45 @@ The latter two classes need separate review; the potentially-uninitialized warni
 appears to involve repeated botDeveloper guards, not established runtime failure.
 Current warning inventory and refreshed Clang AST evidence use current-msvc-* and
 current-narrowing-ast* in cache. All actions remain inside msetaro/aftershock.
+The refreshed AST covers 165 source files (one transient Clang crash in tr_noise
+passed an isolated retry). Seven Windows/header files and inactive debug paths
+need explicit coverage. First cache-only current-narrowing-preview: 1,667 casts
+in 154 files; all 1,527 syntax configurations and twelve native helper hashes/
+layouts match the post-formatter baseline. All 1,709 production objects preserve
+code/data: 1,361 raw/native, 342 debug-only, six verified symbol-table/equivalent
+unwind-record ordering/padding differences in be_aas_reach. Section bytes,
+relocations, symbol values/sizes and normalized unwind records were checked.
+Evidence: current-narrowing-object-review.json, current-narrowing-metadata-review.json.
+Diagnostic-only 04daa92a passes inventory 35461209732 with 371 remaining C4244
+sites (the AST estimate had predicted 361); never merge that branch.
+
+Second preview narrowing-v2-preview adds scalar-macro conversions and 97 compound
+assignments: all 1,611 syntax configurations pass. It exposed compound-assignment
+evaluation/load-order changes and must not be applied. Third preview uses RHS
+scalar temporaries at four native and 34 engine sites, restoring all twelve native
+helper hashes. GCC/MinGW/AArch64 release refinements match; Clang still schedules
+some engine operations differently, requiring source/codegen review and replay.
+
+Applied candidate narrowing-v5-preview includes 43 local vector-macro expansions
+that cast only each final component, explicit float conversion in mirrored
+SnapVector declarations, and 87 Windows/header/inactive/typedef sites. All 2,380
+syntax configurations pass; all twelve GCC/Clang C/C++ helper hashes/layouts match
+post-formatter-native.json. All four real MSVC configurations pass diagnostic run
+35462301210 at 972dcedb with zero C4244 warnings; C4702/C4701 remain separate work.
+
+Full object comparison: 2,667 owned-source configurations, 2,243 raw/native-identical,
+335 debug-only. Remaining 89 include debug scalar-temporary/symbol/unwind metadata
+changes, Clang engine instruction scheduling/register allocation in seven source
+files, and the Vulkan error string above (plus relocation offsets). No claim that
+all objects are byte-identical. Evidence: narrowing-v2-objects/v5-results.json and
+narrowing-v5-object-review.json. Original full arithmetic expressions and target
+conversions are retained; full regressions are required by the #8 oracle rule.
+Clang checks from the diagnostic tree pass unchanged Q3 frame golden b38004b1,
+collision differential 9674cd22, and both bot-smoke goldens fea77580/14c8ee7d. The
+smoke uses the already documented cache-only host-IP metadata filter on expected
+and actual logs; gameplay output is unchanged. Artifacts: narrowing-clang-demo.log,
+narrowing-clang-differential.log, narrowing-clang-runtime.log. No accepted fixture
+or golden regeneration. Hosted CI will run the ordinary OpenArena gates unmodified.
 
 All twelve GCC/Clang C/C++ native helper builds/layouts pass after formatter fixes
 #99/#100; post-formatter-native.json at 4b159f7e is the cache reference for future

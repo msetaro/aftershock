@@ -489,7 +489,7 @@ unsigned short int AAS_AreaTravelTime(int areanum, vec3_t start, vec3_t end)
 	intdist = (int) dist;
 	//make sure the distance isn't zero
 	if (intdist <= 0) intdist = 1;
-	return intdist;
+	return (unsigned short)( intdist );
 } //end of the function AAS_AreaTravelTime
 //===========================================================================
 //
@@ -1322,9 +1322,9 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 	curupdate->areanum = areacache->areanum;
 	//VectorCopy(areacache->origin, curupdate->start);
 	curupdate->areatraveltimes = startareatraveltimes;
-	curupdate->tmptraveltime = areacache->starttraveltime;
+	curupdate->tmptraveltime = (unsigned short)( areacache->starttraveltime );
 	//
-	areacache->traveltimes[clusterareanum] = areacache->starttraveltime;
+	areacache->traveltimes[clusterareanum] = (unsigned short)( areacache->starttraveltime );
 	//put the area to start with in the current read list
 	curupdate->next = NULL;
 	curupdate->prev = NULL;
@@ -1373,7 +1373,7 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 					areacache->traveltimes[clusterareanum] > t)
 			{
 				areacache->traveltimes[clusterareanum] = t;
-				areacache->reachabilities[clusterareanum] = linknum - aasworld.areasettings[nextareanum].firstreachablearea;
+				areacache->reachabilities[clusterareanum] = (unsigned char)( linknum - aasworld.areasettings[nextareanum].firstreachablearea );
 				nextupdate = &aasworld.areaupdate[clusterareanum];
 				nextupdate->areanum = nextareanum;
 				nextupdate->tmptraveltime = t;
@@ -1466,12 +1466,12 @@ static void AAS_UpdatePortalRoutingCache(aas_routingcache_t *portalcache)
 	curupdate = &aasworld.portalupdate[aasworld.numportals];
 	curupdate->cluster = portalcache->cluster;
 	curupdate->areanum = portalcache->areanum;
-	curupdate->tmptraveltime = portalcache->starttraveltime;
+	curupdate->tmptraveltime = (unsigned short)( portalcache->starttraveltime );
 	//if the start area is a cluster portal, store the travel time for that portal
 	clusternum = aasworld.areasettings[portalcache->areanum].cluster;
 	if (clusternum < 0)
 	{
-		portalcache->traveltimes[-clusternum] = portalcache->starttraveltime;
+		portalcache->traveltimes[-clusternum] = (unsigned short)( portalcache->starttraveltime );
 	} //end if
 	//put the area to start with in the current read list
 	curupdate->next = NULL;
@@ -1523,7 +1523,7 @@ static void AAS_UpdatePortalRoutingCache(aas_routingcache_t *portalcache)
 				} //end else
 				nextupdate->areanum = portal->areanum;
 				//add travel time through the actual portal area for the next update
-				nextupdate->tmptraveltime = t + aasworld.portalmaxtraveltimes[portalnum];
+				nextupdate->tmptraveltime = (unsigned short)( t + aasworld.portalmaxtraveltimes[portalnum] );
 				if (!nextupdate->inlist)
 				{
 					// we add the update to the end of the list
@@ -1749,7 +1749,7 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 		//		because we can't directly calculate the exact travel time
 		//		to be more specific we don't know which reachability was used to travel
 		//		into the portal area
-		t += aasworld.portalmaxtraveltimes[portalnum];
+		{ int expressionValue = aasworld.portalmaxtraveltimes[portalnum]; t = (unsigned short)( t + expressionValue ); }
 		//
 		if (origin)
 		{
@@ -2023,7 +2023,7 @@ int AAS_RandomGoalArea(int areanum, int travelflags, int *goalareanum, vec3_t go
 	//if the area has no reachabilities
 	if (!AAS_AreaReachability(areanum)) return qfalse;
 	//
-	n = aasworld.numareas * random();
+	n = (int)( aasworld.numareas * random() );
 	for (i = 0; i < aasworld.numareas; i++)
 	{
 		if (n <= 0) n = 1;
@@ -2185,7 +2185,7 @@ int AAS_NearestHideArea(int srcnum [[maybe_unused]], vec3_t origin, int areanum,
 			//
 			if (dist2 < dist1)
 			{
-				t += (dist1 - dist2) * 10;
+				{ float expressionValue = (dist1 - dist2) * 10; t = (unsigned short)( t + expressionValue ); }
 			}
 			// if we weren't visible when starting, make sure we don't move into their view
 			if (!startVisible && AAS_AreaVisible(enemyareanum, nextareanum)) {

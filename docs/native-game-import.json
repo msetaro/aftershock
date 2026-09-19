@@ -142,7 +142,8 @@
     "9e4d45f0": "#8 self-assign: remove the redundant fov_x assignment while retaining the branch and arithmetic; all compared production/native objects unchanged",
     "f9dbcb07": "#8 MSVC C4065: remove the default-only UI status switch; release/native code unchanged",
     "3eaba64d": "#8 MSVC C4267: make existing size_t-to-int conversions explicit; production code/data unchanged",
-    "74689b95": "#8 MSVC C4457: rename local bleed alpha; production/native code and data unchanged"
+    "74689b95": "#8 MSVC C4457: rename local bleed alpha; production/native code and data unchanged",
+    "6709136c": "#8 C4244: explicit existing numeric conversions; full arithmetic and compound RHS evaluation order retained; twelve C/C++ helper hashes unchanged"
   },
   "files": [
     {
@@ -171,7 +172,8 @@
         "52e57708",
         "93d334db",
         "70b1f0b6",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -180,7 +182,8 @@
       "sha256": "d15e172774f61c0f63cf7e0346f5657db8c950ef709647099098b6ee6b64b224",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 29 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
-        "5592a1eb"
+        "5592a1eb",
+        "6709136c"
       ]
     },
     {
@@ -190,7 +193,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 23 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "5592a1eb",
-        "436bbab1"
+        "436bbab1",
+        "6709136c"
       ]
     },
     {
@@ -200,7 +204,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 11 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "5592a1eb",
-        "93d334db"
+        "93d334db",
+        "6709136c"
       ]
     },
     {
@@ -213,7 +218,8 @@
         "e8e98ab2",
         "5592a1eb",
         "52e57708",
-        "93d334db"
+        "93d334db",
+        "6709136c"
       ]
     },
     {
@@ -224,7 +230,8 @@
       "transformations": [
         "e8e98ab2",
         "5592a1eb",
-        "436bbab1"
+        "436bbab1",
+        "6709136c"
       ]
     },
     {
@@ -245,7 +252,8 @@
       "sha256": "d8631eb29b5ae6f4bc0cc0216def511afa8897166dbfe61dcc0b8dddec0721d3",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 28 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
-        "5592a1eb"
+        "5592a1eb",
+        "6709136c"
       ]
     },
     {
@@ -263,7 +271,8 @@
         "436bbab1",
         "52e57708",
         "05cb1e37",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -280,7 +289,8 @@
         "05cb1e37",
         "93d334db",
         "74689b95",
-        "91a4341b"
+        "91a4341b",
+        "6709136c"
       ]
     },
     {
@@ -293,7 +303,8 @@
         "8889ea0e",
         "e8e98ab2",
         "5592a1eb",
-        "70b1f0b6"
+        "70b1f0b6",
+        "6709136c"
       ]
     },
     {
@@ -303,7 +314,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 13 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "5592a1eb",
-        "93d334db"
+        "93d334db",
+        "6709136c"
       ]
     },
     {
@@ -314,7 +326,8 @@
       "transformations": [
         "6ea3a3bb",
         "5592a1eb",
-        "436bbab1"
+        "436bbab1",
+        "6709136c"
       ]
     },
     {
@@ -332,7 +345,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "5592a1eb",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -346,7 +360,8 @@
         "5592a1eb",
         "52e57708",
         "68919a83",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -375,7 +390,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "5592a1eb",
-        "9e4d45f0"
+        "9e4d45f0",
+        "6709136c"
       ]
     },
     {
@@ -389,7 +405,8 @@
         "e8e98ab2",
         "5592a1eb",
         "05cb1e37",
-        "93d334db"
+        "93d334db",
+        "6709136c"
       ]
     },
     {
@@ -408,7 +425,8 @@
         "5592a1eb",
         "d6c2ac52",
         "52e57708",
-        "93d334db"
+        "93d334db",
+        "6709136c"
       ]
     },
     {
@@ -429,7 +447,8 @@
         "d6c2ac52",
         "090b7a3c",
         "52e57708",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -447,7 +466,8 @@
         "e8e98ab2",
         "5592a1eb",
         "090b7a3c",
-        "52e57708"
+        "52e57708",
+        "6709136c"
       ]
     },
     {
@@ -469,7 +489,8 @@
         "52e57708",
         "d59136ef",
         "05cb1e37",
-        "93d334db"
+        "93d334db",
+        "6709136c"
       ]
     },
     {
@@ -490,7 +511,8 @@
         "5592a1eb",
         "0366fa06",
         "d6c2ac52",
-        "8b5264c5"
+        "8b5264c5",
+        "6709136c"
       ]
     },
     {
@@ -511,7 +533,8 @@
         "5592a1eb",
         "d6c2ac52",
         "52e57708",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -604,7 +627,8 @@
         "5592a1eb",
         "b6927331",
         "70b1f0b6",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -631,7 +655,8 @@
         "8b5264c5",
         "a5c199bf",
         "708b7114",
-        "70b1f0b6"
+        "70b1f0b6",
+        "6709136c"
       ]
     },
     {
@@ -642,7 +667,8 @@
       "transformations": [
         "5592a1eb",
         "d6c2ac52",
-        "8b5264c5"
+        "8b5264c5",
+        "6709136c"
       ]
     },
     {
@@ -689,7 +715,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "5592a1eb",
-        "93d334db"
+        "93d334db",
+        "6709136c"
       ]
     },
     {
@@ -700,7 +727,8 @@
       "transformations": [
         "e8e98ab2",
         "70b1f0b6",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -713,7 +741,8 @@
         "e8e98ab2",
         "d6c2ac52",
         "70b1f0b6",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -725,7 +754,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "05cb1e37",
-        "70b1f0b6"
+        "70b1f0b6",
+        "6709136c"
       ]
     },
     {
@@ -742,7 +772,8 @@
         "639fb07e",
         "05cb1e37",
         "70b1f0b6",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -758,7 +789,8 @@
         "d6c2ac52",
         "05cb1e37",
         "93d334db",
-        "70b1f0b6"
+        "70b1f0b6",
+        "6709136c"
       ]
     },
     {
@@ -769,7 +801,8 @@
       "transformations": [
         "e8e98ab2",
         "5592a1eb",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -803,7 +836,8 @@
         "93d334db",
         "70b1f0b6",
         "3eaba64d",
-        "af07f013"
+        "af07f013",
+        "6709136c"
       ]
     },
     {
@@ -823,7 +857,8 @@
       "transformations": [
         "6ea3a3bb",
         "5592a1eb",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -832,7 +867,8 @@
       "sha256": "ea7de647cfce347f3ae2b1b14f2377991950b3b53bdf6a6f41fc55bf75d143c7",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 6 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
-        "5592a1eb"
+        "5592a1eb",
+        "6709136c"
       ]
     },
     {
@@ -844,7 +880,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "5592a1eb",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -879,7 +916,8 @@
         "e8e98ab2",
         "05cb1e37",
         "708b7114",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -890,7 +928,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "d6c2ac52"
+        "d6c2ac52",
+        "6709136c"
       ]
     },
     {
@@ -912,7 +951,8 @@
       "transformations": [
         "e8e98ab2",
         "5592a1eb",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -927,7 +967,8 @@
         "622ae3af",
         "05cb1e37",
         "70b1f0b6",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -944,7 +985,8 @@
       "transformations": [
         "e8e98ab2",
         "5592a1eb",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -956,7 +998,8 @@
         "e8e98ab2",
         "5592a1eb",
         "d6c2ac52",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -968,7 +1011,8 @@
         "5592a1eb",
         "05cb1e37",
         "93d334db",
-        "af07f013"
+        "af07f013",
+        "6709136c"
       ]
     },
     {
@@ -991,7 +1035,8 @@
       "transformations": [
         "152cc6e2",
         "5592a1eb",
-        "9c170ddd"
+        "9c170ddd",
+        "6709136c"
       ]
     },
     {
@@ -1006,7 +1051,8 @@
         "70b1f0b6",
         "3eaba64d",
         "c5e4a555",
-        "bdbc5e9c"
+        "bdbc5e9c",
+        "6709136c"
       ]
     },
     {
@@ -1020,7 +1066,8 @@
         "5592a1eb",
         "090b7a3c",
         "9c170ddd",
-        "d4366ae7"
+        "d4366ae7",
+        "6709136c"
       ]
     },
     {
@@ -1049,7 +1096,8 @@
       "transformations": [
         "e8e98ab2",
         "2475e0d2",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -1062,7 +1110,8 @@
         "5592a1eb",
         "436bbab1",
         "05cb1e37",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -1073,7 +1122,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "6709136c"
       ]
     },
     {
@@ -1104,7 +1154,8 @@
       "transformations": [
         "e8e98ab2",
         "5592a1eb",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -1119,7 +1170,8 @@
         "5592a1eb",
         "bb869f79",
         "05cb1e37",
-        "93d334db"
+        "93d334db",
+        "6709136c"
       ]
     },
     {
@@ -1128,7 +1180,8 @@
       "sha256": "507dca6d093b49e236ced02bcb0e762595a8ad810c52ba77f95cbbefaac6bb5b",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
-        "5592a1eb"
+        "5592a1eb",
+        "6709136c"
       ]
     },
     {
@@ -1222,7 +1275,8 @@
         "e8e98ab2",
         "5592a1eb",
         "05cb1e37",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -1233,7 +1287,8 @@
       "transformations": [
         "6ea3a3bb",
         "93d334db",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -1252,7 +1307,8 @@
       "sha256": "9115a164615e0ec39ad82593fee2b5af1d8cf99eed374624746c50968c6e3538",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "6709136c"
       ]
     },
     {
@@ -1273,7 +1329,8 @@
         "6ea3a3bb",
         "8889ea0e",
         "e8e98ab2",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -1288,7 +1345,8 @@
         "630ae8e1",
         "bb869f79",
         "05cb1e37",
-        "70b1f0b6"
+        "70b1f0b6",
+        "6709136c"
       ]
     },
     {
@@ -1298,7 +1356,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "6ea3a3bb",
-        "e8e98ab2"
+        "e8e98ab2",
+        "6709136c"
       ]
     },
     {
@@ -1309,7 +1368,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -1329,7 +1389,8 @@
         "5592a1eb",
         "a5c199bf",
         "05cb1e37",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -1350,7 +1411,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "e8e98ab2",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -1361,7 +1423,8 @@
       "transformations": [
         "8889ea0e",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "6709136c"
       ]
     },
     {
@@ -1374,7 +1437,8 @@
         "8889ea0e",
         "e8e98ab2",
         "436bbab1",
-        "93d334db"
+        "93d334db",
+        "6709136c"
       ]
     },
     {
@@ -1404,7 +1468,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "6709136c"
       ]
     },
     {
@@ -1413,7 +1478,8 @@
       "sha256": "5830d1f8846efae41e416e9b2f807cde47a0783fa72cccf89b926ddf9718c26a",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "6709136c"
       ]
     },
     {
@@ -1435,7 +1501,8 @@
         "e8e98ab2",
         "5592a1eb",
         "2475e0d2",
-        "05cb1e37"
+        "05cb1e37",
+        "6709136c"
       ]
     },
     {
@@ -1448,7 +1515,8 @@
         "8889ea0e",
         "e8e98ab2",
         "05cb1e37",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -1460,7 +1528,8 @@
         "e8e98ab2",
         "2475e0d2",
         "05cb1e37",
-        "1c82acae"
+        "1c82acae",
+        "6709136c"
       ]
     },
     {
@@ -1473,7 +1542,8 @@
         "e8e98ab2",
         "05cb1e37",
         "f9dbcb07",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {
@@ -1519,7 +1589,8 @@
         "5592a1eb",
         "05cb1e37",
         "70b1f0b6",
-        "3eaba64d"
+        "3eaba64d",
+        "6709136c"
       ]
     },
     {

@@ -551,25 +551,25 @@ static qboolean isStaticShader( shader_t *shader )
 		}
 
 		if ( texgen || shader->numUnfoggedPasses == 1 ) {
-			stage->vboVPindex[1] = getVPindex( mtx, VP_FOG_EYE_IN, texgen );
-			stage->vboVPindex[2] = getVPindex( mtx, VP_FOG_EYE_OUT, texgen );
-			stage->vboFPindex[1] = getFPindex( mtx, atestBits, FP_FOG_BLEND );
+			stage->vboVPindex[1] = (short)( getVPindex( mtx, VP_FOG_EYE_IN, texgen ) );
+			stage->vboVPindex[2] = (short)( getVPindex( mtx, VP_FOG_EYE_OUT, texgen ) );
+			stage->vboFPindex[1] = (short)( getFPindex( mtx, atestBits, FP_FOG_BLEND ) );
 			CompileVertexProgram( stage->vboVPindex[1], mtx, VP_FOG_EYE_IN, texgen );
 			CompileVertexProgram( stage->vboVPindex[2], mtx, VP_FOG_EYE_OUT, texgen );
 			CompileFragmentProgram( stage->vboFPindex[1], mtx, atestBits, FP_FOG_BLEND );
 			if ( texgen ) {
-				stage->vboVPindex[0] = getVPindex( mtx, VP_FOG_NONE, texgen );
-				stage->vboFPindex[0] = getFPindex( mtx, atestBits, FP_FOG_NONE );
+				stage->vboVPindex[0] = (short)( getVPindex( mtx, VP_FOG_NONE, texgen ) );
+				stage->vboFPindex[0] = (short)( getFPindex( mtx, atestBits, FP_FOG_NONE ) );
 				CompileVertexProgram( stage->vboVPindex[0], mtx, VP_FOG_NONE, texgen );
 				CompileFragmentProgram( stage->vboFPindex[0], mtx, atestBits, FP_FOG_NONE );
 			}
 		}
 	}
 
-	world_vbo.fogVPindex[0] = getVPindex( 0, VP_FOG_EYE_IN, 0 );
-	world_vbo.fogVPindex[1] = getVPindex( 0, VP_FOG_EYE_OUT, 0 );
+	world_vbo.fogVPindex[0] = (short)( getVPindex( 0, VP_FOG_EYE_IN, 0 ) );
+	world_vbo.fogVPindex[1] = (short)( getVPindex( 0, VP_FOG_EYE_OUT, 0 ) );
 
-	world_vbo.fogFPindex = getFPindex( 0, 0, FP_FOG_ONLY );
+	world_vbo.fogFPindex = (short)( getFPindex( 0, 0, FP_FOG_ONLY ) );
 
 	CompileVertexProgram( world_vbo.fogVPindex[0], 0, VP_FOG_EYE_IN, 0 );
 	CompileVertexProgram( world_vbo.fogVPindex[0], 0, VP_FOG_EYE_OUT, 0 );
@@ -782,7 +782,7 @@ static int surfSortFunc( const void *a, const void *b )
 {
 	const msurface_t **sa = (const msurface_t **)a;
 	const msurface_t **sb = (const msurface_t **)b;
-	return (*sa)->shader - (*sb)->shader;
+	return (int)( (*sa)->shader - (*sb)->shader );
 }
 
 

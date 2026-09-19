@@ -49,7 +49,7 @@ static void CG_MachineGunEjectBrass( centity_t *cent ) {
 
 	le->leType = LE_FRAGMENT;
 	le->startTime = cg.time;
-	le->endTime = le->startTime + cg_brassTime.integer + ( cg_brassTime.integer / 4 ) * random();
+	le->endTime = (int)( le->startTime + cg_brassTime.integer + ( cg_brassTime.integer / 4 ) * random() );
 
 	le->pos.trType = TR_GRAVITY;
 	le->pos.trTime = cg.time - (rand()&15);
@@ -83,9 +83,9 @@ static void CG_MachineGunEjectBrass( centity_t *cent ) {
 
 	le->angles.trType = TR_LINEAR;
 	le->angles.trTime = cg.time;
-	le->angles.trBase[0] = rand()&31;
-	le->angles.trBase[1] = rand()&31;
-	le->angles.trBase[2] = rand()&31;
+	le->angles.trBase[0] = (float)( rand()&31 );
+	le->angles.trBase[1] = (float)( rand()&31 );
+	le->angles.trBase[2] = (float)( rand()&31 );
 	le->angles.trDelta[0] = 2;
 	le->angles.trDelta[1] = 1;
 	le->angles.trDelta[2] = 0;
@@ -128,7 +128,7 @@ static void CG_ShotgunEjectBrass( centity_t *cent ) {
 
 		le->leType = LE_FRAGMENT;
 		le->startTime = cg.time;
-		le->endTime = le->startTime + cg_brassTime.integer*3 + cg_brassTime.integer * random();
+		le->endTime = (int)( le->startTime + cg_brassTime.integer*3 + cg_brassTime.integer * random() );
 
 		le->pos.trType = TR_GRAVITY;
 		le->pos.trTime = cg.time;
@@ -159,9 +159,9 @@ static void CG_ShotgunEjectBrass( centity_t *cent ) {
 
 		le->angles.trType = TR_LINEAR;
 		le->angles.trTime = cg.time;
-		le->angles.trBase[0] = rand()&31;
-		le->angles.trBase[1] = rand()&31;
-		le->angles.trBase[2] = rand()&31;
+		le->angles.trBase[0] = (float)( rand()&31 );
+		le->angles.trBase[1] = (float)( rand()&31 );
+		le->angles.trBase[2] = (float)( rand()&31 );
 		le->angles.trDelta[0] = 1;
 		le->angles.trDelta[1] = 0.5f;
 		le->angles.trDelta[2] = 0;
@@ -230,7 +230,7 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
 	len = VectorNormalize (vec);
 	PerpendicularVector(temp, vec);
 	for (i = 0 ; i < 36; i++) {
-		RotatePointAroundVector(axis[i], vec, temp, i * 10);//banshee 2.4 was 10
+		RotatePointAroundVector(axis[i], vec, temp, (float)( i * 10 ));//banshee 2.4 was 10
 	}
  
 	le = CG_AllocLocalEntity();
@@ -238,7 +238,7 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
  
 	le->leType = LE_FADE_RGB;
 	le->startTime = cg.time;
-	le->endTime = cg.time + cg_railTrailTime.value;
+	le->endTime = (int)( cg.time + cg_railTrailTime.value );
 	le->lifeRate = 1.0f / (le->endTime - le->startTime);
  
 	re->shaderTime = cg.time / 1000.0f;
@@ -248,9 +248,9 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
 	VectorCopy(start, re->origin);
 	VectorCopy(end, re->oldorigin);
  
-	re->shaderRGBA[0] = ci->color1[0] * 255;
-    re->shaderRGBA[1] = ci->color1[1] * 255;
-    re->shaderRGBA[2] = ci->color1[2] * 255;
+	re->shaderRGBA[0] = (unsigned char)( ci->color1[0] * 255 );
+    re->shaderRGBA[1] = (unsigned char)( ci->color1[1] * 255 );
+    re->shaderRGBA[2] = (unsigned char)( ci->color1[2] * 255 );
     re->shaderRGBA[3] = 255;
 
 	le->color[0] = ci->color1[0] * 0.75f;
@@ -289,9 +289,9 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
             re->radius = 1.1f;
 			re->customShader = cgs.media.railRingsShader;
 
-            re->shaderRGBA[0] = ci->color2[0] * 255;
-            re->shaderRGBA[1] = ci->color2[1] * 255;
-            re->shaderRGBA[2] = ci->color2[2] * 255;
+            re->shaderRGBA[0] = (unsigned char)( ci->color2[0] * 255 );
+            re->shaderRGBA[1] = (unsigned char)( ci->color2[1] * 255 );
+            re->shaderRGBA[2] = (unsigned char)( ci->color2[2] * 255 );
             re->shaderRGBA[3] = 255;
 
             le->color[0] = ci->color2[0] * 0.75f;
@@ -528,9 +528,9 @@ static void CG_PlasmaTrail( centity_t *cent, const weaponInfo_t *wi ) {
 	re->customShader = cgs.media.railRingsShader;
 	le->bounceFactor = 0.3f;
 
-    re->shaderRGBA[0] = wi->flashDlightColor[0] * 63;
-    re->shaderRGBA[1] = wi->flashDlightColor[1] * 63;
-    re->shaderRGBA[2] = wi->flashDlightColor[2] * 63;
+    re->shaderRGBA[0] = (unsigned char)( wi->flashDlightColor[0] * 63 );
+    re->shaderRGBA[1] = (unsigned char)( wi->flashDlightColor[1] * 63 );
+    re->shaderRGBA[2] = (unsigned char)( wi->flashDlightColor[2] * 63 );
     re->shaderRGBA[3] = 63;
 
     le->color[0] = wi->flashDlightColor[0] * 0.2f;
@@ -540,9 +540,9 @@ static void CG_PlasmaTrail( centity_t *cent, const weaponInfo_t *wi ) {
 
 	le->angles.trType = TR_LINEAR;
 	le->angles.trTime = cg.time;
-	le->angles.trBase[0] = rand()&31;
-	le->angles.trBase[1] = rand()&31;
-	le->angles.trBase[2] = rand()&31;
+	le->angles.trBase[0] = (float)( rand()&31 );
+	le->angles.trBase[1] = (float)( rand()&31 );
+	le->angles.trBase[2] = (float)( rand()&31 );
 	le->angles.trDelta[0] = 1;
 	le->angles.trDelta[1] = 0.5f;
 	le->angles.trDelta[2] = 0;
@@ -632,7 +632,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 	if ( !item->classname ) {
 		CG_Error( "Couldn't find weapon %i", weaponNum );
 	}
-	CG_RegisterItemVisuals( item - bg_itemlist );
+	CG_RegisterItemVisuals( (int)( item - bg_itemlist ) );
 
 	// load cmodel before model so filecache works
 	weaponInfo->weaponModel = trap_R_RegisterModel( item->world_model[0] );
@@ -1052,9 +1052,9 @@ static void CG_LightningBolt( centity_t *cent, vec3_t origin ) {
 		VectorMA( trace.endpos, -16, dir, beam.origin );
 
 		// make a random orientation
-		angles[0] = rand() % 360;
-		angles[1] = rand() % 360;
-		angles[2] = rand() % 360;
+		angles[0] = (float)( rand() % 360 );
+		angles[1] = (float)( rand() % 360 );
+		angles[2] = (float)( rand() % 360 );
 		AnglesToAxis( angles, beam.axis );
 		trap_R_AddRefEntityToScene( &beam );
 	}
@@ -1249,7 +1249,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 			f = (float)cg.predictedPlayerState.weaponTime / 1500;
 			gun.shaderRGBA[1] = 0;
 			gun.shaderRGBA[0] = 
-			gun.shaderRGBA[2] = 255 * ( 1.0f - f );
+			gun.shaderRGBA[2] = (unsigned char)( 255 * ( 1.0f - f ) );
 		} else {
 			gun.shaderRGBA[0] = 255;
 			gun.shaderRGBA[1] = 255;
@@ -1338,9 +1338,9 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		clientInfo_t	*ci;
 
 		ci = &cgs.clientinfo[ cent->currentState.clientNum ];
-		flash.shaderRGBA[0] = 255 * ci->color1[0];
-		flash.shaderRGBA[1] = 255 * ci->color1[1];
-		flash.shaderRGBA[2] = 255 * ci->color1[2];
+		flash.shaderRGBA[0] = (unsigned char)( 255 * ci->color1[0] );
+		flash.shaderRGBA[1] = (unsigned char)( 255 * ci->color1[1] );
+		flash.shaderRGBA[2] = (unsigned char)( 255 * ci->color1[2] );
 	}
 
 	CG_PositionRotatedEntityOnTag( &flash, &gun, weapon->weaponModel, (char *)"tag_flash");
@@ -1355,7 +1355,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		CG_SpawnRailTrail( cent, flash.origin );
 
 		if ( weapon->flashDlightColor[0] || weapon->flashDlightColor[1] || weapon->flashDlightColor[2] ) {
-			trap_R_AddLightToScene( flash.origin, 300 + (rand()&31), weapon->flashDlightColor[0],
+			trap_R_AddLightToScene( flash.origin, (float)( 300 + (rand()&31) ), weapon->flashDlightColor[0],
 				weapon->flashDlightColor[1], weapon->flashDlightColor[2] );
 		}
 	}
@@ -1506,16 +1506,16 @@ void CG_DrawWeaponSelect( void ) {
 		CG_RegisterWeapon( i );
 
 		// draw weapon icon
-		CG_DrawPic( x, y, 32, 32, cg_weapons[i].weaponIcon );
+		CG_DrawPic( (float)( x ), (float)( y ), (float)( 32 ), (float)( 32 ), cg_weapons[i].weaponIcon );
 
 		// draw selection marker
 		if ( i == cg.weaponSelect ) {
-			CG_DrawPic( x-4, y-4, 40, 40, cgs.media.selectShader );
+			CG_DrawPic( (float)( x-4 ), (float)( y-4 ), (float)( 40 ), (float)( 40 ), cgs.media.selectShader );
 		}
 
 		// no ammo cross on top
 		if ( !cg.snap->ps.ammo[ i ] ) {
-			CG_DrawPic( x, y, 32, 32, cgs.media.noammoShader );
+			CG_DrawPic( (float)( x ), (float)( y ), (float)( 32 ), (float)( 32 ), cgs.media.noammoShader );
 		}
 
 		x += 40;

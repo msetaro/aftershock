@@ -318,7 +318,7 @@ snd_stream_t *S_OGG_CodecOpenStream(const char *filename)
 	stream->info.rate = OGGInfo->rate;
 	stream->info.width = OGG_SAMPLEWIDTH;
 	stream->info.channels = OGGInfo->channels;
-	stream->info.samples = numSamples;
+	stream->info.samples = (int)( numSamples );
 	stream->info.size = stream->info.samples * stream->info.channels * stream->info.width;
 	stream->info.dataofs = 0;
 

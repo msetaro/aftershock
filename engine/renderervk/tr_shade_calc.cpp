@@ -214,7 +214,7 @@ static void RB_CalcBulgeVertexes( deformStage_t *ds ) {
 		int64_t off;
 		float scale;
 
-		off = (float)( FUNCTABLE_SIZE / (M_PI*2) ) * ( st[0] * ds->bulgeWidth + now );
+		off = (int64_t)( (float)( FUNCTABLE_SIZE / (M_PI*2) ) * ( st[0] * ds->bulgeWidth + now ) );
 
 		scale = tr.sinTable[ off & FUNCTABLE_MASK ] * ds->bulgeHeight;
 			
@@ -511,7 +511,7 @@ static void Autosprite2Deform( void ) {
 			v1 = xyz + 4 * edgeVerts[nums[j]][0];
 			v2 = xyz + 4 * edgeVerts[nums[j]][1];
 
-			l = 0.5 * sqrt( (double)(lengths[j]) );
+			l = (float)( 0.5 * sqrt( (double)(lengths[j]) ) );
 			
 			// we need to see which direction this edge
 			// is used to determine direction of projection
@@ -699,7 +699,7 @@ void RB_CalcWaveColor( const waveForm_t *wf, unsigned char *dstColors )
 	else if ( v > 255 )
 		v = 255;
 
-	color.rgba[0] = color.rgba[1] = color.rgba[2] = v;
+	color.rgba[0] = color.rgba[1] = color.rgba[2] = (unsigned char)( v );
 	color.rgba[3] = 255;
 	
 	for ( i = 0; i < tess.numVertexes; i++, colors++ ) {
@@ -719,11 +719,11 @@ void RB_CalcWaveAlpha( const waveForm_t *wf, unsigned char *dstColors )
 
 	glow = EvalWaveFormClamped( wf );
 
-	v = 255 * glow;
+	v = (int)( 255 * glow );
 
 	for ( i = 0; i < tess.numVertexes; i++, dstColors += 4 )
 	{
-		dstColors[3] = v;
+		dstColors[3] = (unsigned char)( v );
 	}
 }
 
@@ -741,10 +741,10 @@ void RB_CalcModulateColorsByFog( unsigned char *colors ) {
 	RB_CalcFogTexCoords( texCoords[0] );
 
 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
-		colors[0] *= f;
-		colors[1] *= f;
-		colors[2] *= f;
+		float f = (float)( 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] ) );
+		colors[0] = (unsigned char)( colors[0] * (f) );
+		colors[1] = (unsigned char)( colors[1] * (f) );
+		colors[2] = (unsigned char)( colors[2] * (f) );
 	}
 }
 
@@ -762,8 +762,8 @@ void RB_CalcModulateAlphasByFog( unsigned char *colors ) {
 	RB_CalcFogTexCoords( texCoords[0] );
 
 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
-		colors[3] *= f;
+		float f = (float)( 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] ) );
+		colors[3] = (unsigned char)( colors[3] * (f) );
 	}
 }
 
@@ -781,11 +781,11 @@ void RB_CalcModulateRGBAsByFog( unsigned char *colors ) {
 	RB_CalcFogTexCoords( texCoords[0] );
 
 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
-		colors[0] *= f;
-		colors[1] *= f;
-		colors[2] *= f;
-		colors[3] *= f;
+		float f = (float)( 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] ) );
+		colors[0] = (unsigned char)( colors[0] * (f) );
+		colors[1] = (unsigned char)( colors[1] * (f) );
+		colors[2] = (unsigned char)( colors[2] * (f) );
+		colors[3] = (unsigned char)( colors[3] * (f) );
 	}
 }
 
@@ -869,7 +869,7 @@ void RB_CalcFogTexCoords( float *st ) {
 			if ( t < 1.0 ) {
 				t = 1.0/32;	// point is outside, so no fogging
 			} else {
-				t = 1.0/32 + 30.0/32 * t / ( t - eyeT );	// cut the distance at the fog plane
+				t = (float)( 1.0/32 + 30.0/32 * t / ( t - eyeT ) );	// cut the distance at the fog plane
 			}
 		} else {
 			if ( t < 0 ) {
@@ -968,8 +968,8 @@ static void RB_CalcEnvironmentTexCoordsFPscr( float *st ) {
 		reflected[1] = normal[1]*2*d - viewer[1];
 		reflected[2] = normal[2]*2*d - viewer[2];
 
-		st[0] = 0.5 - reflected[1] * 0.5;
-		st[1] = 0.5 + reflected[2] * 0.5;
+		st[0] = (float)( 0.5 - reflected[1] * 0.5 );
+		st[1] = (float)( 0.5 + reflected[2] * 0.5 );
 	}
 }
 
@@ -1022,8 +1022,8 @@ void RB_CalcEnvironmentTexCoordsFP( float *st, int screenMap ) {
 		reflected[1] = normal[1]*2*d - viewer[1] - (where[1] * 5) + (why[1] * 4);
 		reflected[2] = normal[2]*2*d - viewer[2] - (where[2] * 5) + (who[2] * 4);
 
-		st[0] = 0.33 + reflected[1] * 0.33;
-		st[1] = 0.33 - reflected[2] * 0.33;
+		st[0] = (float)( 0.33 + reflected[1] * 0.33 );
+		st[1] = (float)( 0.33 - reflected[2] * 0.33 );
 	}
 }
 
@@ -1052,8 +1052,8 @@ void RB_CalcEnvironmentTexCoords( float *st )
 		reflected[1] = normal[1]*2*d - viewer[1];
 		reflected[2] = normal[2]*2*d - viewer[2];
 
-		st[0] = 0.5 + reflected[1] * 0.5;
-		st[1] = 0.5 - reflected[2] * 0.5;
+		st[0] = (float)( 0.5 + reflected[1] * 0.5 );
+		st[1] = (float)( 0.5 - reflected[2] * 0.5 );
 	}
 }
 
@@ -1112,8 +1112,8 @@ void RB_CalcScrollTexCoords( const float scrollSpeed[2], float *src, float *dst 
 
 	for ( i = 0; i < tess.numVertexes; i++, dst += 2, src += 2 )
 	{
-		dst[0] = src[0] + adjustedScrollS;
-		dst[1] = src[1] + adjustedScrollT;
+		dst[0] = (float)( src[0] + adjustedScrollS );
+		dst[1] = (float)( src[1] + adjustedScrollT );
 	}
 }
 
@@ -1148,18 +1148,18 @@ void RB_CalcRotateTexCoords( float degsPerSecond, float *src, float *dst )
 	texModInfo_t tmi;
 
 	degs = -degsPerSecond * timeScale;
-	index = degs * ( FUNCTABLE_SIZE / 360.0f );
+	index = (int64_t)( degs * ( FUNCTABLE_SIZE / 360.0f ) );
 
 	sinValue = tr.sinTable[ index & FUNCTABLE_MASK ];
 	cosValue = tr.sinTable[ ( index + FUNCTABLE_SIZE / 4 ) & FUNCTABLE_MASK ];
 
 	tmi.transform.matrix[0][0] = cosValue;
 	tmi.transform.matrix[1][0] = -sinValue;
-	tmi.transform.translate[0] = 0.5 - 0.5 * cosValue + 0.5 * sinValue;
+	tmi.transform.translate[0] = (float)( 0.5 - 0.5 * cosValue + 0.5 * sinValue );
 
 	tmi.transform.matrix[0][1] = sinValue;
 	tmi.transform.matrix[1][1] = cosValue;
-	tmi.transform.translate[1] = 0.5 - 0.5 * sinValue - 0.5 * cosValue;
+	tmi.transform.translate[1] = (float)( 0.5 - 0.5 * sinValue - 0.5 * cosValue );
 
 	RB_CalcTransformTexCoords( &tmi, src, dst );
 }
@@ -1214,13 +1214,13 @@ void RB_CalcSpecularAlpha( unsigned char *alphas ) {
 		} else {
 			l = l*l;
 			l = l*l;
-			b = l * 255;
+			b = (int)( l * 255 );
 			if (b > 255) {
 				b = 255;
 			}
 		}
 
-		*alphas = b;
+		*alphas = (unsigned char)( b );
 	}
 }
 
@@ -1260,19 +1260,19 @@ static void RB_CalcDiffuseColor_scalar( unsigned char *colors )
 		if ( j > 255 ) {
 			j = 255;
 		}
-		colors[i*4+0] = j;
+		colors[i*4+0] = (unsigned char)( j );
 
 		j = myftol( ambientLight[1] + incoming * directedLight[1] );
 		if ( j > 255 ) {
 			j = 255;
 		}
-		colors[i*4+1] = j;
+		colors[i*4+1] = (unsigned char)( j );
 
 		j = myftol( ambientLight[2] + incoming * directedLight[2] );
 		if ( j > 255 ) {
 			j = 255;
 		}
-		colors[i*4+2] = j;
+		colors[i*4+2] = (unsigned char)( j );
 
 		colors[i*4+3] = 255;
 	}

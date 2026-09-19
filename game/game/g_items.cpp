@@ -194,7 +194,7 @@ int Pickup_PersistantPowerup( gentity_t *ent, gentity_t *other ) {
 
 int Pickup_Holdable( gentity_t *ent, gentity_t *other ) {
 
-	other->client->ps.stats[STAT_HOLDABLE_ITEM] = ent->item - bg_itemlist;
+	other->client->ps.stats[STAT_HOLDABLE_ITEM] = (int)( ent->item - bg_itemlist );
 
 	if( ent->item->giTag == HI_KAMIKAZE ) {
 		other->client->ps.eFlags |= EF_KAMIKAZE;
@@ -513,12 +513,12 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace [[maybe_unused
 
 	// non zero wait overrides respawn time
 	if ( ent->wait ) {
-		respawn = ent->wait;
+		respawn = (int)( ent->wait );
 	}
 
 	// random can be used to vary the respawn time
 	if ( ent->random ) {
-		respawn += crandom() * ent->random;
+		{ float respawnOffset = crandom() * ent->random; respawn = (int)( respawn + respawnOffset ); }
 		if ( respawn < 1 ) {
 			respawn = 1;
 		}
@@ -566,7 +566,7 @@ gentity_t *LaunchItem( gitem_t *item, vec3_t origin, vec3_t velocity ) {
 	dropped = G_Spawn();
 
 	dropped->s.eType = ET_ITEM;
-	dropped->s.modelindex = item - bg_itemlist;	// store item number in modelindex
+	dropped->s.modelindex = (int)( item - bg_itemlist );	// store item number in modelindex
 	dropped->s.modelindex2 = 1; // This is non-zero is it's a dropped item
 
 	dropped->classname = item->classname;
@@ -655,7 +655,7 @@ void FinishSpawningItem( gentity_t *ent ) {
 	VectorSet( ent->r.maxs, ITEM_RADIUS, ITEM_RADIUS, ITEM_RADIUS );
 
 	ent->s.eType = ET_ITEM;
-	ent->s.modelindex = ent->item - bg_itemlist;		// store item number in modelindex
+	ent->s.modelindex = (int)( ent->item - bg_itemlist );		// store item number in modelindex
 	ent->s.modelindex2 = 0; // zero indicates this isn't a dropped item
 
 	ent->r.contents = CONTENTS_TRIGGER;
@@ -696,7 +696,7 @@ void FinishSpawningItem( gentity_t *ent ) {
 		respawn = 45 + crandom() * 15;
 		ent->s.eFlags |= EF_NODRAW;
 		ent->r.contents = 0;
-		ent->nextthink = level.time + respawn * 1000;
+		ent->nextthink = (int)( level.time + respawn * 1000 );
 		ent->think = RespawnItem;
 		return;
 	}
@@ -918,7 +918,7 @@ void G_BounceItem( gentity_t *ent, trace_t *trace ) {
 	int		hitTime;
 
 	// reflect the velocity on the trace plane
-	hitTime = level.previousTime + ( level.time - level.previousTime ) * trace->fraction;
+	hitTime = (int)( level.previousTime + ( level.time - level.previousTime ) * trace->fraction );
 	BG_EvaluateTrajectoryDelta( &ent->s.pos, hitTime, velocity );
 	dot = DotProduct( velocity, trace->plane.normal );
 	VectorMA( velocity, -2*dot, trace->plane.normal, ent->s.pos.trDelta );

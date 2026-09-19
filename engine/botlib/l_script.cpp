@@ -369,7 +369,7 @@ static int PS_ReadEscapeCharacter(script_t *script, char *ch)
 	//step over the escape character or the last digit of the number
 	script->script_p++;
 	//store the escape character
-	*ch = c;
+	*ch = (char)( c );
 	//successfully read escape character
 	return 1;
 } //end of the function PS_ReadEscapeCharacter
@@ -459,7 +459,7 @@ static int PS_ReadString(script_t *script, token_t *token, int quote)
 		} //end else
 	} //end while
 	//trailing quote
-	token->string[len++] = quote;
+	token->string[len++] = (char)( quote );
 	//end string with a zero
 	token->string[len] = '\0';
 	//the sub type is the length of the string
@@ -528,7 +528,7 @@ static void NumberValue(char *string, int subtype, unsigned long int *intvalue,
 			} //end if
 			else
 			{
-				*floatvalue = *floatvalue * 10.0 + (float) (*string - '0');
+				*floatvalue = (float)( *floatvalue * 10.0 + (float) (*string - '0') );
 			} //end else
 			string++;
 		} //end while
@@ -537,7 +537,7 @@ static void NumberValue(char *string, int subtype, unsigned long int *intvalue,
 	else if (subtype & TT_DECIMAL)
 	{
 		while(*string) *intvalue = *intvalue * 10 + (*string++ - '0');
-		*floatvalue = *intvalue;
+		*floatvalue = (float)( *intvalue );
 	} //end else if
 	else if (subtype & TT_HEX)
 	{
@@ -551,21 +551,21 @@ static void NumberValue(char *string, int subtype, unsigned long int *intvalue,
 			else *intvalue += *string - '0';
 			string++;
 		} //end while
-		*floatvalue = *intvalue;
+		*floatvalue = (float)( *intvalue );
 	} //end else if
 	else if (subtype & TT_OCTAL)
 	{
 		//step over the first zero
 		string += 1;
 		while(*string) *intvalue = (*intvalue << 3) + (*string++ - '0');
-		*floatvalue = *intvalue;
+		*floatvalue = (float)( *intvalue );
 	} //end else if
 	else if (subtype & TT_BINARY)
 	{
 		//step over the leading 0b or 0B
 		string += 2;
 		while(*string) *intvalue = (*intvalue << 1) + (*string++ - '0');
-		*floatvalue = *intvalue;
+		*floatvalue = (float)( *intvalue );
 	} //end else if
 } //end of the function NumberValue
 //============================================================================

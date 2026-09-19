@@ -462,7 +462,7 @@ static void RB_Hyperspace( void ) {
 	}
 	c.rgba[3] = 255;
 
-	RB_AddQuadStamp2( backEnd.refdef.x, backEnd.refdef.y, backEnd.refdef.width, backEnd.refdef.height,
+	RB_AddQuadStamp2( (float)( backEnd.refdef.x ), (float)( backEnd.refdef.y ), (float)( backEnd.refdef.width ), (float)( backEnd.refdef.height ),
 		0.0, 0.0, 0.0, 0.0, c );
 
 	RB_EndSurface();
@@ -971,7 +971,7 @@ void RB_SetGL2D( void ) {
 	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 	qglMatrixMode( GL_PROJECTION );
-	qglLoadMatrixf( GL_Ortho( 0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1 ) );
+	qglLoadMatrixf( GL_Ortho( (float)( 0 ), (float)( glConfig.vidWidth ), (float)( glConfig.vidHeight ), (float)( 0 ), (float)( 0 ), (float)( 1 ) ) );
 	qglMatrixMode( GL_MODELVIEW );
 	qglLoadIdentity();
 
@@ -1027,7 +1027,7 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, byte *data, 
 	}
 
 	tr.cinematicShader->stages[0]->bundle[0].image[0] = tr.scratchImage[client];
-	RE_StretchPic( x, y, w, h, 0.5f / cols, 0.5f / rows, 1.0f - 0.5f / cols, 1.0f - 0.5 / rows, tr.cinematicShader->index );
+	RE_StretchPic( (float)( x ), (float)( y ), (float)( w ), (float)( h ), 0.5f / (float)( cols ), 0.5f / (float)( rows ), 1.0f - 0.5f / (float)( cols ), (float)( 1.0f - 0.5 / rows ), tr.cinematicShader->index );
 }
 
 
@@ -1071,10 +1071,10 @@ static const void *RB_SetColor( const void *data ) {
 
 	cmd = (const setColorCommand_t *)data;
 
-	backEnd.color2D.rgba[0] = cmd->color[0] * 255;
-	backEnd.color2D.rgba[1] = cmd->color[1] * 255;
-	backEnd.color2D.rgba[2] = cmd->color[2] * 255;
-	backEnd.color2D.rgba[3] = cmd->color[3] * 255;
+	backEnd.color2D.rgba[0] = (unsigned char)( cmd->color[0] * 255 );
+	backEnd.color2D.rgba[1] = (unsigned char)( cmd->color[1] * 255 );
+	backEnd.color2D.rgba[2] = (unsigned char)( cmd->color[2] * 255 );
+	backEnd.color2D.rgba[3] = (unsigned char)( cmd->color[3] * 255 );
 
 	return (const void *)(cmd + 1);
 }
@@ -1199,7 +1199,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 
 	// draw solid shade
 	GL_State( GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
-	qglColor4f( color&1, (color>>1)&1, (color>>2)&1, 1 );
+	qglColor4f( (float)( color&1 ), (float)( (color>>1)&1 ), (float)( (color>>2)&1 ), 1 );
 	qglDrawArrays( GL_TRIANGLE_FAN, 0, numPoints );
 
 	// draw wireframe outline
@@ -1358,8 +1358,8 @@ void RB_ShowImages( void ) {
 
 	for ( i = 0; i < tr.numImages; i++ ) {
 		image = tr.images[ i ];
-		w = glConfig.vidWidth / 20;
-		h = glConfig.vidHeight / 15;
+		w = (float)( glConfig.vidWidth / 20 );
+		h = (float)( glConfig.vidHeight / 15 );
 		x = i % 20 * w;
 		y = i / 20 * h;
 

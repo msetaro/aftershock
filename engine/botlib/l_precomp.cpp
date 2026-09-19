@@ -670,7 +670,7 @@ static int PC_ExpandBuiltinDefine(source_t *source, token_t *deftoken, define_t 
 			sprintf(token->string, "%d", deftoken->line);
 #ifdef NUMBERVALUE
 			token->intvalue = deftoken->line;
-			token->floatvalue = deftoken->line;
+			token->floatvalue = (float)( deftoken->line );
 #endif //NUMBERVALUE
 			token->type = TT_NUMBER;
 			token->subtype = TT_DECIMAL | TT_INTEGER;
@@ -2493,7 +2493,7 @@ static int PC_DollarDirective_evalint(source_t *source)
 
 #ifdef NUMBERVALUE
 	token.intvalue = abs(value);
-	token.floatvalue = token.intvalue;
+	token.floatvalue = (float)( token.intvalue );
 #endif //NUMBERVALUE
 
 	PC_UnreadSourceToken(source, &token);
@@ -2523,7 +2523,7 @@ static int PC_DollarDirective_evalfloat(source_t *source)
 	token.subtype = TT_FLOAT|TT_LONG|TT_DECIMAL;
 
 #ifdef NUMBERVALUE
-	token.floatvalue = fabs((double)(value));
+	token.floatvalue = (float)( fabs((double)(value)) );
 	token.intvalue = (unsigned long) token.floatvalue;
 #endif //NUMBERVALUE
 

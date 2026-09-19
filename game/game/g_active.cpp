@@ -45,7 +45,7 @@ void P_DamageFeedback( gentity_t *player ) {
 	}
 
 	// total points of damage shot at the player this frame
-	count = client->damage_blood + client->damage_armor;
+	count = (float)( client->damage_blood + client->damage_armor );
 	if ( count == 0 ) {
 		return;		// didn't take any damage
 	}
@@ -65,8 +65,8 @@ void P_DamageFeedback( gentity_t *player ) {
 		client->damage_fromWorld = qfalse;
 	} else {
 		vectoangles( client->damage_from, angles );
-		client->ps.damagePitch = angles[PITCH]/360.0f * 256;
-		client->ps.damageYaw = angles[YAW]/360.0f * 256;
+		client->ps.damagePitch = (int)( angles[PITCH]/360.0f * 256 );
+		client->ps.damageYaw = (int)( angles[YAW]/360.0f * 256 );
 	}
 
 	// play an apropriate pain sound
@@ -77,7 +77,7 @@ void P_DamageFeedback( gentity_t *player ) {
 	}
 
 
-	client->ps.damageCount = count;
+	client->ps.damageCount = (int)( count );
 
 	//
 	// clear totals
@@ -382,12 +382,12 @@ qboolean ClientInactivityTimer( gclient_t *client ) {
 		client->inactivityWarning = qfalse;
 	} else if ( !client->pers.localClient ) {
 		if ( level.time > client->inactivityTime ) {
-			trap_DropClient( client - level.clients, "Dropped due to inactivity" );
+			trap_DropClient( (int)( client - level.clients ), "Dropped due to inactivity" );
 			return qfalse;
 		}
 		if ( level.time > client->inactivityTime - 10000 && !client->inactivityWarning ) {
 			client->inactivityWarning = qtrue;
-			trap_SendServerCommand( client - level.clients, "cp \"Ten seconds until inactivity drop!\n\"" );
+			trap_SendServerCommand( (int)( client - level.clients ), "cp \"Ten seconds until inactivity drop!\n\"" );
 		}
 	}
 	return qtrue;
@@ -442,7 +442,7 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 			if ( ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
 				ent->health += 15;
 				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 1.1f ) {
-					ent->health = client->ps.stats[STAT_MAX_HEALTH] * 1.1f;
+					ent->health = (int)( client->ps.stats[STAT_MAX_HEALTH] * 1.1f );
 				}
 				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
 			} else if ( ent->health < client->ps.stats[STAT_MAX_HEALTH] * 2) {
@@ -837,10 +837,10 @@ void ClientThink_real( gentity_t *ent ) {
 		client->ps.pm_type = PM_NORMAL;
 	}
 
-	client->ps.gravity = g_gravity.value;
+	client->ps.gravity = (int)( g_gravity.value );
 
 	// set speed
-	client->ps.speed = g_speed.value;
+	client->ps.speed = (int)( g_speed.value );
 
 #ifdef MISSIONPACK
 	if( bg_itemlist[client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_SCOUT ) {
@@ -849,7 +849,7 @@ void ClientThink_real( gentity_t *ent ) {
 	else
 #endif
 	if ( client->ps.powerups[PW_HASTE] ) {
-		client->ps.speed *= 1.3f;
+		client->ps.speed = (int)( client->ps.speed * (1.3f) );
 	}
 
 	// Let go of the hook if we aren't firing
@@ -1082,7 +1082,7 @@ void SpectatorClientEndFrame( gentity_t *ent ) {
 				// drop them to free spectators unless they are dedicated camera followers
 				if ( ent->client->sess.spectatorClient >= 0 ) {
 					ent->client->sess.spectatorState = SPECTATOR_FREE;
-					ClientBegin( ent->client - level.clients );
+					ClientBegin( (int)( ent->client - level.clients ) );
 				}
 			}
 		}

@@ -369,9 +369,9 @@ static void GLW_CreatePFD( PIXELFORMATDESCRIPTOR *pPFD, int colorbits, int depth
 		0, 0, 0							// layer masks ignored
 	};
 
-	src.cColorBits = colorbits;
-	src.cDepthBits = depthbits;
-	src.cStencilBits = stencilbits;
+	src.cColorBits = (BYTE)( colorbits );
+	src.cDepthBits = (BYTE)( depthbits );
+	src.cStencilBits = (BYTE)( stencilbits );
 
 	if ( !glw_state.cdsFullscreen )
 	{

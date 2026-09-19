@@ -156,7 +156,7 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 		float	v;
 
 		v = lightOrigin[i]*tr.world->lightGridInverseSize[i];
-		pos[i] = floor( (double)(v) );
+		pos[i] = (int)( floor( (double)(v) ) );
 		frac[i] = v - pos[i];
 		if ( pos[i] < 0 ) {
 			pos[i] = 0;
@@ -256,18 +256,18 @@ static void LogLight( const trRefEntity_t *ent ) {
 		return;
 	}
 
-	max1 = ent->ambientLight[0];
+	max1 = (int)( ent->ambientLight[0] );
 	if ( ent->ambientLight[1] > max1 ) {
-		max1 = ent->ambientLight[1];
+		max1 = (int)( ent->ambientLight[1] );
 	} else if ( ent->ambientLight[2] > max1 ) {
-		max1 = ent->ambientLight[2];
+		max1 = (int)( ent->ambientLight[2] );
 	}
 
-	max2 = ent->directedLight[0];
+	max2 = (int)( ent->directedLight[0] );
 	if ( ent->directedLight[1] > max2 ) {
-		max2 = ent->directedLight[1];
+		max2 = (int)( ent->directedLight[1] );
 	} else if ( ent->directedLight[2] > max2 ) {
-		max2 = ent->directedLight[2];
+		max2 = (int)( ent->directedLight[2] );
 	}
 
 	ri.Printf( PRINT_ALL, "amb:%i  dir:%i\n", max1, max2 );
@@ -378,7 +378,7 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	// clamp ambient
 	for ( i = 0 ; i < 3 ; i++ ) {
 		if ( ent->ambientLight[i] > tr.identityLightByte ) {
-			ent->ambientLight[i] = tr.identityLightByte;
+			ent->ambientLight[i] = (float)( tr.identityLightByte );
 		}
 	}
 
@@ -387,9 +387,9 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	}
 
 	// save out the byte packet version
-	((byte *)&ent->ambientLightInt)[0] = myftol( ent->ambientLight[0] ); // -EC-: don't use ri.ftol to avoid precision losses
-	((byte *)&ent->ambientLightInt)[1] = myftol( ent->ambientLight[1] );
-	((byte *)&ent->ambientLightInt)[2] = myftol( ent->ambientLight[2] );
+	((byte *)&ent->ambientLightInt)[0] = (unsigned char)( myftol( ent->ambientLight[0] ) ); // -EC-: don't use ri.ftol to avoid precision losses
+	((byte *)&ent->ambientLightInt)[1] = (unsigned char)( myftol( ent->ambientLight[1] ) );
+	((byte *)&ent->ambientLightInt)[2] = (unsigned char)( myftol( ent->ambientLight[2] ) );
 	((byte *)&ent->ambientLightInt)[3] = 0xff;
 
 	// transform the direction to local space

@@ -205,8 +205,8 @@ void R_LoadBMP( const char *name, byte **pic, int *width, int *height )
 			case 16:
 				shortPixel = * ( unsigned short * ) pixbuf;
 				pixbuf += 2;
-				*pixbuf++ = ( shortPixel & ( 31 << 10 ) ) >> 7;
-				*pixbuf++ = ( shortPixel & ( 31 << 5 ) ) >> 2;
+				*pixbuf++ = (unsigned char)( ( shortPixel & ( 31 << 10 ) ) >> 7 );
+				*pixbuf++ = (unsigned char)( ( shortPixel & ( 31 << 5 ) ) >> 2 );
 				*pixbuf++ = ( shortPixel & ( 31 ) ) << 3;
 				*pixbuf++ = 0xff;
 				break;

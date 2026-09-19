@@ -467,7 +467,7 @@ static int surfSortFunc( const void *a, const void *b )
 {
 	const msurface_t **sa = (const msurface_t **)a;
 	const msurface_t **sb = (const msurface_t **)b;
-	return (*sa)->shader - (*sb)->shader;
+	return (int)( (*sa)->shader - (*sb)->shader );
 }
 
 

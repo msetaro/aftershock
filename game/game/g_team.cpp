@@ -113,7 +113,7 @@ void QDECL PrintMsg( gentity_t *ent, const char *fmt, ... ) {
 	while ((p = strchr(msg, '"')) != NULL)
 		*p = '\'';
 
-	trap_SendServerCommand ( ( (ent == NULL) ? -1 : ent-g_entities ), va((char *)"print \"%s\"", msg ));
+	trap_SendServerCommand ( (int)( ( (ent == NULL) ? -1 : ent-g_entities ) ), va((char *)"print \"%s\"", msg ));
 }
 
 /*
@@ -316,7 +316,7 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor [[maybe_unused]], ge
 	}
 #endif
 	if (targ->client->ps.powerups[enemy_flag_pw]) {
-		attacker->client->pers.teamState.lastfraggedcarrier = level.time;
+		attacker->client->pers.teamState.lastfraggedcarrier = (float)( level.time );
 		AddScore(attacker, targ->r.currentOrigin, CTF_FRAG_CARRIER_BONUS);
 		attacker->client->pers.teamState.fragcarrier++;
 		PrintMsg(NULL, "%s" S_COLOR_WHITE " fragged %s's flag carrier!\n",
@@ -334,7 +334,7 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor [[maybe_unused]], ge
 
 	// did the attacker frag a head carrier? other->client->ps.generic1
 	if (tokens) {
-		attacker->client->pers.teamState.lastfraggedcarrier = level.time;
+		attacker->client->pers.teamState.lastfraggedcarrier = (float)( level.time );
 		AddScore(attacker, targ->r.currentOrigin, CTF_FRAG_CARRIER_BONUS * tokens * tokens);
 		attacker->client->pers.teamState.fragcarrier++;
 		PrintMsg(NULL, "%s" S_COLOR_WHITE " fragged %s's skull carrier!\n",
@@ -512,12 +512,12 @@ void Team_CheckHurtCarrier(gentity_t *targ, gentity_t *attacker)
 	// flags
 	if (targ->client->ps.powerups[flag_pw] &&
 		targ->client->sess.sessionTeam != attacker->client->sess.sessionTeam)
-		attacker->client->pers.teamState.lasthurtcarrier = level.time;
+		attacker->client->pers.teamState.lasthurtcarrier = (float)( level.time );
 
 	// skulls
 	if (targ->client->ps.generic1 &&
 		targ->client->sess.sessionTeam != attacker->client->sess.sessionTeam)
-		attacker->client->pers.teamState.lasthurtcarrier = level.time;
+		attacker->client->pers.teamState.lasthurtcarrier = (float)( level.time );
 }
 
 
@@ -718,7 +718,7 @@ int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 			cl->pers.netname, TeamName(team));
 		AddScore(other, ent->r.currentOrigin, CTF_RECOVERY_BONUS);
 		other->client->pers.teamState.flagrecovery++;
-		other->client->pers.teamState.lastreturnedflag = level.time;
+		other->client->pers.teamState.lastreturnedflag = (float)( level.time );
 		//ResetFlag will remove this entity!  We must return zero
 		Team_ReturnFlagSound(Team_ResetFlag(team), team);
 		return 0;
@@ -744,7 +744,7 @@ int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 
 	cl->ps.powerups[enemy_flag] = 0;
 
-	teamgame.last_flag_capture = level.time;
+	teamgame.last_flag_capture = (float)( level.time );
 	teamgame.last_capture_team = team;
 
 	// Increase the team's score
@@ -839,7 +839,7 @@ int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 #endif
 
 	AddScore(other, ent->r.currentOrigin, CTF_FLAG_BONUS);
-	cl->pers.teamState.flagsince = level.time;
+	cl->pers.teamState.flagsince = (float)( level.time );
 	Team_TakeFlagSound( ent, team );
 
 	return -1; // Do not respawn this automatically, but do delete it if it was FL_DROPPED
@@ -1114,7 +1114,7 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 		}
 	}
 
-	trap_SendServerCommand( ent-g_entities, va((char *)"tinfo %i %s", cnt, string) );
+	trap_SendServerCommand( (int)( ent-g_entities ), va((char *)"tinfo %i %s", cnt, string) );
 }
 
 void CheckTeamStatus(void) {

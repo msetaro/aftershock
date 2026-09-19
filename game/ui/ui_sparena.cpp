@@ -43,7 +43,7 @@ void UI_SPArena_Start( const char *arenaInfo ) {
 			level = UI_GetNumSPTiers() * ARENAS_PER_TIER;
 		}
 	}
-	trap_Cvar_SetValue( "ui_spSelection", level );
+	trap_Cvar_SetValue( "ui_spSelection", (float)( level ) );
 
 	map = Info_ValueForKey( arenaInfo, "map" );
 	trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"spmap %s\n", map ) );

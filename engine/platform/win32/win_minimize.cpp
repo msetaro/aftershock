@@ -160,7 +160,7 @@ int Win32_GetKey( const char **s, char *buf, int buflen )
 
     while( *end != '\0' && *end != ' '&& *end != '\t' && *end != '+' ) end++;
 
-    len = end - base;
+    len = (int)( end - base );
 
 	if ( !len )
 		return 0;

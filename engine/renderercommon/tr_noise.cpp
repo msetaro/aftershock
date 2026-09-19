@@ -66,7 +66,7 @@ float R_NoiseGet4f( float x, float y, float z, double t )
 	iz = ( int ) floor( (double)(z) );
 	fz = z - iz;
 	it = ( int ) floor( t );
-	ft = t - it;
+	ft = (float)( t - it );
 
 	for ( i = 0; i < 2; i++ )
 	{

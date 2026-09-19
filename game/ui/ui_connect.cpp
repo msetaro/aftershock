@@ -78,9 +78,9 @@ static void UI_DisplayDownloadInfo( const char *downloadName ) {
 	int style = UI_LEFT|UI_SMALLFONT|UI_DROPSHADOW;
 	const char *s;
 
-	downloadSize = trap_Cvar_VariableValue( "cl_downloadSize" );
-	downloadCount = trap_Cvar_VariableValue( "cl_downloadCount" );
-	downloadTime = trap_Cvar_VariableValue( "cl_downloadTime" );
+	downloadSize = (int)( trap_Cvar_VariableValue( "cl_downloadSize" ) );
+	downloadCount = (int)( trap_Cvar_VariableValue( "cl_downloadCount" ) );
+	downloadTime = (int)( trap_Cvar_VariableValue( "cl_downloadTime" ) );
 
 #if 0 // bk010104
 	fprintf( stderr, "\n\n-----------------------------------------------\n");
@@ -91,10 +91,10 @@ static void UI_DisplayDownloadInfo( const char *downloadName ) {
 	fprintf( stderr, "DB: UI frametime:  %16d\n", uis.frametime );	// bk
 #endif
 
-	leftWidth = width = UI_ProportionalStringWidth( dlText ) * UI_ProportionalSizeScale( style );
-	width = UI_ProportionalStringWidth( etaText ) * UI_ProportionalSizeScale( style );
+	leftWidth = width = (int)( UI_ProportionalStringWidth( dlText ) * UI_ProportionalSizeScale( style ) );
+	width = (int)( UI_ProportionalStringWidth( etaText ) * UI_ProportionalSizeScale( style ) );
 	if (width > leftWidth) leftWidth = width;
-	width = UI_ProportionalStringWidth( xferText ) * UI_ProportionalSizeScale( style );
+	width = (int)( UI_ProportionalStringWidth( xferText ) * UI_ProportionalSizeScale( style ) );
 	if (width > leftWidth) leftWidth = width;
 	leftWidth += 16;
 

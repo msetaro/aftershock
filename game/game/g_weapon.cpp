@@ -111,7 +111,7 @@ qboolean CheckGauntletAttack( gentity_t *ent ) {
 	}
 #endif
 
-	damage = 50 * s_quadFactor;
+	damage = (int)( 50 * s_quadFactor );
 	G_Damage( traceEnt, ent, ent, forward, tr.endpos,
 		damage, 0, MOD_GAUNTLET );
 
@@ -142,9 +142,9 @@ void SnapVectorTowards( vec3_t v, vec3_t to ) {
 
 	for ( i = 0 ; i < 3 ; i++ ) {
 		if ( to[i] <= v[i] ) {
-			v[i] = (int)v[i];
+			v[i] = (float)( (int)v[i] );
 		} else {
-			v[i] = (int)v[i] + 1;
+			v[i] = (float)( (int)v[i] + 1 );
 		}
 	}
 }
@@ -168,7 +168,7 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage ) {
 	gentity_t	*traceEnt;
 	int			i, passent;
 
-	damage *= s_quadFactor;
+	damage = (int)( damage * (s_quadFactor) );
 
 	r = random() * M_PI * 2.0f;
 	u = sin(r) * crandom() * spread * 16;
@@ -243,8 +243,8 @@ void BFG_Fire ( gentity_t *ent ) {
 	gentity_t	*m;
 
 	m = fire_bfg (ent, muzzle, forward);
-	m->damage *= s_quadFactor;
-	m->splashDamage *= s_quadFactor;
+	m->damage = (int)( m->damage * (s_quadFactor) );
+	m->splashDamage = (int)( m->splashDamage * (s_quadFactor) );
 
 //	VectorAdd( m->s.pos.trDelta, ent->client->ps.velocity, m->s.pos.trDelta );	// "real" physics
 }
@@ -284,7 +284,7 @@ qboolean ShotgunPellet( vec3_t start, vec3_t end, gentity_t *ent ) {
 		}
 
 		if ( traceEnt->takedamage) {
-			damage = DEFAULT_SHOTGUN_DAMAGE * s_quadFactor;
+			damage = (int)( DEFAULT_SHOTGUN_DAMAGE * s_quadFactor );
 #ifdef MISSIONPACK
 			if ( traceEnt->client && traceEnt->client->invulnerabilityTime > level.time ) {
 				if (G_InvulnerabilityEffect( traceEnt, forward, tr.endpos, impactpoint, bouncedir )) {
@@ -380,8 +380,8 @@ void weapon_grenadelauncher_fire (gentity_t *ent) {
 	VectorNormalize( forward );
 
 	m = fire_grenade (ent, muzzle, forward);
-	m->damage *= s_quadFactor;
-	m->splashDamage *= s_quadFactor;
+	m->damage = (int)( m->damage * (s_quadFactor) );
+	m->splashDamage = (int)( m->splashDamage * (s_quadFactor) );
 
 //	VectorAdd( m->s.pos.trDelta, ent->client->ps.velocity, m->s.pos.trDelta );	// "real" physics
 }
@@ -398,8 +398,8 @@ void Weapon_RocketLauncher_Fire (gentity_t *ent) {
 	gentity_t	*m;
 
 	m = fire_rocket (ent, muzzle, forward);
-	m->damage *= s_quadFactor;
-	m->splashDamage *= s_quadFactor;
+	m->damage = (int)( m->damage * (s_quadFactor) );
+	m->splashDamage = (int)( m->splashDamage * (s_quadFactor) );
 
 //	VectorAdd( m->s.pos.trDelta, ent->client->ps.velocity, m->s.pos.trDelta );	// "real" physics
 }
@@ -417,8 +417,8 @@ void Weapon_Plasmagun_Fire (gentity_t *ent) {
 	gentity_t	*m;
 
 	m = fire_plasma (ent, muzzle, forward);
-	m->damage *= s_quadFactor;
-	m->splashDamage *= s_quadFactor;
+	m->damage = (int)( m->damage * (s_quadFactor) );
+	m->splashDamage = (int)( m->splashDamage * (s_quadFactor) );
 
 //	VectorAdd( m->s.pos.trDelta, ent->client->ps.velocity, m->s.pos.trDelta );	// "real" physics
 }
@@ -453,7 +453,7 @@ void weapon_railgun_fire (gentity_t *ent) {
 	int			passent;
 	gentity_t	*unlinkedEntities[MAX_RAIL_HITS];
 
-	damage = 100 * s_quadFactor;
+	damage = (int)( 100 * s_quadFactor );
 
 	VectorMA (muzzle, 8192, forward, end);
 
@@ -618,7 +618,7 @@ void Weapon_LightningFire( gentity_t *ent ) {
 	gentity_t	*traceEnt, *tent;
 	int			damage, i, passent;
 
-	damage = 8 * s_quadFactor;
+	damage = (int)( 8 * s_quadFactor );
 
 	passent = ent->s.number;
 	for (i = 0; i < 10; i++) {

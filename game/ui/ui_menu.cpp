@@ -177,10 +177,10 @@ static void Main_MenuDraw( void ) {
 	w = 640;
 	h = 120;
 	UI_AdjustFrom640( &x, &y, &w, &h );
-	refdef.x = x;
-	refdef.y = y;
-	refdef.width = w;
-	refdef.height = h;
+	refdef.x = (int)( x );
+	refdef.y = (int)( y );
+	refdef.width = (int)( w );
+	refdef.height = (int)( h );
 
 	adjust = 0; // JDC: Kenneth asked me to stop this 1.0 * sin( (float)uis.realtime / 1000 );
 	refdef.fov_x = 60 + adjust;

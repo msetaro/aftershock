@@ -691,7 +691,7 @@ static void CL_ParseDownload( msg_t *msg ) {
 	}
 
 	// read the data
-	block = MSG_ReadShort ( msg );
+	block = (uint16_t)( MSG_ReadShort ( msg ) );
 
 	if(!block && !clc.downloadBlock)
 	{

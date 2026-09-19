@@ -113,7 +113,7 @@ static void UI_SaveConfigMenu_SavenameDraw( void *self ) {
 	}
 
 	UI_DrawProportionalString( 320, 192, "Enter filename:", UI_CENTER|UI_SMALLFONT, color_orange );
-	UI_FillRect( f->generic.x, f->generic.y, f->field.widthInChars*SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, colorBlack );
+	UI_FillRect( (float)( f->generic.x ), (float)( f->generic.y ), (float)( f->field.widthInChars*SMALLCHAR_WIDTH ), (float)( SMALLCHAR_HEIGHT ), colorBlack );
 	MField_Draw( &f->field, f->generic.x, f->generic.y, style, color );
 }
 
