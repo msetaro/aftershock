@@ -15,16 +15,21 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-msvc-empty-unit. PR #115 head 9b143687 passed build 35467487347
-and regression 35467487302 and merged as e649f895 after self-review. Check its
-merged-tree regression. PR #114 merged-tree regression 35467166816 passes.
+Active: issue/8-msvc-typedef. PR #116 head 8b50fc5e passed build 35467867164
+and regression 35467867131 and merged as 193bc139 after self-review. Check its
+merged-tree regression. PR #115 merged-tree regression 35467863736 passes.
 
-Applied msvc-empty-unit-preview: remove only C4206 suppression from the engine
-shared header and promote /we4206 on owned C++ sources. All 85 sampled objects
-preserve code/data (77 raw/native, 8 debug-only; msvc-empty-unit-object-review.json),
-and all twelve helper hashes/layouts retain post-formatter-native.json. No
-native GPL source changes. Run hosted gates, then self-review before merging.
-Next: C4091 ignored typedef suppression in the engine header.
+Applied msvc-typedef-preview: remove only C4091 ignored-typedef suppression from
+the engine shared header and promote /we4091 on owned C++ sources. No declarations
+or expressions change. All 85 sampled objects preserve code/data (77 raw/native,
+8 debug-only; msvc-typedef-object-review.json), and all twelve helper hashes/layouts
+retain the baseline. Run hosted gates, then self-review before merging.
+Next: C4032 suppression in the native shared and platform GL headers, followed by
+C4051, C4115, C4136, C4214, C4514 and C4711, each in its own PR.
+
+Merged C4206 evidence: PR #116 head 8b50fc5e removes the engine suppression and
+promotes /we4206. All 85 sampled objects preserve code/data (77 raw/native,
+8 debug-only), and all twelve native helper hashes/layouts retain the baseline.
 
 Merged C4220 evidence: source e883223d/head 9b143687 removes both varargs-matching
 suppressions and promotes /we4220. No declaration/call/expression changes. All 85
