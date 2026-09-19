@@ -12,40 +12,38 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-named-texture-records. PR #102 passed 4b159f7e build 35459359314
-and regression 35459359202, with self-review on #102/#8; merged dc4a8d13,
-with merged-tree regression still to check. #101 merged-tree regression 35459282623 passes. The C4127 change preserves
-all 73 production objects (57 raw/native, 16 debug-only), with GPL header provenance
-recorded. Both #31 formatter fixes and the C4200 declaration change are merged.
+Active: issue/8-jpeg-alignment. PR #103 passed source 98ef8025 build
+35459818976 and regression 35459818978, with self-review on #103/#8; merged
+7a5ba492. Check its merged-tree regression. PR #102 merged-tree regression
+35459709579 passes. The named texture records preserve all 27 production objects
+(21 raw/native, six debug-only) and all 18 measured layouts.
 
-This branch applies the C4201 preview: name both renderers' texture-modifier
-records transform/scaleOffset and qualify their member access. Remove engine/GL
-header C4201 suppressions and promote the warning on owned C++ sources. All 27
-changed production objects preserve code/data (21 raw/native, six debug-only).
-Eighteen before/after configurations confirm size 28, alignment 4, member offsets
-4/20/4/12 and trivial standard layout. No FP arithmetic, OS access, allocation,
-lifetime, layout, fixture or golden changes. Record source, then hosted gates and
-self-review before merging. Artifacts: anonymous-struct-* in persistent cache.
-All twelve GCC/Clang C/C++ native helper builds/layouts pass after the formatter
-fixes; post-formatter-native.json at 4b159f7e is the new cache reference for future
-warning comparisons (the pre-fix #94 helper hashes are obsolete for that purpose).
+This branch applies the C4324 declaration preview: make existing MSVC x64 JPEG
+error-record padding explicit, assert the existing jump offset/record size, remove
+the header suppression and promote C4324 on owned C++ sources. Diagnostic run
+35459042059 at a13c60f0 confirms x64 jpeg_error_mgr size 168, jump-buffer
+size/alignment 256/16, jump offset 176, combined size/alignment 432/16. ARM64
+needs no padding: jump size/alignment 192/8, offset 168, combined 360/8. Only the
+original x64 declaration warns. Six production objects are raw/native-identical;
+three debug objects differ by exactly one source-line byte (Z_MallocDebug 207 ->
+214), with every other stripped byte identical. No arithmetic, OS access,
+allocation, lifetime, layout, fixture or golden changes. Artifacts:
+alignment-padding-* and msvc-jpeg-layout-{x64,arm64}.log in persistent cache.
+Record source, hosted gates and self-review, then merge.
+
+Next apply the verified C4611 preview separately, finish remaining warnings/Apple
+deprecations, format/tidy/layout/assert rules, and #6 design only. Diagnostic run
+35459234093 at 265fd6cf confirms bare setjmp fails /we4611 and the annotated call
+passes on MSVC x64/ARM64. Annotate only standard-MSVC Q_setjmp, retain the #1
+trivial-lifetime gate, and promote C4611 on owned C++ sources. All 28 local
+production objects are raw/native-identical in preview. No exception-model change
+or blanket warning suppression. Artifacts: longjmp-warning-* and
+msvc-longjmp-*.log. Source preview not applied yet.
+
+All twelve GCC/Clang C/C++ native helper builds/layouts pass after formatter fixes
+#99/#100; post-formatter-native.json at 4b159f7e is the cache reference for future
+warning comparisons. Pre-fix #94 helper hashes are obsolete for that purpose.
 No accepted fixture/golden was changed.
-Then apply the verified C4324 and C4611 previews separately, finish remaining
-warnings/Apple deprecations, format/tidy/layout/assert rules, and #6 design only.
-
-MSVC C4324 diagnostic run 35459042059 at a13c60f0 confirms explicit eight-byte
-padding on x64 keeps jpeg_error_mgr size 168, jump-buffer size/alignment 256/16,
-jump offset 176 and combined size/alignment 432/16. ARM64 needs no padding:
-jump size/alignment 192/8, offset 168, combined size/alignment 360/8. Only the
-original x64 declaration warns; the explicit-padding form does not. The C4324 source preview has six raw/native object matches; three debug objects
-differ by exactly one source-line byte (Z_MallocDebug line 207 -> 214), with every
-other stripped byte identical. No engine change yet. Logs: msvc-jpeg-layout-{x64,arm64}.log. Unmergeable diagnostic branch
-265fd6cf passes run 35459234093 for scoped C4611 annotation: bare setjmp fails
-/we4611 and the annotated call passes on x64/ARM64. Decision: annotate only the
-standard-MSVC Q_setjmp call, retain the #1 trivial-lifetime gate, and promote
-C4611 on owned C++ sources. All 28 local production objects are raw/native-identical
-in preview. No exception-model change or blanket warning suppression. Evidence:
-longjmp-warning-* and msvc-longjmp-*.log; source preview not applied yet.
 
 #97 local-shadow source 91a4341b preserves 19 production objects (15 raw/native,
 four debug-only) and all four edited-tree cgame helper hashes/layouts. #96 global
