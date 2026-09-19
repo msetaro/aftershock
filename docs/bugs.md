@@ -842,7 +842,8 @@ Valid text, fitting-result and formatter-error controls behave as expected.
 
 Fix: pass the actual capacity to vsnprintf, finish va_end, then reject a
 negative result or a required length at/above capacity. Test-first commit 1ef998b0
-records the failure before this change. Preserve quote replacement,
+records the failure before fix e8752ef1. GCC and Clang/libc++ pass the base and
+MISSIONPACK checks under ASan/UBSan. Preserve quote replacement,
 broadcast routing and the existing PrintMsg overrun error. No suppression or
 expected-UBSan entry is needed for this contract check; no golden regeneration.
 

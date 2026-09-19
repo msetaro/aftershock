@@ -23,7 +23,10 @@ Evidence: team-message-before.log and the earlier four-case control JSON.
 Failing-test commit: 1ef998b0. The reviewed single-function fix now passes the
 actual capacity to vsnprintf and rejects negative/full-capacity results after
 va_end. CI/docs include the permanent test command. Next: record GPL provenance
-and run local/hosted gates plus #127 merged-tree regression.
+and run local/hosted gates plus #127 merged-tree regression. Fix e8752ef1 is
+recorded in native-game-import.json with original GPL hashes unchanged. Both
+GCC and Clang/libc++ pass all eight base/MISSIONPACK contract cases; the optional
+MISSIONPACK source still emits the previously recorded constness warnings.
 
 PR #127 verification: source 7c1db108/head 44616990, build 35472963400,
 regression 35472963410, preceding merged-tree regression 35472915485 all pass.

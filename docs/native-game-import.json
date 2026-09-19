@@ -158,7 +158,8 @@
     "0c220839": "#8 C4136: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
     "f7568d21": "#8 C4514: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
     "3e6d66b8": "#8 C4711: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
-    "7c1db108": "#8 deprecation cleanup: remove unused testPrintInt/testPrintFloat reference wrappers and declarations; historical syscall enum values retained"
+    "7c1db108": "#8 deprecation cleanup: remove unused testPrintInt/testPrintFloat reference wrappers and declarations; historical syscall enum values retained",
+    "e8752ef1": "#31 PrintMsg: bounded formatting and required-length/error checks before dispatch; test-first 1ef998b0; valid text and quote policy retained"
   },
   "files": [
     {
@@ -985,7 +986,8 @@
         "05cb1e37",
         "70b1f0b6",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "e8752ef1"
       ]
     },
     {
