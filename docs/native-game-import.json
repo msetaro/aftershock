@@ -146,7 +146,8 @@
     "6709136c": "#8 C4244: explicit existing numeric conversions; full arithmetic and compound RHS evaluation order retained; twelve C/C++ helper hashes unchanged",
     "6bd5c657": "#8 C4702: remove unreachable-warning suppression; retain each weapon bounce increment on its sole continuing path; four game helper hashes unchanged",
     "464d4faa": "#8 C4018: remove inherited MSVC signed/unsigned suppression; source fixes retained from #90; twelve helper hashes unchanged",
-    "b4696ba0": "#8 C4100: remove inherited MSVC unused-parameter suppression; #84 annotations retained; twelve helper hashes unchanged"
+    "b4696ba0": "#8 C4100: remove inherited MSVC unused-parameter suppression; #84 annotations retained; twelve helper hashes unchanged",
+    "769685fb": "#8 C4057: remove inherited MSVC pointer base-type suppression; no pointer expression changes; twelve helper hashes unchanged"
   },
   "files": [
     {
@@ -1074,7 +1075,8 @@
         "6709136c",
         "6bd5c657",
         "464d4faa",
-        "b4696ba0"
+        "b4696ba0",
+        "769685fb"
       ]
     },
     {

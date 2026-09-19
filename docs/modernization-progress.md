@@ -12,47 +12,40 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-msvc-unused-parameter. PR #109 head 768cc133 passed build
-35464448737 and regression 35464448740; merged aaef418c after self-review. Check its
-merged-tree regression. PR #108 merged-tree regression 35464396511 passes.
+Active: issue/8-msvc-pointer-types. PR #110 head 7dedb706 passed build
+35464961869 and regression 35464961883; merged b0ae0ced after self-review. Check its
+merged-tree regression. PR #109 merged-tree regression 35464938074 passes.
 
-Applied the verified msvc-parameter-preview and promoted /we4100 on owned C++
-sources. Source annotations already landed in #84; this only removes both inherited
-MSVC disables. All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only)
-and all twelve helper hashes/layouts match the baseline. Source b4696ba0 is recorded
-on the native header with original GPL import hashes preserved. Run full hosted gates, then self-review before merging. Next: C4057
-(pointer base-type mismatch) suppression removal, one class per PR.
+Applied msvc-pointer-preview: remove only C4057 suppression from both shared
+headers and promote /we4057 on owned C++ sources. No pointer conversions or
+source expressions changed. All 85 sampled objects preserve code/data (67
+raw/native, 18 debug-only), and all twelve helper hashes/layouts retain the
+post-formatter baseline. Native-header provenance records source 769685fb while
+retaining original GPL import hashes. Run full hosted gates, then self-review before merging. Next: C4125 octal-escape suppression.
 
-Previous C4018 checkpoint: PR #108 at 9cb8854e passed build
-35464042113 and regression 35464042135, with self-review on #108/#8; merged
-5a3e194a. Check its merged-tree regression. PR #107 merged-tree regression
-35463998687 and #106 merged-tree regression 35463424264 pass.
+Merged C4100 evidence: source b4696ba0/head 7dedb706 removes only both inherited
+unused-parameter disables and promotes /we4100 on owned C++ sources. The #84
+annotations are unchanged. All 85 sampled objects preserve code/data (67
+raw/native, 18 debug-only), and all twelve helper hashes/layouts retain the
+baseline. Original GPL import hashes retain the native-header transformation.
+No arithmetic, allocation, OS access, lifetime, layout, fixture or golden changes.
 
-Applied msvc-sign-preview: remove only C4018 suppression from both shared headers
-and promote /we4018 on owned C++ sources. Signed/unsigned source fixes already
-landed in #90. All 85 sampled production objects preserve code/data (67 raw/native,
-18 debug-only), and all twelve GCC/Clang C/C++ helper hashes/layouts match
-post-formatter-native.json. Real MSVC W4 inventory exposes this class without
-warnings. Source 464d4faa is recorded on the native header, preserving original
-GPL import hashes. PR #109 head 768cc133 runs build 35464448737 and
-regression 35464448740. Run full hosted gates,
-then self-review before merging. No arithmetic, allocation, OS access, lifetime,
-wire/file layout, accepted fixture or golden changes.
+Merged C4018 evidence: source 464d4faa/head 768cc133 removes only both inherited
+signed/unsigned suppressions and promotes /we4018 on owned C++ sources. Source
+fixes landed in #90. All 85 sampled objects preserve code/data (67 raw/native,
+18 debug-only), and all twelve helper hashes/layouts match post-formatter-native.json.
+Original GPL import hashes retain the native-header transformation. PR #109 passed
+build 35464448737 and regression 35464448740; merged aaef418c. No arithmetic,
+allocation, OS access, lifetime, layout, fixture or golden changes.
 
-Next remove remaining MSVC suppression classes individually, starting with C4100
-(the source annotations already landed in #84).
-Prepared msvc-parameter-preview removes only that suppression from both shared
-headers. All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only)
-and all twelve helper hashes/layouts match post-formatter-native.json. Applied on the current branch; record native-header provenance and run hosted gates.
- A read-only preview removing all
+A read-only preview removing all
 16 inherited active MSVC pragma classes preserves all 70 sampled non-MSVC
 preprocessor streams: every directive is inside an MSVC-only conditional. Evidence:
 msvc-quiet-preview/classes.json and msvc-quiet-preprocess/results.json.
 Refreshed real MSVC inventory at a83363a2 (run 35463911574) has zero owned-source
 warnings across x64/ARM64 Debug/Release with all inherited header suppressions
 exposed and /W4 active. Evidence: v2-msvc-*.log and v2-msvc-warning-unique.json.
- No batch
-removal was applied; each class still requires its own hosted gates. Microsoft documents [C4514](https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4514?view=msvc-170)
+No batch removal was applied; each class still requires its own hosted gates. Microsoft documents [C4514](https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4514?view=msvc-170)
 and [C4711](https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4711?view=msvc-170)
 as off by default (C4711 is informational). Decision: remove their legacy disables
 individually, retain compiler defaults, and do not promote optimizer reports or
@@ -126,6 +119,17 @@ trivial standard layout for 59 central wire/model/BSP/AAS records. Cache evidenc
 layout-inventory/results.json. This is a baseline, not completed #8 coverage; local
 image records, platform cache records and native mirrored declarations still need
 review. No source assertions/type changes applied by the inventory.
+Additional read-only Clang Linux inventory at 7dedb706 records seven local records:
+BMPHeader_t 1080/4, pcx_t 128/2, TargaHeader 20/2, PNG_ChunkHeader 8/1,
+PNG_Chunk_IHDR 16/4, pk3cacheHeader_t 44/1 and pk3cacheFileItem_t 24/1 (size/alignment).
+Evidence: local-format-layout-inventory/results.json. These include decoded CPU
+records, whose padding need not equal the serialized byte count; preserve their
+existing layout rather than packing them to match file headers. GCC class dumps confirm cache header/item sizes 44/24 on Linux and 40/12 on
+MinGW Windows, all alignment 1; the named PNG/TGA layouts agree. Evidence:
+local-format-layout-gcc/results.json. Preserve the platform-tagged cache layouts
+when replacing long; a single universal width would silently change Windows data. This inventory only compiles existing
+translation units; it invokes no parsers and adds no new test target.
+
 A fresh diagnostic-only branch issue/8-warning-inventory-current at a05b6ccf
 is based on 63615d82, includes the verified C4611 preview, preserves source line
 counts while exposing inherited header diagnostics, and uses /W4 for Debug.
