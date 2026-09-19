@@ -12,20 +12,22 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-longjmp-warning. PR #104 at 63615d82 passed build 35460528142
-and regression 35460528154, with self-review on #104/#8; merged 55936c12.
-Check its merged-tree regression. PR #103 merged-tree regression 35460476009 and
-PR #102 merged-tree regression 35459709579 pass.
+Active: issue/8-numeric-conversions. PR #105 at 0287b14e passed build
+35460968139 and regression 35460968101, with self-review on #105/#8; merged
+0bc5e180. Check its merged-tree regression. PR #104 merged-tree regression
+35460938185 passes; #103/#102 merged-tree regressions also passed.
 
-This branch applies the verified C4611 annotation only to standard-MSVC Q_setjmp,
-retains the #1 trivial-lifetime gate, and promotes C4611 on owned C++ sources.
-Diagnostic run 35459234093 at 265fd6cf confirms bare setjmp fails /we4611 and the
-annotated call passes on MSVC x64/ARM64. All 28 local production objects are
-raw/native-identical, refreshed on 63615d82 after the JPEG padding. No exception
-model, arithmetic, OS access, allocation, lifetime, layout, fixture or golden
-changes. This localized annotation records the approved #1 model, rather than
-silencing the warning throughout a header. Artifacts: longjmp-warning-* and
-msvc-longjmp-*.log. Record source, hosted gates and self-review before merging.
+The C4611 annotation is merged: only standard-MSVC Q_setjmp is annotated, the #1
+trivial-lifetime gate remains, and C4611 is an error on owned C++ sources. All 28
+local production objects remain raw/native-identical; real MSVC x64/ARM64 controls
+confirm the bare call fails and the annotation passes. No exception-model change.
+
+Now finish the C4244 preview described below, review production-object/helper
+comparisons, and re-inventory real MSVC diagnostics before applying source changes.
+Preserve each original arithmetic expression and its implicit conversion boundary;
+no arithmetic reassociation or early scalar narrowing. Keep macro/compound and
+inactive debug/Windows sites under explicit review. This branch currently has only
+checkpoint documentation changes; no conversion source changes applied yet.
 
 The merged C4324 declaration preserves real MSVC x64 JPEG jump offset 176 and
 record size/alignment 432/16; ARM64 remains offset 168 and size/alignment 360/8.
@@ -51,6 +53,16 @@ The latter two classes need separate review; the potentially-uninitialized warni
 appears to involve repeated botDeveloper guards, not established runtime failure.
 Current warning inventory and refreshed Clang AST evidence use current-msvc-* and
 current-narrowing-ast* in cache. All actions remain inside msetaro/aftershock.
+The refreshed AST covers 165 source files (one transient Clang crash in tr_noise
+passed an isolated retry). Seven Windows/header files and inactive debug paths
+need explicit coverage. Cache-only current-narrowing-preview has 1,667 explicit
+casts at existing implicit conversion boundaries in 154 files, covering 1,373
+warning sites; 361 macro/compound/header/debug/Windows sites remain. All 1,527 affected syntax configurations pass. Production comparisons cover
+1,709 objects and are running; native C/C++ helper comparisons also run against
+post-formatter-native.json. Diagnostic-only commit 04daa92a applies the first
+preview and runs MSVC inventory 35461209732; never merge that branch. No preview
+changes have been applied to the working source. Do not claim codegen equivalence
+until object/helper comparisons are reviewed.
 
 All twelve GCC/Clang C/C++ native helper builds/layouts pass after formatter fixes
 #99/#100; post-formatter-native.json at 4b159f7e is the cache reference for future
