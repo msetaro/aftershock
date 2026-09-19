@@ -12,16 +12,26 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-msvc-pointer-types. PR #110 head 7dedb706 passed build
-35464961869 and regression 35464961883; merged b0ae0ced after self-review. Check its
-merged-tree regression. PR #109 merged-tree regression 35464938074 passes.
+Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
+are relative to that persistent directory.
 
-Applied msvc-pointer-preview: remove only C4057 suppression from both shared
-headers and promote /we4057 on owned C++ sources. No pointer conversions or
-source expressions changed. All 85 sampled objects preserve code/data (67
-raw/native, 18 debug-only), and all twelve helper hashes/layouts retain the
-post-formatter baseline. Native-header provenance records source 769685fb while
-retaining original GPL import hashes. Run full hosted gates, then self-review before merging. Next: C4125 octal-escape suppression.
+Active: issue/8-msvc-octal-escape. PR #111 head f11e7913 passed build
+35465396846 and regression 35465396778; merged b5a715ed after self-review. Check its
+merged-tree regression. PR #110 merged-tree regression 35465371799 passes.
+
+Applied msvc-octal-preview: remove only C4125 suppression from both shared headers
+and promote /we4125 on owned C++ sources. No strings or parsing expressions change.
+All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only), and all
+twelve helper hashes/layouts retain post-formatter-native.json. Source fe512b6e is
+recorded on the native header with original GPL hashes retained. Run hosted gates, then self-review before merging. Next: C4152
+function/data pointer conversion suppression, one class per PR.
+
+Merged C4057 evidence: source 769685fb/head f11e7913 removes only both inherited
+pointer base-type suppressions and promotes /we4057 on owned C++ files. No pointer
+conversions or expressions changed. All 85 sampled objects preserve code/data
+(67 raw/native, 18 debug-only), and all twelve helpers/layouts retain the baseline.
+Original GPL import hashes retain the native-header transformation. No arithmetic,
+allocation, OS access, lifetime, layout, fixture or golden changes.
 
 Merged C4100 evidence: source b4696ba0/head 7dedb706 removes only both inherited
 unused-parameter disables and promotes /we4100 on owned C++ sources. The #84
@@ -107,6 +117,14 @@ byte identical. Artifacts: alignment-padding-* and msvc-jpeg-layout-*.log.
 
 Next finish remaining warnings/Apple deprecations, format/tidy/layout/assert rules,
 and #6 design only.
+Read-only assertion audit (assert-call-inventory.txt): 19 active owned-code calls,
+12 commented examples. Arguments contain no assignments/increments; the only
+called helpers are Q_fabs, VectorLengthSquared and isnan, which read inputs without
+changing engine state. For the later Q_ASSERT step, an object-like alias to the
+standard assert macro can retain its existing expression stringification and
+release behavior. No assertion edits or implementation have been applied; verify
+release objects on the final tree before adopting it.
+
 A design-only draft is prepared in cache/rhi-design-draft.md from issue #6 and the
 current renderer contracts. It covers the thin static RHI, explicit ownership and
 longjmp boundaries, preserved SPIR-V/replay hashes, a compile-only second backend,
