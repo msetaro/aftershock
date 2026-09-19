@@ -423,7 +423,7 @@ static void blitVQQuad32fs( byte **status, unsigned char *data ) {
 	celdata = 0;
 	index = 0;
 
-	spl = cinTable[currentHandle].samplesPerLine;
+	spl = (int)cinTable[currentHandle].samplesPerLine;
 
 	do {
 		if ( !newd ) {
@@ -614,7 +614,7 @@ static unsigned int yuv_to_rgb24( int64_t y, int64_t u, int64_t v ) {
 	if ( b > 255 )
 		b = 255;
 
-	return LittleLong( (uint64_t)( ( r ) | ( g << 8 ) | ( b << 16 ) ) | ( 255UL << 24 ) );
+	return (unsigned int)LittleLong( (uint64_t)( ( r ) | ( g << 8 ) | ( b << 16 ) ) | ( 255UL << 24 ) );
 }
 
 
@@ -1051,7 +1051,7 @@ static void RoQPrepMcomp( int64_t xoff, int64_t yoff ) {
 		temp2 = ( y + yoff - 8 ) * i;
 		for ( x = 0; x < 16; x++ ) {
 			temp = ( x + xoff - 8 ) * j;
-			cin.mcomp[( x * 16 ) + y] = cinTable[currentHandle].normalBuffer0 - ( temp2 + temp );
+			cin.mcomp[( x * 16 ) + y] = (int)( cinTable[currentHandle].normalBuffer0 - ( temp2 + temp ) );
 		}
 	}
 }
@@ -1173,7 +1173,7 @@ redump:
 		break;
 	case ZA_SOUND_MONO:
 		if ( !cinTable[currentHandle].silent ) {
-			ssize = RllDecodeMonoToStereo( framedata, sbuf, cinTable[currentHandle].RoQFrameSize, 0, (unsigned short)cinTable[currentHandle].roq_flags );
+			ssize = (int)RllDecodeMonoToStereo( framedata, sbuf, cinTable[currentHandle].RoQFrameSize, 0, (unsigned short)cinTable[currentHandle].roq_flags );
 			S_RawSamples( ssize, 22050, 2, 1, (byte *)sbuf, s_volume->value );
 		}
 		break;
@@ -1183,7 +1183,7 @@ redump:
 				S_Update( 333 );
 				s_rawend = s_soundtime;
 			}
-			ssize = RllDecodeStereoToStereo( framedata, sbuf, cinTable[currentHandle].RoQFrameSize, 0, (unsigned short)cinTable[currentHandle].roq_flags );
+			ssize = (int)RllDecodeStereoToStereo( framedata, sbuf, cinTable[currentHandle].RoQFrameSize, 0, (unsigned short)cinTable[currentHandle].roq_flags );
 			S_RawSamples( ssize, 22050, 2, 2, (byte *)sbuf, s_volume->value );
 		}
 		break;
@@ -1652,7 +1652,7 @@ void CIN_DrawCinematic( int handle ) {
 		return;
 	}
 
-	re.DrawStretchRaw( (int)( x ), (int)( y ), (int)( w ), (int)( h ), cinTable[handle].drawX, cinTable[handle].drawY, buf, handle, cinTable[handle].dirty );
+	re.DrawStretchRaw( (int)( x ), (int)( y ), (int)( w ), (int)( h ), (int)cinTable[handle].drawX, (int)cinTable[handle].drawY, buf, handle, cinTable[handle].dirty );
 	cinTable[handle].dirty = qfalse;
 }
 
@@ -1740,7 +1740,7 @@ void CIN_UploadCinematic( int handle ) {
 			Hunk_FreeTempMemory( buf2 );
 		} else {
 			// Upload video at normal resolution
-			re.UploadCinematic( cinTable[handle].CIN_WIDTH, cinTable[handle].CIN_HEIGHT, cinTable[handle].drawX, cinTable[handle].drawY,
+			re.UploadCinematic( cinTable[handle].CIN_WIDTH, cinTable[handle].CIN_HEIGHT, (int)cinTable[handle].drawX, (int)cinTable[handle].drawY,
 				cinTable[handle].buf, handle, cinTable[handle].dirty );
 			cinTable[handle].dirty = qfalse;
 		}
