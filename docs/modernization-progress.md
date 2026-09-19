@@ -79,6 +79,7 @@ Native GPL provenance retains original import hashes. No accepted golden changes
 Run full hosted gates and self-review before merge; then continue the remaining
 MSVC suppression classes, strict MSVC policy, and the rest of #8.
 Previous PR #120 merged as be3f2b32; verify its merged-tree regression.
+Source transformation 0c220839 recorded in native-game-import.json.
 
 
 ## Recent MSVC merges
