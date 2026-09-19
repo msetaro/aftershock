@@ -68,9 +68,9 @@ is a dependency of #2 and is not linked into the engine yet. Its original GPL
 source and import hashes are documented in docs/bugs.md.
 
 `python3 tests/format.py` checks the real engine C++ and native game C/C++
-Com_sprintf helpers under ASan/UBSan. Valid text, destination truncation and
-in-place formatting must remain unchanged; text that fills the 32,000-byte
-temporary must reach the existing fatal error before writing beyond it.
+Com_sprintf and va helpers under ASan/UBSan. Valid text, destination truncation,
+in-place formatting and va slot rotation must remain unchanged. Text that fills
+a 32,000-byte formatting buffer must reach the fatal error before writing beyond it.
 `--cc`, `--cxx` and `--output` select the compilers and retained binaries.
 
 ## Local Quake 3 content
