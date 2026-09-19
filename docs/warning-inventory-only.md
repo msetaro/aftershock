@@ -7,3 +7,5 @@ Third diagnostic commit applies the v5 conversion preview, including RHS-first c
 Fourth diagnostic commit measures the C4702-only preview. All 151 affected local syntax configurations pass and all four game helper hashes retain their baseline. C4244 and C4702 are errors for owned C++ sources in this diagnostic build. Never merge this branch.
 
 C4701 preview: put missing-reach initialization and debug diagnostic use under one botDeveloper guard; no release initialization. Promote C4701 for this diagnostic build.
+
+The combined guard still emits C4701 in debug (run 35463680431). Revised preview zeroes the missing record in the existing DEBUG-only else, keeping printing conditional. No release initialization.
