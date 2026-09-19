@@ -12,12 +12,11 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-unused-result, based on pending array-bounds PR #86 head 91a2d6ed.
-#85 merged 820ed3f1 after build 35450763997/regression 35450764039 passed;
-merged-tree regression remains to check. #84 merged-tree run 35450735064 passes.
-Require #86 build 35451193767/regression 35451193709, self-review/merge, then
-integrate modernization before
-opening this separate unused-result class PR.
+Active: issue/8-unused-result. Array-bounds #86 merged 43d4e9b4 after head
+91a2d6ed passed build 35451193767 and regression 35451193709; self-review is
+recorded on #86/#8. Its merged-tree regression remains to check. Integration is
+merged here. #85 merged-tree regression 35451178224 passes. Open this separate
+unused-result class PR and require full hosted gates/self-review before merging.
 
 Eight existing console write calls bind their results to maybe_unused const auto
 locals. All calls, arguments and best-effort output behavior remain unchanged;
@@ -47,8 +46,8 @@ Artifacts: unused-set-{inventory,preview,check,objects,extra-objects,native} and
 unused-set-final-review.json in the persistent cache.
 
 Next:
-1. Complete unused-result self-review; wait for #86 gates/merge, integrate, open
-   this warning PR and require full hosted gates before final self-review/merge.
+1. Source 79c3cc30 is ready; open this warning PR and require full hosted gates
+   before final self-review/merge.
 2. Finish unused-but-set-variable preview and remaining warning classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
