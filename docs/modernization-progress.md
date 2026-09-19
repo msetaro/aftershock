@@ -14,7 +14,7 @@ upstream; historical upstream PR references below are completed past work.
 
 Active: issue/8-numeric-conversions. PR #105 at 0287b14e passed build
 35460968139 and regression 35460968101, with self-review on #105/#8; merged
-0bc5e180. Check its merged-tree regression. PR #104 merged-tree regression
+0bc5e180. Its merged-tree regression 35461284543 passes. PR #104 merged-tree regression
 35460938185 passes; #103/#102 merged-tree regressions also passed.
 
 The C4611 annotation is merged: only standard-MSVC Q_setjmp is annotated, the #1
@@ -55,14 +55,28 @@ Current warning inventory and refreshed Clang AST evidence use current-msvc-* an
 current-narrowing-ast* in cache. All actions remain inside msetaro/aftershock.
 The refreshed AST covers 165 source files (one transient Clang crash in tr_noise
 passed an isolated retry). Seven Windows/header files and inactive debug paths
-need explicit coverage. Cache-only current-narrowing-preview has 1,667 explicit
-casts at existing implicit conversion boundaries in 154 files, covering 1,373
-warning sites; 361 macro/compound/header/debug/Windows sites remain. All 1,527 affected syntax configurations pass. Production comparisons cover
-1,709 objects and are running; native C/C++ helper comparisons also run against
-post-formatter-native.json. Diagnostic-only commit 04daa92a applies the first
-preview and runs MSVC inventory 35461209732; never merge that branch. No preview
-changes have been applied to the working source. Do not claim codegen equivalence
-until object/helper comparisons are reviewed.
+need explicit coverage. First cache-only current-narrowing-preview: 1,667 casts
+in 154 files; all 1,527 syntax configurations and twelve native helper hashes/
+layouts match the post-formatter baseline. All 1,709 production objects preserve
+code/data: 1,361 raw/native, 342 debug-only, six verified symbol-table/equivalent
+unwind-record ordering/padding differences in be_aas_reach. Section bytes,
+relocations, symbol values/sizes and normalized unwind records were checked.
+Evidence: current-narrowing-object-review.json, current-narrowing-metadata-review.json.
+Diagnostic-only 04daa92a passes inventory 35461209732 with 371 remaining C4244
+sites (the AST estimate had predicted 361); never merge that branch.
+
+Second preview narrowing-v2-preview adds scalar-macro conversions and 97 compound
+assignments: all 1,611 syntax configurations pass. Production comparisons finish
+at 1,803 objects, 1,354 raw/native matches. Disassembly isolates evaluation/load
+order differences in compound assignments; this preview must not be applied.
+Third cache-only narrowing-v3-preview introduces an RHS scalar temporary before
+loading the destination at four native and 34 engine compound sites. This restores
+all twelve native helper hashes/layouts (merge narrowing-v3-cgame.json's final
+cgame hashes with narrowing-v3-native.json's game/UI hashes). Refinement object
+comparisons use the same v2 source paths and retained before objects, writing
+narrowing-v2-objects/v3-results.json. Review them before proceeding.
+Vector macros and Windows/debug/header sites remain. No conversion source changes
+applied to the working tree, no accepted fixtures/goldens regenerated.
 
 All twelve GCC/Clang C/C++ native helper builds/layouts pass after formatter fixes
 #99/#100; post-formatter-native.json at 4b159f7e is the cache reference for future
