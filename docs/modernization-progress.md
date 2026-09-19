@@ -12,11 +12,18 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-parameter-shadow. #94 merged 6e5b7d65 after 36d419dd passed build
-35455191671 and regression 35455191669; self-review is recorded on #94/#8.
-Its merged-tree regression remains to check. #93 merged-tree regression
-35455087090 passes. Source 74689b95 and cgame provenance are recorded. All four edited-tree cgame
-helper hashes/layouts match #94. Open this MSVC C4457 class PR; require hosted gates/self-review before merging.
+Diagnostic branch only: issue/8-msvc-inventory, based on PR #95 head 00b88dad.
+Do not merge this branch. It removes inherited shared/GL-header MSVC warning
+suppression directives, uses /W4 in both configurations and leaves warnings as
+warnings to collect complete x64/ARM64 inventories. It has a branch-only workflow;
+production warning-class PRs and their required gates remain separate.
+After the run completes, download its own-repository job logs to the persistent
+cache, classify actual diagnostics and handle applicable classes in individual
+#8 PRs. No runtime, assets or accepted goldens change in this diagnostic tree.
+
+Main work remains PR #95 on issue/8-parameter-shadow, followed by global/local
+shadow classes, inherited MSVC header disables, Apple deprecations, /WX, formatting,
+tidy, fixed widths/layout assertions, Q_ASSERT and design-only #6.
 
 This branch renames the bleed effect's local alpha to bleedAlpha (seven tokens),
 leaving the function parameter and particle member unchanged. MSVC C4457 becomes
