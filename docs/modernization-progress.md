@@ -66,17 +66,22 @@ Diagnostic-only 04daa92a passes inventory 35461209732 with 371 remaining C4244
 sites (the AST estimate had predicted 361); never merge that branch.
 
 Second preview narrowing-v2-preview adds scalar-macro conversions and 97 compound
-assignments: all 1,611 syntax configurations pass. Production comparisons finish
-at 1,803 objects, 1,354 raw/native matches. Disassembly isolates evaluation/load
-order differences in compound assignments; this preview must not be applied.
-Third cache-only narrowing-v3-preview introduces an RHS scalar temporary before
-loading the destination at four native and 34 engine compound sites. This restores
-all twelve native helper hashes/layouts (merge narrowing-v3-cgame.json's final
-cgame hashes with narrowing-v3-native.json's game/UI hashes). Refinement object
-comparisons use the same v2 source paths and retained before objects, writing
-narrowing-v2-objects/v3-results.json. Review them before proceeding.
-Vector macros and Windows/debug/header sites remain. No conversion source changes
-applied to the working tree, no accepted fixtures/goldens regenerated.
+assignments: all 1,611 syntax configurations pass. It exposed compound-assignment
+evaluation/load-order changes and must not be applied. Third preview uses RHS
+scalar temporaries at four native and 34 engine sites, restoring all twelve native
+helper hashes. GCC/MinGW/AArch64 release refinements match; Clang still schedules
+some engine operations differently, requiring source/codegen review and replay.
+
+Current candidate is narrowing-v5-preview: v3 plus 43 local vector-macro expansions
+that cast only each final component, explicit float conversion in mirrored
+SnapVector declarations, and 87 reviewed Windows/header/inactive/typedef sites.
+All 2,380 syntax configurations pass; all twelve GCC/Clang C/C++ helper hashes and
+layouts match post-formatter-native.json. Full comparison covers 2,667 owned-source
+production objects, using narrowing-v2-objects/v5-results.json (running). MSVC
+inventory 35462301210 runs at diagnostic-only 972dcedb. Fixed Q3 replay with Clang
+runs serially from that worktree into cache narrowing-clang-demo, without fixture
+or golden regeneration. Review these results and remaining compiler diagnostics
+before applying source. Root branch still contains checkpoint documentation only.
 
 All twelve GCC/Clang C/C++ native helper builds/layouts pass after formatter fixes
 #99/#100; post-formatter-native.json at 4b159f7e is the cache reference for future
