@@ -7,37 +7,33 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-unused-parameters, PR #84. Initial head 0a8a0d68 passed regression
-35449780958 but build 35449780940 found six unused parameters in the Windows
-debug Vulkan validation callback. They are now annotated on this branch; the full
-local MinGW debug client/server build passes. Push the correction and require both
-hosted workflows again before merging. #83 merged-tree regression 35449777481 passed.
+Active: issue/8-missing-initializers. Parent #84 merged 5c2ce6be after corrected
+head 5623e8fe passed build 35450198604 and regression 35450198615; self-review is
+recorded on #84/#8. Its merged-tree regression remains to check. Integration is
+merged into this branch. #83 merged-tree regression 35449777481 passes.
+Full local MinGW debug Vulkan client/server build also passes for this initializer
+branch (missing-initializers-mingw-debug.log in the persistent cache). Open its
+separate draft PR, require hosted gates and self-review before merging.
 
-The separate initializer branch issue/8-missing-initializers is saved at 3e42dfc6.
-Merge this correction into it after pushing, preserve its checkpoint, and continue
-its local review while #84 gates run. It must not open until #84 has merged.
+This branch enables missing-field-initializer warnings. Fifteen source files use
+empty aggregate initialization or explicit zero members/sentinels. Static allocator
+string blocks use a constexpr initializer to zero conditional debug members.
+Windows STARTUPINFO is zeroed and its cb field is explicitly assigned before use.
+No struct layouts, function behavior, FP expressions or accepted fixtures change.
 
-This branch enables unused-parameter diagnostics in production and native helpers.
-281 [[maybe_unused]] parameter annotations span 88 source files. Parameter names,
-function bodies, line counts and original line endings remain unchanged. These
-are parameters retained by existing interfaces or conditional implementations.
-No headers, function signatures, simulation arithmetic or accepted fixtures change.
-
-Validation is in /home/matt/.cache/aftershock-modernization:
-- All 2,380 production syntax configurations pass with the class treated as errors.
-- 665 of 833 affected production/native objects match raw bytes; the other 168
-  are GCC debug objects identical after removing only debug sections from copies.
-- GCC/Clang standalone C/C++ helper builds and ABI checks pass. All twelve shared
-  libraries retain identical hashes, including the C99 helper configuration.
-- Objects: unused-parameter-objects/{results,debug-review}.json; helper results:
-  unused-parameter-native-{gcc,clang}.json. Syntax logs: unused-parameter-check.
+Local preview validation (persistent cache): all 2,380 syntax configurations pass;
+188 of 194 affected objects match raw/native bytes. Four debug common.cpp objects
+change only four allocator source-line constants by +5; two MinGW video objects
+only reorder independent stack stores and a comparison across flag-preserving movs.
+No functions are added/removed. All twelve GCC/Clang C/C++ native helper libraries
+retain hashes and ABI layouts, including C99 helper mode. Artifacts are
+missing-initializers-{objects,native,check} under the persistent cache.
 
 Next:
-1. Source 05cb1e37 is reviewed: annotations only, plus two trailing-space removals.
-   Provenance 3a3fca15 records 37 GPL files; the UI export include is owned code.
-   PR #84 is open; push the Windows debug correction and verify its new gates.
-   Require full hosted build/regression plus self-review before merging.
-2. Finish array-bounds and unused-result reviews, then the remaining larger classes.
+1. Source 708b7114 and provenance 3e42dfc6 are recorded. The explicit DWORD cast
+   preserves both reviewed MinGW native objects. Parent #84 is merged; open this
+   class PR and require full hosted gates before final self-review/merge.
+2. Finish array-bounds and unused-result reviews, then the remaining classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
    rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then
@@ -1436,10 +1432,18 @@ debug members without changing the layout. Compiler checks are running in
 missing-initializers-check; object, C99 helper and conditional-build verification
 remain before this separate warning-class change can be applied.
 
-Windows debug follow-up: USE_VK_VALIDATION is enabled only for _DEBUG/_WIN32,
-which the original release cross-build inventory did not include. Its six unused
-callback parameters now carry the same annotations. The complete local MinGW
-debug build passes; an actual-command control fails before and passes after,
-with identical native instructions/relocations. Persistent evidence:
-validation-callback-check.log, validation-callback/ and mingw-debug-build.log.
-The initial regression passed; full hosted rebuild is required for the correction.
+PR #84 follow-up 5623e8fe is integrated: all 281 parameter annotations retain
+names and bodies, including six Windows debug validation callback parameters.
+The full local MinGW debug client/server build passes and a before/after control
+preserves native callback instructions/relocations. The initial regression
+35449780958 passed; corrected-head full workflows are required. #83 merged-tree
+regression 35449777481 passed. Persistent evidence: validation-callback/ and
+validation-callback-check.log.
+
+Initializer review: the four GCC debug common.cpp objects differ only in four
+allocator __LINE__ immediates, each increasing by five source lines. Two MinGW
+Sys_OpenVideoPipe objects reorder stores to distinct stack locations around a
+comparison; mov does not change condition flags, and final stored bytes/branch
+condition are unchanged. No added/removed functions or other instruction changes.
+The explicit DWORD cast on si.cb leaves both reviewed MinGW native objects
+byte-identical. All twelve native helper hashes/layouts are unchanged.

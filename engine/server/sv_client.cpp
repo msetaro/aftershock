@@ -2148,7 +2148,7 @@ each of the backup packets.
 static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 	int			i, key;
 	int			cmdCount;
-	static const usercmd_t nullcmd = { 0 };
+	static const usercmd_t nullcmd = {};
 	usercmd_t	cmds[MAX_PACKET_USERCMDS], *cmd;
 	const usercmd_t *oldcmd;
 

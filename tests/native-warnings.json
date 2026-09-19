@@ -4,10 +4,6 @@
       "c": 2,
       "cpp": 2
     },
-    "-Wmissing-field-initializers": {
-      "c": 66,
-      "cpp": 100
-    },
     "-Wsign-compare": {
       "c": 63,
       "cpp": 25
@@ -18,10 +14,6 @@
     }
   },
   "clang": {
-    "-Wmissing-field-initializers": {
-      "c": 70,
-      "cpp": 70
-    },
     "-Wsign-compare": {
       "c": 60,
       "cpp": 25

@@ -917,7 +917,7 @@ Only in One Flag CTF games
 #endif
 
 	// end of list marker
-	{NULL}
+	{}
 };
 
 int		bg_numItems = sizeof(bg_itemlist) / sizeof(bg_itemlist[0]) - 1;

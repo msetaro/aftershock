@@ -1055,7 +1055,7 @@ MSG_WriteDeltaPlayerstate
 =============
 */
 void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const playerState_t *to ) {
-	static const playerState_t dummy = { 0 };
+	static const playerState_t dummy = {};
 	int				i;
 	int				statsbits;
 	int				persistantbits;
