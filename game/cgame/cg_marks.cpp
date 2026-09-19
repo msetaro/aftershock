@@ -1093,9 +1093,9 @@ void CG_AddParticles (void)
 	float			alpha;
 	float			time, time2;
 	vec3_t			org;
-	int				color;
+	int				color [[maybe_unused]];
 	cparticle_t		*active, *tail;
-	int				type;
+	int				type [[maybe_unused]];
 	vec3_t			rotate_ang;
 
 	if (!initparticles)

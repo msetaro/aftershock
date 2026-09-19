@@ -539,7 +539,7 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 	int		event;
 	gclient_t *client;
 	int		damage;
-	vec3_t	dir;
+	vec3_t	dir [[maybe_unused]];
 	vec3_t	origin, angles;
 //	qboolean	fired;
 	gitem_t *item;
@@ -1106,7 +1106,7 @@ while a slow client may have multiple ClientEndFrame between ClientThink.
 */
 void ClientEndFrame( gentity_t *ent ) {
 	int			i;
-	clientPersistant_t	*pers;
+	clientPersistant_t	*pers [[maybe_unused]];
 
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 		SpectatorClientEndFrame( ent );

@@ -3,19 +3,11 @@
     "-Wsign-compare": {
       "c": 63,
       "cpp": 25
-    },
-    "-Wunused-but-set-variable": {
-      "c": 30,
-      "cpp": 20
     }
   },
   "clang": {
     "-Wsign-compare": {
       "c": 60,
-      "cpp": 25
-    },
-    "-Wunused-but-set-variable": {
-      "c": 25,
       "cpp": 25
     }
   }

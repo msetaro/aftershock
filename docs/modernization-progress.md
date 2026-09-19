@@ -12,11 +12,19 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-unused-result. Array-bounds #86 merged 43d4e9b4 after head
-91a2d6ed passed build 35451193767 and regression 35451193709; self-review is
-recorded on #86/#8. Its merged-tree regression remains to check. Integration is
-merged here. #85 merged-tree regression 35451178224 passes. Open this separate
-unused-result class PR and require full hosted gates/self-review before merging.
+Active: issue/8-unused-set-variables. #87 merged c7d69b57 after head ceb2681b
+passed build 35451584276 and regression 35451584289; self-review is recorded on
+#87/#8. Its merged-tree regression remains to check. Integration is merged here.
+#86 merged-tree regression 35451559386 passes. Open this unused-but-set-variable
+class PR and require full hosted gates/self-review before merging.
+
+This branch enables unused-but-set-variable warnings in native production/helpers.
+Thirty-five declarations in eighteen GPL source files have maybe_unused attributes.
+All other source bytes remain unchanged: call counts (including clocks), floating
+point expressions, conditional uses and existing stores are preserved. All twelve
+native helper libraries retain hashes/layouts. Of 160 production objects, 146 are
+raw/native-identical and fourteen differ only in debug sections. Source 93d334db
+and GPL provenance 91c38c85 record all eighteen imported files.
 
 Eight existing console write calls bind their results to maybe_unused const auto
 locals. All calls, arguments and best-effort output behavior remain unchanged;
@@ -35,7 +43,7 @@ in those address calculations. GCC/Clang UI skill ASan/UBSan checks pass, fixed 
 replay on both software renderers retains b38004b1. Source 1c82acae, provenance
 81d4315d. Persistent artifacts array-bounds-{preview,native,ui-gcc,ui-clang,demo}.
 
-Unused-but-set-variable preview is separate and not applied: 35 declarations in
+Unused-but-set-variable validation: 35 declarations in
 18 files annotated to preserve all calls, FP evaluations and conditional uses.
 All other source bytes remain unchanged. All twelve GCC/Clang C/C++ native helper
 libraries retain raw hashes and ABI layouts, including eight vector locals only
@@ -45,10 +53,19 @@ passed; final additional sources pass actual compilation and helper gates.
 Artifacts: unused-set-{inventory,preview,check,objects,extra-objects,native} and
 unused-set-final-review.json in the persistent cache.
 
+Windows cast-function-type preview is separate and not applied: nine GetProcAddress
+conversions in four platform files use the existing two-stage conversion through
+void*, as already used by the AVRT bindings. Fifteen MinGW release/debug native
+objects retain identical bytes; actual-command controls fail before/pass after.
+All 861 MinGW release/debug syntax configurations pass with the class enabled.
+No signature, call, layout or behavior changes. Artifacts: cast-function-{preview,objects}.
+
 Next:
-1. Source 79c3cc30 is ready; open this warning PR and require full hosted gates
-   before final self-review/merge.
-2. Finish unused-but-set-variable preview and remaining warning classes.
+1. Open this class PR and require hosted gates/self-review before merging.
+2. Apply Windows cast-function-type in its separate class branch. Sign-compare
+   preview is underway: 386 locations inventoried; 364 explicit casts in 79 files
+   follow existing Clang integral conversions. Platform/macro cases and complete
+   validation remain; no signedness edits are applied to repository sources.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
    rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then

@@ -222,7 +222,7 @@ LookAtKiller
 */
 void LookAtKiller( gentity_t *self, gentity_t *inflictor, gentity_t *attacker ) {
 	vec3_t		dir;
-	vec3_t		angles;
+	vec3_t		angles [[maybe_unused]];
 
 	if ( attacker && attacker != self ) {
 		VectorSubtract (attacker->s.pos.trBase, self->s.pos.trBase, dir);
@@ -826,7 +826,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			   vec3_t dir, vec3_t point [[maybe_unused]], int damage, int dflags, int mod ) {
 	gclient_t	*client;
 	int			take;
-	int			save;
+	int			save [[maybe_unused]];
 	int			asave;
 	int			knockback;
 	int			max;

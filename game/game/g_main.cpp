@@ -1717,8 +1717,8 @@ Advances the non-player objects in the world
 void G_RunFrame( int levelTime ) {
 	int			i;
 	gentity_t	*ent;
-	int			msec;
-int start, end;
+	int			msec [[maybe_unused]];
+int start [[maybe_unused]], end [[maybe_unused]];
 
 	// if we are waiting for the level to restart, do nothing
 	if ( level.restarted ) {

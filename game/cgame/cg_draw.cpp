@@ -2349,7 +2349,7 @@ static void CG_DrawWarmup( void ) {
 	int			w;
 	int			sec;
 	int			i;
-	float scale;
+	float scale [[maybe_unused]];
 	clientInfo_t	*ci1, *ci2;
 	int			cw;
 	const char	*s;

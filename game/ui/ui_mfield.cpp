@@ -334,7 +334,7 @@ void MenuField_Draw( menufield_s *f )
 	int		x;
 	int		y;
 	int		w;
-	int		h;
+	int		h [[maybe_unused]];
 	int		style;
 	qboolean focus;
 	float	*color;

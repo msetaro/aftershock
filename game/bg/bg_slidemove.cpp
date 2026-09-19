@@ -232,7 +232,7 @@ PM_StepSlideMove
 */
 void PM_StepSlideMove( qboolean gravity ) {
 	vec3_t		start_o, start_v;
-	vec3_t		down_o, down_v;
+	vec3_t		down_o [[maybe_unused]], down_v [[maybe_unused]];
 	trace_t		trace;
 //	float		down_dist, up_dist;
 //	vec3_t		delta, delta2;
