@@ -5,6 +5,11 @@ Integration: `modernization`. Issue branches: `issue/<number>-<slug>`, one bug p
 Never push main, force-push, rewrite history, or touch port-evidence. Stop after #8
 and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
+Maintainer ruling (2026-09-19): keep all future changes and PRs in
+`msetaro/aftershock`. Do not create PRs against ec-/Quake3e or another parent
+repository. This replaces the earlier requirement to submit applicable #31 fixes
+upstream; historical upstream PR references below are completed past work.
+
 ## Next action
 
 Active: issue/8-array-bounds, based on pending initializer PR #85 head bcbd1bad.
