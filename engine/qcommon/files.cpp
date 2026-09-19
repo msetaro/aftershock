@@ -2377,22 +2377,40 @@ static const byte cache_header[4] = {
 	( ( sizeof( fileOffset_t ) - 1 ) << 4 ) | ( sizeof( fileTime_t ) - 1 )
 };
 
+// Version-zero cache records retain each platform's established byte widths.
+#ifdef _WIN32
+using pk3cacheFileOffset_t = int32_t;
+using pk3cacheItemOffset_t = uint32_t;
+#else
+using pk3cacheFileOffset_t = int64_t;
+using pk3cacheItemOffset_t = uint64_t;
+#endif
+static_assert( sizeof( fileOffset_t ) == sizeof( pk3cacheFileOffset_t ) );
+static_assert( sizeof( fileTime_t ) == sizeof( int64_t ) );
+
 typedef struct pk3cacheHeader_s {
-	int pakNameLen; // full path
-	int namesLen;
-	int numFiles;
-	int numHeaderLongs; // including first uninitialized
-	int contentLen;
-	fileTime_t ctime; // creation/status change time
-	fileTime_t mtime; // modification time
-	fileOffset_t size; // zip file size
+	int32_t pakNameLen; // full path
+	int32_t namesLen;
+	int32_t numFiles;
+	int32_t numHeaderLongs; // including first uninitialized
+	int32_t contentLen;
+	int64_t ctime; // creation/status change time
+	int64_t mtime; // modification time
+	pk3cacheFileOffset_t size; // zip file size
 } pk3cacheHeader_t;
 
 typedef struct pk3cacheFileItem_s {
-	unsigned long name; // offset in namebuffer
-	unsigned long size;
-	unsigned long pos; // info position in pk3 file
+	pk3cacheItemOffset_t name; // offset in namebuffer
+	pk3cacheItemOffset_t size;
+	pk3cacheItemOffset_t pos; // info position in pk3 file
 } pk3cacheFileItem_t;
+
+static_assert( sizeof( pk3cacheHeader_t ) == 36 + sizeof( pk3cacheFileOffset_t ) &&
+			   alignof( pk3cacheHeader_t ) == 1 && std::is_trivially_copyable_v<pk3cacheHeader_t> &&
+			   std::is_standard_layout_v<pk3cacheHeader_t> );
+static_assert( sizeof( pk3cacheFileItem_t ) == 3 * sizeof( pk3cacheItemOffset_t ) &&
+			   alignof( pk3cacheFileItem_t ) == 1 && std::is_trivially_copyable_v<pk3cacheFileItem_t> &&
+			   std::is_standard_layout_v<pk3cacheFileItem_t> );
 
 #pragma pack( pop )
 
