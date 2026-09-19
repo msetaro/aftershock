@@ -479,7 +479,7 @@ int StringContains( const char *str1, const char *str2, int casesensitive )
 
 	if (str1 == NULL || str2 == NULL) return -1;
 
-	len = strlen(str1) - strlen(str2);
+	len = (int)( strlen(str1) - strlen(str2) );
 	index = 0;
 	for (i = 0; i <= len; i++, str1++, index++)
 	{
@@ -508,7 +508,7 @@ static const char *StringContainsWord( const char *str1, const char *str2 )
 {
 	int len, i, j;
 
-	len = strlen( str1 ) - strlen( str2 );
+	len = (int)( strlen( str1 ) - strlen( str2 ) );
 	for ( i = 0; i <= len; i++, str1++ )
 	{
 		//if not at the start of the string
@@ -881,7 +881,7 @@ static void BotReplaceReplySynonyms( char *string, int size, unsigned long int c
 					continue;
 
 				replacement = syn->firstsynonym->string;
-				replen = strlen( replacement );
+				replen = (int)( strlen( replacement ) );
 
 				//if the replacement IS in front of the string continue
 				str2 = StringContainsWord( str1, replacement );
@@ -932,7 +932,7 @@ static int BotLoadChatMessage( source_t *source, char *chatmessagestring, int si
 		if ( token.type == TT_STRING )
 		{
 			StripDoubleQuotes( token.string );
-			len = strlen( ptr );
+			len = (int)( strlen( ptr ) );
 			if ( len + strlen( token.string ) + 1 > (size_t)size )
 			{
 				SourceError( source, "chat message too long" );
@@ -946,7 +946,7 @@ static int BotLoadChatMessage( source_t *source, char *chatmessagestring, int si
 			char intbuf[32];
 			int intlen;
 
-			len = strlen( ptr );
+			len = (int)( strlen( ptr ) );
 			intlen = sprintf( intbuf, "%cv%ld%c", ESCAPE_CHAR, token.intvalue, ESCAPE_CHAR );
 			if ( len + intlen + 1 > size )
 			{
@@ -959,7 +959,7 @@ static int BotLoadChatMessage( source_t *source, char *chatmessagestring, int si
 		//random string
 		else if ( token.type == TT_NAME )
 		{
-			len = strlen( ptr );
+			len = (int)( strlen( ptr ) );
 			if ( len + strlen( token.string ) + 4 > (size_t)size )
 			{
 				SourceError( source, "chat message too long" );
@@ -1499,7 +1499,7 @@ static int StringsMatch(bot_matchpiece_t *pieces, bot_match_t *match)
 		{
         		assert( match->variables[lastvariable].offset >= 0 );
 			match->variables[lastvariable].length =
-				strlen(&match->string[ (int) match->variables[lastvariable].offset]);
+				(int)strlen(&match->string[ (int) match->variables[lastvariable].offset]);
 		} //end if
 		return qtrue;
 	} //end if
@@ -2407,7 +2407,7 @@ static int BotExpandChatMessage(char *outmessage, int size, const char *message,
 							return qfalse;
 						}
 						strcpy(&outputbuf[len], temp);
-						len += strlen(temp);
+						len = (int)( (size_t)len + (strlen(temp)) );
 					} //end if
 					break;
 				}
@@ -2438,7 +2438,7 @@ static int BotExpandChatMessage(char *outmessage, int size, const char *message,
 						return qfalse;
 					}
 					strcpy(&outputbuf[len], ptr);
-					len += strlen(ptr);
+					len = (int)( (size_t)len + (strlen(ptr)) );
 					expansion = qtrue;
 					break;
 				}
@@ -2618,7 +2618,7 @@ void BotInitialChat(int chatstate, const char *type, int mcontext, const char *v
 		if ( (size_t)( len + index ) < sizeof( match.string ) ) {
 			match.variables[0].length = len;
 			strcat( match.string, var0 );
-			index += strlen( var0 );
+			index = (int)( (size_t)index + (strlen( var0 )) );
 		}
 	}
 	if ( var1 ) {
@@ -2679,7 +2679,7 @@ void BotInitialChat(int chatstate, const char *type, int mcontext, const char *v
 		len = (int) strlen( var7 );
 		match.variables[7].offset = index;
 		if ( (size_t)( len + index ) < sizeof( match.string ) ) {
-			match.variables[7].length = strlen(var7);
+			match.variables[7].length = (int)( strlen(var7) );
 			strcat( match.string, var7 );
 			//index += len;
 		}
@@ -2821,7 +2821,7 @@ int BotReplyChat(int chatstate, const char *message, int mcontext, int vcontext,
 	if (bestchatmessage)
 	{
 		int len;
-		index = strlen( bestmatch.string );
+		index = (int)( strlen( bestmatch.string ) );
 		if ( var0 ) {
 			len = (int) strlen( var0 );
 			bestmatch.variables[0].offset = index;
@@ -2924,7 +2924,7 @@ int BotChatLength(int chatstate)
 
 	cs = BotChatStateFromHandle(chatstate);
 	if (!cs) return 0;
-	return strlen(cs->chatmessage);
+	return (int)( strlen(cs->chatmessage) );
 } //end of the function BotChatLength
 //===========================================================================
 //

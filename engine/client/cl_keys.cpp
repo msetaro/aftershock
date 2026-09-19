@@ -65,7 +65,7 @@ static void Field_VariableSizeDraw( field_t *edit, int x, int y, int width [[may
 	int		curColor;
 
 	drawLen = edit->widthInChars - 1; // - 1 so there is always a space for the cursor
-	len = strlen( edit->buffer );
+	len = (int)( strlen( edit->buffer ) );
 
 	// guarantee that cursor will be visible
 	if ( len <= drawLen ) {
@@ -140,7 +140,7 @@ static void Field_VariableSizeDraw( field_t *edit, int x, int y, int width [[may
 			cursorChar = 10;
 		}
 
-		i = drawLen - strlen( str );
+		i = (int)( drawLen - strlen( str ) );
 
 		if ( size == smallchar_width ) {
 			SCR_DrawSmallChar( x + ( edit->cursor - prestep - i ) * size, y, cursorChar );
@@ -181,7 +181,7 @@ static void Field_Paste( field_t *edit ) {
 	}
 
 	// send as if typed, so insert / overstrike works properly
-	pasteLen = strlen( cbd );
+	pasteLen = (int)( strlen( cbd ) );
 	for ( i = 0 ; i < pasteLen ; i++ ) {
 		Field_CharEvent( edit, cbd[i] );
 	}
@@ -234,7 +234,7 @@ static void Field_KeyDownEvent( field_t *edit, int key ) {
 		return;
 	}
 
-	len = strlen( edit->buffer );
+	len = (int)( strlen( edit->buffer ) );
 
 	switch ( key ) {
 		case K_DEL:
@@ -307,7 +307,7 @@ static void Field_CharEvent( field_t *edit, int ch ) {
 		return;
 	}
 
-	len = strlen( edit->buffer );
+	len = (int)( strlen( edit->buffer ) );
 
 	if ( ch == 'h' - 'a' + 1 )	{	// ctrl-h is backspace
 		if ( edit->cursor > 0 ) {

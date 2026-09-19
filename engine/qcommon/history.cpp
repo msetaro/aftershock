@@ -236,8 +236,8 @@ static void Con_SaveHistory( void )
 	{
 		if( historyEditLines[ i ].buffer[ 0 ] )
 		{
-			lineLength = strlen( historyEditLines[ i ].buffer );
-			saveBufferLength = strlen( consoleSaveBuffer );
+			lineLength = (int)( strlen( historyEditLines[ i ].buffer ) );
+			saveBufferLength = (int)( strlen( consoleSaveBuffer ) );
 
 			//ICK
 			additionalLength = lineLength + 13; // strlen( "999 999 999  " )
@@ -258,7 +258,7 @@ static void Con_SaveHistory( void )
 	}
 	while( i != ( nextHistoryLine - 1 + COMMAND_HISTORY ) % COMMAND_HISTORY );
 
-	consoleSaveBufferSize = strlen( consoleSaveBuffer );
+	consoleSaveBufferSize = (int)( strlen( consoleSaveBuffer ) );
 
 	f = FS_FOpenFileWrite( CONSOLE_HISTORY_FILE );
 	if( f == FS_INVALID_HANDLE )

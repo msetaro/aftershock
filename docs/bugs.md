@@ -8,7 +8,9 @@ The original twelve engine/vendor defects are closed with merged tested fixes
 below; final regression 34892331846 passed on 9a7c2625. #2 native import preflight
 found an additional LP64 game-math defect; its separate fix is merged PR #49. Merged-tree regression 34895239211 passed
 on 2018564f. #31 movement-result fix is merged as PR #51 / 5ecf43e5 with merged-tree regression
-34900871236 passed. #31 remains open for native dispatch and team-leader names below. `tests/known-bugs.txt` has no active entries and
+34900871236 passed. #31 remains open for subsequently found bugs, currently the two formatter
+capacity defects documented below. Native dispatch and team-leader fixes are
+recorded in their later entries. `tests/known-bugs.txt` has no active entries and
 `tools/port/ubsan.supp` is empty.
 
 | Defect | Fork fix | Upstream |
@@ -31,6 +33,17 @@ Clock-dependent smoke/recording observations are verification limitations handle
 by the documented smoke clock and fixed-demo replay. The Clang JIT instrumentation
 and ASan/faketime observations below are verification limits, not passing gates;
 #2 removes the transitional JIT. The additional native-math defect is assigned to #31 below.
+
+## Formatter capacity defects found during #8
+
+Two formatter defects reproduced while inventorying Apple deprecations for #8; fixes will be separate test-first #31 PRs, only in msetaro/aftershock.
+
+1. Both engine/qcommon/q_shared.cpp and game/bg/q_shared.cpp call unbounded vsprintf into Com_sprintf's 32,000-byte temporary before checking its result. A 32,000-character string plus its terminator writes past the temporary; both real implementations exit 1 with ASan stack-buffer-overflow before their existing Com_Error guard.
+2. Both va implementations use two 32,000-byte static slots with unbounded vsprintf. Formatting that same string twice reaches the second slot and exits 1 with ASan global-buffer-overflow in both implementations.
+
+Reproduction uses the real engine helper compiled as C++20 and the GPL helper compiled as C99, -O1 -g -fsanitize=address -fno-omit-frame-pointer -ffunction-sections -fdata-sections, linker --gc-sections, and only stub Com_Error/Com_Printf. The probe uses a static 32001-byte NUL-terminated input filled with 32000 x characters. It calls Com_sprintf(output, sizeof(output), "%s", input), or va("%s", input) twice. Com_Error's stub exits 42, so ASan exit 1 establishes the overflow precedes the guard. No engine fixes or accepted golden changes yet.
+
+Artifacts: ~/.cache/aftershock-modernization/format-capacity.cpp, format-capacity-{engine,game}-{sprintf,va}.log, format-capacity-results.json. Permanent small regression commands will be added test-first in the respective #31 branches. The ordinary regression suite currently does not exercise these boundaries.
 
 ## Historical observations and validation
 

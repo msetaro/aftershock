@@ -1928,7 +1928,7 @@ void SV_PrintLocations_f( client_t *client ) {
 		if ( len > max_namelength )
 			max_namelength = len;
 
-		len = strlen( cl->country );
+		len = (int)( strlen( cl->country ) );
 		if ( len > max_ctrylength )
 			max_ctrylength = len;
 	}

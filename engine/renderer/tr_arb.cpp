@@ -976,7 +976,7 @@ qboolean ARB_CompileProgram( programType ptype, const char *text, GLuint program
 		kind = GL_VERTEX_PROGRAM_ARB;
 
 	qglBindProgramARB( kind, program );
-	qglProgramStringARB( kind, GL_PROGRAM_FORMAT_ASCII_ARB, strlen( text ), text );
+	qglProgramStringARB( kind, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)( strlen( text ) ), text );
 	qglGetIntegerv( GL_PROGRAM_ERROR_POSITION_ARB, &errorPos );
 	if ( (errCode = qglGetError()) != GL_NO_ERROR || errorPos != -1 )
 	{

@@ -745,12 +745,12 @@ static aas_routingcache_t *AAS_AllocRoutingCache(int numtraveltimes)
 						+ numtraveltimes * sizeof(unsigned short int)
 						+ numtraveltimes * sizeof(unsigned char);
 	//
-	routingcachesize += size;
+	routingcachesize = (int)( (size_t)routingcachesize + (size) );
 	//
 	cache = (aas_routingcache_t *) GetClearedMemory(size);
 	cache->reachabilities = (unsigned char *) cache + sizeof(aas_routingcache_t)
 								+ numtraveltimes * sizeof(unsigned short int);
-	cache->size = size;
+	cache->size = (int)( size );
 	return cache;
 } //end of the function AAS_AllocRoutingCache
 //===========================================================================

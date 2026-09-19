@@ -445,14 +445,14 @@ static filter_node_t *new_node( const char *p1, const char *p2, filter_op fop, i
 	}
 	else
 	{
-		len1 = strlen( p1 ) + 1; // key name or action message
+		len1 = (int)( strlen( p1 ) + 1 ); // key name or action message
 		if ( len1 > MAX_FILTER_MESSAGE ) 
 			len1 = MAX_FILTER_MESSAGE;
 	}
 
 	// right value
 	if ( quoted || is_fname || is_date || is_integer( p2 ) == 0 )
-		len2 = strlen( p2 ) + 1; // string value
+		len2 = (int)( strlen( p2 ) + 1 ); // string value
 	else
 		len2 = 0; // integer or null value
 

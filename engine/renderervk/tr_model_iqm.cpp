@@ -842,7 +842,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		for( i = 0; (unsigned int)i < header->num_joints; i++, joint++ ) {
 			char *name = (char *)header + header->ofs_text +
 				joint->name;
-			int len = strlen( name ) + 1;
+			int len = (int)( strlen( name ) + 1 );
 			Com_Memcpy( str, name, len );
 			str += len;
 		}

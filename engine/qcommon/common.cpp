@@ -663,7 +663,7 @@ Com_StringContains
 static const char *Com_StringContains( const char *str1, const char *str2, int len2 ) {
 	int len, i, j;
 
-	len = strlen(str1) - len2;
+	len = (int)( strlen(str1) - len2 );
 	for (i = 0; i <= len; i++, str1++) {
 		for (j = 0; str2[j]; j++) {
 			if (locase[(byte)str1[j]] != locase[(byte)str2[j]]) {
@@ -987,13 +987,13 @@ static memblock_t *SplitBlock( memblock_t *base, size_t base_size, size_t fragme
 {
 	memblock_t *fragment = (memblock_t *)((unsigned char *)base + base_size);
 
-	fragment->size = fragment_size;
+	fragment->size = (uint32_t)( fragment_size );
 	fragment->prev = base;
 	fragment->next = base->next;
 	fragment->next->prev = fragment;
 
 	base->next = fragment;
-	base->size = base_size;
+	base->size = (uint32_t)( base_size );
 
 	return fragment;
 }
@@ -1348,7 +1348,7 @@ void *Z_TagMalloc( size_t size, memtag_t tag ) {
 	zone = (tag == TAG_SMALL) ? smallzone : mainzone;
 
 #ifdef ZONE_DEBUG
-	allocSize = size;
+	allocSize = (int)( size );
 #endif
 
 #ifdef USE_MULTI_SEGMENT
@@ -1369,7 +1369,7 @@ void *Z_TagMalloc( size_t size, memtag_t tag ) {
 	size = PAD( size, sizeof( intptr_t ) );		// align to 32/64 bit boundary
 
 #ifdef USE_MULTI_SEGMENT
-	base = SearchFree( zone, size );
+	base = SearchFree( zone, (uint32_t)( size ) );
 
 	RemoveFree( base );
 #else
@@ -2006,19 +2006,19 @@ void Hunk_Log( void ) {
 	size = 0;
 	numBlocks = 0;
 	Com_sprintf(buf, sizeof(buf), "\r\n================\r\nHunk log\r\n================\r\n");
-	FS_Write(buf, strlen(buf), logfile);
+	FS_Write(buf, (int)( strlen(buf) ), logfile);
 	for (block = hunkblocks ; block; block = block->next) {
 #ifdef HUNK_DEBUG
 		Com_sprintf(buf, sizeof(buf), "size = %8d: %s, line: %d (%s)\r\n", block->size, block->file, block->line, block->label);
-		FS_Write(buf, strlen(buf), logfile);
+		FS_Write(buf, (int)( strlen(buf) ), logfile);
 #endif
 		size += block->size;
 		numBlocks++;
 	}
 	Com_sprintf(buf, sizeof(buf), "%d Hunk memory\r\n", size);
-	FS_Write(buf, strlen(buf), logfile);
+	FS_Write(buf, (int)( strlen(buf) ), logfile);
 	Com_sprintf(buf, sizeof(buf), "%d hunk blocks\r\n", numBlocks);
-	FS_Write(buf, strlen(buf), logfile);
+	FS_Write(buf, (int)( strlen(buf) ), logfile);
 }
 
 
@@ -2042,7 +2042,7 @@ void Hunk_SmallLog( void ) {
 	size = 0;
 	numBlocks = 0;
 	Com_sprintf(buf, sizeof(buf), "\r\n================\r\nHunk Small log\r\n================\r\n");
-	FS_Write(buf, strlen(buf), logfile);
+	FS_Write(buf, (int)( strlen(buf) ), logfile);
 	for (block = hunkblocks; block; block = block->next) {
 		if (block->printed) {
 			continue;
@@ -2060,14 +2060,14 @@ void Hunk_SmallLog( void ) {
 			block2->printed = qtrue;
 		}
 		Com_sprintf(buf, sizeof(buf), "size = %8d: %s, line: %d (%s)\r\n", locsize, block->file, block->line, block->label);
-		FS_Write(buf, strlen(buf), logfile);
+		FS_Write(buf, (int)( strlen(buf) ), logfile);
 		size += block->size;
 		numBlocks++;
 	}
 	Com_sprintf(buf, sizeof(buf), "%d Hunk memory\r\n", size);
-	FS_Write(buf, strlen(buf), logfile);
+	FS_Write(buf, (int)( strlen(buf) ), logfile);
 	Com_sprintf(buf, sizeof(buf), "%d hunk blocks\r\n", numBlocks);
-	FS_Write(buf, strlen(buf), logfile);
+	FS_Write(buf, (int)( strlen(buf) ), logfile);
 }
 #endif
 
@@ -2309,9 +2309,9 @@ void *Hunk_Alloc( size_t size, ha_pref preference ) {
 
 	if ( hunk_permanent == &hunk_low ) {
 		buf = (void *)(s_hunkData + hunk_permanent->permanent);
-		hunk_permanent->permanent += size;
+		hunk_permanent->permanent = (int)( (size_t)hunk_permanent->permanent + (size) );
 	} else {
-		hunk_permanent->permanent += size;
+		hunk_permanent->permanent = (int)( (size_t)hunk_permanent->permanent + (size) );
 		buf = (void *)(s_hunkData + s_hunkTotal - hunk_permanent->permanent );
 	}
 
@@ -2324,7 +2324,7 @@ void *Hunk_Alloc( size_t size, ha_pref preference ) {
 		hunkblock_t *block;
 
 		block = (hunkblock_t *) buf;
-		block->size = size - sizeof(hunkblock_t);
+		block->size = (int)( size - sizeof(hunkblock_t) );
 		block->file = file;
 		block->label = label;
 		block->line = line;
@@ -2371,9 +2371,9 @@ void *Hunk_AllocateTempMemory( size_t size ) {
 
 	if ( hunk_temp == &hunk_low ) {
 		buf = (void *)(s_hunkData + hunk_temp->temp);
-		hunk_temp->temp += size;
+		hunk_temp->temp = (int)( (size_t)hunk_temp->temp + (size) );
 	} else {
-		hunk_temp->temp += size;
+		hunk_temp->temp = (int)( (size_t)hunk_temp->temp + (size) );
 		buf = (void *)(s_hunkData + s_hunkTotal - hunk_temp->temp );
 	}
 
@@ -2385,7 +2385,7 @@ void *Hunk_AllocateTempMemory( size_t size ) {
 	buf = (void *)(hdr+1);
 
 	hdr->magic = HUNK_MAGIC;
-	hdr->size = size;
+	hdr->size = (unsigned int)( size );
 
 	// don't bother clearing, because we are going to load a file over it
 	return buf;
@@ -2702,7 +2702,7 @@ static sysEvent_t Com_GetSystemEvent( void )
 		char  *b;
 		int   len;
 
-		len = strlen( s ) + 1;
+		len = (int)( strlen( s ) + 1 );
 		b = (char *)Z_Malloc( len );
 		strcpy( b, s );
 		Sys_QueEvent( evTime, SE_CONSOLE, 0, 0, len, b );
@@ -3131,7 +3131,7 @@ qboolean Com_CDKeyValidate( const char *key, const char *checksum ) {
 	char	chs[10];
 	int i, len;
 
-	len = strlen(key);
+	len = (int)( strlen(key) );
 	if( len != CDKEY_LEN ) {
 		return qfalse;
 	}
@@ -4009,7 +4009,7 @@ FindMatches
 static void FindMatches( const char *s ) {
 	int		i, n;
 
-	if ( Q_stricmpn( s, completionString, strlen( completionString ) ) ) {
+	if ( Q_stricmpn( s, completionString, (int)( strlen( completionString ) ) ) ) {
 		return;
 	}
 	matchCount++;
@@ -4039,7 +4039,7 @@ PrintMatches
 ===============
 */
 static void PrintMatches( const char *s ) {
-	if ( !Q_stricmpn( s, shortestMatch, strlen( shortestMatch ) ) ) {
+	if ( !Q_stricmpn( s, shortestMatch, (int)( strlen( shortestMatch ) ) ) ) {
 		Com_Printf( "    %s\n", s );
 	}
 }
@@ -4053,7 +4053,7 @@ PrintCvarMatches
 static void PrintCvarMatches( const char *s ) {
 	char value[ TRUNCATE_LENGTH ];
 
-	if ( !Q_stricmpn( s, shortestMatch, strlen( shortestMatch ) ) ) {
+	if ( !Q_stricmpn( s, shortestMatch, (int)( strlen( shortestMatch ) ) ) ) {
 		Com_TruncateLongString( value, Cvar_VariableString( s ) );
 		Com_Printf( "    %s = \"%s\"\n", s, value );
 	}
@@ -4105,12 +4105,12 @@ static qboolean Field_Complete( void )
 	if( matchCount == 0 )
 		return qtrue;
 
-	completionOffset = strlen( completionField->buffer ) - strlen( completionString );
+	completionOffset = (int)( strlen( completionField->buffer ) - strlen( completionString ) );
 
 	Q_strncpyz( &completionField->buffer[ completionOffset ], shortestMatch,
 		sizeof( completionField->buffer ) - completionOffset );
 
-	completionField->cursor = strlen( completionField->buffer );
+	completionField->cursor = (int)( strlen( completionField->buffer ) );
 
 	if( matchCount == 1 )
 	{

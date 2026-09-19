@@ -682,7 +682,7 @@ static int PC_ExpandBuiltinDefine(source_t *source, token_t *deftoken, define_t 
 		{
 			strcpy(token->string, source->scriptstack->filename);
 			token->type = TT_NAME;
-			token->subtype = strlen(token->string);
+			token->subtype = (int)( strlen(token->string) );
 			*firsttoken = token;
 			*lasttoken = token;
 			break;
@@ -696,7 +696,7 @@ static int PC_ExpandBuiltinDefine(source_t *source, token_t *deftoken, define_t 
 			strncat(token->string+7, curtime+20, 4);
 			strcat(token->string, "\"");
 			token->type = TT_NAME;
-			token->subtype = strlen(token->string);
+			token->subtype = (int)( strlen(token->string) );
 			*firsttoken = token;
 			*lasttoken = token;
 			break;
@@ -709,7 +709,7 @@ static int PC_ExpandBuiltinDefine(source_t *source, token_t *deftoken, define_t 
 			strncat(token->string, curtime+11, 8);
 			strcat(token->string, "\"");
 			token->type = TT_NAME;
-			token->subtype = strlen(token->string);
+			token->subtype = (int)( strlen(token->string) );
 			*firsttoken = token;
 			*lasttoken = token;
 			break;
@@ -1255,7 +1255,7 @@ static define_t *PC_DefineFromString(const char *string)
 
 	PC_InitTokenHeap();
 
-	script = LoadScriptMemory(string, strlen(string), "*extern");
+	script = LoadScriptMemory(string, (int)( strlen(string) ), "*extern");
 	//create a new source
 	Com_Memset(&src, 0, sizeof(source_t));
 	Q_strncpyz( src.filename, "*extern", sizeof( src.filename ) );

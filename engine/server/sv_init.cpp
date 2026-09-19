@@ -37,7 +37,7 @@ static void SV_SendConfigstring(client_t *client, int index)
 	int maxChunkSize = MAX_STRING_CHARS - 24;
 	int len;
 
-	len = strlen(sv.configstrings[index]);
+	len = (int)( strlen(sv.configstrings[index]) );
 
 	if( len >= maxChunkSize ) {
 		int		sent = 0;
@@ -657,9 +657,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 		p = FS_LoadedPakChecksums( &overflowed );
 
-		pakslen = strlen( p ) + 9; // + strlen( "\\sv_paks\\" )
+		pakslen = (int)( strlen( p ) + 9 ); // + strlen( "\\sv_paks\\" )
 		freespace = SV_RemainingGameState();
-		infolen = strlen( Cvar_InfoString_Big( CVAR_SYSTEMINFO, &infoTruncated ) );
+		infolen = (int)( strlen( Cvar_InfoString_Big( CVAR_SYSTEMINFO, &infoTruncated ) ) );
 
 		if ( infoTruncated ) {
 			Com_Printf( S_COLOR_YELLOW "WARNING: truncated systeminfo!\n" );

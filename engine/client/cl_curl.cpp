@@ -238,7 +238,7 @@ static int CL_cURL_CallbackProgress( void *dummy, double dltotal, double dlnow,
 static size_t CL_cURL_CallbackWrite( void *buffer, size_t size, size_t nmemb, void *stream )
 {
 	if ( clc.download == FS_INVALID_HANDLE ) {
-		if ( !CL_ValidPakSignature( (const byte *)buffer, size*nmemb ) ) {
+		if ( !CL_ValidPakSignature( (const byte *)buffer, (int)( size*nmemb ) ) ) {
 			Com_Error( ERR_DROP, "CL_cURL_CallbackWrite: invalid pak signature for %s", 
 				clc.downloadName );
 			return (size_t)-1;
@@ -251,7 +251,7 @@ static size_t CL_cURL_CallbackWrite( void *buffer, size_t size, size_t nmemb, vo
 		}
 	}
 
-	FS_Write( buffer, size*nmemb, ((fileHandle_t*)stream)[0] );
+	FS_Write( buffer, (int)( size*nmemb ), ((fileHandle_t*)stream)[0] );
 	return size*nmemb;
 }
 
@@ -786,7 +786,7 @@ static size_t Com_DL_CallbackWrite( void *ptr, size_t size, size_t nmemb, void *
 
 	if ( dl->fHandle == FS_INVALID_HANDLE )
 	{
-		if ( !CL_ValidPakSignature( (const byte *)ptr, size*nmemb ) )
+		if ( !CL_ValidPakSignature( (const byte *)ptr, (int)( size*nmemb ) ) )
 		{
 			Com_Printf( S_COLOR_YELLOW "Com_DL_CallbackWrite(): invalid pak signature for %s.\n",
 				dl->Name );
@@ -800,7 +800,7 @@ static size_t Com_DL_CallbackWrite( void *ptr, size_t size, size_t nmemb, void *
 		}
 	}
 
-	FS_Write( ptr, size*nmemb, dl->fHandle );
+	FS_Write( ptr, (int)( size*nmemb ), dl->fHandle );
 
 	return (size * nmemb);
 }
