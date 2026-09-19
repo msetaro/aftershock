@@ -1232,7 +1232,7 @@ static void SV_Status_f( void ) {
 		if ( cl->state == CS_FREE )
 			continue;
 
-		l = strlen( cl->name ) + 1;
+		l = (int)( strlen( cl->name ) + 1 );
 		strcpy( nc, cl->name );
 		np[ i ] = nc; nc += l;			// name pointer in name buffer
 		nl[ i ] = SV_Strlen( cl->name );// name length without color sequences
@@ -1240,7 +1240,7 @@ static void SV_Status_f( void ) {
 			max_namelength = nl[ i ];
 
 		s = NET_AdrToString( &cl->netchan.remoteAddress );
-		l = strlen( s ) + 1;
+		l = (int)( strlen( s ) + 1 );
 		strcpy( ac, s );
 		ap[ i ] = ac; ac += l;			// address pointer in address buffer
 		al[ i ] = l - 1;				// address length

@@ -282,7 +282,7 @@ void MSG_WriteString( msg_t *sb, const char *s ) {
 	int l, i;
 	char v;
 
-	l = s ? strlen( s ) : 0;
+	l = (int)( s ? strlen( s ) : 0 );
 	if ( l >= MAX_STRING_CHARS ) {
 		Com_Printf( "MSG_WriteString: MAX_STRING_CHARS\n" );
 		l = 0; 
@@ -304,7 +304,7 @@ void MSG_WriteBigString( msg_t *sb, const char *s ) {
 	int l, i;
 	char v;
 
-	l = s ? strlen( s ) : 0;
+	l = (int)( s ? strlen( s ) : 0 );
 	if ( l >= BIG_INFO_STRING ) {
 		Com_Printf( "MSG_WriteBigString: BIG_INFO_STRING\n" );
 		l = 0; 

@@ -370,7 +370,7 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 					}
 				} else {
 					// check for exact extension
-					const int length = strlen( findinfo.name );
+					const int length = (int)( strlen( findinfo.name ) );
 					if ( length < extLen || Q_stricmp( findinfo.name + length - extLen, extension ) ) {
 						continue;
 					}

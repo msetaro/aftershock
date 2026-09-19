@@ -379,10 +379,10 @@ static void SCR_DrawDemoRecording( void ) {
 
 	if (cl_drawRecording->integer == 1) {
 		sprintf(string, "RECORDING %s: %ik", clc.recordNameShort, pos / 1024);
-		SCR_DrawStringExt(320 - strlen(string) * 4, 20, 8, string, g_color_table[ColorIndex(COLOR_WHITE)], qtrue, qfalse);
+		SCR_DrawStringExt((int)( 320 - strlen(string) * 4 ), 20, 8, string, g_color_table[ColorIndex(COLOR_WHITE)], qtrue, qfalse);
 	} else if (cl_drawRecording->integer == 2) {
 		sprintf(string, "RECORDING: %ik", pos / 1024);
-		SCR_DrawStringExt(320 - strlen(string) * 4, 20, 8, string, g_color_table[ColorIndex(COLOR_WHITE)], qtrue, qfalse);
+		SCR_DrawStringExt((int)( 320 - strlen(string) * 4 ), 20, 8, string, g_color_table[ColorIndex(COLOR_WHITE)], qtrue, qfalse);
 	}
 }
 

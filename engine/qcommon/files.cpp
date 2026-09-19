@@ -1436,8 +1436,8 @@ qboolean FS_StripExt( char *filename, const char *ext )
 {
 	int extlen, namelen;
 
-	extlen = strlen( ext );
-	namelen = strlen( filename );
+	extlen = (int)( strlen( ext ) );
+	namelen = (int)( strlen( filename ) );
 
 	if ( extlen > namelen )
 		return qfalse;
@@ -1895,7 +1895,7 @@ int FS_Read( void *buffer, int len, fileHandle_t f ) {
 		tries = 0;
 		while (remaining) {
 			block = remaining;
-			read = fread( buf, 1, block, fsh[f].handleFiles.file.o );
+			read = (int)( fread( buf, 1, block, fsh[f].handleFiles.file.o ) );
 			if (read == 0) {
 				// we might have been trying to read from a CD, which
 				// sometimes returns a 0 read on windows
@@ -1953,7 +1953,7 @@ int FS_Write( const void *buffer, int len, fileHandle_t h ) {
 	tries = 0;
 	while (remaining) {
 		block = remaining;
-		written = fwrite (buf, 1, block, f);
+		written = (int)( fwrite (buf, 1, block, f) );
 		if (written == 0) {
 			if (!tries) {
 				tries = 1;
@@ -1985,7 +1985,7 @@ void QDECL FS_Printf( fileHandle_t h, const char *fmt, ... ) {
 	Q_vsnprintf (msg, sizeof(msg), fmt, argptr);
 	va_end (argptr);
 
-	FS_Write(msg, strlen(msg), h);
+	FS_Write(msg, (int)( strlen(msg) ), h);
 }
 
 #define PK3_SEEK_BUFFER_SIZE 65536
@@ -3083,7 +3083,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile )
 			unzGoToNextFile( uf );
 			continue;
 		} 
-		namelen += strlen( filename_inzip ) + 1;
+		namelen = (unsigned int)( (size_t)namelen + (strlen( filename_inzip ) + 1) );
 		unzGoToNextFile( uf );
 		filecount++;
 	}
@@ -3428,7 +3428,7 @@ static char **FS_ListFilteredFiles( const char *path, const char *extension, con
 		extension++;
 	}
 
-	pathLength = strlen( path );
+	pathLength = (int)( strlen( path ) );
 	if ( pathLength > 0 && ( path[pathLength-1] == '\\' || path[pathLength-1] == '/' ) ) {
 		pathLength--;
 	}
@@ -3517,7 +3517,7 @@ static char **FS_ListFilteredFiles( const char *path, const char *extension, con
 			for ( i = 0; i < numSysFiles; i++ ) {
 				// unique the match
 				name = sysFiles[ i ];
-				length = strlen( name );
+				length = (int)( strlen( name ) );
 				if ( search->policy != DIR_STATIC && FS_BannedPakFile( name ) ) {
 					continue;
 				}
@@ -3605,7 +3605,7 @@ int	FS_GetFileList( const char *path, const char *extension, char *listbuf, int 
 	pFiles = FS_ListFiles(path, extension, &nFiles);
 
 	for (i =0; i < nFiles; i++) {
-		nLen = strlen(pFiles[i]) + 1;
+		nLen = (int)( strlen(pFiles[i]) + 1 );
 		if (nTotal + nLen + 1 < bufsize) {
 			strcpy(listbuf, pFiles[i]);
 			listbuf += nLen;
@@ -3912,11 +3912,11 @@ static int FS_GetModList( char *listbuf, int bufsize ) {
 		}
 
 		if ( nPaks > 0 || nPakDirs > 0 ) {
-			nLen = strlen( name ) + 1;
+			nLen = (int)( strlen( name ) + 1 );
 			// nLen is the length of the mod path
 			// we need to see if there is a description available
 			FS_GetModDescription( name, description, sizeof( description ) );
-			nDescLen = strlen( description ) + 1;
+			nDescLen = (int)( strlen( description ) + 1 );
 
 			if ( nTotal + nLen + 1 + nDescLen + 1 < bufsize ) {
 				strcpy( listbuf, name );
@@ -4274,7 +4274,7 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 
 		if ( pakwhich ) {
 
-			len = strlen( pakfiles[pakfilesi] );
+			len = (int)( strlen( pakfiles[pakfilesi] ) );
 			if ( !FS_IsExt( pakfiles[pakfilesi], ".pk3", len ) ) {
 				// not a pk3 file
 				pakfilesi++;
@@ -4309,7 +4309,7 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 			pakfilesi++;
 		} else {
 
-			len = strlen(pakdirs[pakdirsi]);
+			len = (int)( strlen(pakdirs[pakdirsi]) );
 
 			// The next .pk3dir is before the next .pk3 file
 			// But wait, this could be any directory, we're filtering to only ending with ".pk3dir" here.

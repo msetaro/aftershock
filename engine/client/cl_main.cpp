@@ -802,7 +802,7 @@ CL_DemoExtCallback
 */
 static qboolean CL_DemoNameCallback_f( const char *filename, int length )
 {
-	const int ext_len = strlen( "." DEMOEXT );
+	const int ext_len = (int)( strlen( "." DEMOEXT ) );
 	const int num_len = 2;
 	int version;
 
@@ -891,7 +891,7 @@ static void CL_PlayDemo_f( void ) {
 				len = ARRAY_LEN( retry ) - 1;
 			}
 
-			Q_strncpyz( retry, arg, len + 1);
+			Q_strncpyz( retry, arg, (int)( len + 1 ));
 			retry[len] = '\0';
 			protocol = CL_WalkDemoExt( retry, name, sizeof( name ), &hFile );
 		}
@@ -1442,7 +1442,7 @@ static void CL_RequestAuthorization( void ) {
 
 	// only grab the alphanumeric values from the cdkey, to avoid any dashes or spaces
 	j = 0;
-	l = strlen( cl_cdkey );
+	l = (int)( strlen( cl_cdkey ) );
 	if ( l > 32 ) {
 		l = 32;
 	}
@@ -1577,7 +1577,7 @@ static void CL_Connect_f( void ) {
 
 	Q_strncpyz( buffer, server, sizeof( buffer ) );
 
-	len = strlen( buffer );
+	len = (int)( strlen( buffer ) );
 	if ( len <= 0 ) {
 		return;
 	}
@@ -1644,7 +1644,7 @@ static void CL_Connect_f( void ) {
 	Com_Printf( "%s resolved to %s\n", cls.servername, serverString );
 
 	if ( cl_guidServerUniq->integer )
-		CL_UpdateGUID( serverString, strlen( serverString ) );
+		CL_UpdateGUID( serverString, (int)( strlen( serverString ) ) );
 	else
 		CL_UpdateGUID( NULL, 0 );
 
@@ -2315,7 +2315,7 @@ static void CL_CheckForResend( void ) {
 			infoTruncated = (qboolean)( infoTruncated | ( Info_RemoveKey( info, "xp_country" ) ? qtrue : qfalse ) );
 		}
 
-		len = strlen( info );
+		len = (int)( strlen( info ) );
 		if ( len > MAX_USERINFO_LENGTH ) {
 			notOverflowed = qfalse;
 		} else {
@@ -4460,7 +4460,7 @@ static void CL_ServerStatusResponse( const netadr_t *from, msg_t *msg ) {
 		}
 	}
 
-	len = strlen(serverStatus->string);
+	len = (int)( strlen(serverStatus->string) );
 	Com_sprintf(&serverStatus->string[len], sizeof(serverStatus->string)-len, "\\");
 
 	if (serverStatus->print) {
@@ -4469,7 +4469,7 @@ static void CL_ServerStatusResponse( const netadr_t *from, msg_t *msg ) {
 	}
 	for (i = 0, s = MSG_ReadStringLine( msg ); *s; s = MSG_ReadStringLine( msg ), i++) {
 
-		len = strlen(serverStatus->string);
+		len = (int)( strlen(serverStatus->string) );
 		Com_sprintf(&serverStatus->string[len], sizeof(serverStatus->string)-len, "\\%s", s);
 
 		if (serverStatus->print) {
@@ -4489,7 +4489,7 @@ static void CL_ServerStatusResponse( const netadr_t *from, msg_t *msg ) {
 			Com_Printf("%-2d   %-3d    %-3d   %s\n", i, score, ping, s );
 		}
 	}
-	len = strlen(serverStatus->string);
+	len = (int)( strlen(serverStatus->string) );
 	Com_sprintf(&serverStatus->string[len], sizeof(serverStatus->string)-len, "\\");
 
 	serverStatus->time = Sys_Milliseconds();

@@ -201,7 +201,7 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		if ( com_dedicated && com_dedicated->integer && !com_errorEntered )
 		{
 			cmdString = CopyString( "quit" );
-			Sys_QueEvent( 0, SE_CONSOLE, 0, 0, strlen( cmdString ) + 1, cmdString );
+			Sys_QueEvent( 0, SE_CONSOLE, 0, 0, (int)( strlen( cmdString ) + 1 ), cmdString );
 		}
 		else
 		{
@@ -213,7 +213,7 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		if ( com_dedicated && com_dedicated->integer && !com_errorEntered )
 		{
 			cmdString = CopyString( "quit" );
-			Sys_QueEvent( 0, SE_CONSOLE, 0, 0, strlen( cmdString ) + 1, cmdString );
+			Sys_QueEvent( 0, SE_CONSOLE, 0, 0, (int)( strlen( cmdString ) + 1 ), cmdString );
 		}
 		else if ( s_wcd.quitOnClose )
 		{
@@ -991,7 +991,7 @@ void Conbuf_AppendText( const char *msg )
 	char *b = buffer;
 	int bufLen, n;
 
-	n = strlen( msg );
+	n = (int)( strlen( msg ) );
 
 	// if the message is REALLY long, use just the last portion of it
 	if ( n > (MAXPRINTMSG - 1) ) {

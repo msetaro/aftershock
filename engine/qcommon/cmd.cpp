@@ -193,7 +193,7 @@ void Cbuf_InsertText( const char *text ) {
 	int		len;
 	int		i;
 
-	len = strlen( text ) + 1;
+	len = (int)( strlen( text ) + 1 );
 
 	if ( len + cmd_text.cursize > cmd_text.maxsize ) {
 		Com_Printf( "Cbuf_InsertText overflowed\n" );

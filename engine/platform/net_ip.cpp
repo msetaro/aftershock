@@ -1295,8 +1295,8 @@ static void NET_OpenSocks( int port ) {
 		int		plen;
 
 		// build the request
-		ulen = strlen( net_socksUsername->string );
-		plen = strlen( net_socksPassword->string );
+		ulen = (int)( strlen( net_socksUsername->string ) );
+		plen = (int)( strlen( net_socksPassword->string ) );
 		if ( ulen > 255 ) {
 			ulen = 255;
 		}

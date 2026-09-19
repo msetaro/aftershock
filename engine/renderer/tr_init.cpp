@@ -860,9 +860,9 @@ void RB_TakeScreenshot( int x, int y, int width, int height, const char *fileNam
 	memcount = linelen * height;
 
 	// gamma correction
-	R_GammaCorrect( allbuf + offset, memcount );
+	R_GammaCorrect( allbuf + offset, (int)( memcount ) );
 
-	ri.FS_WriteFile( fileName, buffer, memcount + header_size );
+	ri.FS_WriteFile( fileName, buffer, (int)( memcount + header_size ) );
 
 	ri.Hunk_FreeTempMemory( allbuf );
 }
@@ -883,7 +883,7 @@ void RB_TakeScreenshotJPEG( int x, int y, int width, int height, const char *fil
 	memcount = (width * 3 + padlen) * height;
 
 	// gamma correction
-	R_GammaCorrect( buffer + offset, memcount );
+	R_GammaCorrect( buffer + offset, (int)( memcount ) );
 
 	ri.CL_SaveJPG( fileName, r_screenshotJpegQuality->integer, width, height, buffer + offset, padlen );
 	ri.Hunk_FreeTempMemory( buffer );
@@ -997,16 +997,16 @@ void RB_TakeScreenshotBMP( int x, int y, int width, int height, const char *file
 	}
 
 	// fill this last to avoid data overwrite in case when we're moving destination buffer forward
-	FillBMPHeader( buffer - header_size, width, height, memcount, header_size );
+	FillBMPHeader( buffer - header_size, width, height, (int)( memcount ), header_size );
 
 	// gamma correction
-	R_GammaCorrect( buffer, memcount );
+	R_GammaCorrect( buffer, (int)( memcount ) );
 
 	if ( clipboardOnly ) {
 		// copy starting from bitmapinfoheader
-		ri.Sys_SetClipboardBitmap( buffer - 40, memcount + 40 );
+		ri.Sys_SetClipboardBitmap( buffer - 40, (int)( memcount + 40 ) );
 	} else {
-		ri.FS_WriteFile( fileName, buffer - header_size, memcount + header_size );
+		ri.FS_WriteFile( fileName, buffer - header_size, (int)( memcount + header_size ) );
 	}
 
 	ri.Hunk_FreeTempMemory( allbuf );
@@ -1206,10 +1206,10 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 
 	// Alignment stuff for glReadPixels
 	padwidth = PAD(linelen, packAlign);
-	padlen = padwidth - linelen;
+	padlen = (int)( padwidth - linelen );
 	// AVI line padding
 	avipadwidth = PAD(linelen, AVI_LINE_PADDING);
-	avipadlen = avipadwidth - linelen;
+	avipadlen = (int)( avipadwidth - linelen );
 
 	cBuf = (byte *)PADP(cmd->captureBuffer, packAlign);
 
@@ -1219,14 +1219,14 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 	memcount = padwidth * cmd->height;
 
 	// gamma correction
-	R_GammaCorrect( cBuf, memcount );
+	R_GammaCorrect( cBuf, (int)( memcount ) );
 
 	if ( cmd->motionJpeg )
 	{
 		memcount = ri.CL_SaveJPGToBuffer( cmd->encodeBuffer, linelen * cmd->height,
 			r_aviMotionJpegQuality->integer,
 			cmd->width, cmd->height, cBuf, padlen );
-		ri.CL_WriteAVIVideoFrame(cmd->encodeBuffer, memcount);
+		ri.CL_WriteAVIVideoFrame(cmd->encodeBuffer, (int)( memcount ));
 	}
 	else
 	{
@@ -1352,7 +1352,7 @@ Workaround for ri.Printf's 1024 characters buffer limit.
 static void R_PrintLongString(const char *string) {
 	char buffer[1024];
 	const char *p;
-	int size = strlen(string);
+	int size = (int)( strlen(string) );
 
 	p = string;
 	while(size > 0)

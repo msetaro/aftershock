@@ -299,7 +299,7 @@ static void DeformText( const char *text ) {
 	VectorScale( width, height[2] * -0.75f, width );
 
 	// determine the starting position
-	len = strlen( text );
+	len = (int)( strlen( text ) );
 	VectorMA( origin, (len-1), width, origin );
 
 	// clear the shader indexes

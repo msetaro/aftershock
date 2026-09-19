@@ -694,7 +694,7 @@ static void SVC_Status( const netadr_t *from ) {
 
 	s = status;
 	status[0] = '\0';
-	statusLength = strlen( infostring ) + 16; // strlen( "statusResponse\n\n" )
+	statusLength = (int)( strlen( infostring ) + 16 ); // strlen( "statusResponse\n\n" )
 
 	for ( i = 0; i < sv.maxclients; i++ ) {
 		cl = &svs.clients[i];

@@ -12,9 +12,28 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-local-shadow. PR #96 merged 9cb1f313 after 0b7e3d4b passed
-build 35456778438 and regression 35456778431; self-review is on #96/#8.
-Its merged-tree regression remains to check. #95 merged-tree regression
+Active: issue/8-engine-size-conversion. PR #97 merged b4bdd5e2 after 222f7439
+passed build 35457161485 and regression 35457161489; self-review is on #97/#8.
+#97 merged-tree regression remains to check, as does #96 run 35457079347.
+#96 merged 9cb1f313 after 0b7e3d4b passed build 35456778438 and regression
+35456778431. #95 merged-tree regression 35456678897 passes.
+
+This branch applies the reviewed C4267 size conversions at 160 diagnosed lines
+in 45 engine C++ files and removes the engine header suppression. MSVC already
+promotes C4267 to an error on owned C++ sources. All 508 production objects
+preserve code/data (401 raw/native hashes, 107 debug-only). Existing expressions
+retain their original arithmetic; compound assignments keep size_t sums before
+the final explicit conversion. No FP expression, OS access, allocation, lifetime,
+layout, fixture or golden changes. Hosted gates remain to run. Artifacts:
+engine-size-* in persistent cache. Record source, gates and self-review before
+merging. Then fix the two formatter bugs test-first in separate #31 PRs.
+
+#97 local-shadow source 91a4341b preserves 19 production objects (15 raw/native,
+four debug-only) and all four edited-tree cgame helper hashes/layouts. #96 global
+shadow source af07f013 preserves 30 objects (24 raw/native, six debug-only) and
+all four edited-tree game helper hashes/layouts. Original GPL hashes remain.
+
+#95 merged-tree regression
 35456678897 passes. #96 global-shadow source af07f013 preserves all 30 production
 objects (24 raw/native, six debug-only) and all four final game helper hashes/layouts.
 
@@ -23,7 +42,7 @@ width/height, fog pipeline definition, Vulkan result/memory/descriptor locals.
 MSVC C4456 becomes an error on owned C++ sources. Nineteen production objects
 preserve code/data (15 raw/native, four debug-only); four cgame helper libraries
 retain preview hashes/layouts. All four final edited-tree cgame helper hashes/layouts match #94.
-Hosted gates remain to run. No FP expression, OS access, allocation, lifetime, layout, fixture or
+PR #97 head 222f7439 is running hosted gates. No FP expression, OS access, allocation, lifetime, layout, fixture or
 golden changes. Artifacts: local-shadow-* in persistent cache. Record source and
 GPL provenance, then hosted gates/self-review before merging.
 
@@ -75,7 +94,7 @@ objects (401 raw/native hashes, 107 debug-only). Casts follow complete original
 expressions; compound sums retain size_t arithmetic before the final conversion.
 An early text-wide preview incorrectly narrowed a same-text size_t assignment;
 the debug oracle caught it. Edits now address only diagnosed line numbers, and all
-objects pass. No repository source changes yet. Evidence: engine-size-*.
+objects pass. The verified preview is now applied on this branch. Evidence: engine-size-*.
 Formatting preview: clang-format 21.1.8 touches 398 of 407 first-party C/C++/inc
 files, excluding assembly and generated shader_data.cpp. Eighteen stringifying
 macros are whitespace-sensitive. All 1,810 release assembly comparisons compile;
@@ -122,17 +141,33 @@ unique}.json record 1,686 C4244 file/line sites, 160 C4267, 14 C4127, four C4201
 one C4200, one C4324 and two ARM64 C4611 sites, plus the prepared shadow classes.
 The Debug-only extra C4456 occurrence is in VK_CHECK and is covered by the
 prepared macro-local rename. Apple deprecation inventory 35457048020 passes from diagnostic commit c8029349 on the
-same unmergeable branch; MSVC inventory is not rerun. The inventory does not establish that currently
+same unmergeable branch; MSVC inventory is not rerun. All Apple configurations
+report only sprintf/vsprintf deprecations (61 unique call sites in 22 files).
+Retained apple-deprecations*.log/json. Review buffer ownership/bounds before
+changing calls; any actual overflow fix belongs in a test-first #31 PR. The inventory does not establish that currently
 quiet legacy pragmas are obsolete; consult diagnostics and test each removal.
+C4244 cache-only Clang AST inventory finishes 165 available source files with no
+compile failures; 3,605 conversion/compound nodes include 896 macro expansions.
+Seven Windows/header paths lack matching Clang commands, and Debug-only branches
+need separate coverage. No casts are applied from this inventory; distinguish
+existing narrowing from widening, preserve FP expressions, and inspect macros.
+Evidence: narrowing-ast.py, narrowing-ast/results.json and per-file logs.
 After the current shadow classes, inventory/remove applicable header suppressions
 by class before /WX; review obsolete C-only diagnostics and vendor-only scopes
 separately. Do not claim unrestricted MSVC warnings yet. Preserve existing numeric
 conversions, layouts and FP codegen; route actual behavior fixes through #31.
 
 Next:
-1. Finish local-shadow hosted gates/self-review and verify #96 merged-tree
-   regression. Then apply the verified engine-size C4267 preview in its own PR.
-2. Finish Apple deprecations and MSVC warning classes /WX.
+Formatter review found two #31 defects: Com_sprintf temporary overflow before
+its guard and va static-slot overflow. Real engine C++/GPL C ASan probes reproduce
+both (all four cases exit 1); details and reproduction are in docs/bugs.md and
+format-capacity-* cache artifacts. Add permanent tests before fixes in separate
+#31 PRs; no engine fix is included in #8.
+
+1. Finish engine-size C4267 hosted gates/self-review and verify #96/#97
+   merged-tree regression.
+2. Fix the two reproduced formatter defects in separate test-first #31 PRs.
+   Then finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
    force; finish #8, write design-only docs/design/rhi.md for #6, then stop.

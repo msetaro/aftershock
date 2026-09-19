@@ -110,7 +110,7 @@ WRITE_STRING
 static ID_INLINE void WRITE_STRING( const char *s )
 {
   Com_Memcpy( &buffer[ bufIndex ], s, strlen( s ) );
-  bufIndex += strlen( s );
+  bufIndex = (int)( (size_t)bufIndex + (strlen( s )) );
 }
 
 
