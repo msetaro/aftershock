@@ -164,7 +164,8 @@
         "e8e98ab2",
         "5592a1eb",
         "436bbab1",
-        "52e57708"
+        "52e57708",
+        "93d334db"
       ]
     },
     {
@@ -192,7 +193,8 @@
       "sha256": "c8670d557ea9326d546f0b75fee2cfd0f1aaef8c025b3d8a4b17eb8ce74fe020",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 11 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
-        "5592a1eb"
+        "5592a1eb",
+        "93d334db"
       ]
     },
     {
@@ -204,7 +206,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "5592a1eb",
-        "52e57708"
+        "52e57708",
+        "93d334db"
       ]
     },
     {
@@ -267,7 +270,8 @@
         "e8e98ab2",
         "5592a1eb",
         "436bbab1",
-        "05cb1e37"
+        "05cb1e37",
+        "93d334db"
       ]
     },
     {
@@ -288,7 +292,8 @@
       "sha256": "bd96e421d73c66ad6732fa2a3c714fe6a12e1b6c265164330d95cebaba6cb6a5",
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 13 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
-        "5592a1eb"
+        "5592a1eb",
+        "93d334db"
       ]
     },
     {
@@ -372,7 +377,8 @@
         "8889ea0e",
         "e8e98ab2",
         "5592a1eb",
-        "05cb1e37"
+        "05cb1e37",
+        "93d334db"
       ]
     },
     {
@@ -390,7 +396,8 @@
         "e8e98ab2",
         "5592a1eb",
         "d6c2ac52",
-        "52e57708"
+        "52e57708",
+        "93d334db"
       ]
     },
     {
@@ -450,7 +457,8 @@
         "d6c2ac52",
         "52e57708",
         "d59136ef",
-        "05cb1e37"
+        "05cb1e37",
+        "93d334db"
       ]
     },
     {
@@ -513,7 +521,8 @@
         "e8e98ab2",
         "5592a1eb",
         "52e57708",
-        "05cb1e37"
+        "05cb1e37",
+        "93d334db"
       ]
     },
     {
@@ -641,7 +650,8 @@
       "transformations": [
         "6ea3a3bb",
         "5592a1eb",
-        "8b5264c5"
+        "8b5264c5",
+        "93d334db"
       ]
     },
     {
@@ -664,7 +674,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "93d334db"
       ]
     },
     {
@@ -724,7 +735,8 @@
         "e8e98ab2",
         "5592a1eb",
         "d6c2ac52",
-        "05cb1e37"
+        "05cb1e37",
+        "93d334db"
       ]
     },
     {
@@ -765,7 +777,8 @@
         "4054a2a0",
         "d6c2ac52",
         "05cb1e37",
-        "708b7114"
+        "708b7114",
+        "93d334db"
       ]
     },
     {
@@ -925,7 +938,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 3 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "5592a1eb",
-        "05cb1e37"
+        "05cb1e37",
+        "93d334db"
       ]
     },
     {
@@ -1068,7 +1082,8 @@
         "e8e98ab2",
         "5592a1eb",
         "bb869f79",
-        "05cb1e37"
+        "05cb1e37",
+        "93d334db"
       ]
     },
     {
@@ -1087,7 +1102,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "6ea3a3bb",
-        "e8e98ab2"
+        "e8e98ab2",
+        "93d334db"
       ]
     },
     {
@@ -1175,7 +1191,8 @@
       "sha256": "8bcc1162e8e6aa63d1739371f65358ee940dfe6c8a610c57facfd8c6b3b72cae",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "6ea3a3bb"
+        "6ea3a3bb",
+        "93d334db"
       ]
     },
     {
@@ -1310,7 +1327,8 @@
         "6ea3a3bb",
         "8889ea0e",
         "e8e98ab2",
-        "436bbab1"
+        "436bbab1",
+        "93d334db"
       ]
     },
     {
