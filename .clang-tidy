@@ -1,3 +1,3 @@
-Checks: '-*,bugprone-signed-char-misuse,bugprone-narrowing-conversions,bugprone-suspicious-string-compare,portability-simd-intrinsics'
-WarningsAsErrors: ''
-HeaderFilterRegex: '^code/(qcommon|server|botlib|unix|sdl|client|renderercommon|renderer|renderervk|win32)/'
+Checks: '-*,bugprone-signed-char-misuse,bugprone-narrowing-conversions,bugprone-suspicious-string-compare,portability-simd-intrinsics,performance-*,readability-duplicate-include,readability-misleading-indentation,modernize-redundant-void-arg'
+WarningsAsErrors: 'readability-duplicate-include,readability-misleading-indentation'
+HeaderFilterRegex: '(^|/)(engine|game)/'

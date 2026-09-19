@@ -15,26 +15,34 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: #8 formatting branch issue/8-clang-format. Applied the single tree-wide
-clang-format 21.1.8 pass to 399 of 410 owned source files. Final proof:
-1,810 release assemblies, 1,802 byte-identical; eight sys_runtime assemblies
-change only inline-assembly source-location comments. All 19 native export
-assemblies are byte-identical. Nineteen compiled sys_runtime samples preserve
-code/data (15 raw-identical, four debug-only). All 410 files are idempotent with
-AlignTrailingComments.Kind=Never and 20 whitespace-sensitive macros.
-Evidence: format-final-source.json, format-final-assembly-review.json,
-format-final-runtime-object-review.json and format-final-idempotence.log.
-Formatting source commit: f3f6b3fa. Twelve formatted native helpers preserve
-all ELF bytes except the two assertion source-line immediates and resulting
-build IDs (format-helper-review.json); their layouts pass. Unit golden and
-one-ULP negative control pass, and fixed Quake 3 replay retains b38004b1.
-Two test-source selectors now tolerate the authoritative whitespace: Q_rsqrt's
-opening brace and the OpenArena layout probe's extension-trap statement.
-OpenArena helper builds/layouts pass. No accepted golden was changed.
-Post-warning native baseline completed at a296e69a: post-warning-native.json.
-PR #131 merged-tree regression 35475248201 passes. Next: add the pinned format
-CI check and GPL provenance, run current-tree helpers/replay/hosted gates,
-self-review and merge. Then tidy, fixed-width/layout and Q_ASSERT; #8 remains open.
+Active: #8 clang-tidy branch issue/8-clang-tidy. PR #132 merged as daa650ea; source format
+f3f6b3fa/head 39580afa passed build 35475695609, regression 35475695603 and
+preceding merged-tree regression 35475248201. #132 merged-tree regression 35476004982 is running; verify it
+before the next merge. clang-format 21.1.8 is now authoritative.
+
+Applied the reviewed tidy-readability preview: remove two duplicate includes,
+brace three preprocessor-adjacent statements with unchanged control flow. All
+570 Clang configurations pass selected readability checks. 67 sampled objects:
+51 raw-identical, ten debug-only, six differing only in assertion/allocation
+source-line metadata (tidy-readability-object-review.json). All twelve native
+helper hashes/layouts equal formatted-native.json. New tests/check_tidy.py uses
+both renderers' actual CMake flags, enforces duplicate includes and misleading
+indentation, and records the existing bugprone subset plus performance-* and
+modernize-redundant-void-arg as advisory. Positive/negative controls enforce the
+policy. The permanent driver passes 570 production configurations and its controls.
+Next: publish, verify hosted gates/self-review and merge. Fixed-width/layout and Q_ASSERT remain pending; #8 is not complete.
+
+Final formatting evidence: all 410 files idempotent; 1,810 release assemblies
+preserve instructions/data (eight inline-assembly source-comment differences).
+All nineteen native export assemblies byte-identical. Twelve helpers differ
+only in assertion line immediates/build IDs; local unit/negative control, native
+layout/symbol gates, OpenArena helper/layout checks and fixed Q3 replay pass.
+Accepted goldens/fixtures and original GPL hashes remain unchanged.
+
+Fresh cache-only formatted-central-width and formatted-enum-unsigned previews
+preserve 56/85 sampled objects after stripping debug metadata; the shared-width
+candidate also retains all twelve formatted helper hashes. Do not reapply stale
+pre-format candidates. Refresh inputs if an intervening source edit touches them.
 
 PR #131 verification: source 05eca339/head a296e69a, build 35474814153,
 regression 35474814201 and preceding merged-tree regression 35474771300 pass.

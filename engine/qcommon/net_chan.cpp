@@ -664,19 +664,22 @@ void NET_SendPacket( netsrc_t sock, int length, const void *data, const netadr_t
 #ifndef DEDICATED
 	if ( sock == NS_CLIENT && cl_packetdelay->integer > 0 ) {
 		NET_QueuePacket( sock, length, data, to, cl_packetdelay->integer );
-	} else
+	} else {
 #endif
 		if ( sock == NS_SERVER && sv_packetdelay->integer > 0 ) {
-		NET_QueuePacket( sock, length, data, to, sv_packetdelay->integer );
-	}
+			NET_QueuePacket( sock, length, data, to, sv_packetdelay->integer );
+		}
 #ifndef DEDICATED
-	else if ( to->type == NA_LOOPBACK ) {
-		NET_SendLoopPacket( sock, length, data );
+		else if ( to->type == NA_LOOPBACK ) {
+			NET_SendLoopPacket( sock, length, data );
+		}
+#endif
+		else {
+			Sys_SendPacket( length, data, to );
+		}
+#ifndef DEDICATED
 	}
 #endif
-	else {
-		Sys_SendPacket( length, data, to );
-	}
 }
 
 

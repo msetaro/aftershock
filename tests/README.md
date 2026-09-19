@@ -17,6 +17,7 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 ```
 python3 tests/native_math.py
 python3 tests/check_format.py
+python3 tests/check_tidy.py
 python3 tests/check_lifetimes.py
 python3 tests/check_boundaries.py
 python3 tests/run.py unit --negative-control
@@ -60,6 +61,17 @@ Use the same version for edits. The config preserves stringified macro arguments
 and disables trailing-comment alignment so one pass is stable. The initial
 format commit was checked against release assembly across both renderers and
 native/cross builds; only inline-assembly source-location comments differed.
+
+`python3 tests/check_tidy.py` analyzes owned C++ sources with both renderers'
+actual CMake commands, including each native module wrapper. It requires
+clang-tidy and the client build headers (`clang-tidy`, `libsdl2-dev`,
+`libcurl4-openssl-dev`, `mesa-common-dev`, and Ninja on hosted Ubuntu).
+`--clang-tidy`, `--jobs` and `--output` select the executable, parallelism and
+retained evidence. Duplicate includes and misleading indentation fail CI.
+The existing bugprone/portability subset, performance-* and the single
+modernize-redundant-void-arg check are advisory; CI retains every diagnostic
+and a JSON summary. Enum shrinking and pointer rewrites are not automatic fixes.
+The driver checks the positive case and rejects a duplicate-include control.
 
 `python3 tests/check_lifetimes.py` checks non-trivial locals, parameters, globals,
 statics and temporaries in active Linux engine code and included engine headers,
