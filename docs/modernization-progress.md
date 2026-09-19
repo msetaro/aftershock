@@ -12,28 +12,29 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-size-conversion. #93 merged 3756ddf4 after a5e141d9 passed build
-35454690977 and regression 35454690919; self-review is recorded on #93/#8.
-Its merged-tree regression remains to check. #92 merged-tree regression
-35454621959 passes. Source 3eaba64d and all 25 GPL provenance entries are recorded. All twelve edited-tree
-helper hashes/layouts reproduce the reviewed results. Open this MSVC C4267 PR; require hosted gates/self-review before merging.
+Active: issue/8-parameter-shadow. #94 merged 6e5b7d65 after 36d419dd passed build
+35455191671 and regression 35455191669; self-review is recorded on #94/#8.
+Its merged-tree regression remains to check. #93 merged-tree regression
+35455087090 passes. Record cgame provenance, verify final helper hashes and open
+this MSVC C4457 class PR; require hosted gates/self-review before merging.
 
-This branch makes 53 existing size_t-to-int narrowing conversions explicit in
-25 GPL game files and promotes MSVC C4267 to an error. Casts surround complete
-original expressions, retaining the original arithmetic type and result bits.
-The shared qsort swap macro keeps the same narrowing at its int argument.
-Three touched trailing spaces/tabs are removed (ui_connect twice, ui_mfield once).
+This branch renames the bleed effect's local alpha to bleedAlpha (seven tokens),
+leaving the function parameter and particle member unchanged. MSVC C4457 becomes
+an error. All nine production objects preserve code/data (seven raw/native hashes,
+two debug-only differences). Four GCC/Clang C/C++ cgame helper libraries/layouts
+retain hashes in preview; final builds must compare with #94's updated baseline.
+Four trailing tabs on touched vertex-color lines are removed. No FP expression,
+OS access, allocation, lifetime, layout, fixture or golden changes. Artifacts:
+parameter-shadow-{preview,objects,review.json,native*} in persistent cache.
 
-All 269 affected production objects preserve code/data: 211 raw/native hashes
-match and 58 differ only in debug metadata. All twelve GCC/Clang C/C++ native
-libraries and ABI layouts build; nine retain hashes. The three GCC C libraries
-differ in qsort's equivalent low-32-bit selection after the same 64-bit unsigned
-comparison; UI_PreferencesMenu likewise discards only an already-unused high
-half. Other changes are addresses/padding. A cache-only qsort check passes 1,584
-before/after cases across record widths, alignment, partition boundaries,
-duplicates and ordering (4705a47e). No FP expressions, OS calls, allocations,
-non-trivial lifetimes, layouts or accepted goldens/fixtures change. Persistent
-artifacts: size-conversion-{preview,objects,object-review.json,native*,qsort*}.
+Completed size conversions #94: source 3eaba64d/provenance 36d419dd records 53
+existing narrowing casts in 25 GPL files, with MSVC C4267 promoted to an error.
+All 269 production objects preserve code/data (211 raw/native, 58 debug-only).
+Nine helpers retain hashes; three GCC C libraries have reviewed equivalent
+low-32-bit selections/subtractions, addresses and padding. All twelve edited-tree
+helpers/layouts reproduce reviewed hashes. 1,584 before/after qsort cases pass
+(4705a47e). Original expression evaluation precedes each cast. No FP expressions
+or accepted fixtures/goldens changed. Artifacts: size-conversion-*.
 
 Completed default-only switches #93: source f9dbcb07/provenance a5e141d9 removes
 two AAS wrappers and one UI wrapper, retaining the exact unconditional statements.
@@ -58,9 +59,6 @@ and actual logs, and both maps pass (fea77580/14c8ee7d). No harness or accepted
 golden changes. Hosted OA runtime passes unmodified. Artifacts: write-strings-*.
 
 Prepared follow-up previews, not applied to the repository:
-- parameter-shadow: MSVC C4457, seven uses of local bleed alpha renamed. Nine
-  production objects preserve code/data (seven raw/native, two debug-only);
-  all four native cgame libraries/layouts retain hashes.
 - global-shadow C4459: four files, 30 production objects preserve code/data
   (24 raw/native, six debug-only); four native game libraries/layouts unchanged.
 - local-shadow C4456: three files, 19 production objects preserve code/data
@@ -76,6 +74,15 @@ GCC debug objects differ only in debug sections. Nineteen native export assembly
 comparisons also pass after including .inc files. Rebase the preview on the final
 warning revision and reverify before the single formatting commit; do not apply
 yet. Evidence: format-* and prepared-warning-and-format-evidence.json.
+A cache-only clang-tidy inventory completes 570 configurations with no compile
+failures for performance-*, readability (duplicate include, misleading indentation,
+redundant control flow), and one advisory modernize check (redundant void args).
+Raw findings include repeated headers: enum-size 18,464; void-args 54,215;
+misleading indentation 51; redundant control flow 604; int-to-ptr 20; duplicate
+include 8. Unique locations are in tidy-inventory/unique.json. Enum shrinking and
+integer/pointer rewrites are not authorized by these suggestions; preserve layout
+and codegen. No config/source changes for tidy yet; retain advisory reports and
+review the readability checks after formatting before selecting error gates.
 
 Completed signedness #90 evidence: source 70b1f0b6/provenance 4a96ca16 records
 412 edits in 91 files (15 GPL files). All 2,667 syntax configurations pass. Of
@@ -91,9 +98,9 @@ C4267 234, C4459 38, C4456 28, C4065 15, C4457 3, C4644 3. Review each class
 before enabling its error gate, then /WX. Local tools include clang-query-21.
 
 Next:
-1. Open the size-conversion PR, require hosted gates/self-review and merge.
-   Verify #93 merged-tree regression 35455087090. Continue the
-   three prepared shadow classes, then Apple deprecations and MSVC /WX.
+1. Finish parameter-shadow provenance/helper checks/PR and require hosted gates
+   and self-review before merging. Verify #94 merged-tree regression. Continue
+   global/local shadow classes, then Apple deprecations and MSVC /WX.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
