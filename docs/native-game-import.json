@@ -159,7 +159,8 @@
     "f7568d21": "#8 C4514: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
     "3e6d66b8": "#8 C4711: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
     "7c1db108": "#8 deprecation cleanup: remove unused testPrintInt/testPrintFloat reference wrappers and declarations; historical syscall enum values retained",
-    "e8752ef1": "#31 PrintMsg: bounded formatting and required-length/error checks before dispatch; test-first 1ef998b0; valid text and quote policy retained"
+    "e8752ef1": "#31 PrintMsg: bounded formatting and required-length/error checks before dispatch; test-first 1ef998b0; valid text and quote policy retained",
+    "f3facd3a": "#31 native diagnostics: twelve bounded formatting calls with original capacities/log offset; test-first a3652169; valid output unchanged"
   },
   "files": [
     {
@@ -289,7 +290,8 @@
         "52e57708",
         "05cb1e37",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3facd3a"
       ]
     },
     {
@@ -530,7 +532,8 @@
         "0366fa06",
         "d6c2ac52",
         "8b5264c5",
-        "6709136c"
+        "6709136c",
+        "f3facd3a"
       ]
     },
     {
@@ -855,7 +858,8 @@
         "70b1f0b6",
         "3eaba64d",
         "af07f013",
-        "6709136c"
+        "6709136c",
+        "f3facd3a"
       ]
     },
     {
@@ -1145,7 +1149,8 @@
         "436bbab1",
         "05cb1e37",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3facd3a"
       ]
     },
     {

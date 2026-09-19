@@ -847,14 +847,19 @@ MISSIONPACK checks under ASan/UBSan. Preserve quote replacement,
 broadcast routing and the existing PrintMsg overrun error. No suppression or
 expected-UBSan entry is needed for this contract check; no golden regeneration.
 
-## Native diagnostic output capacity (#31, queued separately)
+## Native diagnostic output capacity (#31)
 
 Twelve active native diagnostic formatters in g_main, cg_main, ui_atoms and ai_main
 do not pass their output capacity to the formatting library. A small-text capacity
 and routing probe fails all twelve pre-fix contracts; a cached bounded candidate
 passes 24 GCC/Clang ASan/UBSan checks. Evidence is native-diagnostic-before.json and
 native-diagnostic-preview/{changes,results}.json in the modernization cache.
-The separate test-first fix will truncate to the existing buffer/remainder capacity,
-retain error routing and the seven-byte log prefix offset, and run all gates.
-No such fix is included with PrintMsg. The two unused native parser diagnostics
+`python3 tests/native_diagnostics.py` is the committed small-text capacity/routing
+contract test; the initial game print case fails as expected before the fix.
+Test-first commit a3652169 records the failing contract. The fix uses standard
+vsnprintf with the existing buffer/remainder capacity for all twelve calls,
+retaining error routing and the seven-byte log prefix offset. Diagnostics truncate
+to those capacities; valid text remains unchanged. Fix f3facd3a passes all twelve
+checks with both GCC and Clang/libc++ under ASan/UBSan.
+The PrintMsg fix merged separately as PR #128. The two unused native parser diagnostics
 are a separate #8 deletion. All work remains in msetaro/aftershock.
