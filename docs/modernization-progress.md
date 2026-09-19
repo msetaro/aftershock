@@ -18,7 +18,7 @@ record (merge 205c8442). #100 merged-tree regression 35458818230 passes. Both fo
 merged (#99 Com_sprintf, #100 va); all six compiler/language variants and fixed Q3
 replay pass with accepted b38004b1. No accepted fixture/golden changes.
 
-This branch applies the C4127 preview: literal true loops, literal false disabled
+Source d4366ae7 applies the C4127 preview: literal true loops, literal false disabled
 branches, constexpr endian check and compile-time glconfig size checks. Both
 shared header suppressions are removed and C4127 becomes an error on owned C++
 sources. All 73 production objects preserve code/data (57 raw/native, 16 debug-only).
