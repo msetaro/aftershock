@@ -25,7 +25,7 @@ The va test extension verifies valid lengths, formatting and two-slot rotation,
 then formats a 32000-character input twice. Cache probes pass valid cases in all
 three modes and reproduce ASan global-buffer-overflow (va-test-before.json).
 Test-first commit 9150f6e9 fails with ASan global-buffer-overflow before the fix.
-The fix bounds each slot write with Q_vsnprintf/vsnprintf and rejects oversized
+Source bdbc5e9c bounds each slot write with Q_vsnprintf/vsnprintf and rejects oversized
 or failed formatting through Com_Error(ERR_FATAL), matching Com_sprintf's error
 policy. Valid text and slot rotation remain unchanged. All six GCC/Clang engine
 C++/game C/game C++ ASan+UBSan variants pass. Record source/provenance, run hosted
