@@ -5,35 +5,52 @@ Integration: `modernization`. Issue branches: `issue/<number>-<slug>`, one bug p
 Never push main, force-push, rewrite history, or touch port-evidence. Stop after #8
 and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
+Maintainer ruling (2026-09-19): keep all future changes and PRs in
+`msetaro/aftershock`. Do not create PRs against ec-/Quake3e or another parent
+repository. This replaces the earlier requirement to submit applicable #31 fixes
+upstream; historical upstream PR references below are completed past work.
+
 ## Next action
 
-Active: issue/8-missing-initializers. Parent #84 merged 5c2ce6be after corrected
-head 5623e8fe passed build 35450198604 and regression 35450198615; self-review is
-recorded on #84/#8. Its merged-tree regression remains to check. Integration is
-merged into this branch. #83 merged-tree regression 35449777481 passes.
-Full local MinGW debug Vulkan client/server build also passes for this initializer
-branch (missing-initializers-mingw-debug.log in the persistent cache). Open its
-separate draft PR, require hosted gates and self-review before merging.
+Active: issue/8-array-bounds. Initializer #85 merged 820ed3f1 after head bcbd1bad
+passed build 35450763997 and regression 35450764039; self-review is recorded on
+#85/#8. Its merged-tree regression remains to check. Integration is merged here.
+#84 merged-tree regression 35450735064 passes. Open this array-bounds class PR,
+require hosted build/regression and self-review before merge.
 
-This branch enables missing-field-initializer warnings. Fifteen source files use
-empty aggregate initialization or explicit zero members/sentinels. Static allocator
-string blocks use a constexpr initializer to zero conditional debug members.
-Windows STARTUPINFO is zeroed and its cb field is explicitly assigned before use.
-No struct layouts, function behavior, FP expressions or accepted fixtures change.
+Two UI skill-picture reads use the equivalent explicit pointer form, retaining
+(skill - 1), signed index arithmetic and all existing range policies. GCC's member
+array warning disappears, enabling the class in production and native helpers.
+Only the five registered button IDs reach the callback; initialization clamps
+UI_GetSkill() to 1..5. No bug fix, FP expression or accepted fixture change.
 
-Local preview validation (persistent cache): all 2,380 syntax configurations pass;
-188 of 194 affected objects match raw/native bytes. Four debug common.cpp objects
-change only four allocator source-line constants by +5; two MinGW video objects
-only reorder independent stack stores and a comparison across flag-preserving movs.
-No functions are added/removed. All twelve GCC/Clang C/C++ native helper libraries
-retain hashes and ABI layouts, including C99 helper mode. Artifacts are
-missing-initializers-{objects,native,check} under the persistent cache.
+Nine production objects reviewed: two Clang release objects are raw-identical.
+GCC/MinGW differences are equivalent member-base/index address calculations plus
+code placement/alignment. No functions added/removed. Both forms resolve to the
+same base + 0x6d8 + index*4 and store shader at +0x5b8. Actual GCC release commands
+fail before/pass after. GCC/Clang UI skill ASan/UBSan checks pass. All twelve
+native helper libraries build with matching ABI layouts; ten retain raw hashes.
+The two GCC UI libraries differ only in these same address calculations in the
+callback and initialization. Fixed Q3 replay under both software renderers retains
+frame hash b38004b1. Source 1c82acae/provenance 81d4315d. Persistent evidence: array-bounds-preview/{results.json,*/functions.diff}.
+
+Unused-result preview (not applied): eight console write return values bind to
+maybe_unused const auto locals, retaining best-effort output behavior. Thirteen
+production objects checked: nine release/ARM64 raw-identical; four GCC debug
+objects add dead return-value stores/stack slots in four console functions. GCC
+release and ARM64 controls fail before/pass after. Artifacts: unused-result-preview.
+
+Initializer #85 local evidence: 2,380 syntax configurations; 188/194 affected
+objects raw/native-identical, four debug objects change only allocator __LINE__
+constants by +5, two MinGW video objects reorder independent stores/comparison.
+Twelve native libraries retain hashes/layouts. Full local MinGW debug client/server
+build passes. Source 708b7114/provenance 3e42dfc6. No golden regeneration.
 
 Next:
-1. Source 708b7114 and provenance 3e42dfc6 are recorded. The explicit DWORD cast
-   preserves both reviewed MinGW native objects. Parent #84 is merged; open this
-   class PR and require full hosted gates before final self-review/merge.
-2. Finish array-bounds and unused-result reviews, then the remaining classes.
+1. Local array-bounds validation is complete: array-bounds-native-review.json,
+   array-bounds-ui-{gcc,clang}.log and array-bounds-demo.log in persistent cache.
+2. Open this class PR and require full hosted gates. Continue unused-result and
+   unused-but-set-variable as separate warning PRs.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
    rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then

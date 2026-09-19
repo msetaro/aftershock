@@ -1,9 +1,5 @@
 {
   "gcc": {
-    "-Warray-bounds": {
-      "c": 2,
-      "cpp": 2
-    },
     "-Wsign-compare": {
       "c": 63,
       "cpp": 25

@@ -118,7 +118,7 @@ static void UI_SPSkillMenu_SkillEvent( void *ptr, int notification ) {
 	trap_Cvar_SetValue( "g_spSkill", skill );
 
 	SetSkillColor( skill, color_white );
-	skillMenuInfo.art_skillPic.shader = skillMenuInfo.skillpics[skill - 1];
+	skillMenuInfo.art_skillPic.shader = *(skillMenuInfo.skillpics + (skill - 1));
 
 	if( id == ID_NIGHTMARE ) {
 		trap_S_StartLocalSound( skillMenuInfo.nightmareSound, CHAN_ANNOUNCER );
@@ -314,7 +314,7 @@ static void UI_SPSkillMenu_Init( void ) {
 
 	skill = (int)Com_Clamp( 1, 5, UI_GetSkill() );
 	SetSkillColor( skill, color_white );
-	skillMenuInfo.art_skillPic.shader = skillMenuInfo.skillpics[skill - 1];
+	skillMenuInfo.art_skillPic.shader = *(skillMenuInfo.skillpics + (skill - 1));
 	if( skill == 5 ) {
 		trap_S_StartLocalSound( skillMenuInfo.nightmareSound, CHAN_ANNOUNCER );
 	}
