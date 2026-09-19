@@ -24,6 +24,13 @@ code/data (15 raw-identical, four debug-only). All 410 files are idempotent with
 AlignTrailingComments.Kind=Never and 20 whitespace-sensitive macros.
 Evidence: format-final-source.json, format-final-assembly-review.json,
 format-final-runtime-object-review.json and format-final-idempotence.log.
+Formatting source commit: f3f6b3fa. Twelve formatted native helpers preserve
+all ELF bytes except the two assertion source-line immediates and resulting
+build IDs (format-helper-review.json); their layouts pass. Unit golden and
+one-ULP negative control pass, and fixed Quake 3 replay retains b38004b1.
+Two test-source selectors now tolerate the authoritative whitespace: Q_rsqrt's
+opening brace and the OpenArena layout probe's extension-trap statement.
+OpenArena helper builds/layouts pass. No accepted golden was changed.
 Post-warning native baseline completed at a296e69a: post-warning-native.json.
 PR #131 merged-tree regression 35475248201 passes. Next: add the pinned format
 CI check and GPL provenance, run current-tree helpers/replay/hosted gates,

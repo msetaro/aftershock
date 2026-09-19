@@ -7,6 +7,13 @@ on:
   workflow_dispatch:
 
 jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Enforce reviewed clang-format version and style
+        run: python3 tests/check_format.py --clang-format 'pipx run --spec clang-format==21.1.8 clang-format'
+
   lifetimes:
     runs-on: ubuntu-24.04
     steps:

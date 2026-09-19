@@ -49,7 +49,7 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
         probe = probe.replace('../../engine/public/' + prefix + '_public.h', '../../code/' + module + '/' + prefix + '_public.h')
     probe = probe.replace('#ifdef __cplusplus\n#define ALIGN', '#undef ALIGN\n#ifdef __cplusplus\n#define ALIGN')
     probe = probe.replace('SHOW(refEntity_t);', 'printf("refEntity_t %zu %zu\\n", offsetof(refEntity_t, eyepos), (size_t)ALIGN(refEntity_t));')
-    probe = probe.replace('    printf("extension trap %d\\n", G_TRAP_GETVALUE);\n', '')
+    probe = re.sub(r'^\s*printf\(\s*"extension trap %d\\n",\s*G_TRAP_GETVALUE\s*\);\n', '', probe, flags=re.M)
     path = output / 'tests/probes/native_layout.c'
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(probe)

@@ -47,8 +47,9 @@ for the constraints and code rules below.
 - Checkpoint in `docs/modernization-progress.md`: per-issue status, decisions, "next action".
   Update after every meaningful step; on start, resume from it.
 - Bugs found while doing something else go in `docs/bugs.md` and are fixed only in their own PR with a test. No unrelated refactoring in any PR.
-- Style: until #8 lands, match the surrounding code exactly (tabs, `( a, b )` spacing, `NULL`,
-  C casts, `qboolean`). After #8, clang-format is authoritative.
+- Style: clang-format 21.1.8 is authoritative for owned C/C++ sources. Run
+  `python3 tests/check_format.py`; vendored code, platform assembly and generated
+  shader data retain their original formatting.
 
 ## Definition of done for a PR
 
@@ -125,6 +126,7 @@ python3 tests/team_message.py
 python3 tests/native_diagnostics.py
 python3 tests/bot_command.py
 python3 tests/native_info.py
+python3 tests/check_format.py
 python3 tests/check_lifetimes.py
 python3 tests/check_boundaries.py
 python3 tests/run.py unit --negative-control

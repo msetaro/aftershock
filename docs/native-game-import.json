@@ -162,7 +162,8 @@
     "e8752ef1": "#31 PrintMsg: bounded formatting and required-length/error checks before dispatch; test-first 1ef998b0; valid text and quote policy retained",
     "f3facd3a": "#31 native diagnostics: twelve bounded formatting calls with original capacities/log offset; test-first a3652169; valid output unchanged",
     "0eb07ced": "#8 writable strings: const Team_FragBonuses search name and remove redundant casts; base/MISSIONPACK GCC/Clang release objects byte-identical",
-    "05eca339": "#8 Apple deprecations: remove unused native COM_ParseError/COM_ParseWarning definitions and prototypes; engine diagnostics retained; no callers or syscall IDs change"
+    "05eca339": "#8 Apple deprecations: remove unused native COM_ParseError/COM_ParseWarning definitions and prototypes; engine diagnostics retained; no callers or syscall IDs change",
+    "f3f6b3fa": "#8: one clang-format 21.1.8 pass; release assembly instructions/data unchanged; preserve whitespace-sensitive macro arguments"
   },
   "files": [
     {
@@ -175,7 +176,8 @@
         "e8e98ab2",
         "5592a1eb",
         "52e57708",
-        "70b1f0b6"
+        "70b1f0b6",
+        "f3f6b3fa"
       ]
     },
     {
@@ -192,7 +194,8 @@
         "93d334db",
         "70b1f0b6",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -202,7 +205,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 29 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "5592a1eb",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -213,7 +217,8 @@
       "transformations": [
         "5592a1eb",
         "436bbab1",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -224,7 +229,8 @@
       "transformations": [
         "5592a1eb",
         "93d334db",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -238,7 +244,8 @@
         "5592a1eb",
         "52e57708",
         "93d334db",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -250,7 +257,8 @@
         "e8e98ab2",
         "5592a1eb",
         "436bbab1",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -263,7 +271,8 @@
         "436bbab1",
         "8b5264c5",
         "52e57708",
-        "7c1db108"
+        "7c1db108",
+        "f3f6b3fa"
       ]
     },
     {
@@ -273,7 +282,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 28 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "5592a1eb",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -293,7 +303,8 @@
         "05cb1e37",
         "3eaba64d",
         "6709136c",
-        "f3facd3a"
+        "f3facd3a",
+        "f3f6b3fa"
       ]
     },
     {
@@ -311,7 +322,8 @@
         "93d334db",
         "74689b95",
         "91a4341b",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -325,7 +337,8 @@
         "e8e98ab2",
         "5592a1eb",
         "70b1f0b6",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -336,7 +349,8 @@
       "transformations": [
         "5592a1eb",
         "93d334db",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -348,14 +362,18 @@
         "6ea3a3bb",
         "5592a1eb",
         "436bbab1",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/cgame/cg_public.h",
       "path": "engine/public/cg_public.h",
       "sha256": "c46ca41276d75b8b1b179c5998df7d158b7d52a998af426de1d98a3074d8d7b0",
-      "disposition": "existing engine ABI header retained"
+      "disposition": "existing engine ABI header retained",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/cgame/cg_scoreboard.c",
@@ -367,7 +385,8 @@
         "e8e98ab2",
         "5592a1eb",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -382,14 +401,18 @@
         "52e57708",
         "68919a83",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/cgame/cg_snapshot.c",
       "path": "game/cgame/cg_snapshot.cpp",
       "sha256": "c28605dedff7d807e4f9f846dbfd3d0096b9a63ec8f336cdec829efa010e510b",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/cgame/cg_syscalls.c",
@@ -400,7 +423,8 @@
         "f4653398",
         "6ea3a3bb",
         "0b575fa9",
-        "7c1db108"
+        "7c1db108",
+        "f3f6b3fa"
       ]
     },
     {
@@ -413,7 +437,8 @@
         "e8e98ab2",
         "5592a1eb",
         "9e4d45f0",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -428,14 +453,18 @@
         "5592a1eb",
         "05cb1e37",
         "93d334db",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/cgame/tr_types.h",
       "path": "game/bg/tr_types_public.h",
       "sha256": "6ce0e5cfd49d0ec6ca6907e0c80985b41c9b2963958ce3583bd6a3918ca16dd0",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/ai_chat.c",
@@ -448,14 +477,18 @@
         "d6c2ac52",
         "52e57708",
         "93d334db",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/ai_chat.h",
       "path": "game/game/ai_chat.h",
       "sha256": "accfa59e19fde261af99e77602002957c9bc02b892faaa8f6741928101901d7d",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/ai_cmd.c",
@@ -470,14 +503,18 @@
         "090b7a3c",
         "52e57708",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/ai_cmd.h",
       "path": "game/game/ai_cmd.h",
       "sha256": "00503dc9a1a54f68e2e867b4d0f7a6e709b1f9536196cf3cf67f22b64f7b8dc0",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/ai_dmnet.c",
@@ -489,14 +526,18 @@
         "5592a1eb",
         "090b7a3c",
         "52e57708",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/ai_dmnet.h",
       "path": "game/game/ai_dmnet.h",
       "sha256": "33ddff5e4cc0beecf7b5b84a55c0a4713a6ff193f72dd22ad712339de96dd649",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/ai_dmq3.c",
@@ -512,14 +553,18 @@
         "d59136ef",
         "05cb1e37",
         "93d334db",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/ai_dmq3.h",
       "path": "game/game/ai_dmq3.h",
       "sha256": "99ebae3130f856eb67eda1f4dbdd77f6c2f00417906abe0e47b8fabbc3229594",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/ai_main.c",
@@ -535,14 +580,18 @@
         "d6c2ac52",
         "8b5264c5",
         "6709136c",
-        "f3facd3a"
+        "f3facd3a",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/ai_main.h",
       "path": "game/game/ai_main.h",
       "sha256": "a9c5ed889e4c06494462aea665bc7c8c3e800780cecfc2e087c31ddf5f98d5fa",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/ai_team.c",
@@ -557,7 +606,8 @@
         "d6c2ac52",
         "52e57708",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -566,7 +616,8 @@
       "sha256": "5fa4071caa55ca8f23ff7a7f19bd9e3b594e50c2e673b2b755e41293ee9c6f6b",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "d6c2ac52"
+        "d6c2ac52",
+        "f3f6b3fa"
       ]
     },
     {
@@ -579,26 +630,36 @@
         "5592a1eb",
         "52e57708",
         "05cb1e37",
-        "93d334db"
+        "93d334db",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/ai_vcmd.h",
       "path": "game/game/ai_vcmd.h",
       "sha256": "5ea37bedc8278305de6190d6e1114a883e031b606d3fd43e0eb91e4fc798dfbc",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/be_aas.h",
       "path": "game/game/be_aas.h",
       "sha256": "86ac70f29f7c387b255b0c8b6da56841cc773f26ac7551923e4b8429652dad70",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/be_ai_char.h",
       "path": "game/game/be_ai_char.h",
       "sha256": "3d85e3a206c7f7a298c0913350a7805910b7d54a174564989a708226b892021e",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/be_ai_chat.h",
@@ -606,38 +667,54 @@
       "sha256": "7b5806810ad6cbdf362d436fb834da9d255e1cd6c9c7ca8905d31dd817ed08cf",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "c58e2751"
+        "c58e2751",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/be_ai_gen.h",
       "path": "game/game/be_ai_gen.h",
       "sha256": "e4078c623b03b8c860ae93d2d272d3911013269aa09fea642b0372d8332ee3f7",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/be_ai_goal.h",
       "path": "game/game/be_ai_goal.h",
       "sha256": "5813861b05db039d369f9be85f5ff3fd8760177e2a1a5b02ec39cb5078a5aa2c",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/be_ai_move.h",
       "path": "game/game/be_ai_move.h",
       "sha256": "4bb24218eb74cc92a4de0e3a2fc8682b57b5bb500234b2d727d44cf9f816cbf8",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/be_ai_weap.h",
       "path": "game/game/be_ai_weap.h",
       "sha256": "8e689aa03cc69e45a459c18bca58afc0ab556909bcd650d257585dc281dd362e",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/be_ea.h",
       "path": "game/game/be_ea.h",
       "sha256": "84d2ae1f421c355cc160e1bb6284cb5db4a4f0e104ed5ed76f7e5278098e4e7b",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/bg_lib.c",
@@ -651,20 +728,27 @@
         "b6927331",
         "70b1f0b6",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/bg_lib.h",
       "path": "game/bg/bg_lib.h",
       "sha256": "64bf40e89dd48bc8c5eeba0b04f6ad8ae9270d0a3d523821cbdcf3c7192d09aa",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/bg_local.h",
       "path": "game/bg/bg_local.h",
       "sha256": "2743f8b6c5fac16d2267b73d3d7af597e481db6a8dc4fa27b31f7d9fb01f38ab",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/bg_misc.c",
@@ -679,7 +763,8 @@
         "a5c199bf",
         "708b7114",
         "70b1f0b6",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -691,7 +776,8 @@
         "5592a1eb",
         "d6c2ac52",
         "8b5264c5",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -702,7 +788,8 @@
       "transformations": [
         "8889ea0e",
         "5592a1eb",
-        "d6c2ac52"
+        "d6c2ac52",
+        "f3f6b3fa"
       ]
     },
     {
@@ -714,20 +801,27 @@
         "6ea3a3bb",
         "5592a1eb",
         "8b5264c5",
-        "93d334db"
+        "93d334db",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/botlib.h",
       "path": "game/game/botlib.h",
       "sha256": "5eb2397db26ea5463aa1153431b8f39ac8ad92fcb2d4e3108e6b33fc894515af",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/chars.h",
       "path": "game/game/chars.h",
       "sha256": "e29a45cb101f8d0fb01d619a01611bfc8698d5ab2af9e6901c323e5f8d12b115",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/g_active.c",
@@ -739,7 +833,8 @@
         "e8e98ab2",
         "5592a1eb",
         "93d334db",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -751,7 +846,8 @@
         "e8e98ab2",
         "70b1f0b6",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -765,7 +861,8 @@
         "d6c2ac52",
         "70b1f0b6",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -778,7 +875,8 @@
         "e8e98ab2",
         "05cb1e37",
         "70b1f0b6",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -796,7 +894,8 @@
         "05cb1e37",
         "70b1f0b6",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -813,7 +912,8 @@
         "05cb1e37",
         "93d334db",
         "70b1f0b6",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -825,7 +925,8 @@
         "e8e98ab2",
         "5592a1eb",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -837,7 +938,8 @@
         "bdf81ac0",
         "8889ea0e",
         "d6c2ac52",
-        "8b5264c5"
+        "8b5264c5",
+        "f3f6b3fa"
       ]
     },
     {
@@ -861,7 +963,8 @@
         "3eaba64d",
         "af07f013",
         "6709136c",
-        "f3facd3a"
+        "f3facd3a",
+        "f3f6b3fa"
       ]
     },
     {
@@ -870,7 +973,8 @@
       "sha256": "2bc6b384305c8a1036ed2a0a12ddc0accb2366623896ec003331c6abb2c6a84d",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "d6c2ac52"
+        "d6c2ac52",
+        "f3f6b3fa"
       ]
     },
     {
@@ -882,7 +986,8 @@
         "6ea3a3bb",
         "5592a1eb",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -892,7 +997,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 6 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "5592a1eb",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -905,14 +1011,18 @@
         "e8e98ab2",
         "5592a1eb",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/g_public.h",
       "path": "engine/public/g_public.h",
       "sha256": "61d1f1920b187f3bf8cfb0e3619a0c1a5da18167b91858579d608c1839a32a64",
-      "disposition": "existing engine ABI header retained"
+      "disposition": "existing engine ABI header retained",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/g_rankings.h",
@@ -926,7 +1036,8 @@
       "sha256": "a04b043bfd65dd32c0d5ac8b0eb12395c785a3ce286e66d454410249744220f8",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "f3f6b3fa"
       ]
     },
     {
@@ -941,7 +1052,8 @@
         "05cb1e37",
         "708b7114",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -953,7 +1065,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "d6c2ac52",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -964,7 +1077,8 @@
       "transformations": [
         "f4653398",
         "6ea3a3bb",
-        "0b575fa9"
+        "0b575fa9",
+        "f3f6b3fa"
       ]
     },
     {
@@ -976,7 +1090,8 @@
         "e8e98ab2",
         "5592a1eb",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -994,14 +1109,18 @@
         "3eaba64d",
         "6709136c",
         "e8752ef1",
-        "0eb07ced"
+        "0eb07ced",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/g_team.h",
       "path": "game/game/g_team.h",
       "sha256": "0df64a2d49ce05fc5cb569792ee4d2fffdd93db6ba1fee106a2a11613a16d9bb",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/g_trigger.c",
@@ -1012,7 +1131,8 @@
         "e8e98ab2",
         "5592a1eb",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1025,7 +1145,8 @@
         "5592a1eb",
         "d6c2ac52",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1039,7 +1160,8 @@
         "93d334db",
         "af07f013",
         "6709136c",
-        "6bd5c657"
+        "6bd5c657",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1052,7 +1174,10 @@
       "source": "code/game/match.h",
       "path": "game/game/match.h",
       "sha256": "b212f7c187065cc08f84eda2ef3151748a94f9b94ed7d5f06ba409289830a735",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/q_math.c",
@@ -1063,7 +1188,8 @@
         "152cc6e2",
         "5592a1eb",
         "9c170ddd",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1080,7 +1206,8 @@
         "c5e4a555",
         "bdbc5e9c",
         "6709136c",
-        "05eca339"
+        "05eca339",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1110,14 +1237,18 @@
         "0c220839",
         "f7568d21",
         "3e6d66b8",
-        "05eca339"
+        "05eca339",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/game/surfaceflags.h",
       "path": "game/bg/surfaceflags.h",
       "sha256": "f05993c571858f3bb86cdcb9121d1748351377746916b5db0e28312bdb3b6722",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/game/syn.h",
@@ -1129,7 +1260,10 @@
       "source": "code/q3_ui/keycodes.h",
       "path": "game/ui/keycodes.h",
       "sha256": "dd0f7c5cba444a3399ca70684d1292d82aec5094b607cf222ad67aa50b5342df",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/q3_ui/ui_addbots.c",
@@ -1140,7 +1274,8 @@
         "e8e98ab2",
         "2475e0d2",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1155,7 +1290,8 @@
         "05cb1e37",
         "3eaba64d",
         "6709136c",
-        "f3facd3a"
+        "f3facd3a",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1167,7 +1303,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "5592a1eb",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1178,7 +1315,8 @@
       "transformations": [
         "8889ea0e",
         "e8e98ab2",
-        "05cb1e37"
+        "05cb1e37",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1187,7 +1325,8 @@
       "sha256": "64c15b422ef8715314cca227878381db4a2e3065c77aa72ef3ef431bef65cc56",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1199,7 +1338,8 @@
         "e8e98ab2",
         "5592a1eb",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1215,7 +1355,8 @@
         "bb869f79",
         "05cb1e37",
         "93d334db",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1225,7 +1366,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "5592a1eb",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1237,7 +1379,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "93d334db",
-        "3eaba64d"
+        "3eaba64d",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1246,7 +1389,8 @@
       "sha256": "b920a14f4f9e0ce97c9ec3fa16a63a8d232dffaf6ac1048ff721b991003598bb",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1259,7 +1403,8 @@
         "e8e98ab2",
         "436bbab1",
         "2475e0d2",
-        "3eaba64d"
+        "3eaba64d",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1269,7 +1414,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "e8e98ab2",
-        "af8ba5e7"
+        "af8ba5e7",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1279,7 +1425,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "e8e98ab2",
-        "3eaba64d"
+        "3eaba64d",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1294,7 +1441,8 @@
         "436bbab1",
         "8b5264c5",
         "52e57708",
-        "2475e0d2"
+        "2475e0d2",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1307,7 +1455,8 @@
         "6ea3a3bb",
         "8889ea0e",
         "0b575fa9",
-        "05cb1e37"
+        "05cb1e37",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1320,7 +1469,8 @@
         "5592a1eb",
         "05cb1e37",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1332,7 +1482,8 @@
         "6ea3a3bb",
         "93d334db",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1342,7 +1493,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "e8e98ab2",
-        "3eaba64d"
+        "3eaba64d",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1352,7 +1504,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "e8e98ab2",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1361,7 +1514,8 @@
       "sha256": "6943e0e0642521d7dcc90770c04f9bbce0da77908a082b66735dcc764f411de0",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1374,7 +1528,8 @@
         "8889ea0e",
         "e8e98ab2",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1390,7 +1545,8 @@
         "bb869f79",
         "05cb1e37",
         "70b1f0b6",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1401,7 +1557,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1413,14 +1570,18 @@
         "6ea3a3bb",
         "e8e98ab2",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "code/ui/ui_public.h",
       "path": "engine/public/ui_public.h",
       "sha256": "9ada4dd687b2c0a5dd73f9d81a5cd344664cd8dd787ec6552c5e83c8fe16f9c7",
-      "disposition": "existing engine ABI header retained"
+      "disposition": "existing engine ABI header retained",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     },
     {
       "source": "code/q3_ui/ui_qmenu.c",
@@ -1434,7 +1595,8 @@
         "a5c199bf",
         "05cb1e37",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1445,7 +1607,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "05cb1e37"
+        "05cb1e37",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1456,7 +1619,8 @@
       "transformations": [
         "e8e98ab2",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1468,7 +1632,8 @@
         "8889ea0e",
         "e8e98ab2",
         "5592a1eb",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1482,7 +1647,8 @@
         "e8e98ab2",
         "436bbab1",
         "93d334db",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1491,7 +1657,8 @@
       "sha256": "45457de65a461fb515ea3fb49163f435d88858662829cefba48f2c189efd14f5",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1502,7 +1669,8 @@
       "transformations": [
         "5592a1eb",
         "8b5264c5",
-        "52e57708"
+        "52e57708",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1513,7 +1681,8 @@
       "transformations": [
         "e8e98ab2",
         "5592a1eb",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1523,7 +1692,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "e8e98ab2",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1533,7 +1703,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "8889ea0e",
-        "e8e98ab2"
+        "e8e98ab2",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1546,7 +1717,8 @@
         "5592a1eb",
         "2475e0d2",
         "05cb1e37",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1560,7 +1732,8 @@
         "e8e98ab2",
         "05cb1e37",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1573,7 +1746,8 @@
         "2475e0d2",
         "05cb1e37",
         "1c82acae",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1587,7 +1761,8 @@
         "05cb1e37",
         "f9dbcb07",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1598,7 +1773,8 @@
       "transformations": [
         "f4653398",
         "6ea3a3bb",
-        "0b575fa9"
+        "0b575fa9",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1607,7 +1783,8 @@
       "sha256": "456c32c0853e12cd140a114524b44282145afbf93efe7cdd22c14a6d2138b339",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1618,7 +1795,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "05cb1e37"
+        "05cb1e37",
+        "f3f6b3fa"
       ]
     },
     {
@@ -1634,14 +1812,18 @@
         "05cb1e37",
         "70b1f0b6",
         "3eaba64d",
-        "6709136c"
+        "6709136c",
+        "f3f6b3fa"
       ]
     },
     {
       "source": "ui/menudef.h",
       "path": "game/bg/menudef_public.h",
       "sha256": "e32d5303f38e32ec4820a87e98747b41b9a4579f07dbcc358ac1d2e876a26aef",
-      "disposition": "verbatim import"
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
     }
   ]
 }

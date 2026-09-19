@@ -16,6 +16,7 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 
 ```
 python3 tests/native_math.py
+python3 tests/check_format.py
 python3 tests/check_lifetimes.py
 python3 tests/check_boundaries.py
 python3 tests/run.py unit --negative-control
@@ -49,6 +50,16 @@ and no physical audio device. CI installs those files in the runtime job. The te
 uses the real ALSA implementation; wrappers count successful paths without replacing
 the calls. `--cxx` selects the compiler. A missing device/library, no sample submission,
 wrong callback type, or shutdown timeout fails the test.
+
+`python3 tests/check_format.py` enforces clang-format 21.1.8 on tracked C/C++
+headers, sources and includes in engine, game, tools/port and tests/probes.
+Vendor sources, platform assembly and generated shader data are excluded.
+`--clang-format` selects the command; hosted CI uses
+`--clang-format 'pipx run --spec clang-format==21.1.8 clang-format'`.
+Use the same version for edits. The config preserves stringified macro arguments
+and disables trailing-comment alignment so one pass is stable. The initial
+format commit was checked against release assembly across both renderers and
+native/cross builds; only inline-assembly source-location comments differed.
 
 `python3 tests/check_lifetimes.py` checks non-trivial locals, parameters, globals,
 statics and temporaries in active Linux engine code and included engine headers,

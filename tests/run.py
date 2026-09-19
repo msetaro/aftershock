@@ -161,7 +161,7 @@ def check_known_bugs(diagnostics, patterns=None):
 
 def negative_control(args, objects, binary):
     original = (ROOT / 'engine/qcommon/q_math.cpp').read_text()
-    begin = original.index('float Q_rsqrt( float number )\n{')
+    begin = re.search(r'float Q_rsqrt\( float number \)\s*\{', original).start()
     end = original.index('float Q_fabs', begin)
     body = original[begin:end]
     assert body.count('return 1.0f / sqrtf( number );') == 1
