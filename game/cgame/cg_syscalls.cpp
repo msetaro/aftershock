@@ -333,13 +333,7 @@ void		trap_SetUserCmdValue( int stateValue, float sensitivityScale ) {
 	NATIVE_SYSCALL( (intptr_t)( CG_SETUSERCMDVALUE ), (intptr_t)( stateValue ), (intptr_t)( PASSFLOAT(sensitivityScale) ) );
 }
 
-void		testPrintInt( char *string, int i ) {
-	NATIVE_SYSCALL( (intptr_t)( CG_TESTPRINTINT ), (intptr_t)( string ), (intptr_t)( i ) );
-}
 
-void		testPrintFloat( char *string, float f ) {
-	NATIVE_SYSCALL( (intptr_t)( CG_TESTPRINTFLOAT ), (intptr_t)( string ), (intptr_t)( PASSFLOAT(f) ) );
-}
 
 int trap_MemoryRemaining( void ) {
 	return NATIVE_SYSCALL( (intptr_t)( CG_MEMORY_REMAINING ) );

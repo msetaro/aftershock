@@ -222,12 +222,6 @@ qboolean trap_GetUserCmd( int cmdNumber, usercmd_t *ucmd ) {
 void trap_SetUserCmdValue( int stateValue, float sensitivityScale ) {
 	CGameImport_SetUserCmdValue( stateValue, sensitivityScale );
 }
-void testPrintInt( char *string, int i ) {
-	CGameImport_testPrintInt( string, i );
-}
-void testPrintFloat( char *string, float f ) {
-	CGameImport_testPrintFloat( string, f );
-}
 int trap_MemoryRemaining( void ) {
 	return CGameImport_MemoryRemaining(  );
 }

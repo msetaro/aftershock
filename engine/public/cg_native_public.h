@@ -76,8 +76,6 @@ int CGameImport_GetServerCommand( int serverCommandNumber );
 int CGameImport_GetCurrentCmdNumber( void );
 int CGameImport_GetUserCmd( int cmdNumber, void * ucmd );
 void CGameImport_SetUserCmdValue( int stateValue, float sensitivityScale );
-void CGameImport_testPrintInt( char * string, int i );
-void CGameImport_testPrintFloat( char * string, float f );
 int CGameImport_MemoryRemaining( void );
 int CGameImport_Key_IsDown( int keynum );
 int CGameImport_Key_GetCatcher( void );

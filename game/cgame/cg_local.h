@@ -1624,8 +1624,6 @@ qboolean	trap_GetUserCmd( int cmdNumber, usercmd_t *ucmd );
 void		trap_SetUserCmdValue( int stateValue, float sensitivityScale );
 
 // aids for VM testing
-void		testPrintInt( char *string, int i );
-void		testPrintFloat( char *string, float f );
 
 int			trap_MemoryRemaining( void );
 void		trap_R_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font);
