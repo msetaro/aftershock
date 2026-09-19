@@ -12,33 +12,45 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-jpeg-alignment. PR #103 passed source 98ef8025 build
-35459818976 and regression 35459818978, with self-review on #103/#8; merged
-7a5ba492. Check its merged-tree regression. PR #102 merged-tree regression
-35459709579 passes. The named texture records preserve all 27 production objects
-(21 raw/native, six debug-only) and all 18 measured layouts.
+Active: issue/8-longjmp-warning. PR #104 at 63615d82 passed build 35460528142
+and regression 35460528154, with self-review on #104/#8; merged 55936c12.
+Check its merged-tree regression. PR #103 merged-tree regression 35460476009 and
+PR #102 merged-tree regression 35459709579 pass.
 
-This branch applies the C4324 declaration preview: make existing MSVC x64 JPEG
-error-record padding explicit, assert the existing jump offset/record size, remove
-the header suppression and promote C4324 on owned C++ sources. Diagnostic run
-35459042059 at a13c60f0 confirms x64 jpeg_error_mgr size 168, jump-buffer
-size/alignment 256/16, jump offset 176, combined size/alignment 432/16. ARM64
-needs no padding: jump size/alignment 192/8, offset 168, combined 360/8. Only the
-original x64 declaration warns. Six production objects are raw/native-identical;
-three debug objects differ by exactly one source-line byte (Z_MallocDebug 207 ->
-214), with every other stripped byte identical. No arithmetic, OS access,
-allocation, lifetime, layout, fixture or golden changes. Artifacts:
-alignment-padding-* and msvc-jpeg-layout-{x64,arm64}.log in persistent cache.
-Record source, hosted gates and self-review, then merge.
+This branch applies the verified C4611 annotation only to standard-MSVC Q_setjmp,
+retains the #1 trivial-lifetime gate, and promotes C4611 on owned C++ sources.
+Diagnostic run 35459234093 at 265fd6cf confirms bare setjmp fails /we4611 and the
+annotated call passes on MSVC x64/ARM64. All 28 local production objects are
+raw/native-identical, refreshed on 63615d82 after the JPEG padding. No exception
+model, arithmetic, OS access, allocation, lifetime, layout, fixture or golden
+changes. This localized annotation records the approved #1 model, rather than
+silencing the warning throughout a header. Artifacts: longjmp-warning-* and
+msvc-longjmp-*.log. Record source, hosted gates and self-review before merging.
 
-Next apply the verified C4611 preview separately, finish remaining warnings/Apple
-deprecations, format/tidy/layout/assert rules, and #6 design only. Diagnostic run
-35459234093 at 265fd6cf confirms bare setjmp fails /we4611 and the annotated call
-passes on MSVC x64/ARM64. Annotate only standard-MSVC Q_setjmp, retain the #1
-trivial-lifetime gate, and promote C4611 on owned C++ sources. All 28 local
-production objects are raw/native-identical in preview. No exception-model change
-or blanket warning suppression. Artifacts: longjmp-warning-* and
-msvc-longjmp-*.log. Source preview not applied yet.
+The merged C4324 declaration preserves real MSVC x64 JPEG jump offset 176 and
+record size/alignment 432/16; ARM64 remains offset 168 and size/alignment 360/8.
+Six local production objects are raw/native-identical; three debug objects differ
+by exactly one allocation source-line byte (207 -> 214), with every other stripped
+byte identical. Artifacts: alignment-padding-* and msvc-jpeg-layout-*.log.
+
+Next finish remaining warnings/Apple deprecations, format/tidy/layout/assert rules,
+and #6 design only. All work and PRs stay in msetaro/aftershock.
+
+Read-only layout inventory at 63615d82: GCC/Clang agree on sizes, alignment and
+trivial standard layout for 59 central wire/model/BSP/AAS records. Cache evidence:
+layout-inventory/results.json. This is a baseline, not completed #8 coverage; local
+image records, platform cache records and native mirrored declarations still need
+review. No source assertions/type changes applied by the inventory.
+A fresh diagnostic-only branch issue/8-warning-inventory-current at a05b6ccf
+is based on 63615d82, includes the verified C4611 preview, preserves source line
+counts while exposing inherited header diagnostics, and uses /W4 for Debug.
+Never merge that branch/workflow; harvest its warning inventory for the next
+C4244 class. All four inventory legs pass in run 35460712936: 1,734 unique
+C4244 sites, 37 C4702 sites, and one C4701 site in debug bot diagnostics.
+The latter two classes need separate review; the potentially-uninitialized warning
+appears to involve repeated botDeveloper guards, not established runtime failure.
+Current warning inventory and refreshed Clang AST evidence use current-msvc-* and
+current-narrowing-ast* in cache. All actions remain inside msetaro/aftershock.
 
 All twelve GCC/Clang C/C++ native helper builds/layouts pass after formatter fixes
 #99/#100; post-formatter-native.json at 4b159f7e is the cache reference for future

@@ -199,7 +199,7 @@ void CopyLongSwap( void *dest, void *src );
 Q_EXTERN_C int Q_setjmp_c(void *);
 Q_EXTERN_C int Q_longjmp_c(void *, int);
 #else // !idx64 || MSVC<2017
-#define Q_setjmp setjmp
+#define Q_setjmp __pragma(warning(suppress:4611)) setjmp // #1: tests/check_lifetimes.py forbids non-trivial unwinds.
 #define Q_longjmp longjmp
 #endif
 #else // !_WIN32
