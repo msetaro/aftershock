@@ -12,26 +12,23 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/31-va-capacity. #8 is paused for the second reproduced formatter
-bug. PR #99 merged 1a20f502 after 00ad40a8 passed build 35457958368 and regression
-35457958406; self-review is on #99/#31. Its merged-tree regression remains to
-check. #98 merged-tree regression 35457856345 passes.
+Active: issue/8-standard-image-header. #31 formatter fixes are merged: #100
+passed de836537 build 35458501955 and regression 35458501948, with self-review
+on #100/#31; merged a3191a24, with merged-tree regression still to check. #99 merged-tree regression
+35458322765 passes. Test-first 9150f6e9/fix bdbc5e9c bound va's two slots and
+reject oversized formatting with ERR_FATAL. All six GCC/Clang C/C++ formatter
+variants pass; fixed Q3 replay retains b38004b1. #99's earlier Com_sprintf fix
+c5e4a555 has the same test/replay evidence. Original GPL hashes remain; no accepted
+fixture/golden changes.
 
-#99 test-first b3c44459 and fix c5e4a555 bound Com_sprintf's temporary writes.
-All six GCC/Clang engine C++/game C/game C++ ASan+UBSan variants pass. Fixed Q3
-replay retains b38004b1; no accepted golden changes. Provenance is recorded.
-
-The va test extension verifies valid lengths, formatting and two-slot rotation,
-then formats a 32000-character input twice. Cache probes pass valid cases in all
-three modes and reproduce ASan global-buffer-overflow (va-test-before.json).
-Test-first commit 9150f6e9 fails with ASan global-buffer-overflow before the fix.
-Source bdbc5e9c bounds each slot write with Q_vsnprintf/vsnprintf and rejects oversized
-or failed formatting through Com_Error(ERR_FATAL), matching Com_sprintf's error
-policy. Valid text and slot rotation remain unchanged. All six GCC/Clang engine
-C++/game C/game C++ ASan+UBSan variants pass. Record source/provenance, run hosted
-gates and self-review, then merge. #99 merged-tree regression 35458322765 remains
-to check. Resume #8 warning classes, format/tidy/layout/assert rules and #6 design
-only afterwards. No accepted fixtures or goldens changed.
+This branch applies the verified C4200 preview: remove pcx_t's nonstandard trailing
+flexible member, assert the unchanged 128-byte header, and address the payload
+immediately after it. All nine production objects preserve code/data (seven
+raw/native hashes, two debug-only). Remove the engine header suppression and
+promote C4200 on owned C++ sources. No parsing behavior or layout changes, and no
+new test target. Hosted gates/self-review remain; artifacts: flex-array-*.
+Then apply the verified C4127 and C4201 previews separately, finish remaining
+warnings/Apple deprecations, format/tidy/layout/assert rules, and #6 design only.
 
 #97 local-shadow source 91a4341b preserves 19 production objects (15 raw/native,
 four debug-only) and all four edited-tree cgame helper hashes/layouts. #96 global
@@ -100,7 +97,7 @@ expressions; compound sums retain size_t arithmetic before the final conversion.
 An early text-wide preview incorrectly narrowed a same-text size_t assignment;
 the debug oracle caught it. Edits now address only diagnosed line numbers, and all
 objects pass. The verified preview is now applied on this branch. Evidence: engine-size-*.
-Additional C4200 preview, not applied: remove the nonstandard trailing flexible
+C4200 preview, now applied: remove the nonstandard trailing flexible
 member from pcx_t, assert its unchanged 128-byte header size, and use the address
 immediately after the header for its payload. Nine production objects preserve
 code/data (seven raw/native, two debug-only). No parsing behavior changes or new
@@ -108,11 +105,24 @@ test target. Remove the header suppression and add owned-source /we4200 only in
 its eventual #8 PR. Artifacts: flex-array-preview, flex-array-objects/review.json.
 C4127 preview, not applied: literal true loops, false disabled branches,
 constexpr endian check, and compile-time glconfig size checks; remove both shared
-header suppressions. 73 objects: 56 raw/native, 14 debug-only, three debug codec
-objects still need instruction review. The first constexpr-false branch preview
+header suppressions. All 73 objects preserve code/data: 57 raw/native, 16 debug-only. The
+ABI assertion keeps its original two-line span so debug allocation __LINE__ values
+remain unchanged. The first constexpr-false branch preview
 made HSVtoRGB unneeded under Clang; plain literal false preserves its existing
 reference. MSVC's documented trivial-constant exemption covers this form; require
-hosted confirmation. Artifacts: constant-condition-preview/objects/review.json.
+hosted confirmation. Microsoft reference:
+https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4127
+Artifacts: constant-condition-preview, constant-condition-objects and
+constant-condition-review.json.
+C4201 preview, not applied: name the transform and scaleOffset records in both
+renderer texture-modifier unions, qualify their member accesses, and remove the
+engine/GL header's C4201 suppressions. All 27 changed production objects preserve
+code/data (21 raw/native, six debug-only); 18 before/after compiler configurations
+confirm size 28, alignment 4, member offsets 4/20/4/12 and trivial standard layout.
+Add owned-source /we4201 and run hosted gates when applying. Artifacts:
+anonymous-struct-preview, anonymous-struct-objects, anonymous-struct-review.json,
+anonymous-struct-layout/results.json. Do not overwrite later header changes from
+whole preview files; apply the recorded replacement pairs.
 Formatting preview: clang-format 21.1.8 touches 398 of 407 first-party C/C++/inc
 files, excluding assembly and generated shader_data.cpp. Eighteen stringifying
 macros are whitespace-sensitive. All 1,810 release assembly comparisons compile;
@@ -177,18 +187,15 @@ separately. Do not claim unrestricted MSVC warnings yet. Preserve existing numer
 conversions, layouts and FP codegen; route actual behavior fixes through #31.
 
 Next:
-Formatter review found two #31 defects: Com_sprintf temporary overflow before
-its guard and va static-slot overflow. Real engine C++/GPL C ASan probes reproduce
-both (all four cases exit 1); details and reproduction are in docs/bugs.md and
-format-capacity-* cache artifacts. The format-test-preview/format.{py,cpp} pair
-is prepared for Com_sprintf valid/boundary coverage; commit its failing test
-before applying the fix. Add permanent tests before fixes in separate
-#31 PRs; no engine fix is included in #8.
+The two reproduced formatter capacity defects are fixed in separate test-first
+PRs #99/#100. Tests/format.py is permanent, covers six compiler/language variants,
+and runs in CI. Reproduction/fix evidence is in docs/bugs.md and format-/va-*
+cache artifacts. Both fixes retain accepted replay goldens.
 
-1. Finish the va #31 test-first fix, gates and self-review. Verify #99
-   merged-tree regression.
-2. Resume Apple deprecations and MSVC warning classes /WX. The C4200 preview
-   is verified; finish reviewing the C4127 preview before its own PR.
+1. Finish C4200 hosted gates/self-review and verify #100 merged-tree regression.
+2. Apply verified C4127/C4201 previews separately, then finish Apple deprecations
+   and remaining MSVC warning classes /WX.
+
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
    force; finish #8, write design-only docs/design/rhi.md for #6, then stop.

@@ -8,8 +8,8 @@ The original twelve engine/vendor defects are closed with merged tested fixes
 below; final regression 34892331846 passed on 9a7c2625. #2 native import preflight
 found an additional LP64 game-math defect; its separate fix is merged PR #49. Merged-tree regression 34895239211 passed
 on 2018564f. #31 movement-result fix is merged as PR #51 / 5ecf43e5 with merged-tree regression
-34900871236 passed. #31 remains open for subsequently found bugs, currently the two formatter
-capacity defects documented below. Native dispatch and team-leader fixes are
+34900871236 passed. #31 remains the tracker for subsequently found bugs. The formatter capacity
+defects below are fixed in #99/#100; native dispatch and team-leader fixes are
 recorded in their later entries. `tests/known-bugs.txt` has no active entries and
 `tools/port/ubsan.supp` is empty.
 
@@ -60,7 +60,9 @@ under ASan before the fix. Bounded Q_vsnprintf/vsnprintf calls now reject output
 that does not fit the selected slot. Decision: report ERR_FATAL, consistent with
 Com_sprintf, rather than returning truncated filenames/commands. All six GCC/Clang
 engine C++ and native C/C++ ASan+UBSan variants pass; hosted gates/merge remain
-pending. No accepted fixtures or goldens changed.
+complete: PR #100 merged a3191a24 after build 35458501955 and regression
+35458501948 passed. Fixed Q3 replay retains b38004b1. No accepted fixtures or
+goldens changed.
 
 ## Historical observations and validation
 
