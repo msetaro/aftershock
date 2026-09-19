@@ -155,7 +155,8 @@
     "fc7de3a5": "#8 C4032: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
     "d005bccc": "#8 C4051: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
     "fae6f1a7": "#8 C4115: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
-    "0c220839": "#8 C4136: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged"
+    "0c220839": "#8 C4136: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
+    "f7568d21": "#8 C4514: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged"
   },
   "files": [
     {
@@ -1092,7 +1093,8 @@
         "fc7de3a5",
         "d005bccc",
         "fae6f1a7",
-        "0c220839"
+        "0c220839",
+        "f7568d21"
       ]
     },
     {
