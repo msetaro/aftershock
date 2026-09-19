@@ -20,7 +20,9 @@ search-name pointer is const; two redundant literal casts are removed. G_Find
 already receives const char*. GCC/Clang base/MISSIONPACK release objects are
 byte-identical. The permanent team-message compile check now treats writable
 string conversions as errors in both configurations. No simulation or layout
-change; native GPL provenance retains original hashes.
+change; native GPL provenance records 0eb07ced and retains original hashes.
+GCC and Clang/libc++ permanent tests pass all base/MISSIONPACK cases without
+compiler warnings.
 
 Next: run the permanent checks and full hosted gates, verify #129 merged-tree
 regression, self-review and merge. Then delete the unused native diagnostics and
