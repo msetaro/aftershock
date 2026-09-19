@@ -28,6 +28,13 @@ python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --out
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
 ```
 
+Central model/BSP/AAS file records and the shared state/font records assert size,
+alignment, trivial copyability and standard layout in their owning headers.
+Their integer fields have explicit widths; the trajectory enum keeps its existing
+unsigned 32-bit C++ representation. The native C reference remains buildable and
+its ABI comparison runs in both compiler jobs. These changes preserve all accepted
+wire, file, collision and replay goldens.
+
 The thirteen asset-free groups include wire/file layout. The negative control
 moves the active GCC SSE Q_rsqrt return one ULP toward infinity in a temporary
 source copy; the golden comparison must reject it. Clang requires libc++-dev and

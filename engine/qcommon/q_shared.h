@@ -19,6 +19,11 @@ along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
+
+#include <stdint.h>
+#ifdef __cplusplus
+#include <type_traits>
+#endif
 //
 #ifndef __Q_SHARED_H
 #define __Q_SHARED_H
@@ -213,10 +218,10 @@ typedef union {
 } color4ub_t;
 
 
-typedef int qhandle_t;
-typedef int sfxHandle_t;
-typedef int fileHandle_t;
-typedef int clipHandle_t;
+typedef int32_t qhandle_t;
+typedef int32_t sfxHandle_t;
+typedef int32_t fileHandle_t;
+typedef int32_t clipHandle_t;
 
 #define PAD( base, alignment )	(((base)+(alignment)-1) & ~((alignment)-1))
 #define PADLEN( base, alignment )	(PAD((base), (alignment)) - (base))
@@ -1132,9 +1137,9 @@ typedef enum {
 
 #define MAX_GAMESTATE_CHARS	16000
 typedef struct {
-	int stringOffsets[MAX_CONFIGSTRINGS];
+	int32_t stringOffsets[MAX_CONFIGSTRINGS];
 	char stringData[MAX_GAMESTATE_CHARS];
-	int dataCount;
+	int32_t dataCount;
 } gameState_t;
 
 //=========================================================
@@ -1160,72 +1165,72 @@ typedef struct {
 // so if a playerState_t is transmitted, the entityState_t can be fully derived
 // from it.
 typedef struct playerState_s {
-	int commandTime; // cmd->serverTime of last executed command
-	int pm_type;
-	int bobCycle; // for view bobbing and footstep generation
-	int pm_flags; // ducked, jump_held, etc
-	int pm_time;
+	int32_t commandTime; // cmd->serverTime of last executed command
+	int32_t pm_type;
+	int32_t bobCycle; // for view bobbing and footstep generation
+	int32_t pm_flags; // ducked, jump_held, etc
+	int32_t pm_time;
 
 	vec3_t origin;
 	vec3_t velocity;
-	int weaponTime;
-	int gravity;
-	int speed;
-	int delta_angles[3]; // add to command angles to get view direction
+	int32_t weaponTime;
+	int32_t gravity;
+	int32_t speed;
+	int32_t delta_angles[3]; // add to command angles to get view direction
 	// changed by spawns, rotating objects, and teleporters
 
-	int groundEntityNum; // ENTITYNUM_NONE = in air
+	int32_t groundEntityNum; // ENTITYNUM_NONE = in air
 
-	int legsTimer; // don't change low priority animations until this runs out
-	int legsAnim; // mask off ANIM_TOGGLEBIT
+	int32_t legsTimer; // don't change low priority animations until this runs out
+	int32_t legsAnim; // mask off ANIM_TOGGLEBIT
 
-	int torsoTimer; // don't change low priority animations until this runs out
-	int torsoAnim; // mask off ANIM_TOGGLEBIT
+	int32_t torsoTimer; // don't change low priority animations until this runs out
+	int32_t torsoAnim; // mask off ANIM_TOGGLEBIT
 
-	int movementDir; // a number 0 to 7 that represents the relative angle
+	int32_t movementDir; // a number 0 to 7 that represents the relative angle
 	// of movement to the view angle (axial and diagonals)
 	// when at rest, the value will remain unchanged
 	// used to twist the legs during strafing
 
 	vec3_t grapplePoint; // location of grapple to pull towards if PMF_GRAPPLE_PULL
 
-	int eFlags; // copied to entityState_t->eFlags
+	int32_t eFlags; // copied to entityState_t->eFlags
 
-	int eventSequence; // pmove generated events
-	int events[MAX_PS_EVENTS];
-	int eventParms[MAX_PS_EVENTS];
+	int32_t eventSequence; // pmove generated events
+	int32_t events[MAX_PS_EVENTS];
+	int32_t eventParms[MAX_PS_EVENTS];
 
-	int externalEvent; // events set on player from another source
-	int externalEventParm;
-	int externalEventTime;
+	int32_t externalEvent; // events set on player from another source
+	int32_t externalEventParm;
+	int32_t externalEventTime;
 
-	int clientNum; // ranges from 0 to MAX_CLIENTS-1
-	int weapon; // copied to entityState_t->weapon
-	int weaponstate;
+	int32_t clientNum; // ranges from 0 to MAX_CLIENTS-1
+	int32_t weapon; // copied to entityState_t->weapon
+	int32_t weaponstate;
 
 	vec3_t viewangles; // for fixed views
-	int viewheight;
+	int32_t viewheight;
 
 	// damage feedback
-	int damageEvent; // when it changes, latch the other parms
-	int damageYaw;
-	int damagePitch;
-	int damageCount;
+	int32_t damageEvent; // when it changes, latch the other parms
+	int32_t damageYaw;
+	int32_t damagePitch;
+	int32_t damageCount;
 
-	int stats[MAX_STATS];
-	int persistant[MAX_PERSISTANT]; // stats that aren't cleared on death
-	int powerups[MAX_POWERUPS]; // level.time that the powerup runs out
-	int ammo[MAX_WEAPONS];
+	int32_t stats[MAX_STATS];
+	int32_t persistant[MAX_PERSISTANT]; // stats that aren't cleared on death
+	int32_t powerups[MAX_POWERUPS]; // level.time that the powerup runs out
+	int32_t ammo[MAX_WEAPONS];
 
-	int generic1;
-	int loopSound;
-	int jumppad_ent; // jumppad entity hit this frame
+	int32_t generic1;
+	int32_t loopSound;
+	int32_t jumppad_ent; // jumppad entity hit this frame
 
 	// not communicated over the net at all
-	int ping; // server to game info for scoreboard
-	int pmove_framecount; // FIXME: don't transmit over the network
-	int jumppad_frame;
-	int entityEventSequence;
+	int32_t ping; // server to game info for scoreboard
+	int32_t pmove_framecount; // FIXME: don't transmit over the network
+	int32_t jumppad_frame;
+	int32_t entityEventSequence;
 } playerState_t;
 
 
@@ -1260,11 +1265,11 @@ typedef struct playerState_s {
 
 // usercmd_t is sent to the server each client frame
 typedef struct usercmd_s {
-	int serverTime;
-	int angles[3];
-	int buttons;
-	byte weapon; // weapon
-	signed char forwardmove, rightmove, upmove;
+	int32_t serverTime;
+	int32_t angles[3];
+	int32_t buttons;
+	uint8_t weapon; // weapon
+	int8_t forwardmove, rightmove, upmove;
 } usercmd_t;
 
 //===================================================================
@@ -1272,7 +1277,11 @@ typedef struct usercmd_s {
 // if entityState->solid == SOLID_BMODEL, modelindex is an inline model number
 #define SOLID_BMODEL	0xffffff
 
-typedef enum {
+typedef enum
+#ifdef __cplusplus
+	: uint32_t
+#endif
+{
 	TR_STATIONARY,
 	TR_INTERPOLATE, // non-parametric, but interpolate between snapshots
 	TR_LINEAR,
@@ -1283,8 +1292,8 @@ typedef enum {
 
 typedef struct {
 	trType_t trType;
-	int trTime;
-	int trDuration; // if non 0, trTime + trDuration = stop time
+	int32_t trTime;
+	int32_t trDuration; // if non 0, trTime + trDuration = stop time
 	vec3_t trBase;
 	vec3_t trDelta; // velocity, etc
 } trajectory_t;
@@ -1297,15 +1306,15 @@ typedef struct {
 // the structure size is fairly large
 
 typedef struct entityState_s {
-	int number; // entity index
-	int eType; // entityType_t
-	int eFlags;
+	int32_t number; // entity index
+	int32_t eType; // entityType_t
+	int32_t eFlags;
 
 	trajectory_t pos; // for calculating position
 	trajectory_t apos; // for calculating angles
 
-	int time;
-	int time2;
+	int32_t time;
+	int32_t time2;
 
 	vec3_t origin;
 	vec3_t origin2;
@@ -1313,31 +1322,31 @@ typedef struct entityState_s {
 	vec3_t angles;
 	vec3_t angles2;
 
-	int otherEntityNum; // shotgun sources, etc
-	int otherEntityNum2;
+	int32_t otherEntityNum; // shotgun sources, etc
+	int32_t otherEntityNum2;
 
-	int groundEntityNum; // ENTITYNUM_NONE = in air
+	int32_t groundEntityNum; // ENTITYNUM_NONE = in air
 
-	int constantLight; // r + (g<<8) + (b<<16) + (intensity<<24)
-	int loopSound; // constantly loop this sound
+	int32_t constantLight; // r + (g<<8) + (b<<16) + (intensity<<24)
+	int32_t loopSound; // constantly loop this sound
 
-	int modelindex;
-	int modelindex2;
-	int clientNum; // 0 to (MAX_CLIENTS - 1), for players and corpses
-	int frame;
+	int32_t modelindex;
+	int32_t modelindex2;
+	int32_t clientNum; // 0 to (MAX_CLIENTS - 1), for players and corpses
+	int32_t frame;
 
-	int solid; // for client side prediction, trap_linkentity sets this properly
+	int32_t solid; // for client side prediction, trap_linkentity sets this properly
 
-	int event; // impulse events -- muzzle flashes, footsteps, etc
-	int eventParm;
+	int32_t event; // impulse events -- muzzle flashes, footsteps, etc
+	int32_t eventParm;
 
 	// for players
-	int powerups; // bit flags
-	int weapon; // determines weapon and flash model, etc
-	int legsAnim; // mask off ANIM_TOGGLEBIT
-	int torsoAnim; // mask off ANIM_TOGGLEBIT
+	int32_t powerups; // bit flags
+	int32_t weapon; // determines weapon and flash model, etc
+	int32_t legsAnim; // mask off ANIM_TOGGLEBIT
+	int32_t torsoAnim; // mask off ANIM_TOGGLEBIT
 
-	int generic1;
+	int32_t generic1;
 } entityState_t;
 
 typedef enum {
@@ -1361,13 +1370,13 @@ typedef enum {
 #define GLYPH_CHAREND 127
 #define GLYPHS_PER_FONT GLYPH_END - GLYPH_START + 1
 typedef struct {
-	int height; // number of scan lines
-	int top; // top of glyph in buffer
-	int bottom; // bottom of glyph in buffer
-	int pitch; // width for copying
-	int xSkip; // x adjustment
-	int imageWidth; // width of actual image
-	int imageHeight; // height of actual image
+	int32_t height; // number of scan lines
+	int32_t top; // top of glyph in buffer
+	int32_t bottom; // bottom of glyph in buffer
+	int32_t pitch; // width for copying
+	int32_t xSkip; // x adjustment
+	int32_t imageWidth; // width of actual image
+	int32_t imageHeight; // height of actual image
 	float s; // x offset in image where glyph starts
 	float t; // y offset in image where glyph starts
 	float s2;
@@ -1444,5 +1453,25 @@ typedef enum _flag_status {
 
 #define LERP( a, b, w ) ( ( a ) * ( 1.0f - ( w ) ) + ( b ) * ( w ) )
 #define LUMA( red, green, blue ) ( 0.2126f * ( red ) + 0.7152f * ( green ) + 0.0722f * ( blue ) )
+
+
+#ifdef __cplusplus
+static_assert( std::is_same_v<std::underlying_type_t<trType_t>, uint32_t> );
+// Preserve the existing shared record layouts.
+static_assert( sizeof( entityState_t ) == 208 && alignof( entityState_t ) == 4 &&
+			   std::is_trivially_copyable_v<entityState_t> && std::is_standard_layout_v<entityState_t> );
+static_assert( sizeof( playerState_t ) == 468 && alignof( playerState_t ) == 4 &&
+			   std::is_trivially_copyable_v<playerState_t> && std::is_standard_layout_v<playerState_t> );
+static_assert( sizeof( usercmd_t ) == 24 && alignof( usercmd_t ) == 4 &&
+			   std::is_trivially_copyable_v<usercmd_t> && std::is_standard_layout_v<usercmd_t> );
+static_assert( sizeof( trajectory_t ) == 36 && alignof( trajectory_t ) == 4 &&
+			   std::is_trivially_copyable_v<trajectory_t> && std::is_standard_layout_v<trajectory_t> );
+static_assert( sizeof( glyphInfo_t ) == 80 && alignof( glyphInfo_t ) == 4 &&
+			   std::is_trivially_copyable_v<glyphInfo_t> && std::is_standard_layout_v<glyphInfo_t> );
+static_assert( sizeof( fontInfo_t ) == 20548 && alignof( fontInfo_t ) == 4 &&
+			   std::is_trivially_copyable_v<fontInfo_t> && std::is_standard_layout_v<fontInfo_t> );
+static_assert( sizeof( gameState_t ) == 20100 && alignof( gameState_t ) == 4 &&
+			   std::is_trivially_copyable_v<gameState_t> && std::is_standard_layout_v<gameState_t> );
+#endif
 
 #endif // __Q_SHARED_H
