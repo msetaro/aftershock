@@ -16,14 +16,15 @@ Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names bel
 are relative to that persistent directory.
 
 Active: issue/8-msvc-varargs. PR #114 head be5a2878 passed build 35466715384
-and regression 35466715388 and merged after self-review. Check its merged-tree
-regression. PR #113 merged-tree regression 35466661455 passes.
+and regression 35466715388 and merged as 9aa963f0 after self-review. Its merged-tree
+regression 35467166816 passes. PR #113 merged-tree regression 35466661455 passes.
 
 Applied msvc-varargs-preview: remove only C4220 suppression from both shared
 headers and promote /we4220 on owned C++ sources. No declarations, calls or
 expressions change. All 85 sampled objects preserve code/data (67 raw/native,
 18 debug-only), and all twelve helper hashes/layouts retain the baseline. Record
-native-header GPL provenance, run hosted gates, then self-review before merging.
+native-header GPL provenance (source e883223d recorded with original import hashes),
+run hosted gates, then self-review before merging.
 Next: C4206 empty-translation-unit suppression in the engine header.
 
 Merged C4142 evidence: source 229ccb64/head be5a2878 removes both type-redefinition

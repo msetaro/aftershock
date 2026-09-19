@@ -150,7 +150,8 @@
     "769685fb": "#8 C4057: remove inherited MSVC pointer base-type suppression; no pointer expression changes; twelve helper hashes unchanged",
     "fe512b6e": "#8 C4125: remove inherited MSVC octal-escape suppression; no string or parser expression changes; twelve helper hashes unchanged",
     "fe91948f": "#8 C4152: remove inherited MSVC function/data pointer conversion suppression; no expression changes; twelve helper hashes unchanged",
-    "229ccb64": "#8 C4142: remove inherited MSVC type-redefinition suppression; no declaration changes; twelve helper hashes unchanged"
+    "229ccb64": "#8 C4142: remove inherited MSVC type-redefinition suppression; no declaration changes; twelve helper hashes unchanged",
+    "e883223d": "#8 C4220: remove inherited MSVC varargs matching suppression; no declaration/call changes; twelve helper hashes unchanged"
   },
   "files": [
     {
@@ -1082,7 +1083,8 @@
         "769685fb",
         "fe512b6e",
         "fe91948f",
-        "229ccb64"
+        "229ccb64",
+        "e883223d"
       ]
     },
     {
