@@ -8,6 +8,7 @@ env:
   CMAKE_BUILD_PARALLEL_LEVEL: "8"
 jobs:
   inventory:
+    if: false # MSVC inventory completed in 35455896498
     runs-on: windows-2022
     strategy:
       fail-fast: false
@@ -38,3 +39,24 @@ jobs:
             if ($LASTEXITCODE) { $failed = $true }
           }
           if ($failed) { exit 1 }
+  apple:
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, arm64]
+        config: [Release, Debug]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: cmake-apple-inventory-${{ matrix.arch }}-${{ matrix.config }}
+      - name: Inventory Apple deprecations
+        shell: bash
+        run: |
+          failed=0
+          for renderer in opengl vulkan; do
+            cmake -S . -B "build/apple-$renderer" -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} -DRENDERER_DEFAULT="$renderer" || { failed=1; continue; }
+            cmake --build "build/apple-$renderer" || failed=1
+          done
+          exit "$failed"
