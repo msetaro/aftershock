@@ -12,11 +12,11 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-unused-set-variables, based on pending unused-result PR #87
-head ceb2681b. #86 merged 43d4e9b4 after build 35451193767/regression 35451193709
-passed; merged-tree regression remains to check. #85 merged-tree regression
-35451178224 passes. Require #87 hosted gates/self-review/merge, then integrate
-modernization before opening this separate unused-but-set-variable class PR.
+Active: issue/8-unused-set-variables. #87 merged c7d69b57 after head ceb2681b
+passed build 35451584276 and regression 35451584289; self-review is recorded on
+#87/#8. Its merged-tree regression remains to check. Integration is merged here.
+#86 merged-tree regression 35451559386 passes. Open this unused-but-set-variable
+class PR and require full hosted gates/self-review before merging.
 
 This branch enables unused-but-set-variable warnings in native production/helpers.
 Thirty-five declarations in eighteen GPL source files have maybe_unused attributes.
@@ -57,12 +57,15 @@ Windows cast-function-type preview is separate and not applied: nine GetProcAddr
 conversions in four platform files use the existing two-stage conversion through
 void*, as already used by the AVRT bindings. Fifteen MinGW release/debug native
 objects retain identical bytes; actual-command controls fail before/pass after.
+All 861 MinGW release/debug syntax configurations pass with the class enabled.
 No signature, call, layout or behavior changes. Artifacts: cast-function-{preview,objects}.
 
 Next:
-1. Progress #87 through hosted gates/self-review, then integrate modernization
-   before opening this separate class PR.
-2. Finish Windows cast-function-type preview and remaining warning classes.
+1. Open this class PR and require hosted gates/self-review before merging.
+2. Apply Windows cast-function-type in its separate class branch. Sign-compare
+   preview is underway: 386 locations inventoried; 364 explicit casts in 79 files
+   follow existing Clang integral conversions. Platform/macro cases and complete
+   validation remain; no signedness edits are applied to repository sources.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
    rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then
