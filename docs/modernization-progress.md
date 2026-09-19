@@ -12,21 +12,25 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-engine-size-conversion. PR #97 merged b4bdd5e2 after 222f7439
-passed build 35457161485 and regression 35457161489; self-review is on #97/#8.
-#97 merged-tree regression remains to check, as does #96 run 35457079347.
-#96 merged 9cb1f313 after 0b7e3d4b passed build 35456778438 and regression
-35456778431. #95 merged-tree regression 35456678897 passes.
+Active: issue/31-sprintf-capacity. #8 is paused for the reproduced shared
+formatter defect. PR #98 merged e1275f3e after 3dc4574c passed build 35457506798
+and regression 35457506809; self-review is on #98/#8. Its merged-tree regression
+remains to check. #97 merged-tree regression 35457454325 and #96 run 35457079347
+pass. The engine-size change preserves all 508 production objects (401 raw/native,
+107 debug-only) and promotes engine C4267 without changing existing conversions.
 
-This branch applies the reviewed C4267 size conversions at 160 diagnosed lines
-in 45 engine C++ files and removes the engine header suppression. MSVC already
-promotes C4267 to an error on owned C++ sources. All 508 production objects
-preserve code/data (401 raw/native hashes, 107 debug-only). Existing expressions
-retain their original arithmetic; compound assignments keep size_t sums before
-the final explicit conversion. No FP expression, OS access, allocation, lifetime,
-layout, fixture or golden changes. Hosted gates remain to run. Artifacts:
-engine-size-* in persistent cache. Record source, gates and self-review before
-merging. Then fix the two formatter bugs test-first in separate #31 PRs.
+The test-first Com_sprintf probe covers 0/1/31/31999-character text, destination
+truncation, overlapping input/output and the 32000-character temporary boundary.
+Valid cases pass for engine C++, game C and game C++; the boundary fails in all
+three with ASan stack-buffer-overflow before the existing error guard. Evidence:
+format-test-before.json and format-test-before-*-overflow.log in persistent cache.
+The first draft's post-NUL canary assumed identical padding; it was corrected to
+check outside the supplied destination capacity because native Q_strncpyz pads.
+No engine fix yet. Commit the failing test, then bound the shared temporary write
+and preserve existing truncation/error behavior. Run both compiler tests and full
+hosted gates, record GPL provenance/self-review, then merge. Fix va's distinct
+static-slot overflow in its own #31 PR next; resume #8 afterwards. No accepted
+golden regeneration is needed if valid behavior remains unchanged.
 
 #97 local-shadow source 91a4341b preserves 19 production objects (15 raw/native,
 four debug-only) and all four edited-tree cgame helper hashes/layouts. #96 global
@@ -42,7 +46,7 @@ width/height, fog pipeline definition, Vulkan result/memory/descriptor locals.
 MSVC C4456 becomes an error on owned C++ sources. Nineteen production objects
 preserve code/data (15 raw/native, four debug-only); four cgame helper libraries
 retain preview hashes/layouts. All four final edited-tree cgame helper hashes/layouts match #94.
-PR #97 head 222f7439 is running hosted gates. No FP expression, OS access, allocation, lifetime, layout, fixture or
+PR #97 passed all hosted gates and is merged. No FP expression, OS access, allocation, lifetime, layout, fixture or
 golden changes. Artifacts: local-shadow-* in persistent cache. Record source and
 GPL provenance, then hosted gates/self-review before merging.
 
@@ -82,7 +86,7 @@ a retained cache-only wrapper excludes exactly `^IP6?: .*` lines from expected
 and actual logs, and both maps pass (fea77580/14c8ee7d). No harness or accepted
 golden changes. Hosted OA runtime passes unmodified. Artifacts: write-strings-*.
 
-Prepared follow-up previews, not applied to the repository:
+Retained warning previews (global/local shadowing merged; engine-size applied):
 - global-shadow C4459: four files, 30 production objects preserve code/data
   (24 raw/native, six debug-only); four native game libraries/layouts unchanged.
 - local-shadow C4456: three files, 19 production objects preserve code/data
@@ -151,8 +155,9 @@ compile failures; 3,605 conversion/compound nodes include 896 macro expansions.
 Seven Windows/header paths lack matching Clang commands, and Debug-only branches
 need separate coverage. No casts are applied from this inventory; distinguish
 existing narrowing from widening, preserve FP expressions, and inspect macros.
-Evidence: narrowing-ast.py, narrowing-ast/results.json and per-file logs.
-After the current shadow classes, inventory/remove applicable header suppressions
+Evidence: narrowing-ast.py, narrowing-ast/results.json and per-file logs. The
+source baseline is 222f7439; recompute byte offsets after engine-size changes.
+Continue removing applicable header suppressions
 by class before /WX; review obsolete C-only diagnostics and vendor-only scopes
 separately. Do not claim unrestricted MSVC warnings yet. Preserve existing numeric
 conversions, layouts and FP codegen; route actual behavior fixes through #31.
@@ -161,10 +166,12 @@ Next:
 Formatter review found two #31 defects: Com_sprintf temporary overflow before
 its guard and va static-slot overflow. Real engine C++/GPL C ASan probes reproduce
 both (all four cases exit 1); details and reproduction are in docs/bugs.md and
-format-capacity-* cache artifacts. Add permanent tests before fixes in separate
+format-capacity-* cache artifacts. The format-test-preview/format.{py,cpp} pair
+is prepared for Com_sprintf valid/boundary coverage; commit its failing test
+before applying the fix. Add permanent tests before fixes in separate
 #31 PRs; no engine fix is included in #8.
 
-1. Finish engine-size C4267 hosted gates/self-review and verify #96/#97
+1. Finish the Com_sprintf #31 test-first fix, gates and self-review. Verify #98
    merged-tree regression.
 2. Fix the two reproduced formatter defects in separate test-first #31 PRs.
    Then finish Apple deprecations and MSVC warning classes /WX.
