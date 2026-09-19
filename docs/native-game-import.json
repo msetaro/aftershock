@@ -163,7 +163,8 @@
     "f3facd3a": "#31 native diagnostics: twelve bounded formatting calls with original capacities/log offset; test-first a3652169; valid output unchanged",
     "0eb07ced": "#8 writable strings: const Team_FragBonuses search name and remove redundant casts; base/MISSIONPACK GCC/Clang release objects byte-identical",
     "05eca339": "#8 Apple deprecations: remove unused native COM_ParseError/COM_ParseWarning definitions and prototypes; engine diagnostics retained; no callers or syscall IDs change",
-    "f3f6b3fa": "#8: one clang-format 21.1.8 pass; release assembly instructions/data unchanged; preserve whitespace-sensitive macro arguments"
+    "f3f6b3fa": "#8: one clang-format 21.1.8 pass; release assembly instructions/data unchanged; preserve whitespace-sensitive macro arguments",
+    "f0c9acc3": "#8 readability: brace the existing early return adjacent to MISSIONPACK preprocessing; native helper hashes and release objects unchanged"
   },
   "files": [
     {
@@ -1110,7 +1111,8 @@
         "6709136c",
         "e8752ef1",
         "0eb07ced",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "f0c9acc3"
       ]
     },
     {
