@@ -12,11 +12,11 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-sign-compare, based on pending Windows cast PR #89 head a2a8f973.
-Require #89 build 35452451335/regression 35452451212 and self-review/merge, then
-integrate modernization before opening this separate signedness class PR.
-#88 merged 40543f38 after gates; merged-tree regression 35452425588 remains to
-check. #87 merged-tree regression 35451971187 passes.
+Active: issue/8-sign-compare. #89 merged d2fc1782 after head a2a8f973 passed
+build 35452451335 and regression 35452451212; self-review is recorded on #89/#8.
+Its merged-tree regression remains to check. Integration is merged here. #88
+merged-tree run 35452425588 is checked below/at handoff. Open this separate signedness
+class PR and require full hosted gates/self-review before merging.
 
 This branch contains 412 signedness edits across 91 source files. Explicit casts
 follow the original integral conversions; compound arithmetic remains inside the
@@ -93,9 +93,8 @@ All 861 MinGW release/debug syntax configurations pass with the class enabled.
 No signature, call, layout or behavior changes. Artifacts: cast-function-{preview,objects}.
 
 Next:
-1. Source/GPL provenance is recorded. Complete self-review and merge #89 after its
-   hosted gates/self-review, integrate modernization, then open this signedness
-   class PR and require all hosted gates before merging.
+1. Source 70b1f0b6/GPL provenance 4a96ca16 is recorded. Open this signedness
+   class PR and require hosted gates and final self-review before merging.
 2. Finish write-strings, Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
