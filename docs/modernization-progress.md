@@ -18,7 +18,7 @@ Its merged-tree regression remains to check. #95 merged-tree regression
 35456678897 passes. #96 global-shadow source af07f013 preserves all 30 production
 objects (24 raw/native, six debug-only) and all four final game helper hashes/layouts.
 
-This branch applies the C4456 local-shadow preview in three files: flat particle
+Source 91a4341b applies the C4456 local-shadow preview in three files: flat particle
 width/height, fog pipeline definition, Vulkan result/memory/descriptor locals.
 MSVC C4456 becomes an error on owned C++ sources. Nineteen production objects
 preserve code/data (15 raw/native, four debug-only); four cgame helper libraries
