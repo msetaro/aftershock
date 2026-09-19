@@ -16,7 +16,14 @@ Active: issue/8-parameter-shadow. #94 merged 6e5b7d65 after 36d419dd passed buil
 35455191671 and regression 35455191669; self-review is recorded on #94/#8.
 Its merged-tree regression remains to check. #93 merged-tree regression
 35455087090 passes. Source 74689b95 and cgame provenance are recorded. All four edited-tree cgame
-helper hashes/layouts match #94. Open this MSVC C4457 class PR; require hosted gates/self-review before merging.
+helper hashes/layouts match #94. PR #95 head 00b88dad exposed a generated-VS
+option-scope failure in build 35455659473: /we4457 leaked into vendored C files
+(job 105930346608 logs retained). The source rename and Ninja MSVC builds passed;
+libvorbis C code must keep the established vendor warning policy. The fix moves
+MSVC warning-error flags onto owned C++ source properties, using the existing
+deduplicated source collection. All 358 GNU and 361 MinGW compile commands are
+byte-identical before/after this scope fix. Push and require fresh full hosted
+gates/self-review. Regression 35455659439 is pending.
 
 This branch renames the bleed effect's local alpha to bleedAlpha (seven tokens),
 leaving the function parameter and particle member unchanged. MSVC C4457 becomes
@@ -97,9 +104,21 @@ MSVC inventory from #90 release x64 job 105922991488 (msvc-sign-release.log):
 C4267 234, C4459 38, C4456 28, C4065 15, C4457 3, C4644 3. Review each class
 before enabling its error gate, then /WX. Local tools include clang-query-21.
 
+Further warning audit: shared headers still contain inherited MSVC pragma
+suppression lists (engine/qcommon/q_shared.h, game/bg/q_shared.h); the platform GL
+header also leaks warning disables beyond SDK includes. The visible six-class
+inventory is not the complete MSVC warning inventory. #94 covers game-side C4267;
+the engine header still disables that diagnostic and needs a separate follow-up.
+Diagnostic-only branch issue/8-msvc-inventory at 1f5b1398 runs the unsuppressed
+/W4 x64/ARM64 Release/Debug inventory in 35455896498. Its worktree is in the
+persistent cache; do not merge that branch or its inventory-only workflow.
+After the current shadow classes, inventory/remove applicable header suppressions
+by class before /WX; review obsolete C-only diagnostics and vendor-only scopes
+separately. Do not claim unrestricted MSVC warnings yet. Preserve existing numeric
+conversions, layouts and FP codegen; route actual behavior fixes through #31.
+
 Next:
-1. Open the parameter-shadow PR and require hosted gates/self-review before
-   merging. Verify #94 merged-tree regression 35455583704. Continue
+1. Finish PR #95 hosted gates/self-review before merging. Verify #94 merged-tree regression 35455583704. Continue
    global/local shadow classes, then Apple deprecations and MSVC /WX.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
