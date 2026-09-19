@@ -7,35 +7,32 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-address-warning. Qsort PR #81 passed build 35026347546 and
-regression 35026347521, self-reviewed and merged 87907a26. This branch has
-integrated modernization; open its address-warning PR next. #80 merged-tree
-regression 35026295235 passed. Check #81's merged-tree regression when available.
+Active: issue/8-declaration-parentheses. Address-warning PR #82 passed full
+build 35448976170/regression 35448976134 and merged 779ea472 after self-review.
+This branch has integrated modernization; open its declaration-parentheses PR.
+#81 merged-tree regression 35448913729 passed. Check #82's merged-tree run next.
 
-This branch removes the unreachable !classname test in BotGetActivateGoal:
-classname is a local char[128], and the AAS key reader always initializes the
-buffer. The existing empty-classname behavior is preserved. Enable GCC address
-and Clang pointer-bool-conversion diagnostics in production and native helpers;
-these are two compiler names for the same class. No FP source expression changes.
+This branch removes unnecessary declaration parentheses from the
+bot_moveresult_t_cleared macro and enables the general parentheses warning.
+All 27 callers pass the simple identifier result; initialization and FP expressions
+are unchanged. The prior 51-object preview was byte-identical across GCC/Clang,
+debug, MinGW and ARM64, with GCC failing/passing diagnostic controls.
 
-The nine-object preview preserves x86 release and MinGW native bytes; two debug
-objects differ only in debug sections. ARM64 swaps operands of one fcmp feeding
-b.ne; equality/unordered results are symmetric and subsequent flags are overwritten
-before use on both paths. All other instructions/relocations match (details below).
+On September 19, the old /tmp artifacts were found cleared between sessions.
+Historical results remain recorded below; do not repeat accepted work. New evidence
+and temporary PR bodies use /home/matt/.cache/aftershock-modernization. The unfinished
+unused-parameter preview must be recreated there; no repository edits were applied.
 
 Next:
-1. Four GCC/Clang C/C++ helper builds and ABI checks pass. Source d59136ef is
-   recorded by 8f7b14ef. All six Clang libraries and GCC game/cgame libraries
-   retain hashes; GCC UI baselines predate #80 and are not used for parity.
-   Require hosted regression for the reviewed ARM64 diff.
-2. Open this class PR, then require hosted build/regression plus self-review
-   before merging. Check merged-tree regressions.
-3. Continue #8 with declaration parentheses (51-object identical preview), array
-   bounds and unused-result previews, then the larger classes and MSVC /WX.
-4. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
-   types/layout assertions and release-identical Q_ASSERT. Update plan rules to
-   in force, finish #8, write design-only docs/design/rhi.md for #6, then stop.
-   No #6/#7 implementation or accepted golden regeneration for warning work.
+1. Open this class PR and require full build/regression plus self-review before
+   merging. Check the merged-tree runs.
+2. Finish array-bounds and unused-result reviews, then the larger warning classes.
+   Recreate only the unfinished unused-parameter preview, using the current
+   production commands and accounting for tab-expanded diagnostic columns.
+3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
+   fixed-width types/layout assertions and release-identical Q_ASSERT. Update the
+   plan rules to in force; finish #8, write design-only docs/design/rhi.md for #6,
+   then stop. No #6/#7 implementation or accepted golden regeneration for warnings.
 
 Recent merges (all self-reviewed; merge commits):
 - #70 ignored qualifiers: 17a9dae2, build 35016076778/regression 35016076784;
@@ -1395,3 +1392,23 @@ Unused-parameter inventory completed: 829 syntax configurations, zero compile
 failures. The preview script stopped before edits because diagnostic columns
 expand tabs; fix the column mapping in the temporary script before continuing.
 No unused-parameter source edits have been applied to the repository.
+
+Declaration source d0d8a7df: the existing complete movement-result regression
+passes with GCC and Clang. Current production syntax checks pass across 2,380
+configurations with the general parentheses warning enabled. New logs live in
+/home/matt/.cache/aftershock-modernization/declaration-bot-move-{gcc,clang}.log.
+
+Unused-parameter preview (not applied): 275 [[maybe_unused]] annotations in
+88 source files, no headers or function-body changes. All 2,380 current production
+syntax configurations pass with unused parameters treated as errors, after the
+preview's relative vendor includes were connected to existing third_party sources.
+The owned-code snapshot and changes.json are in unused-parameter-preview under
+the persistent cache. Raw production/native object comparisons are running in
+unused-parameter-objects; next verify C99 helper compatibility and review the diff
+before its own warning-class PR. No annotations are in the repository yet.
+
+Unused-parameter object preview complete: 665 of 833 production/native objects
+match byte-for-byte. The other 168 are GCC debug objects and match after removing
+only debug sections from copies. No instruction/data changes. Evidence:
+unused-parameter-objects/{results,debug-review}.json in the persistent cache.
+Four standalone C/C++ helper comparisons are still running.
