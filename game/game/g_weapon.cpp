@@ -323,15 +323,15 @@ void ShotgunPattern( vec3_t origin, vec3_t origin2, int seed, gentity_t *ent ) {
 	int			i;
 	float		r, u;
 	vec3_t		end;
-	vec3_t		forward, right, up;
+	vec3_t		shotForward, shotRight, shotUp;
 	int			oldScore [[maybe_unused]];
 	qboolean	hitClient = qfalse;
 
 	// derive the right and up vectors from the forward vector, because
 	// the client won't have any other information
-	VectorNormalize2( origin2, forward );
-	PerpendicularVector( right, forward );
-	CrossProduct( forward, right, up );
+	VectorNormalize2( origin2, shotForward );
+	PerpendicularVector( shotRight, shotForward );
+	CrossProduct( shotForward, shotRight, shotUp );
 
 	oldScore = ent->client->ps.persistant[PERS_SCORE];
 
@@ -339,9 +339,9 @@ void ShotgunPattern( vec3_t origin, vec3_t origin2, int seed, gentity_t *ent ) {
 	for ( i = 0 ; i < DEFAULT_SHOTGUN_COUNT ; i++ ) {
 		r = Q_crandom( &seed ) * DEFAULT_SHOTGUN_SPREAD * 16;
 		u = Q_crandom( &seed ) * DEFAULT_SHOTGUN_SPREAD * 16;
-		VectorMA( origin, 8192 * 16, forward, end);
-		VectorMA (end, r, right, end);
-		VectorMA (end, u, up, end);
+		VectorMA( origin, 8192 * 16, shotForward, end);
+		VectorMA (end, r, shotRight, end);
+		VectorMA (end, u, shotUp, end);
 		if( ShotgunPellet( origin, end, ent ) && !hitClient ) {
 			hitClient = qtrue;
 			ent->client->accuracy_hits++;
@@ -779,10 +779,10 @@ CalcMuzzlePoint
 set muzzle location relative to pivoting eye
 ===============
 */
-void CalcMuzzlePoint ( gentity_t *ent, vec3_t forward, vec3_t right [[maybe_unused]], vec3_t up [[maybe_unused]], vec3_t muzzlePoint ) {
+void CalcMuzzlePoint ( gentity_t *ent, vec3_t shotForward, vec3_t shotRight [[maybe_unused]], vec3_t shotUp [[maybe_unused]], vec3_t muzzlePoint ) {
 	VectorCopy( ent->s.pos.trBase, muzzlePoint );
 	muzzlePoint[2] += ent->client->ps.viewheight;
-	VectorMA( muzzlePoint, 14, forward, muzzlePoint );
+	VectorMA( muzzlePoint, 14, shotForward, muzzlePoint );
 	// snap to integer coordinates for more efficient network bandwidth usage
 	SnapVector( muzzlePoint );
 }
@@ -794,10 +794,10 @@ CalcMuzzlePointOrigin
 set muzzle location relative to pivoting eye
 ===============
 */
-void CalcMuzzlePointOrigin ( gentity_t *ent, vec3_t origin [[maybe_unused]], vec3_t forward, vec3_t right [[maybe_unused]], vec3_t up [[maybe_unused]], vec3_t muzzlePoint ) {
+void CalcMuzzlePointOrigin ( gentity_t *ent, vec3_t origin [[maybe_unused]], vec3_t shotForward, vec3_t shotRight [[maybe_unused]], vec3_t shotUp [[maybe_unused]], vec3_t muzzlePoint ) {
 	VectorCopy( ent->s.pos.trBase, muzzlePoint );
 	muzzlePoint[2] += ent->client->ps.viewheight;
-	VectorMA( muzzlePoint, 14, forward, muzzlePoint );
+	VectorMA( muzzlePoint, 14, shotForward, muzzlePoint );
 	// snap to integer coordinates for more efficient network bandwidth usage
 	SnapVector( muzzlePoint );
 }
