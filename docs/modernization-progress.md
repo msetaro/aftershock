@@ -8,7 +8,8 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 ## Next action
 
 Active: issue/8-declaration-parentheses, based on pending address-warning PR #82
-head b44f5689. Require #82 hosted gates and self-review, merge it first, then
+head b44f5689 (build 35448976170/regression 35448976134). Require #82 hosted
+gates and self-review, merge it first, then
 integrate modernization before opening this separate class PR. #81 merged
 87907a26 after build 35026347546/regression 35026347521 passed. #80 merged-tree
 regression 35026295235 passed; check #81's merged-tree run when available.
@@ -1393,3 +1394,17 @@ Unused-parameter inventory completed: 829 syntax configurations, zero compile
 failures. The preview script stopped before edits because diagnostic columns
 expand tabs; fix the column mapping in the temporary script before continuing.
 No unused-parameter source edits have been applied to the repository.
+
+Declaration source d0d8a7df: the existing complete movement-result regression
+passes with GCC and Clang. Current production syntax checks pass across 2,380
+configurations with the general parentheses warning enabled. New logs live in
+/home/matt/.cache/aftershock-modernization/declaration-bot-move-{gcc,clang}.log.
+
+Unused-parameter preview (not applied): 275 [[maybe_unused]] annotations in
+88 source files, no headers or function-body changes. All 2,380 current production
+syntax configurations pass with unused parameters treated as errors, after the
+preview's relative vendor includes were connected to existing third_party sources.
+The owned-code snapshot and changes.json are in unused-parameter-preview under
+the persistent cache. Raw production/native object comparisons are running in
+unused-parameter-objects; next verify C99 helper compatibility and review the diff
+before its own warning-class PR. No annotations are in the repository yet.
