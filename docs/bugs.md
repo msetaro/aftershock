@@ -856,7 +856,9 @@ passes 24 GCC/Clang ASan/UBSan checks. Evidence is native-diagnostic-before.json
 native-diagnostic-preview/{changes,results}.json in the modernization cache.
 `python3 tests/native_diagnostics.py` is the committed small-text capacity/routing
 contract test; the initial game print case fails as expected before the fix.
-The separate test-first fix will truncate to the existing buffer/remainder capacity,
-retain error routing and the seven-byte log prefix offset, and run all gates.
+Test-first commit a3652169 records the failing contract. The fix uses standard
+vsnprintf with the existing buffer/remainder capacity for all twelve calls,
+retaining error routing and the seven-byte log prefix offset. Diagnostics truncate
+to those capacities; valid text remains unchanged.
 The PrintMsg fix merged separately as PR #128. The two unused native parser diagnostics
 are a separate #8 deletion. All work remains in msetaro/aftershock.

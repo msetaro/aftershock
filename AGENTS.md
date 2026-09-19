@@ -122,6 +122,7 @@ python3 tests/ui_skill.py
 python3 tests/team_voters.py
 python3 tests/team_flags.py
 python3 tests/team_message.py
+python3 tests/native_diagnostics.py
 python3 tests/bot_command.py
 python3 tests/native_info.py
 python3 tests/check_lifetimes.py

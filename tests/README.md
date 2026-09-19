@@ -415,3 +415,10 @@ and MISSIONPACK configurations under ASan/UBSan. Small ordinary text verifies
 quote replacement and broadcast routing; injected formatter results verify the
 fitting, full-capacity and error policies without making an oversized write.
 Use `--cxx 'clang++ -stdlib=libc++'` for the Clang/libc++ CI configuration.
+
+`python3 tests/native_diagnostics.py` checks twelve real native game, cgame, UI
+and bot diagnostic paths under ASan/UBSan. The formatter seam observes the actual
+destination capacity while small ordinary text verifies print/error routing and
+the log prefix. No oversized write is used. The formatters use standard bounded
+output, truncating diagnostic text to their existing buffer capacities. Use
+`--cxx 'clang++ -stdlib=libc++'` for the second CI compiler configuration.

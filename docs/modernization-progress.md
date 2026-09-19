@@ -19,9 +19,10 @@ Active: issue/31-native-diagnostic-capacity. The test-first native diagnostic
 capacity/routing probe is committed before the fix. `python3 tests/native_diagnostics.py`
 fails on the game print contract because no destination capacity reaches the
 formatter. Earlier cached checks cover all twelve paths with the same failure.
-Only ordinary small text is used. Next: apply the twelve reviewed bounded calls,
-record GPL provenance and CI/docs, then run local and hosted gates plus #128
-merged-tree regression. Retain truncation policy and the existing log prefix.
+Only ordinary small text is used. Test commit a3652169 precedes the twelve-call
+fix now applied with CI/docs. Next: record GPL provenance, run local and hosted
+gates plus #128 merged-tree regression, then self-review/merge. Diagnostics
+truncate to their existing capacities; error routes and log prefix are retained.
 
 PR #128 verification: test 1ef998b0, fix e8752ef1, head 901106f1. Build
 35473480437, regression 35473480441 and preceding merged-tree regression
