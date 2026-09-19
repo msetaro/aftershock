@@ -54,6 +54,14 @@ Fixed Q3 replay retains b38004b1. The va defect is separate and still unfixed; i
 permanent test extension preserves valid lengths/rotation and reproduces global
 overflow in engine C++, game C and game C++. No accepted golden changes.
 
+The va test-first commit 9150f6e9 extends `tests/format.py` with valid output,
+two-slot rotation and the boundary reproducer. Both real implementations fail
+under ASan before the fix. Bounded Q_vsnprintf/vsnprintf calls now reject output
+that does not fit the selected slot. Decision: report ERR_FATAL, consistent with
+Com_sprintf, rather than returning truncated filenames/commands. All six GCC/Clang
+engine C++ and native C/C++ ASan+UBSan variants pass; hosted gates/merge remain
+pending. No accepted fixtures or goldens changed.
+
 ## Historical observations and validation
 
 The entries below preserve what was known at each checkpoint. Statements such as

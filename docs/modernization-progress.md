@@ -24,10 +24,14 @@ replay retains b38004b1; no accepted golden changes. Provenance is recorded.
 The va test extension verifies valid lengths, formatting and two-slot rotation,
 then formats a 32000-character input twice. Cache probes pass valid cases in all
 three modes and reproduce ASan global-buffer-overflow (va-test-before.json).
-Commit the permanent failing test before bounding va's output and checking its
-result. Preserve slot rotation and valid formatting. Run both compiler tests,
-hosted gates and self-review; record provenance and merge in its own #31 PR.
-Then resume #8 warning classes, format/tidy/layout/assert rules and #6 design only.
+Test-first commit 9150f6e9 fails with ASan global-buffer-overflow before the fix.
+The fix bounds each slot write with Q_vsnprintf/vsnprintf and rejects oversized
+or failed formatting through Com_Error(ERR_FATAL), matching Com_sprintf's error
+policy. Valid text and slot rotation remain unchanged. All six GCC/Clang engine
+C++/game C/game C++ ASan+UBSan variants pass. Record source/provenance, run hosted
+gates and self-review, then merge. #99 merged-tree regression 35458322765 remains
+to check. Resume #8 warning classes, format/tidy/layout/assert rules and #6 design
+only afterwards. No accepted fixtures or goldens changed.
 
 #97 local-shadow source 91a4341b preserves 19 production objects (15 raw/native,
 four debug-only) and all four edited-tree cgame helper hashes/layouts. #96 global
