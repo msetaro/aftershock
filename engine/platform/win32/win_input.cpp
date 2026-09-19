@@ -702,7 +702,7 @@ static void IN_DIMouse( int *mx, int *my ) {
 				Sys_QueEvent( od.dwTimeStamp, SE_KEY, K_MOUSE4, qfalse, 0, NULL );
 			break;
 		// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=50
-		case DIMOFS_Z:
+		case offsetof( DIMOUSESTATE, lZ ):
 			value = od.dwData;
 			if (value == 0) {
 

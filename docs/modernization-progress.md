@@ -12,36 +12,44 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-write-strings. #90 merged f3f2ce83 after head d7e3ecc2 passed
-build 35452882116 and regression 35452882090; self-review is recorded on #90/#8.
-Its merged-tree regression remains to check. #89 merged-tree regression
-35452853439 passes. Local validation is complete; open this separate constness warning PR and
-require full hosted gates/self-review before merging.
+Active: issue/8-standard-offset. #91 merged d7f7a5ae after head 4a47cf0c passed
+build 35453776473 and regression 35453776521; self-review is recorded on #91/#8.
+Its merged-tree regression remains to check. #90 merged-tree regression
+35453396608 passes. Open this separate MSVC C4644 PR and require all hosted
+gates/self-review before merging.
 
-This branch enables string-constness warnings through sixteen declarations/fields
-across thirteen engine files. Logging formats, expected tokens, directive names,
-RIFF chunk names, display labels and the local-server message are read-only.
-CommaParse and NET_ErrorString return const char*: their existing callers only
-read the returned strings. Function bodies, calls, strings and layouts stay intact;
-no new casts, OS calls, allocation, non-trivial lifetimes or FP changes.
+This branch replaces the DirectInput wheel offset macro with standard
+`offsetof( DIMOUSESTATE, lZ )` and promotes MSVC C4644 to an error. q_shared.h
+already includes stddef.h. All three affected MinGW release/debug production
+objects preserve raw/native hashes. No calls, values, layouts, arithmetic,
+lifetimes or allocation change. Artifacts: offsetof-preview and offsetof-objects
+in /home/matt/.cache/aftershock-modernization.
 
-Local validation: all 2,667 syntax configurations pass. Of 578 checked production
-objects, 310 retain raw/native hashes; 214 match after removing only debug sections
-and normalizing six approved const-parameter manglings. The remaining 54 MinGW
-objects have identical section headers/bytes, named relocations and symbol values
-with only COFF symbol ordering changed. Code/data is preserved throughout. All
-botlib sources were compared to cover the changed internal headers. Persistent
-artifacts: write-strings-{preview,check,objects,symbol-map.json,review.json,
-coff-review.json}. Source c08ed1e9 records these declarations. MSVC strict string
-checking is enabled for engine code as well as native game code.
+Completed string constness #91: sources c08ed1e9/4a47cf0c qualify sixteen
+read-only declarations/fields across thirteen engine files and enable GCC/Clang
+and MSVC strict string checking. All 2,667 syntax configurations pass; all 578
+production objects preserve code/data (310 raw/native, 214 debug/six approved
+const-parameter manglings, 54 MinGW symbol-order-only). Fixed Q3 replay retains
+b38004b1. The default local smoke failed only on rotated host IPv6 addresses;
+a retained cache-only wrapper excludes exactly `^IP6?: .*` lines from expected
+and actual logs, and both maps pass (fea77580/14c8ee7d). No harness or accepted
+golden changes. Hosted OA runtime passes unmodified. Artifacts: write-strings-*.
 
-Fixed Q3 demo replay passes with accepted frame hash b38004b1. The unmodified
-local runtime command failed only because host IPv6 addresses rotated since the
-accepted log. A cache-only wrapper removes exactly `^IP6?: .*` lines from both
-actual and expected logs; both maps then pass (fea77580/14c8ee7d). No engine,
-harness or golden changes were made for this environment difference. The original
-failure, wrapper and results are retained as write-strings-runtime*. Hosted OA
-runtime disables networking and remains an unmodified required gate.
+Prepared follow-up previews, not applied to the repository:
+- default-switch: MSVC C4065, two AAS and one UI default-only switches. Nineteen
+  of 28 production objects are raw/native-identical; nine debug objects differ
+  only in no-ops and addresses (branch-target instruction indices verified).
+  Four native UI libraries/layouts are byte-identical. Arithmetic is untouched.
+- size-conversion: MSVC C4267, 45 explicit existing-narrowing replacement rules
+  in 25 GPL files. All 269 production objects preserve code/data (211 raw/native,
+  58 debug-only). Nine helper libraries retain hashes. Three GCC C libraries have
+  qsort's same 64-bit unsigned minimum comparison with a 32-bit selected result;
+  UI_PreferencesMenu likewise narrows a discarded high half. Complete the native
+  helper diff review before applying; no FP expressions change.
+- parameter-shadow: MSVC C4457, seven uses of local bleed alpha renamed. Nine
+  production objects build (seven raw/native, two debug differences to review);
+  all four native cgame libraries/layouts retain hashes.
+Each preview has source changes, commands, objects and logs in persistent cache.
 
 Completed signedness #90 evidence: source 70b1f0b6/provenance 4a96ca16 records
 412 edits in 91 files (15 GPL files). All 2,667 syntax configurations pass. Of
@@ -57,8 +65,8 @@ C4267 234, C4459 38, C4456 28, C4065 15, C4457 3, C4644 3. Review each class
 before enabling its error gate, then /WX. Local tools include clang-query-21.
 
 Next:
-1. Open the constness class PR, require hosted gates/self-review and merge.
-   Verify #90 merged-tree regression 35453396608.
+1. Open the standard-offset class PR, require hosted gates/self-review and merge.
+   Verify #91 merged-tree regression, then continue the prepared MSVC classes.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
