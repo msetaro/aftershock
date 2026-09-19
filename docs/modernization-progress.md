@@ -22,7 +22,7 @@ a target-level option leak into vendored C; the corrected owned-C++ source
 properties pass all MSVC configurations and preserve all 358 GNU/361 MinGW
 compile commands. Warning promotions now belong in that source-property list.
 
-This branch applies the prepared C4459 global-shadow renames in four files:
+Source af07f013 applies the prepared C4459 global-shadow renames in four files:
 unused Com_Error level, shotgun/muzzle vector locals, Vulkan uniform parameters,
 and framebuffer attachment locals. MSVC C4459 becomes an error. Thirty production
 objects preserve code/data (24 raw/native, six debug-only); four native game
