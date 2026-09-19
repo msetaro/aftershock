@@ -83,9 +83,9 @@ static void AddSkyPolygon (int nump, vec3_t vecs)
 	{
 		VectorAdd (vp, v, v);
 	}
-	av[0] = fabs((double)(v[0]));
-	av[1] = fabs((double)(v[1]));
-	av[2] = fabs((double)(v[2]));
+	av[0] = (float)( fabs((double)(v[0])) );
+	av[1] = (float)( fabs((double)(v[1])) );
+	av[2] = (float)( fabs((double)(v[2])) );
 	if (av[0] > av[1] && av[0] > av[2])
 	{
 		if (v[0] < 0)
@@ -308,7 +308,7 @@ static void MakeSkyVec( float s, float t, int axis, vec3_t outXYZ )
 	int			j, k;
 	float	boxSize;
 
-	boxSize = backEnd.viewParms.zFar / 1.75;		// div sqrt(3)
+	boxSize = (float)( backEnd.viewParms.zFar / 1.75 );		// div sqrt(3)
 	b[0] = s*boxSize;
 	b[1] = t*boxSize;
 	b[2] = boxSize;
@@ -597,7 +597,7 @@ static void FillCloudBox( void )
 		else if ( sky_mins_subd[0] > HALF_SKY_SUBDIVISIONS ) 
 			sky_mins_subd[0] = HALF_SKY_SUBDIVISIONS;
 		if ( sky_mins_subd[1] < MIN_T )
-			sky_mins_subd[1] = MIN_T;
+			sky_mins_subd[1] = (int)( MIN_T );
 		else if ( sky_mins_subd[1] > HALF_SKY_SUBDIVISIONS ) 
 			sky_mins_subd[1] = HALF_SKY_SUBDIVISIONS;
 
@@ -606,7 +606,7 @@ static void FillCloudBox( void )
 		else if ( sky_maxs_subd[0] > HALF_SKY_SUBDIVISIONS ) 
 			sky_maxs_subd[0] = HALF_SKY_SUBDIVISIONS;
 		if ( sky_maxs_subd[1] < MIN_T )
-			sky_maxs_subd[1] = MIN_T;
+			sky_maxs_subd[1] = (int)( MIN_T );
 		else if ( sky_maxs_subd[1] > HALF_SKY_SUBDIVISIONS ) 
 			sky_maxs_subd[1] = HALF_SKY_SUBDIVISIONS;
 
@@ -666,8 +666,8 @@ static void BuildSkyTexCoords( void )
 			t = ( i - HALF_SKY_SUBDIVISIONS ) / ( float ) HALF_SKY_SUBDIVISIONS;
 
 			// avoid bilerp seam
-			s = (s+1)*0.5;
-			t = (t+1)*0.5;
+			s = (float)( (s+1)*0.5 );
+			t = (float)( (t+1)*0.5 );
 
 			if ( s < 0.0f )
 			{
@@ -733,7 +733,7 @@ void R_InitSkyTexCoords( float heightCloud )
 							skyVec );
 
 				// compute parametric value 'p' that intersects with cloud layer
-				p = ( 1.0f / ( 2 * DotProduct( skyVec, skyVec ) ) ) *
+				p = (float)( ( 1.0f / ( 2 * DotProduct( skyVec, skyVec ) ) ) *
 					( -2 * skyVec[2] * radiusWorld + 
 						2 * sqrt( (double)(Square( skyVec[2] ) * Square( radiusWorld ) +
 							2 * Square( skyVec[0] ) * radiusWorld * heightCloud +
@@ -741,7 +741,7 @@ void R_InitSkyTexCoords( float heightCloud )
 							2 * Square( skyVec[1] ) * radiusWorld * heightCloud +
 							Square( skyVec[1] ) * Square( heightCloud ) + 
 							2 * Square( skyVec[2] ) * radiusWorld * heightCloud +
-							Square( skyVec[2] ) * Square( heightCloud )) ) );
+							Square( skyVec[2] ) * Square( heightCloud )) ) ) );
 
 				// compute intersection point based on p
 				VectorScale( skyVec, p, v );
@@ -784,7 +784,7 @@ void RB_DrawSun( float scale, shader_t *shader ) {
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
 #endif
 
-	dist = backEnd.viewParms.zFar / 1.75;		// div sqrt(3)
+	dist = (float)( backEnd.viewParms.zFar / 1.75 );		// div sqrt(3)
 	size = dist * scale;
 
 	VectorMA( backEnd.viewParms.orientation.origin, dist, tr.sunDirection, origin );

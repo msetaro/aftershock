@@ -805,7 +805,7 @@ static void ScaleFuzzySeperatorBalanceRange_r(fuzzyseperator_t *fs, float scale)
 	} //end if
 	else if (fs->type == WT_BALANCE)
 	{
-		float mid = (fs->minweight + fs->maxweight) * 0.5;
+		float mid = (float)( (fs->minweight + fs->maxweight) * 0.5 );
 		//get the weight between bounds
 		fs->maxweight = mid + (fs->maxweight - mid) * scale;
 		fs->minweight = mid + (fs->minweight - mid) * scale;

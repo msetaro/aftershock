@@ -646,8 +646,8 @@ aas_trace_t AAS_TraceClientBBox(vec3_t start, vec3_t end, int presencetype,
 			if ( front == back ) front -= 0.001f; // bk0101022 - hack/FPE 
                 	//calculate the hitpoint with the node (split point of the line)
 			//put the crosspoint TRACEPLANE_EPSILON pixels on the near side
-			if (front < 0) frac = (front + TRACEPLANE_EPSILON)/(front-back);
-			else frac = (front - TRACEPLANE_EPSILON)/(front-back); // bk010221
+			if (front < 0) frac = (float)( (front + TRACEPLANE_EPSILON)/(front-back) );
+			else frac = (float)( (front - TRACEPLANE_EPSILON)/(front-back) ); // bk010221
 			//
 			if (frac < 0)
 				frac = 0.001f; //0

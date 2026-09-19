@@ -117,10 +117,10 @@ static void CG_ClipMoveToEntities ( const vec3_t start, const vec3_t mins, const
 			zd = ((ent->solid>>8) & 255);
 			zu = ((ent->solid>>16) & 255) - 32;
 
-			bmins[0] = bmins[1] = -x;
-			bmaxs[0] = bmaxs[1] = x;
-			bmins[2] = -zd;
-			bmaxs[2] = zu;
+			bmins[0] = bmins[1] = (float)( -x );
+			bmaxs[0] = bmaxs[1] = (float)( x );
+			bmins[2] = (float)( -zd );
+			bmaxs[2] = (float)( zu );
 
 			cmodel = trap_CM_TempBoxModel( bmins, bmaxs );
 			VectorCopy( vec3_origin, angles );
@@ -245,7 +245,7 @@ static void CG_InterpolatePlayerState( qboolean grabAngles ) {
 	if ( i < prev->ps.bobCycle ) {
 		i += 256;		// handle wraparound
 	}
-	out->bobCycle = prev->ps.bobCycle + f * ( i - prev->ps.bobCycle );
+	out->bobCycle = (int)( prev->ps.bobCycle + f * ( i - prev->ps.bobCycle ) );
 
 	for ( i = 0 ; i < 3 ; i++ ) {
 		out->origin[i] = prev->ps.origin[i] + f * (next->ps.origin[i] - prev->ps.origin[i] );

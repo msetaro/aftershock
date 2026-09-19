@@ -106,7 +106,7 @@ short MuLawDecode(byte uLaw) {
 	mantissa = (uLaw&0xf) + 16;
 	adjusted = (mantissa << (exponent +3)) - 128 - 4;
 
-	return (uLaw & 0x80)? adjusted : -adjusted;
+	return (short)( (uLaw & 0x80)? adjusted : -adjusted );
 }
 
 short mulawToShort[256];
@@ -127,7 +127,7 @@ void encodeWavelet( sfx_t *sfx, short *packets) {
 
 	if (!madeTable) {
 		for (i=0;i<256;i++) {
-			mulawToShort[i] = (float)MuLawDecode((byte)i);
+			mulawToShort[i] = (short)( (float)MuLawDecode((byte)i) );
 		}
 		madeTable = qtrue;
 	}
@@ -186,7 +186,7 @@ void decodeWavelet(sndBuffer *chunk, short *to) {
 	if (!to) return;
 
 	for(i=0; i<size; i++) {
-		to[i] = wksp[i];
+		to[i] = (short)( wksp[i] );
 	}
 }
 
@@ -198,7 +198,7 @@ void encodeMuLaw( sfx_t *sfx, short *packets) {
 
 	if (!madeTable) {
 		for (i=0;i<256;i++) {
-			mulawToShort[i] = (float)MuLawDecode((byte)i);
+			mulawToShort[i] = (short)( (float)MuLawDecode((byte)i) );
 		}
 		madeTable = qtrue;
 	}

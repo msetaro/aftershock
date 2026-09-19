@@ -151,7 +151,7 @@ static void UI_CDKeyMenu_DrawKey( void *self ) {
 
 	x = 320 - 8 * BIGCHAR_WIDTH;
 	y = 240 - BIGCHAR_HEIGHT / 2;
-	UI_FillRect( x, y, 16 * BIGCHAR_WIDTH, BIGCHAR_HEIGHT, listbar_color );
+	UI_FillRect( (float)( x ), (float)( y ), 16 * BIGCHAR_WIDTH, BIGCHAR_HEIGHT, listbar_color );
 	UI_DrawString( x, y, f->field.buffer, style, color );
 
 	// draw cursor if we have focus
@@ -213,7 +213,7 @@ static void UI_CDKeyMenu_Init( void ) {
 	cdkeyMenuInfo.cdkey.generic.type				= MTYPE_FIELD;
 	cdkeyMenuInfo.cdkey.generic.name				= "CD Key:";
 	cdkeyMenuInfo.cdkey.generic.flags				= QMF_LOWERCASE;
-	cdkeyMenuInfo.cdkey.generic.x					= 320 - BIGCHAR_WIDTH * 2.5f;
+	cdkeyMenuInfo.cdkey.generic.x					= (int)( 320 - BIGCHAR_WIDTH * 2.5f );
 	cdkeyMenuInfo.cdkey.generic.y					= 240 - BIGCHAR_HEIGHT / 2;
 	cdkeyMenuInfo.cdkey.field.widthInChars			= 16;
 	cdkeyMenuInfo.cdkey.field.maxchars				= 16;

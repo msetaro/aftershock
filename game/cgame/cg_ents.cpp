@@ -148,7 +148,7 @@ static void CG_EntityEffects( centity_t *cent ) {
 		g = ( cl >> 8 ) & 255;
 		b = ( cl >> 16 ) & 255;
 		i = ( ( cl >> 24 ) & 255 ) * 4;
-		trap_R_AddLightToScene( cent->lerpOrigin, i, r, g, b );
+		trap_R_AddLightToScene( cent->lerpOrigin, (float)( i ), (float)( r ), (float)( g ), (float)( b ) );
 	}
 
 }
@@ -488,7 +488,7 @@ static void CG_Missile( centity_t *cent ) {
 
 	// spin as it moves
 	if ( s1->pos.trType != TR_STATIONARY ) {
-		RotateAroundDirection( ent.axis, cg.time / 4 );
+		RotateAroundDirection( ent.axis, (float)( cg.time / 4 ) );
 	} else {
 #ifdef MISSIONPACK
 		if ( s1->weapon == WP_PROX_LAUNCHER ) {
@@ -497,7 +497,7 @@ static void CG_Missile( centity_t *cent ) {
 		else
 #endif
 		{
-			RotateAroundDirection( ent.axis, s1->time );
+			RotateAroundDirection( ent.axis, (float)( s1->time ) );
 		}
 	}
 
@@ -648,7 +648,7 @@ static void CG_Portal( centity_t *cent ) {
 	ent.reType = RT_PORTALSURFACE;
 	ent.oldframe = s1->powerups;
 	ent.frame = s1->frame;		// rotation speed
-	ent.skinNum = s1->clientNum/256.0f * 360;	// roll offset
+	ent.skinNum = (int)( s1->clientNum/256.0f * 360 );	// roll offset
 
 	// add to refresh list
 	trap_R_AddRefEntityToScene(&ent);

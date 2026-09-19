@@ -1030,7 +1030,7 @@ static float BotGapDistance(vec3_t origin, vec3_t hordir, int entnum)
 				if (AAS_PointContents(end) & CONTENTS_WATER) break;
 				//if a gap is found slow down
 				//botimport.Print(PRT_MESSAGE, "gap at %i\n", dist);
-				return dist;
+				return (float)( dist );
 			} //end if
 			startz = trace.endpos[2];
 		} //end if
@@ -2250,8 +2250,8 @@ static void BotFuncBobStartEnd(aas_reachability_t *reach, vec3_t start, vec3_t e
 	if (num1 > 0x00007FFF) num1 |= 0xFFFF0000;
 	if (spawnflags & 1)
 	{
-		start[0] = num0;
-		end[0] = num1;
+		start[0] = (float)( num0 );
+		end[0] = (float)( num1 );
 		//
 		origin[0] += mid[0];
 		origin[1] = mid[1];
@@ -2259,8 +2259,8 @@ static void BotFuncBobStartEnd(aas_reachability_t *reach, vec3_t start, vec3_t e
 	} //end if
 	else if (spawnflags & 2)
 	{
-		start[1] = num0;
-		end[1] = num1;
+		start[1] = (float)( num0 );
+		end[1] = (float)( num1 );
 		//
 		origin[0] = mid[0];
 		origin[1] += mid[1];
@@ -2268,8 +2268,8 @@ static void BotFuncBobStartEnd(aas_reachability_t *reach, vec3_t start, vec3_t e
 	} //end else if
 	else
 	{
-		start[2] = num0;
-		end[2] = num1;
+		start[2] = (float)( num0 );
+		end[2] = (float)( num1 );
 		//
 		origin[0] = mid[0];
 		origin[1] = mid[1];
@@ -2574,7 +2574,7 @@ static bot_moveresult_t BotTravel_Grapple(bot_movestate_t *ms, aas_reachability_
 	//
 	if (!(int) offhandgrapple->value)
 	{
-		result.weapon = weapindex_grapple->value;
+		result.weapon = (int)( weapindex_grapple->value );
 		result.flags |= MOVERESULT_MOVEMENTWEAPON;
 	} //end if
 	//

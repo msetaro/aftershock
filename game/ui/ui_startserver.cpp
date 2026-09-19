@@ -307,7 +307,7 @@ static void StartServer_MenuEvent( void* ptr, int event ) {
 		break;
 
 	case ID_STARTSERVERNEXT:
-		trap_Cvar_SetValue( "g_gameType", gametype_remap[s_startserver.gametype.curvalue] );
+		trap_Cvar_SetValue( "g_gameType", (float)( gametype_remap[s_startserver.gametype.curvalue] ) );
 		UI_ServerOptionsMenu( s_startserver.multiplayer );
 		break;
 
@@ -353,12 +353,12 @@ static void StartServer_LevelshotDraw( void *self ) {
 	w = b->width;
 	h =	b->height;
 	if( b->shader ) {
-		UI_DrawHandlePic( x, y, w, h, b->shader );
+		UI_DrawHandlePic( (float)( x ), (float)( y ), (float)( w ), (float)( h ), b->shader );
 	}
 
 	x = b->generic.x;
 	y = b->generic.y + b->height;
-	UI_FillRect( x, y, b->width, 28, colorBlack );
+	UI_FillRect( (float)( x ), (float)( y ), (float)( b->width ), (float)( 28 ), colorBlack );
 
 	x += b->width / 2;
 	y += 4;
@@ -370,7 +370,7 @@ static void StartServer_LevelshotDraw( void *self ) {
 	w = b->width;
 	h =	b->height + 28;
 	if( b->generic.flags & QMF_HIGHLIGHT ) {	
-		UI_DrawHandlePic( x, y, w, h, b->focusshader );
+		UI_DrawHandlePic( (float)( x ), (float)( y ), (float)( w ), (float)( h ), b->focusshader );
 	}
 }
 
@@ -756,38 +756,38 @@ static void ServerOptions_Start( void ) {
 	switch( s_serveroptions.gametype ) {
 	case GT_FFA:
 	default:
-		trap_Cvar_SetValue( "ui_ffa_fraglimit", fraglimit );
-		trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
+		trap_Cvar_SetValue( "ui_ffa_fraglimit", (float)( fraglimit ) );
+		trap_Cvar_SetValue( "ui_ffa_timelimit", (float)( timelimit ) );
 		break;
 
 	case GT_TOURNAMENT:
-		trap_Cvar_SetValue( "ui_tourney_fraglimit", fraglimit );
-		trap_Cvar_SetValue( "ui_tourney_timelimit", timelimit );
+		trap_Cvar_SetValue( "ui_tourney_fraglimit", (float)( fraglimit ) );
+		trap_Cvar_SetValue( "ui_tourney_timelimit", (float)( timelimit ) );
 		break;
 
 	case GT_TEAM:
-		trap_Cvar_SetValue( "ui_team_fraglimit", fraglimit );
-		trap_Cvar_SetValue( "ui_team_timelimit", timelimit );
-		trap_Cvar_SetValue( "ui_team_friendlt", friendlyfire );
+		trap_Cvar_SetValue( "ui_team_fraglimit", (float)( fraglimit ) );
+		trap_Cvar_SetValue( "ui_team_timelimit", (float)( timelimit ) );
+		trap_Cvar_SetValue( "ui_team_friendlt", (float)( friendlyfire ) );
 		break;
 
 	case GT_CTF:
-		trap_Cvar_SetValue( "ui_ctf_fraglimit", fraglimit );
-		trap_Cvar_SetValue( "ui_ctf_timelimit", timelimit );
-		trap_Cvar_SetValue( "ui_ctf_friendlt", friendlyfire );
+		trap_Cvar_SetValue( "ui_ctf_fraglimit", (float)( fraglimit ) );
+		trap_Cvar_SetValue( "ui_ctf_timelimit", (float)( timelimit ) );
+		trap_Cvar_SetValue( "ui_ctf_friendlt", (float)( friendlyfire ) );
 		break;
 	}
 
-	trap_Cvar_SetValue( "sv_maxclients", Com_Clamp( 0, 12, maxclients ) );
-	trap_Cvar_SetValue( "dedicated", Com_Clamp( 0, 2, dedicated ) );
-	trap_Cvar_SetValue ("timelimit", Com_Clamp( 0, timelimit, timelimit ) );
-	trap_Cvar_SetValue ("fraglimit", Com_Clamp( 0, fraglimit, fraglimit ) );
-	trap_Cvar_SetValue ("capturelimit", Com_Clamp( 0, flaglimit, flaglimit ) );
-	trap_Cvar_SetValue( "g_friendlyfire", friendlyfire );
-	trap_Cvar_SetValue( "sv_pure", pure );
+	trap_Cvar_SetValue( "sv_maxclients", Com_Clamp( (float)( 0 ), (float)( 12 ), (float)( maxclients ) ) );
+	trap_Cvar_SetValue( "dedicated", Com_Clamp( (float)( 0 ), (float)( 2 ), (float)( dedicated ) ) );
+	trap_Cvar_SetValue ("timelimit", Com_Clamp( (float)( 0 ), (float)( timelimit ), (float)( timelimit ) ) );
+	trap_Cvar_SetValue ("fraglimit", Com_Clamp( (float)( 0 ), (float)( fraglimit ), (float)( fraglimit ) ) );
+	trap_Cvar_SetValue ("capturelimit", Com_Clamp( (float)( 0 ), (float)( flaglimit ), (float)( flaglimit ) ) );
+	trap_Cvar_SetValue( "g_friendlyfire", (float)( friendlyfire ) );
+	trap_Cvar_SetValue( "sv_pure", (float)( pure ) );
 	trap_Cvar_Set("sv_hostname", s_serveroptions.hostname.field.buffer );
 	
-	trap_Cvar_SetValue( "sv_punkbuster", s_serveroptions.punkbuster.curvalue );
+	trap_Cvar_SetValue( "sv_punkbuster", (float)( s_serveroptions.punkbuster.curvalue ) );
 
 	// the wait commands will allow the dedicated to take effect
 	trap_Cmd_ExecuteText( EXEC_APPEND, va( (char *)"wait ; wait ; map %s\n", s_startserver.maplist[s_startserver.currentmap] ) );
@@ -1013,7 +1013,7 @@ static void ServerOptions_LevelshotDraw( void *self ) {
 
 	x = b->generic.x;
 	y = b->generic.y + b->height;
-	UI_FillRect( x, y, b->width, 40, colorBlack );
+	UI_FillRect( (float)( x ), (float)( y ), (float)( b->width ), (float)( 40 ), colorBlack );
 
 	x += b->width / 2;
 	y += 4;
@@ -1148,7 +1148,7 @@ static void ServerOptions_SetMenuItems( void ) {
 	}
 
 	Q_strncpyz( s_serveroptions.hostname.field.buffer, UI_Cvar_VariableString( "sv_hostname" ), sizeof( s_serveroptions.hostname.field.buffer ) );
-	s_serveroptions.pure.curvalue = Com_Clamp( 0, 1, trap_Cvar_VariableValue( "sv_pure" ) );
+	s_serveroptions.pure.curvalue = (int)( Com_Clamp( 0, 1, trap_Cvar_VariableValue( "sv_pure" ) ) );
 
 	// set the map pic
 	Com_sprintf( picname, 64, "levelshots/%s", s_startserver.maplist[s_startserver.currentmap] );
@@ -1205,7 +1205,7 @@ static void PlayerName_Draw( void *item ) {
 	if ( focus )
 	{
 		// draw cursor
-		UI_FillRect( s->generic.left, s->generic.top, s->generic.right-s->generic.left+1, s->generic.bottom-s->generic.top+1, listbar_color ); 
+		UI_FillRect( (float)( s->generic.left ), (float)( s->generic.top ), (float)( s->generic.right-s->generic.left+1 ), (float)( s->generic.bottom-s->generic.top+1 ), listbar_color ); 
 		UI_DrawChar( x, y, 13, UI_CENTER|UI_BLINK|UI_SMALLFONT, color);
 	}
 
@@ -1228,7 +1228,7 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	memset( &s_serveroptions, 0 ,sizeof(serveroptions_t) );
 	s_serveroptions.multiplayer = multiplayer;
 	s_serveroptions.gametype = (int)Com_Clamp( 0, 5, trap_Cvar_VariableValue( "g_gameType" ) );
-	s_serveroptions.punkbuster.curvalue = Com_Clamp( 0, 1, trap_Cvar_VariableValue( "sv_punkbuster" ) );
+	s_serveroptions.punkbuster.curvalue = (int)( Com_Clamp( 0, 1, trap_Cvar_VariableValue( "sv_punkbuster" ) ) );
 
 	ServerOptions_Cache();
 

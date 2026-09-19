@@ -682,7 +682,7 @@ void SV_DirectConnect( const netadr_t *from ) {
 			if ( newcl->state >= CS_CONNECTED ) {
 				// call QVM disconnect function before calling connect again
 				// fixes issues such as disappearing CTF flags in unpatched mods
-				Game_ClientDisconnect( newcl - svs.clients );
+				Game_ClientDisconnect( (int)( newcl - svs.clients ) );
 
 				// don't leak memory or file handles due to e.g. downloads in progress
 				SV_FreeClient( newcl );
@@ -759,7 +759,7 @@ gotnewcl:
 	// this is the only place a client_t is ever initialized
 	// we got a newcl, so reset the reliableSequence and reliableAcknowledge
 	Com_Memset( newcl, 0, sizeof( *newcl ) );
-	clientNum = newcl - svs.clients;
+	clientNum = (int)( newcl - svs.clients );
 #if 0 // skip this until CS_PRIMED
 	//ent = SV_GentityNum( clientNum );
 	//newcl->gentity = ent;
@@ -886,7 +886,7 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 
 	// call the prog function for removing a client
 	// this will remove the body, among other things
-	Game_ClientDisconnect( drop - svs.clients );
+	Game_ClientDisconnect( (int)( drop - svs.clients ) );
 
 	// add the disconnect command
 	if ( reason ) {
@@ -894,11 +894,11 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	}
 
 	if ( isBot ) {
-		SV_BotFreeClient( drop - svs.clients );
+		SV_BotFreeClient( (int)( drop - svs.clients ) );
 	}
 
 	// nuke user info
-	SV_SetUserinfo( drop - svs.clients, "" );
+	SV_SetUserinfo( (int)( drop - svs.clients ), "" );
 
 	drop->justConnected = qfalse;
 
@@ -1040,7 +1040,7 @@ static void SV_SendClientGameState( client_t *client ) {
 	client->gotCP = qfalse;
 
 	// to start generating delta for packet entities
-	client->gentity = SV_GentityNum( client - svs.clients );
+	client->gentity = SV_GentityNum( (int)( client - svs.clients ) );
 
 	// when we receive the first packet from the client, we will
 	// notice that it is from a different serverid and that the
@@ -1129,7 +1129,7 @@ static void SV_SendClientGameState( client_t *client ) {
 
 	MSG_WriteByte( &msg, svc_EOF );
 
-	MSG_WriteLong( &msg, client - svs.clients );
+	MSG_WriteLong( &msg, (int)( client - svs.clients ) );
 
 	// write the checksum feed
 	MSG_WriteLong( &msg, sv.checksumFeed );
@@ -1182,7 +1182,7 @@ void SV_ClientEnterWorld( client_t *client ) {
 	}
 
 	// set up the entity for the client
-	clientNum = client - svs.clients;
+	clientNum = (int)( client - svs.clients );
 	ent = SV_GentityNum( clientNum );
 	ent->s.number = clientNum;
 	client->gentity = ent;
@@ -1892,7 +1892,7 @@ static void SV_UpdateUserinfo_f( client_t *cl ) {
 
 	SV_UserinfoChanged( cl, qtrue, qtrue ); // update userinfo, run filter
 	// call prog code to allow overrides
-	Game_ClientUserinfoChanged( cl - svs.clients );
+	Game_ClientUserinfoChanged( (int)( cl - svs.clients ) );
 }
 
 extern int SV_Strlen( const char *str );
@@ -2067,7 +2067,7 @@ qboolean SV_ExecuteClientCommand( client_t *cl, const char *s ) {
 		// pass unknown strings to the game
 		if ( !ucmd->name && sv.state == SS_GAME && cl->state >= CS_PRIMED ) {
 			Cmd_Args_Sanitize( "\n\r" );
-			Game_ClientCommand( cl - svs.clients );
+			Game_ClientCommand( (int)( cl - svs.clients ) );
 		}
 	}
 
@@ -2129,7 +2129,7 @@ void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
 		return;		// may have been kicked during the last usercmd
 	}
 
-	Game_ClientThink( cl - svs.clients );
+	Game_ClientThink( (int)( cl - svs.clients ) );
 }
 
 

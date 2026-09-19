@@ -332,7 +332,7 @@ static bot_character_t *BotLoadCharacterFromFile(const char *charfile, int skill
 			if (skill < 0 || (int)token.intvalue == skill)
 			{
 				foundcharacter = qtrue;
-				ch->skill = token.intvalue;
+				ch->skill = (float)( token.intvalue );
 				while(PC_ExpectAnyToken(source, &token))
 				{
 					if (!strcmp(token.string, "}")) break;
@@ -588,7 +588,7 @@ static int BotLoadCharacterSkill(const char *charfile, float skill)
 
 	defaultch = BotLoadCachedCharacter( DEFAULT_CHARACTER, skill, qfalse );
 	BotReferenceHandle( defaultch, 1 );
-	ch = BotLoadCachedCharacter( charfile, skill, LibVarGetValue( "bot_reloadcharacters" ) );
+	ch = BotLoadCachedCharacter( charfile, skill, (int)( LibVarGetValue( "bot_reloadcharacters" ) ) );
 	BotReferenceHandle( ch, 1 );
 
 	if (defaultch && ch)
@@ -642,7 +642,7 @@ static int BotInterpolateCharacters(int handle1, int handle2, float desiredskill
 			v1 = ch1->c[i].value._float;
 			// convert second value from integer to float
 			if ( ch2->c[i].type == CT_INTEGER )
-				v2 = ch2->c[i].value.integer;
+				v2 = (float)( ch2->c[i].value.integer );
 			else
 				v2 = ch2->c[i].value._float;
 			out->c[i].value._float = v1 + (v2 - v1) * scale;

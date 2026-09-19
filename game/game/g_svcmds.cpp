@@ -111,7 +111,7 @@ static qboolean StringToFilter (char *s, ipFilter_t *f)
 			num[j++] = *s++;
 		}
 		num[j] = 0;
-		b[i] = atoi(num);
+		b[i] = (unsigned char)( atoi(num) );
 		m[i] = 255;
 
 		if (!*s)

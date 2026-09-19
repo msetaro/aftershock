@@ -295,12 +295,12 @@ static int QDECL ArenaServers_Compare( const void *arg1, const void *arg2 ) {
 		return Q_stricmp( t1->mapname, t2->mapname );
 
 	case SORT_CLIENTS:
-		f1 = t1->maxclients - t1->numclients;
+		f1 = (float)( t1->maxclients - t1->numclients );
 		if( f1 < 0 ) {
 			f1 = 0;
 		}
 
-		f2 = t2->maxclients - t2->numclients;
+		f2 = (float)( t2->maxclients - t2->numclients );
 		if( f2 < 0 ) {
 			f2 = 0;
 		}
@@ -1166,7 +1166,7 @@ static void Punkbuster_ConfirmEnable( qboolean result ) {
 	{		
 		trap_SetPbClStatus(1);
 	}
-	g_arenaservers.punkbuster.curvalue = Com_Clamp( 0, 1, trap_Cvar_VariableValue( "cl_punkbuster" ) );
+	g_arenaservers.punkbuster.curvalue = (int)( Com_Clamp( 0, 1, trap_Cvar_VariableValue( "cl_punkbuster" ) ) );
 }
 
 static void Punkbuster_ConfirmDisable( qboolean result ) {
@@ -1175,7 +1175,7 @@ static void Punkbuster_ConfirmDisable( qboolean result ) {
 		trap_SetPbClStatus(0);
 		UI_Message( punkbuster_msg );
 	}
-	g_arenaservers.punkbuster.curvalue = Com_Clamp( 0, 1, trap_Cvar_VariableValue( "cl_punkbuster" ) );
+	g_arenaservers.punkbuster.curvalue = (int)( Com_Clamp( 0, 1, trap_Cvar_VariableValue( "cl_punkbuster" ) ) );
 }
 
 /*
@@ -1200,30 +1200,30 @@ static void ArenaServers_Event( void* ptr, int event ) {
 		{
 			value++;
 		}
-		trap_Cvar_SetValue( "ui_browserMaster", value );
+		trap_Cvar_SetValue( "ui_browserMaster", (float)( value ) );
 		ArenaServers_SetType( value );
 		break;
 
 	case ID_GAMETYPE:
-		trap_Cvar_SetValue( "ui_browserGameType", g_arenaservers.gametype.curvalue );
+		trap_Cvar_SetValue( "ui_browserGameType", (float)( g_arenaservers.gametype.curvalue ) );
 		g_gametype = g_arenaservers.gametype.curvalue;
 		ArenaServers_UpdateMenu();
 		break;
 
 	case ID_SORTKEY:
-		trap_Cvar_SetValue( "ui_browserSortKey", g_arenaservers.sortkey.curvalue );
+		trap_Cvar_SetValue( "ui_browserSortKey", (float)( g_arenaservers.sortkey.curvalue ) );
 		ArenaServers_Sort( g_arenaservers.sortkey.curvalue );
 		ArenaServers_UpdateMenu();
 		break;
 
 	case ID_SHOW_FULL:
-		trap_Cvar_SetValue( "ui_browserShowFull", g_arenaservers.showfull.curvalue );
+		trap_Cvar_SetValue( "ui_browserShowFull", (float)( g_arenaservers.showfull.curvalue ) );
 		g_fullservers = g_arenaservers.showfull.curvalue;
 		ArenaServers_UpdateMenu();
 		break;
 
 	case ID_SHOW_EMPTY:
-		trap_Cvar_SetValue( "ui_browserShowEmpty", g_arenaservers.showempty.curvalue );
+		trap_Cvar_SetValue( "ui_browserShowEmpty", (float)( g_arenaservers.showempty.curvalue ) );
 		g_emptyservers = g_arenaservers.showempty.curvalue;
 		ArenaServers_UpdateMenu();
 		break;
@@ -1582,26 +1582,26 @@ static void ArenaServers_MenuInit( void ) {
 	
 	ArenaServers_LoadFavorites();
 
-	g_servertype = Com_Clamp( 0, 3, ui_browserMaster.integer );
+	g_servertype = (int)( Com_Clamp( (float)( 0 ), (float)( 3 ), (float)( ui_browserMaster.integer ) ) );
 	// hack to get rid of MPlayer stuff
 	value = g_servertype;
 	if (value >= 1)
 		value--;
 	g_arenaservers.master.curvalue = value;
 
-	g_gametype = Com_Clamp( 0, 4, ui_browserGameType.integer );
+	g_gametype = (int)( Com_Clamp( (float)( 0 ), (float)( 4 ), (float)( ui_browserGameType.integer ) ) );
 	g_arenaservers.gametype.curvalue = g_gametype;
 
-	g_sortkey = Com_Clamp( 0, 4, ui_browserSortKey.integer );
+	g_sortkey = (int)( Com_Clamp( (float)( 0 ), (float)( 4 ), (float)( ui_browserSortKey.integer ) ) );
 	g_arenaservers.sortkey.curvalue = g_sortkey;
 
-	g_fullservers = Com_Clamp( 0, 1, ui_browserShowFull.integer );
+	g_fullservers = (int)( Com_Clamp( (float)( 0 ), (float)( 1 ), (float)( ui_browserShowFull.integer ) ) );
 	g_arenaservers.showfull.curvalue = g_fullservers;
 
-	g_emptyservers = Com_Clamp( 0, 1, ui_browserShowEmpty.integer );
+	g_emptyservers = (int)( Com_Clamp( (float)( 0 ), (float)( 1 ), (float)( ui_browserShowEmpty.integer ) ) );
 	g_arenaservers.showempty.curvalue = g_emptyservers;
 	
-	g_arenaservers.punkbuster.curvalue = Com_Clamp( 0, 1, trap_Cvar_VariableValue( "cl_punkbuster" ) );
+	g_arenaservers.punkbuster.curvalue = (int)( Com_Clamp( 0, 1, trap_Cvar_VariableValue( "cl_punkbuster" ) ) );
 
 	// force to initial state and refresh
 	type = g_servertype;

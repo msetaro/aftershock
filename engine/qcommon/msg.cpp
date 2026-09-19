@@ -109,11 +109,11 @@ void MSG_WriteBits( msg_t *msg, int value, int bits ) {
 	}
 	if (msg->oob) {
 		if ( bits == 8 ) {
-			msg->data[msg->cursize] = value;
+			msg->data[msg->cursize] = (unsigned char)( value );
 			msg->cursize += 1;
 			msg->bit += 8;
 		} else if ( bits == 16 ) {
-			short temp = value;
+			short temp = (short)( value );
 			
 			CopyLittleShort(&msg->data[msg->cursize], &temp);
 			msg->cursize += 2;
@@ -411,7 +411,7 @@ const char *MSG_ReadString( msg_t *msg ) {
 		if ( c > 127 ) {
 			c = '.';
 		}
-		string[ l++ ] = c;
+		string[ l++ ] = (char)( c );
 	} while ( true );
 	
 	string[ l ] = '\0';
@@ -438,7 +438,7 @@ const char *MSG_ReadBigString( msg_t *msg ) {
 		if ( c > 127 ) {
 			c = '.';
 		}
-		string[ l++ ] = c;
+		string[ l++ ] = (char)( c );
 	} while ( true );
 	
 	string[ l ] = '\0';
@@ -465,7 +465,7 @@ const char *MSG_ReadStringLine( msg_t *msg ) {
 		if ( c > 127 ) {
 			c = '.';
 		}
-		string[ l++ ] = c;
+		string[ l++ ] = (char)( c );
 	} while ( true );
 	
 	string[ l ] = '\0';
@@ -483,7 +483,7 @@ void MSG_ReadData( msg_t *msg, void *data, int len ) {
 	int		i;
 
 	for (i=0 ; i<len ; i++) {
-		((byte *)data)[i] = MSG_ReadByte (msg);
+		((byte *)data)[i] = (unsigned char)( MSG_ReadByte (msg) );
 	}
 }
 
@@ -621,17 +621,17 @@ void MSG_ReadDeltaUsercmdKey( msg_t *msg, int key, const usercmd_t *from, usercm
 		to->angles[0] = MSG_ReadDeltaKey( msg, key, from->angles[0], 16);
 		to->angles[1] = MSG_ReadDeltaKey( msg, key, from->angles[1], 16);
 		to->angles[2] = MSG_ReadDeltaKey( msg, key, from->angles[2], 16);
-		to->forwardmove = MSG_ReadDeltaKey( msg, key, from->forwardmove, 8);
+		to->forwardmove = (signed char)( MSG_ReadDeltaKey( msg, key, from->forwardmove, 8) );
 		if( to->forwardmove == -128 )
 			to->forwardmove = -127;
-		to->rightmove = MSG_ReadDeltaKey( msg, key, from->rightmove, 8);
+		to->rightmove = (signed char)( MSG_ReadDeltaKey( msg, key, from->rightmove, 8) );
 		if( to->rightmove == -128 )
 			to->rightmove = -127;
-		to->upmove = MSG_ReadDeltaKey( msg, key, from->upmove, 8);
+		to->upmove = (signed char)( MSG_ReadDeltaKey( msg, key, from->upmove, 8) );
 		if( to->upmove == -128 )
 			to->upmove = -127;
 		to->buttons = MSG_ReadDeltaKey( msg, key, from->buttons, 16);
-		to->weapon = MSG_ReadDeltaKey( msg, key, from->weapon, 8);
+		to->weapon = (unsigned char)( MSG_ReadDeltaKey( msg, key, from->weapon, 8) );
 	} else {
 		to->angles[0] = from->angles[0];
 		to->angles[1] = from->angles[1];
@@ -941,7 +941,7 @@ void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entityState_t *
 						trunc = MSG_ReadBits( msg, FLOAT_INT_BITS );
 						// bias to allow equal parts positive and negative
 						trunc -= FLOAT_INT_BIAS;
-						*(float *)toF = trunc; 
+						*(float *)toF = (float)( trunc ); 
 						if ( print ) {
 							Com_Printf( "%s:%i ", field->name, trunc );
 						}
@@ -1261,7 +1261,7 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 					trunc = MSG_ReadBits( msg, FLOAT_INT_BITS );
 					// bias to allow equal parts positive and negative
 					trunc -= FLOAT_INT_BIAS;
-					*(float *)toF = trunc; 
+					*(float *)toF = (float)( trunc ); 
 					if ( print ) {
 						Com_Printf( "%s:%i ", field->name, trunc );
 					}

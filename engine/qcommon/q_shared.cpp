@@ -79,7 +79,7 @@ void COM_StripExtension( const char *in, char *out, int destsize )
 	const char *dot = strrchr(in, '.'), *slash;
 
 	if (dot && ((slash = strrchr(in, '/')) == NULL || slash < dot))
-		destsize = (destsize < dot-in+1 ? destsize : dot-in+1);
+		destsize = (int)( (destsize < dot-in+1 ? destsize : dot-in+1) );
 
 	if ( in == out && destsize > 1 )
 		out[destsize-1] = '\0';
@@ -233,7 +233,7 @@ int Com_Split( char *in, char **out, int outsz, int delim )
 	while( (c = *in) != '\0' && c != delim )
 		in++; 
 	*in = '\0';
-	c = out - o;
+	c = (int)( out - o );
 	// set remaining out pointers
 	while( out < end ) {
 		*out = in; out++;
@@ -566,23 +566,23 @@ int COM_Compress( char *data_p ) {
 			}
 			// copy quoted strings unmolested
 			if (c == '"') {
-				*out++ = c;
+				*out++ = (char)( c );
 				in++;
 				while (1) {
 					c = *in;
 					if (c && c != '"') {
-						*out++ = c;
+						*out++ = (char)( c );
 						in++;
 					} else {
 						break;
 					}
 				}
 				if (c == '"') {
-					*out++ = c;
+					*out++ = (char)( c );
 					in++;
 				}
 			} else {
-				*out++ = c;
+				*out++ = (char)( c );
 				in++;
 			}
 		}
@@ -590,7 +590,7 @@ int COM_Compress( char *data_p ) {
 
 	*out = '\0';
 
-	return out - data_p;
+	return (int)( out - data_p );
 }
 
 
@@ -685,7 +685,7 @@ const char *COM_ParseExt( const char **data_p, qboolean allowLineBreaks )
 			}
 			if ( (size_t)len < ARRAY_LEN( com_token )-1 )
 			{
-				com_token[ len ] = c;
+				com_token[ len ] = (char)( c );
 				len++;
 			}
 		}
@@ -696,7 +696,7 @@ const char *COM_ParseExt( const char **data_p, qboolean allowLineBreaks )
 	{
 		if ( (size_t)len < ARRAY_LEN( com_token )-1 )
 		{
-			com_token[ len ] = c;
+			com_token[ len ] = (char)( c );
 			len++;
 		}
 		data++;
@@ -817,7 +817,7 @@ __reswitch:
 				shift++;
 			}
 			if ( len < MAX_TOKEN_CHARS-1 ) // overflow check
-				com_token[ len++ ] = c;
+				com_token[ len++ ] = (char)( c );
 			str++;
 		}
 		if ( c != '\0' ) {
@@ -917,7 +917,7 @@ __reswitch:
 		com_token[ len++ ] = *str++;
 		while ( !is_separator[ (c = *str) ] ) {
 			if ( len < MAX_TOKEN_CHARS-1 )
-				com_token[ len++ ] = c;
+				com_token[ len++ ] = (char)( c );
 			str++;
 		}
 		com_tokentype = TK_STRING;
@@ -1118,14 +1118,14 @@ qboolean Com_GetHashColor( const char *str, byte *color )
 
 	switch ( len ) {
 		case 3: // #rgb
-			color[0] = hex[0] << 4 | hex[0];
-			color[1] = hex[1] << 4 | hex[1];
-			color[2] = hex[2] << 4 | hex[2];
+			color[0] = (unsigned char)( hex[0] << 4 | hex[0] );
+			color[1] = (unsigned char)( hex[1] << 4 | hex[1] );
+			color[2] = (unsigned char)( hex[2] << 4 | hex[2] );
 			break;
 		case 6: // #rrggbb
-			color[0] = hex[0] << 4 | hex[1];
-			color[1] = hex[2] << 4 | hex[3];
-			color[2] = hex[4] << 4 | hex[5];
+			color[0] = (unsigned char)( hex[0] << 4 | hex[1] );
+			color[1] = (unsigned char)( hex[2] << 4 | hex[3] );
+			color[2] = (unsigned char)( hex[4] << 4 | hex[5] );
 			break;
 		default: // unsupported format
 			return qfalse;
@@ -1682,7 +1682,7 @@ char *Q_CleanStr( char *string ) {
 			s++;
 		}		
 		else if ( c >= 0x20 && c <= 0x7E ) {
-			*d++ = c;
+			*d++ = (char)( c );
 		}
 		s++;
 	}

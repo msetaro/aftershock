@@ -468,14 +468,14 @@ static void ProjectDlightTexture( void ) {
 					if ( dist[2] < radius * 0.5f ) {
 						modulate = 1.0 * 255.0;
 					} else {
-						modulate = 2.0f * (radius - dist[2]) * scale * 255.0;
+						modulate = (float)( 2.0f * (radius - dist[2]) * scale * 255.0 );
 					}
 				}
 			}
-			clipBits[i] = clip;
-			colors[0] = dl->color[0] * modulate;
-			colors[1] = dl->color[1] * modulate;
-			colors[2] = dl->color[2] * modulate;
+			clipBits[i] = (unsigned char)( clip );
+			colors[0] = (unsigned char)( dl->color[0] * modulate );
+			colors[1] = (unsigned char)( dl->color[1] * modulate );
+			colors[2] = (unsigned char)( dl->color[2] * modulate );
 			colors[3] = 255;
 		}
 
@@ -659,9 +659,9 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 			{
 				for ( i = 0; i < tess.numVertexes; i++ )
 				{
-					dest[i].rgba[0] = tess.vertexColors[i].rgba[0] * tr.identityLight;
-					dest[i].rgba[1] = tess.vertexColors[i].rgba[1] * tr.identityLight;
-					dest[i].rgba[2] = tess.vertexColors[i].rgba[2] * tr.identityLight;
+					dest[i].rgba[0] = (unsigned char)( tess.vertexColors[i].rgba[0] * tr.identityLight );
+					dest[i].rgba[1] = (unsigned char)( tess.vertexColors[i].rgba[1] * tr.identityLight );
+					dest[i].rgba[2] = (unsigned char)( tess.vertexColors[i].rgba[2] * tr.identityLight );
 					dest[i].rgba[3] = tess.vertexColors[i].rgba[3];
 				}
 			}
@@ -680,9 +680,9 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 			{
 				for ( i = 0; i < tess.numVertexes; i++ )
 				{
-					dest[i].rgba[0] = ( 255 - tess.vertexColors[i].rgba[0] ) * tr.identityLight;
-					dest[i].rgba[1] = ( 255 - tess.vertexColors[i].rgba[1] ) * tr.identityLight;
-					dest[i].rgba[2] = ( 255 - tess.vertexColors[i].rgba[2] ) * tr.identityLight;
+					dest[i].rgba[0] = (unsigned char)( ( 255 - tess.vertexColors[i].rgba[0] ) * tr.identityLight );
+					dest[i].rgba[1] = (unsigned char)( ( 255 - tess.vertexColors[i].rgba[1] ) * tr.identityLight );
+					dest[i].rgba[2] = (unsigned char)( ( 255 - tess.vertexColors[i].rgba[2] ) * tr.identityLight );
 				}
 			}
 			break;
@@ -766,7 +766,7 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 				}
 				else
 				{
-					alpha = len * 0xff;
+					alpha = (unsigned char)( len * 0xff );
 				}
 
 				dest[i].rgba[3] = alpha;
@@ -991,10 +991,10 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 					R_ComputeColors( i, tess.svars.colors[i], pStage );
 				}
 				if ( tess_flags & (TESS_ENT0 << i) && backEnd.currentEntity ) {
-					uniform.ent.color[i][0] = backEnd.currentEntity->e.shader.rgba[0] / 255.0;
-					uniform.ent.color[i][1] = backEnd.currentEntity->e.shader.rgba[1] / 255.0;
-					uniform.ent.color[i][2] = backEnd.currentEntity->e.shader.rgba[2] / 255.0;
-					uniform.ent.color[i][3] = pStage->bundle[i].alphaGen == AGEN_IDENTITY ? 1.0 : (backEnd.currentEntity->e.shader.rgba[3] / 255.0);
+					uniform.ent.color[i][0] = (float)( backEnd.currentEntity->e.shader.rgba[0] / 255.0 );
+					uniform.ent.color[i][1] = (float)( backEnd.currentEntity->e.shader.rgba[1] / 255.0 );
+					uniform.ent.color[i][2] = (float)( backEnd.currentEntity->e.shader.rgba[2] / 255.0 );
+					uniform.ent.color[i][3] = (float)( pStage->bundle[i].alphaGen == AGEN_IDENTITY ? 1.0 : (backEnd.currentEntity->e.shader.rgba[3] / 255.0) );
 					pushUniform = qtrue;
 				}
 			}

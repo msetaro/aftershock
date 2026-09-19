@@ -178,7 +178,7 @@ static void ARB_Lighting( const shaderStage_t* pStage )
 			clip |= 32;
 		}
 
-		clipBits[i] = clip;
+		clipBits[i] = (unsigned char)( clip );
 	}
 
 	// build a list of triangles that need light
@@ -845,10 +845,10 @@ static void RenderQuad( int w, int h )
 	static const vec2_t t[4] = { {0.0, 1.0}, {1.0, 1.0}, {0.0, 0.0}, {1.0, 0.0} };
 	static vec3_t v[4] = { { 0 } };
 	
-	v[1][0] = w;
-	v[2][1] = h;
-	v[3][0] = w;
-	v[3][1] = h;
+	v[1][0] = (float)( w );
+	v[2][1] = (float)( h );
+	v[3][0] = (float)( w );
+	v[3][1] = (float)( h );
 
 	GL_ClientState( 0, CLS_TEXCOORD_ARRAY );
 
@@ -926,8 +926,8 @@ static void ARB_BlurParams( int width, int height, int ksize, qboolean horizonta
 	float offset[ MAX_FILTER_SIZE ][ 2 ]; // xy
 
 	// texel size
-	texel_size_x = 1.0 / (float) width;
-	texel_size_y = 1.0 / (float) height;
+	texel_size_x = (float)( 1.0 / (float) width );
+	texel_size_y = (float)( 1.0 / (float) height );
 	rsum = x_k[ ksize ][ 0 ];
 
 	if ( old_ksize != ksize ) {
@@ -1683,7 +1683,7 @@ void FBO_CopyScreen( void )
 	//if ( !backEnd.projection2D )
 	{
 		qglMatrixMode( GL_PROJECTION );
-		qglLoadMatrixf( GL_Ortho( 0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1 ) );
+		qglLoadMatrixf( GL_Ortho( (float)( 0 ), (float)( glConfig.vidWidth ), (float)( glConfig.vidHeight ), (float)( 0 ), (float)( 0 ), (float)( 1 ) ) );
 		qglMatrixMode( GL_MODELVIEW );
 		qglLoadIdentity();
 		GL_Cull( CT_TWO_SIDED );
@@ -1771,7 +1771,7 @@ static void R_Bloom_LensEffect( float alpha )
 	alpha /= (float)ARRAY_LEN( lc );
 	for ( i = 0; (size_t)i < ARRAY_LEN( lc ); i++ ) {
 		VectorCopy( lc[i], color ); color[3] = alpha;
-		R_Setup_Quad_Lens( (i+1)*144, color, &verts[i*6], &coords[i*6], &colors[i*6] );
+		R_Setup_Quad_Lens( (float)( (i+1)*144 ), color, &verts[i*6], &coords[i*6], &colors[i*6] );
 	}
 
 	GL_ClientState( 0, CLS_TEXCOORD_ARRAY | CLS_COLOR_ARRAY );
@@ -1882,7 +1882,7 @@ qboolean FBO_Bloom( const float gamma, const float obScale, qboolean finalStage 
 		GL_BindTexture( 0, dst->color );
 		GL_State( GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE );
 		qglViewport( 0, 0, dst->width, dst->height );
-		R_Bloom_LensEffect( fabs( (double)(r_bloom_reflection->value) ) );
+		R_Bloom_LensEffect( (float)( fabs( (double)(r_bloom_reflection->value) ) ) );
 		
 		// restore color and blend mode
 		qglColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -1970,10 +1970,10 @@ void R_BloomScreen( void )
 
 void FBO_PostProcess( void )
 {
-	const float obScale = 1 << tr.overbrightBits;
+	const float obScale = (float)( 1 << tr.overbrightBits );
 	const float gamma = 1.0f / r_gamma->value;
-	const float w = glConfig.vidWidth;
-	const float h = glConfig.vidHeight;
+	const float w = (float)( glConfig.vidWidth );
+	const float h = (float)( glConfig.vidHeight );
 	qboolean minimized;
 
 	ARB_ProgramDisable();
@@ -1983,7 +1983,7 @@ void FBO_PostProcess( void )
 		qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 		qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 		qglMatrixMode( GL_PROJECTION );
-		qglLoadMatrixf( GL_Ortho( 0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1 ) );
+		qglLoadMatrixf( GL_Ortho( (float)( 0 ), (float)( glConfig.vidWidth ), (float)( glConfig.vidHeight ), (float)( 0 ), (float)( 0 ), (float)( 1 ) ) );
 		qglMatrixMode( GL_MODELVIEW );
 		qglLoadIdentity();
 		backEnd.projection2D = qtrue;
@@ -2016,7 +2016,7 @@ void FBO_PostProcess( void )
 		GL_BindTexture( 0, frameBuffers[ fboReadIndex ].color );
 		ARB_ProgramEnable( DUMMY_VERTEX, GAMMA_FRAGMENT );
 		qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 0, gamma, gamma, gamma, obScale );
-		RenderQuad( w, h );
+		RenderQuad( (int)( w ), (int)( h ) );
 		ARB_ProgramDisable();
 		return;
 	}
@@ -2026,7 +2026,7 @@ void FBO_PostProcess( void )
 	GL_BindTexture( 0, frameBuffers[ fboReadIndex ].color );  // source - main color buffer
 	ARB_ProgramEnable( DUMMY_VERTEX, GAMMA_FRAGMENT );
 	qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 0, gamma, gamma, gamma, obScale );
-	RenderQuad( w, h );
+	RenderQuad( (int)( w ), (int)( h ) );
 	ARB_ProgramDisable();
 
 	if ( !minimized ) {
@@ -2078,14 +2078,14 @@ void QGL_SetRenderScale( qboolean verbose )
 				if ( windowAspect >= renderAspect ) 
 				{
 					float scale = (float) gls.windowHeight / ( float ) glConfig.vidHeight;
-					int bias = ( gls.windowWidth - scale * (float) glConfig.vidWidth ) / 2;
+					int bias = (int)( ( gls.windowWidth - scale * (float) glConfig.vidWidth ) / 2 );
 					blitX0 += bias;
 					blitX1 -= bias;
 				}
 				else
 				{
 					float scale = (float) gls.windowWidth / ( float ) glConfig.vidWidth;
-					int bias = ( gls.windowHeight - scale * (float) glConfig.vidHeight ) / 2;
+					int bias = (int)( ( gls.windowHeight - scale * (float) glConfig.vidHeight ) / 2 );
 					blitY0 += bias;
 					blitY1 -= bias;
 				}

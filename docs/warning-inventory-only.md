@@ -1,1 +1,3 @@
 Diagnostic branch only; never merge. Baseline 63615d82 includes PR #104 padding. The separately verified standard-MSVC Q_setjmp annotation from the pending C4611 preview is included, without shifting lines. Shared-header warning suppressions become same-line comments, preserving diagnostic source positions. Debug builds use /W4. No accepted fixtures or goldens change.
+
+Second diagnostic commit applies only the cache preview of 1,667 explicit implicit-conversion casts in 154 source files. All 1,527 affected local syntax configurations pass. Object comparisons are running; no merge is authorized for this diagnostic branch. Re-inventory to identify remaining C4244 sites.

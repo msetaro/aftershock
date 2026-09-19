@@ -97,33 +97,33 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	// draw the handicap or bot skill marker (unless player has flag)
 	if ( ci->powerups & ( 1 << PW_NEUTRALFLAG ) ) {
 		if( largeFormat ) {
-			CG_DrawFlagModel( iconx, y - ( 32 - BIGCHAR_HEIGHT ) / 2, 32, 32, TEAM_FREE, qfalse );
+			CG_DrawFlagModel( (float)( iconx ), (float)( y - ( 32 - BIGCHAR_HEIGHT ) / 2 ), (float)( 32 ), (float)( 32 ), TEAM_FREE, qfalse );
 		}
 		else {
-			CG_DrawFlagModel( iconx, y, 16, 16, TEAM_FREE, qfalse );
+			CG_DrawFlagModel( (float)( iconx ), (float)( y ), (float)( 16 ), (float)( 16 ), TEAM_FREE, qfalse );
 		}
 	} else if ( ci->powerups & ( 1 << PW_REDFLAG ) ) {
 		if( largeFormat ) {
-			CG_DrawFlagModel( iconx, y - ( 32 - BIGCHAR_HEIGHT ) / 2, 32, 32, TEAM_RED, qfalse );
+			CG_DrawFlagModel( (float)( iconx ), (float)( y - ( 32 - BIGCHAR_HEIGHT ) / 2 ), (float)( 32 ), (float)( 32 ), TEAM_RED, qfalse );
 		}
 		else {
-			CG_DrawFlagModel( iconx, y, 16, 16, TEAM_RED, qfalse );
+			CG_DrawFlagModel( (float)( iconx ), (float)( y ), (float)( 16 ), (float)( 16 ), TEAM_RED, qfalse );
 		}
 	} else if ( ci->powerups & ( 1 << PW_BLUEFLAG ) ) {
 		if( largeFormat ) {
-			CG_DrawFlagModel( iconx, y - ( 32 - BIGCHAR_HEIGHT ) / 2, 32, 32, TEAM_BLUE, qfalse );
+			CG_DrawFlagModel( (float)( iconx ), (float)( y - ( 32 - BIGCHAR_HEIGHT ) / 2 ), (float)( 32 ), (float)( 32 ), TEAM_BLUE, qfalse );
 		}
 		else {
-			CG_DrawFlagModel( iconx, y, 16, 16, TEAM_BLUE, qfalse );
+			CG_DrawFlagModel( (float)( iconx ), (float)( y ), (float)( 16 ), (float)( 16 ), TEAM_BLUE, qfalse );
 		}
 	} else {
 		if ( ci->botSkill > 0 && ci->botSkill <= 5 ) {
 			if ( cg_drawIcons.integer ) {
 				if( largeFormat ) {
-					CG_DrawPic( iconx, y - ( 32 - BIGCHAR_HEIGHT ) / 2, 32, 32, cgs.media.botSkillShaders[ ci->botSkill - 1 ] );
+					CG_DrawPic( (float)( iconx ), (float)( y - ( 32 - BIGCHAR_HEIGHT ) / 2 ), (float)( 32 ), (float)( 32 ), cgs.media.botSkillShaders[ ci->botSkill - 1 ] );
 				}
 				else {
-					CG_DrawPic( iconx, y, 16, 16, cgs.media.botSkillShaders[ ci->botSkill - 1 ] );
+					CG_DrawPic( (float)( iconx ), (float)( y ), (float)( 16 ), (float)( 16 ), cgs.media.botSkillShaders[ ci->botSkill - 1 ] );
 				}
 			}
 		} else if ( ci->handicap < 100 ) {
@@ -150,11 +150,11 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	VectorClear( headAngles );
 	headAngles[YAW] = 180;
 	if( largeFormat ) {
-		CG_DrawHead( headx, y - ( ICON_SIZE - BIGCHAR_HEIGHT ) / 2, ICON_SIZE, ICON_SIZE, 
+		CG_DrawHead( (float)( headx ), (float)( y - ( ICON_SIZE - BIGCHAR_HEIGHT ) / 2 ), ICON_SIZE, ICON_SIZE, 
 			score->client, headAngles );
 	}
 	else {
-		CG_DrawHead( headx, y, 16, 16, score->client, headAngles );
+		CG_DrawHead( (float)( headx ), (float)( y ), (float)( 16 ), (float)( 16 ), score->client, headAngles );
 	}
 
 #ifdef MISSIONPACK
@@ -212,7 +212,7 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 		}
 
 		hcolor[3] = fade * 0.7f;
-		CG_FillRect( SB_SCORELINE_X + BIGCHAR_WIDTH + (SB_RATING_WIDTH / 2), y, 
+		CG_FillRect( SB_SCORELINE_X + BIGCHAR_WIDTH + (SB_RATING_WIDTH / 2), (float)( y ), 
 			640 - SB_SCORELINE_X - BIGCHAR_WIDTH, BIGCHAR_HEIGHT+1, hcolor );
 	}
 
@@ -343,10 +343,10 @@ qboolean CG_DrawOldScoreboard( void ) {
 	// scoreboard
 	y = SB_HEADER;
 
-	CG_DrawPic( SB_SCORE_X + (SB_RATING_WIDTH / 2), y, 64, 32, cgs.media.scoreboardScore );
-	CG_DrawPic( SB_PING_X - (SB_RATING_WIDTH / 2), y, 64, 32, cgs.media.scoreboardPing );
-	CG_DrawPic( SB_TIME_X - (SB_RATING_WIDTH / 2), y, 64, 32, cgs.media.scoreboardTime );
-	CG_DrawPic( SB_NAME_X - (SB_RATING_WIDTH / 2), y, 64, 32, cgs.media.scoreboardName );
+	CG_DrawPic( SB_SCORE_X + (SB_RATING_WIDTH / 2), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardScore );
+	CG_DrawPic( SB_PING_X - (SB_RATING_WIDTH / 2), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardPing );
+	CG_DrawPic( SB_TIME_X - (SB_RATING_WIDTH / 2), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardTime );
+	CG_DrawPic( SB_NAME_X - (SB_RATING_WIDTH / 2), (float)( y ), (float)( 64 ), (float)( 32 ), cgs.media.scoreboardName );
 
 	y = SB_TOP;
 
@@ -439,7 +439,7 @@ static void CG_CenterGiantLine( float y, const char *string ) {
 
 	x = 0.5f * ( 640 - GIANT_WIDTH * CG_DrawStrlen( string ) );
 
-	CG_DrawStringExt( x, y, string, color, qtrue, qtrue, GIANT_WIDTH, GIANT_HEIGHT, 0 );
+	CG_DrawStringExt( (int)( x ), (int)( y ), string, color, qtrue, qtrue, GIANT_WIDTH, GIANT_HEIGHT, 0 );
 }
 
 /*

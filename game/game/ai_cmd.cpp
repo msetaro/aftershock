@@ -218,8 +218,8 @@ float BotGetTime(bot_match_t *match) {
 			}
 			else {
 				trap_BotMatchVariable(&timematch, TIME, timestring, MAX_MESSAGE_SIZE);
-				if (timematch.type == MSG_MINUTES) t = atof(timestring) * 60;
-				else if (timematch.type == MSG_SECONDS) t = atof(timestring);
+				if (timematch.type == MSG_MINUTES) t = (float)( atof(timestring) * 60 );
+				else if (timematch.type == MSG_SECONDS) t = (float)( atof(timestring) );
 				else t = 0;
 			}
 			//if there's a valid time
@@ -1229,9 +1229,9 @@ void BotMatch_FormationSpace(bot_state_t *bs, bot_match_t *match) {
 	//
 	trap_BotMatchVariable(match, NUMBER, buf, MAX_MESSAGE_SIZE);
 	//if it's the distance in feet
-	if (match->subtype & ST_FEET) space = 0.3048f * 32 * atof(buf);
+	if (match->subtype & ST_FEET) space = (float)( 0.3048f * 32 * atof(buf) );
 	//else it's in meters
-	else space = 32 * atof(buf);
+	else space = (float)( 32 * atof(buf) );
 	//check if the formation intervening space is valid
 	if (space < 48 || space > 500) space = 100;
 	bs->formation_dist = space;

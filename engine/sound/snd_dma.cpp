@@ -209,7 +209,7 @@ static unsigned int S_HashSFXName(const char *name) {
 	hash = 0;
 	i = 0;
 	while (name[i] != '\0') {
-		letter = tolower(name[i]);
+		letter = (char)( tolower(name[i]) );
 		if (letter =='.') break;				// don't include extension
 		if (letter =='\\') letter = '/';		// damn path names
 		hash+=(int)(letter)*(i+119);
@@ -432,12 +432,12 @@ static void S_SpatializeOrigin( const vec3_t origin, int master_vol, int *left_v
 
 	// add in distance effect
 	scale = (1.0f - dist) * rscale;
-	*right_vol = (master_vol * scale);
+	*right_vol = (int)( (master_vol * scale) );
 	if (*right_vol < 0)
 		*right_vol = 0;
 
 	scale = (1.0f - dist) * lscale;
-	*left_vol = (master_vol * scale);
+	*left_vol = (int)( (master_vol * scale) );
 	if (*left_vol < 0)
 		*left_vol = 0;
 }
@@ -920,7 +920,7 @@ static void S_Base_RawSamples( int samples, int rate, int width, int n_channels,
 		return;
 	}
 
-	intVolume = 256 * volume;
+	intVolume = (int)( 256 * volume );
 
 	if ( s_rawend - s_soundtime < 0 ) {
 		Com_DPrintf( "S_RawSamples: resetting minimum: %i < %i\n", s_rawend, s_soundtime );
@@ -946,7 +946,7 @@ static void S_Base_RawSamples( int samples, int rate, int width, int n_channels,
 		{
 			for (i=0 ; ; i++)
 			{
-				src = i*scale;
+				src = (int)( i*scale );
 				if (src >= samples)
 					break;
 				dst = s_rawend&(MAX_RAW_SAMPLES-1);
@@ -960,7 +960,7 @@ static void S_Base_RawSamples( int samples, int rate, int width, int n_channels,
 	{
 		for (i=0 ; ; i++)
 		{
-			src = i*scale;
+			src = (int)( i*scale );
 			if (src >= samples)
 				break;
 			dst = s_rawend&(MAX_RAW_SAMPLES-1);
@@ -975,7 +975,7 @@ static void S_Base_RawSamples( int samples, int rate, int width, int n_channels,
 
 		for (i=0 ; ; i++)
 		{
-			src = i*scale;
+			src = (int)( i*scale );
 			if (src >= samples)
 				break;
 			dst = s_rawend&(MAX_RAW_SAMPLES-1);
@@ -990,7 +990,7 @@ static void S_Base_RawSamples( int samples, int rate, int width, int n_channels,
 
 		for (i=0 ; ; i++)
 		{
-			src = i*scale;
+			src = (int)( i*scale );
 			if (src >= samples)
 				break;
 			dst = s_rawend&(MAX_RAW_SAMPLES-1);
@@ -1181,7 +1181,7 @@ static void S_GetSoundtime( void )
 	s_soundtime = buffers * dma.fullsamples + samplepos/dma.channels;
 
 	if ( dma.submission_chunk < 256 ) {
-		s_paintedtime = s_soundtime + s_mixOffset->value * dma.speed;
+		s_paintedtime = (int)( s_soundtime + s_mixOffset->value * dma.speed );
 	} else {
 		s_paintedtime = s_soundtime + dma.submission_chunk;
 	}
@@ -1219,8 +1219,8 @@ static void S_Update_( int msec ) {
 		sane = msec;
 	}
 
-	mixAhead[0] = s_mixahead->value * (float)dma.speed;
-	mixAhead[1] = sane * 0.0015f * (float)dma.speed;
+	mixAhead[0] = (int)( s_mixahead->value * (float)dma.speed );
+	mixAhead[1] = (int)( sane * 0.0015f * (float)dma.speed );
 
 	if ( mixAhead[0] < mixAhead[1] ) {
 		mixAhead[0] = mixAhead[1];

@@ -773,9 +773,9 @@ void RB_TakeScreenshot( int x, int y, int width, int height, const char *fileNam
 	Com_Memset( buffer, 0, header_size );
 	buffer[2] = 2;		// uncompressed type
 	buffer[12] = width & 255;
-	buffer[13] = width >> 8;
+	buffer[13] = (unsigned char)( width >> 8 );
 	buffer[14] = height & 255;
-	buffer[15] = height >> 8;
+	buffer[15] = (unsigned char)( height >> 8 );
 	buffer[16] = 24;	// pixel size
 
 	// swap rgb to bgr and remove padding from line endings
@@ -848,7 +848,7 @@ static void FillBMPHeader( byte *buffer, int width, int height, int memcount, in
 	buffer[3] = (filesize >> 8) & 255;
 	buffer[4] = (filesize >> 16) & 255;
 	buffer[5] = (filesize >> 24) & 255;
-	buffer[10] = header_size; // data offset
+	buffer[10] = (unsigned char)( header_size ); // data offset
 
 	// bitmap info header
 	buffer[14] = 40; // size of this header
@@ -1030,9 +1030,9 @@ static void R_LevelShot( void ) {
 				}
 			}
 			dst = buffer + 18 + 3 * ( y * 128 + x );
-			dst[0] = b / 12;
-			dst[1] = g / 12;
-			dst[2] = r / 12;
+			dst[0] = (unsigned char)( b / 12 );
+			dst[1] = (unsigned char)( g / 12 );
+			dst[2] = (unsigned char)( r / 12 );
 		}
 	}
 
@@ -1861,7 +1861,7 @@ void R_Init( void ) {
 	// init function tables
 	//
 	for ( i = 0; i < FUNCTABLE_SIZE; i++ ) {
-		tr.sinTable[i] = sin( (double)(DEG2RAD( i * 360.0f / FUNCTABLE_SIZE ) + 0.0001f) );
+		tr.sinTable[i] = (float)( sin( (double)(DEG2RAD( i * 360.0f / FUNCTABLE_SIZE ) + 0.0001f) ) );
 		tr.squareTable[i] = (i < FUNCTABLE_SIZE / 2) ? 1.0f : -1.0f;
 		if ( i == 0 ) {
 			tr.sawToothTable[i] = EPSILON;

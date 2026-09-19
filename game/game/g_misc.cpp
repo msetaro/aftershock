@@ -234,7 +234,7 @@ void SP_misc_portal_camera(gentity_t *ent) {
 
 	G_SpawnFloat( "roll", "0", &roll );
 
-	ent->s.clientNum = roll/360.0f * 256;
+	ent->s.clientNum = (int)( roll/360.0f * 256 );
 }
 
 /*

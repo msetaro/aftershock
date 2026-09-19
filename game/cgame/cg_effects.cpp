@@ -69,7 +69,7 @@ void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing ) {
 		le->leFlags = LEF_PUFF_DONT_SCALE;
 		le->leType = LE_MOVE_SCALE_FADE;
 		le->startTime = cg.time;
-		le->endTime = cg.time + 1000 + random() * 250;
+		le->endTime = (int)( cg.time + 1000 + random() * 250 );
 		le->lifeRate = 1.0f / ( le->endTime - le->startTime );
 
 		re = &le->refEntity;
@@ -128,7 +128,7 @@ localEntity_t *CG_SmokePuff( const vec3_t p, const vec3_t vel,
 	le->leType = LE_MOVE_SCALE_FADE;
 	le->startTime = startTime;
 	le->fadeInTime = fadeInTime;
-	le->endTime = startTime + duration;
+	le->endTime = (int)( startTime + duration );
 	if ( fadeInTime > startTime ) {
 		le->lifeRate = 1.0f / ( le->endTime - le->fadeInTime );
 	}
@@ -157,9 +157,9 @@ localEntity_t *CG_SmokePuff( const vec3_t p, const vec3_t vel,
 		re->shaderRGBA[2] = 0xff;
 		re->shaderRGBA[3] = 0xff;
 	} else {
-		re->shaderRGBA[0] = le->color[0] * 0xff;
-		re->shaderRGBA[1] = le->color[1] * 0xff;
-		re->shaderRGBA[2] = le->color[2] * 0xff;
+		re->shaderRGBA[0] = (unsigned char)( le->color[0] * 0xff );
+		re->shaderRGBA[1] = (unsigned char)( le->color[1] * 0xff );
+		re->shaderRGBA[2] = (unsigned char)( le->color[2] * 0xff );
 		re->shaderRGBA[3] = 0xff;
 	}
 
@@ -410,7 +410,7 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 
 	
 	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0f;
-	le->radius = score;
+	le->radius = (float)( score );
 	
 	VectorCopy( org, le->pos.trBase );
 	if (org[2] >= scorePlumLastPos[2] - 20 && org[2] <= scorePlumLastPos[2] + 20) {
@@ -456,7 +456,7 @@ localEntity_t *CG_MakeExplosion( vec3_t origin, vec3_t dir,
 		ex->leType = LE_SPRITE_EXPLOSION;
 
 		// randomly rotate sprite orientation
-		ex->refEntity.rotation = rand() % 360;
+		ex->refEntity.rotation = (float)( rand() % 360 );
 		VectorScale( dir, 16, tmpVec );
 		VectorAdd( tmpVec, origin, newOrigin );
 	} else {
@@ -467,7 +467,7 @@ localEntity_t *CG_MakeExplosion( vec3_t origin, vec3_t dir,
 		if ( !dir ) {
 			AxisClear( ex->refEntity.axis );
 		} else {
-			ang = rand() % 360;
+			ang = (float)( rand() % 360 );
 			VectorCopy( dir, ex->refEntity.axis[0] );
 			RotateAroundDirection( ex->refEntity.axis, ang );
 		}
@@ -514,7 +514,7 @@ void CG_Bleed( vec3_t origin, int entityNum ) {
 	
 	VectorCopy ( origin, ex->refEntity.origin);
 	ex->refEntity.reType = RT_SPRITE;
-	ex->refEntity.rotation = rand() % 360;
+	ex->refEntity.rotation = (float)( rand() % 360 );
 	ex->refEntity.radius = 24;
 
 	ex->refEntity.customShader = cgs.media.bloodExplosionShader;
@@ -541,7 +541,7 @@ void CG_LaunchGib( vec3_t origin, vec3_t velocity, qhandle_t hModel ) {
 
 	le->leType = LE_FRAGMENT;
 	le->startTime = cg.time;
-	le->endTime = le->startTime + 5000 + random() * 3000;
+	le->endTime = (int)( le->startTime + 5000 + random() * 3000 );
 
 	VectorCopy( origin, re->origin );
 	AxisCopy( axisDefault, re->axis );
@@ -658,7 +658,7 @@ void CG_LaunchExplode( vec3_t origin, vec3_t velocity, qhandle_t hModel ) {
 
 	le->leType = LE_FRAGMENT;
 	le->startTime = cg.time;
-	le->endTime = le->startTime + 10000 + random() * 6000;
+	le->endTime = (int)( le->startTime + 10000 + random() * 6000 );
 
 	VectorCopy( origin, re->origin );
 	AxisCopy( axisDefault, re->axis );

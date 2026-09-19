@@ -781,7 +781,7 @@ static qboolean R_LoadMDR( model_t *mod, void *buffer, int filesize, const char 
 			Q_strncpyz(surf->name, cursurf->name, sizeof(surf->name));
 			Q_strncpyz(surf->shader, cursurf->shader, sizeof(surf->shader));
 			
-			surf->ofsHeader = (byte *) mdr - (byte *) surf;
+			surf->ofsHeader = (int)( (byte *) mdr - (byte *) surf );
 			
 			surf->numVerts = LittleLong(cursurf->numVerts);
 			surf->numTriangles = LittleLong(cursurf->numTriangles);
@@ -881,7 +881,7 @@ static qboolean R_LoadMDR( model_t *mod, void *buffer, int filesize, const char 
 			}
 			
 			// tri now points to the end of the surface.
-			surf->ofsEnd = (byte *) tri - (byte *) surf;
+			surf->ofsEnd = (int)( (byte *) tri - (byte *) surf );
 			surf = (mdrSurface_t *) tri;
 
 			// find the next surface.

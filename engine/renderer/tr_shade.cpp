@@ -412,7 +412,7 @@ static void ProjectDlightTexture( void ) {
 					}
 				}
 			}
-			clipBits[i] = clip;
+			clipBits[i] = (unsigned char)( clip );
 			colors[0] = dl->color[0] * modulate;
 			colors[1] = dl->color[1] * modulate;
 			colors[2] = dl->color[2] * modulate;
@@ -546,9 +546,9 @@ void R_ComputeColors( const shaderStage_t *pStage )
 			{
 				for ( i = 0; i < tess.numVertexes; i++ )
 				{
-					tess.svars.colors[i].rgba[0] = tess.vertexColors[i].rgba[0] * tr.identityLight;
-					tess.svars.colors[i].rgba[1] = tess.vertexColors[i].rgba[1] * tr.identityLight;
-					tess.svars.colors[i].rgba[2] = tess.vertexColors[i].rgba[2] * tr.identityLight;
+					tess.svars.colors[i].rgba[0] = (unsigned char)( tess.vertexColors[i].rgba[0] * tr.identityLight );
+					tess.svars.colors[i].rgba[1] = (unsigned char)( tess.vertexColors[i].rgba[1] * tr.identityLight );
+					tess.svars.colors[i].rgba[2] = (unsigned char)( tess.vertexColors[i].rgba[2] * tr.identityLight );
 					tess.svars.colors[i].rgba[3] = tess.vertexColors[i].rgba[3];
 				}
 			}
@@ -567,9 +567,9 @@ void R_ComputeColors( const shaderStage_t *pStage )
 			{
 				for ( i = 0; i < tess.numVertexes; i++ )
 				{
-					tess.svars.colors[i].rgba[0] = ( 255 - tess.vertexColors[i].rgba[0] ) * tr.identityLight;
-					tess.svars.colors[i].rgba[1] = ( 255 - tess.vertexColors[i].rgba[1] ) * tr.identityLight;
-					tess.svars.colors[i].rgba[2] = ( 255 - tess.vertexColors[i].rgba[2] ) * tr.identityLight;
+					tess.svars.colors[i].rgba[0] = (unsigned char)( ( 255 - tess.vertexColors[i].rgba[0] ) * tr.identityLight );
+					tess.svars.colors[i].rgba[1] = (unsigned char)( ( 255 - tess.vertexColors[i].rgba[1] ) * tr.identityLight );
+					tess.svars.colors[i].rgba[2] = (unsigned char)( ( 255 - tess.vertexColors[i].rgba[2] ) * tr.identityLight );
 				}
 			}
 			break;
@@ -655,7 +655,7 @@ void R_ComputeColors( const shaderStage_t *pStage )
 				}
 				else
 				{
-					alpha = len * 0xff;
+					alpha = (unsigned char)( len * 0xff );
 				}
 
 				tess.svars.colors[i].rgba[3] = alpha;

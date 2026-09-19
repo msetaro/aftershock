@@ -175,7 +175,7 @@ void CG_DamageFeedback( int yawByte, int pitchByte, int damage ) {
 	}
 	cg.damageValue = kick;
 	cg.v_dmg_time = cg.time + DAMAGE_TIME;
-	cg.damageTime = cg.snap->serverTime;
+	cg.damageTime = (float)( cg.snap->serverTime );
 }
 
 
@@ -519,7 +519,7 @@ void CG_TransitionPlayerState( playerState_t *ps, playerState_t *ops ) {
 
 	// smooth the ducking viewheight change
 	if ( ps->viewheight != ops->viewheight ) {
-		cg.duckChange = ps->viewheight - ops->viewheight;
+		cg.duckChange = (float)( ps->viewheight - ops->viewheight );
 		cg.duckTime = cg.time;
 	}
 }

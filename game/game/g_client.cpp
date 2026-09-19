@@ -410,7 +410,7 @@ void CopyToBodyQue( gentity_t *ent ) {
 #endif
 	body->s.powerups = 0;	// clear powerups
 	body->s.loopSound = 0;	// clear lava burning
-	body->s.number = body - g_entities;
+	body->s.number = (int)( body - g_entities );
 	body->timestamp = level.time;
 	body->physicsObject = qtrue;
 	body->physicsBounce = 0;		// don't bounce
@@ -1064,7 +1064,7 @@ void ClientSpawn(gentity_t *ent) {
 	int		eventSequence;
 	char	userinfo[MAX_INFO_STRING];
 
-	index = ent - g_entities;
+	index = (int)( ent - g_entities );
 	client = ent->client;
 
 	// find a spawn point
@@ -1196,7 +1196,7 @@ void ClientSpawn(gentity_t *ent) {
 	// the respawned flag will be cleared after the attack and jump keys come up
 	client->ps.pm_flags |= PMF_RESPAWNED;
 
-	trap_GetUsercmd( client - level.clients, &ent->client->pers.cmd );
+	trap_GetUsercmd( (int)( client - level.clients ), &ent->client->pers.cmd );
 	SetClientViewAngle( ent, spawn_angles );
 
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
@@ -1244,7 +1244,7 @@ void ClientSpawn(gentity_t *ent) {
 	// initialize animations and other things
 	client->ps.commandTime = level.time - 100;
 	ent->client->pers.cmd.serverTime = level.time;
-	ClientThink( ent-g_entities );
+	ClientThink( (int)( ent-g_entities ) );
 
 	// positively link the client, even if the command times are weird
 	if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR ) {

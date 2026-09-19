@@ -111,7 +111,7 @@ qboolean CheckGauntletAttack( gentity_t *ent ) {
 	}
 #endif
 
-	damage = 50 * s_quadFactor;
+	damage = (int)( 50 * s_quadFactor );
 	G_Damage( traceEnt, ent, ent, forward, tr.endpos,
 		damage, 0, MOD_GAUNTLET );
 
@@ -142,9 +142,9 @@ void SnapVectorTowards( vec3_t v, vec3_t to ) {
 
 	for ( i = 0 ; i < 3 ; i++ ) {
 		if ( to[i] <= v[i] ) {
-			v[i] = (int)v[i];
+			v[i] = (float)( (int)v[i] );
 		} else {
-			v[i] = (int)v[i] + 1;
+			v[i] = (float)( (int)v[i] + 1 );
 		}
 	}
 }
@@ -453,7 +453,7 @@ void weapon_railgun_fire (gentity_t *ent) {
 	int			passent;
 	gentity_t	*unlinkedEntities[MAX_RAIL_HITS];
 
-	damage = 100 * s_quadFactor;
+	damage = (int)( 100 * s_quadFactor );
 
 	VectorMA (muzzle, 8192, forward, end);
 
@@ -618,7 +618,7 @@ void Weapon_LightningFire( gentity_t *ent ) {
 	gentity_t	*traceEnt, *tent;
 	int			damage, i, passent;
 
-	damage = 8 * s_quadFactor;
+	damage = (int)( 8 * s_quadFactor );
 
 	passent = ent->s.number;
 	for (i = 0; i < 10; i++) {

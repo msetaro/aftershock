@@ -207,7 +207,7 @@ float	Q_random( int *seed ) {
 }
 
 float	Q_crandom( int *seed ) {
-	return 2.0 * ( Q_random( seed ) - 0.5 );
+	return (float)( 2.0 * ( Q_random( seed ) - 0.5 ) );
 }
 
 //=======================================================
@@ -219,7 +219,7 @@ signed char ClampChar( int i ) {
 	if ( i > 127 ) {
 		return 127;
 	}
-	return i;
+	return (signed char)( i );
 }
 
 signed char ClampCharMove( int i ) {
@@ -229,7 +229,7 @@ signed char ClampCharMove( int i ) {
 	if ( i > 127 ) {
 		return 127;
 	}
-	return i;
+	return (signed char)( i );
 }
 
 signed short ClampShort( int i ) {
@@ -239,7 +239,7 @@ signed short ClampShort( int i ) {
 	if ( i > 0x7fff ) {
 		return 0x7fff;
 	}
-	return i;
+	return (short)( i );
 }
 
 
@@ -279,9 +279,9 @@ void ByteToDir( int b, vec3_t dir ) {
 unsigned ColorBytes3 (float r, float g, float b) {
 	unsigned	i;
 
-	( (byte *)&i )[0] = r * 255;
-	( (byte *)&i )[1] = g * 255;
-	( (byte *)&i )[2] = b * 255;
+	( (byte *)&i )[0] = (unsigned char)( r * 255 );
+	( (byte *)&i )[1] = (unsigned char)( g * 255 );
+	( (byte *)&i )[2] = (unsigned char)( b * 255 );
 
 	return i;
 }
@@ -289,10 +289,10 @@ unsigned ColorBytes3 (float r, float g, float b) {
 unsigned ColorBytes4 (float r, float g, float b, float a) {
 	unsigned	i;
 
-	( (byte *)&i )[0] = r * 255;
-	( (byte *)&i )[1] = g * 255;
-	( (byte *)&i )[2] = b * 255;
-	( (byte *)&i )[3] = a * 255;
+	( (byte *)&i )[0] = (unsigned char)( r * 255 );
+	( (byte *)&i )[1] = (unsigned char)( g * 255 );
+	( (byte *)&i )[2] = (unsigned char)( b * 255 );
+	( (byte *)&i )[3] = (unsigned char)( a * 255 );
 
 	return i;
 }
@@ -353,8 +353,8 @@ void SetupRotationMatrix( vec3_t matrix[3], const vec3_t dir, float degrees ) {
 	vec_t	angle, s, c, one_c, xx, yy, zz, xy, yz, zx, xs, ys, zs;
 
 	angle = DEG2RAD(degrees);
-	s = sin((double)(angle));
-	c = cos((double)(angle));
+	s = (float)( sin((double)(angle)) );
+	c = (float)( cos((double)(angle)) );
 	one_c = 1.0F - c;
 
 	xx = dir[0] * dir[0];
@@ -432,7 +432,7 @@ void vectoangles( const vec3_t value1, vec3_t angles ) {
 	}
 	else {
 		if ( value1[0] ) {
-			yaw = ( atan2 ( (double)(value1[1]), (double)(value1[0]) ) * 180 / M_PI );
+			yaw = (float)( ( atan2 ( (double)(value1[1]), (double)(value1[0]) ) * 180 / M_PI ) );
 		}
 		else if ( value1[1] > 0 ) {
 			yaw = 90;
@@ -444,8 +444,8 @@ void vectoangles( const vec3_t value1, vec3_t angles ) {
 			yaw += 360;
 		}
 
-		forward = sqrt ( (double)(value1[0]*value1[0] + value1[1]*value1[1]) );
-		pitch = ( atan2((double)(value1[2]), (double)(forward)) * 180 / M_PI );
+		forward = (float)( sqrt ( (double)(value1[0]*value1[0] + value1[1]*value1[1]) ) );
+		pitch = (float)( ( atan2((double)(value1[2]), (double)(forward)) * 180 / M_PI ) );
 		if ( pitch < 0 ) {
 			pitch += 360;
 		}
@@ -636,7 +636,7 @@ void AnglesSubtract( vec3_t v1, vec3_t v2, vec3_t v3 ) {
 
 
 float	AngleMod(float a) {
-	a = (360.0/65536) * ((int)(a*(65536/360.0)) & 65535);
+	a = (float)( (360.0/65536) * ((int)(a*(65536/360.0)) & 65535) );
 	return a;
 }
 
@@ -649,7 +649,7 @@ returns angle normalized to the range [0 <= angle < 360]
 =================
 */
 float AngleNormalize360 ( float angle ) {
-	return (360.0 / 65536) * ((int)(angle * (65536 / 360.0)) & 65535);
+	return (float)( (360.0 / 65536) * ((int)(angle * (65536 / 360.0)) & 65535) );
 }
 
 
@@ -699,7 +699,7 @@ void SetPlaneSignbits (cplane_t *out) {
 			bits |= 1<<j;
 		}
 	}
-	out->signbits = bits;
+	out->signbits = (unsigned char)( bits );
 }
 
 
@@ -758,8 +758,8 @@ float RadiusFromBounds( const vec3_t mins, const vec3_t maxs ) {
 	float	a, b;
 
 	for (i=0 ; i<3 ; i++) {
-		a = fabs( (double)(mins[i]) );
-		b = fabs( (double)(maxs[i]) );
+		a = (float)( fabs( (double)(mins[i]) ) );
+		b = (float)( fabs( (double)(maxs[i]) ) );
 		corner[i] = a > b ? a : b;
 	}
 
@@ -991,14 +991,14 @@ void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 	// static to help MS compiler fp bugs
 
 	angle = angles[YAW] * (M_PI*2 / 360);
-	sy = sin((double)(angle));
-	cy = cos((double)(angle));
+	sy = (float)( sin((double)(angle)) );
+	cy = (float)( cos((double)(angle)) );
 	angle = angles[PITCH] * (M_PI*2 / 360);
-	sp = sin((double)(angle));
-	cp = cos((double)(angle));
+	sp = (float)( sin((double)(angle)) );
+	cp = (float)( cos((double)(angle)) );
 	angle = angles[ROLL] * (M_PI*2 / 360);
-	sr = sin((double)(angle));
-	cr = cos((double)(angle));
+	sr = (float)( sin((double)(angle)) );
+	cr = (float)( cos((double)(angle)) );
 
 	if (forward)
 	{
@@ -1038,7 +1038,7 @@ void PerpendicularVector( vec3_t dst, const vec3_t src )
 		if ( fabs( (double)(src[i]) ) < minelem )
 		{
 			pos = i;
-			minelem = fabs( (double)(src[i]) );
+			minelem = (float)( fabs( (double)(src[i]) ) );
 		}
 	}
 	tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
@@ -1106,7 +1106,7 @@ float Q_atof( const char *str )
 {
 	float f;
 
-	f = atof( str );
+	f = (float)( atof( str ) );
 
 	// modern C11-like implementations of atof() may return INF or NAN
 	// which breaks all FP code where such values getting passed
@@ -1157,7 +1157,7 @@ acos(*(float*) &i) == -1.#IND0
 float Q_acos(float c) {
 	float angle;
 
-	angle = acos((double)(c));
+	angle = (float)( acos((double)(c)) );
 
 	if (angle > M_PI) {
 		return (float)M_PI;

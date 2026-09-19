@@ -1215,13 +1215,13 @@ static void Cvar_Op( funcType_t ftype, int *ival, float *fval )
 			break;
 
 		case FT_SIN:
-				*ival = sin( imod );
-				*fval = sin( (double)(fmod) );
+				*ival = (int)( sin( imod ) );
+				*fval = (float)( sin( (double)(fmod) ) );
 				break;
 
 		case FT_COS:
-				*ival = cos( imod );
-				*fval = cos( (double)(fmod) );
+				*ival = (int)( cos( imod ) );
+				*fval = (float)( cos( (double)(fmod) ) );
 				break;
 		default: 
 			break;
@@ -1248,19 +1248,19 @@ static void Cvar_Rand( int *ival, float *fval )
 	float fcap;
 
 	*ival = rand();
-	*fval = *ival;
+	*fval = (float)( *ival );
 
 	if ( Cmd_Argc() > 3 ) { // base
 		if ( GetValue( 3, &icap, &fcap ) ) {
 			*ival += icap;
-			*fval = *ival;
+			*fval = (float)( *ival );
 		}
 	}
 	if ( Cmd_Argc() > 4 ) { // modulus
 		if ( GetValue( 4, &icap, &fcap ) ) {
 			if ( icap ) {
 				*ival %= icap;
-				*fval = *ival;
+				*fval = (float)( *ival );
 			}
 		}
 	}

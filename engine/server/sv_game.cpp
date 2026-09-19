@@ -33,7 +33,7 @@ botlib_export_t	*botlib_export;
 int	SV_NumForGentity( sharedEntity_t *ent ) {
 	int		num;
 
-	num = ( (byte *)ent - (byte *)sv.gentities ) / sv.gentitySize;
+	num = (int)( ( (byte *)ent - (byte *)sv.gentities ) / sv.gentitySize );
 
 	return num;
 }
@@ -71,7 +71,7 @@ svEntity_t	*SV_SvEntityForGentity( sharedEntity_t *gEnt ) {
 sharedEntity_t *SV_GEntityForSvEntity( svEntity_t *svEnt ) {
 	int		num;
 
-	num = svEnt - sv.svEntities;
+	num = (int)( svEnt - sv.svEntities );
 	return SV_GentityNum( num );
 }
 

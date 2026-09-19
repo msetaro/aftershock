@@ -80,7 +80,7 @@ void CG_TestModel_f (void) {
 	cg.testModelEntity.hModel = trap_R_RegisterModel( cg.testModelName );
 
 	if ( trap_Argc() == 3 ) {
-		cg.testModelEntity.backlerp = atof( CG_Argv( 2 ) );
+		cg.testModelEntity.backlerp = (float)( atof( CG_Argv( 2 ) ) );
 		cg.testModelEntity.frame = 1;
 		cg.testModelEntity.oldframe = 0;
 	}
@@ -235,8 +235,8 @@ static void CG_OffsetThirdPersonView( void ) {
 
 	// if dead, look at killer
 	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
-		focusAngles[YAW] = cg.predictedPlayerState.stats[STAT_DEAD_YAW];
-		cg.refdefViewAngles[YAW] = cg.predictedPlayerState.stats[STAT_DEAD_YAW];
+		focusAngles[YAW] = (float)( cg.predictedPlayerState.stats[STAT_DEAD_YAW] );
+		cg.refdefViewAngles[YAW] = (float)( cg.predictedPlayerState.stats[STAT_DEAD_YAW] );
 	}
 
 	if ( focusAngles[PITCH] > 45 ) {
@@ -330,7 +330,7 @@ static void CG_OffsetFirstPersonView( void ) {
 	if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 ) {
 		angles[ROLL] = 40;
 		angles[PITCH] = -15;
-		angles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
+		angles[YAW] = (float)( cg.snap->ps.stats[STAT_DEAD_YAW] );
 		origin[2] += cg.predictedPlayerState.viewheight;
 		return;
 	}
@@ -409,7 +409,7 @@ static void CG_OffsetFirstPersonView( void ) {
 
 
 	// add fall height
-	delta = cg.time - cg.landTime;
+	delta = (float)( cg.time - cg.landTime );
 	if ( delta < LAND_DEFLECT_TIME ) {
 		f = delta / LAND_DEFLECT_TIME;
 		cg.refdef.vieworg[2] += cg.landChange * f;
@@ -579,7 +579,7 @@ static void CG_DamageBlendBlob( void ) {
 	}
 
 	maxTime = DAMAGE_TIME;
-	t = cg.time - cg.damageTime;
+	t = (int)( cg.time - cg.damageTime );
 	if ( t <= 0 || t >= maxTime ) {
 		return;
 	}
@@ -598,7 +598,7 @@ static void CG_DamageBlendBlob( void ) {
 	ent.shaderRGBA[0] = 255;
 	ent.shaderRGBA[1] = 255;
 	ent.shaderRGBA[2] = 255;
-	ent.shaderRGBA[3] = 200 * ( 1.0f - ((float)t / maxTime) );
+	ent.shaderRGBA[3] = (unsigned char)( 200 * ( 1.0f - ((float)t / maxTime) ) );
 	trap_R_AddRefEntityToScene( &ent );
 }
 

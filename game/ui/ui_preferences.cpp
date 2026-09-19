@@ -99,7 +99,7 @@ static void Preferences_SetMenuItems( void ) {
 	s_preferences.highqualitysky.curvalue	= trap_Cvar_VariableValue ( "r_fastsky" ) == 0;
 	s_preferences.synceveryframe.curvalue	= trap_Cvar_VariableValue( "r_finish" ) != 0;
 	s_preferences.forcemodel.curvalue		= trap_Cvar_VariableValue( "cg_forcemodel" ) != 0;
-	s_preferences.drawteamoverlay.curvalue	= Com_Clamp( 0, 3, trap_Cvar_VariableValue( "cg_drawTeamOverlay" ) );
+	s_preferences.drawteamoverlay.curvalue	= (int)( Com_Clamp( 0, 3, trap_Cvar_VariableValue( "cg_drawTeamOverlay" ) ) );
 	s_preferences.allowdownload.curvalue	= trap_Cvar_VariableValue( "cl_allowDownload" ) != 0;
 }
 
@@ -115,11 +115,11 @@ static void Preferences_Event( void* ptr, int notification ) {
 		if( s_preferences.crosshair.curvalue == NUM_CROSSHAIRS ) {
 			s_preferences.crosshair.curvalue = 0;
 		}
-		trap_Cvar_SetValue( "cg_drawCrosshair", s_preferences.crosshair.curvalue );
+		trap_Cvar_SetValue( "cg_drawCrosshair", (float)( s_preferences.crosshair.curvalue ) );
 		break;
 
 	case ID_SIMPLEITEMS:
-		trap_Cvar_SetValue( "cg_simpleItems", s_preferences.simpleitems.curvalue );
+		trap_Cvar_SetValue( "cg_simpleItems", (float)( s_preferences.simpleitems.curvalue ) );
 		break;
 
 	case ID_HIGHQUALITYSKY:
@@ -134,32 +134,32 @@ static void Preferences_Event( void* ptr, int notification ) {
 		break;
 
 	case ID_WALLMARKS:
-		trap_Cvar_SetValue( "cg_marks", s_preferences.wallmarks.curvalue );
+		trap_Cvar_SetValue( "cg_marks", (float)( s_preferences.wallmarks.curvalue ) );
 		break;
 
 	case ID_DYNAMICLIGHTS:
-		trap_Cvar_SetValue( "r_dynamiclight", s_preferences.dynamiclights.curvalue );
+		trap_Cvar_SetValue( "r_dynamiclight", (float)( s_preferences.dynamiclights.curvalue ) );
 		break;		
 
 	case ID_IDENTIFYTARGET:
-		trap_Cvar_SetValue( "cg_drawCrosshairNames", s_preferences.identifytarget.curvalue );
+		trap_Cvar_SetValue( "cg_drawCrosshairNames", (float)( s_preferences.identifytarget.curvalue ) );
 		break;
 
 	case ID_SYNCEVERYFRAME:
-		trap_Cvar_SetValue( "r_finish", s_preferences.synceveryframe.curvalue );
+		trap_Cvar_SetValue( "r_finish", (float)( s_preferences.synceveryframe.curvalue ) );
 		break;
 
 	case ID_FORCEMODEL:
-		trap_Cvar_SetValue( "cg_forcemodel", s_preferences.forcemodel.curvalue );
+		trap_Cvar_SetValue( "cg_forcemodel", (float)( s_preferences.forcemodel.curvalue ) );
 		break;
 
 	case ID_DRAWTEAMOVERLAY:
-		trap_Cvar_SetValue( "cg_drawTeamOverlay", s_preferences.drawteamoverlay.curvalue );
+		trap_Cvar_SetValue( "cg_drawTeamOverlay", (float)( s_preferences.drawteamoverlay.curvalue ) );
 		break;
 
 	case ID_ALLOWDOWNLOAD:
-		trap_Cvar_SetValue( "cl_allowDownload", s_preferences.allowdownload.curvalue );
-		trap_Cvar_SetValue( "sv_allowDownload", s_preferences.allowdownload.curvalue );
+		trap_Cvar_SetValue( "cl_allowDownload", (float)( s_preferences.allowdownload.curvalue ) );
+		trap_Cvar_SetValue( "sv_allowDownload", (float)( s_preferences.allowdownload.curvalue ) );
 		break;
 
 	case ID_BACK:
@@ -206,7 +206,7 @@ static void Crosshair_Draw( void *self ) {
 	if ( focus )
 	{
 		// draw cursor
-		UI_FillRect( s->generic.left, s->generic.top, s->generic.right-s->generic.left+1, s->generic.bottom-s->generic.top+1, listbar_color ); 
+		UI_FillRect( (float)( s->generic.left ), (float)( s->generic.top ), (float)( s->generic.right-s->generic.left+1 ), (float)( s->generic.bottom-s->generic.top+1 ), listbar_color ); 
 		UI_DrawChar( x, y, 13, UI_CENTER|UI_BLINK|UI_SMALLFONT, color);
 	}
 
@@ -214,7 +214,7 @@ static void Crosshair_Draw( void *self ) {
 	if( !s->curvalue ) {
 		return;
 	}
-	UI_DrawHandlePic( x + SMALLCHAR_WIDTH, y - 4, 24, 24, s_preferences.crosshairShader[s->curvalue] );
+	UI_DrawHandlePic( x + SMALLCHAR_WIDTH, (float)( y - 4 ), (float)( 24 ), (float)( 24 ), s_preferences.crosshairShader[s->curvalue] );
 }
 
 

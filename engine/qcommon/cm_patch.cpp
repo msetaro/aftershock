@@ -246,9 +246,9 @@ static void CM_Subdivide( const vec3_t a, const vec3_t b, const vec3_t c, vec3_t
 		double o1 = 0.5 * (ax + bx);
 		double o3 = 0.5 * (bx + cx);
 		double o2 = 0.5 * (o1 + o3);
-		out1[i] = o1;
-		out2[i] = o2;
-		out3[i] = o3;
+		out1[i] = (float)( o1 );
+		out2[i] = (float)( o2 );
+		out3[i] = (float)( o3 );
 #else
 		out1[i] = 0.5 * (a[i] + b[i]);
 		out3[i] = 0.5 * (b[i] + c[i]);
@@ -969,7 +969,7 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 		for ( dir = -1 ; dir <= 1 ; dir += 2 )
 		{
 			VectorClear(plane);
-			plane[axis] = dir;
+			plane[axis] = (float)( dir );
 			if (dir == 1) {
 				plane[3] = maxs[axis];
 			}
@@ -1037,7 +1037,7 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 #ifdef USE_FIXED_PRECISION 
 				double dplane[4];
 				VectorClear( vec2 );
-				vec2[ axis ] = dir;
+				vec2[ axis ] = (float)( dir );
 				CrossProduct_( vec, vec2, dplane );
 
 				if ( VectorNormalizeDP( dplane ) < 0.5 )
@@ -1481,7 +1481,7 @@ static void CM_TracePointThroughPatchCollide( traceWork_t *tw, const struct patc
 			offset = DotProduct( tw->offsets[ pp->signbits ], pp->plane );
 			d1 = DotProduct( tw->start, pp->plane ) - pp->plane[3] + offset;
 			d2 = DotProduct( tw->end, pp->plane ) - pp->plane[3] + offset;
-			tw->trace.fraction = ( d1 - SURFACE_CLIP_EPSILON ) / ( d1 - d2 );
+			tw->trace.fraction = (float)( ( d1 - SURFACE_CLIP_EPSILON ) / ( d1 - d2 ) );
 
 			if ( tw->trace.fraction < 0 ) {
 				tw->trace.fraction = 0;
@@ -1534,7 +1534,7 @@ static int CM_CheckFacetPlane( const float *plane, const vec3_t start, const vec
 		}
 		//always favor previous plane hits and thus also the surface plane hit
 		if (f > *enterFrac) {
-			*enterFrac = f;
+			*enterFrac = (float)( f );
 			*hit = qtrue;
 		}
 	} else {	// leave
@@ -1543,7 +1543,7 @@ static int CM_CheckFacetPlane( const float *plane, const vec3_t start, const vec
 			f = 1;
 		}
 		if (f < *leaveFrac) {
-			*leaveFrac = f;
+			*leaveFrac = (float)( f );
 		}
 	}
 	return qtrue;

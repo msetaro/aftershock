@@ -195,7 +195,7 @@ void	WindingCenter (winding_t *w, vec3_t center)
 	for (i=0 ; i<w->numpoints ; i++)
 		VectorAdd (w->p[i], center, center);
 
-	scale = 1.0/w->numpoints;
+	scale = (float)( 1.0/w->numpoints );
 	VectorScale (center, scale, center);
 }
 
@@ -393,7 +393,7 @@ static void ClipWindingEpsilon( winding_t *in, vec3_t normal, vec_t dist, vec_t 
 #else
 		dot = DotProduct( in->p[i], normal ) - dist;
 #endif
-		dists[i] = dot;
+		dists[i] = (float)( dot );
 
 		if ( dot > epsilon )
 			sides[i] = SIDE_FRONT;
@@ -465,7 +465,7 @@ static void ClipWindingEpsilon( winding_t *in, vec3_t normal, vec_t dist, vec_t 
 				mid[j] = -dist;
 			else {
 				d1 = p1[j]; d2 = p2[j];
-				mid[j] = d1 + dot * ( d2 - d1 );
+				mid[j] = (float)( d1 + dot * ( d2 - d1 ) );
 			}
 		}
 			

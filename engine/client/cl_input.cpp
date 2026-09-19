@@ -301,9 +301,9 @@ static void CL_AdjustAngles( void ) {
 	float	speed;
 
 	if ( in_speed.active ) {
-		speed = 0.001 * cls.frametime * cl_anglespeedkey->value;
+		speed = (float)( 0.001 * cls.frametime * cl_anglespeedkey->value );
 	} else {
-		speed = 0.001 * cls.frametime;
+		speed = (float)( 0.001 * cls.frametime );
 	}
 
 	if ( !in_strafe.active ) {
@@ -414,9 +414,9 @@ static void CL_JoystickMove( usercmd_t *cmd ) {
 	}
 
 	if ( in_speed.active ) {
-		anglespeed = 0.001 * cls.frametime * cl_anglespeedkey->value;
+		anglespeed = (float)( 0.001 * cls.frametime * cl_anglespeedkey->value );
 	} else {
-		anglespeed = 0.001 * cls.frametime;
+		anglespeed = (float)( 0.001 * cls.frametime );
 	}
 
 	if ( !in_strafe.active ) {
@@ -452,8 +452,8 @@ static void CL_MouseMove( usercmd_t *cmd )
 	}
 	else
 	{
-		mx = cl.mouseDx[cl.mouseIndex];
-		my = cl.mouseDy[cl.mouseIndex];
+		mx = (float)( cl.mouseDx[cl.mouseIndex] );
+		my = (float)( cl.mouseDy[cl.mouseIndex] );
 	}
 
 	cl.mouseIndex ^= 1;
@@ -470,7 +470,7 @@ static void CL_MouseMove( usercmd_t *cmd )
 			float accelSensitivity;
 			float rate;
 
-			rate = sqrt((double)(mx * mx + my * my)) / (float) frame_msec;
+			rate = (float)( sqrt((double)(mx * mx + my * my)) / (float) frame_msec );
 
 			accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
 			mx *= accelSensitivity;
@@ -520,14 +520,14 @@ static void CL_MouseMove( usercmd_t *cmd )
 
 	// add mouse X/Y movement to cmd
 	if ( in_strafe.active )
-		cmd->rightmove = ClampCharMove( cmd->rightmove + m_side->value * mx );
+		cmd->rightmove = ClampCharMove( (int)( cmd->rightmove + m_side->value * mx ) );
 	else
 		cl.viewangles[YAW] -= m_yaw->value * mx;
 
 	if ( (in_mlooking || cl_freelook->integer) && !in_strafe.active )
 		cl.viewangles[PITCH] += m_pitch->value * my;
 	else
-		cmd->forwardmove = ClampCharMove( cmd->forwardmove - m_forward->value * my );
+		cmd->forwardmove = ClampCharMove( (int)( cmd->forwardmove - m_forward->value * my ) );
 }
 
 
@@ -572,7 +572,7 @@ static void CL_FinishMove( usercmd_t *cmd ) {
 	int		i;
 
 	// copy the state that the cgame is currently sending
-	cmd->weapon = cl.cgameUserCmdValue;
+	cmd->weapon = (unsigned char)( cl.cgameUserCmdValue );
 
 	// send the current server time so the amount of movement
 	// can be determined without allowing cheating

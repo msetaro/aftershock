@@ -2968,8 +2968,8 @@ static void vk_alloc_persistent_pipelines( void )
 	{
 		Com_Memset(&def, 0, sizeof(def));
 		def.shader_type = TYPE_SIGNLE_TEXTURE_FIXED_COLOR;
-		def.color.rgb = tr.identityLightByte;
-		def.color.alpha = tr.identityLightByte;
+		def.color.rgb = (unsigned char)( tr.identityLightByte );
+		def.color.alpha = (unsigned char)( tr.identityLightByte );
 		def.face_culling = CT_FRONT_SIDED;
 		def.polygon_offset = qfalse;
 		def.mirror = qfalse;
@@ -3915,13 +3915,13 @@ static void vk_set_render_scale( void )
 				if ( windowAspect >= renderAspect )
 				{
 					float scale = (float)gls.windowHeight / ( float ) glConfig.vidHeight;
-					int bias = ( gls.windowWidth - scale * (float) glConfig.vidWidth ) / 2;
+					int bias = (int)( ( gls.windowWidth - scale * (float) glConfig.vidWidth ) / 2 );
 					vk.blitX0 += bias;
 				}
 				else
 				{
 					float scale = (float)gls.windowWidth / ( float ) glConfig.vidWidth;
-					int bias = ( gls.windowHeight - scale * (float) glConfig.vidHeight ) / 2;
+					int bias = (int)( ( gls.windowHeight - scale * (float) glConfig.vidHeight ) / 2 );
 					vk.blitY0 += bias;
 				}
 			}
@@ -4063,7 +4063,7 @@ void vk_initialize( void )
 	// default chunk size, may be doubled on demand
 	vk.image_chunk_size = IMAGE_CHUNK_SIZE;
 
-	vk.maxLod = 1 + Q_log2( glConfig.maxTextureSize );
+	vk.maxLod = (float)( 1 + Q_log2( glConfig.maxTextureSize ) );
 
 	if ( props.limits.maxPerStageDescriptorSamplers != 0xFFFFFFFF )
 		glConfig.numTextureUnits = props.limits.maxPerStageDescriptorSamplers;
@@ -5224,7 +5224,7 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 	set_shader_stage_desc( shader_stages+0, VK_SHADER_STAGE_VERTEX_BIT, vk.modules.gamma_vs, "main" );
 	set_shader_stage_desc( shader_stages+1, VK_SHADER_STAGE_FRAGMENT_BIT, fsmodule, "main" );
 
-	frag_spec_data.gamma = 1.0 / (r_gamma->value);
+	frag_spec_data.gamma = (float)( 1.0 / (r_gamma->value) );
 	frag_spec_data.overbright = (float)(1 << tr.overbrightBits);
 	frag_spec_data.greyscale = r_greyscale->value;
 	frag_spec_data.bloom_threshold = r_bloom_threshold->value;
@@ -5301,10 +5301,10 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 	//
 	if ( program_index == 0 ) {
 		// gamma correction
-		viewport.x = 0.0 + vk.blitX0;
-		viewport.y = 0.0 + vk.blitY0;
-		viewport.width = gls.windowWidth - vk.blitX0 * 2;
-		viewport.height = gls.windowHeight - vk.blitY0 * 2;
+		viewport.x = (float)( 0.0 + vk.blitX0 );
+		viewport.y = (float)( 0.0 + vk.blitY0 );
+		viewport.width = (float)( gls.windowWidth - vk.blitX0 * 2 );
+		viewport.height = (float)( gls.windowHeight - vk.blitY0 * 2 );
 	} else {
 		// other post-processing
 		viewport.x = 0.0;
@@ -5457,8 +5457,8 @@ void vk_create_blur_pipeline( uint32_t index, uint32_t width, uint32_t height, q
 	set_shader_stage_desc( shader_stages+0, VK_SHADER_STAGE_VERTEX_BIT, vk.modules.gamma_vs, "main" );
 	set_shader_stage_desc( shader_stages+1, VK_SHADER_STAGE_FRAGMENT_BIT, vk.modules.blur_fs, "main" );
 
-	frag_spec_data[0] = 1.2 / (float) width; // x offset
-	frag_spec_data[1] = 1.2 / (float) height; // y offset
+	frag_spec_data[0] = (float)( 1.2 / (float) width ); // x offset
+	frag_spec_data[1] = (float)( 1.2 / (float) height ); // y offset
 	frag_spec_data[2] = 1.0; // intensity?
 
 	if ( horizontal_pass ) {
@@ -5965,8 +5965,8 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 			break;
 	}
 
-	frag_spec_data[8].f = ((float)def->color.rgb) / 255.0;
-	frag_spec_data[9].f = ((float)def->color.alpha) / 255.0;
+	frag_spec_data[8].f = (float)( ((float)def->color.rgb) / 255.0 );
+	frag_spec_data[9].f = (float)( ((float)def->color.alpha) / 255.0 );
 
 	if ( def->fog_stage ) {
 		frag_spec_data[10].i = def->acff;

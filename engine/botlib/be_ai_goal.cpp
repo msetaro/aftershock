@@ -1781,7 +1781,7 @@ int BotSetupGoalAI(void)
 	const char *filename;
 
 	//check if teamplay is on
-	g_gametype = LibVarValue("g_gametype", "0");
+	g_gametype = (int)( LibVarValue("g_gametype", "0") );
 	//item configuration file
 	filename = LibVarString("itemconfig", "items.c");
 	//load the item configuration

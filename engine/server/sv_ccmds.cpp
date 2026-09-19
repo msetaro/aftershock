@@ -1235,7 +1235,7 @@ static void SV_Status_f( void ) {
 		l = (int)( strlen( cl->name ) + 1 );
 		strcpy( nc, cl->name );
 		np[ i ] = nc; nc += l;			// name pointer in name buffer
-		nl[ i ] = SV_Strlen( cl->name );// name length without color sequences
+		nl[ i ] = (char)( SV_Strlen( cl->name ) );// name length without color sequences
 		if ( nl[ i ] > max_namelength )
 			max_namelength = nl[ i ];
 
@@ -1243,7 +1243,7 @@ static void SV_Status_f( void ) {
 		l = (int)( strlen( s ) + 1 );
 		strcpy( ac, s );
 		ap[ i ] = ac; ac += l;			// address pointer in address buffer
-		al[ i ] = l - 1;				// address length
+		al[ i ] = (char)( l - 1 );				// address length
 		if ( al[ i ] > max_addrlength )
 			max_addrlength = al[ i ];
 	}

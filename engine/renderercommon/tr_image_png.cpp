@@ -373,7 +373,7 @@ static qboolean BufferedFileRewind(struct BufferedFile *BF, unsigned Offset)
 	 *  How many bytes do we have already read?
 	 */
 
-	BytesRead = BF->Ptr - BF->Buffer;
+	BytesRead = (unsigned int)( BF->Ptr - BF->Buffer );
 
 	/*
 	 *  We can only rewind to the beginning of the BufferedFile.

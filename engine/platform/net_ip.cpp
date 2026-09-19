@@ -1304,11 +1304,11 @@ static void NET_OpenSocks( int port ) {
 			plen = 255;
 		}
 		buf[0] = 1;		// username/password authentication version
-		buf[1] = ulen;
+		buf[1] = (unsigned char)( ulen );
 		if ( ulen ) {
 			memcpy( &buf[2], net_socksUsername->string, ulen );
 		}
-		buf[2 + ulen] = plen;
+		buf[2 + ulen] = (unsigned char)( plen );
 		if ( plen ) {
 			memcpy( &buf[3 + ulen], net_socksPassword->string, plen );
 		}

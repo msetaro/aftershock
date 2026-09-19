@@ -1482,7 +1482,7 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 		SnapVector( s->apos.trBase );
 	}
 
-	s->angles2[YAW] = ps->movementDir;
+	s->angles2[YAW] = (float)( ps->movementDir );
 	s->legsAnim = ps->legsAnim;
 	s->torsoAnim = ps->torsoAnim;
 	s->clientNum = ps->clientNum;		// ET_PLAYER looks here instead of at number
@@ -1562,7 +1562,7 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 		SnapVector( s->apos.trBase );
 	}
 
-	s->angles2[YAW] = ps->movementDir;
+	s->angles2[YAW] = (float)( ps->movementDir );
 	s->legsAnim = ps->legsAnim;
 	s->torsoAnim = ps->torsoAnim;
 	s->clientNum = ps->clientNum;		// ET_PLAYER looks here instead of at number

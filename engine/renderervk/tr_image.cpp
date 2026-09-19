@@ -451,7 +451,7 @@ static void R_MipMap2( unsigned * const out, unsigned * const in, int inWidth, i
 					2 * ((byte *)&in[ ((i*2+2)&inHeightMask)*inWidth + ((j*2)&inWidthMask) ])[k] +
 					2 * ((byte *)&in[ ((i*2+2)&inHeightMask)*inWidth + ((j*2+1)&inWidthMask) ])[k] +
 					1 * ((byte *)&in[ ((i*2+2)&inHeightMask)*inWidth + ((j*2+2)&inWidthMask) ])[k];
-				outpix[k] = total / 36;
+				outpix[k] = (unsigned char)( total / 36 );
 			}
 		}
 	}
@@ -549,9 +549,9 @@ static void R_BlendOverTexture( byte *data, int pixelCount, int mipLevel ) {
 	premult[2] = blend[2] * blend[3];
 
 	for ( i = 0 ; i < pixelCount ; i++, data+=4 ) {
-		data[0] = ( data[0] * inverseAlpha + premult[0] ) >> 9;
-		data[1] = ( data[1] * inverseAlpha + premult[1] ) >> 9;
-		data[2] = ( data[2] * inverseAlpha + premult[2] ) >> 9;
+		data[0] = (unsigned char)( ( data[0] * inverseAlpha + premult[0] ) >> 9 );
+		data[1] = (unsigned char)( ( data[1] * inverseAlpha + premult[1] ) >> 9 );
+		data[2] = (unsigned char)( ( data[2] * inverseAlpha + premult[2] ) >> 9 );
 	}
 }
 
@@ -1349,7 +1349,7 @@ static void R_CreateDlightImage( void ) {
 
 			d = ( DLIGHT_SIZE/2 - 0.5f - x ) * ( DLIGHT_SIZE/2 - 0.5f - x ) +
 				( DLIGHT_SIZE/2 - 0.5f - y ) * ( DLIGHT_SIZE/2 - 0.5f - y );
-			b = 4000 / d;
+			b = (int)( 4000 / d );
 			if (b > 255) {
 				b = 255;
 			} else if ( b < 75 ) {
@@ -1357,7 +1357,7 @@ static void R_CreateDlightImage( void ) {
 			}
 			data[y][x][0] = 
 			data[y][x][1] = 
-			data[y][x][2] = b;
+			data[y][x][2] = (unsigned char)( b );
 			data[y][x][3] = 255;
 		}
 	}
@@ -1443,7 +1443,7 @@ static void R_CreateFogImage( void ) {
 			data[(y*FOG_S+x)*4+0] = 
 			data[(y*FOG_S+x)*4+1] = 
 			data[(y*FOG_S+x)*4+2] = 255;
-			data[(y*FOG_S+x)*4+3] = 255*d;
+			data[(y*FOG_S+x)*4+3] = (unsigned char)( 255*d );
 		}
 	}
 	tr.fogImage = R_CreateImage( "*fog", NULL, data, FOG_S, FOG_T, IMGFLAG_CLAMPTOEDGE );
@@ -1501,15 +1501,15 @@ static qboolean R_BuildDefaultImage( const char *format ) {
 
 	switch ( len ) {
 		case 3: // #rgb
-			color[0] = hex[0] << 4 | hex[0];
-			color[1] = hex[1] << 4 | hex[1];
-			color[2] = hex[2] << 4 | hex[2];
+			color[0] = (unsigned char)( hex[0] << 4 | hex[0] );
+			color[1] = (unsigned char)( hex[1] << 4 | hex[1] );
+			color[2] = (unsigned char)( hex[2] << 4 | hex[2] );
 			color[3] = 255;
 			break;
 		case 6: // #rrggbb
-			color[0] = hex[0] << 4 | hex[1];
-			color[1] = hex[2] << 4 | hex[3];
-			color[2] = hex[4] << 4 | hex[5];
+			color[0] = (unsigned char)( hex[0] << 4 | hex[1] );
+			color[1] = (unsigned char)( hex[2] << 4 | hex[3] );
+			color[2] = (unsigned char)( hex[4] << 4 | hex[5] );
 			color[3] = 255;
 			break;
 		default: // unsupported format
@@ -1603,7 +1603,7 @@ static void R_CreateBuiltinImages( void ) {
 		for (y=0 ; y<DEFAULT_SIZE ; y++) {
 			data[y][x][0] = 
 			data[y][x][1] = 
-			data[y][x][2] = tr.identityLightByte;
+			data[y][x][2] = (unsigned char)( tr.identityLightByte );
 			data[y][x][3] = 255;
 		}
 	}
@@ -1678,7 +1678,7 @@ void R_SetColorMappings( void ) {
 	}
 
 	tr.identityLight = 1.0f / ( 1 << tr.overbrightBits );
-	tr.identityLightByte = 255 * tr.identityLight;
+	tr.identityLightByte = (int)( 255 * tr.identityLight );
 
 	g = r_gamma->value;
 
@@ -1688,7 +1688,7 @@ void R_SetColorMappings( void ) {
 		if ( g == 1.0f ) {
 			inf = i;
 		} else {
-			inf = 255 * powf( i/255.0f, 1.0f / g ) + 0.5f;
+			inf = (int)( 255 * powf( i/255.0f, 1.0f / g ) + 0.5f );
 		}
 		inf <<= shift;
 		if (inf < 0) {
@@ -1697,15 +1697,15 @@ void R_SetColorMappings( void ) {
 		if (inf > 255) {
 			inf = 255;
 		}
-		s_gammatable[i] = inf;
+		s_gammatable[i] = (unsigned char)( inf );
 	}
 
 	for ( i = 0; (size_t)i < ARRAY_LEN( s_intensitytable ); i++ ) {
-		j = i * r_intensity->value;
+		j = (int)( i * r_intensity->value );
 		if ( j > 255 ) {
 			j = 255;
 		}
-		s_intensitytable[i] = j;
+		s_intensitytable[i] = (unsigned char)( j );
 	}
 
 #ifdef USE_VULKAN
@@ -1894,7 +1894,7 @@ static const char *CommaParse( const char **data_p ) {
 			data++;
 			if ( len < MAX_TOKEN_CHARS-1 )
 			{
-				com_token[ len ] = c;
+				com_token[ len ] = (char)( c );
 				len++;
 			}
 		}
@@ -1905,7 +1905,7 @@ static const char *CommaParse( const char **data_p ) {
 	{
 		if ( len < MAX_TOKEN_CHARS-1 )
 		{
-			com_token[ len ] = c;
+			com_token[ len ] = (char)( c );
 			len++;
 		}
 		data++;

@@ -164,7 +164,7 @@ void RB_ShadowTessEnd( void ) {
 
 	// clamp projection by height
 	if ( lightDir[2] > 0.1 ) {
-		float s = 0.1 / lightDir[2];
+		float s = (float)( 0.1 / lightDir[2] );
 		VectorScale( lightDir, s, lightDir );
 	}
 
@@ -411,7 +411,7 @@ void RB_ProjectionShadowDeform( void ) {
 		VectorMA( lightDir, (0.5 - d), ground, lightDir );
 		d = DotProduct( lightDir, ground );
 	}
-	d = 1.0 / d;
+	d = (float)( 1.0 / d );
 
 	light[0] = lightDir[0] * d;
 	light[1] = lightDir[1] * d;

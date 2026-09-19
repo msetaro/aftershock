@@ -396,7 +396,7 @@ static void CG_AddToTeamChat( const char *str ) {
 			p = cgs.teamChatMsgs[cgs.teamChatPos % chatHeight];
 			*p = 0;
 			*p++ = Q_COLOR_ESCAPE;
-			*p++ = lastcolor;
+			*p++ = (char)( lastcolor );
 			len = 0;
 			ls = NULL;
 		}

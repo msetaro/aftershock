@@ -267,7 +267,7 @@ static int AAS_GetJumpPadInfo(int ent, vec3_t areastart, vec3_t absmins, vec3_t 
 	//
 	height = ent2origin[2] - origin[2];
 	gravity = aassettings.phys_gravity;
-	time = sqrt( height / ( 0.5 * gravity ) );
+	time = (float)( sqrt( height / ( 0.5 * gravity ) ) );
 	if (!time)
 	{
 		botimport.Print(PRT_MESSAGE, "trigger_push without time\n");
@@ -302,7 +302,7 @@ int AAS_BestReachableFromJumpPadArea(vec3_t origin, vec3_t mins, vec3_t maxs)
 #ifdef BSPC
 	bot_visualizejumppads = 0;
 #else
-	bot_visualizejumppads = LibVarValue("bot_visualizejumppads", "0");
+	bot_visualizejumppads = (int)( LibVarValue("bot_visualizejumppads", "0") );
 #endif
 	VectorAdd(origin, mins, bboxmins);
 	VectorAdd(origin, maxs, bboxmaxs);
@@ -578,7 +578,7 @@ static void AAS_FaceCenter(int facenum, vec3_t center)
 		VectorAdd(center, aasworld.vertexes[edge->v[0]], center);
 		VectorAdd(center, aasworld.vertexes[edge->v[1]], center);
 	} //end for
-	scale = 0.5 / face->numedges;
+	scale = (float)( 0.5 / face->numedges );
 	VectorScale(center, scale, center);
 } //end of the function AAS_FaceCenter
 //===========================================================================
@@ -593,10 +593,10 @@ static int AAS_FallDamageDistance(void)
 {
 	float maxzvelocity, gravity, t;
 
-	maxzvelocity = sqrt(30 * 10000);
+	maxzvelocity = (float)( sqrt(30 * 10000) );
 	gravity = aassettings.phys_gravity;
 	t = maxzvelocity / gravity;
-	return 0.5 * gravity * t * t;
+	return (int)( 0.5 * gravity * t * t );
 } //end of the function AAS_FallDamageDistance
 //===========================================================================
 // distance = 0.5 * gravity * t * t
@@ -612,9 +612,9 @@ static float AAS_FallDelta(float distance)
 	float t, delta, gravity;
 
 	gravity = aassettings.phys_gravity;
-	t = sqrt(fabs((double)(distance)) * 2 / gravity);
+	t = (float)( sqrt(fabs((double)(distance)) * 2 / gravity) );
 	delta = t * gravity;
-	return delta * delta * 0.0001;
+	return (float)( delta * delta * 0.0001 );
 } //end of the function AAS_FallDelta
 //===========================================================================
 //
@@ -628,7 +628,7 @@ static float AAS_MaxJumpHeight(float phys_jumpvel)
 
 	phys_gravity = aassettings.phys_gravity;
 	//maximum height a player can jump with the given initial z velocity
-	return 0.5 * phys_gravity * (phys_jumpvel / phys_gravity) * (phys_jumpvel / phys_gravity);
+	return (float)( 0.5 * phys_gravity * (phys_jumpvel / phys_gravity) * (phys_jumpvel / phys_gravity) );
 } //end of the function MaxJumpHeight
 //===========================================================================
 // returns true if a player can only crouch in the area
@@ -644,7 +644,7 @@ static float AAS_MaxJumpDistance(float phys_jumpvel)
 	phys_gravity = aassettings.phys_gravity;
 	phys_maxvelocity = aassettings.phys_maxvelocity;
 	//time a player takes to fall the height
-	t = sqrt(aassettings.rs_maxjumpfallheight / (0.5 * phys_gravity));
+	t = (float)( sqrt(aassettings.rs_maxjumpfallheight / (0.5 * phys_gravity)) );
    //maximum distance
 	return phys_maxvelocity * (t + phys_jumpvel / phys_gravity);
 } //end of the function AAS_MaxJumpDistance
@@ -1446,7 +1446,7 @@ static int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, in
 					VectorCopy(water_beststart, lreach->start);
 					VectorMA(water_bestend, INSIDEUNITS_WATERJUMP, water_bestnormal, lreach->end);
 					lreach->traveltype = TRAVEL_WATERJUMP;
-					lreach->traveltime = aassettings.rs_waterjump;
+					lreach->traveltime = (unsigned short)( aassettings.rs_waterjump );
 					lreach->next = areareachability[area1num];
 					areareachability[area1num] = lreach;
 					//we've got another waterjump reachability
@@ -1494,7 +1494,7 @@ static int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, in
 					VectorMA(ground_beststart, INSIDEUNITS_WALKSTART, ground_bestnormal, lreach->start);
 					VectorMA(ground_bestend, INSIDEUNITS_WALKEND, ground_bestnormal, lreach->end);
 					lreach->traveltype = TRAVEL_BARRIERJUMP;
-					lreach->traveltime = aassettings.rs_barrierjump;//AAS_BarrierJumpTravelTime();
+					lreach->traveltime = (unsigned short)( aassettings.rs_barrierjump );//AAS_BarrierJumpTravelTime();
 					lreach->next = areareachability[area1num];
 					areareachability[area1num] = lreach;
 					//we've got another barrierjump reachability
@@ -1580,7 +1580,7 @@ static int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, in
 							VectorCopy(ground_beststart, lreach->start);
 							VectorCopy(ground_bestend, lreach->end);
 							lreach->traveltype = TRAVEL_WALKOFFLEDGE;
-							lreach->traveltime = aassettings.rs_startwalkoffledge + fabs((double)(ground_bestdist)) * 50 / aassettings.phys_gravity;
+							lreach->traveltime = (unsigned short)( aassettings.rs_startwalkoffledge + fabs((double)(ground_bestdist)) * 50 / aassettings.phys_gravity );
 							//if falling from too high and not falling into water
 							if (!AAS_AreaSwim(area2num) && !AAS_AreaJumpPad(area2num))
 							{
@@ -2353,11 +2353,11 @@ static int AAS_Reachability_Jump(int area1num, int area2num)
 		dir[2] = 0;
 		if ((traveltype & TRAVELTYPE_MASK) == TRAVEL_WALKOFFLEDGE && height > VectorLength(dir))
 		{
-			lreach->traveltime = aassettings.rs_startwalkoffledge + height * 50 / aassettings.phys_gravity;
+			lreach->traveltime = (unsigned short)( aassettings.rs_startwalkoffledge + height * 50 / aassettings.phys_gravity );
 		}
 		else
 		{
-			lreach->traveltime = aassettings.rs_startjump + VectorDistance(bestend, beststart) * 240 / aassettings.phys_maxwalkvelocity;
+			lreach->traveltime = (unsigned short)( aassettings.rs_startjump + VectorDistance(bestend, beststart) * 240 / aassettings.phys_maxwalkvelocity );
 		} //end if
 		//
 		if (!AAS_AreaJumpPad(area2num))
@@ -2928,7 +2928,7 @@ static void AAS_Reachability_Teleport(void)
 			VectorCopy(destorigin, lreach->end);
 			lreach->traveltype = TRAVEL_TELEPORT;
 			lreach->traveltype |= AAS_TravelFlagsForTeam(ent);
-			lreach->traveltime = aassettings.rs_teleport;
+			lreach->traveltime = (unsigned short)( aassettings.rs_teleport );
 			lreach->next = areareachability[area1num];
 			areareachability[area1num] = lreach;
 			//
@@ -3138,7 +3138,7 @@ static void AAS_Reachability_Elevator(void)
 						VectorCopy(toporg, lreach->end);
 						lreach->traveltype = TRAVEL_ELEVATOR;
 						lreach->traveltype |= AAS_TravelFlagsForTeam(ent);
-						lreach->traveltime = aassettings.rs_startelevator + height * 100 / speed;
+						lreach->traveltime = (unsigned short)( aassettings.rs_startelevator + height * 100 / speed );
 						lreach->next = areareachability[area1num];
 						areareachability[area1num] = lreach;
 						//don't go any further to the outside
@@ -3471,7 +3471,7 @@ static void AAS_Reachability_FuncBobbing(void)
 #endif
 					lreach->traveltype = TRAVEL_FUNCBOB;
 					lreach->traveltype |= AAS_TravelFlagsForTeam(ent);
-					lreach->traveltime = aassettings.rs_funcbob;
+					lreach->traveltime = (unsigned short)( aassettings.rs_funcbob );
 					reach_funcbob++;
 					lreach->next = areareachability[startreach->areanum];
 					areareachability[startreach->areanum] = lreach;
@@ -3521,7 +3521,7 @@ static void AAS_Reachability_JumpPad(void)
 #ifdef BSPC
 	bot_visualizejumppads = 0;
 #else
-	bot_visualizejumppads = LibVarValue("bot_visualizejumppads", "0");
+	bot_visualizejumppads = (int)( LibVarValue("bot_visualizejumppads", "0") );
 #endif
 	for (ent = AAS_NextBSPEntity(0); ent; ent = AAS_NextBSPEntity(ent))
 	{
@@ -3661,14 +3661,14 @@ static void AAS_Reachability_JumpPad(void)
 					} //end if
 					lreach->areanum = area2num;
 					//NOTE: the facenum is the Z velocity
-					lreach->facenum = velocity[2];
+					lreach->facenum = (int)( velocity[2] );
 					//NOTE: the edgenum is the horizontal velocity
-					lreach->edgenum = sqrt((double)(velocity[0] * velocity[0] + velocity[1] * velocity[1]));
+					lreach->edgenum = (int)( sqrt((double)(velocity[0] * velocity[0] + velocity[1] * velocity[1])) );
 					VectorCopy(areastart, lreach->start);
 					VectorCopy(move.endpos, lreach->end);
 					lreach->traveltype = TRAVEL_JUMPPAD;
 					lreach->traveltype |= AAS_TravelFlagsForTeam(ent);
-					lreach->traveltime = aassettings.rs_jumppad;
+					lreach->traveltime = (unsigned short)( aassettings.rs_jumppad );
 					lreach->next = areareachability[link->areanum];
 					areareachability[link->areanum] = lreach;
 					//
@@ -3764,14 +3764,14 @@ static void AAS_Reachability_JumpPad(void)
 									} //end if
 									lreach->areanum = move.endarea;
 									//NOTE: the facenum is the Z velocity
-									lreach->facenum = velocity[2];
+									lreach->facenum = (int)( velocity[2] );
 									//NOTE: the edgenum is the horizontal velocity
-									lreach->edgenum = sqrt((double)(cmdmove[0] * cmdmove[0] + cmdmove[1] * cmdmove[1]));
+									lreach->edgenum = (int)( sqrt((double)(cmdmove[0] * cmdmove[0] + cmdmove[1] * cmdmove[1])) );
 									VectorCopy(areastart, lreach->start);
 									VectorCopy(facecenter, lreach->end);
 									lreach->traveltype = TRAVEL_JUMPPAD;
 									lreach->traveltype |= AAS_TravelFlagsForTeam(ent);
-									lreach->traveltime = aassettings.rs_aircontrolledjumppad;
+									lreach->traveltime = (unsigned short)( aassettings.rs_aircontrolledjumppad );
 									lreach->next = areareachability[link->areanum];
 									areareachability[link->areanum] = lreach;
 									//
@@ -3920,7 +3920,7 @@ static int AAS_Reachability_Grapple(int area1num, int area2num)
 		VectorCopy(bsptrace.endpos, lreach->end);
 		lreach->traveltype = TRAVEL_GRAPPLEHOOK;
 		VectorSubtract(lreach->end, lreach->start, dir);
-		lreach->traveltime = aassettings.rs_startgrapple + VectorLength(dir) * 0.25;
+		lreach->traveltime = (unsigned short)( aassettings.rs_startgrapple + VectorLength(dir) * 0.25 );
 		lreach->next = areareachability[area1num];
 		areareachability[area1num] = lreach;
 		//
@@ -4106,12 +4106,12 @@ int AAS_Reachability_WeaponJump(int area1num, int area2num)
 						if (n)
 						{
 							lreach->traveltype = TRAVEL_BFGJUMP;
-							lreach->traveltime = aassettings.rs_bfgjump;
+							lreach->traveltime = (unsigned short)( aassettings.rs_bfgjump );
 						} //end if
 						else
 						{
 							lreach->traveltype = TRAVEL_ROCKETJUMP;
-							lreach->traveltime = aassettings.rs_rocketjump;
+							lreach->traveltime = (unsigned short)( aassettings.rs_rocketjump );
 						} //end else
 						lreach->next = areareachability[area1num];
 						areareachability[area1num] = lreach;
@@ -4286,7 +4286,7 @@ static void AAS_Reachability_WalkOffLedge(int areanum)
 						VectorCopy(mid, lreach->start);
 						VectorCopy(trace.endpos, lreach->end);
 						lreach->traveltype = TRAVEL_WALKOFFLEDGE;
-						lreach->traveltime = aassettings.rs_startwalkoffledge + fabs((double)(mid[2] - trace.endpos[2])) * 50 / aassettings.phys_gravity;
+						lreach->traveltime = (unsigned short)( aassettings.rs_startwalkoffledge + fabs((double)(mid[2] - trace.endpos[2])) * 50 / aassettings.phys_gravity );
 						if (!AAS_AreaSwim(reachareanum) && !AAS_AreaJumpPad(reachareanum))
 						{
 							if (AAS_FallDelta(mid[2] - trace.endpos[2]) > aassettings.phys_falldelta5)
@@ -4536,7 +4536,7 @@ void AAS_InitReachability(void)
 #endif //BSPC
 	} //end if
 #ifndef BSPC
-	calcgrapplereach = LibVarGetValue("grapplereach");
+	calcgrapplereach = (int)( LibVarGetValue("grapplereach") );
 #endif
 	aasworld.savefile = qtrue;
 	//start with area 1 because area zero is a dummy

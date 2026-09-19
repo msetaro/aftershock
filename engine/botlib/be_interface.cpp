@@ -120,7 +120,7 @@ static int Export_BotLibSetup( void )
 {
 	int		errnum;
 	
-	botDeveloper = LibVarGetValue( "bot_developer" );
+	botDeveloper = (int)( LibVarGetValue( "bot_developer" ) );
  	memset( &botlibglobals, 0, sizeof( botlibglobals ) );
 
 	// initialize byte swapping (litte endian etc.)

@@ -51,7 +51,7 @@ static void HSVtoRGB( float h, float s, float v, float rgb[3] )
 
 	h *= 5;
 
-	i = floor( (double)(h) );
+	i = (int)( floor( (double)(h) ) );
 	f = h - i;
 
 	p = v * ( 1 - s );
@@ -146,15 +146,15 @@ void R_ColorShiftLightingBytes( const byte in[4], byte out[4], qboolean hasAlpha
 		out[1] = luma;
 		out[2] = luma;
 	} else if( r_mapGreyScale->value ) {
-		const float scale = fabs( (double)(r_mapGreyScale->value) );
+		const float scale = (float)( fabs( (double)(r_mapGreyScale->value) ) );
 		const float luma = LUMA( r, g, b );
 		out[0] = LERP( r, luma, scale );
 		out[1] = LERP( g, luma, scale );
 		out[2] = LERP( b, luma, scale );
 	} else {
-		out[0] = r;
-		out[1] = g;
-		out[2] = b;
+		out[0] = (unsigned char)( r );
+		out[1] = (unsigned char)( g );
+		out[2] = (unsigned char)( b );
 	}
 
 	if ( hasAlpha ) {
@@ -267,9 +267,9 @@ static float R_ProcessLightmap( byte *image, const byte *buf_p, float maxIntensi
 
 			HSVtoRGB( intensity, 1.00, 0.50, out );
 
-			image[j*4+0] = out[0] * 255;
-			image[j*4+1] = out[1] * 255;
-			image[j*4+2] = out[2] * 255;
+			image[j*4+0] = (unsigned char)( out[0] * 255 );
+			image[j*4+1] = (unsigned char)( out[1] * 255 );
+			image[j*4+2] = (unsigned char)( out[2] * 255 );
 			image[j*4+3] = 255;
 		}
 	} else {
@@ -320,8 +320,8 @@ static int SetLightmapParams( int numLightmaps, int maxTextureSize )
 
 	tr.lightmapMod = lightmapCountX * lightmapCountY;
 
-	tr.lightmapScale[0] = (double)LIGHTMAP_SIZE / (double) lightmapWidth;
-	tr.lightmapScale[1] = (double)LIGHTMAP_SIZE / (double) lightmapHeight;
+	tr.lightmapScale[0] = (float)( (double)LIGHTMAP_SIZE / (double) lightmapWidth );
+	tr.lightmapScale[1] = (float)( (double)LIGHTMAP_SIZE / (double) lightmapHeight );
 
 	numLightmaps = ( numLightmaps + tr.lightmapMod - 1 ) / tr.lightmapMod;
 
@@ -1866,8 +1866,8 @@ static void R_LoadNodesAndLeafs( const lump_t *nodeLump, const lump_t *leafLump 
 	{
 		for (j=0 ; j<3 ; j++)
 		{
-			out->mins[j] = LittleLong (in->mins[j]);
-			out->maxs[j] = LittleLong (in->maxs[j]);
+			out->mins[j] = LittleLong (float)( (in->mins[j]) );
+			out->maxs[j] = LittleLong (float)( (in->maxs[j]) );
 		}
 	
 		p = LittleLong(in->planeNum);
@@ -1902,8 +1902,8 @@ static void R_LoadNodesAndLeafs( const lump_t *nodeLump, const lump_t *leafLump 
 	{
 		for (j=0 ; j<3 ; j++)
 		{
-			out->mins[j] = LittleLong (inLeaf->mins[j]);
-			out->maxs[j] = LittleLong (inLeaf->maxs[j]);
+			out->mins[j] = LittleLong (float)( (inLeaf->mins[j]) );
+			out->maxs[j] = LittleLong (float)( (inLeaf->maxs[j]) );
 		}
 
 		out->cluster = LittleLong(inLeaf->cluster);
@@ -2050,7 +2050,7 @@ static	void R_LoadPlanes( const lump_t *l ) {
 
 		out->dist = LittleFloat (in->dist);
 		out->type = PlaneTypeForNormal( out->normal );
-		out->signbits = bits;
+		out->signbits = (unsigned char)( bits );
 	}
 }
 
@@ -2156,9 +2156,9 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 
 		out->parms = shader->fogParms;
 
-		out->colorInt.rgba[0] = ( fogColor[0] * tr.identityLight ) * 255.0f;
-		out->colorInt.rgba[1] = ( fogColor[1] * tr.identityLight ) * 255.0f;
-		out->colorInt.rgba[2] = ( fogColor[2] * tr.identityLight ) * 255.0f;
+		out->colorInt.rgba[0] = (unsigned char)( ( fogColor[0] * tr.identityLight ) * 255.0f );
+		out->colorInt.rgba[1] = (unsigned char)( ( fogColor[1] * tr.identityLight ) * 255.0f );
+		out->colorInt.rgba[2] = (unsigned char)( ( fogColor[2] * tr.identityLight ) * 255.0f );
 		out->colorInt.rgba[3] = 255;
 
 		for ( n = 0; n < 4; n++ )
@@ -2221,9 +2221,9 @@ static void R_LoadLightGrid( const lump_t *l ) {
 	wMaxs = w->bmodels[0].bounds[1];
 
 	for ( i = 0 ; i < 3 ; i++ ) {
-		w->lightGridOrigin[i] = w->lightGridSize[i] * ceil( (double)(wMins[i] / w->lightGridSize[i]) );
-		maxs[i] = w->lightGridSize[i] * floor( (double)(wMaxs[i] / w->lightGridSize[i]) );
-		bounds[i] = (maxs[i] - w->lightGridOrigin[i])/w->lightGridSize[i] + 1;
+		w->lightGridOrigin[i] = (float)( w->lightGridSize[i] * ceil( (double)(wMins[i] / w->lightGridSize[i]) ) );
+		maxs[i] = (float)( w->lightGridSize[i] * floor( (double)(wMaxs[i] / w->lightGridSize[i]) ) );
+		bounds[i] = (unsigned int)( (maxs[i] - w->lightGridOrigin[i])/w->lightGridSize[i] + 1 );
 	}
 
 	if ( (uint64_t)bounds[0] * bounds[1] > INT_MAX ||
@@ -2459,7 +2459,7 @@ void RE_LoadWorldMap( const char *name ) {
 
 	tr.mapLoading = qfalse;
 
-	s_worldData.dataSize = (byte *)ri.Hunk_Alloc(0, h_low) - startMarker;
+	s_worldData.dataSize = (int)( (byte *)ri.Hunk_Alloc(0, h_low) - startMarker );
 
 	// only set tr.world now that we know the entire level has loaded properly
 	tr.world = &s_worldData;
