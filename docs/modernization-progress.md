@@ -22,7 +22,8 @@ and promote /we4018 on owned C++ sources. Signed/unsigned source fixes already
 landed in #90. All 85 sampled production objects preserve code/data (67 raw/native,
 18 debug-only), and all twelve GCC/Clang C/C++ helper hashes/layouts match
 post-formatter-native.json. Real MSVC W4 inventory exposes this class without
-warnings. Record the native-header GPL transformation, run full hosted gates,
+warnings. Source 464d4faa is recorded on the native header, preserving original
+GPL import hashes. Run full hosted gates,
 then self-review before merging. No arithmetic, allocation, OS access, lifetime,
 wire/file layout, accepted fixture or golden changes.
 
