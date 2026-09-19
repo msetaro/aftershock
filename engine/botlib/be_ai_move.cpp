@@ -3264,14 +3264,13 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 #endif //AVOIDREACH
 			} //end if
 #ifdef DEBUG
-			
-			else if (botDeveloper)
-			{
-				botimport.Print(PRT_MESSAGE, "goal not reachable\n");
-				Com_Memset(&reach, 0, sizeof(aas_reachability_t)); //make compiler happy
-			} //end else
 			if (botDeveloper)
 			{
+				if (!reachnum)
+				{
+					botimport.Print(PRT_MESSAGE, "goal not reachable\n");
+					Com_Memset(&reach, 0, sizeof(aas_reachability_t));
+				} //end if
 				//if still going for the same goal
 				if (ms->lastgoalareanum == goal->areanum)
 				{

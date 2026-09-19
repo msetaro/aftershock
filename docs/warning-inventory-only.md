@@ -5,3 +5,5 @@ Second diagnostic commit applies only the cache preview of 1,667 explicit implic
 Third diagnostic commit applies the v5 conversion preview, including RHS-first compound calculations, scalar/vector macros, and reviewed Windows/header/typedef paths. All 2,380 retained syntax configurations pass. Native helper verification and production comparisons remain mandatory; no merge for this branch.
 
 Fourth diagnostic commit measures the C4702-only preview. All 151 affected local syntax configurations pass and all four game helper hashes retain their baseline. C4244 and C4702 are errors for owned C++ sources in this diagnostic build. Never merge this branch.
+
+C4701 preview: put missing-reach initialization and debug diagnostic use under one botDeveloper guard; no release initialization. Promote C4701 for this diagnostic build.
