@@ -12,13 +12,21 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-unused-set-variables. #87 merged c7d69b57 after head ceb2681b
-passed build 35451584276 and regression 35451584289; self-review is recorded on
-#87/#8. Its merged-tree regression remains to check. Integration is merged here.
-#86 merged-tree regression 35451559386 passes. Open this unused-but-set-variable
-class PR and require full hosted gates/self-review before merging.
+Active: issue/8-cast-function-type, based on pending unused-variable PR #88 head
+5ebd6e4a. Require build 35451993616/regression 35451993498, self-review and merge,
+then integrate modernization before opening this separate Windows cast warning PR.
+#87 merged c7d69b57 after gates; merged-tree regression 35451971187 remains to
+check. #86 merged-tree regression 35451559386 passes.
 
-This branch enables unused-but-set-variable warnings in native production/helpers.
+This branch uses the existing platform conversion through void* at nine
+GetProcAddress bindings in four Windows source files. Function signatures and
+calls remain unchanged. The MinGW warning freeze is removed. All fifteen affected
+MinGW release/debug native objects retain identical hashes; actual-command controls
+fail before/pass after. All 861 MinGW syntax configurations pass. Artifacts:
+cast-function-{preview,objects,check}. No new OS calls, lifetime, allocation, layout,
+FP changes or accepted golden/fixture regeneration.
+
+Parent #88 enables unused-but-set-variable warnings in native production/helpers.
 Thirty-five declarations in eighteen GPL source files have maybe_unused attributes.
 All other source bytes remain unchanged: call counts (including clocks), floating
 point expressions, conditional uses and existing stores are preserved. All twelve
@@ -61,11 +69,12 @@ All 861 MinGW release/debug syntax configurations pass with the class enabled.
 No signature, call, layout or behavior changes. Artifacts: cast-function-{preview,objects}.
 
 Next:
-1. Open this class PR and require hosted gates/self-review before merging.
-2. Apply Windows cast-function-type in its separate class branch. Sign-compare
-   preview is underway: 386 locations inventoried; 364 explicit casts in 79 files
-   follow existing Clang integral conversions. Platform/macro cases and complete
-   validation remain; no signedness edits are applied to repository sources.
+1. Merge #88 after its hosted gates/self-review, integrate modernization, then
+   open this Windows class PR and require all hosted gates/self-review.
+2. Sign-compare preview: 383 edits in 86 files follow existing integral conversions,
+   with explicit handling for Windows and macros. The 2,380 syntax checks pass;
+   native helper/object gates and final review remain. This parent cast change is
+   carried into that preview. No signedness edits are applied to repository sources.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
    rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then
