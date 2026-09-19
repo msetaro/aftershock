@@ -452,7 +452,7 @@ if(MINGW OR MSVC)
   foreach(source IN LISTS compiled_sources)
     # Visual Studio cannot scope target options separately to C and C++.
     if(MSVC AND source MATCHES "^(engine|game)/.*\\.cpp$")
-      set_property(SOURCE "${source}" APPEND PROPERTY COMPILE_OPTIONS /we4644 /we4065 /we4267 /we4457 /we4459)
+      set_property(SOURCE "${source}" APPEND PROPERTY COMPILE_OPTIONS /we4644 /we4065 /we4267 /we4457 /we4459 /we4456)
     elseif(MINGW AND source MATCHES "\\.(c|cpp|s)$" AND NOT source MATCHES "^\\$<")
       set_property(SOURCE "${source}" APPEND PROPERTY COMPILE_OPTIONS "-frandom-seed=$<TARGET_PROPERTY:NAME>/${source}")
     endif()

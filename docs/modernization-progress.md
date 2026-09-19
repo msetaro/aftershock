@@ -12,25 +12,25 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-global-shadow. PR #95 merged 5e343bd5 after c071221e passed
-build 35456089595 and regression 35456089538; self-review is on #95/#8.
-Its merged-tree regression 35456678897 remains to check. #94 merged-tree regression
-35455583704 passes. #95 renamed seven local alpha tokens without changing any
-code/data: nine production objects (seven raw/native, two debug-only), all four
-final cgame helper hashes/layouts retained. Generated Visual Studio builds exposed
-a target-level option leak into vendored C; the corrected owned-C++ source
-properties pass all MSVC configurations and preserve all 358 GNU/361 MinGW
-compile commands. Warning promotions now belong in that source-property list.
+Active: issue/8-local-shadow. PR #96 merged 9cb1f313 after 0b7e3d4b passed
+build 35456778438 and regression 35456778431; self-review is on #96/#8.
+Its merged-tree regression remains to check. #95 merged-tree regression
+35456678897 passes. #96 global-shadow source af07f013 preserves all 30 production
+objects (24 raw/native, six debug-only) and all four final game helper hashes/layouts.
 
-Source af07f013 applies the prepared C4459 global-shadow renames in four files:
-unused Com_Error level, shotgun/muzzle vector locals, Vulkan uniform parameters,
-and framebuffer attachment locals. MSVC C4459 becomes an error. Thirty production
-objects preserve code/data (24 raw/native, six debug-only); four native game
-helper libraries/layouts retain hashes in preview. All four final edited-tree game helper hashes/layouts also match #94.
-Hosted gates remain to run. Source line counts and whitespace are retained.
-No FP expression, OS access, allocation, lifetime, layout, fixture or golden
-changes. Artifacts: global-shadow-* in persistent cache. Record source/provenance
-commits and final self-review before merging.
+This branch applies the C4456 local-shadow preview in three files: flat particle
+width/height, fog pipeline definition, Vulkan result/memory/descriptor locals.
+MSVC C4456 becomes an error on owned C++ sources. Nineteen production objects
+preserve code/data (15 raw/native, four debug-only); four cgame helper libraries
+retain preview hashes/layouts. All four final edited-tree cgame helper hashes/layouts match #94.
+Hosted gates remain to run. No FP expression, OS access, allocation, lifetime, layout, fixture or
+golden changes. Artifacts: local-shadow-* in persistent cache. Record source and
+GPL provenance, then hosted gates/self-review before merging.
+
+#95 merged 5e343bd5: seven local alpha token renames preserve nine production
+objects and four cgame helpers. Its generated-VS correction scopes promoted MSVC
+warnings to owned C++ source properties; all 358 GNU/361 MinGW commands were
+byte-identical. Add future warning promotions to that source-property list.
 
 Completed size conversions #94: source 3eaba64d/provenance 36d419dd records 53
 existing narrowing casts in 25 GPL files, with MSVC C4267 promoted to an error.
@@ -69,6 +69,13 @@ Prepared follow-up previews, not applied to the repository:
 - local-shadow C4456: three files, 19 production objects preserve code/data
   (15 raw/native, four debug-only); four native cgame libraries/layouts unchanged.
 Each preview has source changes, commands, objects and logs in persistent cache.
+Engine-size C4267 preview: 160 diagnosed lines in 45 C++ files, plus removal of
+one engine header suppression. The final preview preserves all 508 production
+objects (401 raw/native hashes, 107 debug-only). Casts follow complete original
+expressions; compound sums retain size_t arithmetic before the final conversion.
+An early text-wide preview incorrectly narrowed a same-text size_t assignment;
+the debug oracle caught it. Edits now address only diagnosed line numbers, and all
+objects pass. No repository source changes yet. Evidence: engine-size-*.
 Formatting preview: clang-format 21.1.8 touches 398 of 407 first-party C/C++/inc
 files, excluding assembly and generated shader_data.cpp. Eighteen stringifying
 macros are whitespace-sensitive. All 1,810 release assembly comparisons compile;
@@ -114,7 +121,8 @@ four inventory legs pass. Retained msvc-header-*.log and msvc-header-{inventory,
 unique}.json record 1,686 C4244 file/line sites, 160 C4267, 14 C4127, four C4201,
 one C4200, one C4324 and two ARM64 C4611 sites, plus the prepared shadow classes.
 The Debug-only extra C4456 occurrence is in VK_CHECK and is covered by the
-prepared macro-local rename. The inventory does not establish that currently
+prepared macro-local rename. Apple deprecation inventory 35457048020 passes from diagnostic commit c8029349 on the
+same unmergeable branch; MSVC inventory is not rerun. The inventory does not establish that currently
 quiet legacy pragmas are obsolete; consult diagnostics and test each removal.
 After the current shadow classes, inventory/remove applicable header suppressions
 by class before /WX; review obsolete C-only diagnostics and vendor-only scopes
@@ -122,8 +130,8 @@ separately. Do not claim unrestricted MSVC warnings yet. Preserve existing numer
 conversions, layouts and FP codegen; route actual behavior fixes through #31.
 
 Next:
-1. Finish the global-shadow class, then the prepared local-shadow class. Verify
-   #95 merged-tree regression; finish each class with hosted gates/self-review.
+1. Finish local-shadow hosted gates/self-review and verify #96 merged-tree
+   regression. Then apply the verified engine-size C4267 preview in its own PR.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in

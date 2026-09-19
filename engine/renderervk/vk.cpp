@@ -274,9 +274,9 @@ static const char *vk_result_string( VkResult code ) {
 #undef CASE_STR
 
 #define VK_CHECK( function_call ) { \
-	VkResult res = function_call; \
-	if ( res < 0 ) { \
-		ri.Error( ERR_FATAL, "Vulkan: %s returned %s", #function_call, vk_result_string( res ) ); \
+	VkResult vkCheckResult = function_call; \
+	if ( vkCheckResult < 0 ) { \
+		ri.Error( ERR_FATAL, "Vulkan: %s returned %s", #function_call, vk_result_string( vkCheckResult ) ); \
 	} \
 }
 
@@ -4012,25 +4012,25 @@ void vk_initialize( void )
 
 	// get memory size & defaults
 	{
-		VkPhysicalDeviceMemoryProperties props;
+		VkPhysicalDeviceMemoryProperties memoryProps;
 		VkDeviceSize maxDedicatedSize = 0;
 		VkDeviceSize maxBARSize = 0;
-		qvkGetPhysicalDeviceMemoryProperties( vk.physical_device, &props );
-		for ( i = 0; i < props.memoryTypeCount; i++ ) {
-			if ( props.memoryTypes[i].propertyFlags == VK_MEMORY_HEAP_DEVICE_LOCAL_BIT ) {
-				maxDedicatedSize = props.memoryHeaps[props.memoryTypes[i].heapIndex].size;
+		qvkGetPhysicalDeviceMemoryProperties( vk.physical_device, &memoryProps );
+		for ( i = 0; i < memoryProps.memoryTypeCount; i++ ) {
+			if ( memoryProps.memoryTypes[i].propertyFlags == VK_MEMORY_HEAP_DEVICE_LOCAL_BIT ) {
+				maxDedicatedSize = memoryProps.memoryHeaps[memoryProps.memoryTypes[i].heapIndex].size;
 			}
-			else if ( props.memoryTypes[i].propertyFlags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT ) {
-				if ( maxDedicatedSize == 0 || props.memoryHeaps[props.memoryTypes[i].heapIndex].size > maxDedicatedSize ) {
-					maxDedicatedSize = props.memoryHeaps[props.memoryTypes[i].heapIndex].size;
+			else if ( memoryProps.memoryTypes[i].propertyFlags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT ) {
+				if ( maxDedicatedSize == 0 || memoryProps.memoryHeaps[memoryProps.memoryTypes[i].heapIndex].size > maxDedicatedSize ) {
+					maxDedicatedSize = memoryProps.memoryHeaps[memoryProps.memoryTypes[i].heapIndex].size;
 				}
 			}
-			if ( props.memoryTypes[i].propertyFlags == (VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) ) {
-				maxBARSize = props.memoryHeaps[props.memoryTypes[i].heapIndex].size;
+			if ( memoryProps.memoryTypes[i].propertyFlags == (VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) ) {
+				maxBARSize = memoryProps.memoryHeaps[memoryProps.memoryTypes[i].heapIndex].size;
 			}
-			else if ( (props.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) == (VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) ) {
+			else if ( (memoryProps.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) == (VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) ) {
 				if ( maxBARSize == 0 ) {
-					maxBARSize = props.memoryHeaps[props.memoryTypes[i].heapIndex].size;
+					maxBARSize = memoryProps.memoryHeaps[memoryProps.memoryTypes[i].heapIndex].size;
 				}
 			}
 		}
@@ -4220,7 +4220,7 @@ void vk_initialize( void )
 	{
 		VkDescriptorPoolSize pool_size[3];
 		VkDescriptorPoolCreateInfo desc;
-		uint32_t i, maxSets;
+		uint32_t poolIndex, maxSets;
 
 		pool_size[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		pool_size[0].descriptorCount = MAX_DRAWIMAGES + 1 + 1 + 1 + VK_NUM_BLOOM_PASSES * 2; // color, screenmap, bloom descriptors
@@ -4234,8 +4234,8 @@ void vk_initialize( void )
 		pool_size[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 		pool_size[2].descriptorCount = 1;
 
-		for ( i = 0, maxSets = 0; i < ARRAY_LEN( pool_size ); i++ ) {
-			maxSets += pool_size[i].descriptorCount;
+		for ( poolIndex = 0, maxSets = 0; poolIndex < ARRAY_LEN( pool_size ); poolIndex++ ) {
+			maxSets += pool_size[poolIndex].descriptorCount;
 		}
 
 		desc.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
