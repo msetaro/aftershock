@@ -7,14 +7,13 @@ and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
 
 ## Next action
 
-Active: issue/8-missing-initializers, based on pending unused-parameter PR #84
-head 5623e8fe. Its original regression passed, but the Windows debug build found
-six callback parameters missing annotations. The correction is integrated here;
-full local MinGW debug build and callback codegen pass. Require fresh hosted
-gates and self-review before #84 merges, then integrate modernization before
-opening this separate initializer class PR.
-#83 merged 16b7d6d6 after build 35449378669/regression 35449378735 passed; its
-merged-tree run 35449777481 remains to check.
+Active: issue/8-missing-initializers. Parent #84 merged 5c2ce6be after corrected
+head 5623e8fe passed build 35450198604 and regression 35450198615; self-review is
+recorded on #84/#8. Its merged-tree regression remains to check. Integration is
+merged into this branch. #83 merged-tree regression 35449777481 passes.
+Full local MinGW debug Vulkan client/server build also passes for this initializer
+branch (missing-initializers-mingw-debug.log in the persistent cache). Open its
+separate draft PR, require hosted gates and self-review before merging.
 
 This branch enables missing-field-initializer warnings. Fifteen source files use
 empty aggregate initialization or explicit zero members/sentinels. Static allocator
@@ -32,8 +31,8 @@ missing-initializers-{objects,native,check} under the persistent cache.
 
 Next:
 1. Source 708b7114 and provenance 3e42dfc6 are recorded. The explicit DWORD cast
-   preserves both reviewed MinGW native objects. Complete self-review and merge #84 after gates,
-   integrate modernization, then open this class PR. Require full hosted gates.
+   preserves both reviewed MinGW native objects. Parent #84 is merged; open this
+   class PR and require full hosted gates before final self-review/merge.
 2. Finish array-bounds and unused-result reviews, then the remaining classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
