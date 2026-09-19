@@ -4507,7 +4507,7 @@ CL_LocalServers_f
 ==================
 */
 static void CL_LocalServers_f( void ) {
-	char		*message;
+	const char	*message;
 	int			i, j, n;
 	netadr_t	to;
 
