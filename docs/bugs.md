@@ -49,8 +49,18 @@ Com_sprintf test-first commit b3c44459 adds `python3 tests/format.py`: the old
 implementation fails with ASan before its guard, while normal text, destination
 truncation and in-place formatting pass. Bounding the shared temporary with
 Q_vsnprintf (engine) / vsnprintf (native game) makes all six GCC/Clang C/C++
-variants pass under ASan/UBSan. Hosted gates and merge remain pending; the va
-defect is separate and still unfixed. No accepted golden changes.
+variants pass under ASan/UBSan. PR #99 merged 1a20f502 after build 35457958368 and regression 35457958406 passed.
+Fixed Q3 replay retains b38004b1. The va defect is separate and still unfixed; its
+permanent test extension preserves valid lengths/rotation and reproduces global
+overflow in engine C++, game C and game C++. No accepted golden changes.
+
+The va test-first commit 9150f6e9 extends `tests/format.py` with valid output,
+two-slot rotation and the boundary reproducer. Both real implementations fail
+under ASan before the fix. Bounded Q_vsnprintf/vsnprintf calls now reject output
+that does not fit the selected slot. Decision: report ERR_FATAL, consistent with
+Com_sprintf, rather than returning truncated filenames/commands. All six GCC/Clang
+engine C++ and native C/C++ ASan+UBSan variants pass; hosted gates/merge remain
+pending. No accepted fixtures or goldens changed.
 
 ## Historical observations and validation
 

@@ -12,27 +12,26 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/31-sprintf-capacity. #8 is paused for the reproduced shared
-formatter defect. PR #98 merged e1275f3e after 3dc4574c passed build 35457506798
-and regression 35457506809; self-review is on #98/#8. Its merged-tree regression
-remains to check. #97 merged-tree regression 35457454325 and #96 run 35457079347
-pass. The engine-size change preserves all 508 production objects (401 raw/native,
-107 debug-only) and promotes engine C4267 without changing existing conversions.
+Active: issue/31-va-capacity. #8 is paused for the second reproduced formatter
+bug. PR #99 merged 1a20f502 after 00ad40a8 passed build 35457958368 and regression
+35457958406; self-review is on #99/#31. Its merged-tree regression remains to
+check. #98 merged-tree regression 35457856345 passes.
 
-The test-first Com_sprintf probe covers 0/1/31/31999-character text, destination
-truncation, overlapping input/output and the 32000-character temporary boundary.
-Valid cases pass for engine C++, game C and game C++; the boundary fails in all
-three with ASan stack-buffer-overflow before the existing error guard. Evidence:
-format-test-before.json and format-test-before-*-overflow.log in persistent cache.
-The first draft's post-NUL canary assumed identical padding; it was corrected to
-check outside the supplied destination capacity because native Q_strncpyz pads.
-Test-first commit b3c44459 fails before the fix (sprintf-before.log).
-Source c5e4a555 bounds the temporary write with Q_vsnprintf/vsnprintf;
-existing error guards, destination truncation and in-place behavior remain.
-All six GCC/Clang engine C++/game C/game C++ ASan+UBSan variants pass. Record GPL
-provenance, run full hosted gates and self-review before merging. #98 merged-tree
-regression 35457856345 remains to check. Fix va's distinct static-slot overflow
-in its own #31 PR next; resume #8 afterwards. No accepted golden changes.
+#99 test-first b3c44459 and fix c5e4a555 bound Com_sprintf's temporary writes.
+All six GCC/Clang engine C++/game C/game C++ ASan+UBSan variants pass. Fixed Q3
+replay retains b38004b1; no accepted golden changes. Provenance is recorded.
+
+The va test extension verifies valid lengths, formatting and two-slot rotation,
+then formats a 32000-character input twice. Cache probes pass valid cases in all
+three modes and reproduce ASan global-buffer-overflow (va-test-before.json).
+Test-first commit 9150f6e9 fails with ASan global-buffer-overflow before the fix.
+Source bdbc5e9c bounds each slot write with Q_vsnprintf/vsnprintf and rejects oversized
+or failed formatting through Com_Error(ERR_FATAL), matching Com_sprintf's error
+policy. Valid text and slot rotation remain unchanged. All six GCC/Clang engine
+C++/game C/game C++ ASan+UBSan variants pass. Record source/provenance, run hosted
+gates and self-review, then merge. #99 merged-tree regression 35458322765 remains
+to check. Resume #8 warning classes, format/tidy/layout/assert rules and #6 design
+only afterwards. No accepted fixtures or goldens changed.
 
 #97 local-shadow source 91a4341b preserves 19 production objects (15 raw/native,
 four debug-only) and all four edited-tree cgame helper hashes/layouts. #96 global
@@ -101,6 +100,19 @@ expressions; compound sums retain size_t arithmetic before the final conversion.
 An early text-wide preview incorrectly narrowed a same-text size_t assignment;
 the debug oracle caught it. Edits now address only diagnosed line numbers, and all
 objects pass. The verified preview is now applied on this branch. Evidence: engine-size-*.
+Additional C4200 preview, not applied: remove the nonstandard trailing flexible
+member from pcx_t, assert its unchanged 128-byte header size, and use the address
+immediately after the header for its payload. Nine production objects preserve
+code/data (seven raw/native, two debug-only). No parsing behavior changes or new
+test target. Remove the header suppression and add owned-source /we4200 only in
+its eventual #8 PR. Artifacts: flex-array-preview, flex-array-objects/review.json.
+C4127 preview, not applied: literal true loops, false disabled branches,
+constexpr endian check, and compile-time glconfig size checks; remove both shared
+header suppressions. 73 objects: 56 raw/native, 14 debug-only, three debug codec
+objects still need instruction review. The first constexpr-false branch preview
+made HSVtoRGB unneeded under Clang; plain literal false preserves its existing
+reference. MSVC's documented trivial-constant exemption covers this form; require
+hosted confirmation. Artifacts: constant-condition-preview/objects/review.json.
 Formatting preview: clang-format 21.1.8 touches 398 of 407 first-party C/C++/inc
 files, excluding assembly and generated shader_data.cpp. Eighteen stringifying
 macros are whitespace-sensitive. All 1,810 release assembly comparisons compile;
@@ -173,10 +185,10 @@ is prepared for Com_sprintf valid/boundary coverage; commit its failing test
 before applying the fix. Add permanent tests before fixes in separate
 #31 PRs; no engine fix is included in #8.
 
-1. Finish the Com_sprintf #31 test-first fix, gates and self-review. Verify #98
+1. Finish the va #31 test-first fix, gates and self-review. Verify #99
    merged-tree regression.
-2. Fix the two reproduced formatter defects in separate test-first #31 PRs.
-   Then finish Apple deprecations and MSVC warning classes /WX.
+2. Resume Apple deprecations and MSVC warning classes /WX. The C4200 preview
+   is verified; finish reviewing the C4127 preview before its own PR.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
    force; finish #8, write design-only docs/design/rhi.md for #6, then stop.

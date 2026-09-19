@@ -25,10 +25,12 @@ for name, directory, compiler, mode, defines in (
          '-fno-omit-frame-pointer', '-ffunction-sections', '-fdata-sections',
          '-I' + directory, directory + '/q_shared.cpp', 'tests/probes/format.cpp',
          '-Wl,--gc-sections', '-lm', '-o', binary])
-    run([binary, 'valid'])
-    result = subprocess.run([binary, 'overflow'], cwd=ROOT, env=ENV,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    if result.returncode != 42 or result.stdout:
-        raise SystemExit(f'FAIL: {name} must reject oversized formatting before writing: '
-                         f'exit {result.returncode}\n{result.stdout}')
-    print('PASS:', name, 'formatting preserves valid text and rejects temporary overflow')
+    for case in ('valid', 'va-valid'):
+        run([binary, case])
+    for case in ('overflow', 'va-overflow'):
+        result = subprocess.run([binary, case], cwd=ROOT, env=ENV,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        if result.returncode != 42 or result.stdout:
+            raise SystemExit(f'FAIL: {name} {case} must reject oversized formatting before writing: '
+                             f'exit {result.returncode}\n{result.stdout}')
+    print('PASS:', name, 'shared formatting preserves valid text and rejects capacity overflow')

@@ -1762,12 +1762,12 @@ va
 
 does a varargs printf into a temp buffer, so I don't need to have
 varargs versions of all text functions.
-FIXME: make this buffer size safe someday
 ============
 */
 const char *QDECL va( const char *format, ... )
 {
 	char	*buf;
+	int		len;
 	va_list		argptr;
 	static int	index = 0;
 	static char	string[2][32000];	// in case va is called by nested functions
@@ -1776,8 +1776,11 @@ const char *QDECL va( const char *format, ... )
 	index ^= 1;
 
 	va_start( argptr, format );
-	vsprintf( buf, format, argptr );
+	len = Q_vsnprintf( buf, sizeof( string[0] ), format, argptr );
 	va_end( argptr );
+
+	if ( (size_t)len >= sizeof( string[0] ) || len < 0 )
+		Com_Error( ERR_FATAL, "va: overflowed buffer" );
 
 	return buf;
 }
