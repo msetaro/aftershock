@@ -15,17 +15,22 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-msvc-typedef. PR #116 head 8b50fc5e passed build 35467867164
-and regression 35467867131 and merged as 193bc139 after self-review. Check its
-merged-tree regression. PR #115 merged-tree regression 35467863736 passes.
+Active: issue/8-msvc-c4032. Removes only C4032 suppression and promotes it on owned C++ sources.
+No declarations, expressions, allocation, OS access, lifetime or layout changes.
+92 sampled objects preserve code/data (82 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4032-object-review.json and msvc-c4032-native.json.
+Native GPL provenance retains original import hashes. No accepted golden changes.
+Run full hosted gates and self-review before merge; then continue the remaining
+MSVC suppression classes, strict MSVC policy, and the rest of #8.
+Previous PR #117 merged as 981c534d; verify its merged-tree regression.
 
-Applied msvc-typedef-preview: remove only C4091 ignored-typedef suppression from
-the engine shared header and promote /we4091 on owned C++ sources. No declarations
-or expressions change. All 85 sampled objects preserve code/data (77 raw/native,
-8 debug-only; msvc-typedef-object-review.json), and all twelve helper hashes/layouts
-retain the baseline. Run hosted gates, then self-review before merging.
-Next: C4032 suppression in the native shared and platform GL headers, followed by
-C4051, C4115, C4136, C4214, C4514 and C4711, each in its own PR.
+
+## Recent MSVC merges
+
+PR #117 C4091: head ad768fe4 merged 981c534d. Build 35468827516 and
+regression 35468827553 pass after self-review. Preceding merged-tree regression
+35468824605 passes. 85 sampled objects (77 raw/native, 8 debug-only) preserve
+code/data; twelve helper hashes/layouts match. Evidence: msvc-typedef-*.
 
 Merged C4206 evidence: PR #116 head 8b50fc5e removes the engine suppression and
 promotes /we4206. All 85 sampled objects preserve code/data (77 raw/native,
