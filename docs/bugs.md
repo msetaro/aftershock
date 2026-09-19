@@ -829,3 +829,30 @@ reader across all five consumers; 0/6 remain invalid sentinels while valid
 fractions still truncate as before. Both sanitized paths pass; native C/C++
 layout/symbol gates pass. Unit/collision regeneration, Q3 smoke and fixed replay
 are unchanged. No expectation/suppression entry applies. Hosted gates pending.
+
+## Team-message formatter result (#31, found during #8)
+
+PrintMsg uses an unbounded formatter and compares its returned length with `>`
+instead of accounting for the terminator at the capacity boundary. The test-first
+`python3 tests/team_message.py` invokes the real function with small ordinary text,
+substitutes formatter return values, and captures dispatch/error routing. It never
+makes an oversized write. The pre-fix full-capacity result incorrectly dispatches
+and exits 0 instead of taking the existing error path (exit 42 in the probe).
+Valid text, fitting-result and formatter-error controls behave as expected.
+
+Pending fix: pass the actual capacity to vsnprintf, finish va_end, then reject a
+negative result or a required length at/above capacity. Preserve quote replacement,
+broadcast routing and the existing PrintMsg overrun error. No suppression or
+expected-UBSan entry is needed for this contract check; no golden regeneration.
+
+## Native diagnostic output capacity (#31, queued separately)
+
+Twelve active native diagnostic formatters in g_main, cg_main, ui_atoms and ai_main
+do not pass their output capacity to the formatting library. A small-text capacity
+and routing probe fails all twelve pre-fix contracts; a cached bounded candidate
+passes 24 GCC/Clang ASan/UBSan checks. Evidence is native-diagnostic-before.json and
+native-diagnostic-preview/{changes,results}.json in the modernization cache.
+The separate test-first fix will truncate to the existing buffer/remainder capacity,
+retain error routing and the seven-byte log prefix offset, and run all gates.
+No such fix is included with PrintMsg. The two unused native parser diagnostics
+are a separate #8 deletion. All work remains in msetaro/aftershock.
