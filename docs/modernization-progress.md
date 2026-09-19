@@ -15,13 +15,14 @@ upstream; historical upstream PR references below are completed past work.
 Active: issue/8-size-conversion. #93 merged 3756ddf4 after a5e141d9 passed build
 35454690977 and regression 35454690919; self-review is recorded on #93/#8.
 Its merged-tree regression remains to check. #92 merged-tree regression
-35454621959 passes. Record GPL provenance, verify edited-tree helper hashes and
-open this MSVC C4267 class PR; require hosted gates/self-review before merging.
+35454621959 passes. Source 3eaba64d and all 25 GPL provenance entries are recorded. All twelve edited-tree
+helper hashes/layouts reproduce the reviewed results. Open this MSVC C4267 PR; require hosted gates/self-review before merging.
 
 This branch makes 53 existing size_t-to-int narrowing conversions explicit in
 25 GPL game files and promotes MSVC C4267 to an error. Casts surround complete
 original expressions, retaining the original arithmetic type and result bits.
 The shared qsort swap macro keeps the same narrowing at its int argument.
+Three touched trailing spaces/tabs are removed (ui_connect twice, ui_mfield once).
 
 All 269 affected production objects preserve code/data: 211 raw/native hashes
 match and 58 differ only in debug metadata. All twelve GCC/Clang C/C++ native
@@ -90,8 +91,8 @@ C4267 234, C4459 38, C4456 28, C4065 15, C4457 3, C4644 3. Review each class
 before enabling its error gate, then /WX. Local tools include clang-query-21.
 
 Next:
-1. Finish size-conversion provenance/edited-tree helper checks/PR, require hosted
-   gates/self-review and merge. Verify #93 merged-tree regression. Continue the
+1. Open the size-conversion PR, require hosted gates/self-review and merge.
+   Verify #93 merged-tree regression 35455087090. Continue the
    three prepared shadow classes, then Apple deprecations and MSVC /WX.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
