@@ -12,90 +12,45 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-sign-compare. #89 merged d2fc1782 after head a2a8f973 passed
-build 35452451335 and regression 35452451212; self-review is recorded on #89/#8.
-Its merged-tree regression remains to check. Integration is merged here. #88
-merged-tree run 35452425588 is checked below/at handoff. Open this separate signedness
-class PR and require full hosted gates/self-review before merging.
+Active: issue/8-write-strings. #90 merged f3f2ce83 after head d7e3ecc2 passed
+build 35452882116 and regression 35452882090; self-review is recorded on #90/#8.
+Its merged-tree regression remains to check. #89 merged-tree regression
+35452853439 passes. Complete local smoke/replay and self-review, then open this
+separate constness warning PR and require full hosted gates before merging.
 
-This branch contains 412 signedness edits across 91 source files. Explicit casts
-follow the original integral conversions; compound arithmetic remains inside the
-cast so it evaluates in its original type. Platform-dependent unsigned widths
-use existing typedefs or decltype. Twenty-nine C-only enum equality diagnostics
-use enum-to-int casts; both 32-bit equality representations and C++ promotions are
-preserved. Ordered enum comparisons are not changed. The last native helper freeze
-is removed with its now-unused JSON/configuration logic; production signedness
-warnings are enabled. Six already-touched lines lose existing trailing spaces.
-Source 70b1f0b6 is recorded for 15 GPL files; original import hashes remain.
+This branch enables string-constness warnings through sixteen declarations/fields
+across thirteen engine files. Logging formats, expected tokens, directive names,
+RIFF chunk names, display labels and the local-server message are read-only.
+CommaParse and NET_ErrorString return const char*: their existing callers only
+read the returned strings. Function bodies, calls, strings and layouts stay intact;
+no new casts, OS calls, allocation, non-trivial lifetimes or FP changes.
 
-Final local validation: all 2,667 syntax configurations pass, including MinGW
-debug. Of 905 production objects, 755 retain raw/native hashes and 150 differ only
-in debug sections; code and data match throughout. All twelve native helper builds
-and ABI layouts pass; ten libraries retain raw hashes. GCC C game/UI differ only
-in Pickup_Team (reuse the team register), PrintTeam (independent moves), SetLeader
-and GraphicsOptions_MenuDraw (reversed equality comparisons). Calls, comparison
-values and equality branches are unchanged; subsequent comparisons/flag-setting
-instructions replace flags before other conditions. No added/removed functions.
-Persistent artifacts: sign-compare-{preview,final-check,objects,extra-objects,
-final-review.json,native.json,native-review.json}; per-library diffs are retained.
-No FP expressions, new OS access, allocation, lifetime/layout or accepted fixture
-changes. No golden regeneration. Actual repository helper builds after removing the final
-freeze configuration reproduce all twelve reviewed library hashes.
+Local validation: all 2,667 syntax configurations pass. Of 578 checked production
+objects, 310 retain raw/native hashes; 214 match after removing only debug sections
+and normalizing six approved const-parameter manglings. The remaining 54 MinGW
+objects have identical section headers/bytes, named relocations and symbol values
+with only COFF symbol ordering changed. Code/data is preserved throughout. All
+botlib sources were compared to cover the changed internal headers. Persistent
+artifacts: write-strings-{preview,check,objects,symbol-map.json,review.json,
+coff-review.json}. Existing runtime/demo commands are next; never regenerate.
 
-Parent #89 uses the existing platform conversion through void* at nine
-GetProcAddress bindings in four Windows source files. Function signatures and
-calls remain unchanged. The MinGW warning freeze is removed. All fifteen affected
-MinGW release/debug native objects retain identical hashes; actual-command controls
-fail before/pass after. All 861 MinGW syntax configurations pass. Artifacts:
-cast-function-{preview,objects,check}. No new OS calls, lifetime, allocation, layout,
-FP changes or accepted golden/fixture regeneration.
+Completed signedness #90 evidence: source 70b1f0b6/provenance 4a96ca16 records
+412 edits in 91 files (15 GPL files). All 2,667 syntax configurations pass. Of
+905 production objects, 755 are raw/native-identical and 150 differ only in debug
+sections. Ten native helper libraries retain hashes; GCC C game/UI differ only in
+reviewed register reuse, independent moves and equality operand ordering in four
+functions. All twelve edited-tree helper builds reproduce reviewed hashes/layouts.
+The final helper warning freeze and its reader were removed. No FP expression or
+accepted fixture/golden changes. Artifacts: sign-compare-* in persistent cache.
 
-Parent #88 enables unused-but-set-variable warnings in native production/helpers.
-Thirty-five declarations in eighteen GPL source files have maybe_unused attributes.
-All other source bytes remain unchanged: call counts (including clocks), floating
-point expressions, conditional uses and existing stores are preserved. All twelve
-native helper libraries retain hashes/layouts. Of 160 production objects, 146 are
-raw/native-identical and fourteen differ only in debug sections. Source 93d334db
-and GPL provenance 91c38c85 record all eighteen imported files.
-
-Eight existing console write calls bind their results to maybe_unused const auto
-locals. All calls, arguments and best-effort output behavior remain unchanged;
--Wno-unused-result is removed from production. Thirteen actual production objects
-checked: nine GCC/Clang release/ARM64 objects retain raw hashes; four GCC debug
-objects add unused result stores/stack slots in tty_Back, tty_Show, Sys_ConsoleInput
-and Sys_Print. No functions added/removed. Actual GCC release and ARM64 commands
-fail before/pass after. Persistent evidence: unused-result-preview/results.json
-and per-object functions.diff. No new OS calls, FP changes, allocation, non-trivial
-destructors, layout changes or golden/fixture regeneration.
-
-#86 local evidence: nine affected production objects reviewed; two Clang raw
-matches and GCC/MinGW equivalent member-base/index calculations. All twelve native
-helper builds/layouts pass, ten raw hashes match; two GCC UI libraries differ only
-in those address calculations. GCC/Clang UI skill ASan/UBSan checks pass, fixed Q3
-replay on both software renderers retains b38004b1. Source 1c82acae, provenance
-81d4315d. Persistent artifacts array-bounds-{preview,native,ui-gcc,ui-clang,demo}.
-
-Unused-but-set-variable validation: 35 declarations in
-18 files annotated to preserve all calls, FP evaluations and conditional uses.
-All other source bytes remain unchanged. All twelve GCC/Clang C/C++ native helper
-libraries retain raw hashes and ABI layouts, including eight vector locals only
-reported by the GCC C helper. Final object review: 146/160 raw/native-identical;
-remaining fourteen differ only in debug sections. Initial 858 syntax configurations
-passed; final additional sources pass actual compilation and helper gates.
-Artifacts: unused-set-{inventory,preview,check,objects,extra-objects,native} and
-unused-set-final-review.json in the persistent cache.
-
-Windows cast-function-type preview is separate and not applied: nine GetProcAddress
-conversions in four platform files use the existing two-stage conversion through
-void*, as already used by the AVRT bindings. Fifteen MinGW release/debug native
-objects retain identical bytes; actual-command controls fail before/pass after.
-All 861 MinGW release/debug syntax configurations pass with the class enabled.
-No signature, call, layout or behavior changes. Artifacts: cast-function-{preview,objects}.
+MSVC inventory from #90 release x64 job 105922991488 (msvc-sign-release.log):
+C4267 234, C4459 38, C4456 28, C4065 15, C4457 3, C4644 3. Review each class
+before enabling its error gate, then /WX. Local tools include clang-query-21.
 
 Next:
-1. Source 70b1f0b6/GPL provenance 4a96ca16 is recorded. Open this signedness
-   class PR and require hosted gates and final self-review before merging.
-2. Finish write-strings, Apple deprecations and MSVC warning classes /WX.
+1. Finish local runtime/demo, record source and results, open this class PR and
+   require hosted gates/self-review before merging.
+2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
    force; finish #8, write design-only docs/design/rhi.md for #6, then stop.

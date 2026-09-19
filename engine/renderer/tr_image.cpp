@@ -1529,7 +1529,7 @@ This is unfortunate, but the skin files aren't
 compatible with our normal parsing rules.
 ==================
 */
-static char *CommaParse( const char **data_p ) {
+static const char *CommaParse( const char **data_p ) {
 	int c, len;
 	const char *data;
 	static char com_token[ MAX_TOKEN_CHARS ];

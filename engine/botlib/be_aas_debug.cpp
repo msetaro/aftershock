@@ -545,7 +545,7 @@ void AAS_DrawCross(vec3_t origin, float size, int color)
 void AAS_PrintTravelType(int traveltype [[maybe_unused]])
 {
 #ifdef DEBUG
-	char *str;
+	const char *str;
 	//
 	switch(traveltype & TRAVELTYPE_MASK)
 	{

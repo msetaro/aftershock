@@ -57,7 +57,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //directive name with parse function
 typedef struct directive_s
 {
-	char *name;
+	const char *name;
 	int (*func)(source_t *source);
 } directive_t;
 
@@ -2723,7 +2723,7 @@ int PC_ReadToken(source_t *source, token_t *token)
 // Returns:					-
 // Changes Globals:		-
 //============================================================================
-int PC_ExpectTokenString(source_t *source, char *string)
+int PC_ExpectTokenString(source_t *source, const char *string)
 {
 	token_t token;
 
@@ -2818,7 +2818,7 @@ int PC_ExpectAnyToken(source_t *source, token_t *token)
 // Returns:					-
 // Changes Globals:		-
 //============================================================================
-int PC_CheckTokenString(source_t *source, char *string)
+int PC_CheckTokenString(source_t *source, const char *string)
 {
 	token_t tok;
 

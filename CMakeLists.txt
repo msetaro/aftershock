@@ -249,7 +249,7 @@ if(MSVC)
   string(REPLACE "/GR" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 
-set(CXX_WARNINGS -Wall -Wextra -Werror -Wtype-limits -Wno-write-strings)
+set(CXX_WARNINGS -Wall -Wextra -Werror -Wtype-limits)
 set(NATIVE_WARNINGS -Wall -Wextra -Werror)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   list(APPEND NATIVE_WARNINGS)

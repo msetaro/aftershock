@@ -83,7 +83,7 @@ S_FindRIFFChunk
 Returns the length of the data in the chunk, or -1 if not found
 =================
 */
-static int S_FindRIFFChunk( fileHandle_t f, char *chunk ) {
+static int S_FindRIFFChunk( fileHandle_t f, const char *chunk ) {
 	char	name[5];
 	int		len;
 

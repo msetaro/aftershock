@@ -224,7 +224,7 @@ static void	NET_Restart_f( void );
 NET_ErrorString
 ====================
 */
-static char *NET_ErrorString( void ) {
+static const char *NET_ErrorString( void ) {
 #ifdef _WIN32
 	//FIXME: replace with FormatMessage?
 	switch( socketError ) {
