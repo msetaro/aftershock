@@ -23,8 +23,11 @@ local production objects remain raw/native-identical; real MSVC x64/ARM64 contro
 confirm the bare call fails and the annotation passes. No exception-model change.
 
 Applied the reviewed narrowing-v5-preview to 174 source/header files and promoted
-C4244 on owned C++ sources, removing both inherited C4244 suppressions. Record
-source/GPL provenance, run all hosted gates, then self-review before merging.
+C4244 on owned C++ sources, removing both inherited C4244 suppressions. Source
+6709136c records the change; original GPL import hashes are retained with this
+transformation attached to all 70 changed native files. Only inherited trailing
+whitespace on 58 touched lines was trimmed after preview verification. Run all
+hosted gates, then self-review before merging.
 All conversions remain at their original arithmetic boundaries; RHS temporaries
 preserve compound-assignment evaluation order where needed. No dynamic allocation,
 new OS calls, non-trivial lifetime or wire/file layout change. Accepted fixtures
