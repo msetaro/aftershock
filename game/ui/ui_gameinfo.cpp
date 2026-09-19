@@ -124,7 +124,7 @@ int UI_ParseInfos( char *buf, int max, char *infos[] ) {
 			Info_SetValueForKey( info, key, token );
 		}
 		//NOTE: extra space for arena number
-		infos[count] = (char *)UI_Alloc(strlen(info) + strlen("\\num\\") + strlen(va((char *)"%d", MAX_ARENAS)) + 1);
+		infos[count] = (char *)UI_Alloc((int)( strlen(info) + strlen("\\num\\") + strlen(va((char *)"%d", MAX_ARENAS)) + 1 ));
 		if (infos[count]) {
 			strcpy(infos[count], info);
 			count++;
@@ -192,7 +192,7 @@ static void UI_LoadArenas( void ) {
 	numdirs = trap_FS_GetFileList("scripts", ".arena", dirlist, 1024 );
 	dirptr  = dirlist;
 	for (i = 0; i < numdirs; i++, dirptr += dirlen+1) {
-		dirlen = strlen(dirptr);
+		dirlen = (int)( strlen(dirptr) );
 		strcpy(filename, "scripts/");
 		strcat(filename, dirptr);
 		UI_LoadArenasFromFile(filename);
@@ -379,7 +379,7 @@ static void UI_LoadBots( void ) {
 	numdirs = trap_FS_GetFileList("scripts", ".bot", dirlist, 1024 );
 	dirptr  = dirlist;
 	for (i = 0; i < numdirs; i++, dirptr += dirlen+1) {
-		dirlen = strlen(dirptr);
+		dirlen = (int)( strlen(dirptr) );
 		strcpy(filename, "scripts/");
 		strcat(filename, dirptr);
 		UI_LoadBotsFromFile(filename);

@@ -12,24 +12,35 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-default-switch. #92 merged 171aae59 after cf4f6f1e passed build
-35454263836 and regression 35454263796; self-review is recorded on #92/#8.
-Its merged-tree regression remains to check. #91 merged-tree regression
-35454219335 passes. Source f9dbcb07 and its UI provenance are recorded. Open this MSVC C4065 PR;
-require all hosted gates/self-review before merging.
+Active: issue/8-size-conversion. #93 merged 3756ddf4 after a5e141d9 passed build
+35454690977 and regression 35454690919; self-review is recorded on #93/#8.
+Its merged-tree regression remains to check. #92 merged-tree regression
+35454621959 passes. Source 3eaba64d and all 25 GPL provenance entries are recorded. All twelve edited-tree
+helper hashes/layouts reproduce the reviewed results. Open this MSVC C4267 PR; require hosted gates/self-review before merging.
 
-This branch removes default-only switch wrappers from two AAS trace paths and
-the UI status callback. Their unconditional statements and FP expressions remain
-unchanged; the unused callback parameter is marked maybe_unused. Disabled axial
-cases are replaced by their existing rationale: planes are not always positive-
-facing. MSVC C4065 becomes an error.
+This branch makes 53 existing size_t-to-int narrowing conversions explicit in
+25 GPL game files and promotes MSVC C4267 to an error. Casts surround complete
+original expressions, retaining the original arithmetic type and result bits.
+The shared qsort swap macro keeps the same narrowing at its int argument.
+Three touched trailing spaces/tabs are removed (ui_connect twice, ui_mfield once).
 
-All 28 affected production objects build: 19 release objects are raw/native-
-identical; nine debug objects differ only in no-ops and addresses, with all branch
-target instruction indices and remaining instructions/relocations verified.
-All four GCC/Clang C/C++ native UI libraries/layouts retain hashes. No new OS
-access, lifetimes, allocation or accepted golden changes. Persistent artifacts:
-default-switch-{preview,objects,native*,final-review.json,review.py}.
+All 269 affected production objects preserve code/data: 211 raw/native hashes
+match and 58 differ only in debug metadata. All twelve GCC/Clang C/C++ native
+libraries and ABI layouts build; nine retain hashes. The three GCC C libraries
+differ in qsort's equivalent low-32-bit selection after the same 64-bit unsigned
+comparison; UI_PreferencesMenu likewise discards only an already-unused high
+half. Other changes are addresses/padding. A cache-only qsort check passes 1,584
+before/after cases across record widths, alignment, partition boundaries,
+duplicates and ordering (4705a47e). No FP expressions, OS calls, allocations,
+non-trivial lifetimes, layouts or accepted goldens/fixtures change. Persistent
+artifacts: size-conversion-{preview,objects,object-review.json,native*,qsort*}.
+
+Completed default-only switches #93: source f9dbcb07/provenance a5e141d9 removes
+two AAS wrappers and one UI wrapper, retaining the exact unconditional statements.
+MSVC C4065 is an error. Nineteen release objects are raw/native-identical; nine
+debug objects differ only in no-ops and addresses, with branch target instruction
+indices and all remaining instructions/relocations verified. Four native UI
+libraries/layouts retain hashes. Artifacts: default-switch-*.
 
 Completed standard offset #92: source cf4f6f1e replaces the DirectInput wheel
 macro with standard offsetof and promotes MSVC C4644 to an error. All three
@@ -47,13 +58,6 @@ and actual logs, and both maps pass (fea77580/14c8ee7d). No harness or accepted
 golden changes. Hosted OA runtime passes unmodified. Artifacts: write-strings-*.
 
 Prepared follow-up previews, not applied to the repository:
-- size-conversion: MSVC C4267, 45 explicit existing-narrowing replacement rules
-  in 25 GPL files. All 269 production objects preserve code/data (211 raw/native,
-  58 debug-only). Nine helper libraries retain hashes. Three GCC C libraries have
-  qsort's same 64-bit unsigned minimum comparison with a 32-bit selected result;
-  UI_PreferencesMenu likewise narrows a discarded high half. Review confirms
-  unchanged selected low 32 bits; 1,584 before/after qsort cases pass. No FP
-  expression changes. Nine other native libraries retain raw hashes.
 - parameter-shadow: MSVC C4457, seven uses of local bleed alpha renamed. Nine
   production objects preserve code/data (seven raw/native, two debug-only);
   all four native cgame libraries/layouts retain hashes.
@@ -62,11 +66,16 @@ Prepared follow-up previews, not applied to the repository:
 - local-shadow C4456: three files, 19 production objects preserve code/data
   (15 raw/native, four debug-only); four native cgame libraries/layouts unchanged.
 Each preview has source changes, commands, objects and logs in persistent cache.
-Formatting preview: clang-format 21.1.8 touches 397 of 404 first-party C/C++
+Formatting preview: clang-format 21.1.8 touches 398 of 407 first-party C/C++/inc
 files, excluding assembly and generated shader_data.cpp. Eighteen stringifying
-macros are whitespace-sensitive. All 1,810 release assembly baselines compile;
-the formatted comparison is running. Rebase this preview on the final warning
-revision before the single formatting commit; do not apply it yet.
+macros are whitespace-sensitive. All 1,810 release assembly comparisons compile;
+1,802 are raw-identical (including every Clang leg). Eight GCC/MinGW sys_runtime
+comparisons differ only in source-position comments on inline cpuid instructions;
+all fifteen corresponding release/native objects are byte-identical, and four
+GCC debug objects differ only in debug sections. Nineteen native export assembly
+comparisons also pass after including .inc files. Rebase the preview on the final
+warning revision and reverify before the single formatting commit; do not apply
+yet. Evidence: format-* and prepared-warning-and-format-evidence.json.
 
 Completed signedness #90 evidence: source 70b1f0b6/provenance 4a96ca16 records
 412 edits in 91 files (15 GPL files). All 2,667 syntax configurations pass. Of
@@ -82,8 +91,9 @@ C4267 234, C4459 38, C4456 28, C4065 15, C4457 3, C4644 3. Review each class
 before enabling its error gate, then /WX. Local tools include clang-query-21.
 
 Next:
-1. Open the default-switch PR, require hosted gates/self-review and merge.
-   Verify #92 merged-tree regression, then continue the prepared MSVC classes.
+1. Open the size-conversion PR, require hosted gates/self-review and merge.
+   Verify #93 merged-tree regression 35455087090. Continue the
+   three prepared shadow classes, then Apple deprecations and MSVC /WX.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in

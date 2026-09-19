@@ -89,7 +89,7 @@ swapfunc(char *a, char *b, int n, int swaptype)
 		*(long *)(a) = *(long *)(b);		\
 		*(long *)(b) = t;			\
 	} else						\
-		swapfunc(a, b, es, swaptype)
+		swapfunc(a, b, (int)es, swaptype)
 
 #define vecswap(a, b, n) 	if ((n) > 0) swapfunc(a, b, n, swaptype)
 
@@ -121,7 +121,7 @@ loop:	SWAPINIT(a, es);
 		pl = (char *)a;
 		pn = (char *)a + (n - 1) * es;
 		if (n > 40) {
-			d = (n / 8) * es;
+			d = (int)( (n / 8) * es );
 			pl = med3(pl, pl + d, pl + 2 * d, cmp);
 			pm = med3(pm - d, pm, pm + d, cmp);
 			pn = med3(pn - 2 * d, pn - d, pn, cmp);
@@ -167,7 +167,7 @@ loop:	SWAPINIT(a, es);
 	pn = (char *)a + n * es;
 	r = min(pa - (char *)a, pb - pa);
 	vecswap((char *)a, pb - r, r);
-	r = min((size_t)(pd - pc), pn - pd - es);
+	r = (int)( min((size_t)(pd - pc), pn - pd - es) );
 	vecswap(pb, pn - r, r);
 	if ((size_t)( (r = pb - pa) ) > es)
 		qsort(a, r / es, es, cmp);
@@ -288,7 +288,7 @@ void *memmove( void *dest, const void *src, size_t count ) {
 	int		i;
 
 	if ( dest > src ) {
-		for ( i = count-1 ; i >= 0 ; i-- ) {
+		for ( i = (int)( count-1 ) ; i >= 0 ; i-- ) {
 			((char *)dest)[i] = ((char *)src)[i];
 		}
 	} else {

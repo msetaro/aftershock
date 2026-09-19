@@ -140,7 +140,8 @@
     "68919a83": "#8 unused-constant diagnostics: order table/type/count share the existing MISSIONPACK guard; release objects and conditional preprocessed output unchanged",
     "639fb07e": "#8 parentheses-equality: remove redundant inner parentheses in G_VoiceTo; comparison, source line count and executable code unchanged",
     "9e4d45f0": "#8 self-assign: remove the redundant fov_x assignment while retaining the branch and arithmetic; all compared production/native objects unchanged",
-    "f9dbcb07": "#8 MSVC C4065: remove the default-only UI status switch; release/native code unchanged"
+    "f9dbcb07": "#8 MSVC C4065: remove the default-only UI status switch; release/native code unchanged",
+    "3eaba64d": "#8 MSVC C4267: make existing size_t-to-int conversions explicit; production code/data unchanged"
   },
   "files": [
     {
@@ -168,7 +169,8 @@
         "436bbab1",
         "52e57708",
         "93d334db",
-        "70b1f0b6"
+        "70b1f0b6",
+        "3eaba64d"
       ]
     },
     {
@@ -259,7 +261,8 @@
         "5592a1eb",
         "436bbab1",
         "52e57708",
-        "05cb1e37"
+        "05cb1e37",
+        "3eaba64d"
       ]
     },
     {
@@ -325,7 +328,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "3eaba64d"
       ]
     },
     {
@@ -596,7 +600,8 @@
         "6ea3a3bb",
         "5592a1eb",
         "b6927331",
-        "70b1f0b6"
+        "70b1f0b6",
+        "3eaba64d"
       ]
     },
     {
@@ -691,7 +696,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "e8e98ab2",
-        "70b1f0b6"
+        "70b1f0b6",
+        "3eaba64d"
       ]
     },
     {
@@ -703,7 +709,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "d6c2ac52",
-        "70b1f0b6"
+        "70b1f0b6",
+        "3eaba64d"
       ]
     },
     {
@@ -731,7 +738,8 @@
         "52e57708",
         "639fb07e",
         "05cb1e37",
-        "70b1f0b6"
+        "70b1f0b6",
+        "3eaba64d"
       ]
     },
     {
@@ -790,7 +798,8 @@
         "05cb1e37",
         "708b7114",
         "93d334db",
-        "70b1f0b6"
+        "70b1f0b6",
+        "3eaba64d"
       ]
     },
     {
@@ -865,7 +874,8 @@
         "8889ea0e",
         "e8e98ab2",
         "05cb1e37",
-        "708b7114"
+        "708b7114",
+        "3eaba64d"
       ]
     },
     {
@@ -912,7 +922,8 @@
         "5592a1eb",
         "622ae3af",
         "05cb1e37",
-        "70b1f0b6"
+        "70b1f0b6",
+        "3eaba64d"
       ]
     },
     {
@@ -987,7 +998,8 @@
         "e8e98ab2",
         "cdcbb7df",
         "090b7a3c",
-        "70b1f0b6"
+        "70b1f0b6",
+        "3eaba64d"
       ]
     },
     {
@@ -1041,7 +1053,8 @@
         "e8e98ab2",
         "5592a1eb",
         "436bbab1",
-        "05cb1e37"
+        "05cb1e37",
+        "3eaba64d"
       ]
     },
     {
@@ -1082,7 +1095,8 @@
       "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
       "transformations": [
         "e8e98ab2",
-        "5592a1eb"
+        "5592a1eb",
+        "3eaba64d"
       ]
     },
     {
@@ -1117,7 +1131,8 @@
       "transformations": [
         "6ea3a3bb",
         "e8e98ab2",
-        "93d334db"
+        "93d334db",
+        "3eaba64d"
       ]
     },
     {
@@ -1138,7 +1153,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "436bbab1",
-        "2475e0d2"
+        "2475e0d2",
+        "3eaba64d"
       ]
     },
     {
@@ -1157,7 +1173,8 @@
       "sha256": "17b02e2222ee1e62de9b47b1da29fa34cb6ff8eedb8b54a0b06a7b609d9594c9",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "3eaba64d"
       ]
     },
     {
@@ -1196,7 +1213,8 @@
       "transformations": [
         "e8e98ab2",
         "5592a1eb",
-        "05cb1e37"
+        "05cb1e37",
+        "3eaba64d"
       ]
     },
     {
@@ -1206,7 +1224,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "6ea3a3bb",
-        "93d334db"
+        "93d334db",
+        "3eaba64d"
       ]
     },
     {
@@ -1215,7 +1234,8 @@
       "sha256": "c7f15efe5f8f515e682665aaca13a25a65ca4398eec8c4da857673e6615650b7",
       "disposition": "GPL import with recorded transformations",
       "transformations": [
-        "e8e98ab2"
+        "e8e98ab2",
+        "3eaba64d"
       ]
     },
     {
@@ -1244,7 +1264,8 @@
       "transformations": [
         "6ea3a3bb",
         "8889ea0e",
-        "e8e98ab2"
+        "e8e98ab2",
+        "3eaba64d"
       ]
     },
     {
@@ -1279,7 +1300,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "6ea3a3bb",
-        "e8e98ab2"
+        "e8e98ab2",
+        "3eaba64d"
       ]
     },
     {
@@ -1298,7 +1320,8 @@
         "e8e98ab2",
         "5592a1eb",
         "a5c199bf",
-        "05cb1e37"
+        "05cb1e37",
+        "3eaba64d"
       ]
     },
     {
@@ -1416,7 +1439,8 @@
         "6ea3a3bb",
         "8889ea0e",
         "e8e98ab2",
-        "05cb1e37"
+        "05cb1e37",
+        "3eaba64d"
       ]
     },
     {
@@ -1440,7 +1464,8 @@
         "6ea3a3bb",
         "e8e98ab2",
         "05cb1e37",
-        "f9dbcb07"
+        "f9dbcb07",
+        "3eaba64d"
       ]
     },
     {
@@ -1485,7 +1510,8 @@
         "e8e98ab2",
         "5592a1eb",
         "05cb1e37",
-        "70b1f0b6"
+        "70b1f0b6",
+        "3eaba64d"
       ]
     },
     {
