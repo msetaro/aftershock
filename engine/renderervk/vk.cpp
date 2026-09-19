@@ -3583,14 +3583,14 @@ static void vk_create_attachments( void )
 
 static void vk_create_framebuffers( void )
 {
-	VkImageView attachments[3];
+	VkImageView framebufferAttachments[3];
 	VkFramebufferCreateInfo desc;
 	uint32_t n;
 
 	desc.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	desc.pNext = NULL;
 	desc.flags = 0;
-	desc.pAttachments = attachments;
+	desc.pAttachments = framebufferAttachments;
 	desc.layers = 1;
 
 	for ( n = 0; n < vk.swapchain_image_count; n++ )
@@ -3601,8 +3601,8 @@ static void vk_create_framebuffers( void )
 		{
 			desc.width = gls.windowWidth;
 			desc.height = gls.windowHeight;
-			attachments[0] = vk.swapchain_image_views[n];
-			attachments[1] = vk.depth_image_view;
+			framebufferAttachments[0] = vk.swapchain_image_views[n];
+			framebufferAttachments[1] = vk.depth_image_view;
 			VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.main[n] ) );
 
 			SET_OBJECT_NAME( vk.framebuffers.main[n], va( "framebuffer - main %i", n ), VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
@@ -3614,12 +3614,12 @@ static void vk_create_framebuffers( void )
 			{
 				desc.width = glConfig.vidWidth;
 				desc.height = glConfig.vidHeight;
-				attachments[0] = vk.color_image_view;
-				attachments[1] = vk.depth_image_view;
+				framebufferAttachments[0] = vk.color_image_view;
+				framebufferAttachments[1] = vk.depth_image_view;
 				if ( vk.msaaActive )
 				{
 					desc.attachmentCount = 3;
-					attachments[2] = vk.msaa_image_view;
+					framebufferAttachments[2] = vk.msaa_image_view;
 				}
 				VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.main[n] ) );
 				SET_OBJECT_NAME( vk.framebuffers.main[n], "framebuffer - main", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
@@ -3634,7 +3634,7 @@ static void vk_create_framebuffers( void )
 			desc.attachmentCount = 1;
 			desc.width = gls.windowWidth;
 			desc.height = gls.windowHeight;
-			attachments[0] = vk.swapchain_image_views[n];
+			framebufferAttachments[0] = vk.swapchain_image_views[n];
 			VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.gamma[n] ) );
 
 			SET_OBJECT_NAME( vk.framebuffers.gamma[n], "framebuffer - gamma-correction", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
@@ -3648,22 +3648,22 @@ static void vk_create_framebuffers( void )
 		desc.attachmentCount = 2;
 		desc.width = vk.screenMapWidth;
 		desc.height = vk.screenMapHeight;
-		attachments[0] = vk.screenMap.color_image_view;
-		attachments[1] = vk.screenMap.depth_image_view;
+		framebufferAttachments[0] = vk.screenMap.color_image_view;
+		framebufferAttachments[1] = vk.screenMap.depth_image_view;
 		if ( vk.screenMapSamples > VK_SAMPLE_COUNT_1_BIT )
 		{
 			desc.attachmentCount = 3;
-			attachments[2] = vk.screenMap.color_image_view_msaa;
+			framebufferAttachments[2] = vk.screenMap.color_image_view_msaa;
 		}
 		VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.screenmap ) );
 		SET_OBJECT_NAME( vk.framebuffers.screenmap, "framebuffer - screenmap", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
 
 		if ( vk.capture.image != VK_NULL_HANDLE )
 		{
-			attachments[0] = vk.capture.image_view;
+			framebufferAttachments[0] = vk.capture.image_view;
 
 			desc.renderPass = vk.render_pass.capture;
-			desc.pAttachments = attachments;
+			desc.pAttachments = framebufferAttachments;
 			desc.attachmentCount = 1;
 			desc.width = gls.captureWidth;
 			desc.height = gls.captureHeight;
@@ -3683,7 +3683,7 @@ static void vk_create_framebuffers( void )
 			desc.height = height;
 
 			desc.attachmentCount = 1;
-			attachments[0] = vk.bloom_image_view[0];
+			framebufferAttachments[0] = vk.bloom_image_view[0];
 
 			VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.bloom_extract ) );
 
@@ -3700,10 +3700,10 @@ static void vk_create_framebuffers( void )
 
 				desc.attachmentCount = 1;
 
-				attachments[0] = vk.bloom_image_view[n+0+1];
+				framebufferAttachments[0] = vk.bloom_image_view[n+0+1];
 				VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.blur[n+0] ) );
 
-				attachments[0] = vk.bloom_image_view[n+1+1];
+				framebufferAttachments[0] = vk.bloom_image_view[n+1+1];
 				VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.blur[n+1] ) );
 
 				SET_OBJECT_NAME( vk.framebuffers.blur[n+0], va( "framebuffer - blur %i", n+0 ), VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );

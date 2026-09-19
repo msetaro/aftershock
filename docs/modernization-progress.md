@@ -12,27 +12,25 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-parameter-shadow. #94 merged 6e5b7d65 after 36d419dd passed build
-35455191671 and regression 35455191669; self-review is recorded on #94/#8.
-Its merged-tree regression remains to check. #93 merged-tree regression
-35455087090 passes. Source 74689b95 and cgame provenance are recorded. All four edited-tree cgame
-helper hashes/layouts match #94. PR #95 head 00b88dad exposed a generated-VS
-option-scope failure in build 35455659473: /we4457 leaked into vendored C files
-(job 105930346608 logs retained). The source rename and Ninja MSVC builds passed;
-libvorbis C code must keep the established vendor warning policy. The fix moves
-MSVC warning-error flags onto owned C++ source properties, using the existing
-deduplicated source collection. All 358 GNU and 361 MinGW compile commands are
-byte-identical before/after this scope fix. Push and require fresh full hosted
-gates/self-review. Regression 35455659439 is pending.
+Active: issue/8-global-shadow. PR #95 merged 5e343bd5 after c071221e passed
+build 35456089595 and regression 35456089538; self-review is on #95/#8.
+Its merged-tree regression 35456678897 remains to check. #94 merged-tree regression
+35455583704 passes. #95 renamed seven local alpha tokens without changing any
+code/data: nine production objects (seven raw/native, two debug-only), all four
+final cgame helper hashes/layouts retained. Generated Visual Studio builds exposed
+a target-level option leak into vendored C; the corrected owned-C++ source
+properties pass all MSVC configurations and preserve all 358 GNU/361 MinGW
+compile commands. Warning promotions now belong in that source-property list.
 
-This branch renames the bleed effect's local alpha to bleedAlpha (seven tokens),
-leaving the function parameter and particle member unchanged. MSVC C4457 becomes
-an error. All nine production objects preserve code/data (seven raw/native hashes,
-two debug-only differences). Four GCC/Clang C/C++ cgame helper libraries/layouts
-retain hashes in preview and in final builds against #94's updated baseline.
-Four trailing tabs on touched vertex-color lines are removed. No FP expression,
-OS access, allocation, lifetime, layout, fixture or golden changes. Artifacts:
-parameter-shadow-{preview,objects,review.json,native*} in persistent cache.
+This branch applies the prepared C4459 global-shadow renames in four files:
+unused Com_Error level, shotgun/muzzle vector locals, Vulkan uniform parameters,
+and framebuffer attachment locals. MSVC C4459 becomes an error. Thirty production
+objects preserve code/data (24 raw/native, six debug-only); four native game
+helper libraries/layouts retain hashes in preview. All four final edited-tree game helper hashes/layouts also match #94.
+Hosted gates remain to run. Source line counts and whitespace are retained.
+No FP expression, OS access, allocation, lifetime, layout, fixture or golden
+changes. Artifacts: global-shadow-* in persistent cache. Record source/provenance
+commits and final self-review before merging.
 
 Completed size conversions #94: source 3eaba64d/provenance 36d419dd records 53
 existing narrowing casts in 25 GPL files, with MSVC C4267 promoted to an error.
@@ -111,15 +109,21 @@ inventory is not the complete MSVC warning inventory. #94 covers game-side C4267
 the engine header still disables that diagnostic and needs a separate follow-up.
 Diagnostic-only branch issue/8-msvc-inventory at 1f5b1398 runs the unsuppressed
 /W4 x64/ARM64 Release/Debug inventory in 35455896498. Its worktree is in the
-persistent cache; do not merge that branch or its inventory-only workflow.
+persistent cache; do not merge that branch or its inventory-only workflow. All
+four inventory legs pass. Retained msvc-header-*.log and msvc-header-{inventory,
+unique}.json record 1,686 C4244 file/line sites, 160 C4267, 14 C4127, four C4201,
+one C4200, one C4324 and two ARM64 C4611 sites, plus the prepared shadow classes.
+The Debug-only extra C4456 occurrence is in VK_CHECK and is covered by the
+prepared macro-local rename. The inventory does not establish that currently
+quiet legacy pragmas are obsolete; consult diagnostics and test each removal.
 After the current shadow classes, inventory/remove applicable header suppressions
 by class before /WX; review obsolete C-only diagnostics and vendor-only scopes
 separately. Do not claim unrestricted MSVC warnings yet. Preserve existing numeric
 conversions, layouts and FP codegen; route actual behavior fixes through #31.
 
 Next:
-1. Finish PR #95 hosted gates/self-review before merging. Verify #94 merged-tree regression 35455583704. Continue
-   global/local shadow classes, then Apple deprecations and MSVC /WX.
+1. Finish the global-shadow class, then the prepared local-shadow class. Verify
+   #95 merged-tree regression; finish each class with hosted gates/self-review.
 2. Finish Apple deprecations and MSVC warning classes /WX.
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width
    types/layout assertions and release-identical Q_ASSERT. Update plan rules to in
