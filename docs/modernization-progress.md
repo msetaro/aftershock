@@ -15,6 +15,15 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
+Real MSVC record-width diagnostic: 96bbfb58 on the never-merged
+issue/8-warning-inventory-current branch combines enum-unsigned and central-width
+previews with the already-verified owned-source /W4 /WX policy. Run 35471127733
+checks x64/ARM64 Debug/Release, both renderer builds and generated Visual Studio
+projects. Check that run before accepting the enum/layout candidate; it is not a
+final integration gate. Two existing trailing spaces on changed weapon-field
+lines were trimmed for git diff --check. Native GPL provenance belongs to the
+later integration source commit, not this diagnostic-only branch.
+
 Trajectory enum decision preview: prefer an explicit uint32_t C++ trType_t base,
 with the C99 reference enum declaration retained. enum-unsigned-preview includes
 the shared primitive-width/assertion edits and preserves all 85 sampled objects
@@ -82,18 +91,22 @@ again. Every class still has its own branch/PR. C4514/C4711 retain compiler defa
 The runner's PID/session is transient; the log and msvc-c*-published.json files
 record PR heads, merge IDs and gates. Stop on any unexpected failure.
 
-Active: issue/8-msvc-c4514. Removes only C4514 suppression and retains the compiler default for this informational diagnostic.
+Active: issue/8-msvc-c4711. Removes only C4711 suppression and retains the compiler default for this informational diagnostic.
 No declarations, expressions, allocation, OS access, lifetime or layout changes.
-92 sampled objects preserve code/data (82 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4514-object-review.json and msvc-c4514-native.json.
+85 sampled objects preserve code/data (67 raw/native-identical, 18 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4711-object-review.json and msvc-c4711-native.json.
 Native GPL provenance retains original import hashes. No accepted golden changes.
 Run full hosted gates and self-review before merge; then continue the remaining
 MSVC suppression classes, strict MSVC policy, and the rest of #8.
-Previous PR #122 merged as 08682b7a; verify its merged-tree regression.
-Source transformation f7568d21 recorded in native-game-import.json.
+Previous PR #123 merged as 3f6484ca; verify its merged-tree regression.
 
 
 ## Recent MSVC merges
+
+PR #123 C4514: source f7568d21, head 8c4d2192, merged 3f6484ca.
+Build 35470941999 and regression 35470941980 pass after self-review.
+92 sampled objects preserve code/data (82 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4514-object-review.json and msvc-c4514-native.json.
 
 PR #122 C4214: source 231355cc, head 231355cc, merged 08682b7a.
 Build 35470571769 and regression 35470571759 pass after self-review.
