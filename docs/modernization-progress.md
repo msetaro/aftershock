@@ -15,16 +15,21 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-msvc-function-pointer. PR #112 head a2bf708c passed build
-35465777872 and regression 35465777883; merged 3b16a490 after self-review. Check its
-merged-tree regression. PR #111 merged-tree regression 35465745301 passes.
+Active: issue/8-msvc-type-redefinition. PR #113 head 0618ce14 passed build
+35466204076 and regression 35466204112; merged ed9c0e93 after self-review. Check its
+merged-tree regression. PR #112 merged-tree regression 35466174914 passes.
 
-Applied msvc-function-pointer-preview: remove only C4152 suppression from both
-shared headers and promote /we4152 on owned C++ sources. No pointer conversions
-or source expressions change. All 85 sampled objects preserve code/data (67
-raw/native, 18 debug-only), and all twelve helper hashes/layouts retain the baseline.
-Source fe91948f is recorded on the native header with original GPL hashes retained.
-Run hosted gates, then self-review before merging. Next: C4142 duplicate-type suppression, one class per PR.
+Applied msvc-redefinition-preview: remove only C4142 suppression from both shared
+headers and promote /we4142 on owned C++ sources. No declarations or expressions
+change. All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only),
+and all twelve helper hashes/layouts retain the baseline. Source 229ccb64 is recorded
+on the native header with original GPL hashes retained. Run hosted gates, then self-review before merging. Next: C4220
+varargs matching suppression, one class per PR.
+
+Merged C4152 evidence: source fe91948f/head 0618ce14 removes both function/data
+pointer conversion suppressions and promotes /we4152. No pointer expression changes.
+All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only), and all
+twelve helpers/layouts retain the baseline. Original GPL hashes retain provenance.
 
 Merged C4125 evidence: source fe512b6e/head a2bf708c removes both octal-escape
 suppression directives and promotes /we4125. No string/parser expressions changed.
@@ -65,6 +70,12 @@ and [C4711](https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnin
 as off by default (C4711 is informational). Decision: remove their legacy disables
 individually, retain compiler defaults, and do not promote optimizer reports or
 enable /Wall merely to manufacture them.
+Diagnostic-only 8ed19afc now tests the eventual strict policy in run 35466504710:
+/W4 /WX are owned-C++ source properties; vendor/other sources retain /W3 Debug and
+/W4 Release. Target-wide levels are removed to avoid duplicate warning options.
+Both Ninja and generated Visual Studio projects are checked. Never merge that
+branch; apply a reviewed policy-only change after individual suppressions are gone.
+
 
 Merged C4701 evidence: debug-reach-v2-preview initializes missing reachability in
 the existing DEBUG-only else while keeping printing conditional. All 17 syntax
