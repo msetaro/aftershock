@@ -20,8 +20,10 @@ Active: issue/31-team-message-capacity. The committed contract test is first:
 (expected error exit 42, observed dispatch exit 0). Only small text is formatted;
 the test substitutes the reported length and never makes an oversized write.
 Evidence: team-message-before.log and the earlier four-case control JSON.
-Next: apply the reviewed single-function fix, record GPL provenance, add the CI
-command and documentation, then run local/hosted gates and #127 merged regression.
+Failing-test commit: 1ef998b0. The reviewed single-function fix now passes the
+actual capacity to vsnprintf and rejects negative/full-capacity results after
+va_end. CI/docs include the permanent test command. Next: record GPL provenance
+and run local/hosted gates plus #127 merged-tree regression.
 
 PR #127 verification: source 7c1db108/head 44616990, build 35472963400,
 regression 35472963410, preceding merged-tree regression 35472915485 all pass.

@@ -840,8 +840,9 @@ makes an oversized write. The pre-fix full-capacity result incorrectly dispatche
 and exits 0 instead of taking the existing error path (exit 42 in the probe).
 Valid text, fitting-result and formatter-error controls behave as expected.
 
-Pending fix: pass the actual capacity to vsnprintf, finish va_end, then reject a
-negative result or a required length at/above capacity. Preserve quote replacement,
+Fix: pass the actual capacity to vsnprintf, finish va_end, then reject a
+negative result or a required length at/above capacity. Test-first commit 1ef998b0
+records the failure before this change. Preserve quote replacement,
 broadcast routing and the existing PrintMsg overrun error. No suppression or
 expected-UBSan entry is needed for this contract check; no golden regeneration.
 
