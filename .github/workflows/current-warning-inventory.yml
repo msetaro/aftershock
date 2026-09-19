@@ -38,3 +38,10 @@ jobs:
             if ($LASTEXITCODE) { $failed = $true }
           }
           if ($failed) { exit 1 }
+      - name: Build generated Visual Studio projects with owned-source W4 and WX
+        shell: pwsh
+        run: |
+          cmake --preset msvc-${{ matrix.arch }}
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cmake --build --preset msvc-${{ matrix.arch }} --config ${{ matrix.config }}
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }

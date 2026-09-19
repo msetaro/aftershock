@@ -9,3 +9,5 @@ Fourth diagnostic commit measures the C4702-only preview. All 151 affected local
 C4701 preview: put missing-reach initialization and debug diagnostic use under one botDeveloper guard; no release initialization. Promote C4701 for this diagnostic build.
 
 The combined guard still emits C4701 in debug (run 35463680431). Revised preview zeroes the missing record in the existing DEBUG-only else, keeping printing conditional. No release initialization.
+
+Strict policy preview: /W4 /WX on owned C++ source properties; preserve vendor/other source warning levels (/W3 Debug, /W4 Release). Remove target-wide levels to avoid duplicate command-line levels. Test Ninja and generated Visual Studio projects. No source edits. Never merge this diagnostic branch.
