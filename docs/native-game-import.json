@@ -152,7 +152,8 @@
     "fe91948f": "#8 C4152: remove inherited MSVC function/data pointer conversion suppression; no expression changes; twelve helper hashes unchanged",
     "229ccb64": "#8 C4142: remove inherited MSVC type-redefinition suppression; no declaration changes; twelve helper hashes unchanged",
     "e883223d": "#8 C4220: remove inherited MSVC varargs matching suppression; no declaration/call changes; twelve helper hashes unchanged",
-    "fc7de3a5": "#8 C4032: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged"
+    "fc7de3a5": "#8 C4032: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
+    "d005bccc": "#8 C4051: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged"
   },
   "files": [
     {
@@ -1086,7 +1087,8 @@
         "fe91948f",
         "229ccb64",
         "e883223d",
-        "fc7de3a5"
+        "fc7de3a5",
+        "d005bccc"
       ]
     },
     {
