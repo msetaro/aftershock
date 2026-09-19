@@ -1,0 +1,57 @@
+name: msvc-layout-inventory
+on:
+  push:
+    branches: [issue/8-msvc-inventory]
+  workflow_dispatch:
+jobs:
+  jpeg-layout:
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, amd64_arm64]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+      - name: Measure explicit JPEG jump-buffer padding
+        shell: pwsh
+        run: |
+          @'
+          #include <stdio.h>
+          #include <stddef.h>
+          #include <setjmp.h>
+          #include "third_party/libjpeg/jpeglib.h"
+          struct Before { jpeg_error_mgr pub; jmp_buf buffer; };
+          struct After {
+            jpeg_error_mgr pub;
+          #if defined(_M_X64)
+            unsigned char padding[8];
+          #endif
+            jmp_buf buffer;
+          };
+          static_assert(sizeof(Before) == sizeof(After));
+          static_assert(alignof(Before) == alignof(After));
+          static_assert(offsetof(Before, buffer) == offsetof(After, buffer));
+          unsigned layouts[] = { sizeof(jpeg_error_mgr), sizeof(jmp_buf), alignof(jmp_buf),
+            offsetof(Before, buffer), sizeof(Before), offsetof(After, buffer), sizeof(After), alignof(After) };
+          '@ | Set-Content layout.cpp
+          cl /nologo /std:c++20 /W4 /c layout.cpp /Folayout.obj
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          @'
+          import struct
+          from pathlib import Path
+          data = Path('layout.obj').read_bytes()
+          sections = struct.unpack_from('<H', data, 2)[0]
+          start = 20 + struct.unpack_from('<H', data, 16)[0]
+          for i in range(sections):
+              offset = start + i * 40
+              if data[offset:offset+8].rstrip(b'\0') == b'.data':
+                  size, pointer = struct.unpack_from('<II', data, offset + 16)
+                  assert size == 32, size
+                  print('pub-size, jump-size, jump-align, old-offset, old-size, new-offset, new-size, new-align:', struct.unpack_from('<8I', data, pointer))
+                  break
+          else:
+              raise AssertionError('Missing layout data')
+          '@ | python -

@@ -40,6 +40,7 @@ jobs:
           }
           if ($failed) { exit 1 }
   apple:
+    if: false # Apple inventory completed in 35457048020
     runs-on: macos-14
     strategy:
       fail-fast: false
