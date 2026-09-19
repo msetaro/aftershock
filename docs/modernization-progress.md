@@ -12,20 +12,19 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-unused-set-variables, based on pending unused-result branch
-80b14c0b (no PR yet), itself based on array-bounds PR #86 head 91a2d6ed. Require
-#86 build 35451193767/regression 35451193709 and self-review/merge, integrate into
-unused-result and open its PR, then merge it after gates before opening this
-separate unused-but-set-variable class PR. #85 merged 820ed3f1 after passing
-gates; merged-tree regression 35451178224 remains to check. #84 merged-tree passes.
+Active: issue/8-unused-set-variables, based on pending unused-result PR #87
+head ceb2681b. #86 merged 43d4e9b4 after build 35451193767/regression 35451193709
+passed; merged-tree regression remains to check. #85 merged-tree regression
+35451178224 passes. Require #87 hosted gates/self-review/merge, then integrate
+modernization before opening this separate unused-but-set-variable class PR.
 
 This branch enables unused-but-set-variable warnings in native production/helpers.
 Thirty-five declarations in eighteen GPL source files have maybe_unused attributes.
 All other source bytes remain unchanged: call counts (including clocks), floating
 point expressions, conditional uses and existing stores are preserved. All twelve
 native helper libraries retain hashes/layouts. Of 160 production objects, 146 are
-raw/native-identical and fourteen differ only in debug sections. GPL provenance
-must record this source commit before the eventual class PR.
+raw/native-identical and fourteen differ only in debug sections. Source 93d334db
+and GPL provenance 91c38c85 record all eighteen imported files.
 
 Eight existing console write calls bind their results to maybe_unused const auto
 locals. All calls, arguments and best-effort output behavior remain unchanged;
@@ -54,9 +53,15 @@ passed; final additional sources pass actual compilation and helper gates.
 Artifacts: unused-set-{inventory,preview,check,objects,extra-objects,native} and
 unused-set-final-review.json in the persistent cache.
 
+Windows cast-function-type preview is separate and not applied: nine GetProcAddress
+conversions in four platform files use the existing two-stage conversion through
+void*, as already used by the AVRT bindings. Fifteen MinGW release/debug native
+objects retain identical bytes; actual-command controls fail before/pass after.
+No signature, call, layout or behavior changes. Artifacts: cast-function-{preview,objects}.
+
 Next:
-1. Record source/provenance; progress #86 and the unused-result PR through their
-   hosted gates/self-reviews. Integrate parents before opening this class PR.
+1. Progress #87 through hosted gates/self-review, then integrate modernization
+   before opening this separate class PR.
 2. Finish Windows cast-function-type preview and remaining warning classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
