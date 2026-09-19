@@ -23,6 +23,8 @@ Only ordinary small text is used. Test commit a3652169 precedes the twelve-call
 fix now applied with CI/docs. Next: record GPL provenance, run local and hosted
 gates plus #128 merged-tree regression, then self-review/merge. Diagnostics
 truncate to their existing capacities; error routes and log prefix are retained.
+Fix f3facd3a is recorded with original GPL import hashes unchanged. GCC and
+Clang/libc++ both pass all twelve ASan/UBSan contract checks.
 
 PR #128 verification: test 1ef998b0, fix e8752ef1, head 901106f1. Build
 35473480437, regression 35473480441 and preceding merged-tree regression
