@@ -25,7 +25,15 @@ identical and 24 differ only in debug information. The final 18 debug objects
 change only allocation diagnostic source-line immediates; every other stripped
 byte is identical (unreachable-line-review.json). No reachable arithmetic change,
 new OS calls, allocation, non-trivial lifetime, layout, accepted fixture or golden
-change. Record GPL provenance, run hosted gates, then self-review before merging.
+change. Source 6bd5c657 records the cleanup; original GPL import hashes retain the
+transformation for both native files. Run hosted gates, then self-review before merging.
+Optional MISSIONPACK object comparison also compiles all nine configurations:
+five release objects are identical; two Clang release objects share the lightning
+bounce decrement/check between continuing paths, and two GCC debug objects move
+the same increment onto its sole continue edge. Ten-bounce limit and arithmetic
+are retained. This cache-only comparison demotes the pre-existing enum arithmetic
+warning at g_weapon.cpp:1099; no production warning policy changed. Evidence:
+unreachable-missionpack/results.json and unreachable-missionpack-*.diff.
 Next warning: review the single C4701 debug bot diagnostic initialization guard.
 
 The C4611 annotation is merged: only standard-MSVC Q_setjmp is annotated, the #1
