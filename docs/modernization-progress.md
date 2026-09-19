@@ -13,14 +13,14 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Active: issue/8-msvc-unused-parameter. PR #109 head 768cc133 passed build
-35464448737 and regression 35464448740 and is merged after self-review. Check its
+35464448737 and regression 35464448740; merged aaef418c after self-review. Check its
 merged-tree regression. PR #108 merged-tree regression 35464396511 passes.
 
 Applied the verified msvc-parameter-preview and promoted /we4100 on owned C++
 sources. Source annotations already landed in #84; this only removes both inherited
 MSVC disables. All 85 sampled objects preserve code/data (67 raw/native, 18 debug-only)
-and all twelve helper hashes/layouts match the baseline. Record native-header GPL
-provenance, run full hosted gates, then self-review before merging. Next: C4057
+and all twelve helper hashes/layouts match the baseline. Source b4696ba0 is recorded
+on the native header with original GPL import hashes preserved. Run full hosted gates, then self-review before merging. Next: C4057
 (pointer base-type mismatch) suppression removal, one class per PR.
 
 Previous C4018 checkpoint: PR #108 at 9cb8854e passed build
