@@ -152,7 +152,7 @@ static void tty_FlushIn( void )
 //   (there may be a way to find out if '\b' alone would work though)
 static void tty_Back( void )
 {
-	write( STDOUT_FILENO, "\b \b", 3 );
+	[[maybe_unused]] const auto backWritten = write( STDOUT_FILENO, "\b \b", 3 );
 }
 
 
@@ -195,11 +195,11 @@ void tty_Show( void )
 		ttycon_hide--;
 		if ( ttycon_hide == 0 )
 		{
-			write( STDOUT_FILENO, "]", 1 ); // -EC-
+			[[maybe_unused]] const auto promptWritten = write( STDOUT_FILENO, "]", 1 ); // -EC-
 
 			if ( tty_con.cursor > 0 )
 			{
-				write( STDOUT_FILENO, tty_con.buffer, tty_con.cursor );
+				[[maybe_unused]] const auto lineWritten = write( STDOUT_FILENO, tty_con.buffer, tty_con.cursor );
 			}
 		}
 	}
@@ -464,7 +464,7 @@ char *Sys_ConsoleInput( void )
 						s++;
 					Q_strncpyz( text, s, sizeof( text ) );
 					Field_Clear( &tty_con );
-					write( STDOUT_FILENO, "\n]", 2 );
+					[[maybe_unused]] const auto newlineWritten = write( STDOUT_FILENO, "\n]", 2 );
 					return text;
 				}
 
@@ -519,10 +519,10 @@ char *Sys_ConsoleInput( void )
 
 				if ( key == 12 ) // clear teaminal
 				{
-					write( STDOUT_FILENO, "\ec]", 3 );
+					[[maybe_unused]] const auto clearWritten = write( STDOUT_FILENO, "\ec]", 3 );
 					if ( tty_con.cursor )
 					{
-						write( STDOUT_FILENO, tty_con.buffer, tty_con.cursor );
+						[[maybe_unused]] const auto lineWritten = write( STDOUT_FILENO, tty_con.buffer, tty_con.cursor );
 					}
 					tty_FlushIn();
 					return NULL;
@@ -538,7 +538,7 @@ char *Sys_ConsoleInput( void )
 			tty_con.buffer[ tty_con.cursor ] = key;
 			tty_con.cursor++;
 			// print the current line (this is differential)
-			write( STDOUT_FILENO, &key, 1 );
+			[[maybe_unused]] const auto keyWritten = write( STDOUT_FILENO, &key, 1 );
 		}
 		return NULL;
 	}
@@ -753,7 +753,7 @@ void Sys_Print( const char *msg )
 		len = out - printmsg;
 	}
 
-	write( STDERR_FILENO, printmsg, len );
+	[[maybe_unused]] const auto messageWritten = write( STDERR_FILENO, printmsg, len );
 
 	if ( ttycon_on )
 	{

@@ -12,45 +12,41 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-array-bounds. Initializer #85 merged 820ed3f1 after head bcbd1bad
-passed build 35450763997 and regression 35450764039; self-review is recorded on
-#85/#8. Its merged-tree regression remains to check. Integration is merged here.
-#84 merged-tree regression 35450735064 passes. Open this array-bounds class PR,
-require hosted build/regression and self-review before merge.
+Active: issue/8-unused-result, based on pending array-bounds PR #86 head 91a2d6ed.
+#85 merged 820ed3f1 after build 35450763997/regression 35450764039 passed;
+merged-tree regression remains to check. #84 merged-tree run 35450735064 passes.
+Require #86 hosted gates/self-review/merge, then integrate modernization before
+opening this separate unused-result class PR.
 
-Two UI skill-picture reads use the equivalent explicit pointer form, retaining
-(skill - 1), signed index arithmetic and all existing range policies. GCC's member
-array warning disappears, enabling the class in production and native helpers.
-Only the five registered button IDs reach the callback; initialization clamps
-UI_GetSkill() to 1..5. No bug fix, FP expression or accepted fixture change.
+Eight existing console write calls bind their results to maybe_unused const auto
+locals. All calls, arguments and best-effort output behavior remain unchanged;
+-Wno-unused-result is removed from production. Thirteen actual production objects
+checked: nine GCC/Clang release/ARM64 objects retain raw hashes; four GCC debug
+objects add unused result stores/stack slots in tty_Back, tty_Show, Sys_ConsoleInput
+and Sys_Print. No functions added/removed. Actual GCC release and ARM64 commands
+fail before/pass after. Persistent evidence: unused-result-preview/results.json
+and per-object functions.diff. No new OS calls, FP changes, allocation, non-trivial
+destructors, layout changes or golden/fixture regeneration.
 
-Nine production objects reviewed: two Clang release objects are raw-identical.
-GCC/MinGW differences are equivalent member-base/index address calculations plus
-code placement/alignment. No functions added/removed. Both forms resolve to the
-same base + 0x6d8 + index*4 and store shader at +0x5b8. Actual GCC release commands
-fail before/pass after. GCC/Clang UI skill ASan/UBSan checks pass. All twelve
-native helper libraries build with matching ABI layouts; ten retain raw hashes.
-The two GCC UI libraries differ only in these same address calculations in the
-callback and initialization. Fixed Q3 replay under both software renderers retains
-frame hash b38004b1. Source 1c82acae/provenance 81d4315d. Persistent evidence: array-bounds-preview/{results.json,*/functions.diff}.
+#86 local evidence: nine affected production objects reviewed; two Clang raw
+matches and GCC/MinGW equivalent member-base/index calculations. All twelve native
+helper builds/layouts pass, ten raw hashes match; two GCC UI libraries differ only
+in those address calculations. GCC/Clang UI skill ASan/UBSan checks pass, fixed Q3
+replay on both software renderers retains b38004b1. Source 1c82acae, provenance
+81d4315d. Persistent artifacts array-bounds-{preview,native,ui-gcc,ui-clang,demo}.
 
-Unused-result preview (not applied): eight console write return values bind to
-maybe_unused const auto locals, retaining best-effort output behavior. Thirteen
-production objects checked: nine release/ARM64 raw-identical; four GCC debug
-objects add dead return-value stores/stack slots in four console functions. GCC
-release and ARM64 controls fail before/pass after. Artifacts: unused-result-preview.
-
-Initializer #85 local evidence: 2,380 syntax configurations; 188/194 affected
-objects raw/native-identical, four debug objects change only allocator __LINE__
-constants by +5, two MinGW video objects reorder independent stores/comparison.
-Twelve native libraries retain hashes/layouts. Full local MinGW debug client/server
-build passes. Source 708b7114/provenance 3e42dfc6. No golden regeneration.
+Unused-but-set-variable preview is separate and not applied: 27 declarations in
+15 files initially annotated to preserve calls, FP evaluations and conditional
+uses. All 858 native syntax configurations pass after fixing the array-attribute
+placement. 118/126 production objects are raw/native-identical; remaining debug
+metadata needs review. The GCC C helper additionally identifies six vector locals
+in ai_dmq3, bg_slidemove and g_active; review/add those and repeat affected checks.
+Artifacts: unused-set-{inventory,preview,check,objects,native} in persistent cache.
 
 Next:
-1. Local array-bounds validation is complete: array-bounds-native-review.json,
-   array-bounds-ui-{gcc,clang}.log and array-bounds-demo.log in persistent cache.
-2. Open this class PR and require full hosted gates. Continue unused-result and
-   unused-but-set-variable as separate warning PRs.
+1. Complete unused-result self-review; wait for #86 gates/merge, integrate, open
+   this warning PR and require full hosted gates before final self-review/merge.
+2. Finish unused-but-set-variable preview and remaining warning classes.
 3. Finish MSVC /WX, one verified tree-wide clang-format commit, tidy subsets,
    fixed-width types/layout assertions and release-identical Q_ASSERT. Update plan
    rules to in force; finish #8, write design-only docs/design/rhi.md for #6, then
