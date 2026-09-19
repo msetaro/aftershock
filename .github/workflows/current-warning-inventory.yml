@@ -1,0 +1,40 @@
+name: current-warning-inventory
+on:
+  push:
+    branches: [issue/8-warning-inventory-current]
+  workflow_dispatch:
+env:
+  SOURCE_DATE_EPOCH: "1789257600"
+  CMAKE_BUILD_PARALLEL_LEVEL: "8"
+jobs:
+  inventory:
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, arm64]
+        config: [Release, Debug]
+        include:
+          - arch: x64
+            vcvars: amd64
+          - arch: arm64
+            vcvars: amd64_arm64
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.vcvars }}
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: cmake-msvc-${{ matrix.arch }}-${{ matrix.config }}
+      - name: Inventory unsuppressed W4 diagnostics
+        shell: pwsh
+        run: |
+          $failed = $false
+          foreach ($renderer in @('opengl', 'vulkan')) {
+            cmake -S . -B "build/inventory-$renderer" -G Ninja -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=${{ matrix.config }} "-DRENDERER_DEFAULT=$renderer"
+            if ($LASTEXITCODE) { $failed = $true; continue }
+            cmake --build "build/inventory-$renderer"
+            if ($LASTEXITCODE) { $failed = $true }
+          }
+          if ($failed) { exit 1 }

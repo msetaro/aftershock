@@ -1,0 +1,1 @@
+Diagnostic branch only; never merge. Baseline 63615d82 includes PR #104 padding. The separately verified standard-MSVC Q_setjmp annotation from the pending C4611 preview is included, without shifting lines. Shared-header warning suppressions become same-line comments, preserving diagnostic source positions. Debug builds use /W4. No accepted fixtures or goldens change.

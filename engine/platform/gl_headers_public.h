@@ -26,10 +26,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if defined( _WIN32 )
 #if _MSC_VER
-#pragma warning (disable: 4214)
-#pragma warning (disable: 4514)
-#pragma warning (disable: 4032)
-#pragma warning (disable: 4214)
+// Inventory only: #pragma warning (disable: 4214)
+// Inventory only: #pragma warning (disable: 4514)
+// Inventory only: #pragma warning (disable: 4032)
+// Inventory only: #pragma warning (disable: 4214)
 #endif
 #include <windows.h>
 #include <GL/gl.h>
