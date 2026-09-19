@@ -26,7 +26,7 @@ use enum-to-int casts; both 32-bit equality representations and C++ promotions a
 preserved. Ordered enum comparisons are not changed. The last native helper freeze
 is removed with its now-unused JSON/configuration logic; production signedness
 warnings are enabled. Six already-touched lines lose existing trailing spaces.
-Source/provenance must be recorded before its PR.
+Source 70b1f0b6 is recorded for 15 GPL files; original import hashes remain.
 
 Final local validation: all 2,667 syntax configurations pass, including MinGW
 debug. Of 905 production objects, 755 retain raw/native hashes and 150 differ only
@@ -39,7 +39,8 @@ instructions replace flags before other conditions. No added/removed functions.
 Persistent artifacts: sign-compare-{preview,final-check,objects,extra-objects,
 final-review.json,native.json,native-review.json}; per-library diffs are retained.
 No FP expressions, new OS access, allocation, lifetime/layout or accepted fixture
-changes. No golden regeneration.
+changes. No golden regeneration. Actual repository helper builds after removing the final
+freeze configuration reproduce all twelve reviewed library hashes.
 
 Parent #89 uses the existing platform conversion through void* at nine
 GetProcAddress bindings in four Windows source files. Function signatures and
@@ -92,7 +93,7 @@ All 861 MinGW release/debug syntax configurations pass with the class enabled.
 No signature, call, layout or behavior changes. Artifacts: cast-function-{preview,objects}.
 
 Next:
-1. Record source/GPL provenance and complete self-review. Merge #89 after its
+1. Source/GPL provenance is recorded. Complete self-review and merge #89 after its
    hosted gates/self-review, integrate modernization, then open this signedness
    class PR and require all hosted gates before merging.
 2. Finish write-strings, Apple deprecations and MSVC warning classes /WX.
