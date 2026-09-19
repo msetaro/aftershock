@@ -15,6 +15,17 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
+Trajectory enum decision preview: prefer an explicit uint32_t C++ trType_t base,
+with the C99 reference enum declaration retained. enum-unsigned-preview includes
+the shared primitive-width/assertion edits and preserves all 85 sampled objects
+(67 raw/native, 18 debug-only) and all twelve native helper hashes/layouts. This
+matches the existing GCC/Clang enum representation; final MSVC/matrix verification
+is still required. Do not apply enum-width-preview: its signed int32_t candidate
+changed the GCC game/cgame helper hashes and is rejected in favor of the identical
+unsigned candidate. No simulation expressions or accepted goldens changed.
+Evidence: enum-unsigned-object-review.json and enum-unsigned-native.json. Refresh
+this generator against the final warning/formatting tree before publishing.
+
 Final formatter preparation: format-final-stringifying-macros.json adds standard
 assert and Q_ASSERT to the existing 18 macro names whose tokens are stringified.
 Use that 20-name list when refreshing the final formatter preview, preserving
@@ -71,17 +82,22 @@ again. Every class still has its own branch/PR. C4514/C4711 retain compiler defa
 The runner's PID/session is transient; the log and msvc-c*-published.json files
 record PR heads, merge IDs and gates. Stop on any unexpected failure.
 
-Active: issue/8-msvc-c4214. Removes only C4214 suppression and promotes it on owned C++ sources.
+Active: issue/8-msvc-c4514. Removes only C4514 suppression and retains the compiler default for this informational diagnostic.
 No declarations, expressions, allocation, OS access, lifetime or layout changes.
-92 sampled objects preserve code/data (92 raw/native-identical, 0 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4214-object-review.json and msvc-c4214-native.json.
+92 sampled objects preserve code/data (82 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4514-object-review.json and msvc-c4514-native.json.
 Native GPL provenance retains original import hashes. No accepted golden changes.
 Run full hosted gates and self-review before merge; then continue the remaining
 MSVC suppression classes, strict MSVC policy, and the rest of #8.
-Previous PR #121 merged as 3b5ae1a5; verify its merged-tree regression.
+Previous PR #122 merged as 08682b7a; verify its merged-tree regression.
 
 
 ## Recent MSVC merges
+
+PR #122 C4214: source 231355cc, head 231355cc, merged 08682b7a.
+Build 35470571769 and regression 35470571759 pass after self-review.
+92 sampled objects preserve code/data (92 raw/native-identical, 0 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4214-object-review.json and msvc-c4214-native.json.
 
 PR #121 C4136: source 0c220839, head 9da7b602, merged 3b5ae1a5.
 Build 35470242725 and regression 35470242736 pass after self-review.
