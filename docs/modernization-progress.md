@@ -13,15 +13,15 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Active: issue/8-msvc-pointer-types. PR #110 head 7dedb706 passed build
-35464961869 and regression 35464961883 and merged after self-review. Check its
+35464961869 and regression 35464961883; merged b0ae0ced after self-review. Check its
 merged-tree regression. PR #109 merged-tree regression 35464938074 passes.
 
 Applied msvc-pointer-preview: remove only C4057 suppression from both shared
 headers and promote /we4057 on owned C++ sources. No pointer conversions or
 source expressions changed. All 85 sampled objects preserve code/data (67
 raw/native, 18 debug-only), and all twelve helper hashes/layouts retain the
-post-formatter baseline. Record native-header GPL provenance, run full hosted
-gates, then self-review before merging. Next: C4125 octal-escape suppression.
+post-formatter baseline. Native-header provenance records source 769685fb while
+retaining original GPL import hashes. Run full hosted gates, then self-review before merging. Next: C4125 octal-escape suppression.
 
 Merged C4100 evidence: source b4696ba0/head 7dedb706 removes only both inherited
 unused-parameter disables and promotes /we4100 on owned C++ sources. The #84
