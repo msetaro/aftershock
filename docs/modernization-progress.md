@@ -27,7 +27,7 @@ format-test-before.json and format-test-before-*-overflow.log in persistent cach
 The first draft's post-NUL canary assumed identical padding; it was corrected to
 check outside the supplied destination capacity because native Q_strncpyz pads.
 Test-first commit b3c44459 fails before the fix (sprintf-before.log).
-The two-line fix now bounds the temporary write with Q_vsnprintf/vsnprintf;
+Source c5e4a555 bounds the temporary write with Q_vsnprintf/vsnprintf;
 existing error guards, destination truncation and in-place behavior remain.
 All six GCC/Clang engine C++/game C/game C++ ASan+UBSan variants pass. Record GPL
 provenance, run full hosted gates and self-review before merging. #98 merged-tree
