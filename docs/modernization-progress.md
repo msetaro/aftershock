@@ -15,12 +15,72 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
+Active: issue/8-msvc-strict-warnings. PR #124 merged as 613c96b8 after build
+35471369036, regression 35471369005 and preceding merged-tree regression
+35471364358 passed. The individual MSVC suppression classes are complete.
+
+Next: enable /W4 /WX on owned engine/game C++ sources in every MSVC configuration,
+removing the target-wide warning-level flags. Vendor /w remains unchanged. The
+same policy passed diagnostic run 35466848347 on x64/ARM64 Debug/Release, Ninja
+and generated Visual Studio projects, with zero compiler C warnings. Three
+existing Visual Studio vendor flag-override notices remain per leg. Evidence:
+msvc-strict-v2-review.json. Full integration-tree build/regression and PR #124's
+merged-tree regression must pass before self-review and merge. This changes only
+warning policy; native GPL sources, optimization/FP flags and accepted goldens
+are unchanged. Afterward continue Apple deprecations, then the remaining #8 gates.
+
+## Recent MSVC merges
+
+PR #124 C4711: source 3e6d66b8, head 43605a7d, merged 613c96b8.
+Build 35471369036 and regression 35471369005 pass after self-review.
+85 sampled objects preserve code/data (67 raw/native-identical, 18 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4711-object-review.json and msvc-c4711-native.json.
+
+PR #123 C4514: source f7568d21, head 8c4d2192, merged 3f6484ca.
+Build 35470941999 and regression 35470941980 pass after self-review.
+92 sampled objects preserve code/data (82 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4514-object-review.json and msvc-c4514-native.json.
+
+PR #122 C4214: source 231355cc, head 231355cc, merged 08682b7a.
+Build 35470571769 and regression 35470571759 pass after self-review.
+92 sampled objects preserve code/data (92 raw/native-identical, 0 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4214-object-review.json and msvc-c4214-native.json.
+
+PR #121 C4136: source 0c220839, head 9da7b602, merged 3b5ae1a5.
+Build 35470242725 and regression 35470242736 pass after self-review.
+85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4136-object-review.json and msvc-c4136-native.json.
+
+PR #120 C4115: source fae6f1a7, head 478bb626, merged be3f2b32.
+Build 35469905876 and regression 35469905875 pass after self-review.
+85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4115-object-review.json and msvc-c4115-native.json.
+
+PR #119 C4051: source d005bccc, head b5d49d95, merged 51366ebe.
+Build 35469530847 and regression 35469530821 pass after self-review.
+85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4051-object-review.json and msvc-c4051-native.json.
+
+PR #118 C4032: source fc7de3a5, head e0c22d71, merged 21e4c41d.
+Build 35469216318 and regression 35469216328 pass after self-review.
+92 sampled objects preserve code/data (82 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
+Evidence: msvc-c4032-object-review.json and msvc-c4032-native.json.
+
+PR #117 C4091: head ad768fe4 merged 981c534d. Build 35468827516 and
+regression 35468827553 pass after self-review. Preceding merged-tree regression
+35468824605 passes. 85 sampled objects (77 raw/native, 8 debug-only) preserve
+code/data; twelve helper hashes/layouts match. Evidence: msvc-typedef-*.
+
+## Prepared #8 work
+
 Real MSVC record-width diagnostic: 96bbfb58 on the never-merged
 issue/8-warning-inventory-current branch combines enum-unsigned and central-width
 previews with the already-verified owned-source /W4 /WX policy. Run 35471127733
 checks x64/ARM64 Debug/Release, both renderer builds and generated Visual Studio
-projects. Check that run before accepting the enum/layout candidate; it is not a
-final integration gate. Two existing trailing spaces on changed weapon-field
+projects. All four legs passed, with zero compiler C warnings and the three
+previously reviewed Visual Studio vendor-flag D9025 notices per leg. Evidence:
+width-msvc-jobs.json, width-msvc-review.json and width-msvc-*.log. This validates
+the enum/layout candidate on MSVC but remains a diagnostic, not a final-tree gate. Two existing trailing spaces on changed weapon-field
 lines were trimmed for git diff --check. Native GPL provenance belongs to the
 later integration source commit, not this diagnostic-only branch.
 
@@ -85,59 +145,12 @@ Session-only helpers quiet-warning-step.py, finish-quiet-warning.py and
 quiet-warning-sequence.py automate the reviewed pragma-only C4032/C4051/C4115/
 C4136/C4214/C4514/C4711 sequence. The sequence waits for each PR's build/regression
 and its preceding merged-tree regression, checks the exact source/flag diff and
-GPL hashes, records the self-review, and merges only on success. Inspect the
-running process and quiet-warning-sequence.log before resuming or launching it
-again. Every class still has its own branch/PR. C4514/C4711 retain compiler defaults.
+GPL hashes, records the self-review, and merges only on success. The sequence is complete through PR #124; no runner is active. Do not restart
+it from the first class. Inspect quiet-warning-sequence.log when reviewing evidence. Every class still has its own branch/PR. C4514/C4711 retain compiler defaults.
 The runner's PID/session is transient; the log and msvc-c*-published.json files
 record PR heads, merge IDs and gates. Stop on any unexpected failure.
 
-Active: issue/8-msvc-c4711. Removes only C4711 suppression and retains the compiler default for this informational diagnostic.
-No declarations, expressions, allocation, OS access, lifetime or layout changes.
-85 sampled objects preserve code/data (67 raw/native-identical, 18 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4711-object-review.json and msvc-c4711-native.json.
-Native GPL provenance retains original import hashes. No accepted golden changes.
-Run full hosted gates and self-review before merge; then continue the remaining
-MSVC suppression classes, strict MSVC policy, and the rest of #8.
-Previous PR #123 merged as 3f6484ca; verify its merged-tree regression.
-Source transformation 3e6d66b8 recorded in native-game-import.json.
-
-
-## Recent MSVC merges
-
-PR #123 C4514: source f7568d21, head 8c4d2192, merged 3f6484ca.
-Build 35470941999 and regression 35470941980 pass after self-review.
-92 sampled objects preserve code/data (82 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4514-object-review.json and msvc-c4514-native.json.
-
-PR #122 C4214: source 231355cc, head 231355cc, merged 08682b7a.
-Build 35470571769 and regression 35470571759 pass after self-review.
-92 sampled objects preserve code/data (92 raw/native-identical, 0 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4214-object-review.json and msvc-c4214-native.json.
-
-PR #121 C4136: source 0c220839, head 9da7b602, merged 3b5ae1a5.
-Build 35470242725 and regression 35470242736 pass after self-review.
-85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4136-object-review.json and msvc-c4136-native.json.
-
-PR #120 C4115: source fae6f1a7, head 478bb626, merged be3f2b32.
-Build 35469905876 and regression 35469905875 pass after self-review.
-85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4115-object-review.json and msvc-c4115-native.json.
-
-PR #119 C4051: source d005bccc, head b5d49d95, merged 51366ebe.
-Build 35469530847 and regression 35469530821 pass after self-review.
-85 sampled objects preserve code/data (75 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4051-object-review.json and msvc-c4051-native.json.
-
-PR #118 C4032: source fc7de3a5, head e0c22d71, merged 21e4c41d.
-Build 35469216318 and regression 35469216328 pass after self-review.
-92 sampled objects preserve code/data (82 raw/native-identical, 10 debug-only); all twelve native helper hashes/layouts match the baseline.
-Evidence: msvc-c4032-object-review.json and msvc-c4032-native.json.
-
-PR #117 C4091: head ad768fe4 merged 981c534d. Build 35468827516 and
-regression 35468827553 pass after self-review. Preceding merged-tree regression
-35468824605 passes. 85 sampled objects (77 raw/native, 8 debug-only) preserve
-code/data; twelve helper hashes/layouts match. Evidence: msvc-typedef-*.
+## Earlier warning evidence
 
 Merged C4206 evidence: PR #116 head 8b50fc5e removes the engine suppression and
 promotes /we4206. All 85 sampled objects preserve code/data (77 raw/native,
