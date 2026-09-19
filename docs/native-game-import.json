@@ -161,7 +161,8 @@
     "7c1db108": "#8 deprecation cleanup: remove unused testPrintInt/testPrintFloat reference wrappers and declarations; historical syscall enum values retained",
     "e8752ef1": "#31 PrintMsg: bounded formatting and required-length/error checks before dispatch; test-first 1ef998b0; valid text and quote policy retained",
     "f3facd3a": "#31 native diagnostics: twelve bounded formatting calls with original capacities/log offset; test-first a3652169; valid output unchanged",
-    "0eb07ced": "#8 writable strings: const Team_FragBonuses search name and remove redundant casts; base/MISSIONPACK GCC/Clang release objects byte-identical"
+    "0eb07ced": "#8 writable strings: const Team_FragBonuses search name and remove redundant casts; base/MISSIONPACK GCC/Clang release objects byte-identical",
+    "05eca339": "#8 Apple deprecations: remove unused native COM_ParseError/COM_ParseWarning definitions and prototypes; engine diagnostics retained; no callers or syscall IDs change"
   },
   "files": [
     {
@@ -1078,7 +1079,8 @@
         "3eaba64d",
         "c5e4a555",
         "bdbc5e9c",
-        "6709136c"
+        "6709136c",
+        "05eca339"
       ]
     },
     {
@@ -1107,7 +1109,8 @@
         "fae6f1a7",
         "0c220839",
         "f7568d21",
-        "3e6d66b8"
+        "3e6d66b8",
+        "05eca339"
       ]
     },
     {

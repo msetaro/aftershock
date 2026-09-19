@@ -15,19 +15,27 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: issue/8-missionpack-string-constness. The read-only Team_FragBonuses
-search-name pointer is const; two redundant literal casts are removed. G_Find
-already receives const char*. GCC/Clang base/MISSIONPACK release objects are
-byte-identical. The permanent team-message compile check now treats writable
-string conversions as errors in both configurations. No simulation or layout
-change; native GPL provenance records 0eb07ced and retains original hashes.
-GCC and Clang/libc++ permanent tests pass all base/MISSIONPACK cases without
-compiler warnings.
+Active: issue/8-apple-deprecations. Remove the two unreferenced native parser
+error/warning functions and declarations, then remove both Apple deprecation
+warning disables. All twelve refreshed GCC/Clang C/C++ helper/layout builds pass;
+exports remove exactly COM_ParseError/COM_ParseWarning. Source search found no
+native consumers. Engine versions are retained. Owned CMake warning flags now
+have no -Wno-* list; MSVC /W4 /WX remains in force. The plan's warning row records
+this policy. Other #8 work is still pending.
 
-Next: run the permanent checks and full hosted gates, verify #129 merged-tree
-regression, self-review and merge. Then delete the unused native diagnostics and
-remove the Apple deprecation disable before refreshing the final #8 baselines.
-Evidence: missionpack-const-preview/{changes,results}.json and compiler logs.
+Native GPL provenance records source 05eca339 with original hashes unchanged.
+Next: run full hosted build/regression and local
+fixed replay, verify #130 merged-tree regression, self-review and merge. Then
+record the final warning-tree twelve-helper baseline and refresh the single
+formatting proof with the 20 whitespace-sensitive macro names. No accepted golden
+changes. Evidence: pre-apple-final-native.json and unused-parser-diagnostics-final-*
+artifacts. The earlier preview is historical and superseded by this refreshed one.
+
+PR #130 verification: source 0eb07ced, head dc005462. Build 35474393459,
+regression 35474393491 and preceding merged-tree regression 35474358929 pass.
+Four base/MISSIONPACK GCC/Clang release objects are byte-identical. Permanent
+GCC/Clang-libc++ contract tests pass without warnings and enforce writable-string
+errors. Original GPL hashes and goldens stay unchanged.
 
 PR #129 verification: test a3652169, fix f3facd3a, head ef18757a. Build
 35473984319, regression 35473984309 and preceding merged-tree regression
@@ -115,36 +123,36 @@ MISSIONPACK constness preview: missionpack-const-preview makes only the read-onl
 Team_FragBonuses search-name pointer const and removes its two redundant casts.
 G_Find already accepts const char*. GCC and Clang base/MISSIONPACK release objects
 are byte-identical before/after, and writable-string warnings disappear. Evidence:
-missionpack-const-preview/{changes,results}.json and compiler logs. Publish in #8
-separately after the formatter fixes; no source edits from this preview are active.
+missionpack-const-preview/{changes,results}.json and compiler logs. Applied as PR #130 after the formatter fixes; full hosted gates are running.
 
 Unused native parser-diagnostic preview: unused-parser-diagnostics-preview removes
 the two unreferenced definitions/prototypes in native q_shared. All twelve
 GCC/Clang C/C++ helper builds/layouts pass and exports remove exactly COM_ParseError
 and COM_ParseWarning. Evidence: unused-parser-diagnostics-{native,symbol-review}.json.
-Refresh helper measurements after the queued native formatter fix, record GPL
-provenance, and use this deletion with the final Apple deprecation ratchet PR.
+Refreshed after the native formatter fixes and constness cleanup: pre-apple-final-
+native.json is the before baseline; unused-parser-diagnostics-final-native.json
+and its symbol-review.json record twelve passing after builds/layouts with only
+the two diagnostic exports removed. Apply final-preview/changes.json with GPL
+provenance and the final Apple deprecation ratchet after #130 merges.
 
-Queued #31 native diagnostic-output capacity fix: twelve active calls in g_main,
+Completed #31 native diagnostic-output capacity fix (PR #129): twelve active calls in g_main,
 cg_main, ui_atoms and ai_main. The small-text capacity/routing probe fails all
 twelve pre-fix contracts; the cached candidate passes 24 GCC/Clang ASan/UBSan
 cases plus twelve Clang/libc++ cases. Evidence: native-diagnostic-before.json, native-diagnostic-contract.cpp,
 native-diagnostic-preview/{changes,results}.json. Decision recorded on #31:
 truncate diagnostic output to the actual buffer/remainder capacity, retaining
 error routing and the existing seven-byte log prefix offset. Keep this separate
-from PrintMsg's reject/error contract. Commit a failing test first, then the fix,
-GPL provenance and full gates. No oversized write is used in these probes.
+from PrintMsg's reject/error contract. Test-first commit, fix, GPL provenance and full gates are complete; see the
+PR #129 verification record above. No oversized write is used in these probes.
 Native COM_ParseError/COM_ParseWarning have no consumers (only definitions and
 prototypes); their separate #8 deletion can retire the last unused diagnostic
 formatters before removing the Apple warning disable.
 
-Next #31 item: PrintMsg formatter-result contract. A small-text, cache-only probe
+Completed #31 PrintMsg formatter-result contract (PR #128). A small-text, cache-only probe
 substitutes return values without any oversized write. The full-capacity result
 incorrectly reaches message dispatch; valid/fitting/error cases behave as expected.
 Evidence: team-message-contract-before.json and team-message-contract.cpp; issue
-#31 records the finding. After the pending #8 cleanup, commit this failing test
-first on its own #31 branch, use the actual capacity and correct the boundary,
-then record GPL provenance and run gates. Cached corrected candidate passes all
+#31 records the finding. The test-first fix, provenance and gates are complete; see PR #128 above. Cached corrected candidate passes all
 16 GCC/Clang base/MISSIONPACK contract cases under ASan/UBSan. Optional C++
 MISSIONPACK compilation exposes three pre-existing writable-string warnings in
 Team_FragBonuses; keep their constness cleanup in #8. No engine fix is part of #126.
@@ -156,7 +164,7 @@ symbol review removes exactly testPrintInt/testPrintFloat without added exports.
 18 sampled production objects compile; code hashes change from function removal.
 Historical CG_TESTPRINT enum values are retained so later service numbers stay
 stable. Evidence: obsolete-print-{native,symbol-review}.json and objects/results.
-Publish as a separate #8 deletion after #126; record imported-file provenance.
+Completed with imported-file provenance in PR #127; see its verification above.
 
 Fixed-capacity formatting preview: numeric-format-preview replaces 43 sprintf
 calls in 16 engine files with snprintf using the actual array or remaining
