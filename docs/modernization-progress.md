@@ -12,23 +12,31 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active: issue/8-standard-image-header. #31 formatter fixes are merged: #100
-passed de836537 build 35458501955 and regression 35458501948, with self-review
-on #100/#31; merged a3191a24, with merged-tree regression still to check. #99 merged-tree regression
-35458322765 passes. Test-first 9150f6e9/fix bdbc5e9c bound va's two slots and
-reject oversized formatting with ERR_FATAL. All six GCC/Clang C/C++ formatter
-variants pass; fixed Q3 replay retains b38004b1. #99's earlier Com_sprintf fix
-c5e4a555 has the same test/replay evidence. Original GPL hashes remain; no accepted
-fixture/golden changes.
+Active: issue/8-constant-conditions. PR #101 passed 7398da8c build 35458894693
+and regression 35458894677, with self-review on #101/#8; its merge/run remain to
+record (merge 205c8442). #100 merged-tree regression 35458818230 passes. Both formatter fixes are
+merged (#99 Com_sprintf, #100 va); all six compiler/language variants and fixed Q3
+replay pass with accepted b38004b1. No accepted fixture/golden changes.
 
-This branch applies the verified C4200 preview: remove pcx_t's nonstandard trailing
-flexible member, assert the unchanged 128-byte header, and address the payload
-immediately after it. All nine production objects preserve code/data (seven
-raw/native hashes, two debug-only). Remove the engine header suppression and
-promote C4200 on owned C++ sources. No parsing behavior or layout changes, and no
-new test target. Hosted gates/self-review remain; artifacts: flex-array-*.
-Then apply the verified C4127 and C4201 previews separately, finish remaining
-warnings/Apple deprecations, format/tidy/layout/assert rules, and #6 design only.
+This branch applies the C4127 preview: literal true loops, literal false disabled
+branches, constexpr endian check and compile-time glconfig size checks. Both
+shared header suppressions are removed and C4127 becomes an error on owned C++
+sources. All 73 production objects preserve code/data (57 raw/native, 16 debug-only).
+The ABI assertion retains its original two-line span to preserve debug allocation
+line numbers. No FP expression, OS access, allocation, lifetime, layout, fixture or
+golden changes. Record source and game-header provenance, then hosted gates and
+self-review before merging. Artifacts: constant-condition-* in persistent cache.
+Then apply the verified C4201 preview and finish remaining warnings, formatting,
+tidy/layout/assert rules, and #6 design only.
+
+MSVC C4324 diagnostic run 35459042059 at a13c60f0 confirms explicit eight-byte
+padding on x64 keeps jpeg_error_mgr size 168, jump-buffer size/alignment 256/16,
+jump offset 176 and combined size/alignment 432/16. ARM64 needs no padding:
+jump size/alignment 192/8, offset 168, combined size/alignment 360/8. Only the
+original x64 declaration warns; the explicit-padding form does not. No engine
+change yet. Logs: msvc-jpeg-layout-{x64,arm64}.log. Unmergeable diagnostic branch
+265fd6cf now verifies a candidate scoped C4611 annotation for the #1 longjmp model;
+read its result before choosing the permanent form. No exception-model change.
 
 #97 local-shadow source 91a4341b preserves 19 production objects (15 raw/native,
 four debug-only) and all four edited-tree cgame helper hashes/layouts. #96 global
@@ -103,7 +111,7 @@ immediately after the header for its payload. Nine production objects preserve
 code/data (seven raw/native, two debug-only). No parsing behavior changes or new
 test target. Remove the header suppression and add owned-source /we4200 only in
 its eventual #8 PR. Artifacts: flex-array-preview, flex-array-objects/review.json.
-C4127 preview, not applied: literal true loops, false disabled branches,
+C4127 preview, now applied: literal true loops, false disabled branches,
 constexpr endian check, and compile-time glconfig size checks; remove both shared
 header suppressions. All 73 objects preserve code/data: 57 raw/native, 16 debug-only. The
 ABI assertion keeps its original two-line span so debug allocation __LINE__ values
@@ -192,8 +200,8 @@ PRs #99/#100. Tests/format.py is permanent, covers six compiler/language variant
 and runs in CI. Reproduction/fix evidence is in docs/bugs.md and format-/va-*
 cache artifacts. Both fixes retain accepted replay goldens.
 
-1. Finish C4200 hosted gates/self-review and verify #100 merged-tree regression.
-2. Apply verified C4127/C4201 previews separately, then finish Apple deprecations
+1. Finish C4127 hosted gates/self-review and verify #101 merged-tree regression.
+2. Apply the verified C4201 preview, then finish Apple deprecations
    and remaining MSVC warning classes /WX.
 
 3. Finish one verified tree-wide clang-format commit, tidy subsets, fixed-width

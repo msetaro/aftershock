@@ -241,7 +241,7 @@ static float R_ProcessLightmap( byte *image, const byte *buf_p, float maxIntensi
 {
 	int x, y;
 
-	if ( 0 && r_lightmap->integer == 2 ) {
+	if ( false ) {
 		int j;
 		// color code by intensity as development tool	(FIXME: check range)
 		for ( j = 0; j < LIGHTMAP_SIZE * LIGHTMAP_SIZE; j++ )

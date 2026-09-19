@@ -4929,7 +4929,7 @@ void vk_upload_image_data( image_t *image, int x, int y, int width, int height, 
 
 	buf = resample_image_data( image->internalFormat, pixels, size, &n /*bpp*/ );
 
-	while (qtrue) {
+	while (true) {
 		Com_Memset(&region, 0, sizeof(region));
 		region.bufferOffset = buffer_size;
 		region.bufferRowLength = 0;

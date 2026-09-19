@@ -412,7 +412,7 @@ const char *MSG_ReadString( msg_t *msg ) {
 			c = '.';
 		}
 		string[ l++ ] = c;
-	} while ( qtrue );
+	} while ( true );
 	
 	string[ l ] = '\0';
 	
@@ -439,7 +439,7 @@ const char *MSG_ReadBigString( msg_t *msg ) {
 			c = '.';
 		}
 		string[ l++ ] = c;
-	} while ( qtrue );
+	} while ( true );
 	
 	string[ l ] = '\0';
 	
@@ -466,7 +466,7 @@ const char *MSG_ReadStringLine( msg_t *msg ) {
 			c = '.';
 		}
 		string[ l++ ] = c;
-	} while ( qtrue );
+	} while ( true );
 	
 	string[ l ] = '\0';
 	
