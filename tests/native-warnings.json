@@ -1,9 +1,5 @@
 {
   "gcc": {
-    "-Waddress": {
-      "c": 1,
-      "cpp": 1
-    },
     "-Warray-bounds": {
       "c": 2,
       "cpp": 2
@@ -29,10 +25,6 @@
     "-Wmissing-field-initializers": {
       "c": 70,
       "cpp": 70
-    },
-    "-Wpointer-bool-conversion": {
-      "c": 1,
-      "cpp": 1
     },
     "-Wsign-compare": {
       "c": 60,
