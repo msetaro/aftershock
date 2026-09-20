@@ -45,6 +45,11 @@ composition and explicit initial-entry bookkeeping (animation-root-events-after.
 animation-root-events-clang.log). State/event output remains atomic on overflow;
 repeated ticks cannot double-deliver or cascade transitions. Next: data-authored
 blend trees/masked additive layers, then production/gameplay integration.
+New tree test now fails on the unchanged runtime (animation-trees-before.log):
+a numeric parameter blends idle/wave while a second drives additive wave motion
+only on the tip subtree. It checks both composed rotation and untouched root
+translation. Implement flat topologically ordered nodes and fixed bone masks;
+reuse the already-tested transform operators.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/

@@ -67,6 +67,25 @@ int main( int argc, char **argv ) {
 	animTransform_t motion;
 	assert( Anim_RootMotion( &asset, Anim_ClipIndex( &asset, "idle" ), 750, 1250, true, &motion ) );
 	assert( fabsf( motion.translate[0] - 0.0625f ) < 0.00001f );
+	if ( argc == 3 && strcmp( argv[2], "trees" ) == 0 ) {
+		const int upper = Anim_ParameterIndex( &asset, "upper" );
+		assert( upper >= 0 );
+		Anim_Reset( &asset, 0, &state );
+		parameters[active] = 0.5f;
+		parameters[upper] = 0.5f;
+		assert( Anim_Evaluate( &asset, &state, parameters, 500, &pose ) );
+		assert( fabsf( pose.local[0].translate[0] - 0.03125f ) < 0.00001f );
+		assert( fabsf( pose.world[1][0] - 0.70710678f ) < 0.0001f );
+		assert( fabsf( pose.world[1][8] - 0.70710678f ) < 0.0001f );
+		parameters[active] = 0;
+		parameters[upper] = 1;
+		assert( Anim_Evaluate( &asset, &state, parameters, 500, &pose ) );
+		assert( fabsf( pose.local[0].translate[0] - 0.0625f ) < 0.00001f );
+		assert( fabsf( pose.world[1][0] - 0.70710678f ) < 0.0001f );
+		free( bytes );
+		puts( "PASS: data-authored blend tree with a masked additive upper layer" );
+		return 0;
+	}
 	if ( argc == 3 ) {
 		const int turn = Anim_ClipIndex( &asset, "turn" );
 		assert( turn >= 0 );

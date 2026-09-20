@@ -95,4 +95,17 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-source-') as tempo
     graph.write_text(json.dumps(definition))
     cook(project, args.output)
     run([probe, binary, 'edges'])
+    definition['parameters'].append({'name': 'upper', 'default': 0, 'min': 0, 'max': 1})
+    definition['masks'] = [{'name': 'upper', 'root': 'tip'}]
+    definition['nodes'] = [
+        {'name': 'idle', 'clip': 'idle', 'loop': True},
+        {'name': 'wave', 'clip': 'wave'},
+        {'name': 'lower', 'blend': ['idle', 'wave'], 'parameter': 'active'},
+        {'name': 'upper', 'additive': ['lower', 'wave'], 'reference': 'idle',
+         'parameter': 'upper', 'mask': 'upper'}]
+    definition['states'][0]['node'] = 'upper'
+    definition['transitions'] = []
+    graph.write_text(json.dumps(definition))
+    cook(project, args.output)
+    run([probe, binary, 'trees'])
 print('PASS: versioned animation cooking and incremental source dependencies')
