@@ -223,11 +223,11 @@ void RB_ShadowTessEnd( void ) {
 		pipeline[1] = r_pipelines.shadow_volume_pipelines[1][0];
 	}
 	RHI_BindPipeline( pipeline[0] ); // back-sided
-	vk_bind_index();
+	RB_BindIndex();
 	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 );
-	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
+	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
 	RHI_BindPipeline( pipeline[1] ); // front-sided
-	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
+	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
 
 	tess.numVertexes /= 2;
 #else
@@ -336,7 +336,7 @@ void RB_ShadowFinish( void ) {
 	RB_UpdateMVP( NULL );
 
 	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 /*| TESS_ST0 */ );
-	vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
+	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qfalse );
 
 	Com_Memcpy( r_modelview, tmp, 64 );
 

@@ -6574,94 +6574,16 @@ void RHI_GetPipelineDesc( uint32_t pipeline, rhiPipelineDesc_t *def ) {
 }
 
 
-static void get_viewport_rect( VkRect2D *r ) {
-	if ( backEnd.projection2D ) {
-		r->offset.x = 0;
-		r->offset.y = 0;
-		r->extent.width = vk.renderWidth;
-		r->extent.height = vk.renderHeight;
-	} else {
-		r->offset.x = (int32_t)( backEnd.viewParms.viewportX * vk.renderScaleX );
-		r->offset.y = (int32_t)( vk.renderHeight - ( backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight ) * vk.renderScaleY );
-		r->extent.width = (uint32_t)( (float)backEnd.viewParms.viewportWidth * vk.renderScaleX );
-		r->extent.height = (uint32_t)( (float)backEnd.viewParms.viewportHeight * vk.renderScaleY );
-	}
+rhiRenderArea_t RHI_GetRenderArea( void ) {
+	return { vk.renderWidth, vk.renderHeight, vk.renderScaleX, vk.renderScaleY };
 }
 
-static void get_viewport( VkViewport *viewport, rhiDepthRange_t depth_range ) {
-	VkRect2D r;
-
-	get_viewport_rect( &r );
-
-	viewport->x = (float)r.offset.x;
-	viewport->y = (float)r.offset.y;
-	viewport->width = (float)r.extent.width;
-	viewport->height = (float)r.extent.height;
-
-	switch ( depth_range ) {
-	default:
-#ifdef USE_REVERSED_DEPTH
-		//case DEPTH_RANGE_NORMAL:
-		viewport->minDepth = 0.0f;
-		viewport->maxDepth = 1.0f;
-		break;
-	case DEPTH_RANGE_ZERO:
-		viewport->minDepth = 1.0f;
-		viewport->maxDepth = 1.0f;
-		break;
-	case DEPTH_RANGE_ONE:
-		viewport->minDepth = 0.0f;
-		viewport->maxDepth = 0.0f;
-		break;
-	case DEPTH_RANGE_WEAPON:
-		viewport->minDepth = 0.6f;
-		viewport->maxDepth = 1.0f;
-		break;
-#else
-		//case DEPTH_RANGE_NORMAL:
-		viewport->minDepth = 0.0f;
-		viewport->maxDepth = 1.0f;
-		break;
-	case DEPTH_RANGE_ZERO:
-		viewport->minDepth = 0.0f;
-		viewport->maxDepth = 0.0f;
-		break;
-	case DEPTH_RANGE_ONE:
-		viewport->minDepth = 1.0f;
-		viewport->maxDepth = 1.0f;
-		break;
-	case DEPTH_RANGE_WEAPON:
-		viewport->minDepth = 0.0f;
-		viewport->maxDepth = 0.3f;
-		break;
-#endif
-	}
-}
-
-static void get_scissor_rect( VkRect2D *r ) {
-
-	if ( backEnd.viewParms.portalView != PV_NONE ) {
-		r->offset.x = backEnd.viewParms.scissorX;
-		r->offset.y = glConfig.vidHeight - backEnd.viewParms.scissorY - backEnd.viewParms.scissorHeight;
-		r->extent.width = backEnd.viewParms.scissorWidth;
-		r->extent.height = backEnd.viewParms.scissorHeight;
-	} else {
-		get_viewport_rect( r );
-
-		if ( r->offset.x < 0 )
-			r->offset.x = 0;
-		if ( r->offset.y < 0 )
-			r->offset.y = 0;
-
-		if ( r->offset.x + r->extent.width > (uint32_t)glConfig.vidWidth )
-			r->extent.width = glConfig.vidWidth - r->offset.x;
-		if ( r->offset.y + r->extent.height > (uint32_t)glConfig.vidHeight )
-			r->extent.height = glConfig.vidHeight - r->offset.y;
-	}
+static VkRect2D vk_rect( const rhiRect_t *rect ) {
+	return { { rect->offset.x, rect->offset.y }, { rect->extent.width, rect->extent.height } };
 }
 
 
-void vk_clear_color( const vec4_t color ) {
+void RHI_ClearColor( const float *color, const rhiRect_t *rect ) {
 
 	VkClearAttachment attachment;
 	VkClearRect clear_rect;
@@ -6676,7 +6598,7 @@ void vk_clear_color( const vec4_t color ) {
 	attachment.clearValue.color.float32[3] = color[3];
 	attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-	get_scissor_rect( &clear_rect.rect );
+	clear_rect.rect = vk_rect( rect );
 	clear_rect.baseArrayLayer = 0;
 	clear_rect.layerCount = 1;
 
@@ -6684,7 +6606,7 @@ void vk_clear_color( const vec4_t color ) {
 }
 
 
-void vk_clear_depth( qboolean clear_stencil ) {
+void RHI_ClearDepth( bool clear_stencil, const rhiRect_t *rect ) {
 
 	VkClearAttachment attachment;
 	VkClearRect clear_rect[1];
@@ -6702,13 +6624,13 @@ void vk_clear_depth( qboolean clear_stencil ) {
 	attachment.clearValue.depthStencil.depth = 1.0f;
 #endif
 	attachment.clearValue.depthStencil.stencil = 0;
-	if ( clear_stencil && glConfig.stencilBits > 0 ) {
+	if ( clear_stencil ) {
 		attachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 	} else {
 		attachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 	}
 
-	get_scissor_rect( &clear_rect[0].rect );
+	clear_rect[0].rect = vk_rect( rect );
 	clear_rect[0].baseArrayLayer = 0;
 	clear_rect[0].layerCount = 1;
 
@@ -6786,28 +6708,26 @@ void RHI_DrawIndexed( uint32_t indexCount, uint32_t firstIndex ) {
 }
 
 
-void vk_bind_index( void ) {
-#ifdef USE_VBO
-	if ( tess.vboIndex ) {
+void RHI_BindIndexData( uint32_t numIndexes, const uint32_t *indexes ) {
+	if ( !indexes ) {
 		vk.cmd->num_indexes = 0;
-		//qvkCmdBindIndexBuffer( vk.cmd->command_buffer, vk.vbo.index_buffer, tess.shader->iboOffset, VK_INDEX_TYPE_UINT32 );
 		return;
 	}
-#endif
-
-	vk_bind_index_ext( tess.numIndexes, tess.indexes );
-}
-
-
-void vk_bind_index_ext( const int numIndexes, const uint32_t *indexes ) {
 	uint32_t offset = RHI_UploadIndices( numIndexes, indexes );
 	if ( offset != ~0U ) {
 		vk_bind_index_buffer( vk.cmd->vertex_buffer, offset );
 		vk.cmd->num_indexes = numIndexes;
 	} else {
-		// overflowed
 		vk.cmd->num_indexes = 0;
 	}
+}
+
+void RHI_DrawBoundIndices( void ) {
+	RHI_DrawIndexed( vk.cmd->num_indexes, 0 );
+}
+
+void RHI_Draw( uint32_t vertexCount ) {
+	qvkCmdDraw( vk.cmd->command_buffer, vertexCount, 1, 0, 0 );
 }
 
 
@@ -6851,7 +6771,7 @@ void vk_update_descriptor_offset( int index, uint32_t offset ) {
 }
 
 
-void vk_bind_descriptor_sets( void ) {
+static void vk_bind_descriptor_sets( const rhiTexture_t *fallback ) {
 	uint32_t offsets[2], offset_count;
 	uint32_t start, end, count, i;
 
@@ -6871,7 +6791,7 @@ void vk_bind_descriptor_sets( void ) {
 	// fill NULL descriptor gaps
 	for ( i = start + 1; i < end; i++ ) {
 		if ( vk.cmd->descriptor_set.current[i] == VK_NULL_HANDLE ) {
-			vk.cmd->descriptor_set.current[i] = (VkDescriptorSet)(uintptr_t)tr.whiteImage->texture.binding;
+			vk.cmd->descriptor_set.current[i] = (VkDescriptorSet)(uintptr_t)fallback->binding;
 		}
 	}
 
@@ -6895,49 +6815,26 @@ void RHI_BindPipeline( uint32_t pipeline ) {
 	vk_world.dirty_depth_attachment |= ( vk.pipelines[pipeline].def.state_bits & GLS_DEPTHMASK_TRUE );
 }
 
-static void vk_update_depth_range( rhiDepthRange_t depth_range ) {
-	if ( vk.cmd->depth_range != depth_range ) {
-		VkRect2D scissor_rect;
-		VkViewport viewport;
-
-		vk.cmd->depth_range = depth_range;
-
-		get_scissor_rect( &scissor_rect );
-
+static void vk_update_depth_range( const rhiRasterState_t *raster ) {
+	if ( vk.cmd->depth_range != raster->depthRange ) {
+		const VkRect2D scissor_rect = vk_rect( &raster->scissor );
+		const rhiViewport_t *v = &raster->viewport;
+		const VkViewport viewport = { v->x, v->y, v->width, v->height, v->minDepth, v->maxDepth };
+		vk.cmd->depth_range = raster->depthRange;
 		if ( memcmp( &vk.cmd->scissor_rect, &scissor_rect, sizeof( scissor_rect ) ) != 0 ) {
 			qvkCmdSetScissor( vk.cmd->command_buffer, 0, 1, &scissor_rect );
 			vk.cmd->scissor_rect = scissor_rect;
 		}
-
-		get_viewport( &viewport, depth_range );
 		qvkCmdSetViewport( vk.cmd->command_buffer, 0, 1, &viewport );
 	}
 }
 
-
-void vk_draw_geometry( rhiDepthRange_t depth_range, qboolean indexed ) {
-
-	if ( vk.geometry_buffer_size_new ) {
-		// geometry buffer overflow happened this frame
-		return;
-	}
-
-	vk_bind_descriptor_sets();
-
-	// configure pipeline's dynamic state
-	vk_update_depth_range( depth_range );
-
-	// issue draw call(s)
-#ifdef USE_VBO
-	if ( tess.vboIndex )
-		VBO_RenderIBOItems();
-	else
-#endif
-		if ( indexed ) {
-		qvkCmdDrawIndexed( vk.cmd->command_buffer, vk.cmd->num_indexes, 1, 0, 0, 0 );
-	} else {
-		qvkCmdDraw( vk.cmd->command_buffer, tess.numVertexes, 1, 0, 0 );
-	}
+bool RHI_PrepareDraw( const rhiRasterState_t *raster, const rhiTexture_t *fallback ) {
+	if ( vk.geometry_buffer_size_new )
+		return false;
+	vk_bind_descriptor_sets( fallback );
+	vk_update_depth_range( raster );
+	return true;
 }
 
 
@@ -6946,7 +6843,7 @@ bool RHI_ReadVisibility( uint32_t index ) {
 	return *(const uint32_t *)( vk.storage.buffer_ptr + offset ) != 0;
 }
 
-void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount ) {
+void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount, const rhiRasterState_t *raster ) {
 	const uint32_t storage_offset = index * vk.storage_alignment;
 	if ( vk.geometry_buffer_size_new ) {
 		// geometry buffer overflow happened this frame
@@ -6956,7 +6853,7 @@ void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount ) {
 	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_storage, RHI_BINDING_STORAGE, 1, &vk.storage.descriptor, 1, &storage_offset );
 
 	// configure pipeline's dynamic state
-	vk_update_depth_range( DEPTH_RANGE_NORMAL );
+	vk_update_depth_range( raster );
 
 	qvkCmdDraw( vk.cmd->command_buffer, vertexCount, 1, 0, 0 );
 }

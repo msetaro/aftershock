@@ -92,17 +92,12 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 // Rendering setup.
 //
 
-void vk_clear_color( const vec4_t color );
-void vk_clear_depth( qboolean clear_stencil );
 void vk_begin_frame( void );
 void vk_end_frame( void );
 void vk_present_frame( void );
 
 void vk_begin_main_render_pass( void );
 
-void vk_bind_index( void );
-void vk_bind_index_ext( const int numIndexes, const uint32_t *indexes );
-void vk_draw_geometry( rhiDepthRange_t depth_range, qboolean indexed );
 
 void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height ); // screenshots
 
@@ -159,7 +154,7 @@ typedef struct vk_tess_s {
 	rhiDepthRange_t depth_range;
 	VkPipeline last_pipeline;
 
-	uint32_t num_indexes; // value from most recent vk_bind_index() call
+	uint32_t num_indexes; // value from most recent RB_BindIndex() call
 
 	VkRect2D scissor_rect;
 } vk_tess_t;

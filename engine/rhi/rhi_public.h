@@ -350,9 +350,39 @@ uint32_t RHI_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool ea
 void RHI_GetPipelineDesc( uint32_t pipeline, rhiPipelineDesc_t *desc );
 void RHI_BindPipeline( uint32_t pipeline );
 
+struct rhiRect_t {
+	struct {
+		int32_t x, y;
+	} offset;
+	struct {
+		uint32_t width, height;
+	} extent;
+};
+struct rhiViewport_t {
+	float x, y, width, height, minDepth, maxDepth;
+};
+struct rhiRasterState_t {
+	rhiDepthRange_t depthRange;
+	rhiRect_t scissor;
+	rhiViewport_t viewport;
+};
+struct rhiRenderArea_t {
+	uint32_t width, height;
+	float scaleX, scaleY;
+};
+rhiRenderArea_t RHI_GetRenderArea( void );
+// Return false after upload exhaustion; descriptor/depth state stays untouched.
+bool RHI_PrepareDraw( const rhiRasterState_t *raster, const rhiTexture_t *fallback );
+void RHI_Draw( uint32_t vertexCount );
+void RHI_DrawBoundIndices( void );
+// Null data clears the bound count without uploading or rebinding a buffer.
+void RHI_BindIndexData( uint32_t count, const uint32_t *indices );
+void RHI_ClearColor( const float *color, const rhiRect_t *rect );
+void RHI_ClearDepth( bool stencil, const rhiRect_t *rect );
+
 // Exact 4x4 shader transform bytes; matrix generation belongs to the frontend.
 void RHI_PushTransform( const float *matrix );
 void RHI_Bloom( const float *restoreTransform );
 // Existing one-frame delayed, coherent visibility storage; no additional wait.
 bool RHI_ReadVisibility( uint32_t index );
-void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount );
+void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount, const rhiRasterState_t *raster );

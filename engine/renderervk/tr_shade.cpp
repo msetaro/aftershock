@@ -23,6 +23,32 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 
+void RB_BindIndex( void ) {
+#ifdef USE_VBO
+	if ( tess.vboIndex ) {
+		RHI_BindIndexData( 0, nullptr );
+		return;
+	}
+#endif
+	RHI_BindIndexData( tess.numIndexes, tess.indexes );
+}
+
+void RB_DrawGeometry( rhiDepthRange_t depthRange, qboolean indexed ) {
+	rhiRasterState_t raster;
+	RB_GetRaster( depthRange, &raster );
+	if ( !RHI_PrepareDraw( &raster, &tr.whiteImage->texture ) )
+		return;
+#ifdef USE_VBO
+	if ( tess.vboIndex )
+		VBO_RenderIBOItems();
+	else
+#endif
+		if ( indexed )
+		RHI_DrawBoundIndices();
+	else
+		RHI_Draw( tess.numVertexes );
+}
+
 void RB_BindGeometry( uint32_t flags ) {
 	rhiVertexStream_t streams[RHI_MAX_VERTEX_STREAMS] = {};
 
@@ -269,7 +295,7 @@ static void DrawTris( const shaderCommands_t *input ) {
 	}
 
 	RHI_BindPipeline( pipeline );
-	vk_draw_geometry( DEPTH_RANGE_ZERO, qtrue );
+	RB_DrawGeometry( DEPTH_RANGE_ZERO, qtrue );
 
 #else
 	if ( r_showtris->integer == 1 && backEnd.drawConsole )
@@ -330,9 +356,9 @@ static void DrawNormals( const shaderCommands_t *input [[maybe_unused]] ) {
 	Com_Memset( tess.svars.colors[0][0].rgba, tr.identityLightByte, tess.numVertexes * sizeof( color4ub_t ) );
 
 	RHI_BindPipeline( r_pipelines.normals_debug_pipeline );
-	vk_bind_index();
+	RB_BindIndex();
 	RB_BindGeometry( TESS_XYZ | TESS_ST0 | TESS_RGBA0 );
-	vk_draw_geometry( DEPTH_RANGE_ZERO, qtrue );
+	RB_DrawGeometry( DEPTH_RANGE_ZERO, qtrue );
 #else
 	GL_ClientState( 0, CLS_NONE );
 
@@ -644,9 +670,9 @@ static void ProjectDlightTexture( void ) {
 		}
 		pipeline = r_pipelines.dlight_pipelines[dl->additive > 0 ? 1 : 0][tess.shader->cullType][tess.shader->polygonOffset];
 		RHI_BindPipeline( pipeline );
-		vk_bind_index_ext( numIndexes, hitIndexes );
+		RHI_BindIndexData( numIndexes, hitIndexes );
 		RB_BindGeometry( TESS_RGBA0 | TESS_ST0 );
-		vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
+		RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
 #else
 		// include GLS_DEPTHFUNC_EQUAL so alpha tested surfaces don't add light
 		// where they aren't rendered
@@ -689,12 +715,12 @@ static void RB_FogPass( qboolean rebindIndex ) {
 	// fog parameters
 	RHI_BindPipeline( pipeline );
 	if ( rebindIndex ) {
-		vk_bind_index();
+		RB_BindIndex();
 	}
 	VK_SetFogParams( &uniform, &fog_stage );
 	RHI_UploadUniform( &uniform, sizeof( uniform ) );
 	RHI_BindTexture( RHI_BINDING_FOG_ONLY, &tr.fogImage->texture );
-	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
+	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
 #else
 	const fog_t *fog = tr.world->fogs + tess.fogNum;
 	int i;
@@ -709,10 +735,10 @@ static void RB_FogPass( qboolean rebindIndex ) {
 
 	RHI_BindPipeline( pipeline );
 	if ( rebindIndex ) {
-		vk_bind_index();
+		RB_BindIndex();
 	}
 	RB_BindGeometry( TESS_ST0 | TESS_RGBA0 );
-	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
+	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
 #endif
 #else
 static void RB_FogPass( void ) {
@@ -1044,7 +1070,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 	int fog_stage;
 	qboolean pushUniform;
 
-	vk_bind_index();
+	RB_BindIndex();
 
 	tess_flags = input->shader->tessFlags;
 
@@ -1120,7 +1146,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 
 		RHI_BindPipeline( pipeline );
 		RB_BindGeometry( tess_flags );
-		vk_draw_geometry( tess.depthRange, qtrue );
+		RB_DrawGeometry( tess.depthRange, qtrue );
 
 		if ( pStage->depthFragment ) {
 			if ( backEnd.viewParms.portalView == PV_MIRROR )
@@ -1128,7 +1154,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 			else
 				pipeline = pStage->vk_pipeline_df;
 			RHI_BindPipeline( pipeline );
-			vk_draw_geometry( tess.depthRange, qtrue );
+			RB_DrawGeometry( tess.depthRange, qtrue );
 		}
 #else
 		R_ComputeColors( 0, tess.svars.colors[0].rgba, pStage );
@@ -1305,9 +1331,9 @@ void VK_LightingPass( void ) {
 	}
 
 	RHI_BindPipeline( pipeline );
-	vk_bind_index();
+	RB_BindIndex();
 	RB_BindLighting( tess.shader->lightingStage, tess.shader->lightingBundle );
-	vk_draw_geometry( tess.depthRange, qtrue );
+	RB_DrawGeometry( tess.depthRange, qtrue );
 }
 #endif // USE_PMLIGHT
 

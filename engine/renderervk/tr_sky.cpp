@@ -421,9 +421,9 @@ static void DrawSkySide( image_t *image, const int mins[2], const int maxs[2] ) 
 		tess.svars.texcoordPtr[0] = tess.texCoords[0];
 
 		RHI_BindPipeline( r_pipelines.skybox_pipeline );
-		vk_bind_index();
+		RB_BindIndex();
 		RB_BindGeometry( TESS_XYZ | TESS_ST0 );
-		vk_draw_geometry( r_showsky->integer ? DEPTH_RANGE_ZERO : DEPTH_RANGE_ONE, qtrue );
+		RB_DrawGeometry( r_showsky->integer ? DEPTH_RANGE_ZERO : DEPTH_RANGE_ONE, qtrue );
 #else
 		qglVertexPointer( 3, GL_FLOAT, 16, tess.xyz );
 		qglTexCoordPointer( 2, GL_FLOAT, 0, tess.texCoords[0] );

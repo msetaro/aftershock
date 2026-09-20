@@ -450,7 +450,7 @@ static void RB_SurfaceBeam( void ) {
 
 	RHI_BindPipeline( r_pipelines.surface_beam_pipeline );
 	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 );
-	vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
+	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qfalse );
 
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
@@ -1317,7 +1317,7 @@ static void RB_SurfaceAxis( void ) {
 	RHI_BindPipeline( r_pipelines.surface_axis_pipeline );
 	// TODO: use common layout and avoid ST0 binding?
 	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
-	vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
+	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qfalse );
 
 	tess.numVertexes = 0;
 #else

@@ -342,7 +342,9 @@ static void RB_TestFlare( flare_t *f ) {
 	// render test dot
 	RHI_BindPipeline( r_pipelines.dot_pipeline );
 	RB_BindGeometry( TESS_XYZ );
-	RHI_DrawVisibility( index, tess.numVertexes );
+	rhiRasterState_t raster;
+	RB_GetRaster( DEPTH_RANGE_NORMAL, &raster );
+	RHI_DrawVisibility( index, tess.numVertexes, &raster );
 
 	//Com_Memcpy( r_modelview, modelMatrix_original, sizeof( modelMatrix_original ) );
 	//RB_UpdateMVP( NULL );

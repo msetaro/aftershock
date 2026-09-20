@@ -145,6 +145,9 @@ extern float r_modelview[16];
 void RB_UpdateMVP( const float *m );
 void RB_BindGeometry( uint32_t flags );
 void RB_BindLighting( int stage, int bundle );
+void RB_BindIndex( void );
+void RB_DrawGeometry( rhiDepthRange_t depthRange, qboolean indexed );
+void RB_GetRaster( rhiDepthRange_t depthRange, rhiRasterState_t *raster );
 
 #define TESS_XYZ   (1)
 #define TESS_RGBA0 (2)

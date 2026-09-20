@@ -37,6 +37,19 @@ static void VKAPI_CALL bind_vertices( VkCommandBuffer command, uint32_t first, u
 	}
 	vertex_binds++;
 }
+static int scissors;
+static int viewports;
+static void VKAPI_CALL set_scissor( VkCommandBuffer command, uint32_t first, uint32_t count, const VkRect2D *rect ) {
+	assert( (uintptr_t)command == 22 && first == 0 && count == 1 );
+	assert( rect->offset.x == 7 && rect->offset.y == 9 && rect->extent.width == 320 && rect->extent.height == 200 );
+	scissors++;
+}
+static void VKAPI_CALL set_viewport( VkCommandBuffer command, uint32_t first, uint32_t count, const VkViewport *viewport ) {
+	assert( (uintptr_t)command == 22 && first == 0 && count == 1 );
+	assert( viewport->x == 3 && viewport->y == 4 && viewport->width == 600 && viewport->height == 400 );
+	assert( viewport->minDepth == 0.6f && viewport->maxDepth == 1.0f );
+	viewports++;
+}
 static int waits;
 static int index_binds;
 static int sampler_destroys;
@@ -260,6 +273,23 @@ int main( void ) {
 	assert( vk.cmd->vertex_buffer_offset == 500 && vk.geometry_buffer_size_new == 1024 );
 	RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, 0, streams );
 	assert( vertex_binds == 3 );
+
+	const rhiRasterState_t raster = { DEPTH_RANGE_WEAPON, { { 7, 9 }, { 320, 200 } }, { 3, 4, 600, 400, 0.6f, 1.0f } };
+	qvkCmdSetScissor = set_scissor;
+	qvkCmdSetViewport = set_viewport;
+	vk.cmd->descriptor_set.start = ~0U;
+	assert( !RHI_PrepareDraw( &raster, &texture ) );
+	assert( scissors == 0 && viewports == 0 );
+	vk.geometry_buffer_size_new = 0;
+	assert( RHI_PrepareDraw( &raster, &texture ) );
+	assert( scissors == 1 && viewports == 1 );
+	assert( RHI_PrepareDraw( &raster, &texture ) );
+	assert( scissors == 1 && viewports == 1 );
+	RHI_InvalidateViewport();
+	assert( RHI_PrepareDraw( &raster, &texture ) );
+	assert( scissors == 1 && viewports == 2 );
+	RHI_BindIndexData( 0, nullptr );
+	assert( vk.cmd->num_indexes == 0 );
 
 	// A failed wait leaves live sampler objects and filter policy intact.
 	waits = 0;

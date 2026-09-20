@@ -26,6 +26,113 @@ backEndState_t backEnd;
 
 float r_modelview[16];
 
+static void RB_GetViewportRect( rhiRect_t *r ) {
+	const rhiRenderArea_t area = RHI_GetRenderArea();
+	if ( backEnd.projection2D ) {
+		r->offset.x = 0;
+		r->offset.y = 0;
+		r->extent.width = area.width;
+		r->extent.height = area.height;
+	} else {
+		r->offset.x = (int32_t)( backEnd.viewParms.viewportX * area.scaleX );
+		r->offset.y = (int32_t)( area.height - ( backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight ) * area.scaleY );
+		r->extent.width = (uint32_t)( (float)backEnd.viewParms.viewportWidth * area.scaleX );
+		r->extent.height = (uint32_t)( (float)backEnd.viewParms.viewportHeight * area.scaleY );
+	}
+}
+
+static void RB_GetViewport( rhiViewport_t *viewport, rhiDepthRange_t depth_range ) {
+	rhiRect_t r;
+
+	RB_GetViewportRect( &r );
+
+	viewport->x = (float)r.offset.x;
+	viewport->y = (float)r.offset.y;
+	viewport->width = (float)r.extent.width;
+	viewport->height = (float)r.extent.height;
+
+	switch ( depth_range ) {
+	default:
+#ifdef USE_REVERSED_DEPTH
+		//case DEPTH_RANGE_NORMAL:
+		viewport->minDepth = 0.0f;
+		viewport->maxDepth = 1.0f;
+		break;
+	case DEPTH_RANGE_ZERO:
+		viewport->minDepth = 1.0f;
+		viewport->maxDepth = 1.0f;
+		break;
+	case DEPTH_RANGE_ONE:
+		viewport->minDepth = 0.0f;
+		viewport->maxDepth = 0.0f;
+		break;
+	case DEPTH_RANGE_WEAPON:
+		viewport->minDepth = 0.6f;
+		viewport->maxDepth = 1.0f;
+		break;
+#else
+		//case DEPTH_RANGE_NORMAL:
+		viewport->minDepth = 0.0f;
+		viewport->maxDepth = 1.0f;
+		break;
+	case DEPTH_RANGE_ZERO:
+		viewport->minDepth = 0.0f;
+		viewport->maxDepth = 0.0f;
+		break;
+	case DEPTH_RANGE_ONE:
+		viewport->minDepth = 1.0f;
+		viewport->maxDepth = 1.0f;
+		break;
+	case DEPTH_RANGE_WEAPON:
+		viewport->minDepth = 0.0f;
+		viewport->maxDepth = 0.3f;
+		break;
+#endif
+	}
+}
+
+static void RB_GetScissorRect( rhiRect_t *r ) {
+
+	if ( backEnd.viewParms.portalView != PV_NONE ) {
+		r->offset.x = backEnd.viewParms.scissorX;
+		r->offset.y = glConfig.vidHeight - backEnd.viewParms.scissorY - backEnd.viewParms.scissorHeight;
+		r->extent.width = backEnd.viewParms.scissorWidth;
+		r->extent.height = backEnd.viewParms.scissorHeight;
+	} else {
+		RB_GetViewportRect( r );
+
+		if ( r->offset.x < 0 )
+			r->offset.x = 0;
+		if ( r->offset.y < 0 )
+			r->offset.y = 0;
+
+		if ( r->offset.x + r->extent.width > (uint32_t)glConfig.vidWidth )
+			r->extent.width = glConfig.vidWidth - r->offset.x;
+		if ( r->offset.y + r->extent.height > (uint32_t)glConfig.vidHeight )
+			r->extent.height = glConfig.vidHeight - r->offset.y;
+	}
+}
+
+
+void RB_GetRaster( rhiDepthRange_t depthRange, rhiRasterState_t *raster ) {
+	raster->depthRange = depthRange;
+	RB_GetScissorRect( &raster->scissor );
+	RB_GetViewport( &raster->viewport, depthRange );
+}
+
+static void RB_ClearColorBuffer( const float *color ) {
+	rhiRect_t rect;
+	RB_GetScissorRect( &rect );
+	RHI_ClearColor( color, &rect );
+}
+
+static void RB_ClearDepthBuffer( bool stencil ) {
+	rhiRect_t rect;
+	RB_GetScissorRect( &rect );
+	RHI_ClearDepth( stencil && glConfig.stencilBits > 0, &rect );
+}
+
+
 static void RB_GetMVP( float *mvp ) {
 	if ( backEnd.projection2D ) {
 		float mvp0 = 2.0f / glConfig.vidWidth;
@@ -563,7 +670,7 @@ static void RB_BeginDrawingView( void ) {
 	SetViewportAndScissor();
 
 #ifdef USE_VULKAN
-	vk_clear_depth( qtrue );
+	RB_ClearDepthBuffer( qtrue );
 #else
 	// ensures that depth writes are enabled for the depth clear
 	GL_State( GLS_DEFAULT );
@@ -1299,10 +1406,10 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 		tess.numIndexes += 3;
 	}
 
-	vk_bind_index();
+	RB_BindIndex();
 	RHI_BindPipeline( r_pipelines.surface_debug_pipeline_solid );
 	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
-	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
+	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
 
 	// Outline.
 	Com_Memset( tess.svars.colors[0], tr.identityLightByte, numPoints * 2 * sizeof( color4ub_t ) );
@@ -1316,7 +1423,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 
 	RHI_BindPipeline( r_pipelines.surface_debug_pipeline_outline );
 	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 );
-	vk_draw_geometry( DEPTH_RANGE_ZERO, qfalse );
+	RB_DrawGeometry( DEPTH_RANGE_ZERO, qfalse );
 	tess.numVertexes = 0;
 #else
 	GL_SelectTexture( 0 );
@@ -1449,7 +1556,7 @@ static const void *RB_DrawBuffer( const void *data ) {
 	if ( r_clear->integer && RHI_GetCapabilities().clearAttachment ) {
 		const vec4_t color = { 1, 0, 0.5, 1 };
 		backEnd.projection2D = qtrue; // to ensure we have viewport that occupies entire window
-		vk_clear_color( color );
+		RB_ClearColorBuffer( color );
 		backEnd.projection2D = qfalse;
 	}
 #else
@@ -1518,7 +1625,7 @@ void RB_ShowImages( void ) {
 
 	RHI_BindPipeline( r_pipelines.images_debug_pipeline2 );
 	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
-	vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
+	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qfalse );
 
 	for ( i = 0; i < tr.numImages; i++ ) {
 		image_t *image = tr.images[i];
@@ -1549,7 +1656,7 @@ void RB_ShowImages( void ) {
 		GL_Bind( image );
 		RHI_BindPipeline( r_pipelines.images_debug_pipeline );
 		RB_BindGeometry( TESS_XYZ );
-		vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
+		RB_DrawGeometry( DEPTH_RANGE_NORMAL, qfalse );
 	}
 
 	tess.numIndexes = 0;
@@ -1635,7 +1742,7 @@ static const void *RB_ClearDepth( const void *data ) {
 	RB_EndSurface();
 
 #ifdef USE_VULKAN
-	vk_clear_depth( r_shadows->integer == 2 ? qtrue : qfalse );
+	RB_ClearDepthBuffer( r_shadows->integer == 2 ? qtrue : qfalse );
 #else
 	qglClear( GL_DEPTH_BUFFER_BIT );
 #endif
@@ -1654,7 +1761,7 @@ static const void *RB_ClearColor( const void *data ) {
 
 #ifdef USE_VULKAN
 	backEnd.projection2D = qtrue;
-	vk_clear_color( colorBlack );
+	RB_ClearColorBuffer( colorBlack );
 	backEnd.projection2D = qfalse;
 #else
 	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );

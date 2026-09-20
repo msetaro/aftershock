@@ -233,6 +233,23 @@ Replay/restart retains b38004b1 (rhi-stream-demo.log); format/type/boundary pass
 Real-clock main samples: 4.004/3.932 ms q3dm17, 4.919/4.888 ms q3dm7; informational.
 Transform checkpoint 1a4c19b1 is running build 35486276366/regression 35486276356.
 
+Raster/draw slice: viewport/scissor generation and indexed/static draw selection
+are frontend-owned. The RHI receives plain raster records and an explicit fallback
+texture; it no longer reads tess or the white-image scene record to submit draws.
+Raster arithmetic is unchanged; native rectangles/viewports are constructed from
+the portable values. The existing depth-range/scissor cache and descriptor-before-
+viewport command order are retained. Raster records are currently computed at
+each draw preparation, even if the backend cache avoids GPU state commands; this
+is bounded stack work, not a heap allocation or a claimed CPU optimization.
+
+GCC/Clang checks cover viewport/scissor values, cache/invalidation, and no state
+commands after upload exhaustion. Replay/restart retains b38004b1
+(rhi-raster-demo.log); format/type/boundary checks pass. Real-clock main samples:
+4.171/4.014 ms q3dm17, 4.806/5.045 ms q3dm7, informational. No accepted goldens or
+shader bytes changed. Transform 1a4c19b1 passed build 35486276366 and regression
+35486276356. Next extract frame command-list selection/submission inputs and finish
+initialization/status boundaries before moving files or retiring OpenGL.
+
 ## Final #8 verification
 
 PR #138 merged as e4440d85 after current-head build 35479545347 and regression

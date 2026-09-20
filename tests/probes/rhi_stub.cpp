@@ -117,11 +117,33 @@ void RHI_Bloom( const float * ) {
 bool RHI_ReadVisibility( uint32_t ) {
 	return false;
 }
-void RHI_DrawVisibility( uint32_t, uint32_t ) {
+void RHI_DrawVisibility( uint32_t, uint32_t, const rhiRasterState_t * ) {
 	abort();
 }
 
 void RHI_BindVertexStreams( rhiGeometryBuffer_t, uint32_t, const rhiVertexStream_t * ) {
+	abort();
+}
+
+rhiRenderArea_t RHI_GetRenderArea( void ) {
+	return {};
+}
+bool RHI_PrepareDraw( const rhiRasterState_t *, const rhiTexture_t * ) {
+	return false;
+}
+void RHI_Draw( uint32_t ) {
+	abort();
+}
+void RHI_DrawBoundIndices( void ) {
+	abort();
+}
+void RHI_BindIndexData( uint32_t, const uint32_t * ) {
+	abort();
+}
+void RHI_ClearColor( const float *, const rhiRect_t * ) {
+	abort();
+}
+void RHI_ClearDepth( bool, const rhiRect_t * ) {
 	abort();
 }
 
