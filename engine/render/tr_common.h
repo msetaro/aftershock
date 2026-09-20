@@ -120,6 +120,8 @@ image_t *R_FindImageFile( const char *name, imgFlags_t flags );
 struct cookedTexture_t;
 #ifdef AFTERSHOCK_DEVTOOLS
 void R_PollCookedAssets( void );
+struct cookedIndex_t;
+void R_ReloadCookedModels( const cookedIndex_t *index );
 #endif
 image_t *R_CreateImage( const char *name, const char *name2, byte *pic, int width, int height, imgFlags_t flags, const cookedTexture_t *cooked = nullptr );
 void R_UploadSubImage( byte *data, int x, int y, int width, int height, image_t *image );

@@ -1128,6 +1128,7 @@ void R_PollCookedAssets( void ) {
 				ri.Printf( success ? PRINT_ALL : PRINT_WARNING, "Cooked texture %s: %s\n", success ? "reloaded" : "reload failed", entry.path );
 			}
 		}
+		R_ReloadCookedModels( &index );
 	} else {
 		ri.Printf( PRINT_WARNING, "Cooked asset index does not match its published revision\n" );
 	}

@@ -1051,6 +1051,7 @@ typedef struct model_s {
 	void *modelData; // only if type == (MOD_MDR | MOD_IQM)
 
 	int numLods;
+	bool ownsData; // Cooked development models use one replaceable zone block.
 } model_t;
 
 #define MAX_MOD_KNOWN	1024
@@ -1834,7 +1835,8 @@ ANIMATED MODELS
 void R_MDRAddAnimSurfaces( trRefEntity_t *ent );
 void RB_MDRSurfaceAnim( mdrSurface_t *surface );
 bool RE_GetModelAnimation( qhandle_t handle, int clip, modelAnimation_t *animation );
-qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *name );
+qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *name, bool owned = false );
+bool R_ReplaceIQM( model_t *mod, void *buffer, int filesize, const char *name );
 void R_AddIQMSurfaces( trRefEntity_t *ent );
 void RB_IQMSurfaceAnim( const surfaceType_t *surface );
 int R_IQMLerpTag( orientation_t *tag, iqmData_t *data,

@@ -26,8 +26,8 @@ origin/modernization has been merged into it without rewriting history. The
 owned Blender source fixture was exported once with verified portable Blender
 4.5.3 (archive hash below). Offline cooking/production pose tests pass at 7acd72c1.
 Draft PR #145 holds #9. Native BC texture/material loading and watched texture
-replacement and named clip controls now work. Complete material/model/animation
-reload, remaining audio/shader inputs and final runtime/CI acceptance.
+replacement, named clips and bounded model/animation reload now work. Complete
+material reload, remaining audio/shader inputs and final runtime/CI acceptance.
 Keep the graph's reviewed branch unchanged. #7 is complete and closed.
 
 Read #9 and the preparation notes in the persistent modernization cache
@@ -2935,3 +2935,18 @@ validation. This feature correction is included here; fresh hosted gates remain.
 Next: own the cooked IQM allocation for bounded model/animation replacement,
 then material replacement and UI reload observations. Keep existing dataSize
 accounting untouched until the separate #31 fix recorded above.
+
+Cooked model replacement is test-first at a71fe7d1. Twelve production IQM swaps
+retain one live zone allocation (two only during replacement), reclaiming the old
+block after the new model succeeds. Registered handles stay stable; existing
+legacy models retain hunk ownership. Cooked IQM content hashes are checked before
+registration/replacement. Existing dataSize accounting remains a separate #31 bug.
+
+The live test edits a temporary copy of the Blender animation, changing its pose
+and renaming wave to salute. Handle 78 and frame 46 survive the update; the
+inspector reports salute and the screenshot shows the changed pose. It then
+scrubs idle frame 15. Texture latency is 0.620578 seconds (2,721 preview pixels).
+Evidence: cook-model-replace-{before,after,build}.log and
+cook-live-model-reload.log. No accepted/source fixture changed. Hosted MSVC at
+76287e8c found two new clip-loop shadow warnings; use clipIndex to resolve them.
+Next: bounded in-place material replacement, then the remaining #9 acceptance.

@@ -1,4 +1,5 @@
 #include "tr_cooked.h"
+#include "iqm.h"
 #include "../../third_party/sha256/sha-256.h"
 #include <bit>
 #include <string.h>
@@ -198,4 +199,64 @@ bool R_ReadCookedIndex( const void *data, size_t size, const uint8_t revision[32
 	index->entries = payload + 4;
 	index->count = count;
 	return true;
+}
+
+struct iqmCookedExtension_t {
+	uint32_t name, size, offset, next;
+};
+struct iqmCookedStamp_t {
+	uint32_t version;
+	uint8_t sourceHash[32], contentHash[32];
+};
+static_assert( sizeof( iqmCookedExtension_t ) == 16 && std::is_trivially_copyable_v<iqmCookedExtension_t> );
+static_assert( sizeof( iqmCookedStamp_t ) == 68 && offsetof( iqmCookedStamp_t, contentHash ) == 36 && std::is_trivially_copyable_v<iqmCookedStamp_t> );
+
+cookedModelStatus_t R_ReadCookedModel( const void *data, size_t size, uint8_t hash[32] ) {
+	memset( hash, 0, 32 );
+	if ( !data || size < sizeof( iqmHeader_t ) || size > 16 * 1024 * 1024 )
+		return cookedModelStatus_t::Invalid;
+	iqmHeader_t header;
+	memcpy( &header, data, sizeof( header ) );
+	if ( memcmp( header.magic, IQM_MAGIC, sizeof( header.magic ) ) || header.version != IQM_VERSION || header.filesize > size || header.num_extensions > 4096 )
+		return cookedModelStatus_t::Invalid;
+	const uint8_t *bytes = (const uint8_t *)data;
+	uint32_t offset = header.ofs_extensions;
+	bool found = false;
+	for ( uint32_t i = 0; i < header.num_extensions; i++ ) {
+		if ( !range( header.filesize, offset, sizeof( iqmCookedExtension_t ) ) )
+			return cookedModelStatus_t::Invalid;
+		iqmCookedExtension_t extension;
+		memcpy( &extension, bytes + offset, sizeof( extension ) );
+		if ( !range( header.filesize, header.ofs_text, header.num_text ) || extension.name >= header.num_text )
+			return cookedModelStatus_t::Invalid;
+		const char *name = (const char *)bytes + header.ofs_text + extension.name;
+		if ( !memchr( name, 0, header.num_text - extension.name ) )
+			return cookedModelStatus_t::Invalid;
+		if ( !strcmp( name, "aftershock.cook" ) ) {
+			if ( found || extension.size != sizeof( iqmCookedStamp_t ) || !range( header.filesize, extension.offset, extension.size ) )
+				return cookedModelStatus_t::Invalid;
+			iqmCookedStamp_t stamp;
+			memcpy( &stamp, bytes + extension.offset, sizeof( stamp ) );
+			if ( stamp.version != 1 )
+				return cookedModelStatus_t::Invalid;
+			uint8_t calculated[32], zeros[32] = {};
+			const uint32_t hashOffset = extension.offset + offsetof( iqmCookedStamp_t, contentHash );
+			Sha_256 state;
+			sha_256_init( &state, calculated );
+			sha_256_write( &state, bytes, hashOffset );
+			sha_256_write( &state, zeros, sizeof( zeros ) );
+			sha_256_write( &state, bytes + hashOffset + 32, size - hashOffset - 32 );
+			sha_256_close( &state );
+			if ( memcmp( calculated, stamp.contentHash, 32 ) )
+				return cookedModelStatus_t::Invalid;
+			found = true;
+		}
+		offset = extension.next;
+		if ( ( i + 1 == header.num_extensions ) != ( offset == 0 ) )
+			return cookedModelStatus_t::Invalid;
+	}
+	if ( !found )
+		return cookedModelStatus_t::Legacy;
+	calc_sha_256( hash, data, size );
+	return cookedModelStatus_t::Valid;
 }

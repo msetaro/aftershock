@@ -38,3 +38,8 @@ struct cookedIndex_t {
 };
 bool R_ReadCookedIndex( const void *data, size_t size, const uint8_t revision[32], cookedIndex_t *index );
 bool R_CookedHashMatches( const void *data, size_t size, const uint8_t hash[32] );
+
+enum class cookedModelStatus_t { Legacy,
+	Valid,
+	Invalid };
+cookedModelStatus_t R_ReadCookedModel( const void *data, size_t size, uint8_t hash[32] );
