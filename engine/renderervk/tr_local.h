@@ -143,6 +143,23 @@ static_assert( std::is_trivially_copyable_v<rendererPipelines_t> );
 extern rendererPipelines_t r_pipelines;
 extern float r_modelview[16];
 void RB_UpdateMVP( const float *m );
+void RB_BindGeometry( uint32_t flags );
+void RB_BindLighting( int stage, int bundle );
+
+#define TESS_XYZ   (1)
+#define TESS_RGBA0 (2)
+#define TESS_RGBA1 (4)
+#define TESS_RGBA2 (8)
+#define TESS_ST0   (16)
+#define TESS_ST1   (32)
+#define TESS_ST2   (64)
+#define TESS_NNN   (128)
+#define TESS_VPOS  (256)  // uniform with eyePos
+#define TESS_ENV   (512)  // mark shader stage with environment mapping
+#define TESS_ENT0  (1024) // uniform with ent.color[0]
+#define TESS_ENT1  (2048) // uniform with ent.color[1]
+#define TESS_ENT2  (4096) // uniform with ent.color[2]
+
 void R_InitBuiltinPipelines( void );
 
 typedef uint32_t glIndex_t;

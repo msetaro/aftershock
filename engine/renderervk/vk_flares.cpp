@@ -341,7 +341,7 @@ static void RB_TestFlare( flare_t *f ) {
 	}
 	// render test dot
 	RHI_BindPipeline( r_pipelines.dot_pipeline );
-	vk_bind_geometry( TESS_XYZ );
+	RB_BindGeometry( TESS_XYZ );
 	RHI_DrawVisibility( index, tess.numVertexes );
 
 	//Com_Memcpy( r_modelview, modelMatrix_original, sizeof( modelMatrix_original ) );

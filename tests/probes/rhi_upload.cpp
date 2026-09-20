@@ -24,6 +24,19 @@ static void VKAPI_CALL push_transform( VkCommandBuffer command, VkPipelineLayout
 	assert( stages == VK_SHADER_STAGE_VERTEX_BIT && offset == 0 && size == sizeof( transform_bytes ) );
 	assert( memcmp( data, transform_bytes, size ) == 0 );
 }
+static int vertex_binds;
+static void VKAPI_CALL bind_vertices( VkCommandBuffer command, uint32_t first, uint32_t count, const VkBuffer *buffers, const VkDeviceSize *offsets ) {
+	assert( (uintptr_t)command == 22 );
+	const uint32_t expectedFirst[] = { 1, 0, 0 };
+	const uint32_t expectedCount[] = { 3, 3, 1 };
+	const VkDeviceSize expectedOffsets[3][3] = { { 101, 202, 303 }, { 32, 90, 64 }, { 32, 0, 0 } };
+	assert( vertex_binds < 3 && first == expectedFirst[vertex_binds] && count == expectedCount[vertex_binds] );
+	for ( uint32_t i = 0; i < count; i++ ) {
+		assert( (uintptr_t)buffers[i] == ( vertex_binds == 0 ? 30 : 31 ) );
+		assert( offsets[i] == expectedOffsets[vertex_binds][i] );
+	}
+	vertex_binds++;
+}
 static int waits;
 static int index_binds;
 static int sampler_destroys;
@@ -225,6 +238,28 @@ int main( void ) {
 	assert( (uintptr_t)vk.cmd->descriptor_set.current[RHI_BINDING_TEXTURE1] == 33 );
 	RHI_ResetBinding( RHI_BINDING_TEXTURE1 );
 	assert( vk.cmd->descriptor_set.current[RHI_BINDING_TEXTURE1] == VK_NULL_HANDLE );
+
+	rhiVertexStream_t streams[RHI_MAX_VERTEX_STREAMS] = {};
+	qvkCmdBindVertexBuffers = bind_vertices;
+	streams[1].offset = 101;
+	streams[3].offset = 303;
+	vk.cmd->vbo_offset[2] = 202;
+	RHI_BindVertexStreams( rhiGeometryBuffer_t::World, ( 1U << 1 ) | ( 1U << 3 ), streams );
+	const uint8_t vertices[] = { 1, 3, 5, 7, 9 };
+	streams[0].data = streams[2].data = vertices;
+	streams[0].size = 3;
+	streams[2].size = 5;
+	vk.cmd->vertex_buffer_offset = 1;
+	vk.cmd->buf_offset[1] = 90;
+	RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, ( 1U << 0 ) | ( 1U << 2 ), streams );
+	assert( vk.cmd->vertex_buffer_offset == 69 );
+	assert( memcmp( storage + 32, vertices, 3 ) == 0 && memcmp( storage + 64, vertices, 5 ) == 0 );
+	vk.cmd->vertex_buffer_offset = 500;
+	vk.geometry_buffer_size_new = 0;
+	RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, 1, streams );
+	assert( vk.cmd->vertex_buffer_offset == 500 && vk.geometry_buffer_size_new == 1024 );
+	RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, 0, streams );
+	assert( vertex_binds == 3 );
 
 	// A failed wait leaves live sampler objects and filter policy intact.
 	waits = 0;

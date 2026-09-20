@@ -23,6 +23,133 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 
+void RB_BindGeometry( uint32_t flags ) {
+	rhiVertexStream_t streams[RHI_MAX_VERTEX_STREAMS] = {};
+
+	const uint32_t streamFlags[RHI_MAX_VERTEX_STREAMS] = { TESS_XYZ, TESS_RGBA0, TESS_ST0, TESS_ST1, TESS_ST2, TESS_NNN, TESS_RGBA1, TESS_RGBA2 };
+	uint32_t mask = 0;
+	for ( uint32_t i = 0; i < RHI_MAX_VERTEX_STREAMS; i++ ) {
+		if ( flags & streamFlags[i] )
+			mask |= 1U << i;
+	}
+
+	if ( ( flags & ( TESS_XYZ | TESS_RGBA0 | TESS_ST0 | TESS_ST1 | TESS_ST2 | TESS_NNN | TESS_RGBA1 | TESS_RGBA2 ) ) == 0 )
+		return;
+
+#ifdef USE_VBO
+	if ( tess.vboIndex ) {
+
+		if ( flags & TESS_XYZ ) { // 0
+			streams[0].offset = tess.shader->vboOffset + 0;
+		}
+
+		if ( flags & TESS_RGBA0 ) { // 1
+			streams[1].offset = tess.shader->stages[tess.vboStage]->rgb_offset[0];
+		}
+
+		if ( flags & TESS_ST0 ) { // 2
+			streams[2].offset = tess.shader->stages[tess.vboStage]->tex_offset[0];
+		}
+
+		if ( flags & TESS_ST1 ) { // 3
+			streams[3].offset = tess.shader->stages[tess.vboStage]->tex_offset[1];
+		}
+
+		if ( flags & TESS_ST2 ) { // 4
+			streams[4].offset = tess.shader->stages[tess.vboStage]->tex_offset[2];
+		}
+
+		if ( flags & TESS_NNN ) { // 5
+			streams[5].offset = tess.shader->normalOffset;
+		}
+
+		if ( flags & TESS_RGBA1 ) { // 6
+			streams[6].offset = tess.shader->stages[tess.vboStage]->rgb_offset[1];
+		}
+
+		if ( flags & TESS_RGBA2 ) { // 7
+			streams[7].offset = tess.shader->stages[tess.vboStage]->rgb_offset[2];
+		}
+
+		RHI_BindVertexStreams( rhiGeometryBuffer_t::World, mask, streams );
+
+	} else
+#endif // USE_VBO
+	{
+
+		if ( flags & TESS_XYZ ) {
+			streams[0].size = tess.numVertexes * sizeof( tess.xyz[0] );
+			streams[0].data = &tess.xyz[0];
+		}
+
+		if ( flags & TESS_RGBA0 ) {
+			streams[1].size = tess.numVertexes * sizeof( color4ub_t );
+			streams[1].data = tess.svars.colors[0][0].rgba;
+		}
+
+		if ( flags & TESS_ST0 ) {
+			streams[2].size = tess.numVertexes * sizeof( vec2_t );
+			streams[2].data = tess.svars.texcoordPtr[0];
+		}
+
+		if ( flags & TESS_ST1 ) {
+			streams[3].size = tess.numVertexes * sizeof( vec2_t );
+			streams[3].data = tess.svars.texcoordPtr[1];
+		}
+
+		if ( flags & TESS_ST2 ) {
+			streams[4].size = tess.numVertexes * sizeof( vec2_t );
+			streams[4].data = tess.svars.texcoordPtr[2];
+		}
+
+		if ( flags & TESS_NNN ) {
+			streams[5].size = tess.numVertexes * sizeof( tess.normal[0] );
+			streams[5].data = tess.normal;
+		}
+
+		if ( flags & TESS_RGBA1 ) {
+			streams[6].size = tess.numVertexes * sizeof( color4ub_t );
+			streams[6].data = tess.svars.colors[1][0].rgba;
+		}
+
+		if ( flags & TESS_RGBA2 ) {
+			streams[7].size = tess.numVertexes * sizeof( color4ub_t );
+			streams[7].data = tess.svars.colors[2][0].rgba;
+		}
+
+		RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, mask, streams );
+	}
+}
+
+
+void RB_BindLighting( int stage, int bundle ) {
+	rhiVertexStream_t streams[RHI_MAX_VERTEX_STREAMS] = {};
+
+#ifdef USE_VBO
+	if ( tess.vboIndex ) {
+
+		streams[0].offset = tess.shader->vboOffset + 0;
+		streams[1].offset = tess.shader->stages[stage]->tex_offset[bundle];
+		streams[2].offset = tess.shader->normalOffset;
+
+		RHI_BindVertexStreams( rhiGeometryBuffer_t::World, 7, streams );
+
+	} else
+#endif // USE_VBO
+	{
+
+		streams[0].size = tess.numVertexes * sizeof( tess.xyz[0] );
+		streams[0].data = &tess.xyz[0];
+		streams[1].size = tess.numVertexes * sizeof( vec2_t );
+		streams[1].data = tess.svars.texcoordPtr[bundle];
+		streams[2].size = tess.numVertexes * sizeof( tess.normal[0] );
+		streams[2].data = tess.normal;
+
+		RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, 7, streams );
+	}
+}
+
+
 /*
 
   THIS ENTIRE FILE IS BACK END
@@ -204,7 +331,7 @@ static void DrawNormals( const shaderCommands_t *input [[maybe_unused]] ) {
 
 	RHI_BindPipeline( r_pipelines.normals_debug_pipeline );
 	vk_bind_index();
-	vk_bind_geometry( TESS_XYZ | TESS_ST0 | TESS_RGBA0 );
+	RB_BindGeometry( TESS_XYZ | TESS_ST0 | TESS_RGBA0 );
 	vk_draw_geometry( DEPTH_RANGE_ZERO, qtrue );
 #else
 	GL_ClientState( 0, CLS_NONE );
@@ -518,7 +645,7 @@ static void ProjectDlightTexture( void ) {
 		pipeline = r_pipelines.dlight_pipelines[dl->additive > 0 ? 1 : 0][tess.shader->cullType][tess.shader->polygonOffset];
 		RHI_BindPipeline( pipeline );
 		vk_bind_index_ext( numIndexes, hitIndexes );
-		vk_bind_geometry( TESS_RGBA0 | TESS_ST0 );
+		RB_BindGeometry( TESS_RGBA0 | TESS_ST0 );
 		vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
 #else
 		// include GLS_DEPTHFUNC_EQUAL so alpha tested surfaces don't add light
@@ -584,7 +711,7 @@ static void RB_FogPass( qboolean rebindIndex ) {
 	if ( rebindIndex ) {
 		vk_bind_index();
 	}
-	vk_bind_geometry( TESS_ST0 | TESS_RGBA0 );
+	RB_BindGeometry( TESS_ST0 | TESS_RGBA0 );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
 #endif
 #else
@@ -992,7 +1119,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		}
 
 		RHI_BindPipeline( pipeline );
-		vk_bind_geometry( tess_flags );
+		RB_BindGeometry( tess_flags );
 		vk_draw_geometry( tess.depthRange, qtrue );
 
 		if ( pStage->depthFragment ) {
@@ -1051,7 +1178,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		RHI_UploadUniform( &uniform, sizeof( uniform ) );
 	}
 	if ( tess_flags ) // fog-only shaders?
-		vk_bind_geometry( tess_flags );
+		RB_BindGeometry( tess_flags );
 #endif
 }
 
@@ -1179,7 +1306,7 @@ void VK_LightingPass( void ) {
 
 	RHI_BindPipeline( pipeline );
 	vk_bind_index();
-	vk_bind_lighting( tess.shader->lightingStage, tess.shader->lightingBundle );
+	RB_BindLighting( tess.shader->lightingStage, tess.shader->lightingBundle );
 	vk_draw_geometry( tess.depthRange, qtrue );
 }
 #endif // USE_PMLIGHT

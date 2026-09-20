@@ -422,7 +422,7 @@ static void DrawSkySide( image_t *image, const int mins[2], const int maxs[2] ) 
 
 		RHI_BindPipeline( r_pipelines.skybox_pipeline );
 		vk_bind_index();
-		vk_bind_geometry( TESS_XYZ | TESS_ST0 );
+		RB_BindGeometry( TESS_XYZ | TESS_ST0 );
 		vk_draw_geometry( r_showsky->integer ? DEPTH_RANGE_ZERO : DEPTH_RANGE_ONE, qtrue );
 #else
 		qglVertexPointer( 3, GL_FLOAT, 16, tess.xyz );

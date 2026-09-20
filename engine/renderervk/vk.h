@@ -58,19 +58,6 @@ typedef struct VK_Pipeline {
 } VK_Pipeline_t;
 
 
-#define TESS_XYZ   (1)
-#define TESS_RGBA0 (2)
-#define TESS_RGBA1 (4)
-#define TESS_RGBA2 (8)
-#define TESS_ST0   (16)
-#define TESS_ST1   (32)
-#define TESS_ST2   (64)
-#define TESS_NNN   (128)
-#define TESS_VPOS  (256)  // uniform with eyePos
-#define TESS_ENV   (512)  // mark shader stage with environment mapping
-#define TESS_ENT0  (1024) // uniform with ent.color[0]
-#define TESS_ENT1  (2048) // uniform with ent.color[1]
-#define TESS_ENT2  (4096) // uniform with ent.color[2]
 //
 // Initialization.
 //
@@ -115,8 +102,6 @@ void vk_begin_main_render_pass( void );
 
 void vk_bind_index( void );
 void vk_bind_index_ext( const int numIndexes, const uint32_t *indexes );
-void vk_bind_geometry( uint32_t flags );
-void vk_bind_lighting( int stage, int bundle );
 void vk_draw_geometry( rhiDepthRange_t depth_range, qboolean indexed );
 
 void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height ); // screenshots

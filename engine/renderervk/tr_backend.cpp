@@ -1301,7 +1301,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 
 	vk_bind_index();
 	RHI_BindPipeline( r_pipelines.surface_debug_pipeline_solid );
-	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
+	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
 
 	// Outline.
@@ -1315,7 +1315,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 	tess.numIndexes = 0;
 
 	RHI_BindPipeline( r_pipelines.surface_debug_pipeline_outline );
-	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 );
+	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 );
 	vk_draw_geometry( DEPTH_RANGE_ZERO, qfalse );
 	tess.numVertexes = 0;
 #else
@@ -1517,7 +1517,7 @@ void RB_ShowImages( void ) {
 	tess.xyz[3][1] = (float)glConfig.vidHeight;
 
 	RHI_BindPipeline( r_pipelines.images_debug_pipeline2 );
-	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
+	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
 
 	for ( i = 0; i < tr.numImages; i++ ) {
@@ -1548,7 +1548,7 @@ void RB_ShowImages( void ) {
 
 		GL_Bind( image );
 		RHI_BindPipeline( r_pipelines.images_debug_pipeline );
-		vk_bind_geometry( TESS_XYZ );
+		RB_BindGeometry( TESS_XYZ );
 		vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
 	}
 

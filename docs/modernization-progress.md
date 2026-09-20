@@ -222,6 +222,17 @@ verifies the corrected fresh-process module gate. Built-in checkpoint 1642187d
 passed build 35485710232; its regression 35485710189 had the same newly introduced
 OpenArena restart/HUD mismatch as e259fc0f, resolved by ea6209b5's test correction.
 
+Vertex-stream slice: material and lighting attribute selection moved to the
+frontend. The RHI receives up to eight plain stream records, selecting the existing
+map or frame pool. It preserves upload order, 32-byte alignment, gaps in cached
+binding offsets and deferred resize on exhaustion. No scene/shader/tess records
+are read by the stream upload/bind operation. Scratch records are bounded stack
+data; no heap allocation or capacity change. GCC/Clang checks cover static/frame
+pool handles, masked gaps, exact copied bytes, overflow and the empty mask.
+Replay/restart retains b38004b1 (rhi-stream-demo.log); format/type/boundary pass.
+Real-clock main samples: 4.004/3.932 ms q3dm17, 4.919/4.888 ms q3dm7; informational.
+Transform checkpoint 1a4c19b1 is running build 35486276366/regression 35486276356.
+
 ## Final #8 verification
 
 PR #138 merged as e4440d85 after current-head build 35479545347 and regression

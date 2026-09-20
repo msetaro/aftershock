@@ -6724,34 +6724,35 @@ void RHI_PushTransform( const float *m ) {
 }
 
 
-static VkBuffer shade_bufs[8];
-static int bind_base;
-static int bind_count;
-
-static void vk_bind_index_attr( int index ) {
-	if ( bind_base == -1 ) {
-		bind_base = index;
-		bind_count = 1;
-	} else {
-		bind_count = index - bind_base + 1;
+void RHI_BindVertexStreams( rhiGeometryBuffer_t pool, uint32_t mask, const rhiVertexStream_t *streams ) {
+	VkBuffer buffers[RHI_MAX_VERTEX_STREAMS];
+	VkDeviceSize *offsets = pool == rhiGeometryBuffer_t::World ? vk.cmd->vbo_offset : vk.cmd->buf_offset;
+	const VkBuffer buffer = pool == rhiGeometryBuffer_t::World ? vk.vbo.vertex_buffer : vk.cmd->vertex_buffer;
+	uint32_t first = RHI_MAX_VERTEX_STREAMS, last = 0;
+	for ( uint32_t i = 0; i < RHI_MAX_VERTEX_STREAMS; i++ ) {
+		buffers[i] = buffer;
+		if ( !( mask & ( 1U << i ) ) )
+			continue;
+		if ( first == RHI_MAX_VERTEX_STREAMS )
+			first = i;
+		last = i;
+		if ( pool == rhiGeometryBuffer_t::World ) {
+			offsets[i] = streams[i].offset;
+		} else {
+			const uint32_t offset = PAD( vk.cmd->vertex_buffer_offset, 32 );
+			const uint32_t size = streams[i].size;
+			if ( offset + size > vk.geometry_buffer_size ) {
+				// Preserve the existing deferred resize and stale binding on overflow.
+				vk.geometry_buffer_size_new = log2pad( offset + size, 1 );
+			} else {
+				offsets[i] = offset;
+				Com_Memcpy( vk.cmd->vertex_buffer_ptr + offset, streams[i].data, size );
+				vk.cmd->vertex_buffer_offset = (VkDeviceSize)offset + size;
+			}
+		}
 	}
-}
-
-
-static void vk_bind_attr( int index, unsigned int item_size, const void *src ) {
-	const uint32_t offset = PAD( vk.cmd->vertex_buffer_offset, 32 );
-	const uint32_t size = tess.numVertexes * item_size;
-
-	if ( offset + size > vk.geometry_buffer_size ) {
-		// schedule geometry buffer resize
-		vk.geometry_buffer_size_new = log2pad( offset + size, 1 );
-	} else {
-		vk.cmd->buf_offset[index] = offset;
-		Com_Memcpy( vk.cmd->vertex_buffer_ptr + offset, src, size );
-		vk.cmd->vertex_buffer_offset = (VkDeviceSize)offset + size;
-	}
-
-	vk_bind_index_attr( index );
+	if ( first != RHI_MAX_VERTEX_STREAMS )
+		qvkCmdBindVertexBuffers( vk.cmd->command_buffer, first, last - first + 1, buffers, offsets + first );
 }
 
 
@@ -6806,132 +6807,6 @@ void vk_bind_index_ext( const int numIndexes, const uint32_t *indexes ) {
 	} else {
 		// overflowed
 		vk.cmd->num_indexes = 0;
-	}
-}
-
-
-void vk_bind_geometry( uint32_t flags ) {
-	//unsigned int size;
-	bind_base = -1;
-	bind_count = 0;
-
-	if ( ( flags & ( TESS_XYZ | TESS_RGBA0 | TESS_ST0 | TESS_ST1 | TESS_ST2 | TESS_NNN | TESS_RGBA1 | TESS_RGBA2 ) ) == 0 )
-		return;
-
-#ifdef USE_VBO
-	if ( tess.vboIndex ) {
-
-		shade_bufs[0] = shade_bufs[1] = shade_bufs[2] = shade_bufs[3] = shade_bufs[4] = shade_bufs[5] = shade_bufs[6] = shade_bufs[7] = vk.vbo.vertex_buffer;
-
-		if ( flags & TESS_XYZ ) { // 0
-			vk.cmd->vbo_offset[0] = tess.shader->vboOffset + 0;
-			vk_bind_index_attr( 0 );
-		}
-
-		if ( flags & TESS_RGBA0 ) { // 1
-			vk.cmd->vbo_offset[1] = tess.shader->stages[tess.vboStage]->rgb_offset[0];
-			vk_bind_index_attr( 1 );
-		}
-
-		if ( flags & TESS_ST0 ) { // 2
-			vk.cmd->vbo_offset[2] = tess.shader->stages[tess.vboStage]->tex_offset[0];
-			vk_bind_index_attr( 2 );
-		}
-
-		if ( flags & TESS_ST1 ) { // 3
-			vk.cmd->vbo_offset[3] = tess.shader->stages[tess.vboStage]->tex_offset[1];
-			vk_bind_index_attr( 3 );
-		}
-
-		if ( flags & TESS_ST2 ) { // 4
-			vk.cmd->vbo_offset[4] = tess.shader->stages[tess.vboStage]->tex_offset[2];
-			vk_bind_index_attr( 4 );
-		}
-
-		if ( flags & TESS_NNN ) { // 5
-			vk.cmd->vbo_offset[5] = tess.shader->normalOffset;
-			vk_bind_index_attr( 5 );
-		}
-
-		if ( flags & TESS_RGBA1 ) { // 6
-			vk.cmd->vbo_offset[6] = tess.shader->stages[tess.vboStage]->rgb_offset[1];
-			vk_bind_index_attr( 6 );
-		}
-
-		if ( flags & TESS_RGBA2 ) { // 7
-			vk.cmd->vbo_offset[7] = tess.shader->stages[tess.vboStage]->rgb_offset[2];
-			vk_bind_index_attr( 7 );
-		}
-
-		qvkCmdBindVertexBuffers( vk.cmd->command_buffer, bind_base, bind_count, shade_bufs, vk.cmd->vbo_offset + bind_base );
-
-	} else
-#endif // USE_VBO
-	{
-		shade_bufs[0] = shade_bufs[1] = shade_bufs[2] = shade_bufs[3] = shade_bufs[4] = shade_bufs[5] = shade_bufs[6] = shade_bufs[7] = vk.cmd->vertex_buffer;
-
-		if ( flags & TESS_XYZ ) {
-			vk_bind_attr( 0, sizeof( tess.xyz[0] ), &tess.xyz[0] );
-		}
-
-		if ( flags & TESS_RGBA0 ) {
-			vk_bind_attr( 1, sizeof( color4ub_t ), tess.svars.colors[0][0].rgba );
-		}
-
-		if ( flags & TESS_ST0 ) {
-			vk_bind_attr( 2, sizeof( vec2_t ), tess.svars.texcoordPtr[0] );
-		}
-
-		if ( flags & TESS_ST1 ) {
-			vk_bind_attr( 3, sizeof( vec2_t ), tess.svars.texcoordPtr[1] );
-		}
-
-		if ( flags & TESS_ST2 ) {
-			vk_bind_attr( 4, sizeof( vec2_t ), tess.svars.texcoordPtr[2] );
-		}
-
-		if ( flags & TESS_NNN ) {
-			vk_bind_attr( 5, sizeof( tess.normal[0] ), tess.normal );
-		}
-
-		if ( flags & TESS_RGBA1 ) {
-			vk_bind_attr( 6, sizeof( color4ub_t ), tess.svars.colors[1][0].rgba );
-		}
-
-		if ( flags & TESS_RGBA2 ) {
-			vk_bind_attr( 7, sizeof( color4ub_t ), tess.svars.colors[2][0].rgba );
-		}
-
-		qvkCmdBindVertexBuffers( vk.cmd->command_buffer, bind_base, bind_count, shade_bufs, vk.cmd->buf_offset + bind_base );
-	}
-}
-
-
-void vk_bind_lighting( int stage, int bundle ) {
-	bind_base = -1;
-	bind_count = 0;
-
-#ifdef USE_VBO
-	if ( tess.vboIndex ) {
-
-		shade_bufs[0] = shade_bufs[1] = shade_bufs[2] = vk.vbo.vertex_buffer;
-
-		vk.cmd->vbo_offset[0] = tess.shader->vboOffset + 0;
-		vk.cmd->vbo_offset[1] = tess.shader->stages[stage]->tex_offset[bundle];
-		vk.cmd->vbo_offset[2] = tess.shader->normalOffset;
-
-		qvkCmdBindVertexBuffers( vk.cmd->command_buffer, 0, 3, shade_bufs, vk.cmd->vbo_offset + 0 );
-
-	} else
-#endif // USE_VBO
-	{
-		shade_bufs[0] = shade_bufs[1] = shade_bufs[2] = vk.cmd->vertex_buffer;
-
-		vk_bind_attr( 0, sizeof( tess.xyz[0] ), &tess.xyz[0] );
-		vk_bind_attr( 1, sizeof( vec2_t ), tess.svars.texcoordPtr[bundle] );
-		vk_bind_attr( 2, sizeof( tess.normal[0] ), tess.normal );
-
-		qvkCmdBindVertexBuffers( vk.cmd->command_buffer, bind_base, bind_count, shade_bufs, vk.cmd->buf_offset + bind_base );
 	}
 }
 

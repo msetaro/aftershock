@@ -121,6 +121,10 @@ void RHI_DrawVisibility( uint32_t, uint32_t ) {
 	abort();
 }
 
+void RHI_BindVertexStreams( rhiGeometryBuffer_t, uint32_t, const rhiVertexStream_t * ) {
+	abort();
+}
+
 #ifdef RHI_STUB_CHECK
 int main( void ) {
 	const rhiStats_t stats = RHI_GetStats();

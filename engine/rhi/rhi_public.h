@@ -141,6 +141,16 @@ rhiStatus_t RHI_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, boo
 // uploads. Offsets use bytes; indices are always uint32_t.
 enum class rhiGeometryBuffer_t : uint32_t { World,
 	Frame };
+constexpr uint32_t RHI_MAX_VERTEX_STREAMS = 8;
+struct rhiVertexStream_t {
+	const void *data; // frame upload source, copied during this call
+	uint32_t size; // frame upload bytes
+	uint64_t offset; // world-pool byte offset
+};
+static_assert( std::is_trivially_copyable_v<rhiVertexStream_t> );
+// Only masked streams are updated. Gaps retain their previous per-frame offsets.
+void RHI_BindVertexStreams( rhiGeometryBuffer_t pool, uint32_t mask, const rhiVertexStream_t *streams );
+
 void RHI_BindIndices( rhiGeometryBuffer_t buffer, uint32_t offset );
 uint32_t RHI_UploadIndices( uint32_t count, const void *indices );
 
