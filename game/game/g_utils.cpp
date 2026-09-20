@@ -363,6 +363,9 @@ float vectoyaw( const vec3_t vec ) {
 
 
 void G_InitGentity( gentity_t *e ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	G_DevForgetEntity( (int)( e - g_entities ) );
+#endif
 	e->inuse = qtrue;
 	e->classname = "noclass";
 	e->s.number = (int)( e - g_entities );

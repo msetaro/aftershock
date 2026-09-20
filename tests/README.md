@@ -273,7 +273,8 @@ slice provides console output/commands and cvar search, descriptions and live ed
 Texture previews, material stages, completed GPU timings/frame history and
 tagged zone/hunk usage are also available. CPU scopes and client traffic/snapshot/prediction statistics are available;
 The model viewer loads MD3/MDR/IQM models and optional skins, scrubs/plays frames
-and rotates an existing renderer scene. Entity and debug-world tooling remain incomplete. Enabled renderer
+and rotates an existing renderer scene. Entity tools edit a local native game started with `devmap`; world picking
+and collision/navigation/debug drawing remain incomplete. Enabled renderer
 modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
 
 `python3 tests/devtools.py` builds both variants, verifies symbols, then uses real
@@ -296,6 +297,19 @@ engine mutations occur after ImGui returns, outside vendor stack frames. Initial
 or interaction-driven UI allocations are distinct from the checked idle-frame path.
 Lifetime/tidy gates now cover shipping/development and static/module configurations.
 The primary build matrix enables tooling in Debug and excludes it in Release.
+
+`python3 tests/dev_entities.py` exercises native-game spawn/edit/delete and
+numbered entity-string saves/reload. Unlike demo tests, it uses the owned Q3 game
+with either content set. Every original map token (including unknown keys) is
+compared after saving and deleting a new entity. Saved revisions are
+`maps/<map>.dev.NNN.ent`; `dev_entityFile` names the latest successful save.
+`dev_loadEntities 1; map_restart 0` explicitly loads that file once. Original BSPs
+and paks are never written. The console `dev_entity` command exposes the same
+operations; no arguments prints usage. Point markers and pickups can be spawned;
+structural classname/model/team edits and creation of brush/mover geometry are
+outside this basic runtime editor. Its complete map document is bounded to 8 MiB;
+save fails if capture overflowed. Game callbacks are registered only by the owned
+native game, so external OpenArena demo modules expose the read-only tools.
 
 `engine/public/dev_public.h` exposes explicit `Dev_BeginScope`/`Dev_EndScope` calls
 for engine-thread game code. Each frame holds at most 128 inclusive CPU scopes;

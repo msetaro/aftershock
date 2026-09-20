@@ -22,6 +22,12 @@ static struct {
 	int x, y, width, height;
 } animation;
 
+static struct {
+	int selected, action;
+	char key[64], value[1024], classname[64], status[128];
+	float origin[3];
+} entities;
+
 static void *Allocate( size_t size, void * ) {
 	++allocations;
 	return Z_TagMalloc( size, TAG_DEVTOOLS );
@@ -43,6 +49,7 @@ static void Status( void ) {
 }
 
 void DevTools_Init( void ) {
+	DevTools_InitEntities();
 	enabled = Cvar_Get( "dev_tools", "0", CVAR_TEMP );
 	Cvar_SetDescription( enabled, "Development overlay; Escape closes it. Absent from shipping builds." );
 	Cmd_AddCommand( "devtools_status", Status );
@@ -56,6 +63,8 @@ void DevTools_Reset( void ) {
 	lastTime = 0;
 	animation.model = animation.skin = 0;
 	animation.phase = 0;
+	entities.selected = -1;
+	entities.key[0] = entities.value[0] = entities.status[0] = '\0';
 }
 
 static bool Visible( void ) {
@@ -296,6 +305,107 @@ static void InspectMemory( void ) {
 	ImGui::EndTabItem();
 }
 
+static void InspectEntities( void ) {
+	if ( !ImGui::BeginTabItem( "Entities" ) )
+		return;
+	const devGameTools_t *game = DevTools_Game();
+	if ( !game ) {
+		ImGui::TextWrapped( "Start a local devmap using the native game to inspect and edit entities." );
+		ImGui::EndTabItem();
+		return;
+	}
+	const bool editable = Cvar_VariableIntegerValue( "sv_cheats" ) != 0;
+	if ( !editable )
+		ImGui::TextUnformatted( "Read only: editing requires devmap (sv_cheats 1)." );
+	if ( ImGui::BeginChild( "Entity list", ImVec2( 0, 95 ), ImGuiChildFlags_Borders ) ) {
+		for ( int i = 0; i < MAX_GENTITIES; ++i ) {
+			devEntity_t info;
+			if ( !game->ReadEntity( i, &info ) )
+				continue;
+			char label[96];
+			Com_sprintf( label, sizeof( label ), "%d: %s", i, info.classname );
+			if ( ImGui::Selectable( label, i == entities.selected ) )
+				entities.selected = i;
+		}
+	}
+	ImGui::EndChild();
+	devEntity_t selected;
+	if ( game->ReadEntity( entities.selected, &selected ) ) {
+		ImGui::Text( "%d: %s, map record %d", entities.selected, selected.classname, selected.source );
+		if ( ImGui::BeginCombo( "Field", entities.key ) ) {
+			for ( int i = 0; const char *name = game->FieldName( i ); ++i ) {
+				if ( ImGui::Selectable( name, !strcmp( name, entities.key ) ) ) {
+					Q_strncpyz( entities.key, name, sizeof( entities.key ) );
+					game->ReadField( entities.selected, name, entities.value, sizeof( entities.value ) );
+				}
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::InputText( "Field value", entities.value, sizeof( entities.value ) );
+		ImGui::BeginDisabled( !editable || selected.source < 0 );
+		if ( ImGui::Button( "Apply field" ) )
+			entities.action = 1;
+		ImGui::SameLine();
+		if ( ImGui::Button( "Delete entity" ) )
+			entities.action = 2;
+		ImGui::EndDisabled();
+	}
+	ImGui::Separator();
+	ImGui::InputText( "Spawn class", entities.classname, sizeof( entities.classname ) );
+	ImGui::InputFloat3( "Spawn origin", entities.origin );
+	if ( ImGui::Button( "At camera" ) ) {
+		if ( const refdef_t *view = DevTools_View() )
+			VectorMA( view->vieworg, 64, view->viewaxis[0], entities.origin );
+	}
+	ImGui::SameLine();
+	ImGui::BeginDisabled( !editable );
+	if ( ImGui::Button( "Spawn" ) )
+		entities.action = 3;
+	ImGui::SameLine();
+	if ( ImGui::Button( "Save entity file" ) )
+		entities.action = 4;
+	ImGui::SameLine();
+	if ( ImGui::Button( "Reload saved" ) )
+		entities.action = 5;
+	ImGui::EndDisabled();
+	ImGui::TextWrapped( "%s", entities.status );
+	ImGui::TextWrapped( "Spawn pickups or point markers (target_position, info_notnull, info_player_deathmatch, misc_teleporter_dest). Structural fields require a new entity. Saves keep numbered revisions." );
+	ImGui::EndTabItem();
+}
+
+static void EditEntities( void ) {
+	const devGameTools_t *game = DevTools_Game();
+	if ( !entities.action || !game )
+		return;
+	bool success = false;
+	switch ( entities.action ) {
+	case 1:
+		success = game->WriteField( entities.selected, entities.key, entities.value );
+		break;
+	case 2:
+		success = game->Delete( entities.selected );
+		break;
+	case 3:
+		entities.selected = game->Spawn( entities.classname, entities.origin );
+		success = entities.selected >= 0;
+		break;
+	case 4:
+		success = DevTools_SaveEntities();
+		break;
+	case 5:
+		if ( *Cvar_VariableString( "dev_entityFile" ) ) {
+			Cvar_Set( "dev_loadEntities", "1" );
+			Cbuf_AddText( "map_restart 0\n" );
+			success = true;
+		}
+		break;
+	default:
+		break;
+	}
+	Q_strncpyz( entities.status, success ? "Entity action completed." : "Action rejected: check field/class, value, map source, cheats and capacity.", sizeof( entities.status ) );
+	Com_Printf( "Developer entity action %d: %s (entity %d)\n", entities.action, success ? "completed" : "rejected", entities.selected );
+}
+
 static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 	animation.draw = animation.load = false;
 	if ( !ImGui::BeginTabItem( "Animation" ) )
@@ -471,6 +581,9 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	io.DeltaTime = lastTime ? Com_Clamp( 0.001f, 0.25f, (float)elapsed * 0.001f ) : 1.0f / 60.0f;
 	lastTime = (uint32_t)milliseconds;
 	animation.draw = animation.load = false;
+	entities.action = 0;
+	if ( !*entities.classname )
+		Q_strncpyz( entities.classname, "target_position", sizeof( entities.classname ) );
 	if ( animation.fps < 1 )
 		animation.fps = 15;
 	ImGui::NewFrame();
@@ -515,6 +628,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 			InspectProfile( renderer, elapsed );
 			InspectMemory();
 			InspectAnimation( renderer, elapsed );
+			InspectEntities();
 			ImGui::EndTabBar();
 		}
 	}
@@ -529,6 +643,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	}
 	// Engine mutation/error handling runs after all vendor UI calls return.
 	DrawAnimation( renderer, milliseconds );
+	EditEntities();
 	if ( apply && *selected )
 		Cvar_Set2( selected, value, qfalse );
 	if ( execute && *command ) {

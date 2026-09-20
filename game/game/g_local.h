@@ -488,6 +488,9 @@ float vectoyaw( const vec3_t vec );
 
 void G_AddPredictableEvent( gentity_t *ent, int event, int eventParm );
 void G_AddEvent( gentity_t *ent, int event, int eventParm );
+#ifdef AFTERSHOCK_DEVTOOLS
+void G_DevForgetEntity( int entity );
+#endif
 void G_SetOrigin( gentity_t *ent, vec3_t origin );
 void G_ResetShaderRemaps( void );
 void AddRemap( const char *oldShader, const char *newShader, float timeOffset );

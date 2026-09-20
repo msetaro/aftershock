@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "client.h"
 #ifdef AFTERSHOCK_DEVTOOLS
-#include "../public/dev_public.h"
+#include "../devtools/devtools_public.h"
 #endif
 #include "../public/cg_native_public.h"
 #include "../public/ui_native_public.h"
@@ -673,6 +673,9 @@ void CGameImport_R_AddAdditiveLightToScene( const float *org, float intensity, f
 }
 void CGameImport_R_RenderScene( const void *fd ) {
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_SetView( (const refdef_t *)fd );
+#endif
 	re.RenderScene( (const refdef_t *)fd );
 	return;
 }

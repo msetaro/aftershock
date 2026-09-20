@@ -3,6 +3,7 @@
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "../qcommon/q_shared.h"
 #include "../public/dev_public.h"
+#include "../public/dev_game_public.h"
 #include "../renderercommon/tr_public.h"
 
 struct devCpuTiming_t {
@@ -20,6 +21,12 @@ uint32_t DevTools_CpuTimings( const devCpuTiming_t **timings );
 void DevTools_Packet( bool outgoing, uint32_t bytes );
 void DevTools_Snapshot( uint32_t bits, bool delta );
 const devNetwork_t *DevTools_Network( void );
+
+const devGameTools_t *DevTools_Game( void );
+void DevTools_SetView( const refdef_t *view );
+const refdef_t *DevTools_View( void );
+bool DevTools_SaveEntities( void );
+void DevTools_InitEntities( void );
 
 void DevTools_Init( void );
 void DevTools_Reset( void );

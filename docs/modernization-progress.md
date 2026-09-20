@@ -24,8 +24,9 @@ Initial console/cvar implementation ee822bab is in draft PR #143. Build
 OpenArena fixture requires the pinned OpenArena native game objects; the new
 driver linked Q3 game code. The working driver now reuses engine_objects from
 the existing replay gate. Validate hosted runtime after this correction, then
-complete entity, animation and collision/navigation/debug tooling. The working
-CPU/network slice needs policy and hosted validation. Keep all existing golden files.
+complete entity, animation and collision/navigation/debug tooling. Profiling e24faa49 passed both full hosted workflows. Animation 245397aa passed
+build 35493639523 and regression 35493639540. Entity editing is now in the working
+tree; world picking/debug drawing and collision/navigation remain to finish. Keep all existing golden files.
 
 Then complete #7, render-graph phase two #142, and the remaining #25 sequence.
 All writes stay in msetaro/aftershock. The separate-session scope and finished
@@ -41,6 +42,24 @@ normal / 8 MiB high geometry buffers, 2 MiB normal / 24 MiB high staging buffers
 Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
 
 ## #7 developer tooling checkpoint
+
+Entity working slice: native-game callbacks expose the existing spawn-field table
+and live entities. UI and dev_entity console actions can spawn pickups/point
+markers, edit nonstructural fields, delete, save and reload. Editing requires a
+local devmap. Existing classname/model/team changes require spawning a replacement;
+brush/mover creation is not implemented because the point-spawn tool has no brush
+model input. Every original key is retained, including keys unknown to fields[].
+Saving uses numbered maps/<map>.dev.NNN.ent revisions and never overwrites a prior
+save or modifies a BSP/pak. Explicit dev_loadEntities reloads the selected file
+once on map restart. An incomplete 8 MiB document capture disables saving.
+
+Local tests/dev_entities.py passes spawn/edit/delete/save/reload through the real
+native game, checks changed count/origin after restart and compares every original
+quoted map token with the retained records. It uses the owned game with OpenArena
+art in CI (not an OpenArena demo), so no game-protocol mismatch is involved.
+UI interaction, current-head hosted checks and world picking remain pending.
+The current full profiling and animation workflows are green; PR #143 stays draft.
+
 
 Animation working slice: inspect loaded MD3/MDR/IQM frame counts, load a model and
 optional skin, scrub/play frames and rotate the preview. It reuses model handles,

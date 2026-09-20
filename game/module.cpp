@@ -13,6 +13,11 @@
 #include <limits.h>
 #include "../engine/public/g_native_public.h"
 #include "../engine/public/dev_public.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../engine/public/dev_game_public.h"
+#include <charconv>
+#include <cmath>
+#endif
 #include "../engine/public/cg_native_public.h"
 #include "../engine/public/ui_native_public.h"
 #include "bg/native_abi_public.h"
