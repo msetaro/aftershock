@@ -3306,3 +3306,8 @@ compiles with strict FP and UBSan and runs the native probe before its increment
 edit. The pre-implementation compile fails on the missing
 engine/animation/animation_public.h (animation-native-before.log). No runtime
 implementation exists at this checkpoint; commit these assertions first.
+
+The native pre-implementation contract also covers root displacement across a
+loop, events at state entry/end, multiple crossed loop events, and repeated-tick
+deduplication. In particular, an end notify must be delivered before an on-end
+transition changes states. These cases are committed before runtime code.

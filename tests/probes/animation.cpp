@@ -64,13 +64,18 @@ int main( int argc, char **argv ) {
 	animState_t state;
 	animEvents_t events;
 	animPose_t pose;
+	animTransform_t motion;
+	assert( Anim_RootMotion( &asset, Anim_ClipIndex( &asset, "idle" ), 750, 1250, true, &motion ) );
+	assert( fabsf( motion.translate[0] - 0.0625f ) < 0.00001f );
 	Anim_Reset( &asset, 0, &state );
 	assert( Anim_Tick( &asset, parameters, 0, &state, &events ) && events.count == 0 );
-	assert( Anim_Tick( &asset, parameters, 250, &state, &events ) && events.count == 0 );
+	assert( Anim_Tick( &asset, parameters, 250, &state, &events ) && events.count == 1 );
+	assert( strcmp( Anim_EventName( &asset, events.items[0].id ), "step" ) == 0 );
 	assert( Anim_Evaluate( &asset, &state, parameters, 250, &pose ) );
 	assert( pose.jointCount == 2 && fabsf( pose.local[0].translate[0] - 0.03125f ) < 0.00001f );
 	parameters[active] = 1;
-	assert( Anim_Tick( &asset, parameters, 500, &state, &events ) );
+	assert( Anim_Tick( &asset, parameters, 500, &state, &events ) && events.count == 1 );
+	assert( strcmp( Anim_EventName( &asset, events.items[0].id ), "start" ) == 0 );
 	assert( strcmp( Anim_StateName( &asset, state.current ), "wave" ) == 0 );
 	assert( Anim_Evaluate( &asset, &state, parameters, 500, &pose ) );
 	assert( fabsf( pose.local[0].translate[0] - 0.0625f ) < 0.00001f );
@@ -84,8 +89,13 @@ int main( int argc, char **argv ) {
 	assert( fabsf( pose.world[1][8] - 0.70710678f ) < 0.0001f );
 	assert( Anim_Tick( &asset, parameters, 1000, &state, &events ) && events.count == 0 );
 	parameters[active] = 0;
-	assert( Anim_Tick( &asset, parameters, 1500, &state, &events ) );
+	assert( Anim_Tick( &asset, parameters, 1500, &state, &events ) && events.count == 1 );
+	assert( strcmp( Anim_EventName( &asset, events.items[0].id ), "finish" ) == 0 );
 	assert( strcmp( Anim_StateName( &asset, state.current ), "idle" ) == 0 );
+	assert( Anim_Tick( &asset, parameters, 2750, &state, &events ) && events.count == 2 );
+	assert( strcmp( Anim_EventName( &asset, events.items[0].id ), "step" ) == 0 );
+	assert( strcmp( Anim_EventName( &asset, events.items[1].id ), "step" ) == 0 );
+	assert( Anim_Tick( &asset, parameters, 2750, &state, &events ) && events.count == 0 );
 	free( bytes );
 	puts( "PASS: masked/additive blending, two-bone/look-at IK, clip sampling, transitions and exactly-once events" );
 }

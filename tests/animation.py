@@ -47,9 +47,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-source-') as tempo
         'parameters': [{'name': 'active', 'default': 0}],
         'initial_state': 'idle',
         'states': [
-            {'name': 'idle', 'clip': 'idle', 'loop': True},
+            {'name': 'idle', 'clip': 'idle', 'loop': True,
+             'events': [{'time_ms': 250, 'name': 'step', 'bone': 'root'}]},
             {'name': 'wave', 'clip': 'wave', 'loop': False,
-             'events': [{'time_ms': 500, 'name': 'marker', 'bone': 'tip'}]}],
+             'events': [{'time_ms': 0, 'name': 'start', 'bone': 'tip'},
+                        {'time_ms': 500, 'name': 'marker', 'bone': 'tip'},
+                        {'time_ms': 1000, 'name': 'finish', 'bone': 'tip'}]}],
         'transitions': [
             {'from': 'idle', 'to': 'wave', 'blend_ms': 150,
              'conditions': [{'parameter': 'active', 'op': '>', 'value': 0.5}]},
