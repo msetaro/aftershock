@@ -21,20 +21,18 @@ upstream; historical upstream PR references below are completed past work.
 tree equals the tested tree (0273866798e91a64d27002e5499353438d6a6769).
 Merged-tree regression 35499764754 passed. #142 is closed and #25 is updated.
 
-Current branch is `issue/9-asset-pipeline`. Its test-first commit is 56c25515;
-origin/modernization has been merged into it without rewriting history. The
-owned Blender source fixture was exported once with verified portable Blender
-4.5.3 (archive hash below). Offline cooking/production pose tests pass at 7acd72c1.
-Draft PR #145 holds #9. Source cooking, named clips, bounded hot reload,
-inspector counts and local static/module/OpenArena/restart/idle acceptance pass.
-Final fixed Quake 3 and OpenArena demo comparisons preserve their accepted hashes.
-The self-review is below. Final follow-up fixes select matching OpenArena native
-objects for the standalone test build and remove a duplicated command in AGENTS.
-Next: wait for the final exact-head build/regression workflows; investigate any
-failure, then mark #145 ready and merge with a merge commit into modernization.
-Require the merged-tree regression before closing #9/updating #25 and proceeding.
-After #9, fix IQM allocation accounting and rotated nonuniform scale in separate
-#31 PRs, then continue #10 and the remaining #25 roadmap. No upstream PRs.
+Current preparation branch is `issue/31-iqm-accounting`, in the isolated worktree
+/tmp/aftershock-31-iqm-accounting. #9 PR #145 is still resolving its watcher race and hosted
+lifetime resource gate; the reviewed #9 branch remains independent. Only the next bug's
+failing test is prepared here. Do not merge/open this follow-up until #9 is merged
+and its merged-tree regression passes; merge modernization forward afterward.
+
+The test compares model_t::dataSize with the actual allocator request for both
+initial IQM registration and twelve owned replacements. The pre-fix value is zero,
+so the first assertion fails. Next after #9 acceptance: assign the one native block's
+size in R_LoadIQM (do not accumulate across replacements), run gates and self-review,
+and create the separate #31 accounting PR. Then handle the recorded rotated
+nonuniform scale bug in its own #31 PR before #10. No upstream PRs.
 
 Read #9 and the preparation notes in the persistent modernization cache
 (issue9-preparation.md). Trace native model/texture ownership before implementation.
@@ -3104,3 +3102,11 @@ regression 35505791776 has passed every required job except lifetime analysis,
 which was still running at this checkpoint. Superseded regression 35505208258
 was cancelled after its other jobs passed, to prioritize the final head. These
 earlier-head results do not replace the required final exact-head workflows.
+
+## #31 IQM accounting test-first checkpoint
+
+The isolated production-loader probe fails before any engine edit at
+`model.dataSize == (int)allocationSize` (iqm-accounting-before.log). It also
+requires exact current owned-block accounting after twelve replacements, so the
+fix must assign rather than accumulate. No golden or sanitizer suppression is
+involved. Commit the failing test now; implementation waits for #9 acceptance.
