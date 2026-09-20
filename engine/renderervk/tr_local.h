@@ -565,14 +565,9 @@ typedef struct image_s {
 	int frameUsed; // for texture usage in frame statistics
 
 #ifdef USE_VULKAN
-	int internalFormat;
-
-	VkSamplerAddressMode wrapClampMode;
-	VkImage handle;
-	VkImageView view;
-	// Descriptor set that contains single descriptor used to access the given image.
-	// It is updated only once during image initialization.
-	VkDescriptorSet descriptor;
+	rhiFormat_t internalFormat;
+	rhiAddress_t wrapClampMode;
+	rhiTexture_t texture;
 #else
 	GLuint texnum; // gl texture binding
 	GLint internalFormat;
@@ -580,6 +575,9 @@ typedef struct image_s {
 #endif
 
 } image_t;
+
+static_assert( sizeof( image_t ) == 80 && alignof( image_t ) == 8 );
+static_assert( offsetof( image_t, texture ) == 56 );
 
 
 //=================================================================================

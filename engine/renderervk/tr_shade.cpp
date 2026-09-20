@@ -566,7 +566,7 @@ static void RB_FogPass( qboolean rebindIndex ) {
 	}
 	VK_SetFogParams( &uniform, &fog_stage );
 	RHI_UploadUniform( &uniform, sizeof( uniform ) );
-	vk_update_descriptor( VK_DESC_FOG_ONLY, tr.fogImage->descriptor );
+	RHI_BindTexture( VK_DESC_FOG_ONLY, &tr.fogImage->texture );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
 #else
 	const fog_t *fog = tr.world->fogs + tess.fogNum;
@@ -927,7 +927,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 	if ( fogCollapse ) {
 		VK_SetFogParams( &uniform, &fog_stage );
 		VectorCopy( backEnd.orientation.viewOrigin, uniform.eyePos );
-		vk_update_descriptor( VK_DESC_FOG_COLLAPSE, tr.fogImage->descriptor );
+		RHI_BindTexture( VK_DESC_FOG_COLLAPSE, &tr.fogImage->texture );
 		pushUniform = qtrue;
 	} else
 #endif
@@ -1160,7 +1160,7 @@ void VK_LightingPass( void ) {
 	abs_light = /* (pStage->stateBits & GLS_ATEST_BITS) && */ ( cull == CT_TWO_SIDED ) ? 1 : 0;
 
 	if ( fog_stage )
-		vk_update_descriptor( VK_DESC_FOG_DLIGHT, tr.fogImage->descriptor );
+		RHI_BindTexture( VK_DESC_FOG_DLIGHT, &tr.fogImage->texture );
 
 	if ( tess.light->linear )
 		pipeline = vk.dlight1_pipelines_x[cull][tess.shader->polygonOffset][fog_stage][abs_light];

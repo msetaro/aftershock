@@ -4700,18 +4700,48 @@ static void record_buffer_memory_barrier(VkCommandBuffer cb, VkBuffer buffer, Vk
 }
 #endif
 
-void vk_create_image( image_t *image, int width, int height, int mip_levels ) {
+static VkFormat vk_texture_format( rhiFormat_t format ) {
+	switch ( format ) {
+	case rhiFormat_t::RGBA8:
+		return VK_FORMAT_R8G8B8A8_UNORM;
+	case rhiFormat_t::BGRA8:
+		return VK_FORMAT_B8G8R8A8_UNORM;
+	case rhiFormat_t::RGB8:
+		return VK_FORMAT_R8G8B8_UNORM;
+	case rhiFormat_t::BGRA4:
+		return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+	case rhiFormat_t::A1RGB5:
+		return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
+	}
+	return VK_FORMAT_UNDEFINED;
+}
 
-	VkFormat format = (VkFormat)( image->internalFormat );
+static_assert( sizeof( VkImage ) == sizeof( uint64_t ) && sizeof( VkImageView ) == sizeof( uint64_t ) && sizeof( VkDescriptorSet ) == sizeof( uint64_t ) );
 
-	if ( image->handle ) {
-		qvkDestroyImage( vk.device, image->handle, NULL );
-		image->handle = VK_NULL_HANDLE;
+static VkSamplerAddressMode vk_texture_address( rhiAddress_t address ) {
+	switch ( address ) {
+	case rhiAddress_t::Repeat:
+		return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	case rhiAddress_t::ClampToEdge:
+		return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	case rhiAddress_t::ClampToBorder:
+		return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+	}
+	return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+}
+
+void RHI_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mip_levels, rhiFormat_t imageFormat, rhiAddress_t address, const char *label ) {
+
+	const VkFormat format = vk_texture_format( imageFormat );
+
+	if ( texture->image ) {
+		qvkDestroyImage( vk.device, (VkImage)(uintptr_t)texture->image, NULL );
+		texture->image = 0;
 	}
 
-	if ( image->view ) {
-		qvkDestroyImageView( vk.device, image->view, NULL );
-		image->view = VK_NULL_HANDLE;
+	if ( texture->view ) {
+		qvkDestroyImageView( vk.device, (VkImageView)(uintptr_t)texture->view, NULL );
+		texture->view = 0;
 	}
 
 	// create image
@@ -4736,9 +4766,11 @@ void vk_create_image( image_t *image, int width, int height, int mip_levels ) {
 		desc.pQueueFamilyIndices = NULL;
 		desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		VK_CHECK( qvkCreateImage( vk.device, &desc, NULL, &image->handle ) );
+		VkImage handle;
+		VK_CHECK( qvkCreateImage( vk.device, &desc, NULL, &handle ) );
+		texture->image = (uint64_t)(uintptr_t)handle;
 
-		allocate_and_bind_image_memory( image->handle );
+		allocate_and_bind_image_memory( (VkImage)(uintptr_t)texture->image );
 	}
 
 	// create image view
@@ -4748,7 +4780,7 @@ void vk_create_image( image_t *image, int width, int height, int mip_levels ) {
 		desc.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		desc.pNext = NULL;
 		desc.flags = 0;
-		desc.image = image->handle;
+		desc.image = (VkImage)(uintptr_t)texture->image;
 		desc.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		desc.format = format;
 		desc.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -4761,11 +4793,13 @@ void vk_create_image( image_t *image, int width, int height, int mip_levels ) {
 		desc.subresourceRange.baseArrayLayer = 0;
 		desc.subresourceRange.layerCount = 1;
 
-		VK_CHECK( qvkCreateImageView( vk.device, &desc, NULL, &image->view ) );
+		VkImageView view;
+		VK_CHECK( qvkCreateImageView( vk.device, &desc, NULL, &view ) );
+		texture->view = (uint64_t)(uintptr_t)view;
 	}
 
 	// create associated descriptor set
-	if ( image->descriptor == VK_NULL_HANDLE ) {
+	if ( texture->binding == 0 ) {
 		VkDescriptorSetAllocateInfo desc;
 
 		desc.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -4774,14 +4808,16 @@ void vk_create_image( image_t *image, int width, int height, int mip_levels ) {
 		desc.descriptorSetCount = 1;
 		desc.pSetLayouts = &vk.set_layout_sampler;
 
-		VK_CHECK( qvkAllocateDescriptorSets( vk.device, &desc, &image->descriptor ) );
+		VkDescriptorSet binding;
+		VK_CHECK( qvkAllocateDescriptorSets( vk.device, &desc, &binding ) );
+		texture->binding = (uint64_t)(uintptr_t)binding;
 	}
 
-	vk_update_descriptor_set( image, mip_levels > 1 ? qtrue : qfalse );
+	RHI_UpdateTextureSampler( texture, address, mip_levels > 1 );
 
-	SET_OBJECT_NAME( image->handle, image->imgName, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT );
-	SET_OBJECT_NAME( image->view, image->imgName, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT );
-	SET_OBJECT_NAME( image->descriptor, image->imgName, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT );
+	SET_OBJECT_NAME( texture->image, label, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT );
+	SET_OBJECT_NAME( texture->view, label, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT );
+	SET_OBJECT_NAME( texture->binding, label, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT );
 }
 
 
@@ -4851,7 +4887,7 @@ static byte *resample_image_data( const int target_format, byte *data, const int
 }
 
 
-void vk_upload_image_data( image_t *image, int x, int y, int width, int height, int mipmaps, byte *pixels, int size, qboolean update ) {
+void RHI_UploadTexture( const rhiTexture_t *texture, rhiFormat_t format, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipmaps, uint8_t *pixels, int32_t size, bool update ) {
 
 	VkCommandBuffer command_buffer;
 	VkBufferImageCopy regions[16];
@@ -4862,7 +4898,7 @@ void vk_upload_image_data( image_t *image, int x, int y, int width, int height, 
 	int num_regions = 0;
 	int buffer_size = 0;
 
-	buf = resample_image_data( image->internalFormat, pixels, size, &n /*bpp*/ );
+	buf = resample_image_data( vk_texture_format( format ), pixels, size, &n /*bpp*/ );
 
 	while ( true ) {
 		Com_Memset( &region, 0, sizeof( region ) );
@@ -4930,21 +4966,21 @@ void vk_upload_image_data( image_t *image, int x, int y, int width, int height, 
 		VK_CHECK( qvkBeginCommandBuffer( vk.staging_command_buffer, &begin_info ) );
 	}
 
-	//ri.Printf( PRINT_WARNING, "batch @%6i + %i %s \n", (int)vk_world.staging_buffer_offset, (int)buffer_size, image->imgName );
+	//ri.Printf( PRINT_WARNING, "batch @%6i + %i %s \n", (int)vk_world.staging_buffer_offset, (int)buffer_size, "texture" );
 	vk.staging_buffer.offset += buffer_size;
 
 	command_buffer = vk.staging_command_buffer;
 
 	if ( update ) {
-		record_image_layout_transition( command_buffer, image->handle, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 0 );
+		record_image_layout_transition( command_buffer, (VkImage)(uintptr_t)texture->image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 0 );
 	} else {
-		record_image_layout_transition( command_buffer, image->handle, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_HOST_BIT, 0 );
+		record_image_layout_transition( command_buffer, (VkImage)(uintptr_t)texture->image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_HOST_BIT, 0 );
 	}
 
-	qvkCmdCopyBufferToImage( command_buffer, vk.staging_buffer.handle, image->handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, num_regions, regions );
+	qvkCmdCopyBufferToImage( command_buffer, vk.staging_buffer.handle, (VkImage)(uintptr_t)texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, num_regions, regions );
 
 	// final transition after upload comleted
-	record_image_layout_transition( command_buffer, image->handle, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0 );
+	record_image_layout_transition( command_buffer, (VkImage)(uintptr_t)texture->image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0 );
 #else
 	if ( vk.staging_buffer.size < (VkDeviceSize)buffer_size ) {
 		vk_alloc_staging_buffer( buffer_size );
@@ -4955,12 +4991,12 @@ void vk_upload_image_data( image_t *image, int x, int y, int width, int height, 
 	command_buffer = begin_command_buffer();
 	// record_buffer_memory_barrier( command_buffer, vk_world.staging_buffer, VK_WHOLE_SIZE, 0, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_HOST_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT );
 	if ( update ) {
-		record_image_layout_transition( command_buffer, image->handle, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 0 );
+		record_image_layout_transition( command_buffer, (VkImage)(uintptr_t)texture->image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 0 );
 	} else {
-		record_image_layout_transition( command_buffer, image->handle, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_HOST_BIT, 0 );
+		record_image_layout_transition( command_buffer, (VkImage)(uintptr_t)texture->image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_HOST_BIT, 0 );
 	}
-	qvkCmdCopyBufferToImage( command_buffer, vk.staging_buffer.handle, image->handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, num_regions, regions );
-	record_image_layout_transition( command_buffer, image->handle, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0 );
+	qvkCmdCopyBufferToImage( command_buffer, vk.staging_buffer.handle, (VkImage)(uintptr_t)texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, num_regions, regions );
+	record_image_layout_transition( command_buffer, (VkImage)(uintptr_t)texture->image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0 );
 	end_command_buffer( command_buffer, __func__ );
 #endif
 
@@ -4970,14 +5006,14 @@ void vk_upload_image_data( image_t *image, int x, int y, int width, int height, 
 }
 
 
-void vk_update_descriptor_set( image_t *image, qboolean mipmap ) {
+void RHI_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address, bool mipmap ) {
 	Vk_Sampler_Def sampler_def;
 	VkDescriptorImageInfo image_info;
 	VkWriteDescriptorSet descriptor_write;
 
 	Com_Memset( &sampler_def, 0, sizeof( sampler_def ) );
 
-	sampler_def.address_mode = image->wrapClampMode;
+	sampler_def.address_mode = vk_texture_address( address );
 
 	if ( mipmap ) {
 		sampler_def.gl_mag_filter = gl_filter_max;
@@ -4990,11 +5026,11 @@ void vk_update_descriptor_set( image_t *image, qboolean mipmap ) {
 	}
 
 	image_info.sampler = vk_find_sampler( &sampler_def );
-	image_info.imageView = image->view;
+	image_info.imageView = (VkImageView)(uintptr_t)texture->view;
 	image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 	descriptor_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptor_write.dstSet = image->descriptor;
+	descriptor_write.dstSet = (VkDescriptorSet)(uintptr_t)texture->binding;
 	descriptor_write.dstBinding = 0;
 	descriptor_write.dstArrayElement = 0;
 	descriptor_write.descriptorCount = 1;
@@ -5008,19 +5044,19 @@ void vk_update_descriptor_set( image_t *image, qboolean mipmap ) {
 }
 
 
-void vk_destroy_image_resources( VkImage *image, VkImageView *imageView ) {
-	if ( image != NULL ) {
-		if ( *image != VK_NULL_HANDLE ) {
-			qvkDestroyImage( vk.device, *image, NULL );
-			*image = VK_NULL_HANDLE;
-		}
+void RHI_DestroyTexture( rhiTexture_t *texture ) {
+	if ( texture->image ) {
+		qvkDestroyImage( vk.device, (VkImage)(uintptr_t)texture->image, NULL );
+		texture->image = 0;
 	}
-	if ( imageView != NULL ) {
-		if ( *imageView != VK_NULL_HANDLE ) {
-			qvkDestroyImageView( vk.device, *imageView, NULL );
-			*imageView = VK_NULL_HANDLE;
-		}
+	if ( texture->view ) {
+		qvkDestroyImageView( vk.device, (VkImageView)(uintptr_t)texture->view, NULL );
+		texture->view = 0;
 	}
+}
+
+void RHI_BindTexture( uint32_t slot, const rhiTexture_t *texture ) {
+	vk_update_descriptor( slot, (VkDescriptorSet)(uintptr_t)texture->binding );
 }
 
 
@@ -7067,7 +7103,7 @@ void vk_bind_descriptor_sets( void ) {
 	// fill NULL descriptor gaps
 	for ( i = start + 1; i < end; i++ ) {
 		if ( vk.cmd->descriptor_set.current[i] == VK_NULL_HANDLE ) {
-			vk.cmd->descriptor_set.current[i] = tr.whiteImage->descriptor;
+			vk.cmd->descriptor_set.current[i] = (VkDescriptorSet)(uintptr_t)tr.whiteImage->texture.binding;
 		}
 	}
 

@@ -35,8 +35,9 @@ header alone, then exercises the production Vulkan uniform upload path without a
 GPU: alignment, exact bytes, binding offsets, exhaustion and independent frame slots.
 The stub reports unavailable and is never linked into a client. All CMake client
 builds compile it; the two unit CI compilers also run the contract checks.
-The RHI is being extracted in stages under #6; this initially covers uploads and
-statistics, not a completed second renderer. Demo runs retain `gfxinfo`/`vkinfo`
+The RHI is being extracted in stages under #6; this currently covers uploads,
+textures and statistics, not a completed second renderer. Texture checks preserve
+all five format/three address mappings and binding/destruction behavior. Demo runs retain `gfxinfo`/`vkinfo`
 measurements and report host wall time including startup; these are not GPU timings.
 
 Central model/BSP/AAS file records and the shared state/font records assert size,

@@ -67,7 +67,7 @@ void GL_Bind( image_t *image ) {
 
 	//if ( glState.currenttextures[glState.currenttmu] != texnum ) {
 	image->frameUsed = tr.frameCount;
-	vk_update_descriptor( glState.currenttmu + VK_DESC_TEXTURE_BASE, image->descriptor );
+	RHI_BindTexture( glState.currenttmu + VK_DESC_TEXTURE_BASE, &image->texture );
 
 	//}
 #else
@@ -1065,8 +1065,8 @@ void RE_UploadCinematic( int w [[maybe_unused]], int h [[maybe_unused]], int col
 		image->width = image->uploadWidth = cols;
 		image->height = image->uploadHeight = rows;
 #ifdef USE_VULKAN
-		vk_create_image( image, cols, rows, 1 );
-		vk_upload_image_data( image, 0, 0, cols, rows, 1, data, cols * rows * 4, qfalse );
+		RHI_CreateTexture( &image->texture, cols, rows, 1, image->internalFormat, image->wrapClampMode, image->imgName );
+		RHI_UploadTexture( &image->texture, image->internalFormat, 0, 0, cols, rows, 1, data, cols * rows * 4, qfalse );
 #else
 		qglTexImage2D( GL_TEXTURE_2D, 0, image->internalFormat, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -1078,7 +1078,7 @@ void RE_UploadCinematic( int w [[maybe_unused]], int h [[maybe_unused]], int col
 		// otherwise, just subimage upload it so that drivers can tell we are going to be changing
 		// it and don't try and do a texture compression
 #ifdef USE_VULKAN
-		vk_upload_image_data( image, 0, 0, cols, rows, 1, data, cols * rows * 4, qtrue );
+		RHI_UploadTexture( &image->texture, image->internalFormat, 0, 0, cols, rows, 1, data, cols * rows * 4, qtrue );
 #else
 		qglTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data );
 #endif

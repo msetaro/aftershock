@@ -16,9 +16,10 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Implement #6 on `issue/6-rhi`, starting at integration e82eb43b. Trace existing
-resource/frame ownership and capture fixed-demo resource statistics before extracting
-public GPU records and the Vulkan backend. Keep accepted fixtures and frame goldens.
+Continue #6 draft PR #140 on `issue/6-rhi`, based on integration e82eb43b.
+Uniform uploads/statistics and texture ownership have been extracted. Next extract
+command submission/device statuses, then pipeline and frame state; preserve the
+measured frame/resource baselines. Keep accepted fixtures and frame goldens.
 The thin RHI and compile-only alternative backend must pass the design's build,
 replay and lifecycle gates before retiring OpenGL. Continue #7 and the remaining
 #25 sequence after #6 is accepted. All writes/PRs stay in msetaro/aftershock.
@@ -52,6 +53,27 @@ wall times include startup, are informational, and are not GPU timing claims.
 Cache evidence: rhi-baseline.log, rhi-uniform.log, rhi-contract.log and rhi-baseline/
 in ~/.cache/aftershock-modernization. Hosted OpenArena measurements, remaining
 resources/device/commands/timestamps, lifecycle gates and GL retirement are pending.
+
+Texture slice: portable format/address enums and opaque texture handles replace
+Vulkan image/view/descriptor fields in frontend records. Backend creation, uploads,
+conversion, sampler selection and destruction no longer accept `image_t`. The
+80-byte image record and handle offset 56 are asserted unchanged. All five format
+and three sampler address mappings, descriptor binding and idempotent destruction
+pass GCC and Clang/libc++ checks. Local fixed replay and video-restart lifecycle
+pass b38004b1; all four plain-replay resource snapshots match the baseline. No
+shader, pixel-conversion expression, allocation pool or upload barrier changes.
+Legacy backend error exits still need the planned status-boundary extraction.
+Evidence: rhi-textures.log, rhi-texture-lifecycle.log, rhi-texture-contract.log.
+
+First slice b970de67: full build 35483352838 passed. Regression 35483352666 has
+passed runtime, both unit compilers, sanitizers, cross targets, format and tidy;
+lifetime analysis is still running. Hosted OpenArena replay passed with its accepted
+Mesa 25.2.8 goldens. Downloaded logs: rhi-openarena-baseline/. LLVM 20.1.2, Vulkan
+API 1.4.318. oa_dm1 peak vertex 48 KiB / push 512 bytes / 67 pipelines / 216
+descriptions / 2 chunks; oa_dm7 276 KiB / 1,792 bytes / 66 pipelines / 212
+descriptions / 2 chunks. Both use world base 92, 8 MiB geometry per slot, five
+samplers and two frame slots; staging is 2 MiB / 6 MiB respectively. These are
+hosted measurements, not claims that OpenArena content is installed locally.
 
 ## Final #8 verification
 

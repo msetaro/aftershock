@@ -112,7 +112,7 @@ void GL_TextureMode( const char *string ) {
 	for ( i = 0; i < tr.numImages; i++ ) {
 		img = tr.images[i];
 		if ( img->flags & IMGFLAG_MIPMAP ) {
-			vk_update_descriptor_set( img, qtrue );
+			RHI_UpdateTextureSampler( &img->texture, img->wrapClampMode, true );
 		}
 	}
 #else
@@ -180,23 +180,23 @@ void R_ImageList_f( void ) {
 
 		switch ( image->internalFormat ) {
 #ifdef USE_VULKAN
-		case VK_FORMAT_B8G8R8A8_UNORM:
+		case rhiFormat_t::BGRA8:
 			format = "BGRA ";
 			estSize *= 4;
 			break;
-		case VK_FORMAT_R8G8B8A8_UNORM:
+		case rhiFormat_t::RGBA8:
 			format = "RGBA ";
 			estSize *= 4;
 			break;
-		case VK_FORMAT_R8G8B8_UNORM:
+		case rhiFormat_t::RGB8:
 			format = "RGB  ";
 			estSize *= 3;
 			break;
-		case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+		case rhiFormat_t::BGRA4:
 			format = "RGBA ";
 			estSize *= 2;
 			break;
-		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+		case rhiFormat_t::A1RGB5:
 			format = "RGB  ";
 			estSize *= 2;
 			break;
@@ -748,18 +748,18 @@ static void upload_vk_image( image_t *image, byte *pic ) {
 	h = upload_data.base_level_height;
 
 	if ( r_texturebits->integer > 16 || r_texturebits->integer == 0 || ( image->flags & IMGFLAG_LIGHTMAP ) ) {
-		image->internalFormat = VK_FORMAT_R8G8B8A8_UNORM;
-		//image->internalFormat = VK_FORMAT_B8G8R8A8_UNORM;
+		image->internalFormat = rhiFormat_t::RGBA8;
+		//image->internalFormat = rhiFormat_t::BGRA8;
 	} else {
 		qboolean has_alpha = RawImage_HasAlpha( upload_data.buffer, w * h );
-		image->internalFormat = has_alpha ? VK_FORMAT_B4G4R4A4_UNORM_PACK16 : VK_FORMAT_A1R5G5B5_UNORM_PACK16;
+		image->internalFormat = has_alpha ? rhiFormat_t::BGRA4 : rhiFormat_t::A1RGB5;
 	}
 
 	image->uploadWidth = w;
 	image->uploadHeight = h;
 
-	vk_create_image( image, w, h, upload_data.mip_levels );
-	vk_upload_image_data( image, 0, 0, w, h, upload_data.mip_levels, upload_data.buffer, upload_data.buffer_size, qfalse );
+	RHI_CreateTexture( &image->texture, w, h, upload_data.mip_levels, image->internalFormat, image->wrapClampMode, image->imgName );
+	RHI_UploadTexture( &image->texture, image->internalFormat, 0, 0, w, h, upload_data.mip_levels, upload_data.buffer, upload_data.buffer_size, qfalse );
 
 	ri.Hunk_FreeTempMemory( upload_data.buffer );
 }
@@ -1022,15 +1022,13 @@ image_t *R_CreateImage( const char *name, const char *name2, byte *pic, int widt
 
 #ifdef USE_VULKAN
 	if ( flags & IMGFLAG_CLAMPTOBORDER )
-		image->wrapClampMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+		image->wrapClampMode = rhiAddress_t::ClampToBorder;
 	else if ( flags & IMGFLAG_CLAMPTOEDGE )
-		image->wrapClampMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		image->wrapClampMode = rhiAddress_t::ClampToEdge;
 	else
-		image->wrapClampMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		image->wrapClampMode = rhiAddress_t::Repeat;
 
-	image->handle = VK_NULL_HANDLE;
-	image->view = VK_NULL_HANDLE;
-	image->descriptor = VK_NULL_HANDLE;
+	image->texture = {};
 
 	upload_vk_image( image, pic );
 #else
@@ -1714,9 +1712,9 @@ void R_DeleteTextures( void ) {
 
 	for ( i = 0; i < tr.numImages; i++ ) {
 		image_t *img = tr.images[i];
-		vk_destroy_image_resources( &img->handle, &img->view );
+		RHI_DestroyTexture( &img->texture );
 
-		// img->descriptor will be released with pool reset
+		// img->texture.binding will be released with pool reset
 	}
 #else
 	for ( i = 0; i < tr.numImages; i++ ) {
