@@ -78,6 +78,16 @@ uncompensated differences, median view age 147 ms, prediction error <=8.875
 (netcode-metrics-runtime.log). Full build d381167e passed 35519899293; regression
 35519899276 is still running on that earlier head. Current work is not yet accepted.
 
+Replication-policy test-first now fails on absent sv_replication.cpp
+(netcode-policy-before.log). It specifies priority and age within an optional
+update budget derived per client, retention of last acknowledged state for
+unaffordable changes, immediate removal outside interest, preservation of retained
+storage lifetime, range controls and admission of high-priority entities beyond
+the legacy first-256 candidate slots. Budget 0 must preserve the old exact path;
+wire capacity stays 256. Required playerstate/reliable/removal traffic remains
+mandatory even if it exceeds a tiny optional-update budget; existing rate limiting
+continues to account for actual transmitted bytes. Implement this slice next.
+
 ## #10 accepted implementation
 
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
