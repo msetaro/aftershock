@@ -112,7 +112,10 @@ static bool AnimationPose( int owner, int rig, animPose_t *pose ) {
 	if ( owner < 0 || owner >= MAX_CLIENTS || !animationRigs[rig].storage )
 		return false;
 	const auto &actor = animationActors[owner][rig];
-	if ( !actor.valid || !cg_entities[actor.entity].currentValid )
+	if ( !actor.valid )
+		return false;
+	const auto &snapshot = cg_entities[actor.entity];
+	if ( !snapshot.currentValid || snapshot.currentState.eType != ET_ANIMATION || snapshot.currentState.otherEntityNum != owner || snapshot.currentState.otherEntityNum2 != rig )
 		return false;
 	// Cosmetic sampling may move ahead inside the current state. Only snapshots
 	// replace gameplay state; rendering never ticks transitions or delivers events.

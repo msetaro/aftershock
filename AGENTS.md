@@ -126,6 +126,7 @@ python3 tests/native_abi.py
 python3 tests/animation.py
 python3 tests/animation_runtime.py
 python3 tests/animation_editor.py
+python3 tests/animation_demo.py
 python3 tests/native.py --content openarena
 python3 tests/openarena_strings.py
 python3 tests/ui_weapon.py

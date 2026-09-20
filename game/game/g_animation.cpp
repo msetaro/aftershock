@@ -160,7 +160,9 @@ void G_RunAnimation( void ) {
 		// Advance only in 20 ms steps. Render interpolation never feeds these states.
 		if ( uint32_t( level.time ) - actor.clock > 5000 )
 			G_Error( "Animation rejected: simulation clock jumped" );
+		bool advanced = false;
 		while ( uint32_t( level.time ) - actor.clock >= 20 || !actor.state[0].initialized ) {
+			advanced = true;
 			if ( actor.state[0].initialized )
 				actor.clock += 20;
 			for ( int rig = 0; rig < 2; ++rig ) {
@@ -198,6 +200,8 @@ void G_RunAnimation( void ) {
 					SetAnimationInput( owner, rig, "turn", 0 );
 			}
 		}
+		if ( !advanced )
+			continue;
 		// Ground contacts are authoritative inputs; clients use the replicated
 		// offsets instead of doing their own gameplay collision query.
 		animPose_t stance;
@@ -236,6 +240,12 @@ void G_RunAnimation( void ) {
 			if ( !BG_AnimationToEntityState( &actor.state[rig], actor.parameters[rig], owner, rig, origin, angles, &entity->s ) )
 				G_Error( "Animation rejected: snapshot state" );
 			VectorCopy( origin, entity->r.currentOrigin );
+			// State visibility follows the player's occupied leaves, including when
+			// its root point alone lies outside the viewer's visible leaf.
+			VectorCopy( player->r.mins, entity->r.mins );
+			VectorCopy( player->r.maxs, entity->r.maxs );
+			entity->r.mins[2] -= MINS_Z;
+			entity->r.maxs[2] -= MINS_Z;
 			trap_LinkEntity( entity );
 			if ( rig == 0 ) {
 				animPose_t pose;

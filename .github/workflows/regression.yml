@@ -205,10 +205,14 @@ jobs:
         run: |
           /tmp/aftershock-cook-python/bin/python tests/animation_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
           /tmp/aftershock-cook-python/bin/python tests/animation_editor.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          /tmp/aftershock-cook-python/bin/python tests/animation_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --server-fps 100 --output /tmp/aftershock-animation-runtime-100
+          /tmp/aftershock-cook-python/bin/python tests/animation_demo.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Development overlay input and renderer restart
         run: python3 tests/devtools.py --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Optional renderer module replay
         run: python3 tests/demo.py --modules --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-demo-modules
+      - name: Owned animation replay through renderer module
+        run: /tmp/aftershock-cook-python/bin/python tests/animation_demo.py --modules --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-animation-demo-modules
       - name: RHI replay measurements
         if: always()
         uses: actions/upload-artifact@v7
@@ -239,6 +243,13 @@ jobs:
             /tmp/aftershock-animation-runtime/*.tga
             /tmp/aftershock-animation-editor/*.log
             /tmp/aftershock-animation-editor/*.tga
+            /tmp/aftershock-animation-runtime-100/*.log
+            /tmp/aftershock-animation-demo/*.log
+            /tmp/aftershock-animation-demo/*.tga
+            /tmp/aftershock-animation-demo/*.json
+            /tmp/aftershock-animation-demo-modules/*.log
+            /tmp/aftershock-animation-demo-modules/*.tga
+            /tmp/aftershock-animation-demo-modules/*.json
             /tmp/aftershock-devtools-tests/**/*.log
             /tmp/aftershock-devtools-tests/runtime/*.tga
             /tmp/tests-native-runtime/**/*.log

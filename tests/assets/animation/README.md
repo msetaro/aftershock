@@ -45,4 +45,6 @@ magazine and bolt events with attachment bones. The body graph blends idle/walk/
 run and crouch/prone, adds aim/lean on the spine subtree, and emits alternating
 footsteps. New graph sources are hand-authored data, not regenerated Blender
 exports or accepted demo goldens. Native tests exercise both graphs; in-game
-presentation and recorded hit-box parity remain part of #10 acceptance.
+presentation is exercised by `tests/animation_runtime.py`;
+`tests/animation_demo.py` replays the separate fixed #10 fixtures against their
+recorded server hit-box traces. See tests/README.md for explicit fixture authoring.

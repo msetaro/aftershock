@@ -489,7 +489,9 @@ static production build and require installed Quake 3 content. The native ABI
 uses binary32 literals and rounds host math results to float, as the QVM compiler
 did; bg_lib preserves its random sequence. Smoke normalizes module-load metadata,
 build date and bot-skill printf padding when comparing accepted QVM logs; gameplay
-text remains intact. Replay uses the unchanged demos and frame hashes.
+text remains intact. Host IP/IP6 enumeration lines are removed from both sides
+of log comparison because IPv6 privacy addresses change independently of the game;
+connection/gameplay lines remain exact. Replay uses the unchanged demos and frame hashes.
 
 Hosted CI uses the pinned OpenArena B52 C source and the reviewed #31 patches:
 
@@ -757,3 +759,29 @@ output; load the cooked graph after a successful cook. Enable `dev_reloadAssets`
 reload changed models/materials too. Editor previews never replace live game assets.
 `tests/animation_editor.py` edits a graph through real X input, verifies its backup,
 observes the watcher revision and previews the changed initial state.
+
+`python3 tests/animation_runtime.py --server-fps 100` also checks that faster server
+frames never publish multiple transforms under one 20 ms animation tick.
+`python3 tests/animation_demo.py` replays the separate committed #10 fixture twice,
+checks each received hit-box digest against its saved authoritative server trace,
+requires all rifle/body states, and compares three sampled frame hashes across
+repetitions. It uses owned game code with either content set. `--modules` exercises
+the optional renderer module. Normal/CI invocations never record; existing classic
+frame goldens remain the visual compatibility oracle. New animation frames are a
+repeatability check and do not need a new Mesa-version pixel baseline.
+
+The only explicit animation fixture replacement command is:
+
+```
+python3 tests/animation_demo.py --record-fixture
+python3 tests/animation_demo.py --record-fixture --content openarena --data /tmp/aftershock-openarena-baseoa
+```
+
+This replaces only `tests/golden/animation/<content>/rifle-body.dm_68` and its JSON
+manifest. Each manifest records the source revision, exact input commands, graph/
+model hashes, demo hash and server box digests. Record once, review the screenshots
+and trace, and explain any replacement in the issue/PR. Recording byte equality is
+not required; fixed replay is. CI rejects the recording flag. The initial fixtures
+were recorded from 3fbc0a62 on q3dm17 and oa_dm1; each replay checks 253 received
+poses against 265 recorded authoritative poses. The source project and demo are
+owned GPL artifacts; map art remains in the user's installed content packages.

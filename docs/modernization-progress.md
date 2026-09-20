@@ -16,6 +16,68 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
+Continue #10 on `issue/10-animation`; no #10 PR exists yet. The integration
+baseline is 7f4d43a7 (merged-tree regression 35510058541 passed). #31 and #9 are
+closed. Feature implementation/editor/ABI gates are committed through 3fbc0a62;
+7004bf0a adds the 100 Hz timing test first. The publication guard now passes it.
+
+Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
+layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body
+controllers, replicated hit boxes, automatic body facing, ADS/recoil/sway, and an
+ImGui source editor/compiled-table inspector/preview. Editor and native GCC/Clang
+UBSan tests pass. Current C/game C++/engine C++ ABI checks retain 29 types, three
+offsets and the extension value; the whole-game C/DLL port oracles are historical
+at 7f4d43a7, with classic/shared-math gates retained. No accepted golden changed.
+
+Two separate #10 demos were recorded once from 3fbc0a62 (q3dm17, oa_dm1). Each
+replay matched 253 received hit-box hashes against the saved authoritative trace,
+and three frame hashes repeated. All six new captures were visually reviewed.
+Fixtures/manifests are under `tests/golden/animation`; do not record them again.
+Current verification covers the fixed-tick publication guard, owner visibility
+bounds and reused-entity slot checks. Passed: unchanged classic Q3 frame projection, fixed Q3 and OpenArena module
+replays (253 matching boxes each), unit/one-ULP gate, sanitized units, collision
+differential, old asset-editor workflow, and lifetime analysis (1156 commands).
+Classic bot smoke initially differed only in this host’s rotated IPv6 addresses;
+the shared log normalizer now removes IP/IP6 enumeration from both sides, without
+changing goldens or gameplay lines. Both-map bot smoke now passes with that metadata-only normalization
+(animation-runtime-classic.log).
+Tidy passed 1202 configurations before the final small publication/ownership edits.
+
+Next: open the #10 PR with the reviewed fixtures/final feature adjustments,
+finish full hosted gates (including OpenArena static/module replays and cross/MSVC
+builds), resolve any failures without changing accepted fixtures, then merge with
+a merge commit and verify the merged tree. The local AGENTS self-review below is
+complete; hosted/exact-head acceptance is still required.
+Continue #12 before #11 (replication dependency), then the remaining #25 roadmap.
+All PRs stay in this repository; no parent-fork PRs or main pushes.
+
+## #10 local self-review
+
+Scope matches #10's cooked runtime, authored rifle/body graphs, game notifies,
+fixed-step replicated pose state, ImGui authoring and fixed-demo parity. New
+animation arithmetic is strictly compiled; existing simulation expressions and
+accepted classic fixture bytes are unchanged. No engine bug fix outside the
+feature is included. The native port-era C/DLL comparison is explicitly historical;
+current ABI/shared math and classic replay checks remain in CI. Host interface
+address normalization removes metadata only, from both expected and actual logs.
+
+No new OS calls occur outside the filesystem layer. Animation file storage has
+explicit load/shutdown ownership; simulation/render poses use bounded POD arrays
+and no per-frame allocation. Lifetime analysis passes 1156 commands, including
+the new subsystem; type/boundary/format checks pass. Wire structs retain their
+layouts (C/game C++/engine C++ agreement), and cooked animation records assert
+layout/trivial-copy properties. Renderer ABI is 13 shipping / 17 development.
+
+Native GCC/Clang+UBSan, the real-input editor, fixed-step live gameplay (including
+100 Hz server), new Q3/static and OA/module fixed replays, unchanged classic Q3
+frames/collision/bot smoke, unit/negative control, sanitized units, old asset editor,
+known-bug classification, tidy and lifetime gates pass locally. Remaining acceptance:
+full hosted exact-head build/regression and merged-tree verification. The original
+assets and new demos contain no copied game paks; both new source/demo manifests
+record provenance and exact hashes. All changes and PRs remain in this repository.
+
+## #10 implementation evidence (chronological)
+
 #9 PR #145 merged as c195f798 and passed integration 35507482742; #9 is closed
 and checked in #25. Accounting PR #146 merged as 3d104d0c after exact-head build
 35508534162/regression 35508533987; integration 35508970698 passed.
@@ -174,7 +236,16 @@ animation-demo-oa-record.log). Visual review/fixture commit is next. A higher-ra
 server check now exposes a new-feature timing gap: at sv_fps=100, consecutive
 server frames can publish different transforms for the same 20 ms animation tick
 (animation-fast-server-before.log). Publish pose/transform inputs only when that
-fixed animation clock advances; rerun the check and replay the existing fixtures.
+fixed animation clock advances. The 100 Hz check now passes
+(animation-fast-server-after.log). All six new frame captures were visually
+reviewed: the owned block rifle/arms render through the recorded actions.
+Fixture hashes: Q3 1895aaf34d32be3330eeb4a728389ddb138cdeac37fdcc565788485abaa8d57b;
+OA cc28ee474ca3acfcb493850e680cc8a4f680725057cfc8285c5ab62a0cc71d89.
+Tidy passes all 1202 production configurations (animation-tidy.log); lifetime
+analysis is still running. Final integration self-review also keeps auxiliary
+visibility bounds equal to the owning player and rejects reused non-animation
+entity slots on the client. Next: replay these same fixtures with that review
+change, finish classic/full gates, then open the #10 PR.
 Current ABI checks are extracted as tests/native_abi.py: the same 29 types, three
 offsets and extension value agree for C, game C++ and engine C++. Shared C/C++
 math checks remain. Full-game C/DLL source gates remain historical at 7f4d43a7;
@@ -193,6 +264,8 @@ turn, ImGui authoring/inspection, and deterministic fixed-timestep replicated
 hit-box parity for a recorded demo. Preserve all classic accepted fixtures/hashes;
 new acceptance artifacts stay separate. Continue the complete #25 roadmap after
 #10 (#12 before #11's replication dependency). No upstream PRs or main pushes.
+
+## Earlier foundation/integration checkpoint
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
