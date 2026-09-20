@@ -130,7 +130,7 @@ def main():
                 proxy = LoopbackDelay(port)
                 (base / 'netcode.cfg').write_text('\n'.join([
                     f'connect 127.0.0.1:{proxy.port}', 'wait 400', 'cmd give all',
-                    'weapon 6', 'wait 100', '+attack', 'wait 800', 'cmd give ammo',
+                    'wait 100', 'weapon 6', 'wait 100', 'say netcode_ready', 'wait 100', '+attack', 'wait 800', 'cmd give ammo',
                     'wait 800', '-attack', 'wait 30', 'quit']) + '\n')
                 client = subprocess.Popen(['xvfb-run', '-a', str(args.client.resolve()), *common,
                     '+set', 'fs_homepath', str(home / 'client'), '+set', 'net_port', '0',
@@ -139,6 +139,7 @@ def main():
                     '+set', 'cg_showmiss', '1', '+set', 'com_maxfps', '100', '+exec', 'netcode.cfg'],
                     cwd=ROOT, env=env, stdout=client_stream, stderr=subprocess.STDOUT, start_new_session=True)
                 wait_for(lambda: 'ClientBegin: 0' in server_log.read_text(), client)
+                wait_for(lambda: 'netcode_ready' in server_log.read_text(), client)
                 server.stdin.write(b'rewind_target 0\n')
                 server.stdin.flush()
                 wait_for(lambda: 'Rewind target created:' in server_log.read_text() or 'server: rewind_target 0' in server_log.read_text(), server)

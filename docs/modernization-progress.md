@@ -16,75 +16,58 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#10 is complete and closed/checked in #25. PR #148 merged as
+Current branch: `issue/12-netcode`; draft PR #149. Continue #12 with prediction /
+rewind overlay metrics, entity relevance/priority/bandwidth control and checked
+identity/browser/matchmaking provider hooks. Wire the new tests into CI, document
+limits/commands, run full gates and AGENTS self-review before any merge.
+
+Implemented so far: generated replication descriptions beside state members,
+strict Aftershock version/schema agreement in the existing challenge/connect
+flow, bounded per-frame hit-box history and opt-in hitscan rewind. `g_rewind`
+defaults off; `g_maxRewind` defaults to 200 ms (hard ceiling 1000 ms). Storage is
+64 frames, 1024 entities, 2048 boxes/frame, under 5 MiB from the level hunk with
+restart reuse. Owned animated actors use #10 boxes; other eligible actors use
+bounds. World/brush collision stays live, and no live actor transform/link is
+mutated. Generation checks prevent spawn/respawn/teleport interpolation.
+
+Passed: GCC/Clang+UBSan byte/schema/compatibility/history/game-integration probes,
+current C/game C++/engine ABI, format/boundaries, and production client/server build.
+Real loopback Q3: 425/425 unambiguous shots agree, including 21 hits; 45 decisions
+would differ without rewind. Model: 100 ms RTT, +/-15 ms combined jitter, 5% packet
+loss; median view age 149 ms; largest prediction error 8.875 units. Gate thresholds
+are >=99% over >=100 shots with >=5 hits and >=5 uncompensated differences, and
+prediction error <=32 units including initial spawn. Portable linear-target test:
+950/950 at 100 ms one-way delay, +/-15 ms jitter, 5% loss; error <=0.000488 units.
+No simulation-affecting legacy floating-point expression or accepted fixture changed.
+
+Real network test first failed on the absent cheats-only developer target, then
+exposed harness ordering (inventory not yet received; spawn not settled). It now
+waits for an in-game ready message before placement and firing, without weakening
+hit thresholds. Logs: netcode-runtime-before.log, netcode-runtime-target.log,
+netcode-runtime-synced.log under ~/.cache/aftershock-modernization. OpenArena real
+loopback is next to verify the hosted content path. Classic Q3 fixed replay still
+matches 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(netcode-classic-demo.log); the fixed owned animation demo still matches all 253
+received authoritative boxes and repeated frames (netcode-animation-demo.log).
+
+Test-first commits: 013b13d2 schema byte oracle, 0dae55bf version agreement,
+adc86e49 portable rewind, 59d11780 game integration, 6e7ccf89 real delayed transport.
+Implementations: 531cf0d5 generated tables, 2c9b461e handshake, 54555ea7 history,
+7d66955a game integration. New schema baseline (107002 bytes from e1ff877f):
+26a5fc0d8e5afbfcc1634ddbfcf67155c6a2c6156066b86d20088690dff7d496. No accepted
+golden was regenerated. Connections lacking Aftershock agreement are refused;
+legacy demo decoding remains independent. Actual Steamworks SDK/platform service
+implementation belongs to #23; #12 must establish the checked asynchronous seam
+and must never treat a claimed identity or absent provider as authenticated.
+
+#10 is complete, closed and checked in #25. PR #148 merged as
 e1ff877f87d7cb17d62f41977428e08c10cb3920 (tree
 c04729f603ae4ede3814e93c8ad69e85688c55d2), exactly matching tested head acc12bf3.
-Full build 35516551419 and regression 35516551423 passed before merge; merged-tree
-regression 35517250474 passed all required jobs. AGENTS self-review is complete.
+Full build 35516551419 and regression 35516551423 passed before merge;
+merged-tree regression 35517250474 passed all required jobs after AGENTS review.
+Continue #12 before #11, then the remaining #25 roadmap, only in this repository.
 
-Current branch: issue/12-netcode, based on the accepted #10 merge. Test-first
-commit 013b13d2 passes the pre-change codec baseline, then fails as intended on
-the absent generator (netcode-schema-before.log). The generator now passes GCC/Clang+UBSan and the current C/game C++/engine ABI gate.
-
-#12 starts with generated field descriptions beside the authoritative state
-members, keeping the legacy field order, widths, offsets and delta bytes. The
-pre-change GCC/Clang+UBSan baseline is 256 entity/player round trips plus removal:
-26a5fc0d8e5afbfcc1634ddbfcf67155c6a2c6156066b86d20088690dff7d496. The new
-regression also requires a generation freshness check, which must fail before
-implementation. No accepted golden changes. Source annotations/generation preserve the exact field/byte digest; missing fields,
-duplicate order positions and invalid paths/widths fail the generator. Next: extend the existing handshake, bounded history/rewind, replication policies,
-metrics and platform-provider seams, with separate current network coverage.
-
-Protocol test-first commit 0dae55bf failed on the absent compatibility function
-(netcode-protocol-before.log). Implemented strict feature version/schema checks
-in the existing challenge/connect flow, after challenge verification and with
-existing rate limits retained. GCC/Clang+UBSan cross-build tests pass. The real
-client joins version 1 and refuses separately compiled version 2 before joining
-(netcode-protocol-runtime.log). Legacy demo decoding remains independent;
-connections without an Aftershock schema agreement are explicitly refused.
-Next: bounded per-server-frame hit-box history and view-time rewind tests.
-
-#12 PR #149 is draft. The rewind test now fails on the absent history API
-(netcode-rewind-before.log). It specifies 100% hits for at least 950 delivered
-shots against a moving target at 100 ms one-way delay, +/-15 ms jitter and 5%
-loss; uncompensated shots must all miss. It also checks world obstruction,
-rewind limits, respawn/teleport generation boundaries, storage bounds and clock
-wrap. This is the portable core test; real game/server integration remains next.
-
-The portable history now passes GCC and Clang/libc++ UBSan: 950/950 delayed
-hits, zero unrewound hits, maximum interpolation error 0.000488 units. The bounded
-64-frame ring holds 1024 entity records and 2048 boxes per frame (under 5 MiB),
-with no frame allocations. Queries clamp to configured/available history, never
-interpolate different generations, and keep world obstruction authoritative.
-Strict FP flags apply to this new arithmetic. Production gameplay integration
-and a real transport test are still required; the portable result is not yet
-full #12 acceptance.
-
-Game integration test-first now fails on absent g_rewind.cpp
-(netcode-rewind-game-before.log). It requires opt-in view-time hitscan validation,
-no live entity transform/link mutation, world occlusion, reused-slot rejection,
-one level-arena allocation with restart reuse, and unchanged legacy trace dispatch
-when disabled. Integrate history at the end of each server game frame and expose
-only a filtered trace plus level allocation through existing native imports.
-
-The game history/trace integration now passes GCC/Clang+UBSan and a production
-client/server build (netcode-rewind-build.log). `g_rewind` defaults off; when
-enabled it allocates the bounded ring from the level hunk, reuses it on restart,
-records after animation each game frame, and validates bullet/shotgun/rail/lightning
-rays against historical boxes without relinking entities. Ordinary actors use
-bounds; owned animated actors use #10 boxes. World/brush collision stays live.
-Spawn/respawn/teleport generations prevent cross-lifetime interpolation. Existing
-weapon spread/movement expressions are untouched. Next: real loopback delay/loss
-coverage and network telemetry, then replication policy/provider hooks and full gates.
-
-The real client/server loopback test now connects through 100 ms RTT, +/-15 ms
-combined jitter and 5% datagram loss, then fails because the developer moving
-target command is absent (netcode-runtime-before.log; server falls back to chat).
-Implement a cheats-only development target and bounded trace diagnostics. The
-transport acceptance threshold is >=99% agreement for >=100 unambiguous shots,
-including >=5 hits and >=5 cases that would differ without rewind. Prediction
-error must stay within 32 units (one player width, including initial spawn).
-The portable 950/950 criterion remains stricter and tests between-frame positions.
+## #10 accepted implementation
 
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
 layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body

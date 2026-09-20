@@ -43,6 +43,7 @@ static uint64_t RewindGeneration( int number ) {
 void G_RecordRewind( void ) {
 	if ( !useRewind )
 		return;
+	trap_Cvar_Update( &rewindTrace );
 	rewindFrame = {};
 	rewindFrame.time = (uint32_t)level.time;
 	for ( int number = 0; number < level.num_entities; ++number ) {
@@ -73,6 +74,13 @@ void G_RecordRewind( void ) {
 				box.maxs[axis] = animation ? animation[i].maxs[axis] : entity.r.currentOrigin[axis] + entity.r.maxs[axis];
 			}
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		if ( rewindTrace.integer && !strcmp( entity.classname, "rewind_target" ) ) {
+			const auto &box = rewindFrame.boxes[record.firstBox];
+			G_Printf( "Rewind target boxes: time=%d entity=%d %.6f %.6f %.6f %.6f %.6f %.6f\n", level.time, number,
+				double( box.mins[0] ), double( box.mins[1] ), double( box.mins[2] ), double( box.maxs[0] ), double( box.maxs[1] ), double( box.maxs[2] ) );
+		}
+#endif
 	}
 	if ( !NET_HistoryStore( rewindHistory, &rewindFrame ) )
 		G_Error( "Rewind history frame rejected" );
@@ -130,6 +138,59 @@ void G_TraceHitscan( trace_t *trace, const vec3_t start, const vec3_t end, int p
 	}
 	trap_Cvar_Update( &rewindTrace );
 	if ( rewindTrace.integer )
-		G_Printf( "Rewind trace: shooter=%d view=%u age=%u clamped=%d hit=%d fraction=%.6f\n", shooter->s.number,
-			query.time, query.rewindMs, int( query.clamped ), trace->entityNum, double( trace->fraction ) );
+		G_Printf( "Rewind trace: shooter=%d view=%u age=%u clamped=%d hit=%d fraction=%.6f ray=%.6f %.6f %.6f %.6f %.6f %.6f\n", shooter->s.number,
+			query.time, query.rewindMs, int( query.clamped ), trace->entityNum, double( trace->fraction ),
+			double( start[0] ), double( start[1] ), double( start[2] ), double( end[0] ), double( end[1] ), double( end[2] ) );
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+static void RewindTargetThink( gentity_t *entity ) {
+	BG_EvaluateTrajectory( &entity->s.pos, level.time, entity->r.currentOrigin );
+	trap_LinkEntity( entity );
+	entity->nextthink = level.time + 1;
+}
+
+void G_RewindTargetCommand( void ) {
+	if ( !g_cheats.integer || !useRewind ) {
+		G_Printf( "Rewind target requires a developer map and g_rewind 1.\n" );
+		return;
+	}
+	char argument[32];
+	trap_Argv( 1, argument, sizeof( argument ) );
+	const int owner = atoi( argument );
+	if ( trap_Argc() != 2 || owner < 0 || owner >= level.maxclients || !g_entities[owner].client || !g_entities[owner].r.linked ) {
+		G_Printf( "usage: rewind_target <active client number>\n" );
+		return;
+	}
+	const auto &player = g_entities[owner].client->ps;
+	vec3_t start, end, forward, right;
+	VectorCopy( player.origin, start );
+	start[2] += player.viewheight;
+	AngleVectors( player.viewangles, forward, right, nullptr );
+	VectorMA( start, 256, forward, end );
+	trace_t trace;
+	trap_Trace( &trace, start, nullptr, nullptr, end, owner, MASK_SHOT );
+	if ( trace.startsolid || trace.fraction < 0.25f ) {
+		G_Printf( "Rewind target needs 64 units of clear space ahead.\n" );
+		return;
+	}
+	gentity_t *target = G_Spawn();
+	target->classname = "rewind_target";
+	target->s.eType = ET_GENERAL;
+	target->s.modelindex = G_ModelIndex( (char *)"models/anim_body.iqm" );
+	target->s.pos.trType = TR_SINE;
+	target->s.pos.trTime = level.time;
+	target->s.pos.trDuration = 2000;
+	VectorMA( start, trace.fraction * 128, forward, target->s.pos.trBase );
+	VectorScale( right, 96, target->s.pos.trDelta );
+	VectorSet( target->r.mins, -8, -8, -16 );
+	VectorSet( target->r.maxs, 8, 8, 16 );
+	target->r.contents = CONTENTS_BODY;
+	target->r.svFlags = SVF_BROADCAST;
+	target->health = 1000000;
+	target->takedamage = qtrue;
+	target->think = RewindTargetThink;
+	RewindTargetThink( target );
+	G_Printf( "Rewind target created: entity=%d owner=%d\n", target->s.number, owner );
+}
+#endif

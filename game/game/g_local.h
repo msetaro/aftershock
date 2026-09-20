@@ -985,3 +985,7 @@ void G_TraceHitscan( trace_t *trace, const vec3_t start, const vec3_t end, int p
 #ifdef __cplusplus
 const animBox_t *G_AnimationHitBoxes( int owner, uint32_t *count );
 #endif
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void G_RewindTargetCommand( void );
+#endif
