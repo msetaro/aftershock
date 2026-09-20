@@ -16,24 +16,22 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#142 draft PR #144 final head ffcb072c is complete locally and passed hosted
-build 35498994504. Regression 35498994503 is running; only runtime/lifetimes
-remain. Poll that run, finish the PR's acceptance note, mark it ready and merge
-with a merge commit only after every required job passes. Then verify the merged
-tree regression. #7 merge e4f2d70a passed integration 35497810031 and is closed.
+#142 PR #144 merged as 6a9e755b after exact head ffcb072c passed build
+35498994504 and regression 35498994503, with the committed self-review. The merge
+tree equals the tested tree (0273866798e91a64d27002e5499353438d6a6769).
+Merged-tree regression 35499764754 is running. Close #142/update #25 only after
+it passes; no #9 merge before that verification.
 
-Current branch is `issue/9-asset-pipeline`, provisionally based on ffcb072c.
-Decision: prepare the next issue's failing feature tests in its own branch while
-#142 exact-head CI completes; keep #142's reviewed branch unchanged. Do not merge
-#9 until #142 is merged and its integration gates pass. Merge origin/modernization
-into this branch after #142 acceptance, preserving history. This extends the
-already-recorded overlap for next-issue preparation; no unverified work reaches
-the integration branch.
+Current branch is `issue/9-asset-pipeline`. Its test-first commit is 56c25515;
+origin/modernization has been merged into it without rewriting history. The
+owned Blender source fixture was exported once with verified portable Blender
+4.5.3 (archive hash below). Implement the offline cooker against these failing
+feature tests, then complete native compressed texture/reload/UI acceptance.
+Keep the graph's reviewed branch unchanged. #7 is complete and closed.
 
 Read #9 and the preparation notes in the persistent modernization cache
 (issue9-preparation.md). Trace native model/texture ownership before implementation.
-Write and commit the cooker feature tests first; the first test must fail on the
-absent CLI. No accepted fixtures/goldens or finished historical test evidence may
+The first cooker feature test is committed and fails on the absent CLI. No accepted fixtures/goldens or finished historical test evidence may
 change. Continue the #25 roadmap after #9. All writes stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
@@ -54,7 +52,7 @@ BC7/BC5/BC4 KTX2 mip chains, relative dependency/output SHA-256 manifests,
 byte-stable fresh cooks and texture-only incremental invalidation. No installed
 game content or accepted artifact is involved. The first run fails with exit 1
 because tools/cook does not exist (cook-before.log). Commit this before adding
-the cooker. Real Blender export, native runtime/hot reload and UI evidence remain
+the cooker. Native runtime/hot reload and UI evidence remain
 required; this test is only the first slice.
 
 Decision: reuse the existing IQM v2 model payload/renderer for glTF output,
@@ -68,6 +66,17 @@ for PNG/TGA tools input and a pinned native BC encoder, not a new codec.
 Primary format references: Khronos glTF 2.0/KTX2 and lsalzman/iqm iqm.h.
 All OS access and source watching stay in tools/platform/filesystem ownership;
 shipping code does not import glTF. No new loader-robustness targets are added.
+
+The real Blender source fixture is tests/assets/cook-character: six textured
+meshes, one three-joint skin and `idle`/`wave` clips, exported by its committed
+script with no hand edits to glTF. Portable Blender 4.5.3 LTS build 67807e1800cc
+was verified against official archive SHA-256
+975c58fcb244273838534bba771e64ad87739216b0f9b39a888531a49a72d845.
+Its provenance records every source/output hash; CI cooks committed sources and
+never reauthors them. The installed Pillow 12.1.1 supplies PNG/TGA and BC5
+encoding; BC4 can use the BC5 red-channel blocks. Only BC7 needs a small pinned
+native encoder helper. The pinned bc7enc sources/license are staged in the
+persistent cache, not yet imported into the repository.
 
 ## #7 developer tooling checkpoint
 
