@@ -47,10 +47,10 @@ shim = output / 'fixed-random.so'
 run(['cc', '-Wall', '-Wextra', '-Werror', '-shared', '-fPIC', 'tests/probes/fixed_random.c', '-ldl', '-o', shim])
 objects = engine_objects(output / 'native', args.content, args.cc, args.cxx)
 binaries = {}
-for backend in ('vulkan', 'opengl1'):
+for backend in ('vulkan',):
     directory = build(output / ('build-' + backend), [f'CC={args.cc}', f'CXX={args.cxx}', *objects,
                       'BUILD_SERVER=0', f'USE_RENDERER_DLOPEN={int(args.modules)}',
-                      'RENDERER_DEFAULT=' + ('opengl' if backend == 'opengl1' else backend)])
+                      'RENDERER_DEFAULT=' + backend])
     binaries[backend] = directory / 'quake3e.x64'
     verify_static(binaries[backend], ('game', 'cgame', 'ui'))
     symbols = subprocess.check_output(['nm', '-C', '--defined-only', binaries[backend]], text=True)
@@ -82,7 +82,7 @@ def client(binary, home, commands, log_name, fixed_random=False, real_clock=Fals
         raise SystemExit('FAIL: renderer restart did not restore its pipeline cache: ' + log_name)
     if b'Unknown command' in log or b'ERROR:' in log:
         raise SystemExit('FAIL: client reported an error: ' + log_name)
-    marker = b'GL_RENDERER:' if binary == binaries['opengl1'] else b'VK_RENDERER:'
+    marker = b'VK_RENDERER:'
     if marker not in log:
         raise SystemExit('FAIL: wrong renderer: ' + log_name)
     if b'llvmpipe' not in log.lower():

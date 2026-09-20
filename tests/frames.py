@@ -9,18 +9,25 @@ import re
 from run import compare, content_maps
 
 
+def active_frames(data):
+    # Keep reviewed OpenGL rows on disk as historical evidence after retirement.
+    frames = {key: value for key, value in json.loads(data).items()
+              if not key.endswith('/opengl1')}
+    return (json.dumps(frames, indent=2, sort_keys=True) + '\n').encode()
+
+
 def check_frames(output, content, regenerate):
     frames = {}
     versions = set()
     for map_name in content_maps(content):
-        for backend in ('vulkan', 'opengl1'):
+        for backend in ('vulkan',):
             repetitions = []
             for iteration in (1, 2):
                 log = (output / f'{map_name}-{backend}-replay-{iteration}.log').read_text()
-                marker = 'GL_RENDERER:' if backend == 'opengl1' else 'VK_RENDERER:'
+                marker = 'VK_RENDERER:'
                 if marker not in log or 'llvmpipe' not in log or 'ERROR:' in log or 'Unknown command' in log:
                     raise SystemExit('FAIL: invalid renderer/replay evidence')
-                pattern = r'Driver: (\d+\.\d+\.\d+)' if backend == 'vulkan' else r'Mesa (\d+\.\d+\.\d+)'
+                pattern = r'Driver: (\d+\.\d+\.\d+)'
                 version = re.search(pattern, log)
                 if not version:
                     raise SystemExit('FAIL: missing Mesa version in replay log')
@@ -36,7 +43,8 @@ def check_frames(output, content, regenerate):
     if len(versions) != 1:
         raise SystemExit('FAIL: replay evidence mixes Mesa versions')
     name = ('openarena/' if content == 'openarena' else '') + f'frames-mesa-{versions.pop()}.json'
-    compare(name, (json.dumps(frames, indent=2, sort_keys=True) + '\n').encode(), regenerate)
+    compare(name, (json.dumps(frames, indent=2, sort_keys=True) + '\n').encode(), regenerate,
+            normalize=None if regenerate else active_frames)
 
 
 if __name__ == '__main__':

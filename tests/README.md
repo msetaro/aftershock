@@ -8,7 +8,7 @@ Test build directories contain `compile_commands.json` and `build.log`. Separate
 output directories isolate compiler and instrumentation settings; changing a
 setting refreshes the CMake cache before building. Unit and download probes select
 actual client/server objects, and lifetime analysis retains every native wrapper
-command across both renderer configurations. ccache is used when installed.
+command across static and module configurations. ccache is used when installed.
 
 For a normal engine build, `cmake --workflow --preset release` configures and builds
 all targets. `debug`, `msvc-x64` and `msvc-arm64` presets are also available; Windows
@@ -135,7 +135,7 @@ The legacy script arithmetic, seek/config-journal lengths and hash accumulators
 retain explicit Windows/non-Windows widths to preserve existing behavior. Changing
 those compatibility contracts requires separate behavior-change evidence.
 
-Both renderer IQM headers carry the same eight file-layout contracts. WAV
+The portable frontend IQM header carries eight file-layout contracts. WAV
 scalars, browser-cache counters/size, and routing-cache size use explicit widths.
 ADPCM sample/index storage, bot characteristic tags, signed chat offsets and
 qsort copy bytes also have explicit types; text characters and boolean character
@@ -175,8 +175,8 @@ and disables trailing-comment alignment so one pass is stable. The initial
 format commit was checked against release assembly across both renderers and
 native/cross builds; only inline-assembly source-location comments differed.
 
-`python3 tests/check_tidy.py` analyzes owned C++ sources with both renderers'
-actual CMake commands, including each native module wrapper. It requires
+`python3 tests/check_tidy.py` analyzes owned C++ sources with static and module
+CMake commands, including each native module wrapper. It requires
 clang-tidy and the client build headers (`clang-tidy`, `libsdl2-dev`,
 `libcurl4-openssl-dev`, `mesa-common-dev`, and Ninja on hosted Ubuntu).
 `--clang-tidy`, `--jobs` and `--output` select the executable, parallelism and
@@ -193,7 +193,7 @@ The driver checks the positive case and rejects a duplicate-include control.
 
 `python3 tests/check_lifetimes.py` checks non-trivial locals, parameters, globals,
 statics and temporaries in active Linux engine code and included engine headers,
-using both renderer configurations. It requires clang-query (clang-tools in CI),
+using static and module configurations. It requires clang-query (clang-tools in CI),
 Clang and the client build headers. `--clang-query` selects a versioned executable;
 `--output` retains the compile database and AST evidence. Its controls reject seven
 owning objects (including aliases, inheritance, arrays and std::string), and accept
@@ -273,13 +273,20 @@ lines and replaces home/data installation prefixes. OpenArena additionally
 normalizes the CPU model label and disables networking; gameplay events are kept.
 Raw logs are retained in `--output`, including failed invocations.
 
-Normal demo runs **never record**. They replay each committed `.dm_68` twice per
-software renderer, sample TGA frames at waits 50/100/200, require changing samples
+Normal demo runs **never record**. They replay each committed `.dm_68` twice under
+Vulkan lavapipe, sample TGA frames at waits 50/100/200, require changing samples
 and repeated byte-identical frame hashes, then compare `frames-mesa-VERSION.json`. Unknown Mesa versions fail. Pixel hashes
 are exact within each version; cross-version rasterization is not assumed identical. Screenshots
 and logs remain in `--output` for review. Fixtures are small engine-generated
 artifacts, not game-content archives. Recording is intentionally not reproducible:
 SDL/X11/Mesa clock calls affect faketime's call count and ping-derived demo bytes.
+
+OpenGL retired in #6. Existing OpenGL rows in the reviewed frame JSON files remain
+historical evidence; normal comparison selects Vulkan rows and still requires
+every Vulkan map/sample. No fixture or golden was regenerated for retirement.
+`tests/check_frames.py` rejects a wrong renderer label, unequal repeats and
+missing/changed Vulkan values while checking the archived-row selection. The
+explicit regeneration command writes the active Vulkan measurements only.
 
 ## Sanitizer known failures
 
@@ -338,7 +345,7 @@ python3 tests/frames.py --output /tmp/replay-evidence/aftershock-demo-tests --co
 ```
 
 Review the job's fixture hashes and all screenshots first. The evidence checker
-requires both repetitions, both renderer identities, one Mesa version, and three
+requires both repetitions, the Vulkan renderer identity, one Mesa version, and three
 changing samples per map. This explicit local command hashes the downloaded TGA
 files itself; it does not trust a hash manifest supplied by CI. Each initial
 profile and its run/source provenance must be explained in the PR.

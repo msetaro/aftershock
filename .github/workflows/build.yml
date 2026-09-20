@@ -87,15 +87,10 @@ jobs:
         if [ '${{ runner.os }}' = macOS ]; then
           extra+=('-DCMAKE_OSX_ARCHITECTURES=${{ matrix.cmake_arch }}')
         fi
-        for renderer in opengl vulkan; do
-          name=quake3e
-          if [ "$renderer" = vulkan ]; then name=quake3e-vulkan; fi
-          cmake -S . -B "build/$renderer" -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
-            -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
-            -DRENDERER_DEFAULT="$renderer" -DCNAME="$name" "${extra[@]}"
-          cmake --build "build/$renderer"
-          cmake --install "build/$renderer" --config '${{ matrix.config }}' --prefix "$GITHUB_WORKSPACE/bin"
-        done
+        cmake -S . -B build/vulkan -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} "${extra[@]}"
+        cmake --build build/vulkan
+        cmake --install build/vulkan --config '${{ matrix.config }}' --prefix "$GITHUB_WORKSPACE/bin"
     - uses: actions/upload-artifact@v7
       if: matrix.config == 'Release'
       with:
@@ -133,15 +128,12 @@ jobs:
     - name: Build through ccache
       shell: pwsh
       run: |
-        foreach ($renderer in @('opengl', 'vulkan')) {
-          $name = if ($renderer -eq 'vulkan') { 'quake3e-vulkan' } else { 'quake3e' }
-          cmake -S . -B "build/cmake-$renderer" -G Ninja -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=${{ matrix.config }} "-DRENDERER_DEFAULT=$renderer" "-DCNAME=$name"
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          cmake --build "build/cmake-$renderer"
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          cmake --install "build/cmake-$renderer" --config ${{ matrix.config }} --prefix "$env:GITHUB_WORKSPACE/bin"
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-        }
+        cmake -S . -B build/cmake-vulkan -G Ninja -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+        if ($LASTEXITCODE) { exit $LASTEXITCODE }
+        cmake --build build/cmake-vulkan
+        if ($LASTEXITCODE) { exit $LASTEXITCODE }
+        cmake --install build/cmake-vulkan --config ${{ matrix.config }} --prefix "$env:GITHUB_WORKSPACE/bin"
+        if ($LASTEXITCODE) { exit $LASTEXITCODE }
     - name: Generate and build Visual Studio projects
       run: |
         cmake --preset msvc-${{ matrix.arch }}
@@ -183,14 +175,9 @@ jobs:
     - name: Build and stage binaries
       run: |
         export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
-        for renderer in opengl vulkan; do
-          name=quake3e
-          if [ "$renderer" = vulkan ]; then name=quake3e-vulkan; fi
-          cmake -S . -B "build/$renderer" -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
-            -DUSE_SDL=OFF -DRENDERER_DEFAULT="$renderer" -DCNAME="$name"
-          cmake --build "build/$renderer"
-          cmake --install "build/$renderer" --config '${{ matrix.config }}' --prefix "$GITHUB_WORKSPACE/bin"
-        done
+        cmake -S . -B build/vulkan -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DUSE_SDL=OFF
+        cmake --build build/vulkan
+        cmake --install build/vulkan --config '${{ matrix.config }}' --prefix "$GITHUB_WORKSPACE/bin"
         ccache -s
     - uses: actions/upload-artifact@v7
       if: matrix.config == 'Release'

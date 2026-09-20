@@ -35,8 +35,8 @@ tool implementations are absent from this repository, have been removed from the
 shared parser files; the BOTLIB implementation is retained.
 
 `engine/renderercommon` owns renderer ABI types, OpenGL function declarations and
-shared image/font routines. `engine/renderer` owns the legacy OpenGL1 renderer
-(pending retirement). `engine/render` owns portable scene traversal, materials,
+shared image/font routines. The OpenGL renderers are retired. `engine/render`
+owns portable scene traversal, materials,
 geometry and pass selection. `engine/rhi` owns the plain GPU contract;
 `engine/renderervk` owns Vulkan objects, GPU resources and command encoding. The
 frontend keeps its private state and borrows client data only through the public

@@ -165,40 +165,6 @@ set(VORBIS_SOURCES
   third_party/libvorbis/lib/window.c
 )
 
-set(OPENGL_SOURCES
-  engine/renderer/tr_animation.cpp
-  engine/renderer/tr_arb.cpp
-  engine/renderer/tr_backend.cpp
-  engine/renderer/tr_bsp.cpp
-  engine/renderer/tr_cmds.cpp
-  engine/renderer/tr_curve.cpp
-  engine/renderer/tr_flares.cpp
-  engine/renderercommon/tr_font.cpp
-  engine/renderer/tr_image.cpp
-  engine/renderercommon/tr_image_png.cpp
-  engine/renderercommon/tr_image_jpg.cpp
-  engine/renderercommon/tr_image_bmp.cpp
-  engine/renderercommon/tr_image_tga.cpp
-  engine/renderercommon/tr_image_pcx.cpp
-  engine/renderer/tr_init.cpp
-  engine/renderer/tr_light.cpp
-  engine/renderer/tr_main.cpp
-  engine/renderer/tr_marks.cpp
-  engine/renderer/tr_mesh.cpp
-  engine/renderer/tr_model.cpp
-  engine/renderer/tr_model_iqm.cpp
-  engine/renderercommon/tr_noise.cpp
-  engine/renderer/tr_scene.cpp
-  engine/renderer/tr_shade.cpp
-  engine/renderer/tr_shade_calc.cpp
-  engine/renderer/tr_shader.cpp
-  engine/renderer/tr_shadows.cpp
-  engine/renderer/tr_sky.cpp
-  engine/renderer/tr_surface.cpp
-  engine/renderer/tr_vbo.cpp
-  engine/renderer/tr_world.cpp
-)
-
 set(VULKAN_SOURCES
   engine/render/tr_animation.cpp
   engine/render/tr_backend.cpp

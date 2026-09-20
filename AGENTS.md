@@ -68,7 +68,7 @@ every wire and file-format struct; issue updated with what changed and what was 
 - `engine/server`, `engine/client` server and client
 - `engine/botlib` bot AI library
 - `engine/render` portable scene/material/geometry frontend; `engine/rhi` GPU contract
-- `engine/renderervk` Vulkan backend; `engine/renderer` legacy OpenGL1 (pending retirement)
+- `engine/renderervk` sole Vulkan backend; the legacy OpenGL renderers are retired
 - `engine/renderercommon` shared image/font routines and client renderer ABI
 - `engine/platform/unix`, `engine/platform/win32`, `engine/platform/sdl` platform layers
 - `engine/platform/asm` hand-written assembly; symbols it references carry `Q_EXTERN_C`
@@ -84,15 +84,15 @@ every wire and file-format struct; issue updated with what changed and what was 
 CMake 3.25+ is the primary build for #5. Use Ninja on Linux/macOS and in an MSVC
 developer shell. Visual Studio projects are generated from the same source lists.
 The default builds the client and dedicated server with a static Vulkan renderer;
-OpenGL and optional renderer modules use separate build directories.
+optional PC renderer modules use a separate build directory.
 
 ```
 cmake --workflow --preset release
 cmake --workflow --preset debug
 cmake --workflow --preset msvc-x64               # Windows: generate and build VS 2022
 cmake --workflow --preset msvc-arm64             # Windows ARM64 cross-build
-cmake -S . -B build/opengl -G Ninja -DRENDERER_DEFAULT=opengl
-cmake --build build/opengl
+cmake -S . -B build/modules -G Ninja -DUSE_RENDERER_DLOPEN=ON
+cmake --build build/modules
 cmake -S . -B build/mingw -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/mingw64.cmake -DUSE_CURL=OFF
 cmake --build build/mingw
 ```

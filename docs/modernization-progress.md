@@ -24,8 +24,8 @@ have no GPU SDK dependency. Explicit GPU failure statuses now return before the
 frontend error callback; texture conversion/scratch is frontend-owned. Device
 configuration and host services now use explicit plain records; the backend no
 longer includes frontend headers or reads renderer globals/cvar pointers. Hosted
-window-lifecycle acceptance passed. Validate the hash-verified frontend move, then
-retire OpenGL and finish acceptance gates. Pipeline-cache acceptance is complete. Configuration acceptance is complete. Acquisition fix PR #141 merged separately as 61401e17 after
+window-lifecycle acceptance passed. The hash-verified frontend move is committed
+as e5777895. Validate OpenGL retirement and finish acceptance gates. Pipeline-cache acceptance is complete. Configuration acceptance is complete. Acquisition fix PR #141 merged separately as 61401e17 after
 full build 35484485400/regression 35484485349 and self-review; it has now been
 merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
 follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
@@ -61,6 +61,23 @@ compilers. Head 7382d9af passed build 35484485400 and regression 35484485349;
 PR #141 merged 61401e17. Integration regression 35484895454 passed.
 
 ## #6 implementation checkpoint
+
+OpenGL retirement checkpoint (working tree): deleted engine/renderer and its
+CMake source list/build selection. Vulkan remains static by default with optional
+PC modules. The full build matrix now builds one backend per platform/config;
+static/module lifetime and tidy configurations replace the two renderer configs.
+Accepted golden files stay unchanged: frame comparison retains archived OpenGL
+rows on disk and checks every Vulkan value. Evidence-policy controls pass.
+Static and optional-module Q3 replay/restart pass. The Vulkan-only JSON projection
+hashes to 43c52e51; every sampled pixel hash still matches the untouched accepted
+golden (the former b38004b1 included archived OpenGL rows). Tidy passes 572
+static/module configurations; format/type/boundary controls and explicit rejection
+of obsolete OpenGL CMake selection pass. Lifetime and hosted checks remain pending.
+Evidence: rhi-sole-{demo,module,tidy}.log and rhi-retired-config.log. GPU samples
+from the concurrent build run are not used as a final performance baseline.
+Full lifecycle regression
+35489948344 passed. The frontend-move lifetime check passed 546 commands/137 paths
+with its seven-object negative control (rhi-move-lifetimes.log).
 
 Frontend directory checkpoint: hosted lifecycle head 55b3d261 passes full build
 35489948399 and the regression runtime job, including OpenArena window resize,
