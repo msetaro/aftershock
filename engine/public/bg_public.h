@@ -710,6 +710,7 @@ typedef enum {
 
 #ifdef __cplusplus
 static_assert( int( ET_EVENTS ) + int( EV_WEAPON_IMPACT ) < int( ET_WEAPON_STATE ) );
+inline constexpr int WEAPON_PROJECTILE_TAG = 255;
 enum weaponFlight_t { WEAPON_FLYING,
 	WEAPON_BOUNCED,
 	WEAPON_EXPLODED };

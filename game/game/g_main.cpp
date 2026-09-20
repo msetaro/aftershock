@@ -1761,7 +1761,8 @@ void G_RunFrame( int levelTime ) {
 		}
 
 		if ( ent->s.eType == ET_MISSILE ) {
-			G_RunMissile( ent );
+			if ( !G_RunWeaponProjectile( ent ) )
+				G_RunMissile( ent );
 			continue;
 		}
 

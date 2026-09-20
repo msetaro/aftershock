@@ -1,6 +1,7 @@
 #include "cg_local.h"
 
 static vmCvar_t weaponTrace;
+static qhandle_t weaponProjectileModels[WEAPON_MAX_DEFINITIONS];
 static qhandle_t weaponImpacts[WEAPON_MAX_DEFINITIONS][WEAPON_MAX_ROWS];
 static weaponState_t predictedWeapons[2];
 static bool predictedWeaponValid[2];
@@ -14,6 +15,7 @@ static struct {
 void CG_InitWeapons( void ) {
 	BG_ClearWeapons();
 	memset( weaponPredictionHistory, 0, sizeof( weaponPredictionHistory ) );
+	memset( weaponProjectileModels, 0, sizeof( weaponProjectileModels ) );
 	memset( weaponImpacts, 0, sizeof( weaponImpacts ) );
 	memset( predictedWeaponValid, 0, sizeof( predictedWeaponValid ) );
 	trap_Cvar_Register( &weaponTrace, "cg_weaponTrace", "0", 0 );
@@ -28,6 +30,9 @@ void CG_InitWeapons( void ) {
 		if ( !BG_LoadWeapon( index, path, actual ) || strcmp( actual, expected ) )
 			CG_Error( "Weapon rejected: server definition differs for %s", path );
 		const auto *definition = BG_WeaponDefinition( index );
+		weaponProjectileModels[index] = trap_R_RegisterModel( definition->projectile.model );
+		if ( !weaponProjectileModels[index] )
+			CG_Error( "Weapon rejected: projectile model %s", definition->projectile.model );
 		for ( uint32_t material = 0; material < definition->materialCount; ++material ) {
 			weaponImpacts[index][material] = trap_R_RegisterShader( definition->materials[material].effect );
 			if ( !weaponImpacts[index][material] )
@@ -117,7 +122,41 @@ void CG_WeaponImpact( const entityState_t *entity, const vec3_t position ) {
 		CG_Error( "Weapon rejected: impact effect %s", material.effect );
 	vec3_t normal;
 	ByteToDir( entity->eventParm, normal );
-	CG_ImpactMark( shader, position, normal, 0, 1, 1, 1, 1, qfalse, 4, qfalse );
+	if ( entity->generic1 ) {
+		vec3_t origin;
+		VectorCopy( position, origin );
+		CG_MakeExplosion( origin, normal, 0, shader, 250, qtrue );
+	} else {
+		CG_ImpactMark( shader, position, normal, 0, 1, 1, 1, 1, qfalse, 4, qfalse );
+	}
 	if ( weaponTrace.integer )
 		CG_Printf( "Weapon impact: material=%s target=%d\n", material.effect, entity->otherEntityNum2 );
+}
+
+bool CG_WeaponProjectile( centity_t *cent ) {
+	const auto &state = cent->currentState;
+	if ( state.generic1 != WEAPON_PROJECTILE_TAG )
+		return false;
+	if ( !BG_WeaponDefinition( state.modelindex ) || state.otherEntityNum < 0 || state.otherEntityNum >= MAX_CLIENTS ||
+		 state.otherEntityNum2 < 0 || state.otherEntityNum2 > 1 || state.pos.trDuration < 0 || state.pos.trDuration > 60020 )
+		CG_Error( "Weapon rejected: projectile snapshot" );
+	if ( state.pos.trType != TR_LINEAR || state.pos.trDuration % 20 )
+		CG_Error( "Weapon rejected: projectile clock" );
+	for ( int axis = 0; axis < 3; ++axis )
+		if ( !isfinite( state.pos.trBase[axis] ) || !isfinite( state.pos.trDelta[axis] ) )
+			CG_Error( "Weapon rejected: projectile coordinates" );
+	refEntity_t entity = {};
+	entity.reType = RT_MODEL;
+	entity.hModel = weaponProjectileModels[state.modelindex];
+	AxisClear( entity.axis );
+	VectorCopy( cent->lerpOrigin, entity.origin );
+	VectorCopy( entity.origin, entity.oldorigin );
+	VectorCopy( entity.origin, entity.lightingOrigin );
+	trap_R_AddRefEntityToScene( &entity );
+	if ( weaponTrace.integer && cent->miscTime != state.pos.trTime ) {
+		CG_Printf( "Weapon projectile client: owner=%d hand=%d sequence=%u age=%d\n", state.otherEntityNum, state.otherEntityNum2,
+			uint32_t( state.time2 ), state.pos.trDuration );
+		cent->miscTime = state.pos.trTime;
+	}
+	return true;
 }

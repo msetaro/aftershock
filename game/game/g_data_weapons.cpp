@@ -114,6 +114,84 @@ static void WeaponHit( gentity_t *player, const weaponDef_t *definition, const w
 			return;
 	}
 }
+static void SpawnWeaponProjectile( gentity_t *player, int hand, int index, const weaponDef_t *definition, const weaponEvent_t &event ) {
+	gentity_t *entity = G_Spawn();
+	entity->classname = "weapon_projectile";
+	entity->s.eType = ET_MISSILE;
+	entity->s.generic1 = WEAPON_PROJECTILE_TAG;
+	entity->s.modelindex = index;
+	entity->s.otherEntityNum = player->s.number;
+	entity->s.otherEntityNum2 = hand;
+	entity->s.time = player->client->ps.persistant[PERS_SPAWN_COUNT];
+	entity->s.time2 = int32_t( event.sequence );
+	entity->s.pos.trType = TR_LINEAR;
+	entity->s.pos.trTime = int32_t( event.time );
+	entity->r.ownerNum = player->s.number;
+	vec3_t angles, direction;
+	VectorCopy( player->client->ps.viewangles, angles );
+	angles[PITCH] += event.spread[0];
+	angles[YAW] += event.spread[1];
+	AngleVectors( angles, direction, nullptr, nullptr );
+	VectorCopy( player->client->ps.origin, entity->s.pos.trBase );
+	entity->s.pos.trBase[2] += player->client->ps.viewheight;
+	VectorScale( direction, definition->projectile.speed, entity->s.pos.trDelta );
+	VectorCopy( entity->s.pos.trBase, entity->r.currentOrigin );
+	GameImport_SetEntityReplication( entity->s.number, 3, 0 );
+	trap_LinkEntity( entity );
+}
+void G_RemoveWeaponProjectiles( int owner ) {
+	for ( int number = MAX_CLIENTS; number < level.num_entities; ++number ) {
+		auto *entity = &g_entities[number];
+		if ( entity->inuse && entity->s.eType == ET_MISSILE && entity->s.generic1 == WEAPON_PROJECTILE_TAG && entity->s.otherEntityNum == owner )
+			G_FreeEntity( entity );
+	}
+}
+bool G_RunWeaponProjectile( gentity_t *entity ) {
+	if ( entity->s.generic1 != WEAPON_PROJECTILE_TAG )
+		return false;
+	const auto *definition = BG_WeaponDefinition( entity->s.modelindex );
+	if ( !definition )
+		G_Error( "Weapon rejected: projectile definition" );
+	weaponProjectile_t state;
+	VectorCopy( entity->s.pos.trBase, state.position );
+	VectorCopy( entity->s.pos.trDelta, state.velocity );
+	state.ageMs = uint32_t( entity->s.pos.trDuration );
+	uint32_t clock = uint32_t( entity->s.pos.trTime );
+	for ( int step = 0; step < 50 && int32_t( uint32_t( level.time ) - clock ) >= 20; ++step ) {
+		trace_t impact;
+		const auto result = BG_WeaponProjectileStep( definition, &state, entity->r.ownerNum, trap_Trace, &impact );
+		clock += 20;
+		if ( result == WEAPON_EXPLODED ) {
+			auto *owner = &g_entities[entity->s.otherEntityNum];
+			gentity_t *direct = impact.fraction < 1 && impact.entityNum < ENTITYNUM_WORLD ? &g_entities[impact.entityNum] : nullptr;
+			if ( direct && direct->takedamage )
+				G_Damage( direct, entity, owner, state.velocity, state.position, int( definition->damage ), 0, MOD_GRENADE );
+			if ( definition->projectile.radius > 0 )
+				G_RadiusDamage( state.position, owner, definition->damage, definition->projectile.radius, direct, MOD_GRENADE_SPLASH );
+			auto *effect = G_TempEntity( state.position, EV_WEAPON_IMPACT );
+			effect->s.modelindex = entity->s.modelindex;
+			effect->s.otherEntityNum = entity->s.otherEntityNum;
+			effect->s.otherEntityNum2 = impact.entityNum;
+			effect->s.generic1 = 1; // Detonation uses the same data material with a short sprite lifetime.
+			vec3_t normal = { 0, 0, 1 };
+			effect->s.eventParm = DirToByte( normal );
+			if ( weaponTrace.integer )
+				G_Printf( "Weapon projectile exploded: owner=%d sequence=%u age=%u\n", entity->s.otherEntityNum, uint32_t( entity->s.time2 ), state.ageMs );
+			G_FreeEntity( entity );
+			return true;
+		}
+	}
+	VectorCopy( state.position, entity->s.pos.trBase );
+	VectorCopy( state.velocity, entity->s.pos.trDelta );
+	VectorCopy( state.position, entity->r.currentOrigin );
+	entity->s.pos.trTime = int32_t( clock );
+	entity->s.pos.trDuration = int32_t( state.ageMs );
+	trap_LinkEntity( entity );
+	if ( weaponTrace.integer )
+		G_Printf( "Weapon projectile server: owner=%d hand=%d sequence=%u age=%u\n", entity->s.otherEntityNum,
+			entity->s.otherEntityNum2, uint32_t( entity->s.time2 ), state.ageMs );
+	return true;
+}
 void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart ) {
 	if ( !BG_WeaponDefinition( 0 ) )
 		return;
@@ -166,6 +244,8 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 			const auto &event = events.items[i];
 			if ( event.kind == WEAPON_MELEE_EVENT || ( event.kind == WEAPON_SHOT && definition->ballistics == WEAPON_HITSCAN ) )
 				WeaponHit( player, definition, event, selected );
+			else if ( event.kind == WEAPON_SHOT )
+				SpawnWeaponProjectile( player, hand, selected, definition, event );
 			if ( weaponTrace.integer )
 				G_Printf( "Weapon event: owner=%d hand=%d kind=%u tick=%u sequence=%u\n", owner, hand, event.kind, event.time, event.sequence );
 		}

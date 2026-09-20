@@ -248,6 +248,17 @@ missiles use only team values), carrying definition/owner/hand/shot/spawn metada
 and fixed-step position/velocity/age in existing snapshot fields. No wire-layout
 change. Add server actors and snapshot rendering before client shot prediction.
 
+The server projectile/snapshot slice passes its live test
+(weapons-projectile-live.log) and the portable GCC probe. Data-only grenade
+selection spawns an owned model, advances shared fixed ticks, bounces and expires
+its fuse; detonation uses existing direct/radius damage and bounded local effects.
+Position/velocity/age stay in existing missile fields; model assets preload at
+initialization. Owner disconnect removes remaining projectiles, while respawn
+alone leaves them alive. Format, boundary and type gates pass. Next: client shot
+prediction using each command's predicted movement pose, with deduplication against
+authoritative projectile records and measured correction error. No full #11
+acceptance or projectile prediction is claimed by this server-only slice.
+
 
 ## #12 implemented feature evidence
 
