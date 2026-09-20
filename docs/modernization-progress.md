@@ -16,13 +16,18 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Main checkout is issue/13-materials, with modernization 646a63e8 merged forward. #28 PR #156
-merged as 646a63e82c0a74307d0e830ca6c626eca985ed60 after exact-head build 35542300540
-and regression 35542300709 passed, including hosted kind acceptance. Tested head
-04a86876 and merge have the same tree f30abf9b5723b4d0aa20dc7600be1a7348050e5f.
-Merged-tree regression 35543218326 passed; #28 is closed and checked in #25.
-#31 PR #155 and #27 are fully accepted/closed. The extra level-tree worktree is
-clean on the merged issue/28-match-server branch.
+Main checkout remains on issue/13-materials for draft PR #157. Its corrected head
+2ed8cf56a71124de7b096315d342ee206c1b7cc2 is running build 35544991054 and regression
+35544991093. Initial head be1a234e failed MSVC C4244; its superseded runs were
+cancelled and are not acceptance. All local final #13 gates/self-review passed.
+The extra level-tree worktree is preparatory issue/14-lighting, based on the same
+#13 head. No #14 implementation or acceptance yet. Merge modernization forward
+after #13 exact-head and merged-tree gates pass; never rebase.
+
+#28 PR #156 merged as 646a63e82c0a74307d0e830ca6c626eca985ed60 after exact-head build
+35542300540 and regression 35542300709 passed. Its tree equals tested 04a86876:
+f30abf9b5723b4d0aa20dc7600be1a7348050e5f. Merged-tree regression 35543218326 passed;
+#28 is closed and checked in #25. #31 PR #155 and #27 are fully accepted/closed.
 
 #28's reviewed local image/kind test passed at /tmp/aftershock-match-kind-reviewed:
 a real native OA player joined sv_pure=1, the one-minute match exited, a completed
@@ -51,6 +56,25 @@ fixture/shader bytes changed; no #13 acceptance before #28 integration passes.
 The new local implementation was started during #28's final lifetime gate, after
 the preparatory tests were committed, to avoid idle CI time. Keep issue scope and
 PR acceptance separate. Continue #25 after #13.
+
+## #14 preparation and reference hardware
+
+Read #14: point/spot shadow maps, cascaded sun, directional lightmaps, baked
+reflection/light probes, SSAO/bloom graph passes and quality/per-pass budgets.
+The existing graph already owns bloom and the BSP light grid already supplies
+model lighting; reuse those before adding another system. Legacy disabled-feature
+creation descriptors and accepted replay bytes remain gates. No final #14 design
+or implementation is committed yet; trace native view/target submission and the
+level compiler before defining the test-first data contract.
+
+Reference GPU is available locally: NVIDIA GeForce RTX 3080 Ti, 12,288 MiB,
+driver 595.91.07. An isolated Xvfb client using only nvidia_icd.json loads q3dm17
+and exits successfully. Its completed-frame sample reports main 28.480 us and
+gamma 4.096 us at the initial 640x480 baseline (lighting-gpu-baseline.log); this is
+a connectivity/query smoke, not a repeated performance acceptance measurement.
+No system package, licensed pak copy or host display session was needed. Establish
+the stated resolution/quality/frame budget and repeated per-pass measurement before
+#14 acceptance. Existing Mesa goldens remain the deterministic rendering gate.
 
 ## #13 preparatory failing material contract
 
