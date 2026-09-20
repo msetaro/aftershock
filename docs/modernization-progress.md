@@ -178,6 +178,28 @@ Platform checkpoint e259fc0f is running build 35485551477/regression 35485551484
 Remaining frontend private accesses include frame state, buffer/descriptor binding,
 sampler policy, transforms and diagnostics; remove these before the frontend move.
 
+Frame/binding slice: portable frame-state queries, index-pool selection/uploads,
+screen-map bindings, sampler replacement and format diagnostics now own the former
+frontend device accesses. Sampler replacement preserves the wait/destroy/update
+order and returns a failed wait before mutation. Descriptor slot values are
+unchanged engine-owned constants. Diagnostic format strings are copied because
+the legacy formatter shares a scratch buffer for unknown formats. GCC/Clang checks
+cover index binding cache, upload overflow/resize scheduling, failed/successful
+sampler waits and distinct format labels. Module Q3 replay/restart retains b38004b1
+(rhi-frame-demo.log). Format/type/boundary checks pass; no goldens changed.
+
+Hosted platform e259fc0f: full build 35485551477 passed; regression 35485551484
+failed only the newly added combined OpenArena module/restart frame step. Static
+OpenArena replay passed eeb218f3. Artifact comparisons locate differences only at
+the HUD portrait/lagometer (same bounding boxes in both renderers), after the warmup
+replay and restart. The pre-existing lifecycle test/README only establish restart
+frame equality for Quake 3; OpenArena uses fresh processes. Correct the new hosted
+module step to --modules without --lifecycle, so module linkage is checked against
+the accepted fresh-process goldens. Keep local Q3 restart checks required. This
+does not establish OpenArena post-restart golden equality. Evidence:
+rhi-platform-runtime-ci.log and rhi-platform-runtime-artifacts/. No image regions
+are masked or goldens replaced. Verify the corrected hosted step on the next head.
+
 ## Final #8 verification
 
 PR #138 merged as e4440d85 after current-head build 35479545347 and regression

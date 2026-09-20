@@ -67,7 +67,7 @@ void GL_Bind( image_t *image ) {
 
 	//if ( glState.currenttextures[glState.currenttmu] != texnum ) {
 	image->frameUsed = tr.frameCount;
-	RHI_BindTexture( glState.currenttmu + VK_DESC_TEXTURE_BASE, &image->texture );
+	RHI_BindTexture( glState.currenttmu + RHI_BINDING_TEXTURE_BASE, &image->texture );
 
 	//}
 #else
@@ -444,7 +444,7 @@ static void SetViewportAndScissor( void ) {
 	//Com_Memcpy( vk_world.modelview_transform, backEnd.or.modelMatrix, 64 );
 	//vk_update_mvp();
 	// force depth range and viewport/scissor updates
-	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
+	RHI_InvalidateViewport();
 #else
 	qglMatrixMode( GL_PROJECTION );
 	qglLoadMatrixf( backEnd.viewParms.projectionMatrix );
@@ -584,7 +584,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 		R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted );
 #ifdef USE_VULKAN
-		if ( vk.renderPassIndex == RENDER_PASS_SCREENMAP && entityNum != REFENTITYNUM_WORLD && backEnd.refdef.entities[entityNum].e.renderfx & RF_DEPTHHACK ) {
+		if ( RHI_GetFrameState().screenMapPass && entityNum != REFENTITYNUM_WORLD && backEnd.refdef.entities[entityNum].e.renderfx & RF_DEPTHHACK ) {
 			continue;
 		}
 #endif
@@ -812,7 +812,7 @@ static void RB_RenderLitSurfList( dlight_t *dl ) {
 
 		R_DecomposeLitSort( litSurf->sort, &entityNum, &shader, &fogNum );
 #ifdef USE_VULKAN
-		if ( vk.renderPassIndex == RENDER_PASS_SCREENMAP && entityNum != REFENTITYNUM_WORLD && backEnd.refdef.entities[entityNum].e.renderfx & RF_DEPTHHACK ) {
+		if ( RHI_GetFrameState().screenMapPass && entityNum != REFENTITYNUM_WORLD && backEnd.refdef.entities[entityNum].e.renderfx & RF_DEPTHHACK ) {
 			continue;
 		}
 #endif
@@ -977,7 +977,7 @@ static void RB_SetGL2D( void ) {
 	vk_update_mvp( NULL );
 
 	// force depth range and viewport/scissor updates
-	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
+	RHI_InvalidateViewport();
 #else
 	// set 2D virtual screen size
 	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
@@ -1375,7 +1375,7 @@ static const void *RB_DrawBuffer( const void *data ) {
 	tess.depthRange = DEPTH_RANGE_NORMAL;
 
 	// force depth range and viewport/scissor updates
-	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
+	RHI_InvalidateViewport();
 
 	if ( r_clear->integer && RHI_GetCapabilities().clearAttachment ) {
 		const vec4_t color = { 1, 0, 0.5, 1 };
@@ -1654,7 +1654,7 @@ static const void *RB_SwapBuffers( const void *data ) {
 #endif
 
 #ifdef USE_VULKAN
-	if ( backEnd.screenshotMask && vk.cmd->waitForFence ) {
+	if ( backEnd.screenshotMask && RHI_GetFrameState().submitted ) {
 #else
 	if ( backEnd.screenshotMask && tr.frameCount > 1 ) {
 #endif

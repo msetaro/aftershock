@@ -81,6 +81,9 @@ typedef enum {
 	GL_BACK_LEFT,
 	GL_BACK_RIGHT
 } glCompat;
+static_assert( GL_NEAREST == (uint32_t)rhiFilter_t::Nearest && GL_LINEAR == (uint32_t)rhiFilter_t::Linear );
+static_assert( GL_NEAREST_MIPMAP_NEAREST == (uint32_t)rhiFilter_t::NearestMipmapNearest && GL_LINEAR_MIPMAP_NEAREST == (uint32_t)rhiFilter_t::LinearMipmapNearest );
+static_assert( GL_NEAREST_MIPMAP_LINEAR == (uint32_t)rhiFilter_t::NearestMipmapLinear && GL_LINEAR_MIPMAP_LINEAR == (uint32_t)rhiFilter_t::LinearMipmapLinear );
 
 #define GL_INDEX_TYPE		uint32_t
 #define GLint				int

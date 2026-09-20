@@ -341,8 +341,8 @@ static void RB_TestFlare( flare_t *f ) {
 	tess.vboIndex = 0;
 #endif
 	// invalidate descriptors
-	for ( i = 0; i < VK_DESC_COUNT; i++ ) {
-		vk_reset_descriptor( i );
+	for ( i = 0; i < RHI_BINDING_COUNT; i++ ) {
+		RHI_ResetBinding( i );
 	}
 	// render test dot
 	RHI_BindPipeline( r_pipelines.dot_pipeline );
@@ -481,7 +481,7 @@ void RB_RenderFlares( void ) {
 		return;
 	}
 
-	if ( vk.renderPassIndex == RENDER_PASS_SCREENMAP ) {
+	if ( RHI_GetFrameState().screenMapPass ) {
 		return;
 	}
 

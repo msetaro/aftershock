@@ -49,7 +49,7 @@ return a hash value for the filename
 void R_GammaCorrect( byte *buffer, int bufSize ) {
 	int i;
 #ifdef USE_VULKAN
-	if ( vk.capture.image != VK_NULL_HANDLE )
+	if ( RHI_GetFrameState().captureImage )
 		return;
 	if ( !gls.deviceSupportsGamma )
 		return;
@@ -100,15 +100,10 @@ void GL_TextureMode( const char *string ) {
 	gl_filter_max = mode->maximize;
 
 #ifdef USE_VULKAN
-	if ( gl_filter_min == vk.samplers.filter_min && gl_filter_max == vk.samplers.filter_max ) {
+	bool changed;
+	R_CheckRHI( RHI_SetTextureFilter( (rhiFilter_t)gl_filter_min, (rhiFilter_t)gl_filter_max, &changed ), "texture filter" );
+	if ( !changed )
 		return;
-	}
-	R_CheckRHI( RHI_WaitIdle(), "wait idle" );
-	vk_destroy_samplers();
-
-	vk.samplers.filter_min = gl_filter_min;
-	vk.samplers.filter_max = gl_filter_max;
-	vk_update_attachment_descriptors();
 	for ( i = 0; i < tr.numImages; i++ ) {
 		img = tr.images[i];
 		if ( img->flags & IMGFLAG_MIPMAP ) {

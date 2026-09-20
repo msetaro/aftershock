@@ -47,8 +47,10 @@ scopes. Faketime also changes Mesa's software timestamps, so only the separate
 `*-timing-*.log` values are performance measurements. These samples are
 informational; hardware/driver differences are not a performance failure gate.
 `python3 tests/demo.py --modules --lifecycle` also checks fixed frames through the
-optional PC renderer module boundary and after video restart. Hosted OpenArena
-runtime CI runs this alongside the primary static renderer. Renderer module API 9
+optional PC renderer module boundary and after video restart for Quake 3. Hosted
+OpenArena runs `--modules` in fresh processes alongside the primary static renderer.
+Its post-restart portrait/lagometer state differs from the fresh-process goldens;
+this is not a supported restart-to-golden comparison. Renderer module API 9
 requires rebuilding old modules with the client; only the platform import callback
 signatures changed, not the scene or game services.
 The RHI retains at most 32 scopes per frame, reads available results after the

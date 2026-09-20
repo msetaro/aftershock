@@ -35,18 +35,6 @@
 //#define MIN_IMAGE_ALIGN (128*1024)
 #define MAX_ATTACHMENTS_IN_POOL (8+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
 
-#define VK_DESC_STORAGE      0
-#define VK_DESC_UNIFORM      0
-#define VK_DESC_TEXTURE0     1
-#define VK_DESC_TEXTURE1     2
-#define VK_DESC_TEXTURE2     3
-#define VK_DESC_FOG_COLLAPSE 4
-#define VK_DESC_COUNT        5
-
-#define VK_DESC_TEXTURE_BASE VK_DESC_TEXTURE0
-#define VK_DESC_FOG_ONLY     VK_DESC_TEXTURE1
-#define VK_DESC_FOG_DLIGHT   VK_DESC_TEXTURE1
-
 
 typedef struct {
 	VkSamplerAddressMode address_mode; // clamp/repeat texture addressing mode
@@ -138,9 +126,7 @@ qboolean vk_bloom( void );
 qboolean vk_alloc_vbo( const byte *vbo_data, int vbo_size );
 void vk_update_mvp( const float *m );
 
-uint32_t vk_tess_index( uint32_t numIndexes, const void *src );
 void vk_bind_index_buffer( VkBuffer buffer, uint32_t offset );
-void vk_reset_descriptor( int index );
 void vk_update_descriptor( int index, VkDescriptorSet descriptor );
 void vk_update_descriptor_offset( int index, uint32_t offset );
 

@@ -82,6 +82,32 @@ void RHI_BindPipeline( uint32_t ) {
 	abort();
 }
 
+rhiFrameState_t RHI_GetFrameState( void ) {
+	return {};
+}
+void RHI_InvalidateViewport( void ) {
+	abort();
+}
+rhiDeviceDescription_t RHI_GetDeviceDescription( void ) {
+	return { "", "unavailable", "", "", "unavailable" };
+}
+rhiStatus_t RHI_SetTextureFilter( rhiFilter_t, rhiFilter_t, bool *changed ) {
+	*changed = false;
+	return rhiStatus_t::Unavailable;
+}
+void RHI_BindIndices( rhiGeometryBuffer_t, uint32_t ) {
+	abort();
+}
+uint32_t RHI_UploadIndices( uint32_t, const void * ) {
+	return RHI_INVALID_OFFSET;
+}
+void RHI_BindScreenMap( uint32_t ) {
+	abort();
+}
+void RHI_ResetBinding( int32_t ) {
+	abort();
+}
+
 #ifdef RHI_STUB_CHECK
 int main( void ) {
 	const rhiStats_t stats = RHI_GetStats();

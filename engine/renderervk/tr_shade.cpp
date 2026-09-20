@@ -75,7 +75,7 @@ static void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 		if ( !backEnd.screenMapDone )
 			GL_Bind( tr.blackImage );
 		else
-			vk_update_descriptor( glState.currenttmu + VK_DESC_TEXTURE_BASE, vk.screenMap.color_descriptor );
+			RHI_BindScreenMap( glState.currenttmu + RHI_BINDING_TEXTURE_BASE );
 		return;
 	}
 
@@ -566,7 +566,7 @@ static void RB_FogPass( qboolean rebindIndex ) {
 	}
 	VK_SetFogParams( &uniform, &fog_stage );
 	RHI_UploadUniform( &uniform, sizeof( uniform ) );
-	RHI_BindTexture( VK_DESC_FOG_ONLY, &tr.fogImage->texture );
+	RHI_BindTexture( RHI_BINDING_FOG_ONLY, &tr.fogImage->texture );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
 #else
 	const fog_t *fog = tr.world->fogs + tess.fogNum;
@@ -927,7 +927,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 	if ( fogCollapse ) {
 		VK_SetFogParams( &uniform, &fog_stage );
 		VectorCopy( backEnd.orientation.viewOrigin, uniform.eyePos );
-		RHI_BindTexture( VK_DESC_FOG_COLLAPSE, &tr.fogImage->texture );
+		RHI_BindTexture( RHI_BINDING_FOG_COLLAPSE, &tr.fogImage->texture );
 		pushUniform = qtrue;
 	} else
 #endif
@@ -1160,7 +1160,7 @@ void VK_LightingPass( void ) {
 	abs_light = /* (pStage->stateBits & GLS_ATEST_BITS) && */ ( cull == CT_TWO_SIDED ) ? 1 : 0;
 
 	if ( fog_stage )
-		RHI_BindTexture( VK_DESC_FOG_DLIGHT, &tr.fogImage->texture );
+		RHI_BindTexture( RHI_BINDING_FOG_DLIGHT, &tr.fogImage->texture );
 
 	if ( tess.light->linear )
 		pipeline = r_pipelines.dlight1_pipelines_x[cull][tess.shader->polygonOffset][fog_stage][abs_light];

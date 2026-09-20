@@ -4,6 +4,14 @@
 
 Vk_Instance vk;
 Vk_World vk_world;
+refimport_t ri;
+cvar_t *r_ext_texture_filter_anisotropic;
+cvar_t *r_ext_max_anisotropy;
+cvar_t *r_bloom;
+
+void QDECL Com_Printf( const char *, ... ) {
+	abort();
+}
 
 void QDECL Com_Error( errorParm_t, const char *, ... ) {
 	abort();
@@ -12,6 +20,18 @@ void QDECL Com_Error( errorParm_t, const char *, ... ) {
 static int destroyed;
 static VkResult wait_result;
 static int commands;
+static int waits;
+static int index_binds;
+static int sampler_destroys;
+static void VKAPI_CALL bind_indices( VkCommandBuffer command, VkBuffer buffer, VkDeviceSize offset, VkIndexType type ) {
+	assert( (uintptr_t)command == 22 && type == VK_INDEX_TYPE_UINT32 );
+	assert( (uintptr_t)buffer == ( index_binds == 0 ? 30 : 31 ) && offset == 12 );
+	index_binds++;
+}
+static void VKAPI_CALL destroy_sampler( VkDevice, VkSampler sampler, const VkAllocationCallbacks * ) {
+	assert( (uintptr_t)sampler == 32 && waits == 2 );
+	sampler_destroys++;
+}
 static uint32_t timestamp_writes;
 static bool query_ready = true;
 static void VKAPI_CALL write_timestamp( VkCommandBuffer, VkPipelineStageFlagBits stage, VkQueryPool, uint32_t query ) {
@@ -31,6 +51,7 @@ static VkResult VKAPI_CALL read_timestamps( VkDevice, VkQueryPool, uint32_t firs
 }
 static VkResult VKAPI_CALL wait_device( VkDevice device ) {
 	assert( (uintptr_t)device == 20 );
+	waits++;
 	return wait_result;
 }
 static VkResult VKAPI_CALL wait_queue( VkQueue queue ) {
@@ -158,6 +179,63 @@ int main( void ) {
 	assert( RHI_GetTimings( &timings ) == 0 );
 	vk.cmd->profile.count = RHI_MAX_TIMINGS;
 	assert( RHI_BeginScope( "full" ) == RHI_INVALID_OFFSET && timestamp_writes == 2 );
+	// Frame state and binding cache expose no SDK objects to the frontend.
+	assert( !RHI_GetFrameState().submitted && !RHI_GetFrameState().screenMapPass );
+	vk.cmd->waitForFence = qtrue;
+	vk.renderPassIndex = RENDER_PASS_SCREENMAP;
+	vk.capture.image = (VkImage)(uintptr_t)29;
+	const rhiFrameState_t frame = RHI_GetFrameState();
+	assert( frame.submitted && frame.screenMapPass && frame.captureImage );
+	RHI_InvalidateViewport();
+	assert( vk.cmd->depth_range == DEPTH_RANGE_COUNT );
+	vk.vbo.vertex_buffer = (VkBuffer)(uintptr_t)30;
+	vk.cmd->vertex_buffer = (VkBuffer)(uintptr_t)31;
+	qvkCmdBindIndexBuffer = bind_indices;
+	RHI_BindIndices( rhiGeometryBuffer_t::World, 12 );
+	RHI_BindIndices( rhiGeometryBuffer_t::World, 12 );
+	RHI_BindIndices( rhiGeometryBuffer_t::Frame, 12 );
+	assert( index_binds == 2 );
+	const uint32_t indices[] = { 3, 2, 1 };
+	vk.cmd->vertex_buffer_offset = 0;
+	assert( RHI_UploadIndices( 3, indices ) == 0 );
+	assert( memcmp( storage, indices, sizeof( indices ) ) == 0 );
+	vk.cmd->vertex_buffer_offset = 504;
+	assert( RHI_UploadIndices( 3, indices ) == RHI_INVALID_OFFSET );
+	assert( vk.cmd->vertex_buffer_offset == 504 && vk.geometry_buffer_size_new == 1024 );
+	vk.screenMap.color_descriptor = (VkDescriptorSet)(uintptr_t)33;
+	RHI_BindScreenMap( RHI_BINDING_TEXTURE1 );
+	assert( (uintptr_t)vk.cmd->descriptor_set.current[RHI_BINDING_TEXTURE1] == 33 );
+	RHI_ResetBinding( RHI_BINDING_TEXTURE1 );
+	assert( vk.cmd->descriptor_set.current[RHI_BINDING_TEXTURE1] == VK_NULL_HANDLE );
+
+	// A failed wait leaves live sampler objects and filter policy intact.
+	waits = 0;
+	vk.samplers.filter_min = GL_NEAREST;
+	vk.samplers.filter_max = GL_NEAREST;
+	vk.samplers.count = 1;
+	vk.samplers.handle[0] = (VkSampler)(uintptr_t)32;
+	qvkDestroySampler = destroy_sampler;
+	bool changed;
+	assert( RHI_SetTextureFilter( rhiFilter_t::Nearest, rhiFilter_t::Nearest, &changed ) == rhiStatus_t::Success );
+	assert( !changed && waits == 0 );
+	wait_result = VK_ERROR_DEVICE_LOST;
+	assert( RHI_SetTextureFilter( rhiFilter_t::LinearMipmapLinear, rhiFilter_t::Linear, &changed ) == rhiStatus_t::DeviceLost );
+	assert( !changed && sampler_destroys == 0 && vk.samplers.count == 1 && vk.samplers.filter_min == GL_NEAREST );
+	wait_result = VK_SUCCESS;
+	assert( RHI_SetTextureFilter( rhiFilter_t::LinearMipmapLinear, rhiFilter_t::Linear, &changed ) == rhiStatus_t::Success );
+	assert( changed && sampler_destroys == 1 && vk.samplers.count == 0 && vk.samplers.filter_min == GL_LINEAR_MIPMAP_LINEAR );
+	assert( vk_texture_filter( rhiFilter_t::NearestMipmapNearest ) == GL_NEAREST_MIPMAP_NEAREST );
+	assert( vk_texture_filter( rhiFilter_t::NearestMipmapLinear ) == GL_NEAREST_MIPMAP_LINEAR );
+	assert( vk_texture_filter( rhiFilter_t::LinearMipmapNearest ) == GL_LINEAR_MIPMAP_NEAREST );
+
+	// Unknown format labels must not alias the formatter's scratch buffer.
+	vk.present_format.format = (VkFormat)1000;
+	vk.color_format = (VkFormat)1001;
+	vk.capture_format = (VkFormat)1002;
+	vk.depth_format = (VkFormat)1003;
+	const rhiDeviceDescription_t info = RHI_GetDeviceDescription();
+	assert( strcmp( info.presentFormat, "#1000" ) == 0 && strcmp( info.colorFormat, "#1001" ) == 0 );
+	assert( strcmp( info.captureFormat, "#1002" ) == 0 && strcmp( info.depthFormat, "#1003" ) == 0 );
 	puts( "PASS: RHI uploads, textures, wait statuses, commands and bounded asynchronous timestamp readback" );
 	return 0;
 }

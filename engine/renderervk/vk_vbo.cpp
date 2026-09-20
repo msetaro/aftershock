@@ -790,7 +790,7 @@ static void VBO_AddItemDataToSoftBuffer( int itemIndex ) {
 	vbo_t *vbo = &world_vbo;
 	const vbo_item_t *vi = vbo->items + itemIndex;
 
-	const uint32_t offset = vk_tess_index( vi->num_indexes, vbo->ibo_buffer + vi->soft_offset );
+	const uint32_t offset = RHI_UploadIndices( vi->num_indexes, vbo->ibo_buffer + vi->soft_offset );
 
 	if ( vbo->soft_buffer_indexes == 0 ) {
 		// start recording into host-visible memory
@@ -818,7 +818,7 @@ void VBO_RenderIBOItems( void ) {
 
 	// from device-local memory
 	if ( vbo->ibo_items_count ) {
-		vk_bind_index_buffer( vk.vbo.vertex_buffer, tess.shader->iboOffset );
+		RHI_BindIndices( rhiGeometryBuffer_t::World, tess.shader->iboOffset );
 
 		for ( i = 0; i < vbo->ibo_items_count; i++ ) {
 			RHI_DrawIndexed( vbo->ibo_items[i].length, vbo->ibo_items[i].offset );
@@ -827,7 +827,7 @@ void VBO_RenderIBOItems( void ) {
 
 	// from host-visible memory
 	if ( vbo->soft_buffer_indexes ) {
-		vk_bind_index_buffer( vk.cmd->vertex_buffer, vbo->soft_buffer_offset );
+		RHI_BindIndices( rhiGeometryBuffer_t::Frame, vbo->soft_buffer_offset );
 
 		RHI_DrawIndexed( vbo->soft_buffer_indexes, 0 );
 	}

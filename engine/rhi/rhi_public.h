@@ -40,6 +40,25 @@ rhiCapabilities_t RHI_GetCapabilities( void );
 // Pipelines created before this point survive map-resource resets.
 void RHI_MarkWorldPipelines( void );
 
+struct rhiFrameState_t {
+	bool screenMapPass;
+	bool submitted;
+	bool captureImage;
+};
+rhiFrameState_t RHI_GetFrameState( void );
+void RHI_InvalidateViewport( void );
+
+// The driver note is borrowed for the device lifetime. Empty optional color/
+// capture strings mean the format matches the preceding attachments.
+struct rhiDeviceDescription_t {
+	const char *driverNote;
+	char presentFormat[64];
+	char colorFormat[64];
+	char captureFormat[64];
+	char depthFormat[64];
+};
+rhiDeviceDescription_t RHI_GetDeviceDescription( void );
+
 enum class rhiStatus_t : uint32_t {
 	Success,
 	Unavailable,
@@ -105,6 +124,41 @@ void RHI_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address
 // Call only after GPU use completes. Binding storage is released by the map pool reset.
 void RHI_DestroyTexture( rhiTexture_t *texture );
 void RHI_BindTexture( uint32_t slot, const rhiTexture_t *texture );
+
+enum class rhiFilter_t : uint32_t {
+	Nearest,
+	Linear,
+	NearestMipmapNearest,
+	LinearMipmapNearest,
+	NearestMipmapLinear,
+	LinearMipmapLinear
+};
+// On a changed filter, wait before replacing sampler objects and attachment
+// bindings. The caller then updates its mipmapped texture bindings.
+rhiStatus_t RHI_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, bool *changed );
+
+// The two existing geometry pools: map-owned static data and fence-owned frame
+// uploads. Offsets use bytes; indices are always uint32_t.
+enum class rhiGeometryBuffer_t : uint32_t { World,
+	Frame };
+void RHI_BindIndices( rhiGeometryBuffer_t buffer, uint32_t offset );
+uint32_t RHI_UploadIndices( uint32_t count, const void *indices );
+
+#define RHI_BINDING_STORAGE      0
+#define RHI_BINDING_UNIFORM      0
+#define RHI_BINDING_TEXTURE0     1
+#define RHI_BINDING_TEXTURE1     2
+#define RHI_BINDING_TEXTURE2     3
+#define RHI_BINDING_FOG_COLLAPSE 4
+#define RHI_BINDING_COUNT        5
+
+#define RHI_BINDING_TEXTURE_BASE RHI_BINDING_TEXTURE0
+#define RHI_BINDING_FOG_ONLY     RHI_BINDING_TEXTURE1
+#define RHI_BINDING_FOG_DLIGHT   RHI_BINDING_TEXTURE1
+
+
+void RHI_BindScreenMap( uint32_t slot );
+void RHI_ResetBinding( int32_t slot );
 
 // Logical shader programs and state bits retain the existing renderer encoding.
 // These are engine-owned values, not graphics SDK enums. Zero-initialize pipeline

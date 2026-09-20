@@ -2484,6 +2484,43 @@ void vk_update_attachment_descriptors( void ) {
 }
 
 
+static int vk_texture_filter( rhiFilter_t filter ) {
+	switch ( filter ) {
+	case rhiFilter_t::Nearest:
+		return GL_NEAREST;
+	case rhiFilter_t::Linear:
+		return GL_LINEAR;
+	case rhiFilter_t::NearestMipmapNearest:
+		return GL_NEAREST_MIPMAP_NEAREST;
+	case rhiFilter_t::LinearMipmapNearest:
+		return GL_LINEAR_MIPMAP_NEAREST;
+	case rhiFilter_t::NearestMipmapLinear:
+		return GL_NEAREST_MIPMAP_LINEAR;
+	case rhiFilter_t::LinearMipmapLinear:
+		return GL_LINEAR_MIPMAP_LINEAR;
+	}
+	return -1;
+}
+
+rhiStatus_t RHI_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, bool *changed ) {
+	const int minFilter = vk_texture_filter( minimize );
+	const int magFilter = vk_texture_filter( magnify );
+	*changed = false;
+	if ( minFilter < 0 || magFilter < 0 )
+		return rhiStatus_t::Error;
+	if ( minFilter == vk.samplers.filter_min && magFilter == vk.samplers.filter_max )
+		return rhiStatus_t::Success;
+	const rhiStatus_t status = RHI_WaitIdle();
+	if ( status != rhiStatus_t::Success )
+		return status;
+	vk_destroy_samplers();
+	vk.samplers.filter_min = minFilter;
+	vk.samplers.filter_max = magFilter;
+	vk_update_attachment_descriptors();
+	*changed = true;
+	return rhiStatus_t::Success;
+}
+
 void vk_init_descriptors( void ) {
 	VkDescriptorSetAllocateInfo alloc;
 	VkDescriptorBufferInfo info;
@@ -4060,7 +4097,7 @@ void vk_initialize( void ) {
 		desc.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		desc.pNext = NULL;
 		desc.flags = 0;
-		desc.setLayoutCount = ( vk.maxBoundDescriptorSets >= VK_DESC_COUNT ) ? VK_DESC_COUNT : 4;
+		desc.setLayoutCount = ( vk.maxBoundDescriptorSets >= RHI_BINDING_COUNT ) ? RHI_BINDING_COUNT : 4;
 		desc.pSetLayouts = set_layouts;
 		desc.pushConstantRangeCount = 1;
 		desc.pPushConstantRanges = &push_range;
@@ -4463,6 +4500,36 @@ rhiCapabilities_t RHI_GetCapabilities( void ) {
 	return { vk.active != qfalse, vk.wideLines != qfalse, vk.fragmentStores != qfalse,
 		vk.clearAttachment != qfalse, vk.fboActive != qfalse, vk.offscreenRender != qfalse,
 		vk.maxBoundDescriptorSets };
+}
+
+rhiFrameState_t RHI_GetFrameState( void ) {
+	return { vk.renderPassIndex == RENDER_PASS_SCREENMAP,
+		vk.cmd && vk.cmd->waitForFence != qfalse, vk.capture.image != VK_NULL_HANDLE };
+}
+
+void RHI_InvalidateViewport( void ) {
+	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
+}
+
+rhiDeviceDescription_t RHI_GetDeviceDescription( void ) {
+	rhiDeviceDescription_t info = {};
+	info.driverNote = vk.driverNote;
+	Q_strncpyz( info.presentFormat, vk_format_string( vk.present_format.format ), sizeof( info.presentFormat ) );
+	if ( vk.color_format != vk.present_format.format )
+		Q_strncpyz( info.colorFormat, vk_format_string( vk.color_format ), sizeof( info.colorFormat ) );
+	if ( vk.capture_format != vk.present_format.format || vk.capture_format != vk.color_format )
+		Q_strncpyz( info.captureFormat, vk_format_string( vk.capture_format ), sizeof( info.captureFormat ) );
+	Q_strncpyz( info.depthFormat, vk_format_string( vk.depth_format ), sizeof( info.depthFormat ) );
+	return info;
+}
+
+
+void RHI_BindScreenMap( uint32_t slot ) {
+	vk_update_descriptor( slot, vk.screenMap.color_descriptor );
+}
+
+void RHI_BindIndices( rhiGeometryBuffer_t buffer, uint32_t offset ) {
+	vk_bind_index_buffer( buffer == rhiGeometryBuffer_t::World ? vk.vbo.vertex_buffer : vk.cmd->vertex_buffer, offset );
 }
 
 rhiStats_t RHI_GetStats( void ) {
@@ -6740,9 +6807,9 @@ static void vk_bind_attr( int index, unsigned int item_size, const void *src ) {
 }
 
 
-uint32_t vk_tess_index( uint32_t numIndexes, const void *src ) {
+uint32_t RHI_UploadIndices( uint32_t numIndexes, const void *src ) {
 	const uint32_t offset = vk.cmd->vertex_buffer_offset;
-	const uint32_t size = numIndexes * sizeof( tess.indexes[0] );
+	const uint32_t size = numIndexes * sizeof( uint32_t );
 
 	if ( offset + size > vk.geometry_buffer_size ) {
 		// schedule geometry buffer resize
@@ -6784,7 +6851,7 @@ void vk_bind_index( void ) {
 
 
 void vk_bind_index_ext( const int numIndexes, const uint32_t *indexes ) {
-	uint32_t offset = vk_tess_index( numIndexes, indexes );
+	uint32_t offset = RHI_UploadIndices( numIndexes, indexes );
 	if ( offset != ~0U ) {
 		vk_bind_index_buffer( vk.cmd->vertex_buffer, offset );
 		vk.cmd->num_indexes = numIndexes;
@@ -6934,15 +7001,15 @@ uint32_t RHI_UploadUniform( const void *data, uint32_t size ) {
 	Com_Memcpy( vk.cmd->vertex_buffer_ptr + offset, data, size );
 	vk.cmd->vertex_buffer_offset = offset + vk.uniform_item_size;
 
-	vk_reset_descriptor( VK_DESC_UNIFORM );
-	vk_update_descriptor( VK_DESC_UNIFORM, vk.cmd->uniform_descriptor );
-	vk_update_descriptor_offset( VK_DESC_UNIFORM, vk.cmd->uniform_read_offset );
+	RHI_ResetBinding( RHI_BINDING_UNIFORM );
+	vk_update_descriptor( RHI_BINDING_UNIFORM, vk.cmd->uniform_descriptor );
+	vk_update_descriptor_offset( RHI_BINDING_UNIFORM, vk.cmd->uniform_read_offset );
 
 	return offset;
 }
 
 
-void vk_reset_descriptor( int index ) {
+void RHI_ResetBinding( int index ) {
 	vk.cmd->descriptor_set.current[index] = VK_NULL_HANDLE;
 }
 
@@ -6972,7 +7039,7 @@ void vk_bind_descriptor_sets( void ) {
 	end = vk.cmd->descriptor_set.end;
 
 	offset_count = 0;
-	if ( /*start == VK_DESC_STORAGE || */ start == VK_DESC_UNIFORM ) { // uniform offset or storage offset
+	if ( /*start == RHI_BINDING_STORAGE || */ start == RHI_BINDING_UNIFORM ) { // uniform offset or storage offset
 		offsets[offset_count++] = vk.cmd->descriptor_set.offset[start];
 	}
 
@@ -7057,7 +7124,7 @@ void vk_draw_dot( uint32_t storage_offset ) {
 		return;
 	}
 
-	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_storage, VK_DESC_STORAGE, 1, &vk.storage.descriptor, 1, &storage_offset );
+	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_storage, RHI_BINDING_STORAGE, 1, &vk.storage.descriptor, 1, &storage_offset );
 
 	// configure pipeline's dynamic state
 	vk_update_depth_range( DEPTH_RANGE_NORMAL );
@@ -7890,7 +7957,7 @@ qboolean vk_bloom( void ) {
 		// restore clobbered descriptor sets
 		for ( i = 0; i < VK_NUM_BLOOM_PASSES; i++ ) {
 			if ( vk.cmd->descriptor_set.current[i] != VK_NULL_HANDLE ) {
-				if ( i == VK_DESC_UNIFORM /*|| i == VK_DESC_STORAGE*/ )
+				if ( i == RHI_BINDING_UNIFORM /*|| i == RHI_BINDING_STORAGE*/ )
 					qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout, i, 1, &vk.cmd->descriptor_set.current[i], 1, &vk.cmd->descriptor_set.offset[i] );
 				else
 					qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout, i, 1, &vk.cmd->descriptor_set.current[i], 0, NULL );
