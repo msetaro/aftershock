@@ -261,6 +261,8 @@ typedef struct {
 		VkDeviceSize vertex_buffer_max;
 		uint32_t push_size;
 		uint32_t push_size_max;
+		uint32_t draw_calls;
+		uint32_t frame_draw_calls;
 	} stats;
 
 	//

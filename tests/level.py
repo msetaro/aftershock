@@ -69,6 +69,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-level-') as temporary:
     assert str(folder) not in text, 'MAP embeds a machine-specific path'
 
     changed = copy.deepcopy(source)
+    changed['viewpoints'] = [{'id':'west','origin':[-160,0,96],'angles':[10,0,0]}]
+    assert compile_level(changed, folder/'camera-metadata') == a, 'viewpoints changed MAP bytes'
+    changed['viewpoints'][0]['id'] = 'auto_reserved'
+    compile_level(changed, folder/'camera-name', 'reserved viewpoint')
+
+    changed = copy.deepcopy(source)
     changed['connections'][0]['width'] = 16
     compile_level(changed, folder / 'invalid-width', 'corridor width')
     changed = copy.deepcopy(source)

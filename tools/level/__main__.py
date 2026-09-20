@@ -81,4 +81,7 @@ def main():
 
 
 if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='validate':
+        from headless import main as validate_main
+        sys.exit(validate_main(sys.argv[2:]))
     sys.exit(main())

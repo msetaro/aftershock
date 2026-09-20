@@ -99,3 +99,60 @@ horizontal straight-line distance to the nearest cover footprint, conservatively
 adding the half-cell diagonal; it is not travel distance or a promise of occlusion.
 Limits cap the description at 1 MiB, each entity list at 128 and the navigation grid
 at 262144 cells. These are authoring limits, not engine format limits.
+
+
+## Headless validation (#27)
+
+```
+python3 tools/level validate tests/assets/levels/two_lane.json --output /tmp/level-report --client PATH/quake3e.x64 --server PATH/quake3e.ded.x64
+```
+
+Both binaries must use `-DAFTERSHOCK_DEVTOOLS=ON`. Install the same pinned
+`requirements.txt` in a venv; Pillow encodes screenshots as PNG. Xvfb, faketime and
+Mesa lavapipe are required, but a display is not. Content defaults to installed
+`~/.q3a/baseq3`; use `--content openarena --data /tmp/aftershock-openarena-baseoa`
+for hosted tests. Licensed packages are only symlinked into the private runtime
+home after compilation and are never published as artifacts.
+
+Optional `viewpoints` in the level JSON contain `{id, origin: [x,y,z], angles:
+[pitch,yaw,roll]}` records. Origins are exact eye positions in empty world space.
+Names are unique lowercase identifiers, at most 32 characters; `auto_` is reserved.
+There are at most 64 named views. These fields do not change MAP/BSP/AAS output.
+The command samples a deterministic walk through all connected authored passages,
+returning through each visited edge, with room, approach, middle and exit captures.
+The development spectator camera is motionless and does not use teleport effects
+or velocity. Existing gameplay camera and teleport behavior are unchanged.
+
+Stdout is one version-1 JSON report, also saved as `report.json`; `report.txt` is a
+readable rendering of it. Failure uses nonzero status, `status: "failed"` and
+explicit `errors`. Compile and native load logs are retained. The report contains
+compiler/runtime warnings, design/leak/missing-asset errors, entity class counts,
+spawn reachability, AAS area count, lightmap pages and the fraction of BSP draw
+surfaces with lightmaps. Sky and deliberately unlit surfaces count in that
+fraction's denominator. It is surface coverage, not texel occupancy. Navmesh
+coverage is `null` until #21 provides that backend.
+
+Every view lists its PNG path and SHA256, actual Vulkan draw commands in the last
+submitted frame and frontend triangle count. Draw calls include indexed,
+non-indexed, visibility and postprocessing commands; triangle counts use the
+existing renderer's scene counters. Measurements come from a stable camera before
+capture. Repeated validation uses fixed 20-ms simulation steps and the same
+faketime/Mesa setup; tests compare PNG bytes and metrics directly, without recording
+new demo or frame goldens.
+
+Bot smoke defaults to 6000 frames (`--bot-frames 500..30000`). It reports kills,
+item pickups and authoritative position samples every 50 frames. A possible stuck
+bot stays alive within 16 units of its initial sample over ten samples. Death
+breaks the window. This is a reported inactivity heuristic: stationary combat can
+also trigger it, so it is a warning, not a pathfinding diagnosis or automatic
+failure. Generated command scripts are capped at 60000 bytes, below the engine's
+command buffer capacity; reduce level/camera complexity if that bound is reached.
+
+Existing `.map` input is also accepted with adjacent loose project `assets/`.
+Its design-rule/grid reachability fields are unavailable and reported as such;
+compilation, leaks, native loading and bot smoke still run. Automatic cameras come
+from deathmatch spawns. `--viewpoints FILE` can supply the same camera array for a
+MAP, with syntax/bounds checks but no declarative world-space containment test.
+MAP input is capped at 16 MiB. No package files are copied into the tool workspace.
+The acceptance test removes a ceiling from an owned valid MAP and requires a clear
+leak failure; disconnected JSON spawns fail separately before engine startup.

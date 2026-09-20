@@ -1493,6 +1493,7 @@ static void VkInfo_f( void ) {
 	const rhiStats_t stats = RHI_GetStats();
 	const rhiTiming_t *timings;
 	const uint32_t count = RHI_GetTimings( &timings );
+	ri.Printf( PRINT_ALL, "frame draw calls: %u (last submitted frame)\n", stats.frameDrawCalls );
 	ri.Printf( PRINT_ALL, "max_vertex_usage: %iKb\n", (int)( ( stats.vertexBytesPeak + 1023 ) / 1024 ) );
 	ri.Printf( PRINT_ALL, "max_push_size: %ib\n", stats.pushBytesPeak );
 

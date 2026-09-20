@@ -19,6 +19,7 @@ struct rhiStats_t {
 	int32_t imageChunks;
 	int32_t samplers;
 	uint32_t frameSlots;
+	uint32_t frameDrawCalls; // All indexed/non-indexed commands in the last submitted frame.
 };
 static_assert( std::is_trivially_copyable_v<rhiStats_t> );
 

@@ -956,3 +956,17 @@ Initial #26 fixtures were authored once with
 and rendered geometry review. That flag is refused in CI. Any future fixture
 replacement requires the same explicit command and an explained behavior change;
 accepted engine/demo goldens are independent and unchanged.
+
+
+## Headless level reports (#27)
+
+`python3 tests/level_validate.py --client CLIENT --server SERVER` runs the complete
+`tools/level validate` command without a display. Both binaries require development
+tools. It compares PNG bytes and draw/triangle metrics across two runs, checks the
+JSON/text report and 240 bot position samples, and requires clear failures for an
+unreachable spawn, outside camera and deliberately open ceiling. Small controls
+also verify stationary/moving/dead bot inactivity classification. Add the same
+OpenArena content flags as `tests/level_runtime.py` for hosted content. Artifacts
+are JSON/text, engine/compiler logs and PNGs under `/tmp/aftershock-level-validation`.
+No accepted demo, frame or level fixture is regenerated. See `tools/level/README.md`
+for report semantics, conservative design checks and the inactivity heuristic.

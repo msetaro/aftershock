@@ -4341,7 +4341,7 @@ void RHI_BindIndices( rhiGeometryBuffer_t buffer, uint32_t offset ) {
 rhiStats_t RHI_GetStats( void ) {
 	return { vk.stats.vertex_buffer_max, vk.geometry_buffer_size, vk.staging_buffer.size,
 		vk.stats.push_size_max, vk.pipeline_create_count, vk.pipelines_count,
-		vk.pipelines_world_base, vk_world.num_image_chunks, vk.samplers.count, NUM_COMMAND_BUFFERS };
+		vk.pipelines_world_base, vk_world.num_image_chunks, vk.samplers.count, NUM_COMMAND_BUFFERS, vk.stats.frame_draw_calls };
 }
 
 static rhiStatus_t vk_status( VkResult result ) {
@@ -6458,8 +6458,14 @@ void vk_bind_index_buffer( VkBuffer buffer, uint32_t offset ) {
 }
 
 
+static void vk_draw( uint32_t vertexCount ) {
+	qvkCmdDraw( vk.cmd->command_buffer, vertexCount, 1, 0, 0 );
+	++vk.stats.draw_calls;
+}
+
 void RHI_DrawIndexed( uint32_t indexCount, uint32_t firstIndex ) {
 	qvkCmdDrawIndexed( vk.cmd->command_buffer, indexCount, 1, firstIndex, 0, 0 );
+	++vk.stats.draw_calls;
 }
 
 
@@ -6482,7 +6488,7 @@ void RHI_DrawBoundIndices( void ) {
 }
 
 void RHI_Draw( uint32_t vertexCount ) {
-	qvkCmdDraw( vk.cmd->command_buffer, vertexCount, 1, 0, 0 );
+	vk_draw( vertexCount );
 }
 
 
@@ -6610,7 +6616,7 @@ void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount, const rhiRasterSt
 	// configure pipeline's dynamic state
 	vk_update_depth_range( raster );
 
-	qvkCmdDraw( vk.cmd->command_buffer, vertexCount, 1, 0, 0 );
+	vk_draw( vertexCount );
 }
 
 
@@ -6941,7 +6947,7 @@ rhiFrameEnd_t vk_impl_EndFrame( bool bloom, bool capture ) {
 			qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.capture_pipeline );
 			qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.color_descriptor, 0, NULL );
 
-			qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
+			vk_draw( 4 );
 		}
 
 		if ( !vk_host.IsMinimized() ) {
@@ -6957,7 +6963,7 @@ rhiFrameEnd_t vk_impl_EndFrame( bool bloom, bool capture ) {
 			qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.gamma_pipeline );
 			qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.color_descriptor, 0, NULL );
 
-			qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
+			vk_draw( 4 );
 		}
 	}
 
@@ -7344,7 +7350,7 @@ void RHI_Bloom( const float *restoreTransform ) {
 	vk_begin_bloom_extract_render_pass();
 	qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.bloom_extract_pipeline );
 	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.color_descriptor, 0, NULL );
-	qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
+	vk_draw( 4 );
 	RHI_EndPass();
 
 	for ( i = 0; i < VK_NUM_BLOOM_PASSES * 2; i += 2 ) {
@@ -7352,28 +7358,28 @@ void RHI_Bloom( const float *restoreTransform ) {
 		vk_begin_blur_render_pass( i + 0 );
 		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.blur_pipeline[i + 0] );
 		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.bloom_image_descriptor[i + 0], 0, NULL );
-		qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
+		vk_draw( 4 );
 		RHI_EndPass();
 
 		// vectical blur
 		vk_begin_blur_render_pass( i + 1 );
 		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.blur_pipeline[i + 1] );
 		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.bloom_image_descriptor[i + 1], 0, NULL );
-		qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
+		vk_draw( 4 );
 		RHI_EndPass();
 #if 0
 		// horizontal blur
 		vk_begin_blur_render_pass( i+0 );
 		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.blur_pipeline[i+0] );
 		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.bloom_image_descriptor[i+2], 0, NULL );
-		qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
+		vk_draw( 4 );
 		RHI_EndPass();
 
 		// vectical blur
 		vk_begin_blur_render_pass( i+1 );
 		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.blur_pipeline[i+1] );
 		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.bloom_image_descriptor[i+1], 0, NULL );
-		qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
+		vk_draw( 4 );
 		RHI_EndPass();
 #endif
 	}
@@ -7389,7 +7395,7 @@ void RHI_Bloom( const float *restoreTransform ) {
 		// blend downscaled buffers to main fbo
 		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.bloom_blend_pipeline );
 		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_blend, 0, ARRAY_LEN( dset ), dset, 0, NULL );
-		qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
+		vk_draw( 4 );
 	}
 
 	// invalidate pipeline state cache
@@ -7642,6 +7648,8 @@ rhiStatus_t RHI_BeginFrame( bool screenMap, bool *started ) {
 	*started = {};
 	return vk_call( [&]() {
 		*started = vk_impl_BeginFrame( screenMap );
+		if ( *started )
+			vk.stats.draw_calls = 0;
 		return rhiStatus_t::Success;
 	} );
 }
@@ -7650,6 +7658,8 @@ rhiStatus_t RHI_EndFrame( bool bloom, bool capture, rhiFrameEnd_t *result ) {
 	*result = {};
 	return vk_call( [&]() {
 		*result = vk_impl_EndFrame( bloom, capture );
+		if ( result->submitted )
+			vk.stats.frame_draw_calls = vk.stats.draw_calls;
 		return rhiStatus_t::Success;
 	} );
 }
