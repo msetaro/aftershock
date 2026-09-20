@@ -184,6 +184,12 @@ to empty all 31 loaded rounds before checking the 29-round empty reload. Both
 are corrected, and 0->1->0 preserves ammo/seed. Production build and focused
 format/boundary/type gates pass. Remaining #11 scope is listed in Next action.
 
+The analytic game-collision probe now fails on a one-unit default-material wall
+(weapons-penetration-before.log). It exercises the actual game WeaponHit path:
+40 unobstructed damage, 20 through default material, 10 through thin metal,
+blocking thick metal, cumulative loss across two walls and non-penetrating melee.
+This is a gameplay collision test, not a loader robustness target.
+
 
 ## #12 implemented feature evidence
 

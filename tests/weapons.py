@@ -75,3 +75,10 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      'engine/qcommon/huffman.cpp', 'engine/qcommon/huffman_static.cpp',
      'engine/qcommon/q_shared.cpp', 'engine/weapons/weapons.cpp', sha, '-Wl,--gc-sections', '-o', snapshot])
 run([snapshot])
+
+hitscan = args.output / 'hitscan-probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-ffunction-sections', '-fdata-sections', '-fno-fast-math', '-ffp-contract=off',
+     '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/weapon_hitscan.cpp', 'engine/weapons/weapons.cpp', sha, '-Wl,--gc-sections', '-o', hitscan])
+run([hitscan])
