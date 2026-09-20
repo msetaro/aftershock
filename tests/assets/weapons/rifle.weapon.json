@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "range_rifle",
   "model": "models/anim_rifle.iqm",
   "animation": "animations/anim_rifle.asanim",
@@ -28,7 +28,7 @@
     {"time_ms": 800, "event": "bolt", "action": "chamber", "cancel": false},
     {"time_ms": 1000, "event": "reload_complete", "action": "finish", "cancel": true}
   ],
-  "projectile": {"speed": 800, "gravity": 800, "fuse_ms": 3000, "bounce": 0.5, "radius": 120},
+  "projectile": {"model": "models/range_grenade.iqm", "size": 2, "speed": 800, "gravity": 800, "fuse_ms": 3000, "bounce": 0.5, "radius": 120},
   "melee": {"range": 64, "damage": 50, "interval_ms": 500},
   "switch_ms": 200,
   "materials": [

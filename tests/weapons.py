@@ -42,7 +42,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapon-source-') as temporar
     rifle = args.output / 'weapons/range_rifle.asweapon'
     data = rifle.read_bytes()
     magic, version, size, digest = struct.unpack_from('<8sII32s', data)
-    assert magic == b'ASWEAP\0\0' and version == 1 and size == len(data) - 48
+    assert magic == b'ASWEAP\0\0' and version == 2 and size == len(data) - 48
     assert digest == hashlib.sha256(data[48:]).digest()
     run([probe, 'index', args.output / 'cook.index'])
     trace = subprocess.check_output([probe, rifle, args.output / 'weapons/second.asweapon'], cwd=ROOT, env=ENV, timeout=30)

@@ -87,6 +87,7 @@ int main( int argc, char **argv ) {
 	static_assert( std::is_trivially_copyable_v<weaponDef_t> && std::is_trivially_copyable_v<weaponState_t> );
 	weaponDef_t def = Load( argv[1] ), second = Load( argv[2] );
 	assert( !strcmp( def.name, "range_rifle" ) && second.damage == 55 && def.damage == 40 );
+	assert( def.projectile.size == 2 && !strcmp( def.projectile.model, "models/range_grenade.iqm" ) );
 	Commands( def );
 	assert( def.intervalMs == 80 && def.magazine == 30 && def.reloadCount == 4 && def.attachmentCount == 1 );
 	assert( Weapon_Damage( &def, 512 ) == 40 && Weapon_Damage( &def, 1280 ) == 30 && Weapon_Damage( &def, 2048 ) == 20 );

@@ -1,0 +1,11 @@
+{
+  "license": "GPL-2.0-or-later",
+  "origin": "Original procedural box props and synthesized sound; no external game assets.",
+  "files": {
+    "export.py": "6194ca893516971d5eef56fd008eef73f6908ce9d0c74aced239d656d3c83141",
+    "optic.gltf": "72c4351a828bd0fba07d30f8ae23ff599adeb33210246ce0a4fa39b7d9ad7365",
+    "grenade.gltf": "48fb5f5458f8f08c108536b2c9cd1402c84cab2a92a43b2d603b47538877774e",
+    "shot.wav": "095d245123012a8bb4d2002bd68ddd455460cfad6be9a70464b0b75863cbc7e1",
+    "reload.wav": "6db7f2a4a966d80f8f4499b9f37c37cd47871884b8a4371459db605cc16f144d"
+  }
+}

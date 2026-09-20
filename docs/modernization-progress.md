@@ -212,6 +212,16 @@ stub was corrected to the native game's existing non-const signature. Format and
 boundary checks pass. Remaining: projectiles/grenades, attachment/view/notify/audio
 integration, ImGui range tooling, lifecycle/parity tests and full CI acceptance.
 
+Projectile/attachment presentation sources are newly authored by
+ tests/assets/weapons/export.py: original box optic/grenade props and deterministic
+synthetic shot/reload sounds, with hashes in provenance.json. These are new #11
+assets; accepted #10 sources and fixtures remain untouched. The projectile asset
+probe fails on missing model/size fields (weapons-projectile-asset-before.log).
+Decision: weapon source/cooked format version 2 adds these required authoring
+fields before #11 acceptance; other cooked formats keep version 1. No weapon
+format has shipped or been accepted yet. Implement and validate that payload,
+then shared fixed-tick collision, server projectile actors and client prediction.
+
 
 ## #12 implemented feature evidence
 
