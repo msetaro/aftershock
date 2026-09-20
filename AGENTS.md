@@ -134,6 +134,7 @@ python3 tests/bot_command.py
 python3 tests/native_info.py
 python3 tests/rhi.py
 python3 tests/devtools.py
+python3 tests/devtools_data.py
 python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
 python3 tests/check_format.py

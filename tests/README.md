@@ -270,18 +270,22 @@ expected. A download/checksum/content failure fails CI.
 `AFTERSHOCK_DEVTOOLS=ON` includes the ImGui overlay; the default OFF build has no
 ImGui or tool symbols. Enable it with `dev_tools 1`; Escape closes it. The first
 slice provides console output/commands and cvar search, descriptions and live edit.
-The remaining issue #7 inspectors/profilers are not complete yet. Enabled renderer
+Texture previews, material stages, completed GPU timings/frame history and
+tagged zone/hunk usage are also available. CPU/network, entity, animation and
+debug-world tooling remain incomplete. Enabled renderer
 modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
 
 `python3 tests/devtools.py` builds both variants, verifies symbols, then uses real
 XTest input on a private Xvfb display to select/edit a cvar. It verifies 80 idle
 frames without further ImGui allocations, bounded arena use and video restart.
-It requires libX11, libXtst (`libxtst6` in hosted CI), xwininfo/xprop (`x11-utils`),
+It also opens each current inspector and captures its output.
+`python3 tests/devtools_data.py` checks real registry copies and allocator accounting
+without a GPU. It requires libX11, libXtst (`libxtst6` in hosted CI), xwininfo/xprop (`x11-utils`),
 Xvfb and lavapipe. The window PID must belong to the launched client. Screenshots
 and logs stay under `--output`. `--binary` tests an existing development client;
 `--content openarena --data /tmp/aftershock-openarena-baseoa` selects hosted assets.
-This UI check uses this repository's native game code with the selected content;
-the separate QVM/native parity gates retain their pinned OpenArena game objects.
+The OpenArena UI check links the same pinned native OpenArena game objects as
+the replay gate, matching the fixture's game protocol.
 
 ImGui core v1.92.9b is pinned under `third_party/imgui` with its unchanged license
 and source hashes. Default vendor OS, file, shell and time services are disabled.

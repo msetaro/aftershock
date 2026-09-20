@@ -14,6 +14,7 @@ import tempfile
 import time
 from run import ROOT, build, content_maps, content_settings
 from window import wait_for
+from native import engine_objects
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-devtools-tests'))
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
@@ -22,8 +23,9 @@ parser.add_argument('--binary', type=Path, help='test an existing development cl
 parser.add_argument('--inside-xvfb', action='store_true', help=argparse.SUPPRESS)
 args = parser.parse_args()
 if not args.binary:
+    objects = engine_objects(args.output.resolve() / 'native', args.content, 'gcc', 'g++')
     for enabled in (False, True):
-        directory = build(args.output.resolve() / ('enabled' if enabled else 'shipping'), ['BUILD_SERVER=0', f'AFTERSHOCK_DEVTOOLS={int(enabled)}'])
+        directory = build(args.output.resolve() / ('enabled' if enabled else 'shipping'), ['BUILD_SERVER=0', f'AFTERSHOCK_DEVTOOLS={int(enabled)}', *objects])
         binary = directory / 'quake3e.x64'
         symbols = subprocess.check_output(['nm', '-C', '--defined-only', binary], text=True)
         (directory / 'symbols.txt').write_text(symbols)
@@ -97,9 +99,14 @@ with tempfile.TemporaryDirectory(prefix='aftershock-dev-input-') as temp:
                *content_settings(args.content), '+set', 'r_fullscreen', '0', '+set', 'r_mode', '3',
                '+set', 's_initsound', '0', '+set', 'net_enabled', '0', '+set', 'sv_pure', '0',
                '+set', 'cl_autoRecordDemo', '0', '+set', 'dev_tools', '1', '+set', 'devtest', '0',
-               '+set', 'com_maxfps', '20', '+demo', map_name, '+wait', '140', '+screenshot', 'cvars',
-               '+devtools_status', '+wait', '80', '+devtools_status', '+devtest', '+vid_restart',
-               '+wait', '40', '+screenshot', 'restarted', '+wait', '2', '+devtools_status', '+quit']
+               '+set', 'com_maxfps', '20', '+exec', 'devtools-check.cfg']
+    script = [f'demo {map_name}', 'wait 140', 'screenshot cvars', 'devtools_status',
+              'wait 80', 'devtools_status', 'devtest', 'vid_restart', 'wait 40',
+              'screenshot restarted', 'wait 2', 'devtools_status']
+    for tab in ('textures', 'materials', 'profile', 'memory'):
+        script += ['echo inspect_' + tab, 'wait 40', 'screenshot ' + tab, 'wait 2']
+    script += ['quit']
+    (base / 'devtools-check.cfg').write_text('\n'.join(script) + '\n')
     with (out / 'client.log').open('wb') as log:
         process = subprocess.Popen(command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
         try:
@@ -121,13 +128,17 @@ with tempfile.TemporaryDirectory(prefix='aftershock-dev-input-') as temp:
             key('Delete')
             key('7')
             key('Return')
+            for tab, x in (('textures', 160), ('materials', 240), ('profile', 310), ('memory', 375)):
+                wait_for(lambda: ('inspect_' + tab).encode() in (out / 'client.log').read_bytes(), process)
+                # Context recreation retains our relative pointer position.
+                click(x, 64)
             process.wait(timeout=30)
             assert process.returncode == 0
         finally:
             if process.poll() is None:
                 process.kill()
                 process.wait()
-    for name in ('cvars', 'restarted'):
+    for name in ('cvars', 'restarted', 'textures', 'materials', 'profile', 'memory'):
         image = base / 'screenshots' / (name + '.tga')
         assert struct.unpack_from('<HH', image.read_bytes(), 12) == (640, 480)
         shutil.copyfile(image, out / image.name)

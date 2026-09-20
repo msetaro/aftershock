@@ -1988,6 +1988,61 @@ void RB_ExecuteRenderCommands( const void *data ) {
 }
 
 #ifdef AFTERSHOCK_DEVTOOLS
+bool RE_GetDeveloperImage( int index, devImage_t *image ) {
+	*image = {};
+	if ( index < 0 || index >= tr.numImages )
+		return false;
+	const image_t *source = tr.images[index];
+	Q_strncpyz( image->name, source->imgName, sizeof( image->name ) );
+	image->texture = (uint32_t)index + 1;
+	image->width = source->width;
+	image->height = source->height;
+	image->uploadWidth = source->uploadWidth;
+	image->uploadHeight = source->uploadHeight;
+	image->flags = (uint32_t)source->flags;
+	image->format = (uint32_t)source->internalFormat;
+	return true;
+}
+
+bool RE_GetDeveloperMaterial( int index, devMaterial_t *material ) {
+	*material = {};
+	if ( index < 0 || index >= tr.numShaders )
+		return false;
+	const shader_t *source = tr.shaders[index];
+	Q_strncpyz( material->name, source->name, sizeof( material->name ) );
+	material->sort = source->sort;
+	material->stages = source->numUnfoggedPasses;
+	material->cull = (int32_t)source->cullType;
+	material->surfaceFlags = source->surfaceFlags;
+	material->contentFlags = source->contentFlags;
+	material->explicitDefinition = source->explicitlyDefined != 0;
+	material->fallback = source->defaultShader != 0;
+	static_assert( MAX_SHADER_STAGES == 8 && NUM_TEXTURE_BUNDLES == 3 );
+	for ( int stage = 0; stage < source->numUnfoggedPasses; ++stage ) {
+		material->stateBits[stage] = source->stages[stage]->stateBits;
+		for ( int bundle = 0; bundle < NUM_TEXTURE_BUNDLES; ++bundle ) {
+			const image_t *image = source->stages[stage]->bundle[bundle].image[0];
+			for ( int i = 0; image && i < tr.numImages; ++i ) {
+				if ( tr.images[i] == image ) {
+					material->textures[stage][bundle] = (uint32_t)i + 1;
+					break;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+uint32_t RE_GetDeveloperTimings( devGpuTiming_t *timings, uint32_t capacity ) {
+	const rhiTiming_t *source;
+	const uint32_t count = MIN( capacity, RHI_GetTimings( &source ) );
+	for ( uint32_t i = 0; i < count; ++i ) {
+		Q_strncpyz( timings[i].name, source[i].name, sizeof( timings[i].name ) );
+		timings[i].microseconds = source[i].microseconds;
+	}
+	return count;
+}
+
 uint32_t RE_CreateDeveloperTexture( unsigned char *pixels, int width, int height ) {
 	if ( !tr.registered || !pixels || width <= 0 || height <= 0 )
 		return 0;

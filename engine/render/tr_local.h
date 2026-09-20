@@ -2052,6 +2052,9 @@ extern void VBO_Flush( void );
 int R_GetLightmapCoords( const int lightmapIndex, float *x, float *y );
 
 #ifdef AFTERSHOCK_DEVTOOLS
+bool RE_GetDeveloperImage( int index, devImage_t *image );
+bool RE_GetDeveloperMaterial( int index, devMaterial_t *material );
+uint32_t RE_GetDeveloperTimings( devGpuTiming_t *timings, uint32_t capacity );
 uint32_t RE_CreateDeveloperTexture( unsigned char *pixels, int width, int height );
 void RE_DrawDeveloperUI( const devUiDraw_t *draw );
 void RB_DrawDeveloperUI( const devUiDraw_t *draw );

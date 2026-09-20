@@ -1733,6 +1733,29 @@ static const char *tagName[TAG_COUNT] = {
 #endif
 };
 
+#ifdef AFTERSHOCK_DEVTOOLS
+void Com_DeveloperMemory( devMemory_t *memory ) {
+	*memory = {};
+	for ( int tag = 0; tag < TAG_COUNT; ++tag )
+		memory->names[tag] = tagName[tag];
+	const memzone_t *zones[] = { mainzone, smallzone, devzone };
+	for ( const memzone_t *zone : zones ) {
+		if ( !zone )
+			continue;
+		for ( const memblock_t *block = zone->blocklist.next; block != &zone->blocklist; block = block->next ) {
+			if ( block->size && (uint32_t)block->tag < TAG_COUNT ) {
+				memory->bytes[block->tag] += block->size;
+				++memory->blocks[block->tag];
+			}
+		}
+	}
+	memory->hunkTotal = s_hunkTotal;
+	memory->hunkPermanent = hunk_low.permanent + hunk_high.permanent;
+	memory->hunkFree = Hunk_MemoryRemaining();
+	memory->hunkTemporary = s_hunkTotal - memory->hunkFree - memory->hunkPermanent;
+}
+#endif
+
 typedef struct zone_stats_s {
 	size_t zoneSegments;
 	size_t zoneBlocks;

@@ -20,3 +20,24 @@ struct devUiDraw_t {
 static_assert( sizeof( devUiVertex_t ) == 20 && alignof( devUiVertex_t ) == 4 );
 static_assert( sizeof( devUiCommand_t ) == 28 && alignof( devUiCommand_t ) == 4 );
 static_assert( std::is_trivially_copyable_v<devUiDraw_t> );
+
+// Copies of frontend registries; no renderer-private pointers cross the ABI.
+struct devImage_t {
+	char name[256];
+	uint32_t texture;
+	int32_t width, height, uploadWidth, uploadHeight;
+	uint32_t flags, format;
+};
+struct devMaterial_t {
+	char name[64];
+	float sort;
+	int32_t stages, cull, surfaceFlags, contentFlags;
+	bool explicitDefinition, fallback;
+	uint32_t stateBits[8];
+	uint32_t textures[8][3];
+};
+struct devGpuTiming_t {
+	char name[32];
+	double microseconds;
+};
+static_assert( std::is_trivially_copyable_v<devImage_t> && std::is_trivially_copyable_v<devMaterial_t> );

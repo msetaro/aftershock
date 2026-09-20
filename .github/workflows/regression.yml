@@ -192,6 +192,8 @@ jobs:
         run: python3 tests/demo.py --measure-gpu --pipeline-cache --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Window resize and hide/restore lifecycle
         run: python3 tests/window.py --binary /tmp/aftershock-demo-tests/build-vulkan/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Developer registry and allocator snapshots
+        run: python3 tests/devtools_data.py
       - name: Development overlay input and renderer restart
         run: python3 tests/devtools.py --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Optional renderer module replay

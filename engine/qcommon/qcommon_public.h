@@ -1018,6 +1018,15 @@ typedef enum {
 #endif
 	TAG_COUNT
 } memtag_t;
+#ifdef AFTERSHOCK_DEVTOOLS
+struct devMemory_t {
+	uint64_t bytes[TAG_COUNT], blocks[TAG_COUNT];
+	const char *names[TAG_COUNT];
+	int32_t hunkTotal, hunkPermanent, hunkTemporary, hunkFree;
+};
+void Com_DeveloperMemory( devMemory_t *memory );
+#endif
+
 
 /*
 

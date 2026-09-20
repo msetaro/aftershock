@@ -19,9 +19,12 @@ upstream; historical upstream PR references below are completed past work.
 #6 PR #140 merged as 30eeba4c after final head c7c31a60 passed build
 35490659941/regression 35490659967 and the recorded self-review. Its merged-tree regression 35490963498 passed. The current
 branch is `issue/7-devtools`; test-first commit 7596afa9 records the expected shipping/development build failure.
-Validate the working-tree console/cvar overlay and bounded allocator/input/draw
-contracts, then implement the remaining entity, material/texture/animation,
-profiling/network, collision/navigation/debug and memory tools from #7. Keep all existing golden files.
+Initial console/cvar implementation ee822bab is in draft PR #143. Build
+35492532711 passes. Regression 35492532694 exposed a test setup mismatch: the
+OpenArena fixture requires the pinned OpenArena native game objects; the new
+driver linked Q3 game code. The working driver now reuses engine_objects from
+the existing replay gate. Validate hosted runtime after this correction, then
+complete CPU/network, entity, animation and collision/navigation/debug tooling. Keep all existing golden files.
 
 Then complete #7, render-graph phase two #142, and the remaining #25 sequence.
 All writes stay in msetaro/aftershock. The separate-session scope and finished
@@ -37,6 +40,16 @@ normal / 8 MiB high geometry buffers, 2 MiB normal / 24 MiB high staging buffers
 Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
 
 ## #7 developer tooling checkpoint
+
+Next working slice adds read-only texture/material registries and previews, GPU
+scope/frame history, and tagged zone/hunk statistics. Production-code probes pass
+for index bounds, copied fields, timing capacity and segment/tag accounting. The
+real-input test opens and captures all four panels; local visual review confirms
+the expected content. Scripted commands now use a temporary cfg to stay within
+the existing command-line command count. No engine behavior was changed for either
+test setup correction. Initial module-linkage UI input/restart also passes.
+Remaining feature scope is still open; no merge is requested yet.
+
 
 Initial working-tree slice: shipping defaults OFF and excludes ImGui/tool symbols;
 enabled GCC client now passes the original build check. The overlay renders over

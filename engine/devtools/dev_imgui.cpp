@@ -2,6 +2,7 @@
 #include "../qcommon/qcommon_public.h"
 #include "../qcommon/keys_public.h"
 #include "../../third_party/imgui/imgui.h"
+#include <inttypes.h>
 
 static cvar_t *enabled;
 static ImGuiContext *context;
@@ -181,6 +182,118 @@ static bool CopyDrawData( const ImDrawData *data, devUiDraw_t *draw ) {
 	return true;
 }
 
+static void ImagePreview( const refexport_t *renderer, int index, float extent ) {
+	devImage_t image;
+	if ( !renderer->GetDeveloperImage( index, &image ) )
+		return;
+	ImGui::TextWrapped( "%s", image.name );
+	ImGui::Text( "%dx%d -> %dx%d, flags 0x%x, format %u", image.width, image.height,
+		image.uploadWidth, image.uploadHeight, image.flags, image.format );
+	if ( image.uploadWidth > 0 && image.uploadHeight > 0 ) {
+		const float scale = extent / (float)MAX( image.uploadWidth, image.uploadHeight );
+		ImGui::Image( (ImTextureID)image.texture, ImVec2( (float)image.uploadWidth * scale, (float)image.uploadHeight * scale ) );
+	}
+}
+
+static void InspectAssets( const refexport_t *renderer ) {
+	if ( ImGui::BeginTabItem( "Textures" ) ) {
+		static char filter[128];
+		static int selected;
+		ImGui::InputText( "Filter textures", filter, sizeof( filter ) );
+		if ( ImGui::BeginChild( "Images", ImVec2( 0, 120 ), ImGuiChildFlags_Borders ) ) {
+			devImage_t image;
+			for ( int i = 0; renderer->GetDeveloperImage( i, &image ); ++i ) {
+				if ( *filter && !Q_stristr( image.name, filter ) )
+					continue;
+				ImGui::PushID( i );
+				if ( ImGui::Selectable( image.name, selected == i ) )
+					selected = i;
+				ImGui::PopID();
+			}
+		}
+		ImGui::EndChild();
+		ImagePreview( renderer, selected, 200 );
+		ImGui::EndTabItem();
+	}
+	if ( ImGui::BeginTabItem( "Materials" ) ) {
+		static char filter[128];
+		static int selected;
+		ImGui::InputText( "Filter materials", filter, sizeof( filter ) );
+		if ( ImGui::BeginChild( "Shaders", ImVec2( 0, 120 ), ImGuiChildFlags_Borders ) ) {
+			devMaterial_t material;
+			for ( int i = 0; renderer->GetDeveloperMaterial( i, &material ); ++i ) {
+				if ( *filter && !Q_stristr( material.name, filter ) )
+					continue;
+				ImGui::PushID( i );
+				if ( ImGui::Selectable( material.name, selected == i ) )
+					selected = i;
+				ImGui::PopID();
+			}
+		}
+		ImGui::EndChild();
+		devMaterial_t material;
+		if ( renderer->GetDeveloperMaterial( selected, &material ) ) {
+			ImGui::TextWrapped( "%s", material.name );
+			ImGui::Text( "sort %.2f cull %d surface 0x%x content 0x%x", material.sort,
+				material.cull, (uint32_t)material.surfaceFlags, (uint32_t)material.contentFlags );
+			ImGui::Text( "%s, %s", material.explicitDefinition ? "script defined" : "implicit",
+				material.fallback ? "fallback shader" : "loaded" );
+			for ( int stage = 0; stage < material.stages; ++stage ) {
+				ImGui::Text( "Stage %d state 0x%x", stage, material.stateBits[stage] );
+				for ( uint32_t texture : material.textures[stage] ) {
+					if ( texture )
+						ImagePreview( renderer, (int)texture - 1, 100 );
+				}
+			}
+		}
+		ImGui::EndTabItem();
+	}
+}
+
+static void InspectMemory( void ) {
+	if ( !ImGui::BeginTabItem( "Memory" ) )
+		return;
+	devMemory_t memory;
+	Com_DeveloperMemory( &memory );
+	ImGui::Text( "Hunk: %d total, %d permanent, %d temporary, %d free", memory.hunkTotal,
+		memory.hunkPermanent, memory.hunkTemporary, memory.hunkFree );
+	ImGui::TextUnformatted( "Zone bytes include block headers; hunk has lifetime regions, no tags." );
+	if ( ImGui::BeginTable( "Tags", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg ) ) {
+		ImGui::TableSetupColumn( "Tag" );
+		ImGui::TableSetupColumn( "Bytes" );
+		ImGui::TableSetupColumn( "Blocks" );
+		ImGui::TableHeadersRow();
+		for ( int tag = 0; tag < TAG_COUNT; ++tag ) {
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::TextUnformatted( memory.names[tag] );
+			ImGui::TableNextColumn();
+			ImGui::Text( "%" PRIu64, memory.bytes[tag] );
+			ImGui::TableNextColumn();
+			ImGui::Text( "%" PRIu64, memory.blocks[tag] );
+		}
+		ImGui::EndTable();
+	}
+	ImGui::EndTabItem();
+}
+
+static void InspectProfile( const refexport_t *renderer, uint32_t elapsed ) {
+	static float history[240];
+	static uint32_t cursor;
+	history[cursor++ % ARRAY_LEN( history )] = (float)elapsed;
+	if ( !ImGui::BeginTabItem( "Profile" ) )
+		return;
+	ImGui::PlotLines( "Frame ms", history, ARRAY_LEN( history ), (int)( cursor % ARRAY_LEN( history ) ), nullptr, 0, 100, ImVec2( 0, 80 ) );
+	devGpuTiming_t timings[32];
+	const uint32_t count = renderer->GetDeveloperTimings( timings, ARRAY_LEN( timings ) );
+	ImGui::TextUnformatted( "Completed GPU frame (no additional wait)" );
+	for ( uint32_t i = 0; i < count; ++i )
+		ImGui::Text( "%s: %.3f ms", timings[i].name, timings[i].microseconds / 1000.0 );
+	if ( !count )
+		ImGui::TextUnformatted( "GPU timestamp results unavailable" );
+	ImGui::EndTabItem();
+}
+
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds ) {
 	if ( !enabled || !enabled->integer || width <= 0 || height <= 0 )
 		return;
@@ -209,7 +322,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 		return;
 	ImGuiIO &io = ImGui::GetIO();
 	io.DisplaySize = ImVec2( (float)width, (float)height );
-	const uint32_t elapsed = (uint32_t)milliseconds - lastTime;
+	const uint32_t elapsed = lastTime ? (uint32_t)milliseconds - lastTime : 0;
 	io.DeltaTime = lastTime ? Com_Clamp( 0.001f, 0.25f, (float)elapsed * 0.001f ) : 1.0f / 60.0f;
 	lastTime = (uint32_t)milliseconds;
 	ImGui::NewFrame();
@@ -250,6 +363,9 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 				apply |= ImGui::Button( "Apply" );
 				ImGui::EndTabItem();
 			}
+			InspectAssets( renderer );
+			InspectProfile( renderer, elapsed );
+			InspectMemory();
 			ImGui::EndTabBar();
 		}
 	}
