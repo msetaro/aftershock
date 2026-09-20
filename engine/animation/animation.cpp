@@ -180,7 +180,7 @@ void Anim_DefaultParameters( const animAsset_t *asset, float *parameters ) {
 		parameters[i] = Read<animFileParameter_t>( asset, ANIM_PARAMETERS, i ).value;
 }
 void Anim_Reset( const animAsset_t *asset, uint32_t time, animState_t *state ) {
-	*state = { asset->header.initialState, asset->header.initialState, time, time, time, 0, time, 0 };
+	*state = { asset->header.initialState, asset->header.initialState, time, time, time, 0, time, 0, 0 };
 }
 static uint64_t LocalTime( uint32_t time, uint32_t entered, uint32_t speed ) {
 	return uint64_t( time - entered ) * speed / 65536;
@@ -206,10 +206,21 @@ bool Anim_Tick( const animAsset_t *asset, const float *parameters, uint32_t time
 	events->count = 0;
 	if ( state->current >= Count( asset, ANIM_STATES ) || uint32_t( time - state->lastTime ) > INT32_MAX || !Parameters( asset, parameters ) )
 		return false;
+	if ( state->initialized && time == state->lastTime )
+		return true;
 	animState_t next = *state;
 	animEvents_t pending = {};
 	const auto current = Read<animFileState_t>( asset, ANIM_STATES, next.current );
 	const auto clip = Read<animFileClip_t>( asset, ANIM_CLIPS, current.clip );
+	if ( !next.initialized ) {
+		for ( uint32_t e = 0; e < current.eventCount; ++e ) {
+			if ( Read<animFileEvent_t>( asset, ANIM_EVENTS, current.firstEvent + e ).timeMs )
+				break;
+			if ( !Emit( asset, current.firstEvent + e, next.entered, &next, &pending ) )
+				return false;
+		}
+		next.initialized = 1;
+	}
 	const uint64_t from = LocalTime( next.lastTime, next.entered, current.speedQ16 );
 	const uint64_t to = LocalTime( time, next.entered, current.speedQ16 );
 	if ( current.eventCount && to > from ) {
@@ -355,20 +366,57 @@ bool Anim_Evaluate( const animAsset_t *asset, const animState_t *state, const fl
 	}
 	return true;
 }
+static animTransform_t ComposeRigid( const animTransform_t *a, const animTransform_t *b ) {
+	float matrix[12];
+	Matrix( a, matrix );
+	animTransform_t out = identity;
+	for ( uint32_t i = 0; i < 3; ++i )
+		out.translate[i] = matrix[i * 4] * b->translate[0] + matrix[i * 4 + 1] * b->translate[1] + matrix[i * 4 + 2] * b->translate[2] + a->translate[i];
+	MultiplyQuaternion( a->rotate, b->rotate, out.rotate );
+	Normalize( out.rotate, 4 );
+	return out;
+}
+static animTransform_t InverseRigid( const animTransform_t *value ) {
+	animTransform_t out = identity;
+	for ( uint32_t i = 0; i < 3; ++i )
+		out.rotate[i] = -value->rotate[i];
+	out.rotate[3] = value->rotate[3];
+	float matrix[12];
+	Matrix( &out, matrix );
+	for ( uint32_t i = 0; i < 3; ++i )
+		out.translate[i] = -( matrix[i * 4] * value->translate[0] + matrix[i * 4 + 1] * value->translate[1] + matrix[i * 4 + 2] * value->translate[2] );
+	return out;
+}
+static animTransform_t RootAt( const animAsset_t *asset, const animFileClip_t *clip, uint32_t time, bool loop ) {
+	animTransform_t sampled = Sample( asset, 0, clip, time, loop );
+	memcpy( sampled.scale, identity.scale, sizeof( sampled.scale ) );
+	uint32_t loops = loop ? time / clip->durationMs : 0;
+	if ( !loops )
+		return sampled;
+	animTransform_t start = Sample( asset, 0, clip, 0, false );
+	animTransform_t end = Sample( asset, 0, clip, clip->durationMs, false );
+	memcpy( start.scale, identity.scale, sizeof( start.scale ) );
+	memcpy( end.scale, identity.scale, sizeof( end.scale ) );
+	const auto inverse = InverseRigid( &start );
+	animTransform_t cycle = ComposeRigid( &inverse, &end ), accumulated = identity;
+	// Exponentiation preserves ordered rigid composition without a loop per cycle.
+	for ( ; loops; loops >>= 1 ) {
+		if ( loops & 1 )
+			accumulated = ComposeRigid( &accumulated, &cycle );
+		cycle = ComposeRigid( &cycle, &cycle );
+	}
+	const auto origin = ComposeRigid( &start, &accumulated );
+	const auto relative = ComposeRigid( &inverse, &sampled );
+	return ComposeRigid( &origin, &relative );
+}
 bool Anim_RootMotion( const animAsset_t *asset, int32_t clipIndex, uint32_t from, uint32_t to, bool loop, animTransform_t *motion ) {
 	if ( clipIndex < 0 || uint32_t( clipIndex ) >= Count( asset, ANIM_CLIPS ) || to < from )
 		return false;
 	const auto clip = Read<animFileClip_t>( asset, ANIM_CLIPS, uint32_t( clipIndex ) );
-	const auto a = Sample( asset, 0, &clip, from, loop );
-	const auto b = Sample( asset, 0, &clip, to, loop );
-	const auto start = Sample( asset, 0, &clip, 0, false );
-	const auto end = Sample( asset, 0, &clip, clip.durationMs, false );
-	const uint32_t loops = loop ? to / clip.durationMs - from / clip.durationMs : 0;
-	*motion = identity;
-	for ( uint32_t i = 0; i < 3; ++i )
-		motion->translate[i] = b.translate[i] - a.translate[i] + float( loops ) * ( end.translate[i] - start.translate[i] );
-	const float inverse[4] = { -a.rotate[0], -a.rotate[1], -a.rotate[2], a.rotate[3] };
-	MultiplyQuaternion( b.rotate, inverse, motion->rotate );
+	const auto a = RootAt( asset, &clip, from, loop );
+	const auto b = RootAt( asset, &clip, to, loop );
+	const auto inverse = InverseRigid( &a );
+	*motion = ComposeRigid( &inverse, &b );
 	return true;
 }
 void Anim_BlendTransforms( uint32_t count, const animTransform_t *a, const animTransform_t *b, const float *mask, float weight, animTransform_t *out ) {

@@ -40,8 +40,11 @@ UBSan pass (animation-core-first.log, animation-core-clang.log), as do format,
 boundary and type checks. New source-only tests now expose the unimplemented
 turning-loop composition (animation-root-events-before.log, expected assertion).
 They also specify initial time-zero events, bounded transactional event overflow
-and unsigned clock wrap. Implement these before data-authored trees/layers and
-production/gameplay integration.
+and unsigned clock wrap. These now pass GCC/Clang+UBSan after ordered rigid root
+composition and explicit initial-entry bookkeeping (animation-root-events-after.log,
+animation-root-events-clang.log). State/event output remains atomic on overflow;
+repeated ticks cannot double-deliver or cascade transitions. Next: data-authored
+blend trees/masked additive layers, then production/gameplay integration.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/

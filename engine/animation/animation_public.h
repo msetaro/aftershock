@@ -94,6 +94,7 @@ struct animAsset_t {
 struct animState_t {
 	uint32_t current, previous, entered, previousEntered;
 	uint32_t blendStarted, blendDuration, lastTime, eventSequence;
+	uint32_t initialized;
 };
 struct animPose_t {
 	uint32_t jointCount;
@@ -109,7 +110,7 @@ struct animEvents_t {
 	uint32_t count;
 	animEvent_t items[ANIM_MAX_EVENTS];
 };
-static_assert( sizeof( animState_t ) == 32 && std::is_trivially_copyable_v<animState_t> );
+static_assert( sizeof( animState_t ) == 36 && std::is_trivially_copyable_v<animState_t> );
 static_assert( sizeof( animEvent_t ) == 16 && std::is_trivially_copyable_v<animEvent_t> );
 
 bool Anim_Open( const void *bytes, size_t size, animAsset_t *asset );
@@ -122,6 +123,7 @@ void Anim_DefaultParameters( const animAsset_t *asset, float *parameters );
 void Anim_Reset( const animAsset_t *asset, uint32_t time, animState_t *state );
 bool Anim_Tick( const animAsset_t *asset, const float *parameters, uint32_t time, animState_t *state, animEvents_t *events );
 bool Anim_Evaluate( const animAsset_t *asset, const animState_t *state, const float *parameters, uint32_t time, animPose_t *pose );
+// Rigid delta in the root frame at `from`; loop turns compose in order.
 bool Anim_RootMotion( const animAsset_t *asset, int32_t clip, uint32_t from, uint32_t to, bool loop, animTransform_t *motion );
 void Anim_BlendTransforms( uint32_t count, const animTransform_t *a, const animTransform_t *b, const float *mask, float weight, animTransform_t *out );
 void Anim_AdditiveTransforms( uint32_t count, const animTransform_t *base, const animTransform_t *delta, const animTransform_t *reference, const float *mask, float weight, animTransform_t *out );
