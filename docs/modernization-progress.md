@@ -74,7 +74,18 @@ checks (animation-rigs-test.log). Rifle: idle/ADS/fire/reload/sprint/jump, shot,
 shell and four reload stages. Body: idle/walk/run blend, masked aim/lean,
 crouch/prone, turn and alternating footsteps. `rigs.json` adds graph recipes;
 original Blender files, original project and provenance hashes are unchanged.
+Classic fixed Q3 replays still match projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(animation-classic-demo-fresh.log); the default output directory was from another
+worktree, so validation used a fresh build directory. No fixture/golden changes.
 Next: replicated gameplay pose state and real presentation/ImGui tests.
+Snapshot test-first now fails on the absent shared adapter
+(animation-snapshot-before.log). Decision: explicit auxiliary animation entities
+(type 255, outside the existing event range), using the existing entity delta
+codec and unchanged wire structs. Their own fields carry nine state words,
+sixteen float parameters, owner/rig and origin/view angles. Legacy player fields
+are untouched. Trace event consumers and exclude this new type before use;
+prove the full state/float round trip through production MSG functions.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/

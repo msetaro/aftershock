@@ -37,6 +37,14 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      'tests/probes/animation_render.cpp', 'engine/qcommon/q_shared.cpp',
      'engine/qcommon/q_math.cpp', '-Wl,--gc-sections', '-o', render_probe])
 run([render_probe])
+snapshot_probe = args.output / 'snapshot-probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-ffunction-sections', '-fdata-sections', '-fno-strict-aliasing',
+     '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/animation_snapshot.cpp', 'engine/qcommon/msg.cpp',
+     'engine/qcommon/huffman.cpp', 'engine/qcommon/huffman_static.cpp',
+     'engine/qcommon/q_shared.cpp', '-Wl,--gc-sections', '-o', snapshot_probe])
+run([snapshot_probe])
 fixture = Path(__file__).resolve().parent / 'assets/animation'
 provenance = json.loads((fixture / 'provenance.json').read_text())
 for name, expected in provenance['files'].items():
