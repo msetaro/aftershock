@@ -21,18 +21,17 @@ upstream; historical upstream PR references below are completed past work.
 tree equals the tested tree (0273866798e91a64d27002e5499353438d6a6769).
 Merged-tree regression 35499764754 passed. #142 is closed and #25 is updated.
 
-Current preparation branch is `issue/31-iqm-accounting`, in the isolated worktree
-/tmp/aftershock-31-iqm-accounting. #9 PR #145 has fixed its watcher race and is awaiting the hosted
-lifetime gate at 3eb19288; the reviewed #9 branch remains independent. Only the next bug's
-failing test is prepared here. Do not merge/open this follow-up until #9 is merged
-and its merged-tree regression passes; merge modernization forward afterward.
+Current test-preparation branch is `issue/31-iqm-joint-scale`, in isolated
+worktree /tmp/aftershock-31-iqm-joint-scale. #9 PR #145 has merged as c195f798;
+its integration regression 35507482742 is running. The separate accounting bug
+is being fixed on issue/31-iqm-accounting. This branch has no engine edits.
 
-The test compares model_t::dataSize with the actual allocator request for both
-initial IQM registration and twelve owned replacements. The pre-fix value is zero,
-so the first assertion fails. Next after #9 acceptance: assign the one native block's
-size in R_LoadIQM (do not accumulate across replacements), run gates and self-review,
-and create the separate #31 accounting PR. Then handle the recorded rotated
-nonuniform scale bug in its own #31 PR before #10. No upstream PRs.
+The production JointToMatrix check requires scale-before-rotation around all
+three axes, signed/nonuniform/unit scales, and inverse round trips. Before any
+fix it fails its first transformed-point assertion (iqm-scale-before.log).
+Commit this test first. After the accounting PR merges and passes its integration
+gate, merge modernization forward here, fix column scaling, remove the cooker's
+explicit diagnostic, and prove native/glTF pose agreement. No upstream PRs.
 
 Read #9 and the preparation notes in the persistent modernization cache
 (issue9-preparation.md). Trace native model/texture ownership before implementation.
@@ -3120,3 +3119,11 @@ pass locally in 5:02 at 448,048 KiB peak RSS; the normalized compilation databas
 is unchanged. Exact-head build 35507057165 passed. Regression 35507057162 has
 passed all completed required jobs (including runtime/tidy); hosted lifetimes
 remains pending. Issue #9 records the evidence; do not start this engine fix yet.
+
+## #31 rotated-scale test-first checkpoint
+
+`python3 tests/iqm_scale.py` compiles the production matrix functions with UBSan
+and checks analytical scale-then-rotate points on all axes plus inverse products.
+It fails before implementation on the first nonuniform rotated point. No loader
+input or golden regeneration is involved. The actual fix and cooker parity check
+wait for the separate accounting PR; do not combine the two engine bug fixes.
