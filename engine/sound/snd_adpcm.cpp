@@ -165,7 +165,7 @@ void S_AdpcmEncode( short indata[], char outdata[], int len, struct adpcm_state 
 		*outp++ = (signed char)( outputbuffer );
 
 	state->sample = (short)( valpred );
-	state->index = (char)( index );
+	state->index = (int8_t)( index );
 }
 
 
@@ -245,7 +245,7 @@ void S_AdpcmEncode( short indata[], char outdata[], int len, struct adpcm_state 
 	}
 
 	state->sample = (short)( valpred );
-	state->index = (char)( index );
+	state->index = (int8_t)( index );
 }
 
 

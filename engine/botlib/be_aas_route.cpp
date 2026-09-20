@@ -984,7 +984,7 @@ void AAS_WriteRouteCache( void ) {
 // Changes Globals:		-
 //===========================================================================
 static aas_routingcache_t *AAS_ReadCache( fileHandle_t fp ) {
-	int size;
+	int32_t size;
 	aas_routingcache_t *cache;
 
 	botimport.FS_Read( &size, sizeof( size ), fp );

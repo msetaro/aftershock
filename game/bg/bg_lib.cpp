@@ -77,7 +77,7 @@ static void swapfunc( char *, char *, int, int );
 static void
 swapfunc( char *a, char *b, int n, int swaptype ) {
 	if ( swaptype <= 1 )
-		swapcode( int64_t, a, b, n ) else swapcode( char, a, b, n )
+		swapcode( int64_t, a, b, n ) else swapcode( uint8_t, a, b, n )
 }
 
 #define swap( a, b )					\

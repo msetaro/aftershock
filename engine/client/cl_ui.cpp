@@ -57,7 +57,7 @@ static void LAN_LoadCachedServers( void ) {
 	cls.numGlobalServerAddresses = 0;
 
 	file_size = FS_Home_FOpenFileRead( "servercache.dat", &fileIn );
-	if ( (size_t)file_size < ( 3 * sizeof( int ) ) ) {
+	if ( (size_t)file_size < ( 3 * sizeof( int32_t ) ) ) {
 		if ( fileIn != FS_INVALID_HANDLE ) {
 			FS_FCloseFile( fileIn );
 		}
@@ -65,9 +65,9 @@ static void LAN_LoadCachedServers( void ) {
 	}
 
 	size = 0;
-	FS_Read( &cls.numglobalservers, sizeof( int ), fileIn );
-	FS_Read( &cls.numfavoriteservers, sizeof( int ), fileIn );
-	FS_Read( &size, sizeof( int ), fileIn );
+	FS_Read( &cls.numglobalservers, sizeof( int32_t ), fileIn );
+	FS_Read( &cls.numfavoriteservers, sizeof( int32_t ), fileIn );
+	FS_Read( &size, sizeof( int32_t ), fileIn );
 
 	if ( size == sizeof( cls.globalServers ) + sizeof( cls.favoriteServers ) ) {
 		FS_Read( &cls.globalServers, sizeof( cls.globalServers ), fileIn );
@@ -88,16 +88,16 @@ LAN_SaveServersToCache
 */
 static void LAN_SaveServersToCache( void ) {
 	fileHandle_t fileOut;
-	int size;
+	int32_t size;
 
 	fileOut = FS_FOpenFileWrite( "servercache.dat" );
 	if ( fileOut == FS_INVALID_HANDLE )
 		return;
 
-	FS_Write( &cls.numglobalservers, sizeof( int ), fileOut );
-	FS_Write( &cls.numfavoriteservers, sizeof( int ), fileOut );
+	FS_Write( &cls.numglobalservers, sizeof( int32_t ), fileOut );
+	FS_Write( &cls.numfavoriteservers, sizeof( int32_t ), fileOut );
 	size = sizeof( cls.globalServers ) + sizeof( cls.favoriteServers );
-	FS_Write( &size, sizeof( int ), fileOut );
+	FS_Write( &size, sizeof( int32_t ), fileOut );
 	FS_Write( &cls.globalServers, sizeof( cls.globalServers ), fileOut );
 	FS_Write( &cls.favoriteServers, sizeof( cls.favoriteServers ), fileOut );
 
