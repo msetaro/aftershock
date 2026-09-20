@@ -122,6 +122,13 @@ high-water ceiling they are dropped until map restart, preserving eight unopened
 slots. Hitscan damage still applies when effects are dropped. Projectile capacity
 and full lifecycle/lossy/replay/tooling acceptance remain outstanding.
 
+The real ImGui range test now fails waiting for the absent dev_weapon_range
+panel (weapons-range-before.log). It requires pointer-driven target spawning,
+selection of a second data-only rifle, trigger and reload. Reuse existing local
+rewind-target/game commands and cooked inspection; mutations run after vendor UI
+calls return. Keep the range tab absent until opened so existing tool layouts
+retain their positions.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing
