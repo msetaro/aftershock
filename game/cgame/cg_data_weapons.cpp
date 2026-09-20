@@ -5,11 +5,17 @@ static qhandle_t weaponProjectileModels[WEAPON_MAX_DEFINITIONS];
 static qhandle_t weaponImpacts[WEAPON_MAX_DEFINITIONS][WEAPON_MAX_ROWS];
 static weaponState_t predictedWeapons[2];
 static bool predictedWeaponValid[2];
+static animState_t predictedWeaponAnimations[2];
+static float predictedWeaponParameters[2][ANIM_MAX_PARAMETERS];
+static int predictedWeaponDefinitions[2];
+static uint32_t predictedWeaponAttachments[2];
 static struct {
 	bool valid;
 	uint32_t spawn;
 	int definition, attachments;
 	weaponState_t state;
+	animState_t animation;
+	float parameters[ANIM_MAX_PARAMETERS];
 } weaponPredictionHistory[2][CMD_BACKUP];
 
 static struct {
@@ -102,14 +108,15 @@ void CG_InitWeapons( void ) {
 	memset( predictedWeaponValid, 0, sizeof( predictedWeaponValid ) );
 	trap_Cvar_Register( &weaponTrace, "cg_weaponTrace", "0", 0 );
 	for ( int index = 0; index < int( WEAPON_MAX_DEFINITIONS ); ++index ) {
-		char text[MAX_QPATH + 66], path[MAX_QPATH], expected[65], actual[65];
+		char text[MAX_QPATH + 132], path[MAX_QPATH], expected[65], actual[65], expectedGraph[65], actualGraph[65];
 		Q_strncpyz( text, CG_ConfigString( CS_WEAPONS + index ), sizeof( text ) );
 		if ( !text[0] )
 			continue;
 		char *cursor = text;
 		Q_strncpyz( path, COM_Parse( &cursor ), sizeof( path ) );
 		Q_strncpyz( expected, COM_Parse( &cursor ), sizeof( expected ) );
-		if ( !BG_LoadWeapon( index, path, actual ) || strcmp( actual, expected ) )
+		Q_strncpyz( expectedGraph, COM_Parse( &cursor ), sizeof( expectedGraph ) );
+		if ( !BG_LoadWeapon( index, path, actual, actualGraph ) || strcmp( actual, expected ) || strcmp( actualGraph, expectedGraph ) )
 			CG_Error( "Weapon rejected: server definition differs for %s", path );
 		const auto *definition = BG_WeaponDefinition( index );
 		weaponProjectileModels[index] = trap_R_RegisterModel( definition->projectile.model );
@@ -142,6 +149,21 @@ void CG_WeaponSnapshot( const entityState_t *entity ) {
 		CG_Printf( "Weapon client state: owner=%d hand=%d tick=%u sequence=%u magazine=%u reserve=%u chamber=%u ads=%u\n", entity->otherEntityNum,
 			entity->otherEntityNum2, state.time, state.sequence, state.magazine, state.reserve, state.chamber, state.adsQ16 );
 }
+void CG_WeaponAnimationSnapshot( const entityState_t *entity ) {
+	animState_t state;
+	float parameters[ANIM_MAX_PARAMETERS];
+	uint32_t spawn;
+	if ( !BG_EntityStateToWeaponAnimation( entity, &state, parameters, &spawn ) || !BG_WeaponAnimation( entity->weapon ) )
+		CG_Error( "Weapon rejected: animation record" );
+	const auto &previous = weaponPredictionHistory[entity->otherEntityNum2][( state.lastTime / 20 ) % CMD_BACKUP];
+	if ( weaponTrace.integer && entity->otherEntityNum == cg.clientNum && previous.valid && previous.spawn == spawn &&
+		 previous.definition == entity->weapon && previous.attachments == entity->modelindex && previous.state.time == state.lastTime )
+		CG_Printf( "Weapon animation prediction: hand=%d tick=%u equal=%d\n", entity->otherEntityNum2, state.lastTime,
+			int( !memcmp( &state, &previous.animation, sizeof( state ) ) && !memcmp( parameters, previous.parameters, sizeof( parameters ) ) ) );
+	if ( weaponTrace.integer )
+		CG_Printf( "Weapon animation client: owner=%d hand=%d state=%s tick=%u sequence=%u\n", entity->otherEntityNum,
+			entity->otherEntityNum2, Anim_StateName( BG_WeaponAnimation( entity->weapon ), state.current ), state.lastTime, state.eventSequence );
+}
 void CG_PredictWeapons( void ) {
 	memset( predictedWeaponValid, 0, sizeof( predictedWeaponValid ) );
 	if ( !BG_WeaponDefinition( 0 ) || !cg.snap )
@@ -164,6 +186,22 @@ void CG_PredictWeapons( void ) {
 			CG_Error( "Weapon rejected: snapshot definition" );
 		const int hand = entity.otherEntityNum2;
 		const uint32_t acknowledgedTime = state.time;
+		animState_t animation = {};
+		float parameters[ANIM_MAX_PARAMETERS] = {};
+		bool haveAnimation = false;
+		for ( int a = 0; a < snapshot->numEntities; ++a ) {
+			const auto &record = snapshot->entities[a];
+			uint32_t animationSpawn;
+			if ( record.eType == ET_WEAPON_ANIMATION && record.otherEntityNum == entity.otherEntityNum && record.otherEntityNum2 == hand &&
+				 record.weapon == entity.modelindex && record.modelindex == entity.modelindex2 &&
+				 BG_EntityStateToWeaponAnimation( &record, &animation, parameters, &animationSpawn ) && animationSpawn == spawn && animation.lastTime == state.time ) {
+				haveAnimation = true;
+				break;
+			}
+		}
+		if ( !haveAnimation )
+			continue; // Wait for a matching pair when the snapshot budget splits auxiliary records.
+
 		// When input history is missing, retain the authoritative state until an acknowledgement catches up.
 		if ( !cg.demoPlayback && !cg_nopredict.integer && !cg_synchronousClients.integer &&
 			 int32_t( uint32_t( oldest.serverTime ) - state.time ) <= 20 ) {
@@ -181,13 +219,20 @@ void CG_PredictWeapons( void ) {
 				}
 				const auto &pose = weaponCommandPoses[uint32_t( number ) % CMD_BACKUP];
 				const bool havePose = pose.valid && pose.number == number && uint32_t( pose.state.persistant[PERS_SPAWN_COUNT] ) == spawn;
-				weaponEvents_t events;
-				if ( !Weapon_Command( &definition, BG_WeaponButtons( &cmd, hand, havePose ? &pose.state : &snapshot->ps ), uint32_t( cmd.serverTime ), &state, &events ) )
+				if ( int32_t( uint32_t( cmd.serverTime ) - state.time ) > 1000 )
 					break;
-				if ( havePose && definition.ballistics == WEAPON_PROJECTILE )
-					for ( uint32_t i = 0; i < events.count; ++i )
-						if ( events.items[i].kind == WEAPON_SHOT )
-							PredictProjectile( entity.modelindex, hand, spawn, number, &definition, events.items[i], &pose.state );
+				for ( int step = 0; step < 50 && int32_t( uint32_t( cmd.serverTime ) - state.time ) >= 20; ++step ) {
+					weaponEvents_t events;
+					animEvents_t notifies;
+					if ( !Weapon_Tick( &definition, BG_WeaponButtons( &cmd, hand, havePose ? &pose.state : &snapshot->ps ), state.time + 20, &state, &events ) ||
+						 !BG_WeaponAnimationStep( BG_WeaponAnimation( entity.modelindex ), &state, &events, &animation, parameters, &notifies ) )
+						CG_Error( "Weapon rejected: predicted animation" );
+					if ( havePose && definition.ballistics == WEAPON_PROJECTILE )
+						for ( uint32_t i = 0; i < events.count; ++i )
+							if ( events.items[i].kind == WEAPON_SHOT )
+								PredictProjectile( entity.modelindex, hand, spawn, number, &definition, events.items[i], &pose.state );
+				}
+
 				if ( int32_t( state.time - acknowledgedTime ) > 0 ) {
 					auto &prediction = weaponPredictionHistory[hand][( state.time / 20 ) % CMD_BACKUP];
 					prediction.valid = true;
@@ -195,9 +240,15 @@ void CG_PredictWeapons( void ) {
 					prediction.definition = entity.modelindex;
 					prediction.attachments = entity.modelindex2;
 					prediction.state = state;
+					prediction.animation = animation;
+					memcpy( prediction.parameters, parameters, sizeof( parameters ) );
 				}
 			}
 		}
+		predictedWeaponAnimations[hand] = animation;
+		memcpy( predictedWeaponParameters[hand], parameters, sizeof( parameters ) );
+		predictedWeaponDefinitions[hand] = entity.modelindex;
+		predictedWeaponAttachments[hand] = uint32_t( entity.modelindex2 );
 		predictedWeapons[hand] = state;
 		predictedWeaponValid[hand] = true;
 	}

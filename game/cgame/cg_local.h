@@ -1667,6 +1667,7 @@ extern qboolean initparticles;
 int CG_NewParticleArea( int num );
 
 void CG_InitWeapons( void );
+void CG_WeaponAnimationSnapshot( const entityState_t *entity );
 void CG_WeaponSnapshot( const entityState_t *entity );
 void CG_PredictWeapons( void );
 void CG_WeaponPredictionPose( int number, const playerState_t *state );

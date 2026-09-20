@@ -67,6 +67,17 @@ live assertion fails with zero predicted-animation comparisons
 (weapons-animation-live-before.log). Load/hash-check graphs, replicate per-hand
 state, and replay animation alongside weapon inputs before claiming live parity.
 
+Live graph loading and per-hand snapshot/input replay pass
+(weapons-animation-live-build.log, weapons-animation-live.log), including at least
+50 main-hand comparisons of complete animation state and all parameters. Graphs
+are loaded once, their hashes are checked against the server, attachment sockets
+must exist, and file storage is released at shutdown. Per-tick advancement keeps
+weapon and animation clocks together; split-budget records wait for a matching
+pair. Spectator commands release stale weapon auxiliary entities. GCC/Clang
+portable probes and format/boundary/type checks pass. This is not presentation
+acceptance yet: view/attachment rendering, notify sound, resource/lifecycle/lossy
+coverage, new replay, tooling and full gates remain.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing

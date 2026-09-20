@@ -848,6 +848,7 @@ void ClientThink_real( gentity_t *ent ) {
 
 	// spectators don't do much
 	if ( client->sess.sessionTeam == TEAM_SPECTATOR ) {
+		G_ClearWeaponActor( ent->s.number );
 		if ( client->sess.spectatorState == SPECTATOR_SCOREBOARD ) {
 			return;
 		}

@@ -7,7 +7,9 @@ static struct {
 	int selected[2];
 	uint32_t attachments[2][WEAPON_MAX_DEFINITIONS];
 	weaponDef_t configured[2];
-	gentity_t *entity[2];
+	gentity_t *entity[2], *animationEntity[2];
+	animState_t animation[2];
+	float parameters[2][ANIM_MAX_PARAMETERS];
 } weaponActors[MAX_CLIENTS];
 static vmCvar_t weaponTrace;
 
@@ -23,10 +25,10 @@ void G_InitWeapons( void ) {
 		const char *path = COM_Parse( &cursor );
 		if ( !path[0] )
 			continue;
-		char hash[65], config[MAX_QPATH + 66];
-		if ( strlen( path ) >= MAX_QPATH || !BG_LoadWeapon( index, path, hash ) )
+		char hash[65], graphHash[65], config[MAX_QPATH + 132];
+		if ( strlen( path ) >= MAX_QPATH || !BG_LoadWeapon( index, path, hash, graphHash ) )
 			G_Error( "Weapon rejected: cannot load %s", path );
-		Com_sprintf( config, sizeof( config ), "%s %s", path, hash );
+		Com_sprintf( config, sizeof( config ), "%s %s %s", path, hash, graphHash );
 		trap_SetConfigstring( CS_WEAPONS + index, config );
 		G_Printf( "Weapon server definition: index=%d name=%s\n", index, BG_WeaponDefinition( index )->name );
 	}
@@ -36,6 +38,9 @@ void G_InitWeapons( void ) {
 void G_ClearWeaponActor( int owner ) {
 	auto &actor = weaponActors[owner];
 	for ( auto *entity : actor.entity )
+		if ( entity )
+			G_FreeEntity( entity );
+	for ( auto *entity : actor.animationEntity )
 		if ( entity )
 			G_FreeEntity( entity );
 	actor = {};
@@ -238,6 +243,13 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 			actor.entity[hand]->r.svFlags = SVF_SINGLECLIENT;
 			actor.entity[hand]->r.singleClient = owner;
 			GameImport_SetEntityReplication( actor.entity[hand]->s.number, 3, 0 );
+			Anim_Reset( BG_WeaponAnimation( 0 ), uint32_t( commandStart ), &actor.animation[hand] );
+			Anim_DefaultParameters( BG_WeaponAnimation( 0 ), actor.parameters[hand] );
+			actor.animationEntity[hand] = G_Spawn();
+			actor.animationEntity[hand]->classname = "weapon_animation";
+			actor.animationEntity[hand]->r.svFlags = SVF_SINGLECLIENT;
+			actor.animationEntity[hand]->r.singleClient = owner;
+			GameImport_SetEntityReplication( actor.animationEntity[hand]->s.number, 3, 0 );
 		}
 	}
 	trap_Cvar_Update( &weaponTrace );
@@ -254,6 +266,10 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 				G_Printf( "Weapon switch: owner=%d hand=%d from=%d to=%d magazine=%u\n", owner, hand, selected, requested, actor.inventory[hand][requested].magazine );
 			selected = requested;
 			actor.configured[hand] = requestedDefinition;
+			const uint32_t sequence = actor.animation[hand].eventSequence;
+			Anim_Reset( BG_WeaponAnimation( selected ), uint32_t( cmd->serverTime ), &actor.animation[hand] );
+			actor.animation[hand].eventSequence = sequence;
+			Anim_DefaultParameters( BG_WeaponAnimation( selected ), actor.parameters[hand] );
 		}
 
 		auto &state = actor.inventory[hand][selected];
@@ -266,19 +282,37 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 			state.nextMelee += gap;
 			state.switchUntil += gap;
 			state.reloadStart += gap;
+			actor.animation[hand].entered += gap;
+			actor.animation[hand].previousEntered += gap;
+			actor.animation[hand].blendStarted += gap;
+			actor.animation[hand].lastTime += gap;
 		}
-		weaponEvents_t events;
-		if ( !Weapon_Command( definition, buttons, uint32_t( cmd->serverTime ), &state, &events ) )
-			G_Error( "Weapon rejected: command" );
-		for ( uint32_t i = 0; i < events.count; ++i ) {
-			const auto &event = events.items[i];
-			if ( event.kind == WEAPON_MELEE_EVENT || ( event.kind == WEAPON_SHOT && definition->ballistics == WEAPON_HITSCAN ) )
-				WeaponHit( player, definition, event, selected );
-			else if ( event.kind == WEAPON_SHOT )
-				SpawnWeaponProjectile( player, hand, selected, definition, event );
-			if ( weaponTrace.integer )
-				G_Printf( "Weapon event: owner=%d hand=%d kind=%u tick=%u sequence=%u\n", owner, hand, event.kind, event.time, event.sequence );
+		for ( int step = 0; step < 50 && int32_t( uint32_t( cmd->serverTime ) - state.time ) >= 20; ++step ) {
+			weaponEvents_t events;
+			animEvents_t notifies;
+			if ( !Weapon_Tick( definition, buttons, state.time + 20, &state, &events ) ||
+				 !BG_WeaponAnimationStep( BG_WeaponAnimation( selected ), &state, &events, &actor.animation[hand], actor.parameters[hand], &notifies ) )
+				G_Error( "Weapon rejected: command animation" );
+			for ( uint32_t i = 0; i < events.count; ++i ) {
+				const auto &event = events.items[i];
+				if ( event.kind == WEAPON_MELEE_EVENT || ( event.kind == WEAPON_SHOT && definition->ballistics == WEAPON_HITSCAN ) )
+					WeaponHit( player, definition, event, selected );
+				else if ( event.kind == WEAPON_SHOT )
+					SpawnWeaponProjectile( player, hand, selected, definition, event );
+				if ( weaponTrace.integer )
+					G_Printf( "Weapon event: owner=%d hand=%d kind=%u tick=%u sequence=%u\n", owner, hand, event.kind, event.time, event.sequence );
+			}
 		}
+		auto *animationEntity = actor.animationEntity[hand];
+		if ( !BG_WeaponAnimationToEntityState( &actor.animation[hand], actor.parameters[hand], uint32_t( actor.spawn ), owner, hand, selected,
+				 actor.attachments[hand][selected], ps.origin, ps.viewangles, &animationEntity->s ) )
+			G_Error( "Weapon rejected: animation snapshot" );
+		VectorCopy( ps.origin, animationEntity->r.currentOrigin );
+		trap_LinkEntity( animationEntity );
+		if ( weaponTrace.integer )
+			G_Printf( "Weapon animation server: owner=%d hand=%d state=%s tick=%u sequence=%u\n", owner, hand,
+				Anim_StateName( BG_WeaponAnimation( selected ), actor.animation[hand].current ), state.time, actor.animation[hand].eventSequence );
+
 		auto *entity = actor.entity[hand];
 		if ( !BG_WeaponToEntityState( &state, uint32_t( actor.spawn ), owner, hand, selected, actor.attachments[hand][selected], ps.origin, &entity->s ) )
 			G_Error( "Weapon rejected: snapshot" );

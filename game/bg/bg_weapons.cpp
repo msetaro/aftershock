@@ -2,22 +2,60 @@
 #include "../../engine/public/bg_public.h"
 
 static weaponDef_t weaponDefinitions[WEAPON_MAX_DEFINITIONS];
+static animAsset_t weaponAnimations[WEAPON_MAX_DEFINITIONS];
+static void *weaponAnimationStorage[WEAPON_MAX_DEFINITIONS];
 static int weaponDefinitionCount;
 void BG_ClearWeapons( void ) {
+	for ( auto &storage : weaponAnimationStorage ) {
+		Anim_FreeFile( storage );
+		storage = nullptr;
+	}
+	memset( weaponAnimations, 0, sizeof( weaponAnimations ) );
 	memset( weaponDefinitions, 0, sizeof( weaponDefinitions ) );
 	weaponDefinitionCount = 0;
 }
-bool BG_LoadWeapon( int index, const char *path, char hash[65] ) {
+bool BG_LoadWeapon( int index, const char *path, char hash[65], char graphHash[65] ) {
 	uint8_t digest[32];
 	if ( index != weaponDefinitionCount || index < 0 || index >= int( WEAPON_MAX_DEFINITIONS ) ||
 		 !Weapon_LoadFile( path, &weaponDefinitions[index], digest ) )
 		return false;
+	const auto &definition = weaponDefinitions[index];
+	animAsset_t graph;
+	void *storage = Anim_LoadFile( definition.animation, &graph );
+	if ( !storage )
+		return false;
+	bool valid = !strcmp( definition.model, graph.header.model ) && graph.header.sections[ANIM_EVENTS].count <= ANIM_MAX_EVENTS / 2;
+	const char *required[] = { "idle", "ads", "fire", "reload", "melee" };
+	for ( const char *name : required ) {
+		bool found = false;
+		for ( uint32_t state = 0; state < graph.header.sections[ANIM_STATES].count; ++state )
+			found |= !strcmp( name, Anim_StateName( &graph, state ) );
+		valid &= found;
+	}
+	// Event-bearing loops could overflow a single fixed tick at high clip speed.
+	for ( uint32_t i = 0; i < graph.header.sections[ANIM_STATES].count; ++i ) {
+		animFileState_t state;
+		memcpy( &state, graph.data + graph.header.sections[ANIM_STATES].offset + i * sizeof( state ), sizeof( state ) );
+		valid &= !( state.flags && state.eventCount );
+	}
+	for ( uint32_t i = 0; i < definition.attachmentCount; ++i )
+		valid &= Anim_BoneIndex( &graph, definition.attachments[i].socket ) >= 0;
+	if ( !valid ) {
+		Anim_FreeFile( storage );
+		return false;
+	}
+	weaponAnimations[index] = graph;
+	weaponAnimationStorage[index] = storage;
 	Anim_HashString( digest, hash );
+	Anim_HashString( graph.hash, graphHash );
 	++weaponDefinitionCount;
 	return true;
 }
 const weaponDef_t *BG_WeaponDefinition( int index ) {
 	return index >= 0 && index < weaponDefinitionCount ? &weaponDefinitions[index] : nullptr;
+}
+const animAsset_t *BG_WeaponAnimation( int index ) {
+	return index >= 0 && index < weaponDefinitionCount ? &weaponAnimations[index] : nullptr;
 }
 uint32_t BG_WeaponButtons( const usercmd_t *cmd, int hand, const playerState_t *ps ) {
 	if ( ps->stats[STAT_HEALTH] <= 0 || ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ||
@@ -159,7 +197,7 @@ bool BG_EntityStateToWeaponAnimation( const entityState_t *entity, animState_t *
 bool BG_WeaponAnimationStep( const animAsset_t *asset, const weaponState_t *weapon, const weaponEvents_t *events,
 	animState_t *state, float *parameters, animEvents_t *notifies ) {
 	notifies->count = 0;
-	if ( events->count > ARRAY_LEN( events->items ) )
+	if ( events->count > sizeof( events->items ) / sizeof( events->items[0] ) )
 		return false;
 	animState_t next = *state;
 	float inputs[ANIM_MAX_PARAMETERS];

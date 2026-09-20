@@ -719,7 +719,8 @@ void BG_LaunchWeaponProjectile( const weaponDef_t *definition, const weaponEvent
 weaponFlight_t BG_WeaponProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile, int owner,
 	void ( *trace )( trace_t *, const vec3_t, const vec3_t, const vec3_t, const vec3_t, int, int ), trace_t *impact );
 void BG_ClearWeapons( void );
-bool BG_LoadWeapon( int index, const char *path, char hash[65] );
+bool BG_LoadWeapon( int index, const char *path, char hash[65], char graphHash[65] );
+const animAsset_t *BG_WeaponAnimation( int index );
 const weaponDef_t *BG_WeaponDefinition( int index );
 uint32_t BG_WeaponButtons( const usercmd_t *cmd, int hand, const playerState_t *ps );
 bool BG_WeaponToEntityState( const weaponState_t *state, uint32_t spawn, int owner, int hand, int definition, uint32_t attachments, const float *origin, entityState_t *entity );

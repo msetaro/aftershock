@@ -521,6 +521,7 @@ G_ShutdownGame
 =================
 */
 void G_ShutdownGame( int restart ) {
+	BG_ClearWeapons();
 	G_ShutdownAnimation();
 	G_Printf( "==== ShutdownGame ====\n" );
 
