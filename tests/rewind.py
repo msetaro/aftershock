@@ -18,3 +18,10 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-fsanitize=undefined', '-fno-sanitize-recover=all',
      'tests/probes/rewind.cpp', 'engine/qcommon/net_history.cpp', '-o', binary])
 run([binary])
+
+game = args.output / 'game-probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-fno-fast-math', '-ffp-contract=off', '-Wall', '-Wextra', '-Werror',
+     '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/rewind_game.cpp', 'engine/qcommon/net_history.cpp', '-o', game])
+run([game])

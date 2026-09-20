@@ -60,6 +60,13 @@ Strict FP flags apply to this new arithmetic. Production gameplay integration
 and a real transport test are still required; the portable result is not yet
 full #12 acceptance.
 
+Game integration test-first now fails on absent g_rewind.cpp
+(netcode-rewind-game-before.log). It requires opt-in view-time hitscan validation,
+no live entity transform/link mutation, world occlusion, reused-slot rejection,
+one level-arena allocation with restart reuse, and unchanged legacy trace dispatch
+when disabled. Integrate history at the end of each server game frame and expose
+only a filtered trace plus level allocation through existing native imports.
+
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
 layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body
 controllers, replicated hit boxes, automatic body facing, ADS/recoil/sway, and an
