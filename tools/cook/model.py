@@ -16,17 +16,6 @@ def wrapped(magic, payload):
     return struct.pack('<8sII32s', magic, 1, len(payload), hashlib.sha256(payload).digest()) + payload
 
 
-def native_local(matrix):
-    translation, rotation, scale = decompose(matrix)
-    rotation_matrix = trs([0, 0, 0], rotation, [1, 1, 1])
-    # Existing IQM JointToMatrix scales rows. Reject the incompatible source
-    # combination until its separately tracked #31 fix; never silently distort it.
-    if any(abs(rotation_matrix[r * 4 + c] * (scale[r] - scale[c])) > max(map(abs, scale)) * 1e-5
-           for r in range(3) for c in range(3)):
-        raise ValueError('rotated nonuniform joint scale is blocked by native IQM bug #31')
-    return translation, rotation, scale
-
-
 def material_bytes(material, image_name):
     pbr = material.get('pbrMetallicRoughness', {})
     color = pbr.get('baseColorFactor', [1, 1, 1, 1])
@@ -183,7 +172,7 @@ def cook(path, name, options, read):
         raise ValueError('the cooked model exceeds the existing 128-joint engine limit')
     for joint in joints:
         parent_bind = joints[joint['parent']]['bind'] if joint['parent'] >= 0 else IDENTITY
-        joint['local'] = native_local(mul(inverse(parent_bind), joint['bind']))
+        joint['local'] = decompose(mul(inverse(parent_bind), joint['bind']))
 
     frames, clips = [], []
     clip_names = set()
@@ -250,7 +239,7 @@ def cook(path, name, options, read):
         local = []
         for index, joint in enumerate(joints):
             parent = converted[joint['parent']] if joint['parent'] >= 0 else IDENTITY
-            t, r, s = native_local(mul(inverse(parent), converted[index]))
+            t, r, s = decompose(mul(inverse(parent), converted[index]))
             if poses and dot(r, poses[-1][index][3:7]) < 0:
                 r = [-v for v in r]
             local.append([*t, *r, *s])

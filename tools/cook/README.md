@@ -116,5 +116,5 @@ Frame bounds are computed from stored quantized poses, including float vertex/bi
 values and accumulation padding. Source tangents are retained when every mesh
 provides them; otherwise that optional IQM array is omitted (material-specific
 tangent generation belongs to #13). Clip names must be unique and at most 63 UTF-8
-bytes. Rotated nonuniform joint scale is explicitly rejected while the existing
-IQM row-scale bug is fixed separately under #31; static transforms remain baked.
+bytes. Joint transforms preserve scale-before-rotation, including rotated
+nonuniform scales; static transforms remain baked.

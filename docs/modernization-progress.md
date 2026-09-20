@@ -16,29 +16,28 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#9 PR #145 merged as c195f798 after exact head 3eb19288 passed build
-35507057165 and regression 35507057162 with the committed self-review. The merge
-tree matches the tested tree (a932a04e693402c91f8eecd0101a2852bf53714b).
-Merged-tree regression 35507482742 passed. #9 is complete; close it/update #25
-and open the separate accounting PR at this checkpoint.
+#9 PR #145 merged as c195f798 and passed integration regression 35507482742;
+#9 is closed and checked in #25. Accounting PR #146 merged as 3d104d0c after
+exact head 1f1aeb8f passed build 35508534162 and regression 35508533987. Its merge
+tree matches the tested tree (b15a081c6dd1446dea030b9c6d899fdccaa41206).
+Merged-tree regression 35508970698 passed. The separate scale PR may now open.
 
-Current branch is `issue/31-iqm-accounting`. Test-first commit 85563345 compares
-model_t::dataSize with the actual allocator request on registration and twelve
-owned replacements; it fails at the initial zero-valued accounting before any
-engine fix (iqm-accounting-before.log). Modernization is merged forward without
-rewriting history. With #9 merged, prepare the isolated one-line assignment in
-R_LoadIQM and its local verification while the merged-tree gate runs; no follow-up
-PR opens until that gate passes. This advances the earlier tests-only preparation
-checkpoint now that #9's exact-head gates and merge are complete.
+Current branch is issue/31-iqm-joint-scale. Modernization is merged forward,
+including the MSVC accounting-width correction; no history is rewritten. Failing
+tests 13f999df/e2cd9e50 precede the six-coefficient scale fix. GCC/Clang UBSan
+matrix/native-glTF parity, full cooker checks, formatting and unchanged fixed
+Quake 3 demo hashes pass. Self-review is recorded below. Open this separate scale PR and require exact-head hosted build/regression,
+then merge with a merge commit and require its merged-tree regression.
 
-The accounting fix now passes GCC/Clang cooker checks, formatting and
-fixed Quake 3 replay. Self-review is recorded below. Next: open and gate the
-separate #31 accounting PR, merge with a merge commit after exact-head success,
-and require its merged-tree regression before the following PR;
-then fix rotated nonuniform joint scale in another #31 PR. Its mathematical test
-is being prepared in /tmp/aftershock-31-iqm-joint-scale without engine edits.
-After both bugs, continue #10 and the remaining #25 roadmap. All GitHub changes
-stay in msetaro/aftershock. Never regenerate accepted fixtures for these fixes.
+#10 has initial failing-test preparation 57838d59 and new owned source fixtures
+0704fe4c on
+issue/10-animation in /tmp/aftershock-10-animation. No animation implementation
+is present there. After the scale PR is accepted, merge modernization forward
+into #10, read its full issue and the cache issue10-entry-points.md and
+issue10-design-considerations.md, then extend runtime/gameplay tests before
+implementation. The full rifle/body/layers/IK/events/recorded-hit-box scope remains
+mandatory; the first cooker-envelope test is not acceptance. Continue the full
+#25 roadmap afterward. All GitHub writes stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -3176,6 +3175,41 @@ committed separately as 13f999df and fails before any matrix change.
 now open; its own exact-head build/regression and post-merge regression remain
 required. The main worktree is now on issue/31-iqm-accounting.
 
+## #31 rotated-scale test-first preparation
+
+13f999df tests production scale-before-rotation for all axes and signed/nonuniform/
+unit scales plus inverse products. e2cd9e50 extends it through the owned two-joint
+glTF triangle and native IQM poses. Its tip uses T(0,1,0), Rz(90), S(2,1,1) and
+inverse bind T(0,-1,0); the engine-basis final vertices must be (0,0,0), (-1,0,3),
+(-1,0,-1). This is an analytical expectation, not a regenerated accepted golden.
+Both pre-fix runs fail at the first matrix point assertion. Evidence:
+iqm-scale-before.log and iqm-scale-parity-before.log. No engine scale change has
+been applied at this test/merge checkpoint.
+
+## #31 rotated-scale fix and local verification
+
+JointToMatrix changes the six off-diagonal scale indices to multiply columns,
+so local scale precedes rotation. Both callers (bind construction and animated
+pose sampling) use this shared correction. The cooker drops the temporary
+native_local rejection and uses its existing decompose helper. The CI unit legs,
+AGENTS and tests README now include tests/iqm_scale.py; the general cooker check
+accepts the formerly blocked owned nonuniform source.
+
+GCC and Clang/libc++ analytical matrix/inverse/native-glTF pose tests pass with
+UBSan, as do both complete cooker suites and formatting (415 owned files).
+Fixed Quake 3 demos replay twice per map with the accepted projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4 and unchanged
+fixture hashes. Evidence: iqm-scale-{after,clang,cook-gcc,cook-clang,format,demo}.log.
+No accepted artifact was regenerated. The new valid source case uses analytical
+expected positions; no sanitizer suppression or expected-failure entry exists.
+
+Self-review: one existing numerical bug, failing tests before implementation,
+no unrelated refactor. The shared helper fixes both affected paths. No gameplay
+simulation expression, allocator, OS call, destructor or ABI/layout changes.
+Only renderer transform coefficients change; uniform-scale paths and accepted
+replays retain their outputs. Exact-head hosted build/regression, the preceding
+#146 integration gate, and this PR's merged-tree regression remain required.
+
 
 #146 initial build 35508144036 caught MSVC C4267: the allocation size is size_t,
 while model_t::dataSize retains its signed 32-bit reporting field. The correction
@@ -3186,3 +3220,21 @@ This remains the same accounting bug and introduces no new test target. Final
 exact-head build/regression must rerun; the initial failed build is not acceptance.
 Self-review update: the reporting-width guard is necessary for exact accounting;
 no ABI, allocation algorithm, geometry or simulation arithmetic changes.
+
+The accounting width correction 1f1aeb8f is merged forward into the separate
+scale branch before its PR. Superseded accounting regression 35508144077 was
+cancelled after build 35508144036 failed; it is not an accepted gate.
+
+
+#146 merged as 3d104d0c after final exact-head build 35508534162/regression
+35508533987 passed. Its merge tree equals the tested tree. Integration regression
+35508970698 is running; no scale PR opens before it passes. Modernization is
+merged forward into the scale branch at this checkpoint. The corrected-accounting
+and scale test combination passes (iqm-scale-merged-width.log). #10 test-only
+preparation is 57838d59; its initial cook fails on the absent animation asset kind.
+
+#146 integration regression 35508970698 passed at 3d104d0c. Open the scale PR at
+this checkpoint; require its exact-head build/regression and post-merge regression.
+#10 preparation 0704fe4c adds new original Blender rifle/body acceptance sources,
+whose model cooks and neutral-layout visual review pass. The animation-state
+asset test still fails as expected; there is no #10 runtime/gameplay implementation.

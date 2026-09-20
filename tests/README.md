@@ -19,6 +19,7 @@ python3 tests/native_math.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
 python3 tests/cook.py
+python3 tests/iqm_scale.py
 python3 tests/cook_runtime.py
 python3 tests/cook_runtime.py --modules --output /tmp/cook-modules
 python3 tests/devtools.py
@@ -46,6 +47,12 @@ IQM pose code. `--cxx` selects GCC or Clang/libc++. Its source fixture/provenanc
 is in `tests/assets/cook-character`; CI never reauthors it. No game paks are used. It also
 checks authored WAV/OGG sources through the production PCM codec, twelve bounded
 model/material replacements and 10,000 allocation-free idle publication polls.
+
+`python3 tests/iqm_scale.py` checks native IQM scale-before-rotation around all
+axes, signed/nonuniform/unit scales, inverse composition and cooked glTF/native
+pose parity. It uses the same Pillow/compiler prerequisites, runs with UBSan,
+and accepts `--cxx`/`--output`. Expected vertex coordinates are analytical; no
+accepted model, frame or demo fixture is regenerated.
 
 `python3 tests/cook_runtime.py` uses real ImGui input under Xvfb/lavapipe to load
 the owned Blender character, select both clips and measure a watched texture
