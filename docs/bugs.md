@@ -41,11 +41,25 @@ Source audit at 2b43a0bb found that `vk_begin_frame` in
 result and sets `swapchain_image_acquired`. `VK_TIMEOUT` and `VK_NOT_READY`
 do not supply an acquired image; only success/suboptimal results do. See the
 [Vulkan acquisition contract](https://docs.vulkan.org/refpages/latest/refpages/source/vkAcquireNextImageKHR.html).
-This is a source-confirmed status-handling defect; no driver/runtime failure has
-been observed in the existing replays. A focused failing-before/passing-after
-#31 PR must handle these results before #6's frame lifecycle gate is complete.
+The permanent `python3 tests/vulkan_acquire.py` executes the real `vk_begin_frame`
+with controlled GPU callbacks and stops at command recording; it creates no GPU
+or window. On integration e82eb43b, success/suboptimal cases pass, but timeout and
+not-ready cases both exit 1 because command recording is reached without an image
+(expected: error callback exit 42 with acquired state false). Evidence:
+~/.cache/aftershock-modernization/vulkan-acquire-before.log. No actual driver
+failure has been observed in normal replay. This separate test-first #31 PR must
+pass before #6's frame lifecycle gate is complete.
 No fix belongs in the RHI extraction PR, and no golden changes are anticipated
 for successful rendering.
+
+Test-first ea17a6ba is followed by the single-condition correction: only
+VK_SUCCESS/VK_SUBOPTIMAL_KHR permit acquisition. Timeout/not-ready use the existing
+fatal acquisition-error path; the existing out-of-date retry remains. Both GCC and
+Clang/libc++ now pass all four cases, and fixed-demo video-restart replay retains
+b38004b1. No active known-bug/suppression entry exists for this new defect and none
+is added; no accepted golden or fixture regeneration is warranted. PR #141 merged as 61401e17 after head 7382d9af passed full build 35484485400
+and regression 35484485349, with AGENTS self-review. The fix enters #6 through
+that integration merge; its merged-tree regression is pending.
 
 ## Formatter capacity defects found during #8
 

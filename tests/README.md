@@ -17,6 +17,7 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 ```
 python3 tests/native_math.py
 python3 tests/rhi.py
+python3 tests/vulkan_acquire.py
 python3 tests/check_format.py
 python3 tests/check_types.py
 python3 tests/check_tidy.py
@@ -48,6 +49,12 @@ informational; hardware/driver differences are not a performance failure gate.
 The RHI retains at most 32 scopes per frame, reads available results after the
 existing frame fence, and never adds a query wait. Its check covers timestamp
 wrap, unavailable results, scope exhaustion, and duplicate scope completion.
+
+`python3 tests/vulkan_acquire.py` runs the real Vulkan frame acquisition method
+with controlled callbacks and stops at command recording. It needs no GPU, window
+or content. Success/suboptimal must retain the acquired image index; timeout and
+not-ready must report the existing fatal acquisition error before recording or
+marking an image acquired. Both compiler unit jobs run these four cases.
 
 Central model/BSP/AAS file records and the shared state/font records assert size,
 alignment, trivial copyability and standard layout in their owning headers.

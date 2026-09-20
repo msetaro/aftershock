@@ -130,6 +130,7 @@ python3 tests/native_diagnostics.py
 python3 tests/bot_command.py
 python3 tests/native_info.py
 python3 tests/rhi.py
+python3 tests/vulkan_acquire.py
 python3 tests/check_format.py
 python3 tests/check_types.py
 python3 tests/check_tidy.py

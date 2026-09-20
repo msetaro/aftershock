@@ -74,6 +74,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build libc++-dev libc++abi-dev
       - name: RHI contract and frame uploads
         run: python3 tests/rhi.py --cxx '${{ matrix.cxx }}'
+      - name: Vulkan image acquisition status
+        run: python3 tests/vulkan_acquire.py --cxx '${{ matrix.cxx }}'
       - name: Frame evidence negative controls
         run: python3 tests/check_frames.py
       - name: Build C native modules and compare ABI layouts

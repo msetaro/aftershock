@@ -16,16 +16,15 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Continue #6 draft PR #140 on `issue/6-rhi`, based on integration e82eb43b.
-Uploads, textures, wait statuses, initial commands, GPU scopes and portable pipeline
-descriptions have been extracted. Next remove graphics SDK types from the platform
-import boundary and complete frame/buffer/pipeline ownership. The independent
-acquisition fix is PR #141 (`issue/31-vulkan-acquire`, head 7382d9af, test-first
-ea17a6ba), running build 35484485400 and regression 35484485349. Merge that #31 PR
-only after gates/self-review, then merge modernization into this branch; do not
-apply its engine correction directly in #6. Keep accepted fixtures/frame goldens.
-GL retirement and frontend moves follow the complete RHI/lifecycle acceptance.
-Then continue #7 and the remaining #25 sequence; all writes stay in this repo.
+Continue #6 draft PR #140 on `issue/6-rhi`. Uploads, textures, wait statuses,
+initial commands, GPU scopes and portable pipeline descriptions are extracted.
+Next remove SDK types from the platform import boundary and complete frame/buffer/
+pipeline ownership. Acquisition fix PR #141 merged separately as 61401e17 after
+full build 35484485400/regression 35484485349 and self-review; it has now been
+merged into this branch. Verify its integration regression before the next PR
+merge. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
+follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
+#25 sequence. All writes stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -35,6 +34,26 @@ No RHI engine changes have merged yet. Baseline capacities: two frame slots, 4 M
 normal / 8 MiB high geometry buffers, 2 MiB normal / 24 MiB high staging buffers,
 32 samplers and 2,304 pipeline descriptions; do not change these during extraction.
 Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
+
+## #31 Vulkan acquisition checkpoint
+
+`tests/vulkan_acquire.py` runs the real frame method with controlled GPU callbacks
+and exits at command recording, without opening a window or creating a device.
+On e82eb43b the two valid result cases pass. Both timeout/not-ready cases fail:
+recording is reached despite no acquired image (exit 1, expected error exit 42).
+Evidence: vulkan-acquire-before.log. Engine code is still unchanged in the first
+test commit. Decision: route these no-image statuses through the existing fatal
+acquisition-error path; preserve success, suboptimal and out-of-date retry handling.
+No fixture/golden changes are needed for valid rendering; no simulation change.
+Test-first commit ea17a6ba records the failure. The engine correction accepts only
+VK_SUCCESS/VK_SUBOPTIMAL_KHR before setting acquired state; other statuses retain
+the existing error/retry paths. GCC and Clang/libc++ all four cases pass (the Clang
+probe's error callback explicitly matches the noreturn attribute). Local video-
+restart replay passes b38004b1. Format/type/boundary checks pass. AGENTS self-review:
+one acquisition condition only; no new engine OS call, allocation, destructor,
+layout or floating-point change. CI integration runs the new test on both unit
+compilers. Head 7382d9af passed build 35484485400 and regression 35484485349;
+PR #141 merged 61401e17. Integration regression is pending.
 
 ## #6 implementation checkpoint
 
@@ -118,7 +137,13 @@ get-description and bind operations are public RHI entry points. Uniform layout
 is renderer-owned (128 bytes, alignment 4; fog fields at offsets 64 and 112), and
 uploads remain opaque bytes. No shader bytes, state values or arithmetic changed.
 GCC/Clang contract checks, format/type/boundary checks and fixed replay pass;
-all four resource snapshots retain the original counts (rhi-pipelines.log).
+pipeline/image counts retain their original values (rhi-pipelines.log).
+Correction to the initial resource claim: q3dm7's vertex peak is 117 KiB, not
+120 KiB. Rechecking timestamp checkpoint 21b44a9c before pipeline extraction also
+reports 117 KiB in both replays, so the difference predates the pipeline move.
+q3dm17 remains 284 KiB. Capacities and accepted sampled frames are unchanged.
+Retain this measured difference; do not treat upload peaks as frame goldens.
+Evidence: rhi-pre-pipeline-recheck.log and rhi-pre-pipeline-metrics/.
 
 GPU scopes checkpoint 21b44a9c passed full build 35484267291 and regression
 35484267381, including hosted real-clock OpenArena measurements. Prior command

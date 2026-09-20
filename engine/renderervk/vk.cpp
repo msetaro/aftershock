@@ -7500,7 +7500,7 @@ void vk_begin_frame( void ) {
 		res = qvkAcquireNextImageKHR( vk.device, vk.swapchain, 1 * 1000000000ULL, vk.cmd->image_acquired, VK_NULL_HANDLE, &vk.cmd->swapchain_image_index );
 		// when running via RDP: "Application has already acquired the maximum number of images (0x2)"
 		// probably caused by "device lost" errors
-		if ( res < 0 ) {
+		if ( res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR ) {
 			if ( res == VK_ERROR_OUT_OF_DATE_KHR && retry == qfalse ) {
 				// swapchain re-creation needed
 				retry = qtrue;
