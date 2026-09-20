@@ -140,7 +140,50 @@ static void *missing_loader_entry( uint64_t instance, const char *name ) {
 	return nullptr;
 }
 
+static uint32_t textureCopies;
+static uint32_t textureBlockBytes;
+static void VKAPI_CALL copy_texture( VkCommandBuffer, VkBuffer, VkImage, VkImageLayout layout, uint32_t count, const VkBufferImageCopy *regions ) {
+	assert( layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && count == 3 );
+	const uint32_t widths[] = { 7, 3, 1 }, heights[] = { 5, 2, 1 };
+	const uint32_t offsets[] = { 0, 4 * textureBlockBytes, 5 * textureBlockBytes };
+	for ( uint32_t i = 0; i < count; i++ ) {
+		assert( regions[i].imageExtent.width == widths[i] && regions[i].imageExtent.height == heights[i] );
+		assert( regions[i].bufferOffset == offsets[i] && regions[i].imageSubresource.mipLevel == i );
+	}
+	textureCopies++;
+}
+
+static void check_compressed_uploads() {
+	uint8_t source[96], staging[128];
+	for ( uint32_t i = 0; i < sizeof( source ); i++ )
+		source[i] = (uint8_t)( i * 13 );
+	vk.staging_buffer.ptr = staging;
+	vk.staging_buffer.size = sizeof( staging );
+	qvkAllocateCommandBuffers = []( VkDevice, const VkCommandBufferAllocateInfo *, VkCommandBuffer *command ) { *command = (VkCommandBuffer)(uintptr_t)23; return VK_SUCCESS; };
+	qvkBeginCommandBuffer = []( VkCommandBuffer, const VkCommandBufferBeginInfo * ) { return VK_SUCCESS; };
+	qvkEndCommandBuffer = []( VkCommandBuffer ) { return VK_SUCCESS; };
+	qvkQueueSubmit = []( VkQueue, uint32_t, const VkSubmitInfo *, VkFence ) { return VK_SUCCESS; };
+	qvkQueueWaitIdle = []( VkQueue ) { return VK_SUCCESS; };
+	qvkFreeCommandBuffers = []( VkDevice, VkCommandPool, uint32_t, const VkCommandBuffer * ) {};
+	qvkCmdPipelineBarrier = []( VkCommandBuffer, VkPipelineStageFlags, VkPipelineStageFlags, VkDependencyFlags, uint32_t, const VkMemoryBarrier *, uint32_t, const VkBufferMemoryBarrier *, uint32_t, const VkImageMemoryBarrier * ) {};
+	qvkCmdCopyBufferToImage = copy_texture;
+	const rhiFormat_t formats[] = { rhiFormat_t::BC4, rhiFormat_t::BC5, rhiFormat_t::BC7, rhiFormat_t::BC7_SRGB };
+	const VkFormat native[] = { VK_FORMAT_BC4_UNORM_BLOCK, VK_FORMAT_BC5_UNORM_BLOCK, VK_FORMAT_BC7_UNORM_BLOCK, VK_FORMAT_BC7_SRGB_BLOCK };
+	const rhiTexture_t texture = { 11, 12, 13 };
+	for ( uint32_t i = 0; i < 4; i++ ) {
+		assert( vk_texture_format( formats[i] ) == native[i] );
+		textureBlockBytes = i == 0 ? 8 : 16;
+		memset( staging, 0xa5, sizeof( staging ) );
+		const uint32_t size = textureBlockBytes * 6;
+		assert( RHI_UploadCompressedTexture( &texture, 7, 5, 3, source, size, formats[i], i != 0 ) == rhiStatus_t::Success );
+		assert( memcmp( source, staging, size ) == 0 && staging[size] == 0xa5 );
+	}
+	assert( textureCopies == 4 );
+	vk.staging_buffer = {};
+}
+
 int main( void ) {
+	check_compressed_uploads();
 	vk_config.uniformBytes = 128;
 	assert( !RHI_GetCapabilities().active );
 	vk.active = vk.wideLines = vk.fragmentStores = vk.clearAttachment = vk.fboActive = vk.offscreenRender = qtrue;

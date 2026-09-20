@@ -19,19 +19,18 @@ upstream; historical upstream PR references below are completed past work.
 #142 PR #144 merged as 6a9e755b after exact head ffcb072c passed build
 35498994504 and regression 35498994503, with the committed self-review. The merge
 tree equals the tested tree (0273866798e91a64d27002e5499353438d6a6769).
-Merged-tree regression 35499764754 is running. Close #142/update #25 only after
-it passes; no #9 merge before that verification.
+Merged-tree regression 35499764754 passed. #142 is closed and #25 is updated.
 
 Current branch is `issue/9-asset-pipeline`. Its test-first commit is 56c25515;
 origin/modernization has been merged into it without rewriting history. The
 owned Blender source fixture was exported once with verified portable Blender
-4.5.3 (archive hash below). Implement the offline cooker against these failing
-feature tests, then complete native compressed texture/reload/UI acceptance.
+4.5.3 (archive hash below). Offline cooking/production pose tests pass at 7acd72c1.
+Draft PR #145 holds #9. Complete native compressed texture/reload/UI acceptance.
 Keep the graph's reviewed branch unchanged. #7 is complete and closed.
 
 Read #9 and the preparation notes in the persistent modernization cache
 (issue9-preparation.md). Trace native model/texture ownership before implementation.
-The first cooker feature test is committed and fails on the absent CLI. No accepted fixtures/goldens or finished historical test evidence may
+The first cooker feature test failed before implementation and now passes. No accepted fixtures/goldens or finished historical test evidence may
 change. Continue the #25 roadmap after #9. All writes stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
@@ -2834,3 +2833,8 @@ native helper hashes match formatted-native.json; 1,810-assembly comparison is
 being refreshed only for the filesystem rows. Review Windows changes and MSVC
 conversions before proposing a PR. Foreign long declarations still require a
 precise, documented policy; do not silently suppress a whole file or family.
+
+#9 BC upload feature test: extend the existing production RHI probe with four
+compressed formats and an odd-size 7x5 mip chain. Assert native format mapping,
+block-rounded copy offsets and exact staging bytes, including replacement upload.
+The unchanged engine fails to compile because the new formats/API are absent.
