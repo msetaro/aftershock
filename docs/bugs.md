@@ -23,9 +23,14 @@ failure and skipped proxy/server cleanup until the outer limit. This is test
 infrastructure; no engine defect, accepted-golden change or sanitizer entry is involved.
 
 Existing failure: runtime job 106141530168 and its runtime-diagnostics artifact.
-A lower-FPS real-client control and `tests/netcode_cleanup.py` cover progress and
-bounded teardown. The latter currently fails on the absent stop_client helper
-(netcode-cleanup-before.log). Fix/acceptance is tracked in
+The lower-FPS real-client control now completes in 54.0 seconds: 301/301 shots,
+22 hits, 49 uncompensated differences, and 1511/1511 weapon/animation comparisons.
+Its 200 ms median view age includes the deliberate 50 ms frame interval and stays
+inside the configured rewind window. The original 100-FPS bound remains 180 ms.
+The scenario gets 120 seconds inside a 240-second outer limit; all hit/state checks
+are retained. `tests/netcode_cleanup.py` first failed on the absent stop_client
+helper (netcode-cleanup-before.log), and now verifies forced kill/reaping when a
+private child ignores SIGTERM. Full CI/integration acceptance remains pending in
 https://github.com/msetaro/aftershock/issues/151 .
 
 | Defect | Fork fix | Upstream |

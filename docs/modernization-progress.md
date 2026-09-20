@@ -17,8 +17,17 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/151-loopback-deadline`, a test-only follow-up to #11.
-Implement the failing cleanup check and a software-rendering scenario budget;
-prove the existing full correctness assertions at a capped low client FPS. Then
+The cleanup check now passes: an ignoring child is killed/reaped after its grace
+period. The weapon deadline is 120 seconds inside a 240-second outer limit, and
+--client-fps 20 provides the deliberately slow real-client control (running).
+The first slow run completed the whole scenario and teardown, then failed the
+100-FPS-specific median-age bound (200 ms observed vs 180 ms). Allow only the
+additional input/render interval, capped at the configured 200 ms rewind window;
+retain the original bound for normal FPS. Hit/state/prediction checks are unchanged.
+The slow control passes and takes 54.0 seconds before its done marker (>45):
+301/301 shots agree, 22 hits, 49 uncompensated differences, median view age 200 ms,
+prediction error <=8.875, and 1511/1511 full weapon/animation comparisons. Cleanup
+also passes. The original default/classic scenario is being checked now. Then
 run full gates/self-review, merge #151's PR and require merged-tree regression.
 Do not close/check #11 until integration is green. No engine changes are needed.
 
@@ -41,6 +50,21 @@ After #151 integration, merge modernization forward into that branch and resume.
 Its earlier checkpoint records user-cache q3map2/MBSPC preparation and deterministic
 padding normalization; scratch notes are in /tmp/aftershock-level-next.md.
 All changes and PRs remain in msetaro/aftershock.
+
+## #151 self-review
+
+This is exclusively test infrastructure. The same gameplay commands, fixed engine
+tick, data files, accepted fixtures, hit oracle, complete state comparisons and
+prediction checks remain. A low-FPS control proves the wall-time regression instead
+of hiding it with a blind retry. Only the renderer-dependent view-age timing bound
+accounts for one extra frame interval, never exceeding the configured 200 ms
+rewind window; default 100-FPS behavior retains the old 180 ms ceiling. Cleanup
+uses the existing private process group, graceful termination followed by forced
+kill/reaping. No engine, simulation arithmetic, OS ownership, allocation or wire
+layout changes are present. CI uses the same cooker Python environment and runs
+both the ignoring-child check and the capped-FPS scenario. Full final-head gates
+and merged-tree regression remain required before closing #151/#11.
+
 
 #12 PR #149 merged with a merge commit as
 3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree

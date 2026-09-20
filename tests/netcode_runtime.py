@@ -80,6 +80,20 @@ class LoopbackDelay:
             raise self.error
 
 
+def stop_client(client, grace=5):
+    if client is None or client.poll() is not None:
+        return
+    try:
+        os.killpg(client.pid, signal.SIGTERM)
+        try:
+            client.wait(timeout=grace)
+        except subprocess.TimeoutExpired:
+            os.killpg(client.pid, signal.SIGKILL)
+            client.wait(timeout=5)
+    except ProcessLookupError:
+        client.wait(timeout=5)
+
+
 def intersects(start, end, minimum, maximum):
     enter, leave = 0.0, 1.0
     for a, b, low, high in zip(start, end, minimum, maximum):
@@ -98,13 +112,17 @@ def main():
     parser.add_argument('--server', type=Path, required=True, help='AFTERSHOCK_DEVTOOLS build')
     parser.add_argument('--weapons', action='store_true', help='exercise the data-driven weapon and grenade path')
     parser.add_argument('--inside-xvfb', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--client-fps', type=int, default=100, help='cap rendered frames; 20 exercises slow CI rendering')
     parser.add_argument('--snapshot-budget', type=int, default=0)
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
     parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-netcode-runtime'))
     args = parser.parse_args()
+    if not 20 <= args.client_fps <= 200:
+        parser.error('client FPS must be in 20..200')
+    scenario_timeout = 120 if args.weapons else 45
     if args.weapons and not args.inside_xvfb:
-        subprocess.run(['timeout', '120', 'xvfb-run', '-a', sys.executable, str(Path(__file__).resolve()),
+        subprocess.run(['timeout', '240', 'xvfb-run', '-a', sys.executable, str(Path(__file__).resolve()),
                         *sys.argv[1:], '--inside-xvfb'], cwd=ROOT, check=True)
         return
     if not 0 <= args.snapshot_budget <= 16384:
@@ -181,7 +199,7 @@ def main():
                     '+set', 'cl_allowDownload', '0', '+set', 'cl_autoRecordDemo', '0',
                     '+set', 'cg_weaponTrace', '1' if args.weapons else '0',
                     '+set', 'cg_showmiss', '1', '+set', 'cl_shownet', '-1' if args.snapshot_budget else '0',
-                    '+set', 'com_maxfps', '100', '+exec', 'netcode.cfg'],
+                    '+set', 'com_maxfps', str(args.client_fps), '+exec', 'netcode.cfg'],
                     cwd=ROOT, env=env, stdout=client_stream, stderr=subprocess.STDOUT, start_new_session=True)
                 wait_for(lambda: 'ClientBegin: 0' in server_log.read_text(), client)
                 if args.weapons:
@@ -192,20 +210,23 @@ def main():
                     device.verify_window(client)
                     device.key('F10')
                 wait_for(lambda: 'netcode_ready' in server_log.read_text(), client)
+                scenario_started = time.monotonic()
                 server.stdin.write(b'rewind_target 0\n')
                 server.stdin.flush()
                 wait_for(lambda: 'Rewind target created:' in server_log.read_text() or 'server: rewind_target 0' in server_log.read_text(), server)
                 assert 'Rewind target created:' in server_log.read_text(), 'missing developer rewind target'
                 if args.snapshot_budget:
-                    wait_for(lambda: 'netcode_done' in server_log.read_text(), client, seconds=45)
+                    wait_for(lambda: 'netcode_done' in server_log.read_text(), client, seconds=scenario_timeout)
+                    scenario_seconds = time.monotonic() - scenario_started
+                    if args.weapons and args.client_fps == 20:
+                        assert scenario_seconds > 45, 'slow-render control did not exercise the old deadline'
+                    print(f'Loopback scenario completed in {scenario_seconds:.1f}s at <= {args.client_fps} client FPS')
                     server.stdin.write(b'status\n')
                     server.stdin.flush()
                     wait_for(lambda: 'Replication client 0:' in server_log.read_text(), server)
-                assert client.wait(timeout=45) == 0
+                assert client.wait(timeout=scenario_timeout) == 0
             finally:
-                if client is not None and client.poll() is None:
-                    os.killpg(client.pid, signal.SIGTERM)
-                    client.wait(timeout=5)
+                stop_client(client)
                 if device is not None:
                     device.close()
                 if proxy is not None:
@@ -262,7 +283,10 @@ def main():
     assert checked >= 100 and positive >= 5 and matches / checked >= 0.99, (checked, matches, positive)
     assert uncompensated_wrong >= 5, uncompensated_wrong
     median_age = sorted(ages)[len(ages) // 2]
-    assert 70 <= median_age <= 180, median_age
+    # A deliberately slower client adds one input/render interval. Keep the
+    # original 100-FPS bound and never exceed the configured 200-ms rewind window.
+    frame_allowance = max(0, (1000 + args.client_fps - 1) // args.client_fps - 10)
+    assert 70 <= median_age <= min(200, 180 + frame_allowance), median_age
     reports = re.findall(r'Rewind report: age=(\d+) limit=(\d+) clamped=[01] hit=[01]', client_log.read_text())
     assert len(reports) >= 10 and all(int(age) <= int(limit) <= 1000 for age, limit in reports), reports
     errors = [float(value) for value in re.findall(r'Prediction miss: ([0-9.]+)', client_log.read_text())]
