@@ -20,7 +20,7 @@ Preparatory branch `issue/28-match-server` is in the level-tree worktree, based
 on #27 PR #154 head b59fd806. The main checkout remains on #27 while its exact-head
 build/regression passed (35538730616/35538730598). PR #154 merged as
 6a3cb22d54a1c9575adde00c1d415639cde617f3 with the same tested tree
-fee7f5d5860f911eb14d00d1f1e0dd23454ad2d5; integration 35539581431 is queued. Superseded 9ed0484b regression was
+fee7f5d5860f911eb14d00d1f1e0dd23454ad2d5; integration 35539581431 passed. #27 is closed and checked in #25. Superseded 9ed0484b regression was
 cancelled. #26 integration 35538219232 passed; #26 is closed and checked in #25.
 #27 still requires its exact-head gates and merged-tree regression. Merge modernization forward later, never rebase.
 
@@ -52,6 +52,19 @@ to the ingest stub, no database driver/credentials in a match pod.
 Primary Agones references read: https://agones.dev/site/docs/installation/ and
 https://agones.dev/site/docs/installation/install-agones/helm/; REST Ready/Health/
 Shutdown endpoints are documented at /site/docs/guides/client-sdks/rest/.
+
+Go lifecycle/result implementation is under local validation. Race-enabled tests
+pass spec validation, checksum-free native arguments, checkpoints, authenticated
+durable append/retry/restart and a real gRPC outage/retry. The distroless image builds
+with only owned content. No Compose/kind/density acceptance exists yet.
+
+A real-client match acceptance run reached static cgame load but sv_pure=1 rejected
+the valid client before ClientBegin. Root cause: legacy QVM pak slots remain in
+SV_VerifyPaks_f and are absent from native client references. Separate branch
+issue/31-native-pure in the main checkout owns the fix and failing-first checks;
+#31 is reopened, docs/bugs.md records the evidence. Do not disable pure verification
+or put its engine fix here. Wait for that PR/integration, merge forward, then repeat
+#28's client/sidecar/image acceptance. #28 remains incomplete.
 
 The owned-content packaging contract is test-first in tests/match_content.py;
 it fails on the absent tools/match/content.py (match-content-before.log). It checks
