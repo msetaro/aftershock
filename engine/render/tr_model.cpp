@@ -176,6 +176,9 @@ static qhandle_t R_RegisterIQM( const char *name, model_t *mod ) {
 #endif
 	}
 
+	if ( loaded && status == cookedModelStatus_t::Valid )
+		memcpy( mod->cookedHash, hash, 32 );
+
 	ri.FS_FreeFile( buf.v );
 
 	if ( !loaded ) {
@@ -1170,6 +1173,7 @@ void R_ReloadCookedModels( const cookedIndex_t *index ) {
 				ri.FS_FreeFile( file );
 			if ( success ) {
 				memcpy( cookedModels[i].hash, entry.hash, 32 );
+				memcpy( tr.models[i]->cookedHash, entry.hash, 32 );
 				cookedModels[i].reloads++;
 			}
 			ri.Printf( success ? PRINT_ALL : PRINT_WARNING, "Cooked model %s: %s\n", success ? "reloaded" : "reload failed", entry.path );

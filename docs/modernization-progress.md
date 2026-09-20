@@ -63,6 +63,12 @@ requires graph/model revision agreement, copied skin matrices and culling bounds
 128 poses per renderer frame, capacity rejection and frame reset. Legacy entity
 submission must clear a reused pose pointer. This is ordinary render ownership
 coverage using a small constructed skeleton; gameplay parity remains outstanding.
+Implemented renderer pose submission passes GCC/Clang+UBSan and the client build
+(animation-render-after.log, animation-render-clang.log, animation-render-build.log).
+Skin matrices live in renderer frame storage; custom bounds cover the transformed
+bind mesh, and legacy frame sampling remains on its existing path. Renderer ABI
+is now 13 shipping / 17 development; modules must be rebuilt together. Verified
+cooked model hashes persist across initial registration and development reload.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/

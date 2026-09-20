@@ -200,6 +200,14 @@ typedef struct dlight_s {
 } dlight_t;
 
 
+constexpr uint32_t MAX_SKELETAL_POSES = 128;
+struct skeletalPose_t {
+	uint32_t jointCount;
+	float skin[ANIM_MAX_JOINTS][12];
+	vec3_t bounds[2];
+};
+static_assert( std::is_trivially_copyable_v<skeletalPose_t> );
+
 // a trRefEntity_t has all the information passed in by
 // the client game, as well as some locally derived info
 typedef struct {
@@ -218,6 +226,7 @@ typedef struct {
 	vec3_t shadowLightDir; // normalized direction towards light
 #endif
 	qboolean intShaderTime;
+	const skeletalPose_t *skeletalPose; // Points into the owning renderer frame.
 } trRefEntity_t;
 
 
@@ -917,6 +926,7 @@ typedef struct {
 	float *bounds;
 	uint32_t num_anims;
 	modelAnimation_t *animations;
+	vec3_t bindBounds[2];
 } iqmData_t;
 
 // inter-quake-model surface
@@ -1053,6 +1063,7 @@ typedef struct model_s {
 
 	int numLods;
 	bool ownsData; // Cooked development models use one replaceable zone block.
+	uint8_t cookedHash[32]; // Verified file hash; zero for legacy content.
 } model_t;
 
 #define MAX_MOD_KNOWN	1024
@@ -1799,6 +1810,7 @@ void R_InitNextFrame( void );
 
 void RE_ClearScene( void );
 void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
+bool RE_AddSkeletalEntityToScene( const refEntity_t *ent, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
 void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b );
@@ -1837,6 +1849,7 @@ void R_MDRAddAnimSurfaces( trRefEntity_t *ent );
 void RB_MDRSurfaceAnim( mdrSurface_t *surface );
 bool RE_GetModelAnimation( qhandle_t handle, int clip, modelAnimation_t *animation );
 qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *name, bool owned = false );
+bool R_PrepareIQMPose( const iqmData_t *data, const animPose_t *pose, skeletalPose_t *out );
 bool R_ReplaceIQM( model_t *mod, void *buffer, int filesize, const char *name );
 void R_AddIQMSurfaces( trRefEntity_t *ent );
 void RB_IQMSurfaceAnim( const surfaceType_t *surface );
@@ -2002,6 +2015,7 @@ typedef struct {
 #endif
 
 	trRefEntity_t entities[MAX_REFENTITIES];
+	skeletalPose_t skeletalPoses[MAX_SKELETAL_POSES];
 	srfPoly_t *polys; //[MAX_POLYS];
 	polyVert_t *polyVerts; //[MAX_POLYVERTS];
 	renderCommandList_t commands;

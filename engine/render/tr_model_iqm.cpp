@@ -993,7 +993,47 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		}
 	}
 
+	ClearBounds( iqmData->bindBounds[0], iqmData->bindBounds[1] );
+	for ( i = 0; i < iqmData->num_vertexes; ++i )
+		AddPointToBounds( iqmData->positions + i * 3, iqmData->bindBounds[0], iqmData->bindBounds[1] );
+
 	return qtrue;
+}
+
+static bool PoseFinite( float value ) {
+	uint32_t bits;
+	memcpy( &bits, &value, sizeof( bits ) );
+	return ( bits & 0x7f800000 ) != 0x7f800000;
+}
+
+bool R_PrepareIQMPose( const iqmData_t *data, const animPose_t *pose, skeletalPose_t *out ) {
+	if ( !data || !pose->jointCount || pose->jointCount > ANIM_MAX_JOINTS || pose->jointCount != (uint32_t)data->num_joints || !data->invBindJoints )
+		return false;
+	ClearBounds( out->bounds[0], out->bounds[1] );
+	out->jointCount = pose->jointCount;
+	for ( uint32_t joint = 0; joint < pose->jointCount; ++joint ) {
+		for ( float value : pose->world[joint] )
+			if ( !PoseFinite( value ) )
+				return false;
+		Matrix34Multiply( pose->world[joint], data->invBindJoints + joint * 12, out->skin[joint] );
+		for ( float value : out->skin[joint] )
+			if ( !PoseFinite( value ) )
+				return false;
+		// ponytail: conservative whole-mesh bounds per joint; tighten to per-joint
+		// influenced vertices if profiling shows excess draw submission.
+		for ( uint32_t corner = 0; corner < 8; ++corner ) {
+			vec3_t point, transformed;
+			for ( uint32_t axis = 0; axis < 3; ++axis )
+				point[axis] = data->bindBounds[( corner >> axis ) & 1][axis];
+			for ( uint32_t axis = 0; axis < 3; ++axis ) {
+				transformed[axis] = DotProduct( out->skin[joint] + axis * 4, point ) + out->skin[joint][axis * 4 + 3];
+				if ( !PoseFinite( transformed[axis] ) )
+					return false;
+			}
+			AddPointToBounds( transformed, out->bounds[0], out->bounds[1] );
+		}
+	}
+	return true;
 }
 
 /*
@@ -1003,17 +1043,17 @@ R_CullIQM
 */
 static int R_CullIQM( const iqmData_t *data, const trRefEntity_t *ent ) {
 	vec3_t bounds[2];
-	vec_t *oldBounds, *newBounds;
+	const vec_t *oldBounds, *newBounds;
 	int i;
 
-	if ( !data->bounds ) {
+	if ( !ent->skeletalPose && !data->bounds ) {
 		tr.pc.c_box_cull_md3_clip++;
 		return CULL_CLIP;
 	}
 
 	// compute bounds pointers
-	oldBounds = data->bounds + 6 * ent->e.oldframe;
-	newBounds = data->bounds + 6 * ent->e.frame;
+	oldBounds = ent->skeletalPose ? ent->skeletalPose->bounds[0] : data->bounds + 6 * ent->e.oldframe;
+	newBounds = ent->skeletalPose ? ent->skeletalPose->bounds[0] : data->bounds + 6 * ent->e.frame;
 
 	// calculate a bounding box in the current coordinate system
 	for ( i = 0; i < 3; i++ ) {
@@ -1055,7 +1095,9 @@ static int R_ComputeIQMFogNum( const iqmData_t *data, const trRefEntity_t *ent )
 	}
 
 	// FIXME: non-normalized axis issues
-	if ( data->bounds ) {
+	if ( ent->skeletalPose ) {
+		bounds = ent->skeletalPose->bounds[0];
+	} else if ( data->bounds ) {
 		bounds = data->bounds + 6 * ent->e.frame;
 	} else {
 		bounds = defaultBounds;
@@ -1106,7 +1148,7 @@ void R_AddIQMSurfaces( trRefEntity_t *ent ) {
 	// don't add third_person objects if not in a portal
 	personalModel = (qboolean)( ( ent->e.renderfx & RF_THIRD_PERSON ) && ( tr.viewParms.portalView == PV_NONE ) );
 
-	if ( ent->e.renderfx & RF_WRAP_FRAMES ) {
+	if ( !ent->skeletalPose && ( ent->e.renderfx & RF_WRAP_FRAMES ) ) {
 		ent->e.frame %= data->num_frames;
 		ent->e.oldframe %= data->num_frames;
 	}
@@ -1117,7 +1159,7 @@ void R_AddIQMSurfaces( trRefEntity_t *ent ) {
 	// when the surfaces are rendered, they don't need to be
 	// range checked again.
 	//
-	if ( ( ent->e.frame >= data->num_frames ) || ( ent->e.frame < 0 ) || ( ent->e.oldframe >= data->num_frames ) || ( ent->e.oldframe < 0 ) ) {
+	if ( !ent->skeletalPose && ( ( ent->e.frame >= data->num_frames ) || ( ent->e.frame < 0 ) || ( ent->e.oldframe >= data->num_frames ) || ( ent->e.oldframe < 0 ) ) ) {
 		ri.Printf( PRINT_DEVELOPER, "R_AddIQMSurfaces: no such frame %d to %d for '%s'\n",
 			ent->e.oldframe, ent->e.frame,
 			tr.currentModel->name );
@@ -1315,9 +1357,11 @@ void RB_IQMSurfaceAnim( const surfaceType_t *surface ) {
 	outTexCoord = &tess.texCoords[0][tess.numVertexes][0];
 	outColor = &tess.vertexColors[tess.numVertexes];
 
-	if ( data->num_poses > 0 ) {
-		// compute interpolated joint matrices
-		ComputePoseMats( data, frame, oldframe, backlerp, poseMats );
+	if ( data->num_poses > 0 || backEnd.currentEntity->skeletalPose ) {
+		if ( backEnd.currentEntity->skeletalPose )
+			Com_Memcpy( poseMats, backEnd.currentEntity->skeletalPose->skin, data->num_joints * 12 * sizeof( float ) );
+		else
+			ComputePoseMats( data, frame, oldframe, backlerp, poseMats );
 
 		// compute vertex blend influence matricies
 		for ( i = 0; i < surf->num_influences; i++ ) {
