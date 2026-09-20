@@ -16,20 +16,23 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Continue #10 on `issue/10-animation`, draft PR #148. Initial head 49e99bd8
-started hosted build 35516054105 and regression 35516054094. MSVC
-rejects two integer ternaries assigned to new float animation inputs (C4244).
-Use exactly equivalent float literals for 0/+1/-1 and make the existing
-unsigned-to-float ADS denominator conversion explicit. GCC/Clang unit, sanitizer,
-format and both cross regression jobs pass; Linux/macOS builds pass. The 100 Hz
-local check passes after the literal fix; the same Q3 fixture still matches all
-253 boxes and repeated frame samples (animation-msvc-conversions-demo.log).
-Correction d9cb78a4 is pushed; current build 35516284205 and regression
-35516284169 are running. MSVC Release x64 and both ARM64 configurations already
-pass; inspect the remaining exact-head checks before merging PR #148. The integration
-baseline is 7f4d43a7 (merged-tree regression 35510058541 passed). #31 and #9 are
-closed. Feature implementation/editor/ABI gates are committed through 3fbc0a62;
-7004bf0a adds the 100 Hz timing test first. The publication guard now passes it.
+#10 PR #148 merged as e1ff877f87d7cb17d62f41977428e08c10cb3920. Its tree
+c04729f603ae4ede3814e93c8ad69e85688c55d2 equals tested head acc12bf3 exactly.
+Full build 35516551419 and regression 35516551423 passed before merge, and
+AGENTS self-review is complete. Merged-tree regression 35517250474 is running.
+The final lifetime job is still running; all other integration jobs passed.
+#10 remains open pending that final gate. A separate issue/12-netcode branch now
+starts with the replication byte/layout test only, from the tested merge tree.
+Check integration 35517250474, close/check #10 when green, then continue #12.
+
+#12 starts with generated field descriptions beside the authoritative state
+members, keeping the legacy field order, widths, offsets and delta bytes. The
+pre-change GCC/Clang+UBSan baseline is 256 entity/player round trips plus removal:
+26a5fc0d8e5afbfcc1634ddbfcf67155c6a2c6156066b86d20088690dff7d496. The new
+regression also requires a generation freshness check, which must fail before
+implementation. No accepted golden changes. Next: source annotations/generator,
+then extend the existing handshake, bounded history/rewind, replication policies,
+metrics and platform-provider seams, with separate current network coverage.
 
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
 layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body
@@ -53,11 +56,6 @@ changing goldens or gameplay lines. Both-map bot smoke now passes with that meta
 (animation-runtime-classic.log).
 Tidy passed 1202 configurations before the final small publication/ownership edits.
 
-Next: inspect PR #148’s exact-head checks and finish full hosted gates (including OpenArena static/module replays and cross/MSVC
-builds), resolve any failures without changing accepted fixtures, then merge with
-a merge commit and verify the merged tree. The local AGENTS self-review below is
-complete; hosted/exact-head acceptance is still required.
-Continue #12 before #11 (replication dependency), then the remaining #25 roadmap.
 All PRs stay in this repository; no parent-fork PRs or main pushes.
 
 ## #10 local self-review
@@ -80,8 +78,7 @@ layout/trivial-copy properties. Renderer ABI is 13 shipping / 17 development.
 Native GCC/Clang+UBSan, the real-input editor, fixed-step live gameplay (including
 100 Hz server), new Q3/static and OA/module fixed replays, unchanged classic Q3
 frames/collision/bot smoke, unit/negative control, sanitized units, old asset editor,
-known-bug classification, tidy and lifetime gates pass locally. Remaining acceptance:
-full hosted exact-head build/regression and merged-tree verification. The original
+known-bug classification, tidy and lifetime gates pass locally. Exact-head hosted build/regression passed; merged-tree verification is running. The original
 assets and new demos contain no copied game paks; both new source/demo manifests
 record provenance and exact hashes. All changes and PRs remain in this repository.
 
