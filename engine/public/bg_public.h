@@ -28,6 +28,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _BG_PUBLIC_H
 #define _BG_PUBLIC_H
 
+#ifdef __cplusplus
+#include "../animation/animation_public.h"
+#endif
+
 #define GAME_VERSION		BASEGAME "-1"
 
 #define DEFAULT_GRAVITY		800
@@ -692,10 +696,17 @@ typedef enum {
 	ET_GRAPPLE, // grapple hooked on wall
 	ET_TEAM,
 
-	ET_EVENTS // any of the EV_* events can be added freestanding
+	ET_EVENTS, // any of the EV_* events can be added freestanding
 	// by setting eType to ET_EVENTS + eventNum
 	// this avoids having to set eFlags and eventNum
+	ET_ANIMATION = 255 // Auxiliary native animation state, never a game event.
 } entityType_t;
+
+#ifdef __cplusplus
+static_assert( int( ET_EVENTS ) + int( EV_TAUNT_PATROL ) < int( ET_ANIMATION ) );
+bool BG_AnimationToEntityState( const animState_t *state, const float *parameters, int owner, int rig, const float *origin, const float *angles, entityState_t *entity );
+bool BG_EntityStateToAnimation( const entityState_t *entity, animState_t *state, float *parameters );
+#endif
 
 
 void BG_EvaluateTrajectory( const trajectory_t *tr, int atTime, vec3_t result );

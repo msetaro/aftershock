@@ -30,7 +30,7 @@ int main() {
 	MSG_Init( &message, buffer, sizeof( buffer ) );
 	MSG_WriteDeltaEntity( &message, &baseline, &encoded, qtrue );
 	MSG_BeginReading( &message );
-	const int entity = MSG_ReadBits( &message, GENTITYNUM_BITS );
+	const int entity = MSG_ReadEntitynum( &message );
 	assert( entity == encoded.number );
 	MSG_ReadDeltaEntity( &message, &baseline, &decoded, entity );
 	animState_t restored;
@@ -50,7 +50,7 @@ int main() {
 	MSG_WriteDeltaEntity( &message, &baseline, &encoded, qtrue );
 	assert( message.cursize < initialBytes );
 	MSG_BeginReading( &message );
-	MSG_ReadDeltaEntity( &message, &baseline, &decoded, MSG_ReadBits( &message, GENTITYNUM_BITS ) );
+	MSG_ReadDeltaEntity( &message, &baseline, &decoded, MSG_ReadEntitynum( &message ) );
 	assert( BG_EntityStateToAnimation( &decoded, &restored, restoredParameters ) );
 	assert( memcmp( &changed, &restored, sizeof( changed ) ) == 0 );
 	printf( "PASS: animation snapshot preserves all state/parameter bits (%d initial, %d delta bytes)\n", initialBytes, message.cursize );

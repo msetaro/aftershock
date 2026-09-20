@@ -5,15 +5,15 @@
 #include <stdint.h>
 #include <type_traits>
 
-constexpr uint32_t ANIM_MAX_JOINTS = 128;
-constexpr uint32_t ANIM_MAX_PARAMETERS = 16;
-constexpr uint32_t ANIM_MAX_STATES = 64;
-constexpr uint32_t ANIM_MAX_EVENTS = 64;
-constexpr uint32_t ANIM_MAX_NODES = 64;
-constexpr uint32_t ANIM_MAX_MASKS = 16;
-constexpr uint32_t ANIM_LOOP = 1;
-constexpr uint32_t ANIM_ON_END = 1;
-constexpr uint32_t ANIM_ANY_STATE = UINT32_MAX;
+inline constexpr uint32_t ANIM_MAX_JOINTS = 128;
+inline constexpr uint32_t ANIM_MAX_PARAMETERS = 16;
+inline constexpr uint32_t ANIM_MAX_STATES = 64;
+inline constexpr uint32_t ANIM_MAX_EVENTS = 64;
+inline constexpr uint32_t ANIM_MAX_NODES = 64;
+inline constexpr uint32_t ANIM_MAX_MASKS = 16;
+inline constexpr uint32_t ANIM_LOOP = 1;
+inline constexpr uint32_t ANIM_ON_END = 1;
+inline constexpr uint32_t ANIM_ANY_STATE = UINT32_MAX;
 
 struct animTransform_t {
 	float translate[3], rotate[4], scale[3];

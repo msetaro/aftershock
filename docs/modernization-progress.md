@@ -86,6 +86,16 @@ codec and unchanged wire structs. Their own fields carry nine state words,
 sixteen float parameters, owner/rig and origin/view angles. Legacy player fields
 are untouched. Trace event consumers and exclude this new type before use;
 prove the full state/float round trip through production MSG functions.
+The adapter now passes GCC and Clang/libc++ with UBSan: all nine state words,
+16 float parameters, owner/rig and origin/angles survive the real delta codec
+(92-byte initial / 10-byte time-only delta for the test record). Native client/
+server builds pass; public animation constants use inline constexpr to satisfy
+the existing native unused-constant policy. CG_CheckEvents and BotCheckEvents
+explicitly exclude the new auxiliary type; the render dispatcher/botlib already
+skip the event-range types, and auxiliary solidity/loop sound/event stay zero.
+No player snapshot field or codec expression changed. Logs:
+animation-snapshot-after.log, animation-snapshot-clang.log,
+animation-snapshot-build.log. Gameplay publication/loading is the next step.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/

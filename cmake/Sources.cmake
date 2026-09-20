@@ -212,6 +212,7 @@ set(NATIVE_GAME_SOURCES
   game/game/ai_team.cpp
   game/game/ai_vcmd.cpp
   game/bg/bg_misc.cpp
+  game/bg/bg_animation.cpp
   game/bg/bg_pmove.cpp
   game/bg/bg_slidemove.cpp
   game/game/g_active.cpp
@@ -242,6 +243,7 @@ set(NATIVE_GAME_SOURCES
 
 set(NATIVE_CGAME_SOURCES
   game/bg/bg_misc.cpp
+  game/bg/bg_animation.cpp
   game/bg/bg_pmove.cpp
   game/bg/bg_slidemove.cpp
   game/cgame/cg_consolecmds.cpp
