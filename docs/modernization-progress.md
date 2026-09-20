@@ -20,17 +20,17 @@ upstream; historical upstream PR references below are completed past work.
 #9 is closed and checked in #25. Accounting PR #146 merged as 3d104d0c after
 exact head 1f1aeb8f passed build 35508534162 and regression 35508533987. Its merge
 tree matches the tested tree (b15a081c6dd1446dea030b9c6d899fdccaa41206).
-Merged-tree regression 35508970698 is running. Require its pass before the next PR.
+Merged-tree regression 35508970698 passed. The separate scale PR may now open.
 
 Current branch is issue/31-iqm-joint-scale. Modernization is merged forward,
 including the MSVC accounting-width correction; no history is rewritten. Failing
 tests 13f999df/e2cd9e50 precede the six-coefficient scale fix. GCC/Clang UBSan
 matrix/native-glTF parity, full cooker checks, formatting and unchanged fixed
-Quake 3 demo hashes pass. Self-review is recorded below. Once #146 integration
-passes, open this separate scale PR, require exact-head hosted build/regression,
+Quake 3 demo hashes pass. Self-review is recorded below. Open this separate scale PR and require exact-head hosted build/regression,
 then merge with a merge commit and require its merged-tree regression.
 
-#10 has only initial failing-test preparation, commit 57838d59 on
+#10 has initial failing-test preparation 57838d59 and new owned source fixtures
+0704fe4c on
 issue/10-animation in /tmp/aftershock-10-animation. No animation implementation
 is present there. After the scale PR is accepted, merge modernization forward
 into #10, read its full issue and the cache issue10-entry-points.md and
@@ -3232,3 +3232,9 @@ cancelled after build 35508144036 failed; it is not an accepted gate.
 merged forward into the scale branch at this checkpoint. The corrected-accounting
 and scale test combination passes (iqm-scale-merged-width.log). #10 test-only
 preparation is 57838d59; its initial cook fails on the absent animation asset kind.
+
+#146 integration regression 35508970698 passed at 3d104d0c. Open the scale PR at
+this checkpoint; require its exact-head build/regression and post-merge regression.
+#10 preparation 0704fe4c adds new original Blender rifle/body acceptance sources,
+whose model cooks and neutral-layout visual review pass. The animation-state
+asset test still fails as expected; there is no #10 runtime/gameplay implementation.
