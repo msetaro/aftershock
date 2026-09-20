@@ -42,6 +42,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     project = json.loads((fixture / 'assets.json').read_text())
     project['assets'].append({'name': 'weapons/second', 'kind': 'weapon', 'source': 'second.weapon.json'})
     project['assets'].append({'name': 'weapons/grenade', 'kind': 'weapon', 'source': 'grenade.weapon.json'})
+    if args.lifecycle:
+        pressure = dict(definition, name='range_capacity', ballistics='projectile', interval_ms=20,
+                        damage=0, minimum_damage=0, magazine=128, reserve=0,
+                        projectile=dict(definition['projectile'], speed=1, gravity=0, fuse_ms=60000, radius=0))
+        (sources / 'capacity.weapon.json').write_text(json.dumps(pressure))
+        project['assets'].append({'name': 'weapons/capacity', 'kind': 'weapon', 'source': 'capacity.weapon.json'})
     (sources / 'assets.json').write_text(json.dumps(project))
     cook(sources / 'assets.json', base)
     cook(ROOT / 'tests/assets/range.json', base)
@@ -57,15 +63,17 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
         '+attack', 'wait 14', '-attack', 'weapon 1', 'wait 15',
         'weapon 3', 'wait 15', '+attack', 'wait 2', '-attack', 'wait 70', 'weapon_status', 's_list']
     if args.lifecycle:
-        script += ['echo weapon_lifecycle_begin', 'team spectator', 'wait 15',
-                   'echo weapon_lifecycle_spectator', 'wait 15', 'echo weapon_lifecycle_rejoin',
+        script[0] = script[0][:-1] + ' weapons/capacity.asweapon"'
+        script += ['echo weapon_lifecycle_begin' , 'team spectator', 'wait 15',
+                   'echo weapon_lifecycle_spectator', 'wait 260', 'echo weapon_lifecycle_rejoin',
                    'team free', 'wait 70', '+attack', 'wait 6', '-attack', 'wait 20',
-                   'echo weapon_lifecycle_end']
+                   'echo weapon_lifecycle_end', 'weapon 4', 'wait 15', 'echo weapon_capacity_begin',
+                   '+attack', 'wait 85', '-attack', 'wait 15', 'echo weapon_capacity_end']
     (base / 'weapons.cfg').write_text('\n'.join([*script, 'quit']) + '\n')
     log = args.output / 'client.log'
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
     with log.open('wb') as stream:
-        subprocess.run(['timeout', '60', 'xvfb-run', '-a', str(args.binary.resolve()),
+        subprocess.run(['timeout', '120' if args.lifecycle else '60', 'xvfb-run', '-a', str(args.binary.resolve()),
             '+set', 'fs_basepath', str(home), '+set', 'fs_homepath', str(home),
             *content_settings(args.content), '+set', 'net_enabled', '0', '+set', 'sv_pure', '0',
             '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '1',
@@ -74,13 +82,18 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     complete = log.read_text()
     text = complete.split('weapon_lifecycle_begin')[0]
     if args.lifecycle:
-        actors = re.findall(r'Weapon actor: owner=0 spawn=(\d+) state=(\d+),(\d+) animation=(\d+),(\d+)', complete)
-        assert len(actors) >= 2 and len({row[0] for row in actors}) >= 2, actors
-        assert len({row[1:] for row in actors}) == 1, 'respawn allocated another auxiliary record set'
+        actors = re.findall(r'Weapon actor: owner=0 spawn=(\d+) epoch=(\d+) state=(\d+),(\d+) animation=(\d+),(\d+)', complete)
+        assert len(actors) >= 2 and len({row[1] for row in actors}) >= 2, actors
+        assert len({row[2:] for row in actors}) == 1, 'respawn allocated another auxiliary record set'
         spectator = complete.split('weapon_lifecycle_spectator')[1].split('weapon_lifecycle_rejoin')[0]
         assert 'Weapon server state: owner=0' not in spectator, 'spectator retained an active weapon actor'
         rejoined = complete.split('weapon_lifecycle_rejoin')[1]
         assert 'Weapon event: owner=0 hand=0 kind=0' in rejoined and 'weapon_lifecycle_end' in rejoined
+        capacity = complete.split('weapon_capacity_begin')[1].split('weapon_capacity_end')[0]
+        loaded = re.findall(r'Weapon server state: owner=0 hand=0 tick=\d+ sequence=(\d+) magazine=(\d+) reserve=0 chamber=1', capacity)
+        assert loaded and max(int(row[0]) for row in loaded) == 64, loaded[-8:]
+        assert all(int(sequence) + int(magazine) == 128 for sequence, magazine in loaded), 'capacity pause spent ammo'
+        assert len([row for row in loaded if row == ('64', '64')]) >= 10, 'capacity did not hold steady'
         assert not any(error in complete for error in ('ERROR:', 'Signal caught', 'Weapon rejected'))
     assert 'Weapon server definition: index=0 name=range_rifle' in text, log
     assert 'Weapon client definition: index=0 name=range_rifle' in text, log

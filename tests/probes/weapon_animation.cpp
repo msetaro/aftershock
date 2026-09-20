@@ -14,6 +14,9 @@ int main( int argc, char **argv ) {
 	assert( !Weapon_NotifyOnce( &history, 1, 10, 1 ) );
 	assert( Weapon_NotifyOnce( &history, 2, 10, 1 ) ); // Respawn.
 	assert( Weapon_NotifyOnce( &history, 2, 11, 1 ) ); // Reused remote client slot.
+	assert( !Weapon_NotifyOnce( &history, 3, 10, 2 ) ); // Late notification from the previous connection.
+	assert( Weapon_NotifyOnce( &history, 3, 11, 1 ) );
+	assert( !Weapon_NotifyOnce( &history, 2, 11, 2 ) ); // Late notification from the previous spawn.
 	history = {};
 	assert( Weapon_NotifyOnce( &history, 1, 1, 0xfffffffeu ) );
 	assert( Weapon_NotifyOnce( &history, 1, 1, 0 ) );

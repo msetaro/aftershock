@@ -154,6 +154,17 @@ The portable check fails on absent Weapon_ForgetNotifiesAfter
 (weapons-notify-rejection-before.log); only unacknowledged notify bits will be
 forgotten, preserving deduplication of accepted sounds.
 
+Lifecycle implementation review found ClientBegin intentionally resets the legacy
+spawn count to 1 on team transitions. The initial pool test therefore could not
+use that count as a unique connection identity. Carry the existing rewindSpawn
+connection generation in unused auxiliary fields; also distinguish predicted
+projectiles/notifies by it and reject late prior-generation notifications. The
+portable late-generation assertion fails on current deduplication
+(weapons-notify-generation-before.log). This is new #11 bookkeeping, not a change
+to legacy player spawn semantics. The scenario now respects the five-second team
+switch cooldown; the live 64-projectile pressure segment reaches its cap without
+spending further ammo.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing

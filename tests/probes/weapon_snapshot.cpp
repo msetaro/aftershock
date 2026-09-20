@@ -95,11 +95,13 @@ int main() {
 	assert( !memcmp( &changed, &restored, sizeof( changed ) ) && restoredSpawn == spawn );
 	const int clockDeltaBytes = msg.cursize;
 	baseline = decoded;
+	encoded.constantLight = int32_t( 0x87654321u ); // Full connection generation in an auxiliary record.
 	encoded.generic1 = 1; // Authoritative projectile capacity blocks prediction without changing weapon layout.
 	MSG_Clear( &msg );
 	MSG_WriteDeltaEntity( &msg, &baseline, &encoded, qtrue );
 	MSG_BeginReading( &msg );
 	MSG_ReadDeltaEntity( &msg, &baseline, &decoded, MSG_ReadEntitynum( &msg ) );
+	assert( decoded.constantLight == int32_t( 0x87654321u ) );
 	assert( decoded.generic1 == 1 && BG_EntityStateToWeapon( &decoded, &restored, &restoredSpawn ) );
 	assert( !memcmp( &changed, &restored, sizeof( changed ) ) );
 	const animState_t animation = { 1, 2, 0xfffffff0u, 123, 456, 100, 789, 0xabcdef01u, 1 };
