@@ -26,9 +26,9 @@ its tests/fix/local cooker and accepted demo checks pass. Open its PR only after
 exact-head/merged-tree gates. All writes stay in msetaro/aftershock.
 
 This isolated worktree /tmp/aftershock-10-animation is on issue/10-animation.
-Only #10's first offline data-authoring test is prepared; it fails because the
-animation asset kind does not exist (animation-before.log). No #10 implementation
-is present. Finish both #31 fixes before implementing this feature or opening its
+The first offline data-authoring test and new original rifle/body source fixtures
+are prepared; the test still fails because the animation asset kind does not exist
+(animation-owned-before.log). No #10 runtime/gameplay implementation is present. Finish both #31 fixes before implementing this feature or opening its
 PR; merge modernization forward without rewriting history afterward.
 
 #10 is the complete issue, not only clip sampling: data-authored state machines/
@@ -3239,3 +3239,22 @@ The test fixes only the initial authoring/envelope contract; native payload
 layout and runtime/gameplay semantics still need their own test-first coverage.
 This small first slice is not #10 acceptance. The full first-person/third-person,
 IK/layers/events and recorded client/server hit-box gates remain mandatory.
+
+## #10 owned acceptance-source preparation
+
+New tests/assets/animation sources are authored once with the same verified
+portable Blender 4.5.3 LTS build 67807e1800cc and its glTF exporter. The rifle/arms
+has 13 joints, 13 meshes and six one-second clips (idle/ADS/fire/reload/sprint/jump),
+plus muzzle/magazine/optic/grip bones. The body has 16 joints, 15 meshes and ten
+clips (idle/walk/run/aim up/down/crouch/prone/lean left/right/turn), spine-mask
+hierarchy, two-bone limb chains and forward walk/run root motion. Native model
+cooks confirm 186/310 frames at 30 FPS. Provenance records all authoring/export
+hashes; CI consumes these bytes and never invokes Blender.
+
+The original block geometry and neutral rig layouts were reviewed in local CPU
+render previews. The source export and model-only cook pass (animation-export.log,
+animation-model-cook.log). The extended initial test verifies provenance/model
+counts, then still fails on the absent animation asset kind
+(animation-owned-before.log). No existing source or accepted demo/frame fixture
+was regenerated. These are test assets, not evidence that #10 runtime/gameplay is
+complete; full rifle/body in-game and recorded hit-box acceptance remain required.

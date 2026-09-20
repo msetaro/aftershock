@@ -1,0 +1,16 @@
+{
+  "blender_version": "4.5.3 LTS",
+  "blender_build": "67807e1800cc",
+  "archive_url": "https://download.blender.org/release/Blender4.5/blender-4.5.3-linux-x64.tar.xz",
+  "archive_sha256": "975c58fcb244273838534bba771e64ad87739216b0f9b39a888531a49a72d845",
+  "license": "GPL-2.0-or-later (repository-owned generated fixture)",
+  "exporter": "Khronos glTF Blender I/O v4.5.48",
+  "files": {
+    "export.py": "b55a7ef8b3e82a58f58e8219e97b3397cbe980f7ee1e1de79091fd1aa4eff1c1",
+    "assets.json": "3ae5a37a8d9006fdc7c2ad304728d52caeddf498e3e65ac656a685edbc34b7a9",
+    "rifle.gltf": "848405aa202e1761d9182d4d552b10cd20722de9aef0c8d2b400bd7a554e62ea",
+    "rifle.bin": "3aa6b863c6526b6b4a9f4b10b9dccfbc93a9721cec84d5985469da1d5672d4ee",
+    "body.gltf": "d81d387658af1ad206afed4638af81bf8f64ec7a2127a209b8d080d6e55157e0",
+    "body.bin": "f19e650436108c87e668e64d87c9e299b372344360bba39eeb848b6c352e9a1a"
+  }
+}

@@ -13,6 +13,16 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-animation'))
 args = parser.parse_args()
 args.output = args.output.resolve()
+fixture = Path(__file__).resolve().parent / 'assets/animation'
+provenance = json.loads((fixture / 'provenance.json').read_text())
+for name, expected in provenance['files'].items():
+    assert hashlib.sha256((fixture / name).read_bytes()).hexdigest() == expected
+owned_output = args.output / 'owned'
+cook(fixture / 'assets.json', owned_output)
+for name, joints, clips in [('rifle', 13, 6), ('body', 16, 10)]:
+    data = (owned_output / ('models/anim_' + name + '.iqm')).read_bytes()
+    header = struct.unpack_from('<27I', data, 16)
+    assert header[13] == joints and header[17] == clips and header[19] == clips * 31
 with tempfile.TemporaryDirectory(prefix='aftershock-animation-source-') as temporary:
     source = Path(temporary)
     project, _ = source_assets(source)
@@ -35,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-source-') as tempo
         {'name': 'models/rig', 'kind': 'model', 'source': 'rig.gltf', 'scale': 1, 'fps': 2},
         {'name': 'animations/rig', 'kind': 'animation', 'source': graph.name, 'scale': 1, 'fps': 2}]}))
     result = cook(project, args.output)
-    assert sorted(result['built']) == ['animations/rig', 'models/rig']
+    assert sorted(result['built'] + result['skipped']) == ['animations/rig', 'models/rig']
     binary = args.output / 'animations/rig.asanim'
     before = binary.read_bytes()
     magic, version, size, hashed = struct.unpack_from('<8sII32s', before)
