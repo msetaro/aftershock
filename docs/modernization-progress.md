@@ -97,6 +97,28 @@ require bounded launch fields, explicit passwords, authenticated ingest, contigu
 acknowledged offsets and durable duplicate handling across stub restart. Go 1.27.1
 is in user cache only; gRPC/protobuf are pinned module dependencies.
 
+Compose acceptance is now explicit: both servers and both shippers exited zero;
+match-compose-fourth-events.jsonl contains final/completed records for match-1 and
+match-2. Logs and copied acknowledgements are in the cache; only the owned Compose
+project/volumes were removed after evidence capture. The private kind warm Fleet
+also reached Ready, allocation applied settings, the timed empty match finalized
+over gRPC, and Agones replaced it with a new Ready server. This preliminary run
+had no player and is not full acceptance. Nested OA symlinks in Docker cp initially
+remained unresolved; the automated driver explicitly stages resolved public pak
+bytes. Never call missing-content checks passed.
+
+The full tests/match_kind.py now creates a random private cluster, generates
+namespace-specific SDK RBAC, requires a real native client, records final durable
+facts and warm replacement, and captures a 20-second CRI resource sample including
+all three match containers. It excludes generated credentials from artifacts and
+labels single-match density conversions as baselines, not saturation guarantees.
+Race tests add incomplete durable-record and exit-before-log controls; final stream
+sealing checks the closed log size to avoid an EOF/done-marker race. Documentation,
+verification commands and the new match-server regression job are wired. This
+full driver is not yet accepted: wait for #155 merged-tree regression, merge it
+forward, rebuild the image and run local/hosted acceptance. #28 self-review remains
+outstanding. #155 build passes; its exact-head regression is finishing runtime.
+
 ## #27 checkpoint inherited by #28
 
 Current branch: `issue/27-headless-levels` in the main user checkout.

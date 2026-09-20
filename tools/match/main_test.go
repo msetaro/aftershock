@@ -154,3 +154,51 @@ func TestShipperRetry(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestIncompleteDurableRecord(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "events.jsonl")
+	if err := os.WriteFile(path, []byte(`{"version":1}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if s, err := newIngest(path, map[string]string{}); err == nil {
+		s.file.Close()
+		t.Fatal("accepted an incomplete durable record")
+	}
+}
+
+func TestExitBeforeGameLog(t *testing.T) {
+	home := t.TempDir()
+	s, _ := decodeSpec([]byte(goodSpec))
+	if err := writeJSON(filepath.Join(home, "match.json"), s); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeJSON(filepath.Join(home, "engine.done"), map[string]bool{"clean": false}); err != nil {
+		t.Fatal(err)
+	}
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	address := listener.Addr().String()
+	listener.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	serverResult := make(chan error, 1)
+	go func() {
+		serverResult <- serveIngest(ctx, address, filepath.Join(t.TempDir(), "events.jsonl"), map[string]string{s.ID: s.Token})
+	}()
+	if err = ship(ctx, home, "aftershock", address, true); err != nil {
+		t.Fatal(err)
+	}
+	var ack cursor
+	if err = readJSON(filepath.Join(home, "ack.json"), &ack); err != nil {
+		t.Fatal(err)
+	}
+	if !ack.Final || ack.End != 0 || ack.Checkpoint.Completed {
+		t.Fatalf("startup failure falsely reported completion: %+v", ack)
+	}
+	cancel()
+	if err = <-serverResult; err != nil {
+		t.Fatal(err)
+	}
+}

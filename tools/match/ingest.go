@@ -122,7 +122,8 @@ func (s *ingest) accept(b batch, token string) error {
 	if b.Start != s.offsets[b.Match] {
 		return status.Error(codes.FailedPrecondition, "noncontiguous event offsets")
 	}
-	// The stub fsyncs before ACK. #30 replaces this file store, never the game loop.
+	// ponytail: the development stub retains per-batch digests in memory; #30 owns
+	// durable retention/scaling. Fsync before ACK, never in the game loop.
 	if _, err = s.file.Write(append(data, '\n')); err == nil {
 		err = s.file.Sync()
 	}

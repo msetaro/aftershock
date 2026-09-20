@@ -157,8 +157,17 @@ func ship(ctx context.Context, home, game, address string, dev bool) error {
 					b.Events = append(b.Events, value)
 					b.Checkpoint.add(value)
 				}
+				// The engine may append between EOF and its done marker. Only seal
+				// a cursor that covers the final closed file size.
+				if eof && exists(filepath.Join(home, "engine.done")) {
+					info, statErr := f.Stat()
+					if statErr != nil {
+						f.Close()
+						return statErr
+					}
+					b.Final = b.End == info.Size()
+				}
 				f.Close()
-				b.Final = eof && exists(filepath.Join(home, "engine.done"))
 			}
 			if b.End == b.Start && !b.Final {
 				if err = pause(ctx, 2*time.Second); err != nil {

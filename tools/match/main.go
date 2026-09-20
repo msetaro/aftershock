@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -15,7 +16,7 @@ func main() {
 	defer cancel()
 	var err error
 	if len(os.Args) != 2 {
-		err = errors.New("usage: match run|ship|stub|probe")
+		err = errors.New("usage: match run|ship|stub|probe|records")
 	} else {
 		switch os.Args[1] {
 		case "run":
@@ -24,6 +25,13 @@ func main() {
 			err = ship(ctx, env("MATCH_HOME", "/home/match"), env("MATCH_GAME", "aftershock"), env("MATCH_INGEST", "ingest:50051"), os.Getenv("MATCH_DEV_INSECURE") == "1")
 		case "probe":
 			err = probe("127.0.0.1:"+env("MATCH_PORT", "27960"), env("MATCH_MAP", "two_lane"))
+		case "records":
+			var file *os.File
+			file, err = os.Open(filepath.Join(env("MATCH_STATE", "/state"), "events.jsonl"))
+			if err == nil {
+				_, err = io.Copy(os.Stdout, file)
+				file.Close()
+			}
 		case "stub":
 			if os.Getenv("MATCH_DEV_INSECURE") != "1" {
 				err = errors.New("stub is local-development only; requires MATCH_DEV_INSECURE=1")

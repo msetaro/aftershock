@@ -164,6 +164,11 @@ python3 tests/level.py
 python3 tests/level.py --compile
 python3 tests/level_runtime.py --client CLIENT --server SERVER
 python3 tests/level_validate.py --client CLIENT --server SERVER
+python3 tests/match_content.py
+python3 tests/match_exit.py --server SERVER
+python3 tests/match_runtime.py --controller CONTROLLER --server SERVER --client CLIENT
+python3 tests/match_kind.py --image aftershock-match:issue28 --client CLIENT
+(cd tools/match && go test -race ./...)
 python3 tests/check_format.py
 python3 tests/check_types.py
 python3 tests/check_tidy.py
