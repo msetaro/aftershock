@@ -76,6 +76,24 @@ No system package, licensed pak copy or host display session was needed. Establi
 the stated resolution/quality/frame budget and repeated per-pass measurement before
 #14 acceptance. Existing Mesa goldens remain the deterministic rendering gate.
 
+## #14 first bake implementation
+
+The opt-in compiler slice passes `tests/lighting.py --compile`: two independent
+bakes produce identical intensity/direction pairs and retain 594 light-grid
+probes. `tests/level.py --compile` still matches all accepted MAP/BSP/AAS hashes.
+Logs: lighting-bake-worldspawn.log and lighting-default-level-final.log.
+`compile_map` reads the explicit marker from q3map2's compiled worldspawn before
+its light stage, so JSON and existing MAP entry points agree. No bake container,
+ray tracer, accepted fixture or compiler dependency was added. Native direction
+sampling is not implemented yet; the README's renderer description is the intended
+#14 contract, not a claim of completed runtime acceptance.
+
+Maintainer workflow changed during this slice: main 81a0f9dc is the integration
+baseline, known-good-2026-09-20 remains unchanged. #157 is retargeted to main;
+its updated head f638330b runs build 35545635052/regression 35545635067. Preserve
+these existing issue branches by merging main forward without rebasing. New issue
+branches start from main. All required gates must pass before a self-merge.
+
 ## #14 initial failing directional-bake contract
 
 `python3 tests/lighting.py` fails before implementation with `missing or unknown

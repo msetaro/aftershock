@@ -52,7 +52,17 @@ The root object contains:
 - `lighting`: `ambient`, optional `sun: {direction, color, intensity}` and
   `lights: [{id, origin, color, intensity}]`. Colors are linear RGB in 0..1;
   sun direction points from the sky toward the map. Named lights remain editable
-  in generated MAP source.
+  in generated MAP source. Optional `directional: true` bakes paired intensity and
+  model-space light-direction pages with pinned q3map2 `-deluxe -deluxemode 0`.
+  It retains the BSP light grid for dynamic-object probes. Omitted/false preserves
+  the accepted default bake. Existing MAP projects opt in with worldspawn key
+  `_aftershock_deluxe` set to `1`; `0` disables it. Both compiler entry points read
+  that key from the compiled worldspawn before lighting. The output remains IBSP
+  46, with even surface lightmap indices and the corresponding direction page
+  immediately following each intensity page. The #14 renderer consumes these
+  directions separately from color data; ordinary Quake renderers still use the
+  intensity pages. `python3 tests/lighting.py --compile` checks repeated output and
+  unchanged default fixtures without recording references.
 
 Compiler acceptance includes containment, player clearances, connected spawn
 navigation, sightline limits, cover distance, asset existence, and raw repeated
