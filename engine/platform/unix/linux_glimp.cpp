@@ -760,7 +760,7 @@ static void uninstall_kb_grab( void ) {
  *  for key repeats.
  */
 static qboolean X11_PendingInput( void ) {
-	assert(dpy != NULL);
+	Q_ASSERT(dpy != NULL);
 
 	// Flush the display connection and look to see if events are queued
 	XFlush( dpy );
@@ -791,7 +791,7 @@ static qboolean X11_PendingInput( void ) {
 static qboolean repeated_press( XEvent *event ) {
 	XEvent peek;
 
-	assert( dpy != NULL );
+	Q_ASSERT( dpy != NULL );
 
 	if ( X11_PendingInput() ) {
 		XPeekEvent( dpy, &peek );

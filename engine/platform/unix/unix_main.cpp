@@ -258,7 +258,7 @@ void NORETURN Sys_Exit( int code ) {
 	_exit( code );
 #else
 	// Give me a backtrace on error exits.
-	assert( code == 0 );
+	Q_ASSERT( code == 0 );
 	exit( code );
 #endif
 }

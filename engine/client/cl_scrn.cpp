@@ -43,7 +43,7 @@ Coordinates are 640*480 virtual values
 void SCR_DrawNamedPic( float x, float y, float width, float height, const char *picname ) {
 	qhandle_t hShader;
 
-	assert( width != 0 );
+	Q_ASSERT( width != 0 );
 
 	hShader = re.RegisterShader( picname );
 	SCR_AdjustFrom640( &x, &y, &width, &height );

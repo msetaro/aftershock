@@ -38,6 +38,19 @@ def main():
     (output / 'negative.log').write_text(diagnostic)
     if not negative.returncode or '[readability-duplicate-include,-warnings-as-errors]' not in diagnostic:
         raise RuntimeError('duplicate-include negative control escaped the policy')
+    control.write_text('#include <assert.h>\n#define Q_ASSERT assert\n'
+                       'float Q_fabs(float);\n'
+                       'void check(int n) { Q_ASSERT(n >= 0); Q_ASSERT(Q_fabs(1.f) == 1.f); }\n')
+    positive = subprocess.run(command, env=ENV, text=True, capture_output=True)
+    (output / 'assert-positive.log').write_text(positive.stdout + positive.stderr)
+    positive.check_returncode()
+    control.write_text('#include <assert.h>\n#define Q_ASSERT assert\nint mutate();\nfloat Q_fabs(float);\n'
+                       'void rejected(int n) { Q_ASSERT(++n); Q_ASSERT(mutate()); Q_ASSERT(Q_fabs(++n)); }\n')
+    negative = subprocess.run(command, env=ENV, text=True, capture_output=True)
+    diagnostic = negative.stdout + negative.stderr
+    (output / 'assert-negative.log').write_text(diagnostic)
+    if not negative.returncode or diagnostic.count('[bugprone-assert-side-effect,-warnings-as-errors]') != 3:
+        raise RuntimeError('assertion side-effect controls escaped the policy')
     commands = []
     for renderer in ('opengl', 'vulkan'):
         directory = output / renderer
@@ -62,7 +75,7 @@ def main():
             elif arg not in ('-c', '-MD', '-MMD', row['file']):
                 flags.append(arg)
         result = subprocess.run([*tool, row['file'], '--quiet', '--config-file=' + str(config),
-                                 '--', *flags], cwd=row['directory'], env=ENV,
+                                 '--', *flags, '-UNDEBUG'], cwd=row['directory'], env=ENV,
                                 text=True, capture_output=True)
         diagnostic = result.stdout + result.stderr
         log = output / (str(index) + '.log')

@@ -1,3 +1,7 @@
-Checks: '-*,bugprone-signed-char-misuse,bugprone-narrowing-conversions,bugprone-suspicious-string-compare,portability-simd-intrinsics,performance-*,readability-duplicate-include,readability-misleading-indentation,modernize-redundant-void-arg'
-WarningsAsErrors: 'readability-duplicate-include,readability-misleading-indentation'
+Checks: '-*,bugprone-assert-side-effect,bugprone-signed-char-misuse,bugprone-narrowing-conversions,bugprone-suspicious-string-compare,portability-simd-intrinsics,performance-*,readability-duplicate-include,readability-misleading-indentation,modernize-redundant-void-arg'
+WarningsAsErrors: 'bugprone-assert-side-effect,readability-duplicate-include,readability-misleading-indentation'
 HeaderFilterRegex: '(^|/)(engine|game)/'
+CheckOptions:
+  bugprone-assert-side-effect.AssertMacros: 'assert,Q_ASSERT'
+  bugprone-assert-side-effect.CheckFunctionCalls: true
+  bugprone-assert-side-effect.IgnoredFunctions: '^(__builtin_expect|Q_fabs|VectorLengthSquared|isnan|__builtin_isnan)$'
