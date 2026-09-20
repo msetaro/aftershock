@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/amosnier/sha-2",
+  "commit": "565f65009bdd98267361b17d50cddd7c9beb3e6c",
+  "license": "0BSD (selected alternative)",
+  "scope": "Cooked asset content hashes; fixed plain streaming state, no allocation",
+  "files": {
+    "LICENSE.md": "506de94a03e23bbc34e32a8b628b56688ac7c33672982388822816887727f1ac",
+    "sha-256.c": "7a74437adc78576b8faff060f9573ba88a6da798914f45d263c75b149add3d27",
+    "sha-256.h": "c2173d83813a0c29fcc3345ce489766efeadee6a52ca927ecd0f917a120df9fb"
+  }
+}

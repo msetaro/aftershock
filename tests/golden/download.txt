@@ -1,0 +1,4 @@
+0 https://example.invalid/maps/map%20name.pk3 0
+1 https://example.invalid/maps/map%20name.pk3 0
+2 https://example.invalid/get?name=map%20name.pk3 1
+3 /map%20name.pk3 0

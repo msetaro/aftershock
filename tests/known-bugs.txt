@@ -1,0 +1,2 @@
+# UBSan diagnostic patterns exercised by tests/run.py unit --sanitize --known-bugs.
+# Every pattern must occur; every runtime error must match. Remove with the #31 fix.

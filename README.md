@@ -11,8 +11,7 @@ Go to [Releases](../../releases) section to download latest binaries for your pl
 
 **Key features**:
 
-* optimized OpenGL renderer
-* optimized Vulkan renderer
+* portable renderer frontend with a Vulkan RHI backend
 * raw mouse input support, enabled automatically instead of DirectInput(**\in_mouse 1**) if available
 * **\in_minimize** - hotkey for minimize/restore main window (win32-only, direct replacement for Q3Minimizer)
 * **\video-pipe** - to use external ffmpeg binary as an encoder for better quality and smaller output files
@@ -54,22 +53,10 @@ In general, not counting offscreen rendering features you might expect from 10% 
 
 Highly recommended to use on modern systems
 
-## OpenGL renderer
-
-Based on classic OpenGL renderers from [idq3](https://github.com/id-Software/Quake-III-Arena)/[ioquake3](https://github.com/ioquake/ioq3)/[cnq3](https://bitbucket.org/CPMADevs/cnq3)/[openarena](https://github.com/OpenArena/engine), features:
-
-* OpenGL 1.1 compatible, uses features from newer versions whenever available
-* high-quality per-pixel dynamic lighting, can be triggered by **\r_dlightMode** cvar
-* merged lightmaps (atlases)
-* static world surfaces cached in VBO (**\r_vbo 1**)
-* all set of offscreen rendering features mentioned in Vulkan renderer, plus:
-* bloom reflection post-processing effect
-
-Performance is usually greater or equal to other opengl1 renderers
-
-## OpenGL2 renderer
-
-Original ioquake3 renderer, performance is very poor on non-nvidia systems, unmaintained
+The modernization branch uses Vulkan as its sole renderer backend. OpenGL1 and
+OpenGL2 are retired. Static linking is the default; optional PC renderer modules
+use the same frontend and RHI. See [build instructions](BUILD.md) and the
+[modernization checkpoint](docs/modernization-progress.md).
 
 ## [Build Instructions](BUILD.md)
 

@@ -1,0 +1,11 @@
+{
+  "generator": "libsndfile-1.2.2",
+  "frames": 1102,
+  "sample_rate": 22050,
+  "channels": 1,
+  "files": {
+    "export.py": "368afb4f156c8a21a5535c352dd4d07b6ba386f3a0c42b066fe90c29e1a796f4",
+    "tone.wav": "55e983a9c9303e57d7adfdbdc6e1dad69f71afc389f658b3d31ef433dee8e98f",
+    "tone.ogg": "e86da8bd6dafd8d899671e1ef518722f36d9b4cbf72a9111b27da10caec2a92f"
+  }
+}

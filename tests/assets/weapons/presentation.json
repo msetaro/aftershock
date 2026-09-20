@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "name": "effects/range_default",
+      "kind": "material",
+      "source": "impact-default.json"
+    },
+    {
+      "name": "effects/range_metal",
+      "kind": "material",
+      "source": "impact-metal.json"
+    },
+    {
+      "name": "models/range_optic",
+      "kind": "model",
+      "source": "optic.gltf",
+      "scale": 32,
+      "fps": 30
+    },
+    {
+      "name": "models/range_grenade",
+      "kind": "model",
+      "source": "grenade.gltf",
+      "scale": 32,
+      "fps": 30
+    },
+    {
+      "name": "sound/range_shot",
+      "kind": "audio",
+      "source": "shot.wav"
+    },
+    {
+      "name": "sound/range_reload",
+      "kind": "audio",
+      "source": "reload.wav"
+    }
+  ]
+}

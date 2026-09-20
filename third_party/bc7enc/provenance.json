@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/richgel999/bc7enc_rdo",
+  "commit": "b9438627eef73a1157e84201b6fa6eb2ffd6d9f0",
+  "license": "MIT (alternative A)",
+  "scope": "Offline BC7 encoder only; never linked into the engine",
+  "files": {
+    "bc7enc.cpp": "b90444a091530a13c61fa6375583fcc9bc9ca47e474fd71f818876de68c1b581",
+    "bc7enc.h": "f40f4a956ed6a8845b7909e83831de09512424408b32ca29551bf49aee2fecf6",
+    "LICENSE": "b3e843763e8d3bdeb0f469ecd4107fc32b5fa27ebee1af10d2066bc339292800"
+  }
+}

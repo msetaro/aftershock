@@ -1,0 +1,211 @@
+Q3 1.32e linux-x86_64 Sep 13 2026
+----- FS_Startup -----
+...loaded in 10 milliseconds
+----------------------
+4728 files in 9 pk3 files
+
+Search paths:
+ * <HOME>
+ * <HOME>
+
+
+pak0.pk3 is missing. Please copy it
+from your legitimate Q3 CDROM.
+
+
+Point Release files are missing. Please
+re-install the 1.32 point release.
+
+
+Also check that your Q3 executable is in
+the correct place and that every file
+in the baseq3 directory is present and readable.
+execing default.cfg
+execing q3config_server.cfg
+couldn't exec autoexec.cfg
+fs_basepath is write protected.
+fs_homepath is write protected.
+fs_game is write protected.
+Hunk_Clear: reset the hunk ok
+...detecting CPU, found <CPU>
+--- Common Initialization Complete ---
+stdin is not a tty, tty console mode failed
+------ Server Initialization ------
+Server: oa_dm1
+Hunk_Clear: reset the hunk ok
+----- FS_Startup -----
+...loaded in 10 milliseconds
+----------------------
+4728 files in 9 pk3 files
+
+Search paths:
+ * <HOME>
+ * <HOME>
+
+
+pak0.pk3 is missing. Please copy it
+from your legitimate Q3 CDROM.
+
+
+Point Release files are missing. Please
+re-install the 1.32 point release.
+
+
+Also check that your Q3 executable is in
+the correct place and that every file
+in the baseq3 directory is present and readable.
+Loading vm file vm/qagame.qvm...
+...which has vmMagic VM_MAGIC_VER2
+Loading 1630 jump table targets
+^3jump target 0 set on instruction 20189 (OP_CVIF) with bad opStack 16
+VM file qagame compiled to 724694 bytes of code
+qagame loaded in 2104704 bytes on the hunk
+------- Game Initialization -------
+gamename: baseoa
+gamedate: Aug 15 2016
+------------------------------------------------------------
+InitGame: \dmflags\0\fraglimit\20\g_gametype\0\mapname\oa_dm1\protocol\68\sv_allowDownload\1\sv_dlRate\100\sv_floodProtect\1\sv_hostname\noname\sv_maxRate\0\sv_maxclients\8\sv_minRate\0\sv_privateClients\0\timelimit\0\version\Q3 1.32e linux-x86_64 Sep 13 2026\capturelimit\8\elimflags\0\elimination_roundtime\120\g_allowVote\1\g_altExcellent\0\g_delagHitscan\0\g_doWarmup\0\g_enableBreath\0\g_enableDust\0\g_enableFS\0\g_enableQ\0\g_instantgib\0\g_lms_mode\0\g_maxGameClients\0\g_needpass\0\g_obeliskRespawnDelay\10\g_rockets\0\g_timestamp\2026-01-01 00:00:00\g_voteGametypes\/0/1/3/4/5/6/7/8/9/10/11/12/\g_voteMaxFraglimit\0\g_voteMaxTimelimit\1000\g_voteMinFraglimit\0\g_voteMinTimelimit\0\gamename\baseoa\videoflags\7\voteflags\0
+Info: ServerInfo length: 722 of 1024
+^3!readconfig: ^7could not open admin config file admin.dat
+Sprees/Kills: loaded 1 killing sprees, 0 death sprees, and 0 multikills.
+0 teams with 0 entities
+19 items registered
+-----------------------------------
+------- BotLib Initialization -------
+loaded weapons.c
+loaded items.c
+loaded syn.c
+loaded rnd.c
+loaded match.c
+loaded rchat.c
+------------ Map Loading ------------
+trying to load maps/oa_dm1.aas
+loaded maps/oa_dm1.aas
+found 30 level items
+-------------------------------------
+24 bots parsed
+51 arenas parsed
+File maps/oa_dm1.info not found
+Auther: 
+Fraglimit: 0
+Capturelimit: 0
+minTeamSize: 0
+Looking for: mapscripts/g_oa_dm1.cfg
+Looking for: mapscripts/g_default.cfg
+Looking for: mapscripts/g_oa_dm1_0.cfg
+Looking for: mapscripts/g_default_0.cfg
+AAS initialized.
+-----------------------------------
+loaded skill 1 from bots/default_c.c
+loaded skill 1 from bots/sarge_c.c
+loaded skill 4 from bots/default_c.c
+loaded skill 4 from bots/sarge_c.c
+loaded bots/sarge_i.c
+loaded bots/sarge_w.c
+loaded sarge from bots/sarge_t.c
+ClientUserinfoChanged: 0 n\Sarge\t\0\model\sarge\hmodel\sarge\c1\4\c2\5\hc\90\w\0\l\0\skill\ 3.00\tt\0\tl\0\id\
+ClientConnect: 0
+broadcast: print "Sarge^7 connected\n"
+Info: There has been at least 1 bot now
+Playerstore: Failed to restore player. Invalid guid: 
+broadcast: print "Sarge^7 entered the game\n"
+ClientBegin: 0
+loaded cached skill 1.000000 from bots/default_c.c
+loaded skill 1 from bots/beret_c.c
+loaded cached skill 4.000000 from bots/default_c.c
+loaded skill 4 from bots/beret_c.c
+loaded bots/beret_i.c
+loaded bots/beret_w.c
+loaded beret from bots/beret_t.c
+ClientUserinfoChanged: 1 n\Beret\t\0\model\beret\hmodel\beret\c1\4\c2\5\hc\90\w\0\l\0\skill\ 3.00\tt\0\tl\0\id\
+ClientConnect: 1
+broadcast: print "Beret^7 connected\n"
+Playerstore: Failed to restore player. Invalid guid: 
+broadcast: print "Beret^7 entered the game\n"
+ClientBegin: 1
+Item: 1 weapon_grenadelauncher
+Item: 0 weapon_shotgun
+Item: 1 weapon_rocketlauncher
+Item: 0 weapon_lightning
+Kill: 0 1 11: Sarge killed Beret by MOD_LIGHTNING
+PlayerScore: 0 1: Sarge now has 1 points
+Kill: 1 0 7: Beret killed Sarge by MOD_ROCKET_SPLASH
+PlayerScore: 1 1: Beret now has 1 points
+Item: 0 ammo_rockets
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 0 item_armor_shard
+Item: 1 weapon_rocketlauncher
+Item: 1 weapon_lightning
+Item: 0 weapon_lightning
+Item: 1 weapon_grenadelauncher
+Item: 0 weapon_shotgun
+Item: 1 weapon_plasmagun
+Item: 0 ammo_shells
+Item: 1 weapon_rocketlauncher
+Item: 0 weapon_grenadelauncher
+Item: 1 weapon_shotgun
+Item: 0 weapon_plasmagun
+Item: 1 weapon_grenadelauncher
+Item: 0 weapon_rocketlauncher
+Item: 1 weapon_rocketlauncher
+Item: 1 weapon_grenadelauncher
+Kill: 0 1 4: Sarge killed Beret by MOD_GRENADE
+PlayerScore: 0 2: Sarge now has 2 points
+Item: 0 weapon_rocketlauncher
+Item: 1 weapon_shotgun
+Item: 1 weapon_grenadelauncher
+Item: 1 weapon_plasmagun
+Item: 1 weapon_rocketlauncher
+Item: 0 weapon_grenadelauncher
+Item: 1 ammo_cells
+Item: 0 weapon_plasmagun
+Item: 1 ammo_rockets
+Item: 0 item_health
+Item: 0 weapon_rocketlauncher
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 ammo_rockets
+Item: 1 ammo_grenades
+Item: 1 ammo_bullets
+Item: 1 weapon_lightning
+Item: 1 item_quad
+Item: 0 item_health_large
+Kill: 1 0 7: Beret killed Sarge by MOD_ROCKET_SPLASH
+PlayerScore: 1 2: Beret now has 2 points
+Item: 1 weapon_grenadelauncher
+say: Sarge: Back in my day, frags weren't so cheap.
+Sarge^7: Back in my day, frags weren't so cheap.
+Item: 1 weapon_shotgun
+Item: 1 item_health
+Item: 0 item_invis
+Item: 1 ammo_shells
+Item: 0 weapon_shotgun
+Item: 1 weapon_grenadelauncher
+Item: 0 weapon_lightning
+Item: 1 weapon_plasmagun
+Item: 1 weapon_rocketlauncher
+Item: 1 ammo_cells
+Item: 1 ammo_rockets
+Item: 0 weapon_grenadelauncher
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+Item: 1 item_armor_shard
+----- Server Shutdown (Server quit) -----
+==== ShutdownGame ====
+ShutdownGame:
+------------------------------------------------------------
+AAS shutdown.
+---------------------------

@@ -1,5 +1,0 @@
-# C baseline, q3dm17 with two bots, 2026-09-13. Keep source behavior intact.
-# ZIP central-directory fields at byte offsets 38 and 42 are intentionally unaligned.
-alignment:unzlocal_GetCurrentFileInfoInternal
-# QVM operands are byte-packed in the file.
-alignment:VM_LoadInstructions

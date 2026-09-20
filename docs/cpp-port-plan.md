@@ -399,7 +399,7 @@ when that phase starts, not now:
   `char` signedness where it matters (unsigned on aarch64).
 - No JIT (console cert forbids executable memory): QVM compilers are PC-only, game code goes native.
 - No runtime `dlopen`: static renderer linking becomes the primary configuration.
-- OS access only inside `code/<platform>` and `files.c`; portable code never calls SDL/POSIX/Win32.
+- OS access only inside `engine/platform` and `engine/qcommon/files.cpp`; portable code never calls SDL/POSIX/Win32. Enforced by #4.
 - Renderer behind an RHI with the Vulkan renderer as the base (D3D12 for Xbox, AGC for PS5,
   Vulkan/NVN for Switch). `renderer2` dropped; OpenGL1 renderer is legacy.
 - CI proxies for console toolchains: clang + libc++ (x86_64 and aarch64 cross) and MSVC.
@@ -412,21 +412,21 @@ when that phase starts, not now:
 Two phases, two rule sets. The port phase rules are enforced now and are copied into
 `AGENTS.md`. The modernization rules are recorded so they are decided once, not rediscovered.
 
-| Topic | Port phase (now) | Modernization phase (later) |
+| Topic | Port phase (historical) | Modernization phase (current) |
 |---|---|---|
 | Language features | None. No `nullptr`, `auto`, references, classes, templates, STL, `constexpr`, namespaces, `using`. | C++20, feature-by-feature allowlist; never "because it is new". |
-| Warnings | `-Werror` with a **frozen, checked-in list of disabled warnings** matching what the C build already tolerates (C build: 279 warnings under `-Wall -Wextra`; C++ adds ~800, mostly `-Wwrite-strings` and `-Wmissing-field-initializers`). | Re-enable one warning class per PR, each verified by the gates. Vendored libs stay `-w`. |
-| Formatting | Match the surrounding line exactly: tabs, spaces inside parentheses `( a, b )`, `NULL`, C casts, `qboolean`. `.clang-format` is advisory. Enforce no whitespace-only engine hunks except required T15 literal-suffix spacing: per-file `git diff --stat` with and without `-w` must agree. No tree-wide reformat. | One tree-wide reformat commit after the port is verified, checked by byte-identical `-S` output before and after. From then on clang-format is authoritative. |
-| clang-tidy | Small `bugprone-*` + `portability-*` subset, changed lines only (`clang-tidy-diff`). No `modernize-*`, no `cppcoreguidelines-*`. | Add `performance-*` and a readability subset. `modernize-*` advisory, enabled one check at a time. `cppcoreguidelines-*` cherry-picked, never wholesale. |
+| Warnings | `-Werror` with a **frozen, checked-in list of disabled warnings** matching what the C build already tolerates (C build: 279 warnings under `-Wall -Wextra`; C++ adds ~800, mostly `-Wwrite-strings` and `-Wmissing-field-initializers`). | In force (#8): owned engine/game code uses GCC/Clang `-Wall -Wextra -Werror` with no `-Wno-*` list, and MSVC `/W4 /WX`. Warning classes were restored in separate gated PRs. Vendored libraries retain their own warning policy. |
+| Formatting | Match the surrounding line exactly: tabs, spaces inside parentheses `( a, b )`, `NULL`, C casts, `qboolean`. `.clang-format` is advisory. Enforce no whitespace-only engine hunks except required T15 literal-suffix spacing: per-file `git diff --stat` with and without `-w` must agree. No tree-wide reformat. | **In force (#8):** one clang-format 21.1.8 tree-wide commit; 1,810 release assemblies preserve instructions/data (eight inline-assembly source-comment differences reviewed). `tests/check_format.py` enforces the pinned authoritative format. |
+| clang-tidy | Small `bugprone-*` + `portability-*` subset, changed lines only (`clang-tidy-diff`). No `modernize-*`, no `cppcoreguidelines-*`. | **In force (#8):** `tests/check_tidy.py` enforces duplicate includes, misleading indentation and assertion side effects across both renderers. Existing bugprone/portability checks and `performance-*` are advisory; only `modernize-redundant-void-arg` is enabled from modernize, also advisory. `cppcoreguidelines-*` remains cherry-picked, never wholesale. |
 | Sanitizers | ASan + UBSan run on the **C build first** to record the baseline (needs game data); anything new in the C++ build is a port bug. UBSan blocklist for known-benign alignment in BSP loading. Same source has more UB as C++ than as C (union punning is defined in C11, undefined in C++). | ASan + UBSan on every CI run; TSan periodically for the SDL audio callback, WASAPI thread, and curl. |
 | Memory / ownership | Untouched. | Ownership is expressed by arena (hunk = level lifetime with mark/free-to-mark, zone = tagged small allocs, temp hunk), not by per-object smart pointers. RAII only for OS/GPU resources at the platform boundary. `new`/`delete`/`malloc` forbidden outside the allocator layer. |
-| Error handling | Untouched. `Com_Error` is a `longjmp`. | Decide explicitly, before any RAII lands in engine code: a `longjmp` over a stack object with a non-trivial destructor leaks or corrupts. Either RAII stays out of code paths that can `Com_Error`, or `Com_Error` changes shape first. Exceptions and RTTI stay off. |
-| Assertions | None added (a firing assert is a behavior change). | `Q_ASSERT` with no side effects, compiled out in release identically; debug and release must compute the same simulation. |
-| Integer types | Untouched. | Fixed-width types in every struct that hits the wire, a demo, or a file format. `long` is banned (32-bit on MSVC). Explicit `char` signedness where it matters (unsigned on aarch64). |
+| Error handling | Untouched. `Com_Error` is a `longjmp`. | Decision #1: keep `Com_Error`/`longjmp`. Engine locals, parameters, temporaries and globals must be trivially destructible. RAII is restricted to platform/GPU resource wrappers which return errors and never cross a `Com_Error` unwind. Exceptions and RTTI stay off. |
+| Assertions | None added (a firing assert is a behavior change). | **In force (#8):** `Q_ASSERT` aliases the existing assert macro without changing arguments or release code. `tests/check_tidy.py` enables assertions during analysis and rejects increments and mutating calls, including arguments to allowed pure functions. Debug and release must compute the same simulation. |
+| Integer types | Untouched. | **In force (#8):** wire/file/shared records use fixed-width fields and size/alignment/trivial-copy/standard-layout assertions, including both IQM copies. Numeric bytes have explicit signedness. `tests/check_types.py` bans bare `long`, including inactive branches; foreign ABI types and explicit legacy script/seek/journal/hash compatibility widths remain documented contracts. |
 | Undefined-behavior patterns | Keep them: `Q_rsqrt` punning, file buffers cast to structs, `-ffast-math` on mingw. They define behavior demos and netcode depend on. | Replace with `std::bit_cast`/`memcpy` only when the codegen gate shows identical output. |
 | Floating point / determinism | No floating-point expression restructuring in `qcommon/cm_*`, `q_math.c`, `bg_*`, `msg.c`, or server snapshot code; only T21/T22 argument casts that restore C evaluation are permitted. | Same rule, permanently. Cross-build determinism is what netcode and demos rest on. |
 | Layout | `static_assert(sizeof)` table for wire/file/QVM structs, generated from the C build (gate G2). | Add `is_trivially_copyable` / `is_standard_layout` assertions for the same structs. |
-| Subsystem boundaries | Keep the existing encoding: `Sys_`/`Com_`/`FS_`/`CL_`/`SV_`/`R_`/`S_`/`Cvar_`/`Cmd_` prefixes and `*_public.h` vs `*_local.h`. A subsystem includes only other subsystems' public headers. | Enforce with a CI grep. Namespaces, if ever, map one-to-one onto the prefixes. Each subsystem gets a short responsibility/ownership paragraph in `docs/`. |
+| Subsystem boundaries | Keep the existing encoding: `Sys_`/`Com_`/`FS_`/`CL_`/`SV_`/`R_`/`S_`/`Cvar_`/`Cmd_` prefixes and `*_public.h` vs `*_local.h`. A subsystem includes only other subsystems' public headers. | In force (#4): `tests/check_boundaries.py` checks public includes and OS ownership across engine/game sources. `docs/subsystems.md` records responsibility and ownership. Namespaces, if ever, map one-to-one onto the prefixes. |
 | Scope per PR | One module or file group, only catalog transformations, `DEVIATION:` commits for anything else. | One feature or one warning class per PR. No unrelated refactoring. |
 | Definition of done | Both builds green, every gate green, every hunk mapped to T1-T25, diff size proportionate, PR description lists transformation counts and gate output. | Builds green, sanitizers clean, tests (the differential harness plus whatever the feature adds) green, style checks green. |
 
@@ -435,3 +435,38 @@ Concrete artifacts this implies for phase 0: the frozen `-Wno-*` list in the Mak
 line as in most of `code/client` and `code/qcommon`), a `.clang-tidy` with the small subset,
 and a UBSan blocklist seeded from a C-build run.
 
+
+### Error-model decision (#1)
+
+Keep the existing longjmp model. It preserves the frame-abort behavior and flat
+arena-owned data without a tree-wide error-return rewrite. Its cost is a permanent
+restriction on C++ object lifetimes: no non-trivial destruction in engine core,
+including parameters, temporaries and static/global objects. Platform/GPU wrappers
+may own resources only where errors return normally to the caller; they must not
+call a path that can longjmp while an owned resource is live. A renderer directory
+is not a blanket exception: new wrappers require a reviewed boundary and error flow.
+
+`python3 tests/check_lifetimes.py` enforces the rule with Clang's AST through
+clang-query, using CMake's actual client/server compile database for both renderers. It rejects
+objects Clang marks as requiring destruction and non-trivial temporaries, including
+aliases, inherited destructors and standard-library objects. Positive and negative
+controls run every time. This checks active Linux configurations and engine headers
+included by them; inactive preprocessor branches and future platform wrappers still
+require the AGENTS.md self-review. The check does not claim whole-program longjmp
+reachability analysis. Directory coverage follows the #4 engine/game layout; platform socket/runtime code is outside core, and the already-ported minizip/zlib C++ remains covered.
+
+### Native game decision (#2)
+
+Use native-only game, cgame and UI, statically linked into each executable through
+typed imports/exports. The GPL 1.32 sources were imported as C, compared against
+QVM bot/replay references, then ported to C++20 through the recorded catalog and
+gates. Module namespaces keep shared helpers and mutable state separate; explicit
+initialization resets replace DLL reload semantics. The VM interpreter, JITs and
+runtime game loader are removed. Legacy QVM and game-DLL mods are no longer supported.
+
+Keep fixed binary32 simulation expressions and the verified module-local math,
+random, sort and memory compatibility functions. Preserve wire/file layouts,
+arena ownership, longjmp and trivial engine lifetimes. Pinned OpenArena C objects
+provide hosted-content regression coverage; Q3 paks stay local. Fixed replay and
+bot goldens remain the behavioral reference. `docs/native-port-review.md` records
+source provenance, C/C++ layout/symbol/codegen review and static lifecycle evidence.

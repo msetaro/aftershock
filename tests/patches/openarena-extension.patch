@@ -1,0 +1,23 @@
+--- a/code/qcommon/q_shared.c
++++ b/code/qcommon/q_shared.c
+@@ -83,7 +83,10 @@
+ void COM_StripExtension( const char *in, char *out, int destsize ) {
+ 	int             length;
+ 
+-	Q_strncpyz(out, in, destsize);
++	if ( in && in == out && destsize > 0 )
++		out[destsize-1] = 0;
++	else
++		Q_strncpyz(out, in, destsize);
+ 
+ 	length = strlen(out)-1;
+ 	while (length > 0 && out[length] != '.')
+@@ -92,7 +95,7 @@
+ 		if (out[length] == '/')
+ 			return;		// no extension
+ 	}
+-	if (length)
++	if (length > 0)
+ 		out[length] = 0;
+ }
+ 

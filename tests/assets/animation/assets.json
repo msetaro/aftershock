@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "name": "models/anim_rifle",
+      "kind": "model",
+      "source": "rifle.gltf",
+      "scale": 32,
+      "fps": 30
+    },
+    {
+      "name": "models/anim_body",
+      "kind": "model",
+      "source": "body.gltf",
+      "scale": 32,
+      "fps": 30
+    }
+  ]
+}

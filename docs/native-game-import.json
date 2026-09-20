@@ -1,0 +1,1850 @@
+{
+  "repository": "https://github.com/id-Software/Quake-III-Arena",
+  "revision": "dbe4ddb10315479fc00086f08e25d968b4b43c49",
+  "modules": {
+    "game": [
+      "game/game/ai_chat.cpp",
+      "game/game/ai_cmd.cpp",
+      "game/game/ai_dmnet.cpp",
+      "game/game/ai_dmq3.cpp",
+      "game/game/ai_main.cpp",
+      "game/game/ai_team.cpp",
+      "game/game/ai_vcmd.cpp",
+      "game/bg/bg_misc.cpp",
+      "game/bg/bg_pmove.cpp",
+      "game/bg/bg_slidemove.cpp",
+      "game/game/g_active.cpp",
+      "game/game/g_arenas.cpp",
+      "game/game/g_bot.cpp",
+      "game/game/g_client.cpp",
+      "game/game/g_cmds.cpp",
+      "game/game/g_combat.cpp",
+      "game/game/g_items.cpp",
+      "game/game/g_main.cpp",
+      "game/game/g_mem.cpp",
+      "game/game/g_misc.cpp",
+      "game/game/g_missile.cpp",
+      "game/game/g_mover.cpp",
+      "game/game/g_session.cpp",
+      "game/game/g_spawn.cpp",
+      "game/game/g_svcmds.cpp",
+      "game/game/g_syscalls.cpp",
+      "game/game/g_target.cpp",
+      "game/game/g_team.cpp",
+      "game/game/g_trigger.cpp",
+      "game/game/g_utils.cpp",
+      "game/game/g_weapon.cpp",
+      "game/bg/q_math.cpp",
+      "game/bg/q_shared.cpp"
+    ],
+    "cgame": [
+      "game/bg/bg_misc.cpp",
+      "game/bg/bg_pmove.cpp",
+      "game/bg/bg_slidemove.cpp",
+      "game/cgame/cg_consolecmds.cpp",
+      "game/cgame/cg_draw.cpp",
+      "game/cgame/cg_drawtools.cpp",
+      "game/cgame/cg_effects.cpp",
+      "game/cgame/cg_ents.cpp",
+      "game/cgame/cg_event.cpp",
+      "game/cgame/cg_info.cpp",
+      "game/cgame/cg_localents.cpp",
+      "game/cgame/cg_main.cpp",
+      "game/cgame/cg_marks.cpp",
+      "game/cgame/cg_players.cpp",
+      "game/cgame/cg_playerstate.cpp",
+      "game/cgame/cg_predict.cpp",
+      "game/cgame/cg_scoreboard.cpp",
+      "game/cgame/cg_servercmds.cpp",
+      "game/cgame/cg_snapshot.cpp",
+      "game/cgame/cg_syscalls.cpp",
+      "game/cgame/cg_view.cpp",
+      "game/cgame/cg_weapons.cpp",
+      "game/bg/q_math.cpp",
+      "game/bg/q_shared.cpp"
+    ],
+    "ui": [
+      "game/bg/bg_misc.cpp",
+      "game/ui/ui_addbots.cpp",
+      "game/ui/ui_atoms.cpp",
+      "game/ui/ui_cdkey.cpp",
+      "game/ui/ui_cinematics.cpp",
+      "game/ui/ui_confirm.cpp",
+      "game/ui/ui_connect.cpp",
+      "game/ui/ui_controls2.cpp",
+      "game/ui/ui_credits.cpp",
+      "game/ui/ui_demo2.cpp",
+      "game/ui/ui_display.cpp",
+      "game/ui/ui_gameinfo.cpp",
+      "game/ui/ui_ingame.cpp",
+      "game/ui/ui_loadconfig.cpp",
+      "game/ui/ui_main.cpp",
+      "game/ui/ui_menu.cpp",
+      "game/ui/ui_mfield.cpp",
+      "game/ui/ui_mods.cpp",
+      "game/ui/ui_network.cpp",
+      "game/ui/ui_options.cpp",
+      "game/ui/ui_playermodel.cpp",
+      "game/ui/ui_players.cpp",
+      "game/ui/ui_playersettings.cpp",
+      "game/ui/ui_preferences.cpp",
+      "game/ui/ui_qmenu.cpp",
+      "game/ui/ui_removebots.cpp",
+      "game/ui/ui_saveconfig.cpp",
+      "game/ui/ui_serverinfo.cpp",
+      "game/ui/ui_servers2.cpp",
+      "game/ui/ui_setup.cpp",
+      "game/ui/ui_sound.cpp",
+      "game/ui/ui_sparena.cpp",
+      "game/ui/ui_specifyserver.cpp",
+      "game/ui/ui_splevel.cpp",
+      "game/ui/ui_sppostgame.cpp",
+      "game/ui/ui_spskill.cpp",
+      "game/ui/ui_startserver.cpp",
+      "game/ui/ui_syscalls.cpp",
+      "game/ui/ui_team.cpp",
+      "game/ui/ui_teamorders.cpp",
+      "game/ui/ui_video.cpp",
+      "game/bg/q_math.cpp",
+      "game/bg/q_shared.cpp"
+    ]
+  },
+  "transformations": {
+    "152cc6e2": "#31 PR #49: 32-bit reciprocal-square-root word with memcpy; FP expression unchanged",
+    "f4653398": "#2 native C ABI: pointer-width syscall words/padding, three command arguments, native exports",
+    "0ff62c30": "#31 PR #53: bounded team-leader name copies",
+    "bdf81ac0": "#2 recorded deviations: offsetof field offsets and three K&R definitions converted to prototypes",
+    "6ea3a3bb": "#2 catalog: T1 pointers, T2 boolean expressions, T3 enums, T4 identifier, T14 register, T20 const searches",
+    "8889ea0e": "#2 T8: read-only native strings, fields and tables",
+    "e8e98ab2": "#2 T8: explicit literal/macro casts at unchanged public string interfaces",
+    "0b575fa9": "#2 T5: six native C-linkage exports; T15: eleven literal/macro separators",
+    "8dff7805": "#2 T22: preserve integer conversion at two abs calls",
+    "5592a1eb": "#2 native binary32 model: explicit float suffixes, preserving all C/C++ objects",
+    "af8ba5e7": "#2 T17: three UI enum-to-float comparison casts",
+    "630ae8e1": "#31 PR #57: signed pending-weapon storage and setter input",
+    "bb869f79": "#2 merge PR #57: retain catalog changes and adapt enum casts to signed weapon sentinel",
+    "4054a2a0": "#31 PR #58: bound two-element team-voter reset",
+    "622ae3af": "#31 PR #59: publish complete initial flag configstring with valid states",
+    "0366fa06": "#31 PR #60: explicit intermediate int conversion for movement command bytes; original C objects unchanged",
+    "cdcbb7df": "Separate #31 fix: preserve overlapping info-string suffixes (PR #61).",
+    "d6c2ac52": "#2 static module lifecycle: explicit per-level initialization replaces DLL storage reset",
+    "436bbab1": "#2 static client/UI lifecycle: reset module state at initialization",
+    "956eebfa": "#2 static integration: typed engine/module services, isolated module namespaces and retained compatibility math/library bindings",
+    "090b7a3c": "#2 platform adaptation: DEBUG T8 casts with unchanged C objects; MSVC pragmas, Win32 selection, unused legacy helpers and compiler debug trap",
+    "85381cda": "#4 content-identical directory moves; original import source names and hashes retained",
+    "8b5264c5": "#4 include/build path repair; all 710 production objects byte-identical before/after",
+    "52e57708": "#4 shared game/input headers published at subsystem boundaries; game implementation changes only include paths",
+    "9c170ddd": "#5 retires inactive x86/PowerPC math and header branches; all 103 GCC x64 native production objects remain byte-identical, with unchanged C/C++ layouts and symbols",
+    "a5c199bf": "#8 implicit-fallthrough warning: comments document existing transitions; source line counts and native object behavior retained",
+    "c58e2751": "#31 explicitly signed bot chat offset sentinel; engine/game layout and x86 instructions unchanged, ARM64 now preserves -1",
+    "68919a83": "#8 unused-constant diagnostics: order table/type/count share the existing MISSIONPACK guard; release objects and conditional preprocessed output unchanged",
+    "639fb07e": "#8 parentheses-equality: remove redundant inner parentheses in G_VoiceTo; comparison, source line count and executable code unchanged",
+    "9e4d45f0": "#8 self-assign: remove the redundant fov_x assignment while retaining the branch and arithmetic; all compared production/native objects unchanged",
+    "f9dbcb07": "#8 MSVC C4065: remove the default-only UI status switch; release/native code unchanged",
+    "3eaba64d": "#8 MSVC C4267: make existing size_t-to-int conversions explicit; production code/data unchanged",
+    "74689b95": "#8 MSVC C4457: rename local bleed alpha; production/native code and data unchanged",
+    "6709136c": "#8 C4244: explicit existing numeric conversions; full arithmetic and compound RHS evaluation order retained; twelve C/C++ helper hashes unchanged",
+    "6bd5c657": "#8 C4702: remove unreachable-warning suppression; retain each weapon bounce increment on its sole continuing path; four game helper hashes unchanged",
+    "464d4faa": "#8 C4018: remove inherited MSVC signed/unsigned suppression; source fixes retained from #90; twelve helper hashes unchanged",
+    "b4696ba0": "#8 C4100: remove inherited MSVC unused-parameter suppression; #84 annotations retained; twelve helper hashes unchanged",
+    "769685fb": "#8 C4057: remove inherited MSVC pointer base-type suppression; no pointer expression changes; twelve helper hashes unchanged",
+    "fe512b6e": "#8 C4125: remove inherited MSVC octal-escape suppression; no string or parser expression changes; twelve helper hashes unchanged",
+    "fe91948f": "#8 C4152: remove inherited MSVC function/data pointer conversion suppression; no expression changes; twelve helper hashes unchanged",
+    "229ccb64": "#8 C4142: remove inherited MSVC type-redefinition suppression; no declaration changes; twelve helper hashes unchanged",
+    "e883223d": "#8 C4220: remove inherited MSVC varargs matching suppression; no declaration/call changes; twelve helper hashes unchanged",
+    "fc7de3a5": "#8 C4032: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
+    "d005bccc": "#8 C4051: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
+    "fae6f1a7": "#8 C4115: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
+    "0c220839": "#8 C4136: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
+    "f7568d21": "#8 C4514: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
+    "3e6d66b8": "#8 C4711: remove inherited MSVC suppression; no declaration/expression changes; twelve helper hashes unchanged",
+    "7c1db108": "#8 deprecation cleanup: remove unused testPrintInt/testPrintFloat reference wrappers and declarations; historical syscall enum values retained",
+    "e8752ef1": "#31 PrintMsg: bounded formatting and required-length/error checks before dispatch; test-first 1ef998b0; valid text and quote policy retained",
+    "f3facd3a": "#31 native diagnostics: twelve bounded formatting calls with original capacities/log offset; test-first a3652169; valid output unchanged",
+    "0eb07ced": "#8 writable strings: const Team_FragBonuses search name and remove redundant casts; base/MISSIONPACK GCC/Clang release objects byte-identical",
+    "05eca339": "#8 Apple deprecations: remove unused native COM_ParseError/COM_ParseWarning definitions and prototypes; engine diagnostics retained; no callers or syscall IDs change",
+    "f3f6b3fa": "#8: one clang-format 21.1.8 pass; release assembly instructions/data unchanged; preserve whitespace-sensitive macro arguments",
+    "f0c9acc3": "#8 readability: brace the existing early return adjacent to MISSIONPACK preprocessing; native helper hashes and release objects unchanged",
+    "33bf6e07": "#8 fixed-width shared records: preserve seven state/font sizes, alignments and traits; explicit unsigned trajectory enum in C++; twelve native helpers byte-identical",
+    "03d0b80d": "#8 integer contracts: explicit seek compatibility width and 64-bit internal sort/chat words; original GPL hashes retained; twelve GCC/Clang C/C++ native helper binaries identical",
+    "09f418cc": "#8 explicit numeric bytes: signed chat offsets and unsigned qsort copy bytes; all twelve native helper hashes retained",
+    "af8c818a": "#8 Q_ASSERT: object-like alias for existing assertions, unchanged arguments and release binaries; assertion side effects are rejected by tidy"
+  },
+  "files": [
+    {
+      "source": "code/cgame/cg_consolecmds.c",
+      "path": "game/cgame/cg_consolecmds.cpp",
+      "sha256": "6db7e3bb57607e5dada54dad68d0a419c7ae0f9819e9c00d3386457884e9c584",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "8889ea0e",
+        "e8e98ab2",
+        "5592a1eb",
+        "52e57708",
+        "70b1f0b6",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_draw.c",
+      "path": "game/cgame/cg_draw.cpp",
+      "sha256": "6ac7267402f16d77a403aed8bb987830a5567e4ca65909c52decce14955612ef",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 37 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "436bbab1",
+        "52e57708",
+        "93d334db",
+        "70b1f0b6",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_drawtools.c",
+      "path": "game/cgame/cg_drawtools.cpp",
+      "sha256": "d15e172774f61c0f63cf7e0346f5657db8c950ef709647099098b6ee6b64b224",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 29 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_effects.c",
+      "path": "game/cgame/cg_effects.cpp",
+      "sha256": "ca31c30eddb244e15b1605d4796ca2ccd7bc0a6217a34d2b351cc9b1c21df2fa",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 23 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "436bbab1",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_ents.c",
+      "path": "game/cgame/cg_ents.cpp",
+      "sha256": "c8670d557ea9326d546f0b75fee2cfd0f1aaef8c025b3d8a4b17eb8ce74fe020",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 11 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "93d334db",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_event.c",
+      "path": "game/cgame/cg_event.cpp",
+      "sha256": "5d76552ac9427ef8f3f2e94bc6793aa1f28e5dbb8015cb9bcf741c5f6b17fcc3",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 4 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "52e57708",
+        "93d334db",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_info.c",
+      "path": "game/cgame/cg_info.cpp",
+      "sha256": "1563f624984cc4c226b44cdfe07b1bf5f31ecb2b98f6bf66ae690913435a78ee",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "436bbab1",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_local.h",
+      "path": "game/cgame/cg_local.h",
+      "sha256": "950d17d47d3419cc6f3c0684ba6ea6285073b5dd777984f2ebd71b0cb042918a",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "436bbab1",
+        "8b5264c5",
+        "52e57708",
+        "7c1db108",
+        "f3f6b3fa",
+        "03d0b80d"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_localents.c",
+      "path": "game/cgame/cg_localents.cpp",
+      "sha256": "d8631eb29b5ae6f4bc0cc0216def511afa8897166dbfe61dcc0b8dddec0721d3",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 28 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_main.c",
+      "path": "game/cgame/cg_main.cpp",
+      "sha256": "5b0223fa2b2facff8ab80130ab39c1a1fe94bf2aa55b3ab9f3f30e329136bf15",
+      "disposition": "GPL import with recorded transformations followed by #2 native intptr_t return and three-argument engine entry ABI adaptation; #2 native binary32 ABI: 3 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "f4653398",
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "0b575fa9",
+        "5592a1eb",
+        "436bbab1",
+        "52e57708",
+        "05cb1e37",
+        "3eaba64d",
+        "6709136c",
+        "f3facd3a",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_marks.c",
+      "path": "game/cgame/cg_marks.cpp",
+      "sha256": "2268dc21d415b5057aeaf3f352aa074f75bef95c95c66c11d7a8e496d771078f",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 61 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "5592a1eb",
+        "436bbab1",
+        "05cb1e37",
+        "93d334db",
+        "74689b95",
+        "91a4341b",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_players.c",
+      "path": "game/cgame/cg_players.cpp",
+      "sha256": "842e8d808f8637187f9d2f288ddbaf348b8ac0219f07b2fb00dc2aa74a942dc5",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 19 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "5592a1eb",
+        "70b1f0b6",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_playerstate.c",
+      "path": "game/cgame/cg_playerstate.cpp",
+      "sha256": "bd96e421d73c66ad6732fa2a3c714fe6a12e1b6c265164330d95cebaba6cb6a5",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 13 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "93d334db",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_predict.c",
+      "path": "game/cgame/cg_predict.cpp",
+      "sha256": "3b2cf78980613834ba191d1d0f8087935e463396a2e52141a2d7fbf45a6a83ee",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "5592a1eb",
+        "436bbab1",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_public.h",
+      "path": "engine/public/cg_public.h",
+      "sha256": "c46ca41276d75b8b1b179c5998df7d158b7d52a998af426de1d98a3074d8d7b0",
+      "disposition": "existing engine ABI header retained",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_scoreboard.c",
+      "path": "game/cgame/cg_scoreboard.cpp",
+      "sha256": "6fa1f43b66fbac44255b1993ed5572a8420ce6f7af8374f9136d8cd064ba90a4",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 4 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_servercmds.c",
+      "path": "game/cgame/cg_servercmds.cpp",
+      "sha256": "1152a47762b427820d713d90c3573ce002edd5fd8dddcdafc5b3cc25799a0cb8",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "52e57708",
+        "68919a83",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_snapshot.c",
+      "path": "game/cgame/cg_snapshot.cpp",
+      "sha256": "c28605dedff7d807e4f9f846dbfd3d0096b9a63ec8f336cdec829efa010e510b",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_syscalls.c",
+      "path": "game/cgame/cg_syscalls.cpp",
+      "sha256": "2cc8c426bf6a4ff79000270771e104aa5eb4f88332347c4479c5d00420c8927c",
+      "disposition": "GPL import with recorded transformations followed by #2 native intptr_t syscall word marshalling; removed at static integration",
+      "transformations": [
+        "f4653398",
+        "6ea3a3bb",
+        "0b575fa9",
+        "7c1db108",
+        "f3f6b3fa",
+        "03d0b80d"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_view.c",
+      "path": "game/cgame/cg_view.cpp",
+      "sha256": "78bb45bf5d51ce3c20d7e40b55386b133df4d6e1003c7795dd670450390ccf3b",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 12 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "9e4d45f0",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/cg_weapons.c",
+      "path": "game/cgame/cg_weapons.cpp",
+      "sha256": "aee4f5bc39cfc697a6a9ae83addf37c633e8237df9dd5373bd6f80373777da98",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 37 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "5592a1eb",
+        "05cb1e37",
+        "93d334db",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/cgame/tr_types.h",
+      "path": "game/bg/tr_types_public.h",
+      "sha256": "6ce0e5cfd49d0ec6ca6907e0c80985b41c9b2963958ce3583bd6a3918ca16dd0",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_chat.c",
+      "path": "game/game/ai_chat.cpp",
+      "sha256": "ca8c93d5673dcb1205af9e8a68aca73bb918c05a55ab49f09ec26ae6f06d7135",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "d6c2ac52",
+        "52e57708",
+        "93d334db",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_chat.h",
+      "path": "game/game/ai_chat.h",
+      "sha256": "accfa59e19fde261af99e77602002957c9bc02b892faaa8f6741928101901d7d",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_cmd.c",
+      "path": "game/game/ai_cmd.cpp",
+      "sha256": "a999dc8d989afac9d108ca5ce693d6c43c37ed8df0ad294446ab63b030ef907d",
+      "disposition": "GPL import with reviewed #31 team-leader bounds fix from PR #53; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "0ff62c30",
+        "e8e98ab2",
+        "5592a1eb",
+        "d6c2ac52",
+        "090b7a3c",
+        "52e57708",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_cmd.h",
+      "path": "game/game/ai_cmd.h",
+      "sha256": "00503dc9a1a54f68e2e867b4d0f7a6e709b1f9536196cf3cf67f22b64f7b8dc0",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_dmnet.c",
+      "path": "game/game/ai_dmnet.cpp",
+      "sha256": "7f5277bd9530caa9cb9a1a3c7625c3ee60878b4e64897c344d62d611b3d96042",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 36 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "090b7a3c",
+        "52e57708",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_dmnet.h",
+      "path": "game/game/ai_dmnet.h",
+      "sha256": "33ddff5e4cc0beecf7b5b84a55c0a4713a6ff193f72dd22ad712339de96dd649",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_dmq3.c",
+      "path": "game/game/ai_dmq3.cpp",
+      "sha256": "6452f29f14b9042a8e921166149ede046d24e36734a74925d68cf46dd1a1fb46",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 66 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "d6c2ac52",
+        "52e57708",
+        "d59136ef",
+        "05cb1e37",
+        "93d334db",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_dmq3.h",
+      "path": "game/game/ai_dmq3.h",
+      "sha256": "99ebae3130f856eb67eda1f4dbdd77f6c2f00417906abe0e47b8fabbc3229594",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_main.c",
+      "path": "game/game/ai_main.cpp",
+      "sha256": "e969a606253b2d0aa69e9dc1c46981ef3a2ed352140ee3ce637cf456fc23497e",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 10 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "8dff7805",
+        "5592a1eb",
+        "0366fa06",
+        "d6c2ac52",
+        "8b5264c5",
+        "6709136c",
+        "f3facd3a",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_main.h",
+      "path": "game/game/ai_main.h",
+      "sha256": "a9c5ed889e4c06494462aea665bc7c8c3e800780cecfc2e087c31ddf5f98d5fa",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_team.c",
+      "path": "game/game/ai_team.cpp",
+      "sha256": "6c72ba41c01f181ae4f7ffe29be4c2962d4cee12327f01f883dc1f8fe9384165",
+      "disposition": "GPL import with reviewed #31 team-leader bounds fix from PR #53; #2 native binary32 ABI: 74 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "0ff62c30",
+        "e8e98ab2",
+        "0b575fa9",
+        "5592a1eb",
+        "d6c2ac52",
+        "52e57708",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_team.h",
+      "path": "game/game/ai_team.h",
+      "sha256": "5fa4071caa55ca8f23ff7a7f19bd9e3b594e50c2e673b2b755e41293ee9c6f6b",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "d6c2ac52",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_vcmd.c",
+      "path": "game/game/ai_vcmd.cpp",
+      "sha256": "04f2626aa631367b3c0f735873c0bc913242d47743bc5514a7ea7f320f3a602a",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "52e57708",
+        "05cb1e37",
+        "93d334db",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/ai_vcmd.h",
+      "path": "game/game/ai_vcmd.h",
+      "sha256": "5ea37bedc8278305de6190d6e1114a883e031b606d3fd43e0eb91e4fc798dfbc",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/be_aas.h",
+      "path": "game/game/be_aas.h",
+      "sha256": "86ac70f29f7c387b255b0c8b6da56841cc773f26ac7551923e4b8429652dad70",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/be_ai_char.h",
+      "path": "game/game/be_ai_char.h",
+      "sha256": "3d85e3a206c7f7a298c0913350a7805910b7d54a174564989a708226b892021e",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/be_ai_chat.h",
+      "path": "game/game/be_ai_chat.h",
+      "sha256": "7b5806810ad6cbdf362d436fb834da9d255e1cd6c9c7ca8905d31dd817ed08cf",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "c58e2751",
+        "f3f6b3fa",
+        "03d0b80d",
+        "09f418cc"
+      ]
+    },
+    {
+      "source": "code/game/be_ai_gen.h",
+      "path": "game/game/be_ai_gen.h",
+      "sha256": "e4078c623b03b8c860ae93d2d272d3911013269aa09fea642b0372d8332ee3f7",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/be_ai_goal.h",
+      "path": "game/game/be_ai_goal.h",
+      "sha256": "5813861b05db039d369f9be85f5ff3fd8760177e2a1a5b02ec39cb5078a5aa2c",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/be_ai_move.h",
+      "path": "game/game/be_ai_move.h",
+      "sha256": "4bb24218eb74cc92a4de0e3a2fc8682b57b5bb500234b2d727d44cf9f816cbf8",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/be_ai_weap.h",
+      "path": "game/game/be_ai_weap.h",
+      "sha256": "8e689aa03cc69e45a459c18bca58afc0ab556909bcd650d257585dc281dd362e",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/be_ea.h",
+      "path": "game/game/be_ea.h",
+      "sha256": "84d2ae1f421c355cc160e1bb6284cb5db4a4f0e104ed5ed76f7e5278098e4e7b",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/bg_lib.c",
+      "path": "game/bg/bg_lib.cpp",
+      "sha256": "a7cfee75e1f8b751012a95912d8c756d75ac0727f156dd2d27acc64ae2e3bbe0",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2058 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "bdf81ac0",
+        "6ea3a3bb",
+        "5592a1eb",
+        "b6927331",
+        "70b1f0b6",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa",
+        "03d0b80d",
+        "09f418cc"
+      ]
+    },
+    {
+      "source": "code/game/bg_lib.h",
+      "path": "game/bg/bg_lib.h",
+      "sha256": "64bf40e89dd48bc8c5eeba0b04f6ad8ae9270d0a3d523821cbdcf3c7192d09aa",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/bg_local.h",
+      "path": "game/bg/bg_local.h",
+      "sha256": "2743f8b6c5fac16d2267b73d3d7af597e481db6a8dc4fa27b31f7d9fb01f38ab",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/bg_misc.c",
+      "path": "game/bg/bg_misc.cpp",
+      "sha256": "6ac561b647882e2e5a45ceb9da86f7ae88ec9714cd54ec29ad78440b3e991bbb",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 6 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "5592a1eb",
+        "8b5264c5",
+        "a5c199bf",
+        "708b7114",
+        "70b1f0b6",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/bg_pmove.c",
+      "path": "game/bg/bg_pmove.cpp",
+      "sha256": "e4560cbd9e1bb1479e586018433fc4c2b7cc61f9798097944609b1e661aba182",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 17 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "d6c2ac52",
+        "8b5264c5",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/bg_public.h",
+      "path": "engine/public/bg_public.h",
+      "sha256": "1a5a1b6c8defbfd3346a924dabc68b34a76f7ab8ced3e847cb8dc01a870c66aa",
+      "disposition": "existing engine ABI header retained; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "8889ea0e",
+        "5592a1eb",
+        "d6c2ac52",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/bg_slidemove.c",
+      "path": "game/bg/bg_slidemove.cpp",
+      "sha256": "39dbf1b27be3da0c855db7e31937ac38512d6f05016fa3210044b990d5e9b322",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "5592a1eb",
+        "8b5264c5",
+        "93d334db",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/botlib.h",
+      "path": "game/game/botlib.h",
+      "sha256": "5eb2397db26ea5463aa1153431b8f39ac8ad92fcb2d4e3108e6b33fc894515af",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa",
+        "03d0b80d"
+      ]
+    },
+    {
+      "source": "code/game/chars.h",
+      "path": "game/game/chars.h",
+      "sha256": "e29a45cb101f8d0fb01d619a01611bfc8698d5ab2af9e6901c323e5f8d12b115",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_active.c",
+      "path": "game/game/g_active.cpp",
+      "sha256": "11917f653856ed5c244bb3e8bb7fd7343b6ec1f219d58c4e3c87305ba18df166",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 8 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "93d334db",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_arenas.c",
+      "path": "game/game/g_arenas.cpp",
+      "sha256": "de9e67acd91f898ceb3a68fde1aa4baa250d16974b0a3dc5966008f03d3178b3",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "70b1f0b6",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_bot.c",
+      "path": "game/game/g_bot.cpp",
+      "sha256": "0074e666597b5e2f99d9c373317122f4044d5cd2b1918dae25c699fcec7681f4",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "d6c2ac52",
+        "70b1f0b6",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_client.c",
+      "path": "game/game/g_client.cpp",
+      "sha256": "2e5d3f526e4e82409bec32a34385cca4cb087fefdd0a5358b7895b71793b4a73",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "05cb1e37",
+        "70b1f0b6",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_cmds.c",
+      "path": "game/game/g_cmds.cpp",
+      "sha256": "6b72215dd6bdaf8c6c544b80e9b625b37aa4222604543567e18ab12f553e2f59",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "0b575fa9",
+        "52e57708",
+        "639fb07e",
+        "05cb1e37",
+        "70b1f0b6",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_combat.c",
+      "path": "game/game/g_combat.cpp",
+      "sha256": "249b6e0804d5c137b4f7b2ff0cc8f5c2fbf3114936a040cb0696688ab296a014",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 17 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "5592a1eb",
+        "d6c2ac52",
+        "05cb1e37",
+        "93d334db",
+        "70b1f0b6",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_items.c",
+      "path": "game/game/g_items.cpp",
+      "sha256": "752cde38645acdb3e8105933943ceff1235fa46f784edc4e9f2d1f03d3e99ca4",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 4 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_local.h",
+      "path": "game/game/g_local.h",
+      "sha256": "de98d3c7212f026650cf581baf102908c359667eb55f1bc65ef5c5b8819283e0",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "bdf81ac0",
+        "8889ea0e",
+        "d6c2ac52",
+        "8b5264c5",
+        "f3f6b3fa",
+        "03d0b80d"
+      ]
+    },
+    {
+      "source": "code/game/g_main.c",
+      "path": "game/game/g_main.cpp",
+      "sha256": "fdc9abc73283c57a27e25c15fbcac7cc7b63d0a82d6fe9ce8f8af8252548ee4a",
+      "disposition": "GPL import with recorded transformations followed by #2 native intptr_t return and three-argument engine entry ABI adaptation; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged); #31 PR #58 bounds team-voter reset to its two-element array",
+      "transformations": [
+        "f4653398",
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "0b575fa9",
+        "5592a1eb",
+        "4054a2a0",
+        "d6c2ac52",
+        "05cb1e37",
+        "708b7114",
+        "93d334db",
+        "70b1f0b6",
+        "3eaba64d",
+        "af07f013",
+        "6709136c",
+        "f3facd3a",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_mem.c",
+      "path": "game/game/g_mem.cpp",
+      "sha256": "2bc6b384305c8a1036ed2a0a12ddc0accb2366623896ec003331c6abb2c6a84d",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "d6c2ac52",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_misc.c",
+      "path": "game/game/g_misc.cpp",
+      "sha256": "0c356b7ef5364cfa59f3ed257c81db602085e869f360085727b7bd2594097425",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "5592a1eb",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_missile.c",
+      "path": "game/game/g_missile.cpp",
+      "sha256": "ea7de647cfce347f3ae2b1b14f2377991950b3b53bdf6a6f41fc55bf75d143c7",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 6 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_mover.c",
+      "path": "game/game/g_mover.cpp",
+      "sha256": "f6ad545eec11f46eb4ab7abe21f6ffea34c3d3c1b2e07d4c7ced37316c17fc62",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 6 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_public.h",
+      "path": "engine/public/g_public.h",
+      "sha256": "61d1f1920b187f3bf8cfb0e3619a0c1a5da18167b91858579d608c1839a32a64",
+      "disposition": "existing engine ABI header retained",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_rankings.h",
+      "path": "game/game/g_rankings.h",
+      "sha256": "01cd517df442a18567548508becb0e8828dbf2f3634697732f1a8d13bd46cf55",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/g_session.c",
+      "path": "game/game/g_session.cpp",
+      "sha256": "a04b043bfd65dd32c0d5ac8b0eb12395c785a3ce286e66d454410249744220f8",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_spawn.c",
+      "path": "game/game/g_spawn.cpp",
+      "sha256": "155f7a4c3c4c003d681b66c3e7c54242f9fb069657036060938d2879887ddc40",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "05cb1e37",
+        "708b7114",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_svcmds.c",
+      "path": "game/game/g_svcmds.cpp",
+      "sha256": "15214a282b8818f8b153dc86c8d19e8b01ee9ba4fa59e508faf3aceeefd1ec9c",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "d6c2ac52",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_syscalls.c",
+      "path": "game/game/g_syscalls.cpp",
+      "sha256": "42f5ea24fac3428ff8af4e24fbb553698b3f03067d1c3dbcfb6715fedcb28d22",
+      "disposition": "GPL import with recorded transformations followed by #2 native intptr_t syscall word marshalling; removed at static integration",
+      "transformations": [
+        "f4653398",
+        "6ea3a3bb",
+        "0b575fa9",
+        "f3f6b3fa",
+        "03d0b80d"
+      ]
+    },
+    {
+      "source": "code/game/g_target.c",
+      "path": "game/game/g_target.cpp",
+      "sha256": "5d47e01aaacfe997cc5b956a2364ed47d762259d1083dbd8616bf5f53e61c3bf",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_team.c",
+      "path": "game/game/g_team.cpp",
+      "sha256": "d004609c19db6949e3d4fe3d3a2d911fbb10f2d7f04249fd13218fb0aa928182",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged); #31 PR #59 initializes flags without invalid enum/table sentinels",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "622ae3af",
+        "05cb1e37",
+        "70b1f0b6",
+        "3eaba64d",
+        "6709136c",
+        "e8752ef1",
+        "0eb07ced",
+        "f3f6b3fa",
+        "f0c9acc3"
+      ]
+    },
+    {
+      "source": "code/game/g_team.h",
+      "path": "game/game/g_team.h",
+      "sha256": "0df64a2d49ce05fc5cb569792ee4d2fffdd93db6ba1fee106a2a11613a16d9bb",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_trigger.c",
+      "path": "game/game/g_trigger.cpp",
+      "sha256": "df5cc13f5e9d4f55ccc858ffe829690dfbd9443dcc0b9502e80ddcdd3eafd8a3",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_utils.c",
+      "path": "game/game/g_utils.cpp",
+      "sha256": "2bd8d6664a1d731dc5862cae00442adb564d53654ffa7e3de77f7c9813278bac",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 3 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "d6c2ac52",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/g_weapon.c",
+      "path": "game/game/g_weapon.cpp",
+      "sha256": "6c977ca2b5eca4d4a265a887259a187d83e86c738539f5beb907c392131bea1a",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 3 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "05cb1e37",
+        "93d334db",
+        "af07f013",
+        "6709136c",
+        "6bd5c657",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/inv.h",
+      "path": "game/game/inv.h",
+      "sha256": "41e61dc1df5e21235add209c5c776a6ea092c6ae23944ca835f2343f8f2289f9",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/game/match.h",
+      "path": "game/game/match.h",
+      "sha256": "b212f7c187065cc08f84eda2ef3151748a94f9b94ed7d5f06ba409289830a735",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/q_math.c",
+      "path": "game/bg/q_math.cpp",
+      "sha256": "571cffb6357b3f34fb4a5c000e22d7108f2f3380a49b55f8a993f0b0ce0ba239",
+      "disposition": "GPL import with recorded transformations in b3ef1acd; LP64 word fix merged from PR #49; #2 native binary32 ABI: 49 explicit float literal suffixes (C/C++ objects unchanged); #5 inactive 32-bit/PowerPC paths retired without changing supported function bodies",
+      "transformations": [
+        "152cc6e2",
+        "5592a1eb",
+        "9c170ddd",
+        "6709136c",
+        "f3f6b3fa",
+        "af8c818a"
+      ]
+    },
+    {
+      "source": "code/game/q_shared.c",
+      "path": "game/bg/q_shared.cpp",
+      "sha256": "a8ddd2b1093ee69df7d0826aad75180ac2ff27bb45f25389e4313efeb51c4be2",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "cdcbb7df",
+        "090b7a3c",
+        "70b1f0b6",
+        "3eaba64d",
+        "c5e4a555",
+        "bdbc5e9c",
+        "6709136c",
+        "05eca339",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/q_shared.h",
+      "path": "game/bg/q_shared.h",
+      "sha256": "9083a35790991b674bc58c3800b068a9a978898508c5fb08123ea52e1dc8597a",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 7 explicit float literal suffixes (C/C++ objects unchanged); #5 inactive 32-bit/PowerPC paths retired without changing supported function bodies",
+      "transformations": [
+        "152cc6e2",
+        "bdf81ac0",
+        "5592a1eb",
+        "090b7a3c",
+        "9c170ddd",
+        "d4366ae7",
+        "6709136c",
+        "6bd5c657",
+        "464d4faa",
+        "b4696ba0",
+        "769685fb",
+        "fe512b6e",
+        "fe91948f",
+        "229ccb64",
+        "e883223d",
+        "fc7de3a5",
+        "d005bccc",
+        "fae6f1a7",
+        "0c220839",
+        "f7568d21",
+        "3e6d66b8",
+        "05eca339",
+        "f3f6b3fa",
+        "33bf6e07",
+        "03d0b80d",
+        "af8c818a"
+      ]
+    },
+    {
+      "source": "code/game/surfaceflags.h",
+      "path": "game/bg/surfaceflags.h",
+      "sha256": "f05993c571858f3bb86cdcb9121d1748351377746916b5db0e28312bdb3b6722",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/game/syn.h",
+      "path": "game/game/syn.h",
+      "sha256": "18f0aaab55b29ff45c1c669812fc5f84cb3985c538f721afd1b7da467ab56a4e",
+      "disposition": "verbatim import"
+    },
+    {
+      "source": "code/q3_ui/keycodes.h",
+      "path": "game/ui/keycodes.h",
+      "sha256": "dd0f7c5cba444a3399ca70684d1292d82aec5094b607cf222ad67aa50b5342df",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_addbots.c",
+      "path": "game/ui/ui_addbots.cpp",
+      "sha256": "6d294093cd9bdf759fba3375af8adf51f3f727ba999599db1a2c50afeb8762be",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "2475e0d2",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_atoms.c",
+      "path": "game/ui/ui_atoms.cpp",
+      "sha256": "d221b463c8458f3e192562e512a6e3c7c48f501401fa81207f4758087f331498",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 26 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "436bbab1",
+        "05cb1e37",
+        "3eaba64d",
+        "6709136c",
+        "f3facd3a",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_cdkey.c",
+      "path": "game/ui/ui_cdkey.cpp",
+      "sha256": "603c3d3e471f13288376810e19d3fea7707409a0a61a5c85ebc069ed33899c4c",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_cinematics.c",
+      "path": "game/ui/ui_cinematics.cpp",
+      "sha256": "b58dd992260cf501dc9268db032fe23c039d17c8c15153c1520a61efdfce1fa4",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "8889ea0e",
+        "e8e98ab2",
+        "05cb1e37",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_confirm.c",
+      "path": "game/ui/ui_confirm.cpp",
+      "sha256": "64c15b422ef8715314cca227878381db4a2e3065c77aa72ef3ef431bef65cc56",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_connect.c",
+      "path": "game/ui/ui_connect.cpp",
+      "sha256": "1558c7db8f47415ed6884f5a6b8ca8ccc389727c19dcecc07ed65da9a2e796f2",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_controls2.c",
+      "path": "game/ui/ui_controls2.cpp",
+      "sha256": "87ec01656e0b29981e3d994666555a8ddd5f76a3ac2d363594a8708ffe8ba8f6",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 8 explicit float literal suffixes (C/C++ objects unchanged); #2 remove obsolete SetInfo enum cast after #31 PR #57",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "5592a1eb",
+        "bb869f79",
+        "05cb1e37",
+        "93d334db",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_credits.c",
+      "path": "game/ui/ui_credits.cpp",
+      "sha256": "507dca6d093b49e236ced02bcb0e762595a8ad810c52ba77f95cbbefaac6bb5b",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 9 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_demo2.c",
+      "path": "game/ui/ui_demo2.cpp",
+      "sha256": "1d39b4ff39e52e22ee30ec5e7839d67a63b68b2e94053dbd2ba754e26635e7fd",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "93d334db",
+        "3eaba64d",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_display.c",
+      "path": "game/ui/ui_display.cpp",
+      "sha256": "b920a14f4f9e0ce97c9ec3fa16a63a8d232dffaf6ac1048ff721b991003598bb",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_gameinfo.c",
+      "path": "game/ui/ui_gameinfo.cpp",
+      "sha256": "71bf5706863167627bf0cbd67c8a220860ca9be6b667d63512a354d89d17d199",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "436bbab1",
+        "2475e0d2",
+        "3eaba64d",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_ingame.c",
+      "path": "game/ui/ui_ingame.cpp",
+      "sha256": "bfac9351feb14e5fca45daa085f51e6e969f3da99bb7a4c757c964d8f8565f01",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "af8ba5e7",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_loadconfig.c",
+      "path": "game/ui/ui_loadconfig.cpp",
+      "sha256": "17b02e2222ee1e62de9b47b1da29fa34cb6ff8eedb8b54a0b06a7b609d9594c9",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "3eaba64d",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_local.h",
+      "path": "game/ui/ui_local.h",
+      "sha256": "a6646ebf728fa741c1638a630e8d8c3e6979e75218108831b48e53490418a807",
+      "disposition": "GPL import; #2 T8 read-only artwork/medal pointers; #31 PR #57 signed pending-weapon storage and setter input",
+      "transformations": [
+        "8889ea0e",
+        "630ae8e1",
+        "bb869f79",
+        "436bbab1",
+        "8b5264c5",
+        "52e57708",
+        "2475e0d2",
+        "f3f6b3fa",
+        "03d0b80d"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_main.c",
+      "path": "game/ui/ui_main.cpp",
+      "sha256": "08c57f6ea15247efb17f688d3f0e5093b2180c0076c680e0cbee382b9910e6d9",
+      "disposition": "GPL import with recorded transformations followed by #2 native intptr_t return and three-argument engine entry ABI adaptation",
+      "transformations": [
+        "f4653398",
+        "6ea3a3bb",
+        "8889ea0e",
+        "0b575fa9",
+        "05cb1e37",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_menu.c",
+      "path": "game/ui/ui_menu.cpp",
+      "sha256": "8694408c371f9aada5832fcfcfaa57a9b5482f4bf1975723589fa345893c8e2f",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 3 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "05cb1e37",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_mfield.c",
+      "path": "game/ui/ui_mfield.cpp",
+      "sha256": "8bcc1162e8e6aa63d1739371f65358ee940dfe6c8a610c57facfd8c6b3b72cae",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "93d334db",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_mods.c",
+      "path": "game/ui/ui_mods.cpp",
+      "sha256": "c7f15efe5f8f515e682665aaca13a25a65ca4398eec8c4da857673e6615650b7",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "3eaba64d",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_network.c",
+      "path": "game/ui/ui_network.cpp",
+      "sha256": "9115a164615e0ec39ad82593fee2b5af1d8cf99eed374624746c50968c6e3538",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_options.c",
+      "path": "game/ui/ui_options.cpp",
+      "sha256": "6943e0e0642521d7dcc90770c04f9bbce0da77908a082b66735dcc764f411de0",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_playermodel.c",
+      "path": "game/ui/ui_playermodel.cpp",
+      "sha256": "ee8451eccd80a390d5d1eecff7618909d3fdbe9a28ee2e028482f01be0ba821d",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_players.c",
+      "path": "game/ui/ui_players.cpp",
+      "sha256": "6e7c12e92ec1858f3e5508dfe48f98f3ace8c67a53882ca4836b414692843cc1",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 25 explicit float literal suffixes (C/C++ objects unchanged); #31 PR #57 signed setter input; #2 T3 valid weapon conversions and removal of obsolete sentinel casts",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "630ae8e1",
+        "bb869f79",
+        "05cb1e37",
+        "70b1f0b6",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_playersettings.c",
+      "path": "game/ui/ui_playersettings.cpp",
+      "sha256": "43a029c85062e2313783438bb975c11286f48c4a94f0ae0e3286dd9e57b46775",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_preferences.c",
+      "path": "game/ui/ui_preferences.cpp",
+      "sha256": "3c46fd6f1222416870921135018e27cadb7642507638b2554f5053437c5049e2",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/ui/ui_public.h",
+      "path": "engine/public/ui_public.h",
+      "sha256": "9ada4dd687b2c0a5dd73f9d81a5cd344664cd8dd787ec6552c5e83c8fe16f9c7",
+      "disposition": "existing engine ABI header retained",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_qmenu.c",
+      "path": "game/ui/ui_qmenu.cpp",
+      "sha256": "bb532514f8652dd6b83be5064c8339c80e6d3d50d803be374999756835b9284a",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "5592a1eb",
+        "a5c199bf",
+        "05cb1e37",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_removebots.c",
+      "path": "game/ui/ui_removebots.cpp",
+      "sha256": "b4d69965363d66c807ca5270edf83fe878dba792d55a55ada8fdf0d601f69fe0",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "05cb1e37",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_saveconfig.c",
+      "path": "game/ui/ui_saveconfig.cpp",
+      "sha256": "000c8536fe102361a6e3fdc5e300101ebca26e1037cbbbdfabc3cdbb8d418fdc",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_serverinfo.c",
+      "path": "game/ui/ui_serverinfo.cpp",
+      "sha256": "7b7e5bc9694c0612df99169c92aefc78b8361aa17d3d3881f9ae82553192825b",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "8889ea0e",
+        "e8e98ab2",
+        "5592a1eb",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_servers2.c",
+      "path": "game/ui/ui_servers2.cpp",
+      "sha256": "1e625c1f18a751d5c6f4f79b535407ce2509319c6a23e68c501296dee3dbe0b3",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "436bbab1",
+        "93d334db",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_setup.c",
+      "path": "game/ui/ui_setup.cpp",
+      "sha256": "45457de65a461fb515ea3fb49163f435d88858662829cefba48f2c189efd14f5",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/ui/ui_shared.h",
+      "path": "game/ui/ui_shared_public.h",
+      "sha256": "b249e8d18be4379c1606a58e2f9fea6ec4ac4ef910de75e4d600bbe18a3d9902",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 5 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "5592a1eb",
+        "8b5264c5",
+        "52e57708",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_sound.c",
+      "path": "game/ui/ui_sound.cpp",
+      "sha256": "ecef9153dce421ce157b60fbdea79775dc551ca780c1818083010555aee03133",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_sparena.c",
+      "path": "game/ui/ui_sparena.cpp",
+      "sha256": "5830d1f8846efae41e416e9b2f807cde47a0783fa72cccf89b926ddf9718c26a",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_specifyserver.c",
+      "path": "game/ui/ui_specifyserver.cpp",
+      "sha256": "1e0013f2942c0e4eee718bfb8896556880054f1425cf5b461170350e1a383bc7",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "8889ea0e",
+        "e8e98ab2",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_splevel.c",
+      "path": "game/ui/ui_splevel.cpp",
+      "sha256": "47ef0e3422d053b7991cea9fdb7d4805462d84f3640513e9e9b29aa45cb4f55f",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 2 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "e8e98ab2",
+        "5592a1eb",
+        "2475e0d2",
+        "05cb1e37",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_sppostgame.c",
+      "path": "game/ui/ui_sppostgame.cpp",
+      "sha256": "97c189fabc56754564c61ed73081ca28c5eae915aa398112bc00bf2c21a9f0cc",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "05cb1e37",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_spskill.c",
+      "path": "game/ui/ui_spskill.cpp",
+      "sha256": "76f007cb790078d9f01244cd95b70095ee9d11892eb6f9b02a5eb7bf1757eca4",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "2475e0d2",
+        "05cb1e37",
+        "1c82acae",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_startserver.c",
+      "path": "game/ui/ui_startserver.cpp",
+      "sha256": "83860c82ed983ed5dc1aa890f9ee275553e392cdd5fac84922d5ccacd000617d",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "05cb1e37",
+        "f9dbcb07",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/ui/ui_syscalls.c",
+      "path": "game/ui/ui_syscalls.cpp",
+      "sha256": "d9ca255d00503d677ec8c52a441d6cabd0555808bab47f204a540c4b49f24a56",
+      "disposition": "GPL import with recorded transformations followed by #2 native intptr_t syscall word marshalling; removed at static integration",
+      "transformations": [
+        "f4653398",
+        "6ea3a3bb",
+        "0b575fa9",
+        "f3f6b3fa",
+        "03d0b80d"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_team.c",
+      "path": "game/ui/ui_team.cpp",
+      "sha256": "456c32c0853e12cd140a114524b44282145afbf93efe7cdd22c14a6d2138b339",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "e8e98ab2",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_teamorders.c",
+      "path": "game/ui/ui_teamorders.cpp",
+      "sha256": "0c56533423e0badbdd8c1f964d77b3ad376278df40d91ceca9b7666f5c60855f",
+      "disposition": "GPL import with recorded transformations",
+      "transformations": [
+        "6ea3a3bb",
+        "e8e98ab2",
+        "05cb1e37",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "code/q3_ui/ui_video.c",
+      "path": "game/ui/ui_video.cpp",
+      "sha256": "fa0817b1191a8eb91dd9a185f841c3a610aeeae142ab49ca1bb61154022fa64f",
+      "disposition": "GPL import with recorded transformations; #2 native binary32 ABI: 1 explicit float literal suffixes (C/C++ objects unchanged)",
+      "transformations": [
+        "6ea3a3bb",
+        "8889ea0e",
+        "e8e98ab2",
+        "5592a1eb",
+        "05cb1e37",
+        "70b1f0b6",
+        "3eaba64d",
+        "6709136c",
+        "f3f6b3fa"
+      ]
+    },
+    {
+      "source": "ui/menudef.h",
+      "path": "game/bg/menudef_public.h",
+      "sha256": "e32d5303f38e32ec4820a87e98747b41b9a4579f07dbcc358ac1d2e876a26aef",
+      "disposition": "verbatim import",
+      "transformations": [
+        "f3f6b3fa"
+      ]
+    }
+  ]
+}

@@ -29,3 +29,26 @@ MaxEmptyLinesToKeep: 2
 Cpp11BracedListStyle: false
 AlignOperands: Align
 SkipMacroDefinitionBody: true
+AlignTrailingComments:
+  Kind: Never
+WhitespaceSensitiveMacros:
+  - NETF
+  - PSF
+  - Hunk_Alloc
+  - STRING
+  - Z_TagMalloc
+  - Z_Malloc
+  - S_Malloc
+  - GetMemory
+  - GetClearedMemory
+  - GetHunkMemory
+  - GetClearedHunkMemory
+  - CASE_STR
+  - VK_CHECK
+  - INIT_INSTANCE_FUNCTION
+  - INIT_INSTANCE_FUNCTION_EXT
+  - INIT_DEVICE_FUNCTION
+  - INIT_DEVICE_FUNCTION_EXT
+  - SHOW
+  - assert
+  - Q_ASSERT

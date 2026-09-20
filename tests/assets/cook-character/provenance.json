@@ -1,0 +1,13 @@
+{
+  "blender_version": "4.5.3 LTS",
+  "blender_build": "67807e1800cc",
+  "archive_url": "https://download.blender.org/release/Blender4.5/blender-4.5.3-linux-x64.tar.xz",
+  "archive_sha256": "975c58fcb244273838534bba771e64ad87739216b0f9b39a888531a49a72d845",
+  "license": "GPL-2.0-or-later (repository-owned generated fixture)",
+  "files": {
+    "export.py": "e8b9600d2dfac0f12dde1495bc0d98e54f538b13f1705fbf5d56e1941f3cf3a9",
+    "character.gltf": "de4ddb5e7ee7dec7dce8b06287a97c7ef198f049059f6334454194e8fa378304",
+    "character.bin": "e8555b170e91ba1bc92033dbdde257807b9fb8f2bff35e5ac797dd1c341fc3b9",
+    "character.png": "c5611280de8822d938f071a6179f5bbddc6fd07aea3f98aa4415d2f008a321d6"
+  }
+}

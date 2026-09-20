@@ -1,0 +1,144 @@
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"regexp"
+	"strconv"
+)
+
+type spec struct {
+	ID        string `json:"id"`
+	Map       string `json:"map"`
+	Mode      int    `json:"mode"`
+	FragLimit int    `json:"frag_limit"`
+	TimeLimit int    `json:"time_limit"`
+	Players   int    `json:"players"`
+	Password  string `json:"password"`
+	Token     string `json:"token"`
+}
+
+var identifier = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,64}$`)
+var secret = regexp.MustCompile(`^[a-zA-Z0-9_.-]{8,128}$`)
+
+func strictJSON(data []byte, out any) error {
+	if len(data) > 65536 {
+		return errors.New("JSON exceeds 64 KiB")
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.DisallowUnknownFields()
+	if err := d.Decode(out); err != nil {
+		return err
+	}
+	if d.Decode(new(any)) != io.EOF {
+		return errors.New("trailing JSON data")
+	}
+	return nil
+}
+func decodeSpec(data []byte) (spec, error) {
+	var s spec
+	if err := strictJSON(data, &s); err != nil {
+		return s, err
+	}
+	return s, s.validate()
+}
+func (s spec) validate() error {
+	if !identifier.MatchString(s.ID) || !identifier.MatchString(s.Map) || len(s.Map) > 48 || !secret.MatchString(s.Password) || !secret.MatchString(s.Token) ||
+		s.Mode < 0 || s.Mode > 4 || s.Players < 1 || s.Players > 64 || s.FragLimit < 0 || s.FragLimit > 10000 || s.TimeLimit < 0 || s.TimeLimit > 1440 || s.FragLimit+s.TimeLimit == 0 {
+		return errors.New("invalid match identifier, password/token, mode, limits or player count")
+	}
+	return nil
+}
+func serverArgs(s spec, content, home, game string, port int, warm bool) ([]string, error) {
+	if err := s.validate(); err != nil {
+		return nil, err
+	}
+	if !identifier.MatchString(game) || port < 1024 || port > 65535 {
+		return nil, errors.New("invalid game directory or unprivileged port")
+	}
+	args := []string{}
+	set := func(k, v string) { args = append(args, "+set", k, v) }
+	set("fs_basepath", content)
+	set("fs_homepath", home)
+	set("fs_basegame", game)
+	set("dedicated", "1")
+	set("net_enabled", "1")
+	set("net_port", strconv.Itoa(port))
+	set("sv_hostname", "Aftershock match")
+	set("sv_pure", "1")
+	set("sv_allowDownload", "0")
+	set("bot_enable", "0")
+	set("g_log", "games.log")
+	set("g_logSync", "1")
+	set("sv_maxclients", strconv.Itoa(s.Players))
+	set("g_gametype", strconv.Itoa(s.Mode))
+	set("g_password", s.Password)
+	set("sv_exitOnMatchEnd", "1")
+	set("fraglimit", strconv.Itoa(s.FragLimit))
+	set("timelimit", strconv.Itoa(s.TimeLimit))
+	if warm {
+		set("fraglimit", "0")
+		set("timelimit", "0")
+	}
+	set("capturelimit", "0")
+	return append(args, "+map", s.Map), nil
+}
+
+type playerStats struct {
+	Kills  int `json:"kills"`
+	Deaths int `json:"deaths"`
+}
+type checkpoint struct {
+	Seconds   int                    `json:"seconds"`
+	Players   map[string]playerStats `json:"players"`
+	Joins     int                    `json:"joins"`
+	Kills     int                    `json:"kills"`
+	Scores    map[string]int         `json:"scores"`
+	Completed bool                   `json:"completed"`
+}
+
+func (c *checkpoint) add(line string) {
+	var minutes, seconds int
+	var event string
+	if _, err := fmt.Sscanf(line, "%d:%d %s", &minutes, &seconds, &event); err != nil {
+		return
+	}
+	c.Seconds = minutes*60 + seconds
+	switch event {
+	case "ClientBegin:":
+		c.Joins++
+	case "Kill:":
+		c.Kills++
+		var attacker, victim, weapon int
+		if n, _ := fmt.Sscanf(line, "%d:%d Kill: %d %d %d:", &minutes, &seconds, &attacker, &victim, &weapon); n == 5 {
+			if c.Players == nil {
+				c.Players = map[string]playerStats{}
+			}
+			if attacker >= 0 && attacker < 64 && attacker != victim {
+				key := strconv.Itoa(attacker)
+				p := c.Players[key]
+				p.Kills++
+				c.Players[key] = p
+			}
+			if victim >= 0 && victim < 64 {
+				key := strconv.Itoa(victim)
+				p := c.Players[key]
+				p.Deaths++
+				c.Players[key] = p
+			}
+		}
+	case "Exit:":
+		c.Completed = true
+	case "score:":
+		var score, ping, client int
+		if n, _ := fmt.Sscanf(line, "%d:%d score: %d ping: %d client: %d", &minutes, &seconds, &score, &ping, &client); n == 5 {
+			if c.Scores == nil {
+				c.Scores = map[string]int{}
+			}
+			c.Scores[strconv.Itoa(client)] = score
+		}
+	}
+}

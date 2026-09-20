@@ -11,8 +11,8 @@ import tempfile
 root = Path(__file__).resolve().parents[2]
 output = Path(sys.argv[1] if len(sys.argv) > 1 else tempfile.mkdtemp(prefix='port-shaders-')).resolve()
 output.mkdir(parents=True, exist_ok=True)
-source = root / 'code/renderervk/shaders/bin2hex.cpp'
-data = root / 'code/renderervk/shaders/spirv/shader_data.cpp'
+source = root / 'tools/shaders/bin2hex.cpp'
+data = root / 'engine/renderervk/shaders/spirv/shader_data.cpp'
 original = data.read_bytes()
 blocks = re.findall(rb'extern const unsigned char (\w+)\[(\d+)\];\nconst unsigned char \1\[\2\] = \{\n(.*?)\n\};\n', original, re.S)
 assert len(blocks) == 74

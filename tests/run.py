@@ -1,0 +1,294 @@
+#!/usr/bin/env python3
+"""Permanent regression checks; golden writes require --regenerate outside CI."""
+import argparse
+import difflib
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shlex
+import shutil
+import subprocess
+import tempfile
+import zipfile
+
+ROOT = Path(__file__).resolve().parents[1]
+SOURCES = 'q_shared q_math msg huffman huffman_static cmd cvar files net_chan net_ip md4 cm_load cm_patch cm_polylib cm_test cm_trace'.split()
+ENV = dict(os.environ, SOURCE_DATE_EPOCH='1789257600', LC_ALL='C')
+
+
+def run(args, **kwargs):
+    return subprocess.run([str(a) for a in args], cwd=ROOT, env=ENV, check=True, **kwargs)
+
+
+def compare(name, actual, regenerate, normalize=None):
+    path = ROOT / 'tests/golden' / name
+    if regenerate and normalize:
+        raise SystemExit('FAIL: normalized native parity cannot regenerate QVM goldens')
+    if regenerate:
+        if os.environ.get('CI'):
+            raise SystemExit('FAIL: CI must never regenerate goldens')
+        path.write_bytes(actual)
+        print('GENERATED', path.relative_to(ROOT), hashlib.sha256(actual).hexdigest())
+        return
+    if not path.is_file():
+        raise SystemExit('FAIL: missing reviewed golden: ' + name)
+    expected = path.read_bytes()
+    if normalize:
+        expected, actual = normalize(expected), normalize(actual)
+    if expected != actual:
+        print(''.join(difflib.unified_diff(expected.decode().splitlines(True), actual.decode().splitlines(True), fromfile=str(path), tofile='actual')))
+        raise SystemExit('FAIL: ' + name)
+    print('PASS', name, hashlib.sha256(actual).hexdigest())
+
+
+def configure(output, variables):
+    output.mkdir(parents=True, exist_ok=True)
+    settings = json.dumps(variables)
+    manifest = output / 'settings.json'
+    refresh = [] if manifest.exists() and manifest.read_text() == settings else ['--fresh']
+    flags = []
+    for variable in variables:
+        key, value = variable.split('=', 1)
+        if key in ('CC', 'CXX'):
+            language = 'C' if key == 'CC' else 'CXX'
+            compiler = shlex.split(value)
+            flags += [f'-DCMAKE_{language}_COMPILER={compiler[0]}',
+                      f'-DCMAKE_{language}_FLAGS={shlex.join(compiler[1:])}']
+        else:
+            key = {'CFLAGS': 'AFTERSHOCK_EXTRA_FLAGS',
+                   'LDFLAGS': 'AFTERSHOCK_EXTRA_LINK_FLAGS'}.get(key, key)
+            flags.append('-D' + key + '=' + value)
+    command = ['cmake', *refresh, '-S', ROOT, '-B', output, '-G', 'Ninja',
+               '-DCMAKE_BUILD_TYPE=Release', *flags]
+    build_command(output, command, 'w')
+    manifest.write_text(settings)
+
+
+def build_command(output, command, mode='a'):
+    with (output / 'build.log').open(mode) as log:
+        result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV,
+                                stdout=log, stderr=subprocess.STDOUT)
+    if result.returncode:
+        print((output / 'build.log').read_text())
+        result.check_returncode()
+
+
+def compilation_commands(output):
+    commands = json.loads((output / 'compile_commands.json').read_text())
+    for row in commands:
+        row['arguments'] = row.get('arguments') or shlex.split(row['command'])
+        path = Path(row.get('output') or row['arguments'][row['arguments'].index('-o') + 1])
+        row['output'] = str(path if path.is_absolute() else Path(row['directory']) / path)
+    return commands
+
+
+def build(output, variables):
+    configure(output, variables)
+    build_command(output, ['cmake', '--build', output, '-j8'])
+    return output / 'release-linux-x86_64'
+
+
+def build_objects(output, variables, target, sources):
+    configure(output, variables)
+    rows = [row for row in compilation_commands(output)
+            if f'{target}.dir' in Path(row['output']).parts and Path(row['file']).stem in sources]
+    objects = {Path(row['file']).stem: Path(row['output']) for row in rows}
+    if len(rows) != len(sources) or set(objects) != set(sources):
+        raise RuntimeError('production object selection differs: ' + str(objects))
+    build_command(output, ['cmake', '--build', output, '-j8', '--target',
+                          *[str(path.relative_to(output)) for path in objects.values()]])
+    return objects
+
+
+def differential(args):
+    sanitizers = 'address,pointer-compare' if args.pointer_compare else 'address,undefined'
+    instrument = ['-fsanitize=' + sanitizers, '-fno-omit-frame-pointer'] if args.sanitize else []
+    jpeg_tables = args.output / 'jpeg-tables.o'
+    run([*shlex.split(args.cc), '-std=c11', '-O2', *instrument, '-fno-strict-aliasing',
+         '-ffunction-sections', '-fdata-sections', '-c', 'tests/probes/jpeg_tables.c', '-o', jpeg_tables])
+    variables = [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0', 'USE_SDL=0', 'USE_CURL=0', 'CFLAGS=-ffunction-sections -fdata-sections ' + ' '.join(instrument)]
+    objects = build_objects(args.output / 'unit-build', variables, 'server', SOURCES)
+    binary = args.output / 'differential'
+    run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti', '-O2',
+         *instrument, '-fno-strict-aliasing', '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',
+         'tests/probes/allocations.cpp',
+         jpeg_tables,
+         *[objects[s] for s in SOURCES], '-Wl,--gc-sections',
+         '-Wl,--wrap=_Z11FS_ReadFilePKcPPv', '-o', binary, '-lm'])
+    command = [binary]
+    if args.check == 'differential':
+        name = content_maps(args.content)[0] + '.bsp'
+        bsp = None
+        for archive in sorted(args.data.glob('*.pk3')):
+            with zipfile.ZipFile(archive) as pak:
+                if 'maps/' + name in pak.namelist():
+                    bsp = pak.read('maps/' + name)
+        if bsp is None:
+            raise SystemExit('FAIL: missing map: ' + name)
+        map_path = args.output / name
+        map_path.write_bytes(bsp)
+        command.append(map_path)
+        print('BSP SHA256', hashlib.sha256(bsp).hexdigest())
+    result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    diagnostics = result.stderr.decode()
+    if diagnostics:
+        print(diagnostics, end='')
+    result.check_returncode()
+    if args.known_bugs:
+        check_known_bugs(diagnostics)
+    actual = result.stdout
+    (args.output / (args.check + '.txt')).write_bytes(actual)
+    compare(('openarena/' if args.check == 'differential' and args.content == 'openarena' else '') + args.check + '.txt', actual, args.regenerate)
+    if args.negative_control:
+        negative_control(args, objects, binary)
+
+
+def check_known_bugs(diagnostics, patterns=None):
+    if patterns is None:
+        patterns = [line for line in (ROOT / 'tests/known-bugs.txt').read_text().splitlines()
+                    if line and not line.startswith('#')]
+    errors = [line for line in diagnostics.splitlines() if 'runtime error:' in line]
+    for error in errors:
+        if not any(re.search(pattern, error) for pattern in patterns):
+            raise SystemExit('FAIL: unlisted sanitizer failure: ' + error)
+        print('known, tracked in #31: ' + error)
+    for pattern in patterns:
+        if not any(re.search(pattern, error) for error in errors):
+            raise SystemExit('FAIL: listed bug stopped failing; remove its entry: ' + pattern)
+
+
+def negative_control(args, objects, binary):
+    original = (ROOT / 'engine/qcommon/q_math.cpp').read_text()
+    begin = re.search(r'float Q_rsqrt\( float number \)\s*\{', original).start()
+    end = original.index('float Q_fabs', begin)
+    body = original[begin:end]
+    assert body.count('return 1.0f / sqrtf( number );') == 1
+    mutant = args.output / 'q_math-one-ulp.cpp'
+    mutant.write_text(original[:begin] + body.replace('return 1.0f / sqrtf( number );', 'return nextafterf( 1.0f / sqrtf( number ), INFINITY );') + original[end:])
+    row = next(row for row in compilation_commands(args.output / 'unit-build')
+               if Path(row['output']) == objects['q_math'])
+    command = []
+    arguments = iter(row['arguments'])
+    for argument in arguments:
+        if argument in ('-MF', '-MT', '-MQ'):
+            next(arguments)
+        elif argument not in ('-MD', '-MMD'):
+            command.append(argument)
+    command[command.index(row['file'])] = str(mutant)
+    obj = args.output / 'q_math-one-ulp.o'
+    command[command.index('-o') + 1] = str(obj)
+    run([*command, '-Iengine/qcommon', '-ffunction-sections', '-fdata-sections'])
+    mutated_binary = args.output / 'differential-one-ulp'
+    run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti', '-O2',
+         '-fno-strict-aliasing', '-ffunction-sections', '-fdata-sections', 'tests/probes/differential.cpp',
+         'tests/probes/allocations.cpp',
+         args.output / 'jpeg-tables.o',
+         *[obj if stem == 'q_math' else objects[stem] for stem in SOURCES],
+         '-Wl,--gc-sections', '-Wl,--wrap=_Z11FS_ReadFilePKcPPv', '-o', mutated_binary, '-lm'])
+    changed = run([mutated_binary], stdout=subprocess.PIPE).stdout
+    expected = (ROOT / 'tests/golden/unit.txt').read_bytes()
+    if changed == expected:
+        raise SystemExit('FAIL: one-ULP Q_rsqrt mutation escaped the golden check')
+    (args.output / 'one-ulp.diff').write_text(''.join(difflib.unified_diff(expected.decode().splitlines(True), changed.decode().splitlines(True))))
+    print('PASS: one-ULP Q_rsqrt mutation rejected; engine source untouched')
+
+
+def content_maps(content):
+    return ('oa_dm1', 'oa_dm7') if content == 'openarena' else ('q3dm17', 'q3dm7')
+
+
+def content_bots(content):
+    return ('sarge', 'major') if content == 'quake3' else ('sarge', 'beret')
+
+
+def content_settings(content):
+    return ['+set', 'fs_game', 'baseoa', '+set', 'net_enabled', '0'] if content == 'openarena' else []
+
+
+def runtime(args):
+    from native import engine_objects, normalize_log, verify_static
+    variables = [f'CC={args.cc}', f'CXX={args.cxx}', 'BUILD_CLIENT=0']
+    native_cc = args.cc
+    if args.sanitize:
+        variables += ['CFLAGS=-fsanitize=undefined -fno-omit-frame-pointer', 'LDFLAGS=-fsanitize=undefined']
+        native_cc += ' -fsanitize=undefined -fno-omit-frame-pointer'
+    variables += engine_objects(args.output / 'native', args.content, native_cc, args.cxx, ('game',))
+    binary = build(args.output / 'runtime-build', variables) / 'quake3e.ded.x64'
+    verify_static(binary, ('game',))
+    normalize = normalize_log
+    for map_name in content_maps(args.content):
+        results = []
+        # Isolated home prevents the user's config and pak cache influencing fixtures.
+        with tempfile.TemporaryDirectory(prefix='aftershock-smoke-') as home:
+            base = Path(home) / ('baseoa' if args.content == 'openarena' else 'baseq3')
+            base.mkdir()
+            for pak in args.data.glob('*.pk3'):
+                (base / pak.name).symlink_to(pak)
+            if not list(base.glob('*.pk3')):
+                raise SystemExit('FAIL: installed content paks are required')
+            command = ['timeout', '90', 'faketime', '-f', '@2026-01-01 00:00:00 i0.01', binary,
+                       '+set', 'fs_basepath', home, '+set', 'fs_homepath', home,
+                       *content_settings(args.content),
+                       '+set', 'dedicated', '1', '+set', 'sv_pure', '0', '+set', 'com_logfile', '0',
+                       '+map', map_name, '+addbot', content_bots(args.content)[0], '3', '+addbot', content_bots(args.content)[1], '3', '+wait', '900' if args.content == 'openarena' else '300', '+quit']
+            for iteration in ('warmup', '1', '2'):
+                result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                log = result.stdout
+                (args.output / f'{map_name}-{iteration}.log').write_bytes(log)
+                result.check_returncode()
+                if b'Static game loaded.' not in log:
+                    raise SystemExit('FAIL: static game was not initialized')
+                # Only installation metadata is normalized; gameplay text is retained.
+                normalized = re.sub(rb'^\.\.\.found [0-9]+ cached paks\r?\n|^Working directory:.*\r?\n', b'', log, flags=re.M)
+                normalized = normalized.replace(home.encode(), b'<HOME>').replace(str(args.data.parent).encode(), b'<DATA>')
+                if args.content == 'openarena':
+                    normalized = re.sub(rb'^\.\.\.detecting CPU, found .*$', b'...detecting CPU, found <CPU>', normalized, flags=re.M)
+                if normalize:
+                    normalized = normalize(normalized)
+                if iteration != 'warmup':
+                    results.append(normalized)
+            if results[0] != results[1]:
+                raise SystemExit('FAIL: repeated runtime differs: ' + map_name)
+            if b'ClientBegin: 1' not in results[0] or b'Kill:' not in results[0]:
+                raise SystemExit('FAIL: runtime did not exercise both bots: ' + map_name)
+            compare(('openarena/' if args.content == 'openarena' else '') + map_name + '.log', results[0], args.regenerate, normalize)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('check', choices=['unit', 'differential', 'runtime'])
+    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-tests'))
+    parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
+    parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
+    parser.add_argument('--known-bugs', action='store_true')
+    parser.add_argument('--cc', default='gcc')
+    parser.add_argument('--cxx', default='g++')
+    parser.add_argument('--sanitize', action='store_true')
+    parser.add_argument('--pointer-compare', action='store_true', help='run ASan pointer comparisons separately from UBSan')
+    parser.add_argument('--negative-control', action='store_true')
+    parser.add_argument('--regenerate', action='store_true', help='explicitly replace goldens; prohibited in CI')
+    args = parser.parse_args()
+    if args.regenerate and os.environ.get('CI'):
+        parser.error('CI must never regenerate goldens')
+    if args.negative_control and (args.check != 'unit' or args.sanitize or args.regenerate):
+        parser.error('--negative-control requires unit without regeneration/sanitizers')
+    if args.pointer_compare and (not args.sanitize or args.known_bugs or args.check == 'runtime'):
+        parser.error('--pointer-compare requires sanitized unit/differential without --known-bugs')
+    if args.known_bugs and (not args.sanitize or args.regenerate or args.check == 'runtime'):
+        parser.error('--known-bugs requires sanitized unit/differential without regeneration')
+    if args.sanitize:
+        ENV['ASAN_OPTIONS'] = 'detect_leaks=0:halt_on_error=1:detect_invalid_pointer_pairs=2'
+        ENV['UBSAN_OPTIONS'] = f'halt_on_error={0 if args.known_bugs else 1}:suppressions={ROOT / "tools/port/ubsan.supp"}'
+    args.output = args.output.resolve()
+    args.data = args.data.resolve()
+    args.output.mkdir(parents=True, exist_ok=True)
+    if args.check == 'runtime':
+        runtime(args)
+    else:
+        differential(args)
+
+
+if __name__ == '__main__':
+    main()

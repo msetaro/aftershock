@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "name": "models/character",
+      "kind": "model",
+      "source": "character.gltf",
+      "scale": 32,
+      "fps": 30
+    }
+  ]
+}
