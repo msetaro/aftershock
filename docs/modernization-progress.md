@@ -27,9 +27,32 @@ linked clients never reference those files. The valid client is rejected as
 unpure before ClientBegin. This fix belongs only in a separate #31 PR. The new
 filesystem probe fails before any engine edit (native-pure-before.log); first
 commit that test, then retain content-pak checks while replacing obsolete QVM
-slots with explicit native markers. Add real client/server acceptance, keep
-accepted goldens unchanged unless an affected oracle actually changes, run full
-PR/integration gates, then merge forward into #28. No upstream changes.
+slots with explicit native markers. The correction now passes GCC and Clang/libc++
+filesystem tests, and actual Q3/OA clients join and chat on sv_pure=1. The same
+runtime script fails against pre-fix #27 binaries (native-pure-runtime-before.log).
+The probe retains the existing trailing whitespace. Format/boundary/type gates
+pass; unit.txt retains 8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede.
+CI runs the unit probe in both compilers and the real OA connection. Open the
+separate fix PR, require exact-head build/regression and integration, then merge
+forward into #28. No upstream changes.
+
+## #31 native pure self-review
+
+The only behavior change is replacing obsolete QVM pak expectations with explicit
+zero-valued native module slots. Native protocol/schema agreement remains in place;
+data-pak membership, duplicate detection and aggregate checksum validation are
+unchanged. Pure verification is not disabled. The real-client test fails before
+and passes after, with both local content sets; the filesystem test keeps actual
+content checksum accounting. No golden represents the previously broken native
+pure connection, and existing unit/replay goldens need no regeneration.
+
+No simulation/floating-point arithmetic, wire/file structs, OS ownership, allocation,
+non-trivial lifetime or public subsystem include changes. The list uses the existing
+static buffer and formatting helpers. No unrelated engine refactoring. The only
+new files are focused unit/runtime tests; CI and verification documentation include
+them. No active sanitizer known-bug/suppression entry exists for this functional
+bug. Local builds, GCC/Clang probes, real Q3/OA clients, unit golden and format/type/
+boundary checks pass. Full hosted gates and merged-tree regression remain required.
 
 ## #27 completed checkpoint
 

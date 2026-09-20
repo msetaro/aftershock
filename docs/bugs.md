@@ -29,7 +29,11 @@ fails on the first missing native-marker assertion on merge 6a3cb22d, before any
 fix (native-pure-before.log). Preserve actual content checksum verification; the
 native module code/ABI is provided by the executable/protocol agreement, not QVM
 pak files. This new functional bug has no sanitizer suppression/expected-failure
-entry. Its fix and real-client acceptance must stay in a separate #31 PR.
+entry. The correction uses explicit zero native-module markers while retaining all actual
+content checks. GCC and Clang/libc++ filesystem probes pass; tests/native_pure_runtime.py
+fails on the pre-fix #27 binaries and passes with both Q3 and OA after the fix.
+Unit golden 8d44421d is unchanged; no accepted fixture is regenerated. Full hosted
+PR/integration acceptance remains pending on issue/31-native-pure.
 
 ## Weapon loopback wall deadline and cleanup (#151)
 

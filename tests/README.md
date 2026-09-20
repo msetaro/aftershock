@@ -970,3 +970,13 @@ OpenArena content flags as `tests/level_runtime.py` for hosted content. Artifact
 are JSON/text, engine/compiler logs and PNGs under `/tmp/aftershock-level-validation`.
 No accepted demo, frame or level fixture is regenerated. See `tools/level/README.md`
 for report semantics, conservative design checks and the inactivity heuristic.
+
+Native pure-server regression (#31): `python3 tests/native_pure.py` exercises the
+real filesystem pure list with statically linked modules and retained content-pak
+checksum accounting. `python3 tests/native_pure_runtime.py --client CLIENT --server
+SERVER` requires a real native client to enter play and chat on a password-protected
+`sv_pure=1` server. It defaults to local Quake 3; hosted CI passes `--content openarena
+--data /tmp/aftershock-openarena-baseoa`. Native cgame/UI slots are explicitly zero;
+package checksum membership, duplicate and aggregate verification remain active.
+This validates content agreement, not executable attestation. Existing non-pure
+replay fixtures are unchanged; no fixture regeneration is required.
