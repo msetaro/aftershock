@@ -70,12 +70,12 @@ struct weaponState_t {
 	uint32_t reloadStage, reloadStart, burstRemaining, adsQ16, nextMelee, switchUntil;
 };
 struct weaponEvent_t {
-	uint32_t kind, stage, sequence;
+	uint32_t kind, stage, sequence, time;
 	float spread[2], recoil[2];
 };
 struct weaponEvents_t {
 	uint32_t count;
-	weaponEvent_t items[16];
+	weaponEvent_t items[64];
 };
 struct weaponProjectile_t {
 	float position[3], velocity[3];
@@ -84,7 +84,7 @@ struct weaponProjectile_t {
 static_assert( sizeof( weaponDef_t ) == 3936 && std::is_trivially_copyable_v<weaponDef_t> );
 static_assert( sizeof( weaponReload_t ) == 76 && sizeof( weaponMaterial_t ) == 108 && sizeof( weaponAttachment_t ) == 140 && sizeof( weaponSound_t ) == 96 );
 static_assert( sizeof( weaponState_t ) == 56 && std::is_trivially_copyable_v<weaponState_t> );
-static_assert( sizeof( weaponEvent_t ) == 28 && sizeof( weaponProjectile_t ) == 28 );
+static_assert( sizeof( weaponEvent_t ) == 32 && sizeof( weaponProjectile_t ) == 28 );
 
 bool Weapon_StateValid( const weaponState_t *state );
 bool Weapon_Open( const void *data, size_t size, weaponDef_t *definition );
@@ -92,6 +92,9 @@ bool Weapon_Configure( const weaponDef_t *base, uint32_t attachments, weaponDef_
 void Weapon_Reset( const weaponDef_t *definition, uint32_t seed, uint32_t time, weaponState_t *state );
 // Definition must come from Open/Configure. Exactly one 20 ms tick; no allocation.
 bool Weapon_Tick( const weaponDef_t *definition, uint32_t buttons, uint32_t time, weaponState_t *state, weaponEvents_t *events );
+// Advance whole ticks through a usercmd, at most 1000 ms. Older/partial commands
+// emit nothing. Failure leaves both outputs unchanged; callers handle long gaps.
+bool Weapon_Command( const weaponDef_t *definition, uint32_t buttons, uint32_t time, weaponState_t *state, weaponEvents_t *events );
 float Weapon_Damage( const weaponDef_t *definition, float distance );
 float Weapon_PenetrationDamage( const weaponDef_t *definition, uint32_t surfaceFlags, float thickness, float damage );
 bool Weapon_ProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile );

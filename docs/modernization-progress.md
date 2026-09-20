@@ -103,6 +103,13 @@ wrap, 50 events over one second, and atomic rejection beyond that bound. The
 bound follows Pmove's existing 1000 ms catch-up window; gameplay integration must
 handle longer inactivity explicitly without manufacturing an unbounded backlog.
 
+Weapon_Command now passes that contract under GCC and Clang/libc++ UBSan
+(weapons-command-gcc.log, weapons-command-clang.log). Events carry fixed-tick
+timestamps, bounded batches hold the 50-tick catch-up window, and failure leaves
+state/events unchanged. The original 1000-shot digest and 67/10-byte snapshot
+sizes are unchanged. Next: cooked-file loading and opt-in gameplay/prediction
+integration; portable replay alone is not live gameplay acceptance.
+
 
 ## #12 implemented feature evidence
 

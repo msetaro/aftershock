@@ -112,10 +112,12 @@ bool Weapon_StateValid( const weaponState_t *state ) {
 	return state && state->magazine <= 1000 && state->reserve <= 66536 && state->chamber <= 1 && state->adsQ16 <= 65536 &&
 		   state->burstRemaining <= 32 && ( state->reloadStage == WEAPON_NO_STAGE || state->reloadStage < WEAPON_MAX_ROWS );
 }
+static bool StateForDefinition( const weaponDef_t *d, const weaponState_t *state ) {
+	return d && Weapon_StateValid( state ) && state->magazine <= d->magazine &&
+		   ( state->reloadStage == WEAPON_NO_STAGE || state->reloadStage < d->reloadCount );
+}
 bool Weapon_Tick( const weaponDef_t *d, uint32_t buttons, uint32_t time, weaponState_t *state, weaponEvents_t *events ) {
-	if ( !d || !state || !events || time - state->time != 20 || state->chamber > 1 || state->magazine > d->magazine ||
-		 state->reserve > 66536 || state->adsQ16 > 65536 || state->burstRemaining > 32 ||
-		 ( state->reloadStage != WEAPON_NO_STAGE && state->reloadStage >= d->reloadCount ) )
+	if ( !events || !StateForDefinition( d, state ) || time - state->time != 20 )
 		return false;
 	*events = {};
 	const uint32_t pressed = buttons & ~state->previousButtons;
@@ -137,6 +139,7 @@ bool Weapon_Tick( const weaponDef_t *d, uint32_t buttons, uint32_t time, weaponS
 	while ( state->reloadStage != WEAPON_NO_STAGE && time - state->reloadStart >= d->reload[state->reloadStage].timeMs ) {
 		const uint32_t stage = state->reloadStage++;
 		auto &event = events->items[events->count++];
+		event.time = time;
 		event.kind = WEAPON_RELOAD_EVENT;
 		event.stage = stage;
 		switch ( d->reload[stage].action ) {
@@ -163,7 +166,9 @@ bool Weapon_Tick( const weaponDef_t *d, uint32_t buttons, uint32_t time, weaponS
 		return true;
 	if ( ( buttons & WEAPON_MELEE ) && (int32_t)( time - state->nextMelee ) >= 0 ) {
 		state->nextMelee = state->nextFire = ( time - state->nextMelee < 20u ? state->nextMelee : time ) + d->melee.intervalMs;
-		events->items[events->count++].kind = WEAPON_MELEE_EVENT;
+		auto &event = events->items[events->count++];
+		event.time = time;
+		event.kind = WEAPON_MELEE_EVENT;
 		return true;
 	}
 	const bool ready = (int32_t)( time - state->nextFire ) >= 0;
@@ -176,6 +181,7 @@ bool Weapon_Tick( const weaponDef_t *d, uint32_t buttons, uint32_t time, weaponS
 	// Carry a sub-tick remainder, but never catch up missed shots after idle/reload.
 	state->nextFire = ( time - state->nextFire < 20u ? state->nextFire : time ) + d->intervalMs;
 	auto &event = events->items[events->count++];
+	event.time = time;
 	if ( !state->chamber ) {
 		event.kind = WEAPON_DRY;
 		state->burstRemaining = 0;
@@ -195,6 +201,25 @@ bool Weapon_Tick( const weaponDef_t *d, uint32_t buttons, uint32_t time, weaponS
 	}
 	if ( state->burstRemaining )
 		--state->burstRemaining;
+	return true;
+}
+bool Weapon_Command( const weaponDef_t *d, uint32_t buttons, uint32_t time, weaponState_t *state, weaponEvents_t *events ) {
+	if ( !events || !StateForDefinition( d, state ) )
+		return false;
+	const int32_t elapsed = (int32_t)( time - state->time );
+	if ( elapsed > 1000 )
+		return false;
+	weaponState_t result = *state;
+	weaponEvents_t collected = {};
+	for ( int32_t remaining = elapsed; remaining >= 20; remaining -= 20 ) {
+		weaponEvents_t tick;
+		if ( !Weapon_Tick( d, buttons, result.time + 20, &result, &tick ) || collected.count + tick.count > 64 )
+			return false;
+		for ( uint32_t i = 0; i < tick.count; ++i )
+			collected.items[collected.count++] = tick.items[i];
+	}
+	*state = result;
+	*events = collected;
 	return true;
 }
 float Weapon_Damage( const weaponDef_t *d, float distance ) {
