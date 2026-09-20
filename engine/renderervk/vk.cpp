@@ -86,7 +86,7 @@ static void vk_impl_UploadWorldGeometry( const uint8_t *data, int32_t size );
 static void vk_impl_UpdatePostProcess( int32_t overbrightBits );
 static void vk_impl_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height );
 static void vk_impl_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, rhiAddress_t address, const char *label );
-static void vk_impl_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update );
+static void vk_impl_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update, int32_t blockExtent = 1 );
 static void vk_impl_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address, bool mipmap );
 static rhiStatus_t vk_impl_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, bool *changed );
 static uint32_t vk_impl_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool eager );
@@ -1628,6 +1628,8 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 
 		Com_Memset( &features, 0, sizeof( features ) );
 		features.fillModeNonSolid = VK_TRUE;
+		features.textureCompressionBC = device_features.textureCompressionBC;
+		vk.compressionBC = device_features.textureCompressionBC ? qtrue : qfalse;
 
 #ifdef _DEBUG
 		if ( device_features.shaderInt64 ) {
@@ -4465,6 +4467,14 @@ static VkFormat vk_texture_format( rhiFormat_t format ) {
 		return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
 	case rhiFormat_t::A1RGB5:
 		return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
+	case rhiFormat_t::BC4:
+		return VK_FORMAT_BC4_UNORM_BLOCK;
+	case rhiFormat_t::BC5:
+		return VK_FORMAT_BC5_UNORM_BLOCK;
+	case rhiFormat_t::BC7:
+		return VK_FORMAT_BC7_UNORM_BLOCK;
+	case rhiFormat_t::BC7_SRGB:
+		return VK_FORMAT_BC7_SRGB_BLOCK;
 	}
 	return VK_FORMAT_UNDEFINED;
 }
@@ -4574,7 +4584,7 @@ void vk_impl_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height
 }
 
 
-void vk_impl_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipmaps, const uint8_t *pixels, int32_t bytesPerPixel, bool update ) {
+void vk_impl_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipmaps, const uint8_t *pixels, int32_t bytesPerPixel, bool update, int32_t blockExtent ) {
 
 	VkCommandBuffer command_buffer;
 	VkBufferImageCopy regions[16];
@@ -4602,7 +4612,7 @@ void vk_impl_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, i
 		regions[num_regions] = region;
 		num_regions++;
 
-		buffer_size += width * height * bytesPerPixel;
+		buffer_size += ( ( width + blockExtent - 1 ) / blockExtent ) * ( ( height + blockExtent - 1 ) / blockExtent ) * bytesPerPixel;
 
 		if ( num_regions >= mipmaps || ( width == 1 && height == 1 ) || (size_t)num_regions >= ARRAY_LEN( regions ) )
 			break;
@@ -7479,6 +7489,15 @@ rhiStatus_t RHI_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height ) {
 
 rhiStatus_t RHI_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, rhiAddress_t address, const char *label ) {
 	return vk_call( [&]() {
+		if ( format >= rhiFormat_t::BC4 && format <= rhiFormat_t::BC7_SRGB ) {
+			if ( !vk.compressionBC )
+				return rhiStatus_t::Unavailable;
+			VkFormatProperties properties;
+			qvkGetPhysicalDeviceFormatProperties( vk.physical_device, vk_texture_format( format ), &properties );
+			const VkFormatFeatureFlags required = VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT | VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
+			if ( ( properties.optimalTilingFeatures & required ) != required )
+				return rhiStatus_t::Unavailable;
+		}
 		vk_impl_CreateTexture( texture, width, height, mipLevels, format, address, label );
 		return rhiStatus_t::Success;
 	} );
@@ -7487,6 +7506,39 @@ rhiStatus_t RHI_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t hei
 rhiStatus_t RHI_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update ) {
 	return vk_call( [&]() {
 		vk_impl_UploadTexture( texture, x, y, width, height, mipLevels, pixels, bytesPerPixel, update );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_UploadCompressedTexture( const rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, bool update ) {
+	return vk_call( [&]() {
+		int32_t blockBytes;
+		switch ( format ) {
+		case rhiFormat_t::BC4:
+			blockBytes = 8;
+			break;
+		case rhiFormat_t::BC5:
+		case rhiFormat_t::BC7:
+		case rhiFormat_t::BC7_SRGB:
+			blockBytes = 16;
+			break;
+		default:
+			return rhiStatus_t::Error;
+		}
+		if ( !texture || !texture->image || !blocks || width < 1 || height < 1 || width > 32768 || height > 32768 || mipLevels < 1 || mipLevels > 16 )
+			return rhiStatus_t::Error;
+		uint64_t expected = 0;
+		int32_t w = width, h = height;
+		for ( int32_t level = 0; level < mipLevels; level++ ) {
+			expected += (uint64_t)( ( w + 3 ) / 4 ) * ( ( h + 3 ) / 4 ) * blockBytes;
+			if ( w == 1 && h == 1 && level + 1 != mipLevels )
+				return rhiStatus_t::Error;
+			w = MAX( 1, w / 2 );
+			h = MAX( 1, h / 2 );
+		}
+		if ( expected != size || expected > INT32_MAX )
+			return rhiStatus_t::Error;
+		vk_impl_UploadTexture( texture, 0, 0, width, height, mipLevels, blocks, blockBytes, update, 4 );
 		return rhiStatus_t::Success;
 	} );
 }

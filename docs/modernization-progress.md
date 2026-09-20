@@ -2838,3 +2838,9 @@ precise, documented policy; do not silently suppress a whole file or family.
 compressed formats and an odd-size 7x5 mip chain. Assert native format mapping,
 block-rounded copy offsets and exact staging bytes, including replacement upload.
 The unchanged engine fails to compile because the new formats/API are absent.
+
+BC upload implementation now passes tests/rhi.py with GCC and Clang/libc++.
+BC feature enablement and sampled/filter/transfer format support are checked at
+texture creation. Compressed data uses the existing staging/copy path with 4x4
+block rounding; legacy pixel uploads retain unit-sized blocks. No simulation or
+accepted artifact changed. Evidence: cook-bc-{before,after,clang}.log.

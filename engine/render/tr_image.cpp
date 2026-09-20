@@ -203,6 +203,17 @@ void R_ImageList_f( void ) {
 			format = "RGB  ";
 			estSize *= 2;
 			break;
+		case rhiFormat_t::BC4:
+			format = "BC4  ";
+			estSize = ( ( image->uploadWidth + 3 ) / 4 ) * ( ( image->uploadHeight + 3 ) / 4 ) * 8;
+			break;
+		case rhiFormat_t::BC5:
+		case rhiFormat_t::BC7:
+		case rhiFormat_t::BC7_SRGB:
+			format = image->internalFormat == rhiFormat_t::BC5 ? "BC5  " : image->internalFormat == rhiFormat_t::BC7 ? "BC7  "
+																													 : "BC7s ";
+			estSize = ( ( image->uploadWidth + 3 ) / 4 ) * ( ( image->uploadHeight + 3 ) / 4 ) * 16;
+			break;
 #else
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
