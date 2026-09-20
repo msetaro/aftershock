@@ -17,16 +17,14 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
-Continue #11 with attachments, weapon/view animation and sound notifies, and the
-ImGui target range using owned assets. Attachment modifiers/replication and
-reload-start/cancel events already pass; continue with graph-driven presentation. Then add lifecycle/lossy-network/replay
-coverage and run full acceptance gates. Cooked loading, command replay, live
-prediction, rewind/penetration damage, data-only rifle switching, material effects
-and replicated/predicted grenade actors now pass focused tests. Full acceptance
-remains pending. #12 integration
-regression 35523091952 passed. Complete the full #11 scope, wire tests into CI, run all gates/self-review
-and merge through its own PR. #11 was read; #10/#12 are
-its prerequisites. Reuse existing fixed-tick, asset and animation APIs.
+Continue #11 with the ImGui target range using the owned assets, then lifecycle,
+projectile resource-pressure, lossy-network and new fixed-replay acceptance.
+Cooked loading, command replay, rewind/penetration damage, data-only switching,
+attachments, replicated/predicted projectiles, per-hand animation prediction,
+view/ADS rendering and notify audio now pass focused tests on Q3 and OpenArena.
+Wire the finished tests into CI, complete all gates/self-review, mark draft PR
+#150 ready and merge; full acceptance remains pending. #12 integration regression
+35523091952 passed. Preserve accepted fixtures and reuse existing APIs.
 
 #12 PR #149 merged with a merge commit as
 3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree
@@ -111,6 +109,18 @@ Review identified that entity slot order can differ from notify order. The new
 portable order/spawn/connection/wrap test fails on the absent bounded notify
 window (weapons-notify-order-before.log); replace the initial high-water-only
 deduplication before committing this implementation.
+
+Notify audio and the bounded cosmetic budget now pass GCC/Clang UBSan and the
+production build. The notify window handles slot reordering, respawn, connection
+reuse and counter wrap; notifications older than its 8192-event window are stale.
+Final Q3/OpenArena live runs both pass (weapons-notify-final-q3.log/-oa.log): 39
+unique audible notifies, 449 matching main-hand animation comparisons, resident
+7056-byte shot and 3968-byte reload samples. The sound-list check uses existing
+s_list; the first attempted legacy soundlist command did not enumerate samples.
+Format/boundary/type checks pass. New cosmetics cap at 128; at the entity
+high-water ceiling they are dropped until map restart, preserving eight unopened
+slots. Hitscan damage still applies when effects are dropped. Projectile capacity
+and full lifecycle/lossy/replay/tooling acceptance remain outstanding.
 
 ## #11 test-first scope
 

@@ -73,6 +73,40 @@ void G_WeaponAttachmentCommand( int owner ) {
 		G_Printf( "Weapon attachment: owner=%d hand=%d mask=%u spread=%.6f fov=%.6f\n", owner, hand, mask,
 			double( configured.spreadDegrees ), double( configured.adsFov ) );
 }
+// ponytail: scan the fixed entity array; cap cosmetics at 128 and retain eight
+// unopened slots. At the high-water ceiling, cosmetics wait for a map restart.
+static gentity_t *WeaponEffect( const vec3_t origin, int event ) {
+	if ( level.num_entities >= ENTITYNUM_MAX_NORMAL - 8 )
+		return nullptr;
+	int count = 0;
+	for ( int number = MAX_CLIENTS; number < level.num_entities; ++number )
+		if ( g_entities[number].inuse && g_entities[number].classname && !strcmp( g_entities[number].classname, "weapon_effect" ) )
+			++count;
+	if ( count >= 128 )
+		return nullptr;
+	vec3_t position;
+	VectorCopy( origin, position );
+	auto *effect = G_TempEntity( position, event );
+	effect->classname = "weapon_effect";
+	return effect;
+}
+static void WeaponNotify( gentity_t *player, int hand, int definition, const animEvent_t &notify ) {
+	auto *entity = WeaponEffect( player->client->ps.origin, EV_WEAPON_NOTIFY );
+	if ( entity ) {
+		entity->s.modelindex = definition;
+		entity->s.otherEntityNum = player->s.number;
+		entity->s.otherEntityNum2 = hand;
+		entity->s.eventParm = int( notify.id );
+		entity->s.time = player->client->ps.persistant[PERS_SPAWN_COUNT];
+		entity->s.time2 = int32_t( notify.sequence );
+		entity->s.pos.trTime = int32_t( notify.time );
+		entity->s.apos.trTime = int32_t( player->rewindSpawn );
+	}
+	if ( weaponTrace.integer )
+		G_Printf( "Weapon notify server: owner=%d hand=%d definition=%d spawn=%d sequence=%u name=%s time=%u\n",
+			player->s.number, hand, definition, player->client->ps.persistant[PERS_SPAWN_COUNT], notify.sequence,
+			Anim_EventName( BG_WeaponAnimation( definition ), notify.id ), notify.time );
+}
 static bool WeaponWallExit( const vec3_t entry, const vec3_t direction, float limit, int owner, vec3_t exit, float *thickness ) {
 	// ponytail: one-unit occupancy probes, then an exact reverse surface trace;
 	// gaps smaller than one unit count as part of the same penetration thickness.
@@ -121,12 +155,13 @@ static void WeaponHit( gentity_t *player, const weaponDef_t *definition, const w
 		if ( trace.fraction >= 1 || trace.startsolid || trace.allsolid || ( trace.surfaceFlags & SURF_NOIMPACT ) )
 			return;
 		const auto *material = Weapon_Material( definition, uint32_t( trace.surfaceFlags ) );
-		auto *effect = G_TempEntity( trace.endpos, EV_WEAPON_IMPACT );
-		effect->s.eventParm = DirToByte( trace.plane.normal );
-		effect->s.modelindex = index;
-		effect->s.modelindex2 = int( material - definition->materials );
-		effect->s.otherEntityNum = player->s.number;
-		effect->s.otherEntityNum2 = trace.entityNum;
+		if ( auto *effect = WeaponEffect( trace.endpos, EV_WEAPON_IMPACT ) ) {
+			effect->s.eventParm = DirToByte( trace.plane.normal );
+			effect->s.modelindex = index;
+			effect->s.modelindex2 = int( material - definition->materials );
+			effect->s.otherEntityNum = player->s.number;
+			effect->s.otherEntityNum2 = trace.entityNum;
+		}
 		vec3_t delta;
 		VectorSubtract( trace.endpos, start, delta );
 		const float distance = DotProduct( delta, direction );
@@ -199,13 +234,14 @@ bool G_RunWeaponProjectile( gentity_t *entity ) {
 				G_Damage( direct, entity, owner, state.velocity, state.position, int( definition->damage ), 0, MOD_GRENADE );
 			if ( definition->projectile.radius > 0 )
 				G_RadiusDamage( state.position, owner, definition->damage, definition->projectile.radius, direct, MOD_GRENADE_SPLASH );
-			auto *effect = G_TempEntity( state.position, EV_WEAPON_IMPACT );
-			effect->s.modelindex = entity->s.modelindex;
-			effect->s.otherEntityNum = entity->s.otherEntityNum;
-			effect->s.otherEntityNum2 = impact.entityNum;
-			effect->s.generic1 = 1; // Detonation uses the same data material with a short sprite lifetime.
-			vec3_t normal = { 0, 0, 1 };
-			effect->s.eventParm = DirToByte( normal );
+			if ( auto *effect = WeaponEffect( state.position, EV_WEAPON_IMPACT ) ) {
+				effect->s.modelindex = entity->s.modelindex;
+				effect->s.otherEntityNum = entity->s.otherEntityNum;
+				effect->s.otherEntityNum2 = impact.entityNum;
+				effect->s.generic1 = 1; // Detonation uses the same data material with a short sprite lifetime.
+				vec3_t normal = { 0, 0, 1 };
+				effect->s.eventParm = DirToByte( normal );
+			}
 			if ( weaponTrace.integer )
 				G_Printf( "Weapon projectile exploded: owner=%d sequence=%u age=%u\n", entity->s.otherEntityNum, uint32_t( entity->s.time2 ), state.ageMs );
 			G_FreeEntity( entity );
@@ -293,6 +329,8 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 			if ( !Weapon_Tick( definition, buttons, state.time + 20, &state, &events ) ||
 				 !BG_WeaponAnimationStep( BG_WeaponAnimation( selected ), &state, &events, &actor.animation[hand], actor.parameters[hand], &notifies ) )
 				G_Error( "Weapon rejected: command animation" );
+			for ( uint32_t i = 0; i < notifies.count; ++i )
+				WeaponNotify( player, hand, selected, notifies.items[i] );
 			for ( uint32_t i = 0; i < events.count; ++i ) {
 				const auto &event = events.items[i];
 				if ( event.kind == WEAPON_MELEE_EVENT || ( event.kind == WEAPON_SHOT && definition->ballistics == WEAPON_HITSCAN ) )

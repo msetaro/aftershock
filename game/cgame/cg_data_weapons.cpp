@@ -1,6 +1,8 @@
 #include "cg_local.h"
 
 static vmCvar_t weaponTrace;
+static sfxHandle_t weaponSounds[WEAPON_MAX_DEFINITIONS][WEAPON_MAX_ROWS];
+static weaponNotifyHistory_t weaponNotifyHistory[MAX_CLIENTS][2];
 static qhandle_t weaponModels[WEAPON_MAX_DEFINITIONS];
 static qhandle_t weaponAttachmentModels[WEAPON_MAX_DEFINITIONS][WEAPON_MAX_ROWS];
 static uint32_t weaponDraws, attachmentDraws, weaponAdsSamples;
@@ -39,6 +41,32 @@ struct predictedProjectile_t {
 // ponytail: 64 local predictions; excess shots still render from authoritative snapshots.
 static predictedProjectile_t predictedProjectiles[64];
 
+static void PlayWeaponNotify( int owner, int hand, int definition, uint32_t spawn, uint32_t epoch, const animEvent_t &notify, const vec3_t position ) {
+	auto &history = weaponNotifyHistory[owner][hand];
+	if ( !Weapon_NotifyOnce( &history, spawn, owner == cg.clientNum ? 0 : epoch, notify.sequence ) )
+		return; // Replaying acknowledged commands never replays their audio.
+	const char *name = Anim_EventName( BG_WeaponAnimation( definition ), notify.id );
+	const auto *weapon = BG_WeaponDefinition( definition );
+	for ( uint32_t sound = 0; sound < weapon->soundCount; ++sound ) {
+		if ( strcmp( name, weapon->sounds[sound].event ) )
+			continue;
+		vec3_t origin;
+		if ( position )
+			VectorCopy( position, origin );
+		trap_S_StartSound( position ? origin : nullptr, owner, CHAN_AUTO, weaponSounds[definition][sound] );
+		if ( weaponTrace.integer )
+			CG_Printf( "Weapon sound: owner=%d hand=%d definition=%d spawn=%u sequence=%u name=%s time=%u\n",
+				owner, hand, definition, spawn, notify.sequence, name, notify.time );
+	}
+}
+void CG_WeaponNotify( const entityState_t *entity, const vec3_t position ) {
+	const auto *graph = BG_WeaponAnimation( entity->modelindex );
+	if ( !graph || entity->otherEntityNum < 0 || entity->otherEntityNum >= MAX_CLIENTS || entity->otherEntityNum2 < 0 || entity->otherEntityNum2 > 1 ||
+		 entity->eventParm < 0 || uint32_t( entity->eventParm ) >= graph->header.sections[ANIM_EVENTS].count )
+		CG_Error( "Weapon rejected: notify record" );
+	const animEvent_t notify = { uint32_t( entity->eventParm ), -1, uint32_t( entity->pos.trTime ), uint32_t( entity->time2 ) };
+	PlayWeaponNotify( entity->otherEntityNum, entity->otherEntityNum2, entity->modelindex, uint32_t( entity->time ), uint32_t( entity->apos.trTime ), notify, position );
+}
 void CG_WeaponPredictionPose( int number, const playerState_t *state ) {
 	if ( !BG_WeaponDefinition( 0 ) )
 		return;
@@ -107,6 +135,8 @@ void CG_AddWeaponProjectiles( void ) {
 
 void CG_InitWeapons( void ) {
 	BG_ClearWeapons();
+	memset( weaponNotifyHistory, 0, sizeof( weaponNotifyHistory ) );
+	memset( weaponSounds, 0, sizeof( weaponSounds ) );
 	weaponDraws = attachmentDraws = weaponAdsSamples = 0;
 	weaponAdsError = weaponMaxKick = 0;
 	weaponHaveAngles = false;
@@ -132,6 +162,8 @@ void CG_InitWeapons( void ) {
 		if ( !BG_LoadWeapon( index, path, actual, actualGraph ) || strcmp( actual, expected ) || strcmp( actualGraph, expectedGraph ) )
 			CG_Error( "Weapon rejected: server definition differs for %s", path );
 		const auto *definition = BG_WeaponDefinition( index );
+		for ( uint32_t sound = 0; sound < definition->soundCount; ++sound )
+			weaponSounds[index][sound] = trap_S_RegisterSound( definition->sounds[sound].path, qfalse );
 		weaponModels[index] = trap_R_RegisterModel( definition->model );
 		if ( !weaponModels[index] )
 			CG_Error( "Weapon rejected: view model %s", definition->model );
@@ -248,6 +280,8 @@ void CG_PredictWeapons( void ) {
 					if ( !Weapon_Tick( &definition, BG_WeaponButtons( &cmd, hand, havePose ? &pose.state : &snapshot->ps ), state.time + 20, &state, &events ) ||
 						 !BG_WeaponAnimationStep( BG_WeaponAnimation( entity.modelindex ), &state, &events, &animation, parameters, &notifies ) )
 						CG_Error( "Weapon rejected: predicted animation" );
+					for ( uint32_t i = 0; i < notifies.count; ++i )
+						PlayWeaponNotify( snapshot->ps.clientNum, hand, entity.modelindex, spawn, 0, notifies.items[i], nullptr );
 					if ( havePose && definition.ballistics == WEAPON_PROJECTILE )
 						for ( uint32_t i = 0; i < events.count; ++i )
 							if ( events.items[i].kind == WEAPON_SHOT )

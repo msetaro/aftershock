@@ -486,6 +486,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	ci = &cgs.clientinfo[clientNum];
 
 	switch ( event ) {
+	case EV_WEAPON_NOTIFY:
+		CG_WeaponNotify( es, position );
+		break;
 	case EV_WEAPON_IMPACT:
 		CG_WeaponImpact( es, position );
 		break;

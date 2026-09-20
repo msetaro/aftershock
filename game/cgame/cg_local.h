@@ -1677,6 +1677,7 @@ void CG_PredictWeapons( void );
 void CG_WeaponPredictionPose( int number, const playerState_t *state );
 void CG_AddWeaponProjectiles( void );
 bool CG_WeaponProjectile( centity_t *cent );
+void CG_WeaponNotify( const entityState_t *entity, const vec3_t position );
 void CG_WeaponImpact( const entityState_t *entity, const vec3_t position );
 void CG_InitAnimation( void );
 void CG_ShutdownAnimation( void );

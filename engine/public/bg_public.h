@@ -462,7 +462,8 @@ typedef enum {
 	EV_TAUNT_GETFLAG,
 	EV_TAUNT_GUARDBASE,
 	EV_TAUNT_PATROL,
-	EV_WEAPON_IMPACT
+	EV_WEAPON_IMPACT,
+	EV_WEAPON_NOTIFY
 
 } entity_event_t;
 
@@ -710,7 +711,7 @@ typedef enum {
 } entityType_t;
 
 #ifdef __cplusplus
-static_assert( int( ET_EVENTS ) + int( EV_WEAPON_IMPACT ) < int( ET_WEAPON_ANIMATION ) );
+static_assert( int( ET_EVENTS ) + int( EV_WEAPON_NOTIFY ) < int( ET_WEAPON_ANIMATION ) );
 inline constexpr int WEAPON_PROJECTILE_TAG = 255;
 enum weaponFlight_t { WEAPON_FLYING,
 	WEAPON_BOUNCED,

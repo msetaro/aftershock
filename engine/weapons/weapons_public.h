@@ -81,6 +81,13 @@ struct weaponEvents_t {
 	uint32_t count;
 	weaponEvent_t items[64];
 };
+// Cosmetic history: delayed notifications outside this fixed window are stale.
+struct weaponNotifyHistory_t {
+	uint32_t initialized, spawn, epoch, newest;
+	uint64_t seen[128];
+};
+static_assert( sizeof( weaponNotifyHistory_t ) == 1040 && std::is_trivially_copyable_v<weaponNotifyHistory_t> );
+bool Weapon_NotifyOnce( weaponNotifyHistory_t *history, uint32_t spawn, uint32_t epoch, uint32_t sequence );
 struct weaponProjectile_t {
 	float position[3], velocity[3];
 	uint32_t ageMs;

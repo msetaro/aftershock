@@ -54,7 +54,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
         'weapon_status', 'screenshot weapon-ads', 'wait 2', '+button13', 'wait 2', '-button13', 'wait 65', '-button12',
         '+button14', 'wait 30', '-button14', 'wait 10', 'weapon 2', 'wait 15',
         '+attack', 'wait 14', '-attack', 'weapon 1', 'wait 15',
-        'weapon 3', 'wait 15', '+attack', 'wait 2', '-attack', 'wait 70', 'weapon_status', 'quit']) + '\n')
+        'weapon 3', 'wait 15', '+attack', 'wait 2', '-attack', 'wait 70', 'weapon_status', 's_list', 'quit']) + '\n')
     log = args.output / 'client.log'
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
     with log.open('wb') as stream:
@@ -107,6 +107,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     notifies = [row for row in re.findall(notify_pattern % 'notify server', text) if row[3] in audible]
     sounds = re.findall(notify_pattern % 'sound', text)
     assert notifies and set(notifies) == set(sounds) and len(sounds) == len(set(sounds)), (len(notifies), len(sounds))
+    for sound in ('shot', 'reload'):
+        resident = re.search(r'(\d+)\[16bit\] : sound/range_' + sound + r'\.wav \[resident\]', text)
+        assert resident and int(resident[1]) > 1000, 'cooked sound was not decoded: ' + sound
     assert 'SDL_Init( SDL_INIT_AUDIO )' in text and 'SDL audio initialized.' in text, 'audio backend did not initialize'
     assert not any(error in text for error in ('ERROR:', 'Signal caught', 'Weapon rejected'))
 print('PASS: cooked weapon selection, firing/reload/ADS/melee and authoritative client state')

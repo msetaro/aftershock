@@ -282,3 +282,32 @@ void Weapon_ProjectileBounce( const weaponDef_t *d, const float normal[3], weapo
 	for ( int axis = 0; axis < 3; ++axis )
 		projectile->velocity[axis] = ( projectile->velocity[axis] - 2.0f * dot * normal[axis] ) * d->projectile.bounce;
 }
+
+bool Weapon_NotifyOnce( weaponNotifyHistory_t *history, uint32_t spawn, uint32_t epoch, uint32_t sequence ) {
+	constexpr uint32_t window = 8192;
+	if ( !history->initialized || history->spawn != spawn || history->epoch != epoch ) {
+		*history = {};
+		history->initialized = 1;
+		history->spawn = spawn;
+		history->epoch = epoch;
+		history->newest = sequence;
+	}
+	const int32_t advance = int32_t( sequence - history->newest );
+	if ( advance <= -int32_t( window ) )
+		return false;
+	if ( advance >= int32_t( window ) ) {
+		memset( history->seen, 0, sizeof( history->seen ) );
+	} else {
+		for ( int32_t i = 1; i <= advance; ++i ) {
+			const uint32_t bit = ( history->newest + uint32_t( i ) ) % window;
+			history->seen[bit / 64] &= ~( uint64_t( 1 ) << ( bit % 64 ) );
+		}
+	}
+	if ( advance > 0 )
+		history->newest = sequence;
+	const uint32_t bit = sequence % window;
+	const uint64_t mask = uint64_t( 1 ) << ( bit % 64 );
+	const bool fresh = !( history->seen[bit / 64] & mask );
+	history->seen[bit / 64] |= mask;
+	return fresh;
+}
