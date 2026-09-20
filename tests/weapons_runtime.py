@@ -43,8 +43,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     project['assets'].append({'name': 'weapons/grenade', 'kind': 'weapon', 'source': 'grenade.weapon.json'})
     (sources / 'assets.json').write_text(json.dumps(project))
     cook(sources / 'assets.json', base)
-    cook(ROOT / 'tests/assets/animation/rigs.json', base)
-    cook(ROOT / 'tests/assets/weapons/presentation.json', base)
+    cook(ROOT / 'tests/assets/range.json', base)
     (base / 'weapons.cfg').write_text('\n'.join([
         'set g_weapons "weapons/range_rifle.asweapon weapons/second.asweapon weapons/grenade.asweapon"',
         'set g_weaponTrace 1', 'set cg_weaponTrace 1',
@@ -93,5 +92,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     assert corrections and max(map(float, corrections)) <= 1, corrections
     predictions = re.findall(r'Weapon prediction: hand=0 tick=\d+ equal=(\d)', text)
     assert len(predictions) >= 50 and set(predictions) == {'1'}, (len(predictions), predictions)
+    animations = re.findall(r'Weapon animation prediction: hand=0 tick=\d+ equal=(\d)', text)
+    assert len(animations) >= 50 and set(animations) == {'1'}, (len(animations), animations)
+    assert 'Weapon animation server: owner=0 hand=0 state=reload' in text
+    assert 'Weapon animation client: owner=0 hand=0 state=reload' in text
     assert not any(error in text for error in ('ERROR:', 'Signal caught', 'Weapon rejected'))
 print('PASS: cooked weapon selection, firing/reload/ADS/melee and authoritative client state')
