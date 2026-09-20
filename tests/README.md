@@ -901,7 +901,15 @@ uses the existing private loopback delay driver: 100 ms RTT, jitter and 5% loss
 once the initial gamestate has loaded. Real input starts the scenario only after
 client initialization. It checks rewind hits against independently interpolated
 authoritative boxes, snapshot/full prediction agreement, budget deferral and
-predicted grenade reconciliation. The classic scenario remains the default.
+predicted grenade reconciliation. The classic scenario remains the default. `--client-fps 20` deliberately caps
+rendering so the frame-counted script outlasts the old 45-second deadline; CI uses
+this control. The weapon scenario has a 120-second wall budget inside a 240-second
+overall limit. This changes neither the fixed simulation tick nor the hit/state
+assertions. The slow control must actually exceed 45 seconds. Its view-age bound
+accounts for the extra render/input interval and remains within the 200 ms rewind
+window; the normal 100-FPS bound stays at 180 ms. `python3 tests/netcode_cleanup.py` verifies that a private child which
+ignores graceful termination is forcibly killed and reaped; the harness uses the
+same bounded cleanup on timeout.
 
 `python3 tests/weapons_demo.py --binary PATH` replays the separate #11 fixture
 twice, compares all 56 bytes of each received weapon state with its recorded

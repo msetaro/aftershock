@@ -16,12 +16,12 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/26-level-authoring`, based on #11 merge 94a70b91.
-Work checkout: ~/.cache/aftershock-modernization/level-tree. #11 integration
-failed only the renderer-dependent harness deadline; separate test-only #151/
-PR #152 is in full CI from 7829fa97 in the original checkout. Merge it and require
-merged-tree regression before accepting #11 or this branch. Merge modernization
-forward here afterward; never rewrite branch history.
+Current branch: `issue/26-level-authoring`, with modernization merged forward
+through #151 PR #152 merge 64a38d44aa50e5accca3676f7f7927be87594c25.
+#151 exact-head build/regression passed; merged-tree regression 35537127266 is
+running. Close/check #151 and #11 only after that integration run passes. #26 is
+ready for its draft PR/full hosted checks; do not merge it before both integration
+and its own exact-head gates pass. Continue #26 -> #27 -> #28 then #25.
 
 The first compiler implementation passes the MAP/schema/design-rule controls and
 produces repeated byte-identical BSP/AAS in separate directories. Geometry review
@@ -40,8 +40,8 @@ AAS 128895330784c535b5540c95a79f95aa511f94c93af7fff02fd479a48847bb0f.
 CI, README and AGENTS commands are wired. Clean-cache AppImage extraction with
 libarchive-c and normal repeated fixture comparison both pass. Self-review added
 32-unit room separation so the navigation grid cannot cross an unconnected shared
-wall, and world bounds before brush generation. Next: finish self-review and open
-#26 PR after #151 integration.
+wall, and world bounds before brush generation. Full empty-cache archive download,
+SHA256 verification, extraction and compilation also pass. Self-review is below.
 No engine edits or accepted golden changes. Continue #26 -> #27 -> #28 then #25.
 
 ## #26 self-review
@@ -103,13 +103,47 @@ Six 16x16 procedural textures and a 64-unit cube have a source authoring script
 and pinned provenance. tests/level.py requires deterministic MAP output and
 specific corridor/door/containment/connectivity/material/sightline/cover/duplicate
 errors. It fails on the absent CLI before implementation. The optional --compile gate also requires repeated MAP/BSP/AAS bytes and committed
-fixture comparison; its explicit recording flag is refused in CI. The initial compiler now exists; reviewed fixtures and real bot-pathing acceptance
-remain to be added. Initial navigation uses a 16-unit player-clearance grid with
+fixture comparison; its explicit recording flag is refused in CI. The compiler,
+reviewed fixtures and real bot-pathing acceptance now exist as recorded above.
+Navigation uses a 16-unit player-clearance grid with
 18-unit maximum steps and treats doors as open. Sightlines use the conservative
 whole-layout diagonal bound; cover spacing is horizontal distance to nearest cover
 plus a half-cell diagonal. These restrictions must be documented, not portrayed
 as exact visibility/path distance. Full BSP/AAS compilation uses a verified pinned
 Linux x86_64 tool bundle; MAP-only mode is portable.
+
+## #151 acceptance and merge
+
+PR #152 merged as 64a38d44aa50e5accca3676f7f7927be87594c25 after exact-head
+7829fa97cab8b6aa6fc5f433ddd4ef80495e71f1 passed build 35536234271 and regression
+35536234299. Both trees are bff0172c6eabfb0c2c663a922807faeffa8bf9c7.
+Hosted normal loopback: 31.1 seconds, 592/592 shots, 37 hits, 73 uncompensated
+differences, median age 153 ms. Capped 20-FPS weapon control: 54.0 seconds,
+301/301 shots, 18 hits, 36 uncompensated differences, median age 200 ms,
+1514/1514 full weapon and animation comparisons. Prediction error <=8.875 for
+both; ignoring-child cleanup passes. Local controls were 17.7 seconds classic and
+54.0 seconds weapons (329/329 and 301/301 shots). No engine or accepted fixtures
+changed. Original failed integration had 1147/1147 agreeing states before its
+45-second wall-time limit; graceful teardown then stalled. The replacement budgets
+120 seconds for weapons inside a 240-second outer limit and kills/reaps a client
+that ignores SIGTERM. Full merged-tree regression 35537127266 remains required.
+Acceptance: https://github.com/msetaro/aftershock/issues/151#issuecomment-5752604897
+Logs: ~/.cache/aftershock-modernization/netcode-151-host-runtime.log.
+
+## #151 self-review
+
+This is exclusively test infrastructure. The same gameplay commands, fixed engine
+tick, data files, accepted fixtures, hit oracle, complete state comparisons and
+prediction checks remain. A low-FPS control proves the wall-time regression instead
+of hiding it with a blind retry. Only the renderer-dependent view-age timing bound
+accounts for one extra frame interval, never exceeding the configured 200 ms
+rewind window; default 100-FPS behavior retains the old 180 ms ceiling. Cleanup
+uses the existing private process group, graceful termination followed by forced
+kill/reaping. No engine, simulation arithmetic, OS ownership, allocation or wire
+layout changes are present. CI uses the same cooker Python environment and runs
+both the ignoring-child check and the capped-FPS scenario. Full final-head gates
+and merged-tree regression remain required before closing #151/#11.
+
 
 #12 PR #149 merged with a merge commit as
 3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree
