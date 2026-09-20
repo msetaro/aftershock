@@ -167,6 +167,14 @@ The new replay driver correctly fails while its separate #10 fixture is absent
 (animation-demo-before.log). Next: record each content-set fixture once from this
 implementation, review it, and compare replayed client boxes with the saved server
 trace plus repeat frame hashes. No accepted classic fixture will change.
+Both new fixtures were recorded once from 3fbc0a62 and replay twice successfully:
+253 client hit-box hashes exactly match each saved authoritative trace, and all
+three sampled frame hashes repeat (animation-demo-q3-record.log,
+animation-demo-oa-record.log). Visual review/fixture commit is next. A higher-rate
+server check now exposes a new-feature timing gap: at sv_fps=100, consecutive
+server frames can publish different transforms for the same 20 ms animation tick
+(animation-fast-server-before.log). Publish pose/transform inputs only when that
+fixed animation clock advances; rerun the check and replay the existing fixtures.
 Current ABI checks are extracted as tests/native_abi.py: the same 29 types, three
 offsets and extension value agree for C, game C++ and engine C++. Shared C/C++
 math checks remain. Full-game C/DLL source gates remain historical at 7f4d43a7;

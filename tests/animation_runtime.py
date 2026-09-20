@@ -14,6 +14,7 @@ from run import ROOT, build, content_maps, content_settings
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path)
 parser.add_argument('--modules', action='store_true')
+parser.add_argument('--server-fps', type=int, choices=[20, 100], default=20)
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-animation-runtime'))
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
@@ -39,7 +40,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-live-') as tempora
         'set g_animationBody animations/anim_body.asanim',
         'set g_animationRifle animations/anim_rifle.asanim',
         'set g_animationTrace 1', 'set cg_animationTrace 1',
-        'set g_synchronousClients 1', 'set fixedtime 20',
+        'set g_synchronousClients 1', 'set fixedtime 20', f'set sv_fps {args.server_fps}',
         f'devmap {content_maps(args.content)[0]}', 'wait 40',
         'cmd anim ads 1', 'wait 20', 'screenshot anim_ads',
         'cmd anim fire 1', 'wait 8', 'cmd anim fire 0',
@@ -71,8 +72,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-live-') as tempora
     assert optics and int(optics[1]) >= 5 and float(optics[2]) < 0.01, optics
     events = set(re.findall(r'Animation game event: owner=0 rig=\d+ name=(\w+)', text))
     assert {'shot', 'shell_eject', 'magazine_out', 'magazine_in', 'bolt', 'reload_complete', 'footstep'} <= events, events
-    server = {(int(t), int(owner)): digest for t, owner, digest in re.findall(
-        r'Animation server boxes: tick=(\d+) owner=(\d+) hash=([a-f0-9]+)', text)}
+    server_rows = re.findall(r'Animation server boxes: tick=(\d+) owner=(\d+) hash=([a-f0-9]+)', text)
+    server = {(int(t), int(owner)): digest for t, owner, digest in server_rows}
+    assert len(set(server_rows)) == len(server), 'one animation tick published multiple transforms'
     client = {(int(t), int(owner)): digest for t, owner, digest in re.findall(
         r'Animation client boxes: tick=(\d+) owner=(\d+) hash=([a-f0-9]+)', text)}
     assert len(client) >= 50 and client.keys() <= server.keys(), (len(server), len(client))
