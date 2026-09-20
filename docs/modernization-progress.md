@@ -44,6 +44,13 @@ client joins version 1 and refuses separately compiled version 2 before joining
 connections without an Aftershock schema agreement are explicitly refused.
 Next: bounded per-server-frame hit-box history and view-time rewind tests.
 
+#12 PR #149 is draft. The rewind test now fails on the absent history API
+(netcode-rewind-before.log). It specifies 100% hits for at least 950 delivered
+shots against a moving target at 100 ms one-way delay, +/-15 ms jitter and 5%
+loss; uncompensated shots must all miss. It also checks world obstruction,
+rewind limits, respawn/teleport generation boundaries, storage bounds and clock
+wrap. This is the portable core test; real game/server integration remains next.
+
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
 layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body
 controllers, replicated hit boxes, automatic body facing, ADS/recoil/sway, and an
