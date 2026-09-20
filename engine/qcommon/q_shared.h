@@ -1172,78 +1172,78 @@ typedef struct {
 // nothing outside of pmove should modify these, or some degree of prediction error
 // will occur
 
-// you can't add anything to this without modifying the code in msg.c
+// @net annotations define wire order/width; run python3 tools/replication.py after edits.
 
 // playerState_t is a full superset of entityState_t as it is used by players,
 // so if a playerState_t is transmitted, the entityState_t can be fully derived
 // from it.
 typedef struct playerState_s {
-	int32_t commandTime; // cmd->serverTime of last executed command
-	int32_t pm_type;
-	int32_t bobCycle; // for view bobbing and footstep generation
-	int32_t pm_flags; // ducked, jump_held, etc
-	int32_t pm_time;
+	int32_t commandTime; // cmd->serverTime of last executed command // @net 0:32
+	int32_t pm_type; // @net 34:8
+	int32_t bobCycle; // for view bobbing and footstep generation // @net 3:8
+	int32_t pm_flags; // ducked, jump_held, etc // @net 19:16
+	int32_t pm_time; // @net 12:-16
 
-	vec3_t origin;
-	vec3_t velocity;
-	int32_t weaponTime;
-	int32_t gravity;
-	int32_t speed;
-	int32_t delta_angles[3]; // add to command angles to get view direction
+	vec3_t origin; // @net [0]:1:0 [1]:2:0 [2]:9:0
+	vec3_t velocity; // @net [0]:4:0 [1]:5:0 [2]:10:0
+	int32_t weaponTime; // @net 8:-16
+	int32_t gravity; // @net 24:16
+	int32_t speed; // @net 25:16
+	int32_t delta_angles[3]; // add to command angles to get view direction // @net [1]:26:16 [0]:35:16 [2]:36:16
 	// changed by spawns, rotating objects, and teleporters
 
-	int32_t groundEntityNum; // ENTITYNUM_NONE = in air
+	int32_t groundEntityNum; // ENTITYNUM_NONE = in air // @net 20:GENTITYNUM_BITS
 
-	int32_t legsTimer; // don't change low priority animations until this runs out
-	int32_t legsAnim; // mask off ANIM_TOGGLEBIT
+	int32_t legsTimer; // don't change low priority animations until this runs out // @net 11:8
+	int32_t legsAnim; // mask off ANIM_TOGGLEBIT // @net 17:8
 
-	int32_t torsoTimer; // don't change low priority animations until this runs out
-	int32_t torsoAnim; // mask off ANIM_TOGGLEBIT
+	int32_t torsoTimer; // don't change low priority animations until this runs out // @net 37:12
+	int32_t torsoAnim; // mask off ANIM_TOGGLEBIT // @net 14:8
 
-	int32_t movementDir; // a number 0 to 7 that represents the relative angle
+	int32_t movementDir; // a number 0 to 7 that represents the relative angle // @net 15:4
 	// of movement to the view angle (axial and diagonals)
 	// when at rest, the value will remain unchanged
 	// used to twist the legs during strafing
 
-	vec3_t grapplePoint; // location of grapple to pull towards if PMF_GRAPPLE_PULL
+	vec3_t grapplePoint; // location of grapple to pull towards if PMF_GRAPPLE_PULL // @net [0]:43:0 [1]:44:0 [2]:45:0
 
-	int32_t eFlags; // copied to entityState_t->eFlags
+	int32_t eFlags; // copied to entityState_t->eFlags // @net 22:16
 
-	int32_t eventSequence; // pmove generated events
-	int32_t events[MAX_PS_EVENTS];
-	int32_t eventParms[MAX_PS_EVENTS];
+	int32_t eventSequence; // pmove generated events // @net 13:16
+	int32_t events[MAX_PS_EVENTS]; // @net [0]:16:8 [1]:18:8
+	int32_t eventParms[MAX_PS_EVENTS]; // @net [0]:38:8 [1]:39:8
 
-	int32_t externalEvent; // events set on player from another source
-	int32_t externalEventParm;
-	int32_t externalEventTime;
+	int32_t externalEvent; // events set on player from another source // @net 23:10
+	int32_t externalEventParm; // @net 27:8
+	int32_t externalEventTime; // @net local
 
-	int32_t clientNum; // ranges from 0 to MAX_CLIENTS-1
-	int32_t weapon; // copied to entityState_t->weapon
-	int32_t weaponstate;
+	int32_t clientNum; // ranges from 0 to MAX_CLIENTS-1 // @net 40:8
+	int32_t weapon; // copied to entityState_t->weapon // @net 41:5
+	int32_t weaponstate; // @net 21:4
 
-	vec3_t viewangles; // for fixed views
-	int32_t viewheight;
+	vec3_t viewangles; // for fixed views // @net [1]:6:0 [0]:7:0 [2]:42:0
+	int32_t viewheight; // @net 28:-8
 
 	// damage feedback
-	int32_t damageEvent; // when it changes, latch the other parms
-	int32_t damageYaw;
-	int32_t damagePitch;
-	int32_t damageCount;
+	int32_t damageEvent; // when it changes, latch the other parms // @net 29:8
+	int32_t damageYaw; // @net 30:8
+	int32_t damagePitch; // @net 31:8
+	int32_t damageCount; // @net 32:8
 
-	int32_t stats[MAX_STATS];
-	int32_t persistant[MAX_PERSISTANT]; // stats that aren't cleared on death
-	int32_t powerups[MAX_POWERUPS]; // level.time that the powerup runs out
-	int32_t ammo[MAX_WEAPONS];
+	int32_t stats[MAX_STATS]; // @net array:16
+	int32_t persistant[MAX_PERSISTANT]; // stats that aren't cleared on death // @net array:16
+	int32_t powerups[MAX_POWERUPS]; // level.time that the powerup runs out // @net array:32
+	int32_t ammo[MAX_WEAPONS]; // @net array:16
 
-	int32_t generic1;
-	int32_t loopSound;
-	int32_t jumppad_ent; // jumppad entity hit this frame
+	int32_t generic1; // @net 33:8
+	int32_t loopSound; // @net 47:16
+	int32_t jumppad_ent; // jumppad entity hit this frame // @net 46:GENTITYNUM_BITS
 
 	// not communicated over the net at all
-	int32_t ping; // server to game info for scoreboard
-	int32_t pmove_framecount; // FIXME: don't transmit over the network
-	int32_t jumppad_frame;
-	int32_t entityEventSequence;
+	int32_t ping; // server to game info for scoreboard // @net local
+	int32_t pmove_framecount; // FIXME: don't transmit over the network // @net local
+	int32_t jumppad_frame; // @net local
+	int32_t entityEventSequence; // @net local
 } playerState_t;
 
 
@@ -1319,47 +1319,47 @@ typedef struct {
 // the structure size is fairly large
 
 typedef struct entityState_s {
-	int32_t number; // entity index
-	int32_t eType; // entityType_t
-	int32_t eFlags;
+	int32_t number; // entity index // @net number:GENTITYNUM_BITS
+	int32_t eType; // entityType_t // @net 11:8
+	int32_t eFlags; // @net 17:19
 
-	trajectory_t pos; // for calculating position
-	trajectory_t apos; // for calculating angles
+	trajectory_t pos; // for calculating position // @net .trTime:0:32 .trBase[0]:1:0 .trBase[1]:2:0 .trDelta[0]:3:0 .trDelta[1]:4:0 .trBase[2]:5:0 .trDelta[2]:7:0 .trType:16:8 .trDuration:22:32
+	trajectory_t apos; // for calculating angles // @net .trBase[1]:6:0 .trBase[0]:8:0 .trType:23:8 .trTime:39:32 .trDuration:40:32 .trBase[2]:41:0 .trDelta[0]:42:0 .trDelta[1]:43:0 .trDelta[2]:44:0
 
-	int32_t time;
-	int32_t time2;
+	int32_t time; // @net 38:32
+	int32_t time2; // @net 45:32
 
-	vec3_t origin;
-	vec3_t origin2;
+	vec3_t origin; // @net [0]:24:0 [1]:25:0 [2]:26:0
+	vec3_t origin2; // @net [2]:33:0 [0]:34:0 [1]:35:0
 
-	vec3_t angles;
-	vec3_t angles2;
+	vec3_t angles; // @net [1]:21:0 [0]:37:0 [2]:46:0
+	vec3_t angles2; // @net [1]:10:0 [0]:47:0 [2]:48:0
 
-	int32_t otherEntityNum; // shotgun sources, etc
-	int32_t otherEntityNum2;
+	int32_t otherEntityNum; // shotgun sources, etc // @net 18:GENTITYNUM_BITS
+	int32_t otherEntityNum2; // @net 30:GENTITYNUM_BITS
 
-	int32_t groundEntityNum; // ENTITYNUM_NONE = in air
+	int32_t groundEntityNum; // ENTITYNUM_NONE = in air // @net 15:GENTITYNUM_BITS
 
-	int32_t constantLight; // r + (g<<8) + (b<<16) + (intensity<<24)
-	int32_t loopSound; // constantly loop this sound
+	int32_t constantLight; // r + (g<<8) + (b<<16) + (intensity<<24) // @net 49:32
+	int32_t loopSound; // constantly loop this sound // @net 31:8
 
-	int32_t modelindex;
-	int32_t modelindex2;
-	int32_t clientNum; // 0 to (MAX_CLIENTS - 1), for players and corpses
-	int32_t frame;
+	int32_t modelindex; // @net 29:8
+	int32_t modelindex2; // @net 36:8
+	int32_t clientNum; // 0 to (MAX_CLIENTS - 1), for players and corpses // @net 20:8
+	int32_t frame; // @net 50:16
 
-	int32_t solid; // for client side prediction, trap_linkentity sets this properly
+	int32_t solid; // for client side prediction, trap_linkentity sets this properly // @net 27:24
 
-	int32_t event; // impulse events -- muzzle flashes, footsteps, etc
-	int32_t eventParm;
+	int32_t event; // impulse events -- muzzle flashes, footsteps, etc // @net 9:10
+	int32_t eventParm; // @net 13:8
 
 	// for players
-	int32_t powerups; // bit flags
-	int32_t weapon; // determines weapon and flash model, etc
-	int32_t legsAnim; // mask off ANIM_TOGGLEBIT
-	int32_t torsoAnim; // mask off ANIM_TOGGLEBIT
+	int32_t powerups; // bit flags // @net 28:MAX_POWERUPS
+	int32_t weapon; // determines weapon and flash model, etc // @net 19:8
+	int32_t legsAnim; // mask off ANIM_TOGGLEBIT // @net 14:8
+	int32_t torsoAnim; // mask off ANIM_TOGGLEBIT // @net 12:8
 
-	int32_t generic1;
+	int32_t generic1; // @net 32:8
 } entityState_t;
 
 typedef enum {
