@@ -16,6 +16,23 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
+Current main checkout: issue/31-native-pure. #27 PR #154 merged at
+6a3cb22d54a1c9575adde00c1d415639cde617f3; exact-head build 35538730616,
+regression 35538730598 and merged-tree regression 35539581431 all passed.
+#27 is closed and checked in #25. #28 preparation remains in level-tree.
+
+#28's ordinary native-client connection to sv_pure=1 exposed a native-port defect:
+SV_VerifyPaks_f still demands vm/cgame.qvm and vm/ui.qvm checksums, while statically
+linked clients never reference those files. The valid client is rejected as
+unpure before ClientBegin. This fix belongs only in a separate #31 PR. The new
+filesystem probe fails before any engine edit (native-pure-before.log); first
+commit that test, then retain content-pak checks while replacing obsolete QVM
+slots with explicit native markers. Add real client/server acceptance, keep
+accepted goldens unchanged unless an affected oracle actually changes, run full
+PR/integration gates, then merge forward into #28. No upstream changes.
+
+## #27 completed checkpoint
+
 Current branch: `issue/27-headless-levels` in the main user checkout.
 #26 PR #153 merged as bc1aff0d16878f3e170dab3c3aa1c1f7e79eee94 after exact-head
 5f67dbf4 passed build 35537284408 and regression 35537284293. The merge and tested

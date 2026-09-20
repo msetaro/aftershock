@@ -13,6 +13,24 @@ defects below are fixed in #99/#100; native dispatch and team-leader fixes are
 recorded in their later entries. `tests/known-bugs.txt` has no active entries and
 `tools/port/ubsan.supp` is empty.
 
+## Native pure-server connection rejected after VM removal (#31)
+
+An ordinary native client connecting to a password-protected sv_pure=1 server
+loads the map and static cgame, then is dropped before ClientBegin. Found during
+#28 local match packaging using installed OpenArena plus the owned level; logs
+are ~/.cache/aftershock-modernization/match-runtime.log and
+/tmp/aftershock-match-runtime/{client,server}.log. The server still requires pak
+checksums for vm/cgame.qvm and vm/ui.qvm. Native modules do not load/reference these
+files, so the client pure list has no corresponding entries. This is independent
+of the owned level or password authorization.
+
+`python3 tests/native_pure.py` compiles the real filesystem implementation and
+fails on the first missing native-marker assertion on merge 6a3cb22d, before any
+fix (native-pure-before.log). Preserve actual content checksum verification; the
+native module code/ABI is provided by the executable/protocol agreement, not QVM
+pak files. This new functional bug has no sanitizer suppression/expected-failure
+entry. Its fix and real-client acceptance must stay in a separate #31 PR.
+
 ## Weapon loopback wall deadline and cleanup (#151)
 
 #11 merged-tree runtime 35534705876 failed in the test harness on a slower software
