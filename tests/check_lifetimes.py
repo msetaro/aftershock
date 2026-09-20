@@ -88,8 +88,18 @@ def main():
         raise RuntimeError('no engine compilation commands found')
     (args.output / 'compile_commands.json').write_text(json.dumps(commands))
     files = sorted({c['file'] for c in commands})
-    bad = query(args.clang_query, files, ['-p', str(args.output)], LOCATION,
-                args.output / 'engine.log')
+    # clang-query keeps every selected translation unit's AST alive. Bound runner
+    # memory without dropping any of the compilation database's configurations.
+    batch_directory = args.output / 'batch'
+    batch_directory.mkdir(exist_ok=True)
+    bad = []
+    for start in range(0, len(commands), 16):
+        batch = commands[start:start + 16]
+        (batch_directory / 'compile_commands.json').write_text(json.dumps(batch))
+        paths = sorted({row['file'] for row in batch})
+        bad.extend(query(args.clang_query, paths, ['-p', str(batch_directory)], LOCATION,
+                         args.output / f'engine-{start // 16:03}.log'))
+        print(f'Lifetime analysis: {min(start + 16, len(commands))}/{len(commands)} compilation commands', flush=True)
     if bad:
         raise RuntimeError('non-trivial engine lifetimes:\n' + '\n'.join(bad))
     print(f'PASS: {len(commands)} compilation commands ({len(files)} source paths), shipping/development, static/module configurations; '
