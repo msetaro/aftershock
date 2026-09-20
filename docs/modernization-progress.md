@@ -30,8 +30,9 @@ inspector counts and local static/module/OpenArena/restart/idle acceptance pass.
 Final fixed Quake 3 and OpenArena demo comparisons preserve their accepted hashes.
 The self-review is below. Final follow-up fixes select matching OpenArena native
 objects for the standalone test build and remove a duplicated command in AGENTS.
-Next: wait for the final exact-head build/regression workflows; investigate any
-failure, then mark #145 ready and merge with a merge commit into modernization.
+Next: fix the deterministically reproduced watcher interleaving and bound the
+lifetime analysis process memory; rerun both local checks and exact-head hosted
+build/regression workflows, then mark #145 ready and merge with a merge commit.
 Require the merged-tree regression before closing #9/updating #25 and proceeding.
 After #9, fix IQM allocation accounting and rotated nonuniform scale in separate
 #31 PRs, then continue #10 and the remaining #25 roadmap. No upstream PRs.
@@ -3104,3 +3105,19 @@ regression 35505791776 has passed every required job except lifetime analysis,
 which was still running at this checkpoint. Superseded regression 35505208258
 was cancelled after its other jobs passed, to prioritize the final head. These
 earlier-head results do not replace the required final exact-head workflows.
+
+Final-head Clang CI found a source-watcher race (35506318169 / job106066633883):
+a source edit immediately after cooking could be captured by the post-cook
+snapshot without being built, leaving the published revision unchanged. A
+deterministic interleaved-edit check now exercises the real cooker/watcher loop
+before fixing it. Preserve the one-second live gate. Hosted lifetime checks at
+70a31804 were again terminated with exit 143; batch the same AST coverage to
+bound clang-query's retained translation-unit memory (source verified against
+LLVM 18 clang-query/tool/ClangQuery.cpp). Final exact-head gates must rerun.
+
+The interleaved-edit test fails before the watcher fix with `watcher lost the
+edit made during cooking` (cook-watch-race-before.log). This test is committed
+before the implementation. Eight-path lifetime batches passed all 1,124 commands
+in 5:01, but peaked at 7,340,232 KiB RSS; reduce to one source path per process
+for hosted-runner headroom. The unbatched measurement reached 20,712,276 KiB
+before its intentional 180-second measurement timeout; that run is not a pass.

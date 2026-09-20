@@ -14,6 +14,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import contextlib
+import runpy
+from types import SimpleNamespace
+from unittest.mock import patch
 import time
 
 from PIL import Image
@@ -379,6 +383,43 @@ def main():
                     '-Wall', '-Wextra', '-Werror', 'tests/probes/cook_texture.cpp',
                     'engine/render/tr_cooked.cpp', str(sha_object), '-o', str(texture_probe)], cwd=ROOT, check=True)
     subprocess.run([str(texture_probe), str(output / 'models/character_material0.ktx2'), str(output / 'models/character_material0.asmat')], check=True)
+    # An edit after a cook's input read must not become an uncooked baseline.
+    with tempfile.TemporaryDirectory(prefix='aftershock-watch-race-') as temporary:
+        directory = Path(temporary)
+        source = directory / 'paint.json'
+        source.write_text(json.dumps({'baseColorFactor': [1, 1, 1, 1]}))
+        project = directory / 'assets.json'
+        project.write_text(json.dumps({'version': 1, 'assets': [
+            {'name': 'materials/paint', 'kind': 'material', 'source': 'paint.json'}]}))
+        output = directory / 'cooked'
+        cook(project, output)
+        with patch.object(sys, 'path', [str(ROOT / 'tools/cook'), *sys.path]):
+            entry = runpy.run_path(str(ROOT / 'tools/cook/__main__.py'))['main']
+        real_cook = entry.__globals__['cook']
+        calls, ticks = 0, 0
+
+        def edit_after_read(project, output):
+            nonlocal calls
+            result = real_cook(project, output)
+            calls += 1
+            if calls == 1:
+                source.write_text(json.dumps({'baseColorFactor': [0.5, 1, 1, 1]}))
+            return result
+
+        def tick(_):
+            nonlocal ticks
+            ticks += 1
+            if ticks == 3:
+                raise StopIteration
+
+        entry.__globals__.update(cook=edit_after_read, time=SimpleNamespace(sleep=tick))
+        with patch.object(sys, 'argv', ['cook', str(project), '--output', str(output), '--watch']), contextlib.redirect_stdout(io.StringIO()):
+            try:
+                entry()
+            except StopIteration:
+                pass
+        manifest = json.loads((output / 'materials/paint.manifest.json').read_text())
+        assert manifest['inputs'][0]['sha256'] == hashlib.sha256(source.read_bytes()).hexdigest(), 'watcher lost the edit made during cooking'
     print('PASS: static/skinned glTF/GLB, named clips, BC KTX2 mip chains, content hashes and incremental recook')
 
 
