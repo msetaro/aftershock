@@ -94,6 +94,17 @@ static void CheckRig( const animAsset_t *asset, const char *kind ) {
 		assert( pose.world[pelvis][11] < baseline.world[pelvis][11] - 18 );
 		tick( 770, "move" );
 		assert( events.count == 1 && events.items[0].bone == Anim_BoneIndex( asset, "foot.R" ) );
+		Anim_RemoveRootTranslation( asset, &pose );
+		animBox_t boxes[ANIM_MAX_BOXES], shifted[ANIM_MAX_BOXES];
+		const float origin[3] = { 0, 0, 0 }, moved[3] = { 100, 0, 0 };
+		const float axis[3][3] = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+		const uint32_t count = Anim_HitBoxes( asset, &pose, origin, axis, boxes, ANIM_MAX_BOXES );
+		assert( count >= 3 && count == Anim_HitBoxes( asset, &pose, moved, axis, shifted, ANIM_MAX_BOXES ) );
+		const int head = Anim_BoneIndex( asset, "head" );
+		for ( uint32_t i = 0; i < 3; ++i ) {
+			assert( boxes[0].mins[i] <= pose.world[head][i * 4 + 3] && boxes[0].maxs[i] >= pose.world[head][i * 4 + 3] );
+			assert( fabsf( shifted[0].mins[i] - boxes[0].mins[i] - moved[i] ) < 0.00001f );
+		}
 		input( "move", 0 );
 		tick( 800, "idle" );
 		input( "turn", 1 );

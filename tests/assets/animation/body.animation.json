@@ -264,5 +264,70 @@
       "blend_ms": 100,
       "on_end": true
     }
+  ],
+  "hit_boxes": [
+    {
+      "name": "head",
+      "bone": "head",
+      "extent": [
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "name": "torso",
+      "bone": "spine",
+      "extent": [
+        5,
+        5,
+        7
+      ]
+    },
+    {
+      "name": "pelvis",
+      "bone": "pelvis",
+      "extent": [
+        5,
+        5,
+        5
+      ]
+    },
+    {
+      "name": "left_arm",
+      "bone": "forearm.L",
+      "extent": [
+        3,
+        5,
+        3
+      ]
+    },
+    {
+      "name": "right_arm",
+      "bone": "forearm.R",
+      "extent": [
+        3,
+        5,
+        3
+      ]
+    },
+    {
+      "name": "left_leg",
+      "bone": "shin.L",
+      "extent": [
+        3,
+        7,
+        3
+      ]
+    },
+    {
+      "name": "right_leg",
+      "bone": "shin.R",
+      "extent": [
+        3,
+        7,
+        3
+      ]
+    }
   ]
 }

@@ -96,6 +96,13 @@ skip the event-range types, and auxiliary solidity/loop sound/event stay zero.
 No player snapshot field or codec expression changed. Logs:
 animation-snapshot-after.log, animation-snapshot-clang.log,
 animation-snapshot-build.log. Gameplay publication/loading is the next step.
+The new live gameplay test runs the real client with owned native game code and
+owned cooked rigs, then checks states/events/render counts and matching server/
+client hit-box digests. It currently fails as expected with no animation states
+(animation-gameplay-before.log). A native test also specifies authored hit-box
+bounds and in-place root translation (animation-boxes-before.log, absent API).
+Implement the hit-box output and game paths before accepting either test. These
+are new #10 artifacts; no existing fixture is regenerated.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/
