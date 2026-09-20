@@ -41,6 +41,17 @@ static void CheckRig( const animAsset_t *asset, const char *kind ) {
 		input( "ads", 1 );
 		tick( 20, "ads" );
 		assert( Anim_Evaluate( asset, &state, parameters, 200, &baseline ) );
+		pose = baseline;
+		const int shoulder = Anim_BoneIndex( asset, "upperarm.L" ), elbow = Anim_BoneIndex( asset, "forearm.L" ), hand = Anim_BoneIndex( asset, "hand.L" );
+		float target[3], pole[3], solved[3];
+		for ( int i = 0; i < 3; ++i ) {
+			target[i] = baseline.world[hand][i * 4 + 3] + 1;
+			pole[i] = baseline.world[elbow][i * 4 + 3] + ( i == 2 ? 10 : 0 );
+		}
+		assert( Anim_ApplyTwoBoneIK( asset, &pose, shoulder, elbow, hand, target, pole, 1 ) );
+		for ( int i = 0; i < 3; ++i )
+			solved[i] = pose.world[hand][i * 4 + 3];
+		assert( distance( solved, target ) < 0.0001f );
 		input( "fire", 1 );
 		tick( 220, "fire" );
 		assert( events.count == 1 && strcmp( Anim_EventName( asset, events.items[0].id ), "shot" ) == 0 );

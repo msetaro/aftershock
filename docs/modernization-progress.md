@@ -116,6 +116,11 @@ submissions, and matching received client/server box hashes. ADS and third-perso
 captures were visually reviewed; these are the intended original block rigs.
 Remaining: actual recorded-demo parity, integrated IK/sway/aim behavior,
 ImGui graph authoring/inspection, content/runtime docs and complete gates.
+Live gameplay is committed as ab6283ed. The next pose-IK test fails on the absent
+bone-chain application API (animation-pose-ik-before.log); it uses the actual
+owned rifle arm and requires the hand to reach a nearby target. Integrate the
+existing analytical solver with local rotations and descendant matrices, then
+apply hands/feet/look-at in the same pose path used by hit boxes.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/
