@@ -1,6 +1,7 @@
 #include "cg_local.h"
 
 static vmCvar_t weaponTrace;
+static qhandle_t weaponImpacts[WEAPON_MAX_DEFINITIONS][WEAPON_MAX_ROWS];
 static weaponState_t predictedWeapons[2];
 static bool predictedWeaponValid[2];
 static struct {
@@ -13,6 +14,7 @@ static struct {
 void CG_InitWeapons( void ) {
 	BG_ClearWeapons();
 	memset( weaponPredictionHistory, 0, sizeof( weaponPredictionHistory ) );
+	memset( weaponImpacts, 0, sizeof( weaponImpacts ) );
 	memset( predictedWeaponValid, 0, sizeof( predictedWeaponValid ) );
 	trap_Cvar_Register( &weaponTrace, "cg_weaponTrace", "0", 0 );
 	for ( int index = 0; index < int( WEAPON_MAX_DEFINITIONS ); ++index ) {
@@ -25,6 +27,12 @@ void CG_InitWeapons( void ) {
 		Q_strncpyz( expected, COM_Parse( &cursor ), sizeof( expected ) );
 		if ( !BG_LoadWeapon( index, path, actual ) || strcmp( actual, expected ) )
 			CG_Error( "Weapon rejected: server definition differs for %s", path );
+		const auto *definition = BG_WeaponDefinition( index );
+		for ( uint32_t material = 0; material < definition->materialCount; ++material ) {
+			weaponImpacts[index][material] = trap_R_RegisterShader( definition->materials[material].effect );
+			if ( !weaponImpacts[index][material] )
+				CG_Error( "Weapon rejected: impact effect %s", definition->materials[material].effect );
+		}
 		CG_Printf( "Weapon client definition: index=%d name=%s\n", index, BG_WeaponDefinition( index )->name );
 	}
 	if ( BG_WeaponDefinition( 0 ) )
@@ -97,4 +105,19 @@ void CG_PredictWeapons( void ) {
 		predictedWeapons[hand] = state;
 		predictedWeaponValid[hand] = true;
 	}
+}
+
+void CG_WeaponImpact( const entityState_t *entity, const vec3_t position ) {
+	const auto *definition = BG_WeaponDefinition( entity->modelindex );
+	if ( !definition || entity->modelindex2 < 0 || uint32_t( entity->modelindex2 ) >= definition->materialCount )
+		CG_Error( "Weapon rejected: impact material" );
+	const auto &material = definition->materials[entity->modelindex2];
+	const qhandle_t shader = weaponImpacts[entity->modelindex][entity->modelindex2];
+	if ( !shader )
+		CG_Error( "Weapon rejected: impact effect %s", material.effect );
+	vec3_t normal;
+	ByteToDir( entity->eventParm, normal );
+	CG_ImpactMark( shader, position, normal, 0, 1, 1, 1, 1, qfalse, 4, qfalse );
+	if ( weaponTrace.integer )
+		CG_Printf( "Weapon impact: material=%s target=%d\n", material.effect, entity->otherEntityNum2 );
 }

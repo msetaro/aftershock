@@ -65,7 +65,7 @@ static bool WeaponWallExit( const vec3_t entry, const vec3_t direction, float li
 			return false;
 	}
 }
-static void WeaponHit( gentity_t *player, const weaponDef_t *definition, const weaponEvent_t &event ) {
+static void WeaponHit( gentity_t *player, const weaponDef_t *definition, const weaponEvent_t &event, int index ) {
 	const bool melee = event.kind == WEAPON_MELEE_EVENT;
 	const float range = melee ? definition->melee.range : definition->range;
 	vec3_t angles, direction, start, end;
@@ -85,6 +85,13 @@ static void WeaponHit( gentity_t *player, const weaponDef_t *definition, const w
 		G_TraceHitscanAtTime( &trace, cursor, end, player->s.number, player, event.time );
 		if ( trace.fraction >= 1 || trace.startsolid || trace.allsolid || ( trace.surfaceFlags & SURF_NOIMPACT ) )
 			return;
+		const auto *material = Weapon_Material( definition, uint32_t( trace.surfaceFlags ) );
+		auto *effect = G_TempEntity( trace.endpos, EV_WEAPON_IMPACT );
+		effect->s.eventParm = DirToByte( trace.plane.normal );
+		effect->s.modelindex = index;
+		effect->s.modelindex2 = int( material - definition->materials );
+		effect->s.otherEntityNum = player->s.number;
+		effect->s.otherEntityNum2 = trace.entityNum;
 		vec3_t delta;
 		VectorSubtract( trace.endpos, start, delta );
 		const float distance = DotProduct( delta, direction );
@@ -99,7 +106,6 @@ static void WeaponHit( gentity_t *player, const weaponDef_t *definition, const w
 		}
 		if ( melee || trace.entityNum != ENTITYNUM_WORLD )
 			return;
-		const auto *material = Weapon_Material( definition, uint32_t( trace.surfaceFlags ) );
 		float thickness;
 		if ( !WeaponWallExit( trace.endpos, direction, fminf( material->depth, range - distance ), player->s.number, cursor, &thickness ) )
 			return;
@@ -159,7 +165,7 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 		for ( uint32_t i = 0; i < events.count; ++i ) {
 			const auto &event = events.items[i];
 			if ( event.kind == WEAPON_MELEE_EVENT || ( event.kind == WEAPON_SHOT && definition->ballistics == WEAPON_HITSCAN ) )
-				WeaponHit( player, definition, event );
+				WeaponHit( player, definition, event, selected );
 			if ( weaponTrace.integer )
 				G_Printf( "Weapon event: owner=%d hand=%d kind=%u tick=%u sequence=%u\n", owner, hand, event.kind, event.time, event.sequence );
 		}

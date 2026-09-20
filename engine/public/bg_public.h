@@ -461,7 +461,8 @@ typedef enum {
 	EV_TAUNT_FOLLOWME,
 	EV_TAUNT_GETFLAG,
 	EV_TAUNT_GUARDBASE,
-	EV_TAUNT_PATROL
+	EV_TAUNT_PATROL,
+	EV_WEAPON_IMPACT
 
 } entity_event_t;
 
@@ -708,7 +709,7 @@ typedef enum {
 } entityType_t;
 
 #ifdef __cplusplus
-static_assert( int( ET_EVENTS ) + int( EV_TAUNT_PATROL ) < int( ET_WEAPON_STATE ) );
+static_assert( int( ET_EVENTS ) + int( EV_WEAPON_IMPACT ) < int( ET_WEAPON_STATE ) );
 void BG_ClearWeapons( void );
 bool BG_LoadWeapon( int index, const char *path, char hash[65] );
 const weaponDef_t *BG_WeaponDefinition( int index );

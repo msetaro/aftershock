@@ -203,6 +203,15 @@ New owned material JSON supplies distinct default/metal impact colors through th
 existing cooker; this does not alter any accepted art or replay fixture. Next:
 replicate the definition/material index and render that material at the impact.
 
+Material impact presentation passes the live test and GCC/Clang portable checks
+(weapons-impact-live.log, weapons-impact-gcc.log/-clang.log). New EV_WEAPON_IMPACT
+appends to existing event values and carries definition/material indices; cgame
+preloads all effect shaders at initialization and uses the existing fixed mark
+pool. No first-hit asset loading is introduced. The thin-wall probe's direction
+stub was corrected to the native game's existing non-const signature. Format and
+boundary checks pass. Remaining: projectiles/grenades, attachment/view/notify/audio
+integration, ImGui range tooling, lifecycle/parity tests and full CI acceptance.
+
 
 ## #12 implemented feature evidence
 

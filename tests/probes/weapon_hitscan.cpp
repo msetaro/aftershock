@@ -59,6 +59,14 @@ void trap_Trace( trace_t *trace, const vec3_t start, const vec3_t, const vec3_t,
 		}
 	}
 }
+int DirToByte( vec3_t ) {
+	return 0;
+}
+gentity_t *G_TempEntity( vec3_t, int event ) {
+	assert( event == EV_WEAPON_IMPACT );
+	static gentity_t effect;
+	return &effect;
+}
 void G_Damage( gentity_t *target, gentity_t *, gentity_t *, vec3_t, vec3_t, int amount, int, int ) {
 	assert( target == &g_entities[7] );
 	damage += amount;
@@ -83,35 +91,35 @@ int main() {
 	definition.materials[1].damageScale = 0.25f;
 	weaponEvent_t event = {};
 	event.time = 123;
-	WeaponHit( &g_entities[0], &definition, event );
+	WeaponHit( &g_entities[0], &definition, event, 0 );
 	assert( damage == 40 && traces == 1 );
 	damage = traces = 0;
 	thickness = 1;
-	WeaponHit( &g_entities[0], &definition, event );
+	WeaponHit( &g_entities[0], &definition, event, 0 );
 	assert( damage == 20 && traces == 2 );
 	damage = 0;
 	flags = 4096;
-	WeaponHit( &g_entities[0], &definition, event );
+	WeaponHit( &g_entities[0], &definition, event, 0 );
 	assert( damage == 10 );
 	damage = 0;
 	thickness = 3;
-	WeaponHit( &g_entities[0], &definition, event );
+	WeaponHit( &g_entities[0], &definition, event, 0 );
 	assert( damage == 0 );
 	flags = 0;
 	thickness = 1;
 	layers = 2;
-	WeaponHit( &g_entities[0], &definition, event );
+	WeaponHit( &g_entities[0], &definition, event, 0 );
 	assert( damage == 10 );
 	damage = 0;
 	flags = SURF_NOIMPACT;
-	WeaponHit( &g_entities[0], &definition, event );
+	WeaponHit( &g_entities[0], &definition, event, 0 );
 	assert( damage == 0 );
 	flags = 0;
 	event.kind = WEAPON_MELEE_EVENT;
-	WeaponHit( &g_entities[0], &definition, event );
+	WeaponHit( &g_entities[0], &definition, event, 0 );
 	assert( damage == 0 ); // Melee cannot penetrate a wall.
 	thickness = 0;
-	WeaponHit( &g_entities[0], &definition, event );
+	WeaponHit( &g_entities[0], &definition, event, 0 );
 	assert( damage == 50 );
 	puts( "PASS: data hitscan preserves shot time, material depth/loss, layered walls and melee limits" );
 }
