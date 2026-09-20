@@ -30,9 +30,9 @@ inspector counts and local static/module/OpenArena/restart/idle acceptance pass.
 Final fixed Quake 3 and OpenArena demo comparisons preserve their accepted hashes.
 The self-review is below. Final follow-up fixes select matching OpenArena native
 objects for the standalone test build and remove a duplicated command in AGENTS.
-Next: fix the deterministically reproduced watcher interleaving and bound the
-lifetime analysis process memory; rerun both local checks and exact-head hosted
-build/regression workflows, then mark #145 ready and merge with a merge commit.
+Next: confirm the 16-command lifetime batches locally and in the final exact-head
+hosted build/regression workflows, then mark #145 ready and merge with a merge
+commit. The watcher fix passes GCC/Clang and the live sub-second acceptance gate.
 Require the merged-tree regression before closing #9/updating #25 and proceeding.
 After #9, fix IQM allocation accounting and rotated nonuniform scale in separate
 #31 PRs, then continue #10 and the remaining #25 roadmap. No upstream PRs.
@@ -3121,3 +3121,21 @@ before the implementation. Eight-path lifetime batches passed all 1,124 commands
 in 5:01, but peaked at 7,340,232 KiB RSS; reduce to one source path per process
 for hosted-runner headroom. The unbatched measurement reached 20,712,276 KiB
 before its intentional 180-second measurement timeout; that run is not a pass.
+
+The watcher now compares snapshots around the complete cook and keeps a baseline
+only after a stable pass. Startup/changed manifests discover dependencies, then
+receive a verification pass; edits during cooking are not silently accepted.
+The deterministic test fails at 03268cd1 before implementation and passes after;
+GCC and Clang/libc++ full cooker checks pass, and the live texture/reload/restart
+check still passes within one second (cook-watch-runtime.log and latency.txt).
+
+Lifetime batching is by 16 compilation commands, not source paths: game/module.cpp
+alone has 412 configurations. Every original command remains in the full evidence
+database and is checked once through the batched database. Positive and seven-object
+negative controls remain mandatory. The new full local measurement is running
+(cook-lifetimes-commands.log); exact-head hosted coverage remains required.
+Build 35506318131 at 5ffaabc2 passed. Regression 35506318169 was cancelled after
+its Clang watcher failure, with all other completed required jobs passing and
+lifetime analysis still pending; it is not an accepted final gate.
+Self-review of this follow-up: only offline watcher correctness and analysis
+resource use changed; native code, accepted fixtures and hashes are untouched.
