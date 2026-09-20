@@ -755,6 +755,9 @@ void SV_Init( void ) {
 	Cvar_SetDescription( sv_minRate, "Minimum server bandwidth (in bit per second) a client can use." );
 	sv_maxRate = Cvar_Get( "sv_maxRate", "0", CVAR_ARCHIVE_ND | CVAR_SERVERINFO );
 	Cvar_SetDescription( sv_maxRate, "Maximum server bandwidth (in bit per second) a client can use." );
+	sv_snapshotBudget = Cvar_Get( "sv_snapshotBudget", "0", CVAR_ARCHIVE_ND | CVAR_SERVERINFO );
+	Cvar_CheckRange( sv_snapshotBudget, "0", "16384", CV_INTEGER );
+	Cvar_SetDescription( sv_snapshotBudget, "Optional snapshot update budget in bytes (0 preserves legacy selection); mandatory control/removal traffic and transmit rate limits remain." );
 	sv_dlRate = Cvar_Get( "sv_dlRate", "100", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	Cvar_CheckRange( sv_dlRate, "0", "500", CV_INTEGER );
 	Cvar_SetDescription( sv_dlRate, "Bandwidth allotted to PK3 file downloads via UDP, in kbyte/s." );

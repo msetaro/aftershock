@@ -43,6 +43,8 @@ typedef struct svEntity_s {
 	int lastCluster; // if all the clusters don't fit in clusternums
 	int areanum, areanum2;
 	int snapshotCounter; // used to prevent double adding from portal views
+	int replicationPriority;
+	float interestRadius;
 } svEntity_t;
 
 typedef enum {
@@ -202,6 +204,10 @@ typedef struct client_s {
 	int ping;
 	int rate; // bytes / second, 0 - unlimited
 	int snapshotMsec; // requests a snapshot every snapshotMsec unless rate choked
+	uint32_t lastEntityUpdate[MAX_GENTITIES];
+	int deferredEntities, replicationOverBudget;
+	uint64_t deferredEntityUpdates;
+	uint32_t replicationBudgetOverruns;
 	qboolean pureAuthentic;
 	qboolean gotCP; // TTimo - additional flag to distinguish between a bad pure checksum, and no cp command at all
 	netchan_t netchan;
@@ -303,6 +309,7 @@ extern cvar_t *sv_referencedPakNames;
 extern cvar_t *sv_serverid;
 extern cvar_t *sv_minRate;
 extern cvar_t *sv_maxRate;
+extern cvar_t *sv_snapshotBudget;
 extern cvar_t *sv_dlRate;
 extern cvar_t *sv_gametype;
 extern cvar_t *sv_pure;
@@ -497,3 +504,8 @@ void SV_LoadFilters( const char *filename );
 const char *SV_RunFilters( const char *userinfo, const netadr_t *addr );
 void SV_AddFilter_f( void );
 void SV_AddFilterCmd_f( void );
+
+bool SV_SetEntityReplication( int number, int priority, float radius );
+bool SV_EntityRelevant( const sharedEntity_t *entity, const vec3_t view );
+void SV_ApplyReplicationPolicy( client_t *client, const clientSnapshot_t *oldframe, clientSnapshot_t *frame,
+	int prefixBits, entityState_t *const *candidates, int count );

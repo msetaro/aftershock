@@ -415,6 +415,9 @@ void GameImport_Trace( void *results, const float *start, const float *mins, con
 	SV_Trace( (trace_t *)results, (const vec_t *)start, (const vec_t *)mins, (const vec_t *)maxs, (const vec_t *)end, passEntityNum, contentmask, /*int capsule*/ qfalse );
 	return;
 }
+int GameImport_SetEntityReplication( int number, int priority, float radius ) {
+	return (int)SV_SetEntityReplication( number, priority, radius );
+}
 void *GameImport_AllocLevelMemory( uint32_t bytes ) {
 	if ( !bytes || bytes > INT32_MAX )
 		Com_Error( ERR_DROP, "Invalid native level allocation" );

@@ -17,8 +17,8 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/12-netcode`; draft PR #149. Continue #12 with
-entity relevance/priority/bandwidth control and checked
-identity/browser/matchmaking provider hooks. Wire the new tests into CI, document
+checked identity/browser/matchmaking provider hooks. Replication policy is
+implemented and locally verified; full acceptance remains outstanding. Wire the new tests into CI, document
 limits/commands, run full gates and AGENTS self-review before any merge.
 
 Implemented so far: generated replication descriptions beside state members,
@@ -86,7 +86,18 @@ storage lifetime, range controls and admission of high-priority entities beyond
 the legacy first-256 candidate slots. Budget 0 must preserve the old exact path;
 wire capacity stays 256. Required playerstate/reliable/removal traffic remains
 mandatory even if it exceeds a tiny optional-update budget; existing rate limiting
-continues to account for actual transmitted bytes. Implement this slice next.
+continues to account for actual transmitted bytes.
+
+Replication policy now passes GCC and Clang/libc++ UBSan probes. Radius interest
+narrows existing visibility, priorities select up to 256 entities from the full
+candidate set, and age schedules optional deltas against the client rate budget.
+Unchanged defaults preserve the old path. The real OpenArena 48-byte budget run
+verified both deferred updates and receipt of the target state: 393/393 shots
+agree (20 hits), 48 differ without rewind, median age 150 ms and prediction error
+<=8.875 units (netcode-policy-received.log). The initial 128-byte trial did not
+exercise deferral, so the test retained its assertion and reduced the budget.
+Server status reports cumulative deferrals and mandatory-traffic overruns.
+Test-first commit 417e130f precedes implementation. Next: identity/service seams.
 
 ## #10 accepted implementation
 

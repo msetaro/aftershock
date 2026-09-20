@@ -185,6 +185,7 @@ void G_RewindTargetCommand( void ) {
 	}
 	gentity_t *target = G_Spawn();
 	target->classname = "rewind_target";
+	GameImport_SetEntityReplication( target->s.number, 3, 0 );
 	target->s.eType = ET_GENERAL;
 	target->s.modelindex = G_ModelIndex( (char *)"models/anim_body.iqm" );
 	target->s.pos.trType = TR_SINE;

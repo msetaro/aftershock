@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "server.h"
+#include <inttypes.h>
 #include "../public/g_native_public.h"
 
 /*
@@ -1242,6 +1243,9 @@ static void SV_Status_f( void ) {
 
 		// rate
 		Com_Printf( " %5i\n", cl->rate );
+		if ( sv_snapshotBudget->integer > 0 )
+			Com_Printf( "Replication client %d: budget=%d deferred=%d total_deferred=%" PRIu64 " mandatory_overrun_bits=%d overrun_snapshots=%u\n",
+				i, sv_snapshotBudget->integer, cl->deferredEntities, cl->deferredEntityUpdates, cl->replicationOverBudget, cl->replicationBudgetOverruns );
 	}
 
 	Com_Printf( "\n" );

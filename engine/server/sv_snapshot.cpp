@@ -22,6 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 
+// Build and write run consecutively on the server thread; no per-client candidate allocation.
+static entityState_t *pendingReplication[MAX_GENTITIES];
+static int pendingReplicationCount;
+
 
 /*
 =============================================================================
@@ -120,7 +124,7 @@ SV_WriteSnapshotToClient
 */
 static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 	const clientSnapshot_t *oldframe;
-	const clientSnapshot_t *frame;
+	clientSnapshot_t *frame;
 	int lastframe;
 	int i;
 	int snapFlags;
@@ -208,6 +212,9 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 		MSG_WriteDeltaPlayerstate( msg, NULL, &frame->ps );
 	}
 
+	// Schedule optional updates after mandatory reliable/playerstate data is known.
+	SV_ApplyReplicationPolicy( client, oldframe, frame, msg->bit, pendingReplication, pendingReplicationCount );
+
 	// delta encode the entities
 	SV_EmitPacketEntities( oldframe, frame, msg );
 
@@ -253,7 +260,7 @@ Build a client snapshot structure
 typedef int entityNum_t;
 typedef struct {
 	int numSnapshotEntities;
-	entityNum_t snapshotEntities[MAX_SNAPSHOT_ENTITIES];
+	entityNum_t snapshotEntities[MAX_GENTITIES];
 	qboolean unordered;
 } snapshotEntityNumbers_t;
 
@@ -298,7 +305,7 @@ static void SV_AddIndexToSnapshot( svEntity_t *svEnt, int index, snapshotEntityN
 	svEnt->snapshotCounter = sv.snapshotCounter;
 
 	// if we are full, silently discard entities
-	if ( eNums->numSnapshotEntities >= MAX_SNAPSHOT_ENTITIES ) {
+	if ( eNums->numSnapshotEntities >= ( sv_snapshotBudget->integer > 0 ? MAX_GENTITIES : MAX_SNAPSHOT_ENTITIES ) ) {
 		return;
 	}
 
@@ -363,6 +370,9 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 			if ( ~ent->r.singleClient & ( 1 << frame->ps.clientNum ) )
 				continue;
 		}
+
+		if ( !SV_EntityRelevant( ent, frame->ps.origin ) )
+			continue;
 
 		svEnt = &sv.svEntities[es->number];
 
@@ -599,6 +609,8 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	frame = &client->frames[client->netchan.outgoingSequence & PACKET_MASK];
 	cl = (int)( client - svs.clients );
 
+	pendingReplicationCount = 0;
+
 	// clear everything in this snapshot
 	Com_Memset( frame->areabits, 0, sizeof( frame->areabits ) );
 	frame->areabytes = 0;
@@ -668,11 +680,12 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		( (int *)frame->areabits )[i] = ( (int *)frame->areabits )[i] ^ -1;
 	}
 
-	frame->num_entities = entityNumbers.numSnapshotEntities;
-	// get pointers from common snapshot
-	for ( i = 0; i < entityNumbers.numSnapshotEntities; i++ ) {
-		frame->ents[i] = svs.currFrame->ents[entityNumbers.snapshotEntities[i]];
-	}
+	pendingReplicationCount = entityNumbers.numSnapshotEntities;
+	for ( i = 0; i < pendingReplicationCount; i++ )
+		pendingReplication[i] = svs.currFrame->ents[entityNumbers.snapshotEntities[i]];
+	frame->num_entities = MIN( pendingReplicationCount, MAX_SNAPSHOT_ENTITIES );
+	for ( i = 0; i < frame->num_entities; i++ )
+		frame->ents[i] = pendingReplication[i];
 }
 
 

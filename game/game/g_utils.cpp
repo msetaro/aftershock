@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // g_utils.c -- misc utility functions for game module
 
 #include "g_local.h"
+#include "../../engine/public/g_native_public.h"
 
 typedef struct {
 	char oldShader[MAX_QPATH];
@@ -374,6 +375,7 @@ void G_InitGentity( gentity_t *e ) {
 	e->classname = "noclass";
 	e->s.number = (int)( e - g_entities );
 	e->r.ownerNum = ENTITYNUM_NONE;
+	GameImport_SetEntityReplication( e->s.number, 0, 0 );
 }
 
 /*

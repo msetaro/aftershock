@@ -93,10 +93,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--client', type=Path, required=True)
     parser.add_argument('--server', type=Path, required=True, help='AFTERSHOCK_DEVTOOLS build')
+    parser.add_argument('--snapshot-budget', type=int, default=0)
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
     parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-netcode-runtime'))
     args = parser.parse_args()
+    if not 0 <= args.snapshot_budget <= 16384:
+        parser.error('snapshot budget must be in 0..16384')
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=True)
     paks = sorted(args.data.resolve().glob('*.pk3'))
@@ -123,6 +126,7 @@ def main():
                 '+set', 'fs_homepath', str(home / 'server'), '+set', 'net_port', str(port),
                 '+set', 'dedicated', '1', '+set', 'bot_enable', '0', '+set', 'sv_fps', '50',
                 '+set', 'g_rewind', '1', '+set', 'g_rewindTrace', '1',
+                '+set', 'sv_snapshotBudget', str(args.snapshot_budget),
                 '+devmap', content_maps(args.content)[0]], cwd=ROOT, env=env,
                 stdin=subprocess.PIPE, stdout=server_stream, stderr=subprocess.STDOUT)
             try:
@@ -131,12 +135,13 @@ def main():
                 (base / 'netcode.cfg').write_text('\n'.join([
                     f'connect 127.0.0.1:{proxy.port}', 'wait 400', 'cmd give all',
                     'wait 100', 'weapon 6', 'wait 100', 'say netcode_ready', 'wait 100', '+attack', 'wait 800', 'cmd give ammo',
-                    'wait 800', '-attack', 'wait 30', 'quit']) + '\n')
+                    'wait 800', '-attack', 'say netcode_done', 'wait 100', 'quit']) + '\n')
                 client = subprocess.Popen(['xvfb-run', '-a', str(args.client.resolve()), *common,
                     '+set', 'fs_homepath', str(home / 'client'), '+set', 'net_port', '0',
                     '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '0',
                     '+set', 'cl_allowDownload', '0', '+set', 'cl_autoRecordDemo', '0',
-                    '+set', 'cg_showmiss', '1', '+set', 'com_maxfps', '100', '+exec', 'netcode.cfg'],
+                    '+set', 'cg_showmiss', '1', '+set', 'cl_shownet', '-1' if args.snapshot_budget else '0',
+                    '+set', 'com_maxfps', '100', '+exec', 'netcode.cfg'],
                     cwd=ROOT, env=env, stdout=client_stream, stderr=subprocess.STDOUT, start_new_session=True)
                 wait_for(lambda: 'ClientBegin: 0' in server_log.read_text(), client)
                 wait_for(lambda: 'netcode_ready' in server_log.read_text(), client)
@@ -144,6 +149,11 @@ def main():
                 server.stdin.flush()
                 wait_for(lambda: 'Rewind target created:' in server_log.read_text() or 'server: rewind_target 0' in server_log.read_text(), server)
                 assert 'Rewind target created:' in server_log.read_text(), 'missing developer rewind target'
+                if args.snapshot_budget:
+                    wait_for(lambda: 'netcode_done' in server_log.read_text(), client, seconds=45)
+                    server.stdin.write(b'status\n')
+                    server.stdin.flush()
+                    wait_for(lambda: 'Replication client 0:' in server_log.read_text(), server)
                 assert client.wait(timeout=45) == 0
             finally:
                 if client is not None and client.poll() is None:
@@ -160,7 +170,12 @@ def main():
                         server.kill()
                         server.wait()
     text = server_log.read_text()
+    if args.snapshot_budget:
+        policy = re.search(r'Replication client 0: budget=(\d+) deferred=\d+ total_deferred=(\d+)', text)
+        assert policy and int(policy[1]) == args.snapshot_budget and int(policy[2]) > 0, policy
     target = int(re.search(r'Rewind target created: entity=(\d+)', text)[1])
+    if args.snapshot_budget:
+        assert re.search(r'#' + str(target) + r'\s+.*pos\.trBase', client_log.read_text()), 'budget never delivered target state'
     rows = re.findall(r'Rewind target boxes: time=(\d+) entity=\d+ ([-0-9. ]+)\n', text)
     frames = {int(t): list(map(float, values.split())) for t, values in rows}
     times = sorted(frames)

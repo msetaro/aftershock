@@ -48,6 +48,7 @@ cvar_t *sv_referencedPakNames;
 cvar_t *sv_serverid;
 cvar_t *sv_minRate;
 cvar_t *sv_maxRate;
+cvar_t *sv_snapshotBudget;
 cvar_t *sv_dlRate;
 cvar_t *sv_gametype;
 cvar_t *sv_pure;

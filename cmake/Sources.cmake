@@ -12,6 +12,7 @@ set(COMMON_SOURCES
   engine/server/sv_init.cpp
   engine/server/sv_main.cpp
   engine/server/sv_net_chan.cpp
+  engine/server/sv_replication.cpp
   engine/server/sv_snapshot.cpp
   engine/server/sv_world.cpp
   engine/qcommon/cm_load.cpp
