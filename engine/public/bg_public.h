@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef __cplusplus
 #include "../animation/animation_public.h"
+#include "../weapons/weapons_public.h"
 #endif
 
 #define GAME_VERSION		BASEGAME "-1"
@@ -701,11 +702,14 @@ typedef enum {
 	ET_EVENTS, // any of the EV_* events can be added freestanding
 	// by setting eType to ET_EVENTS + eventNum
 	// this avoids having to set eFlags and eventNum
+	ET_WEAPON_STATE = 254, // Auxiliary native weapon state.
 	ET_ANIMATION = 255 // Auxiliary native animation state, never a game event.
 } entityType_t;
 
 #ifdef __cplusplus
-static_assert( int( ET_EVENTS ) + int( EV_TAUNT_PATROL ) < int( ET_ANIMATION ) );
+static_assert( int( ET_EVENTS ) + int( EV_TAUNT_PATROL ) < int( ET_WEAPON_STATE ) );
+bool BG_WeaponToEntityState( const weaponState_t *state, uint32_t spawn, int owner, int hand, int definition, uint32_t attachments, const float *origin, entityState_t *entity );
+bool BG_EntityStateToWeapon( const entityState_t *entity, weaponState_t *state, uint32_t *spawn );
 bool BG_AnimationToEntityState( const animState_t *state, const float *parameters, int owner, int rig, const float *origin, const float *angles, entityState_t *entity );
 bool BG_EntityStateToAnimation( const entityState_t *entity, animState_t *state, float *parameters );
 bool BG_AnimationPose( const animAsset_t *asset, const animState_t *state, const float *parameters, uint32_t time, int rig, animPose_t *pose );

@@ -108,6 +108,10 @@ static float RandomSigned( uint32_t *seed ) {
 	*seed = 69069u * *seed + 1u;
 	return float( *seed & 0xffffu ) * ( 1.0f / 32768.0f ) - 1.0f;
 }
+bool Weapon_StateValid( const weaponState_t *state ) {
+	return state && state->magazine <= 1000 && state->reserve <= 66536 && state->chamber <= 1 && state->adsQ16 <= 65536 &&
+		   state->burstRemaining <= 32 && ( state->reloadStage == WEAPON_NO_STAGE || state->reloadStage < WEAPON_MAX_ROWS );
+}
 bool Weapon_Tick( const weaponDef_t *d, uint32_t buttons, uint32_t time, weaponState_t *state, weaponEvents_t *events ) {
 	if ( !d || !state || !events || time - state->time != 20 || state->chamber > 1 || state->magazine > d->magazine ||
 		 state->reserve > 66536 || state->adsQ16 > 65536 || state->burstRemaining > 32 ||

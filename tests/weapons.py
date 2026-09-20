@@ -73,5 +73,5 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
      'tests/probes/weapon_snapshot.cpp', 'engine/qcommon/msg.cpp',
      'engine/qcommon/huffman.cpp', 'engine/qcommon/huffman_static.cpp',
-     'engine/qcommon/q_shared.cpp', '-Wl,--gc-sections', '-o', snapshot])
+     'engine/qcommon/q_shared.cpp', 'engine/weapons/weapons.cpp', sha, '-Wl,--gc-sections', '-o', snapshot])
 run([snapshot])

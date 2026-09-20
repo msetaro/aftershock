@@ -84,6 +84,17 @@ compact deltas to survive the production entity codec. Decision: an auxiliary
 ET_WEAPON_STATE record (254) keeps existing wire structs and movement fields
 unchanged; the native feature protocol must be revised before exposing the new
 record to real clients. No gameplay/prediction acceptance is claimed yet.
+The snapshot contract now passes GCC/Clang UBSan (67 initial bytes, 10-byte
+clock delta), following ac4f90b4's missing-adapter failure. Six existing full-width
+integer fields plus finite exact 16-bit float halves preserve all state bits;
+there are no changed wire structs or float bit-punning. Current native ABI and
+pre-#12 replication digest still pass. The production build initially caught
+unused namespace constants in native wrappers; matching the existing inline
+constexpr convention fixes that without relaxing warnings. The final native
+client/server build passes (weapons-snapshot-build.log). Next: shared command
+advancement/prediction tests, then actual game/cgame integration and owned range
+assets. Protocol revision remains mandatory before publishing new auxiliary
+records to real clients.
 
 
 ## #12 implemented feature evidence

@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include <type_traits>
 
-constexpr uint32_t WEAPON_MAX_RECOIL = 32, WEAPON_MAX_ROWS = 8, WEAPON_NO_STAGE = UINT32_MAX;
+inline constexpr uint32_t WEAPON_MAX_DEFINITIONS = 32;
+inline constexpr uint32_t WEAPON_MAX_RECOIL = 32, WEAPON_MAX_ROWS = 8, WEAPON_NO_STAGE = UINT32_MAX;
 enum weaponFireMode_t : uint32_t { WEAPON_AUTO,
 	WEAPON_SEMI,
 	WEAPON_BURST };
@@ -85,6 +86,7 @@ static_assert( sizeof( weaponReload_t ) == 76 && sizeof( weaponMaterial_t ) == 1
 static_assert( sizeof( weaponState_t ) == 56 && std::is_trivially_copyable_v<weaponState_t> );
 static_assert( sizeof( weaponEvent_t ) == 28 && sizeof( weaponProjectile_t ) == 28 );
 
+bool Weapon_StateValid( const weaponState_t *state );
 bool Weapon_Open( const void *data, size_t size, weaponDef_t *definition );
 bool Weapon_Configure( const weaponDef_t *base, uint32_t attachments, weaponDef_t *configured );
 void Weapon_Reset( const weaponDef_t *definition, uint32_t seed, uint32_t time, weaponState_t *state );
