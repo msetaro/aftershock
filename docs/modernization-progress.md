@@ -31,7 +31,7 @@ R_LoadIQM and its local verification while the merged-tree gate runs; no follow-
 PR opens until that gate passes. This advances the earlier tests-only preparation
 checkpoint now that #9's exact-head gates and merge are complete.
 
-The one-line accounting fix now passes GCC/Clang cooker checks, formatting and
+The accounting fix now passes GCC/Clang cooker checks, formatting and
 fixed Quake 3 replay. Self-review is recorded below. Next: open and gate the
 separate #31 accounting PR, merge with a merge commit after exact-head success,
 and require its merged-tree regression before the following PR;
@@ -3175,3 +3175,14 @@ committed separately as 13f999df and fails before any matrix change.
 #9 merged-tree regression 35507482742 passed at c195f798. The accounting PR may
 now open; its own exact-head build/regression and post-merge regression remain
 required. The main worktree is now on issue/31-iqm-accounting.
+
+
+#146 initial build 35508144036 caught MSVC C4267: the allocation size is size_t,
+while model_t::dataSize retains its signed 32-bit reporting field. The correction
+checks that the allocation fits before assigning with an explicit conversion;
+an unrepresentable count is rejected before allocation. GCC/Clang complete cooker
+checks and formatting pass again (iqm-accounting-width-{gcc,clang,format}.log).
+This remains the same accounting bug and introduces no new test target. Final
+exact-head build/regression must rerun; the initial failed build is not acceptance.
+Self-review update: the reporting-width guard is necessary for exact accounting;
+no ABI, allocation algorithm, geometry or simulation arithmetic changes.
