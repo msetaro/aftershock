@@ -636,8 +636,13 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		size += 6 * sizeof( float ); // model bounds
 	}
 
+	// The model's existing reporting field uses a signed 32-bit byte count.
+	if ( size > INT_MAX ) {
+		ri.Printf( PRINT_WARNING, "R_LoadIQM: %s exceeds the model accounting size limit.\n", mod_name );
+		return qfalse;
+	}
 	mod->type = MOD_IQM;
-	mod->dataSize = size;
+	mod->dataSize = (int)size;
 	iqmData = owned ? (iqmData_t *)ri.Malloc( size ) : (iqmData_t *)ri.Hunk_Alloc( size, h_low );
 	if ( owned )
 		Com_Memset( iqmData, 0, size );

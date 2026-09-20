@@ -18,8 +18,8 @@ upstream; historical upstream PR references below are completed past work.
 
 #9 PR #145 merged as c195f798 after exact-head build 35507057165/regression
 35507057162; merged-tree regression 35507482742 passed. #9 is closed and checked
-in #25. Accounting PR #146 is open at 04545c1e, with build 35508144036 and
-regression 35508144077 running. Require those exact-head gates and its committed
+in #25. Accounting PR #146 is open at 1f1aeb8f, with build 35508534162 and
+regression 35508533987 running after its MSVC reporting-width correction. Require those exact-head gates and its committed
 self-review before readiness/merge, then require its merged-tree regression.
 
 Current worktree /tmp/aftershock-31-iqm-joint-scale is on
@@ -3206,3 +3206,18 @@ simulation expression, allocator, OS call, destructor or ABI/layout changes.
 Only renderer transform coefficients change; uniform-scale paths and accepted
 replays retain their outputs. Exact-head hosted build/regression, the preceding
 #146 integration gate, and this PR's merged-tree regression remain required.
+
+
+#146 initial build 35508144036 caught MSVC C4267: the allocation size is size_t,
+while model_t::dataSize retains its signed 32-bit reporting field. The correction
+checks that the allocation fits before assigning with an explicit conversion;
+an unrepresentable count is rejected before allocation. GCC/Clang complete cooker
+checks and formatting pass again (iqm-accounting-width-{gcc,clang,format}.log).
+This remains the same accounting bug and introduces no new test target. Final
+exact-head build/regression must rerun; the initial failed build is not acceptance.
+Self-review update: the reporting-width guard is necessary for exact accounting;
+no ABI, allocation algorithm, geometry or simulation arithmetic changes.
+
+The accounting width correction 1f1aeb8f is merged forward into the separate
+scale branch before its PR. Superseded accounting regression 35508144077 was
+cancelled after build 35508144036 failed; it is not an accepted gate.

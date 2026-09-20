@@ -909,6 +909,8 @@ Fixed on issue/31-iqm-accounting after #9 merge c195f798. Test-first 85563345
 compares the native allocator request with model_t::dataSize and fails at its
 initial zero value. R_LoadIQM now assigns its one block's size for both hunk and
 owned storage; twelve replacements verify that accounting never accumulates.
+The size must fit the existing signed 32-bit reporting field before explicit
+conversion; MSVC caught the initially implicit narrowing.
 `python3 tests/cook.py` passes with GCC and Clang/libc++; the fixed Quake 3 demo
 projection remains 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
 No golden changes are needed because only reporting metadata changes. This is
