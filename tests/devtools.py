@@ -72,7 +72,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-dev-input-') as temp:
               'screenshot restarted', 'wait 2', 'devtools_status']
     for tab in ('textures', 'materials', 'profile', 'memory', 'animation'):
         script += ['echo inspect_' + tab, 'wait 300' if tab == 'animation' else 'wait 40', 'screenshot ' + tab, 'wait 2']
-    script += ['devtools_status', 'wait 10', 'devtools_status', 'quit']
+    # Cvars named like button commands observe the existing +/- key dispatch.
+    script += ['devtools_status', 'wait 10', 'devtools_status',
+               'set +devbutton 0', 'set -devbutton 0', 'bind F8 "+devbutton;echo dev_key_down"',
+               'bind F9 "set dev_tools 1"', 'set dev_tools 0', 'echo dev_reopen_ready']
     (base / 'devtools-check.cfg').write_text('\n'.join(script) + '\n')
     with (out / 'client.log').open('wb') as log:
         process = subprocess.Popen(command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
@@ -107,6 +110,22 @@ with tempfile.TemporaryDirectory(prefix='aftershock-dev-input-') as temp:
                     click(80, 137)
                     time.sleep(0.4)
                     click(27, 260)
+            wait_for(lambda: b'dev_reopen_ready' in (out / 'client.log').read_bytes(), process)
+            input_device.key_event('F8', True)
+            wait_for(lambda: b'dev_key_down' in (out / 'client.log').read_bytes(), process)
+            key('F9')
+            time.sleep(0.5)
+            click(40, 64)
+            click(100, 438)
+            for char in '-devbutton':
+                key('minus' if char == '-' else char)
+            key('Return')
+            wait_for(lambda: b'"-devbutton" is:' in (out / 'client.log').read_bytes(), process)
+            input_device.key_event('F8', False)
+            click(100, 438)
+            for char in 'quit':
+                key(char)
+            key('Return')
             process.wait(timeout=30)
             assert process.returncode == 0
         finally:
@@ -120,6 +139,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-dev-input-') as temp:
 input_device.close()
 text = (out / 'client.log').read_text()
 assert '"devtest" is:"7^7"' in text, 'live ImGui cvar edit failed; see ' + str(out / 'client.log')
+button_events = {name: value for name, value in re.findall(r'"([+-]devbutton)" is:"([^"^]+)\^7"', text)}
+assert 'dev_key_down' in text, 'held key never reached its game binding'
+assert button_events.get('-devbutton', '0') != '0', 'reopening the overlay left the game key pressed'
 assert not any(error in text for error in ('ERROR:', 'Signal caught', 'capacity exceeded', 'Unknown command'))
 samples = [tuple(map(int, row)) for row in re.findall('Developer tools: enabled=1 frames=(\\d+) arena=(\\d+)/16777216 allocations=(\\d+)', text)]
 assert len(samples) == 5 and samples[1][0] - samples[0][0] >= 60

@@ -19,13 +19,19 @@ upstream; historical upstream PR references below are completed past work.
 #6 PR #140 merged as 30eeba4c after final head c7c31a60 passed build
 35490659941/regression 35490659967 and the recorded self-review. Its merged-tree regression 35490963498 passed. The current
 branch is `issue/7-devtools`; test-first commit 7596afa9 records the expected shipping/development build failure.
-#7 remains draft PR #143. World/debug implementation 0a264cba is pushed.
-Local validation and self-review pass; hosted build 35495497762/regression
-35495497744 are still running. This final documentation checkpoint also requires
-exact-head build/regression before merging, then merged-tree regression before #142.
-The preceding entity slice 9aca1c9f passed regression 35494279424; its build failed
-because older libc++ lacks floating from_chars. The final slice uses portable
-strtof with decimal-only validation matching the native game's numeric reader.
+#7 remains draft PR #143. Implementation 0a264cba passed build/regression
+35495497762/35495497744. Documentation head f895997d passed build 35495622794;
+its regression 35495622776 is retrying only a lifetime runner shut down by GitHub
+(exit 143, no code diagnostic). All other jobs passed.
+
+Final input review found a new-overlay bug: only initial context creation clears
+game keys, so reopening a retained context leaves a held game binding pressed.
+The real-input test now holds F8, reopens through F9, and queries its release cvar
+through the overlay console. It fails as expected on f895997d's binary with
+"reopening the overlay left the game key pressed" (devtools-reopen-before3.log).
+This test-first commit changes no engine code. Fix the capture transition inside
+the new overlay, rerun static/module UI checks and policies, then require fresh
+exact-head build/regression and merged-tree gates before #142. No merge yet.
 Preserve accepted goldens.
 
 Then complete #7, render-graph phase two #142, and the remaining #25 sequence.

@@ -59,15 +59,16 @@ class XInput:
         time.sleep(0.2)
         self.cursor[:] = [x, y]
 
-    def key(self, name):
+    def key_event(self, name, down):
         code = self.x11.XKeysymToKeycode(self.display, self.x11.XStringToKeysym(name.encode()))
         assert code
-        self.xt.XTestFakeKeyEvent(self.display, code, 1, 0)
+        self.xt.XTestFakeKeyEvent(self.display, code, int(down), 0)
         self.x11.XSync(self.display, 0)
         time.sleep(0.06)
-        self.xt.XTestFakeKeyEvent(self.display, code, 0, 0)
-        self.x11.XSync(self.display, 0)
-        time.sleep(0.06)
+
+    def key(self, name):
+        self.key_event(name, True)
+        self.key_event(name, False)
 
     def verify_window(self, process):
         tree = subprocess.check_output(['xwininfo', '-root', '-tree'], text=True)
