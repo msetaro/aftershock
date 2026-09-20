@@ -16,11 +16,10 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/11-weapons`, based on #12 merge 3bb04837. Prepare #11's
-failing data/runtime contracts using the existing cooker and owned rifle/body
-assets. Do not begin implementation before #12 integration regression
-35523091952 passes. Then implement the full #11 scope, wire tests into CI, run
-all gates/self-review and merge through its own PR. #11 was read; #10/#12 are
+Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837. Implement #11's committed failing data/runtime contracts using the existing
+cooker and owned rifle/body assets. #12 integration regression 35523091952
+passed. Complete the full #11 scope, wire tests into CI, run all gates/self-review
+and merge through its own PR. #11 was read; #10/#12 are
 its prerequisites. Reuse existing fixed-tick, asset and animation APIs.
 
 #12 PR #149 merged with a merge commit as
@@ -34,8 +33,8 @@ replays (253 authoritative hashes each) passed. The reviewed local final run
 passed 385/385 shots (20 hits), 39 uncompensated differences, median age 146 ms
 and the same prediction bound. No fixture/golden changed.
 Acceptance comment: https://github.com/msetaro/aftershock/issues/12#issuecomment-5751108810
-Merged-tree regression 35523091952 is running. Close/check #12 in #25 after it
-passes; preserve the provider/transport boundary recorded below.
+Merged-tree regression 35523091952 passed; #12 is closed and checked in #25.
+Preserve the provider/transport boundary recorded below.
 
 ## #11 test-first scope
 
