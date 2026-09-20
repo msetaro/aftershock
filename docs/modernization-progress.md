@@ -16,16 +16,48 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
-Complete #11 compatibility/full gates and committed self-review, then mark PR #150
-ready and merge after exact-head build/regression passes. Both lossy-network content
-sets and new fixed replays pass locally (992 full authoritative state hashes each).
-New fixtures were recorded once at 6dbe2a93; accepted older fixtures are unchanged.
-CI wiring is present. Hosted prior-head MSVC/C-header failures are being corrected;
-current native ABI/shared-math checks are next. Re-run the new fixtures through the
-updated static/module builds, review captures and push the fixtures/corrections.
-After merge, require merged-tree regression, update #11/#25, then continue #26/#27/#28.
-#12 integration regression 35523091952 passed. Preserve accepted fixtures.
+Current branch: `issue/26-level-authoring`, based on #11 merge 94a70b91.
+Wait for merged-tree regression 35534705876, then close/check #11 and begin #26
+with its failing compiler/design-rule tests. The #26/#27/#28/#18 specs are read;
+JSON version 1 is provisional and consistent with the existing asset cooker.
+External tool preparation is recorded below. Preserve accepted engine fixtures.
+Continue #26 -> #27 -> #28, then the remaining #25 roadmap until a maintainer-only
+dependency. All repository changes/PRs stay in msetaro/aftershock.
+
+#11 PR #150 merged with a merge commit as
+94a70b91f35acfa0636a7db473609b3aafde76e5. Its tree
+d56b17d609a91ea9e84a6edfac10a7527a9c766c equals the tested 2caaa163 tree.
+Exact-head build 35533785865 and regression 35533785920 passed after committed
+AGENTS self-review. Hosted weapon loopback: 301/301 shots agree (18 hits), 38
+uncompensated differences, median age 160 ms, prediction error <=8.875 units,
+774/774 complete weapon and animation comparisons. Fixed OA replay checks 992
+full-state hashes with repeatable frames under static and module renderers.
+All Linux/macOS/MinGW/MSVC x64/ARM64 builds pass. Lifetime analysis passes 1216
+commands. Merged-tree regression 35534705876 is pending; do not claim it passed.
+
+## #26 preparation (implementation not started)
+
+Read #26's rooms/corridors/doors/stairs/ramps/material-role language, design rules,
+deterministic MAP/BSP and real bot-pathing acceptance; #27 owns the later headless
+viewpoint/fly-through validation report. #18 explicitly permits a provisional
+format, so use versioned JSON consistent with tools/cook. Start with the tests.
+
+No system packages were installed. Official NetRadiant-custom release 20260114
+contains q3map2 2.5.17n-git-68ecbed and MBSPC 2.2. The Linux archive's official
+SHA256 f48f6f1d0db2b910ef9cb5dc5d8a722852510f3c5c278dc17615c0466b8a7a3d was
+verified, extracted in the user cache, and both tools run with their bundled
+libraries. Archive/extracted tools: ~/.cache/aftershock-level-tools; extraction
+helper: uv Python 3.12 venv ~/.cache/aftershock-level-python (libarchive-c 5.3).
+Primary source: https://github.com/Garux/netradiant-custom/releases/tag/20260114
+
+A disposable, owned one-room map and plain texture in cache/probe-a and probe-b
+verify the toolchain. Use single-threaded BSP/VIS/light and MBSPC
+-forcesidesvisible; without that MBSPC option the generated brush sides are not
+marked visible for AAS. All declared BSP lump bytes agree across fresh output
+directories; three alignment-padding bytes differ. Zeroing only bytes outside
+declared lumps before MBSPC yields byte-identical BSP and AAS. New compiler
+packaging should canonicalize that padding, with a focused check. No engine
+parser or accepted golden is changed. Detailed scratch notes: /tmp/aftershock-level-next.md.
 
 #12 PR #149 merged with a merge commit as
 3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree
