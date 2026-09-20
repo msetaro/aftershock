@@ -49,13 +49,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-live-') as tempora
         '+forward', 'wait 70', '-forward', 'cmd anim aim_up 1',
         'set cg_thirdPerson 1', 'wait 20', 'screenshot anim_body',
         'cmd anim crouch 1', 'wait 20', 'cmd anim prone 1', 'wait 20',
-        'cmd anim lean_left 1', 'wait 20', 'cmd anim turn 1', 'wait 60',
+        'cmd anim lean_left 1', 'wait 20', '+right', 'wait 35', '-right', 'wait 80',
         'anim_status', 'wait 3', 'quit']) + '\n')
     command = ['timeout', '60', 'xvfb-run', '-a', str(args.binary.resolve()),
                '+set', 'fs_basepath', str(home), '+set', 'fs_homepath', str(home),
                *content_settings(args.content), '+set', 'net_enabled', '0', '+set', 'sv_pure', '0',
                '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '0',
-               '+set', 'com_maxfps', '0', '+set', 'cl_autoRecordDemo', '0', '+exec', 'animation.cfg']
+               '+set', 'con_notifytime', '0', '+set', 'com_maxfps', '0', '+set', 'cl_autoRecordDemo', '0', '+exec', 'animation.cfg']
     env = dict(os.environ, LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
     log = args.output / 'client.log'
     with log.open('wb') as stream:
@@ -63,6 +63,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-live-') as tempora
     text = log.read_text()
     states = set(re.findall(r'Animation server state: owner=0 rig=1 state=(\w+)', text))
     assert {'idle', 'ads', 'fire', 'reload', 'sprint', 'jump'} <= states, states
+    body_states = set(re.findall(r'Animation server state: owner=0 rig=0 state=(\w+)', text))
+    assert {'idle', 'move', 'turn'} <= body_states, body_states
+    optics = re.search(r'Animation ADS: samples=(\d+) max_error=([0-9.]+)', text)
+    assert optics and int(optics[1]) >= 5 and float(optics[2]) < 0.01, optics
     events = set(re.findall(r'Animation game event: owner=0 rig=\d+ name=(\w+)', text))
     assert {'shot', 'shell_eject', 'magazine_out', 'magazine_in', 'bolt', 'reload_complete', 'footstep'} <= events, events
     server = {(int(t), int(owner)): digest for t, owner, digest in re.findall(

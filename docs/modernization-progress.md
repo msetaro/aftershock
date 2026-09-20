@@ -132,6 +132,10 @@ pass too (animation-pose-ik-clang.log, animation-gameplay-oa.log). New gameplay
 input overrides reset on respawn; authoritative ground offsets cannot be set by
 client animation commands. Next: ADS sight placement, automatic body turning,
 cosmetic sway, then ImGui authoring and fixed-demo capture/replay.
+The automatic turning/ADS test now fails as expected: only idle/move body
+states appear when the player rotates (animation-facing-ads-before.log). The
+test also requires a centered settled optic, measured from the rendered socket.
+Implement authoritative body facing plus client-only sight placement/sway next.
 The old C/C++ DLL import/source-comparison CI steps are port-era oracles and will
 need explicit treatment now that the owned native game calls the C++ animation
 service. Preserve their accepted pre-#10 evidence; do not add production-only
