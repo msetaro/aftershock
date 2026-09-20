@@ -39,6 +39,14 @@ The RHI is being extracted in stages under #6; this currently covers uploads,
 textures and statistics, not a completed second renderer. Texture checks preserve
 all five format/three address mappings and binding/destruction behavior. Demo runs retain `gfxinfo`/`vkinfo`
 measurements and report host wall time including startup; these are not GPU timings.
+`python3 tests/demo.py --measure-gpu` first runs the unchanged frame gate, then
+replays both Vulkan fixtures twice with the real clock to report completed GPU
+scopes. Faketime also changes Mesa's software timestamps, so only the separate
+`*-timing-*.log` values are performance measurements. These samples are
+informational; hardware/driver differences are not a performance failure gate.
+The RHI retains at most 32 scopes per frame, reads available results after the
+existing frame fence, and never adds a query wait. Its check covers timestamp
+wrap, unavailable results, scope exhaustion, and duplicate scope completion.
 
 Central model/BSP/AAS file records and the shared state/font records assert size,
 alignment, trivial copyability and standard layout in their owning headers.

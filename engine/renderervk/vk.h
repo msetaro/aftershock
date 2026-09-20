@@ -304,6 +304,12 @@ void VBO_ClearQueue( void );
 
 typedef struct vk_tess_s {
 	VkCommandBuffer command_buffer;
+	struct {
+		uint32_t count;
+		uint32_t passScope;
+		bool ended[RHI_MAX_TIMINGS];
+		char names[RHI_MAX_TIMINGS][32];
+	} profile;
 
 	VkSemaphore image_acquired;
 	uint32_t swapchain_image_index;
@@ -351,6 +357,11 @@ typedef struct {
 	uint32_t queue_family_index;
 	VkDevice device;
 	VkQueue queue;
+	VkQueryPool timestampPool;
+	uint32_t timestampBits;
+	float timestampPeriod;
+	rhiTiming_t timings[RHI_MAX_TIMINGS];
+	uint32_t timingCount;
 
 	VkSwapchainKHR swapchain;
 	uint32_t swapchain_image_count;

@@ -5,9 +5,30 @@
 Vk_Instance vk;
 Vk_World vk_world;
 
+void QDECL Com_Error( errorParm_t, const char *, ... ) {
+	abort();
+}
+
 static int destroyed;
 static VkResult wait_result;
 static int commands;
+static uint32_t timestamp_writes;
+static bool query_ready = true;
+static void VKAPI_CALL write_timestamp( VkCommandBuffer, VkPipelineStageFlagBits stage, VkQueryPool, uint32_t query ) {
+	assert( query == RHI_MAX_TIMINGS * 2 + timestamp_writes );
+	assert( stage == ( timestamp_writes == 0 ? VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT ) );
+	timestamp_writes++;
+}
+static VkResult VKAPI_CALL read_timestamps( VkDevice, VkQueryPool, uint32_t first, uint32_t count, size_t size, void *data, VkDeviceSize stride, VkQueryResultFlags flags ) {
+	assert( first == RHI_MAX_TIMINGS * 2 && count == 2 && size >= 32 && stride == 16 );
+	assert( flags == ( VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT ) );
+	uint64_t *values = (uint64_t *)data;
+	values[0] = 250;
+	values[1] = 1;
+	values[2] = 5;
+	values[3] = query_ready ? 1 : 0;
+	return query_ready ? VK_SUCCESS : VK_NOT_READY;
+}
 static VkResult VKAPI_CALL wait_device( VkDevice device ) {
 	assert( (uintptr_t)device == 20 );
 	return wait_result;
@@ -108,6 +129,27 @@ int main( void ) {
 	RHI_DrawIndexed( 9, 3 );
 	RHI_EndPass();
 	assert( commands == 2 );
-	puts( "PASS: RHI uploads, textures, wait status returns and ordered indexed draw/pass commands" );
+	assert( RHI_BeginScope( "unsupported" ) == RHI_INVALID_OFFSET );
+	vk.timestampPool = (VkQueryPool)(uintptr_t)23;
+	vk.timestampBits = 8;
+	vk.timestampPeriod = 2.0f;
+	qvkCmdWriteTimestamp = write_timestamp;
+	qvkGetQueryPoolResults = read_timestamps;
+	const uint32_t scope = RHI_BeginScope( "test scope" );
+	assert( scope == 0 && timestamp_writes == 1 );
+	RHI_EndScope( scope );
+	RHI_EndScope( scope );
+	RHI_EndScope( RHI_INVALID_OFFSET );
+	assert( timestamp_writes == 2 );
+	vk_read_timings();
+	const rhiTiming_t *timings;
+	assert( RHI_GetTimings( &timings ) == 1 );
+	assert( strcmp( timings[0].name, "test scope" ) == 0 && timings[0].microseconds == 22.0 / 1000.0 );
+	query_ready = false;
+	vk_read_timings();
+	assert( RHI_GetTimings( &timings ) == 0 );
+	vk.cmd->profile.count = RHI_MAX_TIMINGS;
+	assert( RHI_BeginScope( "full" ) == RHI_INVALID_OFFSET && timestamp_writes == 2 );
+	puts( "PASS: RHI uploads, textures, wait statuses, commands and bounded asynchronous timestamp readback" );
 	return 0;
 }

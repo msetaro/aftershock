@@ -127,3 +127,14 @@ for the thin RHI boundary.
 No console SDK implementation is proposed here. The stub checks that the API is
 independent of Vulkan; actual platform backends still need their own SDK builds,
 capability mappings, synchronization validation and hardware measurements.
+
+## Query implementation references
+
+Timestamp collection follows the core Vulkan 1.0 path already supported by this
+backend: [timestamp writes](https://docs.vulkan.org/refpages/latest/refpages/source/vkCmdWriteTimestamp.html)
+and [query result availability](https://docs.vulkan.org/refpages/latest/refpages/source/vkGetQueryPoolResults.html).
+Per-frame query ranges are read after their existing fence succeeds and reset in
+the next command buffer. No query-result WAIT flag or additional fence is used.
+Only the queue's valid timestamp bits participate in wraparound differences.
+`tests/demo.py --measure-gpu` uses separate real-clock replays; software-driver
+queries under the frame gate's faketime environment are not timing measurements.

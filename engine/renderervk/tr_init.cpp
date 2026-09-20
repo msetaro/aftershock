@@ -1384,6 +1384,8 @@ static void GfxInfo_f( void ) {
 #ifdef USE_VULKAN
 static void VkInfo_f( void ) {
 	const rhiStats_t stats = RHI_GetStats();
+	const rhiTiming_t *timings;
+	const uint32_t count = RHI_GetTimings( &timings );
 	ri.Printf( PRINT_ALL, "max_vertex_usage: %iKb\n", (int)( ( stats.vertexBytesPeak + 1023 ) / 1024 ) );
 	ri.Printf( PRINT_ALL, "max_push_size: %ib\n", stats.pushBytesPeak );
 
@@ -1391,6 +1393,8 @@ static void VkInfo_f( void ) {
 	ri.Printf( PRINT_ALL, "pipeline descriptors: %i, base: %i\n", stats.pipelineDescriptions, stats.worldPipelineBase );
 	ri.Printf( PRINT_ALL, "image chunks: %i\n", stats.imageChunks );
 	ri.Printf( PRINT_ALL, "geometry: %" PRIu64 "b/slot, staging: %" PRIu64 "b, samplers: %i, frame slots: %u\n", stats.geometryBytes, stats.stagingBytes, stats.samplers, stats.frameSlots );
+	for ( uint32_t i = 0; i < count; i++ )
+		ri.Printf( PRINT_ALL, "gpu %s: %.3f us (completed frame)\n", timings[i].name, timings[i].microseconds );
 }
 #endif
 

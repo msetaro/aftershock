@@ -19,7 +19,9 @@ def main():
     for probe in ('stub', 'upload'):
         binary = args.output / probe
         run([*flags, '-DRHI_STUB_CHECK', '-DUSE_VULKAN_API',
-             f'tests/probes/rhi_{probe}.cpp', '-Wl,--gc-sections', '-o', binary])
+             f'tests/probes/rhi_{probe}.cpp',
+             *(['engine/qcommon/q_shared.cpp'] if probe == 'upload' else []),
+             '-Wl,--gc-sections', '-o', binary])
         run([binary], timeout=10)
     # Non-system dependencies of the alternative backend must be the public API alone.
     deps = run([*shlex.split(args.cxx), '-std=c++20', '-MM',

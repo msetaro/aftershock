@@ -50,6 +50,18 @@ void RHI_EndPass( void ) {
 	abort();
 }
 
+uint32_t RHI_BeginScope( const char * ) {
+	return RHI_INVALID_OFFSET;
+}
+
+void RHI_EndScope( uint32_t ) {
+}
+
+uint32_t RHI_GetTimings( const rhiTiming_t **timings ) {
+	*timings = nullptr;
+	return 0;
+}
+
 #ifdef RHI_STUB_CHECK
 int main( void ) {
 	const rhiStats_t stats = RHI_GetStats();

@@ -82,8 +82,31 @@ production check covers successful, unavailable, out-of-memory, lost-device and
 other failure returns, plus exact draw arguments and pass order. GCC and
 Clang/libc++ pass; local replay retains b38004b1 (rhi-commands.log). Backend-internal
 legacy error paths and initialization/presentation still require extraction.
-Next: bounded asynchronous GPU timestamp scopes and the remaining frame/resource
-state. PR #140 remains a draft; nothing from #6 implementation is merged yet.
+Next: finish timestamp validation, then a separate #31 test-first correction
+for image acquisition status before extracting the remaining frame/resource state. PR #140 remains a draft; nothing from #6 implementation is merged yet.
+
+Timestamp slice (working tree): 32 bounded scopes per frame, separate query ranges
+for the two frame slots, explicit begin/end commands and availability readback only
+after the existing fence succeeds. Unsupported queues report no timings; no query
+WAIT flag or new fence is added. Vulkan pass scopes preserve the original pass
+commands, object labels and barriers. The GPU-free production check exercises
+8-bit timestamp wrap, unavailable queries, capacity exhaustion and duplicate end.
+Both GCC and Clang/libc++ pass. Fixed Q3 replay retains b38004b1 (rhi-timings.log).
+
+GPU measurements must use the real clock: faketime also affects Mesa's software
+query values. `tests/demo.py --measure-gpu` gates frames first, then measures two
+separate Vulkan replays per map without faketime. Initial main-pass samples are
+4.071/3.957 ms (q3dm17) and 4.892/4.828 ms (q3dm7), informational single completed
+frame samples on lavapipe, not a before/after speedup claim. Host wall times include
+startup. Measured x64 Vk_Instance grows 188,672 -> 192,104 bytes (+3,432 fixed CPU
+bytes), each frame slot 320 -> 1,384 bytes. GPU storage adds 128 timestamp queries;
+no per-frame CPU allocation. Evidence: rhi-timing-measurements.log,
+rhi-timing-contract.log, rhi-timing-sizes.txt. Video-restart replay and real-clock timing also pass (rhi-timing-lifecycle.log).
+
+Texture 401d8b74 full build 35483644058 and regression 35483644047 passed.
+Command/status 2b43a0bb full build 35483786166 passed; regression 35483786169 is
+pending final status verification. The implementation stays on draft PR #140 while the remaining RHI
+boundary and acceptance work proceeds.
 
 ## Final #8 verification
 

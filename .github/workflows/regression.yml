@@ -179,13 +179,13 @@ jobs:
           python3 tests/run.py differential --content openarena --data /tmp/aftershock-openarena-baseoa
           python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Both-map Mesa timedemo frames
-        run: python3 tests/demo.py --content openarena --data /tmp/aftershock-openarena-baseoa
+        run: python3 tests/demo.py --measure-gpu --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: RHI replay measurements
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: rhi-replay-metrics
-          path: /tmp/aftershock-demo-tests/*-replay-*.log
+          path: /tmp/aftershock-demo-tests/*.log
       - name: GCC UBSan bot smoke
         run: python3 tests/run.py runtime --sanitize --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/tests-runtime-ubsan
       - uses: actions/upload-artifact@v6

@@ -68,6 +68,11 @@ static PFN_vkCmdPushConstants qvkCmdPushConstants;
 static PFN_vkCmdSetDepthBias qvkCmdSetDepthBias;
 static PFN_vkCmdSetScissor qvkCmdSetScissor;
 static PFN_vkCmdSetViewport qvkCmdSetViewport;
+static PFN_vkCreateQueryPool qvkCreateQueryPool;
+static PFN_vkDestroyQueryPool qvkDestroyQueryPool;
+static PFN_vkCmdResetQueryPool qvkCmdResetQueryPool;
+static PFN_vkCmdWriteTimestamp qvkCmdWriteTimestamp;
+static PFN_vkGetQueryPoolResults qvkGetQueryPoolResults;
 static PFN_vkCreateBuffer qvkCreateBuffer;
 static PFN_vkCreateCommandPool qvkCreateCommandPool;
 static PFN_vkCreateDescriptorPool qvkCreateDescriptorPool;
@@ -1627,6 +1632,7 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 
 			if ( presentation_supported && ( queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT ) != 0 ) {
 				vk.queue_family_index = i;
+				vk.timestampBits = queue_families[i].timestampValidBits;
 				break;
 			}
 		}
@@ -2037,6 +2043,11 @@ static void init_vulkan_library( void ) {
 	INIT_DEVICE_FUNCTION(vkCmdSetDepthBias)
 	INIT_DEVICE_FUNCTION(vkCmdSetScissor)
 	INIT_DEVICE_FUNCTION(vkCmdSetViewport)
+	INIT_DEVICE_FUNCTION(vkCreateQueryPool)
+	INIT_DEVICE_FUNCTION(vkDestroyQueryPool)
+	INIT_DEVICE_FUNCTION(vkCmdResetQueryPool)
+	INIT_DEVICE_FUNCTION(vkCmdWriteTimestamp)
+	INIT_DEVICE_FUNCTION(vkGetQueryPoolResults)
 	INIT_DEVICE_FUNCTION(vkCreateBuffer)
 	INIT_DEVICE_FUNCTION(vkCreateCommandPool)
 	INIT_DEVICE_FUNCTION(vkCreateDescriptorPool)
@@ -2165,6 +2176,11 @@ static void deinit_device_functions( void ) {
 	qvkCmdSetDepthBias = NULL;
 	qvkCmdSetScissor = NULL;
 	qvkCmdSetViewport = NULL;
+	qvkCreateQueryPool = NULL;
+	qvkDestroyQueryPool = NULL;
+	qvkCmdResetQueryPool = NULL;
+	qvkCmdWriteTimestamp = NULL;
+	qvkGetQueryPoolResults = NULL;
 	qvkCreateBuffer = NULL;
 	qvkCreateCommandPool = NULL;
 	qvkCreateDescriptorPool = NULL;
@@ -3662,6 +3678,55 @@ static void vk_create_framebuffers( void ) {
 }
 
 
+static uint32_t vk_timestamp_base( void ) {
+	return (uint32_t)( vk.cmd - vk.tess ) * RHI_MAX_TIMINGS * 2;
+}
+
+uint32_t RHI_BeginScope( const char *name ) {
+	if ( !vk.timestampPool || !vk.cmd || !name || vk.cmd->profile.count >= RHI_MAX_TIMINGS )
+		return RHI_INVALID_OFFSET;
+	const uint32_t scope = vk.cmd->profile.count++;
+	Q_strncpyz( vk.cmd->profile.names[scope], name, sizeof( vk.cmd->profile.names[scope] ) );
+	vk.cmd->profile.ended[scope] = false;
+	qvkCmdWriteTimestamp( vk.cmd->command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, vk.timestampPool, vk_timestamp_base() + scope * 2 );
+	return scope;
+}
+
+void RHI_EndScope( uint32_t scope ) {
+	if ( !vk.timestampPool || !vk.cmd || scope >= vk.cmd->profile.count || vk.cmd->profile.ended[scope] )
+		return;
+	qvkCmdWriteTimestamp( vk.cmd->command_buffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, vk.timestampPool, vk_timestamp_base() + scope * 2 + 1 );
+	vk.cmd->profile.ended[scope] = true;
+}
+
+uint32_t RHI_GetTimings( const rhiTiming_t **timings ) {
+	*timings = vk.timings;
+	return vk.timingCount;
+}
+
+// Called only after the existing frame fence succeeds, before recording its reset.
+static void vk_read_timings( void ) {
+	uint64_t results[RHI_MAX_TIMINGS * 2][2]; // timestamp, availability
+	vk.timingCount = 0;
+	if ( !vk.timestampPool || !vk.cmd->profile.count )
+		return;
+	const VkResult result = qvkGetQueryPoolResults( vk.device, vk.timestampPool,
+		vk_timestamp_base(), vk.cmd->profile.count * 2, sizeof( results ), results,
+		sizeof( results[0] ), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT );
+	if ( result != VK_SUCCESS && result != VK_NOT_READY )
+		return;
+	for ( uint32_t i = 0; i < vk.cmd->profile.count; i++ ) {
+		if ( !vk.cmd->profile.ended[i] || !results[i * 2][1] || !results[i * 2 + 1][1] )
+			continue;
+		uint64_t ticks = results[i * 2 + 1][0] - results[i * 2][0];
+		if ( vk.timestampBits < 64 )
+			ticks &= ( UINT64_C( 1 ) << vk.timestampBits ) - 1;
+		rhiTiming_t *timing = &vk.timings[vk.timingCount++];
+		Com_Memcpy( timing->name, vk.cmd->profile.names[i], sizeof( timing->name ) );
+		timing->microseconds = (double)ticks * vk.timestampPeriod / 1000.0;
+	}
+}
+
 static void vk_create_sync_primitives( void ) {
 	VkSemaphoreCreateInfo desc;
 	VkFenceCreateInfo fence_desc;
@@ -3674,6 +3739,16 @@ static void vk_create_sync_primitives( void ) {
 #ifdef USE_UPLOAD_QUEUE
 	VK_CHECK( qvkCreateSemaphore( vk.device, &desc, NULL, &vk.image_uploaded2 ) );
 #endif
+
+	vk.timingCount = 0;
+	if ( vk.timestampBits && vk.timestampPeriod > 0.0f ) {
+		VkQueryPoolCreateInfo queries = {};
+		queries.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+		queries.queryType = VK_QUERY_TYPE_TIMESTAMP;
+		queries.queryCount = NUM_COMMAND_BUFFERS * RHI_MAX_TIMINGS * 2;
+		VK_CHECK( qvkCreateQueryPool( vk.device, &queries, NULL, &vk.timestampPool ) );
+		SET_OBJECT_NAME( vk.timestampPool, "frame timestamps", VK_DEBUG_REPORT_OBJECT_TYPE_QUERY_POOL_EXT );
+	}
 
 	// all commands submitted
 	for ( i = 0; i < NUM_COMMAND_BUFFERS; i++ ) {
@@ -3695,6 +3770,8 @@ static void vk_create_sync_primitives( void ) {
 
 		VK_CHECK( qvkCreateFence( vk.device, &fence_desc, NULL, &vk.tess[i].rendering_finished_fence ) );
 		vk.tess[i].waitForFence = qfalse;
+		vk.tess[i].profile.count = 0;
+		vk.tess[i].profile.passScope = RHI_INVALID_OFFSET;
 
 		SET_OBJECT_NAME( vk.tess[i].image_acquired, va( "image_acquired semaphore %i", i ), VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT );
 #ifdef USE_UPLOAD_QUEUE
@@ -3720,6 +3797,11 @@ static void vk_create_sync_primitives( void ) {
 
 static void vk_destroy_sync_primitives( void ) {
 	uint32_t i;
+	if ( vk.timestampPool ) {
+		qvkDestroyQueryPool( vk.device, vk.timestampPool, NULL );
+		vk.timestampPool = VK_NULL_HANDLE;
+	}
+	vk.timingCount = 0;
 
 #ifdef USE_UPLOAD_QUEUE
 	qvkDestroySemaphore( vk.device, vk.image_uploaded2, NULL );
@@ -3897,6 +3979,7 @@ void vk_initialize( void ) {
 	qvkGetPhysicalDeviceProperties( vk.physical_device, &props );
 
 	vk.cmd = vk.tess + 0;
+	vk.timestampPeriod = props.limits.timestampPeriod;
 	vk.uniform_alignment = (uint32_t)( props.limits.minUniformBufferOffsetAlignment );
 	vk.uniform_item_size = PAD( (uint32_t)sizeof( vkUniform_t ), vk.uniform_alignment );
 
@@ -7245,6 +7328,20 @@ static void vk_begin_render_pass( VkRenderPass renderPass, VkFramebuffer frameBu
 		render_pass_begin_info.pClearValues = NULL;
 	}
 
+	const char *name = "blur";
+	if ( renderPass == vk.render_pass.main )
+		name = "main";
+	else if ( renderPass == vk.render_pass.screenmap )
+		name = "screenmap";
+	else if ( renderPass == vk.render_pass.gamma )
+		name = "gamma";
+	else if ( renderPass == vk.render_pass.capture )
+		name = "capture";
+	else if ( renderPass == vk.render_pass.bloom_extract )
+		name = "bloom extract";
+	else if ( renderPass == vk.render_pass.post_bloom )
+		name = "post bloom";
+	vk.cmd->profile.passScope = RHI_BeginScope( name );
 	qvkCmdBeginRenderPass( vk.cmd->command_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE );
 
 	vk.cmd->last_pipeline = VK_NULL_HANDLE;
@@ -7333,6 +7430,8 @@ static void vk_begin_screenmap_render_pass( void ) {
 
 void RHI_EndPass( void ) {
 	qvkCmdEndRenderPass( vk.cmd->command_buffer );
+	RHI_EndScope( vk.cmd->profile.passScope );
+	vk.cmd->profile.passScope = RHI_INVALID_OFFSET;
 
 	//	vk.renderPassIndex = RENDER_PASS_MAIN;
 }
@@ -7388,6 +7487,10 @@ void vk_begin_frame( void ) {
 				ri.Error( ERR_FATAL, "Vulkan: %s returned %s", "vkWaitForFences", vk_result_string( res ) );
 			}
 		}
+		if ( res == VK_SUCCESS )
+			vk_read_timings();
+		else
+			vk.timingCount = 0;
 		VK_CHECK( qvkResetFences( vk.device, 1, &vk.cmd->rendering_finished_fence ) );
 	}
 
@@ -7416,6 +7519,11 @@ void vk_begin_frame( void ) {
 	begin_info.pInheritanceInfo = NULL;
 
 	VK_CHECK( qvkBeginCommandBuffer( vk.cmd->command_buffer, &begin_info ) );
+	vk.cmd->profile.count = 0;
+	vk.cmd->profile.passScope = RHI_INVALID_OFFSET;
+	if ( vk.timestampPool )
+		qvkCmdResetQueryPool( vk.cmd->command_buffer, vk.timestampPool, vk_timestamp_base(), RHI_MAX_TIMINGS * 2 );
+
 
 	if ( vk.swapchain_images_inited[vk.cmd->swapchain_image_index] == qfalse ) {
 		// perform initial swapchain image layout transition

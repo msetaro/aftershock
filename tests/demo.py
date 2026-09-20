@@ -20,6 +20,7 @@ parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake
 parser.add_argument('--cc', default='gcc')
 parser.add_argument('--cxx', default='g++')
 parser.add_argument('--lifecycle', action='store_true', help='check fixed frames after replay and video restart')
+parser.add_argument('--measure-gpu', action='store_true', help='after the frame gate, measure Vulkan scopes with the real clock')
 parser.add_argument('--record-fixtures', action='store_true', help='explicitly replace demos and frame goldens')
 parser.add_argument('--regenerate', action='store_true', help='explicitly replace frame goldens only')
 args = parser.parse_args()
@@ -51,10 +52,11 @@ for backend in ('vulkan', 'opengl1'):
     verify_static(binaries[backend], ('game', 'cgame', 'ui'))
 
 
-def client(binary, home, commands, log_name, fixed_random=False):
+def client(binary, home, commands, log_name, fixed_random=False, real_clock=False):
     # Loading a fixture is restricted to this offline invocation, never Xvfb itself.
     preload = ['env', 'LD_PRELOAD=' + str(shim)] if fixed_random else []
-    command = ['timeout', '90', 'xvfb-run', '-a', *preload, 'faketime', '-f', '@2026-01-01 00:00:00 i0.01', binary,
+    clock = [] if real_clock else ['faketime', '-f', '@2026-01-01 00:00:00 i0.01']
+    command = ['timeout', '90', 'xvfb-run', '-a', *preload, *clock, binary,
                '+set', 'fs_basepath', home, '+set', 'fs_homepath', home,
                *content_settings(args.content),
                '+set', 'r_fullscreen', '0', '+set', 'r_mode', '3', '+set', 's_initsound', '0',
@@ -62,13 +64,13 @@ def client(binary, home, commands, log_name, fixed_random=False):
                '+set', 'com_logfile', '0', '+set', 'cl_autoRecordDemo', '0', '+set', 'name', 'regression', *commands]
     started = time.monotonic()
     result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    print(f'REPLAY {log_name}: {time.monotonic() - started:.3f}s wall time (includes startup)', flush=True)
+    print(f'{log_name}: {time.monotonic() - started:.3f}s wall time (includes startup)', flush=True)
     log = result.stdout
     (output / log_name).write_bytes(log)
     result.check_returncode()
     if any(f'Static {name} loaded.'.encode() not in log for name in ('cgame', 'ui')):
         raise SystemExit('FAIL: static UI/cgame were not initialized')
-    if args.lifecycle and any(log.count(f'Static {name} loaded.'.encode()) < 2 for name in ('cgame', 'ui')):
+    if args.lifecycle and not real_clock and any(log.count(f'Static {name} loaded.'.encode()) < 2 for name in ('cgame', 'ui')):
         raise SystemExit('FAIL: native modules were not restarted: ' + log_name)
     if b'Unknown command' in log or b'ERROR:' in log:
         raise SystemExit('FAIL: client reported an error: ' + log_name)
@@ -77,6 +79,11 @@ def client(binary, home, commands, log_name, fixed_random=False):
         raise SystemExit('FAIL: wrong renderer: ' + log_name)
     if b'llvmpipe' not in log.lower():
         raise SystemExit('FAIL: renderer did not report the forced software device: ' + log_name)
+    if real_clock:
+        timings = [line for line in log.decode().splitlines() if line.startswith('gpu ')]
+        if not timings:
+            raise SystemExit('FAIL: real-clock GPU timing results unavailable: ' + log_name)
+        print('\n'.join(timings), flush=True)
 
 
 def prepare(home):
@@ -124,3 +131,17 @@ for map_name in content_maps(args.content):
                     shutil.copyfile(base / 'screenshots' / (name + '.tga'),
                                     output / f'{map_name}-{backend}-{iteration}-{name}.tga')
 check_frames(output, args.content, args.regenerate)
+
+if args.measure_gpu:
+    # Software drivers also read the clock. Never treat faketime query values as
+    # performance measurements; the accepted screenshot comparison ran above.
+    for map_name in content_maps(args.content):
+        for iteration in (1, 2):
+            with tempfile.TemporaryDirectory(prefix='aftershock-timing-') as temporary:
+                home = Path(temporary)
+                base = prepare(home)
+                fixture = golden / (map_name + '.dm_68')
+                shutil.copyfile(fixture, base / 'demos' / fixture.name)
+                client(binaries['vulkan'], home,
+                       ['+set', 'timedemo', '1', '+demo', map_name, '+wait', '200', '+gfxinfo', '+vkinfo', '+quit'],
+                       f'{map_name}-vulkan-timing-{iteration}.log', real_clock=True)

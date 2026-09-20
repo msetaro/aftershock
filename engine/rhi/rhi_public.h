@@ -40,6 +40,19 @@ rhiStatus_t RHI_WaitQueue( void );
 void RHI_DrawIndexed( uint32_t indexCount, uint32_t firstIndex );
 void RHI_EndPass( void );
 
+constexpr uint32_t RHI_MAX_TIMINGS = 32;
+struct rhiTiming_t {
+	char name[32];
+	double microseconds;
+};
+static_assert( std::is_trivially_copyable_v<rhiTiming_t> );
+
+// Scopes belong to the current frame. Unsupported/full pools return INVALID_OFFSET.
+uint32_t RHI_BeginScope( const char *name );
+void RHI_EndScope( uint32_t scope );
+// Borrowed results from a completed frame; valid until the next frame begins.
+uint32_t RHI_GetTimings( const rhiTiming_t **timings );
+
 // Copies into the current frame's aligned uniform buffer and updates its binding.
 // Returns RHI_INVALID_OFFSET if the upload cannot fit; does not allocate or wait.
 uint32_t RHI_UploadUniform( const void *data, uint32_t size );
