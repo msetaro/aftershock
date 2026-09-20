@@ -517,6 +517,7 @@ static int CG_CalcFov( void ) {
 		}
 	}
 
+	fov_x = CG_WeaponFov( fov_x );
 	x = cg.refdef.width / tan( fov_x / 360 * M_PI );
 	fov_y = atan2( cg.refdef.height, x );
 	fov_y = fov_y * 360 / M_PI;
@@ -676,6 +677,7 @@ static int CG_CalcViewValues( void ) {
 		CG_OffsetFirstPersonView();
 	}
 
+	CG_WeaponViewKick( cg.refdefViewAngles );
 	// position eye reletive to origin
 	AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 

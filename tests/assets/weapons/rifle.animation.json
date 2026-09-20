@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "model_source": "../animation/rifle.gltf",
-  "model_asset": "models/anim_rifle.iqm",
+  "model_source": "rifle.gltf",
+  "model_asset": "models/range_rifle.iqm",
   "parameters": [
     {
       "name": "ads",

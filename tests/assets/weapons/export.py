@@ -55,11 +55,25 @@ def prop(name, boxes):
     (ROOT / (name + '.gltf')).write_text(json.dumps(document, indent=2) + '\n')
 
 
-prop('optic', [([0, 0.08, 0], [0.08, 0.012, 0.035], 0),
-               ([0, -0.08, 0], [0.08, 0.012, 0.035], 0),
-               ([-0.08, 0, 0], [0.012, 0.08, 0.035], 0),
-               ([0.08, 0, 0], [0.012, 0.08, 0.035], 0),
-               ([0, 0, 0.02], [0.008, 0.008, 0.004], 2)])
+# Optic bone faces along local Z; the ring lies in local XY. Convert that
+# socket-local frame to glTF Y-up before the cooker converts it back.
+optic = [([0, 0.08, 0], [0.08, 0.012, 0.035], 0),
+         ([0, -0.08, 0], [0.08, 0.012, 0.035], 0),
+         ([-0.08, 0, 0], [0.012, 0.08, 0.035], 0),
+         ([0.08, 0, 0], [0.012, 0.08, 0.035], 0),
+         ([0, 0, 0.02], [0.008, 0.008, 0.004], 2)]
+prop('optic', [([c[0], c[2], -c[1]], [h[0], h[2], h[1]], m) for c, h, m in optic])
+# New range variant removes the old solid placeholder sight, retaining the
+# accepted rig/animations/buffer bytes and the socket for data attachments.
+rifle = json.loads((ROOT.parent / 'animation/rifle.gltf').read_text())
+placeholder = next(i for i, node in enumerate(rifle['nodes']) if node.get('name') == 'optic_mesh')
+for node in rifle['nodes']:
+    if 'children' in node:
+        node['children'] = [i for i in node['children'] if i != placeholder]
+for scene in rifle['scenes']:
+    scene['nodes'] = [i for i in scene['nodes'] if i != placeholder]
+rifle['buffers'][0]['uri'] = '../animation/rifle.bin'
+(ROOT / 'rifle.gltf').write_text(json.dumps(rifle, indent=2) + '\n')
 prop('grenade', [([0, 0, 0], [0.07, 0.09, 0.07], 1),
                  ([0, 0.105, 0], [0.04, 0.02, 0.04], 0),
                  ([0.05, 0.03, 0], [0.012, 0.1, 0.025], 0)])
@@ -74,7 +88,7 @@ for name, duration, tone, noise in [('shot', 0.16, 95, 0.8), ('reload', 0.09, 18
     with wave.open(str(ROOT / (name + '.wav')), 'wb') as output:
         output.setparams((1, 2, 48000, 0, 'NONE', 'not compressed'))
         output.writeframes(struct.pack('<' + 'h' * len(samples), *samples))
-files = ['export.py', 'optic.gltf', 'grenade.gltf', 'shot.wav', 'reload.wav']
+files = ['export.py', 'optic.gltf', 'rifle.gltf', 'grenade.gltf', 'shot.wav', 'reload.wav']
 (ROOT / 'provenance.json').write_text(json.dumps({'license': 'GPL-2.0-or-later',
     'origin': 'Original procedural box props and synthesized sound; no external game assets.',
     'files': {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in files}}, indent=2) + '\n')

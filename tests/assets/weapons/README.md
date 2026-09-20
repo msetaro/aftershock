@@ -1,5 +1,7 @@
 Original GPL-2.0-or-later weapon parameters and range props for #11. The rifle
-model reuses the unchanged owned #10 source. The new weapon graph aligns reload
+model is a new scene variant of the owned #10 rifle: it omits the solid placeholder
+sight and references the original, unchanged animation/geometry buffer. The new
+optic uses the socket-local frame. The new weapon graph aligns reload
 notifies to weapon stages and adds a melee state using its existing fire clip.
 `../range.json` cooks the complete owned range presentation. No installed game content is
 copied here.

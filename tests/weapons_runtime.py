@@ -51,7 +51,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
         f'devmap {content_maps(args.content)[0]}', 'wait 60',
         'cmd weapon_attachment 0 1', 'wait 15',
         'rewind_target 0', 'wait 2', '+attack', 'wait 130', '-attack', '+button12', 'wait 15',
-        'weapon_status', 'screenshotPNG weapon-ads', 'wait 2', '+button13', 'wait 2', '-button13', 'wait 65', '-button12',
+        'weapon_status', 'screenshot weapon-ads', 'wait 2', '+button13', 'wait 2', '-button13', 'wait 65', '-button12',
         '+button14', 'wait 30', '-button14', 'wait 10', 'weapon 2', 'wait 15',
         '+attack', 'wait 14', '-attack', 'weapon 1', 'wait 15',
         'weapon 3', 'wait 15', '+attack', 'wait 2', '-attack', 'wait 70', 'weapon_status', 'quit']) + '\n')
@@ -99,8 +99,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     views = re.findall(r'Weapon rendering: draws=(\d+) attachments=(\d+) ads=(\d+) error=([0-9.]+) kick=([0-9.]+) fov=([0-9.]+)', text)
     assert views and any(int(v[0]) >= 100 and int(v[1]) >= 100 and int(v[2]) >= 5 and
                          float(v[3]) < 0.02 and float(v[4]) > 0 and float(v[5]) == 45 for v in views), views
-    image = base / 'screenshots/weapon-ads.png'
+    image = base / 'screenshots/weapon-ads.tga'
     assert image.is_file(), 'ADS capture missing'
-    (args.output / 'weapon-ads.png').write_bytes(image.read_bytes())
+    (args.output / 'weapon-ads.tga').write_bytes(image.read_bytes())
     assert not any(error in text for error in ('ERROR:', 'Signal caught', 'Weapon rejected'))
 print('PASS: cooked weapon selection, firing/reload/ADS/melee and authoritative client state')

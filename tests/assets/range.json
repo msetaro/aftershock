@@ -2,9 +2,9 @@
   "version": 1,
   "assets": [
     {
-      "name": "models/anim_rifle",
+      "name": "models/range_rifle",
       "kind": "model",
-      "source": "animation/rifle.gltf",
+      "source": "weapons/rifle.gltf",
       "scale": 32,
       "fps": 30
     },

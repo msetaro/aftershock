@@ -1667,6 +1667,10 @@ extern qboolean initparticles;
 int CG_NewParticleArea( int num );
 
 void CG_InitWeapons( void );
+void CG_AddDataWeapon( void );
+void CG_WeaponStatus( void );
+float CG_WeaponFov( float base );
+void CG_WeaponViewKick( vec3_t angles );
 void CG_WeaponAnimationSnapshot( const entityState_t *entity );
 void CG_WeaponSnapshot( const entityState_t *entity );
 void CG_PredictWeapons( void );

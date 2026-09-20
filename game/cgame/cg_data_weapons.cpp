@@ -1,6 +1,13 @@
 #include "cg_local.h"
 
 static vmCvar_t weaponTrace;
+static qhandle_t weaponModels[WEAPON_MAX_DEFINITIONS];
+static qhandle_t weaponAttachmentModels[WEAPON_MAX_DEFINITIONS][WEAPON_MAX_ROWS];
+static uint32_t weaponDraws, attachmentDraws, weaponAdsSamples;
+static float weaponAdsError, weaponMaxKick;
+static vec3_t weaponLastAngles, weaponSwayAngles;
+static bool weaponHaveAngles;
+static weaponDef_t predictedDefinitions[2];
 static qhandle_t weaponProjectileModels[WEAPON_MAX_DEFINITIONS];
 static qhandle_t weaponImpacts[WEAPON_MAX_DEFINITIONS][WEAPON_MAX_ROWS];
 static weaponState_t predictedWeapons[2];
@@ -100,6 +107,12 @@ void CG_AddWeaponProjectiles( void ) {
 
 void CG_InitWeapons( void ) {
 	BG_ClearWeapons();
+	weaponDraws = attachmentDraws = weaponAdsSamples = 0;
+	weaponAdsError = weaponMaxKick = 0;
+	weaponHaveAngles = false;
+	VectorClear( weaponSwayAngles );
+	memset( weaponModels, 0, sizeof( weaponModels ) );
+	memset( weaponAttachmentModels, 0, sizeof( weaponAttachmentModels ) );
 	memset( weaponCommandPoses, 0, sizeof( weaponCommandPoses ) );
 	memset( predictedProjectiles, 0, sizeof( predictedProjectiles ) );
 	memset( weaponPredictionHistory, 0, sizeof( weaponPredictionHistory ) );
@@ -119,6 +132,14 @@ void CG_InitWeapons( void ) {
 		if ( !BG_LoadWeapon( index, path, actual, actualGraph ) || strcmp( actual, expected ) || strcmp( actualGraph, expectedGraph ) )
 			CG_Error( "Weapon rejected: server definition differs for %s", path );
 		const auto *definition = BG_WeaponDefinition( index );
+		weaponModels[index] = trap_R_RegisterModel( definition->model );
+		if ( !weaponModels[index] )
+			CG_Error( "Weapon rejected: view model %s", definition->model );
+		for ( uint32_t a = 0; a < definition->attachmentCount; ++a ) {
+			weaponAttachmentModels[index][a] = trap_R_RegisterModel( definition->attachments[a].model );
+			if ( !weaponAttachmentModels[index][a] )
+				CG_Error( "Weapon rejected: attachment model %s", definition->attachments[a].model );
+		}
 		weaponProjectileModels[index] = trap_R_RegisterModel( definition->projectile.model );
 		if ( !weaponProjectileModels[index] )
 			CG_Error( "Weapon rejected: projectile model %s", definition->projectile.model );
@@ -249,6 +270,7 @@ void CG_PredictWeapons( void ) {
 		memcpy( predictedWeaponParameters[hand], parameters, sizeof( parameters ) );
 		predictedWeaponDefinitions[hand] = entity.modelindex;
 		predictedWeaponAttachments[hand] = uint32_t( entity.modelindex2 );
+		predictedDefinitions[hand] = definition;
 		predictedWeapons[hand] = state;
 		predictedWeaponValid[hand] = true;
 	}
@@ -308,4 +330,101 @@ bool CG_WeaponProjectile( centity_t *cent ) {
 		cent->miscTime = state.pos.trTime;
 	}
 	return true;
+}
+
+float CG_WeaponFov( float base ) {
+	if ( !predictedWeaponValid[0] || cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 || cg.predictedPlayerState.pm_type == PM_INTERMISSION )
+		return base;
+	return base + float( predictedWeapons[0].adsQ16 ) / 65536 * ( predictedDefinitions[0].adsFov - base );
+}
+void CG_WeaponViewKick( vec3_t angles ) {
+	if ( !predictedWeaponValid[0] || cg.renderingThirdPerson )
+		return;
+	const auto &state = predictedWeapons[0];
+	const auto &animation = predictedWeaponAnimations[0];
+	const auto &definition = predictedDefinitions[0];
+	if ( !state.sequence || strcmp( Anim_StateName( BG_WeaponAnimation( predictedWeaponDefinitions[0] ), animation.current ), "fire" ) )
+		return;
+	const float decay = 1 - fminf( float( uint32_t( cg.time ) - animation.entered ) / 120, 1 );
+	const auto &recoil = definition.recoil[( state.sequence - 1 ) % definition.recoilCount];
+	const float pitch = recoil[0] * definition.viewKickScale * decay;
+	angles[PITCH] -= pitch;
+	angles[YAW] += recoil[1] * definition.viewKickScale * decay;
+	weaponMaxKick = fmaxf( weaponMaxKick, fabsf( pitch ) );
+}
+void CG_AddDataWeapon( void ) {
+	const float smoothing = fminf( fmaxf( float( cg.frametime ) / 80, 0 ), 1 );
+	for ( int axis = 0; axis < 3; ++axis ) {
+		const float change = weaponHaveAngles ? AngleSubtract( cg.refdefViewAngles[axis], weaponLastAngles[axis] ) : 0;
+		weaponSwayAngles[axis] += smoothing * ( fminf( fmaxf( change, -8 ), 8 ) - weaponSwayAngles[axis] );
+		weaponLastAngles[axis] = cg.refdefViewAngles[axis];
+	}
+	weaponHaveAngles = true;
+	for ( int hand = 0; hand < 2; ++hand ) {
+		if ( !predictedWeaponValid[hand] || ( hand && !predictedWeapons[hand].sequence ) )
+			continue;
+		const int index = predictedWeaponDefinitions[hand];
+		const auto *asset = BG_WeaponAnimation( index );
+		const auto &state = predictedWeaponAnimations[hand];
+		const auto &definition = predictedDefinitions[hand];
+		const float ads = hand ? 0 : float( predictedWeapons[hand].adsQ16 ) / 65536;
+		const uint32_t elapsed = uint32_t( cg.time ) - state.lastTime;
+		animPose_t pose;
+		if ( !BG_AnimationPose( asset, &state, predictedWeaponParameters[hand], state.lastTime + ( elapsed < 100 ? elapsed : 0 ), 1, &pose ) )
+			CG_Error( "Weapon rejected: view pose" );
+		vec3_t angles;
+		for ( int axis = 0; axis < 3; ++axis )
+			angles[axis] = cg.refdefViewAngles[axis] - ( 1 - ads ) * definition.sway * weaponSwayAngles[axis];
+		const float speed = fminf( cg.xyspeed, 320 );
+		angles[ROLL] += ( 1 - ads ) * definition.bob * speed * 0.01f * sinf( float( cg.time ) * 0.01f );
+		refEntity_t entity = {};
+		entity.reType = RT_MODEL;
+		entity.hModel = weaponModels[index];
+		AnglesToAxis( angles, entity.axis );
+		VectorCopy( cg.refdef.vieworg, entity.origin );
+		const int optic = Anim_BoneIndex( asset, "optic" );
+		const float sightY = optic >= 0 ? pose.world[optic][7] : 0;
+		const float sightZ = optic >= 0 ? pose.world[optic][11] : 0;
+		VectorMA( entity.origin, 12, entity.axis[0], entity.origin );
+		VectorMA( entity.origin, ( hand ? 5 : -5 ) * ( 1 - ads ) - sightY * ads, entity.axis[1], entity.origin );
+		VectorMA( entity.origin, -9 * ( 1 - ads ) - sightZ * ads, entity.axis[2], entity.origin );
+		VectorCopy( entity.origin, entity.oldorigin );
+		VectorCopy( cg.refdef.vieworg, entity.lightingOrigin );
+		entity.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT;
+		memset( entity.shaderRGBA, 255, sizeof( entity.shaderRGBA ) );
+		if ( !CGameImport_R_AddSkeletalEntityToScene( &entity, &pose, asset->header.modelHash ) )
+			CG_Error( "Weapon rejected: view render binding" );
+		++weaponDraws;
+		for ( uint32_t a = 0; a < definition.attachmentCount; ++a ) {
+			if ( !( predictedWeaponAttachments[hand] & ( 1u << a ) ) )
+				continue;
+			const int bone = Anim_BoneIndex( asset, definition.attachments[a].socket );
+			if ( bone < 0 )
+				CG_Error( "Weapon rejected: attachment socket" );
+			refEntity_t attached = entity;
+			attached.hModel = weaponAttachmentModels[index][a];
+			for ( int axis = 0; axis < 3; ++axis ) {
+				VectorMA( attached.origin, pose.world[bone][axis * 4 + 3], entity.axis[axis], attached.origin );
+				VectorClear( attached.axis[axis] );
+				for ( int row = 0; row < 3; ++row )
+					VectorMA( attached.axis[axis], pose.world[bone][row * 4 + axis], entity.axis[row], attached.axis[axis] );
+			}
+			VectorCopy( attached.origin, attached.oldorigin );
+			trap_R_AddRefEntityToScene( &attached );
+			++attachmentDraws;
+		}
+		if ( !hand && ads == 1 && optic >= 0 ) {
+			vec3_t relative;
+			VectorSubtract( entity.origin, cg.refdef.vieworg, relative );
+			for ( int axis = 0; axis < 3; ++axis )
+				VectorMA( relative, pose.world[optic][axis * 4 + 3], entity.axis[axis], relative );
+			const float horizontal = DotProduct( relative, cg.refdef.viewaxis[1] ), vertical = DotProduct( relative, cg.refdef.viewaxis[2] );
+			weaponAdsError = fmaxf( weaponAdsError, sqrtf( horizontal * horizontal + vertical * vertical ) );
+			++weaponAdsSamples;
+		}
+	}
+}
+void CG_WeaponStatus( void ) {
+	CG_Printf( "Weapon rendering: draws=%u attachments=%u ads=%u error=%.6f kick=%.6f fov=%.6f\n",
+		weaponDraws, attachmentDraws, weaponAdsSamples, double( weaponAdsError ), double( weaponMaxKick ), double( cg.refdef.fov_x ) );
 }

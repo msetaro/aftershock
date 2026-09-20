@@ -83,6 +83,17 @@ The first-person presentation assertion now fails with no rendering status
 full ADS at the configured optic FOV (45), a centered optic, positive cosmetic
 view kick and a screenshot for review. Existing gameplay checks still pass.
 
+First-person rendering now passes the live numerical gate: skeletal model and
+socket attachment draws, FOV 45 at ADS, maximum optic error 0.000011 units and
+positive view kick (weapons-view-build.log, weapons-view.log). The first screenshot
+caught the old model's solid placeholder sight and an incorrectly oriented new
+optic. The new #11 rifle variant removes only that placeholder scene node and
+references the unchanged #10 buffer; the original source stays unchanged. The
+new optic is authored in its socket's local frame. Re-reviewed capture shows an
+open sight with a centered blue point. GCC/Clang portable checks and style gates
+pass. The test capture uses the engine's existing screenshot/TGA command.
+Next: notify-driven sound and remaining target-range/acceptance scope.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing

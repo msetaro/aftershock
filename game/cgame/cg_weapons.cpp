@@ -1382,6 +1382,11 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 
 
+	if ( BG_WeaponDefinition( 0 ) ) {
+		if ( cg_drawGun.integer && !cg.testGun )
+			CG_AddDataWeapon();
+		return;
+	}
 	// allow the gun to be completely removed
 	if ( !cg_drawGun.integer ) {
 		vec3_t origin;
