@@ -17,8 +17,9 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
-Continue #11 with the ImGui target range using the owned assets, then lifecycle,
-projectile resource-pressure, lossy-network and new fixed-replay acceptance.
+Continue #11 with bounded projectile allocation, reusable per-client auxiliary
+records, lifecycle, lossy-network and new fixed-replay acceptance. The ImGui range
+controls now pass Q3/OpenArena pointer-driven tests.
 Cooked loading, command replay, rewind/penetration damage, data-only switching,
 attachments, replicated/predicted projectiles, per-hand animation prediction,
 view/ADS rendering and notify audio now pass focused tests on Q3 and OpenArena.
@@ -137,6 +138,15 @@ It opens with dev_weapon_range and stays absent from the tab bar otherwise.
 Game mutations run after vendor UI calls. Build/style/boundary/type checks pass.
 Next: bound projectiles and reserve/reuse per-client auxiliary records, then
 lifecycle, lossy input and fixed replay acceptance before the complete CI gates.
+
+The next portable assertion fails on absent WeaponProjectileAvailable
+(weapons-projectile-budget-before.log); it requires a 64-actor projectile ceiling
+and eight unopened entity slots. The opt-in live --lifecycle extension fails on
+absent actor-record reuse evidence (weapons-lifecycle-before.log). Reserve four
+auxiliary records per configured client at map initialization, reuse them across
+spectator/respawn, and pause projectile firing at capacity without spending ammo.
+Replicate that blocked state so client prediction follows the same rule; discard
+rejected local projectiles and allow corrected notify identities to be reused.
 
 ## #11 test-first scope
 

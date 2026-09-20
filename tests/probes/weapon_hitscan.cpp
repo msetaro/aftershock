@@ -131,5 +131,15 @@ int main() {
 	}
 	WeaponHit( &g_entities[0], &definition, event, 0 );
 	assert( damage == 40 && effects == 0 ); // Cosmetic pressure never discards damage.
+	level.num_entities = MAX_CLIENTS + 64;
+	for ( int number = MAX_CLIENTS; number < level.num_entities; ++number ) {
+		g_entities[number].s.eType = ET_MISSILE;
+		g_entities[number].s.generic1 = WEAPON_PROJECTILE_TAG;
+	}
+	assert( !WeaponProjectileAvailable() );
+	g_entities[MAX_CLIENTS].inuse = qfalse;
+	assert( WeaponProjectileAvailable() );
+	level.num_entities = ENTITYNUM_MAX_NORMAL - 8;
+	assert( !WeaponProjectileAvailable() );
 	puts( "PASS: data hitscan preserves shot time, material depth/loss, layered walls and melee limits" );
 }

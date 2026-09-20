@@ -15,6 +15,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path, required=True)
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-weapons-runtime'))
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
+parser.add_argument('--lifecycle', action='store_true', help='also exercise spectator/respawn record reuse')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 args = parser.parse_args()
 args.output = args.output.resolve()
@@ -44,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     (sources / 'assets.json').write_text(json.dumps(project))
     cook(sources / 'assets.json', base)
     cook(ROOT / 'tests/assets/range.json', base)
-    (base / 'weapons.cfg').write_text('\n'.join([
+    script = [
         'set g_weapons "weapons/range_rifle.asweapon weapons/second.asweapon weapons/grenade.asweapon"',
         'set g_weaponTrace 1', 'set cg_weaponTrace 1',
         'set fixedtime 20', 'set sv_fps 50', 'set g_rewind 1', 'set g_rewindTrace 1',
@@ -54,7 +55,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
         'weapon_status', 'screenshot weapon-ads', 'wait 2', '+button13', 'wait 2', '-button13', 'wait 65', '-button12',
         '+button14', 'wait 30', '-button14', 'wait 10', 'weapon 2', 'wait 15',
         '+attack', 'wait 14', '-attack', 'weapon 1', 'wait 15',
-        'weapon 3', 'wait 15', '+attack', 'wait 2', '-attack', 'wait 70', 'weapon_status', 's_list', 'quit']) + '\n')
+        'weapon 3', 'wait 15', '+attack', 'wait 2', '-attack', 'wait 70', 'weapon_status', 's_list']
+    if args.lifecycle:
+        script += ['echo weapon_lifecycle_begin', 'team spectator', 'wait 15',
+                   'echo weapon_lifecycle_spectator', 'wait 15', 'echo weapon_lifecycle_rejoin',
+                   'team free', 'wait 70', '+attack', 'wait 6', '-attack', 'wait 20',
+                   'echo weapon_lifecycle_end']
+    (base / 'weapons.cfg').write_text('\n'.join([*script, 'quit']) + '\n')
     log = args.output / 'client.log'
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
     with log.open('wb') as stream:
@@ -64,7 +71,17 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
             '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '1',
             '+set', 'com_maxfps', '0', '+set', 'cl_autoRecordDemo', '0', '+exec', 'weapons.cfg'],
             cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT, check=True)
-    text = log.read_text()
+    complete = log.read_text()
+    text = complete.split('weapon_lifecycle_begin')[0]
+    if args.lifecycle:
+        actors = re.findall(r'Weapon actor: owner=0 spawn=(\d+) state=(\d+),(\d+) animation=(\d+),(\d+)', complete)
+        assert len(actors) >= 2 and len({row[0] for row in actors}) >= 2, actors
+        assert len({row[1:] for row in actors}) == 1, 'respawn allocated another auxiliary record set'
+        spectator = complete.split('weapon_lifecycle_spectator')[1].split('weapon_lifecycle_rejoin')[0]
+        assert 'Weapon server state: owner=0' not in spectator, 'spectator retained an active weapon actor'
+        rejoined = complete.split('weapon_lifecycle_rejoin')[1]
+        assert 'Weapon event: owner=0 hand=0 kind=0' in rejoined and 'weapon_lifecycle_end' in rejoined
+        assert not any(error in complete for error in ('ERROR:', 'Signal caught', 'Weapon rejected'))
     assert 'Weapon server definition: index=0 name=range_rifle' in text, log
     assert 'Weapon client definition: index=0 name=range_rifle' in text, log
     pattern = r'Weapon %s state: owner=0 hand=0 tick=(\d+) sequence=(\d+) magazine=(\d+) reserve=(\d+) chamber=(\d+) ads=(\d+)'
