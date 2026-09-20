@@ -46,6 +46,12 @@ int main( int argc, char **argv ) {
 	free( bytes );
 	const iqmData_t *data = (iqmData_t *)model.modelData;
 	assert( data == allocation && data->num_surfaces == 6 && data->num_joints == 3 && data->num_frames == 62 );
+	assert( data->num_anims == 2 );
+	assert( strcmp( data->animations[0].name, "idle" ) == 0 && strcmp( data->animations[1].name, "wave" ) == 0 );
+	for ( uint32_t i = 0; i < 2; i++ ) {
+		assert( data->animations[i].firstFrame == i * 31 && data->animations[i].frameCount == 31 );
+		assert( data->animations[i].framesPerSecond == 30 && data->animations[i].flags == 1 );
+	}
 	orientation_t first, middle, waveStart, waveMiddle;
 	assert( R_IQMLerpTag( &first, (iqmData_t *)model.modelData, 0, 0, 0, "root" ) );
 	assert( R_IQMLerpTag( &middle, (iqmData_t *)model.modelData, 15, 15, 0, "root" ) );
