@@ -26,6 +26,43 @@ backEndState_t backEnd;
 
 float r_modelview[16];
 
+static qboolean RB_FindScreenMapDrawSurfs( void ) {
+	const void *curCmd = &backEndData->commands.cmds;
+	const drawBufferCommand_t *db_cmd;
+	const drawSurfsCommand_t *ds_cmd;
+
+	for ( ;; ) {
+		curCmd = PADP( curCmd, sizeof( void * ) );
+		switch ( *(const int *)curCmd ) {
+		case RC_DRAW_BUFFER:
+			db_cmd = (const drawBufferCommand_t *)curCmd;
+			curCmd = (const void *)( db_cmd + 1 );
+			break;
+		case RC_DRAW_SURFS:
+			ds_cmd = (const drawSurfsCommand_t *)curCmd;
+			return ds_cmd->refdef.needScreenMap;
+		default:
+			return qfalse;
+		}
+	}
+}
+
+
+static void RB_BeginFrame( void ) {
+	if ( RHI_BeginFrame( RB_FindScreenMapDrawSurfs() != qfalse ) )
+		backEnd.screenMapDone = qfalse;
+}
+
+static void RB_EndFrame( void ) {
+	const rhiFrameEnd_t result = RHI_EndFrame( r_bloom->integer && !backEnd.doneBloom && backEnd.doneSurfaces, backEnd.screenshotMask != 0 );
+	if ( result.bloomApplied )
+		backEnd.doneBloom = qtrue;
+	// Presentation may take undefined time; retain the pre-present CPU measurement.
+	if ( result.submitted )
+		backEnd.pc.msec = ri.Milliseconds() - backEnd.pc.msec;
+}
+
+
 static void RB_GetViewportRect( rhiRect_t *r ) {
 	const rhiRenderArea_t area = RHI_GetRenderArea();
 	if ( backEnd.projection2D ) {
@@ -1523,7 +1560,7 @@ static const void *RB_DrawSurfs( const void *data ) {
 #ifdef USE_VULKAN
 	if ( cmd->refdef.switchRenderPass ) {
 		RHI_EndPass();
-		vk_begin_main_render_pass();
+		RHI_BeginMainPass();
 		backEnd.screenMapDone = qtrue;
 	}
 #endif
@@ -1546,7 +1583,7 @@ static const void *RB_DrawBuffer( const void *data ) {
 	cmd = (const drawBufferCommand_t *)data;
 
 #ifdef USE_VULKAN
-	vk_begin_frame();
+	RB_BeginFrame();
 
 	tess.depthRange = DEPTH_RANGE_NORMAL;
 
@@ -1818,7 +1855,7 @@ static const void *RB_SwapBuffers( const void *data ) {
 	tr.needScreenMap = 0;
 
 #ifdef USE_VULKAN
-	vk_end_frame();
+	RB_EndFrame();
 
 	if ( backEnd.doneSurfaces && !glState.finishCalled ) {
 		R_CheckRHI( RHI_WaitQueue(), "wait queue" );
@@ -1863,7 +1900,7 @@ static const void *RB_SwapBuffers( const void *data ) {
 	}
 
 #ifdef USE_VULKAN
-	vk_present_frame();
+	RHI_PresentFrame();
 #else
 	ri.GLimp_EndFrame();
 #endif
@@ -1923,9 +1960,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 		default:
 			// stop rendering
 #ifdef USE_VULKAN
-			vk_end_frame();
+			RB_EndFrame();
 //			if (com_errorEntered && (begin_frame_called && !end_frame_called)) {
-//				vk_end_frame();
+//				RB_EndFrame();
 //			}
 #else
 			backEnd.pc.msec = ri.Milliseconds() - backEnd.pc.msec;

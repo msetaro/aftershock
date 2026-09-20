@@ -81,3 +81,10 @@ The client/renderer import boundary carries platform graphics handles as opaque
 Renderer module API version 9 reflects the platform callback signature change;
 optional PC modules must be rebuilt together with the client. The scene/export
 interface and native game service contracts are unchanged.
+
+During #6 extraction, the renderer frontend consumes only `rhi_public.h` for GPU
+operations; its main header and the client ABI are checked for transitive SDK
+includes. Vertex/raster generation and frame command selection are frontend-owned.
+Vulkan device/world records are private to `vk.cpp`. Shared configuration and
+legacy error exits remain extraction work on draft PR #140, before the frontend
+is moved to `engine/render`.

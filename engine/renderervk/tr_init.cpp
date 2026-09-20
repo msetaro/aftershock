@@ -184,11 +184,7 @@ static cvar_t *r_maxpolyverts;
 int max_polys;
 int max_polyverts;
 
-#ifdef USE_VULKAN
-
-#include "vk.h"
-
-#else
+#ifndef USE_VULKAN
 
 static char gl_extensions[32768];
 
@@ -520,7 +516,7 @@ static void InitOpenGL( void ) {
 			}
 		}
 
-		vk_initialize();
+		RHI_Initialize();
 #else
 		const char *err;
 
@@ -553,11 +549,11 @@ static void InitOpenGL( void ) {
 #ifdef USE_VULKAN
 	if ( !RHI_GetCapabilities().active ) {
 		// might happen after REF_KEEP_WINDOW
-		vk_initialize();
+		RHI_Initialize();
 		gls.initTime = ri.Milliseconds();
 	}
 	if ( RHI_GetCapabilities().active ) {
-		vk_init_descriptors();
+		RHI_InitDescriptors();
 	} else {
 		ri.Error( ERR_FATAL, "Recursive error during Vulkan initialization" );
 	}
@@ -670,7 +666,7 @@ static byte *RB_ReadPixels( int x [[maybe_unused]], int y [[maybe_unused]], int 
 	buffer = (byte *)ri.Hunk_AllocateTempMemory( width * height * 4 + *offset + bufAlign - 1 );
 	bufstart = (byte *)PADP( (intptr_t)buffer + *offset, bufAlign );
 
-	vk_read_pixels( bufstart, width, height );
+	RHI_ReadPixels( bufstart, width, height );
 
 	*offset = bufstart - buffer;
 	*padlen = PAD( linelen, packAlign ) - linelen;
@@ -1112,7 +1108,7 @@ const void *RB_TakeVideoFrameCmd( const void *data ) {
 	cBuf = (byte *)PADP( cmd->captureBuffer, packAlign );
 
 #ifdef USE_VULKAN
-	vk_read_pixels( cBuf, cmd->width, cmd->height );
+	RHI_ReadPixels( cBuf, cmd->width, cmd->height );
 #else
 	qglReadPixels( 0, 0, cmd->width, cmd->height, GL_RGB, GL_UNSIGNED_BYTE, cBuf );
 #endif
@@ -1915,7 +1911,7 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 	//}
 
 #ifdef USE_VULKAN
-	vk_release_resources();
+	RHI_ReleaseResources();
 	Com_Memset( r_modelview, 0, sizeof( r_modelview ) );
 #endif
 
@@ -1930,7 +1926,7 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 	// shut down platform specific OpenGL/Vulkan stuff
 	if ( code != REF_KEEP_CONTEXT ) {
 #ifdef USE_VULKAN
-		vk_shutdown( code );
+		RHI_Shutdown();
 		Com_Memset( &r_pipelines, 0, sizeof( r_pipelines ) );
 
 		Com_Memset( &glState, 0, sizeof( glState ) );

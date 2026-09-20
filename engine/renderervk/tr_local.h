@@ -55,7 +55,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 #ifdef USE_VULKAN
-#include "vk.h"
 // GL constants substitutions
 typedef enum {
 	GL_NEAREST,
@@ -1359,10 +1358,6 @@ extern glstatic_t gls;
 
 extern void myGlMultMatrix( const float *a, const float *b, float *out );
 
-#ifdef USE_VULKAN
-extern Vk_Instance vk; // shouldn't be cleared during ref re-init
-extern Vk_World vk_world; // this data is cleared during ref re-init
-#endif
 
 //
 // cvars
@@ -2038,6 +2033,8 @@ extern void VBO_UnBind( void );
 extern void VBO_Cleanup( void );
 extern void VBO_QueueItem( int itemIndex );
 extern void VBO_ClearQueue( void );
+void VBO_PrepareQueues( void );
+void VBO_RenderIBOItems( void );
 extern void VBO_Flush( void );
 #endif
 

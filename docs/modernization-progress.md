@@ -19,8 +19,9 @@ upstream; historical upstream PR references below are completed past work.
 Continue #6 draft PR #140 on `issue/6-rhi`. Uploads, textures, wait statuses,
 initial commands, GPU scopes, pipeline descriptions, platform imports, bindings
 and transforms are extracted. Built-in pipeline selection is frontend-owned.
-Next remove backend reads of frontend geometry/view state and complete device/
-frame ownership and error statuses. Acquisition fix PR #141 merged separately as 61401e17 after
+Geometry/view selection and frame inputs are now frontend-owned; frontend headers
+have no GPU SDK dependency. Next finish device configuration and explicit error/
+lifecycle status propagation, then shader packaging/cache and acceptance gates. Acquisition fix PR #141 merged separately as 61401e17 after
 full build 35484485400/regression 35484485349 and self-review; it has now been
 merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
 follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
@@ -249,6 +250,33 @@ commands after upload exhaustion. Replay/restart retains b38004b1
 shader bytes changed. Transform 1a4c19b1 passed build 35486276366 and regression
 35486276356. Next extract frame command-list selection/submission inputs and finish
 initialization/status boundaries before moving files or retiring OpenGL.
+
+Frame input / SDK boundary slice: command-list screen-map selection and frame
+bookkeeping moved to the frontend. Begin/end receive explicit screen-map, bloom
+and capture decisions; duplicate stereo begin, skipped/overflow end, bloom outcome
+and pre-present CPU timing retain their existing behavior. The backend no longer
+reads backEnd, backEndData, tess or tr. Overbright configuration is explicitly
+copied when post-process pipelines update and reused for swapchain recreation.
+Its device/world records are translation-unit private. Remaining initialization,
+resource and screenshot calls are declared through the public RHI; the frontend
+no longer includes vk.h. Context retention still releases map resources without
+calling device shutdown. Existing shutdown callers always destroyed the context,
+so the removed shutdown argument was redundant.
+
+The public stub covers the expanded API. Both compilers verify public-only stub
+dependencies and GPU-SDK-free frontend/client headers. Local static frame/restart
+passes b38004b1 (rhi-submit-demo.log); module frame/restart also passes b38004b1
+(rhi-sdk-demo.log). The existing acquisition regression passes after its call-site
+rename (rhi-sdk-acquire.log). No shader, fixture or golden change. Legacy backend
+error exits are still present: public lifecycle declarations alone do not complete
+the error-status requirement. Device configuration still uses shared renderer
+configuration declarations; complete that dependency before claiming separation.
+
+Raster d9292e90 passed full build 35486615563. Regression 35486615660 passed its
+runtime and other jobs but failed tidy on the moved conditional-compilation draw
+branch's indentation. Explicit braces/early return remove that ambiguity. The
+complete local tidy gate now passes all 570 production configurations
+(rhi-sdk-tidy.log); format/type/boundary and GCC/Clang RHI checks pass.
 
 ## Final #8 verification
 

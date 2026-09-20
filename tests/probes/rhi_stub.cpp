@@ -147,6 +147,40 @@ void RHI_ClearDepth( bool, const rhiRect_t * ) {
 	abort();
 }
 
+bool RHI_BeginFrame( bool ) {
+	return false;
+}
+rhiFrameEnd_t RHI_EndFrame( bool, bool ) {
+	return {};
+}
+void RHI_BeginMainPass( void ) {
+	abort();
+}
+void RHI_PresentFrame( void ) {
+	abort();
+}
+
+void RHI_Initialize( void ) {
+	abort();
+}
+void RHI_InitDescriptors( void ) {
+	abort();
+}
+void RHI_ReleaseResources( void ) {
+	abort();
+}
+void RHI_Shutdown( void ) {
+}
+void RHI_ReadPixels( uint8_t *, uint32_t, uint32_t ) {
+	abort();
+}
+void RHI_UploadWorldGeometry( const uint8_t *, int32_t ) {
+	abort();
+}
+void RHI_UpdatePostProcess( int32_t ) {
+	abort();
+}
+
 #ifdef RHI_STUB_CHECK
 int main( void ) {
 	const rhiStats_t stats = RHI_GetStats();

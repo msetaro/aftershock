@@ -1685,7 +1685,7 @@ void R_InitImages( void ) {
 	R_CreateBuiltinImages();
 
 #ifdef USE_VULKAN
-	vk_update_post_process_pipelines();
+	RHI_UpdatePostProcess( tr.overbrightBits );
 #endif
 }
 

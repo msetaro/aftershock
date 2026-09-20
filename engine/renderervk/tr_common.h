@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define TR_COMMON_H
 
 #define USE_VULKAN
+#define USE_REVERSED_DEPTH
 
 #include "../qcommon/q_shared.h"
 #include "../renderercommon/tr_public.h"

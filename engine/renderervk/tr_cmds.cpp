@@ -401,7 +401,7 @@ void RE_EndFrame( int *frontEndMsec, int *backEndMsec ) {
 		}
 
 #ifdef USE_VULKAN
-		vk_update_post_process_pipelines();
+		RHI_UpdatePostProcess( tr.overbrightBits );
 #endif
 
 		ri.Cvar_ResetGroup( CVG_RENDERER, qtrue /* reset modified flags */ );

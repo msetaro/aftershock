@@ -386,3 +386,21 @@ void RHI_Bloom( const float *restoreTransform );
 // Existing one-frame delayed, coherent visibility storage; no additional wait.
 bool RHI_ReadVisibility( uint32_t index );
 void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount, const rhiRasterState_t *raster );
+
+// Duplicate stereo begin calls keep the current command list and return false.
+bool RHI_BeginFrame( bool screenMap );
+struct rhiFrameEnd_t {
+	bool submitted, bloomApplied;
+};
+rhiFrameEnd_t RHI_EndFrame( bool bloom, bool capture );
+void RHI_BeginMainPass( void );
+void RHI_PresentFrame( void );
+
+void RHI_Initialize( void );
+void RHI_InitDescriptors( void );
+void RHI_ReleaseResources( void );
+// Renderer context retention uses ReleaseResources alone; Shutdown destroys it.
+void RHI_Shutdown( void );
+void RHI_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height );
+void RHI_UploadWorldGeometry( const uint8_t *data, int32_t size );
+void RHI_UpdatePostProcess( int32_t overbrightBits );

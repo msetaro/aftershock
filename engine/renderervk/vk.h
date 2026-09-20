@@ -23,7 +23,6 @@
 
 #define NUM_COMMAND_BUFFERS 2	// number of command buffers / render semaphores / framebuffer sets
 
-#define USE_REVERSED_DEPTH
 
 //#define USE_UPLOAD_QUEUE
 
@@ -58,24 +57,7 @@ typedef struct VK_Pipeline {
 } VK_Pipeline_t;
 
 
-//
-// Initialization.
-//
-
-// Initializes VK_Instance structure.
-// After calling this function we get fully functional vulkan subsystem.
-void vk_initialize( void );
-
-// Called after initialization or renderer restart
-void vk_init_descriptors( void );
-
-// Shutdown vulkan subsystem by releasing resources acquired by Vk_Instance.
-void vk_shutdown( refShutdownCode_t code );
-
-// Releases vulkan resources allocated during program execution.
-// This effectively puts vulkan subsystem into initial state (the state we have after vk_initialize call).
-void vk_release_resources( void );
-
+// Backend-private helpers. Public operations are declared in rhi_public.h.
 void vk_wait_idle( void );
 void vk_queue_wait_idle( void );
 
@@ -88,21 +70,6 @@ void vk_destroy_samplers( void );
 
 void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_t height );
 
-//
-// Rendering setup.
-//
-
-void vk_begin_frame( void );
-void vk_end_frame( void );
-void vk_present_frame( void );
-
-void vk_begin_main_render_pass( void );
-
-
-void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height ); // screenshots
-
-qboolean vk_alloc_vbo( const byte *vbo_data, int vbo_size );
-
 void vk_bind_index_buffer( VkBuffer buffer, uint32_t offset );
 void vk_update_descriptor( int index, VkDescriptorSet descriptor );
 void vk_update_descriptor_offset( int index, uint32_t offset );
@@ -111,9 +78,6 @@ void vk_update_post_process_pipelines( void );
 
 const char *vk_format_string( VkFormat format );
 
-void VBO_PrepareQueues( void );
-void VBO_RenderIBOItems( void );
-void VBO_ClearQueue( void );
 
 typedef struct vk_tess_s {
 	VkCommandBuffer command_buffer;
@@ -161,7 +125,7 @@ typedef struct vk_tess_s {
 
 
 // Vk_Instance contains engine-specific vulkan resources that persist entire renderer lifetime.
-// This structure is initialized/deinitialized by vk_initialize/vk_shutdown functions correspondingly.
+// This structure is initialized/deinitialized by RHI_Initialize/vk_shutdown functions correspondingly.
 typedef struct {
 	VkPhysicalDevice physical_device;
 	VkSurfaceFormatKHR base_format;
@@ -390,6 +354,7 @@ typedef struct {
 	uint32_t image_chunk_size;
 
 	uint32_t maxBoundDescriptorSets;
+	int32_t overbrightBits;
 
 #ifdef USE_UPLOAD_QUEUE
 	VkFence aux_fence;
@@ -450,6 +415,3 @@ typedef struct {
 	int dirty_depth_attachment;
 
 } Vk_World;
-
-extern Vk_Instance vk; // shouldn't be cleared during ref re-init
-extern Vk_World vk_world; // this data is cleared during ref re-init

@@ -1,8 +1,8 @@
 #include "tr_local.h"
 #include "vk.h"
 
-Vk_Instance vk;
-Vk_World vk_world;
+static Vk_Instance vk;
+static Vk_World vk_world;
 
 #if defined( _DEBUG )
 #if defined( _WIN32 )
@@ -2524,7 +2524,7 @@ rhiStatus_t RHI_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, boo
 	return rhiStatus_t::Success;
 }
 
-void vk_init_descriptors( void ) {
+void RHI_InitDescriptors( void ) {
 	VkDescriptorSetAllocateInfo alloc;
 	VkDescriptorBufferInfo info;
 	VkWriteDescriptorSet desc;
@@ -2718,7 +2718,7 @@ void vk_release_vbo( void ) {
 }
 
 
-qboolean vk_alloc_vbo( const byte *vbo_data, int vbo_size ) {
+void RHI_UploadWorldGeometry( const uint8_t *vbo_data, int32_t vbo_size ) {
 	VkMemoryRequirements vb_mem_reqs;
 	VkMemoryAllocateInfo alloc_info;
 	VkBufferCreateInfo desc;
@@ -2780,8 +2780,6 @@ qboolean vk_alloc_vbo( const byte *vbo_data, int vbo_size ) {
 
 	SET_OBJECT_NAME( vk.vbo.vertex_buffer, "static VBO", VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT );
 	SET_OBJECT_NAME( vk.vbo.buffer_memory, "static VBO memory", VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT );
-
-	return qtrue;
 }
 #endif
 
@@ -2992,6 +2990,11 @@ static void vk_create_shader_modules( void ) {
 
 
 void vk_create_blur_pipeline( uint32_t index, uint32_t width, uint32_t height, qboolean horizontal_pass );
+
+void RHI_UpdatePostProcess( int32_t overbrightBits ) {
+	vk.overbrightBits = overbrightBits;
+	vk_update_post_process_pipelines();
+}
 
 void vk_update_post_process_pipelines( void ) {
 	if ( vk.fboActive ) {
@@ -3769,7 +3772,7 @@ static void vk_set_render_scale( void ) {
 }
 
 
-void vk_initialize( void ) {
+void RHI_Initialize( void ) {
 	char buf[64], driver_version[64];
 	const char *vendor_name;
 	VkPhysicalDeviceProperties props;
@@ -4346,7 +4349,7 @@ static void vk_destroy_pipelines( qboolean resetCounter ) {
 }
 
 
-void vk_shutdown( refShutdownCode_t code ) {
+void RHI_Shutdown( void ) {
 	int i, j, k, l;
 
 	if ( qvkQueuePresentKHR == NULL ) { // not fully initialized
@@ -4488,10 +4491,8 @@ __cleanup:
 	Com_Memset( &vk, 0, sizeof( vk ) );
 	Com_Memset( &vk_world, 0, sizeof( vk_world ) );
 
-	if ( code != REF_KEEP_CONTEXT ) {
-		vk_destroy_instance();
-		deinit_instance_functions();
-	}
+	vk_destroy_instance();
+	deinit_instance_functions();
 }
 
 
@@ -4577,7 +4578,7 @@ void vk_queue_wait_idle( void ) {
 }
 
 
-void vk_release_resources( void ) {
+void RHI_ReleaseResources( void ) {
 	int i, j;
 
 	vk_wait_idle();
@@ -5149,7 +5150,7 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 	set_shader_stage_desc( shader_stages + 1, VK_SHADER_STAGE_FRAGMENT_BIT, fsmodule, "main" );
 
 	frag_spec_data.gamma = (float)( 1.0 / ( r_gamma->value ) );
-	frag_spec_data.overbright = (float)( 1 << tr.overbrightBits );
+	frag_spec_data.overbright = (float)( 1 << vk.overbrightBits );
 	frag_spec_data.greyscale = r_greyscale->value;
 	frag_spec_data.bloom_threshold = r_bloom_threshold->value;
 	frag_spec_data.bloom_intensity = r_bloom_intensity->value;
@@ -6913,7 +6914,7 @@ static void vk_begin_render_pass( VkRenderPass renderPass, VkFramebuffer frameBu
 }
 
 
-void vk_begin_main_render_pass( void ) {
+void RHI_BeginMainPass( void ) {
 	VkFramebuffer frameBuffer = vk.framebuffers.main[vk.cmd->swapchain_image_index];
 
 	vk.renderPassIndex = RENDER_PASS_MAIN;
@@ -7001,38 +7002,16 @@ void RHI_EndPass( void ) {
 }
 
 
-static qboolean vk_find_screenmap_drawsurfs( void ) {
-	const void *curCmd = &backEndData->commands.cmds;
-	const drawBufferCommand_t *db_cmd;
-	const drawSurfsCommand_t *ds_cmd;
-
-	for ( ;; ) {
-		curCmd = PADP( curCmd, sizeof( void * ) );
-		switch ( *(const int *)curCmd ) {
-		case RC_DRAW_BUFFER:
-			db_cmd = (const drawBufferCommand_t *)curCmd;
-			curCmd = (const void *)( db_cmd + 1 );
-			break;
-		case RC_DRAW_SURFS:
-			ds_cmd = (const drawSurfsCommand_t *)curCmd;
-			return ds_cmd->refdef.needScreenMap;
-		default:
-			return qfalse;
-		}
-	}
-}
-
-
 #ifndef UINT64_MAX
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFFULL
 #endif
 
-void vk_begin_frame( void ) {
+bool RHI_BeginFrame( bool screenMap ) {
 	VkCommandBufferBeginInfo begin_info;
 	VkResult res;
 
 	if ( vk.frame_count++ ) // might happen during stereo rendering
-		return;
+		return false;
 
 #ifdef USE_UPLOAD_QUEUE
 	vk_flush_staging_buffer( qtrue );
@@ -7121,12 +7100,10 @@ void vk_begin_frame( void ) {
 
 	vk.cmd->last_pipeline = VK_NULL_HANDLE;
 
-	backEnd.screenMapDone = qfalse;
-
-	if ( vk_find_screenmap_drawsurfs() ) {
+	if ( screenMap ) {
 		vk_begin_screenmap_render_pass();
 	} else {
-		vk_begin_main_render_pass();
+		RHI_BeginMainPass();
 	}
 
 	// dynamic vertex buffer layout
@@ -7146,8 +7123,8 @@ void vk_begin_frame( void ) {
 
 	// other stats
 	vk.stats.push_size = 0;
+	return true;
 }
-
 
 static void vk_resize_geometry_buffer( void ) {
 	int i;
@@ -7172,7 +7149,7 @@ static void vk_resize_geometry_buffer( void ) {
 }
 
 
-void vk_end_frame( void ) {
+rhiFrameEnd_t RHI_EndFrame( bool bloom, bool capture ) {
 #ifdef USE_UPLOAD_QUEUE
 	VkSemaphore waits[2], signals[2];
 	const VkPipelineStageFlags wait_dst_stage_mask[2] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -7180,9 +7157,10 @@ void vk_end_frame( void ) {
 	const VkPipelineStageFlags wait_dst_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 #endif
 	VkSubmitInfo submit_info;
+	rhiFrameEnd_t result = {};
 
 	if ( vk.frame_count == 0 )
-		return;
+		return result;
 
 	vk.frame_count = 0;
 
@@ -7190,18 +7168,18 @@ void vk_end_frame( void ) {
 		vk_resize_geometry_buffer();
 		// issue: one frame may be lost during video recording
 		// solution: re-record all commands again? (might be complicated though)
-		return;
+		return result;
 	}
 
 	if ( vk.fboActive ) {
 		vk.cmd->last_pipeline = VK_NULL_HANDLE; // do not restore clobbered descriptors in RHI_Bloom()
 
-		if ( r_bloom->integer && vk.renderPassIndex != RENDER_PASS_SCREENMAP && !backEnd.doneBloom && backEnd.doneSurfaces ) {
+		if ( bloom && vk.renderPassIndex != RENDER_PASS_SCREENMAP ) {
 			RHI_Bloom( nullptr );
-			backEnd.doneBloom = qtrue;
+			result.bloomApplied = true;
 		}
 
-		if ( backEnd.screenshotMask && vk.capture.image ) {
+		if ( capture && vk.capture.image ) {
 			RHI_EndPass();
 
 			// render to capture FBO
@@ -7289,14 +7267,13 @@ void vk_end_frame( void ) {
 	VK_CHECK( qvkQueueSubmit( vk.queue, 1, &submit_info, vk.cmd->rendering_finished_fence ) );
 	vk.cmd->waitForFence = qtrue;
 
-	// presentation may take undefined time to complete, we can't measure it in a reliable way
-	backEnd.pc.msec = ri.Milliseconds() - backEnd.pc.msec;
-
 	vk.renderPassIndex = RENDER_PASS_MAIN;
+	result.submitted = true;
+	return result;
 }
 
 
-void vk_present_frame( void ) {
+void RHI_PresentFrame( void ) {
 	VkPresentInfoKHR present_info;
 	VkResult res;
 
@@ -7360,7 +7337,7 @@ static qboolean is_bgr( VkFormat format ) {
 }
 
 
-void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height ) {
+void RHI_ReadPixels( byte *buffer, uint32_t width, uint32_t height ) {
 	VkCommandBuffer command_buffer;
 	VkDeviceMemory memory;
 	VkMemoryRequirements memory_requirements;

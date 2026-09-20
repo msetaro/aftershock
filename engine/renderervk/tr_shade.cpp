@@ -39,11 +39,12 @@ void RB_DrawGeometry( rhiDepthRange_t depthRange, qboolean indexed ) {
 	if ( !RHI_PrepareDraw( &raster, &tr.whiteImage->texture ) )
 		return;
 #ifdef USE_VBO
-	if ( tess.vboIndex )
+	if ( tess.vboIndex ) {
 		VBO_RenderIBOItems();
-	else
+		return;
+	}
 #endif
-		if ( indexed )
+	if ( indexed )
 		RHI_DrawBoundIndices();
 	else
 		RHI_Draw( tess.numVertexes );
