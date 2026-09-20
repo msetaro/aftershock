@@ -11,6 +11,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
+import time
 
 from PIL import Image
 from run import ROOT
@@ -186,6 +187,17 @@ def main():
         output = home / 'cooked'
         result = cook(project, output)
         assert sorted(result['built']) == sorted(names) and result['skipped'] == []
+        index = (output / 'cook.index').read_bytes()
+        assert (output / 'cook.revision').read_bytes() == hashlib.sha256(index).digest()
+        magic, version, size, hashed = struct.unpack_from('<8sII32s', index)
+        assert magic == b'ASIDX\0\0\0' and version == 1 and size == len(index) - 48
+        assert hashed == hashlib.sha256(index[48:]).digest()
+        count, = struct.unpack_from('<I', index, 48)
+        assert len(index) == 52 + count * 104
+        for row in range(count):
+            path, expected, length, kind = struct.unpack_from('<64s32sII', index, 52 + row * 104)
+            data = (output / path.rstrip(b'\0').decode()).read_bytes()
+            assert len(data) == length and hashlib.sha256(data).digest() == expected and kind in (1, 2, 3)
         before = {}
         for name in names:
             manifest_path = output / (name + '.manifest.json')
@@ -242,6 +254,30 @@ def main():
         pixel = decoded.getpixel((8, 8))
         assert all(abs(actual - expected) <= 3 for actual, expected in zip(pixel, (137, 188, 255, 128))), pixel
         assert cook(project, material_output)['built'] == []
+        revision = (material_output / 'cook.revision').read_bytes()
+        with (args.output / 'watch.log').open('w+') as log:
+            watcher = subprocess.Popen([sys.executable, 'tools/cook', str(project), '--output', str(material_output), '--watch'], cwd=ROOT, stdout=log, stderr=log)
+            try:
+                deadline = time.monotonic() + 15
+                while '"skipped"' not in (args.output / 'watch.log').read_text():
+                    assert watcher.poll() is None and time.monotonic() < deadline
+                    time.sleep(0.05)
+                Image.new('RGBA', (16, 16), (64, 128, 192, 255)).save(directory / 'white.png')
+                deadline = time.monotonic() + 15
+                while (material_output / 'cook.revision').read_bytes() == revision:
+                    assert watcher.poll() is None and time.monotonic() < deadline
+                    time.sleep(0.05)
+                # Bad source edits keep the published revision and watcher alive.
+                revision = (material_output / 'cook.revision').read_bytes()
+                (directory / 'paint.json').write_text('{')
+                deadline = time.monotonic() + 15
+                while 'cook:' not in (args.output / 'watch.log').read_text():
+                    assert watcher.poll() is None and time.monotonic() < deadline
+                    time.sleep(0.05)
+                assert (material_output / 'cook.revision').read_bytes() == revision
+            finally:
+                watcher.terminate()
+                watcher.wait(timeout=10)
     fixture = ROOT / 'tests/assets/cook-character'
     provenance = json.loads((fixture / 'provenance.json').read_text())
     for name, expected in provenance['files'].items():
