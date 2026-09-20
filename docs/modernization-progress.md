@@ -27,7 +27,8 @@ owned Blender source fixture was exported once with verified portable Blender
 4.5.3 (archive hash below). Offline cooking/production pose tests pass at 7acd72c1.
 Draft PR #145 holds #9. Native BC texture/material loading and watched texture
 replacement, named clips, bounded material/model/animation reload and inspector
-reload counts now work. Complete audio/shader inputs and final runtime/CI acceptance.
+reload counts now work. WAV/OGG and shader inputs are implemented; complete final
+runtime/CI acceptance and review the remaining cooker details before marking ready.
 Keep the graph's reviewed branch unchanged. #7 is complete and closed.
 
 Read #9 and the preparation notes in the persistent modernization cache
@@ -3003,3 +3004,18 @@ shader with a quoted include must cook to versioned/hash-checked SPIR-V, skip an
 unchanged recipe, rebuild after the include changes, and feed the existing offline
 shader package while preserving all other 73 shader bytes. It fails on the absent
 shader kind (cook-shader-before.log). Runtime GLSL compilation remains excluded.
+
+Shader cooking now passes its test-first check (5d2bf779). Quoted includes are
+tracked and compiled from a confined snapshot using pinned glslang 16.6.0. The
+versioned SHA-256 envelope contains native SPIR-V; CMake COOKED_SHADER_DIR feeds it
+through the existing offline package builder, which requires the current exact
+reflected interface. A changed include produces a changed shader; all other 73
+binaries stay identical. The default package remains 743e9c51f75547a6577119182c0363c5829f498e1e99c8672e057fad19c7e737.
+Evidence: cook-shader-{before,after}.log and cook-source-kinds.log. No runtime
+compiler/shader hot reload is added.
+
+Hosted runtime at 05192647 found the developer registry probe needed the three
+new reload-count query stubs; it now checks those copied counts too. This is a
+feature test integration correction, not a legacy engine bug. Remaining: cooker
+tangent/bounds review, repeated live edits/idle/restart/module acceptance, fixed
+Q3/OpenArena replays and complete exact-head hosted/self-review gates.

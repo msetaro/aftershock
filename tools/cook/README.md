@@ -2,7 +2,7 @@
 
 Offline mesh/texture cooking and native KTX2 BC loading are available. Cooked
 material loading and development texture/material/model/animation reload are available.
-Audio/shader inputs and final acceptance remain; this is not complete #9 acceptance.
+Audio/shader inputs are available; final acceptance remains before #9 is complete.
 
 Use Python with the pinned Pillow dependency, CMake 3.25+, Ninja and a host C++
 compiler. Install Python requirements in a virtual environment, not system Python.
@@ -94,3 +94,20 @@ The standard RIFF `ASCK` provenance chunk contains uint32 version 1, source SHA-
 and whole-file SHA-256 with its own 32 bytes zeroed. Cooking/tests verify it; the
 existing native WAV decoder skips this metadata and consumes the PCM directly.
 The project index identifies these native WAV resources as kind 4.
+
+`kind: shader` compiles GLSL vertex/fragment sources with pinned glslang 16.6.0.
+Set `AFTERSHOCK_GLSLANG` to its executable or put `glslang` on PATH. `stage` is
+`vert`/`frag` (defaults to the file suffix); optional `defines` contains simple
+`NAME` or `NAME=value` strings. Literal quoted includes stay within the project and
+participate in dependency hashes. Compilation runs from a snapshot of these sources.
+The `.asspv` envelope uses magic `ASSPV\0\0\0`, uint32 version 1/payload size and
+SHA-256 of its native SPIR-V payload, with the same 48-byte header layout as ASMAT.
+
+To use a cooked shader in the current renderer, name it
+`shaders/<existing-package-symbol>` (for example `shaders/color_vert_spv`), then
+configure CMake with `-DCOOKED_SHADER_DIR=/absolute/path/to/cooker-output`. The
+existing offline package builder verifies the envelope and requires exact reflected
+interface records before embedding the payload in the client/module. The current
+conservative comparison includes compiler IDs; broader material interfaces belong
+to #13. Runtime GLSL compilation and shader hot reload are not introduced. Default
+builds keep the accepted 74-shader package unchanged.

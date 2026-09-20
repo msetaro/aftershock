@@ -89,7 +89,7 @@ jobs:
           echo '2c34071f56ecf39d16233294d3739cf43f981fd39080f2fd9dccb782101191ce  /tmp/glslang.tar.gz' | sha256sum --check
           mkdir -p /tmp/aftershock-glslang
           tar -xzf /tmp/glslang.tar.gz -C /tmp/aftershock-glslang
-          python3 tests/shaders.py --compiler /tmp/aftershock-glslang/bin/glslang
+          /tmp/aftershock-cook-python/bin/python tests/shaders.py --compiler /tmp/aftershock-glslang/bin/glslang
       - name: Vulkan image acquisition status
         run: python3 tests/vulkan_acquire.py --cxx '${{ matrix.cxx }}'
       - name: Frame evidence negative controls

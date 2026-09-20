@@ -88,12 +88,28 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--compiler', help='glslang executable, required on a source-cache miss')
     parser.add_argument('--compile', action='store_true', help='compile every shader instead of reusing committed bytes')
+    parser.add_argument('--cooked', type=Path, help='cooker output directory containing shaders/<package-name>.asspv')
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     manifest = json.loads((SOURCE / 'manifest.json').read_text(encoding='utf-8'))
     cached = committed_shaders()
     if set(cached) != {row['name'] for row in manifest['shaders']}:
         raise ValueError('manifest and committed shader names differ')
+    overrides = {}
+    if args.cooked:
+        paths = sorted((args.cooked / 'shaders').glob('*.asspv'))
+        if not paths:
+            parser.error('cooked shader directory contains no shaders/*.asspv')
+        for path in paths:
+            data = path.read_bytes()
+            if len(data) < 68 or len(data) > 16 << 20:
+                parser.error('invalid cooked shader size: ' + str(path))
+            magic, version, size, digest = struct.unpack_from('<8sII32s', data)
+            if magic != b'ASSPV\0\0\0' or version != 1 or size != len(data) - 48 or size % 4 or hashlib.sha256(data[48:]).digest() != digest:
+                parser.error('invalid cooked shader header/hash: ' + str(path))
+            if path.stem not in cached:
+                parser.error('shader is not in the current renderer package: ' + path.stem)
+            overrides[path.stem] = data[48:]
     compiler = None
     package = {'schema': manifest['schema'], 'compiler': manifest['compiler'],
                'compiler_version': manifest['compiler_version'], 'target': manifest['target'],
@@ -124,6 +140,14 @@ def main():
                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             payload = binary.read_bytes()
             compiled += 1
+        if row['name'] in overrides:
+            replacement = overrides[row['name']]
+            # ponytail: exact reflected records, including IDs; richer compatible
+            # material interfaces belong to #13, not an unchecked ABI replacement.
+            if layout(replacement) != layout(cached[row['name']]):
+                parser.error('cooked shader interface differs from the renderer contract: ' + row['name'])
+            payload = replacement
+            row['cooked_sha256'] = sha256(payload)
         write_if_changed(args.output / (row['name'] + '.spv'), payload)
         row['spirv_sha256'] = sha256(payload)
         row['layout'] = layout(payload)
