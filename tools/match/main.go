@@ -30,7 +30,7 @@ func main() {
 				break
 			}
 			var tokens map[string]string
-			err = readJSON(env("MATCH_TOKENS", "/config/tokens.json"), &tokens)
+			err = strictJSON([]byte(os.Getenv("MATCH_TOKENS")), &tokens)
 			if err == nil {
 				err = serveIngest(ctx, env("MATCH_LISTEN", ":50051"), filepath.Join(env("MATCH_STATE", "/state"), "events.jsonl"), tokens)
 			}

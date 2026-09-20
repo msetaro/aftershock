@@ -44,13 +44,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-match-live-') as temporary:
         (content/game/'zz-aftershock-level.pk3').symlink_to(content/'aftershock/pak0.pk3')
     home=root/'home';home.mkdir()
     state=root/'state';state.mkdir()
-    (root/'tokens.json').write_text(json.dumps({'local-1':'allocation-secret'}))
     spec=dict(id='local-1',map='two_lane',mode=0,frag_limit=0,time_limit=1,players=2,password='local-secret',token='allocation-secret')
     port,ingest=free_port(socket.SOCK_DGRAM),free_port(socket.SOCK_STREAM)
     env=dict(os.environ,MATCH_HOME=str(home),MATCH_CONTENT=str(content),MATCH_GAME=game,
              MATCH_SERVER=str(args.server.resolve()),MATCH_SPEC=json.dumps(spec),MATCH_PORT=str(port),
              MATCH_INGEST=f'127.0.0.1:{ingest}',MATCH_LISTEN=f'127.0.0.1:{ingest}',MATCH_DEV_INSECURE='1',
-             MATCH_TOKENS=str(root/'tokens.json'),MATCH_STATE=str(state),LC_ALL='C')
+             MATCH_TOKENS=json.dumps({'local-1':'allocation-secret'}),MATCH_STATE=str(state),LC_ALL='C')
     processes=[];streams=[]
     def launch(name,command,environment=env):
         stream=(args.output/(name+'.log')).open('w');streams.append(stream)

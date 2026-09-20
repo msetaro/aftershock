@@ -120,42 +120,46 @@ func ship(ctx context.Context, home, game, address string, dev bool) error {
 			}
 			b = batch{Version: 1, Match: s.ID, Start: ack.End, End: ack.End, Checkpoint: ack.Checkpoint}
 			f, err := os.Open(filepath.Join(home, game, "games.log"))
-			if os.IsNotExist(err) {
-				if err = pause(ctx, time.Second); err != nil {
+			if os.IsNotExist(err) && exists(filepath.Join(home, "engine.done")) {
+				b.Final = true
+			} else {
+				if os.IsNotExist(err) {
+					if err = pause(ctx, time.Second); err != nil {
+						return err
+					}
+					continue
+				}
+				if err != nil {
 					return err
 				}
-				continue
-			}
-			if err != nil {
-				return err
-			}
-			if _, err = f.Seek(ack.End, io.SeekStart); err != nil {
-				f.Close()
-				return err
-			}
-			reader := bufio.NewReaderSize(f, 4096)
-			eof := false
-			for len(b.Events) < 64 && b.End-b.Start < 8192 {
-				line, readErr := reader.ReadSlice('\n')
-				if readErr == io.EOF {
-					eof = true
-					if len(line) > 0 && exists(filepath.Join(home, "engine.done")) {
-						f.Close()
-						return errors.New("incomplete final log line")
-					}
-					break
-				}
-				if readErr != nil {
+				if _, err = f.Seek(ack.End, io.SeekStart); err != nil {
 					f.Close()
-					return fmt.Errorf("game log line exceeds bound or cannot be read: %w", readErr)
+					return err
 				}
-				b.End += int64(len(line))
-				value := strings.TrimSuffix(string(line), "\n")
-				b.Events = append(b.Events, value)
-				b.Checkpoint.add(value)
+				reader := bufio.NewReaderSize(f, 4096)
+				eof := false
+				for len(b.Events) < 64 && b.End-b.Start < 8192 {
+					line, readErr := reader.ReadSlice('\n')
+					if readErr == io.EOF {
+						eof = true
+						if len(line) > 0 && exists(filepath.Join(home, "engine.done")) {
+							f.Close()
+							return errors.New("incomplete final log line")
+						}
+						break
+					}
+					if readErr != nil {
+						f.Close()
+						return fmt.Errorf("game log line exceeds bound or cannot be read: %w", readErr)
+					}
+					b.End += int64(len(line))
+					value := strings.TrimSuffix(string(line), "\n")
+					b.Events = append(b.Events, value)
+					b.Checkpoint.add(value)
+				}
+				f.Close()
+				b.Final = eof && exists(filepath.Join(home, "engine.done"))
 			}
-			f.Close()
-			b.Final = eof && exists(filepath.Join(home, "engine.done"))
 			if b.End == b.Start && !b.Final {
 				if err = pause(ctx, 2*time.Second); err != nil {
 					return err
