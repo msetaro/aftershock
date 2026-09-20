@@ -16,29 +16,33 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#9 PR #145 merged as c195f798 and passed integration regression 35507482742;
-#9 is closed and checked in #25. Accounting PR #146 is at 1f1aeb8f: build
-35508534162 passed, regression 35508533987 is finishing. Require its exact-head
-success/self-review before merge and then its merged-tree regression.
-The separate scale branch issue/31-iqm-joint-scale is prepared at d9466282;
-its tests/fix/local cooker and accepted demo checks pass. Open its PR only after
-#146 integration passes, merge modernization forward first, and apply the same
-exact-head/merged-tree gates. All writes stay in msetaro/aftershock.
+#9 PR #145 merged as c195f798 and passed integration 35507482742; #9 is closed
+and checked in #25. Accounting PR #146 merged as 3d104d0c after exact-head build
+35508534162/regression 35508533987; integration 35508970698 passed.
+Scale PR #147 merged as 7f4d43a7 after exact head dd8f7f79 passed build
+35509606176/regression 35509606177 with its committed self-review. Its merge tree
+matches the tested tree (796b6c532309846d4913439d74dfc751c4ca4ae1).
+Merged-tree regression 35510058541 is running. Require its pass before #10
+implementation; then record the two completed IQM fixes on #31 and close it if
+no remaining recorded bug/expected-failure/suppression remains.
 
-This isolated worktree /tmp/aftershock-10-animation is on issue/10-animation.
-The first offline data-authoring test and new original rifle/body source fixtures
-are prepared; the test still fails because the animation asset kind does not exist
-(animation-owned-before.log). No #10 runtime/gameplay implementation is present. Finish both #31 fixes before implementing this feature or opening its
-PR; merge modernization forward without rewriting history afterward.
+Current branch is issue/10-animation. Modernization is merged forward without
+rewriting history. Test-first 57838d59 and source preparation 0704fe4c are present;
+no #10 runtime/gameplay implementation exists yet. The test verifies original
+Blender rifle/body provenance and native model counts, then fails on the absent
+animation asset kind. Real in-engine viewer checks now pass for rifle idle/fire
+and body idle (cache animation-native-preview.log and PNGs), with 119,312/227,084
+reported model bytes. This is source-rig verification, not state-machine acceptance.
 
-#10 is the complete issue, not only clip sampling: data-authored state machines/
-blend trees, masked/additive layers, events, IK/aim offsets/root motion, first-person
-rifle states and sockets, third-person upper/lower split and footsteps, ImGui
-authoring/inspection, and fixed-timestep replicated gameplay animation with
-client/server hit-box parity on a recorded demo. Preserve all classic accepted
-fixtures/hashes; author new acceptance content separately. Read issue #10 plus
-cache issue10-entry-points.md, extend runtime/gameplay acceptance tests before
-implementation, and continue the full #25 roadmap after this feature.
+After #147 integration passes, read #10 plus cache issue10-entry-points.md and
+issue10-design-considerations.md. Extend native/runtime/gameplay tests before
+implementation. Full scope remains data-authored state machines/blend trees,
+masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
+reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/
+turn, ImGui authoring/inspection, and deterministic fixed-timestep replicated
+hit-box parity for a recorded demo. Preserve all classic accepted fixtures/hashes;
+new acceptance artifacts stay separate. Continue the complete #25 roadmap after
+#10 (#12 before #11's replication dependency). No upstream PRs or main pushes.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -3226,6 +3230,20 @@ The accounting width correction 1f1aeb8f is merged forward into the separate
 scale branch before its PR. Superseded accounting regression 35508144077 was
 cancelled after build 35508144036 failed; it is not an accepted gate.
 
+
+#146 merged as 3d104d0c after final exact-head build 35508534162/regression
+35508533987 passed. Its merge tree equals the tested tree. Integration regression
+35508970698 is running; no scale PR opens before it passes. Modernization is
+merged forward into the scale branch at this checkpoint. The corrected-accounting
+and scale test combination passes (iqm-scale-merged-width.log). #10 test-only
+preparation is 57838d59; its initial cook fails on the absent animation asset kind.
+
+#146 integration regression 35508970698 passed at 3d104d0c. Open the scale PR at
+this checkpoint; require its exact-head build/regression and post-merge regression.
+#10 preparation 0704fe4c adds new original Blender rifle/body acceptance sources,
+whose model cooks and neutral-layout visual review pass. The animation-state
+asset test still fails as expected; there is no #10 runtime/gameplay implementation.
+
 ## #10 initial failing data-authoring test
 
 `python3 tests/animation.py` reuses the owned two-joint source generator and a
@@ -3258,3 +3276,20 @@ counts, then still fails on the absent animation asset kind
 (animation-owned-before.log). No existing source or accepted demo/frame fixture
 was regenerated. These are test assets, not evidence that #10 runtime/gameplay is
 complete; full rifle/body in-game and recorded hit-box acceptance remain required.
+
+
+#147 merged as 7f4d43a7 after exact-head build 35509606176 and regression
+35509606177 passed. The merge tree equals the tested tree; integration regression
+35510058541 is still running. Both #31 fixes are now merged separately, and #10
+has merged modernization forward. No #10 runtime implementation begins before
+that integration gate passes.
+
+The new source rigs also load through the real developer viewer in a locally
+rebuilt client under private Xvfb/lavapipe. Actual UI input selects rifle idle
+(frame 62), rifle fire (31), body idle (93); model handles 78/79 and advancing
+preview counts are confirmed. Screenshots were reviewed at side/oblique yaw.
+The first temporary capture script quit before its last queued screenshot; adding
+the existing wait-before-quit pattern fixed the script. No engine change was needed.
+Evidence: animation-native-preview.py/.log and animation-native-preview/*.png in
+the persistent cache. These checks validate source rigs/clips only, not the
+future #10 gameplay/replication/IK acceptance.
