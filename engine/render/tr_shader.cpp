@@ -3874,6 +3874,47 @@ static void R_ApplyCookedMaterial( const cookedMaterial_t *material, image_t *im
 #endif
 }
 
+static shader_t *R_ApplyPbrMaterial( const cookedPbrMaterial_t *material, shader_t *replace = nullptr ) {
+	image_t *images[3];
+	for ( int i = 0; i < 3; ++i ) {
+		images[i] = R_FindImageFile( material->textures[i], IMGFLAG_MIPMAP );
+		if ( !images[i] )
+			return tr.defaultShader;
+	}
+	shader.metallicRoughness = true;
+	shader.materialParams = material->params;
+	shader.lightmapIndex = LIGHTMAP_NONE;
+	shader.explicitlyDefined = qtrue;
+	shader.needsNormal = qtrue;
+	shader.surfaceFlags |= SURF_NODLIGHT; // PBR uses the entity's combined light-grid/dynamic lighting.
+	shader.cullType = ( material->params.flags & 1 ) ? CT_TWO_SIDED : CT_FRONT_SIDED;
+	shader.numUnfoggedPasses = 1;
+	shader.sort = ( material->params.flags & 4 ) ? SS_BLEND0 : ( material->params.flags & 8 ) ? SS_SEE_THROUGH
+																							  : SS_OPAQUE;
+	shader.fogPass = ( material->params.flags & 4 ) ? FP_LE : FP_EQUAL;
+	shader.optimalStageIteratorFunc = RB_StageIteratorPbr;
+#ifdef AFTERSHOCK_DEVTOOLS
+	shader.reloadable = true;
+#endif
+	shaderStage_t *stage = &stages[0];
+	stage->active = qtrue;
+	stage->numTexBundles = 3;
+	stage->stateBits = ( material->params.flags & 4 ) ? GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA : GLS_DEFAULT;
+	for ( int i = 0; i < 3; ++i ) {
+		stage->bundle[i].image[0] = images[i];
+		stage->bundle[i].tcGen = TCGEN_TEXTURE;
+	}
+	rhiPipelineDesc_t desc = {};
+	desc.shader_type = TYPE_PBR;
+	desc.face_culling = shader.cullType;
+	desc.state_bits = stage->stateBits;
+	desc.allow_discard = ( material->params.flags & 12 ) != 0;
+	stage->vk_pipeline[0] = R_FindPipeline( 0, &desc, qtrue );
+	desc.mirror = qtrue;
+	stage->vk_mirror_pipeline[0] = R_FindPipeline( 0, &desc, qfalse );
+	return GeneratePermanentShader( replace );
+}
+
 /*
 ===============
 R_FindShader
@@ -3975,7 +4016,20 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 		const int size = ri.FS_ReadFile( materialPath, &file );
 		if ( file ) {
 			cookedMaterial_t material = {};
+			cookedPbrMaterial_t pbr = {};
 			uint8_t materialHash[32];
+			if ( size > 0 && R_ReadPbrMaterial( file, size, &pbr, materialHash ) ) {
+				ri.FS_FreeFile( file );
+				shader_t *result = R_ApplyPbrMaterial( &pbr );
+#ifdef AFTERSHOCK_DEVTOOLS
+				if ( result != tr.defaultShader ) {
+					Q_strncpyz( cookedMaterials[result->index].path, materialPath, MAX_QPATH );
+					memcpy( cookedMaterials[result->index].hash, materialHash, 32 );
+					cookedMaterials[result->index].mipmaps = mipRawImage;
+				}
+#endif
+				return result;
+			}
 			const bool valid = size > 0 && R_ReadCookedMaterial( file, size, &material, materialHash );
 			ri.FS_FreeFile( file );
 			image = valid ? R_FindImageFile( material.texture, mipRawImage ? IMGFLAG_MIPMAP : IMGFLAG_CLAMPTOEDGE ) : nullptr;
@@ -4586,6 +4640,19 @@ void R_ReloadCookedMaterials( const cookedIndex_t *index ) {
 			void *file = nullptr;
 			const int length = ri.FS_ReadFile( entry.path, &file );
 			cookedMaterial_t material = {};
+			cookedPbrMaterial_t pbr = {};
+			if ( file && length == (int)entry.size && R_CookedHashMatches( file, length, entry.hash ) && R_ReadPbrMaterial( file, length, &pbr ) ) {
+				ri.FS_FreeFile( file );
+				shader_t *live = tr.shaders[i];
+				InitShader( live->name, live->lightmapSearchIndex );
+				const bool success = R_ApplyPbrMaterial( &pbr, live ) == live;
+				if ( success ) {
+					memcpy( cookedMaterials[i].hash, entry.hash, 32 );
+					cookedMaterials[i].reloads++;
+				}
+				ri.Printf( success ? PRINT_ALL : PRINT_WARNING, "Cooked material %s: %s\n", success ? "reloaded" : "reload failed", entry.path );
+				continue;
+			}
 			bool success = file && length == (int)entry.size && R_CookedHashMatches( file, length, entry.hash ) && R_ReadCookedMaterial( file, length, &material );
 			if ( file )
 				ri.FS_FreeFile( file );

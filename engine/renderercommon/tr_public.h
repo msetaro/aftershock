@@ -23,13 +23,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __TR_PUBLIC_H
 
 #include "tr_types_public.h"
+#include "tr_material_public.h"
 #include "../animation/animation_public.h"
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 17
+#define REF_API_VERSION 18
 #else
-#define REF_API_VERSION 13
+#define REF_API_VERSION 14
 #endif
 
 //
@@ -78,6 +79,8 @@ typedef struct {
 	void ( *ClearScene )( void );
 	void ( *AddRefEntityToScene )( const refEntity_t *re, qboolean intShaderTime );
 	bool ( *AddSkeletalEntityToScene )( const refEntity_t *re, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
+	// Copies the override into this frame. Optional pose/hash use the skeletal path.
+	bool ( *AddMaterialEntityToScene )( const refEntity_t *re, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 	void ( *AddPolyToScene )( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
 	int ( *LightForPoint )( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir );
 	void ( *AddLightToScene )( const vec3_t org, float intensity, float r, float g, float b );
@@ -103,6 +106,7 @@ typedef struct {
 	bool ( *GetDeveloperModel )( int index, devModel_t *model );
 	bool ( *GetDeveloperImage )( int index, devImage_t *image );
 	bool ( *GetDeveloperMaterial )( int index, devMaterial_t *material );
+	bool ( *SetDeveloperMaterial )( int index, const materialParams_t *params );
 	uint32_t ( *GetDeveloperTimings )( devGpuTiming_t *timings, uint32_t capacity );
 #endif
 

@@ -20,7 +20,7 @@ Main checkout is issue/13-materials, with modernization 646a63e8 merged forward.
 merged as 646a63e82c0a74307d0e830ca6c626eca985ed60 after exact-head build 35542300540
 and regression 35542300709 passed, including hosted kind acceptance. Tested head
 04a86876 and merge have the same tree f30abf9b5723b4d0aa20dc7600be1a7348050e5f.
-Merged-tree regression 35543218326 is queued; keep #28 open until it passes.
+Merged-tree regression 35543218326 passed; #28 is closed and checked in #25.
 #31 PR #155 and #27 are fully accepted/closed. The extra level-tree worktree is
 clean on the merged issue/28-match-server branch.
 
@@ -36,11 +36,13 @@ passed. Credentials/kubeconfig are excluded from artifacts and private clusters
 were removed. Logs: match-kind-{full-first,full-final,reviewed}.log; reports under
 /tmp/aftershock-match-kind-{first,final,reviewed}.
 
-Require #156 merged-tree regression, close #28/check #25, and continue #13.
+Continue #13; all #28 acceptance and integration gates are complete.
 The failing cooker and native instance contracts were committed first (c4bb8bbf,
 b4cddc63). The isolated PBR cook/native data slice now passes GCC and Clang/libc++;
-rendering, tangent/lighting submission, ImGui edits, instance submission and classic
-replay acceptance remain to implement/verify. #13 has no PR yet. No accepted
+Rendering/tangent submission, live factors, instance submission and ImGui controls
+are implemented locally. Classic replay retains the accepted hash. Remaining work:
+finish visual/ImGui/native checks, document/wire CI, self-review, exact-head full CI
+and merged-tree regression before accepting #13. #13 has no PR yet. No accepted
 fixture/shader bytes changed; no #13 acceptance before #28 integration passes.
 The new local implementation was started during #28's final lifetime gate, after
 the preparatory tests were committed, to avoid idle CI time. Keep issue scope and
@@ -85,7 +87,37 @@ and masked factor resolution use fixed-size trivial public values, no allocation
 The full legacy cooker suite also passes (materials-legacy.log); native runtime/ImGui acceptance remains pending.
 
 #156 exact-head gates all passed and the merge tree is identical. Hosted kind log:
-match28-host-kind.log. Integration 35543218326 is the remaining #28 gate.
+match28-host-kind.log. Integration 35543218326 passed; #28 is accepted and closed.
+
+## #13 initial rendering checkpoint
+
+The two new authored PBR shader programs use the existing three material texture
+bindings and a 112-byte uniform block inside the unchanged 128-byte allocation.
+All 74 accepted shader binaries remain byte-identical; bin2hex only appended the
+two new compiled programs. Fresh pinned compilation agrees for all 76 shaders
+(materials-shaders.log). Native rendering builds (materials-build.log). Classic
+Q3 replay remains 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(materials-classic.log), with no golden/fixture regeneration.
+
+The new path uses GGX/Smith/Schlick, editable linear factors, the existing model
+light-grid/dynamic direction and ambient, authored/skinned tangents or a derivative
+basis, explicit mask/blend flags and the existing fog pass. This is restrained
+material shading, not #14's full lighting/shadow work. Legacy shaders keep their
+existing iterator. Native static/skeletal instance submission copies bounded POD
+parameters without modifying refEntity_t or wire layouts. ImGui factor edits do
+not change pipeline flags; optional preview overrides are separate copies.
+
+Type/boundary gates pass. Animation tests cover static/skeletal instance copy,
+rejection without consuming an entity and per-frame reset, alongside existing
+animation acceptance (materials-animation.log). The owned sphere source has an
+idle clip for the existing Animation tab. First visual attempt lacked that clip;
+second showed every channel changing but compared the moving map behind the
+preview in its exact round trip. Restrict the sample to the sphere interior:
+5,521 identical restored pixels, and independent metallic/roughness/normal/emissive/
+mask/blend changes. Rerun the corrected permanent test; add actual ImGui and
+instance visual controls and both content sets before acceptance. Evidence:
+materials-runtime-{first,idle}.log and /tmp/aftershock-material-runtime-idle images.
+These are new test captures, not accepted goldens.
 
 ## #28 implementation record at its tested head
 

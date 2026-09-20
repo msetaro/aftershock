@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "tr_local.h"
+#include "tr_cooked.h"
 
 static int r_firstSceneDrawSurf;
 #ifdef USE_PMLIGHT
@@ -230,10 +231,29 @@ void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime ) {
 	backEndData->entities[r_numentities].lightingCalculated = qfalse;
 	backEndData->entities[r_numentities].intShaderTime = intShaderTime;
 	backEndData->entities[r_numentities].skeletalPose = nullptr;
+	backEndData->entities[r_numentities].materialOverride = {};
 
 	r_numentities++;
 }
 
+
+bool RE_AddMaterialEntityToScene( const refEntity_t *ent, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime ) {
+	const materialParams_t base = {};
+	materialParams_t checked;
+	if ( !ent || !instance || !R_ResolveMaterialParams( &base, instance, &checked ) )
+		return false;
+	const int previous = r_numentities;
+	if ( pose ) {
+		if ( !RE_AddSkeletalEntityToScene( ent, pose, modelHash, intShaderTime ) )
+			return false;
+	} else {
+		RE_AddRefEntityToScene( ent, intShaderTime );
+	}
+	if ( previous == r_numentities )
+		return false;
+	backEndData->entities[previous].materialOverride = *instance;
+	return true;
+}
 
 bool RE_AddSkeletalEntityToScene( const refEntity_t *ent, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime ) {
 	if ( !tr.registered || !ent || !pose || !modelHash || ent->reType != RT_MODEL || r_numentities >= MAX_REFENTITIES || r_numskeletalposes >= MAX_SKELETAL_POSES )

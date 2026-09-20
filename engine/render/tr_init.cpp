@@ -2144,6 +2144,7 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.GetDeveloperModel = RE_GetDeveloperModel;
 	re.GetDeveloperImage = RE_GetDeveloperImage;
 	re.GetDeveloperMaterial = RE_GetDeveloperMaterial;
+	re.SetDeveloperMaterial = RE_SetDeveloperMaterial;
 	re.GetDeveloperTimings = RE_GetDeveloperTimings;
 #endif
 
@@ -2154,6 +2155,7 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.ClearScene = RE_ClearScene;
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
 	re.AddSkeletalEntityToScene = RE_AddSkeletalEntityToScene;
+	re.AddMaterialEntityToScene = RE_AddMaterialEntityToScene;
 	re.AddPolyToScene = RE_AddPolyToScene;
 	re.LightForPoint = R_LightForPoint;
 	re.AddLightToScene = RE_AddLightToScene;

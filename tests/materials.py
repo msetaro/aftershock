@@ -96,6 +96,19 @@ def main():
         assert {row['path'] for row in manifest['inputs']} == {
             'pbr.gltf', 'rig.bin', 'base.png', 'normal.png', 'mr.png', 'emissive.png'}
         assert cook(project, output)['built'] == []
+        standalone = json.loads(json.dumps(document['materials'][0]))
+        for parent, key in ((standalone['pbrMetallicRoughness'], 'baseColorTexture'),
+                            (standalone['pbrMetallicRoughness'], 'metallicRoughnessTexture'),
+                            (standalone, 'normalTexture'), (standalone, 'emissiveTexture')):
+            info = parent[key]
+            info['uri'] = document['images'][info.pop('index')]['uri']
+        (directory / 'paint.json').write_text(json.dumps(standalone))
+        direct = directory / 'direct.json'
+        direct.write_text(json.dumps({'version': 1, 'assets': [
+            {'name': 'materials/paint', 'kind': 'material', 'source': 'paint.json',
+             'material_model': 'metallic-roughness'}]}))
+        assert cook(direct, output)['built'] == ['materials/paint']
+        assert (output / 'materials/paint.asmat').read_bytes()[48:96] == data[48:96]
         before = {path: (output / path).read_bytes() for path in paths}
         # Metallic data must not weight emissive mip filtering like opacity would.
         mr = Image.new('RGBA', (16, 16), (23, 96, 0, 255))

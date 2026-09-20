@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tr_material_public.h"
+
 #include <stdint.h>
 #include <type_traits>
 
@@ -34,6 +36,8 @@ struct devMaterial_t {
 	int32_t stages, cull, surfaceFlags, contentFlags;
 	uint32_t reloads;
 	bool explicitDefinition, fallback;
+	bool metallicRoughness;
+	materialParams_t params;
 	bool present[8];
 	uint32_t stateBits[8];
 	uint32_t textures[8][3];

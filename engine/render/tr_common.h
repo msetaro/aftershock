@@ -74,6 +74,13 @@ typedef struct shaderUniform_s {
 static_assert( sizeof( shaderUniform_t ) == 128 && alignof( shaderUniform_t ) == 4 );
 static_assert( offsetof( shaderUniform_t, fogDistanceVector ) == 64 && offsetof( shaderUniform_t, fogColor ) == 112 );
 
+// Only the new PBR programs consume this block; legacy uniform offsets stay fixed.
+struct pbrUniform_t {
+	vec4_t eye, lightDirection, ambient, directed;
+	vec4_t color, emissiveMetallic, surface; // roughness, normal scale, cutoff, flags
+};
+static_assert( sizeof( pbrUniform_t ) == 112 && offsetof( pbrUniform_t, color ) == 64 );
+
 typedef struct image_s image_t;
 
 // any change in the LIGHTMAP_* defines here MUST be reflected in

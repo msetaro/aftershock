@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include "tr_cooked.h"
 
 backEndData_t *backEndData;
 backEndState_t backEnd;
@@ -2037,6 +2038,8 @@ bool RE_GetDeveloperMaterial( int index, devMaterial_t *material ) {
 	material->contentFlags = source->contentFlags;
 	material->explicitDefinition = source->explicitlyDefined != 0;
 	material->fallback = source->defaultShader != 0;
+	material->metallicRoughness = source->metallicRoughness;
+	material->params = source->materialParams;
 	static_assert( MAX_SHADER_STAGES == 8 && NUM_TEXTURE_BUNDLES == 3 );
 	for ( int stage = 0; stage < source->numUnfoggedPasses; ++stage ) {
 		if ( !source->stages[stage] )
@@ -2053,6 +2056,18 @@ bool RE_GetDeveloperMaterial( int index, devMaterial_t *material ) {
 			}
 		}
 	}
+	return true;
+}
+
+bool RE_SetDeveloperMaterial( int index, const materialParams_t *params ) {
+	if ( index < 0 || index >= tr.numShaders || !params || !tr.shaders[index]->metallicRoughness )
+		return false;
+	shader_t *shader = tr.shaders[index];
+	materialParams_t checked;
+	if ( params->flags != shader->materialParams.flags || !R_ResolveMaterialParams( params, nullptr, &checked ) )
+		return false;
+	// Frontend edits affect this frame's queued draws; pipeline/order is unchanged.
+	shader->materialParams = checked;
 	return true;
 }
 

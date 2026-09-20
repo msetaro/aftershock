@@ -1504,6 +1504,23 @@ void RB_IQMSurfaceAnim( const surfaceType_t *surface ) {
 		}
 	}
 
+	if ( tess.shader->metallicRoughness && data->tangents ) {
+		for ( int vertex = 0; vertex < surf->num_vertexes; ++vertex ) {
+			const float *source = &data->tangents[( surf->first_vertex + vertex ) * 4];
+			float *target = tess.tangent[tess.numVertexes + vertex];
+			if ( data->num_poses > 0 || backEnd.currentEntity->skeletalPose ) {
+				const int influence = data->influences[surf->first_vertex + vertex] - surf->first_influence;
+				const float *matrix = &influenceVtxMat[12 * influence];
+				for ( int row = 0; row < 3; ++row )
+					target[row] = matrix[row * 4] * source[0] + matrix[row * 4 + 1] * source[1] + matrix[row * 4 + 2] * source[2];
+				const float determinant = matrix[0] * ( matrix[5] * matrix[10] - matrix[6] * matrix[9] ) - matrix[1] * ( matrix[4] * matrix[10] - matrix[6] * matrix[8] ) + matrix[2] * ( matrix[4] * matrix[9] - matrix[5] * matrix[8] );
+				target[3] = determinant < 0 ? -source[3] : source[3];
+			} else {
+				memcpy( target, source, sizeof( vec4_t ) );
+			}
+		}
+	}
+
 	if ( color ) {
 		Com_Memcpy( outColor, color, surf->num_vertexes * sizeof( outColor[0] ) );
 	} else {
