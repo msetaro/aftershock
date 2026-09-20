@@ -16,14 +16,14 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/27-headless-levels` (temporarily in the level-tree worktree).
+Current branch: `issue/27-headless-levels` in the main user checkout.
 #26 PR #153 merged as bc1aff0d16878f3e170dab3c3aa1c1f7e79eee94 after exact-head
 5f67dbf4 passed build 35537284408 and regression 35537284293. The merge and tested
 head have the same tree cf77aa54884eef4140f015584e6a30fabfecb561. Its merged-tree
 regression 35538219232 is running; close/check #26 only after it passes. #11/#151
 are closed and #11 is checked in #25 after integration 35537127266 passed.
-Merge modernization forward here without rewriting history, then return this branch
-to the main user checkout. Continue #27 -> #28 then the rest of #25.
+Modernization is merged forward through #26; no history was rewritten.
+Continue #27 -> #28 then the rest of #25.
 
 #27 test-first commit 1b69359d fails on the absent validate subcommand. The current
 command passes Q3 and OA: two named PNGs and the automatic walk reproduce bytes,
@@ -50,9 +50,33 @@ ABI/RHI checks and tidy (1270 configurations) pass. Classic Q3 replay retains fr
 hash 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
 Lifetime analysis is still running (session 6001). First attempts at tidy/lifetimes
 used caches for the original worktree; rerun in /tmp/aftershock-level-{tidy,lifetimes}
-with the correct source root. Next: finish raw-MAP success/report review, final OA
-checks after the latest report/path refinements, full lifetime gate and self-review,
-then draft #27 PR with exact-head hosted gates. Do not merge before #26 integration.
+with the correct source root. The raw-MAP success path also passes (two automatic spawn captures), and final
+OA validation passes two named plus 33 automatic PNGs across repeated runs.
+Self-review is below. Next: draft #27 PR and require exact-head hosted gates and
+full local lifetime completion. Do not merge before #26 integration passes.
+
+## #27 self-review
+
+Scope matches headless authoring validation: compile/load evidence, deterministic
+PNGs, JSON/text reporting, real frame statistics and bot sampling. All source,
+asset and camera identifiers are validated; JSON/MAP sizes, viewpoint counts and
+engine command scripts have explicit bounds. Existing-MAP design data is marked
+unavailable instead of silently passed. Inactivity is a warning heuristic with
+stationary/moving/dead controls. Compiling a valid MAP with an omitted ceiling
+exercises structural leak reporting; this is not a loader robustness target.
+
+Read-only diagnostics use existing public boundaries. Fixed camera placement is
+restricted to development builds, cheats and spectators; existing player movement,
+teleport expressions and normal commands are untouched. Vulkan counts are bounded
+POD integers, updated without allocation; no GPU call ordering or shader bytes
+change. No OS access is added outside platform/filesystem code, no non-trivial core
+objects or per-frame allocation is introduced, and wire/file layouts remain fixed.
+Native ABI, RHI alternative-backend probes, boundary/type checks, 1270 tidy
+configurations and classic replay pass. The accepted frame hash and all #26 compiled
+fixtures are unchanged. Dedicated/client builds and both content sets pass headless
+checks. Full lifetime completion, exact-head CI and merged-tree regression remain
+required before acceptance. Optional orthographic/collision-only views are omitted;
+named views and the automatic passage walk cover the required command.
 
 ## #26 checkpoint inherited by #27
 
