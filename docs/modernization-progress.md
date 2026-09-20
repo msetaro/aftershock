@@ -16,25 +16,28 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#9 PR #145 merged as c195f798 after exact-head build 35507057165/regression
-35507057162; merged-tree regression 35507482742 passed. #9 is closed and checked
-in #25. Accounting PR #146 is open at 1f1aeb8f, with build 35508534162 and
-regression 35508533987 running after its MSVC reporting-width correction. Require those exact-head gates and its committed
-self-review before readiness/merge, then require its merged-tree regression.
+#9 PR #145 merged as c195f798 and passed integration regression 35507482742;
+#9 is closed and checked in #25. Accounting PR #146 merged as 3d104d0c after
+exact head 1f1aeb8f passed build 35508534162 and regression 35508533987. Its merge
+tree matches the tested tree (b15a081c6dd1446dea030b9c6d899fdccaa41206).
+Merged-tree regression 35508970698 is running. Require its pass before the next PR.
 
-Current worktree /tmp/aftershock-31-iqm-joint-scale is on
-issue/31-iqm-joint-scale. Failing tests 13f999df/e2cd9e50 precede its matrix fix.
-The accounting branch is merged forward to share accepted #9 and its independent
-metadata fix; no history is rewritten. Prepare the separate scale fix and local
-verification while #146 runs. This replaces the earlier tests-only preparation
-checkpoint; its PR still must not open until #146 merges and passes integration,
-so the eventual diff contains only the scale bug. Merge modernization forward at
-that point. No upstream PRs.
+Current branch is issue/31-iqm-joint-scale. Modernization is merged forward,
+including the MSVC accounting-width correction; no history is rewritten. Failing
+tests 13f999df/e2cd9e50 precede the six-coefficient scale fix. GCC/Clang UBSan
+matrix/native-glTF parity, full cooker checks, formatting and unchanged fixed
+Quake 3 demo hashes pass. Self-review is recorded below. Once #146 integration
+passes, open this separate scale PR, require exact-head hosted build/regression,
+then merge with a merge commit and require its merged-tree regression.
 
-The scale fix and local verification are complete below. Next: finish #146 gates,
-merge it and require its integration regression; merge modernization forward here,
-then open/gate this separate scale PR. Its own hosted gates remain mandatory. After both #31 bugs are accepted, continue #10 and the remaining #25
-roadmap. Never regenerate accepted fixtures for these fixes.
+#10 has only initial failing-test preparation, commit 57838d59 on
+issue/10-animation in /tmp/aftershock-10-animation. No animation implementation
+is present there. After the scale PR is accepted, merge modernization forward
+into #10, read its full issue and the cache issue10-entry-points.md and
+issue10-design-considerations.md, then extend runtime/gameplay tests before
+implementation. The full rifle/body/layers/IK/events/recorded-hit-box scope remains
+mandatory; the first cooker-envelope test is not acceptance. Continue the full
+#25 roadmap afterward. All GitHub writes stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -3221,3 +3224,11 @@ no ABI, allocation algorithm, geometry or simulation arithmetic changes.
 The accounting width correction 1f1aeb8f is merged forward into the separate
 scale branch before its PR. Superseded accounting regression 35508144077 was
 cancelled after build 35508144036 failed; it is not an accepted gate.
+
+
+#146 merged as 3d104d0c after final exact-head build 35508534162/regression
+35508533987 passed. Its merge tree equals the tested tree. Integration regression
+35508970698 is running; no scale PR opens before it passes. Modernization is
+merged forward into the scale branch at this checkpoint. The corrected-accounting
+and scale test combination passes (iqm-scale-merged-width.log). #10 test-only
+preparation is 57838d59; its initial cook fails on the absent animation asset kind.
