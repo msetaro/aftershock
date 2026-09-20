@@ -167,10 +167,27 @@ pass twice through video restart, retaining frame projection
 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
 Both builds pass private-Xvfb resize/hide/restore checks. Public-only stub,
 upload/acquisition probes, format/types/boundaries and 1,166 tidy configurations
-pass. The lifetime gate is running. No command recording, waits, synchronization
-or frontend arithmetic changed. Measurements and hosted acceptance remain.
+pass. Lifetime analysis passes 1,120 compilation commands/119 source paths
+and all controls; final changed-source tidy passes all eight configurations. No command recording, waits, synchronization
+or frontend arithmetic changed. Hosted acceptance remains; measurements follow below.
 The first replay attempt reused a CMake directory belonging to another checkout
 and was rerun in /tmp/aftershock-graph-demo.
+
+Paired measurements are committed as docs/render-graph-measurements.json and
+summarized in docs/design/rhi.md: five alternating real-clock replays per map/build;
+whole-client wall medians 1.43 -> 1.37 and 1.38 -> 1.40 seconds; peak RSS
+181412 -> 181008 and 215872 -> 215744 KiB; final main GPU samples 3.973 -> 4.001
+and 4.837 -> 5.189 ms. No speedup claim. ELF text/data/BSS +944/+128/+3168 bytes.
+The measured graph executable is 50274d80c40408004230bb86a37352eaecc90d6c0c8373df8a3d75f1574e4142.
+
+Self-review: #142 only; no unrelated engine fixes, OS calls, core destructors,
+per-frame allocation, simulation arithmetic, wire/file layouts or public renderer
+ABI changed. Both creation-order mappings and attachment capacities are asserted.
+Readback/persistent targets retain their old storage lifetime; command recording,
+profiling markers and synchronization remain at their original sites. The fixed
+graph is intentionally not an aliasing allocator or a reordered frame scheduler.
+Exact-head build/regression and the subsequent merged-tree replay must pass before
+closing #142. Continue with #9 after that acceptance, following #25.
 
 ## #31 Vulkan acquisition checkpoint
 
