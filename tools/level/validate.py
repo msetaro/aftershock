@@ -36,7 +36,7 @@ def qpath(value):
 
 
 def validate(level, assets):
-    fields(level, ('version','name','materials','rules','rooms','connections','spawns','cover','props','pickups','lighting'))
+    fields(level, ('version','name','materials','rules','rooms','connections','spawns','cover','props','pickups','lighting'), ('viewpoints',))
     require(type(level['version']) is int and level['version']==1, 'level version must be 1')
     require(isinstance(level['name'],str) and re.fullmatch(r'[a-z][a-z0-9_]{0,31}',level['name']), 'invalid map name')
     fields(level['materials'], ('floor','wall','trim','cover','prop','sky'))
@@ -175,6 +175,20 @@ def validate(level, assets):
         x,y,z = spawn['origin']
         s = surface(x,y)
         require(s and abs(z-24-s[0])<0.01 and z+32<=s[1], 'spawn outside walkable world')
+    viewpoints = level.get('viewpoints',[])
+    require(isinstance(viewpoints,list) and len(viewpoints)<=64, 'viewpoints must be an array of at most 64 entries')
+    names = set()
+    for view in viewpoints:
+        fields(view,('id','origin','angles'))
+        name = view['id']
+        require(isinstance(name,str) and re.fullmatch(r'[a-z][a-z0-9_]{0,31}',name) and name not in names, 'invalid/duplicate viewpoint id')
+        names.add(name)
+        vector(view['origin'])
+        vector(view['angles'],-360,360,False)
+        x,y,z = view['origin']
+        s = surface(x,y)
+        require(s and s[0]<z<s[1] and not any(all(a[k]<=view['origin'][k]<=A[k] for k in range(3)) for a,A in obstacles),
+                'viewpoint outside empty world space')
     pickups = {'weapon_gauntlet','weapon_machinegun','weapon_shotgun','weapon_grenadelauncher','weapon_rocketlauncher',
                'weapon_lightning','weapon_railgun','weapon_plasmagun','weapon_bfg','ammo_bullets','ammo_shells',
                'ammo_grenades','ammo_rockets','ammo_lightning','ammo_slugs','ammo_cells','ammo_bfg',

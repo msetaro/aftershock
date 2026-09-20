@@ -27,9 +27,20 @@ subcommand is absent (level-validate-before.log). It requires a stable JSON/text
 report, named and automatic fly-through PNGs repeated byte-for-byte, real draw-call
 and triangle metrics, structure/lightmap/AAS counts, bot movement samples and clear
 unreachable/outside-camera failures. A raw MAP leak control is still to add.
-Next implement the headless command, reusing the existing compiler/native runtime,
-and small read-only engine diagnostics for frame draws and bot positions. No bug
-fix or simulation arithmetic change belongs here. Existing #26 fixtures stay fixed.
+The first command implementation passes locally on Q3: two named views and 15
+automatic passage/room samples reproduce byte-for-byte; 240 authoritative bot
+position samples show 16 kills, 25 pickups and no ten-second inactivity window.
+Vulkan frame draw counts are collected at actual draw submission; existing r_speeds
+provides triangle counts. Entity samples reuse the existing read-only game tools
+API, now initialized in development dedicated servers too. A new development-only
+spectator camera sets an exact fixed eye pose; existing setviewpos and TeleportPlayer
+are unchanged because teleport launch velocity would drift between samples.
+Build: /tmp/aftershock-level-validation-build. Logs: level-validate-first.log and
+level-camera-probe.log in the modernization cache. The latter reports exactly
+(-160,0,96) across separated frames and 18 draw calls.
+Next add the deliberate raw-MAP leak control, improve automatic path ordering,
+verify OA and inactivity detection, document the CLI and run all gates/replay.
+Existing #26 fixtures remain byte-identical. No accepted goldens are regenerated.
 
 ## #26 checkpoint inherited by #27
 

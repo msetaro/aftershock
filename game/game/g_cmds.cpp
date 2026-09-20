@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 //
 #include "g_local.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include <cmath>
+#endif
 
 #include "../bg/menudef_public.h" // for the voice chats
 
@@ -1566,6 +1569,28 @@ void Cmd_Stats_f( gentity_t *ent [[maybe_unused]] ) {
 ClientCommand
 =================
 */
+#ifdef AFTERSHOCK_DEVTOOLS
+// A fixed development camera avoids TeleportPlayer's launch velocity and effects.
+static void Cmd_DevView_f( gentity_t *ent ) {
+	if ( !g_cheats.integer || ent->client->sess.sessionTeam != TEAM_SPECTATOR || trap_Argc() != 7 )
+		return;
+	float values[6];
+	char buffer[MAX_TOKEN_CHARS], extra;
+	for ( int i = 0; i < 6; ++i ) {
+		trap_Argv( i + 1, buffer, sizeof( buffer ) );
+		if ( sscanf( buffer, "%f%c", &values[i], &extra ) != 1 || !std::isfinite( values[i] ) || fabsf( values[i] ) > 32752.0f )
+			return;
+	}
+	VectorCopy( values, ent->client->ps.origin );
+	ent->client->ps.origin[2] -= (float)ent->client->ps.viewheight;
+	VectorClear( ent->client->ps.velocity );
+	ent->client->ps.pm_time = 0;
+	ent->client->ps.eFlags ^= EF_TELEPORT_BIT;
+	SetClientViewAngle( ent, values + 3 );
+	VectorCopy( ent->client->ps.origin, ent->r.currentOrigin );
+}
+#endif
+
 void ClientCommand( int clientNum ) {
 	gentity_t *ent;
 	char cmd[MAX_TOKEN_CHARS];
@@ -1675,6 +1700,10 @@ void ClientCommand( int clientNum ) {
 		Cmd_GameCommand_f( ent );
 	else if ( Q_stricmp( cmd, "setviewpos" ) == 0 )
 		Cmd_SetViewpos_f( ent );
+#ifdef AFTERSHOCK_DEVTOOLS
+	else if ( Q_stricmp( cmd, "dev_view" ) == 0 )
+		Cmd_DevView_f( ent );
+#endif
 	else if ( Q_stricmp( cmd, "stats" ) == 0 )
 		Cmd_Stats_f( ent );
 	else

@@ -3482,6 +3482,10 @@ void Com_Init( char *commandLine ) {
 	Netchan_Init( qport & 0xffff );
 
 	SV_Init();
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( com_dedicated->integer )
+		DevTools_InitEntities();
+#endif
 
 	com_dedicated->modified = qfalse;
 

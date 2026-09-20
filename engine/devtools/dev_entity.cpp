@@ -105,6 +105,12 @@ static void EntityCommand( void ) {
 		success = tools->ReadField( entity, Cmd_Argv( 3 ), value, sizeof( value ) );
 		if ( success )
 			Com_Printf( "Developer entity %d %s = %s\n", entity, Cmd_Argv( 3 ), value );
+	} else if ( !strcmp( operation, "sample" ) && Cmd_Argc() == 3 ) {
+		devEntity_t info;
+		success = tools->ReadEntity( entity, &info );
+		if ( success )
+			Com_Printf( "Developer sample: id=%d origin=%.9f %.9f %.9f health=%d linked=%d\n", entity,
+				info.origin[0], info.origin[1], info.origin[2], info.health, info.linked );
 	} else if ( !strcmp( operation, "find" ) && Cmd_Argc() == 3 ) {
 		char value[1024];
 		for ( int i = 0; i < MAX_GENTITIES; ++i ) {
@@ -115,7 +121,7 @@ static void EntityCommand( void ) {
 			}
 		}
 	} else {
-		Com_Printf( "dev_entity spawn <pickup/point class> <x> <y> <z> | set/get <id/last> <field> [value] | delete <id/last> | find <targetname> | save\n" );
+		Com_Printf( "dev_entity spawn <pickup/point class> <x> <y> <z> | set/get <id/last> <field> [value] | sample <id/last> | delete <id/last> | find <targetname> | save\n" );
 		return;
 	}
 	Com_Printf( "Developer entity %s: %s (last %d)\n", operation, success ? "completed" : "rejected", last );
