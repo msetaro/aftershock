@@ -285,6 +285,13 @@ and FOV 45 on the server and reach the matching client definition. Keep masks
 per hand and inventory weapon, validate data-supported bits, and apply equip
 delay without changing ammunition. Socket rendering follows in presentation.
 
+Attachment modifiers/replication pass the live scenario (weapons-attachment.log):
+mask 1 gives spread 0.75 and FOV 45, reaches cgame and remains in the first rifle's
+inventory across switching. The server caches configured definitions per active
+hand, rejects unsupported masks/busy reload stages and applies the equip delay
+without refilling ammo. Build, format and boundary checks pass. Socket/view
+presentation and notify-driven audio are still outstanding.
+
 
 ## #12 implemented feature evidence
 

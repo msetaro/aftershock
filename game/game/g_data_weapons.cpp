@@ -5,6 +5,8 @@ static struct {
 	int spawn;
 	weaponState_t inventory[2][WEAPON_MAX_DEFINITIONS];
 	int selected[2];
+	uint32_t attachments[2][WEAPON_MAX_DEFINITIONS];
+	weaponDef_t configured[2];
 	gentity_t *entity[2];
 } weaponActors[MAX_CLIENTS];
 static vmCvar_t weaponTrace;
@@ -37,6 +39,34 @@ void G_ClearWeaponActor( int owner ) {
 		if ( entity )
 			G_FreeEntity( entity );
 	actor = {};
+}
+void G_WeaponAttachmentCommand( int owner ) {
+	if ( owner < 0 || owner >= level.maxclients || !weaponActors[owner].active || !g_entities[owner].client || g_entities[owner].health <= 0 || trap_Argc() != 3 )
+		return;
+	char handText[8], maskText[8];
+	trap_Argv( 1, handText, sizeof( handText ) );
+	trap_Argv( 2, maskText, sizeof( maskText ) );
+	if ( strlen( handText ) != 1 || handText[0] < '0' || handText[0] > '1' || !maskText[0] || strlen( maskText ) > 3 )
+		return;
+	for ( const char *p = maskText; *p; ++p )
+		if ( *p < '0' || *p > '9' )
+			return;
+	const int hand = handText[0] - '0';
+	const uint32_t mask = uint32_t( atoi( maskText ) );
+	auto &actor = weaponActors[owner];
+	const int selected = actor.selected[hand];
+	auto &state = actor.inventory[hand][selected];
+	weaponDef_t configured;
+	if ( state.reloadStage != WEAPON_NO_STAGE || int32_t( state.time - state.switchUntil ) < 0 ||
+		 !Weapon_Configure( BG_WeaponDefinition( selected ), mask, &configured ) )
+		return;
+	actor.configured[hand] = configured;
+	actor.attachments[hand][selected] = mask;
+	state.switchUntil = state.nextFire = state.nextMelee = state.time + configured.switchMs;
+	state.adsQ16 = 0;
+	if ( weaponTrace.integer )
+		G_Printf( "Weapon attachment: owner=%d hand=%d mask=%u spread=%.6f fov=%.6f\n", owner, hand, mask,
+			double( configured.spreadDegrees ), double( configured.adsFov ) );
 }
 static bool WeaponWallExit( const vec3_t entry, const vec3_t direction, float limit, int owner, vec3_t exit, float *thickness ) {
 	// ponytail: one-unit occupancy probes, then an exact reverse surface trace;
@@ -199,6 +229,7 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 		actor.active = true;
 		actor.spawn = ps.persistant[PERS_SPAWN_COUNT];
 		for ( int hand = 0; hand < 2; ++hand ) {
+			actor.configured[hand] = *BG_WeaponDefinition( 0 );
 			for ( int index = 0; const auto *definition = BG_WeaponDefinition( index ); ++index )
 				Weapon_Reset( definition, uint32_t( owner ) * 69069u + uint32_t( actor.spawn ) * 31u + uint32_t( hand ) + uint32_t( index ) * 997u,
 					uint32_t( commandStart ), &actor.inventory[hand][index] );
@@ -212,16 +243,19 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 	trap_Cvar_Update( &weaponTrace );
 	for ( int hand = 0; hand < 2; ++hand ) {
 		int &selected = actor.selected[hand];
-		const auto *definition = BG_WeaponDefinition( selected );
+		const auto *definition = &actor.configured[hand];
 		const int requested = int( cmd->weapon ) - 1;
+		weaponDef_t requestedDefinition;
 		if ( requested != selected && BG_WeaponDefinition( requested ) && ps.stats[STAT_HEALTH] > 0 &&
-			 Weapon_Switch( definition, &actor.inventory[hand][selected], BG_WeaponDefinition( requested ),
+			 Weapon_Configure( BG_WeaponDefinition( requested ), actor.attachments[hand][requested], &requestedDefinition ) &&
+			 Weapon_Switch( definition, &actor.inventory[hand][selected], &requestedDefinition,
 				 &actor.inventory[hand][requested], uint32_t( cmd->serverTime ) ) ) {
 			if ( weaponTrace.integer )
 				G_Printf( "Weapon switch: owner=%d hand=%d from=%d to=%d magazine=%u\n", owner, hand, selected, requested, actor.inventory[hand][requested].magazine );
 			selected = requested;
-			definition = BG_WeaponDefinition( selected );
+			actor.configured[hand] = requestedDefinition;
 		}
+
 		auto &state = actor.inventory[hand][selected];
 		const uint32_t buttons = requested == selected ? BG_WeaponButtons( cmd, hand, &ps ) : 0;
 		const uint32_t gap = uint32_t( cmd->serverTime ) - state.time;
@@ -246,7 +280,7 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 				G_Printf( "Weapon event: owner=%d hand=%d kind=%u tick=%u sequence=%u\n", owner, hand, event.kind, event.time, event.sequence );
 		}
 		auto *entity = actor.entity[hand];
-		if ( !BG_WeaponToEntityState( &state, uint32_t( actor.spawn ), owner, hand, selected, 0, ps.origin, &entity->s ) )
+		if ( !BG_WeaponToEntityState( &state, uint32_t( actor.spawn ), owner, hand, selected, actor.attachments[hand][selected], ps.origin, &entity->s ) )
 			G_Error( "Weapon rejected: snapshot" );
 		VectorCopy( ps.origin, entity->r.currentOrigin );
 		trap_LinkEntity( entity );

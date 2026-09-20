@@ -134,6 +134,9 @@ void CG_WeaponSnapshot( const entityState_t *entity ) {
 	if ( weaponTrace.integer && entity->otherEntityNum == cg.clientNum && previous.valid && previous.spawn == spawn &&
 		 previous.definition == entity->modelindex && previous.attachments == entity->modelindex2 && previous.state.time == state.time )
 		CG_Printf( "Weapon prediction: hand=%d tick=%u equal=%d\n", entity->otherEntityNum2, state.time, int( !memcmp( &state, &previous.state, sizeof( state ) ) ) );
+	if ( weaponTrace.integer && entity->modelindex2 )
+		CG_Printf( "Weapon attachment client: owner=%d hand=%d definition=%d mask=%d\n", entity->otherEntityNum, entity->otherEntityNum2,
+			entity->modelindex, entity->modelindex2 );
 	trap_Cvar_Update( &weaponTrace );
 	if ( weaponTrace.integer )
 		CG_Printf( "Weapon client state: owner=%d hand=%d tick=%u sequence=%u magazine=%u reserve=%u chamber=%u ads=%u\n", entity->otherEntityNum,
