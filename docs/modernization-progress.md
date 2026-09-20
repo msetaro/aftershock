@@ -16,11 +16,28 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/12-netcode`; draft PR #149. All #12 feature slices are
-implemented, with provider/transport ownership documented below. Run full local
-and exact-head hosted gates, review the complete diff and update the issue/PR.
-Do not mark ready or merge until gates and AGENTS self-review pass. Then verify
-the merged-tree regression and continue #11 per #25.
+Current branch: `issue/11-weapons`, based on #12 merge 3bb04837. Prepare #11's
+failing data/runtime contracts using the existing cooker and owned rifle/body
+assets. Do not begin implementation before #12 integration regression
+35523091952 passes. Then implement the full #11 scope, wire tests into CI, run
+all gates/self-review and merge through its own PR. #11 was read; #10/#12 are
+its prerequisites. Reuse existing fixed-tick, asset and animation APIs.
+
+#12 PR #149 merged with a merge commit as
+3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree
+93a79e9b32ddfca56f57702fe6476a69478aeb37 equals the fully tested 5078d3ab tree.
+Exact-head build 35522266447 and regression 35522266448 passed after committed
+AGENTS self-review. Hosted budgeted loopback: 634/634 shots agree (31 hits), 64
+uncompensated differences, median view age 154 ms, maximum prediction error
+8.875 units. Matching/version-2 connection tests and fixed static/module animation
+replays (253 authoritative hashes each) passed. The reviewed local final run
+passed 385/385 shots (20 hits), 39 uncompensated differences, median age 146 ms
+and the same prediction bound. No fixture/golden changed.
+Acceptance comment: https://github.com/msetaro/aftershock/issues/12#issuecomment-5751108810
+Merged-tree regression 35523091952 is running. Close/check #12 in #25 after it
+passes; preserve the provider/transport boundary recorded below.
+
+## #12 implemented feature evidence
 
 Implemented so far: generated replication descriptions beside state members,
 strict Aftershock version/schema agreement in the existing challenge/connect
