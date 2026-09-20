@@ -15,45 +15,35 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: #8 integer contracts, branch issue/8-integer-contracts. PR #136
-(head e4a2d92f, merge b9ff3120) passed build 35477855677, regression
-35477855624 and preceding merged-tree regression 35477374263. Self-review and
-measurements are recorded on #8 and PR #136. Central/shared, image/cache and the
-five journal/browser/routing record layouts are merged. No enum promotion changes.
-Local #136 unit/negative control, formatting, boundaries and 570 tidy configs pass.
+Active: #8 final code rules, branch issue/8-final-code-rules. PR #137 merged
+as 50d6ee48 after current-head build 35478967343 and regression 35478967384 passed;
+preceding merged-tree regression 35478332454 also passed. Its source is 03d0b80d,
+final head 64a60d49 (OpenArena copied-wrapper seek adapter corrected). Query the
+new merged-tree regression before merging this branch.
 
-Applied integer-preview against b9ff3120 after 1,810 successful release assembly
-builds and twelve byte-identical native helper binaries. 1,730 assemblies are raw
-identical; two GCC Vorbis files differ only in local function-label numbering;
-78 Windows configurations differ (internal symbol types, integer width/registers,
-struct strides and explicit formatting conversions). Do not claim Windows object
-identity. Existing script arithmetic, journal storage and hash overflow are retained.
-PR #137 source 03d0b80d/head 902dd395: local unit/negative control, 570 tidy
-configurations, curl ABI checks and fixed Q3 replay (b38004b1) passed. Build
-35478687618 and regression 35478687646 started; hosted runtime found a test-adapter
-compile error: copied native wrappers name fsOffset_t, absent from pinned OpenArena
-C headers. The adapter now restores OpenArena's original long seek signature.
-Run the asset-free static OpenArena adapter build and fresh hosted runtime gates
-before merge. Local OpenArena assets are absent; no packages were installed and
-no missing-asset run is counted as passing. Local Quake 3 replay already passes.
-Preceding merged-tree regression 35478332454 passed.
-A GCC attributed-function template warning rejected the first stdio type spelling;
-the final alias uses the standard C ABI word directly. All affected configurations
-were rebuilt successfully. The permanent long gate also covers inactive branches. Existing accepted fixtures and
-goldens stay unchanged. The older long-width previews/proofs are historical.
-MSVC diagnostic V6 (62aec95c, run 35477770192) passed all four configurations;
-that diagnostic branch has a reduced workflow and MUST NEVER be merged.
-Script arithmetic, seek/journal lengths and hash overflow retain explicit legacy
-platform widths. Foreign callback, stdio, libcurl and Xlib values retain SDK/C ABI
-types; internal integers use fixed-width types. The candidate refresh preserves
-all #136 layout changes. Remaining work: numeric byte declarations after the char audit,
-Q_ASSERT integration, final #8 plan/progress/gates, then design-only #6 document.
-#8 remains open.
+Applied final numeric/layout declarations in 09f418cc: eleven files, including
+the eight Vulkan IQM declarations mirroring OpenGL, WAV/browser/routing persisted
+scalars, ADPCM sample/index storage, bot characteristic tags, chat offsets and
+qsort bytes. 169 sampled objects: 135 raw/native-identical, 28 debug-only, six debug
+objects differing only in sign/zero extension before CT_STRING equality. All 256
+byte values give the same equality result. All twelve native helpers retain hashes.
+Evidence: char-object-review.json, char-native.json. No new loader test targets.
 
-Q_ASSERT preview is also CACHE ONLY: formatted-assert-* preserves 205 samples
-(159 raw, 46 debug-only), twelve helper hashes, and passes 46 assertion-enabled
-analysis configurations with increment/mutating-call negative controls. Its header
-baseline predates the long work; refresh inputs/proofs before applying later.
+Applied Q_ASSERT in af8c818a: nineteen existing calls and two shared-header aliases.
+205 samples preserve code/data (159 raw, 46 debug-only); twelve native helper hashes
+match. The existing tidy driver now analyzes with -UNDEBUG and rejects increments,
+mutating calls and nested increments in allowed pure helpers. Cache preview passed
+all 570 production configurations and both renderers; run final local driver with
+all three controls plus unit/replay/chat-offset gates on the applied source.
+Evidence: assert-final-object-review.json, assert-final-native.json,
+assert-final-full-tidy/results.json. Original GPL hashes and all goldens/fixtures
+remain unchanged. The plan's assertion and integer rows are now marked in force.
+
+Next: publish final #8 PR, current-head full build/regression and preceding
+merged-tree gate, AGENTS self-review, merge, and verify that merged tree. Then
+finish #8 tracking, write the design-only docs/design/rhi.md on a #6 branch, gate
+and merge that document, and STOP. No RHI implementation is authorized here.
+#8 remains open until these final gates pass. Older previews below are historical.
 
 Final formatting evidence: all 410 files idempotent; 1,810 release assemblies
 preserve instructions/data (eight inline-assembly source-comment differences).
@@ -1410,24 +1400,24 @@ experiment still timed out before output and is not a claimed runtime gate.
 
 ## Issue status and remaining sequence
 
-| Order | Issue | Status / required work |
-|---|---|---|
-| 1 | #3 regression suite | Complete: merged PR #33, merged-tree regression passed. |
-| 2 | #31 bugs | Huffman merged (#36, upstream #424); filesystem merged (#37, upstream #425); download URL merged (#38, upstream #426); ALSA merged (#39, upstream #427); curl va_start merged (#40, port-specific); ZIP alignment merged (#41, upstream #428); VM alignment merged (#42, upstream #429); zlib callbacks merged (#43, upstream #430); extension output merged (#44, upstream #431); AAS missing candidate merged (#45, upstream #432); PNG header alignment merged (#46, upstream #433); JPEG table index merged (#47, upstream #434); thirteen fixes merged through #49; merged-tree regression 34895239211 passed. Movement result (#51, upstream #435) and native dispatch (#52, upstream #436) also merged; active follow-up is GPL team-leader name bounds. Each fix needs failing-before/passing-after evidence, affected golden regeneration explained, removal of its expectation/suppression, upstream PR if not port-specific. Read docs/cpp-port-notes.md and issue #31. |
-| 3 | #1 error model | Complete: merged #48, merged-tree regression 34893585998 passed. |
-| 4 | #2 native game | In progress: exact C import and native preflight; prove QVM/native bot-smoke and fixed-demo parity; port with catalog T1–T25 and gates; static native modules, then remove VMs/JITs. Explicitly ends Quake 3 mod compatibility. |
-| 5 | #4 boundaries | Hash-verified directory moves, include/OS-access CI checks, docs/subsystems.md; rename cpp-port-notes.md to docs/bugs.md. |
-| 6 | #5 CMake | Repair as primary, object parity before removing Makefile; generated MSVC projects, 64-bit little-endian only. |
-| 7 | #8 code rules | Warning class per PR; one codegen-identical tree-wide clang-format commit; tidy subsets; fixed-width wire/file types and layout traits; release-identical Q_ASSERT. |
-| 8 | #6 design only | Write docs/design/rhi.md after #8, then stop. |
+| Order | Issue | Status |
+| --- | --- | --- |
+| 1 | #3 regression suite | Complete: PR #33, merge 8692b422; historical network evidence remains unchanged. |
+| 2 | #31 bugs | Recorded fixes merged in individual test-first PRs, including later native and warning-audit discoveries. Current evidence and reproducers are in docs/bugs.md. No further upstream submissions under the maintainer ruling above. |
+| 3 | #1 error model | Complete: PR #48, merge 95b418b0; longjmp and the lifetime gate are in force. |
+| 4 | #2 native game | Complete: PR #50, merge 6069cf2a; static C++ game modules, native/QVM parity evidence retained, VMs/JITs removed. |
+| 5 | #4 boundaries | Complete: PR #65, merge 4a952854; verified moves, public include/OS gates, docs/subsystems.md and docs/bugs.md. |
+| 6 | #5 CMake | Complete: PR #66, merge 1412c2eb; object parity, generated MSVC projects, 64-bit-only primary CMake build. |
+| 7 | #8 code rules | In progress: warning ratchet, one formatting commit, tidy subsets and 72 wire/file/shared layout contracts merged. Integer policy PR #137 merged; final numeric/layout and Q_ASSERT commits await their full hosted gates. |
+| 8 | #6 design only | Write docs/design/rhi.md after #8, then stop. No RHI implementation in this sequence. |
 
 ## Rulings in force
 
 - The user's 2026-09-14 continuation supersedes the older roadmap order and handoff.
   Preserve fixed-timestep simulation, prediction/snapshots, cvars/pk3, arena/POD data,
   no per-frame allocation. No simulation FP restructuring except tested #31 fixes.
-- C++20, no exceptions/RTTI, longjmp/trivial core lifetimes. Existing VM/dlopen paths
-  are the transition oracle only. Match surrounding style until #8.
+- C++20, no exceptions/RTTI, longjmp/trivial core lifetimes. VMs/JITs are removed;
+  renderer modules are optional PC-only. clang-format 21.1.8 is authoritative.
 - Local system packages must not be installed. Each CI job installs prerequisites.
   Proprietary paks stay outside git and uploads. Missing content/tools fail tests.
 - Network coverage is finished. This thread ran `python3 tests/network.py --max-error 0`

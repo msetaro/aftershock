@@ -57,6 +57,12 @@ The legacy script arithmetic, seek/config-journal lengths and hash accumulators
 retain explicit Windows/non-Windows widths to preserve existing behavior. Changing
 those compatibility contracts requires separate behavior-change evidence.
 
+Both renderer IQM headers carry the same eight file-layout contracts. WAV
+scalars, browser-cache counters/size, and routing-cache size use explicit widths.
+ADPCM sample/index storage, bot characteristic tags, signed chat offsets and
+qsort copy bytes also have explicit types; text characters and boolean character
+flags retain their existing interpretation.
+
 The thirteen asset-free groups include wire/file layout. The negative control
 moves the active GCC SSE Q_rsqrt return one ULP toward infinity in a temporary
 source copy; the golden comparison must reject it. Clang requires libc++-dev and
@@ -96,7 +102,12 @@ actual CMake commands, including each native module wrapper. It requires
 clang-tidy and the client build headers (`clang-tidy`, `libsdl2-dev`,
 `libcurl4-openssl-dev`, `mesa-common-dev`, and Ninja on hosted Ubuntu).
 `--clang-tidy`, `--jobs` and `--output` select the executable, parallelism and
-retained evidence. Duplicate includes and misleading indentation fail CI.
+retained evidence. Duplicate includes, misleading indentation and assertion side
+effects fail CI. `Q_ASSERT` is an object-like alias of `assert`; existing conditions
+and release code are unchanged. Analysis appends `-UNDEBUG` to production flags
+so assertions remain visible to the check. Positive controls allow the existing
+pure math helpers; negative controls reject increments, mutating calls and an
+increment nested inside an allowed helper. This does not alter build flags.
 The existing bugprone/portability subset, performance-* and the single
 modernize-redundant-void-arg check are advisory; CI retains every diagnostic
 and a JSON summary. Enum shrinking and pointer rewrites are not automatic fixes.
