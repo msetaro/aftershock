@@ -84,3 +84,13 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
      'tests/probes/weapon_hitscan.cpp', 'engine/weapons/weapons.cpp', sha, '-Wl,--gc-sections', '-o', hitscan])
 run([hitscan])
+
+# New #11 graph reuses the accepted model source without editing #10 assets.
+cook(ROOT / 'tests/assets/range.json', args.output / 'range')
+animation = args.output / 'animation-probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-ffunction-sections', '-fdata-sections', '-fno-fast-math', '-ffp-contract=off',
+     '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/weapon_animation.cpp', 'engine/weapons/weapons.cpp',
+     'engine/animation/animation.cpp', sha, '-Wl,--gc-sections', '-o', animation])
+run([animation, args.output / 'weapons/second.asweapon', args.output / 'range/animations/range_rifle.asanim'])

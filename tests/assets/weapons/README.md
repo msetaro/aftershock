@@ -1,5 +1,7 @@
 Original GPL-2.0-or-later weapon parameters and range props for #11. The rifle
-model/graph reuse the unchanged owned #10 sources. No installed game content is
+model reuses the unchanged owned #10 source. The new weapon graph aligns reload
+notifies to weapon stages and adds a melee state using its existing fire clip.
+`../range.json` cooks the complete owned range presentation. No installed game content is
 copied here.
 
 Weapon definition/cooked format version 2 adds an explicit projectile model and

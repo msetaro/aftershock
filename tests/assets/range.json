@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "name": "models/anim_rifle",
+      "kind": "model",
+      "source": "animation/rifle.gltf",
+      "scale": 32,
+      "fps": 30
+    },
+    {
+      "name": "models/anim_body",
+      "kind": "model",
+      "source": "animation/body.gltf",
+      "scale": 32,
+      "fps": 30
+    },
+    {
+      "name": "animations/range_rifle",
+      "kind": "animation",
+      "source": "weapons/rifle.animation.json",
+      "scale": 32,
+      "fps": 30
+    },
+    {
+      "name": "animations/anim_body",
+      "kind": "animation",
+      "source": "animation/body.animation.json",
+      "scale": 32,
+      "fps": 30
+    },
+    {
+      "name": "effects/range_default",
+      "kind": "material",
+      "source": "weapons/impact-default.json"
+    },
+    {
+      "name": "effects/range_metal",
+      "kind": "material",
+      "source": "weapons/impact-metal.json"
+    },
+    {
+      "name": "models/range_optic",
+      "kind": "model",
+      "source": "weapons/optic.gltf",
+      "scale": 32,
+      "fps": 30
+    },
+    {
+      "name": "models/range_grenade",
+      "kind": "model",
+      "source": "weapons/grenade.gltf",
+      "scale": 32,
+      "fps": 30
+    },
+    {
+      "name": "sound/range_shot",
+      "kind": "audio",
+      "source": "weapons/shot.wav"
+    },
+    {
+      "name": "sound/range_reload",
+      "kind": "audio",
+      "source": "weapons/reload.wav"
+    }
+  ]
+}

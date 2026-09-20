@@ -54,6 +54,11 @@ The adapter now passes GCC and Clang/libc++ UBSan
 (weapons-animation-snapshot-gcc.log/-clang.log), including full counters and all
 parameters; the existing 1000-shot digest and 67/10-byte weapon-state sizes remain
 unchanged. Next: shared notify advancement and live graph loading/prediction.
+The new graph/step probe fails on missing BG_WeaponAnimationStep
+(weapons-animation-step-before.log). It checks automatic shot/shell pairs,
+reload/cancel, melee, ADS and identical replay from an acknowledgement. New
+range.json references the original #10 model files; only the new #11 graph has
+reload notifies aligned to the existing weapon stages (200/600/800/1000 ms).
 
 ## #11 test-first scope
 

@@ -2,7 +2,7 @@
   "version": 2,
   "name": "range_rifle",
   "model": "models/anim_rifle.iqm",
-  "animation": "animations/anim_rifle.asanim",
+  "animation": "animations/range_rifle.asanim",
   "fire_mode": "auto",
   "interval_ms": 80,
   "burst_count": 3,
