@@ -16,6 +16,37 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
+Main checkout is preparatory issue/13-materials, based on modernization eb9496ee.
+#28 implementation remains in level-tree on issue/28-match-server. Draft PR #156
+head 04a86876e62c16a803e9ee29c47a8460fcbe6bd6 is running exact-head build 35542300540
+and regression 35542300709, including the new match-server kind job. #31 PR #155
+is merged at eb9496ee2d28a85a599ea8eb5d7bd35a0bd584d0; its merged-tree regression
+35541625720 is still required before closure/#28 acceptance. #27 is complete.
+
+#28's reviewed local image/kind test passed at /tmp/aftershock-match-kind-reviewed:
+a real native OA player joined sv_pure=1, the one-minute match exited, a completed
+checkpoint was durably acknowledged, and a new Ready server replaced it. All three
+containers used 45,748,224 working-set bytes and 0.00380977 vCPU over 20 seconds
+with one connected idle player. Resource equivalents are 21.86 matches/GB and
+262.5/vCPU, not saturated or worst-case capacity. Configured requests, including
+Agones' always-running init sidecar, are 0.13 vCPU and 96 MiB per match (7.69/vCPU,
+9.93/decimal GB before shared services/reserves). First/second local lifecycles also
+passed. Credentials/kubeconfig are excluded from artifacts and private clusters
+were removed. Logs: match-kind-{full-first,full-final,reviewed}.log; reports under
+/tmp/aftershock-match-kind-{first,final,reviewed}.
+
+Finish #155 integration closure, then #156 exact-head gates/self-review/merge and
+merged-tree regression. Do not accept missing content or regenerate fixtures.
+While those gates run, read/prepare #13's failing material contract only. The issue
+requires glTF PBR rendering, data/instance parameters, ImGui live editing and
+unchanged q3dm17 frame hashes. Choose metallic/roughness to match glTF; preserve
+legacy Quake shader execution and existing accepted shader bytes. New material
+payload/shaders/test sources may be authored deliberately, never regenerate an
+accepted oracle to hide changed legacy rendering. No #13 PR/implementation acceptance
+before #28 completes; merge modernization forward, never rebase. Continue #25.
+
+## #31 checkpoint inherited by #13
+
 Current main checkout: issue/31-native-pure. #27 PR #154 merged at
 6a3cb22d54a1c9575adde00c1d415639cde617f3; exact-head build 35538730616,
 regression 35538730598 and merged-tree regression 35539581431 all passed.
