@@ -23,7 +23,9 @@ enum weaponButtons_t : uint32_t { WEAPON_FIRE = 1,
 enum weaponEventKind_t : uint32_t { WEAPON_SHOT,
 	WEAPON_DRY,
 	WEAPON_RELOAD_EVENT,
-	WEAPON_MELEE_EVENT };
+	WEAPON_MELEE_EVENT,
+	WEAPON_RELOAD_BEGIN,
+	WEAPON_RELOAD_CANCELLED };
 struct weaponReload_t {
 	uint32_t timeMs, action, cancel;
 	char event[64];

@@ -127,15 +127,25 @@ bool Weapon_Tick( const weaponDef_t *d, uint32_t buttons, uint32_t time, weaponS
 	state->adsQ16 = buttons & WEAPON_ADS ? std::min( 65536u, state->adsQ16 + adsStep ) : state->adsQ16 - std::min( state->adsQ16, adsStep );
 	if ( (int32_t)( time - state->switchUntil ) < 0 )
 		return true;
-	if ( ( pressed & WEAPON_RELOAD ) && state->reloadStage == WEAPON_NO_STAGE &&
+	const bool cancel = ( buttons & WEAPON_CANCEL ) || ( ( pressed & WEAPON_RELOAD ) && state->reloadStage != WEAPON_NO_STAGE );
+	if ( cancel && state->reloadStage != WEAPON_NO_STAGE &&
+		 ( !state->reloadStage || d->reload[state->reloadStage - 1].cancel ) ) {
+		auto &event = events->items[events->count++];
+		event.kind = WEAPON_RELOAD_CANCELLED;
+		event.stage = state->reloadStage;
+		event.time = time;
+		state->reloadStage = WEAPON_NO_STAGE;
+	}
+	if ( !cancel && ( pressed & WEAPON_RELOAD ) && state->reloadStage == WEAPON_NO_STAGE &&
 		 ( state->magazine < d->magazine || !state->chamber ) && ( state->reserve || state->magazine ) ) {
 		state->reloadStage = 0;
 		state->reloadStart = time;
 		state->burstRemaining = 0;
+		auto &event = events->items[events->count++];
+		event.kind = WEAPON_RELOAD_BEGIN;
+		event.time = time;
 	}
-	if ( ( buttons & WEAPON_CANCEL ) && state->reloadStage != WEAPON_NO_STAGE &&
-		 ( !state->reloadStage || d->reload[state->reloadStage - 1].cancel ) )
-		state->reloadStage = WEAPON_NO_STAGE;
+
 	while ( state->reloadStage != WEAPON_NO_STAGE && time - state->reloadStart >= d->reload[state->reloadStage].timeMs ) {
 		const uint32_t stage = state->reloadStage++;
 		auto &event = events->items[events->count++];

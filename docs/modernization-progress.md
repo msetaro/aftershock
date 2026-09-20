@@ -297,6 +297,12 @@ reload press to cancel at an allowed stage (weapons-reload-events-before.log).
 These events let weapon animation follow mechanical state without adding an
 input bit or inferring starts from later magazine events.
 
+Reload begin/cancel events and second-press cancellation now pass GCC/Clang UBSan
+(weapons-reload-events-gcc.log/-clang.log), including ammo conservation. Shot
+reference and snapshot sizes remain unchanged. Next: per-hand weapon animation
+state using existing animation APIs/codec, notify-driven sound, socket/view
+presentation, then range controls and complete acceptance gates.
+
 
 ## #12 implemented feature evidence
 
