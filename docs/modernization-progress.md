@@ -2,8 +2,12 @@
 
 Integration: `modernization`. Issue branches: `issue/<number>-<slug>`, one bug per
 #31 PR and one warning class per #8 PR. Merge commits only after gates/self-review.
-Never push main, force-push, rewrite history, or touch port-evidence. Stop after #8
-and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
+Never push main, force-push, rewrite history, or touch port-evidence.
+
+Maintainer continuation (2026-09-19): continue the modernization roadmap through
+completion or a dependency requiring the maintainer. This supersedes the earlier
+stop after #8/design-only #6. Implement #6 next, then follow #25; preserve the
+separate-session #35 scope and the completed network-test evidence.
 
 Maintainer ruling (2026-09-19): keep all future changes and PRs in
 `msetaro/aftershock`. Do not create PRs against ec-/Quake3e or another parent
@@ -12,16 +16,119 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Stop at this checkpoint after the design-only #6 PR passes its gates, merges, and
-its merged-tree regression passes. The authorized sequence ends here. Do not start
-RHI implementation, retire OpenGL, or advance to #7 without a new request.
+Fix Vulkan image acquisition status on `issue/31-vulkan-acquire`, based on
+integration e82eb43b. Add a failing test before changing engine code, retain success
+and suboptimal behavior, and reject timeout/not-ready before marking an image
+acquired. Gates and self-review must pass before this separate #31 PR merges.
+Then merge modernization into `issue/6-rhi` and resume draft PR #140. Its latest
+checkpoint is 21b44a9c (GPU timestamp scopes); build 35484267291 and
+regression 35484267381 both passed. Uniform, texture, command and timing extraction remain
+unmerged in that draft. Do not retire GL before the full RHI acceptance gates.
+Continue #7 and the remaining #25 sequence after #6 is accepted. All writes/PRs
+stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
-`modernization`. #6 has a design document only: `docs/design/rhi.md`. It describes
-the thin static Vulkan RHI, platform/filesystem ownership, explicit lifetimes and
-error handling, offline shaders/caches, phase-two render graph and unchanged-frame
-gates. It does not add engine code or a new backend. Final design PR/merge and CI
-evidence are recorded on [issue #6](https://github.com/msetaro/aftershock/issues/6).
+`modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
+regression 35479955499 passed; merged-tree regression 35480310184 passed.
+`docs/design/rhi.md` is now the implementation plan for #6 under the renewed scope.
+No RHI engine changes have merged yet. Baseline capacities: two frame slots, 4 MiB
+normal / 8 MiB high geometry buffers, 2 MiB normal / 24 MiB high staging buffers,
+32 samplers and 2,304 pipeline descriptions; do not change these during extraction.
+Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
+
+## #31 Vulkan acquisition checkpoint
+
+`tests/vulkan_acquire.py` runs the real frame method with controlled GPU callbacks
+and exits at command recording, without opening a window or creating a device.
+On e82eb43b the two valid result cases pass. Both timeout/not-ready cases fail:
+recording is reached despite no acquired image (exit 1, expected error exit 42).
+Evidence: vulkan-acquire-before.log. Engine code is still unchanged in the first
+test commit. Decision: route these no-image statuses through the existing fatal
+acquisition-error path; preserve success, suboptimal and out-of-date retry handling.
+No fixture/golden changes are needed for valid rendering; no simulation change.
+Test-first commit ea17a6ba records the failure. The engine correction accepts only
+VK_SUCCESS/VK_SUBOPTIMAL_KHR before setting acquired state; other statuses retain
+the existing error/retry paths. GCC and Clang/libc++ all four cases pass (the Clang
+probe's error callback explicitly matches the noreturn attribute). Local video-
+restart replay passes b38004b1. Format/type/boundary checks pass. AGENTS self-review:
+one acquisition condition only; no new engine OS call, allocation, destructor,
+layout or floating-point change. CI integration runs the new test on both unit
+compilers. Current-head hosted gates and merge are next.
+
+## #6 implementation checkpoint
+
+The first working slice moves uniform uploads out of `tr_shade.cpp` into the
+backend through `engine/rhi/rhi_public.h`, without changing uniform generation,
+alignment, descriptor ordering or frame slots. Diagnostics use a trivial public
+record. The partial alternative stub compiles in every client configuration and
+reports unavailable; it is not a completed alternative renderer. `tests/rhi.py`
+checks public-only dependencies and production upload alignment/bytes/bindings,
+capacity exhaustion and separate frame slots (GCC and Clang/libc++ pass).
+
+Local baseline and post-extraction fixed Q3 replay pass with b38004b1, no fixture
+or golden changes. Mesa 26.0.8 / llvmpipe LLVM 21.1.8, Vulkan API 1.4.335, 640x480
+windowed, 32-bit textures, picmip 0, GL_LINEAR_MIPMAP_NEAREST. q3dm17 peak vertex
+284 KiB / push 4,160 bytes / 67 pipelines / 183 descriptions / 1 image chunk;
+q3dm7 120 KiB / 1,024 bytes / 60 pipelines / 214 descriptions / 2 chunks. Both use
+pipeline world base 92. Capacities and allocation policies are unchanged. Host
+wall times include startup, are informational, and are not GPU timing claims.
+Cache evidence: rhi-baseline.log, rhi-uniform.log, rhi-contract.log and rhi-baseline/
+in ~/.cache/aftershock-modernization. Hosted OpenArena measurements, remaining
+resources/device/commands/timestamps, lifecycle gates and GL retirement are pending.
+
+Texture slice: portable format/address enums and opaque texture handles replace
+Vulkan image/view/descriptor fields in frontend records. Backend creation, uploads,
+conversion, sampler selection and destruction no longer accept `image_t`. The
+80-byte image record and handle offset 56 are asserted unchanged. All five format
+and three sampler address mappings, descriptor binding and idempotent destruction
+pass GCC and Clang/libc++ checks. Local fixed replay and video-restart lifecycle
+pass b38004b1; all four plain-replay resource snapshots match the baseline. No
+shader, pixel-conversion expression, allocation pool or upload barrier changes.
+Legacy backend error exits still need the planned status-boundary extraction.
+Evidence: rhi-textures.log, rhi-texture-lifecycle.log, rhi-texture-contract.log.
+
+First slice b970de67: full build 35483352838 and full regression 35483352666
+passed. Texture commit 401d8b74 is running build 35483644058 and regression
+35483644047. Hosted OpenArena replay passed with its accepted
+Mesa 25.2.8 goldens. Downloaded logs: rhi-openarena-baseline/. LLVM 20.1.2, Vulkan
+API 1.4.318. oa_dm1 peak vertex 48 KiB / push 512 bytes / 67 pipelines / 216
+descriptions / 2 chunks; oa_dm7 276 KiB / 1,792 bytes / 66 pipelines / 212
+descriptions / 2 chunks. Both use world base 92, 8 MiB geometry per slot, five
+samplers and two frame slots; staging is 2 MiB / 6 MiB respectively. These are
+hosted measurements, not claims that OpenArena content is installed locally.
+
+Command/status slice: indexed draw and render-pass ending are public RHI commands
+with the same arguments and ordering. Frontend device/queue waits now receive
+portable statuses and report errors only after the backend returns. The focused
+production check covers successful, unavailable, out-of-memory, lost-device and
+other failure returns, plus exact draw arguments and pass order. GCC and
+Clang/libc++ pass; local replay retains b38004b1 (rhi-commands.log). Backend-internal
+legacy error paths and initialization/presentation still require extraction.
+Next: finish timestamp validation, then a separate #31 test-first correction
+for image acquisition status before extracting the remaining frame/resource state. PR #140 remains a draft; nothing from #6 implementation is merged yet.
+
+Timestamp slice (working tree): 32 bounded scopes per frame, separate query ranges
+for the two frame slots, explicit begin/end commands and availability readback only
+after the existing fence succeeds. Unsupported queues report no timings; no query
+WAIT flag or new fence is added. Vulkan pass scopes preserve the original pass
+commands, object labels and barriers. The GPU-free production check exercises
+8-bit timestamp wrap, unavailable queries, capacity exhaustion and duplicate end.
+Both GCC and Clang/libc++ pass. Fixed Q3 replay retains b38004b1 (rhi-timings.log).
+
+GPU measurements must use the real clock: faketime also affects Mesa's software
+query values. `tests/demo.py --measure-gpu` gates frames first, then measures two
+separate Vulkan replays per map without faketime. Initial main-pass samples are
+4.071/3.957 ms (q3dm17) and 4.892/4.828 ms (q3dm7), informational single completed
+frame samples on lavapipe, not a before/after speedup claim. Host wall times include
+startup. Measured x64 Vk_Instance grows 188,672 -> 192,104 bytes (+3,432 fixed CPU
+bytes), each frame slot 320 -> 1,384 bytes. GPU storage adds 128 timestamp queries;
+no per-frame CPU allocation. Evidence: rhi-timing-measurements.log,
+rhi-timing-contract.log, rhi-timing-sizes.txt. Video-restart replay and real-clock timing also pass (rhi-timing-lifecycle.log).
+
+Texture 401d8b74 full build 35483644058 and regression 35483644047 passed.
+Command/status 2b43a0bb full build 35483786166 passed; regression 35483786169 is
+pending final status verification. The implementation stays on draft PR #140 while the remaining RHI
+boundary and acceptance work proceeds.
 
 ## Final #8 verification
 

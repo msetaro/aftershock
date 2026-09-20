@@ -34,6 +34,32 @@ by the documented smoke clock and fixed-demo replay. The Clang JIT instrumentati
 and ASan/faketime observations below are verification limits, not passing gates;
 #2 removes the transitional JIT. The additional native-math defect is assigned to #31 below.
 
+## Vulkan image acquisition status found during #6
+
+Source audit at 2b43a0bb found that `vk_begin_frame` in
+`engine/renderervk/vk.cpp` accepts every nonnegative `vkAcquireNextImageKHR`
+result and sets `swapchain_image_acquired`. `VK_TIMEOUT` and `VK_NOT_READY`
+do not supply an acquired image; only success/suboptimal results do. See the
+[Vulkan acquisition contract](https://docs.vulkan.org/refpages/latest/refpages/source/vkAcquireNextImageKHR.html).
+The permanent `python3 tests/vulkan_acquire.py` executes the real `vk_begin_frame`
+with controlled GPU callbacks and stops at command recording; it creates no GPU
+or window. On integration e82eb43b, success/suboptimal cases pass, but timeout and
+not-ready cases both exit 1 because command recording is reached without an image
+(expected: error callback exit 42 with acquired state false). Evidence:
+~/.cache/aftershock-modernization/vulkan-acquire-before.log. No actual driver
+failure has been observed in normal replay. This separate test-first #31 PR must
+pass before #6's frame lifecycle gate is complete.
+No fix belongs in the RHI extraction PR, and no golden changes are anticipated
+for successful rendering.
+
+Test-first ea17a6ba is followed by the single-condition correction: only
+VK_SUCCESS/VK_SUBOPTIMAL_KHR permit acquisition. Timeout/not-ready use the existing
+fatal acquisition-error path; the existing out-of-date retry remains. Both GCC and
+Clang/libc++ now pass all four cases, and fixed-demo video-restart replay retains
+b38004b1. No active known-bug/suppression entry exists for this new defect and none
+is added; no accepted golden or fixture regeneration is warranted. Hosted gates
+and the separate #31 merge are pending.
+
 ## Formatter capacity defects found during #8
 
 Two formatter defects reproduced while inventorying Apple deprecations for #8; fixes will be separate test-first #31 PRs, only in msetaro/aftershock.
