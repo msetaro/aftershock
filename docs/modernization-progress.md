@@ -31,7 +31,9 @@ R_LoadIQM and its local verification while the merged-tree gate runs; no follow-
 PR opens until that gate passes. This advances the earlier tests-only preparation
 checkpoint now that #9's exact-head gates and merge are complete.
 
-Next: fix and verify accounting, complete self-review and its separate #31 PR;
+The one-line accounting fix now passes GCC/Clang cooker checks, formatting and
+fixed Quake 3 replay. Self-review is recorded below. Next: wait for #9 merged-tree
+regression, close #9/update #25, then open and gate the separate #31 accounting PR;
 then fix rotated nonuniform joint scale in another #31 PR. Its mathematical test
 is being prepared in /tmp/aftershock-31-iqm-joint-scale without engine edits.
 After both bugs, continue #10 and the remaining #25 roadmap. All GitHub changes
@@ -3151,3 +3153,20 @@ Accounting test-first 85563345 fails before the fix at
 exact current block accounting, rejecting an accumulating fix. Registration and
 reload both route through R_LoadIQM; its one native block needs one assignment.
 This bug is not a sanitizer finding, so it has no known-bugs/suppression entry.
+
+## #31 accounting fix and local verification
+
+R_LoadIQM assigns model_t::dataSize to its native block size. Test-first 85563345
+failed before the assignment; GCC and Clang/libc++ complete cooker tests now pass,
+including registration and twelve owned replacements (no accumulating count).
+Format passes. Fixed Quake 3 demos replay twice per map and preserve projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4 and both committed
+fixture hashes. Logs: iqm-accounting-{gcc,clang,format,demo}.log. No golden was
+regenerated, and this non-sanitizer bug has no known-bugs/suppression entry.
+
+Self-review: this #31 change is one metadata assignment in the shared loader.
+No geometry/simulation arithmetic, allocation, OS call, destructor, ABI/layout or
+unrelated refactoring changes. Initial registration and in-place replacement share
+the corrected path. Full exact-head hosted build/regression still required for the
+PR, after #9 integration regression 35507482742 passes. The rotated-scale test is
+committed separately as 13f999df and fails before any matrix change.
