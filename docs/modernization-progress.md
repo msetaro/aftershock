@@ -51,6 +51,15 @@ loss; uncompensated shots must all miss. It also checks world obstruction,
 rewind limits, respawn/teleport generation boundaries, storage bounds and clock
 wrap. This is the portable core test; real game/server integration remains next.
 
+The portable history now passes GCC and Clang/libc++ UBSan: 950/950 delayed
+hits, zero unrewound hits, maximum interpolation error 0.000488 units. The bounded
+64-frame ring holds 1024 entity records and 2048 boxes per frame (under 5 MiB),
+with no frame allocations. Queries clamp to configured/available history, never
+interpolate different generations, and keep world obstruction authoritative.
+Strict FP flags apply to this new arithmetic. Production gameplay integration
+and a real transport test are still required; the portable result is not yet
+full #12 acceptance.
+
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
 layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body
 controllers, replicated hit boxes, automatic body facing, ADS/recoil/sway, and an

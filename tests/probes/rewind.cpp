@@ -1,4 +1,4 @@
-// Ordinary moving-target hit validation with delayed/lost loopback messages.
+// Portable moving-target validation with simulated delayed/lost shot times.
 #include "../../engine/qcommon/net_history_public.h"
 #include <assert.h>
 #include <math.h>
@@ -62,6 +62,13 @@ int main() {
 	assert( NET_HistoryQuery( &history, 4, 0xfffffffau, 200, &query ) );
 	assert( query.time == 0xfffffffau && query.rewindMs == 10 );
 	assert( NET_HistoryQuery( &history, 4, 0xffffff00u, 200, &query ) && query.clamped && query.time == 0xfffffff0u );
+	assert( !NET_HistoryQuery( &history, 5000, 4900, 200, &query ) ); // stale data cannot extend the budget
+	const netBox_t box = { { -1, -1, -1 }, { 1, 1, 1 } };
+	const float center[3] = {}, outside[3] = { 2, 0, 0 }, miss[3] = { 2, 2, 0 };
+	assert( NET_TraceBoxes( center, center, &box, 1, 1, &hit ) && hit.startSolid && hit.allSolid );
+	assert( NET_TraceBoxes( center, outside, &box, 1, 1, &hit ) && hit.startSolid && !hit.allSolid );
+	assert( !NET_TraceBoxes( outside, miss, &box, 1, 1, &hit ) );
+	assert( NET_TraceBoxes( outside, center, &box, 1, 1, &hit ) && hit.normal[0] == 1 && hit.fraction == 0.5f );
 	frame.time = 24;
 	frame.boxCount = NET_HISTORY_BOXES + 1;
 	assert( !NET_HistoryStore( &history, &frame ) );

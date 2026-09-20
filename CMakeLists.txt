@@ -289,11 +289,11 @@ function(engine_options target kind)
   endif()
 endfunction()
 
-# Gameplay poses must use the same arithmetic on server, client and tool builds.
+# Gameplay poses and rewind sampling use the same arithmetic on every build.
 if(MSVC)
-  set_source_files_properties(engine/animation/animation.cpp PROPERTIES COMPILE_OPTIONS "/fp:strict")
+  set_source_files_properties(engine/animation/animation.cpp engine/qcommon/net_history.cpp PROPERTIES COMPILE_OPTIONS "/fp:strict")
 else()
-  set_source_files_properties(engine/animation/animation.cpp PROPERTIES COMPILE_OPTIONS "-fno-fast-math;-ffp-contract=off")
+  set_source_files_properties(engine/animation/animation.cpp engine/qcommon/net_history.cpp PROPERTIES COMPILE_OPTIONS "-fno-fast-math;-ffp-contract=off")
 endif()
 
 foreach(source IN LISTS COMMON_SOURCES)
