@@ -1,0 +1,14 @@
+{
+  "author": "Aftershock contributors",
+  "files": {
+    "models/crate.obj": "fa8d4241c97f3bea39bbb0b71f7814d7f941713feb90d735f7db817911f6c5e4",
+    "textures/level/cover.tga": "e697b474e503b350963894ace4b0ab4e28bcc1608d5c9b9f20b6e6a07d9d14ec",
+    "textures/level/floor.tga": "abb510335b9b88b3c332364e54dded49561f1e1c8cbbf8a936a3e0d43aeb437e",
+    "textures/level/prop.tga": "dd7fce6bc5842a6b28596567d2e13f42cc14805b982c41768d6a9d2bf653470e",
+    "textures/level/sky.tga": "e7ac696063c5613176c4cb288d1324316de69c72e933e124c50023f595e24b1d",
+    "textures/level/trim.tga": "7aa7f537433e39bc7f3533c5b917a9344b1c2df782e69104ec8e5e88931b1710",
+    "textures/level/wall.tga": "d381bb086f8ee0c86a27fdf9f387952c62e34e249b9ce65d169b276d953443a1"
+  },
+  "license": "GPL-2.0-or-later",
+  "method": "export.py: six procedural checker textures and one authored cube"
+}

@@ -16,42 +16,118 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/151-loopback-deadline`, a test-only follow-up to #11.
-The cleanup check now passes: an ignoring child is killed/reaped after its grace
-period. The weapon deadline is 120 seconds inside a 240-second outer limit, and
---client-fps 20 provides the deliberately slow real-client control.
-The first slow run completed the whole scenario and teardown, then failed the
-100-FPS-specific median-age bound (200 ms observed vs 180 ms). Allow only the
-additional input/render interval, capped at the configured 200 ms rewind window;
-retain the original bound for normal FPS. Hit/state/prediction checks are unchanged.
-The slow control passes and takes 54.0 seconds before its done marker (>45):
-301/301 shots agree, 22 hits, 49 uncompensated differences, median view age 200 ms,
-prediction error <=8.875, and 1511/1511 full weapon/animation comparisons. Cleanup
-also passes. The original default/classic scenario passes in 17.7 seconds:
-329/329 shots agree, 21 hits, 42 uncompensated differences, median age 147 ms
-and prediction error <=8.875. Draft PR #152 contains the fix and self-review.
-Run full exact-head gates, merge #152 and require merged-tree regression.
-Do not close/check #11 until integration is green. No engine changes are needed.
+Current branch: `issue/26-level-authoring`, with modernization merged forward
+through #151 PR #152 merge 64a38d44aa50e5accca3676f7f7927be87594c25.
+#151 exact-head build/regression passed; merged-tree regression 35537127266 is
+running. Close/check #151 and #11 only after that integration run passes. #26 draft PR #153 is open and running full hosted checks; do not merge it
+before both integration and its own exact-head gates pass. Continue #26 -> #27 -> #28 then #25.
 
-#11 PR #150 merged as 94a70b91f35acfa0636a7db473609b3aafde76e5. Its tree
-matches tested head 2caaa163 (d56b17d609a91ea9e84a6edfac10a7527a9c766c).
-Exact-head build 35533785865 and regression 35533785920 passed. Merged-tree
-regression 35534705876 failed in the weapon harness deadline, not in a gameplay
-assertion: 1147/1147 full weapon and animation comparisons matched; the renderer
-had not completed the frame-paced script before the fixed 45-second timeout.
-Graceful shutdown then exceeded five seconds and skipped remaining cleanup.
-Artifacts/logs: /tmp/aftershock-weapons-integration-artifacts and
-~/.cache/aftershock-modernization/weapons-integration-runtime.log.
-Issue #151 records the test-only follow-up; tests/netcode_cleanup.py first fails
-on the missing stop_client helper (netcode-cleanup-before.log).
+The first compiler implementation passes the MAP/schema/design-rule controls and
+produces repeated byte-identical BSP/AAS in separate directories. Geometry review
+caught duplicate coplanar room/corridor side-wall faces and a missing OBJ material
+remap; both are corrected and the compiler log now has no warnings. Initial output
+is disposable under /tmp/aftershock-level-{first,second,third}, not accepted fixtures.
+Both Quake 3 and OpenArena native runtime checks now pass the full two-lane map,
+the door/stair-only variant and the ramp-only variant: both bots reach the middle
+shotgun, east ammo is collected, and combat occurs. Three room views were captured
+and reviewed with correct cover, prop, sky, lighting and passages. Added blocked
+room, rotated-axis, prop-bound, outside-entity, unknown-field and non-finite controls.
+The initial owned MAP/BSP/AAS fixtures were explicitly authored once after review;
+SHA256 MAP 555965db09c8358116557915bd1633b7b3a4dadb4b190be6e0c4313adab7b53b,
+BSP 0d0fcf2ccb8cae4bd9afc19833297980613d8bfa7722ae6a481a585d7572a08c,
+AAS 128895330784c535b5540c95a79f95aa511f94c93af7fff02fd479a48847bb0f.
+CI, README and AGENTS commands are wired. Clean-cache AppImage extraction with
+libarchive-c and normal repeated fixture comparison both pass. Self-review added
+32-unit room separation so the navigation grid cannot cross an unconnected shared
+wall, and world bounds before brush generation. Full empty-cache archive download,
+SHA256 verification, extraction and compilation also pass. Self-review is below.
+No engine edits or accepted golden changes. Continue #26 -> #27 -> #28 then #25.
 
-#26 work is saved separately on local `issue/26-level-authoring`, head 3272282f:
-versioned JSON contract, owned three-room/two-lane sample and provenance, failing
-MAP/design-rule and BSP/AAS fixture tests. No compiler implementation exists yet.
-After #151 integration, merge modernization forward into that branch and resume.
-Its earlier checkpoint records user-cache q3map2/MBSPC preparation and deterministic
-padding normalization; scratch notes are in /tmp/aftershock-level-next.md.
-All changes and PRs remain in msetaro/aftershock.
+## #26 self-review
+
+Scope is the issue's declarative authoring/compiler and owned sample, with no
+engine edits, runtime allocation/OS ownership, ABI/layout or simulation arithmetic
+changes. Standard Python handles MAP-only generation and validation; the sole
+extraction dependency is libarchive-c for a SHA256-pinned external map tool release.
+Inputs are bounded, paths constrained to project assets, errors produce nonzero
+status and no success JSON. Private staging excludes installed content and publishes
+maps only after compilation succeeds. Output text has explicit LF bytes on every OS.
+Both lanes have actual isolated-route bot acceptance in Q3 and OA, alongside rendered
+three-room inspection. Whole-layout sightline and straight-line cover-distance bounds
+are explicitly conservative, not claimed as precise visibility/path metrics. #27's
+viewpoint/report features remain separate. Only new owned #26 fixtures were authored;
+all accepted engine/gameplay/demo goldens are unchanged. Clean-cache extraction,
+repeated MAP/BSP/AAS comparison, language/design controls and owned C/C++ formatting
+pass locally. Exact-head full hosted gates and merged-tree regression remain required.
+
+#11 PR #150 merged with a merge commit as
+94a70b91f35acfa0636a7db473609b3aafde76e5. Its tree
+d56b17d609a91ea9e84a6edfac10a7527a9c766c equals the tested 2caaa163 tree.
+Exact-head build 35533785865 and regression 35533785920 passed after committed
+AGENTS self-review. Hosted weapon loopback: 301/301 shots agree (18 hits), 38
+uncompensated differences, median age 160 ms, prediction error <=8.875 units,
+774/774 complete weapon and animation comparisons. Fixed OA replay checks 992
+full-state hashes with repeatable frames under static and module renderers.
+All Linux/macOS/MinGW/MSVC x64/ARM64 builds pass. Lifetime analysis passes 1216
+commands. Merged-tree regression 35534705876 failed the wall-time harness deadline; #151 is the test-only correction.
+
+## #26 preparation and failing contract test
+
+Read #26's rooms/corridors/doors/stairs/ramps/material-role language, design rules,
+deterministic MAP/BSP and real bot-pathing acceptance; #27 owns the later headless
+viewpoint/fly-through validation report. #18 explicitly permits a provisional
+format, so use versioned JSON consistent with tools/cook. Start with the tests.
+
+No system packages were installed. Official NetRadiant-custom release 20260114
+contains q3map2 2.5.17n-git-68ecbed and MBSPC 2.2. The Linux archive's official
+SHA256 f48f6f1d0db2b910ef9cb5dc5d8a722852510f3c5c278dc17615c0466b8a7a3d was
+verified, extracted in the user cache, and both tools run with their bundled
+libraries. Archive/extracted tools: ~/.cache/aftershock-level-tools; extraction
+helper: uv Python 3.12 venv ~/.cache/aftershock-level-python (libarchive-c 5.3).
+Primary source: https://github.com/Garux/netradiant-custom/releases/tag/20260114
+
+A disposable, owned one-room map and plain texture in cache/probe-a and probe-b
+verify the toolchain. Use single-threaded BSP/VIS/light and MBSPC
+-forcesidesvisible; without that MBSPC option the generated brush sides are not
+marked visible for AAS. All declared BSP lump bytes agree across fresh output
+directories; three alignment-padding bytes differ. Zeroing only bytes outside
+declared lumps before MBSPC yields byte-identical BSP and AAS. New compiler
+packaging should canonicalize that padding, with a focused check. No engine
+parser or accepted golden is changed. Detailed scratch notes: /tmp/aftershock-level-next.md.
+
+The new language contract is in tools/level/README.md. The owned two_lane.json
+sample includes three rooms, four passages forming two lanes, a door, stairs,
+a ramp, four FFA/team spawns, cover kits, a solid OBJ prop, pickups and lighting.
+Six 16x16 procedural textures and a 64-unit cube have a source authoring script
+and pinned provenance. tests/level.py requires deterministic MAP output and
+specific corridor/door/containment/connectivity/material/sightline/cover/duplicate
+errors. It fails on the absent CLI before implementation. The optional --compile gate also requires repeated MAP/BSP/AAS bytes and committed
+fixture comparison; its explicit recording flag is refused in CI. The compiler,
+reviewed fixtures and real bot-pathing acceptance now exist as recorded above.
+Navigation uses a 16-unit player-clearance grid with
+18-unit maximum steps and treats doors as open. Sightlines use the conservative
+whole-layout diagonal bound; cover spacing is horizontal distance to nearest cover
+plus a half-cell diagonal. These restrictions must be documented, not portrayed
+as exact visibility/path distance. Full BSP/AAS compilation uses a verified pinned
+Linux x86_64 tool bundle; MAP-only mode is portable.
+
+## #151 acceptance and merge
+
+PR #152 merged as 64a38d44aa50e5accca3676f7f7927be87594c25 after exact-head
+7829fa97cab8b6aa6fc5f433ddd4ef80495e71f1 passed build 35536234271 and regression
+35536234299. Both trees are bff0172c6eabfb0c2c663a922807faeffa8bf9c7.
+Hosted normal loopback: 31.1 seconds, 592/592 shots, 37 hits, 73 uncompensated
+differences, median age 153 ms. Capped 20-FPS weapon control: 54.0 seconds,
+301/301 shots, 18 hits, 36 uncompensated differences, median age 200 ms,
+1514/1514 full weapon and animation comparisons. Prediction error <=8.875 for
+both; ignoring-child cleanup passes. Local controls were 17.7 seconds classic and
+54.0 seconds weapons (329/329 and 301/301 shots). No engine or accepted fixtures
+changed. Original failed integration had 1147/1147 agreeing states before its
+45-second wall-time limit; graceful teardown then stalled. The replacement budgets
+120 seconds for weapons inside a 240-second outer limit and kills/reaps a client
+that ignores SIGTERM. Full merged-tree regression 35537127266 remains required.
+Acceptance: https://github.com/msetaro/aftershock/issues/151#issuecomment-5752604897
+Logs: ~/.cache/aftershock-modernization/netcode-151-host-runtime.log.
 
 ## #151 self-review
 
