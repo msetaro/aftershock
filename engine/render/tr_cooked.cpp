@@ -2,6 +2,7 @@
 #include "iqm.h"
 #include "../../third_party/sha256/sha-256.h"
 #include <bit>
+#include <cmath>
 #include <string.h>
 
 struct ktxHeader_t {
@@ -169,6 +170,61 @@ bool R_ReadCookedMaterial( const void *data, size_t size, cookedMaterial_t *mate
 	for ( const char *p = material->texture; p != end; p++ ) {
 		if ( !( ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '_' || *p == '/' || *p == '.' || *p == '-' ) )
 			return false;
+	}
+	if ( fileHash )
+		calc_sha_256( fileHash, data, size );
+	return true;
+}
+
+bool R_ResolveMaterialParams( const materialParams_t *base, const materialOverride_t *instance, materialParams_t *result ) {
+	if ( !base || !result || ( instance && ( instance->mask & ~63U ) ) )
+		return false;
+	*result = *base;
+	if ( instance ) {
+		if ( instance->mask & MATERIAL_OVERRIDE_COLOR )
+			memcpy( result->color, instance->values.color, sizeof( result->color ) );
+		if ( instance->mask & MATERIAL_OVERRIDE_EMISSIVE )
+			memcpy( result->emissive, instance->values.emissive, sizeof( result->emissive ) );
+		if ( instance->mask & MATERIAL_OVERRIDE_METALLIC )
+			result->metallic = instance->values.metallic;
+		if ( instance->mask & MATERIAL_OVERRIDE_ROUGHNESS )
+			result->roughness = instance->values.roughness;
+		if ( instance->mask & MATERIAL_OVERRIDE_NORMAL_SCALE )
+			result->normalScale = instance->values.normalScale;
+		if ( instance->mask & MATERIAL_OVERRIDE_ALPHA_CUTOFF )
+			result->alphaCutoff = instance->values.alphaCutoff;
+	}
+	for ( float v : result->color )
+		if ( !( v >= 0 && v <= 1 ) )
+			return false;
+	for ( float v : result->emissive )
+		if ( !( v >= 0 && v <= 1 ) )
+			return false;
+	return result->metallic >= 0 && result->metallic <= 1 && result->roughness >= 0 && result->roughness <= 1 &&
+		   result->alphaCutoff >= 0 && result->alphaCutoff <= 1 && std::isfinite( result->normalScale ) &&
+		   result->flags <= 15 && ( result->flags & 12 ) != 12;
+}
+
+bool R_ReadPbrMaterial( const void *data, size_t size, cookedPbrMaterial_t *material, uint8_t fileHash[32] ) {
+	*material = {};
+	if ( !data || size != sizeof( cookedHeader_t ) + sizeof( *material ) )
+		return false;
+	cookedHeader_t header;
+	memcpy( &header, data, sizeof( header ) );
+	const uint8_t *payload = (const uint8_t *)data + sizeof( header );
+	if ( memcmp( header.magic, "ASMAT\0\0\0", 8 ) || header.version != 2 || header.size != sizeof( *material ) || !R_CookedHashMatches( payload, header.size, header.hash ) )
+		return false;
+	memcpy( material, payload, sizeof( *material ) );
+	materialParams_t checked;
+	if ( !R_ResolveMaterialParams( &material->params, nullptr, &checked ) )
+		return false;
+	for ( const auto &path : material->textures ) {
+		const char *end = (const char *)memchr( path, 0, sizeof( path ) );
+		if ( !end || end == path || path[0] == '/' || strstr( path, ".." ) )
+			return false;
+		for ( const char *p = path; p != end; ++p )
+			if ( !( ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '_' || *p == '/' || *p == '.' || *p == '-' ) )
+				return false;
 	}
 	if ( fileHash )
 		calc_sha_256( fileHash, data, size );

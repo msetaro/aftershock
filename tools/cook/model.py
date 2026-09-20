@@ -47,8 +47,79 @@ def material_texture(raw, value):
     return texture.cook(raw, options)
 
 
-def cook_material(path, name, read):
+def pbr_material(value, name, image):
+    """Three BC7 textures; keep factors separate for native instance/live edits."""
+    pbr = value.get('pbrMetallicRoughness', {})
+    color = pbr.get('baseColorFactor', [1, 1, 1, 1])
+    emissive = value.get('emissiveFactor', [0, 0, 0])
+    metallic, roughness = pbr.get('metallicFactor', 1), pbr.get('roughnessFactor', 1)
+    normal_scale = value.get('normalTexture', {}).get('scale', 1)
+    cutoff = value.get('alphaCutoff', 0.5)
+    if (len(color) != 4 or len(emissive) != 3 or
+            any(not math.isfinite(v) or not 0 <= v <= 1 for v in [*color, *emissive, metallic, roughness, cutoff]) or
+            not math.isfinite(normal_scale)):
+        raise ValueError('PBR factors must be finite; color/emissive/metallic/roughness/cutoff must be in [0,1]')
+    mode = value.get('alphaMode', 'OPAQUE')
+    if mode not in ('OPAQUE', 'MASK', 'BLEND'):
+        raise ValueError('unsupported PBR alpha mode')
+    if set(value.get('extensions', {})) - {'KHR_materials_unlit'} or pbr.get('extensions'):
+        raise ValueError('bake unsupported PBR material extensions before cooking')
+    if value.get('occlusionTexture'):
+        raise ValueError('bake occlusion into the lighting; this material contract has no occlusion channel')
+    flags = int(value.get('doubleSided', False)) | (2 if 'KHR_materials_unlit' in value.get('extensions', {}) else 0)
+    flags |= 4 if mode == 'BLEND' else 8 if mode == 'MASK' else 0
+
+    def channel(info, default):
+        if not info:
+            return Image.new('RGBA', (1, 1), default)
+        if info.get('texCoord', 0) != 0 or info.get('extensions'):
+            raise ValueError('bake PBR texture transforms/additional UV sets before cooking')
+        with Image.open(io.BytesIO(image(info))) as opened:
+            if not 1 <= opened.width <= 16384 or not 1 <= opened.height <= 16384:
+                raise ValueError('PBR texture dimensions must be between 1 and 16384')
+            return opened.convert('RGBA')
+
+    base = channel(pbr.get('baseColorTexture'), (255, 255, 255, 255))
+    normal_map = channel(value.get('normalTexture'), (128, 128, 255, 255))
+    mr = channel(pbr.get('metallicRoughnessTexture'), (255, 255, 255, 255))
+    emission = channel(value.get('emissiveTexture'), (255, 255, 255, 255))
+
+    def pack(rgb, alpha):
+        # A constant missing channel can expand losslessly. Artists bake other
+        # resolution mismatches explicitly, avoiding silently resampled normals.
+        if rgb.size != alpha.size:
+            if rgb.size == (1, 1):
+                rgb = rgb.resize(alpha.size, Image.Resampling.NEAREST)
+            elif alpha.size == (1, 1):
+                alpha = alpha.resize(rgb.size, Image.Resampling.NEAREST)
+            else:
+                raise ValueError('packed PBR texture channels must have equal dimensions (or be constant 1x1)')
+        result = rgb.copy()
+        result.putalpha(alpha)
+        return result
+
+    packed = (base, pack(normal_map, mr.getchannel('G')), pack(emission, mr.getchannel('B')))
+    paths = [name + suffix + '.ktx2' for suffix in ('_b', '_n', '_e')]
+    if any(len(path.encode()) >= 64 for path in paths):
+        raise ValueError('PBR texture path exceeds the 63-byte engine limit')
+    payload = struct.pack('<11fI', *color, *emissive, metallic, roughness, normal_scale, cutoff, flags)
+    payload += b''.join(struct.pack('<64s', path.encode()) for path in paths)
+    outputs = {name + '.asmat': wrapped(b'ASMAT\0\0\0', payload, version=2)}
+    for index, (path, pixels) in enumerate(zip(paths, packed)):
+        stream = io.BytesIO()
+        pixels.save(stream, format='PNG')
+        outputs[path] = texture.cook(stream.getvalue(), {'format': 'bc7', 'srgb': index != 1,
+                                                        'normal': index == 1, 'data_alpha': index != 0})
+    return outputs
+
+
+def cook_material(path, name, read, options=None):
     value = json.loads(read(path))
+    workflow = (options or {}).get('material_model', 'legacy')
+    if workflow == 'metallic-roughness':
+        return pbr_material(value, name, lambda info: read(path.parent / info['uri']))
+    if workflow != 'legacy':
+        raise ValueError('material_model must be legacy or metallic-roughness')
     material = {key: value[key] for key in ('alphaMode', 'alphaCutoff', 'doubleSided') if key in value}
     material['pbrMetallicRoughness'] = {'baseColorFactor': value.get('baseColorFactor', [1, 1, 1, 1])}
     if value.get('unlit', False):
@@ -67,6 +138,9 @@ def cook_material(path, name, read):
 def cook(path, name, options, read):
     doc = Document(path, read)
     source = doc.data
+    workflow = options.get('material_model', 'legacy')
+    if workflow not in ('legacy', 'metallic-roughness'):
+        raise ValueError('material_model must be legacy or metallic-roughness')
     nodes = source.get('nodes', [])
     scale, fps = float(options.get('scale', 32)), float(options.get('fps', 30))
     if not math.isfinite(scale) or scale <= 0 or not math.isfinite(fps) or not 1 <= fps <= 240:
@@ -252,6 +326,17 @@ def cook(path, name, options, read):
             return materials[index]
         value = source.get('materials', [])[index] if index >= 0 else {}
         label = name + '_material' + str(index if index >= 0 else 'default')
+        if workflow == 'metallic-roughness':
+            def image(info):
+                item = source['textures'][info['index']]
+                sampler = source.get('samplers', [])[item['sampler']] if 'sampler' in item else {}
+                if (sampler.get('wrapS', 10497) != 10497 or sampler.get('wrapT', 10497) != 10497 or
+                        sampler.get('magFilter', 9729) != 9729 or sampler.get('minFilter', 9987) != 9987):
+                    raise ValueError('PBR import requires repeat/linear mipmapped samplers; bake other sampling first')
+                return doc.image(item['source'])
+            outputs.update(pbr_material(value, label, image))
+            materials[index] = label
+            return label
         base = value.get('pbrMetallicRoughness', {}).get('baseColorTexture')
         if base:
             if base.get('texCoord', 0) != 0 or base.get('extensions'):

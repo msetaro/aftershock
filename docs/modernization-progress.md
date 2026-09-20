@@ -16,12 +16,14 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Main checkout is preparatory issue/13-materials, based on modernization eb9496ee.
-#28 implementation remains in level-tree on issue/28-match-server. Draft PR #156
-head 04a86876e62c16a803e9ee29c47a8460fcbe6bd6 is running exact-head build 35542300540
-and regression 35542300709, including the new match-server kind job. #31 PR #155
-is merged at eb9496ee2d28a85a599ea8eb5d7bd35a0bd584d0; its merged-tree regression
-35541625720 passed. #31 is closed again and #28’s dependency gate is complete. #27 is complete.
+Main checkout is issue/13-materials, based on modernization eb9496ee; merge
+origin/modernization forward after committing this first cooker slice. #28 PR #156
+merged as 646a63e82c0a74307d0e830ca6c626eca985ed60 after exact-head build 35542300540
+and regression 35542300709 passed, including hosted kind acceptance. Tested head
+04a86876 and merge have the same tree f30abf9b5723b4d0aa20dc7600be1a7348050e5f.
+Merged-tree regression 35543218326 is queued; keep #28 open until it passes.
+#31 PR #155 and #27 are fully accepted/closed. The extra level-tree worktree is
+clean on the merged issue/28-match-server branch.
 
 #28's reviewed local image/kind test passed at /tmp/aftershock-match-kind-reviewed:
 a real native OA player joined sv_pure=1, the one-minute match exited, a completed
@@ -35,15 +37,15 @@ passed. Credentials/kubeconfig are excluded from artifacts and private clusters
 were removed. Logs: match-kind-{full-first,full-final,reviewed}.log; reports under
 /tmp/aftershock-match-kind-{first,final,reviewed}.
 
-Finish #156 exact-head gates/self-review/merge and
-merged-tree regression. Do not accept missing content or regenerate fixtures.
-While those gates run, read/prepare #13's failing material contract only. The issue
-requires glTF PBR rendering, data/instance parameters, ImGui live editing and
-unchanged q3dm17 frame hashes. Choose metallic/roughness to match glTF; preserve
-legacy Quake shader execution and existing accepted shader bytes. New material
-payload/shaders/test sources may be authored deliberately, never regenerate an
-accepted oracle to hide changed legacy rendering. No #13 PR/implementation acceptance
-before #28 completes; merge modernization forward, never rebase. Continue #25.
+Require #156 merged-tree regression, close #28/check #25, and continue #13.
+The failing cooker and native instance contracts were committed first (c4bb8bbf,
+b4cddc63). The isolated PBR cook/native data slice now passes GCC and Clang/libc++;
+rendering, tangent/lighting submission, ImGui edits, instance submission and classic
+replay acceptance remain to implement/verify. #13 has no PR yet. No accepted
+fixture/shader bytes changed; no #13 acceptance before #28 integration passes.
+The new local implementation was started during #28's final lifetime gate, after
+the preparatory tests were committed, to avoid idle CI time. Keep issue scope and
+PR acceptance separate. Continue #25 after #13.
 
 ## #13 preparatory failing material contract
 
@@ -73,9 +75,18 @@ the shared material and all unselected values. It fails before implementation on
 the absent cookedPbrMaterial_t/API (materials-native-before.log). This is a normal
 feature contract, not a new loader-robustness target.
 
-#156's hosted match-server/runtime jobs and all build legs passed; only lifetime
-analysis remains running at this checkpoint. Do not merge early. Hosted kind log:
-match28-host-kind.log.
+The first cooker/native data slice passes both compiler families
+(materials-first.log, materials-clang.log). Normal/roughness and emissive/metallic
+packing preserves factors and filters data alpha independently. Explicitly reject
+unsupported material extensions, occlusion (lighting owns it), non-repeat/nonlinear
+samplers, extra UVs/transforms and nonconstant mismatched channel dimensions;
+these require artist baking instead of silent approximation. Standalone material
+recipes use the same glTF-shaped data with texture `uri` fields. Native validation
+and masked factor resolution use fixed-size trivial public values, no allocation.
+The legacy cooker suite is running; full runtime/ImGui acceptance remains pending.
+
+#156 exact-head gates all passed and the merge tree is identical. Hosted kind log:
+match28-host-kind.log. Integration 35543218326 is the remaining #28 gate.
 
 ## #31 checkpoint inherited by #13
 
