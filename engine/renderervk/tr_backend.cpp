@@ -1903,7 +1903,11 @@ static const void *RB_SwapBuffers( const void *data ) {
 	}
 
 #ifdef USE_VULKAN
-	R_CheckRHI( RHI_PresentFrame(), "PresentFrame" );
+	const rhiStatus_t presentStatus = RHI_PresentFrame();
+	if ( presentStatus == rhiStatus_t::DeviceLost )
+		ri.Printf( PRINT_DEVELOPER, "GPU presentation: device lost\n" ); // Preserve the existing continuation policy.
+	else
+		R_CheckRHI( presentStatus, "PresentFrame" );
 #else
 	ri.GLimp_EndFrame();
 #endif

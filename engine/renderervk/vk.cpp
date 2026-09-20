@@ -93,7 +93,7 @@ static uint32_t vk_impl_FindPipeline( uint32_t base, const rhiPipelineDesc_t *de
 static void vk_impl_BindPipeline( uint32_t pipeline );
 static bool vk_impl_BeginFrame( bool screenMap );
 static rhiFrameEnd_t vk_impl_EndFrame( bool bloom, bool capture );
-static void vk_impl_PresentFrame( void );
+static rhiStatus_t vk_impl_PresentFrame( void );
 
 static int vkSamples = VK_SAMPLE_COUNT_1_BIT;
 static int vkMaxSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -7274,17 +7274,17 @@ rhiFrameEnd_t vk_impl_EndFrame( bool bloom, bool capture ) {
 }
 
 
-void vk_impl_PresentFrame( void ) {
+rhiStatus_t vk_impl_PresentFrame( void ) {
 	VkPresentInfoKHR present_info;
 	VkResult res;
 
 	if ( vk_host.IsMinimized() || !vk.cmd->swapchain_image_acquired ) {
-		return;
+		return rhiStatus_t::Success;
 	}
 
 	if ( !vk.cmd->waitForFence ) {
 		// nothing has been submitted this frame due to geometry buffer overflow?
-		return;
+		return rhiStatus_t::Success;
 	}
 
 	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -7306,10 +7306,9 @@ void vk_impl_PresentFrame( void ) {
 	case VK_ERROR_OUT_OF_DATE_KHR:
 		// swapchain re-creation needed
 		vk_restart_swapchain( __func__, res );
-		return;
+		return rhiStatus_t::Success;
 	case VK_ERROR_DEVICE_LOST:
-		// we can ignore that
-		vk_host.Print( rhiLog_t::Developer, "vkQueuePresentKHR: device lost\n" );
+		// Let the frontend retain its existing device-loss continuation policy.
 		break;
 	default:
 		// or we don't
@@ -7320,6 +7319,7 @@ void vk_impl_PresentFrame( void ) {
 	vk.cmd_index++;
 	vk.cmd_index %= NUM_COMMAND_BUFFERS;
 	vk.cmd = &vk.tess[vk.cmd_index];
+	return vk_status( res );
 }
 
 
@@ -7825,7 +7825,6 @@ rhiStatus_t RHI_EndFrame( bool bloom, bool capture, rhiFrameEnd_t *result ) {
 
 rhiStatus_t RHI_PresentFrame( void ) {
 	return vk_call( [&]() {
-		vk_impl_PresentFrame();
-		return rhiStatus_t::Success;
+		return vk_impl_PresentFrame();
 	} );
 }

@@ -106,6 +106,16 @@ static void VKAPI_CALL destroy_view( VkDevice, VkImageView view, const VkAllocat
 	destroyed = 2;
 }
 
+static bool window_minimized;
+static int presents;
+static VkResult present_result;
+static VkResult VKAPI_CALL present( VkQueue queue, const VkPresentInfoKHR *info ) {
+	assert( (uintptr_t)queue == 21 && info->swapchainCount == 1 && info->waitSemaphoreCount == 1 );
+	assert( *info->pImageIndices == 0 );
+	presents++;
+	return present_result;
+}
+
 static VkResult VKAPI_CALL cache_data( VkDevice device, VkPipelineCache cache, size_t *size, void *data ) {
 	assert( (uintptr_t)device == 20 && (uintptr_t)cache == 90 );
 	if ( data ) {
@@ -357,6 +367,32 @@ int main( void ) {
 	assert( vk_error_environment == nullptr );
 	assert( RHI_WaitIdle() == rhiStatus_t::Success );
 	assert( RHI_GetError()->message[0] == '\0' && !RHI_GetError()->drop );
+	// Hidden/no-image/no-submission frames must never reach native presentation.
+	vk_host.IsMinimized = []() { return window_minimized; };
+	qvkQueuePresentKHR = present;
+	vk.cmd_index = 0;
+	vk.cmd = &vk.tess[0];
+	vk.cmd->swapchain_image_index = 0;
+	vk.cmd->swapchain_image_acquired = qtrue;
+	vk.cmd->waitForFence = qtrue;
+	window_minimized = true;
+	assert( RHI_PresentFrame() == rhiStatus_t::Success && presents == 0 && vk.cmd_index == 0 );
+	window_minimized = false;
+	vk.cmd->swapchain_image_acquired = qfalse;
+	assert( RHI_PresentFrame() == rhiStatus_t::Success && presents == 0 );
+	vk.cmd->swapchain_image_acquired = qtrue;
+	vk.cmd->waitForFence = qfalse;
+	assert( RHI_PresentFrame() == rhiStatus_t::Success && presents == 0 );
+	vk.cmd->waitForFence = qtrue;
+	present_result = VK_SUCCESS;
+	assert( RHI_PresentFrame() == rhiStatus_t::Success && presents == 1 && vk.cmd_index == 1 );
+	assert( !vk.tess[0].swapchain_image_acquired );
+	vk.cmd->swapchain_image_index = 0;
+	vk.cmd->swapchain_image_acquired = qtrue;
+	vk.cmd->waitForFence = qtrue;
+	present_result = VK_ERROR_DEVICE_LOST;
+	assert( RHI_PresentFrame() == rhiStatus_t::DeviceLost && presents == 2 && vk.cmd_index == 0 );
+	assert( !vk.tess[1].swapchain_image_acquired && vk_error_environment == nullptr );
 	vk.pipelineCache = (VkPipelineCache)(uintptr_t)90;
 	qvkGetPipelineCacheData = cache_data;
 	uint32_t cacheSize = 0;

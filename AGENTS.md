@@ -144,6 +144,7 @@ python3 tests/run.py runtime
 python3 tests/run.py runtime --sanitize --output /tmp/tests-runtime-ubsan
 python3 tests/demo.py
 python3 tests/demo.py --pipeline-cache
+python3 tests/window.py --binary build/release/release-linux-x86_64/quake3e.x64
 python3 tests/demo.py --lifecycle
 python3 tests/demo.py --modules --lifecycle
 python3 tests/native_lifecycle.py --debug-movement

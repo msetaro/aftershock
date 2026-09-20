@@ -92,6 +92,15 @@ are optional performance data. Missing, incomplete or incompatible data is a mis
 The local Mesa driver exports a 32-byte cache header; cache persistence passing on
 that driver is not a pipeline compilation performance claim.
 
+`python3 tests/window.py --binary /path/to/quake3e.x64` checks real window resize,
+swapchain recreation, hidden-window FBO capture and restored capture on a private
+Xvfb display. It selects only the window whose PID matches its launched client.
+It needs `x11-utils` (`xwininfo`/`xprop`) and libX11, plus the normal runtime
+prerequisites. Hosted CI passes OpenArena content/data arguments. Hiding generates
+the SDL hidden event that uses the engine's minimized path; this is not a desktop
+window-manager iconification test. Its real-clock captures check lifecycle and
+size; fixed demo replay remains the separate pixel-equality gate.
+
 `python3 tests/vulkan_acquire.py` runs the real Vulkan frame acquisition method
 with controlled callbacks and stops at command recording. It needs no GPU, window
 or content. Success/suboptimal must retain the acquired image index; timeout and

@@ -24,8 +24,8 @@ have no GPU SDK dependency. Explicit GPU failure statuses now return before the
 frontend error callback; texture conversion/scratch is frontend-owned. Device
 configuration and host services now use explicit plain records; the backend no
 longer includes frontend headers or reads renderer globals/cvar pointers. Finish
-pipeline-cache acceptance and remaining lifecycle checks, then the verified frontend
-moves, OpenGL retirement and final gates. Configuration acceptance is complete. Acquisition fix PR #141 merged separately as 61401e17 after
+hosted window-lifecycle acceptance, then hash-verified frontend moves, OpenGL
+retirement and final gates. Pipeline-cache acceptance is complete. Configuration acceptance is complete. Acquisition fix PR #141 merged separately as 61401e17 after
 full build 35484485400/regression 35484485349 and self-review; it has now been
 merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
 follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
@@ -409,6 +409,27 @@ header (124 bytes including the RHI key); this verifies persistence, not a measu
 pipeline compilation speedup. Persistent Vk_Instance grows by 96 bytes including
 alignment. Real-clock main samples: 4.016/3.899 ms q3dm17 and 4.846/4.893 ms q3dm7,
 informational. Existing buffer capacities and accepted shader/frame bytes remain.
+
+Pipeline-cache f075e4cd passed full build 35489385818 and regression 35489385893,
+including hosted fresh-process cache restoration with unchanged OpenArena frames.
+
+Lifecycle slice: tests/window.py starts a client on its own Xvfb display and
+selects only that process's window. Actual 800x600 -> 640x480 resizing triggers
+swapchain recreation; unmapping/hiding exercises SDL's engine-minimized path,
+requires an FBO screenshot while hidden, then maps/restores and requires another
+640x480 screenshot. Local real-clock lifecycle passes (rhi-window.log/window.log).
+This is not an EWMH/window-manager iconification test or a new pixel golden.
+Hosted CI adds x11-utils and runs the same check with OpenArena.
+
+Presentation statuses now expose device loss after returning from the backend;
+the frontend retains the existing developer diagnostic/continuation policy and
+frame-slot advance. This relocates that policy, not an engine behavior fix or a
+claim of new device-loss recovery. The existing RHI check covers hidden windows,
+no acquired image, no submission, normal presentation/slot advance and device-loss
+return/ownership. GCC/Clang checks pass. Updated fixed Q3 replay/restart/cache gate
+retains b38004b1 (rhi-lifecycle-demo.log); format/type/boundary checks pass. No shader,
+fixture, golden or simulation arithmetic changes. Current-head hosted gates are
+pending; after they pass, hash-verify the portable frontend move.
 
 ## Final #8 verification
 

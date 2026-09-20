@@ -177,7 +177,7 @@ jobs:
         with:
           key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install runtime tools and OpenArena content
-        run: sudo apt-get update && sudo apt-get install -y ninja-build faketime xvfb mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data
+        run: sudo apt-get update && sudo apt-get install -y ninja-build faketime xvfb x11-utils mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data
       - name: Stage pinned upstream OpenArena gamecode
         run: python3 tests/openarena.py
       - name: Download URL construction
@@ -190,6 +190,8 @@ jobs:
           python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Both-map Mesa timedemo frames
         run: python3 tests/demo.py --measure-gpu --pipeline-cache --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Window resize and hide/restore lifecycle
+        run: python3 tests/window.py --binary /tmp/aftershock-demo-tests/build-vulkan/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Optional renderer module replay
         run: python3 tests/demo.py --modules --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-demo-modules
       - name: RHI replay measurements
@@ -211,6 +213,7 @@ jobs:
             /tmp/aftershock-demo-tests/*.tga
             /tmp/aftershock-demo-modules/**/*.log
             /tmp/aftershock-demo-modules/*.tga
+            /tmp/aftershock-window-tests/*
             /tmp/tests-native-runtime/**/*.log
             /tmp/tests-native-demo/**/*.log
             /tmp/tests-native-demo/*.tga
