@@ -19,9 +19,10 @@ upstream; historical upstream PR references below are completed past work.
 #6 PR #140 merged as 30eeba4c after final head c7c31a60 passed build
 35490659941/regression 35490659967 and the recorded self-review. Its merged-tree regression 35490963498 passed. The current
 branch is `issue/7-devtools`; test-first commit 7596afa9 records the expected shipping/development build failure.
-#7 remains draft PR #143. The final world/debug slice is locally validated and
-ready to commit/push. Require complete exact-head build/regression and the final
-self-review before merging, then require the merged-tree regression before #142.
+#7 remains draft PR #143. World/debug implementation 0a264cba is pushed.
+Local validation and self-review pass; hosted build 35495497762/regression
+35495497744 are still running. This final documentation checkpoint also requires
+exact-head build/regression before merging, then merged-tree regression before #142.
 The preceding entity slice 9aca1c9f passed regression 35494279424; its build failed
 because older libc++ lacks floating from_chars. The final slice uses portable
 strtof with decimal-only validation matching the native game's numeric reader.
@@ -89,8 +90,8 @@ Final-slice local validation (devtools-final*.log in the persistent cache):
 - Production probes pass GCC and Clang/libc++ for registry copies, memory, scopes,
   debug expiry/wraparound/capacity, projection and occluded selection.
 - Format (402 files), boundaries (367), types (366), pinned vendor hashes and owned
-  whitespace pass. Tidy passes 1,162 production configurations. Lifetime gate is
-  still running; record its result before merge.
+  whitespace pass. Tidy passes 1,162 production configurations. Lifetime analysis
+  passes 1,116 compilation commands/118 source paths and all controls.
 - Shipping SHA-256 remains 427e37beb867d2164294fe70f99d5bf1bf0eddcb768f3f7786cf721747f1ccfd.
   Fixed Q3 demos replay twice including video restart, matching frame projection
   43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
@@ -105,8 +106,13 @@ Profiling e24faa49 passed build/regression 35493250065/35493250038; animation
 245397aa passed 35493639523/35493639540. Entity 9aca1c9f passed regression
 35494279424 but failed build 35494279398 on floating from_chars; fixed above.
 The latest test symbol assertion also now recognizes the drawing API's C linkage.
-No existing engine bug fix was included in #7. Current exact-head hosted gates
-and final self-review remain required; the PR stays draft until they pass.
+No existing engine bug fix was included in #7. Self-review: every change supports
+#7; no new OS calls outside platform/filesystem ownership; no non-trivial core
+lifetimes; no new shipping/per-frame game allocation or simulation arithmetic;
+existing wire/file layouts remain asserted; new UI records have layout/copy
+assertions. The optional UI's bounded arena and interaction allocations are
+explicitly measured/documented. Current exact-head hosted gates remain required;
+the PR stays draft until they pass.
 
 ## #31 Vulkan acquisition checkpoint
 
