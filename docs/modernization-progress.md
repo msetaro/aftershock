@@ -16,6 +16,47 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
+Active implementation: issue/28-match-server in the level-tree worktree; the main
+checkout remains on completed issue/31-native-pure. #27 is accepted and closed.
+#31 PR #155 merged as eb9496ee2d28a85a599ea8eb5d7bd35a0bd584d0 after exact-head
+1673aed7 passed build 35540580426 and regression 35540579069. The merge and tested
+head share tree b5789d25c17016be305cd4dd7be941f978675423. Integration regression
+35541625720 is running. #31 closes only after it passes. Modernization is merged
+forward into #28 for preparation; no #28 acceptance/merge precedes this gate.
+
+Rebuild #28's image and local combined server/client, then run tests/match_runtime.py
+and the new tests/match_kind.py with actual native clients and complete OA content.
+Both preserve sv_pure=1, now corrected by its separate #31 PR. Full kind acceptance
+must cover Ready/allocation, native player, timed exit, acknowledged durable result,
+replacement and the measured three-container resource baseline. Prior Compose and
+empty-match Agones runs pass but do not replace this gate. Add any missing lifecycle
+controls, record measured density, complete AGENTS self-review, open #28's own PR
+and require exact-head full CI plus merged-tree regression. Then continue #25.
+
+Do not regenerate accepted fixtures. Do not create upstream PRs. Keep credentials
+and kubeconfig out of artifacts. All cluster tools are verified user-cache binaries;
+only newly created private Docker/Compose/kind resources may be removed.
+
+## #31 native pure self-review
+
+The only behavior change is replacing obsolete QVM pak expectations with explicit
+zero-valued native module slots. Native protocol/schema agreement remains in place;
+data-pak membership, duplicate detection and aggregate checksum validation are
+unchanged. Pure verification is not disabled. The real-client test fails before
+and passes after, with both local content sets; the filesystem test keeps actual
+content checksum accounting. No golden represents the previously broken native
+pure connection, and existing unit/replay goldens need no regeneration.
+
+No simulation/floating-point arithmetic, wire/file structs, OS ownership, allocation,
+non-trivial lifetime or public subsystem include changes. The list uses the existing
+static buffer and formatting helpers. No unrelated engine refactoring. The only
+new files are focused unit/runtime tests; CI and verification documentation include
+them. No active sanitizer known-bug/suppression entry exists for this functional
+bug. Local builds, GCC/Clang probes, real Q3/OA clients, unit golden and format/type/
+boundary checks pass. Full hosted gates and merged-tree regression remain required.
+
+## #28 implementation record before #155 integration
+
 Preparatory branch `issue/28-match-server` is in the level-tree worktree, based
 on #27 PR #154 head b59fd806. The main checkout remains on #27 while its exact-head
 build/regression passed (35538730616/35538730598). PR #154 merged as

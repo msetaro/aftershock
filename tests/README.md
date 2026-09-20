@@ -984,3 +984,13 @@ and measures all three match containers' CPU/working set. Its density conversion
 is a connected-player resource baseline, not a saturation/capacity guarantee.
 OpenArena test paks are copied into that private node only; the image contains only
 owned content. Generated secrets/specs/kubeconfig are excluded from CI artifacts.
+
+Native pure-server regression (#31): `python3 tests/native_pure.py` exercises the
+real filesystem pure list with statically linked modules and retained content-pak
+checksum accounting. `python3 tests/native_pure_runtime.py --client CLIENT --server
+SERVER` requires a real native client to enter play and chat on a password-protected
+`sv_pure=1` server. It defaults to local Quake 3; hosted CI passes `--content openarena
+--data /tmp/aftershock-openarena-baseoa`. Native cgame/UI slots are explicitly zero;
+package checksum membership, duplicate and aggregate verification remain active.
+This validates content agreement, not executable attestation. Existing non-pure
+replay fixtures are unchanged; no fixture regeneration is required.
