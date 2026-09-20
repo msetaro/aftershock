@@ -77,6 +77,15 @@ Spawn/respawn/teleport generations prevent cross-lifetime interpolation. Existin
 weapon spread/movement expressions are untouched. Next: real loopback delay/loss
 coverage and network telemetry, then replication policy/provider hooks and full gates.
 
+The real client/server loopback test now connects through 100 ms RTT, +/-15 ms
+combined jitter and 5% datagram loss, then fails because the developer moving
+target command is absent (netcode-runtime-before.log; server falls back to chat).
+Implement a cheats-only development target and bounded trace diagnostics. The
+transport acceptance threshold is >=99% agreement for >=100 unambiguous shots,
+including >=5 hits and >=5 cases that would differ without rewind. Prediction
+error must stay within 32 units (one player width, including initial spawn).
+The portable 950/950 criterion remains stricter and tests between-frame positions.
+
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
 layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body
 controllers, replicated hit boxes, automatic body facing, ADS/recoil/sway, and an
