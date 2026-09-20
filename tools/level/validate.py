@@ -74,8 +74,10 @@ def validate(level, assets):
         rooms[r['id']] = r
     bounds = [room_bounds(r) for r in rooms.values()]
     for i,(a,A) in enumerate(bounds):
+        require(all(-32752<=v<=32752 for v in a+A), 'room shell outside Quake world bounds')
         for b,B in bounds[i+1:]:
             require(not all(a[k]<B[k] and b[k]<A[k] for k in (0,1)), 'room interiors overlap horizontally')
+            require(not all(a[k]-32<B[k] and b[k]-32<A[k] for k in (0,1)), 'rooms need 32 units between shells')
     passages = []
     for c in level['connections']:
         fields(c,('id','from','to','axis','at','width','height'),('door','transition'))
@@ -140,6 +142,24 @@ def validate(level, assets):
         require(path.suffix=='.obj' and path.stat().st_size<=4*1024*1024, 'props require OBJ geometry up to 4 MiB')
         require(not any(line.split() and line.split()[0] in ('mtllib','call') for line in path.read_text().splitlines()),
                 'OBJ props must be self-contained without external references')
+        vertices = []
+        faces = 0
+        for line in path.read_text().splitlines():
+            tokens = line.split('#',1)[0].split()
+            if not tokens:
+                continue
+            if tokens[0]=='v':
+                require(len(tokens)==4, 'OBJ vertices require x y z')
+                vertex = [float(v) for v in tokens[1:]]
+                vector(vertex,integer=False)
+                require(all(abs(v)<=s/2 for v,s in zip(vertex,prop['size'])), 'prop geometry outside declared size')
+                vertices.append(vertex)
+            elif tokens[0]=='f':
+                require(len(tokens)>=4, 'OBJ faces require at least three vertices')
+                faces += 1
+            else:
+                require(tokens[0] in ('vt','vn','o','g','s','usemtl'), 'unsupported OBJ directive')
+        require(vertices and faces, 'prop needs vertices and faces')
         sources[prop['model']] = path
         a,b = [[v+sign*s/2 for v,s in zip(prop['origin'],prop['size'])] for sign in (-1,1)]
         require(any(all(lo[k]<=a[k] and b[k]<=hi[k] for k in range(3)) for lo,hi in bounds), 'prop outside room')

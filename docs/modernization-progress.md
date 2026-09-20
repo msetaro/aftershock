@@ -28,8 +28,20 @@ produces repeated byte-identical BSP/AAS in separate directories. Geometry revie
 caught duplicate coplanar room/corridor side-wall faces and a missing OBJ material
 remap; both are corrected and the compiler log now has no warnings. Initial output
 is disposable under /tmp/aftershock-level-{first,second,third}, not accepted fixtures.
-Next: check all geometry transitions, real bot navigation and rendered presentation,
-strengthen boundary/clearance controls, then author/review the new fixtures once.
+Both Quake 3 and OpenArena native runtime checks now pass the full two-lane map,
+the door/stair-only variant and the ramp-only variant: both bots reach the middle
+shotgun, east ammo is collected, and combat occurs. Three room views were captured
+and reviewed with correct cover, prop, sky, lighting and passages. Added blocked
+room, rotated-axis, prop-bound, outside-entity, unknown-field and non-finite controls.
+The initial owned MAP/BSP/AAS fixtures were explicitly authored once after review;
+SHA256 MAP 555965db09c8358116557915bd1633b7b3a4dadb4b190be6e0c4313adab7b53b,
+BSP 0d0fcf2ccb8cae4bd9afc19833297980613d8bfa7722ae6a481a585d7572a08c,
+AAS 128895330784c535b5540c95a79f95aa511f94c93af7fff02fd479a48847bb0f.
+CI, README and AGENTS commands are wired. Clean-cache AppImage extraction with
+libarchive-c and normal repeated fixture comparison both pass. Self-review added
+32-unit room separation so the navigation grid cannot cross an unconnected shared
+wall, and world bounds before brush generation. Next: finish self-review and open
+#26 PR after #151 integration.
 No engine edits or accepted golden changes. Continue #26 -> #27 -> #28 then #25.
 
 #11 PR #150 merged with a merge commit as

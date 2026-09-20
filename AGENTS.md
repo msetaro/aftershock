@@ -159,6 +159,9 @@ python3 tests/dev_entities.py
 python3 tests/dev_world_ui.py
 python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
+python3 tests/level.py
+python3 tests/level.py --compile
+python3 tests/level_runtime.py --client CLIENT --server SERVER
 python3 tests/check_format.py
 python3 tests/check_types.py
 python3 tests/check_tidy.py

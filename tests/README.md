@@ -919,3 +919,32 @@ python3 tests/weapons_demo.py --record-fixture --binary PATH --content openarena
 These affect only `tests/golden/weapons/<content>/range.dm_68` and its manifest.
 Record once, review frames and authoritative traces, and explain any replacement
 in the issue/PR. Full #11 hosted acceptance remains pending.
+
+
+## Declarative level authoring (#26)
+
+`python3 tests/level.py` checks the versioned JSON language, repeated MAP bytes,
+room/corridor/door clearances, connected spawn navigation, blocked passages,
+entity and prop bounds, asset references, sightline and cover rules, and rotated
+layouts. See `tools/level/README.md` for the exact conservative design checks.
+`python3 tests/level.py --compile` fetches the SHA256-pinned Linux x86_64 q3map2/
+MBSPC toolchain into the user cache, compiles twice in fresh directories, and
+compares raw MAP/BSP/AAS bytes with `tests/golden/levels`. First extraction requires
+`pip install -r tools/level/requirements.txt` inside a venv and system libarchive
+(hosted CI installs it). MAP-only validation uses Python's standard library.
+
+`python3 tests/level_runtime.py --client CLIENT --server SERVER` compiles the owned
+sample and runs two minutes of fixed-step native bot play, requiring both bots to
+reach the middle-room shotgun, an east-room pickup and repeated combat. It repeats
+with only the door/stair lane and only the ramp lane, so one good route cannot
+hide a broken second route. The client captures fixed views of all three rooms
+under Xvfb/lavapipe. Hosted CI uses `--content openarena --data
+/tmp/aftershock-openarena-baseoa`; local runs default to installed Quake 3 paks.
+Content paks are temporary symlinks and never enter the compiler's workspace.
+Only owned art and compiler outputs are committed.
+
+Initial #26 fixtures were authored once with
+`python3 tests/level.py --compile --record-fixtures`, after repeated-build, bot-path
+and rendered geometry review. That flag is refused in CI. Any future fixture
+replacement requires the same explicit command and an explained behavior change;
+accepted engine/demo goldens are independent and unchanged.

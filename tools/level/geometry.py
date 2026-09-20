@@ -107,7 +107,8 @@ def generate(level):
             a[2] = min(start,end)-16
             a[axis] += 16
             b[axis] -= 16
-            world.append(brush(a,b,materials['wall']))
+            if a[axis] < b[axis]:
+                world.append(brush(a,b,materials['wall']))
         if c.get('door'):
             a,b = low.copy(),high.copy()
             a[2] = start

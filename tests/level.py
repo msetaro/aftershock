@@ -90,6 +90,42 @@ with tempfile.TemporaryDirectory(prefix='aftershock-level-') as temporary:
     changed = copy.deepcopy(source)
     changed['rooms'][1]['id'] = 'west'
     compile_level(changed, folder / 'duplicate', 'duplicate')
+    changed = copy.deepcopy(source)
+    changed['cover'].append({'id':'barrier','origin':[640,0,0],'kit':'tall','size':[32,512,192]})
+    compile_level(changed, folder / 'blocked', 'unreachable spawn')
+    changed = copy.deepcopy(source)
+    changed['props'][0]['size'] = [16,16,16]
+    compile_level(changed, folder / 'prop-size', 'geometry outside')
+    changed = copy.deepcopy(source)
+    changed['lighting']['lights'][0]['origin'] = [10000,0,24]
+    compile_level(changed, folder / 'outside-light', 'outside')
+    changed = copy.deepcopy(source)
+    changed['pickups'][0]['origin'] = [10000,0,24]
+    compile_level(changed, folder / 'outside-pickup', 'outside')
+    changed = copy.deepcopy(source)
+    changed['unknown'] = True
+    compile_level(changed, folder / 'unknown-field', 'unknown fields')
+    changed = copy.deepcopy(source)
+    changed['spawns'][0]['origin'][0] = float('nan')
+    compile_level(changed, folder / 'nonfinite', 'expected integer')
+    changed = copy.deepcopy(source)
+    changed['materials']['wall'] = '../escape'
+    compile_level(changed, folder / 'asset-path', 'relative asset path')
+    changed = copy.deepcopy(source)
+    changed['rooms'][1]['origin'][0] = 512
+    compile_level(changed, folder / 'touching-rooms', '32 units')
+    # Rotate the entire layout to exercise the equally supported y-axis generator.
+    rotated = copy.deepcopy(source)
+    for key in ('rooms','cover','props','spawns','pickups'):
+        for item in rotated[key]:
+            item['origin'][0],item['origin'][1] = item['origin'][1],item['origin'][0]
+            if 'size' in item:
+                item['size'][0],item['size'][1] = item['size'][1],item['size'][0]
+    for c in rotated['connections']:
+        c['axis'] = 'y'
+    for light in rotated['lighting']['lights']:
+        light['origin'][0],light['origin'][1] = light['origin'][1],light['origin'][0]
+    compile_level(rotated, folder / 'rotated')
     if args.compile:
         a = compile_level(source, folder / 'full-a', full=True)
         b = compile_level(source, folder / 'full-b', full=True)

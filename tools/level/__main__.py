@@ -8,6 +8,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 
 from geometry import generate, vector
 from toolchain import compile_map
@@ -24,7 +25,7 @@ def shaders(level):
         azimuth = math.degrees(math.atan2(y,x))
         elevation = math.degrees(math.atan2(z,math.hypot(x,y)))
         sun = f"    q3map_sun {vector(s['color'])} {s['intensity']} {azimuth:.9g} {elevation:.9g}\n"
-    return (f'textures/{sky}\n{{\n    qer_editorimage textures/{sky}.tga\n'
+    return (f'textures/{sky}\n{{\n    qer_editorimage textures/{sky}\n'
             '    surfaceparm sky\n    surfaceparm noimpact\n    surfaceparm nolightmap\n'
             f'{sun}    skyparms - 512 -\n    {{\n        map textures/{sky}\n        rgbGen identity\n    }}\n}}\n'
             'textures/level/playerclip\n{\n    surfaceparm nodraw\n    surfaceparm nonsolid\n    surfaceparm playerclip\n}\n')
@@ -44,19 +45,33 @@ def main():
         sources,report = validate(level,source.parent/'assets')
         if output==source.parent or output.is_relative_to(source.parent/'assets'):
             raise ValueError('output must not overwrite the source/assets directory')
-        for name,path in sources.items():
-            target = output/name
-            target.parent.mkdir(parents=True,exist_ok=True)
-            shutil.copyfile(path,target)
-        (output/'maps').mkdir(parents=True,exist_ok=True)
-        (output/'scripts').mkdir(parents=True,exist_ok=True)
-        (output/'scripts/level.shader').write_text(shaders(level))
-        (output/'scripts/shaderlist.txt').write_text('level\n')
         map_path = 'maps/'+level['name']+'.map'
-        (output/map_path).write_text(generate(level))
-        if not args.map_only:
-            compile_map(output,level['name'])
         paths = {kind:'maps/'+level['name']+'.'+kind if kind=='map' or not args.map_only else None for kind in ('map','bsp','aas')}
+        # Compile only authored inputs in private staging. Existing installed content is
+        # never copied into the tool workspace, and a failure publishes no partial map.
+        with tempfile.TemporaryDirectory(prefix='aftershock-level-stage-') as temporary:
+            stage = Path(temporary)
+            for name,path in sources.items():
+                target = stage/name
+                target.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copyfile(path,target)
+            (stage/'maps').mkdir()
+            (stage/'scripts').mkdir()
+            (stage/'scripts/level.shader').write_text(shaders(level))
+            (stage/'scripts/shaderlist.txt').write_text('level\n')
+            (stage/map_path).write_text(generate(level))
+            if not args.map_only:
+                try:
+                    compile_map(stage,level['name'])
+                finally:
+                    if (stage/'compile.log').exists():
+                        output.mkdir(parents=True,exist_ok=True)
+                        shutil.copyfile(stage/'compile.log',output/'compile.log')
+            for path in sorted(stage.rglob('*')):
+                if path.is_file():
+                    target = output/path.relative_to(stage)
+                    target.parent.mkdir(parents=True,exist_ok=True)
+                    shutil.copyfile(path,target)
         print(json.dumps(dict(version=1,name=level['name'],**paths,report=report,
                               sha256={kind:hashlib.sha256((output/path).read_bytes()).hexdigest() for kind,path in paths.items() if path}),sort_keys=True))
     except (OSError,ValueError,KeyError,TypeError,subprocess.SubprocessError) as exc:

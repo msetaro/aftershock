@@ -1,4 +1,4 @@
-# Declarative levels (version 1, implementation pending)
+# Declarative levels (version 1)
 
 The provisional format is JSON, matching the asset cooker and #18's data-format
 decision. The compiler emits ordinary Quake 3 MAP, BSP and AAS content. Existing
@@ -68,3 +68,34 @@ committed fixture comparison. Initial fixture authoring is explicit:
 `python3 tests/level.py --compile --record-fixtures`. It writes only
 `tests/golden/levels/two_lane.{map,bsp,aas}` and is refused in CI. Review generated
 geometry and actual bot pathing before accepting those new artifacts.
+
+MAP-only mode needs only Python 3. The pinned full compiler currently runs on Linux
+x86_64. Install `tools/level/requirements.txt` in a Python venv (libarchive-c 5.3,
+using system libarchive) for the first archive extraction. The compiler downloads
+NetRadiant-custom 20260114 into `$XDG_CACHE_HOME/aftershock-level-tools` (default
+`~/.cache`), verifies SHA256
+`f48f6f1d0db2b910ef9cb5dc5d8a722852510f3c5c278dc17615c0466b8a7a3d`, then uses
+its q3map2 and MBSPC binaries and bundled libraries. Subsequent runs work offline.
+No editor or tool bundle is committed. BSP/VIS/light and AAS stages use one thread;
+BSP alignment padding outside all declared lumps is zeroed before the AAS checksum.
+Declared lump bytes are never changed. Build diagnostics are in `compile.log`.
+
+Version 1 deliberately restricts geometry: horizontal room dimensions and corridor
+widths are even units, rooms keep at least 32 units between their interiors, passages do not intersect,
+and props are self-contained OBJ meshes whose vertices fit their declared bounds.
+Cover and props must fit inside one room. Walls need 16 units beside each opening;
+passages need at least a 32-unit gap.
+Transitions allow at most a 1:2 slope; stair risers are at most 16 units and treads
+at least 32. Props are baked with their assigned role, without external MTL files.
+
+Design rules are conservative and reported explicitly. Navigation tests a 16-unit
+world grid with a 30-by-30-by-56 player box and at most an 18-unit step, including
+midpoints of each traversed edge. Doors are assumed openable. All spawn cells must
+be connected after cover and solid props are removed. This is an authoring check;
+the compiled AAS and actual bots remain the runtime acceptance gate. Sightlines
+use the whole layout's 3D diagonal as a safe upper bound, so large winding levels
+may be rejected despite their walls blocking long views. Cover spacing measures
+horizontal straight-line distance to the nearest cover footprint, conservatively
+adding the half-cell diagonal; it is not travel distance or a promise of occlusion.
+Limits cap the description at 1 MiB, each entity list at 128 and the navigation grid
+at 262144 cells. These are authoring limits, not engine format limits.
