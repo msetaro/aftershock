@@ -21,7 +21,7 @@ def main():
         binary = args.output / probe
         run([*flags, '-DRHI_STUB_CHECK', '-DUSE_VULKAN_API',
              f'tests/probes/rhi_{probe}.cpp',
-             *(['engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp'] if probe == 'upload' else []),
+             *(['engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp', 'engine/rhi/rhi_graph.cpp'] if probe == 'upload' else []),
              '-Wl,--gc-sections', '-o', binary])
         run([binary], timeout=10)
     # Non-system dependencies of the alternative backend must be the public API alone.

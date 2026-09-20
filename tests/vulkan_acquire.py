@@ -20,7 +20,7 @@ def main():
     run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti',
          '-I' + str(args.output / 'shaders'), '-O2', '-DNDEBUG', '-Wall', '-Wextra', '-Werror', '-DUSE_VULKAN_API',
          '-ffunction-sections', '-fdata-sections', 'tests/probes/vulkan_acquire.cpp',
-         'engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp',
+         'engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp', 'engine/rhi/rhi_graph.cpp',
          '-Wl,--gc-sections', '-lm', '-o', binary])
     failures = []
     # VkResult ABI values: success/suboptimal acquired an image; timeout/not-ready did not.

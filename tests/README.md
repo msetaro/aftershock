@@ -17,6 +17,7 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 ```
 python3 tests/native_math.py
 python3 tests/rhi.py
+python3 tests/render_graph.py
 python3 tests/devtools.py
 python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
@@ -32,6 +33,13 @@ python3 tests/check_frames.py
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
 ```
+
+`python3 tests/render_graph.py` checks the portable fixed pass declarations,
+dependencies and resource lifetimes, then observes production Vulkan image,
+render-pass and framebuffer creation without a GPU. Its frozen 36-configuration
+trace from #7 merge e4f2d70a covers direct/offscreen, bloom, stencil, independent
+main/screen-map MSAA and capture. Both GCC and Clang/libc++ must match the same
+trace; this migration does not regenerate accepted demo or pixel fixtures.
 
 `python3 tests/rhi.py` checks the alternative backend against the public RHI
 header alone, then exercises the production Vulkan uniform upload path without a

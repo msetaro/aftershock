@@ -63,6 +63,7 @@ int main( void ) {
 	assert( graph.targets[target( rhiGraphTarget_t::MainColor )].lastUse == pass( rhiGraphPass_t::Gamma ) );
 	assert( graph.targets[target( rhiGraphTarget_t::Capture )].exported );
 	assert( graph.targets[target( rhiGraphTarget_t::ScreenColor )].persistent );
+	assert( graph.targets[target( rhiGraphTarget_t::ScreenColor )].lastUse == pass( rhiGraphPass_t::PostBloom ) );
 	assert( graph.passes[pass( rhiGraphPass_t::PostBloom )].dependencyMask & ( UINT32_C( 1 ) << pass( rhiGraphPass_t::Main ) ) );
 	for ( uint32_t i = 0; i < graph.passCount; ++i ) {
 		const auto id = graph.passOrder[i];

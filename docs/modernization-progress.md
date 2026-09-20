@@ -18,15 +18,18 @@ upstream; historical upstream PR references below are completed past work.
 
 #7 PR #143 merged as e4f2d70a after exact head 86e9d19e passed build 35496813498
 and regression 35496813511, with the recorded self-review. Merged-tree regression
-35497810031 is running. Its tree is byte-identical to the tested PR tree.
+35497810031 passed. Its tree is byte-identical to the tested PR tree. #7 is closed
+and marked complete on #25.
 Decision: prepare the next issue's failing tests in a separate branch while that
 integration run completes; do not merge #142 until the preceding integration run
 and #142's own exact-head gates pass. This replaces the unnecessarily serial
 preparation rule below; no unverified change reaches modernization.
 
 Current branch is `issue/142-render-graph`, based on e4f2d70a. The test-first
-checkpoint below passes the native baseline and fails on the absent graph API.
-Commit these tests before adding graph code, then implement the bounded declarations. Preserve target formats/capacities, allocation and draw order,
+checkpoint f6dc6d24 passes the native baseline and fails on the absent graph API.
+The declarations now drive Vulkan target, render-pass and framebuffer creation
+and preserve the native trace. Complete the measurements, exact-head CI and
+self-review before marking draft PR #144 ready and merging. Preserve target formats/capacities, allocation and draw order,
 shader bytes, two frame slots and existing synchronization. No aliasing/reordering.
 After integration verification, close #7 and mark it complete on #25, then continue
 #142 and the remaining Wave 2/Wave 3 roadmap. All writes stay in msetaro/aftershock.
@@ -118,7 +121,7 @@ input capture (test 1899ff9d, fix 7f5d60f6) and saved angle aliases (test d115d5
 fix 86e9d19e), each with failing-then-passing real interaction/save tests. Head
 86e9d19e passed build 35496813498/regression 35496813511; PR #143 merged e4f2d70a.
 The earlier f895997d runner shutdown was retried successfully. Merged-tree run
-35497810031 remains the outstanding integration gate.
+35497810031 passed; #7 is closed and #25 marks it complete.
 
 ## #142 test-first checkpoint (engine unchanged)
 
@@ -148,6 +151,26 @@ portable compiler, then make native allocation/pass descriptors consume them;
 retain exact native traces and frame gates. Add rhi to lifetime ownership when
 introducing engine/rhi/*.cpp. The preceding merged-tree CI and this issue's own
 gates must both pass before the next merge.
+
+## #142 graph integration checkpoint
+
+The portable compiler now builds fixed plain records once at target creation.
+Native images, render-pass load/store/layout/dependency declarations and
+framebuffers consume them through the existing allocator and handle ownership.
+Both GCC and Clang/libc++ still produce the frozen 36-case trace, including the
+legacy compatible-pass choice for paired blur framebuffers. No draw sequence,
+shader, wait, pool capacity or accepted artifact changed. Review extended the
+screen-map lifetime through post-bloom geometry; its added assertion failed first
+(render-graph-screen-before.log) and passes after declaring that read. The rhi source directory
+is now included in the lifetime gate. Static and renderer-module fixed Q3 demos
+pass twice through video restart, retaining frame projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+Both builds pass private-Xvfb resize/hide/restore checks. Public-only stub,
+upload/acquisition probes, format/types/boundaries and 1,166 tidy configurations
+pass. The lifetime gate is running. No command recording, waits, synchronization
+or frontend arithmetic changed. Measurements and hosted acceptance remain.
+The first replay attempt reused a CMake directory belonging to another checkout
+and was rerun in /tmp/aftershock-graph-demo.
 
 ## #31 Vulkan acquisition checkpoint
 

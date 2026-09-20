@@ -195,6 +195,7 @@ set(VULKAN_SOURCES
   engine/render/tr_surface.cpp
   engine/render/tr_world.cpp
   engine/renderervk/vk.cpp
+  engine/rhi/rhi_graph.cpp
   engine/render/vk_flares.cpp
   engine/render/vk_vbo.cpp
 )
