@@ -704,12 +704,13 @@ typedef enum {
 	ET_EVENTS, // any of the EV_* events can be added freestanding
 	// by setting eType to ET_EVENTS + eventNum
 	// this avoids having to set eFlags and eventNum
+	ET_WEAPON_ANIMATION = 253, // Per-hand native weapon animation.
 	ET_WEAPON_STATE = 254, // Auxiliary native weapon state.
 	ET_ANIMATION = 255 // Auxiliary native animation state, never a game event.
 } entityType_t;
 
 #ifdef __cplusplus
-static_assert( int( ET_EVENTS ) + int( EV_WEAPON_IMPACT ) < int( ET_WEAPON_STATE ) );
+static_assert( int( ET_EVENTS ) + int( EV_WEAPON_IMPACT ) < int( ET_WEAPON_ANIMATION ) );
 inline constexpr int WEAPON_PROJECTILE_TAG = 255;
 enum weaponFlight_t { WEAPON_FLYING,
 	WEAPON_BOUNCED,
@@ -723,6 +724,8 @@ const weaponDef_t *BG_WeaponDefinition( int index );
 uint32_t BG_WeaponButtons( const usercmd_t *cmd, int hand, const playerState_t *ps );
 bool BG_WeaponToEntityState( const weaponState_t *state, uint32_t spawn, int owner, int hand, int definition, uint32_t attachments, const float *origin, entityState_t *entity );
 bool BG_EntityStateToWeapon( const entityState_t *entity, weaponState_t *state, uint32_t *spawn );
+bool BG_WeaponAnimationToEntityState( const animState_t *state, const float *parameters, uint32_t spawn, int owner, int hand, int definition, uint32_t attachments, const float *origin, const float *angles, entityState_t *entity );
+bool BG_EntityStateToWeaponAnimation( const entityState_t *entity, animState_t *state, float *parameters, uint32_t *spawn );
 bool BG_AnimationToEntityState( const animState_t *state, const float *parameters, int owner, int rig, const float *origin, const float *angles, entityState_t *entity );
 bool BG_EntityStateToAnimation( const entityState_t *entity, animState_t *state, float *parameters );
 bool BG_AnimationPose( const animAsset_t *asset, const animState_t *state, const float *parameters, uint32_t time, int rig, animPose_t *pose );

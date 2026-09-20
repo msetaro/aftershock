@@ -125,3 +125,32 @@ bool BG_EntityStateToWeapon( const entityState_t *entity, weaponState_t *state, 
 	*spawn = words[14];
 	return true;
 }
+
+// Reuse the animation encoding; its two spare float slots hold exact spawn halves.
+bool BG_WeaponAnimationToEntityState( const animState_t *state, const float *parameters, uint32_t spawn, int owner, int hand, int definition,
+	uint32_t attachments, const float *origin, const float *angles, entityState_t *entity ) {
+	static_assert( ANIM_MAX_PARAMETERS == 16 );
+	if ( definition < 0 || definition >= int( WEAPON_MAX_DEFINITIONS ) || attachments > 255 ||
+		 !BG_AnimationToEntityState( state, parameters, owner, hand, origin, angles, entity ) )
+		return false;
+	entity->eType = ET_WEAPON_ANIMATION;
+	entity->weapon = definition;
+	entity->modelindex = int( attachments );
+	entity->angles2[1] = float( spawn & 65535u );
+	entity->angles2[2] = float( spawn >> 16 );
+	return true;
+}
+bool BG_EntityStateToWeaponAnimation( const entityState_t *entity, animState_t *state, float *parameters, uint32_t *spawn ) {
+	if ( entity->eType != ET_WEAPON_ANIMATION || entity->weapon < 0 || entity->weapon >= int( WEAPON_MAX_DEFINITIONS ) ||
+		 entity->modelindex < 0 || entity->modelindex > 255 )
+		return false;
+	for ( int i = 1; i < 3; ++i )
+		if ( !isfinite( entity->angles2[i] ) || entity->angles2[i] < 0 || entity->angles2[i] > 65535 || entity->angles2[i] != floorf( entity->angles2[i] ) )
+			return false;
+	entityState_t animation = *entity;
+	animation.eType = ET_ANIMATION;
+	if ( !BG_EntityStateToAnimation( &animation, state, parameters ) )
+		return false;
+	*spawn = uint32_t( entity->angles2[1] ) | ( uint32_t( entity->angles2[2] ) << 16 );
+	return true;
+}

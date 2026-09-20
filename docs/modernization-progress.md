@@ -18,7 +18,8 @@ upstream; historical upstream PR references below are completed past work.
 
 Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
 Continue #11 with attachments, weapon/view animation and sound notifies, and the
-ImGui target range using owned assets. Then add lifecycle/lossy-network/replay
+ImGui target range using owned assets. Attachment modifiers/replication and
+reload-start/cancel events already pass; continue with graph-driven presentation. Then add lifecycle/lossy-network/replay
 coverage and run full acceptance gates. Cooked loading, command replay, live
 prediction, rewind/penetration damage, data-only rifle switching, material effects
 and replicated/predicted grenade actors now pass focused tests. Full acceptance
@@ -49,6 +50,10 @@ adapter (weapons-animation-snapshot-before.log). It requires all animation state
 metadata to round-trip without changing wire layouts. Reuse the existing #10
 animation adapter; reserve entity type 253 and its two unused parameter slots for
 the spawn counter. Existing animation fixtures stay unchanged.
+The adapter now passes GCC and Clang/libc++ UBSan
+(weapons-animation-snapshot-gcc.log/-clang.log), including full counters and all
+parameters; the existing 1000-shot digest and 67/10-byte weapon-state sizes remain
+unchanged. Next: shared notify advancement and live graph loading/prediction.
 
 ## #11 test-first scope
 
