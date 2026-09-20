@@ -44,12 +44,14 @@ struct weaponSound_t {
 struct weaponProjectileDef_t {
 	float speed, gravity, bounce, radius;
 	uint32_t fuseMs;
+	float size;
+	char model[64];
 };
 struct weaponMeleeDef_t {
 	float range, damage;
 	uint32_t intervalMs;
 };
-// Version-1 cooked payload. Counts bound every fixed array; unused rows are zero.
+// Version-2 cooked payload. Counts bound every fixed array; unused rows are zero.
 struct weaponDef_t {
 	char name[64], model[64], animation[64];
 	uint32_t fireMode, intervalMs, burstCount, ballistics;
@@ -81,7 +83,7 @@ struct weaponProjectile_t {
 	float position[3], velocity[3];
 	uint32_t ageMs;
 };
-static_assert( sizeof( weaponDef_t ) == 3936 && std::is_trivially_copyable_v<weaponDef_t> );
+static_assert( sizeof( weaponDef_t ) == 4004 && std::is_trivially_copyable_v<weaponDef_t> );
 static_assert( sizeof( weaponReload_t ) == 76 && sizeof( weaponMaterial_t ) == 108 && sizeof( weaponAttachment_t ) == 140 && sizeof( weaponSound_t ) == 96 );
 static_assert( sizeof( weaponState_t ) == 56 && std::is_trivially_copyable_v<weaponState_t> );
 static_assert( sizeof( weaponEvent_t ) == 32 && sizeof( weaponProjectile_t ) == 28 );

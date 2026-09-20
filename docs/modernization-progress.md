@@ -222,6 +222,13 @@ fields before #11 acceptance; other cooked formats keep version 1. No weapon
 format has shipped or been accepted yet. Implement and validate that payload,
 then shared fixed-tick collision, server projectile actors and client prediction.
 
+The version-2 payload passes GCC/Clang UBSan with a 4004-byte definition while
+weapon state/wire sizes and the 1000-shot digest stay unchanged
+(weapons-projectile-asset-gcc.log/-clang.log). All six presentation resources cook
+successfully (weapons-presentation-cook.log). Other asset envelopes retain their
+existing default version and bytes. Provenance checks now guard the new committed
+props/sounds; live rendering/audio review and actual projectile integration remain.
+
 
 ## #12 implemented feature evidence
 

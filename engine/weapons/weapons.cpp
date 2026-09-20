@@ -27,7 +27,7 @@ static bool Valid( const weaponDef_t &d ) {
 		 !Between( d.spreadDegrees, 0, 90 ) || !Between( d.adsSpreadScale, 0, 4 ) || !Between( d.viewKickScale, 0, 4 ) ||
 		 !Between( d.adsFov, 1, 179 ) || !Between( d.sway, 0, 10 ) || !Between( d.bob, 0, 10 ) ||
 		 !Between( d.projectile.speed, 1, 8192 ) || !Between( d.projectile.gravity, 0, 4096 ) || !Between( d.projectile.bounce, 0, 1 ) ||
-		 !Between( d.projectile.radius, 0, 4096 ) || d.projectile.fuseMs < 20 || d.projectile.fuseMs > 60000 ||
+		 !Between( d.projectile.radius, 0, 4096 ) || !Between( d.projectile.size, 0.125f, 32 ) || !Text( d.projectile.model, 64 ) || d.projectile.fuseMs < 20 || d.projectile.fuseMs > 60000 ||
 		 !Between( d.melee.range, 0, 256 ) || !Between( d.melee.damage, 0, 10000 ) || d.melee.intervalMs < 20 || d.melee.intervalMs > 60000 )
 		return false;
 	for ( uint32_t i = 0; i < d.recoilCount; ++i )
@@ -63,7 +63,7 @@ bool Weapon_Open( const void *data, size_t size, weaponDef_t *definition ) {
 	const auto *bytes = (const uint8_t *)data;
 	uint32_t header[2];
 	std::memcpy( header, bytes + 8, sizeof( header ) );
-	if ( std::memcmp( bytes, "ASWEAP\0\0", 8 ) || header[0] != 1 || header[1] != sizeof( weaponDef_t ) )
+	if ( std::memcmp( bytes, "ASWEAP\0\0", 8 ) || header[0] != 2 || header[1] != sizeof( weaponDef_t ) )
 		return false;
 	uint8_t hash[32];
 	calc_sha_256( hash, bytes + 48, sizeof( weaponDef_t ) );

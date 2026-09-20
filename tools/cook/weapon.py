@@ -29,8 +29,8 @@ def text(value, length=64):
 
 def cook(source, name, read):
     d = json.loads(read(source))
-    if d.get('version') != 1:
-        raise ValueError('weapon definition version must be 1')
+    if d.get('version') != 2:
+        raise ValueError('weapon definition version must be 2')
     recoil, reload = d['recoil'], d['reload']
     materials, attachments, sounds = d['materials'], d['attachments'], d['sounds']
     for rows, minimum, maximum in [(recoil, 1, 32), (reload, 1, 8), (materials, 1, 8), (attachments, 0, 8), (sounds, 0, 8)]:
@@ -47,8 +47,9 @@ def cook(source, name, read):
         number(d['sway'], 0, 10), number(d['bob'], 0, 10), integer(d['magazine'], 1, 1000), integer(d['reserve'], 0, 65535),
         len(recoil), len(reload), len(materials), len(attachments), len(sounds), integer(d['switch_ms'], 20, 10000)))
     projectile, melee = d['projectile'], d['melee']
-    data.extend(struct.pack('<4fI', number(projectile['speed'], 1, 8192), number(projectile['gravity'], 0, 4096),
-        number(projectile['bounce'], 0, 1), number(projectile['radius'], 0, 4096), integer(projectile['fuse_ms'], 20, 60000)))
+    data.extend(struct.pack('<4fIf64s', number(projectile['speed'], 1, 8192), number(projectile['gravity'], 0, 4096),
+        number(projectile['bounce'], 0, 1), number(projectile['radius'], 0, 4096), integer(projectile['fuse_ms'], 20, 60000),
+        number(projectile['size'], 0.125, 32), text(projectile['model'])))
     data.extend(struct.pack('<2fI', number(melee['range'], 0, 256), number(melee['damage'], 0, 10000), integer(melee['interval_ms'], 20, 60000)))
     for row in recoil:
         if len(row) != 2:
@@ -78,5 +79,5 @@ def cook(source, name, read):
     for event, path in sorted(sounds.items()):
         data.extend(text(event, 32) + text(path))
     data.extend(bytes((8 - len(sounds)) * 96))
-    assert len(data) == 3936
-    return {name + '.asweapon': model.wrapped(b'ASWEAP\0\0', data)}
+    assert len(data) == 4004
+    return {name + '.asweapon': model.wrapped(b'ASWEAP\0\0', data, version=2)}

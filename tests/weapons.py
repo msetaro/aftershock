@@ -27,6 +27,8 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-fsanitize=undefined', '-fno-sanitize-recover=all',
      'tests/probes/weapons.cpp', 'engine/weapons/weapons.cpp', 'engine/render/tr_cooked.cpp', sha, '-o', probe])
 fixture = ROOT / 'tests/assets/weapons'
+for filename, expected in json.loads((fixture / 'provenance.json').read_text())['files'].items():
+    assert hashlib.sha256((fixture / filename).read_bytes()).hexdigest() == expected, filename
 with tempfile.TemporaryDirectory(prefix='aftershock-weapon-source-') as temporary:
     source = Path(temporary)
     definition = json.loads((fixture / 'rifle.weapon.json').read_text())
