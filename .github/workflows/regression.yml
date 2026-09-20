@@ -340,3 +340,46 @@ jobs:
           cmake --build build/sdl -j4 --target CMakeFiles/client.dir/engine/platform/sdl/sdl_glimp.cpp.obj CMakeFiles/client.dir/engine/platform/sdl/sdl_gamma.cpp.obj
 
   # Existing build.yml also builds MSVC x64/ARM64 Debug/Release for this PR.
+
+  match-server:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: tools/match/go.sum
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: regression-match-server
+      - name: Install native client and public test-content prerequisites
+        run: sudo apt-get update && sudo apt-get install -y ninja-build faketime xvfb xauth mesa-vulkan-drivers libsdl2-dev libasound2-dev mesa-common-dev openarena-data
+      - name: Match contracts and acknowledged result delivery
+        run: |
+          cd tools/match
+          test -z "$(gofmt -l .)"
+          go test -race ./...
+          go vet ./...
+      - name: Owned image content and native match completion
+        run: |
+          python3 tests/match_content.py
+          python3 tests/openarena.py
+          cmake -S . -B /tmp/aftershock-match-ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DUSE_CURL=OFF
+          cmake --build /tmp/aftershock-match-ci --parallel 4
+          python3 tests/match_exit.py --server /tmp/aftershock-match-ci/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Build non-root distroless match image
+        run: docker build -f tools/match/Dockerfile -t aftershock-match:issue28 .
+      - name: Private kind allocation, native player, final ingest and replacement
+        run: python3 tests/match_kind.py --image aftershock-match:issue28 --client /tmp/aftershock-match-ci/release-linux-x86_64/quake3e.x64 --data /tmp/aftershock-openarena-baseoa
+      - name: Match lifecycle and measured resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: match-server
+          path: |
+            /tmp/aftershock-match-kind/*.log
+            /tmp/aftershock-match-kind/report.json
+            /tmp/aftershock-match-kind/events.jsonl
+            /tmp/aftershock-match-kind/density.json
+            /tmp/aftershock-match-kind/density-samples.json
+            /tmp/aftershock-match-exit/*.log

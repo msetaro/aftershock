@@ -971,6 +971,20 @@ are JSON/text, engine/compiler logs and PNGs under `/tmp/aftershock-level-valida
 No accepted demo, frame or level fixture is regenerated. See `tools/level/README.md`
 for report semantics, conservative design checks and the inactivity heuristic.
 
+#28 match-server checks live in `tests/match_content.py` (reproducible owned package),
+`tests/match_exit.py` (opt-in native lifetime; Q3 default or explicit OA),
+`tests/match_runtime.py` (separate wrapper/shipper/ingest with optional actual OA
+client), and `tests/match_kind.py` (private Agones Fleet allocation and real-client
+acceptance through acknowledged result and replacement). The Go service's
+`go test -race ./...` checks validation, bounded checkpoints, durable retry/restart,
+ingest outage and process exit before log creation. See tools/match/README.md for
+image/Compose/spec details and the exact kind command. The kind test downloads
+verified tools only into user cache, creates/deletes only its random private cluster,
+and measures all three match containers' CPU/working set. Its density conversion
+is a connected-player resource baseline, not a saturation/capacity guarantee.
+OpenArena test paks are copied into that private node only; the image contains only
+owned content. Generated secrets/specs/kubeconfig are excluded from CI artifacts.
+
 Native pure-server regression (#31): `python3 tests/native_pure.py` exercises the
 real filesystem pure list with statically linked modules and retained content-pak
 checksum accounting. `python3 tests/native_pure_runtime.py --client CLIENT --server
