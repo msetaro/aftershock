@@ -12,47 +12,61 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
-are relative to that persistent directory.
+Stop at this checkpoint after the design-only #6 PR passes its gates, merges, and
+its merged-tree regression passes. The authorized sequence ends here. Do not start
+RHI implementation, retire OpenGL, or advance to #7 without a new request.
 
-Active: #8 final code rules, branch issue/8-final-code-rules. PR #137 merged
-as 50d6ee48 after current-head build 35478967343 and regression 35478967384 passed;
-preceding merged-tree regression 35478332454 also passed. Its source is 03d0b80d,
-final head 64a60d49 (OpenArena copied-wrapper seek adapter corrected). Merged-tree regression
-35479365759 is running; require it before merging this branch.
+The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
+`modernization`. #6 has a design document only: `docs/design/rhi.md`. It describes
+the thin static Vulkan RHI, platform/filesystem ownership, explicit lifetimes and
+error handling, offline shaders/caches, phase-two render graph and unchanged-frame
+gates. It does not add engine code or a new backend. Final design PR/merge and CI
+evidence are recorded on [issue #6](https://github.com/msetaro/aftershock/issues/6).
 
-Applied final numeric/layout declarations in 09f418cc: eleven files, including
-the eight Vulkan IQM declarations mirroring OpenGL, WAV/browser/routing persisted
-scalars, ADPCM sample/index storage, bot characteristic tags, chat offsets and
-qsort bytes. 169 sampled objects: 135 raw/native-identical, 28 debug-only, six debug
-objects differing only in sign/zero extension before CT_STRING equality. All 256
-byte values give the same equality result. All twelve native helpers retain hashes.
-Evidence: char-object-review.json, char-native.json. No new loader test targets.
+## Final #8 verification
 
-Applied Q_ASSERT in af8c818a: nineteen existing calls and two shared-header aliases.
-205 samples preserve code/data (159 raw, 46 debug-only); twelve native helper hashes
-match. The existing tidy driver now analyzes with -UNDEBUG and rejects increments,
-mutating calls and nested increments in allowed pure helpers. The final local driver passes
-all 570 configurations, both renderers and all three assertion negative controls.
-Local unit/one-ULP negative control, chat offsets under signed/unsigned char, and
-fixed Quake 3 replay (b38004b1) pass. Browser-cache read scalar follow-up 5c34725f
-was rechecked in all nine affected configurations; the 169-object totals stand.
-Evidence: assert-final-object-review.json, assert-final-native.json,
-assert-final-full-tidy/results.json. Original GPL hashes and all goldens/fixtures
-remain unchanged. The plan's assertion and integer rows are now marked in force.
+PR #138 merged as e4440d85 after current-head build 35479545347 and regression
+35479545353 passed. Preceding merged-tree regression 35479365759 passed. The #8
+merged-tree acceptance run is 35479878500; it must pass before the design PR merges.
+Source commits: 09f418cc (final byte/layout declarations), af8c818a (Q_ASSERT),
+5c34725f (cache read scalar spelling); final PR head 6be86089. AGENTS self-review and
+measurements are on #8 and PR #138. #8's plan rows are marked in force.
 
-Next: publish final #8 PR, current-head full build/regression and preceding
-merged-tree gate, AGENTS self-review, merge, and verify that merged tree. Then
-finish #8 tracking, write the design-only docs/design/rhi.md on a #6 branch, gate
-and merge that document, and STOP. No RHI implementation is authorized here.
-#8 remains open until these final gates pass. Older previews below are historical.
+The final layout audit includes all central/shared, image/cache and journal/browser/
+routing records and both copies of the eight IQM records. WAV/browser/routing scalar
+widths, ADPCM samples/indexes, bot characteristic tags, signed chat offsets and qsort
+bytes are explicit. 169 sampled layout/byte objects: 135 raw/native-identical,
+28 debug-only, six debug sign/zero extensions before CT_STRING equality; all 256
+byte values produce the same equality result. The cache-read follow-up was refreshed
+in all nine affected configurations. Evidence: char-object-review.json.
 
-Final formatting evidence: all 410 files idempotent; 1,810 release assemblies
-preserve instructions/data (eight inline-assembly source-comment differences).
-All nineteen native export assemblies byte-identical. Twelve helpers differ
-only in assertion line immediates/build IDs; local unit/negative control, native
-layout/symbol gates, OpenArena helper/layout checks and fixed Q3 replay pass.
-Accepted goldens/fixtures and original GPL hashes remain unchanged.
+Q_ASSERT aliases the nineteen existing checks without changing conditions. Its
+205 sampled objects preserve code/data (159 raw, 46 debug-only). Twelve native
+helper binaries retain hashes. The permanent tidy driver passes all 570 production
+configurations with assertions enabled and rejects increments, mutating calls and
+nested increments in allowed pure helpers. Local unit/one-ULP negative control,
+signed/unsigned-char chat checks, format/type/boundary checks and fixed Q3 replay
+(b38004b1) pass. Evidence: assert-final-object-review.json, assert-final-native.json,
+final-rules-{unit,chat,tidy,demo}.log in ~/.cache/aftershock-modernization/.
+
+PR #137 integer policy merged as 50d6ee48 after build 35478967343 and regression
+35478967384 passed. All 1,810 release configurations compile: 1,730 assemblies are
+raw-identical and two GCC Vorbis cases assemble identically; 78 Windows configurations
+change internal integer code/symbols and are not claimed identical. All twelve native
+helpers match. Script arithmetic, seek/config-journal widths and hash overflow retain
+explicit legacy platform contracts. Foreign stdio/curl/Vorbis/minizip/Xlib ABI types
+are retained. The long ban checks inactive platform branches. The pinned OpenArena
+adapter keeps its own original C seek signature; all three local static OA modules
+build. Hosted OpenArena runtime and both-map replay passed; local OA assets were
+absent and no missing-asset run was counted as passing.
+
+PRs #132-#136 completed the one tree-wide clang-format commit, authoritative pinned
+format gate, tidy readability/performance policy, and preceding fixed-width layouts.
+Formatting preserved 1,810 release assembly instruction/data streams (eight inline-asm
+source-comment differences reviewed), all nineteen native export assemblies and
+helper behavior. The initial helper differences were only assertion source-line
+immediates/build IDs. Original GPL hashes and accepted goldens/fixtures have never
+been regenerated for these code-rule changes. All future writes stay in this repo.
 
 ## Historical verification checkpoints
 
@@ -1410,8 +1424,8 @@ experiment still timed out before output and is not a claimed runtime gate.
 | 4 | #2 native game | Complete: PR #50, merge 6069cf2a; static C++ game modules, native/QVM parity evidence retained, VMs/JITs removed. |
 | 5 | #4 boundaries | Complete: PR #65, merge 4a952854; verified moves, public include/OS gates, docs/subsystems.md and docs/bugs.md. |
 | 6 | #5 CMake | Complete: PR #66, merge 1412c2eb; object parity, generated MSVC projects, 64-bit-only primary CMake build. |
-| 7 | #8 code rules | In progress: warning ratchet, one formatting commit, tidy subsets and 72 wire/file/shared layout contracts merged. Integer policy PR #137 merged; final numeric/layout and Q_ASSERT commits await their full hosted gates. |
-| 8 | #6 design only | Write docs/design/rhi.md after #8, then stop. No RHI implementation in this sequence. |
+| 7 | #8 code rules | Complete: warning ratchet, one formatting commit, tidy subsets, integer/layout policy and release-identical Q_ASSERT merged through PR #138 (e4440d85). Final evidence is above. |
+| 8 | #6 design only | docs/design/rhi.md written; the sequence ends after its gated merge. #6 implementation remains future work. |
 
 ## Rulings in force
 
