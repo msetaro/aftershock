@@ -109,6 +109,8 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
         if static:
             public = ROOT / 'engine/public' / (prefix + '_native_public.h')
             direct = (ROOT / 'game' / module / (prefix + '_native.cpp')).read_text()
+            # The pinned OpenArena C headers retain their original seek type.
+            direct = direct.replace('fsOffset_t', 'long')
             if module == 'cgame':
                 # This optional OA extension also fails in the original engine dispatch.
                 direct += '\nvoid trap_R_LFX_ParticleEffect(int effect, const vec3_t origin, const vec3_t velocity) {\n'

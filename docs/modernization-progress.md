@@ -28,7 +28,15 @@ identical; two GCC Vorbis files differ only in local function-label numbering;
 78 Windows configurations differ (internal symbol types, integer width/registers,
 struct strides and explicit formatting conversions). Do not claim Windows object
 identity. Existing script arithmetic, journal storage and hash overflow are retained.
-Fresh full hosted build/regression and local unit/replay/tidy gates are next.
+PR #137 source 03d0b80d/head 902dd395: local unit/negative control, 570 tidy
+configurations, curl ABI checks and fixed Q3 replay (b38004b1) passed. Build
+35478687618 and regression 35478687646 started; hosted runtime found a test-adapter
+compile error: copied native wrappers name fsOffset_t, absent from pinned OpenArena
+C headers. The adapter now restores OpenArena's original long seek signature.
+Run the asset-free static OpenArena adapter build and fresh hosted runtime gates
+before merge. Local OpenArena assets are absent; no packages were installed and
+no missing-asset run is counted as passing. Local Quake 3 replay already passes.
+Preceding merged-tree regression 35478332454 passed.
 A GCC attributed-function template warning rejected the first stdio type spelling;
 the final alias uses the standard C ABI word directly. All affected configurations
 were rebuilt successfully. The permanent long gate also covers inactive branches. Existing accepted fixtures and
@@ -38,7 +46,7 @@ that diagnostic branch has a reduced workflow and MUST NEVER be merged.
 Script arithmetic, seek/journal lengths and hash overflow retain explicit legacy
 platform widths. Foreign callback, stdio, libcurl and Xlib values retain SDK/C ABI
 types; internal integers use fixed-width types. The candidate refresh preserves
-all #136 layout changes. Remaining work: long ban gate, meaningful char audit,
+all #136 layout changes. Remaining work: numeric byte declarations after the char audit,
 Q_ASSERT integration, final #8 plan/progress/gates, then design-only #6 document.
 #8 remains open.
 
