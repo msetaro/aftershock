@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import struct
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -132,6 +133,7 @@ def check_model(path, animated, mirrored=False):
     assert header[13] == (2 if animated else 0)
     assert header[17] == (2 if animated else 0)
     arrays = [struct.unpack_from('<5I', data, header[9] + i * 20) for i in range(header[7])]
+    assert not any(row[0] == 3 for row in arrays), 'sources without tangents must not acquire a fabricated tangent basis'
     positions = next(row for row in arrays if row[0] == 0)
     normals = next(row for row in arrays if row[0] == 2)
     assert positions[2:4] == normals[2:4] == (7, 3)
@@ -326,6 +328,16 @@ def main():
                     'tests/probes/cook_model.cpp', 'engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp',
                     '-Wl,--gc-sections', '-o', str(probe)], cwd=ROOT, check=True)
     subprocess.run([str(probe), str(output / 'models/character.iqm')], check=True)
+    with tempfile.TemporaryDirectory(prefix='aftershock-large-character-') as temporary:
+        enlarged = Path(temporary)
+        shutil.copytree(fixture, enlarged / 'source')
+        project = enlarged / 'source/assets.json'
+        definition = json.loads(project.read_text())
+        definition['assets'][0]['scale'] = 32000
+        project.write_text(json.dumps(definition))
+        cook(project, enlarged / 'cooked')
+        subprocess.run([str(probe), str(enlarged / 'cooked/models/character.iqm'), '--bounds-only'], check=True)
+
     material_probe = args.output / 'material-probe'
     subprocess.run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
                     '-DUSE_VULKAN_API', '-DAFTERSHOCK_DEVTOOLS', '-Wall', '-Wextra', '-Werror',

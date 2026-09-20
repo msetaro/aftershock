@@ -3019,3 +3019,10 @@ new reload-count query stubs; it now checks those copied counts too. This is a
 feature test integration correction, not a legacy engine bug. Remaining: cooker
 tangent/bounds review, repeated live edits/idle/restart/module acceptance, fixed
 Q3/OpenArena replays and complete exact-head hosted/self-review gates.
+
+Final cooker review found a new-feature bounds error: enlarged source scale 32000
+puts production IQM posed vertices outside bounds derived from unquantized source
+frames. Test-first evidence is cook-bounds-before.log; the ordinary scale still
+passes. Fix this cooker calculation within #9, not an existing engine #31 change.
+Also require absent source tangents to remain absent instead of inventing a basis.
+No simulation arithmetic or accepted fixture/golden is changed.

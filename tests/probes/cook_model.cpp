@@ -40,7 +40,7 @@ shader_t *R_FindShader( const char *name, int lightmap, qboolean ) {
 	return &shader;
 }
 int main( int argc, char **argv ) {
-	assert( argc == 2 );
+	assert( argc == 2 || argc == 3 );
 	FILE *file = fopen( argv[1], "rb" );
 	assert( file );
 	assert( fseek( file, 0, SEEK_END ) == 0 );
@@ -56,6 +56,28 @@ int main( int argc, char **argv ) {
 	assert( R_LoadIQM( &model, bytes, (int)size, argv[1] ) );
 	const iqmData_t *data = (iqmData_t *)model.modelData;
 	assert( data == allocation && data->num_surfaces == 6 && data->num_joints == 3 && data->num_frames == 62 );
+	for ( int frame = 0; frame < data->num_frames; frame++ ) {
+		float matrices[IQM_MAX_JOINTS * 12];
+		ComputePoseMats( (iqmData_t *)data, frame, frame, 0, matrices );
+		for ( int vertex = 0; vertex < data->num_vertexes; vertex++ ) {
+			const int influence = data->influences[vertex];
+			float blended[12] = {};
+			for ( int component = 0; component < 12; component++ ) {
+				for ( int joint = 0; joint < 4; joint++ )
+					blended[component] += data->influenceBlendWeights.f[influence * 4 + joint] * matrices[12 * data->influenceBlendIndexes[influence * 4 + joint] + component];
+			}
+			for ( int axis = 0; axis < 3; axis++ ) {
+				const float value = DotProduct( blended + axis * 4, data->positions + vertex * 3 ) + blended[axis * 4 + 3];
+				assert( value >= data->bounds[frame * 6 + axis] && value <= data->bounds[frame * 6 + axis + 3] );
+			}
+		}
+	}
+	if ( argc == 3 ) {
+		free( allocation );
+		free( bytes );
+		puts( "PASS: native posed vertices stay inside cooked frame bounds at enlarged scale" );
+		return 0;
+	}
 	assert( data->num_anims == 2 );
 	assert( strcmp( data->animations[0].name, "idle" ) == 0 && strcmp( data->animations[1].name, "wave" ) == 0 );
 	for ( uint32_t i = 0; i < 2; i++ ) {
