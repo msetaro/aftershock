@@ -25,7 +25,7 @@ probe = args.output / 'probe'
 run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
      '-fno-fast-math', '-ffp-contract=off', '-Wall', '-Wextra', '-Werror',
      '-fsanitize=undefined', '-fno-sanitize-recover=all',
-     'tests/probes/weapons.cpp', 'engine/weapons/weapons.cpp', sha, '-o', probe])
+     'tests/probes/weapons.cpp', 'engine/weapons/weapons.cpp', 'engine/render/tr_cooked.cpp', sha, '-o', probe])
 fixture = ROOT / 'tests/assets/weapons'
 with tempfile.TemporaryDirectory(prefix='aftershock-weapon-source-') as temporary:
     source = Path(temporary)
@@ -44,6 +44,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapon-source-') as temporar
     magic, version, size, digest = struct.unpack_from('<8sII32s', data)
     assert magic == b'ASWEAP\0\0' and version == 1 and size == len(data) - 48
     assert digest == hashlib.sha256(data[48:]).digest()
+    run([probe, 'index', args.output / 'cook.index'])
     trace = subprocess.check_output([probe, rifle, args.output / 'weapons/second.asweapon'], cwd=ROOT, env=ENV, timeout=30)
     # Independent integer reference for Q_rand's recurrence and binary32 spread.
     def f32(value):

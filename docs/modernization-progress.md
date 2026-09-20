@@ -66,6 +66,13 @@ legacy RNG code is untouched. New tests 125c8016/9a047470 preceded implementatio
 This is not #11 acceptance: data-to-gameplay and rendering/audio integration,
 replication/prediction, target-range tooling and replay gates remain outstanding.
 
+Follow-up test-first checks fail separately on two unfinished parts of this new
+feature: native cooked-index acceptance of kind 7 (weapons-index-before.log), and
+30 ms fire intervals retaining their phase across 20 ms ticks rather than slowing
+to 40 ms (weapons-cadence-before.log). Extend index registration and carry the
+sub-tick remainder while discarding stale idle/reload backlog. Existing 80 ms
+1000-shot trace must remain identical.
+
 
 ## #12 implemented feature evidence
 

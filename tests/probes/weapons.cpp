@@ -1,4 +1,6 @@
 #include "../../engine/weapons/weapons_public.h"
+#include "../../engine/render/tr_cooked.h"
+#include "../../third_party/sha256/sha-256.h"
 #include <assert.h>
 #include <cmath>
 #include <cstdio>
@@ -6,13 +8,17 @@
 #include <type_traits>
 #include <initializer_list>
 
-static weaponDef_t Load( const char *path ) {
-	uint8_t data[65536];
+static size_t ReadFile( const char *path, uint8_t *data, size_t capacity ) {
 	FILE *file = fopen( path, "rb" );
 	assert( file );
-	const size_t size = fread( data, 1, sizeof( data ), file );
+	const size_t size = fread( data, 1, capacity, file );
 	assert( !ferror( file ) && feof( file ) );
 	fclose( file );
+	return size;
+}
+static weaponDef_t Load( const char *path ) {
+	uint8_t data[65536];
+	const size_t size = ReadFile( path, data, sizeof( data ) );
 	weaponDef_t definition;
 	assert( Weapon_Open( data, size, &definition ) );
 	return definition;
@@ -24,6 +30,15 @@ static weaponEvents_t Step( const weaponDef_t &def, weaponState_t *state, uint32
 }
 int main( int argc, char **argv ) {
 	assert( argc == 3 );
+	if ( !strcmp( argv[1], "index" ) ) {
+		uint8_t data[65536], revision[32];
+		const size_t size = ReadFile( argv[2], data, sizeof( data ) );
+		calc_sha_256( revision, data, size );
+		cookedIndex_t index;
+		assert( R_ReadCookedIndex( data, size, revision, &index ) && index.count == 2 );
+		puts( "PASS: native asset registry accepts both cooked weapon definitions" );
+		return 0;
+	}
 	static_assert( std::is_trivially_copyable_v<weaponDef_t> && std::is_trivially_copyable_v<weaponState_t> );
 	weaponDef_t def = Load( argv[1] ), second = Load( argv[2] );
 	assert( !strcmp( def.name, "range_rifle" ) && second.damage == 55 && def.damage == 40 );
@@ -117,6 +132,19 @@ int main( int argc, char **argv ) {
 	b = a;
 	weaponEvents_t untouched;
 	assert( !Weapon_Tick( &def, 0, a.time + 40, &a, &untouched ) && !memcmp( &a, &b, sizeof( a ) ) );
+	def.fireMode = WEAPON_AUTO;
+	def.intervalMs = 30;
+	Weapon_Reset( &def, 1, 0, &a );
+	uint32_t fractionalShots = 0;
+	for ( int tick = 0; tick < 20; ++tick ) {
+		const auto events = Step( def, &a, WEAPON_FIRE );
+		for ( uint32_t i = 0; i < events.count; ++i )
+			if ( events.items[i].kind == WEAPON_SHOT ) {
+				assert( a.time == ( ( 20 + fractionalShots * 30 + 19 ) / 20 ) * 20 );
+				++fractionalShots;
+			}
+	}
+	assert( fractionalShots == 13 ); // Carry remainder; 30 ms must not become a 40 ms weapon.
 	weaponProjectile_t projectile = {};
 	projectile.velocity[0] = 800;
 	Weapon_ProjectileStep( &def, &projectile );
