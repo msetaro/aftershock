@@ -3,6 +3,7 @@
 #include "../../engine/qcommon/qcommon_public.h"
 #include "../../engine/weapons/weapons_public.h"
 #include "../../game/bg/bg_weapons.cpp"
+#include "../../game/bg/bg_animation.cpp"
 #include <assert.h>
 
 cvar_t *cl_shownet;
@@ -92,5 +93,25 @@ int main() {
 	MSG_ReadDeltaEntity( &msg, &baseline, &decoded, MSG_ReadEntitynum( &msg ) );
 	assert( BG_EntityStateToWeapon( &decoded, &restored, &restoredSpawn ) );
 	assert( !memcmp( &changed, &restored, sizeof( changed ) ) && restoredSpawn == spawn );
-	printf( "PASS: full weapon state/seed/clock/spawn and both-hand metadata survive entity deltas (%d initial, %d delta bytes)\n", initialBytes, msg.cursize );
+	const int clockDeltaBytes = msg.cursize;
+	const animState_t animation = { 1, 2, 0xfffffff0u, 123, 456, 100, 789, 0xabcdef01u, 1 };
+	float parameters[ANIM_MAX_PARAMETERS];
+	for ( uint32_t i = 0; i < ANIM_MAX_PARAMETERS; ++i )
+		parameters[i] = float( i ) * 0.25f;
+	const float angles[3] = { 5, 90, 0 };
+	assert( BG_WeaponAnimationToEntityState( &animation, parameters, spawn, 63, 1, 31, 255, origin, angles, &encoded ) );
+	assert( encoded.eType == ET_WEAPON_ANIMATION && encoded.solid == 0 && encoded.event == 0 && encoded.loopSound == 0 );
+	baseline = {};
+	MSG_Clear( &msg );
+	MSG_WriteDeltaEntity( &msg, &baseline, &encoded, qtrue );
+	MSG_BeginReading( &msg );
+	MSG_ReadDeltaEntity( &msg, &baseline, &decoded, MSG_ReadEntitynum( &msg ) );
+	animState_t restoredAnimation;
+	float restoredParameters[ANIM_MAX_PARAMETERS];
+	assert( BG_EntityStateToWeaponAnimation( &decoded, &restoredAnimation, restoredParameters, &restoredSpawn ) );
+	assert( !memcmp( &animation, &restoredAnimation, sizeof( animation ) ) && restoredSpawn == spawn );
+	assert( !memcmp( parameters, restoredParameters, sizeof( parameters ) ) );
+	assert( decoded.weapon == 31 && decoded.modelindex == 255 && decoded.otherEntityNum == 63 && decoded.otherEntityNum2 == 1 );
+	puts( "PASS: per-hand weapon animation, parameters and full spawn/notify counters survive entity codec" );
+	printf( "PASS: full weapon state/seed/clock/spawn and both-hand metadata survive entity deltas (%d initial, %d delta bytes)\n", initialBytes, clockDeltaBytes );
 }

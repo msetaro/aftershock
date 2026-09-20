@@ -41,6 +41,15 @@ Acceptance comment: https://github.com/msetaro/aftershock/issues/12#issuecomment
 Merged-tree regression 35523091952 passed; #12 is closed and checked in #25.
 Preserve the provider/transport boundary recorded below.
 
+## #11 weapon animation snapshot test
+
+The real entity-codec probe now fails on the absent per-hand weapon-animation
+adapter (weapons-animation-snapshot-before.log). It requires all animation state,
+16 parameters, full spawn/notify counters and owner/hand/definition/attachment
+metadata to round-trip without changing wire layouts. Reuse the existing #10
+animation adapter; reserve entity type 253 and its two unused parameter slots for
+the spawn counter. Existing animation fixtures stay unchanged.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing
