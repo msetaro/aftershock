@@ -16,6 +16,37 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
+Preparatory branch `issue/28-match-server` is in the level-tree worktree, based
+on #27 PR #154 head b59fd806. The main checkout remains on #27 while its exact-head
+build/regression run (35538730616/35538730598). Superseded 9ed0484b regression was
+cancelled. #26 integration is 35538219232; neither #26 nor #27 is accepted/closed
+until its merged-tree run passes. Merge modernization forward later, never rebase.
+
+Read #28: non-root read-only image, match-spec launch, opt-in match-end exit,
+Agones warm Fleet/allocation/Ready/Health/Shutdown, gRPC log/results sidecar, Compose,
+kind CI and measured density. tests/match_exit.py first proves current behavior:
+normal server reaches the guard marker, and sv_exitOnMatchEnd=1 also reaches it
+instead of quitting. Failing trace is match-exit-before.log; OA bot match reached
+Fraglimit normally, so the negative control tests the requested missing feature.
+Next implement the native opt-in exit, preserving default behavior/goldens, then
+owned-content packaging and lifecycle sidecar/integration.
+
+Local Docker Desktop works (20 virtual CPUs, 7936475136 bytes VM RAM). Docker
+Compose v5.3 is installed; Go/protoc/kind are absent from PATH. Use image builds or
+user-cache tools, never local system packages. Do not touch existing containers or
+clusters. Published/server image content must be owned project content only; OA
+packages may be mounted for CI testing, never bake Q3 packages into an image.
+#12 delivered the asynchronous provider seam; identity_public.h explicitly assigns
+its reliable ticket transport to #23. Until that/provider wiring exists, use #28's
+specified per-match password fallback and record it clearly (never claim authenticated
+provider identity). Match persistence stays out of the engine: log events over gRPC
+to the ingest stub, no database driver/credentials in a match pod.
+Primary Agones references read: https://agones.dev/site/docs/installation/ and
+https://agones.dev/site/docs/installation/install-agones/helm/; REST Ready/Health/
+Shutdown endpoints are documented at /site/docs/guides/client-sdks/rest/.
+
+## #27 checkpoint inherited by #28
+
 Current branch: `issue/27-headless-levels` in the main user checkout.
 #26 PR #153 merged as bc1aff0d16878f3e170dab3c3aa1c1f7e79eee94 after exact-head
 5f67dbf4 passed build 35537284408 and regression 35537284293. The merge and tested
