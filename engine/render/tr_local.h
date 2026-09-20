@@ -538,6 +538,7 @@ typedef struct shader_s {
 	unsigned noPicMip : 1; // for images that must always be full resolution
 	unsigned noLightScale : 1;
 	unsigned noVLcollapse : 1; // ignore vertexlight mode
+	unsigned reloadable : 1; // cooked development material; keep vertex data dynamic
 
 	fogPass_t fogPass; // draw a blended pass, possibly with depth test equals
 

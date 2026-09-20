@@ -26,12 +26,13 @@ struct devImage_t {
 	char name[256];
 	uint32_t texture;
 	int32_t width, height, uploadWidth, uploadHeight;
-	uint32_t flags, format;
+	uint32_t flags, format, reloads;
 };
 struct devMaterial_t {
 	char name[64];
 	float sort;
 	int32_t stages, cull, surfaceFlags, contentFlags;
+	uint32_t reloads;
 	bool explicitDefinition, fallback;
 	bool present[8];
 	uint32_t stateBits[8];
@@ -46,5 +47,6 @@ static_assert( std::is_trivially_copyable_v<devImage_t> && std::is_trivially_cop
 struct devModel_t {
 	char name[64];
 	int32_t type, frames, bytes;
+	uint32_t reloads;
 };
 static_assert( std::is_trivially_copyable_v<devModel_t> );

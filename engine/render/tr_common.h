@@ -121,6 +121,10 @@ struct cookedTexture_t;
 #ifdef AFTERSHOCK_DEVTOOLS
 void R_PollCookedAssets( void );
 struct cookedIndex_t;
+uint32_t R_CookedImageReloads( int index );
+uint32_t R_CookedModelReloads( int index );
+uint32_t R_CookedMaterialReloads( int index );
+void R_ReloadCookedMaterials( const cookedIndex_t *index );
 void R_ReloadCookedModels( const cookedIndex_t *index );
 #endif
 image_t *R_CreateImage( const char *name, const char *name2, byte *pic, int width, int height, imgFlags_t flags, const cookedTexture_t *cooked = nullptr );

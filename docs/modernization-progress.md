@@ -26,8 +26,8 @@ origin/modernization has been merged into it without rewriting history. The
 owned Blender source fixture was exported once with verified portable Blender
 4.5.3 (archive hash below). Offline cooking/production pose tests pass at 7acd72c1.
 Draft PR #145 holds #9. Native BC texture/material loading and watched texture
-replacement, named clips and bounded model/animation reload now work. Complete
-material reload, remaining audio/shader inputs and final runtime/CI acceptance.
+replacement, named clips, bounded material/model/animation reload and inspector
+reload counts now work. Complete audio/shader inputs and final runtime/CI acceptance.
 Keep the graph's reviewed branch unchanged. #7 is complete and closed.
 
 Read #9 and the preparation notes in the persistent modernization cache
@@ -2955,3 +2955,25 @@ Material replacement test added before implementation: production shader storage
 must preserve the handle/hash chain/remap, correctly reorder changed blend sorts,
 and keep one hunk allocation across twelve one/two-stage edits. It fails on the
 absent reloadable flag/replacement API (cook-material-replace-before.log).
+
+Material replacement is test-first at 822893f3. The cooked base-color recipe
+reserves two stages once, reuses its shader pointer/handle and stage storage,
+preserves remaps/hash chains and reorders changed sort keys at the frame boundary.
+Twelve edits allocate no additional hunk storage. Development cooked materials
+remain dynamic instead of baking their stage colors into static vertex buffers.
+Transparency applies after texture/lightmap combination; unlit materials skip
+lightmaps. Legacy shader allocation and shipping material behavior are retained.
+
+The live test edits only its temporary source copy to change the material from
+opaque to transparent. The preview disappears, with the model handle and selected
+frame unchanged. Texture, material and model inspectors expose reload counts
+(development renderer ABI 16, shipping ABI 12). Screenshot reviewed; texture
+latency 0.608521 seconds / 2,721 changed preview pixels. GCC/Clang cooker probes,
+development build, formatting, type and boundary gates pass. Evidence:
+cook-material-replace-{before,after,clang,build}.log,
+cook-live-material-reload.log and cook-material-{format,types,boundaries}.log.
+
+Hosted regression 35503477810 at old head 76287e8c passed the other required
+legs but the lifetime checker was terminated (exit 143), with no source diagnostic.
+A fresh complete run is required; this is not an accepted gate. Continue #9 with
+remaining audio/shader source kinds and the complete final acceptance checks.

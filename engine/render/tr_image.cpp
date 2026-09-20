@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 static struct {
 	char path[MAX_QPATH];
 	uint8_t hash[32];
+	uint32_t reloads;
 } cookedImages[MAX_DRAWIMAGES];
 static cvar_t *reloadAssets;
 static uint32_t lastCookedPoll;
@@ -1123,11 +1124,14 @@ void R_PollCookedAssets( void ) {
 					success = R_UploadCookedImage( tr.images[i], &texture ) == rhiStatus_t::Success;
 				if ( file )
 					ri.FS_FreeFile( file );
-				if ( success )
+				if ( success ) {
 					memcpy( cookedImages[i].hash, entry.hash, 32 );
+					cookedImages[i].reloads++;
+				}
 				ri.Printf( success ? PRINT_ALL : PRINT_WARNING, "Cooked texture %s: %s\n", success ? "reloaded" : "reload failed", entry.path );
 			}
 		}
+		R_ReloadCookedMaterials( &index );
 		R_ReloadCookedModels( &index );
 	} else {
 		ri.Printf( PRINT_WARNING, "Cooked asset index does not match its published revision\n" );
@@ -2236,3 +2240,9 @@ void R_SkinList_f( void ) {
 	}
 	ri.Printf( PRINT_ALL, "------------------\n" );
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+uint32_t R_CookedImageReloads( int index ) {
+	return cookedImages[index].reloads;
+}
+#endif

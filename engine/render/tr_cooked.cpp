@@ -143,7 +143,7 @@ struct cookedHeader_t {
 };
 static_assert( sizeof( cookedHeader_t ) == 48 && std::is_trivially_copyable_v<cookedHeader_t> );
 
-bool R_ReadCookedMaterial( const void *data, size_t size, cookedMaterial_t *material ) {
+bool R_ReadCookedMaterial( const void *data, size_t size, cookedMaterial_t *material, uint8_t fileHash[32] ) {
 	*material = {};
 	if ( !data || size != sizeof( cookedHeader_t ) + sizeof( *material ) )
 		return false;
@@ -170,6 +170,8 @@ bool R_ReadCookedMaterial( const void *data, size_t size, cookedMaterial_t *mate
 		if ( !( ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '_' || *p == '/' || *p == '.' || *p == '-' ) )
 			return false;
 	}
+	if ( fileHash )
+		calc_sha_256( fileHash, data, size );
 	return true;
 }
 

@@ -221,6 +221,10 @@ static void ImagePreview( const refexport_t *renderer, int index, float extent )
 	ImGui::TextWrapped( "%s", image.name );
 	ImGui::Text( "%dx%d -> %dx%d, flags 0x%x, format %u", image.width, image.height,
 		image.uploadWidth, image.uploadHeight, image.flags, image.format );
+	if ( image.reloads ) {
+		ImGui::SameLine();
+		ImGui::Text( "reloads %u", image.reloads );
+	}
 	if ( image.uploadWidth > 0 && image.uploadHeight > 0 ) {
 		const float scale = extent / (float)MAX( image.uploadWidth, image.uploadHeight );
 		ImGui::Image( (ImTextureID)image.texture, ImVec2( (float)image.uploadWidth * scale, (float)image.uploadHeight * scale ) );
@@ -270,6 +274,10 @@ static void InspectAssets( const refexport_t *renderer ) {
 				material.cull, (uint32_t)material.surfaceFlags, (uint32_t)material.contentFlags );
 			ImGui::Text( "%s, %s", material.explicitDefinition ? "script defined" : "implicit",
 				material.fallback ? "fallback shader" : "loaded" );
+			if ( material.reloads ) {
+				ImGui::SameLine();
+				ImGui::Text( "reloads %u", material.reloads );
+			}
 			for ( int stage = 0; stage < material.stages; ++stage ) {
 				if ( !material.present[stage] ) {
 					ImGui::Text( "Stage %d: inactive / missing image", stage );
@@ -568,6 +576,10 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 		Q_strncpyz( animation.clipName, clip.name, sizeof( animation.clipName ) );
 		const int firstFrame = (int)clip.firstFrame, lastFrame = firstFrame + (int)clip.frameCount - 1;
 		ImGui::Text( "%d frames, %d model bytes", model.frames, model.bytes );
+		if ( model.reloads ) {
+			ImGui::SameLine();
+			ImGui::Text( "reloads %u", model.reloads );
+		}
 		animation.frame = MAX( firstFrame, MIN( animation.frame, lastFrame ) );
 		if ( ImGui::SliderInt( "Frame", &animation.frame, firstFrame, lastFrame ) ) {
 			animation.play = false;

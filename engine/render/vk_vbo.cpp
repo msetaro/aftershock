@@ -185,6 +185,9 @@ static qboolean isStaticShader( shader_t *shader ) {
 	const shaderStage_t *stage;
 	int i, b, svarsSize;
 
+	if ( shader->reloadable )
+		return qfalse;
+
 	if ( shader->isStaticShader )
 		return qtrue;
 

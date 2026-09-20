@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 static struct {
 	char path[MAX_QPATH];
 	uint8_t hash[32];
+	uint32_t reloads;
 } cookedModels[MAX_MOD_KNOWN];
 #endif
 
@@ -1167,10 +1168,18 @@ void R_ReloadCookedModels( const cookedIndex_t *index ) {
 				success = R_ReplaceIQM( tr.models[i], file, length, entry.path );
 			if ( file )
 				ri.FS_FreeFile( file );
-			if ( success )
+			if ( success ) {
 				memcpy( cookedModels[i].hash, entry.hash, 32 );
+				cookedModels[i].reloads++;
+			}
 			ri.Printf( success ? PRINT_ALL : PRINT_WARNING, "Cooked model %s: %s\n", success ? "reloaded" : "reload failed", entry.path );
 		}
 	}
+}
+#endif
+
+#ifdef AFTERSHOCK_DEVTOOLS
+uint32_t R_CookedModelReloads( int index ) {
+	return cookedModels[index].reloads;
 }
 #endif

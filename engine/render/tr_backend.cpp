@@ -1996,6 +1996,7 @@ bool RE_GetDeveloperModel( int index, devModel_t *model ) {
 	Q_strncpyz( model->name, source->name, sizeof( model->name ) );
 	model->type = (int32_t)source->type;
 	model->bytes = source->dataSize;
+	model->reloads = R_CookedModelReloads( index );
 	if ( source->type == MOD_MESH )
 		model->frames = source->md3[0]->numFrames;
 	else if ( source->type == MOD_MDR )
@@ -2018,6 +2019,7 @@ bool RE_GetDeveloperImage( int index, devImage_t *image ) {
 	image->uploadHeight = source->uploadHeight;
 	image->flags = (uint32_t)source->flags;
 	image->format = (uint32_t)source->internalFormat;
+	image->reloads = R_CookedImageReloads( index );
 	return true;
 }
 
@@ -2028,6 +2030,7 @@ bool RE_GetDeveloperMaterial( int index, devMaterial_t *material ) {
 	const shader_t *source = tr.shaders[index];
 	Q_strncpyz( material->name, source->name, sizeof( material->name ) );
 	material->sort = source->sort;
+	material->reloads = R_CookedMaterialReloads( index );
 	material->stages = source->numUnfoggedPasses;
 	material->cull = (int32_t)source->cullType;
 	material->surfaceFlags = source->surfaceFlags;

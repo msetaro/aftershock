@@ -1,8 +1,8 @@
 # Offline cooker (#9, in progress)
 
 Offline mesh/texture cooking and native KTX2 BC loading are available. Cooked
-material loading is also available; development reload is still being implemented; this is not
-the complete #9 acceptance.
+material loading and development texture/material/model/animation reload are available.
+Audio/shader inputs and final acceptance remain; this is not complete #9 acceptance.
 
 Use Python with the pinned Pillow dependency, CMake 3.25+, Ninja and a host C++
 compiler. Install Python requirements in a virtual environment, not system Python.
@@ -42,8 +42,7 @@ Mip filtering uses premultiplied linear values; `normal: true` renormalizes filt
 normal vectors. The BC7 encoder is pinned by source hashes; BC5 uses Pillow, and
 BC4 uses its independently encoded red-channel blocks. Material imports emit a
 versioned plain `.asmat` record containing base color, alpha/culling flags and its
-texture path. Rendering these materials is part of the next runtime slice;
-restrained PBR remains #13.
+texture path. Native base-color rendering is available; restrained PBR remains #13.
 
 Each asset gets a `.manifest.json` containing relative source paths, SHA-256
 hashes, the recipe/tool hash and output hashes. Repeating an unchanged cook does
@@ -56,8 +55,7 @@ IQM carries an `aftershock.cook` extension: version 1, a 32-byte source hash and
 content hash covers the whole file with its own hash bytes zeroed. `.asmat` uses
 an eight-byte magic, uint32 version/size and SHA-256 of its payload, followed by
 four float color factors, float alpha cutoff, uint32 flags and a 64-byte texture
-qpath. All integers are little-endian. Runtime records will retain explicit layout
-and copy assertions when the runtime slice lands.
+qpath. All integers are little-endian. Runtime records retain explicit layout and copy assertions.
 
 The native KTX2 reader verifies the embedded content hash using pinned
 [amosnier/sha-2](https://github.com/amosnier/sha-2/tree/565f65009bdd98267361b17d50cddd7c9beb3e6c),
@@ -77,12 +75,14 @@ The plain index is capped at 4,096 native resources and records each qpath, hash
 size and kind. Failed cooks retain the previous published revision. The output
 must be the running development client's home game directory for reload polling.
 After entering a local `devmap`, set `dev_reloadAssets 1`. Development renderer ABI
-15 adds a bounded loose-home-file read callback; shipping ABI is 12.
+16 includes reload counts, named clips and a bounded loose-home-file read callback; shipping ABI is 12.
 
 Texture reload is implemented: polling uses the existing real microsecond clock,
 so it continues while `timescale 0` pauses the scene. Idle polling allocates no
 engine memory. Each texture replacement waits for completed GPU use, retains the
 image registry handle/descriptor, and reclaims the prior dedicated device memory.
 Size changes use the same transaction; failure preserves the live image. Named clips are exposed by the public renderer API and the Animation inspector;
-non-looping clips stop at their last frame. Material, model and animation reload
-are still being implemented.
+non-looping clips stop at their last frame. Model/animation replacement retains handles and replaces one zone allocation;
+material replacement retains its shader/stage storage and updates draw ordering.
+Inspectors report reload counts. Cooked development materials stay out of the
+static vertex cache; shipping and legacy asset paths retain their existing behavior.

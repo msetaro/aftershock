@@ -24,7 +24,7 @@ struct cookedMaterial_t {
 	char texture[64];
 };
 static_assert( sizeof( cookedMaterial_t ) == 88 && offsetof( cookedMaterial_t, texture ) == 24 && std::is_trivially_copyable_v<cookedMaterial_t> );
-bool R_ReadCookedMaterial( const void *data, size_t size, cookedMaterial_t *material );
+bool R_ReadCookedMaterial( const void *data, size_t size, cookedMaterial_t *material, uint8_t fileHash[32] = nullptr );
 
 struct cookedEntry_t {
 	char path[64];
