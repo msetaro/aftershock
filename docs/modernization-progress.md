@@ -25,14 +25,16 @@ Current branch is `issue/9-asset-pipeline`. Its test-first commit is 56c25515;
 origin/modernization has been merged into it without rewriting history. The
 owned Blender source fixture was exported once with verified portable Blender
 4.5.3 (archive hash below). Offline cooking/production pose tests pass at 7acd72c1.
-Draft PR #145 holds #9. Native BC texture/material loading and watched texture
-replacement, named clips, bounded material/model/animation reload and inspector
-reload counts now work. WAV/OGG and shader inputs are implemented; complete final
-runtime/CI acceptance before marking ready. Bounds now use quantized poses; source
-tangents are preserved when available instead of fabricated. Run the module and
-OpenArena live gates, fixed Q3/OpenArena replay and the final exact-head gates.
-After #9, fix the two recorded IQM bugs separately under #31 before #10.
-Keep the graph's reviewed branch unchanged. #7 is complete and closed.
+Draft PR #145 holds #9. Source cooking, named clips, bounded hot reload,
+inspector counts and local static/module/OpenArena/restart/idle acceptance pass.
+Final fixed Quake 3 and OpenArena demo comparisons preserve their accepted hashes.
+The self-review is below. Final follow-up fixes select matching OpenArena native
+objects for the standalone test build and remove a duplicated command in AGENTS.
+Next: wait for the final exact-head build/regression workflows; investigate any
+failure, then mark #145 ready and merge with a merge commit into modernization.
+Require the merged-tree regression before closing #9/updating #25 and proceeding.
+After #9, fix IQM allocation accounting and rotated nonuniform scale in separate
+#31 PRs, then continue #10 and the remaining #25 roadmap. No upstream PRs.
 
 Read #9 and the preparation notes in the persistent modernization cache
 (issue9-preparation.md). Trace native model/texture ownership before implementation.
@@ -3058,3 +3060,47 @@ build consumed a cooked shader through COOKED_SHADER_DIR successfully
 Hosted build at f7258d82 passed (35505208309); that is an earlier head, not final
 acceptance. Local tidy passed 1,170 production configurations. Remaining final
 module/OpenArena/runtime/replay/hosted gates are required before PR readiness.
+
+## #9 final local acceptance and self-review
+
+Local static Quake 3, module Quake 3 and static OpenArena live gates pass, including
+source texture/clip/material edits, six further replacement cycles, idle frames
+and video restart. Measured texture latency: 0.605579 / 0.606071 / 0.605774 seconds
+respectively (2,721 changed preview pixels each). Module/static renderer storage
+stays bounded. Ten thousand unchanged publication polls allocate no engine memory.
+The OpenArena test's standalone build now selects its matching native objects,
+using the same helper as the existing demo tests.
+
+OpenArena data was initially absent locally: that attempt failed, not skipped.
+Seven SHA-256-verified Debian data archives were then extracted only into the
+user cache (no system package installation), and tests/openarena.py staged their
+paks plus its pinned gamecode. The source/hash list is
+~/.cache/aftershock-modernization/openarena-data-packages.json. No Quake 3 pak was
+copied, committed or uploaded. Evidence: openarena-data-stage.log and
+cook-final-{runtime,modules,openarena}.log.
+
+Fixed Quake 3 replays twice per map with video restart pass projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+OpenArena module replays twice per map pass
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+All four committed demo hashes remain unchanged. Evidence:
+cook-final-demo-{q3,oa}.log. No accepted golden or fixture was regenerated.
+
+Self-review: scope matches #9; source import/compression/compiler work stays
+offline. Native geometry, PCM and shader-package paths are reused. New runtime
+records retain layout/copy assertions; renderer ABI changes require matching
+modules. OS access is confined to the existing filesystem layer, with tools
+using their normal host APIs. Core lifetimes remain trivial, no simulation FP
+expression changed, and idle polling uses fixed caller storage. Reload transactions
+retain handles and bounded CPU/GPU ownership. Existing IQM bugs are documented
+and deferred to separate #31 PRs; the importer reports the unsupported rotated
+nonuniform scale combination.
+
+GCC/Clang feature checks, 10,000-poll and twelve-replacement checks pass. Local
+lifetimes: 1,124 compilation commands / 120 paths, positive and seven-object
+negative controls pass. Tidy: 1,170 configurations pass (advisory findings retained).
+Format/type/boundary gates pass. Hosted build 35505791786 at 70a31804 passed; its
+regression 35505791776 has passed every required job except lifetime analysis,
+which was still running at this checkpoint. Superseded regression 35505208258
+was cancelled after its other jobs passed, to prioritize the final head. These
+earlier-head results do not replace the required final exact-head workflows.

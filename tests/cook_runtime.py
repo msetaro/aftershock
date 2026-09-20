@@ -15,6 +15,7 @@ import time
 from PIL import Image, ImageChops
 from run import ROOT, build, content_maps, content_settings
 from window import XInput, wait_for
+from native import engine_objects
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path)
@@ -27,7 +28,8 @@ args = parser.parse_args()
 args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)
 if not args.binary:
-    args.binary = build(args.output / 'build', ['BUILD_SERVER=0', 'AFTERSHOCK_DEVTOOLS=1', f'USE_RENDERER_DLOPEN={int(args.modules)}']) / 'quake3e.x64'
+    objects = engine_objects(args.output / 'native', args.content)
+    args.binary = build(args.output / 'build', ['BUILD_SERVER=0', 'AFTERSHOCK_DEVTOOLS=1', f'USE_RENDERER_DLOPEN={int(args.modules)}', *objects]) / 'quake3e.x64'
 if not args.inside_xvfb:
     subprocess.run(['timeout', '90', 'xvfb-run', '-a', sys.executable, str(Path(__file__).resolve()),
                     '--inside-xvfb', '--binary', str(args.binary.resolve()), '--output', str(args.output),
