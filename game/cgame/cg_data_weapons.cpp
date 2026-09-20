@@ -316,8 +316,10 @@ void CG_PredictWeapons( void ) {
 						state.burstRemaining = 0;
 					}
 					if ( !Weapon_Tick( &definition, buttons, state.time + 20, &state, &events ) ||
-						 !BG_WeaponAnimationStep( BG_WeaponAnimation( entity.modelindex ), &state, &events, &animation, parameters, &notifies ) )
+						 !BG_WeaponAnimationStep( BG_WeaponAnimation( entity.modelindex ), &state, &events, &animation, parameters, &notifies ) ) {
 						CG_Error( "Weapon rejected: predicted animation" );
+						return;
+					}
 					for ( uint32_t i = 0; i < notifies.count; ++i )
 						PlayWeaponNotify( snapshot->ps.clientNum, hand, entity.modelindex, spawn, uint32_t( entity.constantLight ), notifies.items[i], nullptr );
 					if ( havePose && definition.ballistics == WEAPON_PROJECTILE )

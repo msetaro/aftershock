@@ -86,6 +86,46 @@ attempt then failed on existing #10 C++ declarations. Do not rerun or alter the
 historical oracle. Current ABI/shared-math and production/replay checks are the
 applicable gates.
 
+## #11 self-review checkpoint
+
+Scope matches #11: immutable data definitions and owned assets, seeded fixed ticks,
+reload/cancel/ammo/ADS/attachments, data-only switching, dual-wield hooks, melee,
+rewound hitscan/material effects/penetration, predicted replicated grenades, graph
+notifies and an ImGui target range. Feature negotiation advances 1 to 2; demo codec
+68 and existing wire layouts are retained. Protocol-version mismatch is tested.
+No existing simulation FP expression, accepted fixture/golden, parent repository,
+or unrelated engine bug fix is included. New sampling/weapon TUs use strict FP.
+
+State and histories are bounded POD; projectile predictions cap at 64, effects at
+128, and four auxiliary records per configured client are reserved at map start
+and reused across team/spawn transitions. Definitions, graphs, models and sounds
+load outside frame execution. Native hunk entities and existing arena ownership
+remain in use; no new heap allocation or non-trivial destructor crosses Com_Error.
+No OS calls leave platform/filesystem ownership. Struct size/triviality assertions,
+real MSG codec probes and the 29-type native ABI gate retain representation checks.
+
+Reviewed captures show actual magazine/chamber/reserve and acknowledged weapon
+names. Cosmetic notify dedup handles reordering, rollback, spawn and connection
+generations; capacity rejection reconciles prediction without spending server ammo.
+The 8192-notify history and bounded cosmetic pool are explicit ceilings. One
+speculative sound before a capacity acknowledgement cannot be unplayed; authoritative
+damage/ammo and settled prediction stay exact. Offhand hooks do not impose a new
+inventory policy; the supplied game mode owns the two hands and loaded definitions.
+
+Local current-feature evidence: Q3/OA fixed #11 replays each check 992 full states;
+all three frame hashes agree between repeated static and module playback. Classic
+Q3 frames retain 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4;
+#10 Q3 replay retains 253 authoritative hit-box hashes. Both OA bot logs, collision
+differential, unit/one-ULP control, sanitized units, native ABI/shared math and the
+new weapon probes pass. Real range input and Q3/OA lifecycle/audio/capacity evidence
+are recorded above. Full hosted acceptance remains pending.
+
+e2d0a7b7 MSVC exposed the matching client-side C4701 after the server correction.
+Both BG_WeaponAnimationStep call sites now explicitly return after their fatal
+error path. This changes no successful command. Require fresh complete exact-head
+build/regression after this committed self-review before ready/merge.
+Acceptance progress: https://github.com/msetaro/aftershock/issues/11#issuecomment-5752242148
+
 ## #11 weapon animation snapshot test
 
 The real entity-codec probe now fails on the absent per-hand weapon-animation
