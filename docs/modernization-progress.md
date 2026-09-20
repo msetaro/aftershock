@@ -35,7 +35,7 @@ passed. Credentials/kubeconfig are excluded from artifacts and private clusters
 were removed. Logs: match-kind-{full-first,full-final,reviewed}.log; reports under
 /tmp/aftershock-match-kind-{first,final,reviewed}.
 
-Finish #155 integration closure, then #156 exact-head gates/self-review/merge and
+Finish #156 exact-head gates/self-review/merge and
 merged-tree regression. Do not accept missing content or regenerate fixtures.
 While those gates run, read/prepare #13's failing material contract only. The issue
 requires glTF PBR rendering, data/instance parameters, ImGui live editing and
@@ -44,6 +44,31 @@ legacy Quake shader execution and existing accepted shader bytes. New material
 payload/shaders/test sources may be authored deliberately, never regenerate an
 accepted oracle to hide changed legacy rendering. No #13 PR/implementation acceptance
 before #28 completes; merge modernization forward, never rebase. Continue #25.
+
+## #13 preparatory failing material contract
+
+Metallic/roughness is the selected workflow, matching glTF 2.0. The explicit model
+recipe `material_model: metallic-roughness` produces ASMAT v2; recipes without it
+retain the accepted v1 compatibility output. Factors remain native data for live
+editing and per-instance overrides. The new 240-byte payload contains base RGBA,
+emissive RGB, metallic/roughness/normal scale/mask cutoff, flags and three qpaths.
+The three existing material texture bindings carry base RGBA (sRGB), normal XYZ
+plus roughness A (linear), and emissive RGB plus metallic A (sRGB RGB, linear A).
+Packed data alpha must not premultiply normal/emissive mips. This fits the existing
+RHI bindings and avoids changing legacy shader programs. Unsupported glTF texture
+transforms/additional UV sets still require offline baking.
+
+`python3 tests/materials.py` authors an ordinary owned glTF triangle with four
+source textures, checks editable factors, independent BC7 decoding, mip channels,
+transitive inputs/incremental rebuilding and v1 fallback. Before implementation
+it fails at the existing explicit arbitrary-mask-cutoff rejection
+(materials-before.log). This is only the initial cook contract; rendered lighting,
+normal mapping, instance overrides, ImGui editing and unchanged classic replay
+still need acceptance. No accepted fixture, source or shader bytes changed.
+Reference: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#materials.
+
+#156's hosted match-server job and all build legs passed; lifetime and runtime
+regression jobs are still running at this checkpoint. Do not merge early.
 
 ## #31 checkpoint inherited by #13
 
