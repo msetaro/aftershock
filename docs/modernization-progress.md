@@ -167,6 +167,11 @@ and reload cancel boundaries (weapons-switch-gcc.log/-clang.log). The old 1000-s
 reference remains unchanged. Wire the server inventory and existing weapon
 selection commands, then prove two data files can be selected in the live game.
 
+The live two-rifle extension fails at the expected missing selection behavior
+(weapons-selection-before.log): both cooked files load, but no switch occurs.
+It requires 0->1->0 selection and return to the first rifle's remaining 29-round
+magazine, plus the existing prediction, damage and state round-trip assertions.
+
 
 ## #12 implemented feature evidence
 
