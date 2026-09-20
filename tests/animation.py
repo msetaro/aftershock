@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Cook an owned, data-authored animation state machine and its dependencies."""
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -80,4 +81,18 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-source-') as tempo
     result = cook(project, args.output)
     assert result['built'] == ['animations/rig'] and result['skipped'] == ['models/rig']
     assert binary.read_bytes() != before
+    # A new ordinary source clip combines translation and a quarter turn.
+    gltf_path = source / 'rig.gltf'
+    gltf = json.loads(gltf_path.read_text())
+    turn = copy.deepcopy(gltf['animations'][1])
+    turn['name'] = 'turn'
+    turn['channels'][0]['target']['node'] = 0
+    turn['samplers'].append(copy.deepcopy(gltf['animations'][0]['samplers'][0]))
+    turn['channels'].append({'sampler': 1, 'target': {'node': 0, 'path': 'translation'}})
+    gltf['animations'].append(turn)
+    gltf_path.write_text(json.dumps(gltf))
+    definition['states'][0]['events'].insert(0, {'time_ms': 0, 'name': 'entry', 'bone': 'root'})
+    graph.write_text(json.dumps(definition))
+    cook(project, args.output)
+    run([probe, binary, 'edges'])
 print('PASS: versioned animation cooking and incremental source dependencies')

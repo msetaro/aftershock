@@ -20,7 +20,7 @@ static float distance( const float a[3], const float b[3] ) {
 }
 
 int main( int argc, char **argv ) {
-	assert( argc == 2 );
+	assert( argc == 2 || argc == 3 );
 	const animTransform_t identity = { { 0, 0, 0 }, { 0, 0, 0, 1 }, { 1, 1, 1 } };
 	animTransform_t a[2] = { identity, identity }, b[2] = { identity, identity }, blended[2];
 	b[0].translate[0] = 10;
@@ -67,6 +67,34 @@ int main( int argc, char **argv ) {
 	animTransform_t motion;
 	assert( Anim_RootMotion( &asset, Anim_ClipIndex( &asset, "idle" ), 750, 1250, true, &motion ) );
 	assert( fabsf( motion.translate[0] - 0.0625f ) < 0.00001f );
+	if ( argc == 3 ) {
+		const int turn = Anim_ClipIndex( &asset, "turn" );
+		assert( turn >= 0 );
+		assert( Anim_RootMotion( &asset, turn, 0, 2000, true, &motion ) );
+		assert( fabsf( motion.translate[0] - 0.125f ) < 0.00001f );
+		assert( fabsf( motion.translate[2] - 0.125f ) < 0.00001f );
+		assert( fabsf( fabsf( motion.rotate[1] ) - 1 ) < 0.00001f && fabsf( motion.rotate[3] ) < 0.00001f );
+		assert( Anim_RootMotion( &asset, turn, 1000, 2000, true, &motion ) );
+		assert( fabsf( motion.translate[0] - 0.125f ) < 0.00001f && fabsf( motion.translate[2] ) < 0.00001f );
+		assert( Anim_RootMotion( &asset, turn, 0, 4000, true, &motion ) );
+		assert( distance( motion.translate, root ) < 0.00001f && fabsf( fabsf( motion.rotate[3] ) - 1 ) < 0.00001f );
+		Anim_Reset( &asset, 0, &state );
+		assert( Anim_Tick( &asset, parameters, 0, &state, &events ) && events.count == 1 );
+		assert( strcmp( Anim_EventName( &asset, events.items[0].id ), "entry" ) == 0 );
+		assert( Anim_Tick( &asset, parameters, 0, &state, &events ) && events.count == 0 );
+		const animState_t before = state;
+		assert( !Anim_Tick( &asset, parameters, 100000, &state, &events ) );
+		assert( events.count == 0 && memcmp( &before, &state, sizeof( state ) ) == 0 );
+		Anim_Reset( &asset, UINT32_MAX - 100, &state );
+		assert( Anim_Tick( &asset, parameters, UINT32_MAX - 100, &state, &events ) && events.count == 1 );
+		assert( Anim_Tick( &asset, parameters, 149, &state, &events ) && events.count == 1 );
+		assert( events.items[0].time == 149 && events.items[0].sequence == 2 );
+		assert( Anim_Evaluate( &asset, &state, parameters, 149, &pose ) );
+		assert( fabsf( pose.local[0].translate[0] - 0.03125f ) < 0.00001f );
+		free( bytes );
+		puts( "PASS: turning root motion, initial events, transactional overflow and clock wrap" );
+		return 0;
+	}
 	Anim_Reset( &asset, 0, &state );
 	assert( Anim_Tick( &asset, parameters, 0, &state, &events ) && events.count == 0 );
 	assert( Anim_Tick( &asset, parameters, 250, &state, &events ) && events.count == 1 );

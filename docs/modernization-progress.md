@@ -35,8 +35,13 @@ source manifests track graph/glTF/buffer dependencies and graph-only edits.
 Original Blender rifle/body assets and the earlier native viewer checks remain
 unchanged. This is feature development, not #10 acceptance or gameplay parity.
 
-Next: cover initial entry events, overflow/clock wrap and turning root motion;
-then implement data-authored trees/layers and production/gameplay integration.
+Initial portable/cooker implementation is cdc87445; GCC and Clang/libc++ with
+UBSan pass (animation-core-first.log, animation-core-clang.log), as do format,
+boundary and type checks. New source-only tests now expose the unimplemented
+turning-loop composition (animation-root-events-before.log, expected assertion).
+They also specify initial time-zero events, bounded transactional event overflow
+and unsigned clock wrap. Implement these before data-authored trees/layers and
+production/gameplay integration.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/
