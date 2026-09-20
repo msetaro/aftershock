@@ -3413,7 +3413,7 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 		}
 	}
 
-	return sum;
+	return (int)sum;
 }
 
 
