@@ -974,6 +974,12 @@ int trap_GeneticParentsAndChildSelection( int numranks, float *ranks, int *paren
 
 void trap_SnapVector( float *v );
 
+void G_InitWeapons( void );
+void G_WeaponAttachmentCommand( int owner );
+void G_ClearWeaponActor( int owner );
+void G_RemoveWeaponProjectiles( int owner );
+qboolean G_RunWeaponProjectile( gentity_t *entity );
+void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart );
 void G_InitAnimation( void );
 void G_ShutdownAnimation( void );
 void G_RunAnimation( void );
@@ -981,6 +987,7 @@ qboolean G_AnimationCommand( int owner );
 
 void G_InitRewind( int restart );
 void G_RecordRewind( void );
+void G_TraceHitscanAtTime( trace_t *trace, const vec3_t start, const vec3_t end, int pass, const gentity_t *shooter, uint32_t time );
 void G_TraceHitscan( trace_t *trace, const vec3_t start, const vec3_t end, int pass, const gentity_t *shooter );
 #ifdef __cplusplus
 const animBox_t *G_AnimationHitBoxes( int owner, uint32_t *count );

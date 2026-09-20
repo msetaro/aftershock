@@ -16,6 +16,7 @@ import animation
 import model
 import texture
 import shader
+import weapon
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -107,6 +108,8 @@ def cook(project, output):
             elif asset['kind'] == 'animation':
                 models = [dict(a, _source=below(root, a['source'])) for a in definition['assets'] if a['kind'] == 'model']
                 payloads = animation.cook(source, name, asset, read, models)
+            elif asset['kind'] == 'weapon':
+                payloads = weapon.cook(source, name, read)
             elif asset['kind'] == 'material':
                 payloads = model.cook_material(source, name, read)
             elif asset['kind'] == 'audio':
@@ -142,7 +145,7 @@ def cook(project, output):
     if len(resources) > 4096:
         raise ValueError('project exceeds the 4096-resource development index limit')
     index = bytearray(struct.pack('<I', len(resources)))
-    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3, '.wav': 4, '.asspv': 5, '.asanim': 6}
+    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3, '.wav': 4, '.asspv': 5, '.asanim': 6, '.asweapon': 7}
     for path, hashed in sorted(resources.items()):
         size = below(output, path).stat().st_size
         index.extend(struct.pack('<64s32sII', path.encode(), bytes.fromhex(hashed), size, kinds[Path(path).suffix]))

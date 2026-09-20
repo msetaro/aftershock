@@ -12,8 +12,8 @@ from gltf import Document, IDENTITY, cross, decompose, dot, inverse, mul, normal
 import texture
 
 
-def wrapped(magic, payload):
-    return struct.pack('<8sII32s', magic, 1, len(payload), hashlib.sha256(payload).digest()) + payload
+def wrapped(magic, payload, version=1):
+    return struct.pack('<8sII32s', magic, version, len(payload), hashlib.sha256(payload).digest()) + payload
 
 
 def material_bytes(material, image_name):

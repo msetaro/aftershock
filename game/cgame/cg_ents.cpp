@@ -397,6 +397,8 @@ CG_Missile
 ===============
 */
 static void CG_Missile( centity_t *cent ) {
+	if ( CG_WeaponProjectile( cent ) )
+		return;
 	refEntity_t ent;
 	entityState_t *s1;
 	const weaponInfo_t *weapon;

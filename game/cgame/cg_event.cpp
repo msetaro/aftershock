@@ -409,7 +409,7 @@ static void CG_ItemPickup( int itemNum ) {
 	// see if it should be the grabbed weapon
 	if ( bg_itemlist[itemNum].giType == IT_WEAPON ) {
 		// select it immediately
-		if ( cg_autoswitch.integer && bg_itemlist[itemNum].giTag != WP_MACHINEGUN ) {
+		if ( !BG_WeaponCount() && cg_autoswitch.integer && bg_itemlist[itemNum].giTag != WP_MACHINEGUN ) {
 			cg.weaponSelectTime = cg.time;
 			cg.weaponSelect = bg_itemlist[itemNum].giTag;
 		}
@@ -486,6 +486,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	ci = &cgs.clientinfo[clientNum];
 
 	switch ( event ) {
+	case EV_WEAPON_NOTIFY:
+		CG_WeaponNotify( es, position );
+		break;
+	case EV_WEAPON_IMPACT:
+		CG_WeaponImpact( es, position );
+		break;
 	//
 	// movement generated events
 	//
@@ -1164,6 +1170,14 @@ CG_CheckEvents
 ==============
 */
 void CG_CheckEvents( centity_t *cent ) {
+	if ( cent->currentState.eType == ET_WEAPON_ANIMATION ) {
+		CG_WeaponAnimationSnapshot( &cent->currentState );
+		return;
+	}
+	if ( cent->currentState.eType == ET_WEAPON_STATE ) {
+		CG_WeaponSnapshot( &cent->currentState );
+		return;
+	}
 	if ( cent->currentState.eType == ET_ANIMATION ) {
 		CG_AnimationSnapshot( &cent->currentState );
 		return;

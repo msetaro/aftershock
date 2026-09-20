@@ -51,7 +51,7 @@ with GCC or Clang/libc++. Replication checks all annotated members and the exact
 pre-change 107002-byte delta digest. `python3 tools/replication.py` explicitly
 updates the generated table after a reviewed state-definition change; CI only
 checks freshness. The handshake requires both `AFTERSHOCK_NET_VERSION` (default
-1) and the generated schema digest. Incompatible or unversioned connections are
+2) and the generated schema digest. Incompatible or unversioned connections are
 refused before joining; fixed legacy demo decoding is unchanged.
 
 `g_rewind 1` opts into per-server-frame actor hit boxes. `g_maxRewind` defaults to
@@ -76,10 +76,10 @@ mandatory overruns. Radius bounds are 0..65536 world units; owned entity reuse
 resets policy. This is a radius filter on PVS, not an additional spatial index.
 
 For real loopback tests, build client/server with `AFTERSHOCK_DEVTOOLS=ON` and a
-second server with `-DAFTERSHOCK_EXTRA_FLAGS=-DAFTERSHOCK_NET_VERSION=2`:
+second server with `-DAFTERSHOCK_EXTRA_FLAGS=-DAFTERSHOCK_NET_VERSION=3`:
 
 ```
-python3 tests/protocol_runtime.py --client /path/quake3e.x64 --server /path/quake3e.ded.x64 --other-server /path/version2/quake3e.ded.x64
+python3 tests/protocol_runtime.py --client /path/quake3e.x64 --server /path/quake3e.ded.x64 --other-server /path/version3/quake3e.ded.x64
 python3 tests/netcode_runtime.py --client /path/quake3e.x64 --server /path/quake3e.ded.x64 --snapshot-budget 48
 ```
 
@@ -863,3 +863,59 @@ not required; fixed replay is. CI rejects the recording flag. The initial fixtur
 were recorded from 3fbc0a62 on q3dm17 and oa_dm1; each replay checks 253 received
 poses against 265 recorded authoritative poses. The source project and demo are
 owned GPL artifacts; map art remains in the user's installed content packages.
+
+
+## Data-driven weapon range (#11, acceptance in progress)
+
+`python3 tests/weapons.py` cooks two rifles from data and runs the seeded 1000-shot
+reference, fixed-tick lifecycle, real snapshot codec, penetration, projectile math
+and graph-notify checks under UBSan. Select the other supported compiler with
+`--cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/weapons-clang`.
+
+`python3 tests/weapons_runtime.py --binary PATH` exercises native server/client
+weapon and animation prediction, data-only selection, attachments, grenade
+prediction, rendered ADS and exactly-once notify audio. It saves an ADS capture
+for review and uses SDL dummy audio to verify dispatch and decoded resident
+samples. Add `--lifecycle` for spectator/rejoin record reuse, connection-generation
+audio, and the 64-projectile capacity/ammo/prediction check.
+`python3 tests/weapon_range.py --binary PATH` drives the actual ImGui
+range controls with X11 input and saves a panel capture. Both require a development
+client, Xvfb/lavapipe and installed content; hosted content uses
+`--content openarena --data /tmp/aftershock-openarena-baseoa`. Local Q3 uses
+`~/.q3a/baseq3`. Neither command copies game paks into the repository.
+
+In a development client, `dev_weapon_range` opens the range panel on a local
+`devmap` with `g_rewind 1` and a space-separated `g_weapons` list of cooked
+`.asweapon` paths. The panel inspects a cooked definition, selects a loaded slot,
+spawns the existing rewind target, pulses fire/reload/melee/offhand, controls ADS
+and attachments, and restarts with an inspected weapon after offline recooking.
+The active simulation keeps its map-start definition hashes. Cook the owned art
+with `python3 tools/cook tests/assets/range.json --output OUTPUT` and the rifle
+with `python3 tools/cook tests/assets/weapons/assets.json --output OUTPUT`.
+The #11 scene variant removes the old solid placeholder sight while referencing
+the unchanged #10 geometry/animation buffer. Accepted #3/#10 fixtures remain
+unchanged. The data HUD shows magazine + chamber / reserve for each active hand.
+
+`python3 tests/netcode_runtime.py --weapons --client PATH --server PATH --snapshot-budget 256`
+uses the existing private loopback delay driver: 100 ms RTT, jitter and 5% loss
+once the initial gamestate has loaded. Real input starts the scenario only after
+client initialization. It checks rewind hits against independently interpolated
+authoritative boxes, snapshot/full prediction agreement, budget deferral and
+predicted grenade reconciliation. The classic scenario remains the default.
+
+`python3 tests/weapons_demo.py --binary PATH` replays the separate #11 fixture
+twice, compares all 56 bytes of each received weapon state with its recorded
+server SHA256, requires rifle/reload/ADS/melee/projectile presentation, and compares
+three frame hashes. Omit `--binary` to build; add `--modules` to build the renderer
+module configuration. Both installed content sets use the same owned weapon art.
+The fixture manifest pins all cooked weapon/graph/model/sound/material bytes.
+Recording equality is not a gate. CI never records. Explicit replacement commands:
+
+```
+python3 tests/weapons_demo.py --record-fixture --binary PATH
+python3 tests/weapons_demo.py --record-fixture --binary PATH --content openarena --data /tmp/aftershock-openarena-baseoa
+```
+
+These affect only `tests/golden/weapons/<content>/range.dm_68` and its manifest.
+Record once, review frames and authoritative traces, and explain any replacement
+in the issue/PR. Full #11 hosted acceptance remains pending.

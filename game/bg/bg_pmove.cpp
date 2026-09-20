@@ -1514,6 +1514,8 @@ Generates weapon events and modifes the weapon counter
 ==============
 */
 static void PM_Weapon( void ) {
+	if ( BG_WeaponCount() )
+		return;
 	int addTime;
 
 	// don't allow attack until all buttons are up

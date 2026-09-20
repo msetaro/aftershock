@@ -1578,6 +1578,11 @@ void ClientCommand( int clientNum ) {
 
 	trap_Argv( 0, cmd, sizeof( cmd ) );
 
+	if ( !Q_stricmp( cmd, "weapon_attachment" ) ) {
+		G_WeaponAttachmentCommand( clientNum );
+		return;
+	}
+
 	if ( !Q_stricmp( cmd, "anim" ) ) {
 		G_AnimationCommand( clientNum );
 		return;

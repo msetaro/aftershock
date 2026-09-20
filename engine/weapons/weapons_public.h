@@ -1,0 +1,120 @@
+#ifndef WEAPONS_PUBLIC_H
+#define WEAPONS_PUBLIC_H
+#include <stddef.h>
+#include <stdint.h>
+#include <type_traits>
+
+inline constexpr uint32_t WEAPON_MAX_DEFINITIONS = 32;
+inline constexpr uint32_t WEAPON_MAX_RECOIL = 32, WEAPON_MAX_ROWS = 8, WEAPON_NO_STAGE = UINT32_MAX;
+enum weaponFireMode_t : uint32_t { WEAPON_AUTO,
+	WEAPON_SEMI,
+	WEAPON_BURST };
+enum weaponBallistics_t : uint32_t { WEAPON_HITSCAN,
+	WEAPON_PROJECTILE };
+enum weaponReloadAction_t : uint32_t { WEAPON_EJECT,
+	WEAPON_INSERT,
+	WEAPON_CHAMBER,
+	WEAPON_FINISH };
+enum weaponButtons_t : uint32_t { WEAPON_FIRE = 1,
+	WEAPON_ADS = 2,
+	WEAPON_RELOAD = 4,
+	WEAPON_CANCEL = 8,
+	WEAPON_MELEE = 16 };
+enum weaponEventKind_t : uint32_t { WEAPON_SHOT,
+	WEAPON_DRY,
+	WEAPON_RELOAD_EVENT,
+	WEAPON_MELEE_EVENT,
+	WEAPON_RELOAD_BEGIN,
+	WEAPON_RELOAD_CANCELLED };
+struct weaponReload_t {
+	uint32_t timeMs, action, cancel;
+	char event[64];
+};
+struct weaponMaterial_t {
+	char name[32];
+	uint32_t surfaceFlags;
+	float depth, damageScale;
+	char effect[64];
+};
+struct weaponAttachment_t {
+	char name[32], socket[32], model[64];
+	float spreadScale, recoilScale, adsFov;
+};
+struct weaponSound_t {
+	char event[32], path[64];
+};
+struct weaponProjectileDef_t {
+	float speed, gravity, bounce, radius;
+	uint32_t fuseMs;
+	float size;
+	char model[64];
+};
+struct weaponMeleeDef_t {
+	float range, damage;
+	uint32_t intervalMs;
+};
+// Version-2 cooked payload. Counts bound every fixed array; unused rows are zero.
+struct weaponDef_t {
+	char name[64], model[64], animation[64];
+	uint32_t fireMode, intervalMs, burstCount, ballistics;
+	float damage, minimumDamage, falloffStart, falloffEnd, range, spreadDegrees, adsSpreadScale, viewKickScale;
+	uint32_t adsMs;
+	float adsFov, sway, bob;
+	uint32_t magazine, reserve, recoilCount, reloadCount, materialCount, attachmentCount, soundCount, switchMs;
+	weaponProjectileDef_t projectile;
+	weaponMeleeDef_t melee;
+	float recoil[WEAPON_MAX_RECOIL][2];
+	weaponReload_t reload[WEAPON_MAX_ROWS];
+	weaponMaterial_t materials[WEAPON_MAX_ROWS];
+	weaponAttachment_t attachments[WEAPON_MAX_ROWS];
+	weaponSound_t sounds[WEAPON_MAX_ROWS];
+};
+struct weaponState_t {
+	uint32_t time, random, sequence, nextFire, magazine, reserve, chamber, previousButtons;
+	uint32_t reloadStage, reloadStart, burstRemaining, adsQ16, nextMelee, switchUntil;
+};
+struct weaponEvent_t {
+	uint32_t kind, stage, sequence, time;
+	float spread[2], recoil[2];
+};
+struct weaponEvents_t {
+	uint32_t count;
+	weaponEvent_t items[64];
+};
+// Cosmetic history: delayed notifications outside this fixed window are stale.
+struct weaponNotifyHistory_t {
+	uint32_t initialized, spawn, epoch, newest;
+	uint64_t seen[128];
+};
+static_assert( sizeof( weaponNotifyHistory_t ) == 1040 && std::is_trivially_copyable_v<weaponNotifyHistory_t> );
+void Weapon_ForgetNotifiesAfter( weaponNotifyHistory_t *history, uint32_t accepted );
+bool Weapon_NotifyOnce( weaponNotifyHistory_t *history, uint32_t spawn, uint32_t epoch, uint32_t sequence );
+struct weaponProjectile_t {
+	float position[3], velocity[3];
+	uint32_t ageMs;
+};
+static_assert( sizeof( weaponDef_t ) == 4004 && std::is_trivially_copyable_v<weaponDef_t> );
+static_assert( sizeof( weaponReload_t ) == 76 && sizeof( weaponMaterial_t ) == 108 && sizeof( weaponAttachment_t ) == 140 && sizeof( weaponSound_t ) == 96 );
+static_assert( sizeof( weaponState_t ) == 56 && std::is_trivially_copyable_v<weaponState_t> );
+static_assert( sizeof( weaponEvent_t ) == 32 && sizeof( weaponProjectile_t ) == 28 );
+
+void Weapon_StateHash( const weaponState_t *state, uint8_t digest[32] );
+bool Weapon_StateValid( const weaponState_t *state );
+bool Weapon_Open( const void *data, size_t size, weaponDef_t *definition );
+bool Weapon_LoadFile( const char *path, weaponDef_t *definition, uint8_t hash[32] );
+bool Weapon_Configure( const weaponDef_t *base, uint32_t attachments, weaponDef_t *configured );
+void Weapon_Reset( const weaponDef_t *definition, uint32_t seed, uint32_t time, weaponState_t *state );
+// Definition must come from Open/Configure. Exactly one 20 ms tick; no allocation.
+bool Weapon_Tick( const weaponDef_t *definition, uint32_t buttons, uint32_t time, weaponState_t *state, weaponEvents_t *events );
+// Advance whole ticks through a usercmd, at most 1000 ms. Older/partial commands
+// emit nothing. Failure leaves both outputs unchanged; callers handle long gaps.
+bool Weapon_Command( const weaponDef_t *definition, uint32_t buttons, uint32_t time, weaponState_t *state, weaponEvents_t *events );
+// Inventory owns both states. A successful switch cancels an allowed reload and
+// equips the retained target state after its data-defined delay.
+bool Weapon_Switch( const weaponDef_t *fromDefinition, weaponState_t *from, const weaponDef_t *toDefinition, weaponState_t *to, uint32_t time );
+float Weapon_Damage( const weaponDef_t *definition, float distance );
+const weaponMaterial_t *Weapon_Material( const weaponDef_t *definition, uint32_t surfaceFlags );
+float Weapon_PenetrationDamage( const weaponDef_t *definition, uint32_t surfaceFlags, float thickness, float damage );
+bool Weapon_ProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile );
+void Weapon_ProjectileBounce( const weaponDef_t *definition, const float normal[3], weaponProjectile_t *projectile );
+#endif

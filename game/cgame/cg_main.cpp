@@ -1949,6 +1949,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	// Make sure we have update values (scores)
 	CG_SetConfigValues();
+	CG_InitWeapons();
 	CG_InitAnimation();
 
 	CG_StartMusic();
@@ -1972,6 +1973,7 @@ Called before every level change or subsystem restart
 =================
 */
 void CG_Shutdown( void ) {
+	BG_ClearWeapons();
 	CG_ShutdownAnimation();
 	// some mods may need to do cleanup work here,
 	// like closing files or archiving session data

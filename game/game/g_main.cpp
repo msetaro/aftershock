@@ -509,6 +509,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	}
 
 	G_RemapTeamShaders();
+	G_InitWeapons();
 	G_InitAnimation();
 	G_InitRewind( restart );
 }
@@ -520,6 +521,7 @@ G_ShutdownGame
 =================
 */
 void G_ShutdownGame( int restart ) {
+	BG_ClearWeapons();
 	G_ShutdownAnimation();
 	G_Printf( "==== ShutdownGame ====\n" );
 
@@ -1760,7 +1762,8 @@ void G_RunFrame( int levelTime ) {
 		}
 
 		if ( ent->s.eType == ET_MISSILE ) {
-			G_RunMissile( ent );
+			if ( !G_RunWeaponProjectile( ent ) )
+				G_RunMissile( ent );
 			continue;
 		}
 

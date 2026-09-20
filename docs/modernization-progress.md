@@ -16,11 +16,524 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/12-netcode`; draft PR #149. All #12 feature slices are
-implemented, with provider/transport ownership documented below. Run full local
-and exact-head hosted gates, review the complete diff and update the issue/PR.
-Do not mark ready or merge until gates and AGENTS self-review pass. Then verify
-the merged-tree regression and continue #11 per #25.
+Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
+Complete #11 compatibility/full gates and committed self-review, then mark PR #150
+ready and merge after exact-head build/regression passes. Both lossy-network content
+sets and new fixed replays pass locally (992 full authoritative state hashes each).
+New fixtures were recorded once at 6dbe2a93; accepted older fixtures are unchanged.
+CI wiring is present. Hosted prior-head MSVC/C-header failures are being corrected;
+current native ABI/shared-math checks are next. Re-run the new fixtures through the
+updated static/module builds, review captures and push the fixtures/corrections.
+After merge, require merged-tree regression, update #11/#25, then continue #26/#27/#28.
+#12 integration regression 35523091952 passed. Preserve accepted fixtures.
+
+#12 PR #149 merged with a merge commit as
+3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree
+93a79e9b32ddfca56f57702fe6476a69478aeb37 equals the fully tested 5078d3ab tree.
+Exact-head build 35522266447 and regression 35522266448 passed after committed
+AGENTS self-review. Hosted budgeted loopback: 634/634 shots agree (31 hits), 64
+uncompensated differences, median view age 154 ms, maximum prediction error
+8.875 units. Matching/version-2 connection tests and fixed static/module animation
+replays (253 authoritative hashes each) passed. The reviewed local final run
+passed 385/385 shots (20 hits), 39 uncompensated differences, median age 146 ms
+and the same prediction bound. No fixture/golden changed.
+Acceptance comment: https://github.com/msetaro/aftershock/issues/12#issuecomment-5751108810
+Merged-tree regression 35523091952 passed; #12 is closed and checked in #25.
+Preserve the provider/transport boundary recorded below.
+
+## #11 acceptance checks in progress
+
+The delayed/lossy weapon scenario is being added to the existing private-loopback
+driver, with a 256-byte snapshot budget and a real input trigger after client
+initialization. The first runs exposed harness startup/target timing problems;
+the corrected scenario passes both content sets. Q3: 301/301 shots, 18 hits,
+38 uncompensated differences and 786/786 full weapon/animation comparisons. OA:
+301/301 shots, 19 hits, 36 uncompensated differences and 754/754 comparisons. Both
+median view ages are 160 ms with prediction error bounded at 8.875 units. Loss is
+enabled after the initial gamestate; the default classic scenario is unchanged.
+The lifetime gate now covers the weapons
+subsystem explicitly, and subsystem ownership is documented.
+
+Full-state diagnostic hashes cover all 56 bytes (portable probe checks every byte).
+The separate replay driver and CI commands are written; fixture acceptance is
+recorded in the following checkpoint. The range HUD now shows actual magazine/chamber/reserve,
+and followed-player commands cannot be predicted from the spectator input.
+GCC and Clang/libc++ UBSan probes pass with the unchanged 1000-shot digest.
+The final Q3 lifecycle/HUD run, formatting/boundary/type gates and 1270-configuration
+tidy pass; full lifetime analysis also passes 1216 commands.
+
+## #11 replay and compatibility acceptance
+
+Both new fixtures were recorded once from 6dbe2a93: q3dm17 and oa_dm1, about 44 KiB
+each, containing owned native gameplay records only. Two fixed replays per content
+pass 992 full-state hashes and three identical sampled frames. The first replay
+harness asked for status after the 199-frame demo ended; samples are now at frames
+40/80/140, without re-recording. Reviewed captures show the owned rifle/optic,
+ADS/reload, offhand/projectile presentation and magazine/chamber/reserve HUD.
+
+Prior hosted head 16feb9f1 exposed MSVC C4701 after the animation error path and a
+C witness rejecting the new bool game declaration. Feature error handling now exits
+explicitly after G_Error, and game-facing booleans use qboolean. An attempted historical native C/C++ gate exposed direct C++ definition access
+in legacy source files; plain
+weapon-count/name queries keep those files compatible, and the HUD name follows
+the acknowledged selection during demo replay. These are #11 implementation
+corrections, with no legacy arithmetic or accepted golden changes. The old C bot
+command witness passes. Unit digest/one-ULP control, 1216-command lifetime analysis,
+and 1270-configuration tidy passed before these small compatibility corrections;
+rerun affected current gates before acceptance. `tests/native_gates.py` belongs
+to historical revision 7f4d43a7, as tests/README.md specifies; its current-tree
+attempt then failed on existing #10 C++ declarations. Do not rerun or alter the
+historical oracle. Current ABI/shared-math and production/replay checks are the
+applicable gates.
+
+## #11 self-review checkpoint
+
+Scope matches #11: immutable data definitions and owned assets, seeded fixed ticks,
+reload/cancel/ammo/ADS/attachments, data-only switching, dual-wield hooks, melee,
+rewound hitscan/material effects/penetration, predicted replicated grenades, graph
+notifies and an ImGui target range. Feature negotiation advances 1 to 2; demo codec
+68 and existing wire layouts are retained. Protocol-version mismatch is tested.
+No existing simulation FP expression, accepted fixture/golden, parent repository,
+or unrelated engine bug fix is included. New sampling/weapon TUs use strict FP.
+
+State and histories are bounded POD; projectile predictions cap at 64, effects at
+128, and four auxiliary records per configured client are reserved at map start
+and reused across team/spawn transitions. Definitions, graphs, models and sounds
+load outside frame execution. Native hunk entities and existing arena ownership
+remain in use; no new heap allocation or non-trivial destructor crosses Com_Error.
+No OS calls leave platform/filesystem ownership. Struct size/triviality assertions,
+real MSG codec probes and the 29-type native ABI gate retain representation checks.
+
+Reviewed captures show actual magazine/chamber/reserve and acknowledged weapon
+names. Cosmetic notify dedup handles reordering, rollback, spawn and connection
+generations; capacity rejection reconciles prediction without spending server ammo.
+The 8192-notify history and bounded cosmetic pool are explicit ceilings. One
+speculative sound before a capacity acknowledgement cannot be unplayed; authoritative
+damage/ammo and settled prediction stay exact. Offhand hooks do not impose a new
+inventory policy; the supplied game mode owns the two hands and loaded definitions.
+
+Local current-feature evidence: Q3/OA fixed #11 replays each check 992 full states;
+all three frame hashes agree between repeated static and module playback. Classic
+Q3 frames retain 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4;
+#10 Q3 replay retains 253 authoritative hit-box hashes. Both OA bot logs, collision
+differential, unit/one-ULP control, sanitized units, native ABI/shared math and the
+new weapon probes pass. Real range input and Q3/OA lifecycle/audio/capacity evidence
+are recorded above. Full hosted acceptance remains pending.
+
+e2d0a7b7 MSVC exposed the matching client-side C4701 after the server correction.
+Both BG_WeaponAnimationStep call sites now explicitly return after their fatal
+error path. This changes no successful command. Require fresh complete exact-head
+build/regression after this committed self-review before ready/merge.
+Acceptance progress: https://github.com/msetaro/aftershock/issues/11#issuecomment-5752242148
+
+## #11 weapon animation snapshot test
+
+The real entity-codec probe now fails on the absent per-hand weapon-animation
+adapter (weapons-animation-snapshot-before.log). It requires all animation state,
+16 parameters, full spawn/notify counters and owner/hand/definition/attachment
+metadata to round-trip without changing wire layouts. Reuse the existing #10
+animation adapter; reserve entity type 253 and its two unused parameter slots for
+the spawn counter. Existing animation fixtures stay unchanged.
+The adapter now passes GCC and Clang/libc++ UBSan
+(weapons-animation-snapshot-gcc.log/-clang.log), including full counters and all
+parameters; the existing 1000-shot digest and 67/10-byte weapon-state sizes remain
+unchanged. Next: shared notify advancement and live graph loading/prediction.
+The new graph/step probe fails on missing BG_WeaponAnimationStep
+(weapons-animation-step-before.log). It checks automatic shot/shell pairs,
+reload/cancel, melee, ADS and identical replay from an acknowledgement. New
+range.json references the original #10 model files; only the new #11 graph has
+reload notifies aligned to the existing weapon stages (200/600/800/1000 ms).
+
+Shared graph advancement now passes GCC and Clang/libc++ UBSan
+(weapons-animation-step-gcc.log/-clang.log). It flushes previous clip notifies
+before restarting fire and commits bounded state/notify output together. The new
+live assertion fails with zero predicted-animation comparisons
+(weapons-animation-live-before.log). Load/hash-check graphs, replicate per-hand
+state, and replay animation alongside weapon inputs before claiming live parity.
+
+Live graph loading and per-hand snapshot/input replay pass
+(weapons-animation-live-build.log, weapons-animation-live.log), including at least
+50 main-hand comparisons of complete animation state and all parameters. Graphs
+are loaded once, their hashes are checked against the server, attachment sockets
+must exist, and file storage is released at shutdown. Per-tick advancement keeps
+weapon and animation clocks together; split-budget records wait for a matching
+pair. Spectator commands release stale weapon auxiliary entities. GCC/Clang
+portable probes and format/boundary/type checks pass. This is not presentation
+acceptance yet: view/attachment rendering, notify sound, resource/lifecycle/lossy
+coverage, new replay, tooling and full gates remain.
+
+The first-person presentation assertion now fails with no rendering status
+(weapons-view-before.log). It requires actual skeletal and socket-attachment draws,
+full ADS at the configured optic FOV (45), a centered optic, positive cosmetic
+view kick and a screenshot for review. Existing gameplay checks still pass.
+
+First-person rendering now passes the live numerical gate: skeletal model and
+socket attachment draws, FOV 45 at ADS, maximum optic error 0.000011 units and
+positive view kick (weapons-view-build.log, weapons-view.log). The first screenshot
+caught the old model's solid placeholder sight and an incorrectly oriented new
+optic. The new #11 rifle variant removes only that placeholder scene node and
+references the unchanged #10 buffer; the original source stays unchanged. The
+new optic is authored in its socket's local frame. Re-reviewed capture shows an
+open sight with a centered blue point. GCC/Clang portable checks and style gates
+pass. The test capture uses the engine's existing screenshot/TGA command.
+Next: notify-driven sound and remaining target-range/acceptance scope.
+
+The live sound assertion fails with zero server notifies/sounds
+(weapons-sound-before.log), with SDL dummy audio successfully initialized. The
+next implementation must map graph notify names to preloaded data sound handles,
+replicate remote events and deduplicate local predicted/acknowledged events.
+
+The new cosmetic-budget assertion fails while 128 feature effects are active
+(weapons-effects-budget-before.log). Cap new weapon cosmetics without dropping
+hitscan damage; this prevents notify/impact bursts from consuming the legacy
+entity pool. The legacy allocator itself remains outside this feature's scope.
+
+The initial notify path passes Q3 and OpenArena: 39 audible events each, exactly
+once, and 449 matching main-hand animation comparisons. SDL dummy audio initializes
+and loads the new sounds; this verifies dispatch, not physical speaker output.
+Review identified that entity slot order can differ from notify order. The new
+portable order/spawn/connection/wrap test fails on the absent bounded notify
+window (weapons-notify-order-before.log); replace the initial high-water-only
+deduplication before committing this implementation.
+
+Notify audio and the bounded cosmetic budget now pass GCC/Clang UBSan and the
+production build. The notify window handles slot reordering, respawn, connection
+reuse and counter wrap; notifications older than its 8192-event window are stale.
+Final Q3/OpenArena live runs both pass (weapons-notify-final-q3.log/-oa.log): 39
+unique audible notifies, 449 matching main-hand animation comparisons, resident
+7056-byte shot and 3968-byte reload samples. The sound-list check uses existing
+s_list; the first attempted legacy soundlist command did not enumerate samples.
+Format/boundary/type checks pass. New cosmetics cap at 128; at the entity
+high-water ceiling they are dropped until map restart, preserving eight unopened
+slots. Hitscan damage still applies when effects are dropped. Projectile capacity
+and full lifecycle/lossy/replay/tooling acceptance remain outstanding.
+
+The real ImGui range test now fails waiting for the absent dev_weapon_range
+panel (weapons-range-before.log). It requires pointer-driven target spawning,
+selection of a second data-only rifle, trigger and reload. Reuse existing local
+rewind-target/game commands and cooked inspection; mutations run after vendor UI
+calls return. Keep the range tab absent until opened so existing tool layouts
+retain their positions.
+
+The ImGui range now passes real pointer/key input on Q3 and OpenArena
+(weapons-range.log/-oa.log): moving target, arbitrary loaded slot selection,
+trigger and reload. The reviewed panel capture shows cooked definition inspection,
+ADS/offhand/melee/attachment controls, rewind counters and restart/capture actions.
+It opens with dev_weapon_range and stays absent from the tab bar otherwise.
+Game mutations run after vendor UI calls. Build/style/boundary/type checks pass.
+Next: bound projectiles and reserve/reuse per-client auxiliary records, then
+lifecycle, lossy input and fixed replay acceptance before the complete CI gates.
+
+The next portable assertion fails on absent WeaponProjectileAvailable
+(weapons-projectile-budget-before.log); it requires a 64-actor projectile ceiling
+and eight unopened entity slots. The opt-in live --lifecycle extension fails on
+absent actor-record reuse evidence (weapons-lifecycle-before.log). Reserve four
+auxiliary records per configured client at map initialization, reuse them across
+spectator/respawn, and pause projectile firing at capacity without spending ammo.
+Replicate that blocked state so client prediction follows the same rule; discard
+rejected local projectiles and allow corrected notify identities to be reused.
+
+The capacity follow-up requires the blocked bit to survive the real entity codec
+and a rejected predicted notify identity to be usable again after capacity frees.
+The portable check fails on absent Weapon_ForgetNotifiesAfter
+(weapons-notify-rejection-before.log); only unacknowledged notify bits will be
+forgotten, preserving deduplication of accepted sounds.
+
+Lifecycle implementation review found ClientBegin intentionally resets the legacy
+spawn count to 1 on team transitions. The initial pool test therefore could not
+use that count as a unique connection identity. Carry the existing rewindSpawn
+connection generation in unused auxiliary fields; also distinguish predicted
+projectiles/notifies by it and reject late prior-generation notifications. The
+portable late-generation assertion fails on current deduplication
+(weapons-notify-generation-before.log). This is new #11 bookkeeping, not a change
+to legacy player spawn semantics. The scenario now respects the five-second team
+switch cooldown; the live 64-projectile pressure segment reaches its cap without
+spending further ammo.
+
+Projectile capacity, reusable auxiliary records and connection-generation handling
+now pass GCC/Clang UBSan and both live content sets
+(weapons-generation-{gcc,clang,build}.log, weapons-lifecycle.log/-oa.log).
+Four records per configured client are reserved at map start and reused across
+team transitions; inadequate map capacity is rejected explicitly. The owner keeps
+the same record IDs while its connection generation changes, even though the
+legacy spawn count returns to 1. New auxiliary constantLight fields carry that
+full generation (these entity types bypass lighting); projectiles use their spare
+angular-trajectory clock. No wire struct or legacy spawn semantic changes.
+
+At 64 projectiles or the entity high-water reserve, server firing pauses without
+spending ammo and the snapshot blocked bit guides prediction. Rejected local
+projectiles expire; only unacknowledged notify bits are forgotten so later accepted
+shots can sound. Late prior-generation/spawn notifications are discarded. The
+live pressure segment holds sequence/magazine at 64/64 for at least ten samples
+and reconciles prediction. Team transitions/disconnect remove owned projectiles;
+ordinary respawns retain them. The final OA test also verifies post-join shot
+notifications still sound. New cosmetics retain their separate 128-effect limit.
+Format/boundary/type gates pass. Full #11 acceptance remains pending.
+
+## #11 test-first scope
+
+The first portable contract covers a versioned weapon asset in the existing
+cooker, a second rifle authored only in JSON, incremental dependencies, exact
+20 ms ticks, 1000 repeatable seeded shots, alternate-seed divergence, recoil
+patterns, automatic/semi/burst cadence, staged tactical reload and cancellation,
+magazine/chamber/reserve conservation, ADS interpolation, data attachments,
+range falloff/material penetration response and projectile step/bounce math.
+The initial probe failed on the absent weapons_public.h and weapons.cpp
+(weapons-before.log), before any weapon runtime/cooker implementation.
+This is the first slice, not #11 acceptance. Server rewind integration, replicated
+projectiles/grenades and prediction, switching/dual-wield/melee, animation/sound
+notifies, real target-range/ImGui controls and fixed-demo parity remain required.
+The original #10 rifle/body sources and accepted fixtures remain unchanged.
+
+The initial weapon payload/runtime now passes GCC and Clang/libc++ UBSan,
+including the independent 1000-shot integer/binary32 reference. Both trace hashes
+are 0c1b0e259650e6c5c6c155244100b3e194abbfc75fe7d10717cdb25b919c746f
+(weapons-reference-gcc.log, weapons-reference-clang.log). Client/server production
+build passes (weapons-core-build.log); only the new weapon translation unit gains
+strict FP flags. Payload size is 3936 bytes, plain state 56 bytes, fixed arrays and
+20 ms stepping with no per-frame allocation. Tactical/empty reload conservation,
+cancel points, melee cadence, clock wrap and projectile fuse checks pass. The
+existing unsigned form of Q_rand's recurrence supplies this new seeded state;
+legacy RNG code is untouched. New tests 125c8016/9a047470 preceded implementation.
+This is not #11 acceptance: data-to-gameplay and rendering/audio integration,
+replication/prediction, target-range tooling and replay gates remain outstanding.
+
+Follow-up test-first checks fail separately on two unfinished parts of this new
+feature: native cooked-index acceptance of kind 7 (weapons-index-before.log), and
+30 ms fire intervals retaining their phase across 20 ms ticks rather than slowing
+to 40 ms (weapons-cadence-before.log). Extend index registration and carry the
+sub-tick remainder while discarding stale idle/reload backlog. Existing 80 ms
+1000-shot trace must remain identical.
+Both follow-ups now pass GCC and Clang/libc++ UBSan after ca557339's failing
+assertions: kind 7 is registered, a 30 ms cadence alternates quantized intervals
+without slowing its mean rate, and old idle/reload backlog is not emitted as a
+burst. The 80 ms 1000-shot digest remains unchanged (weapons-cadence-gcc.log,
+weapons-cadence-clang.log). Next: auxiliary weapon state round-tripped through
+the actual delta codec, then server/client fixed-tick gameplay integration.
+The new snapshot probe now fails on absent game/bg/bg_weapons.cpp
+(weapons-snapshot-before.log). It requires all 56 weapon-state bytes, full-width
+seed/clock/spawn counters, owner/hand/definition/attachment metadata, origin and
+compact deltas to survive the production entity codec. Decision: an auxiliary
+ET_WEAPON_STATE record (254) keeps existing wire structs and movement fields
+unchanged; the native feature protocol must be revised before exposing the new
+record to real clients. No gameplay/prediction acceptance is claimed yet.
+The snapshot contract now passes GCC/Clang UBSan (67 initial bytes, 10-byte
+clock delta), following ac4f90b4's missing-adapter failure. Six existing full-width
+integer fields plus finite exact 16-bit float halves preserve all state bits;
+there are no changed wire structs or float bit-punning. Current native ABI and
+pre-#12 replication digest still pass. The production build initially caught
+unused namespace constants in native wrappers; matching the existing inline
+constexpr convention fixes that without relaxing warnings. The final native
+client/server build passes (weapons-snapshot-build.log). Next: shared command
+advancement/prediction tests, then actual game/cgame integration and owned range
+assets. Protocol revision remains mandatory before publishing new auxiliary
+records to real clients.
+
+The command/prediction probe now fails on the absent Weapon_Command API and event
+timestamps (weapons-command-before.log). It covers irregular usercmd intervals,
+replay from older acknowledgements, duplicate commands, independent hands, clock
+wrap, 50 events over one second, and atomic rejection beyond that bound. The
+bound follows Pmove's existing 1000 ms catch-up window; gameplay integration must
+handle longer inactivity explicitly without manufacturing an unbounded backlog.
+
+Weapon_Command now passes that contract under GCC and Clang/libc++ UBSan
+(weapons-command-gcc.log, weapons-command-clang.log). Events carry fixed-tick
+timestamps, bounded batches hold the 50-tick catch-up window, and failure leaves
+state/events unchanged. The original 1000-shot digest and 67/10-byte snapshot
+sizes are unchanged. Next: cooked-file loading and opt-in gameplay/prediction
+integration; portable replay alone is not live gameplay acceptance.
+
+The real native-game script tests/weapons_runtime.py fails first at absent server
+weapon-definition loading (weapons-live-before.log). It will check cooked data
+selection, command-driven fire/reload/ADS/melee and identical authoritative state
+received by cgame. This live slice does not yet assert damage, projectiles,
+weapon presentation or target-range tooling; those remain required by #11.
+
+The initial live state slice passes (weapons-live.log): cooked files load through
+FS into fixed storage, g_weapons publishes content hashes, cgame checks matching
+definitions, command ticks publish owner-only hand states, and classic PM_Weapon
+is bypassed only when this opt-in data set is loaded. Feature protocol is now 2;
+the incompatibility gate builds protocol 3. Build and portable probes pass, and
+new sources pass boundary/style/type checks. No fixture or golden changed.
+This slice only advances/logs events; damage, visual/audio effects, switching and
+projectiles are still outstanding. Prediction replays queued inputs but needs
+live acknowledgement comparison evidence and presentation consumers. Next: add
+that evidence, then integrate rewind damage and remaining #11 gameplay.
+
+Live prediction evidence is now required by a failing assertion: no comparison
+with later acknowledgements exists yet (weapons-prediction-before.log, 0 samples).
+Add a bounded history of actually advanced predicted states and compare all 56
+bytes when their authoritative ticks arrive; never count copied baseline states.
+Issue update: https://github.com/msetaro/aftershock/issues/11#issuecomment-5751395434
+
+The live prediction assertion now passes: 410 hand/tick acknowledgements matched
+all 56 previously predicted bytes, including 205 main-hand samples. Records are
+stored only after input replay advances beyond the snapshot baseline, and tagged
+with spawn/definition/attachments (weapons-prediction.log). Next: explicit event
+time for rewind and actual weapon damage, followed by the remaining integration.
+
+The explicit shot-time rewind check fails on missing G_TraceHitscanAtTime
+(weapons-rewind-before.log). It queries the same actor at 900 and 1000 ms while
+the newest usercmd stays at 1000 ms, requiring different hit decisions without
+mutating live actor or command state. Keep legacy G_TraceHitscan as a wrapper.
+
+Explicit-time rewind passes GCC/Clang UBSan while keeping the legacy wrapper
+behavior and history checks unchanged (weapons-rewind-gcc.log/-clang.log).
+The live damage extension now fails with no damage events against a successfully
+created moving range target (weapons-damage-before.log). Implement actual
+hitscan/melee damage through that trace before adding penetration/projectiles.
+
+Live hitscan now applies the data-defined damage through fixed-event-time rewind;
+melee shares that trace with its own range/damage. The owned moving target takes
+40-point rifle hits and the extended state/prediction assertions pass
+(weapons-damage.log). This is still incomplete #11: world penetration/material
+presentation, switching/attachments, projectile actors, animation/audio integration
+and range controls remain. Next: inventory-preserving switching and selection of
+a second rifle authored only in data.
+
+The switching probe fails on missing Weapon_Switch (weapons-switch-before.log).
+It requires retained ammo/random state across a round trip, a data-defined equip
+delay before firing, reload-stage cancellation rules and atomic rejection.
+
+Weapon_Switch passes GCC and Clang/libc++ UBSan: equip delay, ammo/seed retention
+and reload cancel boundaries (weapons-switch-gcc.log/-clang.log). The old 1000-shot
+reference remains unchanged. Wire the server inventory and existing weapon
+selection commands, then prove two data files can be selected in the live game.
+
+The live two-rifle extension fails at the expected missing selection behavior
+(weapons-selection-before.log): both cooked files load, but no switch occurs.
+It requires 0->1->0 selection and return to the first rifle's remaining 29-round
+magazine, plus the existing prediction, damage and state round-trip assertions.
+
+Live two-rifle selection passes (weapons-selection.log). Each hand retains a
+bounded per-definition inventory; existing weapon/next/previous commands select
+data definitions, pickups no longer overwrite that selection, and respawn picks
+the first data weapon. Switching waits for server acknowledgement while active
+weapon inputs remain predicted. The first run exposed a remaining legacy
+respawn selection assignment; the test also needed 130 rather than 120 frames
+to empty all 31 loaded rounds before checking the 29-round empty reload. Both
+are corrected, and 0->1->0 preserves ammo/seed. Production build and focused
+format/boundary/type gates pass. Remaining #11 scope is listed in Next action.
+
+The analytic game-collision probe now fails on a one-unit default-material wall
+(weapons-penetration-before.log). It exercises the actual game WeaponHit path:
+40 unobstructed damage, 20 through default material, 10 through thin metal,
+blocking thick metal, cumulative loss across two walls and non-penetrating melee.
+This is a gameplay collision test, not a loader robustness target.
+
+Material penetration now passes both compiler/UBSan probes and the live rifle
+scenario (weapons-penetration-gcc.log/-clang.log/-live.log). Four impact queries
+bound a shot; one-unit occupancy probes locate an outside point and a reverse
+surface trace measures thickness. Sub-unit gaps count in the same thickness
+budget, an explicit resolution limit. No simulation expression outside the new
+weapon implementation changed. Next: material impact presentation and remaining
+projectile/animation/attachment/range integration.
+
+The material presentation assertion fails as intended (weapons-impact-before.log).
+New owned material JSON supplies distinct default/metal impact colors through the
+existing cooker; this does not alter any accepted art or replay fixture. Next:
+replicate the definition/material index and render that material at the impact.
+
+Material impact presentation passes the live test and GCC/Clang portable checks
+(weapons-impact-live.log, weapons-impact-gcc.log/-clang.log). New EV_WEAPON_IMPACT
+appends to existing event values and carries definition/material indices; cgame
+preloads all effect shaders at initialization and uses the existing fixed mark
+pool. No first-hit asset loading is introduced. The thin-wall probe's direction
+stub was corrected to the native game's existing non-const signature. Format and
+boundary checks pass. Remaining: projectiles/grenades, attachment/view/notify/audio
+integration, ImGui range tooling, lifecycle/parity tests and full CI acceptance.
+
+Projectile/attachment presentation sources are newly authored by
+ tests/assets/weapons/export.py: original box optic/grenade props and deterministic
+synthetic shot/reload sounds, with hashes in provenance.json. These are new #11
+assets; accepted #10 sources and fixtures remain untouched. The projectile asset
+probe fails on missing model/size fields (weapons-projectile-asset-before.log).
+Decision: weapon source/cooked format version 2 adds these required authoring
+fields before #11 acceptance; other cooked formats keep version 1. No weapon
+format has shipped or been accepted yet. Implement and validate that payload,
+then shared fixed-tick collision, server projectile actors and client prediction.
+
+The version-2 payload passes GCC/Clang UBSan with a 4004-byte definition while
+weapon state/wire sizes and the 1000-shot digest stay unchanged
+(weapons-projectile-asset-gcc.log/-clang.log). All six presentation resources cook
+successfully (weapons-presentation-cook.log). Other asset envelopes retain their
+existing default version and bytes. Provenance checks now guard the new committed
+props/sounds; live rendering/audio review and actual projectile integration remain.
+
+Shared projectile collision now has a failing contract in the existing snapshot
+probe (weapons-projectile-step-before.log): fixed 20 ms flight, configured box
+size, bounce loss/exit offset, fuse expiration and zero-bounce impact detonation.
+Use the existing game/cgame trace signature so both sides share that step.
+
+BG_WeaponProjectileStep now passes GCC/Clang UBSan
+(weapons-projectile-step-gcc.log/-clang.log). It uses the existing game/cgame
+trace signature, data collision bounds and the same fixed-step motion/bounce
+math. Fuse expiry and zero-bounce impacts detonate; bounces retain the remaining
+fuse. Next: actual server projectile entities, snapshot rendering, client shot
+prediction and lifecycle tests. Shared physics alone is not projectile acceptance.
+
+The extended live test loads a third, data-only grenade definition but fails on
+absent projectile actors (weapons-projectile-live-before.log), after a successful
+version-2 production rebuild. Reuse ET_MISSILE with generic1=255 (existing native
+missiles use only team values), carrying definition/owner/hand/shot/spawn metadata
+and fixed-step position/velocity/age in existing snapshot fields. No wire-layout
+change. Add server actors and snapshot rendering before client shot prediction.
+
+The server projectile/snapshot slice passes its live test
+(weapons-projectile-live.log) and the portable GCC probe. Data-only grenade
+selection spawns an owned model, advances shared fixed ticks, bounces and expires
+its fuse; detonation uses existing direct/radius damage and bounded local effects.
+Position/velocity/age stay in existing missile fields; model assets preload at
+initialization. Owner disconnect removes remaining projectiles, while respawn
+alone leaves them alive. Format, boundary and type gates pass. Next: client shot
+prediction using each command's predicted movement pose, with deduplication against
+authoritative projectile records and measured correction error. No full #11
+acceptance or projectile prediction is claimed by this server-only slice.
+
+Client projectile prediction fails its new live assertion
+(weapons-projectile-prediction-before.log). A separate failing launch contract
+requires server/client reuse of the command pose and data speed/spread
+(weapons-launch-before.log). Record poses after each Pmove command and before
+trigger prediction, matching the server's weapon hook. Use a bounded predicted
+projectile pool, identify shots by spawn/hand/definition/sequence and measure the
+first authoritative position correction at the same projectile age.
+
+Client projectile prediction now passes the live test with one predicted grenade
+and first authoritative position correction 0.000000 units
+(weapons-projectile-prediction.log). Per-command Pmove poses feed the shared launch
+helper; server/client use the same collision step. A fixed 64-shot pool falls
+back to authoritative rendering when full. Acknowledged/expired identities remain
+until their commands leave history, avoiding replay duplicates; authoritative
+entities take over drawing. GCC/Clang probes and format/boundary/type checks pass.
+Next: attachments and weapon/view/notify/audio integration, then ImGui range,
+stronger lifecycle/latency/replay evidence and complete CI/self-review acceptance.
+
+The attachment command extension fails at missing modifier/replication evidence
+(weapons-attachment-before.log). Require the optic mask to produce spread 0.75
+and FOV 45 on the server and reach the matching client definition. Keep masks
+per hand and inventory weapon, validate data-supported bits, and apply equip
+delay without changing ammunition. Socket rendering follows in presentation.
+
+Attachment modifiers/replication pass the live scenario (weapons-attachment.log):
+mask 1 gives spread 0.75 and FOV 45, reaches cgame and remains in the first rifle's
+inventory across switching. The server caches configured definitions per active
+hand, rejects unsupported masks/busy reload stages and applies the equip delay
+without refilling ammo. Build, format and boundary checks pass. Socket/view
+presentation and notify-driven audio are still outstanding.
+
+A new failing portable assertion requires reload-start/cancel events and a second
+reload press to cancel at an allowed stage (weapons-reload-events-before.log).
+These events let weapon animation follow mechanical state without adding an
+input bit or inferring starts from later magazine events.
+
+Reload begin/cancel events and second-press cancellation now pass GCC/Clang UBSan
+(weapons-reload-events-gcc.log/-clang.log), including ammo conservation. Shot
+reference and snapshot sizes remain unchanged. Next: per-hand weapon animation
+state using existing animation APIs/codec, notify-driven sound, socket/view
+presentation, then range controls and complete acceptance gates.
+
+
+## #12 implemented feature evidence
 
 Implemented so far: generated replication descriptions beside state members,
 strict Aftershock version/schema agreement in the existing challenge/connect

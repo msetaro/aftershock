@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include "../engine/animation/animation_public.h"
+#include "../engine/weapons/weapons_public.h"
 #include "../engine/qcommon/net_history_public.h"
 #include "../engine/public/g_native_public.h"
 #include "../engine/public/dev_public.h"

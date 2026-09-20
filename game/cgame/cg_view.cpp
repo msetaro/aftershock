@@ -517,6 +517,7 @@ static int CG_CalcFov( void ) {
 		}
 	}
 
+	fov_x = CG_WeaponFov( fov_x );
 	x = cg.refdef.width / tan( fov_x / 360 * M_PI );
 	fov_y = atan2( cg.refdef.height, x );
 	fov_y = fov_y * 360 / M_PI;
@@ -676,6 +677,7 @@ static int CG_CalcViewValues( void ) {
 		CG_OffsetFirstPersonView();
 	}
 
+	CG_WeaponViewKick( cg.refdefViewAngles );
 	// position eye reletive to origin
 	AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 
@@ -793,6 +795,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// update cg.predictedPlayerState
 	CG_PredictPlayerState();
+	CG_PredictWeapons();
 
 	// decide on third person view
 	cg.renderingThirdPerson = (qboolean)( cg_thirdPerson.integer || ( cg.snap->ps.stats[STAT_HEALTH] <= 0 ) );
@@ -808,6 +811,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	// build the render lists
 	if ( !cg.hyperspace ) {
 		CG_AddPacketEntities(); // adter calcViewValues, so predicted player state is correct
+		CG_AddWeaponProjectiles();
 		CG_AddMarks();
 		CG_AddParticles();
 		CG_AddLocalEntities();

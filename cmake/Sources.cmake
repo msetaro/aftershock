@@ -1,6 +1,8 @@
 # Explicit production source lists migrated from the verified Make build.
 
 set(COMMON_SOURCES
+  engine/weapons/weapons_assets.cpp
+  engine/weapons/weapons.cpp
   engine/animation/animation.cpp
   engine/animation/animation_assets.cpp
   third_party/sha256/sha-256.c
@@ -210,6 +212,7 @@ set(VULKAN_SOURCES
 
 set(NATIVE_GAME_SOURCES
   game/game/g_rewind.cpp
+  game/game/g_data_weapons.cpp
   game/game/g_animation.cpp
   game/game/ai_chat.cpp
   game/game/ai_cmd.cpp
@@ -220,6 +223,7 @@ set(NATIVE_GAME_SOURCES
   game/game/ai_vcmd.cpp
   game/bg/bg_misc.cpp
   game/bg/bg_animation.cpp
+  game/bg/bg_weapons.cpp
   game/bg/bg_pmove.cpp
   game/bg/bg_slidemove.cpp
   game/game/g_active.cpp
@@ -249,9 +253,11 @@ set(NATIVE_GAME_SOURCES
 )
 
 set(NATIVE_CGAME_SOURCES
+  game/cgame/cg_data_weapons.cpp
   game/cgame/cg_animation.cpp
   game/bg/bg_misc.cpp
   game/bg/bg_animation.cpp
+  game/bg/bg_weapons.cpp
   game/bg/bg_pmove.cpp
   game/bg/bg_slidemove.cpp
   game/cgame/cg_consolecmds.cpp

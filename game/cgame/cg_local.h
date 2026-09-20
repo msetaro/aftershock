@@ -1666,6 +1666,21 @@ void CG_ParticleExplosion( char *animStr, vec3_t origin, vec3_t vel, int duratio
 extern qboolean initparticles;
 int CG_NewParticleArea( int num );
 
+void CG_InitWeapons( void );
+void CG_AddDataWeapon( void );
+void CG_WeaponStatus( void );
+const char *CG_DataWeaponName( void );
+qboolean CG_DrawDataWeaponAmmo( void );
+float CG_WeaponFov( float base );
+void CG_WeaponViewKick( vec3_t angles );
+void CG_WeaponAnimationSnapshot( const entityState_t *entity );
+void CG_WeaponSnapshot( const entityState_t *entity );
+void CG_PredictWeapons( void );
+void CG_WeaponPredictionPose( int number, const playerState_t *state );
+void CG_AddWeaponProjectiles( void );
+qboolean CG_WeaponProjectile( centity_t *cent );
+void CG_WeaponNotify( const entityState_t *entity, const vec3_t position );
+void CG_WeaponImpact( const entityState_t *entity, const vec3_t position );
 void CG_InitAnimation( void );
 void CG_ShutdownAnimation( void );
 void CG_AnimationSnapshot( const entityState_t *entity );

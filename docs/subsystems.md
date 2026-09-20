@@ -19,6 +19,11 @@ hit-box evaluation. Its public contract contains POD records; filesystem loading
 uses qcommon handles and zone ownership outside frame evaluation. Game/cgame own
 replicated inputs and presentation policy; render owns copied skin matrices.
 
+`engine/weapons` owns cooked weapon definitions, seeded fixed-tick state, reloads,
+attachments, projectile math and notify deduplication. All runtime records are POD
+and bounded; game owns damage/rewind and actors, cgame owns prediction/presentation,
+and the development overlay owns range controls. Assets load only at map start.
+
 `engine/server` owns server clients, authoritative snapshot assembly and the
 native game lifecycle. It borrows game/entity data through `engine/public` and
 owns server allocations in the existing zone/hunk lifetimes. Network sockets

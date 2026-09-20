@@ -13,7 +13,7 @@ from window import wait_for
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--client', type=Path, required=True)
 parser.add_argument('--server', type=Path, required=True)
-parser.add_argument('--other-server', type=Path, required=True, help='built with AFTERSHOCK_NET_VERSION=2')
+parser.add_argument('--other-server', type=Path, required=True, help='built with AFTERSHOCK_NET_VERSION=3')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-protocol-runtime'))
@@ -56,7 +56,7 @@ for name, server_binary, accepted in [('same', args.server, True), ('different',
                         '+set', 'com_maxfps', '100', '+exec', 'protocol.cfg'], cwd=ROOT, env=env,
                         stdout=client_stream, stderr=subprocess.STDOUT, check=True)
                 text = client_log.read_text()
-                negotiated = 'Aftershock protocol negotiated: version=1 schema=' in text
+                negotiated = 'Aftershock protocol negotiated: version=2 schema=' in text
                 refused = 'Incompatible Aftershock protocol/schema' in text
                 assert negotiated == accepted and refused != accepted, (name, client_log)
                 joined = 'ClientBegin: 0' in server_log.read_text()

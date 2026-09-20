@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef __cplusplus
 #include "../animation/animation_public.h"
+#include "../weapons/weapons_public.h"
 #endif
 
 #define GAME_VERSION		BASEGAME "-1"
@@ -97,7 +98,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define CS_ANIMATION_BODY (CS_PARTICLES+MAX_LOCATIONS)
 #define CS_ANIMATION_RIFLE (CS_ANIMATION_BODY+1)
-#define CS_MAX (CS_ANIMATION_RIFLE+1)
+#define CS_WEAPONS (CS_ANIMATION_RIFLE+1)
+#define CS_MAX (CS_WEAPONS+32)
 
 #if ( CS_MAX ) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
@@ -459,7 +461,9 @@ typedef enum {
 	EV_TAUNT_FOLLOWME,
 	EV_TAUNT_GETFLAG,
 	EV_TAUNT_GUARDBASE,
-	EV_TAUNT_PATROL
+	EV_TAUNT_PATROL,
+	EV_WEAPON_IMPACT,
+	EV_WEAPON_NOTIFY
 
 } entity_event_t;
 
@@ -701,11 +705,32 @@ typedef enum {
 	ET_EVENTS, // any of the EV_* events can be added freestanding
 	// by setting eType to ET_EVENTS + eventNum
 	// this avoids having to set eFlags and eventNum
+	ET_WEAPON_ANIMATION = 253, // Per-hand native weapon animation.
+	ET_WEAPON_STATE = 254, // Auxiliary native weapon state.
 	ET_ANIMATION = 255 // Auxiliary native animation state, never a game event.
 } entityType_t;
 
+int BG_WeaponCount( void );
+void BG_ClearWeapons( void );
+
 #ifdef __cplusplus
-static_assert( int( ET_EVENTS ) + int( EV_TAUNT_PATROL ) < int( ET_ANIMATION ) );
+static_assert( int( ET_EVENTS ) + int( EV_WEAPON_NOTIFY ) < int( ET_WEAPON_ANIMATION ) );
+inline constexpr int WEAPON_PROJECTILE_TAG = 255;
+enum weaponFlight_t { WEAPON_FLYING,
+	WEAPON_BOUNCED,
+	WEAPON_EXPLODED };
+void BG_LaunchWeaponProjectile( const weaponDef_t *definition, const weaponEvent_t *event, const playerState_t *player, weaponProjectile_t *projectile );
+weaponFlight_t BG_WeaponProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile, int owner,
+	void ( *trace )( trace_t *, const vec3_t, const vec3_t, const vec3_t, const vec3_t, int, int ), trace_t *impact );
+bool BG_LoadWeapon( int index, const char *path, char hash[65], char graphHash[65] );
+const animAsset_t *BG_WeaponAnimation( int index );
+const weaponDef_t *BG_WeaponDefinition( int index );
+uint32_t BG_WeaponButtons( const usercmd_t *cmd, int hand, const playerState_t *ps );
+bool BG_WeaponToEntityState( const weaponState_t *state, uint32_t spawn, int owner, int hand, int definition, uint32_t attachments, const float *origin, entityState_t *entity );
+bool BG_EntityStateToWeapon( const entityState_t *entity, weaponState_t *state, uint32_t *spawn );
+bool BG_WeaponAnimationStep( const animAsset_t *asset, const weaponState_t *weapon, const weaponEvents_t *events, animState_t *state, float *parameters, animEvents_t *notifies );
+bool BG_WeaponAnimationToEntityState( const animState_t *state, const float *parameters, uint32_t spawn, int owner, int hand, int definition, uint32_t attachments, const float *origin, const float *angles, entityState_t *entity );
+bool BG_EntityStateToWeaponAnimation( const entityState_t *entity, animState_t *state, float *parameters, uint32_t *spawn );
 bool BG_AnimationToEntityState( const animState_t *state, const float *parameters, int owner, int rig, const float *origin, const float *angles, entityState_t *entity );
 bool BG_EntityStateToAnimation( const entityState_t *entity, animState_t *state, float *parameters );
 bool BG_AnimationPose( const animAsset_t *asset, const animState_t *state, const float *parameters, uint32_t time, int rig, animPose_t *pose );

@@ -1,5 +1,6 @@
 #include "devtools_public.h"
 #include "../animation/animation_public.h"
+#include "../weapons/weapons_public.h"
 #include "../qcommon/qcommon_public.h"
 #include "../qcommon/keys_public.h"
 #include "../../third_party/imgui/imgui.h"
@@ -38,6 +39,141 @@ static struct {
 	int model;
 	bool load, read, save, select, play, draw;
 } graph;
+
+static struct {
+	bool visible, select, loaded, ads;
+	int action, attachments, slot;
+	char path[MAX_QPATH], loadedPath[MAX_QPATH], status[160];
+	weaponDef_t definition;
+} weaponRange;
+
+static void WeaponRangeCommand( void ) {
+	weaponRange.visible = weaponRange.select = true;
+	weaponRange.slot = 1;
+	Cvar_Set( "dev_tools", "1" );
+	if ( !weaponRange.path[0] ) {
+		const char *cursor = Cvar_VariableString( "g_weapons" );
+		Q_strncpyz( weaponRange.path, COM_Parse( &cursor ), sizeof( weaponRange.path ) );
+	}
+	weaponRange.action = 1;
+	Com_Printf( "Developer weapon range: opened\n" );
+}
+static void InspectWeaponRange( void ) {
+	if ( !weaponRange.visible )
+		return;
+	const auto flags = weaponRange.select ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+	weaponRange.select = false;
+	if ( !ImGui::BeginTabItem( "Range", &weaponRange.visible, flags ) )
+		return;
+	ImGui::SetNextItemWidth( 450 );
+	ImGui::InputText( "##Weapon asset", weaponRange.path, sizeof( weaponRange.path ) );
+	ImGui::SameLine();
+	if ( ImGui::Button( "Inspect" ) )
+		weaponRange.action = 1;
+	if ( weaponRange.loaded ) {
+		const auto &weapon = weaponRange.definition;
+		ImGui::Text( "%s | damage %.1f | interval %u ms | magazine %u + 1", weapon.name, double( weapon.damage ), weapon.intervalMs, weapon.magazine );
+		ImGui::Text( "Spread %.2f | ADS %.1f / %u ms | %u recoil samples", double( weapon.spreadDegrees ), double( weapon.adsFov ), weapon.adsMs, weapon.recoilCount );
+	}
+	ImGui::TextWrapped( "%s", weaponRange.status );
+	ImGui::SetCursorPosY( 160 );
+	const bool local = DevTools_Game() && Cvar_VariableIntegerValue( "sv_cheats" ) && DevTools_ViewClient() >= 0;
+	ImGui::BeginDisabled( !local );
+	if ( ImGui::Button( "Spawn moving target", ImVec2( 162, 20 ) ) )
+		weaponRange.action = 2;
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth( 90 );
+	ImGui::InputInt( "##Weapon slot", &weaponRange.slot );
+	weaponRange.slot = MAX( 1, MIN( weaponRange.slot, int( WEAPON_MAX_DEFINITIONS ) ) );
+	ImGui::SameLine();
+	if ( ImGui::Button( "Select slot", ImVec2( 90, 20 ) ) )
+		weaponRange.action = 3;
+	ImGui::SetCursorPosY( 184 );
+	if ( ImGui::Button( "Fire", ImVec2( 42, 20 ) ) )
+		weaponRange.action = 5;
+	ImGui::SameLine();
+	if ( ImGui::Button( "Reload", ImVec2( 60, 20 ) ) )
+		weaponRange.action = 6;
+	ImGui::SameLine();
+	if ( ImGui::Button( "Melee", ImVec2( 55, 20 ) ) )
+		weaponRange.action = 7;
+	ImGui::SameLine();
+	if ( ImGui::Button( "Offhand", ImVec2( 70, 20 ) ) )
+		weaponRange.action = 8;
+	if ( ImGui::Checkbox( "ADS", &weaponRange.ads ) )
+		weaponRange.action = 9;
+	if ( weaponRange.loaded && weaponRange.definition.attachmentCount ) {
+		ImGui::SliderInt( "Attachment mask", &weaponRange.attachments, 0, ( 1 << weaponRange.definition.attachmentCount ) - 1 );
+		if ( ImGui::Button( "Apply attachments" ) )
+			weaponRange.action = 10;
+	}
+	ImGui::SetCursorPosY( 276 );
+	if ( ImGui::Button( "Restart with inspected weapon", ImVec2( 260, 20 ) ) )
+		weaponRange.action = 11;
+	ImGui::EndDisabled();
+	ImGui::SameLine();
+	if ( ImGui::Button( "Capture panel", ImVec2( 120, 20 ) ) )
+		weaponRange.action = 12;
+	if ( !local )
+		ImGui::TextWrapped( "Open a local developer map to use range controls." );
+	ImGui::TextWrapped( "Inspect a cooked weapon, tune its source and recook, then restart. The active game keeps its map-start revision. Start the map with g_rewind 1 for moving targets." );
+	const auto *net = DevTools_Network();
+	ImGui::Text( "Rewind reports %" PRIu64 " | hits %" PRIu64 " | view age %u ms", net->rewindReports, net->rewindHits, net->rewindAge );
+	ImGui::EndTabItem();
+}
+static void EditWeaponRange( void ) {
+	const int action = weaponRange.action;
+	weaponRange.action = 0;
+	if ( action == 1 ) {
+		uint8_t hash[32];
+		weaponRange.loaded = Weapon_LoadFile( weaponRange.path, &weaponRange.definition, hash );
+		if ( weaponRange.loaded )
+			Q_strncpyz( weaponRange.loadedPath, weaponRange.path, sizeof( weaponRange.loadedPath ) );
+		Q_strncpyz( weaponRange.status, weaponRange.loaded ? "Cooked definition loaded." : "Weapon load failed; choose a cooked .asweapon file.", sizeof( weaponRange.status ) );
+		return;
+	}
+	if ( action == 12 ) {
+		Cbuf_AddText( "screenshot range-panel\n" );
+		return;
+	}
+	if ( !action || !DevTools_Game() || !Cvar_VariableIntegerValue( "sv_cheats" ) || DevTools_ViewClient() < 0 )
+		return;
+	switch ( action ) {
+	case 2:
+		Cbuf_AddText( va( "rewind_target %d\n", DevTools_ViewClient() ) );
+		Com_Printf( "Developer weapon range: target\n" );
+		break;
+	case 3:
+		Cbuf_AddText( va( "weapon %d\n", weaponRange.slot ) );
+		break;
+	case 5:
+		Cbuf_AddText( "+attack\nwait 2\n-attack\n" );
+		Com_Printf( "Developer weapon range: fire\n" );
+		break;
+	case 6:
+		Cbuf_AddText( "+button13\nwait 2\n-button13\n" );
+		break;
+	case 7:
+		Cbuf_AddText( "+button14\nwait 2\n-button14\n" );
+		break;
+	case 8:
+		Cbuf_AddText( "+button15\nwait 2\n-button15\n" );
+		break;
+	case 9:
+		Cbuf_AddText( weaponRange.ads ? "+button12\n" : "-button12\n" );
+		break;
+	case 10:
+		Cbuf_AddText( va( "cmd weapon_attachment 0 %d\n", weaponRange.attachments ) );
+		break;
+	case 11:
+		if ( weaponRange.loaded ) {
+			Cvar_Set( "g_weapons", weaponRange.loadedPath );
+			Cvar_Set( "g_rewind", "1" );
+			Cbuf_AddText( "map_restart 0\n" );
+		}
+		break;
+	}
+}
 
 template <typename T>
 static T GraphRecord( animSectionIndex_t section, uint32_t index ) {
@@ -311,6 +447,7 @@ void DevTools_Init( void ) {
 	Cvar_SetDescription( enabled, "Development overlay; Escape closes it. Absent from shipping builds." );
 	Cmd_AddCommand( "devtools_status", Status );
 	Cmd_AddCommand( "dev_animation", GraphCommand );
+	Cmd_AddCommand( "dev_weapon_range", WeaponRangeCommand );
 }
 
 void DevTools_Reset( void ) {
@@ -1094,6 +1231,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 			InspectEntities();
 			InspectWorld();
 			InspectGraph( elapsed );
+			InspectWeaponRange();
 			ImGui::EndTabBar();
 		}
 	}
@@ -1108,6 +1246,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 		Com_Printf( "Developer UI draw capacity exceeded\n" );
 	}
 	// Engine mutation/error handling runs after all vendor UI calls return.
+	EditWeaponRange();
 	EditGraph( renderer );
 	DrawAnimation( renderer, milliseconds );
 	EditEntities();

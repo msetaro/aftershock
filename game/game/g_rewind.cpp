@@ -96,9 +96,12 @@ static bool RewindPassEntity( int number, int pass ) {
 }
 
 void G_TraceHitscan( trace_t *trace, const vec3_t start, const vec3_t end, int pass, const gentity_t *shooter ) {
+	G_TraceHitscanAtTime( trace, start, end, pass, shooter, shooter->client ? uint32_t( shooter->client->pers.cmd.serverTime ) : uint32_t( level.time ) );
+}
+void G_TraceHitscanAtTime( trace_t *trace, const vec3_t start, const vec3_t end, int pass, const gentity_t *shooter, uint32_t time ) {
 	netHistoryQuery_t query;
 	trap_Cvar_Update( &maximumRewind );
-	if ( !useRewind || !shooter->client || !NET_HistoryQuery( rewindHistory, (uint32_t)level.time, (uint32_t)shooter->client->pers.cmd.serverTime, (uint32_t)( maximumRewind.integer > 0 ? maximumRewind.integer : 0 ), &query ) ) {
+	if ( !useRewind || !shooter->client || !NET_HistoryQuery( rewindHistory, (uint32_t)level.time, time, (uint32_t)( maximumRewind.integer > 0 ? maximumRewind.integer : 0 ), &query ) ) {
 		trap_Trace( trace, start, nullptr, nullptr, end, pass, MASK_SHOT );
 		return;
 	}

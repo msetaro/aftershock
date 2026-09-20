@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""Cook data-only weapon variants and exercise fixed-tick, seeded native behavior."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import shlex
+import struct
+import subprocess
+import tempfile
+
+from cook import cook
+from run import ROOT, ENV, run
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--cc', default='gcc')
+parser.add_argument('--cxx', default='g++')
+parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-weapons'))
+args = parser.parse_args()
+args.output = args.output.resolve()
+args.output.mkdir(parents=True, exist_ok=True)
+sha = args.output / 'sha256.o'
+run([*shlex.split(args.cc), '-std=c99', '-O2', '-c', 'third_party/sha256/sha-256.c', '-o', sha])
+probe = args.output / 'probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-fno-fast-math', '-ffp-contract=off', '-Wall', '-Wextra', '-Werror',
+     '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/weapons.cpp', 'engine/weapons/weapons.cpp', 'engine/render/tr_cooked.cpp', sha, '-o', probe])
+fixture = ROOT / 'tests/assets/weapons'
+for filename, expected in json.loads((fixture / 'provenance.json').read_text())['files'].items():
+    assert hashlib.sha256((fixture / filename).read_bytes()).hexdigest() == expected, filename
+with tempfile.TemporaryDirectory(prefix='aftershock-weapon-source-') as temporary:
+    source = Path(temporary)
+    definition = json.loads((fixture / 'rifle.weapon.json').read_text())
+    project = json.loads((fixture / 'assets.json').read_text())
+    (source / 'rifle.weapon.json').write_text(json.dumps(definition))
+    second = dict(definition, name='range_rifle_second', damage=55)
+    (source / 'second.weapon.json').write_text(json.dumps(second))
+    project['assets'].append({'name': 'weapons/second', 'kind': 'weapon', 'source': 'second.weapon.json'})
+    recipe = source / 'assets.json'
+    recipe.write_text(json.dumps(project))
+    cook(recipe, args.output)
+    assert cook(recipe, args.output)['built'] == []
+    rifle = args.output / 'weapons/range_rifle.asweapon'
+    data = rifle.read_bytes()
+    magic, version, size, digest = struct.unpack_from('<8sII32s', data)
+    assert magic == b'ASWEAP\0\0' and version == 2 and size == len(data) - 48
+    assert digest == hashlib.sha256(data[48:]).digest()
+    run([probe, 'index', args.output / 'cook.index'])
+    trace = subprocess.check_output([probe, rifle, args.output / 'weapons/second.asweapon'], cwd=ROOT, env=ENV, timeout=30)
+    # Independent integer reference for Q_rand's recurrence and binary32 spread.
+    def f32(value):
+        return struct.unpack('<f', struct.pack('<f', value))[0]
+    seed, reference = 12345, []
+    for shot in range(1000):
+        spread = []
+        for axis in range(2):
+            seed = (69069 * seed + 1) & 0xffffffff
+            spread.append(f32(((seed & 65535) / 32768 - 1) * f32(definition['spread_degrees'])))
+        recoil = definition['recoil'][shot % len(definition['recoil'])]
+        reference.append(str(shot) + ' ' + ' '.join(format(v, '.9g') for v in [*spread, *map(f32, recoil)]))
+    assert trace == ('\n'.join(reference) + '\n').encode(), '1000-shot trace differs from the independent seed/pattern reference'
+    (args.output / 'shots.txt').write_bytes(trace)
+    assert len(trace.splitlines()) == 1000
+    print('PASS: 1000 seeded shots and weapon lifecycle;', hashlib.sha256(trace).hexdigest())
+    definition['damage'] = 42
+    (source / 'rifle.weapon.json').write_text(json.dumps(definition))
+    recook = cook(recipe, args.output)
+    assert recook['built'] == ['weapons/range_rifle'] and recook['skipped'] == ['weapons/second']
+print('PASS: another rifle is data only; versioned cooking, dependency hashes and selective recooking')
+
+snapshot = args.output / 'snapshot-probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-ffunction-sections', '-fdata-sections', '-fno-strict-aliasing', '-fno-fast-math', '-ffp-contract=off',
+     '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/weapon_snapshot.cpp', 'engine/qcommon/msg.cpp',
+     'engine/qcommon/huffman.cpp', 'engine/qcommon/huffman_static.cpp',
+     'engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp', 'engine/weapons/weapons.cpp', sha, '-Wl,--gc-sections', '-o', snapshot])
+run([snapshot])
+
+hitscan = args.output / 'hitscan-probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-ffunction-sections', '-fdata-sections', '-fno-fast-math', '-ffp-contract=off',
+     '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/weapon_hitscan.cpp', 'engine/weapons/weapons.cpp', sha, '-Wl,--gc-sections', '-o', hitscan])
+run([hitscan])
+
+# New #11 graph reuses the accepted model source without editing #10 assets.
+cook(ROOT / 'tests/assets/range.json', args.output / 'range')
+animation = args.output / 'animation-probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-ffunction-sections', '-fdata-sections', '-fno-fast-math', '-ffp-contract=off',
+     '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/weapon_animation.cpp', 'engine/weapons/weapons.cpp',
+     'engine/animation/animation.cpp', sha, '-Wl,--gc-sections', '-o', animation])
+run([animation, args.output / 'weapons/second.asweapon', args.output / 'range/animations/range_rifle.asanim'])
