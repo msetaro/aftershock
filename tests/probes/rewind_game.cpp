@@ -2,6 +2,7 @@
 #include "../../engine/qcommon/net_history_public.h"
 #include "../../engine/public/g_native_public.h"
 #include "../../engine/public/dev_public.h"
+#define COM_TRAP_GETVALUE 700
 #include "../../game/game/g_rewind.cpp"
 #include <assert.h>
 
@@ -58,6 +59,7 @@ int main() {
 	target.inuse = target.r.linked = target.takedamage = qtrue;
 	target.health = 100;
 	target.r.contents = CONTENTS_BODY;
+	target.r.ownerNum = ENTITYNUM_NONE;
 	target.rewindSpawn = 1;
 	for ( int axis = 0; axis < 3; ++axis ) {
 		target.r.mins[axis] = -2;

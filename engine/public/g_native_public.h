@@ -33,6 +33,8 @@ void GameImport_SetUserinfo( int num, const char *buffer );
 void GameImport_GetServerinfo( char *buffer, int bufferSize );
 void GameImport_SetBrushModel( void *ent, const char *name );
 void GameImport_Trace( void *results, const float *start, const float *mins, const float *maxs, const float *end, int passEntityNum, int contentmask );
+void *GameImport_AllocLevelMemory( uint32_t bytes );
+void GameImport_TraceFiltered( void *results, const float *start, const float *end, int passEntityNum, int contentmask, const uint8_t *ignored );
 void GameImport_TraceCapsule( void *results, const float *start, const float *mins, const float *maxs, const float *end, int passEntityNum, int contentmask );
 int GameImport_PointContents( const float *point, int passEntityNum );
 int GameImport_InPVS( const float *p1, const float *p2 );

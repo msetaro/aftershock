@@ -363,6 +363,10 @@ float vectoyaw( const vec3_t vec ) {
 
 
 void G_InitGentity( gentity_t *e ) {
+	static uint32_t nextRewindSpawn;
+	e->rewindSpawn = ++nextRewindSpawn;
+	if ( !e->rewindSpawn )
+		e->rewindSpawn = ++nextRewindSpawn;
 #ifdef AFTERSHOCK_DEVTOOLS
 	G_DevForgetEntity( (int)( e - g_entities ) );
 #endif

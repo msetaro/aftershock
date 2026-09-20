@@ -265,3 +265,14 @@ void G_RunAnimation( void ) {
 		}
 	}
 }
+
+const animBox_t *G_AnimationHitBoxes( int owner, uint32_t *count ) {
+	*count = 0;
+	if ( !animationEnabled || owner < 0 || owner >= MAX_CLIENTS || !g_entities[owner].client )
+		return nullptr;
+	const auto &actor = animationActors[owner];
+	if ( !actor.active || actor.spawn != g_entities[owner].client->ps.persistant[PERS_SPAWN_COUNT] || !actor.boxCount )
+		return nullptr;
+	*count = actor.boxCount;
+	return actor.boxes;
+}

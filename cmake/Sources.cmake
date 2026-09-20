@@ -206,6 +206,7 @@ set(VULKAN_SOURCES
 )
 
 set(NATIVE_GAME_SOURCES
+  game/game/g_rewind.cpp
   game/game/g_animation.cpp
   game/game/ai_chat.cpp
   game/game/ai_cmd.cpp

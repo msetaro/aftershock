@@ -67,6 +67,16 @@ one level-arena allocation with restart reuse, and unchanged legacy trace dispat
 when disabled. Integrate history at the end of each server game frame and expose
 only a filtered trace plus level allocation through existing native imports.
 
+The game history/trace integration now passes GCC/Clang+UBSan and a production
+client/server build (netcode-rewind-build.log). `g_rewind` defaults off; when
+enabled it allocates the bounded ring from the level hunk, reuses it on restart,
+records after animation each game frame, and validates bullet/shotgun/rail/lightning
+rays against historical boxes without relinking entities. Ordinary actors use
+bounds; owned animated actors use #10 boxes. World/brush collision stays live.
+Spawn/respawn/teleport generations prevent cross-lifetime interpolation. Existing
+weapon spread/movement expressions are untouched. Next: real loopback delay/loss
+coverage and network telemetry, then replication policy/provider hooks and full gates.
+
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
 layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body
 controllers, replicated hit boxes, automatic body facing, ADS/recoil/sway, and an

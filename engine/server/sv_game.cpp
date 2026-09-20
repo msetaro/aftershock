@@ -415,6 +415,15 @@ void GameImport_Trace( void *results, const float *start, const float *mins, con
 	SV_Trace( (trace_t *)results, (const vec_t *)start, (const vec_t *)mins, (const vec_t *)maxs, (const vec_t *)end, passEntityNum, contentmask, /*int capsule*/ qfalse );
 	return;
 }
+void *GameImport_AllocLevelMemory( uint32_t bytes ) {
+	if ( !bytes || bytes > INT32_MAX )
+		Com_Error( ERR_DROP, "Invalid native level allocation" );
+	return Hunk_Alloc( (int)bytes, h_high );
+}
+void GameImport_TraceFiltered( void *results, const float *start, const float *end, int passEntityNum, int contentmask, const uint8_t *ignored ) {
+	SV_Trace( (trace_t *)results, start, nullptr, nullptr, end, passEntityNum, contentmask, qfalse, ignored );
+}
+
 void GameImport_TraceCapsule( void *results, const float *start, const float *mins, const float *maxs, const float *end, int passEntityNum, int contentmask ) {
 	SV_Trace( (trace_t *)results, (const vec_t *)start, (const vec_t *)mins, (const vec_t *)maxs, (const vec_t *)end, passEntityNum, contentmask, /*int capsule*/ qtrue );
 	return;
