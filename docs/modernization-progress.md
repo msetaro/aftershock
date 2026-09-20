@@ -17,8 +17,10 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/26-level-authoring`, based on #11 merge 94a70b91.
-Wait for merged-tree regression 35534705876, then close/check #11 and begin #26
-with its failing compiler/design-rule tests. The #26/#27/#28/#18 specs are read;
+Merged-tree regression 35534705876 is running; close/check #11 when it passes.
+#26 contract/sample/design-rule tests are written and fail because tools/level has
+no __main__ yet (level-contract-before.log). Implement that contract next after
+the merged-tree gate completes. The #26/#27/#28/#18 specs are read;
 JSON version 1 is provisional and consistent with the existing asset cooker.
 External tool preparation is recorded below. Preserve accepted engine fixtures.
 Continue #26 -> #27 -> #28, then the remaining #25 roadmap until a maintainer-only
@@ -35,7 +37,7 @@ full-state hashes with repeatable frames under static and module renderers.
 All Linux/macOS/MinGW/MSVC x64/ARM64 builds pass. Lifetime analysis passes 1216
 commands. Merged-tree regression 35534705876 is pending; do not claim it passed.
 
-## #26 preparation (implementation not started)
+## #26 preparation and failing contract test
 
 Read #26's rooms/corridors/doors/stairs/ramps/material-role language, design rules,
 deterministic MAP/BSP and real bot-pathing acceptance; #27 owns the later headless
@@ -58,6 +60,15 @@ directories; three alignment-padding bytes differ. Zeroing only bytes outside
 declared lumps before MBSPC yields byte-identical BSP and AAS. New compiler
 packaging should canonicalize that padding, with a focused check. No engine
 parser or accepted golden is changed. Detailed scratch notes: /tmp/aftershock-level-next.md.
+
+The new language contract is in tools/level/README.md. The owned two_lane.json
+sample includes three rooms, four passages forming two lanes, a door, stairs,
+a ramp, four FFA/team spawns, cover kits, a solid OBJ prop, pickups and lighting.
+Six 16x16 procedural textures and a 64-unit cube have a source authoring script
+and pinned provenance. tests/level.py requires deterministic MAP output and
+specific corridor/door/containment/connectivity/material/sightline/cover/duplicate
+errors. It fails on the absent CLI before implementation. Full BSP/AAS output and
+real bot-pathing tests remain to be added before #26 acceptance.
 
 #12 PR #149 merged with a merge commit as
 3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree

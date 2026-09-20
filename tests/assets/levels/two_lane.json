@@ -1,0 +1,243 @@
+{
+  "version": 1,
+  "name": "two_lane",
+  "materials": {
+    "floor": "level/floor",
+    "wall": "level/wall",
+    "trim": "level/trim",
+    "cover": "level/cover",
+    "prop": "level/prop",
+    "sky": "level/sky"
+  },
+  "rules": {
+    "min_corridor_width": 64,
+    "min_door_height": 80,
+    "max_sightline": 2304,
+    "max_cover_gap": 768
+  },
+  "rooms": [
+    {
+      "id": "west",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "size": [
+        512,
+        512,
+        192
+      ]
+    },
+    {
+      "id": "middle",
+      "origin": [
+        768,
+        0,
+        0
+      ],
+      "size": [
+        512,
+        512,
+        192
+      ]
+    },
+    {
+      "id": "east",
+      "origin": [
+        1536,
+        0,
+        32
+      ],
+      "size": [
+        512,
+        512,
+        192
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "north_west",
+      "from": "west",
+      "to": "middle",
+      "axis": "x",
+      "at": 128,
+      "width": 96,
+      "height": 128,
+      "door": true
+    },
+    {
+      "id": "south_west",
+      "from": "west",
+      "to": "middle",
+      "axis": "x",
+      "at": -128,
+      "width": 96,
+      "height": 128
+    },
+    {
+      "id": "north_east",
+      "from": "middle",
+      "to": "east",
+      "axis": "x",
+      "at": 128,
+      "width": 96,
+      "height": 128,
+      "transition": "stairs"
+    },
+    {
+      "id": "south_east",
+      "from": "middle",
+      "to": "east",
+      "axis": "x",
+      "at": -128,
+      "width": 96,
+      "height": 128,
+      "transition": "ramp"
+    }
+  ],
+  "spawns": [
+    {
+      "team": "ffa",
+      "origin": [
+        -160,
+        -160,
+        24
+      ],
+      "angle": 0
+    },
+    {
+      "team": "ffa",
+      "origin": [
+        1696,
+        160,
+        56
+      ],
+      "angle": 180
+    },
+    {
+      "team": "red",
+      "origin": [
+        -160,
+        160,
+        24
+      ],
+      "angle": 0
+    },
+    {
+      "team": "blue",
+      "origin": [
+        1696,
+        -160,
+        56
+      ],
+      "angle": 180
+    }
+  ],
+  "cover": [
+    {
+      "id": "west_cover",
+      "origin": [
+        0,
+        -48,
+        0
+      ],
+      "kit": "low"
+    },
+    {
+      "id": "middle_cover",
+      "origin": [
+        768,
+        -48,
+        0
+      ],
+      "kit": "tall"
+    },
+    {
+      "id": "east_cover",
+      "origin": [
+        1536,
+        -48,
+        32
+      ],
+      "kit": "low"
+    }
+  ],
+  "props": [
+    {
+      "id": "crate",
+      "model": "models/crate.obj",
+      "origin": [
+        96,
+        96,
+        32
+      ],
+      "size": [
+        64,
+        64,
+        64
+      ],
+      "material": "prop",
+      "solid": true
+    }
+  ],
+  "pickups": [
+    {
+      "classname": "weapon_shotgun",
+      "origin": [
+        768,
+        160,
+        24
+      ]
+    },
+    {
+      "classname": "item_health",
+      "origin": [
+        768,
+        -160,
+        24
+      ]
+    },
+    {
+      "classname": "ammo_shells",
+      "origin": [
+        1408,
+        0,
+        56
+      ]
+    }
+  ],
+  "lighting": {
+    "ambient": 16,
+    "sun": {
+      "direction": [
+        1,
+        -1,
+        -2
+      ],
+      "color": [
+        1,
+        0.95,
+        0.85
+      ],
+      "intensity": 100
+    },
+    "lights": [
+      {
+        "id": "middle_light",
+        "origin": [
+          768,
+          0,
+          144
+        ],
+        "color": [
+          1,
+          0.8,
+          0.6
+        ],
+        "intensity": 300
+      }
+    ]
+  }
+}
