@@ -2997,3 +2997,9 @@ not regenerated. New-feature MSVC C4701 at 05192647 identified the texture reloa
 local; explicit zero-initialization resolves it just as for material records.
 Next: offline shader source cooking using the existing pinned shader package,
 then remaining final #9 acceptance and exact-head gates.
+
+Shader source feature test added before implementation: a copied owned vertex
+shader with a quoted include must cook to versioned/hash-checked SPIR-V, skip an
+unchanged recipe, rebuild after the include changes, and feed the existing offline
+shader package while preserving all other 73 shader bytes. It fails on the absent
+shader kind (cook-shader-before.log). Runtime GLSL compilation remains excluded.

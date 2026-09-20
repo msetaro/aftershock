@@ -2,6 +2,9 @@
 """Compare fresh pinned shader compilation with the committed offline cache."""
 import argparse
 import json
+import hashlib
+import os
+import struct
 import importlib.util
 import tempfile
 from pathlib import Path
@@ -44,6 +47,42 @@ def main():
         assert key != module.recipe_hash(package, dict(row, includes=after))
         assert key != module.recipe_hash(dict(package, options=['-V', '-g']), row)
         assert key != module.recipe_hash(dict(package, compiler_version='changed'), row)
+    with tempfile.TemporaryDirectory(prefix='aftershock-cooked-shader-') as temporary:
+        directory = Path(temporary)
+        source = (ROOT / 'engine/renderervk/shaders/color.vert').read_text()
+        source = source.replace('#version 450', '#version 450\n#extension GL_GOOGLE_include_directive : require\n#include "factor.glsl"')
+        (directory / 'owned.vert').write_text(source.replace('in_position, 1.0', 'in_position, POSITION_W'))
+        include = directory / 'factor.glsl'
+        include.write_text('#define POSITION_W 1.0\n')
+        project = directory / 'assets.json'
+        project.write_text(json.dumps({'version': 1, 'assets': [
+            {'name': 'shaders/color_vert_spv', 'kind': 'shader', 'source': 'owned.vert', 'stage': 'vert'}]}))
+        cooked = directory / 'cooked'
+        command = [sys.executable, 'tools/cook', str(project), '--output', str(cooked)]
+        env = dict(os.environ, AFTERSHOCK_GLSLANG=str(Path(args.compiler).resolve()))
+        first = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True)
+        assert first.returncode == 0, first.stdout + first.stderr
+        asset = cooked / 'shaders/color_vert_spv.asspv'
+        before = asset.read_bytes()
+        magic, version, size, digest = struct.unpack_from('<8sII32s', before)
+        assert magic == b'ASSPV\0\0\0' and version == 1 and size == len(before) - 48
+        assert digest == hashlib.sha256(before[48:]).digest()
+        manifest = json.loads((cooked / 'shaders/color_vert_spv.manifest.json').read_text())
+        assert {row['path'] for row in manifest['inputs']} == {'owned.vert', 'factor.glsl'}
+        unchanged = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, check=True)
+        assert json.loads(unchanged.stdout)['skipped'] == ['shaders/color_vert_spv']
+        include.write_text('#define POSITION_W 2.0\n')
+        subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, check=True)
+        after = asset.read_bytes()
+        assert after != before
+        custom = directory / 'package'
+        subprocess.run([sys.executable, 'tools/shaders/build.py', '--output', str(custom), '--cooked', str(cooked)], cwd=ROOT, check=True)
+        assert (custom / 'color_vert_spv.spv').read_bytes() == after[48:]
+        for row in package['shaders']:
+            if row['name'] != 'color_vert_spv':
+                assert (custom / (row['name'] + '.spv')).read_bytes() == (args.output / 'cached' / (row['name'] + '.spv')).read_bytes()
+        custom_package = json.loads((custom / 'shader_package.json').read_text())
+        assert custom_package['sha256'] != package['sha256']
     print(f'PASS: all {len(package["shaders"])} shader binaries and interfaces match; package {package["sha256"]}')
 
 
