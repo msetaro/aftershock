@@ -51,12 +51,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entity-edit-') as temp:
               'dev_entity spawn target_position 1 2 128',
               'dev_entity set last targetname dev_tools_entity_test',
               'dev_entity set last count 7', 'dev_entity set last origin "4 5 129"',
-              'dev_entity get last count', 'dev_entity save',
+              'dev_entity set last angle 45', 'dev_entity set last angles "10 20 30"',
+              'dev_entity set last angle 90', 'dev_entity get last count', 'dev_entity save',
               'dev_entity delete last', 'dev_entity save',
               f'set dev_entityFile maps/{map_name}.dev.001.ent',
               'set dev_loadEntities 1', 'map_restart 0', 'wait 10',
               'dev_entity find dev_tools_entity_test', 'dev_entity get last count',
-              'dev_entity get last origin', 'dev_entity save', 'quit']
+              'dev_entity get last origin', 'dev_entity get last angles', 'dev_entity save', 'quit']
     (base / 'entity-check.cfg').write_text('\n'.join(script) + '\n')
     command = ['timeout', '90', 'xvfb-run', '-a', str(args.binary.resolve()),
                '+set', 'fs_basepath', str(home), '+set', 'fs_homepath', str(home),
@@ -74,6 +75,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entity-edit-') as temp:
     assert len(world) == 3 and all(int(row[0]) > 0 for row in world), 'collision/navigation cache was empty'
     assert len(re.findall(r'Developer entity \d+ count = 7', text)) == 2
     assert list(map(float, re.search(r'Developer entity \d+ origin = ([^\n]+)', text)[1].split())) == [4, 5, 129]
+    assert list(map(float, re.search(r'Developer entity \d+ angles = ([^\n]+)', text)[1].split())) == [0, 90, 0], 'angle/angles alias edit did not survive reload'
     saved = [(base / 'maps' / f'{map_name}.dev.{i:03d}.ent').read_bytes() for i in range(4)]
     assert tokens(saved[0]) == tokens(original), 'original/unknown map keys changed'
     assert tokens(saved[2]) == tokens(original), 'deleting the new entity changed original records'

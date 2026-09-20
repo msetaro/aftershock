@@ -36,8 +36,12 @@ static/module real-input checks pass the fix (devtools-reopen-{fixed,module}.log
 Format/type/boundary and changed-UI lifetime checks pass; tidy passes all 1,162
 configurations. Final static/module runs including pointer restoration pass
 (devtools-reopen-{final,module-final}.log); shipping SHA stays 427e37be.
-Entity save review is now checking the angle/angles alias before the next hosted
-candidate. Keep PR #143 draft; require merged-tree regression before #142.
+Entity save review found the angle/angles alias bug in the new editor: editing
+angle -> angles -> angle leaves both serialized keys, so the older vector wins on
+reload. The extended native save/reload test fails as expected on the unchanged
+entity implementation (devtools-angle-before.log). This test-first checkpoint
+changes no game code; remove the opposite alias when intentionally editing that
+field, then rerun native save/reload and the final hosted gates. Keep PR #143 draft; require merged-tree regression before #142.
 Preserve accepted goldens.
 
 Then complete #7, render-graph phase two #142, and the remaining #25 sequence.
