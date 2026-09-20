@@ -2299,6 +2299,9 @@ static void CL_CheckForResend( void ) {
 		notOverflowed = (qboolean)( notOverflowed & Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "challenge",
 														va( "%i", clc.challenge ) ) );
 
+		notOverflowed = (qboolean)( notOverflowed & Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "as_protocol", XSTRING( AFTERSHOCK_NET_VERSION ) ) );
+		notOverflowed = (qboolean)( notOverflowed & Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "as_schema", MSG_ReplicationSchema() ) );
+
 		// for now - this will be used to inform server about q3msgboom fix
 		// this is optional key so will not trigger oversize warning
 		Info_SetValueForKey_s( info, MAX_USERINFO_LENGTH, "client", Q3_VERSION );
@@ -2648,6 +2651,12 @@ static qboolean CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			}
 		}
 
+		if ( strcmp( Cmd_Argv( 4 ), "aftershock" ) || !NET_ProtocolCompatible( Cmd_Argv( 5 ), Cmd_Argv( 6 ) ) ) {
+			Com_Printf( "Incompatible Aftershock protocol/schema (expected %s %s).\n", XSTRING( AFTERSHOCK_NET_VERSION ), MSG_ReplicationSchema() );
+			CL_Disconnect( qtrue );
+			return qfalse;
+		}
+
 		// start sending connect instead of challenge request packets
 		clc.challenge = atoi( Cmd_Argv( 1 ) );
 		cls.state = CA_CHALLENGING;
@@ -2709,6 +2718,13 @@ static qboolean CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 				}
 			}
 		}
+
+		if ( atoi( Cmd_Argv( 1 ) ) != clc.challenge || strcmp( Cmd_Argv( 3 ), "aftershock" ) || !NET_ProtocolCompatible( Cmd_Argv( 4 ), Cmd_Argv( 5 ) ) ) {
+			Com_Printf( "Incompatible Aftershock protocol/schema in connect response.\n" );
+			CL_Disconnect( qtrue );
+			return qfalse;
+		}
+		Com_Printf( "Aftershock protocol negotiated: version=%s schema=%s\n", XSTRING( AFTERSHOCK_NET_VERSION ), MSG_ReplicationSchema() );
 
 		Netchan_Setup( NS_CLIENT, &clc.netchan, from, Cvar_VariableIntegerValue( "net_qport" ), clc.challenge, clc.compat );
 

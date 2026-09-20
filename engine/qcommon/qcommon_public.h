@@ -301,6 +301,12 @@ PROTOCOL
 ==============================================================
 */
 
+// Aftershock feature/schema negotiation is separate from the retained demo codec.
+#ifndef AFTERSHOCK_NET_VERSION
+#define AFTERSHOCK_NET_VERSION 1
+#endif
+qboolean NET_ProtocolCompatible( const char *version, const char *schema );
+
 #define OLD_PROTOCOL_VERSION	68
 // new protocol with UDP spoofing protection:
 #define NEW_PROTOCOL_VERSION	71

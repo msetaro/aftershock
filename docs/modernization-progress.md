@@ -35,11 +35,14 @@ implementation. No accepted golden changes. Source annotations/generation preser
 duplicate order positions and invalid paths/widths fail the generator. Next: extend the existing handshake, bounded history/rewind, replication policies,
 metrics and platform-provider seams, with separate current network coverage.
 
-The next test compiles two protocol builds (versions 1/2), requires same-build
-acceptance and cross-build/schema refusal, and fails on the absent protocol
-compatibility function (netcode-protocol-before.log). Implement strict Aftershock
-version/schema negotiation in the existing authenticated challenge/connect flow.
-Legacy demo decoding remains independent of connection negotiation.
+Protocol test-first commit 0dae55bf failed on the absent compatibility function
+(netcode-protocol-before.log). Implemented strict feature version/schema checks
+in the existing challenge/connect flow, after challenge verification and with
+existing rate limits retained. GCC/Clang+UBSan cross-build tests pass. The real
+client joins version 1 and refuses separately compiled version 2 before joining
+(netcode-protocol-runtime.log). Legacy demo decoding remains independent;
+connections without an Aftershock schema agreement are explicitly refused.
+Next: bounded per-server-frame hit-box history and view-time rewind tests.
 
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
 layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body

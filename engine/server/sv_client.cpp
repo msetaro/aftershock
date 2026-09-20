@@ -149,8 +149,8 @@ void SV_GetChallenge( const netadr_t *from ) {
 		// Grab the client's challenge to echo back (if given)
 		clientChallenge = atoi( Cmd_Argv( 1 ) );
 
-		NET_OutOfBandPrint( NS_SERVER, from, "challengeResponse %i %i %i",
-			challenge, clientChallenge, sv_proto );
+		NET_OutOfBandPrint( NS_SERVER, from, "challengeResponse %i %i %i aftershock %s %s",
+			challenge, clientChallenge, sv_proto, XSTRING( AFTERSHOCK_NET_VERSION ), MSG_ReplicationSchema() );
 	}
 }
 
@@ -538,6 +538,16 @@ void SV_DirectConnect( const netadr_t *from ) {
 
 	Q_strncpyz( userinfo, info, sizeof( userinfo ) );
 
+	// Validate the feature revision and generated schema after the existing challenge
+	// checks, before allocating a client or accepting game/user identity data.
+	if ( !NET_ProtocolCompatible( Info_ValueForKey( userinfo, "as_protocol" ), Info_ValueForKey( userinfo, "as_schema" ) ) ) {
+		if ( !SVC_RateLimit( &bucket, 10, 200 ) ) {
+			NET_OutOfBandPrint( NS_SERVER, from, "print\nIncompatible Aftershock protocol/schema (expected %s %s).\n",
+				XSTRING( AFTERSHOCK_NET_VERSION ), MSG_ReplicationSchema() );
+		}
+		return;
+	}
+
 	v = Info_ValueForKey( userinfo, "protocol" );
 	if ( *v == '\0' ) {
 		if ( !SVC_RateLimit( &bucket, 10, 200 ) ) {
@@ -595,6 +605,8 @@ void SV_DirectConnect( const netadr_t *from ) {
 	Info_RemoveKey( userinfo, "qport" );
 	Info_RemoveKey( userinfo, "protocol" );
 	Info_RemoveKey( userinfo, "client" );
+	Info_RemoveKey( userinfo, "as_protocol" );
+	Info_RemoveKey( userinfo, "as_schema" );
 
 	// don't let "ip" overflow userinfo string
 	if ( NET_IsLocalAddress( from ) )
@@ -778,12 +790,9 @@ gotnewcl:
 		SV_InjectLocation( newcl->tld, newcl->country );
 	}
 
-	// send the connect packet to the client
-	if ( longstr /*&& !compat*/ ) {
-		NET_OutOfBandPrint( NS_SERVER, from, "connectResponse %d %d", challenge, sv_proto );
-	} else {
-		NET_OutOfBandPrint( NS_SERVER, from, "connectResponse %d", challenge );
-	}
+	// Confirm the same agreement in the final response, including local connects.
+	NET_OutOfBandPrint( NS_SERVER, from, "connectResponse %d %d aftershock %s %s",
+		challenge, sv_proto, XSTRING( AFTERSHOCK_NET_VERSION ), MSG_ReplicationSchema() );
 
 	SV_PrintClientStateChange( newcl, CS_CONNECTED );
 

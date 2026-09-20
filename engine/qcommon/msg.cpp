@@ -692,6 +692,10 @@ const char *MSG_ReplicationSchema( void ) {
 	return replicationSchema;
 }
 
+qboolean NET_ProtocolCompatible( const char *version, const char *schema ) {
+	return (qboolean)( version && schema && !strcmp( version, XSTRING( AFTERSHOCK_NET_VERSION ) ) && !strcmp( schema, replicationSchema ) );
+}
+
 // if (int)f == f and (int)f + ( 1<<(FLOAT_INT_BITS-1) ) < ( 1 << FLOAT_INT_BITS )
 // the float will be sent with FLOAT_INT_BITS, otherwise all 32 bits will be sent
 #define FLOAT_INT_BITS	13
