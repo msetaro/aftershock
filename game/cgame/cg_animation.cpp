@@ -83,13 +83,15 @@ void CG_AnimationSnapshot( const entityState_t *entity ) {
 	if ( !animationRigs[rig].storage )
 		CG_Error( "Animation rejected: snapshot has no matching graph" );
 	auto &actor = animationActors[owner][rig];
+	trap_Cvar_Update( &animationTrace );
+	if ( animationTrace.integer && ( !actor.valid || actor.state.current != state.current ) )
+		CG_Printf( "Animation client state: owner=%d rig=%d state=%s\n", owner, rig, Anim_StateName( &animationRigs[rig].asset, state.current ) );
 	actor.valid = true;
 	actor.entity = entity->number;
 	actor.state = state;
 	memcpy( actor.parameters, parameters, sizeof( parameters ) );
 	VectorCopy( entity->origin, actor.origin );
 	VectorCopy( entity->angles, actor.angles );
-	trap_Cvar_Update( &animationTrace );
 	if ( rig == 0 && animationTrace.integer ) {
 		animPose_t pose;
 		animBox_t boxes[ANIM_MAX_BOXES];

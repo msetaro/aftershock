@@ -51,7 +51,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-editor-') as tempo
         f'devmap {content_maps(args.content)[0]}', 'wait 10',
         'dev_animation load animations/anim_rifle.asanim',
         'dev_animation source animation_source/rifle.animation.json',
-        'set dev_tools 1', 'echo animation_editor_ready', 'wait 400',
+        'set dev_tools 1', 'wait 5', 'screenshot editor_loaded', 'echo animation_editor_ready', 'wait 400',
         'dev_animation load animations/anim_rifle.asanim', 'wait 30',
         'devtools_status', 'screenshot animation_editor', 'wait 3', 'quit']) + '\n')
     log_path = args.output / 'client.log'
@@ -71,6 +71,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-editor-') as tempo
                     cwd=ROOT, env=dict(os.environ, LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0])),
                     stdout=log, stderr=subprocess.STDOUT)
                 wait_for(lambda: b'Animation graph loaded: state=idle' in log_path.read_bytes(), process, 15)
+                wait_for(lambda: (base / 'screenshots/editor_loaded.tga').is_file(), process)
+                shutil.copyfile(base / 'screenshots/editor_loaded.tga', args.output / 'editor_loaded.tga')
                 device = XInput()
                 device.verify_window(process)
                 # Graph tab is selected by the load command; edit its source tab.
@@ -89,7 +91,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-editor-') as tempo
                 device.key_event('Shift_L', False)
                 for key in 'ads':
                     device.key(key)
-                device.click(180, 165)
+                device.click(155, 153)
                 wait_for(lambda: graph.read_bytes() != original, process)
                 assert json.loads(graph.read_text())['initial_state'] == 'ads'
                 backups = list(source.glob('rifle.animation.json.bak.*'))

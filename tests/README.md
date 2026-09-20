@@ -475,14 +475,16 @@ and exports replace numbered calls; the module's rand/srand/qsort/atof/memmove
 remain isolated from the engine and other modules.
 
 ```
-python3 tests/native.py
-python3 tests/native.py --language c++
+python3 tests/native_abi.py
+python3 tests/native_shared.py
 python3 tests/run.py runtime
 python3 tests/demo.py
 python3 tests/demo.py --lifecycle
 ```
 
-The first two commands retain the C/C++ import checks. Runtime/replay use the
+The first command compares 29 wire/module types, three offsets and the service
+extension value across the C game ABI, C++ game ABI and C++ engine ABI. The second
+retains the C/C++ shared-function comparison. Both run in each unit compiler job. Runtime/replay use the
 static production build and require installed Quake 3 content. The native ABI
 uses binary32 literals and rounds host math results to float, as the QVM compiler
 did; bg_lib preserves its random sequence. Smoke normalizes module-load metadata,
@@ -525,8 +527,11 @@ Clang's bounds diagnostics as errors. It uses the imported bot-state declaration
 and native ABI header. No game content or external header checkout is required.
 The original #31 failing test used pinned GPL headers before #2 imported them.
 
-Native C++ import checks use `python3 tests/native.py --language c++`.
-C remains the import-comparison reference; runtime/replay use the static C++ game. Both languages compare the same 29 layouts and three
+Historical whole-game import checks (`python3 tests/native.py` and
+`python3 tests/native.py --language c++`) run at revision `7f4d43a7`, before #10
+adds the C++ animation service. They are retained as port evidence, not current
+whole-game builds. At that revision, C remains the import-comparison reference;
+runtime/replay use the static C++ game. Both languages compare the same 29 layouts and three
 offsets with the engine; module links reject unresolved symbols. GCC and Clang
 use explicit binary32 source literals without compiler-specific literal flags. For
 Clang C++ only, bg_lib.cpp is
@@ -576,6 +581,7 @@ comparisons shared with C use explicit integer casts only for equality checks.
 Production object comparisons and native C/C++ helper results are recorded in
 `docs/modernization-progress.md`. Accepted fixtures and goldens are unchanged.
 
+At the same historical revision `7f4d43a7`,
 `python3 -B tests/native_gates.py` reproduces G2 layouts, G3 symbols and advisory G4
 assembly for all 103 native Q3 objects using the existing `tools/port/gates.py`
 normalizers. Layout/symbol differences fail; assembly differences remain visible
@@ -583,12 +589,14 @@ for review. --tidy also runs the three focused G7 checks, failing on tool/compil
 errors and retaining every diagnostic for disposition. --jobs/--output control
 concurrency/artifact location. The output records source hashes, compiler versions,
 exact commands, logs and diffs. GCC/binutils and pahole are required (plus
-clang-tidy for --tidy). GCC CI installs pahole, runs G2/G3 and uploads evidence.
+clang-tidy for --tidy). Accepted pre-#10 CI evidence is recorded in the progress
+file. Current CI checks the unchanged ABI and shared math, production builds,
+fixed classic replays, plus the new animation contracts.
 
 The G3 objects use the port oracle's optimizer/header isolation flags plus
 -U__OPTIMIZE__: glibc otherwise forces single-character strstr calls into strchr in
 C++ headers even with -fno-builtin. This flag is limited to symbol artifacts;
-production flags and assembly retain those library transformations. The current
+production flags and assembly retain those library transformations. The recorded
 G7 report contains 1,365 narrowing, 55 signed-char and nine implicit string-result
 comparisons; it is a review report, not a claim of zero findings.
 
@@ -690,3 +698,62 @@ show the edit within one second. `--binary` reuses a development client;
 `--content openarena --data /tmp/aftershock-openarena-baseoa` selects hosted content.
 Use the tools/cook Python requirements in a venv. The watcher and client use only
 private temporary source/output trees; installed paks are symlinked locally.
+
+## Animation graphs (#10)
+
+```
+python3 tests/animation.py
+python3 tests/animation.py --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/aftershock-animation-clang
+python3 tests/animation_runtime.py
+python3 tests/animation_editor.py
+```
+
+The native check cooks the owned Blender exports and hand-authored graphs, checks
+quantized sampling, flat blend trees, bone masks/additive layers, transitions,
+ordered loop notifies, rigid root motion, IK, authored hit boxes, copied renderer
+poses and real snapshot delta-codec round trips under UBSan. Graphs bind the exact
+cooked IQM hash. Limits are 128 joints, 64 states/nodes/events, 16 parameters/masks,
+32 hit boxes, and 128 copied poses per renderer frame. Sampling and game animation
+use strict floating-point flags. File storage is allocated only on graph loading;
+poses and frame copies use bounded POD storage.
+
+The live check exercises the original rifle/body in the owned native game, including
+when using OpenArena art. It checks events, render submissions, retained body turns,
+centered settled ADS optics and matching received client/server hit-box digests.
+Use `--content openarena --data /tmp/aftershock-openarena-baseoa` for hosted content;
+`--binary PATH` reuses a client, and `--modules` builds optional renderer modules.
+Classic runtime/demo commands continue using their original content-specific game
+implementations and accepted fixtures. No existing golden is regenerated here.
+
+Enable both `g_animationBody animations/anim_body.asanim` and
+`g_animationRifle animations/anim_rifle.asanim` before starting a map. Empty defaults
+preserve classic behavior. The server advances graph state in 20 ms steps and
+publishes auxiliary entities through the existing snapshot codec. The client uses
+that exact state for hit boxes and samples cosmetic presentation separately.
+Gameplay notifies are delivered to game code; the existing legacy weapon rules
+remain the weapon-system baseline for #13. `cmd anim NAME 0|1` supplies demonstration
+ADS/fire/reload/sprint/jump, stance and aim/lean inputs. Movement, view yaw/pitch and
+authoritative ground contacts supply the body inputs automatically. `cg_animationFov`
+and `cg_animationSway` tune first-person cosmetics; `g_animationTrace` and
+`cg_animationTrace` enable diagnostic state/event/box output, and `anim_status`
+reports render counts and settled optic alignment. Game graph revisions stay fixed
+until map restart; the server and client must load identical graph bytes.
+
+For ImGui authoring, stage the **owned source project** under the active game's
+`fs_homepath/animation_source/` directory, including glTF buffers/materials, and run:
+
+```
+python3 tools/cook /path/to/home/baseq3/animation_source/rigs.json --output /path/to/home/baseq3 --watch
+```
+
+Use `baseoa` with OpenArena. In an enabled development build, set `dev_tools 1`,
+then `dev_animation load animations/anim_rifle.asanim` and
+`dev_animation source animation_source/rifle.animation.json`. The Graph tab offers
+parameter sliders and fixed-step preview, compiled state/event/transition/node/mask
+tables, and a JSON source editor. It accepts up to 65535 source bytes, keeps numbered
+`.bak.NNN` copies before saves, refuses conflicting external edits and retains unsaved
+text on failure. The external cooker validates JSON and reports errors in its own
+output; load the cooked graph after a successful cook. Enable `dev_reloadAssets` to
+reload changed models/materials too. Editor previews never replace live game assets.
+`tests/animation_editor.py` edits a graph through real X input, verifies its backup,
+observes the watcher revision and previews the changed initial state.

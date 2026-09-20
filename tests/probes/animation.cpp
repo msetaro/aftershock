@@ -1,5 +1,7 @@
 // Numerical/runtime contract before the portable animation implementation.
 #include "../../engine/animation/animation_public.h"
+#include "../../engine/render/tr_cooked.h"
+#include "../../third_party/sha256/sha-256.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -162,6 +164,22 @@ int main( int argc, char **argv ) {
 	void *bytes = malloc( (size_t)length );
 	assert( bytes && fread( bytes, 1, (size_t)length, file ) == (size_t)length );
 	fclose( file );
+	if ( argc == 3 && !strcmp( argv[2], "index" ) ) {
+		uint8_t revision[32];
+		calc_sha_256( revision, bytes, size_t( length ) );
+		cookedIndex_t index;
+		assert( R_ReadCookedIndex( bytes, size_t( length ), revision, &index ) );
+		bool found = false;
+		for ( uint32_t i = 0; i < index.count; ++i ) {
+			cookedEntry_t entry;
+			memcpy( &entry, index.entries + i * sizeof( entry ), sizeof( entry ) );
+			found |= entry.kind == 6;
+		}
+		assert( found );
+		free( bytes );
+		puts( "PASS: animation graph entries share the renderer's cooked revision index" );
+		return 0;
+	}
 	animAsset_t asset = {};
 	assert( Anim_Open( bytes, (size_t)length, &asset ) );
 	if ( argc == 3 && ( strcmp( argv[2], "rifle" ) == 0 || strcmp( argv[2], "body" ) == 0 ) ) {

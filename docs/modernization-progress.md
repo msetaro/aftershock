@@ -151,6 +151,28 @@ Graph authoring test-first now fails against the missing developer command
 a byte-identical backup, observe the external cooker revision and render the
 changed graph. Implement a bounded source editor and compiled graph inspector;
 reuse the existing ImGui and filesystem rather than a new JSON/UI dependency.
+Implemented editor now passes the real-input edit/cook/preview check
+(animation-editor-after.log): idle changed to ADS, source backup matches exactly,
+external cook revision changes and the new pose renders. The UI also exposes
+state/event/transition/node/mask tables and fixed-step parameter playback.
+Gameplay assets stay immutable until map restart. The ordinary cooked index now
+accepts graph entries (kind 6); the existing animation probe checks that valid
+project index. Next: complete this slice verification, then record the separate
+fixed #10 demo and prove server/client hit-box parity on replay.
+The final editor run and GCC/Clang UBSan native checks pass
+(animation-editor-final.log, animation-editor-core.log, animation-editor-clang.log).
+Current ABI checks pass GCC and Clang/libc++; focused C bot/flag/voter checks also
+pass. Lifetime analysis now includes the new engine/animation directory.
+The new replay driver correctly fails while its separate #10 fixture is absent
+(animation-demo-before.log). Next: record each content-set fixture once from this
+implementation, review it, and compare replayed client boxes with the saved server
+trace plus repeat frame hashes. No accepted classic fixture will change.
+Current ABI checks are extracted as tests/native_abi.py: the same 29 types, three
+offsets and extension value agree for C, game C++ and engine C++. Shared C/C++
+math checks remain. Full-game C/DLL source gates remain historical at 7f4d43a7;
+current game service code is C++ and builds through production CMake. The game
+command return type follows existing qboolean declarations so focused C helper
+checks remain usable without hiding any feature behind language conditionals.
 The old C/C++ DLL import/source-comparison CI steps are port-era oracles and will
 need explicit treatment now that the owned native game calls the C++ animation
 service. Preserve their accepted pre-#10 evidence; do not add production-only

@@ -66,6 +66,7 @@ every wire and file-format struct; issue updated with what changed and what was 
 
 - `engine/qcommon` shared core: cvars, commands, filesystem, packet protocols, collision (cm_*)
 - `engine/server`, `engine/client` server and client
+- `engine/animation` cooked skeletal sampling, graphs, root motion, IK and hit boxes
 - `engine/botlib` bot AI library
 - `engine/devtools` optional development UI and bounded console/debug data
 - `engine/render` portable scene/material/geometry frontend; `engine/rhi` GPU contract
@@ -121,7 +122,10 @@ Permanent regression commands (see `tests/README.md` for content and prerequisit
 ```
 python3 tests/native_math.py
 python3 tests/native_shared.py
-python3 -B tests/native_gates.py --tidy
+python3 tests/native_abi.py
+python3 tests/animation.py
+python3 tests/animation_runtime.py
+python3 tests/animation_editor.py
 python3 tests/native.py --content openarena
 python3 tests/openarena_strings.py
 python3 tests/ui_weapon.py

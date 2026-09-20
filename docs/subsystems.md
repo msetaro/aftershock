@@ -13,6 +13,12 @@ the filesystem. Wire/file representations and simulation expressions stay stable
 server filters and bot development logs. These raw adapters preserve stdio return
 values and filename encoding; game qpaths continue through the handle API.
 
+`engine/animation` owns immutable cooked graph views, fixed-step state/event
+evaluation, compressed pose sampling, blend layers, root motion, IK and authored
+hit-box evaluation. Its public contract contains POD records; filesystem loading
+uses qcommon handles and zone ownership outside frame evaluation. Game/cgame own
+replicated inputs and presentation policy; render owns copied skin matrices.
+
 `engine/server` owns server clients, authoritative snapshot assembly and the
 native game lifecycle. It borrows game/entity data through `engine/public` and
 owns server allocations in the existing zone/hunk lifetimes. Network sockets

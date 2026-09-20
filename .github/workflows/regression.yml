@@ -79,6 +79,7 @@ jobs:
           /tmp/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt
           /tmp/aftershock-cook-python/bin/python tests/cook.py --cxx '${{ matrix.cxx }}'
           /tmp/aftershock-cook-python/bin/python tests/iqm_scale.py --cxx '${{ matrix.cxx }}'
+          /tmp/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
       - name: RHI contract and frame uploads
         run: python3 tests/rhi.py --cxx '${{ matrix.cxx }}'
       - name: Render graph dependencies and native reference trace
@@ -95,28 +96,16 @@ jobs:
         run: python3 tests/vulkan_acquire.py --cxx '${{ matrix.cxx }}'
       - name: Frame evidence negative controls
         run: python3 tests/check_frames.py
-      - name: Build C native modules and compare ABI layouts
-        run: python3 tests/native.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
-      - name: Build C++ native modules and compare shared functions
+      - name: Native ABI and shared math compatibility
         run: |
-          python3 tests/native.py --language c++ --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}' --output /tmp/native-cpp
+          python3 tests/native_abi.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           python3 tests/native_shared.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
-      - name: Install native layout tool
-        if: matrix.cc == 'gcc'
-        run: sudo apt-get update && sudo apt-get install -y pahole
-      - name: Native C/C++ layout and symbol gates
-        if: matrix.cc == 'gcc'
-        run: python3 -B tests/native_gates.py
-      - name: Native comparison evidence
-        if: always() && matrix.cc == 'gcc'
+      - name: Native ABI evidence
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: native-comparisons
-          path: |
-            /tmp/aftershock-native-gates/*.json
-            /tmp/aftershock-native-gates/**/*.diff
-            /tmp/aftershock-native-gates/**/*.command
-            /tmp/aftershock-native-gates/**/*.log
+          name: native-abi-${{ matrix.cc }}
+          path: /tmp/aftershock-native-abi
       - name: OpenArena string helpers
         run: python3 tests/openarena_strings.py --cc '${{ matrix.cc }}'
       - name: OpenArena native allocation alignment
@@ -212,6 +201,10 @@ jobs:
           python3 -m venv /tmp/aftershock-cook-python
           /tmp/aftershock-cook-python/bin/pip install -r tools/cook/requirements.txt
           /tmp/aftershock-cook-python/bin/python tests/cook_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Owned animation gameplay and graph authoring
+        run: |
+          /tmp/aftershock-cook-python/bin/python tests/animation_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          /tmp/aftershock-cook-python/bin/python tests/animation_editor.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Development overlay input and renderer restart
         run: python3 tests/devtools.py --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Optional renderer module replay
@@ -242,6 +235,10 @@ jobs:
             /tmp/aftershock-cook-runtime-test/*.log
             /tmp/aftershock-cook-runtime-test/*.tga
             /tmp/aftershock-cook-runtime-test/latency.txt
+            /tmp/aftershock-animation-runtime/*.log
+            /tmp/aftershock-animation-runtime/*.tga
+            /tmp/aftershock-animation-editor/*.log
+            /tmp/aftershock-animation-editor/*.tga
             /tmp/aftershock-devtools-tests/**/*.log
             /tmp/aftershock-devtools-tests/runtime/*.tga
             /tmp/tests-native-runtime/**/*.log

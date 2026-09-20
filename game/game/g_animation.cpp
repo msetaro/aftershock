@@ -74,21 +74,21 @@ static void SetAnimationInput( int owner, int rig, const char *name, float value
 	if ( index >= 0 )
 		animationActors[owner].parameters[rig][index] = value;
 }
-bool G_AnimationCommand( int owner ) {
+qboolean G_AnimationCommand( int owner ) {
 	if ( !animationEnabled || owner < 0 || owner >= level.maxclients || !animationActors[owner].active )
-		return false;
+		return qfalse;
 	char name[64], text[32];
 	trap_Argv( 1, name, sizeof( name ) );
 	trap_Argv( 2, text, sizeof( text ) );
 	if ( strcmp( text, "0" ) && strcmp( text, "1" ) )
-		return false;
+		return qfalse;
 	const char *allowed[] = { "ads", "fire", "reload", "sprint", "jump", "aim_up", "aim_down", "lean_left", "lean_right", "crouch", "prone", "turn" };
 	bool permitted = false;
 	for ( const char *action : allowed )
 		if ( !strcmp( action, name ) )
 			permitted = true;
 	if ( !permitted )
-		return false;
+		return qfalse;
 	bool found = false;
 	for ( int rig = 0; rig < 2; ++rig ) {
 		const int index = Anim_ParameterIndex( &animationRigs[rig].asset, name );
@@ -98,7 +98,7 @@ bool G_AnimationCommand( int owner ) {
 			found = true;
 		}
 	}
-	return found;
+	return found ? qtrue : qfalse;
 }
 void G_RunAnimation( void ) {
 	if ( !animationEnabled )

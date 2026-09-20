@@ -28,7 +28,7 @@ probe = args.output / 'native-probe'
 run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
      '-ffp-contract=off', '-fno-fast-math', '-Wall', '-Wextra', '-Werror',
      '-fsanitize=undefined', '-fno-sanitize-recover=all',
-     'tests/probes/animation.cpp', 'engine/animation/animation.cpp', sha_object,
+     'tests/probes/animation.cpp', 'engine/animation/animation.cpp', 'engine/render/tr_cooked.cpp', sha_object,
      '-o', probe])
 render_probe = args.output / 'render-probe'
 run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
@@ -51,6 +51,7 @@ for name, expected in provenance['files'].items():
     assert hashlib.sha256((fixture / name).read_bytes()).hexdigest() == expected
 owned_output = args.output / 'owned'
 cook(fixture / 'rigs.json', owned_output)
+run([probe, owned_output / 'cook.index', 'index'])
 for name, joints, clips in [('rifle', 13, 6), ('body', 16, 10)]:
     data = (owned_output / ('models/anim_' + name + '.iqm')).read_bytes()
     header = struct.unpack_from('<27I', data, 16)
