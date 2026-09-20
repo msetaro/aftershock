@@ -37,6 +37,28 @@ void G_ClearWeaponActor( int owner ) {
 			G_FreeEntity( entity );
 	actor = {};
 }
+static void WeaponHit( gentity_t *player, const weaponDef_t *definition, const weaponEvent_t &event ) {
+	const bool melee = event.kind == WEAPON_MELEE_EVENT;
+	const float range = melee ? definition->melee.range : definition->range;
+	vec3_t angles, direction, start, end;
+	VectorCopy( player->client->ps.viewangles, angles );
+	angles[PITCH] += event.spread[0];
+	angles[YAW] += event.spread[1];
+	AngleVectors( angles, direction, nullptr, nullptr );
+	VectorCopy( player->client->ps.origin, start );
+	start[2] += player->client->ps.viewheight;
+	VectorMA( start, range, direction, end );
+	trace_t trace;
+	G_TraceHitscanAtTime( &trace, start, end, player->s.number, player, event.time );
+	if ( trace.entityNum >= ENTITYNUM_WORLD || !g_entities[trace.entityNum].takedamage || ( trace.surfaceFlags & SURF_NOIMPACT ) )
+		return;
+	const int damage = int( melee ? definition->melee.damage : Weapon_Damage( definition, trace.fraction * range ) );
+	if ( !damage )
+		return;
+	G_Damage( &g_entities[trace.entityNum], player, player, direction, trace.endpos, damage, 0, melee ? MOD_GAUNTLET : MOD_MACHINEGUN );
+	if ( weaponTrace.integer )
+		G_Printf( "Weapon damage: owner=%d target=%d tick=%u damage=%d\n", player->s.number, trace.entityNum, event.time, damage );
+}
 void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart ) {
 	const auto *definition = BG_WeaponDefinition( 0 );
 	if ( !definition )
@@ -75,6 +97,8 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 			G_Error( "Weapon rejected: command" );
 		for ( uint32_t i = 0; i < events.count; ++i ) {
 			const auto &event = events.items[i];
+			if ( event.kind == WEAPON_MELEE_EVENT || ( event.kind == WEAPON_SHOT && definition->ballistics == WEAPON_HITSCAN ) )
+				WeaponHit( player, definition, event );
 			if ( weaponTrace.integer )
 				G_Printf( "Weapon event: owner=%d hand=%d kind=%u tick=%u sequence=%u\n", owner, hand, event.kind, event.time, event.sequence );
 		}

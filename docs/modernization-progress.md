@@ -150,6 +150,14 @@ The live damage extension now fails with no damage events against a successfully
 created moving range target (weapons-damage-before.log). Implement actual
 hitscan/melee damage through that trace before adding penetration/projectiles.
 
+Live hitscan now applies the data-defined damage through fixed-event-time rewind;
+melee shares that trace with its own range/damage. The owned moving target takes
+40-point rifle hits and the extended state/prediction assertions pass
+(weapons-damage.log). This is still incomplete #11: world penetration/material
+presentation, switching/attachments, projectile actors, animation/audio integration
+and range controls remain. Next: inventory-preserving switching and selection of
+a second rifle authored only in data.
+
 
 ## #12 implemented feature evidence
 
