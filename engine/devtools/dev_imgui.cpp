@@ -9,10 +9,18 @@ static ImGuiContext *context;
 static uint32_t fontTexture, lastTime;
 static float mouseX = 320, mouseY = 240;
 static int screenWidth = 640, screenHeight = 480;
-static uint32_t renderedFrames, allocations;
+static uint32_t renderedFrames, allocations, animationFrames;
 static devUiVertex_t vertices[65536];
 static uint32_t indices[196608];
 static devUiCommand_t commands[4096];
+
+static struct {
+	char path[MAX_QPATH], skinPath[MAX_QPATH];
+	int model, skin, frame;
+	float phase, yaw, fps;
+	bool play, load, draw;
+	int x, y, width, height;
+} animation;
 
 static void *Allocate( size_t size, void * ) {
 	++allocations;
@@ -31,6 +39,7 @@ static void Status( void ) {
 	const devNetwork_t *net = DevTools_Network();
 	Com_Printf( "Developer profile: cpu=%u snapshots=%" PRIu64 " bits=%u\n",
 		DevTools_CpuTimings( &timings ), net->snapshots, net->snapshotBits );
+	Com_Printf( "Developer animation: model=%d frame=%d previews=%u\n", animation.model, animation.frame, animationFrames );
 }
 
 void DevTools_Init( void ) {
@@ -45,6 +54,8 @@ void DevTools_Reset( void ) {
 	context = nullptr;
 	fontTexture = 0;
 	lastTime = 0;
+	animation.model = animation.skin = 0;
+	animation.phase = 0;
 }
 
 static bool Visible( void ) {
@@ -285,6 +296,105 @@ static void InspectMemory( void ) {
 	ImGui::EndTabItem();
 }
 
+static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
+	animation.draw = animation.load = false;
+	if ( !ImGui::BeginTabItem( "Animation" ) )
+		return;
+	ImGui::InputText( "Model", animation.path, sizeof( animation.path ) );
+	ImGui::InputText( "Skin (optional)", animation.skinPath, sizeof( animation.skinPath ) );
+	animation.load = ImGui::Button( "Load model / skin" );
+	if ( ImGui::BeginChild( "Loaded models", ImVec2( 0, 70 ), ImGuiChildFlags_Borders ) ) {
+		devModel_t model;
+		for ( int i = 1; renderer->GetDeveloperModel( i, &model ); ++i ) {
+			if ( model.frames < 1 )
+				continue;
+			ImGui::PushID( i );
+			if ( ImGui::Selectable( model.name, i == animation.model ) ) {
+				animation.model = i;
+				animation.frame = 0;
+				animation.phase = 0;
+				Q_strncpyz( animation.path, model.name, sizeof( animation.path ) );
+			}
+			ImGui::PopID();
+		}
+	}
+	ImGui::EndChild();
+	devModel_t model;
+	if ( renderer->GetDeveloperModel( animation.model, &model ) && model.frames > 0 ) {
+		ImGui::Text( "%d frames, %d model bytes", model.frames, model.bytes );
+		animation.frame = MIN( animation.frame, model.frames - 1 );
+		if ( ImGui::SliderInt( "Frame", &animation.frame, 0, model.frames - 1 ) ) {
+			animation.play = false;
+			animation.phase = (float)animation.frame;
+		}
+		ImGui::Checkbox( "Play", &animation.play );
+		ImGui::SameLine();
+		ImGui::SliderFloat( "FPS", &animation.fps, 1, 60 );
+		ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 );
+		if ( animation.play ) {
+			animation.phase = fmodf( animation.phase + (float)MIN( elapsed, 250U ) * animation.fps * 0.001f, (float)model.frames );
+			animation.frame = (int)animation.phase;
+		}
+		const ImVec2 size = ImGui::GetContentRegionAvail();
+		if ( size.x > 32 && size.y > 32 ) {
+			const ImVec2 position = ImGui::GetCursorScreenPos();
+			ImGui::InvisibleButton( "Preview", size );
+			const ImVec2 clipMin = ImGui::GetWindowDrawList()->GetClipRectMin();
+			const ImVec2 clipMax = ImGui::GetWindowDrawList()->GetClipRectMax();
+			animation.x = (int)MAX( position.x, clipMin.x );
+			animation.y = (int)MAX( position.y, clipMin.y );
+			animation.width = (int)MIN( position.x + size.x, clipMax.x ) - animation.x;
+			animation.height = (int)MIN( position.y + size.y, clipMax.y ) - animation.y;
+			animation.draw = animation.width > 32 && animation.height > 32;
+		}
+	} else {
+		ImGui::TextUnformatted( "Select a loaded model or enter an MD3, MDR or IQM path." );
+	}
+	ImGui::EndTabItem();
+}
+
+static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
+	if ( animation.load ) {
+		animation.model = renderer->RegisterModel( animation.path );
+		animation.skin = *animation.skinPath ? renderer->RegisterSkin( animation.skinPath ) : 0;
+		animation.phase = 0;
+		animation.frame = 0;
+		animation.fps = 15;
+	}
+	devModel_t model;
+	if ( !animation.draw || !renderer->GetDeveloperModel( animation.model, &model ) || model.frames < 1 )
+		return;
+	refdef_t view = {};
+	view.x = animation.x;
+	view.y = animation.y;
+	view.width = animation.width;
+	view.height = animation.height;
+	view.fov_y = 40;
+	view.fov_x = (float)( atan( tan( DEG2RAD( view.fov_y * 0.5f ) ) * (float)view.width / (float)view.height ) * 360.0 / M_PI );
+	view.rdflags = RDF_NOWORLDMODEL;
+	view.time = milliseconds;
+	AxisClear( view.viewaxis );
+	refEntity_t entity = {};
+	entity.reType = RT_MODEL;
+	entity.hModel = animation.model;
+	entity.customSkin = animation.skin;
+	entity.renderfx = RF_NOSHADOW | RF_MINLIGHT;
+	entity.oldframe = animation.frame;
+	entity.frame = animation.play ? ( animation.frame + 1 ) % model.frames : animation.frame;
+	entity.backlerp = animation.play ? 1.0f - ( animation.phase - (float)animation.frame ) : 0;
+	vec3_t mins, maxs, angles = { 0, animation.yaw, 0 };
+	renderer->ModelBounds( animation.model, mins, maxs );
+	const float extent = MAX( maxs[2] - mins[2], MAX( maxs[0] - mins[0], maxs[1] - mins[1] ) );
+	entity.origin[0] = MAX( extent, 8.0f ) * 2.0f;
+	entity.origin[2] = -( mins[2] + maxs[2] ) * 0.5f;
+	VectorCopy( entity.origin, entity.oldorigin );
+	AnglesToAxis( angles, entity.axis );
+	renderer->ClearScene();
+	renderer->AddRefEntityToScene( &entity, qfalse );
+	renderer->RenderScene( &view );
+	++animationFrames;
+}
+
 static void InspectProfile( const refexport_t *renderer, uint32_t elapsed ) {
 	static float history[240];
 	static uint32_t cursor;
@@ -360,6 +470,9 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	const uint32_t elapsed = lastTime ? (uint32_t)milliseconds - lastTime : 0;
 	io.DeltaTime = lastTime ? Com_Clamp( 0.001f, 0.25f, (float)elapsed * 0.001f ) : 1.0f / 60.0f;
 	lastTime = (uint32_t)milliseconds;
+	animation.draw = animation.load = false;
+	if ( animation.fps < 1 )
+		animation.fps = 15;
 	ImGui::NewFrame();
 	static char command[1024], filter[128], selected[MAX_STRING_CHARS], value[MAX_CVAR_VALUE_STRING];
 	bool execute = false, apply = false;
@@ -401,6 +514,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 			InspectAssets( renderer );
 			InspectProfile( renderer, elapsed );
 			InspectMemory();
+			InspectAnimation( renderer, elapsed );
 			ImGui::EndTabBar();
 		}
 	}
@@ -414,6 +528,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 		Com_Printf( "Developer UI draw capacity exceeded\n" );
 	}
 	// Engine mutation/error handling runs after all vendor UI calls return.
+	DrawAnimation( renderer, milliseconds );
 	if ( apply && *selected )
 		Cvar_Set2( selected, value, qfalse );
 	if ( execute && *command ) {

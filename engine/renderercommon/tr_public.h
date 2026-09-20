@@ -97,6 +97,7 @@ typedef struct {
 #ifdef AFTERSHOCK_DEVTOOLS
 	uint32_t ( *CreateDeveloperTexture )( unsigned char *pixels, int width, int height );
 	void ( *DrawDeveloperUI )( const devUiDraw_t *draw );
+	bool ( *GetDeveloperModel )( int index, devModel_t *model );
 	bool ( *GetDeveloperImage )( int index, devImage_t *image );
 	bool ( *GetDeveloperMaterial )( int index, devMaterial_t *material );
 	uint32_t ( *GetDeveloperTimings )( devGpuTiming_t *timings, uint32_t capacity );

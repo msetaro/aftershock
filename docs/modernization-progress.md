@@ -42,6 +42,19 @@ Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
 
 ## #7 developer tooling checkpoint
 
+Animation working slice: inspect loaded MD3/MDR/IQM frame counts, load a model and
+optional skin, scrub/play frames and rotate the preview. It reuses model handles,
+interpolation and the existing no-world scene API; resource loads and render calls
+occur after vendor UI returns. Real XTest input loads an installed animated model,
+starts playback, and verifies the preview/frame counters advance. The demo is
+paused via its existing timescale control so fixture length cannot end the UI test.
+Developer UI time now uses the existing unscaled engine frame timestamp.
+Production registry probes cover all three model types. No content is copied into
+the repository. Profile slice e24faa49 passed hosted build 35493250065 and its
+runtime job; the remaining regression jobs are still running. Its local lifetime
+gate passed 1,108 configurations/116 paths; tidy passed 1,154 configurations.
+
+
 CPU scopes now use the existing platform microsecond clock, fixed 128-entry frame
 buffers, explicit begin/end tokens and generation checks. Incomplete scopes from
 longjmp are dropped. Core server/client, cgame and native game simulation are

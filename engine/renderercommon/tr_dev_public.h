@@ -42,3 +42,9 @@ struct devGpuTiming_t {
 	double microseconds;
 };
 static_assert( std::is_trivially_copyable_v<devImage_t> && std::is_trivially_copyable_v<devMaterial_t> );
+
+struct devModel_t {
+	char name[64];
+	int32_t type, frames, bytes;
+};
+static_assert( std::is_trivially_copyable_v<devModel_t> );

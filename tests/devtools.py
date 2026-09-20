@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import zipfile
 from run import ROOT, build, content_maps, content_settings
 from window import wait_for
 from native import engine_objects
@@ -100,12 +101,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-dev-input-') as temp:
                '+set', 's_initsound', '0', '+set', 'net_enabled', '0', '+set', 'sv_pure', '0',
                '+set', 'cl_autoRecordDemo', '0', '+set', 'dev_tools', '1', '+set', 'devtest', '0',
                '+set', 'com_maxfps', '20', '+exec', 'devtools-check.cfg']
-    script = [f'demo {map_name}', 'wait 140', 'screenshot cvars', 'devtools_status',
+    script = [f'demo {map_name}', 'wait 20', 'set timescale 0', 'wait 120', 'screenshot cvars', 'devtools_status',
               'wait 80', 'devtools_status', 'devtest', 'vid_restart', 'wait 40',
               'screenshot restarted', 'wait 2', 'devtools_status']
-    for tab in ('textures', 'materials', 'profile', 'memory'):
-        script += ['echo inspect_' + tab, 'wait 40', 'screenshot ' + tab, 'wait 2']
-    script += ['quit']
+    for tab in ('textures', 'materials', 'profile', 'memory', 'animation'):
+        script += ['echo inspect_' + tab, 'wait 300' if tab == 'animation' else 'wait 40', 'screenshot ' + tab, 'wait 2']
+    script += ['devtools_status', 'wait 10', 'devtools_status', 'quit']
     (base / 'devtools-check.cfg').write_text('\n'.join(script) + '\n')
     with (out / 'client.log').open('wb') as log:
         process = subprocess.Popen(command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
@@ -128,17 +129,30 @@ with tempfile.TemporaryDirectory(prefix='aftershock-dev-input-') as temp:
             key('Delete')
             key('7')
             key('Return')
-            for tab, x in (('textures', 160), ('materials', 240), ('profile', 310), ('memory', 375)):
+            for tab, x in (('textures', 160), ('materials', 240), ('profile', 310), ('memory', 375), ('animation', 440)):
                 wait_for(lambda: ('inspect_' + tab).encode() in (out / 'client.log').read_bytes(), process)
                 # Context recreation retains our relative pointer position.
                 click(x, 64)
+                if tab == 'animation':
+                    names = set()
+                    for pak in paks:
+                        with zipfile.ZipFile(pak) as archive:
+                            names.update(archive.namelist())
+                    models = sorted(name for name in names if name.startswith('models/players/') and name.endswith('/lower.md3'))
+                    assert models, 'installed content must include an animated player model'
+                    click(120, 91)
+                    for char in models[0]:
+                        key({'/': 'slash', '.': 'period', '-': 'minus'}.get(char, char))
+                    click(80, 137)
+                    time.sleep(0.4)
+                    click(27, 260)
             process.wait(timeout=30)
             assert process.returncode == 0
         finally:
             if process.poll() is None:
                 process.kill()
                 process.wait()
-    for name in ('cvars', 'restarted', 'textures', 'materials', 'profile', 'memory'):
+    for name in ('cvars', 'restarted', 'textures', 'materials', 'profile', 'memory', 'animation'):
         image = base / 'screenshots' / (name + '.tga')
         assert struct.unpack_from('<HH', image.read_bytes(), 12) == (640, 480)
         shutil.copyfile(image, out / image.name)
@@ -147,10 +161,13 @@ text = (out / 'client.log').read_text()
 assert '"devtest" is:"7^7"' in text, 'live ImGui cvar edit failed; see ' + str(out / 'client.log')
 assert not any(error in text for error in ('ERROR:', 'Signal caught', 'capacity exceeded', 'Unknown command'))
 samples = [tuple(map(int, row)) for row in re.findall('Developer tools: enabled=1 frames=(\\d+) arena=(\\d+)/16777216 allocations=(\\d+)', text)]
-assert len(samples) == 3 and samples[1][0] - samples[0][0] >= 60
+assert len(samples) == 5 and samples[1][0] - samples[0][0] >= 60
 assert samples[0][2] == samples[1][2], 'idle UI made allocations after warmup'
 assert all(0 < sample[1] < 16777216 for sample in samples)
 assert samples[2][0] > samples[1][0] and text.count('Static ui loaded.') >= 3
 profiles = re.findall(r'Developer profile: cpu=(\d+) snapshots=(\d+) bits=(\d+)', text)
-assert len(profiles) == 3 and all(all(int(value) > 0 for value in row) for row in profiles)
-print('PASS: real mouse/key cvar edit, bounded UI memory, allocation-free idle frames and renderer restart')
+assert len(profiles) == 5 and all(all(int(value) > 0 for value in row) for row in profiles)
+animation = [tuple(map(int, row)) for row in re.findall(r'Developer animation: model=(\d+) frame=(\d+) previews=(\d+)', text)]
+assert len(animation) == 5 and animation[-1][0] > 0
+assert animation[-1][1] != animation[-2][1] and animation[-1][2] > animation[-2][2] > 0
+print('PASS: animated model preview, real mouse/key cvar edit, bounded UI memory, allocation-free idle frames and renderer restart')

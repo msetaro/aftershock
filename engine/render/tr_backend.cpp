@@ -1988,6 +1988,23 @@ void RB_ExecuteRenderCommands( const void *data ) {
 }
 
 #ifdef AFTERSHOCK_DEVTOOLS
+bool RE_GetDeveloperModel( int index, devModel_t *model ) {
+	*model = {};
+	if ( index < 0 || index >= tr.numModels )
+		return false;
+	const model_t *source = tr.models[index];
+	Q_strncpyz( model->name, source->name, sizeof( model->name ) );
+	model->type = (int32_t)source->type;
+	model->bytes = source->dataSize;
+	if ( source->type == MOD_MESH )
+		model->frames = source->md3[0]->numFrames;
+	else if ( source->type == MOD_MDR )
+		model->frames = ( (const mdrHeader_t *)source->modelData )->numFrames;
+	else if ( source->type == MOD_IQM )
+		model->frames = ( (const iqmData_t *)source->modelData )->num_frames;
+	return true;
+}
+
 bool RE_GetDeveloperImage( int index, devImage_t *image ) {
 	*image = {};
 	if ( index < 0 || index >= tr.numImages )

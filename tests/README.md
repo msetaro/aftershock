@@ -272,7 +272,8 @@ ImGui or tool symbols. Enable it with `dev_tools 1`; Escape closes it. The first
 slice provides console output/commands and cvar search, descriptions and live edit.
 Texture previews, material stages, completed GPU timings/frame history and
 tagged zone/hunk usage are also available. CPU scopes and client traffic/snapshot/prediction statistics are available;
-entity, animation and debug-world tooling remain incomplete. Enabled renderer
+The model viewer loads MD3/MDR/IQM models and optional skins, scrubs/plays frames
+and rotates an existing renderer scene. Entity and debug-world tooling remain incomplete. Enabled renderer
 modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
 
 `python3 tests/devtools.py` builds both variants, verifies symbols, then uses real

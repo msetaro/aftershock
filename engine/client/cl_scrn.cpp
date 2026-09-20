@@ -649,7 +649,7 @@ void SCR_UpdateScreen( void ) {
 		}
 
 #ifdef AFTERSHOCK_DEVTOOLS
-		DevTools_Draw( &re, cls.glconfig.vidWidth, cls.glconfig.vidHeight, cls.realtime );
+		DevTools_Draw( &re, cls.glconfig.vidWidth, cls.glconfig.vidHeight, com_frameTime );
 #endif
 		if ( com_speeds->integer ) {
 			re.EndFrame( &time_frontend, &time_backend );
