@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "name": "range_rifle",
+  "model": "models/anim_rifle.iqm",
+  "animation": "animations/anim_rifle.asanim",
+  "fire_mode": "auto",
+  "interval_ms": 80,
+  "burst_count": 3,
+  "ballistics": "hitscan",
+  "damage": 40,
+  "minimum_damage": 20,
+  "falloff_start": 512,
+  "falloff_end": 2048,
+  "range": 4096,
+  "spread_degrees": 1.5,
+  "ads_spread_scale": 0.25,
+  "recoil": [[1.0, -0.25], [1.5, 0.5], [0.75, -0.5]],
+  "view_kick_scale": 0.8,
+  "ads_ms": 200,
+  "ads_fov": 60,
+  "sway": 0.1,
+  "bob": 0.05,
+  "magazine": 30,
+  "reserve": 90,
+  "reload": [
+    {"time_ms": 200, "event": "magazine_out", "action": "eject", "cancel": true},
+    {"time_ms": 600, "event": "magazine_in", "action": "insert", "cancel": true},
+    {"time_ms": 800, "event": "bolt", "action": "chamber", "cancel": false},
+    {"time_ms": 1000, "event": "reload_complete", "action": "finish", "cancel": true}
+  ],
+  "projectile": {"speed": 800, "gravity": 800, "fuse_ms": 3000, "bounce": 0.5, "radius": 120},
+  "melee": {"range": 64, "damage": 50, "interval_ms": 500},
+  "switch_ms": 200,
+  "materials": [
+    {"name": "default", "surface_flags": 0, "depth": 8, "damage_scale": 0.5, "effect": "impact_default"},
+    {"name": "metal", "surface_flags": 4096, "depth": 2, "damage_scale": 0.25, "effect": "impact_metal"}
+  ],
+  "attachments": [
+    {"name": "optic", "socket": "optic", "model": "models/range_optic.iqm", "spread_scale": 0.5, "recoil_scale": 0.75, "ads_fov": 45}
+  ],
+  "sounds": {"shot": "sound/range_shot.wav", "magazine_out": "sound/range_reload.wav", "magazine_in": "sound/range_reload.wav", "bolt": "sound/range_reload.wav"}
+}

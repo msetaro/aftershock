@@ -37,6 +37,21 @@ Acceptance comment: https://github.com/msetaro/aftershock/issues/12#issuecomment
 Merged-tree regression 35523091952 is running. Close/check #12 in #25 after it
 passes; preserve the provider/transport boundary recorded below.
 
+## #11 test-first scope
+
+The first portable contract covers a versioned weapon asset in the existing
+cooker, a second rifle authored only in JSON, incremental dependencies, exact
+20 ms ticks, 1000 repeatable seeded shots, alternate-seed divergence, recoil
+patterns, automatic/semi/burst cadence, staged tactical reload and cancellation,
+magazine/chamber/reserve conservation, ADS interpolation, data attachments,
+range falloff/material penetration response and projectile step/bounce math.
+The probe fails before implementation on the absent weapons_public.h and
+weapons.cpp (weapons-before.log). No weapon runtime/cooker implementation exists.
+This is the first slice, not #11 acceptance. Server rewind integration, replicated
+projectiles/grenades and prediction, switching/dual-wield/melee, animation/sound
+notifies, real target-range/ImGui controls and fixed-demo parity remain required.
+The original #10 rifle/body sources and accepted fixtures remain unchanged.
+
 ## #12 implemented feature evidence
 
 Implemented so far: generated replication descriptions beside state members,
