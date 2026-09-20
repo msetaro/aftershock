@@ -1596,17 +1596,11 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 	const char *pArg;
 	qboolean bGood = qtrue;
 
-	// if we are pure, we "expect" the client to load certain things from
-	// certain pk3 files, namely we want the client to have loaded the
-	// ui and cgame that we think should be loaded based on the pure setting
-	//
+	// Native modules are linked into the executable and negotiated by the native
+	// protocol. Their pure-list slots are zero; actual content paks remain checked.
 	if ( sv.pure != 0 ) {
 
 		nChkSum1 = nChkSum2 = 0;
-
-		// we run the game, so determine which cgame and ui the client "should" be running
-		bGood = FS_FileIsInPAK( "vm/cgame.qvm", &nChkSum1, NULL );
-		bGood = (qboolean)( bGood & FS_FileIsInPAK( "vm/ui.qvm", &nChkSum2, NULL ) );
 
 		nClientPaks = Cmd_Argc();
 

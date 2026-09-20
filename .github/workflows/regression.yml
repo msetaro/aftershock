@@ -91,6 +91,7 @@ jobs:
           python3 tests/rewind.py --cxx '${{ matrix.cxx }}'
           python3 tests/replication_policy.py --cxx '${{ matrix.cxx }}'
           python3 tests/identity.py --cxx '${{ matrix.cxx }}'
+          python3 tests/native_pure.py --cxx '${{ matrix.cxx }}'
           python3 tests/devtools_data.py --cxx '${{ matrix.cxx }}'
       - name: RHI contract and frame uploads
         run: python3 tests/rhi.py --cxx '${{ matrix.cxx }}'
@@ -230,6 +231,7 @@ jobs:
           cmake --build /tmp/aftershock-dev-entities/build --parallel 4
           cmake -S . -B /tmp/aftershock-protocol-v2 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_CLIENT=OFF -DUSE_CURL=OFF -DAFTERSHOCK_EXTRA_FLAGS=-DAFTERSHOCK_NET_VERSION=3
           cmake --build /tmp/aftershock-protocol-v2 --parallel 4
+          python3 tests/native_pure_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
           python3 tests/protocol_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --other-server /tmp/aftershock-protocol-v2/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
           /tmp/aftershock-cook-python/bin/python tests/netcode_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --snapshot-budget 48
           /tmp/aftershock-cook-python/bin/python tests/netcode_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --weapons --client-fps 20 --snapshot-budget 256 --output /tmp/aftershock-weapons-network

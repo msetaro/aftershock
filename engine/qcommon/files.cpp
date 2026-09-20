@@ -5103,7 +5103,7 @@ const char *FS_ReferencedPakPureChecksums( int maxlen ) {
 	static char info[MAX_STRING_CHARS * 2];
 	char *s, *max;
 	const searchpath_t *search;
-	int nFlags, numPaks, checksum;
+	int numPaks, checksum;
 
 	max = info + maxlen; // maxlen is always smaller than MAX_STRING_CHARS so we can overflow a bit
 	s = info;
@@ -5111,25 +5111,16 @@ const char *FS_ReferencedPakPureChecksums( int maxlen ) {
 
 	checksum = fs_checksumFeed;
 	numPaks = 0;
-	for ( nFlags = FS_CGAME_REF; nFlags; nFlags = nFlags >> 1 ) {
-		if ( nFlags & FS_GENERAL_REF ) {
-			// add a delimiter between must haves and general refs
-			s = Q_stradd( s, "@ " );
-			if ( s > max ) // client-side overflow
+	// Native cgame/UI are linked into the executable, not loaded from QVM paks.
+	// Keep their wire slots explicit; the remaining list still verifies content.
+	s = Q_stradd( s, "0 0 @ " );
+	for ( search = fs_searchpaths; search; search = search->next ) {
+		if ( search->pack && ( search->pack->referenced & FS_GENERAL_REF ) ) {
+			s = Q_stradd( s, va( "%i ", search->pack->pure_checksum ) );
+			if ( s > max )
 				break;
-		}
-		for ( search = fs_searchpaths; search; search = search->next ) {
-			// is the element a pak file and has it been referenced based on flag?
-			if ( search->pack && ( search->pack->referenced & nFlags ) ) {
-				s = Q_stradd( s, va( "%i ", search->pack->pure_checksum ) );
-				if ( s > max ) // client-side overflow
-					break;
-				if ( nFlags & ( FS_CGAME_REF | FS_UI_REF ) ) {
-					break;
-				}
-				checksum ^= search->pack->pure_checksum;
-				numPaks++;
-			}
+			checksum ^= search->pack->pure_checksum;
+			numPaks++;
 		}
 	}
 
