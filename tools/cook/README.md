@@ -98,7 +98,8 @@ and opacity A in sRGB, normal XYZ and roughness A in linear space, and emissive 
 and metallic A in sRGB RGB/linear alpha. Normal/emissive mips filter data alpha
 independently, avoiding opacity weighting. Packed source channels must have equal
 dimensions, except a constant 1x1 channel can expand losslessly. Supported sampling
-is repeat with linear mipmaps and UV0. Bake other samplers, UV transforms/sets,
+is repeat with linear mipmaps and UV0; the engine texture-quality setting remains
+authoritative at runtime. Bake other samplers, UV transforms/sets,
 material extensions and resolution mismatches before import. Occlusion is left
 to authored lighting; an occlusion texture is rejected, not silently discarded.
 

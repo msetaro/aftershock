@@ -41,8 +41,8 @@ The failing cooker and native instance contracts were committed first (c4bb8bbf,
 b4cddc63). The isolated PBR cook/native data slice now passes GCC and Clang/libc++;
 Rendering/tangent submission, live factors, instance submission and ImGui controls
 are implemented locally. Classic replay retains the accepted hash. Remaining work:
-finish final Q3/module visual checks, commit self-review, open the #13 draft PR,
-then require exact-head full CI and merged-tree regression before accepting #13.
+local validation and self-review are complete. Push/open the #13 draft PR, then
+require exact-head full CI and merged-tree regression before accepting #13.
 Unit and hosted-runtime commands, diagnostics and documentation are wired. #13 has no PR yet. No accepted
 fixture/shader bytes changed; no #13 acceptance before #28 integration passes.
 The new local implementation was started during #28's final lifetime gate, after
@@ -152,10 +152,47 @@ The optional renderer module is building/running the same actual-input test.
 Unit golden and its one-ULP control pass; unit.txt remains
 8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede.
 Legacy cooker/render probes, animation/instance tests, RHI and 1,270 tidy
-configurations pass. Lifetime analysis is at 1,200/1,216 commands. CI runs the new
+configurations pass. Lifetime analysis passes all 1,216 commands. CI runs the new
 cooker/native contract with both compilers and both visual modes with OA. AGENTS,
 tests/README and tools/cook/README document commands, v2 layout, authoring and limits.
 No #13 PR is open yet; commit final self-review and require exact-head hosted gates.
+
+## #13 self-review and final local gates
+
+Final local Q3 channel/color test passes (materials-runtime-q3-final.log), as do OA
+channel/color (materials-runtime-normal.log), actual ImGui shared/instance editing
+(materials-ui-display.log) and the optional renderer module's actual ImGui test
+(materials-ui-module.log). Both native compiler families pass the data test,
+including standalone material recipes. All 1,216 lifetime configurations and 1,270
+tidy configurations pass. Final format/type/boundary checks pass. Unit golden and
+negative control, legacy cooker/renderer probes, animation/instance ownership and
+RHI alternative-backend checks pass. Fresh shader compilation matches the final
+76-program cache. Classic Q3 replay retains its accepted hash, with no regeneration.
+
+Scope matches #13's restrained material abstraction, offline glTF/data authoring,
+instance factors and live ImGui tooling. Existing recipes stay v1, Quake scripts
+keep precedence and the legacy iterator/shader bytes. Only newly authored PBR
+programs use the new path; shaders compile offline. Data/native layouts are fixed
+and asserted. Color factors remain linear, normal/roughness and emissive/metallic
+mips keep independent data alpha, and source-color/round-trip checks cover the
+UNORM display conversion. Mirrored PBR winding preserves double-sided normals.
+
+Instances use bounded per-frame POD copies and optional existing skeletal storage;
+shared factor edits leave pipeline ordering/flags unchanged. No per-frame heap
+allocation, non-trivial core object, OS call, renderer-private boundary crossing,
+wire/refEntity layout, existing simulation arithmetic or accepted oracle change.
+Initial/new cooked assets use the existing hunk/image/pipeline lifetime paths.
+Unsupported authoring combinations fail explicitly; global texture-quality settings
+remain authoritative. Lighting reuses the existing dominant direction/light grid,
+with world batch-center sampling; direct light/shadow upgrades and linear HDR
+composition remain #14's scope. No new provider/database/system package dependency.
+
+Tests exposed setup/measurement mistakes (clip-less Animation preview, ambiguous
+UI filter, substring barriers, map-background sampling, weak normal perturbation),
+all corrected in the new tests rather than changing accepted references. The new
+shader's display conversion was corrected before acceptance and checked against
+absolute source RGB. Full exact-head hosted gates and merged-tree regression are
+still mandatory. No upstream PR or other-repository write is involved.
 
 ## #28 implementation record at its tested head
 
