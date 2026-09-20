@@ -241,6 +241,13 @@ math. Fuse expiry and zero-bounce impacts detonate; bounces retain the remaining
 fuse. Next: actual server projectile entities, snapshot rendering, client shot
 prediction and lifecycle tests. Shared physics alone is not projectile acceptance.
 
+The extended live test loads a third, data-only grenade definition but fails on
+absent projectile actors (weapons-projectile-live-before.log), after a successful
+version-2 production rebuild. Reuse ET_MISSILE with generic1=255 (existing native
+missiles use only team values), carrying definition/owner/hand/shot/spawn metadata
+and fixed-step position/velocity/age in existing snapshot fields. No wire-layout
+change. Add server actors and snapshot rendering before client shot prediction.
+
 
 ## #12 implemented feature evidence
 
