@@ -259,6 +259,14 @@ prediction using each command's predicted movement pose, with deduplication agai
 authoritative projectile records and measured correction error. No full #11
 acceptance or projectile prediction is claimed by this server-only slice.
 
+Client projectile prediction fails its new live assertion
+(weapons-projectile-prediction-before.log). A separate failing launch contract
+requires server/client reuse of the command pose and data speed/spread
+(weapons-launch-before.log). Record poses after each Pmove command and before
+trigger prediction, matching the server's weapon hook. Use a bounded predicted
+projectile pool, identify shots by spawn/hand/definition/sequence and measure the
+first authoritative position correction at the same projectile age.
+
 
 ## #12 implemented feature evidence
 

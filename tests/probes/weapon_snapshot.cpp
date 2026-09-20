@@ -33,6 +33,14 @@ static void Projectiles() {
 	definition.projectile.fuseMs = 60;
 	weaponProjectile_t state = {};
 	state.velocity[0] = 800;
+	playerState_t player = {};
+	VectorSet( player.origin, 1, 2, 3 );
+	player.viewheight = 26;
+	weaponEvent_t shot = {};
+	weaponProjectile_t launched;
+	BG_LaunchWeaponProjectile( &definition, &shot, &player, &launched );
+	assert( launched.position[0] == 1 && launched.position[1] == 2 && launched.position[2] == 29 );
+	assert( launched.velocity[0] == 800 && launched.velocity[1] == 0 && launched.velocity[2] == 0 && launched.ageMs == 0 );
 	trace_t impact;
 	assert( BG_WeaponProjectileStep( &definition, &state, 3, ProjectileTrace, &impact ) == WEAPON_FLYING );
 	assert( state.position[0] == 16 && state.ageMs == 20 );
