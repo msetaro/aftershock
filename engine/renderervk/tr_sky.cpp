@@ -420,7 +420,7 @@ static void DrawSkySide( image_t *image, const int mins[2], const int maxs[2] ) 
 #ifdef USE_VULKAN
 		tess.svars.texcoordPtr[0] = tess.texCoords[0];
 
-		RHI_BindPipeline( vk.skybox_pipeline );
+		RHI_BindPipeline( r_pipelines.skybox_pipeline );
 		vk_bind_index();
 		vk_bind_geometry( TESS_XYZ | TESS_ST0 );
 		vk_draw_geometry( r_showsky->integer ? DEPTH_RANGE_ZERO : DEPTH_RANGE_ONE, qtrue );
@@ -762,7 +762,7 @@ Other things could be stuck in here, like birds in the sky, etc
 void RB_StageIteratorSky( void ) {
 
 #if defined( USE_VULKAN ) && !defined( USE_BUFFER_CLEAR )
-	if ( r_fastsky->integer && vk.clearAttachment ) {
+	if ( r_fastsky->integer && RHI_GetCapabilities().clearAttachment ) {
 #else
 	if ( r_fastsky->integer ) {
 #endif

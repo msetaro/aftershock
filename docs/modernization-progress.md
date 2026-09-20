@@ -163,6 +163,21 @@ Pipeline checkpoint 11cbcddb passed full build 35484803600/regression 3548480359
 Merge checkpoint 18e4e887 passed full build 35484969696/regression 35484969698.
 The #31 acquisition fix's integration regression 35484895454 also passed.
 
+Frontend pipeline ownership: the built-in pipeline index table and its creation
+routine moved from the Vulkan device to the frontend shader implementation. The
+creation body is identical after ownership/capability identifier substitutions;
+GPU objects remain private and the world-pipeline retention boundary stays at the
+same call position. A trivial capability snapshot replaces direct frontend reads
+of private device flags. The public stub implements both new calls. GCC and Clang
+checks pass, including capability mapping/world retention; format/type/boundary
+checks pass. Replay plus video restart retains b38004b1 (rhi-state-demo.log).
+Real-clock main samples are 3.923/3.920 ms q3dm17 and 4.857/4.901 ms q3dm7,
+informational rather than a speedup claim. No shader/fixture/golden changes.
+
+Platform checkpoint e259fc0f is running build 35485551477/regression 35485551484.
+Remaining frontend private accesses include frame state, buffer/descriptor binding,
+sampler policy, transforms and diagnostics; remove these before the frontend move.
+
 ## Final #8 verification
 
 PR #138 merged as e4440d85 after current-head build 35479545347 and regression

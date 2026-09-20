@@ -24,6 +24,22 @@ static_assert( std::is_trivially_copyable_v<rhiStats_t> );
 bool RHI_Available( void );
 rhiStats_t RHI_GetStats( void );
 
+// Snapshot of device capabilities and the active presentation configuration.
+struct rhiCapabilities_t {
+	bool active;
+	bool wideLines;
+	bool fragmentStores;
+	bool clearAttachment;
+	bool fboActive;
+	bool offscreenRender;
+	uint32_t maxBoundDescriptorSets;
+};
+static_assert( std::is_trivially_copyable_v<rhiCapabilities_t> );
+rhiCapabilities_t RHI_GetCapabilities( void );
+
+// Pipelines created before this point survive map-resource resets.
+void RHI_MarkWorldPipelines( void );
+
 enum class rhiStatus_t : uint32_t {
 	Success,
 	Unavailable,

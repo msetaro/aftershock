@@ -93,7 +93,7 @@ R_ClearFlares
 void R_ClearFlares( void ) {
 	int i;
 
-	if ( !vk.fragmentStores )
+	if ( !RHI_GetCapabilities().fragmentStores )
 		return;
 
 	Com_Memset( r_flareStructs, 0, sizeof( r_flareStructs ) );
@@ -345,7 +345,7 @@ static void RB_TestFlare( flare_t *f ) {
 		vk_reset_descriptor( i );
 	}
 	// render test dot
-	RHI_BindPipeline( vk.dot_pipeline );
+	RHI_BindPipeline( r_pipelines.dot_pipeline );
 	vk_bind_geometry( TESS_XYZ );
 	vk_draw_dot( offset );
 

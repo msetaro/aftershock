@@ -331,7 +331,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 
 #ifndef USE_BUFFER_CLEAR
 #ifdef USE_VULKAN
-	if ( r_fastsky->integer && vk.clearAttachment ) {
+	if ( r_fastsky->integer && RHI_GetCapabilities().clearAttachment ) {
 #else
 	if ( r_fastsky->integer ) {
 #endif
@@ -459,7 +459,7 @@ void RE_FinishBloom( void ) {
 
 qboolean RE_CanMinimize( void ) {
 #ifdef USE_VULKAN
-	if ( vk.fboActive || vk.offscreenRender )
+	if ( RHI_GetCapabilities().fboActive || RHI_GetCapabilities().offscreenRender )
 		return qtrue;
 #endif
 	return qfalse;

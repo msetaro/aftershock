@@ -126,19 +126,19 @@ static void DrawTris( const shaderCommands_t *input ) {
 	if ( tess.vboIndex ) {
 #ifdef USE_PMLIGHT
 		if ( tess.dlightPass )
-			pipeline = backEnd.viewParms.portalView == PV_MIRROR ? vk.tris_mirror_debug_red_pipeline : vk.tris_debug_red_pipeline;
+			pipeline = backEnd.viewParms.portalView == PV_MIRROR ? r_pipelines.tris_mirror_debug_red_pipeline : r_pipelines.tris_debug_red_pipeline;
 		else
 #endif
-			pipeline = backEnd.viewParms.portalView == PV_MIRROR ? vk.tris_mirror_debug_green_pipeline : vk.tris_debug_green_pipeline;
+			pipeline = backEnd.viewParms.portalView == PV_MIRROR ? r_pipelines.tris_mirror_debug_green_pipeline : r_pipelines.tris_debug_green_pipeline;
 	} else
 #endif
 	{
 #ifdef USE_PMLIGHT
 		if ( tess.dlightPass )
-			pipeline = backEnd.viewParms.portalView == PV_MIRROR ? vk.tris_mirror_debug_red_pipeline : vk.tris_debug_red_pipeline;
+			pipeline = backEnd.viewParms.portalView == PV_MIRROR ? r_pipelines.tris_mirror_debug_red_pipeline : r_pipelines.tris_debug_red_pipeline;
 		else
 #endif
-			pipeline = backEnd.viewParms.portalView == PV_MIRROR ? vk.tris_mirror_debug_pipeline : vk.tris_debug_pipeline;
+			pipeline = backEnd.viewParms.portalView == PV_MIRROR ? r_pipelines.tris_mirror_debug_pipeline : r_pipelines.tris_debug_pipeline;
 	}
 
 	RHI_BindPipeline( pipeline );
@@ -202,7 +202,7 @@ static void DrawNormals( const shaderCommands_t *input [[maybe_unused]] ) {
 	tess.numVertexes *= 2;
 	Com_Memset( tess.svars.colors[0][0].rgba, tr.identityLightByte, tess.numVertexes * sizeof( color4ub_t ) );
 
-	RHI_BindPipeline( vk.normals_debug_pipeline );
+	RHI_BindPipeline( r_pipelines.normals_debug_pipeline );
 	vk_bind_index();
 	vk_bind_geometry( TESS_XYZ | TESS_ST0 | TESS_RGBA0 );
 	vk_draw_geometry( DEPTH_RANGE_ZERO, qtrue );
@@ -515,7 +515,7 @@ static void ProjectDlightTexture( void ) {
 			// re-bind index buffer for later fog pass
 			rebindIndex = qtrue;
 		}
-		pipeline = vk.dlight_pipelines[dl->additive > 0 ? 1 : 0][tess.shader->cullType][tess.shader->polygonOffset];
+		pipeline = r_pipelines.dlight_pipelines[dl->additive > 0 ? 1 : 0][tess.shader->cullType][tess.shader->polygonOffset];
 		RHI_BindPipeline( pipeline );
 		vk_bind_index_ext( numIndexes, hitIndexes );
 		vk_bind_geometry( TESS_RGBA0 | TESS_ST0 );
@@ -555,7 +555,7 @@ Blends a fog texture on top of everything else
 */
 #ifdef USE_VULKAN
 static void RB_FogPass( qboolean rebindIndex ) {
-	uint32_t pipeline = vk.fog_pipelines[tess.shader->fogPass - 1][tess.shader->cullType][tess.shader->polygonOffset];
+	uint32_t pipeline = r_pipelines.fog_pipelines[tess.shader->fogPass - 1][tess.shader->cullType][tess.shader->polygonOffset];
 #ifdef USE_FOG_ONLY
 	int fog_stage;
 
@@ -1084,7 +1084,7 @@ static void VK_SetLightParams( shaderUniform_t *params, const dlight_t *dl ) {
 	float radius;
 
 #ifdef USE_VULKAN
-	if ( !glConfig.deviceSupportsGamma && !vk.fboActive )
+	if ( !glConfig.deviceSupportsGamma && !RHI_GetCapabilities().fboActive )
 #else
 	if ( !glConfig.deviceSupportsGamma )
 #endif
@@ -1163,9 +1163,9 @@ void VK_LightingPass( void ) {
 		RHI_BindTexture( VK_DESC_FOG_DLIGHT, &tr.fogImage->texture );
 
 	if ( tess.light->linear )
-		pipeline = vk.dlight1_pipelines_x[cull][tess.shader->polygonOffset][fog_stage][abs_light];
+		pipeline = r_pipelines.dlight1_pipelines_x[cull][tess.shader->polygonOffset][fog_stage][abs_light];
 	else
-		pipeline = vk.dlight_pipelines_x[cull][tess.shader->polygonOffset][fog_stage][abs_light];
+		pipeline = r_pipelines.dlight_pipelines_x[cull][tess.shader->polygonOffset][fog_stage][abs_light];
 
 	GL_SelectTexture( 0 );
 	R_BindAnimatedImage( &pStage->bundle[tess.shader->lightingBundle] );

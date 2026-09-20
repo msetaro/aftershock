@@ -10,6 +10,14 @@ rhiStats_t RHI_GetStats( void ) {
 	return {};
 }
 
+rhiCapabilities_t RHI_GetCapabilities( void ) {
+	return {};
+}
+
+void RHI_MarkWorldPipelines( void ) {
+	abort();
+}
+
 uint32_t RHI_UploadUniform( const void *, uint32_t ) {
 	return RHI_INVALID_OFFSET;
 }

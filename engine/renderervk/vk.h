@@ -112,7 +112,6 @@ void vk_destroy_samplers( void );
 
 
 void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_t height );
-void vk_create_pipelines( void );
 
 //
 // Rendering setup.
@@ -376,50 +375,6 @@ typedef struct {
 	// pipeline statistics
 	int32_t pipeline_create_count;
 
-	//
-	// Standard pipelines.
-	//
-	uint32_t skybox_pipeline;
-
-	// dim 0: 0 - front side, 1 - back size
-	// dim 1: 0 - normal view, 1 - mirror view
-	uint32_t shadow_volume_pipelines[2][2];
-	uint32_t shadow_finish_pipeline;
-
-	// dim 0 is based on fogPass_t: 0 - corresponds to FP_EQUAL, 1 - corresponds to FP_LE.
-	// dim 1 is directly a cullType_t enum value.
-	// dim 2 is a polygon offset value (0 - off, 1 - on).
-	uint32_t fog_pipelines[2][3][2];
-
-	// dim 0 is based on dlight additive flag: 0 - not additive, 1 - additive
-	// dim 1 is directly a cullType_t enum value.
-	// dim 2 is a polygon offset value (0 - off, 1 - on).
-#ifdef USE_LEGACY_DLIGHTS
-	uint32_t dlight_pipelines[2][3][2];
-#endif
-
-	// cullType[3], polygonOffset[2], fogStage[2], absLight[2]
-#ifdef USE_PMLIGHT
-	uint32_t dlight_pipelines_x[3][2][2][2];
-	uint32_t dlight1_pipelines_x[3][2][2][2];
-#endif
-
-	// debug visualization pipelines
-	uint32_t tris_debug_pipeline;
-	uint32_t tris_mirror_debug_pipeline;
-	uint32_t tris_debug_green_pipeline;
-	uint32_t tris_mirror_debug_green_pipeline;
-	uint32_t tris_debug_red_pipeline;
-	uint32_t tris_mirror_debug_red_pipeline;
-
-	uint32_t normals_debug_pipeline;
-	uint32_t surface_debug_pipeline_solid;
-	uint32_t surface_debug_pipeline_outline;
-	uint32_t images_debug_pipeline;
-	uint32_t images_debug_pipeline2;
-	uint32_t surface_beam_pipeline;
-	uint32_t surface_axis_pipeline;
-	uint32_t dot_pipeline;
 
 	VkPipeline gamma_pipeline;
 	VkPipeline capture_pipeline;

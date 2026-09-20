@@ -21,6 +21,244 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 
+rendererPipelines_t r_pipelines;
+
+void R_InitBuiltinPipelines( void ) {
+	unsigned int state_bits;
+	rhiPipelineDesc_t def;
+
+	// skybox
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.shader_type = TYPE_SIGNLE_TEXTURE_FIXED_COLOR;
+		def.color.rgb = (unsigned char)( tr.identityLightByte );
+		def.color.alpha = (unsigned char)( tr.identityLightByte );
+		def.face_culling = CT_FRONT_SIDED;
+		def.polygon_offset = qfalse;
+		def.mirror = qfalse;
+		r_pipelines.skybox_pipeline = RHI_FindPipeline( 0, &def, qtrue );
+	}
+
+	// stencil shadows
+	{
+		cullType_t cull_types[2] = { CT_FRONT_SIDED, CT_BACK_SIDED };
+		qboolean mirror_flags[2] = { qfalse, qtrue };
+		int i, j;
+
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.polygon_offset = qfalse;
+		def.state_bits = 0;
+		def.shader_type = TYPE_SIGNLE_TEXTURE;
+		def.shadow_phase = SHADOW_EDGES;
+
+		for ( i = 0; i < 2; i++ ) {
+			def.face_culling = cull_types[i];
+			for ( j = 0; j < 2; j++ ) {
+				def.mirror = mirror_flags[j];
+				r_pipelines.shadow_volume_pipelines[i][j] = RHI_FindPipeline( 0, &def, r_shadows->integer ? qtrue : qfalse );
+			}
+		}
+	}
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.face_culling = CT_FRONT_SIDED;
+		def.polygon_offset = qfalse;
+		def.state_bits = GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO;
+		def.shader_type = TYPE_SIGNLE_TEXTURE;
+		def.mirror = qfalse;
+		def.shadow_phase = SHADOW_FS_QUAD;
+		def.primitives = TRIANGLE_STRIP;
+		r_pipelines.shadow_finish_pipeline = RHI_FindPipeline( 0, &def, r_shadows->integer ? qtrue : qfalse );
+	}
+
+	// fog and dlights
+	{
+		unsigned int fog_state_bits[2] = {
+			GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_EQUAL, // fogPass == FP_EQUAL
+			GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA // fogPass == FP_LE
+		};
+		unsigned int dlight_state_bits[2] = {
+			GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL, // modulated
+			GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL // additive
+		};
+		qboolean polygon_offset[2] = { qfalse, qtrue };
+		int i, j, k;
+#ifdef USE_PMLIGHT
+		int l;
+#endif
+
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.shader_type = TYPE_SIGNLE_TEXTURE;
+		def.mirror = qfalse;
+
+		for ( i = 0; i < 2; i++ ) {
+			unsigned fog_state = fog_state_bits[i];
+			unsigned dlight_state = dlight_state_bits[i];
+
+			for ( j = 0; j < 3; j++ ) {
+				def.face_culling = (cullType_t)( j ); // cullType_t value
+
+				for ( k = 0; k < 2; k++ ) {
+					def.polygon_offset = polygon_offset[k];
+#ifdef USE_FOG_ONLY
+					def.shader_type = TYPE_FOG_ONLY;
+#else
+					def.shader_type = TYPE_SIGNLE_TEXTURE;
+#endif
+					def.state_bits = fog_state;
+					r_pipelines.fog_pipelines[i][j][k] = RHI_FindPipeline( 0, &def, qtrue );
+
+					def.shader_type = TYPE_SIGNLE_TEXTURE;
+					def.state_bits = dlight_state;
+#ifdef USE_LEGACY_DLIGHTS
+#ifdef USE_PMLIGHT
+					r_pipelines.dlight_pipelines[i][j][k] = RHI_FindPipeline( 0, &def, r_dlightMode->integer == 0 ? qtrue : qfalse );
+#else
+					r_pipelines.dlight_pipelines[i][j][k] = RHI_FindPipeline( 0, &def, qtrue );
+#endif
+#endif
+				}
+			}
+		}
+
+#ifdef USE_PMLIGHT
+		def.state_bits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL;
+		//def.shader_type = TYPE_SIGNLE_TEXTURE_LIGHTING;
+		for ( i = 0; i < 3; i++ ) { // cullType
+			def.face_culling = (cullType_t)( i );
+			for ( j = 0; j < 2; j++ ) { // polygonOffset
+				def.polygon_offset = polygon_offset[j];
+				for ( k = 0; k < 2; k++ ) {
+					def.fog_stage = k; // fogStage
+					for ( l = 0; l < 2; l++ ) {
+						def.abs_light = l;
+						def.shader_type = TYPE_SIGNLE_TEXTURE_LIGHTING;
+						r_pipelines.dlight_pipelines_x[i][j][k][l] = RHI_FindPipeline( 0, &def, qfalse );
+						def.shader_type = TYPE_SIGNLE_TEXTURE_LIGHTING_LINEAR;
+						r_pipelines.dlight1_pipelines_x[i][j][k][l] = RHI_FindPipeline( 0, &def, qfalse );
+					}
+				}
+			}
+		}
+#endif // USE_PMLIGHT
+	}
+
+	// RT_BEAM surface
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
+		def.face_culling = CT_FRONT_SIDED;
+		def.primitives = TRIANGLE_STRIP;
+		r_pipelines.surface_beam_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+	}
+
+	// axis for missing models
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = GLS_DEFAULT;
+		def.shader_type = TYPE_SIGNLE_TEXTURE;
+		def.face_culling = CT_TWO_SIDED;
+		def.primitives = LINE_LIST;
+		if ( RHI_GetCapabilities().wideLines )
+			def.line_width = 3;
+		r_pipelines.surface_axis_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+	}
+
+	// flare visibility test dot
+	if ( RHI_GetCapabilities().fragmentStores ) {
+		Com_Memset( &def, 0, sizeof( def ) );
+		//def.state_bits = GLS_DEFAULT;
+		def.face_culling = CT_TWO_SIDED;
+		def.shader_type = TYPE_DOT;
+		def.primitives = POINT_LIST;
+		r_pipelines.dot_pipeline = RHI_FindPipeline( 0, &def, qtrue );
+	}
+
+	// DrawTris()
+	state_bits = GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE;
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = state_bits;
+		def.shader_type = TYPE_COLOR_WHITE;
+		def.face_culling = CT_FRONT_SIDED;
+		r_pipelines.tris_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+	}
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = state_bits;
+		def.shader_type = TYPE_COLOR_WHITE;
+		def.face_culling = CT_BACK_SIDED;
+		r_pipelines.tris_mirror_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+	}
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = state_bits;
+		def.shader_type = TYPE_COLOR_GREEN;
+		def.face_culling = CT_FRONT_SIDED;
+		r_pipelines.tris_debug_green_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+	}
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = state_bits;
+		def.shader_type = TYPE_COLOR_GREEN;
+		def.face_culling = CT_BACK_SIDED;
+		r_pipelines.tris_mirror_debug_green_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+	}
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = state_bits;
+		def.shader_type = TYPE_COLOR_RED;
+		def.face_culling = CT_FRONT_SIDED;
+		r_pipelines.tris_debug_red_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+	}
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = state_bits;
+		def.shader_type = TYPE_COLOR_RED;
+		def.face_culling = CT_BACK_SIDED;
+		r_pipelines.tris_mirror_debug_red_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+	}
+
+	// DrawNormals()
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = GLS_DEPTHMASK_TRUE;
+		def.shader_type = TYPE_SIGNLE_TEXTURE;
+		def.primitives = LINE_LIST;
+		r_pipelines.normals_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+	}
+
+	// RB_DebugPolygon()
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
+		def.shader_type = TYPE_SIGNLE_TEXTURE;
+		r_pipelines.surface_debug_pipeline_solid = RHI_FindPipeline( 0, &def, qfalse );
+	}
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
+		def.shader_type = TYPE_SIGNLE_TEXTURE;
+		def.primitives = LINE_LIST;
+		r_pipelines.surface_debug_pipeline_outline = RHI_FindPipeline( 0, &def, qfalse );
+	}
+
+	// RB_ShowImages
+	{
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.state_bits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+		def.shader_type = TYPE_SIGNLE_TEXTURE;
+		def.primitives = TRIANGLE_STRIP;
+		r_pipelines.images_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+
+		def.state_bits = GLS_DEPTHTEST_DISABLE;
+		def.shader_type = TYPE_COLOR_BLACK;
+		def.primitives = TRIANGLE_STRIP;
+		r_pipelines.images_debug_pipeline2 = RHI_FindPipeline( 0, &def, qfalse );
+	}
+}
+
+
 // tr_shader.c -- this file deals with the parsing and definition of shaders
 
 static char *s_shaderText;
@@ -559,7 +797,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text ) {
 
 			if ( !Q_stricmp( token, "screenMap" ) ) {
 				flags = IMGFLAG_NONE;
-				if ( vk.fboActive ) {
+				if ( RHI_GetCapabilities().fboActive ) {
 					stage->bundle[0].isScreenMap = 1;
 					shader.hasScreenMap = 1;
 				}
@@ -2100,7 +2338,7 @@ static int CollapseMultitexture( unsigned int st0bits, shaderStage_t *st0, shade
 	Com_Memset( st0 + num_stages - 1, 0, sizeof( stages[0] ) );
 
 #ifdef USE_VULKAN
-	if ( vk.maxBoundDescriptorSets >= 8 && num_stages >= 3 && !st0->mtEnv3 ) {
+	if ( RHI_GetCapabilities().maxBoundDescriptorSets >= 8 && num_stages >= 3 && !st0->mtEnv3 ) {
 		if ( mtEnv == GL_BLEND_ONE_MINUS_ALPHA || mtEnv == GL_BLEND_ALPHA || mtEnv == GL_BLEND_MIX_ALPHA || mtEnv == GL_BLEND_MIX_ONE_MINUS_ALPHA || mtEnv == GL_BLEND_DST_COLOR_SRC_ALPHA ) {
 			// pass original state bits so recursive detection will work for these shaders
 			return 1 + CollapseMultitexture( st0bits, st0, st1, num_stages - 1 );
@@ -3062,7 +3300,7 @@ static shader_t *FinishShader( void ) {
 #ifdef USE_VULKAN
 
 #ifdef USE_FOG_COLLAPSE
-	if ( vk.maxBoundDescriptorSets >= 6 && !( shader.contentFlags & CONTENTS_FOG ) && shader.fogPass != FP_NONE ) {
+	if ( RHI_GetCapabilities().maxBoundDescriptorSets >= 6 && !( shader.contentFlags & CONTENTS_FOG ) && shader.fogPass != FP_NONE ) {
 		fogCollapse = qtrue;
 		if ( stage == 1 ) {
 			// we can always fog-collapse single-stage shaders

@@ -339,7 +339,7 @@ static void R_LightScaleTexture( byte *in, int inwidth, int inheight, qboolean o
 
 	if ( only_gamma ) {
 #ifdef USE_VULKAN
-		if ( !glConfig.deviceSupportsGamma && !vk.fboActive )
+		if ( !glConfig.deviceSupportsGamma && !RHI_GetCapabilities().fboActive )
 #else
 		if ( !glConfig.deviceSupportsGamma )
 #endif
@@ -365,7 +365,7 @@ static void R_LightScaleTexture( byte *in, int inwidth, int inheight, qboolean o
 		c = inwidth * inheight;
 
 #ifdef USE_VULKAN
-		if ( glConfig.deviceSupportsGamma || vk.fboActive )
+		if ( glConfig.deviceSupportsGamma || RHI_GetCapabilities().fboActive )
 #else
 		if ( glConfig.deviceSupportsGamma )
 #endif
@@ -1582,7 +1582,7 @@ void R_SetColorMappings( void ) {
 
 	// never overbright in windowed mode
 #ifdef USE_VULKAN
-	if ( !glConfig.isFullscreen && r_overBrightBits->integer >= 0 && !vk.fboActive ) {
+	if ( !glConfig.isFullscreen && r_overBrightBits->integer >= 0 && !RHI_GetCapabilities().fboActive ) {
 #else
 	if ( !glConfig.isFullscreen && r_overBrightBits->integer >= 0 ) {
 #endif
@@ -1590,7 +1590,7 @@ void R_SetColorMappings( void ) {
 		applyGamma = qfalse;
 	} else {
 #ifdef USE_VULKAN
-		if ( !glConfig.deviceSupportsGamma && !vk.fboActive ) {
+		if ( !glConfig.deviceSupportsGamma && !RHI_GetCapabilities().fboActive ) {
 #else
 		if ( !glConfig.deviceSupportsGamma ) {
 #endif
@@ -1648,7 +1648,7 @@ void R_SetColorMappings( void ) {
 
 #ifdef USE_VULKAN
 	if ( gls.deviceSupportsGamma ) {
-		if ( vk.fboActive )
+		if ( RHI_GetCapabilities().fboActive )
 			ri.GLimp_SetGamma( s_gammatable_linear, s_gammatable_linear, s_gammatable_linear );
 		else {
 			if ( applyGamma ) {

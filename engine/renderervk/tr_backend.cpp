@@ -1231,7 +1231,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 	}
 
 	vk_bind_index();
-	RHI_BindPipeline( vk.surface_debug_pipeline_solid );
+	RHI_BindPipeline( r_pipelines.surface_debug_pipeline_solid );
 	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
 
@@ -1245,7 +1245,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 	tess.numVertexes = numPoints * 2;
 	tess.numIndexes = 0;
 
-	RHI_BindPipeline( vk.surface_debug_pipeline_outline );
+	RHI_BindPipeline( r_pipelines.surface_debug_pipeline_outline );
 	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 );
 	vk_draw_geometry( DEPTH_RANGE_ZERO, qfalse );
 	tess.numVertexes = 0;
@@ -1377,7 +1377,7 @@ static const void *RB_DrawBuffer( const void *data ) {
 	// force depth range and viewport/scissor updates
 	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
 
-	if ( r_clear->integer && vk.clearAttachment ) {
+	if ( r_clear->integer && RHI_GetCapabilities().clearAttachment ) {
 		const vec4_t color = { 1, 0, 0.5, 1 };
 		backEnd.projection2D = qtrue; // to ensure we have viewport that occupies entire window
 		vk_clear_color( color );
@@ -1447,7 +1447,7 @@ void RB_ShowImages( void ) {
 	tess.xyz[3][0] = (float)glConfig.vidWidth;
 	tess.xyz[3][1] = (float)glConfig.vidHeight;
 
-	RHI_BindPipeline( vk.images_debug_pipeline2 );
+	RHI_BindPipeline( r_pipelines.images_debug_pipeline2 );
 	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
 
@@ -1478,7 +1478,7 @@ void RB_ShowImages( void ) {
 		tess.xyz[3][1] = y + h;
 
 		GL_Bind( image );
-		RHI_BindPipeline( vk.images_debug_pipeline );
+		RHI_BindPipeline( r_pipelines.images_debug_pipeline );
 		vk_bind_geometry( TESS_XYZ );
 		vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
 	}

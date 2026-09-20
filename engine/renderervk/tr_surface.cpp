@@ -448,7 +448,7 @@ static void RB_SurfaceBeam( void ) {
 	}
 	tess.numVertexes = ( NUM_BEAM_SEGS + 1 ) * 2;
 
-	RHI_BindPipeline( vk.surface_beam_pipeline );
+	RHI_BindPipeline( r_pipelines.surface_beam_pipeline );
 	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
 
@@ -1314,7 +1314,7 @@ static void RB_SurfaceAxis( void ) {
 
 	tess.numVertexes = 6;
 
-	RHI_BindPipeline( vk.surface_axis_pipeline );
+	RHI_BindPipeline( r_pipelines.surface_axis_pipeline );
 	// TODO: use common layout and avoid ST0 binding?
 	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );

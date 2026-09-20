@@ -56,6 +56,14 @@ static void VKAPI_CALL destroy_view( VkDevice, VkImageView view, const VkAllocat
 }
 
 int main( void ) {
+	assert( !RHI_GetCapabilities().active );
+	vk.active = vk.wideLines = vk.fragmentStores = vk.clearAttachment = vk.fboActive = vk.offscreenRender = qtrue;
+	vk.maxBoundDescriptorSets = 8;
+	const rhiCapabilities_t caps = RHI_GetCapabilities();
+	assert( caps.active && caps.wideLines && caps.fragmentStores && caps.clearAttachment && caps.fboActive && caps.offscreenRender && caps.maxBoundDescriptorSets == 8 );
+	vk.pipelines_count = 92;
+	RHI_MarkWorldPipelines();
+	assert( vk.pipelines_world_base == 92 );
 	byte storage[512];
 	byte uniform[128];
 	memset( storage, 0xa5, sizeof( storage ) );

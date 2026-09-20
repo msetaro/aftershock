@@ -553,12 +553,12 @@ static void InitOpenGL( void ) {
 	}
 
 #ifdef USE_VULKAN
-	if ( !vk.active ) {
+	if ( !RHI_GetCapabilities().active ) {
 		// might happen after REF_KEEP_WINDOW
 		vk_initialize();
 		gls.initTime = ri.Milliseconds();
 	}
-	if ( vk.active ) {
+	if ( RHI_GetCapabilities().active ) {
 		vk_init_descriptors();
 	} else {
 		ri.Error( ERR_FATAL, "Recursive error during Vulkan initialization" );
@@ -1860,7 +1860,8 @@ void R_Init( void ) {
 	VarInfo();
 
 #ifdef USE_VULKAN
-	vk_create_pipelines();
+	R_InitBuiltinPipelines();
+	RHI_MarkWorldPipelines();
 #endif
 
 	R_InitShaders();
