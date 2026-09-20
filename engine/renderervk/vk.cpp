@@ -138,7 +138,7 @@ static PFN_vkDebugMarkerSetObjectNameEXT qvkDebugMarkerSetObjectNameEXT;
 ////////////////////////////////////////////////////////////////////////////
 
 // forward declaration
-VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassIndex, uint32_t def_index );
+VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPassIndex, uint32_t def_index );
 
 static uint32_t find_memory_type( uint32_t memory_type_bits, VkMemoryPropertyFlags properties ) {
 	VkPhysicalDeviceMemoryProperties memory_properties;
@@ -2291,7 +2291,7 @@ void vk_update_uniform_descriptor( VkDescriptorSet descriptor, VkBuffer buffer )
 
 	info.buffer = buffer;
 	info.offset = 0;
-	info.range = sizeof( vkUniform_t );
+	info.range = sizeof( shaderUniform_t );
 
 	desc.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	desc.dstSet = descriptor;
@@ -2951,7 +2951,7 @@ static void vk_create_shader_modules( void ) {
 
 static void vk_alloc_persistent_pipelines( void ) {
 	unsigned int state_bits;
-	Vk_Pipeline_Def def;
+	rhiPipelineDesc_t def;
 
 	// skybox
 	{
@@ -2962,7 +2962,7 @@ static void vk_alloc_persistent_pipelines( void ) {
 		def.face_culling = CT_FRONT_SIDED;
 		def.polygon_offset = qfalse;
 		def.mirror = qfalse;
-		vk.skybox_pipeline = vk_find_pipeline_ext( 0, &def, qtrue );
+		vk.skybox_pipeline = RHI_FindPipeline( 0, &def, qtrue );
 	}
 
 	// stencil shadows
@@ -2981,7 +2981,7 @@ static void vk_alloc_persistent_pipelines( void ) {
 			def.face_culling = cull_types[i];
 			for ( j = 0; j < 2; j++ ) {
 				def.mirror = mirror_flags[j];
-				vk.shadow_volume_pipelines[i][j] = vk_find_pipeline_ext( 0, &def, r_shadows->integer ? qtrue : qfalse );
+				vk.shadow_volume_pipelines[i][j] = RHI_FindPipeline( 0, &def, r_shadows->integer ? qtrue : qfalse );
 			}
 		}
 	}
@@ -2994,7 +2994,7 @@ static void vk_alloc_persistent_pipelines( void ) {
 		def.mirror = qfalse;
 		def.shadow_phase = SHADOW_FS_QUAD;
 		def.primitives = TRIANGLE_STRIP;
-		vk.shadow_finish_pipeline = vk_find_pipeline_ext( 0, &def, r_shadows->integer ? qtrue : qfalse );
+		vk.shadow_finish_pipeline = RHI_FindPipeline( 0, &def, r_shadows->integer ? qtrue : qfalse );
 	}
 
 	// fog and dlights
@@ -3032,15 +3032,15 @@ static void vk_alloc_persistent_pipelines( void ) {
 					def.shader_type = TYPE_SIGNLE_TEXTURE;
 #endif
 					def.state_bits = fog_state;
-					vk.fog_pipelines[i][j][k] = vk_find_pipeline_ext( 0, &def, qtrue );
+					vk.fog_pipelines[i][j][k] = RHI_FindPipeline( 0, &def, qtrue );
 
 					def.shader_type = TYPE_SIGNLE_TEXTURE;
 					def.state_bits = dlight_state;
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
-					vk.dlight_pipelines[i][j][k] = vk_find_pipeline_ext( 0, &def, r_dlightMode->integer == 0 ? qtrue : qfalse );
+					vk.dlight_pipelines[i][j][k] = RHI_FindPipeline( 0, &def, r_dlightMode->integer == 0 ? qtrue : qfalse );
 #else
-					vk.dlight_pipelines[i][j][k] = vk_find_pipeline_ext( 0, &def, qtrue );
+					vk.dlight_pipelines[i][j][k] = RHI_FindPipeline( 0, &def, qtrue );
 #endif
 #endif
 				}
@@ -3059,9 +3059,9 @@ static void vk_alloc_persistent_pipelines( void ) {
 					for ( l = 0; l < 2; l++ ) {
 						def.abs_light = l;
 						def.shader_type = TYPE_SIGNLE_TEXTURE_LIGHTING;
-						vk.dlight_pipelines_x[i][j][k][l] = vk_find_pipeline_ext( 0, &def, qfalse );
+						vk.dlight_pipelines_x[i][j][k][l] = RHI_FindPipeline( 0, &def, qfalse );
 						def.shader_type = TYPE_SIGNLE_TEXTURE_LIGHTING_LINEAR;
-						vk.dlight1_pipelines_x[i][j][k][l] = vk_find_pipeline_ext( 0, &def, qfalse );
+						vk.dlight1_pipelines_x[i][j][k][l] = RHI_FindPipeline( 0, &def, qfalse );
 					}
 				}
 			}
@@ -3075,7 +3075,7 @@ static void vk_alloc_persistent_pipelines( void ) {
 		def.state_bits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
 		def.face_culling = CT_FRONT_SIDED;
 		def.primitives = TRIANGLE_STRIP;
-		vk.surface_beam_pipeline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.surface_beam_pipeline = RHI_FindPipeline( 0, &def, qfalse );
 	}
 
 	// axis for missing models
@@ -3087,7 +3087,7 @@ static void vk_alloc_persistent_pipelines( void ) {
 		def.primitives = LINE_LIST;
 		if ( vk.wideLines )
 			def.line_width = 3;
-		vk.surface_axis_pipeline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.surface_axis_pipeline = RHI_FindPipeline( 0, &def, qfalse );
 	}
 
 	// flare visibility test dot
@@ -3097,7 +3097,7 @@ static void vk_alloc_persistent_pipelines( void ) {
 		def.face_culling = CT_TWO_SIDED;
 		def.shader_type = TYPE_DOT;
 		def.primitives = POINT_LIST;
-		vk.dot_pipeline = vk_find_pipeline_ext( 0, &def, qtrue );
+		vk.dot_pipeline = RHI_FindPipeline( 0, &def, qtrue );
 	}
 
 	// DrawTris()
@@ -3107,42 +3107,42 @@ static void vk_alloc_persistent_pipelines( void ) {
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_WHITE;
 		def.face_culling = CT_FRONT_SIDED;
-		vk.tris_debug_pipeline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.tris_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_WHITE;
 		def.face_culling = CT_BACK_SIDED;
-		vk.tris_mirror_debug_pipeline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.tris_mirror_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_GREEN;
 		def.face_culling = CT_FRONT_SIDED;
-		vk.tris_debug_green_pipeline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.tris_debug_green_pipeline = RHI_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_GREEN;
 		def.face_culling = CT_BACK_SIDED;
-		vk.tris_mirror_debug_green_pipeline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.tris_mirror_debug_green_pipeline = RHI_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_RED;
 		def.face_culling = CT_FRONT_SIDED;
-		vk.tris_debug_red_pipeline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.tris_debug_red_pipeline = RHI_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_RED;
 		def.face_culling = CT_BACK_SIDED;
-		vk.tris_mirror_debug_red_pipeline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.tris_mirror_debug_red_pipeline = RHI_FindPipeline( 0, &def, qfalse );
 	}
 
 	// DrawNormals()
@@ -3151,7 +3151,7 @@ static void vk_alloc_persistent_pipelines( void ) {
 		def.state_bits = GLS_DEPTHMASK_TRUE;
 		def.shader_type = TYPE_SIGNLE_TEXTURE;
 		def.primitives = LINE_LIST;
-		vk.normals_debug_pipeline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.normals_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
 	}
 
 	// RB_DebugPolygon()
@@ -3159,14 +3159,14 @@ static void vk_alloc_persistent_pipelines( void ) {
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
 		def.shader_type = TYPE_SIGNLE_TEXTURE;
-		vk.surface_debug_pipeline_solid = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.surface_debug_pipeline_solid = RHI_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
 		def.shader_type = TYPE_SIGNLE_TEXTURE;
 		def.primitives = LINE_LIST;
-		vk.surface_debug_pipeline_outline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.surface_debug_pipeline_outline = RHI_FindPipeline( 0, &def, qfalse );
 	}
 
 	// RB_ShowImages
@@ -3175,12 +3175,12 @@ static void vk_alloc_persistent_pipelines( void ) {
 		def.state_bits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
 		def.shader_type = TYPE_SIGNLE_TEXTURE;
 		def.primitives = TRIANGLE_STRIP;
-		vk.images_debug_pipeline = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.images_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
 
 		def.state_bits = GLS_DEPTHTEST_DISABLE;
 		def.shader_type = TYPE_COLOR_BLACK;
 		def.primitives = TRIANGLE_STRIP;
-		vk.images_debug_pipeline2 = vk_find_pipeline_ext( 0, &def, qfalse );
+		vk.images_debug_pipeline2 = RHI_FindPipeline( 0, &def, qfalse );
 	}
 }
 
@@ -3981,7 +3981,7 @@ void vk_initialize( void ) {
 	vk.cmd = vk.tess + 0;
 	vk.timestampPeriod = props.limits.timestampPeriod;
 	vk.uniform_alignment = (uint32_t)( props.limits.minUniformBufferOffsetAlignment );
-	vk.uniform_item_size = PAD( (uint32_t)sizeof( vkUniform_t ), vk.uniform_alignment );
+	vk.uniform_item_size = PAD( (uint32_t)sizeof( shaderUniform_t ), vk.uniform_alignment );
 
 	// for flare visibility tests
 	vk.storage_alignment = (uint32_t)( MAX( props.limits.minStorageBufferOffsetAlignment, sizeof( uint32_t ) ) );
@@ -5691,7 +5691,7 @@ static void push_attr( uint32_t location, uint32_t binding, VkFormat format ) {
 }
 
 
-VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassIndex, uint32_t def_index ) {
+VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPassIndex, uint32_t def_index ) {
 	VkShaderModule *vs_module = NULL;
 	VkShaderModule *fs_module = NULL;
 	//int32_t vert_spec_data[1]; // clippping
@@ -6671,7 +6671,7 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 }
 
 
-static uint32_t vk_alloc_pipeline( const Vk_Pipeline_Def *def ) {
+static uint32_t vk_alloc_pipeline( const rhiPipelineDesc_t *def ) {
 	VK_Pipeline_t *pipeline;
 	if ( vk.pipelines_count >= MAX_VK_PIPELINES ) {
 		ri.Error( ERR_DROP, "alloc_pipeline: MAX_VK_PIPELINES reached" );
@@ -6703,8 +6703,8 @@ VkPipeline vk_gen_pipeline( uint32_t index ) {
 }
 
 
-uint32_t vk_find_pipeline_ext( uint32_t base, const Vk_Pipeline_Def *def, qboolean use ) {
-	const Vk_Pipeline_Def *cur_def;
+uint32_t RHI_FindPipeline( uint32_t base, const rhiPipelineDesc_t *def, bool use ) {
+	const rhiPipelineDesc_t *cur_def;
 	uint32_t index;
 
 	for ( index = base; index < vk.pipelines_count; index++ ) {
@@ -6724,7 +6724,7 @@ found:
 }
 
 
-void vk_get_pipeline_def( uint32_t pipeline, Vk_Pipeline_Def *def ) {
+void RHI_GetPipelineDesc( uint32_t pipeline, rhiPipelineDesc_t *def ) {
 	if ( pipeline >= vk.pipelines_count ) {
 		Com_Memset( def, 0, sizeof( *def ) );
 	} else {
@@ -6747,7 +6747,7 @@ static void get_viewport_rect( VkRect2D *r ) {
 	}
 }
 
-static void get_viewport( VkViewport *viewport, Vk_Depth_Range depth_range ) {
+static void get_viewport( VkViewport *viewport, rhiDepthRange_t depth_range ) {
 	VkRect2D r;
 
 	get_viewport_rect( &r );
@@ -7151,7 +7151,7 @@ void vk_bind_lighting( int stage, int bundle ) {
 
 
 uint32_t RHI_UploadUniform( const void *data, uint32_t size ) {
-	if ( !vk.cmd || !data || size > sizeof( vkUniform_t ) )
+	if ( !vk.cmd || !data || size > sizeof( shaderUniform_t ) )
 		return RHI_INVALID_OFFSET;
 
 	const uint32_t offset = vk.cmd->uniform_read_offset = PAD( vk.cmd->vertex_buffer_offset, vk.uniform_alignment );
@@ -7221,7 +7221,7 @@ void vk_bind_descriptor_sets( void ) {
 }
 
 
-void vk_bind_pipeline( uint32_t pipeline ) {
+void RHI_BindPipeline( uint32_t pipeline ) {
 	VkPipeline vkpipe;
 
 	vkpipe = vk_gen_pipeline( pipeline );
@@ -7234,7 +7234,7 @@ void vk_bind_pipeline( uint32_t pipeline ) {
 	vk_world.dirty_depth_attachment |= ( vk.pipelines[pipeline].def.state_bits & GLS_DEPTHMASK_TRUE );
 }
 
-static void vk_update_depth_range( Vk_Depth_Range depth_range ) {
+static void vk_update_depth_range( rhiDepthRange_t depth_range ) {
 	if ( vk.cmd->depth_range != depth_range ) {
 		VkRect2D scissor_rect;
 		VkViewport viewport;
@@ -7254,7 +7254,7 @@ static void vk_update_depth_range( Vk_Depth_Range depth_range ) {
 }
 
 
-void vk_draw_geometry( Vk_Depth_Range depth_range, qboolean indexed ) {
+void vk_draw_geometry( rhiDepthRange_t depth_range, qboolean indexed ) {
 
 	if ( vk.geometry_buffer_size_new ) {
 		// geometry buffer overflow happened this frame

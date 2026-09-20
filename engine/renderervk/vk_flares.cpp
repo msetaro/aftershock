@@ -345,7 +345,7 @@ static void RB_TestFlare( flare_t *f ) {
 		vk_reset_descriptor( i );
 	}
 	// render test dot
-	vk_bind_pipeline( vk.dot_pipeline );
+	RHI_BindPipeline( vk.dot_pipeline );
 	vk_bind_geometry( TESS_XYZ );
 	vk_draw_dot( offset );
 

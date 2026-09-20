@@ -36,7 +36,8 @@ GPU: alignment, exact bytes, binding offsets, exhaustion and independent frame s
 The stub reports unavailable and is never linked into a client. All CMake client
 builds compile it; the two unit CI compilers also run the contract checks.
 The RHI is being extracted in stages under #6; this currently covers uploads,
-textures and statistics, not a completed second renderer. Texture checks preserve
+textures, pipeline descriptions, command/wait boundaries and timings, not a
+completed second renderer. Texture checks preserve
 all five format/three address mappings and binding/destruction behavior. Demo runs retain `gfxinfo`/`vkinfo`
 measurements and report host wall time including startup; these are not GPU timings.
 `python3 tests/demo.py --measure-gpu` first runs the unchanged frame gate, then

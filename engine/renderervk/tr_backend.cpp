@@ -1231,7 +1231,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 	}
 
 	vk_bind_index();
-	vk_bind_pipeline( vk.surface_debug_pipeline_solid );
+	RHI_BindPipeline( vk.surface_debug_pipeline_solid );
 	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
 
@@ -1245,7 +1245,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 	tess.numVertexes = numPoints * 2;
 	tess.numIndexes = 0;
 
-	vk_bind_pipeline( vk.surface_debug_pipeline_outline );
+	RHI_BindPipeline( vk.surface_debug_pipeline_outline );
 	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 );
 	vk_draw_geometry( DEPTH_RANGE_ZERO, qfalse );
 	tess.numVertexes = 0;
@@ -1447,7 +1447,7 @@ void RB_ShowImages( void ) {
 	tess.xyz[3][0] = (float)glConfig.vidWidth;
 	tess.xyz[3][1] = (float)glConfig.vidHeight;
 
-	vk_bind_pipeline( vk.images_debug_pipeline2 );
+	RHI_BindPipeline( vk.images_debug_pipeline2 );
 	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
 
@@ -1478,7 +1478,7 @@ void RB_ShowImages( void ) {
 		tess.xyz[3][1] = y + h;
 
 		GL_Bind( image );
-		vk_bind_pipeline( vk.images_debug_pipeline );
+		RHI_BindPipeline( vk.images_debug_pipeline );
 		vk_bind_geometry( TESS_XYZ );
 		vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
 	}

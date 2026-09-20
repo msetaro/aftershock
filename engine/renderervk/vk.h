@@ -47,114 +47,6 @@
 #define VK_DESC_FOG_ONLY     VK_DESC_TEXTURE1
 #define VK_DESC_FOG_DLIGHT   VK_DESC_TEXTURE1
 
-typedef enum {
-	TYPE_COLOR_BLACK,
-	TYPE_COLOR_WHITE,
-	TYPE_COLOR_GREEN,
-	TYPE_COLOR_RED,
-	TYPE_FOG_ONLY,
-	TYPE_DOT,
-
-	TYPE_SIGNLE_TEXTURE_LIGHTING,
-	TYPE_SIGNLE_TEXTURE_LIGHTING_LINEAR,
-
-	TYPE_SIGNLE_TEXTURE_DF,
-
-	TYPE_GENERIC_BEGIN, // start of non-env/env shader pairs
-	TYPE_SIGNLE_TEXTURE = TYPE_GENERIC_BEGIN,
-	TYPE_SIGNLE_TEXTURE_ENV,
-
-	TYPE_SIGNLE_TEXTURE_IDENTITY,
-	TYPE_SIGNLE_TEXTURE_IDENTITY_ENV,
-
-	TYPE_SIGNLE_TEXTURE_FIXED_COLOR,
-	TYPE_SIGNLE_TEXTURE_FIXED_COLOR_ENV,
-
-	TYPE_SIGNLE_TEXTURE_ENT_COLOR,
-	TYPE_SIGNLE_TEXTURE_ENT_COLOR_ENV,
-
-	TYPE_MULTI_TEXTURE_ADD2_IDENTITY,
-	TYPE_MULTI_TEXTURE_ADD2_IDENTITY_ENV,
-	TYPE_MULTI_TEXTURE_MUL2_IDENTITY,
-	TYPE_MULTI_TEXTURE_MUL2_IDENTITY_ENV,
-
-	TYPE_MULTI_TEXTURE_ADD2_FIXED_COLOR,
-	TYPE_MULTI_TEXTURE_ADD2_FIXED_COLOR_ENV,
-	TYPE_MULTI_TEXTURE_MUL2_FIXED_COLOR,
-	TYPE_MULTI_TEXTURE_MUL2_FIXED_COLOR_ENV,
-
-	TYPE_MULTI_TEXTURE_MUL2,
-	TYPE_MULTI_TEXTURE_MUL2_ENV,
-	TYPE_MULTI_TEXTURE_ADD2_1_1,
-	TYPE_MULTI_TEXTURE_ADD2_1_1_ENV,
-	TYPE_MULTI_TEXTURE_ADD2,
-	TYPE_MULTI_TEXTURE_ADD2_ENV,
-
-	TYPE_MULTI_TEXTURE_MUL3,
-	TYPE_MULTI_TEXTURE_MUL3_ENV,
-	TYPE_MULTI_TEXTURE_ADD3_1_1,
-	TYPE_MULTI_TEXTURE_ADD3_1_1_ENV,
-	TYPE_MULTI_TEXTURE_ADD3,
-	TYPE_MULTI_TEXTURE_ADD3_ENV,
-
-	TYPE_BLEND2_ADD,
-	TYPE_BLEND2_ADD_ENV,
-	TYPE_BLEND2_MUL,
-	TYPE_BLEND2_MUL_ENV,
-	TYPE_BLEND2_ALPHA,
-	TYPE_BLEND2_ALPHA_ENV,
-	TYPE_BLEND2_ONE_MINUS_ALPHA,
-	TYPE_BLEND2_ONE_MINUS_ALPHA_ENV,
-	TYPE_BLEND2_MIX_ALPHA,
-	TYPE_BLEND2_MIX_ALPHA_ENV,
-
-	TYPE_BLEND2_MIX_ONE_MINUS_ALPHA,
-	TYPE_BLEND2_MIX_ONE_MINUS_ALPHA_ENV,
-
-	TYPE_BLEND2_DST_COLOR_SRC_ALPHA,
-	TYPE_BLEND2_DST_COLOR_SRC_ALPHA_ENV,
-
-	TYPE_BLEND3_ADD,
-	TYPE_BLEND3_ADD_ENV,
-	TYPE_BLEND3_MUL,
-	TYPE_BLEND3_MUL_ENV,
-	TYPE_BLEND3_ALPHA,
-	TYPE_BLEND3_ALPHA_ENV,
-	TYPE_BLEND3_ONE_MINUS_ALPHA,
-	TYPE_BLEND3_ONE_MINUS_ALPHA_ENV,
-	TYPE_BLEND3_MIX_ALPHA,
-	TYPE_BLEND3_MIX_ALPHA_ENV,
-	TYPE_BLEND3_MIX_ONE_MINUS_ALPHA,
-	TYPE_BLEND3_MIX_ONE_MINUS_ALPHA_ENV,
-
-	TYPE_BLEND3_DST_COLOR_SRC_ALPHA,
-	TYPE_BLEND3_DST_COLOR_SRC_ALPHA_ENV,
-
-	TYPE_GENERIC_END = TYPE_BLEND3_MIX_ONE_MINUS_ALPHA_ENV
-
-} Vk_Shader_Type;
-
-// used with cg_shadows == 2
-typedef enum {
-	SHADOW_DISABLED,
-	SHADOW_EDGES,
-	SHADOW_FS_QUAD,
-} Vk_Shadow_Phase;
-
-typedef enum {
-	TRIANGLE_LIST = 0,
-	TRIANGLE_STRIP,
-	LINE_LIST,
-	POINT_LIST
-} Vk_Primitive_Topology;
-
-typedef enum {
-	DEPTH_RANGE_NORMAL, // [0..1]
-	DEPTH_RANGE_ZERO, // [0..0]
-	DEPTH_RANGE_ONE, // [1..1]
-	DEPTH_RANGE_WEAPON, // [0..0.3]
-	DEPTH_RANGE_COUNT
-} Vk_Depth_Range;
 
 typedef struct {
 	VkSamplerAddressMode address_mode; // clamp/repeat texture addressing mode
@@ -171,50 +63,12 @@ typedef enum {
 	RENDER_PASS_COUNT
 } renderPass_t;
 
-typedef struct {
-	Vk_Shader_Type shader_type;
-	unsigned int state_bits; // GLS_XXX flags
-	cullType_t face_culling;
-	qboolean polygon_offset;
-	qboolean mirror;
-	Vk_Shadow_Phase shadow_phase;
-	Vk_Primitive_Topology primitives;
-	int line_width;
-	int fog_stage; // off, fog-in / fog-out
-	int abs_light;
-	int allow_discard;
-	int acff; // none, rgb, rgba, alpha
-	struct {
-		byte rgb;
-		byte alpha;
-	} color;
-} Vk_Pipeline_Def;
 
 typedef struct VK_Pipeline {
-	Vk_Pipeline_Def def;
+	rhiPipelineDesc_t def;
 	VkPipeline handle[RENDER_PASS_COUNT];
 } VK_Pipeline_t;
 
-// this structure must be in sync with shader uniforms!
-typedef struct vkUniform_s {
-	// light/env parameters:
-	vec4_t eyePos; // vertex
-	union {
-		struct {
-			vec4_t pos; // vertex: light origin
-			vec4_t color; // fragment: rgb + 1/(r*r)
-			vec4_t vector; // fragment: linear dynamic light
-		} light;
-		struct {
-			vec4_t color[3]; // ent.color[3]
-		} ent;
-	};
-	// fog parameters:
-	vec4_t fogDistanceVector; // vertex
-	vec4_t fogDepthVector; // vertex
-	vec4_t fogEyeT; // vertex
-	vec4_t fogColor; // fragment
-} vkUniform_t;
 
 #define TESS_XYZ   (1)
 #define TESS_RGBA0 (2)
@@ -256,8 +110,6 @@ void vk_queue_wait_idle( void );
 void vk_update_attachment_descriptors( void );
 void vk_destroy_samplers( void );
 
-uint32_t vk_find_pipeline_ext( uint32_t base, const Vk_Pipeline_Def *def, qboolean use );
-void vk_get_pipeline_def( uint32_t pipeline, Vk_Pipeline_Def *def );
 
 void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_t height );
 void vk_create_pipelines( void );
@@ -274,12 +126,11 @@ void vk_present_frame( void );
 
 void vk_begin_main_render_pass( void );
 
-void vk_bind_pipeline( uint32_t pipeline );
 void vk_bind_index( void );
 void vk_bind_index_ext( const int numIndexes, const uint32_t *indexes );
 void vk_bind_geometry( uint32_t flags );
 void vk_bind_lighting( int stage, int bundle );
-void vk_draw_geometry( Vk_Depth_Range depth_range, qboolean indexed );
+void vk_draw_geometry( rhiDepthRange_t depth_range, qboolean indexed );
 void vk_draw_dot( uint32_t storage_offset );
 
 void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height ); // screenshots
@@ -338,7 +189,7 @@ typedef struct vk_tess_s {
 		uint32_t offset[1]; // 0 (uniform)
 	} descriptor_set;
 
-	Vk_Depth_Range depth_range;
+	rhiDepthRange_t depth_range;
 	VkPipeline last_pipeline;
 
 	uint32_t num_indexes; // value from most recent vk_bind_index() call

@@ -62,6 +62,18 @@ uint32_t RHI_GetTimings( const rhiTiming_t **timings ) {
 	return 0;
 }
 
+uint32_t RHI_FindPipeline( uint32_t, const rhiPipelineDesc_t *, bool ) {
+	return UINT32_MAX;
+}
+
+void RHI_GetPipelineDesc( uint32_t, rhiPipelineDesc_t *desc ) {
+	*desc = {};
+}
+
+void RHI_BindPipeline( uint32_t ) {
+	abort();
+}
+
 #ifdef RHI_STUB_CHECK
 int main( void ) {
 	const rhiStats_t stats = RHI_GetStats();

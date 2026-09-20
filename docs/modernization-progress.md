@@ -17,12 +17,15 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Continue #6 draft PR #140 on `issue/6-rhi`, based on integration e82eb43b.
-Uniform uploads/statistics and texture ownership have been extracted. Next extract
-command submission/device statuses, then pipeline and frame state; preserve the
-measured frame/resource baselines. Keep accepted fixtures and frame goldens.
-The thin RHI and compile-only alternative backend must pass the design's build,
-replay and lifecycle gates before retiring OpenGL. Continue #7 and the remaining
-#25 sequence after #6 is accepted. All writes/PRs stay in msetaro/aftershock.
+Uploads, textures, wait statuses, initial commands, GPU scopes and portable pipeline
+descriptions have been extracted. Next remove graphics SDK types from the platform
+import boundary and complete frame/buffer/pipeline ownership. The independent
+acquisition fix is PR #141 (`issue/31-vulkan-acquire`, head 7382d9af, test-first
+ea17a6ba), running build 35484485400 and regression 35484485349. Merge that #31 PR
+only after gates/self-review, then merge modernization into this branch; do not
+apply its engine correction directly in #6. Keep accepted fixtures/frame goldens.
+GL retirement and frontend moves follow the complete RHI/lifecycle acceptance.
+Then continue #7 and the remaining #25 sequence; all writes stay in this repo.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -107,6 +110,20 @@ Texture 401d8b74 full build 35483644058 and regression 35483644047 passed.
 Command/status 2b43a0bb full build 35483786166 passed; regression 35483786169 is
 pending final status verification. The implementation stays on draft PR #140 while the remaining RHI
 boundary and acceptance work proceeds.
+
+Pipeline description slice: engine-owned shader IDs, shadow/topology/depth modes,
+cull mode and state bits now live in the SDK-independent public RHI header. The
+cache key retains its 52-byte/4-byte layout and four-byte boolean fields. Find,
+get-description and bind operations are public RHI entry points. Uniform layout
+is renderer-owned (128 bytes, alignment 4; fog fields at offsets 64 and 112), and
+uploads remain opaque bytes. No shader bytes, state values or arithmetic changed.
+GCC/Clang contract checks, format/type/boundary checks and fixed replay pass;
+all four resource snapshots retain the original counts (rhi-pipelines.log).
+
+GPU scopes checkpoint 21b44a9c passed full build 35484267291 and regression
+35484267381, including hosted real-clock OpenArena measurements. Prior command
+checkpoint 2b43a0bb also passed full build 35483786166/regression 35483786169.
+All #6 implementation remains unmerged in draft PR #140.
 
 ## Final #8 verification
 

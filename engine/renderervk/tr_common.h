@@ -46,11 +46,29 @@ typedef enum {
 	IMGFLAG_COLORSHIFT = 0x0200,
 } imgFlags_t;
 
-typedef enum {
-	CT_FRONT_SIDED = 0,
-	CT_BACK_SIDED,
-	CT_TWO_SIDED
-} cullType_t;
+
+// this structure must be in sync with shader uniforms!
+typedef struct shaderUniform_s {
+	// light/env parameters:
+	vec4_t eyePos; // vertex
+	union {
+		struct {
+			vec4_t pos; // vertex: light origin
+			vec4_t color; // fragment: rgb + 1/(r*r)
+			vec4_t vector; // fragment: linear dynamic light
+		} light;
+		struct {
+			vec4_t color[3]; // ent.color[3]
+		} ent;
+	};
+	// fog parameters:
+	vec4_t fogDistanceVector; // vertex
+	vec4_t fogDepthVector; // vertex
+	vec4_t fogEyeT; // vertex
+	vec4_t fogColor; // fragment
+} shaderUniform_t;
+static_assert( sizeof( shaderUniform_t ) == 128 && alignof( shaderUniform_t ) == 4 );
+static_assert( offsetof( shaderUniform_t, fogDistanceVector ) == 64 && offsetof( shaderUniform_t, fogColor ) == 112 );
 
 typedef struct image_s image_t;
 

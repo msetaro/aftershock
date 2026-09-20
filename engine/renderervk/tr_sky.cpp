@@ -420,7 +420,7 @@ static void DrawSkySide( image_t *image, const int mins[2], const int maxs[2] ) 
 #ifdef USE_VULKAN
 		tess.svars.texcoordPtr[0] = tess.texCoords[0];
 
-		vk_bind_pipeline( vk.skybox_pipeline );
+		RHI_BindPipeline( vk.skybox_pipeline );
 		vk_bind_index();
 		vk_bind_geometry( TESS_XYZ | TESS_ST0 );
 		vk_draw_geometry( r_showsky->integer ? DEPTH_RANGE_ZERO : DEPTH_RANGE_ONE, qtrue );

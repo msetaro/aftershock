@@ -141,7 +141,7 @@ static void DrawTris( const shaderCommands_t *input ) {
 			pipeline = backEnd.viewParms.portalView == PV_MIRROR ? vk.tris_mirror_debug_pipeline : vk.tris_debug_pipeline;
 	}
 
-	vk_bind_pipeline( pipeline );
+	RHI_BindPipeline( pipeline );
 	vk_draw_geometry( DEPTH_RANGE_ZERO, qtrue );
 
 #else
@@ -202,7 +202,7 @@ static void DrawNormals( const shaderCommands_t *input [[maybe_unused]] ) {
 	tess.numVertexes *= 2;
 	Com_Memset( tess.svars.colors[0][0].rgba, tr.identityLightByte, tess.numVertexes * sizeof( color4ub_t ) );
 
-	vk_bind_pipeline( vk.normals_debug_pipeline );
+	RHI_BindPipeline( vk.normals_debug_pipeline );
 	vk_bind_index();
 	vk_bind_geometry( TESS_XYZ | TESS_ST0 | TESS_RGBA0 );
 	vk_draw_geometry( DEPTH_RANGE_ZERO, qtrue );
@@ -516,7 +516,7 @@ static void ProjectDlightTexture( void ) {
 			rebindIndex = qtrue;
 		}
 		pipeline = vk.dlight_pipelines[dl->additive > 0 ? 1 : 0][tess.shader->cullType][tess.shader->polygonOffset];
-		vk_bind_pipeline( pipeline );
+		RHI_BindPipeline( pipeline );
 		vk_bind_index_ext( numIndexes, hitIndexes );
 		vk_bind_geometry( TESS_RGBA0 | TESS_ST0 );
 		vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
@@ -543,8 +543,8 @@ static void ProjectDlightTexture( void ) {
 
 #endif // USE_LEGACY_DLIGHTS
 
-void VK_SetFogParams( vkUniform_t *uniform, int *fogStage );
-static vkUniform_t uniform;
+void VK_SetFogParams( shaderUniform_t *uniform, int *fogStage );
+static shaderUniform_t uniform;
 
 /*
 ===================
@@ -560,7 +560,7 @@ static void RB_FogPass( qboolean rebindIndex ) {
 	int fog_stage;
 
 	// fog parameters
-	vk_bind_pipeline( pipeline );
+	RHI_BindPipeline( pipeline );
 	if ( rebindIndex ) {
 		vk_bind_index();
 	}
@@ -580,7 +580,7 @@ static void RB_FogPass( qboolean rebindIndex ) {
 	tess.svars.texcoordPtr[0] = tess.svars.texcoords[0];
 	GL_Bind( tr.fogImage );
 
-	vk_bind_pipeline( pipeline );
+	RHI_BindPipeline( pipeline );
 	if ( rebindIndex ) {
 		vk_bind_index();
 	}
@@ -991,7 +991,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 			pipeline = pStage->vk_pipeline[fog_stage];
 		}
 
-		vk_bind_pipeline( pipeline );
+		RHI_BindPipeline( pipeline );
 		vk_bind_geometry( tess_flags );
 		vk_draw_geometry( tess.depthRange, qtrue );
 
@@ -1000,7 +1000,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 				pipeline = pStage->vk_mirror_pipeline_df;
 			else
 				pipeline = pStage->vk_pipeline_df;
-			vk_bind_pipeline( pipeline );
+			RHI_BindPipeline( pipeline );
 			vk_draw_geometry( tess.depthRange, qtrue );
 		}
 #else
@@ -1058,7 +1058,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 
 #ifdef USE_VULKAN
 
-void VK_SetFogParams( vkUniform_t *params, int *fogStage ) {
+void VK_SetFogParams( shaderUniform_t *params, int *fogStage ) {
 	if ( tess.fogNum && tess.shader->fogPass ) {
 		const fogProgramParms_t *fp = RB_CalcFogProgramParms();
 		// vertex data
@@ -1080,7 +1080,7 @@ void VK_SetFogParams( vkUniform_t *params, int *fogStage ) {
 
 
 #ifdef USE_PMLIGHT
-static void VK_SetLightParams( vkUniform_t *params, const dlight_t *dl ) {
+static void VK_SetLightParams( shaderUniform_t *params, const dlight_t *dl ) {
 	float radius;
 
 #ifdef USE_VULKAN
@@ -1177,7 +1177,7 @@ void VK_LightingPass( void ) {
 		R_ComputeTexCoords( tess.shader->lightingBundle, &pStage->bundle[tess.shader->lightingBundle] );
 	}
 
-	vk_bind_pipeline( pipeline );
+	RHI_BindPipeline( pipeline );
 	vk_bind_index();
 	vk_bind_lighting( tess.shader->lightingStage, tess.shader->lightingBundle );
 	vk_draw_geometry( tess.depthRange, qtrue );

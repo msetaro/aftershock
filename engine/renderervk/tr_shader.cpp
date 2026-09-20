@@ -3118,7 +3118,7 @@ static shader_t *FinishShader( void ) {
 	shader.tessFlags = TESS_XYZ;
 
 	{
-		Vk_Pipeline_Def def;
+		rhiPipelineDesc_t def;
 
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.face_culling = shader.cullType;
@@ -3307,7 +3307,7 @@ static shader_t *FinishShader( void ) {
 
 			if ( env_mask == 1 && !pStage->depthFragment ) {
 				if ( def.shader_type >= TYPE_GENERIC_BEGIN && def.shader_type <= TYPE_GENERIC_END ) {
-					def.shader_type = (Vk_Shader_Type)( def.shader_type + 1 ); // switch to *_ENV version
+					def.shader_type = (rhiShader_t)( def.shader_type + 1 ); // switch to *_ENV version
 					shader.tessFlags |= TESS_NNN | TESS_VPOS;
 					pStage->tessFlags &= ~TESS_ST0;
 					pStage->tessFlags |= TESS_ENV;
@@ -3316,34 +3316,34 @@ static shader_t *FinishShader( void ) {
 			}
 
 			def.mirror = qfalse;
-			pStage->vk_pipeline[0] = vk_find_pipeline_ext( 0, &def, qtrue );
+			pStage->vk_pipeline[0] = RHI_FindPipeline( 0, &def, qtrue );
 			def.mirror = qtrue;
-			pStage->vk_mirror_pipeline[0] = vk_find_pipeline_ext( 0, &def, qfalse );
+			pStage->vk_mirror_pipeline[0] = RHI_FindPipeline( 0, &def, qfalse );
 
 			if ( pStage->depthFragment ) {
 				def.mirror = qfalse;
 				def.shader_type = TYPE_SIGNLE_TEXTURE_DF;
-				pStage->vk_pipeline_df = vk_find_pipeline_ext( 0, &def, qtrue );
+				pStage->vk_pipeline_df = RHI_FindPipeline( 0, &def, qtrue );
 				def.mirror = qtrue;
 				def.shader_type = TYPE_SIGNLE_TEXTURE_DF;
-				pStage->vk_mirror_pipeline_df = vk_find_pipeline_ext( 0, &def, qfalse );
+				pStage->vk_mirror_pipeline_df = RHI_FindPipeline( 0, &def, qfalse );
 			}
 
 #ifdef USE_FOG_COLLAPSE
 			if ( fogCollapse && tr.numFogs > 0 ) {
-				Vk_Pipeline_Def fogDef;
-				Vk_Pipeline_Def def_mirror;
+				rhiPipelineDesc_t fogDef;
+				rhiPipelineDesc_t def_mirror;
 
-				vk_get_pipeline_def( pStage->vk_pipeline[0], &fogDef );
-				vk_get_pipeline_def( pStage->vk_mirror_pipeline[0], &def_mirror );
+				RHI_GetPipelineDesc( pStage->vk_pipeline[0], &fogDef );
+				RHI_GetPipelineDesc( pStage->vk_mirror_pipeline[0], &def_mirror );
 
 				fogDef.fog_stage = 1;
 				def_mirror.fog_stage = 1;
 				fogDef.acff = pStage->bundle[0].adjustColorsForFog;
 				def_mirror.acff = pStage->bundle[0].adjustColorsForFog;
 
-				pStage->vk_pipeline[1] = vk_find_pipeline_ext( 0, &fogDef, qfalse );
-				pStage->vk_mirror_pipeline[1] = vk_find_pipeline_ext( 0, &def_mirror, qfalse );
+				pStage->vk_pipeline[1] = RHI_FindPipeline( 0, &fogDef, qfalse );
+				pStage->vk_mirror_pipeline[1] = RHI_FindPipeline( 0, &def_mirror, qfalse );
 
 				pStage->bundle[0].adjustColorsForFog = ACFF_NONE; // will be handled in shader from now
 
