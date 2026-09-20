@@ -133,6 +133,12 @@ Add a bounded history of actually advanced predicted states and compare all 56
 bytes when their authoritative ticks arrive; never count copied baseline states.
 Issue update: https://github.com/msetaro/aftershock/issues/11#issuecomment-5751395434
 
+The live prediction assertion now passes: 410 hand/tick acknowledgements matched
+all 56 previously predicted bytes, including 205 main-hand samples. Records are
+stored only after input replay advances beyond the snapshot baseline, and tagged
+with spawn/definition/attachments (weapons-prediction.log). Next: explicit event
+time for rewind and actual weapon damage, followed by the remaining integration.
+
 
 ## #12 implemented feature evidence
 

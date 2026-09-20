@@ -3,9 +3,16 @@
 static vmCvar_t weaponTrace;
 static weaponState_t predictedWeapons[2];
 static bool predictedWeaponValid[2];
+static struct {
+	bool valid;
+	uint32_t spawn;
+	int definition, attachments;
+	weaponState_t state;
+} weaponPredictionHistory[2][CMD_BACKUP];
 
 void CG_InitWeapons( void ) {
 	BG_ClearWeapons();
+	memset( weaponPredictionHistory, 0, sizeof( weaponPredictionHistory ) );
 	memset( predictedWeaponValid, 0, sizeof( predictedWeaponValid ) );
 	trap_Cvar_Register( &weaponTrace, "cg_weaponTrace", "0", 0 );
 	for ( int index = 0; index < int( WEAPON_MAX_DEFINITIONS ); ++index ) {
@@ -26,6 +33,10 @@ void CG_WeaponSnapshot( const entityState_t *entity ) {
 	uint32_t spawn;
 	if ( !BG_EntityStateToWeapon( entity, &state, &spawn ) || !BG_WeaponDefinition( entity->modelindex ) )
 		CG_Error( "Weapon rejected: snapshot record" );
+	const auto &previous = weaponPredictionHistory[entity->otherEntityNum2][( state.time / 20 ) % CMD_BACKUP];
+	if ( weaponTrace.integer && entity->otherEntityNum == cg.clientNum && previous.valid && previous.spawn == spawn &&
+		 previous.definition == entity->modelindex && previous.attachments == entity->modelindex2 && previous.state.time == state.time )
+		CG_Printf( "Weapon prediction: hand=%d tick=%u equal=%d\n", entity->otherEntityNum2, state.time, int( !memcmp( &state, &previous.state, sizeof( state ) ) ) );
 	trap_Cvar_Update( &weaponTrace );
 	if ( weaponTrace.integer )
 		CG_Printf( "Weapon client state: owner=%d hand=%d tick=%u sequence=%u magazine=%u reserve=%u chamber=%u ads=%u\n", entity->otherEntityNum,
@@ -52,6 +63,7 @@ void CG_PredictWeapons( void ) {
 		if ( !Weapon_Configure( BG_WeaponDefinition( entity.modelindex ), uint32_t( entity.modelindex2 ), &definition ) )
 			CG_Error( "Weapon rejected: snapshot definition" );
 		const int hand = entity.otherEntityNum2;
+		const uint32_t acknowledgedTime = state.time;
 		// When input history is missing, retain the authoritative state until an acknowledgement catches up.
 		if ( !cg.demoPlayback && !cg_nopredict.integer && !cg_synchronousClients.integer &&
 			 int32_t( uint32_t( oldest.serverTime ) - state.time ) <= 20 ) {
@@ -68,6 +80,14 @@ void CG_PredictWeapons( void ) {
 				weaponEvents_t events;
 				if ( !Weapon_Command( &definition, BG_WeaponButtons( &cmd, hand, &snapshot->ps ), uint32_t( cmd.serverTime ), &state, &events ) )
 					break;
+				if ( int32_t( state.time - acknowledgedTime ) > 0 ) {
+					auto &prediction = weaponPredictionHistory[hand][( state.time / 20 ) % CMD_BACKUP];
+					prediction.valid = true;
+					prediction.spawn = spawn;
+					prediction.definition = entity.modelindex;
+					prediction.attachments = entity.modelindex2;
+					prediction.state = state;
+				}
 			}
 		}
 		predictedWeapons[hand] = state;
