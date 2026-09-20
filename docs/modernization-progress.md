@@ -78,6 +78,15 @@ encoding; BC4 can use the BC5 red-channel blocks. Only BC7 needs a small pinned
 native encoder helper. The pinned bc7enc sources/license are staged in the
 persistent cache, not yet imported into the repository.
 
+The first implementation slice adds offline KTX2 BC7/BC5/BC4 encoding, linear
+premultiplied mip filtering, explicit sRGB/data descriptors, source hashes and an
+embedded content hash (computed with its own bytes zeroed). The pinned MIT BC7
+encoder has only two source files and is built as a separate cached CMake tool;
+Pillow supplies BC5, whose red blocks are BC4. The engine does not link this code.
+An independent feature check validates all three 16x16 mip chains and block sizes
+(cook-texture-check.log). The full CLI/model test still fails until the next slice.
+Native compressed-texture loading and hot reload are not yet implemented.
+
 ## #7 developer tooling checkpoint
 
 Implemented: optional ImGui console/cvars; texture/material/model inspection;
