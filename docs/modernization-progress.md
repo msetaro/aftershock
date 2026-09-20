@@ -17,11 +17,11 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Main checkout remains on issue/13-materials for draft PR #157. Its corrected head
-2ed8cf56a71124de7b096315d342ee206c1b7cc2 is running build 35544991054 and regression
-35544991093. Initial head be1a234e failed MSVC C4244; its superseded runs were
+2ed8cf56a71124de7b096315d342ee206c1b7cc2 passed all platform legs in build 35544991054; regression
+35544991093 still has runtime/lifetime gates running. Initial head be1a234e failed MSVC C4244; its superseded runs were
 cancelled and are not acceptance. All local final #13 gates/self-review passed.
 The extra level-tree worktree is preparatory issue/14-lighting, based on the same
-#13 head. No #14 implementation or acceptance yet. Merge modernization forward
+#13 head. The #14 failing directional-bake test is recorded below; no implementation or acceptance yet. Merge modernization forward
 after #13 exact-head and merged-tree gates pass; never rebase.
 
 #28 PR #156 merged as 646a63e82c0a74307d0e830ca6c626eca985ed60 after exact-head build
@@ -51,8 +51,8 @@ on the new PBR sort assignment (C4244 enum-to-float); all observed x64/ARM64
 failures have that same diagnostic. The explicit float cast is a build-only
 correction; require fresh exact-head build/regression and merged-tree regression
 before accepting #13. Initial regression 35544819530 is superseded, not acceptance.
-Unit and hosted-runtime commands, diagnostics and documentation are wired. #13 has no PR yet. No accepted
-fixture/shader bytes changed; no #13 acceptance before #28 integration passes.
+Unit and hosted-runtime commands, diagnostics and documentation are wired. No accepted
+fixture/shader bytes changed; #28 integration has passed.
 The new local implementation was started during #28's final lifetime gate, after
 the preparatory tests were committed, to avoid idle CI time. Keep issue scope and
 PR acceptance separate. Continue #25 after #13.
@@ -75,6 +75,31 @@ a connectivity/query smoke, not a repeated performance acceptance measurement.
 No system package, licensed pak copy or host display session was needed. Establish
 the stated resolution/quality/frame budget and repeated per-pass measurement before
 #14 acceptance. Existing Mesa goldens remain the deterministic rendering gate.
+
+## #14 initial failing directional-bake contract
+
+`python3 tests/lighting.py` fails before implementation with `missing or unknown
+fields: directional` (lighting-before.log). The new opt-in JSON field is
+`lighting.directional: true`; disabled/omitted output must retain the accepted
+MAP/BSP/AAS bytes. The full `--compile` gate will compare independent bakes,
+require paired intensity/model-space direction pages referenced by even surface
+indices, preserve the existing baked light-grid probes and validate AAS output.
+No new fixture or reference bytes are recorded.
+
+The pinned q3map2 2.5.17n-git-68ecbed already supports `-deluxe -deluxemode 0`.
+Its lightmaps_ydnar.cpp stores direction RGB immediately after each intensity page;
+light.cpp confirms the mode. Reuse that ordinary IBSP 46 representation, with an
+explicit `_aftershock_deluxe` worldspawn marker. A custom lighting container or
+new offline ray tracer is unnecessary. Runtime direction sampling and the rest of
+#14 still need implementation and tests; this bake contract alone is not acceptance.
+Source: https://github.com/Garux/netradiant-custom/blob/68ecbed/tools/quake3/q3map2/lightmaps_ydnar.cpp.
+
+Reference acceptance target is 1280x720 at 60 Hz on the recorded RTX 3080 Ti:
+16.67 ms total GPU frame, with initial budgets of 3 ms shadow maps, 1 ms SSAO,
+1 ms bloom, 10 ms main scene and 1.67 ms remaining work. Measure warm-frame
+median and p95 per pass, with actual shadowed q3dm17 and explicit quality values.
+These are targets, not measured acceptance or console-hardware claims. Software
+renderers continue to supply deterministic functional gates.
 
 ## #13 preparatory failing material contract
 
