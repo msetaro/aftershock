@@ -51,7 +51,7 @@ LAN_LoadCachedServers
 */
 static void LAN_LoadCachedServers( void ) {
 	fileHandle_t fileIn;
-	int size, file_size;
+	int32_t size, file_size;
 
 	cls.numglobalservers = cls.numfavoriteservers = 0;
 	cls.numGlobalServerAddresses = 0;
