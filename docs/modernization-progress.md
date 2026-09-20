@@ -97,7 +97,16 @@ agree (20 hits), 48 differ without rewind, median age 150 ms and prediction erro
 <=8.875 units (netcode-policy-received.log). The initial 128-byte trial did not
 exercise deferral, so the test retained its assertion and reduced the budget.
 Server status reports cumulative deferrals and mandatory-traffic overruns.
-Test-first commit 417e130f precedes implementation. Next: identity/service seams.
+Test-first commit 417e130f precedes implementation (52b73467).
+
+Identity seam test-first now fails on the absent sv_identity.cpp
+(netcode-identity-before.log). It requires anonymous/null behavior, asynchronous
+Steam verification, revocation/timeout cleanup, rejection of stale connection
+callbacks, immutable provider ownership once used, and generation-tagged browser
+and matchmaking results. #12 exposes bounded main-thread hooks; #23 supplies the
+SDK, ticket transport and platform UI. No null backend or claimed ID can report
+an authenticated identity. Provider hooks must be exercised through the actual
+server lifecycle, not just an isolated mock of the state machine.
 
 ## #10 accepted implementation
 
