@@ -19,7 +19,7 @@ upstream; historical upstream PR references below are completed past work.
 Current branch: `issue/151-loopback-deadline`, a test-only follow-up to #11.
 The cleanup check now passes: an ignoring child is killed/reaped after its grace
 period. The weapon deadline is 120 seconds inside a 240-second outer limit, and
---client-fps 20 provides the deliberately slow real-client control (running).
+--client-fps 20 provides the deliberately slow real-client control.
 The first slow run completed the whole scenario and teardown, then failed the
 100-FPS-specific median-age bound (200 ms observed vs 180 ms). Allow only the
 additional input/render interval, capped at the configured 200 ms rewind window;
@@ -27,8 +27,10 @@ retain the original bound for normal FPS. Hit/state/prediction checks are unchan
 The slow control passes and takes 54.0 seconds before its done marker (>45):
 301/301 shots agree, 22 hits, 49 uncompensated differences, median view age 200 ms,
 prediction error <=8.875, and 1511/1511 full weapon/animation comparisons. Cleanup
-also passes. The original default/classic scenario is being checked now. Then
-run full gates/self-review, merge #151's PR and require merged-tree regression.
+also passes. The original default/classic scenario passes in 17.7 seconds:
+329/329 shots agree, 21 hits, 42 uncompensated differences, median age 147 ms
+and prediction error <=8.875. Draft PR #152 contains the fix and self-review.
+Run full exact-head gates, merge #152 and require merged-tree regression.
 Do not close/check #11 until integration is green. No engine changes are needed.
 
 #11 PR #150 merged as 94a70b91f35acfa0636a7db473609b3aafde76e5. Its tree
