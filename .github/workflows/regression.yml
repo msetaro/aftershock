@@ -1,9 +1,9 @@
 name: regression
 on:
   pull_request:
-    branches: [modernization]
+    branches: [main]
   push:
-    branches: [modernization]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
