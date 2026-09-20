@@ -3296,3 +3296,13 @@ future #10 gameplay/replication/IK acceptance.
 #147 integration regression 35510058541 passed at 7f4d43a7. Both IQM fixes are
 accepted, known-bugs has no active entries, and ubsan.supp is empty. #31 is
 completed again; #10 native/runtime implementation may now begin after its tests.
+
+
+#10 native test-first extension: tests/probes/animation.cpp now specifies plain
+trivial runtime state/poses, masked and additive transform blending, reachable and
+clamped two-bone IK, look-at rotation, compressed-clip sampling through the cooked
+asset, timed state transitions and exactly-once bone-bound events. The driver
+compiles with strict FP and UBSan and runs the native probe before its incremental
+edit. The pre-implementation compile fails on the missing
+engine/animation/animation_public.h (animation-native-before.log). No runtime
+implementation exists at this checkpoint; commit these assertions first.

@@ -3,16 +3,32 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
+import shlex
 import struct
 import tempfile
 
 from cook import cook, source_assets
+from run import run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-animation'))
+parser.add_argument('--cc', default='gcc')
+parser.add_argument('--cxx', default='g++')
 args = parser.parse_args()
 args.output = args.output.resolve()
+args.output.mkdir(parents=True, exist_ok=True)
+os.environ['CXX'] = args.cxx
+sha_object = args.output / 'sha256.o'
+run([*shlex.split(args.cc), '-std=c99', '-O2', '-c',
+     'third_party/sha256/sha-256.c', '-o', sha_object])
+probe = args.output / 'native-probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-ffp-contract=off', '-fno-fast-math', '-Wall', '-Wextra', '-Werror',
+     '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/animation.cpp', 'engine/animation/animation.cpp', sha_object,
+     '-o', probe])
 fixture = Path(__file__).resolve().parent / 'assets/animation'
 provenance = json.loads((fixture / 'provenance.json').read_text())
 for name, expected in provenance['files'].items():
@@ -54,6 +70,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-source-') as tempo
     manifest = json.loads((args.output / 'animations/rig.manifest.json').read_text())
     assert {'rig.animation.json', 'rig.gltf', 'rig.bin'} <= {item['path'] for item in manifest['inputs']}
     assert cook(project, args.output)['built'] == []
+    run([probe, binary])
     definition['transitions'][0]['blend_ms'] = 250
     graph.write_text(json.dumps(definition))
     result = cook(project, args.output)
