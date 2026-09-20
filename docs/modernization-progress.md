@@ -31,10 +31,9 @@ checkpoint; its PR still must not open until #146 merges and passes integration,
 so the eventual diff contains only the scale bug. Merge modernization forward at
 that point. No upstream PRs.
 
-Next: change JointToMatrix to scale columns, remove the cooker's temporary
-rejection, and verify analytical native/glTF pose parity plus unchanged accepted
-demo hashes. Add the permanent command to CI/AGENTS/README, document the fix and
-self-review. After both #31 bugs are accepted, continue #10 and the remaining #25
+The scale fix and local verification are complete below. Next: finish #146 gates,
+merge it and require its integration regression; merge modernization forward here,
+then open/gate this separate scale PR. Its own hosted gates remain mandatory. After both #31 bugs are accepted, continue #10 and the remaining #25
 roadmap. Never regenerate accepted fixtures for these fixes.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
@@ -3183,3 +3182,27 @@ inverse bind T(0,-1,0); the engine-basis final vertices must be (0,0,0), (-1,0,3
 Both pre-fix runs fail at the first matrix point assertion. Evidence:
 iqm-scale-before.log and iqm-scale-parity-before.log. No engine scale change has
 been applied at this test/merge checkpoint.
+
+## #31 rotated-scale fix and local verification
+
+JointToMatrix changes the six off-diagonal scale indices to multiply columns,
+so local scale precedes rotation. Both callers (bind construction and animated
+pose sampling) use this shared correction. The cooker drops the temporary
+native_local rejection and uses its existing decompose helper. The CI unit legs,
+AGENTS and tests README now include tests/iqm_scale.py; the general cooker check
+accepts the formerly blocked owned nonuniform source.
+
+GCC and Clang/libc++ analytical matrix/inverse/native-glTF pose tests pass with
+UBSan, as do both complete cooker suites and formatting (415 owned files).
+Fixed Quake 3 demos replay twice per map with the accepted projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4 and unchanged
+fixture hashes. Evidence: iqm-scale-{after,clang,cook-gcc,cook-clang,format,demo}.log.
+No accepted artifact was regenerated. The new valid source case uses analytical
+expected positions; no sanitizer suppression or expected-failure entry exists.
+
+Self-review: one existing numerical bug, failing tests before implementation,
+no unrelated refactor. The shared helper fixes both affected paths. No gameplay
+simulation expression, allocator, OS call, destructor or ABI/layout changes.
+Only renderer transform coefficients change; uniform-scale paths and accepted
+replays retain their outputs. Exact-head hosted build/regression, the preceding
+#146 integration gate, and this PR's merged-tree regression remain required.

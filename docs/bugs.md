@@ -914,7 +914,7 @@ projection remains 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1d
 No golden changes are needed because only reporting metadata changes. This is
 not a sanitizer finding and has no expected-failure or UBSan suppression entry.
 
-## Open: IQM rotated nonuniform joint scale (#31, discovered during #9)
+## Fixed: IQM rotated nonuniform joint scale (#31, discovered during #9)
 
 `JointToMatrix` in engine/render/tr_model_iqm.cpp multiplies rotation rows by
 scale. A native joint with quaternion `(0,0,sqrt(0.5),sqrt(0.5))`, translation
@@ -930,3 +930,19 @@ axis-aligned joint scales remain supported, as do baked static transforms.
 After #9, fix this separately from the allocation accounting bug, remove the
 cooker diagnostic and prove native/glTF pose agreement. No engine matrix
 arithmetic is changed by #9.
+
+
+Fixed on issue/31-iqm-joint-scale: JointToMatrix now multiplies matrix columns
+by the matching local-axis scale, preserving scale-then-rotate order for both
+bind loading and animated poses. Test-first commits 13f999df/e2cd9e50 fail on
+the first analytical point before the fix; `python3 tests/iqm_scale.py` now passes
+under GCC and Clang/libc++ with UBSan. It covers all axes, signed/nonuniform/unit
+scales, inverse products and an owned cooked glTF pose whose native vertices must
+match independent analytical coordinates. The cooker can remove its temporary
+rejection and reuse ordinary TRS decomposition.
+
+Full cooker checks pass on both compilers; fixed Quake 3 replays retain projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4. No accepted golden
+is regenerated: the corrected nonuniform case is newly tested analytically and
+existing replay frames remain identical. There is no known-bugs/UBSan suppression
+entry for this numerical correctness bug. It remains separate from accounting.

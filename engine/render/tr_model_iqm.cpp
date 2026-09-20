@@ -69,16 +69,17 @@ static void JointToMatrix( const quat_t rot, const vec3_t scale, const vec3_t tr
 	float wy = 2.0f * rot[3] * rot[1];
 	float wz = 2.0f * rot[3] * rot[2];
 
+	// Scale local axes (columns) before applying the joint rotation.
 	mat[0] = scale[0] * ( 1.0f - ( yy + zz ) );
-	mat[1] = scale[0] * ( xy - wz );
-	mat[2] = scale[0] * ( xz + wy );
+	mat[1] = scale[1] * ( xy - wz );
+	mat[2] = scale[2] * ( xz + wy );
 	mat[3] = trans[0];
-	mat[4] = scale[1] * ( xy + wz );
+	mat[4] = scale[0] * ( xy + wz );
 	mat[5] = scale[1] * ( 1.0f - ( xx + zz ) );
-	mat[6] = scale[1] * ( yz - wx );
+	mat[6] = scale[2] * ( yz - wx );
 	mat[7] = trans[1];
-	mat[8] = scale[2] * ( xz - wy );
-	mat[9] = scale[2] * ( yz + wx );
+	mat[8] = scale[0] * ( xz - wy );
+	mat[9] = scale[1] * ( yz + wx );
 	mat[10] = scale[2] * ( 1.0f - ( xx + yy ) );
 	mat[11] = trans[2];
 }

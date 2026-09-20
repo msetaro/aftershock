@@ -264,11 +264,10 @@ def main():
         assert result['built'] == [] and sorted(result['skipped']) == sorted(names)
         for name, (data, mtime) in before.items():
             assert (output / name).read_bytes() == data and (output / name).stat().st_mtime_ns == mtime
-        unsupported = home / 'nonuniform-project.json'
-        unsupported.write_text(json.dumps({'version': 1, 'assets': [
+        scaled = home / 'nonuniform-project.json'
+        scaled.write_text(json.dumps({'version': 1, 'assets': [
             {'name': 'models/scaled', 'kind': 'model', 'source': 'nonuniform.gltf'}]}))
-        rejected = subprocess.run([sys.executable, 'tools/cook', str(unsupported), '--output', str(home / 'unsupported')], cwd=ROOT, capture_output=True, text=True)
-        assert rejected.returncode != 0 and 'rotated nonuniform joint scale' in rejected.stderr
+        assert cook(scaled, home / 'nonuniform')['built'] == ['models/scaled']
         second = home / 'second'
         cook(project, second)
         for name, (data, _) in before.items():
