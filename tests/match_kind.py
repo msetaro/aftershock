@@ -34,6 +34,7 @@ ctl=[kubectl,'--kubeconfig',str(kubeconfig),'-n','aftershock-match']
 processes=[];streams=[];created=False
 
 def command(arguments,**kwargs):
+    kwargs.setdefault('timeout',30)
     return subprocess.run([str(x) for x in arguments],check=True,**kwargs)
 def document(arguments):
     return json.loads(command(arguments,stdout=subprocess.PIPE,text=True).stdout)
@@ -88,7 +89,7 @@ try:
             with tarfile.open(fileobj=archive,mode='w') as tar:
                 for pak in sorted(base.glob('*.pk3')):tar.add(pak.resolve(),arcname='baseoa/'+pak.name)
             archive.seek(0)
-            command([docker,'exec','-i',node,'tar','-xf','-','-C','/aftershock-ci'],stdin=archive)
+            command([docker,'exec','-i',node,'tar','-xf','-','-C','/aftershock-ci'],stdin=archive,timeout=120)
         log_run('resources.log',[*ctl,'apply','-f',manifests/'resources.json'])
         def ready():
             servers=document([*ctl,'get','gameservers','-o','json'])['items']

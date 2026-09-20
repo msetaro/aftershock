@@ -37,6 +37,16 @@ Do not regenerate accepted fixtures. Do not create upstream PRs. Keep credential
 and kubeconfig out of artifacts. All cluster tools are verified user-cache binaries;
 only newly created private Docker/Compose/kind resources may be removed.
 
+Combined #28/#155 local acceptance: /tmp/aftershock-match-combined builds both
+binaries; match-runtime-fixed.log passes a real OA native player with sv_pure=1,
+match-end exit and final acknowledged gRPC facts. The image rebuilt successfully
+(match-image-with-pure.log). The full random-cluster driver is running at
+/tmp/aftershock-match-kind-first; its private credentials are not artifacts.
+Go race/vet, owned content reproducibility and formatting pass. The new match-server
+job passes actionlint in isolation. Whole inherited workflow lint reports three
+pre-existing matrix.cc references in non-matrix jobs; this issue leaves those
+unrelated cache keys unchanged. No acceptance is claimed from that full lint run.
+
 ## #31 native pure self-review
 
 The only behavior change is replacing obsolete QVM pak expectations with explicit
