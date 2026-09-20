@@ -29,7 +29,7 @@ int main() {
 	shader_t shader = {};
 	shaderStage_t stage = {};
 	strcpy( shader.name, "test/material" );
-	shader.numUnfoggedPasses = 1;
+	shader.numUnfoggedPasses = 2;
 	shader.stages[0] = &stage;
 	stage.stateBits = 123;
 	stage.bundle[2].image[0] = &image;
@@ -37,7 +37,8 @@ int main() {
 	tr.numShaders = 1;
 	devMaterial_t material;
 	assert( RE_GetDeveloperMaterial( 0, &material ) );
-	assert( !strcmp( material.name, shader.name ) && material.stages == 1 );
+	assert( !strcmp( material.name, shader.name ) && material.stages == 2 );
+	assert( material.present[0] && !material.present[1] );
 	assert( material.stateBits[0] == 123 && material.textures[0][2] == 1 && material.textures[0][1] == 0 );
 	assert( !RE_GetDeveloperMaterial( -1, &material ) && !RE_GetDeveloperMaterial( 1, &material ) );
 	devGpuTiming_t timing[3];

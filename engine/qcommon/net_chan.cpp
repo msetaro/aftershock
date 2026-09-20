@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "q_shared.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 #include "qcommon_public.h"
 
 /*
@@ -649,6 +652,10 @@ void NET_FlushPacketQueue( int time_diff ) {
 
 
 void NET_SendPacket( netsrc_t sock, int length, const void *data, const netadr_t *to ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( sock == NS_CLIENT && length > 0 )
+		DevTools_Packet( true, (uint32_t)length );
+#endif
 
 	// sequenced packets are shown in netchan, so just show oob
 	if ( showpackets->integer && *(int32_t *)data == -1 ) {

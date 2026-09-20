@@ -151,4 +151,6 @@ assert len(samples) == 3 and samples[1][0] - samples[0][0] >= 60
 assert samples[0][2] == samples[1][2], 'idle UI made allocations after warmup'
 assert all(0 < sample[1] < 16777216 for sample in samples)
 assert samples[2][0] > samples[1][0] and text.count('Static ui loaded.') >= 3
+profiles = re.findall(r'Developer profile: cpu=(\d+) snapshots=(\d+) bits=(\d+)', text)
+assert len(profiles) == 3 and all(all(int(value) > 0 for value in row) for row in profiles)
 print('PASS: real mouse/key cvar edit, bounded UI memory, allocation-free idle frames and renderer restart')

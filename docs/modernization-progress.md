@@ -24,7 +24,8 @@ Initial console/cvar implementation ee822bab is in draft PR #143. Build
 OpenArena fixture requires the pinned OpenArena native game objects; the new
 driver linked Q3 game code. The working driver now reuses engine_objects from
 the existing replay gate. Validate hosted runtime after this correction, then
-complete CPU/network, entity, animation and collision/navigation/debug tooling. Keep all existing golden files.
+complete entity, animation and collision/navigation/debug tooling. The working
+CPU/network slice needs policy and hosted validation. Keep all existing golden files.
 
 Then complete #7, render-graph phase two #142, and the remaining #25 sequence.
 All writes stay in msetaro/aftershock. The separate-session scope and finished
@@ -40,6 +41,25 @@ normal / 8 MiB high geometry buffers, 2 MiB normal / 24 MiB high staging buffers
 Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
 
 ## #7 developer tooling checkpoint
+
+CPU scopes now use the existing platform microsecond clock, fixed 128-entry frame
+buffers, explicit begin/end tokens and generation checks. Incomplete scopes from
+longjmp are dropped. Core server/client, cgame and native game simulation are
+instrumented only in development builds. A small public game header also reports
+the already-computed prediction-error distance without changing its arithmetic.
+Client datagram counters, snapshot bit lengths and bandwidth are displayed with
+clear replay/transport limitations. Probe checks cover nesting, capacity, stale
+and duplicate tokens, backwards clock and disabled collection. Local real-input
+replay confirms live CPU/snapshot observations and the existing cvar/restart gate.
+
+Hosted second-slice runtime 35492842790 reached the UI but exposed a new inspector
+assumption: shaders with missing images can have null permanent stage pointers.
+GeneratePermanentShader stops copying at inactive stages; the new getter had
+assumed every reported pass had a pointer. The getter now preserves inactive-stage
+status, and the production-data probe covers that valid registry state. No loader
+or existing rendering behavior is changed. The prior full build passed; current
+hosted checks must be repeated after this new-feature correction.
+
 
 Next working slice adds read-only texture/material registries and previews, GPU
 scope/frame history, and tagged zone/hunk statistics. Production-code probes pass

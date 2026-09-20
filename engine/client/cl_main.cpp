@@ -2812,6 +2812,9 @@ void CL_PacketEvent( const netadr_t *from, msg_t *msg ) {
 		return;
 	}
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_Packet( false, (uint32_t)msg->cursize );
+#endif
 	if ( !CL_Netchan_Process( &clc.netchan, msg ) ) {
 		return; // out of order, duplicated, etc
 	}

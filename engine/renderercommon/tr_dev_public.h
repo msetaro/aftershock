@@ -33,6 +33,7 @@ struct devMaterial_t {
 	float sort;
 	int32_t stages, cull, surfaceFlags, contentFlags;
 	bool explicitDefinition, fallback;
+	bool present[8];
 	uint32_t stateBits[8];
 	uint32_t textures[8][3];
 };

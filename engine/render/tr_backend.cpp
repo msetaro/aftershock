@@ -2019,6 +2019,9 @@ bool RE_GetDeveloperMaterial( int index, devMaterial_t *material ) {
 	material->fallback = source->defaultShader != 0;
 	static_assert( MAX_SHADER_STAGES == 8 && NUM_TEXTURE_BUNDLES == 3 );
 	for ( int stage = 0; stage < source->numUnfoggedPasses; ++stage ) {
+		if ( !source->stages[stage] )
+			continue; // Missing-image stages are not instantiated by GeneratePermanentShader.
+		material->present[stage] = true;
 		material->stateBits[stage] = source->stages[stage]->stateBits;
 		for ( int bundle = 0; bundle < NUM_TEXTURE_BUNDLES; ++bundle ) {
 			const image_t *image = source->stages[stage]->bundle[bundle].image[0];

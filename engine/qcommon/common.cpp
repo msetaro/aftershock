@@ -3726,6 +3726,9 @@ void Com_Frame( qboolean noDelay ) {
 		return; // an ERR_DROP was thrown
 	}
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_BeginFrame( Cvar_VariableIntegerValue( "dev_tools" ) != 0 );
+#endif
 	minMsec = 0; // silent compiler warning
 
 	// bk001204 - init to zero.
@@ -3832,7 +3835,13 @@ void Com_Frame( qboolean noDelay ) {
 		timeBeforeServer = Sys_Milliseconds();
 	}
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	const uint64_t serverScope = Dev_BeginScope( "server" );
+#endif
 	SV_Frame( msec );
+#ifdef AFTERSHOCK_DEVTOOLS
+	Dev_EndScope( serverScope );
+#endif
 
 	// if "dedicated" has been modified, start up
 	// or shut down the client system.
@@ -3893,7 +3902,13 @@ void Com_Frame( qboolean noDelay ) {
 			timeBeforeClient = Sys_Milliseconds();
 		}
 
+#ifdef AFTERSHOCK_DEVTOOLS
+		const uint64_t clientScope = Dev_BeginScope( "client" );
+#endif
 		CL_Frame( msec, realMsec );
+#ifdef AFTERSHOCK_DEVTOOLS
+		Dev_EndScope( clientScope );
+#endif
 
 		if ( com_speeds->integer ) {
 			timeAfter = Sys_Milliseconds();

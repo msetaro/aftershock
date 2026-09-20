@@ -84,7 +84,7 @@ if(USE_CCACHE)
 endif()
 include(cmake/Sources.cmake)
 if(AFTERSHOCK_DEVTOOLS)
-  list(APPEND COMMON_SOURCES engine/devtools/dev_console.cpp)
+  list(APPEND COMMON_SOURCES engine/devtools/dev_console.cpp engine/devtools/dev_profile.cpp)
 endif()
 
 # The warning ratchet applies to owned code; vendored libraries keep their policy.

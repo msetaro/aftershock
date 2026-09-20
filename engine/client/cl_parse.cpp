@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_parse.c  -- parse a message received from the server
 
 #include "client.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 #include "../public/cg_native_public.h"
 #include "../public/ui_native_public.h"
 
@@ -196,6 +199,9 @@ for any reason, no changes to the state will be made at all.
 ================
 */
 static void CL_ParseSnapshot( msg_t *msg ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	const int snapshotStart = msg->bit;
+#endif
 	const clSnapshot_t *old;
 	clSnapshot_t newSnap;
 	int deltaNum;
@@ -275,6 +281,9 @@ static void CL_ParseSnapshot( msg_t *msg ) {
 	// read packet entities
 	SHOWNET( msg, "packet entities" );
 	CL_ParsePacketEntities( msg, old, &newSnap );
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_Snapshot( (uint32_t)MAX( 0, msg->bit - snapshotStart ), deltaNum != 0 );
+#endif
 
 	// if not valid, dump the entire thing now that it has
 	// been properly read

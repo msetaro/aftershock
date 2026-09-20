@@ -271,8 +271,8 @@ expected. A download/checksum/content failure fails CI.
 ImGui or tool symbols. Enable it with `dev_tools 1`; Escape closes it. The first
 slice provides console output/commands and cvar search, descriptions and live edit.
 Texture previews, material stages, completed GPU timings/frame history and
-tagged zone/hunk usage are also available. CPU/network, entity, animation and
-debug-world tooling remain incomplete. Enabled renderer
+tagged zone/hunk usage are also available. CPU scopes and client traffic/snapshot/prediction statistics are available;
+entity, animation and debug-world tooling remain incomplete. Enabled renderer
 modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
 
 `python3 tests/devtools.py` builds both variants, verifies symbols, then uses real
@@ -280,7 +280,7 @@ XTest input on a private Xvfb display to select/edit a cvar. It verifies 80 idle
 frames without further ImGui allocations, bounded arena use and video restart.
 It also opens each current inspector and captures its output.
 `python3 tests/devtools_data.py` checks real registry copies and allocator accounting
-without a GPU. It requires libX11, libXtst (`libxtst6` in hosted CI), xwininfo/xprop (`x11-utils`),
+without a GPU. The UI test requires libX11, libXtst (`libxtst6` in hosted CI), xwininfo/xprop (`x11-utils`),
 Xvfb and lavapipe. The window PID must belong to the launched client. Screenshots
 and logs stay under `--output`. `--binary` tests an existing development client;
 `--content openarena --data /tmp/aftershock-openarena-baseoa` selects hosted assets.
@@ -295,6 +295,14 @@ engine mutations occur after ImGui returns, outside vendor stack frames. Initial
 or interaction-driven UI allocations are distinct from the checked idle-frame path.
 Lifetime/tidy gates now cover shipping/development and static/module configurations.
 The primary build matrix enables tooling in Debug and excludes it in Release.
+
+`engine/public/dev_public.h` exposes explicit `Dev_BeginScope`/`Dev_EndScope` calls
+for engine-thread game code. Each frame holds at most 128 inclusive CPU scopes;
+unfinished or stale tokens are discarded on frame rollover. GPU samples come from
+completed frames without waiting. `Dev_PredictionError` observes the existing
+calculated distance; it changes no prediction arithmetic. Datagram payload totals
+exclude UDP/IP headers, and replay snapshots are explicitly distinct from traffic.
+All telemetry is absent from shipping and collects only while `dev_tools` is enabled.
 
 ## Runtime and fixed-demo oracle
 

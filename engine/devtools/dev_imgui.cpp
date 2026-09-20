@@ -27,6 +27,10 @@ static void Free( void *memory, void * ) {
 static void Status( void ) {
 	Com_Printf( "Developer tools: enabled=%i frames=%u arena=%" PRIz "u/16777216 allocations=%u\n",
 		enabled->integer, renderedFrames, Z_DevMemoryUsed(), allocations );
+	const devCpuTiming_t *timings;
+	const devNetwork_t *net = DevTools_Network();
+	Com_Printf( "Developer profile: cpu=%u snapshots=%" PRIu64 " bits=%u\n",
+		DevTools_CpuTimings( &timings ), net->snapshots, net->snapshotBits );
 }
 
 void DevTools_Init( void ) {
@@ -239,6 +243,10 @@ static void InspectAssets( const refexport_t *renderer ) {
 			ImGui::Text( "%s, %s", material.explicitDefinition ? "script defined" : "implicit",
 				material.fallback ? "fallback shader" : "loaded" );
 			for ( int stage = 0; stage < material.stages; ++stage ) {
+				if ( !material.present[stage] ) {
+					ImGui::Text( "Stage %d: inactive / missing image", stage );
+					continue;
+				}
 				ImGui::Text( "Stage %d state 0x%x", stage, material.stateBits[stage] );
 				for ( uint32_t texture : material.textures[stage] ) {
 					if ( texture )
@@ -281,16 +289,43 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed ) {
 	static float history[240];
 	static uint32_t cursor;
 	history[cursor++ % ARRAY_LEN( history )] = (float)elapsed;
+	const devNetwork_t *net = DevTools_Network();
+	static uint64_t previous[2], interval;
+	static double rate[2];
+	interval += elapsed;
+	if ( interval >= 1000 ) {
+		for ( int i = 0; i < 2; ++i ) {
+			rate[i] = (double)( net->bytes[i] - previous[i] ) * 1000.0 / (double)interval;
+			previous[i] = net->bytes[i];
+		}
+		interval = 0;
+	}
 	if ( !ImGui::BeginTabItem( "Profile" ) )
 		return;
 	ImGui::PlotLines( "Frame ms", history, ARRAY_LEN( history ), (int)( cursor % ARRAY_LEN( history ) ), nullptr, 0, 100, ImVec2( 0, 80 ) );
 	devGpuTiming_t timings[32];
 	const uint32_t count = renderer->GetDeveloperTimings( timings, ARRAY_LEN( timings ) );
+	const devCpuTiming_t *cpu;
+	const uint32_t cpuCount = DevTools_CpuTimings( &cpu );
+	ImGui::TextUnformatted( "Previous CPU frame (inclusive scopes)" );
+	for ( uint32_t i = 0; i < cpuCount; ++i )
+		ImGui::Text( "%s: %.3f ms", cpu[i].name, (double)cpu[i].microseconds / 1000.0 );
 	ImGui::TextUnformatted( "Completed GPU frame (no additional wait)" );
 	for ( uint32_t i = 0; i < count; ++i )
 		ImGui::Text( "%s: %.3f ms", timings[i].name, timings[i].microseconds / 1000.0 );
 	if ( !count )
 		ImGui::TextUnformatted( "GPU timestamp results unavailable" );
+	ImGui::Separator();
+	ImGui::Text( "Client RX/TX %.0f / %.0f bytes/s", rate[0], rate[1] );
+	ImGui::Text( "Packets %" PRIu64 " / %" PRIu64 "; last datagram %u / %u bytes",
+		net->packets[0], net->packets[1], net->lastPacket[0], net->lastPacket[1] );
+	ImGui::Text( "Snapshot: %u bits, %s (%" PRIu64 " observed)", net->snapshotBits,
+		net->delta ? "delta" : "full", net->snapshots );
+	if ( net->predictions )
+		ImGui::Text( "Prediction error: %.4f units (%" PRIu64 " samples)", net->predictionError, net->predictions );
+	else
+		ImGui::TextUnformatted( "Prediction error unavailable (demo or game without instrumentation)" );
+	ImGui::TextWrapped( "Datagram payload sizes exclude transport headers; replay snapshots are not network traffic." );
 	ImGui::EndTabItem();
 }
 

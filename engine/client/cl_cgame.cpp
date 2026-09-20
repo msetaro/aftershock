@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_cgame.c  -- client system interaction with client game
 
 #include "client.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../public/dev_public.h"
+#endif
 #include "../public/cg_native_public.h"
 #include "../public/ui_native_public.h"
 
@@ -929,7 +932,13 @@ CL_CGameRendering
 =====================
 */
 void CL_CGameRendering( stereoFrame_t stereo ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	const uint64_t scope = Dev_BeginScope( "cgame" );
+#endif
 	NativeCGame_DrawActiveFrame( cl.serverTime, stereo, clc.demoplaying );
+#ifdef AFTERSHOCK_DEVTOOLS
+	Dev_EndScope( scope );
+#endif
 }
 
 

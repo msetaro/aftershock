@@ -2,7 +2,24 @@
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "../qcommon/q_shared.h"
+#include "../public/dev_public.h"
 #include "../renderercommon/tr_public.h"
+
+struct devCpuTiming_t {
+	char name[48];
+	int64_t microseconds;
+};
+struct devNetwork_t {
+	uint64_t bytes[2], packets[2], snapshots, predictions;
+	uint32_t lastPacket[2], snapshotBits;
+	float predictionError;
+	bool delta;
+};
+void DevTools_BeginFrame( bool enabled );
+uint32_t DevTools_CpuTimings( const devCpuTiming_t **timings );
+void DevTools_Packet( bool outgoing, uint32_t bytes );
+void DevTools_Snapshot( uint32_t bits, bool delta );
+const devNetwork_t *DevTools_Network( void );
 
 void DevTools_Init( void );
 void DevTools_Reset( void );
