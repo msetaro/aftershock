@@ -28,6 +28,51 @@ static weaponEvents_t Step( const weaponDef_t &def, weaponState_t *state, uint32
 	assert( Weapon_Tick( &def, buttons, state->time + 20, state, &events ) );
 	return events;
 }
+static void Commands( const weaponDef_t &definition ) {
+	weaponDef_t def = definition;
+	def.intervalMs = 20;
+	def.magazine = 1000;
+	weaponState_t server, acknowledged, predicted, offhand;
+	Weapon_Reset( &def, 7, 0, &server );
+	acknowledged = server;
+	Weapon_Reset( &def, 9, 0, &offhand );
+	struct command_t {
+		uint32_t time, buttons;
+	} commands[80];
+	uint32_t time = 0;
+	for ( uint32_t i = 0; i < 80; ++i ) {
+		time += 7 + i % 17;
+		commands[i] = { time, i < 20 ? WEAPON_FIRE : i < 40 ? WEAPON_ADS
+												 : i < 60	? WEAPON_RELOAD
+															: WEAPON_CANCEL | WEAPON_FIRE };
+		weaponEvents_t events;
+		assert( Weapon_Command( &def, commands[i].buttons, time, &server, &events ) );
+		for ( uint32_t j = 0; j < events.count; ++j )
+			assert( events.items[j].time <= time && events.items[j].time % 20 == 0 );
+		// Missing snapshots: replay from an older acknowledgement on every frame.
+		if ( i % 19 == 0 )
+			acknowledged = server;
+		predicted = acknowledged;
+		for ( uint32_t j = 0; j <= i; ++j )
+			assert( Weapon_Command( &def, commands[j].buttons, commands[j].time, &predicted, &events ) );
+		assert( !memcmp( &server, &predicted, sizeof( server ) ) );
+		assert( Weapon_Command( &def, commands[i].buttons, time, &predicted, &events ) && events.count == 0 );
+		assert( Weapon_Command( &def, WEAPON_MELEE, time, &offhand, &events ) );
+		assert( offhand.sequence == 0 && offhand.random == 9 );
+	}
+	Weapon_Reset( &def, 7, 0, &server );
+	weaponEvents_t events;
+	assert( Weapon_Command( &def, WEAPON_FIRE, 1000, &server, &events ) && events.count == 50 );
+	for ( uint32_t i = 0; i < 50; ++i )
+		assert( events.items[i].kind == WEAPON_SHOT && events.items[i].time == ( i + 1 ) * 20 && events.items[i].sequence == i + 1 );
+	predicted = server;
+	const auto before = events;
+	assert( !Weapon_Command( &def, WEAPON_FIRE, 2001, &server, &events ) );
+	assert( !memcmp( &predicted, &server, sizeof( server ) ) && !memcmp( &before, &events, sizeof( events ) ) );
+	Weapon_Reset( &def, 7, UINT32_MAX - 9, &server );
+	assert( Weapon_Command( &def, WEAPON_FIRE, 30, &server, &events ) && events.count == 2 );
+	assert( events.items[0].time == 10 && events.items[1].time == 30 );
+}
 int main( int argc, char **argv ) {
 	assert( argc == 3 );
 	if ( !strcmp( argv[1], "index" ) ) {
@@ -42,6 +87,7 @@ int main( int argc, char **argv ) {
 	static_assert( std::is_trivially_copyable_v<weaponDef_t> && std::is_trivially_copyable_v<weaponState_t> );
 	weaponDef_t def = Load( argv[1] ), second = Load( argv[2] );
 	assert( !strcmp( def.name, "range_rifle" ) && second.damage == 55 && def.damage == 40 );
+	Commands( def );
 	assert( def.intervalMs == 80 && def.magazine == 30 && def.reloadCount == 4 && def.attachmentCount == 1 );
 	assert( Weapon_Damage( &def, 512 ) == 40 && Weapon_Damage( &def, 1280 ) == 30 && Weapon_Damage( &def, 2048 ) == 20 );
 	assert( Weapon_PenetrationDamage( &def, 4096, 1, 40 ) == 10 );

@@ -96,6 +96,13 @@ advancement/prediction tests, then actual game/cgame integration and owned range
 assets. Protocol revision remains mandatory before publishing new auxiliary
 records to real clients.
 
+The command/prediction probe now fails on the absent Weapon_Command API and event
+timestamps (weapons-command-before.log). It covers irregular usercmd intervals,
+replay from older acknowledgements, duplicate commands, independent hands, clock
+wrap, 50 events over one second, and atomic rejection beyond that bound. The
+bound follows Pmove's existing 1000 ms catch-up window; gameplay integration must
+handle longer inactivity explicitly without manufacturing an unbounded backlog.
+
 
 ## #12 implemented feature evidence
 
