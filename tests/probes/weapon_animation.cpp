@@ -21,6 +21,10 @@ int main( int argc, char **argv ) {
 	assert( !Weapon_NotifyOnce( &history, 1, 1, 0xffffffffu ) );
 	assert( Weapon_NotifyOnce( &history, 1, 1, 10000 ) );
 	assert( !Weapon_NotifyOnce( &history, 1, 1, 0 ) );
+	assert( Weapon_NotifyOnce( &history, 1, 1, 10001 ) );
+	Weapon_ForgetNotifiesAfter( &history, 10000 ); // Server rejected a predicted shot at capacity.
+	assert( !Weapon_NotifyOnce( &history, 1, 1, 10000 ) );
+	assert( Weapon_NotifyOnce( &history, 1, 1, 10001 ) ); // The identity can play when the shot is accepted later.
 	assert( argc == 3 );
 	std::ifstream weaponFile( argv[1], std::ios::binary ), graphFile( argv[2], std::ios::binary );
 	const std::vector<char> weaponBytes( ( std::istreambuf_iterator<char>( weaponFile ) ), {} );

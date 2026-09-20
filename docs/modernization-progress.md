@@ -148,6 +148,12 @@ spectator/respawn, and pause projectile firing at capacity without spending ammo
 Replicate that blocked state so client prediction follows the same rule; discard
 rejected local projectiles and allow corrected notify identities to be reused.
 
+The capacity follow-up requires the blocked bit to survive the real entity codec
+and a rejected predicted notify identity to be usable again after capacity frees.
+The portable check fails on absent Weapon_ForgetNotifiesAfter
+(weapons-notify-rejection-before.log); only unacknowledged notify bits will be
+forgotten, preserving deduplication of accepted sounds.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing
