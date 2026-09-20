@@ -56,12 +56,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
         '+attack', 'wait 14', '-attack', 'weapon 1', 'wait 15',
         'weapon 3', 'wait 15', '+attack', 'wait 2', '-attack', 'wait 70', 'weapon_status', 'quit']) + '\n')
     log = args.output / 'client.log'
-    env = dict(os.environ, LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
+    env = dict(os.environ, SDL_AUDIODRIVER='dummy', LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
     with log.open('wb') as stream:
         subprocess.run(['timeout', '60', 'xvfb-run', '-a', str(args.binary.resolve()),
             '+set', 'fs_basepath', str(home), '+set', 'fs_homepath', str(home),
             *content_settings(args.content), '+set', 'net_enabled', '0', '+set', 'sv_pure', '0',
-            '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '0',
+            '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '1',
             '+set', 'com_maxfps', '0', '+set', 'cl_autoRecordDemo', '0', '+exec', 'weapons.cfg'],
             cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT, check=True)
     text = log.read_text()
@@ -102,5 +102,11 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     image = base / 'screenshots/weapon-ads.tga'
     assert image.is_file(), 'ADS capture missing'
     (args.output / 'weapon-ads.tga').write_bytes(image.read_bytes())
+    notify_pattern = r'Weapon %s: owner=0 hand=0 definition=(\d+) spawn=(\d+) sequence=(\d+) name=(\w+) time=(\d+)'
+    audible = {'shot', 'magazine_out', 'magazine_in', 'bolt'}
+    notifies = [row for row in re.findall(notify_pattern % 'notify server', text) if row[3] in audible]
+    sounds = re.findall(notify_pattern % 'sound', text)
+    assert notifies and set(notifies) == set(sounds) and len(sounds) == len(set(sounds)), (len(notifies), len(sounds))
+    assert 'SDL_Init( SDL_INIT_AUDIO )' in text and 'SDL audio initialized.' in text, 'audio backend did not initialize'
     assert not any(error in text for error in ('ERROR:', 'Signal caught', 'Weapon rejected'))
 print('PASS: cooked weapon selection, firing/reload/ADS/melee and authoritative client state')

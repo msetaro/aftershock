@@ -94,6 +94,11 @@ open sight with a centered blue point. GCC/Clang portable checks and style gates
 pass. The test capture uses the engine's existing screenshot/TGA command.
 Next: notify-driven sound and remaining target-range/acceptance scope.
 
+The live sound assertion fails with zero server notifies/sounds
+(weapons-sound-before.log), with SDL dummy audio successfully initialized. The
+next implementation must map graph notify names to preloaded data sound handles,
+replicate remote events and deduplicate local predicted/acknowledged events.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing
