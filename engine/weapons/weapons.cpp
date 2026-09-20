@@ -158,7 +158,7 @@ bool Weapon_Tick( const weaponDef_t *d, uint32_t buttons, uint32_t time, weaponS
 	if ( state->reloadStage != WEAPON_NO_STAGE )
 		return true;
 	if ( ( buttons & WEAPON_MELEE ) && (int32_t)( time - state->nextMelee ) >= 0 ) {
-		state->nextMelee = state->nextFire = time + d->melee.intervalMs;
+		state->nextMelee = state->nextFire = ( time - state->nextMelee < 20u ? state->nextMelee : time ) + d->melee.intervalMs;
 		events->items[events->count++].kind = WEAPON_MELEE_EVENT;
 		return true;
 	}
@@ -169,7 +169,8 @@ bool Weapon_Tick( const weaponDef_t *d, uint32_t buttons, uint32_t time, weaponS
 																												  : state->burstRemaining != 0;
 	if ( !ready || !trigger )
 		return true;
-	state->nextFire = time + d->intervalMs;
+	// Carry a sub-tick remainder, but never catch up missed shots after idle/reload.
+	state->nextFire = ( time - state->nextFire < 20u ? state->nextFire : time ) + d->intervalMs;
 	auto &event = events->items[events->count++];
 	if ( !state->chamber ) {
 		event.kind = WEAPON_DRY;

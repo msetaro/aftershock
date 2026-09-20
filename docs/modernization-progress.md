@@ -17,9 +17,8 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
-Continue #11 after its first portable/cooker slice. Check fractional-tick cadence
-and native cooked-index registration next, then integrate gameplay, prediction
-and the target range using the existing owned rifle/body assets. #12 integration
+Continue #11 with test-first weapon snapshot/prediction and gameplay integration,
+then the target range using the existing owned rifle/body assets. #12 integration
 regression 35523091952 passed. Complete the full #11 scope, wire tests into CI, run all gates/self-review
 and merge through its own PR. #11 was read; #10/#12 are
 its prerequisites. Reuse existing fixed-tick, asset and animation APIs.
@@ -72,6 +71,12 @@ feature: native cooked-index acceptance of kind 7 (weapons-index-before.log), an
 to 40 ms (weapons-cadence-before.log). Extend index registration and carry the
 sub-tick remainder while discarding stale idle/reload backlog. Existing 80 ms
 1000-shot trace must remain identical.
+Both follow-ups now pass GCC and Clang/libc++ UBSan after ca557339's failing
+assertions: kind 7 is registered, a 30 ms cadence alternates quantized intervals
+without slowing its mean rate, and old idle/reload backlog is not emitted as a
+burst. The 80 ms 1000-shot digest remains unchanged (weapons-cadence-gcc.log,
+weapons-cadence-clang.log). Next: auxiliary weapon state round-tripped through
+the actual delta codec, then server/client fixed-tick gameplay integration.
 
 
 ## #12 implemented feature evidence
