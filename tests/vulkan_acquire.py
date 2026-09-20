@@ -15,9 +15,10 @@ def main():
     args = parser.parse_args()
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=True)
+    run(['python3', 'tools/shaders/build.py', '--output', args.output / 'shaders'])
     binary = args.output / 'acquire'
     run([*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti',
-         '-O2', '-DNDEBUG', '-Wall', '-Wextra', '-Werror', '-DUSE_VULKAN_API',
+         '-I' + str(args.output / 'shaders'), '-O2', '-DNDEBUG', '-Wall', '-Wextra', '-Werror', '-DUSE_VULKAN_API',
          '-ffunction-sections', '-fdata-sections', 'tests/probes/vulkan_acquire.cpp',
          'engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp',
          '-Wl,--gc-sections', '-lm', '-o', binary])

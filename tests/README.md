@@ -17,6 +17,7 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 ```
 python3 tests/native_math.py
 python3 tests/rhi.py
+python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
 python3 tests/check_format.py
 python3 tests/check_types.py
@@ -64,6 +65,23 @@ byte layouts and release scratch before reporting either success or a GPU error.
 The RHI retains at most 32 scopes per frame, reads available results after the
 existing frame fence, and never adds a query wait. Its check covers timestamp
 wrap, unavailable results, scope exhaustion, and duplicate scope completion.
+
+`python3 tests/shaders.py --compiler /path/to/glslang-16.6.0` recompiles all 74
+shader variants and compares every SPIR-V byte and reflected interface against the
+committed offline cache. The pinned compiler is [Khronos glslang 16.6.0](https://github.com/KhronosGroup/glslang/releases/tag/16.6.0).
+CI verifies the release archive SHA-256 before executing it. Shader sources,
+quoted includes, stage/defines/options, target and compiler identity contribute to
+the package hash; payload hashes and reflected bindings/locations/member offsets
+are included too. Source line endings normalize to LF for identical Windows keys.
+
+Vulkan CMake builds require Python 3.9+ and generate `shaders/shader_package.h`
+and `shader_package.json` in the build directory. Unchanged inputs reuse verified
+committed SPIR-V. A changed recipe/source/include requires the pinned compiler
+(`-DSHADER_COMPILER=/path/to/glslang`); a missing compiler fails the build. To force
+build-time recompilation, run `cmake --build build/release --target shaders` with
+that compiler configured. The runtime consumes packaged bytes, never shader source.
+This pipeline does not regenerate demos, frame goldens or committed shader data.
+The source cache and compiled path currently produce identical shader bytes.
 
 `python3 tests/vulkan_acquire.py` runs the real Vulkan frame acquisition method
 with controlled callbacks and stops at command recording. It needs no GPU, window

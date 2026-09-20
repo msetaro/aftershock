@@ -24,7 +24,8 @@ have no GPU SDK dependency. Explicit GPU failure statuses now return before the
 frontend error callback; texture conversion/scratch is frontend-owned. Device
 configuration and host services now use explicit plain records; the backend no
 longer includes frontend headers or reads renderer globals/cvar pointers. Finish
-configuration acceptance, then lifecycle, shader packaging/cache and final gates. Acquisition fix PR #141 merged separately as 61401e17 after
+shader package/cache acceptance and lifecycle checks, then the verified frontend
+moves, OpenGL retirement and final gates. Configuration acceptance is complete. Acquisition fix PR #141 merged separately as 61401e17 after
 full build 35484485400/regression 35484485349 and self-review; it has now been
 merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
 follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
@@ -355,6 +356,30 @@ unreachable statements; retain the noreturn contract and warning gate. Hosted
 verification of this correction is pending the configuration checkpoint push.
 The checkout-specific lifetime rerun for d65b28df passed all 546 compilation
 commands/137 source paths (rhi-errors-lifetimes.log).
+
+Configuration a198b032 passed full build 35488490079 and regression 35488490074,
+including all four MSVC legs and hosted static/module OpenArena replay. This
+verifies the C4702 correction as well as the frontend-free backend dependency.
+
+Shader packaging slice: downloaded the official glslang 16.6.0 Linux tool into the
+user cache (no system package installation). Its 74 outputs exactly match every
+committed SPIR-V byte. A portable manifest now records the explicit variants and
+verified source/recipe/output hashes. The build emits an aligned shader header,
+interface metadata and SHA-256 package identity; unchanged sources reuse the
+committed compiled cache, changed recipes require the pinned offline compiler.
+Sources/includes, compiler/options/target, payloads and interface metadata all
+participate in the key. No runtime source compiler is introduced. A CMake shaders
+target forces compilation, while ordinary builds verify the cache. CI's GCC unit
+leg verifies the release archive digest and recompiles every variant. Dedicated
+server-only configurations do not acquire shader/Python requirements.
+
+Fresh compiler/cache comparison and the CMake shaders target pass for all 74
+variants with package hash 743e9c51f75547a6577119182c0363c5829f498e1e99c8672e057fad19c7e737
+(rhi-shader-tests.log, rhi-shader-target.log). Include edits, compiler identity and
+options change the recipe key. GCC/Clang contracts, acquisition, format/type/
+boundary checks pass. Generated-header static replay/restart retains b38004b1
+(rhi-shader-demo.log). Runtime driver pipeline-cache persistence remains the next shader
+step. No accepted fixture/golden or committed shader_data.cpp changes.
 
 ## Final #8 verification
 

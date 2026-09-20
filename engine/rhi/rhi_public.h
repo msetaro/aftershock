@@ -22,6 +22,8 @@ struct rhiStats_t {
 };
 static_assert( std::is_trivially_copyable_v<rhiStats_t> );
 
+// SHA-256 of offline sources/options/compiler, SPIR-V and interface metadata.
+const char *RHI_GetShaderPackageHash( void );
 bool RHI_Available( void );
 rhiStats_t RHI_GetStats( void );
 

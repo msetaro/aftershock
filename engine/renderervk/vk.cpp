@@ -2855,7 +2855,11 @@ void vk_impl_UploadWorldGeometry( const uint8_t *vbo_data, int32_t vbo_size ) {
 }
 #endif
 
-#include "shaders/spirv/shader_data.cpp"
+#include <shader_package.h>
+
+const char *RHI_GetShaderPackageHash( void ) {
+	return rhi_shader_package_hash;
+}
 #define SHADER_MODULE( name ) SHADER_MODULE(name,sizeof(name))
 
 static void vk_create_shader_modules( void ) {

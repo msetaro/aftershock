@@ -2,6 +2,10 @@
 #include "../../engine/rhi/rhi_public.h"
 #include <stdlib.h>
 
+const char *RHI_GetShaderPackageHash( void ) {
+	return "";
+}
+
 bool RHI_Available( void ) {
 	return false;
 }

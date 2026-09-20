@@ -14,8 +14,9 @@ def main():
     args = parser.parse_args()
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=True)
+    run(['python3', 'tools/shaders/build.py', '--output', args.output / 'shaders'])
     flags = [*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti',
-             '-O2', '-Wall', '-Wextra', '-Werror', '-ffunction-sections', '-fdata-sections']
+             '-I' + str(args.output / 'shaders'), '-O2', '-Wall', '-Wextra', '-Werror', '-ffunction-sections', '-fdata-sections']
     for probe in ('stub', 'upload', 'image'):
         binary = args.output / probe
         run([*flags, '-DRHI_STUB_CHECK', '-DUSE_VULKAN_API',
@@ -36,7 +37,7 @@ def main():
         if 'third_party/vulkan/' in deps or '/vk.h' in deps:
             raise SystemExit('FAIL: frontend header acquired a GPU SDK dependency: ' + deps)
     deps = run([*shlex.split(args.cxx), '-std=c++20', '-MM',
-                'engine/renderervk/vk.cpp'], capture_output=True, text=True).stdout
+                '-I' + str(args.output / 'shaders'), 'engine/renderervk/vk.cpp'], capture_output=True, text=True).stdout
     if any(path in deps for path in ('/tr_local.h', '/tr_common.h', '/tr_public.h')):
         raise SystemExit('FAIL: backend acquired a frontend dependency: ' + deps)
     print('PASS: alternative backend links against only the public RHI header and reports unavailable')
