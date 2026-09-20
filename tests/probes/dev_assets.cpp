@@ -3,6 +3,15 @@
 #include <assert.h>
 
 trGlobals_t tr;
+uint32_t R_CookedImageReloads( int ) {
+	return 1;
+}
+uint32_t R_CookedMaterialReloads( int ) {
+	return 2;
+}
+uint32_t R_CookedModelReloads( int ) {
+	return 3;
+}
 void QDECL Com_Error( errorParm_t, const char *, ... ) {
 	abort();
 }
@@ -24,7 +33,7 @@ int main() {
 	tr.images[0] = &image;
 	tr.numImages = 1;
 	assert( RE_GetDeveloperImage( 0, &copy ) );
-	assert( !strcmp( copy.name, name ) && copy.texture == 1 && copy.width == 128 && copy.uploadHeight == 32 );
+	assert( !strcmp( copy.name, name ) && copy.texture == 1 && copy.width == 128 && copy.uploadHeight == 32 && copy.reloads == 1 );
 	assert( !RE_GetDeveloperImage( 1, &copy ) && copy.texture == 0 );
 	shader_t shader = {};
 	shaderStage_t stage = {};
@@ -37,7 +46,7 @@ int main() {
 	tr.numShaders = 1;
 	devMaterial_t material;
 	assert( RE_GetDeveloperMaterial( 0, &material ) );
-	assert( !strcmp( material.name, shader.name ) && material.stages == 2 );
+	assert( !strcmp( material.name, shader.name ) && material.stages == 2 && material.reloads == 2 );
 	assert( material.present[0] && !material.present[1] );
 	assert( material.stateBits[0] == 123 && material.textures[0][2] == 1 && material.textures[0][1] == 0 );
 	assert( !RE_GetDeveloperMaterial( -1, &material ) && !RE_GetDeveloperMaterial( 1, &material ) );
@@ -52,7 +61,7 @@ int main() {
 	md3.numFrames = 24;
 	tr.models[0] = &model;
 	tr.numModels = 1;
-	assert( RE_GetDeveloperModel( 0, &modelCopy ) && modelCopy.frames == 24 && modelCopy.bytes == 512 );
+	assert( RE_GetDeveloperModel( 0, &modelCopy ) && modelCopy.frames == 24 && modelCopy.bytes == 512 && modelCopy.reloads == 3 );
 	assert( !strcmp( modelCopy.name, model.name ) && !RE_GetDeveloperModel( 1, &modelCopy ) );
 	mdrHeader_t mdr = {};
 	mdr.numFrames = 30;

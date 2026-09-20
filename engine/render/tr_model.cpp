@@ -22,6 +22,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_models.c -- model loading and caching
 
 #include "tr_local.h"
+#include "tr_cooked.h"
+
+#ifdef AFTERSHOCK_DEVTOOLS
+static struct {
+	char path[MAX_QPATH];
+	uint8_t hash[32];
+	uint32_t reloads;
+} cookedModels[MAX_MOD_KNOWN];
+#endif
 
 #define LL( x ) x=LittleLong(x)
 
@@ -153,7 +162,19 @@ static qhandle_t R_RegisterIQM( const char *name, model_t *mod ) {
 		return 0;
 	}
 
-	loaded = R_LoadIQM( mod, buf.u, filesize, name );
+	uint8_t hash[32];
+	const cookedModelStatus_t status = R_ReadCookedModel( buf.v, filesize, hash );
+	if ( status != cookedModelStatus_t::Invalid ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+		loaded = R_LoadIQM( mod, buf.u, filesize, name, status == cookedModelStatus_t::Valid );
+		if ( loaded && status == cookedModelStatus_t::Valid ) {
+			Q_strncpyz( cookedModels[mod->index].path, name, MAX_QPATH );
+			memcpy( cookedModels[mod->index].hash, hash, 32 );
+		}
+#else
+		loaded = R_LoadIQM( mod, buf.u, filesize, name );
+#endif
+	}
 
 	ri.FS_FreeFile( buf.v );
 
@@ -911,6 +932,9 @@ R_ModelInit
 void R_ModelInit( void ) {
 	model_t *mod;
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	Com_Memset( cookedModels, 0, sizeof( cookedModels ) );
+#endif
 	// leave a space for NULL model
 	tr.numModels = 0;
 
@@ -1113,3 +1137,49 @@ void R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs ) {
 	VectorClear( mins );
 	VectorClear( maxs );
 }
+
+bool RE_GetModelAnimation( qhandle_t handle, int clip, modelAnimation_t *animation ) {
+	*animation = {};
+	const model_t *model = R_GetModelByHandle( handle );
+	if ( model->type != MOD_IQM || clip < 0 )
+		return false;
+	const iqmData_t *data = (const iqmData_t *)model->modelData;
+	if ( (uint32_t)clip >= data->num_anims )
+		return false;
+	*animation = data->animations[clip];
+	return true;
+}
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void R_ReloadCookedModels( const cookedIndex_t *index ) {
+	for ( uint32_t row = 0; row < index->count; row++ ) {
+		cookedEntry_t entry;
+		memcpy( &entry, index->entries + row * sizeof( entry ), sizeof( entry ) );
+		if ( entry.kind != 1 )
+			continue;
+		for ( int i = 1; i < tr.numModels; i++ ) {
+			if ( strcmp( cookedModels[i].path, entry.path ) || !memcmp( cookedModels[i].hash, entry.hash, 32 ) )
+				continue;
+			void *file = nullptr;
+			const int length = ri.FS_ReadFile( entry.path, &file );
+			uint8_t hash[32];
+			bool success = file && length == (int)entry.size && R_ReadCookedModel( file, length, hash ) == cookedModelStatus_t::Valid && !memcmp( hash, entry.hash, 32 );
+			if ( success )
+				success = R_ReplaceIQM( tr.models[i], file, length, entry.path );
+			if ( file )
+				ri.FS_FreeFile( file );
+			if ( success ) {
+				memcpy( cookedModels[i].hash, entry.hash, 32 );
+				cookedModels[i].reloads++;
+			}
+			ri.Printf( success ? PRINT_ALL : PRINT_WARNING, "Cooked model %s: %s\n", success ? "reloaded" : "reload failed", entry.path );
+		}
+	}
+}
+#endif
+
+#ifdef AFTERSHOCK_DEVTOOLS
+uint32_t R_CookedModelReloads( int index ) {
+	return cookedModels[index].reloads;
+}
+#endif

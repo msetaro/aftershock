@@ -26,9 +26,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 11
+#define REF_API_VERSION 16
 #else
-#define REF_API_VERSION 10
+#define REF_API_VERSION 12
 #endif
 
 //
@@ -58,6 +58,7 @@ typedef struct {
 	// size display elements
 	void ( *BeginRegistration )( glconfig_t *config );
 	qhandle_t ( *RegisterModel )( const char *name );
+	bool ( *GetModelAnimation )( qhandle_t handle, int clip, modelAnimation_t *animation );
 	qhandle_t ( *RegisterSkin )( const char *name );
 	qhandle_t ( *RegisterShader )( const char *name );
 	qhandle_t ( *RegisterShaderNoMip )( const char *name );
@@ -195,9 +196,12 @@ typedef struct {
 	// visualization for debugging collision detection
 	void ( *CM_DrawDebugSurface )( void ( *drawPoly )( int color, int numPoints, float *points ) );
 
-	// a qfalse return means the file does not exist
-	// NULL can be passed for buf to just determine existence
-	//int		(*FS_FileIsInPAK)( const char *name, int *pCheckSum );
+// a qfalse return means the file does not exist
+// NULL can be passed for buf to just determine existence
+//int		(*FS_FileIsInPAK)( const char *name, int *pCheckSum );
+#ifdef AFTERSHOCK_DEVTOOLS
+	int ( *FS_ReadDeveloperFile )( const char *name, void *buffer, int capacity );
+#endif
 	int ( *FS_ReadCache )( const char *name, void *buffer, int capacity );
 	qboolean ( *FS_WriteCache )( const char *name, const void *buffer, int size );
 	int ( *FS_ReadFile )( const char *name, void **buf );

@@ -16,24 +16,31 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#7 PR #143 merged as e4f2d70a after exact head 86e9d19e passed build 35496813498
-and regression 35496813511, with the recorded self-review. Merged-tree regression
-35497810031 passed. Its tree is byte-identical to the tested PR tree. #7 is closed
-and marked complete on #25.
-Decision: prepare the next issue's failing tests in a separate branch while that
-integration run completes; do not merge #142 until the preceding integration run
-and #142's own exact-head gates pass. This replaces the unnecessarily serial
-preparation rule below; no unverified change reaches modernization.
+#142 PR #144 merged as 6a9e755b after exact head ffcb072c passed build
+35498994504 and regression 35498994503, with the committed self-review. The merge
+tree equals the tested tree (0273866798e91a64d27002e5499353438d6a6769).
+Merged-tree regression 35499764754 passed. #142 is closed and #25 is updated.
 
-Current branch is `issue/142-render-graph`, based on e4f2d70a. The test-first
-checkpoint f6dc6d24 passes the native baseline and fails on the absent graph API.
-The declarations now drive Vulkan target, render-pass and framebuffer creation
-and preserve the native trace. Complete the measurements, exact-head CI and
-self-review before marking draft PR #144 ready and merging. Preserve target formats/capacities, allocation and draw order,
-shader bytes, two frame slots and existing synchronization. No aliasing/reordering.
-After integration verification, close #7 and mark it complete on #25, then continue
-#142 and the remaining Wave 2/Wave 3 roadmap. All writes stay in msetaro/aftershock.
-The separate-session scope and finished historical network evidence remain untouched.
+Current branch is `issue/9-asset-pipeline`. Its test-first commit is 56c25515;
+origin/modernization has been merged into it without rewriting history. The
+owned Blender source fixture was exported once with verified portable Blender
+4.5.3 (archive hash below). Offline cooking/production pose tests pass at 7acd72c1.
+Draft PR #145 holds #9. Source cooking, named clips, bounded hot reload,
+inspector counts and local static/module/OpenArena/restart/idle acceptance pass.
+Final fixed Quake 3 and OpenArena demo comparisons preserve their accepted hashes.
+The self-review is below. Final follow-up fixes select matching OpenArena native
+objects for the standalone test build and remove a duplicated command in AGENTS.
+Next: confirm the 16-command lifetime batches locally and in the final exact-head
+hosted build/regression workflows, then mark #145 ready and merge with a merge
+commit. The watcher fix passes GCC/Clang and the live sub-second acceptance gate.
+Require the merged-tree regression before closing #9/updating #25 and proceeding.
+After #9, fix IQM allocation accounting and rotated nonuniform scale in separate
+#31 PRs, then continue #10 and the remaining #25 roadmap. No upstream PRs.
+
+Read #9 and the preparation notes in the persistent modernization cache
+(issue9-preparation.md). Trace native model/texture ownership before implementation.
+The first cooker feature test failed before implementation and now passes. No accepted fixtures/goldens or finished historical test evidence may
+change. Continue the #25 roadmap after #9. All writes stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -43,6 +50,71 @@ regression 35479955499 passed; merged-tree regression 35480310184 passed.
 normal / 8 MiB high geometry buffers, 2 MiB normal / 24 MiB high staging buffers,
 32 samplers and 2,304 pipeline descriptions; do not change these during extraction.
 Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
+
+## #9 initial feature-test checkpoint
+
+`python3 tests/cook.py` builds an owned valid triangle fixture as external-buffer
+glTF and embedded-buffer GLB, with two joints/two clips, plus a static variant
+and a small PNG. It requires the offline CLI, native IQM geometry/clip records,
+BC7/BC5/BC4 KTX2 mip chains, relative dependency/output SHA-256 manifests,
+byte-stable fresh cooks and texture-only incremental invalidation. No installed
+game content or accepted artifact is involved. The first run fails with exit 1
+because tools/cook does not exist (cook-before.log). Commit this before adding
+the cooker. Native runtime/hot reload and UI evidence remain
+required; this test is only the first slice.
+
+Decision: reuse the existing IQM v2 model payload/renderer for glTF output,
+retaining legacy IQM input. Its plain records already carry assertions and its
+runtime model data uses one allocation; development reload can add explicit
+owned-block lifetime without changing legacy allocation. Keep named clip data
+and cooker version/content metadata available to the next animation stage.
+Use standard KTX2 for compressed texture output. Model basis maps glTF (x,y,z)
+to engine (x,-z,y); scale is an explicit cooker setting. Use the installed Pillow
+for PNG/TGA tools input and a pinned native BC encoder, not a new codec.
+Primary format references: Khronos glTF 2.0/KTX2 and lsalzman/iqm iqm.h.
+All OS access and source watching stay in tools/platform/filesystem ownership;
+shipping code does not import glTF. No new loader-robustness targets are added.
+
+The real Blender source fixture is tests/assets/cook-character: six textured
+meshes, one three-joint skin and `idle`/`wave` clips, exported by its committed
+script with no hand edits to glTF. Portable Blender 4.5.3 LTS build 67807e1800cc
+was verified against official archive SHA-256
+975c58fcb244273838534bba771e64ad87739216b0f9b39a888531a49a72d845.
+Its provenance records every source/output hash; CI cooks committed sources and
+never reauthors them. The installed Pillow 12.1.1 supplies PNG/TGA and BC5
+encoding; BC4 can use the BC5 red-channel blocks. Only BC7 needs a small pinned
+native encoder helper. The pinned bc7enc sources/license are staged in the
+persistent cache, not yet imported into the repository.
+
+The first implementation slice adds offline KTX2 BC7/BC5/BC4 encoding, linear
+premultiplied mip filtering, explicit sRGB/data descriptors, source hashes and an
+embedded content hash (computed with its own bytes zeroed). The pinned MIT BC7
+encoder has only two source files and is built as a separate cached CMake tool;
+Pillow supplies BC5, whose red blocks are BC4. The engine does not link this code.
+An independent feature check validates all three 16x16 mip chains and block sizes
+(cook-texture-check.log). The full CLI/model test still fails until the next slice.
+Native compressed-texture loading and hot reload are not yet implemented.
+
+The offline CLI/model slice now passes tests/cook.py under GCC and Clang/libc++.
+It handles ordinary static/skinned glTF/GLB, typed/sparse accessors, transforms,
+bind poses, sampled named clips, IQM channel quantization, surface splitting and
+dependency manifests. The real Blender fixture is consumed by production IQM
+code; its root and arm motions match the source clips. New-feature corrections:
+normalize clip start time (Blender's first key is at frame 1/30), and preserve
+clockwise winding under mirrored static transforms. Both have failing-then-passing
+feature evidence (cook-pose-before.log, cook-mirror-before.log). The pose test's
+axis expectation was also corrected to the actual exported local-bone motion;
+the committed source fixture was not regenerated.
+
+GCC/Clang character outputs match byte-for-byte: IQM
+07fc751de9dbff33dbaff55c2f306d12125b314ca3f81be2e66cea08e0e077c8,
+material dbd8360ab541bc39cdff1719300772c831b3a6e1ee1d84cdc49e9456b8d2c053,
+texture c2c0ea65275b54e97d8e7a7bfc98771d766dfcb6b8857eb4396656327f8a82e4.
+Embedded hashes and manifests are independently checked. CI now runs the owned
+cooking/pose test under both host compilers. No production engine code has changed
+for #9 yet. Explicit WAV/OGG/material/shader project inputs, runtime BC/material
+loading, bounded hot reload and ImGui clip/reload evidence remain. Generated
+Python bytecode is removed from tracking and ignored; vendor bytes remain exact.
 
 ## #7 developer tooling checkpoint
 
@@ -2770,3 +2842,300 @@ native helper hashes match formatted-native.json; 1,810-assembly comparison is
 being refreshed only for the filesystem rows. Review Windows changes and MSVC
 conversions before proposing a PR. Foreign long declarations still require a
 precise, documented policy; do not silently suppress a whole file or family.
+
+#9 BC upload feature test: extend the existing production RHI probe with four
+compressed formats and an odd-size 7x5 mip chain. Assert native format mapping,
+block-rounded copy offsets and exact staging bytes, including replacement upload.
+The unchanged engine fails to compile because the new formats/API are absent.
+
+BC upload implementation now passes tests/rhi.py with GCC and Clang/libc++.
+BC feature enablement and sampled/filter/transfer format support are checked at
+texture creation. Compressed data uses the existing staging/copy path with 4x4
+block rounding; legacy pixel uploads retain unit-sized blocks. No simulation or
+accepted artifact changed. Evidence: cook-bc-{before,after,clang}.log.
+
+Native KTX2 loading now uses plain asserted header/index records and borrowed mip
+views; runtime SHA-256 verification matches the Python cooker. Pinned 0BSD
+amosnier/sha-2 commit 565f65009bdd98267361b17d50cddd7c9beb3e6c supplies the
+allocation-free C implementation (source/license hashes checked by tests/cook.py).
+The valid owned texture check failed before the native reader (387d74af test-first)
+and passes with GCC/Clang after implementation. Image registration uploads BC
+blocks through the normal image table and RHI binding path. The development client
+build passes. A real ImGui run loaded the cooked six-mesh character in q3dm17,
+showing its BC7s texture and 62 frames; the preview was visually inspected. Named
+clip controls/material flags/reload acceptance remain, so this is preliminary.
+
+Fixed Q3 replay plus video restart passes twice per map, retaining frame projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+Evidence: cook-native-texture-{before,after,clang}.log, cook-runtime-build.log,
+cook-ui-check.log, cook-demo.log; screenshots /tmp/aftershock-cook-ui. No accepted
+fixtures/goldens changed. Next implement material records and reload ownership,
+then named clips, source watcher and the complete runtime acceptance driver.
+
+Cooked material records now validate their version/hash and load through shader
+registration. They retain ordinary diffuse/vertex/lightmap shading and set culling,
+unlit, blend or mask policy. Base-color factors are baked offline in linear color
+space into each material's private texture, avoiding runtime shader variants.
+Explicit material JSON sources now share the glTF material cooker. An independent
+Pillow DDS decode checks the BC7 result against linear factors and alpha. The
+current legacy alpha-test path accepts MASK cutoff 0.5; other cutoffs produce an
+explicit offline diagnostic pending #13. The valid material test first failed on
+the absent API (6370ad04); its fixture expectation was corrected to Blender's
+actual doubleSided=true export, without changing source content.
+
+GCC full cooker/native checks and the development client build pass. Material
+version/flags/texture records retain 48-byte header and 88-byte payload assertions.
+The new opaque-texture recipe adds metadata to #9's new artifacts; no accepted
+game golden or source fixture is regenerated. Runtime reload and remaining source
+kinds are still in progress. Evidence: cook-material-{before,complete,build}.log.
+
+The reload GPU ownership step is test-first at 8f16f98f. A production RHI probe
+replaces a texture twelve times, alternating dimensions, and observes exactly one
+live image/view/allocation and one stable descriptor binding. Injected device-wait,
+memory-allocation and view-creation failures preserve the live texture and reclaim
+the incomplete replacement. The implementation adds explicitly owned memory only
+to this replacement path; legacy image pools retain their existing allocation.
+GCC and Clang/libc++ pass the full RHI probes. Evidence: cook-replace-*.log.
+No source watcher or renderer reload polling is connected yet.
+
+The source watcher and native texture reload are connected. Test-first commits
+c885ee01/6a396dbe failed on the absent publication marker/renderer consumption.
+The runtime gate then exposed a new-feature clock choice: ri.Milliseconds scales
+with timescale, so polling now uses the existing real Microseconds callback.
+With the preview camera settled, source PNG editing reached the captured frame
+in 0.610705 seconds, changing 3,759 model-preview pixels. Before/after images were
+visually inspected; the source fixture and accepted goldens were untouched.
+
+The cooker publishes a fixed-record, hashed project index and revision marker only
+after successful cooking. The enabled renderer reads the small marker without
+engine allocations, checks the index/content hashes and swaps loaded texture
+resources at a frame boundary. Shipping builds contain no polling or watcher.
+Enabled renderer ABI is now 13 (shipping remains 10); rebuild matching modules.
+GCC/Clang cooker checks, RHI ownership probes and the local development build pass.
+The runtime job now installs its own venv dependency and runs the owned-character
+reload gate against OpenArena. Evidence: cook-watch-*.log, cook-live-before.log,
+cook-live-fixed-camera.log, cook-reload-build.log. The first 0.255857-second sample
+also had a late yaw adjustment; use the fixed-camera 0.610705-second result.
+
+Remaining #9 work: named clips; bounded material/model/animation replacement and
+UI status; WAV/OGG/shader source cooking; complete static/module, restart, idle,
+Q3/OpenArena and exact-head hosted gates. Existing IQM dataSize accounting reports
+zero model bytes; this predates #9 and is recorded in #31/docs/bugs.md, not fixed
+here. Handle that separate #31 PR after #9 before continuing #10.
+
+Named native clips are now stored in the IQM block and copied through the public
+GetModelAnimation API (shipping ABI 12, development ABI 15). Test-first 72c6ed43
+failed on the absent records; GCC and Clang checks now verify `idle`/`wave` ranges,
+30 FPS and non-looping flags, plus the existing production pose samples. The
+inspector selects clips, clamps/scrubs within their ranges and stops non-looping
+playback at the final frame. The valid fixture's loop expectation was corrected
+to its actual flags=0 record; the fixture/cooker were not changed for that check.
+
+The live owned-character test selects wave frame 46 and idle frame 15 through real
+input, with screenshots visually reviewed. Its texture edit reaches the sampled
+frame in 0.607583 seconds with 2,721 changed preview pixels. Evidence:
+cook-clips-{before,after,clang,build}.log and cook-live-named-clips.log. Types and
+boundary gates pass. Hosted build 35503080582 at preceding 23420106 found MSVC
+C4701 in the new material branch; explicitly zero-initialize that local before
+validation. This feature correction is included here; fresh hosted gates remain.
+
+Next: own the cooked IQM allocation for bounded model/animation replacement,
+then material replacement and UI reload observations. Keep existing dataSize
+accounting untouched until the separate #31 fix recorded above.
+
+Cooked model replacement is test-first at a71fe7d1. Twelve production IQM swaps
+retain one live zone allocation (two only during replacement), reclaiming the old
+block after the new model succeeds. Registered handles stay stable; existing
+legacy models retain hunk ownership. Cooked IQM content hashes are checked before
+registration/replacement. Existing dataSize accounting remains a separate #31 bug.
+
+The live test edits a temporary copy of the Blender animation, changing its pose
+and renaming wave to salute. Handle 78 and frame 46 survive the update; the
+inspector reports salute and the screenshot shows the changed pose. It then
+scrubs idle frame 15. Texture latency is 0.620578 seconds (2,721 preview pixels).
+Evidence: cook-model-replace-{before,after,build}.log and
+cook-live-model-reload.log. No accepted/source fixture changed. Hosted MSVC at
+76287e8c found two new clip-loop shadow warnings; use clipIndex to resolve them.
+Next: bounded in-place material replacement, then the remaining #9 acceptance.
+
+Material replacement test added before implementation: production shader storage
+must preserve the handle/hash chain/remap, correctly reorder changed blend sorts,
+and keep one hunk allocation across twelve one/two-stage edits. It fails on the
+absent reloadable flag/replacement API (cook-material-replace-before.log).
+
+Material replacement is test-first at 822893f3. The cooked base-color recipe
+reserves two stages once, reuses its shader pointer/handle and stage storage,
+preserves remaps/hash chains and reorders changed sort keys at the frame boundary.
+Twelve edits allocate no additional hunk storage. Development cooked materials
+remain dynamic instead of baking their stage colors into static vertex buffers.
+Transparency applies after texture/lightmap combination; unlit materials skip
+lightmaps. Legacy shader allocation and shipping material behavior are retained.
+
+The live test edits only its temporary source copy to change the material from
+opaque to transparent. The preview disappears, with the model handle and selected
+frame unchanged. Texture, material and model inspectors expose reload counts
+(development renderer ABI 16, shipping ABI 12). Screenshot reviewed; texture
+latency 0.608521 seconds / 2,721 changed preview pixels. GCC/Clang cooker probes,
+development build, formatting, type and boundary gates pass. Evidence:
+cook-material-replace-{before,after,clang,build}.log,
+cook-live-material-reload.log and cook-material-{format,types,boundaries}.log.
+
+Hosted regression 35503477810 at old head 76287e8c passed the other required
+legs but the lifetime checker was terminated (exit 143), with no source diagnostic.
+A fresh complete run is required; this is not an accepted gate. Continue #9 with
+remaining audio/shader source kinds and the complete final acceptance checks.
+
+Audio source feature test added before implementation. New owned 50 ms WAV/OGG
+tones were authored once with libsndfile 1.2.2 (source/provenance committed); CI
+reads these bytes. Test expects normalized PCM16 WAV with a versioned ASCK chunk,
+source/content hashes and unchanged 22,050 Hz / 1,102 frames. The existing native
+WAV path can consume this RIFF container without another runtime audio format.
+
+WAV/OGG cooking now passes on GCC and Clang/libc++. The source feature test first
+failed on the absent audio kind (dd2f171a). PCM inputs normalize to signed PCM16;
+Vorbis decoding reuses the engine's vendored libogg/libvorbis in an offline helper.
+Native WAV loading consumes both outputs at 22,050 Hz / 1,102 samples with the
+expected tone amplitude. An ASCK RIFF chunk carries version 1, source SHA-256 and
+whole-file SHA-256 (its own bytes zeroed); the ordinary native WAV decoder skips
+that provenance chunk. No new runtime codec or audio resampling is introduced.
+
+Evidence: cook-audio-{before,after,clang}.log. Source fixtures were authored once,
+not regenerated. New-feature MSVC C4701 at 05192647 identified the texture reload
+local; explicit zero-initialization resolves it just as for material records.
+Next: offline shader source cooking using the existing pinned shader package,
+then remaining final #9 acceptance and exact-head gates.
+
+Shader source feature test added before implementation: a copied owned vertex
+shader with a quoted include must cook to versioned/hash-checked SPIR-V, skip an
+unchanged recipe, rebuild after the include changes, and feed the existing offline
+shader package while preserving all other 73 shader bytes. It fails on the absent
+shader kind (cook-shader-before.log). Runtime GLSL compilation remains excluded.
+
+Shader cooking now passes its test-first check (5d2bf779). Quoted includes are
+tracked and compiled from a confined snapshot using pinned glslang 16.6.0. The
+versioned SHA-256 envelope contains native SPIR-V; CMake COOKED_SHADER_DIR feeds it
+through the existing offline package builder, which requires the current exact
+reflected interface. A changed include produces a changed shader; all other 73
+binaries stay identical. The default package remains 743e9c51f75547a6577119182c0363c5829f498e1e99c8672e057fad19c7e737.
+Evidence: cook-shader-{before,after}.log and cook-source-kinds.log. No runtime
+compiler/shader hot reload is added.
+
+Hosted runtime at 05192647 found the developer registry probe needed the three
+new reload-count query stubs; it now checks those copied counts too. This is a
+feature test integration correction, not a legacy engine bug. Remaining: cooker
+tangent/bounds review, repeated live edits/idle/restart/module acceptance, fixed
+Q3/OpenArena replays and complete exact-head hosted/self-review gates.
+
+Final cooker review found a new-feature bounds error: enlarged source scale 32000
+puts production IQM posed vertices outside bounds derived from unquantized source
+frames. Test-first evidence is cook-bounds-before.log; the ordinary scale still
+passes. Fix this cooker calculation within #9, not an existing engine #31 change.
+Also require absent source tangents to remain absent instead of inventing a basis.
+No simulation arithmetic or accepted fixture/golden is changed.
+
+The bounds correction now passes native geometry checks at scale 32 and 32000
+on GCC and Clang/libc++. It reconstructs stored float/16-bit poses and bind/vertex
+values before computing bounds, with float-accumulation padding. Optional source
+tangents are retained; absent/mixed tangents are omitted for #13 to generate a
+material-specific basis. Clip labels are unique and fit native 63-byte storage.
+New #9 artifacts change accordingly; accepted goldens and source fixtures do not.
+
+A separate pre-existing IQM row-scale bug is recorded in docs/bugs.md and #31
+comment 5749265890. The cooker rejects rotated nonuniform joint scales until
+that separate fix. No engine matrix arithmetic changed. Both that bug and the
+allocation-accounting bug need separate #31 PRs after #9, before #10.
+
+Ten thousand unchanged publication polls perform no engine allocation and no GPU
+operation. The live Quake 3 test now checks six additional material/model/texture
+edits, idle frames and video restart: renderer storage stays at 17,032 bytes in
+one zone block; permanent hunk stays at 22,959,808 bytes through all repeated
+edits. Idle UI allocations stay constant. The owned character renders again
+after restart. Texture latency is 0.605579 seconds / 2,721 changed pixels.
+Evidence: cook-bounds-*.log, cook-final-runtime.log and the runtime screenshots.
+
+The shader override check now compares SPIR-V type/global/decorated records in
+addition to the original reflected layout; a changed vertex input width is
+refused. Default package bytes/hash remain unchanged. A full shipping client
+build consumed a cooked shader through COOKED_SHADER_DIR successfully
+(cook-shader-build.log); compiler/contract evidence is cook-shader-contract.log.
+Hosted build at f7258d82 passed (35505208309); that is an earlier head, not final
+acceptance. Local tidy passed 1,170 production configurations. Remaining final
+module/OpenArena/runtime/replay/hosted gates are required before PR readiness.
+
+## #9 final local acceptance and self-review
+
+Local static Quake 3, module Quake 3 and static OpenArena live gates pass, including
+source texture/clip/material edits, six further replacement cycles, idle frames
+and video restart. Measured texture latency: 0.605579 / 0.606071 / 0.605774 seconds
+respectively (2,721 changed preview pixels each). Module/static renderer storage
+stays bounded. Ten thousand unchanged publication polls allocate no engine memory.
+The OpenArena test's standalone build now selects its matching native objects,
+using the same helper as the existing demo tests.
+
+OpenArena data was initially absent locally: that attempt failed, not skipped.
+Seven SHA-256-verified Debian data archives were then extracted only into the
+user cache (no system package installation), and tests/openarena.py staged their
+paks plus its pinned gamecode. The source/hash list is
+~/.cache/aftershock-modernization/openarena-data-packages.json. No Quake 3 pak was
+copied, committed or uploaded. Evidence: openarena-data-stage.log and
+cook-final-{runtime,modules,openarena}.log.
+
+Fixed Quake 3 replays twice per map with video restart pass projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+OpenArena module replays twice per map pass
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+All four committed demo hashes remain unchanged. Evidence:
+cook-final-demo-{q3,oa}.log. No accepted golden or fixture was regenerated.
+
+Self-review: scope matches #9; source import/compression/compiler work stays
+offline. Native geometry, PCM and shader-package paths are reused. New runtime
+records retain layout/copy assertions; renderer ABI changes require matching
+modules. OS access is confined to the existing filesystem layer, with tools
+using their normal host APIs. Core lifetimes remain trivial, no simulation FP
+expression changed, and idle polling uses fixed caller storage. Reload transactions
+retain handles and bounded CPU/GPU ownership. Existing IQM bugs are documented
+and deferred to separate #31 PRs; the importer reports the unsupported rotated
+nonuniform scale combination.
+
+GCC/Clang feature checks, 10,000-poll and twelve-replacement checks pass. Local
+lifetimes: 1,124 compilation commands / 120 paths, positive and seven-object
+negative controls pass. Tidy: 1,170 configurations pass (advisory findings retained).
+Format/type/boundary gates pass. Hosted build 35505791786 at 70a31804 passed; its
+regression 35505791776 has passed every required job except lifetime analysis,
+which was still running at this checkpoint. Superseded regression 35505208258
+was cancelled after its other jobs passed, to prioritize the final head. These
+earlier-head results do not replace the required final exact-head workflows.
+
+Final-head Clang CI found a source-watcher race (35506318169 / job106066633883):
+a source edit immediately after cooking could be captured by the post-cook
+snapshot without being built, leaving the published revision unchanged. A
+deterministic interleaved-edit check now exercises the real cooker/watcher loop
+before fixing it. Preserve the one-second live gate. Hosted lifetime checks at
+70a31804 were again terminated with exit 143; batch the same AST coverage to
+bound clang-query's retained translation-unit memory (source verified against
+LLVM 18 clang-query/tool/ClangQuery.cpp). Final exact-head gates must rerun.
+
+The interleaved-edit test fails before the watcher fix with `watcher lost the
+edit made during cooking` (cook-watch-race-before.log). This test is committed
+before the implementation. Eight-path lifetime batches passed all 1,124 commands
+in 5:01, but peaked at 7,340,232 KiB RSS; reduce to one source path per process
+for hosted-runner headroom. The unbatched measurement reached 20,712,276 KiB
+before its intentional 180-second measurement timeout; that run is not a pass.
+
+The watcher now compares snapshots around the complete cook and keeps a baseline
+only after a stable pass. Startup/changed manifests discover dependencies, then
+receive a verification pass; edits during cooking are not silently accepted.
+The deterministic test fails at 03268cd1 before implementation and passes after;
+GCC and Clang/libc++ full cooker checks pass, and the live texture/reload/restart
+check still passes within one second (cook-watch-runtime.log and latency.txt).
+
+Lifetime batching is by 16 compilation commands, not source paths: game/module.cpp
+alone has 412 configurations. Every original command remains in the full evidence
+database and is checked once through the batched database. Positive and seven-object
+negative controls remain mandatory. The new full local measurement is running
+(cook-lifetimes-commands.log); exact-head hosted coverage remains required.
+Build 35506318131 at 5ffaabc2 passed. Regression 35506318169 was cancelled after
+its Clang watcher failure, with all other completed required jobs passing and
+lifetime analysis still pending; it is not an accepted final gate.
+Self-review of this follow-up: only offline watcher correctness and analysis
+resource use changed; native code, accepted fixtures and hashes are untouched.

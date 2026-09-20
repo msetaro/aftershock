@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "tr_local.h"
+#include <cmath>
 
 #define LL( x ) x=LittleLong(x)
 
@@ -179,7 +180,7 @@ R_LoadIQM
 Load an IQM model and compute the joint matrices for every frame.
 =================
 */
-qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_name ) {
+qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_name, bool owned ) {
 	iqmHeader_t *header;
 	iqmVertexArray_t *vertexarray;
 	iqmTriangle_t *triangle;
@@ -580,8 +581,19 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		}
 	}
 
+	if ( header->num_anims ) {
+		if ( header->num_anims > 4096 || IQM_CheckRange( header, header->ofs_anims, header->num_anims, sizeof( iqmAnim_t ) ) || IQM_CheckRange( header, header->ofs_text, header->num_text, 1 ) )
+			return qfalse;
+		for ( uint32_t clipIndex = 0; clipIndex < header->num_anims; clipIndex++ ) {
+			iqmAnim_t clip;
+			memcpy( &clip, (byte *)header + header->ofs_anims + clipIndex * sizeof( clip ), sizeof( clip ) );
+			if ( clip.name >= header->num_text || !memchr( (char *)header + header->ofs_text + clip.name, 0, header->num_text - clip.name ) || !clip.num_frames || clip.first_frame >= header->num_frames || clip.num_frames > header->num_frames - clip.first_frame || !( clip.framerate > 0 ) || !std::isfinite( clip.framerate ) || ( clip.flags & ~IQM_LOOP ) )
+				return qfalse;
+		}
+	}
+
 	// allocate the model and copy the data
-	size = sizeof( iqmData_t );
+	size = sizeof( iqmData_t ) + header->num_anims * sizeof( modelAnimation_t );
 	if ( header->num_meshes ) {
 		size += header->num_meshes * sizeof( srfIQModel_t ); // surfaces
 		size += header->num_triangles * 3 * sizeof( int ); // triangles
@@ -624,7 +636,10 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 	}
 
 	mod->type = MOD_IQM;
-	iqmData = (iqmData_t *)ri.Hunk_Alloc( size, h_low );
+	iqmData = owned ? (iqmData_t *)ri.Malloc( size ) : (iqmData_t *)ri.Hunk_Alloc( size, h_low );
+	if ( owned )
+		Com_Memset( iqmData, 0, size );
+	mod->ownsData = owned;
 	mod->modelData = iqmData;
 
 	// fill header
@@ -637,6 +652,19 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 	iqmData->blendWeightsType = vertexArrayFormat[IQM_BLENDWEIGHTS];
 
 	dataPtr = (byte *)iqmData + sizeof( iqmData_t );
+	iqmData->num_anims = header->num_anims;
+	iqmData->animations = header->num_anims ? (modelAnimation_t *)dataPtr : nullptr;
+	for ( uint32_t clipIndex = 0; clipIndex < header->num_anims; clipIndex++ ) {
+		iqmAnim_t clip;
+		memcpy( &clip, (byte *)header + header->ofs_anims + clipIndex * sizeof( clip ), sizeof( clip ) );
+		modelAnimation_t *animation = &iqmData->animations[clipIndex];
+		Q_strncpyz( animation->name, (char *)header + header->ofs_text + clip.name, sizeof( animation->name ) );
+		animation->firstFrame = clip.first_frame;
+		animation->frameCount = clip.num_frames;
+		animation->framesPerSecond = clip.framerate;
+		animation->flags = clip.flags;
+	}
+	dataPtr += header->num_anims * sizeof( modelAnimation_t );
 	if ( header->num_meshes ) {
 		iqmData->surfaces = (struct srfIQModel_s *)dataPtr;
 		dataPtr += header->num_meshes * sizeof( srfIQModel_t );
@@ -1480,4 +1508,17 @@ int R_IQMLerpTag( orientation_t *tag, iqmData_t *data,
 	tag->origin[2] = jointMats[12 * joint + 11];
 
 	return qtrue;
+}
+
+bool R_ReplaceIQM( model_t *mod, void *buffer, int filesize, const char *name ) {
+	if ( mod->modelData && !mod->ownsData )
+		return false;
+	model_t replacement = *mod;
+	replacement.modelData = nullptr;
+	if ( !R_LoadIQM( &replacement, buffer, filesize, name, true ) )
+		return false;
+	if ( mod->modelData )
+		ri.Free( mod->modelData );
+	*mod = replacement;
+	return true;
 }

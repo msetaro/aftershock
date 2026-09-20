@@ -702,6 +702,9 @@ void FS_RestorePure( void );
 int FS_Home_FOpenFileRead( const char *filename, fileHandle_t *file );
 // Optional, checksummed cache data in the home game directory; never reads paks.
 // A null buffer queries the payload length. Failure is a cache miss (-1).
+#ifdef AFTERSHOCK_DEVTOOLS
+int FS_ReadDeveloperFile( const char *filename, void *buffer, int capacity );
+#endif
 int FS_ReadCache( const char *filename, void *buffer, int capacity );
 qboolean FS_WriteCache( const char *filename, const void *buffer, int size );
 

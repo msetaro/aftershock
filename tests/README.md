@@ -18,6 +18,9 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 python3 tests/native_math.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
+python3 tests/cook.py
+python3 tests/cook_runtime.py
+python3 tests/cook_runtime.py --modules --output /tmp/cook-modules
 python3 tests/devtools.py
 python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
@@ -33,6 +36,27 @@ python3 tests/check_frames.py
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
 ```
+
+`python3 tests/cook.py` requires the pinned Pillow version from
+`tools/cook/requirements.txt`, CMake/Ninja and a host C++ compiler. It cooks owned
+static, mirrored and skinned glTF/GLB sources; checks named clips, coordinates,
+BC7/BC5/BC4 KTX2 mip chains and embedded/manifest hashes; verifies no-op and
+selective recooking; and feeds the committed Blender character into production
+IQM pose code. `--cxx` selects GCC or Clang/libc++. Its source fixture/provenance
+is in `tests/assets/cook-character`; CI never reauthors it. No game paks are used. It also
+checks authored WAV/OGG sources through the production PCM codec, twelve bounded
+model/material replacements and 10,000 allocation-free idle publication polls.
+
+`python3 tests/cook_runtime.py` uses real ImGui input under Xvfb/lavapipe to load
+the owned Blender character, select both clips and measure a watched texture
+edit against a one-second gate. It edits only temporary source copies. It checks
+model/clip and material changes, stable handles and storage across repeated
+updates, idle UI allocations, and reload/rendering after video restart. Use
+`--modules` to build the optional renderer module, or `--binary` to reuse an
+existing development client. Defaults use installed Quake 3; hosted runs pass
+`--content openarena --data /tmp/aftershock-openarena-baseoa`. No game paks are
+committed or uploaded. Screenshot/log artifacts are separate from accepted goldens.
+
 
 `python3 tests/render_graph.py` checks the portable fixed pass declarations,
 dependencies and resource lifetimes, then observes production Vulkan image,
@@ -204,7 +228,9 @@ The driver checks the positive case and rejects a duplicate-include control.
 statics and temporaries in active Linux engine code and included engine headers,
 using static and module configurations. It requires clang-query (clang-tools in CI),
 Clang and the client build headers. `--clang-query` selects a versioned executable;
-`--output` retains the compile database and AST evidence. Its controls reject seven
+`--output` retains the full compile database and per-batch AST evidence. Analysis
+runs at most 16 compilation commands per process, retaining every configuration
+while bounding clang-query memory (including the game amalgamation). Its controls reject seven
 owning objects (including aliases, inheritance, arrays and std::string), and accept
 trivial/defaulted destructors and pointers. Platform/vendor directories are excluded;
 inactive preprocessor branches remain part of self-review. See plan section 11 for
@@ -649,3 +675,11 @@ destination capacity while small ordinary text verifies print/error routing and
 the log prefix. No oversized write is used. The formatters use standard bounded
 output, truncating diagnostic text to their existing buffer capacities. Use
 `--cxx 'clang++ -stdlib=libc++'` for the second CI compiler configuration.
+
+Cooked asset runtime check (#9): `python3 tests/cook_runtime.py` builds the enabled
+client, cooks the owned Blender fixture, opens it through real ImGui input and
+edits a copied source texture. The fixed-camera before/after screenshots must
+show the edit within one second. `--binary` reuses a development client;
+`--content openarena --data /tmp/aftershock-openarena-baseoa` selects hosted content.
+Use the tools/cook Python requirements in a venv. The watcher and client use only
+private temporary source/output trees; installed paks are symlinked locally.

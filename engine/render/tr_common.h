@@ -117,7 +117,17 @@ float R_NoiseGet4f( float x, float y, float z, double t );
 void R_NoiseInit( void );
 
 image_t *R_FindImageFile( const char *name, imgFlags_t flags );
-image_t *R_CreateImage( const char *name, const char *name2, byte *pic, int width, int height, imgFlags_t flags );
+struct cookedTexture_t;
+#ifdef AFTERSHOCK_DEVTOOLS
+void R_PollCookedAssets( void );
+struct cookedIndex_t;
+uint32_t R_CookedImageReloads( int index );
+uint32_t R_CookedModelReloads( int index );
+uint32_t R_CookedMaterialReloads( int index );
+void R_ReloadCookedMaterials( const cookedIndex_t *index );
+void R_ReloadCookedModels( const cookedIndex_t *index );
+#endif
+image_t *R_CreateImage( const char *name, const char *name2, byte *pic, int width, int height, imgFlags_t flags, const cookedTexture_t *cooked = nullptr );
 void R_UploadSubImage( byte *data, int x, int y, int width, int height, image_t *image );
 
 qhandle_t RE_RegisterShaderLightMap( const char *name, int lightmapIndex );

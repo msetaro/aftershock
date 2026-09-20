@@ -107,7 +107,11 @@ enum class rhiFormat_t : uint32_t {
 	BGRA8,
 	RGB8,
 	BGRA4,
-	A1RGB5
+	A1RGB5,
+	BC4,
+	BC5,
+	BC7,
+	BC7_SRGB
 };
 
 enum class rhiAddress_t : uint32_t {
@@ -122,12 +126,18 @@ struct rhiTexture_t {
 	uint64_t image;
 	uint64_t view;
 	uint64_t binding;
+	uint64_t memory; // Zero for pooled images; otherwise separately owned device memory.
 };
-static_assert( sizeof( rhiTexture_t ) == 24 && std::is_trivially_copyable_v<rhiTexture_t> );
+static_assert( sizeof( rhiTexture_t ) == 32 && std::is_trivially_copyable_v<rhiTexture_t> );
 
 [[nodiscard]] rhiStatus_t RHI_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, rhiAddress_t address, const char *label );
 // Input is a contiguous mip chain already converted to the texture format.
 [[nodiscard]] rhiStatus_t RHI_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update );
+// Whole BC mip chain, largest level first, tightly packed 4x4 blocks.
+[[nodiscard]] rhiStatus_t RHI_UploadCompressedTexture( const rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, bool update );
+// Development replacement waits for GPU use, then commits image/view/binding atomically.
+// Failure retains the live image; separately owned memory is reclaimed on replacement.
+[[nodiscard]] rhiStatus_t RHI_ReplaceCompressedTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, rhiAddress_t address, const char *label );
 [[nodiscard]] rhiStatus_t RHI_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address, bool mipmap );
 // Call only after GPU use completes. Binding storage is released by the map pool reset.
 void RHI_DestroyTexture( rhiTexture_t *texture );

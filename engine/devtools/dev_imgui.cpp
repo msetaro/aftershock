@@ -17,7 +17,8 @@ static devUiCommand_t commands[4096];
 
 static struct {
 	char path[MAX_QPATH], skinPath[MAX_QPATH];
-	int model, skin, frame;
+	int model, skin, frame, clip;
+	char clipName[64];
 	float phase, yaw, fps;
 	bool play, load, draw;
 	int x, y, width, height;
@@ -46,8 +47,12 @@ static void Status( void ) {
 	const devNetwork_t *net = DevTools_Network();
 	Com_Printf( "Developer profile: cpu=%u snapshots=%" PRIu64 " bits=%u\n",
 		DevTools_CpuTimings( &timings ), net->snapshots, net->snapshotBits );
-	Com_Printf( "Developer animation: model=%d frame=%d previews=%u\n", animation.model, animation.frame, animationFrames );
+	Com_Printf( "Developer animation: model=%d frame=%d previews=%u clip=%s\n", animation.model, animation.frame, animationFrames, animation.clipName );
 	Com_Printf( "Developer drawing: lines=%u labels=%u\n", drawnLines, drawnLabels );
+	devMemory_t memory;
+	Com_DeveloperMemory( &memory );
+	Com_Printf( "Developer asset memory: renderer=%" PRIu64 " blocks=%" PRIu64 " hunk=%d\n",
+		memory.bytes[TAG_RENDERER], memory.blocks[TAG_RENDERER], memory.hunkPermanent );
 }
 
 void DevTools_Init( void ) {
@@ -220,6 +225,10 @@ static void ImagePreview( const refexport_t *renderer, int index, float extent )
 	ImGui::TextWrapped( "%s", image.name );
 	ImGui::Text( "%dx%d -> %dx%d, flags 0x%x, format %u", image.width, image.height,
 		image.uploadWidth, image.uploadHeight, image.flags, image.format );
+	if ( image.reloads ) {
+		ImGui::SameLine();
+		ImGui::Text( "reloads %u", image.reloads );
+	}
 	if ( image.uploadWidth > 0 && image.uploadHeight > 0 ) {
 		const float scale = extent / (float)MAX( image.uploadWidth, image.uploadHeight );
 		ImGui::Image( (ImTextureID)image.texture, ImVec2( (float)image.uploadWidth * scale, (float)image.uploadHeight * scale ) );
@@ -269,6 +278,10 @@ static void InspectAssets( const refexport_t *renderer ) {
 				material.cull, (uint32_t)material.surfaceFlags, (uint32_t)material.contentFlags );
 			ImGui::Text( "%s, %s", material.explicitDefinition ? "script defined" : "implicit",
 				material.fallback ? "fallback shader" : "loaded" );
+			if ( material.reloads ) {
+				ImGui::SameLine();
+				ImGui::Text( "reloads %u", material.reloads );
+			}
 			for ( int stage = 0; stage < material.stages; ++stage ) {
 				if ( !material.present[stage] ) {
 					ImGui::Text( "Stage %d: inactive / missing image", stage );
@@ -532,6 +545,7 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 				animation.model = i;
 				animation.frame = 0;
 				animation.phase = 0;
+				animation.clip = 0;
 				Q_strncpyz( animation.path, model.name, sizeof( animation.path ) );
 			}
 			ImGui::PopID();
@@ -540,9 +554,38 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 	ImGui::EndChild();
 	devModel_t model;
 	if ( renderer->GetDeveloperModel( animation.model, &model ) && model.frames > 0 ) {
+		modelAnimation_t clip;
+		if ( !renderer->GetModelAnimation( animation.model, animation.clip, &clip ) ) {
+			clip.firstFrame = 0;
+			clip.frameCount = model.frames;
+			clip.flags = 1;
+			Q_strncpyz( clip.name, "All frames", sizeof( clip.name ) );
+		}
+		modelAnimation_t firstClip;
+		if ( renderer->GetModelAnimation( animation.model, 0, &firstClip ) ) {
+			if ( ImGui::BeginCombo( "Clip", clip.name ) ) {
+				modelAnimation_t choice;
+				for ( int i = 0; renderer->GetModelAnimation( animation.model, i, &choice ); i++ ) {
+					if ( ImGui::Selectable( choice.name, animation.clip == i ) ) {
+						animation.clip = i;
+						clip = choice;
+						animation.frame = (int)clip.firstFrame;
+						animation.phase = (float)clip.firstFrame;
+						animation.fps = clip.framesPerSecond;
+					}
+				}
+				ImGui::EndCombo();
+			}
+		}
+		Q_strncpyz( animation.clipName, clip.name, sizeof( animation.clipName ) );
+		const int firstFrame = (int)clip.firstFrame, lastFrame = firstFrame + (int)clip.frameCount - 1;
 		ImGui::Text( "%d frames, %d model bytes", model.frames, model.bytes );
-		animation.frame = MIN( animation.frame, model.frames - 1 );
-		if ( ImGui::SliderInt( "Frame", &animation.frame, 0, model.frames - 1 ) ) {
+		if ( model.reloads ) {
+			ImGui::SameLine();
+			ImGui::Text( "reloads %u", model.reloads );
+		}
+		animation.frame = MAX( firstFrame, MIN( animation.frame, lastFrame ) );
+		if ( ImGui::SliderInt( "Frame", &animation.frame, firstFrame, lastFrame ) ) {
 			animation.play = false;
 			animation.phase = (float)animation.frame;
 		}
@@ -551,7 +594,13 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 		ImGui::SliderFloat( "FPS", &animation.fps, 1, 60 );
 		ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 );
 		if ( animation.play ) {
-			animation.phase = fmodf( animation.phase + (float)MIN( elapsed, 250U ) * animation.fps * 0.001f, (float)model.frames );
+			animation.phase = MAX( (float)firstFrame, animation.phase ) + (float)MIN( elapsed, 250U ) * animation.fps * 0.001f;
+			if ( clip.flags & 1 )
+				animation.phase = (float)firstFrame + fmodf( animation.phase - (float)firstFrame, (float)clip.frameCount );
+			else if ( animation.phase >= (float)lastFrame ) {
+				animation.phase = (float)lastFrame;
+				animation.play = false;
+			}
 			animation.frame = (int)animation.phase;
 		}
 		const ImVec2 size = ImGui::GetContentRegionAvail();
@@ -579,6 +628,13 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 		animation.phase = 0;
 		animation.frame = 0;
 		animation.fps = 15;
+		animation.clip = 0;
+		modelAnimation_t clip;
+		if ( renderer->GetModelAnimation( animation.model, 0, &clip ) ) {
+			animation.frame = (int)clip.firstFrame;
+			animation.phase = (float)clip.firstFrame;
+			animation.fps = clip.framesPerSecond;
+		}
 	}
 	devModel_t model;
 	if ( !animation.draw || !renderer->GetDeveloperModel( animation.model, &model ) || model.frames < 1 )
@@ -599,7 +655,17 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 	entity.customSkin = animation.skin;
 	entity.renderfx = RF_NOSHADOW | RF_MINLIGHT;
 	entity.oldframe = animation.frame;
-	entity.frame = animation.play ? ( animation.frame + 1 ) % model.frames : animation.frame;
+	modelAnimation_t clip;
+	if ( !renderer->GetModelAnimation( animation.model, animation.clip, &clip ) ) {
+		clip.frameCount = model.frames;
+		clip.flags = 1;
+	}
+	const int firstFrame = (int)clip.firstFrame, lastFrame = firstFrame + (int)clip.frameCount - 1;
+	entity.oldframe = MAX( firstFrame, MIN( entity.oldframe, lastFrame ) );
+	entity.frame = entity.oldframe;
+	if ( animation.play )
+		entity.frame = entity.oldframe < lastFrame ? entity.oldframe + 1 : ( clip.flags & 1 ) ? firstFrame
+																							  : lastFrame;
 	entity.backlerp = animation.play ? 1.0f - ( animation.phase - (float)animation.frame ) : 0;
 	vec3_t mins, maxs, angles = { 0, animation.yaw, 0 };
 	renderer->ModelBounds( animation.model, mins, maxs );

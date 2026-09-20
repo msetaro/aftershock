@@ -20,6 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include "tr_cooked.h"
+
+#ifdef AFTERSHOCK_DEVTOOLS
+// The cooked base-color recipe has at most a texture and a lightmap stage.
+// ponytail: reserve these two slots; extend with the material recipe in #13.
+struct cookedShaderStorage_t {
+	shader_t shader;
+	shaderStage_t stages[2];
+};
+static_assert( offsetof( cookedShaderStorage_t, shader ) == 0 );
+static struct {
+	char path[MAX_QPATH];
+	uint8_t hash[32];
+	qboolean mipmaps;
+	uint32_t reloads;
+} cookedMaterials[MAX_SHADERS];
+#endif
 
 rendererPipelines_t r_pipelines;
 
@@ -2826,15 +2843,69 @@ static void SortNewShader( void ) {
 GeneratePermanentShader
 ====================
 */
-static shader_t *GeneratePermanentShader( void ) {
+static shader_t *GeneratePermanentShader( shader_t *replace = nullptr ) {
 	shader_t *newShader;
 	int i, b;
 	int size, hash;
 
-	if ( tr.numShaders >= MAX_SHADERS ) {
+	if ( !replace && tr.numShaders >= MAX_SHADERS ) {
 		ri.Printf( PRINT_WARNING, "WARNING: GeneratePermanentShader - MAX_SHADERS hit\n" );
 		return tr.defaultShader;
 	}
+
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( shader.reloadable ) {
+		if ( shader.numUnfoggedPasses > 2 || ( replace && !replace->reloadable ) )
+			return tr.defaultShader;
+		for ( int stageIndex = 0; stageIndex < shader.numUnfoggedPasses; stageIndex++ ) {
+			for ( int bundle = 0; bundle < NUM_TEXTURE_BUNDLES; bundle++ ) {
+				if ( stages[stageIndex].bundle[bundle].numTexMods )
+					return tr.defaultShader;
+			}
+		}
+		cookedShaderStorage_t *storage = replace ? (cookedShaderStorage_t *)replace : (cookedShaderStorage_t *)ri.Hunk_Alloc( sizeof( cookedShaderStorage_t ), h_low );
+		newShader = &storage->shader;
+		const int index = replace ? replace->index : tr.numShaders;
+		const int sortedIndex = replace ? replace->sortedIndex : tr.numShaders;
+		shader_t *next = replace ? replace->next : nullptr;
+		shader_t *remapped = replace ? replace->remappedShader : nullptr;
+		const double timeOffset = replace ? replace->timeOffset : 0;
+		*newShader = shader;
+		newShader->index = index;
+		newShader->sortedIndex = sortedIndex;
+		newShader->next = next;
+		newShader->remappedShader = remapped;
+		newShader->timeOffset = timeOffset;
+		for ( int stageIndex = 0; stageIndex < newShader->numUnfoggedPasses; stageIndex++ ) {
+			newShader->stages[stageIndex] = &storage->stages[stageIndex];
+			storage->stages[stageIndex] = stages[stageIndex];
+		}
+		if ( replace ) {
+			// Reload only runs at a frame boundary, with no queued draw commands.
+			int position = sortedIndex;
+			while ( position > 0 && tr.sortedShaders[position - 1]->sort > newShader->sort ) {
+				tr.sortedShaders[position] = tr.sortedShaders[position - 1];
+				tr.sortedShaders[position]->sortedIndex = position;
+				position--;
+			}
+			while ( position + 1 < tr.numShaders && tr.sortedShaders[position + 1]->sort < newShader->sort ) {
+				tr.sortedShaders[position] = tr.sortedShaders[position + 1];
+				tr.sortedShaders[position]->sortedIndex = position;
+				position++;
+			}
+			tr.sortedShaders[position] = newShader;
+			newShader->sortedIndex = position;
+			return newShader;
+		}
+		tr.shaders[tr.numShaders] = tr.sortedShaders[tr.numShaders] = newShader;
+		tr.numShaders++;
+		SortNewShader();
+		hash = generateHashValue( newShader->name, FILE_HASH_SIZE );
+		newShader->next = hashTable[hash];
+		hashTable[hash] = newShader;
+		return newShader;
+	}
+#endif
 
 	newShader = (shader_t *)ri.Hunk_Alloc( sizeof( shader_t ), h_low );
 
@@ -3064,7 +3135,7 @@ Returns a freshly allocated shader with all the needed info
 from the current global working shader
 =========================
 */
-static shader_t *FinishShader( void ) {
+static shader_t *FinishShader( shader_t *replace = nullptr, const cookedMaterial_t *material = nullptr ) {
 	int stage, i, n, m;
 	qboolean hasLightmapStage;
 	qboolean vertexLightmap;
@@ -3273,9 +3344,21 @@ static shader_t *FinishShader( void ) {
 	//
 	// look for multitexture potential
 	//
-	if ( r_ext_multitexture->integer ) {
+	if ( r_ext_multitexture->integer || material ) {
 		for ( i = 0; i < stage - 1; i++ ) {
 			stage -= CollapseMultitexture( stages[i + 0].stateBits, &stages[i + 0], &stages[i + 1], stage - i );
+		}
+	}
+
+	// Cooked transparency applies to the combined texture/lightmap pass.
+	if ( material && ( material->flags & 12 ) ) {
+		stages[0].bundle[0].alphaGen = AGEN_IDENTITY;
+		if ( material->flags & 4 ) {
+			stages[0].stateBits = ( stages[0].stateBits & ~( GLS_DEPTHMASK_TRUE | GLS_BLEND_BITS ) ) | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+			shader.sort = SS_BLEND0;
+		} else {
+			stages[0].stateBits |= GLS_ATEST_GE_80;
+			shader.sort = SS_SEE_THROUGH;
 		}
 	}
 
@@ -3645,7 +3728,7 @@ static shader_t *FinishShader( void ) {
 	// determine which stage iterator function is appropriate
 	ComputeStageIteratorFunc();
 
-	return GeneratePermanentShader();
+	return GeneratePermanentShader( replace );
 }
 
 //========================================================================================
@@ -3778,6 +3861,19 @@ static void R_CreateDefaultShading( image_t *image ) {
 	}
 }
 
+static void R_ApplyCookedMaterial( const cookedMaterial_t *material, image_t *image ) {
+	if ( ( material->flags & 2 ) && shader.lightmapIndex >= 0 )
+		shader.lightmapIndex = LIGHTMAP_NONE;
+	R_CreateDefaultShading( image );
+	shader.cullType = ( material->flags & 1 ) ? CT_TWO_SIDED : CT_FRONT_SIDED;
+	if ( material->flags & 2 )
+		stages[0].bundle[0].rgbGen = CGEN_IDENTITY;
+	shader.explicitlyDefined = qtrue;
+#ifdef AFTERSHOCK_DEVTOOLS
+	shader.reloadable = true;
+#endif
+}
+
 /*
 ===============
 R_FindShader
@@ -3870,6 +3966,35 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 		}
 
 		return FinishShader();
+	}
+
+	char materialPath[MAX_QPATH];
+	if ( strlen( strippedName ) + 6 < sizeof( materialPath ) ) {
+		Com_sprintf( materialPath, sizeof( materialPath ), "%s.asmat", strippedName );
+		void *file = nullptr;
+		const int size = ri.FS_ReadFile( materialPath, &file );
+		if ( file ) {
+			cookedMaterial_t material = {};
+			uint8_t materialHash[32];
+			const bool valid = size > 0 && R_ReadCookedMaterial( file, size, &material, materialHash );
+			ri.FS_FreeFile( file );
+			image = valid ? R_FindImageFile( material.texture, mipRawImage ? IMGFLAG_MIPMAP : IMGFLAG_CLAMPTOEDGE ) : nullptr;
+			if ( !image ) {
+				ri.Printf( PRINT_WARNING, "Invalid or unavailable cooked material: %s\n", materialPath );
+				shader.defaultShader = qtrue;
+				return FinishShader();
+			}
+			R_ApplyCookedMaterial( &material, image );
+			shader_t *result = FinishShader( nullptr, &material );
+#ifdef AFTERSHOCK_DEVTOOLS
+			if ( result != tr.defaultShader ) {
+				Q_strncpyz( cookedMaterials[result->index].path, materialPath, MAX_QPATH );
+				memcpy( cookedMaterials[result->index].hash, materialHash, 32 );
+				cookedMaterials[result->index].mipmaps = mipRawImage;
+			}
+#endif
+			return result;
+		}
 	}
 
 	//
@@ -4434,6 +4559,9 @@ R_InitShaders
 ==================
 */
 void R_InitShaders( void ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	Com_Memset( cookedMaterials, 0, sizeof( cookedMaterials ) );
+#endif
 	ri.Printf( PRINT_ALL, "Initializing Shaders\n" );
 
 	Com_Memset( hashTable, 0, sizeof( hashTable ) );
@@ -4444,3 +4572,43 @@ void R_InitShaders( void ) {
 
 	CreateExternalShaders();
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void R_ReloadCookedMaterials( const cookedIndex_t *index ) {
+	for ( uint32_t row = 0; row < index->count; row++ ) {
+		cookedEntry_t entry;
+		memcpy( &entry, index->entries + row * sizeof( entry ), sizeof( entry ) );
+		if ( entry.kind != 3 )
+			continue;
+		for ( int i = 0; i < tr.numShaders; i++ ) {
+			if ( strcmp( cookedMaterials[i].path, entry.path ) || !memcmp( cookedMaterials[i].hash, entry.hash, 32 ) )
+				continue;
+			void *file = nullptr;
+			const int length = ri.FS_ReadFile( entry.path, &file );
+			cookedMaterial_t material = {};
+			bool success = file && length == (int)entry.size && R_CookedHashMatches( file, length, entry.hash ) && R_ReadCookedMaterial( file, length, &material );
+			if ( file )
+				ri.FS_FreeFile( file );
+			image_t *image = success ? R_FindImageFile( material.texture, cookedMaterials[i].mipmaps ? IMGFLAG_MIPMAP : IMGFLAG_CLAMPTOEDGE ) : nullptr;
+			success = image != nullptr;
+			if ( success ) {
+				shader_t *live = tr.shaders[i];
+				InitShader( live->name, live->lightmapSearchIndex );
+				R_ApplyCookedMaterial( &material, image );
+				success = FinishShader( live, &material ) == live;
+			}
+			if ( success ) {
+				memcpy( cookedMaterials[i].hash, entry.hash, 32 );
+				cookedMaterials[i].reloads++;
+			}
+			ri.Printf( success ? PRINT_ALL : PRINT_WARNING, "Cooked material %s: %s\n", success ? "reloaded" : "reload failed", entry.path );
+		}
+	}
+}
+#endif
+
+#ifdef AFTERSHOCK_DEVTOOLS
+uint32_t R_CookedMaterialReloads( int index ) {
+	return cookedMaterials[index].reloads;
+}
+#endif

@@ -538,6 +538,7 @@ typedef struct shader_s {
 	unsigned noPicMip : 1; // for images that must always be full resolution
 	unsigned noLightScale : 1;
 	unsigned noVLcollapse : 1; // ignore vertexlight mode
+	unsigned reloadable : 1; // cooked development material; keep vertex data dynamic
 
 	fogPass_t fogPass; // draw a blended pass, possibly with depth test equals
 
@@ -652,7 +653,7 @@ typedef struct image_s {
 
 } image_t;
 
-static_assert( sizeof( image_t ) == 80 && alignof( image_t ) == 8 );
+static_assert( sizeof( image_t ) == 88 && alignof( image_t ) == 8 );
 static_assert( offsetof( image_t, texture ) == 56 );
 
 
@@ -914,6 +915,8 @@ typedef struct {
 	float *invBindJoints; // [num_joints * 12]
 	iqmTransform_t *poses; // [num_frames * num_poses]
 	float *bounds;
+	uint32_t num_anims;
+	modelAnimation_t *animations;
 } iqmData_t;
 
 // inter-quake-model surface
@@ -1049,6 +1052,7 @@ typedef struct model_s {
 	void *modelData; // only if type == (MOD_MDR | MOD_IQM)
 
 	int numLods;
+	bool ownsData; // Cooked development models use one replaceable zone block.
 } model_t;
 
 #define MAX_MOD_KNOWN	1024
@@ -1831,7 +1835,9 @@ ANIMATED MODELS
 
 void R_MDRAddAnimSurfaces( trRefEntity_t *ent );
 void RB_MDRSurfaceAnim( mdrSurface_t *surface );
-qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *name );
+bool RE_GetModelAnimation( qhandle_t handle, int clip, modelAnimation_t *animation );
+qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *name, bool owned = false );
+bool R_ReplaceIQM( model_t *mod, void *buffer, int filesize, const char *name );
 void R_AddIQMSurfaces( trRefEntity_t *ent );
 void RB_IQMSurfaceAnim( const surfaceType_t *surface );
 int R_IQMLerpTag( orientation_t *tag, iqmData_t *data,

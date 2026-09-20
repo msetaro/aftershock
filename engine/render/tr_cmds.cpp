@@ -286,6 +286,10 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		return;
 	}
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( backEndData->commands.used == 0 )
+		R_PollCookedAssets();
+#endif
 	glState.finishCalled = qfalse;
 
 #ifdef USE_VULKAN

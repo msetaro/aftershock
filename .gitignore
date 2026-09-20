@@ -7,3 +7,4 @@ cmake-*
 .idea
 
 .ccache/
+__pycache__/
