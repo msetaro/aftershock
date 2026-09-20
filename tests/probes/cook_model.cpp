@@ -5,8 +5,10 @@
 refimport_t ri;
 trGlobals_t tr;
 static void *allocation;
+static size_t allocationSize, ownedSize;
 static uint32_t ownedAllocations, ownedPeak;
 static void *allocateOwned( size_t size ) {
+	ownedSize = size;
 	ownedAllocations++;
 	ownedPeak = MAX( ownedPeak, ownedAllocations );
 	return calloc( 1, size );
@@ -17,6 +19,7 @@ static void releaseOwned( void *pointer ) {
 	free( pointer );
 }
 static void *allocate( size_t size, ha_pref ) {
+	allocationSize = size;
 	assert( !allocation );
 	allocation = calloc( 1, size );
 	assert( allocation );
@@ -54,6 +57,7 @@ int main( int argc, char **argv ) {
 	ri.Printf = print;
 	model_t model = {};
 	assert( R_LoadIQM( &model, bytes, (int)size, argv[1] ) );
+	assert( model.dataSize == (int)allocationSize );
 	const iqmData_t *data = (iqmData_t *)model.modelData;
 	assert( data == allocation && data->num_surfaces == 6 && data->num_joints == 3 && data->num_frames == 62 );
 	for ( int frame = 0; frame < data->num_frames; frame++ ) {
@@ -104,6 +108,7 @@ int main( int argc, char **argv ) {
 	for ( uint32_t i = 0; i < 12; i++ ) {
 		assert( R_ReplaceIQM( &model, bytes, (int)size, argv[1] ) );
 		assert( model.ownsData && ownedAllocations == 1 );
+		assert( model.dataSize == (int)ownedSize );
 		assert( ( (iqmData_t *)model.modelData )->num_anims == 2 );
 	}
 	assert( ownedPeak == 2 );

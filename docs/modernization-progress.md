@@ -16,31 +16,29 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#142 PR #144 merged as 6a9e755b after exact head ffcb072c passed build
-35498994504 and regression 35498994503, with the committed self-review. The merge
-tree equals the tested tree (0273866798e91a64d27002e5499353438d6a6769).
-Merged-tree regression 35499764754 passed. #142 is closed and #25 is updated.
+#9 PR #145 merged as c195f798 after exact head 3eb19288 passed build
+35507057165 and regression 35507057162 with the committed self-review. The merge
+tree matches the tested tree (a932a04e693402c91f8eecd0101a2852bf53714b).
+Merged-tree regression 35507482742 passed. #9 is complete; close it/update #25
+and open the separate accounting PR at this checkpoint.
 
-Current branch is `issue/9-asset-pipeline`. Its test-first commit is 56c25515;
-origin/modernization has been merged into it without rewriting history. The
-owned Blender source fixture was exported once with verified portable Blender
-4.5.3 (archive hash below). Offline cooking/production pose tests pass at 7acd72c1.
-Draft PR #145 holds #9. Source cooking, named clips, bounded hot reload,
-inspector counts and local static/module/OpenArena/restart/idle acceptance pass.
-Final fixed Quake 3 and OpenArena demo comparisons preserve their accepted hashes.
-The self-review is below. Final follow-up fixes select matching OpenArena native
-objects for the standalone test build and remove a duplicated command in AGENTS.
-Next: confirm the 16-command lifetime batches locally and in the final exact-head
-hosted build/regression workflows, then mark #145 ready and merge with a merge
-commit. The watcher fix passes GCC/Clang and the live sub-second acceptance gate.
-Require the merged-tree regression before closing #9/updating #25 and proceeding.
-After #9, fix IQM allocation accounting and rotated nonuniform scale in separate
-#31 PRs, then continue #10 and the remaining #25 roadmap. No upstream PRs.
+Current branch is `issue/31-iqm-accounting`. Test-first commit 85563345 compares
+model_t::dataSize with the actual allocator request on registration and twelve
+owned replacements; it fails at the initial zero-valued accounting before any
+engine fix (iqm-accounting-before.log). Modernization is merged forward without
+rewriting history. With #9 merged, prepare the isolated one-line assignment in
+R_LoadIQM and its local verification while the merged-tree gate runs; no follow-up
+PR opens until that gate passes. This advances the earlier tests-only preparation
+checkpoint now that #9's exact-head gates and merge are complete.
 
-Read #9 and the preparation notes in the persistent modernization cache
-(issue9-preparation.md). Trace native model/texture ownership before implementation.
-The first cooker feature test failed before implementation and now passes. No accepted fixtures/goldens or finished historical test evidence may
-change. Continue the #25 roadmap after #9. All writes stay in msetaro/aftershock.
+The accounting fix now passes GCC/Clang cooker checks, formatting and
+fixed Quake 3 replay. Self-review is recorded below. Next: open and gate the
+separate #31 accounting PR, merge with a merge commit after exact-head success,
+and require its merged-tree regression before the following PR;
+then fix rotated nonuniform joint scale in another #31 PR. Its mathematical test
+is being prepared in /tmp/aftershock-31-iqm-joint-scale without engine edits.
+After both bugs, continue #10 and the remaining #25 roadmap. All GitHub changes
+stay in msetaro/aftershock. Never regenerate accepted fixtures for these fixes.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -3139,3 +3137,52 @@ its Clang watcher failure, with all other completed required jobs passing and
 lifetime analysis still pending; it is not an accepted final gate.
 Self-review of this follow-up: only offline watcher correctness and analysis
 resource use changed; native code, accepted fixtures and hashes are untouched.
+
+## #9 accepted tree and #31 accounting preparation
+
+#145 merged as c195f798; final build 35507057165/regression 35507057162 passed.
+The final local lifetime run covered all 1,124 commands / 120 source paths and
+positive/seven-object negative controls in 5:02 at 448,048 KiB peak RSS. The
+normalized full compile database is identical. One-path batching had still used
+6,719,332 KiB because game/module.cpp has 412 configurations; 16-command batches
+bound that case too. Live watched texture latency is 0.605985 seconds with 2,721
+changed pixels; repeated replacements/idle/restart and accepted fixed-demo hashes
+remain passing. No accepted fixture/golden was regenerated.
+
+Accounting test-first 85563345 fails before the fix at
+`model.dataSize == (int)allocationSize`. Twelve owned replacements also require
+exact current block accounting, rejecting an accumulating fix. Registration and
+reload both route through R_LoadIQM; its one native block needs one assignment.
+This bug is not a sanitizer finding, so it has no known-bugs/suppression entry.
+
+## #31 accounting fix and local verification
+
+R_LoadIQM assigns model_t::dataSize to its native block size. Test-first 85563345
+failed before the assignment; GCC and Clang/libc++ complete cooker tests now pass,
+including registration and twelve owned replacements (no accumulating count).
+Format passes. Fixed Quake 3 demos replay twice per map and preserve projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4 and both committed
+fixture hashes. Logs: iqm-accounting-{gcc,clang,format,demo}.log. No golden was
+regenerated, and this non-sanitizer bug has no known-bugs/suppression entry.
+
+Self-review: this #31 change is one metadata assignment in the shared loader.
+No geometry/simulation arithmetic, allocation, OS call, destructor, ABI/layout or
+unrelated refactoring changes. Initial registration and in-place replacement share
+the corrected path. Full exact-head hosted build/regression still required for the
+PR, after #9 integration regression 35507482742 passes. The rotated-scale test is
+committed separately as 13f999df and fails before any matrix change.
+
+#9 merged-tree regression 35507482742 passed at c195f798. The accounting PR may
+now open; its own exact-head build/regression and post-merge regression remain
+required. The main worktree is now on issue/31-iqm-accounting.
+
+
+#146 initial build 35508144036 caught MSVC C4267: the allocation size is size_t,
+while model_t::dataSize retains its signed 32-bit reporting field. The correction
+checks that the allocation fits before assigning with an explicit conversion;
+an unrepresentable count is rejected before allocation. GCC/Clang complete cooker
+checks and formatting pass again (iqm-accounting-width-{gcc,clang,format}.log).
+This remains the same accounting bug and introduces no new test target. Final
+exact-head build/regression must rerun; the initial failed build is not acceptance.
+Self-review update: the reporting-width guard is necessary for exact accounting;
+no ABI, allocation algorithm, geometry or simulation arithmetic changes.
