@@ -57,6 +57,14 @@ The owned-content packaging contract is test-first in tests/match_content.py;
 it fails on the absent tools/match/content.py (match-content-before.log). It checks
 repeatable ZIP bytes, legal/project-only members and unchanged accepted map files.
 
+Owned content now packages repeatably and boots the native dedicated server with
+fs_basegame=aftershock, without any installed paks or filesystem engine changes
+(match-owned-boot.log). MAP/BSP/AAS fixtures remain byte-identical. New Go contract
+tests first fail on absent spec/argument/checkpoint/ingest implementations; they
+require bounded launch fields, explicit passwords, authenticated ingest, contiguous
+acknowledged offsets and durable duplicate handling across stub restart. Go 1.27.1
+is in user cache only; gRPC/protobuf are pinned module dependencies.
+
 ## #27 checkpoint inherited by #28
 
 Current branch: `issue/27-headless-levels` in the main user checkout.
