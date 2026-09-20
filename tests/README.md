@@ -733,7 +733,7 @@ preserve classic behavior. The server advances graph state in 20 ms steps and
 publishes auxiliary entities through the existing snapshot codec. The client uses
 that exact state for hit boxes and samples cosmetic presentation separately.
 Gameplay notifies are delivered to game code; the existing legacy weapon rules
-remain the weapon-system baseline for #13. `cmd anim NAME 0|1` supplies demonstration
+remain the weapon-system baseline for #11. `cmd anim NAME 0|1` supplies demonstration
 ADS/fire/reload/sprint/jump, stance and aim/lean inputs. Movement, view yaw/pitch and
 authoritative ground contacts supply the body inputs automatically. `cg_animationFov`
 and `cg_animationSway` tune first-person cosmetics; `g_animationTrace` and

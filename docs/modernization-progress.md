@@ -24,7 +24,9 @@ unsigned-to-float ADS denominator conversion explicit. GCC/Clang unit, sanitizer
 format and both cross regression jobs pass; Linux/macOS builds pass. The 100 Hz
 local check passes after the literal fix; the same Q3 fixture still matches all
 253 boxes and repeated frame samples (animation-msvc-conversions-demo.log).
-Push this correction and inspect the newest PR-head build/regression checks. The integration
+Correction d9cb78a4 is pushed; current build 35516284205 and regression
+35516284169 are running. MSVC Release x64 and both ARM64 configurations already
+pass; inspect the remaining exact-head checks before merging PR #148. The integration
 baseline is 7f4d43a7 (merged-tree regression 35510058541 passed). #31 and #9 are
 closed. Feature implementation/editor/ABI gates are committed through 3fbc0a62;
 7004bf0a adds the 100 Hz timing test first. The publication guard now passes it.
