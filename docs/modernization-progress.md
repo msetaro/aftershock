@@ -77,6 +77,13 @@ without slowing its mean rate, and old idle/reload backlog is not emitted as a
 burst. The 80 ms 1000-shot digest remains unchanged (weapons-cadence-gcc.log,
 weapons-cadence-clang.log). Next: auxiliary weapon state round-tripped through
 the actual delta codec, then server/client fixed-tick gameplay integration.
+The new snapshot probe now fails on absent game/bg/bg_weapons.cpp
+(weapons-snapshot-before.log). It requires all 56 weapon-state bytes, full-width
+seed/clock/spawn counters, owner/hand/definition/attachment metadata, origin and
+compact deltas to survive the production entity codec. Decision: an auxiliary
+ET_WEAPON_STATE record (254) keeps existing wire structs and movement fields
+unchanged; the native feature protocol must be revised before exposing the new
+record to real clients. No gameplay/prediction acceptance is claimed yet.
 
 
 ## #12 implemented feature evidence

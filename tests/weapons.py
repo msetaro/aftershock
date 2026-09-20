@@ -66,3 +66,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapon-source-') as temporar
     recook = cook(recipe, args.output)
     assert recook['built'] == ['weapons/range_rifle'] and recook['skipped'] == ['weapons/second']
 print('PASS: another rifle is data only; versioned cooking, dependency hashes and selective recooking')
+
+snapshot = args.output / 'snapshot-probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-ffunction-sections', '-fdata-sections', '-fno-strict-aliasing',
+     '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/weapon_snapshot.cpp', 'engine/qcommon/msg.cpp',
+     'engine/qcommon/huffman.cpp', 'engine/qcommon/huffman_static.cpp',
+     'engine/qcommon/q_shared.cpp', '-Wl,--gc-sections', '-o', snapshot])
+run([snapshot])
