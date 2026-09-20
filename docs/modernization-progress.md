@@ -16,9 +16,11 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837. Implement #11's committed failing data/runtime contracts using the existing
-cooker and owned rifle/body assets. #12 integration regression 35523091952
-passed. Complete the full #11 scope, wire tests into CI, run all gates/self-review
+Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
+Continue #11 after its first portable/cooker slice. Check fractional-tick cadence
+and native cooked-index registration next, then integrate gameplay, prediction
+and the target range using the existing owned rifle/body assets. #12 integration
+regression 35523091952 passed. Complete the full #11 scope, wire tests into CI, run all gates/self-review
 and merge through its own PR. #11 was read; #10/#12 are
 its prerequisites. Reuse existing fixed-tick, asset and animation APIs.
 
@@ -44,12 +46,26 @@ cooker, a second rifle authored only in JSON, incremental dependencies, exact
 patterns, automatic/semi/burst cadence, staged tactical reload and cancellation,
 magazine/chamber/reserve conservation, ADS interpolation, data attachments,
 range falloff/material penetration response and projectile step/bounce math.
-The probe fails before implementation on the absent weapons_public.h and
-weapons.cpp (weapons-before.log). No weapon runtime/cooker implementation exists.
+The initial probe failed on the absent weapons_public.h and weapons.cpp
+(weapons-before.log), before any weapon runtime/cooker implementation.
 This is the first slice, not #11 acceptance. Server rewind integration, replicated
 projectiles/grenades and prediction, switching/dual-wield/melee, animation/sound
 notifies, real target-range/ImGui controls and fixed-demo parity remain required.
 The original #10 rifle/body sources and accepted fixtures remain unchanged.
+
+The initial weapon payload/runtime now passes GCC and Clang/libc++ UBSan,
+including the independent 1000-shot integer/binary32 reference. Both trace hashes
+are 0c1b0e259650e6c5c6c155244100b3e194abbfc75fe7d10717cdb25b919c746f
+(weapons-reference-gcc.log, weapons-reference-clang.log). Client/server production
+build passes (weapons-core-build.log); only the new weapon translation unit gains
+strict FP flags. Payload size is 3936 bytes, plain state 56 bytes, fixed arrays and
+20 ms stepping with no per-frame allocation. Tactical/empty reload conservation,
+cancel points, melee cadence, clock wrap and projectile fuse checks pass. The
+existing unsigned form of Q_rand's recurrence supplies this new seeded state;
+legacy RNG code is untouched. New tests 125c8016/9a047470 preceded implementation.
+This is not #11 acceptance: data-to-gameplay and rendering/audio integration,
+replication/prediction, target-range tooling and replay gates remain outstanding.
+
 
 ## #12 implemented feature evidence
 

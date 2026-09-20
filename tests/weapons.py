@@ -45,6 +45,18 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapon-source-') as temporar
     assert magic == b'ASWEAP\0\0' and version == 1 and size == len(data) - 48
     assert digest == hashlib.sha256(data[48:]).digest()
     trace = subprocess.check_output([probe, rifle, args.output / 'weapons/second.asweapon'], cwd=ROOT, env=ENV, timeout=30)
+    # Independent integer reference for Q_rand's recurrence and binary32 spread.
+    def f32(value):
+        return struct.unpack('<f', struct.pack('<f', value))[0]
+    seed, reference = 12345, []
+    for shot in range(1000):
+        spread = []
+        for axis in range(2):
+            seed = (69069 * seed + 1) & 0xffffffff
+            spread.append(f32(((seed & 65535) / 32768 - 1) * f32(definition['spread_degrees'])))
+        recoil = definition['recoil'][shot % len(definition['recoil'])]
+        reference.append(str(shot) + ' ' + ' '.join(format(v, '.9g') for v in [*spread, *map(f32, recoil)]))
+    assert trace == ('\n'.join(reference) + '\n').encode(), '1000-shot trace differs from the independent seed/pattern reference'
     (args.output / 'shots.txt').write_bytes(trace)
     assert len(trace.splitlines()) == 1000
     print('PASS: 1000 seeded shots and weapon lifecycle;', hashlib.sha256(trace).hexdigest())

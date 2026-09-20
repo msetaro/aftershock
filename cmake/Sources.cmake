@@ -1,6 +1,7 @@
 # Explicit production source lists migrated from the verified Make build.
 
 set(COMMON_SOURCES
+  engine/weapons/weapons.cpp
   engine/animation/animation.cpp
   engine/animation/animation_assets.cpp
   third_party/sha256/sha-256.c
