@@ -17,14 +17,20 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/26-level-authoring`, based on #11 merge 94a70b91.
-Merged-tree regression 35534705876 is running; close/check #11 when it passes.
-#26 contract/sample/design-rule tests are written and fail because tools/level has
-no __main__ yet (level-contract-before.log). Implement that contract next after
-the merged-tree gate completes. The #26/#27/#28/#18 specs are read;
-JSON version 1 is provisional and consistent with the existing asset cooker.
-External tool preparation is recorded below. Preserve accepted engine fixtures.
-Continue #26 -> #27 -> #28, then the remaining #25 roadmap until a maintainer-only
-dependency. All repository changes/PRs stay in msetaro/aftershock.
+Work checkout: ~/.cache/aftershock-modernization/level-tree. #11 integration
+failed only the renderer-dependent harness deadline; separate test-only #151/
+PR #152 is in full CI from 7829fa97 in the original checkout. Merge it and require
+merged-tree regression before accepting #11 or this branch. Merge modernization
+forward here afterward; never rewrite branch history.
+
+The first compiler implementation passes the MAP/schema/design-rule controls and
+produces repeated byte-identical BSP/AAS in separate directories. Geometry review
+caught duplicate coplanar room/corridor side-wall faces and a missing OBJ material
+remap; both are corrected and the compiler log now has no warnings. Initial output
+is disposable under /tmp/aftershock-level-{first,second,third}, not accepted fixtures.
+Next: check all geometry transitions, real bot navigation and rendered presentation,
+strengthen boundary/clearance controls, then author/review the new fixtures once.
+No engine edits or accepted golden changes. Continue #26 -> #27 -> #28 then #25.
 
 #11 PR #150 merged with a merge commit as
 94a70b91f35acfa0636a7db473609b3aafde76e5. Its tree
@@ -35,7 +41,7 @@ uncompensated differences, median age 160 ms, prediction error <=8.875 units,
 774/774 complete weapon and animation comparisons. Fixed OA replay checks 992
 full-state hashes with repeatable frames under static and module renderers.
 All Linux/macOS/MinGW/MSVC x64/ARM64 builds pass. Lifetime analysis passes 1216
-commands. Merged-tree regression 35534705876 is pending; do not claim it passed.
+commands. Merged-tree regression 35534705876 failed the wall-time harness deadline; #151 is the test-only correction.
 
 ## #26 preparation and failing contract test
 
@@ -68,9 +74,13 @@ Six 16x16 procedural textures and a 64-unit cube have a source authoring script
 and pinned provenance. tests/level.py requires deterministic MAP output and
 specific corridor/door/containment/connectivity/material/sightline/cover/duplicate
 errors. It fails on the absent CLI before implementation. The optional --compile gate also requires repeated MAP/BSP/AAS bytes and committed
-fixture comparison; its explicit recording flag is refused in CI. Neither compiler
-implementation nor initial golden output exists yet. Real bot-pathing acceptance
-remains to be added.
+fixture comparison; its explicit recording flag is refused in CI. The initial compiler now exists; reviewed fixtures and real bot-pathing acceptance
+remain to be added. Initial navigation uses a 16-unit player-clearance grid with
+18-unit maximum steps and treats doors as open. Sightlines use the conservative
+whole-layout diagonal bound; cover spacing is horizontal distance to nearest cover
+plus a half-cell diagonal. These restrictions must be documented, not portrayed
+as exact visibility/path distance. Full BSP/AAS compilation uses a verified pinned
+Linux x86_64 tool bundle; MAP-only mode is portable.
 
 #12 PR #149 merged with a merge commit as
 3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree
