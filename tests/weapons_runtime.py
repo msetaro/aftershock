@@ -50,6 +50,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
         'set g_weaponTrace 1', 'set cg_weaponTrace 1',
         'set fixedtime 20', 'set sv_fps 50', 'set g_rewind 1', 'set g_rewindTrace 1',
         f'devmap {content_maps(args.content)[0]}', 'wait 60',
+        'cmd weapon_attachment 0 1', 'wait 15',
         'rewind_target 0', 'wait 2', '+attack', 'wait 130', '-attack', '+button12', 'wait 15',
         '+button13', 'wait 2', '-button13', 'wait 65', '-button12',
         '+button14', 'wait 30', '-button14', 'wait 10', 'weapon 2', 'wait 15',
@@ -82,6 +83,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     assert switches == [('0', '1', '30'), ('1', '0', '29'), ('0', '2', '4')], switches
     assert 'Weapon client definition: index=1 name=range_rifle_second' in text
     assert 'Weapon impact: material=effects/range_default' in text, 'material impact presentation missing'
+    assert 'Weapon attachment: owner=0 hand=0 mask=1 spread=0.750000 fov=45.000000' in text
+    assert 'Weapon attachment client: owner=0 hand=0 definition=0 mask=1' in text
     assert 'Weapon projectile server: owner=0 hand=0 sequence=1 ' in text, 'projectile actor missing'
     assert 'Weapon projectile client: owner=0 hand=0 sequence=1 ' in text, 'projectile snapshot rendering missing'
     assert 'Weapon projectile exploded: owner=0 sequence=1 ' in text, 'projectile never detonated'

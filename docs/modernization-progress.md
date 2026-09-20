@@ -279,6 +279,12 @@ entities take over drawing. GCC/Clang probes and format/boundary/type checks pas
 Next: attachments and weapon/view/notify/audio integration, then ImGui range,
 stronger lifecycle/latency/replay evidence and complete CI/self-review acceptance.
 
+The attachment command extension fails at missing modifier/replication evidence
+(weapons-attachment-before.log). Require the optic mask to produce spread 0.75
+and FOV 45 on the server and reach the matching client definition. Keep masks
+per hand and inventory weapon, validate data-supported bits, and apply equip
+delay without changing ammunition. Socket rendering follows in presentation.
+
 
 ## #12 implemented feature evidence
 
