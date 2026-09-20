@@ -2950,3 +2950,8 @@ Evidence: cook-model-replace-{before,after,build}.log and
 cook-live-model-reload.log. No accepted/source fixture changed. Hosted MSVC at
 76287e8c found two new clip-loop shadow warnings; use clipIndex to resolve them.
 Next: bounded in-place material replacement, then the remaining #9 acceptance.
+
+Material replacement test added before implementation: production shader storage
+must preserve the handle/hash chain/remap, correctly reorder changed blend sorts,
+and keep one hunk allocation across twelve one/two-stage edits. It fails on the
+absent reloadable flag/replacement API (cook-material-replace-before.log).

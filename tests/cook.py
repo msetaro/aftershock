@@ -297,6 +297,13 @@ def main():
                     'tests/probes/cook_model.cpp', 'engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp',
                     '-Wl,--gc-sections', '-o', str(probe)], cwd=ROOT, check=True)
     subprocess.run([str(probe), str(output / 'models/character.iqm')], check=True)
+    material_probe = args.output / 'material-probe'
+    subprocess.run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+                    '-DUSE_VULKAN_API', '-DAFTERSHOCK_DEVTOOLS', '-Wall', '-Wextra', '-Werror',
+                    '-ffunction-sections', '-fdata-sections', 'tests/probes/cook_material.cpp',
+                    'engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp',
+                    '-Wl,--gc-sections', '-o', str(material_probe)], cwd=ROOT, check=True)
+    subprocess.run([str(material_probe)], check=True)
     sha_vendor = ROOT / 'third_party/sha256'
     for name, expected in json.loads((sha_vendor / 'provenance.json').read_text())['files'].items():
         assert hashlib.sha256((sha_vendor / name).read_bytes()).hexdigest() == expected
