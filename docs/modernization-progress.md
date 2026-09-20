@@ -1,8 +1,12 @@
 # Modernization checkpoint
 
-Integration: `modernization`. Issue branches: `issue/<number>-<slug>`, one bug per
-#31 PR and one warning class per #8 PR. Merge commits only after gates/self-review.
-Never push main, force-push, rewrite history, or touch port-evidence.
+Integration: `main` (maintainer workflow change, 2026-09-20). Issue branches:
+`issue/<number>-<slug>`, one bug per #31 PR and one warning class per #8 PR.
+Merge commits only after all required gates pass and the AGENTS self-review.
+No human review step. Never merge with a red/skipped required check, force-push,
+rewrite history, move/delete known-good-* tags, or touch port-evidence. Nothing is
+published or commented outside msetaro/aftershock. `modernization` is retired;
+its history below is an evidence record, not the current PR target.
 
 Maintainer continuation (2026-09-19): continue the modernization roadmap through
 completion or a dependency requiring the maintainer. This supersedes the earlier
@@ -16,46 +20,36 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Main checkout remains on issue/13-materials for draft PR #157. Its corrected head
-2ed8cf56a71124de7b096315d342ee206c1b7cc2 passed all platform legs in build 35544991054; regression
-35544991093 still has runtime/lifetime gates running. Initial head be1a234e failed MSVC C4244; its superseded runs were
-cancelled and are not acceptance. All local final #13 gates/self-review passed.
-The extra level-tree worktree is preparatory issue/14-lighting, based on the same
-#13 head. The #14 failing directional-bake test is recorded below; no implementation or acceptance yet. Merge modernization forward
-after #13 exact-head and merged-tree gates pass; never rebase.
+Active #13 branch: `issue/13-materials`, draft PR #157 now targets `main`.
+Main baseline 81a0f9dc (known-good-2026-09-20) is merged forward without rewriting
+history; AGENTS now specifies self-merged PRs into main after all required checks.
+The regression workflow's PR/push filters also change to main, otherwise the
+retargeted PR would silently miss its regression gates. Build triggers are checked
+as part of this migration. The tag is unchanged.
 
-#28 PR #156 merged as 646a63e82c0a74307d0e830ca6c626eca985ed60 after exact-head build
-35542300540 and regression 35542300709 passed. Its tree equals tested 04a86876:
-f30abf9b5723b4d0aa20dc7600be1a7348050e5f. Merged-tree regression 35543218326 passed;
-#28 is closed and checked in #25. #31 PR #155 and #27 are fully accepted/closed.
+Previous material head 2ed8cf56 passed all build legs (35544991054); regression
+35544991093 was still running runtime/lifetimes when the workflow changed. These
+runs are evidence for that earlier head only. Require fresh exact-head build and
+regression for this updated branch, then mark #157 ready, merge with a merge
+commit and verify main's merged-tree regression before closing #13/checking #25.
+Committed self-review and final local material evidence are below. No accepted
+fixture or shader bytes changed.
 
-#28's reviewed local image/kind test passed at /tmp/aftershock-match-kind-reviewed:
-a real native OA player joined sv_pure=1, the one-minute match exited, a completed
-checkpoint was durably acknowledged, and a new Ready server replaced it. All three
-containers used 45,748,224 working-set bytes and 0.00380977 vCPU over 20 seconds
-with one connected idle player. Resource equivalents are 21.86 matches/GB and
-262.5/vCPU, not saturated or worst-case capacity. Configured requests, including
-Agones' always-running init sidecar, are 0.13 vCPU and 96 MiB per match (7.69/vCPU,
-9.93/decimal GB before shared services/reserves). First/second local lifecycles also
-passed. Credentials/kubeconfig are excluded from artifacts and private clusters
-were removed. Logs: match-kind-{full-first,full-final,reviewed}.log; reports under
-/tmp/aftershock-match-kind-{first,final,reviewed}.
+#28 PR #156 is fully accepted: merge 646a63e82c0a74307d0e830ca6c626eca985ed60,
+exact build 35542300540/regression 35542300709, merged-tree regression 35543218326
+all passed. Tested 04a86876 and merge share tree
+f30abf9b5723b4d0aa20dc7600be1a7348050e5f. #28, #27 and #31 are closed/checked.
+#28's final local kind report measured 45,748,224 bytes and 0.00380977 vCPU across
+all three containers with one idle player; this is not saturated capacity. All
+private clusters were removed. The older implementation record below preserves
+its self-review and previous measurements.
 
-Continue #13; all #28 acceptance and integration gates are complete.
-The failing cooker and native instance contracts were committed first (c4bb8bbf,
-b4cddc63). The isolated PBR cook/native data slice now passes GCC and Clang/libc++;
-Rendering/tangent submission, live factors, instance submission and ImGui controls
-are implemented locally. Classic replay retains the accepted hash. Remaining work:
-draft PR #157 is open. Its initial head be1a234e failed MSVC build 35544819657
-on the new PBR sort assignment (C4244 enum-to-float); all observed x64/ARM64
-failures have that same diagnostic. The explicit float cast is a build-only
-correction; require fresh exact-head build/regression and merged-tree regression
-before accepting #13. Initial regression 35544819530 is superseded, not acceptance.
-Unit and hosted-runtime commands, diagnostics and documentation are wired. No accepted
-fixture/shader bytes changed; #28 integration has passed.
-The new local implementation was started during #28's final lifetime gate, after
-the preparatory tests were committed, to avoid idle CI time. Keep issue scope and
-PR acceptance separate. Continue #25 after #13.
+The extra level-tree worktree has preparatory `issue/14-lighting` commits
+91acce4a/fd82f6ee/8f2a2913 for the test-first level-tool slice. Its new directional-bake
+test failed first on the absent option, then passed repeated paired BSP/AAS output
+and the existing default fixture gate. The main history and updated AGENTS/CI are merged forward; never rebase. #14 is not accepted and still needs
+runtime lighting/shadows/probes/postprocessing and performance gates. Future new
+issue branches start from main. Continue #25 after #13 is integrated.
 
 ## #14 preparation and reference hardware
 
