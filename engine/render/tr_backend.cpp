@@ -1963,6 +1963,14 @@ void RB_ExecuteRenderCommands( const void *data ) {
 		case RC_CLEARCOLOR:
 			data = RB_ClearColor( data );
 			break;
+#ifdef AFTERSHOCK_DEVTOOLS
+		case RC_DEVELOPER_UI: {
+			const developerUiCommand_t *command = (const developerUiCommand_t *)data;
+			RB_DrawDeveloperUI( &command->draw );
+			data = command + 1;
+			break;
+		}
+#endif
 		case RC_END_OF_LIST:
 		default:
 			// stop rendering
@@ -1978,3 +1986,83 @@ void RB_ExecuteRenderCommands( const void *data ) {
 		}
 	}
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+uint32_t RE_CreateDeveloperTexture( unsigned char *pixels, int width, int height ) {
+	if ( !tr.registered || !pixels || width <= 0 || height <= 0 )
+		return 0;
+	image_t *image = R_CreateImage( "*developer-font", NULL, pixels, width, height,
+		(imgFlags_t)( IMGFLAG_CLAMPTOEDGE | IMGFLAG_NO_COMPRESSION | IMGFLAG_NOLIGHTSCALE | IMGFLAG_NOSCALE ) );
+	for ( int i = 0; i < tr.numImages; ++i ) {
+		if ( tr.images[i] == image )
+			return (uint32_t)i + 1;
+	}
+	return 0;
+}
+
+void RB_DrawDeveloperUI( const devUiDraw_t *draw ) {
+	if ( !tr.registered || !draw || !draw->vertices || !draw->indices || !draw->commands )
+		return;
+	if ( tess.numIndexes )
+		RB_EndSurface();
+	VBO_UnBind();
+	RB_SetGL2D();
+	rhiPipelineDesc_t description = {};
+	description.shader_type = TYPE_SIGNLE_TEXTURE;
+	description.state_bits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+	description.face_culling = CT_TWO_SIDED;
+	const uint32_t pipeline = R_FindPipeline( 0, &description, qtrue );
+	const rhiRenderArea_t area = RHI_GetRenderArea();
+	tess.svars.texcoordPtr[0] = tess.svars.texcoords[0];
+	for ( uint32_t c = 0; c < draw->commandCount; ++c ) {
+		const devUiCommand_t *command = &draw->commands[c];
+		if ( !command->texture || command->texture > (uint32_t)tr.numImages ||
+			 command->firstIndex > draw->indexCount || command->indexCount > draw->indexCount - command->firstIndex || command->indexCount % 3 )
+			continue;
+		rhiRasterState_t raster;
+		RB_GetRaster( DEPTH_RANGE_NORMAL, &raster );
+		const int x = (int)( Com_Clamp( 0, (float)glConfig.vidWidth, command->clip[0] ) * (float)area.width / (float)glConfig.vidWidth );
+		const int y = (int)( Com_Clamp( 0, (float)glConfig.vidHeight, command->clip[1] ) * (float)area.height / (float)glConfig.vidHeight );
+		const int right = (int)( Com_Clamp( 0, (float)glConfig.vidWidth, command->clip[2] ) * (float)area.width / (float)glConfig.vidWidth );
+		const int bottom = (int)( Com_Clamp( 0, (float)glConfig.vidHeight, command->clip[3] ) * (float)area.height / (float)glConfig.vidHeight );
+		if ( right <= x || bottom <= y )
+			continue;
+		raster.scissor = { { x, y }, { (uint32_t)( right - x ), (uint32_t)( bottom - y ) } };
+		GL_SelectTexture( 0 );
+		GL_Bind( tr.images[command->texture - 1] );
+		// ponytail: expand UI triangles into the existing bounded tess buffer;
+		// use a dedicated vertex stream only if tooling measurements justify it.
+		for ( uint32_t first = 0; first < command->indexCount; ) {
+			const uint32_t count = MIN( command->indexCount - first, (uint32_t)( ( SHADER_MAX_VERTEXES - 1 ) / 3 * 3 ) );
+			bool valid = true;
+			for ( uint32_t i = 0; i < count; ++i ) {
+				const uint32_t index = draw->indices[command->firstIndex + first + i];
+				if ( index >= draw->vertexCount ) {
+					valid = false;
+					break;
+				}
+				const devUiVertex_t *vertex = &draw->vertices[index];
+				tess.xyz[i][0] = vertex->x;
+				tess.xyz[i][1] = vertex->y;
+				tess.xyz[i][2] = 0;
+				tess.xyz[i][3] = 1;
+				tess.svars.texcoords[0][i][0] = vertex->u;
+				tess.svars.texcoords[0][i][1] = vertex->v;
+				Com_Memcpy( tess.svars.colors[0][i].rgba, &vertex->color, 4 );
+			}
+			if ( !valid )
+				break;
+			tess.numVertexes = (int)count;
+			RB_BindPipeline( pipeline );
+			RB_BindGeometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
+			RHI_InvalidateViewport();
+			if ( RHI_PrepareDraw( &raster, &tr.whiteImage->texture ) )
+				RHI_Draw( count );
+			first += count;
+		}
+	}
+	tess.numVertexes = tess.numIndexes = 0;
+	tess.shader = NULL;
+	RHI_InvalidateViewport();
+}
+#endif

@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl.input.c  -- builds an intended movement command to send to the server
 
 #include "client.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 #include "../public/cg_native_public.h"
 #include "../public/ui_native_public.h"
 
@@ -506,6 +509,10 @@ CL_MouseEvent
 =================
 */
 void CL_MouseEvent( int dx, int dy /*, int time*/ ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_Mouse( dx, dy ) )
+		return;
+#endif
 	if ( Key_GetCatcher() & KEYCATCH_UI ) {
 		NativeUI_MouseEvent( dx, dy );
 	} else if ( Key_GetCatcher() & KEYCATCH_CGAME ) {

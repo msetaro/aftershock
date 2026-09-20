@@ -1013,6 +1013,9 @@ typedef enum {
 	TAG_CLIENTS,
 	TAG_SMALL,
 	TAG_STATIC,
+#ifdef AFTERSHOCK_DEVTOOLS
+	TAG_DEVTOOLS,
+#endif
 	TAG_COUNT
 } memtag_t;
 
@@ -1312,5 +1315,11 @@ int HuffmanGetSymbol( unsigned int *symbol, const byte *buffer, int bitIndex );
 
 // functional gate syscall number
 #define COM_TRAP_GETVALUE 700
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void Z_InitDevMemory( void );
+size_t Z_DevMemoryUsed( void );
+const cvar_t *Cvar_First( void );
+#endif
 
 #endif // _QCOMMON_H_

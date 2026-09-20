@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "q_shared.h"
 #include "qcommon_public.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 #include <setjmp.h>
 #include "../platform/runtime_public.h"
 
@@ -193,6 +196,9 @@ void FORMAT_PRINTF( 1, 2 ) QDECL Com_Printf( const char *fmt, ... ) {
 
 	// echo to dedicated console and early console
 	Sys_Print( msg );
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_Log( msg );
+#endif
 
 	// logfile
 	if ( com_logfile && com_logfile->integer ) {
@@ -914,6 +920,10 @@ static memzone_t *mainzone;
 // we also have a small zone for small allocations that would only
 // fragment the main zone (think of cvar and cmd strings)
 static memzone_t *smallzone;
+#ifdef AFTERSHOCK_DEVTOOLS
+alignas( 16 ) static byte devStorage[16 * 1024 * 1024];
+static memzone_t *devzone;
+#endif
 
 
 #ifdef USE_MULTI_SEGMENT
@@ -994,6 +1004,10 @@ static memblock_t *NewBlock( memzone_t *zone, uint32_t size ) {
 	memblock_t *block, *sep;
 	uint32_t alloc_size;
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( zone == devzone )
+		Sys_Error( "Developer UI exhausted its fixed 16 MiB arena" );
+#endif
 	// zone->prev is pointing on last block in the list
 	prev = zone->blocklist.prev;
 	next = prev->next;
@@ -1199,6 +1213,10 @@ void Z_Free( void *ptr ) {
 #endif
 
 	zone = ( block->tag == TAG_SMALL ) ? smallzone : mainzone;
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( block->tag == TAG_DEVTOOLS )
+		zone = devzone;
+#endif
 
 	zone->used -= block->size;
 
@@ -1261,6 +1279,10 @@ int Z_FreeTags( memtag_t tag ) {
 		Com_Error( ERR_FATAL, "Z_FreeTags( TAG_STATIC )" );
 	} else {
 		zone = ( tag == TAG_SMALL ) ? smallzone : mainzone;
+#ifdef AFTERSHOCK_DEVTOOLS
+		if ( tag == TAG_DEVTOOLS )
+			zone = devzone;
+#endif
 	}
 
 	count = 0;
@@ -1315,6 +1337,10 @@ void *Z_TagMalloc( size_t size, memtag_t tag ) {
 	}
 
 	zone = ( tag == TAG_SMALL ) ? smallzone : mainzone;
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( tag == TAG_DEVTOOLS )
+		zone = devzone;
+#endif
 
 #ifdef ZONE_DEBUG
 	allocSize = (int)( size );
@@ -1701,7 +1727,10 @@ static const char *tagName[TAG_COUNT] = {
 	"RENDERER",
 	"CLIENTS",
 	"SMALL",
-	"STATIC"
+	"STATIC",
+#ifdef AFTERSHOCK_DEVTOOLS
+	"DEVTOOLS",
+#endif
 };
 
 typedef struct zone_stats_s {
@@ -4376,5 +4405,18 @@ void Com_SortFileList( char **list, int nfiles, int fastSort )
 			}
 		} while( flag );
 	}
+}
+#endif
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void Z_InitDevMemory( void ) {
+	if ( devzone && devzone->used )
+		Sys_Error( "Developer UI arena still owns allocations" );
+	devzone = (memzone_t *)devStorage;
+	Z_Init( devzone, sizeof( devStorage ), "developer UI" );
+}
+
+size_t Z_DevMemoryUsed( void ) {
+	return devzone ? devzone->used : 0;
 }
 #endif

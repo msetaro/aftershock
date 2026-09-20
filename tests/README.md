@@ -17,6 +17,7 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 ```
 python3 tests/native_math.py
 python3 tests/rhi.py
+python3 tests/devtools.py
 python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
 python3 tests/check_format.py
@@ -263,6 +264,33 @@ Its license is retained alongside the staged data; no downloaded paks enter git.
 Use `openarena.py --data /path/to/baseoa` for data extracted without installing
 packages. Local system package installation is prohibited; runner installs are
 expected. A download/checksum/content failure fails CI.
+
+## Development tooling (#7, implementation in progress)
+
+`AFTERSHOCK_DEVTOOLS=ON` includes the ImGui overlay; the default OFF build has no
+ImGui or tool symbols. Enable it with `dev_tools 1`; Escape closes it. The first
+slice provides console output/commands and cvar search, descriptions and live edit.
+The remaining issue #7 inspectors/profilers are not complete yet. Enabled renderer
+modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
+
+`python3 tests/devtools.py` builds both variants, verifies symbols, then uses real
+XTest input on a private Xvfb display to select/edit a cvar. It verifies 80 idle
+frames without further ImGui allocations, bounded arena use and video restart.
+It requires libX11, libXtst (`libxtst6` in hosted CI), xwininfo/xprop (`x11-utils`),
+Xvfb and lavapipe. The window PID must belong to the launched client. Screenshots
+and logs stay under `--output`. `--binary` tests an existing development client;
+`--content openarena --data /tmp/aftershock-openarena-baseoa` selects hosted assets.
+This UI check uses this repository's native game code with the selected content;
+the separate QVM/native parity gates retain their pinned OpenArena game objects.
+
+ImGui core v1.92.9b is pinned under `third_party/imgui` with its unchanged license
+and source hashes. Default vendor OS, file, shell and time services are disabled.
+Its allocator uses the existing zone algorithm in a fixed 16 MiB allocator-layer
+arena, with no OS-heap growth during frames. Owned geometry buffers are fixed;
+engine mutations occur after ImGui returns, outside vendor stack frames. Initial
+or interaction-driven UI allocations are distinct from the checked idle-frame path.
+Lifetime/tidy gates now cover shipping/development and static/module configurations.
+The primary build matrix enables tooling in Debug and excludes it in Release.
 
 ## Runtime and fixed-demo oracle
 

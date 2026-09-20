@@ -11,7 +11,7 @@ from run import configure, compilation_commands
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE = ('qcommon', 'client', 'server', 'botlib', 'renderercommon',
-        'render', 'renderervk', 'sound', 'public')
+        'render', 'renderervk', 'devtools', 'sound', 'public')
 LOCATION = 'isExpansionInFileMatching("(^|/)(engine/(' + '|'.join(CORE) + ')/|game/|third_party/(minizip|zlib)/)")'
 # clang-query's AST dump marks VarDecl/ParmVarDecl with needsDestruction as
 # "destroyed". CXXBindTemporaryExpr represents a non-trivial temporary destructor.
@@ -73,10 +73,10 @@ def main():
     self_check(args.clang_query, args.output)
     commands = []
     # Read the supported build's actual flags; no parallel build or engine edits.
-    for modules in (False, True):
-        directory = args.output / ('modules' if modules else 'static')
+    for modules, devtools in ((False, False), (True, False), (False, True), (True, True)):
+        directory = args.output / (('modules' if modules else 'static') + ('-devtools' if devtools else ''))
         configure(directory, ['CC=clang', 'CXX=clang++',
-                              f'USE_RENDERER_DLOPEN={int(modules)}'])
+                              f'USE_RENDERER_DLOPEN={int(modules)}', f'AFTERSHOCK_DEVTOOLS={int(devtools)}'])
         for row in compilation_commands(directory):
             source = Path(row['file']).relative_to(ROOT)
             if source.suffix != '.cpp' or not (source.parts[0] == 'game' or
@@ -92,7 +92,7 @@ def main():
                 args.output / 'engine.log')
     if bad:
         raise RuntimeError('non-trivial engine lifetimes:\n' + '\n'.join(bad))
-    print(f'PASS: {len(commands)} compilation commands ({len(files)} source paths), static and module configurations; '
+    print(f'PASS: {len(commands)} compilation commands ({len(files)} source paths), shipping/development, static/module configurations; '
           'positive and seven-object negative controls passed')
 
 

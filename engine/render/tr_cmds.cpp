@@ -474,3 +474,15 @@ const glconfig_t *RE_GetConfig( void ) {
 void RE_VertexLighting( qboolean allowed ) {
 	tr.vertexLightingAllowed = allowed;
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void RE_DrawDeveloperUI( const devUiDraw_t *draw ) {
+	if ( !tr.registered || !draw )
+		return;
+	developerUiCommand_t *command = (developerUiCommand_t *)R_GetCommandBuffer( sizeof( *command ) );
+	if ( !command )
+		return;
+	command->commandId = RC_DEVELOPER_UI;
+	command->draw = *draw;
+}
+#endif

@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_main.c  -- client main loop
 
 #include "client.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 #include "../public/cg_native_public.h"
 #include "../public/ui_native_public.h"
 #include <limits.h>
@@ -3107,6 +3110,9 @@ CL_ShutdownRef
 ============
 */
 static void CL_ShutdownRef( refShutdownCode_t code ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_Reset();
+#endif
 
 #ifdef USE_RENDERER_DLOPEN
 	if ( cl_renderer->modified ) {
@@ -3836,6 +3842,9 @@ void CL_Init( void ) {
 	cls.realtime = 0;
 
 	CL_InitInput();
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_Init();
+#endif
 
 	//
 	// register client variables

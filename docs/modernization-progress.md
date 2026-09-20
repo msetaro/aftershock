@@ -17,11 +17,11 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 #6 PR #140 merged as 30eeba4c after final head c7c31a60 passed build
-35490659941/regression 35490659967 and the recorded self-review. Verify its
-merged-tree regression 35490963498 before #7 engine implementation. The current
-branch is `issue/7-devtools`; its first shipping/development build check fails as
-expected on the unchanged engine. Commit that failing test before implementing
-Dear ImGui integration and the rest of issue #7. Keep all existing golden files.
+35490659941/regression 35490659967 and the recorded self-review. Its merged-tree regression 35490963498 passed. The current
+branch is `issue/7-devtools`; test-first commit 7596afa9 records the expected shipping/development build failure.
+Validate the working-tree console/cvar overlay and bounded allocator/input/draw
+contracts, then implement the remaining entity, material/texture/animation,
+profiling/network, collision/navigation/debug and memory tools from #7. Keep all existing golden files.
 
 Then complete #7, render-graph phase two #142, and the remaining #25 sequence.
 All writes stay in msetaro/aftershock. The separate-session scope and finished
@@ -38,11 +38,30 @@ Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
 
 ## #7 developer tooling checkpoint
 
+Initial working-tree slice: shipping defaults OFF and excludes ImGui/tool symbols;
+enabled GCC client now passes the original build check. The overlay renders over
+q3dm17 (visually reviewed devtools-capture/tools.png in the persistent cache).
+ImGui allocations use the existing zone algorithm in a dedicated fixed 16 MiB
+allocator-layer arena; it cannot grow OS heap during frames. Owned draw buffers
+are bounded static arrays; the frontend queues UI in its existing render command
+list and expands triangles through the existing tess/RHI streams. No shader edits.
+The GUI reads the existing console ring/cvar list, applies edits only after ImGui
+returns, and consumes engine key/character/relative-mouse input. Shipping renderer
+ABI stays 10; enabled development modules use 11. The permanent test now drives real XTest mouse/key input, changes devtest 0 -> 7,
+checks 80 idle frames with identical allocation counts, and recreates the UI after
+video restart. UI memory stays about 492 KiB inside the fixed arena. The shipping
+client SHA-256 remains exactly 427e37beb867d2164294fe70f99d5bf1bf0eddcb768f3f7786cf721747f1ccfd
+before/after the initial slice. Four-mode lifetime analysis passes 1,104 commands
+and 115 paths (shipping/development, static/modules). Format/type/boundary checks pass. Tidy passes 1,150 production configurations;
+the enabled MinGW client/server build passes. Shipping fixed-demo replay passes
+43c52e51 with both original fixtures unchanged. Hosted checks and the remaining
+issue features are pending. This commit records only the initial console/cvar slice.
+
 Issue #7 was read in full. Preparation pins Dear ImGui v1.92.9b, official commit
 f1cc2ae15e53a861a874c3034aae6798fde194ab. Source archive SHA-256:
 21d8a0a565e85dce943e375db00812c2f3f0ab21f3f0f7964e364a63422d7f99.
-The archive/source and devtools-plan.md are in the persistent cache; no vendor or
-engine source is changed yet. Integrate core ImGui through the RHI/frontend and
+The archive/source and devtools-plan.md are in the persistent cache. The 11
+vendored files match their recorded source hashes. ImGui integrates through the RHI/frontend and
 engine input, with vendor OS/file/shell defaults disabled. Shipping defaults OFF.
 Reuse cvars/commands, renderer registries, game spawn fields and allocator stats;
 keep mutation calls outside ImGui so engine longjmp cannot cross vendor frames.
@@ -53,8 +72,7 @@ Test-first: tests/devtools.py builds shipping and explicitly enabled clients and
 checks their actual symbols. At 30eeba4c the shipping absence check passes; the
 enabled build fails because ImGui::NewFrame is absent (expected exit 1).
 Evidence: devtools-before.log and devtools-before/ in the persistent cache.
-Behavioral cvar/entity/profile/collision/UI tests are still required. The merged
-#6 gate is running before any #7 engine implementation.
+The real-input cvar/UI test now passes; entity/profile/collision tests remain required. The merged #6 regression 35490963498 passed before engine implementation.
 
 ## #31 Vulkan acquisition checkpoint
 

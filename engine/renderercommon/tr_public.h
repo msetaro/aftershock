@@ -24,7 +24,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_types_public.h"
 
-#define REF_API_VERSION		10
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "tr_dev_public.h"
+#define REF_API_VERSION 11
+#else
+#define REF_API_VERSION 10
+#endif
 
 //
 // these are the functions exported by the refresh module
@@ -89,6 +94,10 @@ typedef struct {
 
 	// if the pointers are not NULL, timing info will be returned
 	void ( *EndFrame )( int *frontEndMsec, int *backEndMsec );
+#ifdef AFTERSHOCK_DEVTOOLS
+	uint32_t ( *CreateDeveloperTexture )( unsigned char *pixels, int width, int height );
+	void ( *DrawDeveloperUI )( const devUiDraw_t *draw );
+#endif
 
 
 	int ( *MarkFragments )( int numPoints, const vec3_t *points, const vec3_t projection,

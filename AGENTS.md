@@ -67,6 +67,7 @@ every wire and file-format struct; issue updated with what changed and what was 
 - `engine/qcommon` shared core: cvars, commands, filesystem, packet protocols, collision (cm_*)
 - `engine/server`, `engine/client` server and client
 - `engine/botlib` bot AI library
+- `engine/devtools` optional development UI and bounded console/debug data
 - `engine/render` portable scene/material/geometry frontend; `engine/rhi` GPU contract
 - `engine/renderervk` sole Vulkan backend; the legacy OpenGL renderers are retired
 - `engine/renderercommon` shared image/font routines and client renderer ABI
@@ -84,7 +85,8 @@ every wire and file-format struct; issue updated with what changed and what was 
 CMake 3.25+ is the primary build for #5. Use Ninja on Linux/macOS and in an MSVC
 developer shell. Visual Studio projects are generated from the same source lists.
 The default builds the client and dedicated server with a static Vulkan renderer;
-optional PC renderer modules use a separate build directory.
+optional PC renderer modules use a separate build directory. `AFTERSHOCK_DEVTOOLS=ON`
+adds the development overlay; shipping builds leave it OFF.
 
 ```
 cmake --workflow --preset release
@@ -131,6 +133,7 @@ python3 tests/native_diagnostics.py
 python3 tests/bot_command.py
 python3 tests/native_info.py
 python3 tests/rhi.py
+python3 tests/devtools.py
 python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
 python3 tests/check_format.py
