@@ -98,7 +98,7 @@ void trap_FS_FCloseFile( fileHandle_t f ) {
 	NATIVE_SYSCALL( (intptr_t)( CG_FS_FCLOSEFILE ), (intptr_t)( f ) );
 }
 
-int trap_FS_Seek( fileHandle_t f, long offset, int origin ) {
+int trap_FS_Seek( fileHandle_t f, fsOffset_t offset, int origin ) {
 	return NATIVE_SYSCALL( (intptr_t)( CG_FS_SEEK ), (intptr_t)( f ), (intptr_t)( offset ), (intptr_t)( origin ) );
 }
 

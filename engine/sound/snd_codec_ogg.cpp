@@ -48,6 +48,9 @@ snd_codec_t ogg_codec = {
 	NULL
 };
 
+// Preserve the callback return type declared by libvorbis.
+using oggTellResult_t = std::invoke_result_t<decltype( ov_callbacks::tell_func ), void *>;
+
 // callbacks for vobisfile
 
 // fread() replacement
@@ -120,7 +123,7 @@ int S_OGG_Callback_seek( void *datasource, ogg_int64_t offset, int whence ) {
 	switch ( whence ) {
 	case SEEK_SET: {
 		// set the file position in the actual file with the Q3 function
-		retVal = FS_Seek( stream->file, (long)offset, FS_SEEK_SET );
+		retVal = FS_Seek( stream->file, (fsOffset_t)offset, FS_SEEK_SET );
 
 		// something has gone wrong, so we return here
 		if ( retVal < 0 ) {
@@ -134,7 +137,7 @@ int S_OGG_Callback_seek( void *datasource, ogg_int64_t offset, int whence ) {
 
 	case SEEK_CUR: {
 		// set the file position in the actual file with the Q3 function
-		retVal = FS_Seek( stream->file, (long)offset, FS_SEEK_CUR );
+		retVal = FS_Seek( stream->file, (fsOffset_t)offset, FS_SEEK_CUR );
 
 		// something has gone wrong, so we return here
 		if ( retVal < 0 ) {
@@ -148,7 +151,7 @@ int S_OGG_Callback_seek( void *datasource, ogg_int64_t offset, int whence ) {
 
 	case SEEK_END: {
 		// set the file position in the actual file with the Q3 function
-		retVal = FS_Seek( stream->file, (long)offset, FS_SEEK_END );
+		retVal = FS_Seek( stream->file, (fsOffset_t)offset, FS_SEEK_END );
 
 		// something has gone wrong, so we return here
 		if ( retVal < 0 ) {
@@ -181,7 +184,7 @@ int S_OGG_Callback_close( void *datasource [[maybe_unused]] ) {
 }
 
 // ftell() replacement
-long S_OGG_Callback_tell( void *datasource ) {
+oggTellResult_t S_OGG_Callback_tell( void *datasource ) {
 	snd_stream_t *stream;
 
 	// check if input is valid
@@ -193,7 +196,7 @@ long S_OGG_Callback_tell( void *datasource ) {
 	// snd_stream_t in the generic pointer
 	stream = (snd_stream_t *)datasource;
 
-	return (long)FS_FTell( stream->file );
+	return (oggTellResult_t)FS_FTell( stream->file );
 }
 
 // the callback structure

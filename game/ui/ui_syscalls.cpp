@@ -122,7 +122,7 @@ int trap_FS_GetFileList( const char *path, const char *extension, char *listbuf,
 	return NATIVE_SYSCALL( (intptr_t)( UI_FS_GETFILELIST ), (intptr_t)( path ), (intptr_t)( extension ), (intptr_t)( listbuf ), (intptr_t)( bufsize ) );
 }
 
-int trap_FS_Seek( fileHandle_t f, long offset, int origin ) {
+int trap_FS_Seek( fileHandle_t f, fsOffset_t offset, int origin ) {
 	return NATIVE_SYSCALL( (intptr_t)( UI_FS_SEEK ), (intptr_t)( f ), (intptr_t)( offset ), (intptr_t)( origin ) );
 }
 

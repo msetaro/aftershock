@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *****************************************************************************/
 
+#include <inttypes.h>
 #include "../qcommon/filesystem_public.h"
 #include "../qcommon/q_shared.h"
 #include "botlib_public.h" //for the include of be_interface.h
@@ -63,7 +64,7 @@ static const fielddef_t *FindField( const fielddef_t *defs, const char *name ) {
 static qboolean ReadNumber( source_t *source, const fielddef_t *fd, void *p ) {
 	token_t token;
 	int negative = qfalse;
-	long int intval, intmin = 0, intmax = 0;
+	scriptSigned_t intval, intmin = 0, intmax = 0;
 	double floatval;
 
 	if ( !PC_ExpectAnyToken( source, &token ) )
@@ -133,18 +134,18 @@ static qboolean ReadNumber( source_t *source, const fielddef_t *fd, void *p ) {
 	} //end else if
 	if ( ( fd->type & FT_TYPE ) == FT_CHAR || ( fd->type & FT_TYPE ) == FT_INT ) {
 		if ( fd->type & FT_BOUNDED ) {
-			intmin = (long)( Maximum( intmin, fd->floatmin ) );
-			intmax = (long)( Minimum( intmax, fd->floatmax ) );
+			intmin = (scriptSigned_t)( Maximum( intmin, fd->floatmin ) );
+			intmax = (scriptSigned_t)( Minimum( intmax, fd->floatmax ) );
 		} //end if
 		if ( intval < intmin || intval > intmax ) {
-			SourceError( source, "value %ld out of range [%ld, %ld]", intval, intmin, intmax );
+			SourceError( source, "value %" PRId64 " out of range [%" PRId64 ", %" PRId64 "]", (int64_t)intval, (int64_t)intmin, (int64_t)intmax );
 			return (qboolean)0;
 		} //end if
 	} //end if
 	else if ( ( fd->type & FT_TYPE ) == FT_FLOAT ) {
 		if ( fd->type & FT_BOUNDED ) {
 			if ( intval < fd->floatmin || intval > fd->floatmax ) {
-				SourceError( source, "value %ld out of range [%f, %f]", intval, fd->floatmin, fd->floatmax );
+				SourceError( source, "value %" PRId64 " out of range [%f, %f]", (int64_t)intval, fd->floatmin, fd->floatmax );
 				return (qboolean)0;
 			} //end if
 		} //end if

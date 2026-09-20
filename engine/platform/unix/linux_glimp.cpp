@@ -87,12 +87,16 @@ typedef enum {
 	RSERR_UNKNOWN
 } rserr_t;
 
+// Xlib property words retain the SDK ABI even when protocol values are 32-bit.
+using x11SignedWord_t = decltype( XSizeHints::flags );
+using x11UnsignedWord_t = std::make_unsigned_t<x11SignedWord_t>;
+
 typedef struct motifHints_s {
-	unsigned long flags;
-	unsigned long functions;
-	unsigned long decorations;
-	long input_mode;
-	unsigned long status;
+	x11UnsignedWord_t flags;
+	x11UnsignedWord_t functions;
+	x11UnsignedWord_t decorations;
+	x11SignedWord_t input_mode;
+	x11UnsignedWord_t status;
 } motifHints_t;
 
 glwstate_t glw_state;
@@ -804,7 +808,7 @@ static qboolean repeated_press( XEvent *event ) {
 
 
 static qboolean WindowMinimized( Display *dpy, Window win ) {
-	unsigned long i, num_items, bytes_after;
+	x11UnsignedWord_t i, num_items, bytes_after;
 	Atom actual_type, *atoms, nws, nwsh;
 	int actual_format;
 
@@ -874,7 +878,7 @@ disable with in_subframe 0
 ================
 */
 static int Sys_XTimeToSysTime( Time xtime ) {
-	extern unsigned long sys_timeBase;
+	extern uint64_t sys_timeBase;
 	int ret, t, test;
 
 	if ( !in_subframe->integer ) {
@@ -890,20 +894,20 @@ static int Sys_XTimeToSysTime( Time xtime ) {
 	// use sys_timeBase 0x3dc7b5e9+0x2c0056 = 0x3df3b63f
 	// after around 5s, xtime would have wrapped around
 	// we get 7132, the formula handles the wrap safely
-	unsigned long xtime_aux,base_aux;
+	x11UnsignedWord_t xtime_aux,base_aux;
 	int test;
 //	Com_Printf("sys_timeBase: %p\n", sys_timeBase);
 //	Com_Printf("xtime: %p\n", xtime);
 	xtime_aux = 500; // 500 ms after wrap
 	base_aux = 0x3df3b63f; // the base a few seconds before wrap
-	test = xtime_aux - (unsigned long)(base_aux*1000);
+	test = xtime_aux - (x11UnsignedWord_t)(base_aux*1000);
 	Com_Printf("xtime wrap test: %d\n", test);
 #endif
 
 	// some X servers (like suse 8.1's) report weird event times
 	// if the game is loading, resolving DNS, etc. we are also getting old events
 	// so we only deal with subframe corrections that look 'normal'
-	ret = xtime - (unsigned long)( sys_timeBase * 1000 );
+	ret = xtime - (x11UnsignedWord_t)( sys_timeBase * 1000 );
 	t = Sys_Milliseconds();
 	test = t - ret;
 
@@ -1636,7 +1640,7 @@ int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qboolean vul
 
 	XSetWindowAttributes attr;
 	XSizeHints sizehints;
-	unsigned long mask;
+	x11UnsignedWord_t mask;
 	int colorbits, depthbits, stencilbits;
 	int actualWidth, actualHeight, actualRate;
 
@@ -1787,7 +1791,7 @@ int GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qboolean vul
 
 		XChangeProperty( dpy, win, motifWMHints, motifWMHints, 32,
 			PropModeReplace, (unsigned char *)&decohint,
-			sizeof( decohint ) / sizeof( long ) );
+			sizeof( decohint ) / sizeof( x11SignedWord_t ) );
 	}
 
 	XStoreName( dpy, win, cl_title );
@@ -2224,7 +2228,7 @@ Sys_GetClipboardData
 */
 char *Sys_GetClipboardData( void ) {
 	const Atom xtarget = XInternAtom( dpy, "UTF8_STRING", 0 );
-	unsigned long nitems, rem;
+	x11UnsignedWord_t nitems, rem;
 	unsigned char *data;
 	Atom type;
 	XEvent ev;

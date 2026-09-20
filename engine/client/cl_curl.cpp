@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef USE_CURL
 #include "client.h"
+
+// libcurl variadic options and getinfo outputs require the native C ABI word.
+using curlLong_t = decltype( 0L );
 cvar_t *cl_cURLLib;
 
 #define ALLOWED_PROTOCOLS ( CURLPROTO_HTTP | CURLPROTO_HTTPS | CURLPROTO_FTP | CURLPROTO_FTPS )
@@ -248,7 +251,7 @@ CURLcode qcurl_easy_setopt_warn( CURL *curl, int optionValue, ... ) {
 	va_start( argp, optionValue );
 
 	if ( option < CURLOPTTYPE_OBJECTPOINT ) {
-		long longValue = va_arg( argp, long );
+		curlLong_t longValue = va_arg( argp, curlLong_t );
 		result = qcurl_easy_setopt( curl, option, longValue );
 	} else if ( option < CURLOPTTYPE_OFF_T ) {
 		void *pointerValue = va_arg( argp, void * );
@@ -388,7 +391,7 @@ void CL_cURL_PerformDownload( void ) {
 		FS_SV_Rename( clc.downloadTempName, clc.downloadName );
 		clc.downloadRestart = qtrue;
 	} else {
-		long code;
+		curlLong_t code;
 
 		qcurl_easy_getinfo( msg->easy_handle, CURLINFO_RESPONSE_CODE,
 			&code );
@@ -978,7 +981,7 @@ qboolean Com_DL_Perform( download_t *dl ) {
 	char name[sizeof( dl->TempName )];
 	CURLMcode res;
 	CURLMsg *msg;
-	long code;
+	curlLong_t code;
 	int c, n;
 	int i;
 

@@ -141,7 +141,7 @@ static int FindNearestDisplay( int *x, int *y, int w, int h ) {
 
 	// select display by nearest distance between window center and display center
 	if ( index == -1 ) {
-		unsigned long nearest, dist;
+		uint64_t nearest, dist;
 		int dx, dy;
 		nearest = ~0UL;
 		for ( i = 0; i < numDisplays; i++ ) {

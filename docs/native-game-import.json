@@ -165,7 +165,8 @@
     "05eca339": "#8 Apple deprecations: remove unused native COM_ParseError/COM_ParseWarning definitions and prototypes; engine diagnostics retained; no callers or syscall IDs change",
     "f3f6b3fa": "#8: one clang-format 21.1.8 pass; release assembly instructions/data unchanged; preserve whitespace-sensitive macro arguments",
     "f0c9acc3": "#8 readability: brace the existing early return adjacent to MISSIONPACK preprocessing; native helper hashes and release objects unchanged",
-    "33bf6e07": "#8 fixed-width shared records: preserve seven state/font sizes, alignments and traits; explicit unsigned trajectory enum in C++; twelve native helpers byte-identical"
+    "33bf6e07": "#8 fixed-width shared records: preserve seven state/font sizes, alignments and traits; explicit unsigned trajectory enum in C++; twelve native helpers byte-identical",
+    "03d0b80d": "#8 integer contracts: explicit seek compatibility width and 64-bit internal sort/chat words; original GPL hashes retained; twelve GCC/Clang C/C++ native helper binaries identical"
   },
   "files": [
     {
@@ -274,7 +275,8 @@
         "8b5264c5",
         "52e57708",
         "7c1db108",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "03d0b80d"
       ]
     },
     {
@@ -426,7 +428,8 @@
         "6ea3a3bb",
         "0b575fa9",
         "7c1db108",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "03d0b80d"
       ]
     },
     {
@@ -670,7 +673,8 @@
       "disposition": "GPL import with recorded transformations",
       "transformations": [
         "c58e2751",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "03d0b80d"
       ]
     },
     {
@@ -731,7 +735,8 @@
         "70b1f0b6",
         "3eaba64d",
         "6709136c",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "03d0b80d"
       ]
     },
     {
@@ -813,7 +818,8 @@
       "sha256": "5eb2397db26ea5463aa1153431b8f39ac8ad92fcb2d4e3108e6b33fc894515af",
       "disposition": "verbatim import",
       "transformations": [
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "03d0b80d"
       ]
     },
     {
@@ -941,7 +947,8 @@
         "8889ea0e",
         "d6c2ac52",
         "8b5264c5",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "03d0b80d"
       ]
     },
     {
@@ -1080,7 +1087,8 @@
         "f4653398",
         "6ea3a3bb",
         "0b575fa9",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "03d0b80d"
       ]
     },
     {
@@ -1242,7 +1250,8 @@
         "3e6d66b8",
         "05eca339",
         "f3f6b3fa",
-        "33bf6e07"
+        "33bf6e07",
+        "03d0b80d"
       ]
     },
     {
@@ -1446,7 +1455,8 @@
         "8b5264c5",
         "52e57708",
         "2475e0d2",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "03d0b80d"
       ]
     },
     {
@@ -1778,7 +1788,8 @@
         "f4653398",
         "6ea3a3bb",
         "0b575fa9",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "03d0b80d"
       ]
     },
     {

@@ -205,6 +205,12 @@ typedef enum { qfalse,
 typedef int32_t qhandle_t;
 typedef int32_t sfxHandle_t;
 typedef int32_t fileHandle_t;
+// Preserve the legacy seek and journal field width on each supported platform.
+#ifdef _WIN32
+typedef int32_t fsOffset_t;
+#else
+typedef int64_t fsOffset_t;
+#endif
 typedef int32_t clipHandle_t;
 
 
