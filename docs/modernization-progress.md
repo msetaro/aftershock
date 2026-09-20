@@ -22,8 +22,8 @@ tree equals the tested tree (0273866798e91a64d27002e5499353438d6a6769).
 Merged-tree regression 35499764754 passed. #142 is closed and #25 is updated.
 
 Current preparation branch is `issue/31-iqm-accounting`, in the isolated worktree
-/tmp/aftershock-31-iqm-accounting. #9 PR #145 is still resolving its watcher race and hosted
-lifetime resource gate; the reviewed #9 branch remains independent. Only the next bug's
+/tmp/aftershock-31-iqm-accounting. #9 PR #145 has fixed its watcher race and is awaiting the hosted
+lifetime gate at 3eb19288; the reviewed #9 branch remains independent. Only the next bug's
 failing test is prepared here. Do not merge/open this follow-up until #9 is merged
 and its merged-tree regression passes; merge modernization forward afterward.
 
@@ -3110,3 +3110,13 @@ The isolated production-loader probe fails before any engine edit at
 requires exact current owned-block accounting after twelve replacements, so the
 fix must assign rather than accumulate. No golden or sanitizer suppression is
 involved. Commit the failing test now; implementation waits for #9 acceptance.
+
+#9 follow-up checkpoint: the interleaved-edit test failed at 03268cd1 and passes
+with the watcher fix at 3eb19288 under GCC/Clang. The live texture edit remains
+0.605985 seconds / 2,721 changed pixels, with repeat/idle/restart checks passing.
+The lifetime driver now batches 16 compilation commands rather than paths because
+game/module.cpp has 412 configurations. All 1,124 commands / 120 paths and controls
+pass locally in 5:02 at 448,048 KiB peak RSS; the normalized compilation database
+is unchanged. Exact-head build 35507057165 passed. Regression 35507057162 has
+passed all completed required jobs (including runtime/tidy); hosted lifetimes
+remains pending. Issue #9 records the evidence; do not start this engine fix yet.
