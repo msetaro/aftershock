@@ -16,27 +16,45 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Finish current-head hosted gates for #6 draft PR #140 on `issue/6-rhi`, mark it
-ready after the final self-review, merge with a merge commit, then verify the
-merged-tree regression. The complete RHI boundary, offline shaders, pipeline
-cache and lifecycle checks are implemented. The 26-file frontend move is
-hash-verified in e5777895; OpenGL retirement is 935ad6f3. Local static/module
-replay, lifetime, tidy, format/type/boundary and resource/performance acceptance
-pass. No accepted fixture, frame golden or shader blob was regenerated.
+#6 PR #140 merged as 30eeba4c after final head c7c31a60 passed build
+35490659941/regression 35490659967 and the recorded self-review. Verify its
+merged-tree regression 35490963498 before #7 engine implementation. The current
+branch is `issue/7-devtools`; its first shipping/development build check fails as
+expected on the unchanged engine. Commit that failing test before implementing
+Dear ImGui integration and the rest of issue #7. Keep all existing golden files.
 
-The separately tested acquisition fix PR #141 merged as 61401e17 and entered
-this branch through an integration merge; merged-tree regression 35484895454
-passed. After #140, continue #7, render-graph phase two #142, then the remaining
-#25 sequence. All writes stay in msetaro/aftershock.
+Then complete #7, render-graph phase two #142, and the remaining #25 sequence.
+All writes stay in msetaro/aftershock. The separate-session scope and finished
+historical network evidence remain untouched.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
 regression 35479955499 passed; merged-tree regression 35480310184 passed.
 `docs/design/rhi.md` is now the implementation plan for #6 under the renewed scope.
-No RHI engine changes have merged yet. Baseline capacities: two frame slots, 4 MiB
+#6 implementation is merged. Preserved capacities: two frame slots, 4 MiB
 normal / 8 MiB high geometry buffers, 2 MiB normal / 24 MiB high staging buffers,
 32 samplers and 2,304 pipeline descriptions; do not change these during extraction.
 Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
+
+## #7 developer tooling checkpoint
+
+Issue #7 was read in full. Preparation pins Dear ImGui v1.92.9b, official commit
+f1cc2ae15e53a861a874c3034aae6798fde194ab. Source archive SHA-256:
+21d8a0a565e85dce943e375db00812c2f3f0ab21f3f0f7964e364a63422d7f99.
+The archive/source and devtools-plan.md are in the persistent cache; no vendor or
+engine source is changed yet. Integrate core ImGui through the RHI/frontend and
+engine input, with vendor OS/file/shell defaults disabled. Shipping defaults OFF.
+Reuse cvars/commands, renderer registries, game spawn fields and allocator stats;
+keep mutation calls outside ImGui so engine longjmp cannot cross vendor frames.
+Owned history/debug data stays bounded and plain; allocation behavior must be
+measured rather than assuming ImGui is allocation-free.
+
+Test-first: tests/devtools.py builds shipping and explicitly enabled clients and
+checks their actual symbols. At 30eeba4c the shipping absence check passes; the
+enabled build fails because ImGui::NewFrame is absent (expected exit 1).
+Evidence: devtools-before.log and devtools-before/ in the persistent cache.
+Behavioral cvar/entity/profile/collision/UI tests are still required. The merged
+#6 gate is running before any #7 engine implementation.
 
 ## #31 Vulkan acquisition checkpoint
 
