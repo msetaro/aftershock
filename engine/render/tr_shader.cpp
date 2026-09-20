@@ -3889,8 +3889,8 @@ static shader_t *R_ApplyPbrMaterial( const cookedPbrMaterial_t *material, shader
 	shader.surfaceFlags |= SURF_NODLIGHT; // PBR uses the entity's combined light-grid/dynamic lighting.
 	shader.cullType = ( material->params.flags & 1 ) ? CT_TWO_SIDED : CT_FRONT_SIDED;
 	shader.numUnfoggedPasses = 1;
-	shader.sort = ( material->params.flags & 4 ) ? SS_BLEND0 : ( material->params.flags & 8 ) ? SS_SEE_THROUGH
-																							  : SS_OPAQUE;
+	shader.sort = (float)( ( material->params.flags & 4 ) ? SS_BLEND0 : ( material->params.flags & 8 ) ? SS_SEE_THROUGH
+																									   : SS_OPAQUE );
 	shader.fogPass = ( material->params.flags & 4 ) ? FP_LE : FP_EQUAL;
 	shader.optimalStageIteratorFunc = RB_StageIteratorPbr;
 #ifdef AFTERSHOCK_DEVTOOLS

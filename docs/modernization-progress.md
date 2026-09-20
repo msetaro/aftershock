@@ -41,8 +41,11 @@ The failing cooker and native instance contracts were committed first (c4bb8bbf,
 b4cddc63). The isolated PBR cook/native data slice now passes GCC and Clang/libc++;
 Rendering/tangent submission, live factors, instance submission and ImGui controls
 are implemented locally. Classic replay retains the accepted hash. Remaining work:
-local validation and self-review are complete. Push/open the #13 draft PR, then
-require exact-head full CI and merged-tree regression before accepting #13.
+draft PR #157 is open. Its initial head be1a234e failed MSVC build 35544819657
+on the new PBR sort assignment (C4244 enum-to-float); all observed x64/ARM64
+failures have that same diagnostic. The explicit float cast is a build-only
+correction; require fresh exact-head build/regression and merged-tree regression
+before accepting #13. Initial regression 35544819530 is superseded, not acceptance.
 Unit and hosted-runtime commands, diagnostics and documentation are wired. #13 has no PR yet. No accepted
 fixture/shader bytes changed; no #13 acceptance before #28 integration passes.
 The new local implementation was started during #28's final lifetime gate, after
@@ -155,7 +158,7 @@ Legacy cooker/render probes, animation/instance tests, RHI and 1,270 tidy
 configurations pass. Lifetime analysis passes all 1,216 commands. CI runs the new
 cooker/native contract with both compilers and both visual modes with OA. AGENTS,
 tests/README and tools/cook/README document commands, v2 layout, authoring and limits.
-No #13 PR is open yet; commit final self-review and require exact-head hosted gates.
+Draft #157 is open; the MSVC correction and fresh exact-head gates are recorded above.
 
 ## #13 self-review and final local gates
 
@@ -191,8 +194,9 @@ Tests exposed setup/measurement mistakes (clip-less Animation preview, ambiguous
 UI filter, substring barriers, map-background sampling, weak normal perturbation),
 all corrected in the new tests rather than changing accepted references. The new
 shader's display conversion was corrected before acceptance and checked against
-absolute source RGB. Full exact-head hosted gates and merged-tree regression are
-still mandatory. No upstream PR or other-repository write is involved.
+absolute source RGB. MSVC requires an explicit enum-to-float cast for the new ternary sort selection;
+the build correction keeps the same small integer values and adds no behavior.
+Full exact-head hosted gates and merged-tree regression are still mandatory. No upstream PR or other-repository write is involved.
 
 ## #28 implementation record at its tested head
 
