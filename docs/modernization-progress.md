@@ -2879,3 +2879,12 @@ version/flags/texture records retain 48-byte header and 88-byte payload assertio
 The new opaque-texture recipe adds metadata to #9's new artifacts; no accepted
 game golden or source fixture is regenerated. Runtime reload and remaining source
 kinds are still in progress. Evidence: cook-material-{before,complete,build}.log.
+
+The reload GPU ownership step is test-first at 8f16f98f. A production RHI probe
+replaces a texture twelve times, alternating dimensions, and observes exactly one
+live image/view/allocation and one stable descriptor binding. Injected device-wait,
+memory-allocation and view-creation failures preserve the live texture and reclaim
+the incomplete replacement. The implementation adds explicitly owned memory only
+to this replacement path; legacy image pools retain their existing allocation.
+GCC and Clang/libc++ pass the full RHI probes. Evidence: cook-replace-*.log.
+No source watcher or renderer reload polling is connected yet.

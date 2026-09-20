@@ -169,7 +169,7 @@ static void check_compressed_uploads() {
 	qvkCmdCopyBufferToImage = copy_texture;
 	const rhiFormat_t formats[] = { rhiFormat_t::BC4, rhiFormat_t::BC5, rhiFormat_t::BC7, rhiFormat_t::BC7_SRGB };
 	const VkFormat native[] = { VK_FORMAT_BC4_UNORM_BLOCK, VK_FORMAT_BC5_UNORM_BLOCK, VK_FORMAT_BC7_UNORM_BLOCK, VK_FORMAT_BC7_SRGB_BLOCK };
-	const rhiTexture_t texture = { 11, 12, 13 };
+	const rhiTexture_t texture = { 11, 12, 13, 0 };
 	for ( uint32_t i = 0; i < 4; i++ ) {
 		assert( vk_texture_format( formats[i] ) == native[i] );
 		textureBlockBytes = i == 0 ? 8 : 16;
@@ -277,7 +277,7 @@ int main( void ) {
 	assert( vk_texture_address( rhiAddress_t::Repeat ) == VK_SAMPLER_ADDRESS_MODE_REPEAT );
 	assert( vk_texture_address( rhiAddress_t::ClampToEdge ) == VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE );
 	assert( vk_texture_address( rhiAddress_t::ClampToBorder ) == VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER );
-	rhiTexture_t texture = { 11, 12, 13 };
+	rhiTexture_t texture = { 11, 12, 13, 0 };
 	RHI_BindTexture( 3, &texture );
 	assert( (uintptr_t)vk.cmd->descriptor_set.current[3] == 13 );
 	qvkDestroyImage = destroy_image;

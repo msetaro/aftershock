@@ -652,7 +652,7 @@ typedef struct image_s {
 
 } image_t;
 
-static_assert( sizeof( image_t ) == 80 && alignof( image_t ) == 8 );
+static_assert( sizeof( image_t ) == 88 && alignof( image_t ) == 8 );
 static_assert( offsetof( image_t, texture ) == 56 );
 
 
