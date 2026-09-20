@@ -397,8 +397,14 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 		entity->s.generic1 = definition->ballistics == WEAPON_PROJECTILE && !WeaponProjectileAvailable() ? 1 : 0;
 		VectorCopy( ps.origin, entity->r.currentOrigin );
 		trap_LinkEntity( entity );
-		if ( weaponTrace.integer )
+		if ( weaponTrace.integer ) {
 			G_Printf( "Weapon server state: owner=%d hand=%d tick=%u sequence=%u magazine=%u reserve=%u chamber=%u ads=%u\n", owner, hand,
 				state.time, state.sequence, state.magazine, state.reserve, state.chamber, state.adsQ16 );
+			uint8_t digest[32];
+			char hash[65];
+			Weapon_StateHash( &state, digest );
+			Anim_HashString( digest, hash );
+			G_Printf( "Weapon server digest: owner=%d hand=%d tick=%u hash=%s\n", owner, hand, state.time, hash );
+		}
 	}
 }

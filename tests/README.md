@@ -894,4 +894,28 @@ with `python3 tools/cook tests/assets/range.json --output OUTPUT` and the rifle
 with `python3 tools/cook tests/assets/weapons/assets.json --output OUTPUT`.
 The #11 scene variant removes the old solid placeholder sight while referencing
 the unchanged #10 geometry/animation buffer. Accepted #3/#10 fixtures remain
-unchanged; full #11 lifecycle/network/replay and CI acceptance is still pending.
+unchanged. The data HUD shows magazine + chamber / reserve for each active hand.
+
+`python3 tests/netcode_runtime.py --weapons --client PATH --server PATH --snapshot-budget 256`
+uses the existing private loopback delay driver: 100 ms RTT, jitter and 5% loss
+once the initial gamestate has loaded. Real input starts the scenario only after
+client initialization. It checks rewind hits against independently interpolated
+authoritative boxes, snapshot/full prediction agreement, budget deferral and
+predicted grenade reconciliation. The classic scenario remains the default.
+
+`python3 tests/weapons_demo.py --binary PATH` replays the separate #11 fixture
+twice, compares all 56 bytes of each received weapon state with its recorded
+server SHA256, requires rifle/reload/ADS/melee/projectile presentation, and compares
+three frame hashes. Omit `--binary` to build; add `--modules` to build the renderer
+module configuration. Both installed content sets use the same owned weapon art.
+The fixture manifest pins all cooked weapon/graph/model/sound/material bytes.
+Recording equality is not a gate. CI never records. Explicit replacement commands:
+
+```
+python3 tests/weapons_demo.py --record-fixture --binary PATH
+python3 tests/weapons_demo.py --record-fixture --binary PATH --content openarena --data /tmp/aftershock-openarena-baseoa
+```
+
+These affect only `tests/golden/weapons/<content>/range.dm_68` and its manifest.
+Record once, review frames and authoritative traces, and explain any replacement
+in the issue/PR. Full #11 hosted acceptance remains pending.

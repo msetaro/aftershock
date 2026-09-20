@@ -98,6 +98,7 @@ static_assert( sizeof( weaponReload_t ) == 76 && sizeof( weaponMaterial_t ) == 1
 static_assert( sizeof( weaponState_t ) == 56 && std::is_trivially_copyable_v<weaponState_t> );
 static_assert( sizeof( weaponEvent_t ) == 32 && sizeof( weaponProjectile_t ) == 28 );
 
+void Weapon_StateHash( const weaponState_t *state, uint8_t digest[32] );
 bool Weapon_StateValid( const weaponState_t *state );
 bool Weapon_Open( const void *data, size_t size, weaponDef_t *definition );
 bool Weapon_LoadFile( const char *path, weaponDef_t *definition, uint8_t hash[32] );

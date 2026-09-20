@@ -1669,6 +1669,7 @@ int CG_NewParticleArea( int num );
 void CG_InitWeapons( void );
 void CG_AddDataWeapon( void );
 void CG_WeaponStatus( void );
+bool CG_DrawDataWeaponAmmo( void );
 float CG_WeaponFov( float base );
 void CG_WeaponViewKick( vec3_t angles );
 void CG_WeaponAnimationSnapshot( const entityState_t *entity );

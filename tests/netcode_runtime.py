@@ -3,6 +3,7 @@
 import argparse
 import bisect
 import heapq
+import json
 import os
 from pathlib import Path
 import random
@@ -11,17 +12,18 @@ import selectors
 import signal
 import socket
 import subprocess
+import sys
 import tempfile
 import threading
 import time
 
 from cook import cook
 from run import ROOT, content_maps, content_settings
-from window import wait_for
+from window import XInput, wait_for
 
 
 class LoopbackDelay:
-    def __init__(self, server_port):
+    def __init__(self, server_port, loss=True):
         self.front = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.front.bind(('127.0.0.1', 0))
         self.back = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -31,6 +33,7 @@ class LoopbackDelay:
         self.stop = threading.Event()
         self.count = self.dropped = 0
         self.error = None
+        self.loss = loss
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
 
@@ -50,7 +53,7 @@ class LoopbackDelay:
                                 continue
                             client = address
                         self.count += 1
-                        if self.count % 20 == 0:  # 5% deterministic datagram loss
+                        if self.loss and self.count % 20 == 0:  # 5% deterministic datagram loss
                             self.dropped += 1
                             continue
                         assert len(pending) < 4096
@@ -93,11 +96,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--client', type=Path, required=True)
     parser.add_argument('--server', type=Path, required=True, help='AFTERSHOCK_DEVTOOLS build')
+    parser.add_argument('--weapons', action='store_true', help='exercise the data-driven weapon and grenade path')
+    parser.add_argument('--inside-xvfb', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--snapshot-budget', type=int, default=0)
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
     parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-netcode-runtime'))
     args = parser.parse_args()
+    if args.weapons and not args.inside_xvfb:
+        subprocess.run(['timeout', '120', 'xvfb-run', '-a', sys.executable, str(Path(__file__).resolve()),
+                        *sys.argv[1:], '--inside-xvfb'], cwd=ROOT, check=True)
+        return
     if not 0 <= args.snapshot_budget <= 16384:
         parser.error('snapshot budget must be in 0..16384')
     args.output = args.output.resolve()
@@ -114,36 +123,74 @@ def main():
         base.mkdir()
         for pak in paks:
             (base / pak.name).symlink_to(pak)
-        cook(ROOT / 'tests/assets/animation/rigs.json', base)
+        weapon_options = []
+        if args.weapons:
+            cook(ROOT / 'tests/assets/range.json', base)
+            source = home / 'source'
+            source.mkdir()
+            rifle = json.loads((ROOT / 'tests/assets/weapons/rifle.weapon.json').read_text())
+            rifle.update(name='range_network', interval_ms=20, magazine=300, reserve=0, spread_degrees=0,
+                         damage=1, minimum_damage=1)
+            grenade = dict(rifle, name='range_network_grenade', fire_mode='semi', ballistics='projectile',
+                           damage=0, minimum_damage=0, magazine=4,
+                           projectile=dict(rifle['projectile'], speed=80, gravity=100, fuse_ms=2000, radius=0))
+            for name, definition in [('network', rifle), ('grenade', grenade)]:
+                (source / (name + '.json')).write_text(json.dumps(definition))
+            recipe = source / 'assets.json'
+            recipe.write_text(json.dumps({'version': 1, 'assets': [
+                {'name': 'weapons/' + name, 'kind': 'weapon', 'source': name + '.json'} for name in ('network', 'grenade')]}))
+            cook(recipe, base)
+            weapon_options = ['+set', 'g_weapons', 'weapons/network.asweapon weapons/grenade.asweapon', '+set', 'g_weaponTrace', '1']
+        else:
+            cook(ROOT / 'tests/assets/animation/rigs.json', base)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reservation:
             reservation.bind(('127.0.0.1', 0))
             port = reservation.getsockname()[1]
         common = ['+set', 'fs_basepath', str(home), *content_settings(args.content),
                   '+set', 'net_enabled', '1', '+set', 'net_ip', '127.0.0.1', '+set', 'sv_pure', '0']
-        client = proxy = None
+        client = proxy = device = None
         with server_log.open('wb') as server_stream, client_log.open('wb') as client_stream:
             server = subprocess.Popen([str(args.server.resolve()), *common,
                 '+set', 'fs_homepath', str(home / 'server'), '+set', 'net_port', str(port),
                 '+set', 'dedicated', '1', '+set', 'bot_enable', '0', '+set', 'sv_fps', '50',
                 '+set', 'g_rewind', '1', '+set', 'g_rewindTrace', '1',
-                '+set', 'sv_snapshotBudget', str(args.snapshot_budget),
+                '+set', 'sv_snapshotBudget', str(args.snapshot_budget), *weapon_options,
                 '+devmap', content_maps(args.content)[0]], cwd=ROOT, env=env,
                 stdin=subprocess.PIPE, stdout=server_stream, stderr=subprocess.STDOUT)
             try:
                 wait_for(lambda: '-----------------------------------' in server_log.read_text(), server)
-                proxy = LoopbackDelay(port)
-                (base / 'netcode.cfg').write_text('\n'.join([
+                # Large initial gamestate must complete before measuring lossy gameplay.
+                proxy = LoopbackDelay(port, loss=not args.weapons)
+                commands = [
                     f'connect 127.0.0.1:{proxy.port}', 'wait 400', 'cmd give all',
                     'wait 100', 'weapon 6', 'wait 100', 'say netcode_ready', 'wait 100', '+attack', 'wait 800', 'cmd give ammo',
-                    'wait 800', '-attack', 'say netcode_done', 'wait 100', 'quit']) + '\n')
-                client = subprocess.Popen(['xvfb-run', '-a', str(args.client.resolve()), *common,
+                    'wait 800', '-attack', 'say netcode_done', 'wait 100', 'quit']
+                if args.weapons:
+                    weapon_commands = ['weapon 1', 'wait 100', 'say netcode_ready',
+                        'wait 100', '+attack', 'wait 350', '+button12', 'wait 100', '-attack', '-button12',
+                        'weapon 2', 'wait 60', '+attack', 'wait 10', '-attack', 'wait 200',
+                        'weapon 1', 'wait 60', '+attack', 'wait 100', '-attack', 'wait 100',
+                        'say netcode_done', 'wait 100', 'quit']
+                    (base / 'netcode-ready.cfg').write_text('\n'.join(weapon_commands) + '\n')
+                    commands = ['bind F10 \"exec netcode-ready.cfg\"', f'connect 127.0.0.1:{proxy.port}']
+                (base / 'netcode.cfg').write_text('\n'.join(commands) + '\n')
+                display = [] if args.weapons else ['xvfb-run', '-a']
+                client = subprocess.Popen([*display, str(args.client.resolve()), *common,
                     '+set', 'fs_homepath', str(home / 'client'), '+set', 'net_port', '0',
                     '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '0',
                     '+set', 'cl_allowDownload', '0', '+set', 'cl_autoRecordDemo', '0',
+                    '+set', 'cg_weaponTrace', '1' if args.weapons else '0',
                     '+set', 'cg_showmiss', '1', '+set', 'cl_shownet', '-1' if args.snapshot_budget else '0',
                     '+set', 'com_maxfps', '100', '+exec', 'netcode.cfg'],
                     cwd=ROOT, env=env, stdout=client_stream, stderr=subprocess.STDOUT, start_new_session=True)
                 wait_for(lambda: 'ClientBegin: 0' in server_log.read_text(), client)
+                if args.weapons:
+                    wait_for(lambda: 'CL_InitCGame:' in client_log.read_text() and
+                             'Weapon server state: owner=0 hand=0' in server_log.read_text(), client)
+                    proxy.loss = True
+                    device = XInput()
+                    device.verify_window(client)
+                    device.key('F10')
                 wait_for(lambda: 'netcode_ready' in server_log.read_text(), client)
                 server.stdin.write(b'rewind_target 0\n')
                 server.stdin.flush()
@@ -159,6 +206,8 @@ def main():
                 if client is not None and client.poll() is None:
                     os.killpg(client.pid, signal.SIGTERM)
                     client.wait(timeout=5)
+                if device is not None:
+                    device.close()
                 if proxy is not None:
                     proxy.close()
                 if server.poll() is None:
@@ -218,6 +267,24 @@ def main():
     assert len(reports) >= 10 and all(int(age) <= int(limit) <= 1000 for age, limit in reports), reports
     errors = [float(value) for value in re.findall(r'Prediction miss: ([0-9.]+)', client_log.read_text())]
     assert max(errors, default=0) <= 32, errors
+    if args.weapons:
+        received = client_log.read_text()
+        state_pattern = r'Weapon %s state: owner=0 hand=0 tick=(\d+) sequence=(\d+) magazine=(\d+) reserve=(\d+) chamber=(\d+) ads=(\d+)'
+        authoritative = {row[0]: row[1:] for row in re.findall(state_pattern % 'server', text)}
+        states = {row[0]: row[1:] for row in re.findall(state_pattern % 'client', received)}
+        assert len(states) >= 100 and all(authoritative.get(tick) == state for tick, state in states.items()), 'network weapon snapshot differs'
+        for label in ('Weapon prediction', 'Weapon animation prediction'):
+            comparisons = re.findall(label + r': hand=0 tick=\d+ equal=(\d)', received)
+            assert len(comparisons) >= 50 and comparisons.count('1') / len(comparisons) >= 0.95, (label, len(comparisons), comparisons.count('0'))
+            assert set(comparisons[-20:]) == {'1'}, 'prediction did not settle: ' + label
+            print(f'PASS: {label}: {comparisons.count("1")}/{len(comparisons)} under delayed/lossy loopback')
+        assert 'Weapon projectile server: owner=0 hand=0 sequence=1 ' in text
+        assert 'Weapon projectile client: owner=0 hand=0 sequence=1 ' in received
+        assert received.count('Weapon projectile predicted: hand=0 sequence=1 ') == 1
+        corrections = re.findall(r'Weapon projectile correction: hand=0 sequence=1 error=([0-9.]+)', received)
+        assert corrections and max(map(float, corrections)) <= 1, corrections
+        assert 'Weapon projectile exploded: owner=0 sequence=1 ' in text
+        assert 'Weapon rejected' not in text and 'Weapon rejected' not in received
     assert 'ERROR:' not in text and 'ERROR:' not in client_log.read_text()
     print(f'PASS: {matches}/{checked} network shots agree ({positive} hits); {uncompensated_wrong} wrong without rewind; '
           f'100 ms RTT, 5% loss, median view age {median_age} ms, prediction error <= {max(errors, default=0):.3f} units')

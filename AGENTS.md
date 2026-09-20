@@ -132,6 +132,11 @@ python3 tests/animation.py
 python3 tests/animation_runtime.py
 python3 tests/animation_editor.py
 python3 tests/animation_demo.py
+python3 tests/weapons.py
+python3 tests/weapons_runtime.py --binary PATH --lifecycle
+python3 tests/weapon_range.py --binary PATH
+python3 tests/weapons_demo.py
+python3 tests/netcode_runtime.py --weapons --client PATH --server PATH --snapshot-budget 256
 python3 tests/native.py --content openarena
 python3 tests/openarena_strings.py
 python3 tests/ui_weapon.py

@@ -5,7 +5,7 @@ static sfxHandle_t weaponSounds[WEAPON_MAX_DEFINITIONS][WEAPON_MAX_ROWS];
 static weaponNotifyHistory_t weaponNotifyHistory[MAX_CLIENTS][2];
 static qhandle_t weaponModels[WEAPON_MAX_DEFINITIONS];
 static qhandle_t weaponAttachmentModels[WEAPON_MAX_DEFINITIONS][WEAPON_MAX_ROWS];
-static uint32_t weaponDraws, attachmentDraws, weaponAdsSamples;
+static uint32_t weaponDraws, attachmentDraws, weaponAdsSamples, weaponHudDraws;
 static float weaponAdsError, weaponMaxKick;
 static vec3_t weaponLastAngles, weaponSwayAngles;
 static bool weaponHaveAngles;
@@ -151,7 +151,7 @@ void CG_InitWeapons( void ) {
 	weaponEpoch = 0;
 	memset( weaponNotifyHistory, 0, sizeof( weaponNotifyHistory ) );
 	memset( weaponSounds, 0, sizeof( weaponSounds ) );
-	weaponDraws = attachmentDraws = weaponAdsSamples = 0;
+	weaponDraws = attachmentDraws = weaponAdsSamples = weaponHudDraws = 0;
 	weaponAdsError = weaponMaxKick = 0;
 	weaponHaveAngles = false;
 	VectorClear( weaponSwayAngles );
@@ -219,9 +219,15 @@ void CG_WeaponSnapshot( const entityState_t *entity ) {
 		CG_Printf( "Weapon attachment client: owner=%d hand=%d definition=%d mask=%d\n", entity->otherEntityNum, entity->otherEntityNum2,
 			entity->modelindex, entity->modelindex2 );
 	trap_Cvar_Update( &weaponTrace );
-	if ( weaponTrace.integer )
+	if ( weaponTrace.integer ) {
 		CG_Printf( "Weapon client state: owner=%d hand=%d tick=%u sequence=%u magazine=%u reserve=%u chamber=%u ads=%u\n", entity->otherEntityNum,
 			entity->otherEntityNum2, state.time, state.sequence, state.magazine, state.reserve, state.chamber, state.adsQ16 );
+		uint8_t digest[32];
+		char hash[65];
+		Weapon_StateHash( &state, digest );
+		Anim_HashString( digest, hash );
+		CG_Printf( "Weapon client digest: owner=%d hand=%d tick=%u hash=%s\n", entity->otherEntityNum, entity->otherEntityNum2, state.time, hash );
+	}
 }
 void CG_WeaponAnimationSnapshot( const entityState_t *entity ) {
 	animState_t state;
@@ -253,7 +259,7 @@ void CG_PredictWeapons( void ) {
 		const auto &entity = snapshot->entities[e];
 		if ( entity.eType != ET_WEAPON_STATE || entity.otherEntityNum != snapshot->ps.clientNum )
 			continue;
-		if ( !CurrentWeaponEpoch( uint32_t( entity.constantLight ) ) )
+		if ( entity.otherEntityNum == cg.clientNum && !CurrentWeaponEpoch( uint32_t( entity.constantLight ) ) )
 			continue;
 		weaponState_t state;
 		uint32_t spawn;
@@ -283,7 +289,7 @@ void CG_PredictWeapons( void ) {
 			Weapon_ForgetNotifiesAfter( &weaponNotifyHistory[snapshot->ps.clientNum][hand], animation.eventSequence );
 
 		// When input history is missing, retain the authoritative state until an acknowledgement catches up.
-		if ( !cg.demoPlayback && !cg_nopredict.integer && !cg_synchronousClients.integer &&
+		if ( !cg.demoPlayback && !( snapshot->ps.pm_flags & PMF_FOLLOW ) && !cg_nopredict.integer && !cg_synchronousClients.integer &&
 			 int32_t( uint32_t( oldest.serverTime ) - state.time ) <= 20 ) {
 			for ( int number = current - CMD_BACKUP + 1; number <= current; ++number ) {
 				usercmd_t cmd;
@@ -490,7 +496,22 @@ void CG_AddDataWeapon( void ) {
 		}
 	}
 }
+bool CG_DrawDataWeaponAmmo( void ) {
+	if ( !BG_WeaponDefinition( 0 ) )
+		return false;
+	for ( int hand = 0; hand < 2; ++hand ) {
+		if ( !predictedWeaponValid[hand] || ( hand && !predictedWeapons[hand].sequence ) )
+			continue;
+		const auto &state = predictedWeapons[hand];
+		char text[64];
+		Com_sprintf( text, sizeof( text ), "%u + %u / %u%s", state.magazine, state.chamber, state.reserve,
+			state.reloadStage != WEAPON_NO_STAGE ? " reload" : "" );
+		CG_DrawStringExt( 8, 432 + hand * 18, text, colorWhite, qfalse, qtrue, 8, 16, 0 );
+		++weaponHudDraws;
+	}
+	return true;
+}
 void CG_WeaponStatus( void ) {
-	CG_Printf( "Weapon rendering: draws=%u attachments=%u ads=%u error=%.6f kick=%.6f fov=%.6f\n",
-		weaponDraws, attachmentDraws, weaponAdsSamples, double( weaponAdsError ), double( weaponMaxKick ), double( cg.refdef.fov_x ) );
+	CG_Printf( "Weapon rendering: draws=%u attachments=%u ads=%u error=%.6f kick=%.6f fov=%.6f hud=%u\n",
+		weaponDraws, attachmentDraws, weaponAdsSamples, double( weaponAdsError ), double( weaponMaxKick ), double( cg.refdef.fov_x ), weaponHudDraws );
 }

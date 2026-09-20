@@ -553,7 +553,7 @@ static void CG_DrawStatusBar( void ) {
 	VectorClear( angles );
 
 	// draw any 3D icons first, so the changes back to 2D are minimized
-	if ( cent->currentState.weapon && cg_weapons[cent->currentState.weapon].ammoModel ) {
+	if ( !BG_WeaponDefinition( 0 ) && cent->currentState.weapon && cg_weapons[cent->currentState.weapon].ammoModel ) {
 		origin[0] = 70;
 		origin[1] = 0;
 		origin[2] = 0;
@@ -597,7 +597,7 @@ static void CG_DrawStatusBar( void ) {
 	//
 	// ammo
 	//
-	if ( cent->currentState.weapon ) {
+	if ( !CG_DrawDataWeaponAmmo() && cent->currentState.weapon ) {
 		value = ps->ammo[cent->currentState.weapon];
 		if ( value > -1 ) {
 			if ( cg.predictedPlayerState.weaponstate == WEAPON_FIRING && cg.predictedPlayerState.weaponTime > 100 ) {

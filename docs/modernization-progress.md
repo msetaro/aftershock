@@ -41,6 +41,27 @@ Acceptance comment: https://github.com/msetaro/aftershock/issues/12#issuecomment
 Merged-tree regression 35523091952 passed; #12 is closed and checked in #25.
 Preserve the provider/transport boundary recorded below.
 
+## #11 acceptance checks in progress
+
+The delayed/lossy weapon scenario is being added to the existing private-loopback
+driver, with a 256-byte snapshot budget and a real input trigger after client
+initialization. The first runs exposed harness startup/target timing problems;
+the corrected scenario passes both content sets. Q3: 301/301 shots, 18 hits,
+38 uncompensated differences and 786/786 full weapon/animation comparisons. OA:
+301/301 shots, 19 hits, 36 uncompensated differences and 754/754 comparisons. Both
+median view ages are 160 ms with prediction error bounded at 8.875 units. Loss is
+enabled after the initial gamestate; the default classic scenario is unchanged.
+The lifetime gate now covers the weapons
+subsystem explicitly, and subsystem ownership is documented.
+
+Full-state diagnostic hashes cover all 56 bytes (portable probe checks every byte).
+The new separate replay driver and CI commands are written; initial fixtures are
+not recorded/reviewed yet. The range HUD now shows actual magazine/chamber/reserve,
+and followed-player commands cannot be predicted from the spectator input.
+GCC and Clang/libc++ UBSan probes pass with the unchanged 1000-shot digest.
+The final Q3 lifecycle/HUD run, formatting/boundary/type gates and 1270-configuration
+tidy pass; full lifetime analysis is running.
+
 ## #11 weapon animation snapshot test
 
 The real entity-codec probe now fails on the absent per-hand weapon-animation

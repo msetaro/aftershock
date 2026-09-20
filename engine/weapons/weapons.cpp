@@ -5,6 +5,10 @@
 #include <cmath>
 #include <cstring>
 
+void Weapon_StateHash( const weaponState_t *state, uint8_t digest[32] ) {
+	calc_sha_256( digest, state, sizeof( *state ) );
+}
+
 static bool Between( float value, float low, float high ) {
 	return std::isfinite( value ) && value >= low && value <= high;
 }

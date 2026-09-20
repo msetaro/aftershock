@@ -74,6 +74,17 @@ static void Commands( const weaponDef_t &definition ) {
 	assert( events.items[0].time == 10 && events.items[1].time == 30 );
 }
 int main( int argc, char **argv ) {
+	weaponState_t empty = {};
+	uint8_t baseline[32], actual[32];
+	Weapon_StateHash( &empty, baseline );
+	for ( size_t offset = 0; offset < sizeof( empty ); ++offset ) {
+		weaponState_t changed = empty;
+		reinterpret_cast<unsigned char *>( &changed )[offset] = 1;
+		Weapon_StateHash( &changed, actual );
+		assert( memcmp( baseline, actual, sizeof( actual ) ) );
+	}
+	Weapon_StateHash( &empty, actual );
+	assert( !memcmp( baseline, actual, sizeof( actual ) ) );
 	assert( argc == 3 );
 	if ( !strcmp( argv[1], "index" ) ) {
 		uint8_t data[65536], revision[32];

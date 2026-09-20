@@ -134,6 +134,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     views = re.findall(r'Weapon rendering: draws=(\d+) attachments=(\d+) ads=(\d+) error=([0-9.]+) kick=([0-9.]+) fov=([0-9.]+)', text)
     assert views and any(int(v[0]) >= 100 and int(v[1]) >= 100 and int(v[2]) >= 5 and
                          float(v[3]) < 0.02 and float(v[4]) > 0 and float(v[5]) == 45 for v in views), views
+    assert re.search(r'Weapon rendering: .* hud=[1-9]\d*', text), 'data ammo HUD was not drawn'
     image = base / 'screenshots/weapon-ads.tga'
     assert image.is_file(), 'ADS capture missing'
     (args.output / 'weapon-ads.tga').write_bytes(image.read_bytes())
