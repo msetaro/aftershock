@@ -37,6 +37,7 @@ type ingest struct {
 	file    *os.File
 	tokens  map[string]string
 	offsets map[string]int64
+	closed  map[string]bool
 	digests map[string][32]byte
 	failed  bool
 }
@@ -50,7 +51,7 @@ func newIngest(path string, tokens map[string]string) (*ingest, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := &ingest{file: f, tokens: tokens, offsets: map[string]int64{}, digests: map[string][32]byte{}}
+	s := &ingest{file: f, tokens: tokens, offsets: map[string]int64{}, closed: map[string]bool{}, digests: map[string][32]byte{}}
 	info, err := f.Stat()
 	if err != nil {
 		f.Close()
@@ -77,6 +78,7 @@ func newIngest(path string, tokens map[string]string) (*ingest, error) {
 		}
 		data, _ := json.Marshal(b)
 		s.offsets[b.Match] = b.End
+		s.closed[b.Match] = b.Final
 		s.digests[batchKey(b)] = sha256.Sum256(data)
 	}
 	if err := scan.Err(); err != nil {
@@ -116,6 +118,9 @@ func (s *ingest) accept(b batch, token string) error {
 		}
 		return nil
 	}
+	if s.closed[b.Match] {
+		return status.Error(codes.FailedPrecondition, "match stream is already final")
+	}
 	if s.failed {
 		return status.Error(codes.Unavailable, "durable log needs recovery")
 	}
@@ -132,6 +137,7 @@ func (s *ingest) accept(b batch, token string) error {
 		return status.Error(codes.Unavailable, "durable append failed")
 	}
 	s.offsets[b.Match] = b.End
+	s.closed[b.Match] = b.Final
 	s.digests[batchKey(b)] = digest
 	fmt.Printf("ingest match=%s end=%d events=%d final=%t\n", b.Match, b.End, len(b.Events), b.Final)
 	return nil

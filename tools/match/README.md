@@ -110,7 +110,10 @@ It uses SHA256-pinned user-cache kind 0.33.0, Kubernetes 1.35.8, kubectl 1.35.8,
 Helm 4.3.0 and Agones 1.60.0. Helm generates unique webhook certificates and uses
 `--server-side=false` for the chart's legacy patch metadata. Configure the actual
 root `gameservers.namespaces`, `minPort` and `maxPort` values; they are not under
-`agones`. Only localhost UDP ports are published. The test stages resolved public
+`agones`. The test reserves 32 MiB and limits 128 MiB for the SDK sidecar, which
+Agones injects as an always-running init container; resource accounting includes
+that container as well as the two ordinary containers. Only localhost UDP ports
+are published. The test stages resolved public
 OA pak bytes into its private node, requires a real native client to enter play,
 checks the acknowledged final checkpoint and waits for a fresh Ready replacement.
 It deletes only its own cluster on exit. Keep generated specs, Secrets and kubeconfig
@@ -119,7 +122,9 @@ out of artifacts; publish only logs, `report.json`, `events.jsonl` and density f
 The test measures the match pod's three containers through CRI cumulative CPU and
 working-set counters over 20 seconds with one connected player. The report gives
 resource-equivalent matches/vCPU and matches/GB, including the wrapper, shipper and
-Agones SDK; shared ingest/control-plane costs are excluded. This is a measured
+Agones SDK; shared ingest/control-plane costs are excluded. The report also gives
+the configured Kubernetes request budget, which limits scheduling independently
+of observed idle CPU. This is a measured
 baseline, not a saturation or worst-case capacity guarantee. Production sizing
 needs the intended player count/maps plus operating headroom.
 

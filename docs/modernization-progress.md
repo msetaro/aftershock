@@ -24,14 +24,25 @@ head share tree b5789d25c17016be305cd4dd7be941f978675423. Integration regression
 35541625720 is running. #31 closes only after it passes. Modernization is merged
 forward into #28 for preparation; no #28 acceptance/merge precedes this gate.
 
-Rebuild #28's image and local combined server/client, then run tests/match_runtime.py
-and the new tests/match_kind.py with actual native clients and complete OA content.
-Both preserve sv_pure=1, now corrected by its separate #31 PR. Full kind acceptance
-must cover Ready/allocation, native player, timed exit, acknowledged durable result,
-replacement and the measured three-container resource baseline. Prior Compose and
-empty-match Agones runs pass but do not replace this gate. Add any missing lifecycle
-controls, record measured density, complete AGENTS self-review, open #28's own PR
-and require exact-head full CI plus merged-tree regression. Then continue #25.
+The combined native client/server and final image build. Direct runtime and two
+private kind runs pass actual OA native player acceptance with sv_pure=1, timed
+exit, final acknowledged gRPC checkpoint and a fresh Ready replacement. First
+measured match pod (engine/wrapper + results + SDK) uses 44,371,968 bytes working set
+and 0.0039557 vCPU over 20 seconds with one connected idle player: resource
+equivalents 22.54 matches/GB and 252.8/vCPU, not saturation or worst-case capacity.
+A second run measures 45,154,304 bytes / 0.0040864 vCPU. Scheduler request accounting
+must also include Agones' always-running init sidecar; the first added request
+report missed that field (actual CRI usage already included all three containers).
+The reviewed driver counts it and explicitly reserves 32 MiB/limits 128 MiB for
+SDK memory. That final driver/image run is active at /tmp/aftershock-match-kind-reviewed.
+
+Go race/vet, owned package, native lifetime, format, direct actual-client runtime
+and the new CI job lint pass. Review adds shared warm/spec validation with bounded
+map names and immutable final ingest streams, both covered by Go tests. AGENTS
+self-review follows. Open #28's draft PR for exact-head CI while #155 integration
+finishes; no #28 acceptance/merge precedes that dependency gate. After local/hosted
+final gates pass, record density/decisions in #28, ready/merge it and require its
+merged-tree regression before continuing #25.
 
 Do not regenerate accepted fixtures. Do not create upstream PRs. Keep credentials
 and kubeconfig out of artifacts. All cluster tools are verified user-cache binaries;
@@ -46,6 +57,42 @@ Go race/vet, owned content reproducibility and formatting pass. The new match-se
 job passes actionlint in isolation. Whole inherited workflow lint reports three
 pre-existing matrix.cc references in non-matrix jobs; this issue leaves those
 unrelated cache keys unchanged. No acceptance is claimed from that full lint run.
+
+## #28 self-review
+
+Scope is one native server per match, its non-root read-only owned-content image,
+validated match-spec launch, opt-in game lifetime, Agones allocation/health/shutdown,
+external gRPC durable facts, Compose/private kind acceptance and measured density.
+The only new engine change is an opt-in POD cvar and integer intermission/exit
+branches; default behavior remains unchanged. The native pure defect is inherited
+only from its separately tested/merged #31 PR #155. No simulation FP, layout,
+allocator, core destructor, OS boundary or accepted golden changes.
+
+Spec fields, file/line/batch sizes, identifiers, paths and offsets have bounds.
+No shell/arbitrary command execution is exposed by match specs. gRPC validates
+per-match tokens; TLS defaults on, explicit plaintext is confined to development
+stub examples. Module password fallback is recorded until #23/provider wiring;
+there is no claim of authenticated provider identity or executable attestation.
+Persistence stays in a separate process. Pending data, ACK cursor and final state
+have fsync/rename and retry/restart controls; startup failure never claims a
+completed match, final streams cannot be extended, and EOF/final-file-size checks
+avoid truncating the last events. EmptyDir loss preserves only previously ACKed
+facts, as designed. The fsync-file stub is explicitly replaced by #30 later.
+
+All images contain only owned sample content and pinned base images; fixtures
+retain exact bytes. Native client acceptance mounts complete public OA test data
+only into private nodes. Fresh homes prevent match ID/cursor reuse. CI-generated
+credentials/kubeconfig are excluded from artifacts. Private random cluster cleanup
+and bounded tool calls cannot target a pre-existing cluster. Local Composer/kind
+failures informed deployment fixes, never passing missing-content runs.
+
+Actual native runtime, two private kind lifecycles, Go race/vet, unit lifetime,
+owned content and formatting pass. Review's final warm-map/final-stream guards and
+SDK request accounting are under the final local run and full exact-head CI; both
+remain required before merge, alongside #155 integration. Density includes all
+three match containers and distinguishes measured light-load equivalents from
+scheduler requests and production capacity. No database driver or simulation-loop
+persistence is added; default engine behavior and all accepted goldens stay fixed.
 
 ## #31 native pure self-review
 

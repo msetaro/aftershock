@@ -357,6 +357,7 @@ jobs:
       - name: Match contracts and acknowledged result delivery
         run: |
           cd tools/match
+          test -z "$(gofmt -l .)"
           go test -race ./...
           go vet ./...
       - name: Owned image content and native match completion

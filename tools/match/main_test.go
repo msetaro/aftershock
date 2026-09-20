@@ -22,6 +22,7 @@ func TestSpec(t *testing.T) {
 	}
 	for _, bad := range []string{
 		strings.Replace(goodSpec, `"two_lane"`, `"two_lane;quit"`, 1),
+		strings.Replace(goodSpec, `"two_lane"`, `"`+strings.Repeat("a", 64)+`"`, 1),
 		strings.Replace(goodSpec, `"players":2`, `"players":0`, 1),
 		strings.Replace(goodSpec, `"mode":0`, `"mode":99`, 1),
 		strings.Replace(goodSpec, `"password":"local-secret"`, `"password":""`, 1),
@@ -200,5 +201,30 @@ func TestExitBeforeGameLog(t *testing.T) {
 	cancel()
 	if err = <-serverResult; err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestFinalStream(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "events.jsonl")
+	tokens := map[string]string{"local-1": "allocation-secret"}
+	s, err := newIngest(path, tokens)
+	if err != nil {
+		t.Fatal(err)
+	}
+	final := batch{Version: 1, Match: "local-1", Final: true}
+	if err = s.accept(final, "allocation-secret"); err != nil {
+		t.Fatal(err)
+	}
+	s.file.Close()
+	s, err = newIngest(path, tokens)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.file.Close()
+	if err = s.accept(final, "allocation-secret"); err != nil {
+		t.Fatal(err)
+	}
+	if err = s.accept(batch{Version: 1, Match: "local-1", End: 6, Events: []string{"event"}}, "allocation-secret"); err == nil {
+		t.Fatal("accepted data after final acknowledgement")
 	}
 }

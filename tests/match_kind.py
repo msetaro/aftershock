@@ -72,7 +72,8 @@ try:
     log_run('namespace.log',[*ctl,'create','namespace','aftershock-match'])
     log_run('agones.log',[helm,'install','agones',chart,'--namespace','agones-system','--create-namespace','--kubeconfig',kubeconfig,
         '--server-side=false','--set','agones.allocator.install=false','--set','agones.ping.install=false','--set','agones.controller.replicas=1',
-        '--set','agones.controller.numWorkers=2','--set','gameservers.namespaces[0]=aftershock-match','--set','gameservers.minPort=7000',
+        '--set','agones.controller.numWorkers=2','--set','agones.image.sdk.memoryRequest=32Mi','--set','agones.image.sdk.memoryLimit=128Mi',
+        '--set','gameservers.namespaces[0]=aftershock-match','--set','gameservers.minPort=7000',
         '--set','gameservers.maxPort=7001','--wait','--timeout','180s'],timeout=240)
     node=cluster+'-control-plane'
     with tempfile.TemporaryDirectory(prefix='aftershock-match-client-') as temporary:
@@ -113,6 +114,16 @@ try:
             rows=document([docker,'exec',node,'crictl','stats','--output','json'])['stats']
             return {row['attributes']['metadata']['name']:row for row in rows
                     if row['attributes']['labels'].get('io.kubernetes.pod.name')==original}
+        pod=document([*ctl,'get','pod',original,'-o','json'])
+        containers=pod['spec']['containers']+[c for c in pod['spec'].get('initContainers',[]) if c.get('restartPolicy')=='Always']
+        assert {c['name'] for c in containers}=={'server','results','agones-gameserver-sidecar'}
+        requests=[c['resources']['requests'] for c in containers]
+        requested_cores=sum(float(r['cpu'][:-1])/1000 if r['cpu'].endswith('m') else float(r['cpu']) for r in requests)
+        def memory_bytes(value):
+            for suffix,scale in [('Ki',1024),('Mi',1024**2),('Gi',1024**3)]:
+                if value.endswith(suffix):return float(value[:-2])*scale
+            return float(value)
+        requested_memory=sum(memory_bytes(r.get('memory','0')) for r in requests)
         first=sample()
         time.sleep(20)
         second=sample()
@@ -125,6 +136,8 @@ try:
                      seconds=20,measured_vcpus=cores,working_set_bytes=memory,
                      resource_equivalent_matches_per_vcpu=1/cores,resource_equivalent_matches_per_gb=1_000_000_000/memory,
                      limitation='single-match resource measurement, not a saturation or worst-case capacity guarantee')
+        density.update(requested_vcpus=requested_cores,requested_memory_bytes=requested_memory,
+                       request_budget_matches_per_vcpu=1/requested_cores,request_budget_matches_per_gb=1_000_000_000/requested_memory)
         (output/'density.json').write_text(json.dumps(density,indent=2)+'\n')
         (output/'density-samples.json').write_text(json.dumps(dict(first=first,second=second),indent=2)+'\n')
         def results():

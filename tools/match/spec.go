@@ -43,13 +43,19 @@ func decodeSpec(data []byte) (spec, error) {
 	if err := strictJSON(data, &s); err != nil {
 		return s, err
 	}
-	if !identifier.MatchString(s.ID) || !identifier.MatchString(s.Map) || !secret.MatchString(s.Password) || !secret.MatchString(s.Token) ||
+	return s, s.validate()
+}
+func (s spec) validate() error {
+	if !identifier.MatchString(s.ID) || !identifier.MatchString(s.Map) || len(s.Map) > 48 || !secret.MatchString(s.Password) || !secret.MatchString(s.Token) ||
 		s.Mode < 0 || s.Mode > 4 || s.Players < 1 || s.Players > 64 || s.FragLimit < 0 || s.FragLimit > 10000 || s.TimeLimit < 0 || s.TimeLimit > 1440 || s.FragLimit+s.TimeLimit == 0 {
-		return s, errors.New("invalid match identifier, password/token, mode, limits or player count")
+		return errors.New("invalid match identifier, password/token, mode, limits or player count")
 	}
-	return s, nil
+	return nil
 }
 func serverArgs(s spec, content, home, game string, port int, warm bool) ([]string, error) {
+	if err := s.validate(); err != nil {
+		return nil, err
+	}
 	if !identifier.MatchString(game) || port < 1024 || port > 65535 {
 		return nil, errors.New("invalid game directory or unprivileged port")
 	}
