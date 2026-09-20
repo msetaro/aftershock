@@ -16,3 +16,11 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-ffunction-sections', '-fdata-sections', 'tests/probes/identity.cpp',
      'engine/platform/sys_services.cpp', '-Wl,--gc-sections', '-o', binary])
 run([binary])
+
+ui = args.output.resolve() / 'discovery-ui'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter', '-fsanitize=undefined',
+     '-fno-sanitize-recover=all', '-ffunction-sections', '-fdata-sections',
+     'tests/probes/discovery_ui.cpp', 'engine/qcommon/q_shared.cpp',
+     '-Wl,--gc-sections', '-o', ui])
+run([ui])

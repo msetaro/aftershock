@@ -137,11 +137,50 @@ Self-review found a defect in this PR's new rewind trace plane metadata: a
 negative axial normal must use PLANE_NON_AXIAL, matching PlaneTypeForNormal.
 The new assertion fails before correction (netcode-plane-before.log); correct
 that new feature code before acceptance. Existing collision arithmetic is unchanged.
-Hosted e64e214f build 35521897544/regression 35521897618 are in progress.
+Hosted e64e214f regression 35521897618 exposed added serverinfo metadata in the
+unchanged OpenArena bot log: sv_snapshotBudget plus its 20-byte length increase.
+The budget is server-only and no client consumes it, so remove CVAR_SERVERINFO
+from the new cvar rather than changing accepted goldens or widening normalization.
+Compiler unit, sanitizers and both cross jobs already pass on that head.
 The plane assertion in 47b4ec60 now passes under both compilers after using the
 existing PlaneTypeForNormal macro in the new trace adapter. Positive and negative
 impact normals/distances/signbits are covered. Rebuild and rerun the affected
 runtime/fixed replay gates; the pending full gates must target the corrected head.
+
+## #12 self-review and acceptance checkpoint
+
+Scope: #12's version/schema agreement, generated descriptions, opt-in bounded
+rewind, replication policy, telemetry and checked identity/discovery seams. Steam
+SDK/ticket transport remains #23's implementation responsibility, explicitly
+reported on #12. No parent-repository change, unrelated engine fix, accepted
+golden/fixture regeneration or legacy simulation FP restructuring is included.
+The new trace adapter now uses the existing plane classification convention.
+
+Server-only snapshot budget registration avoids adding unused wire/serverinfo
+metadata. The resulting OpenArena oa_dm1/oa_dm7 bot logs match accepted goldens
+(netcode-bot-oa.log). Required traffic remains mandatory; existing address,
+challenge, command and transmit rate controls are retained. Interest narrows PVS;
+priority/budget selection stays bounded and keeps old snapshot-storage generation
+checks when retaining acknowledged state.
+
+New runtime storage is fixed POD or level-hunk owned. There is no per-frame heap
+allocation, non-trivial core destructor, or OS/SDK call outside platform. Wire
+and module layouts still agree across C/game C++/engine C++; codec digest is
+unchanged. New sampling arithmetic uses strict FP. Provider callbacks are
+main-thread, generation-checked and bounded; null/claimed identities are never
+verified. The real UI wrapper probe checks safe copies, stale handles and terminal
+buffer failure cancellation under both compilers (netcode-ui-discovery*.log).
+
+Local evidence: unit plus one-ULP negative control, sanitized units, collision
+differential, both OpenArena bot goldens, classic Q3 replay, fixed Q3 animation
+replay (253 authoritative boxes), native ABI and all new GCC/Clang UBSan contracts
+pass. After plane correction, live budgeted OA passes 487/487 shots (25 hits),
+50 uncompensated differences, median view age 149 ms and prediction error
+<=8.875 (netcode-plane-runtime.log). Tidy passes 1238 configurations; lifetime
+analysis passes 1184 commands. Hosted eb017dc5 build 35522039819 passes all Linux,
+macOS, MinGW and MSVC x64/ARM64 legs. Its regression repeats the now-corrected
+serverinfo-only bot mismatch; it is not acceptance. Push this reviewed correction
+and require a fresh full current-head build/regression before ready/merge.
 
 ## #10 accepted implementation
 

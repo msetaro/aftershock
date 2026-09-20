@@ -23,13 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "client.h"
 #include "../platform/services_public.h"
 
-static uint64_t uiServiceSearch;
 #include "../public/cg_native_public.h"
 #include "../public/ui_native_public.h"
 
 #include "../botlib/botlib_public.h"
 
 extern botlib_export_t *botlib_export;
+static uint64_t uiServiceSearch;
 
 
 /*
@@ -1217,8 +1217,10 @@ int UIImport_NextServerSearch( uint64_t request, char *address, int addressSize,
 	serviceServer_t result;
 	if ( !Sys_NextServer( request, &result ) )
 		return 0;
-	if ( strlen( result.address ) >= (size_t)addressSize || strlen( result.name ) >= (size_t)nameSize )
+	if ( strlen( result.address ) >= (size_t)addressSize || strlen( result.name ) >= (size_t)nameSize ) {
+		UIImport_StopServerSearch( request );
 		return SERVICE_SEARCH_FAILED;
+	}
 	Q_strncpyz( address, result.address, addressSize );
 	Q_strncpyz( name, result.name, nameSize );
 	return result.state;
