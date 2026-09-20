@@ -96,6 +96,7 @@ int main() {
 	G_TraceHitscan( &trace, start, end, 0, &shooter );
 	assert( trace.entityNum == 7 && trace.fraction == 0.49f && lastIgnored[7] );
 	assert( !memcmp( &before, &target.r, sizeof( before ) ) );
+	assert( trace.plane.normal[0] == -1 && trace.plane.type == PLANE_NON_AXIAL && trace.plane.signbits == 1 && trace.plane.dist == -98 );
 	wall = true;
 	G_TraceHitscan( &trace, start, end, 0, &shooter );
 	assert( trace.entityNum == ENTITYNUM_WORLD && trace.fraction == 0.25f );

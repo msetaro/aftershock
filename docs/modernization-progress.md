@@ -128,6 +128,17 @@ AGENTS commands and tests/README.md document controls, limits and replay policy.
 The initial identity client/server production build passes; final local/hosted
 acceptance and complete self-review are still required.
 
+Full local #12 probes/ABI/developer data pass on e64e214f. Matching/mismatched
+real connections pass; the final OpenArena budget run passes 680/680 shots
+(33 hits), 78 uncompensated differences, median age 155 ms and prediction error
+<=8.875 (netcode-final-runtime.log). Classic Q3 replay retains the accepted frame
+hash. Tidy passes 1238 configurations; lifetime analysis is still running.
+Self-review found a defect in this PR's new rewind trace plane metadata: a
+negative axial normal must use PLANE_NON_AXIAL, matching PlaneTypeForNormal.
+The new assertion fails before correction (netcode-plane-before.log); correct
+that new feature code before acceptance. Existing collision arithmetic is unchanged.
+Hosted e64e214f build 35521897544/regression 35521897618 are in progress.
+
 ## #10 accepted implementation
 
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
