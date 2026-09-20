@@ -35,6 +35,12 @@ implementation. No accepted golden changes. Source annotations/generation preser
 duplicate order positions and invalid paths/widths fail the generator. Next: extend the existing handshake, bounded history/rewind, replication policies,
 metrics and platform-provider seams, with separate current network coverage.
 
+The next test compiles two protocol builds (versions 1/2), requires same-build
+acceptance and cross-build/schema refusal, and fails on the absent protocol
+compatibility function (netcode-protocol-before.log). Implement strict Aftershock
+version/schema negotiation in the existing authenticated challenge/connect flow.
+Legacy demo decoding remains independent of connection negotiation.
+
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
 layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body
 controllers, replicated hit boxes, automatic body facing, ADS/recoil/sway, and an
