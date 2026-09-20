@@ -222,6 +222,20 @@ bool Weapon_Command( const weaponDef_t *d, uint32_t buttons, uint32_t time, weap
 	*events = collected;
 	return true;
 }
+bool Weapon_Switch( const weaponDef_t *fromDefinition, weaponState_t *from, const weaponDef_t *toDefinition, weaponState_t *to, uint32_t time ) {
+	if ( from == to || !StateForDefinition( fromDefinition, from ) || !StateForDefinition( toDefinition, to ) ||
+		 int32_t( time - from->time ) < 0 || int32_t( time - to->time ) < 0 ||
+		 ( from->reloadStage != WEAPON_NO_STAGE && from->reloadStage && !fromDefinition->reload[from->reloadStage - 1].cancel ) )
+		return false;
+	from->reloadStage = WEAPON_NO_STAGE;
+	from->adsQ16 = from->burstRemaining = from->previousButtons = 0;
+	to->time = time;
+	to->switchUntil = to->nextFire = to->nextMelee = time + toDefinition->switchMs;
+	to->reloadStart = time;
+	to->reloadStage = WEAPON_NO_STAGE;
+	to->adsQ16 = to->burstRemaining = to->previousButtons = 0;
+	return true;
+}
 float Weapon_Damage( const weaponDef_t *d, float distance ) {
 	if ( !std::isfinite( distance ) || distance < 0 || distance > d->range )
 		return 0;

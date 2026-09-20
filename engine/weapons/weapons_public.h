@@ -96,6 +96,9 @@ bool Weapon_Tick( const weaponDef_t *definition, uint32_t buttons, uint32_t time
 // Advance whole ticks through a usercmd, at most 1000 ms. Older/partial commands
 // emit nothing. Failure leaves both outputs unchanged; callers handle long gaps.
 bool Weapon_Command( const weaponDef_t *definition, uint32_t buttons, uint32_t time, weaponState_t *state, weaponEvents_t *events );
+// Inventory owns both states. A successful switch cancels an allowed reload and
+// equips the retained target state after its data-defined delay.
+bool Weapon_Switch( const weaponDef_t *fromDefinition, weaponState_t *from, const weaponDef_t *toDefinition, weaponState_t *to, uint32_t time );
 float Weapon_Damage( const weaponDef_t *definition, float distance );
 float Weapon_PenetrationDamage( const weaponDef_t *definition, uint32_t surfaceFlags, float thickness, float damage );
 bool Weapon_ProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile );

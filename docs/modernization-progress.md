@@ -162,6 +162,11 @@ The switching probe fails on missing Weapon_Switch (weapons-switch-before.log).
 It requires retained ammo/random state across a round trip, a data-defined equip
 delay before firing, reload-stage cancellation rules and atomic rejection.
 
+Weapon_Switch passes GCC and Clang/libc++ UBSan: equip delay, ammo/seed retention
+and reload cancel boundaries (weapons-switch-gcc.log/-clang.log). The old 1000-shot
+reference remains unchanged. Wire the server inventory and existing weapon
+selection commands, then prove two data files can be selected in the live game.
+
 
 ## #12 implemented feature evidence
 
