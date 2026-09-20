@@ -169,6 +169,8 @@ typedef enum {
 #endif
 	NA_UNSPEC
 } netadrtype_t;
+// Pin storage without changing the existing enum promotions.
+static_assert( sizeof( netadrtype_t ) == sizeof( uint32_t ) );
 
 
 typedef enum {
@@ -186,9 +188,9 @@ typedef enum {
 typedef struct {
 	netadrtype_t type;
 	union {
-		byte _4[4];
+		uint8_t _4[4];
 #ifdef USE_IPV6
-		byte _6[16];
+		uint8_t _6[16];
 #endif
 	} ipv;
 	uint16_t port;
@@ -196,6 +198,14 @@ typedef struct {
 	uint32_t scope_id; // Needed for IPv6 link-local addresses
 #endif
 } netadr_t;
+#ifdef USE_IPV6
+static_assert( sizeof( netadr_t ) == 28 && alignof( netadr_t ) == 4 &&
+			   std::is_trivially_copyable_v<netadr_t> && std::is_standard_layout_v<netadr_t> );
+#else
+static_assert( sizeof( netadr_t ) == 12 && alignof( netadr_t ) == 4 &&
+			   std::is_trivially_copyable_v<netadr_t> && std::is_standard_layout_v<netadr_t> );
+#endif
+
 
 void NET_Init( void );
 void NET_Shutdown( void );
@@ -1186,14 +1196,20 @@ typedef enum {
 	SE_CONSOLE, // evPtr is a char*
 	SE_MAX,
 } sysEventType_t;
+// Pin storage without changing the existing enum promotions.
+static_assert( sizeof( sysEventType_t ) == sizeof( uint32_t ) );
 
 typedef struct {
-	int evTime;
+	int32_t evTime;
 	sysEventType_t evType;
-	int evValue, evValue2;
-	int evPtrLength; // bytes of data pointed to by evPtr, for journaling
+	int32_t evValue, evValue2;
+	int32_t evPtrLength; // bytes of data pointed to by evPtr, for journaling
 	void *evPtr; // this must be manually freed if not NULL
 } sysEvent_t;
+static_assert( sizeof( sysEvent_t ) == 32 && alignof( sysEvent_t ) == 8 &&
+			   std::is_trivially_copyable_v<sysEvent_t> && std::is_standard_layout_v<sysEvent_t> );
+static_assert( offsetof( sysEvent_t, evPtr ) == 24 );
+
 
 void Sys_Init( void );
 void Sys_QueEvent( int evTime, sysEventType_t evType, int value, int value2, int ptrLength, void *ptr );

@@ -41,6 +41,12 @@ the assertions do not pack them to the serialized header length. Cache version z
 retains its existing platform signature and Windows/non-Windows field widths.
 PCX byte fields are unsigned; the diagnostic preserves its prior host-char display.
 
+Journal events, browser-cache address/server records and routing caches also
+assert their existing record layouts. IPv4-only and IPv6 address variants retain
+their distinct sizes. Existing enum promotions remain intact; their storage width
+is asserted to be 32 bits. Pointer-bearing journal/routing records keep the
+existing 64-bit layout, including pointer and variable-tail offsets.
+
 The thirteen asset-free groups include wire/file layout. The negative control
 moves the active GCC SSE Q_rsqrt return one ULP toward infinity in a temporary
 source copy; the golden comparison must reject it. Clang requires libc++-dev and

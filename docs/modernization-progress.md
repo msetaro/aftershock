@@ -15,23 +15,29 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: #8 image/cache branch issue/8-image-cache-layouts. PR #134 merged
-following build 35476468686, regression 35476468724 and preceding merged-tree
-regression 35476443471. Source 33bf6e07/head fba42e61. Query its merged-tree
-regression before the next merge. The 59 central/shared records are complete.
+Active: #8 legacy-cache layout branch issue/8-legacy-cache-layouts. PR #135
+(source/head 0353ccd3) merged after build 35476912168, regression 35476912148
+and preceding merged-tree regression 35476907462 passed. Query the new merged-tree
+regression before the next merge. Central/shared and image/cache records are done.
 
-Applied image-cache-width-preview: eight image/cache records have fixed integer
-widths and size/alignment/trivial-copy/standard-layout assertions. Preserve decoded
-BMP/TGA sizes 1080/20 and PNG IHDR size 16 (serialized fields occupy 13); no packing
-changes. PCX file bytes use uint8_t, retaining the original host-char interpretation
-only in its existing diagnostic. Cache version zero retains explicit Windows/
-non-Windows widths and its platform signature. All 55 object samples preserve
-code/data: 41 raw/native-identical, eight debug-only, six exact allocation
-source-line metadata differences. Evidence: image-cache-width-{object-review,
-line-review}.json. No new loader targets or golden changes.
-Next: formatter/tidy gates, publish, current-head and merged-tree hosted gates,
-self-review and merge. Then finish remaining long/char policy and Q_ASSERT.
-#8 remains open; do not start RHI implementation.
+Applied five additional persisted record layouts: journal events, browser-cache
+addresses/server records and routing cache header/records. Native measurements:
+netadr/serverInfo 28/168 with IPv6 and 12/152 without; sysEvent 32 (alignment 8,
+pointer offset 24), routing header 32, routing cache 88 (alignment 8, travel-time
+offset 80). Every record is trivially copyable and standard layout.
+
+Decision: retain existing enum declarations/promotions and assert 32-bit storage
+for netadrtype_t, sysEventType_t and qboolean. Explicit underlying enum types or
+replacing the visibility enum with an integer changed optimized code; those
+previews were rejected. Primitive record fields use fixed-width types. Final
+113 object samples preserve code/data (89 raw/native-identical, 24 debug-only),
+and IPv4/IPv6 sizes/traits match the measured baseline. Evidence:
+legacy-cache-object-review.json and legacy-layout-{baseline,after}/results.json.
+
+Next: local style/unit/tidy checks, publish, current-head and preceding merged-tree
+gates, self-review and merge. The separate scalar journal length keeps its historical
+platform width in the long candidate's fsOffset_t contract. No new loader targets
+or golden/fixture regeneration. #8 remains open.
 
 Long-width experiment is still CACHE ONLY and not accepted. V1 blanket widening
 was rejected because script integers feed float conversion. V2 preserves explicit
