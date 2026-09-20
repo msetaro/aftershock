@@ -3,13 +3,14 @@
 static struct {
 	animAsset_t asset;
 	void *storage;
-	float footHeight[2];
+	float footHeight[2], rootYaw;
 } animationRigs[2];
 static struct {
 	bool active;
 	uint32_t manual[2];
 	int spawn;
 	uint32_t clock;
+	float facing, turnSign;
 	animState_t state[2];
 	float parameters[2][ANIM_MAX_PARAMETERS];
 	gentity_t *entity[2];
@@ -61,6 +62,7 @@ void G_InitAnimation( void ) {
 		Anim_DefaultParameters( asset, parameters );
 		if ( !Anim_Evaluate( asset, &state, parameters, 0, &pose ) )
 			G_Error( "Animation rejected: bind stance" );
+		animationRigs[0].rootYaw = atan2f( pose.world[0][4], pose.world[0][0] ) * 180 / float( M_PI );
 		for ( int side = 0; side < 2; ++side ) {
 			const int bone = Anim_BoneIndex( asset, side ? "foot.R" : "foot.L" );
 			animationRigs[0].footHeight[side] = bone >= 0 ? pose.world[bone][11] : 0;
@@ -118,6 +120,8 @@ void G_RunAnimation( void ) {
 			actor.clock = uint32_t( level.time );
 			actor.spawn = ps->persistant[PERS_SPAWN_COUNT];
 			actor.active = true;
+			actor.facing = ps->viewangles[YAW];
+			actor.turnSign = 1;
 			for ( int rig = 0; rig < 2; ++rig ) {
 				Anim_Reset( &animationRigs[rig].asset, actor.clock, &actor.state[rig] );
 				Anim_DefaultParameters( &animationRigs[rig].asset, actor.parameters[rig] );
@@ -138,6 +142,15 @@ void G_RunAnimation( void ) {
 				actor.parameters[0][index] = fminf( fmaxf( ( direction ? pitch : -pitch ) / 26, 0 ), 1 );
 		}
 		const float speed = sqrtf( ps->velocity[0] * ps->velocity[0] + ps->velocity[1] * ps->velocity[1] );
+		if ( strcmp( Anim_StateName( &animationRigs[0].asset, actor.state[0].current ), "turn" ) ) {
+			if ( speed > 40 )
+				actor.facing = ps->viewangles[YAW];
+			const float difference = AngleSubtract( ps->viewangles[YAW], actor.facing );
+			if ( speed <= 40 && fabsf( difference ) > 45 ) {
+				actor.turnSign = difference < 0 ? -1 : 1;
+				SetAnimationInput( owner, 0, "turn", 1 );
+			}
+		}
 		SetAnimationInput( owner, 0, "move", fminf( speed / 120, 1 ) );
 		SetAnimationInput( owner, 0, "run", fminf( fmaxf( ( speed - 120 ) / 200, 0 ), 1 ) );
 		if ( player->client->buttons & BUTTON_ATTACK )
@@ -155,8 +168,20 @@ void G_RunAnimation( void ) {
 				animEvents_t events;
 				const uint32_t previous = actor.state[rig].current;
 				const bool initial = !actor.state[rig].initialized;
+				float finalTurn = 0;
+				if ( rig == 0 && !strcmp( Anim_StateName( asset, previous ), "turn" ) ) {
+					animPose_t pose;
+					if ( !Anim_Evaluate( asset, &actor.state[rig], actor.parameters[rig], actor.clock, &pose ) )
+						G_Error( "Animation rejected: turn pose" );
+					finalTurn = AngleSubtract( atan2f( pose.world[0][4], pose.world[0][0] ) * 180 / float( M_PI ), animationRigs[0].rootYaw );
+				}
 				if ( !Anim_Tick( asset, actor.parameters[rig], actor.clock, &actor.state[rig], &events ) )
 					G_Error( "Animation rejected: state/event capacity" );
+				if ( rig == 0 && previous != actor.state[rig].current ) {
+					actor.facing = AngleNormalize180( actor.facing + actor.turnSign * finalTurn );
+					if ( animationTrace.integer && !strcmp( Anim_StateName( asset, previous ), "turn" ) )
+						G_Printf( "Animation body facing: yaw=%.3f view=%.3f\n", double( actor.facing ), double( ps->viewangles[YAW] ) );
+				}
 				if ( animationTrace.integer && ( initial || previous != actor.state[rig].current ) )
 					G_Printf( "Animation server state: owner=%d rig=%d state=%s\n", owner, rig, Anim_StateName( asset, actor.state[rig].current ) );
 				for ( uint32_t e = 0; e < events.count; ++e ) {
@@ -177,9 +202,15 @@ void G_RunAnimation( void ) {
 		// offsets instead of doing their own gameplay collision query.
 		animPose_t stance;
 		const auto *body = &animationRigs[0].asset;
-		if ( !Anim_Evaluate( body, &actor.state[0], actor.parameters[0], actor.clock, &stance ) || !Anim_RemoveRootTranslation( body, &stance ) )
+		if ( !Anim_Evaluate( body, &actor.state[0], actor.parameters[0], actor.clock, &stance ) )
 			G_Error( "Animation rejected: foot stance" );
-		vec3_t bodyAngles = { 0, ps->viewangles[YAW], 0 }, bodyAxis[3];
+		float yaw = actor.facing;
+		if ( !strcmp( Anim_StateName( body, actor.state[0].current ), "turn" ) )
+			yaw += actor.turnSign * AngleSubtract( atan2f( stance.world[0][4], stance.world[0][0] ) * 180 / float( M_PI ), animationRigs[0].rootYaw );
+		SetAnimationInput( owner, 0, "aim_yaw", fminf( fmaxf( AngleSubtract( ps->viewangles[YAW], yaw ), -90 ), 90 ) );
+		if ( !Anim_RemoveRootMotion( body, &stance ) )
+			G_Error( "Animation rejected: in-place stance" );
+		vec3_t bodyAngles = { 0, yaw, 0 }, bodyAxis[3];
 		AnglesToAxis( bodyAngles, bodyAxis );
 		for ( int side = 0; side < 2; ++side ) {
 			const int bone = Anim_BoneIndex( body, side ? "foot.R" : "foot.L" );
@@ -201,7 +232,7 @@ void G_RunAnimation( void ) {
 		for ( int rig = 0; rig < 2; ++rig ) {
 			gentity_t *entity = actor.entity[rig];
 			vec3_t origin = { ps->origin[0], ps->origin[1], ps->origin[2] + MINS_Z };
-			vec3_t angles = { 0, ps->viewangles[YAW], 0 };
+			vec3_t angles = { 0, rig ? ps->viewangles[YAW] : yaw, 0 };
 			if ( !BG_AnimationToEntityState( &actor.state[rig], actor.parameters[rig], owner, rig, origin, angles, &entity->s ) )
 				G_Error( "Animation rejected: snapshot state" );
 			VectorCopy( origin, entity->r.currentOrigin );

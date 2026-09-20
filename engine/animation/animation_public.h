@@ -155,7 +155,7 @@ void Anim_Reset( const animAsset_t *asset, uint32_t time, animState_t *state );
 bool Anim_Tick( const animAsset_t *asset, const float *parameters, uint32_t time, animState_t *state, animEvents_t *events );
 bool Anim_Evaluate( const animAsset_t *asset, const animState_t *state, const float *parameters, uint32_t time, animPose_t *pose );
 bool Anim_UpdateWorld( const animAsset_t *asset, animPose_t *pose );
-bool Anim_RemoveRootTranslation( const animAsset_t *asset, animPose_t *pose );
+bool Anim_RemoveRootMotion( const animAsset_t *asset, animPose_t *pose );
 uint32_t Anim_HitBoxes( const animAsset_t *asset, const animPose_t *pose, const float origin[3], const float axis[3][3], animBox_t *boxes, uint32_t capacity );
 void Anim_HashString( const uint8_t digest[32], char hash[65] );
 void Anim_BoxHash( const animBox_t *boxes, uint32_t count, char hash[65] );

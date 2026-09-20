@@ -421,11 +421,12 @@ bool Anim_UpdateWorld( const animAsset_t *asset, animPose_t *pose ) {
 	}
 	return true;
 }
-bool Anim_RemoveRootTranslation( const animAsset_t *asset, animPose_t *pose ) {
+bool Anim_RemoveRootMotion( const animAsset_t *asset, animPose_t *pose ) {
 	if ( pose->jointCount != Count( asset, ANIM_JOINTS ) )
 		return false;
 	const auto root = Read<animFileJoint_t>( asset, ANIM_JOINTS, 0 );
 	memcpy( pose->local[0].translate, root.bind.translate, sizeof( root.bind.translate ) );
+	memcpy( pose->local[0].rotate, root.bind.rotate, sizeof( root.bind.rotate ) );
 	return Anim_UpdateWorld( asset, pose );
 }
 uint32_t Anim_HitBoxes( const animAsset_t *asset, const animPose_t *pose, const float origin[3], const float axis[3][3], animBox_t *boxes, uint32_t capacity ) {

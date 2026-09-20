@@ -63,7 +63,7 @@ static float AnimationParameter( const animAsset_t *asset, const float *paramete
 bool BG_AnimationPose( const animAsset_t *asset, const animState_t *state, const float *parameters, uint32_t time, int rig, animPose_t *pose ) {
 	if ( !Anim_Evaluate( asset, state, parameters, time, pose ) )
 		return false;
-	if ( rig == 0 && !Anim_RemoveRootTranslation( asset, pose ) )
+	if ( rig == 0 && !Anim_RemoveRootMotion( asset, pose ) )
 		return false;
 	const char *roots[2] = { rig ? "upperarm.L" : "thigh.L", rig ? "upperarm.R" : "thigh.R" };
 	const char *middles[2] = { rig ? "forearm.L" : "shin.L", rig ? "forearm.R" : "shin.R" };
@@ -97,8 +97,9 @@ bool BG_AnimationPose( const animAsset_t *asset, const animState_t *state, const
 		const int head = Anim_BoneIndex( asset, "head" );
 		if ( head >= 0 ) {
 			const float pitch = 0.45f * ( AnimationParameter( asset, parameters, "aim_up" ) - AnimationParameter( asset, parameters, "aim_down" ) );
+			const float yaw = AnimationParameter( asset, parameters, "aim_yaw" ) * float( M_PI ) / 180;
 			const float forward[3] = { 1, 0, 0 };
-			const float target[3] = { pose->world[head][3] + 100 * cosf( pitch ), pose->world[head][7], pose->world[head][11] + 100 * sinf( pitch ) };
+			const float target[3] = { pose->world[head][3] + 100 * cosf( pitch ) * cosf( yaw ), pose->world[head][7] + 100 * cosf( pitch ) * sinf( yaw ), pose->world[head][11] + 100 * sinf( pitch ) };
 			if ( !Anim_ApplyLookAt( asset, pose, head, forward, target, 1 ) )
 				return false;
 		}

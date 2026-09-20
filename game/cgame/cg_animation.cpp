@@ -11,7 +11,11 @@ static struct {
 	animState_t state;
 	float parameters[ANIM_MAX_PARAMETERS], origin[3], angles[3];
 } animationActors[MAX_CLIENTS][2];
-static vmCvar_t animationTrace, animationFov;
+static vmCvar_t animationTrace, animationFov, animationSway;
+static vec3_t adsOptic, lastViewAngles, swayAngles;
+static uint32_t adsSamples;
+static float adsError;
+static bool haveViewAngles;
 static uint32_t bodyDraws, rifleDraws;
 
 void CG_ShutdownAnimation( void ) {
@@ -23,9 +27,13 @@ void CG_ShutdownAnimation( void ) {
 }
 void CG_InitAnimation( void ) {
 	CG_ShutdownAnimation();
-	bodyDraws = rifleDraws = 0;
+	bodyDraws = rifleDraws = adsSamples = 0;
+	adsError = 0;
+	haveViewAngles = false;
+	VectorClear( swayAngles );
 	trap_Cvar_Register( &animationTrace, "cg_animationTrace", "0", 0 );
 	trap_Cvar_Register( &animationFov, "cg_animationFov", "70", CVAR_ARCHIVE );
+	trap_Cvar_Register( &animationSway, "cg_animationSway", "0.15", CVAR_ARCHIVE );
 	for ( int i = 0; i < 2; ++i ) {
 		char text[MAX_QPATH + 66];
 		Q_strncpyz( text, CG_ConfigString( CS_ANIMATION_BODY + i ), sizeof( text ) );
@@ -45,6 +53,25 @@ void CG_InitAnimation( void ) {
 		rig.model = trap_R_RegisterModel( rig.asset.header.model );
 		if ( !rig.model )
 			CG_Error( "Animation rejected: model %s", rig.asset.header.model );
+	}
+	if ( animationRigs[1].storage ) {
+		const auto *asset = &animationRigs[1].asset;
+		animState_t state;
+		animPose_t pose;
+		float parameters[ANIM_MAX_PARAMETERS];
+		Anim_Reset( asset, 0, &state );
+		Anim_DefaultParameters( asset, parameters );
+		bool found = false;
+		for ( uint32_t i = 0; i < asset->header.sections[ANIM_STATES].count; ++i )
+			if ( !strcmp( Anim_StateName( asset, i ), "ads" ) ) {
+				state.current = state.previous = i;
+				found = true;
+			}
+		const int optic = Anim_BoneIndex( asset, "optic" );
+		if ( !found || optic < 0 || !Anim_Evaluate( asset, &state, parameters, 0, &pose ) )
+			CG_Error( "Animation rejected: ADS optic required" );
+		for ( int i = 0; i < 3; ++i )
+			adsOptic[i] = pose.world[optic][i * 4 + 3];
 	}
 }
 void CG_AnimationSnapshot( const entityState_t *entity ) {
@@ -105,7 +132,12 @@ bool CG_AnimationPlayer( centity_t *cent ) {
 	entity.origin[2] += MINS_Z;
 	VectorCopy( entity.origin, entity.oldorigin );
 	VectorCopy( cent->lerpOrigin, entity.lightingOrigin );
-	vec3_t angles = { 0, cent->lerpAngles[YAW], 0 };
+	const auto &actor = animationActors[owner][0];
+	const auto &snapshot = cg_entities[actor.entity];
+	float yaw = actor.angles[YAW];
+	if ( snapshot.interpolate && snapshot.nextState.eType == ET_ANIMATION )
+		yaw = LerpAngle( yaw, snapshot.nextState.angles[YAW], cg.frameInterpolation );
+	vec3_t angles = { 0, yaw, 0 };
 	AnglesToAxis( angles, entity.axis );
 	entity.renderfx = RF_LIGHTING_ORIGIN;
 	if ( owner == cg.snap->ps.clientNum && !cg.renderingThirdPerson )
@@ -121,14 +153,37 @@ bool CG_AnimationViewWeapon( const playerState_t *ps, const vec3_t origin, const
 	if ( !AnimationPose( ps->clientNum, 1, &pose ) )
 		return false;
 	trap_Cvar_Update( &animationFov );
+	trap_Cvar_Update( &animationSway );
+	const auto *asset = &animationRigs[1].asset;
+	const auto &actor = animationActors[ps->clientNum][1];
+	const auto &state = actor.state;
+	const int adsParameter = Anim_ParameterIndex( asset, "ads" );
+	auto sightWeight = [&]( uint32_t index ) {
+		const char *name = Anim_StateName( asset, index );
+		return !strcmp( name, "ads" ) || ( !strcmp( name, "fire" ) && adsParameter >= 0 && actor.parameters[adsParameter] > 0.5f ) ? 1.0f : 0.0f;
+	};
+	const uint32_t elapsed = uint32_t( cg.time ) - state.blendStarted;
+	const float blend = state.blendDuration ? fminf( float( elapsed ) / state.blendDuration, 1 ) : 1;
+	const float ads = sightWeight( state.previous ) * ( 1 - blend ) + sightWeight( state.current ) * blend;
+	vec3_t weaponAngles;
+	const float smoothing = fminf( fmaxf( float( cg.frametime ) / 80, 0 ), 1 );
+	for ( int i = 0; i < 3; ++i ) {
+		const float delta = haveViewAngles ? AngleSubtract( cg.refdefViewAngles[i], lastViewAngles[i] ) : 0;
+		const float target = fminf( fmaxf( delta, -8 ), 8 );
+		swayAngles[i] += smoothing * ( target - swayAngles[i] );
+		weaponAngles[i] = LerpAngle( angles[i], cg.refdefViewAngles[i], ads ) - ( 1 - ads ) * swayAngles[i] * fminf( fmaxf( animationSway.value, 0 ), 1 );
+		lastViewAngles[i] = cg.refdefViewAngles[i];
+	}
+	haveViewAngles = true;
 	refEntity_t entity = {};
 	entity.reType = RT_MODEL;
 	entity.hModel = animationRigs[1].model;
-	AnglesToAxis( angles, entity.axis );
-	VectorCopy( origin, entity.origin );
+	AnglesToAxis( weaponAngles, entity.axis );
+	for ( int i = 0; i < 3; ++i )
+		entity.origin[i] = origin[i] * ( 1 - ads ) + cg.refdef.vieworg[i] * ads;
 	VectorMA( entity.origin, 12, entity.axis[0], entity.origin );
-	VectorMA( entity.origin, -5, entity.axis[1], entity.origin );
-	VectorMA( entity.origin, -9, entity.axis[2], entity.origin );
+	VectorMA( entity.origin, -5 * ( 1 - ads ) - adsOptic[1] * ads, entity.axis[1], entity.origin );
+	VectorMA( entity.origin, -9 * ( 1 - ads ) - adsOptic[2] * ads, entity.axis[2], entity.origin );
 	VectorCopy( entity.origin, entity.oldorigin );
 	VectorCopy( origin, entity.lightingOrigin );
 	const float fov = fminf( fmaxf( animationFov.value, 30 ), 120 );
@@ -139,9 +194,21 @@ bool CG_AnimationViewWeapon( const playerState_t *ps, const vec3_t origin, const
 	memset( entity.shaderRGBA, 255, sizeof( entity.shaderRGBA ) );
 	if ( !CGameImport_R_AddSkeletalEntityToScene( &entity, &pose, animationRigs[1].asset.header.modelHash ) )
 		CG_Error( "Animation rejected: rifle render binding" );
+	if ( ads == 1 && !strcmp( Anim_StateName( asset, state.current ), "ads" ) && blend == 1 ) {
+		const int optic = Anim_BoneIndex( asset, "optic" );
+		vec3_t position, relative;
+		VectorCopy( entity.origin, position );
+		for ( int i = 0; i < 3; ++i )
+			VectorMA( position, pose.world[optic][i * 4 + 3], entity.axis[i], position );
+		VectorSubtract( position, cg.refdef.vieworg, relative );
+		const float horizontal = DotProduct( relative, cg.refdef.viewaxis[1] ), vertical = DotProduct( relative, cg.refdef.viewaxis[2] );
+		adsError = fmaxf( adsError, sqrtf( horizontal * horizontal + vertical * vertical ) );
+		++adsSamples;
+	}
 	++rifleDraws;
 	return true;
 }
 void CG_AnimationStatus( void ) {
 	CG_Printf( "Animation rendering: body=%u rifle=%u\n", bodyDraws, rifleDraws );
+	CG_Printf( "Animation ADS: samples=%u max_error=%.6f\n", adsSamples, double( adsError ) );
 }

@@ -136,6 +136,17 @@ The automatic turning/ADS test now fails as expected: only idle/move body
 states appear when the player rotates (animation-facing-ads-before.log). The
 test also requires a centered settled optic, measured from the rendered socket.
 Implement authoritative body facing plus client-only sight placement/sway next.
+Automatic turning and settled ADS now pass the live test
+(animation-facing-ads-after.log): idle/move/turn all occur, the body facing
+is replicated, and 40 settled optic samples are centered within 0.000001 units.
+Server/client hit-box digests still agree; native checks pass
+(animation-facing-core.log). Root rotation is extracted into body facing,
+head yaw follows replicated view offsets, and bob/sway fade through ADS.
+A rifle additive recoil node now retains the ADS base while firing.
+The final graph passes live gameplay and Clang/libc++ UBSan
+(animation-facing-final.log, animation-facing-clang.log), including retained
+body facing after the turn; format/type/boundary checks pass.
+Next: implement graph authoring/inspection.
 The old C/C++ DLL import/source-comparison CI steps are port-era oracles and will
 need explicit treatment now that the owned native game calls the C++ animation
 service. Preserve their accepted pre-#10 evidence; do not add production-only

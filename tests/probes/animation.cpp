@@ -105,7 +105,7 @@ static void CheckRig( const animAsset_t *asset, const char *kind ) {
 		assert( pose.world[pelvis][11] < baseline.world[pelvis][11] - 18 );
 		tick( 770, "move" );
 		assert( events.count == 1 && events.items[0].bone == Anim_BoneIndex( asset, "foot.R" ) );
-		Anim_RemoveRootTranslation( asset, &pose );
+		Anim_RemoveRootMotion( asset, &pose );
 		animBox_t boxes[ANIM_MAX_BOXES], shifted[ANIM_MAX_BOXES];
 		const float origin[3] = { 0, 0, 0 }, moved[3] = { 100, 0, 0 };
 		const float axis[3][3] = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };

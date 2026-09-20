@@ -65,6 +65,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-live-') as tempora
     assert {'idle', 'ads', 'fire', 'reload', 'sprint', 'jump'} <= states, states
     body_states = set(re.findall(r'Animation server state: owner=0 rig=0 state=(\w+)', text))
     assert {'idle', 'move', 'turn'} <= body_states, body_states
+    turns = re.findall(r'Animation body facing: yaw=([-0-9.]+) view=([-0-9.]+)', text)
+    assert turns and all(abs((float(yaw) - float(view) + 180) % 360 - 180) <= 45 for yaw, view in turns), turns
     optics = re.search(r'Animation ADS: samples=(\d+) max_error=([0-9.]+)', text)
     assert optics and int(optics[1]) >= 5 and float(optics[2]) < 0.01, optics
     events = set(re.findall(r'Animation game event: owner=0 rig=\d+ name=(\w+)', text))
