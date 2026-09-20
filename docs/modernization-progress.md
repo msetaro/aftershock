@@ -78,6 +78,11 @@ portable probes and format/boundary/type checks pass. This is not presentation
 acceptance yet: view/attachment rendering, notify sound, resource/lifecycle/lossy
 coverage, new replay, tooling and full gates remain.
 
+The first-person presentation assertion now fails with no rendering status
+(weapons-view-before.log). It requires actual skeletal and socket-attachment draws,
+full ADS at the configured optic FOV (45), a centered optic, positive cosmetic
+view kick and a screenshot for review. Existing gameplay checks still pass.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing
