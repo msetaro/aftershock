@@ -67,8 +67,15 @@ normal mapping, instance overrides, ImGui editing and unchanged classic replay
 still need acceptance. No accepted fixture, source or shader bytes changed.
 Reference: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#materials.
 
-#156's hosted match-server job and all build legs passed; lifetime and runtime
-regression jobs are still running at this checkpoint. Do not merge early.
+The native extension compiles an ordinary-output probe before cooking. It requires
+native material fields and masked per-instance parameter resolution, preserving
+the shared material and all unselected values. It fails before implementation on
+the absent cookedPbrMaterial_t/API (materials-native-before.log). This is a normal
+feature contract, not a new loader-robustness target.
+
+#156's hosted match-server/runtime jobs and all build legs passed; only lifetime
+analysis remains running at this checkpoint. Do not merge early. Hosted kind log:
+match28-host-kind.log.
 
 ## #31 checkpoint inherited by #13
 

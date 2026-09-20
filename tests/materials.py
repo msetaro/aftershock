@@ -3,13 +3,17 @@
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
+import shlex
 import struct
+import subprocess
 import tempfile
 
 from PIL import Image
 
 from cook import cook, source_assets
+from run import ROOT
 
 
 def decoded(path, level=0):
@@ -59,6 +63,15 @@ def close(actual, expected, tolerance=3):
 def main():
     with tempfile.TemporaryDirectory(prefix='aftershock-materials-') as temporary:
         directory = Path(temporary)
+        probe = directory / 'material-probe'
+        sha = directory / 'sha.o'
+        subprocess.run([*shlex.split(os.environ.get('CC', 'gcc')), '-std=c99', '-O2', '-c',
+                        'third_party/sha256/sha-256.c', '-o', str(sha)], cwd=ROOT, check=True)
+        subprocess.run([*shlex.split(os.environ.get('CXX', 'g++')), '-std=c++20', '-O2',
+                        '-fno-exceptions', '-fno-rtti', '-Wall', '-Wextra', '-Werror',
+                        '-ffunction-sections', '-fdata-sections', 'tests/probes/materials.cpp',
+                        'engine/render/tr_cooked.cpp', str(sha),
+                        '-Wl,--gc-sections', '-o', str(probe)], cwd=ROOT, check=True)
         project, document = source(directory)
         output = directory / 'cooked'
         assert cook(project, output)['built'] == ['models/pbr']
@@ -67,6 +80,7 @@ def main():
         assert magic == b'ASMAT\0\0\0' and version == 2, 'PBR requires the version-2 material contract'
         assert size == 240 and len(data) == 48 + size
         assert hashlib.sha256(data[48:]).digest() == digest
+        subprocess.run([str(probe), str(output / 'models/pbr_material0.asmat')], check=True)
         values = struct.unpack_from('<11fI', data, 48)
         assert values == (0.5, 0.75, 1, 0.5, 0.25, 0.5, 1, 0.75, 0.5, 0.75, 0.25, 9)
         paths = [data[96 + i * 64:160 + i * 64].split(b'\0', 1)[0].decode() for i in range(3)]
