@@ -49,12 +49,15 @@ static qboolean RB_FindScreenMapDrawSurfs( void ) {
 
 
 static void RB_BeginFrame( void ) {
-	if ( RHI_BeginFrame( RB_FindScreenMapDrawSurfs() != qfalse ) )
+	bool started;
+	R_CheckRHI( RHI_BeginFrame( RB_FindScreenMapDrawSurfs() != qfalse, &started ), "begin frame" );
+	if ( started )
 		backEnd.screenMapDone = qfalse;
 }
 
 static void RB_EndFrame( void ) {
-	const rhiFrameEnd_t result = RHI_EndFrame( r_bloom->integer && !backEnd.doneBloom && backEnd.doneSurfaces, backEnd.screenshotMask != 0 );
+	rhiFrameEnd_t result;
+	R_CheckRHI( RHI_EndFrame( r_bloom->integer && !backEnd.doneBloom && backEnd.doneSurfaces, backEnd.screenshotMask != 0, &result ), "end frame" );
 	if ( result.bloomApplied )
 		backEnd.doneBloom = qtrue;
 	// Presentation may take undefined time; retain the pre-present CPU measurement.
@@ -1278,8 +1281,8 @@ void RE_UploadCinematic( int w [[maybe_unused]], int h [[maybe_unused]], int col
 		image->width = image->uploadWidth = cols;
 		image->height = image->uploadHeight = rows;
 #ifdef USE_VULKAN
-		RHI_CreateTexture( &image->texture, cols, rows, 1, image->internalFormat, image->wrapClampMode, image->imgName );
-		RHI_UploadTexture( &image->texture, image->internalFormat, 0, 0, cols, rows, 1, data, cols * rows * 4, qfalse );
+		R_CheckRHI( RHI_CreateTexture( &image->texture, cols, rows, 1, image->internalFormat, image->wrapClampMode, image->imgName ), "CreateTexture" );
+		R_UploadTexture( &image->texture, image->internalFormat, 0, 0, cols, rows, 1, data, cols * rows * 4, qfalse );
 #else
 		qglTexImage2D( GL_TEXTURE_2D, 0, image->internalFormat, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -1291,7 +1294,7 @@ void RE_UploadCinematic( int w [[maybe_unused]], int h [[maybe_unused]], int col
 		// otherwise, just subimage upload it so that drivers can tell we are going to be changing
 		// it and don't try and do a texture compression
 #ifdef USE_VULKAN
-		RHI_UploadTexture( &image->texture, image->internalFormat, 0, 0, cols, rows, 1, data, cols * rows * 4, qtrue );
+		R_UploadTexture( &image->texture, image->internalFormat, 0, 0, cols, rows, 1, data, cols * rows * 4, qtrue );
 #else
 		qglTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data );
 #endif
@@ -1444,7 +1447,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 	}
 
 	RB_BindIndex();
-	RHI_BindPipeline( r_pipelines.surface_debug_pipeline_solid );
+	RB_BindPipeline( r_pipelines.surface_debug_pipeline_solid );
 	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
 	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
 
@@ -1458,7 +1461,7 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 	tess.numVertexes = numPoints * 2;
 	tess.numIndexes = 0;
 
-	RHI_BindPipeline( r_pipelines.surface_debug_pipeline_outline );
+	RB_BindPipeline( r_pipelines.surface_debug_pipeline_outline );
 	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 );
 	RB_DrawGeometry( DEPTH_RANGE_ZERO, qfalse );
 	tess.numVertexes = 0;
@@ -1660,7 +1663,7 @@ void RB_ShowImages( void ) {
 	tess.xyz[3][0] = (float)glConfig.vidWidth;
 	tess.xyz[3][1] = (float)glConfig.vidHeight;
 
-	RHI_BindPipeline( r_pipelines.images_debug_pipeline2 );
+	RB_BindPipeline( r_pipelines.images_debug_pipeline2 );
 	RB_BindGeometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
 	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qfalse );
 
@@ -1691,7 +1694,7 @@ void RB_ShowImages( void ) {
 		tess.xyz[3][1] = y + h;
 
 		GL_Bind( image );
-		RHI_BindPipeline( r_pipelines.images_debug_pipeline );
+		RB_BindPipeline( r_pipelines.images_debug_pipeline );
 		RB_BindGeometry( TESS_XYZ );
 		RB_DrawGeometry( DEPTH_RANGE_NORMAL, qfalse );
 	}
@@ -1900,7 +1903,7 @@ static const void *RB_SwapBuffers( const void *data ) {
 	}
 
 #ifdef USE_VULKAN
-	RHI_PresentFrame();
+	R_CheckRHI( RHI_PresentFrame(), "PresentFrame" );
 #else
 	ri.GLimp_EndFrame();
 #endif

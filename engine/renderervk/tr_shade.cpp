@@ -23,6 +23,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 
+void RB_BindPipeline( uint32_t pipeline ) {
+	R_CheckRHI( RHI_BindPipeline( pipeline ), "pipeline binding" );
+}
+
 void RB_BindIndex( void ) {
 #ifdef USE_VBO
 	if ( tess.vboIndex ) {
@@ -295,7 +299,7 @@ static void DrawTris( const shaderCommands_t *input ) {
 			pipeline = backEnd.viewParms.portalView == PV_MIRROR ? r_pipelines.tris_mirror_debug_pipeline : r_pipelines.tris_debug_pipeline;
 	}
 
-	RHI_BindPipeline( pipeline );
+	RB_BindPipeline( pipeline );
 	RB_DrawGeometry( DEPTH_RANGE_ZERO, qtrue );
 
 #else
@@ -356,7 +360,7 @@ static void DrawNormals( const shaderCommands_t *input [[maybe_unused]] ) {
 	tess.numVertexes *= 2;
 	Com_Memset( tess.svars.colors[0][0].rgba, tr.identityLightByte, tess.numVertexes * sizeof( color4ub_t ) );
 
-	RHI_BindPipeline( r_pipelines.normals_debug_pipeline );
+	RB_BindPipeline( r_pipelines.normals_debug_pipeline );
 	RB_BindIndex();
 	RB_BindGeometry( TESS_XYZ | TESS_ST0 | TESS_RGBA0 );
 	RB_DrawGeometry( DEPTH_RANGE_ZERO, qtrue );
@@ -670,7 +674,7 @@ static void ProjectDlightTexture( void ) {
 			rebindIndex = qtrue;
 		}
 		pipeline = r_pipelines.dlight_pipelines[dl->additive > 0 ? 1 : 0][tess.shader->cullType][tess.shader->polygonOffset];
-		RHI_BindPipeline( pipeline );
+		RB_BindPipeline( pipeline );
 		RHI_BindIndexData( numIndexes, hitIndexes );
 		RB_BindGeometry( TESS_RGBA0 | TESS_ST0 );
 		RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
@@ -714,7 +718,7 @@ static void RB_FogPass( qboolean rebindIndex ) {
 	int fog_stage;
 
 	// fog parameters
-	RHI_BindPipeline( pipeline );
+	RB_BindPipeline( pipeline );
 	if ( rebindIndex ) {
 		RB_BindIndex();
 	}
@@ -734,7 +738,7 @@ static void RB_FogPass( qboolean rebindIndex ) {
 	tess.svars.texcoordPtr[0] = tess.svars.texcoords[0];
 	GL_Bind( tr.fogImage );
 
-	RHI_BindPipeline( pipeline );
+	RB_BindPipeline( pipeline );
 	if ( rebindIndex ) {
 		RB_BindIndex();
 	}
@@ -1145,7 +1149,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 			pipeline = pStage->vk_pipeline[fog_stage];
 		}
 
-		RHI_BindPipeline( pipeline );
+		RB_BindPipeline( pipeline );
 		RB_BindGeometry( tess_flags );
 		RB_DrawGeometry( tess.depthRange, qtrue );
 
@@ -1154,7 +1158,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 				pipeline = pStage->vk_mirror_pipeline_df;
 			else
 				pipeline = pStage->vk_pipeline_df;
-			RHI_BindPipeline( pipeline );
+			RB_BindPipeline( pipeline );
 			RB_DrawGeometry( tess.depthRange, qtrue );
 		}
 #else
@@ -1331,7 +1335,7 @@ void VK_LightingPass( void ) {
 		R_ComputeTexCoords( tess.shader->lightingBundle, &pStage->bundle[tess.shader->lightingBundle] );
 	}
 
-	RHI_BindPipeline( pipeline );
+	RB_BindPipeline( pipeline );
 	RB_BindIndex();
 	RB_BindLighting( tess.shader->lightingStage, tess.shader->lightingBundle );
 	RB_DrawGeometry( tess.depthRange, qtrue );

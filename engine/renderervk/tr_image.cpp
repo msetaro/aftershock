@@ -107,7 +107,7 @@ void GL_TextureMode( const char *string ) {
 	for ( i = 0; i < tr.numImages; i++ ) {
 		img = tr.images[i];
 		if ( img->flags & IMGFLAG_MIPMAP ) {
-			RHI_UpdateTextureSampler( &img->texture, img->wrapClampMode, true );
+			R_CheckRHI( RHI_UpdateTextureSampler( &img->texture, img->wrapClampMode, true ), "UpdateTextureSampler" );
 		}
 	}
 #else
@@ -732,6 +732,83 @@ static void generate_image_upload_data( image_t *image, byte *data, Image_Upload
 }
 
 
+static byte *resample_image_data( const rhiFormat_t target_format, byte *data, const int data_size, int *bytes_per_pixel ) {
+	byte *buffer;
+	uint16_t *p;
+	int i, n;
+
+	switch ( target_format ) {
+	case rhiFormat_t::BGRA4:
+		buffer = (byte *)ri.Hunk_AllocateTempMemory( data_size / 2 );
+		p = (uint16_t *)buffer;
+		for ( i = 0; i < data_size; i += 4, p++ ) {
+			byte r = data[i + 0];
+			byte g = data[i + 1];
+			byte b = data[i + 2];
+			byte a = data[i + 3];
+			*p = (uint16_t)( (uint32_t)( ( a / 255.0 ) * 15.0 + 0.5 ) |
+							 ( (uint32_t)( ( r / 255.0 ) * 15.0 + 0.5 ) << 4 ) |
+							 ( (uint32_t)( ( g / 255.0 ) * 15.0 + 0.5 ) << 8 ) |
+							 ( (uint32_t)( ( b / 255.0 ) * 15.0 + 0.5 ) << 12 ) );
+		}
+		*bytes_per_pixel = 2;
+		return buffer; // must be freed after upload!
+
+	case rhiFormat_t::A1RGB5:
+		buffer = (byte *)ri.Hunk_AllocateTempMemory( data_size / 2 );
+		p = (uint16_t *)buffer;
+		for ( i = 0; i < data_size; i += 4, p++ ) {
+			byte r = data[i + 0];
+			byte g = data[i + 1];
+			byte b = data[i + 2];
+			*p = (uint16_t)( (uint32_t)( ( b / 255.0 ) * 31.0 + 0.5 ) |
+							 ( (uint32_t)( ( g / 255.0 ) * 31.0 + 0.5 ) << 5 ) |
+							 ( (uint32_t)( ( r / 255.0 ) * 31.0 + 0.5 ) << 10 ) |
+							 ( 1 << 15 ) );
+		}
+		*bytes_per_pixel = 2;
+		return buffer; // must be freed after upload!
+
+	case rhiFormat_t::BGRA8:
+		buffer = (byte *)ri.Hunk_AllocateTempMemory( data_size );
+		for ( i = 0; i < data_size; i += 4 ) {
+			buffer[i + 0] = data[i + 2];
+			buffer[i + 1] = data[i + 1];
+			buffer[i + 2] = data[i + 0];
+			buffer[i + 3] = data[i + 3];
+		}
+		*bytes_per_pixel = 4;
+		return buffer;
+
+	case rhiFormat_t::RGB8: {
+		buffer = (byte *)ri.Hunk_AllocateTempMemory( ( data_size * 3 ) / 4 );
+		for ( i = 0, n = 0; i < data_size; i += 4, n += 3 ) {
+			buffer[n + 0] = data[i + 0];
+			buffer[n + 1] = data[i + 1];
+			buffer[n + 2] = data[i + 2];
+		}
+		*bytes_per_pixel = 3;
+		return buffer;
+	}
+
+	default:
+		*bytes_per_pixel = 4;
+		return data;
+	}
+}
+
+
+void R_UploadTexture( const rhiTexture_t *texture, rhiFormat_t format, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, uint8_t *pixels, int32_t size, bool update ) {
+	int bytesPerPixel;
+	byte *converted = resample_image_data( format, pixels, size, &bytesPerPixel );
+	const rhiStatus_t status = RHI_UploadTexture( texture, x, y, width, height, mipLevels, converted, bytesPerPixel, update );
+	if ( converted != pixels ) {
+		ri.Hunk_FreeTempMemory( converted );
+	}
+	R_CheckRHI( status, "UploadTexture" );
+}
+
+
 static void upload_vk_image( image_t *image, byte *pic ) {
 
 	Image_Upload_Data upload_data;
@@ -753,8 +830,8 @@ static void upload_vk_image( image_t *image, byte *pic ) {
 	image->uploadWidth = w;
 	image->uploadHeight = h;
 
-	RHI_CreateTexture( &image->texture, w, h, upload_data.mip_levels, image->internalFormat, image->wrapClampMode, image->imgName );
-	RHI_UploadTexture( &image->texture, image->internalFormat, 0, 0, w, h, upload_data.mip_levels, upload_data.buffer, upload_data.buffer_size, qfalse );
+	R_CheckRHI( RHI_CreateTexture( &image->texture, w, h, upload_data.mip_levels, image->internalFormat, image->wrapClampMode, image->imgName ), "CreateTexture" );
+	R_UploadTexture( &image->texture, image->internalFormat, 0, 0, w, h, upload_data.mip_levels, upload_data.buffer, upload_data.buffer_size, qfalse );
 
 	ri.Hunk_FreeTempMemory( upload_data.buffer );
 }
@@ -1685,7 +1762,7 @@ void R_InitImages( void ) {
 	R_CreateBuiltinImages();
 
 #ifdef USE_VULKAN
-	RHI_UpdatePostProcess( tr.overbrightBits );
+	R_CheckRHI( RHI_UpdatePostProcess( tr.overbrightBits ), "UpdatePostProcess" );
 #endif
 }
 

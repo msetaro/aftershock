@@ -70,6 +70,16 @@ tables retain ownership until normal teardown or a fence-safe retirement point.
 Resize, minimized windows, renderer restart and device loss need explicit states;
 never present an invalid image or reuse an outstanding upload allocation.
 
+The Vulkan implementation contains its legacy abort inside each fallible public
+call using standard setjmp/longjmp and trivial automatic records. The frontend
+checks the returned status and reports the preserved fatal/drop diagnostic. This
+is distinct from the engine-wide Com_Error jump. The lifetime gate remains
+required, including optional module builds. A cached pipeline bind takes the
+existing direct path. Texture conversion and its hunk scratch belong to the
+frontend; scratch is freed before reporting an upload error. Process-fatal zone
+allocator callbacks remain host services. Removing the remaining initialization
+frontend callback is part of the pending configuration boundary work.
+
 ## Shader and pipeline artifacts
 
 Initially preserve the existing generated SPIR-V bytes and generator inputs.

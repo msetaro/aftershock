@@ -55,6 +55,9 @@ requires rebuilding old modules with the client; only the platform import callba
 signatures changed, not the scene or game services.
 The RHI check also rejects GPU SDK dependencies in the frontend/client headers and
 checks explicit stream/raster bindings, upload exhaustion and sampler wait ordering.
+Controlled GPU failures must return status and fatal/drop diagnostics without
+calling the engine error callback. Frontend image checks cover all five converted
+byte layouts and release scratch before reporting either success or a GPU error.
 The RHI retains at most 32 scopes per frame, reads available results after the
 existing frame fence, and never adds a query wait. Its check covers timestamp
 wrap, unavailable results, scope exhaustion, and duplicate scope completion.

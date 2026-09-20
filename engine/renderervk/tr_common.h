@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_public.h"
 #include "../rhi/rhi_public.h"
 
+void R_UploadTexture( const rhiTexture_t *texture, rhiFormat_t format, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, uint8_t *pixels, int32_t size, bool update );
 void R_CheckRHI( rhiStatus_t status, const char *operation );
 
 #define MAX_TEXTURE_UNITS 8

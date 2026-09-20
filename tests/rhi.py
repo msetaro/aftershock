@@ -16,7 +16,7 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     flags = [*shlex.split(args.cxx), '-std=c++20', '-fno-exceptions', '-fno-rtti',
              '-O2', '-Wall', '-Wextra', '-Werror', '-ffunction-sections', '-fdata-sections']
-    for probe in ('stub', 'upload'):
+    for probe in ('stub', 'upload', 'image'):
         binary = args.output / probe
         run([*flags, '-DRHI_STUB_CHECK', '-DUSE_VULKAN_API',
              f'tests/probes/rhi_{probe}.cpp',

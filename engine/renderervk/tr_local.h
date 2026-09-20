@@ -163,6 +163,8 @@ void RB_GetRaster( rhiDepthRange_t depthRange, rhiRasterState_t *raster );
 #define TESS_ENT2  (4096) // uniform with ent.color[2]
 
 void R_InitBuiltinPipelines( void );
+uint32_t R_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool eager );
+void RB_BindPipeline( uint32_t pipeline );
 
 typedef uint32_t glIndex_t;
 

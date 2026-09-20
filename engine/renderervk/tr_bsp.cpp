@@ -373,7 +373,7 @@ static void R_LoadMergedLightmaps( const lump_t *l, byte *image ) {
 				R_ProcessLightmap( image, buf + offs, maxIntensity );
 
 #ifdef USE_VULKAN
-				RHI_UploadTexture( &tr.lightmaps[i]->texture, tr.lightmaps[i]->internalFormat, x * LIGHTMAP_LEN, y * LIGHTMAP_LEN, LIGHTMAP_LEN, LIGHTMAP_LEN, 1, image, LIGHTMAP_LEN * LIGHTMAP_LEN * 4, qtrue );
+				R_UploadTexture( &tr.lightmaps[i]->texture, tr.lightmaps[i]->internalFormat, x * LIGHTMAP_LEN, y * LIGHTMAP_LEN, LIGHTMAP_LEN, LIGHTMAP_LEN, 1, image, LIGHTMAP_LEN * LIGHTMAP_LEN * 4, qtrue );
 #else
 				R_UploadSubImage( image, x * LIGHTMAP_LEN, y * LIGHTMAP_LEN, LIGHTMAP_LEN, LIGHTMAP_LEN, tr.lightmaps[i] );
 #endif

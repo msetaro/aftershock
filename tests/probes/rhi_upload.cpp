@@ -6,6 +6,8 @@ refimport_t ri;
 cvar_t *r_ext_texture_filter_anisotropic;
 cvar_t *r_ext_max_anisotropy;
 cvar_t *r_bloom;
+cvar_t *r_offsetUnits;
+cvar_t *r_offsetFactor;
 
 void QDECL Com_Printf( const char *, ... ) {
 	abort();
@@ -49,6 +51,10 @@ static void VKAPI_CALL set_viewport( VkCommandBuffer command, uint32_t first, ui
 	assert( viewport->x == 3 && viewport->y == 4 && viewport->width == 600 && viewport->height == 400 );
 	assert( viewport->minDepth == 0.6f && viewport->maxDepth == 1.0f );
 	viewports++;
+}
+static VkResult VKAPI_CALL reject_descriptors( VkDevice device, const VkDescriptorSetAllocateInfo *info, VkDescriptorSet * ) {
+	assert( (uintptr_t)device == 20 && info->descriptorSetCount == 1 );
+	return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 }
 static int waits;
 static int index_binds;
@@ -319,6 +325,19 @@ int main( void ) {
 	const rhiDeviceDescription_t info = RHI_GetDeviceDescription();
 	assert( strcmp( info.presentFormat, "#1000" ) == 0 && strcmp( info.colorFormat, "#1001" ) == 0 );
 	assert( strcmp( info.captureFormat, "#1002" ) == 0 && strcmp( info.depthFormat, "#1003" ) == 0 );
+	// Native errors return from the backend before any engine error callback.
+	qvkAllocateDescriptorSets = reject_descriptors;
+	assert( RHI_InitDescriptors() == rhiStatus_t::OutOfMemory );
+	assert( strstr( RHI_GetError()->message, "VK_ERROR_OUT_OF_DEVICE_MEMORY" ) && !RHI_GetError()->drop );
+	assert( vk_error_environment == nullptr );
+	vk.pipelines_count = MAX_VK_PIPELINES;
+	rhiPipelineDesc_t definition = {};
+	uint32_t pipeline;
+	assert( RHI_FindPipeline( MAX_VK_PIPELINES, &definition, false, &pipeline ) == rhiStatus_t::Error );
+	assert( RHI_GetError()->drop && strstr( RHI_GetError()->message, "MAX_VK_PIPELINES" ) );
+	assert( vk_error_environment == nullptr );
+	assert( RHI_WaitIdle() == rhiStatus_t::Success );
+	assert( RHI_GetError()->message[0] == '\0' && !RHI_GetError()->drop );
 	puts( "PASS: RHI uploads, textures, wait statuses, commands and bounded asynchronous timestamp readback" );
 	return 0;
 }

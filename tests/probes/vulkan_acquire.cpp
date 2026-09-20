@@ -56,6 +56,7 @@ int main( int argc, char **argv ) {
 	ri.Error = frame_error;
 	qvkAcquireNextImageKHR = acquire;
 	qvkBeginCommandBuffer = begin_commands;
-	RHI_BeginFrame( false );
+	bool started;
+	R_CheckRHI( RHI_BeginFrame( false, &started ), "begin frame" );
 	return 1;
 }

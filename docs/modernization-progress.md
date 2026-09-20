@@ -20,8 +20,10 @@ Continue #6 draft PR #140 on `issue/6-rhi`. Uploads, textures, wait statuses,
 initial commands, GPU scopes, pipeline descriptions, platform imports, bindings
 and transforms are extracted. Built-in pipeline selection is frontend-owned.
 Geometry/view selection and frame inputs are now frontend-owned; frontend headers
-have no GPU SDK dependency. Next finish device configuration and explicit error/
-lifecycle status propagation, then shader packaging/cache and acceptance gates. Acquisition fix PR #141 merged separately as 61401e17 after
+have no GPU SDK dependency. Explicit GPU failure statuses now return before the
+frontend error callback; texture conversion/scratch is frontend-owned. Next finish
+device configuration and remaining initialization callbacks, then lifecycle, shader
+packaging/cache and acceptance gates. Acquisition fix PR #141 merged separately as 61401e17 after
 full build 35484485400/regression 35484485349 and self-review; it has now been
 merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
 follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
@@ -277,6 +279,40 @@ runtime and other jobs but failed tidy on the moved conditional-compilation draw
 branch's indentation. Explicit braces/early return remove that ambiguity. The
 complete local tidy gate now passes all 570 production configurations
 (rhi-sdk-tidy.log); format/type/boundary and GCC/Clang RHI checks pass.
+
+GPU error slice: fallible RHI calls return nodiscard statuses and a borrowed
+fatal/drop diagnostic. Vulkan's internal abort is contained by a standard setjmp
+scope with trivially destructible captures/locals; the previous scope is restored
+on normal and error returns. Frontend R_CheckRHI reports only after return. The
+cached pipeline bind avoids establishing a jump scope on the normal draw path.
+This preserves the #1 engine longjmp decision without making optional MSVC modules
+depend on the executable's private Q_setjmp_c assembly symbol. Decision recorded
+on #6 comment 5747381615. Fixed diagnostic state adds 8,220 x64 symbol bytes
+(excluding linker padding); no per-frame allocation or GPU wait is introduced.
+
+The allocator review found recoverable Hunk_AllocateTempMemory errors inside image
+conversion. Conversion moved unchanged to the frontend, which frees its scratch
+before checking the upload status. The backend receives the already converted mip
+chain and bytes per pixel. All five format byte checks and scratch release on both
+success/device-error returns pass GCC and Clang/libc++. Descriptor allocation and
+pipeline-capacity checks also verify returned status, fatal/drop diagnostic and
+restored jump scope without invoking ri.Error. Existing acquisition checks pass.
+Remaining zone allocator failures are process-fatal host services, not recoverable
+GPU statuses; initialization's legacy frontend texture-mode callback remains for
+the configuration extraction. This is not a completed device-loss recovery design.
+
+Before conversion moved, both static and module Q3 restart replays passed b38004b1
+(rhi-error-demo.log, rhi-error-module-demo.log); full lifetime (546 configurations,
+137 source paths), tidy (570 configurations), format/type/boundary gates passed.
+After conversion, focused GCC/Clang checks, all 570 tidy configurations, static
+replay/restart and module replay/restart pass b38004b1 (rhi-error-conversion.log,
+rhi-error-module-conversion.log). Conversion function comparison is byte-identical
+after only portable enum/type substitutions. Real-clock main samples are
+4.114/5.322 ms q3dm17 and 4.931/4.950 ms q3dm7, informational. The lifetime rerun
+uses a checkout-specific cache after the default /tmp cache referenced another
+checkout; no engine failure occurred in that configure attempt.
+No shader, fixture, golden or simulation arithmetic changes. SDK checkpoint
+bee85c84 passed full build 35487036651 and regression 35487036699.
 
 ## Final #8 verification
 

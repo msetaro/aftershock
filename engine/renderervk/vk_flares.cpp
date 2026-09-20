@@ -340,7 +340,7 @@ static void RB_TestFlare( flare_t *f ) {
 		RHI_ResetBinding( i );
 	}
 	// render test dot
-	RHI_BindPipeline( r_pipelines.dot_pipeline );
+	RB_BindPipeline( r_pipelines.dot_pipeline );
 	RB_BindGeometry( TESS_XYZ );
 	rhiRasterState_t raster;
 	RB_GetRaster( DEPTH_RANGE_NORMAL, &raster );

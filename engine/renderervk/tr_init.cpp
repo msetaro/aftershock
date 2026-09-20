@@ -516,7 +516,7 @@ static void InitOpenGL( void ) {
 			}
 		}
 
-		RHI_Initialize();
+		R_CheckRHI( RHI_Initialize(), "Initialize" );
 #else
 		const char *err;
 
@@ -549,11 +549,11 @@ static void InitOpenGL( void ) {
 #ifdef USE_VULKAN
 	if ( !RHI_GetCapabilities().active ) {
 		// might happen after REF_KEEP_WINDOW
-		RHI_Initialize();
+		R_CheckRHI( RHI_Initialize(), "Initialize" );
 		gls.initTime = ri.Milliseconds();
 	}
 	if ( RHI_GetCapabilities().active ) {
-		RHI_InitDescriptors();
+		R_CheckRHI( RHI_InitDescriptors(), "InitDescriptors" );
 	} else {
 		ri.Error( ERR_FATAL, "Recursive error during Vulkan initialization" );
 	}
@@ -666,7 +666,7 @@ static byte *RB_ReadPixels( int x [[maybe_unused]], int y [[maybe_unused]], int 
 	buffer = (byte *)ri.Hunk_AllocateTempMemory( width * height * 4 + *offset + bufAlign - 1 );
 	bufstart = (byte *)PADP( (intptr_t)buffer + *offset, bufAlign );
 
-	RHI_ReadPixels( bufstart, width, height );
+	R_CheckRHI( RHI_ReadPixels( bufstart, width, height ), "ReadPixels" );
 
 	*offset = bufstart - buffer;
 	*padlen = PAD( linelen, packAlign ) - linelen;
@@ -1108,7 +1108,7 @@ const void *RB_TakeVideoFrameCmd( const void *data ) {
 	cBuf = (byte *)PADP( cmd->captureBuffer, packAlign );
 
 #ifdef USE_VULKAN
-	RHI_ReadPixels( cBuf, cmd->width, cmd->height );
+	R_CheckRHI( RHI_ReadPixels( cBuf, cmd->width, cmd->height ), "ReadPixels" );
 #else
 	qglReadPixels( 0, 0, cmd->width, cmd->height, GL_RGB, GL_UNSIGNED_BYTE, cBuf );
 #endif
@@ -1402,6 +1402,9 @@ RE_SyncRender
 void R_CheckRHI( rhiStatus_t status, const char *operation ) {
 	if ( status == rhiStatus_t::Success )
 		return;
+	const rhiError_t *error = RHI_GetError();
+	if ( error->message[0] )
+		ri.Error( error->drop ? ERR_DROP : ERR_FATAL, "%s", error->message );
 	const char *reason;
 	switch ( status ) {
 	case rhiStatus_t::Unavailable:
@@ -1911,7 +1914,7 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 	//}
 
 #ifdef USE_VULKAN
-	RHI_ReleaseResources();
+	R_CheckRHI( RHI_ReleaseResources(), "ReleaseResources" );
 	Com_Memset( r_modelview, 0, sizeof( r_modelview ) );
 #endif
 
@@ -1926,7 +1929,7 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 	// shut down platform specific OpenGL/Vulkan stuff
 	if ( code != REF_KEEP_CONTEXT ) {
 #ifdef USE_VULKAN
-		RHI_Shutdown();
+		R_CheckRHI( RHI_Shutdown(), "Shutdown" );
 		Com_Memset( &r_pipelines, 0, sizeof( r_pipelines ) );
 
 		Com_Memset( &glState, 0, sizeof( glState ) );

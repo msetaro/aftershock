@@ -1,5 +1,6 @@
 #include "tr_local.h"
 #include "vk.h"
+#include <setjmp.h>
 
 static Vk_Instance vk;
 static Vk_World vk_world;
@@ -10,6 +11,78 @@ static Vk_World vk_world;
 #include "../platform/debug_public.h"
 #endif
 #endif
+
+
+// Only trivial automatic objects may be crossed by this backend-local abort.
+// The frontend invokes the engine error path after the RHI call has returned.
+static jmp_buf *vk_error_environment;
+static char vk_error_message[MAXPRINTMSG];
+static rhiError_t vk_error_info = { false, vk_error_message };
+static rhiStatus_t vk_error_status;
+
+static void vk_clear_error( void ) {
+	vk_error_message[0] = '\0';
+	vk_error_info.drop = false;
+	vk_error_status = rhiStatus_t::Success;
+}
+
+const rhiError_t *RHI_GetError( void ) {
+	return &vk_error_info;
+}
+
+static NORETURN void QDECL vk_fail( errorParm_t severity, rhiStatus_t status, const char *format, ... ) {
+	va_list args;
+	va_start( args, format );
+	Q_vsnprintf( vk_error_message, sizeof( vk_error_message ), format, args );
+	va_end( args );
+	vk_error_message[sizeof( vk_error_message ) - 1] = '\0';
+	vk_error_info.drop = severity == ERR_DROP;
+	vk_error_status = status;
+	Q_ASSERT( vk_error_environment != nullptr );
+	longjmp( *vk_error_environment, 1 );
+}
+
+#if defined( _MSC_VER )
+#pragma warning( push )
+#pragma warning( disable : 4611 ) // Trivial lifetimes are enforced below and in CI.
+#endif
+template <typename Call>
+static rhiStatus_t vk_call( Call call ) {
+	static_assert( std::is_trivially_destructible_v<Call> );
+	jmp_buf environment;
+	jmp_buf *const previous = vk_error_environment;
+	vk_error_environment = &environment;
+	vk_clear_error();
+	if ( setjmp( environment ) ) {
+		vk_error_environment = previous;
+		return vk_error_status;
+	}
+	const rhiStatus_t status = call();
+	vk_error_environment = previous;
+	return status;
+}
+#if defined( _MSC_VER )
+#pragma warning( pop )
+#endif
+
+static rhiStatus_t vk_status( VkResult result );
+
+static void vk_impl_Initialize( void );
+static void vk_impl_InitDescriptors( void );
+static void vk_impl_ReleaseResources( void );
+static void vk_impl_Shutdown( void );
+static void vk_impl_UploadWorldGeometry( const uint8_t *data, int32_t size );
+static void vk_impl_UpdatePostProcess( int32_t overbrightBits );
+static void vk_impl_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height );
+static void vk_impl_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, rhiAddress_t address, const char *label );
+static void vk_impl_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update );
+static void vk_impl_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address, bool mipmap );
+static rhiStatus_t vk_impl_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, bool *changed );
+static uint32_t vk_impl_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool eager );
+static void vk_impl_BindPipeline( uint32_t pipeline );
+static bool vk_impl_BeginFrame( bool screenMap );
+static rhiFrameEnd_t vk_impl_EndFrame( bool bloom, bool capture );
+static void vk_impl_PresentFrame( void );
 
 static int vkSamples = VK_SAMPLE_COUNT_1_BIT;
 static int vkMaxSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -155,7 +228,7 @@ static uint32_t find_memory_type( uint32_t memory_type_bits, VkMemoryPropertyFla
 			return i;
 		}
 	}
-	ri.Error( ERR_FATAL, "Vulkan: failed to find matching memory type with requested properties" );
+	vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: failed to find matching memory type with requested properties" );
 	return ~0U;
 }
 
@@ -289,7 +362,7 @@ static const char *vk_result_string( VkResult code ) {
 #define VK_CHECK( function_call ) { \
 	VkResult vkCheckResult = function_call; \
 	if ( vkCheckResult < 0 ) { \
-		ri.Error( ERR_FATAL, "Vulkan: %s returned %s", #function_call, vk_result_string( vkCheckResult ) ); \
+		vk_fail( ERR_FATAL, vk_status( vkCheckResult ), "Vulkan: %s returned %s", #function_call, vk_result_string( vkCheckResult ) ); \
 	} \
 }
 
@@ -411,7 +484,7 @@ static void record_image_layout_transition( VkCommandBuffer command_buffer, VkIm
 		barrier.srcAccessMask = VK_ACCESS_NONE;
 		break;
 	default:
-		ri.Error( ERR_DROP, "unsupported old layout %i", old_layout );
+		vk_fail( ERR_DROP, rhiStatus_t::Error, "unsupported old layout %i", old_layout );
 		src_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 		barrier.srcAccessMask = VK_ACCESS_NONE;
 		break;
@@ -443,7 +516,7 @@ static void record_image_layout_transition( VkCommandBuffer command_buffer, VkIm
 		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
 		break;
 	default:
-		ri.Error( ERR_DROP, "unsupported new layout %i", new_layout );
+		vk_fail( ERR_DROP, rhiStatus_t::Error, "unsupported new layout %i", new_layout );
 		dst_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 		barrier.dstAccessMask = VK_ACCESS_NONE;
 		break;
@@ -517,7 +590,7 @@ static void vk_create_swapchain( VkPhysicalDevice physical_device, VkDevice devi
 		}
 		// VK_IMAGE_USAGE_TRANSFER_SRC_BIT is required in order to take screenshots.
 		if ( ( surface_caps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT ) == 0 ) {
-			ri.Error( ERR_FATAL, "create_swapchain: VK_IMAGE_USAGE_TRANSFER_SRC_BIT is not supported by the swapchain" );
+			vk_fail( ERR_FATAL, rhiStatus_t::Error, "create_swapchain: VK_IMAGE_USAGE_TRANSFER_SRC_BIT is not supported by the swapchain" );
 		}
 	}
 
@@ -1044,7 +1117,7 @@ static void allocate_and_bind_image_memory( VkImage image ) {
 	qvkGetImageMemoryRequirements( vk.device, image, &memory_requirements );
 
 	if ( memory_requirements.size > vk.image_chunk_size ) {
-		ri.Error( ERR_FATAL, "Vulkan: could not allocate memory, image is too large (%ikbytes).",
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: could not allocate memory, image is too large (%ikbytes).",
 			(int)( memory_requirements.size / 1024 ) );
 	}
 
@@ -1069,7 +1142,7 @@ static void allocate_and_bind_image_memory( VkImage image ) {
 		VkDeviceMemory memory;
 
 		if ( vk_world.num_image_chunks >= MAX_IMAGE_CHUNKS ) {
-			ri.Error( ERR_FATAL, "Vulkan: image chunk limit has been reached" );
+			vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: image chunk limit has been reached" );
 		}
 
 		alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -1121,7 +1194,7 @@ static qboolean vk_wait_staging_buffer( void ) {
 	if ( vk.aux_fence_wait ) {
 		VkResult res = qvkWaitForFences( vk.device, 1, &vk.aux_fence, VK_TRUE, 5 * 1000000000ULL );
 		if ( res != VK_SUCCESS ) {
-			ri.Error( ERR_FATAL, "vkWaitForFences() failed with %s at %s", vk_result_string( res ), __func__ );
+			vk_fail( ERR_FATAL, rhiStatus_t::Error, "vkWaitForFences() failed with %s at %s", vk_result_string( res ), __func__ );
 		}
 		qvkResetFences( vk.device, 1, &vk.aux_fence );
 		VK_CHECK( qvkResetCommandBuffer( vk.staging_command_buffer, 0 ) );
@@ -1170,7 +1243,7 @@ static void vk_flush_staging_buffer( qboolean final ) {
 	submit_info.pCommandBuffers = &vk.staging_command_buffer;
 
 	if ( vk.image_uploaded != VK_NULL_HANDLE ) {
-		ri.Error( ERR_FATAL, "Vulkan: incorrect state during image upload" );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: incorrect state during image upload" );
 	}
 	if ( final ) {
 		// final submission before recording
@@ -1186,7 +1259,7 @@ static void vk_flush_staging_buffer( qboolean final ) {
 		VK_CHECK( qvkQueueSubmit( vk.queue, 1, &submit_info, vk.aux_fence ) );
 		res = qvkWaitForFences( vk.device, 1, &vk.aux_fence, VK_TRUE, 5 * 1000000000ULL );
 		if ( res != VK_SUCCESS ) {
-			ri.Error( ERR_FATAL, "vkWaitForFences() failed with %s at %s", vk_result_string( res ), __func__ );
+			vk_fail( ERR_FATAL, rhiStatus_t::Error, "vkWaitForFences() failed with %s at %s", vk_result_string( res ), __func__ );
 		}
 		qvkResetFences( vk.device, 1, &vk.aux_fence );
 		VK_CHECK( qvkResetCommandBuffer( vk.staging_command_buffer, 0 ) );
@@ -1385,7 +1458,7 @@ static void create_instance( void ) {
 	ri.Free( extension_properties );
 
 	if ( res != VK_SUCCESS ) {
-		ri.Error( ERR_FATAL, "Vulkan: instance creation failed with %s", vk_result_string( res ) );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: instance creation failed with %s", vk_result_string( res ) );
 	}
 }
 
@@ -1410,7 +1483,7 @@ static VkFormat get_depth_format( VkPhysicalDevice physical_device ) {
 		}
 	}
 
-	ri.Error( ERR_FATAL, "get_depth_format: failed to find depth attachment format" );
+	vk_fail( ERR_FATAL, rhiStatus_t::Error, "get_depth_format: failed to find depth attachment format" );
 	return VK_FORMAT_UNDEFINED; // never get here
 }
 
@@ -1867,7 +1940,7 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 #define INIT_INSTANCE_FUNCTION( func ) \
 	q##func = /*(PFN_ ## func)*/ (PFN_ ## func)ri.VK_GetInstanceProcAddr((uint64_t)(uintptr_t)vk_instance, #func); \
 	if (q##func == NULL) {											\
-		ri.Error(ERR_FATAL, "Failed to find entrypoint %s", #func);	\
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Failed to find entrypoint %s", #func);	\
 	}
 
 #define INIT_INSTANCE_FUNCTION_EXT( func ) \
@@ -1877,7 +1950,7 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 #define INIT_DEVICE_FUNCTION( func ) \
 	q##func = (PFN_ ## func) qvkGetDeviceProcAddr(vk.device, #func);\
 	if (q##func == NULL) {											\
-		ri.Error(ERR_FATAL, "Failed to find entrypoint %s", #func);	\
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Failed to find entrypoint %s", #func);	\
 	}
 
 #define INIT_DEVICE_FUNCTION_EXT( func ) \
@@ -1969,7 +2042,7 @@ static void init_vulkan_library( void ) {
 		// create surface through the SDK-independent platform import
 		uint64_t surface;
 		if ( !ri.VK_CreateSurface( (uint64_t)(uintptr_t)vk_instance, &surface ) ) {
-			ri.Error( ERR_FATAL, "Error creating Vulkan surface" );
+			vk_fail( ERR_FATAL, rhiStatus_t::Error, "Error creating Vulkan surface" );
 			return;
 		}
 		vk_surface = (VkSurfaceKHR)(uintptr_t)surface;
@@ -1977,10 +2050,10 @@ static void init_vulkan_library( void ) {
 
 	res = qvkEnumeratePhysicalDevices( vk_instance, &device_count, NULL );
 	if ( device_count == 0 ) {
-		ri.Error( ERR_FATAL, "Vulkan: no physical devices found" );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: no physical devices found" );
 		return;
 	} else if ( res < 0 ) {
-		ri.Error( ERR_FATAL, "vkEnumeratePhysicalDevices returned %s", vk_result_string( res ) );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "vkEnumeratePhysicalDevices returned %s", vk_result_string( res ) );
 		return;
 	}
 
@@ -2016,7 +2089,7 @@ static void init_vulkan_library( void ) {
 	ri.Free( physical_devices );
 
 	if ( vk.physical_device == VK_NULL_HANDLE ) {
-		ri.Error( ERR_FATAL, "Vulkan: unable to find any suitable physical device" );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: unable to find any suitable physical device" );
 		return;
 	}
 
@@ -2255,7 +2328,7 @@ static VkShaderModule SHADER_MODULE( const uint8_t *bytes, const int count ) {
 	VkShaderModule module;
 
 	if ( count % 4 != 0 ) {
-		ri.Error( ERR_FATAL, "Vulkan: SPIR-V binary buffer size is not a multiple of 4" );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: SPIR-V binary buffer size is not a multiple of 4" );
 	}
 
 	desc.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -2333,7 +2406,7 @@ static VkSampler vk_find_sampler( const Vk_Sampler_Def *def ) {
 
 	// Create new sampler.
 	if ( vk.samplers.count >= MAX_VK_SAMPLERS ) {
-		ri.Error( ERR_DROP, "vk_find_sampler: MAX_VK_SAMPLERS hit\n" );
+		vk_fail( ERR_DROP, rhiStatus_t::Error, "vk_find_sampler: MAX_VK_SAMPLERS hit\n" );
 		// return VK_NULL_HANDLE;
 	}
 
@@ -2344,7 +2417,7 @@ static VkSampler vk_find_sampler( const Vk_Sampler_Def *def ) {
 	} else if ( def->gl_mag_filter == GL_LINEAR ) {
 		mag_filter = VK_FILTER_LINEAR;
 	} else {
-		ri.Error( ERR_FATAL, "vk_find_sampler: invalid gl_mag_filter" );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "vk_find_sampler: invalid gl_mag_filter" );
 		return VK_NULL_HANDLE;
 	}
 
@@ -2371,7 +2444,7 @@ static VkSampler vk_find_sampler( const Vk_Sampler_Def *def ) {
 		min_filter = VK_FILTER_LINEAR;
 		mipmap_mode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	} else {
-		ri.Error( ERR_FATAL, "vk_find_sampler: invalid gl_min_filter" );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "vk_find_sampler: invalid gl_min_filter" );
 		return VK_NULL_HANDLE;
 	}
 
@@ -2505,7 +2578,7 @@ static int vk_texture_filter( rhiFilter_t filter ) {
 	return -1;
 }
 
-rhiStatus_t RHI_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, bool *changed ) {
+rhiStatus_t vk_impl_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, bool *changed ) {
 	const int minFilter = vk_texture_filter( minimize );
 	const int magFilter = vk_texture_filter( magnify );
 	*changed = false;
@@ -2524,7 +2597,7 @@ rhiStatus_t RHI_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, boo
 	return rhiStatus_t::Success;
 }
 
-void RHI_InitDescriptors( void ) {
+void vk_impl_InitDescriptors( void ) {
 	VkDescriptorSetAllocateInfo alloc;
 	VkDescriptorBufferInfo info;
 	VkWriteDescriptorSet desc;
@@ -2718,7 +2791,7 @@ void vk_release_vbo( void ) {
 }
 
 
-void RHI_UploadWorldGeometry( const uint8_t *vbo_data, int32_t vbo_size ) {
+void vk_impl_UploadWorldGeometry( const uint8_t *vbo_data, int32_t vbo_size ) {
 	VkMemoryRequirements vb_mem_reqs;
 	VkMemoryAllocateInfo alloc_info;
 	VkBufferCreateInfo desc;
@@ -2991,7 +3064,7 @@ static void vk_create_shader_modules( void ) {
 
 void vk_create_blur_pipeline( uint32_t index, uint32_t width, uint32_t height, qboolean horizontal_pass );
 
-void RHI_UpdatePostProcess( int32_t overbrightBits ) {
+void vk_impl_UpdatePostProcess( int32_t overbrightBits ) {
 	vk.overbrightBits = overbrightBits;
 	vk_update_post_process_pipelines();
 }
@@ -3063,7 +3136,7 @@ static void vk_alloc_attachments( void ) {
 	}
 
 	if ( vk.image_memory_count >= ARRAY_LEN( vk.image_memory ) ) {
-		ri.Error( ERR_DROP, "vk.image_memory_count == %i", (int)ARRAY_LEN( vk.image_memory ) );
+		vk_fail( ERR_DROP, rhiStatus_t::Error, "vk.image_memory_count == %i", (int)ARRAY_LEN( vk.image_memory ) );
 	}
 
 	memoryTypeBits = ~0U;
@@ -3164,7 +3237,7 @@ static void vk_alloc_attachments( void ) {
 
 static void vk_add_attachment_desc( VkImage desc, VkImageView *image_view, VkImageUsageFlags usage, VkMemoryRequirements *reqs, VkFormat image_format, VkImageAspectFlags aspect_flags, VkImageLayout image_layout ) {
 	if ( num_attachments >= ARRAY_LEN( attachments ) ) {
-		ri.Error( ERR_FATAL, "Attachments array overflow" );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Attachments array overflow" );
 	} else {
 		attachments[num_attachments].descriptor = desc;
 		attachments[num_attachments].image_view = image_view;
@@ -3772,7 +3845,7 @@ static void vk_set_render_scale( void ) {
 }
 
 
-void RHI_Initialize( void ) {
+void vk_impl_Initialize( void ) {
 	char buf[64], driver_version[64];
 	const char *vendor_name;
 	VkPhysicalDeviceProperties props;
@@ -4349,7 +4422,7 @@ static void vk_destroy_pipelines( qboolean resetCounter ) {
 }
 
 
-void RHI_Shutdown( void ) {
+void vk_impl_Shutdown( void ) {
 	int i, j, k, l;
 
 	if ( qvkQueuePresentKHR == NULL ) { // not fully initialized
@@ -4557,12 +4630,14 @@ static rhiStatus_t vk_status( VkResult result ) {
 }
 
 rhiStatus_t RHI_WaitIdle( void ) {
+	vk_clear_error();
 	if ( !vk.device || !qvkDeviceWaitIdle )
 		return rhiStatus_t::Unavailable;
 	return vk_status( qvkDeviceWaitIdle( vk.device ) );
 }
 
 rhiStatus_t RHI_WaitQueue( void ) {
+	vk_clear_error();
 	if ( !vk.queue || !qvkQueueWaitIdle )
 		return rhiStatus_t::Unavailable;
 	return vk_status( qvkQueueWaitIdle( vk.queue ) );
@@ -4578,7 +4653,7 @@ void vk_queue_wait_idle( void ) {
 }
 
 
-void RHI_ReleaseResources( void ) {
+void vk_impl_ReleaseResources( void ) {
 	int i, j;
 
 	vk_wait_idle();
@@ -4681,7 +4756,7 @@ static VkSamplerAddressMode vk_texture_address( rhiAddress_t address ) {
 	return VK_SAMPLER_ADDRESS_MODE_REPEAT;
 }
 
-void RHI_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mip_levels, rhiFormat_t imageFormat, rhiAddress_t address, const char *label ) {
+void vk_impl_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mip_levels, rhiFormat_t imageFormat, rhiAddress_t address, const char *label ) {
 
 	const VkFormat format = vk_texture_format( imageFormat );
 
@@ -4764,7 +4839,7 @@ void RHI_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, in
 		texture->binding = (uint64_t)(uintptr_t)binding;
 	}
 
-	RHI_UpdateTextureSampler( texture, address, mip_levels > 1 );
+	vk_impl_UpdateTextureSampler( texture, address, mip_levels > 1 );
 
 	SET_OBJECT_NAME( texture->image, label, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT );
 	SET_OBJECT_NAME( texture->view, label, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT );
@@ -4772,84 +4847,14 @@ void RHI_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, in
 }
 
 
-static byte *resample_image_data( const int target_format, byte *data, const int data_size, int *bytes_per_pixel ) {
-	byte *buffer;
-	uint16_t *p;
-	int i, n;
-
-	switch ( target_format ) {
-	case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-		buffer = (byte *)ri.Hunk_AllocateTempMemory( data_size / 2 );
-		p = (uint16_t *)buffer;
-		for ( i = 0; i < data_size; i += 4, p++ ) {
-			byte r = data[i + 0];
-			byte g = data[i + 1];
-			byte b = data[i + 2];
-			byte a = data[i + 3];
-			*p = (uint16_t)( (uint32_t)( ( a / 255.0 ) * 15.0 + 0.5 ) |
-							 ( (uint32_t)( ( r / 255.0 ) * 15.0 + 0.5 ) << 4 ) |
-							 ( (uint32_t)( ( g / 255.0 ) * 15.0 + 0.5 ) << 8 ) |
-							 ( (uint32_t)( ( b / 255.0 ) * 15.0 + 0.5 ) << 12 ) );
-		}
-		*bytes_per_pixel = 2;
-		return buffer; // must be freed after upload!
-
-	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-		buffer = (byte *)ri.Hunk_AllocateTempMemory( data_size / 2 );
-		p = (uint16_t *)buffer;
-		for ( i = 0; i < data_size; i += 4, p++ ) {
-			byte r = data[i + 0];
-			byte g = data[i + 1];
-			byte b = data[i + 2];
-			*p = (uint16_t)( (uint32_t)( ( b / 255.0 ) * 31.0 + 0.5 ) |
-							 ( (uint32_t)( ( g / 255.0 ) * 31.0 + 0.5 ) << 5 ) |
-							 ( (uint32_t)( ( r / 255.0 ) * 31.0 + 0.5 ) << 10 ) |
-							 ( 1 << 15 ) );
-		}
-		*bytes_per_pixel = 2;
-		return buffer; // must be freed after upload!
-
-	case VK_FORMAT_B8G8R8A8_UNORM:
-		buffer = (byte *)ri.Hunk_AllocateTempMemory( data_size );
-		for ( i = 0; i < data_size; i += 4 ) {
-			buffer[i + 0] = data[i + 2];
-			buffer[i + 1] = data[i + 1];
-			buffer[i + 2] = data[i + 0];
-			buffer[i + 3] = data[i + 3];
-		}
-		*bytes_per_pixel = 4;
-		return buffer;
-
-	case VK_FORMAT_R8G8B8_UNORM: {
-		buffer = (byte *)ri.Hunk_AllocateTempMemory( ( data_size * 3 ) / 4 );
-		for ( i = 0, n = 0; i < data_size; i += 4, n += 3 ) {
-			buffer[n + 0] = data[i + 0];
-			buffer[n + 1] = data[i + 1];
-			buffer[n + 2] = data[i + 2];
-		}
-		*bytes_per_pixel = 3;
-		return buffer;
-	}
-
-	default:
-		*bytes_per_pixel = 4;
-		return data;
-	}
-}
-
-
-void RHI_UploadTexture( const rhiTexture_t *texture, rhiFormat_t format, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipmaps, uint8_t *pixels, int32_t size, bool update ) {
+void vk_impl_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipmaps, const uint8_t *pixels, int32_t bytesPerPixel, bool update ) {
 
 	VkCommandBuffer command_buffer;
 	VkBufferImageCopy regions[16];
 	VkBufferImageCopy region;
-	byte *buf;
-	int n;
 
 	int num_regions = 0;
 	int buffer_size = 0;
-
-	buf = resample_image_data( vk_texture_format( format ), pixels, size, &n /*bpp*/ );
 
 	while ( true ) {
 		Com_Memset( &region, 0, sizeof( region ) );
@@ -4870,7 +4875,7 @@ void RHI_UploadTexture( const rhiTexture_t *texture, rhiFormat_t format, int32_t
 		regions[num_regions] = region;
 		num_regions++;
 
-		buffer_size += width * height * n;
+		buffer_size += width * height * bytesPerPixel;
 
 		if ( num_regions >= mipmaps || ( width == 1 && height == 1 ) || (size_t)num_regions >= ARRAY_LEN( regions ) )
 			break;
@@ -4902,11 +4907,11 @@ void RHI_UploadTexture( const rhiTexture_t *texture, rhiFormat_t format, int32_t
 		vk_alloc_staging_buffer( buffer_size );
 	}
 
-	for ( n = 0; n < num_regions; n++ ) {
+	for ( int n = 0; n < num_regions; n++ ) {
 		regions[n].bufferOffset += vk.staging_buffer.offset;
 	}
 
-	Com_Memcpy( vk.staging_buffer.ptr + vk.staging_buffer.offset, buf, buffer_size );
+	Com_Memcpy( vk.staging_buffer.ptr + vk.staging_buffer.offset, pixels, buffer_size );
 
 	if ( vk.staging_buffer.offset == 0 ) {
 		VkCommandBufferBeginInfo begin_info;
@@ -4937,7 +4942,7 @@ void RHI_UploadTexture( const rhiTexture_t *texture, rhiFormat_t format, int32_t
 		vk_alloc_staging_buffer( buffer_size );
 	}
 
-	Com_Memcpy( vk.staging_buffer.ptr, buf, buffer_size );
+	Com_Memcpy( vk.staging_buffer.ptr, pixels, buffer_size );
 
 	command_buffer = begin_command_buffer();
 	// record_buffer_memory_barrier( command_buffer, vk_world.staging_buffer, VK_WHOLE_SIZE, 0, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_HOST_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT );
@@ -4950,14 +4955,10 @@ void RHI_UploadTexture( const rhiTexture_t *texture, rhiFormat_t format, int32_t
 	record_image_layout_transition( command_buffer, (VkImage)(uintptr_t)texture->image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0 );
 	end_command_buffer( command_buffer, __func__ );
 #endif
-
-	if ( buf != pixels ) {
-		ri.Hunk_FreeTempMemory( buf );
-	}
 }
 
 
-void RHI_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address, bool mipmap ) {
+void vk_impl_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address, bool mipmap ) {
 	Vk_Sampler_Def sampler_def;
 	VkDescriptorImageInfo image_info;
 	VkWriteDescriptorSet descriptor_write;
@@ -5731,7 +5732,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 		break;
 
 	default:
-		ri.Error( ERR_DROP, "create_pipeline: unknown shader type %i\n", def->shader_type );
+		vk_fail( ERR_DROP, rhiStatus_t::Error, "create_pipeline: unknown shader type %i\n", def->shader_type );
 		return 0;
 	}
 
@@ -6216,7 +6217,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 		break;
 
 	default:
-		ri.Error( ERR_DROP, "%s: invalid shader type - %i", __func__, def->shader_type );
+		vk_fail( ERR_DROP, rhiStatus_t::Error, "%s: invalid shader type - %i", __func__, def->shader_type );
 		break;
 	}
 
@@ -6287,7 +6288,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 		rasterization_state.cullMode = ( def->mirror ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_FRONT_BIT );
 		break;
 	default:
-		ri.Error( ERR_DROP, "create_pipeline: invalid face culling mode %i\n", def->face_culling );
+		vk_fail( ERR_DROP, rhiStatus_t::Error, "create_pipeline: invalid face culling mode %i\n", def->face_culling );
 		break;
 	}
 
@@ -6408,7 +6409,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 			attachment_blend_state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
 			break;
 		default:
-			ri.Error( ERR_DROP, "create_pipeline: invalid src blend state bits\n" );
+			vk_fail( ERR_DROP, rhiStatus_t::Error, "create_pipeline: invalid src blend state bits\n" );
 			break;
 		}
 		switch ( state_bits & GLS_DSTBLEND_BITS ) {
@@ -6437,7 +6438,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 			attachment_blend_state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
 			break;
 		default:
-			ri.Error( ERR_DROP, "create_pipeline: invalid dst blend state bits\n" );
+			vk_fail( ERR_DROP, rhiStatus_t::Error, "create_pipeline: invalid dst blend state bits\n" );
 			break;
 		}
 
@@ -6516,7 +6517,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 static uint32_t vk_alloc_pipeline( const rhiPipelineDesc_t *def ) {
 	VK_Pipeline_t *pipeline;
 	if ( vk.pipelines_count >= MAX_VK_PIPELINES ) {
-		ri.Error( ERR_DROP, "alloc_pipeline: MAX_VK_PIPELINES reached" );
+		vk_fail( ERR_DROP, rhiStatus_t::Error, "alloc_pipeline: MAX_VK_PIPELINES reached" );
 		return 0;
 	} else {
 		int j;
@@ -6539,13 +6540,13 @@ VkPipeline vk_gen_pipeline( uint32_t index ) {
 		}
 		return pipeline->handle[pass];
 	} else {
-		ri.Error( ERR_FATAL, "%s(%i): NULL pipeline", __func__, index );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "%s(%i): NULL pipeline", __func__, index );
 		return VK_NULL_HANDLE;
 	}
 }
 
 
-uint32_t RHI_FindPipeline( uint32_t base, const rhiPipelineDesc_t *def, bool use ) {
+uint32_t vk_impl_FindPipeline( uint32_t base, const rhiPipelineDesc_t *def, bool use ) {
 	const rhiPipelineDesc_t *cur_def;
 	uint32_t index;
 
@@ -6803,7 +6804,7 @@ static void vk_bind_descriptor_sets( const rhiTexture_t *fallback ) {
 }
 
 
-void RHI_BindPipeline( uint32_t pipeline ) {
+void vk_impl_BindPipeline( uint32_t pipeline ) {
 	VkPipeline vkpipe;
 
 	vkpipe = vk_gen_pipeline( pipeline );
@@ -7006,7 +7007,7 @@ void RHI_EndPass( void ) {
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFFULL
 #endif
 
-bool RHI_BeginFrame( bool screenMap ) {
+bool vk_impl_BeginFrame( bool screenMap ) {
 	VkCommandBufferBeginInfo begin_info;
 	VkResult res;
 
@@ -7027,7 +7028,7 @@ bool RHI_BeginFrame( bool screenMap ) {
 				// silently discard previous command buffer
 				ri.Printf( PRINT_WARNING, "Vulkan: %s returned %s", "vkWaitForFences", vk_result_string( res ) );
 			} else {
-				ri.Error( ERR_FATAL, "Vulkan: %s returned %s", "vkWaitForFences", vk_result_string( res ) );
+				vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: %s returned %s", "vkWaitForFences", vk_result_string( res ) );
 			}
 		}
 		if ( res == VK_SUCCESS )
@@ -7050,7 +7051,7 @@ bool RHI_BeginFrame( bool screenMap ) {
 				vk_restart_swapchain( __func__, res );
 				goto _retry;
 			} else {
-				ri.Error( ERR_FATAL, "vkAcquireNextImageKHR returned %s", vk_result_string( res ) );
+				vk_fail( ERR_FATAL, rhiStatus_t::Error, "vkAcquireNextImageKHR returned %s", vk_result_string( res ) );
 			}
 		}
 		vk.cmd->swapchain_image_acquired = qtrue;
@@ -7149,7 +7150,7 @@ static void vk_resize_geometry_buffer( void ) {
 }
 
 
-rhiFrameEnd_t RHI_EndFrame( bool bloom, bool capture ) {
+rhiFrameEnd_t vk_impl_EndFrame( bool bloom, bool capture ) {
 #ifdef USE_UPLOAD_QUEUE
 	VkSemaphore waits[2], signals[2];
 	const VkPipelineStageFlags wait_dst_stage_mask[2] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -7273,7 +7274,7 @@ rhiFrameEnd_t RHI_EndFrame( bool bloom, bool capture ) {
 }
 
 
-void RHI_PresentFrame( void ) {
+void vk_impl_PresentFrame( void ) {
 	VkPresentInfoKHR present_info;
 	VkResult res;
 
@@ -7312,7 +7313,7 @@ void RHI_PresentFrame( void ) {
 		break;
 	default:
 		// or we don't
-		ri.Error( ERR_FATAL, "vkQueuePresentKHR returned %s", vk_result_string( res ) );
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "vkQueuePresentKHR returned %s", vk_result_string( res ) );
 	}
 
 	// pickup next command buffer for rendering
@@ -7337,7 +7338,7 @@ static qboolean is_bgr( VkFormat format ) {
 }
 
 
-void RHI_ReadPixels( byte *buffer, uint32_t width, uint32_t height ) {
+void vk_impl_ReadPixels( byte *buffer, uint32_t width, uint32_t height ) {
 	VkCommandBuffer command_buffer;
 	VkDeviceMemory memory;
 	VkMemoryRequirements memory_requirements;
@@ -7413,7 +7414,7 @@ void RHI_ReadPixels( byte *buffer, uint32_t width, uint32_t height ) {
 			memory_reqs = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 			alloc_info.memoryTypeIndex = find_memory_type2( memory_requirements.memoryTypeBits, memory_reqs, &memory_flags );
 			if ( alloc_info.memoryTypeIndex == ~0U ) {
-				ri.Error( ERR_FATAL, "%s(): failed to find matching memory type for image capture", __func__ );
+				vk_fail( ERR_FATAL, rhiStatus_t::Error, "%s(): failed to find matching memory type for image capture", __func__ );
 			}
 		}
 	}
@@ -7660,4 +7661,124 @@ void RHI_Bloom( const float *restoreTransform ) {
 			}
 		}
 	}
+}
+
+
+rhiStatus_t RHI_Initialize( void ) {
+	return vk_call( [&]() {
+		vk_impl_Initialize();
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_InitDescriptors( void ) {
+	return vk_call( [&]() {
+		vk_impl_InitDescriptors();
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_ReleaseResources( void ) {
+	return vk_call( [&]() {
+		vk_impl_ReleaseResources();
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_Shutdown( void ) {
+	return vk_call( [&]() {
+		vk_impl_Shutdown();
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_UploadWorldGeometry( const uint8_t *data, int32_t size ) {
+	return vk_call( [&]() {
+		vk_impl_UploadWorldGeometry( data, size );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_UpdatePostProcess( int32_t overbrightBits ) {
+	return vk_call( [&]() {
+		vk_impl_UpdatePostProcess( overbrightBits );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height ) {
+	return vk_call( [&]() {
+		vk_impl_ReadPixels( buffer, width, height );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, rhiAddress_t address, const char *label ) {
+	return vk_call( [&]() {
+		vk_impl_CreateTexture( texture, width, height, mipLevels, format, address, label );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update ) {
+	return vk_call( [&]() {
+		vk_impl_UploadTexture( texture, x, y, width, height, mipLevels, pixels, bytesPerPixel, update );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address, bool mipmap ) {
+	return vk_call( [&]() {
+		vk_impl_UpdateTextureSampler( texture, address, mipmap );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, bool *changed ) {
+	return vk_call( [&]() {
+		return vk_impl_SetTextureFilter( minimize, magnify, changed );
+	} );
+}
+
+rhiStatus_t RHI_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool eager, uint32_t *pipeline ) {
+	*pipeline = {};
+	return vk_call( [&]() {
+		*pipeline = vk_impl_FindPipeline( base, desc, eager );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_BindPipeline( uint32_t pipeline ) {
+	if ( pipeline < vk.pipelines_count && vk.pipelines[pipeline].handle[vk.renderPassIndex] != VK_NULL_HANDLE ) {
+		vk_clear_error();
+		vk_impl_BindPipeline( pipeline );
+		return rhiStatus_t::Success;
+	}
+	return vk_call( [&]() {
+		vk_impl_BindPipeline( pipeline );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_BeginFrame( bool screenMap, bool *started ) {
+	*started = {};
+	return vk_call( [&]() {
+		*started = vk_impl_BeginFrame( screenMap );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_EndFrame( bool bloom, bool capture, rhiFrameEnd_t *result ) {
+	*result = {};
+	return vk_call( [&]() {
+		*result = vk_impl_EndFrame( bloom, capture );
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_PresentFrame( void ) {
+	return vk_call( [&]() {
+		vk_impl_PresentFrame();
+		return rhiStatus_t::Success;
+	} );
 }

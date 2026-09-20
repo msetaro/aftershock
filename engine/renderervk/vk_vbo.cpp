@@ -650,7 +650,7 @@ void R_BuildWorldVBO( msurface_t *surf, int surfCount ) {
 	ri.Hunk_FreeTempMemory( surfList );
 
 	//__fail:
-	RHI_UploadWorldGeometry( vbo->vbo_buffer, vbo->vbo_size );
+	R_CheckRHI( RHI_UploadWorldGeometry( vbo->vbo_buffer, vbo->vbo_size ), "UploadWorldGeometry" );
 
 	//if ( err == GL_OUT_OF_MEMORY )
 	//	ri.Printf( PRINT_WARNING, "%s: out of memory\n", __func__ );

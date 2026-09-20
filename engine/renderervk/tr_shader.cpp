@@ -23,6 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 rendererPipelines_t r_pipelines;
 
+uint32_t R_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool eager ) {
+	uint32_t pipeline;
+	R_CheckRHI( RHI_FindPipeline( base, desc, eager, &pipeline ), "pipeline creation" );
+	return pipeline;
+}
+
 void R_InitBuiltinPipelines( void ) {
 	unsigned int state_bits;
 	rhiPipelineDesc_t def;
@@ -36,7 +42,7 @@ void R_InitBuiltinPipelines( void ) {
 		def.face_culling = CT_FRONT_SIDED;
 		def.polygon_offset = qfalse;
 		def.mirror = qfalse;
-		r_pipelines.skybox_pipeline = RHI_FindPipeline( 0, &def, qtrue );
+		r_pipelines.skybox_pipeline = R_FindPipeline( 0, &def, qtrue );
 	}
 
 	// stencil shadows
@@ -55,7 +61,7 @@ void R_InitBuiltinPipelines( void ) {
 			def.face_culling = cull_types[i];
 			for ( j = 0; j < 2; j++ ) {
 				def.mirror = mirror_flags[j];
-				r_pipelines.shadow_volume_pipelines[i][j] = RHI_FindPipeline( 0, &def, r_shadows->integer ? qtrue : qfalse );
+				r_pipelines.shadow_volume_pipelines[i][j] = R_FindPipeline( 0, &def, r_shadows->integer ? qtrue : qfalse );
 			}
 		}
 	}
@@ -68,7 +74,7 @@ void R_InitBuiltinPipelines( void ) {
 		def.mirror = qfalse;
 		def.shadow_phase = SHADOW_FS_QUAD;
 		def.primitives = TRIANGLE_STRIP;
-		r_pipelines.shadow_finish_pipeline = RHI_FindPipeline( 0, &def, r_shadows->integer ? qtrue : qfalse );
+		r_pipelines.shadow_finish_pipeline = R_FindPipeline( 0, &def, r_shadows->integer ? qtrue : qfalse );
 	}
 
 	// fog and dlights
@@ -106,15 +112,15 @@ void R_InitBuiltinPipelines( void ) {
 					def.shader_type = TYPE_SIGNLE_TEXTURE;
 #endif
 					def.state_bits = fog_state;
-					r_pipelines.fog_pipelines[i][j][k] = RHI_FindPipeline( 0, &def, qtrue );
+					r_pipelines.fog_pipelines[i][j][k] = R_FindPipeline( 0, &def, qtrue );
 
 					def.shader_type = TYPE_SIGNLE_TEXTURE;
 					def.state_bits = dlight_state;
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
-					r_pipelines.dlight_pipelines[i][j][k] = RHI_FindPipeline( 0, &def, r_dlightMode->integer == 0 ? qtrue : qfalse );
+					r_pipelines.dlight_pipelines[i][j][k] = R_FindPipeline( 0, &def, r_dlightMode->integer == 0 ? qtrue : qfalse );
 #else
-					r_pipelines.dlight_pipelines[i][j][k] = RHI_FindPipeline( 0, &def, qtrue );
+					r_pipelines.dlight_pipelines[i][j][k] = R_FindPipeline( 0, &def, qtrue );
 #endif
 #endif
 				}
@@ -133,9 +139,9 @@ void R_InitBuiltinPipelines( void ) {
 					for ( l = 0; l < 2; l++ ) {
 						def.abs_light = l;
 						def.shader_type = TYPE_SIGNLE_TEXTURE_LIGHTING;
-						r_pipelines.dlight_pipelines_x[i][j][k][l] = RHI_FindPipeline( 0, &def, qfalse );
+						r_pipelines.dlight_pipelines_x[i][j][k][l] = R_FindPipeline( 0, &def, qfalse );
 						def.shader_type = TYPE_SIGNLE_TEXTURE_LIGHTING_LINEAR;
-						r_pipelines.dlight1_pipelines_x[i][j][k][l] = RHI_FindPipeline( 0, &def, qfalse );
+						r_pipelines.dlight1_pipelines_x[i][j][k][l] = R_FindPipeline( 0, &def, qfalse );
 					}
 				}
 			}
@@ -149,7 +155,7 @@ void R_InitBuiltinPipelines( void ) {
 		def.state_bits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
 		def.face_culling = CT_FRONT_SIDED;
 		def.primitives = TRIANGLE_STRIP;
-		r_pipelines.surface_beam_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.surface_beam_pipeline = R_FindPipeline( 0, &def, qfalse );
 	}
 
 	// axis for missing models
@@ -161,7 +167,7 @@ void R_InitBuiltinPipelines( void ) {
 		def.primitives = LINE_LIST;
 		if ( RHI_GetCapabilities().wideLines )
 			def.line_width = 3;
-		r_pipelines.surface_axis_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.surface_axis_pipeline = R_FindPipeline( 0, &def, qfalse );
 	}
 
 	// flare visibility test dot
@@ -171,7 +177,7 @@ void R_InitBuiltinPipelines( void ) {
 		def.face_culling = CT_TWO_SIDED;
 		def.shader_type = TYPE_DOT;
 		def.primitives = POINT_LIST;
-		r_pipelines.dot_pipeline = RHI_FindPipeline( 0, &def, qtrue );
+		r_pipelines.dot_pipeline = R_FindPipeline( 0, &def, qtrue );
 	}
 
 	// DrawTris()
@@ -181,42 +187,42 @@ void R_InitBuiltinPipelines( void ) {
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_WHITE;
 		def.face_culling = CT_FRONT_SIDED;
-		r_pipelines.tris_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.tris_debug_pipeline = R_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_WHITE;
 		def.face_culling = CT_BACK_SIDED;
-		r_pipelines.tris_mirror_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.tris_mirror_debug_pipeline = R_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_GREEN;
 		def.face_culling = CT_FRONT_SIDED;
-		r_pipelines.tris_debug_green_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.tris_debug_green_pipeline = R_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_GREEN;
 		def.face_culling = CT_BACK_SIDED;
-		r_pipelines.tris_mirror_debug_green_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.tris_mirror_debug_green_pipeline = R_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_RED;
 		def.face_culling = CT_FRONT_SIDED;
-		r_pipelines.tris_debug_red_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.tris_debug_red_pipeline = R_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = state_bits;
 		def.shader_type = TYPE_COLOR_RED;
 		def.face_culling = CT_BACK_SIDED;
-		r_pipelines.tris_mirror_debug_red_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.tris_mirror_debug_red_pipeline = R_FindPipeline( 0, &def, qfalse );
 	}
 
 	// DrawNormals()
@@ -225,7 +231,7 @@ void R_InitBuiltinPipelines( void ) {
 		def.state_bits = GLS_DEPTHMASK_TRUE;
 		def.shader_type = TYPE_SIGNLE_TEXTURE;
 		def.primitives = LINE_LIST;
-		r_pipelines.normals_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.normals_debug_pipeline = R_FindPipeline( 0, &def, qfalse );
 	}
 
 	// RB_DebugPolygon()
@@ -233,14 +239,14 @@ void R_InitBuiltinPipelines( void ) {
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
 		def.shader_type = TYPE_SIGNLE_TEXTURE;
-		r_pipelines.surface_debug_pipeline_solid = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.surface_debug_pipeline_solid = R_FindPipeline( 0, &def, qfalse );
 	}
 	{
 		Com_Memset( &def, 0, sizeof( def ) );
 		def.state_bits = GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
 		def.shader_type = TYPE_SIGNLE_TEXTURE;
 		def.primitives = LINE_LIST;
-		r_pipelines.surface_debug_pipeline_outline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.surface_debug_pipeline_outline = R_FindPipeline( 0, &def, qfalse );
 	}
 
 	// RB_ShowImages
@@ -249,12 +255,12 @@ void R_InitBuiltinPipelines( void ) {
 		def.state_bits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
 		def.shader_type = TYPE_SIGNLE_TEXTURE;
 		def.primitives = TRIANGLE_STRIP;
-		r_pipelines.images_debug_pipeline = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.images_debug_pipeline = R_FindPipeline( 0, &def, qfalse );
 
 		def.state_bits = GLS_DEPTHTEST_DISABLE;
 		def.shader_type = TYPE_COLOR_BLACK;
 		def.primitives = TRIANGLE_STRIP;
-		r_pipelines.images_debug_pipeline2 = RHI_FindPipeline( 0, &def, qfalse );
+		r_pipelines.images_debug_pipeline2 = R_FindPipeline( 0, &def, qfalse );
 	}
 }
 
@@ -3554,17 +3560,17 @@ static shader_t *FinishShader( void ) {
 			}
 
 			def.mirror = qfalse;
-			pStage->vk_pipeline[0] = RHI_FindPipeline( 0, &def, qtrue );
+			pStage->vk_pipeline[0] = R_FindPipeline( 0, &def, qtrue );
 			def.mirror = qtrue;
-			pStage->vk_mirror_pipeline[0] = RHI_FindPipeline( 0, &def, qfalse );
+			pStage->vk_mirror_pipeline[0] = R_FindPipeline( 0, &def, qfalse );
 
 			if ( pStage->depthFragment ) {
 				def.mirror = qfalse;
 				def.shader_type = TYPE_SIGNLE_TEXTURE_DF;
-				pStage->vk_pipeline_df = RHI_FindPipeline( 0, &def, qtrue );
+				pStage->vk_pipeline_df = R_FindPipeline( 0, &def, qtrue );
 				def.mirror = qtrue;
 				def.shader_type = TYPE_SIGNLE_TEXTURE_DF;
-				pStage->vk_mirror_pipeline_df = RHI_FindPipeline( 0, &def, qfalse );
+				pStage->vk_mirror_pipeline_df = R_FindPipeline( 0, &def, qfalse );
 			}
 
 #ifdef USE_FOG_COLLAPSE
@@ -3580,8 +3586,8 @@ static shader_t *FinishShader( void ) {
 				fogDef.acff = pStage->bundle[0].adjustColorsForFog;
 				def_mirror.acff = pStage->bundle[0].adjustColorsForFog;
 
-				pStage->vk_pipeline[1] = RHI_FindPipeline( 0, &fogDef, qfalse );
-				pStage->vk_mirror_pipeline[1] = RHI_FindPipeline( 0, &def_mirror, qfalse );
+				pStage->vk_pipeline[1] = R_FindPipeline( 0, &fogDef, qfalse );
+				pStage->vk_mirror_pipeline[1] = R_FindPipeline( 0, &def_mirror, qfalse );
 
 				pStage->bundle[0].adjustColorsForFog = ACFF_NONE; // will be handled in shader from now
 

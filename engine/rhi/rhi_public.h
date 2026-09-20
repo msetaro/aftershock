@@ -67,9 +67,16 @@ enum class rhiStatus_t : uint32_t {
 	Error
 };
 
+struct rhiError_t {
+	bool drop;
+	const char *message;
+};
+// Borrowed diagnostic from the last fallible call; empty for status-only errors.
+const rhiError_t *RHI_GetError( void );
+
 // These return to the caller before it reports an engine error or unwinds.
-rhiStatus_t RHI_WaitIdle( void );
-rhiStatus_t RHI_WaitQueue( void );
+[[nodiscard]] rhiStatus_t RHI_WaitIdle( void );
+[[nodiscard]] rhiStatus_t RHI_WaitQueue( void );
 
 // Record into the current frame's command list, preserving submission order.
 void RHI_DrawIndexed( uint32_t indexCount, uint32_t firstIndex );
@@ -115,12 +122,10 @@ struct rhiTexture_t {
 };
 static_assert( sizeof( rhiTexture_t ) == 24 && std::is_trivially_copyable_v<rhiTexture_t> );
 
-void RHI_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels,
-	rhiFormat_t format, rhiAddress_t address, const char *label );
-// Input is the existing contiguous RGBA8 mip chain; conversion preserves its bytes.
-void RHI_UploadTexture( const rhiTexture_t *texture, rhiFormat_t format, int32_t x, int32_t y,
-	int32_t width, int32_t height, int32_t mipLevels, uint8_t *pixels, int32_t size, bool update );
-void RHI_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address, bool mipmap );
+[[nodiscard]] rhiStatus_t RHI_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, rhiAddress_t address, const char *label );
+// Input is a contiguous mip chain already converted to the texture format.
+[[nodiscard]] rhiStatus_t RHI_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update );
+[[nodiscard]] rhiStatus_t RHI_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address, bool mipmap );
 // Call only after GPU use completes. Binding storage is released by the map pool reset.
 void RHI_DestroyTexture( rhiTexture_t *texture );
 void RHI_BindTexture( uint32_t slot, const rhiTexture_t *texture );
@@ -135,7 +140,7 @@ enum class rhiFilter_t : uint32_t {
 };
 // On a changed filter, wait before replacing sampler objects and attachment
 // bindings. The caller then updates its mipmapped texture bindings.
-rhiStatus_t RHI_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, bool *changed );
+[[nodiscard]] rhiStatus_t RHI_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, bool *changed );
 
 // The two existing geometry pools: map-owned static data and fence-owned frame
 // uploads. Offsets use bytes; indices are always uint32_t.
@@ -346,9 +351,9 @@ struct rhiPipelineDesc_t {
 static_assert( sizeof( rhiPipelineDesc_t ) == 52 && alignof( rhiPipelineDesc_t ) == 4 );
 static_assert( std::is_trivially_copyable_v<rhiPipelineDesc_t> );
 
-uint32_t RHI_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool eager );
+[[nodiscard]] rhiStatus_t RHI_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool eager, uint32_t *pipeline );
 void RHI_GetPipelineDesc( uint32_t pipeline, rhiPipelineDesc_t *desc );
-void RHI_BindPipeline( uint32_t pipeline );
+[[nodiscard]] rhiStatus_t RHI_BindPipeline( uint32_t pipeline );
 
 struct rhiRect_t {
 	struct {
@@ -388,19 +393,19 @@ bool RHI_ReadVisibility( uint32_t index );
 void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount, const rhiRasterState_t *raster );
 
 // Duplicate stereo begin calls keep the current command list and return false.
-bool RHI_BeginFrame( bool screenMap );
+[[nodiscard]] rhiStatus_t RHI_BeginFrame( bool screenMap, bool *started );
 struct rhiFrameEnd_t {
 	bool submitted, bloomApplied;
 };
-rhiFrameEnd_t RHI_EndFrame( bool bloom, bool capture );
+[[nodiscard]] rhiStatus_t RHI_EndFrame( bool bloom, bool capture, rhiFrameEnd_t *result );
 void RHI_BeginMainPass( void );
-void RHI_PresentFrame( void );
+[[nodiscard]] rhiStatus_t RHI_PresentFrame( void );
 
-void RHI_Initialize( void );
-void RHI_InitDescriptors( void );
-void RHI_ReleaseResources( void );
+[[nodiscard]] rhiStatus_t RHI_Initialize( void );
+[[nodiscard]] rhiStatus_t RHI_InitDescriptors( void );
+[[nodiscard]] rhiStatus_t RHI_ReleaseResources( void );
 // Renderer context retention uses ReleaseResources alone; Shutdown destroys it.
-void RHI_Shutdown( void );
-void RHI_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height );
-void RHI_UploadWorldGeometry( const uint8_t *data, int32_t size );
-void RHI_UpdatePostProcess( int32_t overbrightBits );
+[[nodiscard]] rhiStatus_t RHI_Shutdown( void );
+[[nodiscard]] rhiStatus_t RHI_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height );
+[[nodiscard]] rhiStatus_t RHI_UploadWorldGeometry( const uint8_t *data, int32_t size );
+[[nodiscard]] rhiStatus_t RHI_UpdatePostProcess( int32_t overbrightBits );
