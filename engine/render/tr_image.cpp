@@ -23,6 +23,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "tr_cooked.h"
 
+#ifdef AFTERSHOCK_DEVTOOLS
+static struct {
+	char path[MAX_QPATH];
+	uint8_t hash[32];
+} cookedImages[MAX_DRAWIMAGES];
+static cvar_t *reloadAssets;
+static uint32_t lastCookedPoll;
+static uint8_t cookedRevision[32];
+#endif
+
 static byte s_intensitytable[256];
 static unsigned char s_gammatable[256];
 
@@ -1050,6 +1060,81 @@ void R_UploadSubImage( byte *data, int x, int y, int width, int height, image_t 
 #endif // !USE_VULKAN
 
 
+static rhiStatus_t R_UploadCookedImage( image_t *image, const cookedTexture_t *cooked ) {
+	const uint32_t levels = ( image->flags & IMGFLAG_MIPMAP ) ? cooked->mipLevels : 1;
+	uint32_t size = 0;
+	for ( uint32_t i = 0; i < levels; i++ )
+		size += cooked->levels[i].size;
+	byte *blocks = (byte *)ri.Malloc( size );
+	uint32_t offset = 0;
+	for ( uint32_t i = 0; i < levels; i++ ) {
+		memcpy( blocks + offset, cooked->levels[i].data, cooked->levels[i].size );
+		offset += cooked->levels[i].size;
+	}
+#ifdef AFTERSHOCK_DEVTOOLS
+	const rhiStatus_t status = RHI_ReplaceCompressedTexture( &image->texture, cooked->width, cooked->height, levels, blocks, size, cooked->format, image->wrapClampMode, image->imgName );
+#else
+	rhiStatus_t status = RHI_CreateTexture( &image->texture, cooked->width, cooked->height, levels, cooked->format, image->wrapClampMode, image->imgName );
+	if ( status == rhiStatus_t::Success )
+		status = RHI_UploadCompressedTexture( &image->texture, cooked->width, cooked->height, levels, blocks, size, cooked->format, false );
+#endif
+	ri.Free( blocks );
+	if ( status == rhiStatus_t::Success ) {
+		image->width = image->uploadWidth = cooked->width;
+		image->height = image->uploadHeight = cooked->height;
+		image->internalFormat = cooked->format;
+	}
+	return status;
+}
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void R_PollCookedAssets( void ) {
+	if ( !reloadAssets || !reloadAssets->integer )
+		return;
+	const uint32_t now = (uint32_t)( ri.Microseconds() / 1000 );
+	if ( now - lastCookedPoll < 100 )
+		return;
+	lastCookedPoll = now;
+	uint8_t revision[32];
+	if ( ri.FS_ReadDeveloperFile( "cook.revision", revision, sizeof( revision ) ) != sizeof( revision ) || !memcmp( revision, cookedRevision, sizeof( revision ) ) )
+		return;
+	// Retry failed publications only when the watcher publishes another revision.
+	memcpy( cookedRevision, revision, sizeof( revision ) );
+	const int size = ri.FS_ReadDeveloperFile( "cook.index", nullptr, 0 );
+	if ( size < 52 || size > 52 + 4096 * (int)sizeof( cookedEntry_t ) )
+		return;
+	void *bytes = ri.Malloc( size );
+	cookedIndex_t index;
+	if ( ri.FS_ReadDeveloperFile( "cook.index", bytes, size ) == size && R_ReadCookedIndex( bytes, size, revision, &index ) ) {
+		for ( uint32_t row = 0; row < index.count; row++ ) {
+			cookedEntry_t entry;
+			memcpy( &entry, index.entries + row * sizeof( entry ), sizeof( entry ) );
+			if ( entry.kind != 2 )
+				continue;
+			for ( int i = 0; i < tr.numImages; i++ ) {
+				if ( strcmp( cookedImages[i].path, entry.path ) || !memcmp( cookedImages[i].hash, entry.hash, 32 ) )
+					continue;
+				void *file = nullptr;
+				const int length = ri.FS_ReadFile( entry.path, &file );
+				cookedTexture_t texture;
+				bool success = file && length == (int)entry.size && R_CookedHashMatches( file, length, entry.hash ) && R_ReadCookedTexture( file, length, &texture );
+				success = success && texture.width <= (uint32_t)glConfig.maxTextureSize && texture.height <= (uint32_t)glConfig.maxTextureSize;
+				if ( success )
+					success = R_UploadCookedImage( tr.images[i], &texture ) == rhiStatus_t::Success;
+				if ( file )
+					ri.FS_FreeFile( file );
+				if ( success )
+					memcpy( cookedImages[i].hash, entry.hash, 32 );
+				ri.Printf( success ? PRINT_ALL : PRINT_WARNING, "Cooked texture %s: %s\n", success ? "reloaded" : "reload failed", entry.path );
+			}
+		}
+	} else {
+		ri.Printf( PRINT_WARNING, "Cooked asset index does not match its published revision\n" );
+	}
+	ri.Free( bytes );
+}
+#endif
+
 /*
 ================
 R_CreateImage
@@ -1123,24 +1208,11 @@ image_t *R_CreateImage( const char *name, const char *name2, byte *pic, int widt
 	image->texture = {};
 
 	if ( cooked ) {
-		image->uploadWidth = width;
-		image->uploadHeight = height;
-		image->internalFormat = cooked->format;
-		const uint32_t levels = ( flags & IMGFLAG_MIPMAP ) ? cooked->mipLevels : 1;
-		uint32_t size = 0;
-		for ( uint32_t i = 0; i < levels; i++ )
-			size += cooked->levels[i].size;
-		byte *blocks = (byte *)ri.Malloc( size );
-		uint32_t offset = 0;
-		for ( uint32_t i = 0; i < levels; i++ ) {
-			memcpy( blocks + offset, cooked->levels[i].data, cooked->levels[i].size );
-			offset += cooked->levels[i].size;
-		}
-		rhiStatus_t status = RHI_CreateTexture( &image->texture, width, height, levels, cooked->format, image->wrapClampMode, name );
-		if ( status == rhiStatus_t::Success )
-			status = RHI_UploadCompressedTexture( &image->texture, width, height, levels, blocks, size, cooked->format, false );
-		ri.Free( blocks );
-		R_CheckRHI( status, "cooked texture upload" );
+		R_CheckRHI( R_UploadCookedImage( image, cooked ), "cooked texture upload" );
+#ifdef AFTERSHOCK_DEVTOOLS
+		Com_sprintf( cookedImages[tr.numImages - 1].path, MAX_QPATH, "%s%s", name, *COM_GetExtension( name ) ? "" : ".ktx2" );
+		memcpy( cookedImages[tr.numImages - 1].hash, cooked->fileHash, 32 );
+#endif
 	} else {
 		upload_vk_image( image, pic );
 	}
@@ -1819,6 +1891,12 @@ void R_InitImages( void ) {
 		s_gammatable_linear[i] = (unsigned char)i;
 #endif
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	Com_Memset( cookedImages, 0, sizeof( cookedImages ) );
+	Com_Memset( cookedRevision, 0, sizeof( cookedRevision ) );
+	lastCookedPoll = 0;
+	reloadAssets = ri.Cvar_Get( "dev_reloadAssets", "0", CVAR_CHEAT );
+#endif
 	Com_Memset( hashTable, 0, sizeof( hashTable ) );
 
 	// build brightness translation tables

@@ -890,3 +890,17 @@ to those capacities; valid text remains unchanged. Fix f3facd3a passes all twelv
 checks with both GCC and Clang/libc++ under ASan/UBSan.
 The PrintMsg fix merged separately as PR #128. The two unused native parser diagnostics
 are a separate #8 deletion. All work remains in msetaro/aftershock.
+
+## Open: IQM model allocation accounting (#31, discovered during #9)
+
+`R_LoadIQM` allocates its runtime block without updating `model_t::dataSize`.
+`modellist` and the developer model inspector consequently report zero bytes for
+valid loaded IQM models, even though their geometry/poses render correctly.
+This behavior is present before #9; no fix is included in the asset feature PR.
+Reproducer: cook tests/assets/cook-character/assets.json with tools/cook, load
+models/character.iqm through the Animation inspector, then run `modellist`.
+The line reports `0 : (0) models/character.iqm` and the inspector reports 62 frames,
+0 model bytes. Source: engine/render/tr_model_iqm.cpp's allocation and
+engine/render/tr_model.cpp's R_Modellist_f. Evidence is in cook-ui-check.log and
+/tmp/aftershock-cook-runtime-test/client.log. Add a failing allocation/accounting
+check and fix in its own #31 PR after #9 supplies the owned fixture.

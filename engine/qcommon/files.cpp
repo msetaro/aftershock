@@ -1827,6 +1827,25 @@ int FS_Home_FOpenFileRead( const char *filename, fileHandle_t *file ) {
 }
 
 
+#ifdef AFTERSHOCK_DEVTOOLS
+// Loose home-directory files only; fixed caller storage keeps idle polling allocation-free.
+int FS_ReadDeveloperFile( const char *filename, void *buffer, int capacity ) {
+	if ( !filename || !*filename || FS_CheckDirTraversal( filename ) || capacity < 0 )
+		return -1;
+	fileHandle_t file;
+	const int length = FS_Home_FOpenFileRead( filename, &file );
+	if ( file == FS_INVALID_HANDLE )
+		return -1;
+	int result = -1;
+	if ( !buffer )
+		result = length;
+	else if ( length >= 0 && length <= capacity && FS_Read( buffer, length, file ) == length )
+		result = length;
+	FS_FCloseFile( file );
+	return result;
+}
+#endif
+
 struct cacheFileHeader_t {
 	uint32_t magic, version, size, checksum;
 };

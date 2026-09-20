@@ -3387,6 +3387,9 @@ static void CL_InitRef( void ) {
 	rimp.CM_ClusterPVS = CM_ClusterPVS;
 	rimp.CM_DrawDebugSurface = CM_DrawDebugSurface;
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	rimp.FS_ReadDeveloperFile = FS_ReadDeveloperFile;
+#endif
 	rimp.FS_ReadCache = FS_ReadCache;
 	rimp.FS_WriteCache = FS_WriteCache;
 	rimp.FS_ReadFile = FS_ReadFile;

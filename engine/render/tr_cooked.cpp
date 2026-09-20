@@ -131,6 +131,7 @@ bool R_ReadCookedTexture( const void *data, size_t size, cookedTexture_t *textur
 	texture->height = h.height;
 	texture->mipLevels = h.levels;
 	memcpy( texture->contentHash, hash, 32 );
+	calc_sha_256( texture->fileHash, bytes, size );
 	return true;
 }
 
@@ -168,5 +169,33 @@ bool R_ReadCookedMaterial( const void *data, size_t size, cookedMaterial_t *mate
 		if ( !( ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '_' || *p == '/' || *p == '.' || *p == '-' ) )
 			return false;
 	}
+	return true;
+}
+
+bool R_CookedHashMatches( const void *data, size_t size, const uint8_t hash[32] ) {
+	uint8_t calculated[32];
+	calc_sha_256( calculated, data, size );
+	return memcmp( calculated, hash, 32 ) == 0;
+}
+
+bool R_ReadCookedIndex( const void *data, size_t size, const uint8_t revision[32], cookedIndex_t *index ) {
+	*index = {};
+	if ( !data || size < sizeof( cookedHeader_t ) + 4 || size > 52 + 4096 * sizeof( cookedEntry_t ) )
+		return false;
+	cookedHeader_t header;
+	memcpy( &header, data, sizeof( header ) );
+	const uint8_t *payload = (const uint8_t *)data + sizeof( header );
+	uint32_t count;
+	memcpy( &count, payload, 4 );
+	if ( memcmp( header.magic, "ASIDX\0\0\0", 8 ) || header.version != 1 || count > 4096 || header.size != 4 + count * sizeof( cookedEntry_t ) || size != sizeof( header ) + header.size || !R_CookedHashMatches( payload, header.size, header.hash ) || !R_CookedHashMatches( data, size, revision ) )
+		return false;
+	for ( uint32_t i = 0; i < count; i++ ) {
+		cookedEntry_t entry;
+		memcpy( &entry, payload + 4 + i * sizeof( entry ), sizeof( entry ) );
+		if ( !entry.path[0] || entry.path[0] == '/' || !memchr( entry.path, 0, sizeof( entry.path ) ) || strstr( entry.path, ".." ) || entry.size > INT32_MAX || entry.kind < 1 || entry.kind > 5 )
+			return false;
+	}
+	index->entries = payload + 4;
+	index->count = count;
 	return true;
 }

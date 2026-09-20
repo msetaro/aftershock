@@ -70,3 +70,18 @@ relative to the material file), `baseColorFactor`, `doubleSided`, `unlit`,
 files. Base-color factors are baked in linear space; opaque materials discard
 source alpha. The current native mask test supports cutoff 0.5; other cutoffs
 are rejected until the material pipeline in #13 provides arbitrary thresholds.
+
+`--watch` polls source/output timestamps every 100 ms, recooks changed dependencies
+and atomically publishes `cook.index` followed by its SHA-256 `cook.revision`.
+The plain index is capped at 4,096 native resources and records each qpath, hash,
+size and kind. Failed cooks retain the previous published revision. The output
+must be the running development client's home game directory for reload polling.
+After entering a local `devmap`, set `dev_reloadAssets 1`. Development renderer ABI
+13 adds a bounded loose-home-file read callback; shipping ABI remains 10.
+
+Texture reload is implemented: polling uses the existing real microsecond clock,
+so it continues while `timescale 0` pauses the scene. Idle polling allocates no
+engine memory. Each texture replacement waits for completed GPU use, retains the
+image registry handle/descriptor, and reclaims the prior dedicated device memory.
+Size changes use the same transaction; failure preserves the live image. Material,
+model and animation reload and named clip controls are still being implemented.

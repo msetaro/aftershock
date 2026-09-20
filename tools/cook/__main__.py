@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 import re
 import sys
+import struct
+import time
 import tempfile
 
 import model
@@ -60,7 +62,7 @@ def cook(project, output):
     if definition.get('version') != 1:
         raise ValueError('asset project version must be 1')
     tool = tool_hash()
-    built, skipped, names, owners = [], [], set(), {}
+    built, skipped, names, owners, resources = [], [], set(), {}, {}
     for asset in definition['assets']:
         name = asset['name']
         if not re.fullmatch(r'[a-z0-9_/-]+', name) or name.startswith('/') or '..' in name or len(name) > 59 or name in names:
@@ -120,21 +122,66 @@ def cook(project, output):
             if item['path'] in owners and owners[item['path']] != name:
                 raise ValueError('two assets own the same cooked resource: ' + item['path'])
             owners[item['path']] = name
+            resources[item['path']] = item['sha256']
+    if len(resources) > 4096:
+        raise ValueError('project exceeds the 4096-resource development index limit')
+    index = bytearray(struct.pack('<I', len(resources)))
+    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3}
+    for path, hashed in sorted(resources.items()):
+        size = below(output, path).stat().st_size
+        index.extend(struct.pack('<64s32sII', path.encode(), bytes.fromhex(hashed), size, kinds[Path(path).suffix]))
+    index = model.wrapped(b'ASIDX\0\0\0', index)
+    write(output / 'cook.index', index)
+    # The watcher-visible commit marker is published only after the whole project.
+    write(output / 'cook.revision', hashlib.sha256(index).digest())
     return {'version': 1, 'built': built, 'skipped': skipped}
+
+
+def snapshot(project, output):
+    paths = {project}
+    definition = json.loads(project.read_bytes())
+    for asset in definition['assets']:
+        paths.add(below(project.parent, asset['source']))
+        manifest = json.loads(below(output, asset['name'] + '.manifest.json').read_bytes())
+        paths.update(below(project.parent, item['path']) for item in manifest['inputs'])
+        paths.update(below(output, item['path']) for item in manifest['outputs'])
+    result = []
+    for path in sorted(paths):
+        try:
+            stat = path.stat()
+            result.append((str(path), stat.st_mtime_ns, stat.st_size))
+        except OSError:
+            result.append((str(path), None, None))
+    return result
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('project', type=Path)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--watch', action='store_true', help='poll source changes every 100 ms and publish successful cooks')
     args = parser.parse_args()
-    try:
-        result = cook(args.project.resolve(), args.output)
-    except (OSError, ValueError, KeyError, IndexError, TypeError) as error:
-        print('cook: ' + str(error), file=sys.stderr)
-        return 1
-    print(json.dumps(result, sort_keys=True))
-    return 0
+    args.project = args.project.resolve()
+    args.output = args.output.resolve()
+    previous = None
+    error_message = None
+    while True:
+        try:
+            if previous is None or snapshot(args.project, args.output) != previous:
+                result = cook(args.project, args.output)
+                print(json.dumps(result, sort_keys=True), flush=True)
+                previous = snapshot(args.project, args.output)
+                error_message = None
+        except (OSError, ValueError, KeyError, IndexError, TypeError) as error:
+            if str(error) != error_message:
+                print('cook: ' + str(error), file=sys.stderr, flush=True)
+                error_message = str(error)
+            if not args.watch:
+                return 1
+            previous = None
+        if not args.watch:
+            return 0
+        time.sleep(0.1)
 
 
 if __name__ == '__main__':

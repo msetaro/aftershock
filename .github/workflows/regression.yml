@@ -185,7 +185,7 @@ jobs:
         with:
           key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install runtime tools and OpenArena content
-        run: sudo apt-get update && sudo apt-get install -y ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data
+        run: sudo apt-get update && sudo apt-get install -y python3-venv ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data
       - name: Stage pinned upstream OpenArena gamecode
         run: python3 tests/openarena.py
       - name: Download URL construction
@@ -206,6 +206,11 @@ jobs:
         run: python3 tests/dev_entities.py --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Native entity and world tools through real input
         run: python3 tests/dev_world_ui.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Cooked character and visible source reload
+        run: |
+          python3 -m venv /tmp/aftershock-cook-python
+          /tmp/aftershock-cook-python/bin/pip install -r tools/cook/requirements.txt
+          /tmp/aftershock-cook-python/bin/python tests/cook_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Development overlay input and renderer restart
         run: python3 tests/devtools.py --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Optional renderer module replay
@@ -233,6 +238,9 @@ jobs:
             /tmp/aftershock-dev-entities/**/*.log
             /tmp/aftershock-dev-world-ui/*.log
             /tmp/aftershock-dev-world-ui/*.tga
+            /tmp/aftershock-cook-runtime-test/*.log
+            /tmp/aftershock-cook-runtime-test/*.tga
+            /tmp/aftershock-cook-runtime-test/latency.txt
             /tmp/aftershock-devtools-tests/**/*.log
             /tmp/aftershock-devtools-tests/runtime/*.tga
             /tmp/tests-native-runtime/**/*.log

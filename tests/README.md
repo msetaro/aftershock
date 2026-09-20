@@ -658,3 +658,11 @@ destination capacity while small ordinary text verifies print/error routing and
 the log prefix. No oversized write is used. The formatters use standard bounded
 output, truncating diagnostic text to their existing buffer capacities. Use
 `--cxx 'clang++ -stdlib=libc++'` for the second CI compiler configuration.
+
+Cooked asset runtime check (#9): `python3 tests/cook_runtime.py` builds the enabled
+client, cooks the owned Blender fixture, opens it through real ImGui input and
+edits a copied source texture. The fixed-camera before/after screenshots must
+show the edit within one second. `--binary` reuses a development client;
+`--content openarena --data /tmp/aftershock-openarena-baseoa` selects hosted content.
+Use the tools/cook Python requirements in a venv. The watcher and client use only
+private temporary source/output trees; installed paks are symlinked locally.

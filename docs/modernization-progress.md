@@ -25,7 +25,9 @@ Current branch is `issue/9-asset-pipeline`. Its test-first commit is 56c25515;
 origin/modernization has been merged into it without rewriting history. The
 owned Blender source fixture was exported once with verified portable Blender
 4.5.3 (archive hash below). Offline cooking/production pose tests pass at 7acd72c1.
-Draft PR #145 holds #9. Complete native compressed texture/reload/UI acceptance.
+Draft PR #145 holds #9. Native BC texture/material loading and watched texture
+replacement now work. Complete material/model/animation reload, named clip
+controls, remaining audio/shader inputs and final runtime/CI acceptance.
 Keep the graph's reviewed branch unchanged. #7 is complete and closed.
 
 Read #9 and the preparation notes in the persistent modernization cache
@@ -2888,3 +2890,28 @@ the incomplete replacement. The implementation adds explicitly owned memory only
 to this replacement path; legacy image pools retain their existing allocation.
 GCC and Clang/libc++ pass the full RHI probes. Evidence: cook-replace-*.log.
 No source watcher or renderer reload polling is connected yet.
+
+The source watcher and native texture reload are connected. Test-first commits
+c885ee01/6a396dbe failed on the absent publication marker/renderer consumption.
+The runtime gate then exposed a new-feature clock choice: ri.Milliseconds scales
+with timescale, so polling now uses the existing real Microseconds callback.
+With the preview camera settled, source PNG editing reached the captured frame
+in 0.610705 seconds, changing 3,759 model-preview pixels. Before/after images were
+visually inspected; the source fixture and accepted goldens were untouched.
+
+The cooker publishes a fixed-record, hashed project index and revision marker only
+after successful cooking. The enabled renderer reads the small marker without
+engine allocations, checks the index/content hashes and swaps loaded texture
+resources at a frame boundary. Shipping builds contain no polling or watcher.
+Enabled renderer ABI is now 13 (shipping remains 10); rebuild matching modules.
+GCC/Clang cooker checks, RHI ownership probes and the local development build pass.
+The runtime job now installs its own venv dependency and runs the owned-character
+reload gate against OpenArena. Evidence: cook-watch-*.log, cook-live-before.log,
+cook-live-fixed-camera.log, cook-reload-build.log. The first 0.255857-second sample
+also had a late yaw adjustment; use the fixed-camera 0.610705-second result.
+
+Remaining #9 work: named clips; bounded material/model/animation replacement and
+UI status; WAV/OGG/shader source cooking; complete static/module, restart, idle,
+Q3/OpenArena and exact-head hosted gates. Existing IQM dataSize accounting reports
+zero model bytes; this predates #9 and is recorded in #31/docs/bugs.md, not fixed
+here. Handle that separate #31 PR after #9 before continuing #10.

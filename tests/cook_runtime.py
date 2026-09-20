@@ -49,8 +49,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-cook-live-') as temporary:
             wait_for(lambda: (base / 'cook.revision').is_file(), watcher)
             revision = (base / 'cook.revision').read_bytes()
             (base / 'cook-test.cfg').write_text('\n'.join([
-                f'devmap {content_maps(args.content)[0]}', 'wait 10', 'set timescale 0',
-                'echo cook_ui_ready', 'wait 80', 'imagelist', 'modellist',
+                f'devmap {content_maps(args.content)[0]}', 'wait 10', 'set dev_reloadAssets 1', 'dev_reloadAssets', 'set timescale 0',
+                'echo cook_ui_ready', 'wait 200', 'imagelist', 'modellist',
                 'screenshot before', 'wait 3', 'echo cook_edit', 'wait 12',
                 'screenshot after', 'wait 4', 'quit']) + '\n')
             command = [str(args.binary.resolve()), '+set', 'fs_basepath', str(home), '+set', 'fs_homepath', str(home),
@@ -89,7 +89,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-cook-live-') as temporary:
                     after_image = Image.open(after).convert('RGB')
                     # Compare the model preview only, excluding counters and the scene.
                     delta = ImageChops.difference(before.crop((18, 312, 621, 460)), after_image.crop((18, 312, 621, 460)))
-                    changed = sum(max(pixel) > 40 for pixel in delta.getdata())
+                    pixels = delta.tobytes()
+                    changed = sum(max(pixels[i:i + 3]) > 40 for i in range(0, len(pixels), 3))
                     assert changed > 200, f'texture edit was not visible: {changed} changed pixels'
                     assert latency < 1.0, f'texture edit took {latency:.3f}s to reach the sampled frame'
                     for name in ('before', 'after'):
