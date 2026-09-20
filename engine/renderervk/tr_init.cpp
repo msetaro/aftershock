@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_init.c -- functions that are not called every frame
 
 #include "tr_local.h"
+#include <inttypes.h>
 
 glconfig_t glConfig;
 
@@ -1382,12 +1383,14 @@ static void GfxInfo_f( void ) {
 
 #ifdef USE_VULKAN
 static void VkInfo_f( void ) {
-	ri.Printf( PRINT_ALL, "max_vertex_usage: %iKb\n", (int)( ( vk.stats.vertex_buffer_max + 1023 ) / 1024 ) );
-	ri.Printf( PRINT_ALL, "max_push_size: %ib\n", vk.stats.push_size_max );
+	const rhiStats_t stats = RHI_GetStats();
+	ri.Printf( PRINT_ALL, "max_vertex_usage: %iKb\n", (int)( ( stats.vertexBytesPeak + 1023 ) / 1024 ) );
+	ri.Printf( PRINT_ALL, "max_push_size: %ib\n", stats.pushBytesPeak );
 
-	ri.Printf( PRINT_ALL, "pipeline handles: %i\n", vk.pipeline_create_count );
-	ri.Printf( PRINT_ALL, "pipeline descriptors: %i, base: %i\n", vk.pipelines_count, vk.pipelines_world_base );
-	ri.Printf( PRINT_ALL, "image chunks: %i\n", vk_world.num_image_chunks );
+	ri.Printf( PRINT_ALL, "pipeline handles: %i\n", stats.pipelineHandles );
+	ri.Printf( PRINT_ALL, "pipeline descriptors: %i, base: %i\n", stats.pipelineDescriptions, stats.worldPipelineBase );
+	ri.Printf( PRINT_ALL, "image chunks: %i\n", stats.imageChunks );
+	ri.Printf( PRINT_ALL, "geometry: %" PRIu64 "b/slot, staging: %" PRIu64 "b, samplers: %i, frame slots: %u\n", stats.geometryBytes, stats.stagingBytes, stats.samplers, stats.frameSlots );
 }
 #endif
 
@@ -1399,7 +1402,7 @@ RE_SyncRender
 */
 static void RE_SyncRender( void ) {
 #ifdef USE_VULKAN
-	if ( vk.device )
+	if ( RHI_Available() )
 		vk_wait_idle();
 #else
 	if ( qglFinish && backEnd.doneSurfaces )

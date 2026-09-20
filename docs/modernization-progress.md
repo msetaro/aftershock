@@ -2,8 +2,12 @@
 
 Integration: `modernization`. Issue branches: `issue/<number>-<slug>`, one bug per
 #31 PR and one warning class per #8 PR. Merge commits only after gates/self-review.
-Never push main, force-push, rewrite history, or touch port-evidence. Stop after #8
-and a design-only `docs/design/rhi.md` for #6; no #6/#7 implementation.
+Never push main, force-push, rewrite history, or touch port-evidence.
+
+Maintainer continuation (2026-09-19): continue the modernization roadmap through
+completion or a dependency requiring the maintainer. This supersedes the earlier
+stop after #8/design-only #6. Implement #6 next, then follow #25; preserve the
+separate-session #35 scope and the completed network-test evidence.
 
 Maintainer ruling (2026-09-19): keep all future changes and PRs in
 `msetaro/aftershock`. Do not create PRs against ec-/Quake3e or another parent
@@ -12,16 +16,42 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Stop at this checkpoint after the design-only #6 PR passes its gates, merges, and
-its merged-tree regression passes. The authorized sequence ends here. Do not start
-RHI implementation, retire OpenGL, or advance to #7 without a new request.
+Implement #6 on `issue/6-rhi`, starting at integration e82eb43b. Trace existing
+resource/frame ownership and capture fixed-demo resource statistics before extracting
+public GPU records and the Vulkan backend. Keep accepted fixtures and frame goldens.
+The thin RHI and compile-only alternative backend must pass the design's build,
+replay and lifecycle gates before retiring OpenGL. Continue #7 and the remaining
+#25 sequence after #6 is accepted. All writes/PRs stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
-`modernization`. #6 has a design document only: `docs/design/rhi.md`. It describes
-the thin static Vulkan RHI, platform/filesystem ownership, explicit lifetimes and
-error handling, offline shaders/caches, phase-two render graph and unchanged-frame
-gates. It does not add engine code or a new backend. Final design PR/merge and CI
-evidence are recorded on [issue #6](https://github.com/msetaro/aftershock/issues/6).
+`modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
+regression 35479955499 passed; merged-tree regression 35480310184 passed.
+`docs/design/rhi.md` is now the implementation plan for #6 under the renewed scope.
+No RHI engine changes have merged yet. Baseline capacities: two frame slots, 4 MiB
+normal / 8 MiB high geometry buffers, 2 MiB normal / 24 MiB high staging buffers,
+32 samplers and 2,304 pipeline descriptions; do not change these during extraction.
+Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
+
+## #6 implementation checkpoint
+
+The first working slice moves uniform uploads out of `tr_shade.cpp` into the
+backend through `engine/rhi/rhi_public.h`, without changing uniform generation,
+alignment, descriptor ordering or frame slots. Diagnostics use a trivial public
+record. The partial alternative stub compiles in every client configuration and
+reports unavailable; it is not a completed alternative renderer. `tests/rhi.py`
+checks public-only dependencies and production upload alignment/bytes/bindings,
+capacity exhaustion and separate frame slots (GCC and Clang/libc++ pass).
+
+Local baseline and post-extraction fixed Q3 replay pass with b38004b1, no fixture
+or golden changes. Mesa 26.0.8 / llvmpipe LLVM 21.1.8, Vulkan API 1.4.335, 640x480
+windowed, 32-bit textures, picmip 0, GL_LINEAR_MIPMAP_NEAREST. q3dm17 peak vertex
+284 KiB / push 4,160 bytes / 67 pipelines / 183 descriptions / 1 image chunk;
+q3dm7 120 KiB / 1,024 bytes / 60 pipelines / 214 descriptions / 2 chunks. Both use
+pipeline world base 92. Capacities and allocation policies are unchanged. Host
+wall times include startup, are informational, and are not GPU timing claims.
+Cache evidence: rhi-baseline.log, rhi-uniform.log, rhi-contract.log and rhi-baseline/
+in ~/.cache/aftershock-modernization. Hosted OpenArena measurements, remaining
+resources/device/commands/timestamps, lifecycle gates and GL retirement are pending.
 
 ## Final #8 verification
 

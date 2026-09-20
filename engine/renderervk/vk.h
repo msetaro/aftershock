@@ -2,6 +2,7 @@
 
 #include "../../third_party/vulkan/vulkan.h"
 #include "tr_common.h"
+#include "../rhi/rhi_public.h"
 
 #define MAX_SWAPCHAIN_IMAGES 8
 #define MIN_SWAPCHAIN_IMAGES_IMM 3

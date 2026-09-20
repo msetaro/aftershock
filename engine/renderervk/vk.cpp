@@ -4607,6 +4607,16 @@ __cleanup:
 }
 
 
+bool RHI_Available( void ) {
+	return vk.device != VK_NULL_HANDLE;
+}
+
+rhiStats_t RHI_GetStats( void ) {
+	return { vk.stats.vertex_buffer_max, vk.geometry_buffer_size, vk.staging_buffer.size,
+		vk.stats.push_size_max, vk.pipeline_create_count, vk.pipelines_count,
+		vk.pipelines_world_base, vk_world.num_image_chunks, vk.samplers.count, NUM_COMMAND_BUFFERS };
+}
+
 void vk_wait_idle( void ) {
 	VK_CHECK( qvkDeviceWaitIdle( vk.device ) );
 }
@@ -6994,6 +7004,27 @@ void vk_bind_lighting( int stage, int bundle ) {
 
 		qvkCmdBindVertexBuffers( vk.cmd->command_buffer, bind_base, bind_count, shade_bufs, vk.cmd->buf_offset + bind_base );
 	}
+}
+
+
+uint32_t RHI_UploadUniform( const void *data, uint32_t size ) {
+	if ( !vk.cmd || !data || size > sizeof( vkUniform_t ) )
+		return RHI_INVALID_OFFSET;
+
+	const uint32_t offset = vk.cmd->uniform_read_offset = PAD( vk.cmd->vertex_buffer_offset, vk.uniform_alignment );
+
+	if ( offset + vk.uniform_item_size > vk.geometry_buffer_size )
+		return ~0U;
+
+	// push uniform
+	Com_Memcpy( vk.cmd->vertex_buffer_ptr + offset, data, size );
+	vk.cmd->vertex_buffer_offset = offset + vk.uniform_item_size;
+
+	vk_reset_descriptor( VK_DESC_UNIFORM );
+	vk_update_descriptor( VK_DESC_UNIFORM, vk.cmd->uniform_descriptor );
+	vk_update_descriptor_offset( VK_DESC_UNIFORM, vk.cmd->uniform_read_offset );
+
+	return offset;
 }
 
 

@@ -1,7 +1,7 @@
 # RHI extraction design (#6)
 
-Design only; this document does not start #6 implementation. The #8 code rules
-are in force. The reference is the existing Vulkan renderer. Acceptance requires
+Implementation authorized by the maintainer continuation of 2026-09-19. The #8
+code rules are in force. The reference is the existing Vulkan renderer. Acceptance requires
 unchanged sampled-frame hashes from the committed demo fixtures. Simulation, asset interpretation, draw ordering, shader
 arithmetic, blend/depth state and image conversion remain unchanged.
 

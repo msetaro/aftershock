@@ -543,7 +543,6 @@ static void ProjectDlightTexture( void ) {
 
 #endif // USE_LEGACY_DLIGHTS
 
-uint32_t VK_PushUniform( const vkUniform_t *uniform );
 void VK_SetFogParams( vkUniform_t *uniform, int *fogStage );
 static vkUniform_t uniform;
 
@@ -566,7 +565,7 @@ static void RB_FogPass( qboolean rebindIndex ) {
 		vk_bind_index();
 	}
 	VK_SetFogParams( &uniform, &fog_stage );
-	VK_PushUniform( &uniform );
+	RHI_UploadUniform( &uniform, sizeof( uniform ) );
 	vk_update_descriptor( VK_DESC_FOG_ONLY, tr.fogImage->descriptor );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
 #else
@@ -976,7 +975,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 
 		if ( pushUniform ) {
 			pushUniform = qfalse;
-			VK_PushUniform( &uniform );
+			RHI_UploadUniform( &uniform, sizeof( uniform ) );
 		}
 
 		GL_SelectTexture( 0 );
@@ -1049,7 +1048,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 
 #ifdef USE_VULKAN
 	if ( pushUniform ) {
-		VK_PushUniform( &uniform );
+		RHI_UploadUniform( &uniform, sizeof( uniform ) );
 	}
 	if ( tess_flags ) // fog-only shaders?
 		vk_bind_geometry( tess_flags );
@@ -1114,24 +1113,6 @@ static void VK_SetLightParams( vkUniform_t *params, const dlight_t *dl ) {
 #endif
 
 
-uint32_t VK_PushUniform( const vkUniform_t *params ) {
-	const uint32_t offset = vk.cmd->uniform_read_offset = PAD( vk.cmd->vertex_buffer_offset, vk.uniform_alignment );
-
-	if ( offset + vk.uniform_item_size > vk.geometry_buffer_size )
-		return ~0U;
-
-	// push uniform
-	Com_Memcpy( vk.cmd->vertex_buffer_ptr + offset, params, sizeof( *params ) );
-	vk.cmd->vertex_buffer_offset = offset + vk.uniform_item_size;
-
-	vk_reset_descriptor( VK_DESC_UNIFORM );
-	vk_update_descriptor( VK_DESC_UNIFORM, vk.cmd->uniform_descriptor );
-	vk_update_descriptor_offset( VK_DESC_UNIFORM, vk.cmd->uniform_read_offset );
-
-	return offset;
-}
-
-
 #ifdef USE_PMLIGHT
 void VK_LightingPass( void ) {
 	static uint32_t uniform_offset;
@@ -1154,7 +1135,7 @@ void VK_LightingPass( void ) {
 		// light parameters
 		VK_SetLightParams( &uniform, tess.light );
 
-		uniform_offset = VK_PushUniform( &uniform );
+		uniform_offset = RHI_UploadUniform( &uniform, sizeof( uniform ) );
 
 		tess.dlightUpdateParams = qfalse;
 	}

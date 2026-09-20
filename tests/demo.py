@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import time
 
 from run import ROOT, ENV, build, run, content_maps, content_bots, content_settings
 from frames import check_frames
@@ -59,7 +60,9 @@ def client(binary, home, commands, log_name, fixed_random=False):
                '+set', 'r_fullscreen', '0', '+set', 'r_mode', '3', '+set', 's_initsound', '0',
                '+set', 'sv_pure', '0', '+set', 'net_ip', '127.0.0.1', '+set', 'com_maxfps', '0',
                '+set', 'com_logfile', '0', '+set', 'cl_autoRecordDemo', '0', '+set', 'name', 'regression', *commands]
+    started = time.monotonic()
     result = subprocess.run([str(a) for a in command], cwd=ROOT, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(f'REPLAY {log_name}: {time.monotonic() - started:.3f}s wall time (includes startup)', flush=True)
     log = result.stdout
     (output / log_name).write_bytes(log)
     result.check_returncode()
@@ -114,7 +117,8 @@ for map_name in content_maps(args.content):
                         '+demo', map_name,
                         '+wait', '50', '+screenshot', 'frame050',
                         '+wait', '50', '+screenshot', 'frame100',
-                        '+wait', '100', '+screenshot', 'frame200', '+wait', '2', '+quit'],
+                        '+wait', '100', '+screenshot', 'frame200', '+wait', '2', '+gfxinfo',
+                        *(['+vkinfo'] if backend == 'vulkan' else []), '+quit'],
                        f'{map_name}-{backend}-replay-{iteration}.log')
                 for name in ('frame050', 'frame100', 'frame200'):
                     shutil.copyfile(base / 'screenshots' / (name + '.tga'),

@@ -16,6 +16,7 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 
 ```
 python3 tests/native_math.py
+python3 tests/rhi.py
 python3 tests/check_format.py
 python3 tests/check_types.py
 python3 tests/check_tidy.py
@@ -28,6 +29,15 @@ python3 tests/check_frames.py
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
 ```
+
+`python3 tests/rhi.py` checks the alternative backend against the public RHI
+header alone, then exercises the production Vulkan uniform upload path without a
+GPU: alignment, exact bytes, binding offsets, exhaustion and independent frame slots.
+The stub reports unavailable and is never linked into a client. All CMake client
+builds compile it; the two unit CI compilers also run the contract checks.
+The RHI is being extracted in stages under #6; this initially covers uploads and
+statistics, not a completed second renderer. Demo runs retain `gfxinfo`/`vkinfo`
+measurements and report host wall time including startup; these are not GPU timings.
 
 Central model/BSP/AAS file records and the shared state/font records assert size,
 alignment, trivial copyability and standard layout in their owning headers.
