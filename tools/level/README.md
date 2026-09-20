@@ -61,3 +61,10 @@ headless report belong to #27.
 
 The sample images and cube are committed sources. Their explicit authoring command
 is `python3 tests/assets/levels/export.py`; CI only verifies their provenance.
+
+The permanent gates are `python3 tests/level.py` for the language/design rules and
+`python3 tests/level.py --compile` for repeated pinned MAP/BSP/AAS output plus
+committed fixture comparison. Initial fixture authoring is explicit:
+`python3 tests/level.py --compile --record-fixtures`. It writes only
+`tests/golden/levels/two_lane.{map,bsp,aas}` and is refused in CI. Review generated
+geometry and actual bot pathing before accepting those new artifacts.

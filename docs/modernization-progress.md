@@ -67,8 +67,10 @@ a ramp, four FFA/team spawns, cover kits, a solid OBJ prop, pickups and lighting
 Six 16x16 procedural textures and a 64-unit cube have a source authoring script
 and pinned provenance. tests/level.py requires deterministic MAP output and
 specific corridor/door/containment/connectivity/material/sightline/cover/duplicate
-errors. It fails on the absent CLI before implementation. Full BSP/AAS output and
-real bot-pathing tests remain to be added before #26 acceptance.
+errors. It fails on the absent CLI before implementation. The optional --compile gate also requires repeated MAP/BSP/AAS bytes and committed
+fixture comparison; its explicit recording flag is refused in CI. Neither compiler
+implementation nor initial golden output exists yet. Real bot-pathing acceptance
+remains to be added.
 
 #12 PR #149 merged with a merge commit as
 3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree
