@@ -21,8 +21,8 @@ void QDECL Com_Printf( const char *format, ... ) {
 	va_end( args );
 }
 
-static qboolean not_minimized( void ) {
-	return qfalse;
+static bool not_minimized( void ) {
+	return false;
 }
 
 static VkResult VKAPI_CALL acquire( VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t *index ) {
@@ -52,7 +52,7 @@ int main( int argc, char **argv ) {
 	if ( argc != 2 )
 		return 2;
 	acquisition = (VkResult)atoi( argv[1] );
-	ri.CL_IsMinimized = not_minimized;
+	vk_host.IsMinimized = not_minimized;
 	ri.Error = frame_error;
 	qvkAcquireNextImageKHR = acquire;
 	qvkBeginCommandBuffer = begin_commands;

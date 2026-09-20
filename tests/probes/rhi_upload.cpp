@@ -2,12 +2,6 @@
 #include "../../engine/renderervk/vk.cpp"
 #include <assert.h>
 
-refimport_t ri;
-cvar_t *r_ext_texture_filter_anisotropic;
-cvar_t *r_ext_max_anisotropy;
-cvar_t *r_bloom;
-cvar_t *r_offsetUnits;
-cvar_t *r_offsetFactor;
 
 void QDECL Com_Printf( const char *, ... ) {
 	abort();
@@ -112,7 +106,13 @@ static void VKAPI_CALL destroy_view( VkDevice, VkImageView view, const VkAllocat
 	destroyed = 2;
 }
 
+static void *missing_loader_entry( uint64_t instance, const char *name ) {
+	assert( instance == 0 && strcmp( name, "vkCreateInstance" ) == 0 );
+	return nullptr;
+}
+
 int main( void ) {
+	vk_config.uniformBytes = 128;
 	assert( !RHI_GetCapabilities().active );
 	vk.active = vk.wideLines = vk.fragmentStores = vk.clearAttachment = vk.fboActive = vk.offscreenRender = qtrue;
 	vk.maxBoundDescriptorSets = 8;
@@ -299,8 +299,8 @@ int main( void ) {
 
 	// A failed wait leaves live sampler objects and filter policy intact.
 	waits = 0;
-	vk.samplers.filter_min = GL_NEAREST;
-	vk.samplers.filter_max = GL_NEAREST;
+	vk.samplers.filter_min = FILTER_NEAREST;
+	vk.samplers.filter_max = FILTER_NEAREST;
 	vk.samplers.count = 1;
 	vk.samplers.handle[0] = (VkSampler)(uintptr_t)32;
 	qvkDestroySampler = destroy_sampler;
@@ -309,13 +309,13 @@ int main( void ) {
 	assert( !changed && waits == 0 );
 	wait_result = VK_ERROR_DEVICE_LOST;
 	assert( RHI_SetTextureFilter( rhiFilter_t::LinearMipmapLinear, rhiFilter_t::Linear, &changed ) == rhiStatus_t::DeviceLost );
-	assert( !changed && sampler_destroys == 0 && vk.samplers.count == 1 && vk.samplers.filter_min == GL_NEAREST );
+	assert( !changed && sampler_destroys == 0 && vk.samplers.count == 1 && vk.samplers.filter_min == FILTER_NEAREST );
 	wait_result = VK_SUCCESS;
 	assert( RHI_SetTextureFilter( rhiFilter_t::LinearMipmapLinear, rhiFilter_t::Linear, &changed ) == rhiStatus_t::Success );
-	assert( changed && sampler_destroys == 1 && vk.samplers.count == 0 && vk.samplers.filter_min == GL_LINEAR_MIPMAP_LINEAR );
-	assert( vk_texture_filter( rhiFilter_t::NearestMipmapNearest ) == GL_NEAREST_MIPMAP_NEAREST );
-	assert( vk_texture_filter( rhiFilter_t::NearestMipmapLinear ) == GL_NEAREST_MIPMAP_LINEAR );
-	assert( vk_texture_filter( rhiFilter_t::LinearMipmapNearest ) == GL_LINEAR_MIPMAP_NEAREST );
+	assert( changed && sampler_destroys == 1 && vk.samplers.count == 0 && vk.samplers.filter_min == FILTER_LINEAR_MIPMAP_LINEAR );
+	assert( vk_texture_filter( rhiFilter_t::NearestMipmapNearest ) == FILTER_NEAREST_MIPMAP_NEAREST );
+	assert( vk_texture_filter( rhiFilter_t::NearestMipmapLinear ) == FILTER_NEAREST_MIPMAP_LINEAR );
+	assert( vk_texture_filter( rhiFilter_t::LinearMipmapNearest ) == FILTER_LINEAR_MIPMAP_NEAREST );
 
 	// Unknown format labels must not alias the formatter's scratch buffer.
 	vk.present_format.format = (VkFormat)1000;
@@ -338,6 +338,19 @@ int main( void ) {
 	assert( vk_error_environment == nullptr );
 	assert( RHI_WaitIdle() == rhiStatus_t::Success );
 	assert( RHI_GetError()->message[0] == '\0' && !RHI_GetError()->drop );
+	rhiDeviceConfig_t config = {};
+	config.renderWidth = 640;
+	config.renderHeight = 480;
+	config.uniformBytes = 128;
+	rhiHost_t host = {};
+	host.GetInstanceProcAddr = missing_loader_entry;
+	rhiDeviceInfo_t deviceInfo;
+	memset( &deviceInfo, 0xff, sizeof( deviceInfo ) );
+	assert( RHI_Initialize( &config, &host, &deviceInfo ) == rhiStatus_t::Error );
+	assert( strstr( RHI_GetError()->message, "vkCreateInstance" ) && !RHI_GetError()->drop );
+	assert( !RHI_Available() && vk_device_info == nullptr && vk_error_environment == nullptr );
+	assert( vk_config.renderWidth == 640 && vk_config.renderHeight == 480 && vk_config.uniformBytes == 128 );
+	assert( deviceInfo.renderer[0] == 0 && deviceInfo.maxTextureSize == 0 );
 	puts( "PASS: RHI uploads, textures, wait statuses, commands and bounded asynchronous timestamp readback" );
 	return 0;
 }

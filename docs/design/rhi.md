@@ -77,8 +77,11 @@ is distinct from the engine-wide Com_Error jump. The lifetime gate remains
 required, including optional module builds. A cached pipeline bind takes the
 existing direct path. Texture conversion and its hunk scratch belong to the
 frontend; scratch is freed before reporting an upload error. Process-fatal zone
-allocator callbacks remain host services. Removing the remaining initialization
-frontend callback is part of the pending configuration boundary work.
+allocator callbacks remain host services. Initialization receives copied device settings and seven explicit host services.
+It borrows its diagnostic/capability output only during the call, including failure
+returns. Post-process settings update at the existing frontend points. The backend
+has no dependency on frontend records, cvar pointers or private headers. Live
+minimization and swap-interval queries keep their original call sites.
 
 ## Shader and pipeline artifacts
 

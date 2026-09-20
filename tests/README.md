@@ -55,6 +55,9 @@ requires rebuilding old modules with the client; only the platform import callba
 signatures changed, not the scene or game services.
 The RHI check also rejects GPU SDK dependencies in the frontend/client headers and
 checks explicit stream/raster bindings, upload exhaustion and sampler wait ordering.
+The backend dependency check rejects frontend headers. Missing loader entries must
+return a diagnostic and release the initialization output pointer; the alternative
+backend implements the same configuration and host-service records.
 Controlled GPU failures must return status and fatal/drop diagnostics without
 calling the engine error callback. Frontend image checks cover all five converted
 byte layouts and release scratch before reporting either success or a GPU error.

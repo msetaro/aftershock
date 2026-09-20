@@ -21,9 +21,10 @@ initial commands, GPU scopes, pipeline descriptions, platform imports, bindings
 and transforms are extracted. Built-in pipeline selection is frontend-owned.
 Geometry/view selection and frame inputs are now frontend-owned; frontend headers
 have no GPU SDK dependency. Explicit GPU failure statuses now return before the
-frontend error callback; texture conversion/scratch is frontend-owned. Next finish
-device configuration and remaining initialization callbacks, then lifecycle, shader
-packaging/cache and acceptance gates. Acquisition fix PR #141 merged separately as 61401e17 after
+frontend error callback; texture conversion/scratch is frontend-owned. Device
+configuration and host services now use explicit plain records; the backend no
+longer includes frontend headers or reads renderer globals/cvar pointers. Finish
+configuration acceptance, then lifecycle, shader packaging/cache and final gates. Acquisition fix PR #141 merged separately as 61401e17 after
 full build 35484485400/regression 35484485349 and self-review; it has now been
 merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
 follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
@@ -313,6 +314,47 @@ uses a checkout-specific cache after the default /tmp cache referenced another
 checkout; no engine failure occurred in that configure attempt.
 No shader, fixture, golden or simulation arithmetic changes. SDK checkpoint
 bee85c84 passed full build 35487036651 and regression 35487036699.
+
+Device/configuration slice: RHI initialization copies window/render/capture sizes,
+latched settings and existing frontend resource limits. It borrows an output record
+only during initialization and clears that pointer before return, including error
+returns. Post-process settings are copied at the original update points; expression
+order is unchanged. Swap interval and minimization remain live host callbacks at
+the original query sites. Seven explicit host services retain allocator, log and
+platform ownership. The backend now includes only its private GPU types, the RHI
+contract and public qcommon helpers; no tr_local/tr_common/tr_public dependency,
+renderer globals, cvar pointers or frontend texture-mode callback remains.
+
+Texture filter parsing stays in the frontend. The backend retains the original
+initial device wait/sampler setup position and later filter-update ordering. The
+uncompiled alpha-to-coverage block is removed rather than exporting its absent
+cvar as a live configuration input: an initial eager read in this working change
+was caught by the startup replay and corrected before commit. The acquisition
+regression and GCC/Clang RHI checks pass, including missing-loader status return,
+copied settings and release of the borrowed output pointer. The dependency check
+now rejects private frontend headers from the backend as well as GPU SDK headers
+from the frontend. No new allocation, shader/fixture/golden or simulation change.
+
+Local static/module replay/restart retain b38004b1 (rhi-device-config.log,
+rhi-config-module.log). Real-clock main samples: 4.881/4.116 ms q3dm17 and
+4.946/4.905 ms q3dm7, informational. Format/type/boundary and all 570 tidy
+configurations pass. Additional before/after FBO/bloom/MSAA/16-bit-texture and
+supersampled/render-scaled replays pass on both maps, including live gamma,
+greyscale, bloom-intensity and texture-filter updates. All 12 sampled TGA files
+match the retained pre-configuration binary byte-for-byte (rhi-config-parity.log,
+rhi-config-parity/hashes.json records binary/frame hashes). These temporary
+comparisons do not replace goldens. The full lifetime gate passes all 546
+compilation commands/137 source paths. New persistent configuration/host/output-
+pointer symbols total 208 x64 bytes (excluding padding); the initialization output
+is stack-only, not a second persistent copy of frontend device strings.
+
+Error checkpoint d65b28df passed full regression 35487920089. Full build
+35487920102 failed only MSVC (all four configurations): the new noreturn helper
+exposes legacy unreachable fallback returns/assignments (C4702). Remove those
+unreachable statements; retain the noreturn contract and warning gate. Hosted
+verification of this correction is pending the configuration checkpoint push.
+The checkout-specific lifetime rerun for d65b28df passed all 546 compilation
+commands/137 source paths (rhi-errors-lifetimes.log).
 
 ## Final #8 verification
 

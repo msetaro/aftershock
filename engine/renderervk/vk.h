@@ -1,7 +1,13 @@
 #pragma once
 
 #include "../../third_party/vulkan/vulkan.h"
-#include "tr_common.h"
+#include "../qcommon/q_shared.h"
+#include "../rhi/rhi_public.h"
+
+// Preserve the reference backend's fixed geometry, depth and attachment policy.
+#define USE_VBO
+#define USE_BUFFER_CLEAR
+#define USE_REVERSED_DEPTH
 
 #define MAX_SWAPCHAIN_IMAGES 8
 #define MIN_SWAPCHAIN_IMAGES_IMM 3

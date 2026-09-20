@@ -78,9 +78,8 @@ static const textureMode_t modes[] = {
 GL_TextureMode
 ===============
 */
-void GL_TextureMode( const char *string ) {
+bool R_SelectTextureMode( const char *string ) {
 	const textureMode_t *mode;
-	image_t *img;
 	int i;
 
 	mode = NULL;
@@ -93,11 +92,20 @@ void GL_TextureMode( const char *string ) {
 
 	if ( mode == NULL ) {
 		ri.Printf( PRINT_ALL, "bad texture filter name '%s'\n", string );
-		return;
+		return false;
 	}
 
 	gl_filter_min = mode->minimize;
 	gl_filter_max = mode->maximize;
+
+	return true;
+}
+
+void GL_TextureMode( const char *string ) {
+	image_t *img;
+	int i;
+	if ( !R_SelectTextureMode( string ) )
+		return;
 
 #ifdef USE_VULKAN
 	bool changed;
@@ -1762,7 +1770,7 @@ void R_InitImages( void ) {
 	R_CreateBuiltinImages();
 
 #ifdef USE_VULKAN
-	R_CheckRHI( RHI_UpdatePostProcess( tr.overbrightBits ), "UpdatePostProcess" );
+	R_UpdatePostProcess();
 #endif
 }
 

@@ -20,7 +20,7 @@ def main():
         binary = args.output / probe
         run([*flags, '-DRHI_STUB_CHECK', '-DUSE_VULKAN_API',
              f'tests/probes/rhi_{probe}.cpp',
-             *(['engine/qcommon/q_shared.cpp'] if probe == 'upload' else []),
+             *(['engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp'] if probe == 'upload' else []),
              '-Wl,--gc-sections', '-o', binary])
         run([binary], timeout=10)
     # Non-system dependencies of the alternative backend must be the public API alone.
@@ -35,6 +35,10 @@ def main():
                     '-x', 'c++', header], capture_output=True, text=True).stdout
         if 'third_party/vulkan/' in deps or '/vk.h' in deps:
             raise SystemExit('FAIL: frontend header acquired a GPU SDK dependency: ' + deps)
+    deps = run([*shlex.split(args.cxx), '-std=c++20', '-MM',
+                'engine/renderervk/vk.cpp'], capture_output=True, text=True).stdout
+    if any(path in deps for path in ('/tr_local.h', '/tr_common.h', '/tr_public.h')):
+        raise SystemExit('FAIL: backend acquired a frontend dependency: ' + deps)
     print('PASS: alternative backend links against only the public RHI header and reports unavailable')
 
 

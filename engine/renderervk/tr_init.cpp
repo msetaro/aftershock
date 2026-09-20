@@ -469,6 +469,79 @@ static void R_InitExtensions( void ) {
 ** setting variables, checking GL constants, and reporting the gfx system config
 ** to the user.
 */
+void R_UpdatePostProcess( void ) {
+	const rhiPostProcess_t settings = {
+		tr.overbrightBits,
+		r_gamma->value,
+		r_greyscale->value,
+		r_bloom_threshold->value,
+		r_bloom_intensity->value,
+		r_bloom_threshold_mode->integer,
+		r_bloom_modulate->integer,
+		r_dither->integer,
+	};
+	R_CheckRHI( RHI_UpdatePostProcess( &settings ), "UpdatePostProcess" );
+}
+
+static void QDECL R_PrintRHI( rhiLog_t level, const char *format, ... ) {
+	char message[MAXPRINTMSG];
+	va_list args;
+	va_start( args, format );
+	Q_vsnprintf( message, sizeof( message ), format, args );
+	va_end( args );
+	const printParm_t levels[] = { PRINT_ALL, PRINT_DEVELOPER, PRINT_WARNING, PRINT_ERROR };
+	ri.Printf( levels[(uint32_t)level], "%s", message );
+}
+
+static bool R_IsMinimized( void ) {
+	return ri.CL_IsMinimized() != qfalse;
+}
+static int32_t R_SwapInterval( void ) {
+	return ri.Cvar_VariableIntegerValue( "r_swapInterval" );
+}
+static bool R_CreateSurface( uint64_t instance, uint64_t *surface ) {
+	return ri.VK_CreateSurface( instance, surface ) != qfalse;
+}
+
+static void R_InitDevice( void ) {
+	const bool textureFilterValid = R_SelectTextureMode( r_textureMode->string );
+	const rhiDeviceConfig_t config = {
+		glConfig.vidWidth, glConfig.vidHeight, gls.windowWidth, gls.windowHeight,
+		gls.captureWidth, gls.captureHeight, glConfig.depthBits, glConfig.stencilBits,
+		MAX_TEXTURE_SIZE, MAX_TEXTURE_UNITS, MAX_DRAWIMAGES, MAX_FLARES, sizeof( shaderUniform_t ),
+		r_fbo->integer,
+		r_bloom->integer,
+		r_hdr->integer,
+		r_presentBits->integer,
+		r_device->integer,
+		r_ext_texture_filter_anisotropic->integer,
+		r_ext_max_anisotropy->integer,
+		r_ext_multisample->integer,
+		r_ext_supersample->integer,
+		r_renderScale->integer,
+		r_offsetUnits->value,
+		r_offsetFactor->value,
+		(rhiFilter_t)gl_filter_min, (rhiFilter_t)gl_filter_max, textureFilterValid
+	};
+	const rhiHost_t host = { ri.Malloc, ri.Free, R_PrintRHI, R_IsMinimized, R_SwapInterval, ri.VK_GetInstanceProcAddr, R_CreateSurface };
+	rhiDeviceInfo_t info;
+	R_CheckRHI( RHI_Initialize( &config, &host, &info ), "Initialize" );
+	r_textureMode->modified = qfalse;
+	static_assert( sizeof( info.renderer ) == sizeof( glConfig.renderer_string ) );
+	static_assert( sizeof( info.vendor ) == sizeof( glConfig.vendor_string ) );
+	static_assert( sizeof( info.version ) == sizeof( glConfig.version_string ) );
+	static_assert( sizeof( info.extensions ) == sizeof( glConfig.extensions_string ) );
+	Q_strncpyz( glConfig.renderer_string, info.renderer, sizeof( glConfig.renderer_string ) );
+	Q_strncpyz( glConfig.vendor_string, info.vendor, sizeof( glConfig.vendor_string ) );
+	Q_strncpyz( glConfig.version_string, info.version, sizeof( glConfig.version_string ) );
+	Q_strncpyz( glConfig.extensions_string, info.extensions, sizeof( glConfig.extensions_string ) );
+	glConfig.maxTextureSize = info.maxTextureSize;
+	glConfig.numTextureUnits = info.textureUnits;
+	glConfig.textureEnvAddAvailable = r_ext_texture_env_add->integer != 0 ? qtrue : qfalse;
+	glConfig.textureCompression = TC_NONE;
+}
+
+
 static void InitOpenGL( void ) {
 	//
 	// initialize OS specific portions of the renderer
@@ -516,7 +589,7 @@ static void InitOpenGL( void ) {
 			}
 		}
 
-		R_CheckRHI( RHI_Initialize(), "Initialize" );
+		R_InitDevice();
 #else
 		const char *err;
 
@@ -549,7 +622,7 @@ static void InitOpenGL( void ) {
 #ifdef USE_VULKAN
 	if ( !RHI_GetCapabilities().active ) {
 		// might happen after REF_KEEP_WINDOW
-		R_CheckRHI( RHI_Initialize(), "Initialize" );
+		R_InitDevice();
 		gls.initTime = ri.Milliseconds();
 	}
 	if ( RHI_GetCapabilities().active ) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 #include <type_traits>
 
 // Backend-owned frame uploads remain valid until that frame's fence completes.
@@ -401,11 +402,67 @@ struct rhiFrameEnd_t {
 void RHI_BeginMainPass( void );
 [[nodiscard]] rhiStatus_t RHI_PresentFrame( void );
 
-[[nodiscard]] rhiStatus_t RHI_Initialize( void );
+enum class rhiLog_t : uint32_t { Info,
+	Developer,
+	Warning,
+	Error };
+// Host services retain the existing engine allocator and platform ownership.
+// Allocate/Free failures are process-fatal; GPU failures use returned statuses.
+struct rhiHost_t {
+	void *( *Allocate )( size_t bytes );
+	void ( *Free )( void *pointer );
+	void ( *Print )( rhiLog_t level, const char *format, ... );
+	bool ( *IsMinimized )( void );
+	int32_t ( *SwapInterval )( void );
+	void *( *GetInstanceProcAddr )( uint64_t instance, const char *name );
+	bool ( *CreateSurface )( uint64_t instance, uint64_t *surface );
+};
+static_assert( std::is_trivially_copyable_v<rhiHost_t> );
+
+struct rhiDeviceConfig_t {
+	int32_t renderWidth, renderHeight;
+	int32_t windowWidth, windowHeight;
+	int32_t captureWidth, captureHeight;
+	int32_t depthBits, stencilBits;
+	int32_t maxTextureSize, maxTextureUnits;
+	uint32_t maxImages, maxVisibilityTests, uniformBytes;
+	int32_t fbo;
+	int32_t bloom;
+	int32_t hdr;
+	int32_t presentBits;
+	int32_t device;
+	int32_t anisotropy;
+	int32_t maxAnisotropy;
+	int32_t multisample;
+	int32_t supersample;
+	int32_t renderScale;
+	float offsetUnits;
+	float offsetFactor;
+	rhiFilter_t textureMin, textureMag;
+	bool textureFilterValid;
+};
+struct rhiDeviceInfo_t {
+	char renderer[1024], vendor[1024], version[1024], extensions[8192];
+	int32_t maxTextureSize, textureUnits;
+};
+static_assert( std::is_trivially_copyable_v<rhiDeviceConfig_t> && std::is_trivially_copyable_v<rhiDeviceInfo_t> );
+// Config is copied. Info is an output borrowed only for the duration of this call.
+[[nodiscard]] rhiStatus_t RHI_Initialize( const rhiDeviceConfig_t *config, const rhiHost_t *host, rhiDeviceInfo_t *info );
 [[nodiscard]] rhiStatus_t RHI_InitDescriptors( void );
 [[nodiscard]] rhiStatus_t RHI_ReleaseResources( void );
 // Renderer context retention uses ReleaseResources alone; Shutdown destroys it.
 [[nodiscard]] rhiStatus_t RHI_Shutdown( void );
 [[nodiscard]] rhiStatus_t RHI_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height );
 [[nodiscard]] rhiStatus_t RHI_UploadWorldGeometry( const uint8_t *data, int32_t size );
-[[nodiscard]] rhiStatus_t RHI_UpdatePostProcess( int32_t overbrightBits );
+struct rhiPostProcess_t {
+	int32_t overbrightBits;
+	float gamma;
+	float greyscale;
+	float bloomThreshold;
+	float bloomIntensity;
+	int32_t bloomThresholdMode;
+	int32_t bloomModulate;
+	int32_t dither;
+};
+static_assert( std::is_trivially_copyable_v<rhiPostProcess_t> );
+[[nodiscard]] rhiStatus_t RHI_UpdatePostProcess( const rhiPostProcess_t *settings );

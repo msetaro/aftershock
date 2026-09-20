@@ -163,7 +163,7 @@ rhiStatus_t RHI_PresentFrame( void ) {
 	return rhiStatus_t::Unavailable;
 }
 
-rhiStatus_t RHI_Initialize( void ) {
+rhiStatus_t RHI_Initialize( const rhiDeviceConfig_t *, const rhiHost_t *, rhiDeviceInfo_t * ) {
 	return rhiStatus_t::Unavailable;
 }
 rhiStatus_t RHI_InitDescriptors( void ) {
@@ -181,7 +181,7 @@ rhiStatus_t RHI_ReadPixels( uint8_t *, uint32_t, uint32_t ) {
 rhiStatus_t RHI_UploadWorldGeometry( const uint8_t *, int32_t ) {
 	return rhiStatus_t::Unavailable;
 }
-rhiStatus_t RHI_UpdatePostProcess( int32_t ) {
+rhiStatus_t RHI_UpdatePostProcess( const rhiPostProcess_t * ) {
 	return rhiStatus_t::Unavailable;
 }
 
@@ -194,7 +194,7 @@ const rhiError_t *RHI_GetError( void ) {
 int main( void ) {
 	const rhiStats_t stats = RHI_GetStats();
 	const float uniform[32] = {};
-	return RHI_Initialize() != rhiStatus_t::Unavailable || RHI_Available() || RHI_WaitIdle() != rhiStatus_t::Unavailable || RHI_WaitQueue() != rhiStatus_t::Unavailable || stats.frameSlots != 0 || stats.geometryBytes != 0 ||
+	return RHI_Initialize( nullptr, nullptr, nullptr ) != rhiStatus_t::Unavailable || RHI_Available() || RHI_WaitIdle() != rhiStatus_t::Unavailable || RHI_WaitQueue() != rhiStatus_t::Unavailable || stats.frameSlots != 0 || stats.geometryBytes != 0 ||
 		   RHI_UploadUniform( uniform, sizeof( uniform ) ) != RHI_INVALID_OFFSET;
 }
 #endif

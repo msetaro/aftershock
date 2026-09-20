@@ -401,7 +401,7 @@ void RE_EndFrame( int *frontEndMsec, int *backEndMsec ) {
 		}
 
 #ifdef USE_VULKAN
-		R_CheckRHI( RHI_UpdatePostProcess( tr.overbrightBits ), "UpdatePostProcess" );
+		R_UpdatePostProcess();
 #endif
 
 		ri.Cvar_ResetGroup( CVG_RENDERER, qtrue /* reset modified flags */ );
