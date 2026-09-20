@@ -154,3 +154,52 @@ bool BG_EntityStateToWeaponAnimation( const entityState_t *entity, animState_t *
 	*spawn = uint32_t( entity->angles2[1] ) | ( uint32_t( entity->angles2[2] ) << 16 );
 	return true;
 }
+
+// Advance old notifies before restarting fire: automatic shots must not lose shells.
+bool BG_WeaponAnimationStep( const animAsset_t *asset, const weaponState_t *weapon, const weaponEvents_t *events,
+	animState_t *state, float *parameters, animEvents_t *notifies ) {
+	notifies->count = 0;
+	if ( events->count > ARRAY_LEN( events->items ) )
+		return false;
+	animState_t next = *state;
+	float inputs[ANIM_MAX_PARAMETERS];
+	memcpy( inputs, parameters, sizeof( inputs ) );
+	const int ads = Anim_ParameterIndex( asset, "ads" );
+	if ( ads >= 0 )
+		inputs[ads] = float( weapon->adsQ16 ) / 65536;
+	animEvents_t pending;
+	if ( !Anim_Tick( asset, inputs, weapon->time, &next, &pending ) )
+		return false;
+	for ( uint32_t i = 0; i < events->count; ++i ) {
+		const auto &event = events->items[i];
+		if ( event.time != weapon->time )
+			return false;
+		const char *name = event.kind == WEAPON_SHOT ? "fire" : event.kind == WEAPON_RELOAD_BEGIN	? "reload"
+															: event.kind == WEAPON_RELOAD_CANCELLED ? "idle"
+															: event.kind == WEAPON_MELEE_EVENT		? "melee"
+																									: nullptr;
+		if ( !name )
+			continue;
+		uint32_t index = 0;
+		for ( ; index < asset->header.sections[ANIM_STATES].count; ++index )
+			if ( !strcmp( Anim_StateName( asset, index ), name ) )
+				break;
+		if ( index == asset->header.sections[ANIM_STATES].count )
+			return false;
+		next.previous = next.current;
+		next.previousEntered = next.entered;
+		next.current = index;
+		next.entered = next.blendStarted = next.lastTime = weapon->time;
+		next.blendDuration = 40;
+		next.initialized = 0;
+		animEvents_t entered;
+		if ( !Anim_Tick( asset, inputs, weapon->time, &next, &entered ) || entered.count > ANIM_MAX_EVENTS - pending.count )
+			return false;
+		memcpy( pending.items + pending.count, entered.items, entered.count * sizeof( animEvent_t ) );
+		pending.count += entered.count;
+	}
+	*state = next;
+	memcpy( parameters, inputs, sizeof( inputs ) );
+	*notifies = pending;
+	return true;
+}

@@ -724,6 +724,7 @@ const weaponDef_t *BG_WeaponDefinition( int index );
 uint32_t BG_WeaponButtons( const usercmd_t *cmd, int hand, const playerState_t *ps );
 bool BG_WeaponToEntityState( const weaponState_t *state, uint32_t spawn, int owner, int hand, int definition, uint32_t attachments, const float *origin, entityState_t *entity );
 bool BG_EntityStateToWeapon( const entityState_t *entity, weaponState_t *state, uint32_t *spawn );
+bool BG_WeaponAnimationStep( const animAsset_t *asset, const weaponState_t *weapon, const weaponEvents_t *events, animState_t *state, float *parameters, animEvents_t *notifies );
 bool BG_WeaponAnimationToEntityState( const animState_t *state, const float *parameters, uint32_t spawn, int owner, int hand, int definition, uint32_t attachments, const float *origin, const float *angles, entityState_t *entity );
 bool BG_EntityStateToWeaponAnimation( const entityState_t *entity, animState_t *state, float *parameters, uint32_t *spawn );
 bool BG_AnimationToEntityState( const animState_t *state, const float *parameters, int owner, int rig, const float *origin, const float *angles, entityState_t *entity );

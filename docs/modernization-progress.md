@@ -60,6 +60,13 @@ reload/cancel, melee, ADS and identical replay from an acknowledgement. New
 range.json references the original #10 model files; only the new #11 graph has
 reload notifies aligned to the existing weapon stages (200/600/800/1000 ms).
 
+Shared graph advancement now passes GCC and Clang/libc++ UBSan
+(weapons-animation-step-gcc.log/-clang.log). It flushes previous clip notifies
+before restarting fire and commits bounded state/notify output together. The new
+live assertion fails with zero predicted-animation comparisons
+(weapons-animation-live-before.log). Load/hash-check graphs, replicate per-hand
+state, and replay animation alongside weapon inputs before claiming live parity.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing
