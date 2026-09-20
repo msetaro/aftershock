@@ -16,27 +16,128 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Finish current-head hosted gates for #6 draft PR #140 on `issue/6-rhi`, mark it
-ready after the final self-review, merge with a merge commit, then verify the
-merged-tree regression. The complete RHI boundary, offline shaders, pipeline
-cache and lifecycle checks are implemented. The 26-file frontend move is
-hash-verified in e5777895; OpenGL retirement is 935ad6f3. Local static/module
-replay, lifetime, tidy, format/type/boundary and resource/performance acceptance
-pass. No accepted fixture, frame golden or shader blob was regenerated.
+#6 PR #140 merged as 30eeba4c after final head c7c31a60 passed build
+35490659941/regression 35490659967 and the recorded self-review. Its merged-tree regression 35490963498 passed. The current
+branch is `issue/7-devtools`; test-first commit 7596afa9 records the expected shipping/development build failure.
+#7 remains draft PR #143. Implementation 0a264cba passed build/regression
+35495497762/35495497744. Documentation head f895997d passed build 35495622794;
+its regression 35495622776 is retrying only a lifetime runner shut down by GitHub
+(exit 143, no code diagnostic). All other jobs passed.
 
-The separately tested acquisition fix PR #141 merged as 61401e17 and entered
-this branch through an integration merge; merged-tree regression 35484895454
-passed. After #140, continue #7, render-graph phase two #142, then the remaining
-#25 sequence. All writes stay in msetaro/aftershock.
+Final input review found a new-overlay bug: only initial context creation clears
+game keys, so reopening a retained context leaves a held game binding pressed.
+The real-input test now holds F8, reopens through F9, and queries its release cvar
+through the overlay console. It fails as expected on f895997d's binary with
+"reopening the overlay left the game key pressed" (devtools-reopen-before3.log).
+Test-first 1899ff9d changes no engine code. Fix 7f5d60f6 tracks input capture
+separately from context ownership, releases game bindings before interception on
+every open, clears stale vendor input, and restores the pointer position. Final
+static/module real-input checks pass (devtools-reopen-{final,module-final}.log).
+Format/type/boundary and changed-UI lifetime checks pass; tidy passes all 1,162
+configurations. Shipping SHA stays 427e37be.
+
+Test-first d115d52e also catches the new editor's angle/angles alias bug: alternating
+edits retained both keys, so reload restored an older value. The fix removes the
+opposite spelling only when intentionally editing that field. Native save/reload
+now restores [0, 90, 0], while retaining all unrelated map keys; format passes
+(devtools-angle-{before,fixed}.log). These are corrections to new #7 tooling, not
+pre-existing engine bug fixes. Self-review remains satisfied: both changes stay
+behind AFTERSHOCK_DEVTOOLS, use existing input/spawn mechanisms and add no OS calls,
+non-trivial lifetimes, simulation arithmetic changes or shipping allocations.
+
+Push this corrected candidate and require its complete exact-head build/regression
+before marking PR #143 ready and merging; then require merged-tree regression
+before #142. The earlier f895997d lifetime retry is historical, not the final gate.
+Keep the PR draft until current checks pass.
+Preserve accepted goldens.
+
+Then complete #7, render-graph phase two #142, and the remaining #25 sequence.
+All writes stay in msetaro/aftershock. The separate-session scope and finished
+historical network evidence remain untouched.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
 regression 35479955499 passed; merged-tree regression 35480310184 passed.
 `docs/design/rhi.md` is now the implementation plan for #6 under the renewed scope.
-No RHI engine changes have merged yet. Baseline capacities: two frame slots, 4 MiB
+#6 implementation is merged. Preserved capacities: two frame slots, 4 MiB
 normal / 8 MiB high geometry buffers, 2 MiB normal / 24 MiB high staging buffers,
 32 samplers and 2,304 pipeline descriptions; do not change these during extraction.
 Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
+
+## #7 developer tooling checkpoint
+
+Implemented: optional ImGui console/cvars; texture/material/model inspection;
+animation playback; CPU/GPU/frame history and network/prediction observations;
+allocator accounting; local native entity editing/save/reload/world selection;
+collision/navigation overlays; game-callable debug lines/boxes/text and scopes.
+Shipping defaults OFF, keeps renderer ABI 10 and contains no tooling symbols.
+Enabled client/modules use ABI 11 and must be rebuilt together.
+
+ImGui v1.92.9b (f1cc2ae15e53a861a874c3034aae6798fde194ab) retains its original
+11 core/license files, verified against third_party/imgui/provenance.json.
+Archive SHA-256 21d8a0a565e85dce943e375db00812c2f3f0ab21f3f0f7964e364a63422d7f99.
+Vendor OS/file/shell/time defaults are disabled. The existing zone allocator backs
+a fixed 16 MiB UI arena; engine mutation occurs after vendor UI returns. Owned
+history and geometry buffers are bounded and plain, with no simulation arithmetic
+changes. Initial/interaction allocation is distinct from the allocation-free idle
+path. New-feature corrections include null inactive material stages, resetting
+font resources on every renderer shutdown path, and portable numeric validation.
+
+Entity editing reuses the native spawn field table. Original keys, including
+unknown ones, are retained in an 8 MiB document; overflow disables saving.
+Numbered maps/<map>.dev.NNN.ent saves never overwrite earlier revisions or BSPs.
+Explicit dev_loadEntities applies the selected revision once on map restart.
+Editing requires a local devmap. Spawn supports pickups and point markers;
+structural class/model/team changes require replacement, and brush/mover creation
+has no input in this basic editor. External OA demo modules do not register these
+owned-game callbacks; entity tests use the owned game with either content set.
+
+World tools cache at most 4,096 lines on explicit refresh using existing winding
+helpers; subsequent frames allocate no cached geometry. Nearby brush selection
+caps at 1,024. Actual convex/patch faces are clipped; optimized AAS without faces
+shows retained area bounds/routes, explicitly labeled. Both layers reserve cache
+capacity, omitted edges are counted, and rendering is x-ray. Game primitives cap
+at 2,048 lines and 128 labels, with copied text and durations capped at 60 seconds.
+Hunk stats report lifetime regions (it has no existing tags), while zones report
+all tags. GPU samples use completed frames without waiting. Network payload stats
+exclude UDP/IP headers; replay snapshots and unavailable external-game prediction
+instrumentation are labeled. Full usage/limits are in tests/README.md.
+
+Final-slice local validation (devtools-final*.log in the persistent cache):
+- Real input edits cvar 0 -> 7, plays an installed model, opens inspection panels,
+  checks 80 idle frames without further allocations and survives video restart;
+  passes both static and optional renderer-module linkage.
+- Native entity spawn/edit/delete/save/reload preserves every original map token.
+  Real UI spawns/picks the same entity and enables world wireframes plus its label;
+  final screenshots visually reviewed. Both collision and navigation caches fill.
+- Production probes pass GCC and Clang/libc++ for registry copies, memory, scopes,
+  debug expiry/wraparound/capacity, projection and occluded selection.
+- Format (402 files), boundaries (367), types (366), pinned vendor hashes and owned
+  whitespace pass. Tidy passes 1,162 production configurations. Lifetime analysis
+  passes 1,116 compilation commands/118 source paths and all controls.
+- Shipping SHA-256 remains 427e37beb867d2164294fe70f99d5bf1bf0eddcb768f3f7786cf721747f1ccfd.
+  Fixed Q3 demos replay twice including video restart, matching frame projection
+  43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+  Accepted fixtures, goldens and generated shaders remain unchanged.
+
+Historical gates: test-first 7596afa9 fails on unchanged 30eeba4c because the
+explicitly enabled build has no ImGui symbol (devtools-before.log). Initial slice
+passed build 35492532711; its runtime exposed the test's OA/Q3 native-object
+mismatch, corrected to the pinned OA objects. The next inspector runtime exposed
+null inactive material stages, corrected in the new getter and covered by probes.
+Profiling e24faa49 passed build/regression 35493250065/35493250038; animation
+245397aa passed 35493639523/35493639540. Entity 9aca1c9f passed regression
+35494279424 but failed build 35494279398 on floating from_chars; fixed above.
+The latest test symbol assertion also now recognizes the drawing API's C linkage.
+The retained-context input transition also has a failing-then-passing real-input
+check (1899ff9d and devtools-reopen-before3.log). This corrects the new overlay,
+not a pre-existing engine behavior. No existing engine bug fix was included in #7. Self-review: every change supports
+#7; no new OS calls outside platform/filesystem ownership; no non-trivial core
+lifetimes; no new shipping/per-frame game allocation or simulation arithmetic;
+existing wire/file layouts remain asserted; new UI records have layout/copy
+assertions. The optional UI's bounded arena and interaction allocations are
+explicitly measured/documented. Current exact-head hosted gates remain required;
+the PR stays draft until they pass.
 
 ## #31 Vulkan acquisition checkpoint
 

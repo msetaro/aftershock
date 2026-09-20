@@ -548,6 +548,9 @@ void CG_PredictPlayerState( void ) {
 				}
 				VectorSubtract( oldPlayerState.origin, adjusted, delta );
 				len = VectorLength( delta );
+#ifdef AFTERSHOCK_DEVTOOLS
+				Dev_PredictionError( len );
+#endif
 				if ( len > 0.1f ) {
 					if ( cg_showmiss.integer ) {
 						CG_Printf( "Prediction miss: %f\n", len );

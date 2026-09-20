@@ -65,3 +65,9 @@ int CM_WriteAreaBits( byte *buffer, int area );
 
 // cm_patch.c
 void CM_DrawDebugSurface( void ( *drawPoly )( int color, int numPoints, float *points ) );
+
+#ifdef AFTERSHOCK_DEVTOOLS
+// Explicit developer refresh only: temporary winding allocations are freed before returning.
+void CM_DeveloperSurfaces( const float *origin, float radius,
+	void ( *line )( const float *start, const float *end, uint32_t color ) );
+#endif

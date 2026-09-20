@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // sv_game.c -- interface to the game dll
 
 #include "server.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../public/dev_game_public.h"
+#endif
 #include "../public/g_native_public.h"
 
 #include "../botlib/botlib_public.h"
@@ -1008,6 +1011,9 @@ Called every time a map changes
 ===============
 */
 void SV_ShutdownGameProgs( void ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	Dev_RegisterGameTools( nullptr );
+#endif
 	if ( !gameRunning ) {
 		return;
 	}
@@ -1029,6 +1035,21 @@ static void SV_InitNativeGame( qboolean restart ) {
 
 	// start the entity parsing at the beginning
 	sv.entityParsePoint = CM_EntityString();
+#ifdef AFTERSHOCK_DEVTOOLS
+	void *developerEntities = nullptr;
+	if ( Cvar_VariableIntegerValue( "dev_loadEntities" ) ) {
+		Cvar_Set( "dev_loadEntities", "0" );
+		if ( !Cvar_VariableIntegerValue( "sv_cheats" ) )
+			Com_Error( ERR_DROP, "Developer entity reload requires devmap" );
+		const int length = FS_ReadFile( Cvar_VariableString( "dev_entityFile" ), &developerEntities );
+		if ( length <= 0 || length > 8 * 1024 * 1024 ) {
+			if ( developerEntities )
+				FS_FreeFile( developerEntities );
+			Com_Error( ERR_DROP, "Developer entity file missing, empty or too large" );
+		}
+		sv.entityParsePoint = (const char *)developerEntities;
+	}
+#endif
 
 	// clear all gentity pointers that might still be set from
 	// a previous level
@@ -1041,6 +1062,12 @@ static void SV_InitNativeGame( qboolean restart ) {
 	// use the current msec count for a random seed
 	// init for this gamestate
 	Game_Init( sv.time, Com_Milliseconds(), restart );
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( developerEntities ) {
+		FS_FreeFile( developerEntities );
+		sv.entityParsePoint = nullptr;
+	}
+#endif
 }
 
 

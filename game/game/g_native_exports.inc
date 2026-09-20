@@ -13,7 +13,13 @@ const char *Game_ClientConnect( int clientNum, int firstTime, int isBot ) {
 }
 
 void Game_RunFrame( int time ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	const uint64_t scope = Dev_BeginScope( "game simulation" );
+#endif
 	game::G_RunFrame( time );
+#ifdef AFTERSHOCK_DEVTOOLS
+	Dev_EndScope( scope );
+#endif
 }
 
 int Game_ConsoleCommand( void ) {

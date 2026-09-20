@@ -20,6 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "client.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 #include "../public/cg_native_public.h"
 #include "../public/ui_native_public.h"
 
@@ -712,6 +715,10 @@ Called by the system for both key up and key down events
 ===================
 */
 void CL_KeyEvent( int key, qboolean down, unsigned time ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_Key( key, down != qfalse ) )
+		return;
+#endif
 	if ( down )
 		CL_KeyDownEvent( key, time );
 	else
@@ -727,6 +734,10 @@ Normal keyboard characters, already shifted / capslocked / etc
 ===================
 */
 void CL_CharEvent( int key ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_Char( (uint32_t)key ) )
+		return;
+#endif
 	// delete is not a printable character and is
 	// otherwise handled by Field_KeyDownEvent
 	if ( key == 127 )

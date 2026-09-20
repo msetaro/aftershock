@@ -507,3 +507,8 @@ name:						default:			module(s):			description:
 "max_levelitems"			"256"				be_ai_goal.c		maximum number of level items
 
 */
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void Bot_DeveloperNavigation( const float *origin, float radius,
+	void ( *line )( const float *start, const float *end, uint32_t color ) );
+#endif

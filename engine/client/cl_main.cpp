@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_main.c  -- client main loop
 
 #include "client.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 #include "../public/cg_native_public.h"
 #include "../public/ui_native_public.h"
 #include <limits.h>
@@ -996,6 +999,9 @@ void CL_ShutdownAll( void ) {
 		if ( CL_GameSwitch() ) {
 			CL_ShutdownRef( REF_DESTROY_WINDOW ); // shutdown renderer & GLimp
 		} else {
+#ifdef AFTERSHOCK_DEVTOOLS
+			DevTools_Reset();
+#endif
 			re.Shutdown( REF_KEEP_CONTEXT ); // don't destroy window or context
 		}
 	}
@@ -2809,6 +2815,9 @@ void CL_PacketEvent( const netadr_t *from, msg_t *msg ) {
 		return;
 	}
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_Packet( false, (uint32_t)msg->cursize );
+#endif
 	if ( !CL_Netchan_Process( &clc.netchan, msg ) ) {
 		return; // out of order, duplicated, etc
 	}
@@ -3107,6 +3116,9 @@ CL_ShutdownRef
 ============
 */
 static void CL_ShutdownRef( refShutdownCode_t code ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_Reset();
+#endif
 
 #ifdef USE_RENDERER_DLOPEN
 	if ( cl_renderer->modified ) {
@@ -3836,6 +3848,9 @@ void CL_Init( void ) {
 	cls.realtime = 0;
 
 	CL_InitInput();
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_Init();
+#endif
 
 	//
 	// register client variables

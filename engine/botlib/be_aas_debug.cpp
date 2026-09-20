@@ -766,3 +766,45 @@ void AAS_FloodAreas( vec3_t origin ) {
 	AAS_FloodAreas_r( areanum, cluster, done );
 	FreeMemory( done );
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void Bot_DeveloperNavigation( const float *origin, float radius,
+	void ( *line )( const float *, const float *, uint32_t ) ) {
+	if ( !aasworld.loaded )
+		return;
+	for ( int i = 1; i < aasworld.numareas; ++i ) {
+		const aas_area_t *area = &aasworld.areas[i];
+		bool near = true;
+		for ( int axis = 0; axis < 3; ++axis )
+			near &= area->maxs[axis] >= origin[axis] - radius && area->mins[axis] <= origin[axis] + radius;
+		if ( !near )
+			continue;
+		// Optimized shipping AAS files omit face geometry; retain honest bounds and routes.
+		if ( aasworld.numfaces <= 1 ) {
+			vec3_t corners[4];
+			for ( int corner = 0; corner < 4; ++corner ) {
+				corners[corner][0] = corner == 1 || corner == 2 ? area->maxs[0] : area->mins[0];
+				corners[corner][1] = corner >= 2 ? area->maxs[1] : area->mins[1];
+				corners[corner][2] = area->mins[2];
+			}
+			for ( int corner = 0; corner < 4; ++corner )
+				line( corners[corner], corners[( corner + 1 ) % 4], 0xff40b040U );
+		}
+		const aas_areasettings_t *settings = &aasworld.areasettings[i];
+		for ( int r = 0; r < settings->numreachableareas; ++r ) {
+			const aas_reachability_t *reach = &aasworld.reachability[settings->firstreachablearea + r];
+			line( reach->start, reach->end, 0xff40a0ffU );
+		}
+		for ( int f = 0; f < area->numfaces; ++f ) {
+			const int number = abs( aasworld.faceindex[area->firstface + f] );
+			const aas_face_t *face = &aasworld.faces[number];
+			if ( !( face->faceflags & FACE_GROUND ) )
+				continue;
+			for ( int e = 0; e < face->numedges; ++e ) {
+				const aas_edge_t *edge = &aasworld.edges[abs( aasworld.edgeindex[face->firstedge + e] )];
+				line( aasworld.vertexes[edge->v[0]], aasworld.vertexes[edge->v[1]], 0xff00ff00U );
+			}
+		}
+	}
+}
+#endif

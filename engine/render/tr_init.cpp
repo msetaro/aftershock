@@ -2136,6 +2136,14 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 
 	re.BeginFrame = RE_BeginFrame;
 	re.EndFrame = RE_EndFrame;
+#ifdef AFTERSHOCK_DEVTOOLS
+	re.CreateDeveloperTexture = RE_CreateDeveloperTexture;
+	re.DrawDeveloperUI = RE_DrawDeveloperUI;
+	re.GetDeveloperModel = RE_GetDeveloperModel;
+	re.GetDeveloperImage = RE_GetDeveloperImage;
+	re.GetDeveloperMaterial = RE_GetDeveloperMaterial;
+	re.GetDeveloperTimings = RE_GetDeveloperTimings;
+#endif
 
 	re.MarkFragments = R_MarkFragments;
 	re.LerpTag = R_LerpTag;

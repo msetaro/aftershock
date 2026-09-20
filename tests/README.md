@@ -17,6 +17,7 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 ```
 python3 tests/native_math.py
 python3 tests/rhi.py
+python3 tests/devtools.py
 python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
 python3 tests/check_format.py
@@ -263,6 +264,76 @@ Its license is retained alongside the staged data; no downloaded paks enter git.
 Use `openarena.py --data /path/to/baseoa` for data extracted without installing
 packages. Local system package installation is prohibited; runner installs are
 expected. A download/checksum/content failure fails CI.
+
+## Development tooling (#7)
+
+`AFTERSHOCK_DEVTOOLS=ON` includes the ImGui overlay; the default OFF build has no
+ImGui or tool symbols. Enable it with `dev_tools 1`; Escape closes it. The overlay
+provides console output/commands and cvar search, descriptions and live edit.
+Texture previews, material stages, completed GPU timings/frame history and
+tagged zone/hunk usage are also available. CPU scopes and client traffic/snapshot/prediction statistics are available.
+The model viewer loads MD3/MDR/IQM models and optional skins, scrubs/plays frames
+and rotates an existing renderer scene. Entity tools edit a local native game started with `devmap`; the World tab visualizes collision and navigation, and entity picking works at
+the crosshair or by clicking outside the tools. Enabled renderer
+modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
+
+`python3 tests/devtools.py` builds both variants, verifies symbols, then uses real
+XTest input on a private Xvfb display to select/edit a cvar. It verifies 80 idle
+frames without further ImGui allocations, bounded arena use and video restart.
+It also holds a real game-bound key while reopening the overlay and checks that
+the release command runs before input capture resumes.
+It also opens each current inspector and captures its output.
+`python3 tests/devtools_data.py` checks real registry copies and allocator accounting
+without a GPU. The UI test requires libX11, libXtst (`libxtst6` in hosted CI), xwininfo/xprop (`x11-utils`),
+Xvfb and lavapipe. The window PID must belong to the launched client. Screenshots
+and logs stay under `--output`. `--binary` tests an existing development client;
+`--content openarena --data /tmp/aftershock-openarena-baseoa` selects hosted assets.
+The OpenArena UI check links the same pinned native OpenArena game objects as
+the replay gate, matching the fixture's game protocol.
+
+ImGui core v1.92.9b is pinned under `third_party/imgui` with its unchanged license
+and source hashes. Default vendor OS, file, shell and time services are disabled.
+Its allocator uses the existing zone algorithm in a fixed 16 MiB allocator-layer
+arena, with no OS-heap growth during frames. Owned geometry buffers are fixed;
+engine mutations occur after ImGui returns, outside vendor stack frames. Initial
+or interaction-driven UI allocations are distinct from the checked idle-frame path.
+Lifetime/tidy gates now cover shipping/development and static/module configurations.
+The primary build matrix enables tooling in Debug and excludes it in Release.
+
+`python3 tests/dev_world_ui.py` drives the live native game through real XTest
+input: spawn at the camera, select that entity in world, enable collision and
+navigation, and capture the drawn volumes/label. The World tab uses explicit
+refresh, caching at most 4,096 edges around the camera (up to 1,024 brushes).
+Brush/patch surfaces are exact clipped faces. Optimized AAS files that omit face
+geometry show retained area bounds and reachability; unstripped files also show
+ground faces. Both layers share the bounded cache with reserved capacity; omitted
+edges are reported. Rendering is intentionally x-ray. Live entity bounds remain
+current. Refresh cached surfaces after moving; map/video restart clears the cache.
+
+`python3 tests/dev_entities.py` exercises native-game spawn/edit/delete and
+numbered entity-string saves/reload. Unlike demo tests, it uses the owned Q3 game
+with either content set. Every original map token (including unknown keys) is
+compared after saving and deleting a new entity. Saved revisions are
+`maps/<map>.dev.NNN.ent`; `dev_entityFile` names the latest successful save.
+`dev_loadEntities 1; map_restart 0` explicitly loads that file once. Original BSPs
+and paks are never written. The console `dev_entity` command exposes the same
+operations; no arguments prints usage. Point markers and pickups can be spawned;
+structural classname/model/team edits and creation of brush/mover geometry are
+outside this basic runtime editor. Its complete map document is bounded to 8 MiB;
+save fails if capture overflowed. Game callbacks are registered only by the owned
+native game, so external OpenArena demo modules expose the read-only tools.
+
+`engine/public/dev_public.h` exposes explicit `Dev_BeginScope`/`Dev_EndScope` calls
+for engine-thread game code. Each frame holds at most 128 inclusive CPU scopes;
+unfinished or stale tokens are discarded on frame rollover. GPU samples come from
+completed frames without waiting. `Dev_PredictionError` observes the existing
+calculated distance; it changes no prediction arithmetic. Datagram payload totals
+exclude UDP/IP headers, and replay snapshots are explicitly distinct from traffic.
+`Dev_DrawLine`, `Dev_DrawBox` and `Dev_DrawText` are engine-thread game APIs in
+the same header. Colors are 0xAABBGGRR; zero duration means one frame, and positive
+durations cap at 60 seconds. Storage holds 2,048 lines and 128 labels of up to
+63 characters; excess primitives are counted and discarded. All telemetry/drawing
+is absent from shipping and collects only while `dev_tools` is enabled.
 
 ## Runtime and fixed-demo oracle
 

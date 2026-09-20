@@ -1916,6 +1916,12 @@ typedef struct {
 typedef struct {
 	int commandId;
 } swapBuffersCommand_t;
+#ifdef AFTERSHOCK_DEVTOOLS
+struct developerUiCommand_t {
+	int commandId;
+	devUiDraw_t draw;
+};
+#endif
 
 typedef struct {
 	int commandId;
@@ -1965,7 +1971,10 @@ typedef enum {
 	RC_FINISHBLOOM,
 	RC_COLORMASK,
 	RC_CLEARDEPTH,
-	RC_CLEARCOLOR
+	RC_CLEARCOLOR,
+#ifdef AFTERSHOCK_DEVTOOLS
+	RC_DEVELOPER_UI,
+#endif
 } renderCommand_t;
 
 
@@ -2041,5 +2050,15 @@ extern void VBO_Flush( void );
 #endif
 
 int R_GetLightmapCoords( const int lightmapIndex, float *x, float *y );
+
+#ifdef AFTERSHOCK_DEVTOOLS
+bool RE_GetDeveloperModel( int index, devModel_t *model );
+bool RE_GetDeveloperImage( int index, devImage_t *image );
+bool RE_GetDeveloperMaterial( int index, devMaterial_t *material );
+uint32_t RE_GetDeveloperTimings( devGpuTiming_t *timings, uint32_t capacity );
+uint32_t RE_CreateDeveloperTexture( unsigned char *pixels, int width, int height );
+void RE_DrawDeveloperUI( const devUiDraw_t *draw );
+void RB_DrawDeveloperUI( const devUiDraw_t *draw );
+#endif
 
 #endif //TR_LOCAL_H

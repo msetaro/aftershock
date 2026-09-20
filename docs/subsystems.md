@@ -44,6 +44,12 @@ renderer import/export contract. The unused renderer2 implementation and its
 projects are retired, as decided in the port plan. Generated SPIR-V data remains
 unchanged; `tools/shaders` owns its generator.
 
+`engine/devtools` owns the optional development overlay and console ring. The
+vendor ImGui context is reached through plain pointers; renderer commands cross
+only the public draw-data contract. Input comes from existing engine events.
+Cvar/console actions execute after vendor UI calls return. The allocator layer
+owns the fixed UI arena, and the entire feature is absent with its CMake option OFF.
+
 `engine/platform` owns OS access: sockets, clocks, CPU/affinity discovery, windows,
 input devices, audio devices, process pipes and debug UI. Unix, Windows and SDL
 implementations live below it; shared runtime code lives directly in it. Public

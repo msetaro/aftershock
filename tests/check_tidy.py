@@ -52,10 +52,10 @@ def main():
     if not negative.returncode or diagnostic.count('[bugprone-assert-side-effect,-warnings-as-errors]') != 3:
         raise RuntimeError('assertion side-effect controls escaped the policy')
     commands = []
-    for modules in (False, True):
-        directory = output / ('modules' if modules else 'static')
+    for modules, devtools in ((False, False), (True, False), (False, True), (True, True)):
+        directory = output / (('modules' if modules else 'static') + ('-devtools' if devtools else ''))
         configure(directory, ['CC=clang', 'CXX=clang++',
-                              f'USE_RENDERER_DLOPEN={int(modules)}'])
+                              f'USE_RENDERER_DLOPEN={int(modules)}', f'AFTERSHOCK_DEVTOOLS={int(devtools)}'])
         for row in compilation_commands(directory):
             source = Path(row['file']).relative_to(ROOT)
             if source.suffix == '.cpp' and source.parts[0] in ('engine', 'game') and \
@@ -93,7 +93,7 @@ def main():
     failures = [row['log'] for row in results if row['status']]
     if failures:
         raise SystemExit('FAIL: clang-tidy; see ' + ', '.join(failures))
-    print(f'PASS: {len(commands)} production configurations; static/module linkage and policy controls')
+    print(f'PASS: {len(commands)} production configurations; shipping/development, static/module linkage and policy controls')
 
 
 if __name__ == '__main__':

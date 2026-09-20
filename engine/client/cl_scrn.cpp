@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_scrn.c -- master for refresh, status bar, console, chat, notify, etc
 
 #include "client.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 #include "../public/cg_native_public.h"
 #include "../public/ui_native_public.h"
 
@@ -645,6 +648,9 @@ void SCR_UpdateScreen( void ) {
 			SCR_DrawScreenField( STEREO_CENTER );
 		}
 
+#ifdef AFTERSHOCK_DEVTOOLS
+		DevTools_Draw( &re, cls.glconfig.vidWidth, cls.glconfig.vidHeight, com_frameTime );
+#endif
 		if ( com_speeds->integer ) {
 			re.EndFrame( &time_frontend, &time_backend );
 		} else {

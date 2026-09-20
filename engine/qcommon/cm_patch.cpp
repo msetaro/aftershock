@@ -1925,3 +1925,67 @@ void CM_DrawDebugSurface( void ( *drawPoly )( int color, int numPoints, float *p
 	drawPoly( 4, v[0] );
 #endif
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void CM_DeveloperSurfaces( const float *origin, float radius,
+	void ( *line )( const float *, const float *, uint32_t ) ) {
+	vec3_t mins, maxs;
+	for ( int axis = 0; axis < 3; ++axis ) {
+		mins[axis] = origin[axis] - radius;
+		maxs[axis] = origin[axis] + radius;
+	}
+	cbrush_t *brushes[1024];
+	const int count = CM_BoxBrushes( mins, maxs, brushes, ARRAY_LEN( brushes ) );
+	for ( int i = 0; i < count; ++i ) {
+		const cbrush_t *brush = brushes[i];
+		if ( !brush->contents )
+			continue;
+		for ( int side = 0; side < brush->numsides; ++side ) {
+			const cplane_t *plane = brush->sides[side].plane;
+			winding_t *winding = BaseWindingForPlane( plane->normal, plane->dist );
+			for ( int clip = 0; winding && clip < brush->numsides; ++clip ) {
+				if ( clip == side )
+					continue;
+				const cplane_t *other = brush->sides[clip].plane;
+				vec3_t normal;
+				VectorNegate( other->normal, normal );
+				ChopWindingInPlace( &winding, normal, -other->dist, 0.1f );
+			}
+			if ( winding ) {
+				for ( int edge = 0; edge < winding->numpoints; ++edge )
+					line( winding->p[edge], winding->p[( edge + 1 ) % winding->numpoints], 0xffffff00U );
+				FreeWinding( winding );
+			}
+		}
+	}
+	for ( int i = 0; i < cm.numSurfaces; ++i ) {
+		if ( !cm.surfaces[i] || !cm.surfaces[i]->contents )
+			continue;
+		const patchCollide_t *patch = cm.surfaces[i]->pc;
+		bool near = true;
+		for ( int axis = 0; axis < 3; ++axis )
+			near &= patch->bounds[1][axis] >= mins[axis] && patch->bounds[0][axis] <= maxs[axis];
+		if ( !near )
+			continue;
+		for ( int f = 0; f < patch->numFacets; ++f ) {
+			const facet_t *facet = &patch->facets[f];
+			const float *surface = patch->planes[facet->surfacePlane].plane;
+			winding_t *winding = BaseWindingForPlane( surface, surface[3] );
+			for ( int border = 0; winding && border < facet->numBorders; ++border ) {
+				if ( facet->borderPlanes[border] == facet->surfacePlane )
+					continue;
+				const float *plane = patch->planes[facet->borderPlanes[border]].plane;
+				vec3_t normal;
+				const float sign = facet->borderInward[border] ? 1.0f : -1.0f;
+				VectorScale( plane, sign, normal );
+				ChopWindingInPlace( &winding, normal, plane[3] * sign, 0.1f );
+			}
+			if ( winding ) {
+				for ( int edge = 0; edge < winding->numpoints; ++edge )
+					line( winding->p[edge], winding->p[( edge + 1 ) % winding->numpoints], 0xffff00ffU );
+				FreeWinding( winding );
+			}
+		}
+	}
+}
+#endif

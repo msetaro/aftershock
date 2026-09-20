@@ -177,7 +177,7 @@ jobs:
         with:
           key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install runtime tools and OpenArena content
-        run: sudo apt-get update && sudo apt-get install -y ninja-build faketime xvfb x11-utils mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data
+        run: sudo apt-get update && sudo apt-get install -y ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data
       - name: Stage pinned upstream OpenArena gamecode
         run: python3 tests/openarena.py
       - name: Download URL construction
@@ -192,6 +192,14 @@ jobs:
         run: python3 tests/demo.py --measure-gpu --pipeline-cache --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Window resize and hide/restore lifecycle
         run: python3 tests/window.py --binary /tmp/aftershock-demo-tests/build-vulkan/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Developer registry and allocator snapshots
+        run: python3 tests/devtools_data.py
+      - name: Native entity edit and save/reload
+        run: python3 tests/dev_entities.py --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Native entity and world tools through real input
+        run: python3 tests/dev_world_ui.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Development overlay input and renderer restart
+        run: python3 tests/devtools.py --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Optional renderer module replay
         run: python3 tests/demo.py --modules --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-demo-modules
       - name: RHI replay measurements
@@ -214,6 +222,11 @@ jobs:
             /tmp/aftershock-demo-modules/**/*.log
             /tmp/aftershock-demo-modules/*.tga
             /tmp/aftershock-window-tests/*
+            /tmp/aftershock-dev-entities/**/*.log
+            /tmp/aftershock-dev-world-ui/*.log
+            /tmp/aftershock-dev-world-ui/*.tga
+            /tmp/aftershock-devtools-tests/**/*.log
+            /tmp/aftershock-devtools-tests/runtime/*.tga
             /tmp/tests-native-runtime/**/*.log
             /tmp/tests-native-demo/**/*.log
             /tmp/tests-native-demo/*.tga

@@ -22,6 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
 #include "g_local.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+static void G_DevCapture( void );
+static void G_DevMapEntity( gentity_t *entity );
+static void G_DevReset( void );
+#endif
 
 qboolean G_SpawnString( const char *key, const char *defaultString, char **out ) {
 	int i;
@@ -408,6 +413,9 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 
 	// get the next free entity
 	ent = G_Spawn();
+#ifdef AFTERSHOCK_DEVTOOLS
+	G_DevMapEntity( ent );
+#endif
 
 	for ( i = 0; i < level.numSpawnVars; i++ ) {
 		G_ParseField( level.spawnVars[i][0], level.spawnVars[i][1], ent );
@@ -548,6 +556,10 @@ qboolean G_ParseSpawnVars( void ) {
 		level.numSpawnVars++;
 	}
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	G_DevCapture();
+#endif
+
 	return qtrue;
 }
 
@@ -613,6 +625,9 @@ Parses textual entity definitions out of an entstring and spawns gentities.
 ==============
 */
 void G_SpawnEntitiesFromString( void ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	G_DevReset();
+#endif
 	// allow calls to G_Spawn*()
 	level.spawning = qtrue;
 	level.numSpawnVars = 0;
@@ -632,3 +647,244 @@ void G_SpawnEntitiesFromString( void ) {
 
 	level.spawning = qfalse; // any future calls to G_Spawn*() will be errors
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+// Developer documents retain every map key, including keys unknown to fields[].
+// ponytail: fixed 8 MiB document capacity; disable saving on overflow, never truncate.
+static char devDocuments[MAX_GENTITIES][8192];
+static int devSource[MAX_GENTITIES], devDocumentCount, devCurrentSource, devSpawned;
+static bool devComplete;
+
+static bool Dev_Append( char *text, const char *part ) {
+	const size_t used = strlen( text ), size = strlen( part );
+	if ( size >= sizeof( devDocuments[0] ) - used )
+		return false;
+	memcpy( text + used, part, size + 1 );
+	return true;
+}
+
+static bool Dev_Pair( char *text, const char *key, const char *value ) {
+	if ( strchr( key, '"' ) || strchr( value, '"' ) )
+		return false;
+	return Dev_Append( text, "\"" ) && Dev_Append( text, key ) && Dev_Append( text, "\" \"" ) &&
+		   Dev_Append( text, value ) && Dev_Append( text, "\"\n" );
+}
+
+static void G_DevCapture( void ) {
+	devCurrentSource = -1;
+	if ( !devComplete || devDocumentCount == MAX_GENTITIES ) {
+		devComplete = false;
+		return;
+	}
+	char *text = devDocuments[devDocumentCount];
+	strcpy( text, "{\n" );
+	for ( int i = 0; i < level.numSpawnVars; ++i ) {
+		if ( !Dev_Pair( text, level.spawnVars[i][0], level.spawnVars[i][1] ) ) {
+			devComplete = false;
+			return;
+		}
+	}
+	if ( !Dev_Append( text, "}\n" ) ) {
+		devComplete = false;
+		return;
+	}
+	devCurrentSource = devDocumentCount++;
+}
+
+void G_DevForgetEntity( int entity ) {
+	devSource[entity] = -1;
+}
+
+static void G_DevMapEntity( gentity_t *entity ) {
+	devSpawned = (int)( entity - g_entities );
+	devSource[devSpawned] = devCurrentSource;
+}
+
+static bool Dev_ReadEntity( int index, devEntity_t *out ) {
+	*out = {};
+	if ( index < 0 || index >= level.num_entities || !g_entities[index].inuse )
+		return false;
+	const gentity_t *entity = &g_entities[index];
+	Q_strncpyz( out->classname, entity->classname ? entity->classname : "", sizeof( out->classname ) );
+	VectorCopy( entity->r.currentOrigin, out->origin );
+	VectorCopy( entity->r.absmin, out->mins );
+	VectorCopy( entity->r.absmax, out->maxs );
+	out->source = devSource[index];
+	out->health = entity->health;
+	out->linked = entity->r.linked != 0;
+	return true;
+}
+
+static const field_t *Dev_Field( const char *key ) {
+	for ( const field_t *field = fields; field->name; ++field ) {
+		if ( !Q_stricmp( field->name, key ) )
+			return field;
+	}
+	return nullptr;
+}
+
+static const char *Dev_FieldName( int index ) {
+	return index >= 0 && (size_t)index < sizeof( fields ) / sizeof( fields[0] ) - 1 ? fields[index].name : nullptr;
+}
+
+static bool Dev_ReadField( int index, const char *key, char *value, int capacity ) {
+	devEntity_t info;
+	const field_t *field = Dev_Field( key );
+	if ( capacity <= 0 || !Dev_ReadEntity( index, &info ) || !field )
+		return false;
+	const byte *data = (const byte *)&g_entities[index] + field->ofs;
+	switch ( field->type ) {
+	case F_LSTRING: {
+		const char *text = *(const char *const *)data;
+		Q_strncpyz( value, text ? text : "", capacity );
+		break;
+	}
+	case F_VECTOR:
+		Com_sprintf( value, capacity, "%.9f %.9f %.9f", ( (const float *)data )[0], ( (const float *)data )[1], ( (const float *)data )[2] );
+		break;
+	case F_ANGLEHACK:
+		Com_sprintf( value, capacity, "%.9f", ( (const float *)data )[1] );
+		break;
+	case F_FLOAT:
+		Com_sprintf( value, capacity, "%.9f", *(const float *)data );
+		break;
+	case F_INT:
+		Com_sprintf( value, capacity, "%d", *(const int *)data );
+		break;
+	default:
+		value[0] = '\0';
+		return false;
+	}
+	return true;
+}
+
+static bool Dev_Value( const field_t *field, const char *value ) {
+	if ( !*value && field->type != F_LSTRING )
+		return false;
+	if ( field->type == F_LSTRING )
+		return !strchr( value, '\n' ) && !strchr( value, '\r' ) && !strchr( value, '"' );
+	const char *end = value + strlen( value );
+	const int count = field->type == F_VECTOR ? 3 : 1;
+	for ( int i = 0; i < count; ++i ) {
+		while ( *value == ' ' )
+			++value;
+		if ( field->type == F_INT ) {
+			int number;
+			const std::from_chars_result result = std::from_chars( value, end, number );
+			if ( result.ec != std::errc() )
+				return false;
+			value = result.ptr;
+		} else {
+			char *next;
+			const float number = ::strtof( value, &next );
+			if ( next == value || !std::isfinite( number ) )
+				return false;
+			// The native game's legacy numeric reader accepts decimal notation only.
+			for ( const char *p = value; p < next; ++p ) {
+				if ( !( ( *p >= '0' && *p <= '9' ) || *p == '.' || *p == '+' || *p == '-' ) )
+					return false;
+			}
+			value = next;
+		}
+	}
+	while ( *value == ' ' )
+		++value;
+	return value == end;
+}
+
+static bool Dev_ReplaceField( int source, const char *key, const char *value, char *output ) {
+	char *cursor = devDocuments[source];
+	COM_Parse( &cursor ); // opening brace from our retained document
+	strcpy( output, "{\n" );
+	bool replaced = false;
+	while ( cursor ) {
+		char name[MAX_TOKEN_CHARS];
+		Q_strncpyz( name, COM_Parse( &cursor ), sizeof( name ) );
+		if ( !strcmp( name, "}" ) )
+			break;
+		const char *oldValue = COM_Parse( &cursor );
+		const bool matches = !Q_stricmp( name, key );
+		// Both spellings write the same field; retain only the intentionally edited one.
+		if ( ( !Q_stricmp( key, "angle" ) && !Q_stricmp( name, "angles" ) ) ||
+			 ( !Q_stricmp( key, "angles" ) && !Q_stricmp( name, "angle" ) ) )
+			continue;
+		if ( !Dev_Pair( output, name, matches ? value : oldValue ) )
+			return false;
+		replaced |= matches;
+	}
+	return ( replaced || Dev_Pair( output, key, value ) ) && Dev_Append( output, "}\n" );
+}
+
+static bool Dev_WriteField( int index, const char *key, const char *value ) {
+	devEntity_t info;
+	const field_t *field = Dev_Field( key );
+	if ( !trap_Cvar_VariableIntegerValue( "sv_cheats" ) || !Dev_ReadEntity( index, &info ) || info.source < 0 || !field || field->type == F_IGNORE ||
+		 !Q_stricmp( key, "classname" ) || !Q_stricmp( key, "model" ) || !Q_stricmp( key, "model2" ) || !Q_stricmp( key, "team" ) || !Dev_Value( field, value ) )
+		return false;
+	char text[sizeof( devDocuments[0] )];
+	if ( !Dev_ReplaceField( info.source, key, value, text ) )
+		return false;
+	gentity_t *entity = &g_entities[index];
+	G_ParseField( key, value, entity );
+	if ( !Q_stricmp( key, "origin" ) )
+		G_SetOrigin( entity, entity->s.origin );
+	if ( !Q_stricmp( key, "angles" ) || !Q_stricmp( key, "angle" ) ) {
+		VectorCopy( entity->s.angles, entity->s.apos.trBase );
+		VectorCopy( entity->s.angles, entity->r.currentAngles );
+	}
+	if ( entity->r.linked )
+		trap_LinkEntity( entity );
+	Q_strncpyz( devDocuments[info.source], text, sizeof( devDocuments[0] ) );
+	return true;
+}
+
+static int Dev_Spawn( const char *classname, const float *origin ) {
+	if ( !trap_Cvar_VariableIntegerValue( "sv_cheats" ) || !devComplete || devDocumentCount == MAX_GENTITIES || ( level.num_entities >= ENTITYNUM_MAX_NORMAL && !G_EntitiesFree() ) )
+		return -1;
+	bool allowed = !strcmp( classname, "target_position" ) || !strcmp( classname, "info_notnull" ) ||
+				   !strcmp( classname, "info_player_deathmatch" ) || !strcmp( classname, "misc_teleporter_dest" );
+	for ( const gitem_t *item = bg_itemlist + 1; item->classname; ++item )
+		allowed |= !strcmp( classname, item->classname );
+	if ( !allowed || !std::isfinite( origin[0] ) || !std::isfinite( origin[1] ) || !std::isfinite( origin[2] ) )
+		return -1;
+	level.numSpawnVars = level.numSpawnVarChars = 0;
+	char position[128];
+	Com_sprintf( position, sizeof( position ), "%.9f %.9f %.9f", origin[0], origin[1], origin[2] );
+	level.spawnVars[0][0] = G_AddSpawnVarToken( "classname" );
+	level.spawnVars[0][1] = G_AddSpawnVarToken( classname );
+	level.spawnVars[1][0] = G_AddSpawnVarToken( "origin" );
+	level.spawnVars[1][1] = G_AddSpawnVarToken( position );
+	level.numSpawnVars = 2;
+	G_DevCapture();
+	level.spawning = qtrue;
+	G_SpawnGEntityFromSpawnVars();
+	level.spawning = qfalse;
+	return g_entities[devSpawned].inuse ? devSpawned : -1;
+}
+
+static bool Dev_Delete( int index ) {
+	devEntity_t info;
+	if ( !trap_Cvar_VariableIntegerValue( "sv_cheats" ) || !Dev_ReadEntity( index, &info ) || info.source < 0 || index < MAX_CLIENTS || g_entities[index].neverFree )
+		return false;
+	G_FreeEntity( &g_entities[index] );
+	devDocuments[info.source][0] = '\0';
+	return true;
+}
+
+static int Dev_MapCount( void ) {
+	return devComplete ? devDocumentCount : -1;
+}
+static const char *Dev_MapText( int index ) {
+	return index >= 0 && index < devDocumentCount ? devDocuments[index] : nullptr;
+}
+
+static void G_DevReset( void ) {
+	memset( devSource, 0xff, sizeof( devSource ) );
+	devDocumentCount = 0;
+	devCurrentSource = -1;
+	devComplete = true;
+	static const devGameTools_t tools = { Dev_ReadEntity, Dev_FieldName, Dev_ReadField, Dev_WriteField,
+		Dev_Spawn, Dev_Delete, Dev_MapCount, Dev_MapText };
+	Dev_RegisterGameTools( &tools );
+}
+#endif

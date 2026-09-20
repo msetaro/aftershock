@@ -2049,3 +2049,9 @@ void Cvar_Init( void ) {
 	Cmd_AddCommand( "cvar_restart", Cvar_Restart_f );
 	Cmd_AddCommand( "cvar_trim", Cvar_Trim_f );
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+const cvar_t *Cvar_First( void ) {
+	return cvar_vars;
+}
+#endif
