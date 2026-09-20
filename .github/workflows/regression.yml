@@ -72,6 +72,12 @@ jobs:
       - name: Install libc++
         if: matrix.cc == 'clang'
         run: sudo apt-get update && sudo apt-get install -y ninja-build libc++-dev libc++abi-dev
+      - name: Cook owned source assets and verify production poses
+        run: |
+          sudo apt-get update && sudo apt-get install -y python3-venv ninja-build
+          python3 -m venv /tmp/aftershock-cook-python
+          /tmp/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt
+          /tmp/aftershock-cook-python/bin/python tests/cook.py --cxx '${{ matrix.cxx }}'
       - name: RHI contract and frame uploads
         run: python3 tests/rhi.py --cxx '${{ matrix.cxx }}'
       - name: Render graph dependencies and native reference trace

@@ -4,9 +4,12 @@ import argparse
 import copy
 import hashlib
 import json
+import os
 from pathlib import Path
 import struct
+import shlex
 import subprocess
+import sys
 import tempfile
 
 from PIL import Image
@@ -77,9 +80,11 @@ def source_assets(directory):
     attributes.pop('JOINTS_0')
     attributes.pop('WEIGHTS_0')
     (directory / 'static.gltf').write_text(json.dumps(static))
+    static['nodes'][0]['scale'] = [-1, 1, 1]
+    (directory / 'mirrored.gltf').write_text(json.dumps(static))
     Image.new('RGBA', (16, 16), (128, 96, 255, 255)).save(directory / 'color.png')
     assets = [{'name': 'models/' + name, 'kind': 'model', 'source': source, 'scale': 1, 'fps': 2}
-              for name, source in [('rig', 'rig.gltf'), ('packed', 'rig.glb'), ('static', 'static.gltf')]]
+              for name, source in [('rig', 'rig.gltf'), ('packed', 'rig.glb'), ('static', 'static.gltf'), ('mirrored', 'mirrored.gltf')]]
     assets += [{'name': 'textures/' + fmt, 'kind': 'texture', 'source': 'color.png',
                 'format': fmt, 'srgb': fmt == 'bc7'} for fmt in ('bc7', 'bc5', 'bc4')]
     project = directory / 'assets.json'
@@ -88,17 +93,30 @@ def source_assets(directory):
 
 
 def cook(project, output):
-    command = ['python3', 'tools/cook', str(project), '--output', str(output)]
+    command = [sys.executable, 'tools/cook', str(project), '--output', str(output)]
     result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
     if result.returncode:
         raise RuntimeError('cooker failed:\n' + result.stdout + result.stderr)
     return json.loads(result.stdout)
 
 
-def check_model(path, animated):
+def model_header(data):
+    header = struct.unpack_from('<27I', data, 16)
+    assert header[25] == 1
+    name, size, offset, next_extension = struct.unpack_from('<4I', data, header[26])
+    assert data[header[4] + name:].split(b'\0', 1)[0] == b'aftershock.cook'
+    assert size == 68 and next_extension == 0 and struct.unpack_from('<I', data, offset)[0] == 1
+    copy = bytearray(data)
+    claimed = copy[offset + 36:offset + 68]
+    copy[offset + 36:offset + 68] = bytes(32)
+    assert hashlib.sha256(copy).digest() == claimed
+    return header
+
+
+def check_model(path, animated, mirrored=False):
     data = path.read_bytes()
     assert data[:16] == b'INTERQUAKEMODEL\0'
-    header = struct.unpack_from('<27I', data, 16)
+    header = model_header(data)
     assert header[0] == 2 and header[1] == len(data)
     assert header[5] == 1 and header[8] == 3 and header[10] == 1
     assert header[13] == (2 if animated else 0)
@@ -107,7 +125,14 @@ def check_model(path, animated):
     positions = next(row for row in arrays if row[0] == 0)
     normals = next(row for row in arrays if row[0] == 2)
     assert positions[2:4] == normals[2:4] == (7, 3)
-    assert struct.unpack_from('<9f', data, positions[4]) == (0, 0, 0, 1, 0, 2, -1, 0, 2)
+    expected_x = -1 if mirrored else 1
+    coordinates = struct.unpack_from('<9f', data, positions[4])
+    assert coordinates == (0, 0, 0, expected_x, 0, 2, -expected_x, 0, 2)
+    face = struct.unpack_from('<3I', data, header[11])
+    a, b, c = [coordinates[index * 3:index * 3 + 3] for index in face]
+    # Clockwise face winding must still agree with its surface normal after a mirror.
+    cross_y = (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2])
+    assert cross_y > 0
     assert struct.unpack_from('<3f', data, normals[4]) == (0, -1, 0)
     if animated:
         names = []
@@ -123,6 +148,23 @@ def check_texture(path, vk_format, block_bytes):
     assert data[:12] == b'\xabKTX 20\xbb\r\n\x1a\n'
     fields = struct.unpack_from('<13I2Q', data, 12)
     assert fields[:9] == (vk_format, 1, 16, 16, 0, 0, 1, 5, 0)
+    descriptor = data[fields[9]:fields[9] + fields[10]]
+    assert descriptor[12] == {139: 131, 141: 132, 146: 134}[vk_format]
+    assert descriptor[14] == (2 if vk_format == 146 else 1)
+    offset, end = fields[11], fields[11] + fields[12]
+    metadata = {}
+    while offset < end:
+        size, = struct.unpack_from('<I', data, offset)
+        key, value = data[offset + 4:offset + 4 + size].split(b'\0', 1)
+        metadata[key] = value
+        if key == b'aftershock.contentHash':
+            start = offset + 4 + len(key) + 1
+            copy = bytearray(data)
+            copy[start:start + 32] = bytes(32)
+            assert hashlib.sha256(copy).digest() == value
+        offset = (offset + 4 + size + 3) // 4 * 4
+    assert metadata[b'aftershock.version'] == struct.pack('<I', 1)
+    assert len(metadata[b'aftershock.sourceHash']) == len(metadata[b'aftershock.contentHash']) == 32
     for level in range(5):
         offset, size, raw = struct.unpack_from('<3Q', data, 80 + level * 24)
         side = max(1, 16 >> level)
@@ -133,7 +175,10 @@ def check_texture(path, vk_format, block_bytes):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-cook-tests'))
+    parser.add_argument('--cxx', default=os.environ.get('CXX', 'g++'))
     args = parser.parse_args()
+    os.environ['CXX'] = args.cxx
+    args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='aftershock-cook-', dir=args.output) as temporary:
         home = Path(temporary)
@@ -153,8 +198,8 @@ def main():
                 path = output / item['path']
                 assert hashlib.sha256(path.read_bytes()).hexdigest() == item['sha256']
                 before[item['path']] = (path.read_bytes(), path.stat().st_mtime_ns)
-        for name in ('rig', 'packed', 'static'):
-            check_model(output / f'models/{name}.iqm', name != 'static')
+        for name in ('rig', 'packed', 'static', 'mirrored'):
+            check_model(output / f'models/{name}.iqm', name in ('rig', 'packed'), name == 'mirrored')
         for fmt, native, size in [('bc7', 146, 16), ('bc5', 141, 16), ('bc4', 139, 8)]:
             check_texture(output / f'textures/{fmt}.ktx2', native, size)
         result = cook(project, output)
@@ -168,9 +213,28 @@ def main():
         Image.new('RGBA', (16, 16), (48, 160, 224, 255)).save(home / 'color.png')
         result = cook(project, output)
         assert sorted(result['built']) == ['textures/bc4', 'textures/bc5', 'textures/bc7']
-        assert sorted(result['skipped']) == ['models/packed', 'models/rig', 'models/static']
+        assert sorted(result['skipped']) == ['models/mirrored', 'models/packed', 'models/rig', 'models/static']
         assert (output / 'textures/bc7.ktx2').read_bytes() != before['textures/bc7.ktx2'][0]
         (args.output / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
+    fixture = ROOT / 'tests/assets/cook-character'
+    provenance = json.loads((fixture / 'provenance.json').read_text())
+    for name, expected in provenance['files'].items():
+        assert hashlib.sha256((fixture / name).read_bytes()).hexdigest() == expected
+    output = args.output / 'character'
+    cook(fixture / 'assets.json', output)
+    data = (output / 'models/character.iqm').read_bytes()
+    header = model_header(data)
+    assert (header[5], header[13], header[17], header[19]) == (6, 3, 2, 62)
+    material = (output / 'models/character_material0.asmat').read_bytes()
+    magic, version, size, hashed = struct.unpack_from('<8sII32s', material)
+    assert magic == b'ASMAT\0\0\0' and version == 1 and size == len(material) - 48
+    assert hashed == hashlib.sha256(material[48:]).digest()
+    probe = args.output / 'model-probe'
+    subprocess.run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+                    '-DUSE_VULKAN_API', '-Wall', '-Wextra', '-Werror', '-ffunction-sections', '-fdata-sections',
+                    'tests/probes/cook_model.cpp', 'engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp',
+                    '-Wl,--gc-sections', '-o', str(probe)], cwd=ROOT, check=True)
+    subprocess.run([str(probe), str(output / 'models/character.iqm')], check=True)
     print('PASS: static/skinned glTF/GLB, named clips, BC KTX2 mip chains, content hashes and incremental recook')
 
 

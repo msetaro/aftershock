@@ -24,7 +24,7 @@ def encoder():
         if hashlib.sha256((vendor / name).read_bytes()).hexdigest() != expected:
             raise ValueError('BC7 source differs from pinned provenance: ' + name)
     cache = Path(os.environ.get('XDG_CACHE_HOME', Path.home() / '.cache'))
-    directory = cache / 'aftershock-cook' / hashlib.sha256(str(ROOT).encode()).hexdigest()[:12]
+    directory = cache / 'aftershock-cook' / hashlib.sha256((str(ROOT) + os.environ.get('CXX', 'c++')).encode()).hexdigest()[:12]
     subprocess.run(['cmake', '-S', str(HERE), '-B', str(directory), '-G', 'Ninja',
                     '-DCMAKE_BUILD_TYPE=Release'], check=True, stdout=sys.stderr)
     subprocess.run(['cmake', '--build', str(directory), '--config', 'Release', '-j', '2'],

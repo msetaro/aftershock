@@ -134,6 +134,7 @@ python3 tests/bot_command.py
 python3 tests/native_info.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
+python3 tests/cook.py
 python3 tests/devtools.py
 python3 tests/devtools_data.py
 python3 tests/dev_entities.py

@@ -87,6 +87,27 @@ An independent feature check validates all three 16x16 mip chains and block size
 (cook-texture-check.log). The full CLI/model test still fails until the next slice.
 Native compressed-texture loading and hot reload are not yet implemented.
 
+The offline CLI/model slice now passes tests/cook.py under GCC and Clang/libc++.
+It handles ordinary static/skinned glTF/GLB, typed/sparse accessors, transforms,
+bind poses, sampled named clips, IQM channel quantization, surface splitting and
+dependency manifests. The real Blender fixture is consumed by production IQM
+code; its root and arm motions match the source clips. New-feature corrections:
+normalize clip start time (Blender's first key is at frame 1/30), and preserve
+clockwise winding under mirrored static transforms. Both have failing-then-passing
+feature evidence (cook-pose-before.log, cook-mirror-before.log). The pose test's
+axis expectation was also corrected to the actual exported local-bone motion;
+the committed source fixture was not regenerated.
+
+GCC/Clang character outputs match byte-for-byte: IQM
+07fc751de9dbff33dbaff55c2f306d12125b314ca3f81be2e66cea08e0e077c8,
+material dbd8360ab541bc39cdff1719300772c831b3a6e1ee1d84cdc49e9456b8d2c053,
+texture c2c0ea65275b54e97d8e7a7bfc98771d766dfcb6b8857eb4396656327f8a82e4.
+Embedded hashes and manifests are independently checked. CI now runs the owned
+cooking/pose test under both host compilers. No production engine code has changed
+for #9 yet. Explicit WAV/OGG/material/shader project inputs, runtime BC/material
+loading, bounded hot reload and ImGui clip/reload evidence remain. Generated
+Python bytecode is removed from tracking and ignored; vendor bytes remain exact.
+
 ## #7 developer tooling checkpoint
 
 Implemented: optional ImGui console/cvars; texture/material/model inspection;

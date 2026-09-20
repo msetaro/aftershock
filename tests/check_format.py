@@ -16,7 +16,7 @@ version = subprocess.check_output([*tool, '--version'], text=True)
 if ('version', VERSION) not in zip(version.split(), version.split()[1:]):
     raise SystemExit('clang-format ' + VERSION + ' is required')
 files = subprocess.check_output(
-    ['git', 'ls-files', '-z', '--', 'engine', 'game', 'tools/port', 'tests/probes'],
+    ['git', 'ls-files', '-z', '--', 'engine', 'game', 'tools/port', 'tools/cook', 'tests/probes'],
     cwd=ROOT).decode().split('\0')
 files = [name for name in files if Path(name).suffix in ('.h', '.cpp', '.c', '.inc')
          and not name.startswith('engine/platform/asm/')

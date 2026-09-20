@@ -18,6 +18,7 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 python3 tests/native_math.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
+python3 tests/cook.py
 python3 tests/devtools.py
 python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
@@ -33,6 +34,14 @@ python3 tests/check_frames.py
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
 ```
+
+`python3 tests/cook.py` requires the pinned Pillow version from
+`tools/cook/requirements.txt`, CMake/Ninja and a host C++ compiler. It cooks owned
+static, mirrored and skinned glTF/GLB sources; checks named clips, coordinates,
+BC7/BC5/BC4 KTX2 mip chains and embedded/manifest hashes; verifies no-op and
+selective recooking; and feeds the committed Blender character into production
+IQM pose code. `--cxx` selects GCC or Clang/libc++. Its source fixture/provenance
+is in `tests/assets/cook-character`; CI never reauthors it. No game paks are used.
 
 `python3 tests/render_graph.py` checks the portable fixed pass declarations,
 dependencies and resource lifetimes, then observes production Vulkan image,
