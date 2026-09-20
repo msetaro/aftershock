@@ -71,13 +71,20 @@ with tempfile.TemporaryDirectory(prefix='aftershock-range-ui-') as temporary:
             # Stable rows within the selected range panel.
             device.click(90, 180)  # Spawn moving target.
             wait_for(lambda: 'Rewind target created:' in logfile.read_text(), process)
-            device.click(290, 180)  # Second data-only rifle.
+            device.click(207, 180)  # Any loaded definition can be selected by slot.
+            device.key('Home')
+            device.key('Delete')
+            device.key('2')
+            device.key('Return')
+            device.click(325, 180)
             wait_for(lambda: 'Weapon switch: owner=0 hand=0 from=0 to=1' in logfile.read_text(), process)
             device.click(35, 204)  # One trigger pulse.
             wait_for(lambda: 'Weapon event: owner=0 hand=0 kind=0' in logfile.read_text(), process)
             device.click(90, 204)  # Reload.
             wait_for(lambda: 'Weapon event: owner=0 hand=0 kind=4' in logfile.read_text(), process)
             time.sleep(1.2)
+            device.click(340, 296)
+            wait_for(lambda: (base / 'screenshots/range-panel.tga').is_file(), process)
             device.key('Escape')
             device.key('F10')
             process.wait(timeout=20)
@@ -89,5 +96,6 @@ with tempfile.TemporaryDirectory(prefix='aftershock-range-ui-') as temporary:
             device.close()
     assert 'Developer weapon range: target' in logfile.read_text()
     assert 'Developer weapon range: fire' in logfile.read_text()
-    shutil.copyfile(base / 'screenshots/range.tga', args.output / 'range.tga')
+    for name in ('range', 'range-panel'):
+        shutil.copyfile(base / 'screenshots' / (name + '.tga'), args.output / (name + '.tga'))
 print('PASS: real ImGui target spawn, data-only rifle selection, trigger and reload')

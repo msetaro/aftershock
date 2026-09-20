@@ -129,6 +129,15 @@ rewind-target/game commands and cooked inspection; mutations run after vendor UI
 calls return. Keep the range tab absent until opened so existing tool layouts
 retain their positions.
 
+The ImGui range now passes real pointer/key input on Q3 and OpenArena
+(weapons-range.log/-oa.log): moving target, arbitrary loaded slot selection,
+trigger and reload. The reviewed panel capture shows cooked definition inspection,
+ADS/offhand/melee/attachment controls, rewind counters and restart/capture actions.
+It opens with dev_weapon_range and stays absent from the tab bar otherwise.
+Game mutations run after vendor UI calls. Build/style/boundary/type checks pass.
+Next: bound projectiles and reserve/reuse per-client auxiliary records, then
+lifecycle, lossy input and fixed replay acceptance before the complete CI gates.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing

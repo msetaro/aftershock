@@ -863,3 +863,33 @@ not required; fixed replay is. CI rejects the recording flag. The initial fixtur
 were recorded from 3fbc0a62 on q3dm17 and oa_dm1; each replay checks 253 received
 poses against 265 recorded authoritative poses. The source project and demo are
 owned GPL artifacts; map art remains in the user's installed content packages.
+
+
+## Data-driven weapon range (#11, acceptance in progress)
+
+`python3 tests/weapons.py` cooks two rifles from data and runs the seeded 1000-shot
+reference, fixed-tick lifecycle, real snapshot codec, penetration, projectile math
+and graph-notify checks under UBSan. Select the other supported compiler with
+`--cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/weapons-clang`.
+
+`python3 tests/weapons_runtime.py --binary PATH` exercises native server/client
+weapon and animation prediction, data-only selection, attachments, grenade
+prediction, rendered ADS and exactly-once notify audio. It saves an ADS capture
+for review and uses SDL dummy audio to verify dispatch and decoded resident
+samples. `python3 tests/weapon_range.py --binary PATH` drives the actual ImGui
+range controls with X11 input and saves a panel capture. Both require a development
+client, Xvfb/lavapipe and installed content; hosted content uses
+`--content openarena --data /tmp/aftershock-openarena-baseoa`. Local Q3 uses
+`~/.q3a/baseq3`. Neither command copies game paks into the repository.
+
+In a development client, `dev_weapon_range` opens the range panel on a local
+`devmap` with `g_rewind 1` and a space-separated `g_weapons` list of cooked
+`.asweapon` paths. The panel inspects a cooked definition, selects a loaded slot,
+spawns the existing rewind target, pulses fire/reload/melee/offhand, controls ADS
+and attachments, and restarts with an inspected weapon after offline recooking.
+The active simulation keeps its map-start definition hashes. Cook the owned art
+with `python3 tools/cook tests/assets/range.json --output OUTPUT` and the rifle
+with `python3 tools/cook tests/assets/weapons/assets.json --output OUTPUT`.
+The #11 scene variant removes the old solid placeholder sight while referencing
+the unchanged #10 geometry/animation buffer. Accepted #3/#10 fixtures remain
+unchanged; full #11 lifecycle/network/replay and CI acceptance is still pending.
