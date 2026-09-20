@@ -94,6 +94,29 @@ int main( int argc, char **argv ) {
 		}
 		assert( count == ( mode == WEAPON_SEMI ? 1u : 3u ) );
 	}
+	Weapon_Reset( &def, 1, 0, &a );
+	a.magazine = a.chamber = 0;
+	Step( def, &a, WEAPON_RELOAD );
+	while ( a.time < 1020 )
+		Step( def, &a, 0 );
+	assert( a.magazine == 29 && a.chamber == 1 && a.reserve == 60 );
+	Weapon_Reset( &def, 1, 0, &a );
+	for ( int i = 0; i < 10; ++i )
+		Step( def, &a, WEAPON_ADS );
+	assert( a.adsQ16 == 65536 );
+	uint32_t strikes = 0;
+	for ( int i = 0; i < 50; ++i ) {
+		const auto events = Step( def, &a, WEAPON_MELEE );
+		for ( uint32_t j = 0; j < events.count; ++j )
+			strikes += events.items[j].kind == WEAPON_MELEE_EVENT;
+	}
+	assert( strikes == 2 );
+	Weapon_Reset( &def, 1, UINT32_MAX - 9, &a );
+	const auto wrap = Step( def, &a, WEAPON_FIRE );
+	assert( a.time == 10 && wrap.count == 1 && wrap.items[0].kind == WEAPON_SHOT );
+	b = a;
+	weaponEvents_t untouched;
+	assert( !Weapon_Tick( &def, 0, a.time + 40, &a, &untouched ) && !memcmp( &a, &b, sizeof( a ) ) );
 	weaponProjectile_t projectile = {};
 	projectile.velocity[0] = 800;
 	Weapon_ProjectileStep( &def, &projectile );
@@ -101,4 +124,8 @@ int main( int argc, char **argv ) {
 	const float normal[3] = { -1, 0, 0 };
 	Weapon_ProjectileBounce( &def, normal, &projectile );
 	assert( projectile.velocity[0] == -400 );
+	while ( Weapon_ProjectileStep( &def, &projectile ) ) {
+	}
+	assert( projectile.ageMs == def.projectile.fuseMs );
+	assert( !Weapon_ProjectileStep( &def, &projectile ) && projectile.ageMs == def.projectile.fuseMs );
 }
