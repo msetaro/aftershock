@@ -369,10 +369,10 @@ void CG_WeaponImpact( const entityState_t *entity, const vec3_t position ) {
 		CG_Printf( "Weapon impact: material=%s target=%d\n", material.effect, entity->otherEntityNum2 );
 }
 
-bool CG_WeaponProjectile( centity_t *cent ) {
+qboolean CG_WeaponProjectile( centity_t *cent ) {
 	const auto &state = cent->currentState;
 	if ( state.generic1 != WEAPON_PROJECTILE_TAG )
-		return false;
+		return qfalse;
 	if ( !BG_WeaponDefinition( state.modelindex ) || state.otherEntityNum < 0 || state.otherEntityNum >= MAX_CLIENTS ||
 		 state.otherEntityNum2 < 0 || state.otherEntityNum2 > 1 || state.pos.trDuration < 0 || state.pos.trDuration > 60020 )
 		CG_Error( "Weapon rejected: projectile snapshot" );
@@ -401,7 +401,7 @@ bool CG_WeaponProjectile( centity_t *cent ) {
 			uint32_t( state.time2 ), state.pos.trDuration );
 		cent->miscTime = state.pos.trTime;
 	}
-	return true;
+	return qtrue;
 }
 
 float CG_WeaponFov( float base ) {
@@ -496,9 +496,13 @@ void CG_AddDataWeapon( void ) {
 		}
 	}
 }
-bool CG_DrawDataWeaponAmmo( void ) {
+const char *CG_DataWeaponName( void ) {
+	const auto *definition = BG_WeaponDefinition( predictedWeaponValid[0] ? predictedWeaponDefinitions[0] : cg.weaponSelect - 1 );
+	return definition ? definition->name : nullptr;
+}
+qboolean CG_DrawDataWeaponAmmo( void ) {
 	if ( !BG_WeaponDefinition( 0 ) )
-		return false;
+		return qfalse;
 	for ( int hand = 0; hand < 2; ++hand ) {
 		if ( !predictedWeaponValid[hand] || ( hand && !predictedWeapons[hand].sequence ) )
 			continue;
@@ -509,7 +513,7 @@ bool CG_DrawDataWeaponAmmo( void ) {
 		CG_DrawStringExt( 8, 432 + hand * 18, text, colorWhite, qfalse, qtrue, 8, 16, 0 );
 		++weaponHudDraws;
 	}
-	return true;
+	return qtrue;
 }
 void CG_WeaponStatus( void ) {
 	CG_Printf( "Weapon rendering: draws=%u attachments=%u ads=%u error=%.6f kick=%.6f fov=%.6f hud=%u\n",

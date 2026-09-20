@@ -978,7 +978,7 @@ void G_InitWeapons( void );
 void G_WeaponAttachmentCommand( int owner );
 void G_ClearWeaponActor( int owner );
 void G_RemoveWeaponProjectiles( int owner );
-bool G_RunWeaponProjectile( gentity_t *entity );
+qboolean G_RunWeaponProjectile( gentity_t *entity );
 void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart );
 void G_InitAnimation( void );
 void G_ShutdownAnimation( void );

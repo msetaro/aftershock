@@ -17,15 +17,15 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
-Continue #11 with lossy-network and new fixed-replay acceptance, then complete
-CI wiring/gates/self-review. The ImGui range, reusable per-client auxiliary records,
-team-transition lifecycle and 64-projectile capacity now pass Q3/OpenArena tests.
-Cooked loading, command replay, rewind/penetration damage, data-only switching,
-attachments, replicated/predicted projectiles, per-hand animation prediction,
-view/ADS rendering and notify audio now pass focused tests on Q3 and OpenArena.
-Wire the finished tests into CI, complete all gates/self-review, mark draft PR
-#150 ready and merge; full acceptance remains pending. #12 integration regression
-35523091952 passed. Preserve accepted fixtures and reuse existing APIs.
+Complete #11 compatibility/full gates and committed self-review, then mark PR #150
+ready and merge after exact-head build/regression passes. Both lossy-network content
+sets and new fixed replays pass locally (992 full authoritative state hashes each).
+New fixtures were recorded once at 6dbe2a93; accepted older fixtures are unchanged.
+CI wiring is present. Hosted prior-head MSVC/C-header failures are being corrected;
+current native ABI/shared-math checks are next. Re-run the new fixtures through the
+updated static/module builds, review captures and push the fixtures/corrections.
+After merge, require merged-tree regression, update #11/#25, then continue #26/#27/#28.
+#12 integration regression 35523091952 passed. Preserve accepted fixtures.
 
 #12 PR #149 merged with a merge commit as
 3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree
@@ -55,12 +55,36 @@ The lifetime gate now covers the weapons
 subsystem explicitly, and subsystem ownership is documented.
 
 Full-state diagnostic hashes cover all 56 bytes (portable probe checks every byte).
-The new separate replay driver and CI commands are written; initial fixtures are
-not recorded/reviewed yet. The range HUD now shows actual magazine/chamber/reserve,
+The separate replay driver and CI commands are written; fixture acceptance is
+recorded in the following checkpoint. The range HUD now shows actual magazine/chamber/reserve,
 and followed-player commands cannot be predicted from the spectator input.
 GCC and Clang/libc++ UBSan probes pass with the unchanged 1000-shot digest.
 The final Q3 lifecycle/HUD run, formatting/boundary/type gates and 1270-configuration
-tidy pass; full lifetime analysis is running.
+tidy pass; full lifetime analysis also passes 1216 commands.
+
+## #11 replay and compatibility acceptance
+
+Both new fixtures were recorded once from 6dbe2a93: q3dm17 and oa_dm1, about 44 KiB
+each, containing owned native gameplay records only. Two fixed replays per content
+pass 992 full-state hashes and three identical sampled frames. The first replay
+harness asked for status after the 199-frame demo ended; samples are now at frames
+40/80/140, without re-recording. Reviewed captures show the owned rifle/optic,
+ADS/reload, offhand/projectile presentation and magazine/chamber/reserve HUD.
+
+Prior hosted head 16feb9f1 exposed MSVC C4701 after the animation error path and a
+C witness rejecting the new bool game declaration. Feature error handling now exits
+explicitly after G_Error, and game-facing booleans use qboolean. An attempted historical native C/C++ gate exposed direct C++ definition access
+in legacy source files; plain
+weapon-count/name queries keep those files compatible, and the HUD name follows
+the acknowledged selection during demo replay. These are #11 implementation
+corrections, with no legacy arithmetic or accepted golden changes. The old C bot
+command witness passes. Unit digest/one-ULP control, 1216-command lifetime analysis,
+and 1270-configuration tidy passed before these small compatibility corrections;
+rerun affected current gates before acceptance. `tests/native_gates.py` belongs
+to historical revision 7f4d43a7, as tests/README.md specifies; its current-tree
+attempt then failed on existing #10 C++ declarations. Do not rerun or alter the
+historical oracle. Current ABI/shared-math and production/replay checks are the
+applicable gates.
 
 ## #11 weapon animation snapshot test
 

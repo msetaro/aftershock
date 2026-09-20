@@ -1514,7 +1514,7 @@ Generates weapon events and modifes the weapon counter
 ==============
 */
 static void PM_Weapon( void ) {
-	if ( BG_WeaponDefinition( 0 ) )
+	if ( BG_WeaponCount() )
 		return;
 	int addTime;
 

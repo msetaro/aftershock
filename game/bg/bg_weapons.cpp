@@ -51,6 +51,9 @@ bool BG_LoadWeapon( int index, const char *path, char hash[65], char graphHash[6
 	++weaponDefinitionCount;
 	return true;
 }
+int BG_WeaponCount( void ) {
+	return weaponDefinitionCount;
+}
 const weaponDef_t *BG_WeaponDefinition( int index ) {
 	return index >= 0 && index < weaponDefinitionCount ? &weaponDefinitions[index] : nullptr;
 }

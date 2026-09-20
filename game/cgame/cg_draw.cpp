@@ -553,7 +553,7 @@ static void CG_DrawStatusBar( void ) {
 	VectorClear( angles );
 
 	// draw any 3D icons first, so the changes back to 2D are minimized
-	if ( !BG_WeaponDefinition( 0 ) && cent->currentState.weapon && cg_weapons[cent->currentState.weapon].ammoModel ) {
+	if ( !BG_WeaponCount() && cent->currentState.weapon && cg_weapons[cent->currentState.weapon].ammoModel ) {
 		origin[0] = 70;
 		origin[1] = 0;
 		origin[2] = 0;

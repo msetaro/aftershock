@@ -1382,7 +1382,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 
 
-	if ( BG_WeaponDefinition( 0 ) ) {
+	if ( BG_WeaponCount() ) {
 		if ( cg_drawGun.integer && !cg.testGun )
 			CG_AddDataWeapon();
 		return;
@@ -1464,10 +1464,10 @@ CG_DrawWeaponSelect
 ===================
 */
 void CG_DrawWeaponSelect( void ) {
-	if ( BG_WeaponDefinition( 0 ) ) {
-		const auto *definition = BG_WeaponDefinition( cg.weaponSelect - 1 );
-		if ( definition && cg.predictedPlayerState.stats[STAT_HEALTH] > 0 )
-			CG_DrawBigString( 16, 400, definition->name, 1 );
+	if ( BG_WeaponCount() ) {
+		const char *name = CG_DataWeaponName();
+		if ( name && cg.predictedPlayerState.stats[STAT_HEALTH] > 0 )
+			CG_DrawBigString( 16, 400, name, 1 );
 		return;
 	}
 	int i;
@@ -1572,10 +1572,8 @@ void CG_NextWeapon_f( void ) {
 		return;
 	}
 
-	if ( BG_WeaponDefinition( 0 ) ) {
-		int count = 1;
-		while ( BG_WeaponDefinition( count ) )
-			++count;
+	if ( BG_WeaponCount() ) {
+		const int count = BG_WeaponCount();
 		cg.weaponSelect = ( cg.weaponSelect - 1 + count + 1 ) % count + 1;
 		return;
 	}
@@ -1616,10 +1614,8 @@ void CG_PrevWeapon_f( void ) {
 		return;
 	}
 
-	if ( BG_WeaponDefinition( 0 ) ) {
-		int count = 1;
-		while ( BG_WeaponDefinition( count ) )
-			++count;
+	if ( BG_WeaponCount() ) {
+		const int count = BG_WeaponCount();
 		cg.weaponSelect = ( cg.weaponSelect - 2 + count ) % count + 1;
 		return;
 	}
@@ -1661,8 +1657,8 @@ void CG_Weapon_f( void ) {
 
 	num = atoi( CG_Argv( 1 ) );
 
-	if ( BG_WeaponDefinition( 0 ) ) {
-		if ( BG_WeaponDefinition( num - 1 ) )
+	if ( BG_WeaponCount() ) {
+		if ( num >= 1 && num <= BG_WeaponCount() )
 			cg.weaponSelect = num;
 		return;
 	}
@@ -1688,7 +1684,7 @@ The current weapon has just run out of ammo
 ===================
 */
 void CG_OutOfAmmoChange( void ) {
-	if ( BG_WeaponDefinition( 0 ) )
+	if ( BG_WeaponCount() )
 		return;
 	int i;
 

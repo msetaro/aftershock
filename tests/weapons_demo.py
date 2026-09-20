@@ -89,7 +89,7 @@ def client(home, commands, name, recording=False):
     (args.output / (name + '.log')).write_text(text)
     result.check_returncode()
     assert 'VK_RENDERER:' in text and 'llvmpipe' in text and 'Static cgame loaded.' in text
-    assert not any(error in text for error in ('ERROR:', 'Signal caught', 'Weapon rejected', 'unknown cmd'))
+    assert not any(error in text for error in ('ERROR:', 'Signal caught', 'Weapon rejected', 'unknown cmd', 'Unknown command'))
     return text
 
 
@@ -129,8 +129,8 @@ for iteration in (1, 2):
         assert assets(base) == manifest['assets'], 'weapon/graph/model revision changed'
         shutil.copyfile(fixture, base / 'demos/range.dm_68')
         log = client(home, ['+set', 'timedemo', '1', '+demo', 'range',
-                           '+wait', '50', '+screenshot', 'frame050', '+wait', '50', '+screenshot', 'frame100',
-                           '+wait', '100', '+screenshot', 'frame200', '+wait', '2', '+weapon_status', '+wait', '400', '+quit'], f'replay-{iteration}')
+                           '+wait', '40', '+screenshot', 'frame040', '+wait', '40', '+screenshot', 'frame080',
+                           '+wait', '60', '+screenshot', 'frame140', '+wait', '2', '+weapon_status', '+wait', '400', '+quit'], f'replay-{iteration}')
         received = states(log, 'client')
         assert len(received) >= 300 and received.keys() <= manifest['server_states'].keys(), len(received)
         assert all(manifest['server_states'][key] == value for key, value in received.items()), 'recorded full weapon state differs'
@@ -139,7 +139,7 @@ for iteration in (1, 2):
         assert 'Weapon projectile client: owner=0 hand=0 sequence=1 ' in log
         assert re.search(r'Weapon rendering: draws=[1-9]\d* attachments=[1-9]\d*', log)
         frames = {}
-        for name in ('frame050', 'frame100', 'frame200'):
+        for name in ('frame040', 'frame080', 'frame140'):
             target = args.output / f'{iteration}-{name}.tga'
             shutil.copyfile(base / 'screenshots' / (name + '.tga'), target)
             frames[name] = digest(target)

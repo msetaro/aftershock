@@ -247,9 +247,9 @@ void G_RemoveWeaponProjectiles( int owner ) {
 			G_FreeEntity( entity );
 	}
 }
-bool G_RunWeaponProjectile( gentity_t *entity ) {
+qboolean G_RunWeaponProjectile( gentity_t *entity ) {
 	if ( entity->s.generic1 != WEAPON_PROJECTILE_TAG )
-		return false;
+		return qfalse;
 	const auto *definition = BG_WeaponDefinition( entity->s.modelindex );
 	if ( !definition )
 		G_Error( "Weapon rejected: projectile definition" );
@@ -280,7 +280,7 @@ bool G_RunWeaponProjectile( gentity_t *entity ) {
 			if ( weaponTrace.integer )
 				G_Printf( "Weapon projectile exploded: owner=%d sequence=%u age=%u\n", entity->s.otherEntityNum, uint32_t( entity->s.time2 ), state.ageMs );
 			G_FreeEntity( entity );
-			return true;
+			return qtrue;
 		}
 	}
 	VectorCopy( state.position, entity->s.pos.trBase );
@@ -292,7 +292,7 @@ bool G_RunWeaponProjectile( gentity_t *entity ) {
 	if ( weaponTrace.integer )
 		G_Printf( "Weapon projectile server: owner=%d hand=%d sequence=%u age=%u\n", entity->s.otherEntityNum,
 			entity->s.otherEntityNum2, uint32_t( entity->s.time2 ), state.ageMs );
-	return true;
+	return qtrue;
 }
 void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart ) {
 	if ( !BG_WeaponDefinition( 0 ) )
@@ -365,8 +365,10 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 				state.burstRemaining = 0;
 			}
 			if ( !Weapon_Tick( definition, tickButtons, state.time + 20, &state, &events ) ||
-				 !BG_WeaponAnimationStep( BG_WeaponAnimation( selected ), &state, &events, &actor.animation[hand], actor.parameters[hand], &notifies ) )
+				 !BG_WeaponAnimationStep( BG_WeaponAnimation( selected ), &state, &events, &actor.animation[hand], actor.parameters[hand], &notifies ) ) {
 				G_Error( "Weapon rejected: command animation" );
+				return;
+			}
 			for ( uint32_t i = 0; i < notifies.count; ++i )
 				WeaponNotify( player, hand, selected, notifies.items[i] );
 			for ( uint32_t i = 0; i < events.count; ++i ) {

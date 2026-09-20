@@ -710,6 +710,9 @@ typedef enum {
 	ET_ANIMATION = 255 // Auxiliary native animation state, never a game event.
 } entityType_t;
 
+int BG_WeaponCount( void );
+void BG_ClearWeapons( void );
+
 #ifdef __cplusplus
 static_assert( int( ET_EVENTS ) + int( EV_WEAPON_NOTIFY ) < int( ET_WEAPON_ANIMATION ) );
 inline constexpr int WEAPON_PROJECTILE_TAG = 255;
@@ -719,7 +722,6 @@ enum weaponFlight_t { WEAPON_FLYING,
 void BG_LaunchWeaponProjectile( const weaponDef_t *definition, const weaponEvent_t *event, const playerState_t *player, weaponProjectile_t *projectile );
 weaponFlight_t BG_WeaponProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile, int owner,
 	void ( *trace )( trace_t *, const vec3_t, const vec3_t, const vec3_t, const vec3_t, int, int ), trace_t *impact );
-void BG_ClearWeapons( void );
 bool BG_LoadWeapon( int index, const char *path, char hash[65], char graphHash[65] );
 const animAsset_t *BG_WeaponAnimation( int index );
 const weaponDef_t *BG_WeaponDefinition( int index );
