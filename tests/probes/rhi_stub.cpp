@@ -34,11 +34,27 @@ void RHI_BindTexture( uint32_t, const rhiTexture_t * ) {
 	abort();
 }
 
+rhiStatus_t RHI_WaitIdle( void ) {
+	return rhiStatus_t::Unavailable;
+}
+
+rhiStatus_t RHI_WaitQueue( void ) {
+	return rhiStatus_t::Unavailable;
+}
+
+void RHI_DrawIndexed( uint32_t, uint32_t ) {
+	abort();
+}
+
+void RHI_EndPass( void ) {
+	abort();
+}
+
 #ifdef RHI_STUB_CHECK
 int main( void ) {
 	const rhiStats_t stats = RHI_GetStats();
 	const float uniform[32] = {};
-	return RHI_Available() || stats.frameSlots != 0 || stats.geometryBytes != 0 ||
+	return RHI_Available() || RHI_WaitIdle() != rhiStatus_t::Unavailable || RHI_WaitQueue() != rhiStatus_t::Unavailable || stats.frameSlots != 0 || stats.geometryBytes != 0 ||
 		   RHI_UploadUniform( uniform, sizeof( uniform ) ) != RHI_INVALID_OFFSET;
 }
 #endif

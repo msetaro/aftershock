@@ -6,6 +6,25 @@ Vk_Instance vk;
 Vk_World vk_world;
 
 static int destroyed;
+static VkResult wait_result;
+static int commands;
+static VkResult VKAPI_CALL wait_device( VkDevice device ) {
+	assert( (uintptr_t)device == 20 );
+	return wait_result;
+}
+static VkResult VKAPI_CALL wait_queue( VkQueue queue ) {
+	assert( (uintptr_t)queue == 21 );
+	return wait_result;
+}
+static void VKAPI_CALL draw_indexed( VkCommandBuffer command, uint32_t count, uint32_t instances, uint32_t first, int32_t base, uint32_t firstInstance ) {
+	assert( (uintptr_t)command == 22 && commands == 0 );
+	assert( count == 9 && first == 3 && instances == 1 && base == 0 && firstInstance == 0 );
+	commands = 1;
+}
+static void VKAPI_CALL end_pass( VkCommandBuffer command ) {
+	assert( (uintptr_t)command == 22 && commands == 1 );
+	commands = 2;
+}
 static void VKAPI_CALL destroy_image( VkDevice, VkImage image, const VkAllocationCallbacks * ) {
 	assert( (uintptr_t)image == 11 && destroyed == 0 );
 	destroyed = 1;
@@ -64,6 +83,31 @@ int main( void ) {
 	assert( destroyed == 2 && texture.image == 0 && texture.view == 0 && texture.binding == 13 );
 	RHI_DestroyTexture( &texture );
 	assert( destroyed == 2 );
-	puts( "PASS: RHI uniform alignment/bytes/bindings/exhaustion/frame slots; texture formats/addressing/binding/destruction" );
+	assert( RHI_WaitIdle() == rhiStatus_t::Unavailable && RHI_WaitQueue() == rhiStatus_t::Unavailable );
+	vk.device = (VkDevice)(uintptr_t)20;
+	vk.queue = (VkQueue)(uintptr_t)21;
+	qvkDeviceWaitIdle = wait_device;
+	qvkQueueWaitIdle = wait_queue;
+	const struct {
+		VkResult native;
+		rhiStatus_t portable;
+	} results[] = {
+		{ VK_SUCCESS, rhiStatus_t::Success },
+		{ VK_ERROR_OUT_OF_HOST_MEMORY, rhiStatus_t::OutOfMemory },
+		{ VK_ERROR_OUT_OF_DEVICE_MEMORY, rhiStatus_t::OutOfMemory },
+		{ VK_ERROR_DEVICE_LOST, rhiStatus_t::DeviceLost },
+		{ VK_ERROR_INITIALIZATION_FAILED, rhiStatus_t::Error }
+	};
+	for ( const auto &result : results ) {
+		wait_result = result.native;
+		assert( RHI_WaitIdle() == result.portable && RHI_WaitQueue() == result.portable );
+	}
+	vk.cmd->command_buffer = (VkCommandBuffer)(uintptr_t)22;
+	qvkCmdDrawIndexed = draw_indexed;
+	qvkCmdEndRenderPass = end_pass;
+	RHI_DrawIndexed( 9, 3 );
+	RHI_EndPass();
+	assert( commands == 2 );
+	puts( "PASS: RHI uploads, textures, wait status returns and ordered indexed draw/pass commands" );
 	return 0;
 }

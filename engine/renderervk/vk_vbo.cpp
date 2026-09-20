@@ -821,7 +821,7 @@ void VBO_RenderIBOItems( void ) {
 		vk_bind_index_buffer( vk.vbo.vertex_buffer, tess.shader->iboOffset );
 
 		for ( i = 0; i < vbo->ibo_items_count; i++ ) {
-			vk_draw_indexed( vbo->ibo_items[i].length, vbo->ibo_items[i].offset );
+			RHI_DrawIndexed( vbo->ibo_items[i].length, vbo->ibo_items[i].offset );
 		}
 	}
 
@@ -829,7 +829,7 @@ void VBO_RenderIBOItems( void ) {
 	if ( vbo->soft_buffer_indexes ) {
 		vk_bind_index_buffer( vk.cmd->vertex_buffer, vbo->soft_buffer_offset );
 
-		vk_draw_indexed( vbo->soft_buffer_indexes, 0 );
+		RHI_DrawIndexed( vbo->soft_buffer_indexes, 0 );
 	}
 }
 

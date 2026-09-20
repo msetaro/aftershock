@@ -103,7 +103,7 @@ void GL_TextureMode( const char *string ) {
 	if ( gl_filter_min == vk.samplers.filter_min && gl_filter_max == vk.samplers.filter_max ) {
 		return;
 	}
-	vk_wait_idle();
+	R_CheckRHI( RHI_WaitIdle(), "wait idle" );
 	vk_destroy_samplers();
 
 	vk.samplers.filter_min = gl_filter_min;
@@ -1708,7 +1708,7 @@ void R_DeleteTextures( void ) {
 	}
 
 #ifdef USE_VULKAN
-	vk_wait_idle();
+	R_CheckRHI( RHI_WaitIdle(), "wait idle" );
 
 	for ( i = 0; i < tr.numImages; i++ ) {
 		image_t *img = tr.images[i];

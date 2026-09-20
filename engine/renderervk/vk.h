@@ -2,7 +2,6 @@
 
 #include "../../third_party/vulkan/vulkan.h"
 #include "tr_common.h"
-#include "../rhi/rhi_public.h"
 
 #define MAX_SWAPCHAIN_IMAGES 8
 #define MIN_SWAPCHAIN_IMAGES_IMM 3
@@ -273,7 +272,6 @@ void vk_begin_frame( void );
 void vk_end_frame( void );
 void vk_present_frame( void );
 
-void vk_end_render_pass( void );
 void vk_begin_main_render_pass( void );
 
 void vk_bind_pipeline( uint32_t pipeline );
@@ -292,9 +290,6 @@ void vk_update_mvp( const float *m );
 
 uint32_t vk_tess_index( uint32_t numIndexes, const void *src );
 void vk_bind_index_buffer( VkBuffer buffer, uint32_t offset );
-#ifdef USE_VBO
-void vk_draw_indexed( uint32_t indexCount, uint32_t firstIndex );
-#endif
 void vk_reset_descriptor( int index );
 void vk_update_descriptor( int index, VkDescriptorSet descriptor );
 void vk_update_descriptor_offset( int index, uint32_t offset );

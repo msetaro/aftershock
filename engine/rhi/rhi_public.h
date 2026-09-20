@@ -24,6 +24,22 @@ static_assert( std::is_trivially_copyable_v<rhiStats_t> );
 bool RHI_Available( void );
 rhiStats_t RHI_GetStats( void );
 
+enum class rhiStatus_t : uint32_t {
+	Success,
+	Unavailable,
+	OutOfMemory,
+	DeviceLost,
+	Error
+};
+
+// These return to the caller before it reports an engine error or unwinds.
+rhiStatus_t RHI_WaitIdle( void );
+rhiStatus_t RHI_WaitQueue( void );
+
+// Record into the current frame's command list, preserving submission order.
+void RHI_DrawIndexed( uint32_t indexCount, uint32_t firstIndex );
+void RHI_EndPass( void );
+
 // Copies into the current frame's aligned uniform buffer and updates its binding.
 // Returns RHI_INVALID_OFFSET if the upload cannot fit; does not allocate or wait.
 uint32_t RHI_UploadUniform( const void *data, uint32_t size );

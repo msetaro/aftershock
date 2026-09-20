@@ -475,7 +475,7 @@ static void RB_BeginDrawingView( void ) {
 	// sync with gl if needed
 	if ( r_finish->integer == 1 && !glState.finishCalled ) {
 #ifdef USE_VULKAN
-		vk_queue_wait_idle();
+		R_CheckRHI( RHI_WaitQueue(), "wait queue" );
 #else
 		qglFinish();
 #endif
@@ -1346,7 +1346,7 @@ static const void *RB_DrawSurfs( const void *data ) {
 
 #ifdef USE_VULKAN
 	if ( cmd->refdef.switchRenderPass ) {
-		vk_end_render_pass();
+		RHI_EndPass();
 		vk_begin_main_render_pass();
 		backEnd.screenMapDone = qtrue;
 	}
@@ -1645,7 +1645,7 @@ static const void *RB_SwapBuffers( const void *data ) {
 	vk_end_frame();
 
 	if ( backEnd.doneSurfaces && !glState.finishCalled ) {
-		vk_queue_wait_idle();
+		R_CheckRHI( RHI_WaitQueue(), "wait queue" );
 	}
 #else
 	if ( backEnd.doneSurfaces && !glState.finishCalled ) {

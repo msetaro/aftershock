@@ -4617,6 +4617,32 @@ rhiStats_t RHI_GetStats( void ) {
 		vk.pipelines_world_base, vk_world.num_image_chunks, vk.samplers.count, NUM_COMMAND_BUFFERS };
 }
 
+static rhiStatus_t vk_status( VkResult result ) {
+	if ( result >= VK_SUCCESS )
+		return rhiStatus_t::Success;
+	switch ( result ) {
+	case VK_ERROR_OUT_OF_HOST_MEMORY:
+	case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+		return rhiStatus_t::OutOfMemory;
+	case VK_ERROR_DEVICE_LOST:
+		return rhiStatus_t::DeviceLost;
+	default:
+		return rhiStatus_t::Error;
+	}
+}
+
+rhiStatus_t RHI_WaitIdle( void ) {
+	if ( !vk.device || !qvkDeviceWaitIdle )
+		return rhiStatus_t::Unavailable;
+	return vk_status( qvkDeviceWaitIdle( vk.device ) );
+}
+
+rhiStatus_t RHI_WaitQueue( void ) {
+	if ( !vk.queue || !qvkQueueWaitIdle )
+		return rhiStatus_t::Unavailable;
+	return vk_status( qvkQueueWaitIdle( vk.queue ) );
+}
+
 void vk_wait_idle( void ) {
 	VK_CHECK( qvkDeviceWaitIdle( vk.device ) );
 }
@@ -6885,11 +6911,9 @@ void vk_bind_index_buffer( VkBuffer buffer, uint32_t offset ) {
 }
 
 
-#ifdef USE_VBO
-void vk_draw_indexed( uint32_t indexCount, uint32_t firstIndex ) {
+void RHI_DrawIndexed( uint32_t indexCount, uint32_t firstIndex ) {
 	qvkCmdDrawIndexed( vk.cmd->command_buffer, indexCount, 1, firstIndex, 0, 0 );
 }
-#endif
 
 
 void vk_bind_index( void ) {
@@ -7307,7 +7331,7 @@ static void vk_begin_screenmap_render_pass( void ) {
 }
 
 
-void vk_end_render_pass( void ) {
+void RHI_EndPass( void ) {
 	qvkCmdEndRenderPass( vk.cmd->command_buffer );
 
 	//	vk.renderPassIndex = RENDER_PASS_MAIN;
@@ -7456,7 +7480,7 @@ void vk_begin_frame( void ) {
 static void vk_resize_geometry_buffer( void ) {
 	int i;
 
-	vk_end_render_pass();
+	RHI_EndPass();
 
 	VK_CHECK( qvkEndCommandBuffer( vk.cmd->command_buffer ) );
 
@@ -7505,7 +7529,7 @@ void vk_end_frame( void ) {
 		}
 
 		if ( backEnd.screenshotMask && vk.capture.image ) {
-			vk_end_render_pass();
+			RHI_EndPass();
 
 			// render to capture FBO
 			vk_begin_render_pass( vk.render_pass.capture, vk.framebuffers.capture, qfalse, gls.captureWidth, gls.captureHeight );
@@ -7516,7 +7540,7 @@ void vk_end_frame( void ) {
 		}
 
 		if ( !ri.CL_IsMinimized() ) {
-			vk_end_render_pass();
+			RHI_EndPass();
 
 			vk.renderWidth = gls.windowWidth;
 			vk.renderHeight = gls.windowHeight;
@@ -7532,7 +7556,7 @@ void vk_end_frame( void ) {
 		}
 	}
 
-	vk_end_render_pass();
+	RHI_EndPass();
 
 	VK_CHECK( qvkEndCommandBuffer( vk.cmd->command_buffer ) );
 
@@ -7918,14 +7942,14 @@ qboolean vk_bloom( void ) {
 		return qfalse;
 	}
 
-	vk_end_render_pass(); // end main
+	RHI_EndPass(); // end main
 
 	// bloom extraction
 	vk_begin_bloom_extract_render_pass();
 	qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.bloom_extract_pipeline );
 	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.color_descriptor, 0, NULL );
 	qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
-	vk_end_render_pass();
+	RHI_EndPass();
 
 	for ( i = 0; i < VK_NUM_BLOOM_PASSES * 2; i += 2 ) {
 		// horizontal blur
@@ -7933,28 +7957,28 @@ qboolean vk_bloom( void ) {
 		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.blur_pipeline[i + 0] );
 		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.bloom_image_descriptor[i + 0], 0, NULL );
 		qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
-		vk_end_render_pass();
+		RHI_EndPass();
 
 		// vectical blur
 		vk_begin_blur_render_pass( i + 1 );
 		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.blur_pipeline[i + 1] );
 		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.bloom_image_descriptor[i + 1], 0, NULL );
 		qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
-		vk_end_render_pass();
+		RHI_EndPass();
 #if 0
 		// horizontal blur
 		vk_begin_blur_render_pass( i+0 );
 		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.blur_pipeline[i+0] );
 		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.bloom_image_descriptor[i+2], 0, NULL );
 		qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
-		vk_end_render_pass();
+		RHI_EndPass();
 
 		// vectical blur
 		vk_begin_blur_render_pass( i+1 );
 		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.blur_pipeline[i+1] );
 		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout_post_process, 0, 1, &vk.bloom_image_descriptor[i+1], 0, NULL );
 		qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
-		vk_end_render_pass();
+		RHI_EndPass();
 #endif
 	}
 

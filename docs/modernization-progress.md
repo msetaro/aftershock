@@ -65,15 +65,25 @@ shader, pixel-conversion expression, allocation pool or upload barrier changes.
 Legacy backend error exits still need the planned status-boundary extraction.
 Evidence: rhi-textures.log, rhi-texture-lifecycle.log, rhi-texture-contract.log.
 
-First slice b970de67: full build 35483352838 passed. Regression 35483352666 has
-passed runtime, both unit compilers, sanitizers, cross targets, format and tidy;
-lifetime analysis is still running. Hosted OpenArena replay passed with its accepted
+First slice b970de67: full build 35483352838 and full regression 35483352666
+passed. Texture commit 401d8b74 is running build 35483644058 and regression
+35483644047. Hosted OpenArena replay passed with its accepted
 Mesa 25.2.8 goldens. Downloaded logs: rhi-openarena-baseline/. LLVM 20.1.2, Vulkan
 API 1.4.318. oa_dm1 peak vertex 48 KiB / push 512 bytes / 67 pipelines / 216
 descriptions / 2 chunks; oa_dm7 276 KiB / 1,792 bytes / 66 pipelines / 212
 descriptions / 2 chunks. Both use world base 92, 8 MiB geometry per slot, five
 samplers and two frame slots; staging is 2 MiB / 6 MiB respectively. These are
 hosted measurements, not claims that OpenArena content is installed locally.
+
+Command/status slice: indexed draw and render-pass ending are public RHI commands
+with the same arguments and ordering. Frontend device/queue waits now receive
+portable statuses and report errors only after the backend returns. The focused
+production check covers successful, unavailable, out-of-memory, lost-device and
+other failure returns, plus exact draw arguments and pass order. GCC and
+Clang/libc++ pass; local replay retains b38004b1 (rhi-commands.log). Backend-internal
+legacy error paths and initialization/presentation still require extraction.
+Next: bounded asynchronous GPU timestamp scopes and the remaining frame/resource
+state. PR #140 remains a draft; nothing from #6 implementation is merged yet.
 
 ## Final #8 verification
 

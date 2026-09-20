@@ -1400,10 +1400,31 @@ static void VkInfo_f( void ) {
 RE_SyncRender
 ===============
 */
+void R_CheckRHI( rhiStatus_t status, const char *operation ) {
+	if ( status == rhiStatus_t::Success )
+		return;
+	const char *reason;
+	switch ( status ) {
+	case rhiStatus_t::Unavailable:
+		reason = "unavailable";
+		break;
+	case rhiStatus_t::OutOfMemory:
+		reason = "out of memory";
+		break;
+	case rhiStatus_t::DeviceLost:
+		reason = "device lost";
+		break;
+	default:
+		reason = "backend error";
+		break;
+	}
+	ri.Error( ERR_FATAL, "RHI: %s returned %s", operation, reason );
+}
+
 static void RE_SyncRender( void ) {
 #ifdef USE_VULKAN
 	if ( RHI_Available() )
-		vk_wait_idle();
+		R_CheckRHI( RHI_WaitIdle(), "wait idle" );
 #else
 	if ( qglFinish && backEnd.doneSurfaces )
 		qglFinish();
@@ -1943,7 +1964,7 @@ Touch all images to make sure they are resident
 */
 static void RE_EndRegistration( void ) {
 #ifdef USE_VULKAN
-	vk_wait_idle();
+	R_CheckRHI( RHI_WaitIdle(), "wait idle" );
 	// command buffer is not in recording state at this stage
 	// so we can't issue RB_ShowImages() there
 #else
