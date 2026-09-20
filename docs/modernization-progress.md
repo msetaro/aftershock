@@ -18,8 +18,8 @@ are relative to that persistent directory.
 Active: #8 final code rules, branch issue/8-final-code-rules. PR #137 merged
 as 50d6ee48 after current-head build 35478967343 and regression 35478967384 passed;
 preceding merged-tree regression 35478332454 also passed. Its source is 03d0b80d,
-final head 64a60d49 (OpenArena copied-wrapper seek adapter corrected). Query the
-new merged-tree regression before merging this branch.
+final head 64a60d49 (OpenArena copied-wrapper seek adapter corrected). Merged-tree regression
+35479365759 is running; require it before merging this branch.
 
 Applied final numeric/layout declarations in 09f418cc: eleven files, including
 the eight Vulkan IQM declarations mirroring OpenGL, WAV/browser/routing persisted
@@ -32,9 +32,11 @@ Evidence: char-object-review.json, char-native.json. No new loader test targets.
 Applied Q_ASSERT in af8c818a: nineteen existing calls and two shared-header aliases.
 205 samples preserve code/data (159 raw, 46 debug-only); twelve native helper hashes
 match. The existing tidy driver now analyzes with -UNDEBUG and rejects increments,
-mutating calls and nested increments in allowed pure helpers. Cache preview passed
-all 570 production configurations and both renderers; run final local driver with
-all three controls plus unit/replay/chat-offset gates on the applied source.
+mutating calls and nested increments in allowed pure helpers. The final local driver passes
+all 570 configurations, both renderers and all three assertion negative controls.
+Local unit/one-ULP negative control, chat offsets under signed/unsigned char, and
+fixed Quake 3 replay (b38004b1) pass. Browser-cache read scalar follow-up 5c34725f
+was rechecked in all nine affected configurations; the 169-object totals stand.
 Evidence: assert-final-object-review.json, assert-final-native.json,
 assert-final-full-tidy/results.json. Original GPL hashes and all goldens/fixtures
 remain unchanged. The plan's assertion and integer rows are now marked in force.
