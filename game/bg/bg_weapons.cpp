@@ -29,6 +29,17 @@ uint32_t BG_WeaponButtons( const usercmd_t *cmd, int hand, const playerState_t *
 		   ( !hand && ( cmd->buttons & 16384 ) ? WEAPON_MELEE : 0u );
 }
 
+void BG_LaunchWeaponProjectile( const weaponDef_t *definition, const weaponEvent_t *event, const playerState_t *player, weaponProjectile_t *projectile ) {
+	*projectile = {};
+	vec3_t angles, direction;
+	VectorCopy( player->viewangles, angles );
+	angles[PITCH] += event->spread[0];
+	angles[YAW] += event->spread[1];
+	AngleVectors( angles, direction, nullptr, nullptr );
+	VectorCopy( player->origin, projectile->position );
+	projectile->position[2] += player->viewheight;
+	VectorScale( direction, definition->projectile.speed, projectile->velocity );
+}
 weaponFlight_t BG_WeaponProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile, int owner,
 	void ( *trace )( trace_t *, const vec3_t, const vec3_t, const vec3_t, const vec3_t, int, int ), trace_t *impact ) {
 	*impact = {};

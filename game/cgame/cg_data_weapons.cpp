@@ -12,8 +12,90 @@ static struct {
 	weaponState_t state;
 } weaponPredictionHistory[2][CMD_BACKUP];
 
+static struct {
+	bool valid;
+	int number;
+	playerState_t state;
+} weaponCommandPoses[CMD_BACKUP];
+struct predictedProjectile_t {
+	bool used, acknowledged, expired;
+	int command, definition, hand;
+	uint32_t spawn, sequence, clock;
+	weaponProjectile_t state, history[CMD_BACKUP];
+};
+// ponytail: 64 local predictions; excess shots still render from authoritative snapshots.
+static predictedProjectile_t predictedProjectiles[64];
+
+void CG_WeaponPredictionPose( int number, const playerState_t *state ) {
+	if ( !BG_WeaponDefinition( 0 ) )
+		return;
+	auto &pose = weaponCommandPoses[uint32_t( number ) % CMD_BACKUP];
+	pose.valid = true;
+	pose.number = number;
+	pose.state = *state;
+}
+static void PredictProjectile( int index, int hand, uint32_t spawn, int number, const weaponDef_t *definition, const weaponEvent_t &event, const playerState_t *pose ) {
+	predictedProjectile_t *available = nullptr;
+	for ( auto &record : predictedProjectiles ) {
+		if ( record.used && record.spawn == spawn && record.definition == index && record.hand == hand && record.sequence == event.sequence )
+			return;
+		if ( !record.used && !available )
+			available = &record;
+	}
+	if ( !available )
+		return;
+	*available = {};
+	available->used = true;
+	available->definition = index;
+	available->hand = hand;
+	available->spawn = spawn;
+	available->sequence = event.sequence;
+	available->command = number;
+	available->clock = event.time;
+	BG_LaunchWeaponProjectile( definition, &event, pose, &available->state );
+	available->history[0] = available->state;
+	if ( weaponTrace.integer )
+		CG_Printf( "Weapon projectile predicted: hand=%d sequence=%u tick=%u\n", hand, event.sequence, event.time );
+}
+static void AdvanceProjectile( predictedProjectile_t *record, uint32_t time ) {
+	const auto *definition = BG_WeaponDefinition( record->definition );
+	for ( int step = 0; !record->expired && step < 50 && int32_t( time - record->clock ) >= 20; ++step ) {
+		trace_t impact;
+		record->expired = BG_WeaponProjectileStep( definition, &record->state, cg.clientNum, CG_Trace, &impact ) == WEAPON_EXPLODED;
+		record->clock += 20;
+		record->history[( record->state.ageMs / 20 ) % CMD_BACKUP] = record->state;
+	}
+}
+static void DrawWeaponProjectile( int index, const vec3_t origin ) {
+	refEntity_t entity = {};
+	entity.reType = RT_MODEL;
+	entity.hModel = weaponProjectileModels[index];
+	AxisClear( entity.axis );
+	VectorCopy( origin, entity.origin );
+	VectorCopy( origin, entity.oldorigin );
+	VectorCopy( origin, entity.lightingOrigin );
+	trap_R_AddRefEntityToScene( &entity );
+}
+void CG_AddWeaponProjectiles( void ) {
+	const int current = trap_GetCurrentCmdNumber();
+	for ( auto &record : predictedProjectiles ) {
+		if ( !record.used )
+			continue;
+		if ( record.acknowledged || record.expired ) {
+			if ( uint32_t( current ) - uint32_t( record.command ) >= CMD_BACKUP )
+				record.used = false;
+			continue;
+		}
+		AdvanceProjectile( &record, uint32_t( cg.time ) );
+		if ( !record.expired )
+			DrawWeaponProjectile( record.definition, record.state.position );
+	}
+}
+
 void CG_InitWeapons( void ) {
 	BG_ClearWeapons();
+	memset( weaponCommandPoses, 0, sizeof( weaponCommandPoses ) );
+	memset( predictedProjectiles, 0, sizeof( predictedProjectiles ) );
 	memset( weaponPredictionHistory, 0, sizeof( weaponPredictionHistory ) );
 	memset( weaponProjectileModels, 0, sizeof( weaponProjectileModels ) );
 	memset( weaponImpacts, 0, sizeof( weaponImpacts ) );
@@ -94,9 +176,15 @@ void CG_PredictWeapons( void ) {
 																						  : pmove_msec.integer;
 					cmd.serverTime = ( ( cmd.serverTime + step - 1 ) / step ) * step;
 				}
+				const auto &pose = weaponCommandPoses[uint32_t( number ) % CMD_BACKUP];
+				const bool havePose = pose.valid && pose.number == number && uint32_t( pose.state.persistant[PERS_SPAWN_COUNT] ) == spawn;
 				weaponEvents_t events;
-				if ( !Weapon_Command( &definition, BG_WeaponButtons( &cmd, hand, &snapshot->ps ), uint32_t( cmd.serverTime ), &state, &events ) )
+				if ( !Weapon_Command( &definition, BG_WeaponButtons( &cmd, hand, havePose ? &pose.state : &snapshot->ps ), uint32_t( cmd.serverTime ), &state, &events ) )
 					break;
+				if ( havePose && definition.ballistics == WEAPON_PROJECTILE )
+					for ( uint32_t i = 0; i < events.count; ++i )
+						if ( events.items[i].kind == WEAPON_SHOT )
+							PredictProjectile( entity.modelindex, hand, spawn, number, &definition, events.items[i], &pose.state );
 				if ( int32_t( state.time - acknowledgedTime ) > 0 ) {
 					auto &prediction = weaponPredictionHistory[hand][( state.time / 20 ) % CMD_BACKUP];
 					prediction.valid = true;
@@ -145,14 +233,21 @@ bool CG_WeaponProjectile( centity_t *cent ) {
 	for ( int axis = 0; axis < 3; ++axis )
 		if ( !isfinite( state.pos.trBase[axis] ) || !isfinite( state.pos.trDelta[axis] ) )
 			CG_Error( "Weapon rejected: projectile coordinates" );
-	refEntity_t entity = {};
-	entity.reType = RT_MODEL;
-	entity.hModel = weaponProjectileModels[state.modelindex];
-	AxisClear( entity.axis );
-	VectorCopy( cent->lerpOrigin, entity.origin );
-	VectorCopy( entity.origin, entity.oldorigin );
-	VectorCopy( entity.origin, entity.lightingOrigin );
-	trap_R_AddRefEntityToScene( &entity );
+	if ( state.otherEntityNum == cg.clientNum )
+		for ( auto &record : predictedProjectiles ) {
+			if ( !record.used || record.acknowledged || record.definition != state.modelindex || record.hand != state.otherEntityNum2 ||
+				 record.spawn != uint32_t( state.time ) || record.sequence != uint32_t( state.time2 ) )
+				continue;
+			AdvanceProjectile( &record, uint32_t( state.pos.trTime ) );
+			const auto &sample = record.history[( uint32_t( state.pos.trDuration ) / 20 ) % CMD_BACKUP];
+			if ( weaponTrace.integer && sample.ageMs == uint32_t( state.pos.trDuration ) ) {
+				vec3_t delta;
+				VectorSubtract( sample.position, state.pos.trBase, delta );
+				CG_Printf( "Weapon projectile correction: hand=%d sequence=%u error=%.6f\n", record.hand, record.sequence, double( VectorLength( delta ) ) );
+			}
+			record.acknowledged = true;
+		}
+	DrawWeaponProjectile( state.modelindex, cent->lerpOrigin );
 	if ( weaponTrace.integer && cent->miscTime != state.pos.trTime ) {
 		CG_Printf( "Weapon projectile client: owner=%d hand=%d sequence=%u age=%d\n", state.otherEntityNum, state.otherEntityNum2,
 			uint32_t( state.time2 ), state.pos.trDuration );

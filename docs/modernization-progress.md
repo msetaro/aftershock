@@ -17,10 +17,12 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
-Continue #11 with material penetration, projectile/grenade actors, attachment and
-animation/audio presentation, and the ImGui target range using owned assets.
-Cooked loading, command replay, live prediction, rewind damage and data-only
-rifle switching now pass their focused tests; full acceptance remains pending. #12 integration
+Continue #11 with attachments, weapon/view animation and sound notifies, and the
+ImGui target range using owned assets. Then add lifecycle/lossy-network/replay
+coverage and run full acceptance gates. Cooked loading, command replay, live
+prediction, rewind/penetration damage, data-only rifle switching, material effects
+and replicated/predicted grenade actors now pass focused tests. Full acceptance
+remains pending. #12 integration
 regression 35523091952 passed. Complete the full #11 scope, wire tests into CI, run all gates/self-review
 and merge through its own PR. #11 was read; #10/#12 are
 its prerequisites. Reuse existing fixed-tick, asset and animation APIs.
@@ -266,6 +268,16 @@ requires server/client reuse of the command pose and data speed/spread
 trigger prediction, matching the server's weapon hook. Use a bounded predicted
 projectile pool, identify shots by spawn/hand/definition/sequence and measure the
 first authoritative position correction at the same projectile age.
+
+Client projectile prediction now passes the live test with one predicted grenade
+and first authoritative position correction 0.000000 units
+(weapons-projectile-prediction.log). Per-command Pmove poses feed the shared launch
+helper; server/client use the same collision step. A fixed 64-shot pool falls
+back to authoritative rendering when full. Acknowledged/expired identities remain
+until their commands leave history, avoiding replay duplicates; authoritative
+entities take over drawing. GCC/Clang probes and format/boundary/type checks pass.
+Next: attachments and weapon/view/notify/audio integration, then ImGui range,
+stronger lifecycle/latency/replay evidence and complete CI/self-review acceptance.
 
 
 ## #12 implemented feature evidence

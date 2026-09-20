@@ -586,6 +586,7 @@ void CG_PredictPlayerState( void ) {
 		}
 
 		Pmove( &cg_pmove );
+		CG_WeaponPredictionPose( cmdNum, cg_pmove.ps );
 
 		moved = qtrue;
 

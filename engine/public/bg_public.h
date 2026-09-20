@@ -714,6 +714,7 @@ inline constexpr int WEAPON_PROJECTILE_TAG = 255;
 enum weaponFlight_t { WEAPON_FLYING,
 	WEAPON_BOUNCED,
 	WEAPON_EXPLODED };
+void BG_LaunchWeaponProjectile( const weaponDef_t *definition, const weaponEvent_t *event, const playerState_t *player, weaponProjectile_t *projectile );
 weaponFlight_t BG_WeaponProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile, int owner,
 	void ( *trace )( trace_t *, const vec3_t, const vec3_t, const vec3_t, const vec3_t, int, int ), trace_t *impact );
 void BG_ClearWeapons( void );

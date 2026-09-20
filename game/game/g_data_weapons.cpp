@@ -127,14 +127,10 @@ static void SpawnWeaponProjectile( gentity_t *player, int hand, int index, const
 	entity->s.pos.trType = TR_LINEAR;
 	entity->s.pos.trTime = int32_t( event.time );
 	entity->r.ownerNum = player->s.number;
-	vec3_t angles, direction;
-	VectorCopy( player->client->ps.viewangles, angles );
-	angles[PITCH] += event.spread[0];
-	angles[YAW] += event.spread[1];
-	AngleVectors( angles, direction, nullptr, nullptr );
-	VectorCopy( player->client->ps.origin, entity->s.pos.trBase );
-	entity->s.pos.trBase[2] += player->client->ps.viewheight;
-	VectorScale( direction, definition->projectile.speed, entity->s.pos.trDelta );
+	weaponProjectile_t projectile;
+	BG_LaunchWeaponProjectile( definition, &event, &player->client->ps, &projectile );
+	VectorCopy( projectile.position, entity->s.pos.trBase );
+	VectorCopy( projectile.velocity, entity->s.pos.trDelta );
 	VectorCopy( entity->s.pos.trBase, entity->r.currentOrigin );
 	GameImport_SetEntityReplication( entity->s.number, 3, 0 );
 	trap_LinkEntity( entity );

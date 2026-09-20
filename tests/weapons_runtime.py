@@ -85,7 +85,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     assert 'Weapon projectile server: owner=0 hand=0 sequence=1 ' in text, 'projectile actor missing'
     assert 'Weapon projectile client: owner=0 hand=0 sequence=1 ' in text, 'projectile snapshot rendering missing'
     assert 'Weapon projectile exploded: owner=0 sequence=1 ' in text, 'projectile never detonated'
-    assert 'Weapon projectile predicted: hand=0 sequence=1 ' in text, 'local projectile prediction missing'
+    assert text.count('Weapon projectile predicted: hand=0 sequence=1 ') == 1, 'missing or duplicated local projectile'
     corrections = re.findall(r'Weapon projectile correction: hand=0 sequence=1 error=([0-9.]+)', text)
     assert corrections and max(map(float, corrections)) <= 1, corrections
     predictions = re.findall(r'Weapon prediction: hand=0 tick=\d+ equal=(\d)', text)
