@@ -16,16 +16,57 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
-Complete #11 compatibility/full gates and committed self-review, then mark PR #150
-ready and merge after exact-head build/regression passes. Both lossy-network content
-sets and new fixed replays pass locally (992 full authoritative state hashes each).
-New fixtures were recorded once at 6dbe2a93; accepted older fixtures are unchanged.
-CI wiring is present. Hosted prior-head MSVC/C-header failures are being corrected;
-current native ABI/shared-math checks are next. Re-run the new fixtures through the
-updated static/module builds, review captures and push the fixtures/corrections.
-After merge, require merged-tree regression, update #11/#25, then continue #26/#27/#28.
-#12 integration regression 35523091952 passed. Preserve accepted fixtures.
+Current branch: `issue/151-loopback-deadline`, a test-only follow-up to #11.
+The cleanup check now passes: an ignoring child is killed/reaped after its grace
+period. The weapon deadline is 120 seconds inside a 240-second outer limit, and
+--client-fps 20 provides the deliberately slow real-client control.
+The first slow run completed the whole scenario and teardown, then failed the
+100-FPS-specific median-age bound (200 ms observed vs 180 ms). Allow only the
+additional input/render interval, capped at the configured 200 ms rewind window;
+retain the original bound for normal FPS. Hit/state/prediction checks are unchanged.
+The slow control passes and takes 54.0 seconds before its done marker (>45):
+301/301 shots agree, 22 hits, 49 uncompensated differences, median view age 200 ms,
+prediction error <=8.875, and 1511/1511 full weapon/animation comparisons. Cleanup
+also passes. The original default/classic scenario passes in 17.7 seconds:
+329/329 shots agree, 21 hits, 42 uncompensated differences, median age 147 ms
+and prediction error <=8.875. Draft PR #152 contains the fix and self-review.
+Run full exact-head gates, merge #152 and require merged-tree regression.
+Do not close/check #11 until integration is green. No engine changes are needed.
+
+#11 PR #150 merged as 94a70b91f35acfa0636a7db473609b3aafde76e5. Its tree
+matches tested head 2caaa163 (d56b17d609a91ea9e84a6edfac10a7527a9c766c).
+Exact-head build 35533785865 and regression 35533785920 passed. Merged-tree
+regression 35534705876 failed in the weapon harness deadline, not in a gameplay
+assertion: 1147/1147 full weapon and animation comparisons matched; the renderer
+had not completed the frame-paced script before the fixed 45-second timeout.
+Graceful shutdown then exceeded five seconds and skipped remaining cleanup.
+Artifacts/logs: /tmp/aftershock-weapons-integration-artifacts and
+~/.cache/aftershock-modernization/weapons-integration-runtime.log.
+Issue #151 records the test-only follow-up; tests/netcode_cleanup.py first fails
+on the missing stop_client helper (netcode-cleanup-before.log).
+
+#26 work is saved separately on local `issue/26-level-authoring`, head 3272282f:
+versioned JSON contract, owned three-room/two-lane sample and provenance, failing
+MAP/design-rule and BSP/AAS fixture tests. No compiler implementation exists yet.
+After #151 integration, merge modernization forward into that branch and resume.
+Its earlier checkpoint records user-cache q3map2/MBSPC preparation and deterministic
+padding normalization; scratch notes are in /tmp/aftershock-level-next.md.
+All changes and PRs remain in msetaro/aftershock.
+
+## #151 self-review
+
+This is exclusively test infrastructure. The same gameplay commands, fixed engine
+tick, data files, accepted fixtures, hit oracle, complete state comparisons and
+prediction checks remain. A low-FPS control proves the wall-time regression instead
+of hiding it with a blind retry. Only the renderer-dependent view-age timing bound
+accounts for one extra frame interval, never exceeding the configured 200 ms
+rewind window; default 100-FPS behavior retains the old 180 ms ceiling. Cleanup
+uses the existing private process group, graceful termination followed by forced
+kill/reaping. No engine, simulation arithmetic, OS ownership, allocation or wire
+layout changes are present. CI uses the same cooker Python environment and runs
+both the ignoring-child check and the capped-FPS scenario. Full final-head gates
+and merged-tree regression remain required before closing #151/#11.
+
 
 #12 PR #149 merged with a merge commit as
 3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree
