@@ -190,6 +190,14 @@ The analytic game-collision probe now fails on a one-unit default-material wall
 blocking thick metal, cumulative loss across two walls and non-penetrating melee.
 This is a gameplay collision test, not a loader robustness target.
 
+Material penetration now passes both compiler/UBSan probes and the live rifle
+scenario (weapons-penetration-gcc.log/-clang.log/-live.log). Four impact queries
+bound a shot; one-unit occupancy probes locate an outside point and a reverse
+surface trace measures thickness. Sub-unit gaps count in the same thickness
+budget, an explicit resolution limit. No simulation expression outside the new
+weapon implementation changed. Next: material impact presentation and remaining
+projectile/animation/attachment/range integration.
+
 
 ## #12 implemented feature evidence
 

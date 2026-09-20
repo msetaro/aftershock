@@ -242,13 +242,17 @@ float Weapon_Damage( const weaponDef_t *d, float distance ) {
 	const float fraction = std::clamp( ( distance - d->falloffStart ) / ( d->falloffEnd - d->falloffStart ), 0.0f, 1.0f );
 	return d->damage + fraction * ( d->minimumDamage - d->damage );
 }
-float Weapon_PenetrationDamage( const weaponDef_t *d, uint32_t surfaceFlags, float thickness, float damage ) {
+const weaponMaterial_t *Weapon_Material( const weaponDef_t *d, uint32_t surfaceFlags ) {
 	const weaponMaterial_t *material = &d->materials[0];
 	for ( uint32_t i = 1; i < d->materialCount; ++i )
 		if ( d->materials[i].surfaceFlags && ( surfaceFlags & d->materials[i].surfaceFlags ) == d->materials[i].surfaceFlags ) {
 			material = &d->materials[i];
 			break;
 		}
+	return material;
+}
+float Weapon_PenetrationDamage( const weaponDef_t *d, uint32_t surfaceFlags, float thickness, float damage ) {
+	const auto *material = Weapon_Material( d, surfaceFlags );
 	return Between( thickness, 0, material->depth ) && Between( damage, 0, 10000 ) ? damage * material->damageScale : 0;
 }
 bool Weapon_ProjectileStep( const weaponDef_t *d, weaponProjectile_t *projectile ) {

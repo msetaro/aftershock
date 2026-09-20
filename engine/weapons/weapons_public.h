@@ -100,6 +100,7 @@ bool Weapon_Command( const weaponDef_t *definition, uint32_t buttons, uint32_t t
 // equips the retained target state after its data-defined delay.
 bool Weapon_Switch( const weaponDef_t *fromDefinition, weaponState_t *from, const weaponDef_t *toDefinition, weaponState_t *to, uint32_t time );
 float Weapon_Damage( const weaponDef_t *definition, float distance );
+const weaponMaterial_t *Weapon_Material( const weaponDef_t *definition, uint32_t surfaceFlags );
 float Weapon_PenetrationDamage( const weaponDef_t *definition, uint32_t surfaceFlags, float thickness, float damage );
 bool Weapon_ProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile );
 void Weapon_ProjectileBounce( const weaponDef_t *definition, const float normal[3], weaponProjectile_t *projectile );

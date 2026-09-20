@@ -38,6 +38,33 @@ void G_ClearWeaponActor( int owner ) {
 			G_FreeEntity( entity );
 	actor = {};
 }
+static bool WeaponWallExit( const vec3_t entry, const vec3_t direction, float limit, int owner, vec3_t exit, float *thickness ) {
+	// ponytail: one-unit occupancy probes, then an exact reverse surface trace;
+	// gaps smaller than one unit count as part of the same penetration thickness.
+	if ( limit <= 0 )
+		return false;
+	for ( float depth = fminf( 1, limit );; depth = fminf( depth + 1, limit ) ) {
+		vec3_t candidate;
+		VectorMA( entry, depth, direction, candidate );
+		if ( !( trap_PointContents( candidate, owner ) & CONTENTS_SOLID ) ) {
+			vec3_t inside;
+			VectorMA( entry, fminf( 0.03125f, depth * 0.5f ), direction, inside );
+			trace_t reverse;
+			trap_Trace( &reverse, candidate, nullptr, nullptr, inside, owner, MASK_SOLID );
+			if ( reverse.startsolid || reverse.allsolid || reverse.fraction >= 1 )
+				return false;
+			vec3_t delta;
+			VectorSubtract( reverse.endpos, entry, delta );
+			*thickness = DotProduct( delta, direction );
+			if ( *thickness <= 0 || *thickness > limit )
+				return false;
+			VectorMA( reverse.endpos, 0.03125f, direction, exit );
+			return true;
+		}
+		if ( depth == limit )
+			return false;
+	}
+}
 static void WeaponHit( gentity_t *player, const weaponDef_t *definition, const weaponEvent_t &event ) {
 	const bool melee = event.kind == WEAPON_MELEE_EVENT;
 	const float range = melee ? definition->melee.range : definition->range;
@@ -49,16 +76,37 @@ static void WeaponHit( gentity_t *player, const weaponDef_t *definition, const w
 	VectorCopy( player->client->ps.origin, start );
 	start[2] += player->client->ps.viewheight;
 	VectorMA( start, range, direction, end );
-	trace_t trace;
-	G_TraceHitscanAtTime( &trace, start, end, player->s.number, player, event.time );
-	if ( trace.entityNum >= ENTITYNUM_WORLD || !g_entities[trace.entityNum].takedamage || ( trace.surfaceFlags & SURF_NOIMPACT ) )
-		return;
-	const int damage = int( melee ? definition->melee.damage : Weapon_Damage( definition, trace.fraction * range ) );
-	if ( !damage )
-		return;
-	G_Damage( &g_entities[trace.entityNum], player, player, direction, trace.endpos, damage, 0, melee ? MOD_GAUNTLET : MOD_MACHINEGUN );
-	if ( weaponTrace.integer )
-		G_Printf( "Weapon damage: owner=%d target=%d tick=%u damage=%d\n", player->s.number, trace.entityNum, event.time, damage );
+	vec3_t cursor;
+	VectorCopy( start, cursor );
+	float scale = 1;
+	// Bound work per shot; each crossed surface spends its material's damage budget.
+	for ( int impact = 0; impact < 4; ++impact ) {
+		trace_t trace;
+		G_TraceHitscanAtTime( &trace, cursor, end, player->s.number, player, event.time );
+		if ( trace.fraction >= 1 || trace.startsolid || trace.allsolid || ( trace.surfaceFlags & SURF_NOIMPACT ) )
+			return;
+		vec3_t delta;
+		VectorSubtract( trace.endpos, start, delta );
+		const float distance = DotProduct( delta, direction );
+		if ( trace.entityNum < ENTITYNUM_WORLD && g_entities[trace.entityNum].takedamage ) {
+			const int damage = int( melee ? definition->melee.damage : Weapon_Damage( definition, distance ) * scale );
+			if ( damage ) {
+				G_Damage( &g_entities[trace.entityNum], player, player, direction, trace.endpos, damage, 0, melee ? MOD_GAUNTLET : MOD_MACHINEGUN );
+				if ( weaponTrace.integer )
+					G_Printf( "Weapon damage: owner=%d target=%d tick=%u damage=%d\n", player->s.number, trace.entityNum, event.time, damage );
+			}
+			return;
+		}
+		if ( melee || trace.entityNum != ENTITYNUM_WORLD )
+			return;
+		const auto *material = Weapon_Material( definition, uint32_t( trace.surfaceFlags ) );
+		float thickness;
+		if ( !WeaponWallExit( trace.endpos, direction, fminf( material->depth, range - distance ), player->s.number, cursor, &thickness ) )
+			return;
+		scale = Weapon_PenetrationDamage( definition, uint32_t( trace.surfaceFlags ), thickness, scale );
+		if ( scale <= 0 )
+			return;
+	}
 }
 void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart ) {
 	if ( !BG_WeaponDefinition( 0 ) )
