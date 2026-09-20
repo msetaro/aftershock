@@ -88,6 +88,13 @@ its updated head f638330b runs build 35545635052/regression 35545635067. Preserv
 these existing issue branches by merging main forward without rebasing. New issue
 branches start from main. All required gates must pass before a self-merge.
 
+The native visual contract `tests/lighting_runtime.py` compiles the owned
+opt-in level and cooks ordinary wall/floor PBR materials, then runs the actual OA
+client with merged/unmerged lightmaps. Before renderer implementation it fails
+because native directional pages are not recognized (lighting-runtime-before.log).
+The required assertions include changed static pixels with direction mapping on
+and an exact off/on/off restored view; no accepted visual reference is created.
+
 ## #14 initial failing directional-bake contract
 
 `python3 tests/lighting.py` fails before implementation with `missing or unknown
