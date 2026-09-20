@@ -27,6 +27,60 @@ def wait_for(predicate, process, seconds=30):
     raise RuntimeError('client lifecycle check timed out')
 
 
+class XInput:
+    """Real pointer/key input, used only inside a private Xvfb invocation."""
+    def __init__(self):
+        self.x11 = ctypes.CDLL(ctypes.util.find_library('X11'))
+        self.xt = ctypes.CDLL(ctypes.util.find_library('Xtst'))
+        self.x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+        self.x11.XOpenDisplay.restype = ctypes.c_void_p
+        self.x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
+        self.x11.XSync.argtypes = [ctypes.c_void_p, ctypes.c_int]
+        self.x11.XStringToKeysym.argtypes = [ctypes.c_char_p]
+        self.x11.XStringToKeysym.restype = ctypes.c_ulong
+        self.x11.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+        self.x11.XKeysymToKeycode.restype = ctypes.c_ubyte
+        self.xt.XTestFakeRelativeMotionEvent.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_ulong]
+        self.xt.XTestFakeButtonEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
+        self.xt.XTestFakeKeyEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
+        self.display = self.x11.XOpenDisplay(None)
+        assert self.display
+        self.cursor = [320, 240]
+
+    def click(self, x, y):
+        self.xt.XTestFakeRelativeMotionEvent(self.display, x - self.cursor[0], y - self.cursor[1], 0)
+        self.x11.XSync(self.display, 0)
+        time.sleep(0.15)
+        self.xt.XTestFakeButtonEvent(self.display, 1, 1, 0)
+        self.x11.XSync(self.display, 0)
+        time.sleep(0.1)
+        self.xt.XTestFakeButtonEvent(self.display, 1, 0, 0)
+        self.x11.XSync(self.display, 0)
+        time.sleep(0.2)
+        self.cursor[:] = [x, y]
+
+    def key(self, name):
+        code = self.x11.XKeysymToKeycode(self.display, self.x11.XStringToKeysym(name.encode()))
+        assert code
+        self.xt.XTestFakeKeyEvent(self.display, code, 1, 0)
+        self.x11.XSync(self.display, 0)
+        time.sleep(0.06)
+        self.xt.XTestFakeKeyEvent(self.display, code, 0, 0)
+        self.x11.XSync(self.display, 0)
+        time.sleep(0.06)
+
+    def verify_window(self, process):
+        tree = subprocess.check_output(['xwininfo', '-root', '-tree'], text=True)
+        candidates = re.findall(r'^\s*(0x[0-9a-fA-F]+).*640x480', tree, re.M)
+        owned = [window for window in candidates if re.search(
+            r'=\s*' + str(process.pid) + r'\s*$',
+            subprocess.check_output(['xprop', '-id', window, '_NET_WM_PID'], text=True))]
+        assert len(owned) == 1, 'expected one window owned by the launched client'
+
+    def close(self):
+        self.x11.XCloseDisplay(self.display)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, required=True)

@@ -740,13 +740,13 @@ static bool Dev_ReadField( int index, const char *key, char *value, int capacity
 		break;
 	}
 	case F_VECTOR:
-		Com_sprintf( value, capacity, "%g %g %g", ( (const float *)data )[0], ( (const float *)data )[1], ( (const float *)data )[2] );
+		Com_sprintf( value, capacity, "%.9f %.9f %.9f", ( (const float *)data )[0], ( (const float *)data )[1], ( (const float *)data )[2] );
 		break;
 	case F_ANGLEHACK:
-		Com_sprintf( value, capacity, "%g", ( (const float *)data )[1] );
+		Com_sprintf( value, capacity, "%.9f", ( (const float *)data )[1] );
 		break;
 	case F_FLOAT:
-		Com_sprintf( value, capacity, "%g", *(const float *)data );
+		Com_sprintf( value, capacity, "%.9f", *(const float *)data );
 		break;
 	case F_INT:
 		Com_sprintf( value, capacity, "%d", *(const int *)data );
@@ -768,19 +768,24 @@ static bool Dev_Value( const field_t *field, const char *value ) {
 	for ( int i = 0; i < count; ++i ) {
 		while ( *value == ' ' )
 			++value;
-		std::from_chars_result result;
 		if ( field->type == F_INT ) {
 			int number;
-			result = std::from_chars( value, end, number );
-		} else {
-			float number;
-			result = std::from_chars( value, end, number );
-			if ( result.ec == std::errc() && !std::isfinite( number ) )
+			const std::from_chars_result result = std::from_chars( value, end, number );
+			if ( result.ec != std::errc() )
 				return false;
+			value = result.ptr;
+		} else {
+			char *next;
+			const float number = ::strtof( value, &next );
+			if ( next == value || !std::isfinite( number ) )
+				return false;
+			// The native game's legacy numeric reader accepts decimal notation only.
+			for ( const char *p = value; p < next; ++p ) {
+				if ( !( ( *p >= '0' && *p <= '9' ) || *p == '.' || *p == '+' || *p == '-' ) )
+					return false;
+			}
+			value = next;
 		}
-		if ( result.ec != std::errc() )
-			return false;
-		value = result.ptr;
 	}
 	while ( *value == ' ' )
 		++value;
@@ -840,7 +845,7 @@ static int Dev_Spawn( const char *classname, const float *origin ) {
 		return -1;
 	level.numSpawnVars = level.numSpawnVarChars = 0;
 	char position[128];
-	Com_sprintf( position, sizeof( position ), "%g %g %g", origin[0], origin[1], origin[2] );
+	Com_sprintf( position, sizeof( position ), "%.9f %.9f %.9f", origin[0], origin[1], origin[2] );
 	level.spawnVars[0][0] = G_AddSpawnVarToken( "classname" );
 	level.spawnVars[0][1] = G_AddSpawnVarToken( classname );
 	level.spawnVars[1][0] = G_AddSpawnVarToken( "origin" );

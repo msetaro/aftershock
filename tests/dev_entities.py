@@ -46,7 +46,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entity-edit-') as temp:
     base.mkdir()
     for pak in paks:
         (base / pak.name).symlink_to(pak)
-    script = [f'devmap {map_name}', 'wait 10', 'dev_entity save',
+    script = [f'devmap {map_name}', 'wait 10', 'dev_world collision 2048',
+              'dev_world nav 2048', 'dev_world both 2048', 'dev_entity save',
               'dev_entity spawn target_position 1 2 128',
               'dev_entity set last targetname dev_tools_entity_test',
               'dev_entity set last count 7', 'dev_entity set last origin "4 5 129"',
@@ -61,7 +62,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entity-edit-') as temp:
                '+set', 'fs_basepath', str(home), '+set', 'fs_homepath', str(home),
                *content_settings(args.content), '+set', 'net_enabled', '0',
                '+set', 'sv_pure', '0', '+set', 's_initsound', '0', '+set', 'r_fullscreen', '0',
-               '+set', 'r_mode', '3', '+set', 'com_maxfps', '0', '+set', 'cl_autoRecordDemo', '0',
+               '+set', 'r_mode', '3', '+set', 'fixedtime', '50', '+set', 'com_maxfps', '0', '+set', 'cl_autoRecordDemo', '0',
                '+exec', 'entity-check.cfg']
     env = dict(os.environ, VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]), LP_NUM_THREADS='1')
     result = subprocess.run(command, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -69,8 +70,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entity-edit-') as temp:
     result.check_returncode()
     text = result.stdout.decode(errors='replace')
     assert not any(error in text for error in ('ERROR:', 'Signal caught', 'Unknown command', 'rejected', 'write failed'))
+    world = re.findall(r'Developer world: (\d+) lines, (\d+) omitted', text)
+    assert len(world) == 3 and all(int(row[0]) > 0 for row in world), 'collision/navigation cache was empty'
     assert len(re.findall(r'Developer entity \d+ count = 7', text)) == 2
-    assert re.search(r'Developer entity \d+ origin = 4 5 129', text)
+    assert list(map(float, re.search(r'Developer entity \d+ origin = ([^\n]+)', text)[1].split())) == [4, 5, 129]
     saved = [(base / 'maps' / f'{map_name}.dev.{i:03d}.ent').read_bytes() for i in range(4)]
     assert tokens(saved[0]) == tokens(original), 'original/unknown map keys changed'
     assert tokens(saved[2]) == tokens(original), 'deleting the new entity changed original records'

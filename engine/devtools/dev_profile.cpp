@@ -13,6 +13,7 @@ static bool active;
 static devNetwork_t network;
 
 void DevTools_BeginFrame( bool enabled ) {
+	DevTools_BeginDebugFrame( enabled, (uint32_t)com_frameTime );
 	completedCount = 0;
 	for ( uint32_t i = 0; i < count; ++i ) {
 		if ( scopes[i].complete )

@@ -4,6 +4,7 @@
 static const devGameTools_t *gameTools;
 static refdef_t gameView;
 static bool hasView;
+static int viewClient = -1;
 
 void Dev_RegisterGameTools( const devGameTools_t *tools ) {
 	gameTools = tools;
@@ -13,11 +14,20 @@ const devGameTools_t *DevTools_Game( void ) {
 	return Cvar_VariableIntegerValue( "sv_running" ) ? gameTools : nullptr;
 }
 
-void DevTools_SetView( const refdef_t *view ) {
+void DevTools_SetView( const refdef_t *view, int clientEntity ) {
+	if ( !view ) {
+		hasView = false;
+		return;
+	}
 	if ( !( view->rdflags & RDF_NOWORLDMODEL ) ) {
 		gameView = *view;
+		viewClient = clientEntity;
 		hasView = true;
 	}
+}
+
+int DevTools_ViewClient( void ) {
+	return viewClient;
 }
 
 const refdef_t *DevTools_View( void ) {

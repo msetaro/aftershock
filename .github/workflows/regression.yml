@@ -196,6 +196,8 @@ jobs:
         run: python3 tests/devtools_data.py
       - name: Native entity edit and save/reload
         run: python3 tests/dev_entities.py --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Native entity and world tools through real input
+        run: python3 tests/dev_world_ui.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Development overlay input and renderer restart
         run: python3 tests/devtools.py --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Optional renderer module replay
@@ -221,6 +223,8 @@ jobs:
             /tmp/aftershock-demo-modules/*.tga
             /tmp/aftershock-window-tests/*
             /tmp/aftershock-dev-entities/**/*.log
+            /tmp/aftershock-dev-world-ui/*.log
+            /tmp/aftershock-dev-world-ui/*.tga
             /tmp/aftershock-devtools-tests/**/*.log
             /tmp/aftershock-devtools-tests/runtime/*.tga
             /tmp/tests-native-runtime/**/*.log

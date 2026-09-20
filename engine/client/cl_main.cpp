@@ -999,6 +999,9 @@ void CL_ShutdownAll( void ) {
 		if ( CL_GameSwitch() ) {
 			CL_ShutdownRef( REF_DESTROY_WINDOW ); // shutdown renderer & GLimp
 		} else {
+#ifdef AFTERSHOCK_DEVTOOLS
+			DevTools_Reset();
+#endif
 			re.Shutdown( REF_KEEP_CONTEXT ); // don't destroy window or context
 		}
 	}

@@ -19,14 +19,13 @@ upstream; historical upstream PR references below are completed past work.
 #6 PR #140 merged as 30eeba4c after final head c7c31a60 passed build
 35490659941/regression 35490659967 and the recorded self-review. Its merged-tree regression 35490963498 passed. The current
 branch is `issue/7-devtools`; test-first commit 7596afa9 records the expected shipping/development build failure.
-Initial console/cvar implementation ee822bab is in draft PR #143. Build
-35492532711 passes. Regression 35492532694 exposed a test setup mismatch: the
-OpenArena fixture requires the pinned OpenArena native game objects; the new
-driver linked Q3 game code. The working driver now reuses engine_objects from
-the existing replay gate. Validate hosted runtime after this correction, then
-complete entity, animation and collision/navigation/debug tooling. Profiling e24faa49 passed both full hosted workflows. Animation 245397aa passed
-build 35493639523 and regression 35493639540. Entity editing is now in the working
-tree; world picking/debug drawing and collision/navigation remain to finish. Keep all existing golden files.
+#7 remains draft PR #143. The final world/debug slice is locally validated and
+ready to commit/push. Require complete exact-head build/regression and the final
+self-review before merging, then require the merged-tree regression before #142.
+The preceding entity slice 9aca1c9f passed regression 35494279424; its build failed
+because older libc++ lacks floating from_chars. The final slice uses portable
+strtof with decimal-only validation matching the native game's numeric reader.
+Preserve accepted goldens.
 
 Then complete #7, render-graph phase two #142, and the remaining #25 sequence.
 All writes stay in msetaro/aftershock. The separate-session scope and finished
@@ -43,101 +42,71 @@ Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
 
 ## #7 developer tooling checkpoint
 
-Entity working slice: native-game callbacks expose the existing spawn-field table
-and live entities. UI and dev_entity console actions can spawn pickups/point
-markers, edit nonstructural fields, delete, save and reload. Editing requires a
-local devmap. Existing classname/model/team changes require spawning a replacement;
-brush/mover creation is not implemented because the point-spawn tool has no brush
-model input. Every original key is retained, including keys unknown to fields[].
-Saving uses numbered maps/<map>.dev.NNN.ent revisions and never overwrites a prior
-save or modifies a BSP/pak. Explicit dev_loadEntities reloads the selected file
-once on map restart. An incomplete 8 MiB document capture disables saving.
+Implemented: optional ImGui console/cvars; texture/material/model inspection;
+animation playback; CPU/GPU/frame history and network/prediction observations;
+allocator accounting; local native entity editing/save/reload/world selection;
+collision/navigation overlays; game-callable debug lines/boxes/text and scopes.
+Shipping defaults OFF, keeps renderer ABI 10 and contains no tooling symbols.
+Enabled client/modules use ABI 11 and must be rebuilt together.
 
-Local tests/dev_entities.py passes spawn/edit/delete/save/reload through the real
-native game, checks changed count/origin after restart and compares every original
-quoted map token with the retained records. It uses the owned game with OpenArena
-art in CI (not an OpenArena demo), so no game-protocol mismatch is involved.
-UI interaction, current-head hosted checks and world picking remain pending.
-The current full profiling and animation workflows are green; PR #143 stays draft.
+ImGui v1.92.9b (f1cc2ae15e53a861a874c3034aae6798fde194ab) retains its original
+11 core/license files, verified against third_party/imgui/provenance.json.
+Archive SHA-256 21d8a0a565e85dce943e375db00812c2f3f0ab21f3f0f7964e364a63422d7f99.
+Vendor OS/file/shell/time defaults are disabled. The existing zone allocator backs
+a fixed 16 MiB UI arena; engine mutation occurs after vendor UI returns. Owned
+history and geometry buffers are bounded and plain, with no simulation arithmetic
+changes. Initial/interaction allocation is distinct from the allocation-free idle
+path. New-feature corrections include null inactive material stages, resetting
+font resources on every renderer shutdown path, and portable numeric validation.
 
+Entity editing reuses the native spawn field table. Original keys, including
+unknown ones, are retained in an 8 MiB document; overflow disables saving.
+Numbered maps/<map>.dev.NNN.ent saves never overwrite earlier revisions or BSPs.
+Explicit dev_loadEntities applies the selected revision once on map restart.
+Editing requires a local devmap. Spawn supports pickups and point markers;
+structural class/model/team changes require replacement, and brush/mover creation
+has no input in this basic editor. External OA demo modules do not register these
+owned-game callbacks; entity tests use the owned game with either content set.
 
-Animation working slice: inspect loaded MD3/MDR/IQM frame counts, load a model and
-optional skin, scrub/play frames and rotate the preview. It reuses model handles,
-interpolation and the existing no-world scene API; resource loads and render calls
-occur after vendor UI returns. Real XTest input loads an installed animated model,
-starts playback, and verifies the preview/frame counters advance. The demo is
-paused via its existing timescale control so fixture length cannot end the UI test.
-Developer UI time now uses the existing unscaled engine frame timestamp.
-Production registry probes cover all three model types. No content is copied into
-the repository. Profile slice e24faa49 passed hosted build 35493250065 and its
-runtime job; the remaining regression jobs are still running. Its local lifetime
-gate passed 1,108 configurations/116 paths; tidy passed 1,154 configurations.
+World tools cache at most 4,096 lines on explicit refresh using existing winding
+helpers; subsequent frames allocate no cached geometry. Nearby brush selection
+caps at 1,024. Actual convex/patch faces are clipped; optimized AAS without faces
+shows retained area bounds/routes, explicitly labeled. Both layers reserve cache
+capacity, omitted edges are counted, and rendering is x-ray. Game primitives cap
+at 2,048 lines and 128 labels, with copied text and durations capped at 60 seconds.
+Hunk stats report lifetime regions (it has no existing tags), while zones report
+all tags. GPU samples use completed frames without waiting. Network payload stats
+exclude UDP/IP headers; replay snapshots and unavailable external-game prediction
+instrumentation are labeled. Full usage/limits are in tests/README.md.
 
+Final-slice local validation (devtools-final*.log in the persistent cache):
+- Real input edits cvar 0 -> 7, plays an installed model, opens inspection panels,
+  checks 80 idle frames without further allocations and survives video restart;
+  passes both static and optional renderer-module linkage.
+- Native entity spawn/edit/delete/save/reload preserves every original map token.
+  Real UI spawns/picks the same entity and enables world wireframes plus its label;
+  final screenshots visually reviewed. Both collision and navigation caches fill.
+- Production probes pass GCC and Clang/libc++ for registry copies, memory, scopes,
+  debug expiry/wraparound/capacity, projection and occluded selection.
+- Format (402 files), boundaries (367), types (366), pinned vendor hashes and owned
+  whitespace pass. Tidy passes 1,162 production configurations. Lifetime gate is
+  still running; record its result before merge.
+- Shipping SHA-256 remains 427e37beb867d2164294fe70f99d5bf1bf0eddcb768f3f7786cf721747f1ccfd.
+  Fixed Q3 demos replay twice including video restart, matching frame projection
+  43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+  Accepted fixtures, goldens and generated shaders remain unchanged.
 
-CPU scopes now use the existing platform microsecond clock, fixed 128-entry frame
-buffers, explicit begin/end tokens and generation checks. Incomplete scopes from
-longjmp are dropped. Core server/client, cgame and native game simulation are
-instrumented only in development builds. A small public game header also reports
-the already-computed prediction-error distance without changing its arithmetic.
-Client datagram counters, snapshot bit lengths and bandwidth are displayed with
-clear replay/transport limitations. Probe checks cover nesting, capacity, stale
-and duplicate tokens, backwards clock and disabled collection. Local real-input
-replay confirms live CPU/snapshot observations and the existing cvar/restart gate.
-
-Hosted second-slice runtime 35492842790 reached the UI but exposed a new inspector
-assumption: shaders with missing images can have null permanent stage pointers.
-GeneratePermanentShader stops copying at inactive stages; the new getter had
-assumed every reported pass had a pointer. The getter now preserves inactive-stage
-status, and the production-data probe covers that valid registry state. No loader
-or existing rendering behavior is changed. The prior full build passed; current
-hosted checks must be repeated after this new-feature correction.
-
-
-Next working slice adds read-only texture/material registries and previews, GPU
-scope/frame history, and tagged zone/hunk statistics. Production-code probes pass
-for index bounds, copied fields, timing capacity and segment/tag accounting. The
-real-input test opens and captures all four panels; local visual review confirms
-the expected content. Scripted commands now use a temporary cfg to stay within
-the existing command-line command count. No engine behavior was changed for either
-test setup correction. Initial module-linkage UI input/restart also passes.
-Remaining feature scope is still open; no merge is requested yet.
-
-
-Initial working-tree slice: shipping defaults OFF and excludes ImGui/tool symbols;
-enabled GCC client now passes the original build check. The overlay renders over
-q3dm17 (visually reviewed devtools-capture/tools.png in the persistent cache).
-ImGui allocations use the existing zone algorithm in a dedicated fixed 16 MiB
-allocator-layer arena; it cannot grow OS heap during frames. Owned draw buffers
-are bounded static arrays; the frontend queues UI in its existing render command
-list and expands triangles through the existing tess/RHI streams. No shader edits.
-The GUI reads the existing console ring/cvar list, applies edits only after ImGui
-returns, and consumes engine key/character/relative-mouse input. Shipping renderer
-ABI stays 10; enabled development modules use 11. The permanent test now drives real XTest mouse/key input, changes devtest 0 -> 7,
-checks 80 idle frames with identical allocation counts, and recreates the UI after
-video restart. UI memory stays about 492 KiB inside the fixed arena. The shipping
-client SHA-256 remains exactly 427e37beb867d2164294fe70f99d5bf1bf0eddcb768f3f7786cf721747f1ccfd
-before/after the initial slice. Four-mode lifetime analysis passes 1,104 commands
-and 115 paths (shipping/development, static/modules). Format/type/boundary checks pass. Tidy passes 1,150 production configurations;
-the enabled MinGW client/server build passes. Shipping fixed-demo replay passes
-43c52e51 with both original fixtures unchanged. Hosted checks and the remaining
-issue features are pending. This commit records only the initial console/cvar slice.
-
-Issue #7 was read in full. Preparation pins Dear ImGui v1.92.9b, official commit
-f1cc2ae15e53a861a874c3034aae6798fde194ab. Source archive SHA-256:
-21d8a0a565e85dce943e375db00812c2f3f0ab21f3f0f7964e364a63422d7f99.
-The archive/source and devtools-plan.md are in the persistent cache. The 11
-vendored files match their recorded source hashes. ImGui integrates through the RHI/frontend and
-engine input, with vendor OS/file/shell defaults disabled. Shipping defaults OFF.
-Reuse cvars/commands, renderer registries, game spawn fields and allocator stats;
-keep mutation calls outside ImGui so engine longjmp cannot cross vendor frames.
-Owned history/debug data stays bounded and plain; allocation behavior must be
-measured rather than assuming ImGui is allocation-free.
-
-Test-first: tests/devtools.py builds shipping and explicitly enabled clients and
-checks their actual symbols. At 30eeba4c the shipping absence check passes; the
-enabled build fails because ImGui::NewFrame is absent (expected exit 1).
-Evidence: devtools-before.log and devtools-before/ in the persistent cache.
-The real-input cvar/UI test now passes; entity/profile/collision tests remain required. The merged #6 regression 35490963498 passed before engine implementation.
+Historical gates: test-first 7596afa9 fails on unchanged 30eeba4c because the
+explicitly enabled build has no ImGui symbol (devtools-before.log). Initial slice
+passed build 35492532711; its runtime exposed the test's OA/Q3 native-object
+mismatch, corrected to the pinned OA objects. The next inspector runtime exposed
+null inactive material stages, corrected in the new getter and covered by probes.
+Profiling e24faa49 passed build/regression 35493250065/35493250038; animation
+245397aa passed 35493639523/35493639540. Entity 9aca1c9f passed regression
+35494279424 but failed build 35494279398 on floating from_chars; fixed above.
+The latest test symbol assertion also now recognizes the drawing API's C linkage.
+No existing engine bug fix was included in #7. Current exact-head hosted gates
+and final self-review remain required; the PR stays draft until they pass.
 
 ## #31 Vulkan acquisition checkpoint
 

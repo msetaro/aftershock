@@ -265,16 +265,16 @@ Use `openarena.py --data /path/to/baseoa` for data extracted without installing
 packages. Local system package installation is prohibited; runner installs are
 expected. A download/checksum/content failure fails CI.
 
-## Development tooling (#7, implementation in progress)
+## Development tooling (#7)
 
 `AFTERSHOCK_DEVTOOLS=ON` includes the ImGui overlay; the default OFF build has no
-ImGui or tool symbols. Enable it with `dev_tools 1`; Escape closes it. The first
-slice provides console output/commands and cvar search, descriptions and live edit.
+ImGui or tool symbols. Enable it with `dev_tools 1`; Escape closes it. The overlay
+provides console output/commands and cvar search, descriptions and live edit.
 Texture previews, material stages, completed GPU timings/frame history and
-tagged zone/hunk usage are also available. CPU scopes and client traffic/snapshot/prediction statistics are available;
+tagged zone/hunk usage are also available. CPU scopes and client traffic/snapshot/prediction statistics are available.
 The model viewer loads MD3/MDR/IQM models and optional skins, scrubs/plays frames
-and rotates an existing renderer scene. Entity tools edit a local native game started with `devmap`; world picking
-and collision/navigation/debug drawing remain incomplete. Enabled renderer
+and rotates an existing renderer scene. Entity tools edit a local native game started with `devmap`; the World tab visualizes collision and navigation, and entity picking works at
+the crosshair or by clicking outside the tools. Enabled renderer
 modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
 
 `python3 tests/devtools.py` builds both variants, verifies symbols, then uses real
@@ -298,6 +298,16 @@ or interaction-driven UI allocations are distinct from the checked idle-frame pa
 Lifetime/tidy gates now cover shipping/development and static/module configurations.
 The primary build matrix enables tooling in Debug and excludes it in Release.
 
+`python3 tests/dev_world_ui.py` drives the live native game through real XTest
+input: spawn at the camera, select that entity in world, enable collision and
+navigation, and capture the drawn volumes/label. The World tab uses explicit
+refresh, caching at most 4,096 edges around the camera (up to 1,024 brushes).
+Brush/patch surfaces are exact clipped faces. Optimized AAS files that omit face
+geometry show retained area bounds and reachability; unstripped files also show
+ground faces. Both layers share the bounded cache with reserved capacity; omitted
+edges are reported. Rendering is intentionally x-ray. Live entity bounds remain
+current. Refresh cached surfaces after moving; map/video restart clears the cache.
+
 `python3 tests/dev_entities.py` exercises native-game spawn/edit/delete and
 numbered entity-string saves/reload. Unlike demo tests, it uses the owned Q3 game
 with either content set. Every original map token (including unknown keys) is
@@ -317,7 +327,11 @@ unfinished or stale tokens are discarded on frame rollover. GPU samples come fro
 completed frames without waiting. `Dev_PredictionError` observes the existing
 calculated distance; it changes no prediction arithmetic. Datagram payload totals
 exclude UDP/IP headers, and replay snapshots are explicitly distinct from traffic.
-All telemetry is absent from shipping and collects only while `dev_tools` is enabled.
+`Dev_DrawLine`, `Dev_DrawBox` and `Dev_DrawText` are engine-thread game APIs in
+the same header. Colors are 0xAABBGGRR; zero duration means one frame, and positive
+durations cap at 60 seconds. Storage holds 2,048 lines and 128 labels of up to
+63 characters; excess primitives are counted and discarded. All telemetry/drawing
+is absent from shipping and collects only while `dev_tools` is enabled.
 
 ## Runtime and fixed-demo oracle
 

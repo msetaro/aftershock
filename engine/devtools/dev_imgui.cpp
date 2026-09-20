@@ -9,7 +9,7 @@ static ImGuiContext *context;
 static uint32_t fontTexture, lastTime;
 static float mouseX = 320, mouseY = 240;
 static int screenWidth = 640, screenHeight = 480;
-static uint32_t renderedFrames, allocations, animationFrames;
+static uint32_t renderedFrames, allocations, animationFrames, drawnLines, drawnLabels;
 static devUiVertex_t vertices[65536];
 static uint32_t indices[196608];
 static devUiCommand_t commands[4096];
@@ -46,16 +46,20 @@ static void Status( void ) {
 	Com_Printf( "Developer profile: cpu=%u snapshots=%" PRIu64 " bits=%u\n",
 		DevTools_CpuTimings( &timings ), net->snapshots, net->snapshotBits );
 	Com_Printf( "Developer animation: model=%d frame=%d previews=%u\n", animation.model, animation.frame, animationFrames );
+	Com_Printf( "Developer drawing: lines=%u labels=%u\n", drawnLines, drawnLabels );
 }
 
 void DevTools_Init( void ) {
 	DevTools_InitEntities();
+	DevTools_InitWorld();
 	enabled = Cvar_Get( "dev_tools", "0", CVAR_TEMP );
 	Cvar_SetDescription( enabled, "Development overlay; Escape closes it. Absent from shipping builds." );
 	Cmd_AddCommand( "devtools_status", Status );
 }
 
 void DevTools_Reset( void ) {
+	DevTools_ClearWorld();
+	DevTools_SetView( nullptr );
 	if ( context )
 		ImGui::DestroyContext( context );
 	context = nullptr;
@@ -305,6 +309,100 @@ static void InspectMemory( void ) {
 	ImGui::EndTabItem();
 }
 
+static struct {
+	bool collision, navigation, entities, refresh;
+	float radius = 512;
+} worldDebug;
+
+static void InspectWorld( void ) {
+	if ( !ImGui::BeginTabItem( "World" ) )
+		return;
+	worldDebug.refresh |= ImGui::Checkbox( "Collision surfaces", &worldDebug.collision );
+	worldDebug.refresh |= ImGui::Checkbox( "Navigation areas and routes", &worldDebug.navigation );
+	ImGui::Checkbox( "Live entity bounds", &worldDebug.entities );
+	ImGui::SliderFloat( "Radius", &worldDebug.radius, 64, 2048 );
+	worldDebug.refresh |= ImGui::Button( "Refresh around camera" );
+	const devLine_t *lines;
+	ImGui::Text( "World cache %u / 4096 lines; omitted %u", DevTools_Lines( &lines, true ), DevTools_DebugDropped() );
+	ImGui::TextWrapped( "X-ray wireframes: cyan world brushes, pink patch facets, green navigation, orange reachability. Stripped AAS files show area bounds in place of missing ground faces. Cached surfaces refresh on request, up to 1024 nearby brushes. Navigation requires a local server with loaded AAS. Refresh after moving." );
+	ImGui::TextWrapped( "Game debug lines, boxes and text use engine/public/dev_public.h. Left click outside the tools to pick a local entity, or use Pick crosshair in Entities." );
+	ImGui::EndTabItem();
+}
+
+static void DrawDebugLine( ImDrawList *draw, const refdef_t *view, const devLine_t *line ) {
+	vec3_t start, end, delta;
+	VectorCopy( line->start, start );
+	VectorCopy( line->end, end );
+	VectorSubtract( start, view->vieworg, delta );
+	const float a = DotProduct( delta, view->viewaxis[0] );
+	VectorSubtract( end, view->vieworg, delta );
+	const float b = DotProduct( delta, view->viewaxis[0] );
+	if ( a < 0.1f && b < 0.1f )
+		return;
+	if ( a < 0.1f || b < 0.1f ) {
+		const float fraction = ( 0.11f - a ) / ( b - a );
+		vec3_t clipped;
+		for ( int axis = 0; axis < 3; ++axis )
+			clipped[axis] = start[axis] + ( end[axis] - start[axis] ) * fraction;
+		if ( a < 0.1f )
+			VectorCopy( clipped, start );
+		else
+			VectorCopy( clipped, end );
+	}
+	float screenStart[2], screenEnd[2];
+	if ( DevTools_Project( view, start, screenStart ) && DevTools_Project( view, end, screenEnd ) ) {
+		draw->AddLine( ImVec2( screenStart[0], screenStart[1] ), ImVec2( screenEnd[0], screenEnd[1] ), line->color );
+		++drawnLines;
+	}
+}
+
+static void DrawWorldDebug( void ) {
+	drawnLines = drawnLabels = 0;
+	const refdef_t *view = DevTools_View();
+	if ( !view )
+		return;
+	if ( const devGameTools_t *game = DevTools_Game() ) {
+		for ( int i = 0; i < MAX_GENTITIES; ++i ) {
+			if ( i == DevTools_ViewClient() && i != entities.selected )
+				continue;
+			if ( !worldDebug.entities && i != entities.selected )
+				continue;
+			devEntity_t entity;
+			if ( !game->ReadEntity( i, &entity ) )
+				continue;
+			if ( !entity.linked ) {
+				for ( int axis = 0; axis < 3; ++axis ) {
+					entity.mins[axis] = entity.origin[axis] - 8;
+					entity.maxs[axis] = entity.origin[axis] + 8;
+				}
+			}
+			const uint32_t color = i == entities.selected ? 0xff00ffffU : 0xffaaaaaaU;
+			Dev_DrawBox( entity.mins, entity.maxs, color, 0 );
+			if ( i == entities.selected )
+				Dev_DrawText( entity.origin, entity.classname, color, 0 );
+		}
+	}
+	ImDrawList *draw = ImGui::GetBackgroundDrawList();
+	draw->PushClipRect( ImVec2( (float)view->x, (float)view->y ),
+		ImVec2( (float)( view->x + view->width ), (float)( view->y + view->height ) ) );
+	for ( int world = 0; world < 2; ++world ) {
+		const devLine_t *lines;
+		const uint32_t count = DevTools_Lines( &lines, world != 0 );
+		for ( uint32_t i = 0; i < count; ++i )
+			DrawDebugLine( draw, view, &lines[i] );
+	}
+	const devText_t *text;
+	const uint32_t count = DevTools_Text( &text );
+	for ( uint32_t i = 0; i < count; ++i ) {
+		float screen[2];
+		if ( DevTools_Project( view, text[i].origin, screen ) ) {
+			draw->AddText( ImVec2( screen[0], screen[1] ), text[i].color, text[i].text );
+			++drawnLabels;
+		}
+	}
+	draw->PopClipRect();
+}
+
 static void InspectEntities( void ) {
 	if ( !ImGui::BeginTabItem( "Entities" ) )
 		return;
@@ -314,6 +412,8 @@ static void InspectEntities( void ) {
 		ImGui::EndTabItem();
 		return;
 	}
+	if ( ImGui::Button( "Pick crosshair" ) )
+		entities.action = 6;
 	const bool editable = Cvar_VariableIntegerValue( "sv_cheats" ) != 0;
 	if ( !editable )
 		ImGui::TextUnformatted( "Read only: editing requires devmap (sv_cheats 1)." );
@@ -391,6 +491,12 @@ static void EditEntities( void ) {
 		break;
 	case 4:
 		success = DevTools_SaveEntities();
+		break;
+	case 6:
+		if ( const refdef_t *view = DevTools_View() ) {
+			entities.selected = DevTools_PickEntity( (float)view->x + (float)view->width * 0.5f, (float)view->y + (float)view->height * 0.5f );
+			success = entities.selected >= 0;
+		}
 		break;
 	case 5:
 		if ( *Cvar_VariableString( "dev_entityFile" ) ) {
@@ -505,20 +611,21 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 	++animationFrames;
 }
 
-static void InspectProfile( const refexport_t *renderer, uint32_t elapsed ) {
+static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint32_t milliseconds ) {
 	static float history[240];
 	static uint32_t cursor;
 	history[cursor++ % ARRAY_LEN( history )] = (float)elapsed;
 	const devNetwork_t *net = DevTools_Network();
-	static uint64_t previous[2], interval;
+	static uint64_t previous[2];
+	static uint32_t previousTime;
 	static double rate[2];
-	interval += elapsed;
+	const uint32_t interval = milliseconds - previousTime;
 	if ( interval >= 1000 ) {
 		for ( int i = 0; i < 2; ++i ) {
 			rate[i] = (double)( net->bytes[i] - previous[i] ) * 1000.0 / (double)interval;
 			previous[i] = net->bytes[i];
 		}
-		interval = 0;
+		previousTime = milliseconds;
 	}
 	if ( !ImGui::BeginTabItem( "Profile" ) )
 		return;
@@ -536,7 +643,7 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed ) {
 	if ( !count )
 		ImGui::TextUnformatted( "GPU timestamp results unavailable" );
 	ImGui::Separator();
-	ImGui::Text( "Client RX/TX %.0f / %.0f bytes/s", rate[0], rate[1] );
+	ImGui::Text( "Connected server RX / client TX %.0f / %.0f bytes/s", rate[0], rate[1] );
 	ImGui::Text( "Packets %" PRIu64 " / %" PRIu64 "; last datagram %u / %u bytes",
 		net->packets[0], net->packets[1], net->lastPacket[0], net->lastPacket[1] );
 	ImGui::Text( "Snapshot: %u bits, %s (%" PRIu64 " observed)", net->snapshotBits,
@@ -582,6 +689,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	lastTime = (uint32_t)milliseconds;
 	animation.draw = animation.load = false;
 	entities.action = 0;
+	worldDebug.refresh = false;
 	if ( !*entities.classname )
 		Q_strncpyz( entities.classname, "target_position", sizeof( entities.classname ) );
 	if ( animation.fps < 1 )
@@ -625,14 +733,16 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 				ImGui::EndTabItem();
 			}
 			InspectAssets( renderer );
-			InspectProfile( renderer, elapsed );
+			InspectProfile( renderer, elapsed, (uint32_t)milliseconds );
 			InspectMemory();
 			InspectAnimation( renderer, elapsed );
 			InspectEntities();
+			InspectWorld();
 			ImGui::EndTabBar();
 		}
 	}
 	ImGui::End();
+	DrawWorldDebug();
 	ImGui::Render();
 	devUiDraw_t draw;
 	if ( CopyDrawData( ImGui::GetDrawData(), &draw ) ) {
@@ -644,6 +754,10 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	// Engine mutation/error handling runs after all vendor UI calls return.
 	DrawAnimation( renderer, milliseconds );
 	EditEntities();
+	if ( worldDebug.refresh )
+		DevTools_RebuildWorld( worldDebug.collision, worldDebug.navigation, worldDebug.radius );
+	if ( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) && !io.WantCaptureMouse )
+		entities.selected = DevTools_PickEntity( io.MousePos.x, io.MousePos.y );
 	if ( apply && *selected )
 		Cvar_Set2( selected, value, qfalse );
 	if ( execute && *command ) {

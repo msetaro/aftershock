@@ -1,6 +1,9 @@
 #include "../../engine/devtools/dev_profile.cpp"
 #include <assert.h>
 
+int com_frameTime;
+void DevTools_BeginDebugFrame( bool, uint32_t ) {
+}
 static int64_t clockValue;
 int64_t Sys_Microseconds( void ) {
 	return clockValue;

@@ -14,7 +14,7 @@ import tempfile
 import time
 import zipfile
 from run import ROOT, build, content_maps, content_settings
-from window import wait_for
+from window import wait_for, XInput
 from native import engine_objects
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-devtools-tests'))
@@ -30,9 +30,11 @@ if not args.binary:
         binary = directory / 'quake3e.x64'
         symbols = subprocess.check_output(['nm', '-C', '--defined-only', binary], text=True)
         (directory / 'symbols.txt').write_text(symbols)
-        for required in ('ImGui::NewFrame()', 'DevTools_Draw('):
+        for required in ('ImGui::NewFrame()', 'DevTools_Draw(', ' Dev_DrawLine\n'):
             if (required in symbols) != enabled:
                 raise SystemExit(f'FAIL: {required} must be present only with AFTERSHOCK_DEVTOOLS=ON')
+        if not enabled and re.search(r'\b(?:ImGui::|DevTools_|Dev_)', symbols):
+            raise SystemExit('FAIL: shipping binary contains development tooling symbols')
         print('PASS:', 'development tooling linked' if enabled else 'shipping binary excludes tooling', flush=True)
     args.binary = binary
 if not args.inside_xvfb:
@@ -51,44 +53,8 @@ if not ctypes.util.find_library('X11') or not ctypes.util.find_library('Xtst'):
 map_name = content_maps(args.content)[0]
 golden = ROOT / 'tests/golden' / ('openarena' if args.content == 'openarena' else '')
 env = dict(os.environ, LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
-x11 = ctypes.CDLL(ctypes.util.find_library('X11'))
-xt = ctypes.CDLL(ctypes.util.find_library('Xtst'))
-x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
-x11.XOpenDisplay.restype = ctypes.c_void_p
-x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
-x11.XSync.argtypes = [ctypes.c_void_p, ctypes.c_int]
-x11.XStringToKeysym.argtypes = [ctypes.c_char_p]
-x11.XStringToKeysym.restype = ctypes.c_ulong
-x11.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
-x11.XKeysymToKeycode.restype = ctypes.c_ubyte
-xt.XTestFakeRelativeMotionEvent.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_ulong]
-xt.XTestFakeButtonEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
-xt.XTestFakeKeyEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
-display = x11.XOpenDisplay(None)
-assert display
-cursor = [320, 240]
-
-def click(x, y):
-    xt.XTestFakeRelativeMotionEvent(display, x - cursor[0], y - cursor[1], 0)
-    x11.XSync(display, 0)
-    time.sleep(0.15)
-    xt.XTestFakeButtonEvent(display, 1, 1, 0)
-    x11.XSync(display, 0)
-    time.sleep(0.1)
-    xt.XTestFakeButtonEvent(display, 1, 0, 0)
-    x11.XSync(display, 0)
-    time.sleep(0.2)
-    cursor[:] = [x, y]
-
-def key(name):
-    code = x11.XKeysymToKeycode(display, x11.XStringToKeysym(name.encode()))
-    assert code
-    xt.XTestFakeKeyEvent(display, code, 1, 0)
-    x11.XSync(display, 0)
-    time.sleep(0.06)
-    xt.XTestFakeKeyEvent(display, code, 0, 0)
-    x11.XSync(display, 0)
-    time.sleep(0.06)
+input_device = XInput()
+click, key = input_device.click, input_device.key
 with tempfile.TemporaryDirectory(prefix='aftershock-dev-input-') as temp:
     home = Path(temp)
     base = home / ('baseoa' if args.content == 'openarena' else 'baseq3')
@@ -112,12 +78,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-dev-input-') as temp:
         process = subprocess.Popen(command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
         try:
             wait_for(lambda: b'CL_InitCGame:' in (out / 'client.log').read_bytes(), process)
-            tree = subprocess.check_output(['xwininfo', '-root', '-tree'], text=True)
-            candidates = re.findall('^\\s*(0x[0-9a-fA-F]+).*640x480', tree, re.M)
-            owned = [window for window in candidates if re.search(
-                r'=\s*' + str(process.pid) + r'\s*$',
-                subprocess.check_output(['xprop', '-id', window, '_NET_WM_PID'], text=True))]
-            assert len(owned) == 1, 'expected one window owned by the launched client'
+            input_device.verify_window(process)
             time.sleep(0.5)
             click(100, 64)
             click(100, 91)
@@ -156,7 +117,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-dev-input-') as temp:
         image = base / 'screenshots' / (name + '.tga')
         assert struct.unpack_from('<HH', image.read_bytes(), 12) == (640, 480)
         shutil.copyfile(image, out / image.name)
-x11.XCloseDisplay(display)
+input_device.close()
 text = (out / 'client.log').read_text()
 assert '"devtest" is:"7^7"' in text, 'live ImGui cvar edit failed; see ' + str(out / 'client.log')
 assert not any(error in text for error in ('ERROR:', 'Signal caught', 'capacity exceeded', 'Unknown command'))

@@ -23,11 +23,30 @@ void DevTools_Snapshot( uint32_t bits, bool delta );
 const devNetwork_t *DevTools_Network( void );
 
 const devGameTools_t *DevTools_Game( void );
-void DevTools_SetView( const refdef_t *view );
+void DevTools_SetView( const refdef_t *view, int clientEntity = -1 );
+int DevTools_ViewClient( void );
 const refdef_t *DevTools_View( void );
 bool DevTools_SaveEntities( void );
 void DevTools_InitEntities( void );
 
+struct devLine_t {
+	float start[3], end[3];
+	uint32_t color, expires;
+};
+struct devText_t {
+	float origin[3];
+	char text[64];
+	uint32_t color, expires;
+};
+void DevTools_BeginDebugFrame( bool enabled, uint32_t milliseconds );
+void DevTools_ClearWorld( void );
+void DevTools_InitWorld( void );
+void DevTools_RebuildWorld( bool collision, bool navigation, float radius );
+uint32_t DevTools_Lines( const devLine_t **lines, bool world );
+uint32_t DevTools_Text( const devText_t **text );
+uint32_t DevTools_DebugDropped( void );
+bool DevTools_Project( const refdef_t *view, const float *point, float *screen );
+int DevTools_PickEntity( float x, float y );
 void DevTools_Init( void );
 void DevTools_Reset( void );
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds );

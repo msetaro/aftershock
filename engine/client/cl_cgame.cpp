@@ -674,7 +674,7 @@ void CGameImport_R_AddAdditiveLightToScene( const float *org, float intensity, f
 void CGameImport_R_RenderScene( const void *fd ) {
 
 #ifdef AFTERSHOCK_DEVTOOLS
-	DevTools_SetView( (const refdef_t *)fd );
+	DevTools_SetView( (const refdef_t *)fd, cl.snap.ps.clientNum );
 #endif
 	re.RenderScene( (const refdef_t *)fd );
 	return;
