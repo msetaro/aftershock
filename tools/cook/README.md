@@ -1,8 +1,8 @@
 # Offline cooker (#9, in progress)
 
-The offline mesh/texture slice is available. Native cooked texture/material
-loading and development reload are still being implemented; this is not the
-complete #9 acceptance.
+Offline mesh/texture cooking and native KTX2 BC loading are available. Cooked
+material loading and development reload are still being implemented; this is not
+the complete #9 acceptance.
 
 Use Python with the pinned Pillow dependency, CMake 3.25+, Ninja and a host C++
 compiler. Install Python requirements in a virtual environment, not system Python.
@@ -58,3 +58,8 @@ an eight-byte magic, uint32 version/size and SHA-256 of its payload, followed by
 four float color factors, float alpha cutoff, uint32 flags and a 64-byte texture
 qpath. All integers are little-endian. Runtime records will retain explicit layout
 and copy assertions when the runtime slice lands.
+
+The native KTX2 reader verifies the embedded content hash using pinned
+[amosnier/sha-2](https://github.com/amosnier/sha-2/tree/565f65009bdd98267361b17d50cddd7c9beb3e6c),
+under its 0BSD option. The backend enables supported BC compression and checks
+format capabilities before allocation, following the [Vulkan feature contract](https://docs.vulkan.org/refpages/latest/refpages/source/VkPhysicalDeviceFeatures.html).

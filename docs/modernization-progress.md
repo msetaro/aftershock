@@ -2844,3 +2844,21 @@ BC feature enablement and sampled/filter/transfer format support are checked at
 texture creation. Compressed data uses the existing staging/copy path with 4x4
 block rounding; legacy pixel uploads retain unit-sized blocks. No simulation or
 accepted artifact changed. Evidence: cook-bc-{before,after,clang}.log.
+
+Native KTX2 loading now uses plain asserted header/index records and borrowed mip
+views; runtime SHA-256 verification matches the Python cooker. Pinned 0BSD
+amosnier/sha-2 commit 565f65009bdd98267361b17d50cddd7c9beb3e6c supplies the
+allocation-free C implementation (source/license hashes checked by tests/cook.py).
+The valid owned texture check failed before the native reader (387d74af test-first)
+and passes with GCC/Clang after implementation. Image registration uploads BC
+blocks through the normal image table and RHI binding path. The development client
+build passes. A real ImGui run loaded the cooked six-mesh character in q3dm17,
+showing its BC7s texture and 62 frames; the preview was visually inspected. Named
+clip controls/material flags/reload acceptance remain, so this is preliminary.
+
+Fixed Q3 replay plus video restart passes twice per map, retaining frame projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+Evidence: cook-native-texture-{before,after,clang}.log, cook-runtime-build.log,
+cook-ui-check.log, cook-demo.log; screenshots /tmp/aftershock-cook-ui. No accepted
+fixtures/goldens changed. Next implement material records and reload ownership,
+then named clips, source watcher and the complete runtime acceptance driver.

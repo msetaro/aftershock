@@ -172,6 +172,8 @@ set(VULKAN_SOURCES
   engine/render/tr_cmds.cpp
   engine/render/tr_curve.cpp
   engine/renderercommon/tr_font.cpp
+  engine/render/tr_cooked.cpp
+  third_party/sha256/sha-256.c
   engine/render/tr_image.cpp
   engine/renderercommon/tr_image_png.cpp
   engine/renderercommon/tr_image_jpg.cpp

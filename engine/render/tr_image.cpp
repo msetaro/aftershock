@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // tr_image.c
 #include "tr_local.h"
+#include "tr_cooked.h"
 
 static byte s_intensitytable[256];
 static unsigned char s_gammatable[256];
@@ -1057,7 +1058,7 @@ This is the only way any image_t are created
 Picture data may be modified in-place during mipmap processing
 ================
 */
-image_t *R_CreateImage( const char *name, const char *name2, byte *pic, int width, int height, imgFlags_t flags ) {
+image_t *R_CreateImage( const char *name, const char *name2, byte *pic, int width, int height, imgFlags_t flags, const cookedTexture_t *cooked ) {
 	image_t *image;
 	int64_t hash;
 #ifndef USE_VULKAN
@@ -1121,7 +1122,28 @@ image_t *R_CreateImage( const char *name, const char *name2, byte *pic, int widt
 
 	image->texture = {};
 
-	upload_vk_image( image, pic );
+	if ( cooked ) {
+		image->uploadWidth = width;
+		image->uploadHeight = height;
+		image->internalFormat = cooked->format;
+		const uint32_t levels = ( flags & IMGFLAG_MIPMAP ) ? cooked->mipLevels : 1;
+		uint32_t size = 0;
+		for ( uint32_t i = 0; i < levels; i++ )
+			size += cooked->levels[i].size;
+		byte *blocks = (byte *)ri.Malloc( size );
+		uint32_t offset = 0;
+		for ( uint32_t i = 0; i < levels; i++ ) {
+			memcpy( blocks + offset, cooked->levels[i].data, cooked->levels[i].size );
+			offset += cooked->levels[i].size;
+		}
+		rhiStatus_t status = RHI_CreateTexture( &image->texture, width, height, levels, cooked->format, image->wrapClampMode, name );
+		if ( status == rhiStatus_t::Success )
+			status = RHI_UploadCompressedTexture( &image->texture, width, height, levels, blocks, size, cooked->format, false );
+		ri.Free( blocks );
+		R_CheckRHI( status, "cooked texture upload" );
+	} else {
+		upload_vk_image( image, pic );
+	}
 #else
 	if ( flags & IMGFLAG_RGB )
 		image->internalFormat = GL_RGB;
@@ -1333,6 +1355,31 @@ image_t *R_FindImageFile( const char *name, imgFlags_t flags ) {
 	//
 	// load the pic from disk
 	//
+	const char *extension = COM_GetExtension( name );
+	if ( !*extension || !Q_stricmp( extension, "ktx2" ) ) {
+		char path[MAX_QPATH];
+		if ( *extension )
+			Q_strncpyz( path, name, sizeof( path ) );
+		else if ( strlen( name ) + 5 < sizeof( path ) )
+			Com_sprintf( path, sizeof( path ), "%s.ktx2", name );
+		else
+			return NULL;
+		void *file = nullptr;
+		const int size = ri.FS_ReadFile( path, &file );
+		if ( file ) {
+			cookedTexture_t cooked;
+			if ( size > 0 && R_ReadCookedTexture( file, size, &cooked ) && cooked.width <= (uint32_t)glConfig.maxTextureSize && cooked.height <= (uint32_t)glConfig.maxTextureSize ) {
+				image = R_CreateImage( name, path, nullptr, cooked.width, cooked.height, flags, &cooked );
+			} else {
+				ri.Printf( PRINT_WARNING, "Invalid or unsupported cooked texture: %s\n", path );
+				image = nullptr;
+			}
+			ri.FS_FreeFile( file );
+			return image;
+		}
+		if ( *extension )
+			return NULL;
+	}
 	localName = R_LoadImage( name, &pic, &width, &height );
 	if ( pic == NULL ) {
 		return NULL;
