@@ -17,9 +17,9 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
-Continue #11 with bounded projectile allocation, reusable per-client auxiliary
-records, lifecycle, lossy-network and new fixed-replay acceptance. The ImGui range
-controls now pass Q3/OpenArena pointer-driven tests.
+Continue #11 with lossy-network and new fixed-replay acceptance, then complete
+CI wiring/gates/self-review. The ImGui range, reusable per-client auxiliary records,
+team-transition lifecycle and 64-projectile capacity now pass Q3/OpenArena tests.
 Cooked loading, command replay, rewind/penetration damage, data-only switching,
 attachments, replicated/predicted projectiles, per-hand animation prediction,
 view/ADS rendering and notify audio now pass focused tests on Q3 and OpenArena.
@@ -164,6 +164,26 @@ portable late-generation assertion fails on current deduplication
 to legacy player spawn semantics. The scenario now respects the five-second team
 switch cooldown; the live 64-projectile pressure segment reaches its cap without
 spending further ammo.
+
+Projectile capacity, reusable auxiliary records and connection-generation handling
+now pass GCC/Clang UBSan and both live content sets
+(weapons-generation-{gcc,clang,build}.log, weapons-lifecycle.log/-oa.log).
+Four records per configured client are reserved at map start and reused across
+team transitions; inadequate map capacity is rejected explicitly. The owner keeps
+the same record IDs while its connection generation changes, even though the
+legacy spawn count returns to 1. New auxiliary constantLight fields carry that
+full generation (these entity types bypass lighting); projectiles use their spare
+angular-trajectory clock. No wire struct or legacy spawn semantic changes.
+
+At 64 projectiles or the entity high-water reserve, server firing pauses without
+spending ammo and the snapshot blocked bit guides prediction. Rejected local
+projectiles expire; only unacknowledged notify bits are forgotten so later accepted
+shots can sound. Late prior-generation/spawn notifications are discarded. The
+live pressure segment holds sequence/magazine at 64/64 for at least ten samples
+and reconciles prediction. Team transitions/disconnect remove owned projectiles;
+ordinary respawns retain them. The final OA test also verifies post-join shot
+notifications still sound. New cosmetics retain their separate 128-effect limit.
+Format/boundary/type gates pass. Full #11 acceptance remains pending.
 
 ## #11 test-first scope
 

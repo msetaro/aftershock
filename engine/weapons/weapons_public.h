@@ -87,6 +87,7 @@ struct weaponNotifyHistory_t {
 	uint64_t seen[128];
 };
 static_assert( sizeof( weaponNotifyHistory_t ) == 1040 && std::is_trivially_copyable_v<weaponNotifyHistory_t> );
+void Weapon_ForgetNotifiesAfter( weaponNotifyHistory_t *history, uint32_t accepted );
 bool Weapon_NotifyOnce( weaponNotifyHistory_t *history, uint32_t spawn, uint32_t epoch, uint32_t sequence );
 struct weaponProjectile_t {
 	float position[3], velocity[3];

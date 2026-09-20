@@ -285,6 +285,9 @@ void Weapon_ProjectileBounce( const weaponDef_t *d, const float normal[3], weapo
 
 bool Weapon_NotifyOnce( weaponNotifyHistory_t *history, uint32_t spawn, uint32_t epoch, uint32_t sequence ) {
 	constexpr uint32_t window = 8192;
+	if ( history->initialized && ( int32_t( epoch - history->epoch ) < 0 ||
+									 ( epoch == history->epoch && int32_t( spawn - history->spawn ) < 0 ) ) )
+		return false;
 	if ( !history->initialized || history->spawn != spawn || history->epoch != epoch ) {
 		*history = {};
 		history->initialized = 1;
@@ -310,4 +313,19 @@ bool Weapon_NotifyOnce( weaponNotifyHistory_t *history, uint32_t spawn, uint32_t
 	const bool fresh = !( history->seen[bit / 64] & mask );
 	history->seen[bit / 64] |= mask;
 	return fresh;
+}
+
+void Weapon_ForgetNotifiesAfter( weaponNotifyHistory_t *history, uint32_t accepted ) {
+	const uint32_t count = history->newest - accepted;
+	if ( !history->initialized || int32_t( count ) <= 0 )
+		return;
+	if ( count >= 8192 ) {
+		memset( history->seen, 0, sizeof( history->seen ) );
+	} else {
+		for ( uint32_t i = 0; i < count; ++i ) {
+			const uint32_t bit = ( history->newest - i ) % 8192;
+			history->seen[bit / 64] &= ~( uint64_t( 1 ) << ( bit % 64 ) );
+		}
+	}
+	history->newest = accepted;
 }

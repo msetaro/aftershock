@@ -35,15 +35,27 @@ static struct {
 struct predictedProjectile_t {
 	bool used, acknowledged, expired;
 	int command, definition, hand;
-	uint32_t spawn, sequence, clock;
+	uint32_t spawn, epoch, sequence, clock, firedAt;
 	weaponProjectile_t state, history[CMD_BACKUP];
 };
 // ponytail: 64 local predictions; excess shots still render from authoritative snapshots.
 static predictedProjectile_t predictedProjectiles[64];
 
+static uint32_t weaponEpoch;
+static bool CurrentWeaponEpoch( uint32_t epoch ) {
+	if ( !weaponEpoch || int32_t( epoch - weaponEpoch ) > 0 ) {
+		weaponEpoch = epoch;
+		memset( predictedProjectiles, 0, sizeof( predictedProjectiles ) );
+		memset( weaponPredictionHistory, 0, sizeof( weaponPredictionHistory ) );
+		memset( weaponNotifyHistory[cg.clientNum], 0, sizeof( weaponNotifyHistory[cg.clientNum] ) );
+	}
+	return epoch == weaponEpoch;
+}
 static void PlayWeaponNotify( int owner, int hand, int definition, uint32_t spawn, uint32_t epoch, const animEvent_t &notify, const vec3_t position ) {
+	if ( owner == cg.clientNum && !CurrentWeaponEpoch( epoch ) )
+		return;
 	auto &history = weaponNotifyHistory[owner][hand];
-	if ( !Weapon_NotifyOnce( &history, spawn, owner == cg.clientNum ? 0 : epoch, notify.sequence ) )
+	if ( !Weapon_NotifyOnce( &history, spawn, epoch, notify.sequence ) )
 		return; // Replaying acknowledged commands never replays their audio.
 	const char *name = Anim_EventName( BG_WeaponAnimation( definition ), notify.id );
 	const auto *weapon = BG_WeaponDefinition( definition );
@@ -75,10 +87,10 @@ void CG_WeaponPredictionPose( int number, const playerState_t *state ) {
 	pose.number = number;
 	pose.state = *state;
 }
-static void PredictProjectile( int index, int hand, uint32_t spawn, int number, const weaponDef_t *definition, const weaponEvent_t &event, const playerState_t *pose ) {
+static void PredictProjectile( int index, int hand, uint32_t spawn, uint32_t epoch, int number, const weaponDef_t *definition, const weaponEvent_t &event, const playerState_t *pose ) {
 	predictedProjectile_t *available = nullptr;
 	for ( auto &record : predictedProjectiles ) {
-		if ( record.used && record.spawn == spawn && record.definition == index && record.hand == hand && record.sequence == event.sequence )
+		if ( record.used && record.spawn == spawn && record.epoch == epoch && record.definition == index && record.hand == hand && record.sequence == event.sequence )
 			return;
 		if ( !record.used && !available )
 			available = &record;
@@ -90,9 +102,10 @@ static void PredictProjectile( int index, int hand, uint32_t spawn, int number, 
 	available->definition = index;
 	available->hand = hand;
 	available->spawn = spawn;
+	available->epoch = epoch;
 	available->sequence = event.sequence;
 	available->command = number;
-	available->clock = event.time;
+	available->clock = available->firedAt = event.time;
 	BG_LaunchWeaponProjectile( definition, &event, pose, &available->state );
 	available->history[0] = available->state;
 	if ( weaponTrace.integer )
@@ -135,6 +148,7 @@ void CG_AddWeaponProjectiles( void ) {
 
 void CG_InitWeapons( void ) {
 	BG_ClearWeapons();
+	weaponEpoch = 0;
 	memset( weaponNotifyHistory, 0, sizeof( weaponNotifyHistory ) );
 	memset( weaponSounds, 0, sizeof( weaponSounds ) );
 	weaponDraws = attachmentDraws = weaponAdsSamples = 0;
@@ -190,6 +204,13 @@ void CG_WeaponSnapshot( const entityState_t *entity ) {
 	uint32_t spawn;
 	if ( !BG_EntityStateToWeapon( entity, &state, &spawn ) || !BG_WeaponDefinition( entity->modelindex ) )
 		CG_Error( "Weapon rejected: snapshot record" );
+	if ( entity->otherEntityNum == cg.clientNum && !CurrentWeaponEpoch( uint32_t( entity->constantLight ) ) )
+		return;
+	if ( entity->otherEntityNum == cg.clientNum )
+		for ( auto &record : predictedProjectiles )
+			if ( record.used && !record.acknowledged && record.hand == entity->otherEntityNum2 && record.definition == entity->modelindex &&
+				 record.spawn == spawn && record.epoch == uint32_t( entity->constantLight ) && int32_t( state.time - record.firedAt ) >= 0 && int32_t( record.sequence - state.sequence ) > 0 )
+				record.expired = true;
 	const auto &previous = weaponPredictionHistory[entity->otherEntityNum2][( state.time / 20 ) % CMD_BACKUP];
 	if ( weaponTrace.integer && entity->otherEntityNum == cg.clientNum && previous.valid && previous.spawn == spawn &&
 		 previous.definition == entity->modelindex && previous.attachments == entity->modelindex2 && previous.state.time == state.time )
@@ -208,6 +229,8 @@ void CG_WeaponAnimationSnapshot( const entityState_t *entity ) {
 	uint32_t spawn;
 	if ( !BG_EntityStateToWeaponAnimation( entity, &state, parameters, &spawn ) || !BG_WeaponAnimation( entity->weapon ) )
 		CG_Error( "Weapon rejected: animation record" );
+	if ( entity->otherEntityNum == cg.clientNum && !CurrentWeaponEpoch( uint32_t( entity->constantLight ) ) )
+		return;
 	const auto &previous = weaponPredictionHistory[entity->otherEntityNum2][( state.lastTime / 20 ) % CMD_BACKUP];
 	if ( weaponTrace.integer && entity->otherEntityNum == cg.clientNum && previous.valid && previous.spawn == spawn &&
 		 previous.definition == entity->weapon && previous.attachments == entity->modelindex && previous.state.time == state.lastTime )
@@ -230,6 +253,8 @@ void CG_PredictWeapons( void ) {
 		const auto &entity = snapshot->entities[e];
 		if ( entity.eType != ET_WEAPON_STATE || entity.otherEntityNum != snapshot->ps.clientNum )
 			continue;
+		if ( !CurrentWeaponEpoch( uint32_t( entity.constantLight ) ) )
+			continue;
 		weaponState_t state;
 		uint32_t spawn;
 		if ( !BG_EntityStateToWeapon( &entity, &state, &spawn ) || spawn != uint32_t( snapshot->ps.persistant[PERS_SPAWN_COUNT] ) )
@@ -246,7 +271,7 @@ void CG_PredictWeapons( void ) {
 			const auto &record = snapshot->entities[a];
 			uint32_t animationSpawn;
 			if ( record.eType == ET_WEAPON_ANIMATION && record.otherEntityNum == entity.otherEntityNum && record.otherEntityNum2 == hand &&
-				 record.weapon == entity.modelindex && record.modelindex == entity.modelindex2 &&
+				 record.weapon == entity.modelindex && record.modelindex == entity.modelindex2 && record.constantLight == entity.constantLight &&
 				 BG_EntityStateToWeaponAnimation( &record, &animation, parameters, &animationSpawn ) && animationSpawn == spawn && animation.lastTime == state.time ) {
 				haveAnimation = true;
 				break;
@@ -254,6 +279,8 @@ void CG_PredictWeapons( void ) {
 		}
 		if ( !haveAnimation )
 			continue; // Wait for a matching pair when the snapshot budget splits auxiliary records.
+		if ( entity.generic1 )
+			Weapon_ForgetNotifiesAfter( &weaponNotifyHistory[snapshot->ps.clientNum][hand], animation.eventSequence );
 
 		// When input history is missing, retain the authoritative state until an acknowledgement catches up.
 		if ( !cg.demoPlayback && !cg_nopredict.integer && !cg_synchronousClients.integer &&
@@ -277,15 +304,20 @@ void CG_PredictWeapons( void ) {
 				for ( int step = 0; step < 50 && int32_t( uint32_t( cmd.serverTime ) - state.time ) >= 20; ++step ) {
 					weaponEvents_t events;
 					animEvents_t notifies;
-					if ( !Weapon_Tick( &definition, BG_WeaponButtons( &cmd, hand, havePose ? &pose.state : &snapshot->ps ), state.time + 20, &state, &events ) ||
+					uint32_t buttons = BG_WeaponButtons( &cmd, hand, havePose ? &pose.state : &snapshot->ps );
+					if ( entity.generic1 ) {
+						buttons &= ~WEAPON_FIRE;
+						state.burstRemaining = 0;
+					}
+					if ( !Weapon_Tick( &definition, buttons, state.time + 20, &state, &events ) ||
 						 !BG_WeaponAnimationStep( BG_WeaponAnimation( entity.modelindex ), &state, &events, &animation, parameters, &notifies ) )
 						CG_Error( "Weapon rejected: predicted animation" );
 					for ( uint32_t i = 0; i < notifies.count; ++i )
-						PlayWeaponNotify( snapshot->ps.clientNum, hand, entity.modelindex, spawn, 0, notifies.items[i], nullptr );
+						PlayWeaponNotify( snapshot->ps.clientNum, hand, entity.modelindex, spawn, uint32_t( entity.constantLight ), notifies.items[i], nullptr );
 					if ( havePose && definition.ballistics == WEAPON_PROJECTILE )
 						for ( uint32_t i = 0; i < events.count; ++i )
 							if ( events.items[i].kind == WEAPON_SHOT )
-								PredictProjectile( entity.modelindex, hand, spawn, number, &definition, events.items[i], &pose.state );
+								PredictProjectile( entity.modelindex, hand, spawn, uint32_t( entity.constantLight ), number, &definition, events.items[i], &pose.state );
 				}
 
 				if ( int32_t( state.time - acknowledgedTime ) > 0 ) {
@@ -346,7 +378,7 @@ bool CG_WeaponProjectile( centity_t *cent ) {
 	if ( state.otherEntityNum == cg.clientNum )
 		for ( auto &record : predictedProjectiles ) {
 			if ( !record.used || record.acknowledged || record.definition != state.modelindex || record.hand != state.otherEntityNum2 ||
-				 record.spawn != uint32_t( state.time ) || record.sequence != uint32_t( state.time2 ) )
+				 record.spawn != uint32_t( state.time ) || record.epoch != uint32_t( state.apos.trTime ) || record.sequence != uint32_t( state.time2 ) )
 				continue;
 			AdvanceProjectile( &record, uint32_t( state.pos.trTime ) );
 			const auto &sample = record.history[( uint32_t( state.pos.trDuration ) / 20 ) % CMD_BACKUP];

@@ -3,6 +3,7 @@
 static struct {
 	bool active;
 	int spawn;
+	uint32_t epoch;
 	weaponState_t inventory[2][WEAPON_MAX_DEFINITIONS];
 	int selected[2];
 	uint32_t attachments[2][WEAPON_MAX_DEFINITIONS];
@@ -34,16 +35,40 @@ void G_InitWeapons( void ) {
 	}
 	if ( COM_Parse( &cursor )[0] )
 		G_Error( "Weapon rejected: definition limit" );
+	if ( !BG_WeaponDefinition( 0 ) )
+		return;
+	if ( level.num_entities > ENTITYNUM_MAX_NORMAL - 4 * level.maxclients - 8 )
+		G_Error( "Weapon rejected: map needs four auxiliary slots per configured client" );
+	for ( int owner = 0; owner < level.maxclients; ++owner ) {
+		auto &actor = weaponActors[owner];
+		gentity_t **records[] = { actor.entity, actor.animationEntity };
+		for ( int kind = 0; kind < 2; ++kind )
+			for ( int hand = 0; hand < 2; ++hand ) {
+				auto *entity = records[kind][hand] = G_Spawn();
+				entity->classname = kind ? "weapon_animation" : "weapon_state";
+				entity->r.svFlags = SVF_SINGLECLIENT;
+				entity->r.singleClient = owner;
+				GameImport_SetEntityReplication( entity->s.number, 3, 0 );
+			}
+	}
+	G_Printf( "Weapon auxiliary pool: clients=%d records=%d\n", level.maxclients, 4 * level.maxclients );
 }
 void G_ClearWeaponActor( int owner ) {
 	auto &actor = weaponActors[owner];
+	if ( actor.active && g_entities[owner].client && g_entities[owner].client->sess.sessionTeam == TEAM_SPECTATOR )
+		G_RemoveWeaponProjectiles( owner );
 	for ( auto *entity : actor.entity )
 		if ( entity )
-			G_FreeEntity( entity );
+			trap_UnlinkEntity( entity );
 	for ( auto *entity : actor.animationEntity )
 		if ( entity )
-			G_FreeEntity( entity );
+			trap_UnlinkEntity( entity );
+	gentity_t *records[4] = { actor.entity[0], actor.entity[1], actor.animationEntity[0], actor.animationEntity[1] };
 	actor = {};
+	for ( int hand = 0; hand < 2; ++hand ) {
+		actor.entity[hand] = records[hand];
+		actor.animationEntity[hand] = records[hand + 2];
+	}
 }
 void G_WeaponAttachmentCommand( int owner ) {
 	if ( owner < 0 || owner >= level.maxclients || !weaponActors[owner].active || !g_entities[owner].client || g_entities[owner].health <= 0 || trap_Argc() != 3 )
@@ -184,6 +209,15 @@ static void WeaponHit( gentity_t *player, const weaponDef_t *definition, const w
 			return;
 	}
 }
+static bool WeaponProjectileAvailable( void ) {
+	if ( level.num_entities >= ENTITYNUM_MAX_NORMAL - 8 )
+		return false;
+	int count = 0;
+	for ( int number = MAX_CLIENTS; number < level.num_entities; ++number )
+		if ( g_entities[number].inuse && g_entities[number].s.eType == ET_MISSILE && g_entities[number].s.generic1 == WEAPON_PROJECTILE_TAG )
+			++count;
+	return count < 64;
+}
 static void SpawnWeaponProjectile( gentity_t *player, int hand, int index, const weaponDef_t *definition, const weaponEvent_t &event ) {
 	gentity_t *entity = G_Spawn();
 	entity->classname = "weapon_projectile";
@@ -194,6 +228,7 @@ static void SpawnWeaponProjectile( gentity_t *player, int hand, int index, const
 	entity->s.otherEntityNum2 = hand;
 	entity->s.time = player->client->ps.persistant[PERS_SPAWN_COUNT];
 	entity->s.time2 = int32_t( event.sequence );
+	entity->s.apos.trTime = int32_t( player->rewindSpawn );
 	entity->s.pos.trType = TR_LINEAR;
 	entity->s.pos.trTime = int32_t( event.time );
 	entity->r.ownerNum = player->s.number;
@@ -265,30 +300,28 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 	const int owner = player->s.number;
 	auto &actor = weaponActors[owner];
 	const auto &ps = player->client->ps;
-	if ( !actor.active || actor.spawn != ps.persistant[PERS_SPAWN_COUNT] ) {
+	const bool reset = !actor.active || actor.spawn != ps.persistant[PERS_SPAWN_COUNT] || actor.epoch != player->rewindSpawn;
+	if ( reset ) {
+		if ( actor.active && actor.epoch != player->rewindSpawn )
+			G_RemoveWeaponProjectiles( owner );
 		G_ClearWeaponActor( owner );
 		actor.active = true;
 		actor.spawn = ps.persistant[PERS_SPAWN_COUNT];
+		actor.epoch = player->rewindSpawn;
 		for ( int hand = 0; hand < 2; ++hand ) {
 			actor.configured[hand] = *BG_WeaponDefinition( 0 );
 			for ( int index = 0; const auto *definition = BG_WeaponDefinition( index ); ++index )
 				Weapon_Reset( definition, uint32_t( owner ) * 69069u + uint32_t( actor.spawn ) * 31u + uint32_t( hand ) + uint32_t( index ) * 997u,
 					uint32_t( commandStart ), &actor.inventory[hand][index] );
-			actor.entity[hand] = G_Spawn();
-			actor.entity[hand]->classname = "weapon_state";
-			actor.entity[hand]->r.svFlags = SVF_SINGLECLIENT;
-			actor.entity[hand]->r.singleClient = owner;
-			GameImport_SetEntityReplication( actor.entity[hand]->s.number, 3, 0 );
+
 			Anim_Reset( BG_WeaponAnimation( 0 ), uint32_t( commandStart ), &actor.animation[hand] );
 			Anim_DefaultParameters( BG_WeaponAnimation( 0 ), actor.parameters[hand] );
-			actor.animationEntity[hand] = G_Spawn();
-			actor.animationEntity[hand]->classname = "weapon_animation";
-			actor.animationEntity[hand]->r.svFlags = SVF_SINGLECLIENT;
-			actor.animationEntity[hand]->r.singleClient = owner;
-			GameImport_SetEntityReplication( actor.animationEntity[hand]->s.number, 3, 0 );
 		}
 	}
 	trap_Cvar_Update( &weaponTrace );
+	if ( weaponTrace.integer && reset )
+		G_Printf( "Weapon actor: owner=%d spawn=%d epoch=%u state=%d,%d animation=%d,%d\n", owner, actor.spawn, actor.epoch,
+			actor.entity[0]->s.number, actor.entity[1]->s.number, actor.animationEntity[0]->s.number, actor.animationEntity[1]->s.number );
 	for ( int hand = 0; hand < 2; ++hand ) {
 		int &selected = actor.selected[hand];
 		const auto *definition = &actor.configured[hand];
@@ -326,7 +359,12 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 		for ( int step = 0; step < 50 && int32_t( uint32_t( cmd->serverTime ) - state.time ) >= 20; ++step ) {
 			weaponEvents_t events;
 			animEvents_t notifies;
-			if ( !Weapon_Tick( definition, buttons, state.time + 20, &state, &events ) ||
+			uint32_t tickButtons = buttons;
+			if ( definition->ballistics == WEAPON_PROJECTILE && !WeaponProjectileAvailable() ) {
+				tickButtons &= ~WEAPON_FIRE;
+				state.burstRemaining = 0;
+			}
+			if ( !Weapon_Tick( definition, tickButtons, state.time + 20, &state, &events ) ||
 				 !BG_WeaponAnimationStep( BG_WeaponAnimation( selected ), &state, &events, &actor.animation[hand], actor.parameters[hand], &notifies ) )
 				G_Error( "Weapon rejected: command animation" );
 			for ( uint32_t i = 0; i < notifies.count; ++i )
@@ -345,6 +383,7 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 		if ( !BG_WeaponAnimationToEntityState( &actor.animation[hand], actor.parameters[hand], uint32_t( actor.spawn ), owner, hand, selected,
 				 actor.attachments[hand][selected], ps.origin, ps.viewangles, &animationEntity->s ) )
 			G_Error( "Weapon rejected: animation snapshot" );
+		animationEntity->s.constantLight = int32_t( actor.epoch );
 		VectorCopy( ps.origin, animationEntity->r.currentOrigin );
 		trap_LinkEntity( animationEntity );
 		if ( weaponTrace.integer )
@@ -354,6 +393,8 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 		auto *entity = actor.entity[hand];
 		if ( !BG_WeaponToEntityState( &state, uint32_t( actor.spawn ), owner, hand, selected, actor.attachments[hand][selected], ps.origin, &entity->s ) )
 			G_Error( "Weapon rejected: snapshot" );
+		entity->s.constantLight = int32_t( actor.epoch );
+		entity->s.generic1 = definition->ballistics == WEAPON_PROJECTILE && !WeaponProjectileAvailable() ? 1 : 0;
 		VectorCopy( ps.origin, entity->r.currentOrigin );
 		trap_LinkEntity( entity );
 		if ( weaponTrace.integer )

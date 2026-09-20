@@ -876,7 +876,9 @@ and graph-notify checks under UBSan. Select the other supported compiler with
 weapon and animation prediction, data-only selection, attachments, grenade
 prediction, rendered ADS and exactly-once notify audio. It saves an ADS capture
 for review and uses SDL dummy audio to verify dispatch and decoded resident
-samples. `python3 tests/weapon_range.py --binary PATH` drives the actual ImGui
+samples. Add `--lifecycle` for spectator/rejoin record reuse, connection-generation
+audio, and the 64-projectile capacity/ammo/prediction check.
+`python3 tests/weapon_range.py --binary PATH` drives the actual ImGui
 range controls with X11 input and saves a panel capture. Both require a development
 client, Xvfb/lavapipe and installed content; hosted content uses
 `--content openarena --data /tmp/aftershock-openarena-baseoa`. Local Q3 uses

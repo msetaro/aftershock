@@ -94,6 +94,11 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
         assert loaded and max(int(row[0]) for row in loaded) == 64, loaded[-8:]
         assert all(int(sequence) + int(magazine) == 128 for sequence, magazine in loaded), 'capacity pause spent ammo'
         assert len([row for row in loaded if row == ('64', '64')]) >= 10, 'capacity did not hold steady'
+        settled = re.findall(r'Weapon prediction: hand=0 tick=\d+ equal=(\d)', capacity)
+        assert len(settled) >= 20 and set(settled[-10:]) == {'1'}, 'capacity acknowledgement did not reconcile prediction'
+        after_join = rejoined.split('weapon_capacity_begin')[0]
+        audible_pattern = r'Weapon %s: owner=0 hand=0 definition=(\d+) spawn=(\d+) sequence=(\d+) name=shot time=(\d+)'
+        assert re.findall(audible_pattern % 'notify server', after_join) == re.findall(audible_pattern % 'sound', after_join), 'new connection generation muted a shot' 
         assert not any(error in complete for error in ('ERROR:', 'Signal caught', 'Weapon rejected'))
     assert 'Weapon server definition: index=0 name=range_rifle' in text, log
     assert 'Weapon client definition: index=0 name=range_rifle' in text, log

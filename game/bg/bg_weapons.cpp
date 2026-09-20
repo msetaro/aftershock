@@ -139,7 +139,7 @@ bool BG_WeaponToEntityState( const weaponState_t *state, uint32_t spawn, int own
 bool BG_EntityStateToWeapon( const entityState_t *entity, weaponState_t *state, uint32_t *spawn ) {
 	if ( entity->eType != ET_WEAPON_STATE || entity->clientNum != 1 || entity->otherEntityNum < 0 || entity->otherEntityNum >= MAX_CLIENTS ||
 		 entity->otherEntityNum2 < 0 || entity->otherEntityNum2 > 1 || entity->modelindex < 0 || entity->modelindex >= int( WEAPON_MAX_DEFINITIONS ) ||
-		 entity->modelindex2 < 0 || entity->modelindex2 > 255 )
+		 entity->modelindex2 < 0 || entity->modelindex2 > 255 || entity->generic1 < 0 || entity->generic1 > 1 )
 		return false;
 	for ( int axis = 0; axis < 3; ++axis )
 		if ( !isfinite( entity->origin[axis] ) )
