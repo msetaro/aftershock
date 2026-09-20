@@ -280,6 +280,8 @@ modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
 `python3 tests/devtools.py` builds both variants, verifies symbols, then uses real
 XTest input on a private Xvfb display to select/edit a cvar. It verifies 80 idle
 frames without further ImGui allocations, bounded arena use and video restart.
+It also holds a real game-bound key while reopening the overlay and checks that
+the release command runs before input capture resumes.
 It also opens each current inspector and captures its output.
 `python3 tests/devtools_data.py` checks real registry copies and allocator accounting
 without a GPU. The UI test requires libX11, libXtst (`libxtst6` in hosted CI), xwininfo/xprop (`x11-utils`),

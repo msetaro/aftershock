@@ -6,6 +6,7 @@
 
 static cvar_t *enabled;
 static ImGuiContext *context;
+static bool inputCaptured;
 static uint32_t fontTexture, lastTime;
 static float mouseX = 320, mouseY = 240;
 static int screenWidth = 640, screenHeight = 480;
@@ -58,6 +59,7 @@ void DevTools_Init( void ) {
 }
 
 void DevTools_Reset( void ) {
+	inputCaptured = false;
 	DevTools_ClearWorld();
 	DevTools_SetView( nullptr );
 	if ( context )
@@ -72,7 +74,7 @@ void DevTools_Reset( void ) {
 }
 
 static bool Visible( void ) {
-	return enabled && enabled->integer && context;
+	return inputCaptured && enabled && enabled->integer && context;
 }
 
 bool DevTools_Key( int key, bool down ) {
@@ -80,6 +82,7 @@ bool DevTools_Key( int key, bool down ) {
 		return false;
 	if ( key == K_ESCAPE && down ) {
 		Cvar_Set( "dev_tools", "0" );
+		inputCaptured = false;
 		Key_ClearStates();
 		return true;
 	}
@@ -657,12 +660,26 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 }
 
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds ) {
-	if ( !enabled || !enabled->integer || width <= 0 || height <= 0 )
+	if ( !enabled || !enabled->integer || width <= 0 || height <= 0 ) {
+		inputCaptured = false;
 		return;
+	}
+	if ( !inputCaptured ) {
+		// Release game bindings before interception, including retained-context reopen.
+		Key_ClearStates();
+		if ( context ) {
+			ImGuiIO &io = ImGui::GetIO();
+			io.ClearEventsQueue();
+			io.ClearInputKeys();
+			io.ClearInputMouse();
+			io.AddMousePosEvent( mouseX, mouseY );
+		}
+		lastTime = 0;
+		inputCaptured = true;
+	}
 	screenWidth = width;
 	screenHeight = height;
 	if ( !context ) {
-		Key_ClearStates();
 		Z_InitDevMemory();
 		ImGui::SetAllocatorFunctions( Allocate, Free );
 		context = ImGui::CreateContext();

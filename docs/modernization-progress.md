@@ -29,9 +29,15 @@ game keys, so reopening a retained context leaves a held game binding pressed.
 The real-input test now holds F8, reopens through F9, and queries its release cvar
 through the overlay console. It fails as expected on f895997d's binary with
 "reopening the overlay left the game key pressed" (devtools-reopen-before3.log).
-This test-first commit changes no engine code. Fix the capture transition inside
-the new overlay, rerun static/module UI checks and policies, then require fresh
-exact-head build/regression and merged-tree gates before #142. No merge yet.
+Test-first 1899ff9d changes no engine code. The working fix tracks input capture
+separately from context ownership, releases game bindings before interception on
+every open, clears stale vendor input, and restores the pointer position. Both
+static/module real-input checks pass the fix (devtools-reopen-{fixed,module}.log).
+Format/type/boundary and changed-UI lifetime checks pass; tidy passes all 1,162
+configurations. Final static/module runs including pointer restoration pass
+(devtools-reopen-{final,module-final}.log); shipping SHA stays 427e37be.
+Entity save review is now checking the angle/angles alias before the next hosted
+candidate. Keep PR #143 draft; require merged-tree regression before #142.
 Preserve accepted goldens.
 
 Then complete #7, render-graph phase two #142, and the remaining #25 sequence.
@@ -112,7 +118,9 @@ Profiling e24faa49 passed build/regression 35493250065/35493250038; animation
 245397aa passed 35493639523/35493639540. Entity 9aca1c9f passed regression
 35494279424 but failed build 35494279398 on floating from_chars; fixed above.
 The latest test symbol assertion also now recognizes the drawing API's C linkage.
-No existing engine bug fix was included in #7. Self-review: every change supports
+The retained-context input transition also has a failing-then-passing real-input
+check (1899ff9d and devtools-reopen-before3.log). This corrects the new overlay,
+not a pre-existing engine behavior. No existing engine bug fix was included in #7. Self-review: every change supports
 #7; no new OS calls outside platform/filesystem ownership; no non-trivial core
 lifetimes; no new shipping/per-frame game allocation or simulation arithmetic;
 existing wire/file layouts remain asserted; new UI records have layout/copy

@@ -153,4 +153,4 @@ assert len(profiles) == 5 and all(all(int(value) > 0 for value in row) for row i
 animation = [tuple(map(int, row)) for row in re.findall(r'Developer animation: model=(\d+) frame=(\d+) previews=(\d+)', text)]
 assert len(animation) == 5 and animation[-1][0] > 0
 assert animation[-1][1] != animation[-2][1] and animation[-1][2] > animation[-2][2] > 0
-print('PASS: animated model preview, real mouse/key cvar edit, bounded UI memory, allocation-free idle frames and renderer restart')
+print('PASS: real cvar/console input, held-key release on reopen, animation, bounded UI memory, allocation-free idle frames and renderer restart')
