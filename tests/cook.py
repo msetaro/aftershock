@@ -3,6 +3,8 @@
 import argparse
 import copy
 import hashlib
+import io
+import wave
 import json
 import os
 from pathlib import Path
@@ -86,6 +88,13 @@ def source_assets(directory):
     Image.new('RGBA', (16, 16), (128, 96, 255, 255)).save(directory / 'color.png')
     assets = [{'name': 'models/' + name, 'kind': 'model', 'source': source, 'scale': 1, 'fps': 2}
               for name, source in [('rig', 'rig.gltf'), ('packed', 'rig.glb'), ('static', 'static.gltf'), ('mirrored', 'mirrored.gltf')]]
+    fixture = ROOT / 'tests/assets/cook-audio'
+    provenance = json.loads((fixture / 'provenance.json').read_text())
+    for filename, expected in provenance['files'].items():
+        assert hashlib.sha256((fixture / filename).read_bytes()).hexdigest() == expected
+    for extension in ('wav', 'ogg'):
+        (directory / ('tone.' + extension)).write_bytes((fixture / ('tone.' + extension)).read_bytes())
+        assets.append({'name': 'sounds/' + extension, 'kind': 'audio', 'source': 'tone.' + extension})
     assets += [{'name': 'textures/' + fmt, 'kind': 'texture', 'source': 'color.png',
                 'format': fmt, 'srgb': fmt == 'bc7'} for fmt in ('bc7', 'bc5', 'bc4')]
     project = directory / 'assets.json'
@@ -144,6 +153,18 @@ def check_model(path, animated, mirrored=False):
         assert names == ['idle', 'wave']
 
 
+def check_audio(path):
+    data = path.read_bytes()
+    with wave.open(io.BytesIO(data)) as sound:
+        assert (sound.getnchannels(), sound.getsampwidth(), sound.getframerate(), sound.getnframes()) == (1, 2, 22050, 1102)
+        samples = struct.unpack('<1102h', sound.readframes(1102))
+        assert max(samples) > 7000 and min(samples) < -7000
+    assert data[36:40] == b'ASCK' and struct.unpack_from('<II', data, 40) == (68, 1)
+    copy = bytearray(data)
+    copy[80:112] = bytes(32)
+    assert hashlib.sha256(copy).digest() == data[80:112]
+
+
 def check_texture(path, vk_format, block_bytes):
     data = path.read_bytes()
     assert data[:12] == b'\xabKTX 20\xbb\r\n\x1a\n'
@@ -187,6 +208,8 @@ def main():
         output = home / 'cooked'
         result = cook(project, output)
         assert sorted(result['built']) == sorted(names) and result['skipped'] == []
+        for extension in ('wav', 'ogg'):
+            check_audio(output / ('sounds/' + extension + '.wav'))
         index = (output / 'cook.index').read_bytes()
         assert (output / 'cook.revision').read_bytes() == hashlib.sha256(index).digest()
         magic, version, size, hashed = struct.unpack_from('<8sII32s', index)

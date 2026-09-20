@@ -2977,3 +2977,9 @@ Hosted regression 35503477810 at old head 76287e8c passed the other required
 legs but the lifetime checker was terminated (exit 143), with no source diagnostic.
 A fresh complete run is required; this is not an accepted gate. Continue #9 with
 remaining audio/shader source kinds and the complete final acceptance checks.
+
+Audio source feature test added before implementation. New owned 50 ms WAV/OGG
+tones were authored once with libsndfile 1.2.2 (source/provenance committed); CI
+reads these bytes. Test expects normalized PCM16 WAV with a versioned ASCK chunk,
+source/content hashes and unchanged 22,050 Hz / 1,102 frames. The existing native
+WAV path can consume this RIFF container without another runtime audio format.
