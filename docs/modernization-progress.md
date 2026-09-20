@@ -144,6 +144,12 @@ The explicit shot-time rewind check fails on missing G_TraceHitscanAtTime
 the newest usercmd stays at 1000 ms, requiring different hit decisions without
 mutating live actor or command state. Keep legacy G_TraceHitscan as a wrapper.
 
+Explicit-time rewind passes GCC/Clang UBSan while keeping the legacy wrapper
+behavior and history checks unchanged (weapons-rewind-gcc.log/-clang.log).
+The live damage extension now fails with no damage events against a successfully
+created moving range target (weapons-damage-before.log). Implement actual
+hitscan/melee damage through that trace before adding penetration/projectiles.
+
 
 ## #12 implemented feature evidence
 

@@ -29,12 +29,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     for pak in paks:
         (base / pak.name).symlink_to(pak)
     cook(ROOT / 'tests/assets/weapons/assets.json', base)
+    cook(ROOT / 'tests/assets/animation/rigs.json', base)
     (base / 'weapons.cfg').write_text('\n'.join([
         'set g_weapons weapons/range_rifle.asweapon',
         'set g_weaponTrace 1', 'set cg_weaponTrace 1',
-        'set fixedtime 20', 'set sv_fps 50',
+        'set fixedtime 20', 'set sv_fps 50', 'set g_rewind 1', 'set g_rewindTrace 1',
         f'devmap {content_maps(args.content)[0]}', 'wait 60',
-        '+attack', 'wait 30', '-attack', '+button12', 'wait 15',
+        'rewind_target 0', 'wait 2', '+attack', 'wait 120', '-attack', '+button12', 'wait 15',
         '+button13', 'wait 2', '-button13', 'wait 65', '-button12',
         '+button14', 'wait 30', '-button14', 'wait 10', 'quit']) + '\n')
     log = args.output / 'client.log'
@@ -57,6 +58,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     assert any(int(row[0]) >= 5 for row in server.values()), 'did not fire the data weapon'
     assert any(row[-1] == '65536' for row in server.values()), 'ADS did not complete'
     assert all(f'Weapon event: owner=0 hand=0 kind={kind}' in text for kind in (0, 2, 3)), 'shot/reload/melee missing'
+    hits = re.findall(r'Weapon damage: owner=0 target=\d+ tick=\d+ damage=(\d+)', text)
+    assert hits and all(int(value) == 40 for value in hits), hits
+    assert 'Rewind trace: shooter=0 ' in text, 'data hitscan did not use rewind'
     predictions = re.findall(r'Weapon prediction: hand=0 tick=\d+ equal=(\d)', text)
     assert len(predictions) >= 50 and set(predictions) == {'1'}, (len(predictions), predictions)
     assert not any(error in text for error in ('ERROR:', 'Signal caught', 'Weapon rejected'))

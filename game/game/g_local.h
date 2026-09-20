@@ -984,6 +984,7 @@ qboolean G_AnimationCommand( int owner );
 
 void G_InitRewind( int restart );
 void G_RecordRewind( void );
+void G_TraceHitscanAtTime( trace_t *trace, const vec3_t start, const vec3_t end, int pass, const gentity_t *shooter, uint32_t time );
 void G_TraceHitscan( trace_t *trace, const vec3_t start, const vec3_t end, int pass, const gentity_t *shooter );
 #ifdef __cplusplus
 const animBox_t *G_AnimationHitBoxes( int owner, uint32_t *count );
