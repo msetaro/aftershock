@@ -57,9 +57,9 @@ def main():
                 shutil.copyfile(path,target)
             (stage/'maps').mkdir()
             (stage/'scripts').mkdir()
-            (stage/'scripts/level.shader').write_text(shaders(level))
-            (stage/'scripts/shaderlist.txt').write_text('level\n')
-            (stage/map_path).write_text(generate(level))
+            (stage/'scripts/level.shader').write_bytes(shaders(level).encode())
+            (stage/'scripts/shaderlist.txt').write_bytes(b'level\n')
+            (stage/map_path).write_bytes(generate(level).encode())
             if not args.map_only:
                 try:
                     compile_map(stage,level['name'])

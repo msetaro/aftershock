@@ -60,6 +60,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-level-') as temporary:
     a = compile_level(source, folder / 'a')
     b = compile_level(source, folder / 'b')
     assert a == b, 'MAP output depends on the output directory or run'
+    if not args.record_fixtures:
+        compare('levels/two_lane.map', a['map'], False)
     text = a['map'].decode()
     for classname in ('worldspawn', 'info_player_deathmatch', 'team_CTF_redplayer',
                       'team_CTF_blueplayer', 'func_door', 'misc_model', 'weapon_shotgun', 'light'):
@@ -135,6 +137,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-level-') as temporary:
         if args.record_fixtures:
             (ROOT / 'tests/golden/levels').mkdir(parents=True, exist_ok=True)
         for kind, data in a.items():
+            if not args.record_fixtures and kind != 'map':
+                expected = (ROOT / 'tests/golden/levels' / ('two_lane.' + kind)).read_bytes()
+                assert data == expected, f'{kind} fixture differs: expected {hashlib.sha256(expected).hexdigest()}, got {hashlib.sha256(data).hexdigest()}'
             compare('levels/two_lane.' + kind, data, args.record_fixtures)
         print('PASS: repeated MAP/BSP/AAS bytes match the reviewed level fixtures')
 print('PASS: owned two-lane level, deterministic MAP, clearances, connectivity, assets and design-rule controls')

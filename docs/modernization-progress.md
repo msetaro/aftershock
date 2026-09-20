@@ -44,6 +44,23 @@ wall, and world bounds before brush generation. Next: finish self-review and ope
 #26 PR after #151 integration.
 No engine edits or accepted golden changes. Continue #26 -> #27 -> #28 then #25.
 
+## #26 self-review
+
+Scope is the issue's declarative authoring/compiler and owned sample, with no
+engine edits, runtime allocation/OS ownership, ABI/layout or simulation arithmetic
+changes. Standard Python handles MAP-only generation and validation; the sole
+extraction dependency is libarchive-c for a SHA256-pinned external map tool release.
+Inputs are bounded, paths constrained to project assets, errors produce nonzero
+status and no success JSON. Private staging excludes installed content and publishes
+maps only after compilation succeeds. Output text has explicit LF bytes on every OS.
+Both lanes have actual isolated-route bot acceptance in Q3 and OA, alongside rendered
+three-room inspection. Whole-layout sightline and straight-line cover-distance bounds
+are explicitly conservative, not claimed as precise visibility/path metrics. #27's
+viewpoint/report features remain separate. Only new owned #26 fixtures were authored;
+all accepted engine/gameplay/demo goldens are unchanged. Clean-cache extraction,
+repeated MAP/BSP/AAS comparison, language/design controls and owned C/C++ formatting
+pass locally. Exact-head full hosted gates and merged-tree regression remain required.
+
 #11 PR #150 merged with a merge commit as
 94a70b91f35acfa0636a7db473609b3aafde76e5. Its tree
 d56b17d609a91ea9e84a6edfac10a7527a9c766c equals the tested 2caaa163 tree.
