@@ -275,18 +275,23 @@ typedef struct {
 	char hostName[MAX_NAME_LENGTH];
 	char mapName[MAX_NAME_LENGTH];
 	char game[MAX_NAME_LENGTH];
-	int netType;
-	int gameType;
-	int clients;
-	int maxClients;
-	int minPing;
-	int maxPing;
-	int ping;
+	int32_t netType;
+	int32_t gameType;
+	int32_t clients;
+	int32_t maxClients;
+	int32_t minPing;
+	int32_t maxPing;
+	int32_t ping;
 	qboolean visible;
-	int punkbuster;
-	int g_humanplayers;
-	int g_needpass;
+	int32_t punkbuster;
+	int32_t g_humanplayers;
+	int32_t g_needpass;
 } serverInfo_t;
+// Keep the stored visibility enum and its existing aliasing rules.
+static_assert( sizeof( qboolean ) == sizeof( uint32_t ) );
+static_assert( sizeof( serverInfo_t ) == sizeof( netadr_t ) + 140 && alignof( serverInfo_t ) == 4 &&
+			   std::is_trivially_copyable_v<serverInfo_t> && std::is_standard_layout_v<serverInfo_t> );
+
 
 typedef struct {
 	connstate_t state; // connection status

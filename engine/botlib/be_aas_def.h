@@ -123,19 +123,23 @@ typedef struct aas_settings_s {
 
 //routing cache
 typedef struct aas_routingcache_s {
-	byte type; //portal or area cache
+	uint8_t type; //portal or area cache
 	float time; //last time accessed or updated
-	int size; //size of the routing cache
-	int cluster; //cluster the cache is for
-	int areanum; //area the cache is created for
+	int32_t size; //size of the routing cache
+	int32_t cluster; //cluster the cache is for
+	int32_t areanum; //area the cache is created for
 	vec3_t origin; //origin within the area
 	float starttraveltime; //travel time to start with
-	int travelflags; //combinations of the travel flags
+	int32_t travelflags; //combinations of the travel flags
 	struct aas_routingcache_s *prev, *next;
 	struct aas_routingcache_s *time_prev, *time_next;
-	unsigned char *reachabilities; //reachabilities used for routing
-	unsigned short int traveltimes[1]; //travel time for every area (variable sized)
+	uint8_t *reachabilities; //reachabilities used for routing
+	uint16_t traveltimes[1]; //travel time for every area (variable sized)
 } aas_routingcache_t;
+static_assert( sizeof( aas_routingcache_t ) == 88 && alignof( aas_routingcache_t ) == 8 &&
+			   std::is_trivially_copyable_v<aas_routingcache_t> && std::is_standard_layout_v<aas_routingcache_t> );
+static_assert( offsetof( aas_routingcache_t, traveltimes ) == 80 );
+
 
 //fields for the routing algorithm
 typedef struct aas_routingupdate_s {

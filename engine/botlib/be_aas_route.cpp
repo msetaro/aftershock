@@ -879,15 +879,18 @@ void AAS_CreateAllRoutingCache( void ) {
 //this header is followed by numportalcache + numareacache aas_routingcache_t
 //structures that store routing cache
 typedef struct routecacheheader_s {
-	int ident;
-	int version;
-	int numareas;
-	int numclusters;
-	int areacrc;
-	int clustercrc;
-	int numportalcache;
-	int numareacache;
+	int32_t ident;
+	int32_t version;
+	int32_t numareas;
+	int32_t numclusters;
+	int32_t areacrc;
+	int32_t clustercrc;
+	int32_t numportalcache;
+	int32_t numareacache;
 } routecacheheader_t;
+static_assert( sizeof( routecacheheader_t ) == 32 && alignof( routecacheheader_t ) == 4 &&
+			   std::is_trivially_copyable_v<routecacheheader_t> && std::is_standard_layout_v<routecacheheader_t> );
+
 
 #define RCID						(('C'<<24)+('R'<<16)+('E'<<8)+'M')
 #define RCVERSION					2
