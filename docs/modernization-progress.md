@@ -16,16 +16,31 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
-Complete #11 compatibility/full gates and committed self-review, then mark PR #150
-ready and merge after exact-head build/regression passes. Both lossy-network content
-sets and new fixed replays pass locally (992 full authoritative state hashes each).
-New fixtures were recorded once at 6dbe2a93; accepted older fixtures are unchanged.
-CI wiring is present. Hosted prior-head MSVC/C-header failures are being corrected;
-current native ABI/shared-math checks are next. Re-run the new fixtures through the
-updated static/module builds, review captures and push the fixtures/corrections.
-After merge, require merged-tree regression, update #11/#25, then continue #26/#27/#28.
-#12 integration regression 35523091952 passed. Preserve accepted fixtures.
+Current branch: `issue/151-loopback-deadline`, a test-only follow-up to #11.
+Implement the failing cleanup check and a software-rendering scenario budget;
+prove the existing full correctness assertions at a capped low client FPS. Then
+run full gates/self-review, merge #151's PR and require merged-tree regression.
+Do not close/check #11 until integration is green. No engine changes are needed.
+
+#11 PR #150 merged as 94a70b91f35acfa0636a7db473609b3aafde76e5. Its tree
+matches tested head 2caaa163 (d56b17d609a91ea9e84a6edfac10a7527a9c766c).
+Exact-head build 35533785865 and regression 35533785920 passed. Merged-tree
+regression 35534705876 failed in the weapon harness deadline, not in a gameplay
+assertion: 1147/1147 full weapon and animation comparisons matched; the renderer
+had not completed the frame-paced script before the fixed 45-second timeout.
+Graceful shutdown then exceeded five seconds and skipped remaining cleanup.
+Artifacts/logs: /tmp/aftershock-weapons-integration-artifacts and
+~/.cache/aftershock-modernization/weapons-integration-runtime.log.
+Issue #151 records the test-only follow-up; tests/netcode_cleanup.py first fails
+on the missing stop_client helper (netcode-cleanup-before.log).
+
+#26 work is saved separately on local `issue/26-level-authoring`, head 3272282f:
+versioned JSON contract, owned three-room/two-lane sample and provenance, failing
+MAP/design-rule and BSP/AAS fixture tests. No compiler implementation exists yet.
+After #151 integration, merge modernization forward into that branch and resume.
+Its earlier checkpoint records user-cache q3map2/MBSPC preparation and deterministic
+padding normalization; scratch notes are in /tmp/aftershock-level-next.md.
+All changes and PRs remain in msetaro/aftershock.
 
 #12 PR #149 merged with a merge commit as
 3bb048375ccb3b7497ffd536eba37fc5cf1dbe8a. Its tree

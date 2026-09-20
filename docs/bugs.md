@@ -13,6 +13,21 @@ defects below are fixed in #99/#100; native dispatch and team-leader fixes are
 recorded in their later entries. `tests/known-bugs.txt` has no active entries and
 `tools/port/ubsan.supp` is empty.
 
+## Weapon loopback wall deadline and cleanup (#151)
+
+#11 merged-tree runtime 35534705876 failed in the test harness on a slower software
+renderer. Frame-counted input outlasted the fixed 45-second wall deadline despite
+1147/1147 matching weapon/animation acknowledgements, both switches and a completed
+grenade. The subsequent five-second graceful shutdown timeout masked the scenario
+failure and skipped proxy/server cleanup until the outer limit. This is test
+infrastructure; no engine defect, accepted-golden change or sanitizer entry is involved.
+
+Existing failure: runtime job 106141530168 and its runtime-diagnostics artifact.
+A lower-FPS real-client control and `tests/netcode_cleanup.py` cover progress and
+bounded teardown. The latter currently fails on the absent stop_client helper
+(netcode-cleanup-before.log). Fix/acceptance is tracked in
+https://github.com/msetaro/aftershock/issues/151 .
+
 | Defect | Fork fix | Upstream |
 |---|---|---|
 | Huffman packed read | [#36](https://github.com/msetaro/aftershock/pull/36) | [#424](https://github.com/ec-/Quake3e/pull/424) |
