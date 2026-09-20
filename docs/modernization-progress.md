@@ -127,6 +127,12 @@ projectiles are still outstanding. Prediction replays queued inputs but needs
 live acknowledgement comparison evidence and presentation consumers. Next: add
 that evidence, then integrate rewind damage and remaining #11 gameplay.
 
+Live prediction evidence is now required by a failing assertion: no comparison
+with later acknowledgements exists yet (weapons-prediction-before.log, 0 samples).
+Add a bounded history of actually advanced predicted states and compare all 56
+bytes when their authoritative ticks arrive; never count copied baseline states.
+Issue update: https://github.com/msetaro/aftershock/issues/11#issuecomment-5751395434
+
 
 ## #12 implemented feature evidence
 

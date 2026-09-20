@@ -57,5 +57,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     assert any(int(row[0]) >= 5 for row in server.values()), 'did not fire the data weapon'
     assert any(row[-1] == '65536' for row in server.values()), 'ADS did not complete'
     assert all(f'Weapon event: owner=0 hand=0 kind={kind}' in text for kind in (0, 2, 3)), 'shot/reload/melee missing'
+    predictions = re.findall(r'Weapon prediction: hand=0 tick=\d+ equal=(\d)', text)
+    assert len(predictions) >= 50 and set(predictions) == {'1'}, (len(predictions), predictions)
     assert not any(error in text for error in ('ERROR:', 'Signal caught', 'Weapon rejected'))
 print('PASS: cooked weapon selection, firing/reload/ADS/melee and authoritative client state')
