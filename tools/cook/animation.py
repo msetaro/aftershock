@@ -70,8 +70,8 @@ def cook(path, asset_name, options, read, assets):
     def label(offset):
         return text[offset:text.index(0, offset)].decode()
 
-    sections = [[] for _ in range(9)]
-    joints, clips, channel = {}, {}, 0
+    sections = [[] for _ in range(11)]
+    joints, parents, clips, channel = {}, [], {}, 0
     for i in range(h[13]):
         joint = struct.unpack_from('<Ii10f', iqm, h[14] + i * 48)
         pose = struct.unpack_from('<iI20f', iqm, h[16] + i * 88)
@@ -79,6 +79,7 @@ def cook(path, asset_name, options, read, assets):
         if key in joints:
             raise ValueError('animation joint names must be unique')
         joints[key] = i
+        parents.append(joint[1])
         sections[0].append(struct.pack('<64siI10f', name(key), joint[1], channel, *joint[2:]))
         sections[1].append(struct.pack('<I20f', *pose[1:]))
         channel += pose[1].bit_count()
@@ -99,6 +100,47 @@ def cook(path, asset_name, options, read, assets):
         if not lo <= default <= hi:
             raise ValueError('animation parameter default is outside its range')
         sections[4].append(struct.pack('<64s3f', name(parameter['name']), default, lo, hi))
+    masks = graph.get('masks', [])
+    mask_ids = named(masks, 16)
+    for mask in masks:
+        weights = [0.0] * 128
+        root = joints[mask['root']] if 'root' in mask else -1
+        for joint, index in joints.items():
+            ancestor = index
+            while ancestor >= 0 and ancestor != root:
+                ancestor = parents[ancestor]
+            weights[index] = 1.0 if root >= 0 and ancestor == root else 0.0
+        for joint, value in mask.get('weights', {}).items():
+            value = number(value)
+            if not 0 <= value <= 1:
+                raise ValueError('bone mask weights must be in [0,1]')
+            weights[joints[joint]] = value
+        sections[10].append(struct.pack('<64s128f', name(mask['name']), *weights))
+    nodes = graph.get('nodes', [])
+    node_ids = named(nodes, 64)
+    for index, node in enumerate(nodes):
+        kinds = [key for key in ('clip', 'blend', 'additive') if key in node]
+        if len(kinds) != 1:
+            raise ValueError('each animation node requires exactly one clip/blend/additive operation')
+        kind = ('clip', 'blend', 'additive').index(kinds[0])
+        a, b, reference = 0, 0, 0
+        if kind == 0:
+            a = clips[node['clip']]
+        else:
+            children = node[kinds[0]]
+            if len(children) != 2:
+                raise ValueError('blend and additive nodes require two children')
+            a, b = [node_ids[child] for child in children]
+            reference = node_ids[node['reference']] if kind == 2 else 0
+            if max(a, b, reference) >= index:
+                raise ValueError('animation nodes must follow their child/reference nodes')
+        weight = number(node.get('weight', 1))
+        if not 0 <= weight <= 1:
+            raise ValueError('animation node weights must be in [0,1]')
+        parameter = parameter_ids[node['parameter']] if 'parameter' in node else 0xffffffff
+        mask = mask_ids[node['mask']] if 'mask' in node else 0xffffffff
+        sections[9].append(struct.pack('<64s7If', name(node['name']), kind, a, b, reference,
+                                       parameter, mask, int(bool(node.get('loop', False))), weight))
     states = graph['states']
     state_ids = named(states, 64)
     if not states:
@@ -116,8 +158,14 @@ def cook(path, asset_name, options, read, assets):
         speed = number(state.get('speed', 1))
         if not 1 / 65536 <= speed <= 16:
             raise ValueError('animation state speed must be in [1/65536,16]')
-        sections[5].append(struct.pack('<64s5I', name(state['name']), clip, int(bool(state.get('loop', False))),
-                                       round(speed * 65536), first_event, len(sections[8]) - first_event))
+        if 'node' in state:
+            node = node_ids[state['node']]
+        else:
+            node = len(sections[9])
+            sections[9].append(struct.pack('<64s7If', name(state['name']), 0, clip, 0, 0, 0xffffffff,
+                                           0xffffffff, int(bool(state.get('loop', False))), 1))
+        sections[5].append(struct.pack('<64s6I', name(state['name']), clip, int(bool(state.get('loop', False))),
+                                       round(speed * 65536), first_event, len(sections[8]) - first_event, node))
     operations = {'==': 0, '!=': 1, '<': 2, '<=': 3, '>': 4, '>=': 5}
     for transition in graph.get('transitions', []):
         first = len(sections[7])
@@ -126,7 +174,9 @@ def cook(path, asset_name, options, read, assets):
         sections[6].append(struct.pack('<6I', 0xffffffff if transition['from'] == '*' else state_ids[transition['from']],
                                        state_ids[transition['to']], integer(transition.get('blend_ms', 0), 0, 60000),
                                        first, len(sections[7]) - first, int(bool(transition.get('on_end', False)))))
-    payload = bytearray(180)
+    if len(sections[9]) > 64:
+        raise ValueError('animation graph exceeds 64 nodes including implicit state clips')
+    payload = bytearray(196)
     struct.pack_into('<64s32s3I', payload, 0, name(model_path), hashlib.sha256(iqm).digest(), h[19], h[20], state_ids[graph['initial_state']])
     for i, rows in enumerate(sections):
         payload.extend(bytes(-len(payload) % 4))

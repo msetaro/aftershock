@@ -9,6 +9,8 @@ constexpr uint32_t ANIM_MAX_JOINTS = 128;
 constexpr uint32_t ANIM_MAX_PARAMETERS = 16;
 constexpr uint32_t ANIM_MAX_STATES = 64;
 constexpr uint32_t ANIM_MAX_EVENTS = 64;
+constexpr uint32_t ANIM_MAX_NODES = 64;
+constexpr uint32_t ANIM_MAX_MASKS = 16;
 constexpr uint32_t ANIM_LOOP = 1;
 constexpr uint32_t ANIM_ON_END = 1;
 constexpr uint32_t ANIM_ANY_STATE = UINT32_MAX;
@@ -26,6 +28,8 @@ enum animSectionIndex_t : uint32_t {
 	ANIM_TRANSITIONS,
 	ANIM_CONDITIONS,
 	ANIM_EVENTS,
+	ANIM_NODES,
+	ANIM_MASKS,
 	ANIM_SECTION_COUNT
 };
 struct animSection_t {
@@ -58,7 +62,7 @@ struct animFileParameter_t {
 };
 struct animFileState_t {
 	char name[64];
-	uint32_t clip, flags, speedQ16, firstEvent, eventCount;
+	uint32_t clip, flags, speedQ16, firstEvent, eventCount, node;
 };
 struct animFileTransition_t {
 	uint32_t from, to, blendMs, firstCondition, conditionCount, flags;
@@ -72,12 +76,26 @@ struct animFileEvent_t {
 	uint32_t timeMs;
 	int32_t bone;
 };
+enum animNodeKind_t : uint32_t { ANIM_CLIP,
+	ANIM_BLEND,
+	ANIM_ADDITIVE };
+struct animFileNode_t {
+	char name[64];
+	uint32_t kind, a, b, reference, parameter, mask, flags;
+	float weight;
+};
+struct animFileMask_t {
+	char name[64];
+	float weights[ANIM_MAX_JOINTS];
+};
+static_assert( sizeof( animFileNode_t ) == 96 && std::is_trivially_copyable_v<animFileNode_t> );
+static_assert( sizeof( animFileMask_t ) == 576 && std::is_trivially_copyable_v<animFileMask_t> );
 static_assert( sizeof( animTransform_t ) == 40 && offsetof( animTransform_t, scale ) == 28 );
-static_assert( sizeof( animSection_t ) == 8 && sizeof( animFileHeader_t ) == 180 );
+static_assert( sizeof( animSection_t ) == 8 && sizeof( animFileHeader_t ) == 196 );
 static_assert( offsetof( animFileHeader_t, sections ) == 108 );
 static_assert( sizeof( animFileJoint_t ) == 112 && sizeof( animFilePose_t ) == 84 );
 static_assert( sizeof( animFileClip_t ) == 80 && sizeof( animFileParameter_t ) == 76 );
-static_assert( sizeof( animFileState_t ) == 84 && sizeof( animFileTransition_t ) == 24 );
+static_assert( sizeof( animFileState_t ) == 88 && sizeof( animFileTransition_t ) == 24 );
 static_assert( sizeof( animFileCondition_t ) == 12 && sizeof( animFileEvent_t ) == 72 );
 static_assert( std::is_trivially_copyable_v<animFileHeader_t> && std::is_trivially_copyable_v<animFileJoint_t> );
 static_assert( std::is_trivially_copyable_v<animFilePose_t> && std::is_trivially_copyable_v<animFileClip_t> );

@@ -49,7 +49,16 @@ New tree test now fails on the unchanged runtime (animation-trees-before.log):
 a numeric parameter blends idle/wave while a second drives additive wave motion
 only on the tip subtree. It checks both composed rotation and untouched root
 translation. Implement flat topologically ordered nodes and fixed bone masks;
-reuse the already-tested transform operators.
+reuse the already-tested transform operators. Implemented: up to 64 flat nodes,
+16 masks with 128 weights, parameter blends and reference-relative additive
+layers. The tree contract passes GCC and Clang/libc++ with UBSan
+(animation-trees-after.log, animation-trees-clang.log). Production client/server
+build passes (animation-build.log); the new core has explicit strict FP flags.
+SHA ownership is shared core plus a separate copy only for optional renderer
+modules. A full cooker check overlapped the source-list edit and invalidated its
+tool hash mid-run; rerun it with tool/source-list files held steady before
+accepting the result. Next: renderer copied-pose submission, authored rifle/body
+graphs, gameplay/replication and ImGui authoring.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/

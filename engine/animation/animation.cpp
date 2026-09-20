@@ -83,14 +83,14 @@ bool Anim_Open( const void *bytes, size_t size, animAsset_t *asset ) {
 	result.size = payloadSize;
 	memcpy( &result.header, result.data, sizeof( result.header ) );
 	const auto &h = result.header;
-	constexpr size_t sizes[] = { sizeof( animFileJoint_t ), sizeof( animFilePose_t ), sizeof( uint16_t ), sizeof( animFileClip_t ), sizeof( animFileParameter_t ), sizeof( animFileState_t ), sizeof( animFileTransition_t ), sizeof( animFileCondition_t ), sizeof( animFileEvent_t ) };
+	constexpr size_t sizes[] = { sizeof( animFileJoint_t ), sizeof( animFilePose_t ), sizeof( uint16_t ), sizeof( animFileClip_t ), sizeof( animFileParameter_t ), sizeof( animFileState_t ), sizeof( animFileTransition_t ), sizeof( animFileCondition_t ), sizeof( animFileEvent_t ), sizeof( animFileNode_t ), sizeof( animFileMask_t ) };
 	for ( uint32_t i = 0; i < ANIM_SECTION_COUNT; ++i ) {
 		const auto &s = h.sections[i];
 		if ( s.offset < sizeof( h ) || s.offset > payloadSize || s.count > ( payloadSize - s.offset ) / sizes[i] )
 			return false;
 	}
 	const uint32_t joints = Count( &result, ANIM_JOINTS );
-	if ( !Name( h.model ) || !joints || joints > ANIM_MAX_JOINTS || Count( &result, ANIM_POSES ) != joints ||
+	if ( !Count( &result, ANIM_NODES ) || Count( &result, ANIM_NODES ) > ANIM_MAX_NODES || Count( &result, ANIM_MASKS ) > ANIM_MAX_MASKS || !Name( h.model ) || !joints || joints > ANIM_MAX_JOINTS || Count( &result, ANIM_POSES ) != joints ||
 		 Count( &result, ANIM_PARAMETERS ) > ANIM_MAX_PARAMETERS || !Count( &result, ANIM_STATES ) ||
 		 Count( &result, ANIM_STATES ) > ANIM_MAX_STATES || h.initialState >= Count( &result, ANIM_STATES ) ||
 		 !h.frameCount || h.frameChannels > joints * 10 || uint64_t( h.frameCount ) * h.frameChannels != Count( &result, ANIM_FRAMES ) )
@@ -123,7 +123,7 @@ bool Anim_Open( const void *bytes, size_t size, animAsset_t *asset ) {
 	}
 	for ( uint32_t i = 0; i < Count( &result, ANIM_STATES ); ++i ) {
 		const auto state = Read<animFileState_t>( &result, ANIM_STATES, i );
-		if ( !Name( state.name ) || state.clip >= Count( &result, ANIM_CLIPS ) || state.flags > ANIM_LOOP || !state.speedQ16 || state.speedQ16 > 16 * 65536 || !Range( state.firstEvent, state.eventCount, Count( &result, ANIM_EVENTS ) ) )
+		if ( state.node >= Count( &result, ANIM_NODES ) || !Name( state.name ) || state.clip >= Count( &result, ANIM_CLIPS ) || state.flags > ANIM_LOOP || !state.speedQ16 || state.speedQ16 > 16 * 65536 || !Range( state.firstEvent, state.eventCount, Count( &result, ANIM_EVENTS ) ) )
 			return false;
 		const auto clip = Read<animFileClip_t>( &result, ANIM_CLIPS, state.clip );
 		uint32_t last = 0;
@@ -143,6 +143,26 @@ bool Anim_Open( const void *bytes, size_t size, animAsset_t *asset ) {
 		const auto c = Read<animFileCondition_t>( &result, ANIM_CONDITIONS, i );
 		if ( c.parameter >= Count( &result, ANIM_PARAMETERS ) || c.operation > 5 || !isfinite( c.value ) )
 			return false;
+	}
+	for ( uint32_t i = 0; i < Count( &result, ANIM_NODES ); ++i ) {
+		const auto n = Read<animFileNode_t>( &result, ANIM_NODES, i );
+		if ( !Name( n.name ) || n.kind > ANIM_ADDITIVE || n.flags > ANIM_LOOP || !isfinite( n.weight ) || n.weight < 0 || n.weight > 1 ||
+			 ( n.parameter != UINT32_MAX && n.parameter >= Count( &result, ANIM_PARAMETERS ) ) ||
+			 ( n.mask != UINT32_MAX && n.mask >= Count( &result, ANIM_MASKS ) ) )
+			return false;
+		if ( n.kind == ANIM_CLIP ) {
+			if ( n.a >= Count( &result, ANIM_CLIPS ) )
+				return false;
+		} else if ( n.a >= i || n.b >= i || ( n.kind == ANIM_ADDITIVE && n.reference >= i ) )
+			return false;
+	}
+	for ( uint32_t i = 0; i < Count( &result, ANIM_MASKS ); ++i ) {
+		const auto mask = Read<animFileMask_t>( &result, ANIM_MASKS, i );
+		if ( !Name( mask.name ) || !Finite( mask.weights, ANIM_MAX_JOINTS ) )
+			return false;
+		for ( uint32_t j = 0; j < ANIM_MAX_JOINTS; ++j )
+			if ( mask.weights[j] < 0 || mask.weights[j] > 1 )
+				return false;
 	}
 	*asset = result;
 	return true;
@@ -321,6 +341,28 @@ static animTransform_t Sample( const animAsset_t *asset, uint32_t joint, const a
 	Blend( &a, &b, float( position % clip->durationMs ) / float( clip->durationMs ), &result );
 	return result;
 }
+static animTransform_t SampleTree( const animAsset_t *asset, uint32_t joint, uint32_t root, uint64_t time, const float *parameters ) {
+	animTransform_t values[ANIM_MAX_NODES];
+	for ( uint32_t i = 0; i <= root; ++i ) {
+		const auto node = Read<animFileNode_t>( asset, ANIM_NODES, i );
+		if ( node.kind == ANIM_CLIP ) {
+			const auto clip = Read<animFileClip_t>( asset, ANIM_CLIPS, node.a );
+			values[i] = Sample( asset, joint, &clip, time, node.flags != 0 );
+			continue;
+		}
+		float weight = node.weight * ( node.parameter == UINT32_MAX ? 1 : parameters[node.parameter] );
+		if ( node.mask != UINT32_MAX ) {
+			float mask;
+			memcpy( &mask, asset->data + asset->header.sections[ANIM_MASKS].offset + sizeof( animFileMask_t ) * node.mask + offsetof( animFileMask_t, weights ) + sizeof( float ) * joint, sizeof( mask ) );
+			weight *= mask;
+		}
+		if ( node.kind == ANIM_BLEND )
+			Blend( &values[node.a], &values[node.b], Clamp( weight, 0, 1 ), &values[i] );
+		else
+			Anim_AdditiveTransforms( 1, &values[node.a], &values[node.b], &values[node.reference], nullptr, weight, &values[i] );
+	}
+	return values[root];
+}
 static void Matrix( const animTransform_t *transform, float *matrix ) {
 	const float x = transform->rotate[0], y = transform->rotate[1], z = transform->rotate[2], w = transform->rotate[3];
 	const float *s = transform->scale;
@@ -341,14 +383,12 @@ bool Anim_Evaluate( const animAsset_t *asset, const animState_t *state, const fl
 		return false;
 	const auto current = Read<animFileState_t>( asset, ANIM_STATES, state->current );
 	const auto previous = Read<animFileState_t>( asset, ANIM_STATES, state->previous );
-	const auto clip = Read<animFileClip_t>( asset, ANIM_CLIPS, current.clip );
-	const auto oldClip = Read<animFileClip_t>( asset, ANIM_CLIPS, previous.clip );
 	const float weight = state->blendDuration ? Clamp( float( time - state->blendStarted ) / float( state->blendDuration ), 0, 1 ) : 1;
 	pose->jointCount = Count( asset, ANIM_JOINTS );
 	for ( uint32_t i = 0; i < pose->jointCount; ++i ) {
-		const auto sampled = Sample( asset, i, &clip, LocalTime( time, state->entered, current.speedQ16 ), current.flags != 0 );
+		const auto sampled = SampleTree( asset, i, current.node, LocalTime( time, state->entered, current.speedQ16 ), parameters );
 		if ( weight < 1 ) {
-			const auto old = Sample( asset, i, &oldClip, LocalTime( time, state->previousEntered, previous.speedQ16 ), previous.flags != 0 );
+			const auto old = SampleTree( asset, i, previous.node, LocalTime( time, state->previousEntered, previous.speedQ16 ), parameters );
 			Blend( &old, &sampled, weight, &pose->local[i] );
 		} else
 			pose->local[i] = sampled;
