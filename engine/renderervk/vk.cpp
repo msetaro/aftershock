@@ -1,6 +1,9 @@
 #include "tr_local.h"
 #include "vk.h"
 
+Vk_Instance vk;
+Vk_World vk_world;
+
 #if defined( _DEBUG )
 #if defined( _WIN32 )
 #define USE_VK_VALIDATION
@@ -6658,52 +6661,6 @@ static void get_scissor_rect( VkRect2D *r ) {
 }
 
 
-static void get_mvp_transform( float *mvp ) {
-	if ( backEnd.projection2D ) {
-		float mvp0 = 2.0f / glConfig.vidWidth;
-		float mvp5 = 2.0f / glConfig.vidHeight;
-
-		mvp[0] = mvp0;
-		mvp[1] = 0.0f;
-		mvp[2] = 0.0f;
-		mvp[3] = 0.0f;
-		mvp[4] = 0.0f;
-		mvp[5] = mvp5;
-		mvp[6] = 0.0f;
-		mvp[7] = 0.0f;
-#ifdef USE_REVERSED_DEPTH
-		mvp[8] = 0.0f;
-		mvp[9] = 0.0f;
-		mvp[10] = 0.0f;
-		mvp[11] = 0.0f;
-		mvp[12] = -1.0f;
-		mvp[13] = -1.0f;
-		mvp[14] = 1.0f;
-		mvp[15] = 1.0f;
-#else
-		mvp[8] = 0.0f;
-		mvp[9] = 0.0f;
-		mvp[10] = 1.0f;
-		mvp[11] = 0.0f;
-		mvp[12] = -1.0f;
-		mvp[13] = -1.0f;
-		mvp[14] = 0.0f;
-		mvp[15] = 1.0f;
-#endif
-	} else {
-		const float *p = backEnd.viewParms.projectionMatrix;
-		float proj[16];
-		Com_Memcpy( proj, p, 64 );
-
-		// update q3's proj matrix (opengl) to vulkan conventions: z - [0, 1] instead of [-1, 1] and invert y direction
-		proj[5] = -p[5];
-		//proj[10] = ( p[10] - 1.0f ) / 2.0f;
-		//proj[14] = p[14] / 2.0f;
-		myGlMultMatrix( vk_world.modelview_transform, proj, mvp );
-	}
-}
-
-
 void vk_clear_color( const vec4_t color ) {
 
 	VkClearAttachment attachment;
@@ -6759,19 +6716,10 @@ void vk_clear_depth( qboolean clear_stencil ) {
 }
 
 
-void vk_update_mvp( const float *m ) {
-	float push_constants[16]; // mvp transform
-
-	//
-	// Specify push constants.
-	//
-	if ( m )
-		Com_Memcpy( push_constants, m, sizeof( push_constants ) );
-	else
-		get_mvp_transform( push_constants );
-
+void RHI_PushTransform( const float *m ) {
+	float push_constants[16];
+	Com_Memcpy( push_constants, m, sizeof( push_constants ) );
 	qvkCmdPushConstants( vk.cmd->command_buffer, vk.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( push_constants ), push_constants );
-
 	vk.stats.push_size += sizeof( push_constants );
 }
 
@@ -7118,7 +7066,13 @@ void vk_draw_geometry( rhiDepthRange_t depth_range, qboolean indexed ) {
 }
 
 
-void vk_draw_dot( uint32_t storage_offset ) {
+bool RHI_ReadVisibility( uint32_t index ) {
+	const uint32_t offset = index * vk.storage_alignment;
+	return *(const uint32_t *)( vk.storage.buffer_ptr + offset ) != 0;
+}
+
+void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount ) {
+	const uint32_t storage_offset = index * vk.storage_alignment;
 	if ( vk.geometry_buffer_size_new ) {
 		// geometry buffer overflow happened this frame
 		return;
@@ -7129,7 +7083,7 @@ void vk_draw_dot( uint32_t storage_offset ) {
 	// configure pipeline's dynamic state
 	vk_update_depth_range( DEPTH_RANGE_NORMAL );
 
-	qvkCmdDraw( vk.cmd->command_buffer, tess.numVertexes, 1, 0, 0 );
+	qvkCmdDraw( vk.cmd->command_buffer, vertexCount, 1, 0, 0 );
 }
 
 
@@ -7468,10 +7422,11 @@ void vk_end_frame( void ) {
 	}
 
 	if ( vk.fboActive ) {
-		vk.cmd->last_pipeline = VK_NULL_HANDLE; // do not restore clobbered descriptors in vk_bloom()
+		vk.cmd->last_pipeline = VK_NULL_HANDLE; // do not restore clobbered descriptors in RHI_Bloom()
 
-		if ( r_bloom->integer ) {
-			vk_bloom();
+		if ( r_bloom->integer && vk.renderPassIndex != RENDER_PASS_SCREENMAP && !backEnd.doneBloom && backEnd.doneSurfaces ) {
+			RHI_Bloom( nullptr );
+			backEnd.doneBloom = qtrue;
 		}
 
 		if ( backEnd.screenshotMask && vk.capture.image ) {
@@ -7877,16 +7832,8 @@ void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height ) {
 }
 
 
-qboolean vk_bloom( void ) {
+void RHI_Bloom( const float *restoreTransform ) {
 	uint32_t i;
-
-	if ( vk.renderPassIndex == RENDER_PASS_SCREENMAP ) {
-		return qfalse;
-	}
-
-	if ( backEnd.doneBloom || !backEnd.doneSurfaces || !vk.fboActive ) {
-		return qfalse;
-	}
 
 	RHI_EndPass(); // end main
 
@@ -7949,7 +7896,7 @@ qboolean vk_bloom( void ) {
 		// restore last pipeline
 		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.cmd->last_pipeline );
 
-		vk_update_mvp( NULL );
+		RHI_PushTransform( restoreTransform );
 
 		// force depth range and viewport/scissor updates
 		vk.cmd->depth_range = DEPTH_RANGE_COUNT;
@@ -7964,8 +7911,4 @@ qboolean vk_bloom( void ) {
 			}
 		}
 	}
-
-	backEnd.doneBloom = qtrue;
-
-	return qtrue;
 }

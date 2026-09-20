@@ -187,8 +187,6 @@ int max_polyverts;
 #ifdef USE_VULKAN
 
 #include "vk.h"
-Vk_Instance vk;
-Vk_World vk_world;
 
 #else
 
@@ -1918,6 +1916,7 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 
 #ifdef USE_VULKAN
 	vk_release_resources();
+	Com_Memset( r_modelview, 0, sizeof( r_modelview ) );
 #endif
 
 	R_DoneFreeType();
@@ -1932,6 +1931,7 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 	if ( code != REF_KEEP_CONTEXT ) {
 #ifdef USE_VULKAN
 		vk_shutdown( code );
+		Com_Memset( &r_pipelines, 0, sizeof( r_pipelines ) );
 
 		Com_Memset( &glState, 0, sizeof( glState ) );
 

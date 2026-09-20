@@ -17,9 +17,10 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Continue #6 draft PR #140 on `issue/6-rhi`. Uploads, textures, wait statuses,
-initial commands, GPU scopes and portable pipeline descriptions are extracted.
-The platform import boundary is now SDK-independent. Next complete frame/buffer/
-pipeline ownership. Acquisition fix PR #141 merged separately as 61401e17 after
+initial commands, GPU scopes, pipeline descriptions, platform imports, bindings
+and transforms are extracted. Built-in pipeline selection is frontend-owned.
+Next remove backend reads of frontend geometry/view state and complete device/
+frame ownership and error statuses. Acquisition fix PR #141 merged separately as 61401e17 after
 full build 35484485400/regression 35484485349 and self-review; it has now been
 merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
 follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
@@ -199,6 +200,27 @@ the accepted fresh-process goldens. Keep local Q3 restart checks required. This
 does not establish OpenArena post-restart golden equality. Evidence:
 rhi-platform-runtime-ci.log and rhi-platform-runtime-artifacts/. No image regions
 are masked or goldens replaced. Verify the corrected hosted step on the next head.
+
+Transform/visibility slice: the matrix generator and modelview storage now belong
+to the frontend; the generator body is identical after function/state identifier
+changes. The RHI receives exactly 64 transform bytes. Bloom receives the frontend
+restore matrix and retains the existing GPU command order; its final-frame path
+skips restore after clearing the pipeline, as before. Visibility storage alignment
+and readback are private, with the same one-frame delayed coherent read and no
+extra wait. Vulkan device/world globals now live in vk.cpp. Modelview and built-in
+pipeline reset points remain tied to renderer resource/context shutdown.
+
+GCC/Clang contract checks verify exact push bytes/stage/offset and aligned visibility
+reads. Replay/restart retains b38004b1 before and after global ownership moves
+(rhi-transform-demo.log, rhi-transform-ownership.log). Format/type/boundary checks
+pass. Real-clock main samples: 3.927/3.901 ms q3dm17, 4.890/4.903 ms q3dm7;
+informational, not a speedup claim. No shader, fixture or golden changes.
+
+Frame/binding checkpoint ea6209b5 passed full build 35486025063 and regression
+35486025142, including both static and optional module OpenArena replay. This
+verifies the corrected fresh-process module gate. Built-in checkpoint 1642187d
+passed build 35485710232; its regression 35485710189 had the same newly introduced
+OpenArena restart/HUD mismatch as e259fc0f, resolved by ea6209b5's test correction.
 
 ## Final #8 verification
 

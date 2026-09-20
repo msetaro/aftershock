@@ -141,6 +141,8 @@ struct rendererPipelines_t {
 };
 static_assert( std::is_trivially_copyable_v<rendererPipelines_t> );
 extern rendererPipelines_t r_pipelines;
+extern float r_modelview[16];
+void RB_UpdateMVP( const float *m );
 void R_InitBuiltinPipelines( void );
 
 typedef uint32_t glIndex_t;

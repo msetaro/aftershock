@@ -108,6 +108,19 @@ void RHI_ResetBinding( int32_t ) {
 	abort();
 }
 
+void RHI_PushTransform( const float * ) {
+	abort();
+}
+void RHI_Bloom( const float * ) {
+	abort();
+}
+bool RHI_ReadVisibility( uint32_t ) {
+	return false;
+}
+void RHI_DrawVisibility( uint32_t, uint32_t ) {
+	abort();
+}
+
 #ifdef RHI_STUB_CHECK
 int main( void ) {
 	const rhiStats_t stats = RHI_GetStats();

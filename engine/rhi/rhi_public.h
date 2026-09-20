@@ -339,3 +339,10 @@ static_assert( std::is_trivially_copyable_v<rhiPipelineDesc_t> );
 uint32_t RHI_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool eager );
 void RHI_GetPipelineDesc( uint32_t pipeline, rhiPipelineDesc_t *desc );
 void RHI_BindPipeline( uint32_t pipeline );
+
+// Exact 4x4 shader transform bytes; matrix generation belongs to the frontend.
+void RHI_PushTransform( const float *matrix );
+void RHI_Bloom( const float *restoreTransform );
+// Existing one-frame delayed, coherent visibility storage; no additional wait.
+bool RHI_ReadVisibility( uint32_t index );
+void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount );

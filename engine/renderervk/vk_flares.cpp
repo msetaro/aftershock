@@ -291,7 +291,7 @@ static void RB_TestFlare( flare_t *f ) {
 	qboolean visible;
 	float fade;
 	float *m;
-	uint32_t offset;
+	uint32_t index;
 	int i;
 
 	backEnd.pc.c_flareTests++;
@@ -310,12 +310,10 @@ static void RB_TestFlare( flare_t *f ) {
 	multisampled image will cause multiple fragment shader invocations.
 */
 
-	// we neeed only single uint32_t but take care of alignment
-	offset = (uint32_t)( ( f - r_flareStructs ) * vk.storage_alignment );
+	index = (uint32_t)( f - r_flareStructs );
 
 	if ( f->testCount ) {
-		uint32_t *cnt = (uint32_t *)( vk.storage.buffer_ptr + offset );
-		if ( *cnt )
+		if ( RHI_ReadVisibility( index ) )
 			visible = qtrue;
 		else
 			visible = qfalse;
@@ -325,12 +323,9 @@ static void RB_TestFlare( flare_t *f ) {
 		visible = qfalse;
 	}
 
-	// reset test result in storage buffer
-	// *((uint32_t*)(vk.storage.buffer_ptr + offset)) = 0x00;
-
 	m = vk_ortho( (float)( backEnd.viewParms.viewportX ), (float)( backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth ),
 		(float)( backEnd.viewParms.viewportY ), (float)( backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight ), (float)( 0 ), (float)( 1 ) );
-	vk_update_mvp( m );
+	RB_UpdateMVP( m );
 
 	tess.xyz[0][0] = (float)( f->windowX );
 	tess.xyz[0][1] = (float)( f->windowY );
@@ -347,10 +342,10 @@ static void RB_TestFlare( flare_t *f ) {
 	// render test dot
 	RHI_BindPipeline( r_pipelines.dot_pipeline );
 	vk_bind_geometry( TESS_XYZ );
-	vk_draw_dot( offset );
+	RHI_DrawVisibility( index, tess.numVertexes );
 
-	//Com_Memcpy( vk_world.modelview_transform, modelMatrix_original, sizeof( modelMatrix_original ) );
-	//vk_update_mvp( NULL );
+	//Com_Memcpy( r_modelview, modelMatrix_original, sizeof( modelMatrix_original ) );
+	//RB_UpdateMVP( NULL );
 
 	if ( visible ) {
 		if ( !f->visible ) {
@@ -540,7 +535,7 @@ void RB_RenderFlares( void ) {
 		backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight, 0.0, 1.0 );
 #endif
 
-	vk_update_mvp( m );
+	RB_UpdateMVP( m );
 
 	for ( f = r_activeFlares; f; f = f->next ) {
 		if ( f->frameSceneNum == backEnd.viewParms.frameSceneNum && f->portalView == backEnd.viewParms.portalView && f->drawIntensity ) {
@@ -548,6 +543,6 @@ void RB_RenderFlares( void ) {
 		}
 	}
 
-	//Com_Memcpy( vk_world.modelview_transform, modelMatrix_original, sizeof( modelMatrix_original ) );
-	//vk_update_mvp( NULL );
+	//Com_Memcpy( r_modelview, modelMatrix_original, sizeof( modelMatrix_original ) );
+	//RB_UpdateMVP( NULL );
 }

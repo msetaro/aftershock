@@ -713,7 +713,7 @@ void RB_DrawSun( float scale, shader_t *shader ) {
 	sunColor.u32 = ~0U;
 
 #ifdef USE_VULKAN
-	vk_update_mvp( NULL );
+	RB_UpdateMVP( NULL );
 #else
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
 #endif

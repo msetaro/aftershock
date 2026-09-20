@@ -24,6 +24,75 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 backEndData_t *backEndData;
 backEndState_t backEnd;
 
+float r_modelview[16];
+
+static void RB_GetMVP( float *mvp ) {
+	if ( backEnd.projection2D ) {
+		float mvp0 = 2.0f / glConfig.vidWidth;
+		float mvp5 = 2.0f / glConfig.vidHeight;
+
+		mvp[0] = mvp0;
+		mvp[1] = 0.0f;
+		mvp[2] = 0.0f;
+		mvp[3] = 0.0f;
+		mvp[4] = 0.0f;
+		mvp[5] = mvp5;
+		mvp[6] = 0.0f;
+		mvp[7] = 0.0f;
+#ifdef USE_REVERSED_DEPTH
+		mvp[8] = 0.0f;
+		mvp[9] = 0.0f;
+		mvp[10] = 0.0f;
+		mvp[11] = 0.0f;
+		mvp[12] = -1.0f;
+		mvp[13] = -1.0f;
+		mvp[14] = 1.0f;
+		mvp[15] = 1.0f;
+#else
+		mvp[8] = 0.0f;
+		mvp[9] = 0.0f;
+		mvp[10] = 1.0f;
+		mvp[11] = 0.0f;
+		mvp[12] = -1.0f;
+		mvp[13] = -1.0f;
+		mvp[14] = 0.0f;
+		mvp[15] = 1.0f;
+#endif
+	} else {
+		const float *p = backEnd.viewParms.projectionMatrix;
+		float proj[16];
+		Com_Memcpy( proj, p, 64 );
+
+		// update q3's proj matrix (opengl) to vulkan conventions: z - [0, 1] instead of [-1, 1] and invert y direction
+		proj[5] = -p[5];
+		//proj[10] = ( p[10] - 1.0f ) / 2.0f;
+		//proj[14] = p[14] / 2.0f;
+		myGlMultMatrix( r_modelview, proj, mvp );
+	}
+}
+
+
+void RB_UpdateMVP( const float *m ) {
+	float transform[16];
+	if ( m )
+		Com_Memcpy( transform, m, sizeof( transform ) );
+	else
+		RB_GetMVP( transform );
+	RHI_PushTransform( transform );
+}
+
+static void RB_Bloom( void ) {
+	if ( RHI_GetFrameState().screenMapPass )
+		return;
+	if ( backEnd.doneBloom || !backEnd.doneSurfaces || !RHI_GetCapabilities().fboActive )
+		return;
+	float transform[16];
+	RB_GetMVP( transform );
+	RHI_Bloom( transform );
+	backEnd.doneBloom = qtrue;
+}
+
+
 #ifndef USE_VULKAN
 static const float s_flipMatrix[16] = {
 	// convert from our coordinate system (looking down X)
@@ -441,8 +510,8 @@ static void RB_Hyperspace( void ) {
 
 static void SetViewportAndScissor( void ) {
 #ifdef USE_VULKAN
-	//Com_Memcpy( vk_world.modelview_transform, backEnd.or.modelMatrix, 64 );
-	//vk_update_mvp();
+	//Com_Memcpy( r_modelview, backEnd.or.modelMatrix, 64 );
+	//RB_UpdateMVP();
 	// force depth range and viewport/scissor updates
 	RHI_InvalidateViewport();
 #else
@@ -669,9 +738,9 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
 
 #ifdef USE_VULKAN
-			Com_Memcpy( vk_world.modelview_transform, backEnd.orientation.modelMatrix, 64 );
+			Com_Memcpy( r_modelview, backEnd.orientation.modelMatrix, 64 );
 			tess.depthRange = depthRange ? DEPTH_RANGE_WEAPON : DEPTH_RANGE_NORMAL;
-			vk_update_mvp( NULL );
+			RB_UpdateMVP( NULL );
 #else
 			qglLoadMatrixf( backEnd.orientation.modelMatrix );
 #endif
@@ -734,9 +803,9 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 	// go back to the world modelview matrix
 #ifdef USE_VULKAN
-	Com_Memcpy( vk_world.modelview_transform, backEnd.viewParms.world.modelMatrix, 64 );
+	Com_Memcpy( r_modelview, backEnd.viewParms.world.modelMatrix, 64 );
 	tess.depthRange = DEPTH_RANGE_NORMAL;
-	//vk_update_mvp();
+	//RB_UpdateMVP();
 #else
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
 	if ( depthRange ) {
@@ -876,8 +945,8 @@ static void RB_RenderLitSurfList( dlight_t *dl ) {
 
 #ifdef USE_VULKAN
 			tess.depthRange = depthRange ? DEPTH_RANGE_WEAPON : DEPTH_RANGE_NORMAL;
-			Com_Memcpy( vk_world.modelview_transform, backEnd.orientation.modelMatrix, 64 );
-			vk_update_mvp( NULL );
+			Com_Memcpy( r_modelview, backEnd.orientation.modelMatrix, 64 );
+			RB_UpdateMVP( NULL );
 #else
 			qglLoadMatrixf( backEnd.orientation.modelMatrix );
 
@@ -939,9 +1008,9 @@ static void RB_RenderLitSurfList( dlight_t *dl ) {
 
 	// go back to the world modelview matrix
 #ifdef USE_VULKAN
-	Com_Memcpy( vk_world.modelview_transform, backEnd.viewParms.world.modelMatrix, 64 );
+	Com_Memcpy( r_modelview, backEnd.viewParms.world.modelMatrix, 64 );
 	tess.depthRange = DEPTH_RANGE_NORMAL;
-	//vk_update_mvp();
+	//RB_UpdateMVP();
 #else
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
 	if ( depthRange ) {
@@ -974,7 +1043,7 @@ static void RB_SetGL2D( void ) {
 	backEnd.projection2D = qtrue;
 
 #ifdef USE_VULKAN
-	vk_update_mvp( NULL );
+	RB_UpdateMVP( NULL );
 
 	// force depth range and viewport/scissor updates
 	RHI_InvalidateViewport();
@@ -1132,7 +1201,7 @@ static const void *RB_StretchPic( const void *data ) {
 
 #ifdef USE_VULKAN
 	if ( r_bloom->integer ) {
-		vk_bloom();
+		RB_Bloom();
 	}
 #endif
 
@@ -1287,7 +1356,7 @@ static void RB_DebugGraphics( void ) {
 
 	GL_Bind( tr.whiteImage );
 #ifdef USE_VULKAN
-	vk_update_mvp( NULL );
+	RB_UpdateMVP( NULL );
 #else
 	GL_Cull( CT_FRONT_SIDED );
 #endif
@@ -1610,7 +1679,7 @@ static const void *RB_FinishBloom( const void *data ) {
 
 #ifdef USE_VULKAN
 	if ( r_bloom->integer ) {
-		vk_bloom();
+		RB_Bloom();
 	}
 #endif
 

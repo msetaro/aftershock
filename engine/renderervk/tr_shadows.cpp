@@ -323,22 +323,22 @@ void RB_ShadowFinish( void ) {
 
 	tess.numVertexes = 4;
 
-	Com_Memcpy( tmp, vk_world.modelview_transform, 64 );
-	Com_Memset( vk_world.modelview_transform, 0, 64 );
+	Com_Memcpy( tmp, r_modelview, 64 );
+	Com_Memset( r_modelview, 0, 64 );
 
-	vk_world.modelview_transform[0] = 1.0f;
-	vk_world.modelview_transform[5] = 1.0f;
-	vk_world.modelview_transform[10] = 1.0f;
-	vk_world.modelview_transform[15] = 1.0f;
+	r_modelview[0] = 1.0f;
+	r_modelview[5] = 1.0f;
+	r_modelview[10] = 1.0f;
+	r_modelview[15] = 1.0f;
 
 	RHI_BindPipeline( r_pipelines.shadow_finish_pipeline );
 
-	vk_update_mvp( NULL );
+	RB_UpdateMVP( NULL );
 
 	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 /*| TESS_ST0 */ );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qfalse );
 
-	Com_Memcpy( vk_world.modelview_transform, tmp, 64 );
+	Com_Memcpy( r_modelview, tmp, 64 );
 
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;

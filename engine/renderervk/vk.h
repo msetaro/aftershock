@@ -118,13 +118,10 @@ void vk_bind_index_ext( const int numIndexes, const uint32_t *indexes );
 void vk_bind_geometry( uint32_t flags );
 void vk_bind_lighting( int stage, int bundle );
 void vk_draw_geometry( rhiDepthRange_t depth_range, qboolean indexed );
-void vk_draw_dot( uint32_t storage_offset );
 
 void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height ); // screenshots
-qboolean vk_bloom( void );
 
 qboolean vk_alloc_vbo( const byte *vbo_data, int vbo_size );
-void vk_update_mvp( const float *m );
 
 void vk_bind_index_buffer( VkBuffer buffer, uint32_t offset );
 void vk_update_descriptor( int index, VkDescriptorSet descriptor );
@@ -472,7 +469,6 @@ typedef struct {
 	// cleared by render pass instance clear op (dirty_depth_attachment == 0).
 	int dirty_depth_attachment;
 
-	float modelview_transform[16];
 } Vk_World;
 
 extern Vk_Instance vk; // shouldn't be cleared during ref re-init

@@ -2,8 +2,6 @@
 #include "../../engine/renderervk/vk.cpp"
 #include <assert.h>
 
-Vk_Instance vk;
-Vk_World vk_world;
 refimport_t ri;
 cvar_t *r_ext_texture_filter_anisotropic;
 cvar_t *r_ext_max_anisotropy;
@@ -20,6 +18,12 @@ void QDECL Com_Error( errorParm_t, const char *, ... ) {
 static int destroyed;
 static VkResult wait_result;
 static int commands;
+static uint8_t transform_bytes[64];
+static void VKAPI_CALL push_transform( VkCommandBuffer command, VkPipelineLayout layout, VkShaderStageFlags stages, uint32_t offset, uint32_t size, const void *data ) {
+	assert( (uintptr_t)command == 22 && (uintptr_t)layout == 34 );
+	assert( stages == VK_SHADER_STAGE_VERTEX_BIT && offset == 0 && size == sizeof( transform_bytes ) );
+	assert( memcmp( data, transform_bytes, size ) == 0 );
+}
 static int waits;
 static int index_binds;
 static int sampler_destroys;
@@ -179,6 +183,20 @@ int main( void ) {
 	assert( RHI_GetTimings( &timings ) == 0 );
 	vk.cmd->profile.count = RHI_MAX_TIMINGS;
 	assert( RHI_BeginScope( "full" ) == RHI_INVALID_OFFSET && timestamp_writes == 2 );
+	float transform[16];
+	for ( uint32_t i = 0; i < sizeof( transform_bytes ); i++ )
+		transform_bytes[i] = (uint8_t)( i * 7 );
+	memcpy( transform, transform_bytes, sizeof( transform ) );
+	vk.pipeline_layout = (VkPipelineLayout)(uintptr_t)34;
+	qvkCmdPushConstants = push_transform;
+	vk.stats.push_size = 0;
+	RHI_PushTransform( transform );
+	assert( vk.stats.push_size == sizeof( transform ) );
+	uint32_t visibility[16] = {};
+	visibility[8] = 7;
+	vk.storage.buffer_ptr = (byte *)visibility;
+	vk.storage_alignment = 16;
+	assert( !RHI_ReadVisibility( 0 ) && !RHI_ReadVisibility( 1 ) && RHI_ReadVisibility( 2 ) );
 	// Frame state and binding cache expose no SDK objects to the frontend.
 	assert( !RHI_GetFrameState().submitted && !RHI_GetFrameState().screenMapPass );
 	vk.cmd->waitForFence = qtrue;
