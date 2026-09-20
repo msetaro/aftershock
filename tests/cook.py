@@ -245,7 +245,7 @@ def main():
     subprocess.run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
                     '-Wall', '-Wextra', '-Werror', 'tests/probes/cook_texture.cpp',
                     'engine/render/tr_cooked.cpp', str(sha_object), '-o', str(texture_probe)], cwd=ROOT, check=True)
-    subprocess.run([str(texture_probe), str(output / 'models/character_material0.ktx2')], check=True)
+    subprocess.run([str(texture_probe), str(output / 'models/character_material0.ktx2'), str(output / 'models/character_material0.asmat')], check=True)
     print('PASS: static/skinned glTF/GLB, named clips, BC KTX2 mip chains, content hashes and incremental recook')
 
 

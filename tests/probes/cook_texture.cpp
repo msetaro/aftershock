@@ -6,7 +6,7 @@
 #include <string.h>
 
 int main( int argc, char **argv ) {
-	assert( argc == 2 );
+	assert( argc == 3 );
 	FILE *file = fopen( argv[1], "rb" );
 	assert( file && fseek( file, 0, SEEK_END ) == 0 );
 	const size_t size = (size_t)ftell( file );
@@ -25,5 +25,16 @@ int main( int argc, char **argv ) {
 		assert( i == 0 || texture.levels[i].data < texture.levels[i - 1].data );
 	}
 	free( data );
+	file = fopen( argv[2], "rb" );
+	assert( file );
+	uint8_t materialBytes[136];
+	assert( fread( materialBytes, 1, sizeof( materialBytes ), file ) == sizeof( materialBytes ) );
+	fclose( file );
+	cookedMaterial_t material;
+	assert( R_ReadCookedMaterial( materialBytes, sizeof( materialBytes ), &material ) );
+	assert( strcmp( material.texture, "models/character_material0.ktx2" ) == 0 );
+	assert( material.alphaCutoff == 0.5f && material.flags == 0 );
+	for ( uint32_t i = 0; i < 4; i++ )
+		assert( material.color[i] == 1 );
 	puts( "PASS: native cooked KTX2 records, SHA-256 and mip views" );
 }
