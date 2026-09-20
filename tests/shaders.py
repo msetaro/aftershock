@@ -83,6 +83,12 @@ def main():
                 assert (custom / (row['name'] + '.spv')).read_bytes() == (args.output / 'cached' / (row['name'] + '.spv')).read_bytes()
         custom_package = json.loads((custom / 'shader_package.json').read_text())
         assert custom_package['sha256'] != package['sha256']
+        incompatible = source.replace('in vec3 in_position', 'in vec2 in_position').replace('in_position, 1.0', 'in_position, 0.0, POSITION_W')
+        (directory / 'owned.vert').write_text(incompatible)
+        subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, check=True)
+        refused = subprocess.run([sys.executable, 'tools/shaders/build.py', '--output', str(directory / 'refused'), '--cooked', str(cooked)], cwd=ROOT, capture_output=True, text=True)
+        assert refused.returncode != 0 and 'interface differs' in refused.stderr
+
     print(f'PASS: all {len(package["shaders"])} shader binaries and interfaces match; package {package["sha256"]}')
 
 

@@ -28,7 +28,10 @@ owned Blender source fixture was exported once with verified portable Blender
 Draft PR #145 holds #9. Native BC texture/material loading and watched texture
 replacement, named clips, bounded material/model/animation reload and inspector
 reload counts now work. WAV/OGG and shader inputs are implemented; complete final
-runtime/CI acceptance and review the remaining cooker details before marking ready.
+runtime/CI acceptance before marking ready. Bounds now use quantized poses; source
+tangents are preserved when available instead of fabricated. Run the module and
+OpenArena live gates, fixed Q3/OpenArena replay and the final exact-head gates.
+After #9, fix the two recorded IQM bugs separately under #31 before #10.
 Keep the graph's reviewed branch unchanged. #7 is complete and closed.
 
 Read #9 and the preparation notes in the persistent modernization cache
@@ -3026,3 +3029,32 @@ frames. Test-first evidence is cook-bounds-before.log; the ordinary scale still
 passes. Fix this cooker calculation within #9, not an existing engine #31 change.
 Also require absent source tangents to remain absent instead of inventing a basis.
 No simulation arithmetic or accepted fixture/golden is changed.
+
+The bounds correction now passes native geometry checks at scale 32 and 32000
+on GCC and Clang/libc++. It reconstructs stored float/16-bit poses and bind/vertex
+values before computing bounds, with float-accumulation padding. Optional source
+tangents are retained; absent/mixed tangents are omitted for #13 to generate a
+material-specific basis. Clip labels are unique and fit native 63-byte storage.
+New #9 artifacts change accordingly; accepted goldens and source fixtures do not.
+
+A separate pre-existing IQM row-scale bug is recorded in docs/bugs.md and #31
+comment 5749265890. The cooker rejects rotated nonuniform joint scales until
+that separate fix. No engine matrix arithmetic changed. Both that bug and the
+allocation-accounting bug need separate #31 PRs after #9, before #10.
+
+Ten thousand unchanged publication polls perform no engine allocation and no GPU
+operation. The live Quake 3 test now checks six additional material/model/texture
+edits, idle frames and video restart: renderer storage stays at 17,032 bytes in
+one zone block; permanent hunk stays at 22,959,808 bytes through all repeated
+edits. Idle UI allocations stay constant. The owned character renders again
+after restart. Texture latency is 0.605579 seconds / 2,721 changed pixels.
+Evidence: cook-bounds-*.log, cook-final-runtime.log and the runtime screenshots.
+
+The shader override check now compares SPIR-V type/global/decorated records in
+addition to the original reflected layout; a changed vertex input width is
+refused. Default package bytes/hash remain unchanged. A full shipping client
+build consumed a cooked shader through COOKED_SHADER_DIR successfully
+(cook-shader-build.log); compiler/contract evidence is cook-shader-contract.log.
+Hosted build at f7258d82 passed (35505208309); that is an earlier head, not final
+acceptance. Local tidy passed 1,170 production configurations. Remaining final
+module/OpenArena/runtime/replay/hosted gates are required before PR readiness.

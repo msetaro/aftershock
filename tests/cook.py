@@ -37,6 +37,7 @@ def source_assets(directory):
     position = array([0, 0, 0, 1, 2, 0, -1, 2, 0], 'f', 5126, 'VEC3', 3)
     accessors[position].update(min=[-1, 0, 0], max=[1, 2, 0])
     normal = array([0, 0, 1] * 3, 'f', 5126, 'VEC3', 3)
+    tangent = array([1, 0, 0, 1] * 3, 'f', 5126, 'VEC4', 3)
     uv = array([0.5, 0, 1, 1, 0, 1], 'f', 5126, 'VEC2', 3)
     joints = array([0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], 'B', 5121, 'VEC4', 3)
     weights = array([1, 0, 0, 0] * 3, 'f', 5126, 'VEC4', 3)
@@ -84,11 +85,18 @@ def source_assets(directory):
     attributes.pop('JOINTS_0')
     attributes.pop('WEIGHTS_0')
     (directory / 'static.gltf').write_text(json.dumps(static))
+    with_tangents = copy.deepcopy(static)
+    with_tangents['meshes'][0]['primitives'][0]['attributes']['TANGENT'] = tangent
+    (directory / 'tangent.gltf').write_text(json.dumps(with_tangents))
+    scaled = copy.deepcopy(document)
+    scaled['nodes'][1]['scale'] = [2, 1, 1]
+    (directory / 'nonuniform.gltf').write_text(json.dumps(scaled))
+
     static['nodes'][0]['scale'] = [-1, 1, 1]
     (directory / 'mirrored.gltf').write_text(json.dumps(static))
     Image.new('RGBA', (16, 16), (128, 96, 255, 255)).save(directory / 'color.png')
     assets = [{'name': 'models/' + name, 'kind': 'model', 'source': source, 'scale': 1, 'fps': 2}
-              for name, source in [('rig', 'rig.gltf'), ('packed', 'rig.glb'), ('static', 'static.gltf'), ('mirrored', 'mirrored.gltf')]]
+              for name, source in [('rig', 'rig.gltf'), ('packed', 'rig.glb'), ('static', 'static.gltf'), ('mirrored', 'mirrored.gltf'), ('tangent', 'tangent.gltf')]]
     fixture = ROOT / 'tests/assets/cook-audio'
     provenance = json.loads((fixture / 'provenance.json').read_text())
     for filename, expected in provenance['files'].items():
@@ -124,7 +132,7 @@ def model_header(data):
     return header
 
 
-def check_model(path, animated, mirrored=False):
+def check_model(path, animated, mirrored=False, tangents=False):
     data = path.read_bytes()
     assert data[:16] == b'INTERQUAKEMODEL\0'
     header = model_header(data)
@@ -133,7 +141,10 @@ def check_model(path, animated, mirrored=False):
     assert header[13] == (2 if animated else 0)
     assert header[17] == (2 if animated else 0)
     arrays = [struct.unpack_from('<5I', data, header[9] + i * 20) for i in range(header[7])]
-    assert not any(row[0] == 3 for row in arrays), 'sources without tangents must not acquire a fabricated tangent basis'
+    assert any(row[0] == 3 for row in arrays) == tangents, 'preserve provided tangents; do not fabricate absent ones'
+    if tangents:
+        tangent = next(row for row in arrays if row[0] == 3)
+        assert struct.unpack_from('<4f', data, tangent[4]) == (1, 0, 0, 1)
     positions = next(row for row in arrays if row[0] == 0)
     normals = next(row for row in arrays if row[0] == 2)
     assert positions[2:4] == normals[2:4] == (7, 3)
@@ -241,14 +252,19 @@ def main():
                 path = output / item['path']
                 assert hashlib.sha256(path.read_bytes()).hexdigest() == item['sha256']
                 before[item['path']] = (path.read_bytes(), path.stat().st_mtime_ns)
-        for name in ('rig', 'packed', 'static', 'mirrored'):
-            check_model(output / f'models/{name}.iqm', name in ('rig', 'packed'), name == 'mirrored')
+        for name in ('rig', 'packed', 'static', 'mirrored', 'tangent'):
+            check_model(output / f'models/{name}.iqm', name in ('rig', 'packed'), name == 'mirrored', name == 'tangent')
         for fmt, native, size in [('bc7', 146, 16), ('bc5', 141, 16), ('bc4', 139, 8)]:
             check_texture(output / f'textures/{fmt}.ktx2', native, size)
         result = cook(project, output)
         assert result['built'] == [] and sorted(result['skipped']) == sorted(names)
         for name, (data, mtime) in before.items():
             assert (output / name).read_bytes() == data and (output / name).stat().st_mtime_ns == mtime
+        unsupported = home / 'nonuniform-project.json'
+        unsupported.write_text(json.dumps({'version': 1, 'assets': [
+            {'name': 'models/scaled', 'kind': 'model', 'source': 'nonuniform.gltf'}]}))
+        rejected = subprocess.run([sys.executable, 'tools/cook', str(unsupported), '--output', str(home / 'unsupported')], cwd=ROOT, capture_output=True, text=True)
+        assert rejected.returncode != 0 and 'rotated nonuniform joint scale' in rejected.stderr
         second = home / 'second'
         cook(project, second)
         for name, (data, _) in before.items():
@@ -351,6 +367,13 @@ def main():
     sha_object = args.output / 'sha256.o'
     subprocess.run(['clang' if 'clang' in args.cxx else 'gcc', '-std=c99', '-O2', '-c',
                     str(sha_vendor / 'sha-256.c'), '-o', str(sha_object)], check=True)
+    poll_probe = args.output / 'poll-probe'
+    subprocess.run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+                    '-DUSE_VULKAN_API', '-DAFTERSHOCK_DEVTOOLS', '-Wall', '-Wextra', '-Werror',
+                    '-ffunction-sections', '-fdata-sections', 'tests/probes/cook_poll.cpp',
+                    'engine/render/tr_cooked.cpp', str(sha_object), '-Wl,--gc-sections',
+                    '-o', str(poll_probe)], cwd=ROOT, check=True)
+    subprocess.run([str(poll_probe)], check=True)
     texture_probe = args.output / 'texture-probe'
     subprocess.run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
                     '-Wall', '-Wextra', '-Werror', 'tests/probes/cook_texture.cpp',

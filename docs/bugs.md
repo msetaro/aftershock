@@ -904,3 +904,20 @@ The line reports `0 : (0) models/character.iqm` and the inspector reports 62 fra
 engine/render/tr_model.cpp's R_Modellist_f. Evidence is in cook-ui-check.log and
 /tmp/aftershock-cook-runtime-test/client.log. Add a failing allocation/accounting
 check and fix in its own #31 PR after #9 supplies the owned fixture.
+
+## Open: IQM rotated nonuniform joint scale (#31, discovered during #9)
+
+`JointToMatrix` in engine/render/tr_model_iqm.cpp multiplies rotation rows by
+scale. A native joint with quaternion `(0,0,sqrt(0.5),sqrt(0.5))`, translation
+zero and scale `(2,1,1)` maps vertex `(1,0,0)` to `(0,1,0)`; scale-then-rotate
+requires `(0,2,0)`. This predates #9. A small production-function check in
+`~/.cache/aftershock-modernization/iqm-scale-review.cpp` exits 1 and records
+`rotated scaled X: 0.000000 1.000000 0.000000; expected 0 2 0`. Compile it with
+C++20, USE_VULKAN_API, function/data sections and linker --gc-sections.
+
+The new cooker explicitly rejects this incompatible joint scale/rotation
+combination until a separate #31 test-first fix. Uniform and compatible
+axis-aligned joint scales remain supported, as do baked static transforms.
+After #9, fix this separately from the allocation accounting bug, remove the
+cooker diagnostic and prove native/glTF pose agreement. No engine matrix
+arithmetic is changed by #9.

@@ -19,6 +19,8 @@ python3 tests/native_math.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
 python3 tests/cook.py
+python3 tests/cook_runtime.py
+python3 tests/cook_runtime.py --modules --output /tmp/cook-modules
 python3 tests/devtools.py
 python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
@@ -41,7 +43,20 @@ static, mirrored and skinned glTF/GLB sources; checks named clips, coordinates,
 BC7/BC5/BC4 KTX2 mip chains and embedded/manifest hashes; verifies no-op and
 selective recooking; and feeds the committed Blender character into production
 IQM pose code. `--cxx` selects GCC or Clang/libc++. Its source fixture/provenance
-is in `tests/assets/cook-character`; CI never reauthors it. No game paks are used.
+is in `tests/assets/cook-character`; CI never reauthors it. No game paks are used. It also
+checks authored WAV/OGG sources through the production PCM codec, twelve bounded
+model/material replacements and 10,000 allocation-free idle publication polls.
+
+`python3 tests/cook_runtime.py` uses real ImGui input under Xvfb/lavapipe to load
+the owned Blender character, select both clips and measure a watched texture
+edit against a one-second gate. It edits only temporary source copies. It checks
+model/clip and material changes, stable handles and storage across repeated
+updates, idle UI allocations, and reload/rendering after video restart. Use
+`--modules` to build the optional renderer module, or `--binary` to reuse an
+existing development client. Defaults use installed Quake 3; hosted runs pass
+`--content openarena --data /tmp/aftershock-openarena-baseoa`. No game paks are
+committed or uploaded. Screenshot/log artifacts are separate from accepted goldens.
+
 
 `python3 tests/render_graph.py` checks the portable fixed pass declarations,
 dependencies and resource lifetimes, then observes production Vulkan image,

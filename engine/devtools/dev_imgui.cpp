@@ -49,6 +49,10 @@ static void Status( void ) {
 		DevTools_CpuTimings( &timings ), net->snapshots, net->snapshotBits );
 	Com_Printf( "Developer animation: model=%d frame=%d previews=%u clip=%s\n", animation.model, animation.frame, animationFrames, animation.clipName );
 	Com_Printf( "Developer drawing: lines=%u labels=%u\n", drawnLines, drawnLabels );
+	devMemory_t memory;
+	Com_DeveloperMemory( &memory );
+	Com_Printf( "Developer asset memory: renderer=%" PRIu64 " blocks=%" PRIu64 " hunk=%d\n",
+		memory.bytes[TAG_RENDERER], memory.blocks[TAG_RENDERER], memory.hunkPermanent );
 }
 
 void DevTools_Init( void ) {

@@ -78,6 +78,26 @@ def layout(data):
     return {'entry_points': entries, 'decorations': decorations, 'member_offsets': member_offsets}
 
 
+def interface_records(data):
+    # Conservative override contract: types, global variables and decorations.
+    # Keep IDs rather than normalizing an ABI graph; #13 can broaden this policy.
+    layout(data)  # Validate the instruction boundaries first.
+    words = struct.unpack('<' + 'I' * (len(data) // 4), data)
+    records, constants, lengths = [], {}, set()
+    offset = 5
+    while offset < len(words):
+        size, op = words[offset] >> 16, words[offset] & 0xffff
+        args = words[offset + 1:offset + size]
+        if 19 <= op <= 39 or op in (71, 72) or op == 59 and args[2] != 7:
+            records.append((op, args))
+        if op == 28:  # OpTypeArray: length is an integer constant ID.
+            lengths.add(args[2])
+        if op in (43, 50):  # OpConstant / OpSpecConstant
+            constants[args[1]] = (op, args)
+        offset += size
+    return records, [constants[key] for key in sorted(lengths)]
+
+
 def write_if_changed(path, data):
     if not path.exists() or path.read_bytes() != data:
         path.write_bytes(data)
@@ -144,7 +164,7 @@ def main():
             replacement = overrides[row['name']]
             # ponytail: exact reflected records, including IDs; richer compatible
             # material interfaces belong to #13, not an unchecked ABI replacement.
-            if layout(replacement) != layout(cached[row['name']]):
+            if layout(replacement) != layout(cached[row['name']]) or interface_records(replacement) != interface_records(cached[row['name']]):
                 parser.error('cooked shader interface differs from the renderer contract: ' + row['name'])
             payload = replacement
             row['cooked_sha256'] = sha256(payload)

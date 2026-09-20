@@ -16,6 +16,17 @@ def wrapped(magic, payload):
     return struct.pack('<8sII32s', magic, 1, len(payload), hashlib.sha256(payload).digest()) + payload
 
 
+def native_local(matrix):
+    translation, rotation, scale = decompose(matrix)
+    rotation_matrix = trs([0, 0, 0], rotation, [1, 1, 1])
+    # Existing IQM JointToMatrix scales rows. Reject the incompatible source
+    # combination until its separately tracked #31 fix; never silently distort it.
+    if any(abs(rotation_matrix[r * 4 + c] * (scale[r] - scale[c])) > max(map(abs, scale)) * 1e-5
+           for r in range(3) for c in range(3)):
+        raise ValueError('rotated nonuniform joint scale is blocked by native IQM bug #31')
+    return translation, rotation, scale
+
+
 def material_bytes(material, image_name):
     pbr = material.get('pbrMetallicRoughness', {})
     color = pbr.get('baseColorFactor', [1, 1, 1, 1])
@@ -172,10 +183,12 @@ def cook(path, name, options, read):
         raise ValueError('the cooked model exceeds the existing 128-joint engine limit')
     for joint in joints:
         parent_bind = joints[joint['parent']]['bind'] if joint['parent'] >= 0 else IDENTITY
-        joint['local'] = decompose(mul(inverse(parent_bind), joint['bind']))
-        joint['inverse'] = inverse(joint['bind'])
+        joint['local'] = native_local(mul(inverse(parent_bind), joint['bind']))
 
     frames, clips = [], []
+    clip_names = set()
+    if len(source.get('animations', [])) > 4096:
+        raise ValueError('native IQM supports at most 4096 clips')
     for animation in source.get('animations', []):
         channels = []
         duration, start = 0, math.inf
@@ -203,7 +216,11 @@ def cook(path, name, options, read):
         count = math.ceil(duration * fps - 1e-5) + 1
         if count > 65536 or len(frames) + count > 65536:
             raise ValueError('cooked clips exceed the 65536-frame tool limit')
-        clips.append((animation.get('name', f'clip{len(clips)}'), len(frames), count, fps, 0))
+        clip_name = animation.get('name', f'clip{len(clips)}')
+        if not clip_name or len(clip_name.encode()) >= 64 or '\0' in clip_name or clip_name in clip_names:
+            raise ValueError('clip names must be unique and fit the native 63-byte label')
+        clip_names.add(clip_name)
+        clips.append((clip_name, len(frames), count, fps, 0))
         for frame in range(count):
             time = start + min(duration, frame / fps)
             overrides = {}
@@ -228,14 +245,12 @@ def cook(path, name, options, read):
     if joints and not frames:
         frames = [rest]
     poses = []
-    frame_worlds = []
     for frame in frames:
         converted = [mul(mul(basis, frame[joint['node']]), inverse_basis) for joint in joints]
-        frame_worlds.append(converted)
         local = []
         for index, joint in enumerate(joints):
             parent = converted[joint['parent']] if joint['parent'] >= 0 else IDENTITY
-            t, r, s = decompose(mul(inverse(parent), converted[index]))
+            t, r, s = native_local(mul(inverse(parent), converted[index]))
             if poses and dot(r, poses[-1][index][3:7]) < 0:
                 r = [-v for v in r]
             local.append([*t, *r, *s])
@@ -334,18 +349,18 @@ def cook(path, name, options, read):
                         if tangent:
                             t = unit(point(transform, tangent[source_index][:3], 0)) + [tangent[source_index][3] * (-1 if mirrored else 1)]
                         else:
-                            t = unit(cross(n, [1, 0, 0] if abs(n[0]) < 0.9 else [0, 1, 0])) + [1]
+                            t = None
                         mapping[key] = len(local_vertices)
                         local_vertices.append((point(transform, positions[source_index]), n, uv, j, w, t, color))
                     converted_face.append(mapping[key])
                 # glTF faces are counter-clockwise; the engine's IQM path uses clockwise.
                 local_faces.append(converted_face if mirrored else [converted_face[0], converted_face[2], converted_face[1]])
             flush()
-    outputs[name + '.iqm'] = pack_iqm(vertices, triangles, meshes, joints, clips, poses, frame_worlds, doc, options)
+    outputs[name + '.iqm'] = pack_iqm(vertices, triangles, meshes, joints, clips, poses, doc, options)
     return outputs
 
 
-def pack_iqm(vertices, triangles, meshes, joints, clips, poses, frame_worlds, doc, options):
+def pack_iqm(vertices, triangles, meshes, joints, clips, poses, doc, options):
     text, names = bytearray(b'\0'), {'': 0}
 
     def name(value):
@@ -353,6 +368,9 @@ def pack_iqm(vertices, triangles, meshes, joints, clips, poses, frame_worlds, do
             names[value] = len(text)
             text.extend(value.encode() + b'\0')
         return names[value]
+
+    def float32(value):
+        return struct.unpack('<f', struct.pack('<f', value))[0]
 
     mesh_rows = [(name(m[0]), name(m[1]), *m[2:]) for m in meshes]
     joint_rows = []
@@ -374,7 +392,8 @@ def pack_iqm(vertices, triangles, meshes, joints, clips, poses, frame_worlds, do
     h[5], h[6] = len(meshes), add(b''.join(struct.pack('<6I', *row) for row in mesh_rows))
     arrays = []
     for kind, element, fmt, components, field in [(0, 7, 'f', 3, 0), (1, 7, 'f', 2, 2),
-                                                  (2, 7, 'f', 3, 1), (3, 7, 'f', 4, 5),
+                                                  (2, 7, 'f', 3, 1),
+                                                  *([(3, 7, 'f', 4, 5)] if all(v[5] is not None for v in vertices) else []),
                                                   (6, 1, 'B', 4, 6),
                                                   *([(4, 1, 'B', 4, 3), (5, 7, 'f', 4, 4)] if joints else [])]:
         values = [value for vertex in vertices for value in vertex[field]]
@@ -397,22 +416,41 @@ def pack_iqm(vertices, triangles, meshes, joints, clips, poses, frame_worlds, do
     h[15], h[16] = len(joints), add(b''.join(pose_rows))
     h[17], h[18], h[19] = len(clips), add(b''.join(clip_rows)), len(poses)
     h[20] = sum(mask.bit_count() for mask in masks)
-    channels = []
+    channels, decoded_frames = [], []
     for frame in poses:
+        matrices = []
         for index, values in enumerate(frame):
+            decoded = list(map(float32, offsets[index]))
             for c in range(10):
                 if masks[index] & (1 << c):
-                    channels.append(max(0, min(65535, round((values[c] - offsets[index][c]) / scales[index][c]))))
+                    encoded = max(0, min(65535, round((values[c] - offsets[index][c]) / scales[index][c])))
+                    channels.append(encoded)
+                    decoded[c] = float32(decoded[c] + float32(encoded * float32(scales[index][c])))
+            matrix = trs(decoded[:3], decoded[3:7], decoded[7:])
+            parent = joints[index]['parent']
+            matrices.append(mul(matrices[parent], matrix) if parent >= 0 else matrix)
+        decoded_frames.append(matrices)
     h[21] = add(struct.pack('<' + 'H' * len(channels), *channels))
+    # Bounds describe the stored, quantized poses and float vertices, not the
+    # higher precision source samples that those records approximate.
+    bind_worlds = []
+    for joint in joints:
+        translation, rotation, scale = [list(map(float32, part)) for part in joint['local']]
+        matrix = trs(translation, rotation, scale)
+        bind_worlds.append(mul(bind_worlds[joint['parent']], matrix) if joint['parent'] >= 0 else matrix)
+    inverse_binds = [inverse(matrix) for matrix in bind_worlds]
     bounds = []
-    for matrices in frame_worlds:
-        skin = [mul(matrix, joint['inverse']) for matrix, joint in zip(matrices, joints)]
+    for matrices in decoded_frames:
+        skin = [mul(matrix, bind) for matrix, bind in zip(matrices, inverse_binds)]
         positions = []
         for vertex in vertices:
-            positions.append([sum(point(skin[j], vertex[0])[c] * w for j, w in zip(vertex[3], vertex[4])) for c in range(3)])
-        lo = [min(v[c] for v in positions) - 0.001 for c in range(3)]
-        hi = [max(v[c] for v in positions) + 0.001 for c in range(3)]
-        bounds.append(struct.pack('<8f', *lo, *hi, max(math.hypot(*v[:2]) for v in positions), max(math.sqrt(dot(v, v)) for v in positions)))
+            position, weights = list(map(float32, vertex[0])), list(map(float32, vertex[4]))
+            positions.append([sum(point(skin[j], position)[c] * w for j, w in zip(vertex[3], weights)) for c in range(3)])
+        # Cover float matrix/skin accumulation and outward rounding of bounds.
+        padding = max(0.001, max(abs(c) for v in positions for c in v) * 1e-5 * (len(joints) + 1))
+        lo = [min(v[c] for v in positions) - padding for c in range(3)]
+        hi = [max(v[c] for v in positions) + padding for c in range(3)]
+        bounds.append(struct.pack('<8f', *lo, *hi, max(math.hypot(*v[:2]) for v in positions) + padding, max(math.sqrt(dot(v, v)) for v in positions) + padding))
     h[22] = add(b''.join(bounds)) if bounds else 0
     source_hash = hashlib.sha256(json.dumps(doc.data, sort_keys=True).encode() + b''.join(doc.buffers) + json.dumps(options, sort_keys=True).encode()).digest()
     metadata = add(struct.pack('<I32s32s', 1, source_hash, bytes(32)))

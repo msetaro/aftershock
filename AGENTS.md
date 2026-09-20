@@ -136,6 +136,8 @@ python3 tests/rhi.py
 python3 tests/render_graph.py
 python3 tests/cook.py
 python3 tests/cook_runtime.py
+python3 tests/cook_runtime.py --modules --output /tmp/cook-modules
+python3 tests/cook_runtime.py
 python3 tests/devtools.py
 python3 tests/devtools_data.py
 python3 tests/dev_entities.py

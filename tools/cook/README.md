@@ -111,3 +111,10 @@ interface records before embedding the payload in the client/module. The current
 conservative comparison includes compiler IDs; broader material interfaces belong
 to #13. Runtime GLSL compilation and shader hot reload are not introduced. Default
 builds keep the accepted 74-shader package unchanged.
+
+Frame bounds are computed from stored quantized poses, including float vertex/bind
+values and accumulation padding. Source tangents are retained when every mesh
+provides them; otherwise that optional IQM array is omitted (material-specific
+tangent generation belongs to #13). Clip names must be unique and at most 63 UTF-8
+bytes. Rotated nonuniform joint scale is explicitly rejected while the existing
+IQM row-scale bug is fixed separately under #31; static transforms remain baked.
