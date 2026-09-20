@@ -76,10 +76,10 @@ mandatory overruns. Radius bounds are 0..65536 world units; owned entity reuse
 resets policy. This is a radius filter on PVS, not an additional spatial index.
 
 For real loopback tests, build client/server with `AFTERSHOCK_DEVTOOLS=ON` and a
-second server with `-DAFTERSHOCK_EXTRA_FLAGS=-DAFTERSHOCK_NET_VERSION=2`:
+second server with `-DAFTERSHOCK_EXTRA_FLAGS=-DAFTERSHOCK_NET_VERSION=3`:
 
 ```
-python3 tests/protocol_runtime.py --client /path/quake3e.x64 --server /path/quake3e.ded.x64 --other-server /path/version2/quake3e.ded.x64
+python3 tests/protocol_runtime.py --client /path/quake3e.x64 --server /path/quake3e.ded.x64 --other-server /path/version3/quake3e.ded.x64
 python3 tests/netcode_runtime.py --client /path/quake3e.x64 --server /path/quake3e.ded.x64 --snapshot-budget 48
 ```
 

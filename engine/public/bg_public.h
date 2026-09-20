@@ -98,7 +98,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define CS_ANIMATION_BODY (CS_PARTICLES+MAX_LOCATIONS)
 #define CS_ANIMATION_RIFLE (CS_ANIMATION_BODY+1)
-#define CS_MAX (CS_ANIMATION_RIFLE+1)
+#define CS_WEAPONS (CS_ANIMATION_RIFLE+1)
+#define CS_MAX (CS_WEAPONS+32)
 
 #if ( CS_MAX ) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
@@ -708,6 +709,10 @@ typedef enum {
 
 #ifdef __cplusplus
 static_assert( int( ET_EVENTS ) + int( EV_TAUNT_PATROL ) < int( ET_WEAPON_STATE ) );
+void BG_ClearWeapons( void );
+bool BG_LoadWeapon( int index, const char *path, char hash[65] );
+const weaponDef_t *BG_WeaponDefinition( int index );
+uint32_t BG_WeaponButtons( const usercmd_t *cmd, int hand, const playerState_t *ps );
 bool BG_WeaponToEntityState( const weaponState_t *state, uint32_t spawn, int owner, int hand, int definition, uint32_t attachments, const float *origin, entityState_t *entity );
 bool BG_EntityStateToWeapon( const entityState_t *entity, weaponState_t *state, uint32_t *spawn );
 bool BG_AnimationToEntityState( const animState_t *state, const float *parameters, int owner, int rig, const float *origin, const float *angles, entityState_t *entity );

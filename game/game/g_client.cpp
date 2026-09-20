@@ -1268,6 +1268,7 @@ server system housekeeping.
 ============
 */
 void ClientDisconnect( int clientNum ) {
+	G_ClearWeaponActor( clientNum );
 	gentity_t *ent;
 	gentity_t *tent;
 	int i;

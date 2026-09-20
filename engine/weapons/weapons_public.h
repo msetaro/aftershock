@@ -88,6 +88,7 @@ static_assert( sizeof( weaponEvent_t ) == 32 && sizeof( weaponProjectile_t ) == 
 
 bool Weapon_StateValid( const weaponState_t *state );
 bool Weapon_Open( const void *data, size_t size, weaponDef_t *definition );
+bool Weapon_LoadFile( const char *path, weaponDef_t *definition, uint8_t hash[32] );
 bool Weapon_Configure( const weaponDef_t *base, uint32_t attachments, weaponDef_t *configured );
 void Weapon_Reset( const weaponDef_t *definition, uint32_t seed, uint32_t time, weaponState_t *state );
 // Definition must come from Open/Configure. Exactly one 20 ms tick; no allocation.

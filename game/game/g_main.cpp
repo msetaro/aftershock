@@ -509,6 +509,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	}
 
 	G_RemapTeamShaders();
+	G_InitWeapons();
 	G_InitAnimation();
 	G_InitRewind( restart );
 }

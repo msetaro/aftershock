@@ -793,6 +793,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// update cg.predictedPlayerState
 	CG_PredictPlayerState();
+	CG_PredictWeapons();
 
 	// decide on third person view
 	cg.renderingThirdPerson = (qboolean)( cg_thirdPerson.integer || ( cg.snap->ps.stats[STAT_HEALTH] <= 0 ) );

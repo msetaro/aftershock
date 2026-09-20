@@ -303,7 +303,7 @@ PROTOCOL
 
 // Aftershock feature/schema negotiation is separate from the retained demo codec.
 #ifndef AFTERSHOCK_NET_VERSION
-#define AFTERSHOCK_NET_VERSION 1
+#define AFTERSHOCK_NET_VERSION 2
 #endif
 qboolean NET_ProtocolCompatible( const char *version, const char *schema );
 

@@ -1,6 +1,34 @@
 #include "q_shared.h"
 #include "../../engine/public/bg_public.h"
 
+static weaponDef_t weaponDefinitions[WEAPON_MAX_DEFINITIONS];
+static int weaponDefinitionCount;
+void BG_ClearWeapons( void ) {
+	memset( weaponDefinitions, 0, sizeof( weaponDefinitions ) );
+	weaponDefinitionCount = 0;
+}
+bool BG_LoadWeapon( int index, const char *path, char hash[65] ) {
+	uint8_t digest[32];
+	if ( index != weaponDefinitionCount || index < 0 || index >= int( WEAPON_MAX_DEFINITIONS ) ||
+		 !Weapon_LoadFile( path, &weaponDefinitions[index], digest ) )
+		return false;
+	Anim_HashString( digest, hash );
+	++weaponDefinitionCount;
+	return true;
+}
+const weaponDef_t *BG_WeaponDefinition( int index ) {
+	return index >= 0 && index < weaponDefinitionCount ? &weaponDefinitions[index] : nullptr;
+}
+uint32_t BG_WeaponButtons( const usercmd_t *cmd, int hand, const playerState_t *ps ) {
+	if ( ps->stats[STAT_HEALTH] <= 0 || ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ||
+		 ( ps->pm_flags & PMF_RESPAWNED ) || ( cmd->buttons & BUTTON_TALK ) )
+		return 0;
+	return ( cmd->buttons & ( hand ? 32768 : BUTTON_ATTACK ) ? WEAPON_FIRE : 0u ) |
+		   ( cmd->buttons & 4096 ? WEAPON_ADS : 0u ) |
+		   ( cmd->buttons & 8192 ? WEAPON_RELOAD : 0u ) |
+		   ( !hand && ( cmd->buttons & 16384 ) ? WEAPON_MELEE : 0u );
+}
+
 // Six full-width integer fields plus eighteen exact 16-bit float values carry
 // the state and spawn counter. No bit-punned NaNs or legacy layout changes.
 bool BG_WeaponToEntityState( const weaponState_t *state, uint32_t spawn, int owner, int hand, int definition,

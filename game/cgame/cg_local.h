@@ -1666,6 +1666,9 @@ void CG_ParticleExplosion( char *animStr, vec3_t origin, vec3_t vel, int duratio
 extern qboolean initparticles;
 int CG_NewParticleArea( int num );
 
+void CG_InitWeapons( void );
+void CG_WeaponSnapshot( const entityState_t *entity );
+void CG_PredictWeapons( void );
 void CG_InitAnimation( void );
 void CG_ShutdownAnimation( void );
 void CG_AnimationSnapshot( const entityState_t *entity );

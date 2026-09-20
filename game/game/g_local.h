@@ -974,6 +974,9 @@ int trap_GeneticParentsAndChildSelection( int numranks, float *ranks, int *paren
 
 void trap_SnapVector( float *v );
 
+void G_InitWeapons( void );
+void G_ClearWeaponActor( int owner );
+void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart );
 void G_InitAnimation( void );
 void G_ShutdownAnimation( void );
 void G_RunAnimation( void );

@@ -1164,6 +1164,10 @@ CG_CheckEvents
 ==============
 */
 void CG_CheckEvents( centity_t *cent ) {
+	if ( cent->currentState.eType == ET_WEAPON_STATE ) {
+		CG_WeaponSnapshot( &cent->currentState );
+		return;
+	}
 	if ( cent->currentState.eType == ET_ANIMATION ) {
 		CG_AnimationSnapshot( &cent->currentState );
 		return;

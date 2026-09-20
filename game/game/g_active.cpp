@@ -954,6 +954,7 @@ void ClientThink_real( gentity_t *ent ) {
 	pm.pmove_fixed = pmove_fixed.integer | client->pers.pmoveFixed;
 	pm.pmove_msec = pmove_msec.integer;
 
+	const int weaponCommandStart = client->ps.commandTime;
 	VectorCopy( client->ps.origin, client->oldOrigin );
 
 #ifdef MISSIONPACK
@@ -973,6 +974,8 @@ void ClientThink_real( gentity_t *ent ) {
 #else
 	Pmove( &pm );
 #endif
+
+	G_WeaponCommand( ent, &pm.cmd, weaponCommandStart );
 
 	// save results of pmove
 	if ( ent->client->ps.eventSequence != oldEventSequence ) {

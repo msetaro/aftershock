@@ -1949,6 +1949,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	// Make sure we have update values (scores)
 	CG_SetConfigValues();
+	CG_InitWeapons();
 	CG_InitAnimation();
 
 	CG_StartMusic();

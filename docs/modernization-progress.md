@@ -116,6 +116,17 @@ selection, command-driven fire/reload/ADS/melee and identical authoritative stat
 received by cgame. This live slice does not yet assert damage, projectiles,
 weapon presentation or target-range tooling; those remain required by #11.
 
+The initial live state slice passes (weapons-live.log): cooked files load through
+FS into fixed storage, g_weapons publishes content hashes, cgame checks matching
+definitions, command ticks publish owner-only hand states, and classic PM_Weapon
+is bypassed only when this opt-in data set is loaded. Feature protocol is now 2;
+the incompatibility gate builds protocol 3. Build and portable probes pass, and
+new sources pass boundary/style/type checks. No fixture or golden changed.
+This slice only advances/logs events; damage, visual/audio effects, switching and
+projectiles are still outstanding. Prediction replays queued inputs but needs
+live acknowledgement comparison evidence and presentation consumers. Next: add
+that evidence, then integrate rewind damage and remaining #11 gameplay.
+
 
 ## #12 implemented feature evidence
 
