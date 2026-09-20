@@ -16,25 +16,83 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current main checkout: issue/31-native-pure. #27 PR #154 merged at
-6a3cb22d54a1c9575adde00c1d415639cde617f3; exact-head build 35538730616,
-regression 35538730598 and merged-tree regression 35539581431 all passed.
-#27 is closed and checked in #25. #28 preparation remains in level-tree.
+Active implementation: issue/28-match-server in the level-tree worktree; the main
+checkout remains on completed issue/31-native-pure. #27 is accepted and closed.
+#31 PR #155 merged as eb9496ee2d28a85a599ea8eb5d7bd35a0bd584d0 after exact-head
+1673aed7 passed build 35540580426 and regression 35540579069. The merge and tested
+head share tree b5789d25c17016be305cd4dd7be941f978675423. Integration regression
+35541625720 is running. #31 closes only after it passes. Modernization is merged
+forward into #28 for preparation; no #28 acceptance/merge precedes this gate.
 
-#28's ordinary native-client connection to sv_pure=1 exposed a native-port defect:
-SV_VerifyPaks_f still demands vm/cgame.qvm and vm/ui.qvm checksums, while statically
-linked clients never reference those files. The valid client is rejected as
-unpure before ClientBegin. This fix belongs only in a separate #31 PR. The new
-filesystem probe fails before any engine edit (native-pure-before.log); first
-commit that test, then retain content-pak checks while replacing obsolete QVM
-slots with explicit native markers. The correction now passes GCC and Clang/libc++
-filesystem tests, and actual Q3/OA clients join and chat on sv_pure=1. The same
-runtime script fails against pre-fix #27 binaries (native-pure-runtime-before.log).
-The probe retains the existing trailing whitespace. Format/boundary/type gates
-pass; unit.txt retains 8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede.
-CI runs the unit probe in both compilers and the real OA connection. Open the
-separate fix PR, require exact-head build/regression and integration, then merge
-forward into #28. No upstream changes.
+The combined native client/server and final image build. Direct runtime and two
+private kind runs pass actual OA native player acceptance with sv_pure=1, timed
+exit, final acknowledged gRPC checkpoint and a fresh Ready replacement. First
+measured match pod (engine/wrapper + results + SDK) uses 44,371,968 bytes working set
+and 0.0039557 vCPU over 20 seconds with one connected idle player: resource
+equivalents 22.54 matches/GB and 252.8/vCPU, not saturation or worst-case capacity.
+A second run measures 45,154,304 bytes / 0.0040864 vCPU. Scheduler request accounting
+must also include Agones' always-running init sidecar; the first added request
+report missed that field (actual CRI usage already included all three containers).
+The reviewed driver counts it and explicitly reserves 32 MiB/limits 128 MiB for
+SDK memory. That final driver/image run is active at /tmp/aftershock-match-kind-reviewed.
+
+Go race/vet, owned package, native lifetime, format, direct actual-client runtime
+and the new CI job lint pass. Review adds shared warm/spec validation with bounded
+map names and immutable final ingest streams, both covered by Go tests. AGENTS
+self-review follows. Open #28's draft PR for exact-head CI while #155 integration
+finishes; no #28 acceptance/merge precedes that dependency gate. After local/hosted
+final gates pass, record density/decisions in #28, ready/merge it and require its
+merged-tree regression before continuing #25.
+
+Do not regenerate accepted fixtures. Do not create upstream PRs. Keep credentials
+and kubeconfig out of artifacts. All cluster tools are verified user-cache binaries;
+only newly created private Docker/Compose/kind resources may be removed.
+
+Combined #28/#155 local acceptance: /tmp/aftershock-match-combined builds both
+binaries; match-runtime-fixed.log passes a real OA native player with sv_pure=1,
+match-end exit and final acknowledged gRPC facts. The image rebuilt successfully
+(match-image-with-pure.log). The full random-cluster driver is running at
+/tmp/aftershock-match-kind-first; its private credentials are not artifacts.
+Go race/vet, owned content reproducibility and formatting pass. The new match-server
+job passes actionlint in isolation. Whole inherited workflow lint reports three
+pre-existing matrix.cc references in non-matrix jobs; this issue leaves those
+unrelated cache keys unchanged. No acceptance is claimed from that full lint run.
+
+## #28 self-review
+
+Scope is one native server per match, its non-root read-only owned-content image,
+validated match-spec launch, opt-in game lifetime, Agones allocation/health/shutdown,
+external gRPC durable facts, Compose/private kind acceptance and measured density.
+The only new engine change is an opt-in POD cvar and integer intermission/exit
+branches; default behavior remains unchanged. The native pure defect is inherited
+only from its separately tested/merged #31 PR #155. No simulation FP, layout,
+allocator, core destructor, OS boundary or accepted golden changes.
+
+Spec fields, file/line/batch sizes, identifiers, paths and offsets have bounds.
+No shell/arbitrary command execution is exposed by match specs. gRPC validates
+per-match tokens; TLS defaults on, explicit plaintext is confined to development
+stub examples. Module password fallback is recorded until #23/provider wiring;
+there is no claim of authenticated provider identity or executable attestation.
+Persistence stays in a separate process. Pending data, ACK cursor and final state
+have fsync/rename and retry/restart controls; startup failure never claims a
+completed match, final streams cannot be extended, and EOF/final-file-size checks
+avoid truncating the last events. EmptyDir loss preserves only previously ACKed
+facts, as designed. The fsync-file stub is explicitly replaced by #30 later.
+
+All images contain only owned sample content and pinned base images; fixtures
+retain exact bytes. Native client acceptance mounts complete public OA test data
+only into private nodes. Fresh homes prevent match ID/cursor reuse. CI-generated
+credentials/kubeconfig are excluded from artifacts. Private random cluster cleanup
+and bounded tool calls cannot target a pre-existing cluster. Local Composer/kind
+failures informed deployment fixes, never passing missing-content runs.
+
+Actual native runtime, two private kind lifecycles, Go race/vet, unit lifetime,
+owned content and formatting pass. Review's final warm-map/final-stream guards and
+SDK request accounting are under the final local run and full exact-head CI; both
+remain required before merge, alongside #155 integration. Density includes all
+three match containers and distinguishes measured light-load equivalents from
+scheduler requests and production capacity. No database driver or simulation-loop
+persistence is added; default engine behavior and all accepted goldens stay fixed.
 
 ## #31 native pure self-review
 
@@ -54,7 +112,112 @@ them. No active sanitizer known-bug/suppression entry exists for this functional
 bug. Local builds, GCC/Clang probes, real Q3/OA clients, unit golden and format/type/
 boundary checks pass. Full hosted gates and merged-tree regression remain required.
 
-## #27 completed checkpoint
+## #28 implementation record before #155 integration
+
+Preparatory branch `issue/28-match-server` is in the level-tree worktree, based
+on #27 PR #154 head b59fd806. The main checkout remains on #27 while its exact-head
+build/regression passed (35538730616/35538730598). PR #154 merged as
+6a3cb22d54a1c9575adde00c1d415639cde617f3 with the same tested tree
+fee7f5d5860f911eb14d00d1f1e0dd23454ad2d5; integration 35539581431 passed. #27 is closed and checked in #25. Superseded 9ed0484b regression was
+cancelled. #26 integration 35538219232 passed; #26 is closed and checked in #25.
+#27 still requires its exact-head gates and merged-tree regression. Merge modernization forward later, never rebase.
+
+Read #28: non-root read-only image, match-spec launch, opt-in match-end exit,
+Agones warm Fleet/allocation/Ready/Health/Shutdown, gRPC log/results sidecar, Compose,
+kind CI and measured density. tests/match_exit.py first proves current behavior:
+normal server reaches the guard marker, and sv_exitOnMatchEnd=1 also reaches it
+instead of quitting. Failing trace is match-exit-before.log; OA bot match reached
+Fraglimit normally, so the negative control tests the requested missing feature.
+The first guard used an engine wait command, which would delay any queued quit.
+The corrected driver leaves the command buffer free and controls only the default
+server through stdin; the opt-in case still fails after the observed match end
+(match-exit-before-async.log). Native opt-in exit now passes both OA and Q3 (match-exit-oa.log and
+match-exit-q3.log). It waits the existing five-second scoreboard interval without
+requiring ready votes, including all-bot matches; default intermission logic is
+unchanged. The cvar is not serverinfo, avoiding default replay changes. Next: owned
+content packaging and lifecycle/results sidecar, then Compose/kind/density gates.
+
+Local Docker Desktop works (20 virtual CPUs, 7936475136 bytes VM RAM). Docker
+Compose v5.3 is installed; Go/protoc/kind are absent from PATH. Use image builds or
+user-cache tools, never local system packages. Do not touch existing containers or
+clusters. Published/server image content must be owned project content only; OA
+packages may be mounted for CI testing, never bake Q3 packages into an image.
+#12 delivered the asynchronous provider seam; identity_public.h explicitly assigns
+its reliable ticket transport to #23. Until that/provider wiring exists, use #28's
+specified per-match password fallback and record it clearly (never claim authenticated
+provider identity). Match persistence stays out of the engine: log events over gRPC
+to the ingest stub, no database driver/credentials in a match pod.
+Primary Agones references read: https://agones.dev/site/docs/installation/ and
+https://agones.dev/site/docs/installation/install-agones/helm/; REST Ready/Health/
+Shutdown endpoints are documented at /site/docs/guides/client-sdks/rest/.
+
+Go lifecycle/result implementation is under local validation. Race-enabled tests
+pass spec validation, checksum-free native arguments, checkpoints, authenticated
+durable append/retry/restart and a real gRPC outage/retry. The distroless image builds
+with only owned content. Compose now starts two owned-content servers with UID/GID 65532, read-only roots,
+separate shared home volumes and a gRPC stub. Both reach timed match completion
+and results.done. Initial attempts exposed deployment details: Compose inline
+configs cannot be injected into a read-only service, Docker Desktop does not share
+host /tmp bind paths, and the engine's existing default-home probe requires an
+already-created /home/nonroot/.q3a. Use token JSON environment for the dev stub and
+precreate the empty image directory; no engine workaround or root permission.
+The shipper also handles a process that exits before creating games.log.
+
+Docker base images are pinned by resolved digest. Private kind cluster
+`aftershock-match28` uses Kubernetes 1.35.8 (Agones 1.60 supported) and localhost UDP
+30960/30961. Go 1.27.1, kind 0.33.0, kubectl 1.35.8 and Helm 4.3.0 are verified tools
+in ~/.cache/aftershock-match-tools, never system installs. Agones 1.60 installed
+with Helm client-side apply (--server-side=false), because Helm 4's typed SSA
+rejects the chart's legacy x-kubernetes-patch metadata. Unique TLS certificates
+are generated by Helm; no pre-generated install certificates. Kubernetes manifest
+and allocation generators are implemented; warm Fleet acceptance is running.
+OpenArena test content is copied only into the private node's /aftershock-ci, not
+into the image. No kind player/result or density acceptance exists yet.
+
+A real-client match acceptance run reached static cgame load but sv_pure=1 rejected
+the valid client before ClientBegin. Root cause: legacy QVM pak slots remain in
+SV_VerifyPaks_f and are absent from native client references. Separate branch
+issue/31-native-pure in the main checkout owns the fix and failing-first checks;
+#31 is reopened, docs/bugs.md records the evidence. PR #155 at 1673aed7
+is open; exact-head build 35540580426 passed and regression 35540579069 is running. Do not disable pure verification
+or put its engine fix here. Wait for that PR/integration, merge forward, then repeat
+#28's client/sidecar/image acceptance. #28 remains incomplete.
+
+The owned-content packaging contract is test-first in tests/match_content.py;
+it fails on the absent tools/match/content.py (match-content-before.log). It checks
+repeatable ZIP bytes, legal/project-only members and unchanged accepted map files.
+
+Owned content now packages repeatably and boots the native dedicated server with
+fs_basegame=aftershock, without any installed paks or filesystem engine changes
+(match-owned-boot.log). MAP/BSP/AAS fixtures remain byte-identical. New Go contract
+tests first fail on absent spec/argument/checkpoint/ingest implementations; they
+require bounded launch fields, explicit passwords, authenticated ingest, contiguous
+acknowledged offsets and durable duplicate handling across stub restart. Go 1.27.1
+is in user cache only; gRPC/protobuf are pinned module dependencies.
+
+Compose acceptance is now explicit: both servers and both shippers exited zero;
+match-compose-fourth-events.jsonl contains final/completed records for match-1 and
+match-2. Logs and copied acknowledgements are in the cache; only the owned Compose
+project/volumes were removed after evidence capture. The private kind warm Fleet
+also reached Ready, allocation applied settings, the timed empty match finalized
+over gRPC, and Agones replaced it with a new Ready server. This preliminary run
+had no player and is not full acceptance. Nested OA symlinks in Docker cp initially
+remained unresolved; the automated driver explicitly stages resolved public pak
+bytes. Never call missing-content checks passed.
+
+The full tests/match_kind.py now creates a random private cluster, generates
+namespace-specific SDK RBAC, requires a real native client, records final durable
+facts and warm replacement, and captures a 20-second CRI resource sample including
+all three match containers. It excludes generated credentials from artifacts and
+labels single-match density conversions as baselines, not saturation guarantees.
+Race tests add incomplete durable-record and exit-before-log controls; final stream
+sealing checks the closed log size to avoid an EOF/done-marker race. Documentation,
+verification commands and the new match-server regression job are wired. This
+full driver is not yet accepted: wait for #155 merged-tree regression, merge it
+forward, rebuild the image and run local/hosted acceptance. #28 self-review remains
+outstanding. #155 build passes; its exact-head regression is finishing runtime.
+
+## #27 checkpoint inherited by #28
 
 Current branch: `issue/27-headless-levels` in the main user checkout.
 #26 PR #153 merged as bc1aff0d16878f3e170dab3c3aa1c1f7e79eee94 after exact-head

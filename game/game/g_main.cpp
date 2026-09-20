@@ -70,6 +70,7 @@ vmCvar_t g_doWarmup;
 vmCvar_t g_restarted;
 vmCvar_t g_log;
 vmCvar_t g_logSync;
+static vmCvar_t g_exitOnMatchEnd;
 vmCvar_t g_blood;
 vmCvar_t g_podiumDist;
 vmCvar_t g_podiumDrop;
@@ -131,6 +132,7 @@ static cvarTable_t gameCvarTable[] = {
 	{ &g_doWarmup, "g_doWarmup", "0", 0, 0, qtrue, qfalse },
 	{ &g_log, "g_log", "games.log", CVAR_ARCHIVE, 0, qfalse, qfalse },
 	{ &g_logSync, "g_logSync", "0", CVAR_ARCHIVE, 0, qfalse, qfalse },
+	{ &g_exitOnMatchEnd, "sv_exitOnMatchEnd", "0", CVAR_TEMP, 0, qfalse, qfalse },
 
 	{ &g_password, "g_password", "", CVAR_USERINFO, 0, qfalse, qfalse },
 
@@ -1026,6 +1028,13 @@ void ExitLevel( void ) {
 	//bot interbreeding
 	BotInterbreedEndMatch();
 
+	if ( g_exitOnMatchEnd.integer ) {
+		G_Printf( "Match complete: exiting server\n" );
+		trap_SendConsoleCommand( EXEC_APPEND, "quit\n" );
+		level.restarted = qtrue;
+		return;
+	}
+
 	// if we are running a tournement map, kick the loser to spectator status,
 	// which will automatically grab the next spectator and restart
 	if ( g_gametype.integer == GT_TOURNAMENT ) {
@@ -1185,6 +1194,12 @@ void CheckIntermissionExit( void ) {
 	int i;
 	gclient_t *cl;
 	int readyMask;
+
+	if ( g_exitOnMatchEnd.integer ) {
+		if ( level.time >= level.intermissiontime + 5000 )
+			ExitLevel();
+		return;
+	}
 
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
 		return;

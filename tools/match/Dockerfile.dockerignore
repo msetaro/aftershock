@@ -1,0 +1,12 @@
+**
+!CMakeLists.txt
+!COPYING.txt
+!cmake/**
+!engine/**
+!game/**
+!third_party/**
+!tools/level/**
+!tools/match/**
+!tests/assets/levels/**
+!tests/golden/levels/**
+**/__pycache__/**
