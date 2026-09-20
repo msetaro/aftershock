@@ -110,6 +110,12 @@ state/events unchanged. The original 1000-shot digest and 67/10-byte snapshot
 sizes are unchanged. Next: cooked-file loading and opt-in gameplay/prediction
 integration; portable replay alone is not live gameplay acceptance.
 
+The real native-game script tests/weapons_runtime.py fails first at absent server
+weapon-definition loading (weapons-live-before.log). It will check cooked data
+selection, command-driven fire/reload/ADS/melee and identical authoritative state
+received by cgame. This live slice does not yet assert damage, projectiles,
+weapon presentation or target-range tooling; those remain required by #11.
+
 
 ## #12 implemented feature evidence
 
