@@ -39,7 +39,7 @@ static VkResult VKAPI_CALL begin_commands( VkCommandBuffer, const VkCommandBuffe
 	exit( vk.cmd->swapchain_image_acquired && vk.cmd->swapchain_image_index == 3 ? 0 : 1 );
 }
 
-static void QDECL frame_error( errorParm_t, const char *format, ... ) {
+static void NORETURN QDECL frame_error( errorParm_t, const char *format, ... ) {
 	va_list args;
 	va_start( args, format );
 	vprintf( format, args );

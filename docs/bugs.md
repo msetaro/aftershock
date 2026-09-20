@@ -52,6 +52,14 @@ pass before #6's frame lifecycle gate is complete.
 No fix belongs in the RHI extraction PR, and no golden changes are anticipated
 for successful rendering.
 
+Test-first ea17a6ba is followed by the single-condition correction: only
+VK_SUCCESS/VK_SUBOPTIMAL_KHR permit acquisition. Timeout/not-ready use the existing
+fatal acquisition-error path; the existing out-of-date retry remains. Both GCC and
+Clang/libc++ now pass all four cases, and fixed-demo video-restart replay retains
+b38004b1. No active known-bug/suppression entry exists for this new defect and none
+is added; no accepted golden or fixture regeneration is warranted. Hosted gates
+and the separate #31 merge are pending.
+
 ## Formatter capacity defects found during #8
 
 Two formatter defects reproduced while inventorying Apple deprecations for #8; fixes will be separate test-first #31 PRs, only in msetaro/aftershock.

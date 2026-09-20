@@ -21,8 +21,8 @@ integration e82eb43b. Add a failing test before changing engine code, retain suc
 and suboptimal behavior, and reject timeout/not-ready before marking an image
 acquired. Gates and self-review must pass before this separate #31 PR merges.
 Then merge modernization into `issue/6-rhi` and resume draft PR #140. Its latest
-checkpoint is 21b44a9c (GPU timestamp scopes), running build 35484267291 and
-regression 35484267381. Uniform, texture, command and timing extraction remain
+checkpoint is 21b44a9c (GPU timestamp scopes); build 35484267291 and
+regression 35484267381 both passed. Uniform, texture, command and timing extraction remain
 unmerged in that draft. Do not retire GL before the full RHI acceptance gates.
 Continue #7 and the remaining #25 sequence after #6 is accepted. All writes/PRs
 stay in msetaro/aftershock.
@@ -46,6 +46,14 @@ Evidence: vulkan-acquire-before.log. Engine code is still unchanged in the first
 test commit. Decision: route these no-image statuses through the existing fatal
 acquisition-error path; preserve success, suboptimal and out-of-date retry handling.
 No fixture/golden changes are needed for valid rendering; no simulation change.
+Test-first commit ea17a6ba records the failure. The engine correction accepts only
+VK_SUCCESS/VK_SUBOPTIMAL_KHR before setting acquired state; other statuses retain
+the existing error/retry paths. GCC and Clang/libc++ all four cases pass (the Clang
+probe's error callback explicitly matches the noreturn attribute). Local video-
+restart replay passes b38004b1. Format/type/boundary checks pass. AGENTS self-review:
+one acquisition condition only; no new engine OS call, allocation, destructor,
+layout or floating-point change. CI integration runs the new test on both unit
+compilers. Current-head hosted gates and merge are next.
 
 ## #6 implementation checkpoint
 

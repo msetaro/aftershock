@@ -30,6 +30,8 @@ def main():
         (args.output / (name + '.log')).write_text(log)
         if outcome.returncode != expected:
             failures.append(f'{name}: exit {outcome.returncode}, expected {expected}: {log.strip()}')
+        elif expected == 42 and f'vkAcquireNextImageKHR returned VK_{name.upper().replace("-", "_")}' not in log:
+            failures.append(f'{name}: incorrect error diagnostic: {log.strip()}')
     if failures:
         raise SystemExit('\n'.join(failures))
     print('PASS: valid/suboptimal acquisition records commands; timeout/not-ready reports an error before acquisition')
