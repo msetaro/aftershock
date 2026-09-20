@@ -23,9 +23,9 @@ Geometry/view selection and frame inputs are now frontend-owned; frontend header
 have no GPU SDK dependency. Explicit GPU failure statuses now return before the
 frontend error callback; texture conversion/scratch is frontend-owned. Device
 configuration and host services now use explicit plain records; the backend no
-longer includes frontend headers or reads renderer globals/cvar pointers. Finish
-hosted window-lifecycle acceptance, then hash-verified frontend moves, OpenGL
-retirement and final gates. Pipeline-cache acceptance is complete. Configuration acceptance is complete. Acquisition fix PR #141 merged separately as 61401e17 after
+longer includes frontend headers or reads renderer globals/cvar pointers. Hosted
+window-lifecycle acceptance passed. Validate the hash-verified frontend move, then
+retire OpenGL and finish acceptance gates. Pipeline-cache acceptance is complete. Configuration acceptance is complete. Acquisition fix PR #141 merged separately as 61401e17 after
 full build 35484485400/regression 35484485349 and self-review; it has now been
 merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
 follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
@@ -61,6 +61,18 @@ compilers. Head 7382d9af passed build 35484485400 and regression 35484485349;
 PR #141 merged 61401e17. Integration regression 35484895454 passed.
 
 ## #6 implementation checkpoint
+
+Frontend directory checkpoint: hosted lifecycle head 55b3d261 passes full build
+35489948399 and the regression runtime job, including OpenArena window resize,
+hide/restore, fixed replay and pipeline-cache restoration. The remaining full
+regression status is being verified. Moved 26 frontend files from renderervk to
+engine/render without changing a byte; docs/rhi-frontend-move.json records the
+source commit, both paths and each verified SHA-256. CMake/probe paths, lifetime
+coverage and ownership docs now follow the split. GCC/Clang RHI controls, image
+acquisition, format/type/boundary checks and Q3 replay/restart/cache all pass,
+retaining b38004b1. Evidence: rhi-move-{gcc,clang,acquire,demo}.log in the persistent
+cache. Lifetime analysis and hosted gates are running. No OpenGL deletion is
+included in this checkpoint.
 
 The first working slice moves uniform uploads out of `tr_shade.cpp` into the
 backend through `engine/rhi/rhi_public.h`, without changing uniform generation,

@@ -30,7 +30,7 @@ def main():
     paths = deps.replace('\\\n', ' ').split()[1:]
     if set(paths) != {'tests/probes/rhi_stub.cpp', 'tests/probes/../../engine/rhi/rhi_public.h'}:
         raise SystemExit('FAIL: RHI stub acquired a private dependency: ' + deps)
-    for header in ('engine/renderervk/tr_local.h', 'engine/renderercommon/tr_public.h',
+    for header in ('engine/render/tr_local.h', 'engine/renderercommon/tr_public.h',
                    'engine/client/client_public.h'):
         deps = run([*shlex.split(args.cxx), '-std=c++20', '-DUSE_VULKAN_API', '-MM',
                     '-x', 'c++', header], capture_output=True, text=True).stdout

@@ -25,7 +25,9 @@ font and client ABI declarations in `renderercommon`; leave only Vulkan backend
 implementation in `renderervk`. Remove the legacy OpenGL `engine/renderer` after
 the Vulkan extraction passes its gates. Update the explicit CMake source lists,
 subsystem ownership and include checks with the moves. Do not combine these moves
-with arithmetic or material changes.
+with arithmetic or material changes. The extraction now has 26 unchanged frontend
+files in `engine/render`; [move evidence](../rhi-frontend-move.json) records every
+source/destination hash against commit 55b3d261.
 
 ## Small public contract
 

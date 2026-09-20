@@ -67,8 +67,9 @@ every wire and file-format struct; issue updated with what changed and what was 
 - `engine/qcommon` shared core: cvars, commands, filesystem, packet protocols, collision (cm_*)
 - `engine/server`, `engine/client` server and client
 - `engine/botlib` bot AI library
-- `engine/renderercommon`, `engine/renderer` (OpenGL1, legacy), `engine/renderervk` (Vulkan, reference
-  renderer); shared image/font and renderer ABI code is in renderercommon
+- `engine/render` portable scene/material/geometry frontend; `engine/rhi` GPU contract
+- `engine/renderervk` Vulkan backend; `engine/renderer` legacy OpenGL1 (pending retirement)
+- `engine/renderercommon` shared image/font routines and client renderer ABI
 - `engine/platform/unix`, `engine/platform/win32`, `engine/platform/sdl` platform layers
 - `engine/platform/asm` hand-written assembly; symbols it references carry `Q_EXTERN_C`
 - `engine/sound` sound codecs and mixing; platform owns device backends

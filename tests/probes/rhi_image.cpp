@@ -1,5 +1,5 @@
 // Texture conversion is frontend scratch; release it before reporting GPU errors.
-#include "../../engine/renderervk/tr_image.cpp"
+#include "../../engine/render/tr_image.cpp"
 #include <assert.h>
 
 refimport_t ri;

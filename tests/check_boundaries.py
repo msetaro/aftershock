@@ -101,6 +101,7 @@ def selfcheck():
     assert check(Path('game/game/probe.cpp'), '#include "../../engine/client/client.h"')
     assert not check(core, '#include "../sound/snd_public.h"')
     assert check(core, '#include <vulkan/vulkan.h>')
+    assert check(Path('engine/render/probe.cpp'), '#include <vulkan/vulkan.h>')
     assert check(Path('engine/renderercommon/probe.h'), '#include "../../third_party/vulkan/vulkan.h"')
     assert not check(Path('engine/renderervk/probe.cpp'), '#include "../../third_party/vulkan/vulkan.h"')
     assert not check(Path('engine/platform/probe.cpp'), '#include <vulkan/vulkan.h>')

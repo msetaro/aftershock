@@ -1,6 +1,6 @@
 // Stop the real frame path at command recording; no GPU or window is created.
 #include "../../engine/renderervk/vk.cpp"
-#include "../../engine/renderervk/tr_init.cpp"
+#include "../../engine/render/tr_init.cpp"
 
 backEndState_t backEnd;
 shaderCommands_t tess;
