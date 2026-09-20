@@ -59,7 +59,7 @@ Clang/libc++ now pass all four cases, and fixed-demo video-restart replay retain
 b38004b1. No active known-bug/suppression entry exists for this new defect and none
 is added; no accepted golden or fixture regeneration is warranted. PR #141 merged as 61401e17 after head 7382d9af passed full build 35484485400
 and regression 35484485349, with AGENTS self-review. The fix enters #6 through
-that integration merge; its merged-tree regression is pending.
+that integration merge; merged-tree regression 35484895454 passed.
 
 ## Formatter capacity defects found during #8
 

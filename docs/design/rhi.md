@@ -125,7 +125,8 @@ Phase two may add pass declarations for inputs/outputs, transient lifetimes and
 barriers. Begin by reproducing the established pass sequence exactly. Allocation
 aliasing, pass reordering, new rendering features and shader optimization each
 need separate measurements and replay verification; they are not prerequisites
-for the thin RHI boundary.
+for the thin RHI boundary. This remaining scope is tracked in issue #142, after
+#7 and before Wave 2 renderer work.
 
 ## Implementation gates
 
@@ -164,3 +165,23 @@ the next command buffer. No query-result WAIT flag or additional fence is used.
 Only the queue's valid timestamp bits participate in wraparound differences.
 `tests/demo.py --measure-gpu` uses separate real-clock replays; software-driver
 queries under the frame gate's faketime environment are not timing measurements.
+
+## Extraction acceptance measurements
+
+[Recorded measurements](../rhi-measurements.json) retain executable hashes and
+five alternating fresh-process replays per map/build on local Mesa 26.0.8. The
+real-clock client measurements include startup, asset loading and software-driver
+CPU work; they are not renderer-only CPU timings or an FPS benchmark. Median
+wall time is 1.43 -> 1.44 seconds for q3dm17 and 1.40 -> 1.44 for q3dm7. Median
+peak RSS is 181,628 -> 180,984 KiB and 215,920 -> 215,748 KiB respectively.
+Final completed-frame main-pass GPU samples have medians 4.053 and 4.913 ms; the
+pre-extraction executable has no GPU scope, so there is no before/after GPU claim.
+
+The retained executable's ELF sections change by +13,832 text, +80 data and
++8,480 BSS bytes. These are whole-client differences, not per-frame allocation.
+The query pools add 128 timestamp slots; frame slots and upload/descriptor pool
+capacities remain unchanged. Existing fixed-clock frame checks separately retain
+every accepted Vulkan pixel hash. OpenGL rows remain archived in their original
+golden files after retirement. Pipeline-cache storage is bounded to 16 MiB on
+disk/readback; this Mesa driver exports only a 32-byte native cache header, so
+persistence is tested without claiming reduced shader compilation time.

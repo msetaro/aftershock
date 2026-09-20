@@ -16,19 +16,17 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Continue #6 draft PR #140 on `issue/6-rhi`. Uploads, textures, wait statuses,
-initial commands, GPU scopes, pipeline descriptions, platform imports, bindings
-and transforms are extracted. Built-in pipeline selection is frontend-owned.
-Geometry/view selection and frame inputs are now frontend-owned; frontend headers
-have no GPU SDK dependency. Explicit GPU failure statuses now return before the
-frontend error callback; texture conversion/scratch is frontend-owned. Device
-configuration and host services now use explicit plain records; the backend no
-longer includes frontend headers or reads renderer globals/cvar pointers. Hosted
-window-lifecycle acceptance passed. The hash-verified frontend move is committed
-as e5777895. Validate OpenGL retirement and finish acceptance gates. Pipeline-cache acceptance is complete. Configuration acceptance is complete. Acquisition fix PR #141 merged separately as 61401e17 after
-full build 35484485400/regression 35484485349 and self-review; it has now been
-merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
-follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
+Finish current-head hosted gates for #6 draft PR #140 on `issue/6-rhi`, mark it
+ready after the final self-review, merge with a merge commit, then verify the
+merged-tree regression. The complete RHI boundary, offline shaders, pipeline
+cache and lifecycle checks are implemented. The 26-file frontend move is
+hash-verified in e5777895; OpenGL retirement is 935ad6f3. Local static/module
+replay, lifetime, tidy, format/type/boundary and resource/performance acceptance
+pass. No accepted fixture, frame golden or shader blob was regenerated.
+
+The separately tested acquisition fix PR #141 merged as 61401e17 and entered
+this branch through an integration merge; merged-tree regression 35484895454
+passed. After #140, continue #7, render-graph phase two #142, then the remaining
 #25 sequence. All writes stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
@@ -61,6 +59,38 @@ compilers. Head 7382d9af passed build 35484485400 and regression 35484485349;
 PR #141 merged 61401e17. Integration regression 35484895454 passed.
 
 ## #6 implementation checkpoint
+
+Self-review complete for the final extraction: changes match #6; the acquisition
+fix remains the separate #31 PR #141. Frontend/backend headers are independent,
+OS calls stay platform/filesystem-owned, lifetime checks cover static/modules,
+wire/file assertions remain, and no simulation FP edits or per-frame allocations
+were introduced. Original fixed shaders and accepted goldens are byte-identical.
+Module ABI is 10; old modules require rebuilding. Device-loss status is exposed
+while retaining the old continuation policy, not adding automatic recovery.
+The private-Xvfb lifecycle gate tests resize and hide/restore, not desktop-WM
+iconification. Mesa's exported native cache is 32 bytes, so no compilation-speed
+benefit is claimed. Full current-head hosted gates remain required before merge.
+
+Roadmap bookkeeping: #2/#4/#5 were still open despite merged PRs #50/#65/#66.
+Confirmed their merged-tree runs 34937376623/34942323875/34949976994 passed and
+closed those completed issues without repeating implementation. #25 now reflects
+those completions and #8, and carries phase-two #142 after #7.
+
+Final local acceptance: static/module lifetime analysis passes 549 configurations
+(113 source paths), tidy 572. Five alternating fresh-process real-clock replays
+per map/build are recorded in docs/rhi-measurements.json, with executable hashes.
+Median whole-client wall time (including startup/software-driver work) is
+1.43 -> 1.44 seconds q3dm17 and 1.40 -> 1.44 q3dm7; peak RSS medians are
+181,628 -> 180,984 KiB and 215,920 -> 215,748 KiB. Final main GPU scope medians
+are 4.053/4.913 ms; no baseline GPU scope exists. ELF text/data/BSS deltas are
++13,832/+80/+8,480 bytes. No performance improvement is claimed. Cache logs and
+script: rhi-final-measure/, rhi-final-measure.py and rhi-final-measure.log.
+
+The frontend move e5777895 passes build 35490205641/regression 35490205499.
+Retirement 935ad6f3 passes full build 35490399717; regression 35490399721 is running.
+No accepted golden/fixture/shader bytes changed. Phase-two render-pass graph scope
+is explicitly carried by #142, scheduled after #7 and before Wave 2; #6 closes
+only the thin-RHI extraction acceptance defined in its done-when criteria.
 
 OpenGL retirement checkpoint (working tree): deleted engine/renderer and its
 CMake source list/build selection. Vulkan remains static by default with optional
