@@ -636,6 +636,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 	}
 
 	mod->type = MOD_IQM;
+	mod->dataSize = size;
 	iqmData = owned ? (iqmData_t *)ri.Malloc( size ) : (iqmData_t *)ri.Hunk_Alloc( size, h_low );
 	if ( owned )
 		Com_Memset( iqmData, 0, size );

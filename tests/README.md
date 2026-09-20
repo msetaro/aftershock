@@ -228,7 +228,9 @@ The driver checks the positive case and rejects a duplicate-include control.
 statics and temporaries in active Linux engine code and included engine headers,
 using static and module configurations. It requires clang-query (clang-tools in CI),
 Clang and the client build headers. `--clang-query` selects a versioned executable;
-`--output` retains the compile database and AST evidence. Its controls reject seven
+`--output` retains the full compile database and per-batch AST evidence. Analysis
+runs at most 16 compilation commands per process, retaining every configuration
+while bounding clang-query memory (including the game amalgamation). Its controls reject seven
 owning objects (including aliases, inheritance, arrays and std::string), and accept
 trivial/defaulted destructors and pointers. Platform/vendor directories are excluded;
 inactive preprocessor branches remain part of self-review. See plan section 11 for

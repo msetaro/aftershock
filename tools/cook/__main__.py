@@ -151,9 +151,14 @@ def snapshot(project, output):
     definition = json.loads(project.read_bytes())
     for asset in definition['assets']:
         paths.add(below(project.parent, asset['source']))
-        manifest = json.loads(below(output, asset['name'] + '.manifest.json').read_bytes())
-        paths.update(below(project.parent, item['path']) for item in manifest['inputs'])
-        paths.update(below(output, item['path']) for item in manifest['outputs'])
+        manifest_path = below(output, asset['name'] + '.manifest.json')
+        paths.add(manifest_path)
+        try:
+            manifest = json.loads(manifest_path.read_bytes())
+            paths.update(below(project.parent, item['path']) for item in manifest['inputs'])
+            paths.update(below(output, item['path']) for item in manifest['outputs'])
+        except (OSError, ValueError, KeyError, TypeError):
+            pass  # The next cook creates or repairs the cached manifest.
     result = []
     for path in sorted(paths):
         try:
@@ -176,10 +181,14 @@ def main():
     error_message = None
     while True:
         try:
-            if previous is None or snapshot(args.project, args.output) != previous:
+            before = snapshot(args.project, args.output)
+            if previous is None or before != previous:
                 result = cook(args.project, args.output)
+                after = snapshot(args.project, args.output)
+                # A cook may discover dependencies or overlap an edit. Verify
+                # again until a complete pass observes a stable set of files.
+                previous = after if before == after else None
                 print(json.dumps(result, sort_keys=True), flush=True)
-                previous = snapshot(args.project, args.output)
                 error_message = None
         except (OSError, ValueError, KeyError, IndexError, TypeError) as error:
             if str(error) != error_message:

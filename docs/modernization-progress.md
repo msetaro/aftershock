@@ -16,27 +16,26 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#142 PR #144 merged as 6a9e755b after exact head ffcb072c passed build
-35498994504 and regression 35498994503, with the committed self-review. The merge
-tree equals the tested tree (0273866798e91a64d27002e5499353438d6a6769).
-Merged-tree regression 35499764754 passed. #142 is closed and #25 is updated.
+#9 PR #145 merged as c195f798 after exact-head build 35507057165/regression
+35507057162; merged-tree regression 35507482742 passed. #9 is closed and checked
+in #25. Accounting PR #146 is open at 04545c1e, with build 35508144036 and
+regression 35508144077 running. Require those exact-head gates and its committed
+self-review before readiness/merge, then require its merged-tree regression.
 
-Current test-preparation branch is `issue/31-iqm-joint-scale`, in isolated
-worktree /tmp/aftershock-31-iqm-joint-scale. #9 PR #145 has merged as c195f798;
-its integration regression 35507482742 is running. The separate accounting bug
-is being fixed on issue/31-iqm-accounting. This branch has no engine edits.
+Current worktree /tmp/aftershock-31-iqm-joint-scale is on
+issue/31-iqm-joint-scale. Failing tests 13f999df/e2cd9e50 precede its matrix fix.
+The accounting branch is merged forward to share accepted #9 and its independent
+metadata fix; no history is rewritten. Prepare the separate scale fix and local
+verification while #146 runs. This replaces the earlier tests-only preparation
+checkpoint; its PR still must not open until #146 merges and passes integration,
+so the eventual diff contains only the scale bug. Merge modernization forward at
+that point. No upstream PRs.
 
-The production JointToMatrix check requires scale-before-rotation around all
-three axes, signed/nonuniform/unit scales, and inverse round trips. Before any
-fix it fails its first transformed-point assertion (iqm-scale-before.log).
-Commit this test first. After the accounting PR merges and passes its integration
-gate, merge modernization forward here, fix column scaling, remove the cooker's
-explicit diagnostic, and prove native/glTF pose agreement. No upstream PRs.
-
-Read #9 and the preparation notes in the persistent modernization cache
-(issue9-preparation.md). Trace native model/texture ownership before implementation.
-The first cooker feature test failed before implementation and now passes. No accepted fixtures/goldens or finished historical test evidence may
-change. Continue the #25 roadmap after #9. All writes stay in msetaro/aftershock.
+Next: change JointToMatrix to scale columns, remove the cooker's temporary
+rejection, and verify analytical native/glTF pose parity plus unchanged accepted
+demo hashes. Add the permanent command to CI/AGENTS/README, document the fix and
+self-review. After both #31 bugs are accepted, continue #10 and the remaining #25
+roadmap. Never regenerate accepted fixtures for these fixes.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -3102,36 +3101,85 @@ which was still running at this checkpoint. Superseded regression 35505208258
 was cancelled after its other jobs passed, to prioritize the final head. These
 earlier-head results do not replace the required final exact-head workflows.
 
-## #31 IQM accounting test-first checkpoint
+Final-head Clang CI found a source-watcher race (35506318169 / job106066633883):
+a source edit immediately after cooking could be captured by the post-cook
+snapshot without being built, leaving the published revision unchanged. A
+deterministic interleaved-edit check now exercises the real cooker/watcher loop
+before fixing it. Preserve the one-second live gate. Hosted lifetime checks at
+70a31804 were again terminated with exit 143; batch the same AST coverage to
+bound clang-query's retained translation-unit memory (source verified against
+LLVM 18 clang-query/tool/ClangQuery.cpp). Final exact-head gates must rerun.
 
-The isolated production-loader probe fails before any engine edit at
-`model.dataSize == (int)allocationSize` (iqm-accounting-before.log). It also
-requires exact current owned-block accounting after twelve replacements, so the
-fix must assign rather than accumulate. No golden or sanitizer suppression is
-involved. Commit the failing test now; implementation waits for #9 acceptance.
+The interleaved-edit test fails before the watcher fix with `watcher lost the
+edit made during cooking` (cook-watch-race-before.log). This test is committed
+before the implementation. Eight-path lifetime batches passed all 1,124 commands
+in 5:01, but peaked at 7,340,232 KiB RSS; reduce to one source path per process
+for hosted-runner headroom. The unbatched measurement reached 20,712,276 KiB
+before its intentional 180-second measurement timeout; that run is not a pass.
 
-#9 follow-up checkpoint: the interleaved-edit test failed at 03268cd1 and passes
-with the watcher fix at 3eb19288 under GCC/Clang. The live texture edit remains
-0.605985 seconds / 2,721 changed pixels, with repeat/idle/restart checks passing.
-The lifetime driver now batches 16 compilation commands rather than paths because
-game/module.cpp has 412 configurations. All 1,124 commands / 120 paths and controls
-pass locally in 5:02 at 448,048 KiB peak RSS; the normalized compilation database
-is unchanged. Exact-head build 35507057165 passed. Regression 35507057162 has
-passed all completed required jobs (including runtime/tidy); hosted lifetimes
-remains pending. Issue #9 records the evidence; do not start this engine fix yet.
+The watcher now compares snapshots around the complete cook and keeps a baseline
+only after a stable pass. Startup/changed manifests discover dependencies, then
+receive a verification pass; edits during cooking are not silently accepted.
+The deterministic test fails at 03268cd1 before implementation and passes after;
+GCC and Clang/libc++ full cooker checks pass, and the live texture/reload/restart
+check still passes within one second (cook-watch-runtime.log and latency.txt).
 
-## #31 rotated-scale test-first checkpoint
+Lifetime batching is by 16 compilation commands, not source paths: game/module.cpp
+alone has 412 configurations. Every original command remains in the full evidence
+database and is checked once through the batched database. Positive and seven-object
+negative controls remain mandatory. The new full local measurement is running
+(cook-lifetimes-commands.log); exact-head hosted coverage remains required.
+Build 35506318131 at 5ffaabc2 passed. Regression 35506318169 was cancelled after
+its Clang watcher failure, with all other completed required jobs passing and
+lifetime analysis still pending; it is not an accepted final gate.
+Self-review of this follow-up: only offline watcher correctness and analysis
+resource use changed; native code, accepted fixtures and hashes are untouched.
 
-`python3 tests/iqm_scale.py` compiles the production matrix functions with UBSan
-and checks analytical scale-then-rotate points on all axes plus inverse products.
-It fails before implementation on the first nonuniform rotated point. No loader
-input or golden regeneration is involved. The actual fix and cooker parity check
-wait for the separate accounting PR; do not combine the two engine bug fixes.
+## #9 accepted tree and #31 accounting preparation
 
-The scale test now also cooks the existing owned two-joint triangle with the
-tip scaled (2,1,1) and animated through 90 degrees, then checks native final
-vertices against independent analytical positions after the engine basis change.
-This reuses the fixture generator and production loader/pose functions, with no
-accepted artifact changes. The expanded pre-fix run still fails on the first
-matrix point assertion (iqm-scale-parity-before.log). Engine/cooker fixes remain
-unapplied and separate from accounting.
+#145 merged as c195f798; final build 35507057165/regression 35507057162 passed.
+The final local lifetime run covered all 1,124 commands / 120 source paths and
+positive/seven-object negative controls in 5:02 at 448,048 KiB peak RSS. The
+normalized full compile database is identical. One-path batching had still used
+6,719,332 KiB because game/module.cpp has 412 configurations; 16-command batches
+bound that case too. Live watched texture latency is 0.605985 seconds with 2,721
+changed pixels; repeated replacements/idle/restart and accepted fixed-demo hashes
+remain passing. No accepted fixture/golden was regenerated.
+
+Accounting test-first 85563345 fails before the fix at
+`model.dataSize == (int)allocationSize`. Twelve owned replacements also require
+exact current block accounting, rejecting an accumulating fix. Registration and
+reload both route through R_LoadIQM; its one native block needs one assignment.
+This bug is not a sanitizer finding, so it has no known-bugs/suppression entry.
+
+## #31 accounting fix and local verification
+
+R_LoadIQM assigns model_t::dataSize to its native block size. Test-first 85563345
+failed before the assignment; GCC and Clang/libc++ complete cooker tests now pass,
+including registration and twelve owned replacements (no accumulating count).
+Format passes. Fixed Quake 3 demos replay twice per map and preserve projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4 and both committed
+fixture hashes. Logs: iqm-accounting-{gcc,clang,format,demo}.log. No golden was
+regenerated, and this non-sanitizer bug has no known-bugs/suppression entry.
+
+Self-review: this #31 change is one metadata assignment in the shared loader.
+No geometry/simulation arithmetic, allocation, OS call, destructor, ABI/layout or
+unrelated refactoring changes. Initial registration and in-place replacement share
+the corrected path. Full exact-head hosted build/regression still required for the
+PR, after #9 integration regression 35507482742 passes. The rotated-scale test is
+committed separately as 13f999df and fails before any matrix change.
+
+#9 merged-tree regression 35507482742 passed at c195f798. The accounting PR may
+now open; its own exact-head build/regression and post-merge regression remain
+required. The main worktree is now on issue/31-iqm-accounting.
+
+## #31 rotated-scale test-first preparation
+
+13f999df tests production scale-before-rotation for all axes and signed/nonuniform/
+unit scales plus inverse products. e2cd9e50 extends it through the owned two-joint
+glTF triangle and native IQM poses. Its tip uses T(0,1,0), Rz(90), S(2,1,1) and
+inverse bind T(0,-1,0); the engine-basis final vertices must be (0,0,0), (-1,0,3),
+(-1,0,-1). This is an analytical expectation, not a regenerated accepted golden.
+Both pre-fix runs fail at the first matrix point assertion. Evidence:
+iqm-scale-before.log and iqm-scale-parity-before.log. No engine scale change has
+been applied at this test/merge checkpoint.

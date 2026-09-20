@@ -891,7 +891,7 @@ checks with both GCC and Clang/libc++ under ASan/UBSan.
 The PrintMsg fix merged separately as PR #128. The two unused native parser diagnostics
 are a separate #8 deletion. All work remains in msetaro/aftershock.
 
-## Open: IQM model allocation accounting (#31, discovered during #9)
+## Fixed: IQM model allocation accounting (#31, discovered during #9)
 
 `R_LoadIQM` allocates its runtime block without updating `model_t::dataSize`.
 `modellist` and the developer model inspector consequently report zero bytes for
@@ -904,6 +904,15 @@ The line reports `0 : (0) models/character.iqm` and the inspector reports 62 fra
 engine/render/tr_model.cpp's R_Modellist_f. Evidence is in cook-ui-check.log and
 /tmp/aftershock-cook-runtime-test/client.log. Add a failing allocation/accounting
 check and fix in its own #31 PR after #9 supplies the owned fixture.
+
+Fixed on issue/31-iqm-accounting after #9 merge c195f798. Test-first 85563345
+compares the native allocator request with model_t::dataSize and fails at its
+initial zero value. R_LoadIQM now assigns its one block's size for both hunk and
+owned storage; twelve replacements verify that accounting never accumulates.
+`python3 tests/cook.py` passes with GCC and Clang/libc++; the fixed Quake 3 demo
+projection remains 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+No golden changes are needed because only reporting metadata changes. This is
+not a sanitizer finding and has no expected-failure or UBSan suppression entry.
 
 ## Open: IQM rotated nonuniform joint scale (#31, discovered during #9)
 
