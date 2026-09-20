@@ -163,6 +163,7 @@ python3 tests/vulkan_acquire.py
 python3 tests/level.py
 python3 tests/level.py --compile
 python3 tests/level_runtime.py --client CLIENT --server SERVER
+python3 tests/level_validate.py --client CLIENT --server SERVER
 python3 tests/check_format.py
 python3 tests/check_types.py
 python3 tests/check_tidy.py

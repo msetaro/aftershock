@@ -5,6 +5,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -22,6 +23,11 @@ parser.add_argument('--output',type=Path,default=Path('/tmp/aftershock-level-val
 args = parser.parse_args()
 args.output = args.output.resolve()
 args.output.mkdir(parents=True,exist_ok=True)
+sys.path.insert(0,str(ROOT/'tools/level'))
+from headless import stuck_bots
+assert stuck_bots({0:[((0,0,0),True)]*10})[0]['client']==0
+assert stuck_bots({0:[((i*32,0,0),True) for i in range(10)]})==[]
+assert stuck_bots({0:[((0,0,0),True)]*5+[((0,0,0),False)]+[((0,0,0),True)]*4})==[]
 fixture = ROOT/'tests/assets/levels'
 source = json.loads((fixture/'two_lane.json').read_text())
 source['viewpoints'] = [
@@ -79,4 +85,16 @@ with tempfile.TemporaryDirectory(prefix='aftershock-validation-test-') as tempor
     bad = copy.deepcopy(source)
     bad['viewpoints'][0]['origin'] = [10000,0,96]
     validate(bad,'outside-view','viewpoint outside')
+    # A structural leak is valid MAP syntax with the west room's ceiling omitted.
+    text = (ROOT/'tests/golden/levels/two_lane.map').read_text()
+    brushes = re.findall(r'\{\n(?:\([^\n]+\n){6}\}\n',text)
+    assert len(brushes)>6
+    leak = project/'leak.map'
+    leak.write_text(text.replace(brushes[1],'',1))
+    result = subprocess.run([sys.executable,str(ROOT/'tools/level'),'validate',str(leak),
+                             '--output',str(args.output/'leak'),'--client',str(args.client.resolve()),
+                             '--server',str(args.server.resolve()),'--content',args.content,'--data',str(args.data.resolve())],
+                            cwd=ROOT,capture_output=True,text=True)
+    report = json.loads(result.stdout)
+    assert result.returncode and report['status']=='failed' and any('leak' in e.lower() for e in report['errors']), report
 print('PASS: one-command headless reports, deterministic named/fly-through PNGs, bot movement and design failures')

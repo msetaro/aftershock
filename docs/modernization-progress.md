@@ -16,39 +16,52 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Preparatory branch `issue/27-headless-levels` is in the level-tree worktree, based
-on #26 PR #153 head 5f67dbf4. The main user checkout stays on #26 while its full
-CI runs (build 35537284408, regression 35537284293). #151/#11 integration is
-35537127266. Do not accept/merge #27 before those prerequisites and #26's own
-merged-tree gate pass. Merge modernization forward later; never rewrite history.
+Current branch: `issue/27-headless-levels` (temporarily in the level-tree worktree).
+#26 PR #153 merged as bc1aff0d16878f3e170dab3c3aa1c1f7e79eee94 after exact-head
+5f67dbf4 passed build 35537284408 and regression 35537284293. The merge and tested
+head have the same tree cf77aa54884eef4140f015584e6a30fabfecb561. Its merged-tree
+regression 35538219232 is running; close/check #26 only after it passes. #11/#151
+are closed and #11 is checked in #25 after integration 35537127266 passed.
+Merge modernization forward here without rewriting history, then return this branch
+to the main user checkout. Continue #27 -> #28 then the rest of #25.
 
-Read #27/#28. tests/level_validate.py is test-first and fails because the validate
-subcommand is absent (level-validate-before.log). It requires a stable JSON/text
-report, named and automatic fly-through PNGs repeated byte-for-byte, real draw-call
-and triangle metrics, structure/lightmap/AAS counts, bot movement samples and clear
-unreachable/outside-camera failures. A raw MAP leak control is still to add.
-The first command implementation passes locally on Q3: two named views and 15
-automatic passage/room samples reproduce byte-for-byte; 240 authoritative bot
-position samples show 16 kills, 25 pickups and no ten-second inactivity window.
-Vulkan frame draw counts are collected at actual draw submission; existing r_speeds
-provides triangle counts. Entity samples reuse the existing read-only game tools
-API, now initialized in development dedicated servers too. A new development-only
-spectator camera sets an exact fixed eye pose; existing setviewpos and TeleportPlayer
-are unchanged because teleport launch velocity would drift between samples.
-Build: /tmp/aftershock-level-validation-build. Logs: level-validate-first.log and
-level-camera-probe.log in the modernization cache. The latter reports exactly
-(-160,0,96) across separated frames and 18 draw calls.
-Next add the deliberate raw-MAP leak control, improve automatic path ordering,
-verify OA and inactivity detection, document the CLI and run all gates/replay.
-Existing #26 fixtures remain byte-identical. No accepted goldens are regenerated.
+#27 test-first commit 1b69359d fails on the absent validate subcommand. The current
+command passes Q3 and OA: two named PNGs and the automatic walk reproduce bytes,
+with draw/triangle metrics, structure/lightmap/AAS reports and 240 bot position
+samples. Q3 has 16 kills/25 pickups; OA has 13/30, with no inactivity flags. The
+walk now visits all connected passages in order and returns through them (33
+samples for the owned map). Named eye pose (-160,0,96) is unchanged across separated
+frames in the camera probe. A deliberate open ceiling produces a clear leak error;
+disconnected spawns and outside cameras fail separately. Stationary/moving/dead
+sample controls verify the inactivity heuristic. Runtime warnings are retained.
+
+Vulkan draw counters cover actual commands, including postprocessing; existing
+renderer counters provide scene triangles. Read-only entity sampling uses the
+existing public game tools API, initialized for development dedicated servers.
+The development-only spectator camera avoids teleport launch velocity/effects;
+existing setviewpos, gameplay simulation and TeleportPlayer remain unchanged.
+CLI/report details, limits and conservative metric meanings are documented in
+tools/level/README.md. CI and AGENTS commands are wired. No accepted fixture changes.
+
+Local build /tmp/aftershock-level-validation-build; logs are in
+~/.cache/aftershock-modernization/level-{validate-first,validate-path-q3,validate-oa,
+validate-leak,camera-probe,classic-demo,tidy,lifetimes,rhi}.log. Boundary/type/native
+ABI/RHI checks and tidy (1270 configurations) pass. Classic Q3 replay retains frame
+hash 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+Lifetime analysis is still running (session 6001). First attempts at tidy/lifetimes
+used caches for the original worktree; rerun in /tmp/aftershock-level-{tidy,lifetimes}
+with the correct source root. Next: finish raw-MAP success/report review, final OA
+checks after the latest report/path refinements, full lifetime gate and self-review,
+then draft #27 PR with exact-head hosted gates. Do not merge before #26 integration.
 
 ## #26 checkpoint inherited by #27
 
-Current branch: `issue/26-level-authoring`, with modernization merged forward
-through #151 PR #152 merge 64a38d44aa50e5accca3676f7f7927be87594c25.
-#151 exact-head build/regression passed; merged-tree regression 35537127266 is
-running. Close/check #151 and #11 only after that integration run passes. #26 draft PR #153 is open and running full hosted checks; do not merge it
-before both integration and its own exact-head gates pass. Continue #26 -> #27 -> #28 then #25.
+#26 acceptance: PR #153 merged at bc1aff0d after exact-head full gates passed.
+Hosted tool download/compilation matched all three owned fixture hashes. The two
+bots reached the middle shotgun, east ammo and combat on the full map and each
+isolated lane. Runtime screenshots passed. Integration 35538219232 remains pending.
+Acceptance: https://github.com/msetaro/aftershock/issues/26#issuecomment-5752721345
+Log: ~/.cache/aftershock-modernization/level26-host-runtime.log.
 
 The first compiler implementation passes the MAP/schema/design-rule controls and
 produces repeated byte-identical BSP/AAS in separate directories. Geometry review
@@ -153,7 +166,8 @@ both; ignoring-child cleanup passes. Local controls were 17.7 seconds classic an
 changed. Original failed integration had 1147/1147 agreeing states before its
 45-second wall-time limit; graceful teardown then stalled. The replacement budgets
 120 seconds for weapons inside a 240-second outer limit and kills/reaps a client
-that ignores SIGTERM. Full merged-tree regression 35537127266 remains required.
+that ignores SIGTERM. Merged-tree regression 35537127266 passed. #11/#151 are closed; #11 is checked
+in #25. Closure evidence: https://github.com/msetaro/aftershock/issues/11#issuecomment-5752700766
 Acceptance: https://github.com/msetaro/aftershock/issues/151#issuecomment-5752604897
 Logs: ~/.cache/aftershock-modernization/netcode-151-host-runtime.log.
 

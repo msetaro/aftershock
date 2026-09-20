@@ -14,7 +14,7 @@ import tempfile
 
 from geometry import passage, floor_at, vector
 from toolchain import compile_map
-from validate import validate, qpath
+from validate import validate, qpath, camera_specs
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -45,24 +45,48 @@ def structure(base,name,authored):
 
 def flythrough(level):
     rooms = {r['id']:r for r in level['rooms']}
-    views = []
-    for r in rooms.values():
+    views,used = [],set()
+
+    def room_view(name):
+        r = rooms[name]
         x,y,z = r['origin']
-        views.append({'id':'auto_room_'+r['id'],'origin':[x,y,z+min(96,r['size'][2]-16)],'angles':[0,0,0]})
-    # Follow each authored passage with fixed approach, midpoint and exit samples.
-    for c in level['connections']:
-        low,high,axis,start,end = passage(c,rooms)
-        for index,fraction in enumerate((0,0.5,1)):
+        views.append({'id':f'auto_{len(views):03d}_room_{name}',
+                      'origin':[x,y,z+min(96,r['size'][2]-16)],'angles':[0,0,0]})
+
+    def edge_views(c,reverse):
+        low,high,axis,_,_ = passage(c,rooms)
+        for fraction in ((1,0.5,0) if reverse else (0,0.5,1)):
             p = [c['at'],c['at'],0]
             p[axis] = low[axis]+(high[axis]-low[axis])*fraction
+            if fraction==0:
+                p[axis] -= 16
+            elif fraction==1:
+                p[axis] += 16
             p[2] = floor_at(c,rooms,p)+min(64,c['height']-16)
-            views.append({'id':f"auto_{c['id']}_{index}",'origin':p,'angles':[0,axis*90,0]})
+            views.append({'id':f"auto_{len(views):03d}_{c['id']}",'origin':p,'angles':[0,axis*90+(180 if reverse else 0),0]})
+
+    def walk(room):
+        room_view(room)
+        for c in level['connections']:
+            if c['id'] in used or room not in (c['from'],c['to']):
+                continue
+            used.add(c['id'])
+            reverse = room==c['to']
+            other = c['from'] if reverse else c['to']
+            edge_views(c,reverse)
+            walk(other)
+            edge_views(c,not reverse)
+            room_view(room)
+    walk(next(iter(rooms)))
     return views
 
 
 def run_engine(binary,home,content,script,log,client=False):
     base = home/('baseoa' if content=='openarena' else 'baseq3')
-    (base/'level-validate.cfg').write_text('\n'.join(script+['quit'])+'\n')
+    commands = '\n'.join(script+['quit'])+'\n'
+    if len(commands.encode())>60000:
+        raise ValueError('validation command script exceeds the 60000-byte engine command budget')
+    (base/'level-validate.cfg').write_text(commands)
     env = dict(os.environ,LC_ALL='C',LP_NUM_THREADS='1')
     prefix = ['timeout','180']
     if client:
@@ -89,6 +113,19 @@ def run_engine(binary,home,content,script,log,client=False):
     return text
 
 
+def stuck_bots(tracks):
+    stuck = []
+    for client,track in tracks.items():
+        # ponytail: 10-second inactivity windows flag possible stuck bots; combat can
+        # also pause movement, so expose the heuristic rather than claim path diagnosis.
+        for begin in range(0,len(track)-9):
+            window = track[begin:begin+10]
+            if all(alive for _,alive in window) and max(math.dist(window[0][0],p) for p,_ in window)<16:
+                stuck.append({'client':client,'first_sample':begin,'samples':10})
+                break
+    return stuck
+
+
 def bots(args,home,name,output):
     names = ['sarge','beret'] if args.content=='openarena' else ['sarge','major']
     script = ['set g_synchronousClients 1','set fixedtime 20','set sv_fps 50',f'devmap {name}',
@@ -104,15 +141,7 @@ def bots(args,home,name,output):
             tracks[int(client)].append(((float(x),float(y),float(z)),int(health)>0 and linked=='1'))
     if not all(len(v)>=args.bot_frames//50 for v in tracks.values()):
         raise ValueError('bot position diagnostics absent; use an AFTERSHOCK_DEVTOOLS build')
-    stuck = []
-    for client,track in tracks.items():
-        # ponytail: 10-second inactivity windows flag possible stuck bots; combat can
-        # also pause movement, so expose the heuristic rather than claim path diagnosis.
-        for begin in range(0,len(track)-9):
-            window = track[begin:begin+10]
-            if all(alive for _,alive in window) and max(math.dist(window[0][0],p) for p,_ in window)<16:
-                stuck.append({'client':client,'first_sample':begin,'samples':10})
-                break
+    stuck = stuck_bots(tracks)
     return {'frames':args.bot_frames,'clients':2,'kills':len(re.findall(r'^Kill:',text,re.M)),
             'pickups':len(re.findall(r'^Item:',text,re.M)),'samples':len(samples),'stuck':stuck,
             'stuck_rule':'alive for ten 50-frame samples with less than 16 units displacement'}
@@ -155,6 +184,7 @@ def main(argv):
     parser.add_argument('--content',choices=['quake3','openarena'],default='quake3')
     parser.add_argument('--data',type=Path,default=Path.home()/'.q3a/baseq3')
     parser.add_argument('--bot-frames',type=int,default=6000)
+    parser.add_argument('--viewpoints',type=Path,help='optional named camera array for an existing MAP source')
     args = parser.parse_args(argv)
     output = args.output.resolve()
     output.mkdir(parents=True,exist_ok=True)
@@ -166,25 +196,84 @@ def main(argv):
         if not paks:
             raise ValueError('installed game content is required')
         source = args.source.resolve()
-        level = json.loads(source.read_bytes())
-        _,authored = validate(level,source.parent/'assets')
-        name = level['name']
+        if source.stat().st_size>(1024*1024 if source.suffix.lower()=='.json' else 16*1024*1024):
+            raise ValueError('level description exceeds its input size limit')
+        if output==source.parent or output.is_relative_to(source.parent/'assets'):
+            raise ValueError('report output must not overwrite source/assets')
+        level = None
+        authored = {}
+        if source.suffix.lower()=='.json':
+            level = json.loads(source.read_bytes())
+            _,authored = validate(level,source.parent/'assets')
+            name = level['name']
+        elif source.suffix.lower()=='.map':
+            name = source.stem
+            if not re.fullmatch(r'[a-z][a-z0-9_]{0,31}',name):
+                raise ValueError('invalid MAP name')
+            report['warnings'].append('Existing MAP: declarative design-rule and grid reachability data are unavailable')
+        else:
+            raise ValueError('source must be a level JSON or existing MAP')
         with tempfile.TemporaryDirectory(prefix='aftershock-headless-') as temporary:
             home = Path(temporary)
             base = home/('baseoa' if args.content=='openarena' else 'baseq3')
-            result = subprocess.run([sys.executable,str(HERE),str(source),'--output',str(base)],cwd=ROOT,capture_output=True,text=True)
+            compile_error = None
+            if level is not None:
+                result = subprocess.run([sys.executable,str(HERE),str(source),'--output',str(base)],cwd=ROOT,capture_output=True,text=True)
+                if result.returncode:
+                    compile_error = result.stderr.strip()
+            else:
+                assets = source.parent/'assets'
+                for path in sorted(assets.rglob('*')):
+                    if path.is_file():
+                        relative = path.relative_to(assets)
+                        qpath(relative.as_posix())
+                        if path.suffix=='.pk3' or not path.resolve().is_relative_to(assets.resolve()):
+                            raise ValueError('MAP assets must be loose project files inside assets/')
+                        target = base/relative
+                        target.parent.mkdir(parents=True,exist_ok=True)
+                        shutil.copyfile(path,target)
+                (base/'maps').mkdir(parents=True,exist_ok=True)
+                shutil.copyfile(source,base/'maps'/(name+'.map'))
+                try:
+                    compile_map(base,name)
+                except (OSError,ValueError,subprocess.SubprocessError) as exc:
+                    compile_error = str(exc)
+            log = ''
             if (base/'compile.log').exists():
                 shutil.copyfile(base/'compile.log',output/'compile.log')
                 log = (base/'compile.log').read_text(errors='replace')
-                report['warnings'] = [line for line in log.splitlines() if 'WARNING:' in line]
-            if result.returncode:
-                raise ValueError('compile failed: '+result.stderr.strip())
+                report['warnings'] += [line for line in log.splitlines() if 'WARNING:' in line]
+            if compile_error:
+                detail = 'leak detected; see compile.log' if 'LEAKED' in log else compile_error
+                raise ValueError('compile failed: '+detail)
+            missing = [line for line in log.splitlines() if "Couldn't find image" in line or 'Failed to load model' in line]
+            if missing:
+                raise ValueError('missing assets: '+'; '.join(missing))
             report['structure'] = structure(base,name,authored)
-            report['compiled'] = json.loads(result.stdout)['sha256']
+            report['compiled'] = {kind:hashlib.sha256((base/'maps'/(name+'.'+kind)).read_bytes()).hexdigest() for kind in ('map','bsp','aas')}
             for pak in paks:
                 (base/pak.name).symlink_to(pak)
             report['bots'] = bots(args,home,name,output)
-            report['views'],report['flythrough'] = screenshots(args,home,name,level.get('viewpoints',[]),flythrough(level),output)
+            if level is not None:
+                views,automatic = level.get('viewpoints',[]),flythrough(level)
+            else:
+                views = camera_specs(json.loads(args.viewpoints.read_bytes())) if args.viewpoints else []
+                data = (base/'maps'/(name+'.bsp')).read_bytes()
+                start,length = struct.unpack_from('<ii',data,8)
+                entities = data[start:start+length].decode().rstrip('\0')
+                automatic = []
+                for entity in re.findall(r'\{([^{}]+)\}',entities):
+                    if '"info_player_deathmatch"' in entity:
+                        position = re.search(r'"origin"\s+"([^"\n]+)"',entity)
+                        if position:
+                            origin = [float(v) for v in position[1].split()]
+                            origin[2] += 32
+                            automatic.append({'id':f'auto_spawn_{len(automatic)}','origin':origin,'angles':[0,0,0]})
+                if not automatic:
+                    raise ValueError('existing MAP has no deathmatch spawn for automatic cameras')
+            report['views'],report['flythrough'] = screenshots(args,home,name,views,automatic,output)
+        for filename in ('client.log','server.log'):
+            report['warnings'] += sorted(set(line for line in (output/filename).read_text(errors='replace').splitlines() if 'WARNING:' in line))
         if report['bots']['stuck']:
             report['warnings'].append('possible stuck bots: '+json.dumps(report['bots']['stuck']))
         report['status'] = 'passed'
