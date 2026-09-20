@@ -2,6 +2,7 @@
 """Render the owned Blender character and measure a watched texture edit on screen."""
 import argparse
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -52,7 +53,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-cook-live-') as temporary:
                 f'devmap {content_maps(args.content)[0]}', 'wait 10', 'set dev_reloadAssets 1', 'dev_reloadAssets', 'set timescale 0',
                 'echo cook_ui_ready', 'wait 200', 'imagelist', 'modellist',
                 'screenshot before', 'wait 3', 'echo cook_edit', 'wait 12',
-                'screenshot after', 'wait 4', 'quit']) + '\n')
+                'screenshot after', 'wait 4', 'devtools_status', 'echo cook_wave',
+                'wait 100', 'screenshot wave', 'devtools_status', 'echo cook_idle',
+                'wait 80', 'screenshot idle', 'devtools_status', 'wait 2', 'quit']) + '\n')
             command = [str(args.binary.resolve()), '+set', 'fs_basepath', str(home), '+set', 'fs_homepath', str(home),
                        *content_settings(args.content), '+set', 'net_enabled', '0', '+set', 'sv_pure', '0',
                        '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '0',
@@ -71,29 +74,41 @@ with tempfile.TemporaryDirectory(prefix='aftershock-cook-live-') as temporary:
                         input_device.key({'/': 'slash', '.': 'period'}.get(char, char))
                     input_device.click(80, 137)
                     time.sleep(0.3)
-                    input_device.click(320, 293)
+                    input_device.click(320, 316)
                     wait_for(lambda: b'cook_edit' in client_log.read_bytes(), process)
                     edited = time.monotonic()
                     Image.new('RGBA', (16, 16), (32, 240, 64, 255)).save(source / 'character.png')
                     after = base / 'screenshots/after.tga'
                     wait_for(after.is_file, process)
                     latency = time.monotonic() - edited
-                    process.wait(timeout=15)
+                    wait_for(lambda: b'cook_wave' in client_log.read_bytes(), process)
+                    input_device.click(100, 227)
+                    input_device.click(80, 274)
+                    input_device.click(220, 270)
+                    wait_for(lambda: b'cook_idle' in client_log.read_bytes(), process)
+                    input_device.click(100, 227)
+                    input_device.click(80, 255)
+                    input_device.click(220, 270)
+                    process.wait(timeout=20)
                     assert process.returncode == 0
                     assert (base / 'cook.revision').read_bytes() != revision
                     text = client_log.read_text()
                     assert 'Cooked texture reloaded:' in text, 'renderer did not consume the new cooked revision'
+                    poses = re.findall(r'Developer animation: model=\d+ frame=(\d+) previews=\d+ clip=(\w+)', text)
+                    assert len(poses) == 3 and poses[0][1] == 'idle', poses
+                    assert poses[1][1] == 'wave' and 31 < int(poses[1][0]) < 61, poses
+                    assert poses[2][1] == 'idle' and 0 < int(poses[2][0]) < 30, poses
                     assert 'BC7s' in text and 'models/character' in text
                     assert not any(message in text for message in ('ERROR:', 'Signal caught', 'Invalid or unavailable', 'Invalid or unsupported'))
                     before = Image.open(base / 'screenshots/before.tga').convert('RGB')
                     after_image = Image.open(after).convert('RGB')
                     # Compare the model preview only, excluding counters and the scene.
-                    delta = ImageChops.difference(before.crop((18, 312, 621, 460)), after_image.crop((18, 312, 621, 460)))
+                    delta = ImageChops.difference(before.crop((18, 335, 621, 460)), after_image.crop((18, 335, 621, 460)))
                     pixels = delta.tobytes()
                     changed = sum(max(pixels[i:i + 3]) > 40 for i in range(0, len(pixels), 3))
                     assert changed > 200, f'texture edit was not visible: {changed} changed pixels'
                     assert latency < 1.0, f'texture edit took {latency:.3f}s to reach the sampled frame'
-                    for name in ('before', 'after'):
+                    for name in ('before', 'after', 'wave', 'idle'):
                         shutil.copyfile(base / f'screenshots/{name}.tga', args.output / f'{name}.tga')
                     (args.output / 'latency.txt').write_text(f'{latency:.6f}s source edit to rendered screenshot; {changed} changed preview pixels\n')
                 finally:

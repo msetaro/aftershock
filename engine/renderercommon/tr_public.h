@@ -26,9 +26,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 13
+#define REF_API_VERSION 15
 #else
-#define REF_API_VERSION 10
+#define REF_API_VERSION 12
 #endif
 
 //
@@ -58,6 +58,7 @@ typedef struct {
 	// size display elements
 	void ( *BeginRegistration )( glconfig_t *config );
 	qhandle_t ( *RegisterModel )( const char *name );
+	bool ( *GetModelAnimation )( qhandle_t handle, int clip, modelAnimation_t *animation );
 	qhandle_t ( *RegisterSkin )( const char *name );
 	qhandle_t ( *RegisterShader )( const char *name );
 	qhandle_t ( *RegisterShaderNoMip )( const char *name );

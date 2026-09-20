@@ -77,11 +77,12 @@ The plain index is capped at 4,096 native resources and records each qpath, hash
 size and kind. Failed cooks retain the previous published revision. The output
 must be the running development client's home game directory for reload polling.
 After entering a local `devmap`, set `dev_reloadAssets 1`. Development renderer ABI
-13 adds a bounded loose-home-file read callback; shipping ABI remains 10.
+15 adds a bounded loose-home-file read callback; shipping ABI is 12.
 
 Texture reload is implemented: polling uses the existing real microsecond clock,
 so it continues while `timescale 0` pauses the scene. Idle polling allocates no
 engine memory. Each texture replacement waits for completed GPU use, retains the
 image registry handle/descriptor, and reclaims the prior dedicated device memory.
-Size changes use the same transaction; failure preserves the live image. Material,
-model and animation reload and named clip controls are still being implemented.
+Size changes use the same transaction; failure preserves the live image. Named clips are exposed by the public renderer API and the Animation inspector;
+non-looping clips stop at their last frame. Material, model and animation reload
+are still being implemented.

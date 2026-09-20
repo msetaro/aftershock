@@ -1113,3 +1113,15 @@ void R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs ) {
 	VectorClear( mins );
 	VectorClear( maxs );
 }
+
+bool RE_GetModelAnimation( qhandle_t handle, int clip, modelAnimation_t *animation ) {
+	*animation = {};
+	const model_t *model = R_GetModelByHandle( handle );
+	if ( model->type != MOD_IQM || clip < 0 )
+		return false;
+	const iqmData_t *data = (const iqmData_t *)model->modelData;
+	if ( (uint32_t)clip >= data->num_anims )
+		return false;
+	*animation = data->animations[clip];
+	return true;
+}

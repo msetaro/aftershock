@@ -23,6 +23,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __TR_TYPES_H
 #define __TR_TYPES_H
 
+struct modelAnimation_t {
+	char name[64];
+	uint32_t firstFrame, frameCount;
+	float framesPerSecond;
+	uint32_t flags; // Bit 0: loop.
+};
+static_assert( sizeof( modelAnimation_t ) == 80 && offsetof( modelAnimation_t, firstFrame ) == 64 && std::is_trivially_copyable_v<modelAnimation_t> );
+
 #define MAX_VIDEO_HANDLES	16
 
 #define MAX_DLIGHTS			32			// can't be increased, because bit flags are used on surfaces

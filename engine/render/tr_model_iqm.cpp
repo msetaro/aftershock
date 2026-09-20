@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "tr_local.h"
+#include <cmath>
 
 #define LL( x ) x=LittleLong(x)
 
@@ -580,8 +581,19 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		}
 	}
 
+	if ( header->num_anims ) {
+		if ( header->num_anims > 4096 || IQM_CheckRange( header, header->ofs_anims, header->num_anims, sizeof( iqmAnim_t ) ) || IQM_CheckRange( header, header->ofs_text, header->num_text, 1 ) )
+			return qfalse;
+		for ( uint32_t i = 0; i < header->num_anims; i++ ) {
+			iqmAnim_t clip;
+			memcpy( &clip, (byte *)header + header->ofs_anims + i * sizeof( clip ), sizeof( clip ) );
+			if ( clip.name >= header->num_text || !memchr( (char *)header + header->ofs_text + clip.name, 0, header->num_text - clip.name ) || !clip.num_frames || clip.first_frame >= header->num_frames || clip.num_frames > header->num_frames - clip.first_frame || !( clip.framerate > 0 ) || !std::isfinite( clip.framerate ) || ( clip.flags & ~IQM_LOOP ) )
+				return qfalse;
+		}
+	}
+
 	// allocate the model and copy the data
-	size = sizeof( iqmData_t );
+	size = sizeof( iqmData_t ) + header->num_anims * sizeof( modelAnimation_t );
 	if ( header->num_meshes ) {
 		size += header->num_meshes * sizeof( srfIQModel_t ); // surfaces
 		size += header->num_triangles * 3 * sizeof( int ); // triangles
@@ -637,6 +649,19 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 	iqmData->blendWeightsType = vertexArrayFormat[IQM_BLENDWEIGHTS];
 
 	dataPtr = (byte *)iqmData + sizeof( iqmData_t );
+	iqmData->num_anims = header->num_anims;
+	iqmData->animations = header->num_anims ? (modelAnimation_t *)dataPtr : nullptr;
+	for ( uint32_t i = 0; i < header->num_anims; i++ ) {
+		iqmAnim_t clip;
+		memcpy( &clip, (byte *)header + header->ofs_anims + i * sizeof( clip ), sizeof( clip ) );
+		modelAnimation_t *animation = &iqmData->animations[i];
+		Q_strncpyz( animation->name, (char *)header + header->ofs_text + clip.name, sizeof( animation->name ) );
+		animation->firstFrame = clip.first_frame;
+		animation->frameCount = clip.num_frames;
+		animation->framesPerSecond = clip.framerate;
+		animation->flags = clip.flags;
+	}
+	dataPtr += header->num_anims * sizeof( modelAnimation_t );
 	if ( header->num_meshes ) {
 		iqmData->surfaces = (struct srfIQModel_s *)dataPtr;
 		dataPtr += header->num_meshes * sizeof( srfIQModel_t );

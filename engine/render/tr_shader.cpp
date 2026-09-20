@@ -3879,7 +3879,7 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 		void *file = nullptr;
 		const int size = ri.FS_ReadFile( materialPath, &file );
 		if ( file ) {
-			cookedMaterial_t material;
+			cookedMaterial_t material = {};
 			const bool valid = size > 0 && R_ReadCookedMaterial( file, size, &material );
 			ri.FS_FreeFile( file );
 			image = valid ? R_FindImageFile( material.texture, mipRawImage ? IMGFLAG_MIPMAP : IMGFLAG_CLAMPTOEDGE ) : nullptr;

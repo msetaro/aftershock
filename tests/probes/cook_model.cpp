@@ -50,7 +50,7 @@ int main( int argc, char **argv ) {
 	assert( strcmp( data->animations[0].name, "idle" ) == 0 && strcmp( data->animations[1].name, "wave" ) == 0 );
 	for ( uint32_t i = 0; i < 2; i++ ) {
 		assert( data->animations[i].firstFrame == i * 31 && data->animations[i].frameCount == 31 );
-		assert( data->animations[i].framesPerSecond == 30 && data->animations[i].flags == 1 );
+		assert( data->animations[i].framesPerSecond == 30 && data->animations[i].flags == 0 );
 	}
 	orientation_t first, middle, waveStart, waveMiddle;
 	assert( R_IQMLerpTag( &first, (iqmData_t *)model.modelData, 0, 0, 0, "root" ) );

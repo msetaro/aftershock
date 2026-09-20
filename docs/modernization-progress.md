@@ -26,8 +26,8 @@ origin/modernization has been merged into it without rewriting history. The
 owned Blender source fixture was exported once with verified portable Blender
 4.5.3 (archive hash below). Offline cooking/production pose tests pass at 7acd72c1.
 Draft PR #145 holds #9. Native BC texture/material loading and watched texture
-replacement now work. Complete material/model/animation reload, named clip
-controls, remaining audio/shader inputs and final runtime/CI acceptance.
+replacement and named clip controls now work. Complete material/model/animation
+reload, remaining audio/shader inputs and final runtime/CI acceptance.
 Keep the graph's reviewed branch unchanged. #7 is complete and closed.
 
 Read #9 and the preparation notes in the persistent modernization cache
@@ -2915,3 +2915,23 @@ UI status; WAV/OGG/shader source cooking; complete static/module, restart, idle,
 Q3/OpenArena and exact-head hosted gates. Existing IQM dataSize accounting reports
 zero model bytes; this predates #9 and is recorded in #31/docs/bugs.md, not fixed
 here. Handle that separate #31 PR after #9 before continuing #10.
+
+Named native clips are now stored in the IQM block and copied through the public
+GetModelAnimation API (shipping ABI 12, development ABI 15). Test-first 72c6ed43
+failed on the absent records; GCC and Clang checks now verify `idle`/`wave` ranges,
+30 FPS and non-looping flags, plus the existing production pose samples. The
+inspector selects clips, clamps/scrubs within their ranges and stops non-looping
+playback at the final frame. The valid fixture's loop expectation was corrected
+to its actual flags=0 record; the fixture/cooker were not changed for that check.
+
+The live owned-character test selects wave frame 46 and idle frame 15 through real
+input, with screenshots visually reviewed. Its texture edit reaches the sampled
+frame in 0.607583 seconds with 2,721 changed preview pixels. Evidence:
+cook-clips-{before,after,clang,build}.log and cook-live-named-clips.log. Types and
+boundary gates pass. Hosted build 35503080582 at preceding 23420106 found MSVC
+C4701 in the new material branch; explicitly zero-initialize that local before
+validation. This feature correction is included here; fresh hosted gates remain.
+
+Next: own the cooked IQM allocation for bounded model/animation replacement,
+then material replacement and UI reload observations. Keep existing dataSize
+accounting untouched until the separate #31 fix recorded above.

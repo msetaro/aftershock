@@ -2127,6 +2127,7 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 
 	re.BeginRegistration = RE_BeginRegistration;
 	re.RegisterModel = RE_RegisterModel;
+	re.GetModelAnimation = RE_GetModelAnimation;
 	re.RegisterSkin = RE_RegisterSkin;
 	re.RegisterShader = RE_RegisterShader;
 	re.RegisterShaderNoMip = RE_RegisterShaderNoMip;

@@ -914,6 +914,8 @@ typedef struct {
 	float *invBindJoints; // [num_joints * 12]
 	iqmTransform_t *poses; // [num_frames * num_poses]
 	float *bounds;
+	uint32_t num_anims;
+	modelAnimation_t *animations;
 } iqmData_t;
 
 // inter-quake-model surface
@@ -1831,6 +1833,7 @@ ANIMATED MODELS
 
 void R_MDRAddAnimSurfaces( trRefEntity_t *ent );
 void RB_MDRSurfaceAnim( mdrSurface_t *surface );
+bool RE_GetModelAnimation( qhandle_t handle, int clip, modelAnimation_t *animation );
 qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *name );
 void R_AddIQMSurfaces( trRefEntity_t *ent );
 void RB_IQMSurfaceAnim( const surfaceType_t *surface );
