@@ -99,6 +99,11 @@ The live sound assertion fails with zero server notifies/sounds
 next implementation must map graph notify names to preloaded data sound handles,
 replicate remote events and deduplicate local predicted/acknowledged events.
 
+The new cosmetic-budget assertion fails while 128 feature effects are active
+(weapons-effects-budget-before.log). Cap new weapon cosmetics without dropping
+hitscan damage; this prevents notify/impact bursts from consuming the legacy
+entity pool. The legacy allocator itself remains outside this feature's scope.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing

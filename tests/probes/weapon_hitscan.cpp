@@ -11,7 +11,7 @@ level_locals_t level;
 gentity_t g_entities[MAX_GENTITIES];
 static gclient_t shooter;
 static float thickness;
-static int flags, damage, traces, layers = 1;
+static int flags, damage, traces, effects, layers = 1;
 void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t, vec3_t ) {
 	assert( angles[0] == 0 && angles[1] == 0 );
 	VectorSet( forward, 1, 0, 0 );
@@ -64,6 +64,7 @@ int DirToByte( vec3_t ) {
 }
 gentity_t *G_TempEntity( vec3_t, int event ) {
 	assert( event == EV_WEAPON_IMPACT );
+	++effects;
 	static gentity_t effect;
 	return &effect;
 }
@@ -121,5 +122,14 @@ int main() {
 	thickness = 0;
 	WeaponHit( &g_entities[0], &definition, event, 0 );
 	assert( damage == 50 );
+	damage = effects = 0;
+	event.kind = WEAPON_SHOT;
+	level.num_entities = MAX_CLIENTS + 128;
+	for ( int number = MAX_CLIENTS; number < level.num_entities; ++number ) {
+		g_entities[number].inuse = qtrue;
+		g_entities[number].classname = "weapon_effect";
+	}
+	WeaponHit( &g_entities[0], &definition, event, 0 );
+	assert( damage == 40 && effects == 0 ); // Cosmetic pressure never discards damage.
 	puts( "PASS: data hitscan preserves shot time, material depth/loss, layered walls and melee limits" );
 }
