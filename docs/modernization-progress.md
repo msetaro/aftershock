@@ -22,9 +22,8 @@ and checked in #25. Accounting PR #146 merged as 3d104d0c after exact-head build
 Scale PR #147 merged as 7f4d43a7 after exact head dd8f7f79 passed build
 35509606176/regression 35509606177 with its committed self-review. Its merge tree
 matches the tested tree (796b6c532309846d4913439d74dfc751c4ca4ae1).
-Merged-tree regression 35510058541 is running. Require its pass before #10
-implementation; then record the two completed IQM fixes on #31 and close it if
-no remaining recorded bug/expected-failure/suppression remains.
+Merged-tree regression 35510058541 passed. Both IQM fixes are accepted; no active
+known-bug entry or UBSan suppression remains. #31 can close at this checkpoint.
 
 Current branch is issue/10-animation. Modernization is merged forward without
 rewriting history. Test-first 57838d59 and source preparation 0704fe4c are present;
@@ -34,7 +33,7 @@ animation asset kind. Real in-engine viewer checks now pass for rifle idle/fire
 and body idle (cache animation-native-preview.log and PNGs), with 119,312/227,084
 reported model bytes. This is source-rig verification, not state-machine acceptance.
 
-After #147 integration passes, read #10 plus cache issue10-entry-points.md and
+Begin #10 native/runtime test-first work. Read #10 plus cache issue10-entry-points.md and
 issue10-design-considerations.md. Extend native/runtime/gameplay tests before
 implementation. Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
@@ -3293,3 +3292,7 @@ the existing wait-before-quit pattern fixed the script. No engine change was nee
 Evidence: animation-native-preview.py/.log and animation-native-preview/*.png in
 the persistent cache. These checks validate source rigs/clips only, not the
 future #10 gameplay/replication/IK acceptance.
+
+#147 integration regression 35510058541 passed at 7f4d43a7. Both IQM fixes are
+accepted, known-bugs has no active entries, and ubsan.supp is empty. #31 is
+completed again; #10 native/runtime implementation may now begin after its tests.
