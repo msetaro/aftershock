@@ -45,10 +45,10 @@ private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
 The extra level-tree worktree has preparatory `issue/14-lighting` commits
-91acce4a/fd82f6ee/8f2a2913 for the test-first level-tool slice. Its new directional-bake
+91acce4a/fd82f6ee/8f2a2913 plus the native test-first renderer slice described below. Its new directional-bake
 test failed first on the absent option, then passed repeated paired BSP/AAS output
-and the existing default fixture gate. The main history and updated AGENTS/CI are merged forward; never rebase. #14 is not accepted and still needs
-runtime lighting/shadows/probes/postprocessing and performance gates. Future new
+and the existing default fixture gate. The main history and updated AGENTS/CI are merged forward; never rebase. #14 is not accepted: directional runtime is tested locally, with dynamic shadows,
+reflection probes, SSAO and performance gates still outstanding. Future new
 issue branches start from main. Continue #25 after #13 is integrated.
 
 ## #14 preparation and reference hardware
@@ -69,6 +69,41 @@ a connectivity/query smoke, not a repeated performance acceptance measurement.
 No system package, licensed pak copy or host display session was needed. Establish
 the stated resolution/quality/frame budget and repeated per-pass measurement before
 #14 acceptance. Existing Mesa goldens remain the deterministic rendering gate.
+
+## #14 directional runtime checkpoint
+
+The first renderer slice builds and passes actual OA/Q3 native tests with both
+separate and merged lightmaps. Reversed owned normal data changes 438,166 channel
+bytes on OA and 438,096 on Q3; restoring the cvar gives exact original static
+pixels. Reviewed images retain baked occlusion with normal mapping disabled and
+reverse the lighting with the deliberately inverted normals. Logs:
+lighting-runtime-first.log, lighting-runtime-q3.log. These are new diagnostics,
+not regenerated references.
+
+The explicit BSP marker selects paired loading and even-index remapping. Intensity
+retains legacy conversion; raw direction bytes use a separate half of a combined
+atlas at the existing fifth descriptor slot. Unsupported four-set hardware reports
+light-grid fallback. `r_directionalLightmaps` switches the normal response live.
+The new material iterator supplies existing lightmap UVs; ordinary Quake materials
+retain their intensity stages. All allocation is at map load, through existing
+hunk/images; frame data stays bounded POD. Two new offline programs implement a
+bounded dominant-direction approximation. All previous 76 shader byte arrays are
+unchanged; 78-program cache/fresh compile matches package
+327bdca2c2e65c383328540d3fc28f7a6e764deac4f9c7fd53d0fcc4595f1b0e
+(lighting-shaders.log).
+
+Classic Q3 replay still matches
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(lighting-classic.log). RHI/alternative-backend and all 36 frozen graph descriptor
+configurations pass (lighting-rhi.log, lighting-graph.log); format/type/boundary
+gates pass. CI and AGENTS/tests docs include the bake/native commands. Full final
+#14 checks/self-review wait for remaining scope: point/spot and cascaded sun
+shadows, reflection probes, SSAO and actual reference-GPU budgets. No #14 PR yet.
+
+#157's main-target head f638330b passed every build leg in 35545635052.
+Regression 35545635067 is still running its runtime/lifetime jobs; all other gates
+passed at last check. Superseded 2ed8cf56 regression 35544991093 was cancelled;
+never count it as acceptance. The rollback tag remains at 81a0f9dc.
 
 ## #14 first bake implementation
 

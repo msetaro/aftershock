@@ -3883,7 +3883,8 @@ static shader_t *R_ApplyPbrMaterial( const cookedPbrMaterial_t *material, shader
 	}
 	shader.metallicRoughness = true;
 	shader.materialParams = material->params;
-	shader.lightmapIndex = LIGHTMAP_NONE;
+	if ( !tr.bakedLightmaps || ( material->params.flags & 2 ) )
+		shader.lightmapIndex = LIGHTMAP_NONE;
 	shader.explicitlyDefined = qtrue;
 	shader.needsNormal = qtrue;
 	shader.surfaceFlags |= SURF_NODLIGHT; // PBR uses the entity's combined light-grid/dynamic lighting.
@@ -3905,7 +3906,7 @@ static shader_t *R_ApplyPbrMaterial( const cookedPbrMaterial_t *material, shader
 		stage->bundle[i].tcGen = TCGEN_TEXTURE;
 	}
 	rhiPipelineDesc_t desc = {};
-	desc.shader_type = TYPE_PBR;
+	desc.shader_type = shader.lightmapIndex >= 0 ? TYPE_PBR_BAKED : TYPE_PBR;
 	desc.face_culling = shader.cullType;
 	desc.state_bits = stage->stateBits;
 	desc.allow_discard = ( material->params.flags & 12 ) != 0;

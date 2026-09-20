@@ -2643,6 +2643,8 @@ static void vk_create_shader_modules( void ) {
 	int i, j, k, l;
 	vk.modules.pbr_vs = SHADER_MODULE( pbr_vert_spv );
 	vk.modules.pbr_fs = SHADER_MODULE( pbr_frag_spv );
+	vk.modules.pbr_baked_vs = SHADER_MODULE( pbr_baked_vert_spv );
+	vk.modules.pbr_baked_fs = SHADER_MODULE( pbr_baked_frag_spv );
 
 	vk.modules.vert.gen[0][0][0][0] = SHADER_MODULE( vert_tx0 );
 	vk.modules.vert.gen[0][0][0][1] = SHADER_MODULE( vert_tx0_fog );
@@ -4273,6 +4275,8 @@ void vk_impl_Shutdown( void ) {
 	qvkDestroyShaderModule( vk.device, vk.modules.color_vs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.pbr_vs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.pbr_fs, NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.pbr_baked_vs, NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.pbr_baked_fs, NULL );
 
 	qvkDestroyShaderModule( vk.device, vk.modules.fog_vs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.fog_fs, NULL );
@@ -5328,6 +5332,11 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 
 	switch ( def->shader_type ) {
 
+	case TYPE_PBR_BAKED:
+		vs_module = &vk.modules.pbr_baked_vs;
+		fs_module = &vk.modules.pbr_baked_fs;
+		break;
+
 	case TYPE_PBR:
 		vs_module = &vk.modules.pbr_vs;
 		fs_module = &vk.modules.pbr_fs;
@@ -5798,7 +5807,12 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 		push_attr( 5, 5, VK_FORMAT_R32G32B32A32_SFLOAT );
 		break;
 
+	case TYPE_PBR_BAKED:
 	case TYPE_PBR:
+		if ( def->shader_type == TYPE_PBR_BAKED ) {
+			push_bind( 3, sizeof( vec2_t ) );
+			push_attr( 4, 3, VK_FORMAT_R32G32_SFLOAT );
+		}
 		push_bind( 0, sizeof( vec4_t ) );
 		push_bind( 2, sizeof( vec2_t ) );
 		push_bind( 5, sizeof( vec4_t ) );
@@ -6068,7 +6082,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 	}
 
 	rasterization_state.frontFace = VK_FRONT_FACE_CLOCKWISE; // Q3 defaults to clockwise vertex order
-	if ( def->shader_type == TYPE_PBR && def->mirror ) {
+	if ( ( def->shader_type == TYPE_PBR || def->shader_type == TYPE_PBR_BAKED ) && def->mirror ) {
 		// Keep gl_FrontFacing meaningful for the PBR double-sided normal rule.
 		rasterization_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		if ( def->face_culling == CT_FRONT_SIDED )

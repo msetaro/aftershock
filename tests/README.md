@@ -944,6 +944,32 @@ Record once, review frames and authoritative traces, and explain any replacement
 in the issue/PR. Full #11 hosted acceptance remains pending.
 
 
+## Directional baked lighting (#14)
+
+`python3 tests/lighting.py --compile` uses the pinned level toolchain to bake two
+independent opted-in levels. It checks paired intensity/model-space direction
+pages, surface references, retained light-grid probes and unchanged disabled
+MAP/BSP/AAS fixture bytes. Without `--compile` it checks only the language/MAP
+contract and needs no map compiler.
+
+`python3 tests/lighting_runtime.py --binary CLIENT` needs the same cooker, Xvfb,
+Pillow and Mesa prerequisites as the material tests. The client must enable
+`AFTERSHOCK_DEVTOOLS` for the fixed spectator camera. It cooks owned wall/floor
+PBR materials on the opted-in level, checks separate and merged lightmap pages,
+compares direction-mapped pixels and requires an exact quality-setting round trip.
+Use `--content openarena --data /tmp/aftershock-openarena-baseoa` in hosted CI.
+These captures are diagnostics; neither command records accepted references.
+
+The new material path uses an intensity/direction atlas at the existing spare
+texture binding; it requires five descriptor sets, otherwise it reports a
+light-grid fallback. `r_directionalLightmaps 0/1` controls normal mapping live.
+Intensity keeps the legacy map color conversion; direction bytes never receive
+color/gamma processing. New baked shader programs leave all 76 earlier binaries
+unchanged. A dominant direction approximates multi-light irradiance, with grazing
+amplification bounded at 4x; it is not full spherical-harmonic irradiance.
+Dynamic shadow maps, sun cascades, reflection baking and SSAO still require their
+separate #14 implementation/acceptance before the issue can close.
+
 ## Declarative level authoring (#26)
 
 `python3 tests/level.py` checks the versioned JSON language, repeated MAP bytes,

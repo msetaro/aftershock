@@ -73,6 +73,7 @@ cvar_t *r_neatsky;
 cvar_t *r_drawSun;
 cvar_t *r_dynamiclight;
 cvar_t *r_mergeLightmaps;
+cvar_t *r_directionalLightmaps;
 #ifdef USE_PMLIGHT
 cvar_t *r_dlightMode;
 cvar_t *r_dlightScale;
@@ -1606,6 +1607,10 @@ static void R_Register( void ) {
 	ri.Cvar_SetDescription( r_detailTextures, "Enables usage of shader stages flagged as detail." );
 	r_texturebits = ri.Cvar_Get( "r_texturebits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_texturebits, "Number of texture bits per texture." );
+
+	r_directionalLightmaps = ri.Cvar_Get( "r_directionalLightmaps", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( r_directionalLightmaps, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_directionalLightmaps, "Normal-map directional baked lighting on opted-in levels." );
 
 	r_mergeLightmaps = ri.Cvar_Get( "r_mergeLightmaps", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_mergeLightmaps, "Merge built-in small lightmaps into bigger lightmaps (atlases)." );

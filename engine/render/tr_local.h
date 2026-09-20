@@ -1294,6 +1294,8 @@ typedef struct {
 
 	int numLightmaps;
 	image_t **lightmaps;
+	bool deluxeMapping;
+	image_t **bakedLightmaps; // Intensity above raw model-space directions.
 
 	qboolean mergeLightmaps;
 	float lightmapOffset[2]; // current shader lightmap offset
@@ -1404,6 +1406,7 @@ extern cvar_t *r_neatsky; // nomip and nopicmip for skyboxes, cnq3 like look
 extern cvar_t *r_drawSun; // controls drawing of sun quad
 extern cvar_t *r_dynamiclight; // dynamic lights enabled/disabled
 extern cvar_t *r_mergeLightmaps;
+extern cvar_t *r_directionalLightmaps;
 #ifdef USE_PMLIGHT
 extern cvar_t *r_dlightMode; // 0 - vq3, 1 - pmlight
 //extern cvar_t	*r_dlightSpecPower;		// 1 - 32

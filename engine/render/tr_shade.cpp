@@ -1372,6 +1372,8 @@ void RB_StageIteratorPbr( void ) {
 	VectorScale( ambient, 1.0f / 255.0f, params.ambient );
 	VectorScale( directed, 1.0f / 255.0f, params.directed );
 	VectorCopy( direction, params.lightDirection );
+	const bool baked = tess.shader->lightmapIndex >= 0 && tr.bakedLightmaps;
+	params.directed[3] = (float)r_directionalLightmaps->integer;
 	memcpy( params.color, material.color, sizeof( params.color ) );
 	VectorCopy( material.emissive, params.emissiveMetallic );
 	params.emissiveMetallic[3] = material.metallic;
@@ -1382,10 +1384,13 @@ void RB_StageIteratorPbr( void ) {
 	const shaderStage_t *stage = tess.xstages[0];
 	for ( int i = 0; i < 3; ++i )
 		RHI_BindTexture( RHI_BINDING_TEXTURE0 + i, &stage->bundle[i].image[0]->texture );
+	if ( baked )
+		RHI_BindTexture( RHI_BINDING_BAKED_LIGHT, &tr.bakedLightmaps[tess.shader->lightmapIndex]->texture );
 	RB_BindPipeline( backEnd.viewParms.portalView == PV_MIRROR ? stage->vk_mirror_pipeline[0] : stage->vk_pipeline[0] );
 	tess.svars.texcoordPtr[0] = tess.texCoords[0];
+	tess.svars.texcoordPtr[1] = tess.texCoords[1];
 	RB_BindIndex();
-	RB_BindGeometry( TESS_XYZ | TESS_ST0 | TESS_NNN );
+	RB_BindGeometry( TESS_XYZ | TESS_ST0 | TESS_NNN | ( baked ? TESS_ST1 : 0 ) );
 	rhiVertexStream_t streams[RHI_MAX_VERTEX_STREAMS] = {};
 	streams[6].data = tess.tangent;
 	streams[6].size = tess.numVertexes * sizeof( tess.tangent[0] );

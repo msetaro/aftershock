@@ -172,6 +172,8 @@ python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
 python3 tests/level.py
 python3 tests/level.py --compile
+python3 tests/lighting.py --compile
+python3 tests/lighting_runtime.py --binary CLIENT
 python3 tests/level_runtime.py --client CLIENT --server SERVER
 python3 tests/level_validate.py --client CLIENT --server SERVER
 python3 tests/match_content.py

@@ -394,6 +394,87 @@ static void R_LoadMergedLightmaps( const lump_t *l, byte *image ) {
 }
 
 
+// Opted-in q3map2 levels store an intensity page followed by its direction page.
+// Keep ordinary BSPs on the existing load path and never color-process directions.
+static bool R_DirectionalWorld( const lump_t *entities ) {
+	char *text = (char *)ri.Hunk_AllocateTempMemory( (size_t)entities->filelen + 1 );
+	memcpy( text, fileBase + entities->fileofs, entities->filelen );
+	text[entities->filelen] = 0;
+	const char *cursor = text;
+	bool enabled = false;
+	if ( !strcmp( COM_ParseExt( &cursor, qtrue ), "{" ) ) {
+		while ( true ) {
+			const char *key = COM_ParseExt( &cursor, qtrue );
+			if ( !*key || !strcmp( key, "}" ) )
+				break;
+			const bool marker = !strcmp( key, "_aftershock_deluxe" );
+			const char *value = COM_ParseExt( &cursor, qtrue );
+			if ( marker )
+				enabled = !strcmp( value, "1" );
+		}
+	}
+	ri.Hunk_FreeTempMemory( text );
+	return enabled;
+}
+
+static int R_BspLightmapIndex( int index ) {
+	if ( tr.deluxeMapping && index >= 0 ) {
+		if ( index & 1 )
+			ri.Error( ERR_DROP, "Directional BSP surface references a direction page" );
+		index /= 2;
+	}
+	return index;
+}
+
+static void R_LoadDirectionalLightmaps( const lump_t *l, byte *image ) {
+	constexpr int pageBytes = LIGHTMAP_SIZE * LIGHTMAP_SIZE * 3;
+	if ( l->filelen % ( 2 * pageBytes ) )
+		ri.Error( ERR_DROP, "Directional BSP requires paired intensity/direction pages" );
+	const int pairs = (int)( l->filelen / ( 2 * pageBytes ) );
+	tr.mergeLightmaps = (qboolean)( r_mergeLightmaps->integer != 0 );
+	tr.numLightmaps = pairs;
+	if ( tr.mergeLightmaps )
+		tr.numLightmaps = SetLightmapParams( pairs, glConfig.maxTextureSize / 2 );
+	tr.lightmaps = (image_t **)ri.Hunk_Alloc( tr.numLightmaps * sizeof( image_t * ), h_low );
+	const bool combined = RHI_GetCapabilities().maxBoundDescriptorSets >= RHI_BINDING_COUNT;
+	if ( combined )
+		tr.bakedLightmaps = (image_t **)ri.Hunk_Alloc( tr.numLightmaps * sizeof( image_t * ), h_low );
+	else
+		ri.Printf( PRINT_WARNING, "Directional material shading requires five descriptor sets; using light-grid fallback\n" );
+	const int tile = tr.mergeLightmaps ? LIGHTMAP_LEN : LIGHTMAP_SIZE;
+	const int border = tr.mergeLightmaps ? LIGHTMAP_BORDER : 0;
+	const imgFlags_t flags = (imgFlags_t)( lightmapFlags | IMGFLAG_CLAMPTOEDGE );
+	int page = 0;
+	for ( int i = 0; i < tr.numLightmaps; ++i ) {
+		tr.lightmaps[i] = R_CreateImage( va( "*directionalIntensity%d", i ), NULL, NULL, lightmapWidth, lightmapHeight, flags );
+		if ( combined )
+			tr.bakedLightmaps[i] = R_CreateImage( va( "*directionalPair%d", i ), NULL, NULL, lightmapWidth, lightmapHeight * 2, flags );
+		for ( int y = 0; y < lightmapCountY && page < pairs; ++y ) {
+			for ( int x = 0; x < lightmapCountX && page < pairs; ++x, ++page ) {
+				const byte *input = fileBase + l->fileofs + page * 2 * pageBytes;
+				R_ProcessLightmap( image, input, 0 );
+				R_UploadTexture( &tr.lightmaps[i]->texture, tr.lightmaps[i]->internalFormat, x * tile, y * tile, tile, tile, 1, image, tile * tile * 4, qtrue );
+				if ( !combined )
+					continue;
+				image_t *packed = tr.bakedLightmaps[i];
+				R_UploadTexture( &packed->texture, packed->internalFormat, x * tile, y * tile, tile, tile, 1, image, tile * tile * 4, qtrue );
+				input += pageBytes;
+				for ( int row = 0; row < LIGHTMAP_SIZE; ++row ) {
+					for ( int col = 0; col < LIGHTMAP_SIZE; ++col ) {
+						byte *dest = image + ( ( row + border ) * tile + col + border ) * 4;
+						memcpy( dest, input + ( row * LIGHTMAP_SIZE + col ) * 3, 3 );
+						dest[3] = 255;
+					}
+				}
+				if ( tr.mergeLightmaps )
+					FillBorders( image );
+				R_UploadTexture( &packed->texture, packed->internalFormat, x * tile, y * tile + lightmapHeight, tile, tile, 1, image, tile * tile * 4, qtrue );
+			}
+		}
+	}
+	ri.Printf( PRINT_ALL, "Directional lightmaps: %d pair%s, %d atlas%s\n", pairs, pairs == 1 ? "" : "s", tr.numLightmaps, tr.numLightmaps == 1 ? "" : "es" );
+}
+
 /*
 ===============
 R_LoadLightmaps
@@ -406,6 +487,7 @@ static void R_LoadLightmaps( const lump_t *l ) {
 	float maxIntensity = 0;
 
 	tr.numLightmaps = 0;
+	tr.bakedLightmaps = NULL;
 	tr.mergeLightmaps = qfalse;
 	tr.lightmapScale[0] = 1.0f;
 	tr.lightmapScale[1] = 1.0f;
@@ -423,6 +505,11 @@ static void R_LoadLightmaps( const lump_t *l ) {
 
 	// if we are in r_vertexLight mode, we don't need the lightmaps at all
 	if ( r_vertexLight->integer || glConfig.hardwareType == GLHW_PERMEDIA2 ) {
+		return;
+	}
+
+	if ( tr.deluxeMapping ) {
+		R_LoadDirectionalLightmaps( l, image );
 		return;
 	}
 
@@ -657,7 +744,7 @@ static void ParseFace( const dsurface_t *ds, const drawVert_t *verts, int numPoi
 	//static const int idx_pattern[] = {2, 3, 4, 3, 5, 4};
 	//static const int idx_pattern2[] = {5, 4, 3, 2, 3, 4};
 
-	lightmapNum = LittleLong( ds->lightmapNum );
+	lightmapNum = R_BspLightmapIndex( LittleLong( ds->lightmapNum ) );
 	if ( lightmapNum >= 0 && tr.mergeLightmaps ) {
 		lightmapNum = R_GetLightmapCoords( lightmapNum, &lightmapX, &lightmapY );
 	} else {
@@ -772,7 +859,7 @@ static void ParseMesh( const dsurface_t *ds, const drawVert_t *verts, int numVer
 	vec3_t tmpVec;
 	static surfaceType_t skipData = SF_SKIP;
 
-	lightmapNum = LittleLong( ds->lightmapNum );
+	lightmapNum = R_BspLightmapIndex( LittleLong( ds->lightmapNum ) );
 	if ( lightmapNum >= 0 && tr.mergeLightmaps ) {
 		lightmapNum = R_GetLightmapCoords( lightmapNum, &lightmapX, &lightmapY );
 	} else {
@@ -851,7 +938,7 @@ static void ParseTriSurf( const dsurface_t *ds, const drawVert_t *verts, int num
 	int lightmapNum;
 	float lightmapX, lightmapY;
 
-	lightmapNum = LittleLong( ds->lightmapNum );
+	lightmapNum = R_BspLightmapIndex( LittleLong( ds->lightmapNum ) );
 	if ( lightmapNum >= 0 && tr.mergeLightmaps ) {
 		lightmapNum = R_GetLightmapCoords( lightmapNum, &lightmapX, &lightmapY );
 	} else {
@@ -2504,6 +2591,7 @@ void RE_LoadWorldMap( const char *name ) {
 	}
 
 	// load into heap
+	tr.deluxeMapping = R_DirectionalWorld( &header->lumps[LUMP_ENTITIES] );
 	R_LoadLightmaps( &header->lumps[LUMP_LIGHTMAPS] );
 	R_PreLoadFogs( &header->lumps[LUMP_FOGS] );
 	R_LoadShaders( &header->lumps[LUMP_SHADERS] );
