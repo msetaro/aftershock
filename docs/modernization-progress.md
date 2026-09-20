@@ -69,6 +69,12 @@ Skin matrices live in renderer frame storage; custom bounds cover the transforme
 bind mesh, and legacy frame sampling remains on its existing path. Renderer ABI
 is now 13 shipping / 17 development; modules must be rebuilt together. Verified
 cooked model hashes persist across initial registration and development reload.
+The new hand-authored rifle/body graphs pass native state/event/socket/layer
+checks (animation-rigs-test.log). Rifle: idle/ADS/fire/reload/sprint/jump, shot,
+shell and four reload stages. Body: idle/walk/run blend, masked aim/lean,
+crouch/prone, turn and alternating footsteps. `rigs.json` adds graph recipes;
+original Blender files, original project and provenance hashes are unchanged.
+Next: replicated gameplay pose state and real presentation/ImGui tests.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/

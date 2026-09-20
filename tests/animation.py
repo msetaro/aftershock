@@ -42,11 +42,12 @@ provenance = json.loads((fixture / 'provenance.json').read_text())
 for name, expected in provenance['files'].items():
     assert hashlib.sha256((fixture / name).read_bytes()).hexdigest() == expected
 owned_output = args.output / 'owned'
-cook(fixture / 'assets.json', owned_output)
+cook(fixture / 'rigs.json', owned_output)
 for name, joints, clips in [('rifle', 13, 6), ('body', 16, 10)]:
     data = (owned_output / ('models/anim_' + name + '.iqm')).read_bytes()
     header = struct.unpack_from('<27I', data, 16)
     assert header[13] == joints and header[17] == clips and header[19] == clips * 31
+    run([probe, owned_output / ('animations/anim_' + name + '.asanim'), name])
 with tempfile.TemporaryDirectory(prefix='aftershock-animation-source-') as temporary:
     source = Path(temporary)
     project, _ = source_assets(source)

@@ -1,0 +1,355 @@
+{
+  "version": 1,
+  "model_source": "rifle.gltf",
+  "model_asset": "models/anim_rifle.iqm",
+  "parameters": [
+    {
+      "name": "ads",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "fire",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "reload",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "sprint",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "jump",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "recoil",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "initial_state": "idle",
+  "states": [
+    {
+      "name": "idle",
+      "clip": "idle",
+      "loop": true
+    },
+    {
+      "name": "ads",
+      "clip": "ads",
+      "loop": true
+    },
+    {
+      "name": "fire",
+      "clip": "fire",
+      "loop": false,
+      "speed": 8,
+      "events": [
+        {
+          "time_ms": 0,
+          "name": "shot",
+          "bone": "muzzle"
+        },
+        {
+          "time_ms": 150,
+          "name": "shell_eject",
+          "bone": "rifle"
+        }
+      ]
+    },
+    {
+      "name": "reload",
+      "clip": "reload",
+      "loop": false,
+      "events": [
+        {
+          "time_ms": 250,
+          "name": "magazine_out",
+          "bone": "magazine"
+        },
+        {
+          "time_ms": 650,
+          "name": "magazine_in",
+          "bone": "magazine"
+        },
+        {
+          "time_ms": 850,
+          "name": "bolt",
+          "bone": "rifle"
+        },
+        {
+          "time_ms": 1000,
+          "name": "reload_complete",
+          "bone": "rifle"
+        }
+      ]
+    },
+    {
+      "name": "sprint",
+      "clip": "sprint",
+      "loop": true
+    },
+    {
+      "name": "jump",
+      "clip": "jump",
+      "loop": false
+    }
+  ],
+  "transitions": [
+    {
+      "from": "idle",
+      "to": "reload",
+      "blend_ms": 40,
+      "conditions": [
+        {
+          "parameter": "reload",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "idle",
+      "to": "fire",
+      "blend_ms": 40,
+      "conditions": [
+        {
+          "parameter": "fire",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "idle",
+      "to": "jump",
+      "blend_ms": 40,
+      "conditions": [
+        {
+          "parameter": "jump",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "ads",
+      "to": "reload",
+      "blend_ms": 40,
+      "conditions": [
+        {
+          "parameter": "reload",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "ads",
+      "to": "fire",
+      "blend_ms": 40,
+      "conditions": [
+        {
+          "parameter": "fire",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "ads",
+      "to": "jump",
+      "blend_ms": 40,
+      "conditions": [
+        {
+          "parameter": "jump",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "sprint",
+      "to": "reload",
+      "blend_ms": 40,
+      "conditions": [
+        {
+          "parameter": "reload",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "sprint",
+      "to": "fire",
+      "blend_ms": 40,
+      "conditions": [
+        {
+          "parameter": "fire",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "sprint",
+      "to": "jump",
+      "blend_ms": 40,
+      "conditions": [
+        {
+          "parameter": "jump",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "fire",
+      "to": "ads",
+      "blend_ms": 100,
+      "conditions": [
+        {
+          "parameter": "ads",
+          "op": ">",
+          "value": 0.5
+        }
+      ],
+      "on_end": true
+    },
+    {
+      "from": "fire",
+      "to": "idle",
+      "blend_ms": 100,
+      "on_end": true
+    },
+    {
+      "from": "reload",
+      "to": "ads",
+      "blend_ms": 100,
+      "conditions": [
+        {
+          "parameter": "ads",
+          "op": ">",
+          "value": 0.5
+        }
+      ],
+      "on_end": true
+    },
+    {
+      "from": "reload",
+      "to": "idle",
+      "blend_ms": 100,
+      "on_end": true
+    },
+    {
+      "from": "jump",
+      "to": "ads",
+      "blend_ms": 100,
+      "conditions": [
+        {
+          "parameter": "ads",
+          "op": ">",
+          "value": 0.5
+        }
+      ],
+      "on_end": true
+    },
+    {
+      "from": "jump",
+      "to": "idle",
+      "blend_ms": 100,
+      "on_end": true
+    },
+    {
+      "from": "idle",
+      "to": "sprint",
+      "blend_ms": 100,
+      "conditions": [
+        {
+          "parameter": "sprint",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "ads",
+      "to": "sprint",
+      "blend_ms": 100,
+      "conditions": [
+        {
+          "parameter": "sprint",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "sprint",
+      "to": "ads",
+      "blend_ms": 100,
+      "conditions": [
+        {
+          "parameter": "sprint",
+          "op": "<=",
+          "value": 0.5
+        },
+        {
+          "parameter": "ads",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "sprint",
+      "to": "idle",
+      "blend_ms": 100,
+      "conditions": [
+        {
+          "parameter": "sprint",
+          "op": "<=",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "idle",
+      "to": "ads",
+      "blend_ms": 150,
+      "conditions": [
+        {
+          "parameter": "ads",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "ads",
+      "to": "idle",
+      "blend_ms": 150,
+      "conditions": [
+        {
+          "parameter": "ads",
+          "op": "<=",
+          "value": 0.5
+        }
+      ]
+    }
+  ]
+}

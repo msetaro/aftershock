@@ -31,3 +31,18 @@ The sources prepare #10's acceptance content. They do not by themselves prove th
 runtime state machine, events, IK, gameplay replication or demo parity. Those
 require the feature's native and in-game tests. Existing #9 sources and all
 accepted demo/frame fixtures remain unchanged.
+
+The authored `rifle.animation.json` and `body.animation.json` graphs use these
+unchanged exports. Cook the complete graph/model set with:
+
+```
+python3 tools/cook tests/assets/animation/rigs.json --output /tmp/aftershock-animation-rigs
+python3 tests/animation.py
+```
+
+The rifle graph covers idle/ADS/fire/reload/sprint/jump and names shot, shell,
+magazine and bolt events with attachment bones. The body graph blends idle/walk/
+run and crouch/prone, adds aim/lean on the spine subtree, and emits alternating
+footsteps. New graph sources are hand-authored data, not regenerated Blender
+exports or accepted demo goldens. Native tests exercise both graphs; in-game
+presentation and recorded hit-box parity remain part of #10 acceptance.

@@ -1,0 +1,268 @@
+{
+  "version": 1,
+  "model_source": "body.gltf",
+  "model_asset": "models/anim_body.iqm",
+  "parameters": [
+    {
+      "name": "move",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "run",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "aim_up",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "aim_down",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "lean_left",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "lean_right",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "crouch",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "prone",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "turn",
+      "default": 0,
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "initial_state": "idle",
+  "masks": [
+    {
+      "name": "upper",
+      "root": "spine"
+    }
+  ],
+  "nodes": [
+    {
+      "name": "idle",
+      "clip": "idle",
+      "loop": true
+    },
+    {
+      "name": "walk",
+      "clip": "walk",
+      "loop": true
+    },
+    {
+      "name": "run",
+      "clip": "run",
+      "loop": true
+    },
+    {
+      "name": "aim_up",
+      "clip": "aim_up",
+      "loop": false
+    },
+    {
+      "name": "aim_down",
+      "clip": "aim_down",
+      "loop": false
+    },
+    {
+      "name": "lean_left",
+      "clip": "lean_left",
+      "loop": false
+    },
+    {
+      "name": "lean_right",
+      "clip": "lean_right",
+      "loop": false
+    },
+    {
+      "name": "crouch",
+      "clip": "crouch",
+      "loop": false
+    },
+    {
+      "name": "prone",
+      "clip": "prone",
+      "loop": false
+    },
+    {
+      "name": "turn",
+      "clip": "turn",
+      "loop": false
+    },
+    {
+      "name": "stride",
+      "blend": [
+        "walk",
+        "run"
+      ],
+      "parameter": "run"
+    },
+    {
+      "name": "locomotion",
+      "blend": [
+        "idle",
+        "stride"
+      ],
+      "parameter": "move"
+    },
+    {
+      "name": "low",
+      "blend": [
+        "locomotion",
+        "crouch"
+      ],
+      "parameter": "crouch"
+    },
+    {
+      "name": "ground",
+      "blend": [
+        "low",
+        "prone"
+      ],
+      "parameter": "prone"
+    },
+    {
+      "name": "layer_aim_up",
+      "additive": [
+        "ground",
+        "aim_up"
+      ],
+      "reference": "idle",
+      "mask": "upper",
+      "parameter": "aim_up"
+    },
+    {
+      "name": "layer_aim_down",
+      "additive": [
+        "layer_aim_up",
+        "aim_down"
+      ],
+      "reference": "idle",
+      "mask": "upper",
+      "parameter": "aim_down"
+    },
+    {
+      "name": "layer_lean_left",
+      "additive": [
+        "layer_aim_down",
+        "lean_left"
+      ],
+      "reference": "idle",
+      "mask": "upper",
+      "parameter": "lean_left"
+    },
+    {
+      "name": "layer_lean_right",
+      "additive": [
+        "layer_lean_left",
+        "lean_right"
+      ],
+      "reference": "idle",
+      "mask": "upper",
+      "parameter": "lean_right"
+    }
+  ],
+  "states": [
+    {
+      "name": "idle",
+      "clip": "idle",
+      "node": "layer_lean_right",
+      "loop": true
+    },
+    {
+      "name": "move",
+      "clip": "walk",
+      "node": "layer_lean_right",
+      "loop": true,
+      "events": [
+        {
+          "time_ms": 250,
+          "name": "footstep",
+          "bone": "foot.L"
+        },
+        {
+          "time_ms": 750,
+          "name": "footstep",
+          "bone": "foot.R"
+        }
+      ]
+    },
+    {
+      "name": "turn",
+      "clip": "turn",
+      "node": "turn",
+      "loop": false
+    }
+  ],
+  "transitions": [
+    {
+      "from": "idle",
+      "to": "turn",
+      "blend_ms": 100,
+      "conditions": [
+        {
+          "parameter": "turn",
+          "op": ">",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "from": "idle",
+      "to": "move",
+      "blend_ms": 100,
+      "conditions": [
+        {
+          "parameter": "move",
+          "op": ">",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "from": "move",
+      "to": "idle",
+      "blend_ms": 100,
+      "conditions": [
+        {
+          "parameter": "move",
+          "op": "<=",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "from": "turn",
+      "to": "idle",
+      "blend_ms": 100,
+      "on_end": true
+    }
+  ]
+}
