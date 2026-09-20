@@ -16,6 +16,23 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
+Preparatory branch `issue/27-headless-levels` is in the level-tree worktree, based
+on #26 PR #153 head 5f67dbf4. The main user checkout stays on #26 while its full
+CI runs (build 35537284408, regression 35537284293). #151/#11 integration is
+35537127266. Do not accept/merge #27 before those prerequisites and #26's own
+merged-tree gate pass. Merge modernization forward later; never rewrite history.
+
+Read #27/#28. tests/level_validate.py is test-first and fails because the validate
+subcommand is absent (level-validate-before.log). It requires a stable JSON/text
+report, named and automatic fly-through PNGs repeated byte-for-byte, real draw-call
+and triangle metrics, structure/lightmap/AAS counts, bot movement samples and clear
+unreachable/outside-camera failures. A raw MAP leak control is still to add.
+Next implement the headless command, reusing the existing compiler/native runtime,
+and small read-only engine diagnostics for frame draws and bot positions. No bug
+fix or simulation arithmetic change belongs here. Existing #26 fixtures stay fixed.
+
+## #26 checkpoint inherited by #27
+
 Current branch: `issue/26-level-authoring`, with modernization merged forward
 through #151 PR #152 merge 64a38d44aa50e5accca3676f7f7927be87594c25.
 #151 exact-head build/regression passed; merged-tree regression 35537127266 is
