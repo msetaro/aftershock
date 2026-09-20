@@ -146,7 +146,11 @@ A rifle additive recoil node now retains the ADS base while firing.
 The final graph passes live gameplay and Clang/libc++ UBSan
 (animation-facing-final.log, animation-facing-clang.log), including retained
 body facing after the turn; format/type/boundary checks pass.
-Next: implement graph authoring/inspection.
+Graph authoring test-first now fails against the missing developer command
+(animation-editor-before.log). It will edit initial_state in ImGui, preserve
+a byte-identical backup, observe the external cooker revision and render the
+changed graph. Implement a bounded source editor and compiled graph inspector;
+reuse the existing ImGui and filesystem rather than a new JSON/UI dependency.
 The old C/C++ DLL import/source-comparison CI steps are port-era oracles and will
 need explicit treatment now that the owned native game calls the C++ animation
 service. Preserve their accepted pre-#10 evidence; do not add production-only
