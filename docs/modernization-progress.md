@@ -15,40 +15,32 @@ upstream; historical upstream PR references below are completed past work.
 Local evidence lives in `~/.cache/aftershock-modernization/`; artifact names below
 are relative to that persistent directory.
 
-Active: #8 legacy-cache layout branch issue/8-legacy-cache-layouts. PR #135
-(source/head 0353ccd3) merged after build 35476912168, regression 35476912148
-and preceding merged-tree regression 35476907462 passed. Query the new merged-tree
-regression before the next merge. Central/shared and image/cache records are done.
+Active: #8 integer contracts, branch issue/8-integer-contracts. PR #136
+(head e4a2d92f, merge b9ff3120) passed build 35477855677, regression
+35477855624 and preceding merged-tree regression 35477374263. Self-review and
+measurements are recorded on #8 and PR #136. Central/shared, image/cache and the
+five journal/browser/routing record layouts are merged. No enum promotion changes.
+Local #136 unit/negative control, formatting, boundaries and 570 tidy configs pass.
 
-Applied five additional persisted record layouts: journal events, browser-cache
-addresses/server records and routing cache header/records. Native measurements:
-netadr/serverInfo 28/168 with IPv6 and 12/152 without; sysEvent 32 (alignment 8,
-pointer offset 24), routing header 32, routing cache 88 (alignment 8, travel-time
-offset 80). Every record is trivially copyable and standard layout.
-
-Decision: retain existing enum declarations/promotions and assert 32-bit storage
-for netadrtype_t, sysEventType_t and qboolean. Explicit underlying enum types or
-replacing the visibility enum with an integer changed optimized code; those
-previews were rejected. Primitive record fields use fixed-width types. Final
-113 object samples preserve code/data (89 raw/native-identical, 24 debug-only),
-and IPv4/IPv6 sizes/traits match the measured baseline. Evidence:
-legacy-cache-object-review.json and legacy-layout-{baseline,after}/results.json.
-
-Next: local style/unit/tidy checks, publish, current-head and preceding merged-tree
-gates, self-review and merge. The separate scalar journal length keeps its historical
-platform width in the long candidate's fsOffset_t contract. No new loader targets
-or golden/fixture regeneration. #8 remains open.
-
-Long-width experiment is still CACHE ONLY and not accepted. V1 blanket widening
-was rejected because script integers feed float conversion. V2 preserves explicit
-scriptSigned_t/scriptUnsigned_t widths (Windows 32-bit, elsewhere 64-bit), uses
-minizip's declared member type for in-memory positions and explicit formatter
-widths. All 1,810 release configurations compile: 1,728 assemblies identical,
-82 Windows differences need detailed review; Linux GCC/Clang and AArch64 match.
-All twelve experimental native helper hashes match formatted-native.json.
-Foreign callback/variadic/stdio long contracts remain; long-policy-control.log
-shows clang-tidy can distinguish long warnings from advisory short warnings.
-Do not apply this candidate until Windows/MSVC and simulation review is complete.
+Applied integer-preview against b9ff3120 after 1,810 successful release assembly
+builds and twelve byte-identical native helper binaries. 1,730 assemblies are raw
+identical; two GCC Vorbis files differ only in local function-label numbering;
+78 Windows configurations differ (internal symbol types, integer width/registers,
+struct strides and explicit formatting conversions). Do not claim Windows object
+identity. Existing script arithmetic, journal storage and hash overflow are retained.
+Fresh full hosted build/regression and local unit/replay/tidy gates are next.
+A GCC attributed-function template warning rejected the first stdio type spelling;
+the final alias uses the standard C ABI word directly. All affected configurations
+were rebuilt successfully. The permanent long gate also covers inactive branches. Existing accepted fixtures and
+goldens stay unchanged. The older long-width previews/proofs are historical.
+MSVC diagnostic V6 (62aec95c, run 35477770192) passed all four configurations;
+that diagnostic branch has a reduced workflow and MUST NEVER be merged.
+Script arithmetic, seek/journal lengths and hash overflow retain explicit legacy
+platform widths. Foreign callback, stdio, libcurl and Xlib values retain SDK/C ABI
+types; internal integers use fixed-width types. The candidate refresh preserves
+all #136 layout changes. Remaining work: long ban gate, meaningful char audit,
+Q_ASSERT integration, final #8 plan/progress/gates, then design-only #6 document.
+#8 remains open.
 
 Q_ASSERT preview is also CACHE ONLY: formatted-assert-* preserves 205 samples
 (159 raw, 46 debug-only), twelve helper hashes, and passes 46 assertion-enabled
@@ -61,6 +53,10 @@ All nineteen native export assemblies byte-identical. Twelve helpers differ
 only in assertion line immediates/build IDs; local unit/negative control, native
 layout/symbol gates, OpenArena helper/layout checks and fixed Q3 replay pass.
 Accepted goldens/fixtures and original GPL hashes remain unchanged.
+
+## Historical verification checkpoints
+
+The entries below record completed or superseded previews; follow Next action above.
 
 Fresh cache-only formatted-central-width and formatted-enum-unsigned previews
 preserve 56/85 sampled objects after stripping debug metadata; the shared-width

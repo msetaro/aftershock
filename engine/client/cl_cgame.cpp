@@ -471,7 +471,7 @@ void CGameImport_FS_FCloseFile( int f ) {
 }
 int CGameImport_FS_Seek( int f, int64_t offset, int origin ) {
 
-	return FS_VM_SeekFile( f, (long)offset, (fsOrigin_t)origin, H_CGAME );
+	return FS_VM_SeekFile( f, (fsOffset_t)offset, (fsOrigin_t)origin, H_CGAME );
 }
 void CGameImport_SendConsoleCommand( const char *text ) {
 	{

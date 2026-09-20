@@ -59,7 +59,7 @@ void S_WriteLinearBlastStereo16( void ) {
 Q_EXTERN_C void S_WriteLinearBlastStereo16_SSE_x64( int *, short *, int );
 #endif
 
-void S_TransferStereo16( unsigned long *pbuf, int endtime ) {
+void S_TransferStereo16( uint64_t *pbuf, int endtime ) {
 	int lpos;
 	int ls_paintedtime;
 
@@ -103,9 +103,9 @@ static void S_TransferPaintBuffer( int endtime, byte *buffer ) {
 	int *p;
 	int step;
 	int val;
-	unsigned long *pbuf;
+	uint64_t *pbuf;
 
-	pbuf = (unsigned long *)buffer;
+	pbuf = (uint64_t *)buffer;
 
 	if ( s_testsound->integer ) {
 		// write a fixed sine wave

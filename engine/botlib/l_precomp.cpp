@@ -1436,7 +1436,7 @@ typedef struct operator_s {
 } operator_t;
 
 typedef struct value_s {
-	signed long int intvalue;
+	scriptSigned_t intvalue;
 	float floatvalue;
 	int parentheses;
 	struct value_s *prev, *next;
@@ -2436,7 +2436,7 @@ static int PC_DollarDirective_evalfloat( source_t *source ) {
 
 #ifdef NUMBERVALUE
 	token.floatvalue = (float)( fabs( (double)( value ) ) );
-	token.intvalue = (unsigned long)token.floatvalue;
+	token.intvalue = (scriptUnsigned_t)token.floatvalue;
 #endif //NUMBERVALUE
 
 	PC_UnreadSourceToken( source, &token );

@@ -34,7 +34,7 @@ SV_Netchan_Encode
 ==============
 */
 static void SV_Netchan_Encode( client_t *client, msg_t *msg, const char *clientCommandString ) {
-	long i, index;
+	int64_t i, index;
 	byte key, *string;
 	int srdc, sbit;
 	qboolean soob;

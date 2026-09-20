@@ -45,9 +45,6 @@ static const char **shaderTextHashTable[MAX_SHADERTEXT_HASH];
 return a hash value for the filename
 ================
 */
-#ifdef __GNUCC__
-#warning TODO: check if long is ok here
-#endif
 
 #define generateHashValue Com_GenerateHashValue
 
@@ -2990,7 +2987,7 @@ most world construction surfaces.
 */
 shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImage ) {
 	char strippedName[MAX_QPATH];
-	unsigned long hash;
+	uint64_t hash;
 	const char *shaderText;
 	image_t *image;
 	shader_t *sh;
@@ -3087,7 +3084,7 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 
 
 qhandle_t RE_RegisterShaderFromImage( const char *name, int lightmapIndex, image_t *image, qboolean mipRawImage [[maybe_unused]] ) {
-	unsigned long hash;
+	uint64_t hash;
 	shader_t *sh;
 
 	hash = generateHashValue( name, FILE_HASH_SIZE );
@@ -3321,7 +3318,7 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 	char filename[MAX_QPATH + 8];
 	char shaderName[MAX_QPATH];
 	const char *p, *token;
-	long summand, sum = 0;
+	int64_t summand, sum = 0;
 	int shaderLine;
 	int i;
 	const char *shaderStart;
@@ -3403,7 +3400,7 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 
 		if ( buffers[i] ) {
 			if ( shaderStart ) {
-				summand = (long)( summand - ( ( shaderStart - buffers[i] ) ) );
+				summand = (int64_t)( summand - ( ( shaderStart - buffers[i] ) ) );
 				if ( summand >= 0 ) {
 					memmove( buffers[i], shaderStart, summand + 1 );
 				}
@@ -3413,7 +3410,7 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 		}
 	}
 
-	return sum;
+	return (int)sum;
 }
 
 
@@ -3436,7 +3433,7 @@ static void ScanAndLoadShaderFiles( void ) {
 	const char *p, *oldp;
 	int shaderTextHashTableSizes[MAX_SHADERTEXT_HASH], hash, size;
 
-	long sum = 0;
+	int64_t sum = 0;
 
 	// scan for legacy shader files
 	shaderFiles = ri.FS_ListFiles( "scripts", ".shader", &numShaderFiles );

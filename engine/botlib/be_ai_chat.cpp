@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *****************************************************************************/
 
+#include <inttypes.h>
 #include "../qcommon/filesystem_public.h"
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon_public.h"
@@ -111,7 +112,7 @@ typedef struct bot_synonym_s {
 } bot_synonym_t;
 //list with synonyms
 typedef struct bot_synonymlist_s {
-	unsigned long int context;
+	uint64_t context;
 	float totalweight;
 	bot_synonym_t *firstsynonym;
 	struct bot_synonymlist_s *next;
@@ -132,7 +133,7 @@ typedef struct bot_matchpiece_s {
 } bot_matchpiece_t;
 //match template
 typedef struct bot_matchtemplate_s {
-	unsigned long int context;
+	uint64_t context;
 	int type;
 	int subtype;
 	bot_matchpiece_t *first;
@@ -560,7 +561,7 @@ static void BotDumpSynonymList(bot_synonymlist_t *synlist)
 	if (!fp) return;
 	for (syn = synlist; syn; syn = syn->next)
 	{
-	        FS_OSPrintf(fp, "%ld : [", syn->context);
+	        FS_OSPrintf(fp, "%" PRId64 " : [", (int64_t)(scriptSigned_t)syn->context);
 		for (synonym = syn->firstsynonym; synonym; synonym = synonym->next)
 		{
 			FS_OSPrintf(fp, "(\"%s\", %1.2f)", synonym->string, synonym->weight);
@@ -578,7 +579,7 @@ static void BotDumpSynonymList(bot_synonymlist_t *synlist)
 //===========================================================================
 static bot_synonymlist_t *BotLoadSynonyms( const char *filename ) {
 	int pass, contextlevel, numsynonyms;
-	unsigned long int context, contextstack[32];
+	uint64_t context, contextstack[32];
 	char *ptr = NULL;
 	size_t size;
 	source_t *source;
@@ -730,7 +731,7 @@ static bot_synonymlist_t *BotLoadSynonyms( const char *filename ) {
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void BotReplaceSynonyms( char *string, int size, unsigned long int context ) {
+void BotReplaceSynonyms( char *string, int size, uint64_t context ) {
 	const bot_synonymlist_t *syn;
 	const bot_synonym_t *synonym;
 
@@ -749,7 +750,7 @@ void BotReplaceSynonyms( char *string, int size, unsigned long int context ) {
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-static void BotReplaceWeightedSynonyms( char *string, int size, unsigned long int context ) {
+static void BotReplaceWeightedSynonyms( char *string, int size, uint64_t context ) {
 	bot_synonymlist_t *syn;
 	bot_synonym_t *synonym, *replacement;
 	float weight, curweight;
@@ -786,7 +787,7 @@ static void BotReplaceWeightedSynonyms( char *string, int size, unsigned long in
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-static void BotReplaceReplySynonyms( char *string, int size, unsigned long int context ) {
+static void BotReplaceReplySynonyms( char *string, int size, uint64_t context ) {
 	char *str1, *replacement;
 	const char *str2, *endp;
 	bot_synonymlist_t *syn;
@@ -874,13 +875,13 @@ static int BotLoadChatMessage( source_t *source, char *chatmessagestring, int si
 			int intlen;
 
 			len = (int)( strlen( ptr ) );
-			intlen = snprintf( intbuf, sizeof( intbuf ), "%cv%ld%c", ESCAPE_CHAR, token.intvalue, ESCAPE_CHAR );
+			intlen = snprintf( intbuf, sizeof( intbuf ), "%cv%" PRId64 "%c", ESCAPE_CHAR, (int64_t)(scriptSigned_t)token.intvalue, ESCAPE_CHAR );
 			if ( len + intlen + 1 > size ) {
 				SourceError( source, "chat message too long" );
 				return qfalse;
 			}
 			strcpy( &ptr[len], intbuf );
-			//sprintf( &ptr[len], "%cv%ld%c", ESCAPE_CHAR, token.intvalue, ESCAPE_CHAR );
+			//sprintf( &ptr[len], "%cv%" PRId64 "%c", ESCAPE_CHAR, (int64_t)(scriptSigned_t)token.intvalue, ESCAPE_CHAR );
 		}
 		//random string
 		else if ( token.type == TT_NAME ) {
@@ -1241,7 +1242,7 @@ static bot_matchtemplate_t *BotLoadMatchTemplates( const char *matchfile ) {
 	source_t *source;
 	token_t token;
 	bot_matchtemplate_t *matchtemplate, *matches, *lastmatch;
-	unsigned long int context;
+	uint64_t context;
 
 	PC_SetBaseFolder( BOTFILESBASEFOLDER );
 	source = LoadSourceFile( matchfile );
@@ -1396,7 +1397,7 @@ static int StringsMatch( bot_matchpiece_t *pieces, bot_match_t *match ) {
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int BotFindMatch( const char *str, bot_match_t *match, unsigned long int context ) {
+int BotFindMatch( const char *str, bot_match_t *match, uint64_t context ) {
 	int i;
 	bot_matchtemplate_t *ms;
 
@@ -2160,8 +2161,8 @@ int BotLoadChatFile( int chatstate, const char *chatfile, const char *chatname )
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-static int BotExpandChatMessage( char *outmessage, int size, const char *message, unsigned long mcontext,
-	bot_match_t *match, unsigned long vcontext, int reply ) {
+static int BotExpandChatMessage( char *outmessage, int size, const char *message, uint64_t mcontext,
+	bot_match_t *match, uint64_t vcontext, int reply ) {
 	int num, len, i, expansion;
 	char *outputbuf;
 	const char *ptr, *msgptr;
@@ -2273,8 +2274,8 @@ static int BotExpandChatMessage( char *outmessage, int size, const char *message
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-static void BotConstructChatMessage( bot_chatstate_t *chatstate, const char *message, unsigned long mcontext,
-	bot_match_t *match, unsigned long vcontext, int reply ) {
+static void BotConstructChatMessage( bot_chatstate_t *chatstate, const char *message, uint64_t mcontext,
+	bot_match_t *match, uint64_t vcontext, int reply ) {
 	int i;
 	char srcmessage[MAX_MESSAGE_SIZE];
 

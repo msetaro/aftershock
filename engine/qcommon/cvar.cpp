@@ -44,16 +44,16 @@ static qboolean cvar_sort = qfalse;
 return a hash value for the filename
 ================
 */
-static long generateHashValue( const char *fname ) {
+static int64_t generateHashValue( const char *fname ) {
 	int i;
-	long hash;
+	int64_t hash;
 	char letter;
 
 	hash = 0;
 	i = 0;
 	while ( fname[i] != '\0' ) {
 		letter = locase[(byte)fname[i]];
-		hash += (long)( letter ) * ( i + 119 );
+		hash += (int64_t)( letter ) * ( i + 119 );
 		i++;
 	}
 	hash &= ( FILE_HASH_SIZE - 1 );
@@ -95,7 +95,7 @@ Cvar_FindVar
 */
 static cvar_t *Cvar_FindVar( const char *var_name ) {
 	cvar_t *var;
-	long hash;
+	int64_t hash;
 
 	if ( !var_name )
 		return NULL;
@@ -341,7 +341,7 @@ The flags will be or'ed in if the variable exists.
 */
 cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 	cvar_t *var;
-	long hash;
+	int64_t hash;
 	int index;
 
 	if ( !var_name || !var_value ) {
@@ -489,7 +489,7 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 	cvar_modifiedFlags |= var->flags;
 
 	hash = generateHashValue( var_name );
-	var->hashIndex = hash;
+	var->hashIndex = (int)hash;
 
 	var->hashNext = hashTable[hash];
 	if ( hashTable[hash] )

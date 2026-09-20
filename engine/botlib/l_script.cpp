@@ -505,9 +505,9 @@ static int PS_ReadName( script_t *script, token_t *token ) {
 // Returns:					-
 // Changes Globals:		-
 //============================================================================
-static void NumberValue( char *string, int subtype, unsigned long int *intvalue,
+static void NumberValue( char *string, int subtype, scriptUnsigned_t *intvalue,
 	float *floatvalue ) {
-	unsigned long int dotfound = 0;
+	scriptUnsigned_t dotfound = 0;
 
 	*intvalue = 0;
 	*floatvalue = 0;
@@ -530,7 +530,7 @@ static void NumberValue( char *string, int subtype, unsigned long int *intvalue,
 			} //end else
 			string++;
 		} //end while
-		*intvalue = (unsigned long)*floatvalue;
+		*intvalue = (scriptUnsigned_t)*floatvalue;
 	} //end if
 	else if ( subtype & TT_DECIMAL ) {
 		while ( *string )
@@ -1116,10 +1116,10 @@ float ReadSignedFloat(script_t *script)
 // Returns:					-
 // Changes Globals:		-
 //============================================================================
-signed long int ReadSignedInt(script_t *script)
+scriptSigned_t ReadSignedInt(script_t *script)
 {
 	token_t token;
-	signed long int sign = 1;
+	scriptSigned_t sign = 1;
 
 	PS_ExpectAnyToken(script, &token);
 	if (!strcmp(token.string, "-"))

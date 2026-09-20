@@ -17,6 +17,7 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 ```
 python3 tests/native_math.py
 python3 tests/check_format.py
+python3 tests/check_types.py
 python3 tests/check_tidy.py
 python3 tests/check_lifetimes.py
 python3 tests/check_boundaries.py
@@ -46,6 +47,15 @@ assert their existing record layouts. IPv4-only and IPv6 address variants retain
 their distinct sizes. Existing enum promotions remain intact; their storage width
 is asserted to be 32 bits. Pointer-bearing journal/routing records keep the
 existing 64-bit layout, including pointer and variable-tail offsets.
+
+`python3 tests/check_types.py` bans bare `long` types in owned engine/game
+sources, including inactive platform branches. It shares the boundary check's
+comment/string lexer and runs positive and negative controls. Library-facing
+stdio, curl, Vorbis and Xlib values use their native ABI types; these are foreign
+contracts, not portable integer storage. Internal replacements use explicit widths.
+The legacy script arithmetic, seek/config-journal lengths and hash accumulators
+retain explicit Windows/non-Windows widths to preserve existing behavior. Changing
+those compatibility contracts requires separate behavior-change evidence.
 
 The thirteen asset-free groups include wire/file layout. The negative control
 moves the active GCC SSE Q_rsqrt return one ULP toward infinity in a temporary

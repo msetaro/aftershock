@@ -47,6 +47,8 @@ jobs:
             fi
             grep -F 'Aftershock supports 64-bit little-endian x86_64 and aarch64' "/tmp/reject-$arch.log"
           done
+      - name: Enforce integer type policy
+        run: python3 tests/check_types.py
       - name: Enforce subsystem and OS boundaries
         run: python3 tests/check_boundaries.py
       - name: Enforce trivial engine lifetimes

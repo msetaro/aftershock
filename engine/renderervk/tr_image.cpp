@@ -968,7 +968,7 @@ Picture data may be modified in-place during mipmap processing
 */
 image_t *R_CreateImage( const char *name, const char *name2, byte *pic, int width, int height, imgFlags_t flags ) {
 	image_t *image;
-	long hash;
+	int64_t hash;
 #ifndef USE_VULKAN
 	GLint glWrapClampMode;
 	GLuint currTexture;

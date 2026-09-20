@@ -241,8 +241,8 @@ static const unsigned pak_checksums[] = {
 
 typedef struct fileInPack_s {
 	char *name; // name of the file
-	unsigned long pos; // file info position in zip
-	unsigned long size; // file size
+	decltype( unz_file_info::uncompressed_size ) pos; // minizip file info position
+	decltype( unz_file_info::uncompressed_size ) size; // minizip file size
 	struct fileInPack_s *next; // next file in the hash bucket
 } fileInPack_t;
 
@@ -1605,8 +1605,8 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 	pack_t *pak;
 	fileInPack_t *pakFile;
 	directory_t *dir;
-	long hash;
-	long fullHash;
+	int64_t hash;
+	int64_t fullHash;
 	FILE *temp;
 	int length;
 	fileHandleData_t *f;
@@ -1751,7 +1751,7 @@ FS_TouchFileInPak
 */
 void FS_TouchFileInPak( const char *filename, int refbits ) {
 	const searchpath_t *search;
-	long fullHash, hash;
+	int64_t fullHash, hash;
 	pack_t *pak;
 	fileInPack_t *pakFile;
 
@@ -1961,7 +1961,7 @@ FS_Seek
 
 =================
 */
-int FS_Seek( fileHandle_t f, long offset, fsOrigin_t origin ) {
+int FS_Seek( fileHandle_t f, fsOffset_t offset, fsOrigin_t origin ) {
 	int _origin;
 
 	if ( !fs_searchpaths ) {
@@ -2060,8 +2060,8 @@ qboolean FS_FileIsInPAK( const char *filename, int *pChecksum, char *pakName ) {
 	const searchpath_t *search;
 	const pack_t *pak;
 	const fileInPack_t *pakFile;
-	long hash;
-	long fullHash;
+	int64_t hash;
+	int64_t fullHash;
 
 	if ( !fs_searchpaths ) {
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
@@ -2134,7 +2134,7 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 	fileHandle_t h;
 	byte *buf;
 	qboolean isConfig;
-	long len;
+	fsOffset_t len;
 
 	if ( !fs_searchpaths ) {
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
@@ -2614,7 +2614,7 @@ static qboolean FS_SavePackToFile( const pack_t *pak, FILE *f ) {
 
 	// file entries
 	for ( i = 0; i < pak->numfiles; i++ ) {
-		it.name = (unsigned long)( pak->buildBuffer[i].name - namePtr );
+		it.name = (pk3cacheItemOffset_t)( pak->buildBuffer[i].name - namePtr );
 		it.size = pak->buildBuffer[i].size;
 		it.pos = pak->buildBuffer[i].pos;
 		fwrite( &it, sizeof( it ), 1, f );
@@ -2657,7 +2657,7 @@ static qboolean FS_LoadPakFromFile( FILE *f ) {
 	int size, i;
 	int pakBaseLen;
 	int hashSize;
-	long hash;
+	int64_t hash;
 
 	if ( fread( &pk, sizeof( pk ), 1, f ) != 1 )
 		return qfalse; // probably EOF
@@ -2948,7 +2948,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile ) {
 	char filename_inzip[MAX_ZPATH];
 	unz_file_info file_info;
 	unsigned int i, namelen, hashSize, size;
-	long hash;
+	int64_t hash;
 	int fs_numHeaderLongs;
 	int *fs_headerLongs;
 	int filecount;
@@ -4015,7 +4015,7 @@ static void FS_Which_f( void ) {
 	pack_t *pak;
 	fileInPack_t *pakFile;
 	directory_t *dir;
-	long hash;
+	int64_t hash;
 	FILE *temp;
 	const char *filename;
 	char buf[MAX_OSPATH * 2 + 1];
@@ -5574,7 +5574,7 @@ void FS_VM_WriteFile( void *buffer, int len, fileHandle_t f, handleOwner_t owner
 }
 
 
-int FS_VM_SeekFile( fileHandle_t f, long offset, fsOrigin_t origin, handleOwner_t owner ) {
+int FS_VM_SeekFile( fileHandle_t f, fsOffset_t offset, fsOrigin_t origin, handleOwner_t owner ) {
 	int r;
 
 	if ( f <= 0 || f >= MAX_FILE_HANDLES )
@@ -5795,11 +5795,11 @@ int FS_OSClose( FILE *file ) {
 	return fclose( file );
 }
 
-int FS_OSSeek( FILE *file, long offset, int origin ) {
+int FS_OSSeek( FILE *file, fsStdioOffset_t offset, int origin ) {
 	return fseek( file, offset, origin );
 }
 
-long FS_OSTell( FILE *file ) {
+fsStdioOffset_t FS_OSTell( FILE *file ) {
 	return ftell( file );
 }
 

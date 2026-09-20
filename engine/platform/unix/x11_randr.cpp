@@ -295,7 +295,7 @@ static void BuildMonitorList( void ) {
 
 static monitor_t *FindNearestMonitor( int x, int y, int w, int h ) {
 	monitor_t *m, *found, *list[MAX_MONITORS];
-	unsigned long dx, dy, dist, nearest;
+	uint64_t dx, dy, dist, nearest;
 	int cx, cy;
 	int i, cnt, minx, maxx, slen;
 

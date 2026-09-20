@@ -61,7 +61,7 @@ static void swapfunc( char *, char *, int, int );
  * Qsort routine from Bentley & McIlroy's "Engineering a Sort Function".
  */
 #define swapcode( TYPE, parmi, parmj, n ) { 		\
-	long i = (n) / sizeof (TYPE); 			\
+	int64_t i = (n) / sizeof (TYPE); 			\
 	TYPE *pi = (TYPE *) (parmi); 		\
 	TYPE *pj = (TYPE *) (parmj); 		\
 	do { 						\
@@ -71,20 +71,20 @@ static void swapfunc( char *, char *, int, int );
         } while (--i > 0);				\
 }
 
-#define SWAPINIT( a, es ) swaptype = ((uintptr_t)a) % sizeof(long) || \
-	es % sizeof(long) ? 2 : es == sizeof(long)? 0 : 1;
+#define SWAPINIT( a, es ) swaptype = ((uintptr_t)a) % sizeof(int64_t) || \
+	es % sizeof(int64_t) ? 2 : es == sizeof(int64_t)? 0 : 1;
 
 static void
 swapfunc( char *a, char *b, int n, int swaptype ) {
 	if ( swaptype <= 1 )
-		swapcode( long, a, b, n ) else swapcode( char, a, b, n )
+		swapcode( int64_t, a, b, n ) else swapcode( char, a, b, n )
 }
 
 #define swap( a, b )					\
 	if (swaptype == 0) {				\
-		long t = *(long *)(a);			\
-		*(long *)(a) = *(long *)(b);		\
-		*(long *)(b) = t;			\
+		int64_t t = *(int64_t *)(a);			\
+		*(int64_t *)(a) = *(int64_t *)(b);		\
+		*(int64_t *)(b) = t;			\
 	} else						\
 		swapfunc(a, b, (int)es, swaptype)
 

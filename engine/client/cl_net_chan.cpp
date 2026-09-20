@@ -91,7 +91,7 @@ CL_Netchan_Decode
 ==============
 */
 static void CL_Netchan_Decode( msg_t *msg ) {
-	long reliableAcknowledge, i, index;
+	int64_t reliableAcknowledge, i, index;
 	byte key, *string;
 	int srdc, sbit;
 	qboolean soob;
