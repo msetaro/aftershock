@@ -1,0 +1,135 @@
+{
+  "source_commit": "55b3d2615d4d56ee7c12f46c71093c1bb79105ce",
+  "files": [
+    {
+      "from": "engine/renderervk/iqm.h",
+      "to": "engine/render/iqm.h",
+      "sha256": "7b98fb14d06dc1777ca7f8ee18e183061e3396b39a0cf5a7624adeb024b5c1f9"
+    },
+    {
+      "from": "engine/renderervk/tr_animation.cpp",
+      "to": "engine/render/tr_animation.cpp",
+      "sha256": "0c75118a4663ec2e17fd336ad3e81f836abd6197a7bebeb6f825c64280751e18"
+    },
+    {
+      "from": "engine/renderervk/tr_backend.cpp",
+      "to": "engine/render/tr_backend.cpp",
+      "sha256": "4f6b98360bc8f6fbe68f8b3230700af8b74a8c842e1350d860ad1f81348a444f"
+    },
+    {
+      "from": "engine/renderervk/tr_bsp.cpp",
+      "to": "engine/render/tr_bsp.cpp",
+      "sha256": "fda69b53951cf9eec9097dbcda69c8052546578c10c808afb0b5c97bc5c48252"
+    },
+    {
+      "from": "engine/renderervk/tr_cmds.cpp",
+      "to": "engine/render/tr_cmds.cpp",
+      "sha256": "9583abe3dd548ce8043ec474c681f4092de4faa4c13c2cd87c9e2bd2f9b04818"
+    },
+    {
+      "from": "engine/renderervk/tr_common.h",
+      "to": "engine/render/tr_common.h",
+      "sha256": "ae0649544c830070e027c939abf64fd68a21dfe451edc0f8d7aa4a6801b39ae6"
+    },
+    {
+      "from": "engine/renderervk/tr_curve.cpp",
+      "to": "engine/render/tr_curve.cpp",
+      "sha256": "d9d530df1909bdf15a91415db2cc73a2e969826ea850a7a84affd77867bbd403"
+    },
+    {
+      "from": "engine/renderervk/tr_image.cpp",
+      "to": "engine/render/tr_image.cpp",
+      "sha256": "fffdbd45e232098226e2972ddfa7bc8c56578271f58e75317138de9a73041ad3"
+    },
+    {
+      "from": "engine/renderervk/tr_init.cpp",
+      "to": "engine/render/tr_init.cpp",
+      "sha256": "5e898371f09beb2b83dbc1c7cb853b85629421d65ec7a5d499e5d82d1018cf3e"
+    },
+    {
+      "from": "engine/renderervk/tr_light.cpp",
+      "to": "engine/render/tr_light.cpp",
+      "sha256": "155d25db0d0148284e341b1e1b30881d35f225a843f57bce951a55c214e2f1a9"
+    },
+    {
+      "from": "engine/renderervk/tr_local.h",
+      "to": "engine/render/tr_local.h",
+      "sha256": "c046f1c675d23dc3b08bf5c94ae7c8945d8b453d08787d426a0c3056e21933af"
+    },
+    {
+      "from": "engine/renderervk/tr_main.cpp",
+      "to": "engine/render/tr_main.cpp",
+      "sha256": "67c973dcbb74221f00c580680f5922d0747bda79bff21299687df7b9c6abe51a"
+    },
+    {
+      "from": "engine/renderervk/tr_marks.cpp",
+      "to": "engine/render/tr_marks.cpp",
+      "sha256": "39cb3b9a747ba277da803704329a6a0f0efc697048f499944fce5bd64bdb6b84"
+    },
+    {
+      "from": "engine/renderervk/tr_mesh.cpp",
+      "to": "engine/render/tr_mesh.cpp",
+      "sha256": "8899dbaaf7242f6088da7aa93d997122f992b21a906b86dd73d6dcf783390a30"
+    },
+    {
+      "from": "engine/renderervk/tr_model.cpp",
+      "to": "engine/render/tr_model.cpp",
+      "sha256": "62f8109a5d26cfbe339e0d850b01ac11d6341bbb2712c46f113443a0a8eefb31"
+    },
+    {
+      "from": "engine/renderervk/tr_model_iqm.cpp",
+      "to": "engine/render/tr_model_iqm.cpp",
+      "sha256": "01620302508fc05933466625e382362bac30e2eba39364d616f65268c49b7948"
+    },
+    {
+      "from": "engine/renderervk/tr_scene.cpp",
+      "to": "engine/render/tr_scene.cpp",
+      "sha256": "9867a64d19244b5996825aa3b7ad1eb29e3272d62e79008b2cab67f95c5cacf1"
+    },
+    {
+      "from": "engine/renderervk/tr_shade.cpp",
+      "to": "engine/render/tr_shade.cpp",
+      "sha256": "d50a94a476cc2c682eefa038ccca72f39c060d0028d82bcd38efc661fb7fae8a"
+    },
+    {
+      "from": "engine/renderervk/tr_shade_calc.cpp",
+      "to": "engine/render/tr_shade_calc.cpp",
+      "sha256": "b15c1e0140562ed0aad3266c0f0727884db94cd32fa3d5880036ceb5fa967645"
+    },
+    {
+      "from": "engine/renderervk/tr_shader.cpp",
+      "to": "engine/render/tr_shader.cpp",
+      "sha256": "d7053f44b99060b0952681249f545dee69ab47479140a974e9a4ce3cd8b16303"
+    },
+    {
+      "from": "engine/renderervk/tr_shadows.cpp",
+      "to": "engine/render/tr_shadows.cpp",
+      "sha256": "9636faa4f0a59d1280f3c9215743f733f0385ab9311bff82824d39e8d6c45c69"
+    },
+    {
+      "from": "engine/renderervk/tr_sky.cpp",
+      "to": "engine/render/tr_sky.cpp",
+      "sha256": "18b0a7de9c934fc258da2a4a0532b7cb38ae65c3a928f36e8186cbbb7226155e"
+    },
+    {
+      "from": "engine/renderervk/tr_surface.cpp",
+      "to": "engine/render/tr_surface.cpp",
+      "sha256": "b6a1ba4fe5de1a706f0bbe3a915a8b1efe2d798045a4ee03748fd21f135d56a6"
+    },
+    {
+      "from": "engine/renderervk/tr_world.cpp",
+      "to": "engine/render/tr_world.cpp",
+      "sha256": "a90dde304e088f0b5746c5ceb9a5f6949b69f557e5fae875b483d2dc3decfa68"
+    },
+    {
+      "from": "engine/renderervk/vk_flares.cpp",
+      "to": "engine/render/vk_flares.cpp",
+      "sha256": "17b12f9b5b3bd42c400fa7325b5bce8f25c296426b9b04a5782ee498bacc586d"
+    },
+    {
+      "from": "engine/renderervk/vk_vbo.cpp",
+      "to": "engine/render/vk_vbo.cpp",
+      "sha256": "af97c40693b9977ee8355a3fa1ed8effd25a251ab4b7480342c775f9ef1c487b"
+    }
+  ]
+}

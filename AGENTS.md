@@ -67,8 +67,9 @@ every wire and file-format struct; issue updated with what changed and what was 
 - `engine/qcommon` shared core: cvars, commands, filesystem, packet protocols, collision (cm_*)
 - `engine/server`, `engine/client` server and client
 - `engine/botlib` bot AI library
-- `engine/renderercommon`, `engine/renderer` (OpenGL1, legacy), `engine/renderervk` (Vulkan, reference
-  renderer); shared image/font and renderer ABI code is in renderercommon
+- `engine/render` portable scene/material/geometry frontend; `engine/rhi` GPU contract
+- `engine/renderervk` sole Vulkan backend; the legacy OpenGL renderers are retired
+- `engine/renderercommon` shared image/font routines and client renderer ABI
 - `engine/platform/unix`, `engine/platform/win32`, `engine/platform/sdl` platform layers
 - `engine/platform/asm` hand-written assembly; symbols it references carry `Q_EXTERN_C`
 - `engine/sound` sound codecs and mixing; platform owns device backends
@@ -83,15 +84,15 @@ every wire and file-format struct; issue updated with what changed and what was 
 CMake 3.25+ is the primary build for #5. Use Ninja on Linux/macOS and in an MSVC
 developer shell. Visual Studio projects are generated from the same source lists.
 The default builds the client and dedicated server with a static Vulkan renderer;
-OpenGL and optional renderer modules use separate build directories.
+optional PC renderer modules use a separate build directory.
 
 ```
 cmake --workflow --preset release
 cmake --workflow --preset debug
 cmake --workflow --preset msvc-x64               # Windows: generate and build VS 2022
 cmake --workflow --preset msvc-arm64             # Windows ARM64 cross-build
-cmake -S . -B build/opengl -G Ninja -DRENDERER_DEFAULT=opengl
-cmake --build build/opengl
+cmake -S . -B build/modules -G Ninja -DUSE_RENDERER_DLOPEN=ON
+cmake --build build/modules
 cmake -S . -B build/mingw -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/mingw64.cmake -DUSE_CURL=OFF
 cmake --build build/mingw
 ```
@@ -129,6 +130,8 @@ python3 tests/team_message.py
 python3 tests/native_diagnostics.py
 python3 tests/bot_command.py
 python3 tests/native_info.py
+python3 tests/rhi.py
+python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
 python3 tests/check_format.py
 python3 tests/check_types.py
@@ -141,7 +144,10 @@ python3 tests/run.py differential
 python3 tests/run.py runtime
 python3 tests/run.py runtime --sanitize --output /tmp/tests-runtime-ubsan
 python3 tests/demo.py
+python3 tests/demo.py --pipeline-cache
+python3 tests/window.py --binary build/release/release-linux-x86_64/quake3e.x64
 python3 tests/demo.py --lifecycle
+python3 tests/demo.py --modules --lifecycle
 python3 tests/native_lifecycle.py --debug-movement
 python3 tests/download.py
 python3 tests/audio.py

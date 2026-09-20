@@ -8,7 +8,7 @@ Test build directories contain `compile_commands.json` and `build.log`. Separate
 output directories isolate compiler and instrumentation settings; changing a
 setting refreshes the CMake cache before building. Unit and download probes select
 actual client/server objects, and lifetime analysis retains every native wrapper
-command across both renderer configurations. ccache is used when installed.
+command across static and module configurations. ccache is used when installed.
 
 For a normal engine build, `cmake --workflow --preset release` configures and builds
 all targets. `debug`, `msvc-x64` and `msvc-arm64` presets are also available; Windows
@@ -16,6 +16,8 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 
 ```
 python3 tests/native_math.py
+python3 tests/rhi.py
+python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
 python3 tests/check_format.py
 python3 tests/check_types.py
@@ -29,6 +31,75 @@ python3 tests/check_frames.py
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
 ```
+
+`python3 tests/rhi.py` checks the alternative backend against the public RHI
+header alone, then exercises the production Vulkan uniform upload path without a
+GPU: alignment, exact bytes, binding offsets, exhaustion and independent frame slots.
+The stub reports unavailable and is never linked into a client. All CMake client
+builds compile it; the two unit CI compilers also run the contract checks.
+The RHI is being extracted in stages under #6; this currently covers uploads,
+textures, pipeline descriptions, command/wait boundaries and timings, not a
+completed second renderer. Texture checks preserve
+all five format/three address mappings and binding/destruction behavior. Demo runs retain `gfxinfo`/`vkinfo`
+measurements and report host wall time including startup; these are not GPU timings.
+`python3 tests/demo.py --measure-gpu` first runs the unchanged frame gate, then
+replays both Vulkan fixtures twice with the real clock to report completed GPU
+scopes. Faketime also changes Mesa's software timestamps, so only the separate
+`*-timing-*.log` values are performance measurements. These samples are
+informational; hardware/driver differences are not a performance failure gate.
+`python3 tests/demo.py --modules --lifecycle` also checks fixed frames through the
+optional PC renderer module boundary and after video restart for Quake 3. Hosted
+OpenArena runs `--modules` in fresh processes alongside the primary static renderer.
+Its post-restart portrait/lagometer state differs from the fresh-process goldens;
+this is not a supported restart-to-golden comparison. Renderer module API 10
+requires rebuilding old modules with the client; changes cover opaque platform
+handles and two filesystem cache imports, not scene or game services.
+The RHI check also rejects GPU SDK dependencies in the frontend/client headers and
+checks explicit stream/raster bindings, upload exhaustion and sampler wait ordering.
+The backend dependency check rejects frontend headers. Missing loader entries must
+return a diagnostic and release the initialization output pointer; the alternative
+backend implements the same configuration and host-service records.
+Controlled GPU failures must return status and fatal/drop diagnostics without
+calling the engine error callback. Frontend image checks cover all five converted
+byte layouts and release scratch before reporting either success or a GPU error.
+The RHI retains at most 32 scopes per frame, reads available results after the
+existing frame fence, and never adds a query wait. Its check covers timestamp
+wrap, unavailable results, scope exhaustion, and duplicate scope completion.
+
+`python3 tests/shaders.py --compiler /path/to/glslang-16.6.0` recompiles all 74
+shader variants and compares every SPIR-V byte and reflected interface against the
+committed offline cache. The pinned compiler is [Khronos glslang 16.6.0](https://github.com/KhronosGroup/glslang/releases/tag/16.6.0).
+CI verifies the release archive SHA-256 before executing it. Shader sources,
+quoted includes, stage/defines/options, target and compiler identity contribute to
+the package hash; payload hashes and reflected bindings/locations/member offsets
+are included too. Source line endings normalize to LF for identical Windows keys.
+
+Vulkan CMake builds require Python 3.9+ and generate `shaders/shader_package.h`
+and `shader_package.json` in the build directory. Unchanged inputs reuse verified
+committed SPIR-V. A changed recipe/source/include requires the pinned compiler
+(`-DSHADER_COMPILER=/path/to/glslang`); a missing compiler fails the build. To force
+build-time recompilation, run `cmake --build build/release --target shaders` with
+that compiler configured. The runtime consumes packaged bytes, never shader source.
+This pipeline does not regenerate demos, frame goldens or committed shader data.
+The source cache and compiled path currently produce identical shader bytes.
+
+`python3 tests/demo.py --pipeline-cache` shares only a temporary cache directory
+between otherwise fresh client processes and requires restoration on each second
+Vulkan replay. `--lifecycle` also requires restoration after video restart. Frame
+hash checks remain unchanged. Cache files live under the home game directory's
+`cache/`, use the full shader/device/driver identity in their checked payload, and
+are optional performance data. Missing, incomplete or incompatible data is a miss.
+The local Mesa driver exports a 32-byte cache header; cache persistence passing on
+that driver is not a pipeline compilation performance claim.
+
+`python3 tests/window.py --binary /path/to/quake3e.x64` checks real window resize,
+swapchain recreation, hidden-window FBO capture and restored capture on a private
+Xvfb display. It selects only the window whose PID matches its launched client.
+It needs `x11-utils` (`xwininfo`/`xprop`) and libX11, plus the normal runtime
+prerequisites. Hosted CI passes OpenArena content/data arguments. Hiding generates
+the SDL hidden event that uses the engine's minimized path; this is not a desktop
+window-manager iconification test. Its real-clock captures check lifecycle and
+size; fixed demo replay remains the separate pixel-equality gate.
 
 `python3 tests/vulkan_acquire.py` runs the real Vulkan frame acquisition method
 with controlled callbacks and stops at command recording. It needs no GPU, window
@@ -64,7 +135,7 @@ The legacy script arithmetic, seek/config-journal lengths and hash accumulators
 retain explicit Windows/non-Windows widths to preserve existing behavior. Changing
 those compatibility contracts requires separate behavior-change evidence.
 
-Both renderer IQM headers carry the same eight file-layout contracts. WAV
+The portable frontend IQM header carries eight file-layout contracts. WAV
 scalars, browser-cache counters/size, and routing-cache size use explicit widths.
 ADPCM sample/index storage, bot characteristic tags, signed chat offsets and
 qsort copy bytes also have explicit types; text characters and boolean character
@@ -104,8 +175,8 @@ and disables trailing-comment alignment so one pass is stable. The initial
 format commit was checked against release assembly across both renderers and
 native/cross builds; only inline-assembly source-location comments differed.
 
-`python3 tests/check_tidy.py` analyzes owned C++ sources with both renderers'
-actual CMake commands, including each native module wrapper. It requires
+`python3 tests/check_tidy.py` analyzes owned C++ sources with static and module
+CMake commands, including each native module wrapper. It requires
 clang-tidy and the client build headers (`clang-tidy`, `libsdl2-dev`,
 `libcurl4-openssl-dev`, `mesa-common-dev`, and Ninja on hosted Ubuntu).
 `--clang-tidy`, `--jobs` and `--output` select the executable, parallelism and
@@ -122,7 +193,7 @@ The driver checks the positive case and rejects a duplicate-include control.
 
 `python3 tests/check_lifetimes.py` checks non-trivial locals, parameters, globals,
 statics and temporaries in active Linux engine code and included engine headers,
-using both renderer configurations. It requires clang-query (clang-tools in CI),
+using static and module configurations. It requires clang-query (clang-tools in CI),
 Clang and the client build headers. `--clang-query` selects a versioned executable;
 `--output` retains the compile database and AST evidence. Its controls reject seven
 owning objects (including aliases, inheritance, arrays and std::string), and accept
@@ -202,13 +273,20 @@ lines and replaces home/data installation prefixes. OpenArena additionally
 normalizes the CPU model label and disables networking; gameplay events are kept.
 Raw logs are retained in `--output`, including failed invocations.
 
-Normal demo runs **never record**. They replay each committed `.dm_68` twice per
-software renderer, sample TGA frames at waits 50/100/200, require changing samples
+Normal demo runs **never record**. They replay each committed `.dm_68` twice under
+Vulkan lavapipe, sample TGA frames at waits 50/100/200, require changing samples
 and repeated byte-identical frame hashes, then compare `frames-mesa-VERSION.json`. Unknown Mesa versions fail. Pixel hashes
 are exact within each version; cross-version rasterization is not assumed identical. Screenshots
 and logs remain in `--output` for review. Fixtures are small engine-generated
 artifacts, not game-content archives. Recording is intentionally not reproducible:
 SDL/X11/Mesa clock calls affect faketime's call count and ping-derived demo bytes.
+
+OpenGL retired in #6. Existing OpenGL rows in the reviewed frame JSON files remain
+historical evidence; normal comparison selects Vulkan rows and still requires
+every Vulkan map/sample. No fixture or golden was regenerated for retirement.
+`tests/check_frames.py` rejects a wrong renderer label, unequal repeats and
+missing/changed Vulkan values while checking the archived-row selection. The
+explicit regeneration command writes the active Vulkan measurements only.
 
 ## Sanitizer known failures
 
@@ -267,7 +345,7 @@ python3 tests/frames.py --output /tmp/replay-evidence/aftershock-demo-tests --co
 ```
 
 Review the job's fixture hashes and all screenshots first. The evidence checker
-requires both repetitions, both renderer identities, one Mesa version, and three
+requires both repetitions, the Vulkan renderer identity, one Mesa version, and three
 changing samples per map. This explicit local command hashes the downloaded TGA
 files itself; it does not trust a hash manifest supplied by CI. Each initial
 profile and its run/source provenance must be explained in the PR.

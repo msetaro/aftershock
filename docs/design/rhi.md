@@ -1,7 +1,7 @@
 # RHI extraction design (#6)
 
-Design only; this document does not start #6 implementation. The #8 code rules
-are in force. The reference is the existing Vulkan renderer. Acceptance requires
+Implementation authorized by the maintainer continuation of 2026-09-19. The #8
+code rules are in force. The reference is the existing Vulkan renderer. Acceptance requires
 unchanged sampled-frame hashes from the committed demo fixtures. Simulation, asset interpretation, draw ordering, shader
 arithmetic, blend/depth state and image conversion remain unchanged.
 
@@ -25,7 +25,9 @@ font and client ABI declarations in `renderercommon`; leave only Vulkan backend
 implementation in `renderervk`. Remove the legacy OpenGL `engine/renderer` after
 the Vulkan extraction passes its gates. Update the explicit CMake source lists,
 subsystem ownership and include checks with the moves. Do not combine these moves
-with arithmetic or material changes.
+with arithmetic or material changes. The extraction now has 26 unchanged frontend
+files in `engine/render`; [move evidence](../rhi-frontend-move.json) records every
+source/destination hash against commit 55b3d261.
 
 ## Small public contract
 
@@ -70,6 +72,19 @@ tables retain ownership until normal teardown or a fence-safe retirement point.
 Resize, minimized windows, renderer restart and device loss need explicit states;
 never present an invalid image or reuse an outstanding upload allocation.
 
+The Vulkan implementation contains its legacy abort inside each fallible public
+call using standard setjmp/longjmp and trivial automatic records. The frontend
+checks the returned status and reports the preserved fatal/drop diagnostic. This
+is distinct from the engine-wide Com_Error jump. The lifetime gate remains
+required, including optional module builds. A cached pipeline bind takes the
+existing direct path. Texture conversion and its hunk scratch belong to the
+frontend; scratch is freed before reporting an upload error. Process-fatal zone
+allocator callbacks remain host services. Initialization receives copied device settings and seven explicit host services.
+It borrows its diagnostic/capability output only during the call, including failure
+returns. Post-process settings update at the existing frontend points. The backend
+has no dependency on frontend records, cvar pointers or private headers. Live
+minimization and swap-interval queries keep their original call sites.
+
 ## Shader and pipeline artifacts
 
 Initially preserve the existing generated SPIR-V bytes and generator inputs.
@@ -87,6 +102,17 @@ format compatibility information; reject incompatible cache data and rebuild the
 pipeline from the packaged shader. Keep cache I/O in the filesystem layer and
 pipeline creation outside steady-state draw submission where possible.
 
+The implemented cache key includes the full package hash plus native vendor,
+device, driver version and pipeline-cache UUID. Filesystem services read only the
+home game directory and verify their length/checksum envelope; no pk3 can supply a
+driver cache. The frontend loads before pipeline creation and exports during
+teardown, with a 16 MiB bound and no frame-time allocation. The Vulkan backend
+validates [the native compatibility header](https://docs.vulkan.org/spec/latest/chapters/pipelines.html)
+and uses [vkGetPipelineCacheData](https://docs.vulkan.org/refpages/latest/refpages/source/vkGetPipelineCacheData.html)
+for export. Cache misses or failed cache operations retain normal pipeline
+creation. The filename uses a shortened lookup hash to fit the existing path
+limit; the complete stored identity must still match.
+
 ## Passes and profiling
 
 Phase one retains the current explicit main, screen-map, bloom, capture and gamma
@@ -99,7 +125,8 @@ Phase two may add pass declarations for inputs/outputs, transient lifetimes and
 barriers. Begin by reproducing the established pass sequence exactly. Allocation
 aliasing, pass reordering, new rendering features and shader optimization each
 need separate measurements and replay verification; they are not prerequisites
-for the thin RHI boundary.
+for the thin RHI boundary. This remaining scope is tracked in issue #142, after
+#7 and before Wave 2 renderer work.
 
 ## Implementation gates
 
@@ -127,3 +154,34 @@ for the thin RHI boundary.
 No console SDK implementation is proposed here. The stub checks that the API is
 independent of Vulkan; actual platform backends still need their own SDK builds,
 capability mappings, synchronization validation and hardware measurements.
+
+## Query implementation references
+
+Timestamp collection follows the core Vulkan 1.0 path already supported by this
+backend: [timestamp writes](https://docs.vulkan.org/refpages/latest/refpages/source/vkCmdWriteTimestamp.html)
+and [query result availability](https://docs.vulkan.org/refpages/latest/refpages/source/vkGetQueryPoolResults.html).
+Per-frame query ranges are read after their existing fence succeeds and reset in
+the next command buffer. No query-result WAIT flag or additional fence is used.
+Only the queue's valid timestamp bits participate in wraparound differences.
+`tests/demo.py --measure-gpu` uses separate real-clock replays; software-driver
+queries under the frame gate's faketime environment are not timing measurements.
+
+## Extraction acceptance measurements
+
+[Recorded measurements](../rhi-measurements.json) retain executable hashes and
+five alternating fresh-process replays per map/build on local Mesa 26.0.8. The
+real-clock client measurements include startup, asset loading and software-driver
+CPU work; they are not renderer-only CPU timings or an FPS benchmark. Median
+wall time is 1.43 -> 1.44 seconds for q3dm17 and 1.40 -> 1.44 for q3dm7. Median
+peak RSS is 181,628 -> 180,984 KiB and 215,920 -> 215,748 KiB respectively.
+Final completed-frame main-pass GPU samples have medians 4.053 and 4.913 ms; the
+pre-extraction executable has no GPU scope, so there is no before/after GPU claim.
+
+The retained executable's ELF sections change by +13,832 text, +80 data and
++8,480 BSS bytes. These are whole-client differences, not per-frame allocation.
+The query pools add 128 timestamp slots; frame slots and upload/descriptor pool
+capacities remain unchanged. Existing fixed-clock frame checks separately retain
+every accepted Vulkan pixel hash. OpenGL rows remain archived in their original
+golden files after retirement. Pipeline-cache storage is bounded to 16 MiB on
+disk/readback; this Mesa driver exports only a 32-byte native cache header, so
+persistence is tested without claiming reduced shader compilation time.

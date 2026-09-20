@@ -16,16 +16,18 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Fix Vulkan image acquisition status on `issue/31-vulkan-acquire`, based on
-integration e82eb43b. Add a failing test before changing engine code, retain success
-and suboptimal behavior, and reject timeout/not-ready before marking an image
-acquired. Gates and self-review must pass before this separate #31 PR merges.
-Then merge modernization into `issue/6-rhi` and resume draft PR #140. Its latest
-checkpoint is 21b44a9c (GPU timestamp scopes); build 35484267291 and
-regression 35484267381 both passed. Uniform, texture, command and timing extraction remain
-unmerged in that draft. Do not retire GL before the full RHI acceptance gates.
-Continue #7 and the remaining #25 sequence after #6 is accepted. All writes/PRs
-stay in msetaro/aftershock.
+Finish current-head hosted gates for #6 draft PR #140 on `issue/6-rhi`, mark it
+ready after the final self-review, merge with a merge commit, then verify the
+merged-tree regression. The complete RHI boundary, offline shaders, pipeline
+cache and lifecycle checks are implemented. The 26-file frontend move is
+hash-verified in e5777895; OpenGL retirement is 935ad6f3. Local static/module
+replay, lifetime, tidy, format/type/boundary and resource/performance acceptance
+pass. No accepted fixture, frame golden or shader blob was regenerated.
+
+The separately tested acquisition fix PR #141 merged as 61401e17 and entered
+this branch through an integration merge; merged-tree regression 35484895454
+passed. After #140, continue #7, render-graph phase two #142, then the remaining
+#25 sequence. All writes stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -53,9 +55,71 @@ probe's error callback explicitly matches the noreturn attribute). Local video-
 restart replay passes b38004b1. Format/type/boundary checks pass. AGENTS self-review:
 one acquisition condition only; no new engine OS call, allocation, destructor,
 layout or floating-point change. CI integration runs the new test on both unit
-compilers. Current-head hosted gates and merge are next.
+compilers. Head 7382d9af passed build 35484485400 and regression 35484485349;
+PR #141 merged 61401e17. Integration regression 35484895454 passed.
 
 ## #6 implementation checkpoint
+
+Self-review complete for the final extraction: changes match #6; the acquisition
+fix remains the separate #31 PR #141. Frontend/backend headers are independent,
+OS calls stay platform/filesystem-owned, lifetime checks cover static/modules,
+wire/file assertions remain, and no simulation FP edits or per-frame allocations
+were introduced. Original fixed shaders and accepted goldens are byte-identical.
+Module ABI is 10; old modules require rebuilding. Device-loss status is exposed
+while retaining the old continuation policy, not adding automatic recovery.
+The private-Xvfb lifecycle gate tests resize and hide/restore, not desktop-WM
+iconification. Mesa's exported native cache is 32 bytes, so no compilation-speed
+benefit is claimed. Full current-head hosted gates remain required before merge.
+
+Roadmap bookkeeping: #2/#4/#5 were still open despite merged PRs #50/#65/#66.
+Confirmed their merged-tree runs 34937376623/34942323875/34949976994 passed and
+closed those completed issues without repeating implementation. #25 now reflects
+those completions and #8, and carries phase-two #142 after #7.
+
+Final local acceptance: static/module lifetime analysis passes 549 configurations
+(113 source paths), tidy 572. Five alternating fresh-process real-clock replays
+per map/build are recorded in docs/rhi-measurements.json, with executable hashes.
+Median whole-client wall time (including startup/software-driver work) is
+1.43 -> 1.44 seconds q3dm17 and 1.40 -> 1.44 q3dm7; peak RSS medians are
+181,628 -> 180,984 KiB and 215,920 -> 215,748 KiB. Final main GPU scope medians
+are 4.053/4.913 ms; no baseline GPU scope exists. ELF text/data/BSS deltas are
++13,832/+80/+8,480 bytes. No performance improvement is claimed. Cache logs and
+script: rhi-final-measure/, rhi-final-measure.py and rhi-final-measure.log.
+
+The frontend move e5777895 passes build 35490205641/regression 35490205499.
+Retirement 935ad6f3 passes full build 35490399717; regression 35490399721 is running.
+No accepted golden/fixture/shader bytes changed. Phase-two render-pass graph scope
+is explicitly carried by #142, scheduled after #7 and before Wave 2; #6 closes
+only the thin-RHI extraction acceptance defined in its done-when criteria.
+
+OpenGL retirement checkpoint (working tree): deleted engine/renderer and its
+CMake source list/build selection. Vulkan remains static by default with optional
+PC modules. The full build matrix now builds one backend per platform/config;
+static/module lifetime and tidy configurations replace the two renderer configs.
+Accepted golden files stay unchanged: frame comparison retains archived OpenGL
+rows on disk and checks every Vulkan value. Evidence-policy controls pass.
+Static and optional-module Q3 replay/restart pass. The Vulkan-only JSON projection
+hashes to 43c52e51; every sampled pixel hash still matches the untouched accepted
+golden (the former b38004b1 included archived OpenGL rows). Tidy passes 572
+static/module configurations; format/type/boundary controls and explicit rejection
+of obsolete OpenGL CMake selection pass. Lifetime and hosted checks remain pending.
+Evidence: rhi-sole-{demo,module,tidy}.log and rhi-retired-config.log. GPU samples
+from the concurrent build run are not used as a final performance baseline.
+Full lifecycle regression
+35489948344 passed. The frontend-move lifetime check passed 546 commands/137 paths
+with its seven-object negative control (rhi-move-lifetimes.log).
+
+Frontend directory checkpoint: hosted lifecycle head 55b3d261 passes full build
+35489948399 and the regression runtime job, including OpenArena window resize,
+hide/restore, fixed replay and pipeline-cache restoration. The remaining full
+regression status is being verified. Moved 26 frontend files from renderervk to
+engine/render without changing a byte; docs/rhi-frontend-move.json records the
+source commit, both paths and each verified SHA-256. CMake/probe paths, lifetime
+coverage and ownership docs now follow the split. GCC/Clang RHI controls, image
+acquisition, format/type/boundary checks and Q3 replay/restart/cache all pass,
+retaining b38004b1. Evidence: rhi-move-{gcc,clang,acquire,demo}.log in the persistent
+cache. Lifetime analysis and hosted gates are running. No OpenGL deletion is
+included in this checkpoint.
 
 The first working slice moves uniform uploads out of `tr_shade.cpp` into the
 backend through `engine/rhi/rhi_public.h`, without changing uniform generation,
@@ -129,6 +193,302 @@ Texture 401d8b74 full build 35483644058 and regression 35483644047 passed.
 Command/status 2b43a0bb full build 35483786166 passed; regression 35483786169 is
 pending final status verification. The implementation stays on draft PR #140 while the remaining RHI
 boundary and acceptance work proceeds.
+
+Pipeline description slice: engine-owned shader IDs, shadow/topology/depth modes,
+cull mode and state bits now live in the SDK-independent public RHI header. The
+cache key retains its 52-byte/4-byte layout and four-byte boolean fields. Find,
+get-description and bind operations are public RHI entry points. Uniform layout
+is renderer-owned (128 bytes, alignment 4; fog fields at offsets 64 and 112), and
+uploads remain opaque bytes. No shader bytes, state values or arithmetic changed.
+GCC/Clang contract checks, format/type/boundary checks and fixed replay pass;
+pipeline/image counts retain their original values (rhi-pipelines.log).
+Correction to the initial resource claim: q3dm7's vertex peak is 117 KiB, not
+120 KiB. Rechecking timestamp checkpoint 21b44a9c before pipeline extraction also
+reports 117 KiB in both replays, so the difference predates the pipeline move.
+q3dm17 remains 284 KiB. Capacities and accepted sampled frames are unchanged.
+Retain this measured difference; do not treat upload peaks as frame goldens.
+Evidence: rhi-pre-pipeline-recheck.log and rhi-pre-pipeline-metrics/.
+
+GPU scopes checkpoint 21b44a9c passed full build 35484267291 and regression
+35484267381, including hosted real-clock OpenArena measurements. Prior command
+checkpoint 2b43a0bb also passed full build 35483786166/regression 35483786169.
+All #6 implementation remains unmerged in draft PR #140.
+
+Platform boundary slice: client/renderer imports use opaque 64-bit instance/surface
+handles, converted only inside the native backend/platform calls. REF_API_VERSION
+is 9 so incompatible old renderer modules are rejected. The include gate rejects
+Vulkan SDK headers outside the backend/platform. Static replay and GPU measurement
+pass (rhi-platform.log); optional modules pass both maps/renderers twice including
+video restart (rhi-module-demo.log), retaining b38004b1. The demo driver checks
+executable symbols to distinguish module from static linkage. CI now exercises
+this optional module lifecycle. Format/type/boundary and RHI checks pass. No shader,
+fixture, golden, allocation, floating-point or scene export changes.
+
+Pipeline checkpoint 11cbcddb passed full build 35484803600/regression 35484803591.
+Merge checkpoint 18e4e887 passed full build 35484969696/regression 35484969698.
+The #31 acquisition fix's integration regression 35484895454 also passed.
+
+Frontend pipeline ownership: the built-in pipeline index table and its creation
+routine moved from the Vulkan device to the frontend shader implementation. The
+creation body is identical after ownership/capability identifier substitutions;
+GPU objects remain private and the world-pipeline retention boundary stays at the
+same call position. A trivial capability snapshot replaces direct frontend reads
+of private device flags. The public stub implements both new calls. GCC and Clang
+checks pass, including capability mapping/world retention; format/type/boundary
+checks pass. Replay plus video restart retains b38004b1 (rhi-state-demo.log).
+Real-clock main samples are 3.923/3.920 ms q3dm17 and 4.857/4.901 ms q3dm7,
+informational rather than a speedup claim. No shader/fixture/golden changes.
+
+Platform checkpoint e259fc0f is running build 35485551477/regression 35485551484.
+Remaining frontend private accesses include frame state, buffer/descriptor binding,
+sampler policy, transforms and diagnostics; remove these before the frontend move.
+
+Frame/binding slice: portable frame-state queries, index-pool selection/uploads,
+screen-map bindings, sampler replacement and format diagnostics now own the former
+frontend device accesses. Sampler replacement preserves the wait/destroy/update
+order and returns a failed wait before mutation. Descriptor slot values are
+unchanged engine-owned constants. Diagnostic format strings are copied because
+the legacy formatter shares a scratch buffer for unknown formats. GCC/Clang checks
+cover index binding cache, upload overflow/resize scheduling, failed/successful
+sampler waits and distinct format labels. Module Q3 replay/restart retains b38004b1
+(rhi-frame-demo.log). Format/type/boundary checks pass; no goldens changed.
+
+Hosted platform e259fc0f: full build 35485551477 passed; regression 35485551484
+failed only the newly added combined OpenArena module/restart frame step. Static
+OpenArena replay passed eeb218f3. Artifact comparisons locate differences only at
+the HUD portrait/lagometer (same bounding boxes in both renderers), after the warmup
+replay and restart. The pre-existing lifecycle test/README only establish restart
+frame equality for Quake 3; OpenArena uses fresh processes. Correct the new hosted
+module step to --modules without --lifecycle, so module linkage is checked against
+the accepted fresh-process goldens. Keep local Q3 restart checks required. This
+does not establish OpenArena post-restart golden equality. Evidence:
+rhi-platform-runtime-ci.log and rhi-platform-runtime-artifacts/. No image regions
+are masked or goldens replaced. Verify the corrected hosted step on the next head.
+
+Transform/visibility slice: the matrix generator and modelview storage now belong
+to the frontend; the generator body is identical after function/state identifier
+changes. The RHI receives exactly 64 transform bytes. Bloom receives the frontend
+restore matrix and retains the existing GPU command order; its final-frame path
+skips restore after clearing the pipeline, as before. Visibility storage alignment
+and readback are private, with the same one-frame delayed coherent read and no
+extra wait. Vulkan device/world globals now live in vk.cpp. Modelview and built-in
+pipeline reset points remain tied to renderer resource/context shutdown.
+
+GCC/Clang contract checks verify exact push bytes/stage/offset and aligned visibility
+reads. Replay/restart retains b38004b1 before and after global ownership moves
+(rhi-transform-demo.log, rhi-transform-ownership.log). Format/type/boundary checks
+pass. Real-clock main samples: 3.927/3.901 ms q3dm17, 4.890/4.903 ms q3dm7;
+informational, not a speedup claim. No shader, fixture or golden changes.
+
+Frame/binding checkpoint ea6209b5 passed full build 35486025063 and regression
+35486025142, including both static and optional module OpenArena replay. This
+verifies the corrected fresh-process module gate. Built-in checkpoint 1642187d
+passed build 35485710232; its regression 35485710189 had the same newly introduced
+OpenArena restart/HUD mismatch as e259fc0f, resolved by ea6209b5's test correction.
+
+Vertex-stream slice: material and lighting attribute selection moved to the
+frontend. The RHI receives up to eight plain stream records, selecting the existing
+map or frame pool. It preserves upload order, 32-byte alignment, gaps in cached
+binding offsets and deferred resize on exhaustion. No scene/shader/tess records
+are read by the stream upload/bind operation. Scratch records are bounded stack
+data; no heap allocation or capacity change. GCC/Clang checks cover static/frame
+pool handles, masked gaps, exact copied bytes, overflow and the empty mask.
+Replay/restart retains b38004b1 (rhi-stream-demo.log); format/type/boundary pass.
+Real-clock main samples: 4.004/3.932 ms q3dm17, 4.919/4.888 ms q3dm7; informational.
+Transform checkpoint 1a4c19b1 is running build 35486276366/regression 35486276356.
+
+Raster/draw slice: viewport/scissor generation and indexed/static draw selection
+are frontend-owned. The RHI receives plain raster records and an explicit fallback
+texture; it no longer reads tess or the white-image scene record to submit draws.
+Raster arithmetic is unchanged; native rectangles/viewports are constructed from
+the portable values. The existing depth-range/scissor cache and descriptor-before-
+viewport command order are retained. Raster records are currently computed at
+each draw preparation, even if the backend cache avoids GPU state commands; this
+is bounded stack work, not a heap allocation or a claimed CPU optimization.
+
+GCC/Clang checks cover viewport/scissor values, cache/invalidation, and no state
+commands after upload exhaustion. Replay/restart retains b38004b1
+(rhi-raster-demo.log); format/type/boundary checks pass. Real-clock main samples:
+4.171/4.014 ms q3dm17, 4.806/5.045 ms q3dm7, informational. No accepted goldens or
+shader bytes changed. Transform 1a4c19b1 passed build 35486276366 and regression
+35486276356. Next extract frame command-list selection/submission inputs and finish
+initialization/status boundaries before moving files or retiring OpenGL.
+
+Frame input / SDK boundary slice: command-list screen-map selection and frame
+bookkeeping moved to the frontend. Begin/end receive explicit screen-map, bloom
+and capture decisions; duplicate stereo begin, skipped/overflow end, bloom outcome
+and pre-present CPU timing retain their existing behavior. The backend no longer
+reads backEnd, backEndData, tess or tr. Overbright configuration is explicitly
+copied when post-process pipelines update and reused for swapchain recreation.
+Its device/world records are translation-unit private. Remaining initialization,
+resource and screenshot calls are declared through the public RHI; the frontend
+no longer includes vk.h. Context retention still releases map resources without
+calling device shutdown. Existing shutdown callers always destroyed the context,
+so the removed shutdown argument was redundant.
+
+The public stub covers the expanded API. Both compilers verify public-only stub
+dependencies and GPU-SDK-free frontend/client headers. Local static frame/restart
+passes b38004b1 (rhi-submit-demo.log); module frame/restart also passes b38004b1
+(rhi-sdk-demo.log). The existing acquisition regression passes after its call-site
+rename (rhi-sdk-acquire.log). No shader, fixture or golden change. Legacy backend
+error exits are still present: public lifecycle declarations alone do not complete
+the error-status requirement. Device configuration still uses shared renderer
+configuration declarations; complete that dependency before claiming separation.
+
+Raster d9292e90 passed full build 35486615563. Regression 35486615660 passed its
+runtime and other jobs but failed tidy on the moved conditional-compilation draw
+branch's indentation. Explicit braces/early return remove that ambiguity. The
+complete local tidy gate now passes all 570 production configurations
+(rhi-sdk-tidy.log); format/type/boundary and GCC/Clang RHI checks pass.
+
+GPU error slice: fallible RHI calls return nodiscard statuses and a borrowed
+fatal/drop diagnostic. Vulkan's internal abort is contained by a standard setjmp
+scope with trivially destructible captures/locals; the previous scope is restored
+on normal and error returns. Frontend R_CheckRHI reports only after return. The
+cached pipeline bind avoids establishing a jump scope on the normal draw path.
+This preserves the #1 engine longjmp decision without making optional MSVC modules
+depend on the executable's private Q_setjmp_c assembly symbol. Decision recorded
+on #6 comment 5747381615. Fixed diagnostic state adds 8,220 x64 symbol bytes
+(excluding linker padding); no per-frame allocation or GPU wait is introduced.
+
+The allocator review found recoverable Hunk_AllocateTempMemory errors inside image
+conversion. Conversion moved unchanged to the frontend, which frees its scratch
+before checking the upload status. The backend receives the already converted mip
+chain and bytes per pixel. All five format byte checks and scratch release on both
+success/device-error returns pass GCC and Clang/libc++. Descriptor allocation and
+pipeline-capacity checks also verify returned status, fatal/drop diagnostic and
+restored jump scope without invoking ri.Error. Existing acquisition checks pass.
+Remaining zone allocator failures are process-fatal host services, not recoverable
+GPU statuses; initialization's legacy frontend texture-mode callback remains for
+the configuration extraction. This is not a completed device-loss recovery design.
+
+Before conversion moved, both static and module Q3 restart replays passed b38004b1
+(rhi-error-demo.log, rhi-error-module-demo.log); full lifetime (546 configurations,
+137 source paths), tidy (570 configurations), format/type/boundary gates passed.
+After conversion, focused GCC/Clang checks, all 570 tidy configurations, static
+replay/restart and module replay/restart pass b38004b1 (rhi-error-conversion.log,
+rhi-error-module-conversion.log). Conversion function comparison is byte-identical
+after only portable enum/type substitutions. Real-clock main samples are
+4.114/5.322 ms q3dm17 and 4.931/4.950 ms q3dm7, informational. The lifetime rerun
+uses a checkout-specific cache after the default /tmp cache referenced another
+checkout; no engine failure occurred in that configure attempt.
+No shader, fixture, golden or simulation arithmetic changes. SDK checkpoint
+bee85c84 passed full build 35487036651 and regression 35487036699.
+
+Device/configuration slice: RHI initialization copies window/render/capture sizes,
+latched settings and existing frontend resource limits. It borrows an output record
+only during initialization and clears that pointer before return, including error
+returns. Post-process settings are copied at the original update points; expression
+order is unchanged. Swap interval and minimization remain live host callbacks at
+the original query sites. Seven explicit host services retain allocator, log and
+platform ownership. The backend now includes only its private GPU types, the RHI
+contract and public qcommon helpers; no tr_local/tr_common/tr_public dependency,
+renderer globals, cvar pointers or frontend texture-mode callback remains.
+
+Texture filter parsing stays in the frontend. The backend retains the original
+initial device wait/sampler setup position and later filter-update ordering. The
+uncompiled alpha-to-coverage block is removed rather than exporting its absent
+cvar as a live configuration input: an initial eager read in this working change
+was caught by the startup replay and corrected before commit. The acquisition
+regression and GCC/Clang RHI checks pass, including missing-loader status return,
+copied settings and release of the borrowed output pointer. The dependency check
+now rejects private frontend headers from the backend as well as GPU SDK headers
+from the frontend. No new allocation, shader/fixture/golden or simulation change.
+
+Local static/module replay/restart retain b38004b1 (rhi-device-config.log,
+rhi-config-module.log). Real-clock main samples: 4.881/4.116 ms q3dm17 and
+4.946/4.905 ms q3dm7, informational. Format/type/boundary and all 570 tidy
+configurations pass. Additional before/after FBO/bloom/MSAA/16-bit-texture and
+supersampled/render-scaled replays pass on both maps, including live gamma,
+greyscale, bloom-intensity and texture-filter updates. All 12 sampled TGA files
+match the retained pre-configuration binary byte-for-byte (rhi-config-parity.log,
+rhi-config-parity/hashes.json records binary/frame hashes). These temporary
+comparisons do not replace goldens. The full lifetime gate passes all 546
+compilation commands/137 source paths. New persistent configuration/host/output-
+pointer symbols total 208 x64 bytes (excluding padding); the initialization output
+is stack-only, not a second persistent copy of frontend device strings.
+
+Error checkpoint d65b28df passed full regression 35487920089. Full build
+35487920102 failed only MSVC (all four configurations): the new noreturn helper
+exposes legacy unreachable fallback returns/assignments (C4702). Remove those
+unreachable statements; retain the noreturn contract and warning gate. Hosted
+verification of this correction is pending the configuration checkpoint push.
+The checkout-specific lifetime rerun for d65b28df passed all 546 compilation
+commands/137 source paths (rhi-errors-lifetimes.log).
+
+Configuration a198b032 passed full build 35488490079 and regression 35488490074,
+including all four MSVC legs and hosted static/module OpenArena replay. This
+verifies the C4702 correction as well as the frontend-free backend dependency.
+
+Shader packaging slice: downloaded the official glslang 16.6.0 Linux tool into the
+user cache (no system package installation). Its 74 outputs exactly match every
+committed SPIR-V byte. A portable manifest now records the explicit variants and
+verified source/recipe/output hashes. The build emits an aligned shader header,
+interface metadata and SHA-256 package identity; unchanged sources reuse the
+committed compiled cache, changed recipes require the pinned offline compiler.
+Sources/includes, compiler/options/target, payloads and interface metadata all
+participate in the key. No runtime source compiler is introduced. A CMake shaders
+target forces compilation, while ordinary builds verify the cache. CI's GCC unit
+leg verifies the release archive digest and recompiles every variant. Dedicated
+server-only configurations do not acquire shader/Python requirements.
+
+Fresh compiler/cache comparison and the CMake shaders target pass for all 74
+variants with package hash 743e9c51f75547a6577119182c0363c5829f498e1e99c8672e057fad19c7e737
+(rhi-shader-tests.log, rhi-shader-target.log). Include edits, compiler identity and
+options change the recipe key. GCC/Clang contracts, acquisition, format/type/
+boundary checks pass. Generated-header static replay/restart retains b38004b1
+(rhi-shader-demo.log). Runtime driver pipeline-cache persistence remains the next shader
+step. No accepted fixture/golden or committed shader_data.cpp changes.
+
+Shader package 8e1fdb00 passed full build 35488951387 and regression 35488951430,
+including fresh 74-variant compilation, all platform builds and hosted replay.
+
+Runtime pipeline cache (working tree): frontend startup restores a cache before
+creating material/post-process pipelines; teardown exports it before destroying
+the device. The key records the complete shader package hash, vendor/device/driver
+and native cache UUID. Filenames abbreviate the shader hash to fit MAX_QPATH, but
+the stored full key must match. Vulkan also checks its native cache header before
+restoration. Filesystem-owned helpers read only the home game directory (never
+pk3 search paths), bound reads to caller capacity and check lengths/checksums.
+Partial or incompatible data is a miss. Cache allocation is bounded at 16 MiB,
+only at initialization/shutdown; no new per-frame allocation or GPU wait. This is
+new #6 cache plumbing, not an unrelated engine bug fix. Two filesystem imports
+advance the optional renderer ABI to 10; scene/game services are unchanged.
+
+GCC/Clang contract checks exercise cache export/restore and copied compatibility
+identity. Q3 restart replay passes b38004b1 and logs an actual cache restoration
+(rhi-cache-demo.log). The first startup attempt exposed an omitted function-loader
+entry in this new code; the loader entry was added and the final tree rebuilt
+before that passing replay. All 570 tidy configurations and format/type/boundary
+checks pass. Separate-process static and module/restart cache tests pass b38004b1
+(rhi-cache-process.log, rhi-cache-module.log), requiring cache-load evidence in each
+warm Vulkan replay. The lifetime gate passes all 546 compilation commands/137
+source paths. Hosted static OpenArena now uses --pipeline-cache as well. On local Mesa the exported native cache is a 32-byte
+header (124 bytes including the RHI key); this verifies persistence, not a measured
+pipeline compilation speedup. Persistent Vk_Instance grows by 96 bytes including
+alignment. Real-clock main samples: 4.016/3.899 ms q3dm17 and 4.846/4.893 ms q3dm7,
+informational. Existing buffer capacities and accepted shader/frame bytes remain.
+
+Pipeline-cache f075e4cd passed full build 35489385818 and regression 35489385893,
+including hosted fresh-process cache restoration with unchanged OpenArena frames.
+
+Lifecycle slice: tests/window.py starts a client on its own Xvfb display and
+selects only that process's window. Actual 800x600 -> 640x480 resizing triggers
+swapchain recreation; unmapping/hiding exercises SDL's engine-minimized path,
+requires an FBO screenshot while hidden, then maps/restores and requires another
+640x480 screenshot. Local real-clock lifecycle passes (rhi-window.log/window.log).
+This is not an EWMH/window-manager iconification test or a new pixel golden.
+Hosted CI adds x11-utils and runs the same check with OpenArena.
+
+Presentation statuses now expose device loss after returning from the backend;
+the frontend retains the existing developer diagnostic/continuation policy and
+frame-slot advance. This relocates that policy, not an engine behavior fix or a
+claim of new device-loss recovery. The existing RHI check covers hidden windows,
+no acquired image, no submission, normal presentation/slot advance and device-loss
+return/ownership. GCC/Clang checks pass. Updated fixed Q3 replay/restart/cache gate
+retains b38004b1 (rhi-lifecycle-demo.log); format/type/boundary checks pass. No shader,
+fixture, golden or simulation arithmetic changes. Current-head hosted gates are
+pending; after they pass, hash-verify the portable frontend move.
 
 ## Final #8 verification
 

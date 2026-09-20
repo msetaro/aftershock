@@ -69,12 +69,12 @@ void QVK_Shutdown( qboolean unloadDLL ) {
 }
 
 
-void *VK_GetInstanceProcAddr( VkInstance instance, const char *name ) {
-	return (void *)qvkGetInstanceProcAddr( instance, name );
+void *VK_GetInstanceProcAddr( uint64_t instance, const char *name ) {
+	return (void *)qvkGetInstanceProcAddr( (VkInstance)(uintptr_t)instance, name );
 }
 
 
-qboolean VK_CreateSurface( VkInstance instance, VkSurfaceKHR *surface ) {
+qboolean VK_CreateSurface( uint64_t instance, uint64_t *surface ) {
 	VkXlibSurfaceCreateInfoKHR desc;
 
 	qvkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)VK_GetInstanceProcAddr( instance, "vkCreateXlibSurfaceKHR" );
@@ -87,9 +87,11 @@ qboolean VK_CreateSurface( VkInstance instance, VkSurfaceKHR *surface ) {
 	desc.dpy = dpy;
 	desc.window = win;
 
-	if ( qvkCreateXlibSurfaceKHR( instance, &desc, NULL, surface ) == VK_SUCCESS )
+	VkSurfaceKHR nativeSurface;
+	if ( qvkCreateXlibSurfaceKHR( (VkInstance)(uintptr_t)instance, &desc, NULL, &nativeSurface ) == VK_SUCCESS ) {
+		*surface = (uint64_t)(uintptr_t)nativeSurface;
 		return qtrue;
-	else
+	} else
 		return qfalse;
 }
 

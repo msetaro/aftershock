@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run owned-source clang-tidy policy with each renderer's production flags."""
+"""Run owned-source clang-tidy policy with static and module production flags."""
 import argparse
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -52,10 +52,10 @@ def main():
     if not negative.returncode or diagnostic.count('[bugprone-assert-side-effect,-warnings-as-errors]') != 3:
         raise RuntimeError('assertion side-effect controls escaped the policy')
     commands = []
-    for renderer in ('opengl', 'vulkan'):
-        directory = output / renderer
-        configure(directory, ['CC=clang', 'CXX=clang++', 'USE_RENDERER_DLOPEN=0',
-                              f'RENDERER_DEFAULT={renderer}'])
+    for modules in (False, True):
+        directory = output / ('modules' if modules else 'static')
+        configure(directory, ['CC=clang', 'CXX=clang++',
+                              f'USE_RENDERER_DLOPEN={int(modules)}'])
         for row in compilation_commands(directory):
             source = Path(row['file']).relative_to(ROOT)
             if source.suffix == '.cpp' and source.parts[0] in ('engine', 'game') and \
@@ -93,7 +93,7 @@ def main():
     failures = [row['log'] for row in results if row['status']]
     if failures:
         raise SystemExit('FAIL: clang-tidy; see ' + ', '.join(failures))
-    print(f'PASS: {len(commands)} production configurations; both renderers and policy controls')
+    print(f'PASS: {len(commands)} production configurations; static/module linkage and policy controls')
 
 
 if __name__ == '__main__':

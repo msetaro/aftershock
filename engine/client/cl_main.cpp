@@ -3375,6 +3375,8 @@ static void CL_InitRef( void ) {
 	rimp.CM_ClusterPVS = CM_ClusterPVS;
 	rimp.CM_DrawDebugSurface = CM_DrawDebugSurface;
 
+	rimp.FS_ReadCache = FS_ReadCache;
+	rimp.FS_WriteCache = FS_WriteCache;
 	rimp.FS_ReadFile = FS_ReadFile;
 	rimp.FS_FreeFile = FS_FreeFile;
 	rimp.FS_WriteFile = FS_WriteFile;
@@ -3802,7 +3804,7 @@ static void CL_InitGLimp_Cvars( void ) {
 #ifdef RENDERER_DEFAULT
 	cl_renderer = Cvar_Get( "cl_renderer", XSTRING( RENDERER_DEFAULT ), CVAR_ARCHIVE | CVAR_LATCH );
 #else
-	cl_renderer = Cvar_Get( "cl_renderer", "opengl", CVAR_ARCHIVE | CVAR_LATCH );
+	cl_renderer = Cvar_Get( "cl_renderer", "vulkan", CVAR_ARCHIVE | CVAR_LATCH );
 #endif
 	Cvar_SetDescription( cl_renderer, "Sets your desired renderer, requires \\vid_restart." );
 
