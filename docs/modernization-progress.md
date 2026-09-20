@@ -53,6 +53,10 @@ Primary Agones references read: https://agones.dev/site/docs/installation/ and
 https://agones.dev/site/docs/installation/install-agones/helm/; REST Ready/Health/
 Shutdown endpoints are documented at /site/docs/guides/client-sdks/rest/.
 
+The owned-content packaging contract is test-first in tests/match_content.py;
+it fails on the absent tools/match/content.py (match-content-before.log). It checks
+repeatable ZIP bytes, legal/project-only members and unchanged accepted map files.
+
 ## #27 checkpoint inherited by #28
 
 Current branch: `issue/27-headless-levels` in the main user checkout.
