@@ -67,6 +67,11 @@ Full build 35516551419 and regression 35516551423 passed before merge;
 merged-tree regression 35517250474 passed all required jobs after AGENTS review.
 Continue #12 before #11, then the remaining #25 roadmap, only in this repository.
 
+Telemetry test-first now fails on the absent prediction peak/sum and rewind
+report fields (netcode-metrics-before.log). Add bounded server reports (at most
+four per second per firing client) through existing reliable game commands, so
+the remote client's overlay can show rewind age/budget and report outcomes.
+
 ## #10 accepted implementation
 
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
