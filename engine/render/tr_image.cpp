@@ -1117,7 +1117,7 @@ void R_PollCookedAssets( void ) {
 					continue;
 				void *file = nullptr;
 				const int length = ri.FS_ReadFile( entry.path, &file );
-				cookedTexture_t texture;
+				cookedTexture_t texture = {};
 				bool success = file && length == (int)entry.size && R_CookedHashMatches( file, length, entry.hash ) && R_ReadCookedTexture( file, length, &texture );
 				success = success && texture.width <= (uint32_t)glConfig.maxTextureSize && texture.height <= (uint32_t)glConfig.maxTextureSize;
 				if ( success )

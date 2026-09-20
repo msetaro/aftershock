@@ -210,6 +210,12 @@ def main():
         assert sorted(result['built']) == sorted(names) and result['skipped'] == []
         for extension in ('wav', 'ogg'):
             check_audio(output / ('sounds/' + extension + '.wav'))
+        audio_probe = args.output / 'audio-probe'
+        subprocess.run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+                        '-Wall', '-Wextra', '-Werror', '-ffunction-sections', '-fdata-sections',
+                        'tests/probes/cook_audio.cpp', 'engine/qcommon/q_shared.cpp',
+                        '-Wl,--gc-sections', '-o', str(audio_probe)], cwd=ROOT, check=True)
+        subprocess.run([str(audio_probe), str(output / 'sounds/wav.wav'), str(output / 'sounds/ogg.wav')], check=True)
         index = (output / 'cook.index').read_bytes()
         assert (output / 'cook.revision').read_bytes() == hashlib.sha256(index).digest()
         magic, version, size, hashed = struct.unpack_from('<8sII32s', index)
@@ -220,7 +226,7 @@ def main():
         for row in range(count):
             path, expected, length, kind = struct.unpack_from('<64s32sII', index, 52 + row * 104)
             data = (output / path.rstrip(b'\0').decode()).read_bytes()
-            assert len(data) == length and hashlib.sha256(data).digest() == expected and kind in (1, 2, 3)
+            assert len(data) == length and hashlib.sha256(data).digest() == expected and kind in (1, 2, 3, 4)
         before = {}
         for name in names:
             manifest_path = output / (name + '.manifest.json')
@@ -248,7 +254,7 @@ def main():
         Image.new('RGBA', (16, 16), (48, 160, 224, 255)).save(home / 'color.png')
         result = cook(project, output)
         assert sorted(result['built']) == ['textures/bc4', 'textures/bc5', 'textures/bc7']
-        assert sorted(result['skipped']) == ['models/mirrored', 'models/packed', 'models/rig', 'models/static']
+        assert sorted(result['skipped']) == [name for name in sorted(names) if not name.startswith('textures/')]
         assert (output / 'textures/bc7.ktx2').read_bytes() != before['textures/bc7.ktx2'][0]
         (args.output / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
     with tempfile.TemporaryDirectory(prefix='aftershock-material-') as temporary:

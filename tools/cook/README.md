@@ -86,3 +86,11 @@ non-looping clips stop at their last frame. Model/animation replacement retains 
 material replacement retains its shader/stage storage and updates draw ordering.
 Inspectors report reload counts. Cooked development materials stay out of the
 static vertex cache; shipping and legacy asset paths retain their existing behavior.
+
+`kind: audio` accepts PCM WAV (8/16/24/32-bit) and Ogg Vorbis, mono or stereo at
+8–192 kHz. It emits native PCM16 `.wav` without resampling, capped at 256 MiB of
+decoded samples. The offline Vorbis helper reuses the vendored engine codec.
+The standard RIFF `ASCK` provenance chunk contains uint32 version 1, source SHA-256
+and whole-file SHA-256 with its own 32 bytes zeroed. Cooking/tests verify it; the
+existing native WAV decoder skips this metadata and consumes the PCM directly.
+The project index identifies these native WAV resources as kind 4.

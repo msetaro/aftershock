@@ -2983,3 +2983,17 @@ tones were authored once with libsndfile 1.2.2 (source/provenance committed); CI
 reads these bytes. Test expects normalized PCM16 WAV with a versioned ASCK chunk,
 source/content hashes and unchanged 22,050 Hz / 1,102 frames. The existing native
 WAV path can consume this RIFF container without another runtime audio format.
+
+WAV/OGG cooking now passes on GCC and Clang/libc++. The source feature test first
+failed on the absent audio kind (dd2f171a). PCM inputs normalize to signed PCM16;
+Vorbis decoding reuses the engine's vendored libogg/libvorbis in an offline helper.
+Native WAV loading consumes both outputs at 22,050 Hz / 1,102 samples with the
+expected tone amplitude. An ASCK RIFF chunk carries version 1, source SHA-256 and
+whole-file SHA-256 (its own bytes zeroed); the ordinary native WAV decoder skips
+that provenance chunk. No new runtime codec or audio resampling is introduced.
+
+Evidence: cook-audio-{before,after,clang}.log. Source fixtures were authored once,
+not regenerated. New-feature MSVC C4701 at 05192647 identified the texture reload
+local; explicit zero-initialization resolves it just as for material records.
+Next: offline shader source cooking using the existing pinned shader package,
+then remaining final #9 acceptance and exact-head gates.

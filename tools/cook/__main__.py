@@ -11,6 +11,7 @@ import struct
 import time
 import tempfile
 
+import audio
 import model
 import texture
 
@@ -30,6 +31,9 @@ def tool_hash():
     paths = [p for p in HERE.iterdir() if p.suffix in ('.py', '.cpp', '.txt')]
     vendor = ROOT / 'third_party/bc7enc'
     paths.extend(vendor / name for name in ('bc7enc.cpp', 'bc7enc.h', 'provenance.json'))
+    paths.append(ROOT / 'cmake/Sources.cmake')
+    for codec in ('libogg', 'libvorbis'):
+        paths.extend(p for p in (ROOT / 'third_party' / codec).rglob('*') if p.suffix in ('.c', '.h'))
     return digest(b''.join(str(p.relative_to(ROOT)).encode() + b'\0' + p.read_bytes() for p in sorted(paths)))
 
 
@@ -97,6 +101,8 @@ def cook(project, output):
                 payloads = model.cook(source, name, asset, read)
             elif asset['kind'] == 'material':
                 payloads = model.cook_material(source, name, read)
+            elif asset['kind'] == 'audio':
+                payloads = {name + '.wav': audio.cook(read(source), source.suffix.lower())}
             elif asset['kind'] == 'texture':
                 payloads = {name + '.ktx2': texture.cook(read(source), asset)}
             else:
@@ -126,7 +132,7 @@ def cook(project, output):
     if len(resources) > 4096:
         raise ValueError('project exceeds the 4096-resource development index limit')
     index = bytearray(struct.pack('<I', len(resources)))
-    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3}
+    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3, '.wav': 4}
     for path, hashed in sorted(resources.items()):
         size = below(output, path).stat().st_size
         index.extend(struct.pack('<64s32sII', path.encode(), bytes.fromhex(hashed), size, kinds[Path(path).suffix]))
