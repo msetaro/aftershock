@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/qcommon_public.h"
 #include "../public/g_public.h"
 #include "../public/bg_public.h"
+#include "../platform/services_public.h"
 
 //=============================================================================
 
@@ -157,7 +158,15 @@ typedef enum {
 	GSA_ACKED // gamestate acknowledged, no retansmissions needed
 } gameStateAck_t;
 
+enum identityState_t { IDENTITY_ANONYMOUS,
+	IDENTITY_PENDING,
+	IDENTITY_VERIFIED,
+	IDENTITY_REJECTED };
+
 typedef struct client_s {
+	uint64_t identitySession, identityId;
+	uint32_t identityStart;
+	identityState_t identityState;
 	clientState_t state;
 	char userinfo[MAX_INFO_STRING]; // name, etc
 
@@ -509,3 +518,7 @@ bool SV_SetEntityReplication( int number, int priority, float radius );
 bool SV_EntityRelevant( const sharedEntity_t *entity, const vec3_t view );
 void SV_ApplyReplicationPolicy( client_t *client, const clientSnapshot_t *oldframe, clientSnapshot_t *frame,
 	int prefixBits, entityState_t *const *candidates, int count );
+
+void SV_OpenIdentity( client_t *client );
+void SV_CloseIdentity( client_t *client );
+void SV_PollIdentities();

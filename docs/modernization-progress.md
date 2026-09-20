@@ -16,10 +16,11 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/12-netcode`; draft PR #149. Continue #12 with
-checked identity/browser/matchmaking provider hooks. Replication policy is
-implemented and locally verified; full acceptance remains outstanding. Wire the new tests into CI, document
-limits/commands, run full gates and AGENTS self-review before any merge.
+Current branch: `issue/12-netcode`; draft PR #149. All #12 feature slices are
+implemented, with provider/transport ownership documented below. Run full local
+and exact-head hosted gates, review the complete diff and update the issue/PR.
+Do not mark ready or merge until gates and AGENTS self-review pass. Then verify
+the merged-tree regression and continue #11 per #25.
 
 Implemented so far: generated replication descriptions beside state members,
 strict Aftershock version/schema agreement in the existing challenge/connect
@@ -76,7 +77,7 @@ sampled hits/clamping and prediction last/peak/mean. Invalid reports are ignored
 OpenArena with report delivery verified passes 371/371 shots (19 hits), 40
 uncompensated differences, median view age 147 ms, prediction error <=8.875
 (netcode-metrics-runtime.log). Full build d381167e passed 35519899293; regression
-35519899276 is still running on that earlier head. Current work is not yet accepted.
+35519899276 passed on that earlier head. Current work is not yet accepted.
 
 Replication-policy test-first now fails on absent sv_replication.cpp
 (netcode-policy-before.log). It specifies priority and age within an optional
@@ -107,6 +108,25 @@ and matchmaking results. #12 exposes bounded main-thread hooks; #23 supplies the
 SDK, ticket transport and platform UI. No null backend or claimed ID can report
 an authenticated identity. Provider hooks must be exercised through the actual
 server lifecycle, not just an isolated mock of the state machine.
+
+Identity implementation now passes GCC and Clang/libc++ UBSan
+(netcode-identity-gcc.log, netcode-identity-clang.log), following a331a836's failing
+tests. Server connect/free/frame paths open/close/poll connection generations;
+game imports return account IDs only after verification. Expiry and revocation
+end the provider session and drop the client. Provider absence stays anonymous.
+Native UI search imports copy bounded results and cancel on shutdown. OS/SDK
+ownership stays in platform; no SDK dependency is introduced. Tests cover both
+server identity code and the production platform dispatch. Decision: #12 delivers
+the requested interface; #23 supplies real Steam ticket transport, SDK callbacks
+and platform UI. There is no ticket wire command or requirement for authenticated
+players before that backend exists. This boundary is explicit in tests/README.md.
+
+All new probes are wired into both compiler CI jobs. Runtime CI builds matching
+and version-2 servers, runs actual protocol acceptance/refusal, then the OpenArena
+48-byte-budget delayed hitscan gate; fixed classic and animation replays remain.
+AGENTS commands and tests/README.md document controls, limits and replay policy.
+The initial identity client/server production build passes; final local/hosted
+acceptance and complete self-review are still required.
 
 ## #10 accepted implementation
 

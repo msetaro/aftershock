@@ -741,6 +741,7 @@ void SV_DirectConnect( const netadr_t *from ) {
 	}
 
 gotnewcl:
+	SV_CloseIdentity( newcl );
 	// build a new connection
 	// accept the new client
 	// this is the only place a client_t is ever initialized
@@ -797,6 +798,7 @@ gotnewcl:
 	SV_PrintClientStateChange( newcl, CS_CONNECTED );
 
 	newcl->state = CS_CONNECTED;
+	SV_OpenIdentity( newcl );
 	newcl->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
 	newcl->lastPacketTime = svs.time;
 	newcl->lastConnectTime = svs.time;
@@ -832,6 +834,7 @@ Destructor for data allocated in a client structure
 =====================
 */
 void SV_FreeClient( client_t *client ) {
+	SV_CloseIdentity( client );
 	SV_Netchan_FreeQueue( client );
 	SV_CloseDownload( client );
 }

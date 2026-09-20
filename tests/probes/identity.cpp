@@ -95,6 +95,20 @@ int main() {
 	SV_CloseIdentity( &clients[0] );
 	assert( ends == 2 ); // Rejected Begin did not create a provider session.
 
+	accept = true;
+	Connect();
+	token = SV_IdentitySession( 0 );
+	assert( SV_SubmitIdentityTicket( token, 123, ticket, sizeof( ticket ) ) );
+	clients[1].state = CS_CONNECTED;
+	SV_OpenIdentity( &clients[1] );
+	assert( !SV_SubmitIdentityTicket( SV_IdentitySession( 1 ), 123, ticket, sizeof( ticket ) ) );
+	SV_CloseIdentity( &clients[0] );
+	SV_CloseIdentity( &clients[0] );
+	assert( ends == 3 ); // Disconnect ends a pending session exactly once.
+	assert( !SV_SubmitIdentityTicket( token, 123, ticket, sizeof( ticket ) ) );
+	clients[1].netchan.remoteAddress.type = NA_BOT;
+	assert( !SV_IdentitySession( 1 ) );
+
 	const uint64_t browse = Sys_StartServerSearch( SERVICE_BROWSE, "dm" );
 	assert( browse && searchToken == browse );
 	const uint64_t match = Sys_StartServerSearch( SERVICE_MATCH, "dm" );
@@ -105,6 +119,8 @@ int main() {
 	result = { match, 1, SERVICE_SERVER, "127.0.0.1:27960", "local" };
 	assert( Sys_NextServer( match, &output ) && !strcmp( output.name, "local" ) );
 	result = { match, 1, SERVICE_SERVER, "", "bad" };
+	assert( !Sys_NextServer( match, &output ) );
+	result = { match, 1, SERVICE_SERVER, "127.0.0.1;quit", "bad" };
 	assert( !Sys_NextServer( match, &output ) );
 	result = { match, 0, SERVICE_SEARCH_DONE, "", "" };
 	assert( Sys_NextServer( match, &output ) && output.state == SERVICE_SEARCH_DONE );

@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "client.h"
+#include "../platform/services_public.h"
+
+static uint64_t uiServiceSearch;
 #include "../public/cg_native_public.h"
 #include "../public/ui_native_public.h"
 
@@ -1149,6 +1152,8 @@ CL_ShutdownUI
 ====================
 */
 void CL_ShutdownUI( void ) {
+	Sys_StopServerSearch( uiServiceSearch );
+	uiServiceSearch = 0;
 	Key_SetCatcher( Key_GetCatcher() & ~KEYCATCH_UI );
 	cls.uiStarted = qfalse;
 	if ( !NativeUI_Running ) {
@@ -1198,4 +1203,28 @@ qboolean UI_GameCommand( void ) {
 	}
 
 	return (qboolean)NativeUI_ConsoleCommand( cls.realtime );
+}
+
+uint64_t UIImport_StartServerSearch( int matchmaking, const char *filter ) {
+	Sys_StopServerSearch( uiServiceSearch );
+	uiServiceSearch = Sys_StartServerSearch( matchmaking ? SERVICE_MATCH : SERVICE_BROWSE, filter );
+	return uiServiceSearch;
+}
+int UIImport_NextServerSearch( uint64_t request, char *address, int addressSize, char *name, int nameSize ) {
+	if ( !address || addressSize < 1 || !name || nameSize < 1 )
+		return 0;
+	address[0] = name[0] = 0;
+	serviceServer_t result;
+	if ( !Sys_NextServer( request, &result ) )
+		return 0;
+	if ( strlen( result.address ) >= (size_t)addressSize || strlen( result.name ) >= (size_t)nameSize )
+		return SERVICE_SEARCH_FAILED;
+	Q_strncpyz( address, result.address, addressSize );
+	Q_strncpyz( name, result.name, nameSize );
+	return result.state;
+}
+void UIImport_StopServerSearch( uint64_t request ) {
+	Sys_StopServerSearch( request );
+	if ( request == uiServiceSearch )
+		uiServiceSearch = 0;
 }

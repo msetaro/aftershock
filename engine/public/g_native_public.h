@@ -28,6 +28,7 @@ void GameImport_DropClient( int clientNum, const char *reason );
 void GameImport_SendServerCommand( int clientNum, const char *text );
 void GameImport_SetConfigstring( int num, const char *string );
 void GameImport_GetConfigstring( int num, char *buffer, int bufferSize );
+int GameImport_GetPlayerIdentity( int clientNum, uint64_t *id );
 void GameImport_GetUserinfo( int num, char *buffer, int bufferSize );
 void GameImport_SetUserinfo( int num, const char *buffer );
 void GameImport_GetServerinfo( char *buffer, int bufferSize );

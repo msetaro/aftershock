@@ -7,6 +7,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+// Search results: 0 pending, 1 server, 2 complete, 3 failed. Never auto-connect.
+uint64_t UIImport_StartServerSearch( int matchmaking, const char *filter );
+int UIImport_NextServerSearch( uint64_t request, char *address, int addressSize, char *name, int nameSize );
+void UIImport_StopServerSearch( uint64_t request );
 void UIImport_Print( const char *string );
 void UIImport_Error( const char *string );
 int UIImport_Milliseconds( void );

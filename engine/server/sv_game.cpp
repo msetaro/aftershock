@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // sv_game.c -- interface to the game dll
 
 #include "server.h"
+#include "identity_public.h"
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "../public/dev_game_public.h"
 #endif
@@ -1148,4 +1149,8 @@ qboolean SV_GameCommand( void ) {
 	}
 
 	return (qboolean)Game_ConsoleCommand();
+}
+
+int GameImport_GetPlayerIdentity( int clientNum, uint64_t *id ) {
+	return SV_PlayerIdentity( clientNum, id );
 }
