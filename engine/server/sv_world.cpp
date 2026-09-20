@@ -444,6 +444,7 @@ typedef struct {
 	int passEntityNum;
 	int contentmask;
 	int capsule;
+	const byte *ignored;
 } moveclip_t;
 
 
@@ -521,6 +522,8 @@ static void SV_ClipMoveToEntities( moveclip_t *clip ) {
 		if ( clip->trace.allsolid ) {
 			return;
 		}
+		if ( clip->ignored && clip->ignored[touchlist[i]] )
+			continue;
 		touch = SV_GentityNum( touchlist[i] );
 
 		// see if we should ignore this entity
@@ -587,7 +590,7 @@ Moves the given mins/maxs volume through the world from start to end.
 passEntityNum and entities owned by passEntityNum are explicitly not checked.
 ==================
 */
-void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, qboolean capsule ) {
+void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, qboolean capsule, const byte *ignored ) {
 	moveclip_t clip;
 	int i;
 
@@ -620,6 +623,7 @@ void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const ve
 	clip.maxs = maxs;
 	clip.passEntityNum = passEntityNum;
 	clip.capsule = capsule;
+	clip.ignored = ignored;
 
 	// create the bounding box of the entire move
 	// we can limit it to the part of the move not

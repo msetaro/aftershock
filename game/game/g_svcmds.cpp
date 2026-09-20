@@ -429,6 +429,14 @@ qboolean ConsoleCommand( void ) {
 
 	trap_Argv( 0, cmd, sizeof( cmd ) );
 
+
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( Q_stricmp( cmd, "rewind_target" ) == 0 ) {
+		G_RewindTargetCommand();
+		return qtrue;
+	}
+#endif
+
 	if ( Q_stricmp( cmd, "entitylist" ) == 0 ) {
 		Svcmd_EntityList_f();
 		return qtrue;

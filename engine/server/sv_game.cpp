@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // sv_game.c -- interface to the game dll
 
 #include "server.h"
+#include "identity_public.h"
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "../public/dev_game_public.h"
 #endif
@@ -415,6 +416,18 @@ void GameImport_Trace( void *results, const float *start, const float *mins, con
 	SV_Trace( (trace_t *)results, (const vec_t *)start, (const vec_t *)mins, (const vec_t *)maxs, (const vec_t *)end, passEntityNum, contentmask, /*int capsule*/ qfalse );
 	return;
 }
+int GameImport_SetEntityReplication( int number, int priority, float radius ) {
+	return (int)SV_SetEntityReplication( number, priority, radius );
+}
+void *GameImport_AllocLevelMemory( uint32_t bytes ) {
+	if ( !bytes || bytes > INT32_MAX )
+		Com_Error( ERR_DROP, "Invalid native level allocation" );
+	return Hunk_Alloc( (int)bytes, h_high );
+}
+void GameImport_TraceFiltered( void *results, const float *start, const float *end, int passEntityNum, int contentmask, const uint8_t *ignored ) {
+	SV_Trace( (trace_t *)results, start, nullptr, nullptr, end, passEntityNum, contentmask, qfalse, ignored );
+}
+
 void GameImport_TraceCapsule( void *results, const float *start, const float *mins, const float *maxs, const float *end, int passEntityNum, int contentmask ) {
 	SV_Trace( (trace_t *)results, (const vec_t *)start, (const vec_t *)mins, (const vec_t *)maxs, (const vec_t *)end, passEntityNum, contentmask, /*int capsule*/ qtrue );
 	return;
@@ -1136,4 +1149,8 @@ qboolean SV_GameCommand( void ) {
 	}
 
 	return (qboolean)Game_ConsoleCommand();
+}
+
+int GameImport_GetPlayerIdentity( int clientNum, uint64_t *id ) {
+	return SV_PlayerIdentity( clientNum, id );
 }

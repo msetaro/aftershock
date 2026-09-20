@@ -121,6 +121,11 @@ Permanent regression commands (see `tests/README.md` for content and prerequisit
 
 ```
 python3 tests/native_math.py
+python3 tests/replication.py
+python3 tests/protocol.py
+python3 tests/rewind.py
+python3 tests/replication_policy.py
+python3 tests/identity.py
 python3 tests/native_shared.py
 python3 tests/native_abi.py
 python3 tests/animation.py

@@ -78,6 +78,7 @@ struct gentity_s {
 	struct gclient_s *client; // NULL if not a client
 
 	qboolean inuse;
+	uint32_t rewindSpawn;
 
 	const char *classname; // set in QuakeEd
 	int spawnflags; // set in QuakeEd
@@ -977,3 +978,14 @@ void G_InitAnimation( void );
 void G_ShutdownAnimation( void );
 void G_RunAnimation( void );
 qboolean G_AnimationCommand( int owner );
+
+void G_InitRewind( int restart );
+void G_RecordRewind( void );
+void G_TraceHitscan( trace_t *trace, const vec3_t start, const vec3_t end, int pass, const gentity_t *shooter );
+#ifdef __cplusplus
+const animBox_t *G_AnimationHitBoxes( int owner, uint32_t *count );
+#endif
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void G_RewindTargetCommand( void );
+#endif

@@ -970,6 +970,21 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
+	if ( !strcmp( cmd, "rewind_report" ) ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+		if ( trap_Argc() == 5 ) {
+			const uint32_t age = (uint32_t)atoi( CG_Argv( 1 ) );
+			const uint32_t limit = (uint32_t)atoi( CG_Argv( 2 ) );
+			const int clamped = atoi( CG_Argv( 3 ) );
+			const int hit = atoi( CG_Argv( 4 ) );
+			Dev_RewindReport( age, limit, clamped, hit );
+			if ( cg_showmiss.integer )
+				CG_Printf( "Rewind report: age=%u limit=%u clamped=%d hit=%d\n", age, limit, clamped, hit );
+		}
+#endif
+		return;
+	}
+
 	if ( !strcmp( cmd, "cp" ) ) {
 		CG_CenterPrint( CG_Argv( 1 ), (int)( SCREEN_HEIGHT * 0.30f ), BIGCHAR_WIDTH );
 		return;

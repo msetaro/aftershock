@@ -16,6 +16,11 @@ Visual Studio projects are generated. See `AGENTS.md` for renderer/cross setting
 
 ```
 python3 tests/native_math.py
+python3 tests/replication.py
+python3 tests/protocol.py
+python3 tests/rewind.py
+python3 tests/replication_policy.py
+python3 tests/identity.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
 python3 tests/cook.py
@@ -37,6 +42,79 @@ python3 tests/check_frames.py
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
 python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
 ```
+
+## Netcode contracts (#12)
+
+The five `replication`, `protocol`, `rewind`, `replication_policy` and `identity`
+commands above accept `--cxx` and `--output`; each uses production code and UBSan
+with GCC or Clang/libc++. Replication checks all annotated members and the exact
+pre-change 107002-byte delta digest. `python3 tools/replication.py` explicitly
+updates the generated table after a reviewed state-definition change; CI only
+checks freshness. The handshake requires both `AFTERSHOCK_NET_VERSION` (default
+1) and the generated schema digest. Incompatible or unversioned connections are
+refused before joining; fixed legacy demo decoding is unchanged.
+
+`g_rewind 1` opts into per-server-frame actor hit boxes. `g_maxRewind` defaults to
+200 ms, capped at 1000 ms; 64 history frames can impose a smaller effective window
+at high server rates. Storage holds 1024 entities and 2048 boxes per frame in less
+than 5 MiB of level-hunk memory. Spawn/respawn/teleport generations never
+interpolate across lifetimes. Animated actors use authoritative bone boxes;
+other eligible actors use bounds. World/brush traces remain current. Four sampled
+reports per second per firing client feed the development network overlay beside
+prediction last/peak/mean; this is sampled telemetry, not a total shot count.
+
+`GameImport_SetEntityReplication(number, priority, radius)` narrows existing PVS
+interest (radius 0 means unlimited) and supplies priority 0..3. `sv_snapshotBudget`
+defaults to 0, preserving the original selection/encoding path. Positive values
+up to 16384 cap the target snapshot size, further bounded by client rate times
+snapshot interval. Mandatory reliable/playerstate/removal traffic may exceed this
+budget; optional changes then retain acknowledged visible states or defer newly
+visible entities. Existing transmit rate limiting still charges actual bytes.
+Capacity remains 256 entities; priority selects this set, then priority plus age
+schedules updates without allocating per frame. `status` reports deferrals and
+mandatory overruns. Radius bounds are 0..65536 world units; owned entity reuse
+resets policy. This is a radius filter on PVS, not an additional spatial index.
+
+For real loopback tests, build client/server with `AFTERSHOCK_DEVTOOLS=ON` and a
+second server with `-DAFTERSHOCK_EXTRA_FLAGS=-DAFTERSHOCK_NET_VERSION=2`:
+
+```
+python3 tests/protocol_runtime.py --client /path/quake3e.x64 --server /path/quake3e.ded.x64 --other-server /path/version2/quake3e.ded.x64
+python3 tests/netcode_runtime.py --client /path/quake3e.x64 --server /path/quake3e.ded.x64 --snapshot-budget 48
+```
+
+These use installed Quake 3 content by default. Hosted CI passes `--content
+openarena --data /tmp/aftershock-openarena-baseoa`; both run the owned native game.
+The latter also needs the cooker prerequisites, Xvfb and Mesa lavapipe. Its
+private loopback relay models 100 ms RTT, +/-15 ms combined jitter and 5% loss.
+The independent interpolated-box oracle requires >=99% agreement over >=100
+shots, >=5 hits, >=5 decisions differing without rewind, and prediction error
+<=32 units (including spawn). The 48-byte stress run must defer updates while
+still delivering target state. Portable history coverage additionally models
+100 ms one-way latency with 5% loss. No demo or accepted golden is regenerated;
+classic and #10 fixed animation replay gates remain in the same workflow.
+
+`engine/platform/services_public.h` is the main-thread provider seam for Steam
+identity and browser/matchmaking. No provider means anonymous, not authenticated.
+A successful Begin only makes a connection pending: only a matching verified
+callback exposes its ID via `GameImport_GetPlayerIdentity`. Revocation drops the
+client, pending checks expire after 30 seconds, disconnect ends the provider
+session once, and connection tokens prevent stale callbacks authenticating a
+reused slot. Ticket buffers are borrowed only during Begin (2048-byte maximum).
+The provider must copy them and never log them, reenter the engine or call
+`Com_Error`. Installation is immutable once used. SDK callbacks are queued by the
+platform backend for bounded main-thread polling.
+
+`engine/server/identity_public.h` binds ticket submission to a connection token
+obtained from the server-owned connection context, never a peer-supplied token.
+#23 supplies the Steam SDK and ticket transport; #12 does not claim live Steam
+verification or add a ticket command before that backend exists. The current
+server permits anonymous players. The fake-provider test exercises the actual
+server lifecycle, including timeout, revocation, duplicate account rejection and
+slot reuse. Native UI imports expose one bounded browser or matchmaking search;
+results carry request generations, terminal results end the request, and UI
+shutdown cancels it. Discovery never executes commands or connects automatically.
+The existing master-server browser remains available.
 
 `python3 tests/cook.py` requires the pinned Pillow version from
 `tools/cook/requirements.txt`, CMake/Ninja and a host C++ compiler. It cooks owned

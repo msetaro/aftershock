@@ -49,9 +49,22 @@ int main() {
 	assert( network->packets[0] == 1 && network->packets[1] == 2 && network->lastPacket[1] == 50 );
 	assert( network->snapshots == 1 && network->snapshotBits == 123 && network->delta );
 	assert( network->predictionError == 2.5f && network->predictions == 1 );
+	Dev_PredictionError( 0.5f );
+	assert( network->predictionPeak == 2.5f && network->predictionSum == 3.0 && network->predictions == 2 );
+	Dev_PredictionError( -1 );
+	Dev_PredictionError( NAN );
+	assert( network->predictions == 2 );
+	Dev_RewindReport( 100, 200, 0, 1 );
+	Dev_RewindReport( 200, 200, 1, 0 );
+	assert( network->rewindReports == 2 && network->rewindHits == 1 && network->rewindClamped == 1 );
+	assert( network->rewindAge == 200 && network->rewindLimit == 200 );
+	Dev_RewindReport( 300, 200, 0, 0 );
+	assert( network->rewindReports == 2 );
 	DevTools_BeginFrame( false );
 	DevTools_Packet( false, 99 );
 	DevTools_Snapshot( 999, false );
 	Dev_PredictionError( 100 );
-	assert( network->bytes[0] == 120 && network->snapshots == 1 && network->predictions == 1 );
+	Dev_RewindReport( 100, 200, 0, 1 );
+	assert( network->rewindReports == 2 );
+	assert( network->bytes[0] == 120 && network->snapshots == 1 && network->predictions == 2 );
 }

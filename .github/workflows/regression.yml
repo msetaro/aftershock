@@ -80,6 +80,14 @@ jobs:
           /tmp/aftershock-cook-python/bin/python tests/cook.py --cxx '${{ matrix.cxx }}'
           /tmp/aftershock-cook-python/bin/python tests/iqm_scale.py --cxx '${{ matrix.cxx }}'
           /tmp/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+      - name: Protocol, rewind, replication and identity contracts
+        run: |
+          python3 tests/replication.py --cxx '${{ matrix.cxx }}'
+          python3 tests/protocol.py --cxx '${{ matrix.cxx }}'
+          python3 tests/rewind.py --cxx '${{ matrix.cxx }}'
+          python3 tests/replication_policy.py --cxx '${{ matrix.cxx }}'
+          python3 tests/identity.py --cxx '${{ matrix.cxx }}'
+          python3 tests/devtools_data.py --cxx '${{ matrix.cxx }}'
       - name: RHI contract and frame uploads
         run: python3 tests/rhi.py --cxx '${{ matrix.cxx }}'
       - name: Render graph dependencies and native reference trace
@@ -207,6 +215,14 @@ jobs:
           /tmp/aftershock-cook-python/bin/python tests/animation_editor.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
           /tmp/aftershock-cook-python/bin/python tests/animation_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --server-fps 100 --output /tmp/aftershock-animation-runtime-100
           /tmp/aftershock-cook-python/bin/python tests/animation_demo.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Real protocol agreement and delayed hitscan with a snapshot budget
+        run: |
+          cmake -S . -B /tmp/aftershock-dev-entities/build -DBUILD_SERVER=ON
+          cmake --build /tmp/aftershock-dev-entities/build --parallel 4
+          cmake -S . -B /tmp/aftershock-protocol-v2 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_CLIENT=OFF -DUSE_CURL=OFF -DAFTERSHOCK_EXTRA_FLAGS=-DAFTERSHOCK_NET_VERSION=2
+          cmake --build /tmp/aftershock-protocol-v2 --parallel 4
+          python3 tests/protocol_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --other-server /tmp/aftershock-protocol-v2/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          /tmp/aftershock-cook-python/bin/python tests/netcode_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --snapshot-budget 48
       - name: Development overlay input and renderer restart
         run: python3 tests/devtools.py --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Optional renderer module replay
@@ -233,6 +249,8 @@ jobs:
             /tmp/aftershock-demo-modules/**/*.log
             /tmp/aftershock-demo-modules/*.tga
             /tmp/aftershock-window-tests/*
+            /tmp/aftershock-protocol-runtime/*.log
+            /tmp/aftershock-netcode-runtime/*.log
             /tmp/aftershock-dev-entities/**/*.log
             /tmp/aftershock-dev-world-ui/*.log
             /tmp/aftershock-dev-world-ui/*.tga

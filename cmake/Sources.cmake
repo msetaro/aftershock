@@ -9,9 +9,11 @@ set(COMMON_SOURCES
   engine/server/sv_ccmds.cpp
   engine/server/sv_filter.cpp
   engine/server/sv_game.cpp
+  engine/server/sv_identity.cpp
   engine/server/sv_init.cpp
   engine/server/sv_main.cpp
   engine/server/sv_net_chan.cpp
+  engine/server/sv_replication.cpp
   engine/server/sv_snapshot.cpp
   engine/server/sv_world.cpp
   engine/qcommon/cm_load.cpp
@@ -22,6 +24,7 @@ set(COMMON_SOURCES
   engine/qcommon/cmd.cpp
   engine/qcommon/common.cpp
   engine/platform/sys_runtime.cpp
+  engine/platform/sys_services.cpp
   engine/qcommon/cvar.cpp
   engine/qcommon/files.cpp
   engine/qcommon/history.cpp
@@ -30,6 +33,7 @@ set(COMMON_SOURCES
   engine/qcommon/md5.cpp
   engine/qcommon/msg.cpp
   engine/qcommon/net_chan.cpp
+  engine/qcommon/net_history.cpp
   engine/platform/net_ip.cpp
   engine/qcommon/huffman.cpp
   engine/qcommon/huffman_static.cpp
@@ -205,6 +209,7 @@ set(VULKAN_SOURCES
 )
 
 set(NATIVE_GAME_SOURCES
+  game/game/g_rewind.cpp
   game/game/g_animation.cpp
   game/game/ai_chat.cpp
   game/game/ai_cmd.cpp

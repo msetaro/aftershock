@@ -510,6 +510,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_RemapTeamShaders();
 	G_InitAnimation();
+	G_InitRewind( restart );
 }
 
 
@@ -1793,6 +1794,7 @@ void G_RunFrame( int levelTime ) {
 	end = trap_Milliseconds();
 
 	G_RunAnimation();
+	G_RecordRewind();
 
 	// see if it is time to do a tournement restart
 	CheckTournament();

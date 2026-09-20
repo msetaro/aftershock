@@ -16,20 +16,173 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Continue #10 on `issue/10-animation`, draft PR #148. Initial head 49e99bd8
-started hosted build 35516054105 and regression 35516054094. MSVC
-rejects two integer ternaries assigned to new float animation inputs (C4244).
-Use exactly equivalent float literals for 0/+1/-1 and make the existing
-unsigned-to-float ADS denominator conversion explicit. GCC/Clang unit, sanitizer,
-format and both cross regression jobs pass; Linux/macOS builds pass. The 100 Hz
-local check passes after the literal fix; the same Q3 fixture still matches all
-253 boxes and repeated frame samples (animation-msvc-conversions-demo.log).
-Correction d9cb78a4 is pushed; current build 35516284205 and regression
-35516284169 are running. MSVC Release x64 and both ARM64 configurations already
-pass; inspect the remaining exact-head checks before merging PR #148. The integration
-baseline is 7f4d43a7 (merged-tree regression 35510058541 passed). #31 and #9 are
-closed. Feature implementation/editor/ABI gates are committed through 3fbc0a62;
-7004bf0a adds the 100 Hz timing test first. The publication guard now passes it.
+Current branch: `issue/12-netcode`; draft PR #149. All #12 feature slices are
+implemented, with provider/transport ownership documented below. Run full local
+and exact-head hosted gates, review the complete diff and update the issue/PR.
+Do not mark ready or merge until gates and AGENTS self-review pass. Then verify
+the merged-tree regression and continue #11 per #25.
+
+Implemented so far: generated replication descriptions beside state members,
+strict Aftershock version/schema agreement in the existing challenge/connect
+flow, bounded per-frame hit-box history and opt-in hitscan rewind. `g_rewind`
+defaults off; `g_maxRewind` defaults to 200 ms (hard ceiling 1000 ms). Storage is
+64 frames, 1024 entities, 2048 boxes/frame, under 5 MiB from the level hunk with
+restart reuse. Owned animated actors use #10 boxes; other eligible actors use
+bounds. World/brush collision stays live, and no live actor transform/link is
+mutated. Generation checks prevent spawn/respawn/teleport interpolation.
+
+Passed: GCC/Clang+UBSan byte/schema/compatibility/history/game-integration probes,
+current C/game C++/engine ABI, format/boundaries, and production client/server build.
+Real loopback Q3: 425/425 unambiguous shots agree, including 21 hits; 45 decisions
+would differ without rewind. Model: 100 ms RTT, +/-15 ms combined jitter, 5% packet
+loss; median view age 149 ms; largest prediction error 8.875 units. Gate thresholds
+are >=99% over >=100 shots with >=5 hits and >=5 uncompensated differences, and
+prediction error <=32 units including initial spawn. Portable linear-target test:
+950/950 at 100 ms one-way delay, +/-15 ms jitter, 5% loss; error <=0.000488 units.
+No simulation-affecting legacy floating-point expression or accepted fixture changed.
+
+Real network test first failed on the absent cheats-only developer target, then
+exposed harness ordering (inventory not yet received; spawn not settled). It now
+waits for an in-game ready message before placement and firing, without weakening
+hit thresholds. Logs: netcode-runtime-before.log, netcode-runtime-target.log,
+netcode-runtime-synced.log under ~/.cache/aftershock-modernization. OpenArena real
+loopback passed 374/374 shots (19 hits), 38 uncompensated differences, median
+view age 148 ms and prediction error <=8.875 (netcode-runtime-oa.log). Classic Q3 fixed replay still
+matches 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(netcode-classic-demo.log); the fixed owned animation demo still matches all 253
+received authoritative boxes and repeated frames (netcode-animation-demo.log).
+
+Test-first commits: 013b13d2 schema byte oracle, 0dae55bf version agreement,
+adc86e49 portable rewind, 59d11780 game integration, 6e7ccf89 real delayed transport.
+Implementations: 531cf0d5 generated tables, 2c9b461e handshake, 54555ea7 history,
+7d66955a game integration. New schema baseline (107002 bytes from e1ff877f):
+26a5fc0d8e5afbfcc1634ddbfcf67155c6a2c6156066b86d20088690dff7d496. No accepted
+golden was regenerated. Connections lacking Aftershock agreement are refused;
+legacy demo decoding remains independent. Actual Steamworks SDK/platform service
+implementation belongs to #23; #12 must establish the checked asynchronous seam
+and must never treat a claimed identity or absent provider as authenticated.
+
+#10 is complete, closed and checked in #25. PR #148 merged as
+e1ff877f87d7cb17d62f41977428e08c10cb3920 (tree
+c04729f603ae4ede3814e93c8ad69e85688c55d2), exactly matching tested head acc12bf3.
+Full build 35516551419 and regression 35516551423 passed before merge;
+merged-tree regression 35517250474 passed all required jobs after AGENTS review.
+Continue #12 before #11, then the remaining #25 roadmap, only in this repository.
+
+Telemetry test-first commit 5deecae7 failed on absent prediction aggregates and
+rewind reports (netcode-metrics-before.log). These now pass GCC/Clang developer
+telemetry checks. The server sends at most four reports per second per firing
+client through reliable game commands; the remote overlay shows age/budget,
+sampled hits/clamping and prediction last/peak/mean. Invalid reports are ignored.
+OpenArena with report delivery verified passes 371/371 shots (19 hits), 40
+uncompensated differences, median view age 147 ms, prediction error <=8.875
+(netcode-metrics-runtime.log). Full build d381167e passed 35519899293; regression
+35519899276 passed on that earlier head. Current work is not yet accepted.
+
+Replication-policy test-first now fails on absent sv_replication.cpp
+(netcode-policy-before.log). It specifies priority and age within an optional
+update budget derived per client, retention of last acknowledged state for
+unaffordable changes, immediate removal outside interest, preservation of retained
+storage lifetime, range controls and admission of high-priority entities beyond
+the legacy first-256 candidate slots. Budget 0 must preserve the old exact path;
+wire capacity stays 256. Required playerstate/reliable/removal traffic remains
+mandatory even if it exceeds a tiny optional-update budget; existing rate limiting
+continues to account for actual transmitted bytes.
+
+Replication policy now passes GCC and Clang/libc++ UBSan probes. Radius interest
+narrows existing visibility, priorities select up to 256 entities from the full
+candidate set, and age schedules optional deltas against the client rate budget.
+Unchanged defaults preserve the old path. The real OpenArena 48-byte budget run
+verified both deferred updates and receipt of the target state: 393/393 shots
+agree (20 hits), 48 differ without rewind, median age 150 ms and prediction error
+<=8.875 units (netcode-policy-received.log). The initial 128-byte trial did not
+exercise deferral, so the test retained its assertion and reduced the budget.
+Server status reports cumulative deferrals and mandatory-traffic overruns.
+Test-first commit 417e130f precedes implementation (52b73467).
+
+Identity seam test-first now fails on the absent sv_identity.cpp
+(netcode-identity-before.log). It requires anonymous/null behavior, asynchronous
+Steam verification, revocation/timeout cleanup, rejection of stale connection
+callbacks, immutable provider ownership once used, and generation-tagged browser
+and matchmaking results. #12 exposes bounded main-thread hooks; #23 supplies the
+SDK, ticket transport and platform UI. No null backend or claimed ID can report
+an authenticated identity. Provider hooks must be exercised through the actual
+server lifecycle, not just an isolated mock of the state machine.
+
+Identity implementation now passes GCC and Clang/libc++ UBSan
+(netcode-identity-gcc.log, netcode-identity-clang.log), following a331a836's failing
+tests. Server connect/free/frame paths open/close/poll connection generations;
+game imports return account IDs only after verification. Expiry and revocation
+end the provider session and drop the client. Provider absence stays anonymous.
+Native UI search imports copy bounded results and cancel on shutdown. OS/SDK
+ownership stays in platform; no SDK dependency is introduced. Tests cover both
+server identity code and the production platform dispatch. Decision: #12 delivers
+the requested interface; #23 supplies real Steam ticket transport, SDK callbacks
+and platform UI. There is no ticket wire command or requirement for authenticated
+players before that backend exists. This boundary is explicit in tests/README.md.
+
+All new probes are wired into both compiler CI jobs. Runtime CI builds matching
+and version-2 servers, runs actual protocol acceptance/refusal, then the OpenArena
+48-byte-budget delayed hitscan gate; fixed classic and animation replays remain.
+AGENTS commands and tests/README.md document controls, limits and replay policy.
+The initial identity client/server production build passes; final local/hosted
+acceptance and complete self-review are still required.
+
+Full local #12 probes/ABI/developer data pass on e64e214f. Matching/mismatched
+real connections pass; the final OpenArena budget run passes 680/680 shots
+(33 hits), 78 uncompensated differences, median age 155 ms and prediction error
+<=8.875 (netcode-final-runtime.log). Classic Q3 replay retains the accepted frame
+hash. Tidy passes 1238 configurations; lifetime analysis is still running.
+Self-review found a defect in this PR's new rewind trace plane metadata: a
+negative axial normal must use PLANE_NON_AXIAL, matching PlaneTypeForNormal.
+The new assertion fails before correction (netcode-plane-before.log); correct
+that new feature code before acceptance. Existing collision arithmetic is unchanged.
+Hosted e64e214f regression 35521897618 exposed added serverinfo metadata in the
+unchanged OpenArena bot log: sv_snapshotBudget plus its 20-byte length increase.
+The budget is server-only and no client consumes it, so remove CVAR_SERVERINFO
+from the new cvar rather than changing accepted goldens or widening normalization.
+Compiler unit, sanitizers and both cross jobs already pass on that head.
+The plane assertion in 47b4ec60 now passes under both compilers after using the
+existing PlaneTypeForNormal macro in the new trace adapter. Positive and negative
+impact normals/distances/signbits are covered. Rebuild and rerun the affected
+runtime/fixed replay gates; the pending full gates must target the corrected head.
+
+## #12 self-review and acceptance checkpoint
+
+Scope: #12's version/schema agreement, generated descriptions, opt-in bounded
+rewind, replication policy, telemetry and checked identity/discovery seams. Steam
+SDK/ticket transport remains #23's implementation responsibility, explicitly
+reported on #12. No parent-repository change, unrelated engine fix, accepted
+golden/fixture regeneration or legacy simulation FP restructuring is included.
+The new trace adapter now uses the existing plane classification convention.
+
+Server-only snapshot budget registration avoids adding unused wire/serverinfo
+metadata. The resulting OpenArena oa_dm1/oa_dm7 bot logs match accepted goldens
+(netcode-bot-oa.log). Required traffic remains mandatory; existing address,
+challenge, command and transmit rate controls are retained. Interest narrows PVS;
+priority/budget selection stays bounded and keeps old snapshot-storage generation
+checks when retaining acknowledged state.
+
+New runtime storage is fixed POD or level-hunk owned. There is no per-frame heap
+allocation, non-trivial core destructor, or OS/SDK call outside platform. Wire
+and module layouts still agree across C/game C++/engine C++; codec digest is
+unchanged. New sampling arithmetic uses strict FP. Provider callbacks are
+main-thread, generation-checked and bounded; null/claimed identities are never
+verified. The real UI wrapper probe checks safe copies, stale handles and terminal
+buffer failure cancellation under both compilers (netcode-ui-discovery*.log).
+
+Local evidence: unit plus one-ULP negative control, sanitized units, collision
+differential, both OpenArena bot goldens, classic Q3 replay, fixed Q3 animation
+replay (253 authoritative boxes), native ABI and all new GCC/Clang UBSan contracts
+pass. After plane correction, live budgeted OA passes 487/487 shots (25 hits),
+50 uncompensated differences, median view age 149 ms and prediction error
+<=8.875 (netcode-plane-runtime.log). Tidy passes 1238 configurations; lifetime
+analysis passes 1184 commands. Hosted eb017dc5 build 35522039819 passes all Linux,
+macOS, MinGW and MSVC x64/ARM64 legs. Its regression repeats the now-corrected
+serverinfo-only bot mismatch; it is not acceptance. Push this reviewed correction
+and require a fresh full current-head build/regression before ready/merge.
+
+## #10 accepted implementation
 
 Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
 layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body
@@ -53,11 +206,6 @@ changing goldens or gameplay lines. Both-map bot smoke now passes with that meta
 (animation-runtime-classic.log).
 Tidy passed 1202 configurations before the final small publication/ownership edits.
 
-Next: inspect PR #148’s exact-head checks and finish full hosted gates (including OpenArena static/module replays and cross/MSVC
-builds), resolve any failures without changing accepted fixtures, then merge with
-a merge commit and verify the merged tree. The local AGENTS self-review below is
-complete; hosted/exact-head acceptance is still required.
-Continue #12 before #11 (replication dependency), then the remaining #25 roadmap.
 All PRs stay in this repository; no parent-fork PRs or main pushes.
 
 ## #10 local self-review
@@ -80,8 +228,7 @@ layout/trivial-copy properties. Renderer ABI is 13 shipping / 17 development.
 Native GCC/Clang+UBSan, the real-input editor, fixed-step live gameplay (including
 100 Hz server), new Q3/static and OA/module fixed replays, unchanged classic Q3
 frames/collision/bot smoke, unit/negative control, sanitized units, old asset editor,
-known-bug classification, tidy and lifetime gates pass locally. Remaining acceptance:
-full hosted exact-head build/regression and merged-tree verification. The original
+known-bug classification, tidy and lifetime gates pass locally. Exact-head hosted build/regression and merged-tree verification passed. The original
 assets and new demos contain no copied game paks; both new source/demo manifests
 record provenance and exact hashes. All changes and PRs remain in this repository.
 

@@ -686,62 +686,15 @@ typedef struct {
 	const int bits; // 0 = float
 } netField_t;
 
-// using the stringizing operator to save typing...
-#define NETF( x ) #x,(int)(size_t)&((entityState_t*)0)->x
+#include "replication.inc"
 
-static const netField_t entityStateFields[] = {
-	{ NETF(pos.trTime), 32 },
-		{ NETF(pos.trBase[0]), 0 },
-			{ NETF(pos.trBase[1]), 0 },
-				{ NETF(pos.trDelta[0]), 0 },
-					{ NETF(pos.trDelta[1]), 0 },
-						{ NETF(pos.trBase[2]), 0 },
-							{ NETF(apos.trBase[1]), 0 },
-								{ NETF(pos.trDelta[2]), 0 },
-									{ NETF(apos.trBase[0]), 0 },
-										{ NETF(event), 10 },
-											{ NETF(angles2[1]), 0 },
-												{ NETF(eType), 8 },
-													{ NETF(torsoAnim), 8 },
-														{ NETF(eventParm), 8 },
-															{ NETF(legsAnim), 8 },
-																{ NETF(groundEntityNum), GENTITYNUM_BITS },
-																	{ NETF(pos.trType), 8 },
-																		{ NETF(eFlags), 19 },
-																			{ NETF(otherEntityNum), GENTITYNUM_BITS },
-																				{ NETF(weapon), 8 },
-																					{ NETF(clientNum), 8 },
-																						{ NETF(angles[1]), 0 },
-																							{ NETF(pos.trDuration), 32 },
-																								{ NETF(apos.trType), 8 },
-																									{ NETF(origin[0]), 0 },
-																										{ NETF(origin[1]), 0 },
-																											{ NETF(origin[2]), 0 },
-																												{ NETF(solid), 24 },
-																													{ NETF(powerups), MAX_POWERUPS },
-																														{ NETF(modelindex), 8 },
-																															{ NETF(otherEntityNum2), GENTITYNUM_BITS },
-																																{ NETF(loopSound), 8 },
-																																	{ NETF(generic1), 8 },
-																																		{ NETF(origin2[2]), 0 },
-																																			{ NETF(origin2[0]), 0 },
-																																				{ NETF(origin2[1]), 0 },
-																																					{ NETF(modelindex2), 8 },
-																																						{ NETF(angles[0]), 0 },
-																																							{ NETF(time), 32 },
-																																								{ NETF(apos.trTime), 32 },
-																																									{ NETF(apos.trDuration), 32 },
-																																										{ NETF(apos.trBase[2]), 0 },
-																																											{ NETF(apos.trDelta[0]), 0 },
-																																												{ NETF(apos.trDelta[1]), 0 },
-																																													{ NETF(apos.trDelta[2]), 0 },
-																																														{ NETF(time2), 32 },
-																																															{ NETF(angles[2]), 0 },
-																																																{ NETF(angles2[0]), 0 },
-																																																	{ NETF(angles2[2]), 0 },
-																																																		{ NETF(constantLight), 32 },
-																																																			{ NETF(frame), 16 } };
+const char *MSG_ReplicationSchema( void ) {
+	return replicationSchema;
+}
 
+qboolean NET_ProtocolCompatible( const char *version, const char *schema ) {
+	return (qboolean)( version && schema && !strcmp( version, XSTRING( AFTERSHOCK_NET_VERSION ) ) && !strcmp( schema, replicationSchema ) );
+}
 
 // if (int)f == f and (int)f + ( 1<<(FLOAT_INT_BITS-1) ) < ( 1 << FLOAT_INT_BITS )
 // the float will be sent with FLOAT_INT_BITS, otherwise all 32 bits will be sent
@@ -1002,59 +955,6 @@ plyer_state_t communication
 
 ============================================================================
 */
-
-// using the stringizing operator to save typing...
-#define PSF( x ) #x,(int)(size_t)&((playerState_t*)0)->x
-
-static const netField_t playerStateFields[] = {
-	{ PSF(commandTime), 32 },
-		{ PSF(origin[0]), 0 },
-			{ PSF(origin[1]), 0 },
-				{ PSF(bobCycle), 8 },
-					{ PSF(velocity[0]), 0 },
-						{ PSF(velocity[1]), 0 },
-							{ PSF(viewangles[1]), 0 },
-								{ PSF(viewangles[0]), 0 },
-									{ PSF(weaponTime), -16 },
-										{ PSF(origin[2]), 0 },
-											{ PSF(velocity[2]), 0 },
-												{ PSF(legsTimer), 8 },
-													{ PSF(pm_time), -16 },
-														{ PSF(eventSequence), 16 },
-															{ PSF(torsoAnim), 8 },
-																{ PSF(movementDir), 4 },
-																	{ PSF(events[0]), 8 },
-																		{ PSF(legsAnim), 8 },
-																			{ PSF(events[1]), 8 },
-																				{ PSF(pm_flags), 16 },
-																					{ PSF(groundEntityNum), GENTITYNUM_BITS },
-																						{ PSF(weaponstate), 4 },
-																							{ PSF(eFlags), 16 },
-																								{ PSF(externalEvent), 10 },
-																									{ PSF(gravity), 16 },
-																										{ PSF(speed), 16 },
-																											{ PSF(delta_angles[1]), 16 },
-																												{ PSF(externalEventParm), 8 },
-																													{ PSF(viewheight), -8 },
-																														{ PSF(damageEvent), 8 },
-																															{ PSF(damageYaw), 8 },
-																																{ PSF(damagePitch), 8 },
-																																	{ PSF(damageCount), 8 },
-																																		{ PSF(generic1), 8 },
-																																			{ PSF(pm_type), 8 },
-																																				{ PSF(delta_angles[0]), 16 },
-																																					{ PSF(delta_angles[2]), 16 },
-																																						{ PSF(torsoTimer), 12 },
-																																							{ PSF(eventParms[0]), 8 },
-																																								{ PSF(eventParms[1]), 8 },
-																																									{ PSF(clientNum), 8 },
-																																										{ PSF(weapon), 5 },
-																																											{ PSF(viewangles[2]), 0 },
-																																												{ PSF(grapplePoint[0]), 0 },
-																																													{ PSF(grapplePoint[1]), 0 },
-																																														{ PSF(grapplePoint[2]), 0 },
-																																															{ PSF(jumppad_ent), GENTITYNUM_BITS },
-																																																{ PSF(loopSound), 16 } };
 
 /*
 =============
