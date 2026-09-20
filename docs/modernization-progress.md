@@ -21,7 +21,7 @@ Main checkout is preparatory issue/13-materials, based on modernization eb9496ee
 head 04a86876e62c16a803e9ee29c47a8460fcbe6bd6 is running exact-head build 35542300540
 and regression 35542300709, including the new match-server kind job. #31 PR #155
 is merged at eb9496ee2d28a85a599ea8eb5d7bd35a0bd584d0; its merged-tree regression
-35541625720 is still required before closure/#28 acceptance. #27 is complete.
+35541625720 passed. #31 is closed again and #28’s dependency gate is complete. #27 is complete.
 
 #28's reviewed local image/kind test passed at /tmp/aftershock-match-kind-reviewed:
 a real native OA player joined sv_pure=1, the one-minute match exited, a completed
