@@ -29,19 +29,26 @@ game keys, so reopening a retained context leaves a held game binding pressed.
 The real-input test now holds F8, reopens through F9, and queries its release cvar
 through the overlay console. It fails as expected on f895997d's binary with
 "reopening the overlay left the game key pressed" (devtools-reopen-before3.log).
-Test-first 1899ff9d changes no engine code. The working fix tracks input capture
+Test-first 1899ff9d changes no engine code. Fix 7f5d60f6 tracks input capture
 separately from context ownership, releases game bindings before interception on
-every open, clears stale vendor input, and restores the pointer position. Both
-static/module real-input checks pass the fix (devtools-reopen-{fixed,module}.log).
+every open, clears stale vendor input, and restores the pointer position. Final
+static/module real-input checks pass (devtools-reopen-{final,module-final}.log).
 Format/type/boundary and changed-UI lifetime checks pass; tidy passes all 1,162
-configurations. Final static/module runs including pointer restoration pass
-(devtools-reopen-{final,module-final}.log); shipping SHA stays 427e37be.
-Entity save review found the angle/angles alias bug in the new editor: editing
-angle -> angles -> angle leaves both serialized keys, so the older vector wins on
-reload. The extended native save/reload test fails as expected on the unchanged
-entity implementation (devtools-angle-before.log). This test-first checkpoint
-changes no game code; remove the opposite alias when intentionally editing that
-field, then rerun native save/reload and the final hosted gates. Keep PR #143 draft; require merged-tree regression before #142.
+configurations. Shipping SHA stays 427e37be.
+
+Test-first d115d52e also catches the new editor's angle/angles alias bug: alternating
+edits retained both keys, so reload restored an older value. The fix removes the
+opposite spelling only when intentionally editing that field. Native save/reload
+now restores [0, 90, 0], while retaining all unrelated map keys; format passes
+(devtools-angle-{before,fixed}.log). These are corrections to new #7 tooling, not
+pre-existing engine bug fixes. Self-review remains satisfied: both changes stay
+behind AFTERSHOCK_DEVTOOLS, use existing input/spawn mechanisms and add no OS calls,
+non-trivial lifetimes, simulation arithmetic changes or shipping allocations.
+
+Push this corrected candidate and require its complete exact-head build/regression
+before marking PR #143 ready and merging; then require merged-tree regression
+before #142. The earlier f895997d lifetime retry is historical, not the final gate.
+Keep the PR draft until current checks pass.
 Preserve accepted goldens.
 
 Then complete #7, render-graph phase two #142, and the remaining #25 sequence.

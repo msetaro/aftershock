@@ -83,4 +83,4 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entity-edit-') as temp:
     assert b'"targetname" "dev_tools_entity_test"' in saved[1]
     for i in range(4):
         shutil.copyfile(base / 'maps' / f'{map_name}.dev.{i:03d}.ent', args.output / f'entities-{i}.ent')
-print('PASS: spawn/edit/delete/save/reload, numbered saves and preservation of every original map key')
+print('PASS: spawn/edit/delete/save/reload, angle aliases, numbered saves and preservation of every original map key')

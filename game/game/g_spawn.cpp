@@ -804,6 +804,10 @@ static bool Dev_ReplaceField( int source, const char *key, const char *value, ch
 			break;
 		const char *oldValue = COM_Parse( &cursor );
 		const bool matches = !Q_stricmp( name, key );
+		// Both spellings write the same field; retain only the intentionally edited one.
+		if ( ( !Q_stricmp( key, "angle" ) && !Q_stricmp( name, "angles" ) ) ||
+			 ( !Q_stricmp( key, "angles" ) && !Q_stricmp( name, "angle" ) ) )
+			continue;
 		if ( !Dev_Pair( output, name, matches ? value : oldValue ) )
 			return false;
 		replaced |= matches;
