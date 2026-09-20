@@ -191,6 +191,23 @@ int main( int argc, char **argv ) {
 			}
 	}
 	assert( fractionalShots == 13 ); // Carry remainder; 30 ms must not become a 40 ms weapon.
+	Weapon_Reset( &def, 101, 0, &a );
+	Weapon_Reset( &second, 202, 0, &b );
+	Step( def, &a, WEAPON_FIRE );
+	const uint32_t remaining = a.magazine, seed = a.random;
+	assert( Weapon_Switch( &def, &a, &second, &b, 20 ) );
+	assert( b.switchUntil == 20 + second.switchMs && b.random == 202 );
+	assert( Weapon_Command( &second, WEAPON_FIRE, b.switchUntil - 20, &b, &untouched ) && untouched.count == 0 );
+	assert( Weapon_Command( &second, WEAPON_FIRE, b.switchUntil, &b, &untouched ) && untouched.count == 1 );
+	assert( Weapon_Switch( &second, &b, &def, &a, b.time ) );
+	assert( a.magazine == remaining && a.random == seed && a.reloadStage == WEAPON_NO_STAGE );
+	// Switching respects the completed reload stage's cancellation permission.
+	a.reloadStage = 3;
+	const auto beforeSwitch = a, beforeOther = b;
+	assert( !Weapon_Switch( &def, &a, &second, &b, a.time ) );
+	assert( !memcmp( &a, &beforeSwitch, sizeof( a ) ) && !memcmp( &b, &beforeOther, sizeof( b ) ) );
+	a.reloadStage = 2;
+	assert( Weapon_Switch( &def, &a, &second, &b, a.time ) && a.reloadStage == WEAPON_NO_STAGE );
 	weaponProjectile_t projectile = {};
 	projectile.velocity[0] = 800;
 	Weapon_ProjectileStep( &def, &projectile );

@@ -158,6 +158,10 @@ presentation, switching/attachments, projectile actors, animation/audio integrat
 and range controls remain. Next: inventory-preserving switching and selection of
 a second rifle authored only in data.
 
+The switching probe fails on missing Weapon_Switch (weapons-switch-before.log).
+It requires retained ammo/random state across a round trip, a data-defined equip
+delay before firing, reload-stage cancellation rules and atomic rejection.
+
 
 ## #12 implemented feature evidence
 
