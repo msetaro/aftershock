@@ -33,7 +33,7 @@ int main( int argc, char **argv ) {
 	cookedMaterial_t material;
 	assert( R_ReadCookedMaterial( materialBytes, sizeof( materialBytes ), &material ) );
 	assert( strcmp( material.texture, "models/character_material0.ktx2" ) == 0 );
-	assert( material.alphaCutoff == 0.5f && material.flags == 0 );
+	assert( material.alphaCutoff == 0.5f && material.flags == 1 );
 	for ( uint32_t i = 0; i < 4; i++ )
 		assert( material.color[i] == 1 );
 	puts( "PASS: native cooked KTX2 records, SHA-256 and mip views" );

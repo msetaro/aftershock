@@ -1,7 +1,7 @@
 # Offline cooker (#9, in progress)
 
 Offline mesh/texture cooking and native KTX2 BC loading are available. Cooked
-material loading and development reload are still being implemented; this is not
+material loading is also available; development reload is still being implemented; this is not
 the complete #9 acceptance.
 
 Use Python with the pinned Pillow dependency, CMake 3.25+, Ninja and a host C++
@@ -63,3 +63,10 @@ The native KTX2 reader verifies the embedded content hash using pinned
 [amosnier/sha-2](https://github.com/amosnier/sha-2/tree/565f65009bdd98267361b17d50cddd7c9beb3e6c),
 under its 0BSD option. The backend enables supported BC compression and checks
 format capabilities before allocation, following the [Vulkan feature contract](https://docs.vulkan.org/refpages/latest/refpages/source/VkPhysicalDeviceFeatures.html).
+
+Standalone `kind: material` inputs are JSON with optional `texture` (a source image
+relative to the material file), `baseColorFactor`, `doubleSided`, `unlit`,
+`alphaMode` and `alphaCutoff`. They emit matching `.asmat` and private `.ktx2`
+files. Base-color factors are baked in linear space; opaque materials discard
+source alpha. The current native mask test supports cutoff 0.5; other cutoffs
+are rejected until the material pipeline in #13 provides arbitrary thresholds.

@@ -93,6 +93,8 @@ def cook(project, output):
             source = below(root, asset['source'])
             if asset['kind'] == 'model':
                 payloads = model.cook(source, name, asset, read)
+            elif asset['kind'] == 'material':
+                payloads = model.cook_material(source, name, read)
             elif asset['kind'] == 'texture':
                 payloads = {name + '.ktx2': texture.cook(read(source), asset)}
             else:

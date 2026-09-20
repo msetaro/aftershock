@@ -32,7 +32,36 @@ def material_bytes(material, image_name):
     cutoff = material.get('alphaCutoff', 0.5)
     if not math.isfinite(cutoff) or not 0 <= cutoff <= 1:
         raise ValueError('material alpha cutoff must be in [0,1]')
+    if mode == 'MASK' and cutoff != 0.5:
+        raise ValueError('the current native material path supports MASK cutoff 0.5; arbitrary cutoffs belong to #13')
     return wrapped(b'ASMAT\0\0\0', struct.pack('<4ffI64s', *color, cutoff, flags, path))
+
+
+def material_texture(raw, value):
+    options = {'format': 'bc7', 'srgb': True}
+    color = value.get('pbrMetallicRoughness', {}).get('baseColorFactor', [1, 1, 1, 1])
+    if color != [1, 1, 1, 1]:
+        options['color_factor'] = color
+    if value.get('alphaMode', 'OPAQUE') == 'OPAQUE':
+        options['opaque'] = True
+    return texture.cook(raw, options)
+
+
+def cook_material(path, name, read):
+    value = json.loads(read(path))
+    material = {key: value[key] for key in ('alphaMode', 'alphaCutoff', 'doubleSided') if key in value}
+    material['pbrMetallicRoughness'] = {'baseColorFactor': value.get('baseColorFactor', [1, 1, 1, 1])}
+    if value.get('unlit', False):
+        material['extensions'] = {'KHR_materials_unlit': {}}
+    image_name = name + '.ktx2'
+    payload = material_bytes(material, image_name)
+    if value.get('texture'):
+        raw = read(path.parent / value['texture'])
+    else:
+        stream = io.BytesIO()
+        Image.new('RGBA', (1, 1), (255, 255, 255, 255)).save(stream, format='PNG')
+        raw = stream.getvalue()
+    return {name + '.asmat': payload, image_name: material_texture(raw, material)}
 
 
 def cook(path, name, options, read):
@@ -229,8 +258,8 @@ def cook(path, name, options, read):
             Image.new('RGBA', (1, 1), (255, 255, 255, 255)).save(stream, format='PNG')
             raw = stream.getvalue()
         image_name = label + '.ktx2'
-        outputs[image_name] = texture.cook(raw, {'format': 'bc7', 'srgb': True})
         outputs[label + '.asmat'] = material_bytes(value, image_name)
+        outputs[image_name] = material_texture(raw, value)
         materials[index] = label
         return label
 

@@ -2862,3 +2862,20 @@ Evidence: cook-native-texture-{before,after,clang}.log, cook-runtime-build.log,
 cook-ui-check.log, cook-demo.log; screenshots /tmp/aftershock-cook-ui. No accepted
 fixtures/goldens changed. Next implement material records and reload ownership,
 then named clips, source watcher and the complete runtime acceptance driver.
+
+Cooked material records now validate their version/hash and load through shader
+registration. They retain ordinary diffuse/vertex/lightmap shading and set culling,
+unlit, blend or mask policy. Base-color factors are baked offline in linear color
+space into each material's private texture, avoiding runtime shader variants.
+Explicit material JSON sources now share the glTF material cooker. An independent
+Pillow DDS decode checks the BC7 result against linear factors and alpha. The
+current legacy alpha-test path accepts MASK cutoff 0.5; other cutoffs produce an
+explicit offline diagnostic pending #13. The valid material test first failed on
+the absent API (6370ad04); its fixture expectation was corrected to Blender's
+actual doubleSided=true export, without changing source content.
+
+GCC full cooker/native checks and the development client build pass. Material
+version/flags/texture records retain 48-byte header and 88-byte payload assertions.
+The new opaque-texture recipe adds metadata to #9's new artifacts; no accepted
+game golden or source fixture is regenerated. Runtime reload and remaining source
+kinds are still in progress. Evidence: cook-material-{before,complete,build}.log.

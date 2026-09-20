@@ -133,3 +133,40 @@ bool R_ReadCookedTexture( const void *data, size_t size, cookedTexture_t *textur
 	memcpy( texture->contentHash, hash, 32 );
 	return true;
 }
+
+struct cookedHeader_t {
+	uint8_t magic[8];
+	uint32_t version, size;
+	uint8_t hash[32];
+};
+static_assert( sizeof( cookedHeader_t ) == 48 && std::is_trivially_copyable_v<cookedHeader_t> );
+
+bool R_ReadCookedMaterial( const void *data, size_t size, cookedMaterial_t *material ) {
+	*material = {};
+	if ( !data || size != sizeof( cookedHeader_t ) + sizeof( *material ) )
+		return false;
+	cookedHeader_t header;
+	memcpy( &header, data, sizeof( header ) );
+	if ( memcmp( header.magic, "ASMAT\0\0\0", 8 ) || header.version != 1 || header.size != sizeof( *material ) )
+		return false;
+	const uint8_t *payload = (const uint8_t *)data + sizeof( header );
+	uint8_t hash[32];
+	calc_sha_256( hash, payload, header.size );
+	if ( memcmp( hash, header.hash, sizeof( hash ) ) )
+		return false;
+	memcpy( material, payload, sizeof( *material ) );
+	for ( float color : material->color ) {
+		if ( !( color >= 0 && color <= 1 ) )
+			return false;
+	}
+	if ( !( material->alphaCutoff >= 0 && material->alphaCutoff <= 1 ) || material->flags > 15 || ( material->flags & 12 ) == 12 || ( ( material->flags & 8 ) && material->alphaCutoff != 0.5f ) )
+		return false;
+	const char *end = (const char *)memchr( material->texture, 0, sizeof( material->texture ) );
+	if ( !end || end == material->texture || material->texture[0] == '/' || strstr( material->texture, ".." ) )
+		return false;
+	for ( const char *p = material->texture; p != end; p++ ) {
+		if ( !( ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '_' || *p == '/' || *p == '.' || *p == '-' ) )
+			return false;
+	}
+	return true;
+}

@@ -216,6 +216,32 @@ def main():
         assert sorted(result['skipped']) == ['models/mirrored', 'models/packed', 'models/rig', 'models/static']
         assert (output / 'textures/bc7.ktx2').read_bytes() != before['textures/bc7.ktx2'][0]
         (args.output / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
+    with tempfile.TemporaryDirectory(prefix='aftershock-material-') as temporary:
+        directory = Path(temporary)
+        Image.new('RGBA', (16, 16), (255, 255, 255, 255)).save(directory / 'white.png')
+        value = {'texture': 'white.png', 'baseColorFactor': [0.25, 0.5, 1, 0.5],
+                 'doubleSided': True, 'unlit': True, 'alphaMode': 'BLEND'}
+        (directory / 'paint.json').write_text(json.dumps(value))
+        project = directory / 'assets.json'
+        project.write_text(json.dumps({'version': 1, 'assets': [{'name': 'materials/paint', 'kind': 'material', 'source': 'paint.json'}]}))
+        material_output = directory / 'cooked'
+        assert cook(project, material_output)['built'] == ['materials/paint']
+        payload = (material_output / 'materials/paint.asmat').read_bytes()[48:]
+        assert struct.unpack_from('<4ffI', payload) == (0.25, 0.5, 1, 0.5, 0.5, 7)
+        # Pillow's DDS decoder independently checks the BC7 texels after linear-factor baking.
+        ktx = (material_output / 'materials/paint.ktx2').read_bytes()
+        offset, length, _ = struct.unpack_from('<3Q', ktx, 80)
+        dds = bytearray(148)
+        dds[:4] = b'DDS '
+        struct.pack_into('<7I', dds, 4, 124, 0x1007, 16, 16, 0, 0, 1)
+        struct.pack_into('<II4s', dds, 76, 32, 4, b'DX10')
+        struct.pack_into('<I', dds, 108, 0x1000)
+        struct.pack_into('<5I', dds, 128, 99, 3, 0, 1, 0)
+        import io
+        decoded = Image.open(io.BytesIO(dds + ktx[offset:offset + length])).convert('RGBA')
+        pixel = decoded.getpixel((8, 8))
+        assert all(abs(actual - expected) <= 3 for actual, expected in zip(pixel, (137, 188, 255, 128))), pixel
+        assert cook(project, material_output)['built'] == []
     fixture = ROOT / 'tests/assets/cook-character'
     provenance = json.loads((fixture / 'provenance.json').read_text())
     for name, expected in provenance['files'].items():

@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include "tr_cooked.h"
 
 rendererPipelines_t r_pipelines;
 
@@ -3870,6 +3871,37 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 		}
 
 		return FinishShader();
+	}
+
+	char materialPath[MAX_QPATH];
+	if ( strlen( strippedName ) + 6 < sizeof( materialPath ) ) {
+		Com_sprintf( materialPath, sizeof( materialPath ), "%s.asmat", strippedName );
+		void *file = nullptr;
+		const int size = ri.FS_ReadFile( materialPath, &file );
+		if ( file ) {
+			cookedMaterial_t material;
+			const bool valid = size > 0 && R_ReadCookedMaterial( file, size, &material );
+			ri.FS_FreeFile( file );
+			image = valid ? R_FindImageFile( material.texture, mipRawImage ? IMGFLAG_MIPMAP : IMGFLAG_CLAMPTOEDGE ) : nullptr;
+			if ( !image ) {
+				ri.Printf( PRINT_WARNING, "Invalid or unavailable cooked material: %s\n", materialPath );
+				shader.defaultShader = qtrue;
+				return FinishShader();
+			}
+			R_CreateDefaultShading( image );
+			shader.cullType = ( material.flags & 1 ) ? CT_TWO_SIDED : CT_FRONT_SIDED;
+			if ( material.flags & 2 )
+				stages[0].bundle[0].rgbGen = CGEN_IDENTITY;
+			if ( material.flags & 4 ) {
+				stages[0].stateBits = ( stages[0].stateBits & ~GLS_DEPTHMASK_TRUE ) | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+				stages[0].bundle[0].alphaGen = AGEN_IDENTITY;
+			} else if ( material.flags & 8 ) {
+				stages[0].stateBits |= GLS_ATEST_GE_80;
+				stages[0].bundle[0].alphaGen = AGEN_IDENTITY;
+			}
+			shader.explicitlyDefined = qtrue;
+			return FinishShader();
+		}
 	}
 
 	//

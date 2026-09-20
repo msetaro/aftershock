@@ -108,7 +108,24 @@ def cook(source, options):
         if not 1 <= opened.width <= 16384 or not 1 <= opened.height <= 16384:
             raise ValueError('texture dimensions must be between 1 and 16384')
         image = opened.convert('RGBA')
-    if fmt != 'bc7':
+    factor = options.get('color_factor', [1, 1, 1, 1])
+    if len(factor) != 4 or any(not math.isfinite(v) or not 0 <= v <= 1 for v in factor):
+        raise ValueError('color factors must be four finite values in [0,1]')
+    if factor != [1, 1, 1, 1]:
+        channels = []
+        for index, channel in enumerate('RGBA'):
+            table = []
+            for value in range(256):
+                v = value / 255
+                if srgb and index < 3:
+                    v = v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+                v *= factor[index]
+                if srgb and index < 3:
+                    v = v * 12.92 if v <= 0.0031308 else 1.055 * v ** (1 / 2.4) - 0.055
+                table.append(max(0, min(255, round(v * 255))))
+            channels.append(image.getchannel(channel).point(table))
+        image = Image.merge('RGBA', channels)
+    if fmt != 'bc7' or options.get('opaque', False):
         image.putalpha(255)
     levels = mipmaps(image, srgb, normal)
     encoded = blocks(levels, fmt)
