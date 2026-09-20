@@ -51,7 +51,7 @@ with GCC or Clang/libc++. Replication checks all annotated members and the exact
 pre-change 107002-byte delta digest. `python3 tools/replication.py` explicitly
 updates the generated table after a reviewed state-definition change; CI only
 checks freshness. The handshake requires both `AFTERSHOCK_NET_VERSION` (default
-1) and the generated schema digest. Incompatible or unversioned connections are
+2) and the generated schema digest. Incompatible or unversioned connections are
 refused before joining; fixed legacy demo decoding is unchanged.
 
 `g_rewind 1` opts into per-server-frame actor hit boxes. `g_maxRewind` defaults to

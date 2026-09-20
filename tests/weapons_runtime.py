@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
         'set g_weaponTrace 1', 'set cg_weaponTrace 1',
         'set fixedtime 20', 'set sv_fps 50', 'set g_rewind 1', 'set g_rewindTrace 1',
         f'devmap {content_maps(args.content)[0]}', 'wait 60',
-        'rewind_target 0', 'wait 2', '+attack', 'wait 120', '-attack', '+button12', 'wait 15',
+        'rewind_target 0', 'wait 2', '+attack', 'wait 130', '-attack', '+button12', 'wait 15',
         '+button13', 'wait 2', '-button13', 'wait 65', '-button12',
         '+button14', 'wait 30', '-button14', 'wait 10', 'weapon 2', 'wait 15',
         '+attack', 'wait 14', '-attack', 'weapon 1', 'wait 15', 'quit']) + '\n')

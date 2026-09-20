@@ -27,6 +27,8 @@ void CG_InitWeapons( void ) {
 			CG_Error( "Weapon rejected: server definition differs for %s", path );
 		CG_Printf( "Weapon client definition: index=%d name=%s\n", index, BG_WeaponDefinition( index )->name );
 	}
+	if ( BG_WeaponDefinition( 0 ) )
+		cg.weaponSelect = 1;
 }
 void CG_WeaponSnapshot( const entityState_t *entity ) {
 	weaponState_t state;
@@ -70,6 +72,8 @@ void CG_PredictWeapons( void ) {
 			for ( int number = current - CMD_BACKUP + 1; number <= current; ++number ) {
 				usercmd_t cmd;
 				trap_GetUserCmd( number, &cmd );
+				if ( int32_t( uint32_t( cmd.serverTime ) - state.time ) > 0 && int( cmd.weapon ) != entity.modelindex + 1 )
+					break; // Selection waits for acknowledgement; inventory stays server-owned.
 				if ( cmd.serverTime > latest.serverTime )
 					continue;
 				if ( pmove_fixed.integer ) {

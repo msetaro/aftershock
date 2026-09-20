@@ -17,8 +17,10 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Current branch: `issue/11-weapons`; draft PR #150, based on #12 merge 3bb04837.
-Continue #11 with test-first weapon snapshot/prediction and gameplay integration,
-then the target range using the existing owned rifle/body assets. #12 integration
+Continue #11 with material penetration, projectile/grenade actors, attachment and
+animation/audio presentation, and the ImGui target range using owned assets.
+Cooked loading, command replay, live prediction, rewind damage and data-only
+rifle switching now pass their focused tests; full acceptance remains pending. #12 integration
 regression 35523091952 passed. Complete the full #11 scope, wire tests into CI, run all gates/self-review
 and merge through its own PR. #11 was read; #10/#12 are
 its prerequisites. Reuse existing fixed-tick, asset and animation APIs.
@@ -171,6 +173,16 @@ The live two-rifle extension fails at the expected missing selection behavior
 (weapons-selection-before.log): both cooked files load, but no switch occurs.
 It requires 0->1->0 selection and return to the first rifle's remaining 29-round
 magazine, plus the existing prediction, damage and state round-trip assertions.
+
+Live two-rifle selection passes (weapons-selection.log). Each hand retains a
+bounded per-definition inventory; existing weapon/next/previous commands select
+data definitions, pickups no longer overwrite that selection, and respawn picks
+the first data weapon. Switching waits for server acknowledgement while active
+weapon inputs remain predicted. The first run exposed a remaining legacy
+respawn selection assignment; the test also needed 130 rather than 120 frames
+to empty all 31 loaded rounds before checking the 29-round empty reload. Both
+are corrected, and 0->1->0 preserves ammo/seed. Production build and focused
+format/boundary/type gates pass. Remaining #11 scope is listed in Next action.
 
 
 ## #12 implemented feature evidence
