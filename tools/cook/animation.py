@@ -70,7 +70,7 @@ def cook(path, asset_name, options, read, assets):
     def label(offset):
         return text[offset:text.index(0, offset)].decode()
 
-    sections = [[] for _ in range(11)]
+    sections = [[] for _ in range(12)]
     joints, parents, clips, channel = {}, [], {}, 0
     for i in range(h[13]):
         joint = struct.unpack_from('<Ii10f', iqm, h[14] + i * 48)
@@ -176,7 +176,15 @@ def cook(path, asset_name, options, read, assets):
                                        first, len(sections[7]) - first, int(bool(transition.get('on_end', False)))))
     if len(sections[9]) > 64:
         raise ValueError('animation graph exceeds 64 nodes including implicit state clips')
-    payload = bytearray(196)
+    boxes = graph.get('hit_boxes', [])
+    named(boxes, 32)
+    for box in boxes:
+        offset = [number(v) for v in box.get('offset', [0, 0, 0])]
+        extent = [number(v) for v in box['extent']]
+        if len(offset) != 3 or len(extent) != 3 or any(v <= 0 for v in extent):
+            raise ValueError('hit boxes require three offsets and positive half extents')
+        sections[11].append(struct.pack('<64sI6f', name(box['name']), joints[box['bone']], *offset, *extent))
+    payload = bytearray(204)
     struct.pack_into('<64s32s3I', payload, 0, name(model_path), hashlib.sha256(iqm).digest(), h[19], h[20], state_ids[graph['initial_state']])
     for i, rows in enumerate(sections):
         payload.extend(bytes(-len(payload) % 4))

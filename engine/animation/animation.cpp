@@ -81,16 +81,17 @@ bool Anim_Open( const void *bytes, size_t size, animAsset_t *asset ) {
 	animAsset_t result = {};
 	result.data = data + 48;
 	result.size = payloadSize;
+	memcpy( result.hash, hash, sizeof( hash ) );
 	memcpy( &result.header, result.data, sizeof( result.header ) );
 	const auto &h = result.header;
-	constexpr size_t sizes[] = { sizeof( animFileJoint_t ), sizeof( animFilePose_t ), sizeof( uint16_t ), sizeof( animFileClip_t ), sizeof( animFileParameter_t ), sizeof( animFileState_t ), sizeof( animFileTransition_t ), sizeof( animFileCondition_t ), sizeof( animFileEvent_t ), sizeof( animFileNode_t ), sizeof( animFileMask_t ) };
+	constexpr size_t sizes[] = { sizeof( animFileJoint_t ), sizeof( animFilePose_t ), sizeof( uint16_t ), sizeof( animFileClip_t ), sizeof( animFileParameter_t ), sizeof( animFileState_t ), sizeof( animFileTransition_t ), sizeof( animFileCondition_t ), sizeof( animFileEvent_t ), sizeof( animFileNode_t ), sizeof( animFileMask_t ), sizeof( animFileBox_t ) };
 	for ( uint32_t i = 0; i < ANIM_SECTION_COUNT; ++i ) {
 		const auto &s = h.sections[i];
 		if ( s.offset < sizeof( h ) || s.offset > payloadSize || s.count > ( payloadSize - s.offset ) / sizes[i] )
 			return false;
 	}
 	const uint32_t joints = Count( &result, ANIM_JOINTS );
-	if ( !Count( &result, ANIM_NODES ) || Count( &result, ANIM_NODES ) > ANIM_MAX_NODES || Count( &result, ANIM_MASKS ) > ANIM_MAX_MASKS || !Name( h.model ) || !joints || joints > ANIM_MAX_JOINTS || Count( &result, ANIM_POSES ) != joints ||
+	if ( Count( &result, ANIM_BOXES ) > ANIM_MAX_BOXES || !Count( &result, ANIM_NODES ) || Count( &result, ANIM_NODES ) > ANIM_MAX_NODES || Count( &result, ANIM_MASKS ) > ANIM_MAX_MASKS || !Name( h.model ) || !joints || joints > ANIM_MAX_JOINTS || Count( &result, ANIM_POSES ) != joints ||
 		 Count( &result, ANIM_PARAMETERS ) > ANIM_MAX_PARAMETERS || !Count( &result, ANIM_STATES ) ||
 		 Count( &result, ANIM_STATES ) > ANIM_MAX_STATES || h.initialState >= Count( &result, ANIM_STATES ) ||
 		 !h.frameCount || h.frameChannels > joints * 10 || uint64_t( h.frameCount ) * h.frameChannels != Count( &result, ANIM_FRAMES ) )
@@ -163,6 +164,11 @@ bool Anim_Open( const void *bytes, size_t size, animAsset_t *asset ) {
 		for ( uint32_t j = 0; j < ANIM_MAX_JOINTS; ++j )
 			if ( mask.weights[j] < 0 || mask.weights[j] > 1 )
 				return false;
+	}
+	for ( uint32_t i = 0; i < Count( &result, ANIM_BOXES ); ++i ) {
+		const auto box = Read<animFileBox_t>( &result, ANIM_BOXES, i );
+		if ( !Name( box.name ) || box.bone >= joints || !Finite( box.offset, 3 ) || !Finite( box.extent, 3 ) || box.extent[0] <= 0 || box.extent[1] <= 0 || box.extent[2] <= 0 )
+			return false;
 	}
 	*asset = result;
 	return true;
@@ -392,6 +398,15 @@ bool Anim_Evaluate( const animAsset_t *asset, const animState_t *state, const fl
 			Blend( &old, &sampled, weight, &pose->local[i] );
 		} else
 			pose->local[i] = sampled;
+	}
+	return Anim_UpdateWorld( asset, pose );
+}
+bool Anim_UpdateWorld( const animAsset_t *asset, animPose_t *pose ) {
+	if ( pose->jointCount != Count( asset, ANIM_JOINTS ) )
+		return false;
+	for ( uint32_t i = 0; i < pose->jointCount; ++i ) {
+		if ( !Finite( pose->local[i].translate, 3 ) || !Finite( pose->local[i].rotate, 4 ) || !Finite( pose->local[i].scale, 3 ) )
+			return false;
 		float local[12];
 		Matrix( &pose->local[i], local );
 		const auto joint = Read<animFileJoint_t>( asset, ANIM_JOINTS, i );
@@ -406,6 +421,58 @@ bool Anim_Evaluate( const animAsset_t *asset, const animState_t *state, const fl
 	}
 	return true;
 }
+bool Anim_RemoveRootTranslation( const animAsset_t *asset, animPose_t *pose ) {
+	if ( pose->jointCount != Count( asset, ANIM_JOINTS ) )
+		return false;
+	const auto root = Read<animFileJoint_t>( asset, ANIM_JOINTS, 0 );
+	memcpy( pose->local[0].translate, root.bind.translate, sizeof( root.bind.translate ) );
+	return Anim_UpdateWorld( asset, pose );
+}
+uint32_t Anim_HitBoxes( const animAsset_t *asset, const animPose_t *pose, const float origin[3], const float axis[3][3], animBox_t *boxes, uint32_t capacity ) {
+	const uint32_t count = Count( asset, ANIM_BOXES );
+	if ( capacity < count || pose->jointCount != Count( asset, ANIM_JOINTS ) || !Finite( origin, 3 ) )
+		return 0;
+	for ( uint32_t i = 0; i < 3; ++i )
+		if ( !Finite( axis[i], 3 ) )
+			return 0;
+	for ( uint32_t i = 0; i < count; ++i ) {
+		const auto definition = Read<animFileBox_t>( asset, ANIM_BOXES, i );
+		const float *matrix = pose->world[definition.bone];
+		for ( uint32_t corner = 0; corner < 8; ++corner ) {
+			float local[3], model[3], world[3];
+			for ( uint32_t a = 0; a < 3; ++a )
+				local[a] = definition.offset[a] + ( ( corner >> a ) & 1 ? definition.extent[a] : -definition.extent[a] );
+			for ( uint32_t a = 0; a < 3; ++a )
+				model[a] = matrix[a * 4] * local[0] + matrix[a * 4 + 1] * local[1] + matrix[a * 4 + 2] * local[2] + matrix[a * 4 + 3];
+			for ( uint32_t a = 0; a < 3; ++a ) {
+				world[a] = origin[a] + axis[0][a] * model[0] + axis[1][a] * model[1] + axis[2][a] * model[2];
+				if ( !isfinite( world[a] ) )
+					return 0;
+				boxes[i].mins[a] = corner ? fminf( boxes[i].mins[a], world[a] ) : world[a];
+				boxes[i].maxs[a] = corner ? fmaxf( boxes[i].maxs[a], world[a] ) : world[a];
+			}
+		}
+	}
+	return count;
+}
+void Anim_BoxHash( const animBox_t *boxes, uint32_t count, char hash[65] ) {
+	if ( count > ANIM_MAX_BOXES ) {
+		hash[0] = 0;
+		return;
+	}
+	uint8_t digest[32];
+	calc_sha_256( digest, boxes, sizeof( animBox_t ) * count );
+	Anim_HashString( digest, hash );
+}
+void Anim_HashString( const uint8_t digest[32], char hash[65] ) {
+	const char digits[] = "0123456789abcdef";
+	for ( uint32_t i = 0; i < 32; ++i ) {
+		hash[i * 2] = digits[digest[i] >> 4];
+		hash[i * 2 + 1] = digits[digest[i] & 15];
+	}
+	hash[64] = 0;
+}
+
 static animTransform_t ComposeRigid( const animTransform_t *a, const animTransform_t *b ) {
 	float matrix[12];
 	Matrix( a, matrix );

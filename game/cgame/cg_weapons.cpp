@@ -1420,6 +1420,9 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	VectorMA( hand.origin, cg_gun_y.value, cg.refdef.viewaxis[1], hand.origin );
 	VectorMA( hand.origin, ( cg_gun_z.value + fovOffset ), cg.refdef.viewaxis[2], hand.origin );
 
+	if ( CG_AnimationViewWeapon( ps, hand.origin, angles ) )
+		return;
+
 	AnglesToAxis( angles, hand.axis );
 
 	// map torso animations to weapon animations

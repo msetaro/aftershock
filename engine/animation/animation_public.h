@@ -11,6 +11,7 @@ inline constexpr uint32_t ANIM_MAX_STATES = 64;
 inline constexpr uint32_t ANIM_MAX_EVENTS = 64;
 inline constexpr uint32_t ANIM_MAX_NODES = 64;
 inline constexpr uint32_t ANIM_MAX_MASKS = 16;
+inline constexpr uint32_t ANIM_MAX_BOXES = 32;
 inline constexpr uint32_t ANIM_LOOP = 1;
 inline constexpr uint32_t ANIM_ON_END = 1;
 inline constexpr uint32_t ANIM_ANY_STATE = UINT32_MAX;
@@ -30,6 +31,7 @@ enum animSectionIndex_t : uint32_t {
 	ANIM_EVENTS,
 	ANIM_NODES,
 	ANIM_MASKS,
+	ANIM_BOXES,
 	ANIM_SECTION_COUNT
 };
 struct animSection_t {
@@ -88,10 +90,20 @@ struct animFileMask_t {
 	char name[64];
 	float weights[ANIM_MAX_JOINTS];
 };
+struct animFileBox_t {
+	char name[64];
+	uint32_t bone;
+	float offset[3], extent[3];
+};
+struct animBox_t {
+	float mins[3], maxs[3];
+};
+static_assert( sizeof( animFileBox_t ) == 92 && std::is_trivially_copyable_v<animFileBox_t> );
+static_assert( sizeof( animBox_t ) == 24 && std::is_trivially_copyable_v<animBox_t> );
 static_assert( sizeof( animFileNode_t ) == 96 && std::is_trivially_copyable_v<animFileNode_t> );
 static_assert( sizeof( animFileMask_t ) == 576 && std::is_trivially_copyable_v<animFileMask_t> );
 static_assert( sizeof( animTransform_t ) == 40 && offsetof( animTransform_t, scale ) == 28 );
-static_assert( sizeof( animSection_t ) == 8 && sizeof( animFileHeader_t ) == 196 );
+static_assert( sizeof( animSection_t ) == 8 && sizeof( animFileHeader_t ) == 204 );
 static_assert( offsetof( animFileHeader_t, sections ) == 108 );
 static_assert( sizeof( animFileJoint_t ) == 112 && sizeof( animFilePose_t ) == 84 );
 static_assert( sizeof( animFileClip_t ) == 80 && sizeof( animFileParameter_t ) == 76 );
@@ -108,6 +120,7 @@ struct animAsset_t {
 	const uint8_t *data;
 	size_t size;
 	animFileHeader_t header;
+	uint8_t hash[32];
 };
 struct animState_t {
 	uint32_t current, previous, entered, previousEntered;
@@ -141,6 +154,14 @@ void Anim_DefaultParameters( const animAsset_t *asset, float *parameters );
 void Anim_Reset( const animAsset_t *asset, uint32_t time, animState_t *state );
 bool Anim_Tick( const animAsset_t *asset, const float *parameters, uint32_t time, animState_t *state, animEvents_t *events );
 bool Anim_Evaluate( const animAsset_t *asset, const animState_t *state, const float *parameters, uint32_t time, animPose_t *pose );
+bool Anim_UpdateWorld( const animAsset_t *asset, animPose_t *pose );
+bool Anim_RemoveRootTranslation( const animAsset_t *asset, animPose_t *pose );
+uint32_t Anim_HitBoxes( const animAsset_t *asset, const animPose_t *pose, const float origin[3], const float axis[3][3], animBox_t *boxes, uint32_t capacity );
+void Anim_HashString( const uint8_t digest[32], char hash[65] );
+void Anim_BoxHash( const animBox_t *boxes, uint32_t count, char hash[65] );
+// File storage belongs to the caller and is released outside frame evaluation.
+void *Anim_LoadFile( const char *path, animAsset_t *asset );
+void Anim_FreeFile( void *storage );
 // Rigid delta in the root frame at `from`; loop turns compose in order.
 bool Anim_RootMotion( const animAsset_t *asset, int32_t clip, uint32_t from, uint32_t to, bool loop, animTransform_t *motion );
 void Anim_BlendTransforms( uint32_t count, const animTransform_t *a, const animTransform_t *b, const float *mask, float weight, animTransform_t *out );

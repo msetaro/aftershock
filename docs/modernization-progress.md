@@ -103,6 +103,19 @@ client hit-box digests. It currently fails as expected with no animation states
 bounds and in-place root translation (animation-boxes-before.log, absent API).
 Implement the hit-box output and game paths before accepting either test. These
 are new #10 artifacts; no existing fixture is regenerated.
+Authored boxes/in-place poses pass GCC and Clang+UBSan (animation-boxes-after.log,
+animation-boxes-clang.log). Game publication/loading and client presentation are
+now implemented in the worktree and build (animation-game-build.log); the first
+live gameplay run passed (animation-gameplay-first.log). Graph files are owned zone allocations loaded at
+module init and freed on shutdown. Server animation advances at 20 ms, publishes
+auxiliary snapshots, and derives boxes from the same immutable graph/parameters
+used by the client. Rifle/body presentation copies poses through the renderer;
+first-person FOV uses the existing entity transform. The smoke saw all six rifle
+states and expected reload/shot/shell/footstep events, 434 body/294 rifle render
+submissions, and matching received client/server box hashes. ADS and third-person
+captures were visually reviewed; these are the intended original block rigs.
+Remaining: actual recorded-demo parity, integrated IK/sway/aim behavior,
+ImGui graph authoring/inspection, content/runtime docs and complete gates.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/

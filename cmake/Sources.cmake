@@ -2,6 +2,7 @@
 
 set(COMMON_SOURCES
   engine/animation/animation.cpp
+  engine/animation/animation_assets.cpp
   third_party/sha256/sha-256.c
   engine/server/sv_bot.cpp
   engine/server/sv_client.cpp
@@ -204,6 +205,7 @@ set(VULKAN_SOURCES
 )
 
 set(NATIVE_GAME_SOURCES
+  game/game/g_animation.cpp
   game/game/ai_chat.cpp
   game/game/ai_cmd.cpp
   game/game/ai_dmnet.cpp
@@ -242,6 +244,7 @@ set(NATIVE_GAME_SOURCES
 )
 
 set(NATIVE_CGAME_SOURCES
+  game/cgame/cg_animation.cpp
   game/bg/bg_misc.cpp
   game/bg/bg_animation.cpp
   game/bg/bg_pmove.cpp

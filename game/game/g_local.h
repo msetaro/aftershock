@@ -972,3 +972,8 @@ void trap_BotResetWeaponState( int weaponstate );
 int trap_GeneticParentsAndChildSelection( int numranks, float *ranks, int *parent1, int *parent2, int *child );
 
 void trap_SnapVector( float *v );
+
+void G_InitAnimation( void );
+void G_ShutdownAnimation( void );
+void G_RunAnimation( void );
+bool G_AnimationCommand( int owner );

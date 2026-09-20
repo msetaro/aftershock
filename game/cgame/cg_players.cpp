@@ -2223,6 +2223,9 @@ void CG_Player( centity_t *cent ) {
 		return;
 	}
 
+	if ( CG_AnimationPlayer( cent ) )
+		return;
+
 	// get the player model information
 	renderfx = 0;
 	if ( cent->currentState.number == cg.snap->ps.clientNum ) {
