@@ -19,9 +19,8 @@ upstream; historical upstream PR references below are completed past work.
 Current branch: `issue/26-level-authoring`, with modernization merged forward
 through #151 PR #152 merge 64a38d44aa50e5accca3676f7f7927be87594c25.
 #151 exact-head build/regression passed; merged-tree regression 35537127266 is
-running. Close/check #151 and #11 only after that integration run passes. #26 is
-ready for its draft PR/full hosted checks; do not merge it before both integration
-and its own exact-head gates pass. Continue #26 -> #27 -> #28 then #25.
+running. Close/check #151 and #11 only after that integration run passes. #26 draft PR #153 is open and running full hosted checks; do not merge it
+before both integration and its own exact-head gates pass. Continue #26 -> #27 -> #28 then #25.
 
 The first compiler implementation passes the MAP/schema/design-rule controls and
 produces repeated byte-identical BSP/AAS in separate directories. Geometry review
