@@ -128,6 +128,40 @@ need separate measurements and replay verification; they are not prerequisites
 for the thin RHI boundary. This remaining scope is tracked in issue #142, after
 #7 and before Wave 2 renderer work.
 
+## Fixed reference graph (#142)
+
+`engine/rhi/rhi_graph.cpp` compiles the reference configuration into bounded plain
+records at target creation or resize. Resources declare dimensions, sample counts,
+format classes, usage, first/last possible use and persistent/exported status.
+Passes declare reads, writes, dependency masks, attachment operations and the
+existing external subpass barriers. Vulkan translates these records and uses its
+existing image allocator, native handles and teardown. Creation order is retained
+separately from execution order because allocation order affects native packing.
+
+This first graph describes the possible frame sequence; existing draw submission
+still decides whether screen-map, bloom or capture work runs. Screen-map contents
+persist across omitted passes and may be sampled by main/post-bloom geometry.
+Main/capture outputs remain available to the existing readback path. All backing
+storage stays allocated until resize/restart; first/last use is not permission to
+release an exported or persistent resource. There is no aliasing or reordering,
+no per-frame graph allocation and no new queue/fence/semaphore wait. Existing GPU
+scope names and timing readback remain available in the #7 profiler.
+
+`tests/render_graph.py` freezes image/render-pass/framebuffer descriptors for 36
+reference configurations and checks the portable dependency/lifetime contract.
+Static/module replay and window tests cover real execution separately. Frame
+slots, pool capacities, shader package and accepted fixtures are unchanged.
+
+[Paired measurements](../render-graph-measurements.json) use five alternating
+fresh-process real-clock replays per map/build with Mesa 26.0.8 lavapipe. Median
+whole-client wall time is 1.43 -> 1.37 seconds for q3dm17 and 1.38 -> 1.40 for
+q3dm7; median peak RSS is 181,412 -> 181,008 and 215,872 -> 215,744 KiB.
+Final completed-frame main-scope GPU samples are 3.973 -> 4.001 ms and
+4.837 -> 5.189 ms. These samples and startup-inclusive CPU measurements do not
+establish a performance improvement. ELF text/data/BSS change by +944/+128/+3,168
+bytes. Native creation descriptors, draw command code and synchronization are
+unchanged; software-driver samples vary between processes.
+
 ## Implementation gates
 
 1. Capture the current Vulkan fixture/frame hashes and record renderer settings,

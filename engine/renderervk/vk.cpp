@@ -752,364 +752,136 @@ static void vk_create_swapchain( VkPhysicalDevice physical_device, VkDevice devi
 }
 
 
+static rhiGraph_t vk_graph;
+static_assert( RHI_GRAPH_BLOOM_PASSES == VK_NUM_BLOOM_PASSES );
+static_assert( ARRAY_LEN( vk_graph.targetOrder ) == MAX_ATTACHMENTS_IN_POOL );
+static const char *const vk_graph_names[] = {
+	"screenmap", "main", "bloom_extract", "blur 0", "blur 1", "blur 2", "blur 3",
+	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma"
+};
+static_assert( ARRAY_LEN( vk_graph_names ) == (uint32_t)rhiGraphPass_t::Count );
+
+static VkFormat vk_graph_format( rhiGraphFormat_t format ) {
+	switch ( format ) {
+	case rhiGraphFormat_t::Color:
+		return vk.color_format;
+	case rhiGraphFormat_t::Depth:
+		return vk.depth_format;
+	case rhiGraphFormat_t::Bloom:
+		return vk.bloom_format;
+	case rhiGraphFormat_t::Capture:
+		return vk.capture_format;
+	case rhiGraphFormat_t::Present:
+		return vk.present_format.format;
+	}
+	return VK_FORMAT_UNDEFINED;
+}
+
+static VkImageLayout vk_graph_layout( rhiGraphLayout_t layout ) {
+	switch ( layout ) {
+	case rhiGraphLayout_t::Undefined:
+		return VK_IMAGE_LAYOUT_UNDEFINED;
+	case rhiGraphLayout_t::Sampled:
+		return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	case rhiGraphLayout_t::Color:
+		return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	case rhiGraphLayout_t::Depth:
+		return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	case rhiGraphLayout_t::TransferSource:
+		return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+	case rhiGraphLayout_t::Present:
+		return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	}
+	return VK_IMAGE_LAYOUT_UNDEFINED;
+}
+
+static VkRenderPass *vk_graph_pass( rhiGraphPass_t pass ) {
+	using P = rhiGraphPass_t;
+	switch ( pass ) {
+	case P::Main:
+		return &vk.render_pass.main;
+	case P::PostBloom:
+		return &vk.render_pass.post_bloom;
+	case P::BloomExtract:
+		return &vk.render_pass.bloom_extract;
+	case P::Capture:
+		return &vk.render_pass.capture;
+	case P::Gamma:
+		return &vk.render_pass.gamma;
+	case P::ScreenMap:
+		return &vk.render_pass.screenmap;
+	default:
+		return &vk.render_pass.blur[(uint32_t)pass - (uint32_t)P::Blur0];
+	}
+}
+
+static VkAttachmentLoadOp vk_graph_load( rhiGraphLoad_t load ) {
+	switch ( load ) {
+	case rhiGraphLoad_t::Clear:
+		return VK_ATTACHMENT_LOAD_OP_CLEAR;
+	case rhiGraphLoad_t::Load:
+		return VK_ATTACHMENT_LOAD_OP_LOAD;
+	case rhiGraphLoad_t::Discard:
+		return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	}
+	return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+}
+
+static VkAccessFlags vk_graph_access( uint32_t access ) {
+	return ( access & RHI_GRAPH_COLOR_READ ? VK_ACCESS_COLOR_ATTACHMENT_READ_BIT : 0 ) |
+		   ( access & RHI_GRAPH_COLOR_WRITE ? VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT : 0 ) |
+		   ( access & RHI_GRAPH_SHADER_READ ? VK_ACCESS_SHADER_READ_BIT : 0 );
+}
+
 static void vk_create_render_passes( void ) {
-	VkAttachmentDescription attachments[3]; // color | depth | msaa color
-	VkAttachmentReference colorResolveRef;
-	VkAttachmentReference colorRef0;
-	VkAttachmentReference depthRef0;
-	VkSubpassDescription subpass;
-	VkSubpassDependency deps[3];
-	VkRenderPassCreateInfo desc;
-	VkFormat depth_format;
-	VkDevice device;
-	uint32_t i;
-
-	depth_format = vk.depth_format;
-	device = vk.device;
-
-	if ( vk_config.fbo == 0 ) {
-		// presentation
-		attachments[0].flags = 0;
-		attachments[0].format = vk.present_format.format;
-		attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-#ifdef USE_BUFFER_CLEAR
-		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-#else
-		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // Assuming this will be completely overwritten
-#endif
-		attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE; // needed for presentation
-		attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachments[0].initialLayout = vk.initSwapchainLayout;
-		attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	} else {
-		// resolve/color buffer
-		attachments[0].flags = 0;
-		attachments[0].format = vk.color_format;
-		attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-
-#ifdef USE_BUFFER_CLEAR
-		if ( vk.msaaActive )
-			attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // Assuming this will be completely overwritten
-		else
-			attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-#else
-		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // Assuming this will be completely overwritten
-#endif
-
-		attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE; // needed for next render pass
-		attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachments[0].initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		attachments[0].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	}
-
-	// depth buffer
-	attachments[1].flags = 0;
-	attachments[1].format = depth_format;
-	attachments[1].samples = (VkSampleCountFlagBits)( vkSamples );
-	attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // Need empty depth buffer before use
-	attachments[1].stencilLoadOp = vk_config.stencilBits ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	if ( vk_config.bloom ) {
-		attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE; // keep it for post-bloom pass
-		attachments[1].stencilStoreOp = vk_config.stencilBits ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	} else {
-		attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	}
-	attachments[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	colorRef0.attachment = 0;
-	colorRef0.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	depthRef0.attachment = 1;
-	depthRef0.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	Com_Memset( &subpass, 0, sizeof( subpass ) );
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &colorRef0;
-	subpass.pDepthStencilAttachment = &depthRef0;
-
-	Com_Memset( &desc, 0, sizeof( desc ) );
-	desc.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	desc.pNext = NULL;
-	desc.flags = 0;
-	desc.pAttachments = attachments;
-	desc.pSubpasses = &subpass;
-
-	desc.subpassCount = 1;
-	desc.attachmentCount = 2;
-
-	if ( vk.msaaActive ) {
-		attachments[2].flags = 0;
-		attachments[2].format = vk.color_format;
-		attachments[2].samples = (VkSampleCountFlagBits)( vkSamples );
-#ifdef USE_BUFFER_CLEAR
-		attachments[2].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-#else
-		attachments[2].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-#endif
-		if ( vk_config.bloom ) {
-			attachments[2].storeOp = VK_ATTACHMENT_STORE_OP_STORE; // keep it for post-bloom pass
-		} else {
-			attachments[2].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Intermediate storage (not written)
+	for ( uint32_t p = 0; p < vk_graph.passCount; ++p ) {
+		const rhiGraphPass_t id = vk_graph.passOrder[p];
+		const rhiGraphPassDesc_t &pass = vk_graph.passes[(uint32_t)id];
+		VkAttachmentDescription attachments[3] = {};
+		for ( uint32_t i = 0; i < pass.attachmentCount; ++i ) {
+			const rhiGraphAttachment_t &a = pass.attachments[i];
+			const rhiGraphTargetDesc_t &target = vk_graph.targets[(uint32_t)a.target];
+			attachments[i].format = vk_graph_format( target.format );
+			attachments[i].samples = (VkSampleCountFlagBits)target.samples;
+			attachments[i].loadOp = vk_graph_load( a.load );
+			attachments[i].storeOp = a.store == rhiGraphStore_t::Store ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachments[i].stencilLoadOp = vk_graph_load( a.stencilLoad );
+			attachments[i].stencilStoreOp = a.stencilStore == rhiGraphStore_t::Store ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachments[i].initialLayout = a.initialLayout == rhiGraphLayout_t::Present ? vk.initSwapchainLayout : vk_graph_layout( a.initialLayout );
+			attachments[i].finalLayout = vk_graph_layout( a.finalLayout );
 		}
-		attachments[2].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachments[2].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachments[2].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		attachments[2].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		desc.attachmentCount = 3;
-
-		colorRef0.attachment = 2; // msaa image attachment
-		colorRef0.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		colorResolveRef.attachment = 0; // resolve image attachment
-		colorResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		subpass.pResolveAttachments = &colorResolveRef;
-	}
-
-	// subpass dependencies
-
-	Com_Memset( &deps, 0, sizeof( deps ) );
-
-	deps[2].srcSubpass = VK_SUBPASS_EXTERNAL;
-	deps[2].dstSubpass = 0;
-	deps[2].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // What pipeline stage is waiting on the dependency
-	deps[2].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // What pipeline stage is waiting on the dependency
-	deps[2].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT; // What access scopes are influence the dependency
-	deps[2].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; // What access scopes are waiting on the dependency
-	deps[2].dependencyFlags = 0;
-
-	if ( vk_config.fbo == 0 ) {
-		desc.dependencyCount = 1;
-		desc.pDependencies = &deps[2];
-
-		VK_CHECK( qvkCreateRenderPass( device, &desc, NULL, &vk.render_pass.main ) );
-		SET_OBJECT_NAME( vk.render_pass.main, "render pass - main", VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT );
-
-		return;
-	}
-
-	desc.dependencyCount = 2;
-	desc.pDependencies = &deps[0];
-
-	deps[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-	deps[0].dstSubpass = 0;
-	deps[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT; // What pipeline stage must have completed for the dependency
-	deps[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // What pipeline stage is waiting on the dependency
-	deps[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT; // What access scopes are influence the dependency
-	deps[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; // What access scopes are waiting on the dependency
-	deps[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT; // Only need the current fragment (or tile) synchronized, not the whole framebuffer
-
-	deps[1].srcSubpass = 0;
-	deps[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-	deps[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // Fragment data has been written
-	deps[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT; // Don't start shading until data is available
-	deps[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; // Waiting for color data to be written
-	deps[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT; // Don't read things from the shader before ready
-	deps[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT; // Only need the current fragment (or tile) synchronized, not the whole framebuffer
-
-	VK_CHECK( qvkCreateRenderPass( device, &desc, NULL, &vk.render_pass.main ) );
-	SET_OBJECT_NAME( vk.render_pass.main, "render pass - main", VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT );
-
-	if ( vk_config.bloom ) {
-
-		// post-bloom pass
-		// color buffer
-		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD; // load from previous pass
-		// depth buffer
-		attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-		attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-		attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		if ( vk.msaaActive ) {
-			// msaa render target
-			attachments[2].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-			attachments[2].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		}
-		VK_CHECK( qvkCreateRenderPass( device, &desc, NULL, &vk.render_pass.post_bloom ) );
-		SET_OBJECT_NAME( vk.render_pass.post_bloom, "render pass - post_bloom", VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT );
-
-		// bloom extraction, using resolved/main fbo as a source
-		desc.attachmentCount = 1;
-
-		colorRef0.attachment = 0;
-		colorRef0.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		Com_Memset( &subpass, 0, sizeof( subpass ) );
+		const VkAttachmentReference color = { pass.color, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		const VkAttachmentReference depth = { pass.depth, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+		const VkAttachmentReference resolve = { pass.resolve, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		VkSubpassDescription subpass = {};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &colorRef0;
-
-		attachments[0].flags = 0;
-		attachments[0].format = vk.bloom_format;
-		attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // Assuming this will be completely overwritten
-		attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE; // needed for next render pass
-		attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachments[0].initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		attachments[0].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-		VK_CHECK( qvkCreateRenderPass( device, &desc, NULL, &vk.render_pass.bloom_extract ) );
-		SET_OBJECT_NAME( vk.render_pass.bloom_extract, "render pass - bloom_extract", VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT );
-
-		for ( i = 0; i < ARRAY_LEN( vk.render_pass.blur ); i++ ) {
-			VK_CHECK( qvkCreateRenderPass( device, &desc, NULL, &vk.render_pass.blur[i] ) );
-			SET_OBJECT_NAME( vk.render_pass.blur[i], va( "render pass - blur %i", i ), VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT );
+		subpass.pColorAttachments = &color;
+		subpass.pDepthStencilAttachment = pass.depth == RHI_INVALID_OFFSET ? NULL : &depth;
+		subpass.pResolveAttachments = pass.resolve == RHI_INVALID_OFFSET ? NULL : &resolve;
+		VkSubpassDependency dependencies[2] = {};
+		for ( uint32_t i = 0; i < pass.dependencyCount; ++i ) {
+			const rhiGraphDependency_t &d = pass.dependencies[i];
+			dependencies[i].srcSubpass = d.incoming ? VK_SUBPASS_EXTERNAL : 0;
+			dependencies[i].dstSubpass = d.incoming ? 0 : VK_SUBPASS_EXTERNAL;
+			dependencies[i].srcStageMask = d.sourceStage == rhiGraphStage_t::Fragment ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT : VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependencies[i].dstStageMask = d.destinationStage == rhiGraphStage_t::Fragment ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT : VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependencies[i].srcAccessMask = vk_graph_access( d.sourceAccess );
+			dependencies[i].dstAccessMask = vk_graph_access( d.destinationAccess );
+			dependencies[i].dependencyFlags = d.byRegion ? VK_DEPENDENCY_BY_REGION_BIT : 0;
 		}
-	}
-
-	// capture render pass
-	if ( vk.capture.image ) {
-		Com_Memset( &subpass, 0, sizeof( subpass ) );
-
-		attachments[0].flags = 0;
-		attachments[0].format = vk.capture_format;
-		attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // this will be completely overwritten
-		attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE; // needed for next render pass
-		attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		attachments[0].finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-
-		colorRef0.attachment = 0;
-		colorRef0.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &colorRef0;
-
+		VkRenderPassCreateInfo desc = {};
 		desc.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		desc.pNext = NULL;
-		desc.flags = 0;
+		desc.attachmentCount = pass.attachmentCount;
 		desc.pAttachments = attachments;
-		desc.attachmentCount = 1;
-		desc.pSubpasses = &subpass;
 		desc.subpassCount = 1;
-
-		VK_CHECK( qvkCreateRenderPass( device, &desc, NULL, &vk.render_pass.capture ) );
-		SET_OBJECT_NAME( vk.render_pass.capture, "render pass - capture", VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT );
+		desc.pSubpasses = &subpass;
+		desc.dependencyCount = pass.dependencyCount;
+		desc.pDependencies = dependencies;
+		VkRenderPass *handle = vk_graph_pass( id );
+		VK_CHECK( qvkCreateRenderPass( vk.device, &desc, NULL, handle ) );
+		SET_OBJECT_NAME( *handle, va( "render pass - %s", vk_graph_names[(uint32_t)id] ), VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT );
 	}
-
-	colorRef0.attachment = 0;
-	colorRef0.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	desc.attachmentCount = 1;
-
-	Com_Memset( &subpass, 0, sizeof( subpass ) );
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &colorRef0;
-
-	// gamma post-processing
-	attachments[0].flags = 0;
-	attachments[0].format = vk.present_format.format;
-	attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE; // needed for presentation
-	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachments[0].initialLayout = vk.initSwapchainLayout;
-	attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-	desc.dependencyCount = 1;
-	desc.pDependencies = &deps[2];
-
-	VK_CHECK( qvkCreateRenderPass( device, &desc, NULL, &vk.render_pass.gamma ) );
-	SET_OBJECT_NAME( vk.render_pass.gamma, "render pass - gamma", VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT );
-
-	// screenmap
-	desc.dependencyCount = 2;
-	desc.pDependencies = &deps[0];
-
-	// screenmap resolve/color buffer
-	attachments[0].flags = 0;
-	attachments[0].format = vk.color_format;
-	attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-#ifdef USE_BUFFER_CLEAR
-	if ( vk.screenMapSamples > VK_SAMPLE_COUNT_1_BIT )
-		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	else
-		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-#else
-	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // Assuming this will be completely overwritten
-#endif
-	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE; // needed for next render pass
-	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachments[0].initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	attachments[0].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-	// screenmap depth buffer
-	attachments[1].flags = 0;
-	attachments[1].format = depth_format;
-	attachments[1].samples = (VkSampleCountFlagBits)( vk.screenMapSamples );
-	attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // Need empty depth buffer before use
-	attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachments[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	colorRef0.attachment = 0;
-	colorRef0.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	depthRef0.attachment = 1;
-	depthRef0.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	Com_Memset( &subpass, 0, sizeof( subpass ) );
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &colorRef0;
-	subpass.pDepthStencilAttachment = &depthRef0;
-
-	Com_Memset( &desc, 0, sizeof( desc ) );
-	desc.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	desc.pNext = NULL;
-	desc.flags = 0;
-	desc.pAttachments = attachments;
-	desc.pSubpasses = &subpass;
-	desc.subpassCount = 1;
-	desc.attachmentCount = 2;
-	desc.dependencyCount = 2;
-	desc.pDependencies = deps;
-
-	if ( vk.screenMapSamples > VK_SAMPLE_COUNT_1_BIT ) {
-
-		attachments[2].flags = 0;
-		attachments[2].format = vk.color_format;
-		attachments[2].samples = (VkSampleCountFlagBits)( vk.screenMapSamples );
-#ifdef USE_BUFFER_CLEAR
-		attachments[2].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-#else
-		attachments[2].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-#endif
-		attachments[2].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachments[2].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachments[2].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachments[2].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		attachments[2].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		desc.attachmentCount = 3;
-
-		colorRef0.attachment = 2; // screenmap msaa image attachment
-		colorRef0.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		colorResolveRef.attachment = 0; // screenmap resolve image attachment
-		colorResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		subpass.pResolveAttachments = &colorResolveRef;
-	}
-
-	VK_CHECK( qvkCreateRenderPass( device, &desc, NULL, &vk.render_pass.screenmap ) );
-
-	SET_OBJECT_NAME( vk.render_pass.screenmap, "render pass - screenmap", VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT );
 }
 
 
@@ -3357,74 +3129,76 @@ static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCo
 }
 
 
+// Native handles retain the existing allocator and teardown ownership.
+static void vk_graph_target( rhiGraphTarget_t target, VkImage **image, VkImageView **view ) {
+	using T = rhiGraphTarget_t;
+	switch ( target ) {
+	case T::MainColor:
+		*image = &vk.color_image;
+		*view = &vk.color_image_view;
+		break;
+	case T::MainDepth:
+		*image = &vk.depth_image;
+		*view = &vk.depth_image_view;
+		break;
+	case T::MainMsaa:
+		*image = &vk.msaa_image;
+		*view = &vk.msaa_image_view;
+		break;
+	case T::ScreenColor:
+		*image = &vk.screenMap.color_image;
+		*view = &vk.screenMap.color_image_view;
+		break;
+	case T::ScreenDepth:
+		*image = &vk.screenMap.depth_image;
+		*view = &vk.screenMap.depth_image_view;
+		break;
+	case T::ScreenMsaa:
+		*image = &vk.screenMap.color_image_msaa;
+		*view = &vk.screenMap.color_image_view_msaa;
+		break;
+	case T::Capture:
+		*image = &vk.capture.image;
+		*view = &vk.capture.image_view;
+		break;
+	default:
+		*image = &vk.bloom_image[(uint32_t)target];
+		*view = &vk.bloom_image_view[(uint32_t)target];
+		break;
+	}
+}
+
 static void vk_create_attachments( void ) {
 	uint32_t i;
-
+	const rhiGraphConfig_t config = {
+		(uint32_t)vk_config.renderWidth, (uint32_t)vk_config.renderHeight,
+		(uint32_t)vk_config.windowWidth, (uint32_t)vk_config.windowHeight,
+		(uint32_t)vk_config.captureWidth, (uint32_t)vk_config.captureHeight,
+		(uint32_t)vk.screenMapWidth, (uint32_t)vk.screenMapHeight,
+		(uint32_t)vkSamples, (uint32_t)vk.screenMapSamples,
+		vk.fboActive != qfalse, vk_config.bloom != 0, vk_config.supersample != 0, vk_config.stencilBits != 0
+	};
+	if ( !RHI_CompileGraph( &config, &vk_graph ) )
+		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: invalid render graph dimensions" );
 	vk_clear_attachment_pool();
-
-	// It looks like resulting performance depends from order you're creating/allocating
-	// memory for attachments in vulkan i.e. similar images grouped together will provide best results
-	// so [resolve0][resolve1][msaa0][msaa1][depth0][depth1] is most optimal
-	// while cases like [resolve0][depth0][color0][...] is the worst
-
-	// TODO: preallocate first image chunk in attachment' memory pool?
-	if ( vk.fboActive ) {
-
-		VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-
-		// bloom
-		if ( vk_config.bloom ) {
-			uint32_t width = vk_config.captureWidth;
-			uint32_t height = vk_config.captureHeight;
-
-			create_color_attachment( width, height, VK_SAMPLE_COUNT_1_BIT, vk.bloom_format,
-				usage, &vk.bloom_image[0], &vk.bloom_image_view[0], VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, qfalse );
-
-			for ( i = 1; i < ARRAY_LEN( vk.bloom_image ); i += 2 ) {
-				width /= 2;
-				height /= 2;
-				create_color_attachment( width, height, VK_SAMPLE_COUNT_1_BIT, vk.bloom_format,
-					usage, &vk.bloom_image[i + 0], &vk.bloom_image_view[i + 0], VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, qfalse );
-
-				create_color_attachment( width, height, VK_SAMPLE_COUNT_1_BIT, vk.bloom_format,
-					usage, &vk.bloom_image[i + 1], &vk.bloom_image_view[i + 1], VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, qfalse );
-			}
+	// Preserve native allocation order: grouping similar images affects memory packing.
+	for ( i = 0; i < vk_graph.targetCount; ++i ) {
+		const rhiGraphTarget_t id = vk_graph.targetOrder[i];
+		const rhiGraphTargetDesc_t &target = vk_graph.targets[(uint32_t)id];
+		VkImage *image;
+		VkImageView *view;
+		vk_graph_target( id, &image, &view );
+		if ( target.usage & RHI_GRAPH_DEPTH ) {
+			create_depth_attachment( target.width, target.height, (VkSampleCountFlagBits)target.samples,
+				image, view, target.transient ? qtrue : qfalse );
+		} else {
+			const VkImageUsageFlags usage = ( target.usage & RHI_GRAPH_COLOR ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT : 0 ) |
+											( target.usage & RHI_GRAPH_SAMPLED ? VK_IMAGE_USAGE_SAMPLED_BIT : 0 ) |
+											( target.usage & RHI_GRAPH_TRANSFER_SOURCE ? VK_IMAGE_USAGE_TRANSFER_SRC_BIT : 0 );
+			create_color_attachment( target.width, target.height, (VkSampleCountFlagBits)target.samples,
+				vk_graph_format( target.format ), usage, image, view, vk_graph_layout( target.initialLayout ), target.transient ? qtrue : qfalse );
 		}
-
-		// post-processing/msaa-resolve
-		create_color_attachment( vk_config.renderWidth, vk_config.renderHeight, VK_SAMPLE_COUNT_1_BIT, vk.color_format,
-			usage | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, &vk.color_image, &vk.color_image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, qfalse );
-
-		// screenmap-msaa
-		if ( vk.screenMapSamples > VK_SAMPLE_COUNT_1_BIT ) {
-			create_color_attachment( vk.screenMapWidth, vk.screenMapHeight, (VkSampleCountFlagBits)( vk.screenMapSamples ), vk.color_format,
-				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, &vk.screenMap.color_image_msaa, &vk.screenMap.color_image_view_msaa, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, qtrue );
-		}
-
-		// screenmap/msaa-resolve
-		create_color_attachment( vk.screenMapWidth, vk.screenMapHeight, VK_SAMPLE_COUNT_1_BIT, vk.color_format,
-			usage, &vk.screenMap.color_image, &vk.screenMap.color_image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, qfalse );
-
-		// screenmap depth
-		create_depth_attachment( vk.screenMapWidth, vk.screenMapHeight, (VkSampleCountFlagBits)( vk.screenMapSamples ), &vk.screenMap.depth_image, &vk.screenMap.depth_image_view, qtrue );
-
-		if ( vk.msaaActive ) {
-			create_color_attachment( vk_config.renderWidth, vk_config.renderHeight, (VkSampleCountFlagBits)( vkSamples ), vk.color_format,
-				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, &vk.msaa_image, &vk.msaa_image_view, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, qtrue );
-		}
-
-		if ( vk_config.supersample ) {
-			// capture buffer
-			usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-			create_color_attachment( vk_config.captureWidth, vk_config.captureHeight, VK_SAMPLE_COUNT_1_BIT, vk.capture_format,
-				usage, &vk.capture.image, &vk.capture.image_view, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, qfalse );
-		}
-	} // if ( vk.fboActive )
-
-	//vk_alloc_attachments();
-
-	create_depth_attachment( vk_config.renderWidth, vk_config.renderHeight, (VkSampleCountFlagBits)( vkSamples ), &vk.depth_image, &vk.depth_image_view,
-		( vk.fboActive && vk_config.bloom ) ? qfalse : qtrue );
+	}
 
 	vk_alloc_attachments();
 
@@ -3448,120 +3222,63 @@ static void vk_create_attachments( void ) {
 }
 
 
-static void vk_create_framebuffers( void ) {
-	VkImageView framebufferAttachments[3];
-	VkFramebufferCreateInfo desc;
-	uint32_t n;
-
-	desc.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	desc.pNext = NULL;
-	desc.flags = 0;
-	desc.pAttachments = framebufferAttachments;
-	desc.layers = 1;
-
-	for ( n = 0; n < vk.swapchain_image_count; n++ ) {
-		desc.renderPass = vk.render_pass.main;
-		desc.attachmentCount = 2;
-		if ( vk_config.fbo == 0 ) {
-			desc.width = vk_config.windowWidth;
-			desc.height = vk_config.windowHeight;
-			framebufferAttachments[0] = vk.swapchain_image_views[n];
-			framebufferAttachments[1] = vk.depth_image_view;
-			VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.main[n] ) );
-
-			SET_OBJECT_NAME( vk.framebuffers.main[n], va( "framebuffer - main %i", n ), VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
+static void vk_graph_framebuffer( rhiGraphPass_t id, uint32_t swapchainIndex, VkFramebuffer *framebuffer ) {
+	const rhiGraphPassDesc_t &pass = vk_graph.passes[(uint32_t)id];
+	VkImageView views[3];
+	for ( uint32_t i = 0; i < pass.attachmentCount; ++i ) {
+		const rhiGraphTarget_t target = pass.attachments[i].target;
+		if ( target == rhiGraphTarget_t::Present ) {
+			views[i] = vk.swapchain_image_views[swapchainIndex];
 		} else {
-			// same framebuffer configuration for main and post-bloom render passes
-			if ( n == 0 ) {
-				desc.width = vk_config.renderWidth;
-				desc.height = vk_config.renderHeight;
-				framebufferAttachments[0] = vk.color_image_view;
-				framebufferAttachments[1] = vk.depth_image_view;
-				if ( vk.msaaActive ) {
-					desc.attachmentCount = 3;
-					framebufferAttachments[2] = vk.msaa_image_view;
-				}
-				VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.main[n] ) );
-				SET_OBJECT_NAME( vk.framebuffers.main[n], "framebuffer - main", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
-			} else {
-				vk.framebuffers.main[n] = vk.framebuffers.main[0];
-			}
+			VkImage *image;
+			VkImageView *view;
+			vk_graph_target( target, &image, &view );
+			views[i] = *view;
+		}
+	}
+	VkFramebufferCreateInfo desc = {};
+	desc.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	// Each legacy blur pair shares the first (compatible) native pass at creation.
+	const uint32_t index = (uint32_t)id - (uint32_t)rhiGraphPass_t::Blur0;
+	const rhiGraphPass_t compatible = index < RHI_GRAPH_BLOOM_PASSES * 2 ? (rhiGraphPass_t)( (uint32_t)id - index % 2 ) : id;
+	desc.renderPass = *vk_graph_pass( compatible );
+	desc.attachmentCount = pass.attachmentCount;
+	desc.pAttachments = views;
+	desc.width = pass.width;
+	desc.height = pass.height;
+	desc.layers = 1;
+	VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, framebuffer ) );
+}
 
-			// gamma correction
-			desc.renderPass = vk.render_pass.gamma;
-			desc.attachmentCount = 1;
-			desc.width = vk_config.windowWidth;
-			desc.height = vk_config.windowHeight;
-			framebufferAttachments[0] = vk.swapchain_image_views[n];
-			VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.gamma[n] ) );
-
+static void vk_create_framebuffers( void ) {
+	using P = rhiGraphPass_t;
+	// Keep native creation order and the shared offscreen main/post-bloom framebuffer.
+	for ( uint32_t n = 0; n < vk.swapchain_image_count; ++n ) {
+		if ( !vk_graph.passes[(uint32_t)P::Gamma].enabled || n == 0 ) {
+			vk_graph_framebuffer( P::Main, n, &vk.framebuffers.main[n] );
+			SET_OBJECT_NAME( vk.framebuffers.main[n], va( "framebuffer - main %u", n ), VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
+		} else {
+			vk.framebuffers.main[n] = vk.framebuffers.main[0];
+		}
+		if ( vk_graph.passes[(uint32_t)P::Gamma].enabled ) {
+			vk_graph_framebuffer( P::Gamma, n, &vk.framebuffers.gamma[n] );
 			SET_OBJECT_NAME( vk.framebuffers.gamma[n], "framebuffer - gamma-correction", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
 		}
 	}
-
-	if ( vk.fboActive ) {
-		// screenmap
-		desc.renderPass = vk.render_pass.screenmap;
-		desc.attachmentCount = 2;
-		desc.width = vk.screenMapWidth;
-		desc.height = vk.screenMapHeight;
-		framebufferAttachments[0] = vk.screenMap.color_image_view;
-		framebufferAttachments[1] = vk.screenMap.depth_image_view;
-		if ( vk.screenMapSamples > VK_SAMPLE_COUNT_1_BIT ) {
-			desc.attachmentCount = 3;
-			framebufferAttachments[2] = vk.screenMap.color_image_view_msaa;
-		}
-		VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.screenmap ) );
+	if ( vk_graph.passes[(uint32_t)P::ScreenMap].enabled ) {
+		vk_graph_framebuffer( P::ScreenMap, 0, &vk.framebuffers.screenmap );
 		SET_OBJECT_NAME( vk.framebuffers.screenmap, "framebuffer - screenmap", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
-
-		if ( vk.capture.image != VK_NULL_HANDLE ) {
-			framebufferAttachments[0] = vk.capture.image_view;
-
-			desc.renderPass = vk.render_pass.capture;
-			desc.pAttachments = framebufferAttachments;
-			desc.attachmentCount = 1;
-			desc.width = vk_config.captureWidth;
-			desc.height = vk_config.captureHeight;
-
-			VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.capture ) );
-			SET_OBJECT_NAME( vk.framebuffers.capture, "framebuffer - capture", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
-		}
-
-		if ( vk_config.bloom ) {
-			uint32_t width = vk_config.captureWidth;
-			uint32_t height = vk_config.captureHeight;
-
-			// bloom color extraction
-			desc.renderPass = vk.render_pass.bloom_extract;
-			desc.width = width;
-			desc.height = height;
-
-			desc.attachmentCount = 1;
-			framebufferAttachments[0] = vk.bloom_image_view[0];
-
-			VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.bloom_extract ) );
-
-			SET_OBJECT_NAME( vk.framebuffers.bloom_extract, "framebuffer - bloom extraction", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
-
-			for ( n = 0; n < ARRAY_LEN( vk.framebuffers.blur ); n += 2 ) {
-				width /= 2;
-				height /= 2;
-
-				desc.renderPass = vk.render_pass.blur[n];
-				desc.width = width;
-				desc.height = height;
-
-				desc.attachmentCount = 1;
-
-				framebufferAttachments[0] = vk.bloom_image_view[n + 0 + 1];
-				VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.blur[n+0] ) );
-
-				framebufferAttachments[0] = vk.bloom_image_view[n + 1 + 1];
-				VK_CHECK( qvkCreateFramebuffer( vk.device, &desc, NULL, &vk.framebuffers.blur[n+1] ) );
-
-				SET_OBJECT_NAME( vk.framebuffers.blur[n + 0], va( "framebuffer - blur %i", n + 0 ), VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
-				SET_OBJECT_NAME( vk.framebuffers.blur[n + 1], va( "framebuffer - blur %i", n + 1 ), VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
-			}
+	}
+	if ( vk_graph.passes[(uint32_t)P::Capture].enabled ) {
+		vk_graph_framebuffer( P::Capture, 0, &vk.framebuffers.capture );
+		SET_OBJECT_NAME( vk.framebuffers.capture, "framebuffer - capture", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
+	}
+	if ( vk_graph.passes[(uint32_t)P::BloomExtract].enabled ) {
+		vk_graph_framebuffer( P::BloomExtract, 0, &vk.framebuffers.bloom_extract );
+		SET_OBJECT_NAME( vk.framebuffers.bloom_extract, "framebuffer - bloom extraction", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
+		for ( uint32_t n = 0; n < RHI_GRAPH_BLOOM_PASSES * 2; ++n ) {
+			vk_graph_framebuffer( (P)( (uint32_t)P::Blur0 + n ), 0, &vk.framebuffers.blur[n] );
+			SET_OBJECT_NAME( vk.framebuffers.blur[n], va( "framebuffer - blur %u", n ), VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT );
 		}
 	}
 }

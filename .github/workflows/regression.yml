@@ -74,6 +74,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build libc++-dev libc++abi-dev
       - name: RHI contract and frame uploads
         run: python3 tests/rhi.py --cxx '${{ matrix.cxx }}'
+      - name: Render graph dependencies and native reference trace
+        run: python3 tests/render_graph.py --cxx '${{ matrix.cxx }}'
       - name: Verify pinned offline shader compilation
         if: matrix.cc == 'gcc'
         run: |

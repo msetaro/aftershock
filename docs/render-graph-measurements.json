@@ -1,0 +1,261 @@
+{
+  "method": "Five fresh-process real-clock replays per map/build, alternating order, wait 200. GNU time measures client including startup/content loading and software-driver CPU work. No persistent pipeline cache; GPU sample is the final completed-frame main scope, not a whole-run mean. Mesa 26.0.8 lavapipe with one worker; no speedup claim or threshold.",
+  "binaries": {
+    "baseline": {
+      "path": "/home/matt/.cache/aftershock-modernization/render-graph-baseline/quake3e.x64",
+      "sha256": "427e37beb867d2164294fe70f99d5bf1bf0eddcb768f3f7786cf721747f1ccfd"
+    },
+    "graph": {
+      "path": "/tmp/aftershock-graph-demo/build-vulkan/release-linux-x86_64/quake3e.x64",
+      "sha256": "50274d80c40408004230bb86a37352eaecc90d6c0c8373df8a3d75f1574e4142"
+    }
+  },
+  "records": [
+    {
+      "gpu_main_us": 4405.088,
+      "map": "q3dm17",
+      "iteration": 0,
+      "build": "baseline",
+      "user_seconds": 1.43,
+      "system_seconds": 0.12,
+      "wall_seconds": 1.57,
+      "max_rss_kib": 181732
+    },
+    {
+      "gpu_main_us": 4072.333,
+      "map": "q3dm17",
+      "iteration": 0,
+      "build": "graph",
+      "user_seconds": 1.29,
+      "system_seconds": 0.11,
+      "wall_seconds": 1.38,
+      "max_rss_kib": 181160
+    },
+    {
+      "gpu_main_us": 4001.387,
+      "map": "q3dm17",
+      "iteration": 1,
+      "build": "graph",
+      "user_seconds": 1.28,
+      "system_seconds": 0.12,
+      "wall_seconds": 1.37,
+      "max_rss_kib": 181008
+    },
+    {
+      "gpu_main_us": 3997.4,
+      "map": "q3dm17",
+      "iteration": 1,
+      "build": "baseline",
+      "user_seconds": 1.43,
+      "system_seconds": 0.13,
+      "wall_seconds": 1.55,
+      "max_rss_kib": 182208
+    },
+    {
+      "gpu_main_us": 3860.356,
+      "map": "q3dm17",
+      "iteration": 2,
+      "build": "baseline",
+      "user_seconds": 1.27,
+      "system_seconds": 0.1,
+      "wall_seconds": 1.33,
+      "max_rss_kib": 181412
+    },
+    {
+      "gpu_main_us": 4001.461,
+      "map": "q3dm17",
+      "iteration": 2,
+      "build": "graph",
+      "user_seconds": 1.29,
+      "system_seconds": 0.12,
+      "wall_seconds": 1.37,
+      "max_rss_kib": 180212
+    },
+    {
+      "gpu_main_us": 3906.683,
+      "map": "q3dm17",
+      "iteration": 3,
+      "build": "graph",
+      "user_seconds": 1.33,
+      "system_seconds": 0.15,
+      "wall_seconds": 1.47,
+      "max_rss_kib": 183776
+    },
+    {
+      "gpu_main_us": 3972.658,
+      "map": "q3dm17",
+      "iteration": 3,
+      "build": "baseline",
+      "user_seconds": 1.29,
+      "system_seconds": 0.13,
+      "wall_seconds": 1.43,
+      "max_rss_kib": 180316
+    },
+    {
+      "gpu_main_us": 3844.853,
+      "map": "q3dm17",
+      "iteration": 4,
+      "build": "baseline",
+      "user_seconds": 1.31,
+      "system_seconds": 0.11,
+      "wall_seconds": 1.39,
+      "max_rss_kib": 181128
+    },
+    {
+      "gpu_main_us": 3960.361,
+      "map": "q3dm17",
+      "iteration": 4,
+      "build": "graph",
+      "user_seconds": 1.27,
+      "system_seconds": 0.14,
+      "wall_seconds": 1.36,
+      "max_rss_kib": 180728
+    },
+    {
+      "gpu_main_us": 4828.976,
+      "map": "q3dm7",
+      "iteration": 0,
+      "build": "baseline",
+      "user_seconds": 1.43,
+      "system_seconds": 0.11,
+      "wall_seconds": 1.55,
+      "max_rss_kib": 216488
+    },
+    {
+      "gpu_main_us": 5189.071,
+      "map": "q3dm7",
+      "iteration": 0,
+      "build": "graph",
+      "user_seconds": 1.32,
+      "system_seconds": 0.09,
+      "wall_seconds": 1.38,
+      "max_rss_kib": 215744
+    },
+    {
+      "gpu_main_us": 4804.705,
+      "map": "q3dm7",
+      "iteration": 1,
+      "build": "graph",
+      "user_seconds": 1.33,
+      "system_seconds": 0.1,
+      "wall_seconds": 1.41,
+      "max_rss_kib": 215872
+    },
+    {
+      "gpu_main_us": 4795.709,
+      "map": "q3dm7",
+      "iteration": 1,
+      "build": "baseline",
+      "user_seconds": 1.46,
+      "system_seconds": 0.11,
+      "wall_seconds": 1.56,
+      "max_rss_kib": 218612
+    },
+    {
+      "gpu_main_us": 4840.119,
+      "map": "q3dm7",
+      "iteration": 2,
+      "build": "baseline",
+      "user_seconds": 1.26,
+      "system_seconds": 0.11,
+      "wall_seconds": 1.33,
+      "max_rss_kib": 215784
+    },
+    {
+      "gpu_main_us": 4878.931,
+      "map": "q3dm7",
+      "iteration": 2,
+      "build": "graph",
+      "user_seconds": 1.31,
+      "system_seconds": 0.11,
+      "wall_seconds": 1.4,
+      "max_rss_kib": 214948
+    },
+    {
+      "gpu_main_us": 11780.828,
+      "map": "q3dm7",
+      "iteration": 3,
+      "build": "graph",
+      "user_seconds": 1.48,
+      "system_seconds": 0.11,
+      "wall_seconds": 1.58,
+      "max_rss_kib": 215656
+    },
+    {
+      "gpu_main_us": 4837.196,
+      "map": "q3dm7",
+      "iteration": 3,
+      "build": "baseline",
+      "user_seconds": 1.3,
+      "system_seconds": 0.1,
+      "wall_seconds": 1.36,
+      "max_rss_kib": 215740
+    },
+    {
+      "gpu_main_us": 4859.36,
+      "map": "q3dm7",
+      "iteration": 4,
+      "build": "baseline",
+      "user_seconds": 1.33,
+      "system_seconds": 0.08,
+      "wall_seconds": 1.38,
+      "max_rss_kib": 215872
+    },
+    {
+      "gpu_main_us": 6839.214,
+      "map": "q3dm7",
+      "iteration": 4,
+      "build": "graph",
+      "user_seconds": 1.31,
+      "system_seconds": 0.1,
+      "wall_seconds": 1.38,
+      "max_rss_kib": 216456
+    }
+  ],
+  "medians": {
+    "q3dm17": {
+      "baseline": {
+        "user_seconds": 1.31,
+        "system_seconds": 0.12,
+        "wall_seconds": 1.43,
+        "max_rss_kib": 181412,
+        "gpu_main_us": 3972.658
+      },
+      "graph": {
+        "user_seconds": 1.29,
+        "system_seconds": 0.12,
+        "wall_seconds": 1.37,
+        "max_rss_kib": 181008,
+        "gpu_main_us": 4001.387
+      }
+    },
+    "q3dm7": {
+      "baseline": {
+        "user_seconds": 1.33,
+        "system_seconds": 0.11,
+        "wall_seconds": 1.38,
+        "max_rss_kib": 215872,
+        "gpu_main_us": 4837.196
+      },
+      "graph": {
+        "user_seconds": 1.32,
+        "system_seconds": 0.1,
+        "wall_seconds": 1.4,
+        "max_rss_kib": 215744,
+        "gpu_main_us": 5189.071
+      }
+    }
+  },
+  "elf_size": {
+    "baseline": [
+      "2779098",
+      "58144",
+      "21055272"
+    ],
+    "graph": [
+      "2780042",
+      "58272",
+      "21058440"
+    ]
+  }
+}

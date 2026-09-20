@@ -16,44 +16,24 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#6 PR #140 merged as 30eeba4c after final head c7c31a60 passed build
-35490659941/regression 35490659967 and the recorded self-review. Its merged-tree regression 35490963498 passed. The current
-branch is `issue/7-devtools`; test-first commit 7596afa9 records the expected shipping/development build failure.
-#7 remains draft PR #143. Implementation 0a264cba passed build/regression
-35495497762/35495497744. Documentation head f895997d passed build 35495622794;
-its regression 35495622776 is retrying only a lifetime runner shut down by GitHub
-(exit 143, no code diagnostic). All other jobs passed.
+#7 PR #143 merged as e4f2d70a after exact head 86e9d19e passed build 35496813498
+and regression 35496813511, with the recorded self-review. Merged-tree regression
+35497810031 passed. Its tree is byte-identical to the tested PR tree. #7 is closed
+and marked complete on #25.
+Decision: prepare the next issue's failing tests in a separate branch while that
+integration run completes; do not merge #142 until the preceding integration run
+and #142's own exact-head gates pass. This replaces the unnecessarily serial
+preparation rule below; no unverified change reaches modernization.
 
-Final input review found a new-overlay bug: only initial context creation clears
-game keys, so reopening a retained context leaves a held game binding pressed.
-The real-input test now holds F8, reopens through F9, and queries its release cvar
-through the overlay console. It fails as expected on f895997d's binary with
-"reopening the overlay left the game key pressed" (devtools-reopen-before3.log).
-Test-first 1899ff9d changes no engine code. Fix 7f5d60f6 tracks input capture
-separately from context ownership, releases game bindings before interception on
-every open, clears stale vendor input, and restores the pointer position. Final
-static/module real-input checks pass (devtools-reopen-{final,module-final}.log).
-Format/type/boundary and changed-UI lifetime checks pass; tidy passes all 1,162
-configurations. Shipping SHA stays 427e37be.
-
-Test-first d115d52e also catches the new editor's angle/angles alias bug: alternating
-edits retained both keys, so reload restored an older value. The fix removes the
-opposite spelling only when intentionally editing that field. Native save/reload
-now restores [0, 90, 0], while retaining all unrelated map keys; format passes
-(devtools-angle-{before,fixed}.log). These are corrections to new #7 tooling, not
-pre-existing engine bug fixes. Self-review remains satisfied: both changes stay
-behind AFTERSHOCK_DEVTOOLS, use existing input/spawn mechanisms and add no OS calls,
-non-trivial lifetimes, simulation arithmetic changes or shipping allocations.
-
-Push this corrected candidate and require its complete exact-head build/regression
-before marking PR #143 ready and merging; then require merged-tree regression
-before #142. The earlier f895997d lifetime retry is historical, not the final gate.
-Keep the PR draft until current checks pass.
-Preserve accepted goldens.
-
-Then complete #7, render-graph phase two #142, and the remaining #25 sequence.
-All writes stay in msetaro/aftershock. The separate-session scope and finished
-historical network evidence remain untouched.
+Current branch is `issue/142-render-graph`, based on e4f2d70a. The test-first
+checkpoint f6dc6d24 passes the native baseline and fails on the absent graph API.
+The declarations now drive Vulkan target, render-pass and framebuffer creation
+and preserve the native trace. Complete the measurements, exact-head CI and
+self-review before marking draft PR #144 ready and merging. Preserve target formats/capacities, allocation and draw order,
+shader bytes, two frame slots and existing synchronization. No aliasing/reordering.
+After integration verification, close #7 and mark it complete on #25, then continue
+#142 and the remaining Wave 2/Wave 3 roadmap. All writes stay in msetaro/aftershock.
+The separate-session scope and finished historical network evidence remain untouched.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -136,8 +116,78 @@ not a pre-existing engine behavior. No existing engine bug fix was included in #
 lifetimes; no new shipping/per-frame game allocation or simulation arithmetic;
 existing wire/file layouts remain asserted; new UI records have layout/copy
 assertions. The optional UI's bounded arena and interaction allocations are
-explicitly measured/documented. Current exact-head hosted gates remain required;
-the PR stays draft until they pass.
+explicitly measured/documented. Final review additionally fixed retained-context
+input capture (test 1899ff9d, fix 7f5d60f6) and saved angle aliases (test d115d52e,
+fix 86e9d19e), each with failing-then-passing real interaction/save tests. Head
+86e9d19e passed build 35496813498/regression 35496813511; PR #143 merged e4f2d70a.
+The earlier f895997d runner shutdown was retried successfully. Merged-tree run
+35497810031 passed; #7 is closed and #25 marks it complete.
+
+## #142 test-first checkpoint (engine unchanged)
+
+Issue/design read; the existing shipping binary is retained in
+`render-graph-baseline/quake3e.x64` in the persistent modernization cache.
+`render-graph-notes.md` records the traced pass/resource sequence and bounded
+proposal. Preserve creation order separately from execution order; screen-map
+contents may cross frames, and main/capture outputs are exported to the existing
+readback path. No aliasing, pass reordering or extra waits.
+
+`tests/render_graph.py` first observes production image/render-pass/framebuffer
+creation without a GPU or window. The initial 17-case cache preparation was expanded
+to 36 cases before freezing the test: direct bloom/stencil flags affect descriptors,
+and screen-map MSAA is independent of main-scene MSAA. GCC and Clang/libc++ traces
+agree. Frozen native trace SHA-256:
+`962a3b48d9c358bde23fe52e9cb15dd9688b8c8efc083e363a2500c4680f3ddb`.
+It records formats, load/store/layout/dependency fields, attachment wiring,
+dimensions and allocation order. Fake memory requirements observe packing, not
+hardware memory use. No accepted fixture/golden or engine file is changed.
+
+The second probe requires explicit graph inputs/outputs, dependencies, bounded
+counts, creation order and resource lifetimes, including persistent/exported
+resources. On e4f2d70a the native reference passes and the graph probe fails to
+compile because the API is absent (expected exit 1, render-graph-before.log).
+This commit is the test-first checkpoint. Implement the public plain records and
+portable compiler, then make native allocation/pass descriptors consume them;
+retain exact native traces and frame gates. Add rhi to lifetime ownership when
+introducing engine/rhi/*.cpp. The preceding merged-tree CI and this issue's own
+gates must both pass before the next merge.
+
+## #142 graph integration checkpoint
+
+The portable compiler now builds fixed plain records once at target creation.
+Native images, render-pass load/store/layout/dependency declarations and
+framebuffers consume them through the existing allocator and handle ownership.
+Both GCC and Clang/libc++ still produce the frozen 36-case trace, including the
+legacy compatible-pass choice for paired blur framebuffers. No draw sequence,
+shader, wait, pool capacity or accepted artifact changed. Review extended the
+screen-map lifetime through post-bloom geometry; its added assertion failed first
+(render-graph-screen-before.log) and passes after declaring that read. The rhi source directory
+is now included in the lifetime gate. Static and renderer-module fixed Q3 demos
+pass twice through video restart, retaining frame projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+Both builds pass private-Xvfb resize/hide/restore checks. Public-only stub,
+upload/acquisition probes, format/types/boundaries and 1,166 tidy configurations
+pass. Lifetime analysis passes 1,120 compilation commands/119 source paths
+and all controls; final changed-source tidy passes all eight configurations. No command recording, waits, synchronization
+or frontend arithmetic changed. Hosted acceptance remains; measurements follow below.
+The first replay attempt reused a CMake directory belonging to another checkout
+and was rerun in /tmp/aftershock-graph-demo.
+
+Paired measurements are committed as docs/render-graph-measurements.json and
+summarized in docs/design/rhi.md: five alternating real-clock replays per map/build;
+whole-client wall medians 1.43 -> 1.37 and 1.38 -> 1.40 seconds; peak RSS
+181412 -> 181008 and 215872 -> 215744 KiB; final main GPU samples 3.973 -> 4.001
+and 4.837 -> 5.189 ms. No speedup claim. ELF text/data/BSS +944/+128/+3168 bytes.
+The measured graph executable is 50274d80c40408004230bb86a37352eaecc90d6c0c8373df8a3d75f1574e4142.
+
+Self-review: #142 only; no unrelated engine fixes, OS calls, core destructors,
+per-frame allocation, simulation arithmetic, wire/file layouts or public renderer
+ABI changed. Both creation-order mappings and attachment capacities are asserted.
+Readback/persistent targets retain their old storage lifetime; command recording,
+profiling markers and synchronization remain at their original sites. The fixed
+graph is intentionally not an aliasing allocator or a reordered frame scheduler.
+Exact-head build/regression and the subsequent merged-tree replay must pass before
+closing #142. Continue with #9 after that acceptance, following #25.
 
 ## #31 Vulkan acquisition checkpoint
 

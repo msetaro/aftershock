@@ -483,3 +483,115 @@ struct rhiPostProcess_t {
 };
 static_assert( std::is_trivially_copyable_v<rhiPostProcess_t> );
 [[nodiscard]] rhiStatus_t RHI_UpdatePostProcess( const rhiPostProcess_t *settings );
+
+// Fixed reference pass graph. Declarations are compiled at target creation/resize;
+// individual frames may omit passes. No aliasing or per-frame resource allocation.
+constexpr uint32_t RHI_GRAPH_BLOOM_PASSES = 4;
+enum class rhiGraphTarget_t : uint32_t {
+	Bloom0,
+	Bloom1,
+	Bloom2,
+	Bloom3,
+	Bloom4,
+	Bloom5,
+	Bloom6,
+	Bloom7,
+	Bloom8,
+	MainColor,
+	ScreenMsaa,
+	ScreenColor,
+	ScreenDepth,
+	MainMsaa,
+	Capture,
+	MainDepth,
+	Present,
+	Count
+};
+enum class rhiGraphPass_t : uint32_t {
+	ScreenMap,
+	Main,
+	BloomExtract,
+	Blur0,
+	Blur1,
+	Blur2,
+	Blur3,
+	Blur4,
+	Blur5,
+	Blur6,
+	Blur7,
+	PostBloom,
+	Capture,
+	Gamma,
+	Count
+};
+enum class rhiGraphFormat_t : uint32_t { Color,
+	Depth,
+	Bloom,
+	Capture,
+	Present };
+enum class rhiGraphLayout_t : uint32_t { Undefined,
+	Sampled,
+	Color,
+	Depth,
+	TransferSource,
+	Present };
+enum class rhiGraphLoad_t : uint32_t { Discard,
+	Clear,
+	Load };
+enum class rhiGraphStore_t : uint32_t { Discard,
+	Store };
+enum class rhiGraphStage_t : uint32_t { Fragment,
+	ColorOutput };
+enum : uint32_t {
+	RHI_GRAPH_COLOR = 1,
+	RHI_GRAPH_SAMPLED = 2,
+	RHI_GRAPH_TRANSFER_SOURCE = 4,
+	RHI_GRAPH_DEPTH = 8,
+	RHI_GRAPH_COLOR_READ = 1,
+	RHI_GRAPH_COLOR_WRITE = 2,
+	RHI_GRAPH_SHADER_READ = 4
+};
+struct rhiGraphConfig_t {
+	uint32_t renderWidth, renderHeight, windowWidth, windowHeight;
+	uint32_t captureWidth, captureHeight, screenWidth, screenHeight;
+	uint32_t samples, screenSamples;
+	bool offscreen, bloom, capture, stencil;
+};
+struct rhiGraphTargetDesc_t {
+	uint32_t width, height, samples, usage;
+	rhiGraphFormat_t format;
+	rhiGraphLayout_t initialLayout;
+	uint32_t firstUse, lastUse;
+	bool enabled, imported, persistent, exported, transient;
+};
+struct rhiGraphAttachment_t {
+	rhiGraphTarget_t target;
+	rhiGraphLoad_t load, stencilLoad;
+	rhiGraphStore_t store, stencilStore;
+	rhiGraphLayout_t initialLayout, finalLayout;
+};
+struct rhiGraphDependency_t {
+	rhiGraphStage_t sourceStage, destinationStage;
+	uint32_t sourceAccess, destinationAccess;
+	bool incoming, byRegion;
+};
+struct rhiGraphPassDesc_t {
+	uint32_t width, height, readMask, writeMask, dependencyMask;
+	uint32_t attachmentCount, dependencyCount, color, depth, resolve;
+	rhiGraphAttachment_t attachments[3];
+	rhiGraphDependency_t dependencies[2];
+	bool enabled;
+};
+struct rhiGraph_t {
+	rhiGraphTargetDesc_t targets[(uint32_t)rhiGraphTarget_t::Count];
+	rhiGraphPassDesc_t passes[(uint32_t)rhiGraphPass_t::Count];
+	rhiGraphTarget_t targetOrder[(uint32_t)rhiGraphTarget_t::Count - 1];
+	rhiGraphPass_t passOrder[(uint32_t)rhiGraphPass_t::Count];
+	uint32_t targetCount, passCount;
+};
+static_assert( std::is_trivially_copyable_v<rhiGraph_t> );
+static_assert( (uint32_t)rhiGraphTarget_t::Count <= 32 && (uint32_t)rhiGraphPass_t::Count <= 32 );
+// First/last use describe the frame's possible pass interval. Persistent contents
+// survive skipped passes; exported outputs remain available for existing readback.
+// All backing storage is retained until the existing resize/restart teardown.
+[[nodiscard]] bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph );
