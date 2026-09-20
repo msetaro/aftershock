@@ -93,7 +93,7 @@ qboolean G_AnimationCommand( int owner ) {
 	for ( int rig = 0; rig < 2; ++rig ) {
 		const int index = Anim_ParameterIndex( &animationRigs[rig].asset, name );
 		if ( index >= 0 ) {
-			animationActors[owner].parameters[rig][index] = text[0] == '1' ? 1 : 0;
+			animationActors[owner].parameters[rig][index] = text[0] == '1' ? 1.0f : 0.0f;
 			animationActors[owner].manual[rig] |= 1u << index;
 			found = true;
 		}
@@ -147,7 +147,7 @@ void G_RunAnimation( void ) {
 				actor.facing = ps->viewangles[YAW];
 			const float difference = AngleSubtract( ps->viewangles[YAW], actor.facing );
 			if ( speed <= 40 && fabsf( difference ) > 45 ) {
-				actor.turnSign = difference < 0 ? -1 : 1;
+				actor.turnSign = difference < 0 ? -1.0f : 1.0f;
 				SetAnimationInput( owner, 0, "turn", 1 );
 			}
 		}

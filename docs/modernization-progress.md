@@ -16,7 +16,15 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Continue #10 on `issue/10-animation`; no #10 PR exists yet. The integration
+Continue #10 on `issue/10-animation`, draft PR #148. Initial head 49e99bd8
+started hosted build 35516054105 and regression 35516054094. MSVC
+rejects two integer ternaries assigned to new float animation inputs (C4244).
+Use exactly equivalent float literals for 0/+1/-1 and make the existing
+unsigned-to-float ADS denominator conversion explicit. GCC/Clang unit, sanitizer,
+format and both cross regression jobs pass; Linux/macOS builds pass. The 100 Hz
+local check passes after the literal fix; the same Q3 fixture still matches all
+253 boxes and repeated frame samples (animation-msvc-conversions-demo.log).
+Push this correction and inspect the newest PR-head build/regression checks. The integration
 baseline is 7f4d43a7 (merged-tree regression 35510058541 passed). #31 and #9 are
 closed. Feature implementation/editor/ABI gates are committed through 3fbc0a62;
 7004bf0a adds the 100 Hz timing test first. The publication guard now passes it.
@@ -43,8 +51,7 @@ changing goldens or gameplay lines. Both-map bot smoke now passes with that meta
 (animation-runtime-classic.log).
 Tidy passed 1202 configurations before the final small publication/ownership edits.
 
-Next: open the #10 PR with the reviewed fixtures/final feature adjustments,
-finish full hosted gates (including OpenArena static/module replays and cross/MSVC
+Next: inspect PR #148’s exact-head checks and finish full hosted gates (including OpenArena static/module replays and cross/MSVC
 builds), resolve any failures without changing accepted fixtures, then merge with
 a merge commit and verify the merged tree. The local AGENTS self-review below is
 complete; hosted/exact-head acceptance is still required.

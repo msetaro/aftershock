@@ -168,7 +168,7 @@ bool CG_AnimationViewWeapon( const playerState_t *ps, const vec3_t origin, const
 		return !strcmp( name, "ads" ) || ( !strcmp( name, "fire" ) && adsParameter >= 0 && actor.parameters[adsParameter] > 0.5f ) ? 1.0f : 0.0f;
 	};
 	const uint32_t elapsed = uint32_t( cg.time ) - state.blendStarted;
-	const float blend = state.blendDuration ? fminf( float( elapsed ) / state.blendDuration, 1 ) : 1;
+	const float blend = state.blendDuration ? fminf( float( elapsed ) / float( state.blendDuration ), 1 ) : 1;
 	const float ads = sightWeight( state.previous ) * ( 1 - blend ) + sightWeight( state.current ) * blend;
 	vec3_t weaponAngles;
 	const float smoothing = fminf( fmaxf( float( cg.frametime ) / 80, 0 ), 1 );
