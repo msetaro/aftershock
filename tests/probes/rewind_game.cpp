@@ -97,6 +97,13 @@ int main() {
 	assert( trace.entityNum == 7 && trace.fraction == 0.49f && lastIgnored[7] );
 	assert( !memcmp( &before, &target.r, sizeof( before ) ) );
 	assert( trace.plane.normal[0] == -1 && trace.plane.type == PLANE_NON_AXIAL && trace.plane.signbits == 1 && trace.plane.dist == -98 );
+	shooterClient.pers.cmd.serverTime = 1000;
+	G_TraceHitscanAtTime( &trace, start, end, 0, &shooter, 900 );
+	assert( trace.entityNum == 7 && trace.fraction == 0.49f );
+	G_TraceHitscanAtTime( &trace, start, end, 0, &shooter, 1000 );
+	assert( trace.entityNum == ENTITYNUM_NONE );
+	assert( shooterClient.pers.cmd.serverTime == 1000 && !memcmp( &before, &target.r, sizeof( before ) ) );
+	shooterClient.pers.cmd.serverTime = 900;
 	wall = true;
 	G_TraceHitscan( &trace, start, end, 0, &shooter );
 	assert( trace.entityNum == ENTITYNUM_WORLD && trace.fraction == 0.25f );
@@ -104,7 +111,7 @@ int main() {
 	++target.rewindSpawn;
 	G_TraceHitscan( &trace, start, end, 0, &shooter );
 	assert( trace.entityNum == ENTITYNUM_NONE && !lastIgnored[7] );
-	assert( filtered == 3 && legacy == 0 && allocations == 1 && reports == 1 );
+	assert( filtered == 5 && legacy == 0 && allocations == 1 && reports == 1 );
 	assert( !strcmp( lastReport, "rewind_report 100 200 0 1" ) );
 	G_InitRewind( 1 );
 	skeletal = true;

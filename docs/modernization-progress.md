@@ -139,6 +139,11 @@ stored only after input replay advances beyond the snapshot baseline, and tagged
 with spawn/definition/attachments (weapons-prediction.log). Next: explicit event
 time for rewind and actual weapon damage, followed by the remaining integration.
 
+The explicit shot-time rewind check fails on missing G_TraceHitscanAtTime
+(weapons-rewind-before.log). It queries the same actor at 900 and 1000 ms while
+the newest usercmd stays at 1000 ms, requiring different hit decisions without
+mutating live actor or command state. Keep legacy G_TraceHitscan as a wrapper.
+
 
 ## #12 implemented feature evidence
 
