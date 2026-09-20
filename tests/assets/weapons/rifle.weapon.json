@@ -32,8 +32,8 @@
   "melee": {"range": 64, "damage": 50, "interval_ms": 500},
   "switch_ms": 200,
   "materials": [
-    {"name": "default", "surface_flags": 0, "depth": 8, "damage_scale": 0.5, "effect": "impact_default"},
-    {"name": "metal", "surface_flags": 4096, "depth": 2, "damage_scale": 0.25, "effect": "impact_metal"}
+    {"name": "default", "surface_flags": 0, "depth": 8, "damage_scale": 0.5, "effect": "effects/range_default"},
+    {"name": "metal", "surface_flags": 4096, "depth": 2, "damage_scale": 0.25, "effect": "effects/range_metal"}
   ],
   "attachments": [
     {"name": "optic", "socket": "optic", "model": "models/range_optic.iqm", "spread_scale": 0.5, "recoil_scale": 0.75, "ads_fov": 45}

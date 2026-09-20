@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "assets": [
+    {"name": "effects/range_default", "kind": "material", "source": "impact-default.json"},
+    {"name": "effects/range_metal", "kind": "material", "source": "impact-metal.json"}
+  ]
+}

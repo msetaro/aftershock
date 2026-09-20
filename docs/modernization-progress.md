@@ -198,6 +198,11 @@ budget, an explicit resolution limit. No simulation expression outside the new
 weapon implementation changed. Next: material impact presentation and remaining
 projectile/animation/attachment/range integration.
 
+The material presentation assertion fails as intended (weapons-impact-before.log).
+New owned material JSON supplies distinct default/metal impact colors through the
+existing cooker; this does not alter any accepted art or replay fixture. Next:
+replicate the definition/material index and render that material at the impact.
+
 
 ## #12 implemented feature evidence
 

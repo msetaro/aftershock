@@ -40,6 +40,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     (sources / 'assets.json').write_text(json.dumps(project))
     cook(sources / 'assets.json', base)
     cook(ROOT / 'tests/assets/animation/rigs.json', base)
+    cook(ROOT / 'tests/assets/weapons/presentation.json', base)
     (base / 'weapons.cfg').write_text('\n'.join([
         'set g_weapons "weapons/range_rifle.asweapon weapons/second.asweapon"',
         'set g_weaponTrace 1', 'set cg_weaponTrace 1',
@@ -75,6 +76,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapons-live-') as temporary
     switches = re.findall(r'Weapon switch: owner=0 hand=0 from=(\d+) to=(\d+) magazine=(\d+)', text)
     assert switches == [('0', '1', '30'), ('1', '0', '29')], switches
     assert 'Weapon client definition: index=1 name=range_rifle_second' in text
+    assert 'Weapon impact: material=effects/range_default' in text, 'material impact presentation missing'
     predictions = re.findall(r'Weapon prediction: hand=0 tick=\d+ equal=(\d)', text)
     assert len(predictions) >= 50 and set(predictions) == {'1'}, (len(predictions), predictions)
     assert not any(error in text for error in ('ERROR:', 'Signal caught', 'Weapon rejected'))
