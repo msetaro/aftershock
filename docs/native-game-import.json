@@ -166,7 +166,9 @@
     "f3f6b3fa": "#8: one clang-format 21.1.8 pass; release assembly instructions/data unchanged; preserve whitespace-sensitive macro arguments",
     "f0c9acc3": "#8 readability: brace the existing early return adjacent to MISSIONPACK preprocessing; native helper hashes and release objects unchanged",
     "33bf6e07": "#8 fixed-width shared records: preserve seven state/font sizes, alignments and traits; explicit unsigned trajectory enum in C++; twelve native helpers byte-identical",
-    "03d0b80d": "#8 integer contracts: explicit seek compatibility width and 64-bit internal sort/chat words; original GPL hashes retained; twelve GCC/Clang C/C++ native helper binaries identical"
+    "03d0b80d": "#8 integer contracts: explicit seek compatibility width and 64-bit internal sort/chat words; original GPL hashes retained; twelve GCC/Clang C/C++ native helper binaries identical",
+    "09f418cc": "#8 explicit numeric bytes: signed chat offsets and unsigned qsort copy bytes; all twelve native helper hashes retained",
+    "af8c818a": "#8 Q_ASSERT: object-like alias for existing assertions, unchanged arguments and release binaries; assertion side effects are rejected by tidy"
   },
   "files": [
     {
@@ -674,7 +676,8 @@
       "transformations": [
         "c58e2751",
         "f3f6b3fa",
-        "03d0b80d"
+        "03d0b80d",
+        "09f418cc"
       ]
     },
     {
@@ -736,7 +739,8 @@
         "3eaba64d",
         "6709136c",
         "f3f6b3fa",
-        "03d0b80d"
+        "03d0b80d",
+        "09f418cc"
       ]
     },
     {
@@ -1200,7 +1204,8 @@
         "5592a1eb",
         "9c170ddd",
         "6709136c",
-        "f3f6b3fa"
+        "f3f6b3fa",
+        "af8c818a"
       ]
     },
     {
@@ -1251,7 +1256,8 @@
         "05eca339",
         "f3f6b3fa",
         "33bf6e07",
-        "03d0b80d"
+        "03d0b80d",
+        "af8c818a"
       ]
     },
     {

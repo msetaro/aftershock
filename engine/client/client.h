@@ -317,13 +317,13 @@ typedef struct {
 	int numlocalservers;
 	serverInfo_t localServers[MAX_OTHER_SERVERS];
 
-	int numglobalservers;
+	int32_t numglobalservers;
 	serverInfo_t globalServers[MAX_GLOBAL_SERVERS];
 	// additional global servers
 	int numGlobalServerAddresses;
 	netadr_t globalServerAddresses[MAX_GLOBAL_SERVERS];
 
-	int numfavoriteservers;
+	int32_t numfavoriteservers;
 	serverInfo_t favoriteServers[MAX_OTHER_SERVERS];
 
 	int pingUpdateSource; // source currently pinging or updating

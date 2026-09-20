@@ -820,9 +820,9 @@ GetBotLibAPI
 ============
 */
 botlib_export_t *GetBotLibAPI( int apiVersion, botlib_import_t *import ) {
-	assert(import);
+	Q_ASSERT(import);
 	botimport = *import;
-	assert(botimport.Print);
+	Q_ASSERT(botimport.Print);
 
 	Com_Memset( &be_botlib_export, 0, sizeof( be_botlib_export ) );
 

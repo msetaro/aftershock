@@ -21,7 +21,10 @@ for the constraints and code rules below.
 
 - C++20, `-fno-exceptions -fno-rtti`. No exceptions, no RTTI, no `dynamic_cast`.
 - Fixed-width integers where representation matters; `long` is banned (32-bit on MSVC/Xbox);
-  explicit `char` signedness where it matters (unsigned on aarch64).
+  explicit `char` signedness where it matters (unsigned on aarch64). Foreign ABI types
+  and explicit legacy compatibility widths are documented in tests/README.md.
+- Use `Q_ASSERT` with side-effect-free arguments. The tidy gate enables assertions
+  for analysis; production release builds still compile them out identically.
 - No JIT, no runtime `dlopen` in engine code; static linking is the primary configuration.
 - OS access only inside `engine/platform` and the filesystem layer
   (`engine/qcommon/files.cpp`). Portable code never calls POSIX, Win32, or SDL directly.

@@ -62,7 +62,7 @@ typedef struct bot_consolemessage_qvm_s {
 
 //match variable
 typedef struct bot_matchvariable_s {
-	signed char offset;
+	int8_t offset;
 	int length;
 } bot_matchvariable_t;
 //returned to AI when a match is found

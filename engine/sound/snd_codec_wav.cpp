@@ -29,8 +29,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 FGetLittleLong
 =================
 */
-static int FGetLittleLong( fileHandle_t f ) {
-	int v;
+static int32_t FGetLittleLong( fileHandle_t f ) {
+	int32_t v;
 
 	if ( FS_Read( &v, sizeof( v ), f ) != sizeof( v ) )
 		return -1;
@@ -43,8 +43,8 @@ static int FGetLittleLong( fileHandle_t f ) {
 FGetLittleShort
 =================
 */
-static short FGetLittleShort( fileHandle_t f ) {
-	short v;
+static int16_t FGetLittleShort( fileHandle_t f ) {
+	int16_t v;
 
 	if ( FS_Read( &v, sizeof( v ), f ) != sizeof( v ) )
 		return -1;

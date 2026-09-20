@@ -1960,7 +1960,7 @@ updates an interpreted modules' version of a cvar
 void Cvar_Update( vmCvar_t *vmCvar, int privateFlag ) {
 	size_t len;
 	cvar_t *cv = NULL;
-	assert(vmCvar);
+	Q_ASSERT(vmCvar);
 
 	if ( (unsigned)vmCvar->handle >= (unsigned int)cvar_numIndexes ) {
 		Com_Error( ERR_DROP, "Cvar_Update: handle out of range" );

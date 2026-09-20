@@ -60,7 +60,7 @@ union cvalue {
 };
 //a characteristic
 typedef struct bot_characteristic_s {
-	char type; //characteristic type
+	uint8_t type; //characteristic type: CT_INTEGER, CT_FLOAT or CT_STRING
 	union cvalue value; //characteristic value
 } bot_characteristic_t;
 

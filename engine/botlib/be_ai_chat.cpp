@@ -1383,7 +1383,7 @@ static int StringsMatch( bot_matchpiece_t *pieces, bot_match_t *match ) {
 	if ( !mp && ( lastvariable >= 0 || !strlen( strptr ) ) ) {
 		//if the last piece was a variable string
 		if ( lastvariable >= 0 ) {
-			assert( match->variables[lastvariable].offset >= 0 );
+			Q_ASSERT( match->variables[lastvariable].offset >= 0 );
 			match->variables[lastvariable].length =
 				(int)strlen( &match->string[(int)match->variables[lastvariable].offset] );
 		} //end if
@@ -1439,7 +1439,7 @@ void BotMatchVariable( bot_match_t *match, int variable, char *buf, int size ) {
 	if ( match->variables[variable].offset >= 0 ) {
 		if ( match->variables[variable].length < size )
 			size = match->variables[variable].length + 1;
-		assert( match->variables[variable].offset >= 0 );
+		Q_ASSERT( match->variables[variable].offset >= 0 );
 		Q_strncpyz( buf, &match->string[(int)match->variables[variable].offset], size );
 	} else {
 		buf[0] = '\0';
@@ -2194,7 +2194,7 @@ static int BotExpandChatMessage( char *outmessage, int size, const char *message
 					return qfalse;
 				}
 				if ( match->variables[num].offset >= 0 ) {
-					assert( match->variables[num].offset >= 0 );
+					Q_ASSERT( match->variables[num].offset >= 0 );
 					ptr = &match->string[(int)match->variables[num].offset];
 					for ( i = 0; i < match->variables[num].length; i++ ) {
 						temp[i] = ptr[i];
