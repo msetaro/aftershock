@@ -18,7 +18,9 @@ upstream; historical upstream PR references below are completed past work.
 
 Preparatory branch `issue/28-match-server` is in the level-tree worktree, based
 on #27 PR #154 head b59fd806. The main checkout remains on #27 while its exact-head
-build/regression run (35538730616/35538730598). Superseded 9ed0484b regression was
+build/regression passed (35538730616/35538730598). PR #154 merged as
+6a3cb22d54a1c9575adde00c1d415639cde617f3 with the same tested tree
+fee7f5d5860f911eb14d00d1f1e0dd23454ad2d5; integration 35539581431 is queued. Superseded 9ed0484b regression was
 cancelled. #26 integration 35538219232 passed; #26 is closed and checked in #25.
 #27 still requires its exact-head gates and merged-tree regression. Merge modernization forward later, never rebase.
 
@@ -31,8 +33,11 @@ Fraglimit normally, so the negative control tests the requested missing feature.
 The first guard used an engine wait command, which would delay any queued quit.
 The corrected driver leaves the command buffer free and controls only the default
 server through stdin; the opt-in case still fails after the observed match end
-(match-exit-before-async.log). Next implement the native opt-in exit, preserving default behavior/goldens, then
-owned-content packaging and lifecycle sidecar/integration.
+(match-exit-before-async.log). Native opt-in exit now passes both OA and Q3 (match-exit-oa.log and
+match-exit-q3.log). It waits the existing five-second scoreboard interval without
+requiring ready votes, including all-bot matches; default intermission logic is
+unchanged. The cvar is not serverinfo, avoiding default replay changes. Next: owned
+content packaging and lifecycle/results sidecar, then Compose/kind/density gates.
 
 Local Docker Desktop works (20 virtual CPUs, 7936475136 bytes VM RAM). Docker
 Compose v5.3 is installed; Go/protoc/kind are absent from PATH. Use image builds or
