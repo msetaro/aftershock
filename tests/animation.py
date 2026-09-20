@@ -30,6 +30,13 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-fsanitize=undefined', '-fno-sanitize-recover=all',
      'tests/probes/animation.cpp', 'engine/animation/animation.cpp', sha_object,
      '-o', probe])
+render_probe = args.output / 'render-probe'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-DUSE_VULKAN_API', '-ffunction-sections', '-fdata-sections',
+     '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/animation_render.cpp', 'engine/qcommon/q_shared.cpp',
+     'engine/qcommon/q_math.cpp', '-Wl,--gc-sections', '-o', render_probe])
+run([render_probe])
 fixture = Path(__file__).resolve().parent / 'assets/animation'
 provenance = json.loads((fixture / 'provenance.json').read_text())
 for name, expected in provenance['files'].items():

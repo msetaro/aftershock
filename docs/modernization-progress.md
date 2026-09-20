@@ -56,9 +56,13 @@ layers. The tree contract passes GCC and Clang/libc++ with UBSan
 build passes (animation-build.log); the new core has explicit strict FP flags.
 SHA ownership is shared core plus a separate copy only for optional renderer
 modules. A full cooker check overlapped the source-list edit and invalidated its
-tool hash mid-run; rerun it with tool/source-list files held steady before
-accepting the result. Next: renderer copied-pose submission, authored rifle/body
-graphs, gameplay/replication and ImGui authoring.
+tool hash mid-run; the stable rerun passed (animation-cook-regression-stable.log). Next: renderer copied-pose submission, authored rifle/body
+graphs, gameplay/replication and ImGui authoring. Renderer submission test-first
+now fails to compile against the absent API (animation-render-before.log). It
+requires graph/model revision agreement, copied skin matrices and culling bounds,
+128 poses per renderer frame, capacity rejection and frame reset. Legacy entity
+submission must clear a reused pose pointer. This is ordinary render ownership
+coverage using a small constructed skeleton; gameplay parity remains outstanding.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/
