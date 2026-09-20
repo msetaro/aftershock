@@ -19,8 +19,8 @@ upstream; historical upstream PR references below are completed past work.
 Preparatory branch `issue/28-match-server` is in the level-tree worktree, based
 on #27 PR #154 head b59fd806. The main checkout remains on #27 while its exact-head
 build/regression run (35538730616/35538730598). Superseded 9ed0484b regression was
-cancelled. #26 integration is 35538219232; neither #26 nor #27 is accepted/closed
-until its merged-tree run passes. Merge modernization forward later, never rebase.
+cancelled. #26 integration 35538219232 passed; #26 is closed and checked in #25.
+#27 still requires its exact-head gates and merged-tree regression. Merge modernization forward later, never rebase.
 
 Read #28: non-root read-only image, match-spec launch, opt-in match-end exit,
 Agones warm Fleet/allocation/Ready/Health/Shutdown, gRPC log/results sidecar, Compose,
@@ -28,7 +28,10 @@ kind CI and measured density. tests/match_exit.py first proves current behavior:
 normal server reaches the guard marker, and sv_exitOnMatchEnd=1 also reaches it
 instead of quitting. Failing trace is match-exit-before.log; OA bot match reached
 Fraglimit normally, so the negative control tests the requested missing feature.
-Next implement the native opt-in exit, preserving default behavior/goldens, then
+The first guard used an engine wait command, which would delay any queued quit.
+The corrected driver leaves the command buffer free and controls only the default
+server through stdin; the opt-in case still fails after the observed match end
+(match-exit-before-async.log). Next implement the native opt-in exit, preserving default behavior/goldens, then
 owned-content packaging and lifecycle sidecar/integration.
 
 Local Docker Desktop works (20 virtual CPUs, 7936475136 bytes VM RAM). Docker
