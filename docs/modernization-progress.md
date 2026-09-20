@@ -16,24 +16,25 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#7 PR #143 merged as e4f2d70a after exact head 86e9d19e passed build 35496813498
-and regression 35496813511, with the recorded self-review. Merged-tree regression
-35497810031 passed. Its tree is byte-identical to the tested PR tree. #7 is closed
-and marked complete on #25.
-Decision: prepare the next issue's failing tests in a separate branch while that
-integration run completes; do not merge #142 until the preceding integration run
-and #142's own exact-head gates pass. This replaces the unnecessarily serial
-preparation rule below; no unverified change reaches modernization.
+#142 draft PR #144 final head ffcb072c is complete locally and passed hosted
+build 35498994504. Regression 35498994503 is running; only runtime/lifetimes
+remain. Poll that run, finish the PR's acceptance note, mark it ready and merge
+with a merge commit only after every required job passes. Then verify the merged
+tree regression. #7 merge e4f2d70a passed integration 35497810031 and is closed.
 
-Current branch is `issue/142-render-graph`, based on e4f2d70a. The test-first
-checkpoint f6dc6d24 passes the native baseline and fails on the absent graph API.
-The declarations now drive Vulkan target, render-pass and framebuffer creation
-and preserve the native trace. Complete the measurements, exact-head CI and
-self-review before marking draft PR #144 ready and merging. Preserve target formats/capacities, allocation and draw order,
-shader bytes, two frame slots and existing synchronization. No aliasing/reordering.
-After integration verification, close #7 and mark it complete on #25, then continue
-#142 and the remaining Wave 2/Wave 3 roadmap. All writes stay in msetaro/aftershock.
-The separate-session scope and finished historical network evidence remain untouched.
+Current branch is `issue/9-asset-pipeline`, provisionally based on ffcb072c.
+Decision: prepare the next issue's failing feature tests in its own branch while
+#142 exact-head CI completes; keep #142's reviewed branch unchanged. Do not merge
+#9 until #142 is merged and its integration gates pass. Merge origin/modernization
+into this branch after #142 acceptance, preserving history. This extends the
+already-recorded overlap for next-issue preparation; no unverified work reaches
+the integration branch.
+
+Read #9 and the preparation notes in the persistent modernization cache
+(issue9-preparation.md). Trace native model/texture ownership before implementation.
+Write and commit the cooker feature tests first; the first test must fail on the
+absent CLI. No accepted fixtures/goldens or finished historical test evidence may
+change. Continue the #25 roadmap after #9. All writes stay in msetaro/aftershock.
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -43,6 +44,30 @@ regression 35479955499 passed; merged-tree regression 35480310184 passed.
 normal / 8 MiB high geometry buffers, 2 MiB normal / 24 MiB high staging buffers,
 32 samplers and 2,304 pipeline descriptions; do not change these during extraction.
 Existing `vkinfo` reports peak vertex/push use, pipelines and image chunks.
+
+## #9 initial feature-test checkpoint
+
+`python3 tests/cook.py` builds an owned valid triangle fixture as external-buffer
+glTF and embedded-buffer GLB, with two joints/two clips, plus a static variant
+and a small PNG. It requires the offline CLI, native IQM geometry/clip records,
+BC7/BC5/BC4 KTX2 mip chains, relative dependency/output SHA-256 manifests,
+byte-stable fresh cooks and texture-only incremental invalidation. No installed
+game content or accepted artifact is involved. The first run fails with exit 1
+because tools/cook does not exist (cook-before.log). Commit this before adding
+the cooker. Real Blender export, native runtime/hot reload and UI evidence remain
+required; this test is only the first slice.
+
+Decision: reuse the existing IQM v2 model payload/renderer for glTF output,
+retaining legacy IQM input. Its plain records already carry assertions and its
+runtime model data uses one allocation; development reload can add explicit
+owned-block lifetime without changing legacy allocation. Keep named clip data
+and cooker version/content metadata available to the next animation stage.
+Use standard KTX2 for compressed texture output. Model basis maps glTF (x,y,z)
+to engine (x,-z,y); scale is an explicit cooker setting. Use the installed Pillow
+for PNG/TGA tools input and a pinned native BC encoder, not a new codec.
+Primary format references: Khronos glTF 2.0/KTX2 and lsalzman/iqm iqm.h.
+All OS access and source watching stay in tools/platform/filesystem ownership;
+shipping code does not import glTF. No new loader-robustness targets are added.
 
 ## #7 developer tooling checkpoint
 
