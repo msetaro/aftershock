@@ -708,6 +708,7 @@ typedef enum {
 static_assert( int( ET_EVENTS ) + int( EV_TAUNT_PATROL ) < int( ET_ANIMATION ) );
 bool BG_AnimationToEntityState( const animState_t *state, const float *parameters, int owner, int rig, const float *origin, const float *angles, entityState_t *entity );
 bool BG_EntityStateToAnimation( const entityState_t *entity, animState_t *state, float *parameters );
+bool BG_AnimationPose( const animAsset_t *asset, const animState_t *state, const float *parameters, uint32_t time, int rig, animPose_t *pose );
 #endif
 
 

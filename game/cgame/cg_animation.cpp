@@ -69,7 +69,7 @@ void CG_AnimationSnapshot( const entityState_t *entity ) {
 		vec3_t axis[3];
 		AnglesToAxis( entity->angles, axis );
 		const auto *asset = &animationRigs[0].asset;
-		if ( !Anim_Evaluate( asset, &state, parameters, state.lastTime, &pose ) || !Anim_RemoveRootTranslation( asset, &pose ) )
+		if ( !BG_AnimationPose( asset, &state, parameters, state.lastTime, 0, &pose ) )
 			CG_Error( "Animation rejected: fixed client pose" );
 		const uint32_t count = Anim_HitBoxes( asset, &pose, entity->origin, axis, boxes, ANIM_MAX_BOXES );
 		if ( !count )
@@ -89,7 +89,7 @@ static bool AnimationPose( int owner, int rig, animPose_t *pose ) {
 	// replace gameplay state; rendering never ticks transitions or delivers events.
 	const uint32_t elapsed = uint32_t( cg.time ) - actor.state.lastTime;
 	const uint32_t time = actor.state.lastTime + ( elapsed < 100 ? elapsed : 0 );
-	return Anim_Evaluate( &animationRigs[rig].asset, &actor.state, actor.parameters, time, pose );
+	return BG_AnimationPose( &animationRigs[rig].asset, &actor.state, actor.parameters, time, rig, pose );
 }
 bool CG_AnimationPlayer( centity_t *cent ) {
 	const int owner = cent->currentState.clientNum;
@@ -98,7 +98,6 @@ bool CG_AnimationPlayer( centity_t *cent ) {
 	animPose_t pose;
 	if ( !AnimationPose( owner, 0, &pose ) )
 		return false;
-	Anim_RemoveRootTranslation( &animationRigs[0].asset, &pose );
 	refEntity_t entity = {};
 	entity.reType = RT_MODEL;
 	entity.hModel = animationRigs[0].model;

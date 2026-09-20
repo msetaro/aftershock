@@ -601,3 +601,86 @@ bool Anim_LookAt( const float *from, const float *to, float *rotation ) {
 	}
 	return true;
 }
+
+static bool ParentDirection( const animAsset_t *asset, const animPose_t *pose, int32_t bone, const float direction[3], float out[3] ) {
+	const auto joint = Read<animFileJoint_t>( asset, ANIM_JOINTS, uint32_t( bone ) );
+	if ( joint.parent < 0 ) {
+		memcpy( out, direction, 3 * sizeof( float ) );
+		return true;
+	}
+	const float *matrix = pose->world[joint.parent];
+	float columns[3][3];
+	for ( uint32_t i = 0; i < 3; ++i )
+		for ( uint32_t j = 0; j < 3; ++j )
+			columns[i][j] = matrix[j * 4 + i];
+	const float squared = Dot( columns[0], columns[0], 3 );
+	if ( !isfinite( squared ) || squared < 1e-12f )
+		return false;
+	for ( uint32_t i = 0; i < 3; ++i ) {
+		if ( fabsf( Dot( columns[i], columns[i], 3 ) - squared ) > squared * 0.0001f )
+			return false;
+		for ( uint32_t j = i + 1; j < 3; ++j )
+			if ( fabsf( Dot( columns[i], columns[j], 3 ) ) > squared * 0.0001f )
+				return false;
+		out[i] = Dot( columns[i], direction, 3 ) / squared;
+	}
+	return Finite( out, 3 );
+}
+static bool RotateBone( const animAsset_t *asset, animPose_t *pose, int32_t bone, const float from[3], const float to[3] ) {
+	float a[3], b[3], delta[4];
+	if ( !ParentDirection( asset, pose, bone, from, a ) || !ParentDirection( asset, pose, bone, to, b ) || !Anim_LookAt( a, b, delta ) )
+		return false;
+	MultiplyQuaternion( delta, pose->local[bone].rotate, pose->local[bone].rotate );
+	return Normalize( pose->local[bone].rotate, 4 ) && Anim_UpdateWorld( asset, pose );
+}
+bool Anim_ApplyTwoBoneIK( const animAsset_t *asset, animPose_t *pose, int32_t root, int32_t middle, int32_t end, const float target[3], const float pole[3], float weight ) {
+	if ( pose->jointCount != Count( asset, ANIM_JOINTS ) || root < 0 || middle < 0 || end < 0 || uint32_t( root ) >= pose->jointCount || uint32_t( middle ) >= pose->jointCount || uint32_t( end ) >= pose->jointCount || !isfinite( weight ) || !Finite( target, 3 ) || !Finite( pole, 3 ) )
+		return false;
+	if ( Read<animFileJoint_t>( asset, ANIM_JOINTS, uint32_t( middle ) ).parent != root || Read<animFileJoint_t>( asset, ANIM_JOINTS, uint32_t( end ) ).parent != middle )
+		return false;
+	if ( weight <= 0 )
+		return true;
+	animPose_t solved = *pose;
+	float points[3][3], elbow[3], hand[3], from[3], to[3];
+	const int32_t bones[3] = { root, middle, end };
+	for ( uint32_t i = 0; i < 3; ++i )
+		for ( uint32_t a = 0; a < 3; ++a )
+			points[i][a] = solved.world[bones[i]][a * 4 + 3];
+	if ( !Anim_TwoBoneIK( points[0], points[1], points[2], target, pole, elbow, hand ) )
+		return false;
+	Subtract( points[1], points[0], from );
+	Subtract( elbow, points[0], to );
+	if ( !RotateBone( asset, &solved, root, from, to ) )
+		return false;
+	for ( uint32_t a = 0; a < 3; ++a ) {
+		from[a] = solved.world[end][a * 4 + 3] - solved.world[middle][a * 4 + 3];
+		to[a] = hand[a] - solved.world[middle][a * 4 + 3];
+	}
+	if ( !RotateBone( asset, &solved, middle, from, to ) )
+		return false;
+	Blend( &pose->local[root], &solved.local[root], Clamp( weight, 0, 1 ), &solved.local[root] );
+	Blend( &pose->local[middle], &solved.local[middle], Clamp( weight, 0, 1 ), &solved.local[middle] );
+	if ( !Anim_UpdateWorld( asset, &solved ) )
+		return false;
+	*pose = solved;
+	return true;
+}
+bool Anim_ApplyLookAt( const animAsset_t *asset, animPose_t *pose, int32_t bone, const float localForward[3], const float target[3], float weight ) {
+	if ( pose->jointCount != Count( asset, ANIM_JOINTS ) || bone < 0 || uint32_t( bone ) >= pose->jointCount || !isfinite( weight ) || !Finite( target, 3 ) || !Finite( localForward, 3 ) )
+		return false;
+	if ( weight <= 0 )
+		return true;
+	animPose_t solved = *pose;
+	float from[3], to[3];
+	for ( uint32_t a = 0; a < 3; ++a ) {
+		from[a] = Dot( pose->world[bone] + a * 4, localForward, 3 );
+		to[a] = target[a] - pose->world[bone][a * 4 + 3];
+	}
+	if ( !RotateBone( asset, &solved, bone, from, to ) )
+		return false;
+	Blend( &pose->local[bone], &solved.local[bone], Clamp( weight, 0, 1 ), &solved.local[bone] );
+	if ( !Anim_UpdateWorld( asset, &solved ) )
+		return false;
+	*pose = solved;
+	return true;
+}

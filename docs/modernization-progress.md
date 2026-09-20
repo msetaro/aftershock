@@ -121,6 +121,22 @@ bone-chain application API (animation-pose-ik-before.log); it uses the actual
 owned rifle arm and requires the hand to reach a nearby target. Integrate the
 existing analytical solver with local rotations and descendant matrices, then
 apply hands/feet/look-at in the same pose path used by hit boxes.
+This integration now passes the native arm target test and live Q3 smoke
+(animation-pose-ik-after.log, animation-gameplay-ik.log). Hands follow weapon
+grips/the reload magazine; feet use server collision-derived, replicated height
+offsets; head look-at and upper aim use view/input parameters. Server/client
+boxes still match after those operations. The generic IK application rejects
+non-uniform/sheared ancestor frames without changing the input pose; the owned
+rigs use supported uniform frames. Clang+UBSan and OpenArena live gameplay now
+pass too (animation-pose-ik-clang.log, animation-gameplay-oa.log). New gameplay
+input overrides reset on respawn; authoritative ground offsets cannot be set by
+client animation commands. Next: ADS sight placement, automatic body turning,
+cosmetic sway, then ImGui authoring and fixed-demo capture/replay.
+The old C/C++ DLL import/source-comparison CI steps are port-era oracles and will
+need explicit treatment now that the owned native game calls the C++ animation
+service. Preserve their accepted pre-#10 evidence; do not add production-only
+language conditionals to hide new features from those tests. Retain current wire/
+module ABI checks and fixed demo/math parity when updating this CI step.
 Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/

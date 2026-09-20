@@ -167,6 +167,10 @@ bool Anim_RootMotion( const animAsset_t *asset, int32_t clip, uint32_t from, uin
 void Anim_BlendTransforms( uint32_t count, const animTransform_t *a, const animTransform_t *b, const float *mask, float weight, animTransform_t *out );
 void Anim_AdditiveTransforms( uint32_t count, const animTransform_t *base, const animTransform_t *delta, const animTransform_t *reference, const float *mask, float weight, animTransform_t *out );
 bool Anim_TwoBoneIK( const float *root, const float *middle, const float *end, const float *target, const float *pole, float *outMiddle, float *outEnd );
+// IK requires orthogonal, uniformly scaled ancestor frames; other chains are
+// left untouched and report false. Weight blends the solved local rotations.
+bool Anim_ApplyTwoBoneIK( const animAsset_t *asset, animPose_t *pose, int32_t root, int32_t middle, int32_t end, const float target[3], const float pole[3], float weight );
+bool Anim_ApplyLookAt( const animAsset_t *asset, animPose_t *pose, int32_t bone, const float localForward[3], const float target[3], float weight );
 bool Anim_LookAt( const float *from, const float *to, float *rotation );
 
 #endif

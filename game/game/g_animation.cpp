@@ -3,9 +3,11 @@
 static struct {
 	animAsset_t asset;
 	void *storage;
+	float footHeight[2];
 } animationRigs[2];
 static struct {
 	bool active;
+	uint32_t manual[2];
 	int spawn;
 	uint32_t clock;
 	animState_t state[2];
@@ -50,6 +52,20 @@ void G_InitAnimation( void ) {
 	if ( bool( animationRigs[0].storage ) != bool( animationRigs[1].storage ) )
 		G_Error( "Animation rejected: both body and rifle graphs are required" );
 	animationEnabled = animationRigs[0].storage != nullptr;
+	if ( animationEnabled ) {
+		const auto *asset = &animationRigs[0].asset;
+		animState_t state;
+		animPose_t pose;
+		float parameters[ANIM_MAX_PARAMETERS];
+		Anim_Reset( asset, 0, &state );
+		Anim_DefaultParameters( asset, parameters );
+		if ( !Anim_Evaluate( asset, &state, parameters, 0, &pose ) )
+			G_Error( "Animation rejected: bind stance" );
+		for ( int side = 0; side < 2; ++side ) {
+			const int bone = Anim_BoneIndex( asset, side ? "foot.R" : "foot.L" );
+			animationRigs[0].footHeight[side] = bone >= 0 ? pose.world[bone][11] : 0;
+		}
+	}
 }
 static void SetAnimationInput( int owner, int rig, const char *name, float value ) {
 	const int index = Anim_ParameterIndex( &animationRigs[rig].asset, name );
@@ -64,11 +80,19 @@ bool G_AnimationCommand( int owner ) {
 	trap_Argv( 2, text, sizeof( text ) );
 	if ( strcmp( text, "0" ) && strcmp( text, "1" ) )
 		return false;
+	const char *allowed[] = { "ads", "fire", "reload", "sprint", "jump", "aim_up", "aim_down", "lean_left", "lean_right", "crouch", "prone", "turn" };
+	bool permitted = false;
+	for ( const char *action : allowed )
+		if ( !strcmp( action, name ) )
+			permitted = true;
+	if ( !permitted )
+		return false;
 	bool found = false;
 	for ( int rig = 0; rig < 2; ++rig ) {
 		const int index = Anim_ParameterIndex( &animationRigs[rig].asset, name );
 		if ( index >= 0 ) {
 			animationActors[owner].parameters[rig][index] = text[0] == '1' ? 1 : 0;
+			animationActors[owner].manual[rig] |= 1u << index;
 			found = true;
 		}
 	}
@@ -97,6 +121,7 @@ void G_RunAnimation( void ) {
 			for ( int rig = 0; rig < 2; ++rig ) {
 				Anim_Reset( &animationRigs[rig].asset, actor.clock, &actor.state[rig] );
 				Anim_DefaultParameters( &animationRigs[rig].asset, actor.parameters[rig] );
+				actor.manual[rig] = 0;
 				if ( !actor.entity[rig] ) {
 					actor.entity[rig] = G_Spawn();
 					actor.entity[rig]->classname = (char *)"animation_state";
@@ -104,6 +129,13 @@ void G_RunAnimation( void ) {
 					actor.entity[rig]->r.singleClient = owner;
 				}
 			}
+		}
+		const float pitch = AngleNormalize180( ps->viewangles[PITCH] );
+		for ( int direction = 0; direction < 2; ++direction ) {
+			const char *name = direction ? "aim_down" : "aim_up";
+			const int index = Anim_ParameterIndex( &animationRigs[0].asset, name );
+			if ( index >= 0 && !( actor.manual[0] & ( 1u << index ) ) )
+				actor.parameters[0][index] = fminf( fmaxf( ( direction ? pitch : -pitch ) / 26, 0 ), 1 );
 		}
 		const float speed = sqrtf( ps->velocity[0] * ps->velocity[0] + ps->velocity[1] * ps->velocity[1] );
 		SetAnimationInput( owner, 0, "move", fminf( speed / 120, 1 ) );
@@ -141,6 +173,31 @@ void G_RunAnimation( void ) {
 					SetAnimationInput( owner, rig, "turn", 0 );
 			}
 		}
+		// Ground contacts are authoritative inputs; clients use the replicated
+		// offsets instead of doing their own gameplay collision query.
+		animPose_t stance;
+		const auto *body = &animationRigs[0].asset;
+		if ( !Anim_Evaluate( body, &actor.state[0], actor.parameters[0], actor.clock, &stance ) || !Anim_RemoveRootTranslation( body, &stance ) )
+			G_Error( "Animation rejected: foot stance" );
+		vec3_t bodyAngles = { 0, ps->viewangles[YAW], 0 }, bodyAxis[3];
+		AnglesToAxis( bodyAngles, bodyAxis );
+		for ( int side = 0; side < 2; ++side ) {
+			const int bone = Anim_BoneIndex( body, side ? "foot.R" : "foot.L" );
+			if ( bone < 0 )
+				continue;
+			vec3_t start, end;
+			for ( int a = 0; a < 3; ++a )
+				start[a] = ps->origin[a] + bodyAxis[0][a] * stance.world[bone][3] + bodyAxis[1][a] * stance.world[bone][7] + bodyAxis[2][a] * stance.world[bone][11];
+			start[2] += MINS_Z;
+			const float original = start[2];
+			VectorCopy( start, end );
+			start[2] += 12;
+			end[2] -= 24;
+			trace_t trace;
+			trap_Trace( &trace, start, nullptr, nullptr, end, owner, MASK_SOLID );
+			const float offset = trace.fraction < 1 && !trace.startsolid ? fminf( fmaxf( trace.endpos[2] + animationRigs[0].footHeight[side] - original, -16 ), 16 ) : 0;
+			SetAnimationInput( owner, 0, side ? "foot_right" : "foot_left", offset );
+		}
 		for ( int rig = 0; rig < 2; ++rig ) {
 			gentity_t *entity = actor.entity[rig];
 			vec3_t origin = { ps->origin[0], ps->origin[1], ps->origin[2] + MINS_Z };
@@ -153,7 +210,7 @@ void G_RunAnimation( void ) {
 				animPose_t pose;
 				vec3_t axis[3];
 				AnglesToAxis( entity->s.angles, axis );
-				if ( !Anim_Evaluate( &animationRigs[0].asset, &actor.state[0], actor.parameters[0], actor.clock, &pose ) || !Anim_RemoveRootTranslation( &animationRigs[0].asset, &pose ) )
+				if ( !BG_AnimationPose( &animationRigs[0].asset, &actor.state[0], actor.parameters[0], actor.clock, 0, &pose ) )
 					G_Error( "Animation rejected: gameplay pose" );
 				actor.boxCount = Anim_HitBoxes( &animationRigs[0].asset, &pose, entity->s.origin, axis, actor.boxes, ANIM_MAX_BOXES );
 				if ( !actor.boxCount )
