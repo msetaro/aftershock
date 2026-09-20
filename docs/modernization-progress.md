@@ -229,6 +229,11 @@ successfully (weapons-presentation-cook.log). Other asset envelopes retain their
 existing default version and bytes. Provenance checks now guard the new committed
 props/sounds; live rendering/audio review and actual projectile integration remain.
 
+Shared projectile collision now has a failing contract in the existing snapshot
+probe (weapons-projectile-step-before.log): fixed 20 ms flight, configured box
+size, bounce loss/exit offset, fuse expiration and zero-bounce impact detonation.
+Use the existing game/cgame trace signature so both sides share that step.
+
 
 ## #12 implemented feature evidence
 

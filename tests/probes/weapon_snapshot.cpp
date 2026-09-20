@@ -14,7 +14,43 @@ void QDECL Com_Printf( const char *, ... ) {
 void QDECL Com_DPrintf( const char *, ... ) {
 }
 
+static bool projectileWall;
+static void ProjectileTrace( trace_t *trace, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int owner, int mask ) {
+	assert( owner == 3 && mask == MASK_SHOT && mins[0] == -2 && maxs[2] == 2 );
+	*trace = {};
+	trace->fraction = projectileWall ? 0.5f : 1.0f;
+	trace->entityNum = projectileWall ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
+	for ( int axis = 0; axis < 3; ++axis )
+		trace->endpos[axis] = start[axis] + trace->fraction * ( end[axis] - start[axis] );
+	trace->plane.normal[0] = -1;
+}
+static void Projectiles() {
+	weaponDef_t definition = {};
+	definition.projectile.speed = 800;
+	definition.projectile.gravity = 0;
+	definition.projectile.bounce = 0.5f;
+	definition.projectile.size = 2;
+	definition.projectile.fuseMs = 60;
+	weaponProjectile_t state = {};
+	state.velocity[0] = 800;
+	trace_t impact;
+	assert( BG_WeaponProjectileStep( &definition, &state, 3, ProjectileTrace, &impact ) == WEAPON_FLYING );
+	assert( state.position[0] == 16 && state.ageMs == 20 );
+	projectileWall = true;
+	assert( BG_WeaponProjectileStep( &definition, &state, 3, ProjectileTrace, &impact ) == WEAPON_BOUNCED );
+	assert( state.position[0] < 24 && state.position[0] >= 23.875f && state.velocity[0] == -400 );
+	projectileWall = false;
+	assert( BG_WeaponProjectileStep( &definition, &state, 3, ProjectileTrace, &impact ) == WEAPON_EXPLODED );
+	assert( state.ageMs == 60 );
+	state = {};
+	state.velocity[0] = 800;
+	projectileWall = true;
+	definition.projectile.bounce = 0;
+	assert( BG_WeaponProjectileStep( &definition, &state, 3, ProjectileTrace, &impact ) == WEAPON_EXPLODED );
+	assert( state.position[0] == 8 && state.ageMs == 20 );
+}
 int main() {
+	Projectiles();
 	const weaponState_t state = { 0xfffffff0u, 0x7fc00000u, 0xfedcba98u, 64, 29, 90, 1, WEAPON_FIRE | WEAPON_ADS,
 		WEAPON_NO_STAGE, 0x80000000u, 3, 32768, 1000, 2000 };
 	const float origin[3] = { 123.5f, -0.25f, 32 };
