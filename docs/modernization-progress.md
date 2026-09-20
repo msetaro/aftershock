@@ -3127,3 +3127,11 @@ and checks analytical scale-then-rotate points on all axes plus inverse products
 It fails before implementation on the first nonuniform rotated point. No loader
 input or golden regeneration is involved. The actual fix and cooker parity check
 wait for the separate accounting PR; do not combine the two engine bug fixes.
+
+The scale test now also cooks the existing owned two-joint triangle with the
+tip scaled (2,1,1) and animated through 90 degrees, then checks native final
+vertices against independent analytical positions after the engine basis change.
+This reuses the fixture generator and production loader/pose functions, with no
+accepted artifact changes. The expanded pre-fix run still fails on the first
+matrix point assertion (iqm-scale-parity-before.log). Engine/cooker fixes remain
+unapplied and separate from accounting.
