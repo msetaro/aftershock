@@ -71,7 +71,7 @@ print('PASS: another rifle is data only; versioned cooking, dependency hashes an
 
 snapshot = args.output / 'snapshot-probe'
 run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
-     '-ffunction-sections', '-fdata-sections', '-fno-strict-aliasing',
+     '-ffunction-sections', '-fdata-sections', '-fno-strict-aliasing', '-fno-fast-math', '-ffp-contract=off',
      '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
      'tests/probes/weapon_snapshot.cpp', 'engine/qcommon/msg.cpp',
      'engine/qcommon/huffman.cpp', 'engine/qcommon/huffman_static.cpp',

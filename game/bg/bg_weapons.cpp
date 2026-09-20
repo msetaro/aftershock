@@ -29,6 +29,31 @@ uint32_t BG_WeaponButtons( const usercmd_t *cmd, int hand, const playerState_t *
 		   ( !hand && ( cmd->buttons & 16384 ) ? WEAPON_MELEE : 0u );
 }
 
+weaponFlight_t BG_WeaponProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile, int owner,
+	void ( *trace )( trace_t *, const vec3_t, const vec3_t, const vec3_t, const vec3_t, int, int ), trace_t *impact ) {
+	*impact = {};
+	impact->fraction = 1;
+	if ( projectile->ageMs >= definition->projectile.fuseMs )
+		return WEAPON_EXPLODED;
+	vec3_t start, mins, maxs;
+	VectorCopy( projectile->position, start );
+	for ( int axis = 0; axis < 3; ++axis ) {
+		mins[axis] = -definition->projectile.size;
+		maxs[axis] = definition->projectile.size;
+	}
+	const bool alive = Weapon_ProjectileStep( definition, projectile );
+	trace( impact, start, mins, maxs, projectile->position, owner, MASK_SHOT );
+	if ( impact->fraction < 1 || impact->startsolid || impact->allsolid ) {
+		VectorCopy( impact->endpos, projectile->position );
+		if ( !alive || definition->projectile.bounce == 0 || impact->startsolid || impact->allsolid )
+			return WEAPON_EXPLODED;
+		Weapon_ProjectileBounce( definition, impact->plane.normal, projectile );
+		VectorMA( projectile->position, 0.03125f, impact->plane.normal, projectile->position );
+		return WEAPON_BOUNCED;
+	}
+	return alive ? WEAPON_FLYING : WEAPON_EXPLODED;
+}
+
 // Six full-width integer fields plus eighteen exact 16-bit float values carry
 // the state and spawn counter. No bit-punned NaNs or legacy layout changes.
 bool BG_WeaponToEntityState( const weaponState_t *state, uint32_t spawn, int owner, int hand, int definition,

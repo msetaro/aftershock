@@ -234,6 +234,13 @@ probe (weapons-projectile-step-before.log): fixed 20 ms flight, configured box
 size, bounce loss/exit offset, fuse expiration and zero-bounce impact detonation.
 Use the existing game/cgame trace signature so both sides share that step.
 
+BG_WeaponProjectileStep now passes GCC/Clang UBSan
+(weapons-projectile-step-gcc.log/-clang.log). It uses the existing game/cgame
+trace signature, data collision bounds and the same fixed-step motion/bounce
+math. Fuse expiry and zero-bounce impacts detonate; bounces retain the remaining
+fuse. Next: actual server projectile entities, snapshot rendering, client shot
+prediction and lifecycle tests. Shared physics alone is not projectile acceptance.
+
 
 ## #12 implemented feature evidence
 

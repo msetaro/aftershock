@@ -710,6 +710,11 @@ typedef enum {
 
 #ifdef __cplusplus
 static_assert( int( ET_EVENTS ) + int( EV_WEAPON_IMPACT ) < int( ET_WEAPON_STATE ) );
+enum weaponFlight_t { WEAPON_FLYING,
+	WEAPON_BOUNCED,
+	WEAPON_EXPLODED };
+weaponFlight_t BG_WeaponProjectileStep( const weaponDef_t *definition, weaponProjectile_t *projectile, int owner,
+	void ( *trace )( trace_t *, const vec3_t, const vec3_t, const vec3_t, const vec3_t, int, int ), trace_t *impact );
 void BG_ClearWeapons( void );
 bool BG_LoadWeapon( int index, const char *path, char hash[65] );
 const weaponDef_t *BG_WeaponDefinition( int index );
