@@ -182,8 +182,53 @@ static void check_compressed_uploads() {
 	vk.staging_buffer = {};
 }
 
+static uint32_t ownedImages, ownedViews, ownedMemory, ownedBindings;
+static uint64_t ownedHandle = 100;
+static int ownedFailure;
+static void check_texture_replacement() {
+	uint8_t staging[512] = {}, source[256] = {};
+	vk.device = (VkDevice)(uintptr_t)20;
+	vk.compressionBC = qtrue;
+	vk.staging_buffer.ptr = staging;
+	vk.staging_buffer.size = sizeof( staging );
+	qvkDeviceWaitIdle = []( VkDevice ) { return ownedFailure == 1 ? VK_ERROR_DEVICE_LOST : VK_SUCCESS; };
+	qvkGetPhysicalDeviceFormatProperties = []( VkPhysicalDevice, VkFormat, VkFormatProperties *p ) { *p = {}; p->optimalTilingFeatures = VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT | VK_FORMAT_FEATURE_TRANSFER_DST_BIT; };
+	qvkCreateImage = []( VkDevice, const VkImageCreateInfo *, const VkAllocationCallbacks *, VkImage *image ) { *image = (VkImage)(uintptr_t)++ownedHandle; ownedImages++; return VK_SUCCESS; };
+	qvkDestroyImage = []( VkDevice, VkImage, const VkAllocationCallbacks * ) { assert( ownedImages ); ownedImages--; };
+	qvkGetImageMemoryRequirements = []( VkDevice, VkImage, VkMemoryRequirements *p ) { *p = { 4096, 256, 1 }; };
+	qvkGetPhysicalDeviceMemoryProperties = []( VkPhysicalDevice, VkPhysicalDeviceMemoryProperties *p ) { *p = {}; p->memoryTypeCount = 1; p->memoryTypes[0].propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; };
+	qvkAllocateMemory = []( VkDevice, const VkMemoryAllocateInfo *info, const VkAllocationCallbacks *, VkDeviceMemory *memory ) { assert( info->allocationSize == 4096 ); if ( ownedFailure == 2 ) return VK_ERROR_OUT_OF_DEVICE_MEMORY; *memory = (VkDeviceMemory)(uintptr_t)++ownedHandle; ownedMemory++; return VK_SUCCESS; };
+	qvkFreeMemory = []( VkDevice, VkDeviceMemory, const VkAllocationCallbacks * ) { assert( ownedMemory ); ownedMemory--; };
+	qvkBindImageMemory = []( VkDevice, VkImage, VkDeviceMemory, VkDeviceSize offset ) { assert( offset == 0 ); return VK_SUCCESS; };
+	qvkCreateImageView = []( VkDevice, const VkImageViewCreateInfo *, const VkAllocationCallbacks *, VkImageView *view ) { if ( ownedFailure == 3 ) return VK_ERROR_OUT_OF_DEVICE_MEMORY; *view = (VkImageView)(uintptr_t)++ownedHandle; ownedViews++; return VK_SUCCESS; };
+	qvkDestroyImageView = []( VkDevice, VkImageView, const VkAllocationCallbacks * ) { assert( ownedViews ); ownedViews--; };
+	qvkAllocateDescriptorSets = []( VkDevice, const VkDescriptorSetAllocateInfo *, VkDescriptorSet *binding ) { *binding = (VkDescriptorSet)(uintptr_t)77; ownedBindings++; return VK_SUCCESS; };
+	qvkCreateSampler = []( VkDevice, const VkSamplerCreateInfo *, const VkAllocationCallbacks *, VkSampler *sampler ) { *sampler = (VkSampler)(uintptr_t)78; return VK_SUCCESS; };
+	qvkUpdateDescriptorSets = []( VkDevice, uint32_t count, const VkWriteDescriptorSet *writes, uint32_t, const VkCopyDescriptorSet * ) { assert( count == 1 && (uintptr_t)writes->dstSet == 77 ); };
+	qvkCmdCopyBufferToImage = []( VkCommandBuffer, VkBuffer, VkImage, VkImageLayout, uint32_t, const VkBufferImageCopy * ) {};
+	rhiTexture_t texture = {};
+	for ( int i = 0; i < 12; i++ ) {
+		const int side = i % 2 ? 8 : 16;
+		assert( RHI_ReplaceCompressedTexture( &texture, side, side, 1, source, side * side, rhiFormat_t::BC7_SRGB, rhiAddress_t::Repeat, "owned" ) == rhiStatus_t::Success );
+		assert( texture.memory && texture.binding == 77 && ownedImages == 1 && ownedViews == 1 && ownedMemory == 1 && ownedBindings == 1 );
+		assert( vk_world.num_image_chunks == 0 );
+	}
+	const rhiTexture_t saved = texture;
+	for ( ownedFailure = 1; ownedFailure <= 3; ownedFailure++ ) {
+		assert( RHI_ReplaceCompressedTexture( &texture, 16, 16, 1, source, sizeof( source ), rhiFormat_t::BC7_SRGB, rhiAddress_t::Repeat, "owned" ) != rhiStatus_t::Success );
+		assert( memcmp( &texture, &saved, sizeof( texture ) ) == 0 );
+		assert( ownedImages == 1 && ownedViews == 1 && ownedMemory == 1 && ownedBindings == 1 );
+	}
+	RHI_DestroyTexture( &texture );
+	assert( !ownedImages && !ownedViews && !ownedMemory );
+	vk.staging_buffer = {};
+	vk.samplers = {};
+	vk.device = VK_NULL_HANDLE;
+}
+
 int main( void ) {
 	check_compressed_uploads();
+	check_texture_replacement();
 	vk_config.uniformBytes = 128;
 	assert( !RHI_GetCapabilities().active );
 	vk.active = vk.wideLines = vk.fragmentStores = vk.clearAttachment = vk.fboActive = vk.offscreenRender = qtrue;
