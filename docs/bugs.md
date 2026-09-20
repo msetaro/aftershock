@@ -915,6 +915,8 @@ conversion; MSVC caught the initially implicit narrowing.
 projection remains 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
 No golden changes are needed because only reporting metadata changes. This is
 not a sanitizer finding and has no expected-failure or UBSan suppression entry.
+Merged in [PR #146](https://github.com/msetaro/aftershock/pull/146), 3d104d0c;
+integration regression 35508970698 passed.
 
 ## Fixed: IQM rotated nonuniform joint scale (#31, discovered during #9)
 
@@ -948,3 +950,5 @@ Full cooker checks pass on both compilers; fixed Quake 3 replays retain projecti
 is regenerated: the corrected nonuniform case is newly tested analytically and
 existing replay frames remain identical. There is no known-bugs/UBSan suppression
 entry for this numerical correctness bug. It remains separate from accounting.
+Merged in [PR #147](https://github.com/msetaro/aftershock/pull/147), 7f4d43a7;
+integration regression 35510058541 passed.

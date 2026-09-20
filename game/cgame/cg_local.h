@@ -1665,3 +1665,10 @@ void CG_ParticleMisc( qhandle_t pshader, vec3_t origin, int size, int duration, 
 void CG_ParticleExplosion( char *animStr, vec3_t origin, vec3_t vel, int duration, int sizeStart, int sizeEnd );
 extern qboolean initparticles;
 int CG_NewParticleArea( int num );
+
+void CG_InitAnimation( void );
+void CG_ShutdownAnimation( void );
+void CG_AnimationSnapshot( const entityState_t *entity );
+bool CG_AnimationPlayer( centity_t *cent );
+bool CG_AnimationViewWeapon( const playerState_t *ps, const vec3_t origin, const vec3_t angles );
+void CG_AnimationStatus( void );

@@ -11,6 +11,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <limits.h>
+#include "../engine/animation/animation_public.h"
 #include "../engine/public/g_native_public.h"
 #include "../engine/public/dev_public.h"
 #ifdef AFTERSHOCK_DEVTOOLS

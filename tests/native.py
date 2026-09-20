@@ -81,7 +81,8 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
 
 
 def normalize_log(log):
-    # Implementation/build metadata and the old VM printf's extra numeric padding.
+    # Host interface enumeration, implementation/build metadata and VM printf padding.
+    log = re.sub(rb'^IP6?: [^\r\n]+\r?\n', b'', log, flags=re.M)
     log = re.sub(rb'^Static game loaded\.\r?\n', b'', log, flags=re.M)
     log = re.sub(rb'^\.\.\.which has vmMagic VM_MAGIC_VER2\r?\n|^Loading [0-9]+ jump table targets\r?\n|^\^3jump target [0-9]+ set on instruction [0-9]+ \(OP_CVIF\) with bad opStack [0-9]+\r?\n', b'', log, flags=re.M)
     log = re.sub(rb"^(?:Loading vm file vm/qagame\.qvm\.\.\.|VM file qagame compiled to [0-9]+ bytes of code|qagame loaded in [0-9]+ bytes on the hunk|Loading dll file qagame\.|VM_LoadDLL 'qagamex86_64\.so' ok|VM_LoadDll\(qagame\) found \*\*vmMain\*\* at 0x[0-9a-fA-F]+|VM_LoadDll\(qagame\) succeeded!|gamedate:.*)\r?\n", b'', log, flags=re.M)

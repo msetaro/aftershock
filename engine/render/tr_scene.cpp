@@ -31,6 +31,7 @@ int r_numdlights;
 static int r_firstSceneDlight;
 
 static int r_numentities;
+static uint32_t r_numskeletalposes;
 static int r_firstSceneEntity;
 
 static int r_numpolys;
@@ -58,6 +59,7 @@ void R_InitNextFrame( void ) {
 	r_firstSceneDlight = 0;
 
 	r_numentities = 0;
+	r_numskeletalposes = 0;
 	r_firstSceneEntity = 0;
 
 	r_numpolys = 0;
@@ -227,8 +229,29 @@ void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime ) {
 	backEndData->entities[r_numentities].e = *ent;
 	backEndData->entities[r_numentities].lightingCalculated = qfalse;
 	backEndData->entities[r_numentities].intShaderTime = intShaderTime;
+	backEndData->entities[r_numentities].skeletalPose = nullptr;
 
 	r_numentities++;
+}
+
+
+bool RE_AddSkeletalEntityToScene( const refEntity_t *ent, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime ) {
+	if ( !tr.registered || !ent || !pose || !modelHash || ent->reType != RT_MODEL || r_numentities >= MAX_REFENTITIES || r_numskeletalposes >= MAX_SKELETAL_POSES )
+		return false;
+	const model_t *model = R_GetModelByHandle( ent->hModel );
+	static const uint8_t legacyHash[32] = {};
+	if ( model->type != MOD_IQM || !memcmp( model->cookedHash, legacyHash, 32 ) || memcmp( model->cookedHash, modelHash, 32 ) )
+		return false;
+	skeletalPose_t *copy = &backEndData->skeletalPoses[r_numskeletalposes];
+	if ( !R_PrepareIQMPose( (const iqmData_t *)model->modelData, pose, copy ) )
+		return false;
+	const int previous = r_numentities;
+	RE_AddRefEntityToScene( ent, intShaderTime );
+	if ( previous == r_numentities )
+		return false;
+	backEndData->entities[previous].skeletalPose = copy;
+	r_numskeletalposes++;
+	return true;
 }
 
 

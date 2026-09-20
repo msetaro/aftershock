@@ -1,4 +1,5 @@
 #include "devtools_public.h"
+#include "../animation/animation_public.h"
 #include "../qcommon/qcommon_public.h"
 #include "../qcommon/keys_public.h"
 #include "../../third_party/imgui/imgui.h"
@@ -24,6 +25,252 @@ static struct {
 	int x, y, width, height;
 } animation;
 
+// The graph editor keeps source text and preview state separate from live game
+// assets. Cooking stays offline; a map restart selects a new gameplay revision.
+static struct {
+	char path[MAX_QPATH], source[MAX_QPATH], loadedSource[MAX_QPATH];
+	char text[65536], saved[65536], status[256], lastEvent[64];
+	animAsset_t asset;
+	void *storage;
+	animState_t state;
+	float parameters[ANIM_MAX_PARAMETERS];
+	uint32_t time, remainder, previews;
+	int model;
+	bool load, read, save, select, play, draw;
+} graph;
+
+template <typename T>
+static T GraphRecord( animSectionIndex_t section, uint32_t index ) {
+	T record;
+	memcpy( &record, graph.asset.data + graph.asset.header.sections[section].offset + index * sizeof( T ), sizeof( record ) );
+	return record;
+}
+static void GraphCommand( void ) {
+	const char *operation = Cmd_Argv( 1 );
+	if ( !strcmp( operation, "load" ) ) {
+		Q_strncpyz( graph.path, Cmd_Argv( 2 ), sizeof( graph.path ) );
+		graph.load = graph.select = true;
+	} else if ( !strcmp( operation, "source" ) ) {
+		Q_strncpyz( graph.source, Cmd_Argv( 2 ), sizeof( graph.source ) );
+		graph.read = graph.select = true;
+	} else {
+		Com_Printf( "dev_animation load <cooked.asanim> | source <animation_source/file.json>\n" );
+	}
+}
+static bool GraphReadSource( const char *path, char *text, size_t capacity ) {
+	fileHandle_t file;
+	const int length = FS_FOpenFileRead( path, &file, qfalse );
+	if ( !file )
+		return false;
+	const bool success = length >= 0 && size_t( length ) < capacity && FS_Read( text, length, file ) == length;
+	FS_FCloseFile( file );
+	if ( success && memchr( text, 0, size_t( length ) ) )
+		return false;
+	if ( success )
+		text[length] = '\0';
+	return success;
+}
+static bool GraphWriteSource( const char *path, const char *text ) {
+	const fileHandle_t file = FS_FOpenFileWrite( path );
+	if ( !file )
+		return false;
+	const int length = int( strlen( text ) );
+	const bool success = FS_Write( text, length, file ) == length;
+	FS_FCloseFile( file );
+	return success;
+}
+static void EditGraph( const refexport_t *renderer ) {
+	if ( graph.load ) {
+		graph.load = false;
+		animAsset_t asset;
+		void *storage = Anim_LoadFile( graph.path, &asset );
+		if ( storage ) {
+			Anim_FreeFile( graph.storage );
+			graph.storage = storage;
+			graph.asset = asset;
+			graph.model = renderer->RegisterModel( asset.header.model );
+			graph.time = graph.remainder = graph.previews = 0;
+			graph.play = false;
+			graph.lastEvent[0] = '\0';
+			Anim_Reset( &asset, 0, &graph.state );
+			Anim_DefaultParameters( &asset, graph.parameters );
+			Q_strncpyz( graph.status, "Graph loaded. Gameplay keeps its map-start revision.", sizeof( graph.status ) );
+			Com_Printf( "Animation graph loaded: state=%s\n", Anim_StateName( &asset, graph.state.current ) );
+		} else {
+			Q_strncpyz( graph.status, "Graph load failed; the previous preview remains available.", sizeof( graph.status ) );
+		}
+	}
+	if ( graph.read || graph.save ) {
+		const bool read = graph.read;
+		graph.read = graph.save = false;
+		// Restrict source edits to a dedicated loose-file project in fs_homepath.
+		bool valid = !strncmp( graph.source, "animation_source/", 17 ) && !strstr( graph.source, ".." ) && COM_CompareExtension( graph.source, ".json" );
+		for ( const char *p = graph.source; *p; ++p )
+			valid &= ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '/' || *p == '_' || *p == '-' || *p == '.';
+		if ( !valid ) {
+			Q_strncpyz( graph.status, "Use a lowercase animation_source/*.json path.", sizeof( graph.status ) );
+			return;
+		}
+		char current[sizeof( graph.text )];
+		if ( !GraphReadSource( graph.source, current, sizeof( current ) ) ) {
+			Q_strncpyz( graph.status, "Source read failed or exceeds 65535 bytes; edits retained.", sizeof( graph.status ) );
+			return;
+		}
+		if ( read ) {
+			if ( strcmp( graph.text, graph.saved ) ) {
+				Q_strncpyz( graph.status, "Unsaved edits: save or undo them before loading another source.", sizeof( graph.status ) );
+				return;
+			}
+			Q_strncpyz( graph.text, current, sizeof( graph.text ) );
+			Q_strncpyz( graph.saved, current, sizeof( graph.saved ) );
+			Q_strncpyz( graph.loadedSource, graph.source, sizeof( graph.loadedSource ) );
+			Q_strncpyz( graph.status, "Source loaded. Save keeps a numbered backup; the cooker validates JSON.", sizeof( graph.status ) );
+		} else {
+			if ( strcmp( graph.source, graph.loadedSource ) || strcmp( current, graph.saved ) ) {
+				Q_strncpyz( graph.status, "Source changed outside the editor; save refused, edits retained.", sizeof( graph.status ) );
+				return;
+			}
+			char backup[MAX_QPATH + 16];
+			int revision;
+			for ( revision = 0; revision < 1000; ++revision ) {
+				Com_sprintf( backup, sizeof( backup ), "%s.bak.%03d", graph.source, revision );
+				if ( !FS_FileExists( backup ) )
+					break;
+			}
+			if ( revision == 1000 || !GraphWriteSource( backup, current ) ) {
+				Q_strncpyz( graph.status, "Backup failed or 1000 revisions reached; source unchanged.", sizeof( graph.status ) );
+				return;
+			}
+			if ( !GraphWriteSource( graph.source, graph.text ) || !GraphReadSource( graph.source, current, sizeof( current ) ) || strcmp( current, graph.text ) ) {
+				Com_sprintf( graph.status, sizeof( graph.status ), "Save failed; edits retained, previous source in %s.", backup );
+				return;
+			}
+			Q_strncpyz( graph.saved, graph.text, sizeof( graph.saved ) );
+			Q_strncpyz( graph.status, "Source saved. Check cooker output, then load the cooked graph.", sizeof( graph.status ) );
+			Com_Printf( "Animation source saved: %s (backup %s)\n", graph.source, backup );
+		}
+	}
+}
+static void InspectGraph( uint32_t elapsed ) {
+	const ImGuiTabItemFlags flags = graph.select ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+	graph.select = false;
+	if ( !ImGui::BeginTabItem( "Graph", nullptr, flags ) )
+		return;
+	ImGui::SetNextItemWidth( 370 );
+	ImGui::InputText( "##Cooked graph", graph.path, sizeof( graph.path ) );
+	ImGui::SameLine();
+	graph.load |= ImGui::Button( "Load graph" );
+	if ( ImGui::BeginTabBar( "Graph views" ) ) {
+		if ( ImGui::BeginTabItem( "Preview" ) ) {
+			if ( graph.storage ) {
+				ImGui::Text( "State: %s | last event: %s", Anim_StateName( &graph.asset, graph.state.current ), graph.lastEvent );
+				ImGui::Checkbox( "Play fixed steps", &graph.play );
+				ImGui::SameLine();
+				if ( ImGui::Button( "Reset" ) ) {
+					graph.time = graph.remainder = 0;
+					Anim_Reset( &graph.asset, 0, &graph.state );
+				}
+				if ( ImGui::BeginChild( "Inputs", ImVec2( 0, 110 ), ImGuiChildFlags_Borders ) ) {
+					for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_PARAMETERS].count; ++i ) {
+						const auto parameter = GraphRecord<animFileParameter_t>( ANIM_PARAMETERS, i );
+						ImGui::SliderFloat( parameter.name, &graph.parameters[i], parameter.minimum, parameter.maximum );
+					}
+				}
+				ImGui::EndChild();
+				ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 );
+				if ( graph.play ) {
+					graph.remainder += MIN( elapsed, 250U );
+					while ( graph.remainder >= 20 ) {
+						graph.time += 20;
+						graph.remainder -= 20;
+						animEvents_t events;
+						if ( !Anim_Tick( &graph.asset, graph.parameters, graph.time, &graph.state, &events ) ) {
+							graph.play = false;
+							Q_strncpyz( graph.status, "Graph tick failed; preview paused.", sizeof( graph.status ) );
+							break;
+						}
+						if ( events.count )
+							Q_strncpyz( graph.lastEvent, Anim_EventName( &graph.asset, events.items[events.count - 1].id ), sizeof( graph.lastEvent ) );
+					}
+				}
+				const ImVec2 position = ImGui::GetCursorScreenPos(), size = ImGui::GetContentRegionAvail();
+				animation.x = int( position.x );
+				animation.y = int( position.y );
+				animation.width = int( size.x );
+				animation.height = int( size.y ) - 35;
+				graph.draw = animation.width > 32 && animation.height > 32;
+				if ( graph.draw )
+					ImGui::InvisibleButton( "Graph pose", ImVec2( size.x, float( animation.height ) ) );
+			}
+			ImGui::EndTabItem();
+		}
+		if ( ImGui::BeginTabItem( "Source" ) ) {
+			ImGui::SetNextItemWidth( 460 );
+			ImGui::InputText( "##Source path", graph.source, sizeof( graph.source ) );
+			graph.read |= ImGui::Button( "Load source" );
+			ImGui::SameLine();
+			graph.save |= ImGui::Button( "Save + backup" );
+			ImGui::SameLine();
+			if ( ImGui::Button( "Undo edits" ) )
+				Q_strncpyz( graph.text, graph.saved, sizeof( graph.text ) );
+			ImGui::InputTextMultiline( "##Graph JSON", graph.text, sizeof( graph.text ), ImVec2( -1, 210 ), ImGuiInputTextFlags_AllowTabInput );
+			ImGui::EndTabItem();
+		}
+		if ( ImGui::BeginTabItem( "Tables" ) ) {
+			if ( graph.storage ) {
+				if ( ImGui::TreeNode( "States / events" ) ) {
+					for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_STATES].count; ++i ) {
+						const auto state = GraphRecord<animFileState_t>( ANIM_STATES, i );
+						ImGui::Text( "%s: node %u, speed %.3f, %s", state.name, state.node, double( state.speedQ16 ) / 65536, state.flags & ANIM_LOOP ? "loop" : "once" );
+						for ( uint32_t e = 0; e < state.eventCount; ++e ) {
+							const auto event = GraphRecord<animFileEvent_t>( ANIM_EVENTS, state.firstEvent + e );
+							ImGui::Text( "  %u ms: %s (bone %d)", event.timeMs, event.name, event.bone );
+						}
+					}
+					ImGui::TreePop();
+				}
+				if ( ImGui::TreeNode( "Transitions" ) ) {
+					const char *operations[] = { "==", "!=", "<", "<=", ">", ">=" };
+					for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_TRANSITIONS].count; ++i ) {
+						const auto transition = GraphRecord<animFileTransition_t>( ANIM_TRANSITIONS, i );
+						ImGui::Text( "%s -> %s: %u ms%s", transition.from == ANIM_ANY_STATE ? "*" : Anim_StateName( &graph.asset, transition.from ), Anim_StateName( &graph.asset, transition.to ), transition.blendMs, transition.flags & ANIM_ON_END ? " on end" : "" );
+						for ( uint32_t c = 0; c < transition.conditionCount; ++c ) {
+							const auto condition = GraphRecord<animFileCondition_t>( ANIM_CONDITIONS, transition.firstCondition + c );
+							const auto parameter = GraphRecord<animFileParameter_t>( ANIM_PARAMETERS, condition.parameter );
+							ImGui::Text( "  %s %s %.3f", parameter.name, operations[condition.operation], double( condition.value ) );
+						}
+					}
+					ImGui::TreePop();
+				}
+				if ( ImGui::TreeNode( "Blend nodes / masks" ) ) {
+					for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_NODES].count; ++i ) {
+						const auto node = GraphRecord<animFileNode_t>( ANIM_NODES, i );
+						ImGui::Text( "%u %s: %s a=%u b=%u reference=%u", i, node.name, node.kind == ANIM_CLIP ? "clip" : node.kind == ANIM_BLEND ? "blend"
+																																				 : "additive",
+							node.a, node.b, node.reference );
+						if ( node.kind != ANIM_CLIP )
+							ImGui::Text( "  parameter=%u mask=%u weight=%.3f", node.parameter, node.mask, double( node.weight ) );
+					}
+					for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_MASKS].count; ++i ) {
+						const auto mask = GraphRecord<animFileMask_t>( ANIM_MASKS, i );
+						ImGui::Text( "Mask %u: %s", i, mask.name );
+						for ( uint32_t j = 0; j < graph.asset.header.sections[ANIM_JOINTS].count; ++j ) {
+							const auto joint = GraphRecord<animFileJoint_t>( ANIM_JOINTS, j );
+							if ( mask.weights[j] )
+								ImGui::Text( "  %s %.3f", joint.name, double( mask.weights[j] ) );
+						}
+					}
+					ImGui::TreePop();
+				}
+			}
+			ImGui::EndTabItem();
+		}
+		ImGui::EndTabBar();
+	}
+	ImGui::TextWrapped( "%s", graph.status );
+	ImGui::EndTabItem();
+}
+
 static struct {
 	int selected, action;
 	char key[64], value[1024], classname[64], status[128];
@@ -48,6 +295,8 @@ static void Status( void ) {
 	Com_Printf( "Developer profile: cpu=%u snapshots=%" PRIu64 " bits=%u\n",
 		DevTools_CpuTimings( &timings ), net->snapshots, net->snapshotBits );
 	Com_Printf( "Developer animation: model=%d frame=%d previews=%u clip=%s\n", animation.model, animation.frame, animationFrames, animation.clipName );
+	if ( graph.storage )
+		Com_Printf( "Developer graph: state=%s previews=%u\n", Anim_StateName( &graph.asset, graph.state.current ), graph.previews );
 	Com_Printf( "Developer drawing: lines=%u labels=%u\n", drawnLines, drawnLabels );
 	devMemory_t memory;
 	Com_DeveloperMemory( &memory );
@@ -61,6 +310,7 @@ void DevTools_Init( void ) {
 	enabled = Cvar_Get( "dev_tools", "0", CVAR_TEMP );
 	Cvar_SetDescription( enabled, "Development overlay; Escape closes it. Absent from shipping builds." );
 	Cmd_AddCommand( "devtools_status", Status );
+	Cmd_AddCommand( "dev_animation", GraphCommand );
 }
 
 void DevTools_Reset( void ) {
@@ -73,6 +323,10 @@ void DevTools_Reset( void ) {
 	fontTexture = 0;
 	lastTime = 0;
 	animation.model = animation.skin = 0;
+	Anim_FreeFile( graph.storage );
+	graph.storage = nullptr;
+	graph.model = 0;
+	graph.play = graph.draw = false;
 	animation.phase = 0;
 	entities.selected = -1;
 	entities.key[0] = entities.value[0] = entities.status[0] = '\0';
@@ -637,7 +891,8 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 		}
 	}
 	devModel_t model;
-	if ( !animation.draw || !renderer->GetDeveloperModel( animation.model, &model ) || model.frames < 1 )
+	const int modelHandle = graph.draw ? graph.model : animation.model;
+	if ( !( animation.draw || graph.draw ) || !renderer->GetDeveloperModel( modelHandle, &model ) || model.frames < 1 )
 		return;
 	refdef_t view = {};
 	view.x = animation.x;
@@ -651,7 +906,7 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 	AxisClear( view.viewaxis );
 	refEntity_t entity = {};
 	entity.reType = RT_MODEL;
-	entity.hModel = animation.model;
+	entity.hModel = modelHandle;
 	entity.customSkin = animation.skin;
 	entity.renderfx = RF_NOSHADOW | RF_MINLIGHT;
 	entity.oldframe = animation.frame;
@@ -668,14 +923,23 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 																							  : lastFrame;
 	entity.backlerp = animation.play ? 1.0f - ( animation.phase - (float)animation.frame ) : 0;
 	vec3_t mins, maxs, angles = { 0, animation.yaw, 0 };
-	renderer->ModelBounds( animation.model, mins, maxs );
+	renderer->ModelBounds( modelHandle, mins, maxs );
 	const float extent = MAX( maxs[2] - mins[2], MAX( maxs[0] - mins[0], maxs[1] - mins[1] ) );
 	entity.origin[0] = MAX( extent, 8.0f ) * 2.0f;
 	entity.origin[2] = -( mins[2] + maxs[2] ) * 0.5f;
 	VectorCopy( entity.origin, entity.oldorigin );
 	AnglesToAxis( angles, entity.axis );
 	renderer->ClearScene();
-	renderer->AddRefEntityToScene( &entity, qfalse );
+	if ( graph.draw ) {
+		animPose_t pose;
+		if ( !Anim_Evaluate( &graph.asset, &graph.state, graph.parameters, graph.time, &pose ) || !renderer->AddSkeletalEntityToScene( &entity, &pose, graph.asset.header.modelHash, qfalse ) ) {
+			Q_strncpyz( graph.status, "Graph/model revision mismatch or pose rejected; reload both together.", sizeof( graph.status ) );
+			return;
+		}
+		++graph.previews;
+	} else {
+		renderer->AddRefEntityToScene( &entity, qfalse );
+	}
 	renderer->RenderScene( &view );
 	++animationFrames;
 }
@@ -771,6 +1035,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	io.DeltaTime = lastTime ? Com_Clamp( 0.001f, 0.25f, (float)elapsed * 0.001f ) : 1.0f / 60.0f;
 	lastTime = (uint32_t)milliseconds;
 	animation.draw = animation.load = false;
+	graph.draw = false;
 	entities.action = 0;
 	worldDebug.refresh = false;
 	if ( !*entities.classname )
@@ -821,6 +1086,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 			InspectAnimation( renderer, elapsed );
 			InspectEntities();
 			InspectWorld();
+			InspectGraph( elapsed );
 			ImGui::EndTabBar();
 		}
 	}
@@ -835,6 +1101,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 		Com_Printf( "Developer UI draw capacity exceeded\n" );
 	}
 	// Engine mutation/error handling runs after all vendor UI calls return.
+	EditGraph( renderer );
 	DrawAnimation( renderer, milliseconds );
 	EditEntities();
 	if ( worldDebug.refresh )

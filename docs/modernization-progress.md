@@ -16,28 +16,265 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#9 PR #145 merged as c195f798 and passed integration regression 35507482742;
-#9 is closed and checked in #25. Accounting PR #146 merged as 3d104d0c after
-exact head 1f1aeb8f passed build 35508534162 and regression 35508533987. Its merge
-tree matches the tested tree (b15a081c6dd1446dea030b9c6d899fdccaa41206).
-Merged-tree regression 35508970698 passed. The separate scale PR may now open.
+Continue #10 on `issue/10-animation`, draft PR #148. Initial head 49e99bd8
+started hosted build 35516054105 and regression 35516054094. MSVC
+rejects two integer ternaries assigned to new float animation inputs (C4244).
+Use exactly equivalent float literals for 0/+1/-1 and make the existing
+unsigned-to-float ADS denominator conversion explicit. GCC/Clang unit, sanitizer,
+format and both cross regression jobs pass; Linux/macOS builds pass. The 100 Hz
+local check passes after the literal fix; the same Q3 fixture still matches all
+253 boxes and repeated frame samples (animation-msvc-conversions-demo.log).
+Correction d9cb78a4 is pushed; current build 35516284205 and regression
+35516284169 are running. MSVC Release x64 and both ARM64 configurations already
+pass; inspect the remaining exact-head checks before merging PR #148. The integration
+baseline is 7f4d43a7 (merged-tree regression 35510058541 passed). #31 and #9 are
+closed. Feature implementation/editor/ABI gates are committed through 3fbc0a62;
+7004bf0a adds the 100 Hz timing test first. The publication guard now passes it.
 
-Current branch is issue/31-iqm-joint-scale. Modernization is merged forward,
-including the MSVC accounting-width correction; no history is rewritten. Failing
-tests 13f999df/e2cd9e50 precede the six-coefficient scale fix. GCC/Clang UBSan
-matrix/native-glTF parity, full cooker checks, formatting and unchanged fixed
-Quake 3 demo hashes pass. Self-review is recorded below. Open this separate scale PR and require exact-head hosted build/regression,
-then merge with a merge commit and require its merged-tree regression.
+Implemented: cooked graphs and compressed pose sampling, blend trees/masks/additive
+layers, fixed-step events/root motion/IK, copied renderer poses, authored rifle/body
+controllers, replicated hit boxes, automatic body facing, ADS/recoil/sway, and an
+ImGui source editor/compiled-table inspector/preview. Editor and native GCC/Clang
+UBSan tests pass. Current C/game C++/engine C++ ABI checks retain 29 types, three
+offsets and the extension value; the whole-game C/DLL port oracles are historical
+at 7f4d43a7, with classic/shared-math gates retained. No accepted golden changed.
 
-#10 has initial failing-test preparation 57838d59 and new owned source fixtures
-0704fe4c on
-issue/10-animation in /tmp/aftershock-10-animation. No animation implementation
-is present there. After the scale PR is accepted, merge modernization forward
-into #10, read its full issue and the cache issue10-entry-points.md and
-issue10-design-considerations.md, then extend runtime/gameplay tests before
-implementation. The full rifle/body/layers/IK/events/recorded-hit-box scope remains
-mandatory; the first cooker-envelope test is not acceptance. Continue the full
-#25 roadmap afterward. All GitHub writes stay in msetaro/aftershock.
+Two separate #10 demos were recorded once from 3fbc0a62 (q3dm17, oa_dm1). Each
+replay matched 253 received hit-box hashes against the saved authoritative trace,
+and three frame hashes repeated. All six new captures were visually reviewed.
+Fixtures/manifests are under `tests/golden/animation`; do not record them again.
+Current verification covers the fixed-tick publication guard, owner visibility
+bounds and reused-entity slot checks. Passed: unchanged classic Q3 frame projection, fixed Q3 and OpenArena module
+replays (253 matching boxes each), unit/one-ULP gate, sanitized units, collision
+differential, old asset-editor workflow, and lifetime analysis (1156 commands).
+Classic bot smoke initially differed only in this host’s rotated IPv6 addresses;
+the shared log normalizer now removes IP/IP6 enumeration from both sides, without
+changing goldens or gameplay lines. Both-map bot smoke now passes with that metadata-only normalization
+(animation-runtime-classic.log).
+Tidy passed 1202 configurations before the final small publication/ownership edits.
+
+Next: inspect PR #148’s exact-head checks and finish full hosted gates (including OpenArena static/module replays and cross/MSVC
+builds), resolve any failures without changing accepted fixtures, then merge with
+a merge commit and verify the merged tree. The local AGENTS self-review below is
+complete; hosted/exact-head acceptance is still required.
+Continue #12 before #11 (replication dependency), then the remaining #25 roadmap.
+All PRs stay in this repository; no parent-fork PRs or main pushes.
+
+## #10 local self-review
+
+Scope matches #10's cooked runtime, authored rifle/body graphs, game notifies,
+fixed-step replicated pose state, ImGui authoring and fixed-demo parity. New
+animation arithmetic is strictly compiled; existing simulation expressions and
+accepted classic fixture bytes are unchanged. No engine bug fix outside the
+feature is included. The native port-era C/DLL comparison is explicitly historical;
+current ABI/shared math and classic replay checks remain in CI. Host interface
+address normalization removes metadata only, from both expected and actual logs.
+
+No new OS calls occur outside the filesystem layer. Animation file storage has
+explicit load/shutdown ownership; simulation/render poses use bounded POD arrays
+and no per-frame allocation. Lifetime analysis passes 1156 commands, including
+the new subsystem; type/boundary/format checks pass. Wire structs retain their
+layouts (C/game C++/engine C++ agreement), and cooked animation records assert
+layout/trivial-copy properties. Renderer ABI is 13 shipping / 17 development.
+
+Native GCC/Clang+UBSan, the real-input editor, fixed-step live gameplay (including
+100 Hz server), new Q3/static and OA/module fixed replays, unchanged classic Q3
+frames/collision/bot smoke, unit/negative control, sanitized units, old asset editor,
+known-bug classification, tidy and lifetime gates pass locally. Remaining acceptance:
+full hosted exact-head build/regression and merged-tree verification. The original
+assets and new demos contain no copied game paks; both new source/demo manifests
+record provenance and exact hashes. All changes and PRs remain in this repository.
+
+## #10 implementation evidence (chronological)
+
+#9 PR #145 merged as c195f798 and passed integration 35507482742; #9 is closed
+and checked in #25. Accounting PR #146 merged as 3d104d0c after exact-head build
+35508534162/regression 35508533987; integration 35508970698 passed.
+Scale PR #147 merged as 7f4d43a7 after exact head dd8f7f79 passed build
+35509606176/regression 35509606177 with its committed self-review. Its merge tree
+matches the tested tree (796b6c532309846d4913439d74dfc751c4ca4ae1).
+Merged-tree regression 35510058541 passed. Both IQM fixes are accepted; no active
+known-bug entry or UBSan suppression remains. #31 can close at this checkpoint.
+
+Current branch is issue/10-animation, with modernization merged forward. #31 is
+closed after both IQM fixes passed merged-tree regression. Test-first commits
+57838d59/b0c95261/47b1c807 now pass the initial cooked-graph/native runtime slice
+(animation-core-first.log): sampling, transitions, loop event boundaries,
+translation root motion, masked/additive transforms and two-bone/look-at IK.
+The new graph reuses IQM quantized poses and binds the exact cooked model hash;
+source manifests track graph/glTF/buffer dependencies and graph-only edits.
+Original Blender rifle/body assets and the earlier native viewer checks remain
+unchanged. This is feature development, not #10 acceptance or gameplay parity.
+
+Initial portable/cooker implementation is cdc87445; GCC and Clang/libc++ with
+UBSan pass (animation-core-first.log, animation-core-clang.log), as do format,
+boundary and type checks. New source-only tests now expose the unimplemented
+turning-loop composition (animation-root-events-before.log, expected assertion).
+They also specify initial time-zero events, bounded transactional event overflow
+and unsigned clock wrap. These now pass GCC/Clang+UBSan after ordered rigid root
+composition and explicit initial-entry bookkeeping (animation-root-events-after.log,
+animation-root-events-clang.log). State/event output remains atomic on overflow;
+repeated ticks cannot double-deliver or cascade transitions. Next: data-authored
+blend trees/masked additive layers, then production/gameplay integration.
+New tree test now fails on the unchanged runtime (animation-trees-before.log):
+a numeric parameter blends idle/wave while a second drives additive wave motion
+only on the tip subtree. It checks both composed rotation and untouched root
+translation. Implement flat topologically ordered nodes and fixed bone masks;
+reuse the already-tested transform operators. Implemented: up to 64 flat nodes,
+16 masks with 128 weights, parameter blends and reference-relative additive
+layers. The tree contract passes GCC and Clang/libc++ with UBSan
+(animation-trees-after.log, animation-trees-clang.log). Production client/server
+build passes (animation-build.log); the new core has explicit strict FP flags.
+SHA ownership is shared core plus a separate copy only for optional renderer
+modules. A full cooker check overlapped the source-list edit and invalidated its
+tool hash mid-run; the stable rerun passed (animation-cook-regression-stable.log). Next: renderer copied-pose submission, authored rifle/body
+graphs, gameplay/replication and ImGui authoring. Renderer submission test-first
+now fails to compile against the absent API (animation-render-before.log). It
+requires graph/model revision agreement, copied skin matrices and culling bounds,
+128 poses per renderer frame, capacity rejection and frame reset. Legacy entity
+submission must clear a reused pose pointer. This is ordinary render ownership
+coverage using a small constructed skeleton; gameplay parity remains outstanding.
+Implemented renderer pose submission passes GCC/Clang+UBSan and the client build
+(animation-render-after.log, animation-render-clang.log, animation-render-build.log).
+Skin matrices live in renderer frame storage; custom bounds cover the transformed
+bind mesh, and legacy frame sampling remains on its existing path. Renderer ABI
+is now 13 shipping / 17 development; modules must be rebuilt together. Verified
+cooked model hashes persist across initial registration and development reload.
+The new hand-authored rifle/body graphs pass native state/event/socket/layer
+checks (animation-rigs-test.log). Rifle: idle/ADS/fire/reload/sprint/jump, shot,
+shell and four reload stages. Body: idle/walk/run blend, masked aim/lean,
+crouch/prone, turn and alternating footsteps. `rigs.json` adds graph recipes;
+original Blender files, original project and provenance hashes are unchanged.
+Classic fixed Q3 replays still match projection
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(animation-classic-demo-fresh.log); the default output directory was from another
+worktree, so validation used a fresh build directory. No fixture/golden changes.
+Next: replicated gameplay pose state and real presentation/ImGui tests.
+Snapshot test-first now fails on the absent shared adapter
+(animation-snapshot-before.log). Decision: explicit auxiliary animation entities
+(type 255, outside the existing event range), using the existing entity delta
+codec and unchanged wire structs. Their own fields carry nine state words,
+sixteen float parameters, owner/rig and origin/view angles. Legacy player fields
+are untouched. Trace event consumers and exclude this new type before use;
+prove the full state/float round trip through production MSG functions.
+The adapter now passes GCC and Clang/libc++ with UBSan: all nine state words,
+16 float parameters, owner/rig and origin/angles survive the real delta codec
+(92-byte initial / 10-byte time-only delta for the test record). Native client/
+server builds pass; public animation constants use inline constexpr to satisfy
+the existing native unused-constant policy. CG_CheckEvents and BotCheckEvents
+explicitly exclude the new auxiliary type; the render dispatcher/botlib already
+skip the event-range types, and auxiliary solidity/loop sound/event stay zero.
+No player snapshot field or codec expression changed. Logs:
+animation-snapshot-after.log, animation-snapshot-clang.log,
+animation-snapshot-build.log. Gameplay publication/loading is the next step.
+The new live gameplay test runs the real client with owned native game code and
+owned cooked rigs, then checks states/events/render counts and matching server/
+client hit-box digests. It currently fails as expected with no animation states
+(animation-gameplay-before.log). A native test also specifies authored hit-box
+bounds and in-place root translation (animation-boxes-before.log, absent API).
+Implement the hit-box output and game paths before accepting either test. These
+are new #10 artifacts; no existing fixture is regenerated.
+Authored boxes/in-place poses pass GCC and Clang+UBSan (animation-boxes-after.log,
+animation-boxes-clang.log). Game publication/loading and client presentation are
+now implemented in the worktree and build (animation-game-build.log); the first
+live gameplay run passed (animation-gameplay-first.log). Graph files are owned zone allocations loaded at
+module init and freed on shutdown. Server animation advances at 20 ms, publishes
+auxiliary snapshots, and derives boxes from the same immutable graph/parameters
+used by the client. Rifle/body presentation copies poses through the renderer;
+first-person FOV uses the existing entity transform. The smoke saw all six rifle
+states and expected reload/shot/shell/footstep events, 434 body/294 rifle render
+submissions, and matching received client/server box hashes. ADS and third-person
+captures were visually reviewed; these are the intended original block rigs.
+Remaining: actual recorded-demo parity, integrated IK/sway/aim behavior,
+ImGui graph authoring/inspection, content/runtime docs and complete gates.
+Live gameplay is committed as ab6283ed. The next pose-IK test fails on the absent
+bone-chain application API (animation-pose-ik-before.log); it uses the actual
+owned rifle arm and requires the hand to reach a nearby target. Integrate the
+existing analytical solver with local rotations and descendant matrices, then
+apply hands/feet/look-at in the same pose path used by hit boxes.
+This integration now passes the native arm target test and live Q3 smoke
+(animation-pose-ik-after.log, animation-gameplay-ik.log). Hands follow weapon
+grips/the reload magazine; feet use server collision-derived, replicated height
+offsets; head look-at and upper aim use view/input parameters. Server/client
+boxes still match after those operations. The generic IK application rejects
+non-uniform/sheared ancestor frames without changing the input pose; the owned
+rigs use supported uniform frames. Clang+UBSan and OpenArena live gameplay now
+pass too (animation-pose-ik-clang.log, animation-gameplay-oa.log). New gameplay
+input overrides reset on respawn; authoritative ground offsets cannot be set by
+client animation commands. Next: ADS sight placement, automatic body turning,
+cosmetic sway, then ImGui authoring and fixed-demo capture/replay.
+The automatic turning/ADS test now fails as expected: only idle/move body
+states appear when the player rotates (animation-facing-ads-before.log). The
+test also requires a centered settled optic, measured from the rendered socket.
+Implement authoritative body facing plus client-only sight placement/sway next.
+Automatic turning and settled ADS now pass the live test
+(animation-facing-ads-after.log): idle/move/turn all occur, the body facing
+is replicated, and 40 settled optic samples are centered within 0.000001 units.
+Server/client hit-box digests still agree; native checks pass
+(animation-facing-core.log). Root rotation is extracted into body facing,
+head yaw follows replicated view offsets, and bob/sway fade through ADS.
+A rifle additive recoil node now retains the ADS base while firing.
+The final graph passes live gameplay and Clang/libc++ UBSan
+(animation-facing-final.log, animation-facing-clang.log), including retained
+body facing after the turn; format/type/boundary checks pass.
+Graph authoring test-first now fails against the missing developer command
+(animation-editor-before.log). It will edit initial_state in ImGui, preserve
+a byte-identical backup, observe the external cooker revision and render the
+changed graph. Implement a bounded source editor and compiled graph inspector;
+reuse the existing ImGui and filesystem rather than a new JSON/UI dependency.
+Implemented editor now passes the real-input edit/cook/preview check
+(animation-editor-after.log): idle changed to ADS, source backup matches exactly,
+external cook revision changes and the new pose renders. The UI also exposes
+state/event/transition/node/mask tables and fixed-step parameter playback.
+Gameplay assets stay immutable until map restart. The ordinary cooked index now
+accepts graph entries (kind 6); the existing animation probe checks that valid
+project index. Next: complete this slice verification, then record the separate
+fixed #10 demo and prove server/client hit-box parity on replay.
+The final editor run and GCC/Clang UBSan native checks pass
+(animation-editor-final.log, animation-editor-core.log, animation-editor-clang.log).
+Current ABI checks pass GCC and Clang/libc++; focused C bot/flag/voter checks also
+pass. Lifetime analysis now includes the new engine/animation directory.
+The new replay driver correctly fails while its separate #10 fixture is absent
+(animation-demo-before.log). Next: record each content-set fixture once from this
+implementation, review it, and compare replayed client boxes with the saved server
+trace plus repeat frame hashes. No accepted classic fixture will change.
+Both new fixtures were recorded once from 3fbc0a62 and replay twice successfully:
+253 client hit-box hashes exactly match each saved authoritative trace, and all
+three sampled frame hashes repeat (animation-demo-q3-record.log,
+animation-demo-oa-record.log). Visual review/fixture commit is next. A higher-rate
+server check now exposes a new-feature timing gap: at sv_fps=100, consecutive
+server frames can publish different transforms for the same 20 ms animation tick
+(animation-fast-server-before.log). Publish pose/transform inputs only when that
+fixed animation clock advances. The 100 Hz check now passes
+(animation-fast-server-after.log). All six new frame captures were visually
+reviewed: the owned block rifle/arms render through the recorded actions.
+Fixture hashes: Q3 1895aaf34d32be3330eeb4a728389ddb138cdeac37fdcc565788485abaa8d57b;
+OA cc28ee474ca3acfcb493850e680cc8a4f680725057cfc8285c5ab62a0cc71d89.
+Tidy passes all 1202 production configurations (animation-tidy.log); lifetime
+analysis is still running. Final integration self-review also keeps auxiliary
+visibility bounds equal to the owning player and rejects reused non-animation
+entity slots on the client. Next: replay these same fixtures with that review
+change, finish classic/full gates, then open the #10 PR.
+Current ABI checks are extracted as tests/native_abi.py: the same 29 types, three
+offsets and extension value agree for C, game C++ and engine C++. Shared C/C++
+math checks remain. Full-game C/DLL source gates remain historical at 7f4d43a7;
+current game service code is C++ and builds through production CMake. The game
+command return type follows existing qboolean declarations so focused C helper
+checks remain usable without hiding any feature behind language conditionals.
+The old C/C++ DLL import/source-comparison CI steps are port-era oracles and will
+need explicit treatment now that the owned native game calls the C++ animation
+service. Preserve their accepted pre-#10 evidence; do not add production-only
+language conditionals to hide new features from those tests. Retain current wire/
+module ABI checks and fixed demo/math parity when updating this CI step.
+Full scope remains data-authored state machines/blend trees,
+masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
+reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/
+turn, ImGui authoring/inspection, and deterministic fixed-timestep replicated
+hit-box parity for a recorded demo. Preserve all classic accepted fixtures/hashes;
+new acceptance artifacts stay separate. Continue the complete #25 roadmap after
+#10 (#12 before #11's replication dependency). No upstream PRs or main pushes.
+
+## Earlier foundation/integration checkpoint
 
 The #3 -> #31 -> #1 -> #2 -> #4 -> #5 -> #8 implementation sequence is complete on
 `modernization`. Design PR #139 merged as e82eb43b after build 35480001019 and
@@ -3238,3 +3475,72 @@ this checkpoint; require its exact-head build/regression and post-merge regressi
 #10 preparation 0704fe4c adds new original Blender rifle/body acceptance sources,
 whose model cooks and neutral-layout visual review pass. The animation-state
 asset test still fails as expected; there is no #10 runtime/gameplay implementation.
+
+## #10 initial failing data-authoring test
+
+`python3 tests/animation.py` reuses the owned two-joint source generator and a
+plain JSON definition with named clip states, a numeric input, timed transition
+blends and a bone-bound event. It requires an animation-kind cook in the existing
+version/hash envelope, transitive source manifests and graph-only incremental
+recooking. Before implementation it fails with `asset kind is not implemented
+yet: animation` (animation-before.log). No accepted fixture is modified.
+
+The test fixes only the initial authoring/envelope contract; native payload
+layout and runtime/gameplay semantics still need their own test-first coverage.
+This small first slice is not #10 acceptance. The full first-person/third-person,
+IK/layers/events and recorded client/server hit-box gates remain mandatory.
+
+## #10 owned acceptance-source preparation
+
+New tests/assets/animation sources are authored once with the same verified
+portable Blender 4.5.3 LTS build 67807e1800cc and its glTF exporter. The rifle/arms
+has 13 joints, 13 meshes and six one-second clips (idle/ADS/fire/reload/sprint/jump),
+plus muzzle/magazine/optic/grip bones. The body has 16 joints, 15 meshes and ten
+clips (idle/walk/run/aim up/down/crouch/prone/lean left/right/turn), spine-mask
+hierarchy, two-bone limb chains and forward walk/run root motion. Native model
+cooks confirm 186/310 frames at 30 FPS. Provenance records all authoring/export
+hashes; CI consumes these bytes and never invokes Blender.
+
+The original block geometry and neutral rig layouts were reviewed in local CPU
+render previews. The source export and model-only cook pass (animation-export.log,
+animation-model-cook.log). The extended initial test verifies provenance/model
+counts, then still fails on the absent animation asset kind
+(animation-owned-before.log). No existing source or accepted demo/frame fixture
+was regenerated. These are test assets, not evidence that #10 runtime/gameplay is
+complete; full rifle/body in-game and recorded hit-box acceptance remain required.
+
+
+#147 merged as 7f4d43a7 after exact-head build 35509606176 and regression
+35509606177 passed. The merge tree equals the tested tree; integration regression
+35510058541 is still running. Both #31 fixes are now merged separately, and #10
+has merged modernization forward. No #10 runtime implementation begins before
+that integration gate passes.
+
+The new source rigs also load through the real developer viewer in a locally
+rebuilt client under private Xvfb/lavapipe. Actual UI input selects rifle idle
+(frame 62), rifle fire (31), body idle (93); model handles 78/79 and advancing
+preview counts are confirmed. Screenshots were reviewed at side/oblique yaw.
+The first temporary capture script quit before its last queued screenshot; adding
+the existing wait-before-quit pattern fixed the script. No engine change was needed.
+Evidence: animation-native-preview.py/.log and animation-native-preview/*.png in
+the persistent cache. These checks validate source rigs/clips only, not the
+future #10 gameplay/replication/IK acceptance.
+
+#147 integration regression 35510058541 passed at 7f4d43a7. Both IQM fixes are
+accepted, known-bugs has no active entries, and ubsan.supp is empty. #31 is
+completed again; #10 native/runtime implementation may now begin after its tests.
+
+
+#10 native test-first extension: tests/probes/animation.cpp now specifies plain
+trivial runtime state/poses, masked and additive transform blending, reachable and
+clamped two-bone IK, look-at rotation, compressed-clip sampling through the cooked
+asset, timed state transitions and exactly-once bone-bound events. The driver
+compiles with strict FP and UBSan and runs the native probe before its incremental
+edit. The pre-implementation compile fails on the missing
+engine/animation/animation_public.h (animation-native-before.log). No runtime
+implementation exists at this checkpoint; commit these assertions first.
+
+The native pre-implementation contract also covers root displacement across a
+loop, events at state entry/end, multiple crossed loop events, and repeated-tick
+deduplication. In particular, an end notify must be delivered before an on-end
+transition changes states. These cases are committed before runtime code.

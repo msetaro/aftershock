@@ -1578,6 +1578,11 @@ void ClientCommand( int clientNum ) {
 
 	trap_Argv( 0, cmd, sizeof( cmd ) );
 
+	if ( !Q_stricmp( cmd, "anim" ) ) {
+		G_AnimationCommand( clientNum );
+		return;
+	}
+
 	if ( Q_stricmp( cmd, "say" ) == 0 ) {
 		Cmd_Say_f( ent, SAY_ALL, qfalse );
 		return;

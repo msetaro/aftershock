@@ -1,6 +1,9 @@
 # Explicit production source lists migrated from the verified Make build.
 
 set(COMMON_SOURCES
+  engine/animation/animation.cpp
+  engine/animation/animation_assets.cpp
+  third_party/sha256/sha-256.c
   engine/server/sv_bot.cpp
   engine/server/sv_client.cpp
   engine/server/sv_ccmds.cpp
@@ -173,7 +176,6 @@ set(VULKAN_SOURCES
   engine/render/tr_curve.cpp
   engine/renderercommon/tr_font.cpp
   engine/render/tr_cooked.cpp
-  third_party/sha256/sha-256.c
   engine/render/tr_image.cpp
   engine/renderercommon/tr_image_png.cpp
   engine/renderercommon/tr_image_jpg.cpp
@@ -203,6 +205,7 @@ set(VULKAN_SOURCES
 )
 
 set(NATIVE_GAME_SOURCES
+  game/game/g_animation.cpp
   game/game/ai_chat.cpp
   game/game/ai_cmd.cpp
   game/game/ai_dmnet.cpp
@@ -211,6 +214,7 @@ set(NATIVE_GAME_SOURCES
   game/game/ai_team.cpp
   game/game/ai_vcmd.cpp
   game/bg/bg_misc.cpp
+  game/bg/bg_animation.cpp
   game/bg/bg_pmove.cpp
   game/bg/bg_slidemove.cpp
   game/game/g_active.cpp
@@ -240,7 +244,9 @@ set(NATIVE_GAME_SOURCES
 )
 
 set(NATIVE_CGAME_SOURCES
+  game/cgame/cg_animation.cpp
   game/bg/bg_misc.cpp
+  game/bg/bg_animation.cpp
   game/bg/bg_pmove.cpp
   game/bg/bg_slidemove.cpp
   game/cgame/cg_consolecmds.cpp

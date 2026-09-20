@@ -2152,6 +2152,7 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 
 	re.ClearScene = RE_ClearScene;
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
+	re.AddSkeletalEntityToScene = RE_AddSkeletalEntityToScene;
 	re.AddPolyToScene = RE_AddPolyToScene;
 	re.LightForPoint = R_LightForPoint;
 	re.AddLightToScene = RE_AddLightToScene;

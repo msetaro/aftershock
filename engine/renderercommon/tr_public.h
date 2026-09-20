@@ -23,12 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __TR_PUBLIC_H
 
 #include "tr_types_public.h"
+#include "../animation/animation_public.h"
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 16
+#define REF_API_VERSION 17
 #else
-#define REF_API_VERSION 12
+#define REF_API_VERSION 13
 #endif
 
 //
@@ -76,6 +77,7 @@ typedef struct {
 	// Nothing is drawn until R_RenderScene is called.
 	void ( *ClearScene )( void );
 	void ( *AddRefEntityToScene )( const refEntity_t *re, qboolean intShaderTime );
+	bool ( *AddSkeletalEntityToScene )( const refEntity_t *re, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 	void ( *AddPolyToScene )( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
 	int ( *LightForPoint )( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir );
 	void ( *AddLightToScene )( const vec3_t org, float intensity, float r, float g, float b );

@@ -4861,6 +4861,8 @@ BotCheckEvents
 ==================
 */
 void BotCheckEvents( bot_state_t *bs, entityState_t *state ) {
+	if ( state->eType == ET_ANIMATION )
+		return;
 	int event;
 	char buf[128];
 #ifdef MISSIONPACK

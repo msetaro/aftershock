@@ -509,6 +509,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	}
 
 	G_RemapTeamShaders();
+	G_InitAnimation();
 }
 
 
@@ -518,6 +519,7 @@ G_ShutdownGame
 =================
 */
 void G_ShutdownGame( int restart ) {
+	G_ShutdownAnimation();
 	G_Printf( "==== ShutdownGame ====\n" );
 
 	if ( level.logFile ) {
@@ -1789,6 +1791,8 @@ void G_RunFrame( int levelTime ) {
 		}
 	}
 	end = trap_Milliseconds();
+
+	G_RunAnimation();
 
 	// see if it is time to do a tournement restart
 	CheckTournament();

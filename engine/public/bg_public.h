@@ -28,6 +28,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _BG_PUBLIC_H
 #define _BG_PUBLIC_H
 
+#ifdef __cplusplus
+#include "../animation/animation_public.h"
+#endif
+
 #define GAME_VERSION		BASEGAME "-1"
 
 #define DEFAULT_GRAVITY		800
@@ -91,7 +95,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CS_LOCATIONS			(CS_PLAYERS+MAX_CLIENTS)
 #define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS)
 
-#define CS_MAX					(CS_PARTICLES+MAX_LOCATIONS)
+#define CS_ANIMATION_BODY (CS_PARTICLES+MAX_LOCATIONS)
+#define CS_ANIMATION_RIFLE (CS_ANIMATION_BODY+1)
+#define CS_MAX (CS_ANIMATION_RIFLE+1)
 
 #if ( CS_MAX ) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
@@ -692,10 +698,18 @@ typedef enum {
 	ET_GRAPPLE, // grapple hooked on wall
 	ET_TEAM,
 
-	ET_EVENTS // any of the EV_* events can be added freestanding
+	ET_EVENTS, // any of the EV_* events can be added freestanding
 	// by setting eType to ET_EVENTS + eventNum
 	// this avoids having to set eFlags and eventNum
+	ET_ANIMATION = 255 // Auxiliary native animation state, never a game event.
 } entityType_t;
+
+#ifdef __cplusplus
+static_assert( int( ET_EVENTS ) + int( EV_TAUNT_PATROL ) < int( ET_ANIMATION ) );
+bool BG_AnimationToEntityState( const animState_t *state, const float *parameters, int owner, int rig, const float *origin, const float *angles, entityState_t *entity );
+bool BG_EntityStateToAnimation( const entityState_t *entity, animState_t *state, float *parameters );
+bool BG_AnimationPose( const animAsset_t *asset, const animState_t *state, const float *parameters, uint32_t time, int rig, animPose_t *pose );
+#endif
 
 
 void BG_EvaluateTrajectory( const trajectory_t *tr, int atTime, vec3_t result );
