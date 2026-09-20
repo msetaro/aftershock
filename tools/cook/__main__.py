@@ -12,6 +12,7 @@ import time
 import tempfile
 
 import audio
+import animation
 import model
 import texture
 import shader
@@ -73,7 +74,10 @@ def cook(project, output):
         if not re.fullmatch(r'[a-z0-9_/-]+', name) or name.startswith('/') or '..' in name or len(name) > 59 or name in names:
             raise ValueError('asset names must be unique relative lowercase qpaths, at most 59 characters')
         names.add(name)
-        recipe = digest(canonical({'asset': asset, 'tool': tool}))
+        recipe_data = {'asset': asset, 'tool': tool}
+        if asset['kind'] == 'animation':
+            recipe_data['models'] = [a for a in definition['assets'] if a['kind'] == 'model']
+        recipe = digest(canonical(recipe_data))
         manifest_path = below(output, name + '.manifest.json')
         previous = None
         try:
@@ -100,6 +104,9 @@ def cook(project, output):
             source = below(root, asset['source'])
             if asset['kind'] == 'model':
                 payloads = model.cook(source, name, asset, read)
+            elif asset['kind'] == 'animation':
+                models = [dict(a, _source=below(root, a['source'])) for a in definition['assets'] if a['kind'] == 'model']
+                payloads = animation.cook(source, name, asset, read, models)
             elif asset['kind'] == 'material':
                 payloads = model.cook_material(source, name, read)
             elif asset['kind'] == 'audio':
@@ -135,7 +142,7 @@ def cook(project, output):
     if len(resources) > 4096:
         raise ValueError('project exceeds the 4096-resource development index limit')
     index = bytearray(struct.pack('<I', len(resources)))
-    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3, '.wav': 4, '.asspv': 5}
+    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3, '.wav': 4, '.asspv': 5, '.asanim': 6}
     for path, hashed in sorted(resources.items()):
         size = below(output, path).stat().st_size
         index.extend(struct.pack('<64s32sII', path.encode(), bytes.fromhex(hashed), size, kinds[Path(path).suffix]))

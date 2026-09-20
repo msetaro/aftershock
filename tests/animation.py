@@ -70,6 +70,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-source-') as tempo
     magic, version, size, hashed = struct.unpack_from('<8sII32s', before)
     assert magic == b'ASANIM\0\0' and version == 1 and size == len(before) - 48
     assert hashed == hashlib.sha256(before[48:]).digest()
+    assert before[112:144] == hashlib.sha256((args.output / 'models/rig.iqm').read_bytes()).digest()
     manifest = json.loads((args.output / 'animations/rig.manifest.json').read_text())
     assert {'rig.animation.json', 'rig.gltf', 'rig.bin'} <= {item['path'] for item in manifest['inputs']}
     assert cook(project, args.output)['built'] == []

@@ -25,17 +25,19 @@ matches the tested tree (796b6c532309846d4913439d74dfc751c4ca4ae1).
 Merged-tree regression 35510058541 passed. Both IQM fixes are accepted; no active
 known-bug entry or UBSan suppression remains. #31 can close at this checkpoint.
 
-Current branch is issue/10-animation. Modernization is merged forward without
-rewriting history. Test-first 57838d59 and source preparation 0704fe4c are present;
-no #10 runtime/gameplay implementation exists yet. The test verifies original
-Blender rifle/body provenance and native model counts, then fails on the absent
-animation asset kind. Real in-engine viewer checks now pass for rifle idle/fire
-and body idle (cache animation-native-preview.log and PNGs), with 119,312/227,084
-reported model bytes. This is source-rig verification, not state-machine acceptance.
+Current branch is issue/10-animation, with modernization merged forward. #31 is
+closed after both IQM fixes passed merged-tree regression. Test-first commits
+57838d59/b0c95261/47b1c807 now pass the initial cooked-graph/native runtime slice
+(animation-core-first.log): sampling, transitions, loop event boundaries,
+translation root motion, masked/additive transforms and two-bone/look-at IK.
+The new graph reuses IQM quantized poses and binds the exact cooked model hash;
+source manifests track graph/glTF/buffer dependencies and graph-only edits.
+Original Blender rifle/body assets and the earlier native viewer checks remain
+unchanged. This is feature development, not #10 acceptance or gameplay parity.
 
-Begin #10 native/runtime test-first work. Read #10 plus cache issue10-entry-points.md and
-issue10-design-considerations.md. Extend native/runtime/gameplay tests before
-implementation. Full scope remains data-authored state machines/blend trees,
+Next: cover initial entry events, overflow/clock wrap and turning root motion;
+then implement data-authored trees/layers and production/gameplay integration.
+Full scope remains data-authored state machines/blend trees,
 masked/additive layers, events, root motion, IK/aim offsets, rifle idle/ADS/fire/
 reload/sprint/jump and sockets, third-person split/aim/footsteps/crouch/prone/lean/
 turn, ImGui authoring/inspection, and deterministic fixed-timestep replicated
