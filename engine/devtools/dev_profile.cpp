@@ -1,4 +1,5 @@
 #include "devtools_public.h"
+#include <cmath>
 #include "../qcommon/qcommon_public.h"
 
 struct cpuScope_t {
@@ -66,10 +67,22 @@ void DevTools_Snapshot( uint32_t bits, bool delta ) {
 }
 
 void Dev_PredictionError( float distance ) {
-	if ( active ) {
+	if ( active && std::isfinite( distance ) && distance >= 0 ) {
 		network.predictionError = distance;
+		network.predictionPeak = MAX( network.predictionPeak, distance );
+		network.predictionSum += double( distance );
 		++network.predictions;
 	}
+}
+
+void Dev_RewindReport( uint32_t age, uint32_t limit, int clamped, int hit ) {
+	if ( !active || age > limit || limit > 1000 || clamped < 0 || clamped > 1 || hit < 0 || hit > 1 )
+		return;
+	network.rewindAge = age;
+	network.rewindLimit = limit;
+	++network.rewindReports;
+	network.rewindHits += (uint32_t)hit;
+	network.rewindClamped += (uint32_t)clamped;
 }
 
 const devNetwork_t *DevTools_Network( void ) {

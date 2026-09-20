@@ -199,6 +199,8 @@ def main():
     assert uncompensated_wrong >= 5, uncompensated_wrong
     median_age = sorted(ages)[len(ages) // 2]
     assert 70 <= median_age <= 180, median_age
+    reports = re.findall(r'Rewind report: age=(\d+) limit=(\d+) clamped=[01] hit=[01]', client_log.read_text())
+    assert len(reports) >= 10 and all(int(age) <= int(limit) <= 1000 for age, limit in reports), reports
     errors = [float(value) for value in re.findall(r'Prediction miss: ([0-9.]+)', client_log.read_text())]
     assert max(errors, default=0) <= 32, errors
     assert 'ERROR:' not in text and 'ERROR:' not in client_log.read_text()

@@ -16,8 +16,8 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Current branch: `issue/12-netcode`; draft PR #149. Continue #12 with prediction /
-rewind overlay metrics, entity relevance/priority/bandwidth control and checked
+Current branch: `issue/12-netcode`; draft PR #149. Continue #12 with
+entity relevance/priority/bandwidth control and checked
 identity/browser/matchmaking provider hooks. Wire the new tests into CI, document
 limits/commands, run full gates and AGENTS self-review before any merge.
 
@@ -45,7 +45,8 @@ exposed harness ordering (inventory not yet received; spawn not settled). It now
 waits for an in-game ready message before placement and firing, without weakening
 hit thresholds. Logs: netcode-runtime-before.log, netcode-runtime-target.log,
 netcode-runtime-synced.log under ~/.cache/aftershock-modernization. OpenArena real
-loopback is next to verify the hosted content path. Classic Q3 fixed replay still
+loopback passed 374/374 shots (19 hits), 38 uncompensated differences, median
+view age 148 ms and prediction error <=8.875 (netcode-runtime-oa.log). Classic Q3 fixed replay still
 matches 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
 (netcode-classic-demo.log); the fixed owned animation demo still matches all 253
 received authoritative boxes and repeated frames (netcode-animation-demo.log).
@@ -67,10 +68,15 @@ Full build 35516551419 and regression 35516551423 passed before merge;
 merged-tree regression 35517250474 passed all required jobs after AGENTS review.
 Continue #12 before #11, then the remaining #25 roadmap, only in this repository.
 
-Telemetry test-first now fails on the absent prediction peak/sum and rewind
-report fields (netcode-metrics-before.log). Add bounded server reports (at most
-four per second per firing client) through existing reliable game commands, so
-the remote client's overlay can show rewind age/budget and report outcomes.
+Telemetry test-first commit 5deecae7 failed on absent prediction aggregates and
+rewind reports (netcode-metrics-before.log). These now pass GCC/Clang developer
+telemetry checks. The server sends at most four reports per second per firing
+client through reliable game commands; the remote overlay shows age/budget,
+sampled hits/clamping and prediction last/peak/mean. Invalid reports are ignored.
+OpenArena with report delivery verified passes 371/371 shots (19 hits), 40
+uncompensated differences, median view age 147 ms, prediction error <=8.875
+(netcode-metrics-runtime.log). Full build d381167e passed 35519899293; regression
+35519899276 is still running on that earlier head. Current work is not yet accepted.
 
 ## #10 accepted implementation
 

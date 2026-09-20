@@ -51,6 +51,9 @@ int main() {
 	assert( network->predictionError == 2.5f && network->predictions == 1 );
 	Dev_PredictionError( 0.5f );
 	assert( network->predictionPeak == 2.5f && network->predictionSum == 3.0 && network->predictions == 2 );
+	Dev_PredictionError( -1 );
+	Dev_PredictionError( NAN );
+	assert( network->predictions == 2 );
 	Dev_RewindReport( 100, 200, 0, 1 );
 	Dev_RewindReport( 200, 200, 1, 0 );
 	assert( network->rewindReports == 2 && network->rewindHits == 1 && network->rewindClamped == 1 );

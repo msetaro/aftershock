@@ -981,10 +981,17 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 		net->packets[0], net->packets[1], net->lastPacket[0], net->lastPacket[1] );
 	ImGui::Text( "Snapshot: %u bits, %s (%" PRIu64 " observed)", net->snapshotBits,
 		net->delta ? "delta" : "full", net->snapshots );
-	if ( net->predictions )
-		ImGui::Text( "Prediction error: %.4f units (%" PRIu64 " samples)", net->predictionError, net->predictions );
-	else
+	if ( net->predictions ) {
+		ImGui::Text( "Prediction error: %.4f last / %.4f peak units", double( net->predictionError ), double( net->predictionPeak ) );
+		ImGui::Text( "Mean %.4f units (%" PRIu64 " samples)", net->predictionSum / double( net->predictions ), net->predictions );
+	} else
 		ImGui::TextUnformatted( "Prediction error unavailable (demo or game without instrumentation)" );
+	if ( net->rewindReports ) {
+		ImGui::Text( "Server rewind: %u ms / %u ms budget", net->rewindAge, net->rewindLimit );
+		ImGui::Text( "Rewind reports: %" PRIu64 ", hits %" PRIu64 ", clamped %" PRIu64,
+			net->rewindReports, net->rewindHits, net->rewindClamped );
+		ImGui::TextUnformatted( "Server samples the last shot at most four times per second." );
+	}
 	ImGui::TextWrapped( "Datagram payload sizes exclude transport headers; replay snapshots are not network traffic." );
 	ImGui::EndTabItem();
 }

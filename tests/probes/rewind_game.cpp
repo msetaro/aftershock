@@ -10,8 +10,10 @@ level_locals_t level;
 gentity_t g_entities[MAX_GENTITIES];
 static gclient_t shooterClient;
 static netHistory_t storage;
-static bool enabled = true, wall;
-static uint32_t allocations, filtered, legacy;
+static bool enabled = true, wall, skeletal;
+static animBox_t skeleton[2];
+static char lastReport[128];
+static uint32_t allocations, filtered, legacy, reports;
 static byte lastIgnored[MAX_GENTITIES];
 
 void *GameImport_AllocLevelMemory( uint32_t bytes ) {
@@ -23,6 +25,19 @@ void trap_Cvar_Register( vmCvar_t *value, const char *name, const char *, int ) 
 	value->integer = !strcmp( name, "g_rewind" ) ? int( enabled ) : !strcmp( name, "g_maxRewind" ) ? 200
 																								   : 0;
 }
+char *QDECL va( char *format, ... ) {
+	static char text[128];
+	va_list arguments;
+	va_start( arguments, format );
+	vsnprintf( text, sizeof( text ), format, arguments );
+	va_end( arguments );
+	return text;
+}
+void trap_SendServerCommand( int client, const char *command ) {
+	assert( client == 0 && strlen( command ) < sizeof( lastReport ) );
+	strcpy( lastReport, command );
+	++reports;
+}
 void trap_Cvar_Update( vmCvar_t * ) {
 }
 void QDECL G_Printf( const char *, ... ) {
@@ -30,9 +45,9 @@ void QDECL G_Printf( const char *, ... ) {
 void QDECL G_Error( const char *, ... ) {
 	abort();
 }
-const animBox_t *G_AnimationHitBoxes( int, uint32_t *count ) {
-	*count = 0;
-	return nullptr;
+const animBox_t *G_AnimationHitBoxes( int owner, uint32_t *count ) {
+	*count = skeletal && owner == 7 ? 2u : 0u;
+	return *count ? skeleton : nullptr;
 }
 void trap_Trace( trace_t *trace, const vec3_t, const vec3_t, const vec3_t, const vec3_t, int, int ) {
 	++legacy;
@@ -51,6 +66,7 @@ void GameImport_TraceFiltered( void *result, const float *, const float *, int, 
 
 int main() {
 	level.num_entities = 8;
+	level.maxclients = 8;
 	auto &shooter = g_entities[0];
 	shooter.s.number = 0;
 	shooter.client = &shooterClient;
@@ -87,8 +103,15 @@ int main() {
 	++target.rewindSpawn;
 	G_TraceHitscan( &trace, start, end, 0, &shooter );
 	assert( trace.entityNum == ENTITYNUM_NONE && !lastIgnored[7] );
-	assert( filtered == 3 && legacy == 0 && allocations == 1 );
+	assert( filtered == 3 && legacy == 0 && allocations == 1 && reports == 1 );
+	assert( !strcmp( lastReport, "rewind_report 100 200 0 1" ) );
 	G_InitRewind( 1 );
+	skeletal = true;
+	skeleton[0] = { { 98, 278, -2 }, { 102, 282, 2 } };
+	skeleton[1] = { { 98, 286, -2 }, { 102, 290, 2 } };
+	G_RecordRewind();
+	G_TraceHitscan( &trace, start, end, 0, &shooter );
+	assert( trace.entityNum == 7 && trace.fraction == 0.49f ); // authored bone box, not current actor bounds at y=320
 	assert( allocations == 1 ); // restart reuses level arena storage
 	enabled = false;
 	G_InitRewind( 0 );

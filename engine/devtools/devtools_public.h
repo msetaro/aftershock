@@ -13,7 +13,10 @@ struct devCpuTiming_t {
 struct devNetwork_t {
 	uint64_t bytes[2], packets[2], snapshots, predictions;
 	uint32_t lastPacket[2], snapshotBits;
-	float predictionError;
+	float predictionError, predictionPeak;
+	double predictionSum;
+	uint64_t rewindReports, rewindHits, rewindClamped;
+	uint32_t rewindAge, rewindLimit;
 	bool delta;
 };
 void DevTools_BeginFrame( bool enabled );

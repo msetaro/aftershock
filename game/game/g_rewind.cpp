@@ -11,6 +11,7 @@ static struct {
 	uint64_t generation;
 } rewindEntities[MAX_GENTITIES];
 static uint64_t nextGeneration;
+static uint32_t lastRewindReport[MAX_CLIENTS];
 static netHistoryFrame_t rewindFrame;
 
 void G_InitRewind( int restart ) {
@@ -26,6 +27,7 @@ void G_InitRewind( int restart ) {
 		NET_HistoryReset( rewindHistory );
 	memset( rewindEntities, 0, sizeof( rewindEntities ) );
 	nextGeneration = 0;
+	memset( lastRewindReport, 0, sizeof( lastRewindReport ) );
 }
 
 static bool RewindEligible( const gentity_t &entity ) {
@@ -135,6 +137,13 @@ void G_TraceHitscan( trace_t *trace, const vec3_t start, const vec3_t end, int p
 			if ( hit.normal[axis] < 0 )
 				trace->plane.signbits |= (byte)( 1u << axis );
 		}
+	}
+	const int client = shooter->s.number;
+	if ( client >= 0 && client < level.maxclients && (uint32_t)level.time - lastRewindReport[client] >= 250 ) {
+		const uint32_t limit = maximumRewind.integer < 0 ? 0u : maximumRewind.integer > int( NET_MAX_REWIND_MS ) ? NET_MAX_REWIND_MS
+																												 : (uint32_t)maximumRewind.integer;
+		trap_SendServerCommand( client, va( (char *)"rewind_report %u %u %d %d", query.rewindMs, limit, int( query.clamped ), int( trace->entityNum < ENTITYNUM_WORLD ) ) );
+		lastRewindReport[client] = (uint32_t)level.time;
 	}
 	trap_Cvar_Update( &rewindTrace );
 	if ( rewindTrace.integer )
