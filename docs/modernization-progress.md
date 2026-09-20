@@ -48,12 +48,12 @@ Local build /tmp/aftershock-level-validation-build; logs are in
 validate-leak,camera-probe,classic-demo,tidy,lifetimes,rhi}.log. Boundary/type/native
 ABI/RHI checks and tidy (1270 configurations) pass. Classic Q3 replay retains frame
 hash 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
-Lifetime analysis is still running (session 6001). First attempts at tidy/lifetimes
+Lifetime analysis passes all 1216 commands (127 paths). First attempts at tidy/lifetimes
 used caches for the original worktree; rerun in /tmp/aftershock-level-{tidy,lifetimes}
 with the correct source root. The raw-MAP success path also passes (two automatic spawn captures), and final
 OA validation passes two named plus 33 automatic PNGs across repeated runs.
-Self-review is below. Next: draft #27 PR and require exact-head hosted gates and
-full local lifetime completion. Do not merge before #26 integration passes.
+Self-review is below. Draft PR #154 is open; require its exact-head hosted gates
+and merged-tree regression. Do not merge before #26 integration passes.
 
 ## #27 self-review
 
@@ -74,7 +74,7 @@ objects or per-frame allocation is introduced, and wire/file layouts remain fixe
 Native ABI, RHI alternative-backend probes, boundary/type checks, 1270 tidy
 configurations and classic replay pass. The accepted frame hash and all #26 compiled
 fixtures are unchanged. Dedicated/client builds and both content sets pass headless
-checks. Full lifetime completion, exact-head CI and merged-tree regression remain
+checks. Lifetime analysis passes 1216 configurations. Exact-head CI and merged-tree regression remain
 required before acceptance. Optional orthographic/collision-only views are omitted;
 named views and the automatic passage walk cover the required command.
 
