@@ -421,6 +421,21 @@ struct rhiHost_t {
 };
 static_assert( std::is_trivially_copyable_v<rhiHost_t> );
 
+// Persisted identity: shader package plus native device/driver compatibility.
+struct rhiPipelineCacheKey_t {
+	uint32_t vendor, device, driver;
+	uint8_t uuid[16];
+	char shaderPackage[64];
+};
+static_assert( sizeof( rhiPipelineCacheKey_t ) == 92 && alignof( rhiPipelineCacheKey_t ) == 4 );
+static_assert( offsetof( rhiPipelineCacheKey_t, uuid ) == 12 && offsetof( rhiPipelineCacheKey_t, shaderPackage ) == 28 );
+static_assert( std::is_trivially_copyable_v<rhiPipelineCacheKey_t> );
+rhiPipelineCacheKey_t RHI_GetPipelineCacheKey( void );
+// Restore only before frontend pipelines are created. A miss keeps the empty cache.
+[[nodiscard]] rhiStatus_t RHI_RestorePipelineCache( const void *data, uint32_t size );
+// A null data pointer queries the size; otherwise size is in/out buffer capacity.
+[[nodiscard]] rhiStatus_t RHI_ReadPipelineCache( void *data, uint32_t *size );
+
 struct rhiDeviceConfig_t {
 	int32_t renderWidth, renderHeight;
 	int32_t windowWidth, windowHeight;

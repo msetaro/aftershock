@@ -24,7 +24,7 @@ have no GPU SDK dependency. Explicit GPU failure statuses now return before the
 frontend error callback; texture conversion/scratch is frontend-owned. Device
 configuration and host services now use explicit plain records; the backend no
 longer includes frontend headers or reads renderer globals/cvar pointers. Finish
-shader package/cache acceptance and lifecycle checks, then the verified frontend
+pipeline-cache acceptance and remaining lifecycle checks, then the verified frontend
 moves, OpenGL retirement and final gates. Configuration acceptance is complete. Acquisition fix PR #141 merged separately as 61401e17 after
 full build 35484485400/regression 35484485349 and self-review; it has now been
 merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
@@ -380,6 +380,35 @@ options change the recipe key. GCC/Clang contracts, acquisition, format/type/
 boundary checks pass. Generated-header static replay/restart retains b38004b1
 (rhi-shader-demo.log). Runtime driver pipeline-cache persistence remains the next shader
 step. No accepted fixture/golden or committed shader_data.cpp changes.
+
+Shader package 8e1fdb00 passed full build 35488951387 and regression 35488951430,
+including fresh 74-variant compilation, all platform builds and hosted replay.
+
+Runtime pipeline cache (working tree): frontend startup restores a cache before
+creating material/post-process pipelines; teardown exports it before destroying
+the device. The key records the complete shader package hash, vendor/device/driver
+and native cache UUID. Filenames abbreviate the shader hash to fit MAX_QPATH, but
+the stored full key must match. Vulkan also checks its native cache header before
+restoration. Filesystem-owned helpers read only the home game directory (never
+pk3 search paths), bound reads to caller capacity and check lengths/checksums.
+Partial or incompatible data is a miss. Cache allocation is bounded at 16 MiB,
+only at initialization/shutdown; no new per-frame allocation or GPU wait. This is
+new #6 cache plumbing, not an unrelated engine bug fix. Two filesystem imports
+advance the optional renderer ABI to 10; scene/game services are unchanged.
+
+GCC/Clang contract checks exercise cache export/restore and copied compatibility
+identity. Q3 restart replay passes b38004b1 and logs an actual cache restoration
+(rhi-cache-demo.log). The first startup attempt exposed an omitted function-loader
+entry in this new code; the loader entry was added and the final tree rebuilt
+before that passing replay. All 570 tidy configurations and format/type/boundary
+checks pass. Separate-process static and module/restart cache tests pass b38004b1
+(rhi-cache-process.log, rhi-cache-module.log), requiring cache-load evidence in each
+warm Vulkan replay. The lifetime gate passes all 546 compilation commands/137
+source paths. Hosted static OpenArena now uses --pipeline-cache as well. On local Mesa the exported native cache is a 32-byte
+header (124 bytes including the RHI key); this verifies persistence, not a measured
+pipeline compilation speedup. Persistent Vk_Instance grows by 96 bytes including
+alignment. Real-clock main samples: 4.016/3.899 ms q3dm17 and 4.846/4.893 ms q3dm7,
+informational. Existing buffer capacities and accepted shader/frame bytes remain.
 
 ## Final #8 verification
 

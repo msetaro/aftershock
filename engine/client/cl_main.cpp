@@ -3375,6 +3375,8 @@ static void CL_InitRef( void ) {
 	rimp.CM_ClusterPVS = CM_ClusterPVS;
 	rimp.CM_DrawDebugSurface = CM_DrawDebugSurface;
 
+	rimp.FS_ReadCache = FS_ReadCache;
+	rimp.FS_WriteCache = FS_WriteCache;
 	rimp.FS_ReadFile = FS_ReadFile;
 	rimp.FS_FreeFile = FS_FreeFile;
 	rimp.FS_WriteFile = FS_WriteFile;

@@ -51,9 +51,9 @@ informational; hardware/driver differences are not a performance failure gate.
 optional PC renderer module boundary and after video restart for Quake 3. Hosted
 OpenArena runs `--modules` in fresh processes alongside the primary static renderer.
 Its post-restart portrait/lagometer state differs from the fresh-process goldens;
-this is not a supported restart-to-golden comparison. Renderer module API 9
-requires rebuilding old modules with the client; only the platform import callback
-signatures changed, not the scene or game services.
+this is not a supported restart-to-golden comparison. Renderer module API 10
+requires rebuilding old modules with the client; changes cover opaque platform
+handles and two filesystem cache imports, not scene or game services.
 The RHI check also rejects GPU SDK dependencies in the frontend/client headers and
 checks explicit stream/raster bindings, upload exhaustion and sampler wait ordering.
 The backend dependency check rejects frontend headers. Missing loader entries must
@@ -82,6 +82,15 @@ build-time recompilation, run `cmake --build build/release --target shaders` wit
 that compiler configured. The runtime consumes packaged bytes, never shader source.
 This pipeline does not regenerate demos, frame goldens or committed shader data.
 The source cache and compiled path currently produce identical shader bytes.
+
+`python3 tests/demo.py --pipeline-cache` shares only a temporary cache directory
+between otherwise fresh client processes and requires restoration on each second
+Vulkan replay. `--lifecycle` also requires restoration after video restart. Frame
+hash checks remain unchanged. Cache files live under the home game directory's
+`cache/`, use the full shader/device/driver identity in their checked payload, and
+are optional performance data. Missing, incomplete or incompatible data is a miss.
+The local Mesa driver exports a 32-byte cache header; cache persistence passing on
+that driver is not a pipeline compilation performance claim.
 
 `python3 tests/vulkan_acquire.py` runs the real Vulkan frame acquisition method
 with controlled callbacks and stops at command recording. It needs no GPU, window

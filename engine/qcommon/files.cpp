@@ -1827,6 +1827,47 @@ int FS_Home_FOpenFileRead( const char *filename, fileHandle_t *file ) {
 }
 
 
+struct cacheFileHeader_t {
+	uint32_t magic, version, size, checksum;
+};
+static_assert( sizeof( cacheFileHeader_t ) == 16 && alignof( cacheFileHeader_t ) == 4 );
+static_assert( offsetof( cacheFileHeader_t, checksum ) == 12 );
+
+int FS_ReadCache( const char *filename, void *buffer, int capacity ) {
+	if ( !filename || !*filename || FS_CheckDirTraversal( filename ) || capacity < 0 )
+		return -1;
+	fileHandle_t file;
+	const int length = FS_Home_FOpenFileRead( filename, &file );
+	if ( file == FS_INVALID_HANDLE )
+		return -1;
+	cacheFileHeader_t header;
+	int result = -1;
+	if ( length >= (int)sizeof( header ) && FS_Read( &header, sizeof( header ), file ) == sizeof( header ) &&
+		 header.magic == 0x43485341 && header.version == 1 && header.size == (uint32_t)( length - sizeof( header ) ) ) {
+		if ( !buffer ) {
+			result = (int)header.size;
+		} else if ( header.size <= (uint32_t)capacity && FS_Read( buffer, (int)header.size, file ) == (int)header.size &&
+					Com_BlockChecksum( buffer, (int)header.size ) == header.checksum ) {
+			result = (int)header.size;
+		}
+	}
+	FS_FCloseFile( file );
+	return result;
+}
+
+qboolean FS_WriteCache( const char *filename, const void *buffer, int size ) {
+	if ( !buffer || size < 0 )
+		return qfalse;
+	const fileHandle_t file = FS_FOpenFileWrite( filename );
+	if ( file == FS_INVALID_HANDLE )
+		return qfalse;
+	const cacheFileHeader_t header = { 0x43485341, 1, (uint32_t)size, Com_BlockChecksum( buffer, size ) };
+	const qboolean written = FS_Write( &header, sizeof( header ), file ) == sizeof( header ) && FS_Write( buffer, size, file ) == size ? qtrue : qfalse;
+	FS_FCloseFile( file );
+	return written;
+}
+
+
 /*
 =================
 FS_Read

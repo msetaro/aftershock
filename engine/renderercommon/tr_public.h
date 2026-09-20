@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_types_public.h"
 
-#define REF_API_VERSION		9
+#define REF_API_VERSION		10
 
 //
 // these are the functions exported by the refresh module
@@ -185,6 +185,8 @@ typedef struct {
 	// a qfalse return means the file does not exist
 	// NULL can be passed for buf to just determine existence
 	//int		(*FS_FileIsInPAK)( const char *name, int *pCheckSum );
+	int ( *FS_ReadCache )( const char *name, void *buffer, int capacity );
+	qboolean ( *FS_WriteCache )( const char *name, const void *buffer, int size );
 	int ( *FS_ReadFile )( const char *name, void **buf );
 	void ( *FS_FreeFile )( void *buf );
 	char **( *FS_ListFiles )( const char *name, const char *extension, int *numfilesfound );

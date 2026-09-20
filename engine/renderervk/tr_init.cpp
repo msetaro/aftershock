@@ -503,6 +503,44 @@ static bool R_CreateSurface( uint64_t instance, uint64_t *surface ) {
 	return ri.VK_CreateSurface( instance, surface ) != qfalse;
 }
 
+static void R_PipelineCachePath( char *path, int capacity, const rhiPipelineCacheKey_t *key ) {
+	Com_sprintf( path, capacity, "cache/rhi-%.24s-%08x-%08x.bin", key->shaderPackage, key->device, key->driver );
+}
+
+static void R_LoadPipelineCache( void ) {
+	const rhiPipelineCacheKey_t key = RHI_GetPipelineCacheKey();
+	char path[MAX_QPATH];
+	R_PipelineCachePath( path, sizeof( path ), &key );
+	const int size = ri.FS_ReadCache( path, NULL, 0 );
+	if ( size <= (int)sizeof( key ) || size > 16 * 1024 * 1024 )
+		return;
+	byte *data = (byte *)ri.Malloc( size );
+	if ( ri.FS_ReadCache( path, data, size ) == size && memcmp( data, &key, sizeof( key ) ) == 0 ) {
+		const rhiStatus_t status = RHI_RestorePipelineCache( data + sizeof( key ), (uint32_t)( size - sizeof( key ) ) );
+		if ( status == rhiStatus_t::Success )
+			ri.Printf( PRINT_ALL, "pipeline cache: loaded %i bytes\n", size );
+		else
+			ri.Printf( PRINT_DEVELOPER, "pipeline cache: driver declined cached data (%u)\n", (uint32_t)status );
+	}
+	ri.Free( data );
+}
+
+static void R_SavePipelineCache( void ) {
+	uint32_t size;
+	if ( RHI_ReadPipelineCache( NULL, &size ) != rhiStatus_t::Success || size == 0 || size > 16 * 1024 * 1024 - sizeof( rhiPipelineCacheKey_t ) )
+		return;
+	const rhiPipelineCacheKey_t key = RHI_GetPipelineCacheKey();
+	byte *data = (byte *)ri.Malloc( sizeof( key ) + size );
+	memcpy( data, &key, sizeof( key ) );
+	if ( RHI_ReadPipelineCache( data + sizeof( key ), &size ) == rhiStatus_t::Success ) {
+		char path[MAX_QPATH];
+		R_PipelineCachePath( path, sizeof( path ), &key );
+		if ( !ri.FS_WriteCache( path, data, (int)( sizeof( key ) + size ) ) )
+			ri.Printf( PRINT_DEVELOPER, "pipeline cache: could not save %s\n", path );
+	}
+	ri.Free( data );
+}
+
 static void R_InitDevice( void ) {
 	const bool textureFilterValid = R_SelectTextureMode( r_textureMode->string );
 	const rhiDeviceConfig_t config = {
@@ -526,6 +564,7 @@ static void R_InitDevice( void ) {
 	const rhiHost_t host = { ri.Malloc, ri.Free, R_PrintRHI, R_IsMinimized, R_SwapInterval, ri.VK_GetInstanceProcAddr, R_CreateSurface };
 	rhiDeviceInfo_t info;
 	R_CheckRHI( RHI_Initialize( &config, &host, &info ), "Initialize" );
+	R_LoadPipelineCache();
 	r_textureMode->modified = qfalse;
 	static_assert( sizeof( info.renderer ) == sizeof( glConfig.renderer_string ) );
 	static_assert( sizeof( info.vendor ) == sizeof( glConfig.vendor_string ) );
@@ -1967,6 +2006,11 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 	//}
 #endif
 	ri.Printf( PRINT_ALL, "RE_Shutdown( %i )\n", code );
+
+#ifdef USE_VULKAN
+	if ( code != REF_KEEP_CONTEXT )
+		R_SavePipelineCache();
+#endif
 
 	ri.Cmd_RemoveCommand( "modellist" );
 	ri.Cmd_RemoveCommand( "screenshotBMP" );

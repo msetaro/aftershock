@@ -167,6 +167,16 @@ rhiStatus_t RHI_PresentFrame( void ) {
 	return rhiStatus_t::Unavailable;
 }
 
+rhiPipelineCacheKey_t RHI_GetPipelineCacheKey( void ) {
+	return {};
+}
+rhiStatus_t RHI_RestorePipelineCache( const void *, uint32_t ) {
+	return rhiStatus_t::Unavailable;
+}
+rhiStatus_t RHI_ReadPipelineCache( void *, uint32_t * ) {
+	return rhiStatus_t::Unavailable;
+}
+
 rhiStatus_t RHI_Initialize( const rhiDeviceConfig_t *, const rhiHost_t *, rhiDeviceInfo_t * ) {
 	return rhiStatus_t::Unavailable;
 }

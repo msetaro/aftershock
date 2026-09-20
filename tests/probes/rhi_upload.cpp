@@ -106,6 +106,25 @@ static void VKAPI_CALL destroy_view( VkDevice, VkImageView view, const VkAllocat
 	destroyed = 2;
 }
 
+static VkResult VKAPI_CALL cache_data( VkDevice device, VkPipelineCache cache, size_t *size, void *data ) {
+	assert( (uintptr_t)device == 20 && (uintptr_t)cache == 90 );
+	if ( data ) {
+		assert( *size >= 4 );
+		memcpy( data, "data", 4 );
+	}
+	*size = 4;
+	return VK_SUCCESS;
+}
+static VkResult VKAPI_CALL restore_cache( VkDevice device, const VkPipelineCacheCreateInfo *info, const VkAllocationCallbacks *, VkPipelineCache *cache ) {
+	assert( (uintptr_t)device == 20 && info->initialDataSize == sizeof( VkPipelineCacheHeaderVersionOne ) );
+	assert( info->pInitialData != nullptr );
+	*cache = (VkPipelineCache)(uintptr_t)91;
+	return VK_SUCCESS;
+}
+static void VKAPI_CALL destroy_cache( VkDevice device, VkPipelineCache cache, const VkAllocationCallbacks * ) {
+	assert( (uintptr_t)device == 20 && (uintptr_t)cache == 90 );
+}
+
 static void *missing_loader_entry( uint64_t instance, const char *name ) {
 	assert( instance == 0 && strcmp( name, "vkCreateInstance" ) == 0 );
 	return nullptr;
@@ -338,6 +357,28 @@ int main( void ) {
 	assert( vk_error_environment == nullptr );
 	assert( RHI_WaitIdle() == rhiStatus_t::Success );
 	assert( RHI_GetError()->message[0] == '\0' && !RHI_GetError()->drop );
+	vk.pipelineCache = (VkPipelineCache)(uintptr_t)90;
+	qvkGetPipelineCacheData = cache_data;
+	uint32_t cacheSize = 0;
+	assert( RHI_ReadPipelineCache( nullptr, &cacheSize ) == rhiStatus_t::Success && cacheSize == 4 );
+	byte cacheBytes[4];
+	assert( RHI_ReadPipelineCache( cacheBytes, &cacheSize ) == rhiStatus_t::Success && memcmp( cacheBytes, "data", 4 ) == 0 );
+	vk.pipelineCacheKey.vendor = 12;
+	vk.pipelineCacheKey.device = 34;
+	vk.pipelineCacheKey.driver = 56;
+	vk.pipelineCacheKey.uuid[0] = 78;
+	const rhiPipelineCacheKey_t cacheKey = RHI_GetPipelineCacheKey();
+	assert( cacheKey.vendor == 12 && cacheKey.device == 34 && cacheKey.driver == 56 && cacheKey.uuid[0] == 78 );
+	VkPipelineCacheHeaderVersionOne nativeHeader = {};
+	nativeHeader.headerSize = sizeof( nativeHeader );
+	nativeHeader.headerVersion = VK_PIPELINE_CACHE_HEADER_VERSION_ONE;
+	nativeHeader.vendorID = 12;
+	nativeHeader.deviceID = 34;
+	nativeHeader.pipelineCacheUUID[0] = 78;
+	qvkCreatePipelineCache = restore_cache;
+	qvkDestroyPipelineCache = destroy_cache;
+	assert( RHI_RestorePipelineCache( &nativeHeader, sizeof( nativeHeader ) ) == rhiStatus_t::Success );
+	assert( (uintptr_t)vk.pipelineCache == 91 );
 	rhiDeviceConfig_t config = {};
 	config.renderWidth = 640;
 	config.renderHeight = 480;

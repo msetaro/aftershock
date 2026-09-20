@@ -171,6 +171,7 @@ static PFN_vkCreateImage qvkCreateImage;
 static PFN_vkCreateImageView qvkCreateImageView;
 static PFN_vkCreatePipelineLayout qvkCreatePipelineLayout;
 static PFN_vkCreatePipelineCache qvkCreatePipelineCache;
+static PFN_vkGetPipelineCacheData qvkGetPipelineCacheData;
 static PFN_vkCreateRenderPass qvkCreateRenderPass;
 static PFN_vkCreateSampler qvkCreateSampler;
 static PFN_vkCreateSemaphore qvkCreateSemaphore;
@@ -2135,6 +2136,7 @@ static void init_vulkan_library( void ) {
 	INIT_DEVICE_FUNCTION(vkCreateImage)
 	INIT_DEVICE_FUNCTION(vkCreateImageView)
 	INIT_DEVICE_FUNCTION(vkCreatePipelineCache)
+	INIT_DEVICE_FUNCTION(vkGetPipelineCacheData)
 	INIT_DEVICE_FUNCTION(vkCreatePipelineLayout)
 	INIT_DEVICE_FUNCTION(vkCreateRenderPass)
 	INIT_DEVICE_FUNCTION(vkCreateSampler)
@@ -2268,6 +2270,7 @@ static void deinit_device_functions( void ) {
 	qvkCreateImage = NULL;
 	qvkCreateImageView = NULL;
 	qvkCreatePipelineCache = NULL;
+	qvkGetPipelineCacheData = NULL;
 	qvkCreatePipelineLayout = NULL;
 	qvkCreateRenderPass = NULL;
 	qvkCreateSampler = NULL;
@@ -3863,6 +3866,11 @@ rhiStatus_t vk_impl_Initialize( void ) {
 	qvkGetDeviceQueue( vk.device, vk.queue_family_index, 0, &vk.queue );
 
 	qvkGetPhysicalDeviceProperties( vk.physical_device, &props );
+	vk.pipelineCacheKey.vendor = props.vendorID;
+	vk.pipelineCacheKey.device = props.deviceID;
+	vk.pipelineCacheKey.driver = props.driverVersion;
+	memcpy( vk.pipelineCacheKey.uuid, props.pipelineCacheUUID, sizeof( vk.pipelineCacheKey.uuid ) );
+	memcpy( vk.pipelineCacheKey.shaderPackage, RHI_GetShaderPackageHash(), sizeof( vk.pipelineCacheKey.shaderPackage ) );
 
 	vk.cmd = vk.tess + 0;
 	vk.timestampPeriod = props.limits.timestampPeriod;
@@ -7655,6 +7663,47 @@ void RHI_Bloom( const float *restoreTransform ) {
 	}
 }
 
+
+rhiPipelineCacheKey_t RHI_GetPipelineCacheKey( void ) {
+	return vk.pipelineCacheKey;
+}
+
+static_assert( sizeof( VkPipelineCacheHeaderVersionOne ) == 32 && offsetof( VkPipelineCacheHeaderVersionOne, pipelineCacheUUID ) == 16 );
+
+rhiStatus_t RHI_RestorePipelineCache( const void *data, uint32_t size ) {
+	vk_clear_error();
+	if ( !vk.device || !vk.pipelineCache || !data || size < sizeof( VkPipelineCacheHeaderVersionOne ) )
+		return rhiStatus_t::Unavailable;
+	VkPipelineCacheHeaderVersionOne header;
+	memcpy( &header, data, sizeof( header ) );
+	if ( header.headerSize < sizeof( header ) || header.headerSize > size || header.headerVersion != VK_PIPELINE_CACHE_HEADER_VERSION_ONE ||
+		 header.vendorID != vk.pipelineCacheKey.vendor || header.deviceID != vk.pipelineCacheKey.device ||
+		 memcmp( header.pipelineCacheUUID, vk.pipelineCacheKey.uuid, sizeof( header.pipelineCacheUUID ) ) != 0 )
+		return rhiStatus_t::Unavailable;
+	VkPipelineCacheCreateInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+	info.initialDataSize = size;
+	info.pInitialData = data;
+	VkPipelineCache restored;
+	const VkResult result = qvkCreatePipelineCache( vk.device, &info, NULL, &restored );
+	if ( result != VK_SUCCESS )
+		return vk_status( result );
+	qvkDestroyPipelineCache( vk.device, vk.pipelineCache, NULL );
+	vk.pipelineCache = restored;
+	return rhiStatus_t::Success;
+}
+
+rhiStatus_t RHI_ReadPipelineCache( void *data, uint32_t *size ) {
+	vk_clear_error();
+	if ( !vk.device || !vk.pipelineCache )
+		return rhiStatus_t::Unavailable;
+	size_t bytes = data ? *size : 0;
+	const VkResult result = qvkGetPipelineCacheData( vk.device, vk.pipelineCache, &bytes, data );
+	if ( bytes > UINT32_MAX || result == VK_INCOMPLETE )
+		return rhiStatus_t::Error;
+	*size = (uint32_t)bytes;
+	return vk_status( result );
+}
 
 rhiStatus_t RHI_Initialize( const rhiDeviceConfig_t *config, const rhiHost_t *host, rhiDeviceInfo_t *info ) {
 	vk_config = *config;

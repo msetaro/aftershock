@@ -100,6 +100,17 @@ format compatibility information; reject incompatible cache data and rebuild the
 pipeline from the packaged shader. Keep cache I/O in the filesystem layer and
 pipeline creation outside steady-state draw submission where possible.
 
+The implemented cache key includes the full package hash plus native vendor,
+device, driver version and pipeline-cache UUID. Filesystem services read only the
+home game directory and verify their length/checksum envelope; no pk3 can supply a
+driver cache. The frontend loads before pipeline creation and exports during
+teardown, with a 16 MiB bound and no frame-time allocation. The Vulkan backend
+validates [the native compatibility header](https://docs.vulkan.org/spec/latest/chapters/pipelines.html)
+and uses [vkGetPipelineCacheData](https://docs.vulkan.org/refpages/latest/refpages/source/vkGetPipelineCacheData.html)
+for export. Cache misses or failed cache operations retain normal pipeline
+creation. The filename uses a shortened lookup hash to fit the existing path
+limit; the complete stored identity must still match.
+
 ## Passes and profiling
 
 Phase one retains the current explicit main, screen-map, bloom, capture and gamma

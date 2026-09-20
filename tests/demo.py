@@ -21,6 +21,7 @@ parser.add_argument('--cc', default='gcc')
 parser.add_argument('--cxx', default='g++')
 parser.add_argument('--lifecycle', action='store_true', help='check fixed frames after replay and video restart')
 parser.add_argument('--measure-gpu', action='store_true', help='after the frame gate, measure Vulkan scopes with the real clock')
+parser.add_argument('--pipeline-cache', action='store_true', help='verify cache restoration across fresh client processes')
 parser.add_argument('--modules', action='store_true', help='exercise the optional PC renderer module boundary')
 parser.add_argument('--record-fixtures', action='store_true', help='explicitly replace demos and frame goldens')
 parser.add_argument('--regenerate', action='store_true', help='explicitly replace frame goldens only')
@@ -57,7 +58,7 @@ for backend in ('vulkan', 'opengl1'):
         raise SystemExit('FAIL: renderer linkage does not match --modules')
 
 
-def client(binary, home, commands, log_name, fixed_random=False, real_clock=False):
+def client(binary, home, commands, log_name, fixed_random=False, real_clock=False, require_cache=False):
     # Loading a fixture is restricted to this offline invocation, never Xvfb itself.
     preload = ['env', 'LD_PRELOAD=' + str(shim)] if fixed_random else []
     clock = [] if real_clock else ['faketime', '-f', '@2026-01-01 00:00:00 i0.01']
@@ -77,6 +78,8 @@ def client(binary, home, commands, log_name, fixed_random=False, real_clock=Fals
         raise SystemExit('FAIL: static UI/cgame were not initialized')
     if args.lifecycle and not real_clock and any(log.count(f'Static {name} loaded.'.encode()) < 2 for name in ('cgame', 'ui')):
         raise SystemExit('FAIL: native modules were not restarted: ' + log_name)
+    if (require_cache or args.lifecycle and not real_clock) and binary == binaries['vulkan'] and b'pipeline cache: loaded ' not in log:
+        raise SystemExit('FAIL: renderer restart did not restore its pipeline cache: ' + log_name)
     if b'Unknown command' in log or b'ERROR:' in log:
         raise SystemExit('FAIL: client reported an error: ' + log_name)
     marker = b'GL_RENDERER:' if binary == binaries['opengl1'] else b'VK_RENDERER:'
@@ -94,12 +97,16 @@ def client(binary, home, commands, log_name, fixed_random=False, real_clock=Fals
 def prepare(home):
     base = home / ('baseoa' if args.content == 'openarena' else 'baseq3')
     base.mkdir()
+    if cache_home:
+        (base / 'cache').symlink_to(cache_home.name, target_is_directory=True)
     # Reuse installed content without reading the user's loose configs or copying paks.
     for pak in paks:
         (base / pak.name).symlink_to(pak)
     (base / 'demos').mkdir()
     return base
 
+
+cache_home = tempfile.TemporaryDirectory(prefix='aftershock-pipeline-cache-') if args.pipeline_cache else None
 
 golden = ROOT / 'tests/golden' / ('openarena' if args.content == 'openarena' else '')
 for map_name in content_maps(args.content):
@@ -131,7 +138,8 @@ for map_name in content_maps(args.content):
                         '+wait', '50', '+screenshot', 'frame100',
                         '+wait', '100', '+screenshot', 'frame200', '+wait', '2', '+gfxinfo',
                         *(['+vkinfo'] if backend == 'vulkan' else []), '+quit'],
-                       f'{map_name}-{backend}-replay-{iteration}.log')
+                       f'{map_name}-{backend}-replay-{iteration}.log',
+                       require_cache=args.pipeline_cache and iteration == 2)
                 for name in ('frame050', 'frame100', 'frame200'):
                     shutil.copyfile(base / 'screenshots' / (name + '.tga'),
                                     output / f'{map_name}-{backend}-{iteration}-{name}.tga')
