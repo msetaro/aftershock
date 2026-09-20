@@ -21,6 +21,7 @@ parser.add_argument('--cc', default='gcc')
 parser.add_argument('--cxx', default='g++')
 parser.add_argument('--lifecycle', action='store_true', help='check fixed frames after replay and video restart')
 parser.add_argument('--measure-gpu', action='store_true', help='after the frame gate, measure Vulkan scopes with the real clock')
+parser.add_argument('--modules', action='store_true', help='exercise the optional PC renderer module boundary')
 parser.add_argument('--record-fixtures', action='store_true', help='explicitly replace demos and frame goldens')
 parser.add_argument('--regenerate', action='store_true', help='explicitly replace frame goldens only')
 args = parser.parse_args()
@@ -47,9 +48,13 @@ objects = engine_objects(output / 'native', args.content, args.cc, args.cxx)
 binaries = {}
 for backend in ('vulkan', 'opengl1'):
     directory = build(output / ('build-' + backend), [f'CC={args.cc}', f'CXX={args.cxx}', *objects,
-                      'BUILD_SERVER=0', 'USE_RENDERER_DLOPEN=0', 'RENDERER_DEFAULT=' + ('opengl' if backend == 'opengl1' else backend)])
+                      'BUILD_SERVER=0', f'USE_RENDERER_DLOPEN={int(args.modules)}',
+                      'RENDERER_DEFAULT=' + ('opengl' if backend == 'opengl1' else backend)])
     binaries[backend] = directory / 'quake3e.x64'
     verify_static(binaries[backend], ('game', 'cgame', 'ui'))
+    symbols = subprocess.check_output(['nm', '-C', '--defined-only', binaries[backend]], text=True)
+    if any(' GetRefAPI(' in line for line in symbols.splitlines()) == args.modules:
+        raise SystemExit('FAIL: renderer linkage does not match --modules')
 
 
 def client(binary, home, commands, log_name, fixed_random=False, real_clock=False):

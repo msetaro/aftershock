@@ -182,6 +182,8 @@ jobs:
           python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Both-map Mesa timedemo frames
         run: python3 tests/demo.py --measure-gpu --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Optional renderer module replay and restart
+        run: python3 tests/demo.py --modules --lifecycle --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-demo-modules
       - name: RHI replay measurements
         if: always()
         uses: actions/upload-artifact@v7
@@ -199,6 +201,8 @@ jobs:
             /tmp/tests-runtime-ubsan/**/*.log
             /tmp/aftershock-demo-tests/**/*.log
             /tmp/aftershock-demo-tests/*.tga
+            /tmp/aftershock-demo-modules/**/*.log
+            /tmp/aftershock-demo-modules/*.tga
             /tmp/tests-native-runtime/**/*.log
             /tmp/tests-native-demo/**/*.log
             /tmp/tests-native-demo/*.tga

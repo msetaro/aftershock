@@ -40,6 +40,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../../renderercommon/tr_public.h"
 #include "sdl_glw.h"
 #include "sdl_icon.h"
+#ifdef USE_VULKAN_API
+#include "../../../third_party/vulkan/vulkan.h"
+#endif
 
 typedef enum {
 	RSERR_OK,
@@ -700,8 +703,8 @@ void VKimp_Init( glconfig_t *config ) {
 VK_GetInstanceProcAddr
 ===============
 */
-void *VK_GetInstanceProcAddr( VkInstance instance, const char *name ) {
-	return (void *)qvkGetInstanceProcAddr( instance, name );
+void *VK_GetInstanceProcAddr( uint64_t instance, const char *name ) {
+	return (void *)qvkGetInstanceProcAddr( (VkInstance)(uintptr_t)instance, name );
 }
 
 
@@ -710,10 +713,12 @@ void *VK_GetInstanceProcAddr( VkInstance instance, const char *name ) {
 VK_CreateSurface
 ===============
 */
-qboolean VK_CreateSurface( VkInstance instance, VkSurfaceKHR *surface ) {
-	if ( SDL_Vulkan_CreateSurface( SDL_window, instance, surface ) == SDL_TRUE )
+qboolean VK_CreateSurface( uint64_t instance, uint64_t *surface ) {
+	VkSurfaceKHR nativeSurface;
+	if ( SDL_Vulkan_CreateSurface( SDL_window, (VkInstance)(uintptr_t)instance, &nativeSurface ) == SDL_TRUE ) {
+		*surface = (uint64_t)(uintptr_t)nativeSurface;
 		return qtrue;
-	else
+	} else
 		return qfalse;
 }
 

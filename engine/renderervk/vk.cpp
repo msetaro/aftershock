@@ -1862,13 +1862,13 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 
 
 #define INIT_INSTANCE_FUNCTION( func ) \
-	q##func = /*(PFN_ ## func)*/ (PFN_ ## func)ri.VK_GetInstanceProcAddr(vk_instance, #func); \
+	q##func = /*(PFN_ ## func)*/ (PFN_ ## func)ri.VK_GetInstanceProcAddr((uint64_t)(uintptr_t)vk_instance, #func); \
 	if (q##func == NULL) {											\
 		ri.Error(ERR_FATAL, "Failed to find entrypoint %s", #func);	\
 	}
 
 #define INIT_INSTANCE_FUNCTION_EXT( func ) \
-	q##func = /*(PFN_ ## func)*/ (PFN_ ## func)ri.VK_GetInstanceProcAddr(vk_instance, #func);
+	q##func = /*(PFN_ ## func)*/ (PFN_ ## func)ri.VK_GetInstanceProcAddr((uint64_t)(uintptr_t)vk_instance, #func);
 
 
 #define INIT_DEVICE_FUNCTION( func ) \
@@ -1963,11 +1963,13 @@ static void init_vulkan_library( void ) {
 		}
 #endif
 
-		// create surface
-		if ( !ri.VK_CreateSurface( vk_instance, &vk_surface ) ) {
+		// create surface through the SDK-independent platform import
+		uint64_t surface;
+		if ( !ri.VK_CreateSurface( (uint64_t)(uintptr_t)vk_instance, &surface ) ) {
 			ri.Error( ERR_FATAL, "Error creating Vulkan surface" );
 			return;
 		}
+		vk_surface = (VkSurfaceKHR)(uintptr_t)surface;
 	} // vk_instance == VK_NULL_HANDLE
 
 	res = qvkEnumeratePhysicalDevices( vk_instance, &device_count, NULL );

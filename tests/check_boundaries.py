@@ -56,6 +56,7 @@ def check(path, text):
     errors = []
     subsystem = path.parts[:2]
     platform = path.parts[:2] == ('engine', 'platform')
+    gpu_backend = path.parts[:2] == ('engine', 'renderervk')
     filesystem = path == Path('engine/qcommon/files.cpp')
     source = code(text)
     for match in INCLUDE.finditer(source):
@@ -63,12 +64,16 @@ def check(path, text):
         reason = None
         if not (platform or filesystem) and OS_HEADER.match(name):
             reason = 'OS header belongs in platform or files.cpp'
+        if not (platform or gpu_backend) and (name == 'vulkan.h' or name.startswith('vulkan/')):
+            reason = 'Vulkan SDK belongs in its backend or platform'
         if kind == '"':
             target = (ROOT / path.parent / name).resolve()
             if not target.is_relative_to(ROOT):
                 reason = 'include escapes the source tree'
             else:
                 target = target.relative_to(ROOT)
+                if target.parts[:2] == ('third_party', 'vulkan') and not (platform or gpu_backend):
+                    reason = 'Vulkan SDK belongs in its backend or platform'
                 if path.parts[0] == 'engine' and target.parts[0] == 'game':
                     reason = 'engine must not include game'
                 elif target.parts[0] in ('engine', 'game') and target.parts[:2] != subsystem:
@@ -95,6 +100,10 @@ def selfcheck():
     assert check(core, '#include "../../game/bg/q_shared.h"')
     assert check(Path('game/game/probe.cpp'), '#include "../../engine/client/client.h"')
     assert not check(core, '#include "../sound/snd_public.h"')
+    assert check(core, '#include <vulkan/vulkan.h>')
+    assert check(Path('engine/renderercommon/probe.h'), '#include "../../third_party/vulkan/vulkan.h"')
+    assert not check(Path('engine/renderervk/probe.cpp'), '#include "../../third_party/vulkan/vulkan.h"')
+    assert not check(Path('engine/platform/probe.cpp'), '#include <vulkan/vulkan.h>')
     assert check(core, '#include <windows.h>\nCreateFileA("x");')
     assert check(core, '#ifdef _WIN32\nsocket(0);\n#else\nfopen("x", "r");\n#endif')
     assert check(core, '#if 0\n#if X\nfopen("x", "r");\n#endif\n#else\ngetenv("x");\n#endif')

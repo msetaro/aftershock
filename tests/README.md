@@ -46,6 +46,11 @@ replays both Vulkan fixtures twice with the real clock to report completed GPU
 scopes. Faketime also changes Mesa's software timestamps, so only the separate
 `*-timing-*.log` values are performance measurements. These samples are
 informational; hardware/driver differences are not a performance failure gate.
+`python3 tests/demo.py --modules --lifecycle` also checks fixed frames through the
+optional PC renderer module boundary and after video restart. Hosted OpenArena
+runtime CI runs this alongside the primary static renderer. Renderer module API 9
+requires rebuilding old modules with the client; only the platform import callback
+signatures changed, not the scene or game services.
 The RHI retains at most 32 scopes per frame, reads available results after the
 existing frame fence, and never adds a query wait. Its check covers timestamp
 wrap, unavailable results, scope exhaustion, and duplicate scope completion.

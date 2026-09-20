@@ -18,11 +18,10 @@ upstream; historical upstream PR references below are completed past work.
 
 Continue #6 draft PR #140 on `issue/6-rhi`. Uploads, textures, wait statuses,
 initial commands, GPU scopes and portable pipeline descriptions are extracted.
-Next remove SDK types from the platform import boundary and complete frame/buffer/
+The platform import boundary is now SDK-independent. Next complete frame/buffer/
 pipeline ownership. Acquisition fix PR #141 merged separately as 61401e17 after
 full build 35484485400/regression 35484485349 and self-review; it has now been
-merged into this branch. Verify its integration regression before the next PR
-merge. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
+merged into this branch. Its integration regression 35484895454 passed. Keep accepted fixtures/frame goldens. GL retirement and frontend moves
 follow the complete RHI/lifecycle acceptance, then continue #7 and the remaining
 #25 sequence. All writes stay in msetaro/aftershock.
 
@@ -53,7 +52,7 @@ restart replay passes b38004b1. Format/type/boundary checks pass. AGENTS self-re
 one acquisition condition only; no new engine OS call, allocation, destructor,
 layout or floating-point change. CI integration runs the new test on both unit
 compilers. Head 7382d9af passed build 35484485400 and regression 35484485349;
-PR #141 merged 61401e17. Integration regression is pending.
+PR #141 merged 61401e17. Integration regression 35484895454 passed.
 
 ## #6 implementation checkpoint
 
@@ -149,6 +148,20 @@ GPU scopes checkpoint 21b44a9c passed full build 35484267291 and regression
 35484267381, including hosted real-clock OpenArena measurements. Prior command
 checkpoint 2b43a0bb also passed full build 35483786166/regression 35483786169.
 All #6 implementation remains unmerged in draft PR #140.
+
+Platform boundary slice: client/renderer imports use opaque 64-bit instance/surface
+handles, converted only inside the native backend/platform calls. REF_API_VERSION
+is 9 so incompatible old renderer modules are rejected. The include gate rejects
+Vulkan SDK headers outside the backend/platform. Static replay and GPU measurement
+pass (rhi-platform.log); optional modules pass both maps/renderers twice including
+video restart (rhi-module-demo.log), retaining b38004b1. The demo driver checks
+executable symbols to distinguish module from static linkage. CI now exercises
+this optional module lifecycle. Format/type/boundary and RHI checks pass. No shader,
+fixture, golden, allocation, floating-point or scene export changes.
+
+Pipeline checkpoint 11cbcddb passed full build 35484803600/regression 35484803591.
+Merge checkpoint 18e4e887 passed full build 35484969696/regression 35484969698.
+The #31 acquisition fix's integration regression 35484895454 also passed.
 
 ## Final #8 verification
 
