@@ -19,8 +19,8 @@ upstream; historical upstream PR references below are completed past work.
 #9 PR #145 merged as c195f798 after exact head 3eb19288 passed build
 35507057165 and regression 35507057162 with the committed self-review. The merge
 tree matches the tested tree (a932a04e693402c91f8eecd0101a2852bf53714b).
-Merged-tree regression 35507482742 is running; require its pass before opening
-or merging the next PR, and then close #9/update #25.
+Merged-tree regression 35507482742 passed. #9 is complete; close it/update #25
+and open the separate accounting PR at this checkpoint.
 
 Current branch is `issue/31-iqm-accounting`. Test-first commit 85563345 compares
 model_t::dataSize with the actual allocator request on registration and twelve
@@ -32,8 +32,9 @@ PR opens until that gate passes. This advances the earlier tests-only preparatio
 checkpoint now that #9's exact-head gates and merge are complete.
 
 The one-line accounting fix now passes GCC/Clang cooker checks, formatting and
-fixed Quake 3 replay. Self-review is recorded below. Next: wait for #9 merged-tree
-regression, close #9/update #25, then open and gate the separate #31 accounting PR;
+fixed Quake 3 replay. Self-review is recorded below. Next: open and gate the
+separate #31 accounting PR, merge with a merge commit after exact-head success,
+and require its merged-tree regression before the following PR;
 then fix rotated nonuniform joint scale in another #31 PR. Its mathematical test
 is being prepared in /tmp/aftershock-31-iqm-joint-scale without engine edits.
 After both bugs, continue #10 and the remaining #25 roadmap. All GitHub changes
@@ -3170,3 +3171,7 @@ unrelated refactoring changes. Initial registration and in-place replacement sha
 the corrected path. Full exact-head hosted build/regression still required for the
 PR, after #9 integration regression 35507482742 passes. The rotated-scale test is
 committed separately as 13f999df and fails before any matrix change.
+
+#9 merged-tree regression 35507482742 passed at c195f798. The accounting PR may
+now open; its own exact-head build/regression and post-merge regression remain
+required. The main worktree is now on issue/31-iqm-accounting.
