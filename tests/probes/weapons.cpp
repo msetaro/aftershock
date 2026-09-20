@@ -209,6 +209,14 @@ int main( int argc, char **argv ) {
 	assert( !memcmp( &a, &beforeSwitch, sizeof( a ) ) && !memcmp( &b, &beforeOther, sizeof( b ) ) );
 	a.reloadStage = 2;
 	assert( Weapon_Switch( &def, &a, &second, &b, a.time ) && a.reloadStage == WEAPON_NO_STAGE );
+	Weapon_Reset( &def, 1, 0, &a );
+	a.magazine = 1;
+	const auto began = Step( def, &a, WEAPON_RELOAD );
+	assert( began.count == 1 && began.items[0].kind == WEAPON_RELOAD_BEGIN );
+	Step( def, &a, 0 );
+	const auto cancelled = Step( def, &a, WEAPON_RELOAD );
+	assert( cancelled.count == 1 && cancelled.items[0].kind == WEAPON_RELOAD_CANCELLED && a.reloadStage == WEAPON_NO_STAGE );
+	assert( a.magazine == 1 && a.reserve == def.reserve );
 	weaponProjectile_t projectile = {};
 	projectile.velocity[0] = 800;
 	Weapon_ProjectileStep( &def, &projectile );

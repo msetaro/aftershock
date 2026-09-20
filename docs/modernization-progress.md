@@ -292,6 +292,11 @@ hand, rejects unsupported masks/busy reload stages and applies the equip delay
 without refilling ammo. Build, format and boundary checks pass. Socket/view
 presentation and notify-driven audio are still outstanding.
 
+A new failing portable assertion requires reload-start/cancel events and a second
+reload press to cancel at an allowed stage (weapons-reload-events-before.log).
+These events let weapon animation follow mechanical state without adding an
+input bit or inferring starts from later magazine events.
+
 
 ## #12 implemented feature evidence
 
