@@ -113,6 +113,8 @@ int main() {
 	G_RecordRewind();
 	G_TraceHitscan( &trace, start, end, 0, &shooter );
 	assert( trace.entityNum == 7 && trace.fraction == 0.49f ); // authored bone box, not current actor bounds at y=320
+	G_TraceHitscan( &trace, end, start, 0, &shooter );
+	assert( trace.entityNum == 7 && trace.plane.normal[0] == 1 && trace.plane.type == PLANE_X && trace.plane.signbits == 0 && trace.plane.dist == 102 );
 	assert( allocations == 1 ); // restart reuses level arena storage
 	enabled = false;
 	G_InitRewind( 0 );

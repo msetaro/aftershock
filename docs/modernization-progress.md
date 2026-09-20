@@ -138,6 +138,10 @@ negative axial normal must use PLANE_NON_AXIAL, matching PlaneTypeForNormal.
 The new assertion fails before correction (netcode-plane-before.log); correct
 that new feature code before acceptance. Existing collision arithmetic is unchanged.
 Hosted e64e214f build 35521897544/regression 35521897618 are in progress.
+The plane assertion in 47b4ec60 now passes under both compilers after using the
+existing PlaneTypeForNormal macro in the new trace adapter. Positive and negative
+impact normals/distances/signbits are covered. Rebuild and rerun the affected
+runtime/fixed replay gates; the pending full gates must target the corrected head.
 
 ## #10 accepted implementation
 

@@ -132,11 +132,10 @@ void G_TraceHitscan( trace_t *trace, const vec3_t start, const vec3_t end, int p
 			trace->endpos[axis] = start[axis] + hit.fraction * ( end[axis] - start[axis] );
 			trace->plane.normal[axis] = hit.normal[axis];
 			trace->plane.dist += hit.normal[axis] * trace->endpos[axis];
-			if ( hit.normal[axis] )
-				trace->plane.type = (byte)axis;
 			if ( hit.normal[axis] < 0 )
 				trace->plane.signbits |= (byte)( 1u << axis );
 		}
+		trace->plane.type = (byte)PlaneTypeForNormal( trace->plane.normal );
 	}
 	const int client = shooter->s.number;
 	if ( client >= 0 && client < level.maxclients && (uint32_t)level.time - lastRewindReport[client] >= 250 ) {
