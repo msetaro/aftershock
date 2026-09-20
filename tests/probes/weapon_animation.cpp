@@ -7,6 +7,20 @@
 #include <vector>
 
 int main( int argc, char **argv ) {
+	weaponNotifyHistory_t history = {};
+	assert( Weapon_NotifyOnce( &history, 1, 10, 2 ) );
+	assert( Weapon_NotifyOnce( &history, 1, 10, 1 ) ); // Entity slot order can differ from notify order.
+	assert( !Weapon_NotifyOnce( &history, 1, 10, 2 ) );
+	assert( !Weapon_NotifyOnce( &history, 1, 10, 1 ) );
+	assert( Weapon_NotifyOnce( &history, 2, 10, 1 ) ); // Respawn.
+	assert( Weapon_NotifyOnce( &history, 2, 11, 1 ) ); // Reused remote client slot.
+	history = {};
+	assert( Weapon_NotifyOnce( &history, 1, 1, 0xfffffffeu ) );
+	assert( Weapon_NotifyOnce( &history, 1, 1, 0 ) );
+	assert( Weapon_NotifyOnce( &history, 1, 1, 0xffffffffu ) );
+	assert( !Weapon_NotifyOnce( &history, 1, 1, 0xffffffffu ) );
+	assert( Weapon_NotifyOnce( &history, 1, 1, 10000 ) );
+	assert( !Weapon_NotifyOnce( &history, 1, 1, 0 ) );
 	assert( argc == 3 );
 	std::ifstream weaponFile( argv[1], std::ios::binary ), graphFile( argv[2], std::ios::binary );
 	const std::vector<char> weaponBytes( ( std::istreambuf_iterator<char>( weaponFile ) ), {} );

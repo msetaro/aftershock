@@ -104,6 +104,14 @@ The new cosmetic-budget assertion fails while 128 feature effects are active
 hitscan damage; this prevents notify/impact bursts from consuming the legacy
 entity pool. The legacy allocator itself remains outside this feature's scope.
 
+The initial notify path passes Q3 and OpenArena: 39 audible events each, exactly
+once, and 449 matching main-hand animation comparisons. SDL dummy audio initializes
+and loads the new sounds; this verifies dispatch, not physical speaker output.
+Review identified that entity slot order can differ from notify order. The new
+portable order/spawn/connection/wrap test fails on the absent bounded notify
+window (weapons-notify-order-before.log); replace the initial high-water-only
+deduplication before committing this implementation.
+
 ## #11 test-first scope
 
 The first portable contract covers a versioned weapon asset in the existing
