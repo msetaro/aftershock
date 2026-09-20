@@ -21,6 +21,13 @@ vec3 unitOr(vec3 value, vec3 fallback) {
 	return normalize(value / scale);
 }
 
+vec3 displayColor(vec3 linearColor) {
+	// The legacy UNORM target stores display-space RGB. Encode only PBR output;
+	// the shared legacy postprocess and its accepted shader bytes stay unchanged.
+	vec3 c = max(linearColor, vec3(0.0));
+	return mix(1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, c * 12.92, lessThanEqual(c, vec3(0.0031308)));
+}
+
 void main() {
 	vec4 base = texture(baseTexture, uv) * color;
 	vec4 nr = texture(normalRoughnessTexture, uv);
@@ -45,7 +52,7 @@ void main() {
 	if ((flags & 8) != 0 && base.a < surface.z) discard;
 	float opacity = (flags & 4) != 0 ? base.a : 1.0;
 	if ((flags & 2) != 0) {
-		outColor = vec4(base.rgb, opacity);
+		outColor = vec4(displayColor(base.rgb), opacity);
 		return;
 	}
 	float metallic = clamp(em.a * emissiveMetallic.a, 0.0, 1.0);
@@ -65,5 +72,5 @@ void main() {
 	vec3 diffuse = base.rgb * (1.0 - metallic);
 	vec3 direct = ((1.0 - fresnel) * diffuse / pi + fresnel * distribution * visibility) * nl * directed.rgb;
 	vec3 result = diffuse * ambient.rgb + direct + em.rgb * emissiveMetallic.rgb;
-	outColor = vec4(result, opacity);
+	outColor = vec4(displayColor(result), opacity);
 }

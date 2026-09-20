@@ -925,10 +925,10 @@
       "source": "pbr.frag",
       "stage": "frag",
       "defines": [],
-      "source_sha256": "393fcbe552a60a2bb96488afd973b076d5e3eae65cfd94e961d1bbd111589c97",
+      "source_sha256": "c06c15653cb29de8ae5c7772c5aebbaaa3873ed87b043a988fa55c470fb6aef8",
       "includes": {},
-      "spirv_sha256": "b84d0572086d4e413fda0b7dc81e5fa20d64ce9c457904dbcadf561b5b0056d4",
-      "recipe_sha256": "e0664ced75a70be82deeb53fbc6c219d832213d0157b018aadfac5137c4c1263",
+      "spirv_sha256": "3afeeb9b2281cdfd56ed0a368902f1d0179097abf616db1ea94e20c79085f048",
+      "recipe_sha256": "027de42af1444a47887d879f7304dd98ae11a97a54dd8d91e7f868dbe9614f87",
       "layout": {
         "entry_points": [
           {
@@ -937,71 +937,71 @@
           }
         ],
         "decorations": {
-          "52": {
+          "81": {
             "binding": 0,
             "set": 1
           },
-          "56": {
+          "85": {
             "location": 0
           },
-          "61": {
+          "90": {
             "binding": 0,
             "set": 0
           },
-          "69": {
+          "98": {
             "binding": 0,
             "set": 2
           },
-          "74": {
+          "103": {
             "binding": 0,
             "set": 3
           },
-          "80": {
+          "109": {
             "location": 2
           },
-          "90": {
+          "118": {
             "location": 3
           },
-          "99": {
+          "127": {
             "location": 1
           },
-          "287": {
+          "315": {
             "location": 0
           }
         },
         "member_offsets": [
           {
-            "type": 59,
+            "type": 88,
             "member": 0,
             "offset": 0
           },
           {
-            "type": 59,
+            "type": 88,
             "member": 1,
             "offset": 16
           },
           {
-            "type": 59,
+            "type": 88,
             "member": 2,
             "offset": 32
           },
           {
-            "type": 59,
+            "type": 88,
             "member": 3,
             "offset": 48
           },
           {
-            "type": 59,
+            "type": 88,
             "member": 4,
             "offset": 64
           },
           {
-            "type": 59,
+            "type": 88,
             "member": 5,
             "offset": 80
           },
           {
-            "type": 59,
+            "type": 88,
             "member": 6,
             "offset": 96
           }

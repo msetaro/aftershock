@@ -6068,6 +6068,14 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 	}
 
 	rasterization_state.frontFace = VK_FRONT_FACE_CLOCKWISE; // Q3 defaults to clockwise vertex order
+	if ( def->shader_type == TYPE_PBR && def->mirror ) {
+		// Keep gl_FrontFacing meaningful for the PBR double-sided normal rule.
+		rasterization_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		if ( def->face_culling == CT_FRONT_SIDED )
+			rasterization_state.cullMode = VK_CULL_MODE_BACK_BIT;
+		else if ( def->face_culling == CT_BACK_SIDED )
+			rasterization_state.cullMode = VK_CULL_MODE_FRONT_BIT;
+	}
 
 	// depth bias state
 	if ( def->polygon_offset ) {

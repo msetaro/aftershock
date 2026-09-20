@@ -153,6 +153,9 @@ python3 tests/native_info.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
 python3 tests/cook.py
+python3 tests/materials.py
+python3 tests/materials_runtime.py --binary CLIENT
+python3 tests/materials_runtime.py --binary CLIENT --ui --output /tmp/material-ui
 python3 tests/iqm_scale.py
 python3 tests/cook_runtime.py
 python3 tests/cook_runtime.py --modules --output /tmp/cook-modules

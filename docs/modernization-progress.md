@@ -41,8 +41,9 @@ The failing cooker and native instance contracts were committed first (c4bb8bbf,
 b4cddc63). The isolated PBR cook/native data slice now passes GCC and Clang/libc++;
 Rendering/tangent submission, live factors, instance submission and ImGui controls
 are implemented locally. Classic replay retains the accepted hash. Remaining work:
-finish visual/ImGui/native checks, document/wire CI, self-review, exact-head full CI
-and merged-tree regression before accepting #13. #13 has no PR yet. No accepted
+finish final Q3/module visual checks, commit self-review, open the #13 draft PR,
+then require exact-head full CI and merged-tree regression before accepting #13.
+Unit and hosted-runtime commands, diagnostics and documentation are wired. #13 has no PR yet. No accepted
 fixture/shader bytes changed; no #13 acceptance before #28 integration passes.
 The new local implementation was started during #28's final lifetime gate, after
 the preparatory tests were committed, to avoid idle CI time. Keep issue scope and
@@ -118,6 +119,43 @@ mask/blend changes. Rerun the corrected permanent test; add actual ImGui and
 instance visual controls and both content sets before acceptance. Evidence:
 materials-runtime-{first,idle}.log and /tmp/aftershock-material-runtime-idle images.
 These are new test captures, not accepted goldens.
+
+## #13 visual and color review
+
+The new shader now explicitly encodes linear PBR output for the unchanged legacy
+UNORM display-space target. An unlit stage independently checks sampled RGB against
+the source (180,130,50), within BC7's three-byte tolerance. Only the two unaccepted
+PBR programs were updated through the generator; the 74 accepted programs remain
+an unchanged byte prefix. The final 76-program cache/fresh-compile package is
+71ffd19cdfc660adb9c2382c409a0eb118258746aeffd2452258dd6f5e082560
+(materials-shaders-display.log). Transparency uses the existing display-space
+compositor; linear HDR composition belongs to subsequent lighting work.
+
+The permanent sphere test samples its 5,521 interior pixels, not the moving map
+behind it. OpenArena now passes: metallic 5,521 changed pixels, roughness 774,
+normal direction 2,389, emissive/mask/blend all 5,521, correct unlit source color,
+and an exact restored opaque image (materials-runtime-normal.log). A mild normal
+perturbation under OA's far-side preview sun changed too few pixels for a useful
+visual control; the owned source now deliberately reverses tangent-space Z. No
+engine threshold/oracle was relaxed. A full-line log barrier prevents normal_flat
+from being mistaken for the later normal marker. Final Q3 source validation is
+running after adding glTF POSITION/time bounds and optional extension declarations.
+
+Real ImGui shared/instance edits pass with both content sets
+(materials-ui-{unique,display}.log). The shared metallic factor changes the preview;
+an independent override restores the baseline; clearing it restores the shared
+edit exactly. The control selects the unique models/sphere path, avoiding similarly
+named legacy pickup shaders. Shader review also preserves gl_FrontFacing semantics
+for mirrored PBR geometry by adjusting only that new pipeline's winding/culling.
+The optional renderer module is building/running the same actual-input test.
+
+Unit golden and its one-ULP control pass; unit.txt remains
+8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede.
+Legacy cooker/render probes, animation/instance tests, RHI and 1,270 tidy
+configurations pass. Lifetime analysis is at 1,200/1,216 commands. CI runs the new
+cooker/native contract with both compilers and both visual modes with OA. AGENTS,
+tests/README and tools/cook/README document commands, v2 layout, authoring and limits.
+No #13 PR is open yet; commit final self-review and require exact-head hosted gates.
 
 ## #28 implementation record at its tested head
 
