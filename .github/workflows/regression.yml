@@ -200,7 +200,7 @@ jobs:
         with:
           key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install runtime tools and OpenArena content
-        run: sudo apt-get update && sudo apt-get install -y python3-venv ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data libarchive-dev
+        run: sudo apt-get update && sudo apt-get install -y python3-venv python3-pil ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data libarchive-dev
       - name: Stage pinned upstream OpenArena gamecode
         run: python3 tests/openarena.py
       - name: Download URL construction
@@ -219,8 +219,10 @@ jobs:
         run: python3 tests/devtools_data.py
       - name: Native entity edit and save/reload
         run: python3 tests/dev_entities.py --output /tmp/aftershock-dev-entities --content openarena --data /tmp/aftershock-openarena-baseoa
-      - name: Native entity and world tools through real input
+      - name: Native entity and world tools through shared controls
         run: python3 tests/dev_world_ui.py --output /tmp/aftershock-dev-world-ui --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Seeded local agent playthrough
+        run: python3 tests/agent_play.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Cooked character and visible source reload
         run: |
           python3 -m venv /tmp/aftershock-cook-python
@@ -228,7 +230,7 @@ jobs:
           /tmp/aftershock-cook-python/bin/python tests/cook_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: PBR material channels and ImGui instance edits
         run: |
-          /tmp/aftershock-cook-python/bin/python tests/materials_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          /tmp/aftershock-cook-python/bin/python tests/materials_runtime.py --output /tmp/aftershock-material-runtime --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
           /tmp/aftershock-cook-python/bin/python tests/materials_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --ui --output /tmp/aftershock-material-ui
       - name: Owned animation gameplay and graph authoring
         run: |
@@ -317,10 +319,10 @@ jobs:
             /tmp/aftershock-cook-runtime-test/*.tga
             /tmp/aftershock-cook-runtime-test/latency.txt
             /tmp/aftershock-material-runtime/*.log
-            /tmp/aftershock-material-runtime/*.tga
+            /tmp/aftershock-material-runtime/*.png
             /tmp/aftershock-material-runtime/*.json
             /tmp/aftershock-material-ui/*.log
-            /tmp/aftershock-material-ui/*.tga
+            /tmp/aftershock-material-ui/*.png
             /tmp/aftershock-material-ui/*.json
             /tmp/aftershock-ssao-runtime/*
             /tmp/aftershock-ssao-modules/*

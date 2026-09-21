@@ -68,6 +68,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-devtools-', dir=os.environ.g
             if panel == 'Animation':
                 engine.request('animation.load', path=sorted(models)[0])
                 engine.step(3)
+                engine.request('animation.set', field='frame', value=1)
+                engine.step(2)
+                assert engine.request('editor.state')['animation']['frame'] == 1
                 engine.request('animation.set', field='play', value=1)
             engine.step(3)
             state = engine.request('editor.state')

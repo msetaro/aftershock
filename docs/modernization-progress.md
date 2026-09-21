@@ -50,9 +50,10 @@ picking, selection and reload share existing UI functions. The Range rewrite pas
 (agent-range-before.log). Authoritative weapon/animation queries and shared Range
 actions are implemented. All five original editor tests are now migrated and pass locally on both
 content sets. The full OpenArena devtools rebuild proves shipping exclusion.
-The material driver rewrite fails first on missing assets query
-(agent-material-before.log). Implement registry/selection/material commands and
-preview geometry state, then validate the retained pixel comparisons; gameplay event/assert acceptance remains.
+Material registry/selection/override commands now pass both UI and recook image
+checks on Q3/OA; initial absence is in agent-material-before.log. Finish the
+remaining cook_runtime.py pixel-input rewrite, GPU/memory/net telemetry, and
+remaining shared controls; gameplay event/assert acceptance remains.
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
@@ -98,6 +99,25 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 material controls checkpoint
+
+Assets queries copy the existing image/material/model registries with bounded
+pagination and filtering. Selection and PBR shared/preview edits use the same
+functions as ImGui. Model preview state includes its viewport rectangle.
+Both material test variants pass on Q3 and OA: source metallic/roughness/normal/
+emission/mask/blend/unlit changes, exact restoration, and shared/instance factor
+round trips (agent-material-{ui,runtime}*.log). Original image thresholds remain;
+the sample disc derives from viewport/framing. Offline recooking waits for
+structured reload counters rather than wall-time guesses or console regex.
+
+The temporary agent_panels.py contract is folded into devtools.py and
+dev_world_ui.py; coverage for explicit frame selection remains in devtools.
+Both native command probes, boundaries, format and the wrapper contract pass.
+CI now explicitly installs Pillow for new early runtime PNG checks and runs the
+seeded local playthrough on its already-built developer client. Output artifact
+patterns use PNG for migrated tests. Remaining pixel input is cook_runtime.py;
+netcode_runtime uses named keys, not screen clicks. Final full gates still pending.
+
 ## #163 inspector lifecycle checkpoint
 
 Named key requests queue ordinary SE_KEY events; actual key handling, bindings
@@ -127,8 +147,8 @@ play ternaries. Use explicit float literals. These hosted heads remain unaccepte
 Material UI and recook variants now pass locally, including normal-map response.
 The migrated driver waits for structured reload counters after offline cooking.
 Its sampled disc derives from the reported viewport and preview FOV/framing,
-retaining the original pixel-difference and exact-round-trip checks. OA validation
-and final commit of material commands remain next.
+retaining the original pixel-difference and exact-round-trip checks. OA validation also passes for both material variants; the material commands are
+ready for their implementation checkpoint. Continue the remaining cooker test.
 
 ## #163 Range and actor-state checkpoint
 

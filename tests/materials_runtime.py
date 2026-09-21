@@ -9,6 +9,7 @@ import shutil
 import struct
 import sys
 import tempfile
+import time
 
 from PIL import Image
 
@@ -109,6 +110,9 @@ def main():
             engine.step(3)
             materials = engine.request('assets', kind='materials', filter='models/sphere')['items']
             assert len(materials) == 1 and materials[0]['metallicRoughness'], materials
+            models = engine.request('assets', kind='models', filter='models/sphere')['items']
+            assert len(models) == 1 and models[0]['frames'] > 0, models
+            engine.request('asset.select', kind='models', index=models[0]['index'])
             material_index = materials[0]['index']
             params = materials[0]['params']
             baseline = dict(params)
@@ -160,9 +164,22 @@ def main():
                 elif name == 'unlit':
                     del material['extensions']
                     del document['extensionsUsed']
+                def reload_count():
+                    return sum(item['reloads'] for kind in ('images', 'materials')
+                               for item in engine.request('assets', kind=kind, filter='models/sphere')['items'])
+
+                previous = reload_count()
+                revision = (base / 'cook.revision').read_bytes()
                 (inputs / 'sphere.gltf').write_text(json.dumps(document))
                 cook(project, base)
-                engine.request('exec', command='dev_reloadAssets')
+                if (base / 'cook.revision').read_bytes() != revision:
+                    # Offline hot reload polls real time; wait for its reported
+                    # publication before sampling. Simulation still steps explicitly.
+                    deadline = time.monotonic() + 10
+                    while reload_count() <= previous:
+                        assert time.monotonic() < deadline, 'cooked asset reload timed out'
+                        engine.step(2)
+                        time.sleep(0.01)
                 engine.step(3)
             registry = engine.request('assets', kind='materials', filter='models/sphere')['items']
             if not args.ui:
@@ -173,7 +190,9 @@ def main():
         # interior, excluding that changing background, HUD and antialiased edge.
         x, y, width, height = preview
         center_x, center_y = x + width / 2, y + height / 2
-        radius = max(1, int(height * 0.2))
+        # This unit sphere is framed at four radii with a 40-degree vertical FOV.
+        # Keep 90% of its projected radius, excluding the antialiased edge.
+        radius = max(1, int(height * 0.9 / (8 * math.tan(math.radians(20)))))
         points = [(px, py) for px in range(int(center_x - radius), int(center_x + radius))
                   for py in range(int(center_y - radius), int(center_y + radius))
                   if (px - center_x) ** 2 + (py - center_y) ** 2 < radius ** 2]

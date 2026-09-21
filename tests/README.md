@@ -137,8 +137,10 @@ independent and reset when frame storage is reused.
 `python3 tests/materials_runtime.py --binary CLIENT` loads an owned glTF sphere
 under Xvfb/lavapipe. It measures metallic, roughness, normal, emissive, mask and
 blend source edits in the sphere interior and requires an exact restored image.
-`--ui --output /tmp/material-ui` uses real ImGui input to edit a shared factor,
-override only the preview instance and restore both independently. Both commands
+`--ui --output DIR` calls shared panel commands through JSON to edit a shared
+factor, override only the preview instance and restore both independently.
+Registry queries locate the material; the reported preview rectangle determines
+the sampled sphere interior. Recook captures wait for structured reload counters. Both commands
 accept the existing `--content`/`--data` options; CI uses OpenArena. Their new
 captures are diagnostics, never replacements for the classic replay goldens.
 

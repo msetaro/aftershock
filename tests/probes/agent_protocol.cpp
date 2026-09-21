@@ -7,6 +7,18 @@ int Key_StringToKeynum( const char * ) {
 }
 void Sys_QueEvent( int, sysEventType_t, int, int, int, void * ) {
 }
+const refexport_t *DevTools_Renderer( void ) {
+	return nullptr;
+}
+bool DevTools_SelectAsset( const char *, int ) {
+	return false;
+}
+bool DevTools_MaterialPreview( int, bool ) {
+	return false;
+}
+bool DevTools_SetMaterial( int, const materialParams_t * ) {
+	return false;
+}
 bool DevTools_SelectPanel( const char * ) {
 	return false;
 }

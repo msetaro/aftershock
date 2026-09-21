@@ -383,11 +383,11 @@ static bool Agent_Number( const char *request, const char *end, const char *name
 }
 
 #ifndef DEDICATED
-static bool Agent_Vector( const char *request, const char *end, const char *name, float *value, float minimum, float maximum ) {
+static bool Agent_Vector( const char *request, const char *end, const char *name, float *value, float minimum, float maximum, int count = 3 ) {
 	const char *p = JSON_ObjectGetNamedValue( request, end, name );
-	if ( JSON_ValueGetType( p, end ) != JSONTYPE_ARRAY || JSON_ArrayGetIndex( p, end, nullptr, 0 ) != 3 )
+	if ( JSON_ValueGetType( p, end ) != JSONTYPE_ARRAY || JSON_ArrayGetIndex( p, end, nullptr, 0 ) != (uint32_t)count )
 		return false;
-	for ( int i = 0; i < 3; ++i ) {
+	for ( int i = 0; i < count; ++i ) {
 		const char *element = JSON_ArrayGetValue( p, end, (uint32_t)i );
 		if ( !element || !( *element == '-' || ( *element >= '0' && *element <= '9' ) ) || JSON_SkipValue( element, end ) - element >= 128 )
 			return false;
@@ -468,6 +468,126 @@ static void Agent_State( agentReply_t &reply ) {
 }
 
 #ifndef DEDICATED
+static void Agent_MaterialParams( agentReply_t &reply, const materialParams_t &params ) {
+	reply.Text( "{\"color\":[" );
+	for ( int i = 0; i < 4; ++i ) {
+		if ( i )
+			reply.Text( "," );
+		reply.Number( params.color[i] );
+	}
+	reply.Text( "],\"emissive\":" );
+	reply.Vector( params.emissive );
+	reply.Text( ",\"metallic\":" );
+	reply.Number( params.metallic );
+	reply.Text( ",\"roughness\":" );
+	reply.Number( params.roughness );
+	reply.Text( ",\"normalScale\":" );
+	reply.Number( params.normalScale );
+	reply.Text( ",\"alphaCutoff\":" );
+	reply.Number( params.alphaCutoff );
+	reply.Text( ",\"flags\":" );
+	reply.Number( params.flags );
+	reply.Text( "}" );
+}
+static bool Agent_Assets( const char *request, const char *end, agentReply_t &reply ) {
+	const auto *renderer = DevTools_Renderer();
+	if ( !renderer )
+		return reply.Error( "invalid_state", "$", "Step a rendered frame first." );
+	char kind[32], filter[128];
+	const char *p = JSON_ObjectGetNamedValue( request, end, "kind" );
+	if ( !Agent_String( p, end, kind, sizeof( kind ) ) || ( strcmp( kind, "images" ) && strcmp( kind, "materials" ) && strcmp( kind, "models" ) ) )
+		return reply.Error( "invalid_argument", "$.kind", "Use images/materials/models." );
+	p = JSON_ObjectGetNamedValue( request, end, "filter" );
+	filter[0] = 0;
+	if ( p && !Agent_String( p, end, filter, sizeof( filter ) ) )
+		return reply.Error( "invalid_argument", "$.filter", "Use a name substring shorter than 128 bytes." );
+	uint32_t offset = 0, limit = 16;
+	if ( ( JSON_ObjectGetNamedValue( request, end, "offset" ) && !Agent_Integer( request, end, "offset", offset ) ) || offset > 65535 ||
+		 ( JSON_ObjectGetNamedValue( request, end, "limit" ) && !Agent_Integer( request, end, "limit", limit ) ) || limit < 1 || limit > 16 )
+		return reply.Error( "invalid_argument", "$", "Use registry offset 0..65535 and page limit 1..16." );
+	reply.Text( ",\"ok\":true,\"result\":{\"items\":[" );
+	uint32_t count = 0, next = offset;
+	bool finished = false;
+	for ( ; next <= 65535 && count < limit; ++next ) {
+		devImage_t image;
+		devMaterial_t material;
+		devModel_t model;
+		const bool images = !strcmp( kind, "images" ), materials = !strcmp( kind, "materials" );
+		const bool found = images ? renderer->GetDeveloperImage( (int)next, &image ) : materials ? renderer->GetDeveloperMaterial( (int)next, &material )
+																								 : renderer->GetDeveloperModel( (int)next, &model );
+		if ( !found ) {
+			finished = true;
+			break;
+		}
+		const char *name = images ? image.name : materials ? material.name
+														   : model.name;
+		if ( *filter && !Q_stristr( name, filter ) )
+			continue;
+		if ( count++ )
+			reply.Text( "," );
+		reply.Text( "{\"index\":" );
+		reply.Number( next );
+		reply.Text( ",\"name\":" );
+		reply.String( name );
+		if ( images ) {
+			reply.Text( ",\"texture\":" );
+			reply.Number( image.texture );
+			reply.Text( ",\"width\":" );
+			reply.Number( image.width );
+			reply.Text( ",\"height\":" );
+			reply.Number( image.height );
+			reply.Text( ",\"uploadWidth\":" );
+			reply.Number( image.uploadWidth );
+			reply.Text( ",\"uploadHeight\":" );
+			reply.Number( image.uploadHeight );
+			reply.Text( ",\"flags\":" );
+			reply.Number( image.flags );
+			reply.Text( ",\"format\":" );
+			reply.Number( image.format );
+			reply.Text( ",\"reloads\":" );
+			reply.Number( image.reloads );
+		} else if ( materials ) {
+			reply.Text( ",\"sort\":" );
+			reply.Number( material.sort );
+			reply.Text( ",\"stages\":" );
+			reply.Number( material.stages );
+			reply.Text( ",\"cull\":" );
+			reply.Number( material.cull );
+			reply.Text( ",\"surfaceFlags\":" );
+			reply.Number( material.surfaceFlags );
+			reply.Text( ",\"contentFlags\":" );
+			reply.Number( material.contentFlags );
+			reply.Text( ",\"reloads\":" );
+			reply.Number( material.reloads );
+			reply.Text( ",\"explicitDefinition\":" );
+			reply.Text( material.explicitDefinition ? "true" : "false" );
+			reply.Text( ",\"fallback\":" );
+			reply.Text( material.fallback ? "true" : "false" );
+			reply.Text( ",\"metallicRoughness\":" );
+			reply.Text( material.metallicRoughness ? "true" : "false" );
+			reply.Text( ",\"params\":" );
+			Agent_MaterialParams( reply, material.params );
+		} else {
+			reply.Text( ",\"type\":" );
+			reply.Number( model.type );
+			reply.Text( ",\"frames\":" );
+			reply.Number( model.frames );
+			reply.Text( ",\"bytes\":" );
+			reply.Number( model.bytes );
+			reply.Text( ",\"reloads\":" );
+			reply.Number( model.reloads );
+		}
+		reply.Text( "}" );
+	}
+	reply.Text( "],\"next\":" );
+	if ( finished || next > 65535 )
+		reply.Text( "null" );
+	else
+		reply.Number( next );
+	reply.Text( "}}" );
+	return reply.valid;
+}
+
 static void Agent_EditorState( agentReply_t &reply ) {
 	devEditorState_t state;
 	DevTools_EditorState( &state );
@@ -501,6 +621,13 @@ static void Agent_EditorState( agentReply_t &reply ) {
 	reply.Number( state.model );
 	reply.Text( ",\"frame\":" );
 	reply.Number( state.animationFrame );
+	reply.Text( ",\"viewport\":[" );
+	for ( int i = 0; i < 4; ++i ) {
+		if ( i )
+			reply.Text( "," );
+		reply.Number( state.viewport[i] );
+	}
+	reply.Text( "]" );
 	reply.Text( ",\"previews\":" );
 	reply.Number( state.animationPreviews );
 	reply.Text( ",\"play\":" );
@@ -834,7 +961,42 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"range\",\"actor\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+	} else if ( !strcmp( op, "assets" ) || !strcmp( op, "asset.select" ) || !strcmp( op, "material.set" ) || !strcmp( op, "material.preview" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Renderer assets require a client build." );
+#else
+		if ( !strcmp( op, "assets" ) )
+			return Agent_Assets( request, end, reply );
+		if ( capacity < 1024 )
+			return false;
+		uint32_t index;
+		if ( !Agent_Integer( request, end, "index", index ) || index > 65535 )
+			return reply.Error( "invalid_argument", "$.index", "Use a registry index from assets." );
+		bool accepted = false;
+		if ( !strcmp( op, "asset.select" ) ) {
+			p = JSON_ObjectGetNamedValue( request, end, "kind" );
+			if ( !Agent_String( p, end, name, sizeof( name ) ) )
+				return reply.Error( "invalid_argument", "$.kind", "Use images/materials/models." );
+			accepted = DevTools_SelectAsset( name, (int)index );
+		} else if ( !strcmp( op, "material.preview" ) ) {
+			bool enabled;
+			if ( !Agent_Bool( request, end, "enabled", enabled ) )
+				return reply.Error( "invalid_argument", "$.enabled", "Use true to override the preview instance, false to use shared factors." );
+			accepted = DevTools_MaterialPreview( (int)index, enabled );
+		} else {
+			materialParams_t params{};
+			if ( !Agent_Vector( request, end, "color", params.color, 0, 1, 4 ) || !Agent_Vector( request, end, "emissive", params.emissive, 0, 1 ) ||
+				 !Agent_Number( request, end, "metallic", params.metallic, 0, 1 ) || !Agent_Number( request, end, "roughness", params.roughness, 0, 1 ) ||
+				 !Agent_Number( request, end, "normalScale", params.normalScale, -1e6f, 1e6f ) || !Agent_Number( request, end, "alphaCutoff", params.alphaCutoff, 0, 1 ) ||
+				 !Agent_Integer( request, end, "flags", params.flags ) )
+				return reply.Error( "invalid_argument", "$", "Copy assets.params; use color[4], emissive[3], metallic/roughness/cutoff in [0,1], finite normalScale, and unchanged flags." );
+			accepted = DevTools_SetMaterial( (int)index, &params );
+		}
+		if ( !accepted )
+			return reply.Error( "rejected", "$", "Select a loaded asset and valid PBR parameters; pipeline flags must stay unchanged." );
+		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+#endif
 	} else if ( !strcmp( op, "key" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Keyboard events require a client build." );

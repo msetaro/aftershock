@@ -19,6 +19,7 @@ static uint32_t indices[196608];
 static devUiCommand_t commands[4096];
 
 static const refexport_t *editorRenderer;
+static int selectedImage, selectedMaterial;
 static char requestedPanel[32], activePanel[32];
 
 static bool BeginPanel( const char *name, bool *open = nullptr, ImGuiTabItemFlags flags = ImGuiTabItemFlags_None ) {
@@ -414,7 +415,7 @@ static void InspectGraph( uint32_t elapsed ) {
 			if ( graph.storage ) {
 				ImGui::Text( "State: %s | last event: %s", Anim_StateName( &graph.asset, graph.state.current ), graph.lastEvent );
 				if ( ImGui::Checkbox( "Play fixed steps", &graph.play ) )
-					DevTools_Graph( "play", "", graph.play ? 1 : 0 );
+					DevTools_Graph( "play", "", graph.play ? 1.0f : 0.0f );
 				ImGui::SameLine();
 				if ( ImGui::Button( "Reset" ) )
 					DevTools_Graph( "reset", "", 0 );
@@ -745,10 +746,62 @@ static void ImagePreview( const refexport_t *renderer, int index, float extent )
 	}
 }
 
+const refexport_t *DevTools_Renderer( void ) {
+	return editorRenderer;
+}
+bool DevTools_SelectAsset( const char *kind, int index ) {
+	if ( !editorRenderer )
+		return false;
+	if ( !strcmp( kind, "images" ) ) {
+		devImage_t image;
+		if ( !editorRenderer->GetDeveloperImage( index, &image ) )
+			return false;
+		selectedImage = index;
+	} else if ( !strcmp( kind, "materials" ) ) {
+		devMaterial_t material;
+		if ( !editorRenderer->GetDeveloperMaterial( index, &material ) )
+			return false;
+		selectedMaterial = index;
+	} else if ( !strcmp( kind, "models" ) )
+		return DevTools_SetAnimation( "model", (float)index );
+	else
+		return false;
+	return true;
+}
+bool DevTools_MaterialPreview( int index, bool enabled ) {
+	devMaterial_t material;
+	if ( !editorRenderer || !editorRenderer->GetDeveloperMaterial( index, &material ) || !material.metallicRoughness )
+		return false;
+	materialPreview.enabled = enabled;
+	if ( enabled ) {
+		materialPreview.instance.mask = 63;
+		materialPreview.instance.values = material.params;
+	}
+	return true;
+}
+bool DevTools_SetMaterial( int index, const materialParams_t *params ) {
+	devMaterial_t material;
+	if ( !params || !editorRenderer || !editorRenderer->GetDeveloperMaterial( index, &material ) || !material.metallicRoughness || params->flags != material.params.flags )
+		return false;
+	for ( float value : params->color )
+		if ( !( value >= 0 && value <= 1 ) )
+			return false;
+	for ( float value : params->emissive )
+		if ( !( value >= 0 && value <= 1 ) )
+			return false;
+	if ( !( params->metallic >= 0 && params->metallic <= 1 && params->roughness >= 0 && params->roughness <= 1 &&
+			 params->alphaCutoff >= 0 && params->alphaCutoff <= 1 && std::isfinite( params->normalScale ) ) )
+		return false;
+	if ( materialPreview.enabled ) {
+		materialPreview.instance.values = *params;
+		return true;
+	}
+	return editorRenderer->SetDeveloperMaterial( index, params );
+}
+
 static void InspectAssets( const refexport_t *renderer ) {
 	if ( BeginPanel( "Textures" ) ) {
 		static char filter[128];
-		static int selected;
 		ImGui::InputText( "Filter textures", filter, sizeof( filter ) );
 		if ( ImGui::BeginChild( "Images", ImVec2( 0, 120 ), ImGuiChildFlags_Borders ) ) {
 			devImage_t image;
@@ -756,18 +809,17 @@ static void InspectAssets( const refexport_t *renderer ) {
 				if ( *filter && !Q_stristr( image.name, filter ) )
 					continue;
 				ImGui::PushID( i );
-				if ( ImGui::Selectable( image.name, selected == i ) )
-					selected = i;
+				if ( ImGui::Selectable( image.name, selectedImage == i ) )
+					DevTools_SelectAsset( "images", i );
 				ImGui::PopID();
 			}
 		}
 		ImGui::EndChild();
-		ImagePreview( renderer, selected, 200 );
+		ImagePreview( renderer, selectedImage, 200 );
 		ImGui::EndTabItem();
 	}
 	if ( BeginPanel( "Materials" ) ) {
 		static char filter[128];
-		static int selected;
 		ImGui::InputText( "Filter materials", filter, sizeof( filter ) );
 		if ( ImGui::BeginChild( "Shaders", ImVec2( 0, 120 ), ImGuiChildFlags_Borders ) ) {
 			devMaterial_t material;
@@ -775,14 +827,14 @@ static void InspectAssets( const refexport_t *renderer ) {
 				if ( *filter && !Q_stristr( material.name, filter ) )
 					continue;
 				ImGui::PushID( i );
-				if ( ImGui::Selectable( material.name, selected == i ) )
-					selected = i;
+				if ( ImGui::Selectable( material.name, selectedMaterial == i ) )
+					DevTools_SelectAsset( "materials", i );
 				ImGui::PopID();
 			}
 		}
 		ImGui::EndChild();
 		devMaterial_t material;
-		if ( renderer->GetDeveloperMaterial( selected, &material ) ) {
+		if ( renderer->GetDeveloperMaterial( selectedMaterial, &material ) ) {
 			ImGui::TextWrapped( "%s", material.name );
 			ImGui::Text( "sort %.2f cull %d surface 0x%x content 0x%x", material.sort,
 				material.cull, (uint32_t)material.surfaceFlags, (uint32_t)material.contentFlags );
@@ -794,10 +846,8 @@ static void InspectAssets( const refexport_t *renderer ) {
 			}
 			if ( material.metallicRoughness ) {
 				ImGui::TextUnformatted( "Metallic / roughness; edits last until source reload" );
-				if ( ImGui::Checkbox( "Override preview instance", &materialPreview.enabled ) && materialPreview.enabled ) {
-					materialPreview.instance.mask = 63;
-					materialPreview.instance.values = material.params;
-				}
+				if ( ImGui::Checkbox( "Override preview instance", &materialPreview.enabled ) )
+					DevTools_MaterialPreview( selectedMaterial, materialPreview.enabled );
 				if ( materialPreview.enabled )
 					material.params = materialPreview.instance.values;
 				bool changed = ImGui::ColorEdit4( "Base color / opacity", material.params.color );
@@ -806,12 +856,8 @@ static void InspectAssets( const refexport_t *renderer ) {
 				changed |= ImGui::SliderFloat( "Roughness", &material.params.roughness, 0, 1 );
 				changed |= ImGui::SliderFloat( "Normal scale", &material.params.normalScale, 0, 2 );
 				changed |= ImGui::SliderFloat( "Mask cutoff", &material.params.alphaCutoff, 0, 1 );
-				if ( changed ) {
-					if ( materialPreview.enabled )
-						materialPreview.instance.values = material.params;
-					else
-						renderer->SetDeveloperMaterial( selected, &material.params );
-				}
+				if ( changed )
+					DevTools_SetMaterial( selectedMaterial, &material.params );
 			}
 			for ( int stage = 0; stage < material.stages; ++stage ) {
 				if ( !material.present[stage] ) {
@@ -905,6 +951,10 @@ void DevTools_EditorState( devEditorState_t *state ) {
 	state->selectedEntity = entities.selected;
 	state->model = animation.model;
 	state->animationFrame = animation.frame;
+	state->viewport[0] = animation.x;
+	state->viewport[1] = animation.y;
+	state->viewport[2] = animation.width;
+	state->viewport[3] = animation.height;
 	state->animationPreviews = animationFrames;
 	state->animationPlay = animation.play;
 	Q_strncpyz( state->graphState, graph.storage ? Anim_StateName( &graph.asset, graph.state.current ) : "", sizeof( state->graphState ) );
@@ -1243,7 +1293,7 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 			DevTools_SetAnimation( "frame", (float)animation.frame );
 		}
 		if ( ImGui::Checkbox( "Play", &animation.play ) )
-			DevTools_SetAnimation( "play", animation.play ? 1 : 0 );
+			DevTools_SetAnimation( "play", animation.play ? 1.0f : 0.0f );
 		ImGui::SameLine();
 		if ( ImGui::SliderFloat( "FPS", &animation.fps, 1, 60 ) )
 			DevTools_SetAnimation( "fps", animation.fps );
