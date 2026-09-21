@@ -49,6 +49,19 @@ for _ in range(2):
         profile = engine.request('profile')
         assert profile['samples'] == 262 and 0 <= profile['p50_ms'] <= profile['p95_ms'] <= profile['p99_ms']
         assert profile['cpu'] and 'snapshots' in profile['network']
+        engine.request('usercmd', forwardmove=127, rightmove=0, upmove=0,
+                       angles=[0, 0, 0], buttons=0, weapon=2)
+        engine.step(10)
+        raw = engine.request('state')
+        assert raw['player']['commandTime'] > stopped['player']['commandTime']
+        trajectories[-1].append(raw['player'])
+        origin = [raw['camera']['origin'][0]+32, raw['camera']['origin'][1], raw['camera']['origin'][2]+64]
+        engine.request('camera', mode='pose', origin=origin, angles=[30, 90, 0])
+        engine.step(2)
+        assert engine.request('state')['camera']['origin'] == origin
+        engine.request('camera', mode='player')
+        engine.step(2)
+        assert engine.request('state')['camera']['origin'] != origin
         engine.request('subscribe', enabled=True)
         engine.request('exec', command='error drop')
         try:

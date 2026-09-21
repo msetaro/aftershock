@@ -88,7 +88,9 @@ registered only in developer mode. No new error-injection command was added.
 
 PNG/TGA images captured in the same frame match pixel-for-pixel. The full Q3
 playthrough, Clang/libc++ UBSan protocol, boundaries and format pass
-(agent-events.log). Hit/kill hooks still need their gameplay acceptance; assert
+(agent-events.log). The raw-input/camera extension fails first on missing usercmd
+(agent-camera-before.log). It requires direct command fields and a pose override
+that restores the player camera. Hit/kill hooks still need gameplay acceptance; assert
 events remain to implement. Draft PR166 remains incomplete. Portable conversion
 head 5691795f passes all 16 compiler jobs in build 35557138685; its regression
 35557139029 remains running. Earlier build 35556998279 is not accepted.
