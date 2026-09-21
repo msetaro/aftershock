@@ -53,6 +53,20 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 static shooter report passes; movement contract added
+
+The controlled-world trace tests pass (sketch-intents.log): exposed spawns,
+incorrect sightline claims and exposed/missing objectives fail with suggestions;
+lane widths, eight-direction sightline histograms, waist-height cover proximity
+and symmetric first-contact estimates are reported. Travel estimates are labeled,
+and routes remain explicitly pending movement playback.
+
+The themed native test now requires the real engine to reject its deliberately
+exposed spawn pair and then physically walk the annotated lane within its stated
+time tolerance. It fails first on the absent play_routes function
+(sketch-route-play-before.log). Reuse the existing agent playtest controller,
+record simulation elapsed time and retain the script/report evidence.
+
 ## #164 shooter report contract
 
 The controlled-world report test requires agent-traced spawn/objective visibility,

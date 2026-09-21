@@ -13,6 +13,7 @@ from run import ROOT
 sys.path.insert(0,str(ROOT/'tools/level'))
 from theme import assemble
 from polygons import footprint,prop_bounds,opening_polygon
+from intents import analyze,play_routes
 from tools.assets.manifest import validate
 from shapely import Point,LineString
 
@@ -48,7 +49,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
                        for i,(x,y) in enumerate([(-576,256),(0,256),(576,256)])],
                spawns=[dict(team='ffa',origin=[-640,-512,24],angle=0),dict(team='ffa',origin=[640,-512,24],angle=180)],
                props=[],pickups=[],lighting=dict(ambient=32,lights=[]),
-               intents=[dict(id='main_lane',kind='route',points=[[-900,-256],[900,-256]],width=128)])
+               intents=[dict(id='main_lane',kind='route',points=[[-900,-256],[900,-256]],width=128,target_seconds=6,tolerance_seconds=2)])
     level['pickups']=[dict(classname=name,origin=point) for name,point in [
         ('weapon_rocketlauncher',[-512,-320,16]),('weapon_lightning',[512,-320,16]),
         ('weapon_railgun',[0,0,16]),('ammo_rockets',[-576,256,16]),('ammo_lightning',[576,256,16]),
@@ -103,6 +104,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
             assert floor['fraction']<1 and abs(floor['end'][2]-24)<.2 and floor['normal']==[0,0,1],floor
             args.output.mkdir(parents=True,exist_ok=True)
             (args.output/'agent-traces.json').write_text(json.dumps(dict(clear=clear,blocked=blocked,floor=floor),indent=2)+'\n')
+            shooter=analyze(engine,a)
+            assert not shooter['passed'] and any(e['code']=='spawn_visibility' for e in shooter['errors']), 'exposed-spawn negative control passed'
+            (args.output/'shooter-negative.json').write_text(json.dumps(shooter,indent=2)+'\n')
+            routes=play_routes(engine,a,args.output/'routes')
+            assert routes['passed'] and routes['routes'][0]['measured_seconds']>0,routes
+
         native=run(['tools/level','validate',root/'a/level.json','--output',args.output,
                     '--client',args.client,'--server',args.server,'--content',args.content,'--data',args.data])
         assert native['status']=='passed' and native['bots']['samples']>=100,native
