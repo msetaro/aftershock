@@ -19,6 +19,8 @@ struct fxFileEmitter_t {
 	char name[32], material[64], model[64];
 	uint32_t kind, capacity, burst, lifetimeMs, flags, columns, rows;
 	float rate, size, velocity[3], gravity[3], drag, color[4], fps;
+	float velocitySpread[3], originSpread[3], endSize, rotation, rotationSpread, angularVelocity;
+	float lightRadius, lightIntensity, lightColor[3];
 };
 struct fxAsset_t {
 	fxFileHeader_t header;
@@ -27,7 +29,7 @@ struct fxAsset_t {
 struct fxParticle_t {
 	bool active;
 	uint32_t instance, emitter, ageMs, frame, nextFree;
-	float origin[3], previous[3], velocity[3];
+	float origin[3], previous[3], velocity[3], rotation;
 };
 struct fxInstance_t {
 	uint32_t handle, seed;
@@ -51,7 +53,7 @@ struct fxTrace_t {
 	float fraction, normal[3];
 };
 using fxTraceCallback_t = bool ( * )( const float start[3], const float end[3], fxTrace_t *trace, void *context );
-static_assert( sizeof( fxFileHeader_t ) == 36 && sizeof( fxFileEmitter_t ) == 244 );
+static_assert( sizeof( fxFileHeader_t ) == 36 && sizeof( fxFileEmitter_t ) == 304 );
 static_assert( offsetof( fxFileEmitter_t, kind ) == 160 && offsetof( fxFileEmitter_t, rate ) == 188 );
 static_assert( std::is_trivially_copyable_v<fxAsset_t> && std::is_trivially_copyable_v<fxSystem_t> );
 bool FX_Open( const void *data, size_t size, fxAsset_t *asset );

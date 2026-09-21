@@ -63,6 +63,16 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 seeded effect shaping passes
+
+GCC and Clang/libc++ UBSan pass version-2 cooked records, stable seeded spread,
+rotation/spin and all existing pool/lifetime/collision controls
+(fidelity-effect-shaping{,-clang}.log). New optional authoring fields retain the
+old behavior when omitted. The live light-hook test now fails explicitly on absent
+lightDraws after loading its rendered map (fidelity-effect-lights-before.log).
+The first probe attempted the stats request before loading a map and was corrected;
+that invalid-state response was test setup, not a renderer failure.
+
 ## #161 reference-effect shaping contract
 
 The next effect test requires seeded velocity/origin spread and rotation/spin,

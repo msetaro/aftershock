@@ -23,7 +23,7 @@ bool FX_Open( const void *data, size_t size, fxAsset_t *asset ) {
 	const auto *bytes = (const uint8_t *)data;
 	uint32_t envelope[2];
 	std::memcpy( envelope, bytes + 8, sizeof( envelope ) );
-	if ( std::memcmp( bytes, "ASEFFECT", 8 ) || envelope[0] != 1 || envelope[1] != size - 48 )
+	if ( std::memcmp( bytes, "ASEFFECT", 8 ) || envelope[0] != 2 || envelope[1] != size - 48 )
 		return false;
 	uint8_t hash[32];
 	calc_sha_256( hash, bytes + 48, size - 48 );
@@ -41,10 +41,10 @@ bool FX_Open( const void *data, size_t size, fxAsset_t *asset ) {
 			 ( ( e.kind == FX_MESH || e.model[0] ) && !Text( e.model, sizeof( e.model ) ) ) ||
 			 e.kind > FX_TRAIL || !e.capacity || e.capacity > FX_MAX_PARTICLES || e.burst > FX_MAX_PARTICLES ||
 			 !e.lifetimeMs || e.lifetimeMs > 60000 || ( e.flags & ~7u ) || !e.columns || e.columns > 64 || !e.rows || e.rows > 64 ||
-			 !Between( e.rate, 0, 10000 ) || !Between( e.size, .001f, 4096 ) || !Between( e.drag, 0, 100 ) || !Between( e.fps, .01f, 1000 ) )
+			 !Between( e.rate, 0, 10000 ) || !Between( e.size, .001f, 4096 ) || !Between( e.drag, 0, 100 ) || !Between( e.fps, .01f, 1000 ) || !Between( e.endSize, .001f, 4096 ) || !Between( e.rotation, -360, 360 ) || !Between( e.rotationSpread, 0, 360 ) || !Between( e.angularVelocity, -3600, 3600 ) || !Between( e.lightRadius, 0, 4096 ) || !Between( e.lightIntensity, 0, 128 ) )
 			return false;
 		for ( uint32_t k = 0; k < 3; ++k )
-			if ( !Between( e.velocity[k], -65536, 65536 ) || !Between( e.gravity[k], -65536, 65536 ) )
+			if ( !Between( e.velocity[k], -65536, 65536 ) || !Between( e.gravity[k], -65536, 65536 ) || !Between( e.velocitySpread[k], 0, 65536 ) || !Between( e.originSpread[k], 0, 4096 ) || !Between( e.lightColor[k], 0, 1 ) )
 				return false;
 		for ( float color : e.color )
 			if ( !Between( color, 0, 1 ) )
@@ -61,6 +61,13 @@ void FX_Reset( fxSystem_t *system ) {
 	for ( uint32_t i = 0; i < FX_MAX_PARTICLES; ++i )
 		system->particles[i].nextFree = i + 1;
 }
+static float Spread( uint32_t &seed, float extent ) {
+	if ( !extent )
+		return 0;
+	// Presentation-only uniform samples; unsigned overflow is defined.
+	seed = seed * 1664525u + 1013904223u;
+	return ( float( seed >> 8 ) * ( 1.f / 8388608.f ) - 1 ) * extent;
+}
 static void Emit( fxSystem_t *system, uint32_t instanceIndex, uint32_t emitterIndex, uint32_t count ) {
 	auto &instance = system->instances[instanceIndex];
 	const auto &e = instance.asset.emitters[emitterIndex];
@@ -74,10 +81,19 @@ static void Emit( fxSystem_t *system, uint32_t instanceIndex, uint32_t emitterIn
 		particle.active = true;
 		particle.instance = instanceIndex;
 		particle.emitter = emitterIndex;
+		float offset[3], velocity[3];
 		for ( uint32_t k = 0; k < 3; ++k ) {
-			particle.origin[k] = particle.previous[k] = instance.origin[k];
-			for ( uint32_t j = 0; j < 3; ++j )
-				particle.velocity[k] += e.velocity[j] * instance.axis[j][k];
+			offset[k] = Spread( instance.seed, e.originSpread[k] );
+			velocity[k] = e.velocity[k] + Spread( instance.seed, e.velocitySpread[k] );
+		}
+		particle.rotation = e.rotation + Spread( instance.seed, e.rotationSpread );
+		for ( uint32_t k = 0; k < 3; ++k ) {
+			particle.origin[k] = instance.origin[k];
+			for ( uint32_t j = 0; j < 3; ++j ) {
+				particle.origin[k] += offset[j] * instance.axis[j][k];
+				particle.velocity[k] += velocity[j] * instance.axis[j][k];
+			}
+			particle.previous[k] = particle.origin[k];
 		}
 	}
 	instance.living[emitterIndex] += emitted;
@@ -139,6 +155,7 @@ void FX_Update( fxSystem_t *system, uint32_t elapsedMs, fxTraceCallback_t trace,
 			--system->stats.particles;
 			continue;
 		}
+		particle.rotation += e.angularVelocity * dt;
 		float end[3];
 		for ( uint32_t k = 0; k < 3; ++k ) {
 			particle.previous[k] = particle.origin[k];

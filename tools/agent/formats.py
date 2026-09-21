@@ -135,7 +135,9 @@ def material_schema():
 def effect_schema():
     emitter = obj(dict(name=qpath(31),kind=enum('sprite','mesh','trail'),material=qpath(),model=qpath(),
                        capacity=num(1,4096,True),rate=num(0,10000),burst=num(0,4096,True),lifetime_ms=num(1,60000,True),
-                       size=num(.001,4096),velocity=vector(-65536,65536,False),gravity=vector(-65536,65536,False),
+                       size=num(.001,4096),end_size=num(.001,4096),velocity_spread=vector(0,65536,False),origin_spread=vector(0,4096,False),
+                       rotation=num(-360,360),rotation_spread=num(0,360),angular_velocity=num(-3600,3600),
+                       light=obj(dict(radius=num(0,4096),intensity=num(0,128),color=vector(0,1,False))),velocity=vector(-65536,65536,False),gravity=vector(-65536,65536,False),
                        drag=num(0,100),collision=dict(type='boolean'),soft=dict(type='boolean'),lit=dict(type='boolean'),
                        color=vector(0,1,False,4),flipbook=obj(dict(columns=num(1,64,True),rows=num(1,64,True),fps=num(.01,1000)))),
                   ['name','kind','material','capacity','rate','burst','lifetime_ms','size'])
