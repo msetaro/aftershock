@@ -30,5 +30,15 @@ for _ in range(2):
         engine.step(30)
         stopped = engine.request('state')
         trajectories.append([row['player'] for row in (before, moving, stopped)])
+        entity = engine.request('entity.spawn', classname='target_position', x=1, y=2, z=128)['entity']
+        engine.request('entity.set', entity=entity, key='targetname', value='agent-check')
+        assert engine.request('entity.get', entity=entity, key='targetname')['value'] == 'agent-check'
+        listed = engine.request('entity.list', offset=entity, limit=1)['entities']
+        assert listed[0]['entity'] == entity and listed[0]['origin'] == [1, 2, 128]
+        engine.request('entity.delete', entity=entity)
+        assert all(row['entity'] != entity for row in engine.request('entity.list', offset=entity, limit=1)['entities'])
+        profile = engine.request('profile')
+        assert profile['samples'] == 260 and 0 <= profile['p50_ms'] <= profile['p95_ms'] <= profile['p99_ms']
+        assert profile['cpu'] and 'snapshots' in profile['network']
 assert trajectories[0] == trajectories[1], trajectories
 print('PASS: two seeded map runs produce identical player snapshots through injected usercmds')

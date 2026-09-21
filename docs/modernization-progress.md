@@ -84,6 +84,10 @@ queued packets normally sent during the wait loop, and their rate timestamps use
 the same agent clock. This corrected an incomplete new step loop: the first
 playthrough stalled after handshake because queued fragments were never sent.
 
+The entity/profile extension is test-first: agent-entities-before.log records
+unknown operation entity.spawn before implementation. It specifies spawn/edit/
+inspect/list/delete and real frame-time percentiles plus CPU/network counters.
+
 Two independent seed-123, dt-8 runs now return exactly identical player snapshots
 before movement, after 30 movement frames, and after 30 released-input frames.
 The test passes on both installed Quake 3 and OpenArena (agent-play.log and
