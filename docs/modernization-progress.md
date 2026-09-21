@@ -54,6 +54,16 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
+## #14 rendered shadow test-first checkpoint
+
+`tests/lighting_runtime.py --shadows` reuses the owned level and native client,
+with a neutral normal map/darker diffuse material. It compares point, spot and sun
+lighting with occlusion disabled/enabled, requires attenuation and an exact return
+to the unshadowed image. Before native light controls/caster/receiver wiring it
+fails with point light changed=0, occluded=0 (lighting-shadow-runtime-before.log;
+client captures in /tmp/aftershock-shadow-runtime-before). No frame baseline was
+accepted or regenerated. Implement the actual draw path before rerunning it.
+
 ## #14 shadow caster shader implementation checkpoint
 
 Test-first d33b7a6b precedes two new depth-only GLSL programs with vertex alpha,
