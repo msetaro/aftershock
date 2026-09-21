@@ -10,7 +10,7 @@ import sys
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
-from shapely import Polygon, Point
+from shapely import Polygon, Point, LineString, shortest_line
 from shapely.geometry.polygon import orient
 
 
@@ -24,9 +24,34 @@ def rgb(value):
     return np.array([int(value[i:i+2],16) for i in (1,3,5)],dtype=np.float32)
 
 
+def join_dashes(mask,gap):
+    contours,_ = cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    require(len(contours)<=256, 'dashed mark exceeds 256 components; isolate its region')
+    parts = [LineString(c.reshape(-1,2).tolist()+[c.reshape(-1,2)[0].tolist()]) for c in contours if len(c)>=2]
+    # ponytail: bounded quadratic component pairing; use a spatial index if the
+    # explicit 256-component sketch limit grows.
+    links = []
+    for i,a in enumerate(parts):
+        for j in range(i):
+            line = shortest_line(a,parts[j])
+            if line.length<=gap:
+                links.append((line.length,j,i,list(line.coords)))
+    groups = list(range(len(parts)))
+    for _,a,b,points in sorted(links):
+        if groups[a]==groups[b]:
+            continue
+        old,new = groups[b],groups[a]
+        groups = [new if g==old else g for g in groups]
+        cv2.line(mask,tuple(round(v) for v in points[0]),tuple(round(v) for v in points[1]),255,2)
+    return mask
+
+
 def measure(image,notes,previous=None):
     require(notes.get('version')==1, 'notes version must be 1')
-    scale = notes['scale']['units']/notes['scale']['pixels']
+    reference = notes['scale']
+    units,pixels = (reference['player_height_units'],reference['player_height_pixels']) if 'player_height_pixels' in reference else (reference['units'],reference['pixels'])
+    require(all(type(v) in (int,float) and math.isfinite(v) and v>0 for v in (units,pixels)), 'scale reference must have positive finite dimensions')
+    scale = units/pixels
     require(math.isfinite(scale) and .01<=scale<=128, 'scale must be finite and in .01..128 units/pixel')
     require(image.width*image.height<=32*1024*1024, 'drawing exceeds 32 megapixels')
     original_size = image.size
@@ -65,32 +90,103 @@ def measure(image,notes,previous=None):
     candidates = []
     color_masks = []
     explained = np.zeros_like(available)
-    for key in keys:
-        color = rgb(key['color'])
-        mask = (np.linalg.norm(pixels.astype(np.float32)-color,axis=2)<=notes.get('color_distance',65)).astype(np.uint8)*255
+    # Assign each pixel once, to the nearest color in this drawing's key.
+    nearest = np.full(pixels.shape[:2],np.inf,dtype=np.float32)
+    labels = np.zeros(pixels.shape[:2],dtype=np.uint8)
+    strength = np.zeros(pixels.shape[:2],dtype=np.float32)
+    background = np.median(pixels.reshape(-1,3),axis=0)
+    ink = pixels.astype(np.float32)-background
+    for index,key in enumerate(keys):
+        color = rgb(key['color'])-background
+        require(float(color@color)>1, 'drawing key color is indistinguishable from background')
+        alpha = np.clip((ink@color)/(color@color),0,1)
+        # Rectification antialiases ink against paper. Compare that mixture so
+        # a dark edge of a pale stroke does not become another key color.
+        distance = np.linalg.norm(ink-alpha[:,:,None]*color,axis=2)+.01*(1-alpha)*np.linalg.norm(color)
+        selected = distance<nearest
+        labels[selected] = index
+        strength[selected] = alpha[selected]
+        nearest = np.minimum(nearest,distance)
+    for index,key in enumerate(keys):
+        mask = ((labels==index)&(strength>=.25)&(nearest<=notes.get('color_distance',65))).astype(np.uint8)*255
         explained |= mask
         color_masks.append((key,mask))
         if key['classification']!='geometry':
             continue
         mask &= available
-        mask = cv2.morphologyEx(mask,cv2.MORPH_CLOSE,kernel)
-        contours,_ = cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-        for contour in contours:
-            if cv2.contourArea(contour)<notes.get('min_area_pixels',64):
-                continue
-            perimeter = cv2.arcLength(contour,True)
-            poly = cv2.approxPolyDP(contour,simplify,True).reshape(-1,2).tolist()
-            if len(poly)<3:
-                continue
-            polygon = Polygon(poly)
-            if not polygon.is_valid:
-                assumptions.append(dict(id='unresolved_'+str(len(assumptions)+1),reason='Self-crossing measured contour',decision='omit until a per-mark geometry override resolves it'))
-                continue
-            rectangle = cv2.boxPoints(cv2.minAreaRect(contour)).tolist()
-            box = Polygon(rectangle)
-            if len(poly)<=6 and polygon.area/box.area>.9:
-                poly = rectangle
-            candidates.append(dict(pixel_polygon=poly,key=key,center=list(Polygon(poly).centroid.coords)[0],perimeter=perimeter))
+        style = key.get('line_style','outline')
+        require(style in ('filled','outline','thin','dashed','shaded'), 'unknown geometry line style')
+        if style=='dashed':
+            mask = join_dashes(mask,gap)
+        if style in ('thin','dashed'):
+            # A one-pixel stroke cannot enclose a polygon. Record the bounded
+            # raster expansion used to retain it as actual wall/overhead geometry.
+            mask = cv2.dilate(mask,np.ones((3,3),np.uint8))
+        else:
+            mask = cv2.morphologyEx(mask,cv2.MORPH_CLOSE,kernel)
+        # Explicit semantic regions split touching shapes before contour extraction.
+        remaining = mask.copy()
+        regions = []
+        for mark in marks:
+            if mark['classification']=='geometry' and mark.get('color')==key['color'] and 'region' in mark:
+                x,y,X,Y = map(int,mark['region'])
+                require(0<=x<X<=image.width and 0<=y<Y<=image.height, 'geometry region outside rectified image')
+                selected = np.zeros_like(mask)
+                selected[y:Y,x:X] = mask[y:Y,x:X]
+                remaining[y:Y,x:X] = 0
+                regions.append(selected)
+        regions.append(remaining)
+        for region in regions:
+            contours,_ = cv2.findContours(region,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+            for contour in contours:
+                if cv2.contourArea(contour)<notes.get('min_area_pixels',64):
+                    continue
+                perimeter = cv2.arcLength(contour,True)
+                # Thin strokes retain their measured width instead of collapsing
+                # under the closed-region simplification tolerance.
+                tolerance = min(.5,simplify) if style in ('thin','dashed') else simplify
+                poly = cv2.approxPolyDP(contour,tolerance,True).reshape(-1,2).tolist()
+                if len(poly)<3:
+                    continue
+                polygon = Polygon(poly)
+                if not polygon.is_valid:
+                    assumptions.append(dict(id='unresolved_'+str(len(assumptions)+1),reason='Self-crossing measured contour',decision='omit until a per-mark geometry override resolves it'))
+                    continue
+                rectangle = cv2.boxPoints(cv2.minAreaRect(contour)).tolist()
+                box = Polygon(rectangle)
+                rectangular = len(poly)<=6 and polygon.area/box.area>.9
+                if rectangular:
+                    poly = rectangle
+                candidates.append(dict(pixel_polygon=poly,key=key,center=list(Polygon(poly).centroid.coords)[0],
+                                       perimeter=perimeter,rectangular=rectangular))
+    snap = notes.get('snap_degrees',0)
+    require(type(snap) in (int,float) and math.isfinite(snap) and 0<=snap<=15, 'angle snapping must be in 0..15 degrees')
+    rectangular = []
+    for candidate in candidates:
+        if candidate['rectangular'] and candidate['key'].get('line_style') not in ('thin','dashed'):
+            a,b = candidate['pixel_polygon'][:2]
+            angle = math.degrees(math.atan2(b[1]-a[1],b[0]-a[0]))%90
+            rectangular.append((angle,candidate))
+    groups = []
+    for angle,candidate in sorted(rectangular,key=lambda pair:pair[0]):
+        group = next((g for g in groups if abs((angle-g[0][0]+45)%90-45)<=max(1,snap)),None)
+        if group is None:
+            groups.append([(angle,candidate)])
+        else:
+            group.append((angle,candidate))
+    dominant = []
+    for group in groups:
+        sine = sum(math.sin(math.radians(a*4))*c['perimeter'] for a,c in group)
+        cosine = sum(math.cos(math.radians(a*4))*c['perimeter'] for a,c in group)
+        angle = (math.degrees(math.atan2(sine,cosine))/4)%90
+        dominant.append(round(angle,4))
+        if snap:
+            for previous_angle,candidate in group:
+                delta = (angle-previous_angle+45)%90-45
+                c,s = math.cos(math.radians(delta)),math.sin(math.radians(delta))
+                x,y = candidate['center']
+                candidate['pixel_polygon'] = [[x+(a-x)*c-(b-y)*s,y+(a-x)*s+(b-y)*c]
+                                               for a,b in candidate['pixel_polygon']]
     require(0<len(candidates)<=128, 'drawing must yield 1..128 geometry regions; refine key/mark regions')
     candidates.sort(key=lambda c:(round(c['center'][1]/16),c['center'][0]))
     used = set()
@@ -100,7 +196,7 @@ def measure(image,notes,previous=None):
         key = candidate['key']
         poly = Polygon(candidate['pixel_polygon'])
         explicit = [m for m in marks if m['classification']=='geometry' and 'region' in m and
-                    m['region'][0]<=candidate['center'][0]<=m['region'][2] and m['region'][1]<=candidate['center'][1]<=m['region'][3]]
+                    m.get('color',key['color'])==key['color'] and m['region'][0]<=candidate['center'][0]<=m['region'][2] and m['region'][1]<=candidate['center'][1]<=m['region'][3]]
         require(len(explicit)<=1, 'geometry regions overlap; use nonoverlapping mark associations')
         prior = []
         for old in previous_marks:
@@ -115,7 +211,9 @@ def measure(image,notes,previous=None):
         mark = explicit[0] if explicit else dict(id=identity,classification='geometry',confidence=.8,reading=key.get('reading','Drawing key '+key['color']))
         if not explicit:
             marks.append(mark)
-        mark.update(pixel_polygon=candidate['pixel_polygon'],color=key['color'],kind=key['kind'])
+        if key.get('line_style') in ('thin','dashed'):
+            mark['stroke_expansion_pixels'] = 1
+        mark.update(pixel_polygon=candidate['pixel_polygon'],color=key['color'],kind=key['kind'],line_style=key.get('line_style','outline'))
         footprint = orient(Polygon([world(p) for p in candidate['pixel_polygon']]),sign=1)
         kind = key['kind']
         item = dict(id=identity,kind=kind,shape=dict(polygon=[list(p) for p in footprint.exterior.coords[:-1]]),
@@ -198,7 +296,7 @@ def measure(image,notes,previous=None):
                  lighting=dict(ambient=48,lights=[]),intents=intents)
     interpretation = dict(version=1,image_size=list(image.size),original_size=list(original_size),
                           perspective=transform.tolist() if transform is not None else None,
-                          scale=scale,key=keys,marks=marks,assumptions=assumptions)
+                          scale=scale,dominant_angles_degrees=dominant,key=keys,marks=marks,assumptions=assumptions)
     return interpretation,level,image
 
 

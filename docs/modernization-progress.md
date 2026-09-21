@@ -52,6 +52,16 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 photographed/styled tracing passes
+
+Both original playbook controls and the new dark/perspective drawing pass
+(sketch-measure.log). Explicit regions split touching outlines; thin/dashed paths
+and curves remain distinct geometry; player-height scale and measured-grid angle
+snapping work. Antialiased key-color matching avoids false cross-color contours
+introduced by perspective correction. One-pixel stroke expansion and inferred
+angles are recorded. Semantic recognition remains the agent's explicit reading;
+unread marks and uncertainty stay visible. No engine or accepted asset changed.
+
 ## #164 additional tracing contract
 
 A new owned dark-background drawing specifies touching-outline splits, thin and

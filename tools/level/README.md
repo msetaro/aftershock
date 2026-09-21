@@ -283,3 +283,20 @@ foot-origin environment modules without shifting the mesh. The declared bounds
 must contain every OBJ vertex; yaw rotates both those bounds and the actual model.
 Solid props emit player-clip brushes and participate in spawn/navigation clearance.
 All props must fit the playable boundary, including its holes and vertical limits.
+
+Sketch geometry keys accept `line_style`: `filled`, `outline`, `shaded`, `thin`,
+or `dashed`. Thin/dashed strokes receive a recorded one-pixel expansion so they
+remain polygons; dashed components join only across `gap_pixels` or less. A key
+color is matched against its antialiased mixture with the drawing's background.
+Explicit geometry marks with `color` and nonoverlapping `region` rectangles split
+touching outlines before tracing. These regions are semantic decisions made by
+the agent, not claims of automatic recognition.
+
+`scale` accepts either `{pixels, units}` or
+`{player_height_pixels, player_height_units}`. Both dimensions must be explicit.
+Optional `snap_degrees` (0..15) clusters measured rectangle orientations modulo
+90 degrees and snaps within that tolerance; it does not force a world-axis grid
+or straighten curves. Interpretation JSON records the measured dominant angles.
+Optional `corners` (page TL/TR/BR/BL in the source image) and `rectified_size`
+remove camera perspective and UI borders. All notes/mark coordinates then refer
+to the rectified image. The original size and transform remain in the report.
