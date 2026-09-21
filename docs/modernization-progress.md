@@ -37,14 +37,13 @@ mesh LOD checks. The initial native OpenArena fixed-demo comparison passes its
 unchanged accepted frame hash (fidelity-legacy-demo.log). No accepted fixture or
 existing shader changed. Details and test-first failures are below.
 
-Next implementation: finish native mesh screen-size LOD selection and lifecycle
-validation, plus the full #161 effect set/material impact binding, soft particles,
+Next implementation: finish the full #161 effect set/material impact binding, soft particles,
 mesh/trail/light coverage, live ImGui authoring and counters. Projected normal-map
 decals, filmic/LUT/post/TAA with real motion vectors, mip streaming/async uploads,
-reviewed software frames and hardware budgets all remain required. Existing pure
-LOD output is not yet used by the renderer. Before automatic LOD discovery, add
-a hash-bound cooked level manifest so old sibling files cannot become live LODs
-after authoring changes. Keep the original IQM bytes/geometry compatibility checks.
+reviewed software frames and hardware budgets all remain required. Cooked
+LOD output is now selected by the renderer through hash-bound cooked manifests.
+Keep its animation/geometry and stale-file lifecycle controls; hardware savings
+and final artistic coverage remain required.
 
 Reference hardware: RTX 3080 Ti, 12288 MiB, driver 595.91.07. Use a real 1440p
 offscreen target with small Xvfb presentation for measured budgets; report CPU
@@ -63,6 +62,22 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 native LOD lifecycle passes
+
+The owned grid now passes both GCC and Clang/libc++ with UBSan, including unchanged
+animated matrices and scaled screen selection (fidelity-lod-native{,-clang}.log).
+The real client passes near/far LOD draws, unchanged hunk/tag memory, removal of
+lod_ratios while stale sibling files remain, restoration, and renderer restart
+(fidelity-lod-runtime.log). Near/far captures were reviewed: the same white grid
+is visible at both distances. These controls are not final artistic goldens.
+
+The first live selection attempt retained the historical r_lodbias=-2 and put the
+far camera outside the room. The test now explicitly selects r_lodbias=0, scales
+the grid to four units and uses two in-room cameras; no legacy default changed.
+Model asset diagnostics expose lods and four draw counts. Release build and source
+format/boundary/type checks pass. Performance savings and larger animated scene
+coverage still belong to final #161 acceptance. No accepted asset regenerated.
 
 ## #161 native LOD implementation checkpoint
 

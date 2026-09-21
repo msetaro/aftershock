@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-lod-live-') as temporary:
     root=Path(temporary)
     home=root/'home'
     with Engine(args.binary,args.data,args.content,home=home,arguments=['+set','dev_reloadAssets','1',
-            '+set','cg_draw2D','0','+set','cg_drawGun','0']) as engine:
+            '+set','r_lodbias','0','+set','cg_draw2D','0','+set','cg_drawGun','0']) as engine:
         required={'effects','effects.load','effects.start','effects.stop'}
         assert required<=set(engine.request('hello')['commands']),'native effect controls are absent'
         source=root/'source'
@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-lod-live-') as temporary:
             grid_project.write_text(json.dumps(dict(version=1,assets=[grid_recipe])))
             cook(grid_project,engine.base)
         publish_grid()
-        definition['emitters'][0].update(kind='mesh',model='models/grid.iqm',burst=1,lifetime_ms=60000,size=16)
+        definition['emitters'][0].update(kind='mesh',model='models/grid.iqm',burst=1,lifetime_ms=60000,size=4)
         effect=source/'test.effect.json'
         effect.write_text(json.dumps(definition))
         project=source/'effects.json'
@@ -54,7 +54,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-lod-live-') as temporary:
         engine.request('session',dt=20,seed=161)
         engine.request('map',name='two_lane')
         engine.step(150)
-        engine.request('camera',mode='pose',origin=[-160,0,80],angles=[0,0,0])
+        engine.request('camera',mode='pose',origin=[-32,0,80],angles=[0,0,0])
         engine.step(4)
         def capture(name):
             record=engine.request('capture',name=name)
@@ -75,11 +75,11 @@ with tempfile.TemporaryDirectory(prefix='aftershock-lod-live-') as temporary:
         assert sum(ImageStat.Stat(ImageChops.difference(before,active)).sum)>10000
         assert model()['lodDraws'][0]>0,model()
         memory=engine.request('profile')['memory']
-        engine.request('camera',mode='pose',origin=[-900,0,80],angles=[0,0,0])
+        engine.request('camera',mode='pose',origin=[-240,0,80],angles=[0,0,0])
         engine.step(5)
         capture('far')
         assert model()['lodDraws'][2]>0,model()
-        engine.request('camera',mode='pose',origin=[-160,0,80],angles=[0,0,0])
+        engine.request('camera',mode='pose',origin=[-32,0,80],angles=[0,0,0])
         engine.step(5)
         after=engine.request('profile')['memory']
         assert memory['hunkPermanent']==after['hunkPermanent'] and memory['tags']==after['tags']

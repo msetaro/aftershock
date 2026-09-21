@@ -1206,3 +1206,20 @@ Without binaries the latter runs only semantics/geometry, not native acceptance.
 Fresh retained output directories are required; none of these gates records
 accepted goldens. See `tools/level/README.md` for report fields and interpretation
 limits, and `tools/blender/README.md` for pinned procedural module provenance.
+
+
+#161 presentation work in progress: `python3 tests/lod.py` cooks the original
+owned animated grid and two smaller meshes, validates the hash-bound `.aslod`
+manifest and identical skeleton/animation, then checks native projected-size
+selection under UBSan. `--cxx 'clang++ -stdlib=libc++'` selects the second compiler.
+Model recipes may specify up to three decreasing `lod_ratios` and `lod_error`
+(default 0.01 relative mesh error). The original mesh is retained. Meshoptimizer
+is pinned and used only by the offline helper. Native selection uses existing
+`r_lodscale` and `r_lodbias`; use `r_lodbias 0` to exercise all three levels (the
+legacy default -2 deliberately favors full detail).
+
+`python3 tests/lod_runtime.py --binary PATH --content openarena --data PATH`
+checks visible near/far draws, stable memory, watched removal/restoration of the
+LOD set and renderer restart. The supplied binary must enable development tools.
+The test authors temporary sources and captures; it never regenerates accepted
+fixtures. Native `assets` model rows expose `lods` and `lodDraws[4]`.

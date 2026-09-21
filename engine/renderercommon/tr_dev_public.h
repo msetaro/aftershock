@@ -51,6 +51,6 @@ static_assert( std::is_trivially_copyable_v<devImage_t> && std::is_trivially_cop
 struct devModel_t {
 	char name[64];
 	int32_t type, frames, bytes;
-	uint32_t reloads;
+	uint32_t reloads, lods, lodDraws[4];
 };
 static_assert( std::is_trivially_copyable_v<devModel_t> );

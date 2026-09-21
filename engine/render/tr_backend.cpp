@@ -2030,6 +2030,8 @@ bool RE_GetDeveloperModel( int index, devModel_t *model ) {
 	model->type = (int32_t)source->type;
 	model->bytes = source->dataSize;
 	model->reloads = R_CookedModelReloads( index );
+	model->lods = (uint32_t)source->numLods;
+	memcpy( model->lodDraws, source->lodDraws, sizeof( model->lodDraws ) );
 	if ( source->type == MOD_MESH )
 		model->frames = source->md3[0]->numFrames;
 	else if ( source->type == MOD_MDR )

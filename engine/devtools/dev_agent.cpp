@@ -798,6 +798,15 @@ static bool Agent_Assets( const char *request, const char *end, agentReply_t &re
 			reply.Number( model.bytes );
 			reply.Text( ",\"reloads\":" );
 			reply.Number( model.reloads );
+			reply.Text( ",\"lods\":" );
+			reply.Number( model.lods );
+			reply.Text( ",\"lodDraws\":[" );
+			for ( uint32_t i = 0; i < 4; i++ ) {
+				if ( i )
+					reply.Text( "," );
+				reply.Number( model.lodDraws[i] );
+			}
+			reply.Text( "]" );
 		}
 		reply.Text( "}" );
 	}
