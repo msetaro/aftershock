@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Check offline reflection directions, GGX filtering and the owned atlas format."""
 import importlib.util
-import math
 from pathlib import Path
 import struct
 import tempfile
@@ -25,7 +24,7 @@ atlas = module.prefilter(faces,16,32)
 assert atlas.size == (96,80)
 # Filtering operates on linear radiance, not display bytes.
 expected = tuple(round(module.linear(c/255)*255) for c in (128,64,32)) + (255,)
-assert set(atlas.getdata()) == {expected}
+assert set(struct.iter_unpack('4B',atlas.tobytes())) == {expected}
 colored = [Image.new('RGB',(16,16),color) for color in
            ((255,0,0),(0,255,0),(0,0,255),(255,255,0),(255,0,255),(0,255,255))]
 a = module.prefilter(colored,16,32)
@@ -33,8 +32,8 @@ b = module.prefilter(colored,16,32)
 assert a.tobytes() == b.tobytes()
 for face,color in enumerate(((255,0,0),(0,255,0),(0,0,255),(255,255,0),(255,0,255),(0,255,255))):
     assert a.getpixel((face*16+8,8)) == color+(255,)
-sharp = list(a.crop((0,0,16,16)).getdata())
-rough = list(a.crop((0,64,16,80)).getdata())
+sharp = list(struct.iter_unpack('4B',a.crop((0,0,16,16)).tobytes()))
+rough = list(struct.iter_unpack('4B',a.crop((0,64,16,80)).tobytes()))
 assert sum(c[0] for c in rough) < sum(c[0] for c in sharp)
 assert sum(c[1]+c[2] for c in rough) > 0
 with tempfile.TemporaryDirectory() as temporary:

@@ -50,6 +50,21 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #14 reflection baker / rendered test-first checkpoint
+
+The bounded offline baker now captures six native square views and filters linear
+radiance into five GGX roughness levels using deterministic Hammersley samples.
+Camera-direction/constant-color/filtering/binary-format checks pass; an actual
+32px OA owned-level bake also passes (lighting-probe-bake.log). The versioned
+ASPROBE file holds 1..32 bounded sphere probes with packed linear RGBA atlases.
+Captures use private paths and symlink installed content; nothing is uploaded.
+
+The new native sphere acceptance test successfully bakes the owned map, then
+fails as intended with zero changed reflection pixels because native loading and
+sampling are absent (lighting-probe-runtime-before.log). Implement those next.
+The diffuse source remains the existing q3map2 light grid; HDR capture/composition
+is deferred to #161's renderer transition, not claimed by this LDR baker.
+
 ## #14 reflection bake test-first checkpoint
 
 The new offline producer contract (tests/probes.py) currently fails because
