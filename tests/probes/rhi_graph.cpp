@@ -256,8 +256,11 @@ int main( void ) {
 			assert( resolve.readMask == ( bit( rhiGraphTarget_t::MainColor ) | bit( rhiGraphTarget_t::Motion ) | bit( rhiGraphTarget_t::HistoryRead ) ) );
 			assert( resolve.writeMask == bit( rhiGraphTarget_t::HistoryWrite ) );
 			assert( resolve.dependencyMask & ( 1u << pass( rhiGraphPass_t::MotionGeometry ) ) );
-			assert( apply.readMask == bit( rhiGraphTarget_t::HistoryWrite ) && apply.writeMask == bit( rhiGraphTarget_t::MainColor ) );
+			assert( apply.readMask == ( bit( rhiGraphTarget_t::HistoryWrite ) | bit( rhiGraphTarget_t::Motion ) ) && apply.writeMask == bit( rhiGraphTarget_t::MainColor ) );
 			assert( apply.dependencyMask & ( 1u << pass( rhiGraphPass_t::TemporalResolve ) ) );
+			for ( uint32_t i = pass( rhiGraphPass_t::MotionInitialize ); i <= pass( rhiGraphPass_t::TemporalApply ); ++i )
+				for ( uint32_t j = 0; j < graph.passes[i].dependencyCount; ++j )
+					assert( !graph.passes[i].dependencies[j].byRegion );
 			assert( graph.passes[pass( rhiGraphPass_t::Effects )].dependencyMask & ( 1u << pass( rhiGraphPass_t::TemporalApply ) ) );
 			uint32_t seen = 0;
 			for ( uint32_t i = 0; i < graph.executionCount; ++i ) {

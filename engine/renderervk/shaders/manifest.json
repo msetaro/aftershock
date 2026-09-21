@@ -2379,6 +2379,42 @@
         },
         "member_offsets": []
       }
+    },
+    {
+      "name": "motion_camera_frag_spv",
+      "source": "motion_camera.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "334e17b197f191c2db17ea6000efdd22ba74868b3af705a1a54a851923539f25",
+      "includes": {
+        "temporal.glsl": "bb67af83b6fef58bc8bb81d9f7a4aed72428466108d82c41b64993c0422968b6"
+      },
+      "spirv_sha256": "5174a52b75a5e7ddc8e3392bf35a626548954988219e884176c9a54e19140e87",
+      "recipe_sha256": "519e05a304cadb2d7405fb864b3c88b6578a5a6701e7c70e2af0d72c0b255446"
+    },
+    {
+      "name": "temporal_resolve_frag_spv",
+      "source": "temporal_resolve.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "3448575e04c44c6558ec7a5e9423f9bef96fbc1893e8ef6edacb078dddb29c8d",
+      "includes": {
+        "temporal.glsl": "bb67af83b6fef58bc8bb81d9f7a4aed72428466108d82c41b64993c0422968b6"
+      },
+      "spirv_sha256": "0f5fc90c9b8c27f72e7107e3a182d83a67bfbf5b0324428113cb0082a4c5623c",
+      "recipe_sha256": "06cd7221ce00a8397cbdf7e09107502438d0eb49c94ec7227d186a7ba78120b1"
+    },
+    {
+      "name": "temporal_copy_frag_spv",
+      "source": "temporal_copy.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "85d51aec9e9a637226c5b243c629fa9e728b3b9ede87e21359590a815c0bc4f1",
+      "includes": {
+        "temporal.glsl": "bb67af83b6fef58bc8bb81d9f7a4aed72428466108d82c41b64993c0422968b6"
+      },
+      "spirv_sha256": "41183e0316d5f42db2a8229e759cc2fbe5ed89376473600000ce10f7a0d7137e",
+      "recipe_sha256": "230db65962a692d2822d8f567bac77f25f3c232e71cfd710aa20049b370f669a"
     }
   ]
 }

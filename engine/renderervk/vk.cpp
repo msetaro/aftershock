@@ -2775,6 +2775,9 @@ static void vk_create_shader_modules( void ) {
 	vk.modules.post_fs[0] = SHADER_MODULE( post_frag_spv );
 	vk.modules.post_fs[1] = SHADER_MODULE( post_ms_frag_spv );
 	vk.modules.post_copy_fs = SHADER_MODULE( post_copy_frag_spv );
+	vk.modules.temporal_fs[0] = SHADER_MODULE( motion_camera_frag_spv );
+	vk.modules.temporal_fs[1] = SHADER_MODULE( temporal_resolve_frag_spv );
+	vk.modules.temporal_fs[2] = SHADER_MODULE( temporal_copy_frag_spv );
 	vk.modules.particle_vs = SHADER_MODULE( particle_vert_spv );
 	vk.modules.particle_fs[0] = SHADER_MODULE( particle_frag_spv );
 	vk.modules.particle_fs[1] = SHADER_MODULE( particle_ms_frag_spv );
@@ -3007,6 +3010,9 @@ void vk_update_post_process_pipelines( void ) {
 		if ( vk_config.depthEffects )
 			for ( int i = 0; i < 3; ++i )
 				vk_create_post_process_pipeline( 7 + i, vk_config.renderWidth, vk_config.renderHeight );
+		if ( vk_config.temporal )
+			for ( int i = 0; i < 3; ++i )
+				vk_create_post_process_pipeline( 12 + i, vk_config.renderWidth, vk_config.renderHeight );
 		if ( vk_config.postProcess )
 			for ( int i = 0; i < 2; ++i )
 				vk_create_post_process_pipeline( 10 + i, vk_config.renderWidth, vk_config.renderHeight );
@@ -4245,6 +4251,7 @@ void RHI_MarkWorldPipelines( void ) {
 
 
 static void vk_destroy_attachments( void ) {
+	RHI_ResetTemporal();
 	if ( vk.depth_sample_view ) {
 		qvkDestroyImageView( vk.device, vk.depth_sample_view, NULL );
 		vk.depth_sample_view = VK_NULL_HANDLE;
@@ -4421,6 +4428,11 @@ static void vk_destroy_pipelines( qboolean resetCounter ) {
 	if ( vk.decal_pipeline )
 		qvkDestroyPipeline( vk.device, vk.decal_pipeline, NULL );
 	vk.decal_pipeline = VK_NULL_HANDLE;
+	for ( auto &pipeline : vk.temporal_pipeline ) {
+		if ( pipeline )
+			qvkDestroyPipeline( vk.device, pipeline, NULL );
+		pipeline = VK_NULL_HANDLE;
+	}
 	for ( auto &pipeline : vk.post_pipeline ) {
 		if ( pipeline )
 			qvkDestroyPipeline( vk.device, pipeline, NULL );
@@ -4608,6 +4620,8 @@ void vk_impl_Shutdown( void ) {
 	for ( auto module : vk.modules.post_fs )
 		qvkDestroyShaderModule( vk.device, module, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.post_copy_fs, NULL );
+	for ( auto module : vk.modules.temporal_fs )
+		qvkDestroyShaderModule( vk.device, module, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.particle_vs, NULL );
 	for ( auto module : vk.modules.decal_fs )
 		qvkDestroyShaderModule( vk.device, module, NULL );
@@ -5217,6 +5231,17 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 	} frag_spec_data;
 
 	switch ( program_index ) {
+	case 12:
+	case 13:
+	case 14:
+		pipeline = &vk.temporal_pipeline[program_index - 12];
+		fsmodule = vk.modules.temporal_fs[program_index - 12];
+		renderpass = vk.render_pass.temporal[program_index == 12 ? 0 : program_index - 11];
+		layout = vk.pipeline_layout;
+		samples = VK_SAMPLE_COUNT_1_BIT;
+		pipeline_name = "temporal fullscreen pipeline";
+		blend = qfalse;
+		break;
 	case 10:
 	case 11:
 		pipeline = &vk.post_pipeline[program_index - 10];
@@ -7141,7 +7166,15 @@ static void vk_begin_render_pass( VkRenderPass renderPass, VkFramebuffer frameBu
 	for ( uint32_t i = 0; i < 3; ++i )
 		if ( renderPass == vk.render_pass.occlusion[i] )
 			name = vk_graph_names[(uint32_t)rhiGraphPass_t::Occlusion + i];
-	if ( renderPass == vk.render_pass.post[0] )
+	if ( renderPass == vk.render_pass.temporal[0] )
+		name = "camera motion";
+	else if ( renderPass == vk.render_pass.temporal[1] )
+		name = "object motion";
+	else if ( renderPass == vk.render_pass.temporal[2] )
+		name = "temporal resolve";
+	else if ( renderPass == vk.render_pass.temporal[3] )
+		name = "temporal copy";
+	else if ( renderPass == vk.render_pass.post[0] )
 		name = "post";
 	else if ( renderPass == vk.render_pass.post[1] )
 		name = "post copy";
@@ -7926,6 +7959,65 @@ void RHI_EndEffects() {
 	vk.cmd->last_pipeline = VK_NULL_HANDLE;
 	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
 	vk.cmd->scissor_rect = {}; // Direct effect/post scissors bypass the ordinary state cache.
+}
+
+void RHI_ResetTemporal() {
+	vk.temporal_history = 0;
+	vk.temporal_valid = vk.temporal_active = false;
+}
+
+static void vk_temporal_pass( uint32_t pass, VkFramebuffer framebuffer ) {
+	RHI_EndPass();
+	vk_begin_render_pass( vk.render_pass.temporal[pass], framebuffer, qfalse, vk_config.renderWidth, vk_config.renderHeight );
+	const VkViewport viewport = { 0, 0, (float)vk_config.renderWidth, (float)vk_config.renderHeight, 0, 1 };
+	const VkRect2D scissor = { { 0, 0 }, { (uint32_t)vk_config.renderWidth, (uint32_t)vk_config.renderHeight } };
+	qvkCmdSetViewport( vk.cmd->command_buffer, 0, 1, &viewport );
+	qvkCmdSetScissor( vk.cmd->command_buffer, 0, 1, &scissor );
+}
+
+bool RHI_BeginTemporal( const rhiTemporal_t *view ) {
+	if ( !vk_config.temporal || !vk.cmd || !view || vk.temporal_active || vk.renderPassIndex != RENDER_PASS_MAIN )
+		return false;
+	auto uniform = *view;
+	if ( !vk.temporal_valid )
+		uniform.settings[1] = 0;
+	const auto descriptors = vk.cmd->descriptor_set;
+	const uint32_t previous = vk.cmd->uniform_read_offset;
+	vk.temporal_uniform = RHI_UploadUniform( &uniform, sizeof( uniform ) );
+	vk.cmd->descriptor_set = descriptors;
+	vk.cmd->uniform_read_offset = previous;
+	if ( vk.temporal_uniform == RHI_INVALID_OFFSET ) {
+		vk.temporal_valid = false;
+		return false;
+	}
+	vk.temporal_active = true;
+	vk_temporal_pass( 0, vk.framebuffers.temporal[0] );
+	qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.temporal_pipeline[0] );
+	const VkDescriptorSet sets[] = { vk.cmd->uniform_descriptor, vk.depth_descriptor };
+	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout, 0, 2, sets, 1, &vk.temporal_uniform );
+	vk_draw( 4 );
+	vk_temporal_pass( 1, vk.framebuffers.temporal[1] );
+	return true;
+}
+
+void RHI_ResolveTemporal() {
+	if ( !vk.temporal_active )
+		return;
+	const uint32_t write = 1 + vk.temporal_history, read = 1 + ( vk.temporal_history ^ 1 );
+	vk_temporal_pass( 2, vk.framebuffers.temporal[2 + vk.temporal_history] );
+	qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.temporal_pipeline[1] );
+	const VkDescriptorSet resolve[] = { vk.cmd->uniform_descriptor, vk.color_descriptor, vk.temporal_descriptor[0], vk.temporal_descriptor[read] };
+	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout, 0, 4, resolve, 1, &vk.temporal_uniform );
+	vk_draw( 4 );
+	vk_temporal_pass( 3, vk.framebuffers.temporal[4] );
+	qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.temporal_pipeline[2] );
+	const VkDescriptorSet apply[] = { vk.cmd->uniform_descriptor, vk.temporal_descriptor[write], vk.temporal_descriptor[0] };
+	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout, 0, 3, apply, 1, &vk.temporal_uniform );
+	vk_draw( 4 );
+	vk.temporal_history ^= 1;
+	vk.temporal_valid = true;
+	vk.temporal_active = false;
+	RHI_EndEffects();
 }
 
 bool RHI_DrawPost( const rhiPostDraw_t *settings, const rhiTexture_t *lut ) {

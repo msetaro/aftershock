@@ -110,6 +110,15 @@ static VkResult VKAPI_CALL createFramebuffer( VkDevice, const VkFramebufferCreat
 static uint32_t begun, ended, depthBegun, resumed;
 static void VKAPI_CALL beginPass( VkCommandBuffer, const VkRenderPassBeginInfo *p, VkSubpassContents ) {
 	++begun;
+	if ( vk_config.temporal ) {
+		for ( uint32_t i = 0; i < 4; ++i ) {
+			if ( p->renderPass != vk.render_pass.temporal[i] )
+				continue;
+			assert( p->clearValueCount == 0 );
+			assert( p->framebuffer == vk.framebuffers.temporal[i == 2 ? 2 + vk.temporal_history : i == 3 ? 4 : i] );
+			return;
+		}
+	}
 	if ( p->renderPass == vk.render_pass.shadow[0] || p->renderPass == vk.render_pass.shadow[1] ) {
 		++depthBegun;
 		assert( p->clearValueCount == 1 && p->pClearValues[0].depthStencil.depth == 0 );

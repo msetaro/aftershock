@@ -74,6 +74,30 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 temporal fullscreen dispatch component
+
+Test-first e46a0ec8 fails on missing temporal uniform/dispatch declarations.
+The RHI component initializes camera motion from depth, retains a geometry-motion
+pass, resolves against distinct previous history and copies the new history to
+scene color. It alternates physical histories only after dispatch, rejects a
+failed uniform upload and restores initialized descriptor slots/scissor state.
+All temporal dependencies cover the full image, because reprojection/blur read
+neighboring pixels. Optional nine-tap motion blur affects only the display copy,
+not the sharp history; disoccluded pixels reject prior depth and neighborhood
+clamping bounds accumulated color. First-frame/cut paths skip history fetches.
+
+GCC/Clang graph probes pass (fidelity-temporal-commands-{after,clang}.log), including
+three frame rotations, first-frame invalidation, sparse descriptor restoration
+and upload exhaustion. The initial run needed the probe's pass observer extended
+to recognize new passes; production dispatch did not bypass that assertion.
+Client build and format pass. Three appended shader arrays were generated with
+bin2hex; every prior array is byte-identical. All 99 fresh/cached shaders match
+(package 84f4d10d2f9b35d40cb4171e9a95fbd34c76b9ae5d74f441a2e05dccb6220b9f;
+fidelity-temporal-shader-check.log). This component is not enabled: frontend
+view lifecycle, moving/skinned geometry, visual tests and budgets remain next.
+Main 07304b32 build/publication 35613793896 passed; regression 35613793817 remains
+in its long level/bot runtime step. No maintainer dependency exists.
+
 ## #161 jitter and restored software controls
 
 Test-first 06b43fd4 requires an eight-frame centered, subpixel projection jitter

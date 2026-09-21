@@ -514,6 +514,16 @@ static_assert( std::is_trivially_copyable_v<rhiDeviceConfig_t> && std::is_trivia
 [[nodiscard]] rhiStatus_t RHI_Shutdown( void );
 [[nodiscard]] rhiStatus_t RHI_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height );
 [[nodiscard]] rhiStatus_t RHI_UploadWorldGeometry( const uint8_t *data, int32_t size );
+struct rhiTemporal_t {
+	float origin[4], right[4], down[4], forward[4];
+	float projection[4], jitter[4], viewport[4], previous[16];
+	float settings[4]; // overbright scale, valid history, motion blur strength, reserved
+};
+static_assert( sizeof( rhiTemporal_t ) == 192 && offsetof( rhiTemporal_t, previous ) == 112 );
+void RHI_ResetTemporal();
+bool RHI_BeginTemporal( const rhiTemporal_t *view );
+void RHI_ResolveTemporal();
+
 struct rhiPostDraw_t {
 	float curve[4], lens[4], projection[4], viewport[4];
 };

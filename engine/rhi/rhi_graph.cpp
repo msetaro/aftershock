@@ -339,8 +339,13 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 		auto &resolve = Pass( graph, P::TemporalResolve, c.renderWidth, c.renderHeight,
 			TargetBit( T::MainColor ) | TargetBit( T::Motion ) | TargetBit( T::HistoryRead ) );
 		Attachment( resolve, T::HistoryWrite, Load::Discard, Store::Store, L::Sampled, L::Sampled );
-		auto &apply = Pass( graph, P::TemporalApply, c.renderWidth, c.renderHeight, TargetBit( T::HistoryWrite ) );
+		auto &apply = Pass( graph, P::TemporalApply, c.renderWidth, c.renderHeight, TargetBit( T::HistoryWrite ) | TargetBit( T::Motion ) );
 		Attachment( apply, T::MainColor, Load::Discard, Store::Store, L::Sampled, L::Sampled );
+		// Reprojection and blur read neighboring pixels and the prior frame.
+		rhiGraphPassDesc_t *temporalPasses[] = { &initialize, &geometry, &resolve, &apply };
+		for ( auto *pass : temporalPasses )
+			for ( uint32_t i = 0; i < pass->dependencyCount; ++i )
+				pass->dependencies[i].byRegion = false;
 	}
 	// Preserve the legacy IDs/possible-pass intervals when lighting is disabled.
 	// Creation order is independent of this dependency/lifetime order.
