@@ -66,7 +66,7 @@ def measure(image,notes,previous=None):
         pixels = cv2.warpPerspective(pixels,transform,(width,height))
         image = Image.fromarray(pixels)
     def world(point):
-        return [round((point[0]-image.width/2)*scale,4),round((image.height/2-point[1])*scale,4)]
+        return [round((point[0]-image.width/2)*scale,4),round((image.height/2-point[1])*scale,4),*point[2:]]
     marks = copy.deepcopy(notes.get('marks',[]))
     require(len(marks)<=512 and len({m['id'] for m in marks})==len(marks), 'mark IDs must be unique; maximum 512')
     require(all(m['classification'] in ('geometry','annotation','intent') for m in marks), 'unknown mark classification')
@@ -233,7 +233,7 @@ def measure(image,notes,previous=None):
         if mark.get('pixel_polygon'):
             cv2.fillPoly(covered,[np.array(mark['pixel_polygon'],dtype=np.int32)],255)
         if mark.get('points'):
-            points = np.array(mark['points'],dtype=np.int32)
+            points = np.array([p[:2] for p in mark['points']],dtype=np.int32)
             cv2.polylines(covered,[points],False,255,max(12,gap*2))
             # The arrowhead belongs to the interpreted route endpoint.
             for point in (points[0],points[-1]):
@@ -310,7 +310,7 @@ def overlays(image,interpretation,out):
             points = [[x,y],[X,y],[X,Y],[x,Y],[x,y]]
         if not points:
             continue
-        points = [tuple(p) for p in points]
+        points = [tuple(p[:2]) for p in points]
         for target in (classified,numbered):
             pen = ImageDraw.Draw(target)
             pen.line(points+([points[0]] if 'pixel_polygon' in mark else []),fill=colors[mark['classification']],width=2)

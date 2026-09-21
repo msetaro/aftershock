@@ -53,6 +53,25 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 route playback and owned reference contract
+
+The native lane walk measures 5.5 simulation seconds for 1800 units. The existing
+agent playtest CLI passes unchanged default-session behavior. Static controls now
+also reject a hold inside collision and annotations outside the boundary; explicit
+floor coordinates survive tracing. The combined route negative/runtime gate was
+interrupted (exit 143) after its two movement reports; it is not accepted. Repeat
+is running in sketch-route-native-4, including the impossible-time target and
+strict OpenArena bot/capture checks. No accepted fixture changed.
+
+A new original CC0 reference drawing and its manual export source are under
+ tests/assets/sketch (source/hash manifest and CREDITS validated). Visual review
+confirms three numbered buildings, rotated cover/building, curved wall, two
+indoor spawn markers, a timed route and a hold annotation. tests/sketch_build.py
+fails first on drawn spawn markers not becoming player spawns
+(sketch-build-before.log). The same contract will require preserved notes/goals,
+recorded default door decisions, only-building-7 edits, and the one-command native
+pipeline. Continue this implementation; this remains partial #164 work.
+
 ## #164 static shooter report passes; movement contract added
 
 The controlled-world trace tests pass (sketch-intents.log): exposed spawns,

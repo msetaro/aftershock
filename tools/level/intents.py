@@ -1,6 +1,8 @@
 """Shooter design evidence from the local agent's compiled-world collision queries."""
 import math
 
+from shapely import Point
+
 from polygons import pieces,navigation
 
 
@@ -53,6 +55,10 @@ def analyze(engine,level,limits=None):
     for intent in level.get('intents',[]):
         identity,kind,points=intent['id'],intent['kind'],intent['points']
         row=dict(id=identity,kind=kind)
+        if not all(area.covers(Point(*p[:2])) for p in points):
+            error('intent_bounds',identity,'An annotated point is outside the playable boundary.','Move the annotation inside the boundary and outside its holes.')
+            intent_reports.append(row)
+            continue
         if kind=='sightline':
             if len(points)!=2:
                 raise ValueError('sightline intent requires two points: '+identity)
@@ -63,14 +69,14 @@ def analyze(engine,level,limits=None):
         elif kind=='route':
             if len(points)<2:
                 raise ValueError('route intent requires at least two points: '+identity)
-            distance=sum(math.dist(a,b) for a,b in zip(points,points[1:]))
+            distance=sum(math.dist(eye(a,0),eye(b,0)) for a,b in zip(points,points[1:]))
             blocked=[]
             for index,(a,b) in enumerate(zip(points,points[1:])):
                 hit=trace(eye(a,24.25),eye(b,24.25),'player')
                 if hit['start_solid'] or hit['fraction']<1:
                     blocked.append(index)
             row.update(distance=round(distance,3),geometric_seconds=round(distance/320,3),blocked_segments=blocked,playtest_required=True)
-            if blocked:
+            if blocked and len({eye(p,0)[2] for p in points})==1:
                 error('intent_route',identity,'The annotated ground route crosses player collision.','Move its waypoints around solid geometry; use the movement playtest for stairs and timing.')
         elif kind=='objective':
             if len(points)!=1:
@@ -82,14 +88,21 @@ def analyze(engine,level,limits=None):
                 error('objective_visibility',identity,'Objective is directly visible from spawn(s) '+str(exposed)+'.','Move the objective behind cover or move the exposed spawns.')
             if intent.get('mode')=='ctf':
                 classname={'red':'team_CTF_redflag','blue':'team_CTF_blueflag'}.get(intent.get('team'))
-                if not classname or not any(p['classname']==classname and math.dist(p['origin'][:2],points[0])<=16 for p in level['pickups']):
+                if not classname or not any(p['classname']==classname and math.dist(p['origin'][:2],points[0][:2])<=16 for p in level['pickups']):
                     error('objective_entity',identity,'CTF objective has no matching authored team flag.','Place its native team flag at the annotated objective point.')
             else:
                 error('objective_mode',identity,'This objective has no supported native mode.','Use a red/blue CTF objective; use hold or engagement for tactical annotations.')
         elif kind in ('hold','engagement'):
             center=[sum(p[k] for p in points)/len(points) for k in (0,1)]
+            center.append(sum(eye(p,0)[2] for p in points)/len(points))
             radius=intent.get('radius',128)
-            row.update(center=center,radius=radius,visible_directions=sum(visible(eye(center),eye([center[0]+radius*math.cos(i*math.pi/4),center[1]+radius*math.sin(i*math.pi/4)]))[0] for i in range(8)))
+            position=eye(center,24.25)
+            occupied=trace(position,position,'player')
+            if occupied['start_solid'] or occupied['all_solid']:
+                error('intent_position',identity,'The tactical position intersects compiled player collision.','Move the hold/engagement center into standing space.')
+            row.update(center=center,radius=radius,visible_directions=sum(visible(eye(center),eye([center[0]+radius*math.cos(i*math.pi/4),center[1]+radius*math.sin(i*math.pi/4),center[2]]))[0] for i in range(8)))
+            if row['visible_directions']<intent.get('min_visible_directions',1):
+                error('intent_view',identity,'The tactical position has fewer clear directions than required.','Move its center or add an opening toward the intended engagement area.')
         else:
             raise ValueError('unknown intent kind: '+kind)
         intent_reports.append(row)
@@ -139,3 +152,46 @@ def analyze(engine,level,limits=None):
                 errors=errors,intents=intent_reports,trace_queries=queries,lanes=lanes,cover_density=round(cover_density,4),
                 first_contact=first_contact,sightlines=dict(samples=len(distances),histogram=histogram,upper_bounds=bins,
                 maximum=round(maximum,3),method='eight horizontal rays per sampled clearance-path position'))
+
+
+def play_routes(engine,level,output,seed=164):
+    """Reuse a session already configured for 20 ms; time actual player input/physics."""
+    import json
+    from tools.agent.playtest import run_script
+    output.mkdir(parents=True,exist_ok=True)
+    results=[]
+    for intent in level.get('intents',[]):
+        if intent['kind']!='route':
+            continue
+        points=[[p[0],p[1],(p[2] if len(p)>2 else level['boundary']['floor'])+24] for p in intent['points']]
+        if len(points)<2:
+            raise ValueError('route needs at least two points: '+intent['id'])
+        folder=output/intent['id']
+        folder.mkdir()
+        start=' '.join(f'{v:.9g}' for v in points[0])
+        steps=[dict(op='request',request=dict(op='exec',command='setviewpos '+start+' 0')),
+               dict(op='step',frames=5),dict(op='request',request=dict(op='state'))]
+        for a,b in zip(points,points[1:]):
+            frames=min(1500,max(100,math.ceil(math.dist(a,b)/320/.02)*2+100))
+            steps.append(dict(op='walk',position=b,tolerance=8,max_frames=frames))
+        script=dict(version=1,dt=20,seed=seed,warmup=150,steps=steps)
+        (folder/'playtest.json').write_text(json.dumps(script,sort_keys=True,indent=2)+'\n')
+        report=run_script(engine,script,level['name'],folder,configure_session=False)
+        result=dict(id=intent['id'],passed=report['ok'],report=intent['id']+'/report.json',measured_seconds=None)
+        if report['ok']:
+            begin=report['results'][2]['reply']['time']
+            finish=next(r['state']['time'] for r in reversed(report['results']) if r['op']=='walk')
+            result['measured_seconds']=(finish-begin)/1000
+            if 'target_seconds' in intent:
+                target=intent['target_seconds']
+                tolerance=intent.get('tolerance_seconds',max(.5,target*.2))
+                result.update(target_seconds=target,tolerance_seconds=tolerance)
+                if abs(result['measured_seconds']-target)>tolerance:
+                    result.update(passed=False,suggestion='Change route length/waypoints or explicitly revise the annotated timing target.')
+        else:
+            result.update(error=report['error'],suggestion='Move the blocked waypoint into connected standing space; add intermediate points for turns or elevation changes.')
+        results.append(result)
+    result=dict(passed=all(r['passed'] for r in results),routes=results,
+                method='existing agent walk controller through native player input and physics; 20 ms simulation steps')
+    (output/'routes.json').write_text(json.dumps(result,sort_keys=True,indent=2)+'\n')
+    return result

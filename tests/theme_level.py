@@ -109,6 +109,11 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
             (args.output/'shooter-negative.json').write_text(json.dumps(shooter,indent=2)+'\n')
             routes=play_routes(engine,a,args.output/'routes')
             assert routes['passed'] and routes['routes'][0]['measured_seconds']>0,routes
+            impossible=copy.deepcopy(a)
+            impossible['intents'][0].update(target_seconds=0,tolerance_seconds=.1)
+            late=play_routes(engine,impossible,args.output/'routes-too-fast')
+            assert not late['passed'] and late['routes'][0]['measured_seconds']>.1, 'impossible route timing passed'
+
 
         native=run(['tools/level','validate',root/'a/level.json','--output',args.output,
                     '--client',args.client,'--server',args.server,'--content',args.content,'--data',args.data])

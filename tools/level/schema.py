@@ -31,8 +31,8 @@ def version2(legacy):
     item['allOf'] = [{'if':dict(properties=dict(kind=dict(const='transition'))),'then':dict(required=['transition'])}]
     fields['texture_scale'] = dict(type='object',propertyNames=role,additionalProperties=num(.001,16))
     fields['intents'] = array(obj(dict(id=identity,kind=enum('route','sightline','hold','engagement','objective'),
-        points=array(xy,1,256),width=num(1,8192),radius=num(1,8192),target_seconds=num(0,300),
-        tolerance_seconds=num(0,300),blocked=dict(type='boolean'),team=enum('ffa','red','blue'),
+        points=array({'oneOf':[xy,vector(integer=False)]},1,256),width=num(1,8192),radius=num(1,8192),target_seconds=num(0,300),
+        tolerance_seconds=num(0,300),min_visible_directions=num(0,8,True),blocked=dict(type='boolean'),team=enum('ffa','red','blue'),
         mode=enum('ffa','team','ctf')),['id','kind','points']),0,128)
     fields.update(version=dict(const=2),boundary=obj(dict(polygon=ring,holes=holes,floor=num(-32000,32000),ceiling=num(-32000,32000)),
                   ['polygon','floor','ceiling']),shapes=array(item,1))

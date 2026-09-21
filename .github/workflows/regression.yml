@@ -295,6 +295,7 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/level.py --compile
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/level_polygons.py --compile
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/sketch.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/level_intents.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/theme_assets.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/asset_providers.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/theme_fetch.py

@@ -66,6 +66,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-sketch-') as temporary:
     assert {m['id'] for m in first['marks']} >= {'key','timing','route_a','sight_a','building_7'}
     assert all('reading' in m and 'confidence' in m for m in first['marks'])
     assert {i['id'] for i in level['intents']}=={'route_a','sight_a'}
+    layered = copy.deepcopy(notes)
+    layered['marks'][2]['points'] = [[*point,128] for point in layered['marks'][2]['points']]
+    _,layered_level = trace(layered,root/'layered')
+    assert all(p[2]==128 for p in layered_level['intents'][0]['points']), 'explicit floor elevation lost during tracing'
     changed = copy.deepcopy(notes)
     changed['overrides']['building_7'] = dict(floors=1,height=160)
     _,edited = trace(changed,root/'result')

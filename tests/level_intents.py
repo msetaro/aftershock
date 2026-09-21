@@ -52,6 +52,10 @@ assert 0<=report['cover_density']<=1
 assert report['first_contact'] and report['first_contact'][0]['estimated_seconds']>0
 assert {i['id'] for i in report['intents']}=={'screen_blocks','south_route','hold_west'}
 assert next(i for i in report['intents'] if i['id']=='south_route')['playtest_required']
+layered=copy.deepcopy(level)
+for intent in layered['intents']:
+    intent['points']=[[*p,0] for p in intent['points']]
+assert analyze(World(),layered)['passed'], 'explicit floor coordinates changed the ground report'
 changed=copy.deepcopy(level)
 changed['intents'][0]['blocked']=False
 bad=analyze(World(),changed)
@@ -66,4 +70,12 @@ changed['intents'].append(dict(id='flag',kind='objective',points=[[-256,128]],te
 bad=analyze(World(),changed)
 assert any(e['code']=='objective_visibility' for e in bad['errors'])
 assert all(e['suggestion'] for e in bad['errors']),bad
+changed=copy.deepcopy(level)
+changed['intents'][2]['points']=[[0,0]]
+bad=analyze(World(),changed)
+assert any(e['code']=='intent_position' for e in bad['errors']), 'hold point inside solid geometry passed'
+changed=copy.deepcopy(level)
+changed['intents'][2]['points']=[[900,900]]
+bad=analyze(World(),changed)
+assert any(e['code']=='intent_bounds' for e in bad['errors']), 'outside-world tactical point passed'
 print('PASS: agent-traced spawn/objective sightlines, explicit intent controls, lanes, cover and contact estimates')

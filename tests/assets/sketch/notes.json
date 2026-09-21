@@ -1,0 +1,333 @@
+{
+  "boundary": [
+    [
+      25,
+      40
+    ],
+    [
+      750,
+      30
+    ],
+    [
+      775,
+      570
+    ],
+    [
+      620,
+      610
+    ],
+    [
+      35,
+      595
+    ]
+  ],
+  "free_text": "Three enterable buildings around a plaza; keep the blue route open. Original Aftershock test layout, not a commercial map.",
+  "gap_pixels": 15,
+  "key": [
+    {
+      "classification": "geometry",
+      "color": "#b52e34",
+      "height": 128,
+      "kind": "building",
+      "line_style": "outline"
+    },
+    {
+      "classification": "geometry",
+      "color": "#d09b31",
+      "height": 48,
+      "kind": "solid",
+      "line_style": "filled"
+    },
+    {
+      "classification": "geometry",
+      "color": "#775ca8",
+      "height": 96,
+      "kind": "wall",
+      "line_style": "dashed"
+    },
+    {
+      "classification": "intent",
+      "color": "#245eae",
+      "kind": "route"
+    },
+    {
+      "classification": "intent",
+      "color": "#278e9b",
+      "kind": "spawn"
+    },
+    {
+      "classification": "annotation",
+      "color": "#29713b",
+      "kind": "text"
+    }
+  ],
+  "marks": [
+    {
+      "classification": "geometry",
+      "color": "#b52e34",
+      "confidence": 1,
+      "id": "building_1",
+      "reading": "Red outline is an enterable building; numeral is its stable ID",
+      "region": [
+        66,
+        86,
+        225,
+        245
+      ]
+    },
+    {
+      "classification": "annotation",
+      "confidence": 1,
+      "id": "label_building_1",
+      "region": [
+        125,
+        153,
+        165,
+        177
+      ],
+      "text": "building_1"
+    },
+    {
+      "classification": "geometry",
+      "color": "#b52e34",
+      "confidence": 1,
+      "id": "building_7",
+      "reading": "Red outline is an enterable building; numeral is its stable ID",
+      "region": [
+        321,
+        86,
+        480,
+        245
+      ]
+    },
+    {
+      "classification": "annotation",
+      "confidence": 1,
+      "id": "label_building_7",
+      "region": [
+        380,
+        153,
+        420,
+        177
+      ],
+      "text": "building_7"
+    },
+    {
+      "classification": "geometry",
+      "color": "#b52e34",
+      "confidence": 1,
+      "id": "building_9",
+      "reading": "Red outline is an enterable building; numeral is its stable ID",
+      "region": [
+        553,
+        75,
+        737,
+        265
+      ]
+    },
+    {
+      "classification": "annotation",
+      "confidence": 1,
+      "id": "label_building_9",
+      "region": [
+        625,
+        158,
+        665,
+        182
+      ],
+      "text": "building_9"
+    },
+    {
+      "classification": "intent",
+      "confidence": 1,
+      "id": "main_route",
+      "kind": "route",
+      "points": [
+        [
+          70,
+          310
+        ],
+        [
+          715,
+          310
+        ]
+      ],
+      "reading": "Arrow is a timed walking route",
+      "target_seconds": 6,
+      "tolerance_seconds": 2,
+      "width": 128
+    },
+    {
+      "classification": "intent",
+      "confidence": 1,
+      "id": "plaza_hold",
+      "kind": "hold",
+      "points": [
+        [
+          400,
+          380
+        ]
+      ],
+      "radius": 90,
+      "reading": "Blue circle is a hold zone, not a building",
+      "region": [
+        362,
+        342,
+        438,
+        418
+      ]
+    },
+    {
+      "classification": "annotation",
+      "confidence": 1,
+      "id": "timing",
+      "region": [
+        295,
+        286,
+        380,
+        307
+      ],
+      "target": "main_route",
+      "text": "6 seconds"
+    },
+    {
+      "angle": 0,
+      "classification": "intent",
+      "confidence": 1,
+      "id": "west_spawn",
+      "kind": "spawn",
+      "points": [
+        [
+          115,
+          145
+        ]
+      ],
+      "reading": "Cyan dot is a player spawn inside the building",
+      "team": "ffa"
+    },
+    {
+      "angle": 180,
+      "classification": "intent",
+      "confidence": 1,
+      "id": "east_spawn",
+      "kind": "spawn",
+      "points": [
+        [
+          675,
+          150
+        ]
+      ],
+      "reading": "Cyan dot is a player spawn inside the building",
+      "team": "ffa"
+    },
+    {
+      "classification": "annotation",
+      "confidence": 1,
+      "id": "key",
+      "region": [
+        177,
+        5,
+        624,
+        70
+      ],
+      "text": "Drawing key and stated scale"
+    }
+  ],
+  "mode": "ffa",
+  "name": "sketch_reference",
+  "overrides": {},
+  "pickups": [
+    {
+      "classname": "weapon_rocketlauncher",
+      "origin": [
+        -666,
+        51,
+        16
+      ]
+    },
+    {
+      "classname": "weapon_lightning",
+      "origin": [
+        640,
+        51,
+        16
+      ]
+    },
+    {
+      "classname": "weapon_railgun",
+      "origin": [
+        0,
+        -38,
+        16
+      ]
+    },
+    {
+      "classname": "ammo_rockets",
+      "origin": [
+        -653,
+        397,
+        16
+      ]
+    },
+    {
+      "classname": "ammo_lightning",
+      "origin": [
+        627,
+        384,
+        16
+      ]
+    },
+    {
+      "classname": "item_armor_combat",
+      "origin": [
+        0,
+        -154,
+        16
+      ]
+    },
+    {
+      "classname": "item_health",
+      "origin": [
+        0,
+        397,
+        16
+      ]
+    }
+  ],
+  "scale": {
+    "pixels": 100,
+    "units": 256
+  },
+  "seed": 164,
+  "simplify_pixels": 2,
+  "theme": "manhattan",
+  "version": 1,
+  "viewpoints": [
+    {
+      "angles": [
+        0,
+        90,
+        0
+      ],
+      "id": "plaza",
+      "origin": [
+        0,
+        90,
+        72
+      ]
+    },
+    {
+      "angles": [
+        0,
+        20,
+        0
+      ],
+      "id": "street",
+      "origin": [
+        -896,
+        51,
+        72
+      ]
+    }
+  ]
+}
