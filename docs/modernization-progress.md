@@ -49,6 +49,16 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 procedural reference-kit contract
+
+The new Blender test requires pinned 5.0.1, deterministic parameterized facade,
+doorway, cornice, curb, stairs, fence, barrier, crate and sign modules; real UVs,
+LOD exports and baked images; production IQM cooking; and complete licensed
+provenance with script/parameter hashes. Two fresh builds must match byte-for-byte
+apart from diagnostic logs. It fails first because tools/blender is absent
+(sketch-blender-before.log). The verified user-cache Blender binary is available;
+use it for this implementation, without installing system packages.
+
 ## #164 asset preparation acceptance / CI wiring
 
 The preparation fingerprint control passes along with repeated offline kits and
