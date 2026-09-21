@@ -67,6 +67,17 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #161 initial mesh LOD contract
+
+The owned two-joint source generator now supplies a smooth-weighted 17x17 grid
+for tests/lod.py. The initial lod_ratios recipe requires two smaller compact IQMs,
+unchanged full-detail geometry, preserved joints/poses/compressed animation and
+byte-repeatable cooking. Recipe provenance hashes are intentionally excluded only
+from the original-geometry comparison; every payload still verifies its stamp.
+Before implementation the original geometry passes and grid_lod1.iqm is absent
+(fidelity-lod-before.log). No meshoptimizer import, cooker or native LOD changes
+yet; screen-size selection and actual runtime cost remain future acceptance gates.
+
 ## #161 initial floating HDR contract
 
 The existing native graph probe now checks that a new hdr=2 offscreen mode uses
@@ -90,7 +101,12 @@ Evidence: fidelity-hardware-{baseline,small-present}.py/.log and the correspondi
 report.json/capture directories in the private modernization cache. This is a
 static existing-renderer baseline, not #161 feature/streaming acceptance. The two
 runs use different offscreen settings and are not a feature A/B comparison.
-All later hardware budgets must use a consistent render/presentation configuration.
+A matched large-window offscreen run (fidelity-hardware-large-present) measures
+CPU p50/p95/p99 44.697/54.831/87.905 ms; GPU main p95 1.324 ms and gamma p95
+0.586 ms. Both runs render/capture 1440p with the same offscreen settings, which
+isolates the costly Xvfb presentation size. These are hardware/device-dependent
+baseline measurements, not acceptance thresholds. All later hardware budgets
+must use a consistent render/presentation configuration.
 No repository renderer or accepted frame changes were made for this experiment.
 
 ## #161 native fixed-pool effect contract
