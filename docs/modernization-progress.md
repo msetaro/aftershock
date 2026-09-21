@@ -52,6 +52,14 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 additional tracing contract
+
+A new owned dark-background drawing specifies touching-outline splits, thin and
+dashed straight/curved marks, player-height scale, nearby rotated-grid snapping
+and phone-perspective rectification. It fails first on the unsupported scale
+reference (sketch-measure-before.log). Implement measured geometry while retaining
+explicit semantic regions and visible assumptions; no commercial drawing is used.
+
 ## #164 v2 props pass
 
 Rotated props compile through pinned q3map2/MBSPC and solid props correctly reject

@@ -87,3 +87,63 @@ with tempfile.TemporaryDirectory(prefix='aftershock-sketch-') as temporary:
     uncertain,_ = trace(changed,root/'ambiguous')
     assert any(a['id']=='route_a' for a in uncertain['assumptions']), 'ambiguity silently guessed'
 print('PASS: owned multicolor stroke drawing, authoritative key, annotation separation, intent records and stable edits')
+
+# A second owned drawing covers touching outlines, narrow/dashed marks and a
+# dominant rotated grid. Explicit regions are the agent's semantic split decision.
+import math
+import cv2
+import numpy as np
+from shapely import Polygon
+from tools.level.sketch import measure
+with tempfile.TemporaryDirectory(prefix='aftershock-sketch-measure-') as temporary:
+    image = Image.new('RGB',(640,480),'#181b20')
+    pen = ImageDraw.Draw(image)
+    color = '#d5d0c3'
+    pen.rectangle((40,60,150,160),outline=color,width=3)
+    pen.rectangle((150,60,240,130),outline=color,width=3)
+    for x in range(300,550,22):
+        pen.line((x,90,x+13,90),fill='#b98c41',width=2)
+    pen.line((300,140,540,170),fill='#507fb0',width=2)
+    for start in range(10,170,20):
+        pen.arc((330,200,530,400),start,start+12,fill='#7ba47a',width=4)
+    def rectangle(cx,cy,angle):
+        a=math.radians(angle)
+        return [(cx+x*math.cos(a)-y*math.sin(a),cy+x*math.sin(a)+y*math.cos(a))
+                for x,y in ((-55,-35),(55,-35),(55,35),(-55,35))]
+    pen.polygon(rectangle(90,300,22),fill='#ba5555')
+    pen.polygon(rectangle(230,325,24),fill='#ba5555')
+    notes=dict(version=1,scale=dict(player_height_pixels=28,player_height_units=56),
+               boundary=[[10,10],[630,10],[630,470],[10,470]],gap_pixels=15,
+               snap_degrees=5,
+               key=[dict(color=color,classification='geometry',kind='building',line_style='outline'),
+                    dict(color='#b98c41',classification='geometry',kind='overhead',line_style='dashed',base=128,height=16),
+                    dict(color='#507fb0',classification='geometry',kind='wall',line_style='thin',height=64),
+                    dict(color='#7ba47a',classification='geometry',kind='overhead',line_style='dashed',base=160,height=16),
+                    dict(color='#ba5555',classification='geometry',kind='solid',line_style='filled')],
+               marks=[dict(id='building_1',classification='geometry',region=[38,58,150,162],color=color,confidence=1),
+                      dict(id='annex',classification='geometry',region=[150,58,242,132],color=color,confidence=1)])
+    interpretation,level,_=measure(image,notes)
+    assert len(level['shapes'])==7, [(s['id'],s['kind']) for s in level['shapes']]
+    assert {'building_1','annex'}<={s['id'] for s in level['shapes']}, 'touching regions were merged'
+    assert interpretation['scale']==2
+    assert any(18<a<28 for a in interpretation['dominant_angles_degrees']), interpretation
+    assert all(m.get('line_style') for m in interpretation['marks'] if m.get('pixel_polygon'))
+    solids=[s for s in level['shapes'] if s['kind']=='solid']
+    def angle(s):
+        points=s['shape']['polygon'];a,b=points[:2]
+        return math.degrees(math.atan2(b[1]-a[1],b[0]-a[0]))%90
+    assert abs(angle(solids[0])-angle(solids[1]))<.01, 'nearby grid angles did not snap'
+    # Simulate a phone photograph with a dark UI border, then rectify it using
+    # agent-read page corners. Mark coordinates remain in rectified image space.
+    source=np.float32([[0,0],[639,0],[639,479],[0,479]])
+    corners=np.float32([[45,35],[670,65],[640,510],[20,475]])
+    transform=cv2.getPerspectiveTransform(source,corners)
+    photo=Image.fromarray(cv2.warpPerspective(np.array(image),transform,(720,550),borderValue=(12,12,12)))
+    photographed=copy.deepcopy(notes)
+    photographed.update(corners=corners.tolist(),rectified_size=[640,480])
+    measured,other,_=measure(photo,photographed)
+    assert measured['perspective'] and len(other['shapes'])==7
+    for a,b in zip(level['shapes'],other['shapes']):
+        pa,pb=Polygon(a['shape']['polygon']),Polygon(b['shape']['polygon'])
+        assert pa.intersection(pb).area/pa.union(pb).area>.65, (a['id'],b['id'])
+print('PASS: touching-region split, thin/dashed line and curve, dark drawing, dominant grid and perspective correction')
