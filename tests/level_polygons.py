@@ -67,6 +67,21 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
     a = compile(level,'a',full=args.compile)
     b = compile(level,'b',full=args.compile)
     assert a==b, 'polygon compilation must be repeatable'
+    if args.compile:
+        sys.path.insert(0,str(ROOT/'tools/level'))
+        from polygons import footprint
+        from overhead import compare
+        interpretation = dict(image_size=[800,800],scale=2,marks=[
+            dict(id=item['id'],kind=item['kind'],classification='geometry',
+                 pixel_polygon=[[x/2+400,400-y/2] for x,y in footprint(item['shape']).exterior.coords[:-1]])
+            for item in level['shapes']])
+        overhead = compare(a['bsp'],interpretation,folder/'overhead',threshold=.93)
+        assert overhead['passed'] and all(v['iou']>.93 for v in overhead['classes'].values()),overhead
+        assert (folder/'overhead/compiled-overhead.png').is_file() and (folder/'overhead/overhead-difference.png').is_file()
+        wrong = copy.deepcopy(interpretation)
+        wrong['marks'][0]['pixel_polygon'] = [[x+100,y] for x,y in wrong['marks'][0]['pixel_polygon']]
+        mismatch = compare(a['bsp'],wrong,folder/'wrong-overhead',threshold=.93)
+        assert not mismatch['passed'] and mismatch['classes']['building']['iou']<.93, 'compiled mismatch silently passed'
     planes = brushes(a['map'].decode())
     for point in ([0,0,48],[0,-160,48],[64,416,32],[-480,320,48],[-480,320,-8]):
         assert not solid(planes,point),('unexpected solid',point)

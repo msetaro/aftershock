@@ -52,6 +52,15 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 compiled-overhead contract
+
+The compiled polygon test now requires a CPU orthographic projection of actual
+BSP surface triangles, class IoU against the independent interpretation pixels,
+a colored overhead and a difference image. A displaced expected building must
+fail the stated 0.93 threshold. The contract fails on the absent overhead module
+(sketch-overhead-before.log). Keep source IDs in v2 surface shader aliases for
+classification; do not infer actual footprints from authored polygons.
+
 ## #164 photographed/styled tracing passes
 
 Both original playbook controls and the new dark/perspective drawing pass
