@@ -27,8 +27,8 @@ Main 782c0dbc is merged forward. Mask/animated-caster/module-restart
 checks now pass. Reflection baking/application now passes smooth/rough/toggle/restart checks.
 SSAO graph, rendered, module and restart checks pass; reference-GPU acceptance is
 recorded below. Next validate the hosted module configuration correction, finish
-current-main hosted gates and self-review, then ready/merge PR #165. #161 follows #14 in
-updated #25. Do not claim full #14 acceptance or regenerate accepted references.
+current-main hosted gates and self-review, then ready/merge PR #165. Fresh #25 now orders #163, then #164, then #161
+after #14; follow that updated sequence. Do not claim full #14 acceptance or regenerate accepted references.
 
 #160 repair PR #162 merged into main as
 782c0dbc51e4acf119ccce49a69301408dac1ae7 after exact f04e87c3 passed build
@@ -51,6 +51,39 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #14 final local self-review / hosted gates pending
+
+Local verification is complete. The corrected developer module configuration
+passes all point/spot/sun, alpha-mask, animated-pose and restart checks, matching
+the static results (lighting-ci-module-runtime.log). A shipping-client control
+contains the expected missing dev_light/dev_view diagnostics. The final Q3 demo
+replay retains 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(lighting-final-classic.log). GCC/Clang native contracts, RHI, pinned shaders,
+format, types and subsystem boundaries pass. No accepted fixture changes; all
+76 shader arrays accepted on main remain byte-identical, with 12 new programs.
+
+Self-review: all changes implement #14 lighting or its tests/tooling. New shadow
+and probe paths use bounded POD storage and prewarmed pipelines; no per-frame
+heap allocation, non-trivial engine-core destructors or new portable OS calls.
+Light/probe/uniform layouts have assertions; the offline probe loader validates
+lengths/capacities and finite bounds. No authoritative simulation, collision,
+movement or snapshot arithmetic changes. No unrelated engine bug fixes. LDR
+probe capture and composed-color SSAO limits are explicit and assigned to #161.
+
+PR165 stays draft until full current-head build/regression succeed. c9dc3835
+started build 35553623895 and regression 35553623871; this final documentation
+checkpoint must receive fresh gates as well. Recheck main/PR base immediately
+before merge, merge forward and rerun if it advances, then verify the merged tree.
+Main is still 782c0dbc at this checkpoint. Known-good tags remain untouched.
+Issue14 evidence: issuecomment-5754550155; subsequent final gate IDs go on the
+issue and in the post-merge continuation checkpoint.
+
+Fresh tracking issue #25 inserts #163 (agent-native interface) and #164
+(sketch-to-level) immediately after #14 and before #161. Both issue specs were
+read. Continue #163 -> #164 -> #161 -> #15 and the remaining recorded sequence;
+the earlier direct #14 -> #161 note is superseded. #163 owns structured local
+control, deterministic stepping and isolation; no speculative #161 work started.
 
 ## #14 reference GPU acceptance measurement
 
