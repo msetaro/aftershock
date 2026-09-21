@@ -80,6 +80,17 @@ accepted frame fixtures and shader arrays are unchanged.
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
 
+## #15 replicated death and restart test first
+
+A normal fall-damage death activates/renders the 16-joint skeleton on q3dm1 and
+OpenArena oa_dm7. The permanent runtime driver now requires this path and capture;
+its Quake 3 restart assertion fails because map_restart leaves cosmetic deaths
+active (physics-death-q3.log). Fix cosmetic reset centrally and reuse it for map
+restart and time discontinuities. The OpenArena fall setup uses oa_dm7 and 320
+units of height; oa_dm1's roof/low ceiling did not produce the required fall.
+Unchanged Quake 3 fixed-demo replay passes frames-mesa-26.0.8.json, digest
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+
 ## #15 skeleton ragdoll implementation checkpoint
 
 The owned ragdoll gate now passes GCC and Clang/libc++ UBSan: four 16-joint

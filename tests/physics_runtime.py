@@ -61,3 +61,50 @@ for world in worlds:
 assert re.findall(r'Physics shutdown: live=(\d+)', text) == ['0'] * len(worlds), 'each map must release dependency blocks'
 assert 'arena exhausted' not in text and 'contact capacity exceeded' not in text
 print('PASS: cosmetic prop motion, grenade bounce, fixed storage and two map lifetimes')
+
+# A replicated ordinary death must activate the cooked skeleton, not just a
+# directly spawned test body. Fall damage preserves the corpse (suicide gibs it).
+import shutil
+import sys
+from cook import cook
+sys.path.insert(0, str(ROOT))
+from tools.agent import Engine
+
+with Engine(args.binary, args.data, args.content, arguments=['+set', 'handicap', '1']) as engine:
+    try:
+        cook(ROOT/'tests/assets/animation/rigs.json', engine.base)
+        engine.request('session', dt=8, seed=123)
+        for name, value in [('g_animationBody', 'animations/anim_body.asanim'),
+                            ('g_animationRifle', 'animations/anim_rifle.asanim'),
+                            ('cg_thirdPerson', '1')]:
+            engine.request('exec', command=f'set {name} {value}')
+        engine.request('map', name='oa_dm7' if args.content == 'openarena' else 'q3dm1')
+        engine.step(200)
+        origin = engine.request('state')['player']['origin']
+        engine.request('exec', command='physics_status')
+        engine.step(2)
+        engine.request('exec', command=f'give health; setviewpos {origin[0]} {origin[1]} {origin[2]+320} 0')
+        engine.step(300)
+        health = engine.request('state')['player']['health']
+        assert -40 < health <= 0, f'ordinary fall death required, health={health}'
+        engine.request('exec', command='physics_status')
+        engine.step(2)
+        capture = engine.request('capture', name='ragdoll')
+        engine.step(2)
+        shutil.copyfile(engine.base/capture['path'], args.output/'ragdoll.png')
+        engine.request('exec', command='map_restart 0')
+        engine.step(120)
+        engine.request('exec', command='physics_status')
+        engine.step(2)
+        engine.request('exec', command='disconnect')
+        engine.step(2)
+    finally:
+        shutil.copyfile(engine.log_path, args.output/'death.log')
+text = (args.output/'death.log').read_text(errors='replace')
+assert 'Physics ragdoll death: owner=0 serial=1 joints=16' in text
+assert re.search(r'Physics ragdoll status: prepared=4 spawned=1 active=1 draws=[1-9]\d*', text)
+statuses = re.findall(r'Physics ragdoll status: prepared=4 spawned=(\d+) active=(\d+) draws=(\d+)', text)
+assert len(statuses) == 3 and statuses[-1][1] == '0', 'restart must retire cosmetic deaths'
+assert 'Physics shutdown: live=0' in text
+assert 'arena exhausted' not in text and 'contact capacity exceeded' not in text
+print('PASS: replicated fall death activates and renders a skeleton ragdoll; restart releases storage')
