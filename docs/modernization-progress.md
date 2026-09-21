@@ -85,6 +85,11 @@ an added encoder dependency. It allocates temporary hunk memory only for an
 explicit capture and is excluded from shipping builds. PNG captures refuse
 existing output names. GCC/Clang protocol, boundaries and formatting pass.
 The macOS --agent argument removal now preserves argv[0] for bundle discovery.
+OpenArena also passes the full play/entity/profile/PNG test
+(agent-capture-openarena.log). The native command contract is now in both CI
+unit compiler legs; build Debug legs already compile developer tools on all
+platforms. Open a draft #163 PR for early cross-platform feedback; keep it draft
+until every remaining acceptance requirement and final gate is complete.
 Next: camera poses/raw usercmds/events and shared UI commands, then the remaining
 #163 tools/schemas/isolation/recipes and final full gates.
 

@@ -99,6 +99,8 @@ jobs:
           python3 tests/identity.py --cxx '${{ matrix.cxx }}'
           python3 tests/native_pure.py --cxx '${{ matrix.cxx }}'
           python3 tests/devtools_data.py --cxx '${{ matrix.cxx }}'
+      - name: Structured local developer command contract
+        run: python3 tests/agent_protocol.py --cxx '${{ matrix.cxx }}'
       - name: RHI contract and frame uploads
         run: python3 tests/rhi.py --cxx '${{ matrix.cxx }}'
       - name: Render graph dependencies and native reference trace
