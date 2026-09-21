@@ -48,6 +48,17 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 sketch interpretation contract
+
+The next test draws an original multicolor playbook in its private scratch root:
+wobbly/gapped red building outlines and hatching, blue route/sight arrows, green
+labels and a key. Notes contain the agent's explicit readings/confidence. It
+requires interpretation.json, numbered class overlays, geometry/annotation/intent
+separation, authoritative per-drawing key changes, intent records, uncertainty
+assumptions and stable building_7 overrides. It fails before implementation because
+tools/level trace is absent (sketch-trace-before.log). The tracer measures the
+agent's reading; it must not claim to recognize arbitrary handwriting itself.
+
 ## #164 sunken geometry and edit isolation pass
 
 Stable source-ID MAP labels prove that changing building_7 floors/windows leaves
