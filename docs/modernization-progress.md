@@ -48,8 +48,9 @@ original key, angle aliases and numbered-save checks. The World panel rewrite
 now passes after its absent-operation check (agent-world-before.log): placement,
 picking, selection and reload share existing UI functions. The Range rewrite passes on both content sets after its missing-operation check
 (agent-range-before.log). Authoritative weapon/animation queries and shared Range
-actions are implemented. Continue general/asset controls and migrate devtools.py
-and the material UI test; gameplay event/assert acceptance remains.
+actions are implemented. The devtools.py rewrite fails first on absent allocation state
+(agent-devtools-before.log); expose counters and queued named-key input, then
+finish general/asset controls and the material UI test; gameplay event/assert acceptance remains.
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
