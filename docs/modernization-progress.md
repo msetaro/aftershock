@@ -76,6 +76,15 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 editor metadata test-first checkpoint
+
+The extended devtools runtime check fails against the previous development binary
+with unknown_operation for cvar.list (agent-metadata-before.log). Add paged cvar
+metadata, shared filter/selection controls, and material stage metadata to the
+existing command layer; preserve normal Cvar_Set2 permission handling. Latest
+2d013965 compiler workflow 35564020843 passes; active regression legs pass except
+runtime, which is still running. PR166 remains draft.
+
 ## #163 local-suite catalog checkpoint
 
 `tests/suite.py` derives all ten active regression job variants and their actual

@@ -51,6 +51,18 @@ with tempfile.TemporaryDirectory(prefix='aftershock-devtools-', dir=os.environ.g
         engine.request('cvar.set', name='devtest', value='7')
         engine.step(160)
         assert engine.request('cvar.get', name='devtest')['value'] == '7'
+        found = engine.request('cvar.list', filter='devtest', limit=1)
+        assert len(found['items']) == 1 and found['items'][0]['name'] == 'devtest', found
+        assert found['items'][0]['value'] == '7' and found['items'][0]['default'] == '0'
+        assert isinstance(found['items'][0]['flags'], int) and isinstance(found['items'][0]['description'], str)
+        assert not engine.request('cvar.list', filter='absent_agent_cvar')['items']
+        engine.request('cvar.select', name='devtest')
+        for kind in ('cvars', 'images', 'materials'):
+            engine.request('editor.filter', kind=kind, value='devtest' if kind == 'cvars' else 'models')
+        editor = engine.request('editor.state')
+        assert editor['cvar'] == 'devtest' and editor['filters'] == {'cvars': 'devtest', 'images': 'models', 'materials': 'models'}, editor
+        for kind in ('cvars', 'images', 'materials'):
+            engine.request('editor.filter', kind=kind, value='')
         before = engine.request('editor.state')
         engine.step(80)
         after = engine.request('editor.state')

@@ -110,6 +110,10 @@ def main():
             engine.step(3)
             materials = engine.request('assets', kind='materials', filter='models/sphere')['items']
             assert len(materials) == 1 and materials[0]['metallicRoughness'], materials
+            for entry in materials:
+                assert len(entry['stageInfo']) == entry['stages'], entry
+                assert all(isinstance(stage['present'], bool) and len(stage['textures']) == 3
+                           and isinstance(stage['stateBits'], int) for stage in entry['stageInfo']), entry
             models = engine.request('assets', kind='models', filter='models/sphere')['items']
             assert len(models) == 1 and models[0]['frames'] > 0, models
             engine.request('asset.select', kind='models', index=models[0]['index'])
