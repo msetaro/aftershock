@@ -19,6 +19,13 @@ struct devNetwork_t {
 	uint32_t rewindAge, rewindLimit;
 	bool delta;
 };
+struct devAgentInput_t {
+	int32_t forward, right, up, buttons, weapon;
+	float pitch, yaw;
+	bool active;
+};
+void DevTools_AgentInput( usercmd_t *command, float *viewangles, const int32_t *deltaAngles );
+bool CL_AgentPlayer( playerState_t *player );
 void DevTools_AgentEnable( void );
 bool DevTools_AgentActive( void );
 int DevTools_AgentTime( void );

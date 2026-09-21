@@ -3813,6 +3813,12 @@ void Com_Frame( qboolean noDelay ) {
 #endif
 	}
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	// Explicit steps still service the queued-message work normally done while waiting.
+	if ( DevTools_AgentActive() && com_sv_running->integer )
+		SV_SendQueuedPackets();
+#endif
+
 	// waiting for incoming packets
 	if ( noDelay == qfalse )
 		do {

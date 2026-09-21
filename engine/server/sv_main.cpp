@@ -1441,6 +1441,10 @@ int SV_RateMsec( const client_t *client ) {
 
 	rateMsec = messageSize * 1000 / ( (int)( client->rate * com_timescale->value ) );
 	rate = Sys_Milliseconds() - client->netchan.lastSentTime;
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		rate = DevTools_AgentTime() - client->netchan.lastSentTime;
+#endif
 
 	if ( rate > rateMsec )
 		return 0;

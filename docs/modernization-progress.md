@@ -39,8 +39,9 @@ output without partial execution. It fails on missing dev_agent.cpp as intended
 (agent-protocol-before.log). The initial channel and dedicated-server stepping test now pass.
 Main 4ade5c3a is merged forward here. The initial command layer now passes GCC
 and Clang/UBSan (agent-protocol-{gcc,clang}.log). Platform pipe transport and explicit frame stepping now pass the dedicated
-server check; next implement map/state/input commands and verify two identical
-seeded local playthroughs, then finish the rest of #163. Since the merged #14
+server check; map/state/input now pass identical seeded playthrough checks on both content
+sets. Next extend entities, raw input, profiling/events/captures and shared UI
+actions, then finish the rest of #163. Since the merged #14
 tree exactly equals its tested head, isolated #163 implementation proceeds while
 integration verification finishes; opening its PR still waits for #14 acceptance.
 No PR for #163 opens before #14 acceptance. Updated #25 sequence is #163 -> #164
@@ -72,6 +73,24 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 first deterministic local playthrough
+
+Map loading, structured player/camera snapshots and high-level input are wired.
+Input fills the usual client usercmd immediately after normal command creation;
+server movement/prediction arithmetic is unchanged. Renderer time follows the
+explicit clock while profiler time stays real. Explicit frames also service the
+queued packets normally sent during the wait loop, and their rate timestamps use
+the same agent clock. This corrected an incomplete new step loop: the first
+playthrough stalled after handshake because queued fragments were never sent.
+
+Two independent seed-123, dt-8 runs now return exactly identical player snapshots
+before movement, after 30 movement frames, and after 30 released-input frames.
+The test passes on both installed Quake 3 and OpenArena (agent-play.log and
+agent-play-openarena.log); no faketime or accepted fixture changes. Dedicated
+pipe stepping, GCC/Clang protocol, formatting and boundaries also pass. Next
+extend commands to entities, raw input, profiling/events/captures and shared UI
+actions, then complete tools/schemas/isolation/recipes and all required gates.
 
 ## #163 pipe and explicit-step checkpoint
 

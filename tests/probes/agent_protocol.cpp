@@ -2,6 +2,16 @@
 #include "../../engine/devtools/dev_agent.cpp"
 #include <assert.h>
 
+int FS_ReadFile( const char *, void ** ) {
+	return -1;
+}
+const refdef_t *DevTools_View( void ) {
+	return nullptr;
+}
+bool CL_AgentPlayer( playerState_t * ) {
+	return false;
+}
+
 static char value[128] = "initial";
 static char queued[256];
 static cvar_t variable;

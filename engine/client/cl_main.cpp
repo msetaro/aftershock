@@ -3298,6 +3298,10 @@ CL_ScaledMilliseconds
 ============
 */
 int CL_ScaledMilliseconds( void ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		return DevTools_AgentTime();
+#endif
 	return (int)( Sys_Milliseconds() * com_timescale->value );
 }
 
@@ -5054,3 +5058,12 @@ void CL_SoundStopped( void ) {
 void CL_SoundRegistrationCleared( void ) {
 	cls.soundRegistered = qfalse;
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+bool CL_AgentPlayer( playerState_t *player ) {
+	if ( cls.state != CA_ACTIVE || !cl.snap.valid )
+		return false;
+	*player = cl.snap.ps;
+	return true;
+}
+#endif

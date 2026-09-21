@@ -21,7 +21,7 @@ for _ in range(2):
         engine.request('map', name=map_name)
         engine.step(200)
         before = engine.request('state')
-        assert before['player']['health'] > 0 and before['camera'], before
+        assert before['player'] and before['player']['health'] > 0 and before['camera'], (before, engine.log_path.read_text(errors='replace')[-5000:])
         engine.request('input', forward=1, right=0, up=0, yaw=90, pitch=0, fire=False)
         engine.step(30)
         moving = engine.request('state')

@@ -142,6 +142,10 @@ void Netchan_TransmitNextFragment( netchan_t *chan ) {
 
 	// Store send time and size of this packet for rate control
 	chan->lastSentTime = Sys_Milliseconds();
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		chan->lastSentTime = DevTools_AgentTime();
+#endif
 	chan->lastSentSize = send.cursize;
 
 	if ( showpackets->integer ) {
@@ -265,6 +269,10 @@ void Netchan_Transmit( netchan_t *chan, int length, const byte *data ) {
 
 	// Store send time and size of this packet for rate control
 	chan->lastSentTime = Sys_Milliseconds();
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		chan->lastSentTime = DevTools_AgentTime();
+#endif
 	chan->lastSentSize = send.cursize;
 
 	if ( showpackets->integer ) {

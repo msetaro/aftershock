@@ -3,10 +3,13 @@
 #define JSON_IMPLEMENTATION
 #include "../qcommon/json.h"
 #include <charconv>
+#include <cmath>
+#include <inttypes.h>
 
 // Requests and replies are bounded POD data; the inactive channel allocates nothing.
 static constexpr uint32_t agentLimit = 16384;
 static bool agentActive;
+static devAgentInput_t agentInput;
 static uint32_t agentFrame, agentSteps, agentStepId;
 static int agentTime = 1000, agentDt = 8, agentSeed = 1;
 
@@ -24,6 +27,22 @@ int DevTools_AgentSeed( void ) {
 }
 
 
+void DevTools_AgentInput( usercmd_t *command, float *viewangles, const int32_t *deltaAngles ) {
+	if ( !agentActive || !agentInput.active )
+		return;
+	command->forwardmove = (int8_t)agentInput.forward;
+	command->rightmove = (int8_t)agentInput.right;
+	command->upmove = (int8_t)agentInput.up;
+	command->buttons = agentInput.buttons;
+	if ( agentInput.weapon >= 0 )
+		command->weapon = (uint8_t)agentInput.weapon;
+	const float angles[3] = { agentInput.pitch, agentInput.yaw, 0 };
+	for ( int i = 0; i < 3; ++i ) {
+		command->angles[i] = ( ANGLE2SHORT( angles[i] ) - deltaAngles[i] ) & 65535;
+		viewangles[i] = (float)SHORT2ANGLE( command->angles[i] );
+	}
+}
+
 struct agentReply_t {
 	char *data;
 	uint32_t capacity, length;
@@ -37,6 +56,23 @@ struct agentReply_t {
 		}
 		memcpy( data + length, text, size + 1 );
 		length += (uint32_t)size;
+	}
+	void Number( double value ) {
+		char text[64];
+		if ( std::isfinite( value ) )
+			snprintf( text, sizeof( text ), "%.9g", value );
+		else
+			strcpy( text, "null" );
+		Text( text );
+	}
+	void Vector( const float *value ) {
+		Text( "[" );
+		for ( int i = 0; i < 3; ++i ) {
+			if ( i )
+				Text( "," );
+			Number( value[i] );
+		}
+		Text( "]" );
 	}
 	void String( const char *text ) {
 		Text( "\"" );
@@ -253,6 +289,84 @@ static bool Agent_Integer( const char *request, const char *end, const char *nam
 	return result.ec == std::errc{} && result.ptr == stop;
 }
 
+#ifndef DEDICATED
+static bool Agent_Number( const char *request, const char *end, const char *name, float &value, float minimum, float maximum ) {
+	const char *p = JSON_ObjectGetNamedValue( request, end, name );
+	if ( !p )
+		return false;
+	const char *stop = JSON_SkipValue( p, end );
+	const auto result = std::from_chars( p, stop, value );
+	return result.ec == std::errc{} && result.ptr == stop && std::isfinite( value ) && value >= minimum && value <= maximum;
+}
+
+static bool Agent_Bool( const char *request, const char *end, const char *name, bool &value ) {
+	const char *p = JSON_ObjectGetNamedValue( request, end, name );
+	if ( !p ) {
+		value = false;
+		return true;
+	}
+	if ( end - p >= 4 && !memcmp( p, "true", 4 ) ) {
+		value = true;
+		return true;
+	}
+	if ( end - p >= 5 && !memcmp( p, "false", 5 ) ) {
+		value = false;
+		return true;
+	}
+	return false;
+}
+
+#endif
+
+static void Agent_State( agentReply_t &reply ) {
+	reply.Text( ",\"ok\":true,\"result\":{\"frame\":" );
+	reply.Number( agentFrame );
+	reply.Text( ",\"time\":" );
+	reply.Number( agentTime );
+	reply.Text( ",\"player\":" );
+#ifndef DEDICATED
+	playerState_t player;
+	if ( CL_AgentPlayer( &player ) ) {
+		reply.Text( "{\"entity\":" );
+		reply.Number( player.clientNum );
+		reply.Text( ",\"commandTime\":" );
+		reply.Number( player.commandTime );
+		reply.Text( ",\"origin\":" );
+		reply.Vector( player.origin );
+		reply.Text( ",\"velocity\":" );
+		reply.Vector( player.velocity );
+		reply.Text( ",\"angles\":" );
+		reply.Vector( player.viewangles );
+		reply.Text( ",\"health\":" );
+		reply.Number( player.stats[0] );
+		reply.Text( ",\"weapon\":" );
+		reply.Number( player.weapon );
+		reply.Text( ",\"weaponState\":" );
+		reply.Number( player.weaponstate );
+		reply.Text( ",\"legsAnimation\":" );
+		reply.Number( player.legsAnim );
+		reply.Text( ",\"torsoAnimation\":" );
+		reply.Number( player.torsoAnim );
+		reply.Text( "}" );
+	} else
+#endif
+		reply.Text( "null" );
+	reply.Text( ",\"camera\":" );
+	if ( const auto *view = DevTools_View() ) {
+		reply.Text( "{\"origin\":" );
+		reply.Vector( view->vieworg );
+		reply.Text( ",\"forward\":" );
+		reply.Vector( view->viewaxis[0] );
+		reply.Text( ",\"fovX\":" );
+		reply.Number( view->fov_x );
+		reply.Text( ",\"fovY\":" );
+		reply.Number( view->fov_y );
+		reply.Text( "}" );
+	} else
+		reply.Text( "null" );
+	reply.Text( "}}" );
+}
+
 bool DevTools_AgentRequest( const char *request, uint32_t length, char *response, uint32_t capacity ) {
 	if ( !response || capacity < 2 )
 		return false;
@@ -288,7 +402,55 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\"]}}" );
+	} else if ( !strcmp( op, "state" ) ) {
+		Agent_State( reply );
+	} else if ( !strcmp( op, "map" ) ) {
+		p = JSON_ObjectGetNamedValue( request, end, "name" );
+		if ( !Agent_String( p, end, name, MAX_QPATH ) || !name[0] || strstr( name, ".." ) )
+			return reply.Error( "invalid_argument", "$.name", "Use an installed map name without an extension." );
+		for ( const char *c = name; *c; ++c )
+			if ( !( ( *c >= 'a' && *c <= 'z' ) || ( *c >= 'A' && *c <= 'Z' ) || ( *c >= '0' && *c <= '9' ) || *c == '_' || *c == '-' || *c == '/' ) )
+				return reply.Error( "invalid_argument", "$.name", "Use letters, digits, underscores, dashes or slashes." );
+		snprintf( value, sizeof( value ), "maps/%s.bsp", name );
+		if ( FS_ReadFile( value, nullptr ) <= 0 )
+			return reply.Error( "not_found", "$.name", "Install or compile this map in the selected content directory." );
+		reply.Text( ",\"ok\":true,\"result\":{\"queued\":true}}" );
+		if ( reply.valid ) {
+			agentInput = {};
+			snprintf( value, sizeof( value ), "devmap %s\n", name );
+			Cbuf_AddText( value );
+		}
+	} else if ( !strcmp( op, "input" ) ) {
+		if ( !agentActive )
+			return reply.Error( "invalid_state", "$", "Launch a development client with --agent." );
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Local player input requires a client build." );
+#else
+		devAgentInput_t input{};
+		float forward, right, up;
+		if ( !Agent_Number( request, end, "forward", forward, -1, 1 ) || !Agent_Number( request, end, "right", right, -1, 1 ) || !Agent_Number( request, end, "up", up, -1, 1 ) )
+			return reply.Error( "invalid_argument", "$", "Provide forward, right and up in [-1, 1]." );
+		if ( !Agent_Number( request, end, "yaw", input.yaw, -360, 360 ) || !Agent_Number( request, end, "pitch", input.pitch, -89, 89 ) )
+			return reply.Error( "invalid_argument", "$", "Provide yaw in [-360,360] and pitch in [-89,89] degrees." );
+		input.forward = (int32_t)( forward * 127 );
+		input.right = (int32_t)( right * 127 );
+		input.up = (int32_t)( up * 127 );
+		input.weapon = -1;
+		static constexpr const char *buttons[] = { "fire", "ads", "reload", "melee", "offhand" };
+		static constexpr int bits[] = { 1, 1 << 12, 1 << 13, 1 << 14, 1 << 15 };
+		for ( uint32_t i = 0; i < ARRAY_LEN( buttons ); ++i ) {
+			bool pressed;
+			if ( !Agent_Bool( request, end, buttons[i], pressed ) )
+				return reply.Error( "invalid_argument", "$", "Button fields must be JSON booleans." );
+			if ( pressed )
+				input.buttons |= bits[i];
+		}
+		input.active = true;
+		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+		if ( reply.valid )
+			agentInput = input;
+#endif
 	} else if ( !strcmp( op, "session" ) ) {
 		uint32_t dt, seed;
 		if ( !agentActive || agentFrame )
