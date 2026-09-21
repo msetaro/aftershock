@@ -4,6 +4,8 @@ import argparse
 import copy
 import hashlib
 import json
+import os
+import shlex
 from pathlib import Path
 import struct
 import subprocess
@@ -11,11 +13,16 @@ import sys
 import tempfile
 
 from cook import cook
-from run import ROOT,SCRATCH
+from run import ROOT,SCRATCH,run
 
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output',type=Path,default=SCRATCH/'aftershock-effects')
+parser.add_argument('--cc',default='gcc')
+parser.add_argument('--cxx',default='g++')
 args=parser.parse_args()
+args.output=args.output.resolve()
+args.output.mkdir(parents=True,exist_ok=True)
+os.environ['CXX']=args.cxx
 with tempfile.TemporaryDirectory(prefix='aftershock-effect-source-') as temporary:
     source=Path(temporary)
     definition=dict(version=1,name='impact',emitters=[dict(name='sparks',kind='sprite',material='effects/spark',
@@ -45,6 +52,14 @@ with tempfile.TemporaryDirectory(prefix='aftershock-effect-source-') as temporar
     index=(args.output/'cook.index').read_bytes()
     assert struct.unpack_from('<I',index,48)[0]==1 and struct.unpack_from('<I',index,152)[0]==8
     assert cook(project,args.output)['built']==[]
+    sha_object=args.output/'sha256.o'
+    run([*shlex.split(args.cc),'-std=c99','-O2','-c','third_party/sha256/sha-256.c','-o',sha_object])
+    probe=args.output/'native-probe'
+    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti','-ffp-contract=off','-fno-fast-math',
+         '-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all',
+         'tests/probes/effects.cpp','engine/effects/effects.cpp',sha_object,'-o',probe])
+    run([probe,path])
+
     definition['emitters'][0]['size']=4
     effect.write_text(json.dumps(definition))
     assert cook(project,args.output)['built']==['effects/impact'] and path.read_bytes()!=data

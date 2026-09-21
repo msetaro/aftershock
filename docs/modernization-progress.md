@@ -39,8 +39,8 @@ issue/161-visual-fidelity from current main. Its initial tests/effects.py contra
 fails on the absent effect cooker (effects-cook-before.log). No #161 implementation
 or PR yet. It must integrate accepted #164 main before proceeding to its final
 implementation/gates/merge; no old issue is redone and no accepted fixture changes.
-Read issue #161 as the spec. Next preparation: native fixed-pool effect contract,
-then implement only after #164 acceptance. Do not mix either branch's source edits.
+Read issue #161 as the spec. Native fixed-pool contract is also committed and fails on the absent public header
+(effects-native-before.log). Implement only after #164 acceptance. Do not mix either branch's source edits.
 
 Measured #164 reference: per-class compiled IoU 1.0 (threshold 0.93), safe spawns,
 5.2-second resting-start route, 6000 bot frames, 17 kills/53 pickups and no observed
@@ -66,6 +66,16 @@ module contract also passes. All payloads stay in user cache; no local system pa
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #161 native fixed-pool effect contract
+
+The native probe specifies trivial fixed storage, valid cooked definition opening,
+constant-velocity movement, flipbook progression, lifetime expiry, fractional rate
+carry, stop/stale-handle behavior, collision reflection through a caller callback,
+independent presentation state and visible fixed-pool overflow counters. The
+pre-implementation compile fails on engine/effects/effects_public.h. The effects
+driver will compile it with strict FP/UBSan and the existing SHA256 implementation
+after a valid cook. No implementation has started while #164 awaits acceptance.
 
 ## #161 initial effect authoring contract
 
