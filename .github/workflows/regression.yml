@@ -274,7 +274,10 @@ jobs:
       - name: Owned animation replay through renderer module
         run: /tmp/aftershock-cook-python/bin/python tests/animation_demo.py --modules --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-animation-demo-modules
       - name: Shadow casters and renderer module restart
-        run: /tmp/aftershock-cook-python/bin/python tests/lighting_runtime.py --shadows --lifecycle --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-lighting-modules
+        run: |
+          cmake -S . -B /tmp/aftershock-animation-demo-modules/build -DAFTERSHOCK_DEVTOOLS=ON
+          cmake --build /tmp/aftershock-animation-demo-modules/build --parallel 4
+          /tmp/aftershock-cook-python/bin/python tests/lighting_runtime.py --shadows --lifecycle --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-lighting-modules
       - name: Probe and SSAO renderer module restart
         run: |
           /tmp/aftershock-cook-python/bin/python tests/probes_runtime.py --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-probes-modules

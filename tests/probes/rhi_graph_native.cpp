@@ -232,7 +232,8 @@ static void VKAPI_CALL bindPostPipeline( VkCommandBuffer, VkPipelineBindPoint, V
 }
 static void VKAPI_CALL bindPostDescriptors( VkCommandBuffer, VkPipelineBindPoint, VkPipelineLayout, uint32_t first, uint32_t count, const VkDescriptorSet *sets, uint32_t offsets, const uint32_t * ) {
 	assert( first == 0 && ( count == 2 || count == 3 ) && offsets == 1 );
-	for ( uint32_t i = 0; i < count; ++i ) assert( sets[i] );
+	for ( uint32_t i = 0; i < count; ++i )
+		assert( sets[i] );
 }
 static void VKAPI_CALL drawPost( VkCommandBuffer, uint32_t vertices, uint32_t instances, uint32_t first, uint32_t instance ) {
 	assert( vertices == 4 && instances == 1 && first == 0 && instance == 0 );
@@ -256,7 +257,7 @@ static void occlusionCommands() {
 	vk.geometry_buffer_size = sizeof( upload );
 	const auto descriptors = vk.cmd->descriptor_set;
 	RHI_BeginMainPass();
-	const float projection[16] = { 1,0,0,0, 0,1,0,0, 0,0,0.001f,-1, 0,0,4,0 };
+	const float projection[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.001f, -1, 0, 0, 4, 0 };
 	const rhiRect_t viewport = { { 0, 0 }, { 640, 480 } };
 	occlusionDraws = 0;
 	RHI_Occlusion( projection, &viewport, 32, 0 );
@@ -360,7 +361,8 @@ int main( int argc, char **argv ) {
 			vk.modules.reflection_fs = (VkShaderModule)(uintptr_t)16;
 			direct.shader_type = TYPE_REFLECTION;
 			assert( create_pipeline( &direct, RENDER_PASS_MAIN, 0 ) != VK_NULL_HANDLE );
-			if ( occlusion ) occlusionCommands();
+			if ( occlusion )
+				occlusionCommands();
 		}
 	}
 }

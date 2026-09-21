@@ -163,6 +163,7 @@ python3 tests/shadow_views.py
 python3 tests/probes.py
 python3 tests/probes_runtime.py --binary CLIENT
 python3 tests/ssao_runtime.py --binary CLIENT
+python3 tests/lighting_gpu.py --binary CLIENT --icd /path/to/reference-gpu-icd.json
 python3 tests/cook.py
 python3 tests/materials.py
 python3 tests/materials_runtime.py --binary CLIENT

@@ -25,8 +25,9 @@ Active implementation: issue/14-lighting in
 the shadow-only atlas scissor correction now pass rendered point/spot/sun checks.
 Main 782c0dbc is merged forward. Mask/animated-caster/module-restart
 checks now pass. Reflection baking/application now passes smooth/rough/toggle/restart checks.
-SSAO graph/resources/shaders are implemented locally; its native rendered and lifecycle checks are running.
-Next finish SSAO validation, then reference-GPU acceptance and full hosted gates. #161 follows #14 in
+SSAO graph, rendered, module and restart checks pass; reference-GPU acceptance is
+recorded below. Next validate the hosted module configuration correction, finish
+current-main hosted gates and self-review, then ready/merge PR #165. #161 follows #14 in
 updated #25. Do not claim full #14 acceptance or regenerate accepted references.
 
 #160 repair PR #162 merged into main as
@@ -50,6 +51,39 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #14 reference GPU acceptance measurement
+
+The committed `tests/lighting_gpu.py` reproduces the final q3dm17 run with installed
+Q3 pak symlinks only. RTX 3080 Ti, driver 595.91.07, 1280x720, shadow quality 2,
+half-resolution SSAO, bloom, point light plus four sun cascades, 200 warm frames,
+100 samples per baseline/point/combined phase. Camera (488,1096,416), angles
+(15,270,0); point (488,1096,512), radius 768, RGB (1,.8,.5), intensity 3. GPU clock
+is real; simulation uses the existing fixed tick. Combined capture was reviewed.
+
+Combined recorded GPU scopes: median 1.933 ms, p95 1.969 ms, below the stated
+16.67 ms reference budget. Median local/sun shadow 0.259/0.345 ms (3 ms combined
+budget); SSAO evaluate/filter/apply 0.155/0.070/0.054 ms (1 ms budget);
+main resumed 0.620 ms (10 ms main budget). Bloom extraction/eight blur passes/blend
+remain below the 1 ms allocation. All repeated blur labels are summed, not
+silently overwritten. Raw JSON/logs: lighting-gpu-final/timings.json and client.log
+in the persistent modernization cache. Captures stay local. These are GPU pass
+intervals, excluding presentation waits, and do not predict console performance.
+Reflection/directional quality is covered separately on owned assets; q3dm17
+retains its original baked lightmap content. Hosted gates/self-review still remain.
+
+## #14 hosted module configuration correction
+
+35c68d79 regression 35552046263 completed with the module shadow round-trip test
+failing; static shadow/probe checks passed. Its preceding animation-demo command
+builds a shipping client (AFTERSHOCK_DEVTOOLS defaults OFF), so dev_light is absent.
+The local module build that passed had developer tools ON. The workflow now
+explicitly rebuilds that module client with developer tools ON after the shipping
+demo check, and the shadow test rejects the game's lowercase unknown-command
+message directly. Diagnostics now retain the module lighting outputs. This is
+#14 test configuration, not an engine bug fix. Required skipped successors on
+that failed run are not acceptance. The newer 607855b9 gates are also superseded
+by this correction and the native test's formatting correction; full checks rerun.
 
 ## #14 SSAO rendered checkpoint
 

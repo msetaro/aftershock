@@ -130,10 +130,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-baked-light-') as temporary:
                 '+set','cl_autoRecordDemo','0','+set','com_maxfps','0','+exec','lighting.cfg'],
                 cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
         text = log_path.read_text()
+        if args.shadows:
+            assert not any(word in text for word in ('Unknown command', 'unknown cmd dev_light')), 'scene-light test requires an AFTERSHOCK_DEVTOOLS=ON client'
         assert 'Directional lightmaps: 1 pair' in text, 'native directional pages were not recognized'
         assert not any(word in text for word in ('ERROR:', 'Signal caught', 'could not find shader'))
-        if args.shadows:
-            assert 'Unknown command' not in text, 'native scene-light controls are missing'
         for name, _ in cases:
             path = base/'screenshots'/(name+'.tga')
             shutil.copyfile(path,args.output/f'{name}-{suffix}.tga')

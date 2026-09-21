@@ -1036,7 +1036,14 @@ also remain resident across these passes. GPU profiler names are `ssao`,
 The current forward composition attenuates the composed scene; #161's HDR
 transition owns separation of ambient and direct terms. This is a screen-space
 approximation: offscreen occluders are unavailable and no temporal history is
-kept. Final reference-GPU budget acceptance remains before #14 can close.
+kept. Reference-GPU measurement: `python3 tests/lighting_gpu.py --binary CLIENT --icd
+/path/to/hardware-icd.json` uses installed Quake 3 content, q3dm17, 1280x720,
+200 warm frames and 100 real-clock GPU samples per phase. It retains local
+screenshots/logs/JSON; never upload its Quake 3 screenshots or copy paks into the
+repository. RTX 3080 Ti / 595.91.07 combined point/sun shadows, half-resolution SSAO
+and bloom measured 1.933 ms median / 1.969 ms p95 in recorded GPU scopes against a
+16.67 ms budget. Details and per-pass limits are in modernization-progress.md;
+presentation waits are excluded and this is not a console-hardware claim.
 
 ## Declarative level authoring (#26)
 
