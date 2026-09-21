@@ -23,7 +23,11 @@ int main( int argc, char ** ) {
 		floor.halfExtent[2] = 1;
 		floor.transform.rotation[3] = 1;
 		floor.transform.position[2] = -1;
-		assert(Phys_Prepare(&floor) == 0);
+		const physTriangle_t ground[] = {
+			{ { { -100, -100, 0 }, { 100, -100, 0 }, { 100, 100, 0 } } },
+			{ { { -100, -100, 0 }, { 100, 100, 0 }, { -100, 100, 0 } } }
+		};
+		assert(Phys_PrepareMesh(ground, 2) == 0);
 		for ( unsigned i = 1; i < PHYS_MAX_BODIES; ++i ) {
 			physBodyDesc_t body{};
 			body.dynamic = true;

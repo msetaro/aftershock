@@ -76,6 +76,13 @@ accepted frame fixtures and shader arrays are unchanged.
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
 
+## #15 static mesh test first
+
+The owned boundary test now uses two static floor triangles rather than a box.
+The first run fails at the missing mesh API (physics-mesh-before.log); the same
+full-capacity contact, ray, sweep and recycle checks will exercise the mesh.
+No game content or accepted fixture is involved.
+
 ## #15 client target builds with the owned module
 
 CMake links Jolt/joltc and engine/physics only into the client. Strict FP options
