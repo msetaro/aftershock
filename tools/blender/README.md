@@ -36,3 +36,41 @@ OBJ exports use Y-up, as expected by the pinned q3map2 importer. Its `(x,-z,y)`
 conversion restores the native Z-up bounds recorded in `kit.json`. The gate checks
 that conversion explicitly; the compiled reference facade must reach its declared
 128-unit height. glTF and native IQM retain their existing cooker conventions.
+
+
+## Supplied rigs and motion clips
+
+```sh
+python3 tools/blender retarget --assets provided --parameters retarget.json --out "$AFTERSHOCK_SCRATCH/retargeted"
+```
+
+```json
+{"version":1,"rig":"rig/character.gltf","clip":"clip/body.gltf","animation":"walk","bones":{"root":"root","arm.L":"upperarm.L","arm.R":"upperarm.R"},"fps":30,"root_motion_scale":1,"name":"models/provided","scale":32}
+```
+
+Both inputs are provided glTF 2.0/GLB assets with exactly one armature and applied
+object transforms. The input directory needs the complete source/license/hash
+manifest used by `tools/assets`; external buffers/images must remain within it.
+The explicit bone map covers every target bone and maps its single root to a
+source root. The script transfers supplied rest-to-pose rotations, preserves the
+target bind offsets, and applies the stated root-motion scale. It bakes the named
+clip at the stated frame rate and cooks the result to native IQM/PBR. Animated
+scale, missing bones/clips and unverified dependencies fail explicitly. This is
+retargeting supplied motion, not character/rig/weighted-animation generation.
+
+The output contains the original supplied bytes, parameters, retargeted glTF,
+measured transfer report, native cooked assets and a complete manifest/CREDITS.
+Every source license remains attached to the derived output. Private conversion
+can process provided assets outside the publication allowlist; its JSON explicitly
+reports `publishable: false` in that case. `tools/assets validate` and theme
+assembly still enforce the unchanged maintainer allowlist and reject that output.
+No CLI option bypasses publication validation. Purchased/proprietary working files
+remain outside the public repository; sourcing/allowlisting them is the maintainer's
+decision. Fresh output ownership and staged failure handling match the kit command.
+
+`tests/blender_retarget.py` consumes the existing, unchanged repository-owned GPL
+character/body fixtures in private temporary directories. It checks mapped motion,
+exported target inverse-bind matrices, exported root displacement, native cooking,
+repeated output bytes, missing-bone/hash failures and rejection by the CC0 theme
+publication gate. It never regenerates those accepted character sources or adds
+new character art to the repository.

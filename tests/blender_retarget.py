@@ -4,6 +4,7 @@ import argparse
 import datetime
 import hashlib
 import json
+import math
 from pathlib import Path
 import shutil
 import struct
@@ -61,6 +62,21 @@ with tempfile.TemporaryDirectory(prefix='aftershock-retarget-') as temporary:
     assert len(document.data['skins'][0]['joints'])==3
     assert len(document.data['animations'])==1 and document.data['animations'][0]['name']=='walk'
     assert any(channel['target']['path']=='rotation' for channel in document.data['animations'][0]['channels'])
+    original=Document(supplied/'rig/character.gltf',lambda p:p.read_bytes())
+    def binds(doc):
+        skin=doc.data['skins'][0]
+        return {doc.data['nodes'][node]['name']:matrix for node,matrix in zip(skin['joints'],doc.accessor(skin['inverseBindMatrices']))}
+    a,b=binds(original),binds(document)
+    assert a.keys()==b.keys() and all(max(abs(x-y) for x,y in zip(a[k],b[k]))<1e-4 for k in a), 'supplied target bind pose changed'
+    def root_delta(doc):
+        animation=next(a for a in doc.data['animations'] if a['name']=='walk')
+        channel=next(c for c in animation['channels'] if c['target']['path']=='translation' and doc.data['nodes'][c['target']['node']]['name']=='root')
+        sampler=animation['samplers'][channel['sampler']]
+        values=doc.accessor(sampler['output'])
+        return [b-a for a,b in zip(values[0],values[-1])]
+    delta=root_delta(Document(supplied/'clip/body.gltf',lambda p:p.read_bytes()))
+    assert math.dist(delta,root_delta(document))<1e-4, 'exported root motion differs from the supplied clip'
+
     iqm=(root/'a/cooked/models/provided.iqm').read_bytes()
     assert iqm[:16]==b'INTERQUAKEMODEL\0' and struct.unpack_from('<I',iqm,92)[0]>=30
     manifest=json.loads((root/'a/manifest.json').read_text())

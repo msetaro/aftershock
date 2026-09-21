@@ -38,7 +38,7 @@ pinned Blender modules pass. Rotated v2 props now compile and solid props join
 clearance checks, including foot-origin bounds. Additional tracing, compiled-overhead comparison and v2 navigation cameras now
 pass. Theme assembly, native PBR, OBJ axes and strict OpenArena bot/capture controls
 now pass. Shooter intent and physical-route controls pass. Next: full reference acceptance of the one-command sketch/agent pipeline,
-then supplied-rig retargeting and full reference-drawing acceptance. This is partial work, not #164
+Supplied-rig retargeting also passes. Finish the native reference iteration, self-review and all final gates. This is partial work, not #164
 acceptance. The issue and checkpoint contain measured results and decisions.
 
 Drawing decisions: its own handwritten key is authoritative. Geometry, annotation
@@ -52,6 +52,33 @@ module contract also passes. All payloads stay in user cache; no local system pa
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 resting-start timing and provided retarget pass
+
+The corrected native route test returns through normal input to the annotated
+start and settles before recording time. It records zero initial velocity and
+5.7 seconds over the 1800-unit lane; the impossible-time negative and subsequent
+6000-frame OpenArena bot/capture checks pass (sketch-route-resting.log, 22 kills,
+49 pickups, no observed stuck bots). The reference drawing's corrected build also
+passes: 1.0 overlap for all classes, spawn safety, 5.2-second route, 17 kills,
+53 pickups, 240 samples, no stuck bots, two named and 18 fly-through captures.
+Reviewed captures show open doors, upright modules and the authored street.
+The two-storey/window iteration is now collecting its native bot/capture evidence.
+
+Provided-rig retarget passes with pinned Blender 5.0.1 and unchanged existing GPL
+inputs (sketch-retarget-exported.log). A sixteen-joint body walk drives the supplied
+three-joint character through explicit mappings. Exported inverse-bind matrices
+match the supplied target, exported root displacement matches the supplied clip,
+pose/bind error limits pass, native cooking succeeds, and two fresh output trees
+are byte-identical. Missing mapped bones and changed input hashes fail without
+publishing partial output. The CC0 publication validator rejects the private GPL
+result, whose licenses remain unchanged. Theme publication policy did not expand.
+The ordinary license/unlisted/hash negative suite also passes.
+
+The regression workflow now shares one prepared material/module kit between the
+component and full reference/agent iteration tests and runs the supplied-retarget
+gate. Workflow lint and invocation-isolation checks pass. Full exact-head hosted
+checks still must run; PR167 stays draft until all #164 acceptance is complete.
 
 ## #164 supplied-rig retarget contract
 

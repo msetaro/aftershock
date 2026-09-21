@@ -1191,7 +1191,7 @@ full hosted build matrix, including MSVC, remains a separate required merge gate
 Use the pinned Python dependencies in `tools/level/requirements.txt`. Component
 gates are `tests/level_polygons.py --compile`, `tests/sketch.py`,
 `tests/level_intents.py`, `tests/theme_assets.py`, `tests/asset_providers.py`,
-`tests/theme_fetch.py` and `tests/blender_kit.py`. The compiled polygon gate keeps
+`tests/theme_fetch.py`, `tests/blender_kit.py` and `tests/blender_retarget.py`. The compiled polygon gate keeps
 all accepted v1 MAP/BSP/AAS references unchanged. Theme/license controls reject an
 unlisted or unapproved asset; remote originals stay in the content-addressed user
 cache. No local package installation is performed.

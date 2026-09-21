@@ -20,19 +20,22 @@ def digest(path):
         return hashlib.file_digest(stream,'sha256').hexdigest()
 
 
-def validate(root):
+def validate(root, *, publication=True):
     root = root.resolve()
     document = json.loads((root/'manifest.json').read_text())
     policy = json.loads(POLICY.read_text())
     require(document.get('version')==1 and isinstance(document.get('assets'),list), 'manifest version/assets are required')
     seen,ids,credits = set(),set(),[]
+    publishable = True
     for asset in document['assets']:
         for field in ('id','source_url','author','license','retrieved','attribution'):
             require(isinstance(asset.get(field),str) and (asset[field] or field=='attribution'), 'missing '+field)
         require(asset['id'] not in ids, 'duplicate asset id')
         ids.add(asset['id'])
         require(urlparse(asset['source_url']).scheme=='https' and bool(urlparse(asset['source_url']).netloc), 'source_url must be an HTTPS provenance URL')
-        require(asset['license'] in policy['licenses'], 'license is outside the maintainer allowlist: '+asset['license'])
+        allowed = asset['license'] in policy['licenses']
+        publishable = publishable and allowed
+        require(allowed or not publication, 'license is outside the maintainer allowlist: '+asset['license'])
         datetime.date.fromisoformat(asset['retrieved'])
         if asset.get('generator'):
             generator = asset['generator']
@@ -60,4 +63,4 @@ def validate(root):
     if any(a.get('provider')=='polyhaven' for a in document['assets']):
         credits.append('Powered by Poly Haven — https://polyhaven.com (API service credit; assets are CC0).\n')
     (root/'CREDITS').write_text('\n'.join(credits))
-    return dict(ok=True,assets=len(ids),files=len(seen),credits=str(root/'CREDITS'))
+    return dict(ok=True,publishable=publishable,assets=len(ids),files=len(seen),credits=str(root/'CREDITS'))

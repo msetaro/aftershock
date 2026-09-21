@@ -170,7 +170,10 @@ def play_routes(engine,level,output,seed=164):
         folder.mkdir()
         start=' '.join(f'{v:.9g}' for v in points[0])
         steps=[dict(op='request',request=dict(op='exec',command='setviewpos '+start+' 0')),
-               dict(op='step',frames=5),dict(op='request',request=dict(op='state'))]
+               # setviewpos deliberately launches players. Let that finish, walk
+               # back to the annotation, then stop before starting the timer.
+               dict(op='step',frames=50),dict(op='walk',position=points[0],tolerance=2,max_frames=300),
+               dict(op='step',frames=50),dict(op='request',request=dict(op='state'))]
         for a,b in zip(points,points[1:]):
             frames=min(1500,max(100,math.ceil(math.dist(a,b)/320/.02)*2+100))
             steps.append(dict(op='walk',position=b,tolerance=8,max_frames=frames))
@@ -179,9 +182,14 @@ def play_routes(engine,level,output,seed=164):
         report=run_script(engine,script,level['name'],folder,configure_session=False)
         result=dict(id=intent['id'],passed=report['ok'],report=intent['id']+'/report.json',measured_seconds=None)
         if report['ok']:
-            begin=report['results'][2]['reply']['time']
+            start_state=report['results'][4]['reply']
+            result['start_state']=start_state
+            begin=start_state['time']
             finish=next(r['state']['time'] for r in reversed(report['results']) if r['op']=='walk')
             result['measured_seconds']=(finish-begin)/1000
+            player=start_state['player']
+            if math.dist(player['origin'],points[0])>8 or math.hypot(*player['velocity'])>=1:
+                result.update(passed=False,suggestion='Route setup did not settle at the annotated start; inspect the movement report.')
             if 'target_seconds' in intent:
                 target=intent['target_seconds']
                 tolerance=intent.get('tolerance_seconds',max(.5,target*.2))
