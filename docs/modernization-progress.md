@@ -76,6 +76,16 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 isolation test-first checkpoint
+
+The shared scratch-root contract fails first because tools.scratch does not yet
+exist (agent-isolation-before.log). It requires separate roots for concurrent
+invocations and inherited temporary directories below an explicitly supplied root,
+including paths with spaces. Next replace fixed test outputs, preserve intentional
+within-suite build reuse through one exported root, and verify simultaneous suites.
+Xvfb already uses automatic displays and loopback tests mostly allocate OS ports;
+audit remaining defaults and writable shared build caches as part of this change.
+
 ## #163 authored-schema checkpoint
 
 `tools/agent describe` emits schemas/examples for level, weapon, animation,
