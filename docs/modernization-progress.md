@@ -79,6 +79,18 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 bounded residency policy component
+
+The pure planner now handles at most 2048 records with stack-only scratch and no
+allocation. It reserves replacement-tail headroom, counts pending/retired bytes,
+keeps coarse tails, prioritizes recent bindings, retains quality on ties and
+serializes transitions. A downgrade can temporarily use a smaller tail when its
+preferred replacement would exceed peak budget. GCC/Clang UBSan pass, including
+settling repeated decisions and rejecting malformed/overflowing costs
+(fidelity-stream-policy-{after,clang}.log); formatting passes. The compiler matrix
+runs this test. The policy is not wired into rendering yet; native fence-safe
+uploads, bounded source storage and the larger-than-VRAM runtime set remain next.
+
 ## #161 streaming policy test-first
 
 The existing synchronous replacement is unsuitable for streaming: it waits idle

@@ -17,4 +17,4 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
      'tests/probes/streaming.cpp', *sources, '-o', probe])
 run([probe])
-print('PASS: bounded texture residency, peak allocation accounting, eviction, fairness and frame wrap')
+print('PASS: bounded texture residency, peak allocation accounting, eviction, stable demand and frame wrap')

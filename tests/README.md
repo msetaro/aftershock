@@ -1347,3 +1347,11 @@ Its 320x240 software captures are correctness controls, not GPU budget evidence.
 The development profiler/agent `temporal` object reports cumulative frame/drop,
 motion/reactive draw counts and latest-view stored/matched/rejected/overflow
 history counts. Geometry/uniform exhaustion rejects the whole frame's history.
+
+`python3 tests/streaming.py` checks the fixed-capacity texture residency policy
+under UBSan. The input costs are Vulkan allocation requirements for each mip
+chain; pending and retired allocations count against the same peak budget. Coarse
+tails stay resident, recently bound textures win quality, equal-priority views
+retain current quality, and eviction precedes promotion. One transition at a time
+bounds staging/retirement; the native asynchronous upload integration and large
+4K-set fly-through remain #161 work. No asset fixture is regenerated.

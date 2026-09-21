@@ -44,6 +44,23 @@ int main() {
 	// Never overcommit even when only a smaller promotion fits alongside the old tail.
 	assert( R_PlanTextureResidency( images, 3, 1, 900, 0, &plan ) );
 	assert( plan.index == 0 && plan.mip == 1 );
+	// Downgrade through a smaller tail when the preferred replacement cannot coexist.
+	images[0].residentMip = 0;
+	images[1].residentMip = images[2].residentMip = 1;
+	images[0].lastUsed = 99;
+	images[1].lastUsed = 100;
+	images[2].lastUsed = 98;
+	images[0].used = images[1].used = images[2].used = true;
+	assert( R_PlanTextureResidency( images, 3, 100, 2048, 0, &plan ) );
+	assert( plan.index == 0 && plan.mip == 2 );
+	// Repeated decisions must settle, without exceeding the budget during any swap.
+	for ( uint32_t step = 0; step < 16; ++step ) {
+		assert( R_PlanTextureResidency( images, 3, 100, 2048, 0, &plan ) );
+		if ( plan.index == STREAM_NO_IMAGE )
+			break;
+		assert( step < 15 && plan.residentBytes + images[plan.index].bytes[plan.mip] <= 2048 );
+		images[plan.index].residentMip = plan.mip;
+	}
 	assert( !R_PlanTextureResidency( images, 3, 1, 383, 0, &plan ) );
 	assert( !R_PlanTextureResidency( images, 3, 1, 1536, UINT64_MAX, &plan ) );
 	assert( !R_PlanTextureResidency( nullptr, 1, 1, 1536, 0, &plan ) );
