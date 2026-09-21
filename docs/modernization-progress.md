@@ -49,20 +49,21 @@ motion/bounce, fixed counters and zero-block teardown. A real runtime failure
 found reversed CM-to-Jolt triangle winding; the failing orientation test and
 fixed export are recorded below. No native trace arithmetic changed.
 
-Next finish skeleton-driven cosmetic deaths and run unchanged fixed demos plus
-all required gates. The Physics panel runtime now passes; CI/suite/affected
-selection includes the new component/runtime commands. #15 has no PR yet. Current runtime/panel checkpoint
-is c16abb78; panel/CI wiring is a47bff50 and the ragdoll test-first commit is 9901fde2.
-Issue comment 5766196162 records the earlier owned-boundary checkpoint.
+#15 draft PR170 is open into main at c29ed440. Skeleton-driven cosmetic deaths,
+restart cleanup, both content runtime sets, Physics panel, unchanged Q3/OpenArena
+fixed demos and native animation hit-box parity pass. Both compiler component
+probes pass. Full local lifetime analysis (1,268 commands) and tidy policy (1,326
+configurations), format/types/boundaries, affected/suite contracts and workflow
+syntax pass. No accepted fixtures were regenerated.
 
-Private dependency research is recorded on #15 (comment 5765263819) and in
-/home/matt/.cache/aftershock-modernization/physics-research.md. Pinned Jolt 5.6.0
-and joltc 886e0886 compile/link on Linux and MinGW. Default step allocation fails;
-private reserved-scratch/job-page experiments pass 600 steps for one body, 32
-bodies and 16 distance constraints. These are limited experiments, not issue
-acceptance. Review the retained patch; do not import it without permanent tests.
-Allocator ownership, no-fallback temp storage, full capacity/recycle, ragdolls,
-queries, FP state, runtime tooling and unchanged fixed-demo evidence remain.
+Next monitor hosted build 35649848657 and regression 35649848654, fix any failures
+within #15 scope, complete the recorded self-review, and merge PR170 only with
+all required checks green against current main. Recheck main immediately before
+merge; it was still 0928be35 when the PR was opened. No maintainer input is needed.
+Private evidence logs are under /home/matt/.cache/aftershock-modernization:
+physics-ragdoll-after.log, physics-ragdoll-clang.log, physics-death-q3.log,
+physics-death-oa.log, physics-demo.log, physics-demo-oa.log, physics-lifetimes.log
+and physics-tidy.log. Issue checkpoint comment 5766814918 records earlier results.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.

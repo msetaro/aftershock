@@ -1459,7 +1459,8 @@ spheres; unsupported scaled skeletons retain native death presentation. The
 client pool holds up to four cosmetic deaths for fifteen seconds. The runtime driver additionally requires a replicated fall-damage death, rendered
 ragdoll capture, fixed allocation counters and retirement on map restart.
 
-`python3 tests/physics_runtime.py --binary CLIENT` exercises cosmetic boxes and
+`python3 tests/physics_runtime.py --binary CLIENT` requires an existing development
+client plus the cooking dependencies above. It exercises cosmetic boxes and
 inert grenades over both installed-content maps, requiring gravity, a bounce,
 fixed arena counters after setup, and zero live dependency blocks on map teardown.
 Hosted form adds `--content openarena --data PATH`. It uses private Xvfb/lavapipe,
