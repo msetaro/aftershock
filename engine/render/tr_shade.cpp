@@ -1497,16 +1497,16 @@ static void RB_StageIteratorMotion() {
 	struct Uniform {
 		float previous[16];
 		vec4_t viewport, target, mask, flags;
-	} uniform{};
+	} motionUniform{};
 	static_assert( sizeof( Uniform ) == 128 && offsetof( Uniform, flags ) == 112 );
-	uniform.mask[0] = 1;
-	uniform.mask[1] = .5f;
-	if ( !RB_BindSurfaceMask( uniform.mask, true ) )
+	motionUniform.mask[0] = 1;
+	motionUniform.mask[1] = .5f;
+	if ( !RB_BindSurfaceMask( motionUniform.mask, true ) )
 		return;
 	const auto *previousView = R_TemporalPreviousView();
 	const auto *previous = backEnd.temporalPrevious;
-	uniform.flags[2] = previousView && previous && tess.previousPositions && !R_TemporalReactiveShader( tess.shader ) && !uniform.mask[3] ? 1 : 0;
-	if ( uniform.flags[2] ) {
+	motionUniform.flags[2] = previousView && previous && tess.previousPositions && !R_TemporalReactiveShader( tess.shader ) && !motionUniform.mask[3] ? 1.f : 0.f;
+	if ( motionUniform.flags[2] ) {
 		float object[16]{};
 		for ( int i = 0; i < 3; ++i ) {
 			for ( int j = 0; j < 3; ++j )
@@ -1514,19 +1514,19 @@ static void RB_StageIteratorMotion() {
 			object[12 + i] = previous->entity.origin[i];
 		}
 		object[15] = 1;
-		myGlMultMatrix( object, previousView->viewProjection, uniform.previous );
+		myGlMultMatrix( object, previousView->viewProjection, motionUniform.previous );
 	}
 	rhiRasterState_t raster;
 	RB_GetRaster( tess.depthRange, &raster );
-	uniform.viewport[0] = raster.viewport.x;
-	uniform.viewport[1] = raster.viewport.y;
-	uniform.viewport[2] = raster.viewport.width;
-	uniform.viewport[3] = raster.viewport.height;
-	uniform.target[0] = (float)glConfig.vidWidth;
-	uniform.target[1] = (float)glConfig.vidHeight;
-	uniform.flags[0] = raster.viewport.maxDepth - raster.viewport.minDepth;
-	uniform.flags[1] = raster.viewport.minDepth;
-	if ( RHI_UploadUniform( &uniform, sizeof( uniform ) ) == RHI_INVALID_OFFSET ) {
+	motionUniform.viewport[0] = raster.viewport.x;
+	motionUniform.viewport[1] = raster.viewport.y;
+	motionUniform.viewport[2] = raster.viewport.width;
+	motionUniform.viewport[3] = raster.viewport.height;
+	motionUniform.target[0] = (float)glConfig.vidWidth;
+	motionUniform.target[1] = (float)glConfig.vidHeight;
+	motionUniform.flags[0] = raster.viewport.maxDepth - raster.viewport.minDepth;
+	motionUniform.flags[1] = raster.viewport.minDepth;
+	if ( RHI_UploadUniform( &motionUniform, sizeof( motionUniform ) ) == RHI_INVALID_OFFSET ) {
 		RHI_RejectTemporal();
 		return;
 	}
@@ -1539,7 +1539,7 @@ static void RB_StageIteratorMotion() {
 	RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, 1u << 5, streams );
 	if ( RHI_PrepareDraw( &raster, &tr.whiteImage->texture ) ) {
 		RHI_DrawBoundIndices();
-		R_PostMotionDraw( uniform.flags[2] == 0 );
+		R_PostMotionDraw( motionUniform.flags[2] == 0 );
 	} else
 		RHI_RejectTemporal();
 }

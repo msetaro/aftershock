@@ -78,6 +78,18 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 second hosted MSVC diagnostics
+
+After the decal name correction, MSVC reaches the new motion submission code
+and reports C4459 (local `uniform` shadows a legacy global) and C4244 (integer
+conditional values assigned to a float flag). Rename the local `motionUniform`
+and spell the exact zero/one flag literals as floats. No expression ordering or
+simulation behavior changes. Evidence: fidelity-ci-msvc-arm64-second.log from
+build 35628745374 at ba86c89a. All required checks will rerun on the corrected head.
+
+Expanded lifetime analysis now passes all 1248 commands / 135 source paths,
+shipping/development and static/module with positive/seven-object controls.
+
 ## #161 MSVC shadow diagnostic
 
 Build 35628249560 fails MSVC C4457 because the new decal half-size loop named its
