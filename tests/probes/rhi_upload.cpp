@@ -182,6 +182,74 @@ static void check_compressed_uploads() {
 	vk.staging_buffer = {};
 }
 
+static uint8_t streamStaging[4 * 1024 * 1024], streamSource[24 * 1024 * 1024];
+static uint32_t streamSubmits, streamCopied, streamAllocations, streamTransitions;
+static bool streamReady;
+static VkResult streamFenceResult = VK_SUCCESS;
+static void check_async_texture_upload() {
+	vk.device = (VkDevice)(uintptr_t)20;
+	qvkCreateBuffer = []( VkDevice, const VkBufferCreateInfo *info, const VkAllocationCallbacks *, VkBuffer *buffer ) { assert( info->size == sizeof( streamStaging ) ); *buffer = (VkBuffer)(uintptr_t)30; streamAllocations++; return VK_SUCCESS; };
+	qvkGetBufferMemoryRequirements = []( VkDevice, VkBuffer, VkMemoryRequirements *info ) { *info = { sizeof( streamStaging ), 256, 1 }; };
+	qvkGetPhysicalDeviceMemoryProperties = []( VkPhysicalDevice, VkPhysicalDeviceMemoryProperties *info ) { *info = {}; info->memoryTypeCount = 1; info->memoryTypes[0].propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT; };
+	qvkAllocateMemory = []( VkDevice, const VkMemoryAllocateInfo *info, const VkAllocationCallbacks *, VkDeviceMemory *memory ) { assert( info->allocationSize == sizeof( streamStaging ) ); *memory = (VkDeviceMemory)(uintptr_t)31; streamAllocations++; return VK_SUCCESS; };
+	qvkBindBufferMemory = []( VkDevice, VkBuffer, VkDeviceMemory, VkDeviceSize ) { return VK_SUCCESS; };
+	qvkMapMemory = []( VkDevice, VkDeviceMemory, VkDeviceSize, VkDeviceSize, VkMemoryMapFlags, void **data ) { *data = streamStaging; return VK_SUCCESS; };
+	qvkCreateFence = []( VkDevice, const VkFenceCreateInfo *, const VkAllocationCallbacks *, VkFence *fence ) { *fence = (VkFence)(uintptr_t)32; streamAllocations++; return VK_SUCCESS; };
+	qvkResetFences = []( VkDevice, uint32_t, const VkFence * ) { return VK_SUCCESS; };
+	qvkResetCommandBuffer = []( VkCommandBuffer, VkCommandBufferResetFlags ) { return VK_SUCCESS; };
+	qvkWaitForFences = []( VkDevice, uint32_t count, const VkFence *, VkBool32, uint64_t timeout ) { assert( count == 1 && timeout == 0 ); return streamReady ? streamFenceResult : VK_TIMEOUT; };
+	qvkQueueSubmit = []( VkQueue, uint32_t count, const VkSubmitInfo *info, VkFence fence ) { assert( count == 1 && info->commandBufferCount == 1 && fence ); streamSubmits++; return VK_SUCCESS; };
+	qvkCmdPipelineBarrier = []( VkCommandBuffer, VkPipelineStageFlags, VkPipelineStageFlags, VkDependencyFlags, uint32_t, const VkMemoryBarrier *, uint32_t, const VkBufferMemoryBarrier *, uint32_t count, const VkImageMemoryBarrier *barriers ) {
+		assert( count == 1 );
+		assert( barriers->oldLayout == ( streamTransitions ? VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED ) );
+		assert( barriers->newLayout == ( streamTransitions ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL ) );
+		streamTransitions++;
+	};
+	qvkCmdCopyBufferToImage = []( VkCommandBuffer, VkBuffer, VkImage, VkImageLayout layout, uint32_t count, const VkBufferImageCopy *regions ) {
+		assert( layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && count <= 16 );
+		for ( uint32_t i = 0; i < count; ++i ) {
+			const auto &r = regions[i];
+			const uint32_t bytes = ( ( r.imageExtent.width + 3 ) / 4 ) * ( ( r.imageExtent.height + 3 ) / 4 ) * 16;
+			assert( r.bufferOffset + bytes <= sizeof( streamStaging ) && r.imageOffset.y % 4 == 0 );
+			assert( memcmp( streamStaging + r.bufferOffset, streamSource + streamCopied, bytes ) == 0 );
+			streamCopied += bytes;
+		}
+	};
+	qvkDeviceWaitIdle = []( VkDevice ) { assert( false && "async upload must not wait idle" ); return VK_SUCCESS; };
+	qvkQueueWaitIdle = []( VkQueue ) { assert( false && "async upload must not wait queue" ); return VK_SUCCESS; };
+	assert( RHI_InitTextureUploads() == rhiStatus_t::Success );
+	const uint32_t allocated = streamAllocations;
+	const rhiTexture_t texture = { 11, 12, 13, 0 };
+	uint32_t size = 0;
+	for ( uint32_t side = 4096; side; side /= 2 )
+		size += ( ( side + 3 ) / 4 ) * ( ( side + 3 ) / 4 ) * 16;
+	for ( uint32_t i = 0; i < size; ++i )
+		streamSource[i] = (uint8_t)( i * 17 + i / 31 );
+	assert( RHI_QueueTextureUpload( &texture, 4096, 4096, 13, streamSource, size - 1, rhiFormat_t::BC7 ) == rhiStatus_t::Error );
+	assert( RHI_QueueTextureUpload( &texture, 4096, 4096, 13, streamSource, size, rhiFormat_t::BC7 ) == rhiStatus_t::Success );
+	assert( RHI_QueueTextureUpload( &texture, 4096, 4096, 13, streamSource, size, rhiFormat_t::BC7 ) == rhiStatus_t::Unavailable );
+	bool complete = true;
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete && streamSubmits == 1 );
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete && streamSubmits == 1 );
+	streamReady = true;
+	for ( uint32_t i = 0; i < 10 && !complete; ++i )
+		assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success );
+	assert( complete && streamCopied == size && streamSubmits == 6 && streamTransitions == 2 && streamAllocations == allocated );
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete );
+	assert( RHI_QueueTextureUpload( &texture, 4096, 4096, 13, streamSource, size, rhiFormat_t::BC7 ) == rhiStatus_t::Success );
+	streamTransitions = 0;
+	streamCopied = 0;
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete );
+	streamFenceResult = VK_ERROR_DEVICE_LOST;
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::DeviceLost && !complete );
+	qvkDeviceWaitIdle = []( VkDevice ) { return VK_SUCCESS; };
+	qvkDestroyBuffer = []( VkDevice, VkBuffer, const VkAllocationCallbacks * ) {};
+	qvkFreeMemory = []( VkDevice, VkDeviceMemory, const VkAllocationCallbacks * ) {};
+	qvkDestroyFence = []( VkDevice, VkFence, const VkAllocationCallbacks * ) {};
+	assert( RHI_ShutdownTextureUploads() == rhiStatus_t::Success );
+	vk.device = VK_NULL_HANDLE;
+}
+
 static uint32_t ownedImages, ownedViews, ownedMemory, ownedBindings;
 static uint64_t ownedHandle = 100;
 static int ownedFailure;
@@ -228,6 +296,7 @@ static void check_texture_replacement() {
 
 int main( void ) {
 	check_compressed_uploads();
+	check_async_texture_upload();
 	check_texture_replacement();
 	vk_config.uniformBytes = 128;
 	assert( !RHI_GetCapabilities().active );

@@ -79,6 +79,16 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 asynchronous upload test-first
+
+The existing native RHI upload probe now requires a preallocated 4 MiB staging
+buffer and one reusable command/fence. A 4096-square BC7 mip chain must transfer
+in six bounded submissions, preserve every source byte, poll fences with timeout
+zero, and publish completion only after the final fence. A busy uploader refuses
+a second request; malformed sizes and device loss cannot report success. Queue
+and device idle waits are rejected by the probe during uploads. Initial compile
+fails on the absent asynchronous API (fidelity-stream-upload-before.log).
+
 ## #161 bounded residency policy component
 
 The pure planner now handles at most 2048 records with stack-only scratch and no
