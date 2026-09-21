@@ -126,6 +126,21 @@ is in `tests/assets/cook-character`; CI never reauthors it. No game paks are use
 checks authored WAV/OGG sources through the production PCM codec, twelve bounded
 model/material replacements and 10,000 allocation-free idle publication polls.
 
+`python3 tests/materials.py` uses the same cooker prerequisites. It independently
+decodes the owned PBR texture channels/mips, checks glTF and standalone data,
+incremental dependencies, native factors and instance resolution, and retains the
+v1 compatibility path. Set `CC`/`CXX` for Clang/libc++. `tests/animation.py` also
+checks that static/skeletal material instances are copied into the frame, stay
+independent and reset when frame storage is reused.
+
+`python3 tests/materials_runtime.py --binary CLIENT` loads an owned glTF sphere
+under Xvfb/lavapipe. It measures metallic, roughness, normal, emissive, mask and
+blend source edits in the sphere interior and requires an exact restored image.
+`--ui --output /tmp/material-ui` uses real ImGui input to edit a shared factor,
+override only the preview instance and restore both independently. Both commands
+accept the existing `--content`/`--data` options; CI uses OpenArena. Their new
+captures are diagnostics, never replacements for the classic replay goldens.
+
 `python3 tests/iqm_scale.py` checks native IQM scale-before-rotation around all
 axes, signed/nonuniform/unit scales, inverse composition and cooked glTF/native
 pose parity. It uses the same Pillow/compiler prerequisites, runs with UBSan,
@@ -184,7 +199,7 @@ The RHI retains at most 32 scopes per frame, reads available results after the
 existing frame fence, and never adds a query wait. Its check covers timestamp
 wrap, unavailable results, scope exhaustion, and duplicate scope completion.
 
-`python3 tests/shaders.py --compiler /path/to/glslang-16.6.0` recompiles all 74
+`python3 tests/shaders.py --compiler /path/to/glslang-16.6.0` recompiles all 76
 shader variants and compares every SPIR-V byte and reflected interface against the
 committed offline cache. The pinned compiler is [Khronos glslang 16.6.0](https://github.com/KhronosGroup/glslang/releases/tag/16.6.0).
 CI verifies the release archive SHA-256 before executing it. Shader sources,

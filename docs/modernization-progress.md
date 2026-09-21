@@ -1,8 +1,12 @@
 # Modernization checkpoint
 
-Integration: `modernization`. Issue branches: `issue/<number>-<slug>`, one bug per
-#31 PR and one warning class per #8 PR. Merge commits only after gates/self-review.
-Never push main, force-push, rewrite history, or touch port-evidence.
+Integration: `main` (maintainer workflow change, 2026-09-20). Issue branches:
+`issue/<number>-<slug>`, one bug per #31 PR and one warning class per #8 PR.
+Merge commits only after all required gates pass and the AGENTS self-review.
+No human review step. Never merge with a red/skipped required check, force-push,
+rewrite history, move/delete known-good-* tags, or touch port-evidence. Nothing is
+published or commented outside msetaro/aftershock. `modernization` is retired;
+its history below is an evidence record, not the current PR target.
 
 Maintainer continuation (2026-09-19): continue the modernization roadmap through
 completion or a dependency requiring the maintainer. This supersedes the earlier
@@ -16,13 +20,188 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active implementation: issue/28-match-server in the level-tree worktree; the main
-checkout remains on completed issue/31-native-pure. #27 is accepted and closed.
-#31 PR #155 merged as eb9496ee2d28a85a599ea8eb5d7bd35a0bd584d0 after exact-head
-1673aed7 passed build 35540580426 and regression 35540579069. The merge and tested
-head share tree b5789d25c17016be305cd4dd7be941f978675423. Integration regression
-35541625720 is running. #31 closes only after it passes. Modernization is merged
-forward into #28 for preparation; no #28 acceptance/merge precedes this gate.
+Active #13 branch: `issue/13-materials`, draft PR #157 now targets `main`.
+Main baseline 81a0f9dc (known-good-2026-09-20) is merged forward without rewriting
+history; AGENTS now specifies self-merged PRs into main after all required checks.
+The regression workflow's PR/push filters also change to main, otherwise the
+retargeted PR would silently miss its regression gates. Build triggers are checked
+as part of this migration. The tag is unchanged.
+
+Previous material head 2ed8cf56 passed all build legs (35544991054); regression
+35544991093 was still running runtime/lifetimes when the workflow changed. These
+runs are evidence for that earlier head only. Require fresh exact-head build and
+regression for this updated branch, then mark #157 ready, merge with a merge
+commit and verify main's merged-tree regression before closing #13/checking #25.
+Committed self-review and final local material evidence are below. No accepted
+fixture or shader bytes changed.
+
+#28 PR #156 is fully accepted: merge 646a63e82c0a74307d0e830ca6c626eca985ed60,
+exact build 35542300540/regression 35542300709, merged-tree regression 35543218326
+all passed. Tested 04a86876 and merge share tree
+f30abf9b5723b4d0aa20dc7600be1a7348050e5f. #28, #27 and #31 are closed/checked.
+#28's final local kind report measured 45,748,224 bytes and 0.00380977 vCPU across
+all three containers with one idle player; this is not saturated capacity. All
+private clusters were removed. The older implementation record below preserves
+its self-review and previous measurements.
+
+The extra level-tree worktree has preparatory `issue/14-lighting` commits
+91acce4a/fd82f6ee and four uncommitted level-tool edits. Its new directional-bake
+test failed first on the absent option, then passed repeated paired BSP/AAS output
+and the existing default fixture gate. Preserve this work, checkpoint it and merge
+the new main history forward; never rebase. #14 is not accepted and still needs
+runtime lighting/shadows/probes/postprocessing and performance gates. Future new
+issue branches start from main. Continue #25 after #13 is integrated.
+
+## #13 preparatory failing material contract
+
+Metallic/roughness is the selected workflow, matching glTF 2.0. The explicit model
+recipe `material_model: metallic-roughness` produces ASMAT v2; recipes without it
+retain the accepted v1 compatibility output. Factors remain native data for live
+editing and per-instance overrides. The new 240-byte payload contains base RGBA,
+emissive RGB, metallic/roughness/normal scale/mask cutoff, flags and three qpaths.
+The three existing material texture bindings carry base RGBA (sRGB), normal XYZ
+plus roughness A (linear), and emissive RGB plus metallic A (sRGB RGB, linear A).
+Packed data alpha must not premultiply normal/emissive mips. This fits the existing
+RHI bindings and avoids changing legacy shader programs. Unsupported glTF texture
+transforms/additional UV sets still require offline baking.
+
+`python3 tests/materials.py` authors an ordinary owned glTF triangle with four
+source textures, checks editable factors, independent BC7 decoding, mip channels,
+transitive inputs/incremental rebuilding and v1 fallback. Before implementation
+it fails at the existing explicit arbitrary-mask-cutoff rejection
+(materials-before.log). This is only the initial cook contract; rendered lighting,
+normal mapping, instance overrides, ImGui editing and unchanged classic replay
+still need acceptance. No accepted fixture, source or shader bytes changed.
+Reference: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#materials.
+
+The native extension compiles an ordinary-output probe before cooking. It requires
+native material fields and masked per-instance parameter resolution, preserving
+the shared material and all unselected values. It fails before implementation on
+the absent cookedPbrMaterial_t/API (materials-native-before.log). This is a normal
+feature contract, not a new loader-robustness target.
+
+The first cooker/native data slice passes both compiler families
+(materials-first.log, materials-clang.log). Normal/roughness and emissive/metallic
+packing preserves factors and filters data alpha independently. Explicitly reject
+unsupported material extensions, occlusion (lighting owns it), non-repeat/nonlinear
+samplers, extra UVs/transforms and nonconstant mismatched channel dimensions;
+these require artist baking instead of silent approximation. Standalone material
+recipes use the same glTF-shaped data with texture `uri` fields. Native validation
+and masked factor resolution use fixed-size trivial public values, no allocation.
+The full legacy cooker suite also passes (materials-legacy.log); native runtime/ImGui acceptance remains pending.
+
+#156 exact-head gates all passed and the merge tree is identical. Hosted kind log:
+match28-host-kind.log. Integration 35543218326 passed; #28 is accepted and closed.
+
+## #13 initial rendering checkpoint
+
+The two new authored PBR shader programs use the existing three material texture
+bindings and a 112-byte uniform block inside the unchanged 128-byte allocation.
+All 74 accepted shader binaries remain byte-identical; bin2hex only appended the
+two new compiled programs. Fresh pinned compilation agrees for all 76 shaders
+(materials-shaders.log). Native rendering builds (materials-build.log). Classic
+Q3 replay remains 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(materials-classic.log), with no golden/fixture regeneration.
+
+The new path uses GGX/Smith/Schlick, editable linear factors, the existing model
+light-grid/dynamic direction and ambient, authored/skinned tangents or a derivative
+basis, explicit mask/blend flags and the existing fog pass. This is restrained
+material shading, not #14's full lighting/shadow work. Legacy shaders keep their
+existing iterator. Native static/skeletal instance submission copies bounded POD
+parameters without modifying refEntity_t or wire layouts. ImGui factor edits do
+not change pipeline flags; optional preview overrides are separate copies.
+
+Type/boundary gates pass. Animation tests cover static/skeletal instance copy,
+rejection without consuming an entity and per-frame reset, alongside existing
+animation acceptance (materials-animation.log). The owned sphere source has an
+idle clip for the existing Animation tab. First visual attempt lacked that clip;
+second showed every channel changing but compared the moving map behind the
+preview in its exact round trip. Restrict the sample to the sphere interior:
+5,521 identical restored pixels, and independent metallic/roughness/normal/emissive/
+mask/blend changes. Rerun the corrected permanent test; add actual ImGui and
+instance visual controls and both content sets before acceptance. Evidence:
+materials-runtime-{first,idle}.log and /tmp/aftershock-material-runtime-idle images.
+These are new test captures, not accepted goldens.
+
+## #13 visual and color review
+
+The new shader now explicitly encodes linear PBR output for the unchanged legacy
+UNORM display-space target. An unlit stage independently checks sampled RGB against
+the source (180,130,50), within BC7's three-byte tolerance. Only the two unaccepted
+PBR programs were updated through the generator; the 74 accepted programs remain
+an unchanged byte prefix. The final 76-program cache/fresh-compile package is
+71ffd19cdfc660adb9c2382c409a0eb118258746aeffd2452258dd6f5e082560
+(materials-shaders-display.log). Transparency uses the existing display-space
+compositor; linear HDR composition belongs to subsequent lighting work.
+
+The permanent sphere test samples its 5,521 interior pixels, not the moving map
+behind it. OpenArena now passes: metallic 5,521 changed pixels, roughness 774,
+normal direction 2,389, emissive/mask/blend all 5,521, correct unlit source color,
+and an exact restored opaque image (materials-runtime-normal.log). A mild normal
+perturbation under OA's far-side preview sun changed too few pixels for a useful
+visual control; the owned source now deliberately reverses tangent-space Z. No
+engine threshold/oracle was relaxed. A full-line log barrier prevents normal_flat
+from being mistaken for the later normal marker. Final Q3 source validation is
+running after adding glTF POSITION/time bounds and optional extension declarations.
+
+Real ImGui shared/instance edits pass with both content sets
+(materials-ui-{unique,display}.log). The shared metallic factor changes the preview;
+an independent override restores the baseline; clearing it restores the shared
+edit exactly. The control selects the unique models/sphere path, avoiding similarly
+named legacy pickup shaders. Shader review also preserves gl_FrontFacing semantics
+for mirrored PBR geometry by adjusting only that new pipeline's winding/culling.
+The optional renderer module is building/running the same actual-input test.
+
+Unit golden and its one-ULP control pass; unit.txt remains
+8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede.
+Legacy cooker/render probes, animation/instance tests, RHI and 1,270 tidy
+configurations pass. Lifetime analysis passes all 1,216 commands. CI runs the new
+cooker/native contract with both compilers and both visual modes with OA. AGENTS,
+tests/README and tools/cook/README document commands, v2 layout, authoring and limits.
+Draft #157 is open; the MSVC correction and fresh exact-head gates are recorded above.
+
+## #13 self-review and final local gates
+
+Final local Q3 channel/color test passes (materials-runtime-q3-final.log), as do OA
+channel/color (materials-runtime-normal.log), actual ImGui shared/instance editing
+(materials-ui-display.log) and the optional renderer module's actual ImGui test
+(materials-ui-module.log). Both native compiler families pass the data test,
+including standalone material recipes. All 1,216 lifetime configurations and 1,270
+tidy configurations pass. Final format/type/boundary checks pass. Unit golden and
+negative control, legacy cooker/renderer probes, animation/instance ownership and
+RHI alternative-backend checks pass. Fresh shader compilation matches the final
+76-program cache. Classic Q3 replay retains its accepted hash, with no regeneration.
+
+Scope matches #13's restrained material abstraction, offline glTF/data authoring,
+instance factors and live ImGui tooling. Existing recipes stay v1, Quake scripts
+keep precedence and the legacy iterator/shader bytes. Only newly authored PBR
+programs use the new path; shaders compile offline. Data/native layouts are fixed
+and asserted. Color factors remain linear, normal/roughness and emissive/metallic
+mips keep independent data alpha, and source-color/round-trip checks cover the
+UNORM display conversion. Mirrored PBR winding preserves double-sided normals.
+
+Instances use bounded per-frame POD copies and optional existing skeletal storage;
+shared factor edits leave pipeline ordering/flags unchanged. No per-frame heap
+allocation, non-trivial core object, OS call, renderer-private boundary crossing,
+wire/refEntity layout, existing simulation arithmetic or accepted oracle change.
+Initial/new cooked assets use the existing hunk/image/pipeline lifetime paths.
+Unsupported authoring combinations fail explicitly; global texture-quality settings
+remain authoritative. Lighting reuses the existing dominant direction/light grid,
+with world batch-center sampling; direct light/shadow upgrades and linear HDR
+composition remain #14's scope. No new provider/database/system package dependency.
+
+Tests exposed setup/measurement mistakes (clip-less Animation preview, ambiguous
+UI filter, substring barriers, map-background sampling, weak normal perturbation),
+all corrected in the new tests rather than changing accepted references. The new
+shader's display conversion was corrected before acceptance and checked against
+absolute source RGB. MSVC requires an explicit enum-to-float cast for the new ternary sort selection;
+the build correction keeps the same small integer values and adds no behavior.
+Full exact-head hosted gates and merged-tree regression are still mandatory. No upstream PR or other-repository write is involved.
+
+## #28 implementation record at its tested head
+
+The following record/self-review is inherited from PR #156; final acceptance and
+current integration state are recorded in Next action above.
 
 The combined native client/server and final image build. Direct runtime and two
 private kind runs pass actual OA native player acceptance with sv_pure=1, timed
@@ -94,6 +273,28 @@ three match containers and distinguishes measured light-load equivalents from
 scheduler requests and production capacity. No database driver or simulation-loop
 persistence is added; default engine behavior and all accepted goldens stay fixed.
 
+## #31 checkpoint inherited by #13
+
+Current main checkout: issue/31-native-pure. #27 PR #154 merged at
+6a3cb22d54a1c9575adde00c1d415639cde617f3; exact-head build 35538730616,
+regression 35538730598 and merged-tree regression 35539581431 all passed.
+#27 is closed and checked in #25. #28 preparation remains in level-tree.
+
+#28's ordinary native-client connection to sv_pure=1 exposed a native-port defect:
+SV_VerifyPaks_f still demands vm/cgame.qvm and vm/ui.qvm checksums, while statically
+linked clients never reference those files. The valid client is rejected as
+unpure before ClientBegin. This fix belongs only in a separate #31 PR. The new
+filesystem probe fails before any engine edit (native-pure-before.log); first
+commit that test, then retain content-pak checks while replacing obsolete QVM
+slots with explicit native markers. The correction now passes GCC and Clang/libc++
+filesystem tests, and actual Q3/OA clients join and chat on sv_pure=1. The same
+runtime script fails against pre-fix #27 binaries (native-pure-runtime-before.log).
+The probe retains the existing trailing whitespace. Format/boundary/type gates
+pass; unit.txt retains 8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede.
+CI runs the unit probe in both compilers and the real OA connection. Open the
+separate fix PR, require exact-head build/regression and integration, then merge
+forward into #28. No upstream changes.
+
 ## #31 native pure self-review
 
 The only behavior change is replacing obsolete QVM pak expectations with explicit
@@ -112,112 +313,7 @@ them. No active sanitizer known-bug/suppression entry exists for this functional
 bug. Local builds, GCC/Clang probes, real Q3/OA clients, unit golden and format/type/
 boundary checks pass. Full hosted gates and merged-tree regression remain required.
 
-## #28 implementation record before #155 integration
-
-Preparatory branch `issue/28-match-server` is in the level-tree worktree, based
-on #27 PR #154 head b59fd806. The main checkout remains on #27 while its exact-head
-build/regression passed (35538730616/35538730598). PR #154 merged as
-6a3cb22d54a1c9575adde00c1d415639cde617f3 with the same tested tree
-fee7f5d5860f911eb14d00d1f1e0dd23454ad2d5; integration 35539581431 passed. #27 is closed and checked in #25. Superseded 9ed0484b regression was
-cancelled. #26 integration 35538219232 passed; #26 is closed and checked in #25.
-#27 still requires its exact-head gates and merged-tree regression. Merge modernization forward later, never rebase.
-
-Read #28: non-root read-only image, match-spec launch, opt-in match-end exit,
-Agones warm Fleet/allocation/Ready/Health/Shutdown, gRPC log/results sidecar, Compose,
-kind CI and measured density. tests/match_exit.py first proves current behavior:
-normal server reaches the guard marker, and sv_exitOnMatchEnd=1 also reaches it
-instead of quitting. Failing trace is match-exit-before.log; OA bot match reached
-Fraglimit normally, so the negative control tests the requested missing feature.
-The first guard used an engine wait command, which would delay any queued quit.
-The corrected driver leaves the command buffer free and controls only the default
-server through stdin; the opt-in case still fails after the observed match end
-(match-exit-before-async.log). Native opt-in exit now passes both OA and Q3 (match-exit-oa.log and
-match-exit-q3.log). It waits the existing five-second scoreboard interval without
-requiring ready votes, including all-bot matches; default intermission logic is
-unchanged. The cvar is not serverinfo, avoiding default replay changes. Next: owned
-content packaging and lifecycle/results sidecar, then Compose/kind/density gates.
-
-Local Docker Desktop works (20 virtual CPUs, 7936475136 bytes VM RAM). Docker
-Compose v5.3 is installed; Go/protoc/kind are absent from PATH. Use image builds or
-user-cache tools, never local system packages. Do not touch existing containers or
-clusters. Published/server image content must be owned project content only; OA
-packages may be mounted for CI testing, never bake Q3 packages into an image.
-#12 delivered the asynchronous provider seam; identity_public.h explicitly assigns
-its reliable ticket transport to #23. Until that/provider wiring exists, use #28's
-specified per-match password fallback and record it clearly (never claim authenticated
-provider identity). Match persistence stays out of the engine: log events over gRPC
-to the ingest stub, no database driver/credentials in a match pod.
-Primary Agones references read: https://agones.dev/site/docs/installation/ and
-https://agones.dev/site/docs/installation/install-agones/helm/; REST Ready/Health/
-Shutdown endpoints are documented at /site/docs/guides/client-sdks/rest/.
-
-Go lifecycle/result implementation is under local validation. Race-enabled tests
-pass spec validation, checksum-free native arguments, checkpoints, authenticated
-durable append/retry/restart and a real gRPC outage/retry. The distroless image builds
-with only owned content. Compose now starts two owned-content servers with UID/GID 65532, read-only roots,
-separate shared home volumes and a gRPC stub. Both reach timed match completion
-and results.done. Initial attempts exposed deployment details: Compose inline
-configs cannot be injected into a read-only service, Docker Desktop does not share
-host /tmp bind paths, and the engine's existing default-home probe requires an
-already-created /home/nonroot/.q3a. Use token JSON environment for the dev stub and
-precreate the empty image directory; no engine workaround or root permission.
-The shipper also handles a process that exits before creating games.log.
-
-Docker base images are pinned by resolved digest. Private kind cluster
-`aftershock-match28` uses Kubernetes 1.35.8 (Agones 1.60 supported) and localhost UDP
-30960/30961. Go 1.27.1, kind 0.33.0, kubectl 1.35.8 and Helm 4.3.0 are verified tools
-in ~/.cache/aftershock-match-tools, never system installs. Agones 1.60 installed
-with Helm client-side apply (--server-side=false), because Helm 4's typed SSA
-rejects the chart's legacy x-kubernetes-patch metadata. Unique TLS certificates
-are generated by Helm; no pre-generated install certificates. Kubernetes manifest
-and allocation generators are implemented; warm Fleet acceptance is running.
-OpenArena test content is copied only into the private node's /aftershock-ci, not
-into the image. No kind player/result or density acceptance exists yet.
-
-A real-client match acceptance run reached static cgame load but sv_pure=1 rejected
-the valid client before ClientBegin. Root cause: legacy QVM pak slots remain in
-SV_VerifyPaks_f and are absent from native client references. Separate branch
-issue/31-native-pure in the main checkout owns the fix and failing-first checks;
-#31 is reopened, docs/bugs.md records the evidence. PR #155 at 1673aed7
-is open; exact-head build 35540580426 passed and regression 35540579069 is running. Do not disable pure verification
-or put its engine fix here. Wait for that PR/integration, merge forward, then repeat
-#28's client/sidecar/image acceptance. #28 remains incomplete.
-
-The owned-content packaging contract is test-first in tests/match_content.py;
-it fails on the absent tools/match/content.py (match-content-before.log). It checks
-repeatable ZIP bytes, legal/project-only members and unchanged accepted map files.
-
-Owned content now packages repeatably and boots the native dedicated server with
-fs_basegame=aftershock, without any installed paks or filesystem engine changes
-(match-owned-boot.log). MAP/BSP/AAS fixtures remain byte-identical. New Go contract
-tests first fail on absent spec/argument/checkpoint/ingest implementations; they
-require bounded launch fields, explicit passwords, authenticated ingest, contiguous
-acknowledged offsets and durable duplicate handling across stub restart. Go 1.27.1
-is in user cache only; gRPC/protobuf are pinned module dependencies.
-
-Compose acceptance is now explicit: both servers and both shippers exited zero;
-match-compose-fourth-events.jsonl contains final/completed records for match-1 and
-match-2. Logs and copied acknowledgements are in the cache; only the owned Compose
-project/volumes were removed after evidence capture. The private kind warm Fleet
-also reached Ready, allocation applied settings, the timed empty match finalized
-over gRPC, and Agones replaced it with a new Ready server. This preliminary run
-had no player and is not full acceptance. Nested OA symlinks in Docker cp initially
-remained unresolved; the automated driver explicitly stages resolved public pak
-bytes. Never call missing-content checks passed.
-
-The full tests/match_kind.py now creates a random private cluster, generates
-namespace-specific SDK RBAC, requires a real native client, records final durable
-facts and warm replacement, and captures a 20-second CRI resource sample including
-all three match containers. It excludes generated credentials from artifacts and
-labels single-match density conversions as baselines, not saturation guarantees.
-Race tests add incomplete durable-record and exit-before-log controls; final stream
-sealing checks the closed log size to avoid an EOF/done-marker race. Documentation,
-verification commands and the new match-server regression job are wired. This
-full driver is not yet accepted: wait for #155 merged-tree regression, merge it
-forward, rebuild the image and run local/hosted acceptance. #28 self-review remains
-outstanding. #155 build passes; its exact-head regression is finishing runtime.
-
-## #27 checkpoint inherited by #28
+## #27 completed checkpoint
 
 Current branch: `issue/27-headless-levels` in the main user checkout.
 #26 PR #153 merged as bc1aff0d16878f3e170dab3c3aa1c1f7e79eee94 after exact-head

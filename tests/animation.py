@@ -35,7 +35,8 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-DUSE_VULKAN_API', '-ffunction-sections', '-fdata-sections',
      '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
      'tests/probes/animation_render.cpp', 'engine/qcommon/q_shared.cpp',
-     'engine/qcommon/q_math.cpp', '-Wl,--gc-sections', '-o', render_probe])
+     'engine/qcommon/q_math.cpp', 'engine/render/tr_cooked.cpp', sha_object,
+     '-Wl,--gc-sections', '-o', render_probe])
 run([render_probe])
 snapshot_probe = args.output / 'snapshot-probe'
 run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',

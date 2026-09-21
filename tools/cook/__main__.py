@@ -111,7 +111,7 @@ def cook(project, output):
             elif asset['kind'] == 'weapon':
                 payloads = weapon.cook(source, name, read)
             elif asset['kind'] == 'material':
-                payloads = model.cook_material(source, name, read)
+                payloads = model.cook_material(source, name, read, asset)
             elif asset['kind'] == 'audio':
                 payloads = {name + '.wav': audio.cook(read(source), source.suffix.lower())}
             elif asset['kind'] == 'shader':

@@ -2641,6 +2641,8 @@ const char *RHI_GetShaderPackageHash( void ) {
 
 static void vk_create_shader_modules( void ) {
 	int i, j, k, l;
+	vk.modules.pbr_vs = SHADER_MODULE( pbr_vert_spv );
+	vk.modules.pbr_fs = SHADER_MODULE( pbr_frag_spv );
 
 	vk.modules.vert.gen[0][0][0][0] = SHADER_MODULE( vert_tx0 );
 	vk.modules.vert.gen[0][0][0][1] = SHADER_MODULE( vert_tx0_fog );
@@ -4269,6 +4271,8 @@ void vk_impl_Shutdown( void ) {
 
 	qvkDestroyShaderModule( vk.device, vk.modules.color_fs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.color_vs, NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.pbr_vs, NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.pbr_fs, NULL );
 
 	qvkDestroyShaderModule( vk.device, vk.modules.fog_vs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.fog_fs, NULL );
@@ -5324,6 +5328,11 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 
 	switch ( def->shader_type ) {
 
+	case TYPE_PBR:
+		vs_module = &vk.modules.pbr_vs;
+		fs_module = &vk.modules.pbr_fs;
+		break;
+
 	case TYPE_SIGNLE_TEXTURE_LIGHTING:
 		vs_module = &vk.modules.vert.light[0];
 		fs_module = &vk.modules.frag.light[0][0];
@@ -5789,6 +5798,17 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 		push_attr( 5, 5, VK_FORMAT_R32G32B32A32_SFLOAT );
 		break;
 
+	case TYPE_PBR:
+		push_bind( 0, sizeof( vec4_t ) );
+		push_bind( 2, sizeof( vec2_t ) );
+		push_bind( 5, sizeof( vec4_t ) );
+		push_bind( 6, sizeof( vec4_t ) );
+		push_attr( 0, 0, VK_FORMAT_R32G32B32A32_SFLOAT );
+		push_attr( 1, 2, VK_FORMAT_R32G32_SFLOAT );
+		push_attr( 2, 5, VK_FORMAT_R32G32B32A32_SFLOAT );
+		push_attr( 3, 6, VK_FORMAT_R32G32B32A32_SFLOAT );
+		break;
+
 	case TYPE_SIGNLE_TEXTURE_LIGHTING:
 	case TYPE_SIGNLE_TEXTURE_LIGHTING_LINEAR:
 		push_bind( 0, sizeof( vec4_t ) ); // xyz array
@@ -6048,6 +6068,14 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 	}
 
 	rasterization_state.frontFace = VK_FRONT_FACE_CLOCKWISE; // Q3 defaults to clockwise vertex order
+	if ( def->shader_type == TYPE_PBR && def->mirror ) {
+		// Keep gl_FrontFacing meaningful for the PBR double-sided normal rule.
+		rasterization_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		if ( def->face_culling == CT_FRONT_SIDED )
+			rasterization_state.cullMode = VK_CULL_MODE_BACK_BIT;
+		else if ( def->face_culling == CT_BACK_SIDED )
+			rasterization_state.cullMode = VK_CULL_MODE_FRONT_BIT;
+	}
 
 	// depth bias state
 	if ( def->polygon_offset ) {

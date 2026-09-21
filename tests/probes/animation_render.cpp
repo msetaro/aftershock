@@ -69,5 +69,20 @@ int main() {
 	RE_AddRefEntityToScene( &entity, qfalse );
 	assert( r_numentities == 1 && storage.entities[0].skeletalPose == nullptr );
 	assert( RE_AddSkeletalEntityToScene( &entity, &pose, hash, qfalse ) );
+	materialOverride_t instance = {};
+	instance.mask = MATERIAL_OVERRIDE_ROUGHNESS;
+	instance.values.roughness = 0.25f;
+	assert( RE_AddMaterialEntityToScene( &entity, &instance, nullptr, nullptr, qfalse ) );
+	assert( storage.entities[2].materialOverride.values.roughness == 0.25f );
+	assert( RE_AddMaterialEntityToScene( &entity, &instance, &pose, hash, qfalse ) );
+	assert( storage.entities[3].skeletalPose && storage.entities[3].materialOverride.mask == MATERIAL_OVERRIDE_ROUGHNESS );
+	instance.values.roughness = 0.75f;
+	assert( storage.entities[2].materialOverride.values.roughness == 0.25f );
+	assert( storage.entities[3].materialOverride.values.roughness == 0.25f );
+	instance.mask = 64;
+	assert( !RE_AddMaterialEntityToScene( &entity, &instance, nullptr, nullptr, qfalse ) && r_numentities == 4 );
+	R_InitNextFrame();
+	RE_AddRefEntityToScene( &entity, qfalse );
+	assert( storage.entities[0].materialOverride.mask == 0 );
 	puts( "PASS: model-bound poses are copied, bounded and reset between renderer frames" );
 }

@@ -26,6 +26,11 @@ static struct {
 	int x, y, width, height;
 } animation;
 
+static struct {
+	bool enabled;
+	materialOverride_t instance;
+} materialPreview;
+
 // The graph editor keeps source text and preview state separate from live game
 // assets. Cooking stays offline; a map restart selects a new gameplay revision.
 static struct {
@@ -673,6 +678,27 @@ static void InspectAssets( const refexport_t *renderer ) {
 				ImGui::SameLine();
 				ImGui::Text( "reloads %u", material.reloads );
 			}
+			if ( material.metallicRoughness ) {
+				ImGui::TextUnformatted( "Metallic / roughness; edits last until source reload" );
+				if ( ImGui::Checkbox( "Override preview instance", &materialPreview.enabled ) && materialPreview.enabled ) {
+					materialPreview.instance.mask = 63;
+					materialPreview.instance.values = material.params;
+				}
+				if ( materialPreview.enabled )
+					material.params = materialPreview.instance.values;
+				bool changed = ImGui::ColorEdit4( "Base color / opacity", material.params.color );
+				changed |= ImGui::ColorEdit3( "Emissive", material.params.emissive );
+				changed |= ImGui::SliderFloat( "Metallic", &material.params.metallic, 0, 1 );
+				changed |= ImGui::SliderFloat( "Roughness", &material.params.roughness, 0, 1 );
+				changed |= ImGui::SliderFloat( "Normal scale", &material.params.normalScale, 0, 2 );
+				changed |= ImGui::SliderFloat( "Mask cutoff", &material.params.alphaCutoff, 0, 1 );
+				if ( changed ) {
+					if ( materialPreview.enabled )
+						materialPreview.instance.values = material.params;
+					else
+						renderer->SetDeveloperMaterial( selected, &material.params );
+				}
+			}
 			for ( int stage = 0; stage < material.stages; ++stage ) {
 				if ( !material.present[stage] ) {
 					ImGui::Text( "Stage %d: inactive / missing image", stage );
@@ -1069,11 +1095,14 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 	renderer->ClearScene();
 	if ( graph.draw ) {
 		animPose_t pose;
-		if ( !Anim_Evaluate( &graph.asset, &graph.state, graph.parameters, graph.time, &pose ) || !renderer->AddSkeletalEntityToScene( &entity, &pose, graph.asset.header.modelHash, qfalse ) ) {
+		if ( !Anim_Evaluate( &graph.asset, &graph.state, graph.parameters, graph.time, &pose ) ||
+			 !( materialPreview.enabled ? renderer->AddMaterialEntityToScene( &entity, &materialPreview.instance, &pose, graph.asset.header.modelHash, qfalse ) : renderer->AddSkeletalEntityToScene( &entity, &pose, graph.asset.header.modelHash, qfalse ) ) ) {
 			Q_strncpyz( graph.status, "Graph/model revision mismatch or pose rejected; reload both together.", sizeof( graph.status ) );
 			return;
 		}
 		++graph.previews;
+	} else if ( materialPreview.enabled ) {
+		renderer->AddMaterialEntityToScene( &entity, &materialPreview.instance, nullptr, nullptr, qfalse );
 	} else {
 		renderer->AddRefEntityToScene( &entity, qfalse );
 	}

@@ -42,7 +42,8 @@ Mip filtering uses premultiplied linear values; `normal: true` renormalizes filt
 normal vectors. The BC7 encoder is pinned by source hashes; BC5 uses Pillow, and
 BC4 uses its independently encoded red-channel blocks. Material imports emit a
 versioned plain `.asmat` record containing base color, alpha/culling flags and its
-texture path. Native base-color rendering is available; restrained PBR remains #13.
+texture path. Existing recipes retain this v1 base-color compatibility path.
+New content opts into the metallic/roughness path described below.
 
 Each asset gets a `.manifest.json` containing relative source paths, SHA-256
 hashes, the recipe/tool hash and output hashes. Repeating an unchanged cook does
@@ -66,8 +67,59 @@ Standalone `kind: material` inputs are JSON with optional `texture` (a source im
 relative to the material file), `baseColorFactor`, `doubleSided`, `unlit`,
 `alphaMode` and `alphaCutoff`. They emit matching `.asmat` and private `.ktx2`
 files. Base-color factors are baked in linear space; opaque materials discard
-source alpha. The current native mask test supports cutoff 0.5; other cutoffs
-are rejected until the material pipeline in #13 provides arbitrary thresholds.
+source alpha. This v1 compatibility path supports only mask cutoff 0.5.
+
+Add `"material_model": "metallic-roughness"` to a model or standalone material
+recipe to emit ASMAT v2. Model recipes use glTF's base-color, metallic/roughness,
+normal and emissive textures and factors, alpha modes/cutoff and double-sided
+flag. Optional `KHR_materials_unlit` is supported. A standalone material uses the
+same material object, with `{"uri": "image.png"}` instead of a texture index.
+For example:
+
+```json
+{
+  "pbrMetallicRoughness": {
+    "baseColorTexture": {"uri": "paint.png"},
+    "baseColorFactor": [1, 0.8, 0.5, 1],
+    "metallicFactor": 0,
+    "roughnessFactor": 0.6
+  },
+  "normalTexture": {"uri": "normal.png", "scale": 1},
+  "emissiveFactor": [0, 0, 0],
+  "alphaMode": "OPAQUE"
+}
+```
+
+The v2 payload is 240 bytes: eleven float32 values (base RGBA, emissive RGB,
+metallic, roughness, normal scale, alpha cutoff), uint32 flags, and three 64-byte
+texture qpaths. It uses the same 48-byte version/hash envelope. All factors remain
+editable linear values; they are not baked into the textures. BC7 packs base RGB
+and opacity A in sRGB, normal XYZ and roughness A in linear space, and emissive RGB
+and metallic A in sRGB RGB/linear alpha. Normal/emissive mips filter data alpha
+independently, avoiding opacity weighting. Packed source channels must have equal
+dimensions, except a constant 1x1 channel can expand losslessly. Supported sampling
+is repeat with linear mipmaps and UV0; the engine texture-quality setting remains
+authoritative at runtime. Bake other samplers, UV transforms/sets,
+material extensions and resolution mismatches before import. Occlusion is left
+to authored lighting; an occlusion texture is rejected, not silently discarded.
+
+The new renderer path uses GGX/Smith/Schlick and the existing model ambient and
+dominant light direction. It consumes authored/skinned tangents; meshes without
+tangents use a derivative basis. World batches use their center's existing light
+grid sample. This is not a replacement for #14's lighting/shadow work. Existing
+Quake scripts and ASMAT v1 keep their original shader programs and draw path.
+PBR computes lighting in linear space and encodes its output for the existing
+display-space UNORM target. Transparency uses that existing compositor; a linear
+HDR compositor is part of the later lighting/postprocessing work, not this path.
+
+ImGui's Materials tab edits v2 factors live; source reload replaces those edits.
+The preview-instance checkbox applies separate factor overrides to the Animation
+or graph preview. Cgame can use `CGameImport_R_AddMaterialEntityToScene` with a
+`materialOverride_t` from the public renderer contract and an optional skeletal
+pose/hash. Values are copied into the owning frame, selected by mask; unselected
+factors and alpha/culling flags stay with the shared material. Change pipeline
+flags through the source cook/reload. Existing refEntity and snapshot layouts stay
+unchanged. Legacy recipes and all accepted frame/demo fixtures are preserved.
 
 `--watch` polls source/output timestamps every 100 ms, recooks changed dependencies
 and atomically publishes `cook.index` followed by its SHA-256 `cook.revision`.
@@ -108,13 +160,13 @@ To use a cooked shader in the current renderer, name it
 configure CMake with `-DCOOKED_SHADER_DIR=/absolute/path/to/cooker-output`. The
 existing offline package builder verifies the envelope and requires exact reflected
 interface records before embedding the payload in the client/module. The current
-conservative comparison includes compiler IDs; broader material interfaces belong
-to #13. Runtime GLSL compilation and shader hot reload are not introduced. Default
-builds keep the accepted 74-shader package unchanged.
+conservative comparison includes compiler IDs. Runtime GLSL compilation and shader
+hot reload are not introduced. The 76-program package retains every byte of the
+74 legacy shader programs and adds the two explicitly authored PBR programs.
 
 Frame bounds are computed from stored quantized poses, including float vertex/bind
 values and accumulation padding. Source tangents are retained when every mesh
-provides them; otherwise that optional IQM array is omitted (material-specific
-tangent generation belongs to #13). Clip names must be unique and at most 63 UTF-8
+provides them; otherwise that optional IQM array is omitted and PBR uses its
+derivative tangent basis. Clip names must be unique and at most 63 UTF-8
 bytes. Joint transforms preserve scale-before-rotation, including rotated
 nonuniform scales; static transforms remain baked.

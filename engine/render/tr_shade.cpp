@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h"
+#include "tr_cooked.h"
 
 void RB_BindPipeline( uint32_t pipeline ) {
 	R_CheckRHI( RHI_BindPipeline( pipeline ), "pipeline binding" );
@@ -446,6 +447,8 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
 	tess.shader = state;
+	if ( state->metallicRoughness )
+		Com_Memset( tess.tangent, 0, sizeof( tess.tangent ) );
 	tess.fogNum = fogNum;
 
 #ifdef USE_LEGACY_DLIGHTS
@@ -1342,6 +1345,55 @@ void VK_LightingPass( void ) {
 }
 #endif // USE_PMLIGHT
 
+
+void RB_StageIteratorPbr( void ) {
+	RB_DeformTessGeometry();
+	materialParams_t material;
+	if ( !R_ResolveMaterialParams( &tess.shader->materialParams, &backEnd.currentEntity->materialOverride, &material ) )
+		return;
+	pbrUniform_t params = {};
+	VectorCopy( backEnd.orientation.viewOrigin, params.eye );
+	vec3_t ambient, directed, direction;
+	if ( backEnd.currentEntity == &tr.worldEntity ) {
+		vec3_t point = {};
+		for ( int i = 0; i < tess.numVertexes; ++i )
+			VectorAdd( point, tess.xyz[i], point );
+		VectorScale( point, 1.0f / (float)MAX( tess.numVertexes, 1 ), point );
+		if ( !R_LightForPoint( point, ambient, directed, direction ) ) {
+			VectorSet( ambient, 150, 150, 150 );
+			VectorSet( directed, 150, 150, 150 );
+			VectorCopy( tr.sunDirection, direction );
+		}
+	} else {
+		VectorCopy( backEnd.currentEntity->ambientLight, ambient );
+		VectorCopy( backEnd.currentEntity->directedLight, directed );
+		VectorCopy( backEnd.currentEntity->lightDir, direction );
+	}
+	VectorScale( ambient, 1.0f / 255.0f, params.ambient );
+	VectorScale( directed, 1.0f / 255.0f, params.directed );
+	VectorCopy( direction, params.lightDirection );
+	memcpy( params.color, material.color, sizeof( params.color ) );
+	VectorCopy( material.emissive, params.emissiveMetallic );
+	params.emissiveMetallic[3] = material.metallic;
+	VectorSet( params.surface, material.roughness, material.normalScale, material.alphaCutoff );
+	params.surface[3] = (float)material.flags;
+	if ( RHI_UploadUniform( &params, sizeof( params ) ) == RHI_INVALID_OFFSET )
+		return;
+	const shaderStage_t *stage = tess.xstages[0];
+	for ( int i = 0; i < 3; ++i )
+		RHI_BindTexture( RHI_BINDING_TEXTURE0 + i, &stage->bundle[i].image[0]->texture );
+	RB_BindPipeline( backEnd.viewParms.portalView == PV_MIRROR ? stage->vk_mirror_pipeline[0] : stage->vk_pipeline[0] );
+	tess.svars.texcoordPtr[0] = tess.texCoords[0];
+	RB_BindIndex();
+	RB_BindGeometry( TESS_XYZ | TESS_ST0 | TESS_NNN );
+	rhiVertexStream_t streams[RHI_MAX_VERTEX_STREAMS] = {};
+	streams[6].data = tess.tangent;
+	streams[6].size = tess.numVertexes * sizeof( tess.tangent[0] );
+	RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, 1U << 6, streams );
+	RB_DrawGeometry( tess.depthRange, qtrue );
+	if ( tess.fogNum && tess.shader->fogPass )
+		RB_FogPass( qfalse );
+}
 
 void RB_StageIteratorGeneric( void ) {
 #ifdef USE_VULKAN

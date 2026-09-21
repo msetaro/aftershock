@@ -227,6 +227,7 @@ typedef struct {
 #endif
 	qboolean intShaderTime;
 	const skeletalPose_t *skeletalPose; // Points into the owning renderer frame.
+	materialOverride_t materialOverride;
 } trRefEntity_t;
 
 
@@ -525,6 +526,8 @@ typedef struct shader_s {
 	// the same name, we don't try looking for it again
 
 	qboolean explicitlyDefined; // found in a .shader file
+	bool metallicRoughness;
+	materialParams_t materialParams;
 
 	int surfaceFlags; // if explicitlyDefined, this will have SURF_* flags
 	int contentFlags;
@@ -1631,6 +1634,7 @@ typedef struct shaderCommands_s {
 	glIndex_t indexes[SHADER_MAX_INDEXES] QALIGN( 16 );
 	vec4_t xyz[SHADER_MAX_VERTEXES * 2] QALIGN( 16 ); // 2x needed for shadows
 	vec4_t normal[SHADER_MAX_VERTEXES] QALIGN( 16 );
+	vec4_t tangent[SHADER_MAX_VERTEXES] QALIGN( 16 ); // PBR only; w=0 selects derivative basis.
 	vec2_t texCoords[2][SHADER_MAX_VERTEXES] QALIGN( 16 );
 	vec2_t texCoords00[SHADER_MAX_VERTEXES] QALIGN( 16 );
 	color4ub_t vertexColors[SHADER_MAX_VERTEXES] QALIGN( 16 );
@@ -1689,6 +1693,7 @@ void RB_CheckOverflow( int verts, int indexes );
 #define RB_CHECKOVERFLOW( v, i ) RB_CheckOverflow(v,i)
 
 void RB_StageIteratorGeneric( void );
+void RB_StageIteratorPbr( void );
 void RB_StageIteratorSky( void );
 
 void RB_AddQuadStamp( const vec3_t origin, const vec3_t left, const vec3_t up, color4ub_t color );
@@ -1811,6 +1816,7 @@ void R_InitNextFrame( void );
 void RE_ClearScene( void );
 void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
 bool RE_AddSkeletalEntityToScene( const refEntity_t *ent, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
+bool RE_AddMaterialEntityToScene( const refEntity_t *ent, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
 void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b );
@@ -2075,6 +2081,7 @@ int R_GetLightmapCoords( const int lightmapIndex, float *x, float *y );
 bool RE_GetDeveloperModel( int index, devModel_t *model );
 bool RE_GetDeveloperImage( int index, devImage_t *image );
 bool RE_GetDeveloperMaterial( int index, devMaterial_t *material );
+bool RE_SetDeveloperMaterial( int index, const materialParams_t *params );
 uint32_t RE_GetDeveloperTimings( devGpuTiming_t *timings, uint32_t capacity );
 uint32_t RE_CreateDeveloperTexture( unsigned char *pixels, int width, int height );
 void RE_DrawDeveloperUI( const devUiDraw_t *draw );

@@ -32,15 +32,16 @@ def encoder():
     return directory / ('aftershock-cook-bc7.exe' if os.name == 'nt' else 'aftershock-cook-bc7')
 
 
-def mipmaps(image, srgb, normal):
+def mipmaps(image, srgb, normal, data_alpha=False):
     levels = [image]
     # Filter premultiplied linear values; keep source texels unchanged at level zero.
     alpha = image.getchannel('A').point([v / 255 for v in range(256)], 'F')
     lut = [v / 255 for v in range(256)]
     if srgb:
         lut = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in lut]
-    bands = [ImageMath.lambda_eval(lambda a: a['c'] * a['a'],
-                                  c=image.getchannel(c).point(lut, 'F'), a=alpha) for c in 'RGB']
+    bands = [image.getchannel(c).point(lut, 'F') if data_alpha else
+             ImageMath.lambda_eval(lambda a: a['c'] * a['a'],
+                                   c=image.getchannel(c).point(lut, 'F'), a=alpha) for c in 'RGB']
     width, height = image.size
     while width > 1 or height > 1:
         width, height = max(1, width // 2), max(1, height // 2)
@@ -48,7 +49,7 @@ def mipmaps(image, srgb, normal):
         pixels = bytearray()
         for values in zip(*channels):
             a = values[3]
-            rgb = [c / a if a else 0 for c in values[:3]]
+            rgb = list(values[:3]) if data_alpha else [c / a if a else 0 for c in values[:3]]
             if normal:
                 vector = [c * 2 - 1 for c in rgb]
                 length = math.sqrt(sum(c * c for c in vector))
@@ -127,7 +128,7 @@ def cook(source, options):
         image = Image.merge('RGBA', channels)
     if fmt != 'bc7' or options.get('opaque', False):
         image.putalpha(255)
-    levels = mipmaps(image, srgb, normal)
+    levels = mipmaps(image, srgb, normal, options.get('data_alpha', False))
     encoded = blocks(levels, fmt)
     vk_format, model, block_bytes = {'bc7': (146 if srgb else 145, 134, 16),
                                     'bc5': (141, 132, 16), 'bc4': (139, 131, 8)}[fmt]
