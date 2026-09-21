@@ -63,4 +63,29 @@ uint32_t FX_Start( fxSystem_t *system, const fxAsset_t *asset, const float origi
 bool FX_Stop( fxSystem_t *system, uint32_t handle );
 // Presentation time only. No engine/game clock, world state or heap allocation.
 void FX_Update( fxSystem_t *system, uint32_t elapsedMs, fxTraceCallback_t trace, void *context );
+
+inline constexpr uint32_t DCL_MAX_DECALS = 128;
+struct decalAsset_t {
+	char name[32], colorMap[64], normalMap[64];
+	uint32_t lifetimeMs, fadeMs;
+	float halfSize[3], color[4], normalStrength;
+};
+struct decalInstance_t {
+	uint32_t handle, ageMs;
+	float origin[3], axis[3][3];
+	decalAsset_t asset;
+};
+struct decalSystem_t {
+	decalInstance_t items[DCL_MAX_DECALS];
+	uint32_t next, nextHandle, active;
+	uint64_t replaced;
+};
+static_assert( sizeof( decalAsset_t ) == 200 && offsetof( decalAsset_t, halfSize ) == 168 );
+static_assert( std::is_trivially_copyable_v<decalSystem_t> );
+bool DCL_Open( const void *data, size_t size, decalAsset_t *asset );
+void DCL_Reset( decalSystem_t *system );
+// Definition comes from Open; axes are orthonormal U/V/outward normal. No heap.
+uint32_t DCL_Add( decalSystem_t *system, const decalAsset_t *asset, const float origin[3], const float axis[3][3] );
+void DCL_Update( decalSystem_t *system, uint32_t elapsedMs );
+float DCL_Opacity( const decalInstance_t *instance );
 #endif

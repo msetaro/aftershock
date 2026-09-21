@@ -65,6 +65,17 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 decal data and fixed ring pass
+
+The existing effects module now accepts a 200-byte .asdc payload and owns a
+128-entry copied-definition insertion ring, with replacement counts, orthonormal
+projection axes, fade and overflow-safe expiry. The cooker and agent schema expose
+color/normal maps, full volume size, lifetime/fade, color and normal strength.
+GCC and Clang/libc++ UBSan pass (fidelity-decals-{pure,clang}.log); authored format
+examples/diagnostics pass (fidelity-decals-formats.log). No GPU projection is
+implemented yet. Next: native depth-projection/normal-map capture test first,
+then renderer bindings, material-hit dispatch, reload/editor and reference art.
+
 ## #161 projected-decal data/ring test first
 
 The existing effect test now requires a versioned .asdc definition with color and
@@ -95,8 +106,8 @@ GCC/Clang native graph tests retain the exact disabled descriptor hash and cover
 32 new combinations, blend state, upload exhaustion and state restoration. Pinned
 shader compilation reproduces all 91 shaders; the prior 88 arrays are unchanged
 (fidelity-soft-graph-{native,clang}.log, fidelity-soft-shader-check.log). Release
-build, formatting, boundary/type and agent protocol checks pass. Full lifetime
-analysis is still running (fidelity-soft-lifetimes.log). This is component evidence;
+build, formatting, boundary/type and agent protocol checks pass. Lifetime
+analysis passed all 1232 compilation commands (fidelity-soft-lifetimes.log). This is component evidence;
 final reference-scene goldens and hardware budgets remain outstanding.
 
 ## #161 live soft-depth contract fails first

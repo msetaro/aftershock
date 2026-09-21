@@ -24,3 +24,13 @@ def cook(source,name,read):
             row.get('rotation',0),row.get('rotation_spread',0),row.get('angular_velocity',0),
             row.get('light',{}).get('radius',0),row.get('light',{}).get('intensity',0),*row.get('light',{}).get('color',[1,1,1])))
     return {name+'.asfx':wrapped(b'ASEFFECT',data,version=2)}
+
+
+def cook_decal(source,name,read):
+    definition=json.loads(read(source))
+    if definition['fade_ms']>definition['lifetime_ms']:
+        raise ValueError('fade_ms must not exceed lifetime_ms')
+    data=struct.pack('<32s64s64sII8f',text(definition['name'],32),text(definition['color_map']),text(definition['normal_map']),
+                     definition['lifetime_ms'],definition['fade_ms'],*[size*.5 for size in definition['size']],
+                     *definition['color'],definition['normal_strength'])
+    return {name+'.asdc':wrapped(b'ASDECAL\0',data)}

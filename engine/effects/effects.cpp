@@ -203,3 +203,80 @@ void FX_Update( fxSystem_t *system, uint32_t elapsedMs, fxTraceCallback_t trace,
 		}
 	}
 }
+
+
+bool DCL_Open( const void *data, size_t size, decalAsset_t *asset ) {
+	if ( !data || !asset || size != 48 + sizeof( decalAsset_t ) )
+		return false;
+	const auto *bytes = (const uint8_t *)data;
+	uint32_t envelope[2];
+	std::memcpy( envelope, bytes + 8, sizeof( envelope ) );
+	if ( std::memcmp( bytes, "ASDECAL", 8 ) || envelope[0] != 1 || envelope[1] != sizeof( decalAsset_t ) )
+		return false;
+	uint8_t hash[32];
+	calc_sha_256( hash, bytes + 48, size - 48 );
+	if ( std::memcmp( hash, bytes + 16, sizeof( hash ) ) )
+		return false;
+	decalAsset_t result;
+	std::memcpy( &result, bytes + 48, sizeof( result ) );
+	if ( !Text( result.name, sizeof( result.name ) ) || !Text( result.colorMap, sizeof( result.colorMap ) ) ||
+		 !Text( result.normalMap, sizeof( result.normalMap ) ) || !result.lifetimeMs || result.lifetimeMs > 600000 ||
+		 !result.fadeMs || result.fadeMs > result.lifetimeMs || !Between( result.normalStrength, 0, 4 ) )
+		return false;
+	for ( float size : result.halfSize )
+		if ( !Between( size, .005f, 2048 ) )
+			return false;
+	for ( float color : result.color )
+		if ( !Between( color, 0, 1 ) )
+			return false;
+	*asset = result;
+	return true;
+}
+void DCL_Reset( decalSystem_t *system ) {
+	*system = {};
+}
+uint32_t DCL_Add( decalSystem_t *system, const decalAsset_t *asset, const float origin[3], const float axis[3][3] ) {
+	if ( !system || !asset || !origin || !axis )
+		return 0;
+	for ( uint32_t i = 0; i < 3; ++i ) {
+		if ( !std::isfinite( origin[i] ) )
+			return 0;
+		for ( uint32_t j = 0; j < 3; ++j ) {
+			float product = 0;
+			for ( uint32_t k = 0; k < 3; ++k )
+				product += axis[i][k] * axis[j][k];
+			if ( !Between( product, i == j ? .999f : -.001f, i == j ? 1.001f : .001f ) )
+				return 0;
+		}
+	}
+	auto &instance = system->items[system->next];
+	if ( instance.handle )
+		++system->replaced;
+	else
+		++system->active;
+	instance = {};
+	if ( !++system->nextHandle )
+		++system->nextHandle;
+	instance.handle = system->nextHandle;
+	instance.asset = *asset;
+	std::memcpy( instance.origin, origin, sizeof( instance.origin ) );
+	std::memcpy( instance.axis, axis, sizeof( instance.axis ) );
+	system->next = ( system->next + 1 ) % DCL_MAX_DECALS;
+	return instance.handle;
+}
+void DCL_Update( decalSystem_t *system, uint32_t elapsedMs ) {
+	for ( auto &instance : system->items ) {
+		if ( !instance.handle )
+			continue;
+		if ( elapsedMs >= instance.asset.lifetimeMs - instance.ageMs ) {
+			instance.handle = 0;
+			--system->active;
+		} else
+			instance.ageMs += elapsedMs;
+	}
+}
+float DCL_Opacity( const decalInstance_t *instance ) {
+	if ( !instance->handle )
+		return 0;
+	return std::min( 1.f, float( instance->asset.lifetimeMs - instance->ageMs ) / float( instance->asset.fadeMs ) );
+}
