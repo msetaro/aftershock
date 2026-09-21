@@ -270,6 +270,23 @@ static void occlusionCommands() {
 	RHI_EndPass();
 }
 int main( int argc, char **argv ) {
+	if ( argc == 2 && !strcmp( argv[1], "--hdr" ) ) {
+		const VkFormat base = VK_FORMAT_R8G8B8A8_UNORM;
+		vk_config = {};
+		vk_config.hdr = 2;
+		assert(get_hdr_format(base) == base);
+		vk_config.fbo = 1;
+		vk_config.hdr = 0;
+		assert(get_hdr_format(base) == base);
+		vk_config.hdr = -1;
+		assert(get_hdr_format(base) == VK_FORMAT_B4G4R4A4_UNORM_PACK16);
+		vk_config.hdr = 1;
+		assert(get_hdr_format(base) == VK_FORMAT_R16G16B16A16_UNORM);
+		vk_config.hdr = 2;
+		assert(get_hdr_format(base) == VK_FORMAT_R16G16B16A16_SFLOAT);
+		puts( "PASS: floating HDR target and unchanged legacy color formats" );
+		return 0;
+	}
 	const bool occlusion = argc > 1 && !strcmp( argv[1], "--ssao" );
 	qvkCreateRenderPass = createPass;
 	qvkCreateFramebuffer = createFramebuffer;

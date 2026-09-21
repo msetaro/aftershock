@@ -67,6 +67,16 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #161 initial floating HDR contract
+
+The existing native graph probe now checks that a new hdr=2 offscreen mode uses
+R16G16B16A16_SFLOAT, while direct/legacy modes retain their exact formats. The
+pre-implementation run passes the accepted 36-configuration descriptor hash and
+all existing shadow/SSAO configurations, then fails the floating-format assertion
+(fidelity-graph-before.log). No shader bytes or accepted oracle were regenerated.
+This fixes the native format expectation only; post passes, history/motion vectors,
+feature-on software references and measured budgets are still outstanding.
+
 ## #161 hardware measurement preparation
 
 The existing renderer runs on the local RTX 3080 Ti at verified 2560x1440

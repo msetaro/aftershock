@@ -41,4 +41,5 @@ for name in ('native', 'contract'):
         occlusion = run([binary, '--ssao'], capture_output=True, timeout=10)
         (output / 'native-ssao.txt').write_bytes(occlusion.stdout)
         print('PASS: 32 SSAO native configurations retain sampled MSAA/stencil depth and compatible scene loads', flush=True)
+        run([binary, '--hdr'], timeout=10)
 print('PASS: graph dependencies, retained/exported resources, lifetimes and fixed capacities')
