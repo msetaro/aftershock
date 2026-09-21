@@ -101,7 +101,12 @@ def fetch(lock_path,out,offline=False):
                 originals.append(dict(path=original.relative_to(stage).as_posix(),sha256=digest(original)))
                 with Image.open(io.BytesIO(data)) as image:
                     require(image.width*image.height<=64*1024*1024, 'source texture exceeds pixel budget')
-                    pixels = image.convert('RGBA')
+                    if image.mode in ('I;16','I;16L','I;16B','I'):
+                        low,high = image.getextrema()
+                        require(0<=low<=high<=65535, 'grayscale texture must be unsigned 16-bit data')
+                        pixels = image.convert('I').point(lambda value:value/257).convert('RGBA')
+                    else:
+                        pixels = image.convert('RGBA')
                 if max(pixels.size)>resolution:
                     pixels = next(p for p in mipmaps(pixels,channel in ('color','emission'),channel=='normal') if max(p.size)<=resolution)
                 channels[channel] = pixels

@@ -49,6 +49,17 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 source-range correction passes
+
+The owned 16-bit gradient contract passes after normalization before RGBA conversion
+(sketch-height16.log). A fresh real Manhattan kit also validates all 36 files;
+its prepared ambientCG height map retains range 10..219 instead of saturation
+(sketch-fetch-normalized.log). Originals remain byte-identical. Corrected kit:
+/home/matt/.cache/aftershock-modernization/manhattan-kit-normalized.
+Review also identified that existing-output reuse only checks the lock and file
+hashes; add a preparation/cooker fingerprint control before accepting reuse across
+tool updates. This is still unmerged #164 tooling, with no engine changes.
+
 ## #164 16-bit preparation control
 
 The fetch contract now includes an owned I;16 gradient and requires normalized
