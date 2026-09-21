@@ -19,6 +19,9 @@ static int readRevision( const char *path, void *buffer, int capacity ) {
 	reads++;
 	return 32;
 }
+void R_ReloadEffects( const cookedIndex_t * ) {
+	abort();
+}
 void R_ReloadCookedModels( const cookedIndex_t * ) {
 	abort();
 }

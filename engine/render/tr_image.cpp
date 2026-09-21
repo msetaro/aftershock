@@ -1133,6 +1133,7 @@ void R_PollCookedAssets( void ) {
 		}
 		R_ReloadCookedMaterials( &index );
 		R_ReloadCookedModels( &index );
+		R_ReloadEffects( &index );
 	} else {
 		ri.Printf( PRINT_WARNING, "Cooked asset index does not match its published revision\n" );
 	}

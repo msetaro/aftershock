@@ -36,10 +36,11 @@ scoped to msetaro/aftershock. Evidence is under the persistent modernization cac
 While those gates run, #161 test-first preparation is isolated in
 /home/matt/.cache/aftershock-modernization/fidelity-tree, branch
 issue/161-visual-fidelity from current main. Its initial tests/effects.py contract
-fails on the absent effect cooker (effects-cook-before.log). Its pure effect implementation is now proceeding locally; no PR yet. It must
+failed on the absent effect cooker (effects-cook-before.log); the component now
+passes both compilers, and initial sprite/control/reload/restart rendering passes. Its pure effect implementation is now proceeding locally; no PR yet. It must
 integrate accepted #164 main before its PR/final gates/merge; no old issue is redone and no accepted fixture changes.
-Read issue #161 as the spec. Native fixed-pool contract is also committed and fails on the absent public header
-(effects-native-before.log). Keep #164 fixed while the independent effect code progresses here. Do not mix either branch's source edits.
+Read issue #161 as the spec. Native fixed-pool contract was committed before its implementation
+(effects-native-before.log); current passing evidence is below. Keep #164 fixed while the independent effect code progresses here. Do not mix either branch's source edits.
 
 Measured #164 reference: per-class compiled IoU 1.0 (threshold 0.93), safe spawns,
 5.2-second resting-start route, 6000 bot frames, 17 kills/53 pickups and no observed
@@ -65,6 +66,24 @@ module contract also passes. All payloads stay in user cache; no local system pa
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #161 initial native sprite/reload/restart pass
+
+Release client/server build succeeds with the fixed effect code linked into the
+renderer only. Shared renderer API controls register/start/stop/report; the native
+agent calls the existing renderer accessor. The renderer submits sprite/mesh/trail
+primitives, copied material/model bindings and optional static-world collision,
+with fixed pools and no play-time allocations. Authored effects retain their data
+and bindings across reload. Watched reload validates the published whole-file hash.
+
+The new native test passes on lavapipe/OpenArena: eight visible sprites, expiry,
+unchanged memory counters, a watched edit from eight to three particles, and
+renderer restart/re-registration (fidelity-effects-runtime.log). The initial
+square-marker capture was reviewed; it is a rendering control, not the final
+reference effect art or an accepted golden. Own MAP/BSP/AAS remain unchanged.
+Build integration initially caught two renderer API type mismatches, corrected
+before the successful build. Mesh/trail/soft/light/reference/editor/performance
+coverage is still outstanding; nothing here claims full #161 acceptance.
 
 ## #161 native effect rendering contract
 

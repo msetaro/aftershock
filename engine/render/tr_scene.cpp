@@ -519,6 +519,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.litSurfs = backEndData->litSurfs;
 #endif
 
+	R_AddEffects( fd );
 	tr.refdef.num_entities = r_numentities - r_firstSceneEntity;
 	tr.refdef.entities = &backEndData->entities[r_firstSceneEntity];
 

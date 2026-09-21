@@ -33,7 +33,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-formats-', dir=os.environ.ge
         assert result.returncode == 1, result.stdout
         error = json.loads(result.stderr)['error']
         assert error['file'] == str(source) and key in error['path'] and error['hint'], error
-        if kind in ('weapon', 'animation', 'material', 'level'):
+        if kind in ('weapon', 'animation', 'material', 'level', 'effect'):
             if kind == 'level':
                 command = [sys.executable, 'tools/level', str(source), '--map-only', '--output', str(Path(temporary)/'level-output')]
             else:

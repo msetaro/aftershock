@@ -2093,6 +2093,7 @@ void R_Init( void ) {
 	R_InitSkins();
 
 	R_ModelInit();
+	R_InitEffects();
 
 	R_InitFreeType();
 
@@ -2273,6 +2274,10 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.ModelBounds = R_ModelBounds;
 
 	re.ClearScene = RE_ClearScene;
+	re.RegisterEffect = RE_RegisterEffect;
+	re.StartEffect = RE_StartEffect;
+	re.StopEffect = RE_StopEffect;
+	re.EffectStats = RE_EffectStats;
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
 	re.AddSkeletalEntityToScene = RE_AddSkeletalEntityToScene;
 	re.AddMaterialEntityToScene = RE_AddMaterialEntityToScene;

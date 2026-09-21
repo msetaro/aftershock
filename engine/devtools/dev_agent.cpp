@@ -1261,7 +1261,65 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"effects\",\"effects.load\",\"effects.start\",\"effects.stop\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+	} else if ( !strcmp( op, "effects" ) || !strcmp( op, "effects.load" ) || !strcmp( op, "effects.start" ) || !strcmp( op, "effects.stop" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Presentation effects require a client build." );
+#else
+		if ( capacity < 1024 )
+			return false;
+		const refexport_t *renderer = DevTools_Renderer();
+		if ( !renderer )
+			return reply.Error( "invalid_state", "$", "Load a rendered map before controlling effects." );
+		uint32_t handle = 0;
+		if ( !strcmp( op, "effects.load" ) ) {
+			p = JSON_ObjectGetNamedValue( request, end, "path" );
+			if ( !Agent_String( p, end, name, MAX_QPATH ) )
+				return reply.Error( "invalid_argument", "$.path", "Use a cooked .asfx qpath." );
+			handle = (uint32_t)renderer->RegisterEffect( name );
+			if ( !handle )
+				return reply.Error( "load_failed", "$.path", "Load a map and a valid cooked effect with available materials/models." );
+		} else if ( !strcmp( op, "effects.start" ) ) {
+			uint32_t asset, seed;
+			vec3_t origin, angles;
+			if ( !Agent_Integer( request, end, "asset", asset ) || asset > INT32_MAX || !Agent_Integer( request, end, "seed", seed ) ||
+				 !Agent_Vector( request, end, "origin", origin, -65536, 65536 ) || !Agent_Vector( request, end, "angles", angles, -360, 360 ) )
+				return reply.Error( "invalid_argument", "$", "Use an asset handle, unsigned seed, origin and angles." );
+			vec3_t axis[3];
+			AnglesToAxis( angles, axis );
+			handle = renderer->StartEffect( (qhandle_t)asset, origin, axis, seed );
+			if ( !handle )
+				return reply.Error( "start_failed", "$.asset", "Use a loaded effect; the fixed instance pool may be full." );
+		} else if ( !strcmp( op, "effects.stop" ) ) {
+			if ( !Agent_Integer( request, end, "handle", handle ) )
+				return reply.Error( "invalid_argument", "$.handle", "Use the handle returned by effects.start." );
+			const bool stopped = renderer->StopEffect( handle );
+			reply.Text( stopped ? ",\"ok\":true,\"result\":{\"stopped\":true}}" : ",\"ok\":true,\"result\":{\"stopped\":false}}" );
+			return reply.valid;
+		} else {
+			fxRenderStats_t stats;
+			renderer->EffectStats( &stats );
+			reply.Text( ",\"ok\":true,\"result\":{\"particles\":" );
+			reply.Number( stats.pool.particles );
+			reply.Text( ",\"instances\":" );
+			reply.Number( stats.pool.instances );
+			reply.Text( ",\"dropped\":" );
+			reply.Number( (double)stats.pool.dropped );
+			reply.Text( ",\"collisions\":" );
+			reply.Number( (double)stats.pool.collisions );
+			reply.Text( ",\"registered\":" );
+			reply.Number( stats.registered );
+			reply.Text( ",\"reloads\":" );
+			reply.Number( stats.reloads );
+			reply.Text( ",\"draws\":" );
+			reply.Number( stats.draws );
+			reply.Text( "}}" );
+			return reply.valid;
+		}
+		reply.Text( ",\"ok\":true,\"result\":{\"handle\":" );
+		reply.Number( handle );
+		reply.Text( "}}" );
+#endif
 	} else if ( !strcmp( op, "assets" ) || !strcmp( op, "asset.select" ) || !strcmp( op, "material.set" ) || !strcmp( op, "material.preview" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Renderer assets require a client build." );

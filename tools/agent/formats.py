@@ -181,7 +181,7 @@ def describe(kind):
                        password='local-secret',token='allocation-secret')
     notes = 'Schema checks structure/ranges; cook/build still checks references, resources and semantic constraints.'
     if kind == 'effect':
-        notes = 'Authoring-only contract pending #161. No effect runtime or cooker exists yet; this does not render effects.'
+        notes = 'Cook kind effect into .asfx; the native effects controls load and play its bounded presentation emitters.'
     return dict(kind=kind,schema=schema(kind),example=example,notes=notes)
 
 

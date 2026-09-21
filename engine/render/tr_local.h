@@ -1621,6 +1621,12 @@ qboolean RE_GetEntityToken( char *buffer, int size );
 
 model_t *R_AllocModel( void );
 
+void R_InitEffects( void );
+void R_AddEffects( const refdef_t *view );
+qhandle_t RE_RegisterEffect( const char *path );
+uint32_t RE_StartEffect( qhandle_t asset, const vec3_t origin, const vec3_t axis[3], uint32_t seed );
+bool RE_StopEffect( uint32_t handle );
+void RE_EffectStats( fxRenderStats_t *stats );
 void R_Init( void );
 
 void R_SetColorMappings( void );

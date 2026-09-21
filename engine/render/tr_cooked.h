@@ -53,3 +53,7 @@ enum class cookedModelStatus_t { Legacy,
 	Valid,
 	Invalid };
 cookedModelStatus_t R_ReadCookedModel( const void *data, size_t size, uint8_t hash[32] );
+
+#ifdef AFTERSHOCK_DEVTOOLS
+void R_ReloadEffects( const cookedIndex_t *index );
+#endif
