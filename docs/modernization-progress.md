@@ -49,6 +49,15 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 pinned theme fetch contract
+
+The next test uses owned pixel inputs in a private content-hash cache and a pinned
+Poly-Haven-shaped lock. It requires offline fetch, retention of complete PBR source
+channels, production ASMAT cooking, valid manifest/CREDITS, byte-identical repeated
+kits and refusal of corrupted cache content. It fails first because fetch is not
+implemented (sketch-fetch-before.log). Provider adapters must produce this same
+lock contract; cache content is verified even on offline hits.
+
 ## #164 theme-license enforcement passes
 
 The initial manifest validator passes all required negative controls and emits
