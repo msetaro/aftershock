@@ -19,6 +19,13 @@ hit-box evaluation. Its public contract contains POD records; filesystem loading
 uses qcommon handles and zone ownership outside frame evaluation. Game/cgame own
 replicated inputs and presentation policy; render owns copied skin matrices.
 
+`engine/physics` owns the single cosmetic Jolt world behind a POD public contract.
+Caller-supplied map storage owns all dependency allocations; shapes, slots and
+constraints are prepared before fixed stepping. Unused slots remain asleep on a
+non-colliding, query-excluded layer. The client alone links this subsystem; native
+movement, traces, hit registration and authoritative projectiles stay in CM/game.
+Foreign allocation failure terminates and must never longjmp through Jolt.
+
 `engine/weapons` owns cooked weapon definitions, seeded fixed-tick state, reloads,
 attachments, projectile math and notify deduplication. All runtime records are POD
 and bounded; game owns damage/rewind and actors, cgame owns prediction/presentation,

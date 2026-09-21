@@ -73,6 +73,7 @@ set(COMMON_SOURCES
 )
 
 set(CLIENT_SOURCES
+  engine/physics/physics.cpp
   engine/client/cl_cgame.cpp
   engine/client/cl_cin.cpp
   engine/client/cl_console.cpp

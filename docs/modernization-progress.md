@@ -46,10 +46,9 @@ The owned POD boundary now passes caller-owned storage, all 256 prepared body
 slots, four spawn/recycle cycles, inactive filtering, ray/convex queries and
 swing/twist joint reuse on both compilers. Independent C++ allocation counters
 caught query-filter wrappers outside the arena; their registered allocation
-operators now pass too. Next link the client target, add map collision loading,
+operators now pass too. The full client/server build and owned lifetime AST pass. Next add map collision loading,
 client prop/grenade presentation, skeleton deaths and tooling. Preserve native
-movement/hit registration and run fixed demos. No engine target links physics
-yet, and #15 has no PR. The branch checkpoint is
+movement/hit registration and run fixed demos. The client now links the module but has no runtime calls yet; #15 has no PR. The branch checkpoint is
 pushed through 0aeeb11c; issue comment 5765963611 records the dependency evidence.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
@@ -76,6 +75,17 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 client target builds with the owned module
+
+CMake links Jolt/joltc and engine/physics only into the client. Strict FP options
+apply to the owned module; MSVC runtime selection matches engine static runtime.
+The development client and dedicated server build successfully in
+physics-client-build. Format, type and subsystem gates pass. clang-query-21 with
+the real client compilation command finds no owned non-trivial stack/global or
+temporary destructors (physics-lifetimes.log). The lifetime core list now includes
+physics. No runtime entry point calls the module yet; map loading/presentation
+and full required hosted gates remain.
 
 ## #15 owned boundary and query allocator checks pass
 
