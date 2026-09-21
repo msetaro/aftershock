@@ -53,6 +53,16 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 shooter report contract
+
+The controlled-world report test requires agent-traced spawn/objective visibility,
+explicit blocked/clear sightline checks, lane/cover/sightline metrics and a labeled
+first-contact estimate. It must reject exposed spawns and an incorrectly claimed
+clear sightline, with suggested fixes. Routes explicitly require a subsequent
+movement playtest. The contract fails on the absent intents module
+(sketch-intents-before.log). Use the actual native trace channel for integration;
+keep estimated travel time distinct from measured movement playback.
+
 ## #164 oriented modules and active OpenArena bots pass
 
 Both fresh Blender kits pass native OBJ-axis bounds and byte-repeatability checks
