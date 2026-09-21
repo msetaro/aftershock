@@ -1,6 +1,8 @@
 """Version 1 schema and conservative design-rule checks for brush levels."""
 from collections import deque
 import math
+import hashlib
+import struct
 from pathlib import PurePosixPath
 import re
 
@@ -48,13 +50,9 @@ def camera_specs(viewpoints):
     return viewpoints
 
 
-def validate(level, assets):
-    fields(level, ('version','name','materials','rules','rooms','connections','spawns','cover','props','pickups','lighting'), ('viewpoints',))
-    require(type(level['version']) is int and level['version']==1, 'level version must be 1')
-    require(isinstance(level['name'],str) and re.fullmatch(r'[a-z][a-z0-9_]{0,31}',level['name']), 'invalid map name')
-    fields(level['materials'], ('floor','wall','trim','cover','prop','sky'))
+def material_sources(materials, assets, *, pbr=False):
     sources = {}
-    for role,path in level['materials'].items():
+    for role,path in materials.items():
         qpath(path)
         require(path != 'level/playerclip', 'reserved material name')
         candidates = [assets / 'textures' / (path+extension) for extension in ('.tga','.png','.jpg')]
@@ -62,6 +60,63 @@ def validate(level, assets):
         require(found is not None, 'missing material: '+path)
         require(found.resolve().is_relative_to(assets.resolve()), 'material outside asset directory')
         sources[found.relative_to(assets).as_posix()] = found
+        material = assets/'textures'/(path+'.asmat')
+        if pbr and material.is_file():
+            require(material.resolve().is_relative_to(assets.resolve()), 'material outside asset directory')
+            data = material.read_bytes()
+            require(len(data)==288 and struct.unpack_from('<8sII',data)==(b'ASMAT\0\0\0',2,240) and
+                    hashlib.sha256(data[48:]).digest()==data[16:48], 'level materials require valid cooked PBR v2')
+            sources[material.relative_to(assets).as_posix()] = material
+            for offset in (96,160,224):
+                name = data[offset:offset+64].split(b'\0',1)[0].decode()
+                qpath(name)
+                texture = assets/name
+                require(name.endswith('.ktx2') and texture.is_file() and texture.resolve().is_relative_to(assets.resolve()),
+                        'missing/outside cooked material texture: '+name)
+                sources[name] = texture
+    return sources
+
+
+def prop_asset(prop, assets, y_up=False):
+    qpath(prop['model'])
+    path = assets/prop['model']
+    require(path.is_file() and path.resolve().is_relative_to(assets.resolve()), 'missing model or model outside assets')
+    # Both versions accept self-contained OBJ geometry. No external material/texture references.
+    require(path.suffix=='.obj' and path.stat().st_size<=4*1024*1024, 'props require OBJ geometry up to 4 MiB')
+    require(not any(line.split() and line.split()[0] in ('mtllib','call') for line in path.read_text().splitlines()),
+            'OBJ props must be self-contained without external references')
+    vertices = []
+    faces = 0
+    for line in path.read_text().splitlines():
+        tokens = line.split('#',1)[0].split()
+        if not tokens:
+            continue
+        if tokens[0]=='v':
+            require(len(tokens)==4, 'OBJ vertices require x y z')
+            vertex = [float(v) for v in tokens[1:]]
+            if y_up:
+                vertex = [vertex[0],-vertex[2],vertex[1]]
+            vector(vertex,integer=False)
+            require(all(abs(v-c)<=s/2+(1e-5 if y_up else 0) for v,c,s in zip(vertex,prop.get('bounds_center',[0,0,0]),prop['size'])), 'prop geometry outside declared size')
+            vertices.append(vertex)
+        elif tokens[0]=='f':
+            require(len(tokens)>=4, 'OBJ faces require at least three vertices')
+            faces += 1
+        else:
+            require(tokens[0] in ('vt','vn','o','g','s','usemtl'), 'unsupported OBJ directive')
+    require(vertices and faces, 'prop needs vertices and faces')
+    return path
+
+
+def validate(level, assets):
+    if level.get('version')==2:
+        from polygons import validate as validate_polygons
+        return validate_polygons(level,assets)
+    fields(level, ('version','name','materials','rules','rooms','connections','spawns','cover','props','pickups','lighting'), ('viewpoints',))
+    require(type(level['version']) is int and level['version']==1, 'level version must be 1')
+    require(isinstance(level['name'],str) and re.fullmatch(r'[a-z][a-z0-9_]{0,31}',level['name']), 'invalid map name')
+    fields(level['materials'], ('floor','wall','trim','cover','prop','sky'))
+    sources = material_sources(level['materials'],assets)
     rules = level['rules']
     fields(rules, ('min_corridor_width','min_door_height','max_sightline','max_cover_gap'))
     for v in rules.values():
@@ -148,31 +203,7 @@ def validate(level, assets):
         vector(prop['size'],1,2048)
         require(type(prop['solid']) is bool, 'solid must be boolean')
         require(prop['material'] in level['materials'], 'unknown prop material role')
-        qpath(prop['model'])
-        path = assets/prop['model']
-        require(path.is_file() and path.resolve().is_relative_to(assets.resolve()), 'missing model or model outside assets')
-        # Version 1 accepts self-contained OBJ geometry. No external material/texture references.
-        require(path.suffix=='.obj' and path.stat().st_size<=4*1024*1024, 'props require OBJ geometry up to 4 MiB')
-        require(not any(line.split() and line.split()[0] in ('mtllib','call') for line in path.read_text().splitlines()),
-                'OBJ props must be self-contained without external references')
-        vertices = []
-        faces = 0
-        for line in path.read_text().splitlines():
-            tokens = line.split('#',1)[0].split()
-            if not tokens:
-                continue
-            if tokens[0]=='v':
-                require(len(tokens)==4, 'OBJ vertices require x y z')
-                vertex = [float(v) for v in tokens[1:]]
-                vector(vertex,integer=False)
-                require(all(abs(v)<=s/2 for v,s in zip(vertex,prop['size'])), 'prop geometry outside declared size')
-                vertices.append(vertex)
-            elif tokens[0]=='f':
-                require(len(tokens)>=4, 'OBJ faces require at least three vertices')
-                faces += 1
-            else:
-                require(tokens[0] in ('vt','vn','o','g','s','usemtl'), 'unsupported OBJ directive')
-        require(vertices and faces, 'prop needs vertices and faces')
+        path = prop_asset(prop,assets)
         sources[prop['model']] = path
         a,b = [[v+sign*s/2 for v,s in zip(prop['origin'],prop['size'])] for sign in (-1,1)]
         require(any(all(lo[k]<=a[k] and b[k]<=hi[k] for k in range(3)) for lo,hi in bounds), 'prop outside room')

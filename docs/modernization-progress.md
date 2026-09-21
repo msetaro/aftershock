@@ -20,52 +20,62 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#164 is awaiting final exact-head gates on draft PR167 at 5a9b98a1, based on
-current main ee4e95fc. Build 35584845138 passes all 16 compiler legs; regression
-35584845147 is running. The preceding b48ff26b regression 35584110359 was cancelled
-as superseded after its build passed. All local #164 implementation/reference/
-iteration/default-command/provided-retarget checks pass; self-review is below.
-Do not merge until every required final check passes, then recheck API main and
-PR base, merge with a merge commit, compare trees and require merged-tree build,
-publication and regression. Known-good stays 8bc8c94c -> 81a0f9dc.
+#164 is merged: PR167 -> main 81e40b0cfabdcd63b14964e4a1bee0f4decd7195.
+Final head 5a9b98a1 passed build 35584845138 (all 16 compiler legs) and regression
+35584845147 (all 10 active jobs). Main/base was rechecked immediately before the
+merge. Tested and merged tree both equal e615033d2dcd39b966d8ba51bb38c59ec8e4358e.
+Known-good remains 8bc8c94c -> 81a0f9dc. Merged-tree build/publication 35589995081
+and regression 35589995016 are running; monitor both and require success before
+marking #164 accepted in #25. No source changes remain in its sketch-tree branch.
 
-#164 worktree: /home/matt/.cache/aftershock-modernization/sketch-tree,
-issue/164-sketch-level. It is clean at 5a9b98a1; all GitHub writes are explicitly
-scoped to msetaro/aftershock. Evidence is under the persistent modernization cache.
+Continue #161 in /home/matt/.cache/aftershock-modernization/fidelity-tree,
+issue/161-visual-fidelity. The #164 main merge is integrated forward here; resolve
+progress/hello-command overlap by retaining both histories and all trace/effect
+commands. No #161 PR yet. Current code passes pure effect/cooker GCC and Clang,
+native sprite/control/reload/restart, initial floating HDR target, and offline
+mesh LOD checks. The initial native OpenArena fixed-demo comparison passes its
+unchanged accepted frame hash (fidelity-legacy-demo.log). No accepted fixture or
+existing shader changed. Details and test-first failures are below.
 
-While those gates run, #161 test-first preparation is isolated in
-/home/matt/.cache/aftershock-modernization/fidelity-tree, branch
-issue/161-visual-fidelity from current main. Its initial tests/effects.py contract
-failed on the absent effect cooker (effects-cook-before.log); the component now
-passes both compilers, and initial sprite/control/reload/restart rendering passes. Its pure effect implementation is now proceeding locally; no PR yet. It must
-integrate accepted #164 main before its PR/final gates/merge; no old issue is redone and no accepted fixture changes.
-Read issue #161 as the spec. Native fixed-pool contract was committed before its implementation
-(effects-native-before.log); current passing evidence is below. Keep #164 fixed while the independent effect code progresses here. Do not mix either branch's source edits.
+Next implementation: finish native mesh screen-size LOD selection and lifecycle
+validation, plus the full #161 effect set/material impact binding, soft particles,
+mesh/trail/light coverage, live ImGui authoring and counters. Projected normal-map
+decals, filmic/LUT/post/TAA with real motion vectors, mip streaming/async uploads,
+reviewed software frames and hardware budgets all remain required. Existing pure
+LOD output is not yet used by the renderer. Before automatic LOD discovery, add
+a hash-bound cooked level manifest so old sibling files cannot become live LODs
+after authoring changes. Keep the original IQM bytes/geometry compatibility checks.
 
-Measured #164 reference: per-class compiled IoU 1.0 (threshold 0.93), safe spawns,
-5.2-second resting-start route, 6000 bot frames, 17 kills/53 pickups and no observed
-stuck bots. Building-7 iteration changes only its MAP geometry and has 16 kills/
-49 pickups. Exact default command with installed Quake 3 content has 18 kills/
-51 pickups. All produce two named and eighteen fly-through captures. Supplied
-retarget preserves existing bind matrices/root displacement/licenses; private
-GPL outputs are rejected by unchanged CC0 theme publication policy.
+Reference hardware: RTX 3080 Ti, 12288 MiB, driver 595.91.07. Use a real 1440p
+offscreen target with small Xvfb presentation for measured budgets; report CPU
+and GPU separately. Software-renderer captures remain separate visual controls.
+Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
+Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
+Build: /home/matt/.cache/aftershock-modernization/fidelity-build (Release DEVTOOLS).
+All evidence is under /home/matt/.cache/aftershock-modernization; no local packages.
 
-#161 performance hardware is available locally: NVIDIA GeForce RTX 3080 Ti,
-12288 MiB VRAM, driver 595.91.07 (nvidia-smi). Select it explicitly for hardware
-1440p measurements; retain lavapipe for repeatable reviewed rendering controls.
-Do not claim hardware budgets from software-renderer timings.
+#164 retained evidence: compiled per-class IoU 1.0, safe spawns, resting-start
+5.2-second route, 6000 bot frames, 17 kills/53 pickups; edited building-7 variant
+16 kills/49 pickups, default-command Quake 3 run 18 kills/51 pickups, no observed
+stuck bots. Each has two named/eighteen fly-through captures. Provided retarget
+preserves bind matrices/root motion/licenses. Final self-review is below.
 
-Drawing decisions: its own handwritten key is authoritative. Geometry, annotation
-and gameplay intent stay distinct; use original owned reference drawings and
-report ambiguity. Reuse pinned q3map2/MBSPC; Shapely 2.1.2 handles polygon operations
-and OpenCV 4.12.0.88 handles image measurements. Private-cache venv:
-/home/matt/.cache/aftershock-modernization/sketch-python. Blender 5.0.1 is installed
-in user cache from the official RWTH mirror after pinned SHA256 verification. Both CC0
-library APIs have produced a pinned, cooked reference material kit; the Blender
-module contract also passes. All payloads stay in user cache; no local system packages.
+Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
+All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
+known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
-Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
-All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+## #164 merge and #161 compatibility checkpoint
+
+PR167 is ready/merged after every required final check passed. The conditional
+PR publication jobs are not required PR gates; the actual main publication must
+now pass. Merge 81e40b0c has the exact tested source tree. Main is merged forward
+into #161 without rewriting either branch. The old authored branch remains clean.
+
+The initial #161 effects/HDR/LOD tree passes both fixed OpenArena replay fixtures
+and accepted Mesa frame hash 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+GCC/Clang LOD payloads are byte-identical. Protocol, format/boundary/type and authored
+schema controls pass; the schema command needs the private Go bin directory.
+This does not replace #161's eventual full exact-head/current-main gates.
 
 ## #161 offline mesh LODs pass
 

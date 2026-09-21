@@ -54,6 +54,9 @@ def floor_at(connection, rooms, point):
 
 
 def generate(level):
+    if level.get('version')==2:
+        from polygons import generate as generate_polygons
+        return generate_polygons(level)
     materials = level['materials']
     rooms = {r['id']: r for r in level['rooms']}
     world, entities = [], []

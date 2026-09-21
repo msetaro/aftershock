@@ -19,7 +19,7 @@ from tools.scratch import ROOT as SCRATCH
 from tools.agent.formats import validate as validate_format, diagnostic
 
 
-def shaders(level):
+def shaders(level,cooked=()):
     sky = level['materials']['sky']
     lighting = level['lighting']
     sun = ''
@@ -29,10 +29,17 @@ def shaders(level):
         azimuth = math.degrees(math.atan2(y,x))
         elevation = math.degrees(math.atan2(z,math.hypot(x,y)))
         sun = f"    q3map_sun {vector(s['color'])} {s['intensity']} {azimuth:.9g} {elevation:.9g}\n"
+    extra = ''
+    if level['version']==2:
+        from polygons import surface_shaders
+        extra = surface_shaders(level,cooked)+('textures/level/fence\n{\n    surfaceparm nonsolid\n    surfaceparm playerclip\n'
+                 '    surfaceparm alphashadow\n    cull none\n    {\n'
+                 f'        map textures/{level["materials"]["trim"]}\n'
+                 '        rgbGen identity\n    }\n}\n')
     return (f'textures/{sky}\n{{\n    qer_editorimage textures/{sky}\n'
             '    surfaceparm sky\n    surfaceparm noimpact\n    surfaceparm nolightmap\n'
             f'{sun}    skyparms - 512 -\n    {{\n        map textures/{sky}\n        rgbGen identity\n    }}\n}}\n'
-            'textures/level/playerclip\n{\n    surfaceparm nodraw\n    surfaceparm nonsolid\n    surfaceparm playerclip\n}\n')
+            'textures/level/playerclip\n{\n    surfaceparm nodraw\n    surfaceparm nonsolid\n    surfaceparm playerclip\n}\n'+extra)
 
 
 def main():
@@ -71,12 +78,24 @@ def main():
                     if (stage/'compile.log').exists():
                         output.mkdir(parents=True,exist_ok=True)
                         shutil.copyfile(stage/'compile.log',output/'compile.log')
+
+            cooked = {role:path for role,path in level['materials'].items() if (stage/'textures'/(path+'.asmat')).is_file()}
+            if level['version']==2 and cooked:
+                from polygons import pieces,surface_material
+                for record in pieces(level)[1]:
+                    if record['material'] in cooked and not record['id'].startswith('boundary_'):
+                        target = stage/'textures'/(surface_material(level,record)+'.asmat')
+                        target.parent.mkdir(parents=True,exist_ok=True)
+                        shutil.copyfile(stage/'textures'/(cooked[record['material']]+'.asmat'),target)
+                # q3map2 uses the image/lightmap shader; native rendering resolves
+                # the cooked PBR alias. An explicit runtime shader would shadow it.
+                (stage/'scripts/level.shader').write_bytes(shaders(level,cooked).encode())
             for path in sorted(stage.rglob('*')):
                 if path.is_file():
                     target = output/path.relative_to(stage)
                     target.parent.mkdir(parents=True,exist_ok=True)
                     shutil.copyfile(path,target)
-        print(json.dumps(dict(version=1,name=level['name'],**paths,report=report,
+        print(json.dumps(dict(version=level['version'],name=level['name'],**paths,report=report,
                               sha256={kind:hashlib.sha256((output/path).read_bytes()).hexdigest() for kind,path in paths.items() if path}),sort_keys=True))
     except (OSError,ValueError,KeyError,TypeError,subprocess.SubprocessError) as exc:
         print(json.dumps(dict(ok=False,error=diagnostic(exc,args.source,'check geometry/assets and tools/agent describe level'))),file=sys.stderr)
@@ -85,6 +104,12 @@ def main():
 
 
 if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='build':
+        from build import main as build_main
+        sys.exit(build_main(sys.argv[2:]))
+    if len(sys.argv)>1 and sys.argv[1]=='trace':
+        from sketch import main as trace_main
+        sys.exit(trace_main(sys.argv[2:]))
     if len(sys.argv)>1 and sys.argv[1]=='validate':
         from headless import main as validate_main
         sys.exit(validate_main(sys.argv[2:]))

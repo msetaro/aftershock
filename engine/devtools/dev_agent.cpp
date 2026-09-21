@@ -396,7 +396,6 @@ static bool Agent_Number( const char *request, const char *end, const char *name
 	return true;
 }
 
-#ifndef DEDICATED
 static bool Agent_Vector( const char *request, const char *end, const char *name, float *value, float minimum, float maximum, int count = 3 ) {
 	const char *p = JSON_ObjectGetNamedValue( request, end, name );
 	if ( JSON_ValueGetType( p, end ) != JSONTYPE_ARRAY || JSON_ArrayGetIndex( p, end, nullptr, 0 ) != (uint32_t)count )
@@ -412,7 +411,6 @@ static bool Agent_Vector( const char *request, const char *end, const char *name
 	}
 	return true;
 }
-#endif
 
 static bool Agent_Bool( const char *request, const char *end, const char *name, bool &value ) {
 	const char *p = JSON_ObjectGetNamedValue( request, end, name );
@@ -1261,7 +1259,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"effects\",\"effects.load\",\"effects.start\",\"effects.stop\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"effects\",\"effects.load\",\"effects.start\",\"effects.stop\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"trace\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
 	} else if ( !strcmp( op, "effects" ) || !strcmp( op, "effects.load" ) || !strcmp( op, "effects.start" ) || !strcmp( op, "effects.stop" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Presentation effects require a client build." );
@@ -1524,6 +1522,37 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 			snprintf( value, sizeof( value ), "devmap %s\n", name );
 			Cbuf_AddText( value );
 		}
+	} else if ( !strcmp( op, "trace" ) ) {
+		if ( CM_NumInlineModels() <= 0 )
+			return reply.Error( "invalid_state", "$", "Load a map before tracing its static collision world." );
+		vec3_t start, finish, mins{}, maxs{};
+		if ( !Agent_Vector( request, end, "start", start, -32752, 32752 ) || !Agent_Vector( request, end, "end", finish, -32752, 32752 ) )
+			return reply.Error( "invalid_argument", "$", "Provide start and end [x,y,z] within world bounds." );
+		p = JSON_ObjectGetNamedValue( request, end, "hull" );
+		if ( !Agent_String( p, end, name, sizeof( name ) ) || ( strcmp( name, "point" ) && strcmp( name, "player" ) ) )
+			return reply.Error( "invalid_argument", "$.hull", "Choose point for solid sightlines or player for the standard player box and clip mask." );
+		const bool player = !strcmp( name, "player" );
+		if ( player ) {
+			VectorSet( mins, -15, -15, -24 );
+			VectorSet( maxs, 15, 15, 32 );
+		}
+		trace_t trace{};
+		CM_BoxTrace( &trace, start, finish, mins, maxs, 0, player ? CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_BODY : CONTENTS_SOLID, qfalse );
+		reply.Text( ",\"ok\":true,\"result\":{\"fraction\":" );
+		reply.Number( trace.fraction );
+		reply.Text( ",\"end\":" );
+		reply.Vector( trace.endpos );
+		reply.Text( ",\"normal\":" );
+		reply.Vector( trace.plane.normal );
+		reply.Text( ",\"start_solid\":" );
+		reply.Text( trace.startsolid ? "true" : "false" );
+		reply.Text( ",\"all_solid\":" );
+		reply.Text( trace.allsolid ? "true" : "false" );
+		reply.Text( ",\"contents\":" );
+		reply.Number( trace.contents );
+		reply.Text( ",\"surface_flags\":" );
+		reply.Number( trace.surfaceFlags );
+		reply.Text( "}}" );
 	} else if ( !strcmp( op, "camera" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Camera control requires a client build." );

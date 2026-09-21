@@ -1184,3 +1184,25 @@ available. `--job runtime` (or another listed id) runs a subset and explicitly
 marks the report `full: false`. Every subprocess inherits its job's private root;
 run in separate worktrees with separate roots for concurrency acceptance. The
 full hosted build matrix, including MSVC, remains a separate required merge gate.
+
+
+## Sketch-to-level development gates (#164)
+
+Use the pinned Python dependencies in `tools/level/requirements.txt`. Component
+gates are `tests/level_polygons.py --compile`, `tests/sketch.py`,
+`tests/level_intents.py`, `tests/theme_assets.py`, `tests/asset_providers.py`,
+`tests/theme_fetch.py`, `tests/blender_kit.py` and `tests/blender_retarget.py`. The compiled polygon gate keeps
+all accepted v1 MAP/BSP/AAS references unchanged. Theme/license controls reject an
+unlisted or unapproved asset; remote originals stay in the content-addressed user
+cache. No local package installation is performed.
+
+`tests/theme_level.py --library DIR --modules DIR --client PATH --server PATH
+--output DIR` validates seeded dressing/native PBR, rejects exposed spawns, and
+runs a timed native route plus an impossible-time negative control before strict
+bot/capture checks. `tests/sketch_build.py` takes the same options and tests the
+owned reference drawing and a two-storey building-7 iteration through the complete
+level/agent build commands. Add `--content openarena --data DIR` for hosted content.
+Without binaries the latter runs only semantics/geometry, not native acceptance.
+Fresh retained output directories are required; none of these gates records
+accepted goldens. See `tools/level/README.md` for report fields and interpretation
+limits, and `tools/blender/README.md` for pinned procedural module provenance.

@@ -51,12 +51,13 @@ def input_state(engine, **fields):
     engine.request('input', **(dict(forward=0, right=0, up=0, yaw=0, pitch=0) | fields))
 
 
-def run_script(engine, script, map_name, output):
+def run_script(engine, script, map_name, output, *, configure_session=True):
     report = dict(version=1, ok=False, map=map_name, results=[], captures=[])
     location = '$'
     try:
         engine.request('hello')
-        engine.request('session', dt=script.get('dt', 20), seed=script.get('seed', 1))
+        if configure_session:
+            engine.request('session', dt=script.get('dt', 20), seed=script.get('seed', 1))
         engine.request('subscribe', enabled=True)
         engine.request('map', name=map_name)
         engine.step(script.get('warmup', 150))

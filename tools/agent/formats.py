@@ -64,7 +64,10 @@ def level_schema():
                   rooms=array(room,1), connections=array(connection), spawns=array(spawn,1), cover=array(cover,1),
                   props=array(prop), pickups=array(obj(dict(classname=enum(*pickups),origin=vector()))),
                   lighting=lighting, viewpoints=array(view,0,64))
-    return obj(fields,[key for key in fields if key!='viewpoints'])
+    legacy = obj(fields,[key for key in fields if key!='viewpoints'])
+    from tools.level.schema import version2
+    return {'if':dict(properties=dict(version=dict(const=2)),required=['version']),
+            'then':version2(legacy),'else':legacy}
 
 
 def weapon_schema():
