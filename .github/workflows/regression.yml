@@ -103,6 +103,7 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/post.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/temporal.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects_reference.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/lod.py --cxx '${{ matrix.cxx }}'
       - name: Declarative level language and design rules

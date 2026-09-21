@@ -69,6 +69,23 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 temporal history component implemented
+
+The pure renderer cache now keeps two bounded views and up to 256 entity/skin
+records each, statically under 4 MiB with trivial storage and no allocation.
+GCC/Clang UBSan probes pass copied poses, consecutive rendered frames (including
+unsigned wrap), sparse/missing entities, model/hash changes, teleport/FOV/axis
+cuts, viewport changes, failed resolves, invalid numeric input and overflow
+(fidelity-temporal-{after,clang}.log). It does not use oldorigin/oldframe as
+previous-rendered state. Existing legacy records and authoritative code are
+unchanged. CMake, affected selection and unit CI include the new component.
+
+This is not wired into rendering yet. Next independent #161 work: submit stable
+presentation identities, capture real previous posed vertices/view matrices and
+add motion/jitter/TAA passes with visual controls. PR168 still waits for hosted
+runtime; adopt its accepted descriptor correction and remeasure RTX post before
+claiming hardware acceptance. All current work remains in msetaro/aftershock.
+
 ## #161 temporal history test-first contract
 
 PR168's last runtime gate is still running; the previous accepted runtime took

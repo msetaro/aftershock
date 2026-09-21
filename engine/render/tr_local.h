@@ -234,6 +234,34 @@ typedef struct {
 } trRefEntity_t;
 
 
+// History belongs to rendered views, not game ticks or animation interpolation.
+constexpr uint32_t MAX_TEMPORAL_ENTITIES = 256;
+struct temporalView_t {
+	uint32_t frame, width, height;
+	rhiRect_t viewport;
+	float viewProjection[16];
+	vec3_t origin, axis[3];
+	float fovX, fovY;
+};
+struct temporalEntity_t {
+	uint64_t identity;
+	refEntity_t entity;
+	skeletalPose_t pose;
+	uint8_t modelHash[32];
+	bool hasPose;
+};
+struct temporalStats_t {
+	uint32_t stored, matched, rejected, overflow;
+};
+void R_TemporalReset();
+bool R_TemporalBeginView( const temporalView_t *view );
+const temporalView_t *R_TemporalPreviousView();
+// Returned records stay valid until the next BeginView; input poses are copied.
+const temporalEntity_t *R_TemporalEntity( uint64_t identity, const trRefEntity_t *entity, const uint8_t modelHash[32] );
+void R_TemporalEndView( bool rendered );
+temporalStats_t R_TemporalStats();
+
+
 typedef struct {
 	vec3_t origin; // in world coordinates
 	vec3_t axis[3]; // orientation in world

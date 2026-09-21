@@ -1321,3 +1321,9 @@ watcher; invalid profiles retain the preceding settings. Profile exposes draw,
 upload-drop and load counters. Motion-blur data is reserved for the pending
 motion-vector implementation; TAA, final scene/goldens and budgets are still
 #161 work. The post stack remains opt-in until those gates pass.
+
+`python3 tests/temporal.py` checks the renderer's fixed-capacity previous-view
+cache with GCC/Clang and UBSan. It copies up to 256 entity transforms/skin poses
+per view in less than 4 MiB, rejecting stale identities/models, skipped or failed
+frames, teleports, view cuts and viewport changes. This is the CPU history
+component; motion-vector rendering, jitter and TAA acceptance are still pending.
