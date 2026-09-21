@@ -1262,6 +1262,11 @@ void RE_TextureStats( textureStreamingStats_t *stats ) {
 	stats->usedBytes = device.usedBytes;
 	stats->peakBytes = device.peakBytes;
 	stats->retiredBytes = device.retiredBytes;
+	const auto upload = RHI_GetTextureUploadStats();
+	stats->gpuUsec = upload.gpuUsec;
+	stats->gpuSamples = upload.gpuSamples;
+	stats->uploadSubmissions = upload.submissions;
+	stats->uploadBytes = upload.submittedBytes;
 	stats->sourceBytes = imageStream.used;
 	stats->sourceBudgetBytes = imageStream.capacity;
 	stats->images = imageStream.count;

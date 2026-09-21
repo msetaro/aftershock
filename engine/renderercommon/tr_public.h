@@ -30,9 +30,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 29
+#define REF_API_VERSION 30
 #else
-#define REF_API_VERSION 23
+#define REF_API_VERSION 24
 #endif
 
 //
@@ -47,7 +47,8 @@ typedef enum {
 
 struct textureStreamingStats_t {
 	uint64_t budgetBytes, usedBytes, peakBytes, retiredBytes, sourceBytes, sourceBudgetBytes;
-	uint64_t cpuUsec, cpuPeakUsec;
+	uint64_t cpuUsec, cpuPeakUsec, gpuSamples, uploadSubmissions, uploadBytes;
+	double gpuUsec;
 	uint32_t images, fullResolution, promotions, demotions, deferred, failures, pending, reloads;
 };
 static_assert( std::is_trivially_copyable_v<textureStreamingStats_t> );

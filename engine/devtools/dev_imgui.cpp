@@ -1611,6 +1611,8 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 		textures.images, textures.fullResolution, textures.promotions, textures.demotions, textures.deferred, textures.failures );
 	ImGui::Text( "Streaming CPU %.3f ms; pending %u; retiring %.1f MiB; reloads %u", (double)textures.cpuUsec / 1000,
 		textures.pending, (double)textures.retiredBytes / ( 1024 * 1024 ), textures.reloads );
+	ImGui::Text( "Texture upload GPU %.3f ms (%" PRIu64 " samples); %" PRIu64 " submissions / %.1f MiB",
+		textures.gpuUsec / 1000, textures.gpuSamples, textures.uploadSubmissions, (double)textures.uploadBytes / ( 1024 * 1024 ) );
 	ImGui::TextUnformatted( "Completed GPU frame (no additional wait)" );
 	for ( uint32_t i = 0; i < count; ++i )
 		ImGui::Text( "%s: %.3f ms", timings[i].name, timings[i].microseconds / 1000.0 );

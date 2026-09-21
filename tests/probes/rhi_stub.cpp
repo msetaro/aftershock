@@ -36,6 +36,9 @@ rhiStatus_t RHI_ReplaceCompressedTexture( rhiTexture_t *, int32_t, int32_t, int3
 rhiStatus_t RHI_UploadCompressedTexture( const rhiTexture_t *, int32_t, int32_t, int32_t, const uint8_t *, uint32_t, rhiFormat_t, bool ) {
 	return rhiStatus_t::Unavailable;
 }
+rhiTextureUploadStats_t RHI_GetTextureUploadStats() {
+	return {};
+}
 rhiStatus_t RHI_InitTextureUploads() {
 	return rhiStatus_t::Unavailable;
 }

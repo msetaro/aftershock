@@ -142,6 +142,13 @@ static_assert( sizeof( rhiTexture_t ) == 32 && std::is_trivially_copyable_v<rhiT
 [[nodiscard]] rhiStatus_t RHI_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update );
 // Whole BC mip chain, largest level first, tightly packed 4x4 blocks.
 [[nodiscard]] rhiStatus_t RHI_UploadCompressedTexture( const rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, bool update );
+struct rhiTextureUploadStats_t {
+	uint64_t submittedBytes, submissions, gpuSamples;
+	double gpuUsec; // Last available completed submission; gpuSamples changes with a new result.
+};
+static_assert( std::is_trivially_copyable_v<rhiTextureUploadStats_t> );
+rhiTextureUploadStats_t RHI_GetTextureUploadStats();
+
 // Initialize fixed staging at map load. Poll once per frame; never waits for GPU work.
 // Queue accepts a fresh, unsampled image. Source bytes and image stay alive until
 // completion or shutdown; descriptor adoption/old-image retirement belong to caller.

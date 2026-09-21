@@ -16,6 +16,8 @@ static struct {
 	Vk_Instance::staging_buffer_s staging;
 	VkCommandBuffer command;
 	VkFence fence;
+	VkQueryPool timestamps;
+	rhiTextureUploadStats_t stats;
 	VkImage image;
 	const uint8_t *source;
 	uint32_t width, height, levels, blockBytes, size, offset, mip, row;
@@ -4748,7 +4750,7 @@ void RHI_BindIndices( rhiGeometryBuffer_t buffer, uint32_t offset ) {
 }
 
 rhiStats_t RHI_GetStats( void ) {
-	return { vk.stats.vertex_buffer_max, vk.geometry_buffer_size, vk.staging_buffer.size,
+	return { vk.stats.vertex_buffer_max, vk.geometry_buffer_size, vk.staging_buffer.size + vk_stream.staging.size,
 		vk.stats.push_size_max, vk.pipeline_create_count, vk.pipelines_count,
 		vk.pipelines_world_base, vk_world.num_image_chunks, vk.samplers.count, NUM_COMMAND_BUFFERS, vk.stats.frame_draw_calls };
 }
@@ -8484,6 +8486,8 @@ static void vk_clean_texture_uploads() {
 		qvkFreeCommandBuffers( vk.device, vk.command_pool, 1, &vk_stream.command );
 	if ( vk_stream.fence )
 		qvkDestroyFence( vk.device, vk_stream.fence, nullptr );
+	if ( vk_stream.timestamps )
+		qvkDestroyQueryPool( vk.device, vk_stream.timestamps, nullptr );
 	if ( vk_stream.staging.handle )
 		qvkDestroyBuffer( vk.device, vk_stream.staging.handle, nullptr );
 	if ( vk_stream.staging.memory )
@@ -8507,6 +8511,13 @@ rhiStatus_t RHI_InitTextureUploads() {
 		VkFenceCreateInfo fence{};
 		fence.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		VK_CHECK( qvkCreateFence( vk.device, &fence, nullptr, &vk_stream.fence ) );
+		if ( vk.timestampBits && vk.timestampPeriod > 0 ) {
+			VkQueryPoolCreateInfo queries{};
+			queries.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+			queries.queryType = VK_QUERY_TYPE_TIMESTAMP;
+			queries.queryCount = 2;
+			VK_CHECK( qvkCreateQueryPool( vk.device, &queries, nullptr, &vk_stream.timestamps ) );
+		}
 		return rhiStatus_t::Success;
 	} );
 	if ( status != rhiStatus_t::Success )
@@ -8542,6 +8553,10 @@ rhiStatus_t RHI_QueueTextureUpload( const rhiTexture_t *texture, int32_t width, 
 	return rhiStatus_t::Success;
 }
 
+rhiTextureUploadStats_t RHI_GetTextureUploadStats() {
+	return vk_stream.stats;
+}
+
 rhiStatus_t RHI_PollTextureUpload( bool *complete ) {
 	if ( !complete )
 		return rhiStatus_t::Error;
@@ -8557,6 +8572,18 @@ rhiStatus_t RHI_PollTextureUpload( bool *complete ) {
 				return rhiStatus_t::Success;
 			if ( ready != VK_SUCCESS )
 				return vk_status( ready );
+			if ( vk_stream.timestamps ) {
+				uint64_t results[2][2]{};
+				const VkResult result = qvkGetQueryPoolResults( vk.device, vk_stream.timestamps, 0, 2, sizeof( results ), results,
+					sizeof( results[0] ), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT );
+				if ( ( result == VK_SUCCESS || result == VK_NOT_READY ) && results[0][1] && results[1][1] ) {
+					uint64_t ticks = results[1][0] - results[0][0];
+					if ( vk.timestampBits < 64 )
+						ticks &= ( UINT64_C( 1 ) << vk.timestampBits ) - 1;
+					vk_stream.stats.gpuUsec = (double)ticks * vk.timestampPeriod / 1000;
+					++vk_stream.stats.gpuSamples;
+				}
+			}
 			vk_stream.waiting = false;
 			if ( vk_stream.offset == vk_stream.size ) {
 				vk_stream.active = false;
@@ -8571,6 +8598,10 @@ rhiStatus_t RHI_PollTextureUpload( bool *complete ) {
 		begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		VK_CHECK( qvkBeginCommandBuffer( vk_stream.command, &begin ) );
+		if ( vk_stream.timestamps ) {
+			qvkCmdResetQueryPool( vk_stream.command, vk_stream.timestamps, 0, 2 );
+			qvkCmdWriteTimestamp( vk_stream.command, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, vk_stream.timestamps, 0 );
+		}
 		if ( !vk_stream.offset )
 			record_image_layout_transition( vk_stream.command, vk_stream.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 0 );
 		VkBufferImageCopy regions[16]{};
@@ -8600,12 +8631,16 @@ rhiStatus_t RHI_PollTextureUpload( bool *complete ) {
 		qvkCmdCopyBufferToImage( vk_stream.command, vk_stream.staging.handle, vk_stream.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, count, regions );
 		if ( vk_stream.offset == vk_stream.size )
 			record_image_layout_transition( vk_stream.command, vk_stream.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0 );
+		if ( vk_stream.timestamps )
+			qvkCmdWriteTimestamp( vk_stream.command, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, vk_stream.timestamps, 1 );
 		VK_CHECK( qvkEndCommandBuffer( vk_stream.command ) );
 		VkSubmitInfo submit{};
 		submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submit.commandBufferCount = 1;
 		submit.pCommandBuffers = &vk_stream.command;
 		VK_CHECK( qvkQueueSubmit( vk.queue, 1, &submit, vk_stream.fence ) );
+		vk_stream.stats.submittedBytes += bytes;
+		++vk_stream.stats.submissions;
 		vk_stream.waiting = true;
 		return rhiStatus_t::Success;
 	} );

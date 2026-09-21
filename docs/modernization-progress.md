@@ -48,7 +48,8 @@ Next: add nonblocking upload timestamp reporting and measure streaming CPU/GPU
 budgets on the reference GPU, then complete the combined PBR/effects/decal/LOD/
 TAA/filmic visual scene and new reviewed software references. Bounded residency,
 async upload and the larger-than-budget runtime/hot-reload/restart checks pass.
-The lifetime scan is still running. Descriptor restoration is adopted; RTX
+The 1244-configuration lifetime scan passed. Initial 4 MiB streaming transfers
+exceed CPU/GPU budgets; reduce the batch size and remeasure. Descriptor restoration is adopted; RTX
 post runs complete. Initial copy-back exceeds its declared budget, so the post
 path stays default off. Camera jitter, history resolve, copied native IQM skin
 motion, reactive fallback and motion blur now execute but are not final visual
@@ -80,6 +81,27 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 first streaming hardware measurement: budget miss
+
+Nonblocking GPU timestamp reporting passes native GCC/Clang probes and real RTX
+execution. The renderer owns two upload queries and reads them only after the
+existing transfer fence, without a query wait. Profiler/ImGui expose cumulative
+submission bytes/count and uniquely numbered GPU samples. Renderer API is now
+30 development / 24 shipping. The frontend lifetime scan passed all 1244 commands
+(shipping/development, static/module, positive/seven-object negative controls).
+
+Serial RTX 3080 Ti / 595.91.07 measurement at 2560x1440 offscreen / 640x360 present,
+4096 warm frames and four cold/visible cycles samples every frame. Five owned 4K
+BC7 textures (~107 MiB) use 32 MiB residency / 128 MiB source. All 64 GPU submission
+samples are observed. With 4 MiB staging/batches, active CPU p50/p95/p99 is
+0.0135/0.291/0.348 ms (152 samples, max 0.485); GPU p50/p95/p99 is
+0.432784/1.286912/1.296640 ms (max 1.298080). Final frame CPU p50/p95/p99 is
+3.058/4.632/7.474 ms. Both declared 0.25 ms CPU and 0.50 ms GPU p95 budgets fail.
+The script fails its assertion after writing the full report; this is not accepted
+performance. Evidence stays in fidelity-hardware-streaming/report.json and .log.
+Next: reduce the fixed batch to 1 MiB and rerun the identical serial workload;
+do not change budgets or erase this result. Defaults remain off.
 
 ## #161 upload timing test-first
 
