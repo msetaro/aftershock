@@ -156,7 +156,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
     dressed = compile(changed,'dressed',full=args.compile)
     assert b'"classname" "misc_model"' in dressed['map'] and b'"angle" "30"' in dressed['map']
     shifted = folder/'assets/models/foot_crate.obj'
-    shifted.write_text('\n'.join('v '+ ' '.join([tokens[1],tokens[2],str(float(tokens[3])+32)])
+    shifted.write_text('\n'.join('v '+ ' '.join([tokens[1],str(float(tokens[3])+32),str(-float(tokens[2]))])
                                 if tokens and tokens[0]=='v' else line
                                 for line in (folder/'assets/models/crate.obj').read_text().splitlines()
                                 for tokens in [line.split()])+'\n')

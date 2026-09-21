@@ -118,7 +118,7 @@ def assemble(level,theme,library,modules,output,seed):
                     center=[A+s/2 for A,s in zip(low,size)]
                     yaw=math.degrees(math.atan2(dy,dx))
                     x,y=a[0]+dx*along+dy*rule['offset'],a[1]+dy*along-dx*rule['offset']
-                    z=item['base']+rule['height']
+                    z=math.ceil(item['base']+rule['height']-min(0,low[2]))
                     identity='p_'+hashlib.sha256(f"{item['id']}/{edge}/{index}/{rule['module']}".encode()).hexdigest()[:20]
                     prop=dict(id=identity,model='models/theme/'+rule['module']+'.obj',origin=[round(x),round(y),round(z)],
                               size=size,bounds_center=center,angle=round(yaw,6),material=rule['material'],solid=False)

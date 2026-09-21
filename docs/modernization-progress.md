@@ -36,8 +36,9 @@ overheads; its MAP occupancy/navigation pass. Formal schema, connected storeys/r
 sunken zones and full compile pass. Initial interpretation, licensed materials and
 pinned Blender modules pass. Rotated v2 props now compile and solid props join
 clearance checks, including foot-origin bounds. Additional tracing, compiled-overhead comparison and v2 navigation cameras now
-pass. Next: theme assembly, supplied-rig retargeting, shooter intent checks and
-the one-command agent playtest. This is partial work, not #164
+pass. Theme assembly, native PBR, OBJ axes and strict OpenArena bot/capture controls
+now pass. Next: shooter intent checks and the one-command sketch/agent pipeline,
+then supplied-rig retargeting and full reference-drawing acceptance. This is partial work, not #164
 acceptance. The issue and checkpoint contain measured results and decisions.
 
 Drawing decisions: its own handwritten key is authoritative. Geometry, annotation
@@ -51,6 +52,23 @@ module contract also passes. All payloads stay in user cache; no local system pa
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 oriented modules and active OpenArena bots pass
+
+Both fresh Blender kits pass native OBJ-axis bounds and byte-repeatability checks
+(sketch-obj-axes.log). Retained corrected kit: manhattan-modules-yup in the user
+cache. V2 validation converts Y-up OBJ coordinates with the same x,-z,y convention
+as the pinned compiler; v1 validation/output remains untouched. Compiled facades
+reach their declared 128-unit height, and the actual module image was reviewed.
+
+The reference sample now gives bots reachable weapon/ammo/health/armor goals.
+Its strict OpenArena run passes 6000 frames with 22 kills, 49 pickups, 240 samples,
+no observed stuck bots and no warnings (sketch-theme-oriented.log/report.json).
+A separate control caught below-origin crate trim being omitted; placement now
+accounts for the measured lowest vertex. Crates appear in the reviewed capture.
+Polygon/overhead/v1 compiled gates pass (sketch-obj-polygons.log). No accepted
+fixture or game package changed. Continue shooter intent reporting and integrated
+sketch build; supplied-rig retargeting remains open.
 
 ## #164 native review exposes OBJ axes and idle OpenArena bots
 

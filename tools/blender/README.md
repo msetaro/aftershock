@@ -31,3 +31,8 @@ output directories are refused, so failed generation never replaces a previous k
 `python3 tests/blender_kit.py` builds twice and compares every published file. The
 reference art is rule-built environment content; this tool does not generate
 characters, hands, first-person weapon models or weighted animation.
+
+OBJ exports use Y-up, as expected by the pinned q3map2 importer. Its `(x,-z,y)`
+conversion restores the native Z-up bounds recorded in `kit.json`. The gate checks
+that conversion explicitly; the compiled reference facade must reach its declared
+128-unit height. glTF and native IQM retain their existing cooker conventions.

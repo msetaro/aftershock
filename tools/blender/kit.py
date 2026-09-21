@@ -125,7 +125,7 @@ for name in ('facade','doorway','cornice','curb','stairs','fence','barrier','cra
     bpy.ops.export_scene.gltf(filepath=str(output/(name+'.gltf')),export_format='GLTF_SEPARATE',use_selection=True,
                               export_animations=False,export_yup=True,export_apply=True,export_extras=False)
     bpy.ops.wm.obj_export(filepath=str(output/(name+'.obj')),export_selected_objects=True,export_materials=False,
-                          global_scale=32,forward_axis='Y',up_axis='Z')
+                          global_scale=32,forward_axis='NEGATIVE_Z',up_axis='Y')
     bounds=[[min(v.co[k] for v in obj.data.vertices)*32 for k in range(3)],
             [max(v.co[k] for v in obj.data.vertices)*32 for k in range(3)]]
     high=sum(len(p.vertices)-2 for p in obj.data.polygons)

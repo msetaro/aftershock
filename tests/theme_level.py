@@ -49,6 +49,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
                spawns=[dict(team='ffa',origin=[-640,-512,24],angle=0),dict(team='ffa',origin=[640,-512,24],angle=180)],
                props=[],pickups=[],lighting=dict(ambient=32,lights=[]),
                intents=[dict(id='main_lane',kind='route',points=[[-900,-256],[900,-256]],width=128)])
+    level['pickups']=[dict(classname=name,origin=point) for name,point in [
+        ('weapon_rocketlauncher',[-512,-320,16]),('weapon_lightning',[512,-320,16]),
+        ('weapon_railgun',[0,0,16]),('ammo_rockets',[-576,256,16]),('ammo_lightning',[576,256,16]),
+        ('item_armor_combat',[0,-512,16]),('item_health',[0,256,16])]]
     level['viewpoints']=[dict(id='facades',origin=[0,-128,72],angles=[0,90,0]),
                          dict(id='street',origin=[-768,-64,72],angles=[0,20,0]),
                          dict(id='modules',origin=[0,640,72],angles=[0,-90,0])]
@@ -57,6 +61,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
     assert a==b and a['props'], 'theme placement must be seeded and repeatable'
     assert a['shapes']==level['shapes'], 'dressing changed authored geometry'
     assert any(p['material']=='kit_facade' for p in a['props']), 'facade modules must retain their baked material'
+    assert any(p['material']=='prop' for p in a['props']), 'ground dressing was silently omitted'
     for prop in a['props']:
         p,_,_=prop_bounds(prop)
         assert not p.intersects(LineString(level['intents'][0]['points']).buffer(64)), 'prop obstructs explicit lane'

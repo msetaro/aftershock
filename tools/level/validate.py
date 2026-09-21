@@ -77,7 +77,7 @@ def material_sources(materials, assets):
     return sources
 
 
-def prop_asset(prop, assets):
+def prop_asset(prop, assets, y_up=False):
     qpath(prop['model'])
     path = assets/prop['model']
     require(path.is_file() and path.resolve().is_relative_to(assets.resolve()), 'missing model or model outside assets')
@@ -94,6 +94,8 @@ def prop_asset(prop, assets):
         if tokens[0]=='v':
             require(len(tokens)==4, 'OBJ vertices require x y z')
             vertex = [float(v) for v in tokens[1:]]
+            if y_up:
+                vertex = [vertex[0],-vertex[2],vertex[1]]
             vector(vertex,integer=False)
             require(all(abs(v-c)<=s/2+1e-5 for v,c,s in zip(vertex,prop.get('bounds_center',[0,0,0]),prop['size'])), 'prop geometry outside declared size')
             vertices.append(vertex)

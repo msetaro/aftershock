@@ -340,3 +340,11 @@ V2 may add material roles (lowercase identifiers, at most 12 characters) alongsi
 the six required roles. That bound preserves native qpath limits for source-ID
 aliases. Reference facade/cornice modules bind their own baked PBR materials;
 their glTF/OBJ UVs are not remapped to the building's repeating wall image.
+
+V2 OBJ props use Y-up source coordinates. Validation applies the pinned compiler's
+`(x,-z,y)` conversion before checking native `size`/`bounds_center`; those bounds,
+origins and yaw remain in engine Z-up coordinates. V1 retains its historical
+validation/output contract and accepted fixtures. The strict reference theme bot
+check requires at least two kills and zero observed inactivity windows. Reachable
+item goals are authored explicitly, rather than assuming identical bot behavior
+between installed content sets.

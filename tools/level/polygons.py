@@ -412,7 +412,7 @@ def validate(level, assets):
     area,records = pieces(level)
     for prop in level['props']:
         require(prop['material'] in level['materials'], 'unknown prop material role')
-        sources[prop['model']] = prop_asset(prop,assets)
+        sources[prop['model']] = prop_asset(prop,assets,y_up=True)
     report = navigation(level,records)
     report.update(shapes=len(level['shapes']),playable_area=round(area.area,3),brushes=sum(len(convex_parts(r['polygon'])) for r in records))
     return sources,report
