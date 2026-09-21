@@ -304,6 +304,7 @@ const char *vk_format_string( VkFormat format ) {
 		CASE_STR( VK_FORMAT_B4G4R4A4_UNORM_PACK16 );
 		CASE_STR( VK_FORMAT_R4G4B4A4_UNORM_PACK16 );
 		CASE_STR( VK_FORMAT_R16G16B16A16_UNORM );
+		CASE_STR( VK_FORMAT_R16G16B16A16_SFLOAT );
 		CASE_STR( VK_FORMAT_A2B10G10R10_UNORM_PACK32 );
 		CASE_STR( VK_FORMAT_A2R10G10B10_UNORM_PACK32 );
 		CASE_STR( VK_FORMAT_B10G11R11_UFLOAT_PACK32 );
@@ -1323,6 +1324,8 @@ static VkFormat get_hdr_format( VkFormat base_format ) {
 		return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
 	case 1:
 		return VK_FORMAT_R16G16B16A16_UNORM;
+	case 2:
+		return VK_FORMAT_R16G16B16A16_SFLOAT;
 	default:
 		return base_format;
 	}
@@ -1443,6 +1446,14 @@ static void setup_surface_formats( VkPhysicalDevice physical_device ) {
 	vk.bloom_format = vk.base_format.format;
 
 	vk.blitEnabled = vk_blit_enabled( physical_device, vk.color_format, vk.capture_format );
+	if ( vk.color_format == VK_FORMAT_R16G16B16A16_SFLOAT ) {
+		VkFormatProperties properties;
+		qvkGetPhysicalDeviceFormatProperties( physical_device, vk.color_format, &properties );
+		const VkFormatFeatureFlags required = VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT |
+											  VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+		if ( ( properties.optimalTilingFeatures & required ) != required || !vk.blitEnabled )
+			vk_fail( ERR_FATAL, rhiStatus_t::Unavailable, "Floating HDR requires filtered/blended RGBA16F and RGBA8 capture conversion" );
+	}
 
 	if ( !vk.blitEnabled ) {
 		vk.capture_format = vk.color_format;

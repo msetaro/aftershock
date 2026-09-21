@@ -66,6 +66,16 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #161 floating target component pass
+
+hdr=2 now selects RGBA16F for offscreen rendering and reports its format; existing
+hdr=-1/0/1 and direct modes stay unchanged. Device setup requires sampled/blended
+linear-filtered float targets and the current RGBA8 capture conversion, rejecting
+unsupported hardware explicitly. The native graph test passes, including its
+unchanged descriptor hash, shadows and SSAO (fidelity-graph.log). No shader
+regeneration. This is not filmic/post acceptance: real captures and full post/TAA
+integration remain pending, and defaults remain at their accepted values.
+
 ## #161 initial effect cooker and fixed-pool runtime pass
 
 The existing cooker now accepts validated effect definitions, emits .asfx in the
