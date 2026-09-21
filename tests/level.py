@@ -60,6 +60,11 @@ with tempfile.TemporaryDirectory(prefix='aftershock-level-') as temporary:
     a = compile_level(source, folder / 'a')
     b = compile_level(source, folder / 'b')
     assert a == b, 'MAP output depends on the output directory or run'
+    sidecar=folder/'assets/textures'/(source['materials']['wall']+'.asmat')
+    sidecar.write_bytes(b'ignored by the version-1 contract')
+    assert compile_level(source,folder/'legacy-sidecar')==a, 'v2 material discovery changed v1 output'
+    sidecar.unlink()
+
     if not args.record_fixtures:
         compare('levels/two_lane.map', a['map'], False)
     text = a['map'].decode()

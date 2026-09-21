@@ -53,6 +53,23 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 full iteration passes; v1 compatibility review
+
+Both complete reference/agent builds pass in sketch-reference-resting{,-edited}.
+The two-storey/window variant records 16 kills, 49 pickups, no observed stuck bots,
+1.0 overlap in all classes, 5.2-second resting-start route, two named and eighteen
+fly-through captures. MAP source groups differ only for building_7. A separate
+native review camera confirms the upper window/storey and stairs
+(sketch-window-review/building_7.png). The exact default command is now running
+with automatic kit preparation/build and locally installed Quake 3 content.
+
+Self-review found shared material discovery was also reading ASMAT sidecars for
+version 1, which historically ignores them. A new v1 compatibility test fails
+(sketch-v1-sidecar-before.log). Restrict the new cooked-material staging to v2;
+preserve v1's exact historical OBJ bound tolerance as well. This is correction of
+the unmerged #164 feature path, not an engine bug fix. Re-run the v1/v2 compiled
+fixture checks after narrowing the shared helper. No golden regeneration.
+
 ## #164 resting-start timing and provided retarget pass
 
 The corrected native route test returns through normal input to the annotated
