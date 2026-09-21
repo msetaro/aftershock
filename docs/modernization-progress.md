@@ -69,6 +69,24 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 temporal graph resources
+
+Test-first c13573bd/4a0ecc1e require distinct persistent history images and four
+ordered motion/resolve/copy passes. The implementation allocates bounded RGBA16F
+motion/history attachments through the existing graph pool, creates both history
+write framebuffers, and releases all images/views/passes on restart. Temporal
+configuration requires the post path and single-sample rendering. No runtime
+switch, jitter, motion shader or resolve dispatch is enabled at this checkpoint.
+
+GCC and Clang native graph probes pass 36 legacy, 32 post and 16 temporal
+configurations, including both physical history framebuffer views and dependency
+checks (fidelity-temporal-graph{,-clang}.log). The first implementation run exposed
+a stale test pass-count assertion and a descriptor assertion before descriptor
+initialization; correcting those assertions produced passing checks. Client build,
+format (475 files), boundaries and fixed-width checks also pass
+(fidelity-temporal-graph-{build,format,boundaries,types}.log). Accepted fixtures
+remain unchanged. PR168 still awaits its last runtime job before merge.
+
 ## #161 previous-pose vertex component
 
 Test-first 022fb33b fails on missing R_IQMPreviousPositions

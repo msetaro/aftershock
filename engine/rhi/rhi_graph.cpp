@@ -65,6 +65,8 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 		return false;
 	if ( ( c.postProcess && !c.depthEffects ) || ( c.depthEffects && !c.offscreen ) || ( c.occlusionScale && ( !c.offscreen || c.occlusionScale > 2 ) ) )
 		return false;
+	if ( c.temporal && ( !c.postProcess || c.samples != 1 ) )
+		return false;
 	using T = rhiGraphTarget_t;
 	using P = rhiGraphPass_t;
 	using F = rhiGraphFormat_t;
@@ -109,6 +111,11 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 	}
 	if ( c.postProcess )
 		Target( graph, T::PostColor, c.renderWidth, c.renderHeight, 1, F::Color, sampledColor, L::Sampled );
+	if ( c.temporal ) {
+		Target( graph, T::Motion, c.renderWidth, c.renderHeight, 1, F::Temporal, sampledColor, L::Sampled );
+		Target( graph, T::HistoryWrite, c.renderWidth, c.renderHeight, 1, F::Temporal, sampledColor, L::Sampled ).persistent = true;
+		Target( graph, T::HistoryRead, c.renderWidth, c.renderHeight, 1, F::Temporal, sampledColor, L::Sampled ).persistent = true;
+	}
 	if ( c.occlusionScale || c.depthEffects ) {
 		auto &depth = graph->targets[(uint32_t)T::MainDepth];
 		depth.usage |= RHI_GRAPH_SAMPLED;
@@ -315,6 +322,26 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 			Attachment( apply, a.target, Load::Discard, Store::Store, a.initialLayout, a.finalLayout );
 		}
 	}
+	if ( c.temporal ) {
+		auto &initialize = Pass( graph, P::MotionInitialize, c.renderWidth, c.renderHeight, TargetBit( T::MainDepth ) );
+		Attachment( initialize, T::Motion, Load::Discard, Store::Store, L::Sampled, L::Sampled );
+		initialize.dependencies[0] = { rhiGraphStage_t::SceneAttachments, rhiGraphStage_t::FragmentColor,
+			RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_WRITE, RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE, true, false };
+		auto &geometry = Pass( graph, P::MotionGeometry, c.renderWidth, c.renderHeight, 0 );
+		Attachment( geometry, T::Motion, Load::Load, Store::Store, L::Sampled, L::Sampled );
+		Attachment( geometry, T::MainDepth, Load::Load, Store::Store, L::DepthSampled, L::DepthSampled,
+			c.stencil ? Load::Load : Load::Discard, c.stencil ? Store::Store : Store::Discard );
+		geometry.depth = 1;
+		geometry.dependencies[0] = { rhiGraphStage_t::FragmentColor, rhiGraphStage_t::SceneAttachments,
+			RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE, RHI_GRAPH_COLOR_READ | RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_READ, true, false };
+		geometry.dependencies[1] = { rhiGraphStage_t::SceneAttachments, rhiGraphStage_t::Fragment,
+			RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_READ, RHI_GRAPH_SHADER_READ, false, false };
+		auto &resolve = Pass( graph, P::TemporalResolve, c.renderWidth, c.renderHeight,
+			TargetBit( T::MainColor ) | TargetBit( T::Motion ) | TargetBit( T::HistoryRead ) );
+		Attachment( resolve, T::HistoryWrite, Load::Discard, Store::Store, L::Sampled, L::Sampled );
+		auto &apply = Pass( graph, P::TemporalApply, c.renderWidth, c.renderHeight, TargetBit( T::HistoryWrite ) );
+		Attachment( apply, T::MainColor, Load::Discard, Store::Store, L::Sampled, L::Sampled );
+	}
 	// Preserve the legacy IDs/possible-pass intervals when lighting is disabled.
 	// Creation order is independent of this dependency/lifetime order.
 	for ( uint32_t p = 0; p < (uint32_t)P::LocalShadow; ++p ) {
@@ -329,6 +356,12 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 			graph->executionOrder[graph->executionCount++] = P::Occlusion;
 			graph->executionOrder[graph->executionCount++] = P::OcclusionBlur;
 			graph->executionOrder[graph->executionCount++] = P::OcclusionApply;
+		}
+		if ( c.temporal && p == (uint32_t)P::Main ) {
+			graph->executionOrder[graph->executionCount++] = P::MotionInitialize;
+			graph->executionOrder[graph->executionCount++] = P::MotionGeometry;
+			graph->executionOrder[graph->executionCount++] = P::TemporalResolve;
+			graph->executionOrder[graph->executionCount++] = P::TemporalApply;
 		}
 		if ( c.depthEffects && p == (uint32_t)P::Main ) {
 			graph->executionOrder[graph->executionCount++] = P::Effects;

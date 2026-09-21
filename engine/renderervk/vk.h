@@ -38,7 +38,7 @@
 #define USE_DEDICATED_ALLOCATION
 #endif
 //#define MIN_IMAGE_ALIGN (128*1024)
-#define MAX_ATTACHMENTS_IN_POOL (13+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
+#define MAX_ATTACHMENTS_IN_POOL (16+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
 
 
 typedef struct {
@@ -164,7 +164,7 @@ typedef struct {
 	uint32_t image_memory_count;
 
 	struct {
-		VkRenderPass occlusion[3], particles, particlesResume, post[2];
+		VkRenderPass occlusion[3], particles, particlesResume, post[2], temporal[4];
 		VkRenderPass shadow[2];
 		VkRenderPass resume[2];
 		VkRenderPass main;
@@ -228,7 +228,7 @@ typedef struct {
 		VkFramebuffer gamma[MAX_SWAPCHAIN_IMAGES];
 		VkFramebuffer screenmap;
 		VkFramebuffer capture;
-		VkFramebuffer occlusion[2], particles, post[2];
+		VkFramebuffer occlusion[2], particles, post[2], temporal[5];
 		VkFramebuffer shadow[2];
 	} framebuffers;
 
@@ -352,6 +352,9 @@ typedef struct {
 	VkImage occlusion_image[2];
 	VkImageView occlusion_image_view[2];
 	VkDescriptorSet occlusion_descriptor[2];
+	VkImage temporal_image[3]; // Motion, followed by two persistent history images.
+	VkImageView temporal_image_view[3];
+	VkDescriptorSet temporal_descriptor[3];
 	VkImage post_image;
 	VkImageView post_image_view;
 	VkDescriptorSet post_descriptor;

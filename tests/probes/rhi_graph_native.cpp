@@ -463,7 +463,7 @@ int main( int argc, char **argv ) {
 		captureImages();
 		vk_create_render_passes();
 		vk_create_framebuffers();
-		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u)+(vk_config.occlusionScale?3u:0u)+(particles?2u:0u)+(post?2u:0u));
+		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u)+(vk_config.occlusionScale?3u:0u)+(particles?2u:0u)+(post?2u:0u)+(temporal?4u:0u));
 		assert( shadowPassCount == ( argc > 1 ? 2u : 0u ) && shadowImageCount == shadowPassCount );
 		if ( argc > 1 ) {
 			shadowCommands( false );
@@ -484,7 +484,7 @@ int main( int argc, char **argv ) {
 			if ( temporal ) {
 				assert( historyFramebuffers == 3 );
 				for ( uint32_t i = 0; i < 3; ++i )
-					assert( vk.temporal_image[i] && vk.temporal_image_view[i] && vk.temporal_descriptor[i] );
+					assert( vk.temporal_image[i] && vk.temporal_image_view[i] );
 				for ( uint32_t i = 0; i < 4; ++i )
 					assert( vk.render_pass.temporal[i] );
 				for ( uint32_t i = 0; i < 5; ++i )
@@ -498,6 +498,9 @@ int main( int argc, char **argv ) {
 				assert( node.depth == RHI_INVALID_OFFSET && node.resolve == ( vk.msaaActive ? 0u : RHI_INVALID_OFFSET ) );
 			}
 			shadowDescriptors();
+			if ( temporal )
+				for ( uint32_t i = 0; i < 3; ++i )
+					assert( vk.temporal_descriptor[i] );
 			if ( post )
 				assert( vk.post_descriptor );
 			vk.modules.shadow_vs = (VkShaderModule)(uintptr_t)11;

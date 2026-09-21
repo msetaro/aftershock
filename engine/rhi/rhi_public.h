@@ -499,6 +499,7 @@ struct rhiDeviceConfig_t {
 	uint32_t occlusionScale;
 	bool depthEffects = false;
 	bool postProcess = false;
+	bool temporal = false;
 };
 struct rhiDeviceInfo_t {
 	char renderer[1024], vendor[1024], version[1024], extensions[8192];
@@ -558,6 +559,9 @@ enum class rhiGraphTarget_t : uint32_t {
 	Occlusion,
 	OcclusionBlur,
 	PostColor,
+	Motion,
+	HistoryWrite,
+	HistoryRead,
 	Count
 };
 enum class rhiGraphPass_t : uint32_t {
@@ -586,6 +590,10 @@ enum class rhiGraphPass_t : uint32_t {
 	EffectsResume,
 	Post,
 	PostApply,
+	MotionInitialize,
+	MotionGeometry,
+	TemporalResolve,
+	TemporalApply,
 	Count
 };
 enum class rhiGraphFormat_t : uint32_t { Color,
@@ -594,7 +602,8 @@ enum class rhiGraphFormat_t : uint32_t { Color,
 	Capture,
 	Present,
 	ShadowDepth,
-	Occlusion };
+	Occlusion,
+	Temporal };
 enum class rhiGraphLayout_t : uint32_t { Undefined,
 	Sampled,
 	Color,
@@ -632,6 +641,7 @@ struct rhiGraphConfig_t {
 	uint32_t occlusionScale; // 0 off, 1 full resolution, 2 half resolution; requires offscreen.
 	bool depthEffects = false;
 	bool postProcess = false;
+	bool temporal = false;
 };
 struct rhiGraphTargetDesc_t {
 	uint32_t width, height, samples, usage;
