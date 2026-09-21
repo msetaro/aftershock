@@ -22,3 +22,11 @@ The command compiles MAP/BSP/AAS, validates structure and spawn paths, runs bots
 and writes named views, fly-through captures and a JSON report. Review the report
 and images before accepting a design. The short bot run here checks the command;
 use the default 6000 frames for design acceptance. No accepted fixtures are regenerated.
+
+For a drawn layout, use `python3 tools/agent build --sketch IMAGE --notes NOTES
+--theme manhattan --out DIR`. The [sketch build reference](../../tools/level/README.md#complete-sketch-build)
+covers explicit interpretation/assumptions, licensed theme kits, recorded entrance
+decisions, compiled overlap, native shooter/route checks and the full bot/capture
+gate. An optional following playtest uses the same agent channel. Keep each
+iteration in a fresh output directory and pass the previous interpretation for
+stable IDs; no editor or accepted-fixture regeneration is required.

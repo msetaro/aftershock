@@ -16,6 +16,7 @@ from tools.agent.formats import KINDS, describe, validate
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
+    commands.add_parser('build',help='sketch-to-level pipeline; use tools/agent build --help')
     run = commands.add_parser('run')
     run.add_argument('--map', required=True)
     run.add_argument('--script', type=Path, required=True)
@@ -70,4 +71,8 @@ def main():
 
 
 if __name__ == '__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='build':
+        sys.path.insert(0,str(ROOT/'tools/level'))
+        from tools.level.build import main as build_main
+        sys.exit(build_main(sys.argv[2:]))
     sys.exit(main())

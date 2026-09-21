@@ -1,0 +1,29 @@
+{
+  "assets": [
+    {
+      "attribution": "Original Aftershock reference drawing and structured agent reading",
+      "author": "Aftershock",
+      "cooked": [
+        {
+          "path": "reference.png",
+          "sha256": "fb2aa048d51325ad676f4f4ef94db18257f5827c7611b465264977661b4150b9"
+        },
+        {
+          "path": "notes.json",
+          "sha256": "71d08b49f21b142322bc60a95f51c259666c2be58555416bf8b78df1ea439c62"
+        }
+      ],
+      "id": "aftershock_sketch_reference",
+      "license": "CC0-1.0",
+      "originals": [
+        {
+          "path": "export.py",
+          "sha256": "92512c5a0772bb0f6434d3ddf11af043648187a61277c2456e5a5ff2a8103755"
+        }
+      ],
+      "retrieved": "2026-09-21",
+      "source_url": "https://github.com/msetaro/aftershock/blob/main/tests/assets/sketch/export.py"
+    }
+  ],
+  "version": 1
+}

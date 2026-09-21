@@ -1,0 +1,95 @@
+{
+  "assets": [
+    {
+      "attribution": "brick_wall_001 by Dimitrios Savva, Rob Tuytel, CC0-1.0",
+      "author": "Dimitrios Savva, Rob Tuytel",
+      "files": {
+        "ao": {
+          "bytes": 470899,
+          "sha256": "9118618cca518fb3ef4fba9f2338a8265759b2143445347d732afaa181f4db76",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/brick_wall_001/brick_wall_001_ao_1k.png"
+        },
+        "color": {
+          "bytes": 1782607,
+          "sha256": "903f042853052b3b4dcbf9a511d688b77983f5af641a3effbb2e130d159daed0",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/brick_wall_001/brick_wall_001_diffuse_1k.png"
+        },
+        "displacement": {
+          "bytes": 1874946,
+          "sha256": "52cb4288e90fafc2e3e17cf2a5699391e946b397c12ba68c0ea48ed47e3166af",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/brick_wall_001/brick_wall_001_displacement_1k.png"
+        },
+        "normal": {
+          "bytes": 2562545,
+          "sha256": "0b51c30896a1706d8a5bb24448bcff791ec2e51458a90fef9498e61f74de9efe",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/brick_wall_001/brick_wall_001_nor_gl_1k.png"
+        },
+        "roughness": {
+          "bytes": 412987,
+          "sha256": "ee186ae7aeaf5857acc9efb34b16678b774dd5c28d43b208b6b7786fb646b6e8",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/brick_wall_001/brick_wall_001_rough_1k.png"
+        }
+      },
+      "id": "brick_wall_001",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.polyhaven.com/en/faq",
+      "provider": "polyhaven",
+      "retrieved": "2026-09-21",
+      "role": "facade",
+      "source_url": "https://polyhaven.com/a/brick_wall_001",
+      "version": "fd60577b22b011e4f5ae6ac5b2ffddd8dacf9b3d"
+    },
+    {
+      "attribution": "PavingStones036 by ambientCG, CC0-1.0",
+      "author": "ambientCG",
+      "files": {
+        "ao": {
+          "archive_sha256": "256824ade727cd680a6b9eea143bbef26b844c64156dbd65c6d7cb3a993b2e91",
+          "bytes": 384711,
+          "member": "PavingStones036_1K-PNG_AmbientOcclusion.png",
+          "sha256": "1a604463f946e54a87ef1f5ee6f0874ececbbd38e1c594d7602225a1519800af",
+          "url": "https://ambientcg.com/get?file=PavingStones036_1K-PNG.zip"
+        },
+        "color": {
+          "archive_sha256": "256824ade727cd680a6b9eea143bbef26b844c64156dbd65c6d7cb3a993b2e91",
+          "bytes": 2152116,
+          "member": "PavingStones036_1K-PNG_Color.png",
+          "sha256": "fa82a81cd1f4a2c60eb00d78ac8a356567992fb93a620a9f8caf9eb355009538",
+          "url": "https://ambientcg.com/get?file=PavingStones036_1K-PNG.zip"
+        },
+        "displacement": {
+          "archive_sha256": "256824ade727cd680a6b9eea143bbef26b844c64156dbd65c6d7cb3a993b2e91",
+          "bytes": 1721276,
+          "member": "PavingStones036_1K-PNG_Displacement.png",
+          "sha256": "3753b0fe91843db55766893b139c6cebea09a3a106716921d5f4336796f83035",
+          "url": "https://ambientcg.com/get?file=PavingStones036_1K-PNG.zip"
+        },
+        "normal": {
+          "archive_sha256": "256824ade727cd680a6b9eea143bbef26b844c64156dbd65c6d7cb3a993b2e91",
+          "bytes": 5785759,
+          "member": "PavingStones036_1K-PNG_NormalGL.png",
+          "sha256": "a140cea26813eae59acd9e5e7d7d6ef89e89003280f96df1086bbec1232c4b01",
+          "url": "https://ambientcg.com/get?file=PavingStones036_1K-PNG.zip"
+        },
+        "roughness": {
+          "archive_sha256": "256824ade727cd680a6b9eea143bbef26b844c64156dbd65c6d7cb3a993b2e91",
+          "bytes": 645624,
+          "member": "PavingStones036_1K-PNG_Roughness.png",
+          "sha256": "9b7b3d324c6d10fdab4c43d2ef418bfb80c947a47980e4c8728a868116a3dc9e",
+          "url": "https://ambientcg.com/get?file=PavingStones036_1K-PNG.zip"
+        }
+      },
+      "id": "PavingStones036",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "provider": "ambientcg",
+      "retrieved": "2026-09-21",
+      "role": "ground",
+      "source_url": "https://ambientcg.com/a/PavingStones036",
+      "version": "2018-11-28 00:00:00/256824ade727cd680a6b9eea143bbef26b844c64156dbd65c6d7cb3a993b2e91"
+    }
+  ],
+  "resolution": 1024,
+  "theme": "manhattan",
+  "version": 1
+}

@@ -26,12 +26,15 @@ with tempfile.TemporaryDirectory(prefix='aftershock-agent-protocol-', dir=scratc
          '-Wl,--gc-sections', '-o', binary])
     result = run([binary], capture_output=True, timeout=10)
     replies = [json.loads(line) for line in result.stdout.splitlines()]
-    assert [row['id'] for row in replies] == list(range(1, 10))
+    assert [row['id'] for row in replies] == list(range(1, 11))
     assert replies[0]['ok'] and replies[0]['result']['protocol'] == 1
     assert {'hello', 'exec', 'cvar.get', 'cvar.set'} <= set(replies[0]['result']['commands'])
     assert replies[1]['result'] == {'name': 'example', 'value': 'initial'}
     assert replies[2]['ok'] and replies[3]['result']['value'] == 'quote " slash \\ newline\n'
     assert replies[5]['ok']
+    assert 'trace' in replies[0]['result']['commands']
+    assert replies[9]['ok'] and replies[9]['result'] == dict(fraction=.25,end=[2,3,4],normal=[0,0,1],
+        start_solid=False,all_solid=False,contents=1,surface_flags=0)
     for index, code, path in ((4, 'read_only', '$.name'), (6, 'unknown_operation', '$.op'),
                               (7, 'invalid_argument', '$.value'), (8, 'not_found', '$.name')):
         reply = replies[index]

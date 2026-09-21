@@ -20,68 +20,668 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active worktree: /home/matt/.cache/aftershock-modernization/agent-tree, branch
-issue/163-agent-interface, draft PR166 into main. Main/base is 4ade5c3a; recheck
-it immediately before final gates and merge. #14 PR165 is accepted: exact-head
-build 35553788956/regression 35553788957 and merged build/publication 35555156611 /
-regression 35555156633 all pass. Six platform archives are published in this
-repository, #14 is checked in #25, and known-good is unchanged. Its retained
-worktree /home/matt/.cache/aftershock-modernization/level-tree is historical.
+Active worktree: /home/matt/.cache/aftershock-modernization/sketch-tree, branch
+issue/164-sketch-level, draft PR167 into current main ee4e95fc (#163 accepted).
+#164 implementation, reference/iteration, supplied retarget and exact default
+command all pass locally. Self-review is complete below. Commit/push the final
+v1-compatibility narrowing and documentation; then require all exact-head hosted
+checks before readiness/merge. Preceding 107da048 passed 16 compiler and ten active
+regression variants. Pushed b48ff26b build 35584110416 passes; regression
+35584110359 is running. Recheck PR base and API main immediately before merge;
+merge forward and rerun if either advanced from ee4e95fc. After merging, verify
+tested/merged tree equality and all main build/publication/regression checks;
+then continue #161 on its own branch from the accepted main.
 
-#163 has a private NDJSON pipe, typed bounded replies, seeded explicit steps,
-map/player/camera/input controls, entity CRUD/save/reload/picking, native PNG,
-shared World/Animation/Graph/Range/material controls, registry and authoritative
-actor queries, CPU/GPU/memory/network telemetry and error/warning/hit/kill hooks.
-All five original editor tests plus material/cooker drivers use structured
-commands. Q3/OA deterministic playthroughs and panel checks pass. Source-reload
-checks also pass with an OA renderer module; no screen-click calls remain in
-test drivers. Shipping exclusion passes in the full devtools rebuild. Legacy
-accepted goldens and source assets are unchanged.
+Measured reference: per-class compiled IoU 1.0 (threshold 0.93), native spawn safety,
+5.2-second resting-start route, 6000 bot frames, 17 kills/53 pickups, 240 samples,
+no observed stuck bots, two named and 18 fly-through captures. Agent-command
+building-7 iteration adds the second storey/window and changes only that source-ID
+MAP group; it has 16 kills/49 pickups, the same overlap/timing and no stuck bots.
+Reviewed the native street, doorway, stairs and upper window images. Evidence is
+in sketch-reference-resting{,-edited} and sketch-window-review under the cache.
 
-Next: wait for the final documentation checkpoint's hosted checks to all pass,
-recheck PR166 base and current main, mark ready, and merge with a merge commit.
-Then verify merged main build/publication/regression, close/check #163 in #25,
-and continue #164 -> #161 -> #15 through #25. No maintainer input is needed.
-PR166 stays draft until its final head is green. Metadata, root isolation, local
-suite catalog, affected-test selection and all seven handbook recipes are complete.
+Existing supplied GPL rigs/clips retarget through pinned Blender with preserved
+exported bind matrices/root motion, repeated output bytes and native IQM/PBR cook.
+Their private outputs retain GPL and fail the unchanged CC0 publication gate.
+No character sources were generated or changed. See sketch-retarget-pbr.log.
+The new owned CC0 reference drawing, all source licenses, and accepted v1 fixtures
+are recorded/verified. No game paks or accepted goldens are committed.
 
-Functional head c56bde87f4ec73f83bf9ddcc1ddeeaff74cc9ab7 passes build 35567139821
-(all 16 compiler legs) and regression 35567139815 (all ten required active variants).
-Both complete local suites at that same head also PASS, started together from
-clean detached worktrees agent-suite-a and agent-suite-b. Each ran all ten job
-variants / 96 workflow steps, including runtime/module checks and independent
-private-kind lifecycles. Both worktrees remained clean. Their full reports and
-logs are under /home/matt/.cache/aftershock-modernization/agent-suite-{a,b}-c56bde87.
-The final checkpoint changes documentation only; its exact-head hosted gates still
-must pass before merge. Earlier failed/partial runs below are not acceptance.
-Main remains 4ade5c3a9cad9cd71a04ca2641db2f74b8355774, rechecked after both runs.
-Known-good tag object/target are unchanged; recheck immediately before merge.
+Drawing decisions: its own handwritten key is authoritative. Geometry, annotation
+and gameplay intent stay distinct; use original owned reference drawings and
+report ambiguity. Reuse pinned q3map2/MBSPC; Shapely 2.1.2 handles polygon operations
+and OpenCV 4.12.0.88 handles image measurements. Private-cache venv:
+/home/matt/.cache/aftershock-modernization/sketch-python. Blender 5.0.1 is installed
+in user cache from the official RWTH mirror after pinned SHA256 verification. Both CC0
+library APIs have produced a pinned, cooked reference material kit; the Blender
+module contract also passes. All payloads stay in user cache; no local system packages.
 
-All existing exclusions remain in force. Nothing leaves msetaro/aftershock;
-shipping binaries exclude this tooling. No PR against another repository, no
-history rewriting, no accepted golden regeneration, no known-good tag changes.
+Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
+All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
-#160 repair PR #162 merged into main as
-782c0dbc51e4acf119ccce49a69301408dac1ae7 after exact f04e87c3 passed build
-35548379300 and regression 35548379306. Main's base 567cc664 was rechecked
-immediately before merge. Head and merge trees match
-2fd24fa811a286079aa8945b1b9cfd66cf3f788e. Merged build/publication 35549415371
-and regression 35549415277 now both PASS: all 16 compiler legs, all 10 required
-regression legs and actual create-testing publication. Repository prerelease
-build-782c0dbc51e4acf119ccce49a69301408dac1ae7 contains six platform archives.
-Issues #160, #158 and #13 are closed; #13 is checked in #25. This branch includes
-accepted main 782c0dbc; recheck current main before final gates/merge. Draft #14 PR #165 targets main and remains unmerged.
+## #164 default command and final self-review
 
-#159's earlier merge 567cc664 had a duplicate permissions collision with concurrent
-main commits 06d15a8d/8dbb4461, despite passing exact-head gates. Merged regression
-35548259084 passed but build workflow 35548258547 could not load. #162 removed
-only the duplicates and documented the current-base recheck in AGENTS. #13 PR
-#157 at a4358019 had already passed merged regression 35546603116 and compiler
-jobs; repaired main publication now clears its last integration blocker.
+The exact documented build command (no supplied binaries or prepared kits) passes
+with locally installed Quake 3 content: automatic pinned material fetch, Blender
+kit, Release development client/server build, repeated MAP/BSP/AAS, 1.0 per-class
+overlap, safe spawns, 5.2-second route, 6000 bot frames, 18 kills/51 pickups, no
+observed stuck bots, two named/eighteen fly-through captures and no warnings.
+Evidence: sketch-default-command/report.json/build.log and its private kit/build
+outputs. No installed paks enter the published output; engine homes use symlinks.
 
-Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
-target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
-in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+V1 compatibility narrowing passes both compiled gates (sketch-v1-final.log,
+sketch-v2-final.log): accepted MAP/BSP/AAS hashes remain 555965db / 0d0fcf2c /
+12889533. Native agent protocol, strict source format, tracing/ambiguity and shooter
+controls pass again. The full build ambiguity negative also fails explicitly
+with its retained assumptions/overlay (sketch-ambiguous-build.log). Supplied-retarget PBR/byte-repeatability/license controls
+pass (sketch-retarget-pbr.log). Workflow lint/isolation passed; final hosted gates
+remain mandatory. Known-good tag object/target remain 8bc8c94c / 81a0f9dc.
+
+Self-review: changes match #164's geometry/sketch/licensed-theme/agent acceptance
+scope. The only native addition is a development-only static collision query using
+existing CM_BoxTrace and trivial stack fields. No simulation FP, wire/file layout,
+core ownership/allocation, production OS access or gameplay behavior changes.
+V1 keeps its generator, material lookup and exact OBJ bounds. Theme publication
+still permits only maintainer-listed licenses; private provided-rig processing
+preserves licenses and cannot enter a theme when disallowed. No accepted fixture,
+shader data, rollback tag or external repository is changed. Original drawing and
+new tool controls are test-first; intermediate failures remain in the checkpoint.
+
+Declared limits: the agent supplies semantic readings; unresolved marks remain
+assumptions and fail integrated acceptance. Overhead is an honest CPU geometry
+projection of compiled BSP. Contact/cover metrics are sampled estimates; route
+times are native movement measurements. Full bot acceptance currently uses FFA.
+The reference theme has no ambient/decal/effect assets; those sets are empty.
+Supplied retargeting requires applied object transforms, one mapped root and
+rotation/root-motion clips; unsupported animation scale fails explicitly.
+
+## #164 full iteration passes; v1 compatibility review
+
+Both complete reference/agent builds pass in sketch-reference-resting{,-edited}.
+The two-storey/window variant records 16 kills, 49 pickups, no observed stuck bots,
+1.0 overlap in all classes, 5.2-second resting-start route, two named and eighteen
+fly-through captures. MAP source groups differ only for building_7. A separate
+native review camera confirms the upper window/storey and stairs
+(sketch-window-review/building_7.png). The exact default command is now running
+with automatic kit preparation/build and locally installed Quake 3 content.
+
+Self-review found shared material discovery was also reading ASMAT sidecars for
+version 1, which historically ignores them. A new v1 compatibility test fails
+(sketch-v1-sidecar-before.log). Restrict the new cooked-material staging to v2;
+preserve v1's exact historical OBJ bound tolerance as well. This is correction of
+the unmerged #164 feature path, not an engine bug fix. Re-run the v1/v2 compiled
+fixture checks after narrowing the shared helper. No golden regeneration.
+
+## #164 resting-start timing and provided retarget pass
+
+The corrected native route test returns through normal input to the annotated
+start and settles before recording time. It records zero initial velocity and
+5.7 seconds over the 1800-unit lane; the impossible-time negative and subsequent
+6000-frame OpenArena bot/capture checks pass (sketch-route-resting.log, 22 kills,
+49 pickups, no observed stuck bots). The reference drawing's corrected build also
+passes: 1.0 overlap for all classes, spawn safety, 5.2-second route, 17 kills,
+53 pickups, 240 samples, no stuck bots, two named and 18 fly-through captures.
+Reviewed captures show open doors, upright modules and the authored street.
+The two-storey/window iteration is now collecting its native bot/capture evidence.
+
+Provided-rig retarget passes with pinned Blender 5.0.1 and unchanged existing GPL
+inputs (sketch-retarget-exported.log). A sixteen-joint body walk drives the supplied
+three-joint character through explicit mappings. Exported inverse-bind matrices
+match the supplied target, exported root displacement matches the supplied clip,
+pose/bind error limits pass, native cooking succeeds, and two fresh output trees
+are byte-identical. Missing mapped bones and changed input hashes fail without
+publishing partial output. The CC0 publication validator rejects the private GPL
+result, whose licenses remain unchanged. Theme publication policy did not expand.
+The ordinary license/unlisted/hash negative suite also passes.
+
+The regression workflow now shares one prepared material/module kit between the
+component and full reference/agent iteration tests and runs the supplied-retarget
+gate. Workflow lint and invocation-isolation checks pass. Full exact-head hosted
+checks still must run; PR167 stays draft until all #164 acceptance is complete.
+
+## #164 supplied-rig retarget contract
+
+The existing owned three-joint character and sixteen-joint body/walk clip are
+inputs to a new private conversion test; their accepted glTF/binary bytes remain
+unchanged. The test fails first on the absent `tools/blender retarget` command
+(sketch-retarget-before.log). It requires explicit bone mapping, rest-offset
+preservation, transferred motion/root displacement, native IQM cook, repeated
+bytes, source hash rejection and complete retained source licenses.
+
+Decision: import/retarget is private processing, not theme publication. Existing
+GPL inputs retain GPL in output provenance; `tools/assets validate` and theme
+assembly must still reject them under the unchanged CC0 publication policy. No
+new character, rig, weapon, hands or weighted animation is authored or sourced.
+Use only the supplied existing fixtures for this test. The command must stage
+verified dependencies and publish no partial output after an import/mapping error.
+
+## #164 route-start review catches teleport launch
+
+The initial native reference run passes compiled geometry overlap (all three
+classes 1.0), spawn safety (656 queries, no errors) and its provisional timed lane.
+Review of its starting state found that the existing setviewpos command launches
+players at 400 units/s: the timer begins about 32 units beyond the annotation.
+This is a setup flaw in the new #164 tool, not an engine movement bug. A new
+resting-start assertion fails on the retained report (sketch-route-start-before.log).
+Return to the annotated start through normal walking and allow velocity to settle
+before measuring. Prior 5.5/5.06-second numbers are provisional, not final timing
+acceptance. Repeat native timing/negative controls after correcting the harness.
+
+The first integrated native build is still collecting its bot/capture evidence.
+The one-command implementation and agent alias retain fresh output ownership,
+notes/overlays, complete kit manifests, compiled IoU, shooter/routes and repeated
+compile/native reports. The follow-up native iteration contract compares source-ID
+MAP groups and requires the agent entry point. Full #164 acceptance remains open.
+
+## #164 native route negative control passes
+
+sketch-route-native-4 passes the complete combined OpenArena gate. Actual 1800-unit
+walking takes 5.5 simulation seconds: accepted at 6 +/- 2 seconds and rejected at
+0 +/- 0.1 seconds. The deliberately exposed spawn pair is rejected by native
+collision sight queries. The subsequent strict 6000-frame bot/capture gate passes.
+No duplicate screenshots or existing evidence are overwritten.
+
+The owned drawing now converts explicit spawn markers, preserves pickups/cameras
+and full notes, and strips drawing-only fields from playable intents. Theme
+assembly supplies a recorded 96-unit entrance facing the boundary centroid only
+when openings were not explicitly supplied. Existing explicit/empty openings
+remain authoritative. The reference and two-storey building-7 variant pass schema,
+physical geometry and connected-spawn checks; other shapes and dressing remain
+identical (sketch-build-semantics.log). The integrated native command is running
+in sketch-reference-native. Its compiled overhead scores 1.0 for building, solid
+and wall classes against a 0.93 threshold; native shooter/bot results are pending.
+
+## #164 route playback and owned reference contract
+
+The native lane walk measures 5.5 simulation seconds for 1800 units. The existing
+agent playtest CLI passes unchanged default-session behavior. Static controls now
+also reject a hold inside collision and annotations outside the boundary; explicit
+floor coordinates survive tracing. The combined route negative/runtime gate was
+interrupted (exit 143) after its two movement reports; it is not accepted. Repeat
+is running in sketch-route-native-4, including the impossible-time target and
+strict OpenArena bot/capture checks. No accepted fixture changed.
+
+A new original CC0 reference drawing and its manual export source are under
+ tests/assets/sketch (source/hash manifest and CREDITS validated). Visual review
+confirms three numbered buildings, rotated cover/building, curved wall, two
+indoor spawn markers, a timed route and a hold annotation. tests/sketch_build.py
+fails first on drawn spawn markers not becoming player spawns
+(sketch-build-before.log). The same contract will require preserved notes/goals,
+recorded default door decisions, only-building-7 edits, and the one-command native
+pipeline. Continue this implementation; this remains partial #164 work.
+
+## #164 static shooter report passes; movement contract added
+
+The controlled-world trace tests pass (sketch-intents.log): exposed spawns,
+incorrect sightline claims and exposed/missing objectives fail with suggestions;
+lane widths, eight-direction sightline histograms, waist-height cover proximity
+and symmetric first-contact estimates are reported. Travel estimates are labeled,
+and routes remain explicitly pending movement playback.
+
+The themed native test now requires the real engine to reject its deliberately
+exposed spawn pair and then physically walk the annotated lane within its stated
+time tolerance. It fails first on the absent play_routes function
+(sketch-route-play-before.log). Reuse the existing agent playtest controller,
+record simulation elapsed time and retain the script/report evidence.
+
+## #164 shooter report contract
+
+The controlled-world report test requires agent-traced spawn/objective visibility,
+explicit blocked/clear sightline checks, lane/cover/sightline metrics and a labeled
+first-contact estimate. It must reject exposed spawns and an incorrectly claimed
+clear sightline, with suggested fixes. Routes explicitly require a subsequent
+movement playtest. The contract fails on the absent intents module
+(sketch-intents-before.log). Use the actual native trace channel for integration;
+keep estimated travel time distinct from measured movement playback.
+
+## #164 oriented modules and active OpenArena bots pass
+
+Both fresh Blender kits pass native OBJ-axis bounds and byte-repeatability checks
+(sketch-obj-axes.log). Retained corrected kit: manhattan-modules-yup in the user
+cache. V2 validation converts Y-up OBJ coordinates with the same x,-z,y convention
+as the pinned compiler; v1 validation/output remains untouched. Compiled facades
+reach their declared 128-unit height, and the actual module image was reviewed.
+
+The reference sample now gives bots reachable weapon/ammo/health/armor goals.
+Its strict OpenArena run passes 6000 frames with 22 kills, 49 pickups, 240 samples,
+no observed stuck bots and no warnings (sketch-theme-oriented.log/report.json).
+A separate control caught below-origin crate trim being omitted; placement now
+accounts for the measured lowest vertex. Crates appear in the reviewed capture.
+Polygon/overhead/v1 compiled gates pass (sketch-obj-polygons.log). No accepted
+fixture or game package changed. Continue shooter intent reporting and integrated
+sketch build; supplied-rig retargeting remains open.
+
+## #164 native review exposes OBJ axes and idle OpenArena bots
+
+The OpenArena trace/capture process completed, but it is NOT reference-map
+acceptance: its report contains zero kills and two inactivity warnings. The test
+now requires at least two kills and no observed stuck bots. The earlier Quake 3
+runs measured 13 kills/zero stuck; content-specific behavior cannot be assumed.
+The authored sample has no pickups; give bots deliberate reachable item goals.
+
+The new module camera also shows frames lying flat. q3map2's documented source
+converts OBJ (x,y,z) to (x,-z,y), while the procedural export used Z-up. New controls
+compare the exported OBJ after that conversion against native bounds and require
+compiled facade surfaces to reach z=128. Fix the #164 export/validation convention
+and repeat; do not change the compiler or v1 goldens. Primary source:
+https://github.com/Garux/netradiant-custom/blob/master/libs/picomodel/pm_obj.c
+The old failing evidence remains in sketch-theme-agent/images/modules.png.
+
+## #164 compiled-world agent traces pass
+
+The protocol gate and fresh client/dedicated release builds pass after making the
+existing vector reader available to both command dispatchers. Real OpenArena
+native-map queries pass: the doorway sightline is clear, the adjacent wall stops
+at y=63.875, and the standard player box contacts the floor at z=24.125. Evidence:
+sketch-theme-agent/agent-traces.json; sketch-trace-query.log; sketch-build.log.
+Boundary/type/format checks pass. The associated bot/capture process finished but exposed the acceptance problems
+recorded above. After correcting them, use the query for shooter metrics and explicit intent checks. This command
+only exposes existing static-world collision in development builds.
+
+## #164 agent collision-query contract
+
+Shooter intent validation needs compiled-world sight and player-clearance queries
+through the existing local agent channel. The dispatcher test fails first because
+`trace` is absent (sketch-trace-query-before.log). Add a development-only command
+that calls the existing CM_BoxTrace with either a point/solid mask or the standard
+player box/player-solid mask. This is a new authoring query, not an engine bug fix
+or a simulation change. Actual owned-map clear/blocked traces will verify it.
+
+## #164 module material correction passes
+
+The material-role assertion fails before the binding change
+(sketch-theme-module-material-before.log). V2 now allows additional material roles
+of at most 12 characters, keeping native shader paths inside the existing limit.
+Facade/cornice props use their own baked PBR materials instead of wall UVs. A fresh
+native run passes and its street image was reviewed (sketch-theme-baked.log and
+sketch-theme-baked/images in user cache). Brush texture scales remain explicit;
+no engine change or accepted fixture regeneration was needed for this correction.
+
+## #164 themed PBR staging and scale pass
+
+The scale assertion fails before implementation (sketch-theme-scale-before.log),
+then passes with explicit 0.0625 brush-role scales. Native facade/street captures
+were reviewed at /home/matt/.cache/aftershock-modernization/sketch-theme-scaled.
+The repeated 6000-frame run again reports 13 kills, 240 samples, no stuck bots and
+no warnings. Schema/trace controls and compiled polygon/v1 identity gates pass
+(sketch-theme-formats.log, sketch-theme-trace.log, sketch-theme-polygons.log).
+CI now exercises real pinned theme fetch/module assembly; it continues to use
+owned game content for its later runtime gates. Next integrate the command and
+add agent-backed intent/shooter checks; supplied-rig retargeting is also open.
+
+## #164 initial themed native run passes
+
+Real pinned material and Blender kits assemble repeatably with complete source
+license manifests. Door/lane/spawn keep-clear checks and native PBR staging pass
+(sketch-theme.log). Actual native compilation, 6000 bot frames and fixed-camera
+captures pass: 13 kills, 240 samples, no observed stuck bots, no warnings
+(sketch-theme-native.log; retained sketch-theme-native/report.json and images).
+Visual review found the brush material tiling too large. Add an explicit per-role
+texture scale and useful facade viewpoints before accepting the reference scene.
+This is still component acceptance, not the completed one-command sketch pipeline.
+Hosted build 35575309830 and regression 35575309836 passed the prior 5e65ed2a
+checkpoint; all final-head checks remain required for PR167.
+
+## #164 theme assembly contract
+
+The next test requires the real pinned material/module kits to assemble seeded
+props without changing shapes, preserve doorway/lane/spawn clearances, retain
+complete license manifests and stage PBR material bindings through the level
+compiler. It fails on the absent theme module (sketch-theme-before.log). Native
+shader lookup checks explicit scripts before ASMAT, so compiler-only source-ID
+aliases must not shadow PBR at runtime. Reuse the existing cooker payloads.
+
+## #164 compiled overlap and v2 camera paths pass
+
+Repeated compiled geometry, the 0.93 overhead gate and its displaced-building
+negative control pass. The owned fixture measures 1.0 building/solid IoU; shader
+aliases carry IDs but classification pixels come only from compiled triangles.
+V2 fly-through paths now reuse the clearance BFS, reach the roof and remain out of
+compiled solid interiors (sketch-flythrough.log). Accepted v1 MAP/BSP/AAS bytes
+still match. These components still need the integrated sketch/theme build and
+actual native bot/capture acceptance; #164 remains a draft.
+
+## #164 v2 fly-through contract
+
+The multi-storey fixture now requires automatic camera samples reaching the roof
+without entering compiled brush interiors. It fails because the old fly-through
+reads v1 rooms (sketch-flythrough-before.log). Reuse the existing player-clearance
+search paths for v2 instead of inventing a second navigation sampler.
+
+Compiled-overhead implementation has passed its independent control: building and
+solid class IoUs are 1.0 at threshold 0.93; displaced expected geometry fails.
+The actual 30-triangle class image was reviewed. Retained report/images:
+/home/matt/.cache/aftershock-modernization/sketch-overhead-evidence.
+
+## #164 compiled-overhead contract
+
+The compiled polygon test now requires a CPU orthographic projection of actual
+BSP surface triangles, class IoU against the independent interpretation pixels,
+a colored overhead and a difference image. A displaced expected building must
+fail the stated 0.93 threshold. The contract fails on the absent overhead module
+(sketch-overhead-before.log). Keep source IDs in v2 surface shader aliases for
+classification; do not infer actual footprints from authored polygons.
+
+## #164 photographed/styled tracing passes
+
+Both original playbook controls and the new dark/perspective drawing pass
+(sketch-measure.log). Explicit regions split touching outlines; thin/dashed paths
+and curves remain distinct geometry; player-height scale and measured-grid angle
+snapping work. Antialiased key-color matching avoids false cross-color contours
+introduced by perspective correction. One-pixel stroke expansion and inferred
+angles are recorded. Semantic recognition remains the agent's explicit reading;
+unread marks and uncertainty stay visible. No engine or accepted asset changed.
+
+## #164 additional tracing contract
+
+A new owned dark-background drawing specifies touching-outline splits, thin and
+dashed straight/curved marks, player-height scale, nearby rotated-grid snapping
+and phone-perspective rectification. It fails first on the unsupported scale
+reference (sketch-measure-before.log). Implement measured geometry while retaining
+explicit semantic regions and visible assumptions; no commercial drawing is used.
+
+## #164 v2 props pass
+
+Rotated props compile through pinned q3map2/MBSPC and solid props correctly reject
+blocked spawns (sketch-props.log). Local `bounds_center` supports foot-origin
+modules without changing mesh geometry; its independent MAP occupancy check passes
+(sketch-props-offset.log). Shared OBJ source validation retains the v1 contract;
+legacy controls and accepted MAP bytes pass (sketch-props-v1.log). No accepted
+fixture, engine code or game package changed.
+
+## #164 v2 prop contract
+
+The rotated OBJ prop contract fails first because the v2 schema lacks yaw
+(sketch-props-before.log). It also requires solid props to participate in spawn
+clearance. Reuse the existing self-contained OBJ validation, preserve v1 outputs,
+and add v2 placement/collision without changing engine code or accepted fixtures.
+
+## #164 procedural overlap correction passes
+
+The new coplanar-triangle control passes for every module, and both complete kits
+remain byte-identical (sketch-module-overlap.log). Facade/doorway frames now meet
+their caps instead of overlapping them. A fresh actual contact-sheet render was
+reviewed: the black top-face artifacts are gone. Corrected retained kit and image:
+/home/matt/.cache/aftershock-modernization/manhattan-modules-clean
+/home/matt/.cache/aftershock-modernization/manhattan-modules-clean-preview.png.
+Continue integrating these verified modules into v2 themes and actual map playtests;
+supplied-rig retargeting and remaining tracing/intent/overhead work remain open.
+
+## #164 procedural visual review / coplanar control
+
+A retained kit at /home/matt/.cache/aftershock-modernization/manhattan-modules
+validates 190 source/cooked files. An actual Blender contact-sheet render exposed
+black coplanar-overlap artifacts on facade/doorway caps. Bake colors themselves
+are correct. The new glTF geometry check fails on overlapping upward-facing
+triangles in the facade (sketch-module-overlap-before.log). Lower the shared frame
+to meet the cap without overlap, then repeat kit generation and visual review.
+The retained preview is manhattan-modules-preview.png in the user cache.
+
+## #164 procedural kit reproducibility passes
+
+Two fresh pinned Blender 5.0.1 builds pass with byte-identical published kits
+(sketch-blender.log). Nine module types have UVs, actual CPU diffuse-color bakes,
+strictly reduced triangle-count LODs, map-compiler OBJs and production IQM/PBR
+outputs. Complete manifests record CC0, generator version and script/parameter
+hashes, with every source/cooked file covered. The CLI refuses existing output.
+Hosted runtime now runs this contract and caches immutable pinned compiler,
+Blender archive/extraction and downloaded CC0 source bytes. No engine changes.
+Next retain/review a reference kit, accept supplied glTF/rig animation inputs,
+then finish tracing, themes and the full agent/overhead/intent acceptance.
+
+## #164 procedural reference-kit contract
+
+The new Blender test requires pinned 5.0.1, deterministic parameterized facade,
+doorway, cornice, curb, stairs, fence, barrier, crate and sign modules; real UVs,
+LOD exports and baked images; production IQM cooking; and complete licensed
+provenance with script/parameter hashes. Two fresh builds must match byte-for-byte
+apart from diagnostic logs. It fails first because tools/blender is absent
+(sketch-blender-before.log). The verified user-cache Blender binary is available;
+use it for this implementation, without installing system packages.
+
+## #164 asset preparation acceptance / CI wiring
+
+The preparation fingerprint control passes along with repeated offline kits and
+cache hash verification (sketch-preparation.log). Fingerprints include fetch and
+manifest sources, the pinned Pillow version and the existing cooker's tool hash.
+The runtime job now runs sketch interpretation, manifest/license controls, API
+adapter controls and offline fetch/cook reproducibility after level dependencies
+are installed. All are owned/offline CI controls; actual two-provider sourcing was
+also measured locally above. Next: pinned Blender reference kit, remaining tracing
+measurements, shooter intent/overhead/runtime integration and final #164 gates.
+
+## #164 preparation fingerprint control
+
+The new fetch test corrupts an otherwise valid kit's preparation fingerprint.
+It fails because the existing-output fast path reuses the stale kit
+(sketch-preparation-before.log). Include the fetch/manifest source, pinned Pillow
+version and the existing cooker's own tool hash in that fingerprint, and refuse
+reuse after a mismatch. A fresh output remains the explicit upgrade path.
+
+## #164 source-range correction passes
+
+The owned 16-bit gradient contract passes after normalization before RGBA conversion
+(sketch-height16.log). A fresh real Manhattan kit also validates all 36 files;
+its prepared ambientCG height map retains range 10..219 instead of saturation
+(sketch-fetch-normalized.log). Originals remain byte-identical. Corrected kit:
+/home/matt/.cache/aftershock-modernization/manhattan-kit-normalized.
+Review also identified that existing-output reuse only checks the lock and file
+hashes; add a preparation/cooker fingerprint control before accepting reuse across
+tool updates. This is still unmerged #164 tooling, with no engine changes.
+
+## #164 16-bit preparation control
+
+The fetch contract now includes an owned I;16 gradient and requires normalized
+prepared values 0..223, not saturation at 255. It fails as expected on the current
+RGBA conversion (sketch-height16-before.log). Normalize unsigned 16-bit grayscale
+before conversion while retaining the original file and its original SHA256.
+Then rebuild the real kit into a fresh output and revalidate all source/cooked hashes.
+
+## #164 real two-provider kit checkpoint
+
+Live API searches and both adapters pass. The reviewed reference lock pins Poly
+Haven brick_wall_001 (authors Dimitrios Savva/Rob Tuytel, revision fd60577b...) and
+ambientCG PavingStones036 (2018-11-28 release plus archive SHA256 256824ad...).
+All ten PBR channel files have exact SHA256 pins; provider metadata/attribution and
+license URLs are retained. No art payload is committed: only the lock lives in
+tools/assets/themes/manhattan.json. The actual kit in the user cache cooks both
+materials and validates 36 covered files plus CREDITS (sketch-fetch-live.log).
+Color textures were visually reviewed. Before accepting source preparation, add
+and fix a 16-bit grayscale control: the ambientCG displacement original is I;16,
+and the current convenience RGBA conversion clamps its prepared copy. Original
+bytes are preserved; this is an unmerged #164 tooling correction, not an engine bug.
+
+## #164 provider adapter contract
+
+A new offline API-shape test requires tag search, explicit provider/license filters,
+normalization of Poly Haven and ambientCG PBR channels, author/license URLs, asset
+revision identifiers and exact downloaded SHA256 pins. It fails because the
+provider module is absent (sketch-providers-before.log). Primary provider license
+and API docs were checked; include Poly Haven's API service credit in CREDITS.
+The two requested libraries are the only enabled network providers.
+
+## #164 pinned fetch/cook passes; Blender verified
+
+The offline pin/cache contract passes (sketch-fetch.log): complete PBR source
+channels are retained, preparation reuses the production cooker's linear/normal
+mipmap filtering when a texture budget requires reduction, and ASMAT/KTX2 outputs
+come from tools/cook. Repeated kits are byte-identical and corrupted cached files
+fail SHA256 verification. AO/displacement sources remain in the kit; the current
+material runtime has no such channels, so their retention does not claim rendering.
+No partial kit is published after a failed cook or manifest check. Existing output
+is reused only after validation and an identical lock; another lock needs a fresh
+output directory. Next implement real Poly Haven/ambientCG discovery and pins.
+
+Blender 5.0.1 finished downloading from the official RWTH mirror. Archive SHA256
+8019580ee1b7262e505f4196a00237ccf743c88d205b38d34201510676e60b09 passed before
+extraction/execution. Binary:
+/home/matt/.cache/aftershock-modernization/blender-5.0.1/blender-5.0.1-linux-x64/blender
+reports version 5.0.1 / build a3db93c5b259. No local system packages installed.
+
+## #164 pinned theme fetch contract
+
+The next test uses owned pixel inputs in a private content-hash cache and a pinned
+Poly-Haven-shaped lock. It requires offline fetch, retention of complete PBR source
+channels, production ASMAT cooking, valid manifest/CREDITS, byte-identical repeated
+kits and refusal of corrupted cache content. It fails first because fetch is not
+implemented (sketch-fetch-before.log). Provider adapters must produce this same
+lock contract; cache content is verified even on offline hits.
+
+## #164 theme-license enforcement passes
+
+The initial manifest validator passes all required negative controls and emits
+CREDITS from validated entries (sketch-license.log). Source/cooked files must have
+matching SHA256 records; every kit file is covered, with metadata files explicitly
+excluded. Policy lives in the repository, not in untrusted kit data: CC0-1.0 only,
+no image generators, and only explicitly requested Blender 5.0.1 for procedural
+art with script/parameter hashes. Fetch/search and real provider integration are
+next; no external art has been imported. Blender's verified archive is still
+downloading into user cache; do not claim installation before its hash passes.
+
+## #164 theme-license contract
+
+Before fetching art, a new test requires tools/assets validate to enforce complete
+file coverage, source URL/author/license/retrieval metadata, original and cooked
+SHA256 hashes and generated CREDITS. Controls reject an unlisted file, CC-BY without
+an explicit maintainer allowlist, incorrect hashes and an unapproved image
+provider. It fails first because the tool does not exist (sketch-license-before.log).
+Default external asset license is CC0-1.0; no new non-CC0 permission is inferred.
+
+## #164 unread-mark accounting passes
+
+Every remaining known-color component now becomes a numbered unread mark with
+confidence, measured line segments, nearest geometry and an explicit assumption.
+Unknown ink also receives provisional annotated regions instead of disappearing.
+Agent-read route endpoints account for their arrowheads; explicit annotations and
+geometry regions remain separate. The new negative control and original tracing
+contract pass (sketch-marks.log). Unread semantic marks are not compiled into
+geometry or silently turned into gameplay assertions. Remaining scope includes
+complete line/curve/split inference, theme/license tooling and full integration.
+
+## #164 unmatched-mark negative control
+
+The next tracing test adds a known-color intent circle and annotation without
+agent associations. It fails because those marks were silently omitted despite
+the color being recognized (sketch-marks-before.log). Every remaining component
+must receive a numbered unread mark and an assumption; an authoritative key is
+not evidence that all text/arrows have been interpreted. Fix this shared marking
+pass before extending curve/line measurement and the build pipeline.
+
+## #164 initial tracing checkpoint; #163 integration accepted
+
+The original playbook test passes with pinned OpenCV color separation, stroke-gap
+closing, contour measurement/rectangle regularization, explicit agent-read marks,
+class overlays, uncertainty assumptions and stable per-ID edits. The drawing's
+own key overrides any global convention. The tool emits draft geometry and intent
+records, not a claim of general handwriting recognition. Next: account for every
+unmatched mark, line/arrow geometry and dominant-angle/curve measurements, connect
+intent/schema/build validation and theme assets, then full runtime acceptance.
+
+#163 is fully accepted on merged main ee4e95fc: 35571273115 passes all 16 compiler
+jobs and actual create-testing publication; 35571273155 passes all ten required
+active regression variants. Six archives are published in this repository only.
+#163 is closed and checked in #25 (issue comment 5756883521). Nothing is pending
+for #163. Continue #164 PR167, then #161 and the remaining roadmap.
+
+## #164 sketch interpretation contract
+
+The next test draws an original multicolor playbook in its private scratch root:
+wobbly/gapped red building outlines and hatching, blue route/sight arrows, green
+labels and a key. Notes contain the agent's explicit readings/confidence. It
+requires interpretation.json, numbered class overlays, geometry/annotation/intent
+separation, authoritative per-drawing key changes, intent records, uncertainty
+assumptions and stable building_7 overrides. It fails before implementation because
+tools/level trace is absent (sketch-trace-before.log). The tracer measures the
+agent's reading; it must not claim to recognize arbitrary handwriting itself.
+
+## #164 sunken geometry and edit isolation pass
+
+Stable source-ID MAP labels prove that changing building_7 floors/windows leaves
+every other shape's brush group unchanged. A sunken zone with a descending ramp
+now passes clearance, leak detection and BSP/AAS compilation. The full compiler
+caught a leak at an unnecessary retaining-wall cut; retaining the complete ring
+seals it while the ramp's high end meets its top. No engine bug or engine change.
+All repeated v2 and accepted v1 comparisons pass (sketch-sunken.log). The retained
+owned debug MAP/log/leak evidence is under sketch-sunken-debug in the user cache.
+No game packages were copied. Next implement image interpretation/tracing and
+licensed theme assets, then the integrated agent/runtime/overhead acceptance.
+
+## #164 stable-edit / sunken-zone contract
+
+A new test requires source-ID-labelled MAP brushes, confirms that a building_7
+storey/window edit changes only that shape, and requires a ramp into a sunken
+floor without the original ground sealing it. It first fails on absent source-ID
+labels (sketch-sunken-before.log). #163 merged publication is confirmed: repository
+prerelease build-ee4e95fc contains six platform archives. Its regression is pending.
+
+## #164 connected-storey compile passes
+
+The ground/second-floor/roof spawn reachability contract now passes, including
+repeated street-facing window rules and compiled BSP/AAS output. Interior stairs
+reuse the transition generator with 16-unit slabs: an initial solid support
+blocked stacked-flight headroom and was caught by the new clearance test, then
+fixed before acceptance. Floor/roof slabs subtract the same stairwell. All v1
+fixtures remain unchanged. Log: sketch-storeys.log in the user cache. Next add
+sunken zones and stable per-shape source output, then trace/interpretation.
+
+## #164 connected-storey contract
+
+Draft PR167 now holds #164. A new contract requires navigation from ground to the
+second floor and roof, plus repeated street-facing windows. It fails first on
+unsupported roof_access/opening_rules fields (sketch-storeys-before.log). Reuse
+the physical stair generator for interior switchbacks and subtract stairwells
+from floor/roof slabs; no isolated upper-floor geometry counts as completion.
+Merged #163 build/publication 35571273115 passes; regression 35571273155 still runs.
+
+## #164 schema and compiled elevation checkpoint
+
+V2 now has a structural JSON Schema exposed through the existing agent format
+commands, without loading Shapely for v1/schema-only callers. The full polygon
+contract passes with terrace stairs/ramp, a player-clipping fence shader and an
+overhead canopy; repeated base/elevated BSP/AAS builds succeed. The runtime job
+now executes that contract after installing pinned level requirements. All v1
+language controls and original MAP/BSP/AAS fixture bytes remain unchanged.
+Schema/production-loader agreement passes; its first invocation lacked Go on PATH,
+then passed with the existing cached Go toolchain. No toolchain was installed.
+Logs: sketch-elevation-compile.log, sketch-v1.log, sketch-formats.log in user cache.
+Next: connected multi-floor shell/roof access, rule-based openings and sunken
+zones, followed by the sketch/theme/intent pipeline. PR remains incomplete.
+
+## #163 merged; #164 transition draft
+
+PR166 merged into main as ee4e95fcdd21c6a67cdac2372a931d8f0ef1ad24 after final
+head 9db00c0c passed all 16 build / ten required regression jobs. Current main
+was rechecked immediately before merge and had not advanced. Merge and tested
+head trees both equal fe1c5fd9e67fee7ba0894386c6f3508d2552c57f. Merged build
+35571273115 and regression 35571273155 are now queued; verify publication too.
+Known-good object/target remain unchanged. #163 can be checked in #25 after
+those integration gates pass. Merge main forward into this #164 branch now.
+
+The elevation MAP test passes with generated physical stair steps and ramp planes,
+separate non-bullet-solid fence material and overheads. Navigation samples square
+player clearance on all surfaces, retaining multiple floors at the same XY.
+This draft still needs its full compile pass and schema integration; no #164
+acceptance is claimed. Log: sketch-elevation.log in the user cache.
+
+## #164 elevation contract
+
+The next contract adds a terrace reached by stairs/ramp, bullet-transparent fence
+material, and an overhead canopy. It currently fails on disconnected navigation,
+as expected before transition generation. The failing log is
+/home/matt/.cache/aftershock-modernization/sketch-elevation-before.log. Implement
+physical steps/slopes and clearance traversal before treating this slice as done.
+
+## #164 initial polygon compiler
+
+Pinned Shapely performs boundary-hole triangulation and shell/opening subtraction.
+The new v2 generator handles rotated rectangles, circles/arcs, thick paths and
+concave polygons; v1 retains its original generator. Material resolution is shared.
+Physical MAP plane occupancy checks pass, as do two identical pinned BSP/AAS
+compilations and byte comparisons against every original v1 level fixture.
+Logs: sketch-polygons.log and sketch-polygons-compile.log in the user cache.
+This is partial implementation, not #164 acceptance: formal v2 schema integration,
+elevation/connected floors and the sketch/theme/intent pipeline remain unfinished.
+
 
 ## #163 full concurrency acceptance
 

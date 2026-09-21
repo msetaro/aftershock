@@ -207,3 +207,202 @@ Set `r_reflectionProbes 1` to enable the bounded two-probe blend on dynamic PBR
 objects. The default is off. Influence is spherical, without box parallax
 correction; future authored room volumes can extend that approximation. The
 #161 HDR renderer transition owns replacing LDR capture/composition.
+
+## Version 2 polygon geometry (#164, in progress)
+
+Version 1 retains its original generator and exact fixtures. Version 2 shares its
+materials, rules, spawns, pickups and lighting, replacing rooms/connections/cover
+with `boundary` and `shapes`. Discover the complete structural contract using
+`python3 tools/agent describe level`. Install the pinned level requirements for v2.
+
+The boundary has a `polygon` ring, optional `holes`, `floor` and `ceiling` heights.
+A shape has a stable `id`, `kind`, `shape`, `base`, `height` and optional material
+role. Footprints accept `polygon` with optional holes, `rectangle` with center,
+size and angle, `circle` with center/radius/tolerance, `arc` with those fields plus
+start/end/thickness, or `path` with points/thickness. Coordinates are finite Quake
+units. Curve tolerance is the maximum radial chord error, with at most 256 segments.
+Pinned Shapely constrained triangulation preserves concavity and holes in brushes.
+V2 MAP comments label each brush by source ID, so a targeted note edit can be
+verified without renumbering other shapes.
+
+`solid`, `platform`, `wall` and `overhead` extrude their footprints. A wall may set
+`bullet_solid: false` for player clipping with bullet-transparent collision.
+A platform whose top lies below the boundary floor carves a sunken zone; its
+retaining wall seals the floor perimeter. Place the ramp's high end at that perimeter.
+`transition` uses a straight two-point path and `transition: stairs|ramp`; its
+height rises along the path unless `descending: true`. Existing minimum width,
+1:2 slope, 16-unit riser and 32-unit tread limits apply. A `building` subtracts its
+interior with `wall_thickness` (default 16), and accepts explicit `openings` with
+zero-based edge index, distance `at` along that edge, width, sill and height.
+Exterior polygon edges run counter-clockwise; rectangle edge zero is its lower
+edge before rotation. Floors/roof have 16-unit slabs. Multi-floor buildings generate interior switchback stairs and subtract matching
+stairwells from their floor slabs. `roof_access: true` extends the stairs through
+the roof. The compiler rejects footprints that cannot fit walking clearances.
+`opening_rules` accepts face_point, spacing, width, sill, height and optional
+zero-based floors: edges facing that street/plaza point receive repeated openings.
+Theme props and the complete sketch pipeline remain unfinished; this is not final
+#164 acceptance.
+
+`python3 tests/level_polygons.py --compile` checks physical brush occupancy,
+player-clearance reachability, repeated MAP/BSP/AAS bytes and unchanged v1 fixtures.
+Navigation retains separate surfaces at the same horizontal coordinate, checks
+square player clearance and midpoint traversal with at most an 18-unit step.
+The full sketch interpretation/theme/intent pipeline is the remaining #164 work.
+
+## Sketch measurement (in progress)
+
+`python3 tools/level trace --sketch drawing.png --notes notes.json --out DIR`
+writes a draft `level.json`, `interpretation.json`, and numbered interpretation
+and geometry overlays. The agent reads the drawing and its key first; this tool
+measures strokes and preserves that reading, rather than claiming handwriting
+recognition. Install level requirements in a Python 3.12 venv for the pinned image
+and polygon wheels. The complete build command below uses the same interpretation.
+
+Notes contain `version: 1`, a map `name`, scale `{pixels, units}`, the playable
+boundary in pixels, and a per-drawing `key` list. Each key entry supplies a pen
+color (`#rrggbb`), `classification` (`geometry`, `annotation`, `intent`), a `kind`
+and its `reading`; geometry keys may specify height/floors. Agent-read `marks`
+have a stable id, classification, reading/text and confidence. Regions use
+`[left, top, right, bottom]`; intent paths use pixel `points`. Annotation regions
+are removed before geometry measurement. A low-confidence reading is retained
+with an assumption; unclassified ink is also reported. Arrows never become
+buildings merely because they cross building outlines.
+
+`gap_pixels` controls small stroke closures, `simplify_pixels` controls contour
+simplification, and the drawing's scale converts geometry to Quake units. Near
+rectangles are regularized while arbitrary polygon outlines remain polygons.
+Optional four `corners` and `rectified_size` deskew a photograph; all mark/scale
+coordinates then refer to the rectified image. The interpretation retains the
+transform and original dimensions. A rerun in the same output directory matches
+prior contours to preserve IDs; `overrides` applies per-ID decisions afterward.
+The agent must review the overlay and assumptions before the later build gate.
+
+Version 2 props additionally accept `angle` (yaw in degrees) and `bounds_center`
+(the local-space center of the declared `size`, default `[0,0,0]`). This supports
+foot-origin environment modules without shifting the mesh. The declared bounds
+must contain every OBJ vertex; yaw rotates both those bounds and the actual model.
+Solid props emit player-clip brushes and participate in spawn/navigation clearance.
+All props must fit the playable boundary, including its holes and vertical limits.
+
+Sketch geometry keys accept `line_style`: `filled`, `outline`, `shaded`, `thin`,
+or `dashed`. Thin/dashed strokes receive a recorded one-pixel expansion so they
+remain polygons; dashed components join only across `gap_pixels` or less. A key
+color is matched against its antialiased mixture with the drawing's background.
+Explicit geometry marks with `color` and nonoverlapping `region` rectangles split
+touching outlines before tracing. These regions are semantic decisions made by
+the agent, not claims of automatic recognition.
+
+`scale` accepts either `{pixels, units}` or
+`{player_height_pixels, player_height_units}`. Both dimensions must be explicit.
+Optional `snap_degrees` (0..15) clusters measured rectangle orientations modulo
+90 degrees and snaps within that tolerance; it does not force a world-axis grid
+or straighten curves. Interpretation JSON records the measured dominant angles.
+Optional `corners` (page TL/TR/BR/BL in the source image) and `rectified_size`
+remove camera perspective and UI borders. All notes/mark coordinates then refer
+to the rectified image. The original size and transform remain in the report.
+
+V2 fly-through cameras follow the same clearance-grid search paths used for spawn
+connectivity, including stairs and roof access. They sample fixed eye positions
+48 units above those surfaces. Screenshots remain native engine captures.
+
+The sketch overhead verifier projects actual upward-facing compiled BSP triangles
+orthographically on the CPU. V2 shader aliases retain source IDs; their ordinary
+lightmap/material stages preserve the assigned role. The projection uses the
+recorded sketch scale and center transform, so it cannot hide layout errors by
+freely translating or rotating the result. It emits `compiled-overhead.png`,
+`overhead-difference.png` (green overlap, red missing, blue excess), per-class IoU
+and the BSP SHA256. This is a geometry/class image, not a textured GPU screenshot.
+The independent control requires 0.93 IoU and rejects a displaced expected building.
+
+Theme assembly uses `tools/level/themes/manhattan.json`: material-role mappings,
+per-role brush `texture_scale`, lighting and seeded module placement. It reuses
+both validated CC0 source kits, carries their file hashes/licenses into the
+assembled `assets/manifest.json` and generates combined credits. Each building
+has its own seeded random stream; editing one building does not re-roll others.
+Props remain non-solid and are rejected when their bounds overlap authored solids,
+other props, doorway clearance, explicit route lanes or spawn clearance.
+The empty ambient-audio/decal/effect lists reserve no generated or unlicensed art.
+
+Optional v2 `texture_scale` maps material roles to positive MAP texture scales
+(default 1). Cooked PBR v2 sidecars beside role images bring their three verified
+KTX2 dependencies into the output. Source-labeled brush ASMAT aliases reuse those
+same payloads; their compiler-only image/lightmap shaders are removed at runtime
+because explicit scripts would take precedence over cooked PBR. Levels without
+cooked materials retain their ordinary lightmapped shaders.
+
+`python3 tests/theme_level.py` exercises the real pinned kits and assembly.
+`--library DIR --modules DIR` reuses already validated kits. Add `--client PATH
+--server PATH --output DIR` for retained native bot and eye-level/fly-through
+capture evidence. The integrated command below combines these component checks with shooter reports and actual player movement.
+
+V2 may add material roles (lowercase identifiers, at most 12 characters) alongside
+the six required roles. That bound preserves native qpath limits for source-ID
+aliases. Reference facade/cornice modules bind their own baked PBR materials;
+their glTF/OBJ UVs are not remapped to the building's repeating wall image.
+
+V2 OBJ props use Y-up source coordinates. Validation applies the pinned compiler's
+`(x,-z,y)` conversion before checking native `size`/`bounds_center`; those bounds,
+origins and yaw remain in engine Z-up coordinates. V1 retains its historical
+validation/output contract and accepted fixtures. The strict reference theme bot
+check requires at least two kills and zero observed inactivity windows. Reachable
+item goals are authored explicitly, rather than assuming identical bot behavior
+between installed content sets.
+
+
+## Complete sketch build
+
+```sh
+python3 tools/level build --sketch tests/assets/sketch/reference.png --notes tests/assets/sketch/notes.json --theme manhattan --out "$AFTERSHOCK_SCRATCH/sketch-build"
+```
+
+The default fetches pinned CC0 materials, builds the pinned Blender modules and a
+Release development client/server, compiles the level, compares its compiled
+geometry to the trace, queries native collision, walks the annotated routes,
+runs a 6000-frame bot match and captures eye-level/fly-through views. Prerequisites
+and installed content are the same as headless validation. `--client`/`--server`
+reuse existing development binaries; `--library`/`--modules` reuse validated kits.
+`--content openarena --data DIR` selects installed OpenArena content.
+
+`tools/agent build` exposes the identical command. Optional `--playtest FILE` runs
+an additional agent script after the route checks, with the same seed and 20-ms
+session; script cvar overrides require a separate session. These commands never
+copy installed paks into their output. The output directory must be fresh, and
+failures retain a `status: failed` report with their diagnostic evidence.
+
+Outputs include `trace/interpretation.json` (full notes/assumptions), the numbered
+`trace/overlay.png`, `project/level.json` plus licensed assets/CREDITS,
+`project/assembly.json` (default entrance decisions), `compiled/` MAP/BSP/AAS,
+`overhead/` class images/differences/IoU, `shooter.json`, native `routes/` reports,
+and `runtime/` bot logs and PNGs. Unresolved assumptions fail the integrated build
+but preserve the draft for review. The overlap threshold defaults to 0.93 per
+class; spawn exposure, collision, route timing, fewer than two bot kills, observed
+stuck bots, missing captures and differing repeated compiled bytes also fail.
+
+Spawn marks use `kind: spawn`, one pixel point, `team` and `angle`; their origin
+is 24 units above the stated floor. Intent points accept `[pixel_x,pixel_y]` or
+`[pixel_x,pixel_y,floor_units]`. Explicit `spawns`, `pickups` and `viewpoints` in
+notes use world coordinates. Notes/free text stay in the interpretation. A
+building without an explicit `openings` field gets one recorded 96-by-96 doorway
+centered on the wall facing the boundary centroid; explicit empty openings remain
+closed. Per-ID overrides remain authoritative.
+
+For iteration, edit only `notes.overrides.building_7` and use a fresh output plus
+`--previous earlier/trace/interpretation.json`. The reference follow-up sets
+`floors: 2`, `height: 256` and an `opening_rules` entry with `face_point: [0,-154]`,
+`spacing: 1024`, `width: 96`, `sill: 48`, `height: 48`, `floors: [1]`. Geometry is
+compared by source ID; lighting/BSP visibility may change elsewhere after a height
+edit. Full native acceptance currently uses FFA; other modes fail explicitly.
+Static shooter reports additionally validate authored paired CTF objectives.
+
+Shooter metrics distinguish estimates from measurements: first-contact estimates
+assume symmetric 320-unit/s travel along the clearance path, while annotated route
+timing is measured through native player input/physics. Sightlines use eight rays
+per sampled lane position; cover density counts nearby waist-height collision.
+The native report contains suggested fixes for failed constraints. This sampling
+is an authoring aid, not a proof about every possible combat position.
+
+The new original reference drawing has a CC0 manifest. Its explicit source command
+is `python3 tests/assets/sketch/export.py --write`, refused in CI; accepted drawing
+bytes are consumed unchanged. `tests/sketch_build.py` checks semantic conversion,
+connected entrances, the building-7 edit and, with binaries/output supplied, both
+complete native builds via the level and agent entry points.
