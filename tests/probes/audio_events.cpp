@@ -4,7 +4,31 @@
 #include <string.h>
 #include <cmath>
 
+static void Reverb() {
+	static sReverb_t room, outdoors;
+	assert( S_ConfigureReverb( &room, 48000, .5f, .5f, .3f ) );
+	assert( S_ConfigureReverb( &outdoors, 48000, 0, .5f, .3f ) );
+	double early = 0, late = 0;
+	for ( int i = 0; i < 96000; ++i ) {
+		float a[2], b[2];
+		S_ReverbSample( &room, i == 0 ? 1000.0f : 0.0f, a );
+		S_ReverbSample( &outdoors, i == 0 ? 1000.0f : 0.0f, b );
+		assert( b[0] == 0 && b[1] == 0 );
+		assert( std::isfinite( a[0] ) && std::isfinite( a[1] ) );
+		if ( i < 1000 )
+			assert( a[0] == 0 && a[1] == 0 );
+		const double energy = double( a[0] ) * a[0] + double( a[1] ) * a[1];
+		if ( i < 24000 )
+			early += energy;
+		if ( i > 48000 )
+			late += energy;
+	}
+	assert( early > 100 && late < early * .0001 );
+	assert( !S_ConfigureReverb( &room, 0, .5f, .5f, .3f ) );
+}
+
 int main( int argc, char **argv ) {
+	Reverb();
 	assert( argc == 2 );
 	FILE *file = fopen( argv[1], "rb" );
 	assert( file );
