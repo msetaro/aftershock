@@ -994,3 +994,23 @@ existing replay frames remain identical. There is no known-bugs/UBSan suppressio
 entry for this numerical correctness bug. It remains separate from accounting.
 Merged in [PR #147](https://github.com/msetaro/aftershock/pull/147), 7f4d43a7;
 integration regression 35510058541 passed.
+
+## Open: main build publication lacks write permission (#158)
+
+Main baseline 81a0f9dc passes all compiler jobs but build run 35545534633 fails
+in create-testing job 106171225739 with `Resource not accessible by integration`
+when creating refs/tags/latest. The job lacks contents-write permission; the
+legacy action then attempts a rolling-tag update. Reproducer: the main push build
+that became active when modernization was retired. Log: main-baseline-publish.log.
+
+The isolated #158 infrastructure fix uses job-scoped write permissions and the
+installed gh CLI to publish immutable per-commit build tags, verifying any
+existing target before retrying assets. `python3 tests/publish_build.py` is an
+offline fake-CLI contract; it fails before the publisher is implemented. No
+engine bug, accepted golden, sanitizer suppression or external publication.
+
+#158 implementation: the test-first contract 7d88a53a fails on the missing
+publisher, then passes immutable creation/retry/collision and API failure cases.
+Bash syntax, build workflow actionlint and scoped permission checks pass. Full
+hosted gates and successful main publication remain required before this entry
+can be marked fixed. No history or rollback tag is rewritten.
