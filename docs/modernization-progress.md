@@ -64,6 +64,19 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 post profile contract first
+
+The first post test authors exposure/sharpen/vignette/grain/LUT/focus/blur settings
+and requires a fixed 132-byte native record in the existing hash envelope, plus
+an incremental exposure edit. It fails before implementation because kind post
+is absent (fidelity-post-before.log). This is authoring/layout coverage only;
+actual graph passes, LUT sampling, depth effects and temporal history still need
+native visual tests. Blur/grain remain zero by default. Use the published CC0
+ACES-fitted curve (Krzysztof Narkowicz, 2016) with exposure in linear space; do
+not claim full ACES color management. Existing display-encoded HDR scene output
+must be decoded before the filmic operation, and HUD composition must remain
+after it. No existing shader arrays or accepted frames will be regenerated.
+
 ## #161 original projected decal references pass
 
 New original CC0 bullet-hole, scorch and blood sources are frozen under
