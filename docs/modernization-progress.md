@@ -48,6 +48,14 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 stable-edit / sunken-zone contract
+
+A new test requires source-ID-labelled MAP brushes, confirms that a building_7
+storey/window edit changes only that shape, and requires a ramp into a sunken
+floor without the original ground sealing it. It first fails on absent source-ID
+labels (sketch-sunken-before.log). #163 merged publication is confirmed: repository
+prerelease build-ee4e95fc contains six platform archives. Its regression is pending.
+
 ## #164 connected-storey compile passes
 
 The ground/second-floor/roof spawn reachability contract now passes, including

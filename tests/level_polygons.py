@@ -104,6 +104,28 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
     assert not solid(upper,[-128,-160,80]), 'rule-based street-facing window absent'
     assert solid(upper,[-144,0,120]), 'upper floor slab absent'
     assert not solid(upper,[0,-32,248]), 'roof stairwell must remain open'
+    def groups(data):
+        parts = re.split(r'// shape ([a-z0-9_]+)\n',data.decode())
+        assert len(parts)>1, 'v2 MAP needs stable source shape labels'
+        result = {}
+        for name,text in zip(parts[1::2],parts[2::2]):
+            # Strip entity text after the final brush; geometry belongs to its source ID.
+            result.setdefault(name,[]).extend(re.findall(r'\{\s*(?:\([^\n]+\n)+\}',text))
+        return result
+    original,edited = groups(a['map']),groups(storeys['map'])
+    assert original.keys()==edited.keys(), 'building edit renumbered source IDs'
+    for identity in original:
+        assert (original[identity]!=edited[identity])==(identity=='building_7'),identity
+    changed = copy.deepcopy(level)
+    changed['shapes'].extend([
+        {'id':'sunken','kind':'platform','shape':{'rectangle':{'center':[0,-352],'size':[384,192]}},'base':-80,'height':16},
+        {'id':'sunken_ramp','kind':'transition','shape':{'path':{'points':[[-192,-352],[-64,-352]],'thickness':96}},
+         'base':-64,'height':64,'transition':'ramp','descending':True}])
+    changed['spawns'][0]['origin'] = [96,-352,-40]
+    sunken = compile(changed,'sunken',full=args.compile)
+    below = brushes(sunken['map'].decode())
+    assert not solid(below,[96,-352,-8]), 'original ground seals the sunken area'
+    assert solid(below,[96,-352,-72]), 'sunken floor is absent'
     changed = copy.deepcopy(level)
     changed['shapes'][1]['id'] = 'building_7'
     compile(changed,'duplicate',fail='duplicate')
