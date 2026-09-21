@@ -66,6 +66,19 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #161 initial effect cooker and fixed-pool runtime pass
+
+The existing cooker now accepts validated effect definitions, emits .asfx in the
+version/hash envelope and publishes kind 8. New engine/effects code uses 4096
+particles/128 instances with a free list, bounded emission, copied active definitions,
+rate carry, lifetime/flipbook updates, local emission axes, gravity/drag and optional
+caller-provided collision. It owns no clock, world state or heap memory.
+The original committed probe passes GCC and Clang/libc++ with strict FP and UBSan
+(fidelity-effects{,-clang}.log). This is pure component acceptance only: CMake,
+client rendering, public services, material/soft/light/trail paths, reference effects,
+editor/hot reload, full gates and all other #161 deliverables remain outstanding.
+No authoritative simulation or existing asset bytes changed.
+
 ## #161 independent implementation sequencing
 
 The previous checkpoint conservatively deferred all implementation until #164's
