@@ -10,6 +10,9 @@ import sys
 import tempfile
 
 from run import ROOT
+from shapely import Polygon
+sys.path.insert(0,str(ROOT/'tools/cook'))
+from gltf import Document
 
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--blender',type=Path)
@@ -32,6 +35,19 @@ with tempfile.TemporaryDirectory(prefix='aftershock-blender-kit-') as temporary:
             gltf=json.loads((output/'source'/name/(name+'.gltf')).read_text())
             primitives=[p for m in gltf['meshes'] for p in m['primitives']]
             assert primitives and all('TEXCOORD_0' in p['attributes'] for p in primitives),name
+            document=Document(output/'source'/name/(name+'.gltf'),lambda path:path.read_bytes())
+            tops=[]
+            for primitive in primitives:
+                positions=document.accessor(primitive['attributes']['POSITION'])
+                normals=document.accessor(primitive['attributes']['NORMAL'])
+                indices=[v[0] for v in document.accessor(primitive['indices'])]
+                for i in range(0,len(indices),3):
+                    tri=indices[i:i+3]
+                    if all(normals[k][1]>.99 for k in tri):
+                        tops.append((round(positions[tri[0]][1],5),Polygon([(positions[k][0],positions[k][2]) for k in tri])))
+            for i,(height,triangle) in enumerate(tops):
+                assert all(height!=other_height or triangle.intersection(other).area<1e-7
+                           for other_height,other in tops[i+1:]), ('coplanar overlap',name)
             assert (output/'source'/name/(name+'_lod1.gltf')).is_file(),name
             assert (output/'source'/name/'baked.png').is_file(),name
             model=output/'cooked/models/theme'/(name+'.iqm')

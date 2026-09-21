@@ -50,6 +50,16 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 procedural visual review / coplanar control
+
+A retained kit at /home/matt/.cache/aftershock-modernization/manhattan-modules
+validates 190 source/cooked files. An actual Blender contact-sheet render exposed
+black coplanar-overlap artifacts on facade/doorway caps. Bake colors themselves
+are correct. The new glTF geometry check fails on overlapping upward-facing
+triangles in the facade (sketch-module-overlap-before.log). Lower the shared frame
+to meet the cap without overlap, then repeat kit generation and visual review.
+The retained preview is manhattan-modules-preview.png in the user cache.
+
 ## #164 procedural kit reproducibility passes
 
 Two fresh pinned Blender 5.0.1 builds pass with byte-identical published kits
