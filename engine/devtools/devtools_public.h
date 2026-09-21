@@ -19,6 +19,7 @@ struct devNetwork_t {
 	uint32_t rewindAge, rewindLimit;
 	bool delta;
 };
+bool DevTools_AgentRequest( const char *request, uint32_t length, char *response, uint32_t capacity );
 void DevTools_BeginFrame( bool enabled );
 uint32_t DevTools_CpuTimings( const devCpuTiming_t **timings );
 void DevTools_Packet( bool outgoing, uint32_t bytes );

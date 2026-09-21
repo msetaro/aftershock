@@ -25,7 +25,9 @@ bda5ed1f (PR165 merged as 4ade5c3a). Exact-head build 35553788956 (16 compiler
 legs) and regression 35553788957 (10 required legs) both passed. Main/base
 782c0dbc was rechecked immediately before the merge. Merge and head share tree
 4088ff6eea6cb060f109a9b7e33fe9f1bd9919f2; known-good is unchanged. Merged build /
-actual publication 35555156611 and regression 35555156633 are now running.
+actual publication 35555156611 passed, including all 16 compiler legs and six
+platform archives in repository prerelease build-4ade5c3a9cad9cd71a04ca2641db2f74b8355774.
+Regression 35555156633 remains in progress (runtime and lifetimes).
 Finish those integration gates before accepting #14 and opening #163's PR.
 
 #163 test preparation is /home/matt/.cache/aftershock-modernization/agent-tree,
@@ -34,9 +36,12 @@ contract is committed before implementation: protocol version/command discovery,
 structured correlated replies, cvar get/set with read-only protection, escaped
 strings, console command queuing, typed errors with JSON paths/hints, and bounded
 output without partial execution. It fails on missing dev_agent.cpp as intended
-(agent-protocol-before.log). No channel or engine implementation exists yet.
-Main 4ade5c3a is merged forward here. After #14 integration acceptance, implement the command layer,
-then platform stdin/stdout transport, fixed-dt stepping and the rest of #163.
+(agent-protocol-before.log). The channel is not implemented yet.
+Main 4ade5c3a is merged forward here. The initial command layer now passes GCC
+and Clang/UBSan (agent-protocol-{gcc,clang}.log). Next add platform stdin/stdout
+transport and fixed-dt stepping, then the rest of #163. Since the merged #14
+tree exactly equals its tested head, isolated #163 implementation proceeds while
+integration verification finishes; opening its PR still waits for #14 acceptance.
 No PR for #163 opens before #14 acceptance. Updated #25 sequence is #163 -> #164
 -> #161 -> #15 and the remaining roadmap. All existing exclusions remain in force.
 
@@ -66,6 +71,19 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 initial command implementation
+
+The development-only dispatcher uses the existing JSON member helpers after a
+bounded syntax/depth check, decodes escaped strings, and writes correlated JSON
+into the caller's buffer. Cvar updates respect startup/read-only/cheat/developer
+flags and use Cvar_Set2 without forcing; exec queues the ordinary console path.
+An insufficient reply buffer prevents mutation. No OS calls or new allocations.
+The existing json.h utility is explicitly recognized as a shared public header
+by the include boundary gate. Native protocol tests pass GCC and Clang/UBSan.
+The test's Cvar_Flags stub now matches the production unsigned signature.
+This is only the first command slice, not #163 acceptance. Transport, stepping,
+shared UI actions, tools/schemas/isolation/recipes and full gates remain.
 
 ## #14 merged; integration verification pending
 

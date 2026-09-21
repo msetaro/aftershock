@@ -6,13 +6,13 @@ static char value[128] = "initial";
 static char queued[256];
 static cvar_t variable;
 
-int Cvar_Flags( const char *name ) {
+unsigned Cvar_Flags( const char *name ) {
 	if ( !strcmp( name, "readonly" ) )
 		return CVAR_ROM;
 	return !strcmp( name, "example" ) ? 0 : CVAR_NONEXISTENT;
 }
-void Cvar_VariableStringBuffer( const char *, char *buffer, int capacity ) {
-	Q_strncpyz( buffer, value, capacity );
+const char *Cvar_VariableString( const char * ) {
+	return value;
 }
 cvar_t *Cvar_Set2( const char *name, const char *text, qboolean force ) {
 	assert( !force );
