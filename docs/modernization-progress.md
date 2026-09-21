@@ -79,6 +79,18 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 streaming policy test-first
+
+The existing synchronous replacement is unsuitable for streaming: it waits idle
+and updates a live descriptor. Reuse its format/sampler helpers, but require
+separate image ownership and fence-safe adoption/retirement for the new path.
+The first policy test fails on absent tr_stream.h (fidelity-stream-policy-before.log).
+It requires fixed-capacity recent-use residency, retained coarse tails, eviction
+before promotion, stable equal-priority views, frame-counter wrap and peak VRAM
+accounting including pending/retired allocations. Costs are device allocation
+requirements, not compressed file sizes. Serial transitions deliberately bound
+staging and retirement. This is not an async-upload implementation or acceptance.
+
 ## #161 first temporal GPU budgets and disocclusion pixels
 
 At 1440p on the RTX 3080 Ti, serial real-clock timing controls with an owned native
