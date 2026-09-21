@@ -1,6 +1,6 @@
 #include "physics_public.h"
 #include "../animation/animation_public.h"
-#include <Jolt/Jolt.h>
+#include <Jolt/Core/Core.h>
 #include <Jolt/Core/Memory.h>
 #include <joltc.h>
 #include <cmath>

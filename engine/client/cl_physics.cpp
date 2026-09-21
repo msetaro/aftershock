@@ -50,5 +50,5 @@ void CL_InitPhysicsMap() {
 		CL_ShutdownPhysics();
 		Com_Error( ERR_DROP, "Cosmetic physics world mesh rejected (limit %u triangles)", PHYS_MAX_TRIANGLES );
 	}
-	Com_Printf( "Physics world: %u solid triangles, %zu/%zu arena bytes\n", map.count, Phys_Stats().used, PHYSICS_ARENA_BYTES );
+	Com_Printf( "Physics world: %u solid triangles, %u/%u arena bytes\n", map.count, unsigned( Phys_Stats().used ), unsigned( PHYSICS_ARENA_BYTES ) );
 }

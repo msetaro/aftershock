@@ -63,7 +63,7 @@ void CG_PhysicsProp() {
 void CG_PhysicsStatus() {
 	CG_RagdollStatus();
 	const auto stats = Phys_Stats();
-	CG_Printf( "Physics status: steps=%u arena=%zu allocations=%u live=%u\n", physicsSteps, stats.used, stats.allocations, stats.liveBlocks );
+	CG_Printf( "Physics status: steps=%u arena=%u allocations=%u live=%u\n", physicsSteps, unsigned( stats.used ), stats.allocations, stats.liveBlocks );
 	for ( const auto &prop : physicsProps ) {
 		physTransform_t pose;
 		if ( Phys_Transform( prop.slot, &pose ) ) {

@@ -56,8 +56,9 @@ probes pass. Full local lifetime analysis (1,268 commands) and tidy policy (1,32
 configurations), format/types/boundaries, affected/suite contracts and workflow
 syntax pass. No accepted fixtures were regenerated.
 
-Next monitor hosted build 35649848657 and regression 35649848654, fix any failures
-within #15 scope, complete the recorded self-review, and merge PR170 only with
+Initial hosted build 35649848657 exposed MSVC umbrella-header and MinGW diagnostic
+format failures; the fixes below are ready for hosted confirmation. Next monitor
+the latest PR170 runs, complete the recorded self-review, and merge only with
 all required checks green against current main. Recheck main immediately before
 merge; it was still 0928be35 when the PR was opened. No maintainer input is needed.
 Private evidence logs are under /home/matt/.cache/aftershock-modernization:
@@ -80,6 +81,25 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 hosted MSVC header failure
+
+Initial hosted build 35649848657 failed both Windows ARM64 configurations. Debug
+job 106499263710 reports C4530 promoted to C2220: including Jolt/Jolt.h from the
+owned adapter instantiates Vec4's ostream formatter under /EHs-c-. The adapter
+needs only allocator declarations, so replace the umbrella include with
+Jolt/Core/Core.h plus the existing Memory.h; do not enable exceptions or suppress
+the warning. Local client rebuild and both compiler probes precede the next push;
+hosted MSVC builds remain required evidence. Log: physics-msvc-arm64.log.
+Release Windows-MinGW job 106499262967 also rejects %zu in the new Com_Printf
+world diagnostic. Both new world/status diagnostics now use unsigned values
+within the fixed 128-MiB client arena limit; no engine-wide formatter change.
+Log: physics-mingw-release.log. All MSVC configurations report the same umbrella
+header problem. Client rebuild and both compiler component probes pass with the
+narrow allocator include; hosted confirmation follows.
+
+Draft PR170 is still unmerged. The documentation-only head 1f4a66d9 queued runs
+35650061544/35650061617 before this failure was diagnosed.
 
 ## #15 death/runtime and unchanged replay checkpoint
 
