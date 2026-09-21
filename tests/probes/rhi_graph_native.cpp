@@ -240,6 +240,7 @@ static void VKAPI_CALL drawPost( VkCommandBuffer, uint32_t vertices, uint32_t in
 	++occlusionDraws;
 }
 static void occlusionCommands() {
+	vk.maxBoundDescriptorSets = 32; // Device capacity exceeds our five-set pipeline layout.
 	qvkCreateGraphicsPipelines = createOcclusionPipeline;
 	for ( uint32_t i = 0; i < 3; ++i ) {
 		const auto &node = vk_graph.passes[(uint32_t)rhiGraphPass_t::Occlusion + i];

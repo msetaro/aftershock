@@ -20,6 +20,16 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
+Pause #161 for a separate #31 descriptor-restoration fix on
+issue/31-descriptor-restore, based on main 81e40b0c. The RTX post run crashes
+inside RHI_PrepareDraw; the identical scene with post disabled passes (CPU
+p50/p95/p99 4.688/6.207/6.739 ms). Existing main SSAO restoration also uses the
+hardware descriptor limit as an index into the five-entry descriptor cache.
+The native graph reproducer now advertises 32 device sets; run it before fixing.
+No #161 timing is accepted. Resume #161 after this fix passes all hosted gates
+and merges into main. No accepted fixtures or suppression entries change.
+
+
 Active worktree: /home/matt/.cache/aftershock-modernization/sketch-tree, branch
 issue/164-sketch-level, draft PR167 into current main ee4e95fc (#163 accepted).
 #164 implementation, reference/iteration, supplied retarget and exact default

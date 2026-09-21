@@ -2,6 +2,18 @@
 
 The strict port made no engine bug fixes. Modernization #31 dispositions are recorded below.
 
+## Vulkan descriptor restoration uses the device limit (#31, open)
+
+SSAO restoration sets the dirty range to maxBoundDescriptorSets - 1, although
+both the engine cache and pipeline layout have at most five sets. Devices with
+larger limits cause an out-of-bounds descriptor read/bind on the next draw.
+Found while testing #161 on RTX 3080 Ti; post-disabled control passes and gdb
+places the crash in RHI_PrepareDraw's descriptor binding. The same restoration
+exists on main in RHI_Occlusion. Reproducer: python3 tests/render_graph.py, whose
+native SSAO probe now advertises 32 supported sets. Sparse/uninitialized cached
+slots also must not be submitted as live descriptor sets when restoring state.
+This functional bug has no expected-failure or UBSan suppression entry.
+
 ## Current disposition
 
 The original twelve engine/vendor defects are closed with merged tested fixes
