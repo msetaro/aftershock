@@ -61,7 +61,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
         if fail:
             assert result.returncode and fail in result.stderr.lower(),(fail,result.stdout,result.stderr)
             return
-        assert result.returncode==0,result.stderr
+        assert result.returncode==0,result.stderr+((output/'compile.log').read_text(errors='replace')[-8000:] if (output/'compile.log').exists() else '')
         report = json.loads(result.stdout)
         return {kind:(output/path).read_bytes() for kind in ('map','bsp','aas') if (path:=report.get(kind))}
     a = compile(level,'a',full=args.compile)

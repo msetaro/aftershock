@@ -31,8 +31,8 @@ running; monitor them and check #163 in #25 once accepted. Known-good unchanged.
 #164 has test-first polygon geometry, holes, rotated/curved/concave solids and
 shell openings. Initial repeated MAP/BSP/AAS output passes and all accepted v1
 fixtures stay byte-identical. Next contract adds terrace stairs/ramp, fences and
-overheads; its MAP occupancy/navigation pass. Formal schema integration
-and full compile pass. Next: connected multi-floor buildings, interpretation/tracing,
+overheads; its MAP occupancy/navigation pass. Formal schema, connected storeys/roofs,
+sunken zones and full compile pass. Next: interpretation/tracing,
 licensed assets/Blender theme kit, shooter intent checks, compiled overhead
 comparison and the one-command agent playtest. This is partial work, not #164
 acceptance. The issue and checkpoint contain measured results and decisions.
@@ -47,6 +47,18 @@ library APIs are reachable; no assets imported yet and no local system packages.
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 sunken geometry and edit isolation pass
+
+Stable source-ID MAP labels prove that changing building_7 floors/windows leaves
+every other shape's brush group unchanged. A sunken zone with a descending ramp
+now passes clearance, leak detection and BSP/AAS compilation. The full compiler
+caught a leak at an unnecessary retaining-wall cut; retaining the complete ring
+seals it while the ramp's high end meets its top. No engine bug or engine change.
+All repeated v2 and accepted v1 comparisons pass (sketch-sunken.log). The retained
+owned debug MAP/log/leak evidence is under sketch-sunken-debug in the user cache.
+No game packages were copied. Next implement image interpretation/tracing and
+licensed theme assets, then the integrated agent/runtime/overhead acceptance.
 
 ## #164 stable-edit / sunken-zone contract
 

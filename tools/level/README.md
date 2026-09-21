@@ -222,9 +222,13 @@ size and angle, `circle` with center/radius/tolerance, `arc` with those fields p
 start/end/thickness, or `path` with points/thickness. Coordinates are finite Quake
 units. Curve tolerance is the maximum radial chord error, with at most 256 segments.
 Pinned Shapely constrained triangulation preserves concavity and holes in brushes.
+V2 MAP comments label each brush by source ID, so a targeted note edit can be
+verified without renumbering other shapes.
 
 `solid`, `platform`, `wall` and `overhead` extrude their footprints. A wall may set
 `bullet_solid: false` for player clipping with bullet-transparent collision.
+A platform whose top lies below the boundary floor carves a sunken zone; its
+retaining wall seals the floor perimeter. Place the ramp's high end at that perimeter.
 `transition` uses a straight two-point path and `transition: stairs|ramp`; its
 height rises along the path unless `descending: true`. Existing minimum width,
 1:2 slope, 16-unit riser and 32-unit tread limits apply. A `building` subtracts its

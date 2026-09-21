@@ -166,17 +166,22 @@ def pieces(level):
         if not p.is_empty and Z>z:
             require(-32752<=z<Z<=32752, 'brush height outside world bounds')
             result.append(dict(id=identity,polygon=p,low=z,high=Z,material=material,slope=slope))
-    add('boundary_floor',area,floor-16,floor,'floor')
+    authored = [(item,footprint(item['shape'])) for item in level['shapes']]
+    sunken = [(item,p) for item,p in authored if item['kind']=='platform' and item['base']+item['height']<floor]
+    floor_area = area.difference(shapely.union_all([p for _,p in sunken]))
+    add('boundary_floor',floor_area,floor-16,floor,'floor')
+    for item,p in sunken:
+        retaining = p.buffer(16,join_style='mitre').difference(p)
+        add(item['id'],retaining,item['base'],floor,'wall')
     add('boundary_ceiling',area,ceiling,ceiling+16,'sky')
     add('boundary_wall',area.difference(area.buffer(-16,join_style='mitre')),floor,ceiling,'wall')
     ids = set()
-    for item in level['shapes']:
+    for item,p in authored:
         identity = item['id']
         require(identity not in ids, 'duplicate shape id: '+identity)
         ids.add(identity)
-        p = footprint(item['shape'])
         z,Z = item['base'],item['base']+item['height']
-        require(area.buffer(-16,join_style='mitre').covers(p) and floor<=z<Z<=ceiling,
+        require(area.buffer(-16,join_style='mitre').covers(p) and min([floor]+[r['base'] for r,_ in sunken])<=z<Z<=ceiling,
                 'shape outside playable boundary: '+identity)
         material = item.get('material','wall' if item['kind']=='building' else 'cover')
         require(material in level['materials'], 'unknown material role: '+material)
@@ -249,7 +254,7 @@ def pieces(level):
 
 def generate(level):
     _,records = pieces(level)
-    world = [prism(poly,record['low'],record['high'],level['materials'].get(record['material'],record['material']),record['slope'])
+    world = ['// shape '+record['id']+'\n'+prism(poly,record['low'],record['high'],level['materials'].get(record['material'],record['material']),record['slope'])
              for record in records for poly in convex_parts(record['polygon'])]
     require(len(world)<=8192, 'convex brush budget exceeded')
     entities = []
