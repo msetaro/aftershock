@@ -64,6 +64,15 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 live soft-depth contract fails first
+
+The native test places a cyan sprite at 32 units above, 1 unit above and 4 units
+below the same floor. The previous binary gives identical near/far center values
+(146536 each), so the near-depth fade assertion fails as intended; the occluded
+control is zero (fidelity-soft-runtime-before.log). Commit this test before the
+new depth-pass implementation. Initial new shader compilation appends only three
+new arrays through bin2hex; all 88 existing arrays remain byte-identical.
+
 ## #161 soft-particle graph test first
 
 The graph contract now requires retained sampled scene depth, a particle pass
