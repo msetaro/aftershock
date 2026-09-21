@@ -51,7 +51,7 @@ static struct {
 // assets. Cooking stays offline; a map restart selects a new gameplay revision.
 static struct {
 	char path[MAX_QPATH], source[MAX_QPATH], loadedSource[MAX_QPATH];
-	char text[65536], saved[65536], status[256], lastEvent[64];
+	char text[65536], saved[65536], status[256], lastEvent[64], result[32];
 	animAsset_t asset;
 	void *storage;
 	animState_t state;
@@ -202,17 +202,53 @@ static T GraphRecord( animSectionIndex_t section, uint32_t index ) {
 	memcpy( &record, graph.asset.data + graph.asset.header.sections[section].offset + index * sizeof( T ), sizeof( record ) );
 	return record;
 }
+bool DevTools_Graph( const char *action, const char *text, float value ) {
+	if ( !strcmp( action, "load" ) || !strcmp( action, "source" ) ) {
+		if ( !text[0] || strlen( text ) >= MAX_QPATH )
+			return false;
+		const bool load = !strcmp( action, "load" );
+		char *path = load ? graph.path : graph.source;
+		if ( text != path )
+			Q_strncpyz( path, text, MAX_QPATH );
+		if ( load )
+			graph.load = true;
+		else
+			graph.read = true;
+		graph.select = true;
+	} else if ( !strcmp( action, "text" ) ) {
+		if ( strlen( text ) >= sizeof( graph.text ) )
+			return false;
+		if ( text != graph.text )
+			Q_strncpyz( graph.text, text, sizeof( graph.text ) );
+	} else if ( !strcmp( action, "save" ) ) {
+		if ( !graph.loadedSource[0] || graph.read )
+			return false;
+		graph.save = true;
+	} else if ( !strcmp( action, "undo" ) )
+		Q_strncpyz( graph.text, graph.saved, sizeof( graph.text ) );
+	else if ( !strcmp( action, "play" ) && ( value == 0 || value == 1 ) )
+		graph.play = value != 0;
+	else if ( !strcmp( action, "reset" ) && graph.storage ) {
+		graph.time = graph.remainder = 0;
+		Anim_Reset( &graph.asset, 0, &graph.state );
+	} else if ( !strcmp( action, "parameter" ) && graph.storage && std::isfinite( value ) ) {
+		for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_PARAMETERS].count; ++i ) {
+			const auto parameter = GraphRecord<animFileParameter_t>( ANIM_PARAMETERS, i );
+			if ( !strcmp( parameter.name, text ) ) {
+				if ( value < parameter.minimum || value > parameter.maximum )
+					return false;
+				graph.parameters[i] = value;
+				return true;
+			}
+		}
+		return false;
+	} else
+		return false;
+	return true;
+}
 static void GraphCommand( void ) {
-	const char *operation = Cmd_Argv( 1 );
-	if ( !strcmp( operation, "load" ) ) {
-		Q_strncpyz( graph.path, Cmd_Argv( 2 ), sizeof( graph.path ) );
-		graph.load = graph.select = true;
-	} else if ( !strcmp( operation, "source" ) ) {
-		Q_strncpyz( graph.source, Cmd_Argv( 2 ), sizeof( graph.source ) );
-		graph.read = graph.select = true;
-	} else {
+	if ( !DevTools_Graph( Cmd_Argv( 1 ), Cmd_Argv( 2 ), 0 ) )
 		Com_Printf( "dev_animation load <cooked.asanim> | source <animation_source/file.json>\n" );
-	}
 }
 static bool GraphReadSource( const char *path, char *text, size_t capacity ) {
 	fileHandle_t file;
@@ -251,9 +287,11 @@ static void EditGraph( const refexport_t *renderer ) {
 			graph.lastEvent[0] = '\0';
 			Anim_Reset( &asset, 0, &graph.state );
 			Anim_DefaultParameters( &asset, graph.parameters );
+			Q_strncpyz( graph.result, "loaded", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Graph loaded. Gameplay keeps its map-start revision.", sizeof( graph.status ) );
 			Com_Printf( "Animation graph loaded: state=%s\n", Anim_StateName( &asset, graph.state.current ) );
 		} else {
+			Q_strncpyz( graph.result, "load_failed", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Graph load failed; the previous preview remains available.", sizeof( graph.status ) );
 		}
 	}
@@ -265,25 +303,30 @@ static void EditGraph( const refexport_t *renderer ) {
 		for ( const char *p = graph.source; *p; ++p )
 			valid &= ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '/' || *p == '_' || *p == '-' || *p == '.';
 		if ( !valid ) {
+			Q_strncpyz( graph.result, "invalid_path", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Use a lowercase animation_source/*.json path.", sizeof( graph.status ) );
 			return;
 		}
 		char current[sizeof( graph.text )];
 		if ( !GraphReadSource( graph.source, current, sizeof( current ) ) ) {
+			Q_strncpyz( graph.result, "read_failed", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Source read failed or exceeds 65535 bytes; edits retained.", sizeof( graph.status ) );
 			return;
 		}
 		if ( read ) {
 			if ( strcmp( graph.text, graph.saved ) ) {
+				Q_strncpyz( graph.result, "unsaved_edits", sizeof( graph.result ) );
 				Q_strncpyz( graph.status, "Unsaved edits: save or undo them before loading another source.", sizeof( graph.status ) );
 				return;
 			}
 			Q_strncpyz( graph.text, current, sizeof( graph.text ) );
 			Q_strncpyz( graph.saved, current, sizeof( graph.saved ) );
 			Q_strncpyz( graph.loadedSource, graph.source, sizeof( graph.loadedSource ) );
+			Q_strncpyz( graph.result, "source_loaded", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Source loaded. Save keeps a numbered backup; the cooker validates JSON.", sizeof( graph.status ) );
 		} else {
 			if ( strcmp( graph.source, graph.loadedSource ) || strcmp( current, graph.saved ) ) {
+				Q_strncpyz( graph.result, "source_changed", sizeof( graph.result ) );
 				Q_strncpyz( graph.status, "Source changed outside the editor; save refused, edits retained.", sizeof( graph.status ) );
 				return;
 			}
@@ -295,14 +338,17 @@ static void EditGraph( const refexport_t *renderer ) {
 					break;
 			}
 			if ( revision == 1000 || !GraphWriteSource( backup, current ) ) {
+				Q_strncpyz( graph.result, "backup_failed", sizeof( graph.result ) );
 				Q_strncpyz( graph.status, "Backup failed or 1000 revisions reached; source unchanged.", sizeof( graph.status ) );
 				return;
 			}
 			if ( !GraphWriteSource( graph.source, graph.text ) || !GraphReadSource( graph.source, current, sizeof( current ) ) || strcmp( current, graph.text ) ) {
+				Q_strncpyz( graph.result, "save_failed", sizeof( graph.result ) );
 				Com_sprintf( graph.status, sizeof( graph.status ), "Save failed; edits retained, previous source in %s.", backup );
 				return;
 			}
 			Q_strncpyz( graph.saved, graph.text, sizeof( graph.saved ) );
+			Q_strncpyz( graph.result, "saved", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Source saved. Check cooker output, then load the cooked graph.", sizeof( graph.status ) );
 			Com_Printf( "Animation source saved: %s (backup %s)\n", graph.source, backup );
 		}
@@ -316,21 +362,22 @@ static void InspectGraph( uint32_t elapsed ) {
 	ImGui::SetNextItemWidth( 370 );
 	ImGui::InputText( "##Cooked graph", graph.path, sizeof( graph.path ) );
 	ImGui::SameLine();
-	graph.load |= ImGui::Button( "Load graph" );
+	if ( ImGui::Button( "Load graph" ) )
+		DevTools_Graph( "load", graph.path, 0 );
 	if ( ImGui::BeginTabBar( "Graph views" ) ) {
 		if ( ImGui::BeginTabItem( "Preview" ) ) {
 			if ( graph.storage ) {
 				ImGui::Text( "State: %s | last event: %s", Anim_StateName( &graph.asset, graph.state.current ), graph.lastEvent );
-				ImGui::Checkbox( "Play fixed steps", &graph.play );
+				if ( ImGui::Checkbox( "Play fixed steps", &graph.play ) )
+					DevTools_Graph( "play", "", graph.play ? 1 : 0 );
 				ImGui::SameLine();
-				if ( ImGui::Button( "Reset" ) ) {
-					graph.time = graph.remainder = 0;
-					Anim_Reset( &graph.asset, 0, &graph.state );
-				}
+				if ( ImGui::Button( "Reset" ) )
+					DevTools_Graph( "reset", "", 0 );
 				if ( ImGui::BeginChild( "Inputs", ImVec2( 0, 110 ), ImGuiChildFlags_Borders ) ) {
 					for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_PARAMETERS].count; ++i ) {
 						const auto parameter = GraphRecord<animFileParameter_t>( ANIM_PARAMETERS, i );
-						ImGui::SliderFloat( parameter.name, &graph.parameters[i], parameter.minimum, parameter.maximum );
+						if ( ImGui::SliderFloat( parameter.name, &graph.parameters[i], parameter.minimum, parameter.maximum ) )
+							DevTools_Graph( "parameter", parameter.name, graph.parameters[i] );
 					}
 				}
 				ImGui::EndChild();
@@ -344,6 +391,7 @@ static void InspectGraph( uint32_t elapsed ) {
 						animEvents_t events;
 						if ( !Anim_Tick( &graph.asset, graph.parameters, graph.time, &graph.state, &events ) ) {
 							graph.play = false;
+							Q_strncpyz( graph.result, "tick_failed", sizeof( graph.result ) );
 							Q_strncpyz( graph.status, "Graph tick failed; preview paused.", sizeof( graph.status ) );
 							break;
 						}
@@ -365,13 +413,16 @@ static void InspectGraph( uint32_t elapsed ) {
 		if ( ImGui::BeginTabItem( "Source" ) ) {
 			ImGui::SetNextItemWidth( 460 );
 			ImGui::InputText( "##Source path", graph.source, sizeof( graph.source ) );
-			graph.read |= ImGui::Button( "Load source" );
+			if ( ImGui::Button( "Load source" ) )
+				DevTools_Graph( "source", graph.source, 0 );
 			ImGui::SameLine();
-			graph.save |= ImGui::Button( "Save + backup" );
+			if ( ImGui::Button( "Save + backup" ) )
+				DevTools_Graph( "save", "", 0 );
 			ImGui::SameLine();
 			if ( ImGui::Button( "Undo edits" ) )
-				Q_strncpyz( graph.text, graph.saved, sizeof( graph.text ) );
-			ImGui::InputTextMultiline( "##Graph JSON", graph.text, sizeof( graph.text ), ImVec2( -1, 210 ), ImGuiInputTextFlags_AllowTabInput );
+				DevTools_Graph( "undo", "", 0 );
+			if ( ImGui::InputTextMultiline( "##Graph JSON", graph.text, sizeof( graph.text ), ImVec2( -1, 210 ), ImGuiInputTextFlags_AllowTabInput ) )
+				DevTools_Graph( "text", graph.text, 0 );
 			ImGui::EndTabItem();
 		}
 		if ( ImGui::BeginTabItem( "Tables" ) ) {
@@ -806,6 +857,13 @@ void DevTools_EditorState( devEditorState_t *state ) {
 	state->animationFrame = animation.frame;
 	state->animationPreviews = animationFrames;
 	state->animationPlay = animation.play;
+	Q_strncpyz( state->graphState, graph.storage ? Anim_StateName( &graph.asset, graph.state.current ) : "", sizeof( state->graphState ) );
+	Q_strncpyz( state->graphEvent, graph.lastEvent, sizeof( state->graphEvent ) );
+	Q_strncpyz( state->graphResult, graph.result, sizeof( state->graphResult ) );
+	state->graphPreviews = graph.previews;
+	state->graphTime = graph.time;
+	state->graphDirty = strcmp( graph.text, graph.saved ) != 0;
+	state->graphPlay = graph.play;
 }
 
 static void InspectWorld( void ) {
@@ -1276,6 +1334,7 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds ) {
 	editorRenderer = renderer;
+	EditGraph( renderer );
 	LoadAnimation( renderer );
 	if ( worldDebug.refresh ) {
 		DevTools_RebuildWorld( worldDebug.collision, worldDebug.navigation, worldDebug.radius );

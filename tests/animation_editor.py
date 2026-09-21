@@ -61,11 +61,19 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-editor-', dir=os.e
                 backups = list(source.glob('rifle.animation.json.bak.*'))
                 assert len(backups) == 1 and backups[0].read_bytes() == original
                 assert not engine.request('editor.state')['graph']['dirty']
+                assert engine.request('editor.state')['graph']['result'] == 'saved'
                 wait_for(lambda: (base / 'cook.revision').read_bytes() != revision, watcher)
                 engine.request('graph', action='load', text='animations/anim_rifle.asanim')
                 engine.step(3)
                 state = engine.request('editor.state')['graph']
                 assert state['state'] == 'ads' and state['previews'] > 0, state
+                engine.request('graph', action='parameter', text='ads', value=1)
+                engine.request('graph', action='play', value=1)
+                engine.step(20)
+                assert engine.request('editor.state')['graph']['time'] > 0
+                engine.request('graph', action='play', value=0)
+                engine.request('graph', action='reset')
+                assert engine.request('editor.state')['graph']['time'] == 0
                 capture = engine.request('capture', name='animation_editor')
                 engine.step(2)
                 shutil.copyfile(base / capture['path'], output / 'animation_editor.png')

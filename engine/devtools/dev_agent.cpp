@@ -8,7 +8,7 @@
 #include <inttypes.h>
 
 // Requests and replies are bounded POD data; the inactive channel allocates nothing.
-static constexpr uint32_t agentLimit = 16384;
+static constexpr uint32_t agentLimit = 524288;
 static bool agentActive;
 static uint32_t agentFrame, agentSteps, agentStepId;
 static int agentTime = 1000, agentDt = 8, agentSeed = 1;
@@ -494,6 +494,20 @@ static void Agent_EditorState( agentReply_t &reply ) {
 	reply.Text( state.animationPlay ? "true" : "false" );
 	reply.Text( ",\"clip\":" );
 	reply.String( state.clip );
+	reply.Text( "},\"graph\":{\"state\":" );
+	reply.String( state.graphState );
+	reply.Text( ",\"event\":" );
+	reply.String( state.graphEvent );
+	reply.Text( ",\"result\":" );
+	reply.String( state.graphResult );
+	reply.Text( ",\"previews\":" );
+	reply.Number( state.graphPreviews );
+	reply.Text( ",\"time\":" );
+	reply.Number( state.graphTime );
+	reply.Text( ",\"dirty\":" );
+	reply.Text( state.graphDirty ? "true" : "false" );
+	reply.Text( ",\"play\":" );
+	reply.Text( state.graphPlay ? "true" : "false" );
 	reply.Text( "}}}" );
 }
 #endif
@@ -648,7 +662,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	reply.Text( "{\"id\":" );
 	if ( !request || !length || length >= agentLimit ) {
 		reply.Text( "null" );
-		return reply.Error( "invalid_request", "$", "Send one JSON object shorter than 16384 bytes." );
+		return reply.Error( "invalid_request", "$", "Send one JSON object shorter than 524288 bytes." );
 	}
 	const char *end = request + length;
 	Agent_Whitespace( request, end );
@@ -675,7 +689,28 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+	} else if ( !strcmp( op, "graph" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Graph actions require a client build." );
+#else
+		if ( capacity < 1024 )
+			return false;
+		static char text[65536];
+		p = JSON_ObjectGetNamedValue( request, end, "action" );
+		if ( !Agent_String( p, end, name, sizeof( name ) ) )
+			return reply.Error( "invalid_argument", "$.action", "Use load/source/text/save/undo/play/reset/parameter." );
+		p = JSON_ObjectGetNamedValue( request, end, "text" );
+		text[0] = 0;
+		if ( p && !Agent_String( p, end, text, sizeof( text ) ) )
+			return reply.Error( "invalid_argument", "$.text", "Provide text shorter than 65536 UTF-8 bytes." );
+		float number = 0;
+		if ( ( !strcmp( name, "play" ) || !strcmp( name, "parameter" ) ) && !Agent_Number( request, end, "value", number, -1e30f, 1e30f ) )
+			return reply.Error( "invalid_argument", "$.value", "Provide the numeric parameter value, or 0/1 for play." );
+		if ( !DevTools_Graph( name, text, number ) )
+			return reply.Error( "rejected", "$", "Check action/path/parameter bounds; load a graph/source first. Step to finish queued IO and inspect editor.state.graph.result." );
+		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+#endif
 	} else if ( !strcmp( op, "panel" ) || !strcmp( op, "world" ) || !strcmp( op, "editor.state" ) || !strcmp( op, "animation.load" ) || !strcmp( op, "animation.set" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Editor actions require a client build." );

@@ -11,6 +11,9 @@ bool DevTools_SetWorld( bool, bool, bool, float ) {
 bool DevTools_LoadAnimation( const char *, const char * ) {
 	return false;
 }
+bool DevTools_Graph( const char *, const char *, float ) {
+	return true;
+}
 bool DevTools_SetAnimation( const char *, float ) {
 	return false;
 }
