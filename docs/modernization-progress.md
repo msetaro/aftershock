@@ -48,9 +48,8 @@ Next implement .asevt registration and bounded playback of its cooked
 PCM layers, integrating the tested spatial/HRTF component. Then continue the
 remaining issue scope and runtime acceptance. Record failures before fixes. No maintainer input is currently needed.
 
-Merged-tree #15 build/publication 35658235970 passed. Regression 35658235841
-has nine active jobs passing and runtime still running. After runtime passes,
-mark #15 accepted in #25. This does not replace #16's own final
+#15 is accepted and checked in #25: merged-tree build/publication 35658235970
+and all ten active regression jobs in 35658235841 passed, including runtime. This does not replace #16's own final
 checks against current main. One issue branch/PR, merge commit only, all required
 checks green; no external repository writes, no force pushes or tag changes.
 
