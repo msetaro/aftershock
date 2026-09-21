@@ -64,6 +64,17 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 material-hit decal contract first
+
+The effect definition gains an optional decal reference, so existing per-material
+weapon effect selection can spawn particles and one projected mark together.
+No weapon payload, authoritative hit result or game import changes are needed.
+The cooker/native layout assertions now require a version-3 effect envelope and
+100-byte header. Before implementation the schema rejects the new field
+(fidelity-hit-decals-before.log). Existing reference sources remain untouched;
+only new cooked feature data changes. Implement renderer binding, then prove
+actual weapon impacts leave visible marks after their particles expire.
+
 ## #161 projected decal verification checkpoint
 
 The MSAA lifecycle and strengthened native ring/memory checks pass

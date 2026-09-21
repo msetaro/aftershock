@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <type_traits>
 
 static fxSystem_t state, other;
@@ -21,7 +22,7 @@ static bool Wall( const float start[3], const float end[3], fxTrace_t *trace, vo
 int main( int argc, char **argv ) {
 	static_assert( std::is_trivially_destructible_v<fxSystem_t> );
 	static_assert( std::is_trivially_copyable_v<fxAsset_t> );
-	static_assert( sizeof( fxFileHeader_t ) == 36 );
+	static_assert( sizeof( fxFileHeader_t ) == 100 );
 	static_assert( sizeof( fxFileEmitter_t ) == 304 );
 	assert(argc == 3);
 	FILE *file = fopen( argv[1], "rb" );
@@ -32,6 +33,7 @@ int main( int argc, char **argv ) {
 	fxAsset_t asset{};
 	assert(FX_Open(bytes, size, &asset));
 	assert(asset.header.emitterCount == 1);
+	assert(!std::strcmp(asset.header.decal, "decals/bullet.asdc"));
 	assert(asset.emitters[0].burst == 8 && asset.emitters[0].capacity == 16);
 	const float origin[3] = { 0, 0, 0 };
 	const float axis[3][3] = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };

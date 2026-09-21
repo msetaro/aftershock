@@ -25,7 +25,7 @@ args.output.mkdir(parents=True,exist_ok=True)
 os.environ['CXX']=args.cxx
 with tempfile.TemporaryDirectory(prefix='aftershock-effect-source-') as temporary:
     source=Path(temporary)
-    definition=dict(version=1,name='impact',emitters=[dict(name='sparks',kind='sprite',material='effects/spark',
+    definition=dict(version=1,name='impact',decal='decals/bullet.asdc',emitters=[dict(name='sparks',kind='sprite',material='effects/spark',
         capacity=16,rate=0,burst=8,lifetime_ms=1000,size=2,velocity=[100,0,40],gravity=[0,0,-80],drag=.5,
         collision=True,soft=True,lit=False,color=[1,.5,.1,1],flipbook=dict(columns=4,rows=2,fps=16))])
     effect=source/'impact.effect.json'
@@ -37,17 +37,18 @@ with tempfile.TemporaryDirectory(prefix='aftershock-effect-source-') as temporar
     path=args.output/'effects/impact.asfx'
     data=path.read_bytes()
     magic,version,size,hashed=struct.unpack_from('<8sII32s',data)
-    assert magic==b'ASEFFECT' and version==2 and size==len(data)-48
+    assert magic==b'ASEFFECT' and version==3 and size==len(data)-48
     assert hashlib.sha256(data[48:]).digest()==hashed
     assert data[48:80].split(b'\0',1)[0]==b'impact'
     assert struct.unpack_from('<I',data,80)[0]==1
-    assert size==36+304, 'effect payload must match the fixed native record layout'
-    name,material,model=struct.unpack_from('<32s64s64s',data,84)
+    assert data[84:148].split(b'\0',1)[0]==b'decals/bullet.asdc'
+    assert size==100+304, 'effect payload must match the fixed native record layout'
+    name,material,model=struct.unpack_from('<32s64s64s',data,148)
     assert name.split(b'\0',1)[0]==b'sparks' and material.split(b'\0',1)[0]==b'effects/spark' and not model.strip(b'\0')
-    assert struct.unpack_from('<7I',data,244)==(0,16,8,1000,3,4,2)
-    values=struct.unpack_from('<14f',data,272)
+    assert struct.unpack_from('<7I',data,308)==(0,16,8,1000,3,4,2)
+    values=struct.unpack_from('<14f',data,336)
     assert values[:9]==(0,2,100,0,40,0,0,-80,.5) and values[-1]==16
-    extras=struct.unpack_from('<15f',data,328)
+    extras=struct.unpack_from('<15f',data,392)
     assert extras==(0,0,0,0,0,0,2,0,0,0,0,0,1,1,1)
     manifest=json.loads((args.output/'effects/impact.manifest.json').read_text())
     assert {f['path'] for f in manifest['inputs']}=={effect.name}
@@ -81,9 +82,11 @@ with tempfile.TemporaryDirectory(prefix='aftershock-effect-source-') as temporar
          'engine/qcommon/q_shared.cpp','engine/qcommon/q_math.cpp','-Wl,--gc-sections','-o',impact])
     run([impact])
 
+    del definition['decal']
     definition['emitters'][0]['size']=4
     effect.write_text(json.dumps(definition))
     assert cook(project,args.output)['built']==['effects/impact'] and path.read_bytes()!=data
+    assert path.read_bytes()[84:148]==bytes(64)
     def rejected(reason):
         result=subprocess.run([sys.executable,'tools/cook',str(project),'--output',str(args.output)],cwd=ROOT,capture_output=True,text=True)
         assert result.returncode and reason in result.stderr,result.stderr
