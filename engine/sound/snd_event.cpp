@@ -1,6 +1,7 @@
 #include "snd_event.h"
 #include "../../third_party/sha256/sha-256.h"
 #include <cmath>
+#include <algorithm>
 #include <string.h>
 
 struct soundEventHeader_t {
@@ -63,4 +64,143 @@ bool S_ReadSoundEvent( const void *data, size_t size, sSoundEvent_t *event ) {
 
 float S_EventLayerGain( const sSoundLayer_t &layer, float distance ) {
 	return distance >= layer.minDistance && distance < layer.maxDistance ? layer.gain : 0.0f;
+}
+
+bool S_UpdateEventVoice( sEventVoice_t *voice, const sSpatialInput_t &spatial, int rate, float headRadius ) {
+	if ( !voice || !voice->event )
+		return false;
+	auto input = spatial;
+	input.referenceDistance = voice->event->referenceDistance;
+	input.maxDistance = voice->event->maxDistance;
+	input.rolloff = voice->event->rolloff;
+	input.model = voice->event->model;
+	if ( !S_CalculateSpatial( input, &voice->spatial ) )
+		return false;
+	if ( !( voice->event->flags & S_EVENT_DOPPLER ) )
+		voice->spatial.pitch = 1.0f;
+	if ( voice->binaural ) {
+		const float left = voice->spatial.left * voice->spatial.left;
+		const float right = voice->spatial.right * voice->spatial.right;
+		const float pan = left + right > 0.0f ? ( right - left ) / ( left + right ) : 0.0f;
+		if ( !S_ConfigureHrtf( std::clamp( pan, -1.0f, 1.0f ), rate, headRadius, &voice->hrtf ) )
+			return false;
+	}
+	return true;
+}
+
+int S_StartEventVoice( sEventMixer_t *mixer, const sSoundEvent_t *event, const sEventPCM_t pcm[4],
+	const sSpatialInput_t &spatial, bool binaural, int rate, float headRadius ) {
+	if ( !mixer || !event || !pcm || !event->layerCount || event->layerCount > 4 ||
+		 event->bus >= S_BUS_COUNT || !event->voiceLimit || event->voiceLimit > 96 || rate < 8000 || rate > 192000 )
+		return -1;
+	for ( uint32_t i = 0; i < event->layerCount; ++i )
+		if ( !pcm[i].samples || !pcm[i].frames || pcm[i].frames > 8u * 1024u * 1024u ||
+			 pcm[i].rate < 8000 || pcm[i].rate > 192000 || ( pcm[i].channels != 1 && pcm[i].channels != 2 ) )
+			return -1;
+	// Validate coefficients before replacing a live voice.
+	sEventVoice_t prepared = {};
+	prepared.event = event;
+	prepared.binaural = binaural;
+	if ( !S_UpdateEventVoice( &prepared, spatial, rate, headRadius ) )
+		return -1;
+	uint32_t groupCount = 0;
+	int freeSlot = -1;
+	for ( int i = 0; i < 96; ++i ) {
+		const auto *playing = mixer->voices[i].event;
+		if ( !playing )
+			freeSlot = i;
+		else if ( playing->bus == event->bus && playing->group == event->group )
+			++groupCount;
+	}
+	int selected = groupCount < event->voiceLimit ? freeSlot : -1;
+	if ( selected < 0 ) {
+		for ( int i = 0; i < 96; ++i ) {
+			const auto &voice = mixer->voices[i];
+			if ( !voice.event || voice.event->priority > event->priority )
+				continue;
+			if ( groupCount >= event->voiceLimit && ( voice.event->bus != event->bus || voice.event->group != event->group ) )
+				continue;
+			if ( selected < 0 || voice.event->priority < mixer->voices[selected].event->priority ||
+				 ( voice.event->priority == mixer->voices[selected].event->priority && voice.sequence < mixer->voices[selected].sequence ) )
+				selected = i;
+		}
+	}
+	if ( selected < 0 )
+		return -1;
+	if ( mixer->voices[selected].event )
+		++mixer->stolen;
+	else
+		++mixer->active;
+	memcpy( prepared.pcm, pcm, sizeof( prepared.pcm ) );
+	prepared.sequence = ++mixer->sequence;
+	prepared.tail = binaural ? uint32_t( rate / 20 ) : 0;
+	mixer->voices[selected] = prepared;
+	return selected;
+}
+
+static float MonoSample( const sEventPCM_t &pcm, uint32_t frame ) {
+	if ( frame >= pcm.frames )
+		return 0.0f;
+	const int16_t *samples = pcm.samples + frame * pcm.channels;
+	return pcm.channels == 2 ? ( float( samples[0] ) + samples[1] ) * 0.5f : samples[0];
+}
+
+void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, int rate ) {
+	if ( !mixer || !output || rate < 8000 || rate > 192000 )
+		return;
+	for ( uint32_t frame = 0; frame < frames; ++frame ) {
+		float buses[S_BUS_COUNT][2] = {};
+		bool voiceAudible = false;
+		for ( auto &voice : mixer->voices ) {
+			if ( !voice.event )
+				continue;
+			float sample = 0.0f;
+			bool playing = false;
+			for ( uint32_t layer = 0; layer < voice.event->layerCount; ++layer ) {
+				const auto &pcm = voice.pcm[layer];
+				if ( voice.cursor[layer] >= pcm.frames )
+					continue;
+				playing = true;
+				const uint32_t index = uint32_t( voice.cursor[layer] );
+				const float fraction = float( voice.cursor[layer] - index );
+				const float a = MonoSample( pcm, index ), b = MonoSample( pcm, index + 1 );
+				sample += ( a + fraction * ( b - a ) ) * S_EventLayerGain( voice.event->layers[layer], voice.spatial.distance );
+				voice.cursor[layer] += double( pcm.rate ) * voice.spatial.pitch / rate;
+			}
+			if ( !playing && !voice.tail ) {
+				voice.event = nullptr;
+				--mixer->active;
+				continue;
+			}
+			if ( !playing )
+				--voice.tail;
+			float ears[2];
+			if ( voice.binaural ) {
+				S_HrtfSample( voice.hrtf, &voice.history, sample, ears );
+				const float gain = std::sqrt( ( voice.spatial.left * voice.spatial.left + voice.spatial.right * voice.spatial.right ) * 0.5f );
+				ears[0] *= gain;
+				ears[1] *= gain;
+			} else {
+				ears[0] = sample * voice.spatial.left;
+				ears[1] = sample * voice.spatial.right;
+			}
+			const auto bus = voice.event->bus;
+			buses[bus][0] += ears[0];
+			buses[bus][1] += ears[1];
+			voiceAudible |= bus == S_BUS_VOICE && ( std::fabs( ears[0] ) + std::fabs( ears[1] ) > 1.0f );
+		}
+		// Fast voice attack, slower release; a zeroed mixer begins unducked.
+		const float target = voiceAudible ? 1.0f : 0.0f;
+		const float seconds = voiceAudible ? 0.005f : 0.25f;
+		mixer->duck += ( target - mixer->duck ) / ( rate * seconds );
+		for ( uint32_t bus = 0; bus < S_BUS_COUNT; ++bus ) {
+			float gain = std::clamp( mixer->busGain[bus], 0.0f, 1.0f );
+			if ( bus == S_BUS_MUSIC )
+				gain *= 1.0f - mixer->duck * 0.65f;
+			else if ( bus == S_BUS_AMBIENT )
+				gain *= 1.0f - mixer->duck * 0.5f;
+			output[frame][0] += buses[bus][0] * gain;
+			output[frame][1] += buses[bus][1] * gain;
+		}
+	}
 }

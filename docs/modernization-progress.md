@@ -62,6 +62,17 @@ After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
 
+## #16 mixed PCM checkpoint
+
+76876e91 records the missing mixer API failure (audio-playback-before.log).
+The bounded mixer now passes actual PCM checks: near mechanical+tail summation,
+far-only selection with inverse attenuation, sample exhaustion, HRTF tail
+retirement, group limits and priority rejection/stealing. GCC and Clang/libc++
+UBSan both pass. The mixer holds at most 96 event voices, each with four prepared
+PCM views and fixed HRTF state. No allocation/file/device calls occur in its
+sample loop. Bus gains and a voice-driven music/ambient duck envelope are present;
+additional direct bus/duck checks and engine registration/runtime wiring remain.
+
 ## #16 latest verification
 
 Through bcdabe5d, both new component probes pass with GCC and Clang/libc++ under

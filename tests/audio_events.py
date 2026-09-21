@@ -48,7 +48,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-sound-event-') as temporary:
     run([*shlex.split(args.cc), '-std=c99', '-O2', '-c', 'third_party/sha256/sha-256.c', '-o', sha])
     run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
          '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
-         'tests/probes/audio_events.cpp', 'engine/sound/snd_event.cpp', sha, '-o', probe])
+         'tests/probes/audio_events.cpp', 'engine/sound/snd_event.cpp', 'engine/sound/snd_spatial.cpp', sha, '-o', probe])
     run([probe, args.output / 'sound/rifle.asevt'])
     assert cook(project, args.output)['built'] == []
     definition['layers'][2]['gain'] = .25

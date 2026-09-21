@@ -41,4 +41,37 @@ static_assert( std::is_trivially_copyable_v<sSoundEvent_t> );
 bool S_ReadSoundEvent( const void *data, size_t size, sSoundEvent_t *event );
 float S_EventLayerGain( const sSoundLayer_t &layer, float distance );
 
+struct sEventPCM_t {
+	const int16_t *samples;
+	uint32_t frames, rate, channels;
+};
+
+struct sEventVoice_t {
+	const sSoundEvent_t *event;
+	sEventPCM_t pcm[4];
+	double cursor[4];
+	sSpatialOutput_t spatial;
+	sHrtfParameters_t hrtf;
+	sHrtfState_t history;
+	uint64_t sequence;
+	uint32_t tail;
+	bool binaural;
+};
+
+struct sEventMixer_t {
+	sEventVoice_t voices[96];
+	float busGain[S_BUS_COUNT] = { 1, 1, 1, 1, 1 };
+	float duck;
+	uint64_t sequence;
+	uint32_t active, stolen;
+};
+static_assert( std::is_trivially_destructible_v<sEventMixer_t> );
+
+// Event and prepared PCM storage must remain alive until the voice retires.
+int S_StartEventVoice( sEventMixer_t *mixer, const sSoundEvent_t *event, const sEventPCM_t pcm[4],
+	const sSpatialInput_t &spatial, bool binaural, int rate, float headRadius );
+bool S_UpdateEventVoice( sEventVoice_t *voice, const sSpatialInput_t &spatial, int rate, float headRadius );
+// Add PCM-unit stereo output. No allocation, file access or device calls.
+void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, int rate );
+
 #endif
