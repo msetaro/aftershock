@@ -64,6 +64,16 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 post profile data passes
+
+The cooker and existing native cooked-data reader now agree on the version-1
+132-byte .aspost payload (kind 11). Optional controls have documented defaults,
+finite range/path checks and the existing SHA envelope. GCC and Clang/libc++
+UBSan pass the authored round trip and incremental exposure edit
+(fidelity-post-{pure,clang}.log). No GPU behavior is changed by this data slice.
+Implement graph/passes with native image controls next; temporal vectors/history
+and streaming remain separate required work within #161.
+
 ## #161 post profile contract first
 
 The first post test authors exposure/sharpen/vignette/grain/LUT/focus/blur settings

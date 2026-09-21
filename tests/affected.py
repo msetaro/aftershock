@@ -12,7 +12,7 @@ from run import ROOT, SCRATCH
 
 # These are asset-independent entry points with no required binary arguments.
 FAST = ('agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
-        'animation', 'weapons', 'effects', 'effects_reference', 'lod', 'native_math', 'native_shared', 'replication',
+        'animation', 'weapons', 'effects', 'effects_reference', 'post', 'lod', 'native_math', 'native_shared', 'replication',
         'protocol', 'rewind', 'replication_policy', 'identity', 'rhi', 'render_graph',
         'shadow_views', 'probes', 'materials', 'cook', 'level', 'lighting',
         'devtools_data', 'check_boundaries', 'check_types', 'check_format',

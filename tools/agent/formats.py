@@ -7,7 +7,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import best_match
 
 ROOT = Path(__file__).resolve().parents[2]
-KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'match-spec')
+KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'post', 'match-spec')
 
 
 def obj(properties, required=None, extra=False):
@@ -145,6 +145,13 @@ def effect_schema():
     return obj(dict(version=dict(const=1),name=qpath(31),decal=qpath(),emitters=array(emitter,1,32)),['version','name','emitters'])
 
 
+def post_schema():
+    return obj(dict(version=dict(const=1),name=qpath(31),lut=qpath(),exposure_ev=num(-12,12),
+                    sharpen=num(0,1),vignette=num(0,1),grain=num(0,1),lut_strength=num(0,1),
+                    focus_distance=num(1,65536),focus_range=num(1,65536),dof_radius=num(0,8),motion_blur=num(0,1)),
+               ['version','name'])
+
+
 def decal_schema():
     return obj(dict(version=dict(const=1),name=qpath(31),color_map=qpath(),normal_map=qpath(),
                     size=vector(.01,4096,False),lifetime_ms=num(1,600000,True),fade_ms=num(1,600000,True),
@@ -163,7 +170,7 @@ def match_schema():
 
 def schema(kind):
     schemas = dict(level=level_schema,weapon=weapon_schema,animation=animation_schema,material=material_schema,
-                   effect=effect_schema,decal=decal_schema,**{'match-spec':match_schema})
+                   effect=effect_schema,decal=decal_schema,post=post_schema,**{'match-spec':match_schema})
     schema = schemas[kind]()
     schema['$schema'] = 'https://json-schema.org/draft/2020-12/schema'
     return schema
@@ -184,6 +191,8 @@ def describe(kind):
                        states=[dict(name='idle',clip='idle',loop=True)])
     elif kind == 'material':
         example = dict(alphaMode='OPAQUE')
+    elif kind == 'post':
+        example = dict(version=1,name='filmic',exposure_ev=0)
     elif kind == 'decal':
         example = dict(version=1,name='bullet',color_map='textures/bullet.ktx2',normal_map='textures/bullet_n.ktx2',
                        size=[16,16,4],lifetime_ms=10000,fade_ms=2000,color=[1,1,1,1],normal_strength=1)

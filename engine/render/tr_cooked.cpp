@@ -237,6 +237,35 @@ bool R_CookedHashMatches( const void *data, size_t size, const uint8_t hash[32] 
 	return memcmp( calculated, hash, 32 ) == 0;
 }
 
+bool R_ReadCookedPost( const void *data, size_t size, cookedPost_t *settings ) {
+	if ( !data || !settings || size != sizeof( cookedHeader_t ) + sizeof( *settings ) )
+		return false;
+	cookedHeader_t header;
+	memcpy( &header, data, sizeof( header ) );
+	const uint8_t *payload = (const uint8_t *)data + sizeof( header );
+	if ( memcmp( header.magic, "ASPOST\0\0", 8 ) || header.version != 1 || header.size != sizeof( *settings ) || !R_CookedHashMatches( payload, header.size, header.hash ) )
+		return false;
+	cookedPost_t result;
+	memcpy( &result, payload, sizeof( result ) );
+	if ( !result.name[0] )
+		return false;
+	for ( uint32_t i = 0; i < 2; ++i ) {
+		const char *path = i ? result.lut : result.name;
+		if ( !memchr( path, 0, i ? sizeof( result.lut ) : sizeof( result.name ) ) || path[0] == '/' || strstr( path, ".." ) )
+			return false;
+		for ( const char *p = path; *p; ++p )
+			if ( !( ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '_' || *p == '/' || *p == '.' || *p == '-' ) )
+				return false;
+	}
+	const auto between = []( float value, float low, float high ) { return std::isfinite( value ) && value >= low && value <= high; };
+	if ( !between( result.exposureEV, -12, 12 ) || !between( result.sharpen, 0, 1 ) || !between( result.vignette, 0, 1 ) ||
+		 !between( result.grain, 0, 1 ) || !between( result.lutStrength, 0, 1 ) || !between( result.focusDistance, 1, 65536 ) ||
+		 !between( result.focusRange, 1, 65536 ) || !between( result.dofRadius, 0, 8 ) || !between( result.motionBlur, 0, 1 ) )
+		return false;
+	*settings = result;
+	return true;
+}
+
 bool R_ReadCookedLods( const void *data, size_t size, const uint8_t baseHash[32], cookedLods_t *lods ) {
 	*lods = {};
 	if ( !data || size < sizeof( cookedHeader_t ) + 36 || size > sizeof( cookedHeader_t ) + sizeof( *lods ) )
@@ -273,7 +302,7 @@ bool R_ReadCookedIndex( const void *data, size_t size, const uint8_t revision[32
 	for ( uint32_t i = 0; i < count; i++ ) {
 		cookedEntry_t entry;
 		memcpy( &entry, payload + 4 + i * sizeof( entry ), sizeof( entry ) );
-		if ( !entry.path[0] || entry.path[0] == '/' || !memchr( entry.path, 0, sizeof( entry.path ) ) || strstr( entry.path, ".." ) || entry.size > INT32_MAX || entry.kind < 1 || entry.kind > 10 )
+		if ( !entry.path[0] || entry.path[0] == '/' || !memchr( entry.path, 0, sizeof( entry.path ) ) || strstr( entry.path, ".." ) || entry.size > INT32_MAX || entry.kind < 1 || entry.kind > 11 )
 			return false;
 	}
 	index->entries = payload + 4;

@@ -48,6 +48,13 @@ struct cookedLods_t {
 static_assert( sizeof( cookedLodEntry_t ) == 96 && offsetof( cookedLods_t, levels ) == 36 && std::is_trivially_copyable_v<cookedLods_t> );
 bool R_ReadCookedLods( const void *data, size_t size, const uint8_t baseHash[32], cookedLods_t *lods );
 
+struct cookedPost_t {
+	char name[32], lut[64];
+	float exposureEV, sharpen, vignette, grain, lutStrength, focusDistance, focusRange, dofRadius, motionBlur;
+};
+static_assert( sizeof( cookedPost_t ) == 132 && offsetof( cookedPost_t, exposureEV ) == 96 && std::is_trivially_copyable_v<cookedPost_t> );
+bool R_ReadCookedPost( const void *data, size_t size, cookedPost_t *settings );
+
 struct cookedEntry_t {
 	char path[64];
 	uint8_t hash[32];

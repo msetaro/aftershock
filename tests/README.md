@@ -1299,3 +1299,11 @@ including initial authoring source and pinned provenance. `effects_reference.py`
 verifies/cooks them; `effects_reference_runtime.py` captures each on the native
 floor and checks clear restores the baseline. Budgets and the combined scene
 remain #161 work; these component captures are not frame goldens.
+
+
+`python3 tests/post.py` checks the authored post profile and its 132-byte native
+record, hash, incremental exposure edit and GCC/Clang UBSan decode. Profiles use
+`kind: post`, producing `.aspost`; `tools/agent describe post` lists the controls.
+Vignette, grain, depth-of-field radius and motion blur default to zero. The LUT
+qpath is optional. This is the data contract; render-graph/native visual coverage
+is still being implemented for #161.
