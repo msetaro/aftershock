@@ -20,63 +20,81 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#164 is merged: PR167 -> main 81e40b0cfabdcd63b14964e4a1bee0f4decd7195.
-Final head 5a9b98a1 passed build 35584845138 (all 16 compiler legs) and regression
-35584845147 (all 10 active jobs). Main/base was rechecked immediately before the
-merge. Tested and merged tree both equal e615033d2dcd39b966d8ba51bb38c59ec8e4358e.
-Known-good remains 8bc8c94c -> 81a0f9dc. Merged-tree build/publication 35589995081 passed (all 16 legs and publication);
-regression 35589995016 passed all 10 active jobs. #164 is accepted and checked
-in #25. No source changes remain in its sketch-tree branch.
+#161 PR169 merged into main as 0928be35e47616d17bf8a36475f86952c11f0bbb.
+Final head b9ec426c passed all 16 compiler legs (35631254291) and all ten active
+regression jobs (35631254305). Main/base 07304b32 and the exact PR head were
+rechecked immediately before the merge. Tested and merged trees both equal
+f21454591ae494c1f7d023b6fd5d063c005a4b29. Known-good remains object 8bc8c94c
+pointing to 81a0f9dc, verified against origin after the merge.
 
-Continue #161 in /home/matt/.cache/aftershock-modernization/fidelity-tree,
-issue/161-visual-fidelity. Main 07304b32 is merged forward. Draft PR169 targets main.
-Effects, reference art, material-hit dispatch, light hooks, soft depth, projected
-normal-mapped decals/editor, native LOD selection and initial filmic/LUT/lens
-post controls pass component checks. Post resources preserve HUD composition,
-MSAA and the fixed OpenArena replay hash. All 101 shaders reproduce; existing
-accepted fixtures/shader arrays remain unchanged. Detailed failures and evidence
-are below; these checks do not constitute final #161 acceptance.
+Merged-tree build/publication 35638549208 and regression 35638548512 are queued.
+Watch both; do not mark #161 accepted in #25 until publication and all ten active
+regression jobs pass. The merged tree is identical to the tested head.
 
-PR168 merged as 07304b324c75085a2403994030aceec73d4de8e1 after exact head
-dd4feacb passed all 16 compiler and ten active regression jobs (35607504307 /
-35607504311). Main/base remained 81e40b0c immediately before merge. Both tested
-and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
-unchanged. Main is merged forward here. Build/publication 35613793896 passed;
-regression 35613793817 passed all ten active jobs. #31 is accepted again.
+Continue #15 on issue/15-jolt-physics in
+/home/matt/.cache/aftershock-modernization/physics-tree, branched from main 0928be35.
+Read issue #15 and preserve the existing movement, traces, triggers, movers,
+hit registration and authoritative weapon trajectories. Jolt is for cosmetic
+props/grenade bodies and skeleton-driven death presentation. Implement the first
+permanent failing allocation/determinism test before importing the dependency
+and engine integration. No #15 PR or implementation exists yet.
 
-Next: finish the final PR169 hosted gates and require all 16 compiler legs and ten active regression jobs on a head
-containing current main. Combined software references and serial hardware budgets
-now pass. Optional resolution upscaling is deliberately omitted from this issue;
-the existing render-scale hook remains, and a quality upscaler can follow a measured
-need. All existing accepted fixtures/shader arrays are unchanged. The bounded
-compressed-source cache ceiling is documented; no frame-time filesystem reads.
-Post remains default off because the earlier street-scene copy-back budget miss
-is retained. Do not reinterpret this simpler combined scene as erasing that miss.
-Draft PR169 head 8213e810 contains main 07304b32; no maintainer input is needed.
+Private dependency research is recorded on #15 (comment 5765263819) and in
+/home/matt/.cache/aftershock-modernization/physics-research.md. Pinned Jolt 5.6.0
+and joltc 886e0886 compile/link on Linux and MinGW. Default step allocation fails;
+private reserved-scratch/job-page experiments pass 600 steps for one body, 32
+bodies and 16 distance constraints. These are limited experiments, not issue
+acceptance. Review the retained patch; do not import it without permanent tests.
+Allocator ownership, no-fallback temp storage, full capacity/recycle, ragdolls,
+queries, FP state, runtime tooling and unchanged fixed-demo evidence remain.
 
-Initial post budgets before measurement: 0.75 ms for filmic controls and 0.20 ms
-for copy-back at 1440p on the reference GPU. Advanced lens effects remain default
-off; enabling the whole HDR path by default waits for full visual/performance
-acceptance. Hardware timing uses a private owned street scene and both CPU/GPU
-clocks, separately from software frame controls.
-
-Reference hardware: RTX 3080 Ti, 12288 MiB, driver 595.91.07. Use a real 1440p
-offscreen target with small Xvfb presentation for measured budgets; report CPU
-and GPU separately. Software-renderer captures remain separate visual controls.
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Build: /home/matt/.cache/aftershock-modernization/fidelity-build (Release DEVTOOLS).
-All evidence is under /home/matt/.cache/aftershock-modernization; no local packages.
+Reference hardware: RTX 3080 Ti / 595.91.07; run hardware benchmarks serially.
+Fidelity build/evidence remains under the same cache root. No local packages
+were installed. Never copy game paks, overwrite accepted fixtures, change
+known-good tags, or publish outside msetaro/aftershock.
 
-#164 retained evidence: compiled per-class IoU 1.0, safe spawns, resting-start
-5.2-second route, 6000 bot frames, 17 kills/53 pickups; edited building-7 variant
-16 kills/49 pickups, default-command Quake 3 run 18 kills/51 pickups, no observed
-stuck bots. Each has two named/eighteen fly-through captures. Provided retarget
-preserves bind matrices/root motion/licenses. Final self-review is below.
+#161 retained limitations: post/TAA and texture streaming are opt-in. The earlier
+street-scene post-copy budget miss remains despite the smaller combined scene
+passing. Optional upscaling is deferred. Compressed-source residency has an
+explicit capacity limit; there are no frame-time filesystem reads. All prior
+accepted frame fixtures and shader arrays are unchanged.
 
-Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
-All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
-known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
+#29 and #30. No maintainer input is currently needed.
+
+## #161 merge verification
+
+PR169 was marked ready and merged only after all 26 required checks succeeded.
+The exact head and current main/base were rechecked immediately before the merge.
+The tested/merged tree identity and unchanged remote known-good tag were then
+verified. Issue comment 5765472685 records final measurements and self-review.
+Presentation artifact 10656828055 retains the final-head frames and metrics.
+Merged-tree workflow runs are recorded above; acceptance is pending those runs.
+
+## #161 final-head hosted acceptance (completed before merge)
+
+Final head b9ec426c passed build 35631254291 (all 16 compiler legs) and
+regression 35631254305 (all ten active jobs). Runtime completed all presentation,
+animation, weapon, network, level, module and UBSan controls. Prior-head results
+were supporting evidence only and were not substituted for final-head gates.
+
+Preliminary reading for #15 is retained privately in physics-research.md beside
+the evidence. No physics implementation, branch, vendoring or integration decision has started.
+A private pinned Jolt/joltc static-build and link smoke passes; it is dependency
+research only. Allocator fallback and steady-state allocation controls still need
+implementation and verification in #15. Sources/builds remain outside the repo. A private 600-step allocation probe
+first reports 90 allocating steps (lazy job page and recurring broadphase scratch);
+reserving scratch and warming the job page reduces this limited scene to zero
+with identical final transforms. A 32-body expansion exposed another recurring
+center-array allocation; reserving update-only center scratch also removes that
+allocation with the same reported final transform. Full capacity, allocator and ragdoll coverage
+remain #15 work; this experiment does not accept or implement that issue.
+The 32-body/16-distance-constraint probe also has zero calls over 600 steps.
+Preliminary evidence and limitations are recorded on #15 in comment 5765263819.
+The private dependency also passes MinGW compilation/static linking (not Windows
+execution); experimental-allocations.patch preserves the four-file scratch changes.
 
 ## #161 hosted/reference agreement and local content repeat
 
