@@ -20,67 +20,82 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#161 PR169 merged into main as 0928be35e47616d17bf8a36475f86952c11f0bbb.
-Final head b9ec426c passed all 16 compiler legs (35631254291) and all ten active
-regression jobs (35631254305). Main/base 07304b32 and the exact PR head were
-rechecked immediately before the merge. Tested and merged trees both equal
-f21454591ae494c1f7d023b6fd5d063c005a4b29. Known-good remains object 8bc8c94c
-pointing to 81a0f9dc, verified against origin after the merge.
+Continue #16 on issue/16-audio-engine in
+/home/matt/.cache/aftershock-modernization/audio-tree, branched from main
+0561e0f0446e96f6dca51f86bae56337d6cd23f5. #15 PR170 is merged; its tested and merged
+trees are identical. Do not redo the physics port, accepted fixtures or finished
+network-driver evidence. No #16 implementation or PR exists yet.
 
-Merged-tree build/publication 35638549208 and all ten active regression jobs in
-35638548512 passed, including runtime 106461943478. #161 is accepted and checked
-in #25. The merged tree is identical to the tested head.
+#16 decision: extend the in-house mixer and keep the existing SDL/native device
+backends. Reuse cooked PCM assets and weapon animation-notify deduplication. Add
+bounded POD spatial/DSP state, authored layered events, buses/groups/ducking,
+voice priorities/limits, native-CM occlusion, authored reverb volumes and streamed
+music/ambient. Keep legacy playback behavior unless an explicit authored feature
+selects the new path. The HRTF option will be an explicitly documented approximate
+spherical-head model, not a claim of individualized pinna calibration.
 
-Continue #15 on issue/15-jolt-physics in
-/home/matt/.cache/aftershock-modernization/physics-tree, branched from main 0928be35.
-Preserve existing movement, traces, triggers, movers, hit registration and
-all authoritative weapon trajectories. Jolt is for cosmetic props/grenade bodies
-and skeleton-driven death presentation. The pinned dependency and scoped offline
-CMake helper are imported. Permanent GCC and Clang/libc++ UBSan checks now pass
-recorded replay, changed-input comparison, zero step allocations, caller allocator
-ownership, complete teardown/reinitialization, FP control and fixed temporary
-buffer exhaustion. Each change followed its recorded failing test.
+The issue's VoIP premise needs care: current code has reserved Opus/Speex IDs and
+dormant SDL/meter/parser hooks, but no enabled Opus codec or CL_ParseVoip body.
+Complete a functional bounded Opus path and loopback proof; do not claim that an
+already-working voice implementation was preserved. Keep existing wire IDs and
+make capture explicit. Streaming must prove no new frame-time allocation: current
+pk3 rewind and legacy inflate allocate, so merely retaining a file handle is not
+sufficient. Private read-only findings and primary references are in
+/home/matt/.cache/aftershock-modernization/audio-research.md. A private SDL dummy
+output baseline passed; it does not establish any #16 feature.
 
-The owned POD boundary passes caller-owned storage, 256 prepared slots, four
-spawn/recycle cycles, inactive filtering, ray/convex queries and reusable swing/
-twist joints on both compilers. The client owns map allocation/teardown and
-cgame prop presentation. All four Q3/OpenArena runtime maps now pass cosmetic
-motion/bounce, fixed counters and zero-block teardown. A real runtime failure
-found reversed CM-to-Jolt triangle winding; the failing orientation test and
-fixed export are recorded below. No native trace arithmetic changed.
+Next write the first failing #16 spatial/mix contract test, implement the smallest
+POD path that satisfies it, then continue the remaining issue scope and runtime
+acceptance. Record failures before fixes. No maintainer input is currently needed.
 
-#15 draft PR170 is open into main at c29ed440. Skeleton-driven cosmetic deaths,
-restart cleanup, both content runtime sets, Physics panel, unchanged Q3/OpenArena
-fixed demos and native animation hit-box parity pass. Both compiler component
-probes pass. Full local lifetime analysis (1,268 commands) and tidy policy (1,326
-configurations), format/types/boundaries, affected/suite contracts and workflow
-syntax pass. No accepted fixtures were regenerated.
-
-Initial hosted build 35649848657 exposed MSVC umbrella-header and MinGW diagnostic
-format failures; the fixes below are ready for hosted confirmation. Next monitor
-the latest PR170 runs, complete the recorded self-review, and merge only with
-all required checks green against current main. Recheck main immediately before
-merge; it was still 0928be35 when the PR was opened. No maintainer input is needed.
-Private evidence logs are under /home/matt/.cache/aftershock-modernization:
-physics-ragdoll-after.log, physics-ragdoll-clang.log, physics-death-q3.log,
-physics-death-oa.log, physics-demo.log, physics-demo-oa.log, physics-lifetimes.log
-and physics-tidy.log. Issue checkpoint comment 5766814918 records earlier results.
+Monitor merged-tree #15 build/publication 35658235970 and regression 35658235841.
+After they pass, mark #15 accepted in #25. This does not replace #16's own final
+checks against current main. One issue branch/PR, merge commit only, all required
+checks green; no external repository writes, no force pushes or tag changes.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Reference hardware: RTX 3080 Ti / 595.91.07; run hardware benchmarks serially.
-Fidelity build/evidence remains under the same cache root. No local packages
-were installed. Never copy game paks, overwrite accepted fixtures, change
-known-good tags, or publish outside msetaro/aftershock.
+Never install local system packages, copy game paks, or regenerate accepted goldens.
 
-#161 retained limitations: post/TAA and texture streaming are opt-in. The earlier
-street-scene post-copy budget miss remains despite the smaller combined scene
-passing. Optional upscaling is deferred. Compressed-source residency has an
-explicit capacity limit; there are no frame-time filesystem reads. All prior
-accepted frame fixtures and shader arrays are unchanged.
+After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
+#29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
+recorded below, and optional upscaling remains deferred.
 
-After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
-#29 and #30. No maintainer input is currently needed.
+## #15 merge checkpoint
+
+PR170 merged into main as 0561e0f0446e96f6dca51f86bae56337d6cd23f5, with parents
+0928be35 and tested head b4de8b69c1cf46aa132565ebeb1dd780fa7812c9. All sixteen compiler
+legs passed in 35650410977 and all ten active regression jobs in 35650410983,
+including runtime 106501160022. Final audit checked zero required failures/skips,
+current main/base and exact head immediately before merge, and no accepted fixture
+changes. Tested and merged trees both equal c233fb96ac2679d4a66e316d2bce6c14bb4b8309.
+Known-good remains object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4 pointing to
+81a0f9dc05c340f30182c34134bde67290c21774, verified against origin after merge.
+
+Self-review: #15 scope; no authoritative arithmetic or wire/file layout changes;
+no new direct OS calls; POD owned core; caller-owned arena; no step, activation,
+query or recycle allocations. Dedicated-server symbols contain no Jolt linkage.
+Both content runtime sets, Physics panel, fixed demos and native animation hit-box
+parity pass. Full local lifetime analysis (1,268 commands), tidy policy (1,326
+configurations), format/types/boundaries and affected/suite/workflow checks pass.
+
+Private physics evidence: physics-ragdoll-after.log, physics-ragdoll-clang.log,
+physics-death-q3.log, physics-death-oa.log, physics-demo.log, physics-demo-oa.log,
+physics-lifetimes.log and physics-tidy.log under the modernization cache. Earlier
+hosted run 35649848654 also passed all ten active jobs. Its selected artifact is
+in physics-hosted-evidence/: death/restart retain arena=29498800, allocations=573,
+live=424, then retire the ragdoll and finish with live=0. Captures were reviewed.
+Issue checkpoint comments: 5766814918 and 5766901466; final merge report follows.
+
+## #161 accepted merged tree
+
+PR169 merged as 0928be35e47616d17bf8a36475f86952c11f0bbb. Final head b9ec426c passed
+all 16 compiler legs (35631254291) and all ten active regression jobs (35631254305).
+Main/base 07304b32 and the exact head were rechecked before merge. Tested and merged
+trees both equal f21454591ae494c1f7d023b6fd5d063c005a4b29. Merged-tree publication
+35638549208 and all ten active regression jobs in 35638548512 passed, including
+runtime 106461943478. #161 is accepted and checked in #25.
 
 ## #15 hosted MSVC header failure
 
