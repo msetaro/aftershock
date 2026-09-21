@@ -48,6 +48,15 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 connected-storey contract
+
+Draft PR167 now holds #164. A new contract requires navigation from ground to the
+second floor and roof, plus repeated street-facing windows. It fails first on
+unsupported roof_access/opening_rules fields (sketch-storeys-before.log). Reuse
+the physical stair generator for interior switchbacks and subtract stairwells
+from floor/roof slabs; no isolated upper-floor geometry counts as completion.
+Merged #163 build/publication 35571273115 passes; regression 35571273155 still runs.
+
 ## #164 schema and compiled elevation checkpoint
 
 V2 now has a structural JSON Schema exposed through the existing agent format

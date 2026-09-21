@@ -95,6 +95,16 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
         assert not solid(raised,point),('blocked stair/ramp/overhead',point)
     assert b'level/fence' in elevated['map'], 'bullet-transparent fence needs its own collision material'
     changed = copy.deepcopy(level)
+    changed['shapes'][0].update(floors=2,roof_access=True,
+        opening_rules=[{'face_point':[0,-384],'spacing':128,'width':48,'sill':64,'height':40,'floors':[0,1]}])
+    changed['spawns'].extend([{'team':'ffa','origin':[-144,0,152],'angle':0},
+                              {'team':'ffa','origin':[-144,0,280],'angle':0}])
+    storeys = compile(changed,'storeys',full=args.compile)
+    upper = brushes(storeys['map'].decode())
+    assert not solid(upper,[-128,-160,80]), 'rule-based street-facing window absent'
+    assert solid(upper,[-144,0,120]), 'upper floor slab absent'
+    assert not solid(upper,[0,-32,248]), 'roof stairwell must remain open'
+    changed = copy.deepcopy(level)
     changed['shapes'][1]['id'] = 'building_7'
     compile(changed,'duplicate',fail='duplicate')
     changed = copy.deepcopy(level)
