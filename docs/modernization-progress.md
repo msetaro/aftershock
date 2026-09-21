@@ -50,7 +50,9 @@ picking, selection and reload share existing UI functions. The Range rewrite pas
 (agent-range-before.log). Authoritative weapon/animation queries and shared Range
 actions are implemented. All five original editor tests are now migrated and pass locally on both
 content sets. The full OpenArena devtools rebuild proves shipping exclusion.
-Continue asset/material commands and the material UI rewrite; gameplay event/assert acceptance remains.
+The material driver rewrite fails first on missing assets query
+(agent-material-before.log). Implement registry/selection/material commands and
+preview geometry state, then validate the retained pixel comparisons; gameplay event/assert acceptance remains.
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
