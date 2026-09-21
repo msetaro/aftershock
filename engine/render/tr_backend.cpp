@@ -41,6 +41,10 @@ static qboolean RB_FindScreenMapDrawSurfs( void ) {
 			break;
 		case RC_DRAW_SURFS:
 			ds_cmd = (const drawSurfsCommand_t *)curCmd;
+			if ( ds_cmd->viewParms.shadowView ) {
+				curCmd = (const void *)( ds_cmd + 1 );
+				break;
+			}
 			return ds_cmd->refdef.needScreenMap;
 		default:
 			return qfalse;
@@ -1531,6 +1535,16 @@ static const void *RB_DrawSurfs( const void *data ) {
 #ifdef USE_VBO
 	VBO_UnBind();
 #endif
+	if ( backEnd.viewParms.shadowView ) {
+		if ( backEnd.viewParms.shadowFirst && !RHI_BeginShadowPass( backEnd.viewParms.shadowView - 1 ) )
+			ri.Error( ERR_DROP, "Shadow atlas is unavailable" );
+		backEnd.projection2D = qfalse;
+		SetViewportAndScissor();
+		RB_RenderDrawSurfList( cmd->drawSurfs, cmd->numDrawSurfs );
+		if ( backEnd.viewParms.shadowLast )
+			RHI_EndShadowPass();
+		return (const void *)( cmd + 1 );
+	}
 
 	// clear the z buffer, set the modelview, etc
 	RB_BeginDrawingView();

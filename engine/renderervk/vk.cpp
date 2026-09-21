@@ -6432,7 +6432,7 @@ static uint32_t vk_alloc_pipeline( const rhiPipelineDesc_t *def ) {
 VkPipeline vk_gen_pipeline( uint32_t index ) {
 	if ( index < vk.pipelines_count ) {
 		VK_Pipeline_t *pipeline = vk.pipelines + index;
-		const renderPass_t pass = vk.renderPassIndex;
+		const renderPass_t pass = pipeline->def.shader_type == TYPE_SHADOW ? RENDER_PASS_SHADOW : vk.renderPassIndex;
 		if ( pipeline->handle[pass] == VK_NULL_HANDLE ) {
 			pipeline->handle[pass] = create_pipeline( &pipeline->def, pass, index );
 		}

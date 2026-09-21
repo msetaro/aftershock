@@ -20,39 +20,76 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#13 PR #157 merged into main as a43580198b09c8b08f3bf30f08e77bf69e201cfe.
-Its final head f638330b60bd2c68c30050c9aae4cf76190f3941 passed exact build
-35545635052 and regression 35545635067, with every required gate successful.
-The tested and merge trees both equal 60c07dae01241ebb2feaabd609cfa6c385c4fe68.
-Merged-tree regression 35546603116 passed. All compilation jobs in build
-35546603122 passed; its publication failed on separately tracked CI defect #158.
-Wait for #159 actual main publication before final closure/checking #25. The earlier 2ed8cf56
-regression was cancelled after the main workflow changed and is not acceptance.
+Active implementation: issue/14-lighting in
+/home/matt/.cache/aftershock-modernization/level-tree. Baked directional lighting,
+shadow graph/native resources, stable point/spot/sun view math, retained scene
+continuations, sampled atlas descriptors, native light admission and masked caster
+shaders are committed. Caster scene submission now builds/runs; receiver shading
+is next. The new --shadows runtime contract still fails at zero lit/occluded pixels
+because that receiver pass does not exist. Do not claim #14 acceptance. Continue
+with receiver shading, rendered point/spot/sun/mask checks, reflection probes,
+SSAO and reference-GPU timing. Follow the updated #25 order: #161 is after #14.
 
-Main 81a0f9dc and the new AGENTS workflow are already merged forward into the
-issue branches without rewriting history. All PRs target main; regression's
-PR/push filters now do too. Future new issue branches start from main. The remote
-known-good-2026-09-20 tag still has object 8bc8c94c and resolves to 81a0f9dc;
-it was not moved. No external-repository write occurred.
+Root checkout's #160 repair PR #162 merged into main as
+782c0dbc51e4acf119ccce49a69301408dac1ae7 after exact f04e87c3 passed build
+35548379300 and regression 35548379306. Main's base 567cc664 was rechecked
+immediately before merge. Head and merge trees match
+2fd24fa811a286079aa8945b1b9cfd66cf3f788e. Merged build/publication 35549415371
+and regression 35549415277 are pending. Require both, including actual immutable
+build publication, before closing #160 and #158. Merge accepted main forward into
+#14 before its final PR gates. No main commit was pushed directly.
 
-The primary checkout is on issue/158-main-publication (draft PR #159 into main).
-Its immutable-tag CI publication repair is isolated from engine work; exact-head
-build 35547041859 passes and regression 35547041884 is running. Active #14 work is
-in the extra level-tree worktree on issue/14-lighting: directional baking/native
-shading passes locally; sampled shadow-atlas graph/native
-descriptors pass. Main a4358019 is already merged forward at ea0efdc2.
-Continue caster views/receiver shading, cascaded sun, reflection probes, SSAO and
-reference-GPU budgets. Do not open/accept #14 before #13's merged-tree regression
-passes. All #14 work stays in the same issue branch/PR; no accepted goldens change.
+#159's earlier merge 567cc664 had a duplicate permissions collision with concurrent
+main commits 06d15a8d/8dbb4461, despite its passing exact-head gates. Its merged
+regression 35548259084 passed but build workflow 35548258547 could not load. #162
+removes only the duplicates and documents the base-commit recheck in AGENTS.
+#13 PR #157 at a4358019 passed merged regression 35546603116 and all compiler
+jobs; its publication failure is isolated in #158. After the repaired merged main
+passes, close #13/#158/#160 and check #13 in #25. No #14 PR exists yet.
 
-#28 PR #156 is fully accepted: merge 646a63e82c0a74307d0e830ca6c626eca985ed60,
-exact build 35542300540/regression 35542300709, merged-tree regression 35543218326
-all passed. Tested 04a86876 and merge share tree
-f30abf9b5723b4d0aa20dc7600be1a7348050e5f. #28, #27 and #31 are closed/checked.
-#28's final local kind report measured 45,748,224 bytes and 0.00380977 vCPU across
-all three containers with one idle player; this is not saturated capacity. All
-private clusters were removed. The older implementation record below preserves
-its self-review and previous measurements.
+Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
+target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
+in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #14 caster submission checkpoint
+
+Test-first rendered contract is 5cf631f3. The local client now submits new native
+point/spot data through dev_light (local cheats/development only), with per-frame
+copies and a 16-tile local atlas. Point cameras draw six faces, spots one, sun four
+cascades. Shadow views reuse existing world and MD3/MDR/IQM geometry, include
+third-person bodies but omit first-person/no-shadow/depth-hacked entities. They
+bypass camera PVS and restore visibility for the main view; entity lighting and
+legacy stencil/projected shadows are skipped in these new depth views.
+
+The backend records depth-only masked draws and resumes preserved scene contents.
+Screen-map duplication/scanning skips caster commands. Half the surface array is
+reserved for normal scene draws; shadow overflow rolls back its queued commands
+and disables that scene's new lighting instead of wrapping existing geometry.
+Opaque/masked caster pipelines are warmed at startup in three culling modes.
+Quality 0 (default) keeps legacy behavior; qualities 1..3 allocate 1024/2048/4096
+atlases and larger uniform slots. Sun distance/split/intensity, comparison toggle
+and depth bias are bounded cvars. Legacy dynamic light calls are unchanged.
+
+The initial build needed an explicit uint32_t conversion for the conditional
+uniform size. Fixed CMake build, GCC/Clang UBSan view/submission checks, developer
+contracts, native descriptors and format/type/boundary checks pass. Actual OA
+client loads and captures all point/spot/sun cases without a reported GPU error,
+then fails expectedly with zero lit/occluded pixels; receiver shading is not yet
+implemented (lighting-shadow-caster-built-runtime.log). The earlier caster-runtime
+log used the old binary after the first failed build and is not evidence.
+Classic Q3 replay in a separate clean build directory passes unchanged
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(lighting-shadow-caster-classic.log). The first default output path had another
+worktree's CMake cache; no reference was changed to resolve it.
+
+Receiver integration details: shadowLight_t owns world-to-clip matrices for up to
+six faces; tr.refdef.sun owns four matrices and split distances. Matrices include
+the same Vulkan Y flip as RB_GetMVP; local atlas tiles are 4x4, sun 2x2 with top-row
+UV indexing. New lighting can use binding 4 (five total sets required); new direct
+passes can reuse base/normal/metal texture bindings without changing accepted PBR
+or legacy programs. Atlas bind is forbidden during depth passes. Complete actual
+occlusion/mask and optional-module tests before acceptance; no accepted goldens
+or shader bytes may be regenerated.
 
 ## #14 rendered shadow test-first checkpoint
 

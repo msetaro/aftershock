@@ -49,6 +49,16 @@ uint32_t R_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool eage
 void R_InitBuiltinPipelines( void ) {
 	unsigned int state_bits;
 	rhiPipelineDesc_t def;
+	if ( r_shadowQuality->integer ) {
+		def = {};
+		def.shader_type = TYPE_SHADOW;
+		def.state_bits = GLS_DEPTHMASK_TRUE;
+		def.polygon_offset = 1;
+		for ( uint32_t cull = 0; cull < 3; ++cull ) {
+			def.face_culling = (cullType_t)cull;
+			r_pipelines.shadowCaster[cull] = R_FindPipeline( 0, &def, true );
+		}
+	}
 
 	// skybox
 	{

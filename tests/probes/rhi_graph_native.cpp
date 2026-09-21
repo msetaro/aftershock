@@ -250,6 +250,11 @@ int main( int argc, char ** ) {
 			depth.shader_type = TYPE_SHADOW;
 			depth.state_bits = GLS_DEPTHMASK_TRUE;
 			assert( create_pipeline( &depth, RENDER_PASS_SHADOW, 0 ) != VK_NULL_HANDLE );
+			vk.renderPassIndex = RENDER_PASS_MAIN;
+			const uint32_t pipeline = vk_impl_FindPipeline( 0, &depth, true );
+			assert( vk.pipelines[pipeline].handle[RENDER_PASS_SHADOW] && !vk.pipelines[pipeline].handle[RENDER_PASS_MAIN] );
+			const int created = vk.pipeline_create_count;
+			assert( vk_gen_pipeline( pipeline ) && vk.pipeline_create_count == created );
 		}
 	}
 }

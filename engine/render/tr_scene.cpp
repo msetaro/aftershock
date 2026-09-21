@@ -586,6 +586,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.numDrawSurfCmds = 0;
 #endif
 
+	R_RenderShadowViews( &parms );
 	R_RenderView( &parms );
 
 #ifdef USE_VULKAN

@@ -74,6 +74,7 @@ cvar_t *r_drawSun;
 cvar_t *r_dynamiclight;
 cvar_t *r_mergeLightmaps;
 cvar_t *r_directionalLightmaps;
+cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
 cvar_t *r_dlightMode;
 cvar_t *r_dlightScale;
@@ -547,7 +548,7 @@ static void R_InitDevice( void ) {
 	const rhiDeviceConfig_t config = {
 		glConfig.vidWidth, glConfig.vidHeight, gls.windowWidth, gls.windowHeight,
 		gls.captureWidth, gls.captureHeight, glConfig.depthBits, glConfig.stencilBits,
-		MAX_TEXTURE_SIZE, MAX_TEXTURE_UNITS, MAX_DRAWIMAGES, MAX_FLARES, sizeof( shaderUniform_t ),
+		MAX_TEXTURE_SIZE, MAX_TEXTURE_UNITS, MAX_DRAWIMAGES, MAX_FLARES, r_shadowQuality->integer ? 1024u : (uint32_t)sizeof( shaderUniform_t ),
 		r_fbo->integer,
 		r_bloom->integer,
 		r_hdr->integer,
@@ -560,7 +561,8 @@ static void R_InitDevice( void ) {
 		r_renderScale->integer,
 		r_offsetUnits->value,
 		r_offsetFactor->value,
-		(rhiFilter_t)gl_filter_min, (rhiFilter_t)gl_filter_max, textureFilterValid, 0
+		(rhiFilter_t)gl_filter_min, (rhiFilter_t)gl_filter_max, textureFilterValid,
+		r_shadowQuality->integer ? 512u << r_shadowQuality->integer : 0
 	};
 	const rhiHost_t host = { ri.Malloc, ri.Free, R_PrintRHI, R_IsMinimized, R_SwapInterval, ri.VK_GetInstanceProcAddr, R_CreateSurface };
 	rhiDeviceInfo_t info;
@@ -1611,6 +1613,19 @@ static void R_Register( void ) {
 	r_directionalLightmaps = ri.Cvar_Get( "r_directionalLightmaps", "1", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_directionalLightmaps, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_directionalLightmaps, "Normal-map directional baked lighting on opted-in levels." );
+	r_shadowQuality = ri.Cvar_Get( "r_shadowQuality", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	ri.Cvar_CheckRange( r_shadowQuality, "0", "3", CV_INTEGER );
+	ri.Cvar_SetDescription( r_shadowQuality, "Shadow atlas quality: 0 disabled, 1 1024, 2 2048, 3 4096. Requires five texture bindings." );
+	r_shadowSun = ri.Cvar_Get( "r_shadowSun", "0", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( r_shadowSun, "0", "4", CV_FLOAT );
+	r_shadowDistance = ri.Cvar_Get( "r_shadowDistance", "2048", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( r_shadowDistance, "64", "32768", CV_FLOAT );
+	r_shadowSplitWeight = ri.Cvar_Get( "r_shadowSplitWeight", "0.75", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( r_shadowSplitWeight, "0", "1", CV_FLOAT );
+	r_shadowOcclusion = ri.Cvar_Get( "r_shadowOcclusion", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( r_shadowOcclusion, "0", "1", CV_INTEGER );
+	r_shadowBias = ri.Cvar_Get( "r_shadowBias", "0.001", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( r_shadowBias, "0", "0.05", CV_FLOAT );
 
 	r_mergeLightmaps = ri.Cvar_Get( "r_mergeLightmaps", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_mergeLightmaps, "Merge built-in small lightmaps into bigger lightmaps (atlases)." );

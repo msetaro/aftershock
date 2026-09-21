@@ -685,6 +685,8 @@ void CGameImport_R_RenderScene( const void *fd ) {
 
 #ifdef AFTERSHOCK_DEVTOOLS
 	DevTools_SetView( (const refdef_t *)fd, cl.snap.ps.clientNum );
+	if ( !( ( (const refdef_t *)fd )->rdflags & RDF_NOWORLDMODEL ) && DevTools_SceneLight() )
+		re.AddSceneLight( DevTools_SceneLight() );
 #endif
 	re.RenderScene( (const refdef_t *)fd );
 	return;

@@ -413,7 +413,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	shader_t *state;
 
 #ifdef USE_VBO
-	if ( shader->isStaticShader && !shader->remappedShader ) {
+	if ( shader->isStaticShader && !shader->remappedShader && !backEnd.viewParms.shadowView ) {
 		tess.allowVBO = qtrue;
 	} else {
 		tess.allowVBO = qfalse;
@@ -1346,6 +1346,52 @@ void VK_LightingPass( void ) {
 #endif // USE_PMLIGHT
 
 
+static void RB_StageIteratorShadow( void ) {
+	if ( tess.shader->isSky || tess.shader->sort > (float)SS_SEE_THROUGH )
+		return;
+	RB_DeformTessGeometry();
+	vec4_t mask = { 1, 0.5f, 0, 0 };
+	const shaderStage_t *masked = nullptr;
+	if ( tess.shader->metallicRoughness ) {
+		materialParams_t material;
+		if ( !R_ResolveMaterialParams( &tess.shader->materialParams, &backEnd.currentEntity->materialOverride, &material ) || ( material.flags & 4 ) )
+			return;
+		if ( material.flags & 8 ) {
+			masked = tess.xstages[0];
+			mask[0] = material.color[3];
+			mask[1] = material.alphaCutoff;
+			mask[2] = 1;
+		}
+	} else {
+		for ( int stage = 0; stage < MAX_SHADER_STAGES && tess.xstages[stage]; ++stage ) {
+			const uint32_t mode = tess.xstages[stage]->stateBits & GLS_ATEST_BITS;
+			if ( mode ) {
+				masked = tess.xstages[stage];
+				mask[2] = mode == GLS_ATEST_GT_0 ? 3.0f : mode == GLS_ATEST_LT_80 ? 2.0f
+																				  : 1.0f;
+				break;
+			}
+		}
+	}
+	memset( tess.svars.colors[0], 255, tess.numVertexes * sizeof( color4ub_t ) );
+	tess.svars.texcoordPtr[0] = tess.texCoords[0];
+	GL_SelectTexture( 0 );
+	if ( masked ) {
+		R_BindAnimatedImage( &masked->bundle[0] );
+		R_ComputeTexCoords( 0, &masked->bundle[0] );
+		if ( !tess.shader->metallicRoughness )
+			R_ComputeColors( 0, tess.svars.colors[0], masked );
+	} else {
+		GL_Bind( tr.whiteImage );
+	}
+	if ( RHI_UploadUniform( mask, sizeof( mask ) ) == RHI_INVALID_OFFSET )
+		return;
+	RB_BindPipeline( r_pipelines.shadowCaster[tess.shader->cullType] );
+	RB_BindIndex();
+	RB_BindGeometry( TESS_XYZ | TESS_ST0 | TESS_RGBA0 );
+	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
+}
+
 void RB_StageIteratorPbr( void ) {
 	RB_DeformTessGeometry();
 	materialParams_t material;
@@ -1612,15 +1658,18 @@ void RB_EndSurface( void ) {
 	//
 	// call off to shader specific tess end function
 	//
-	tess.shader->optimalStageIteratorFunc();
+	if ( backEnd.viewParms.shadowView )
+		RB_StageIteratorShadow();
+	else
+		tess.shader->optimalStageIteratorFunc();
 
 	//
 	// draw debugging stuff
 	//
-	if ( r_showtris->integer ) {
+	if ( !backEnd.viewParms.shadowView && r_showtris->integer ) {
 		DrawTris( input );
 	}
-	if ( r_shownormals->integer ) {
+	if ( !backEnd.viewParms.shadowView && r_shownormals->integer ) {
 		DrawNormals( input );
 	}
 
