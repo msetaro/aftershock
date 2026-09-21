@@ -25,8 +25,9 @@ issue/164-sketch-level from main, now integrating accepted #163 main ee4e95fc.
 PR166 merged after exact-head 9db00c0c passed build 35569450314 (16 compiler jobs)
 and regression 35569450324 (ten required active variants). Both concurrent local
 full suites at functional c56bde87 passed 96 steps each. Tested and merged trees
-match. Merged main build/publication 35571273115 and regression 35571273155 are
-running; monitor them and check #163 in #25 once accepted. Known-good unchanged.
+match. Merged main build/publication 35571273115 and regression 35571273155 both PASS,
+including actual publication of six platform archives. #163 is closed and checked
+in #25. Known-good unchanged.
 
 #164 has test-first polygon geometry, holes, rotated/curved/concave solids and
 shell openings. Initial repeated MAP/BSP/AAS output passes and all accepted v1
@@ -47,6 +48,22 @@ library APIs are reachable; no assets imported yet and no local system packages.
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 initial tracing checkpoint; #163 integration accepted
+
+The original playbook test passes with pinned OpenCV color separation, stroke-gap
+closing, contour measurement/rectangle regularization, explicit agent-read marks,
+class overlays, uncertainty assumptions and stable per-ID edits. The drawing's
+own key overrides any global convention. The tool emits draft geometry and intent
+records, not a claim of general handwriting recognition. Next: account for every
+unmatched mark, line/arrow geometry and dominant-angle/curve measurements, connect
+intent/schema/build validation and theme assets, then full runtime acceptance.
+
+#163 is fully accepted on merged main ee4e95fc: 35571273115 passes all 16 compiler
+jobs and actual create-testing publication; 35571273155 passes all ten required
+active regression variants. Six archives are published in this repository only.
+#163 is closed and checked in #25 (issue comment 5756883521). Nothing is pending
+for #163. Continue #164 PR167, then #161 and the remaining roadmap.
 
 ## #164 sketch interpretation contract
 

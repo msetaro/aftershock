@@ -248,3 +248,31 @@ player-clearance reachability, repeated MAP/BSP/AAS bytes and unchanged v1 fixtu
 Navigation retains separate surfaces at the same horizontal coordinate, checks
 square player clearance and midpoint traversal with at most an 18-unit step.
 The full sketch interpretation/theme/intent pipeline is the remaining #164 work.
+
+## Sketch measurement (in progress)
+
+`python3 tools/level trace --sketch drawing.png --notes notes.json --out DIR`
+writes a draft `level.json`, `interpretation.json`, and numbered interpretation
+and geometry overlays. The agent reads the drawing and its key first; this tool
+measures strokes and preserves that reading, rather than claiming handwriting
+recognition. Install level requirements in a Python 3.12 venv for the pinned image
+and polygon wheels. Build/playtest integration is still in progress.
+
+Notes contain `version: 1`, a map `name`, scale `{pixels, units}`, the playable
+boundary in pixels, and a per-drawing `key` list. Each key entry supplies a pen
+color (`#rrggbb`), `classification` (`geometry`, `annotation`, `intent`), a `kind`
+and its `reading`; geometry keys may specify height/floors. Agent-read `marks`
+have a stable id, classification, reading/text and confidence. Regions use
+`[left, top, right, bottom]`; intent paths use pixel `points`. Annotation regions
+are removed before geometry measurement. A low-confidence reading is retained
+with an assumption; unclassified ink is also reported. Arrows never become
+buildings merely because they cross building outlines.
+
+`gap_pixels` controls small stroke closures, `simplify_pixels` controls contour
+simplification, and the drawing's scale converts geometry to Quake units. Near
+rectangles are regularized while arbitrary polygon outlines remain polygons.
+Optional four `corners` and `rectified_size` deskew a photograph; all mark/scale
+coordinates then refer to the rectified image. The interpretation retains the
+transform and original dimensions. A rerun in the same output directory matches
+prior contours to preserve IDs; `overrides` applies per-ID decisions afterward.
+The agent must review the overlay and assumptions before the later build gate.
