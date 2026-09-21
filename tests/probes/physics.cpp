@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <new>
 
 #if defined( __SSE__ )
@@ -16,7 +17,10 @@
 static JPH::AllocateFunction allocateOriginal;
 static JPH::AlignedAllocateFunction alignedOriginal;
 static JPH::ReallocateFunction reallocateOriginal;
+static JPH::FreeFunction freeOriginal;
+static JPH::AlignedFreeFunction alignedFreeOriginal;
 static uint32_t allocations;
+static uint32_t liveBlocks;
 static uint32_t cppAllocations;
 static void *CPPAllocate( size_t size, size_t alignment = 0 ) {
 	++cppAllocations;
@@ -67,15 +71,40 @@ void operator delete[]( void *block, size_t, std::align_val_t ) noexcept {
 }
 static void *Allocate( size_t size ) {
 	++allocations;
-	return allocateOriginal( size );
+	void *block = allocateOriginal( size );
+	if ( block )
+		++liveBlocks;
+	return block;
 }
 static void *Aligned( size_t size, size_t alignment ) {
 	++allocations;
-	return alignedOriginal( size, alignment );
+	void *block = alignedOriginal( size, alignment );
+	if ( block )
+		++liveBlocks;
+	return block;
 }
 static void *Reallocate( void *block, size_t oldSize, size_t newSize ) {
 	++allocations;
-	return reallocateOriginal( block, oldSize, newSize );
+	void *result = reallocateOriginal( block, oldSize, newSize );
+	if ( !block && result )
+		++liveBlocks;
+	if ( block && !result && !newSize )
+		--liveBlocks;
+	return result;
+}
+static void Free( void *block ) {
+	if ( block ) {
+		assert(liveBlocks);
+		--liveBlocks;
+	}
+	freeOriginal( block );
+}
+static void AlignedFree( void *block ) {
+	if ( block ) {
+		assert(liveBlocks);
+		--liveBlocks;
+	}
+	alignedFreeOriginal( block );
 }
 static void One( void *, JPH_JobFunction *job, void *argument ) {
 	job( argument );
@@ -96,7 +125,7 @@ static uint64_t FPControl() {
 #endif
 }
 
-int main( int argc, char **argv ) {
+static void Replay( int argc, char **argv ) {
 	assert(argc == 3 || argc == 4);
 	struct Command {
 		uint32_t step, body;
@@ -120,13 +149,21 @@ int main( int argc, char **argv ) {
 	std::fclose( file );
 	if ( argc == 4 )
 		commands[commandCount - 1].impulse.x += 2;
-	assert(JPH_Init());
+	JPH::RegisterDefaultAllocator();
 	allocateOriginal = JPH::Allocate;
 	alignedOriginal = JPH::AlignedAllocate;
 	reallocateOriginal = JPH::Reallocate;
+	freeOriginal = JPH::Free;
+	alignedFreeOriginal = JPH::AlignedFree;
 	JPH::Allocate = Allocate;
 	JPH::AlignedAllocate = Aligned;
 	JPH::Reallocate = Reallocate;
+	JPH::Free = Free;
+	JPH::AlignedFree = AlignedFree;
+	cppAllocations = 0;
+	assert(JPH_Init());
+	assert(JPH::Allocate == Allocate && JPH::Reallocate == Reallocate && JPH::Free == Free);
+	assert(JPH::AlignedAllocate == Aligned && JPH::AlignedFree == AlignedFree);
 	const JPH_JobSystemConfig jobsConfig = { nullptr, One, Many, 1, 8 };
 	auto *jobs = JPH_JobSystemCallback_Create( &jobsConfig );
 	auto *temporary = JPH_TempAllocator_Create( 16 * 1024 * 1024 );
@@ -174,6 +211,7 @@ int main( int argc, char **argv ) {
 		JPH_PhysicsSystem_AddConstraint( system, constraints[i] );
 	}
 	JPH_PhysicsSystem_OptimizeBroadPhase( system );
+	assert(cppAllocations == 0); // All dependency-owned storage uses registered callbacks.
 	uint32_t nextCommand = 0;
 	const uint64_t control = FPControl();
 	for ( uint32_t step = 0; step < 600; ++step ) {
@@ -216,5 +254,19 @@ int main( int argc, char **argv ) {
 	JPH_TempAllocator_Destroy( temporary );
 	JPH_JobSystem_Destroy( jobs );
 	JPH_Shutdown();
+	if ( liveBlocks )
+		std::fprintf( stderr, "physics shutdown: %u retained allocation blocks\n", liveBlocks );
+	assert(liveBlocks == 0);
 	std::puts( "PASS: recorded prop commands, constrained contacts, fixed steps and unchanged FP control" );
+}
+
+int main( int argc, char **argv ) {
+	uint8_t results[2][32 * 7 * sizeof( float )];
+	for ( uint32_t attempt = 0; attempt < 2; ++attempt ) {
+		Replay( argc, argv );
+		FILE *file = std::fopen( argv[2], "rb" );
+		assert(file && std::fread(results[attempt], sizeof(results[attempt]), 1, file) == 1);
+		assert(std::fclose(file) == 0);
+	}
+	assert(!std::memcmp(results[0], results[1], sizeof(results[0])));
 }

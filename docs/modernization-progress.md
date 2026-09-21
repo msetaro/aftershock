@@ -27,8 +27,8 @@ rechecked immediately before the merge. Tested and merged trees both equal
 f21454591ae494c1f7d023b6fd5d063c005a4b29. Known-good remains object 8bc8c94c
 pointing to 81a0f9dc, verified against origin after the merge.
 
-Merged-tree build/publication 35638549208 passed. Regression 35638548512 has eight
-active jobs passing, with runtime and lifetimes running. Watch it; do not mark #161 accepted in #25 until publication and all ten active
+Merged-tree build/publication 35638549208 passed. Regression 35638548512 has nine
+active jobs passing, including lifetimes; runtime is still running. Watch it; do not mark #161 accepted in #25 until publication and all ten active
 regression jobs pass. The merged tree is identical to the tested head.
 
 Continue #15 on issue/15-jolt-physics in
@@ -67,6 +67,16 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 allocator ownership test fails before initialization changes
+
+The permanent probe now installs all five allocation/free callbacks before
+initialization, requires all dependency storage to use them, counts outstanding
+blocks at shutdown, and repeats the scene twice in the same process. It fails
+because JPH_Init overwrites the supplied callbacks (physics-ownership-before.log).
+This is the next test-first integration change. Full reset must release the
+world lookup table before the caller retires its arena. No engine physics code
+has been introduced yet.
 
 ## #15 allocation regression passes on both compilers
 
