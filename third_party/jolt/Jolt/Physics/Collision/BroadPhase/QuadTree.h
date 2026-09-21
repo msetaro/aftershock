@@ -187,7 +187,7 @@ public:
 	inline bool					CanBeUpdated() const				{ return mFreeNodeBatch.mNumObjects == 0; }
 
 	/// Initialization
-	void						Init(Allocator &inAllocator);
+	void						Init(Allocator &inAllocator, uint32 inMaxBodies);
 
 	struct UpdateState
 	{
@@ -302,7 +302,7 @@ private:
 	inline bool					TryCreateNewRoot(TrackingVector &ioTracking, atomic<uint32> &ioRootNodeIndex, NodeID inLeafID, const AABox &inLeafBounds, int inLeafNumBodies);
 
 	/// Build a tree for ioBodyIDs, returns the NodeID of the root (which will be the ID of a single body if inNumber = 1). All tree levels up to inMaxDepthMarkChanged will be marked as 'changed'.
-	NodeID						BuildTree(const BodyVector &inBodies, TrackingVector &ioTracking, NodeID *ioNodeIDs, int inNumber, uint inMaxDepthMarkChanged, AABox &outBounds);
+	NodeID						BuildTree(const BodyVector &inBodies, TrackingVector &ioTracking, NodeID *ioNodeIDs, int inNumber, uint inMaxDepthMarkChanged, AABox &outBounds, Vec3 *inCenters = nullptr);
 
 	/// Sorts ioNodeIDs spatially into 2 groups. Second groups starts at ioNodeIDs + outMidPoint.
 	/// After the function returns ioNodeIDs and ioNodeCenters will be shuffled
@@ -329,6 +329,11 @@ private:
 
 	/// This is a list of nodes that must be deleted after the trees are swapped and the old tree is no longer in use
 	Allocator::Batch			mFreeNodeBatch;
+
+	// Aftershock: reserved at Init; only serialized updates use this scratch.
+	// Concurrent body insertion retains its separate BuildTree storage.
+	Array<NodeID> mUpdateScratch;
+	Array<Vec3> mCenterScratch;
 
 	/// Number of bodies currently in the tree
 	/// This is aligned to be in a different cache line from the `Allocator` pointer to prevent cross-thread syncs

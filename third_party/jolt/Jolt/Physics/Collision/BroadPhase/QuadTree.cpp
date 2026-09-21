@@ -234,10 +234,12 @@ uint32 QuadTree::AllocateNode(bool inIsChanged)
 	return index;
 }
 
-void QuadTree::Init(Allocator &inAllocator)
+void QuadTree::Init(Allocator &inAllocator, uint32 inMaxBodies)
 {
 	// Store allocator
 	mAllocator = &inAllocator;
+	mUpdateScratch.resize(inMaxBodies);
+	mCenterScratch.resize(inMaxBodies);
 
 	// Allocate root node
 	mRootNode[mRootNodeIndex].mIndex = AllocateNode(false);
@@ -297,7 +299,7 @@ void QuadTree::UpdatePrepare(const BodyVector &inBodies, TrackingVector &ioTrack
 #endif
 
 	// Create space for all body ID's
-	NodeID *node_ids = mNumBodies > 0? new NodeID [mNumBodies] : nullptr;
+	NodeID *node_ids = mUpdateScratch.data();
 	NodeID *cur_node_id = node_ids;
 
 	// Collect all bodies
@@ -367,7 +369,7 @@ void QuadTree::UpdatePrepare(const BodyVector &inBodies, TrackingVector &ioTrack
 
 		// Build new tree
 		AABox root_bounds;
-		root_node_id = BuildTree(inBodies, ioTracking, node_ids, num_node_ids, cMaxDepthMarkChanged, root_bounds);
+		root_node_id = BuildTree(inBodies, ioTracking, node_ids, num_node_ids, cMaxDepthMarkChanged, root_bounds, mCenterScratch.data());
 
 		if (root_node_id.IsBody())
 		{
@@ -386,9 +388,6 @@ void QuadTree::UpdatePrepare(const BodyVector &inBodies, TrackingVector &ioTrack
 		uint32 root_idx = AllocateNode(false);
 		root_node_id = NodeID::sFromNodeIndex(root_idx);
 	}
-
-	// Delete temporary data
-	delete [] node_ids;
 
 	outUpdateState.mRootNodeID = root_node_id;
 }
@@ -518,7 +517,7 @@ AABox QuadTree::GetNodeOrBodyBounds(const BodyVector &inBodies, NodeID inNodeID)
 	}
 }
 
-QuadTree::NodeID QuadTree::BuildTree(const BodyVector &inBodies, TrackingVector &ioTracking, NodeID *ioNodeIDs, int inNumber, uint inMaxDepthMarkChanged, AABox &outBounds)
+QuadTree::NodeID QuadTree::BuildTree(const BodyVector &inBodies, TrackingVector &ioTracking, NodeID *ioNodeIDs, int inNumber, uint inMaxDepthMarkChanged, AABox &outBounds, Vec3 *inCenters)
 {
 	// Trivial case: No bodies in tree
 	if (inNumber == 0)
@@ -541,7 +540,7 @@ QuadTree::NodeID QuadTree::BuildTree(const BodyVector &inBodies, TrackingVector 
 	}
 
 	// Calculate centers of all bodies that are to be inserted
-	Vec3 *centers = new Vec3 [inNumber];
+	Vec3 *centers = inCenters? inCenters : new Vec3 [inNumber];
 	JPH_ASSERT(IsAligned(centers, JPH_VECTOR_ALIGNMENT));
 	Vec3 *c = centers;
 	for (const NodeID *n = ioNodeIDs, *n_end = ioNodeIDs + inNumber; n < n_end; ++n, ++c)
@@ -651,7 +650,8 @@ QuadTree::NodeID QuadTree::BuildTree(const BodyVector &inBodies, TrackingVector 
 	}
 
 	// Delete temporary data
-	delete [] centers;
+	if (!inCenters)
+		delete [] centers;
 
 	// Store bounding box of root
 	outBounds.mMin = stack[0].mNodeBoundsMin;

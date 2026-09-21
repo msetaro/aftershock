@@ -567,5 +567,13 @@
     "Jolt/TriangleSplitter/TriangleSplitterMean.cpp": "22d95e38f9b14870e27030d50b2446c0aa44705f30ddadd815312a39fe0836b7",
     "Jolt/TriangleSplitter/TriangleSplitterMean.h": "2d9d64e760e0640a3bbdda8ab0c8fc75ab4b8399a20e204c0cd34197f37a7775",
     "LICENSE": "800abe35d64ad9defd636ff1ee8c961e06f0ebca3ef8d10083e8aa0e8ef86ac3"
+  },
+  "local_changes": {
+    "reason": "Reserve serialized broadphase update scratch and the fixed callback-job page before stepping; simulation arithmetic unchanged. Original hashes remain in files.",
+    "files": {
+      "Jolt/Physics/Collision/BroadPhase/BroadPhaseQuadTree.cpp": "b279851efae3d0bf63f16f26531c94ded86681ac03c0de7d16e4446005b7a567",
+      "Jolt/Physics/Collision/BroadPhase/QuadTree.cpp": "6f8c26d03a516c533cb73da28410c41d542b9b70a9332c80b8bdb23b54560fa4",
+      "Jolt/Physics/Collision/BroadPhase/QuadTree.h": "800f2d636ffbfc9831e64674bec0d9730935505caaab01281f017de338c88e37"
+    }
   }
 }

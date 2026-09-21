@@ -38,9 +38,9 @@ hit registration and authoritative weapon trajectories. Jolt is for cosmetic
 props/grenade bodies and skeleton-driven death presentation. The first permanent allocation/determinism test is written and fails at missing
 cmake/Physics.cmake before any dependency or engine implementation is imported.
 Pinned original Jolt/joltc sources and a scoped offline CMake helper are imported.
-The permanent UBSan probe builds and fails on one allocation at step 0. Next apply
-and verify the reviewed reserved-scratch/job-page changes, then implement bounded
-allocator ownership and the engine physics boundary. No #15 PR
+The permanent UBSan probe builds and fails on one allocation at step 0. Reserved-scratch/job-page changes now pass the permanent GCC and Clang/libc++
+UBSan tests. Next implement bounded allocator ownership and the engine physics
+boundary, with initialization/shutdown and full-capacity tests first. No #15 PR
 or engine implementation exists yet.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
@@ -67,6 +67,28 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 allocation regression passes on both compilers
+
+The reviewed adaptation reserves NodeID and center scratch per broadphase layer
+at initialization; only serialized UpdatePrepare uses that storage, and concurrent
+body insertion retains separate storage. The callback job pool prepares its one
+fixed page before stepping. Original file hashes remain in provenance alongside
+explicit hashes for changed files. No simulation arithmetic was changed.
+
+The permanent test passes with GCC and Clang/libc++, both under UBSan. It checks
+Jolt allocator calls and independent C++ new/new[] calls (including aligned forms),
+FP control, 600 steps of recorded impulses on 32 bodies/16 constraints, replay
+agreement and a changed-impulse negative control. Both produce SHA256
+be15e66ae62c57bcd803c017095f9b5f7e4e30466b6d6bdb2a849bd06b78c438 for this scene.
+This is measured agreement, not a claim about every platform/scene. Evidence:
+physics-reserved-allocation-test.log / physics-clang-test.log. Format passes.
+
+Next: allocator ownership, no-fallback temporary storage and teardown must be
+proven before engine integration. The upstream wrapper's world lookup table
+retains capacity and its small wrapper allocation uses global new; inspect and
+cover complete reset/reinitialization with a counted allocator. Full body/node
+capacity, recycle, queries, ragdolls, tools and unchanged movement remain open.
 
 ## #15 pinned original dependency and concrete failing gate
 

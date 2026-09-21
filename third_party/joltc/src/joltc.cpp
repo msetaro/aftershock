@@ -685,6 +685,8 @@ public:
 		JobSystemWithBarrier::Init(config->maxBarriers > 0 ? config->maxBarriers : JPH::cMaxPhysicsBarriers);
 		mJobs.Init(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsJobs);
 		mConfig = *config;
+		// Aftershock: allocate the fixed job page before simulation begins.
+		JobHandle warm = CreateJob("warm", Color::sWhite, [] {}, 1);
 	}
 
 	JobHandle CreateJob(const char* name, JPH::ColorArg color, const JPH::JobSystem::JobFunction& callback, uint32_t dependencies = 0) override

@@ -46,7 +46,7 @@ void BroadPhaseQuadTree::Init(BodyManager *inBodyManager, const BroadPhaseLayerI
 	mLayers = new QuadTree [mNumLayers];
 	for (uint l = 0; l < mNumLayers; ++l)
 	{
-		mLayers[l].Init(mAllocator);
+		mLayers[l].Init(mAllocator, mMaxBodies);
 
 #if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
 		// Set the name of the layer

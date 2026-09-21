@@ -12,5 +12,11 @@
     "src/joltc.c": "df3ef7a5e5373e4f5098881e89905a9f65c975b82b481510e38fe400d0d480db",
     "src/joltc.cpp": "bd731e61c35b0d96473af38dafb1dd9788778168d115b97c78e1468b848442cf",
     "src/joltc_assert.cpp": "fbd37aa6beecc4db230ffe5cb9f6fe96a1faa68ad530faaa3a115d25c61ea483"
+  },
+  "local_changes": {
+    "reason": "Reserve serialized broadphase update scratch and the fixed callback-job page before stepping; simulation arithmetic unchanged. Original hashes remain in files.",
+    "files": {
+      "src/joltc.cpp": "a04380124cb8d7f62de0ae5110cf8415cbb656e5b9cf08dca0650549a4d5a296"
+    }
   }
 }

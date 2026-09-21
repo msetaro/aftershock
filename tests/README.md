@@ -1425,3 +1425,19 @@ nested decals .75, post .75, post copy .20, camera motion .30, object motion .50
 temporal resolve .80, temporal copy .30. Nested decal time is already included
 in effects time. Earlier street-scene post-copy budget misses remain recorded;
 this simpler scene passing does not enable post processing by default.
+
+## Cosmetic physics dependency (#15, integration in progress)
+
+`python3 tests/physics.py` builds the pinned Jolt/joltc libraries with UBSan and
+replays `tests/assets/physics/props.txt` against 32 bodies and 16 constraints for
+600 fixed steps. It rejects Jolt allocator and C++ allocation calls during steps,
+checks FP control preservation, hashes ordered final positions/quaternions, and
+requires a changed impulse to change the result. A second independent replay
+must match exactly. It creates no accepted golden and needs no game content.
+
+Use `--cxx 'clang++ -stdlib=libc++' --output /tmp/physics-clang` for the second
+compiler. CMake, Ninja and the selected compiler/runtime are required. Builds
+use only vendored sources; provenance retains original hashes and explicitly
+records the local scratch/job-page changes. GPU compute, newer x86 instruction
+requirements, exceptions and RTTI are disabled. This dependency test does not
+establish engine integration, full pool-capacity behavior or ragdoll acceptance.
