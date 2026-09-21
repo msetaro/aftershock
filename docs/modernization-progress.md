@@ -27,10 +27,9 @@ rechecked immediately before the merge. Tested and merged trees both equal
 f21454591ae494c1f7d023b6fd5d063c005a4b29. Known-good remains object 8bc8c94c
 pointing to 81a0f9dc, verified against origin after the merge.
 
-Merged-tree build/publication 35638549208 passed. Regression 35638548512 has nine
-active jobs passing, including lifetimes; runtime is still running. Watch it;
-do not mark #161 accepted in #25 until publication and all ten active regression
-jobs pass. The merged tree is identical to the tested head.
+Merged-tree build/publication 35638549208 and all ten active regression jobs in
+35638548512 passed, including runtime 106461943478. #161 is accepted and checked
+in #25. The merged tree is identical to the tested head.
 
 Continue #15 on issue/15-jolt-physics in
 /home/matt/.cache/aftershock-modernization/physics-tree, branched from main 0928be35.
@@ -46,9 +45,9 @@ The owned POD boundary now passes caller-owned storage, all 256 prepared body
 slots, four spawn/recycle cycles, inactive filtering, ray/convex queries and
 swing/twist joint reuse on both compilers. Independent C++ allocation counters
 caught query-filter wrappers outside the arena; their registered allocation
-operators now pass too. The full client/server build and owned lifetime AST pass. Next add map collision loading,
-client prop/grenade presentation, skeleton deaths and tooling. Preserve native
-movement/hit registration and run fixed demos. The client now links the module but has no runtime calls yet; #15 has no PR. The branch checkpoint is
+operators now pass too. The full client/server build and owned lifetime AST pass. Map collision and first cosmetic prop runtime are implemented. Next resolve the
+OpenArena discrete-contact bounce failure, then skeleton deaths and tooling. Preserve native
+movement/hit registration and run fixed demos. The client owns map loading/teardown and cgame prop presentation; #15 has no PR. The branch checkpoint is
 pushed through 0aeeb11c; issue comment 5765963611 records the dependency evidence.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
@@ -75,6 +74,39 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 runtime found reversed exported triangle winding
+
+OpenArena passed with continuous collision detection, but a subsequent Quake 3
+map settled the grenade below the native floor instead of bouncing. The isolated
+flat-mesh drop passes, isolating map export. Source inspection found the cause:
+BaseWindingForPlane emits clockwise faces; Jolt MeshShape requires counter-clockwise
+faces. The synthetic geometry test now checks outward normals as well as count
+and area, and fails on the current export (physics-winding-before.log). Reverse
+fan indices in this new export, then rerun both content sets before acceptance.
+The existing CM winding/trace code is unchanged. This is #15 integration code,
+not a previously merged engine defect.
+
+The uncommitted client runtime/panel work is otherwise built: an ImGui Physics
+tab queues prop/drop actions after vendor calls and toggles collision bounds.
+It still needs runtime panel verification, skeleton deaths and full gates.
+
+## #15 first client prop runtime passes
+
+The client now owns a 128 MiB map-lifetime arena, exports the loaded solid world,
+and retires Jolt before freeing its storage. Foreign exhaustion uses process-fatal
+handling with reentrant physics cleanup disabled, never a Com_Error unwind.
+Cgame prepares 32 cosmetic box/grenade slots and steps at 60 Hz with bounded
+catch-up; seek/stall retires cosmetic props. physics_prop and physics_status expose
+local presentation only. No live weapon trajectory or damage path changed.
+
+The runtime driver passes both installed Quake 3 maps: props move, dropped inert
+grenades fall and bounce, frame/spawn allocator/high-water/live counters remain
+fixed, and map replacement works. First world: 5,436 triangles, 30,173,824 arena
+bytes before prop preparation. Evidence: physics-runtime-q3/client.log and
+physics-runtime-q3.log. The earlier resize/hidden-window lifecycle check also
+passed with world loading (physics-window.log). Explicit zero-block teardown
+logging, OpenArena, full demo gates, ragdolls and tooling remain next.
 
 ## #15 static map geometry foundation passes
 

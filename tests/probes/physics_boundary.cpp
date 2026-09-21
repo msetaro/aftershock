@@ -105,5 +105,31 @@ int main( int argc, char ** ) {
 		Phys_Shutdown();
 		assert(Phys_Stats().liveBlocks == 0);
 	}
+	assert(Phys_Init(arena,sizeof(arena),Fatal));
+	const physTriangle_t floor[] = {
+		{ { { -10, -10, -.2032f }, { 10, -10, -.2032f }, { 10, 10, -.2032f } } },
+		{ { { -10, -10, -.2032f }, { 10, 10, -.2032f }, { -10, 10, -.2032f } } }
+	};
+	assert(Phys_PrepareMesh(floor,2)==0);
+	physBodyDesc_t grenade{};
+	grenade.dynamic = true;
+	grenade.radius = .1f;
+	grenade.restitution = .6f;
+	grenade.transform.rotation[3] = 1;
+	grenade.transform.position[2] = 1.273175f;
+	assert(Phys_Prepare(&grenade)==1 && Phys_Start());
+	const float stopped[3] = {};
+	assert(Phys_Spawn(1,&grenade.transform,stopped));
+	bool falling = false, bounced = false;
+	for ( unsigned i = 0; i < 100; ++i ) {
+		assert(Phys_Step());
+		float velocity[3];
+		assert(Phys_Velocity(1,velocity));
+		falling |= velocity[2] < -.5f;
+		bounced |= falling && velocity[2] > .5f;
+	}
+	assert(bounced);
+	Phys_Shutdown();
+	assert(Phys_Stats().liveBlocks==0);
 	std::puts( "PASS: owned arena, full body capacity, allocation-free recycle/query and restart" );
 }

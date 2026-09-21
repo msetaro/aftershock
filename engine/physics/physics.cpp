@@ -131,7 +131,7 @@ bool Phys_Init( void *storage, size_t bytes, void ( *fatal )() ) {
 	return true;
 }
 uint32_t Phys_Prepare( const physBodyDesc_t *desc ) {
-	if ( !physics.memory || physics.started || physics.count == PHYS_MAX_BODIES || !desc || !Pose( &desc->transform ) || !std::isfinite( desc->radius ) || desc->radius < 0 )
+	if ( !physics.memory || physics.started || physics.count == PHYS_MAX_BODIES || !desc || !Pose( &desc->transform ) || !std::isfinite( desc->radius ) || desc->radius < 0 || !std::isfinite( desc->restitution ) || desc->restitution < 0 || desc->restitution > 1 )
 		return PHYS_INVALID_BODY;
 	if ( !desc->radius && ( !Finite( desc->halfExtent, 3 ) || desc->halfExtent[0] <= 0 || desc->halfExtent[1] <= 0 || desc->halfExtent[2] <= 0 ) )
 		return PHYS_INVALID_BODY;
@@ -141,6 +141,9 @@ uint32_t Phys_Prepare( const physBodyDesc_t *desc ) {
 	const JPH_RVec3 position = { pose.position[0], pose.position[1], pose.position[2] };
 	const JPH_Quat rotation = { pose.rotation[0], pose.rotation[1], pose.rotation[2], pose.rotation[3] };
 	auto *settings = JPH_BodyCreationSettings_Create3( shape, &position, &rotation, desc->dynamic ? JPH_MotionType_Dynamic : JPH_MotionType_Static, desc->dynamic ? 1 : 0 );
+	JPH_BodyCreationSettings_SetRestitution( settings, desc->restitution );
+	if ( desc->dynamic )
+		JPH_BodyCreationSettings_SetMotionQuality( settings, JPH_MotionQuality_LinearCast );
 	const JPH_BodyID id = JPH_BodyInterface_CreateAndAddBody( physics.bodies, settings, JPH_Activation_DontActivate );
 	JPH_BodyCreationSettings_Destroy( settings );
 	JPH_Shape_Destroy( shape );
@@ -267,6 +270,16 @@ bool Phys_Transform( uint32_t slot, physTransform_t *pose ) {
 	JPH_BodyInterface_GetPosition( physics.bodies, physics.ids[slot], &position );
 	JPH_BodyInterface_GetRotation( physics.bodies, physics.ids[slot], &rotation );
 	*pose = { { position.x, position.y, position.z }, { rotation.x, rotation.y, rotation.z, rotation.w } };
+	return true;
+}
+bool Phys_Velocity( uint32_t slot, float velocity[3] ) {
+	if ( !physics.started || slot >= physics.count || !physics.active[slot] || !velocity )
+		return false;
+	JPH_Vec3 value;
+	JPH_BodyInterface_GetLinearVelocity( physics.bodies, physics.ids[slot], &value );
+	velocity[0] = value.x;
+	velocity[1] = value.y;
+	velocity[2] = value.z;
 	return true;
 }
 bool Phys_Ray( const float origin[3], const float displacement[3], float *fraction ) {

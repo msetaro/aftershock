@@ -1951,6 +1951,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	CG_SetConfigValues();
 	CG_InitWeapons();
 	CG_InitAnimation();
+	CG_InitPhysics();
 
 	CG_StartMusic();
 

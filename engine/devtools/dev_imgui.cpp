@@ -1,4 +1,5 @@
 #include "devtools_public.h"
+#include "../physics/physics_public.h"
 #include "../animation/animation_public.h"
 #include "../weapons/weapons_public.h"
 #include "../qcommon/qcommon_public.h"
@@ -519,6 +520,32 @@ static void EditEffects( const refexport_t *renderer ) {
 		else
 			renderer->StopEffect( effectPreview.instance );
 	}
+}
+static uint32_t physicsAction;
+static bool physicsDebug;
+static void InspectPhysics() {
+	if ( !BeginPanel( "Physics" ) )
+		return;
+	const auto stats = Phys_Stats();
+	ImGui::Text( "Cosmetic storage: %.2f MiB | allocations %u | live blocks %u", double( stats.used ) / ( 1024 * 1024 ), stats.allocations, stats.liveBlocks );
+	ImGui::TextUnformatted( "Props and inert grenades; movement and damage use native collision." );
+	if ( ImGui::Button( "Throw box" ) )
+		physicsAction = 1;
+	ImGui::SameLine();
+	if ( ImGui::Button( "Drop grenade" ) )
+		physicsAction = 2;
+	if ( ImGui::Checkbox( "Show collision bounds", &physicsDebug ) )
+		physicsAction = 3;
+	ImGui::EndTabItem();
+}
+static void EditPhysics() {
+	if ( physicsAction == 1 )
+		Cbuf_AddText( "physics_prop box\n" );
+	if ( physicsAction == 2 )
+		Cbuf_AddText( "physics_prop grenade drop\n" );
+	if ( physicsAction == 3 )
+		Cvar_Set( "cg_physicsDebug", physicsDebug ? "1" : "0" );
+	physicsAction = 0;
 }
 static void InspectEffects( const refexport_t *renderer ) {
 	if ( !BeginPanel( "Effects" ) )
@@ -1070,7 +1097,7 @@ static struct {
 } worldDebug;
 
 bool DevTools_SelectPanel( const char *name ) {
-	static constexpr const char *panels[] = { "Console", "Cvars", "Textures", "Materials", "Profile", "Memory", "Animation", "Entities", "World", "Graph", "Range", "Effects" };
+	static constexpr const char *panels[] = { "Console", "Cvars", "Textures", "Materials", "Profile", "Memory", "Animation", "Entities", "World", "Graph", "Range", "Effects", "Physics" };
 	for ( const char *panel : panels ) {
 		if ( !strcmp( name, panel ) ) {
 			Q_strncpyz( requestedPanel, panel, sizeof( requestedPanel ) );
@@ -1762,6 +1789,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 			InspectGraph( elapsed );
 			InspectWeaponRange();
 			InspectEffects( renderer );
+			InspectPhysics();
 			ImGui::EndTabBar();
 		}
 	}
@@ -1776,6 +1804,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 		Com_Printf( "Developer UI draw capacity exceeded\n" );
 	}
 	// Engine mutation/error handling runs after all vendor UI calls return.
+	EditPhysics();
 	EditWeaponRange();
 	EditGraph( renderer );
 	EditEffects( renderer );

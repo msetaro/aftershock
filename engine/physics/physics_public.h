@@ -5,13 +5,13 @@
 
 // Single client-owned cosmetic world. Metres, seconds, Z up; never used by CM
 // movement or damage. Slots and all shapes are prepared before Phys_Start.
-constexpr uint32_t PHYS_MAX_BODIES = 256;
-constexpr uint32_t PHYS_INVALID_BODY = UINT32_MAX;
+inline constexpr uint32_t PHYS_MAX_BODIES = 256;
+inline constexpr uint32_t PHYS_INVALID_BODY = UINT32_MAX;
 struct physTransform_t {
 	float position[3];
 	float rotation[4]; // xyzw
 };
-constexpr uint32_t PHYS_MAX_TRIANGLES = 262144;
+inline constexpr uint32_t PHYS_MAX_TRIANGLES = 262144;
 struct physTriangle_t {
 	float vertex[3][3];
 };
@@ -19,6 +19,7 @@ struct physBodyDesc_t {
 	physTransform_t transform;
 	float halfExtent[3]; // box; a positive radius selects a sphere instead
 	float radius;
+	float restitution;
 	bool dynamic;
 };
 struct physJointDesc_t {
@@ -41,6 +42,7 @@ bool Phys_Spawn( uint32_t slot, const physTransform_t *pose, const float velocit
 bool Phys_Despawn( uint32_t slot );
 bool Phys_Step(); // exactly 1/60 second
 bool Phys_Transform( uint32_t slot, physTransform_t *pose );
+bool Phys_Velocity( uint32_t slot, float velocity[3] );
 bool Phys_Ray( const float origin[3], const float displacement[3], float *fraction );
 // Sweep a prepared convex shape, excluding its own body and inactive slots.
 bool Phys_Sweep( uint32_t slot, const physTransform_t *pose, const float displacement[3], float *fraction );

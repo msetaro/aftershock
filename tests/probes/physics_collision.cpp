@@ -38,6 +38,10 @@ static bool Triangle( void *, const float *a, const float *b, const float *c ) {
 	VectorSubtract( c, a, ac );
 	CrossProduct( ab, ac, cross );
 	area += .5 * std::sqrt( DotProduct( cross, cross ) );
+	if ( a[2] == 2 && b[2] == 2 && c[2] == 2 )
+		assert(cross[2] > 0);
+	else
+		assert(DotProduct(cross,a) > 0); // Outward, counter-clockwise solid faces.
 	return !reject;
 }
 int main() {
