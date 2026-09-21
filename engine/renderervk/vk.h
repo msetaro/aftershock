@@ -38,7 +38,7 @@
 #define USE_DEDICATED_ALLOCATION
 #endif
 //#define MIN_IMAGE_ALIGN (128*1024)
-#define MAX_ATTACHMENTS_IN_POOL (8+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
+#define MAX_ATTACHMENTS_IN_POOL (10+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
 
 
 typedef struct {
@@ -163,6 +163,7 @@ typedef struct {
 	uint32_t image_memory_count;
 
 	struct {
+		VkRenderPass shadow[2];
 		VkRenderPass main;
 		VkRenderPass screenmap;
 		VkRenderPass gamma;
@@ -224,6 +225,7 @@ typedef struct {
 		VkFramebuffer gamma[MAX_SWAPCHAIN_IMAGES];
 		VkFramebuffer screenmap;
 		VkFramebuffer capture;
+		VkFramebuffer shadow[2];
 	} framebuffers;
 
 #ifdef USE_UPLOAD_QUEUE
@@ -337,6 +339,8 @@ typedef struct {
 	VkFormat depth_format;
 	VkFormat bloom_format;
 
+	VkImage shadow_image[2];
+	VkImageView shadow_image_view[2];
 	VkImageLayout initSwapchainLayout;
 
 	qboolean clearAttachment; // requires VK_IMAGE_USAGE_TRANSFER_DST_BIT for swapchains

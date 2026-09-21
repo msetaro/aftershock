@@ -560,7 +560,7 @@ static void R_InitDevice( void ) {
 		r_renderScale->integer,
 		r_offsetUnits->value,
 		r_offsetFactor->value,
-		(rhiFilter_t)gl_filter_min, (rhiFilter_t)gl_filter_max, textureFilterValid
+		(rhiFilter_t)gl_filter_min, (rhiFilter_t)gl_filter_max, textureFilterValid, 0
 	};
 	const rhiHost_t host = { ri.Malloc, ri.Free, R_PrintRHI, R_IsMinimized, R_SwapInterval, ri.VK_GetInstanceProcAddr, R_CreateSurface };
 	rhiDeviceInfo_t info;

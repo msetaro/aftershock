@@ -61,6 +61,8 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 	if ( !c.renderWidth || !c.renderHeight || !c.windowWidth || !c.windowHeight ||
 		 !c.captureWidth || !c.captureHeight || !c.screenWidth || !c.screenHeight || !c.samples || !c.screenSamples )
 		return false;
+	if ( c.shadowSize && ( c.shadowSize < 128 || c.shadowSize > 8192 || ( c.shadowSize & ( c.shadowSize - 1 ) ) ) )
+		return false;
 	using T = rhiGraphTarget_t;
 	using P = rhiGraphPass_t;
 	using F = rhiGraphFormat_t;
@@ -94,6 +96,10 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 				.exported = true;
 	}
 	Target( graph, T::MainDepth, c.renderWidth, c.renderHeight, c.samples, F::Depth, RHI_GRAPH_DEPTH, L::Depth, !( c.offscreen && c.bloom ) );
+	if ( c.shadowSize ) {
+		for ( uint32_t index = 0; index < 2; ++index )
+			Target( graph, (T)( (uint32_t)T::LocalShadow + index ), c.shadowSize, c.shadowSize, 1, F::ShadowDepth, RHI_GRAPH_DEPTH | RHI_GRAPH_SAMPLED, L::DepthSampled );
+	}
 	for ( const rhiGraphTargetDesc_t &target : graph->targets ) {
 		if ( target.enabled && ( !target.width || !target.height ) )
 			return false;
@@ -154,9 +160,36 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 		}
 	}
 
+	if ( c.shadowSize ) {
+		const uint32_t shadowReads = TargetBit( T::LocalShadow ) | TargetBit( T::SunShadow );
+		graph->passes[(uint32_t)P::Main].readMask |= shadowReads;
+		if ( c.offscreen ) {
+			graph->passes[(uint32_t)P::ScreenMap].readMask |= shadowReads;
+			if ( c.bloom )
+				graph->passes[(uint32_t)P::PostBloom].readMask |= shadowReads;
+		}
+		for ( uint32_t index = 0; index < 2; ++index ) {
+			const P id = (P)( (uint32_t)P::LocalShadow + index );
+			rhiGraphPassDesc_t &shadow = Pass( graph, id, c.shadowSize, c.shadowSize, 0 );
+			shadow.color = RHI_INVALID_OFFSET;
+			shadow.depth = 0;
+			Attachment( shadow, (T)( (uint32_t)T::LocalShadow + index ), Load::Clear, Store::Store, L::DepthSampled, L::DepthSampled );
+			shadow.dependencies[0] = { rhiGraphStage_t::Fragment, rhiGraphStage_t::DepthTests,
+				RHI_GRAPH_SHADER_READ, RHI_GRAPH_DEPTH_WRITE, true, false };
+			shadow.dependencies[1] = { rhiGraphStage_t::DepthTests, rhiGraphStage_t::Fragment,
+				RHI_GRAPH_DEPTH_WRITE, RHI_GRAPH_SHADER_READ, false, false };
+			graph->executionOrder[graph->executionCount++] = id;
+		}
+	}
+	// Preserve the legacy IDs/possible-pass intervals when lighting is disabled.
+	// Creation order is independent of this dependency/lifetime order.
+	for ( uint32_t p = 0; p < (uint32_t)P::LocalShadow; ++p )
+		graph->executionOrder[graph->executionCount++] = (P)p;
+
 	uint32_t writers[(uint32_t)T::Count] = {};
 	uint32_t readers[(uint32_t)T::Count] = {};
-	for ( uint32_t p = 0; p < (uint32_t)P::Count; ++p ) {
+	for ( uint32_t order = 0; order < graph->executionCount; ++order ) {
+		const uint32_t p = (uint32_t)graph->executionOrder[order];
 		rhiGraphPassDesc_t &pass = graph->passes[p];
 		if ( !pass.enabled )
 			continue;
@@ -168,8 +201,8 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 			if ( !target.enabled )
 				return false;
 			if ( target.firstUse == RHI_INVALID_OFFSET )
-				target.firstUse = p;
-			target.lastUse = p;
+				target.firstUse = order;
+			target.lastUse = order;
 			pass.dependencyMask |= writers[t];
 			if ( pass.writeMask & bit ) {
 				pass.dependencyMask |= readers[t];

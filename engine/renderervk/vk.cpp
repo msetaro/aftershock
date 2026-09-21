@@ -486,6 +486,7 @@ static void record_image_layout_transition( VkCommandBuffer command_buffer, VkIm
 		src_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 		break;
+	case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
 	case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
 		src_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -519,6 +520,7 @@ static void record_image_layout_transition( VkCommandBuffer command_buffer, VkIm
 		dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		break;
+	case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
 	case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
 		dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
@@ -757,7 +759,7 @@ static_assert( RHI_GRAPH_BLOOM_PASSES == VK_NUM_BLOOM_PASSES );
 static_assert( ARRAY_LEN( vk_graph.targetOrder ) == MAX_ATTACHMENTS_IN_POOL );
 static const char *const vk_graph_names[] = {
 	"screenmap", "main", "bloom_extract", "blur 0", "blur 1", "blur 2", "blur 3",
-	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma"
+	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma", "local shadow", "sun shadow"
 };
 static_assert( ARRAY_LEN( vk_graph_names ) == (uint32_t)rhiGraphPass_t::Count );
 
@@ -767,6 +769,8 @@ static VkFormat vk_graph_format( rhiGraphFormat_t format ) {
 		return vk.color_format;
 	case rhiGraphFormat_t::Depth:
 		return vk.depth_format;
+	case rhiGraphFormat_t::ShadowDepth:
+		return VK_FORMAT_D32_SFLOAT;
 	case rhiGraphFormat_t::Bloom:
 		return vk.bloom_format;
 	case rhiGraphFormat_t::Capture:
@@ -787,6 +791,8 @@ static VkImageLayout vk_graph_layout( rhiGraphLayout_t layout ) {
 		return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	case rhiGraphLayout_t::Depth:
 		return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	case rhiGraphLayout_t::DepthSampled:
+		return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 	case rhiGraphLayout_t::TransferSource:
 		return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 	case rhiGraphLayout_t::Present:
@@ -800,6 +806,10 @@ static VkRenderPass *vk_graph_pass( rhiGraphPass_t pass ) {
 	switch ( pass ) {
 	case P::Main:
 		return &vk.render_pass.main;
+	case P::LocalShadow:
+		return &vk.render_pass.shadow[0];
+	case P::SunShadow:
+		return &vk.render_pass.shadow[1];
 	case P::PostBloom:
 		return &vk.render_pass.post_bloom;
 	case P::BloomExtract:
@@ -830,7 +840,15 @@ static VkAttachmentLoadOp vk_graph_load( rhiGraphLoad_t load ) {
 static VkAccessFlags vk_graph_access( uint32_t access ) {
 	return ( access & RHI_GRAPH_COLOR_READ ? VK_ACCESS_COLOR_ATTACHMENT_READ_BIT : 0 ) |
 		   ( access & RHI_GRAPH_COLOR_WRITE ? VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT : 0 ) |
-		   ( access & RHI_GRAPH_SHADER_READ ? VK_ACCESS_SHADER_READ_BIT : 0 );
+		   ( access & RHI_GRAPH_SHADER_READ ? VK_ACCESS_SHADER_READ_BIT : 0 ) |
+		   ( access & RHI_GRAPH_DEPTH_READ ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : 0 ) |
+		   ( access & RHI_GRAPH_DEPTH_WRITE ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT : 0 );
+}
+
+static VkPipelineStageFlags vk_graph_stage( rhiGraphStage_t stage ) {
+	if ( stage == rhiGraphStage_t::DepthTests )
+		return VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	return stage == rhiGraphStage_t::Fragment ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT : VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 }
 
 static void vk_create_render_passes( void ) {
@@ -855,8 +873,8 @@ static void vk_create_render_passes( void ) {
 		const VkAttachmentReference resolve = { pass.resolve, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 		VkSubpassDescription subpass = {};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &color;
+		subpass.colorAttachmentCount = pass.color == RHI_INVALID_OFFSET ? 0 : 1;
+		subpass.pColorAttachments = pass.color == RHI_INVALID_OFFSET ? NULL : &color;
 		subpass.pDepthStencilAttachment = pass.depth == RHI_INVALID_OFFSET ? NULL : &depth;
 		subpass.pResolveAttachments = pass.resolve == RHI_INVALID_OFFSET ? NULL : &resolve;
 		VkSubpassDependency dependencies[2] = {};
@@ -864,8 +882,8 @@ static void vk_create_render_passes( void ) {
 			const rhiGraphDependency_t &d = pass.dependencies[i];
 			dependencies[i].srcSubpass = d.incoming ? VK_SUBPASS_EXTERNAL : 0;
 			dependencies[i].dstSubpass = d.incoming ? 0 : VK_SUBPASS_EXTERNAL;
-			dependencies[i].srcStageMask = d.sourceStage == rhiGraphStage_t::Fragment ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT : VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			dependencies[i].dstStageMask = d.destinationStage == rhiGraphStage_t::Fragment ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT : VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependencies[i].srcStageMask = vk_graph_stage( d.sourceStage );
+			dependencies[i].dstStageMask = vk_graph_stage( d.destinationStage );
 			dependencies[i].srcAccessMask = vk_graph_access( d.sourceAccess );
 			dependencies[i].dstAccessMask = vk_graph_access( d.destinationAccess );
 			dependencies[i].dependencyFlags = d.byRegion ? VK_DEPENDENCY_BY_REGION_BIT : 0;
@@ -3096,7 +3114,7 @@ static void create_color_attachment( uint32_t width, uint32_t height, VkSampleCo
 }
 
 
-static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCountFlagBits samples, VkImage *image, VkImageView *image_view, qboolean allowTransient ) {
+static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCountFlagBits samples, VkImage *image, VkImageView *image_view, qboolean allowTransient, bool shadow = false ) {
 	VkImageCreateInfo create_desc;
 	VkMemoryRequirements memory_requirements;
 	VkImageAspectFlags image_aspect_flags;
@@ -3106,7 +3124,7 @@ static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCo
 	create_desc.pNext = NULL;
 	create_desc.flags = 0;
 	create_desc.imageType = VK_IMAGE_TYPE_2D;
-	create_desc.format = vk.depth_format;
+	create_desc.format = shadow ? VK_FORMAT_D32_SFLOAT : vk.depth_format;
 	create_desc.extent.width = width;
 	create_desc.extent.height = height;
 	create_desc.extent.depth = 1;
@@ -3115,7 +3133,9 @@ static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCo
 	create_desc.samples = samples;
 	create_desc.tiling = VK_IMAGE_TILING_OPTIMAL;
 	create_desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	if ( allowTransient ) {
+	if ( shadow )
+		create_desc.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+	if ( allowTransient && !shadow ) {
 		create_desc.usage |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 	}
 	create_desc.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -3124,14 +3144,14 @@ static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCo
 	create_desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 	image_aspect_flags = VK_IMAGE_ASPECT_DEPTH_BIT;
-	if ( vk_config.stencilBits > 0 )
+	if ( !shadow && vk_config.stencilBits > 0 )
 		image_aspect_flags |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
 	VK_CHECK( qvkCreateImage( vk.device, &create_desc, NULL, image ) );
 
 	vk_get_image_memory_erquirements( *image, &memory_requirements );
 
-	vk_add_attachment_desc( *image, image_view, create_desc.usage, &memory_requirements, vk.depth_format, image_aspect_flags, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL );
+	vk_add_attachment_desc( *image, image_view, create_desc.usage, &memory_requirements, create_desc.format, image_aspect_flags, shadow ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL );
 }
 
 
@@ -3139,6 +3159,13 @@ static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCo
 static void vk_graph_target( rhiGraphTarget_t target, VkImage **image, VkImageView **view ) {
 	using T = rhiGraphTarget_t;
 	switch ( target ) {
+	case T::LocalShadow:
+	case T::SunShadow: {
+		const uint32_t index = (uint32_t)target - (uint32_t)T::LocalShadow;
+		*image = &vk.shadow_image[index];
+		*view = &vk.shadow_image_view[index];
+		break;
+	}
 	case T::MainColor:
 		*image = &vk.color_image;
 		*view = &vk.color_image_view;
@@ -3182,7 +3209,8 @@ static void vk_create_attachments( void ) {
 		(uint32_t)vk_config.captureWidth, (uint32_t)vk_config.captureHeight,
 		(uint32_t)vk.screenMapWidth, (uint32_t)vk.screenMapHeight,
 		(uint32_t)vkSamples, (uint32_t)vk.screenMapSamples,
-		vk.fboActive != qfalse, vk_config.bloom != 0, vk_config.supersample != 0, vk_config.stencilBits != 0
+		vk.fboActive != qfalse, vk_config.bloom != 0, vk_config.supersample != 0, vk_config.stencilBits != 0,
+		vk_config.shadowMapSize
 	};
 	if ( !RHI_CompileGraph( &config, &vk_graph ) )
 		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: invalid render graph dimensions" );
@@ -3196,7 +3224,7 @@ static void vk_create_attachments( void ) {
 		vk_graph_target( id, &image, &view );
 		if ( target.usage & RHI_GRAPH_DEPTH ) {
 			create_depth_attachment( target.width, target.height, (VkSampleCountFlagBits)target.samples,
-				image, view, target.transient ? qtrue : qfalse );
+				image, view, target.transient ? qtrue : qfalse, target.format == rhiGraphFormat_t::ShadowDepth );
 		} else {
 			const VkImageUsageFlags usage = ( target.usage & RHI_GRAPH_COLOR ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT : 0 ) |
 											( target.usage & RHI_GRAPH_SAMPLED ? VK_IMAGE_USAGE_SAMPLED_BIT : 0 ) |
@@ -3258,6 +3286,11 @@ static void vk_graph_framebuffer( rhiGraphPass_t id, uint32_t swapchainIndex, Vk
 
 static void vk_create_framebuffers( void ) {
 	using P = rhiGraphPass_t;
+	for ( uint32_t i = 0; i < 2; ++i ) {
+		const P id = (P)( (uint32_t)P::LocalShadow + i );
+		if ( vk_graph.passes[(uint32_t)id].enabled )
+			vk_graph_framebuffer( id, 0, &vk.framebuffers.shadow[i] );
+	}
 	// Keep native creation order and the shared offscreen main/post-bloom framebuffer.
 	for ( uint32_t n = 0; n < vk.swapchain_image_count; ++n ) {
 		if ( !vk_graph.passes[(uint32_t)P::Gamma].enabled || n == 0 ) {
@@ -3439,6 +3472,11 @@ static void vk_destroy_sync_primitives( void ) {
 
 
 static void vk_destroy_framebuffers( void ) {
+	for ( uint32_t i = 0; i < 2; ++i ) {
+		if ( vk.framebuffers.shadow[i] )
+			qvkDestroyFramebuffer( vk.device, vk.framebuffers.shadow[i], NULL );
+		vk.framebuffers.shadow[i] = VK_NULL_HANDLE;
+	}
 	uint32_t n;
 
 	for ( n = 0; n < vk.swapchain_image_count; n++ ) {
@@ -4000,6 +4038,14 @@ void RHI_MarkWorldPipelines( void ) {
 
 
 static void vk_destroy_attachments( void ) {
+	for ( uint32_t index = 0; index < 2; ++index ) {
+		if ( vk.shadow_image[index] ) {
+			qvkDestroyImage( vk.device, vk.shadow_image[index], NULL );
+			qvkDestroyImageView( vk.device, vk.shadow_image_view[index], NULL );
+			vk.shadow_image[index] = VK_NULL_HANDLE;
+			vk.shadow_image_view[index] = VK_NULL_HANDLE;
+		}
+	}
 	uint32_t i;
 
 	if ( vk.bloom_image[0] ) {
@@ -4067,6 +4113,11 @@ static void vk_destroy_attachments( void ) {
 
 
 static void vk_destroy_render_passes( void ) {
+	for ( uint32_t index = 0; index < 2; ++index ) {
+		if ( vk.render_pass.shadow[index] )
+			qvkDestroyRenderPass( vk.device, vk.render_pass.shadow[index], NULL );
+		vk.render_pass.shadow[index] = VK_NULL_HANDLE;
+	}
 	uint32_t i;
 
 	if ( vk.render_pass.main != VK_NULL_HANDLE ) {

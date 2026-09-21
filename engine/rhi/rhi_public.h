@@ -471,6 +471,7 @@ struct rhiDeviceConfig_t {
 	float offsetFactor;
 	rhiFilter_t textureMin, textureMag;
 	bool textureFilterValid;
+	uint32_t shadowMapSize;
 };
 struct rhiDeviceInfo_t {
 	char renderer[1024], vendor[1024], version[1024], extensions[8192];
@@ -519,6 +520,8 @@ enum class rhiGraphTarget_t : uint32_t {
 	Capture,
 	MainDepth,
 	Present,
+	LocalShadow,
+	SunShadow,
 	Count
 };
 enum class rhiGraphPass_t : uint32_t {
@@ -536,26 +539,31 @@ enum class rhiGraphPass_t : uint32_t {
 	PostBloom,
 	Capture,
 	Gamma,
+	LocalShadow,
+	SunShadow,
 	Count
 };
 enum class rhiGraphFormat_t : uint32_t { Color,
 	Depth,
 	Bloom,
 	Capture,
-	Present };
+	Present,
+	ShadowDepth };
 enum class rhiGraphLayout_t : uint32_t { Undefined,
 	Sampled,
 	Color,
 	Depth,
 	TransferSource,
-	Present };
+	Present,
+	DepthSampled };
 enum class rhiGraphLoad_t : uint32_t { Discard,
 	Clear,
 	Load };
 enum class rhiGraphStore_t : uint32_t { Discard,
 	Store };
 enum class rhiGraphStage_t : uint32_t { Fragment,
-	ColorOutput };
+	ColorOutput,
+	DepthTests };
 enum : uint32_t {
 	RHI_GRAPH_COLOR = 1,
 	RHI_GRAPH_SAMPLED = 2,
@@ -563,13 +571,16 @@ enum : uint32_t {
 	RHI_GRAPH_DEPTH = 8,
 	RHI_GRAPH_COLOR_READ = 1,
 	RHI_GRAPH_COLOR_WRITE = 2,
-	RHI_GRAPH_SHADER_READ = 4
+	RHI_GRAPH_SHADER_READ = 4,
+	RHI_GRAPH_DEPTH_READ = 8,
+	RHI_GRAPH_DEPTH_WRITE = 16
 };
 struct rhiGraphConfig_t {
 	uint32_t renderWidth, renderHeight, windowWidth, windowHeight;
 	uint32_t captureWidth, captureHeight, screenWidth, screenHeight;
 	uint32_t samples, screenSamples;
 	bool offscreen, bloom, capture, stencil;
+	uint32_t shadowSize; // Zero disables both depth atlases.
 };
 struct rhiGraphTargetDesc_t {
 	uint32_t width, height, samples, usage;
@@ -601,7 +612,8 @@ struct rhiGraph_t {
 	rhiGraphPassDesc_t passes[(uint32_t)rhiGraphPass_t::Count];
 	rhiGraphTarget_t targetOrder[(uint32_t)rhiGraphTarget_t::Count - 1];
 	rhiGraphPass_t passOrder[(uint32_t)rhiGraphPass_t::Count];
-	uint32_t targetCount, passCount;
+	rhiGraphPass_t executionOrder[(uint32_t)rhiGraphPass_t::Count];
+	uint32_t targetCount, passCount, executionCount;
 };
 static_assert( std::is_trivially_copyable_v<rhiGraph_t> );
 static_assert( (uint32_t)rhiGraphTarget_t::Count <= 32 && (uint32_t)rhiGraphPass_t::Count <= 32 );

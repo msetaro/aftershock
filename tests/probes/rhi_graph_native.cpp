@@ -14,6 +14,7 @@ static void row( const char *label, T... values ) {
 	puts( "" );
 }
 static uint32_t passCount;
+static uint32_t shadowPassCount, shadowImageCount;
 static VkResult VKAPI_CALL createPass( VkDevice, const VkRenderPassCreateInfo *p, const VkAllocationCallbacks *, VkRenderPass *handle ) {
 	row( "pass", passCount++, p->flags, p->attachmentCount, p->subpassCount, p->dependencyCount );
 	assert(p->subpassCount==1 && !p->pNext);
@@ -23,8 +24,22 @@ static VkResult VKAPI_CALL createPass( VkDevice, const VkRenderPassCreateInfo *p
 	}
 	const auto &s = p->pSubpasses[0];
 	row( "subpass", s.flags, s.pipelineBindPoint, s.inputAttachmentCount, s.colorAttachmentCount, s.preserveAttachmentCount );
-	assert(s.colorAttachmentCount==1 && s.inputAttachmentCount==0 && s.preserveAttachmentCount==0);
-	row( "color", s.pColorAttachments[0].attachment, s.pColorAttachments[0].layout );
+	assert(s.colorAttachmentCount<=1 && s.inputAttachmentCount==0 && s.preserveAttachmentCount==0);
+	if ( s.colorAttachmentCount ) {
+		row( "color", s.pColorAttachments[0].attachment, s.pColorAttachments[0].layout );
+	} else {
+		++shadowPassCount;
+		assert( p->attachmentCount == 1 && p->pAttachments[0].format == VK_FORMAT_D32_SFLOAT );
+		assert( p->pAttachments[0].loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR );
+		assert( p->pAttachments[0].storeOp == VK_ATTACHMENT_STORE_OP_STORE );
+		assert( p->pAttachments[0].finalLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL );
+		assert( s.pDepthStencilAttachment && s.pDepthStencilAttachment->attachment == 0 );
+		assert( p->dependencyCount == 2 );
+		assert( p->pDependencies[1].srcStageMask == ( VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT ) );
+		assert( p->pDependencies[1].srcAccessMask == VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT );
+		assert( p->pDependencies[1].dstStageMask == VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT );
+		assert( p->pDependencies[1].dstAccessMask == VK_ACCESS_SHADER_READ_BIT );
+	}
 	if ( s.pDepthStencilAttachment )
 		row( "depth", s.pDepthStencilAttachment->attachment, s.pDepthStencilAttachment->layout );
 	if ( s.pResolveAttachments )
@@ -40,6 +55,12 @@ static jmp_buf imageDone;
 static uint32_t imageCount;
 static VkResult VKAPI_CALL createImage( VkDevice, const VkImageCreateInfo *p, const VkAllocationCallbacks *, VkImage *out ) {
 	row( "image", imageCount++, p->flags, p->imageType, p->format, p->extent.width, p->extent.height, p->extent.depth, p->mipLevels, p->arrayLayers, p->samples, p->tiling, p->usage, p->sharingMode, p->queueFamilyIndexCount, p->initialLayout );
+	if ( ( p->usage & ( VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT ) ) ==
+		 ( VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT ) ) {
+		++shadowImageCount;
+		assert( p->format == VK_FORMAT_D32_SFLOAT && p->extent.width == 1024 && p->extent.height == 1024 );
+		assert( p->samples == VK_SAMPLE_COUNT_1_BIT && !( p->usage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT ) );
+	}
 	*out = (VkImage)(uintptr_t)imageCount;
 	return VK_SUCCESS;
 }
@@ -71,7 +92,7 @@ static VkResult VKAPI_CALL createFramebuffer( VkDevice, const VkFramebufferCreat
 	*out = (VkFramebuffer)(uintptr_t)framebufferCount;
 	return VK_SUCCESS;
 }
-int main() {
+int main( int argc, char ** ) {
 	qvkCreateRenderPass = createPass;
 	qvkCreateFramebuffer = createFramebuffer;
 	qvkCreateImage = createImage;
@@ -81,7 +102,8 @@ int main() {
 	for ( uint32_t mode = 0; mode < 36; ++mode ) {
 		vk = {};
 		vk_config = {};
-		passCount = imageCount = framebufferCount = 0;
+		passCount = imageCount = framebufferCount = shadowPassCount = shadowImageCount = 0;
+		vk_config.shadowMapSize = argc > 1 ? 1024 : 0;
 		const bool offscreen = mode >= 4;
 		const uint32_t options = offscreen ? mode - 4 : mode;
 		vk_config.fbo = offscreen;
@@ -114,6 +136,7 @@ int main() {
 		captureImages();
 		vk_create_render_passes();
 		vk_create_framebuffers();
-		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u));
+		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?2u:0u));
+		assert( shadowPassCount == ( argc > 1 ? 2u : 0u ) && shadowImageCount == shadowPassCount );
 	}
 }

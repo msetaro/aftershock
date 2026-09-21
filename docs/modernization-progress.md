@@ -20,20 +20,27 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active #13 branch: `issue/13-materials`, draft PR #157 now targets `main`.
-Main baseline 81a0f9dc (known-good-2026-09-20) is merged forward without rewriting
-history; AGENTS now specifies self-merged PRs into main after all required checks.
-The regression workflow's PR/push filters also change to main, otherwise the
-retargeted PR would silently miss its regression gates. Build triggers are checked
-as part of this migration. The tag is unchanged.
+#13 PR #157 merged into main as a43580198b09c8b08f3bf30f08e77bf69e201cfe.
+Its final head f638330b60bd2c68c30050c9aae4cf76190f3941 passed exact build
+35545635052 and regression 35545635067, with every required gate successful.
+The tested and merge trees both equal 60c07dae01241ebb2feaabd609cfa6c385c4fe68.
+Merged-tree build 35546603122 and regression 35546603116 are queued/running.
+Require those gates before closing #13/checking #25. The earlier 2ed8cf56
+regression was cancelled after the main workflow changed and is not acceptance.
 
-Previous material head 2ed8cf56 passed all build legs (35544991054); regression
-35544991093 was still running runtime/lifetimes when the workflow changed. These
-runs are evidence for that earlier head only. Require fresh exact-head build and
-regression for this updated branch, then mark #157 ready, merge with a merge
-commit and verify main's merged-tree regression before closing #13/checking #25.
-Committed self-review and final local material evidence are below. No accepted
-fixture or shader bytes changed.
+Main 81a0f9dc and the new AGENTS workflow are already merged forward into the
+issue branches without rewriting history. All PRs target main; regression's
+PR/push filters now do too. Future new issue branches start from main. The remote
+known-good-2026-09-20 tag still has object 8bc8c94c and resolves to 81a0f9dc;
+it was not moved. No external-repository write occurred.
+
+The primary checkout remains on completed issue/13-materials. Active #14 work is
+in the extra level-tree worktree on issue/14-lighting: directional baking/native
+shading passes locally; the next slice supplies sampled shadow-atlas graph/native
+descriptors. Merge the accepted main commit forward after checkpointing that work.
+Continue caster views/receiver shading, cascaded sun, reflection probes, SSAO and
+reference-GPU budgets. Do not open/accept #14 before #13's merged-tree regression
+passes. All #14 work stays in the same issue branch/PR; no accepted goldens change.
 
 #28 PR #156 is fully accepted: merge 646a63e82c0a74307d0e830ca6c626eca985ed60,
 exact build 35542300540/regression 35542300709, merged-tree regression 35543218326
@@ -44,31 +51,18 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
-The extra level-tree worktree has preparatory `issue/14-lighting` commits
-91acce4a/fd82f6ee/8f2a2913 plus the native test-first renderer slice described below. Its new directional-bake
-test failed first on the absent option, then passed repeated paired BSP/AAS output
-and the existing default fixture gate. The main history and updated AGENTS/CI are merged forward; never rebase. #14 is not accepted: directional runtime is tested locally, with dynamic shadows,
-reflection probes, SSAO and performance gates still outstanding. Future new
-issue branches start from main. Continue #25 after #13 is integrated.
+## #14 shadow resource implementation checkpoint
 
-## #14 preparation and reference hardware
-
-Read #14: point/spot shadow maps, cascaded sun, directional lightmaps, baked
-reflection/light probes, SSAO/bloom graph passes and quality/per-pass budgets.
-The existing graph already owns bloom and the BSP light grid already supplies
-model lighting; reuse those before adding another system. Legacy disabled-feature
-creation descriptors and accepted replay bytes remain gates. No final #14 design
-or implementation is committed yet; trace native view/target submission and the
-level compiler before defining the test-first data contract.
-
-Reference GPU is available locally: NVIDIA GeForce RTX 3080 Ti, 12,288 MiB,
-driver 595.91.07. An isolated Xvfb client using only nvidia_icd.json loads q3dm17
-and exits successfully. Its completed-frame sample reports main 28.480 us and
-gamma 4.096 us at the initial 640x480 baseline (lighting-gpu-baseline.log); this is
-a connectivity/query smoke, not a repeated performance acceptance measurement.
-No system package, licensed pak copy or host display session was needed. Establish
-the stated resolution/quality/frame budget and repeated per-pass measurement before
-#14 acceptance. Existing Mesa goldens remain the deterministic rendering gate.
+The graph/native resource slice builds and passes both the frozen 36 legacy
+configurations and 36 new shadow-enabled configurations. Two fixed sampled D32
+atlases use depth-only clear/store passes and explicit depth-test write to fragment
+read dependencies. A separate possible execution order places both writers before
+scene consumers while preserving legacy IDs and disabled descriptor bytes.
+Power-of-two atlas dimensions are bounded to 128..8192. Attachments use the
+existing pooled allocator and resize/restart teardown; no frame allocation.
+Logs: lighting-shadow-native.log, lighting-shadow-build.log. Format/type/boundary
+checks pass. Native configuration keeps shadowMapSize zero until caster/view and
+receiver submission are implemented; this is not rendered-shadow acceptance.
 
 ## #14 initial shadow graph contract
 
