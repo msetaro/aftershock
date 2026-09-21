@@ -18,24 +18,13 @@ args = parser.parse_args()
 with tempfile.TemporaryDirectory(prefix='aftershock-agent-cli-', dir=os.environ.get('AFTERSHOCK_SCRATCH')) as temporary:
     root = Path(temporary)
     source = root/'playtest.json'
-    script = dict(version=1, dt=20, seed=123, cvars={'g_rewind': '1'}, steps=[
-        {'op': 'capture', 'name': 'start'},
-        {'op': 'walk', 'offset': [32, 0, 0], 'tolerance': 8, 'max_frames': 100},
-        {'op': 'capture', 'name': 'walked'},
-        {'op': 'request', 'request': {'op': 'exec', 'command': 'give all; weapon 2; rewind_target 0'}},
-        {'op': 'step', 'frames': 30},
-        {'op': 'fire', 'frames': 300, 'target': {'classname': 'rewind_target'}},
-        {'op': 'capture', 'name': 'fired'},
-        {'op': 'assert', 'metric': 'hits', 'min': 1},
-        {'op': 'assert', 'metric': 'errors', 'max': 0},
-        {'op': 'assert', 'metric': 'asserts', 'max': 0},
-        {'op': 'assert', 'metric': 'p99_ms', 'max': 1000}])
+    script = json.loads((ROOT/'tools/agent/examples/playtest.json').read_text())
     source.write_text(json.dumps(script))
     command = [sys.executable, 'tools/agent', 'run', '--binary', str(args.binary),
                '--map', content_maps(args.content)[0], '--data', str(args.data),
                '--content', args.content, '--script', str(source)]
     result = subprocess.run([*command, '--out', str(root/'out')], cwd=ROOT, capture_output=True, text=True)
-    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.returncode == 0, result.stdout + result.stderr + (root/'out/report.json').read_text()
     report = json.loads((root/'out/report.json').read_text())
     assert report['ok'] and report['profile']['events']['hits'] >= 1, report
     assert len(report['captures']) == 3 and report['profile']['samples'] > 300

@@ -1136,3 +1136,12 @@ Pass `--output DIR` to retain PNGs/logs or `--modules` to build the optional mod
 configuration. Source assets are copied into private scratch; installed paks are
 only symlinked. `tests/agent_channel.py --binary DEDICATED` checks pipe stepping,
 idle clock and EOF; `tests/agent_play.py --binary CLIENT` checks seeded gameplay.
+
+### Scripted agent acceptance (#163)
+
+`python3 tests/agent_cli.py --binary CLIENT` checks a walked waypoint, live-target
+fire, hit/error/assert/p99 assertions, three PNG captures, failure reports and
+schema diagnostics. Add the usual `--content openarena --data PATH` for OA.
+`tests/agent_play.py --binary CLIENT` also checks real bot damage/death events.
+The standalone build/run command and script contract are documented in
+[tools/agent/README.md](../tools/agent/README.md); jsonschema is required for the CLI.

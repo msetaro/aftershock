@@ -200,7 +200,7 @@ jobs:
         with:
           key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install runtime tools and OpenArena content
-        run: sudo apt-get update && sudo apt-get install -y python3-venv python3-pil ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data libarchive-dev
+        run: sudo apt-get update && sudo apt-get install -y python3-venv python3-pil python3-jsonschema ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data libarchive-dev
       - name: Stage pinned upstream OpenArena gamecode
         run: python3 tests/openarena.py
       - name: Download URL construction
@@ -223,6 +223,8 @@ jobs:
         run: python3 tests/dev_world_ui.py --output /tmp/aftershock-dev-world-ui --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Seeded local agent playthrough
         run: python3 tests/agent_play.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+      - name: Agent scripted route, fire and capture report
+        run: python3 tests/agent_cli.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Cooked character and visible source reload
         run: |
           python3 -m venv /tmp/aftershock-cook-python

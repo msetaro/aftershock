@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "dt": 20,
+  "seed": 123,
+  "cvars": {
+    "g_rewind": "1"
+  },
+  "steps": [
+    {
+      "op": "capture",
+      "name": "start"
+    },
+    {
+      "op": "walk",
+      "offset": [
+        32,
+        0,
+        0
+      ],
+      "tolerance": 8,
+      "max_frames": 100
+    },
+    {
+      "op": "capture",
+      "name": "walked"
+    },
+    {
+      "op": "request",
+      "request": {
+        "op": "exec",
+        "command": "give all; weapon 2; rewind_target 0"
+      }
+    },
+    {
+      "op": "step",
+      "frames": 30
+    },
+    {
+      "op": "fire",
+      "frames": 300,
+      "target": {
+        "classname": "rewind_target"
+      }
+    },
+    {
+      "op": "capture",
+      "name": "fired"
+    },
+    {
+      "op": "assert",
+      "metric": "hits",
+      "min": 1
+    },
+    {
+      "op": "assert",
+      "metric": "errors",
+      "max": 0
+    },
+    {
+      "op": "assert",
+      "metric": "asserts",
+      "max": 0
+    },
+    {
+      "op": "assert",
+      "metric": "p99_ms",
+      "max": 1000
+    }
+  ]
+}

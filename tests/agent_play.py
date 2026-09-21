@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check seeded local play and input through the real snapshot/usercmd path."""
 import argparse
+import math
 from pathlib import Path
 from PIL import Image
 import sys
@@ -75,4 +76,33 @@ for _ in range(2):
         assert len(errors) == 1 and errors[0]['detail'] == 'Testing drop error', errors
         assert engine.request('state')['player'] is None
 assert trajectories[0] == trajectories[1], trajectories
-print('PASS: two seeded map runs produce identical player snapshots through injected usercmds')
+# A paused ordinary bot supplies a controlled target; damage and death use the
+# real game path. Teleport only sets up the encounter on each installed map.
+with Engine(args.binary, args.data, args.content, arguments=('+set', 'bot_enable', '1')) as engine:
+    engine.request('session', dt=20, seed=123)
+    engine.request('map', name='oa_dm1' if args.content == 'openarena' else 'q3dm7')
+    engine.step(150)
+    engine.request('exec', command='addbot sarge 1; bot_pause 1; god; give all')
+    engine.step(150)
+    target = next(row for row in engine.request('entity.list')['entities'] if row['entity'] == 1)
+    x, y, z = target['origin']
+    engine.request('exec', command=f'setviewpos {x-64 if args.content == 'openarena' else x+100} {y} {z+10} 180; weapon 7')
+    engine.step(30)
+    engine.request('subscribe', enabled=True)
+    for _ in range(40):
+        target = next(row for row in engine.request('entity.list')['entities'] if row['entity'] == 1)
+        origin = engine.request('state')['camera']['origin']
+        delta = [target['origin'][axis] - origin[axis] for axis in range(3)]
+        delta[2] += 12
+        yaw = math.degrees(math.atan2(delta[1], delta[0]))
+        pitch = -math.degrees(math.atan2(delta[2], math.hypot(*delta[:2])))
+        engine.request('input', forward=0, right=0, up=0, yaw=yaw, pitch=pitch, fire=True)
+        engine.step(10)
+        if any(event['event'] == 'kill' for event in engine.events):
+            break
+    hits = [event for event in engine.events if event['event'] == 'hit']
+    kills = [event for event in engine.events if event['event'] == 'kill']
+    assert hits and all(event['actor'] == 0 and event['target'] == 1 and event['value'] > 0 for event in hits), hits
+    assert len(kills) == 1 and kills[0]['actor'] == 0 and kills[0]['target'] == 1, kills
+    assert hits[-1]['frame'] == kills[0]['frame'] and hits[-1]['time'] == kills[0]['time']
+print('PASS: identical seeded snapshots, injected input, PNG pixels, telemetry, errors, real hits and kills')

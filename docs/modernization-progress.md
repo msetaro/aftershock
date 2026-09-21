@@ -38,17 +38,16 @@ checks also pass with an OA renderer module; no screen-click calls remain in
 test drivers. Shipping exclusion passes in the full devtools rebuild. Legacy
 accepted goldens and source assets are unchanged.
 
-Next: verify gameplay hit/kill acceptance; finish remaining command
-metadata/UI coverage, the tools/agent CLI and scripted route/fire/report with three
-captures, six format schemas/describe/errors, per-invocation scratch/display/port
+Next: finish remaining command metadata/UI coverage, six format
+schemas/describe/errors, per-invocation scratch/display/port
 isolation and concurrent full suites, affected-test mapping and executable
 docs/agents recipes. Audit every #163 acceptance requirement before readiness.
 Then full current-main gates/self-review/merge and continue #164 -> #161 -> #15
 through the remaining #25 roadmap. PR166 stays draft until complete.
 
-Hosted 7e65095e build 35561020978 passes all compiler legs. Regression
-35561020980 has passed format, match-server, both unit/cross legs, tidy and
-sanitizers; runtime/lifetimes are still running. Latest assertion changes need
+Hosted assertion head 8213ac3d build 35561708602 passes all compiler legs.
+Regression 35561708597 passes format, match-server, both unit/cross legs, tidy
+and sanitizers; runtime/lifetimes are still running. Latest CLI changes need
 fresh hosted gates. No failed/superseded head is acceptance.
 
 All existing exclusions remain in force. Nothing leaves msetaro/aftershock;
@@ -76,6 +75,27 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 CLI and gameplay checkpoint
+
+The CLI now builds a Debug developer client when --binary is omitted, validates
+playtest JSON before launch, walks bounded waypoints through normal input, tracks
+live targets while firing, captures PNGs and checks hit/kill/error/assert/warning/
+p99 limits. It retains report.json and engine.log on failure. Its JSON Schema
+uses the existing distribution jsonschema package; hosted runtime installs it.
+The example and tests share tools/agent/examples/playtest.json. Q3 and OA pass
+three captures, route displacement, real moving-target hits and both negative
+controls (agent-cli.log / agent-cli-openarena.log). The exact one-command default
+build also passes in a fresh directory (agent-cli-built.log and report.json).
+
+The permanent playthrough additionally shoots a paused ordinary bot using normal
+rail damage/death; Q3 module and OA static runs confirm correlated hit/kill actor,
+target, frame and time (agent-hit-modules.log / agent-hit-openarena.log). OA's
+spawn has an obstruction on the +X side; its encounter setup teleports to the
+clear -X side instead. No simulation expressions change. CI runs the CLI on its
+existing developer build. actionlint reports only the three pre-existing
+matrix.cc references in non-matrix cache keys; this checkpoint does not claim a
+clean actionlint run. Full new-head hosted acceptance remains pending.
 
 ## #163 CLI test-first checkpoint
 
