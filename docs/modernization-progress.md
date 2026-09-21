@@ -80,6 +80,25 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 streaming runtime test-first and source-storage decision
+
+`tests/streaming_runtime.py` cooks five original solid-color 4096-square BC7
+textures (about 107 MiB including mips), overlays them on the owned generated
+two_lane level and requests a 32 MiB residency budget with 128 MiB source storage.
+The initial run reaches the map then fails on missing textureStreaming profiler
+counters (fidelity-streaming-runtime-before.log). It requires promotion, coarse
+tail eviction/restoration and vid_restart while peak residency stays bounded.
+Generated artifacts live only in the private cache; accepted fixtures are unchanged.
+
+Use a preallocated, explicitly bounded compressed-source arena to keep filesystem
+I/O out of frames. This first residency implementation streams from that arena to
+VRAM; it is not an unbounded CPU cache or background disk loader. Exceeding source
+capacity must report an explicit error rather than silently bypassing the VRAM
+budget. A future out-of-core disk path is needed only for content exceeding the
+configured source budget. Runtime policy/transfer CPU budget is 0.25 ms p95 and
+upload GPU budget 0.50 ms p95, declared before hardware measurement at 1440p.
+Defaults remain off pending the full gate.
+
 ## #161 reclaimable residency component
 
 The RHI owns a fixed-capacity residency arena: one device-memory allocation,
