@@ -86,7 +86,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-devtools-', dir=os.environ.g
                 engine.request('animation.set', field='play', value=1)
             if panel == 'Physics':
                 engine.request('cvar.set', name='cg_physicsDebug', value='1')
-                engine.request('exec', command='physics_prop grenade drop')
+                engine.request('exec', command='physics_prop box')
+                engine.step(10)
             engine.step(3)
             state = engine.request('editor.state')
             assert state['panel'] == panel, state

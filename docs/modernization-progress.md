@@ -49,9 +49,9 @@ motion/bounce, fixed counters and zero-block teardown. A real runtime failure
 found reversed CM-to-Jolt triangle winding; the failing orientation test and
 fixed export are recorded below. No native trace arithmetic changed.
 
-Next finish skeleton-driven cosmetic deaths, verify the new ImGui Physics panel,
-wire physics into permanent CI/suite/affected commands, and run unchanged fixed
-demos plus all required gates. #15 has no PR yet. Current runtime/panel checkpoint
+Next finish skeleton-driven cosmetic deaths and run unchanged fixed demos plus
+all required gates. The Physics panel runtime now passes; CI/suite/affected
+selection includes the new component/runtime commands. #15 has no PR yet. Current runtime/panel checkpoint
 is 780f1f5b; the winding fix is being recorded after both compiler/content checks.
 Issue comment 5766196162 records the earlier owned-boundary checkpoint.
 
@@ -79,6 +79,23 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 Physics panel and gate wiring
+
+The shared developer test now opens Physics, throws a box, verifies twelve
+projected collision edges, and captures the panel. It passes together with idle
+allocation, input-release and renderer-restart checks (physics-devtools.log,
+physics-devtools/runtime/physics.png). The original dropped-at-camera fixture
+counted only visible/projected lines, so it was replaced by a thrown-in-view box
+without weakening the twelve-edge assertion. The checkbox now reads the cvar
+before drawing, so external console/agent changes remain visible in the UI.
+
+Both unit compiler variants run physics.py; hosted runtime runs physics_runtime.py
+against OpenArena and preserves its client log. The local suite derives these
+steps from the workflow. Affected-path coverage includes physics source, binding,
+CMake, probes and fixtures; the contract, suite shell catalog and actionlint pass.
+AGENTS and tests/README document the commands. Skeleton deaths and all final
+acceptance gates remain. Nothing is merged for #15 yet.
 
 ## #15 outward winding passes all four runtime maps
 

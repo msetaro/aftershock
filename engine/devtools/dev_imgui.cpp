@@ -1680,6 +1680,7 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 }
 
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds ) {
+	physicsDebug = Cvar_VariableIntegerValue( "cg_physicsDebug" ) != 0;
 	editorRenderer = renderer;
 	EditWeaponRange();
 	EditGraph( renderer );
