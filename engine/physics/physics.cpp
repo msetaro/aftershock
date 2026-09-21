@@ -1,4 +1,5 @@
 #include "physics_public.h"
+#include "../animation/animation_public.h"
 #include <Jolt/Jolt.h>
 #include <Jolt/Core/Memory.h>
 #include <joltc.h>
@@ -6,6 +7,13 @@
 #include <cstdlib>
 #include <cstring>
 
+struct physicsRagdoll_t {
+	JPH_Ragdoll *handle;
+	uint32_t first, count;
+	bool active;
+	animPose_t pose;
+};
+static constexpr float unitsToMetres = .0254f;
 static struct {
 	unsigned char *memory;
 	size_t capacity;
@@ -24,6 +32,9 @@ static struct {
 	JPH_Constraint *joints[PHYS_MAX_BODIES];
 	uint32_t jointA[PHYS_MAX_BODIES], jointB[PHYS_MAX_BODIES], jointCount;
 	bool started;
+	physicsRagdoll_t ragdolls[4];
+	uint32_t ragdollCount;
+	bool ragdollBody[PHYS_MAX_BODIES];
 } physics;
 
 static void *Aligned( size_t size, size_t alignment ) {
@@ -229,6 +240,9 @@ bool Phys_Start() {
 		return false;
 	JPH_PhysicsSystem_OptimizeBroadPhase( physics.system );
 	physics.started = true;
+	for ( uint32_t i = 0; i < physics.ragdollCount; ++i )
+		for ( int j = 0; j < JPH_Ragdoll_GetConstraintCount( physics.ragdolls[i].handle ); ++j )
+			JPH_Constraint_SetEnabled( (JPH_Constraint *)JPH_Ragdoll_GetConstraint( physics.ragdolls[i].handle, j ), false );
 	for ( uint32_t i = 0; i < physics.count; ++i )
 		if ( physics.dynamic[i] )
 			Phys_Despawn( i );
@@ -326,7 +340,13 @@ void Phys_Shutdown() {
 		JPH_PhysicsSystem_RemoveConstraint( physics.system, physics.joints[i] );
 		JPH_Constraint_Destroy( physics.joints[i] );
 	}
+	for ( uint32_t i = 0; i < physics.ragdollCount; ++i ) {
+		JPH_Ragdoll_RemoveFromPhysicsSystem( physics.ragdolls[i].handle, true );
+		JPH_Ragdoll_Destroy( physics.ragdolls[i].handle );
+	}
 	for ( uint32_t i = 0; i < physics.count; ++i ) {
+		if ( physics.ragdollBody[i] )
+			continue;
 		JPH_BodyInterface_RemoveBody( physics.bodies, physics.ids[i] );
 		JPH_BodyInterface_DestroyBody( physics.bodies, physics.ids[i] );
 	}
@@ -340,4 +360,186 @@ void Phys_Shutdown() {
 	physics = {};
 	physics.stats = stats;
 	JPH::RegisterDefaultAllocator();
+}
+
+static bool RigidMatrix( const float *matrix ) {
+	if ( !Finite( matrix, 12 ) )
+		return false;
+	for ( int a = 0; a < 3; ++a )
+		for ( int b = a; b < 3; ++b ) {
+			float dot = 0;
+			for ( int row = 0; row < 3; ++row )
+				dot += matrix[row * 4 + a] * matrix[row * 4 + b];
+			if ( std::fabs( dot - ( a == b ? 1.f : 0.f ) ) > .001f )
+				return false;
+		}
+	const float determinant = matrix[0] * ( matrix[5] * matrix[10] - matrix[6] * matrix[9] ) - matrix[1] * ( matrix[4] * matrix[10] - matrix[6] * matrix[8] ) + matrix[2] * ( matrix[4] * matrix[9] - matrix[5] * matrix[8] );
+	return determinant > 0;
+}
+static JPH_Mat4 BoneMatrix( const float *matrix ) {
+	return { { { matrix[0], matrix[4], matrix[8], 0 }, { matrix[1], matrix[5], matrix[9], 0 },
+		{ matrix[2], matrix[6], matrix[10], 0 }, { matrix[3] * unitsToMetres, matrix[7] * unitsToMetres, matrix[11] * unitsToMetres, 1 } } };
+}
+uint32_t Phys_PrepareRagdoll( const animAsset_t *asset ) {
+	if ( !physics.memory || physics.started || physics.ragdollCount == 4 || !asset || !asset->data )
+		return PHYS_INVALID_BODY;
+	const uint32_t count = asset->header.sections[ANIM_JOINTS].count;
+	if ( !count || count > ANIM_MAX_JOINTS || count > PHYS_MAX_BODIES - physics.count )
+		return PHYS_INVALID_BODY;
+	animFileJoint_t bones[ANIM_MAX_JOINTS];
+	animPose_t bind{};
+	bind.jointCount = count;
+	for ( uint32_t i = 0; i < count; ++i ) {
+		std::memcpy( &bones[i], asset->data + asset->header.sections[ANIM_JOINTS].offset + i * sizeof( bones[i] ), sizeof( bones[i] ) );
+		bind.local[i] = bones[i].bind;
+	}
+	if ( !Anim_UpdateWorld( asset, &bind ) )
+		return PHYS_INVALID_BODY;
+	alignas( 16 ) JPH_Mat4 matrices[ANIM_MAX_JOINTS];
+	for ( uint32_t i = 0; i < count; ++i ) {
+		if ( !RigidMatrix( bind.world[i] ) )
+			return PHYS_INVALID_BODY;
+		matrices[i] = BoneMatrix( bind.world[i] );
+	}
+	auto *skeleton = JPH_Skeleton_Create();
+	for ( uint32_t i = 0; i < count; ++i )
+		JPH_Skeleton_AddJoint2( skeleton, bones[i].name, bones[i].parent );
+	auto *settings = JPH_RagdollSettings_Create();
+	JPH_RagdollSettings_SetSkeleton( settings, skeleton );
+	JPH_Skeleton_Destroy( skeleton );
+	JPH_RagdollSettings_ResizeParts( settings, int( count ) );
+	for ( uint32_t i = 0; i < count; ++i ) {
+		// Authored bone boxes define collision volume; unboxed connector joints
+		// retain a small sphere so the full skeleton remains articulated.
+		JPH_Shape *shape = nullptr;
+		for ( uint32_t j = 0; j < asset->header.sections[ANIM_BOXES].count; ++j ) {
+			animFileBox_t box;
+			std::memcpy( &box, asset->data + asset->header.sections[ANIM_BOXES].offset + j * sizeof( box ), sizeof( box ) );
+			if ( box.bone != i )
+				continue;
+			const JPH_Vec3 half = { box.extent[0] * unitsToMetres, box.extent[1] * unitsToMetres, box.extent[2] * unitsToMetres };
+			const JPH_Vec3 offset = { box.offset[0] * unitsToMetres, box.offset[1] * unitsToMetres, box.offset[2] * unitsToMetres };
+			const JPH_Quat identity = { 0, 0, 0, 1 };
+			auto *boxShape = (JPH_Shape *)JPH_BoxShape_Create( &half, 0 );
+			shape = (JPH_Shape *)JPH_RotatedTranslatedShape_Create( &offset, &identity, boxShape );
+			JPH_Shape_Destroy( boxShape );
+			break;
+		}
+		if ( !shape )
+			shape = (JPH_Shape *)JPH_SphereShape_Create( .04f );
+		JPH_RagdollSettings_SetPartShape( settings, int( i ), shape );
+		JPH_Shape_Destroy( shape );
+		JPH_Vec3 position;
+		JPH_Quat rotation;
+		JPH_Mat4_GetTranslation( &matrices[i], &position );
+		JPH_Mat4_GetQuaternion( &matrices[i], &rotation );
+		JPH_RagdollSettings_SetPartPosition( settings, int( i ), &position );
+		JPH_RagdollSettings_SetPartRotation( settings, int( i ), &rotation );
+		JPH_RagdollSettings_SetPartMotionType( settings, int( i ), JPH_MotionType_Dynamic );
+		JPH_RagdollSettings_SetPartObjectLayer( settings, int( i ), 1 );
+		JPH_RagdollSettings_SetPartMassProperties( settings, int( i ), 1 );
+		if ( bones[i].parent >= 0 ) {
+			JPH_SwingTwistConstraintSettings joint;
+			JPH_SwingTwistConstraintSettings_Init( &joint );
+			joint.space = JPH_ConstraintSpace_WorldSpace;
+			joint.position1 = joint.position2 = position;
+			joint.twistAxis1 = joint.twistAxis2 = { 0, 0, 1 };
+			joint.planeAxis1 = joint.planeAxis2 = { 1, 0, 0 };
+			joint.normalHalfConeAngle = joint.planeHalfConeAngle = 1.f;
+			joint.twistMinAngle = -.5f;
+			joint.twistMaxAngle = .5f;
+			JPH_RagdollSettings_SetPartToParent( settings, int( i ), &joint );
+		}
+	}
+	JPH_RagdollSettings_DisableParentChildCollisions( settings, matrices, 0 );
+	if ( !JPH_RagdollSettings_Stabilize( settings ) ) {
+		JPH_RagdollSettings_Destroy( settings );
+		return PHYS_INVALID_BODY;
+	}
+	auto *handle = JPH_RagdollSettings_CreateRagdoll( settings, physics.system, physics.ragdollCount + 1, 0 );
+	JPH_RagdollSettings_Destroy( settings );
+	if ( !handle )
+		return PHYS_INVALID_BODY;
+	JPH_Ragdoll_AddToPhysicsSystem( handle, JPH_Activation_DontActivate, true );
+	const uint32_t index = physics.ragdollCount++;
+	auto &ragdoll = physics.ragdolls[index];
+	ragdoll.handle = handle;
+	ragdoll.first = physics.count;
+	ragdoll.count = count;
+	ragdoll.pose = bind;
+	for ( uint32_t i = 0; i < count; ++i ) {
+		const uint32_t slot = physics.count++;
+		physics.ids[slot] = JPH_Ragdoll_GetBodyID( handle, int( i ) );
+		physics.dynamic[slot] = physics.active[slot] = physics.ragdollBody[slot] = true;
+		JPH_BodyInterface_SetMotionQuality( physics.bodies, physics.ids[slot], JPH_MotionQuality_LinearCast );
+	}
+	return index;
+}
+bool Phys_SpawnRagdoll( uint32_t index, const animPose_t *pose, const float origin[3], const float axis[3][3], const float velocity[3] ) {
+	if ( !physics.started || index >= physics.ragdollCount || !pose || !origin || !axis || !velocity || !Finite( origin, 3 ) || !Finite( velocity, 3 ) )
+		return false;
+	auto &ragdoll = physics.ragdolls[index];
+	if ( pose->jointCount != ragdoll.count )
+		return false;
+	alignas( 16 ) JPH_Mat4 matrices[ANIM_MAX_JOINTS];
+	for ( uint32_t i = 0; i < ragdoll.count; ++i ) {
+		float world[12] = {};
+		for ( int row = 0; row < 3; ++row )
+			for ( int column = 0; column < 4; ++column ) {
+				for ( int k = 0; k < 3; ++k )
+					world[row * 4 + column] += axis[k][row] * pose->world[i][k * 4 + column];
+				if ( column == 3 )
+					world[row * 4 + column] += origin[row];
+			}
+		if ( !RigidMatrix( world ) )
+			return false;
+		matrices[i] = BoneMatrix( world );
+	}
+	const JPH_RVec3 zero = {};
+	JPH_Ragdoll_ResetWarmStart( ragdoll.handle );
+	JPH_Ragdoll_SetPose2( ragdoll.handle, &zero, matrices, true );
+	JPH_Vec3 linear = { velocity[0] * unitsToMetres, velocity[1] * unitsToMetres, velocity[2] * unitsToMetres }, angular = {};
+	for ( uint32_t i = 0; i < ragdoll.count; ++i ) {
+		const uint32_t slot = ragdoll.first + i;
+		JPH_BodyInterface_SetLinearAndAngularVelocity( physics.bodies, physics.ids[slot], &linear, &angular );
+		JPH_BodyInterface_SetObjectLayer( physics.bodies, physics.ids[slot], 1 );
+		JPH_BodyInterface_ActivateBody( physics.bodies, physics.ids[slot] );
+		physics.active[slot] = true;
+	}
+	for ( int i = 0; i < JPH_Ragdoll_GetConstraintCount( ragdoll.handle ); ++i )
+		JPH_Constraint_SetEnabled( (JPH_Constraint *)JPH_Ragdoll_GetConstraint( ragdoll.handle, i ), true );
+	ragdoll.pose = *pose;
+	ragdoll.active = true;
+	return true;
+}
+bool Phys_DespawnRagdoll( uint32_t index ) {
+	if ( !physics.started || index >= physics.ragdollCount || !physics.ragdolls[index].active )
+		return false;
+	auto &ragdoll = physics.ragdolls[index];
+	for ( int i = 0; i < JPH_Ragdoll_GetConstraintCount( ragdoll.handle ); ++i )
+		JPH_Constraint_SetEnabled( (JPH_Constraint *)JPH_Ragdoll_GetConstraint( ragdoll.handle, i ), false );
+	for ( uint32_t i = 0; i < ragdoll.count; ++i )
+		Phys_Despawn( ragdoll.first + i );
+	ragdoll.active = false;
+	return true;
+}
+bool Phys_RagdollPose( uint32_t index, animPose_t *pose, float origin[3] ) {
+	if ( !physics.started || index >= physics.ragdollCount || !physics.ragdolls[index].active || !pose || !origin )
+		return false;
+	auto &ragdoll = physics.ragdolls[index];
+	alignas( 16 ) JPH_Mat4 matrices[ANIM_MAX_JOINTS];
+	JPH_RVec3 root;
+	JPH_Ragdoll_GetPose2( ragdoll.handle, &root, matrices, true );
+	origin[0] = root.x / unitsToMetres;
+	origin[1] = root.y / unitsToMetres;
+	origin[2] = root.z / unitsToMetres;
+	*pose = ragdoll.pose;
+	for ( uint32_t i = 0; i < ragdoll.count; ++i ) {
+		const auto &m = matrices[i];
+		const float rows[12] = { m.column[0].x, m.column[1].x, m.column[2].x, m.column[3].x / unitsToMetres,
+			m.column[0].y, m.column[1].y, m.column[2].y, m.column[3].y / unitsToMetres,
+			m.column[0].z, m.column[1].z, m.column[2].z, m.column[3].z / unitsToMetres };
+		std::memcpy( pose->world[i], rows, sizeof( rows ) );
+	}
+	return true;
 }

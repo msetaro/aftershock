@@ -52,7 +52,7 @@ fixed export are recorded below. No native trace arithmetic changed.
 Next finish skeleton-driven cosmetic deaths and run unchanged fixed demos plus
 all required gates. The Physics panel runtime now passes; CI/suite/affected
 selection includes the new component/runtime commands. #15 has no PR yet. Current runtime/panel checkpoint
-is 780f1f5b; the winding fix is being recorded after both compiler/content checks.
+is c16abb78; panel/CI wiring is a47bff50 and the ragdoll test-first commit is 9901fde2.
 Issue comment 5766196162 records the earlier owned-boundary checkpoint.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
@@ -79,6 +79,23 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 skeleton ragdoll implementation checkpoint
+
+The owned ragdoll gate now passes GCC and Clang/libc++ UBSan: four 16-joint
+ragdolls, three activation/pose/recycle cycles, two full lifetimes, no allocations
+after setup and complete cleanup. Logs: physics-ragdoll-after.log and
+physics-ragdoll-clang.log in the private modernization cache. The client and
+server build succeeds; format, types and boundaries pass. Existing animation
+runtime still passes server/client hit-box equality and rendered body/rifle poses.
+
+Cgame now prepares a four-ragdoll pool at map load and samples cosmetic death
+poses separately from authoritative animation hit boxes. Real death/runtime
+acceptance is still pending; do not treat the component gate as that evidence.
+Unsupported non-rigid/scaled skeletons retain native death presentation. The
+lifetime check initially rejected an out-of-tree generated Jolt PCH source before
+analysis; source selection now excludes generated dependency translation units,
+with the full gate rerunning. No accepted fixture was regenerated.
 
 ## #15 skeleton ragdoll test first
 

@@ -1451,7 +1451,13 @@ separation check (`missing-joint.log`). Both arena and independent C++ allocatio
 counters must remain unchanged after setup, with no outstanding arena blocks at
 shutdown. Slots stay in the broadphase on an excluded, non-colliding object layer
 while unused; setup uses a bounded monotonic arena reclaimed at map teardown.
-These checks do not establish client integration or ragdoll presentation acceptance.
+The skeleton probe cooks the owned 16-joint animation fixture (Pillow/jsonschema
+required), prepares four ragdolls, samples their poses through three recycle
+cycles and repeats full teardown/reinitialization. Ragdolls share the 256-body
+capacity. Rigid unit-scale skeletons use authored bone boxes and small connector
+spheres; unsupported scaled skeletons retain native death presentation. The
+client pool holds four cosmetic deaths for fifteen seconds. These component
+checks do not establish runtime death-presentation acceptance.
 
 `python3 tests/physics_runtime.py --binary CLIENT` exercises cosmetic boxes and
 inert grenades over both installed-content maps, requiring gravity, a bounce,

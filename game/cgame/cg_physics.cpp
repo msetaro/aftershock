@@ -34,6 +34,7 @@ void CG_InitPhysics() {
 		if ( prop.slot == PHYS_INVALID_BODY )
 			CG_Error( "Cosmetic prop pool exhausted during setup" );
 	}
+	CG_PrepareRagdolls();
 	if ( !Phys_Start() )
 		CG_Error( "Cosmetic physics start failed" );
 }
@@ -60,6 +61,7 @@ void CG_PhysicsProp() {
 	}
 }
 void CG_PhysicsStatus() {
+	CG_RagdollStatus();
 	const auto stats = Phys_Stats();
 	CG_Printf( "Physics status: steps=%u arena=%zu allocations=%u live=%u\n", physicsSteps, stats.used, stats.allocations, stats.liveBlocks );
 	for ( const auto &prop : physicsProps ) {
@@ -89,6 +91,7 @@ void CG_AddPhysics() {
 			Phys_Despawn( prop.slot );
 			prop.expires = 0;
 		}
+		CG_ClearRagdolls();
 		physicsTick = tick; // A seek/stall retires cosmetic state; never catch up without a bound.
 	}
 	while ( physicsTick < tick ) {
@@ -145,4 +148,12 @@ void CG_AddPhysics() {
 			trap_R_AddPolyToScene( cgs.media.whiteShader, 4, vertices );
 		}
 	}
+}
+
+bool CG_PhysicsDebugEnabled() {
+#ifdef AFTERSHOCK_DEVTOOLS
+	return physicsDebug.integer != 0;
+#else
+	return false;
+#endif
 }

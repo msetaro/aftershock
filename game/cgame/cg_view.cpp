@@ -820,6 +820,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		CG_AddPacketEntities(); // adter calcViewValues, so predicted player state is correct
 		CG_AddWeaponProjectiles();
 		CG_AddPhysics();
+		CG_AddRagdolls();
 		CG_AddMarks();
 		CG_AddParticles();
 		CG_AddLocalEntities();

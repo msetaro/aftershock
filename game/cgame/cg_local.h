@@ -1696,3 +1696,9 @@ void CG_InitPhysics();
 void CG_PhysicsProp();
 void CG_PhysicsStatus();
 void CG_AddPhysics();
+
+void CG_PrepareRagdolls();
+void CG_ClearRagdolls();
+void CG_RagdollStatus();
+void CG_AddRagdolls();
+bool CG_PhysicsDebugEnabled();

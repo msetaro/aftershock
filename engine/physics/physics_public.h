@@ -46,6 +46,14 @@ bool Phys_Velocity( uint32_t slot, float velocity[3] );
 bool Phys_Ray( const float origin[3], const float displacement[3], float *fraction );
 // Sweep a prepared convex shape, excluding its own body and inactive slots.
 bool Phys_Sweep( uint32_t slot, const physTransform_t *pose, const float displacement[3], float *fraction );
+struct animAsset_t;
+struct animPose_t;
+// Animation adapters use model/engine units (one inch), with rigid unit-scale
+// bone frames. Assets must have passed Anim_Open. Preparation copies the rig.
+uint32_t Phys_PrepareRagdoll( const animAsset_t *asset );
+bool Phys_SpawnRagdoll( uint32_t ragdoll, const animPose_t *pose, const float origin[3], const float axis[3][3], const float velocity[3] );
+bool Phys_RagdollPose( uint32_t ragdoll, animPose_t *pose, float origin[3] );
+bool Phys_DespawnRagdoll( uint32_t ragdoll );
 physStats_t Phys_Stats();
 void Phys_Shutdown();
 #endif
