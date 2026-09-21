@@ -63,6 +63,7 @@ void CGameImport_R_AddPolyToScene( int hShader, int numVerts, const void *verts 
 void CGameImport_R_AddPolysToScene( int hShader, int numVerts, const void *verts, int num );
 int CGameImport_R_LightForPoint( float *point, float *ambientLight, float *directedLight, float *lightDir );
 void CGameImport_R_AddLightToScene( const float *org, float intensity, float r, float g, float b );
+bool CGameImport_R_AddSceneLight( const void *light );
 void CGameImport_R_AddAdditiveLightToScene( const float *org, float intensity, float r, float g, float b );
 void CGameImport_R_RenderScene( const void *fd );
 void CGameImport_R_SetColor( const float *rgba );

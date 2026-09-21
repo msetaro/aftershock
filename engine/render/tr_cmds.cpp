@@ -155,6 +155,8 @@ void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 	cmd = (drawSurfsCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
 	if ( !cmd ) {
+		if ( tr.viewParms.shadowView )
+			tr.shadowOverflow = true;
 		return;
 	}
 	cmd->commandId = RC_DRAW_SURFS;
@@ -166,6 +168,8 @@ void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	cmd->viewParms = tr.viewParms;
 
 #ifdef USE_VULKAN
+	if ( tr.viewParms.shadowView )
+		return;
 	tr.numDrawSurfCmds++;
 	if ( tr.drawSurfCmd == NULL ) {
 		tr.drawSurfCmd = cmd;

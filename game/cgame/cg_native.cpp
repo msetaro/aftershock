@@ -175,6 +175,9 @@ int trap_R_LightForPoint( vec3_t point, vec3_t ambientLight, vec3_t directedLigh
 void trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
 	CGameImport_R_AddLightToScene( org, intensity, r, g, b );
 }
+bool trap_R_AddSceneLight( const sceneLight_t *light ) {
+	return CGameImport_R_AddSceneLight( light );
+}
 void trap_R_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
 	CGameImport_R_AddAdditiveLightToScene( org, intensity, r, g, b );
 }

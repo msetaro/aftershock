@@ -1425,6 +1425,15 @@ R_AddDrawSurf
 void R_AddDrawSurf( surfaceType_t *surface, shader_t *shader,
 	int fogIndex, int dlightMap ) {
 	int index;
+	if ( tr.viewParms.shadowView ) {
+		if ( shader->isSky || shader == tr.shadowShader || shader->sort > (float)SS_SEE_THROUGH || *surface == SF_FLARE ||
+			 ( shader->metallicRoughness && ( shader->materialParams.flags & 4 ) ) )
+			return;
+		if ( tr.refdef.numDrawSurfs >= MAX_DRAWSURFS / 2 ) {
+			tr.shadowOverflow = true;
+			return;
+		}
+	}
 
 	// instead of checking for overflow, we just mask the index
 	// so it wraps around
@@ -1472,6 +1481,10 @@ static void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 	// sort the drawsurfs by sort type, then orientation, then shader
 	R_RadixSort( drawSurfs, numDrawSurfs );
+	if ( tr.viewParms.shadowView ) {
+		R_AddDrawSurfCmd( drawSurfs, numDrawSurfs );
+		return;
+	}
 
 	// check for any pass through drawing, which
 	// may cause another view to be rendered first
@@ -1541,6 +1554,8 @@ static void R_AddEntitySurfaces( void ) {
 		tr.currentEntityNum < tr.refdef.num_entities;
 		tr.currentEntityNum++ ) {
 		ent = tr.currentEntity = &tr.refdef.entities[tr.currentEntityNum];
+		if ( tr.viewParms.shadowView && ( ent->e.reType != RT_MODEL || ( ent->e.renderfx & ( RF_FIRST_PERSON | RF_NOSHADOW | RF_DEPTHHACK ) ) ) )
+			continue;
 #ifdef USE_LEGACY_DLIGHTS
 		ent->needDlights = 0;
 #endif
@@ -1632,10 +1647,12 @@ static void R_GenerateDrawSurfs( void ) {
 	// matrix for lod calculation
 
 	// dynamically compute far clip plane distance
-	R_SetFarClip();
+	if ( !tr.viewParms.shadowView )
+		R_SetFarClip();
 
 	// we know the size of the clipping volume. Now set the rest of the projection matrix.
-	R_SetupProjectionZ( &tr.viewParms );
+	if ( !tr.viewParms.shadowView )
+		R_SetupProjectionZ( &tr.viewParms );
 
 	R_AddEntitySurfaces();
 }
@@ -1668,7 +1685,8 @@ void R_RenderView( const viewParms_t *parms ) {
 	// set viewParms.world
 	R_RotateForViewer();
 
-	R_SetupProjection( &tr.viewParms, r_zproj->value, qtrue );
+	if ( !tr.viewParms.shadowView )
+		R_SetupProjection( &tr.viewParms, r_zproj->value, qtrue );
 
 	R_GenerateDrawSurfs();
 
@@ -1681,4 +1699,73 @@ void R_RenderView( const viewParms_t *parms ) {
 	}
 
 	R_SortDrawSurfs( tr.refdef.drawSurfs + firstDrawSurf, numDrawSurfs - firstDrawSurf );
+}
+
+static void R_SubmitShadowView( viewParms_t *view, uint32_t atlas, uint32_t tile, bool first, bool last, float matrix[16] ) {
+	const int grid = atlas == 0 ? 4 : 2;
+	const int size = view->viewportWidth;
+	view->shadowView = atlas + 1;
+	view->shadowFirst = first;
+	view->shadowLast = last;
+	view->viewportX = view->scissorX = ( (int)tile % grid ) * size;
+	view->viewportY = view->scissorY = ( grid - 1 - (int)tile / grid ) * size;
+	R_RenderView( view );
+	float projection[16];
+	memcpy( projection, view->projectionMatrix, sizeof( projection ) );
+	projection[5] = -projection[5]; // Same Vulkan orientation as RB_GetMVP.
+	myGlMultMatrix( tr.viewParms.world.modelMatrix, projection, matrix );
+}
+
+void R_RenderShadowViews( const viewParms_t *camera ) {
+	tr.refdef.sun = {};
+	if ( !r_shadowQuality->integer || ( tr.refdef.rdflags & ( RDF_NOWORLDMODEL | RDF_HYPERSPACE ) ) ||
+		 RHI_GetCapabilities().maxBoundDescriptorSets < RHI_BINDING_COUNT ) {
+		tr.refdef.numSceneLights = 0;
+		return;
+	}
+	const int atlasSize = 512 << r_shadowQuality->integer;
+	viewParms_t sun[4];
+	vec3_t direction;
+	VectorNegate( tr.sunDirection, direction );
+	tr.refdef.sun.enabled = r_shadowSun->value > 0 && R_ShadowSunViews( camera, direction, 2,
+														  r_shadowDistance->value, r_shadowSplitWeight->value, atlasSize / 2, sun, tr.refdef.sun.splits );
+	if ( tr.refdef.numDrawSurfs >= MAX_DRAWSURFS / 2 ) {
+		tr.refdef.numSceneLights = 0;
+		tr.refdef.sun.enabled = false;
+		ri.Printf( PRINT_DEVELOPER, "Shadow scene omitted: no reserved surface capacity\n" );
+		return;
+	}
+	const unsigned int dlights = tr.refdef.num_dlights;
+	const int litSurfs = tr.refdef.numLitSurfs;
+	const int commands = backEndData->commands.used;
+	const int surfaces = tr.refdef.numDrawSurfs;
+	tr.refdef.num_dlights = 0;
+	tr.refdef.numLitSurfs = 0;
+	tr.shadowOverflow = false;
+	for ( int index = 0; index < tr.refdef.numSceneLights; ++index ) {
+		shadowLight_t &light = tr.refdef.sceneLights[index];
+		for ( uint32_t face = 0; face < light.numViews; ++face ) {
+			viewParms_t view;
+			const bool valid = light.light.type == sceneLightType_t::Point ? R_ShadowPointView( light.light.origin, 2, light.light.radius, (int)face, atlasSize / 4, &view ) : R_ShadowSpotView( light.light.origin, light.light.direction, light.light.outerCone * 2, 2, light.light.radius, atlasSize / 4, &view );
+			if ( !valid ) {
+				tr.shadowOverflow = true;
+				break;
+			}
+			const bool last = !tr.refdef.sun.enabled && index + 1 == tr.refdef.numSceneLights && face + 1 == light.numViews;
+			R_SubmitShadowView( &view, 0, light.firstTile + face, index == 0 && face == 0, last, light.matrices[face] );
+		}
+	}
+	if ( tr.refdef.sun.enabled )
+		for ( uint32_t cascade = 0; cascade < 4; ++cascade )
+			R_SubmitShadowView( &sun[cascade], 1, cascade, cascade == 0, cascade == 3, tr.refdef.sun.matrices[cascade] );
+	tr.refdef.num_dlights = dlights;
+	tr.refdef.numLitSurfs = litSurfs;
+	tr.viewCluster = -2; // Shadow views deliberately bypass camera PVS; rebuild it for the main view.
+	if ( tr.shadowOverflow ) {
+		backEndData->commands.used = commands;
+		tr.refdef.numDrawSurfs = surfaces;
+		tr.refdef.numSceneLights = 0;
+		tr.refdef.sun.enabled = false;
+		ri.Printf( PRINT_DEVELOPER, "Shadow scene omitted: bounded surface/command capacity exceeded\n" );
+	}
 }

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 #include "tr_cooked.h"
+#include <cmath>
 
 static int r_firstSceneDrawSurf;
 #ifdef USE_PMLIGHT
@@ -30,6 +31,7 @@ static int r_firstSceneLitSurf;
 
 int r_numdlights;
 static int r_firstSceneDlight;
+static int r_numSceneLights, r_firstSceneLight;
 
 static int r_numentities;
 static uint32_t r_numskeletalposes;
@@ -58,6 +60,7 @@ void R_InitNextFrame( void ) {
 
 	r_numdlights = 0;
 	r_firstSceneDlight = 0;
+	r_numSceneLights = r_firstSceneLight = 0;
 
 	r_numentities = 0;
 	r_numskeletalposes = 0;
@@ -78,6 +81,7 @@ RE_ClearScene
 */
 void RE_ClearScene( void ) {
 	r_firstSceneDlight = r_numdlights;
+	r_firstSceneLight = r_numSceneLights;
 	r_firstSceneEntity = r_numentities;
 	r_firstScenePoly = r_numpolys;
 }
@@ -277,9 +281,39 @@ bool RE_AddSkeletalEntityToScene( const refEntity_t *ent, const animPose_t *pose
 
 /*
 =====================
-RE_AddDynamicLightToScene
+RE_AddSceneLight
 =====================
 */
+bool RE_AddSceneLight( const sceneLight_t *light ) {
+	if ( !tr.registered || !light || r_numSceneLights >= MAX_SCENE_LIGHTS ||
+		 ( light->type != sceneLightType_t::Point && light->type != sceneLightType_t::Spot ) ||
+		 !std::isfinite( light->radius ) || light->radius <= 2 || light->radius > MAX_WORLD_COORD ||
+		 !std::isfinite( light->intensity ) || light->intensity < 0 || light->intensity > 64 )
+		return false;
+	for ( int i = 0; i < 3; ++i ) {
+		if ( !std::isfinite( light->origin[i] ) || fabsf( light->origin[i] ) > MAX_WORLD_COORD ||
+			 !std::isfinite( light->color[i] ) || light->color[i] < 0 || light->color[i] > 64 )
+			return false;
+	}
+	shadowLight_t result = {};
+	result.light = *light;
+	result.numViews = light->type == sceneLightType_t::Point ? 6 : 1;
+	if ( light->type == sceneLightType_t::Spot ) {
+		const float squared = DotProduct( light->direction, light->direction );
+		if ( !std::isfinite( squared ) || squared < 1e-12f ||
+			 !std::isfinite( light->innerCone ) || !std::isfinite( light->outerCone ) ||
+			 light->innerCone < 0 || light->innerCone >= light->outerCone || light->outerCone >= 89 )
+			return false;
+		VectorScale( light->direction, 1.0f / sqrtf( squared ), result.light.direction );
+	}
+	for ( int i = r_firstSceneLight; i < r_numSceneLights; ++i )
+		result.firstTile += backEndData->sceneLights[i].numViews;
+	if ( result.firstTile + result.numViews > MAX_LOCAL_SHADOW_VIEWS )
+		return false;
+	backEndData->sceneLights[r_numSceneLights++] = result;
+	return true;
+}
+
 static void RE_AddDynamicLightToScene( const vec3_t org, float intensity, float r, float g, float b, int additive ) {
 	dlight_t *dl;
 
@@ -490,6 +524,8 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 	tr.refdef.num_dlights = r_numdlights - r_firstSceneDlight;
 	tr.refdef.dlights = &backEndData->dlights[r_firstSceneDlight];
+	tr.refdef.numSceneLights = r_numSceneLights - r_firstSceneLight;
+	tr.refdef.sceneLights = &backEndData->sceneLights[r_firstSceneLight];
 
 	tr.refdef.numPolys = r_numpolys - r_firstScenePoly;
 	tr.refdef.polys = &backEndData->polys[r_firstScenePoly];
@@ -550,6 +586,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.numDrawSurfCmds = 0;
 #endif
 
+	R_RenderShadowViews( &parms );
 	R_RenderView( &parms );
 
 #ifdef USE_VULKAN
@@ -590,6 +627,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	r_firstSceneEntity = r_numentities;
 	r_firstSceneDlight = r_numdlights;
 	r_firstScenePoly = r_numpolys;
+	r_firstSceneLight = r_numSceneLights;
 
 	tr.frontEndMsec += ri.Milliseconds() - startTime;
 }

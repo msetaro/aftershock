@@ -3,6 +3,7 @@ import hashlib
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import struct
 import subprocess
@@ -86,9 +87,26 @@ def compile_map(output,name):
         relative = 'baseq3/maps/'+name
         common = [str(q3map2),'-game','quake3','-fs_basepath','.', '-fs_homepath','./home','-threads','1']
         with (output/'compile.log').open('w') as log:
-            for stage in (['-meta','-leaktest',relative+'.map'],['-vis',relative+'.bsp'],['-light','-fast',relative+'.bsp']):
+            for stage in (['-meta','-leaktest',relative+'.map'],['-vis',relative+'.bsp']):
                 subprocess.run(common+stage,cwd=work,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=300)
             bsp = work/(relative+'.bsp')
+            # Read the compiler's entity text, so JSON and existing MAP inputs use
+            # the same explicit worldspawn setting; quoted braces remain values.
+            data = bsp.read_bytes()
+            offset,length = struct.unpack_from('<ii',data,8)
+            tokens = re.findall(rb'"[^"\n]*"|[{}]',data[offset:offset+length])
+            world = {}
+            if tokens and tokens[0]==b'{':
+                for i in range(1,len(tokens)-1,2):
+                    if tokens[i]==b'}':
+                        break
+                    world[tokens[i][1:-1]] = tokens[i+1][1:-1]
+            mode = world.get(b'_aftershock_deluxe',b'0')
+            if mode not in (b'0',b'1'):
+                raise ValueError('_aftershock_deluxe must be 0 or 1')
+            light_options = ['-deluxe','-deluxemode','0'] if mode==b'1' else []
+            subprocess.run(common+['-light','-fast',*light_options,relative+'.bsp'],cwd=work,env=env,
+                           stdout=log,stderr=subprocess.STDOUT,check=True,timeout=300)
             canonical_padding(bsp)
             subprocess.run([str(bspc),'-bsp2aas',relative+'.bsp','-threads','1','-forcesidesvisible'],
                            cwd=work,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=300)

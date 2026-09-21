@@ -97,6 +97,9 @@ struct rendererPipelines_t {
 	// Standard pipelines.
 	//
 	uint32_t skybox_pipeline;
+	uint32_t shadowCaster[3];
+	uint32_t directLight[3][2][2];
+	uint32_t reflection[3][2][2];
 
 	// dim 0: 0 - front side, 1 - back size
 	// dim 1: 0 - normal view, 1 - mirror view
@@ -601,6 +604,17 @@ typedef struct shader_s {
 
 // trRefdef_t holds everything that comes in refdef_t,
 // as well as the locally generated scene information
+constexpr int MAX_SCENE_LIGHTS = 16;
+constexpr uint32_t MAX_LOCAL_SHADOW_VIEWS = 16;
+struct shadowLight_t {
+	sceneLight_t light;
+	float matrices[6][16];
+	uint32_t firstTile, numViews;
+};
+struct shadowSun_t {
+	float matrices[4][16], splits[4];
+	bool enabled;
+};
 typedef struct {
 	int x, y, width, height;
 	float fov_x, fov_y;
@@ -626,6 +640,9 @@ typedef struct {
 
 	unsigned int num_dlights;
 	struct dlight_s *dlights;
+	int numSceneLights;
+	shadowLight_t *sceneLights;
+	shadowSun_t sun;
 
 	int numPolys;
 	struct srfPoly_s *polys;
@@ -731,6 +748,8 @@ typedef struct {
 	int scissorX, scissorY, scissorWidth, scissorHeight;
 	float fovX, fovY;
 	float projectionMatrix[16];
+	uint32_t shadowView; // 0: scene, 1: local atlas, 2: sun atlas.
+	bool shadowFirst, shadowLast;
 	cplane_t frustum[5];
 	vec3_t visBounds[2];
 	float zFar;
@@ -741,6 +760,12 @@ typedef struct {
 	struct dlight_s *dlights;
 #endif
 } viewParms_t;
+
+// Shadow directions follow light rays. Point faces are +X,-X,+Y,-Y,+Z,-Z.
+bool R_ShadowSpotView( const vec3_t origin, const vec3_t direction, float fov, float zNear, float zFar, int size, viewParms_t *view );
+bool R_ShadowPointView( const vec3_t origin, float zNear, float zFar, int face, int size, viewParms_t *view );
+bool R_ShadowSunViews( const viewParms_t *camera, const vec3_t direction, float zNear, float distance, float splitWeight, int size, viewParms_t views[4], float splits[4] );
+void R_RenderShadowViews( const viewParms_t *camera );
 
 /*
 ==============================================================================
@@ -1254,6 +1279,14 @@ typedef struct drawSurfsCommand_s drawSurfsCommand_t;
 ** but may read fields that aren't dynamically modified
 ** by the frontend.
 */
+constexpr uint32_t MAX_REFLECTION_PROBES = 32;
+struct reflectionProbe_t {
+	vec3_t origin;
+	float radius;
+	image_t *image;
+};
+void R_LoadReflectionProbes( const char *worldName );
+
 typedef struct {
 	qboolean registered; // cleared at shutdown, set at beginRegistration
 	qboolean inited; // cleared at shutdown, set at InitOpenGL
@@ -1262,6 +1295,7 @@ typedef struct {
 	int frameCount; // incremented every frame
 	int sceneCount; // incremented every scene
 	int viewCount; // incremented every view (twice a scene if portaled)
+	bool shadowOverflow;
 	// and every R_MarkFragments call
 #ifdef USE_PMLIGHT
 	int lightCount; // incremented for each dlight in the view
@@ -1294,6 +1328,10 @@ typedef struct {
 
 	int numLightmaps;
 	image_t **lightmaps;
+	bool deluxeMapping;
+	uint32_t numReflectionProbes;
+	reflectionProbe_t reflectionProbes[MAX_REFLECTION_PROBES];
+	image_t **bakedLightmaps; // Intensity above raw model-space directions.
 
 	qboolean mergeLightmaps;
 	float lightmapOffset[2]; // current shader lightmap offset
@@ -1404,6 +1442,10 @@ extern cvar_t *r_neatsky; // nomip and nopicmip for skyboxes, cnq3 like look
 extern cvar_t *r_drawSun; // controls drawing of sun quad
 extern cvar_t *r_dynamiclight; // dynamic lights enabled/disabled
 extern cvar_t *r_mergeLightmaps;
+extern cvar_t *r_directionalLightmaps;
+extern cvar_t *r_reflectionProbes;
+extern cvar_t *r_ssao, *r_ssaoRadius, *r_ssaoStrength;
+extern cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
 extern cvar_t *r_dlightMode; // 0 - vq3, 1 - pmlight
 //extern cvar_t	*r_dlightSpecPower;		// 1 - 32
@@ -1819,6 +1861,7 @@ bool RE_AddSkeletalEntityToScene( const refEntity_t *ent, const animPose_t *pose
 bool RE_AddMaterialEntityToScene( const refEntity_t *ent, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
+bool RE_AddSceneLight( const sceneLight_t *light );
 void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b );
 void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float intensity, float r, float g, float b );
 
@@ -2021,6 +2064,7 @@ typedef struct {
 #endif
 
 	trRefEntity_t entities[MAX_REFENTITIES];
+	shadowLight_t sceneLights[MAX_SCENE_LIGHTS];
 	skeletalPose_t skeletalPoses[MAX_SKELETAL_POSES];
 	srfPoly_t *polys; //[MAX_POLYS];
 	polyVert_t *polyVerts; //[MAX_POLYVERTS];

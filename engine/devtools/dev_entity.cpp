@@ -1,10 +1,13 @@
 #include "devtools_public.h"
 #include "../qcommon/qcommon_public.h"
+#include <cmath>
 
 static const devGameTools_t *gameTools;
 static refdef_t gameView;
 static bool hasView;
 static int viewClient = -1;
+static sceneLight_t sceneLight;
+static bool hasLight;
 
 void Dev_RegisterGameTools( const devGameTools_t *tools ) {
 	gameTools = tools;
@@ -17,6 +20,7 @@ const devGameTools_t *DevTools_Game( void ) {
 void DevTools_SetView( const refdef_t *view, int clientEntity ) {
 	if ( !view ) {
 		hasView = false;
+		hasLight = false;
 		return;
 	}
 	if ( !( view->rdflags & RDF_NOWORLDMODEL ) ) {
@@ -32,6 +36,40 @@ int DevTools_ViewClient( void ) {
 
 const refdef_t *DevTools_View( void ) {
 	return hasView ? &gameView : nullptr;
+}
+
+const sceneLight_t *DevTools_SceneLight( void ) {
+	return hasLight && Cvar_VariableIntegerValue( "sv_running" ) && Cvar_VariableIntegerValue( "sv_cheats" ) ? &sceneLight : nullptr;
+}
+
+static void LightCommand( void ) {
+	if ( !strcmp( Cmd_Argv( 1 ), "off" ) ) {
+		hasLight = false;
+		return;
+	}
+	const bool spot = !strcmp( Cmd_Argv( 1 ), "spot" );
+	if ( ( spot || !strcmp( Cmd_Argv( 1 ), "point" ) ) && Cmd_Argc() == ( spot ? 15 : 10 ) &&
+		 Cvar_VariableIntegerValue( "sv_running" ) && Cvar_VariableIntegerValue( "sv_cheats" ) ) {
+		float values[13] = {};
+		for ( int i = 2; i < Cmd_Argc(); ++i ) {
+			char extra;
+			if ( sscanf( Cmd_Argv( i ), "%f%c", &values[i - 2], &extra ) != 1 || !std::isfinite( values[i - 2] ) )
+				return;
+		}
+		sceneLight = {};
+		VectorCopy( values, sceneLight.origin );
+		sceneLight.radius = values[3];
+		VectorCopy( values + 4, sceneLight.color );
+		sceneLight.intensity = values[7];
+		VectorCopy( values + 8, sceneLight.direction );
+		sceneLight.innerCone = values[11];
+		sceneLight.outerCone = values[12];
+		sceneLight.type = spot ? sceneLightType_t::Spot : sceneLightType_t::Point;
+		hasLight = true;
+		Com_Printf( "Developer light: %s\n", spot ? "spot" : "point" );
+		return;
+	}
+	Com_Printf( "dev_light off | point x y z radius r g b intensity | spot x y z radius r g b intensity dx dy dz inner outer (local cheats required)\n" );
 }
 
 bool DevTools_SaveEntities( void ) {
@@ -129,6 +167,7 @@ static void EntityCommand( void ) {
 
 void DevTools_InitEntities( void ) {
 	Cmd_AddCommand( "dev_entity", EntityCommand );
+	Cmd_AddCommand( "dev_light", LightCommand );
 	Cvar_Get( "dev_entityFile", "", CVAR_TEMP );
 	Cvar_Get( "dev_loadEntities", "0", CVAR_TEMP );
 }

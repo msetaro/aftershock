@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../bg/tr_types_public.h"
 #include "../../engine/public/bg_public.h"
 #include "../../engine/public/cg_public.h"
+#include "../../engine/renderercommon/tr_lighting_public.h"
 
 
 // The entire cgame module is unloaded and reloaded on each level change,
@@ -1575,6 +1576,7 @@ void trap_R_AddRefEntityToScene( const refEntity_t *re );
 void trap_R_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts );
 void trap_R_AddPolysToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int numPolys );
 void trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
+bool trap_R_AddSceneLight( const sceneLight_t *light );
 int trap_R_LightForPoint( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir );
 void trap_R_RenderScene( const refdef_t *fd );
 void trap_R_SetColor( const float *rgba ); // NULL = 1,1,1,1

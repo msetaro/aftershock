@@ -206,7 +206,8 @@ def validate(level, assets):
         s = surface(x,y)
         require(s and s[0]<=z<=s[1]-16, 'pickup outside world')
     lighting = level['lighting']
-    fields(lighting,('ambient','lights'),('sun',))
+    fields(lighting,('ambient','lights'),('sun','directional'))
+    require(isinstance(lighting.get('directional',False),bool), 'directional must be a boolean')
     number(lighting['ambient'],0,255)
     require(isinstance(lighting['lights'],list) and len(lighting['lights'])<=128, 'too many lights')
     for light in lighting['lights']:

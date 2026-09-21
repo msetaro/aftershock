@@ -159,6 +159,11 @@ python3 tests/bot_command.py
 python3 tests/native_info.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
+python3 tests/shadow_views.py
+python3 tests/probes.py
+python3 tests/probes_runtime.py --binary CLIENT
+python3 tests/ssao_runtime.py --binary CLIENT
+python3 tests/lighting_gpu.py --binary CLIENT --icd /path/to/reference-gpu-icd.json
 python3 tests/cook.py
 python3 tests/materials.py
 python3 tests/materials_runtime.py --binary CLIENT
@@ -174,6 +179,8 @@ python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
 python3 tests/level.py
 python3 tests/level.py --compile
+python3 tests/lighting.py --compile
+python3 tests/lighting_runtime.py --binary CLIENT
 python3 tests/level_runtime.py --client CLIENT --server SERVER
 python3 tests/level_validate.py --client CLIENT --server SERVER
 python3 tests/match_content.py

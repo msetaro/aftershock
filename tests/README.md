@@ -23,6 +23,7 @@ python3 tests/replication_policy.py
 python3 tests/identity.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
+python3 tests/shadow_views.py
 python3 tests/cook.py
 python3 tests/iqm_scale.py
 python3 tests/cook_runtime.py
@@ -943,6 +944,106 @@ These affect only `tests/golden/weapons/<content>/range.dm_68` and its manifest.
 Record once, review frames and authoritative traces, and explain any replacement
 in the issue/PR. Full #11 hosted acceptance remains pending.
 
+
+## Directional baked lighting (#14)
+
+`python3 tests/lighting.py --compile` uses the pinned level toolchain to bake two
+independent opted-in levels. It checks paired intensity/model-space direction
+pages, surface references, retained light-grid probes and unchanged disabled
+MAP/BSP/AAS fixture bytes. Without `--compile` it checks only the language/MAP
+contract and needs no map compiler.
+
+`python3 tests/lighting_runtime.py --binary CLIENT` needs the same cooker, Xvfb,
+Pillow and Mesa prerequisites as the material tests. The client must enable
+`AFTERSHOCK_DEVTOOLS` for the fixed spectator camera. It cooks owned wall/floor
+PBR materials on the opted-in level, checks separate and merged lightmap pages,
+compares direction-mapped pixels and requires an exact quality-setting round trip.
+Use `--content openarena --data /tmp/aftershock-openarena-baseoa` in hosted CI.
+These captures are diagnostics; neither command records accepted references.
+
+The new material path uses an intensity/direction atlas at the existing spare
+texture binding; it requires five descriptor sets, otherwise it reports a
+light-grid fallback. `r_directionalLightmaps 0/1` controls normal mapping live.
+Intensity keeps the legacy map color conversion; direction bytes never receive
+color/gamma processing. New baked shader programs leave all 76 earlier binaries
+unchanged. A dominant direction approximates multi-light irradiance, with grazing
+amplification bounded at 4x; it is not full spherical-harmonic irradiance.
+`python3 tests/shadow_views.py` compiles the portable shadow cameras with UBSan;
+`--cxx 'clang++ -stdlib=libc++'` checks the other compiler family. Analytical checks
+cover six point faces, spot cone, reversed depth, culling planes and all four sun
+cascades with rotated cameras and linear/logarithmic split mixtures. Sun extents
+use rotation-independent receiver spheres and snap to shadow texels. Caster
+extrusion is bounded by the configured shadow distance. This validates view math;
+it does not claim native shadow rendering or its performance budget. The same
+driver checks copied native `sceneLight_t` point/spot submission, cone validation,
+per-frame capacity (16 lights) and per-scene atlas admission (16 tiles; point lights
+use six, spots one). `trap_R_AddSceneLight` returns false when those bounds are
+exhausted. The new POD service uses world coordinates and linear RGB/intensity,
+without changing legacy dynamic-light calls or any network state. Renderer module
+API versions are 15 shipping / 19 development for the new function pointer.
+
+`python3 tests/lighting_runtime.py --shadows --binary CLIENT` adds point, spot and
+sun comparisons on the owned level: light must affect the image, depth comparison
+must attenuate it, and disabling comparison must restore it exactly. It compares
+opaque/cutout/empty casters and two owned skinned poses on common receiver pixels.
+`--lifecycle` also requires an exact image after renderer restart; the same test
+accepts a development client built with `USE_RENDERER_DLOPEN=ON`. The same
+`--content`/`--data` arguments apply. `tests/shadow_views.py` also verifies every
+atlas tile's raster/scissor against an atlas larger than the window.
+
+`r_shadowQuality` is latched: 0 (default) preserves classic rendering; 1/2/3 allocate
+1024/2048/4096 square local and sun atlases. Local tiles use a 4x4 grid, sun a 2x2
+grid. `r_shadowSun` (0..4, default 0) controls added sun intensity;
+`r_shadowDistance` (default 2048), `r_shadowSplitWeight` (default .75),
+`r_shadowBias` (default .001) and `r_shadowOcclusion` (default 1) control reach,
+splits and depth comparison. Five descriptor sets are required. Casters reuse
+world and native animated geometry, including alpha masks. Receiver passes use
+normal/roughness/metallic channels for PBR and diffuse normals for legacy surfaces,
+then existing fog. No per-frame heap allocation is added. The bounded forward
+passes support the 16 local tile limit; #161 owns HDR composition and tone mapping.
+Development builds provide `dev_light point x y z radius r g b intensity`,
+`dev_light spot x y z radius r g b intensity dx dy dz inner outer` and
+`dev_light off` on local cheat-enabled servers. Cone angles are half angles in degrees.
+
+`python3 tests/probes.py` checks six engine camera directions, deterministic GGX
+filtering in linear radiance and the packed atlas format. `python3
+tests/probes_runtime.py --binary CLIENT` bakes the owned level through the native
+client, applies its reflection to a dynamic metallic model, compares smooth/rough
+responses and requires exact toggle/restart round trips. The content arguments
+match the other runtime commands. Neither command replaces accepted references.
+
+`tools/level/probes.py` bakes 1..32 positioned spherical reflection probes; see
+`tools/level/README.md`. `r_reflectionProbes 1` enables their specular contribution
+on opaque/masked dynamic PBR objects (default 0). The two strongest influence
+weights blend; existing q3map2 light-grid probes still supply diffuse irradiance.
+Atlas allocation/pipeline creation happens at map load, with no frame allocations.
+The five roughness levels contain linear 8-bit radiance from LDR captures. This
+approximation has no box parallax correction; HDR capture/composition is #161.
+`python3 tests/ssao_runtime.py --binary CLIENT` measures contact attenuation on
+an owned level at half/full resolution, then with 4x MSAA and bloom. Disabling
+strength restores the baseline exactly; renderer restart restores the enabled
+image. Both static and optional renderer modules run in hosted CI. No accepted
+classic fixture changes. `r_ssao` is latched: 0 off (default), 1 half resolution,
+2 full resolution; requires `r_fbo 1`. `r_ssaoRadius` is a live 1..128 world-unit
+radius (default 32), and `r_ssaoStrength` is live 0..4 (default 1, 0 bypasses).
+
+The fixed 16-sample kernel uses retained scene depth and a depth-aware filter in
+separate graph passes before bloom/HUD. MSAA reads the nearest reversed-depth
+sample; sky and near depth-hacked geometry are excluded. Two single-channel R8
+targets use two bytes per AO pixel; the sampled main depth/MSAA attachments must
+also remain resident across these passes. GPU profiler names are `ssao`,
+`ssao blur`, and `ssao apply` (the last also includes subsequent HUD draws).
+The current forward composition attenuates the composed scene; #161's HDR
+transition owns separation of ambient and direct terms. This is a screen-space
+approximation: offscreen occluders are unavailable and no temporal history is
+kept. Reference-GPU measurement: `python3 tests/lighting_gpu.py --binary CLIENT --icd
+/path/to/hardware-icd.json` uses installed Quake 3 content, q3dm17, 1280x720,
+200 warm frames and 100 real-clock GPU samples per phase. It retains local
+screenshots/logs/JSON; never upload its Quake 3 screenshots or copy paks into the
+repository. RTX 3080 Ti / 595.91.07 combined point/sun shadows, half-resolution SSAO
+and bloom measured 1.933 ms median / 1.969 ms p95 in recorded GPU scopes against a
+16.67 ms budget. Details and per-pass limits are in modernization-progress.md;
+presentation waits are excluded and this is not a console-hardware claim.
 
 ## Declarative level authoring (#26)
 

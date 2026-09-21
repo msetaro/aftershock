@@ -38,7 +38,7 @@
 #define USE_DEDICATED_ALLOCATION
 #endif
 //#define MIN_IMAGE_ALIGN (128*1024)
-#define MAX_ATTACHMENTS_IN_POOL (8+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
+#define MAX_ATTACHMENTS_IN_POOL (12+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
 
 
 typedef struct {
@@ -53,6 +53,7 @@ typedef enum {
 	RENDER_PASS_MAIN = 0,
 	RENDER_PASS_SCREENMAP,
 	RENDER_PASS_POST_BLOOM,
+	RENDER_PASS_SHADOW,
 	RENDER_PASS_COUNT
 } renderPass_t;
 
@@ -163,6 +164,9 @@ typedef struct {
 	uint32_t image_memory_count;
 
 	struct {
+		VkRenderPass occlusion[3];
+		VkRenderPass shadow[2];
+		VkRenderPass resume[2];
 		VkRenderPass main;
 		VkRenderPass screenmap;
 		VkRenderPass gamma;
@@ -224,6 +228,8 @@ typedef struct {
 		VkFramebuffer gamma[MAX_SWAPCHAIN_IMAGES];
 		VkFramebuffer screenmap;
 		VkFramebuffer capture;
+		VkFramebuffer occlusion[2];
+		VkFramebuffer shadow[2];
 	} framebuffers;
 
 #ifdef USE_UPLOAD_QUEUE
@@ -287,6 +293,11 @@ typedef struct {
 		VkShaderModule color_fs;
 		VkShaderModule color_vs;
 		VkShaderModule pbr_vs, pbr_fs;
+		VkShaderModule direct_vs, direct_fs;
+		VkShaderModule reflection_fs;
+		VkShaderModule occlusion_fs[2][2], occlusion_apply_fs;
+		VkShaderModule pbr_baked_vs, pbr_baked_fs;
+		VkShaderModule shadow_vs, shadow_fs;
 
 		VkShaderModule bloom_fs;
 		VkShaderModule blur_fs;
@@ -315,6 +326,7 @@ typedef struct {
 
 	VkPipeline gamma_pipeline;
 	VkPipeline capture_pipeline;
+	VkPipeline occlusion_pipeline[3];
 	VkPipeline bloom_extract_pipeline;
 	VkPipeline blur_pipeline[VK_NUM_BLOOM_PASSES * 2]; // horizontal & vertical pairs
 	VkPipeline bloom_blend_pipeline;
@@ -336,6 +348,14 @@ typedef struct {
 	VkFormat depth_format;
 	VkFormat bloom_format;
 
+	VkImage occlusion_image[2];
+	VkImageView occlusion_image_view[2];
+	VkDescriptorSet occlusion_descriptor[2];
+	VkImageView depth_sample_view;
+	VkDescriptorSet depth_descriptor;
+	VkImage shadow_image[2];
+	VkImageView shadow_image_view[2];
+	VkDescriptorSet shadow_descriptor[2];
 	VkImageLayout initSwapchainLayout;
 
 	qboolean clearAttachment; // requires VK_IMAGE_USAGE_TRANSFER_DST_BIT for swapchains
@@ -357,6 +377,9 @@ typedef struct {
 	float renderScaleY;
 
 	renderPass_t renderPassIndex;
+	renderPass_t shadowResumePass;
+	rhiRenderArea_t shadowResumeArea;
+	int32_t shadowResumeDirtyDepth;
 
 	uint32_t screenMapWidth;
 	uint32_t screenMapHeight;

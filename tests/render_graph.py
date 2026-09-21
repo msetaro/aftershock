@@ -34,4 +34,10 @@ for name in ('native', 'contract'):
         digest = hashlib.sha256(result.stdout).hexdigest()
         assert digest == '962a3b48d9c358bde23fe52e9cb15dd9688b8c8efc083e363a2500c4680f3ddb', digest
         print('PASS: 36 native target/pass/framebuffer configurations match the reference', flush=True)
+        shadows = run([binary, '--shadows'], capture_output=True, timeout=10)
+        (output / 'native-shadows.txt').write_bytes(shadows.stdout)
+        print('PASS: 36 shadow-enabled native configurations retain sampled depth and synchronization', flush=True)
+        occlusion = run([binary, '--ssao'], capture_output=True, timeout=10)
+        (output / 'native-ssao.txt').write_bytes(occlusion.stdout)
+        print('PASS: 32 SSAO native configurations retain sampled MSAA/stencil depth and compatible scene loads', flush=True)
 print('PASS: graph dependencies, retained/exported resources, lifetimes and fixed capacities')

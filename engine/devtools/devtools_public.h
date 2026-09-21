@@ -29,6 +29,7 @@ const devGameTools_t *DevTools_Game( void );
 void DevTools_SetView( const refdef_t *view, int clientEntity = -1 );
 int DevTools_ViewClient( void );
 const refdef_t *DevTools_View( void );
+const sceneLight_t *DevTools_SceneLight( void );
 bool DevTools_SaveEntities( void );
 void DevTools_InitEntities( void );
 

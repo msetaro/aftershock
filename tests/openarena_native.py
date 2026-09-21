@@ -112,6 +112,9 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
             # The pinned OpenArena C headers retain their original seek type.
             direct = direct.replace('fsOffset_t', 'long')
             if module == 'cgame':
+                # OA never submits the new owned light service; its C wrapper
+                # needs only the opaque pointer type, not the C++ light layout.
+                direct = 'typedef struct sceneLight_s sceneLight_t;\n' + direct
                 # This optional OA extension also fails in the original engine dispatch.
                 direct += '\nvoid trap_R_LFX_ParticleEffect(int effect, const vec3_t origin, const vec3_t velocity) {\n'
                 direct += '    CGameImport_Error("Unsupported native service: CG_R_LFX_PARTICLEEFFECT");\n}\n'
