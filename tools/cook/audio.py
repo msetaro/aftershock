@@ -1,6 +1,7 @@
 """Normalize source audio to the engine's PCM16 WAV container."""
 import hashlib
 import io
+import json
 import os
 from pathlib import Path
 import struct
@@ -9,6 +10,33 @@ import tempfile
 import wave
 
 import texture
+
+
+def cook_event(raw):
+    from model import wrapped
+    from weapon import text
+
+    definition = json.loads(raw)
+    if definition['max_distance'] <= definition['reference_distance']:
+        raise ValueError('sound-event max_distance must exceed reference_distance')
+    bus = ('weapons', 'ambient', 'music', 'voice', 'ui').index(definition['bus'])
+    model = ('linear', 'inverse').index(definition['distance_model'])
+    flags = int(definition['doppler']) | (int(definition['occlusion']) << 1)
+    layers = definition['layers']
+    payload = bytearray(struct.pack('<32s7I4f4x', text(definition['name'], 32), bus,
+                                   definition['group'], definition['priority'], definition['voice_limit'],
+                                   model, flags, len(layers), definition['reference_distance'],
+                                   definition['max_distance'], definition['rolloff'], definition['reverb_send']))
+    for layer in layers:
+        if layer['max_distance'] <= layer['min_distance'] or layer['max_distance'] > definition['max_distance']:
+            raise ValueError('sound layer requires min_distance < max_distance <= event max_distance')
+        if not layer['sample'].endswith('.wav'):
+            raise ValueError('sound layers require cooked PCM .wav resources')
+        role = ('mechanical', 'tail', 'distant').index(layer['role'])
+        payload.extend(struct.pack('<64sI3f', text(layer['sample']), role, layer['gain'],
+                                   layer['min_distance'], layer['max_distance']))
+    payload.extend(bytes(80 * (4 - len(layers))))
+    return wrapped(b'ASEVENT\0', payload)
 
 
 def cook(raw, extension):

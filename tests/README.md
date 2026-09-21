@@ -307,6 +307,13 @@ and an empty base. File/cvar/UI operations are isolated by test stubs. Explicit
 `python3 tests/download.py --regenerate` creates the reviewed URL golden; CI never
 regenerates it. `--cc` and `--cxx` select the compiler as in the unit driver.
 
+`python3 tests/audio_events.py` checks `sound-event` cooking: a four-layer fixed
+record with mechanical/tail/distant roles, per-layer distance ranges, mix bus,
+group/priority/voice limit, attenuation, Doppler/occlusion flags and reverb send.
+Use `python3 tools/agent describe sound-event` for the source schema. Cooked
+`.asevt` records use the existing hashed envelope and resource-index kind 12.
+Playback registration is still under development in #16.
+
 `python3 tests/audio_spatial.py` checks the authored-audio spatial component
 with UBSan (also accepts `--cxx 'clang++ -stdlib=libc++'`). It covers stereo
 placement, linear/inverse attenuation, radial Doppler, invalid-input rejection,

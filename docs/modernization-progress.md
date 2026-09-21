@@ -44,9 +44,9 @@ sufficient. Private read-only findings and primary references are in
 /home/matt/.cache/aftershock-modernization/audio-research.md. A private SDL dummy
 output baseline passed; it does not establish any #16 feature.
 
-Next add the optional bounded binaural filter and its impulse/spectral checks,
-then integrate authored playback and continue the remaining issue scope and runtime
-acceptance. Record failures before fixes. No maintainer input is currently needed.
+Next implement native .asevt registration and bounded playback of its cooked
+PCM layers, integrating the tested spatial/HRTF component. Then continue the
+remaining issue scope and runtime acceptance. Record failures before fixes. No maintainer input is currently needed.
 
 Monitor merged-tree #15 build/publication 35658235970 and regression 35658235841.
 After they pass, mark #15 accepted in #25. This does not replace #16's own final
@@ -61,6 +61,19 @@ Never install local system packages, copy game paks, or regenerate accepted gold
 After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
+
+## #16 authored event cooking
+
+The real cooker now passes tests/audio_events.py after the missing-kind failure
+recorded in 4a22cbdc. New sound-event schema and agent example describe a bounded
+four-layer .asevt record: 400-byte payload plus existing 48-byte hash envelope,
+resource index kind 12. Fields cover bus/group/priority/voice limit, distance
+model, Doppler/occlusion flags, reverb send, and mechanical/tail/distant PCM
+paths with gains and distance ranges. Incremental no-op and edited-layer cooks
+pass. Renderer resource-index validation admits the new kind; no renderer
+behavior changes. Existing weapon sound path strings can reference this record
+without changing weapon layout. Native event loading and audible playback are
+not implemented yet; no #16 completion or runtime acceptance is claimed.
 
 ## #16 authored event contract
 
