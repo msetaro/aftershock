@@ -88,9 +88,14 @@ The macOS --agent argument removal now preserves argv[0] for bundle discovery.
 OpenArena also passes the full play/entity/profile/PNG test
 (agent-capture-openarena.log). The native command contract is now in both CI
 unit compiler legs; build Debug legs already compile developer tools on all
-platforms. Open a draft #163 PR for early cross-platform feedback; keep it draft
+platforms. Draft PR #166 is open at 20c92d52. Initial build 35556998279 caught libc++
+floating-point from_chars availability and MSVC width diagnostics in the
+previously unused json.h implementation. Correct those integration issues and
+rerun all gates. Keep the PR draft
 until every remaining acceptance requirement and final gate is complete.
-Next: camera poses/raw usercmds/events and shared UI commands, then the remaining
+The next error-stream assertion fails first on missing subscribe
+(agent-events-before.log); the new PNG/TGA pixel-equivalence assertion already
+passes. Next: camera poses/raw usercmds/events and shared UI commands, then the remaining
 #163 tools/schemas/isolation/recipes and final full gates.
 
 ## #163 entity and profiler checkpoint
