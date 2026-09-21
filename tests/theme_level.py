@@ -5,6 +5,7 @@ import copy
 import json
 from pathlib import Path
 import subprocess
+import shutil
 import sys
 import tempfile
 
@@ -21,6 +22,8 @@ parser.add_argument('--modules',type=Path)
 parser.add_argument('--client',type=Path)
 parser.add_argument('--server',type=Path)
 parser.add_argument('--output',type=Path)
+parser.add_argument('--content',choices=['quake3','openarena'],default='quake3')
+parser.add_argument('--data',type=Path,default=Path.home()/'.q3a/baseq3')
 args=parser.parse_args()
 with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
     root=Path(temporary)
@@ -47,7 +50,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
                props=[],pickups=[],lighting=dict(ambient=32,lights=[]),
                intents=[dict(id='main_lane',kind='route',points=[[-900,-256],[900,-256]],width=128)])
     level['viewpoints']=[dict(id='facades',origin=[0,-128,72],angles=[0,90,0]),
-                         dict(id='street',origin=[-768,-64,72],angles=[0,20,0])]
+                         dict(id='street',origin=[-768,-64,72],angles=[0,20,0]),
+                         dict(id='modules',origin=[0,640,72],angles=[0,-90,0])]
     a=assemble(level,theme,library,modules,root/'a',seed=164)
     b=assemble(level,theme,library,modules,root/'b',seed=164)
     assert a==b and a['props'], 'theme placement must be seeded and repeatable'
@@ -64,7 +68,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
     validate(root/'a/assets')
     assert (root/'a/assets/CREDITS').is_file()
     assert (root/'a/assets/textures/theme/ground.asmat').is_file()
-    report=run(['tools/level',root/'a/level.json','--output',root/'compiled','--map-only'])
+    report=run(['tools/level',root/'a/level.json','--output',root/'compiled']+([] if args.client else ['--map-only']))
     assert report['report']['reachable_spawns']==2
     assert ' 0 0 0 0.0625 0.0625 ' in (root/'compiled/maps/theme_test.map').read_text(), 'theme texture scale ignored'
     assert (root/'compiled/textures/theme/ground.asmat').is_file(), 'PBR material lost during map staging'
@@ -74,8 +78,22 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
     assert 'textures/s/' not in runtime_shaders, 'compiler-only shader aliases shadow native PBR at runtime'
     if args.client or args.server:
         assert args.client and args.server and args.output, 'native acceptance requires client, server and retained output'
+        from tools.agent import Engine
+        with Engine(args.client,args.data,args.content) as engine:
+            shutil.copytree(root/'compiled',engine.base,dirs_exist_ok=True)
+            engine.request('session',dt=20,seed=164)
+            engine.request('map',name='theme_test')
+            engine.step(150)
+            clear=engine.request('trace',start=[0,-128,48],end=[0,100,48],hull='point')
+            blocked=engine.request('trace',start=[150,-128,48],end=[150,100,48],hull='point')
+            floor=engine.request('trace',start=[-640,-512,64],end=[-640,-512,-16],hull='player')
+            assert clear['fraction']==1 and not clear['start_solid'],clear
+            assert blocked['fraction']<1 and not blocked['start_solid'],blocked
+            assert floor['fraction']<1 and abs(floor['end'][2]-24)<.2 and floor['normal']==[0,0,1],floor
+            args.output.mkdir(parents=True,exist_ok=True)
+            (args.output/'agent-traces.json').write_text(json.dumps(dict(clear=clear,blocked=blocked,floor=floor),indent=2)+'\n')
         native=run(['tools/level','validate',root/'a/level.json','--output',args.output,
-                    '--client',args.client,'--server',args.server])
+                    '--client',args.client,'--server',args.server,'--content',args.content,'--data',args.data])
         assert native['status']=='passed' and native['bots']['samples']>=100,native
         assert native['views'] or native['flythrough'], 'native theme captures absent'
         log=(args.output/'client.log').read_text(errors='replace')

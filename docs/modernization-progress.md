@@ -52,6 +52,17 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 compiled-world agent traces pass
+
+The protocol gate and fresh client/dedicated release builds pass after making the
+existing vector reader available to both command dispatchers. Real OpenArena
+native-map queries pass: the doorway sightline is clear, the adjacent wall stops
+at y=63.875, and the standard player box contacts the floor at z=24.125. Evidence:
+sketch-theme-agent/agent-traces.json; sketch-trace-query.log; sketch-build.log.
+Boundary/type/format checks pass. The associated bot/capture run is finishing;
+then use the query for shooter metrics and explicit intent checks. This command
+only exposes existing static-world collision in development builds.
+
 ## #164 agent collision-query contract
 
 Shooter intent validation needs compiled-world sight and player-clearance queries
