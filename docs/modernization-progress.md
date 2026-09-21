@@ -54,6 +54,14 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
+## #14 shadow caster shader test-first checkpoint
+
+The native observation now requires a dedicated caster pipeline with position,
+base UV and vertex alpha, two shadow shader modules, zero color attachments,
+single-sample reversed depth, and no stencil/alpha-to-coverage. Before adding the
+new program it fails on absent modules/type (lighting-shadow-shader-before.log).
+Existing 78 shader arrays remain accepted and must stay byte-identical.
+
 ## #14 native light submission implementation checkpoint
 
 Test-first 368269f5 precedes the 56-byte trivial sceneLight_t API and native client/

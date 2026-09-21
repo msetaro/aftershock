@@ -176,6 +176,17 @@ static void shadowDescriptors() {
 	vk_update_attachment_descriptors();
 	assert( depthWrites == 4 );
 }
+static VkResult VKAPI_CALL createDepthPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
+	assert( count == 1 && p->renderPass == vk.render_pass.shadow[0] );
+	assert( p->stageCount == 2 && p->pStages[0].module == vk.modules.shadow_vs && p->pStages[1].module == vk.modules.shadow_fs );
+	assert( p->pColorBlendState->attachmentCount == 0 );
+	assert( p->pMultisampleState->rasterizationSamples == VK_SAMPLE_COUNT_1_BIT && !p->pMultisampleState->alphaToCoverageEnable );
+	assert( p->pDepthStencilState->depthTestEnable && p->pDepthStencilState->depthWriteEnable && !p->pDepthStencilState->stencilTestEnable );
+	assert( p->pDepthStencilState->depthCompareOp == VK_COMPARE_OP_GREATER_OR_EQUAL );
+	assert( p->pVertexInputState->vertexAttributeDescriptionCount == 3 );
+	*out = (VkPipeline)(uintptr_t)1;
+	return VK_SUCCESS;
+}
 int main( int argc, char ** ) {
 	qvkCreateRenderPass = createPass;
 	qvkCreateFramebuffer = createFramebuffer;
@@ -188,6 +199,7 @@ int main( int argc, char ** ) {
 	qvkAllocateDescriptorSets = allocateDescriptors;
 	qvkCreateSampler = createSampler;
 	qvkUpdateDescriptorSets = updateDescriptors;
+	qvkCreateGraphicsPipelines = createDepthPipeline;
 	for ( uint32_t mode = 0; mode < 36; ++mode ) {
 		vk = {};
 		vk_config = {};
@@ -232,6 +244,12 @@ int main( int argc, char ** ) {
 			if ( offscreen )
 				shadowCommands( true );
 			shadowDescriptors();
+			vk.modules.shadow_vs = (VkShaderModule)(uintptr_t)11;
+			vk.modules.shadow_fs = (VkShaderModule)(uintptr_t)12;
+			rhiPipelineDesc_t depth = {};
+			depth.shader_type = TYPE_SHADOW;
+			depth.state_bits = GLS_DEPTHMASK_TRUE;
+			assert( create_pipeline( &depth, RENDER_PASS_SHADOW, 0 ) != VK_NULL_HANDLE );
 		}
 	}
 }
