@@ -25,13 +25,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_types_public.h"
 #include "tr_material_public.h"
 #include "tr_lighting_public.h"
+#include "../effects/effects_public.h"
 #include "../animation/animation_public.h"
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 20
+#define REF_API_VERSION 31
 #else
-#define REF_API_VERSION 15
+#define REF_API_VERSION 25
 #endif
 
 //
@@ -43,6 +44,32 @@ typedef enum {
 	REF_DESTROY_WINDOW,
 	REF_UNLOAD_DLL
 } refShutdownCode_t;
+
+struct textureStreamingStats_t {
+	uint64_t budgetBytes, usedBytes, peakBytes, retiredBytes, sourceBytes, sourceBudgetBytes;
+	uint64_t cpuUsec, cpuPeakUsec, gpuSamples, uploadSubmissions, uploadBytes;
+	double gpuUsec;
+	uint32_t images, fullResolution, promotions, demotions, deferred, failures, pending, reloads;
+};
+static_assert( std::is_trivially_copyable_v<textureStreamingStats_t> );
+
+struct postRenderStats_t {
+	uint64_t effectsCpuUsec, decalsCpuUsec, effectsDrawCpuUsec, lodCpuUsec;
+	uint32_t loads, draws, dropped;
+	uint32_t temporalFrames, temporalDropped, motionDraws, reactiveDraws;
+	uint32_t historyStored, historyMatched, historyRejected, historyOverflow;
+};
+static_assert( std::is_trivially_copyable_v<postRenderStats_t> );
+struct decalRenderStats_t {
+	uint32_t active, registered, reloads, draws, dropped;
+	uint64_t replaced;
+};
+static_assert( std::is_trivially_copyable_v<decalRenderStats_t> );
+struct fxRenderStats_t {
+	fxStats_t pool;
+	uint32_t registered, reloads, draws, lightDraws, lightDrops, softDraws, softDrops;
+};
+static_assert( std::is_trivially_copyable_v<fxRenderStats_t> );
 
 typedef struct {
 	// called before the library is unloaded
@@ -78,9 +105,20 @@ typedef struct {
 	// a scene is built up by calls to R_ClearScene and the various R_Add functions.
 	// Nothing is drawn until R_RenderScene is called.
 	void ( *ClearScene )( void );
+	qhandle_t ( *RegisterEffect )( const char *path );
+	uint32_t ( *StartEffect )( qhandle_t asset, const vec3_t origin, const vec3_t axis[3], uint32_t seed );
+	bool ( *StopEffect )( uint32_t handle );
+	void ( *EffectStats )( fxRenderStats_t *stats );
+	qhandle_t ( *RegisterDecal )( const char *path );
+	uint32_t ( *ProjectDecal )( qhandle_t asset, const vec3_t origin, const vec3_t axis[3] );
+	void ( *ClearDecals )();
+	void ( *DecalStats )( decalRenderStats_t *stats );
+	void ( *PostStats )( postRenderStats_t *stats );
+	void ( *TextureStats )( textureStreamingStats_t *stats );
 	void ( *AddRefEntityToScene )( const refEntity_t *re, qboolean intShaderTime );
 	bool ( *AddSkeletalEntityToScene )( const refEntity_t *re, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 	// Copies the override into this frame. Optional pose/hash use the skeletal path.
+	bool ( *AddTemporalEntityToScene )( const refEntity_t *ent, uint64_t identity, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 	bool ( *AddMaterialEntityToScene )( const refEntity_t *re, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 	void ( *AddPolyToScene )( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
 	int ( *LightForPoint )( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir );
@@ -201,6 +239,7 @@ typedef struct {
 	void ( *Cmd_ExecuteText )( cbufExec_t exec_when, const char *text );
 
 	byte *( *CM_ClusterPVS )( int cluster );
+	void ( *CM_BoxTrace )( trace_t *result, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, qboolean capsule );
 
 	// visualization for debugging collision detection
 	void ( *CM_DrawDebugSurface )( void ( *drawPoly )( int color, int numPoints, float *points ) );

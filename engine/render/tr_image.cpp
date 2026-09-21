@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_image.c
 #include "tr_local.h"
 #include "tr_cooked.h"
+#include "tr_stream.h"
 
 #ifdef AFTERSHOCK_DEVTOOLS
 static struct {
@@ -1061,6 +1062,271 @@ void R_UploadSubImage( byte *data, int x, int y, int width, int height, image_t 
 #endif // !USE_VULKAN
 
 
+namespace {
+struct streamAsset_t {
+	image_t *image;
+	uint32_t width, height, levels, offset[16], size[16], sourceOffset, capacity;
+};
+static struct {
+	uint8_t *source;
+	uint32_t capacity, used, count, pendingImage, pendingMip, retryFrames;
+	streamImage_t residency[STREAM_MAX_IMAGES];
+	streamAsset_t assets[STREAM_MAX_IMAGES];
+	rhiTexture_t pending;
+	bool active, uploaded;
+	textureStreamingStats_t stats;
+} imageStream;
+static_assert( STREAM_MAX_IMAGES == MAX_DRAWIMAGES );
+
+static uint32_t CookedTextureLimit( imgFlags_t flags ) {
+	return imageStream.source && ( flags & IMGFLAG_MIPMAP ) ? RHI_GetCapabilities().maxCompressedTextureSize : (uint32_t)glConfig.maxTextureSize;
+}
+
+static uint32_t StreamImageIndex( const image_t *image ) {
+	for ( uint32_t i = 0; i < imageStream.count; ++i )
+		if ( imageStream.assets[i].image == image )
+			return i;
+	return STREAM_NO_IMAGE;
+}
+
+static rhiStatus_t PollStreamTransfer() {
+	if ( !imageStream.active )
+		return rhiStatus_t::Success;
+	if ( !imageStream.uploaded ) {
+		const rhiStatus_t status = RHI_PollTextureUpload( &imageStream.uploaded );
+		if ( status != rhiStatus_t::Success || !imageStream.uploaded )
+			return status;
+	}
+	auto &asset = imageStream.assets[imageStream.pendingImage];
+	const rhiStatus_t status = RHI_AdoptResidentTexture( &asset.image->texture, &imageStream.pending );
+	if ( status != rhiStatus_t::Success )
+		return status;
+	auto &record = imageStream.residency[imageStream.pendingImage];
+	++( imageStream.pendingMip < record.residentMip ? imageStream.stats.promotions : imageStream.stats.demotions );
+	record.residentMip = imageStream.pendingMip;
+	asset.image->uploadWidth = MAX( 1u, asset.width >> record.residentMip );
+	asset.image->uploadHeight = MAX( 1u, asset.height >> record.residentMip );
+	imageStream.active = imageStream.uploaded = false;
+	return rhiStatus_t::Success;
+}
+
+// Development publication may wait; ordinary frame processing never calls this.
+static rhiStatus_t FinishStreamTransfer() {
+	while ( imageStream.active ) {
+		rhiStatus_t status = RHI_WaitIdle();
+		if ( status == rhiStatus_t::Success )
+			status = PollStreamTransfer();
+		if ( status != rhiStatus_t::Success )
+			return status;
+	}
+	if ( RHI_GetTextureResidencyStats().retiredBytes ) {
+		const rhiStatus_t status = RHI_WaitIdle();
+		if ( status != rhiStatus_t::Success )
+			return status;
+	}
+	return RHI_PollTextureResidency();
+}
+
+static void InitImageStreaming() {
+	imageStream = {};
+	cvar_t *enabled = ri.Cvar_Get( "r_textureStreaming", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	cvar_t *budget = ri.Cvar_Get( "r_textureBudgetMB", "256", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	cvar_t *source = ri.Cvar_Get( "r_textureSourceMB", "256", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	ri.Cvar_CheckRange( enabled, "0", "1", CV_INTEGER );
+	ri.Cvar_CheckRange( budget, "8", "4096", CV_INTEGER );
+	ri.Cvar_CheckRange( source, "8", "1024", CV_INTEGER );
+	if ( !enabled->integer )
+		return;
+	R_CheckRHI( RHI_InitTextureResidency( (uint64_t)budget->integer * 1024 * 1024 ), "texture residency" );
+	R_CheckRHI( RHI_InitTextureUploads(), "texture upload staging" );
+	imageStream.capacity = (uint32_t)source->integer * 1024 * 1024;
+	// ponytail: a bounded map-load source arena; add disk paging for sets exceeding this explicit limit.
+	imageStream.source = (uint8_t *)ri.Malloc( imageStream.capacity );
+}
+
+static void StopImageStreaming() {
+	if ( !imageStream.source )
+		return;
+	R_CheckRHI( RHI_ShutdownTextureUploads(), "stop texture uploads" );
+	RHI_DestroyTexture( &imageStream.pending );
+	ri.Free( imageStream.source );
+	imageStream = {};
+}
+
+static rhiStatus_t UploadStreamImage( image_t *image, const cookedTexture_t *cooked, const uint8_t *blocks, uint32_t size, uint32_t levels ) {
+	const uint32_t previous = StreamImageIndex( image );
+	if ( previous == STREAM_NO_IMAGE && imageStream.count == STREAM_MAX_IMAGES )
+		return rhiStatus_t::OutOfMemory;
+	if ( previous != STREAM_NO_IMAGE ) {
+		const rhiStatus_t status = FinishStreamTransfer();
+		if ( status != rhiStatus_t::Success )
+			return status;
+	}
+	streamAsset_t asset{};
+	asset.image = image;
+	asset.width = cooked->width;
+	asset.height = cooked->height;
+	asset.levels = levels;
+	// ponytail: same-size reloads reuse their source slot; growth consumes arena space until renderer restart.
+	asset.sourceOffset = imageStream.used;
+	asset.capacity = size;
+	if ( previous != STREAM_NO_IMAGE && imageStream.assets[previous].capacity >= size ) {
+		asset.sourceOffset = imageStream.assets[previous].sourceOffset;
+		asset.capacity = imageStream.assets[previous].capacity;
+	}
+	if ( size > imageStream.capacity - asset.sourceOffset ) {
+		ri.Printf( PRINT_WARNING, "Texture source budget exhausted: %s needs %u bytes (r_textureSourceMB)\n", image->imgName, size );
+		return rhiStatus_t::OutOfMemory;
+	}
+	uint32_t offset = 0;
+	for ( uint32_t i = 0; i < levels; ++i ) {
+		asset.offset[i] = offset;
+		asset.size[i] = cooked->levels[i].size;
+		offset += asset.size[i];
+	}
+	streamImage_t record{};
+	while ( record.tailMip + 1 < levels && MAX( cooked->width, cooked->height ) >> record.tailMip > 64 )
+		++record.tailMip;
+	record.residentMip = record.tailMip;
+	if ( previous != STREAM_NO_IMAGE ) {
+		record.lastUsed = imageStream.residency[previous].lastUsed;
+		record.used = imageStream.residency[previous].used;
+	}
+	for ( uint32_t mip = 0; mip <= record.tailMip; ++mip ) {
+		const rhiStatus_t status = RHI_TextureResidencyBytes( MAX( 1u, cooked->width >> mip ), MAX( 1u, cooked->height >> mip ), levels - mip, cooked->format, &record.bytes[mip] );
+		if ( status != rhiStatus_t::Success )
+			return status;
+	}
+	uint64_t floor = record.bytes[record.tailMip], reserve = floor;
+	for ( uint32_t i = 0; i < imageStream.count; ++i ) {
+		if ( i == previous )
+			continue;
+		const auto &existing = imageStream.residency[i];
+		floor += existing.bytes[existing.tailMip];
+		reserve = MAX( reserve, existing.bytes[existing.tailMip] );
+	}
+	if ( floor + reserve > RHI_GetTextureResidencyStats().budgetBytes ) {
+		ri.Printf( PRINT_WARNING, "Texture coarse residency exceeds r_textureBudgetMB: %s\n", image->imgName );
+		return rhiStatus_t::OutOfMemory;
+	}
+	const uint32_t mip = record.tailMip, width = MAX( 1u, cooked->width >> mip ), height = MAX( 1u, cooked->height >> mip );
+	rhiTexture_t replacement{};
+	rhiStatus_t status = RHI_CreateResidentTexture( &replacement, width, height, levels - mip, cooked->format, image->wrapClampMode, image->imgName );
+	if ( status == rhiStatus_t::Success ) {
+		if ( previous == STREAM_NO_IMAGE )
+			status = RHI_UploadCompressedTexture( &replacement, width, height, levels - mip, blocks + asset.offset[mip], size - asset.offset[mip], cooked->format, false );
+		else {
+			status = RHI_QueueTextureUpload( &replacement, width, height, levels - mip, blocks + asset.offset[mip], size - asset.offset[mip], cooked->format );
+			bool complete = false;
+			while ( status == rhiStatus_t::Success && !complete ) {
+				status = RHI_PollTextureUpload( &complete );
+				if ( status == rhiStatus_t::Success && !complete )
+					status = RHI_WaitIdle();
+			}
+			if ( status == rhiStatus_t::Success )
+				status = RHI_AdoptResidentTexture( &image->texture, &replacement );
+		}
+	}
+	if ( status != rhiStatus_t::Success ) {
+		if ( previous != STREAM_NO_IMAGE ) {
+			const rhiStatus_t stopped = RHI_ShutdownTextureUploads();
+			if ( stopped != rhiStatus_t::Success )
+				return stopped; // Registry retains the image for device/map teardown.
+			RHI_DestroyTexture( &replacement );
+			const rhiStatus_t restart = RHI_InitTextureUploads();
+			if ( restart != rhiStatus_t::Success )
+				return restart;
+		} else
+			RHI_DestroyTexture( &replacement );
+		return status;
+	}
+	if ( previous == STREAM_NO_IMAGE )
+		image->texture = replacement;
+	else
+		++imageStream.stats.reloads;
+	memcpy( imageStream.source + asset.sourceOffset, blocks, size );
+	imageStream.used = MAX( imageStream.used, asset.sourceOffset + asset.capacity );
+	const uint32_t index = previous == STREAM_NO_IMAGE ? imageStream.count++ : previous;
+	imageStream.assets[index] = asset;
+	imageStream.residency[index] = record;
+	image->uploadWidth = width;
+	image->uploadHeight = height;
+	return rhiStatus_t::Success;
+}
+} // namespace
+
+void RE_TextureStats( textureStreamingStats_t *stats ) {
+	*stats = imageStream.stats;
+	const auto device = RHI_GetTextureResidencyStats();
+	stats->budgetBytes = device.budgetBytes;
+	stats->usedBytes = device.usedBytes;
+	stats->peakBytes = device.peakBytes;
+	stats->retiredBytes = device.retiredBytes;
+	const auto upload = RHI_GetTextureUploadStats();
+	stats->gpuUsec = upload.gpuUsec;
+	stats->gpuSamples = upload.gpuSamples;
+	stats->uploadSubmissions = upload.submissions;
+	stats->uploadBytes = upload.submittedBytes;
+	stats->sourceBytes = imageStream.used;
+	stats->sourceBudgetBytes = imageStream.capacity;
+	stats->images = imageStream.count;
+	stats->pending = imageStream.active;
+	stats->fullResolution = 0;
+	for ( uint32_t i = 0; i < imageStream.count; ++i )
+		stats->fullResolution += imageStream.residency[i].residentMip == 0;
+}
+
+void R_StreamImages() {
+	if ( !imageStream.source || !imageStream.count )
+		return;
+	const uint64_t start = ri.Microseconds();
+	R_CheckRHI( RHI_PollTextureResidency(), "texture retirement" );
+	const rhiStatus_t transfer = PollStreamTransfer();
+	if ( transfer != rhiStatus_t::Unavailable )
+		R_CheckRHI( transfer, "texture transfer" );
+	for ( uint32_t i = 0; i < imageStream.count; ++i ) {
+		if ( imageStream.assets[i].image->frameUsed == tr.frameCount ) {
+			imageStream.residency[i].used = true;
+			imageStream.residency[i].lastUsed = (uint32_t)tr.frameCount;
+		}
+	}
+	if ( imageStream.retryFrames )
+		--imageStream.retryFrames;
+	else if ( !imageStream.active && !RHI_GetTextureResidencyStats().retiredBytes ) {
+		streamPlan_t plan;
+		if ( !R_PlanTextureResidency( imageStream.residency, imageStream.count, (uint32_t)tr.frameCount, RHI_GetTextureResidencyStats().budgetBytes, 0, &plan ) ) {
+			++imageStream.stats.failures;
+			ri.Error( ERR_DROP, "invalid texture residency budget" );
+		}
+		if ( plan.index != STREAM_NO_IMAGE ) {
+			const auto &asset = imageStream.assets[plan.index];
+			const uint32_t mip = plan.mip, width = MAX( 1u, asset.width >> mip ), height = MAX( 1u, asset.height >> mip );
+			rhiStatus_t status = RHI_CreateResidentTexture( &imageStream.pending, width, height, asset.levels - mip, asset.image->internalFormat, asset.image->wrapClampMode, asset.image->imgName );
+			if ( status == rhiStatus_t::OutOfMemory ) {
+				++imageStream.stats.deferred;
+				imageStream.retryFrames = 30;
+			} else {
+				if ( status == rhiStatus_t::Success ) {
+					uint32_t size = 0;
+					for ( uint32_t i = mip; i < asset.levels; ++i )
+						size += asset.size[i];
+					status = RHI_QueueTextureUpload( &imageStream.pending, width, height, asset.levels - mip,
+						imageStream.source + asset.sourceOffset + asset.offset[mip], size, asset.image->internalFormat );
+				}
+				if ( status != rhiStatus_t::Success )
+					++imageStream.stats.failures;
+				R_CheckRHI( status, "queue texture residency" );
+				imageStream.pendingImage = plan.index;
+				imageStream.pendingMip = mip;
+				imageStream.active = true;
+				imageStream.uploaded = false;
+			}
+		}
+	}
+	imageStream.stats.cpuUsec = ri.Microseconds() - start;
+	imageStream.stats.cpuPeakUsec = MAX( imageStream.stats.cpuPeakUsec, imageStream.stats.cpuUsec );
+}
+
 static rhiStatus_t R_UploadCookedImage( image_t *image, const cookedTexture_t *cooked ) {
 	const uint32_t levels = ( image->flags & IMGFLAG_MIPMAP ) ? cooked->mipLevels : 1;
 	uint32_t size = 0;
@@ -1072,17 +1338,26 @@ static rhiStatus_t R_UploadCookedImage( image_t *image, const cookedTexture_t *c
 		memcpy( blocks + offset, cooked->levels[i].data, cooked->levels[i].size );
 		offset += cooked->levels[i].size;
 	}
+	rhiStatus_t status;
+	if ( imageStream.source && ( ( levels > 1 && MAX( cooked->width, cooked->height ) > 64 ) || StreamImageIndex( image ) != STREAM_NO_IMAGE ) )
+		status = UploadStreamImage( image, cooked, blocks, size, levels );
+	else {
 #ifdef AFTERSHOCK_DEVTOOLS
-	const rhiStatus_t status = RHI_ReplaceCompressedTexture( &image->texture, cooked->width, cooked->height, levels, blocks, size, cooked->format, image->wrapClampMode, image->imgName );
+		status = RHI_ReplaceCompressedTexture( &image->texture, cooked->width, cooked->height, levels, blocks, size, cooked->format, image->wrapClampMode, image->imgName );
 #else
-	rhiStatus_t status = RHI_CreateTexture( &image->texture, cooked->width, cooked->height, levels, cooked->format, image->wrapClampMode, image->imgName );
-	if ( status == rhiStatus_t::Success )
-		status = RHI_UploadCompressedTexture( &image->texture, cooked->width, cooked->height, levels, blocks, size, cooked->format, false );
+		status = RHI_CreateTexture( &image->texture, cooked->width, cooked->height, levels, cooked->format, image->wrapClampMode, image->imgName );
+		if ( status == rhiStatus_t::Success )
+			status = RHI_UploadCompressedTexture( &image->texture, cooked->width, cooked->height, levels, blocks, size, cooked->format, false );
 #endif
+	}
 	ri.Free( blocks );
 	if ( status == rhiStatus_t::Success ) {
-		image->width = image->uploadWidth = cooked->width;
-		image->height = image->uploadHeight = cooked->height;
+		image->width = cooked->width;
+		image->height = cooked->height;
+		if ( StreamImageIndex( image ) == STREAM_NO_IMAGE ) {
+			image->uploadWidth = cooked->width;
+			image->uploadHeight = cooked->height;
+		}
 		image->internalFormat = cooked->format;
 	}
 	return status;
@@ -1119,7 +1394,7 @@ void R_PollCookedAssets( void ) {
 				const int length = ri.FS_ReadFile( entry.path, &file );
 				cookedTexture_t texture = {};
 				bool success = file && length == (int)entry.size && R_CookedHashMatches( file, length, entry.hash ) && R_ReadCookedTexture( file, length, &texture );
-				success = success && texture.width <= (uint32_t)glConfig.maxTextureSize && texture.height <= (uint32_t)glConfig.maxTextureSize;
+				success = success && texture.width <= CookedTextureLimit( tr.images[i]->flags ) && texture.height <= CookedTextureLimit( tr.images[i]->flags );
 				if ( success )
 					success = R_UploadCookedImage( tr.images[i], &texture ) == rhiStatus_t::Success;
 				if ( file )
@@ -1133,6 +1408,8 @@ void R_PollCookedAssets( void ) {
 		}
 		R_ReloadCookedMaterials( &index );
 		R_ReloadCookedModels( &index );
+		R_ReloadEffects( &index );
+		R_ReloadPost( &index );
 	} else {
 		ri.Printf( PRINT_WARNING, "Cooked asset index does not match its published revision\n" );
 	}
@@ -1445,7 +1722,7 @@ image_t *R_FindImageFile( const char *name, imgFlags_t flags ) {
 		const int size = ri.FS_ReadFile( path, &file );
 		if ( file ) {
 			cookedTexture_t cooked;
-			if ( size > 0 && R_ReadCookedTexture( file, size, &cooked ) && cooked.width <= (uint32_t)glConfig.maxTextureSize && cooked.height <= (uint32_t)glConfig.maxTextureSize ) {
+			if ( size > 0 && R_ReadCookedTexture( file, size, &cooked ) && cooked.width <= CookedTextureLimit( flags ) && cooked.height <= CookedTextureLimit( flags ) ) {
 				image = R_CreateImage( name, path, nullptr, cooked.width, cooked.height, flags, &cooked );
 			} else {
 				ri.Printf( PRINT_WARNING, "Invalid or unsupported cooked texture: %s\n", path );
@@ -1887,6 +2164,7 @@ R_InitImages
 ===============
 */
 void R_InitImages( void ) {
+	InitImageStreaming();
 
 #ifdef USE_VULKAN
 	// initialize linear gamma table before setting color mappings for the first time
@@ -1923,6 +2201,7 @@ R_DeleteTextures
 */
 void R_DeleteTextures( void ) {
 	int i;
+	StopImageStreaming();
 
 	if ( tr.numImages == 0 ) {
 		return;

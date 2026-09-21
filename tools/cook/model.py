@@ -430,7 +430,20 @@ def cook(path, name, options, read):
                 # glTF faces are counter-clockwise; the engine's IQM path uses clockwise.
                 local_faces.append(converted_face if mirrored else [converted_face[0], converted_face[2], converted_face[1]])
             flush()
+    import lod
+    ratios,error=lod.ratios(options)
     outputs[name + '.iqm'] = pack_iqm(vertices, triangles, meshes, joints, clips, poses, doc, options)
+    for level,ratio in enumerate(ratios,1):
+        lod_vertices,lod_triangles,lod_meshes=lod.simplify(vertices,triangles,meshes,ratio,error)
+        outputs[name + f'_lod{level}.iqm'] = pack_iqm(lod_vertices,lod_triangles,lod_meshes,joints,clips,poses,doc,options)
+    if ratios:
+        payload = bytearray(hashlib.sha256(outputs[name + '.iqm']).digest() + struct.pack('<I', len(ratios)))
+        for level in range(1, len(ratios) + 1):
+            path = name + f'_lod{level}.iqm'
+            if len(path.encode()) >= 64:
+                raise ValueError('cooked LOD path exceeds the engine qpath limit')
+            payload.extend(struct.pack('<64s32s', path.encode(), hashlib.sha256(outputs[path]).digest()))
+        outputs[name + '.aslod'] = wrapped(b'ASLOD\0\0\0', payload)
     return outputs
 
 

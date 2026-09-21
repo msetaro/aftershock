@@ -24,6 +24,13 @@ attachments, projectile math and notify deduplication. All runtime records are P
 and bounded; game owns damage/rewind and actors, cgame owns prediction/presentation,
 and the development overlay owns range controls. Assets load only at map start.
 
+`engine/effects` owns cooked effect/decal records and bounded presentation state:
+seeded particles, emitter updates, collision callbacks and fading decal rings.
+It never changes authoritative simulation. Render owns registration, images,
+scene submission, temporal history and residency; cgame chooses authored effects
+from predicted/material-hit presentation events. Cooker-only meshoptimizer code
+is never linked into the engine.
+
 `engine/server` owns server clients, authoritative snapshot assembly and the
 native game lifecycle. It borrows game/entity data through `engine/public` and
 owns server allocations in the existing zone/hunk lifetimes. Network sockets

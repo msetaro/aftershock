@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "name": "textures/effects/reference/smoke",
+      "kind": "texture",
+      "source": "smoke.png"
+    },
+    {
+      "name": "textures/effects/reference/fire",
+      "kind": "texture",
+      "source": "fire.png"
+    },
+    {
+      "name": "textures/effects/reference/flash",
+      "kind": "texture",
+      "source": "flash.png"
+    },
+    {
+      "name": "textures/effects/reference/spark",
+      "kind": "texture",
+      "source": "spark.png"
+    },
+    {
+      "name": "models/reference_shell",
+      "kind": "model",
+      "source": "shell.gltf",
+      "scale": 1,
+      "material_model": "metallic-roughness"
+    },
+    {
+      "name": "effects/reference/muzzle",
+      "kind": "effect",
+      "source": "muzzle.json"
+    },
+    {
+      "name": "effects/reference/impact_metal",
+      "kind": "effect",
+      "source": "impact_metal.json"
+    },
+    {
+      "name": "effects/reference/impact_stone",
+      "kind": "effect",
+      "source": "impact_stone.json"
+    },
+    {
+      "name": "effects/reference/smoke",
+      "kind": "effect",
+      "source": "smoke.json"
+    },
+    {
+      "name": "effects/reference/sparks",
+      "kind": "effect",
+      "source": "sparks.json"
+    },
+    {
+      "name": "effects/reference/dust",
+      "kind": "effect",
+      "source": "dust.json"
+    },
+    {
+      "name": "effects/reference/shell",
+      "kind": "effect",
+      "source": "shell.json"
+    },
+    {
+      "name": "effects/reference/explosion",
+      "kind": "effect",
+      "source": "explosion.json"
+    },
+    {
+      "name": "effects/reference/tracer",
+      "kind": "effect",
+      "source": "tracer.json"
+    }
+  ]
+}

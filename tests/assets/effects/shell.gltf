@@ -1,0 +1,105 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "Aftershock original reference effects"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "name": "brass",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "brass",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.55,
+          0.32,
+          0.08,
+          1
+        ],
+        "metallicFactor": 0.85,
+        "roughnessFactor": 0.28
+      },
+      "doubleSided": true
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "shell.bin",
+      "byteLength": 4128
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 1440
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1440,
+      "byteLength": 1440
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2880,
+      "byteLength": 960
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 3840,
+      "byteLength": 288
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "type": "VEC3",
+      "count": 120
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "type": "VEC3",
+      "count": 120
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "type": "VEC2",
+      "count": 120
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "type": "SCALAR",
+      "count": 144
+    }
+  ]
+}

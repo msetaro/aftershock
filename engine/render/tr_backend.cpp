@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include <algorithm>
 #include "tr_cooked.h"
 
 backEndData_t *backEndData;
@@ -1526,6 +1527,166 @@ static void RB_DebugGraphics( void ) {
 RB_DrawSurfs
 =============
 */
+static void RB_PresentationEffectsUnprofiled() {
+	if ( ( !r_softParticles->integer && !r_decals->integer ) || ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ||
+		 backEnd.viewParms.portalView != PV_NONE || backEnd.refdef.switchRenderPass )
+		return;
+	const srfPoly_t *polys[FX_MAX_PARTICLES];
+	uint32_t count = 0;
+	for ( int i = 0; i < backEnd.refdef.numPolys && count < FX_MAX_PARTICLES; ++i )
+		if ( backEnd.refdef.polys[i].softDistance > 0 )
+			polys[count++] = &backEnd.refdef.polys[i];
+	if ( !count && !backEnd.refdef.numDecals )
+		return;
+	std::sort( polys, polys + count, []( const srfPoly_t *a, const srfPoly_t *b ) {
+		float distance = 0;
+		for ( int axis = 0; axis < 3; ++axis )
+			distance += ( a->verts[0].xyz[axis] + a->verts[2].xyz[axis] - b->verts[0].xyz[axis] - b->verts[2].xyz[axis] ) * backEnd.viewParms.orientation.axis[0][axis];
+		return distance > 0;
+	} );
+	rhiRect_t viewport;
+	RB_GetViewportRect( &viewport );
+	if ( !RHI_BeginEffects( &viewport ) )
+		return;
+	float projection[16], transform[16];
+	Com_Memcpy( projection, backEnd.viewParms.projectionMatrix, sizeof( projection ) );
+	projection[5] = -projection[5];
+	myGlMultMatrix( backEnd.viewParms.world.modelMatrix, projection, transform );
+	RB_DrawDecals( &viewport, transform );
+	RHI_EffectsScissor( &viewport );
+	for ( uint32_t i = 0; i < count; ++i ) {
+		const auto *poly = polys[i];
+		const auto *stage = R_GetShaderByHandle( poly->hShader )->stages[0];
+		auto *image = stage->bundle[0].image[0];
+		rhiParticle_t draw{};
+		for ( int vertex = 0; vertex < 4; ++vertex ) {
+			for ( int row = 0; row < 4; ++row ) {
+				draw.clip[vertex][row] = transform[12 + row];
+				for ( int axis = 0; axis < 3; ++axis )
+					draw.clip[vertex][row] += transform[axis * 4 + row] * poly->verts[vertex].xyz[axis];
+			}
+			for ( int axis = 0; axis < 2; ++axis )
+				draw.uv[vertex][axis] = poly->verts[vertex].st[axis];
+			const byte channel = poly->verts[0].modulate.rgba[vertex];
+			draw.color[vertex] = (float)( vertex < 3 && stage->bundle[0].rgbGen == CGEN_VERTEX ? (byte)( channel * tr.identityLight ) : channel ) / 255;
+		}
+		draw.depth[0] = projection[10];
+		draw.depth[1] = projection[14];
+		draw.depth[2] = poly->softDistance;
+		image->frameUsed = tr.frameCount;
+		R_EffectSoftDraw( RHI_DrawParticle( &draw, &image->texture, ( stage->stateBits & GLS_DSTBLEND_BITS ) == GLS_DSTBLEND_ONE ) );
+	}
+	RHI_EndEffects();
+}
+
+static void RB_PresentationEffects() {
+	const uint64_t start = ri.Microseconds();
+	RB_PresentationEffectsUnprofiled();
+	tr.effectsDrawCpuUsec += ri.Microseconds() - start;
+}
+
+static temporalView_t RB_TemporalView() {
+	temporalView_t view{};
+	view.frame = (uint32_t)backEnd.viewParms.frameCount;
+	view.width = (uint32_t)glConfig.vidWidth;
+	view.height = (uint32_t)glConfig.vidHeight;
+	RB_GetViewportRect( &view.viewport );
+	VectorCopy( backEnd.viewParms.orientation.origin, view.origin );
+	AxisCopy( backEnd.viewParms.orientation.axis, view.axis );
+	view.fovX = backEnd.viewParms.fovX;
+	view.fovY = backEnd.viewParms.fovY;
+	float projection[16];
+	memcpy( projection, backEnd.viewParms.projectionMatrix, sizeof( projection ) );
+	projection[5] = -projection[5];
+	myGlMultMatrix( backEnd.viewParms.world.modelMatrix, projection, view.viewProjection );
+	return view;
+}
+
+static void RB_TemporalGeometry( const drawSurfsCommand_t *cmd ) {
+	const temporalEntity_t *previous[MAX_REFENTITIES] = {};
+	for ( int i = 0; i < backEnd.refdef.num_entities; ++i ) {
+		const auto &entity = backEnd.refdef.entities[i];
+		if ( entity.temporalIdentity )
+			previous[i] = R_TemporalEntity( entity.temporalIdentity, &entity, R_GetModelByHandle( entity.e.hModel )->cookedHash );
+	}
+	const double originalTime = backEnd.refdef.floatTime;
+	backEnd.temporalMotion = true;
+	for ( int i = 0; i < cmd->numDrawSurfs; ++i ) {
+		const auto &surface = cmd->drawSurfs[i];
+		int entityNum, fogNum, dlighted;
+		shader_t *shader;
+		R_DecomposeSort( surface.sort, &entityNum, &shader, &fogNum, &dlighted );
+		if ( shader->isSky || shader == tr.shadowShader )
+			continue;
+		if ( entityNum == REFENTITYNUM_WORLD && !R_TemporalReactiveShader( shader ) )
+			continue; // Static opaque world motion was reconstructed from depth.
+		backEnd.currentEntity = entityNum == REFENTITYNUM_WORLD ? &tr.worldEntity : &backEnd.refdef.entities[entityNum];
+		backEnd.temporalPrevious = entityNum == REFENTITYNUM_WORLD ? nullptr : previous[entityNum];
+		backEnd.refdef.floatTime = originalTime;
+		if ( entityNum == REFENTITYNUM_WORLD )
+			backEnd.orientation = backEnd.viewParms.world;
+		else {
+			const auto &entity = *backEnd.currentEntity;
+			backEnd.refdef.floatTime -= entity.intShaderTime ? (double)entity.e.shaderTime.i * .001 : (double)entity.e.shaderTime.f;
+			R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.orientation );
+		}
+		Com_Memcpy( r_modelview, backEnd.orientation.modelMatrix, sizeof( r_modelview ) );
+		RB_UpdateMVP( nullptr );
+		RB_BeginSurface( shader, fogNum );
+		tess.depthRange = backEnd.currentEntity->e.renderfx & RF_DEPTHHACK ? DEPTH_RANGE_WEAPON : DEPTH_RANGE_NORMAL;
+		rb_surfaceTable[*surface.surface]( surface.surface );
+		if ( !tess.previousPositions ) {
+			memcpy( tess.previousXYZ, tess.xyz, (size_t)tess.numVertexes * sizeof( vec4_t ) );
+			const auto *saved = backEnd.temporalPrevious;
+			const auto &current = backEnd.currentEntity->e;
+			// Rigid surfaces reuse local vertices. Changed legacy animation rejects history.
+			tess.previousPositions = saved && !saved->hasPose && saved->entity.frame == current.frame &&
+									 saved->entity.oldframe == current.oldframe && saved->entity.backlerp == current.backlerp;
+		}
+		RB_EndSurface();
+	}
+	backEnd.temporalMotion = false;
+	backEnd.temporalPrevious = nullptr;
+	backEnd.currentEntity = &tr.worldEntity;
+	backEnd.orientation = backEnd.viewParms.world;
+	backEnd.refdef.floatTime = originalTime;
+	Com_Memcpy( r_modelview, backEnd.orientation.modelMatrix, sizeof( r_modelview ) );
+	RB_UpdateMVP( nullptr );
+}
+
+static void RB_TemporalResolve( const temporalView_t &view, const drawSurfsCommand_t *cmd ) {
+	rhiTemporal_t uniform{};
+	VectorCopy( view.origin, uniform.origin );
+	VectorCopy( view.axis[0], uniform.forward );
+	VectorNegate( view.axis[1], uniform.right );
+	VectorNegate( view.axis[2], uniform.down );
+	const float *projection = backEnd.viewParms.projectionMatrix;
+	uniform.projection[0] = projection[0];
+	uniform.projection[1] = projection[5];
+	uniform.projection[2] = projection[10];
+	uniform.projection[3] = projection[14];
+	uniform.jitter[0] = projection[8];
+	uniform.jitter[1] = projection[9];
+	uniform.viewport[0] = (float)view.viewport.offset.x;
+	uniform.viewport[1] = (float)view.viewport.offset.y;
+	uniform.viewport[2] = (float)view.viewport.extent.width;
+	uniform.viewport[3] = (float)view.viewport.extent.height;
+	uniform.settings[0] = (float)( 1 << tr.overbrightBits );
+	uniform.settings[2] = backEnd.refdef.temporalBlur;
+	if ( const auto *previous = R_TemporalPreviousView() ) {
+		memcpy( uniform.previous, previous->viewProjection, sizeof( uniform.previous ) );
+		uniform.settings[1] = 1;
+	}
+	bool rendered = false;
+	const bool started = RHI_BeginTemporal( &uniform );
+	if ( started ) {
+		RB_TemporalGeometry( cmd );
+		rendered = RHI_ResolveTemporal();
+	}
+	R_TemporalEndView( rendered );
+	R_PostTemporalResult( rendered );
+}
+
 static const void *RB_DrawSurfs( const void *data ) {
 	const drawSurfsCommand_t *cmd;
 
@@ -1549,6 +1710,18 @@ static const void *RB_DrawSurfs( const void *data ) {
 		if ( backEnd.viewParms.shadowLast )
 			RHI_EndShadowPass();
 		return (const void *)( cmd + 1 );
+	}
+
+	const bool temporal = r_taa->integer && r_postProcess->integer && r_fbo->integer &&
+						  !( backEnd.refdef.rdflags & ( RDF_NOWORLDMODEL | RDF_HYPERSPACE ) ) &&
+						  backEnd.viewParms.portalView == PV_NONE && !cmd->refdef.switchRenderPass;
+	temporalView_t temporalView{};
+	if ( temporal ) {
+		rhiRect_t viewport;
+		RB_GetViewportRect( &viewport );
+		R_TemporalJitter( (uint32_t)backEnd.viewParms.frameCount, viewport.extent.width, viewport.extent.height, backEnd.viewParms.projectionMatrix );
+		temporalView = RB_TemporalView();
+		R_TemporalBeginView( &temporalView );
 	}
 
 	// clear the z buffer, set the modelview, etc
@@ -1582,6 +1755,31 @@ static const void *RB_DrawSurfs( const void *data ) {
 		rhiRect_t viewport;
 		RB_GetViewportRect( &viewport );
 		RHI_Occlusion( backEnd.viewParms.projectionMatrix, &viewport, r_ssaoRadius->value, r_ssaoStrength->value );
+	}
+
+	if ( temporal )
+		RB_TemporalResolve( temporalView, cmd );
+
+	RB_PresentationEffects();
+	if ( r_postProcess->integer && r_fbo->integer && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) &&
+		 backEnd.viewParms.portalView == PV_NONE && !cmd->refdef.switchRenderPass ) {
+		RB_EndSurface();
+		if ( r_bloom->integer ) {
+			float transform[16];
+			RB_GetMVP( transform );
+			RHI_Bloom( transform );
+			backEnd.doneBloom = qtrue;
+		}
+		rhiRect_t viewport;
+		RB_GetViewportRect( &viewport );
+		auto post = backEnd.refdef.post;
+		post.projection[0] = backEnd.viewParms.projectionMatrix[10];
+		post.projection[1] = backEnd.viewParms.projectionMatrix[14];
+		post.viewport[0] = (float)viewport.offset.x / (float)glConfig.vidWidth;
+		post.viewport[1] = (float)viewport.offset.y / (float)glConfig.vidHeight;
+		post.viewport[2] = (float)viewport.extent.width / (float)glConfig.vidWidth;
+		post.viewport[3] = (float)viewport.extent.height / (float)glConfig.vidHeight;
+		R_PostDrawResult( RHI_DrawPost( &post, &backEnd.refdef.postLut->texture ) );
 	}
 
 	// draw main system development information (surface outlines, etc)
@@ -1941,6 +2139,7 @@ static const void *RB_SwapBuffers( const void *data ) {
 		ri.Printf( PRINT_DEVELOPER, "GPU presentation: device lost\n" ); // Preserve the existing continuation policy.
 	else
 		R_CheckRHI( presentStatus, "PresentFrame" );
+	R_StreamImages();
 #else
 	ri.GLimp_EndFrame();
 #endif
@@ -2030,6 +2229,8 @@ bool RE_GetDeveloperModel( int index, devModel_t *model ) {
 	model->type = (int32_t)source->type;
 	model->bytes = source->dataSize;
 	model->reloads = R_CookedModelReloads( index );
+	model->lods = (uint32_t)source->numLods;
+	memcpy( model->lodDraws, source->lodDraws, sizeof( model->lodDraws ) );
 	if ( source->type == MOD_MESH )
 		model->frames = source->md3[0]->numFrames;
 	else if ( source->type == MOD_MDR )

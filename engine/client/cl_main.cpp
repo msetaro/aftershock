@@ -3408,6 +3408,7 @@ static void CL_InitRef( void ) {
 	rimp.Hunk_GetTempMemory = Hunk_GetTempMemory;
 
 	rimp.CM_ClusterPVS = CM_ClusterPVS;
+	rimp.CM_BoxTrace = CM_BoxTrace;
 	rimp.CM_DrawDebugSurface = CM_DrawDebugSurface;
 
 #ifdef AFTERSHOCK_DEVTOOLS

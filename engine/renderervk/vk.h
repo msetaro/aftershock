@@ -38,7 +38,7 @@
 #define USE_DEDICATED_ALLOCATION
 #endif
 //#define MIN_IMAGE_ALIGN (128*1024)
-#define MAX_ATTACHMENTS_IN_POOL (12+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
+#define MAX_ATTACHMENTS_IN_POOL (16+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
 
 
 typedef struct {
@@ -164,7 +164,7 @@ typedef struct {
 	uint32_t image_memory_count;
 
 	struct {
-		VkRenderPass occlusion[3];
+		VkRenderPass occlusion[3], particles, particlesResume, post[2], temporal[4];
 		VkRenderPass shadow[2];
 		VkRenderPass resume[2];
 		VkRenderPass main;
@@ -228,7 +228,7 @@ typedef struct {
 		VkFramebuffer gamma[MAX_SWAPCHAIN_IMAGES];
 		VkFramebuffer screenmap;
 		VkFramebuffer capture;
-		VkFramebuffer occlusion[2];
+		VkFramebuffer occlusion[2], particles, post[2], temporal[5];
 		VkFramebuffer shadow[2];
 	} framebuffers;
 
@@ -296,6 +296,7 @@ typedef struct {
 		VkShaderModule direct_vs, direct_fs;
 		VkShaderModule reflection_fs;
 		VkShaderModule occlusion_fs[2][2], occlusion_apply_fs;
+		VkShaderModule particle_vs, particle_fs[2], decal_fs[2], post_fs[2], post_copy_fs, temporal_fs[3], motion_vs, motion_fs;
 		VkShaderModule pbr_baked_vs, pbr_baked_fs;
 		VkShaderModule shadow_vs, shadow_fs;
 
@@ -326,7 +327,7 @@ typedef struct {
 
 	VkPipeline gamma_pipeline;
 	VkPipeline capture_pipeline;
-	VkPipeline occlusion_pipeline[3];
+	VkPipeline occlusion_pipeline[3], particle_pipeline[2], decal_pipeline, post_pipeline[2], temporal_pipeline[3];
 	VkPipeline bloom_extract_pipeline;
 	VkPipeline blur_pipeline[VK_NUM_BLOOM_PASSES * 2]; // horizontal & vertical pairs
 	VkPipeline bloom_blend_pipeline;
@@ -342,6 +343,7 @@ typedef struct {
 
 	float maxAnisotropy;
 	float maxLod;
+	uint32_t maxCompressedTextureSize;
 
 	VkFormat color_format;
 	VkFormat capture_format;
@@ -351,6 +353,14 @@ typedef struct {
 	VkImage occlusion_image[2];
 	VkImageView occlusion_image_view[2];
 	VkDescriptorSet occlusion_descriptor[2];
+	VkImage temporal_image[3]; // Motion, followed by two persistent history images.
+	VkImageView temporal_image_view[3];
+	VkDescriptorSet temporal_descriptor[3];
+	uint32_t temporal_history, temporal_uniform;
+	bool temporal_valid, temporal_active, temporal_failed;
+	VkImage post_image;
+	VkImageView post_image_view;
+	VkDescriptorSet post_descriptor;
 	VkImageView depth_sample_view;
 	VkDescriptorSet depth_descriptor;
 	VkImage shadow_image[2];

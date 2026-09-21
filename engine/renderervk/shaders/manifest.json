@@ -1845,6 +1845,596 @@
         },
         "member_offsets": []
       }
+    },
+    {
+      "name": "particle_vert_spv",
+      "source": "particle.vert",
+      "stage": "vert",
+      "defines": [],
+      "source_sha256": "d6d793ce812dc5c7873cece205ec8207cd3c7b25f60bcd228165f321acd64466",
+      "spirv_sha256": "526111b857feca21a3f5fd93d9fbf61cc713aeb8b3ac21f12912f9467426f577",
+      "recipe_sha256": "25cb24de3d229f2aa2beae9b4c1fc934917c02277f93d05fa5b0ac1361670d6e",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "vert",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "33": {
+            "binding": 0,
+            "set": 0
+          },
+          "42": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 31,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 31,
+            "member": 1,
+            "offset": 64
+          },
+          {
+            "type": 31,
+            "member": 2,
+            "offset": 128
+          },
+          {
+            "type": 31,
+            "member": 3,
+            "offset": 144
+          }
+        ]
+      }
+    },
+    {
+      "name": "particle_frag_spv",
+      "source": "particle.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "7e7e8931ab7c3416e09dfbf51628910acb93468eda6d18321ac1b3383db607fc",
+      "spirv_sha256": "cfcdaa3197f2debafe62cf07c29b801577e02bdf3b444bf82bcc884d85ec076f",
+      "recipe_sha256": "bc7eb9b89d15ee806c41b65b410079f9ef63be145c8bae7db3561c6701bd10bc",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "23": {
+            "binding": 0,
+            "set": 1
+          },
+          "38": {
+            "binding": 0,
+            "set": 0
+          },
+          "74": {
+            "location": 0
+          },
+          "75": {
+            "binding": 0,
+            "set": 2
+          },
+          "78": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 36,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 36,
+            "member": 1,
+            "offset": 64
+          },
+          {
+            "type": 36,
+            "member": 2,
+            "offset": 128
+          },
+          {
+            "type": 36,
+            "member": 3,
+            "offset": 144
+          }
+        ]
+      }
+    },
+    {
+      "name": "particle_ms_frag_spv",
+      "source": "particle.frag",
+      "stage": "frag",
+      "defines": [
+        "MULTISAMPLE"
+      ],
+      "source_sha256": "7e7e8931ab7c3416e09dfbf51628910acb93468eda6d18321ac1b3383db607fc",
+      "spirv_sha256": "95084d545d05ef3e416b0468bac08b26f4aad1286e134ed0df0b63adfbaa07f1",
+      "recipe_sha256": "5b75ca0c1bed185ffd9fc92ac25cccb13b9eda29d7dc6faff9d966322f7909d6",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "33": {
+            "binding": 0,
+            "set": 1
+          },
+          "58": {
+            "binding": 0,
+            "set": 0
+          },
+          "93": {
+            "location": 0
+          },
+          "97": {
+            "binding": 0,
+            "set": 2
+          },
+          "100": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 56,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 56,
+            "member": 1,
+            "offset": 64
+          },
+          {
+            "type": 56,
+            "member": 2,
+            "offset": 128
+          },
+          {
+            "type": 56,
+            "member": 3,
+            "offset": 144
+          }
+        ]
+      }
+    },
+    {
+      "name": "decal_frag_spv",
+      "source": "decal.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "38764ca11bdd8368c84491e0906a396f28c0d67bdf944b93991168b6015427e5",
+      "spirv_sha256": "e6f541d029ec7412a683909ea19a7a945b2aec587896f8443fa5ea3e35fd2acb",
+      "recipe_sha256": "f17eebf3268ed652e067238fa676a254d340eb1a087e303dc7f05360ccadbdf6",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "50": {
+            "binding": 0,
+            "set": 1
+          },
+          "64": {
+            "binding": 0,
+            "set": 0
+          },
+          "221": {
+            "binding": 0,
+            "set": 2
+          },
+          "230": {
+            "binding": 0,
+            "set": 3
+          },
+          "356": {
+            "location": 0
+          },
+          "365": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 62,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 62,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 62,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 62,
+            "member": 3,
+            "offset": 48
+          },
+          {
+            "type": 62,
+            "member": 4,
+            "offset": 64
+          },
+          {
+            "type": 62,
+            "member": 5,
+            "offset": 80
+          },
+          {
+            "type": 62,
+            "member": 6,
+            "offset": 96
+          },
+          {
+            "type": 62,
+            "member": 7,
+            "offset": 144
+          },
+          {
+            "type": 62,
+            "member": 8,
+            "offset": 160
+          },
+          {
+            "type": 62,
+            "member": 9,
+            "offset": 176
+          },
+          {
+            "type": 62,
+            "member": 10,
+            "offset": 192
+          },
+          {
+            "type": 62,
+            "member": 11,
+            "offset": 208
+          }
+        ]
+      }
+    },
+    {
+      "name": "decal_ms_frag_spv",
+      "source": "decal.frag",
+      "stage": "frag",
+      "defines": [
+        "MULTISAMPLE"
+      ],
+      "source_sha256": "38764ca11bdd8368c84491e0906a396f28c0d67bdf944b93991168b6015427e5",
+      "spirv_sha256": "e84f8ba2c3152ed80d8e10041829dee7a8ce0d9715b5db8aa59e433d094a60b3",
+      "recipe_sha256": "424b3dfd897e493d836c508dc0ffc28d2113d5f0aaccd6eb08f9143c64a78cb8",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "60": {
+            "binding": 0,
+            "set": 1
+          },
+          "83": {
+            "binding": 0,
+            "set": 0
+          },
+          "241": {
+            "binding": 0,
+            "set": 2
+          },
+          "250": {
+            "binding": 0,
+            "set": 3
+          },
+          "376": {
+            "location": 0
+          },
+          "385": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 81,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 81,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 81,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 81,
+            "member": 3,
+            "offset": 48
+          },
+          {
+            "type": 81,
+            "member": 4,
+            "offset": 64
+          },
+          {
+            "type": 81,
+            "member": 5,
+            "offset": 80
+          },
+          {
+            "type": 81,
+            "member": 6,
+            "offset": 96
+          },
+          {
+            "type": 81,
+            "member": 7,
+            "offset": 144
+          },
+          {
+            "type": 81,
+            "member": 8,
+            "offset": 160
+          },
+          {
+            "type": 81,
+            "member": 9,
+            "offset": 176
+          },
+          {
+            "type": 81,
+            "member": 10,
+            "offset": 192
+          },
+          {
+            "type": 81,
+            "member": 11,
+            "offset": 208
+          }
+        ]
+      }
+    },
+    {
+      "name": "post_frag_spv",
+      "source": "post.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "40fce0a69fc7117c14b8849db38710481d9bc81cb75d8eb557fd26728cb5b0d4",
+      "spirv_sha256": "379d157cddaa153199c3d5e20a31c589c233d34f24b4a106ab1b5eb06725f102",
+      "recipe_sha256": "4f305794207cfd475afb93dcce8b25451607e4db78c698f7a86582a0ca8dbb03",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "72": {
+            "binding": 0,
+            "set": 1
+          },
+          "87": {
+            "binding": 0,
+            "set": 0
+          },
+          "119": {
+            "location": 0
+          },
+          "144": {
+            "location": 0
+          },
+          "176": {
+            "binding": 0,
+            "set": 2
+          },
+          "366": {
+            "binding": 0,
+            "set": 3
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 85,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 85,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 85,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 85,
+            "member": 3,
+            "offset": 48
+          }
+        ]
+      }
+    },
+    {
+      "name": "post_ms_frag_spv",
+      "source": "post.frag",
+      "stage": "frag",
+      "defines": [
+        "MULTISAMPLE"
+      ],
+      "source_sha256": "40fce0a69fc7117c14b8849db38710481d9bc81cb75d8eb557fd26728cb5b0d4",
+      "spirv_sha256": "99b3e5c641f139982f2397dcfab7269ad86f520632ba3e903130c78398dd2f40",
+      "recipe_sha256": "10d8e97cdefdff9061c6de62cd0c8a779e9a3b72b6f0b7cff894263bcd4b92ac",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "72": {
+            "binding": 0,
+            "set": 1
+          },
+          "87": {
+            "binding": 0,
+            "set": 0
+          },
+          "119": {
+            "location": 0
+          },
+          "144": {
+            "location": 0
+          },
+          "187": {
+            "binding": 0,
+            "set": 2
+          },
+          "385": {
+            "binding": 0,
+            "set": 3
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 85,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 85,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 85,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 85,
+            "member": 3,
+            "offset": 48
+          }
+        ]
+      }
+    },
+    {
+      "name": "post_copy_frag_spv",
+      "source": "post_copy.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "9bb768f3d4c23e618413cd85abe9b07af982d40ddd2f70283a7eafe816e12724",
+      "spirv_sha256": "eeb7e79c579ad6a8e59889fb0f745505e7cfc977e93831b59a74ec3a1dd8a9d5",
+      "recipe_sha256": "e699c1e4e3cbcd2101e646987f0b8bc246e9223d72f5b249279298c25c5d8ca3",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "9": {
+            "location": 0
+          },
+          "13": {
+            "binding": 0,
+            "set": 0
+          },
+          "17": {
+            "location": 0
+          }
+        },
+        "member_offsets": []
+      }
+    },
+    {
+      "name": "motion_camera_frag_spv",
+      "source": "motion_camera.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "334e17b197f191c2db17ea6000efdd22ba74868b3af705a1a54a851923539f25",
+      "includes": {
+        "temporal.glsl": "bb67af83b6fef58bc8bb81d9f7a4aed72428466108d82c41b64993c0422968b6"
+      },
+      "spirv_sha256": "5174a52b75a5e7ddc8e3392bf35a626548954988219e884176c9a54e19140e87",
+      "recipe_sha256": "519e05a304cadb2d7405fb864b3c88b6578a5a6701e7c70e2af0d72c0b255446"
+    },
+    {
+      "name": "temporal_resolve_frag_spv",
+      "source": "temporal_resolve.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "3448575e04c44c6558ec7a5e9423f9bef96fbc1893e8ef6edacb078dddb29c8d",
+      "includes": {
+        "temporal.glsl": "bb67af83b6fef58bc8bb81d9f7a4aed72428466108d82c41b64993c0422968b6"
+      },
+      "spirv_sha256": "0f5fc90c9b8c27f72e7107e3a182d83a67bfbf5b0324428113cb0082a4c5623c",
+      "recipe_sha256": "06cd7221ce00a8397cbdf7e09107502438d0eb49c94ec7227d186a7ba78120b1"
+    },
+    {
+      "name": "temporal_copy_frag_spv",
+      "source": "temporal_copy.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "85d51aec9e9a637226c5b243c629fa9e728b3b9ede87e21359590a815c0bc4f1",
+      "includes": {
+        "temporal.glsl": "bb67af83b6fef58bc8bb81d9f7a4aed72428466108d82c41b64993c0422968b6"
+      },
+      "spirv_sha256": "41183e0316d5f42db2a8229e759cc2fbe5ed89376473600000ce10f7a0d7137e",
+      "recipe_sha256": "230db65962a692d2822d8f567bac77f25f3c232e71cfd710aa20049b370f669a"
+    },
+    {
+      "name": "motion_vert_spv",
+      "source": "motion.vert",
+      "stage": "vert",
+      "defines": [],
+      "source_sha256": "5fa892c405b97ce75e02e56e8b4cc9de8385d47610f92399a807c1abf17f56c7",
+      "includes": {},
+      "spirv_sha256": "25ecaa534698ab8a872e55a750cd2d4a16f3ae0724c52d2f46dfc1693dbc3c11",
+      "recipe_sha256": "b151afc9a56da939ebcda92db7904ecfd78ca67f25539c3bd6adeff6644d6013"
+    },
+    {
+      "name": "motion_frag_spv",
+      "source": "motion.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "fc98e5e05fe8ccf3953e4dfd336ec06ca9736a5eb9a42c770b2bf5e998745415",
+      "includes": {},
+      "spirv_sha256": "6c8a9bafacbec0480c4412ccfe3d70c268c8d500e29f99a05a7f600b2783e81d",
+      "recipe_sha256": "1a63558f4bdf4b8d114cb529cc28bbd05f185c4cda8024be43a3671390535c61"
     }
   ]
 }

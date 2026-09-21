@@ -20,3 +20,13 @@ if(NOT MSVC)
   target_link_libraries(aftershock-cook-audio PRIVATE m)
   target_compile_options(aftershock-cook-audio PRIVATE -ffp-contract=off -fno-fast-math)
 endif()
+
+add_executable(aftershock-cook-lod lod.cpp
+  ../../third_party/meshoptimizer/src/allocator.cpp
+  ../../third_party/meshoptimizer/src/simplifier.cpp)
+target_compile_features(aftershock-cook-lod PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(aftershock-cook-lod PRIVATE /fp:strict)
+else()
+  target_compile_options(aftershock-cook-lod PRIVATE -ffp-contract=off -fno-fast-math)
+endif()

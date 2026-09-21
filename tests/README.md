@@ -1163,7 +1163,8 @@ The standalone build/run command and script contract are documented in
 `python3 tests/agent_formats.py` checks the six authoring schemas, example and
 error commands, cooker/level diagnostic integration, and production loader range
 parity. It needs jsonschema, Pillow, the cooker prerequisites and Go on PATH.
-Effects remain authoring-only pending #161; see the agent tool README.
+Effects have initial cooked/native/editor coverage on #161; final reference art,
+soft depth and full scene/performance acceptance remain pending. See below.
 
 ### Local full regression workflow
 
@@ -1206,3 +1207,221 @@ Without binaries the latter runs only semantics/geometry, not native acceptance.
 Fresh retained output directories are required; none of these gates records
 accepted goldens. See `tools/level/README.md` for report fields and interpretation
 limits, and `tools/blender/README.md` for pinned procedural module provenance.
+
+
+#161 presentation work in progress: `python3 tests/lod.py` cooks the original
+owned animated grid and two smaller meshes, validates the hash-bound `.aslod`
+manifest and identical skeleton/animation, then checks native projected-size
+selection under UBSan. `--cxx 'clang++ -stdlib=libc++'` selects the second compiler.
+Model recipes may specify up to three decreasing `lod_ratios` and `lod_error`
+(default 0.01 relative mesh error). The original mesh is retained. Meshoptimizer
+is pinned and used only by the offline helper. Native selection uses existing
+`r_lodscale` and `r_lodbias`; use `r_lodbias 0` to exercise all three levels (the
+legacy default -2 deliberately favors full detail).
+
+`python3 tests/lod_runtime.py --binary PATH --content openarena --data PATH`
+checks visible near/far draws, stable memory, watched removal/restoration of the
+LOD set and renderer restart. The supplied binary must enable development tools.
+The test authors temporary sources and captures; it never regenerates accepted
+fixtures. Native `assets` model rows expose `lods` and `lodDraws[4]`.
+
+
+`python3 tests/effects.py` checks the version-3 cooked effect record, seeded
+presentation spread/spin, bounded pools, motion/collision, overflow and lifetime.
+The optional top-level `decal` qpath selects one `.asdc` mark per burst. Effect
+local X becomes the decal outward normal; material-hit effects already use that
+orientation. Optional emitter fields include velocity/origin spread, end size, rotation/spin
+and light radius/intensity/color. `tests/effects_runtime.py --binary PATH`
+checks native shaped sprites/lights, watched reload, expiry, memory and restart.
+Both runtime effect tests accept `--content openarena --data PATH`.
+
+`tests/effects_editor.py --binary PATH` checks the Effects ImGui source panel via
+its shared `effects.edit` agent actions: source/text/save/undo/load/start/stop.
+Use a loose `effects_source/*.json` project beneath the engine content home and
+run `tools/cook PROJECT --output CONTENT_HOME --watch`. Saves retain numbered
+backups and refuse external-edit conflicts. The cooker validates definitions;
+new bursts use the new publication while active particles retain their original
+parameters. Effects and Profile panels expose pool and light counters. The
+existing animation editor uses the same guarded source-saving helper.
+
+
+`tests/weapon_effects_runtime.py --binary PATH` fires the owned native weapon
+with `.asfx` material references, checks registration/draws and compares the
+visible impact frame with its expiry. Legacy material shader paths retain their
+old mark/explosion behavior. `tests/effects.py` also checks this dispatch directly
+through the production cgame function under UBSan. Add `--decals` to the native
+weapon test to check material-specific decal registration, visible projection,
+and persistence after particles expire.
+
+
+`python3 tests/effects_reference.py` verifies and cooks the original CC0 reference
+set under `tests/assets/effects`: muzzle flash, metal/stone impacts, smoke, sparks,
+dust, shell, explosion and tracer. Provenance pins every source byte; normal CI
+never runs its authoring exporter. `tests/effects_reference_runtime.py --binary
+PATH --content openarena --data PATH` captures all nine native effects, checks
+visible changes, light hooks and expiry. These are component review captures;
+final feature-on frame goldens and hardware budgets remain #161 work. The smoke
+soft-depth flag uses the sampled-depth pass when `r_fbo 1; r_softParticles 1`
+is selected before renderer initialization.
+
+
+`tests/soft_particles.py --binary PATH --content openarena --data PATH` checks
+floor intersections and complete occlusion with single-sample rendering and with
+4x MSAA plus SSAO, then renderer restart. Depth-faded sprites/trails use one static
+texture with vertex color/alpha and alpha or additive blending; complex legacy
+materials retain their ordinary shader stages. The fade distance is the current
+particle radius, so data edits to size also control intersection softness. The
+pass sorts its bounded polygon references from back to front, samples retained
+depth with no depth attachment bound, and resumes multisample color/stencil via
+load operations. Effects/Profile expose `softDraws` and `softDrops`; upload
+exhaustion drops a draw without allocating. It remains opt-in pending hardware
+budget and final artistic-scene acceptance. The graph probe checks disabled
+legacy descriptors and the new native pass, blend and upload-bound contracts.
+
+
+`tools/agent describe decal` describes cooked `.asdc` definitions: color/normal
+texture paths, full volume size (U/V/depth), lifetime/fade, color and normal strength.
+The existing `tests/effects.py` checks the 128-entry insertion ring under UBSan.
+`tests/decals_runtime.py --binary PATH` checks actual depth projection, no floating
+billboard, normal-map lighting, fade/expiry, ring replacement, stable memory,
+watched texture/definition reload and restart. Use `--samples 4` for the MSAA path;
+`--content openarena --data PATH` selects hosted content. `r_decals 1; r_fbo 1`
+selects the opt-in path before renderer initialization. The native commands are
+`decals.load`, `decals.project` (origin and angles; local Z points out of the
+surface), `decals.clear`, and `decals` (counts). The shared depth-detached effects
+pass renders decals before soft particles and clips each projection to a screen
+rectangle. The Profile panel reports active marks, draws, drops and replacements.
+The Effects editor accepts `.asdc` assets: Project at aim traces the world surface,
+and Clear decals resets the ring. Its source editor uses the same guarded save
+and backup workflow as effects. `--editor` checks those actions, a saved/reloaded
+color change and clear. Original CC0 bullet/scorch/blood references live under `tests/assets/decals`,
+including initial authoring source and pinned provenance. `effects_reference.py`
+verifies/cooks them; `effects_reference_runtime.py` captures each on the native
+floor and checks clear restores the baseline. Budgets and the combined scene
+remain #161 work; these component captures are not frame goldens.
+
+
+`python3 tests/post.py` checks the authored post profile and its 132-byte native
+record, hash, incremental exposure edit and GCC/Clang UBSan decode. Profiles use
+`kind: post`, producing `.aspost`; `tools/agent describe post` lists the controls.
+Vignette, grain, depth-of-field radius and motion blur default to zero. The LUT
+qpath is optional. `r_postProcess 1; r_fbo 1` enables the floating HDR scene target and two post
+passes before HUD drawing; `r_postProfile post/filmic.aspost` selects a profile.
+The optional LUT is a horizontal 16-slice, 256×16 BC7 image cooked with
+`srgb: false`; it maps display RGB after tone mapping. Existing PBR display
+encoding is decoded before the exposure/filmic operation. The tone curve uses
+[Krzysztof Narkowicz's CC0 ACES fit](https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/),
+not full ACES color management. Legacy gamma and HUD composition remain later.
+
+`tests/post_runtime.py --binary PATH --content openarena --data PATH` checks
+exposure, constant LUT grading, sharpening, vignette, time-varying grain, bounded
+nine-tap depth blur, watcher reload, exact restoration and renderer restart.
+`--samples 4` selects MSAA. Post profiles reload through the existing cooker
+watcher; invalid profiles retain the preceding settings. Profile exposes draw,
+upload-drop and load counters. Motion blur consumes temporal vectors with `r_taa 1`; final temporal quality,
+scene/goldens and budgets are still #161 work. The post stack remains opt-in until those gates pass.
+
+`python3 tests/temporal.py` checks the renderer's fixed-capacity previous-view
+cache with GCC/Clang and UBSan. It copies up to 256 entity transforms/skin poses
+per view in less than 4 MiB, rejecting stale identities/models, skipped or failed
+frames, teleports, view cuts and viewport changes. This is the CPU history
+component; motion-vector rendering, jitter and TAA acceptance are still pending.
+
+`tests/temporal_runtime.py --binary PATH --content openarena --data PATH` enables
+`r_fbo 1`, `r_postProcess 1`, and `r_taa 1` on an owned generated level, with
+entities hidden to isolate camera history. It checks actual temporal GPU passes,
+small camera movement, a large camera/FOV cut, restart and disable. TAA selects
+single-sample rendering; the saved MSAA setting applies when TAA is disabled.
+The current camera component uses an eight-frame centered Halton jitter,
+linear-color history, depth rejection and neighborhood clamping. Optional
+`motion_blur` affects the display copy, leaving history sharp. `--models` additionally cooks the owned rigs and verifies matched pose history
+and actual motion draws through ADS, fire/reload and third-person movement.
+Unknown identities and changed legacy MD3/MDR vertex animation reject history;
+native IQM skin poses and rigid transforms have previous-position motion. Final
+visual/performance acceptance is still unfinished;
+`r_taa` and `r_postProcess` remain default off.
+
+`tests/animation_runtime.py --taa --binary PATH` exercises the same native
+rifle/body events and replicated hit-box checks with the temporal renderer.
+Its 320x240 software captures are correctness controls, not GPU budget evidence.
+The development profiler/agent `temporal` object reports cumulative frame/drop,
+motion/reactive draw counts and latest-view stored/matched/rejected/overflow
+history counts. Geometry/uniform exhaustion rejects the whole frame's history.
+
+`python3 tests/streaming.py` checks the fixed-capacity texture residency policy
+under UBSan. The input costs are Vulkan allocation requirements for each mip
+chain; pending and retired allocations count against the same peak budget. Coarse
+tails stay resident, recently bound textures win quality, equal-priority views
+retain current quality, and eviction precedes promotion. One transition at a time
+bounds staging/retirement; native upload and large-set runtime controls follow below. No asset fixture is regenerated.
+
+The native `tests/rhi.py` upload probe also checks asynchronous compressed mip
+transfers through fixed staging: bounded submissions, exact destination rows and
+bytes, zero-timeout fence polling, completion after the final fence, and device
+loss, completed GPU timestamps and fence-safe residency reclamation.
+
+`tests/streaming_runtime.py --binary PATH --content openarena --data PATH` cooks
+five original 4K BC7 textures and exercises a 32 MiB residency pool on the generated
+two_lane level. It checks promotion, cold-tail eviction, rewarming, texture hot
+reload and renderer restart, retaining profiler reports/captures in its output
+directory. The runtime controls are `r_textureStreaming` (default 0),
+`r_textureBudgetMB` (default 256) and `r_textureSourceMB` (default 256), all latched.
+The device budget owns only streamed cooked mip chains; legacy textures and render
+targets keep their existing allocations. Each asynchronous submission copies at most 1 MiB through fixed staging.
+The separate source arena retains compressed mip bytes, with no filesystem reads or engine heap allocation during
+frame streaming. Source exhaustion reports an error. Same-size/smaller reloads
+reuse source slots; growing reloads consume arena space until renderer restart.
+Profiler `textureStreaming` reports both budgets, occupied/retired/peak bytes,
+source usage, transitions, reloads, deferrals and CPU processing time. Hardware
+transfer timing is reported only after its existing completion fence.
+
+Run the hardware gate serially on the reference RTX 3080 Ti:
+
+```sh
+VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nvidia_icd.json python3 tests/streaming_runtime.py --binary PATH --content openarena --data PATH --measure-gpu --output /tmp/streaming-hardware
+```
+
+It measures 2560x1440 offscreen rendering with 640x360 presentation after 4096
+warm frames, then four cold/visible cycles sampled every frame. Active-transition
+CPU p95 must be at most 0.25 ms; completed upload GPU p95 at most 0.50 ms. It retains
+`gpu-report.json` and `gpu-engine.log` before checking the budgets, including the
+frame CPU percentiles and each observed submission. Software CI runs the functional
+gate without this option; it does not substitute for the reference hardware gate.
+Final combined visual acceptance remains required.
+
+
+`tests/fidelity_runtime.py --binary PATH --content openarena --data PATH` combines
+all nine unchanged reference effects, three projected decals, an owned PBR sphere
+with 576/288/144-triangle cooked LODs, TAA and filmic post on the generated two_lane
+level. It checks active passes, visible output, bounded pools and reduced geometry,
+and compares four software captures exactly. Mesa 26.0.8 uses the retained
+`tests/golden/fidelity/*.png`; Mesa 25.2.8 uses the separately reviewed
+`tests/golden/fidelity/mesa-25.2.8/*.png`. The renderer log must identify llvmpipe
+and one Mesa version; unknown/missing references fail. Like fixed replay frames,
+Quake 3 local runs use the separate `tests/golden/fidelity/quake3/` references
+(Mesa 26.0.8). No installed paks are copied or uploaded. These are per-content,
+per-driver exact references, not a tolerance-based comparison. The
+25.2.8/26.0.8 difference is at most two RGB code values per channel (mean error
+below 0.022 per channel); both versions must match their own reference exactly.
+The new sphere recipe explicitly uses `lod_error=.1` to reach its requested ratios;
+this does not change any shipped asset or cooker default. The lowest LOD saves 75%
+of triangles. These CC0 captures contain only the generated level and owned assets.
+Initial reference creation uses `--record-reference`, which refuses to overwrite
+existing references. CI never passes that flag. Reference changes require an
+explicit behavior-change decision and review, as with the other golden fixtures.
+
+
+The same combined test accepts `--measure-gpu` with explicit
+`VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nvidia_icd.json` on the reference RTX 3080 Ti.
+Hardware captures do not replace software references. After 4096 warm frames and
+64 effect warm frames it samples 400 consecutive frames at 2560x1440 offscreen,
+with all nine effects and three decals spawned every 20 frames. It records each
+profile, frame CPU percentiles, p50/p95/p99 per-system timings, budgets and failures
+in `gpu-report.json` before enforcing the declared limits. Persistent engine memory
+must stay stable and effects/decals must report no capacity/upload drops.
+CPU p95 limits (ms): effects preparation .50, decal preparation .25, soft/decal
+backend submission .50, LOD selection .10. GPU limits: inclusive effects 1.50,
+nested decals .75, post .75, post copy .20, camera motion .30, object motion .50,
+temporal resolve .80, temporal copy .30. Nested decal time is already included
+in effects time. Earlier street-scene post-copy budget misses remain recorded;
+this simpler scene passing does not enable post processing by default.

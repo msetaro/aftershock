@@ -58,7 +58,7 @@ static VkResult VKAPI_CALL createImage( VkDevice, const VkImageCreateInfo *p, co
 	if ( ( p->usage & ( VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT ) ) ==
 		 ( VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT ) ) {
 		if ( p->format != VK_FORMAT_D32_SFLOAT ) {
-			assert( vk_config.occlusionScale && p->extent.width == 640 && p->extent.height == 480 );
+			assert( ( vk_config.occlusionScale || vk_config.depthEffects ) && p->extent.width == 640 && p->extent.height == 480 );
 			assert( p->samples == vkSamples && !( p->usage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT ) );
 			*out = (VkImage)(uintptr_t)imageCount;
 			return VK_SUCCESS;
@@ -90,8 +90,17 @@ static void captureImages() {
 	if ( !setjmp( imageDone ) )
 		vk_create_attachments();
 }
-static uint32_t framebufferCount;
+static uint32_t framebufferCount, historyFramebuffers;
 static VkResult VKAPI_CALL createFramebuffer( VkDevice, const VkFramebufferCreateInfo *p, const VkAllocationCallbacks *, VkFramebuffer *out ) {
+	if ( vk_config.temporal && p->renderPass == vk.render_pass.temporal[2] ) {
+		assert( p->attachmentCount == 1 );
+		if ( p->pAttachments[0] == vk.temporal_image_view[1] )
+			historyFramebuffers |= 1;
+		else {
+			assert( p->pAttachments[0] == vk.temporal_image_view[2] );
+			historyFramebuffers |= 2;
+		}
+	}
 	row( "framebuffer", framebufferCount++, (uintptr_t)p->renderPass, p->flags, p->attachmentCount, p->width, p->height, p->layers );
 	for ( uint32_t i = 0; i < p->attachmentCount; ++i )
 		row( "view", (uintptr_t)p->pAttachments[i] );
@@ -101,11 +110,20 @@ static VkResult VKAPI_CALL createFramebuffer( VkDevice, const VkFramebufferCreat
 static uint32_t begun, ended, depthBegun, resumed;
 static void VKAPI_CALL beginPass( VkCommandBuffer, const VkRenderPassBeginInfo *p, VkSubpassContents ) {
 	++begun;
+	if ( vk_config.temporal ) {
+		for ( uint32_t i = 0; i < 4; ++i ) {
+			if ( p->renderPass != vk.render_pass.temporal[i] )
+				continue;
+			assert( p->clearValueCount == 0 );
+			assert( p->framebuffer == vk.framebuffers.temporal[i == 2 ? 2 + vk.temporal_history : i == 3 ? 4 : i] );
+			return;
+		}
+	}
 	if ( p->renderPass == vk.render_pass.shadow[0] || p->renderPass == vk.render_pass.shadow[1] ) {
 		++depthBegun;
 		assert( p->clearValueCount == 1 && p->pClearValues[0].depthStencil.depth == 0 );
 		assert( p->renderArea.extent.width == 1024 && p->renderArea.extent.height == 1024 );
-	} else if ( p->clearValueCount == 0 && p->renderPass != vk.render_pass.occlusion[0] && p->renderPass != vk.render_pass.occlusion[1] && p->renderPass != vk.render_pass.occlusion[2] ) {
+	} else if ( p->clearValueCount == 0 && p->renderPass != vk.render_pass.occlusion[0] && p->renderPass != vk.render_pass.occlusion[1] && p->renderPass != vk.render_pass.occlusion[2] && p->renderPass != vk.render_pass.particles && p->renderPass != vk.render_pass.particlesResume && p->renderPass != vk.render_pass.post[0] && p->renderPass != vk.render_pass.post[1] ) {
 		++resumed;
 		assert( p->renderPass == vk.render_pass.resume[0] || p->renderPass == vk.render_pass.resume[1] );
 	}
@@ -231,7 +249,7 @@ static void VKAPI_CALL bindPostPipeline( VkCommandBuffer, VkPipelineBindPoint, V
 	assert( pipeline );
 }
 static void VKAPI_CALL bindPostDescriptors( VkCommandBuffer, VkPipelineBindPoint, VkPipelineLayout, uint32_t first, uint32_t count, const VkDescriptorSet *sets, uint32_t offsets, const uint32_t *dynamicOffsets ) {
-	if ( occlusionDraws == 3 ) {
+	if ( count == 1 && first < RHI_BINDING_COUNT && sets == &vk.cmd->descriptor_set.current[first] ) {
 		assert( count == 1 && first < RHI_BINDING_COUNT );
 		assert( sets[0] && sets[0] == vk.cmd->descriptor_set.current[first] );
 		assert( offsets == ( first == RHI_BINDING_UNIFORM ? 1U : 0U ) );
@@ -240,7 +258,7 @@ static void VKAPI_CALL bindPostDescriptors( VkCommandBuffer, VkPipelineBindPoint
 		restoredSets |= 1U << first;
 		return;
 	}
-	assert( first == 0 && ( count == 2 || count == 3 ) && offsets == 1 );
+	assert( first == 0 && ( ( count == 1 && offsets == 0 ) || ( ( count == 2 || count == 3 || count == 4 ) && offsets == 1 ) ) );
 	for ( uint32_t i = 0; i < count; ++i )
 		assert( sets[i] );
 }
@@ -286,7 +304,234 @@ static void occlusionCommands( uint32_t deviceSets ) {
 	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
 	RHI_EndPass();
 }
+static uint32_t particlePipelines;
+static VkResult VKAPI_CALL createParticlePipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
+	assert( count == 1 && p->renderPass == vk.render_pass.particles );
+	assert( p->pMultisampleState->rasterizationSamples == vkSamples );
+	assert( !p->pDepthStencilState->depthTestEnable && !p->pDepthStencilState->depthWriteEnable );
+	assert( p->pDynamicState && p->pDynamicState->dynamicStateCount == 2 );
+	const auto &blend = p->pColorBlendState->pAttachments[0];
+	assert( blend.blendEnable && blend.srcColorBlendFactor == VK_BLEND_FACTOR_SRC_ALPHA );
+	assert( blend.dstColorBlendFactor == ( particlePipelines % 2 ? VK_BLEND_FACTOR_ONE : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA ) );
+	*out = (VkPipeline)(uintptr_t)++particlePipelines;
+	return VK_SUCCESS;
+}
+static void VKAPI_CALL particleViewport( VkCommandBuffer, uint32_t first, uint32_t count, const VkViewport *view ) {
+	assert( first == 0 && count == 1 && view->width == 640 && view->height == 480 );
+}
+static VkRect2D observedScissor;
+static void VKAPI_CALL particleScissor( VkCommandBuffer, uint32_t first, uint32_t count, const VkRect2D *area ) {
+	assert( first == 0 && count == 1 );
+	observedScissor = *area;
+}
+static void particleCommands() {
+	qvkCreateGraphicsPipelines = createParticlePipeline;
+	particlePipelines = 0;
+	for ( int i = 0; i < 3; ++i )
+		vk_create_post_process_pipeline( 7 + i, 640, 480 );
+	qvkCmdBindPipeline = bindPostPipeline;
+	qvkCmdBindDescriptorSets = bindPostDescriptors;
+	qvkCmdDraw = drawPost;
+	qvkCmdSetViewport = particleViewport;
+	qvkCmdSetScissor = particleScissor;
+	uint8_t upload[256] = {};
+	vk.cmd->vertex_buffer_ptr = upload;
+	vk.cmd->vertex_buffer_offset = 0;
+	vk.cmd->uniform_read_offset = 32;
+	vk_config.uniformBytes = sizeof( rhiParticle_t );
+	vk.uniform_alignment = 64;
+	vk.uniform_item_size = 192;
+	vk.geometry_buffer_size = sizeof( upload );
+	vk.maxBoundDescriptorSets = 32;
+	vk.cmd->descriptor_set = {};
+	vk.cmd->descriptor_set.current[0] = vk.cmd->uniform_descriptor;
+	vk.cmd->descriptor_set.current[1] = (VkDescriptorSet)(uintptr_t)123;
+	vk.cmd->descriptor_set.current[3] = (VkDescriptorSet)(uintptr_t)456;
+	vk.cmd->descriptor_set.offset[0] = 32;
+	restoredSets = 0;
+	const auto descriptors = vk.cmd->descriptor_set;
+	const rhiRect_t viewport = { { 0, 0 }, { 640, 480 } };
+	RHI_BeginMainPass();
+	assert( RHI_BeginEffects( &viewport ) );
+	rhiParticle_t draw{};
+	rhiTexture_t image{};
+	image.binding = 123;
+	occlusionDraws = 0;
+	assert( RHI_DrawParticle( &draw, &image, false ) );
+	assert( !RHI_DrawParticle( &draw, &image, true ) ); // Upload exhaustion stays bounded.
+	assert( occlusionDraws == 1 && vk.cmd->uniform_read_offset == 32 );
+	rhiDecal_t decal{};
+	assert( !RHI_DrawDecal( &decal, &image, &image, &viewport ) );
+	vk.cmd->vertex_buffer_offset = 0;
+	vk_config.uniformBytes = sizeof( decal );
+	vk.uniform_item_size = sizeof( upload );
+	assert( RHI_DrawDecal( &decal, &image, &image, &viewport ) );
+	assert( !RHI_DrawDecal( &decal, &image, &image, &viewport ) );
+	assert( occlusionDraws == 2 && vk.cmd->uniform_read_offset == 32 );
+	vk.cmd->scissor_rect = { { 0, 0 }, { 640, 480 } };
+	const rhiRect_t decalArea = { { 16, 24 }, { 32, 48 } };
+	RHI_EffectsScissor( &decalArea );
+	RHI_EndEffects();
+	rhiRasterState_t raster{};
+	raster.scissor = viewport;
+	raster.viewport = { 0, 0, 640, 480, 0, 1 };
+	raster.depthRange = DEPTH_RANGE_NORMAL;
+	vk_update_depth_range( &raster );
+	assert( observedScissor.offset.x == 0 && observedScissor.offset.y == 0 );
+	assert( observedScissor.extent.width == 640 && observedScissor.extent.height == 480 );
+	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
+	assert( restoredSets == 0x0b );
+	assert( vk.cmd->descriptor_set.start == ~0U && vk.cmd->descriptor_set.end == 0 );
+	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_NORMAL );
+	RHI_EndPass();
+}
+static VkResult VKAPI_CALL createFilmPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
+	assert( count == 1 && ( p->renderPass == vk.render_pass.post[0] || p->renderPass == vk.render_pass.post[1] ) );
+	const bool film = p->renderPass == vk.render_pass.post[0];
+	assert( p->layout == ( film ? vk.pipeline_layout : vk.pipeline_layout_post_process ) );
+	assert( p->pMultisampleState->rasterizationSamples == ( film ? VK_SAMPLE_COUNT_1_BIT : vkSamples ) );
+	assert( !p->pDepthStencilState->depthTestEnable && !p->pDepthStencilState->depthWriteEnable );
+	assert( !p->pColorBlendState->pAttachments[0].blendEnable );
+	assert( p->pDynamicState && p->pDynamicState->dynamicStateCount == 2 );
+	*out = (VkPipeline)(uintptr_t)( film ? 11 : 12 );
+	return VK_SUCCESS;
+}
+static void filmCommands() {
+	qvkCreateGraphicsPipelines = createFilmPipeline;
+	vk_create_post_process_pipeline( 10, 640, 480 );
+	vk_create_post_process_pipeline( 11, 640, 480 );
+	uint8_t upload[128]{};
+	vk.cmd->vertex_buffer_ptr = upload;
+	vk.cmd->vertex_buffer_offset = 0;
+	vk.cmd->uniform_read_offset = 32;
+	vk_config.uniformBytes = sizeof( rhiPostDraw_t );
+	vk.uniform_item_size = sizeof( upload );
+	vk.geometry_buffer_size = sizeof( upload );
+	vk.maxBoundDescriptorSets = 32;
+	vk.cmd->descriptor_set = {};
+	vk.cmd->descriptor_set.current[0] = vk.cmd->uniform_descriptor;
+	vk.cmd->descriptor_set.current[1] = (VkDescriptorSet)(uintptr_t)123;
+	vk.cmd->descriptor_set.current[3] = (VkDescriptorSet)(uintptr_t)456;
+	vk.cmd->descriptor_set.offset[0] = 32;
+	restoredSets = 0;
+	const auto descriptors = vk.cmd->descriptor_set;
+	RHI_BeginMainPass();
+	rhiPostDraw_t post{};
+	rhiTexture_t lut{};
+	lut.binding = 123;
+	occlusionDraws = 0;
+	assert( RHI_DrawPost( &post, &lut ) );
+	assert( !RHI_DrawPost( &post, &lut ) );
+	assert( occlusionDraws == 2 && vk.cmd->uniform_read_offset == 32 );
+	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
+	assert( restoredSets == 0x0b );
+	assert( vk.cmd->descriptor_set.start == ~0U && vk.cmd->descriptor_set.end == 0 );
+	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
+	RHI_EndPass();
+}
+static VkResult VKAPI_CALL createTemporalPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
+	assert( count == 1 && p->layout == vk.pipeline_layout );
+	assert( p->renderPass == vk.render_pass.temporal[0] || p->renderPass == vk.render_pass.temporal[2] || p->renderPass == vk.render_pass.temporal[3] );
+	assert( p->pMultisampleState->rasterizationSamples == VK_SAMPLE_COUNT_1_BIT );
+	assert( !p->pDepthStencilState->depthTestEnable && !p->pDepthStencilState->depthWriteEnable );
+	assert( !p->pColorBlendState->pAttachments[0].blendEnable );
+	*out = (VkPipeline)(uintptr_t)99;
+	return VK_SUCCESS;
+}
+static VkResult VKAPI_CALL createMotionPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
+	assert( count == 1 && p->layout == vk.pipeline_layout && p->renderPass == vk.render_pass.temporal[1] );
+	assert( p->pMultisampleState->rasterizationSamples == VK_SAMPLE_COUNT_1_BIT );
+	assert( p->pDepthStencilState->depthTestEnable && !p->pDepthStencilState->depthWriteEnable );
+	assert( p->pDepthStencilState->depthCompareOp == VK_COMPARE_OP_GREATER_OR_EQUAL );
+	assert( !p->pColorBlendState->pAttachments[0].blendEnable );
+	assert( p->pVertexInputState->vertexBindingDescriptionCount == 4 );
+	assert( p->pVertexInputState->vertexAttributeDescriptionCount == 4 );
+	const auto &previous = p->pVertexInputState->pVertexAttributeDescriptions[3];
+	assert( previous.location == 3 && previous.binding == 5 && previous.format == VK_FORMAT_R32G32B32A32_SFLOAT );
+	*out = (VkPipeline)(uintptr_t)98;
+	return VK_SUCCESS;
+}
+static void temporalCommands() {
+	qvkCreateGraphicsPipelines = createTemporalPipeline;
+	for ( int i = 0; i < 3; ++i )
+		vk_create_post_process_pipeline( 12 + i, 640, 480 );
+	qvkCreateGraphicsPipelines = createMotionPipeline;
+	vk.modules.motion_vs = (VkShaderModule)(uintptr_t)23;
+	vk.modules.motion_fs = (VkShaderModule)(uintptr_t)24;
+	rhiPipelineDesc_t motion{};
+	motion.shader_type = TYPE_MOTION;
+	motion.face_culling = CT_TWO_SIDED;
+	assert( create_pipeline( &motion, RENDER_PASS_MAIN, 0 ) );
+	uint8_t upload[512]{};
+	vk.cmd->vertex_buffer_ptr = upload;
+	vk.cmd->uniform_read_offset = 32;
+	vk_config.uniformBytes = sizeof( rhiTemporal_t );
+	vk.uniform_item_size = 256;
+	vk.geometry_buffer_size = sizeof( upload );
+	rhiTemporal_t uniform{};
+	uniform.settings[0] = 1;
+	uniform.settings[1] = 1;
+	uniform.viewport[2] = 640;
+	uniform.viewport[3] = 480;
+	RHI_ResetTemporal();
+	for ( uint32_t frame = 0; frame < 3; ++frame ) {
+		vk.cmd->vertex_buffer_offset = 0;
+		occlusionDraws = restoredSets = 0;
+		RHI_BeginMainPass();
+		assert( RHI_BeginTemporal( &uniform ) );
+		assert( occlusionDraws == 1 );
+		const auto *copied = (const rhiTemporal_t *)upload;
+		assert( copied->settings[1] == ( frame ? 1 : 0 ) );
+		assert( RHI_ResolveTemporal() );
+		assert( occlusionDraws == 3 && restoredSets == 0x0b );
+		assert( vk.temporal_history == ( ( frame + 1 ) & 1 ) );
+		assert( vk.temporal_valid && vk.cmd->uniform_read_offset == 32 );
+		assert( vk.cmd->descriptor_set.start == ~0U && vk.cmd->descriptor_set.end == 0 );
+		RHI_EndPass();
+	}
+	for ( uint32_t failure = 0; failure < 2; ++failure ) {
+		RHI_BeginMainPass();
+		vk.cmd->vertex_buffer_offset = 0;
+		assert( RHI_BeginTemporal( &uniform ) );
+		const auto history = vk.temporal_history;
+		if ( failure )
+			vk.geometry_buffer_size_new = 1024;
+		else
+			RHI_RejectTemporal();
+		assert( !RHI_ResolveTemporal() );
+		assert( !vk.temporal_valid && vk.temporal_history == history );
+		vk.geometry_buffer_size_new = 0;
+		RHI_EndPass();
+	}
+	RHI_BeginMainPass();
+	vk.cmd->vertex_buffer_offset = sizeof( upload );
+	assert( !RHI_BeginTemporal( &uniform ) );
+	assert( !vk.temporal_valid && vk.temporal_history == 1 );
+	RHI_EndPass();
+	RHI_ResetTemporal();
+	assert( !vk.temporal_valid && vk.temporal_history == 0 );
+}
 int main( int argc, char **argv ) {
+	if ( argc == 2 && !strcmp( argv[1], "--hdr" ) ) {
+		const VkFormat base = VK_FORMAT_R8G8B8A8_UNORM;
+		vk_config = {};
+		vk_config.hdr = 2;
+		assert(get_hdr_format(base) == base);
+		vk_config.fbo = 1;
+		vk_config.hdr = 0;
+		assert(get_hdr_format(base) == base);
+		vk_config.hdr = -1;
+		assert(get_hdr_format(base) == VK_FORMAT_B4G4R4A4_UNORM_PACK16);
+		vk_config.hdr = 1;
+		assert(get_hdr_format(base) == VK_FORMAT_R16G16B16A16_UNORM);
+		vk_config.hdr = 2;
+		assert(get_hdr_format(base) == VK_FORMAT_R16G16B16A16_SFLOAT);
+		puts( "PASS: floating HDR target and unchanged legacy color formats" );
+		return 0;
+	}
+	const bool temporal = argc > 1 && !strcmp( argv[1], "--temporal" );
+	const bool post = temporal || ( argc > 1 && !strcmp( argv[1], "--post" ) );
+	const bool particles = post || ( argc > 1 && !strcmp( argv[1], "--particles" ) );
 	const bool occlusion = argc > 1 && !strcmp( argv[1], "--ssao" );
 	qvkCreateRenderPass = createPass;
 	qvkCreateFramebuffer = createFramebuffer;
@@ -300,15 +545,20 @@ int main( int argc, char **argv ) {
 	qvkCreateSampler = createSampler;
 	qvkUpdateDescriptorSets = updateDescriptors;
 	qvkCreateGraphicsPipelines = createDepthPipeline;
-	for ( uint32_t mode = occlusion ? 4 : 0; mode < 36; ++mode ) {
+	for ( uint32_t mode = occlusion || particles ? 4 : 0; mode < 36; ++mode ) {
 		qvkCreateGraphicsPipelines = createDepthPipeline;
 		vk = {};
 		vk_config = {};
-		passCount = imageCount = framebufferCount = shadowPassCount = shadowImageCount = 0;
+		passCount = imageCount = framebufferCount = shadowPassCount = shadowImageCount = historyFramebuffers = 0;
 		vk_config.shadowMapSize = argc > 1 ? 1024 : 0;
 		const bool offscreen = mode >= 4;
 		const uint32_t options = offscreen ? mode - 4 : mode;
-		vk_config.occlusionScale = occlusion ? 1 + mode % 2 : 0;
+		vk_config.occlusionScale = occlusion ? 1 + mode % 2 : ( particles ? mode % 2 : 0 );
+		vk_config.depthEffects = particles;
+		vk_config.postProcess = post;
+		vk_config.temporal = temporal;
+		if ( temporal && ( options & 4 ) )
+			continue;
 		vk_config.fbo = offscreen;
 		vk_config.bloom = options & 1;
 		vk_config.stencilBits = options & 2 ? 8 : 0;
@@ -339,13 +589,15 @@ int main( int argc, char **argv ) {
 		captureImages();
 		vk_create_render_passes();
 		vk_create_framebuffers();
-		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u)+(occlusion?3u:0u));
+		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u)+(vk_config.occlusionScale?3u:0u)+(particles?2u:0u)+(post?2u:0u)+(temporal?4u:0u));
 		assert( shadowPassCount == ( argc > 1 ? 2u : 0u ) && shadowImageCount == shadowPassCount );
 		if ( argc > 1 ) {
 			shadowCommands( false );
 			if ( offscreen )
 				shadowCommands( true );
-			if ( occlusion ) {
+			if ( vk_config.occlusionScale || particles )
+				vk.depth_sample_view = (VkImageView)(uintptr_t)500;
+			if ( vk_config.occlusionScale ) {
 				vk.depth_sample_view = (VkImageView)(uintptr_t)500;
 				for ( uint32_t i = 0; i < 3; ++i ) {
 					const auto &node = vk_graph.passes[(uint32_t)rhiGraphPass_t::Occlusion + i];
@@ -355,7 +607,28 @@ int main( int argc, char **argv ) {
 				const auto &depth = vk_graph.targets[(uint32_t)rhiGraphTarget_t::MainDepth];
 				assert( depth.usage & RHI_GRAPH_SAMPLED && !depth.transient );
 			}
+			if ( temporal ) {
+				assert( historyFramebuffers == 3 );
+				for ( uint32_t i = 0; i < 3; ++i )
+					assert( vk.temporal_image[i] && vk.temporal_image_view[i] );
+				for ( uint32_t i = 0; i < 4; ++i )
+					assert( vk.render_pass.temporal[i] );
+				for ( uint32_t i = 0; i < 5; ++i )
+					assert( vk.framebuffers.temporal[i] );
+			}
+			if ( post ) {
+				assert( vk.post_image && vk.post_image_view );
+				assert( vk.render_pass.post[0] && vk.render_pass.post[1] );
+				assert( vk.framebuffers.post[0] && vk.framebuffers.post[1] );
+				const auto &node = vk_graph.passes[(uint32_t)rhiGraphPass_t::PostApply];
+				assert( node.depth == RHI_INVALID_OFFSET && node.resolve == ( vk.msaaActive ? 0u : RHI_INVALID_OFFSET ) );
+			}
 			shadowDescriptors();
+			if ( temporal )
+				for ( uint32_t i = 0; i < 3; ++i )
+					assert( vk.temporal_descriptor[i] );
+			if ( post )
+				assert( vk.post_descriptor );
 			vk.modules.shadow_vs = (VkShaderModule)(uintptr_t)11;
 			vk.modules.shadow_fs = (VkShaderModule)(uintptr_t)12;
 			rhiPipelineDesc_t depth = {};
@@ -378,11 +651,17 @@ int main( int argc, char **argv ) {
 			vk.modules.reflection_fs = (VkShaderModule)(uintptr_t)16;
 			direct.shader_type = TYPE_REFLECTION;
 			assert( create_pipeline( &direct, RENDER_PASS_MAIN, 0 ) != VK_NULL_HANDLE );
-			if ( occlusion ) {
+			if ( vk_config.occlusionScale ) {
 				const uint32_t capacities[] = { 4, 5, 32 };
 				for ( uint32_t deviceSets : capacities )
 					occlusionCommands( deviceSets );
 			}
+			if ( particles )
+				particleCommands();
+			if ( post )
+				filmCommands();
+			if ( temporal )
+				temporalCommands();
 		}
 	}
 }

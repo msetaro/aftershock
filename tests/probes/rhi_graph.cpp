@@ -164,9 +164,123 @@ int main( void ) {
 			}
 		}
 	}
+	// Soft particles sample depth while it is detached, then resume every scene
+	// attachment with load operations, including multisample color and stencil.
+	for ( uint32_t samples : { 1u, 4u } ) {
+		for ( uint32_t ao : { 0u, 2u } ) {
+			config.samples = samples;
+			config.occlusionScale = ao;
+			config.depthEffects = true;
+			assert( RHI_CompileGraph( &config, &graph ) );
+			const auto &depth = graph.targets[target( rhiGraphTarget_t::MainDepth )];
+			assert( !depth.transient && ( depth.usage & RHI_GRAPH_SAMPLED ) );
+			const auto &fx = graph.passes[pass( rhiGraphPass_t::Effects )];
+			const auto &resume = graph.passes[pass( rhiGraphPass_t::EffectsResume )];
+			assert( fx.enabled && fx.depth == RHI_INVALID_OFFSET );
+			assert( fx.readMask & bit( rhiGraphTarget_t::MainDepth ) );
+			assert( !( fx.writeMask & bit( rhiGraphTarget_t::MainDepth ) ) );
+			assert( fx.attachmentCount == ( samples > 1 ? 2u : 1u ) );
+			assert( resume.enabled && resume.depth == 1 );
+			assert( resume.dependencyMask & ( 1u << pass( rhiGraphPass_t::Effects ) ) );
+			for ( uint32_t i = 0; i < resume.attachmentCount; ++i ) {
+				assert( resume.attachments[i].load == rhiGraphLoad_t::Load );
+				assert( resume.attachments[i].store == rhiGraphStore_t::Store );
+			}
+			uint32_t seen = 0;
+			for ( uint32_t i = 0; i < graph.executionCount; ++i ) {
+				const auto id = graph.executionOrder[i];
+				const auto &node = graph.passes[pass( id )];
+				if ( !node.enabled )
+					continue;
+				assert( !( node.dependencyMask & ~seen ) );
+				seen |= 1u << pass( id );
+			}
+		}
+	}
+	// Filmic output is separate from its sampled input; copy back before HUD.
+	config.postProcess = true;
+	for ( const uint32_t samples : { 1u, 4u } ) {
+		config.samples = samples;
+		assert( RHI_CompileGraph( &config, &graph ) );
+		const auto &image = graph.targets[target( rhiGraphTarget_t::PostColor )];
+		const auto &film = graph.passes[pass( rhiGraphPass_t::Post )];
+		const auto &apply = graph.passes[pass( rhiGraphPass_t::PostApply )];
+		assert( image.enabled && image.samples == 1 && image.width == config.renderWidth );
+		assert( film.readMask == ( bit( rhiGraphTarget_t::MainColor ) | bit( rhiGraphTarget_t::MainDepth ) ) );
+		assert( film.writeMask == bit( rhiGraphTarget_t::PostColor ) );
+		assert( film.depth == RHI_INVALID_OFFSET && apply.depth == RHI_INVALID_OFFSET );
+		assert( apply.readMask == bit( rhiGraphTarget_t::PostColor ) );
+		assert( apply.writeMask & bit( rhiGraphTarget_t::MainColor ) );
+		assert( apply.dependencyMask & ( 1u << pass( rhiGraphPass_t::Post ) ) );
+		assert( apply.attachmentCount == ( samples > 1 ? 2u : 1u ) );
+		assert( graph.passes[pass( rhiGraphPass_t::Gamma )].dependencyMask & ( 1u << pass( rhiGraphPass_t::PostApply ) ) );
+		uint32_t seen = 0;
+		for ( uint32_t i = 0; i < graph.executionCount; ++i ) {
+			const auto id = graph.executionOrder[i];
+			const auto &node = graph.passes[pass( id )];
+			if ( !node.enabled )
+				continue;
+			assert( !( node.dependencyMask & ~seen ) );
+			seen |= 1u << pass( id );
+		}
+	}
+	// Temporal history roles swap physical images between successful frames.
+	// A single logical writer avoids a false same-frame dependency on the other history.
+	config.temporal = true;
+	assert( !RHI_CompileGraph( &config, &graph ) ); // TAA and MSAA are alternatives.
+	config.samples = 1;
+	for ( uint32_t ao : { 0u, 2u } ) {
+		for ( bool bloom : { false, true } ) {
+			config.occlusionScale = ao;
+			config.bloom = bloom;
+			assert( RHI_CompileGraph( &config, &graph ) );
+			for ( auto id : { rhiGraphTarget_t::HistoryRead, rhiGraphTarget_t::HistoryWrite } ) {
+				const auto &image = graph.targets[target( id )];
+				assert( image.enabled && image.persistent && !image.transient );
+				assert( image.samples == 1 && image.width == config.renderWidth && image.height == config.renderHeight );
+			}
+			const auto &initialize = graph.passes[pass( rhiGraphPass_t::MotionInitialize )];
+			const auto &geometry = graph.passes[pass( rhiGraphPass_t::MotionGeometry )];
+			const auto &resolve = graph.passes[pass( rhiGraphPass_t::TemporalResolve )];
+			const auto &apply = graph.passes[pass( rhiGraphPass_t::TemporalApply )];
+			assert( initialize.readMask == bit( rhiGraphTarget_t::MainDepth ) );
+			assert( initialize.writeMask == bit( rhiGraphTarget_t::Motion ) );
+			assert( initialize.depth == RHI_INVALID_OFFSET );
+			assert( geometry.color == 0 && geometry.depth == 1 );
+			assert( geometry.attachments[0].target == rhiGraphTarget_t::Motion );
+			assert( geometry.attachments[1].target == rhiGraphTarget_t::MainDepth );
+			for ( uint32_t i = 0; i < geometry.attachmentCount; ++i ) {
+				assert( geometry.attachments[i].load == rhiGraphLoad_t::Load );
+				assert( geometry.attachments[i].store == rhiGraphStore_t::Store );
+			}
+			assert( resolve.readMask == ( bit( rhiGraphTarget_t::MainColor ) | bit( rhiGraphTarget_t::Motion ) | bit( rhiGraphTarget_t::HistoryRead ) ) );
+			assert( resolve.writeMask == bit( rhiGraphTarget_t::HistoryWrite ) );
+			assert( resolve.dependencyMask & ( 1u << pass( rhiGraphPass_t::MotionGeometry ) ) );
+			assert( apply.readMask == ( bit( rhiGraphTarget_t::HistoryWrite ) | bit( rhiGraphTarget_t::Motion ) ) && apply.writeMask == bit( rhiGraphTarget_t::MainColor ) );
+			assert( apply.dependencyMask & ( 1u << pass( rhiGraphPass_t::TemporalResolve ) ) );
+			for ( uint32_t i = pass( rhiGraphPass_t::MotionInitialize ); i <= pass( rhiGraphPass_t::TemporalApply ); ++i )
+				for ( uint32_t j = 0; j < graph.passes[i].dependencyCount; ++j )
+					assert( !graph.passes[i].dependencies[j].byRegion );
+			assert( graph.passes[pass( rhiGraphPass_t::Effects )].dependencyMask & ( 1u << pass( rhiGraphPass_t::TemporalApply ) ) );
+			uint32_t seen = 0;
+			for ( uint32_t i = 0; i < graph.executionCount; ++i ) {
+				const auto id = graph.executionOrder[i];
+				const auto &node = graph.passes[pass( id )];
+				if ( !node.enabled )
+					continue;
+				assert( !( node.dependencyMask & ~seen ) );
+				seen |= 1u << pass( id );
+			}
+		}
+	}
+	config.postProcess = false;
+	assert( !RHI_CompileGraph( &config, &graph ) );
+	config.temporal = false;
+	config.postProcess = false;
 	config.offscreen = false;
 	assert( !RHI_CompileGraph( &config, &graph ) );
 	config.offscreen = true;
+	config.depthEffects = false;
 	config.occlusionScale = 3;
 	assert( !RHI_CompileGraph( &config, &graph ) );
 	config.occlusionScale = 0;

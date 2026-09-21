@@ -63,7 +63,9 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 		return false;
 	if ( c.shadowSize && ( c.shadowSize < 128 || c.shadowSize > 8192 || ( c.shadowSize & ( c.shadowSize - 1 ) ) ) )
 		return false;
-	if ( c.occlusionScale && ( !c.offscreen || c.occlusionScale > 2 ) )
+	if ( ( c.postProcess && !c.depthEffects ) || ( c.depthEffects && !c.offscreen ) || ( c.occlusionScale && ( !c.offscreen || c.occlusionScale > 2 ) ) )
+		return false;
+	if ( c.temporal && ( !c.postProcess || c.samples != 1 ) )
 		return false;
 	using T = rhiGraphTarget_t;
 	using P = rhiGraphPass_t;
@@ -106,6 +108,15 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 		for ( uint32_t i = 0; i < 2; ++i )
 			Target( graph, (T)( (uint32_t)T::Occlusion + i ), c.renderWidth / c.occlusionScale,
 				c.renderHeight / c.occlusionScale, 1, F::Occlusion, sampledColor, L::Sampled );
+	}
+	if ( c.postProcess )
+		Target( graph, T::PostColor, c.renderWidth, c.renderHeight, 1, F::Color, sampledColor, L::Sampled );
+	if ( c.temporal ) {
+		Target( graph, T::Motion, c.renderWidth, c.renderHeight, 1, F::Temporal, sampledColor, L::Sampled );
+		Target( graph, T::HistoryWrite, c.renderWidth, c.renderHeight, 1, F::Temporal, sampledColor, L::Sampled ).persistent = true;
+		Target( graph, T::HistoryRead, c.renderWidth, c.renderHeight, 1, F::Temporal, sampledColor, L::Sampled ).persistent = true;
+	}
+	if ( c.occlusionScale || c.depthEffects ) {
 		auto &depth = graph->targets[(uint32_t)T::MainDepth];
 		depth.usage |= RHI_GRAPH_SAMPLED;
 		depth.initialLayout = L::DepthSampled;
@@ -224,7 +235,7 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 			}
 		}
 	}
-	if ( c.occlusionScale ) {
+	if ( c.occlusionScale || c.depthEffects ) {
 		// Depth must survive every scene interlude, including shadow resumption.
 		for ( uint32_t p = 0; p < (uint32_t)P::Count; ++p ) {
 			auto &scene = graph->passes[p];
@@ -243,6 +254,8 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 			scene.dependencies[1] = { rhiGraphStage_t::SceneAttachments, rhiGraphStage_t::Fragment,
 				RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_WRITE, RHI_GRAPH_SHADER_READ, false, false };
 		}
+	}
+	if ( c.occlusionScale ) {
 		for ( uint32_t i = 0; i < 2; ++i ) {
 			const T target = (T)( (uint32_t)T::Occlusion + i );
 			const auto &image = graph->targets[(uint32_t)target];
@@ -264,16 +277,100 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 				c.stencil && i == scene.depth ? Load::Load : Load::Discard, a.stencilStore );
 		}
 	}
+	if ( c.depthEffects ) {
+		const auto &scene = graph->passes[(uint32_t)P::Main];
+		auto &particles = Pass( graph, P::Effects, scene.width, scene.height, TargetBit( T::MainDepth ) );
+		Attachment( particles, T::MainColor, Load::Load, Store::Store, L::Sampled, L::Sampled );
+		if ( msaa ) {
+			Attachment( particles, T::MainMsaa, Load::Load, Store::Store, L::Color, L::Color );
+			particles.color = 1;
+			particles.resolve = 0;
+		}
+		particles.dependencies[0] = { rhiGraphStage_t::SceneAttachments, rhiGraphStage_t::FragmentColor,
+			RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_WRITE,
+			RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_READ | RHI_GRAPH_COLOR_WRITE, true, false };
+		particles.dependencies[1] = { rhiGraphStage_t::FragmentColor, rhiGraphStage_t::SceneAttachments,
+			RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE,
+			RHI_GRAPH_COLOR_READ | RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_READ | RHI_GRAPH_DEPTH_WRITE, false, false };
+		auto &resume = Pass( graph, P::EffectsResume, scene.width, scene.height, scene.readMask );
+		resume.color = scene.color;
+		resume.depth = scene.depth;
+		resume.resolve = scene.resolve;
+		resume.dependencies[0] = particles.dependencies[1];
+		resume.dependencies[0].incoming = true;
+		resume.dependencies[1] = scene.dependencies[1];
+		for ( uint32_t i = 0; i < scene.attachmentCount; ++i ) {
+			const auto &a = scene.attachments[i];
+			Attachment( resume, a.target, Load::Load, Store::Store, a.initialLayout, a.finalLayout,
+				c.stencil && i == scene.depth ? Load::Load : Load::Discard, a.stencilStore );
+		}
+	}
+	if ( c.postProcess ) {
+		auto &post = Pass( graph, P::Post, c.renderWidth, c.renderHeight, TargetBit( T::MainColor ) | TargetBit( T::MainDepth ) );
+		Attachment( post, T::PostColor, Load::Discard, Store::Store, L::Sampled, L::Sampled );
+		post.dependencies[0] = { rhiGraphStage_t::SceneAttachments, rhiGraphStage_t::FragmentColor,
+			RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_WRITE, RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE, true, false };
+		auto &apply = Pass( graph, P::PostApply, c.renderWidth, c.renderHeight, TargetBit( T::PostColor ) );
+		const auto &effects = graph->passes[(uint32_t)P::Effects];
+		apply.color = effects.color;
+		apply.resolve = effects.resolve;
+		apply.dependencies[0] = { rhiGraphStage_t::FragmentColor, rhiGraphStage_t::FragmentColor,
+			RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE, RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE, true, false };
+		apply.dependencies[1] = effects.dependencies[1];
+		for ( uint32_t i = 0; i < effects.attachmentCount; ++i ) {
+			const auto &a = effects.attachments[i];
+			Attachment( apply, a.target, Load::Discard, Store::Store, a.initialLayout, a.finalLayout );
+		}
+	}
+	if ( c.temporal ) {
+		auto &initialize = Pass( graph, P::MotionInitialize, c.renderWidth, c.renderHeight, TargetBit( T::MainDepth ) );
+		Attachment( initialize, T::Motion, Load::Discard, Store::Store, L::Sampled, L::Sampled );
+		initialize.dependencies[0] = { rhiGraphStage_t::SceneAttachments, rhiGraphStage_t::FragmentColor,
+			RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_WRITE, RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE, true, false };
+		auto &geometry = Pass( graph, P::MotionGeometry, c.renderWidth, c.renderHeight, 0 );
+		Attachment( geometry, T::Motion, Load::Load, Store::Store, L::Sampled, L::Sampled );
+		Attachment( geometry, T::MainDepth, Load::Load, Store::Store, L::DepthSampled, L::DepthSampled,
+			c.stencil ? Load::Load : Load::Discard, c.stencil ? Store::Store : Store::Discard );
+		geometry.depth = 1;
+		geometry.dependencies[0] = { rhiGraphStage_t::FragmentColor, rhiGraphStage_t::SceneAttachments,
+			RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE, RHI_GRAPH_COLOR_READ | RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_READ, true, false };
+		geometry.dependencies[1] = { rhiGraphStage_t::SceneAttachments, rhiGraphStage_t::Fragment,
+			RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_READ, RHI_GRAPH_SHADER_READ, false, false };
+		auto &resolve = Pass( graph, P::TemporalResolve, c.renderWidth, c.renderHeight,
+			TargetBit( T::MainColor ) | TargetBit( T::Motion ) | TargetBit( T::HistoryRead ) );
+		Attachment( resolve, T::HistoryWrite, Load::Discard, Store::Store, L::Sampled, L::Sampled );
+		auto &apply = Pass( graph, P::TemporalApply, c.renderWidth, c.renderHeight, TargetBit( T::HistoryWrite ) | TargetBit( T::Motion ) );
+		Attachment( apply, T::MainColor, Load::Discard, Store::Store, L::Sampled, L::Sampled );
+		// Reprojection and blur read neighboring pixels and the prior frame.
+		rhiGraphPassDesc_t *temporalPasses[] = { &initialize, &geometry, &resolve, &apply };
+		for ( auto *pass : temporalPasses )
+			for ( uint32_t i = 0; i < pass->dependencyCount; ++i )
+				pass->dependencies[i].byRegion = false;
+	}
 	// Preserve the legacy IDs/possible-pass intervals when lighting is disabled.
 	// Creation order is independent of this dependency/lifetime order.
 	for ( uint32_t p = 0; p < (uint32_t)P::LocalShadow; ++p ) {
 		graph->executionOrder[graph->executionCount++] = (P)p;
+		if ( c.postProcess && p == (uint32_t)P::PostBloom ) {
+			graph->executionOrder[graph->executionCount++] = P::Post;
+			graph->executionOrder[graph->executionCount++] = P::PostApply;
+		}
 		if ( c.shadowSize && p == (uint32_t)P::Main )
 			graph->executionOrder[graph->executionCount++] = P::MainResume;
 		if ( c.occlusionScale && p == (uint32_t)P::Main ) {
 			graph->executionOrder[graph->executionCount++] = P::Occlusion;
 			graph->executionOrder[graph->executionCount++] = P::OcclusionBlur;
 			graph->executionOrder[graph->executionCount++] = P::OcclusionApply;
+		}
+		if ( c.temporal && p == (uint32_t)P::Main ) {
+			graph->executionOrder[graph->executionCount++] = P::MotionInitialize;
+			graph->executionOrder[graph->executionCount++] = P::MotionGeometry;
+			graph->executionOrder[graph->executionCount++] = P::TemporalResolve;
+			graph->executionOrder[graph->executionCount++] = P::TemporalApply;
+		}
+		if ( c.depthEffects && p == (uint32_t)P::Main ) {
+			graph->executionOrder[graph->executionCount++] = P::Effects;
+			graph->executionOrder[graph->executionCount++] = P::EffectsResume;
 		}
 		if ( c.shadowSize && c.offscreen && p == (uint32_t)P::ScreenMap )
 			graph->executionOrder[graph->executionCount++] = P::ScreenResume;

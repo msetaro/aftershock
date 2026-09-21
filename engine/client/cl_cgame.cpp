@@ -628,6 +628,12 @@ int CGameImport_R_RegisterShader( const char *name ) {
 
 	return re.RegisterShader( (const char *)name );
 }
+int CGameImport_R_RegisterEffect( const char *name ) {
+	return re.RegisterEffect( name );
+}
+uint32_t CGameImport_R_StartEffect( int handle, const float *origin, const float axis[3][3], uint32_t seed ) {
+	return re.StartEffect( handle, origin, axis, seed );
+}
 int CGameImport_R_RegisterShaderNoMip( const char *name ) {
 
 	return re.RegisterShaderNoMip( (const char *)name );
@@ -649,6 +655,10 @@ void CGameImport_R_AddRefEntityToScene( const void *entity ) {
 }
 bool CGameImport_R_AddSkeletalEntityToScene( const void *entity, const void *pose, const uint8_t modelHash[32] ) {
 	return re.AddSkeletalEntityToScene( (const refEntity_t *)entity, (const animPose_t *)pose, modelHash, qfalse );
+}
+
+bool CGameImport_R_AddTemporalEntityToScene( const void *entity, uint64_t identity, const void *instance, const void *pose, const uint8_t modelHash[32] ) {
+	return re.AddTemporalEntityToScene( (const refEntity_t *)entity, identity, (const materialOverride_t *)instance, (const animPose_t *)pose, modelHash, qfalse );
 }
 
 bool CGameImport_R_AddMaterialEntityToScene( const void *entity, const void *instance, const void *pose, const uint8_t modelHash[32] ) {

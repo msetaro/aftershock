@@ -75,6 +75,7 @@ cvar_t *r_dynamiclight;
 cvar_t *r_mergeLightmaps;
 cvar_t *r_directionalLightmaps;
 cvar_t *r_reflectionProbes;
+cvar_t *r_softParticles, *r_decals, *r_postProcess, *r_postProfile, *r_taa;
 cvar_t *r_ssao, *r_ssaoRadius, *r_ssaoStrength;
 cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
@@ -550,22 +551,29 @@ static void R_InitDevice( void ) {
 	const rhiDeviceConfig_t config = {
 		glConfig.vidWidth, glConfig.vidHeight, gls.windowWidth, gls.windowHeight,
 		gls.captureWidth, gls.captureHeight, glConfig.depthBits, glConfig.stencilBits,
-		MAX_TEXTURE_SIZE, MAX_TEXTURE_UNITS, MAX_DRAWIMAGES, MAX_FLARES, r_shadowQuality->integer ? 1024u : (uint32_t)sizeof( shaderUniform_t ),
+		MAX_TEXTURE_SIZE, MAX_TEXTURE_UNITS, MAX_DRAWIMAGES, MAX_FLARES,
+		r_shadowQuality->integer ? 1024u : r_decals->integer	  ? (uint32_t)sizeof( rhiDecal_t )
+									   : r_taa->integer			  ? (uint32_t)sizeof( rhiTemporal_t )
+									   : r_softParticles->integer ? (uint32_t)sizeof( rhiParticle_t )
+																  : (uint32_t)sizeof( shaderUniform_t ),
 		r_fbo->integer,
 		r_bloom->integer,
-		r_hdr->integer,
+		r_postProcess->integer ? 2 : r_hdr->integer,
 		r_presentBits->integer,
 		r_device->integer,
 		r_ext_texture_filter_anisotropic->integer,
 		r_ext_max_anisotropy->integer,
-		r_ext_multisample->integer,
+		r_taa->integer && r_postProcess->integer ? 0 : r_ext_multisample->integer,
 		r_ext_supersample->integer,
 		r_renderScale->integer,
 		r_offsetUnits->value,
 		r_offsetFactor->value,
 		(rhiFilter_t)gl_filter_min, (rhiFilter_t)gl_filter_max, textureFilterValid,
 		r_shadowQuality->integer ? 512u << r_shadowQuality->integer : 0,
-		r_fbo->integer && r_ssao->integer ? (uint32_t)( 3 - r_ssao->integer ) : 0
+		r_fbo->integer && r_ssao->integer ? (uint32_t)( 3 - r_ssao->integer ) : 0,
+		r_fbo->integer && ( r_softParticles->integer || r_decals->integer || r_postProcess->integer ),
+		r_fbo->integer && r_postProcess->integer,
+		r_fbo->integer && r_postProcess->integer && r_taa->integer
 	};
 	const rhiHost_t host = { ri.Malloc, ri.Free, R_PrintRHI, R_IsMinimized, R_SwapInterval, ri.VK_GetInstanceProcAddr, R_CreateSurface };
 	rhiDeviceInfo_t info;
@@ -1699,6 +1707,20 @@ static void R_Register( void ) {
 	r_reflectionProbes = ri.Cvar_Get( "r_reflectionProbes", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_reflectionProbes, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_reflectionProbes, "Use authored reflection probes on dynamic PBR objects; requires five texture bindings." );
+	r_taa = ri.Cvar_Get( "r_taa", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	ri.Cvar_CheckRange( r_taa, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_taa, "Temporal scene antialiasing; requires r_postProcess and selects single-sample rendering." );
+	r_postProcess = ri.Cvar_Get( "r_postProcess", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	ri.Cvar_CheckRange( r_postProcess, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_postProcess, "Filmic scene post-processing before HUD; requires r_fbo 1." );
+	r_postProfile = ri.Cvar_Get( "r_postProfile", "", CVAR_ARCHIVE_ND );
+	ri.Cvar_SetDescription( r_postProfile, "Cooked .aspost profile; empty selects default filmic settings." );
+	r_decals = ri.Cvar_Get( "r_decals", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	ri.Cvar_CheckRange( r_decals, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_decals, "Projected normal-mapped decals; requires r_fbo 1." );
+	r_softParticles = ri.Cvar_Get( "r_softParticles", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	ri.Cvar_CheckRange( r_softParticles, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_softParticles, "Depth-faded effect sprites; requires r_fbo 1." );
 	r_ssao = ri.Cvar_Get( "r_ssao", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_ssao, "0", "2", CV_INTEGER );
 	ri.Cvar_SetDescription( r_ssao, "SSAO: 0 disabled, 1 half resolution, 2 full resolution. Requires r_fbo 1." );
@@ -1968,7 +1990,7 @@ static void R_Register( void ) {
 	r_fbo = ri.Cvar_Get( "r_fbo", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_fbo, "Use framebuffer objects, enables gamma correction in windowed mode and allows arbitrary video size and screenshot/video capture.\n Required for bloom, HDR rendering, anti-aliasing and greyscale effects." );
 	r_hdr = ri.Cvar_Get( "r_hdr", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_SetDescription( r_hdr, "Enables high dynamic range frame buffer texture format. Requires \\r_fbo 1.\n -1: 4-bit, for testing purposes, heavy color banding, might not work on all systems\n  0: 8 bit, default, moderate color banding with multi-stage shaders\n  1: 16 bit, enhanced blending precision, no color banding, might decrease performance on AMD / Intel GPUs\n" );
+	ri.Cvar_SetDescription( r_hdr, "Enables high dynamic range frame buffer texture format. Requires \\r_fbo 1.\n -1: 4-bit, for testing purposes, heavy color banding, might not work on all systems\n  0: 8 bit, default, moderate color banding with multi-stage shaders\n  1: 16 bit, enhanced blending precision, no color banding, might decrease performance on AMD / Intel GPUs\n  2: floating-point HDR, retains values above white for post processing\n" );
 	r_bloom = ri.Cvar_Get( "r_bloom", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_bloom, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_bloom, "Enables bloom post-processing effect. Requires \\r_fbo 1." );
@@ -2093,6 +2115,9 @@ void R_Init( void ) {
 	R_InitSkins();
 
 	R_ModelInit();
+	R_InitEffects();
+	R_InitDecals();
+	R_InitPost();
 
 	R_InitFreeType();
 
@@ -2273,9 +2298,20 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.ModelBounds = R_ModelBounds;
 
 	re.ClearScene = RE_ClearScene;
+	re.RegisterEffect = RE_RegisterEffect;
+	re.StartEffect = RE_StartEffect;
+	re.StopEffect = RE_StopEffect;
+	re.EffectStats = RE_EffectStats;
+	re.RegisterDecal = RE_RegisterDecal;
+	re.ProjectDecal = RE_ProjectDecal;
+	re.ClearDecals = RE_ClearDecals;
+	re.DecalStats = RE_DecalStats;
+	re.PostStats = RE_PostStats;
+	re.TextureStats = RE_TextureStats;
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
 	re.AddSkeletalEntityToScene = RE_AddSkeletalEntityToScene;
 	re.AddMaterialEntityToScene = RE_AddMaterialEntityToScene;
+	re.AddTemporalEntityToScene = RE_AddTemporalEntityToScene;
 	re.AddPolyToScene = RE_AddPolyToScene;
 	re.LightForPoint = R_LightForPoint;
 	re.AddLightToScene = RE_AddLightToScene;

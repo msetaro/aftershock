@@ -70,6 +70,7 @@ void R_InitNextFrame( void ) {
 	r_firstScenePoly = 0;
 
 	r_numpolyverts = 0;
+	backEndData->numDecals = 0;
 }
 
 
@@ -110,6 +111,8 @@ void R_AddPolygonSurfaces( void ) {
 	tr.shiftedEntityNum = tr.currentEntityNum << QSORT_REFENTITYNUM_SHIFT;
 
 	for ( i = 0, poly = tr.refdef.polys; i < tr.refdef.numPolys; i++, poly++ ) {
+		if ( poly->softDistance > 0 && tr.viewParms.portalView == PV_NONE && !tr.refdef.switchRenderPass && !( tr.refdef.rdflags & RDF_NOWORLDMODEL ) )
+			continue;
 		sh = R_GetShaderByHandle( poly->hShader );
 		R_AddDrawSurf( (surfaceType_t *)(void *)poly, sh, poly->fogIndex, 0 );
 	}
@@ -152,6 +155,7 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 		poly = &backEndData->polys[r_numpolys];
 		poly->surfaceType = SF_POLY;
 		poly->hShader = hShader;
+		poly->softDistance = 0;
 		poly->numVerts = numVerts;
 		poly->verts = &backEndData->polyVerts[r_numpolyverts];
 
@@ -199,6 +203,25 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 
 //=================================================================================
 
+void R_AddEffectPoly( qhandle_t shader, const polyVert_t *vertices, float softDistance ) {
+	const int before = r_numpolys;
+	RE_AddPolyToScene( shader, 4, vertices, 1 );
+	if ( r_numpolys > before && softDistance > 0 && r_fbo->integer && r_softParticles->integer ) {
+		const auto *material = R_GetShaderByHandle( shader );
+		const auto *stage = material->stages[0];
+		// The effect pass consumes one static texture and authored vertex color.
+		// Complex legacy materials keep their ordinary stage iterator.
+		if ( material->numUnfoggedPasses == 1 && !material->numDeforms && stage && stage->bundle[0].image[0] &&
+			 stage->numTexBundles == 1 && stage->bundle[0].tcGen == TCGEN_TEXTURE &&
+			 ( stage->bundle[0].rgbGen == CGEN_VERTEX || stage->bundle[0].rgbGen == CGEN_EXACT_VERTEX ) &&
+			 ( stage->bundle[0].alphaGen == AGEN_VERTEX || stage->bundle[0].alphaGen == AGEN_SKIP ) && !stage->bundle[0].isVideoMap && !stage->bundle[0].isScreenMap &&
+			 stage->bundle[0].numImageAnimations <= 1 && !stage->bundle[0].numTexMods &&
+			 ( stage->stateBits & GLS_SRCBLEND_BITS ) == GLS_SRCBLEND_SRC_ALPHA &&
+			 ( ( stage->stateBits & GLS_DSTBLEND_BITS ) == GLS_DSTBLEND_ONE || ( stage->stateBits & GLS_DSTBLEND_BITS ) == GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA ) )
+			backEndData->polys[before].softDistance = softDistance;
+	}
+}
+
 static int isnan_fp( const float *f ) {
 	uint32_t u = *( (uint32_t *)f );
 	u = 0x7F800000 - ( u & 0x7FFFFFFF );
@@ -236,10 +259,30 @@ void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime ) {
 	backEndData->entities[r_numentities].intShaderTime = intShaderTime;
 	backEndData->entities[r_numentities].skeletalPose = nullptr;
 	backEndData->entities[r_numentities].materialOverride = {};
+	backEndData->entities[r_numentities].temporalIdentity = 0;
 
 	r_numentities++;
 }
 
+
+bool RE_AddTemporalEntityToScene( const refEntity_t *ent, uint64_t identity, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime ) {
+	if ( !ent || !identity || ent->reType != RT_MODEL )
+		return false;
+	const int previous = r_numentities;
+	if ( instance ) {
+		if ( !RE_AddMaterialEntityToScene( ent, instance, pose, modelHash, intShaderTime ) )
+			return false;
+	} else if ( pose ) {
+		if ( !RE_AddSkeletalEntityToScene( ent, pose, modelHash, intShaderTime ) )
+			return false;
+	} else {
+		RE_AddRefEntityToScene( ent, intShaderTime );
+	}
+	if ( previous == r_numentities )
+		return false;
+	backEndData->entities[previous].temporalIdentity = identity;
+	return true;
+}
 
 bool RE_AddMaterialEntityToScene( const refEntity_t *ent, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime ) {
 	const materialParams_t base = {};
@@ -519,6 +562,13 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.litSurfs = backEndData->litSurfs;
 #endif
 
+	const uint64_t effectsStart = ri.Microseconds();
+	R_AddEffects( fd );
+	const uint64_t decalsStart = ri.Microseconds();
+	tr.effectsCpuUsec += decalsStart - effectsStart;
+	R_AddDecals( fd );
+	tr.decalsCpuUsec += ri.Microseconds() - decalsStart;
+	R_AddPost();
 	tr.refdef.num_entities = r_numentities - r_firstSceneEntity;
 	tr.refdef.entities = &backEndData->entities[r_firstSceneEntity];
 

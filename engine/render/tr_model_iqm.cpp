@@ -1125,6 +1125,26 @@ static int R_ComputeIQMFogNum( const iqmData_t *data, const trRefEntity_t *ent )
 	return 0;
 }
 
+bool R_IQMLodCompatible( const iqmData_t *base, const iqmData_t *level ) {
+	if ( base->num_joints != level->num_joints || base->num_poses != level->num_poses || base->num_frames != level->num_frames || base->num_anims != level->num_anims || base->num_surfaces != level->num_surfaces )
+		return false;
+	const char *a = base->jointNames, *b = level->jointNames;
+	for ( int i = 0; i < base->num_joints; i++ ) {
+		if ( strcmp( a, b ) || base->jointParents[i] != level->jointParents[i] || memcmp( base->bindJoints + i * 12, level->bindJoints + i * 12, 12 * sizeof( float ) ) )
+			return false;
+		a += strlen( a ) + 1;
+		b += strlen( b ) + 1;
+	}
+	if ( base->num_poses && memcmp( base->poses, level->poses, (size_t)base->num_frames * base->num_poses * sizeof( iqmTransform_t ) ) )
+		return false;
+	if ( base->num_anims && memcmp( base->animations, level->animations, base->num_anims * sizeof( modelAnimation_t ) ) )
+		return false;
+	for ( int i = 0; i < base->num_surfaces; i++ )
+		if ( strcmp( base->surfaces[i].name, level->surfaces[i].name ) || base->surfaces[i].shader != level->surfaces[i].shader )
+			return false;
+	return true;
+}
+
 /*
 =================
 R_AddIQMSurfaces
@@ -1143,7 +1163,6 @@ void R_AddIQMSurfaces( trRefEntity_t *ent ) {
 	const skin_t *skin;
 
 	data = (iqmData_t *)tr.currentModel->modelData;
-	surface = data->surfaces;
 
 	// don't add third_person objects if not in a portal
 	personalModel = (qboolean)( ( ent->e.renderfx & RF_THIRD_PERSON ) && ( tr.viewParms.portalView == PV_NONE ) && !tr.viewParms.shadowView );
@@ -1187,6 +1206,12 @@ void R_AddIQMSurfaces( trRefEntity_t *ent ) {
 	// see if we are in a fog volume
 	//
 	fogNum = R_ComputeIQMFogNum( data, ent );
+
+	const int lod = R_ComputeLOD( ent );
+	if ( lod > 0 && tr.currentModel->iqmLods[lod - 1] )
+		data = (iqmData_t *)R_GetModelByHandle( tr.currentModel->iqmLods[lod - 1] )->modelData;
+	tr.currentModel->lodDraws[lod]++;
+	surface = data->surfaces;
 
 	for ( i = 0; i < data->num_surfaces; i++ ) {
 		if ( ent->e.customShader )
@@ -1308,6 +1333,111 @@ static void ComputeJointMats( iqmData_t *data, int frame, int oldframe,
 }
 
 
+static void ComputeInfluenceMatrices( const iqmData_t *data, const srfIQModel_t *surf, const float *poseMats, float *influenceVtxMat ) {
+	for ( int i = 0; i < surf->num_influences; ++i ) {
+		int influence = surf->first_influence + i;
+		float *vtxMat = &influenceVtxMat[12 * i];
+		int j;
+		float blendWeights[4];
+
+		if ( data->blendWeightsType == IQM_FLOAT ) {
+			blendWeights[0] = data->influenceBlendWeights.f[4 * influence + 0];
+			blendWeights[1] = data->influenceBlendWeights.f[4 * influence + 1];
+			blendWeights[2] = data->influenceBlendWeights.f[4 * influence + 2];
+			blendWeights[3] = data->influenceBlendWeights.f[4 * influence + 3];
+		} else {
+			blendWeights[0] = (float)data->influenceBlendWeights.b[4 * influence + 0] / 255.0f;
+			blendWeights[1] = (float)data->influenceBlendWeights.b[4 * influence + 1] / 255.0f;
+			blendWeights[2] = (float)data->influenceBlendWeights.b[4 * influence + 2] / 255.0f;
+			blendWeights[3] = (float)data->influenceBlendWeights.b[4 * influence + 3] / 255.0f;
+		}
+
+		if ( blendWeights[0] <= 0.0f ) {
+			// no blend joint, use identity matrix.
+			vtxMat[0] = identityMatrix[0];
+			vtxMat[1] = identityMatrix[1];
+			vtxMat[2] = identityMatrix[2];
+			vtxMat[3] = identityMatrix[3];
+			vtxMat[4] = identityMatrix[4];
+			vtxMat[5] = identityMatrix[5];
+			vtxMat[6] = identityMatrix[6];
+			vtxMat[7] = identityMatrix[7];
+			vtxMat[8] = identityMatrix[8];
+			vtxMat[9] = identityMatrix[9];
+			vtxMat[10] = identityMatrix[10];
+			vtxMat[11] = identityMatrix[11];
+		} else {
+			// compute the vertex matrix by blending the up to
+			// four blend weights
+			vtxMat[0] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 0];
+			vtxMat[1] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 1];
+			vtxMat[2] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 2];
+			vtxMat[3] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 3];
+			vtxMat[4] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 4];
+			vtxMat[5] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 5];
+			vtxMat[6] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 6];
+			vtxMat[7] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 7];
+			vtxMat[8] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 8];
+			vtxMat[9] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 9];
+			vtxMat[10] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 10];
+			vtxMat[11] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 11];
+
+			for ( j = 1; (size_t)j < ARRAY_LEN( blendWeights ); j++ ) {
+				if ( blendWeights[j] <= 0.0f ) {
+					break;
+				}
+
+				vtxMat[0] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 0];
+				vtxMat[1] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 1];
+				vtxMat[2] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 2];
+				vtxMat[3] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 3];
+				vtxMat[4] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 4];
+				vtxMat[5] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 5];
+				vtxMat[6] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 6];
+				vtxMat[7] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 7];
+				vtxMat[8] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 8];
+				vtxMat[9] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 9];
+				vtxMat[10] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 10];
+				vtxMat[11] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 11];
+			}
+		}
+	}
+}
+
+bool R_IQMPreviousPositions( const srfIQModel_t *surf, const temporalEntity_t *previous, vec4_t *positions, uint32_t capacity ) {
+	if ( !surf || !previous || !positions || !surf->data || surf->num_vertexes < 0 || (uint32_t)surf->num_vertexes > capacity ||
+		 surf->num_influences < 0 || surf->num_influences > SHADER_MAX_VERTEXES )
+		return false;
+	iqmData_t *data = surf->data;
+	const bool posed = previous->hasPose || data->num_poses > 0;
+	float poseMats[IQM_MAX_JOINTS * 12], matrices[SHADER_MAX_VERTEXES * 12];
+	if ( posed ) {
+		if ( previous->hasPose ) {
+			if ( previous->pose.jointCount != (uint32_t)data->num_joints || previous->pose.jointCount > IQM_MAX_JOINTS )
+				return false;
+			memcpy( poseMats, previous->pose.skin, previous->pose.jointCount * sizeof( previous->pose.skin[0] ) );
+		} else {
+			if ( data->num_frames <= 0 || previous->entity.frame < 0 || previous->entity.oldframe < 0 )
+				return false;
+			ComputePoseMats( data, previous->entity.frame % data->num_frames, previous->entity.oldframe % data->num_frames, previous->entity.backlerp, poseMats );
+		}
+		ComputeInfluenceMatrices( data, surf, poseMats, matrices );
+	}
+	for ( int vertex = 0; vertex < surf->num_vertexes; ++vertex ) {
+		const float *xyz = data->positions + ( surf->first_vertex + vertex ) * 3;
+		if ( posed ) {
+			const int influence = data->influences[surf->first_vertex + vertex] - surf->first_influence;
+			const float *matrix = matrices + influence * 12;
+			for ( int row = 0; row < 3; ++row )
+				positions[vertex][row] = matrix[row * 4] * xyz[0] + matrix[row * 4 + 1] * xyz[1] + matrix[row * 4 + 2] * xyz[2] + matrix[row * 4 + 3];
+		} else {
+			memcpy( positions[vertex], xyz, sizeof( vec3_t ) );
+		}
+		positions[vertex][3] = 1;
+	}
+	return true;
+}
+
 /*
 =================
 RB_AddIQMSurfaces
@@ -1363,75 +1493,10 @@ void RB_IQMSurfaceAnim( const surfaceType_t *surface ) {
 		else
 			ComputePoseMats( data, frame, oldframe, backlerp, poseMats );
 
-		// compute vertex blend influence matricies
+		ComputeInfluenceMatrices( data, surf, poseMats, influenceVtxMat );
 		for ( i = 0; i < surf->num_influences; i++ ) {
-			int influence = surf->first_influence + i;
 			float *vtxMat = &influenceVtxMat[12 * i];
 			float *nrmMat = &influenceNrmMat[9 * i];
-			int j;
-			float blendWeights[4];
-
-			if ( data->blendWeightsType == IQM_FLOAT ) {
-				blendWeights[0] = data->influenceBlendWeights.f[4 * influence + 0];
-				blendWeights[1] = data->influenceBlendWeights.f[4 * influence + 1];
-				blendWeights[2] = data->influenceBlendWeights.f[4 * influence + 2];
-				blendWeights[3] = data->influenceBlendWeights.f[4 * influence + 3];
-			} else {
-				blendWeights[0] = (float)data->influenceBlendWeights.b[4 * influence + 0] / 255.0f;
-				blendWeights[1] = (float)data->influenceBlendWeights.b[4 * influence + 1] / 255.0f;
-				blendWeights[2] = (float)data->influenceBlendWeights.b[4 * influence + 2] / 255.0f;
-				blendWeights[3] = (float)data->influenceBlendWeights.b[4 * influence + 3] / 255.0f;
-			}
-
-			if ( blendWeights[0] <= 0.0f ) {
-				// no blend joint, use identity matrix.
-				vtxMat[0] = identityMatrix[0];
-				vtxMat[1] = identityMatrix[1];
-				vtxMat[2] = identityMatrix[2];
-				vtxMat[3] = identityMatrix[3];
-				vtxMat[4] = identityMatrix[4];
-				vtxMat[5] = identityMatrix[5];
-				vtxMat[6] = identityMatrix[6];
-				vtxMat[7] = identityMatrix[7];
-				vtxMat[8] = identityMatrix[8];
-				vtxMat[9] = identityMatrix[9];
-				vtxMat[10] = identityMatrix[10];
-				vtxMat[11] = identityMatrix[11];
-			} else {
-				// compute the vertex matrix by blending the up to
-				// four blend weights
-				vtxMat[0] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 0];
-				vtxMat[1] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 1];
-				vtxMat[2] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 2];
-				vtxMat[3] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 3];
-				vtxMat[4] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 4];
-				vtxMat[5] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 5];
-				vtxMat[6] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 6];
-				vtxMat[7] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 7];
-				vtxMat[8] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 8];
-				vtxMat[9] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 9];
-				vtxMat[10] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 10];
-				vtxMat[11] = blendWeights[0] * poseMats[12 * data->influenceBlendIndexes[4 * influence + 0] + 11];
-
-				for ( j = 1; (size_t)j < ARRAY_LEN( blendWeights ); j++ ) {
-					if ( blendWeights[j] <= 0.0f ) {
-						break;
-					}
-
-					vtxMat[0] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 0];
-					vtxMat[1] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 1];
-					vtxMat[2] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 2];
-					vtxMat[3] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 3];
-					vtxMat[4] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 4];
-					vtxMat[5] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 5];
-					vtxMat[6] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 6];
-					vtxMat[7] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 7];
-					vtxMat[8] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 8];
-					vtxMat[9] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 9];
-					vtxMat[10] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 10];
-					vtxMat[11] += blendWeights[j] * poseMats[12 * data->influenceBlendIndexes[4 * influence + j] + 11];
-				}
-			}
 
 			// compute the normal matrix as transpose of the adjoint
 			// of the vertex matrix
@@ -1536,6 +1601,9 @@ void RB_IQMSurfaceAnim( const surfaceType_t *surface ) {
 		*ptr++ = base + ( *tri++ - surf->first_vertex );
 		*ptr++ = base + ( *tri++ - surf->first_vertex );
 	}
+
+	if ( backEnd.temporalMotion && backEnd.temporalPrevious )
+		tess.previousPositions = R_IQMPreviousPositions( surf, backEnd.temporalPrevious, tess.previousXYZ + tess.numVertexes, SHADER_MAX_VERTEXES - (uint32_t)tess.numVertexes );
 
 	tess.numIndexes += 3 * surf->num_triangles;
 	tess.numVertexes += surf->num_vertexes;

@@ -182,6 +182,120 @@ static void check_compressed_uploads() {
 	vk.staging_buffer = {};
 }
 
+static uint8_t streamStaging[1024 * 1024], streamSource[24 * 1024 * 1024];
+static uint32_t streamSubmits, streamCopied, streamAllocations, streamTransitions;
+static bool streamReady;
+static uint32_t streamWidth = 4096, streamHeight = 4096, streamBlockBytes = 16;
+static VkResult streamFenceResult = VK_SUCCESS;
+static void check_async_texture_upload() {
+	vk.device = (VkDevice)(uintptr_t)20;
+	qvkCreateBuffer = []( VkDevice, const VkBufferCreateInfo *info, const VkAllocationCallbacks *, VkBuffer *buffer ) { assert( info->size == sizeof( streamStaging ) ); *buffer = (VkBuffer)(uintptr_t)30; streamAllocations++; return VK_SUCCESS; };
+	qvkGetBufferMemoryRequirements = []( VkDevice, VkBuffer, VkMemoryRequirements *info ) { *info = { sizeof( streamStaging ), 256, 1 }; };
+	qvkGetPhysicalDeviceMemoryProperties = []( VkPhysicalDevice, VkPhysicalDeviceMemoryProperties *info ) { *info = {}; info->memoryTypeCount = 1; info->memoryTypes[0].propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT; };
+	qvkAllocateMemory = []( VkDevice, const VkMemoryAllocateInfo *info, const VkAllocationCallbacks *, VkDeviceMemory *memory ) { assert( info->allocationSize == sizeof( streamStaging ) ); *memory = (VkDeviceMemory)(uintptr_t)31; streamAllocations++; return VK_SUCCESS; };
+	qvkBindBufferMemory = []( VkDevice, VkBuffer, VkDeviceMemory, VkDeviceSize ) { return VK_SUCCESS; };
+	qvkMapMemory = []( VkDevice, VkDeviceMemory, VkDeviceSize, VkDeviceSize, VkMemoryMapFlags, void **data ) { *data = streamStaging; return VK_SUCCESS; };
+	qvkCreateFence = []( VkDevice, const VkFenceCreateInfo *, const VkAllocationCallbacks *, VkFence *fence ) { *fence = (VkFence)(uintptr_t)32; streamAllocations++; return VK_SUCCESS; };
+	qvkResetFences = []( VkDevice, uint32_t, const VkFence * ) { return VK_SUCCESS; };
+	qvkResetCommandBuffer = []( VkCommandBuffer, VkCommandBufferResetFlags ) { return VK_SUCCESS; };
+	qvkWaitForFences = []( VkDevice, uint32_t count, const VkFence *, VkBool32, uint64_t timeout ) { assert( count == 1 && timeout == 0 ); return streamReady ? streamFenceResult : VK_TIMEOUT; };
+	qvkQueueSubmit = []( VkQueue, uint32_t count, const VkSubmitInfo *info, VkFence fence ) { assert( count == 1 && info->commandBufferCount == 1 && fence ); streamSubmits++; return VK_SUCCESS; };
+	qvkCmdPipelineBarrier = []( VkCommandBuffer, VkPipelineStageFlags, VkPipelineStageFlags, VkDependencyFlags, uint32_t, const VkMemoryBarrier *, uint32_t, const VkBufferMemoryBarrier *, uint32_t count, const VkImageMemoryBarrier *barriers ) {
+		assert( count == 1 );
+		assert( barriers->oldLayout == ( streamTransitions ? VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED ) );
+		assert( barriers->newLayout == ( streamTransitions ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL ) );
+		streamTransitions++;
+	};
+	qvkCmdCopyBufferToImage = []( VkCommandBuffer, VkBuffer, VkImage, VkImageLayout layout, uint32_t count, const VkBufferImageCopy *regions ) {
+		assert( layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && count <= 16 );
+		for ( uint32_t i = 0; i < count; ++i ) {
+			const auto &r = regions[i];
+			uint32_t mip = 0, offset = streamCopied, width = streamWidth, height = streamHeight;
+			while ( offset >= ( ( width + 3 ) / 4 ) * ( ( height + 3 ) / 4 ) * streamBlockBytes ) {
+				offset -= ( ( width + 3 ) / 4 ) * ( ( height + 3 ) / 4 ) * streamBlockBytes;
+				width = MAX( 1u, width / 2 );
+				height = MAX( 1u, height / 2 );
+				mip++;
+			}
+			assert( r.imageSubresource.mipLevel == mip && r.imageExtent.width == width );
+			assert( (uint32_t)r.imageOffset.y == offset / ( ( width + 3 ) / 4 * streamBlockBytes ) * 4 );
+			assert( r.imageOffset.y + r.imageExtent.height <= height );
+			const uint32_t bytes = ( ( r.imageExtent.width + 3 ) / 4 ) * ( ( r.imageExtent.height + 3 ) / 4 ) * streamBlockBytes;
+			assert( r.bufferOffset + bytes <= sizeof( streamStaging ) && r.imageOffset.y % 4 == 0 );
+			assert( memcmp( streamStaging + r.bufferOffset, streamSource + streamCopied, bytes ) == 0 );
+			streamCopied += bytes;
+		}
+	};
+	qvkDeviceWaitIdle = []( VkDevice ) { assert( false && "async upload must not wait idle" ); return VK_SUCCESS; };
+	qvkQueueWaitIdle = []( VkQueue ) { assert( false && "async upload must not wait queue" ); return VK_SUCCESS; };
+	vk.timestampBits = 8;
+	vk.timestampPeriod = 2.0f;
+	qvkCreateQueryPool = []( VkDevice, const VkQueryPoolCreateInfo *info, const VkAllocationCallbacks *, VkQueryPool *pool ) { assert( info->queryType == VK_QUERY_TYPE_TIMESTAMP && info->queryCount == 2 ); *pool = (VkQueryPool)(uintptr_t)33; return VK_SUCCESS; };
+	qvkDestroyQueryPool = []( VkDevice, VkQueryPool, const VkAllocationCallbacks * ) {};
+	qvkCmdResetQueryPool = []( VkCommandBuffer, VkQueryPool, uint32_t first, uint32_t count ) { assert( first == 0 && count == 2 ); };
+	qvkCmdWriteTimestamp = []( VkCommandBuffer, VkPipelineStageFlagBits stage, VkQueryPool, uint32_t query ) { assert( query <= 1 && stage == ( query ? VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT ) ); };
+	qvkGetQueryPoolResults = []( VkDevice, VkQueryPool, uint32_t first, uint32_t count, size_t size, void *data, VkDeviceSize stride, VkQueryResultFlags flags ) {
+		assert( first == 0 && count == 2 && size == 32 && stride == 16 && flags == ( VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT ) );
+		uint64_t *values = (uint64_t *)data;
+		values[0] = 250;
+		values[1] = 1;
+		values[2] = 5;
+		values[3] = 1;
+		return VK_SUCCESS;
+	};
+	assert( RHI_InitTextureUploads() == rhiStatus_t::Success );
+	const uint32_t allocated = streamAllocations;
+	const rhiTexture_t texture = { 11, 12, 13, 0 };
+	uint32_t size = 0;
+	for ( uint32_t side = 4096; side; side /= 2 )
+		size += ( ( side + 3 ) / 4 ) * ( ( side + 3 ) / 4 ) * 16;
+	for ( uint32_t i = 0; i < size; ++i )
+		streamSource[i] = (uint8_t)( i * 17 + i / 31 );
+	assert( RHI_QueueTextureUpload( &texture, 4096, 4096, 13, streamSource, size - 1, rhiFormat_t::BC7 ) == rhiStatus_t::Error );
+	assert( RHI_QueueTextureUpload( &texture, 4096, 4096, 13, streamSource, size, rhiFormat_t::BC7 ) == rhiStatus_t::Success );
+	assert( RHI_QueueTextureUpload( &texture, 4096, 4096, 13, streamSource, size, rhiFormat_t::BC7 ) == rhiStatus_t::Unavailable );
+	bool complete = true;
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete && streamSubmits == 1 );
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete && streamSubmits == 1 );
+	streamReady = true;
+	for ( uint32_t i = 0; i < 32 && !complete; ++i )
+		assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success );
+	assert( complete && streamCopied == size && streamSubmits == 22 && streamTransitions == 2 && streamAllocations == allocated );
+	const auto timed = RHI_GetTextureUploadStats();
+	assert( timed.submissions == 22 && timed.submittedBytes == size && timed.gpuSamples == 22 );
+	assert( fabs( timed.gpuUsec - .022 ) < 1e-9 ); // Eight-bit timestamp wrap: 11 ticks at 2 ns.
+
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete );
+	streamWidth = 7;
+	streamHeight = 5;
+	streamBlockBytes = 8;
+	streamTransitions = streamCopied = 0;
+	assert( RHI_QueueTextureUpload( &texture, 7, 5, 3, streamSource, 48, rhiFormat_t::BC4 ) == rhiStatus_t::Success );
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete );
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && complete && streamCopied == 48 );
+	streamWidth = streamHeight = 4096;
+	streamBlockBytes = 16;
+	assert( RHI_QueueTextureUpload( &texture, 4096, 4096, 13, streamSource, size, rhiFormat_t::BC7 ) == rhiStatus_t::Success );
+	streamTransitions = 0;
+	streamCopied = 0;
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete );
+	streamFenceResult = VK_ERROR_DEVICE_LOST;
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::DeviceLost && !complete );
+	qvkDeviceWaitIdle = []( VkDevice ) { return VK_SUCCESS; };
+	qvkDestroyBuffer = []( VkDevice, VkBuffer, const VkAllocationCallbacks * ) {};
+	qvkFreeMemory = []( VkDevice, VkDeviceMemory, const VkAllocationCallbacks * ) {};
+	qvkDestroyFence = []( VkDevice, VkFence, const VkAllocationCallbacks * ) {};
+	assert( RHI_ShutdownTextureUploads() == rhiStatus_t::Success );
+	vk.timestampBits = 0;
+	vk.timestampPeriod = 0;
+
+	qvkQueueSubmit = []( VkQueue, uint32_t, const VkSubmitInfo *, VkFence ) { return VK_SUCCESS; };
+	qvkQueueWaitIdle = []( VkQueue ) { return VK_SUCCESS; };
+	qvkCmdPipelineBarrier = []( VkCommandBuffer, VkPipelineStageFlags, VkPipelineStageFlags, VkDependencyFlags, uint32_t, const VkMemoryBarrier *, uint32_t, const VkBufferMemoryBarrier *, uint32_t, const VkImageMemoryBarrier * ) {};
+
+	vk.device = VK_NULL_HANDLE;
+}
+
 static uint32_t ownedImages, ownedViews, ownedMemory, ownedBindings;
 static uint64_t ownedHandle = 100;
 static int ownedFailure;
@@ -226,15 +340,80 @@ static void check_texture_replacement() {
 	vk.device = VK_NULL_HANDLE;
 }
 
+static uint32_t residentMemoryAllocations, residentImages, residentViews, residentBindings;
+static uint64_t residentHandle = 500;
+static bool retirementReady, residentFailView;
+static void check_texture_residency() {
+	vk.device = (VkDevice)(uintptr_t)20;
+	vk.compressionBC = qtrue;
+	qvkCreateDescriptorPool = []( VkDevice, const VkDescriptorPoolCreateInfo *info, const VkAllocationCallbacks *, VkDescriptorPool *pool ) { assert( info->flags & VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT ); *pool = (VkDescriptorPool)(uintptr_t)501; return VK_SUCCESS; };
+	qvkDestroyDescriptorPool = []( VkDevice, VkDescriptorPool, const VkAllocationCallbacks * ) {};
+	qvkCreateFence = []( VkDevice, const VkFenceCreateInfo *, const VkAllocationCallbacks *, VkFence *fence ) { *fence = (VkFence)(uintptr_t)502; return VK_SUCCESS; };
+	qvkCreateImage = []( VkDevice, const VkImageCreateInfo *, const VkAllocationCallbacks *, VkImage *image ) { *image = (VkImage)(uintptr_t)++residentHandle; residentImages++; return VK_SUCCESS; };
+	qvkDestroyImage = []( VkDevice, VkImage, const VkAllocationCallbacks * ) { assert( residentImages ); residentImages--; };
+	qvkGetImageMemoryRequirements = []( VkDevice, VkImage, VkMemoryRequirements *info ) { *info = { 4096, 4096, 1 }; };
+	qvkAllocateMemory = []( VkDevice, const VkMemoryAllocateInfo *info, const VkAllocationCallbacks *, VkDeviceMemory *memory ) { assert( info->allocationSize == 12288 ); *memory = (VkDeviceMemory)(uintptr_t)503; residentMemoryAllocations++; return VK_SUCCESS; };
+	qvkFreeMemory = []( VkDevice, VkDeviceMemory, const VkAllocationCallbacks * ) { assert( residentMemoryAllocations ); residentMemoryAllocations--; };
+	qvkBindImageMemory = []( VkDevice, VkImage, VkDeviceMemory memory, VkDeviceSize offset ) { assert( (uintptr_t)memory == 503 && offset % 4096 == 0 && offset < 12288 ); return VK_SUCCESS; };
+	qvkCreateImageView = []( VkDevice, const VkImageViewCreateInfo *, const VkAllocationCallbacks *, VkImageView *view ) { if ( residentFailView ) return VK_ERROR_OUT_OF_DEVICE_MEMORY; *view = (VkImageView)(uintptr_t)++residentHandle; residentViews++; return VK_SUCCESS; };
+	qvkDestroyImageView = []( VkDevice, VkImageView, const VkAllocationCallbacks * ) { assert( residentViews ); residentViews--; };
+	qvkAllocateDescriptorSets = []( VkDevice, const VkDescriptorSetAllocateInfo *info, VkDescriptorSet *binding ) { assert( (uintptr_t)info->descriptorPool == 501 ); *binding = (VkDescriptorSet)(uintptr_t)++residentHandle; residentBindings++; return VK_SUCCESS; };
+	qvkFreeDescriptorSets = []( VkDevice, VkDescriptorPool pool, uint32_t count, const VkDescriptorSet * ) { assert( (uintptr_t)pool == 501 && count == 1 && residentBindings ); residentBindings--; return VK_SUCCESS; };
+	qvkUpdateDescriptorSets = []( VkDevice, uint32_t, const VkWriteDescriptorSet *, uint32_t, const VkCopyDescriptorSet * ) {};
+	qvkQueueSubmit = []( VkQueue, uint32_t count, const VkSubmitInfo *info, VkFence fence ) { assert( count == 1 && info->commandBufferCount == 0 && (uintptr_t)fence == 502 ); return VK_SUCCESS; };
+	qvkWaitForFences = []( VkDevice, uint32_t count, const VkFence *, VkBool32, uint64_t timeout ) { assert( count == 1 && timeout == 0 ); return retirementReady ? VK_SUCCESS : VK_TIMEOUT; };
+	assert( RHI_InitTextureResidency( 12288 ) == rhiStatus_t::Success );
+	uint64_t bytes = 0;
+	assert( RHI_TextureResidencyBytes( 16, 16, 1, rhiFormat_t::BC7, &bytes ) == rhiStatus_t::Success && bytes == 4096 );
+	assert( residentImages == 0 && residentMemoryAllocations == 0 );
+	rhiTexture_t a{}, b{}, c{}, extra{};
+	assert( RHI_CreateResidentTexture( &a, 16, 16, 1, rhiFormat_t::BC7, rhiAddress_t::Repeat, "a" ) == rhiStatus_t::Success );
+	assert( RHI_CreateResidentTexture( &b, 16, 16, 1, rhiFormat_t::BC7, rhiAddress_t::Repeat, "b" ) == rhiStatus_t::Success );
+	assert( RHI_CreateResidentTexture( &c, 16, 16, 1, rhiFormat_t::BC7, rhiAddress_t::Repeat, "c" ) == rhiStatus_t::Success );
+	assert( a.binding != b.binding && b.binding != c.binding && residentMemoryAllocations == 1 );
+	assert( RHI_CreateResidentTexture( &extra, 16, 16, 1, rhiFormat_t::BC7, rhiAddress_t::Repeat, "full" ) == rhiStatus_t::OutOfMemory && !extra.image );
+	assert( residentImages == 3 && residentViews == 3 && residentBindings == 3 );
+	const uint64_t replacement = b.image;
+	assert( RHI_AdoptResidentTexture( &a, &b ) == rhiStatus_t::Unavailable );
+	vk_stream.image = (VkImage)(uintptr_t)b.image; // Completed upload; transfer fence is separately tested above.
+	vk_stream.active = true;
+	assert( RHI_AdoptResidentTexture( &a, &b ) == rhiStatus_t::Unavailable );
+	vk_stream.active = false;
+	vk.frame_count = 1;
+	assert( RHI_AdoptResidentTexture( &a, &b ) == rhiStatus_t::Unavailable );
+	vk.frame_count = 0;
+	assert( RHI_AdoptResidentTexture( &a, &b ) == rhiStatus_t::Success && a.image == replacement && !b.image );
+	assert( RHI_GetTextureResidencyStats().usedBytes == 12288 && RHI_GetTextureResidencyStats().retiredBytes == 4096 );
+	assert( RHI_PollTextureResidency() == rhiStatus_t::Success && residentImages == 3 );
+	assert( RHI_CreateResidentTexture( &extra, 16, 16, 1, rhiFormat_t::BC7, rhiAddress_t::Repeat, "pending" ) == rhiStatus_t::OutOfMemory );
+	retirementReady = true;
+	assert( RHI_PollTextureResidency() == rhiStatus_t::Success && residentImages == 2 );
+	assert( RHI_GetTextureResidencyStats().usedBytes == 8192 && !RHI_GetTextureResidencyStats().retiredBytes );
+	residentFailView = true;
+	assert( RHI_CreateResidentTexture( &extra, 16, 16, 1, rhiFormat_t::BC7, rhiAddress_t::Repeat, "failed view" ) == rhiStatus_t::OutOfMemory );
+	assert( !extra.image && !extra.view && !extra.binding && residentImages == 2 && residentViews == 2 && residentBindings == 2 );
+	assert( RHI_GetTextureResidencyStats().usedBytes == 8192 );
+	residentFailView = false;
+	assert( RHI_CreateResidentTexture( &extra, 16, 16, 1, rhiFormat_t::BC7, rhiAddress_t::Repeat, "reused" ) == rhiStatus_t::Success );
+	assert( residentMemoryAllocations == 1 );
+	assert( RHI_ShutdownTextureResidency() == rhiStatus_t::Success );
+	assert( !residentImages && !residentViews && !residentBindings && !residentMemoryAllocations );
+	vk.device = VK_NULL_HANDLE;
+	vk.samplers = {};
+}
+
 int main( void ) {
 	check_compressed_uploads();
+	check_async_texture_upload();
 	check_texture_replacement();
+	check_texture_residency();
 	vk_config.uniformBytes = 128;
 	assert( !RHI_GetCapabilities().active );
 	vk.active = vk.wideLines = vk.fragmentStores = vk.clearAttachment = vk.fboActive = vk.offscreenRender = qtrue;
 	vk.maxBoundDescriptorSets = 8;
+	vk.maxCompressedTextureSize = 16384;
 	const rhiCapabilities_t caps = RHI_GetCapabilities();
-	assert( caps.active && caps.wideLines && caps.fragmentStores && caps.clearAttachment && caps.fboActive && caps.offscreenRender && caps.maxBoundDescriptorSets == 8 );
+	assert( caps.active && caps.wideLines && caps.fragmentStores && caps.clearAttachment && caps.fboActive && caps.offscreenRender && caps.maxBoundDescriptorSets == 8 && caps.maxCompressedTextureSize == 16384 );
 	vk.pipelines_count = 92;
 	RHI_MarkWorldPipelines();
 	assert( vk.pipelines_world_base == 92 );

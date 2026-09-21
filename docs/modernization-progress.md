@@ -20,24 +20,1354 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#164 is accepted: PR167 merged at main 81e40b0c. Exact head 5a9b98a1 passed
-build 35584845138 and regression 35584845147; merged-tree build/publication
-35589995081 and regression 35589995016 passed. Tested/merged tree matches
-e615033d2dcd39b966d8ba51bb38c59ec8e4358e. Known-good remains 8bc8c94c -> 81a0f9dc.
+#164 is merged: PR167 -> main 81e40b0cfabdcd63b14964e4a1bee0f4decd7195.
+Final head 5a9b98a1 passed build 35584845138 (all 16 compiler legs) and regression
+35584845147 (all 10 active jobs). Main/base was rechecked immediately before the
+merge. Tested and merged tree both equal e615033d2dcd39b966d8ba51bb38c59ec8e4358e.
+Known-good remains 8bc8c94c -> 81a0f9dc. Merged-tree build/publication 35589995081 passed (all 16 legs and publication);
+regression 35589995016 passed all 10 active jobs. #164 is accepted and checked
+in #25. No source changes remain in its sketch-tree branch.
 
-Active: issue/31-descriptor-restore in
-/home/matt/.cache/aftershock-modernization/descriptor-tree, based on 81e40b0c.
-Commit/push the descriptor restoration fix, require all 16 compiler and ten active
-regression jobs, recheck main/base, self-merge only green with a merge commit,
-then verify merged-tree gates. No human approval or maintainer dependency exists.
+Continue #161 in /home/matt/.cache/aftershock-modernization/fidelity-tree,
+issue/161-visual-fidelity. Main 07304b32 is merged forward. Draft PR169 targets main.
+Effects, reference art, material-hit dispatch, light hooks, soft depth, projected
+normal-mapped decals/editor, native LOD selection and initial filmic/LUT/lens
+post controls pass component checks. Post resources preserve HUD composition,
+MSAA and the fixed OpenArena replay hash. All 101 shaders reproduce; existing
+accepted fixtures/shader arrays remain unchanged. Detailed failures and evidence
+are below; these checks do not constitute final #161 acceptance.
 
-#161 is paused in fidelity-tree at 4739d42a. Its RTX post run crashes in
-RHI_PrepareDraw; the same scene with post disabled passes. Main's existing SSAO
-path has the same descriptor-range defect and also crashes on RTX before the fix.
-After this #31 merge, merge main into #161 and reuse the corrected restoration
-for its new effects/post pass. Then measure post budgets and continue real
-previous-frame motion history/TAA, mip streaming and full #161 acceptance.
-No #161 post timing is accepted yet. Continue #161 -> #15 and the rest of #25.
+PR168 merged as 07304b324c75085a2403994030aceec73d4de8e1 after exact head
+dd4feacb passed all 16 compiler and ten active regression jobs (35607504307 /
+35607504311). Main/base remained 81e40b0c immediately before merge. Both tested
+and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
+unchanged. Main is merged forward here. Build/publication 35613793896 passed;
+regression 35613793817 passed all ten active jobs. #31 is accepted again.
+
+Next: finish the final PR169 hosted gates and require all 16 compiler legs and ten active regression jobs on a head
+containing current main. Combined software references and serial hardware budgets
+now pass. Optional resolution upscaling is deliberately omitted from this issue;
+the existing render-scale hook remains, and a quality upscaler can follow a measured
+need. All existing accepted fixtures/shader arrays are unchanged. The bounded
+compressed-source cache ceiling is documented; no frame-time filesystem reads.
+Post remains default off because the earlier street-scene copy-back budget miss
+is retained. Do not reinterpret this simpler combined scene as erasing that miss.
+Draft PR169 head 8213e810 contains main 07304b32; no maintainer input is needed.
+
+Initial post budgets before measurement: 0.75 ms for filmic controls and 0.20 ms
+for copy-back at 1440p on the reference GPU. Advanced lens effects remain default
+off; enabling the whole HDR path by default waits for full visual/performance
+acceptance. Hardware timing uses a private owned street scene and both CPU/GPU
+clocks, separately from software frame controls.
+
+Reference hardware: RTX 3080 Ti, 12288 MiB, driver 595.91.07. Use a real 1440p
+offscreen target with small Xvfb presentation for measured budgets; report CPU
+and GPU separately. Software-renderer captures remain separate visual controls.
+Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
+Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
+Build: /home/matt/.cache/aftershock-modernization/fidelity-build (Release DEVTOOLS).
+All evidence is under /home/matt/.cache/aftershock-modernization; no local packages.
+
+#164 retained evidence: compiled per-class IoU 1.0, safe spawns, resting-start
+5.2-second route, 6000 bot frames, 17 kills/53 pickups; edited building-7 variant
+16 kills/49 pickups, default-command Quake 3 run 18 kills/51 pickups, no observed
+stuck bots. Each has two named/eighteen fly-through captures. Provided retarget
+preserves bind matrices/root motion/licenses. Final self-review is below.
+
+Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
+All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
+known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 hosted/reference agreement and local content repeat
+
+All four PNGs downloaded from presentation-metrics artifact 10653769125 on run
+35629405076 match the independently generated Mesa 25.2.8 references pixel-for-pixel.
+Artifacts are retained under fidelity-ci-presentation/. The local Quake 3 / Mesa
+26.0.8 captures were reviewed and a fresh comparison passes
+(fidelity-quake3-reference.log / fidelity-quake3-repeat.log). Exact references now
+cover OpenArena on both supported Mesa versions and installed Quake 3 on local
+Mesa 26.0.8. Only new version/content variants were added; no accepted PNG changed.
+At 8d737daf, all compiler legs and eight active regression jobs pass; runtime and
+lifetimes are still running. The content-selector checkpoint requires its own
+final-head hosted success before merge. No engine or shader code changed.
+
+## #161 local Quake 3 content control
+
+The documented default local invocation was also checked against ~/.q3a. Its
+owned-scene baseline differs from OpenArena at a few edge pixels (mean channel
+error below 0.0033, maximum 84). The new test therefore follows the existing replay
+content separation as well: new Quake 3 / Mesa 26.0.8 frames live under
+fidelity/quake3, while all OpenArena references stay unchanged. Installed paks are
+only linked into the private engine home; none are copied or uploaded. New local
+content references still require review and an independent exact repeat.
+
+## #161 per-Mesa exact references pass locally
+
+The separately reviewed Mesa 25.2.8 frames pass a fresh exact comparison, and
+Mesa 26.0.8 still passes its unchanged original four PNGs. Evidence:
+fidelity-mesa25-reference.log, fidelity-mesa25-verify.log and
+fidelity-mesa26-verify.log. Between drivers the maximum per-channel difference is
+two RGB code values; mean channel error is below 0.022. This explains why a single
+cross-driver exact reference failed, but the gate remains exact per driver.
+New 25.2.8 captures are under tests/golden/fidelity/mesa-25.2.8; hosted artifact
+comparison remains required. No shader, engine behavior or accepted golden changed.
+
+## #161 hosted software-driver reference mismatch
+
+Initial runtime 35628249523 passes streaming and the individual presentation
+controls, then fails the combined baseline's exact comparison. Hosted replay logs
+identify Mesa 25.2.8; the existing new local fidelity frames use 26.0.8. The same
+failure is reproduced locally with privately extracted Ubuntu Mesa 25.2.8 and
+LLVM 20 packages (fidelity-mesa25-before.log); no system package is installed.
+Driver package SHA256 is b3be471db0ec27eb28c1ea75a4d2e6bb3207c5904bdc3823dbba9ce530026939,
+verified against packages.ubuntu.com/noble-updates/amd64/mesa-vulkan-drivers/download.
+
+Follow the existing replay gate's per-Mesa exact-reference convention: retain the
+four accepted 26.0.8 PNGs byte-for-byte, add separately reviewed 25.2.8 references,
+and fail unknown/missing driver references. No tolerance is relaxed and CI cannot
+record frames. New references must repeat exactly locally and match the retained
+hosted captures before acceptance. Current head 8213e810 otherwise passes all
+16 compiler legs and eight active regression jobs; runtime and lifetimes remain.
+
+## #161 latest checks and supplemental street capture
+
+At 8213e810, build 35629405112 passes all 16 compiler legs. Regression 35629405076
+has passed GCC unit, format, sanitizers and both cross variants; remaining jobs
+are running. Only this head's complete required checks count for merge.
+
+A supplemental real-GPU capture reuses the accepted sketch_reference street and
+all nine reference effects with TAA/post/decal/soft-particle controls enabled.
+Reviewed captures and report are retained in fidelity-street-visual/ and its
+adjacent script/log. It reports zero effect/light/upload/decal/temporal drops.
+This is additional visual evidence, not a replacement for exact software
+references or previous hardware performance measurements; no fixtures changed.
+
+## #161 all compiler legs pass; retain hosted presentation evidence
+
+At b2f545c7, build 35628975625 passes all 16 compiler legs. Publication jobs are
+conditional/non-required and skip on PRs. Regression format, sanitizer and both
+cross jobs pass; longer jobs remain running. The workflow now uploads owned
+presentation PNGs, JSON reports and logs (no paks/content archives) even on failure,
+so hosted visual results are reviewable. Reference creation is explicitly rejected
+in CI, in addition to refusing existing-file replacement. This final gate/evidence
+checkpoint will trigger all checks on its own head; prior results remain evidence,
+not a substitute for final-head success.
+
+## #161 self-review and current hosted head
+
+AGENTS self-review: changes match #161 presentation scope; authoritative movement,
+collision, snapshot and damage arithmetic are unchanged. The separate descriptor
+bug is already on main through PR168. No new OS calls escape platform/filesystem
+interfaces; frame state is bounded/POD and no engine heap allocation was added to
+frame evaluation. Cooked layout assertions and new native ABI checks are retained.
+Effects are included in the passing lifetime scan. Existing goldens are unchanged:
+only four new fidelity PNGs are added. Existing generated shader data is unchanged:
+4589 appended lines, zero removed. Known-good object 8bc8c94c still targets 81a0f9dc.
+Issue comments record measurements, failed attempts, limitations and decisions.
+
+Current head b2f545c7 runs build 35628975625 and regression 35628975619. Superseded
+intermediate regression 35628745426 was canceled to free runner slots; its build
+35628745374 had already completed with the corrected-next-head MSVC diagnostics.
+Initial runtime 35628249523 is retained for earlier feedback on presentation tests.
+Only final-head checks count for merge. Main must be rechecked immediately before
+ready/merge; all 16 compiler legs and ten active regression jobs must succeed.
+
+## #161 second hosted MSVC diagnostics
+
+After the decal name correction, MSVC reaches the new motion submission code
+and reports C4459 (local `uniform` shadows a legacy global) and C4244 (integer
+conditional values assigned to a float flag). Rename the local `motionUniform`
+and spell the exact zero/one flag literals as floats. No expression ordering or
+simulation behavior changes. Evidence: fidelity-ci-msvc-arm64-second.log from
+build 35628745374 at ba86c89a. All required checks will rerun on the corrected head.
+
+Expanded lifetime analysis now passes all 1248 commands / 135 source paths,
+shipping/development and static/module with positive/seven-object controls.
+
+## #161 MSVC shadow diagnostic
+
+Build 35628249560 fails MSVC C4457 because the new decal half-size loop named its
+local `size`, hiding DCL_Open's byte-count parameter. The loop variable is renamed
+to `extent`; validation/arithmetic are unchanged and warning policy is retained.
+This is a correction to unmerged #161 code. Log: fidelity-ci-msvc.log.
+
+## #161 first hosted unit failures and local gates
+
+PR169 regression 35628249523 fails both unit legs in the cook publication probe:
+GCC/Clang retain references to new streaming RHI functions that the mock did not
+define. Logs: fidelity-ci-unit-gcc.log / fidelity-ci-unit-clang.log. The probe now
+supplies abort-on-call implementations so unchanged publications still prove zero
+GPU access. No engine behavior changes. Full cooker reruns now pass under GCC and Clang/libc++
+(fidelity-final-cook-gcc.log and fidelity-final-cook-clang.log).
+
+Local tidy passes all 1306 configurations. Final legacy OpenArena replay matches
+accepted hash 17a172f7 (fidelity-final-demo.log). RHI/render-graph, temporal,
+residency-policy and affected-contract controls pass; all 101 shader binaries and
+interfaces reproduce. Known-bug harness controls pass. Expanded lifetime scan is
+still running. Hosted runs at 31049488 are evidence only until all failures are
+resolved and the final head is green.
+
+## #161 draft PR169 and final gate status
+
+Draft PR169 is open against main at 31049488. All writes stay in this repository.
+RHI checks pass, and all 101 shader binaries/interfaces match package d533f8bf;
+no accepted array changed. The expanded 1248-command lifetime scan and tidy gates
+are running. Hosted compiler/regression checks must pass before ready/merge;
+recheck main immediately before acceptance. No red or skipped required job is
+acceptable. The new software references pass exact comparison.
+
+## #161 final gate integration review
+
+Self-review found the new effects directory missing from the lifetime scanner's
+explicit core list; it is now included and the expanded 1248-command scan is
+running. Boundary/type/tidy scanners already discover owned sources. Subsystem
+ownership and the concise current AGENTS verification section now name the new
+presentation/streaming controls. Residency also participates in affected-test
+selection. Final software combined capture comparison passes with timing and
+hardware-command additions (fidelity-final-software.log). Main remains 07304b32.
+Next: finish final local gates and start the exact-head hosted PR checks.
+
+## #161 combined hardware budget pass
+
+The permanent `tests/fidelity_runtime.py --measure-gpu` passes serially on RTX
+3080 Ti / 595.91.07 at 2560x1440 offscreen, 640x360 present. After 4096 warm frames
+and 64 effect warm frames, all 400 consecutive samples pass unchanged budgets.
+CPU p95 ms: effects 0.140, decals 0.011, soft/decal backend 0.101, LOD 0.002.
+GPU p95 ms: inclusive effects 0.784384, nested decals 0.446464, post 0.314368,
+post copy 0.143360, camera motion 0.144384, object motion 0.090112, resolve
+0.400384, temporal copy 0.144384. Final frame CPU p50/p95/p99 is
+4.154/5.475/8.746 ms. The workload repeats all nine effects and three decals every
+20 frames, ending with 478 particles / 26 instances / 72 decals, 1215 collisions,
+and zero pool/light/upload/decal drops. Hunk and zone-tag memory remain identical
+to baseline. The 1440p capture was reviewed. Evidence: fidelity-combined-hardware/
+gpu-report.json, gpu-engine.log, hardware.png and fidelity-combined-hardware.log.
+The earlier street-scene post-copy miss remains; the post path stays default off.
+Optional upscaling is not required for this issue and is deferred; no new upscaler
+or dependency is introduced. Remaining: exact-head/current-main gates and review.
+
+## #161 presentation timing implementation
+
+The failing timing assertion now passes with the four software references still
+pixel-identical (fidelity-timing-after.log). Renderer API 31 development / 25
+shipping exposes cumulative microseconds for effect preparation, decal preparation,
+combined soft-particle/decal backend submission and model LOD selection. Agent
+`profile.presentationCpuUsec` and the profiler show these totals; hardware sampling
+differences consecutive totals. The existing no-wait GPU query pool also records
+a nested `decals` scope. No allocations or authoritative simulation edits were
+introduced. Native LOD timing uses a deterministic clock control and passes with
+six measured calls (fidelity-presentation-lod.log). Client build, format/types/
+boundaries and the native ABI gate pass. Next: serial combined hardware workload.
+
+## #161 combined visual scene and remaining declared budgets
+
+The new `tests/fidelity_runtime.py` combines the generated two_lane level, nine
+unchanged reference effects, three projected decals, an owned PBR sphere, TAA and
+filmic post. Two independent initial runs were byte-identical. New baseline,
+combined, settling and reduced-LOD frames were reviewed; existing goldens and
+assets are untouched. The sphere's authored `lod_error=.1` permits 576/288/144
+triangles (75% savings at the lowest level); the default .01 held both requested
+reductions at 470, so only this new test recipe opts into the larger error.
+
+Remaining budgets declared on #161 before measurement at 1440p / RTX 3080 Ti:
+effects frontend CPU p95 0.50 ms; combined soft-particle/decal backend CPU 0.50 ms;
+decal frontend CPU 0.25 ms; LOD selection CPU 0.10 ms; inclusive effects GPU pass
+1.50 ms, decal GPU subset 0.75 ms. Nested decal time is not counted twice. Existing
+post/temporal/streaming thresholds remain unchanged. The fresh comparison run passes all four references exactly
+(fidelity-combined-verify.log); the runtime command is added to hosted CI and
+AGENTS.md. The new timing assertion fails first with missing `presentationCpuUsec`
+(fidelity-timing-before.log). Next: implement cumulative CPU and nested decal GPU
+timing, then measure the combined workload.
+
+## #161 permanent streaming measurement command
+
+`tests/streaming_runtime.py --measure-gpu` now reproduces the serial reference
+hardware gate using the same generated assets and runtime setup as software CI.
+It requires an explicit Vulkan driver and verifies RTX 3080 Ti in the engine log,
+retains every-frame profiles and completed-upload samples before budget assertions,
+and then runs the ordinary fly-through/reload/restart controls. The permanent
+command passes: active CPU p95 0.081 ms (244 samples), GPU p95 0.327328 ms
+(156 samples), against the unchanged 0.25/0.50 ms limits. Evidence:
+fidelity-stream-permanent-hardware.log and fidelity-streaming-runtime/gpu-report.json
+plus gpu-engine.log. Software CI does not claim hardware performance. No golden
+or authored asset changed. Next: combined scene and per-system acceptance.
+
+## #161 one-MiB streaming hardware budget pass
+
+With the fixed staging/submission bound reduced to 1 MiB, the identical serial
+RTX workload passes the unchanged budgets. Active CPU p50/p95/p99 is
+0.044/0.117/0.181 ms (244 samples, max 0.196); upload GPU p50/p95/p99 is
+0.323216/0.325984/0.330272 ms (156 individually observed samples, max 0.338208).
+Final frame CPU p50/p95/p99 is 3.080/6.452/8.088 ms. Hardware, resolution, source
+set, budgets, 4096 warm frames and four cold/visible cycles are unchanged.
+Evidence: fidelity-hardware-streaming-1m/report.json, capture and .log. The failed
+4 MiB report is retained separately. The native same-byte/row/timestamp test now
+passes with 22 submissions per 4K BC7 chain; the client rebuild passes. Smaller
+batches trade a longer promotion for bounded frame work. The software hot-reload/
+restart gate passes at this final bound (fidelity-streaming-runtime-1m.log), as do
+GCC/Clang native probes and formatting. The hardware baseline frame CPU was
+3.044/3.387/5.853 ms p50/p95/p99; the measured transition workload ends at
+3.080/6.452/8.088 ms. Combined-scene acceptance and exact-head/current-main gates
+are still outstanding.
+
+## #161 smaller transfer test-first
+
+The native probe now requires 1 MiB fixed staging and 22 submissions for the same
+4K BC7 chain, preserving every mip row/byte and every GPU timing sample. It fails
+against the 4 MiB implementation at the staging-size assertion
+(fidelity-stream-1m-before.log). This changes the throughput/latency tradeoff to
+meet the existing measured budgets; the budget thresholds stay unchanged.
+
+## #161 first streaming hardware measurement: budget miss
+
+Nonblocking GPU timestamp reporting passes native GCC/Clang probes and real RTX
+execution. The renderer owns two upload queries and reads them only after the
+existing transfer fence, without a query wait. Profiler/ImGui expose cumulative
+submission bytes/count and uniquely numbered GPU samples. Renderer API is now
+30 development / 24 shipping. The frontend lifetime scan passed all 1244 commands
+(shipping/development, static/module, positive/seven-object negative controls).
+
+Serial RTX 3080 Ti / 595.91.07 measurement at 2560x1440 offscreen / 640x360 present,
+4096 warm frames and four cold/visible cycles samples every frame. Five owned 4K
+BC7 textures (~107 MiB) use 32 MiB residency / 128 MiB source. All 64 GPU submission
+samples are observed. With 4 MiB staging/batches, active CPU p50/p95/p99 is
+0.0135/0.291/0.348 ms (152 samples, max 0.485); GPU p50/p95/p99 is
+0.432784/1.286912/1.296640 ms (max 1.298080). Final frame CPU p50/p95/p99 is
+3.058/4.632/7.474 ms. Both declared 0.25 ms CPU and 0.50 ms GPU p95 budgets fail.
+The script fails its assertion after writing the full report; this is not accepted
+performance. Evidence stays in fidelity-hardware-streaming/report.json and .log.
+Next: reduce the fixed batch to 1 MiB and rerun the identical serial workload;
+do not change budgets or erase this result. Defaults remain off.
+
+## #161 upload timing test-first
+
+The native upload probe now requires per-submission GPU timestamps and cumulative
+submitted-byte/submission/sample counters. Readback must happen after the existing
+transfer fence without a query wait; an eight-bit counter-wrap case requires 11
+ticks at 2 ns to report 0.022 microseconds. Initial compilation fails on the absent
+upload-statistics API (fidelity-stream-timing-before.log). The frontend component's
+lifetime scan is still running against unchanged engine sources before this timing
+implementation begins.
+
+## #161 frontend residency integration under test
+
+The first software larger-than-budget run passes: five original 4K textures,
+111848240 compressed source bytes, 33554432-byte residency pool, peak occupied
+regions 32506880 bytes, 13 promotions/7 demotions, no deferred requests/failures.
+Cold demand falls to 28160 resident bytes; rewarming and vid_restart restore
+quality (fidelity-streaming-runtime-after.log/report.json). The arena reserves its
+configured device budget; used/peak report occupied regions, not additional pools.
+
+The initial integration run rejected all five textures at the intentional legacy
+2048-pixel resampler/chunk cap. Streamed cooked mip chains now use the separate
+physical compressed-image limit (up to 16384); the legacy path retains its cap.
+CPU source storage is allocated once at renderer initialization, async work runs
+only after frame submission, and profiler/ImGui counters expose residency/source
+usage and transitions. Renderer API is 29 development / 23 shipping. Source slots
+are reused for same-size or smaller reloads; growth consumes arena space until
+renderer restart. Hot reload passes: a 4K floor is replaced by a differently colored
+512-square texture, the source slot is reused, and the captures visibly change
+(fidelity-streaming-runtime-reload.log). Final pre-restart counters are 17 promotions,
+7 demotions, one reload, no failures/deferrals. Native GCC/Clang RHI, native ABI,
+format, types, boundaries and workflow syntax pass. Disabled OpenArena replay is
+still 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(fidelity-stream-legacy-demo.log). The full lifetime scan remains in progress.
+Real GPU transfer/CPU budget measurements remain outstanding. No fixture regenerated.
+
+## #161 streaming runtime test-first and source-storage decision
+
+`tests/streaming_runtime.py` cooks five original solid-color 4096-square BC7
+textures (about 107 MiB including mips), overlays them on the owned generated
+two_lane level and requests a 32 MiB residency budget with 128 MiB source storage.
+The initial run reaches the map then fails on missing textureStreaming profiler
+counters (fidelity-streaming-runtime-before.log). It requires promotion, coarse
+tail eviction/restoration and vid_restart while peak residency stays bounded.
+Generated artifacts live only in the private cache; accepted fixtures are unchanged.
+
+Use a preallocated, explicitly bounded compressed-source arena to keep filesystem
+I/O out of frames. This first residency implementation streams from that arena to
+VRAM; it is not an unbounded CPU cache or background disk loader. Exceeding source
+capacity must report an explicit error rather than silently bypassing the VRAM
+budget. A future out-of-core disk path is needed only for content exceeding the
+configured source budget. Runtime policy/transfer CPU budget is 0.25 ms p95 and
+upload GPU budget 0.50 ms p95, declared before hardware measurement at 1440p.
+Defaults remain off pending the full gate.
+
+## #161 reclaimable residency component
+
+The RHI owns a fixed-capacity residency arena: one device-memory allocation,
+2049 image records (2048 resident plus one transition), a reusable descriptor
+pool and one retirement fence. Allocations use actual Vulkan requirements and
+aligned free gaps; pending/retired images remain charged. Each replacement gets
+its own descriptor. Adoption between submitted frames inserts a last-use fence;
+zero-timeout polling releases the old image only after completion. Shutdown
+cancels uploads before freeing residency. Driver image/view objects are still
+created for replacements; no engine heap or new device-memory allocation occurs
+per promotion. Fragmentation may refuse a request; it cannot overrun the budget.
+
+GCC/Clang native probes, upload ASan/UBSan, client build, formatting, types and
+boundaries pass (fidelity-residency-{after,clang,sanitized,build,format,types,boundaries}).
+Tests require full-pool refusal while retirement is pending, byte accounting,
+distinct descriptors, no adoption of unfinished uploads, exact reuse after the
+fence, rollback of a failed view and full cleanup. The generic texture creation
+and staging helpers are shared; no accepted shader/fixture changed. This remains
+unconnected to image loading/binding; bounded source storage, hot reload and
+large-set fly-through/real GPU acceptance are next.
+
+## #161 residency ownership test-first
+
+The native RHI probe now requires a reusable device-memory budget with actual
+Vulkan requirements, independent replacement descriptors and a retirement fence.
+A full pool must refuse new images until old use completes, then reuse the freed
+space without another device-memory allocation. Failed creation must release its
+partial image, and shutdown must reclaim every handle. Initial compilation fails
+on the absent residency API (fidelity-residency-before.log). Renderer/source-cache
+integration and hardware/software fly-through acceptance still remain.
+
+## #161 asynchronous upload component
+
+The RHI now has explicit map-load initialization, queue, nonblocking poll and
+shutdown calls. It reuses staging allocation and BC validation helpers; one fixed
+4 MiB buffer, command buffer and fence stream complete rows through at most sixteen
+regions per submission. Source storage is borrowed until final-fence completion.
+No GPU idle wait or resource allocation occurs in queue/poll. Map release/shutdown
+cleans the resources. Descriptor adoption and residency integration are still next.
+
+GCC/Clang RHI probes pass, including a 4K chain in six submissions, exact destination
+mip/row and source bytes, non-block-aligned BC4 dimensions, busy refusal, final-fence
+completion and device loss (fidelity-stream-upload-{after,clang}.log). The first
+runtime probe needed its temporary Vulkan observers restored before the older
+replacement test; production behavior was unchanged. The native upload probe also
+passes ASan/UBSan; running the entire RHI driver with those extra flags reached an
+unrelated image-probe linker failure because ASan retains its unused loader table.
+Only the upload binary is claimed as sanitized acceptance. Client build, graph,
+format, types and boundaries pass. Shader package/accepted fixtures stay unchanged.
+
+## #161 asynchronous upload test-first
+
+The existing native RHI upload probe now requires a preallocated 4 MiB staging
+buffer and one reusable command/fence. A 4096-square BC7 mip chain must transfer
+in six bounded submissions, preserve every source byte, poll fences with timeout
+zero, and publish completion only after the final fence. A busy uploader refuses
+a second request; malformed sizes and device loss cannot report success. Queue
+and device idle waits are rejected by the probe during uploads. Initial compile
+fails on the absent asynchronous API (fidelity-stream-upload-before.log).
+
+## #161 bounded residency policy component
+
+The pure planner now handles at most 2048 records with stack-only scratch and no
+allocation. It reserves replacement-tail headroom, counts pending/retired bytes,
+keeps coarse tails, prioritizes recent bindings, retains quality on ties and
+serializes transitions. A downgrade can temporarily use a smaller tail when its
+preferred replacement would exceed peak budget. GCC/Clang UBSan pass, including
+settling repeated decisions and rejecting malformed/overflowing costs
+(fidelity-stream-policy-{after,clang}.log); formatting passes. The compiler matrix
+runs this test. The policy is not wired into rendering yet; native fence-safe
+uploads, bounded source storage and the larger-than-VRAM runtime set remain next.
+
+## #161 streaming policy test-first
+
+The existing synchronous replacement is unsuitable for streaming: it waits idle
+and updates a live descriptor. Reuse its format/sampler helpers, but require
+separate image ownership and fence-safe adoption/retirement for the new path.
+The first policy test fails on absent tr_stream.h (fidelity-stream-policy-before.log).
+It requires fixed-capacity recent-use residency, retained coarse tails, eviction
+before promotion, stable equal-priority views, frame-counter wrap and peak VRAM
+accounting including pending/retired allocations. Costs are device allocation
+requirements, not compressed file sizes. Serial transitions deliberately bound
+staging and retirement. This is not an async-upload implementation or acceptance.
+
+## #161 first temporal GPU budgets and disocclusion pixels
+
+At 1440p on the RTX 3080 Ti, serial real-clock timing controls with an owned native
+view weapon pass their declared p95 budgets. After 4096 warm frames and 50 profile
+samples: camera motion 0.128000 ms, geometry motion 0.030720 ms, resolve 0.370688 ms,
+copy 0.128000 ms; CPU p50/p95/p99 4.377/4.986/8.751 ms. A continuously turning
+camera with authored motion_blur 1 measures 0.101376/0.023552/0.288768/0.285696 ms
+for the same GPU passes; CPU 4.333/5.083/8.820 ms. Captures were inspected: scene
+blur follows the turn while the view weapon and HUD remain sharp. Reports/logs:
+fidelity-hardware-temporal and fidelity-hardware-temporal-blur. These controls
+do not replace final combined PBR/effects/decals scene measurement, and the earlier
+post-copy budget miss remains recorded rather than erased by this cheaper view.
+
+A stronger software test removes the owned body without a camera cut, then
+compares newly revealed pixels to the settled background: 14174 covered pixels,
+mean max-channel difference 3.2753 codes and p95 8 (limits 5/16). The test passes
+(fidelity-motion-disocclusion/models.json). No accepted golden was regenerated.
+
+Test-first d5678f1a adds reactive classification for animated images, video,
+waveforms, scrolling/deforming materials and remapped shaders. GCC/Clang UBSan
+checks pass (fidelity-reactive-{after,clang}.log). The classifier is used both to
+select world geometry for the reactive overlay and to reject tracked-model
+history. Constant UV scales remain eligible. The rebuilt runtime/pixel gate passes
+(fidelity-reactive-runtime): the same 14174 pixels, mean 3.2753/p95 8, with zero
+dropped frames or overflow. Final combined quality/reference checks remain outstanding.
+
+## #161 native geometry motion and visible counters
+
+The motion traversal records submitted entity identities once, draws current
+geometry against scene depth and pairs native IQM vertices with copied prior
+skin positions. Rigid unchanged local geometry uses prior transforms. Unknown
+identities, changed legacy MD3/MDR animation, deforms and translucent inputs
+conservatively reject history; this is deliberate until those inputs have
+reliable prior vertices. Alpha-mask setup is shared with shadow rendering, and
+motion pipelines preserve culling and polygon-offset variants. No simulation
+arithmetic or per-frame allocation was added.
+
+Test-first 944a20ec requires rejection after geometry/uniform exhaustion; the
+implementation restores the main pass without rotating/committing history.
+GCC/Clang graph tests pass (fidelity-motion-overflow-{after,clang}.log); the test
+initially needed its two-case loop changed to avoid an undeclared initializer-list
+header. GCC/Clang skin probes verify the motion vertex stream retains old values
+when the current pose changes (fidelity-motion-skin{,-clang}.log). The owned
+rifle/body gameplay run passes with --taa, including replicated hit-box equality
+(fidelity-motion-animation-final.log); ADS/body captures were inspected.
+
+The runtime --models gate now observes actual profiler counters through ADS,
+fire/reload and third-person movement. Final report: 130 temporal frames, 1994
+motion draws, 680 reactive draws, one stored/matched entity, no rejected records,
+no overflow and no dropped temporal frame (fidelity-motion-models-runtime).
+An initial harness attempt used cvar.set before the game registered its settings;
+using the existing console set command before map load fixed the test setup.
+Renderer API is 28 development / 22 shipping for the expanded statistics record.
+
+Client builds, shadow-view tests, native ABI, format, boundaries and types pass.
+Disabled-path OpenArena replay remains exactly
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(fidelity-motion-legacy-demo.log). No accepted fixture changed. Stronger pixel
+checks for moving silhouettes/disocclusion, reactive animated materials, final
+reference goldens and GPU budgets remain required before accepting TAA.
+
+Declared temporal pass budgets before hardware measurement at 1440p:
+camera motion 0.30 ms, geometry motion 0.50 ms, resolve 0.80 ms, display copy
+0.30 ms (0.80 ms with optional motion blur). Over-budget paths stay default off.
+
+## #161 geometry-motion pipeline component
+
+Test-first 07cb7ec8 fails on the missing motion pipeline/modules. The new pipeline
+uses the retained scene depth with reverse-depth comparison and no depth writes,
+plus current position/color/UV and a separate previous-position vertex stream.
+Its shaders preserve alpha-test discard and encode prior clip position with the
+weapon viewport depth scale/bias. Untracked or rejected geometry writes invalid
+history instead of borrowing camera-only motion. Surface submission is next;
+this pipeline component does not yet draw moving objects.
+
+GCC/Clang native graph tests pass (fidelity-motion-pipeline-{after,clang}.log),
+and the client builds. Two new shader arrays are appended via bin2hex; all prior
+arrays remain unchanged. Fresh/cached compilation matches all 101 shaders
+(package d533f8bf7dfe1d7aef4c5b3d319c928bfe52357d1541c4e9e292abcc562c0335;
+fidelity-motion-shader-check.log). Next wire the geometry traversal and previous
+skin/rigid positions, preserving masks and conservative rejection for unsupported
+animated/deformed inputs, then test actual moving/skinned objects and disocclusion.
+
+## #161 camera-view temporal integration
+
+The opt-in r_taa path now jitters only the backend presentation projection,
+records camera history around a rendered main view, dispatches motion/resolve
+before effects, and consumes authored motion_blur in the display copy. It forces
+single-sample rendering while enabled; disabling it restores the saved MSAA
+configuration. Uniform reservation covers the actual 192-byte camera record
+without inflating ordinary draws to the shadow path's 1024-byte range.
+
+The first private smoke omitted required r_fbo 1 and correctly failed its missing
+pass assertion; adding the prerequisite made camera-only captures/profiling pass
+(fidelity-temporal-camera-smoke.log). Captures were inspected. The permanent
+camera-only test passes motion, large camera/FOV cuts, restart and explicit
+disable on an owned generated map (fidelity-temporal-view-runtime-final.log).
+It is wired into runtime CI. Client build, format, boundaries, types and actionlint
+pass. Fixed OpenArena replay still matches accepted hash
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(fidelity-temporal-legacy-demo.log); no accepted fixture was regenerated.
+
+Moving/skinned entity motion is NOT wired yet: the runtime test deliberately
+hides entities to isolate camera reconstruction. Next add the geometry overlay
+using copied previous skin positions and entity transforms, preserve alpha/depth
+masks, test moving models and disocclusion, then measure all new GPU passes.
+No final TAA quality or combined-scene acceptance is claimed.
+
+## #161 temporal fullscreen dispatch component
+
+Test-first e46a0ec8 fails on missing temporal uniform/dispatch declarations.
+The RHI component initializes camera motion from depth, retains a geometry-motion
+pass, resolves against distinct previous history and copies the new history to
+scene color. It alternates physical histories only after dispatch, rejects a
+failed uniform upload and restores initialized descriptor slots/scissor state.
+All temporal dependencies cover the full image, because reprojection/blur read
+neighboring pixels. Optional nine-tap motion blur affects only the display copy,
+not the sharp history; disoccluded pixels reject prior depth and neighborhood
+clamping bounds accumulated color. First-frame/cut paths skip history fetches.
+
+GCC/Clang graph probes pass (fidelity-temporal-commands-{after,clang}.log), including
+three frame rotations, first-frame invalidation, sparse descriptor restoration
+and upload exhaustion. The initial run needed the probe's pass observer extended
+to recognize new passes; production dispatch did not bypass that assertion.
+Client build and format pass. Three appended shader arrays were generated with
+bin2hex; every prior array is byte-identical. All 99 fresh/cached shaders match
+(package 84f4d10d2f9b35d40cb4171e9a95fbd34c76b9ae5d74f441a2e05dccb6220b9f;
+fidelity-temporal-shader-check.log). This component is not enabled: frontend
+view lifecycle, moving/skinned geometry, visual tests and budgets remain next.
+Main 07304b32 build/publication 35613793896 passed; regression 35613793817 remains
+in its long level/bot runtime step. No maintainer dependency exists.
+
+## #161 jitter and restored software controls
+
+Test-first 06b43fd4 requires an eight-frame centered, subpixel projection jitter
+sequence which changes only projection entries 8/9 and preserves invalid-size
+inputs. GCC/Clang UBSan temporal probes pass (fidelity-jitter-{after,clang}.log).
+This presentation helper is not enabled until motion/resolve wiring is complete;
+authoritative camera/simulation state and culling stay untouched.
+
+After descriptor adoption, software 4x MSAA post controls (exposure, LUT, sharpen,
+vignette, grain, depth blur, reload/restart) and projected decal/editor/HUD controls
+pass (fidelity-restored-{post,decals}-runtime.log). No accepted fixture changed.
+
+## #161 restored RTX post measurements
+
+The descriptor correction removes the RTX crash: 4096 warm frames plus 50 profile
+samples complete on the RTX 3080 Ti at 2560x1440 offscreen / 640x360 presentation.
+The owned street capture was reviewed; these are timing controls, not the final
+combined PBR/effects acceptance scene. Baseline post p50/p95 is 0.137216/0.514048 ms;
+copy is 0.108544/0.547840 ms. CPU p50/p95/p99 is 3.613/5.391/8.500 ms.
+With LUT/sharpen/vignette/grain and nine-tap depth blur enabled, post is
+0.510976/0.630784 ms, copy 0.115712/0.625664 ms; CPU 3.686/5.484/9.149 ms.
+Evidence: fidelity-hardware-post-restored and fidelity-hardware-post-all report.json,
+captures and logs. Runs are serial and use real platform/GPU clocks.
+
+Filmic p95 passes its declared 0.75 ms budget; copy p95 exceeds its 0.20 ms budget.
+Therefore r_postProcess stays default off. No budget was increased to pass the
+measurement. Final combined-scene measurements remain required; TAA, blur using
+motion vectors and streaming are not implemented by this timing checkpoint.
+
+## #161 descriptor restoration adoption
+
+Main's accepted helper now restores cached descriptors after the new effects and
+post passes. Test-first d35a53ed fails the sparse restoration mask in
+particleCommands (fidelity-restore-before.log/fidelity-restore-assert.log).
+The correction replaces the device-limit dirty range with the shared bounded
+helper, retaining scissor invalidation. GCC/Clang graph tests and client build
+pass (fidelity-restore-{after,clang,build}.log); format passes. Tests cover live
+slots 0/1/3, skipped null slots and saved dynamic offset on a 32-set-capable device.
+RTX post timing and software controls are next. PR168's merged-tree runs are
+build/publication 35613793896 and regression 35613793817, still in progress.
+
+## #161 temporal graph resources
+
+Test-first c13573bd/4a0ecc1e require distinct persistent history images and four
+ordered motion/resolve/copy passes. The implementation allocates bounded RGBA16F
+motion/history attachments through the existing graph pool, creates both history
+write framebuffers, and releases all images/views/passes on restart. Temporal
+configuration requires the post path and single-sample rendering. No runtime
+switch, jitter, motion shader or resolve dispatch is enabled at this checkpoint.
+
+GCC and Clang native graph probes pass 36 legacy, 32 post and 16 temporal
+configurations, including both physical history framebuffer views and dependency
+checks (fidelity-temporal-graph{,-clang}.log). The first implementation run exposed
+a stale test pass-count assertion and a descriptor assertion before descriptor
+initialization; correcting those assertions produced passing checks. Client build,
+format (475 files), boundaries and fixed-width checks also pass
+(fidelity-temporal-graph-{build,format,boundaries,types}.log). Accepted fixtures
+remain unchanged. PR168 still awaits its last runtime job before merge.
+
+## #161 previous-pose vertex component
+
+Test-first 022fb33b fails on missing R_IQMPreviousPositions
+(fidelity-temporal-skin-before.log). The implementation reuses the current IQM
+influence-matrix arithmetic for both ordinary drawing and saved history; no
+expression order is changed. Previous local positions come from the copied skin
+pose, or the saved frame/oldframe/backlerp for legacy IQM clips, before the
+separate object/world transform. Output is bounded by the supplied capacity.
+
+GCC/Clang UBSan probes pass analytical two-bone blended positions, float/byte
+weights, static vertices and legacy clip interpolation, and match the ordinary
+renderer vertex bytes exactly (fidelity-temporal-skin{,-clang}.log). Actual fixed
+OpenArena animation replay reports are identical between accepted #164's binary
+and the rebuilt feature binary: all 253 authoritative box hashes and sampled
+frames 050/100/200 agree (fidelity-temporal-demo-{before,after}.log/replay.json).
+No fixture or shader array is regenerated. This still needs motion-pass wiring;
+no temporal anti-aliasing or hardware budget is claimed yet.
+
+## #161 explicit temporal submission identities
+
+Test-first ecc74e8d extends the existing animation-render probe; it fails on the
+absent submission API/identity field (fidelity-temporal-submit-before.log).
+The new wrapper reuses existing material/pose validation and assigns identity
+only after successful submission. Ordinary submissions clear it; failed graph
+bindings cannot leak an ID to the next entity. Native body and view-weapon calls
+now supply separate stable owner/part IDs including the teleport toggle.
+The legacy refEntity and game-state layouts are unchanged. Renderer API is now
+27 development / 21 shipping for the additional submission function.
+
+GCC/Clang animation/render probes, native owned body/rifle gameplay and replicated
+hit-box runtime, C/game/engine ABI, format and boundary gates pass
+(fidelity-temporal-submit{,-clang,-runtime,-abi,-format,-boundaries}.log).
+This only carries identity; GPU motion and TAA remain unimplemented. Legacy
+models/brush movers still need IDs, and the history cache is not yet connected
+to the rendered-view lifecycle. PR168 continues its expected long runtime gate.
+
+## #161 temporal history component implemented
+
+The pure renderer cache now keeps two bounded views and up to 256 entity/skin
+records each, statically under 4 MiB with trivial storage and no allocation.
+GCC/Clang UBSan probes pass copied poses, consecutive rendered frames (including
+unsigned wrap), sparse/missing entities, model/hash changes, teleport/FOV/axis
+cuts, viewport changes, failed resolves, invalid numeric input and overflow
+(fidelity-temporal-{after,clang}.log). It does not use oldorigin/oldframe as
+previous-rendered state. Existing legacy records and authoritative code are
+unchanged. CMake, affected selection and unit CI include the new component.
+
+This is not wired into rendering yet. Next independent #161 work: submit stable
+presentation identities, capture real previous posed vertices/view matrices and
+add motion/jitter/TAA passes with visual controls. PR168 still waits for hosted
+runtime; adopt its accepted descriptor correction and remeasure RTX post before
+claiming hardware acceptance. All current work remains in msetaro/aftershock.
+
+## #161 temporal history test-first contract
+
+PR168's last runtime gate is still running; the previous accepted runtime took
+57 minutes, including 37 minutes in its authored-level/bot step. Independent
+#161 work continues while the isolated #31 fix awaits acceptance. The new
+`tests/temporal.py`/native probe specify bounded previous-rendered-view/entity
+history: copied skin poses, stable identity/model/hash checks, camera and object
+teleport rejection, resize/FOV/cut invalidation, missing/failed-frame rejection,
+capacity and unsigned frame wrap. The pre-implementation compiler fails on the
+absent temporal types/functions (fidelity-temporal-before.log). This is not TAA
+or motion-vector acceptance: actual submission identities, camera jitter,
+animated previous vertices, GPU resolve and visual/performance gates remain.
+
+The strengthened native decal lifecycle also verifies visible notification text
+after a small projected decal; it passes with the scissor correction
+(fidelity-scissor-hud.log). No accepted fixture changed.
+
+## #161 effects scissor restoration
+
+While #31 PR168 runs required gates, a separate test on the unmerged #161 code
+reproduces stale scissor state (70f14376, fidelity-scissor-before.log and
+fidelity-scissor-assert.log). Direct effects/post calls change the GPU scissor
+without changing its ordinary draw cache. After a small decal rectangle, the
+next full-screen draw sees its old cached rectangle and skips the required GPU
+update. RHI_EndEffects now invalidates that cache alongside depth range, so the
+next ordinary draw installs its actual rectangle. This correction is confined
+to new #161 code; main's #31 descriptor fix remains isolated in PR168.
+Native GCC/Clang graph checks pass (fidelity-scissor-{after,clang}.log), as do
+the decal editor/reload/restart lifecycle and four-sample MSAA post/HUD checks
+(fidelity-scissor-{decals,post}.log). Format passes all 472 owned files. No
+accepted fixtures change. #31 PR168 now has every required check except runtime
+green; its descriptor correction is still awaiting merge.
+
+## #161 RTX failure isolated; #31 fix in progress
+
+Initial post-enabled RTX run crashes in RHI_PrepareDraw before producing timing
+(fidelity-hardware-post.log, fidelity-post-gdb.log). The identical post-disabled
+control passes: CPU p50/p95/p99 4.688/6.207/6.739 ms, GPU main p50/p95
+1.099824/1.137120 ms and gamma 0.275456/0.278528 ms. These are control results,
+not acceptance of the new post path.
+
+Descriptor restoration uses the device's supported-set count as an index into
+the engine's five-entry cache. Main's existing SSAO path has the same defect;
+a separate issue/31-descriptor-restore branch at main 81e40b0c now reproduces it
+with a 32-set device in the native graph probe. #31 reopened; comment 5761425851.
+The new effects/post restoration will adopt the same correction after the #31
+fix passes its required gates and merges. Do not accept #161 timing before that.
+
+## #161 filmic component gates pass
+
+Lifetimes pass all 1236 commands / 132 source paths across shipping/development
+and static/module configurations, including positive/seven-object negative
+controls (fidelity-post-lifetimes.log). The strengthened MSAA test also passes
+HUD preservation, zero upload drops and stable memory
+(fidelity-post-hud-msaa-final.log). Its near-opaque antialiased edge comparison
+allows two 8-bit code values: one MSAA edge retains a small background fraction;
+fully covered text remains white while the whole scene becomes orange.
+
+GCC/Clang final graph pipeline/upload checks, all 96 shader regeneration checks,
+472-file formatting, tracked boundaries, types, native ABI, authored schemas,
+agent protocol, isolation and workflow syntax pass. Renderer ABI is now 26 in
+development / 20 in shipping for the added post counters. Main was refreshed and
+remains 81e40b0c. Initial RTX post timing is running; no PR or default switch yet.
+Self-review: new presentation paths only, bounded uploads/fixed graph targets,
+no authoritative FP, per-frame allocation, OS access or accepted-fixture edits.
+
+## #161 post preservation checks pass
+
+The strengthened single-sample native check passes profile draw/drop/load
+counters, stable hunk/tag memory and unchanged fully covered notification text
+under a constant orange LUT (fidelity-post-hud-final.log). White is 254 in this
+legacy vertex-modulated HUD; antialiased edge pixels intentionally depend on the
+background. The OpenArena fixed replay still matches
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(fidelity-post-legacy-demo.log), and soft depth/MSAA/SSAO still pass
+(fidelity-post-soft-depth.log). The graph probe also checks both new pipeline
+blend/sample states, descriptor restoration and bounded upload exhaustion
+(fidelity-post-final-graph.log). ABI, agent protocol, boundaries/types, workflow
+syntax and isolation pass. Lifetimes and strengthened MSAA/HUD are running.
+
+## #161 initial native filmic/lens controls pass
+
+Three new shader arrays were appended through bin2hex; all previous 93 remain
+byte-identical. Fresh pinned compilation reproduces all 96 shaders
+(fidelity-post-shader-check.log). Post processes each world view after effects
+and before HUD, using one fixed float target plus copy-back; no per-frame heap.
+The existing watcher selects finite validated profiles and a 16-slice display
+LUT. The initial test correctly rejected its accidentally sRGB-cooked LUT;
+setting the authored recipe to srgb:false fixes the setup, with no loader bypass.
+
+Single and 4x-MSAA native tests pass exposure, LUT, sharpening, vignette, grain,
+depth blur, watched edits, exact restoration and restart
+(fidelity-post-native-{linear-lut,msaa}.log). Captures reviewed: bright exposure,
+constant orange grading, defocused floor. New profiler draw/drop/load counters
+are built; strengthened HUD/memory controls and legacy replay/lifetime gates are
+running. The HUD check initially included partially transparent glyph-edge pixels;
+those correctly blend with the changed scene. It now selects fully opaque white
+pixels. No engine workaround. Temporal vectors/TAA/motion blur and streaming are
+still absent; these are component passes, not final #161 acceptance.
+
+## #161 native post resources pass; image contract first
+
+The graph/native backend now create the separate post target and two passes;
+32 combinations cover MSAA, retained depth/stencil, bloom, capture and shadows.
+GCC/Clang graph checks pass and the disabled descriptor oracle remains unchanged
+(fidelity-post-graph-{native,clang}.log). The development client builds. There
+are no post draw calls/shaders yet. The native image test first fails because
+editing exposure leaves the frame unchanged (fidelity-post-native-before.log).
+It next requires LUT, sharpen/vignette/grain/depth blur, reload and restart.
+Implement shaders and per-world-view dispatch before HUD, then run both sample
+modes; proper temporal vectors/TAA and asynchronous streaming remain outstanding.
+
+## #161 post graph contract first
+
+The graph test now requires a separate sampled post-color target, a scene/depth
+read pass, and a copy-back pass compatible with single-sample and MSAA color.
+Post output precedes gamma/capture; HUD can be composed after the copy-back.
+The first run fails on the absent graph IDs/config field
+(fidelity-post-graph-before.log). Implement these declarations/native resources
+before shaders; legacy disabled descriptor hashes remain mandatory.
+
+## #161 post profile data passes
+
+The cooker and existing native cooked-data reader now agree on the version-1
+132-byte .aspost payload (kind 11). Optional controls have documented defaults,
+finite range/path checks and the existing SHA envelope. GCC and Clang/libc++
+UBSan pass the authored round trip and incremental exposure edit
+(fidelity-post-{pure,clang}.log). No GPU behavior is changed by this data slice.
+Implement graph/passes with native image controls next; temporal vectors/history
+and streaming remain separate required work within #161.
+
+## #161 post profile contract first
+
+The first post test authors exposure/sharpen/vignette/grain/LUT/focus/blur settings
+and requires a fixed 132-byte native record in the existing hash envelope, plus
+an incremental exposure edit. It fails before implementation because kind post
+is absent (fidelity-post-before.log). This is authoring/layout coverage only;
+actual graph passes, LUT sampling, depth effects and temporal history still need
+native visual tests. Blur/grain remain zero by default. Use the published CC0
+ACES-fitted curve (Krzysztof Narkowicz, 2016) with exposure in linear space; do
+not claim full ACES color management. Existing display-encoded HDR scene output
+must be decoded before the filmic operation, and HUD composition must remain
+after it. No existing shader arrays or accepted frames will be regenerated.
+
+## #161 original projected decal references pass
+
+New original CC0 bullet-hole, scorch and blood sources are frozen under
+tests/assets/decals (256-square RGBA plus height-derived normal maps). The
+initial exporter refuses populated output; provenance pins every source. Existing
+effect artwork and all accepted fixtures remain unchanged. The existing reference
+check now validates/cooks both sets and repeated cooking makes no changes
+(fidelity-reference-decals.log). Native review runs all nine effects and all three
+marks; each mark visibly projects onto the floor and clearing restores the exact
+baseline (fidelity-reference-decals-runtime.log). Captures reviewed: small dark
+recessed hole/rim, broad radial scorch, red splatter. Component captures only.
+
+Format, boundary/type and authored-schema checks pass after the material-hit and
+editor work (fidelity-hit-decals-{format,boundaries,types,formats}.log). Full
+post/TAA/motion vectors, streaming, combined scene, budgets and exact-head/main
+hosted checks remain before #161 acceptance. No PR is open yet.
+
+## #161 live decal editor passes
+
+The Effects panel now loads .asdc through its existing asset control, projects at
+the aimed collision surface, clears the fixed ring, and reports decal counters.
+Source editing reuses the existing path/backup/conflict protections. The native
+editor mode passes projection, guarded save, cooked reload and clear
+(fidelity-decals-editor.log); the existing particle editor still passes
+(fidelity-effects-editor-v3.log). CI runs the editor variant plus the separate
+MSAA lifecycle. Original bullet/scorch/blood artwork is next; final #161
+post/TAA/streaming, scene and budget acceptance remain outstanding.
+
+## #161 material-hit decal binding passes; editor test first
+
+The version-3 optional effect decal field passes GCC and Clang/libc++ UBSan
+(fidelity-hit-decals-{pure,clang}.log). The renderer preloads the mark and projects
+it once when an effect starts, rotating the effect's normal axis into decal Z.
+Actual per-material weapon impacts register all referenced marks, draw them on
+the floor, retain them after particle expiry and visibly clear them
+(fidelity-hit-decals-runtime.log). No weapon payload/game import or simulation
+changes; existing reference source bytes stay frozen. This native mode joins CI.
+
+The existing projected-decal lifecycle test now also has an editor mode. Before
+implementation it fails because effects.edit cannot load an .asdc
+(fidelity-decals-editor-before.log). Reuse the same guarded source editor and
+trace the aimed surface for preview; keep all work presentation-only.
+
+## #161 material-hit decal contract first
+
+The effect definition gains an optional decal reference, so existing per-material
+weapon effect selection can spawn particles and one projected mark together.
+No weapon payload, authoritative hit result or game import changes are needed.
+The cooker/native layout assertions now require a version-3 effect envelope and
+100-byte header. Before implementation the schema rejects the new field
+(fidelity-hit-decals-before.log). Existing reference sources remain untouched;
+only new cooked feature data changes. Implement renderer binding, then prove
+actual weapon impacts leave visible marks after their particles expire.
+
+## #161 projected decal verification checkpoint
+
+The MSAA lifecycle and strengthened native ring/memory checks pass
+(fidelity-decals-native-{msaa,ring}.log). The same test places 129 marks, retains
+128, reports one replacement and zero drops, then clears them. GCC/Clang graph,
+format/boundary/type, agent protocol and all 93 pinned shader checks pass.
+Most importantly, the actual OpenArena fixed-demo replay retains the unchanged
+accepted frame hash 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(fidelity-decals-legacy-demo.log). No fixture regeneration. Native decal commands
+are now included in runtime CI; main/exact-head hosted gates still belong to the
+complete #161 PR, which is not open yet. Finish material-hit/editor integration
+and owned bullet/scorch/blood references next; post/TAA/streaming remain required.
+
+## #161 native projected decals: initial component pass
+
+The depth-detached pass is now shared by projected decals and soft particles.
+Decals reconstruct world positions from scene depth, clip to an oriented volume,
+apply color and normal textures with light-grid illumination, and use a conservative
+projected scissor. Frame-owned records copy at most four full rings; overflow and
+upload drops are counted. Pool order retains newer marks over older ones.
+
+The native test passes projection, fade/expiry, the volume-misses-floor negative
+control, changed normal lighting, watched texture/definition edits and restart
+(fidelity-decals-native-watch.log). Active/tilted captures were reviewed: the
+same floor patch changes lighting with its tangent-space normal. The first reload
+comparison omitted dev_reloadAssets; enabling the existing watcher corrected the
+test setup. Initial missing captures exposed command-buffer misalignment caused
+by my new draw-count field. Reordering only the new fields and asserting the
+command offset restores capture (fidelity-decals-capture-debug.log). No legacy
+command-reader or unrelated engine code changed.
+
+Native graph checks pass for both pipelines and bounded uniform uploads while the
+legacy descriptor oracle remains identical (fidelity-decals-graph.log). Two new
+shaders are generated with bin2hex; all previous 91 arrays stay unchanged. MSAA,
+shader/compiler checks and the new profiler counter build are next. Material-hit
+dispatch, live editor preview and original decal reference artwork remain pending.
+
+## #161 native projection test first
+
+The new real-client decal test requires a projected textured floor patch, lifetime
+fade/expiry, no floating billboard when its volume misses the floor, normal-map
+lighting changes, watched texture/definition edits and renderer restart. It fails
+at the absent decals.load command before native implementation
+(fidelity-decals-native-before.log). Implement through the retained-depth effects
+pass; keep sampled depth detached and copy bounded draw records per scene.
+
+## #161 decal data and fixed ring pass
+
+The existing effects module now accepts a 200-byte .asdc payload and owns a
+128-entry copied-definition insertion ring, with replacement counts, orthonormal
+projection axes, fade and overflow-safe expiry. The cooker and agent schema expose
+color/normal maps, full volume size, lifetime/fade, color and normal strength.
+GCC and Clang/libc++ UBSan pass (fidelity-decals-{pure,clang}.log); authored format
+examples/diagnostics pass (fidelity-decals-formats.log). No GPU projection is
+implemented yet. Next: native depth-projection/normal-map capture test first,
+then renderer bindings, material-hit dispatch, reload/editor and reference art.
+
+## #161 projected-decal data/ring test first
+
+The existing effect test now requires a versioned .asdc definition with color and
+normal-map paths, volume size, lifetime/fade, color and normal strength. Its native
+contract requires a copied definition in a fixed 128-entry insertion ring,
+overwrite counters, bounded aging and fade-to-expiry. It fails before implementation
+on the absent decal cook kind (fidelity-decals-before.log). These are new feature
+contracts in the existing effect target, not changes to accepted content.
+
+## #161 sampled-depth particle pass passes component gates
+
+Soft sprite/trail quads reuse the bounded scene polygon storage and sort their
+references back to front. A separate color-only graph pass samples retained depth,
+then resumes loaded scene color/MSAA/depth/stencil. Single static vertex-color
+materials use alpha/additive pipelines; complex legacy materials keep their stage
+iterator. r_softParticles defaults off pending final budgets. Fade distance comes
+from authored particle size. GPU scope and softDraws/softDrops expose work/drops.
+
+The live floor test passes single-sample and 4x MSAA+SSAO, complete occlusion,
+zero upload drops and vid_restart (fidelity-soft-runtime-final2.log). Capture
+review shows solid distant cyan, faint floor intersection and no below-floor
+contribution. Initial implementation rejected 160-byte draws in the old 128-byte
+uniform range; only the opt-in configuration enlarges it. A stricter material
+eligibility check initially missed the existing AGEN_SKIP optimization of vertex
+alpha; the final condition recognizes it without changing the legacy optimizer.
+
+GCC/Clang native graph tests retain the exact disabled descriptor hash and cover
+32 new combinations, blend state, upload exhaustion and state restoration. Pinned
+shader compilation reproduces all 91 shaders; the prior 88 arrays are unchanged
+(fidelity-soft-graph-{native,clang}.log, fidelity-soft-shader-check.log). Release
+build, formatting, boundary/type and agent protocol checks pass. Lifetime
+analysis passed all 1232 compilation commands (fidelity-soft-lifetimes.log). This is component evidence;
+final reference-scene goldens and hardware budgets remain outstanding.
+
+## #161 live soft-depth contract fails first
+
+The native test places a cyan sprite at 32 units above, 1 unit above and 4 units
+below the same floor. The previous binary gives identical near/far center values
+(146536 each), so the near-depth fade assertion fails as intended; the occluded
+control is zero (fidelity-soft-runtime-before.log). Commit this test before the
+new depth-pass implementation. Initial new shader compilation appends only three
+new arrays through bin2hex; all 88 existing arrays remain byte-identical.
+
+## #161 soft-particle graph test first
+
+The graph contract now requires retained sampled scene depth, a particle pass
+without a depth attachment, and a compatible loaded scene resume. It covers
+single/multisample color with SSAO, stencil, bloom and shadows. Before implementation
+it fails compiling the absent softParticles/pass declarations
+(fidelity-soft-before.log). Keep the disabled descriptor oracle unchanged.
+
+## #161 original reference effect set passes
+
+The nine original CC0 reference definitions, procedural PNG atlases and brass
+shell source are now frozen with per-file provenance. The authoring exporter
+refuses an existing populated directory and is never run by CI. Initial authoring
+validation caught texture/effect name collisions and inward shell winding/normals;
+these were corrected before freezing the new sources. PNG bytes were not rerun
+or regenerated; no existing fixture changed. Geometry assertions require outward
+triangle winding and normals (fidelity-reference-geometry.log).
+
+The native renderer draws all nine effects, produces visible image changes and
+expires every pool entry (fidelity-reference-runtime.log). All captures were
+reviewed: distinct flash/light, sparks, dusty/smoky puffs, brass shell, explosion
+and tracer. These are component captures, not accepted frame goldens or a final
+artistic scene. Pure reference and native lifecycle commands are in regression CI.
+Soft-depth flags remain metadata until their renderer path is implemented.
+
+## #161 single-sided impact visual control now passes
+
+Correcting only the new effect quad order/UV orientation makes the stricter native
+weapon test pass (fidelity-weapon-effect-runtime-winding.log). Capture review now
+shows the single-sided brown impact particles directly over the floor, then the
+same empty floor after expiry; no animated player is visible. This is accepted
+component evidence, superseding the earlier obscured comparisons. The original
+owned material is deliberately plain; final reference art remains separate.
+
+The reference-set test now requires frozen original CC0 sources for muzzle flash,
+metal/stone impacts, smoke, sparks, dust, shell, explosion and tracer, with pinned
+provenance and required sprite/mesh/trail/light/collision fields. It fails on the
+absent provenance before authoring (fidelity-reference-before.log). Author this
+new asset set once, review it, then retain its bytes; no existing fixture changes.
+
+## #161 visual control caught new particle winding error
+
+Removing the player from the comparison made the stricter visual test fail. Using
+actual floor-hit event positions still showed no particles
+(fidelity-weapon-effect-runtime-{overhead,hit-view}.log). Review against the existing
+sprite tessellator found the new #161 particle quads wound backwards; earlier
+white-marker tests used two-sided shaders and masked it. Commit the stronger test
+before correcting this unmerged feature. Fix only the new effect quad order/UVs;
+no legacy renderer or accepted shader changes are needed.
+
+## #161 live weapon material effects pass
+
+The new typed cgame imports register/start effects at the existing client renderer
+boundary. Map-start registration selects .asfx material references; hit presentation
+uses the existing hit normal/origin and a presentation-only seed. Legacy material
+shader references keep their previous mark/explosion behavior. GCC/Clang UBSan,
+Release build, formatting and C/game/engine ABI checks pass.
+
+The real client fires 20 material hits on the unchanged owned level and reports
+two registered effects, 5464 submitted particle draws, no pool drops. A tightened
+run uses degree-based input, disables HUD/gun/console notifications, fixes the
+camera and compares visible impacts with the expired frame. Numeric comparison passes, but capture
+review found the animated player obscuring the impact area; that run is not
+accepted visual evidence (fidelity-weapon-effect-runtime-visible.log). The next
+run uses a narrow overhead view of the floor impact to exclude the player. The first test
+used raw 16-bit angles; it exercised dispatch but was insufficient visual evidence.
+Both versions are retained. The visible lifecycle command is now in runtime CI.
+No authoritative damage, weapon arithmetic, hit selection or snapshot change.
+
+## #161 weapon-effect native boundary checkpoint
+
+The actual cgame material-hit probe now passes GCC and Clang/libc++ UBSan, including
+unchanged legacy mark/explosion behavior (fidelity-weapon-effect{,-clang}.log).
+Only typed presentation imports and effect dispatch change; simulation is untouched.
+The new real-client test fires a cooked weapon whose material paths end in .asfx.
+Against the prior binary it reaches weapon hits but reports zero registered/drawn
+effects, failing as intended (fidelity-weapon-effect-runtime-before.log). Commit
+this live contract before rebuilding the client with the native import change.
+
+## #161 weapon material-effect contract fails first
+
+A new probe calls the actual cgame material-hit presentation function. Authored
+.asfx material effects must start a native burst with the hit origin/normal;
+legacy shader references retain marks/explosions. The first executable fails on
+missing burst dispatch (fidelity-weapon-effect-before-2.log), after correcting its
+standalone native include/build setup. No damage, hit selection, weapon simulation
+or snapshot representation changes are needed. Add typed presentation imports next.
+
+## #161 live effect source editor passes
+
+The Effects ImGui panel and effects.edit share queued source/preview actions.
+The existing source-saving logic now serves both animation and effects: bounded
+loose JSON paths, numbered backups, read-back validation and refusal to overwrite
+external changes. Effect and Profile panels expose fixed-pool/light counters.
+Both effect editing/replay and the unchanged animation editor pass
+(fidelity-effect-editor.log, fidelity-shared-source-editor.log). The Effects
+panel capture was reviewed. Renderer reset clears its preview handles.
+
+The regression workflow now includes GCC/Clang pure effects/LOD checks and native
+effect, effect-editor and LOD lifecycle commands. Full #161 hosted/current-main
+gates remain later; no PR is open yet. Next: reference effect art and weapon
+material-hit bindings, then depth-soft particles/projected decals/post/TAA and
+budgeted streaming. Final reviewed scene and measured hardware budgets remain
+mandatory, and none of these component checks claim full issue completion.
+
+## #161 shaped native effects and light hooks pass
+
+Native sprite size evolution/rotation and bounded per-emitter light submission
+pass visible frame, expiry, stable memory, watched reload and restart controls
+(fidelity-effect-lights.log). The active capture was reviewed: rotated larger
+marker plus colored light on the nearby floor. The scene light pool bounds work;
+agent counters expose accepted and dropped light submissions. The build initially
+caught a missing declaration for the existing scene light count; corrected before
+passing. This remains component evidence, not the final reference effect set.
+
+The next test requires an Effects ImGui source panel shared with native agent
+edit actions, save backups/conflict protection, then recook/replay. Its initial
+run fails on absent effects.edit (fidelity-effect-editor-before.log). Implement
+by reusing the existing source editor's file helpers and preservation rules.
+
+## #161 seeded effect shaping passes
+
+GCC and Clang/libc++ UBSan pass version-2 cooked records, stable seeded spread,
+rotation/spin and all existing pool/lifetime/collision controls
+(fidelity-effect-shaping{,-clang}.log). New optional authoring fields retain the
+old behavior when omitted. The live light-hook test now fails explicitly on absent
+lightDraws after loading its rendered map (fidelity-effect-lights-before.log).
+The first probe attempted the stats request before loading a map and was corrected;
+that invalid-state response was test setup, not a renderer failure.
+
+## #161 reference-effect shaping contract
+
+The next effect test requires seeded velocity/origin spread and rotation/spin,
+plus fixed cooked fields for size evolution and light emission. These are needed
+for distinct sparks/smoke/shells rather than coincident identical particles. The
+new cooked envelope is version 2; no accepted effect asset exists or is regenerated.
+The test fails on the old version before implementation
+(fidelity-effect-shaping-before.log). Add shaping and native light hooks next;
+soft depth and full reference/material/editor coverage remain outstanding.
+
+## #161 native LOD lifecycle passes
+
+The owned grid now passes both GCC and Clang/libc++ with UBSan, including unchanged
+animated matrices and scaled screen selection (fidelity-lod-native{,-clang}.log).
+The real client passes near/far LOD draws, unchanged hunk/tag memory, removal of
+lod_ratios while stale sibling files remain, restoration, and renderer restart
+(fidelity-lod-runtime.log). Near/far captures were reviewed: the same white grid
+is visible at both distances. These controls are not final artistic goldens.
+
+The first live selection attempt retained the historical r_lodbias=-2 and put the
+far camera outside the room. The test now explicitly selects r_lodbias=0, scales
+the grid to four units and uses two in-room cameras; no legacy default changed.
+Model asset diagnostics expose lods and four draw counts. Release build and source
+format/boundary/type checks pass. Performance savings and larger animated scene
+coverage still belong to final #161 acceptance. No accepted asset regenerated.
+
+## #161 native LOD implementation checkpoint
+
+The native GCC/UBSan probe passes unchanged animated matrices and screen-size
+selection (fidelity-lod-native.log). Registration now reads the hash-bound set,
+checks shared skeleton/animation/material compatibility and retains cached model
+handles. All model replacements complete before LOD links refresh. Release client
+build passes (fidelity-lod-build.log). Live selection/reload is not accepted yet.
+
+The new engine-level test reuses the same owned animated grid and requires visible
+near/far draws, stable memory, disabling stale siblings after removing lod_ratios,
+reenabling after republishing, and vid_restart. Its initial run fails because the
+model registry has no lods/lodDraws counters (fidelity-lod-runtime-before.log).
+Add these development diagnostics and run the full lifecycle next.
+
+## #161 native LOD contract
+
+The cooker manifest now passes its initial assertions. A new native LOD probe
+requires unchanged animated joint matrices, compatible skeletons, projected-size
+selection, scaled-entity handling, bias clamps and no selection-time allocation.
+Its pre-implementation compile fails on absent R_IQMLodCompatible; the IQM branch
+of the existing LOD selector is also still absent. Native registration/reload and
+visual lifecycle coverage remain to follow.
+
+## #161 LOD manifest contract fails before implementation
+
+The extended cooker test requires a versioned .aslod sidecar binding the original
+IQM SHA256 to every named reduced IQM and its SHA256. The pre-implementation run
+fails on missing models/grid.aslod (fidelity-lod-manifest-before.log). This keeps
+stale sibling files from silently activating after a recipe changes. Commit the
+contract before implementing the cooker and native screen-size selection.
+
+Main build/publication 35589995081 passed all 16 compiler legs and create-testing;
+merged regression 35589995016 is still running, so #164 acceptance remains pending.
+
+## #164 merge and #161 compatibility checkpoint
+
+PR167 is ready/merged after every required final check passed. The conditional
+PR publication jobs are not required PR gates; the actual main publication must
+now pass. Merge 81e40b0c has the exact tested source tree. Main is merged forward
+into #161 without rewriting either branch. The old authored branch remains clean.
+
+The initial #161 effects/HDR/LOD tree passes both fixed OpenArena replay fixtures
+and accepted Mesa frame hash 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+GCC/Clang LOD payloads are byte-identical. Protocol, format/boundary/type and authored
+schema controls pass; the schema command needs the private Go bin directory.
+This does not replace #161's eventual full exact-head/current-main gates.
+
+## #161 offline mesh LODs pass
+
+Pinned meshoptimizer 1.2 at 9d9890c73011d75920af614485296d1e03e95448 supplies
+only its allocator/simplifier/header and MIT license; provenance records all file
+and source archive SHA256 hashes. It is linked only into the offline cooker helper.
+Optional lod_ratios produces up to three compact native IQMs, using position,
+normal, UV and skin-weight error with locked joint-set and mesh boundaries.
+The original full-detail geometry stays unchanged; all vertex attributes are
+retained from original vertices. Unsupported reductions may stop at the error
+limit rather than discard geometry arbitrarily.
+
+The owned animated grid reduces 512/289 triangles/vertices to 256/161 and 128/97;
+files shrink from 23320 to 13080 and 7960 bytes. Joint/pose/animation bytes remain
+identical and repeated output is deterministic (fidelity-lod.log). Native screen
+selection, animated visual comparisons and performance remain outstanding. No
+accepted asset or existing shader was regenerated. Official pin/source:
+https://github.com/zeux/meshoptimizer/tree/v1.2.
+
+## #161 initial native sprite/reload/restart pass
+
+Release client/server build succeeds with the fixed effect code linked into the
+renderer only. Shared renderer API controls register/start/stop/report; the native
+agent calls the existing renderer accessor. The renderer submits sprite/mesh/trail
+primitives, copied material/model bindings and optional static-world collision,
+with fixed pools and no play-time allocations. Authored effects retain their data
+and bindings across reload. Watched reload validates the published whole-file hash.
+
+The new native test passes on lavapipe/OpenArena: eight visible sprites, expiry,
+unchanged memory counters, a watched edit from eight to three particles, and
+renderer restart/re-registration (fidelity-effects-runtime.log). The initial
+square-marker capture was reviewed; it is a rendering control, not the final
+reference effect art or an accepted golden. Own MAP/BSP/AAS remain unchanged.
+Build integration initially caught two renderer API type mismatches, corrected
+before the successful build. Mesh/trail/soft/light/reference/editor/performance
+coverage is still outstanding; nothing here claims full #161 acceptance.
+
+## #161 native effect rendering contract
+
+The client-level test now requests effects/load/start/stop through the native
+agent, then requires visible sprites, counters, expiry, stable engine memory,
+watched definition reload and renderer restart on the existing owned two-lane
+level. Its pre-implementation run fails immediately because those commands are
+absent (fidelity-effects-runtime-before.log). No new golden is accepted yet;
+soft particles, mesh/trail/light paths and reviewed reference effects remain
+additional required coverage. Implement the shared renderer/public controls next.
+
+## #161 floating target component pass
+
+hdr=2 now selects RGBA16F for offscreen rendering and reports its format; existing
+hdr=-1/0/1 and direct modes stay unchanged. Device setup requires sampled/blended
+linear-filtered float targets and the current RGBA8 capture conversion, rejecting
+unsupported hardware explicitly. The native graph test passes, including its
+unchanged descriptor hash, shadows and SSAO (fidelity-graph.log). No shader
+regeneration. This is not filmic/post acceptance: real captures and full post/TAA
+integration remain pending, and defaults remain at their accepted values.
+
+## #161 initial effect cooker and fixed-pool runtime pass
+
+The existing cooker now accepts validated effect definitions, emits .asfx in the
+version/hash envelope and publishes kind 8. New engine/effects code uses 4096
+particles/128 instances with a free list, bounded emission, copied active definitions,
+rate carry, lifetime/flipbook updates, local emission axes, gravity/drag and optional
+caller-provided collision. It owns no clock, world state or heap memory.
+The original committed probe passes GCC and Clang/libc++ with strict FP and UBSan
+(fidelity-effects{,-clang}.log). This is pure component acceptance only: CMake,
+client rendering, public services, material/soft/light/trail paths, reference effects,
+editor/hot reload, full gates and all other #161 deliverables remain outstanding.
+No authoritative simulation or existing asset bytes changed.
+
+## #161 independent implementation sequencing
+
+The previous checkpoint conservatively deferred all implementation until #164's
+merged-tree acceptance. The pure effect cooker/runtime does not depend on #164,
+so continue it in this isolated issue branch while the unchanged #164 head runs
+CI. This avoids idle gating time without mixing source changes or weakening any
+merge gate. Integrate accepted #164 main before opening the #161 PR, and require
+current-main exact-head plus merged-tree checks as usual. Effects, HDR and LOD
+failing contracts are committed first. No #164 check is bypassed or restarted.
+
+## #161 initial mesh LOD contract
+
+The owned two-joint source generator now supplies a smooth-weighted 17x17 grid
+for tests/lod.py. The initial lod_ratios recipe requires two smaller compact IQMs,
+unchanged full-detail geometry, preserved joints/poses/compressed animation and
+byte-repeatable cooking. Recipe provenance hashes are intentionally excluded only
+from the original-geometry comparison; every payload still verifies its stamp.
+Before implementation the original geometry passes and grid_lod1.iqm is absent
+(fidelity-lod-before.log). No meshoptimizer import, cooker or native LOD changes
+yet; screen-size selection and actual runtime cost remain future acceptance gates.
+
+## #161 initial floating HDR contract
+
+The existing native graph probe now checks that a new hdr=2 offscreen mode uses
+R16G16B16A16_SFLOAT, while direct/legacy modes retain their exact formats. The
+pre-implementation run passes the accepted 36-configuration descriptor hash and
+all existing shadow/SSAO configurations, then fails the floating-format assertion
+(fidelity-graph-before.log). No shader bytes or accepted oracle were regenerated.
+This fixes the native format expectation only; post passes, history/motion vectors,
+feature-on software references and measured budgets are still outstanding.
+
+## #161 hardware measurement preparation
+
+The existing renderer runs on the local RTX 3080 Ti at verified 2560x1440
+capture/render resolution. Presenting a full-size image to private Xvfb adds
+substantial CPU cost (44.033 ms median); this is not evidence of GPU overload.
+Using existing r_fbo/r_renderScale with a 2560x1440 offscreen target and 640x360
+presentation gives CPU frame p50/p95/p99 4.689/6.386/9.009 ms after 4096 warm
+frames. Across 50 samples, GPU main p50/p95 is 1.096/1.100 ms and gamma is
+0.271/0.275 ms. NVIDIA ICD/device and the saved 1440p PNG dimensions are checked.
+Evidence: fidelity-hardware-{baseline,small-present}.py/.log and the corresponding
+report.json/capture directories in the private modernization cache. This is a
+static existing-renderer baseline, not #161 feature/streaming acceptance. The two
+runs use different offscreen settings and are not a feature A/B comparison.
+A matched large-window offscreen run (fidelity-hardware-large-present) measures
+CPU p50/p95/p99 44.697/54.831/87.905 ms; GPU main p95 1.324 ms and gamma p95
+0.586 ms. Both runs render/capture 1440p with the same offscreen settings, which
+isolates the costly Xvfb presentation size. These are hardware/device-dependent
+baseline measurements, not acceptance thresholds. All later hardware budgets
+must use a consistent render/presentation configuration.
+No repository renderer or accepted frame changes were made for this experiment.
+
+## #161 native fixed-pool effect contract
+
+The native probe specifies trivial fixed storage, valid cooked definition opening,
+constant-velocity/rotated-axis movement, gravity/drag, per-emitter capacity,
+flipbook progression, lifetime expiry, fractional rate
+carry, stop/stale-handle behavior including expired-slot reuse, collision reflection through a caller callback,
+independent presentation state and visible fixed-pool overflow counters. The
+pre-implementation compile fails on engine/effects/effects_public.h. The effects
+driver will compile it with strict FP/UBSan and the existing SHA256 implementation
+after a valid cook. No implementation has started while #164 awaits acceptance.
+
+## #161 initial effect authoring contract
+
+The existing agent effect schema is currently authoring-only. tests/effects.py
+now requires it to cook into the common version/hash envelope and a fixed native
+record layout, appear as kind 8 in the content index, skip unchanged input and
+recook an edited definition. Capacity, mesh binding and duplicate emitter authoring
+errors must fail. Initial run fails with "asset kind is not implemented yet:
+effect" (effects-cook-before.log). No runtime, renderer, game, shader, cooker or
+accepted fixture was changed for this preparation.
+
+Reuse the existing cooker/envelope, client render frontend, fixed native data,
+ImGui tooling and render graph. #161 is presentation-only: no authoritative
+movement/snapshot arithmetic or per-frame allocation. Reference effects, projected
+decals, post/TAA, LOD/streaming, live data editing and real 1440p GPU measurements
+are still required; this first contract is not implementation or acceptance.
 
 ## #31 descriptor restoration local verification
 

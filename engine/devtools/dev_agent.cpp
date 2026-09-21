@@ -798,6 +798,15 @@ static bool Agent_Assets( const char *request, const char *end, agentReply_t &re
 			reply.Number( model.bytes );
 			reply.Text( ",\"reloads\":" );
 			reply.Number( model.reloads );
+			reply.Text( ",\"lods\":" );
+			reply.Number( model.lods );
+			reply.Text( ",\"lodDraws\":[" );
+			for ( uint32_t i = 0; i < 4; i++ ) {
+				if ( i )
+					reply.Text( "," );
+				reply.Number( model.lodDraws[i] );
+			}
+			reply.Text( "]" );
 		}
 		reply.Text( "}" );
 	}
@@ -881,6 +890,10 @@ static void Agent_EditorState( agentReply_t &reply ) {
 	reply.Text( state.graphDirty ? "true" : "false" );
 	reply.Text( ",\"play\":" );
 	reply.Text( state.graphPlay ? "true" : "false" );
+	reply.Text( "},\"effects\":{\"result\":" );
+	reply.String( state.effectResult );
+	reply.Text( ",\"dirty\":" );
+	reply.Text( state.effectDirty ? "true" : "false" );
 	reply.Text( "},\"range\":{\"loaded\":" );
 	reply.Text( state.rangeLoaded ? "true" : "false" );
 	reply.Text( ",\"ads\":" );
@@ -965,6 +978,33 @@ static void Agent_Profile( agentReply_t &reply ) {
 #endif
 	reply.Text( "],\"memory\":" );
 	Agent_Memory( reply );
+#ifndef DEDICATED
+	if ( const auto *renderer = DevTools_Renderer() ) {
+		postRenderStats_t post;
+		renderer->PostStats( &post );
+		char status[384];
+		snprintf( status, sizeof( status ), ",\"presentationCpuUsec\":{\"effects\":%" PRIu64 ",\"decals\":%" PRIu64 ",\"effectsDraw\":%" PRIu64 ",\"lod\":%" PRIu64 "}",
+			post.effectsCpuUsec, post.decalsCpuUsec, post.effectsDrawCpuUsec, post.lodCpuUsec );
+		reply.Text( status );
+		snprintf( status, sizeof( status ), ",\"post\":{\"loads\":%u,\"draws\":%u,\"dropped\":%u}", post.loads, post.draws, post.dropped );
+		reply.Text( status );
+		snprintf( status, sizeof( status ), ",\"temporal\":{\"frames\":%u,\"dropped\":%u,\"motionDraws\":%u,\"reactiveDraws\":%u,\"stored\":%u,\"matched\":%u,\"rejected\":%u,\"overflow\":%u}",
+			post.temporalFrames, post.temporalDropped, post.motionDraws, post.reactiveDraws,
+			post.historyStored, post.historyMatched, post.historyRejected, post.historyOverflow );
+		reply.Text( status );
+		textureStreamingStats_t textures;
+		renderer->TextureStats( &textures );
+		char residency[1024];
+		snprintf( residency, sizeof( residency ),
+			",\"textureStreaming\":{\"budgetBytes\":%" PRIu64 ",\"usedBytes\":%" PRIu64 ",\"peakBytes\":%" PRIu64 ",\"retiredBytes\":%" PRIu64
+			",\"sourceBytes\":%" PRIu64 ",\"sourceBudgetBytes\":%" PRIu64 ",\"cpuUsec\":%" PRIu64 ",\"cpuPeakUsec\":%" PRIu64
+			",\"gpuUsec\":%.6f,\"gpuSamples\":%" PRIu64 ",\"uploadSubmissions\":%" PRIu64 ",\"uploadBytes\":%" PRIu64
+			",\"images\":%u,\"fullResolution\":%u,\"promotions\":%u,\"demotions\":%u,\"deferred\":%u,\"failures\":%u,\"pending\":%u,\"reloads\":%u}",
+			textures.budgetBytes, textures.usedBytes, textures.peakBytes, textures.retiredBytes, textures.sourceBytes, textures.sourceBudgetBytes,
+			textures.cpuUsec, textures.cpuPeakUsec, textures.gpuUsec, textures.gpuSamples, textures.uploadSubmissions, textures.uploadBytes, textures.images, textures.fullResolution, textures.promotions, textures.demotions, textures.deferred, textures.failures, textures.pending, textures.reloads );
+		reply.Text( residency );
+	}
+#endif
 	reply.Text( ",\"network\":{" );
 	const auto *net = DevTools_Network();
 	char counters[512];
@@ -1259,7 +1299,122 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"trace\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"effects\",\"effects.load\",\"effects.start\",\"effects.stop\",\"effects.edit\",\"decals\",\"decals.load\",\"decals.project\",\"decals.clear\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"trace\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+	} else if ( !strcmp( op, "decals" ) || !strcmp( op, "decals.load" ) || !strcmp( op, "decals.project" ) || !strcmp( op, "decals.clear" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Projected decals require a client build." );
+#else
+		const refexport_t *renderer = DevTools_Renderer();
+		if ( !renderer )
+			return reply.Error( "invalid_state", "$", "Load a rendered map before controlling decals." );
+		uint32_t handle = 0;
+		if ( !strcmp( op, "decals.load" ) ) {
+			p = JSON_ObjectGetNamedValue( request, end, "path" );
+			if ( !Agent_String( p, end, name, MAX_QPATH ) )
+				return reply.Error( "invalid_argument", "$.path", "Use a cooked .asdc qpath." );
+			handle = (uint32_t)renderer->RegisterDecal( name );
+			if ( !handle )
+				return reply.Error( "load_failed", "$.path", "Use a cooked decal with available color and normal textures." );
+		} else if ( !strcmp( op, "decals.project" ) ) {
+			uint32_t asset;
+			vec3_t origin, angles, axis[3];
+			if ( !Agent_Integer( request, end, "asset", asset ) || asset > INT32_MAX ||
+				 !Agent_Vector( request, end, "origin", origin, -65536, 65536 ) || !Agent_Vector( request, end, "angles", angles, -360, 360 ) )
+				return reply.Error( "invalid_argument", "$", "Use an asset handle, origin and projection angles; local Z is the surface normal." );
+			AnglesToAxis( angles, axis );
+			handle = renderer->ProjectDecal( (qhandle_t)asset, origin, axis );
+			if ( !handle )
+				return reply.Error( "project_failed", "$.asset", "Use a loaded decal and finite projection axes." );
+		} else {
+			if ( !strcmp( op, "decals.clear" ) )
+				renderer->ClearDecals();
+			decalRenderStats_t stats;
+			renderer->DecalStats( &stats );
+			reply.Text( ",\"ok\":true,\"result\":{\"active\":" );
+			reply.Number( stats.active );
+			reply.Text( ",\"registered\":" );
+			reply.Number( stats.registered );
+			reply.Text( ",\"reloads\":" );
+			reply.Number( stats.reloads );
+			reply.Text( ",\"draws\":" );
+			reply.Number( stats.draws );
+			reply.Text( ",\"dropped\":" );
+			reply.Number( stats.dropped );
+			reply.Text( ",\"replaced\":" );
+			reply.Number( (double)stats.replaced );
+			reply.Text( "}}" );
+			return reply.valid;
+		}
+		reply.Text( ",\"ok\":true,\"result\":{\"handle\":" );
+		reply.Number( handle );
+		reply.Text( "}}" );
+#endif
+	} else if ( !strcmp( op, "effects" ) || !strcmp( op, "effects.load" ) || !strcmp( op, "effects.start" ) || !strcmp( op, "effects.stop" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Presentation effects require a client build." );
+#else
+		if ( capacity < 1024 )
+			return false;
+		const refexport_t *renderer = DevTools_Renderer();
+		if ( !renderer )
+			return reply.Error( "invalid_state", "$", "Load a rendered map before controlling effects." );
+		uint32_t handle = 0;
+		if ( !strcmp( op, "effects.load" ) ) {
+			p = JSON_ObjectGetNamedValue( request, end, "path" );
+			if ( !Agent_String( p, end, name, MAX_QPATH ) )
+				return reply.Error( "invalid_argument", "$.path", "Use a cooked .asfx qpath." );
+			handle = (uint32_t)renderer->RegisterEffect( name );
+			if ( !handle )
+				return reply.Error( "load_failed", "$.path", "Load a map and a valid cooked effect with available materials/models." );
+		} else if ( !strcmp( op, "effects.start" ) ) {
+			uint32_t asset, seed;
+			vec3_t origin, angles;
+			if ( !Agent_Integer( request, end, "asset", asset ) || asset > INT32_MAX || !Agent_Integer( request, end, "seed", seed ) ||
+				 !Agent_Vector( request, end, "origin", origin, -65536, 65536 ) || !Agent_Vector( request, end, "angles", angles, -360, 360 ) )
+				return reply.Error( "invalid_argument", "$", "Use an asset handle, unsigned seed, origin and angles." );
+			vec3_t axis[3];
+			AnglesToAxis( angles, axis );
+			handle = renderer->StartEffect( (qhandle_t)asset, origin, axis, seed );
+			if ( !handle )
+				return reply.Error( "start_failed", "$.asset", "Use a loaded effect; the fixed instance pool may be full." );
+		} else if ( !strcmp( op, "effects.stop" ) ) {
+			if ( !Agent_Integer( request, end, "handle", handle ) )
+				return reply.Error( "invalid_argument", "$.handle", "Use the handle returned by effects.start." );
+			const bool stopped = renderer->StopEffect( handle );
+			reply.Text( stopped ? ",\"ok\":true,\"result\":{\"stopped\":true}}" : ",\"ok\":true,\"result\":{\"stopped\":false}}" );
+			return reply.valid;
+		} else {
+			fxRenderStats_t stats;
+			renderer->EffectStats( &stats );
+			reply.Text( ",\"ok\":true,\"result\":{\"particles\":" );
+			reply.Number( stats.pool.particles );
+			reply.Text( ",\"instances\":" );
+			reply.Number( stats.pool.instances );
+			reply.Text( ",\"dropped\":" );
+			reply.Number( (double)stats.pool.dropped );
+			reply.Text( ",\"collisions\":" );
+			reply.Number( (double)stats.pool.collisions );
+			reply.Text( ",\"registered\":" );
+			reply.Number( stats.registered );
+			reply.Text( ",\"reloads\":" );
+			reply.Number( stats.reloads );
+			reply.Text( ",\"draws\":" );
+			reply.Number( stats.draws );
+			reply.Text( ",\"lightDraws\":" );
+			reply.Number( stats.lightDraws );
+			reply.Text( ",\"lightDrops\":" );
+			reply.Number( stats.lightDrops );
+			reply.Text( ",\"softDraws\":" );
+			reply.Number( stats.softDraws );
+			reply.Text( ",\"softDrops\":" );
+			reply.Number( stats.softDrops );
+			reply.Text( "}}" );
+			return reply.valid;
+		}
+		reply.Text( ",\"ok\":true,\"result\":{\"handle\":" );
+		reply.Number( handle );
+		reply.Text( "}}" );
+#endif
 	} else if ( !strcmp( op, "assets" ) || !strcmp( op, "asset.select" ) || !strcmp( op, "material.set" ) || !strcmp( op, "material.preview" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Renderer assets require a client build." );
@@ -1347,16 +1502,16 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 #else
 		return Agent_GraphTable( request, end, reply );
 #endif
-	} else if ( !strcmp( op, "graph" ) ) {
+	} else if ( !strcmp( op, "graph" ) || !strcmp( op, "effects.edit" ) ) {
 #ifdef DEDICATED
-		return reply.Error( "unsupported", "$", "Graph actions require a client build." );
+		return reply.Error( "unsupported", "$", "Source editor actions require a client build." );
 #else
 		if ( capacity < 1024 )
 			return false;
 		static char text[65536];
 		p = JSON_ObjectGetNamedValue( request, end, "action" );
 		if ( !Agent_String( p, end, name, sizeof( name ) ) )
-			return reply.Error( "invalid_argument", "$.action", "Use load/source/text/save/undo/play/reset/parameter." );
+			return reply.Error( "invalid_argument", "$.action", "Use source/text/save/undo, or a supported preview action." );
 		p = JSON_ObjectGetNamedValue( request, end, "text" );
 		text[0] = 0;
 		if ( p && !Agent_String( p, end, text, sizeof( text ) ) )
@@ -1364,8 +1519,8 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		float number = 0;
 		if ( ( !strcmp( name, "play" ) || !strcmp( name, "parameter" ) ) && !Agent_Number( request, end, "value", number, -1e30f, 1e30f ) )
 			return reply.Error( "invalid_argument", "$.value", "Provide the numeric parameter value, or 0/1 for play." );
-		if ( !DevTools_Graph( name, text, number ) )
-			return reply.Error( "rejected", "$", "Check action/path/parameter bounds; load a graph/source first. Step to finish queued IO and inspect editor.state.graph.result." );
+		if ( !( !strcmp( op, "effects.edit" ) ? DevTools_EffectEditor( name, text ) : DevTools_Graph( name, text, number ) ) )
+			return reply.Error( "rejected", "$", "Check the action and path; load a source before saving. Step to finish queued IO and inspect editor.state." );
 		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
 #endif
 	} else if ( !strcmp( op, "panel" ) || !strcmp( op, "world" ) || !strcmp( op, "editor.state" ) || !strcmp( op, "animation.load" ) || !strcmp( op, "animation.set" ) ) {

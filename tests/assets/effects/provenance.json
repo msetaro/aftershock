@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "license": "CC0-1.0",
+  "author": "Aftershock original procedural reference fixtures",
+  "files": {
+    "CREDITS.txt": "808d23bc301360d5feefa32ec9afed3020e754f31d74d943b70496ce5a3e3ac1",
+    "assets.json": "3b4969f1bf83d698c18742431b6d82ba7beaa9c23bc9578223244e367f86930b",
+    "dust.json": "cee5a1b8d77f212a4ebd49a38bb34c87defc7357d933d50010c4f4d277f4dc18",
+    "explosion.json": "7231faaba7e3a643d01bf6cc2372d2085ade679b58177e60f8ce043c06e3111d",
+    "export.py": "cffad9c8cca65ea622ecb0ba448cdc03ca5ba3f815f2d9055d5d56715cadb0e2",
+    "fire.png": "35584eaab61f30f97be0f848af2fb8e6e64047aa9074dcb3a196de4a9606347c",
+    "flash.png": "64a8359507ed1b8939136888c2af348f4635f3bfaadf0b821474a5c37bb87762",
+    "impact_metal.json": "094c11cd6fd7fd3fbf20f503c376b02a58b2528d47906a81df2381912904a56a",
+    "impact_stone.json": "11a4068f8f93f52eb6b7e6d564745e09b973f81777fca2d8d57ade85eb6b6513",
+    "muzzle.json": "ba8af322ef7628d0a72149f27fd76e73ff8fb919fd0501a1911559a414ed2a11",
+    "reference.shader": "ed57e760883ba3f7304bc52303c7413885978c3d91d1f2c7b65a7bb49a56b791",
+    "shell.bin": "8f38ffb4d7e574419c9471a865c83efb71c8deb9ec072420ea4f995a4dc8671a",
+    "shell.gltf": "3151bd482b7c796284125748912494fb426ab0cc101a7d89acfab848b577f6f8",
+    "shell.json": "9ac7651db30a63f058fafdc3fa4e48ad58fcc5809507c132fdb5d9f48eadd5c4",
+    "smoke.json": "6b81092fceb9739255770de074958b40d31e5951674a34d5f9b2d24e650702e2",
+    "smoke.png": "9a88cd26e47a48173b5069fe83d9e045c8e0f0ff1d0acbb9f520c49ed3247ea5",
+    "spark.png": "2ee67bd8556244cb3800e77dcbb2cc990aadf4d5f7c2cec263228a4c21ec7434",
+    "sparks.json": "88dd199abbff78298d3fd334a2a4238a9d4dc239b908987e688ffa062e30feed",
+    "tracer.json": "212267fb9a1b2d766c587b521c211bf5a9cf6a101e4200cd03a3c0ac6e5daae7"
+  }
+}

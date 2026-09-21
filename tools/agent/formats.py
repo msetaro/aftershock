@@ -7,7 +7,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import best_match
 
 ROOT = Path(__file__).resolve().parents[2]
-KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'match-spec')
+KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'post', 'match-spec')
 
 
 def obj(properties, required=None, extra=False):
@@ -135,12 +135,27 @@ def material_schema():
 def effect_schema():
     emitter = obj(dict(name=qpath(31),kind=enum('sprite','mesh','trail'),material=qpath(),model=qpath(),
                        capacity=num(1,4096,True),rate=num(0,10000),burst=num(0,4096,True),lifetime_ms=num(1,60000,True),
-                       size=num(.001,4096),velocity=vector(-65536,65536,False),gravity=vector(-65536,65536,False),
+                       size=num(.001,4096),end_size=num(.001,4096),velocity_spread=vector(0,65536,False),origin_spread=vector(0,4096,False),
+                       rotation=num(-360,360),rotation_spread=num(0,360),angular_velocity=num(-3600,3600),
+                       light=obj(dict(radius=num(0,4096),intensity=num(0,128),color=vector(0,1,False))),velocity=vector(-65536,65536,False),gravity=vector(-65536,65536,False),
                        drag=num(0,100),collision=dict(type='boolean'),soft=dict(type='boolean'),lit=dict(type='boolean'),
                        color=vector(0,1,False,4),flipbook=obj(dict(columns=num(1,64,True),rows=num(1,64,True),fps=num(.01,1000)))),
                   ['name','kind','material','capacity','rate','burst','lifetime_ms','size'])
     emitter['allOf'] = [{'if':dict(properties=dict(kind=dict(const='mesh'))),'then':dict(required=['model'])}]
-    return obj(dict(version=dict(const=1),name=qpath(31),emitters=array(emitter,1,32)))
+    return obj(dict(version=dict(const=1),name=qpath(31),decal=qpath(),emitters=array(emitter,1,32)),['version','name','emitters'])
+
+
+def post_schema():
+    return obj(dict(version=dict(const=1),name=qpath(31),lut=qpath(),exposure_ev=num(-12,12),
+                    sharpen=num(0,1),vignette=num(0,1),grain=num(0,1),lut_strength=num(0,1),
+                    focus_distance=num(1,65536),focus_range=num(1,65536),dof_radius=num(0,8),motion_blur=num(0,1)),
+               ['version','name'])
+
+
+def decal_schema():
+    return obj(dict(version=dict(const=1),name=qpath(31),color_map=qpath(),normal_map=qpath(),
+                    size=vector(.01,4096,False),lifetime_ms=num(1,600000,True),fade_ms=num(1,600000,True),
+                    color=vector(0,1,False,4),normal_strength=num(0,4)))
 
 
 def match_schema():
@@ -155,7 +170,7 @@ def match_schema():
 
 def schema(kind):
     schemas = dict(level=level_schema,weapon=weapon_schema,animation=animation_schema,material=material_schema,
-                   effect=effect_schema,**{'match-spec':match_schema})
+                   effect=effect_schema,decal=decal_schema,post=post_schema,**{'match-spec':match_schema})
     schema = schemas[kind]()
     schema['$schema'] = 'https://json-schema.org/draft/2020-12/schema'
     return schema
@@ -176,6 +191,11 @@ def describe(kind):
                        states=[dict(name='idle',clip='idle',loop=True)])
     elif kind == 'material':
         example = dict(alphaMode='OPAQUE')
+    elif kind == 'post':
+        example = dict(version=1,name='filmic',exposure_ev=0)
+    elif kind == 'decal':
+        example = dict(version=1,name='bullet',color_map='textures/bullet.ktx2',normal_map='textures/bullet_n.ktx2',
+                       size=[16,16,4],lifetime_ms=10000,fade_ms=2000,color=[1,1,1,1],normal_strength=1)
     elif kind == 'effect':
         example = dict(version=1,name='spark',emitters=[dict(name='spark',kind='sprite',material='materials/spark.asmat',
                        capacity=32,rate=0,burst=8,lifetime_ms=250,size=2)])
@@ -184,7 +204,7 @@ def describe(kind):
                        password='local-secret',token='allocation-secret')
     notes = 'Schema checks structure/ranges; cook/build still checks references, resources and semantic constraints.'
     if kind == 'effect':
-        notes = 'Authoring-only contract pending #161. No effect runtime or cooker exists yet; this does not render effects.'
+        notes = 'Cook kind effect into .asfx; the native effects controls load and play its bounded presentation emitters.'
     return dict(kind=kind,schema=schema(kind),example=example,notes=notes)
 
 

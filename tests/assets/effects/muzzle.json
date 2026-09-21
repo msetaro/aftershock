@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "name": "muzzle",
+  "emitters": [
+    {
+      "name": "flash",
+      "kind": "sprite",
+      "material": "effects/reference/flash",
+      "capacity": 64,
+      "rate": 0,
+      "burst": 1,
+      "lifetime_ms": 90,
+      "size": 14,
+      "end_size": 3,
+      "color": [
+        1,
+        0.85,
+        0.5,
+        1
+      ],
+      "rotation_spread": 180,
+      "light": {
+        "radius": 180,
+        "intensity": 3,
+        "color": [
+          1,
+          0.65,
+          0.25
+        ]
+      }
+    }
+  ]
+}

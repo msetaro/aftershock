@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "name": "shell",
+  "emitters": [
+    {
+      "name": "shell",
+      "kind": "mesh",
+      "material": "models/reference_shell_material0",
+      "capacity": 64,
+      "rate": 0,
+      "burst": 1,
+      "lifetime_ms": 1800,
+      "size": 0.65,
+      "model": "models/reference_shell.iqm",
+      "velocity": [
+        20,
+        60,
+        80
+      ],
+      "velocity_spread": [
+        10,
+        15,
+        15
+      ],
+      "gravity": [
+        0,
+        0,
+        -240
+      ],
+      "collision": true,
+      "rotation_spread": 180,
+      "angular_velocity": 700,
+      "lit": true
+    }
+  ]
+}

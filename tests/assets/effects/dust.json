@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "name": "dust",
+  "emitters": [
+    {
+      "name": "dust",
+      "kind": "sprite",
+      "material": "effects/reference/smoke",
+      "capacity": 64,
+      "rate": 0,
+      "burst": 18,
+      "lifetime_ms": 1200,
+      "size": 5,
+      "end_size": 24,
+      "velocity": [
+        25,
+        0,
+        8
+      ],
+      "velocity_spread": [
+        20,
+        35,
+        20
+      ],
+      "color": [
+        0.62,
+        0.48,
+        0.3,
+        0.32
+      ],
+      "rotation_spread": 180,
+      "angular_velocity": -8,
+      "flipbook": {
+        "columns": 4,
+        "rows": 2,
+        "fps": 5
+      },
+      "soft": true,
+      "lit": true
+    }
+  ]
+}

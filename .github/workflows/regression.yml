@@ -101,6 +101,12 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/iqm_scale.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/post.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/temporal.py --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/streaming.py --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects_reference.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/lod.py --cxx '${{ matrix.cxx }}'
       - name: Declarative level language and design rules
         run: |
           python3 tests/level.py
@@ -267,6 +273,22 @@ jobs:
         run: |
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/materials_runtime.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-material-runtime --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/materials_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --ui --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-material-ui
+      - name: Presentation effects, source edits and mesh LOD lifecycle
+        run: |
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects_runtime.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-effects-runtime --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapon_effects_runtime.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapon-effects-runtime --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapon_effects_runtime.py --decals --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapon-decals-runtime --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects_reference_runtime.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-effects-reference-runtime --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/soft_particles.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-soft-particles --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/decals_runtime.py --editor --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-decals-runtime --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/post_runtime.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-post-runtime --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/post_runtime.py --samples 4 --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-post-msaa --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/temporal_runtime.py --models --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/streaming_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/fidelity_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/decals_runtime.py --samples 4 --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-decals-msaa --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects_editor.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-effects-editor --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/lod_runtime.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-lod-runtime --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Owned animation gameplay and graph authoring
         run: |
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
@@ -341,6 +363,21 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ssao_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-ssao-modules
       - name: Owned weapon replay through renderer module
         run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons_demo.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapons-demo-modules
+      - name: Presentation reference frames and residency evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: presentation-metrics
+          path: |
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-fidelity-runtime/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-fidelity-runtime/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-fidelity-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-streaming-runtime/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-streaming-runtime/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-streaming-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-temporal-runtime/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-temporal-runtime/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-temporal-runtime/*.log
       - name: RHI replay measurements
         if: always()
         uses: actions/upload-artifact@v7

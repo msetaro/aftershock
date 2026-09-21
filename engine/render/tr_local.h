@@ -97,7 +97,7 @@ struct rendererPipelines_t {
 	// Standard pipelines.
 	//
 	uint32_t skybox_pipeline;
-	uint32_t shadowCaster[3];
+	uint32_t shadowCaster[3], motion[3][2];
 	uint32_t directLight[3][2][2];
 	uint32_t reflection[3][2][2];
 
@@ -231,7 +231,37 @@ typedef struct {
 	qboolean intShaderTime;
 	const skeletalPose_t *skeletalPose; // Points into the owning renderer frame.
 	materialOverride_t materialOverride;
+	uint64_t temporalIdentity;
 } trRefEntity_t;
+
+
+// History belongs to rendered views, not game ticks or animation interpolation.
+constexpr uint32_t MAX_TEMPORAL_ENTITIES = 256;
+struct temporalView_t {
+	uint32_t frame, width, height;
+	rhiRect_t viewport;
+	float viewProjection[16];
+	vec3_t origin, axis[3];
+	float fovX, fovY;
+};
+struct temporalEntity_t {
+	uint64_t identity;
+	refEntity_t entity;
+	skeletalPose_t pose;
+	uint8_t modelHash[32];
+	bool hasPose;
+};
+struct temporalStats_t {
+	uint32_t stored, matched, rejected, overflow;
+};
+bool R_TemporalJitter( uint32_t frame, uint32_t width, uint32_t height, float projection[16] );
+void R_TemporalReset();
+bool R_TemporalBeginView( const temporalView_t *view );
+const temporalView_t *R_TemporalPreviousView();
+// Returned records stay valid until the next BeginView; input poses are copied.
+const temporalEntity_t *R_TemporalEntity( uint64_t identity, const trRefEntity_t *entity, const uint8_t modelHash[32] );
+void R_TemporalEndView( bool rendered );
+temporalStats_t R_TemporalStats();
 
 
 typedef struct {
@@ -601,6 +631,8 @@ typedef struct shader_s {
 	struct shader_s *next;
 } shader_t;
 
+bool R_TemporalReactiveShader( const shader_t *shader );
+
 
 // trRefdef_t holds everything that comes in refdef_t,
 // as well as the locally generated scene information
@@ -644,6 +676,11 @@ typedef struct {
 	shadowLight_t *sceneLights;
 	shadowSun_t sun;
 
+	int numDecals;
+	struct decalDraw_s *decals;
+	rhiPostDraw_t post;
+	float temporalBlur;
+	image_t *postLut;
 	int numPolys;
 	struct srfPoly_s *polys;
 
@@ -681,6 +718,14 @@ typedef struct image_s {
 #endif
 
 } image_t;
+
+struct decalDraw_s {
+	rhiDecal_t parameters;
+	image_t *color, *normal;
+	vec3_t bounds[2];
+};
+// ponytail: four full rings per frame; additional views report dropped records.
+inline constexpr uint32_t MAX_DECAL_DRAWS = DCL_MAX_DECALS * 4;
 
 static_assert( sizeof( image_t ) == 88 && alignof( image_t ) == 8 );
 static_assert( offsetof( image_t, texture ) == 56 );
@@ -819,6 +864,7 @@ typedef struct srfPoly_s {
 	int fogIndex;
 	int numVerts;
 	polyVert_t *verts;
+	float softDistance;
 } srfPoly_t;
 
 
@@ -1090,6 +1136,8 @@ typedef struct model_s {
 	void *modelData; // only if type == (MOD_MDR | MOD_IQM)
 
 	int numLods;
+	qhandle_t iqmLods[3];
+	uint32_t lodDraws[4];
 	bool ownsData; // Cooked development models use one replaceable zone block.
 	uint8_t cookedHash[32]; // Verified file hash; zero for legacy content.
 } model_t;
@@ -1247,6 +1295,8 @@ typedef struct {
 	backEndCounters_t pc;
 	qboolean isHyperspace;
 	const trRefEntity_t *currentEntity;
+	const temporalEntity_t *temporalPrevious;
+	bool temporalMotion;
 	qboolean skyRenderedThisView; // flag for drawing sun
 
 	qboolean projection2D; // if qtrue, drawstretchpic doesn't need to change modes
@@ -1369,6 +1419,7 @@ typedef struct {
 
 	frontEndCounters_t pc;
 	int frontEndMsec; // not in pc due to clearing issue
+	uint64_t effectsCpuUsec, decalsCpuUsec, effectsDrawCpuUsec, lodCpuUsec; // cumulative presentation clocks
 
 	//
 	// put large tables at the end, so most elements will be
@@ -1450,6 +1501,7 @@ extern cvar_t *r_dynamiclight; // dynamic lights enabled/disabled
 extern cvar_t *r_mergeLightmaps;
 extern cvar_t *r_directionalLightmaps;
 extern cvar_t *r_reflectionProbes;
+extern cvar_t *r_softParticles, *r_decals, *r_postProcess, *r_postProfile, *r_taa;
 extern cvar_t *r_ssao, *r_ssaoRadius, *r_ssaoStrength;
 extern cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
@@ -1562,6 +1614,15 @@ void R_AddRailSurfaces( trRefEntity_t *e, qboolean isUnderwater );
 void R_AddLightningBoltSurfaces( trRefEntity_t *e );
 
 void R_AddPolygonSurfaces( void );
+void R_EffectSoftDraw( bool drawn );
+void R_InitDecals();
+void R_AddDecals( const refdef_t *view );
+void RB_DrawDecals( const rhiRect_t *viewport, const float *transform );
+qhandle_t RE_RegisterDecal( const char *path );
+uint32_t RE_ProjectDecal( qhandle_t asset, const vec3_t origin, const vec3_t axis[3] );
+void RE_ClearDecals();
+void RE_DecalStats( decalRenderStats_t *stats );
+void R_AddEffectPoly( qhandle_t shader, const polyVert_t *vertices, float softDistance );
 
 void R_DecomposeSort( unsigned sort, int *entityNum, shader_t **shader,
 	int *fogNum, int *dlightMap );
@@ -1621,6 +1682,19 @@ qboolean RE_GetEntityToken( char *buffer, int size );
 
 model_t *R_AllocModel( void );
 
+void RE_PostStats( postRenderStats_t *stats );
+void R_PostDrawResult( bool drawn );
+void R_PostTemporalResult( bool drawn );
+void R_PostMotionDraw( bool reactive );
+void R_InitPost();
+void R_UpdatePostProfile();
+void R_AddPost();
+void R_InitEffects( void );
+void R_AddEffects( const refdef_t *view );
+qhandle_t RE_RegisterEffect( const char *path );
+uint32_t RE_StartEffect( qhandle_t asset, const vec3_t origin, const vec3_t axis[3], uint32_t seed );
+bool RE_StopEffect( uint32_t handle );
+void RE_EffectStats( fxRenderStats_t *stats );
 void R_Init( void );
 
 void R_SetColorMappings( void );
@@ -1633,6 +1707,8 @@ void R_SkinList_f( void );
 void R_InitFogTable( void );
 float R_FogFactor( float s, float t );
 void R_InitImages( void );
+void R_StreamImages();
+void RE_TextureStats( textureStreamingStats_t *stats );
 void R_DeleteTextures( void );
 int R_SumOfUsedImages( void );
 void R_InitSkins( void );
@@ -1681,6 +1757,7 @@ typedef struct shaderCommands_s {
 #pragma pack( push, 16 )
 	glIndex_t indexes[SHADER_MAX_INDEXES] QALIGN( 16 );
 	vec4_t xyz[SHADER_MAX_VERTEXES * 2] QALIGN( 16 ); // 2x needed for shadows
+	vec4_t previousXYZ[SHADER_MAX_VERTEXES] QALIGN( 16 );
 	vec4_t normal[SHADER_MAX_VERTEXES] QALIGN( 16 );
 	vec4_t tangent[SHADER_MAX_VERTEXES] QALIGN( 16 ); // PBR only; w=0 selects derivative basis.
 	vec2_t texCoords[2][SHADER_MAX_VERTEXES] QALIGN( 16 );
@@ -1709,6 +1786,7 @@ typedef struct shaderCommands_s {
 #endif
 	int numIndexes;
 	int numVertexes;
+	bool previousPositions;
 
 #ifdef USE_PMLIGHT
 	const dlight_t *light;
@@ -1864,8 +1942,10 @@ void R_InitNextFrame( void );
 void RE_ClearScene( void );
 void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
 bool RE_AddSkeletalEntityToScene( const refEntity_t *ent, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
+bool RE_AddTemporalEntityToScene( const refEntity_t *ent, uint64_t identity, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 bool RE_AddMaterialEntityToScene( const refEntity_t *ent, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
+extern int r_numdlights;
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
 bool RE_AddSceneLight( const sceneLight_t *light );
 void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b );
@@ -1904,9 +1984,11 @@ void R_MDRAddAnimSurfaces( trRefEntity_t *ent );
 void RB_MDRSurfaceAnim( mdrSurface_t *surface );
 bool RE_GetModelAnimation( qhandle_t handle, int clip, modelAnimation_t *animation );
 qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *name, bool owned = false );
+bool R_IQMLodCompatible( const iqmData_t *base, const iqmData_t *level );
 bool R_PrepareIQMPose( const iqmData_t *data, const animPose_t *pose, skeletalPose_t *out );
 bool R_ReplaceIQM( model_t *mod, void *buffer, int filesize, const char *name );
 void R_AddIQMSurfaces( trRefEntity_t *ent );
+bool R_IQMPreviousPositions( const srfIQModel_t *surface, const temporalEntity_t *previous, vec4_t *positions, uint32_t capacity );
 void RB_IQMSurfaceAnim( const surfaceType_t *surface );
 int R_IQMLerpTag( orientation_t *tag, iqmData_t *data,
 	int startFrame, int endFrame,
@@ -2074,8 +2156,11 @@ typedef struct {
 	skeletalPose_t skeletalPoses[MAX_SKELETAL_POSES];
 	srfPoly_t *polys; //[MAX_POLYS];
 	polyVert_t *polyVerts; //[MAX_POLYVERTS];
+	uint32_t numDecals;
+	decalDraw_s decals[MAX_DECAL_DRAWS];
 	renderCommandList_t commands;
 } backEndData_t;
+static_assert( offsetof( backEndData_t, commands ) % alignof( void * ) == 0 );
 
 extern int max_polys;
 extern int max_polyverts;

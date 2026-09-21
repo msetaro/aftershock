@@ -37,6 +37,7 @@ struct rhiCapabilities_t {
 	bool fboActive;
 	bool offscreenRender;
 	uint32_t maxBoundDescriptorSets;
+	uint32_t maxCompressedTextureSize; // Residency arena; independent of legacy resampling/chunk limits.
 };
 static_assert( std::is_trivially_copyable_v<rhiCapabilities_t> );
 rhiCapabilities_t RHI_GetCapabilities( void );
@@ -141,6 +142,36 @@ static_assert( sizeof( rhiTexture_t ) == 32 && std::is_trivially_copyable_v<rhiT
 [[nodiscard]] rhiStatus_t RHI_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update );
 // Whole BC mip chain, largest level first, tightly packed 4x4 blocks.
 [[nodiscard]] rhiStatus_t RHI_UploadCompressedTexture( const rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, bool update );
+struct rhiTextureUploadStats_t {
+	uint64_t submittedBytes, submissions, gpuSamples;
+	double gpuUsec; // Last available completed submission; gpuSamples changes with a new result.
+};
+static_assert( std::is_trivially_copyable_v<rhiTextureUploadStats_t> );
+rhiTextureUploadStats_t RHI_GetTextureUploadStats();
+
+// Initialize fixed staging at map load. Poll once per frame; never waits for GPU work.
+// Queue accepts a fresh, unsampled image. Source bytes and image stay alive until
+// completion or shutdown; descriptor adoption/old-image retirement belong to caller.
+[[nodiscard]] rhiStatus_t RHI_InitTextureUploads();
+[[nodiscard]] rhiStatus_t RHI_QueueTextureUpload( const rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format );
+[[nodiscard]] rhiStatus_t RHI_PollTextureUpload( bool *complete );
+// Only map unload/restart may block; cancels any pending request after GPU completion.
+[[nodiscard]] rhiStatus_t RHI_ShutdownTextureUploads();
+// Separate reclaimable texture arena. Initialize/query at map load; allocation
+// uses one device-memory block and a bounded descriptor pool. Driver image/view
+// objects are created per replacement; engine heap allocations are not required.
+struct rhiTextureResidencyStats_t {
+	uint64_t budgetBytes, usedBytes, peakBytes, retiredBytes;
+};
+[[nodiscard]] rhiStatus_t RHI_InitTextureResidency( uint64_t budget );
+[[nodiscard]] rhiStatus_t RHI_TextureResidencyBytes( int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, uint64_t *bytes );
+[[nodiscard]] rhiStatus_t RHI_CreateResidentTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, rhiAddress_t address, const char *label );
+// Call between submitted frames, after upload completion; never while recording
+// commands which reference the old descriptor. Its last-use marker retires it.
+[[nodiscard]] rhiStatus_t RHI_AdoptResidentTexture( rhiTexture_t *live, rhiTexture_t *replacement );
+[[nodiscard]] rhiStatus_t RHI_PollTextureResidency();
+rhiTextureResidencyStats_t RHI_GetTextureResidencyStats();
+[[nodiscard]] rhiStatus_t RHI_ShutdownTextureResidency();
 // Development replacement waits for GPU use, then commits image/view/binding atomically.
 // Failure retains the live image; separately owned memory is reclaimed on replacement.
 [[nodiscard]] rhiStatus_t RHI_ReplaceCompressedTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, rhiAddress_t address, const char *label );
@@ -292,7 +323,8 @@ enum rhiShader_t : uint32_t {
 	TYPE_PBR_BAKED,
 	TYPE_SHADOW,
 	TYPE_DIRECT,
-	TYPE_REFLECTION
+	TYPE_REFLECTION,
+	TYPE_MOTION
 
 };
 
@@ -414,6 +446,20 @@ void RHI_ClearDepth( bool stencil, const rhiRect_t *rect );
 void RHI_PushTransform( const float *matrix );
 void RHI_Bloom( const float *restoreTransform );
 // Projection is the frontend perspective matrix; viewport is in render pixels.
+struct rhiParticle_t {
+	float clip[4][4], uv[4][4], color[4], depth[4];
+};
+static_assert( sizeof( rhiParticle_t ) == 160 && offsetof( rhiParticle_t, depth ) == 144 );
+struct rhiDecal_t {
+	float origin[4], right[4], down[4], forward[4], projection[4], viewport[4];
+	float volume[3][4], color[4], settings[4], lightDirection[4], ambient[4], directed[4];
+};
+static_assert( sizeof( rhiDecal_t ) == 224 && offsetof( rhiDecal_t, volume ) == 96 );
+bool RHI_DrawDecal( const rhiDecal_t *decal, const rhiTexture_t *color, const rhiTexture_t *normal, const rhiRect_t *scissor );
+void RHI_EffectsScissor( const rhiRect_t *scissor );
+bool RHI_BeginEffects( const rhiRect_t *viewport );
+bool RHI_DrawParticle( const rhiParticle_t *particle, const rhiTexture_t *texture, bool additive );
+void RHI_EndEffects();
 void RHI_Occlusion( const float *projection, const rhiRect_t *viewport, float radius, float strength );
 // Existing one-frame delayed, coherent visibility storage; no additional wait.
 bool RHI_ReadVisibility( uint32_t index );
@@ -483,6 +529,9 @@ struct rhiDeviceConfig_t {
 	bool textureFilterValid;
 	uint32_t shadowMapSize;
 	uint32_t occlusionScale;
+	bool depthEffects = false;
+	bool postProcess = false;
+	bool temporal = false;
 };
 struct rhiDeviceInfo_t {
 	char renderer[1024], vendor[1024], version[1024], extensions[8192];
@@ -497,6 +546,23 @@ static_assert( std::is_trivially_copyable_v<rhiDeviceConfig_t> && std::is_trivia
 [[nodiscard]] rhiStatus_t RHI_Shutdown( void );
 [[nodiscard]] rhiStatus_t RHI_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height );
 [[nodiscard]] rhiStatus_t RHI_UploadWorldGeometry( const uint8_t *data, int32_t size );
+struct rhiTemporal_t {
+	float origin[4], right[4], down[4], forward[4];
+	float projection[4], jitter[4], viewport[4], previous[16];
+	float settings[4]; // overbright scale, valid history, motion blur strength, reserved
+};
+static_assert( sizeof( rhiTemporal_t ) == 192 && offsetof( rhiTemporal_t, previous ) == 112 );
+void RHI_ResetTemporal();
+bool RHI_BeginTemporal( const rhiTemporal_t *view );
+void RHI_RejectTemporal();
+bool RHI_ResolveTemporal();
+
+struct rhiPostDraw_t {
+	float curve[4], lens[4], projection[4], viewport[4];
+};
+static_assert( sizeof( rhiPostDraw_t ) == 64 && offsetof( rhiPostDraw_t, viewport ) == 48 );
+bool RHI_DrawPost( const rhiPostDraw_t *settings, const rhiTexture_t *lut );
+
 struct rhiPostProcess_t {
 	int32_t overbrightBits;
 	float gamma;
@@ -535,6 +601,10 @@ enum class rhiGraphTarget_t : uint32_t {
 	SunShadow,
 	Occlusion,
 	OcclusionBlur,
+	PostColor,
+	Motion,
+	HistoryWrite,
+	HistoryRead,
 	Count
 };
 enum class rhiGraphPass_t : uint32_t {
@@ -559,6 +629,14 @@ enum class rhiGraphPass_t : uint32_t {
 	Occlusion,
 	OcclusionBlur,
 	OcclusionApply,
+	Effects,
+	EffectsResume,
+	Post,
+	PostApply,
+	MotionInitialize,
+	MotionGeometry,
+	TemporalResolve,
+	TemporalApply,
 	Count
 };
 enum class rhiGraphFormat_t : uint32_t { Color,
@@ -567,7 +645,8 @@ enum class rhiGraphFormat_t : uint32_t { Color,
 	Capture,
 	Present,
 	ShadowDepth,
-	Occlusion };
+	Occlusion,
+	Temporal };
 enum class rhiGraphLayout_t : uint32_t { Undefined,
 	Sampled,
 	Color,
@@ -583,7 +662,8 @@ enum class rhiGraphStore_t : uint32_t { Discard,
 enum class rhiGraphStage_t : uint32_t { Fragment,
 	ColorOutput,
 	DepthTests,
-	SceneAttachments };
+	SceneAttachments,
+	FragmentColor };
 enum : uint32_t {
 	RHI_GRAPH_COLOR = 1,
 	RHI_GRAPH_SAMPLED = 2,
@@ -602,6 +682,9 @@ struct rhiGraphConfig_t {
 	bool offscreen, bloom, capture, stencil;
 	uint32_t shadowSize; // Zero disables both depth atlases.
 	uint32_t occlusionScale; // 0 off, 1 full resolution, 2 half resolution; requires offscreen.
+	bool depthEffects = false;
+	bool postProcess = false;
+	bool temporal = false;
 };
 struct rhiGraphTargetDesc_t {
 	uint32_t width, height, samples, usage;

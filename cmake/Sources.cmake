@@ -175,6 +175,11 @@ set(VORBIS_SOURCES
 )
 
 set(VULKAN_SOURCES
+  engine/effects/effects.cpp
+  engine/render/tr_effects.cpp
+  engine/render/tr_post.cpp
+  engine/render/tr_stream.cpp
+  engine/render/tr_temporal.cpp
   engine/render/tr_animation.cpp
   engine/render/tr_backend.cpp
   engine/render/tr_bsp.cpp

@@ -151,6 +151,7 @@ R_ComputeLOD
 =================
 */
 int R_ComputeLOD( trRefEntity_t *ent ) {
+	const uint64_t start = ri.Microseconds();
 	float radius;
 	float flod, lodscale;
 	float projectedRadius;
@@ -166,7 +167,22 @@ int R_ComputeLOD( trRefEntity_t *ent ) {
 		// multiple LODs exist, so compute projected bounding sphere
 		// and use that as a criteria for selecting LOD
 
-		if ( tr.currentModel->type == MOD_MDR ) {
+		if ( tr.currentModel->type == MOD_IQM ) {
+			const iqmData_t *data = (const iqmData_t *)tr.currentModel->modelData;
+			const float *bounds = ent->skeletalPose ? ent->skeletalPose->bounds[0] : data->bounds ? data->bounds + 6 * ent->e.frame
+																								  : data->bindBounds[0];
+			radius = RadiusFromBounds( bounds, bounds + 3 );
+			if ( !ent->skeletalPose && data->bounds ) {
+				const float *oldBounds = data->bounds + 6 * ent->e.oldframe;
+				radius = MAX( radius, RadiusFromBounds( oldBounds, oldBounds + 3 ) );
+			}
+			if ( ent->e.nonNormalizedAxes ) {
+				float scale = 0;
+				for ( int axis = 0; axis < 3; axis++ )
+					scale = MAX( scale, VectorLength( ent->e.axis[axis] ) );
+				radius *= scale;
+			}
+		} else if ( tr.currentModel->type == MOD_MDR ) {
 			int frameSize;
 			mdr = (mdrHeader_t *)tr.currentModel->modelData;
 			frameSize = (int)( (size_t)( &( (mdrFrame_t *)0 )->bones[mdr->numBones] ) );
@@ -209,6 +225,7 @@ int R_ComputeLOD( trRefEntity_t *ent ) {
 	if ( lod < 0 )
 		lod = 0;
 
+	tr.lodCpuUsec += ri.Microseconds() - start;
 	return lod;
 }
 

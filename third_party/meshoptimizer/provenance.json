@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/zeux/meshoptimizer",
+  "version": "1.2",
+  "commit": "9d9890c73011d75920af614485296d1e03e95448",
+  "license": "MIT",
+  "scope": "Offline mesh simplification only; never linked into the engine",
+  "archive_sha256": "f002af938e3ba99a6ae50c0036dbbb17f3e433ce8b071d8597590d2d5649bda2",
+  "files": {
+    "src/allocator.cpp": "d2cc48691fe2f4c6d097bf7a766389cfb7f83ca14a5f747e3944332656d02254",
+    "src/simplifier.cpp": "dc40aadb307577ed3f7adb5102a506263de8b9fea1d5582a24c04bff2874a2cc",
+    "src/meshoptimizer.h": "21a72040a75bacf6ddefb7e74f1cf566af1e68ea5e4dc0db598278f4681e0b87",
+    "LICENSE.md": "f03037ca7bad1e3eb7f4a63fa6084a8baabd5ba30d3c239a9a7f35705d873e26"
+  }
+}
