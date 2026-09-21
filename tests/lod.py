@@ -63,9 +63,18 @@ with tempfile.TemporaryDirectory(prefix='aftershock-lod-source-') as temporary:
         # The recipe changes both provenance hashes, but no full-detail geometry.
         return data[:metadata+4]+bytes(64)+data[metadata+68:]
     assert geometry((args.output/'lod/models/grid.iqm').read_bytes())==geometry(base),'LOD cooking must retain the full-detail geometry and animation'
+    manifest=(args.output/'lod/models/grid.aslod').read_bytes()
+    magic,version,size,hashed=struct.unpack_from('<8sII32s',manifest)
+    assert magic==b'ASLOD\0\0\0' and version==1 and size==36+2*96
+    assert hashlib.sha256(manifest[48:]).digest()==hashed
+    assert manifest[48:80]==hashlib.sha256((args.output/'lod/models/grid.iqm').read_bytes()).digest()
+    assert struct.unpack_from('<I',manifest,80)[0]==2
     previous=original[10]
     for level,ratio in enumerate(recipe['lod_ratios'],1):
         data=(args.output/f'lod/models/grid_lod{level}.iqm').read_bytes()
+        record_path,record_hash=struct.unpack_from('<64s32s',manifest,84+(level-1)*96)
+        assert record_path.split(b'\0',1)[0].decode()==f'models/grid_lod{level}.iqm'
+        assert record_hash==hashlib.sha256(data).digest()
         header=model_header(data)
         assert 0<header[10]<previous and header[10]<=original[10]*ratio
         assert header[8]<original[8],'remove vertices no longer referenced by the LOD'

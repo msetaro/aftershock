@@ -64,6 +64,17 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 LOD manifest contract fails before implementation
+
+The extended cooker test requires a versioned .aslod sidecar binding the original
+IQM SHA256 to every named reduced IQM and its SHA256. The pre-implementation run
+fails on missing models/grid.aslod (fidelity-lod-manifest-before.log). This keeps
+stale sibling files from silently activating after a recipe changes. Commit the
+contract before implementing the cooker and native screen-size selection.
+
+Main build/publication 35589995081 passed all 16 compiler legs and create-testing;
+merged regression 35589995016 is still running, so #164 acceptance remains pending.
+
 ## #164 merge and #161 compatibility checkpoint
 
 PR167 is ready/merged after every required final check passed. The conditional
