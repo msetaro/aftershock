@@ -165,13 +165,13 @@ void R_AddEffects( const refdef_t *view ) {
 			const float u = float( particle.frame % emitter.columns ) / float( emitter.columns );
 			const float v = float( particle.frame / emitter.columns ) / float( emitter.rows );
 			polyVert_t vertices[4];
-			static constexpr float corners[4][2] = { { -1, -1 }, { -1, 1 }, { 1, 1 }, { 1, -1 } };
+			static constexpr float corners[4][2] = { { 1, 1 }, { -1, 1 }, { -1, -1 }, { 1, -1 } };
 			for ( uint32_t vertex = 0; vertex < 4; ++vertex ) {
 				for ( uint32_t c = 0; c < 3; ++c ) {
 					const float center = emitter.kind == FX_TRAIL ? ( particle.origin[c] + particle.previous[c] ) * .5f : particle.origin[c];
 					vertices[vertex].xyz[c] = center + corners[vertex][0] * right[c] + corners[vertex][1] * up[c];
 				}
-				vertices[vertex].st[0] = u + ( corners[vertex][0] + 1 ) * .5f / float( emitter.columns );
+				vertices[vertex].st[0] = u + ( 1 - corners[vertex][0] ) * .5f / float( emitter.columns );
 				vertices[vertex].st[1] = v + ( 1 - corners[vertex][1] ) * .5f / float( emitter.rows );
 				vertices[vertex].modulate = color;
 			}

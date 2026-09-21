@@ -64,6 +64,21 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 single-sided impact visual control now passes
+
+Correcting only the new effect quad order/UV orientation makes the stricter native
+weapon test pass (fidelity-weapon-effect-runtime-winding.log). Capture review now
+shows the single-sided brown impact particles directly over the floor, then the
+same empty floor after expiry; no animated player is visible. This is accepted
+component evidence, superseding the earlier obscured comparisons. The original
+owned material is deliberately plain; final reference art remains separate.
+
+The reference-set test now requires frozen original CC0 sources for muzzle flash,
+metal/stone impacts, smoke, sparks, dust, shell, explosion and tracer, with pinned
+provenance and required sprite/mesh/trail/light/collision fields. It fails on the
+absent provenance before authoring (fidelity-reference-before.log). Author this
+new asset set once, review it, then retain its bytes; no existing fixture changes.
+
 ## #161 visual control caught new particle winding error
 
 Removing the player from the comparison made the stricter visual test fail. Using
