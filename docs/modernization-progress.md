@@ -110,13 +110,18 @@ verifies shipping excludes UI/channel symbols and development includes them
 format and boundaries pass. All five original editor drivers are now migrated;
 material runtime still has pixel input and needs shared material/asset controls.
 
-Hosted panel-head regression 35559027970 fails in entity startup: the reader sees
-non-JSON before its first session response and stderr is empty. The existing
-reader discarded that offending line, so it now includes a bounded repr in the
-error to identify the root cause on the next fresh run; it does not silently skip
-non-JSON output. The earlier MSVC shadow correction is also awaiting fresh gates.
-Do not claim hosted acceptance yet. Continue material controls and the remaining
-#163 deliverables while the corrected-head CI runs.
+Hosted runs 35559027970 and 35559673071 fail before the first channel reply.
+The new diagnostic identifies the ordinary Q3 startup banner. Root cause:
+Ubuntu Noble's official xvfb-run redirects its child's stderr to stdout; the
+local newer script preserves them. Running the Noble script locally reproduces
+the identical error (agent-xvfb-before.log). tests/agent_client.py also fails first
+with a tiny wrapper reproducing that documented stream redirection. Fix the
+Python launcher inside the wrapper, preserving strict JSON validation.
+
+Build 35559673078 catches MSVC int-to-float conversions in the graph/animation
+play ternaries. Use explicit float literals. These hosted heads remain unaccepted.
+The material UI factors already pass locally; recooked normal-map captures need
+to await the existing real-time asset poll via structured reload counters.
 
 ## #163 Range and actor-state checkpoint
 
