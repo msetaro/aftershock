@@ -18,7 +18,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-fetch-') as temporary:
     files={}
     for channel,color in [('color',(96,64,48)),('normal',(128,128,255)),('roughness',(180,180,180)),('ao',(240,240,240)),('displacement',(128,128,128))]:
         image=root/(channel+'.png')
-        Image.new('RGB',(8,8),color).save(image)
+        pixels=Image.new('I;16' if channel=='displacement' else 'RGB',(8,8),0 if channel=='displacement' else color)
+        if channel=='displacement':
+            for y in range(8):
+                for x in range(8):
+                    pixels.putpixel((x,y),x*8192)
+        pixels.save(image)
         data=image.read_bytes(); sha=hashlib.sha256(data).hexdigest()
         (cache/sha).write_bytes(data)
         files[channel]=dict(url='https://dl.polyhaven.org/owned-test-'+channel+'.png',sha256=sha,bytes=len(data))
@@ -36,6 +41,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-fetch-') as temporary:
         assert 'Powered by Poly Haven' in (out/'CREDITS').read_text()
         assert (out/'cooked/textures/theme/facade.asmat').is_file()
         assert (out/'source/facade/ao.png').is_file() and (out/'source/facade/displacement.png').is_file()
+        with Image.open(out/'source/facade/displacement.png') as height:
+            assert height.convert('RGB').getchannel('R').getextrema()==(0,223), '16-bit source values were clipped instead of normalized'
+
         check=subprocess.run([sys.executable,'tools/assets','validate',str(out)],cwd=ROOT,capture_output=True,text=True)
         assert check.returncode==0,check.stderr
         return {p.relative_to(out).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in out.rglob('*') if p.is_file()}

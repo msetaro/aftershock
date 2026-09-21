@@ -49,6 +49,14 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 16-bit preparation control
+
+The fetch contract now includes an owned I;16 gradient and requires normalized
+prepared values 0..223, not saturation at 255. It fails as expected on the current
+RGBA conversion (sketch-height16-before.log). Normalize unsigned 16-bit grayscale
+before conversion while retaining the original file and its original SHA256.
+Then rebuild the real kit into a fresh output and revalidate all source/cooked hashes.
+
 ## #164 real two-provider kit checkpoint
 
 Live API searches and both adapters pass. The reviewed reference lock pins Poly
