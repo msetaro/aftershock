@@ -18,4 +18,9 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
      'tests/probes/temporal.cpp', *sources, '-o', probe])
 run([probe])
+skin = args.output/'skin'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     '-ffunction-sections', '-fdata-sections', 'tests/probes/temporal_skin.cpp', '-Wl,--gc-sections', '-o', skin])
+run([skin])
 print('PASS: bounded rendered-frame history, copied poses, camera cuts, identity and failed-frame rejection')
