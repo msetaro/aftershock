@@ -631,6 +631,8 @@ typedef struct shader_s {
 	struct shader_s *next;
 } shader_t;
 
+bool R_TemporalReactiveShader( const shader_t *shader );
+
 
 // trRefdef_t holds everything that comes in refdef_t,
 // as well as the locally generated scene information

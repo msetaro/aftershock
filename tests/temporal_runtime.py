@@ -2,6 +2,7 @@
 """Exercise temporal camera history and cuts on an owned level with moving entities hidden."""
 import argparse
 import json
+import math
 from pathlib import Path
 import shutil
 import subprocess
@@ -99,6 +100,27 @@ with tempfile.TemporaryDirectory(prefix='aftershock-temporal-runtime-') as tempo
             last = active()['temporal']
             assert last['matched'] > 0 and last['motionDraws'] > first['motionDraws'], last
             assert last['reactiveDraws'] > 0 and last['stored'] <= 256 and last['overflow'] == last['dropped'] == 0, last
+            # Remove an occluder without a camera cut. Old body color must not trail.
+            engine.step(8)
+            camera = engine.request('state')['camera']
+            forward = camera['forward']
+            angles = [-math.degrees(math.asin(max(-1, min(1, forward[2])))),
+                      math.degrees(math.atan2(forward[1], forward[0])), 0]
+            pose(camera['origin'], angles)
+            engine.step(24)
+            occluder = capture('occluder')
+            engine.request('cvar.set', name='r_drawentities', value='0')
+            revealed = capture('revealed')
+            engine.step(32)
+            background = capture('background')
+            a, b, c = occluder.tobytes(), revealed.tobytes(), background.tobytes()
+            mask = [i for i in range(0, len(a), 3) if max(abs(a[i+j]-c[i+j]) for j in range(3)) > 40]
+            assert len(mask) > 100, 'owned body did not cover a measurable region'
+            error = sorted(max(abs(b[i+j]-c[i+j]) for j in range(3)) for i in mask)
+            mean_error = sum(error)/len(error)
+            p95_error = error[int(.95*(len(error)-1))]
+            assert mean_error < 5 and p95_error < 16, (mean_error, p95_error)
+            last['disocclusion'] = dict(pixels=len(mask), mean_error=mean_error, p95_error=p95_error)
             (args.output/'models.json').write_text(json.dumps(last, indent=2)+'\n')
         engine.request('cvar.set', name='r_taa', value='0')
         engine.request('exec', command='vid_restart')

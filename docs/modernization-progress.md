@@ -42,7 +42,7 @@ dd4feacb passed all 16 compiler and ten active regression jobs (35607504307 /
 35607504311). Main/base remained 81e40b0c immediately before merge. Both tested
 and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
 unchanged. Main is merged forward here. Build/publication 35613793896 passed;
-regression 35613793817 remains in its long level/bot runtime step.
+regression 35613793817 passed all ten active jobs. #31 is accepted again.
 
 Next: strengthen temporal moving-object/disocclusion and history-quality checks,
 measure camera/geometry/resolve/copy/blur budgets on the reference GPU, then
@@ -78,6 +78,32 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 first temporal GPU budgets and disocclusion pixels
+
+At 1440p on the RTX 3080 Ti, serial real-clock timing controls with an owned native
+view weapon pass their declared p95 budgets. After 4096 warm frames and 50 profile
+samples: camera motion 0.128000 ms, geometry motion 0.030720 ms, resolve 0.370688 ms,
+copy 0.128000 ms; CPU p50/p95/p99 4.377/4.986/8.751 ms. A continuously turning
+camera with authored motion_blur 1 measures 0.101376/0.023552/0.288768/0.285696 ms
+for the same GPU passes; CPU 4.333/5.083/8.820 ms. Captures were inspected: scene
+blur follows the turn while the view weapon and HUD remain sharp. Reports/logs:
+fidelity-hardware-temporal and fidelity-hardware-temporal-blur. These controls
+do not replace final combined PBR/effects/decals scene measurement, and the earlier
+post-copy budget miss remains recorded rather than erased by this cheaper view.
+
+A stronger software test removes the owned body without a camera cut, then
+compares newly revealed pixels to the settled background: 14174 covered pixels,
+mean max-channel difference 3.2753 codes and p95 8 (limits 5/16). The test passes
+(fidelity-motion-disocclusion/models.json). No accepted golden was regenerated.
+
+Test-first d5678f1a adds reactive classification for animated images, video,
+waveforms, scrolling/deforming materials and remapped shaders. GCC/Clang UBSan
+checks pass (fidelity-reactive-{after,clang}.log). The classifier is used both to
+select world geometry for the reactive overlay and to reject tracked-model
+history. Constant UV scales remain eligible. The rebuilt runtime/pixel gate passes
+(fidelity-reactive-runtime): the same 14174 pixels, mean 3.2753/p95 8, with zero
+dropped frames or overflow. Final combined quality/reference checks remain outstanding.
 
 ## #161 native geometry motion and visible counters
 

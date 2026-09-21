@@ -93,6 +93,36 @@ bool R_TemporalJitter( uint32_t frame, uint32_t width, uint32_t height, float pr
 	return true;
 }
 
+bool R_TemporalReactiveShader( const shader_t *shader ) {
+	if ( !shader )
+		return true;
+	if ( shader->remappedShader )
+		shader = shader->remappedShader;
+	if ( shader->numDeforms || shader->sort > (float)SS_SEE_THROUGH ||
+		 ( shader->metallicRoughness && ( shader->materialParams.flags & 4 ) ) )
+		return true;
+	for ( uint32_t i = 0; i < MAX_SHADER_STAGES && shader->stages[i]; ++i ) {
+		for ( const auto &bundle : shader->stages[i]->bundle ) {
+			if ( bundle.numImageAnimations > 1 || bundle.isVideoMap || bundle.isScreenMap ||
+				 bundle.rgbGen == CGEN_WAVEFORM || bundle.alphaGen == AGEN_WAVEFORM )
+				return true;
+			for ( int j = 0; j < bundle.numTexMods; ++j ) {
+				switch ( bundle.texMods[j].type ) {
+				case TMOD_TURBULENT:
+				case TMOD_SCROLL:
+				case TMOD_STRETCH:
+				case TMOD_ROTATE:
+				case TMOD_ENTITY_TRANSLATE:
+					return true;
+				default:
+					break;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 void R_TemporalReset() {
 	memset( frames, 0, sizeof( frames ) );
 	current = 0;

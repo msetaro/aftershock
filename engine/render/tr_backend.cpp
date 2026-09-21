@@ -1612,7 +1612,7 @@ static void RB_TemporalGeometry( const drawSurfsCommand_t *cmd ) {
 		R_DecomposeSort( surface.sort, &entityNum, &shader, &fogNum, &dlighted );
 		if ( shader->isSky || shader == tr.shadowShader )
 			continue;
-		if ( entityNum == REFENTITYNUM_WORLD && !shader->numDeforms && shader->sort <= (float)SS_OPAQUE )
+		if ( entityNum == REFENTITYNUM_WORLD && !R_TemporalReactiveShader( shader ) )
 			continue; // Static opaque world motion was reconstructed from depth.
 		backEnd.currentEntity = entityNum == REFENTITYNUM_WORLD ? &tr.worldEntity : &backEnd.refdef.entities[entityNum];
 		backEnd.temporalPrevious = entityNum == REFENTITYNUM_WORLD ? nullptr : previous[entityNum];

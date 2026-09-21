@@ -1505,10 +1505,7 @@ static void RB_StageIteratorMotion() {
 		return;
 	const auto *previousView = R_TemporalPreviousView();
 	const auto *previous = backEnd.temporalPrevious;
-	uniform.flags[2] = previousView && previous && tess.previousPositions && !tess.shader->numDeforms &&
-							   tess.shader->sort <= (float)SS_SEE_THROUGH && !uniform.mask[3]
-						   ? 1
-						   : 0;
+	uniform.flags[2] = previousView && previous && tess.previousPositions && !R_TemporalReactiveShader( tess.shader ) && !uniform.mask[3] ? 1 : 0;
 	if ( uniform.flags[2] ) {
 		float object[16]{};
 		for ( int i = 0; i < 3; ++i ) {
