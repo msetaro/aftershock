@@ -46,9 +46,10 @@ undo, numbered backup, watched recook and changed preview. The prior missing gra
 operation is recorded in agent-editor-before.log. Entity save/reload also passes on both content sets via JSON, retaining every
 original key, angle aliases and numbered-save checks. The World panel rewrite
 now passes after its absent-operation check (agent-world-before.log): placement,
-picking, selection and reload share existing UI functions. The Range rewrite now fails first on absent range operation
-(agent-range-before.log). Implement its shared actions and authoritative
-weapon/animation state queries, then the remaining general/asset controls.
+picking, selection and reload share existing UI functions. The Range rewrite passes on both content sets after its missing-operation check
+(agent-range-before.log). Authoritative weapon/animation queries and shared Range
+actions are implemented. Continue general/asset controls and migrate devtools.py
+and the material UI test; gameplay event/assert acceptance remains.
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
@@ -93,6 +94,24 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 Range and actor-state checkpoint
+
+Range actions now share the existing queued control path with ImGui, including
+inspect/target/slot/fire/reload/melee/offhand/ADS/attachments/restart/capture.
+The actor query uses optional native-game read callbacks: both hands' complete
+weapon state, selected definition/attachments and graph state, plus both body/rig
+animation states. Responses identify server authority; inactive records are null.
+These read-only copies are development-only; no simulation expressions change.
+
+Q3 and OA pass the rewritten Range test: panel render, existing moving target,
+data-defined second slot, spent ammo, active/completed reload, ADS and animation
+state (agent-range*.log). GCC/Clang-libc++ UBSan protocol, boundaries and format
+pass. Hosted panel head 5dfdf535 caught MSVC C4456 for nested numeric locals;
+renaming the request-id parse result removes that shadow. A fresh full build is
+required; this failed head is not accepted. The test probe also gained the new
+read-only view-client stub. CI retains Range output explicitly until the global
+scratch migration, matching the other migrated editor tests.
 
 ## #163 world controls checkpoint
 

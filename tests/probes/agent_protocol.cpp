@@ -23,6 +23,9 @@ bool DevTools_EntityAtCamera( float * ) {
 bool DevTools_ReloadEntities( void ) {
 	return false;
 }
+bool DevTools_Range( const char *, const char *, int ) {
+	return true;
+}
 bool DevTools_Graph( const char *, const char *, float ) {
 	return true;
 }
@@ -31,6 +34,9 @@ bool DevTools_SetAnimation( const char *, float ) {
 }
 void DevTools_EditorState( devEditorState_t *state ) {
 	*state = {};
+}
+int DevTools_ViewClient( void ) {
+	return -1;
 }
 const devGameTools_t *DevTools_Game( void ) {
 	return nullptr;

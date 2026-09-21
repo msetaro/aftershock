@@ -25,6 +25,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../bg/q_shared.h"
 #include "../../engine/public/bg_public.h"
 #include "../../engine/public/g_public.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../../engine/public/dev_game_public.h"
+bool G_DevWeapon( int owner, int hand, devWeaponState_t *state );
+bool G_DevAnimation( int owner, int rig, devAnimationState_t *state );
+#endif
 
 //==================================================================
 

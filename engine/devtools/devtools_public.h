@@ -77,6 +77,9 @@ struct devEditorState_t {
 	int32_t model, animationFrame, selectedEntity;
 	uint32_t graphPreviews, graphTime;
 	bool graphDirty, graphPlay;
+	bool rangeLoaded, rangeAds;
+	int32_t rangeSlot, rangeAttachments;
+	char rangeName[64];
 	bool collision, navigation, entities, animationPlay;
 };
 bool DevTools_SelectPanel( const char *name );
@@ -88,6 +91,7 @@ bool DevTools_SetWorld( bool collision, bool navigation, bool entities, float ra
 bool DevTools_LoadAnimation( const char *path, const char *skin );
 bool DevTools_SetAnimation( const char *field, float value );
 bool DevTools_Graph( const char *action, const char *text, float value );
+bool DevTools_Range( const char *action, const char *path, int value );
 void DevTools_EditorState( devEditorState_t *state );
 void DevTools_Init( void );
 void DevTools_Reset( void );

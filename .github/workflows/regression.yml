@@ -237,7 +237,7 @@ jobs:
       - name: Weapon lifecycle, range controls and fixed replay
         run: |
           /tmp/aftershock-cook-python/bin/python tests/weapons_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --lifecycle
-          /tmp/aftershock-cook-python/bin/python tests/weapon_range.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          /tmp/aftershock-cook-python/bin/python tests/weapon_range.py --output /tmp/aftershock-weapon-range --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
           /tmp/aftershock-cook-python/bin/python tests/weapons_demo.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Real protocol agreement and delayed hitscan with a snapshot budget
         run: |

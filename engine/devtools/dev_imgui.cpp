@@ -68,6 +68,51 @@ static struct {
 	weaponDef_t definition;
 } weaponRange;
 
+bool DevTools_Range( const char *action, const char *path, int value ) {
+	if ( weaponRange.action )
+		return false;
+	int command = 0;
+	if ( !strcmp( action, "inspect" ) ) {
+		if ( !path[0] || strlen( path ) >= sizeof( weaponRange.path ) )
+			return false;
+		if ( path != weaponRange.path )
+			Q_strncpyz( weaponRange.path, path, sizeof( weaponRange.path ) );
+		command = 1;
+	} else if ( !strcmp( action, "capture" ) )
+		command = 12;
+	else if ( !strcmp( action, "close" ) ) {
+		weaponRange.visible = false;
+		return true;
+	} else {
+		if ( !DevTools_Game() || !Cvar_VariableIntegerValue( "sv_cheats" ) || DevTools_ViewClient() < 0 )
+			return false;
+		if ( !strcmp( action, "target" ) )
+			command = 2;
+		else if ( !strcmp( action, "select" ) && value >= 1 && value <= int( WEAPON_MAX_DEFINITIONS ) ) {
+			weaponRange.slot = value;
+			command = 3;
+		} else if ( !strcmp( action, "fire" ) )
+			command = 5;
+		else if ( !strcmp( action, "reload" ) )
+			command = 6;
+		else if ( !strcmp( action, "melee" ) )
+			command = 7;
+		else if ( !strcmp( action, "offhand" ) )
+			command = 8;
+		else if ( !strcmp( action, "ads" ) && ( value == 0 || value == 1 ) ) {
+			weaponRange.ads = value != 0;
+			command = 9;
+		} else if ( !strcmp( action, "attachments" ) && weaponRange.loaded && value >= 0 && value < ( 1 << weaponRange.definition.attachmentCount ) ) {
+			weaponRange.attachments = value;
+			command = 10;
+		} else if ( !strcmp( action, "restart" ) && weaponRange.loaded )
+			command = 11;
+		else
+			return false;
+	}
+	weaponRange.action = command;
+	return true;
+}
 static void WeaponRangeCommand( void ) {
 	weaponRange.visible = weaponRange.select = true;
 	weaponRange.slot = 1;
@@ -76,7 +121,7 @@ static void WeaponRangeCommand( void ) {
 		const char *cursor = Cvar_VariableString( "g_weapons" );
 		Q_strncpyz( weaponRange.path, COM_Parse( &cursor ), sizeof( weaponRange.path ) );
 	}
-	weaponRange.action = 1;
+	DevTools_Range( "inspect", weaponRange.path, 0 );
 	Com_Printf( "Developer weapon range: opened\n" );
 }
 static void InspectWeaponRange( void ) {
@@ -90,7 +135,7 @@ static void InspectWeaponRange( void ) {
 	ImGui::InputText( "##Weapon asset", weaponRange.path, sizeof( weaponRange.path ) );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Inspect" ) )
-		weaponRange.action = 1;
+		DevTools_Range( "inspect", weaponRange.path, 0 );
 	if ( weaponRange.loaded ) {
 		const auto &weapon = weaponRange.definition;
 		ImGui::Text( "%s | damage %.1f | interval %u ms | magazine %u + 1", weapon.name, double( weapon.damage ), weapon.intervalMs, weapon.magazine );
@@ -101,40 +146,40 @@ static void InspectWeaponRange( void ) {
 	const bool local = DevTools_Game() && Cvar_VariableIntegerValue( "sv_cheats" ) && DevTools_ViewClient() >= 0;
 	ImGui::BeginDisabled( !local );
 	if ( ImGui::Button( "Spawn moving target", ImVec2( 162, 20 ) ) )
-		weaponRange.action = 2;
+		DevTools_Range( "target", "", 0 );
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth( 90 );
 	ImGui::InputInt( "##Weapon slot", &weaponRange.slot );
 	weaponRange.slot = MAX( 1, MIN( weaponRange.slot, int( WEAPON_MAX_DEFINITIONS ) ) );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Select slot", ImVec2( 90, 20 ) ) )
-		weaponRange.action = 3;
+		DevTools_Range( "select", "", weaponRange.slot );
 	ImGui::SetCursorPosY( 184 );
 	if ( ImGui::Button( "Fire", ImVec2( 42, 20 ) ) )
-		weaponRange.action = 5;
+		DevTools_Range( "fire", "", 0 );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Reload", ImVec2( 60, 20 ) ) )
-		weaponRange.action = 6;
+		DevTools_Range( "reload", "", 0 );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Melee", ImVec2( 55, 20 ) ) )
-		weaponRange.action = 7;
+		DevTools_Range( "melee", "", 0 );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Offhand", ImVec2( 70, 20 ) ) )
-		weaponRange.action = 8;
+		DevTools_Range( "offhand", "", 0 );
 	if ( ImGui::Checkbox( "ADS", &weaponRange.ads ) )
-		weaponRange.action = 9;
+		DevTools_Range( "ads", "", weaponRange.ads ? 1 : 0 );
 	if ( weaponRange.loaded && weaponRange.definition.attachmentCount ) {
 		ImGui::SliderInt( "Attachment mask", &weaponRange.attachments, 0, ( 1 << weaponRange.definition.attachmentCount ) - 1 );
 		if ( ImGui::Button( "Apply attachments" ) )
-			weaponRange.action = 10;
+			DevTools_Range( "attachments", "", weaponRange.attachments );
 	}
 	ImGui::SetCursorPosY( 276 );
 	if ( ImGui::Button( "Restart with inspected weapon", ImVec2( 260, 20 ) ) )
-		weaponRange.action = 11;
+		DevTools_Range( "restart", "", 0 );
 	ImGui::EndDisabled();
 	ImGui::SameLine();
 	if ( ImGui::Button( "Capture panel", ImVec2( 120, 20 ) ) )
-		weaponRange.action = 12;
+		DevTools_Range( "capture", "", 0 );
 	if ( !local )
 		ImGui::TextWrapped( "Open a local developer map to use range controls." );
 	ImGui::TextWrapped( "Inspect a cooked weapon, tune its source and recook, then restart. The active game keeps its map-start revision. Start the map with g_rewind 1 for moving targets." );
@@ -865,6 +910,11 @@ void DevTools_EditorState( devEditorState_t *state ) {
 	state->graphTime = graph.time;
 	state->graphDirty = strcmp( graph.text, graph.saved ) != 0;
 	state->graphPlay = graph.play;
+	state->rangeLoaded = weaponRange.loaded;
+	state->rangeAds = weaponRange.ads;
+	state->rangeSlot = weaponRange.slot;
+	state->rangeAttachments = weaponRange.attachments;
+	Q_strncpyz( state->rangeName, weaponRange.loaded ? weaponRange.definition.name : "", sizeof( state->rangeName ) );
 }
 
 static void InspectWorld( void ) {
@@ -1354,6 +1404,7 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds ) {
 	editorRenderer = renderer;
+	EditWeaponRange();
 	EditGraph( renderer );
 	LoadAnimation( renderer );
 	if ( worldDebug.refresh ) {

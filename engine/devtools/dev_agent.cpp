@@ -510,6 +510,16 @@ static void Agent_EditorState( agentReply_t &reply ) {
 	reply.Text( state.graphDirty ? "true" : "false" );
 	reply.Text( ",\"play\":" );
 	reply.Text( state.graphPlay ? "true" : "false" );
+	reply.Text( "},\"range\":{\"loaded\":" );
+	reply.Text( state.rangeLoaded ? "true" : "false" );
+	reply.Text( ",\"ads\":" );
+	reply.Text( state.rangeAds ? "true" : "false" );
+	reply.Text( ",\"slot\":" );
+	reply.Number( state.rangeSlot );
+	reply.Text( ",\"attachments\":" );
+	reply.Number( state.rangeAttachments );
+	reply.Text( ",\"name\":" );
+	reply.String( state.rangeName );
 	reply.Text( "}}}" );
 }
 #endif
@@ -553,6 +563,93 @@ static void Agent_Profile( agentReply_t &reply ) {
 	snprintf( counters, sizeof( counters ), "\"hits\":%" PRIu64 ",\"kills\":%" PRIu64 ",\"errors\":%" PRIu64 ",\"warnings\":%" PRIu64, agentHits, agentKills, agentErrors, agentWarnings );
 	reply.Text( counters );
 	reply.Text( "}}}" );
+}
+
+static void Agent_AnimationState( agentReply_t &reply, const animState_t &state, const char *name ) {
+	reply.Text( "{\"state\":" );
+	reply.String( name );
+	reply.Text( ",\"current\":" );
+	reply.Number( state.current );
+	reply.Text( ",\"previous\":" );
+	reply.Number( state.previous );
+	reply.Text( ",\"entered\":" );
+	reply.Number( state.entered );
+	reply.Text( ",\"previousEntered\":" );
+	reply.Number( state.previousEntered );
+	reply.Text( ",\"blendStarted\":" );
+	reply.Number( state.blendStarted );
+	reply.Text( ",\"blendDuration\":" );
+	reply.Number( state.blendDuration );
+	reply.Text( ",\"lastTime\":" );
+	reply.Number( state.lastTime );
+	reply.Text( ",\"eventSequence\":" );
+	reply.Number( state.eventSequence );
+	reply.Text( ",\"initialized\":" );
+	reply.Number( state.initialized );
+	reply.Text( "}" );
+}
+static void Agent_Actor( agentReply_t &reply, int owner ) {
+	const auto *game = DevTools_Game();
+	reply.Text( ",\"ok\":true,\"result\":{\"owner\":" );
+	reply.Number( owner );
+	reply.Text( ",\"authority\":\"server\",\"weapons\":[" );
+	for ( int hand = 0; hand < 2; ++hand ) {
+		if ( hand )
+			reply.Text( "," );
+		devWeaponState_t weapon;
+		if ( !game || !game->ReadWeapon || !game->ReadWeapon( owner, hand, &weapon ) ) {
+			reply.Text( "null" );
+			continue;
+		}
+		reply.Text( "{\"name\":" );
+		reply.String( weapon.name );
+		reply.Text( ",\"selected\":" );
+		reply.Number( weapon.selected );
+		reply.Text( ",\"attachments\":" );
+		reply.Number( weapon.attachments );
+		reply.Text( ",\"time\":" );
+		reply.Number( weapon.state.time );
+		reply.Text( ",\"random\":" );
+		reply.Number( weapon.state.random );
+		reply.Text( ",\"sequence\":" );
+		reply.Number( weapon.state.sequence );
+		reply.Text( ",\"nextFire\":" );
+		reply.Number( weapon.state.nextFire );
+		reply.Text( ",\"magazine\":" );
+		reply.Number( weapon.state.magazine );
+		reply.Text( ",\"reserve\":" );
+		reply.Number( weapon.state.reserve );
+		reply.Text( ",\"chamber\":" );
+		reply.Number( weapon.state.chamber );
+		reply.Text( ",\"previousButtons\":" );
+		reply.Number( weapon.state.previousButtons );
+		reply.Text( ",\"reloadStage\":" );
+		reply.Number( weapon.state.reloadStage );
+		reply.Text( ",\"reloadStart\":" );
+		reply.Number( weapon.state.reloadStart );
+		reply.Text( ",\"burstRemaining\":" );
+		reply.Number( weapon.state.burstRemaining );
+		reply.Text( ",\"adsQ16\":" );
+		reply.Number( weapon.state.adsQ16 );
+		reply.Text( ",\"nextMelee\":" );
+		reply.Number( weapon.state.nextMelee );
+		reply.Text( ",\"switchUntil\":" );
+		reply.Number( weapon.state.switchUntil );
+		reply.Text( ",\"animation\":" );
+		Agent_AnimationState( reply, weapon.animation, weapon.animationName );
+		reply.Text( "}" );
+	}
+	reply.Text( "],\"animation\":[" );
+	for ( int rig = 0; rig < 2; ++rig ) {
+		if ( rig )
+			reply.Text( "," );
+		devAnimationState_t animation;
+		if ( !game || !game->ReadAnimation || !game->ReadAnimation( owner, rig, &animation ) )
+			reply.Text( "null" );
+		else
+			Agent_AnimationState( reply, animation.state, animation.name );
+	}
+	reply.Text( "]}}" );
 }
 
 static bool Agent_Entity( const char *op, const char *request, const char *end, agentReply_t &reply ) {
@@ -713,8 +810,8 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	const char *id = JSON_ObjectGetNamedValue( request, end, "id" );
 	uint32_t sequence = 0;
 	const char *idEnd = id ? JSON_SkipValue( id, end ) : end;
-	const auto number = id ? std::from_chars( id, idEnd, sequence ) : std::from_chars_result{};
-	if ( !id || number.ec != std::errc{} || number.ptr != idEnd ) {
+	const auto parsedId = id ? std::from_chars( id, idEnd, sequence ) : std::from_chars_result{};
+	if ( !id || parsedId.ec != std::errc{} || parsedId.ptr != idEnd ) {
 		reply.Text( "null" );
 		return reply.Error( "invalid_argument", "$.id", "Use an unsigned 32-bit integer request id." );
 	}
@@ -726,7 +823,38 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"range\",\"actor\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+	} else if ( !strcmp( op, "actor" ) ) {
+		int owner = DevTools_ViewClient();
+		if ( JSON_ObjectGetNamedValue( request, end, "owner" ) ) {
+			uint32_t specified;
+			if ( !Agent_Integer( request, end, "owner", specified ) || specified >= MAX_CLIENTS )
+				return reply.Error( "invalid_argument", "$.owner", "Choose a client id from 0 to 63." );
+			owner = (int)specified;
+		}
+		if ( owner < 0 || !DevTools_Game() )
+			return reply.Error( "invalid_state", "$", "Load a local map and select an active client." );
+		Agent_Actor( reply, owner );
+	} else if ( !strcmp( op, "range" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Range controls require a client build." );
+#else
+		if ( capacity < 1024 )
+			return false;
+		p = JSON_ObjectGetNamedValue( request, end, "action" );
+		if ( !Agent_String( p, end, name, sizeof( name ) ) )
+			return reply.Error( "invalid_argument", "$.action", "Use inspect/target/select/fire/reload/melee/offhand/ads/attachments/restart/capture/close." );
+		p = JSON_ObjectGetNamedValue( request, end, "path" );
+		value[0] = 0;
+		if ( p && !Agent_String( p, end, value, MAX_QPATH ) )
+			return reply.Error( "invalid_argument", "$.path", "Use a cooked weapon path shorter than 64 bytes." );
+		uint32_t number = 0;
+		if ( JSON_ObjectGetNamedValue( request, end, "value" ) && ( !Agent_Integer( request, end, "value", number ) || number > 255 ) )
+			return reply.Error( "invalid_argument", "$.value", "Use an integer slot, attachment mask or ADS 0/1." );
+		if ( !DevTools_Range( name, value, (int)number ) )
+			return reply.Error( "rejected", "$", "Check action/value, loaded weapon and local devmap; step before another queued range action." );
+		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+#endif
 	} else if ( !strcmp( op, "graph" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Graph actions require a client build." );
