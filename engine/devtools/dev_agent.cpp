@@ -1328,6 +1328,10 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 			reply.Number( stats.lightDraws );
 			reply.Text( ",\"lightDrops\":" );
 			reply.Number( stats.lightDrops );
+			reply.Text( ",\"softDraws\":" );
+			reply.Number( stats.softDraws );
+			reply.Text( ",\"softDrops\":" );
+			reply.Number( stats.softDrops );
 			reply.Text( "}}" );
 			return reply.valid;
 		}

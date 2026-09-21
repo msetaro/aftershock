@@ -190,7 +190,8 @@ int main( void ) {
 			for ( uint32_t i = 0; i < graph.executionCount; ++i ) {
 				const auto id = graph.executionOrder[i];
 				const auto &node = graph.passes[pass( id )];
-				if ( !node.enabled ) continue;
+				if ( !node.enabled )
+					continue;
 				assert( !( node.dependencyMask & ~seen ) );
 				seen |= 1u << pass( id );
 			}

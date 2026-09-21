@@ -110,6 +110,8 @@ void R_AddPolygonSurfaces( void ) {
 	tr.shiftedEntityNum = tr.currentEntityNum << QSORT_REFENTITYNUM_SHIFT;
 
 	for ( i = 0, poly = tr.refdef.polys; i < tr.refdef.numPolys; i++, poly++ ) {
+		if ( poly->softDistance > 0 && tr.viewParms.portalView == PV_NONE && !tr.refdef.switchRenderPass && !( tr.refdef.rdflags & RDF_NOWORLDMODEL ) )
+			continue;
 		sh = R_GetShaderByHandle( poly->hShader );
 		R_AddDrawSurf( (surfaceType_t *)(void *)poly, sh, poly->fogIndex, 0 );
 	}
@@ -152,6 +154,7 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 		poly = &backEndData->polys[r_numpolys];
 		poly->surfaceType = SF_POLY;
 		poly->hShader = hShader;
+		poly->softDistance = 0;
 		poly->numVerts = numVerts;
 		poly->verts = &backEndData->polyVerts[r_numpolyverts];
 
@@ -198,6 +201,25 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 
 
 //=================================================================================
+
+void R_AddEffectPoly( qhandle_t shader, const polyVert_t *vertices, float softDistance ) {
+	const int before = r_numpolys;
+	RE_AddPolyToScene( shader, 4, vertices, 1 );
+	if ( r_numpolys > before && softDistance > 0 && r_fbo->integer && r_softParticles->integer ) {
+		const auto *material = R_GetShaderByHandle( shader );
+		const auto *stage = material->stages[0];
+		// The effect pass consumes one static texture and authored vertex color.
+		// Complex legacy materials keep their ordinary stage iterator.
+		if ( material->numUnfoggedPasses == 1 && !material->numDeforms && stage && stage->bundle[0].image[0] &&
+			 stage->numTexBundles == 1 && stage->bundle[0].tcGen == TCGEN_TEXTURE &&
+			 ( stage->bundle[0].rgbGen == CGEN_VERTEX || stage->bundle[0].rgbGen == CGEN_EXACT_VERTEX ) &&
+			 ( stage->bundle[0].alphaGen == AGEN_VERTEX || stage->bundle[0].alphaGen == AGEN_SKIP ) && !stage->bundle[0].isVideoMap && !stage->bundle[0].isScreenMap &&
+			 stage->bundle[0].numImageAnimations <= 1 && !stage->bundle[0].numTexMods &&
+			 ( stage->stateBits & GLS_SRCBLEND_BITS ) == GLS_SRCBLEND_SRC_ALPHA &&
+			 ( ( stage->stateBits & GLS_DSTBLEND_BITS ) == GLS_DSTBLEND_ONE || ( stage->stateBits & GLS_DSTBLEND_BITS ) == GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA ) )
+			backEndData->polys[before].softDistance = softDistance;
+	}
+}
 
 static int isnan_fp( const float *f ) {
 	uint32_t u = *( (uint32_t *)f );

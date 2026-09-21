@@ -35,11 +35,12 @@ commands. No #161 PR yet. Current code passes pure effect/cooker GCC and Clang,
 native sprite/control/reload/restart, initial floating HDR target, and offline
 mesh LOD checks. The initial native OpenArena fixed-demo comparison passes its
 unchanged accepted frame hash (fidelity-legacy-demo.log). No accepted fixture or
-existing shader changed. Details and test-first failures are below.
+existing shader changed; three new particle shaders are appended through bin2hex. Details and test-first failures are below.
 
-Next implementation: finish the full #161 effect set/material impact binding, soft particles,
-mesh/trail/reference coverage. Live source editing, initial light hooks and
-profiler counters now pass. Projected normal-map
+Next implementation: projected normal-map decals and their material-hit bindings,
+then the post stack and streaming. The original nine-effect set, material impacts,
+live source editing, light hooks, depth-soft particles and profiler counters
+now pass component controls. Projected normal-map
 decals, filmic/LUT/post/TAA with real motion vectors, mip streaming/async uploads,
 reviewed software frames and hardware budgets all remain required. Cooked
 LOD output is now selected by the renderer through hash-bound cooked manifests.
@@ -63,6 +64,31 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 sampled-depth particle pass passes component gates
+
+Soft sprite/trail quads reuse the bounded scene polygon storage and sort their
+references back to front. A separate color-only graph pass samples retained depth,
+then resumes loaded scene color/MSAA/depth/stencil. Single static vertex-color
+materials use alpha/additive pipelines; complex legacy materials keep their stage
+iterator. r_softParticles defaults off pending final budgets. Fade distance comes
+from authored particle size. GPU scope and softDraws/softDrops expose work/drops.
+
+The live floor test passes single-sample and 4x MSAA+SSAO, complete occlusion,
+zero upload drops and vid_restart (fidelity-soft-runtime-final2.log). Capture
+review shows solid distant cyan, faint floor intersection and no below-floor
+contribution. Initial implementation rejected 160-byte draws in the old 128-byte
+uniform range; only the opt-in configuration enlarges it. A stricter material
+eligibility check initially missed the existing AGEN_SKIP optimization of vertex
+alpha; the final condition recognizes it without changing the legacy optimizer.
+
+GCC/Clang native graph tests retain the exact disabled descriptor hash and cover
+32 new combinations, blend state, upload exhaustion and state restoration. Pinned
+shader compilation reproduces all 91 shaders; the prior 88 arrays are unchanged
+(fidelity-soft-graph-{native,clang}.log, fidelity-soft-shader-check.log). Release
+build, formatting, boundary/type and agent protocol checks pass. Full lifetime
+analysis is still running (fidelity-soft-lifetimes.log). This is component evidence;
+final reference-scene goldens and hardware budgets remain outstanding.
 
 ## #161 live soft-depth contract fails first
 

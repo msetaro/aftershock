@@ -42,4 +42,7 @@ for name in ('native', 'contract'):
         (output / 'native-ssao.txt').write_bytes(occlusion.stdout)
         print('PASS: 32 SSAO native configurations retain sampled MSAA/stencil depth and compatible scene loads', flush=True)
         run([binary, '--hdr'], timeout=10)
+        particles = run([binary, '--particles'], capture_output=True, timeout=10)
+        (output / 'native-particles.txt').write_bytes(particles.stdout)
+        print('PASS: native soft-particle passes, MSAA, depth sampling, blend state and upload bounds', flush=True)
 print('PASS: graph dependencies, retained/exported resources, lifetimes and fixed capacities')

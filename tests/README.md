@@ -1257,4 +1257,19 @@ never runs its authoring exporter. `tests/effects_reference_runtime.py --binary
 PATH --content openarena --data PATH` captures all nine native effects, checks
 visible changes, light hooks and expiry. These are component review captures;
 final feature-on frame goldens and hardware budgets remain #161 work. The smoke
-soft-depth flag is authored but its renderer implementation is still pending.
+soft-depth flag uses the sampled-depth pass when `r_fbo 1; r_softParticles 1`
+is selected before renderer initialization.
+
+
+`tests/soft_particles.py --binary PATH --content openarena --data PATH` checks
+floor intersections and complete occlusion with single-sample rendering and with
+4x MSAA plus SSAO, then renderer restart. Depth-faded sprites/trails use one static
+texture with vertex color/alpha and alpha or additive blending; complex legacy
+materials retain their ordinary shader stages. The fade distance is the current
+particle radius, so data edits to size also control intersection softness. The
+pass sorts its bounded polygon references from back to front, samples retained
+depth with no depth attachment bound, and resumes multisample color/stencil via
+load operations. Effects/Profile expose `softDraws` and `softDrops`; upload
+exhaustion drops a draw without allocating. It remains opt-in pending hardware
+budget and final artistic-scene acceptance. The graph probe checks disabled
+legacy descriptors and the new native pass, blend and upload-bound contracts.

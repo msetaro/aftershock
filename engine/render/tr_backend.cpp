@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include <algorithm>
 #include "tr_cooked.h"
 
 backEndData_t *backEndData;
@@ -1526,6 +1527,56 @@ static void RB_DebugGraphics( void ) {
 RB_DrawSurfs
 =============
 */
+static void RB_SoftParticles() {
+	if ( !r_softParticles->integer || ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ||
+		 backEnd.viewParms.portalView != PV_NONE || backEnd.refdef.switchRenderPass )
+		return;
+	const srfPoly_t *polys[FX_MAX_PARTICLES];
+	uint32_t count = 0;
+	for ( int i = 0; i < backEnd.refdef.numPolys && count < FX_MAX_PARTICLES; ++i )
+		if ( backEnd.refdef.polys[i].softDistance > 0 )
+			polys[count++] = &backEnd.refdef.polys[i];
+	if ( !count )
+		return;
+	std::sort( polys, polys + count, []( const srfPoly_t *a, const srfPoly_t *b ) {
+		float distance = 0;
+		for ( int axis = 0; axis < 3; ++axis )
+			distance += ( a->verts[0].xyz[axis] + a->verts[2].xyz[axis] - b->verts[0].xyz[axis] - b->verts[2].xyz[axis] ) * backEnd.viewParms.orientation.axis[0][axis];
+		return distance > 0;
+	} );
+	rhiRect_t viewport;
+	RB_GetViewportRect( &viewport );
+	if ( !RHI_BeginParticles( &viewport ) )
+		return;
+	float projection[16], transform[16];
+	Com_Memcpy( projection, backEnd.viewParms.projectionMatrix, sizeof( projection ) );
+	projection[5] = -projection[5];
+	myGlMultMatrix( backEnd.viewParms.world.modelMatrix, projection, transform );
+	for ( uint32_t i = 0; i < count; ++i ) {
+		const auto *poly = polys[i];
+		const auto *stage = R_GetShaderByHandle( poly->hShader )->stages[0];
+		auto *image = stage->bundle[0].image[0];
+		rhiParticle_t draw{};
+		for ( int vertex = 0; vertex < 4; ++vertex ) {
+			for ( int row = 0; row < 4; ++row ) {
+				draw.clip[vertex][row] = transform[12 + row];
+				for ( int axis = 0; axis < 3; ++axis )
+					draw.clip[vertex][row] += transform[axis * 4 + row] * poly->verts[vertex].xyz[axis];
+			}
+			for ( int axis = 0; axis < 2; ++axis )
+				draw.uv[vertex][axis] = poly->verts[vertex].st[axis];
+			const byte channel = poly->verts[0].modulate.rgba[vertex];
+			draw.color[vertex] = (float)( vertex < 3 && stage->bundle[0].rgbGen == CGEN_VERTEX ? (byte)( channel * tr.identityLight ) : channel ) / 255;
+		}
+		draw.depth[0] = projection[10];
+		draw.depth[1] = projection[14];
+		draw.depth[2] = poly->softDistance;
+		image->frameUsed = tr.frameCount;
+		R_EffectSoftDraw( RHI_DrawParticle( &draw, &image->texture, ( stage->stateBits & GLS_DSTBLEND_BITS ) == GLS_DSTBLEND_ONE ) );
+	}
+	RHI_EndParticles();
+}
+
 static const void *RB_DrawSurfs( const void *data ) {
 	const drawSurfsCommand_t *cmd;
 
@@ -1583,6 +1634,8 @@ static const void *RB_DrawSurfs( const void *data ) {
 		RB_GetViewportRect( &viewport );
 		RHI_Occlusion( backEnd.viewParms.projectionMatrix, &viewport, r_ssaoRadius->value, r_ssaoStrength->value );
 	}
+
+	RB_SoftParticles();
 
 	// draw main system development information (surface outlines, etc)
 	RB_DebugGraphics();

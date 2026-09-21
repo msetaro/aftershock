@@ -523,6 +523,7 @@ static void InspectEffects( const refexport_t *renderer ) {
 	ImGui::Text( "Particles %u / %u | instances %u / %u | dropped %" PRIu64,
 		stats.pool.particles, FX_MAX_PARTICLES, stats.pool.instances, FX_MAX_INSTANCES, stats.pool.dropped );
 	ImGui::Text( "Draws %u | lights %u | dropped lights %u | reloads %u", stats.draws, stats.lightDraws, stats.lightDrops, stats.reloads );
+	ImGui::Text( "Soft particle draws %u | upload drops %u", stats.softDraws, stats.softDrops );
 	ImGui::SetNextItemWidth( 330 );
 	ImGui::InputText( "Source JSON", effectSource.path, sizeof( effectSource.path ) );
 	if ( ImGui::Button( "Load source" ) )
@@ -1587,6 +1588,7 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 	renderer->EffectStats( &effects );
 	ImGui::Text( "Effects: %u particles / %u instances; %" PRIu64 " dropped", effects.pool.particles, effects.pool.instances, effects.pool.dropped );
 	ImGui::Text( "Effect draws %u / lights %u; light drops %u", effects.draws, effects.lightDraws, effects.lightDrops );
+	ImGui::Text( "Soft particle draws %u / upload drops %u", effects.softDraws, effects.softDrops );
 	ImGui::Separator();
 	ImGui::Text( "Connected server RX / client TX %.0f / %.0f bytes/s", rate[0], rate[1] );
 	ImGui::Text( "Packets %" PRIu64 " / %" PRIu64 "; last datagram %u / %u bytes",

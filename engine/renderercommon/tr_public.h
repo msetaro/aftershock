@@ -30,9 +30,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 23
+#define REF_API_VERSION 24
 #else
-#define REF_API_VERSION 17
+#define REF_API_VERSION 18
 #endif
 
 //
@@ -47,7 +47,7 @@ typedef enum {
 
 struct fxRenderStats_t {
 	fxStats_t pool;
-	uint32_t registered, reloads, draws, lightDraws, lightDrops;
+	uint32_t registered, reloads, draws, lightDraws, lightDrops, softDraws, softDrops;
 };
 static_assert( std::is_trivially_copyable_v<fxRenderStats_t> );
 

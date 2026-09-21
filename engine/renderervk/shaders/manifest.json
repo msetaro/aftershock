@@ -1845,6 +1845,174 @@
         },
         "member_offsets": []
       }
+    },
+    {
+      "name": "particle_vert_spv",
+      "source": "particle.vert",
+      "stage": "vert",
+      "defines": [],
+      "source_sha256": "d6d793ce812dc5c7873cece205ec8207cd3c7b25f60bcd228165f321acd64466",
+      "spirv_sha256": "526111b857feca21a3f5fd93d9fbf61cc713aeb8b3ac21f12912f9467426f577",
+      "recipe_sha256": "25cb24de3d229f2aa2beae9b4c1fc934917c02277f93d05fa5b0ac1361670d6e",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "vert",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "33": {
+            "binding": 0,
+            "set": 0
+          },
+          "42": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 31,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 31,
+            "member": 1,
+            "offset": 64
+          },
+          {
+            "type": 31,
+            "member": 2,
+            "offset": 128
+          },
+          {
+            "type": 31,
+            "member": 3,
+            "offset": 144
+          }
+        ]
+      }
+    },
+    {
+      "name": "particle_frag_spv",
+      "source": "particle.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "7e7e8931ab7c3416e09dfbf51628910acb93468eda6d18321ac1b3383db607fc",
+      "spirv_sha256": "cfcdaa3197f2debafe62cf07c29b801577e02bdf3b444bf82bcc884d85ec076f",
+      "recipe_sha256": "bc7eb9b89d15ee806c41b65b410079f9ef63be145c8bae7db3561c6701bd10bc",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "23": {
+            "binding": 0,
+            "set": 1
+          },
+          "38": {
+            "binding": 0,
+            "set": 0
+          },
+          "74": {
+            "location": 0
+          },
+          "75": {
+            "binding": 0,
+            "set": 2
+          },
+          "78": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 36,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 36,
+            "member": 1,
+            "offset": 64
+          },
+          {
+            "type": 36,
+            "member": 2,
+            "offset": 128
+          },
+          {
+            "type": 36,
+            "member": 3,
+            "offset": 144
+          }
+        ]
+      }
+    },
+    {
+      "name": "particle_ms_frag_spv",
+      "source": "particle.frag",
+      "stage": "frag",
+      "defines": [
+        "MULTISAMPLE"
+      ],
+      "source_sha256": "7e7e8931ab7c3416e09dfbf51628910acb93468eda6d18321ac1b3383db607fc",
+      "spirv_sha256": "95084d545d05ef3e416b0468bac08b26f4aad1286e134ed0df0b63adfbaa07f1",
+      "recipe_sha256": "5b75ca0c1bed185ffd9fc92ac25cccb13b9eda29d7dc6faff9d966322f7909d6",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "33": {
+            "binding": 0,
+            "set": 1
+          },
+          "58": {
+            "binding": 0,
+            "set": 0
+          },
+          "93": {
+            "location": 0
+          },
+          "97": {
+            "binding": 0,
+            "set": 2
+          },
+          "100": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 56,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 56,
+            "member": 1,
+            "offset": 64
+          },
+          {
+            "type": 56,
+            "member": 2,
+            "offset": 128
+          },
+          {
+            "type": 56,
+            "member": 3,
+            "offset": 144
+          }
+        ]
+      }
     }
   ]
 }

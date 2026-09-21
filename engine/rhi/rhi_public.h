@@ -414,6 +414,13 @@ void RHI_ClearDepth( bool stencil, const rhiRect_t *rect );
 void RHI_PushTransform( const float *matrix );
 void RHI_Bloom( const float *restoreTransform );
 // Projection is the frontend perspective matrix; viewport is in render pixels.
+struct rhiParticle_t {
+	float clip[4][4], uv[4][4], color[4], depth[4];
+};
+static_assert( sizeof( rhiParticle_t ) == 160 && offsetof( rhiParticle_t, depth ) == 144 );
+bool RHI_BeginParticles( const rhiRect_t *viewport );
+bool RHI_DrawParticle( const rhiParticle_t *particle, const rhiTexture_t *texture, bool additive );
+void RHI_EndParticles();
 void RHI_Occlusion( const float *projection, const rhiRect_t *viewport, float radius, float strength );
 // Existing one-frame delayed, coherent visibility storage; no additional wait.
 bool RHI_ReadVisibility( uint32_t index );
@@ -483,6 +490,7 @@ struct rhiDeviceConfig_t {
 	bool textureFilterValid;
 	uint32_t shadowMapSize;
 	uint32_t occlusionScale;
+	bool softParticles = false;
 };
 struct rhiDeviceInfo_t {
 	char renderer[1024], vendor[1024], version[1024], extensions[8192];
@@ -559,6 +567,8 @@ enum class rhiGraphPass_t : uint32_t {
 	Occlusion,
 	OcclusionBlur,
 	OcclusionApply,
+	Particles,
+	ParticlesResume,
 	Count
 };
 enum class rhiGraphFormat_t : uint32_t { Color,
@@ -583,7 +593,8 @@ enum class rhiGraphStore_t : uint32_t { Discard,
 enum class rhiGraphStage_t : uint32_t { Fragment,
 	ColorOutput,
 	DepthTests,
-	SceneAttachments };
+	SceneAttachments,
+	FragmentColor };
 enum : uint32_t {
 	RHI_GRAPH_COLOR = 1,
 	RHI_GRAPH_SAMPLED = 2,
@@ -602,6 +613,7 @@ struct rhiGraphConfig_t {
 	bool offscreen, bloom, capture, stencil;
 	uint32_t shadowSize; // Zero disables both depth atlases.
 	uint32_t occlusionScale; // 0 off, 1 full resolution, 2 half resolution; requires offscreen.
+	bool softParticles = false;
 };
 struct rhiGraphTargetDesc_t {
 	uint32_t width, height, samples, usage;

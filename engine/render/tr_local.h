@@ -819,6 +819,7 @@ typedef struct srfPoly_s {
 	int fogIndex;
 	int numVerts;
 	polyVert_t *verts;
+	float softDistance;
 } srfPoly_t;
 
 
@@ -1452,6 +1453,7 @@ extern cvar_t *r_dynamiclight; // dynamic lights enabled/disabled
 extern cvar_t *r_mergeLightmaps;
 extern cvar_t *r_directionalLightmaps;
 extern cvar_t *r_reflectionProbes;
+extern cvar_t *r_softParticles;
 extern cvar_t *r_ssao, *r_ssaoRadius, *r_ssaoStrength;
 extern cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
@@ -1564,6 +1566,8 @@ void R_AddRailSurfaces( trRefEntity_t *e, qboolean isUnderwater );
 void R_AddLightningBoltSurfaces( trRefEntity_t *e );
 
 void R_AddPolygonSurfaces( void );
+void R_EffectSoftDraw( bool drawn );
+void R_AddEffectPoly( qhandle_t shader, const polyVert_t *vertices, float softDistance );
 
 void R_DecomposeSort( unsigned sort, int *entityNum, shader_t **shader,
 	int *fogNum, int *dlightMap );

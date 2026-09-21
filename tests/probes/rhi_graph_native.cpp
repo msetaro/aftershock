@@ -58,7 +58,7 @@ static VkResult VKAPI_CALL createImage( VkDevice, const VkImageCreateInfo *p, co
 	if ( ( p->usage & ( VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT ) ) ==
 		 ( VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT ) ) {
 		if ( p->format != VK_FORMAT_D32_SFLOAT ) {
-			assert( vk_config.occlusionScale && p->extent.width == 640 && p->extent.height == 480 );
+			assert( ( vk_config.occlusionScale || vk_config.softParticles ) && p->extent.width == 640 && p->extent.height == 480 );
 			assert( p->samples == vkSamples && !( p->usage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT ) );
 			*out = (VkImage)(uintptr_t)imageCount;
 			return VK_SUCCESS;
@@ -105,7 +105,7 @@ static void VKAPI_CALL beginPass( VkCommandBuffer, const VkRenderPassBeginInfo *
 		++depthBegun;
 		assert( p->clearValueCount == 1 && p->pClearValues[0].depthStencil.depth == 0 );
 		assert( p->renderArea.extent.width == 1024 && p->renderArea.extent.height == 1024 );
-	} else if ( p->clearValueCount == 0 && p->renderPass != vk.render_pass.occlusion[0] && p->renderPass != vk.render_pass.occlusion[1] && p->renderPass != vk.render_pass.occlusion[2] ) {
+	} else if ( p->clearValueCount == 0 && p->renderPass != vk.render_pass.occlusion[0] && p->renderPass != vk.render_pass.occlusion[1] && p->renderPass != vk.render_pass.occlusion[2] && p->renderPass != vk.render_pass.particles && p->renderPass != vk.render_pass.particlesResume ) {
 		++resumed;
 		assert( p->renderPass == vk.render_pass.resume[0] || p->renderPass == vk.render_pass.resume[1] );
 	}
@@ -269,6 +269,58 @@ static void occlusionCommands() {
 	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
 	RHI_EndPass();
 }
+static uint32_t particlePipelines;
+static VkResult VKAPI_CALL createParticlePipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
+	assert( count == 1 && p->renderPass == vk.render_pass.particles );
+	assert( p->pMultisampleState->rasterizationSamples == vkSamples );
+	assert( !p->pDepthStencilState->depthTestEnable && !p->pDepthStencilState->depthWriteEnable );
+	assert( p->pDynamicState && p->pDynamicState->dynamicStateCount == 2 );
+	const auto &blend = p->pColorBlendState->pAttachments[0];
+	assert( blend.blendEnable && blend.srcColorBlendFactor == VK_BLEND_FACTOR_SRC_ALPHA );
+	assert( blend.dstColorBlendFactor == ( particlePipelines % 2 ? VK_BLEND_FACTOR_ONE : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA ) );
+	*out = (VkPipeline)(uintptr_t)++particlePipelines;
+	return VK_SUCCESS;
+}
+static void VKAPI_CALL particleViewport( VkCommandBuffer, uint32_t first, uint32_t count, const VkViewport *view ) {
+	assert( first == 0 && count == 1 && view->width == 640 && view->height == 480 );
+}
+static void VKAPI_CALL particleScissor( VkCommandBuffer, uint32_t first, uint32_t count, const VkRect2D *area ) {
+	assert( first == 0 && count == 1 && area->extent.width == 640 && area->extent.height == 480 );
+}
+static void particleCommands() {
+	qvkCreateGraphicsPipelines = createParticlePipeline;
+	particlePipelines = 0;
+	for ( int i = 0; i < 2; ++i )
+		vk_create_post_process_pipeline( 7 + i, 640, 480 );
+	qvkCmdBindPipeline = bindPostPipeline;
+	qvkCmdBindDescriptorSets = bindPostDescriptors;
+	qvkCmdDraw = drawPost;
+	qvkCmdSetViewport = particleViewport;
+	qvkCmdSetScissor = particleScissor;
+	uint8_t upload[256] = {};
+	vk.cmd->vertex_buffer_ptr = upload;
+	vk.cmd->vertex_buffer_offset = 0;
+	vk.cmd->uniform_read_offset = 32;
+	vk_config.uniformBytes = sizeof( rhiParticle_t );
+	vk.uniform_alignment = 64;
+	vk.uniform_item_size = 192;
+	vk.geometry_buffer_size = sizeof( upload );
+	const auto descriptors = vk.cmd->descriptor_set;
+	const rhiRect_t viewport = { { 0, 0 }, { 640, 480 } };
+	RHI_BeginMainPass();
+	assert( RHI_BeginParticles( &viewport ) );
+	rhiParticle_t draw{};
+	rhiTexture_t image{};
+	image.binding = 123;
+	occlusionDraws = 0;
+	assert( RHI_DrawParticle( &draw, &image, false ) );
+	assert( !RHI_DrawParticle( &draw, &image, true ) ); // Upload exhaustion stays bounded.
+	assert( occlusionDraws == 1 && vk.cmd->uniform_read_offset == 32 );
+	RHI_EndParticles();
+	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
+	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
+	RHI_EndPass();
+}
 int main( int argc, char **argv ) {
 	if ( argc == 2 && !strcmp( argv[1], "--hdr" ) ) {
 		const VkFormat base = VK_FORMAT_R8G8B8A8_UNORM;
@@ -287,6 +339,7 @@ int main( int argc, char **argv ) {
 		puts( "PASS: floating HDR target and unchanged legacy color formats" );
 		return 0;
 	}
+	const bool particles = argc > 1 && !strcmp( argv[1], "--particles" );
 	const bool occlusion = argc > 1 && !strcmp( argv[1], "--ssao" );
 	qvkCreateRenderPass = createPass;
 	qvkCreateFramebuffer = createFramebuffer;
@@ -300,7 +353,7 @@ int main( int argc, char **argv ) {
 	qvkCreateSampler = createSampler;
 	qvkUpdateDescriptorSets = updateDescriptors;
 	qvkCreateGraphicsPipelines = createDepthPipeline;
-	for ( uint32_t mode = occlusion ? 4 : 0; mode < 36; ++mode ) {
+	for ( uint32_t mode = occlusion || particles ? 4 : 0; mode < 36; ++mode ) {
 		qvkCreateGraphicsPipelines = createDepthPipeline;
 		vk = {};
 		vk_config = {};
@@ -308,7 +361,8 @@ int main( int argc, char **argv ) {
 		vk_config.shadowMapSize = argc > 1 ? 1024 : 0;
 		const bool offscreen = mode >= 4;
 		const uint32_t options = offscreen ? mode - 4 : mode;
-		vk_config.occlusionScale = occlusion ? 1 + mode % 2 : 0;
+		vk_config.occlusionScale = occlusion ? 1 + mode % 2 : ( particles ? mode % 2 : 0 );
+		vk_config.softParticles = particles;
 		vk_config.fbo = offscreen;
 		vk_config.bloom = options & 1;
 		vk_config.stencilBits = options & 2 ? 8 : 0;
@@ -339,13 +393,15 @@ int main( int argc, char **argv ) {
 		captureImages();
 		vk_create_render_passes();
 		vk_create_framebuffers();
-		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u)+(occlusion?3u:0u));
+		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u)+(vk_config.occlusionScale?3u:0u)+(particles?2u:0u));
 		assert( shadowPassCount == ( argc > 1 ? 2u : 0u ) && shadowImageCount == shadowPassCount );
 		if ( argc > 1 ) {
 			shadowCommands( false );
 			if ( offscreen )
 				shadowCommands( true );
-			if ( occlusion ) {
+			if ( vk_config.occlusionScale || particles )
+				vk.depth_sample_view = (VkImageView)(uintptr_t)500;
+			if ( vk_config.occlusionScale ) {
 				vk.depth_sample_view = (VkImageView)(uintptr_t)500;
 				for ( uint32_t i = 0; i < 3; ++i ) {
 					const auto &node = vk_graph.passes[(uint32_t)rhiGraphPass_t::Occlusion + i];
@@ -378,8 +434,10 @@ int main( int argc, char **argv ) {
 			vk.modules.reflection_fs = (VkShaderModule)(uintptr_t)16;
 			direct.shader_type = TYPE_REFLECTION;
 			assert( create_pipeline( &direct, RENDER_PASS_MAIN, 0 ) != VK_NULL_HANDLE );
-			if ( occlusion )
+			if ( vk_config.occlusionScale )
 				occlusionCommands();
+			if ( particles )
+				particleCommands();
 		}
 	}
 }

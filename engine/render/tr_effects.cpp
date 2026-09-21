@@ -14,14 +14,14 @@ static struct {
 	effectBinding_t bindings;
 } effectAssets[MAX_EFFECT_ASSETS];
 static effectBinding_t effectBindings[FX_MAX_INSTANCES];
-static uint32_t effectCount, effectReloads, effectDraws, effectTime, effectLightDraws, effectLightDrops;
+static uint32_t effectCount, effectReloads, effectDraws, effectTime, effectLightDraws, effectLightDrops, effectSoftDraws, effectSoftDrops;
 static bool effectClock;
 
 void R_InitEffects( void ) {
 	FX_Reset( &effects );
 	memset( effectAssets, 0, sizeof( effectAssets ) );
 	memset( effectBindings, 0, sizeof( effectBindings ) );
-	effectCount = effectReloads = effectDraws = effectTime = effectLightDraws = effectLightDrops = 0;
+	effectCount = effectReloads = effectDraws = effectTime = effectLightDraws = effectLightDrops = effectSoftDraws = effectSoftDrops = 0;
 	effectClock = false;
 }
 static bool ReadEffect( uint32_t index, const char *path, const cookedEntry_t *published = nullptr ) {
@@ -79,7 +79,10 @@ bool RE_StopEffect( uint32_t handle ) {
 	return FX_Stop( &effects, handle );
 }
 void RE_EffectStats( fxRenderStats_t *stats ) {
-	*stats = { effects.stats, effectCount, effectReloads, effectDraws, effectLightDraws, effectLightDrops };
+	*stats = { effects.stats, effectCount, effectReloads, effectDraws, effectLightDraws, effectLightDrops, effectSoftDraws, effectSoftDrops };
+}
+void R_EffectSoftDraw( bool drawn ) {
+	++( drawn ? effectSoftDraws : effectSoftDrops );
 }
 static bool EffectTrace( const float start[3], const float end[3], fxTrace_t *result, void * ) {
 	if ( !ri.CM_BoxTrace )
@@ -175,7 +178,7 @@ void R_AddEffects( const refdef_t *view ) {
 				vertices[vertex].st[1] = v + ( 1 - corners[vertex][1] ) * .5f / float( emitter.rows );
 				vertices[vertex].modulate = color;
 			}
-			RE_AddPolyToScene( binding.shader[particle.emitter], 4, vertices, 1 );
+			R_AddEffectPoly( binding.shader[particle.emitter], vertices, emitter.flags & FX_SOFT ? std::max( size, .01f ) : 0 );
 		}
 		++effectDraws;
 	}

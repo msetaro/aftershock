@@ -66,6 +66,14 @@ for samples in args.samples:
                 deltas[name]=sum(ImageStat.Stat(center).sum)
                 engine.step(60)
             shutil.copyfile(engine.log_path,output/'engine.log')
+            stats=engine.request('effects')
+            assert stats['softDraws']>0 and stats['softDrops']==0,stats
+            # The pass retains no pool allocation across expiry or a renderer restart.
+            assert stats['particles']==0
+            engine.request('exec',command='vid_restart')
+            engine.step(40)
+            assert engine.request('effects')['registered']==0
+            shutil.copyfile(engine.log_path,output/'engine.log')
             (output/'report.json').write_text(json.dumps(deltas,indent=2)+'\n')
             assert deltas['far']>50000,deltas
             assert 0<deltas['near']<deltas['far']*.2,('depth fade is absent',deltas)
