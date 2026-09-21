@@ -130,7 +130,7 @@ int main( int argc, char **argv ) {
 	for ( uint32_t step = 0; step < 600; ++step ) {
 		allocations = 0;
 		while ( nextCommand < commandCount && commands[nextCommand].step == step ) {
-			const auto &command = commands[nextCommand++];
+			auto &command = commands[nextCommand++];
 			JPH_BodyInterface_AddImpulse( bodies, ids[command.body], &command.impulse );
 		}
 		assert(!JPH_PhysicsSystem_Update2(system, 1.f / 60.f, 1, temporary, jobs));

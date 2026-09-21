@@ -27,8 +27,8 @@ rechecked immediately before the merge. Tested and merged trees both equal
 f21454591ae494c1f7d023b6fd5d063c005a4b29. Known-good remains object 8bc8c94c
 pointing to 81a0f9dc, verified against origin after the merge.
 
-Merged-tree build/publication 35638549208 and regression 35638548512 are queued.
-Watch both; do not mark #161 accepted in #25 until publication and all ten active
+Merged-tree build/publication 35638549208 passed. Regression 35638548512 has eight
+active jobs passing, with runtime and lifetimes running. Watch it; do not mark #161 accepted in #25 until publication and all ten active
 regression jobs pass. The merged tree is identical to the tested head.
 
 Continue #15 on issue/15-jolt-physics in
@@ -37,8 +37,10 @@ Read issue #15 and preserve the existing movement, traces, triggers, movers,
 hit registration and authoritative weapon trajectories. Jolt is for cosmetic
 props/grenade bodies and skeleton-driven death presentation. The first permanent allocation/determinism test is written and fails at missing
 cmake/Physics.cmake before any dependency or engine implementation is imported.
-Next import the pinned original sources/build helper, demonstrate the actual
-step-allocation failure, then apply reviewed reserved-scratch changes. No #15 PR
+Pinned original Jolt/joltc sources and a scoped offline CMake helper are imported.
+The permanent UBSan probe builds and fails on one allocation at step 0. Next apply
+and verify the reviewed reserved-scratch/job-page changes, then implement bounded
+allocator ownership and the engine physics boundary. No #15 PR
 or engine implementation exists yet.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
@@ -65,6 +67,21 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 pinned original dependency and concrete failing gate
+
+Imported 561 Jolt files from 5.6.0/e77f175595e64cb44218cc9d9d56fc365ad0e36a and
+six joltc files from 886e088675bae3a086f8318c7803f8ee962c2f2c. MIT licenses and
+archive/per-file SHA256 provenance are retained. Sources are still original.
+cmake/Physics.cmake scopes conservative static-library options, disables GPU
+compute/newer x86 instructions/exceptions/RTTI and refuses absent local Jolt
+sources. It is not yet linked into engine targets.
+
+The permanent probe builds with GCC/UBSan, then reports `physics step 0: 1
+allocation calls` and fails its zero-allocation assertion. Evidence is
+physics-original-test.log; this is the real baseline failure before vendor
+adaptation. The probe's mutable impulse argument was corrected to match the C
+API. Format passes (479 owned files). No engine behavior or accepted fixture changed.
 
 ## #15 first permanent test
 
