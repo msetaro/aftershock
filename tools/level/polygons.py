@@ -105,6 +105,55 @@ def opening_polygon(poly, opening, thickness):
                                 (at+width/2,thickness*2),(at-width/2,thickness*2))])
 
 
+def stair_sections(start,end,width,z,Z,slab=False):
+    count = math.ceil(abs(Z-z)/16)
+    require(count and math.dist(start,end)/count>=32, 'stair tread below 32 units')
+    result = []
+    for i in range(count):
+        points = [[start[k]+(end[k]-start[k])*f/count for k in (0,1)] for f in (i,i+1)]
+        section = LineString(points).buffer(width/2,cap_style='flat',join_style='mitre')
+        top = z+(Z-z)*(i if z>Z else i+1)/count
+        result.append((section,top-16 if slab else min(z,Z)-16,top))
+    return result
+
+
+def building_stairs(inner,rise,width):
+    corners = list(orient(inner.minimum_rotated_rectangle,sign=1).exterior.coords)
+    a,b = max(zip(corners,corners[1:]),key=lambda pair:(round(math.dist(*pair),6),pair[1][0]-pair[0][0],pair[1][1]-pair[0][1]))
+    length = math.dist(a,b)
+    dx,dy = (b[0]-a[0])/length,(b[1]-a[1])/length
+    center = inner.centroid
+    run = math.ceil(math.ceil(rise/16)/2)*32
+    def point(u,v):
+        return [center.x+dx*(u-width/2)-dy*v,center.y+dy*(u-width/2)+dx*v]
+    well = Polygon([point(u,v) for u,v in ((-run/2,-width),(run/2+width,-width),(run/2+width,width),(-run/2,width))])
+    require(inner.buffer(-1).covers(well), 'building too small for interior stairs; enlarge footprint or lower storey height')
+    first = (point(-run/2,-width/2),point(run/2,-width/2))
+    second = (point(run/2,width/2),point(-run/2,width/2))
+    landing = Polygon([point(u,v) for u,v in ((run/2,-width),(run/2+width,-width),(run/2+width,width),(run/2,width))])
+    return well,first,second,landing
+
+
+def ruled_openings(item,p,floors):
+    result = list(item.get('openings',[]))
+    points = list(p.exterior.coords)
+    for rule in item.get('opening_rules',[]):
+        target = rule['face_point']
+        for edge,(a,b) in enumerate(zip(points,points[1:])):
+            dx,dy = b[0]-a[0],b[1]-a[1]
+            if (target[0]-(a[0]+b[0])/2)*dy-(target[1]-(a[1]+b[1])/2)*dx<=0:
+                continue
+            length = math.dist(a,b)
+            count = max(1,math.floor(length/rule['spacing']))
+            for floor in rule.get('floors',list(range(floors))):
+                require(0<=floor<floors, 'opening rule names an unavailable floor')
+                for i in range(count):
+                    result.append(dict(edge=edge,at=length*(i+.5)/count,width=rule['width'],
+                                       sill=rule['sill']+floor*item['height']/floors,height=rule['height']))
+    require(len(result)<=256, 'building opening budget exceeded')
+    return result
+
+
 def pieces(level):
     boundary = level['boundary']
     area = polygon(boundary['polygon'],boundary.get('holes',[]))
@@ -146,13 +195,8 @@ def pieces(level):
             if item['transition']=='ramp':
                 add(identity,p,z-16,Z,material,(start,end,width,a,b))
             else:
-                count = math.ceil(item['height']/16)
-                require(length/count>=32, 'stair tread below 32 units')
-                for i in range(count):
-                    points = [[start[k]+(end[k]-start[k])*f/count for k in (0,1)] for f in (i,i+1)]
-                    section = LineString(points).buffer(width/2,cap_style='flat',join_style='mitre')
-                    top = a+(b-a)*(i if a>b else i+1)/count
-                    add(identity,section,z-16,top,material)
+                for section,low,high in stair_sections(start,end,width,a,b):
+                    add(identity,section,low,high,material)
             continue
         if item['kind']!='building':
             add(identity,p,z,Z,material)
@@ -167,9 +211,12 @@ def pieces(level):
                 'building floors need at least 96 units per floor')
         openings = []
         cuts = {z,Z}
-        for opening in item.get('openings',[]):
+        for opening in ruled_openings(item,p,floors):
             bottom,top = z+opening['sill'],z+opening['sill']+opening['height']
             require(z<=bottom<top<=Z-16, 'opening height outside wall')
+            if abs(opening['sill'] % (item['height']/floors))<1e-5:
+                require(opening['width']>=max(64,level['rules']['min_corridor_width']) and
+                        opening['height']>=max(80,level['rules']['min_door_height']), 'door below player/design clearance')
             cutter = opening_polygon(p,opening,thickness)
             cuts.update((bottom,top))
             openings.append((bottom,top,cutter))
@@ -179,9 +226,23 @@ def pieces(level):
                 if bottom<=low and high<=top:
                     section = section.difference(cutter)
             add(identity,section,low,high,material)
+        stair_count = floors if item.get('roof_access',False) else floors-1
+        well = Polygon()
+        if stair_count:
+            rise = item['height']/floors
+            width = max(64,level['rules']['min_corridor_width'])
+            well,first,second,landing = building_stairs(inner,rise,width)
+            for i in range(stair_count):
+                low,high = z+i*rise,z+(i+1)*rise
+                middle = low+rise/2
+                for start,end,a,b in ((*first,low,middle),(*second,middle,high)):
+                    for section,bottom,top in stair_sections(start,end,width,a,b,slab=True):
+                        add(identity,section,bottom,top,'trim')
+                add(identity,landing,middle-16,middle,'trim')
         for i in range(1,floors+1):
             top = z+item['height']*i/floors
-            add(identity,inner,top-16,top,'trim')
+            slab = inner.difference(well) if i<=stair_count else inner
+            add(identity,slab,top-16,top,'trim')
     require(len(result)<=4096, 'level piece budget exceeded')
     return area,result
 

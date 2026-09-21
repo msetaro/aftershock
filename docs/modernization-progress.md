@@ -48,6 +48,16 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 connected-storey compile passes
+
+The ground/second-floor/roof spawn reachability contract now passes, including
+repeated street-facing window rules and compiled BSP/AAS output. Interior stairs
+reuse the transition generator with 16-unit slabs: an initial solid support
+blocked stacked-flight headroom and was caught by the new clearance test, then
+fixed before acceptance. Floor/roof slabs subtract the same stairwell. All v1
+fixtures remain unchanged. Log: sketch-storeys.log in the user cache. Next add
+sunken zones and stable per-shape source output, then trace/interpretation.
+
 ## #164 connected-storey contract
 
 Draft PR167 now holds #164. A new contract requires navigation from ground to the

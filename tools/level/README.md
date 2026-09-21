@@ -231,8 +231,13 @@ height rises along the path unless `descending: true`. Existing minimum width,
 interior with `wall_thickness` (default 16), and accepts explicit `openings` with
 zero-based edge index, distance `at` along that edge, width, sill and height.
 Exterior polygon edges run counter-clockwise; rectangle edge zero is its lower
-edge before rotation. Floors/roof have 16-unit slabs. Multi-floor access, automatic
-opening rules and theme props are not yet complete; this is not final #164 acceptance.
+edge before rotation. Floors/roof have 16-unit slabs. Multi-floor buildings generate interior switchback stairs and subtract matching
+stairwells from their floor slabs. `roof_access: true` extends the stairs through
+the roof. The compiler rejects footprints that cannot fit walking clearances.
+`opening_rules` accepts face_point, spacing, width, sill, height and optional
+zero-based floors: edges facing that street/plaza point receive repeated openings.
+Theme props and the complete sketch pipeline remain unfinished; this is not final
+#164 acceptance.
 
 `python3 tests/level_polygons.py --compile` checks physical brush occupancy,
 player-clearance reachability, repeated MAP/BSP/AAS bytes and unchanged v1 fixtures.

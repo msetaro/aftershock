@@ -119,4 +119,4 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
     old = compile(legacy,'legacy',full=args.compile)
     for kind,data in old.items():
         assert data==(ROOT/'tests/golden/levels'/('two_lane.'+kind)).read_bytes(),('v1 changed',kind)
-print('PASS: polygon holes, rotated/curved/concave solids, shell door collision, repeated output and unchanged v1')
+print('PASS: polygon holes, rotated/curved/concave solids, shell openings, connected storeys/roof, elevations, repeated output and unchanged v1')
