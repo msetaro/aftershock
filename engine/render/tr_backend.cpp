@@ -138,6 +138,11 @@ static void RB_GetViewport( rhiViewport_t *viewport, rhiDepthRange_t depth_range
 
 static void RB_GetScissorRect( rhiRect_t *r ) {
 
+	if ( backEnd.viewParms.shadowView ) {
+		RB_GetViewportRect( r );
+		return;
+	}
+
 	if ( backEnd.viewParms.portalView != PV_NONE ) {
 		r->offset.x = backEnd.viewParms.scissorX;
 		r->offset.y = glConfig.vidHeight - backEnd.viewParms.scissorY - backEnd.viewParms.scissorHeight;

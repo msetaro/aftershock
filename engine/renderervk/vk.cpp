@@ -2685,6 +2685,8 @@ const char *RHI_GetShaderPackageHash( void ) {
 
 static void vk_create_shader_modules( void ) {
 	int i, j, k, l;
+	vk.modules.direct_vs = SHADER_MODULE( direct_vert_spv );
+	vk.modules.direct_fs = SHADER_MODULE( direct_frag_spv );
 	vk.modules.pbr_vs = SHADER_MODULE( pbr_vert_spv );
 	vk.modules.pbr_fs = SHADER_MODULE( pbr_frag_spv );
 	vk.modules.pbr_baked_vs = SHADER_MODULE( pbr_baked_vert_spv );
@@ -4357,6 +4359,8 @@ void vk_impl_Shutdown( void ) {
 
 	qvkDestroyShaderModule( vk.device, vk.modules.color_fs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.color_vs, NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.direct_vs, NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.direct_fs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.pbr_vs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.pbr_fs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.pbr_baked_vs, NULL );
@@ -5426,6 +5430,11 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 
 	switch ( def->shader_type ) {
 
+	case TYPE_DIRECT:
+		vs_module = &vk.modules.direct_vs;
+		fs_module = &vk.modules.direct_fs;
+		break;
+
 	case TYPE_SHADOW:
 		vs_module = &vk.modules.shadow_vs;
 		fs_module = &vk.modules.shadow_fs;
@@ -5907,6 +5916,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 		push_attr( 5, 5, VK_FORMAT_R32G32B32A32_SFLOAT );
 		break;
 
+	case TYPE_DIRECT:
 	case TYPE_PBR_BAKED:
 	case TYPE_PBR:
 		if ( def->shader_type == TYPE_PBR_BAKED ) {
@@ -6182,7 +6192,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 	}
 
 	rasterization_state.frontFace = VK_FRONT_FACE_CLOCKWISE; // Q3 defaults to clockwise vertex order
-	if ( ( def->shader_type == TYPE_PBR || def->shader_type == TYPE_PBR_BAKED ) && def->mirror ) {
+	if ( ( def->shader_type == TYPE_PBR || def->shader_type == TYPE_PBR_BAKED || def->shader_type == TYPE_DIRECT ) && def->mirror ) {
 		// Keep gl_FrontFacing meaningful for the PBR double-sided normal rule.
 		rasterization_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		if ( def->face_culling == CT_FRONT_SIDED )

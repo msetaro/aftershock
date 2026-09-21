@@ -982,8 +982,28 @@ exhausted. The new POD service uses world coordinates and linear RGB/intensity,
 without changing legacy dynamic-light calls or any network state. Renderer module
 API versions are 15 shipping / 19 development for the new function pointer.
 
-Dynamic shadow maps, sun cascades, reflection baking and SSAO still require their
-separate #14 implementation/acceptance before the issue can close.
+`python3 tests/lighting_runtime.py --shadows --binary CLIENT` adds point, spot and
+sun comparisons on the owned level: light must affect the image, depth comparison
+must attenuate it, and disabling comparison must restore it exactly. The same
+`--content`/`--data` arguments apply. `tests/shadow_views.py` also verifies every
+atlas tile's raster/scissor against an atlas larger than the window.
+
+`r_shadowQuality` is latched: 0 (default) preserves classic rendering; 1/2/3 allocate
+1024/2048/4096 square local and sun atlases. Local tiles use a 4x4 grid, sun a 2x2
+grid. `r_shadowSun` (0..4, default 0) controls added sun intensity;
+`r_shadowDistance` (default 2048), `r_shadowSplitWeight` (default .75),
+`r_shadowBias` (default .001) and `r_shadowOcclusion` (default 1) control reach,
+splits and depth comparison. Five descriptor sets are required. Casters reuse
+world and native animated geometry, including alpha masks. Receiver passes use
+normal/roughness/metallic channels for PBR and diffuse normals for legacy surfaces,
+then existing fog. No per-frame heap allocation is added. The bounded forward
+passes support the 16 local tile limit; #161 owns HDR composition and tone mapping.
+Development builds provide `dev_light point x y z radius r g b intensity`,
+`dev_light spot x y z radius r g b intensity dx dy dz inner outer` and
+`dev_light off` on local cheat-enabled servers. Cone angles are half angles in degrees.
+
+Mask/animated-caster/lifecycle coverage, reflection baking, SSAO and reference-GPU
+budget acceptance remain before #14 can close.
 
 ## Declarative level authoring (#26)
 

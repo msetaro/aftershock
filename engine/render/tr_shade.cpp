@@ -413,7 +413,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	shader_t *state;
 
 #ifdef USE_VBO
-	if ( shader->isStaticShader && !shader->remappedShader && !backEnd.viewParms.shadowView ) {
+	if ( shader->isStaticShader && !shader->remappedShader && !backEnd.viewParms.shadowView && !backEnd.refdef.numSceneLights && !backEnd.refdef.sun.enabled ) {
 		tess.allowVBO = qtrue;
 	} else {
 		tess.allowVBO = qfalse;
@@ -434,9 +434,9 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 
 #ifdef USE_TESS_NEEDS_NORMAL
 #ifdef USE_PMLIGHT
-	tess.needsNormal = state->needsNormal || tess.dlightPass || r_shownormals->integer;
+	tess.needsNormal = backEnd.refdef.numSceneLights || backEnd.refdef.sun.enabled || state->needsNormal || tess.dlightPass || r_shownormals->integer;
 #else
-	tess.needsNormal = state->needsNormal || r_shownormals->integer;
+	tess.needsNormal = backEnd.refdef.numSceneLights || backEnd.refdef.sun.enabled || state->needsNormal || r_shownormals->integer;
 #endif
 #endif
 
@@ -447,7 +447,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
 	tess.shader = state;
-	if ( state->metallicRoughness )
+	if ( state->metallicRoughness || backEnd.refdef.numSceneLights || backEnd.refdef.sun.enabled )
 		Com_Memset( tess.tangent, 0, sizeof( tess.tangent ) );
 	tess.fogNum = fogNum;
 
@@ -1346,6 +1346,95 @@ void VK_LightingPass( void ) {
 #endif // USE_PMLIGHT
 
 
+// Matches direct.glsl; all data lives in the existing frame uniform arena.
+struct directUniform_t {
+	float model[16], shadowMatrix[6][16];
+	vec4_t eye, lightPosition, lightDirection, lightColor;
+	vec4_t lightShape, shadowSettings, splits, viewForward;
+	vec4_t color, surface, metal;
+};
+static_assert( sizeof( directUniform_t ) == 624 );
+static_assert( offsetof( directUniform_t, eye ) == 448 );
+
+static void RB_DirectLights( void ) {
+	if ( ( !backEnd.refdef.numSceneLights && !backEnd.refdef.sun.enabled ) || tess.shader->isSky ||
+		 tess.shader->sort > (float)SS_SEE_THROUGH || ( !tess.shader->metallicRoughness && ( tess.shader->surfaceFlags & SURF_NODLIGHT ) ) )
+		return;
+	directUniform_t params = {};
+	for ( int axis = 0; axis < 3; ++axis )
+		VectorCopy( backEnd.orientation.axis[axis], &params.model[axis * 4] );
+	VectorCopy( backEnd.orientation.origin, &params.model[12] );
+	params.model[15] = 1;
+	VectorCopy( backEnd.viewParms.orientation.origin, params.eye );
+	VectorCopy( backEnd.viewParms.orientation.axis[0], params.viewForward );
+	Vector4Set( params.color, 1, 1, 1, 1 );
+	params.shadowSettings[0] = (float)r_shadowOcclusion->integer;
+	params.shadowSettings[1] = r_shadowBias->value;
+	tess.svars.texcoordPtr[0] = tess.texCoords[0];
+	if ( tess.shader->metallicRoughness ) {
+		materialParams_t material;
+		if ( !R_ResolveMaterialParams( &tess.shader->materialParams, &backEnd.currentEntity->materialOverride, &material ) || ( material.flags & ( 2 | 4 ) ) )
+			return;
+		Vector4Copy( material.color, params.color );
+		VectorSet( params.surface, material.roughness, material.normalScale, material.alphaCutoff );
+		params.metal[0] = material.metallic;
+		params.metal[1] = 1;
+		for ( int i = 0; i < 3; ++i )
+			RHI_BindTexture( RHI_BINDING_TEXTURE0 + i, &tess.xstages[0]->bundle[i].image[0]->texture );
+	} else {
+		const textureBundle_t *diffuse = nullptr;
+		for ( int stage = 0; stage < MAX_SHADER_STAGES && tess.xstages[stage] && !diffuse; ++stage )
+			for ( uint32_t bundle = 0; bundle < tess.xstages[stage]->numTexBundles; ++bundle )
+				if ( tess.xstages[stage]->bundle[bundle].image[0] && tess.xstages[stage]->bundle[bundle].lightmap == LIGHTMAP_INDEX_NONE ) {
+					diffuse = &tess.xstages[stage]->bundle[bundle];
+					break;
+				}
+		if ( !diffuse )
+			return;
+		GL_SelectTexture( 0 );
+		R_BindAnimatedImage( diffuse );
+		R_ComputeTexCoords( 0, diffuse );
+		RHI_BindTexture( RHI_BINDING_TEXTURE0 + 1, &tr.whiteImage->texture );
+		RHI_BindTexture( RHI_BINDING_TEXTURE0 + 2, &tr.whiteImage->texture );
+	}
+	RB_BindPipeline( r_pipelines.directLight[tess.shader->cullType][backEnd.viewParms.portalView == PV_MIRROR][tess.shader->polygonOffset != 0] );
+	RB_BindIndex();
+	RB_BindGeometry( TESS_XYZ | TESS_ST0 | TESS_NNN );
+	rhiVertexStream_t streams[RHI_MAX_VERTEX_STREAMS] = {};
+	streams[6].data = tess.tangent;
+	streams[6].size = tess.numVertexes * sizeof( tess.tangent[0] );
+	RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, 1U << 6, streams );
+	// ponytail: bounded forward draws (16 local tiles + sun); clustered culling
+	// is only needed if the measured reference scene exceeds its GPU budget.
+	for ( int index = 0; index < backEnd.refdef.numSceneLights + ( backEnd.refdef.sun.enabled ? 1 : 0 ); ++index ) {
+		const bool sun = index == backEnd.refdef.numSceneLights;
+		if ( !RHI_BindShadowAtlas( sun ? 1u : 0u, RHI_BINDING_BAKED_LIGHT ) )
+			continue;
+		if ( sun ) {
+			memcpy( params.shadowMatrix, backEnd.refdef.sun.matrices, sizeof( backEnd.refdef.sun.matrices ) );
+			Vector4Copy( backEnd.refdef.sun.splits, params.splits );
+			VectorCopy( tr.sunDirection, params.lightDirection );
+			Vector4Set( params.lightPosition, 0, 0, 0, 1 );
+			Vector4Set( params.lightColor, 1, 1, 1, r_shadowSun->value );
+			Vector4Set( params.lightShape, 2, 0, 0, 0 );
+		} else {
+			const auto &light = backEnd.refdef.sceneLights[index];
+			memcpy( params.shadowMatrix, light.matrices, sizeof( params.shadowMatrix ) );
+			VectorCopy( light.light.origin, params.lightPosition );
+			params.lightPosition[3] = light.light.radius;
+			VectorCopy( light.light.direction, params.lightDirection );
+			params.lightDirection[3] = cosf( DEG2RAD( light.light.outerCone ) );
+			VectorCopy( light.light.color, params.lightColor );
+			params.lightColor[3] = light.light.intensity;
+			params.lightShape[0] = light.light.type == sceneLightType_t::Point ? 0.0f : 1.0f;
+			params.lightShape[1] = cosf( DEG2RAD( light.light.innerCone ) );
+			params.lightShape[2] = (float)light.firstTile;
+		}
+		if ( RHI_UploadUniform( &params, sizeof( params ) ) != RHI_INVALID_OFFSET )
+			RB_DrawGeometry( tess.depthRange, qtrue );
+	}
+}
+
 static void RB_StageIteratorShadow( void ) {
 	if ( tess.shader->isSky || tess.shader->sort > (float)SS_SEE_THROUGH )
 		return;
@@ -1442,6 +1531,7 @@ void RB_StageIteratorPbr( void ) {
 	streams[6].size = tess.numVertexes * sizeof( tess.tangent[0] );
 	RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, 1U << 6, streams );
 	RB_DrawGeometry( tess.depthRange, qtrue );
+	RB_DirectLights();
 	if ( tess.fogNum && tess.shader->fogPass )
 		RB_FogPass( qfalse );
 }
@@ -1468,7 +1558,7 @@ void RB_StageIteratorGeneric( void ) {
 #endif
 
 #ifdef USE_FOG_COLLAPSE
-	fogCollapse = (qboolean)( tess.fogNum && tess.shader->fogPass && tess.shader->fogCollapse );
+	fogCollapse = (qboolean)( tess.fogNum && tess.shader->fogPass && tess.shader->fogCollapse && !backEnd.refdef.numSceneLights && !backEnd.refdef.sun.enabled );
 #endif
 
 	// call shader function
@@ -1489,6 +1579,8 @@ void RB_StageIteratorGeneric( void ) {
 			}
 		}
 #endif // USE_LEGACY_DLIGHTS
+
+	RB_DirectLights();
 
 	// now do fog
 	if ( tess.fogNum && tess.shader->fogPass && !fogCollapse ) {

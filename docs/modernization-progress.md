@@ -21,13 +21,11 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Active implementation: issue/14-lighting in
-/home/matt/.cache/aftershock-modernization/level-tree. Caster submission is
-committed through 0ca975c0. Receiver integration is in the working tree and its
-point/spot/sun image round trips pass, but review found the new atlas path still
-clamped scissors to window size. The added all-tile raster test fails before the
-correction (lighting-shadow-scissor-before.log). Fix that integration error, rerun
-rendered checks and finish mask/animated-caster/lifecycle coverage. Reflection
-probes, SSAO and reference-GPU timing remain. #161 follows #14 in updated #25.
+/home/matt/.cache/aftershock-modernization/level-tree. Native receiver shading and
+the shadow-only atlas scissor correction now pass rendered point/spot/sun checks.
+Next merge accepted main forward, then complete mask/animated-caster/lifecycle
+coverage, reflection probes, SSAO and reference-GPU timing. #161 follows #14 in
+updated #25. Do not claim full #14 acceptance or regenerate accepted references.
 
 #160 repair PR #162 merged into main as
 782c0dbc51e4acf119ccce49a69301408dac1ae7 after exact f04e87c3 passed build
@@ -50,6 +48,24 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #14 receiver implementation checkpoint
+
+Test-first a613524c caught window-sized clipping of larger atlas tiles. The
+shadow-only raster branch now uses the complete atlas viewport; all tile checks
+pass GCC and Clang/libc++ under UBSan. Native graph/pipeline observations, RHI,
+format/type/boundary checks and the CMake client build pass. Fresh pinned shader
+compilation matches all 82 cached programs and every previous 80-array byte is
+unchanged. The shaders use prewarmed additive/depth-equal pipelines; new receiver
+draws run before fog and bounded native light storage is reused without heap work.
+
+Corrected actual OA image evidence (lighting-direct-full-atlas.log): point
+407783 lit / 42922 shadowed channel bytes; spot 88245 / 3133; sun 425643 /
+188040. All three restore the unshadowed image exactly. Captures were reviewed:
+point cover projects a visible floor shadow; sun also attenuates wall/floor areas.
+The earlier low occlusion counts below were incomplete-atlas evidence and are
+superseded. These are feature checks, not reference-GPU performance acceptance.
+Mask/animated geometry/lifecycle and remaining #14 lighting features still remain.
 
 ## #14 receiver / atlas scissor test-first checkpoint
 

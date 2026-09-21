@@ -177,7 +177,21 @@ static void shadowDescriptors() {
 	assert( depthWrites == 4 );
 }
 static VkResult VKAPI_CALL createDepthPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
-	assert( count == 1 && p->renderPass == vk.render_pass.shadow[0] );
+	assert( count == 1 );
+	if ( p->pStages[0].module == vk.modules.direct_vs ) {
+		assert( p->renderPass == vk.render_pass.main );
+		assert( p->stageCount == 2 && p->pStages[1].module == vk.modules.direct_fs );
+		assert( p->pColorBlendState->attachmentCount == 1 );
+		const auto &blend = p->pColorBlendState->pAttachments[0];
+		assert( blend.blendEnable && blend.srcColorBlendFactor == VK_BLEND_FACTOR_ONE && blend.dstColorBlendFactor == VK_BLEND_FACTOR_ONE );
+		assert( p->pDepthStencilState->depthTestEnable && !p->pDepthStencilState->depthWriteEnable );
+		assert( p->pDepthStencilState->depthCompareOp == VK_COMPARE_OP_EQUAL );
+		assert( p->pVertexInputState->vertexAttributeDescriptionCount == 4 );
+		assert( p->pRasterizationState->frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE );
+		*out = (VkPipeline)(uintptr_t)2;
+		return VK_SUCCESS;
+	}
+	assert( p->renderPass == vk.render_pass.shadow[0] );
 	assert( p->stageCount == 2 && p->pStages[0].module == vk.modules.shadow_vs && p->pStages[1].module == vk.modules.shadow_fs );
 	assert( p->pColorBlendState->attachmentCount == 0 );
 	assert( p->pMultisampleState->rasterizationSamples == VK_SAMPLE_COUNT_1_BIT && !p->pMultisampleState->alphaToCoverageEnable );
@@ -255,6 +269,13 @@ int main( int argc, char ** ) {
 			assert( vk.pipelines[pipeline].handle[RENDER_PASS_SHADOW] && !vk.pipelines[pipeline].handle[RENDER_PASS_MAIN] );
 			const int created = vk.pipeline_create_count;
 			assert( vk_gen_pipeline( pipeline ) && vk.pipeline_create_count == created );
+			vk.modules.direct_vs = (VkShaderModule)(uintptr_t)13;
+			vk.modules.direct_fs = (VkShaderModule)(uintptr_t)14;
+			auto direct = depth;
+			direct.shader_type = TYPE_DIRECT;
+			direct.state_bits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL;
+			direct.mirror = qtrue;
+			assert( create_pipeline( &direct, RENDER_PASS_MAIN, 0 ) != VK_NULL_HANDLE );
 		}
 	}
 }

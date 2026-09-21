@@ -98,6 +98,7 @@ struct rendererPipelines_t {
 	//
 	uint32_t skybox_pipeline;
 	uint32_t shadowCaster[3];
+	uint32_t directLight[3][2][2];
 
 	// dim 0: 0 - front side, 1 - back size
 	// dim 1: 0 - normal view, 1 - mirror view

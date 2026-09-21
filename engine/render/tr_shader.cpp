@@ -57,6 +57,16 @@ void R_InitBuiltinPipelines( void ) {
 		for ( uint32_t cull = 0; cull < 3; ++cull ) {
 			def.face_culling = (cullType_t)cull;
 			r_pipelines.shadowCaster[cull] = R_FindPipeline( 0, &def, true );
+			for ( uint32_t mirror = 0; mirror < 2; ++mirror ) {
+				for ( uint32_t offset = 0; offset < 2; ++offset ) {
+					auto direct = def;
+					direct.shader_type = TYPE_DIRECT;
+					direct.state_bits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL;
+					direct.mirror = (qboolean)mirror;
+					direct.polygon_offset = (qboolean)offset;
+					r_pipelines.directLight[cull][mirror][offset] = R_FindPipeline( 0, &direct, true );
+				}
+			}
 		}
 	}
 
