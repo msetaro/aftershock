@@ -21,6 +21,8 @@ static struct {
 	JPH_BodyID ids[PHYS_MAX_BODIES];
 	bool dynamic[PHYS_MAX_BODIES], active[PHYS_MAX_BODIES];
 	uint32_t count;
+	JPH_Constraint *joints[PHYS_MAX_BODIES];
+	uint32_t jointA[PHYS_MAX_BODIES], jointB[PHYS_MAX_BODIES], jointCount;
 	bool started;
 } physics;
 
@@ -150,6 +152,45 @@ uint32_t Phys_Prepare( const physBodyDesc_t *desc ) {
 	physics.active[slot] = true;
 	return slot;
 }
+bool Phys_PrepareJoint( const physJointDesc_t *desc ) {
+	if ( !physics.memory || physics.started || physics.jointCount == PHYS_MAX_BODIES || !desc ||
+		 desc->a >= physics.count || desc->b >= physics.count || desc->a == desc->b ||
+		 !physics.dynamic[desc->a] || !physics.dynamic[desc->b] ||
+		 !Finite( desc->anchorA, 3 ) || !Finite( desc->anchorB, 3 ) ||
+		 !std::isfinite( desc->swing ) || desc->swing < 0 || desc->swing > 3.1415926f ||
+		 !std::isfinite( desc->twist ) || desc->twist < 0 || desc->twist > 3.1415926f )
+		return false;
+	const auto *locks = JPH_PhysicsSystem_GetBodyLockInterfaceNoLock( physics.system );
+	JPH_BodyLockWrite a{}, b{};
+	JPH_BodyLockInterface_LockWrite( locks, physics.ids[desc->a], &a );
+	JPH_BodyLockInterface_LockWrite( locks, physics.ids[desc->b], &b );
+	JPH_SwingTwistConstraintSettings settings;
+	JPH_SwingTwistConstraintSettings_Init( &settings );
+	settings.space = JPH_ConstraintSpace_LocalToBodyCOM;
+	settings.position1 = { desc->anchorA[0], desc->anchorA[1], desc->anchorA[2] };
+	settings.position2 = { desc->anchorB[0], desc->anchorB[1], desc->anchorB[2] };
+	settings.twistAxis1 = settings.twistAxis2 = { 0, 0, 1 };
+	settings.planeAxis1 = settings.planeAxis2 = { 1, 0, 0 };
+	settings.normalHalfConeAngle = settings.planeHalfConeAngle = desc->swing;
+	settings.twistMinAngle = -desc->twist;
+	settings.twistMaxAngle = desc->twist;
+	auto *joint = (JPH_Constraint *)JPH_SwingTwistConstraint_Create( &settings, a.body, b.body );
+	JPH_BodyLockInterface_UnlockWrite( locks, &b );
+	JPH_BodyLockInterface_UnlockWrite( locks, &a );
+	if ( !joint )
+		return false;
+	const uint32_t index = physics.jointCount++;
+	physics.joints[index] = joint;
+	physics.jointA[index] = desc->a;
+	physics.jointB[index] = desc->b;
+	JPH_PhysicsSystem_AddConstraint( physics.system, joint );
+	return true;
+}
+static void EnableJoints( uint32_t slot ) {
+	for ( uint32_t i = 0; i < physics.jointCount; ++i )
+		if ( physics.jointA[i] == slot || physics.jointB[i] == slot )
+			JPH_Constraint_SetEnabled( physics.joints[i], physics.active[physics.jointA[i]] && physics.active[physics.jointB[i]] );
+}
 bool Phys_Start() {
 	if ( !physics.memory || physics.started || !physics.count )
 		return false;
@@ -171,6 +212,7 @@ bool Phys_Spawn( uint32_t slot, const physTransform_t *pose, const float velocit
 	JPH_BodyInterface_SetObjectLayer( physics.bodies, physics.ids[slot], 1 );
 	JPH_BodyInterface_ActivateBody( physics.bodies, physics.ids[slot] );
 	physics.active[slot] = true;
+	EnableJoints( slot );
 	return true;
 }
 bool Phys_Despawn( uint32_t slot ) {
@@ -181,6 +223,7 @@ bool Phys_Despawn( uint32_t slot ) {
 	JPH_BodyInterface_SetObjectLayer( physics.bodies, physics.ids[slot], 2 );
 	JPH_BodyInterface_DeactivateBody( physics.bodies, physics.ids[slot] );
 	physics.active[slot] = false;
+	EnableJoints( slot );
 	return true;
 }
 bool Phys_Step() {
@@ -236,6 +279,10 @@ physStats_t Phys_Stats() {
 void Phys_Shutdown() {
 	if ( !physics.memory )
 		return;
+	for ( uint32_t i = 0; i < physics.jointCount; ++i ) {
+		JPH_PhysicsSystem_RemoveConstraint( physics.system, physics.joints[i] );
+		JPH_Constraint_Destroy( physics.joints[i] );
+	}
 	for ( uint32_t i = 0; i < physics.count; ++i ) {
 		JPH_BodyInterface_RemoveBody( physics.bodies, physics.ids[i] );
 		JPH_BodyInterface_DestroyBody( physics.bodies, physics.ids[i] );

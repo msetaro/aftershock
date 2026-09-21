@@ -78,7 +78,17 @@ After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependenc
 The full-capacity boundary scene now requires a swing/twist joint between two
 prepared body slots, including invalid-slot rejection. Its existing four-cycle
 and shutdown checks cover activation, reuse and lifetime. Initial compilation
-fails at the absent joint API (physics-joint-before.log); implementation follows.
+failed at the absent joint API (physics-joint-before.log). The implementation
+passes full-capacity recycle with opposing velocities; omitting the joint fails
+the separation assertion (physics-joint-negative.log). A weak initial negative
+control did not fail, so the fixture now pulls the pair apart with opposite
+10 m/s velocities. The driver retains and requires this negative control.
+
+Independent C++ allocation counting then exposed two setup allocations outside
+the supplied arena, in JPH_ObjectLayerFilter_Create and JPH_BodyFilter_Create.
+Debugger stacks and physics-joint-final.log identify the managed filter wrappers.
+The test currently fails on that ownership violation; adapt their allocation
+operators before claiming the owned boundary passes.
 
 ## #15 shape sweep test first
 

@@ -17,6 +17,11 @@ struct physBodyDesc_t {
 	float radius;
 	bool dynamic;
 };
+struct physJointDesc_t {
+	uint32_t a, b;
+	float anchorA[3], anchorB[3]; // local body space
+	float swing, twist; // radians, symmetric limits; local Z twist axis
+};
 struct physStats_t {
 	size_t used;
 	uint32_t allocations;
@@ -25,6 +30,7 @@ struct physStats_t {
 // Storage outlives Shutdown. Fatal must terminate, never Com_Error/longjmp.
 bool Phys_Init( void *storage, size_t bytes, void ( *fatal )() );
 uint32_t Phys_Prepare( const physBodyDesc_t *description );
+bool Phys_PrepareJoint( const physJointDesc_t *description );
 bool Phys_Start();
 bool Phys_Spawn( uint32_t slot, const physTransform_t *pose, const float velocity[3] );
 bool Phys_Despawn( uint32_t slot );

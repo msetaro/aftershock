@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <type_traits>
+#include "physics_allocations.h"
 
 static_assert( std::is_trivially_destructible_v<physBodyDesc_t> );
 static_assert( std::is_trivially_destructible_v<physTransform_t> );
@@ -11,7 +12,8 @@ alignas( 64 ) static unsigned char arena[128 * 1024 * 1024];
 static void Fatal() {
 	std::abort();
 }
-int main() {
+int main( int argc, char ** ) {
+	assert(argc == 1 || argc == 2);
 	for ( int restart = 0; restart < 2; ++restart ) {
 		assert(!Phys_Init(nullptr, sizeof(arena), Fatal));
 		assert(Phys_Init(arena, sizeof(arena), Fatal));
@@ -40,10 +42,12 @@ int main() {
 		joint.anchorB[0] = -.5f;
 		joint.swing = .5f;
 		joint.twist = .25f;
-		assert(Phys_PrepareJoint(&joint));
+		if ( argc == 1 )
+			assert(Phys_PrepareJoint(&joint));
 		joint.b = PHYS_INVALID_BODY;
 		assert(!Phys_PrepareJoint(&joint));
 		assert(Phys_Start());
+		assert(cppAllocations == 0);
 		const float unusedOrigin[3] = { -20, 0, 3 }, across[3] = { 40, 0, 0 };
 		float unusedFraction = 1;
 		assert(!Phys_Ray(unusedOrigin, across, &unusedFraction));
@@ -55,11 +59,21 @@ int main() {
 				pose.position[0] = float( i % 16 ) - 8;
 				pose.position[1] = float( i / 16 ) - 4;
 				pose.position[2] = 3 + float( cycle );
-				const float velocity[3] = { 0, 0, 1 };
+				const float velocity[3] = { i == 1 ? -10.f : i == 2 ? 10.f
+																	: 0.f,
+					0, 1 };
 				assert(Phys_Spawn(i, &pose, velocity));
 			}
 			for ( unsigned step = 0; step < 180; ++step )
 				assert(Phys_Step());
+			physTransform_t a, b;
+			assert(Phys_Transform(1, &a) && Phys_Transform(2, &b));
+			float separation = 0;
+			for ( unsigned axis = 0; axis < 3; ++axis ) {
+				float d = a.position[axis] - b.position[axis];
+				separation += d * d;
+			}
+			assert(separation < 1.05f);
 			const float origin[3] = { 30, 30, 5 }, direction[3] = { 0, 0, -10 };
 			float fraction = 1;
 			assert(Phys_Ray(origin, direction, &fraction));
@@ -81,6 +95,7 @@ int main() {
 			const auto current = Phys_Stats();
 			assert(current.allocations == baseline.allocations);
 			assert(current.used == baseline.used);
+			assert(cppAllocations == 0);
 		}
 		assert(!Phys_Spawn(PHYS_INVALID_BODY, nullptr, nullptr));
 		Phys_Shutdown();

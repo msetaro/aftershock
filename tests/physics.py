@@ -44,6 +44,10 @@ run(['cmake', '-S', project, '-B', build, '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=Rel
      '-DCMAKE_CXX_COMPILER='+compiler[0], '-DCMAKE_CXX_FLAGS='+flags])
 run(['cmake', '--build', build, '-j', '4'])
 run([build/'physics_boundary'])
+missing_joint = subprocess.run([str(build/'physics_boundary'), 'without-joint'],
+                               cwd=ROOT, env=ENV, capture_output=True, text=True, timeout=30)
+(args.output/'missing-joint.log').write_text(missing_joint.stderr)
+assert missing_joint.returncode and 'separation < 1.05f' in missing_joint.stderr, missing_joint.stderr
 probe = build/'physics_probe'
 scene = ROOT/'tests/assets/physics/props.txt'
 outputs = [args.output/name for name in ('first.bin', 'repeat.bin', 'changed.bin')]
