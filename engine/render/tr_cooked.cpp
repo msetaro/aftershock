@@ -237,6 +237,28 @@ bool R_CookedHashMatches( const void *data, size_t size, const uint8_t hash[32] 
 	return memcmp( calculated, hash, 32 ) == 0;
 }
 
+bool R_ReadCookedLods( const void *data, size_t size, const uint8_t baseHash[32], cookedLods_t *lods ) {
+	*lods = {};
+	if ( !data || size < sizeof( cookedHeader_t ) + 36 || size > sizeof( cookedHeader_t ) + sizeof( *lods ) )
+		return false;
+	cookedHeader_t header;
+	memcpy( &header, data, sizeof( header ) );
+	const uint8_t *payload = (const uint8_t *)data + sizeof( header );
+	uint32_t count;
+	memcpy( &count, payload + 32, 4 );
+	if ( memcmp( header.magic, "ASLOD\0\0\0", 8 ) || header.version != 1 || !count || count > 3 || header.size != 36 + count * sizeof( cookedLodEntry_t ) || size != sizeof( header ) + header.size || memcmp( payload, baseHash, 32 ) || !R_CookedHashMatches( payload, header.size, header.hash ) )
+		return false;
+	cookedLods_t result{};
+	memcpy( &result, payload, header.size );
+	for ( uint32_t i = 0; i < count; i++ ) {
+		const char *path = result.levels[i].path;
+		if ( !path[0] || path[0] == '/' || !memchr( path, 0, 64 ) || strstr( path, ".." ) || ( strlen( path ) < 4 || strcmp( path + strlen( path ) - 4, ".iqm" ) ) )
+			return false;
+	}
+	*lods = result;
+	return true;
+}
+
 bool R_ReadCookedIndex( const void *data, size_t size, const uint8_t revision[32], cookedIndex_t *index ) {
 	*index = {};
 	if ( !data || size < sizeof( cookedHeader_t ) + 4 || size > 52 + 4096 * sizeof( cookedEntry_t ) )
@@ -251,7 +273,7 @@ bool R_ReadCookedIndex( const void *data, size_t size, const uint8_t revision[32
 	for ( uint32_t i = 0; i < count; i++ ) {
 		cookedEntry_t entry;
 		memcpy( &entry, payload + 4 + i * sizeof( entry ), sizeof( entry ) );
-		if ( !entry.path[0] || entry.path[0] == '/' || !memchr( entry.path, 0, sizeof( entry.path ) ) || strstr( entry.path, ".." ) || entry.size > INT32_MAX || entry.kind < 1 || entry.kind > 8 )
+		if ( !entry.path[0] || entry.path[0] == '/' || !memchr( entry.path, 0, sizeof( entry.path ) ) || strstr( entry.path, ".." ) || entry.size > INT32_MAX || entry.kind < 1 || entry.kind > 9 )
 			return false;
 	}
 	index->entries = payload + 4;

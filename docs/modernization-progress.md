@@ -64,6 +64,20 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 native LOD implementation checkpoint
+
+The native GCC/UBSan probe passes unchanged animated matrices and screen-size
+selection (fidelity-lod-native.log). Registration now reads the hash-bound set,
+checks shared skeleton/animation/material compatibility and retains cached model
+handles. All model replacements complete before LOD links refresh. Release client
+build passes (fidelity-lod-build.log). Live selection/reload is not accepted yet.
+
+The new engine-level test reuses the same owned animated grid and requires visible
+near/far draws, stable memory, disabling stale siblings after removing lod_ratios,
+reenabling after republishing, and vid_restart. Its initial run fails because the
+model registry has no lods/lodDraws counters (fidelity-lod-runtime-before.log).
+Add these development diagnostics and run the full lifecycle next.
+
 ## #161 native LOD contract
 
 The cooker manifest now passes its initial assertions. A new native LOD probe

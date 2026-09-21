@@ -36,6 +36,18 @@ static_assert( std::is_trivially_copyable_v<cookedPbrMaterial_t> );
 bool R_ReadPbrMaterial( const void *data, size_t size, cookedPbrMaterial_t *material, uint8_t fileHash[32] = nullptr );
 bool R_ResolveMaterialParams( const materialParams_t *base, const materialOverride_t *instance, materialParams_t *result );
 
+struct cookedLodEntry_t {
+	char path[64];
+	uint8_t hash[32];
+};
+struct cookedLods_t {
+	uint8_t baseHash[32];
+	uint32_t count;
+	cookedLodEntry_t levels[3];
+};
+static_assert( sizeof( cookedLodEntry_t ) == 96 && offsetof( cookedLods_t, levels ) == 36 && std::is_trivially_copyable_v<cookedLods_t> );
+bool R_ReadCookedLods( const void *data, size_t size, const uint8_t baseHash[32], cookedLods_t *lods );
+
 struct cookedEntry_t {
 	char path[64];
 	uint8_t hash[32];

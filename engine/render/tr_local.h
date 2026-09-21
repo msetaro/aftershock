@@ -1090,6 +1090,8 @@ typedef struct model_s {
 	void *modelData; // only if type == (MOD_MDR | MOD_IQM)
 
 	int numLods;
+	qhandle_t iqmLods[3];
+	uint32_t lodDraws[4];
 	bool ownsData; // Cooked development models use one replaceable zone block.
 	uint8_t cookedHash[32]; // Verified file hash; zero for legacy content.
 } model_t;
@@ -1910,6 +1912,7 @@ void R_MDRAddAnimSurfaces( trRefEntity_t *ent );
 void RB_MDRSurfaceAnim( mdrSurface_t *surface );
 bool RE_GetModelAnimation( qhandle_t handle, int clip, modelAnimation_t *animation );
 qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *name, bool owned = false );
+bool R_IQMLodCompatible( const iqmData_t *base, const iqmData_t *level );
 bool R_PrepareIQMPose( const iqmData_t *data, const animPose_t *pose, skeletalPose_t *out );
 bool R_ReplaceIQM( model_t *mod, void *buffer, int filesize, const char *name );
 void R_AddIQMSurfaces( trRefEntity_t *ent );

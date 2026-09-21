@@ -148,7 +148,7 @@ static qhandle_t R_RegisterMDR( const char *name, model_t *mod ) {
 R_RegisterIQM
 ====================
 */
-static qhandle_t R_RegisterIQM( const char *name, model_t *mod ) {
+static qhandle_t R_RegisterIQMLevel( const char *name, model_t *mod ) {
 	union {
 		unsigned *u;
 		void *v;
@@ -190,6 +190,61 @@ static qhandle_t R_RegisterIQM( const char *name, model_t *mod ) {
 	return mod->index;
 }
 
+
+// Called only during model registration or a published cooked-asset reload.
+static void R_RegisterIQMLods( const char *name, model_t *mod ) {
+	mod->numLods = 1;
+	memset( mod->iqmLods, 0, sizeof( mod->iqmLods ) );
+	char path[MAX_QPATH];
+	COM_StripExtension( name, path, sizeof( path ) );
+	if ( strlen( path ) + 6 >= sizeof( path ) )
+		return;
+	Q_strcat( path, sizeof( path ), ".aslod" );
+	void *file = nullptr;
+	const int size = ri.FS_ReadFile( path, &file );
+	cookedLods_t lods{};
+	const bool valid = file && size > 0 && R_ReadCookedLods( file, (size_t)size, mod->cookedHash, &lods );
+	if ( file )
+		ri.FS_FreeFile( file );
+	if ( !valid )
+		return;
+	qhandle_t handles[3]{};
+	for ( uint32_t level = 0; level < lods.count; level++ ) {
+		const cookedLodEntry_t &entry = lods.levels[level];
+		model_t *child = nullptr;
+		for ( int i = 1; i < tr.numModels; i++ )
+			if ( !strcmp( tr.models[i]->name, entry.path ) ) {
+				child = tr.models[i];
+				break;
+			}
+		if ( child == mod )
+			return;
+		if ( !child ) {
+			void *bytes = nullptr;
+			const int length = ri.FS_ReadFile( entry.path, &bytes );
+			const bool matching = bytes && length > 0 && R_CookedHashMatches( bytes, (size_t)length, entry.hash );
+			if ( bytes )
+				ri.FS_FreeFile( bytes );
+			if ( !matching || !( child = R_AllocModel() ) )
+				return;
+			Q_strncpyz( child->name, entry.path, sizeof( child->name ) );
+			if ( !R_RegisterIQMLevel( entry.path, child ) )
+				return;
+		}
+		if ( child->type != MOD_IQM || memcmp( child->cookedHash, entry.hash, 32 ) || !R_IQMLodCompatible( (const iqmData_t *)mod->modelData, (const iqmData_t *)child->modelData ) )
+			return;
+		handles[level] = child->index;
+	}
+	memcpy( mod->iqmLods, handles, sizeof( handles ) );
+	mod->numLods = (int)lods.count + 1;
+}
+
+static qhandle_t R_RegisterIQM( const char *name, model_t *mod ) {
+	const qhandle_t handle = R_RegisterIQMLevel( name, mod );
+	if ( handle )
+		R_RegisterIQMLods( name, mod );
+	return handle;
+}
 
 typedef struct
 {
@@ -1179,6 +1234,11 @@ void R_ReloadCookedModels( const cookedIndex_t *index ) {
 			ri.Printf( success ? PRINT_ALL : PRINT_WARNING, "Cooked model %s: %s\n", success ? "reloaded" : "reload failed", entry.path );
 		}
 	}
+	// All IQM replacements finish before any reduced mesh is made live again.
+	const int count = tr.numModels;
+	for ( int i = 1; i < count; i++ )
+		if ( tr.models[i]->type == MOD_IQM )
+			R_RegisterIQMLods( tr.models[i]->name, tr.models[i] );
 }
 #endif
 

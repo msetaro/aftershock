@@ -1125,6 +1125,26 @@ static int R_ComputeIQMFogNum( const iqmData_t *data, const trRefEntity_t *ent )
 	return 0;
 }
 
+bool R_IQMLodCompatible( const iqmData_t *base, const iqmData_t *level ) {
+	if ( base->num_joints != level->num_joints || base->num_poses != level->num_poses || base->num_frames != level->num_frames || base->num_anims != level->num_anims || base->num_surfaces != level->num_surfaces )
+		return false;
+	const char *a = base->jointNames, *b = level->jointNames;
+	for ( int i = 0; i < base->num_joints; i++ ) {
+		if ( strcmp( a, b ) || base->jointParents[i] != level->jointParents[i] || memcmp( base->bindJoints + i * 12, level->bindJoints + i * 12, 12 * sizeof( float ) ) )
+			return false;
+		a += strlen( a ) + 1;
+		b += strlen( b ) + 1;
+	}
+	if ( base->num_poses && memcmp( base->poses, level->poses, (size_t)base->num_frames * base->num_poses * sizeof( iqmTransform_t ) ) )
+		return false;
+	if ( base->num_anims && memcmp( base->animations, level->animations, base->num_anims * sizeof( modelAnimation_t ) ) )
+		return false;
+	for ( int i = 0; i < base->num_surfaces; i++ )
+		if ( strcmp( base->surfaces[i].name, level->surfaces[i].name ) || base->surfaces[i].shader != level->surfaces[i].shader )
+			return false;
+	return true;
+}
+
 /*
 =================
 R_AddIQMSurfaces
@@ -1143,7 +1163,6 @@ void R_AddIQMSurfaces( trRefEntity_t *ent ) {
 	const skin_t *skin;
 
 	data = (iqmData_t *)tr.currentModel->modelData;
-	surface = data->surfaces;
 
 	// don't add third_person objects if not in a portal
 	personalModel = (qboolean)( ( ent->e.renderfx & RF_THIRD_PERSON ) && ( tr.viewParms.portalView == PV_NONE ) && !tr.viewParms.shadowView );
@@ -1187,6 +1206,12 @@ void R_AddIQMSurfaces( trRefEntity_t *ent ) {
 	// see if we are in a fog volume
 	//
 	fogNum = R_ComputeIQMFogNum( data, ent );
+
+	const int lod = R_ComputeLOD( ent );
+	if ( lod > 0 && tr.currentModel->iqmLods[lod - 1] )
+		data = (iqmData_t *)R_GetModelByHandle( tr.currentModel->iqmLods[lod - 1] )->modelData;
+	tr.currentModel->lodDraws[lod]++;
+	surface = data->surfaces;
 
 	for ( i = 0; i < data->num_surfaces; i++ ) {
 		if ( ent->e.customShader )
