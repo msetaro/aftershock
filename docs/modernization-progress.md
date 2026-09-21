@@ -35,9 +35,9 @@ fixtures stay byte-identical. Next contract adds terrace stairs/ramp, fences and
 overheads; its MAP occupancy/navigation pass. Formal schema, connected storeys/roofs,
 sunken zones and full compile pass. Initial interpretation, licensed materials and
 pinned Blender modules pass. Rotated v2 props now compile and solid props join
-clearance checks, including foot-origin bounds. Next: remaining tracing cases,
-theme assembly, supplied-rig retargeting, shooter intent checks, compiled overhead
-comparison and the one-command agent playtest. This is partial work, not #164
+clearance checks, including foot-origin bounds. Additional tracing, compiled-overhead comparison and v2 navigation cameras now
+pass. Next: theme assembly, supplied-rig retargeting, shooter intent checks and
+the one-command agent playtest. This is partial work, not #164
 acceptance. The issue and checkpoint contain measured results and decisions.
 
 Drawing decisions: its own handwritten key is authoritative. Geometry, annotation
@@ -51,6 +51,15 @@ module contract also passes. All payloads stay in user cache; no local system pa
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 theme assembly contract
+
+The next test requires the real pinned material/module kits to assemble seeded
+props without changing shapes, preserve doorway/lane/spawn clearances, retain
+complete license manifests and stage PBR material bindings through the level
+compiler. It fails on the absent theme module (sketch-theme-before.log). Native
+shader lookup checks explicit scripts before ASMAT, so compiler-only source-ID
+aliases must not shadow PBR at runtime. Reuse the existing cooker payloads.
 
 ## #164 compiled overlap and v2 camera paths pass
 
