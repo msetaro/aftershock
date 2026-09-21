@@ -76,6 +76,19 @@ accepted frame fixtures and shader arrays are unchanged.
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
 
+## #15 static map geometry foundation passes
+
+The owned world accepts bounded static triangle meshes. GCC and Clang/libc++
+UBSan pass the full contacts/ray/sweep/recycle suite using a two-triangle floor.
+CM_PhysicsTriangles is a separate load-time export: solid world brushes/patches,
+deduplicated leaf references, inline models excluded, callback capacity stop with
+all temporary storage freed. Its synthetic cube/patch fixture checks 14 triangles,
+area 28 and inline exclusion, without loading game content. Both compilers pass
+(physics-collision-test.log / physics-collision-clang.log). Client/server rebuild
+passes (physics-map-build.log). No native trace expressions changed.
+Next connect map allocation/teardown and cosmetic client presentation; no runtime
+caller or #15 acceptance claim yet.
+
 ## #15 static mesh test first
 
 The owned boundary test now uses two static floor triangles rather than a box.

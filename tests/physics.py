@@ -36,6 +36,12 @@ target_include_directories(physics_boundary PRIVATE "{ROOT}")
 target_link_libraries(physics_boundary PRIVATE joltc Jolt)
 target_compile_features(physics_boundary PRIVATE cxx_std_20)
 target_compile_options(physics_boundary PRIVATE -UNDEBUG -Wall -Wextra -Werror)
+add_executable(physics_collision "{ROOT}/tests/probes/physics_collision.cpp"
+  "{ROOT}/engine/qcommon/cm_physics.cpp" "{ROOT}/engine/qcommon/cm_polylib.cpp" "{ROOT}/engine/qcommon/q_math.cpp")
+target_include_directories(physics_collision PRIVATE "{ROOT}")
+target_compile_features(physics_collision PRIVATE cxx_std_20)
+target_compile_options(physics_collision PRIVATE -UNDEBUG -Wall -Wextra -Werror -ffunction-sections -fdata-sections)
+target_link_options(physics_collision PRIVATE -Wl,--gc-sections)
 ''')
 compiler = shlex.split(args.cxx)
 flags = shlex.join(compiler[1:]) + ' -fno-exceptions -fno-rtti -ffp-contract=off -fsanitize=undefined -fno-sanitize-recover=all'
@@ -43,6 +49,7 @@ build = args.output/'build'
 run(['cmake', '-S', project, '-B', build, '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=Release',
      '-DCMAKE_CXX_COMPILER='+compiler[0], '-DCMAKE_CXX_FLAGS='+flags])
 run(['cmake', '--build', build, '-j', '4'])
+run([build/'physics_collision'])
 run([build/'physics_boundary'])
 missing_joint = subprocess.run([str(build/'physics_boundary'), 'without-joint'],
                                cwd=ROOT, env=ENV, capture_output=True, text=True, timeout=30)

@@ -18,6 +18,7 @@ set(COMMON_SOURCES
   engine/server/sv_replication.cpp
   engine/server/sv_snapshot.cpp
   engine/server/sv_world.cpp
+  engine/qcommon/cm_physics.cpp
   engine/qcommon/cm_load.cpp
   engine/qcommon/cm_patch.cpp
   engine/qcommon/cm_polylib.cpp

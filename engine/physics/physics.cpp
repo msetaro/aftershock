@@ -19,7 +19,7 @@ static struct {
 	JPH_BodyFilter *bodyFilter;
 	JPH_BodyID queryIgnore;
 	JPH_BodyID ids[PHYS_MAX_BODIES];
-	bool dynamic[PHYS_MAX_BODIES], active[PHYS_MAX_BODIES];
+	bool dynamic[PHYS_MAX_BODIES], active[PHYS_MAX_BODIES], mesh[PHYS_MAX_BODIES];
 	uint32_t count;
 	JPH_Constraint *joints[PHYS_MAX_BODIES];
 	uint32_t jointA[PHYS_MAX_BODIES], jointB[PHYS_MAX_BODIES], jointCount;
@@ -152,6 +152,36 @@ uint32_t Phys_Prepare( const physBodyDesc_t *desc ) {
 	physics.active[slot] = true;
 	return slot;
 }
+uint32_t Phys_PrepareMesh( const physTriangle_t *triangles, uint32_t count ) {
+	if ( !physics.memory || physics.started || physics.count == PHYS_MAX_BODIES || !triangles || !count || count > PHYS_MAX_TRIANGLES )
+		return PHYS_INVALID_BODY;
+	for ( uint32_t i = 0; i < count; ++i )
+		for ( uint32_t j = 0; j < 3; ++j )
+			if ( !Finite( triangles[i].vertex[j], 3 ) )
+				return PHYS_INVALID_BODY;
+	auto *input = static_cast<JPH_Triangle *>( Allocate( sizeof( JPH_Triangle ) * count ) );
+	for ( uint32_t i = 0; i < count; ++i ) {
+		const auto &v = triangles[i].vertex;
+		input[i] = { { v[0][0], v[0][1], v[0][2] }, { v[1][0], v[1][1], v[1][2] }, { v[2][0], v[2][1], v[2][2] }, 0 };
+	}
+	auto *meshSettings = JPH_MeshShapeSettings_Create( input, count );
+	Free( input );
+	auto *shape = (JPH_Shape *)JPH_MeshShapeSettings_CreateShape( meshSettings );
+	JPH_ShapeSettings_Destroy( (JPH_ShapeSettings *)meshSettings );
+	if ( !shape )
+		return PHYS_INVALID_BODY;
+	const JPH_RVec3 position = {};
+	auto *settings = JPH_BodyCreationSettings_Create3( shape, &position, nullptr, JPH_MotionType_Static, 0 );
+	const JPH_BodyID id = JPH_BodyInterface_CreateAndAddBody( physics.bodies, settings, JPH_Activation_DontActivate );
+	JPH_BodyCreationSettings_Destroy( settings );
+	JPH_Shape_Destroy( shape );
+	if ( id == UINT32_MAX )
+		return PHYS_INVALID_BODY;
+	const uint32_t slot = physics.count++;
+	physics.ids[slot] = id;
+	physics.mesh[slot] = physics.active[slot] = true;
+	return slot;
+}
 bool Phys_PrepareJoint( const physJointDesc_t *desc ) {
 	if ( !physics.memory || physics.started || physics.jointCount == PHYS_MAX_BODIES || !desc ||
 		 desc->a >= physics.count || desc->b >= physics.count || desc->a == desc->b ||
@@ -257,7 +287,7 @@ static float SweepHit( void *context, const JPH_ShapeCastResult *result ) {
 	return *fraction;
 }
 bool Phys_Sweep( uint32_t slot, const physTransform_t *pose, const float displacement[3], float *fraction ) {
-	if ( !physics.started || slot >= physics.count || !Pose( pose ) || !displacement || !fraction || !Finite( displacement, 3 ) )
+	if ( !physics.started || slot >= physics.count || physics.mesh[slot] || !Pose( pose ) || !displacement || !fraction || !Finite( displacement, 3 ) )
 		return false;
 	const JPH_RVec3 origin = { pose->position[0], pose->position[1], pose->position[2] };
 	const JPH_Quat rotation = { pose->rotation[0], pose->rotation[1], pose->rotation[2], pose->rotation[3] };

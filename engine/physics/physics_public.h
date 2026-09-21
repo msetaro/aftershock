@@ -11,6 +11,10 @@ struct physTransform_t {
 	float position[3];
 	float rotation[4]; // xyzw
 };
+constexpr uint32_t PHYS_MAX_TRIANGLES = 262144;
+struct physTriangle_t {
+	float vertex[3][3];
+};
 struct physBodyDesc_t {
 	physTransform_t transform;
 	float halfExtent[3]; // box; a positive radius selects a sphere instead
@@ -30,6 +34,7 @@ struct physStats_t {
 // Storage outlives Shutdown. Fatal must terminate, never Com_Error/longjmp.
 bool Phys_Init( void *storage, size_t bytes, void ( *fatal )() );
 uint32_t Phys_Prepare( const physBodyDesc_t *description );
+uint32_t Phys_PrepareMesh( const physTriangle_t *triangles, uint32_t count );
 bool Phys_PrepareJoint( const physJointDesc_t *description );
 bool Phys_Start();
 bool Phys_Spawn( uint32_t slot, const physTransform_t *pose, const float velocity[3] );
