@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Keep JSON separate from logs when a headless wrapper merges stderr into stdout."""
 import os
+import io
+import queue
+from types import SimpleNamespace
 from pathlib import Path
 from run import SCRATCH
 import sys
@@ -33,4 +36,18 @@ for line in sys.stdin:
         with Engine(binary, data) as engine:
             assert engine.request('hello') == {'op': 'hello'}
             assert 'ordinary startup log' in engine.log_path.read_text()
-print('PASS: headless launcher preserves JSON stdout and separate engine stderr')
+# Events must consume the request's total budget, not restart its timeout.
+client = Engine.__new__(Engine)
+client.sequence, client.events, client.replies = 0, [], queue.Queue()
+client.process = SimpleNamespace(stdin=io.StringIO())
+client.log_path = Path(__file__)
+for event in ({'event': 'warning'}, {'event': 'warning'}, {'id': 1, 'ok': True, 'result': {}}):
+    client.replies.put(event)
+with patch('time.monotonic', side_effect=[0, 0.05, 0.10, 0.15]):
+    try:
+        client.request('slow', timeout=0.12)
+        raise AssertionError('event stream reset the request deadline')
+    except TimeoutError:
+        pass
+print('PASS: separate JSON/log pipes and a total request deadline across events')
+

@@ -76,6 +76,14 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 client deadline test-first checkpoint
+
+The client contract proves that queued events currently restart request timeout
+instead of consuming its total budget (agent-client-deadline-before.log). Use one
+monotonic deadline per request. Both concurrent baseline runs have now passed
+format and tidy and are in lifetime analysis; latest hosted 2626372d compiler
+workflow 35565832968 passes. No later head has final full-suite acceptance yet.
+
 ## #163 critical-event correction verified
 
 The shared event function now flushes a full queue before accepting either error
