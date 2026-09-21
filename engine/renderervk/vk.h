@@ -343,6 +343,7 @@ typedef struct {
 
 	VkImage shadow_image[2];
 	VkImageView shadow_image_view[2];
+	VkDescriptorSet shadow_descriptor[2];
 	VkImageLayout initSwapchainLayout;
 
 	qboolean clearAttachment; // requires VK_IMAGE_USAGE_TRANSFER_DST_BIT for swapchains

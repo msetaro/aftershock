@@ -89,6 +89,7 @@ void RHI_EndPass( void );
 // Atlas 0 is local lights; atlas 1 is the sun. Invalid/disabled atlases return false.
 bool RHI_BeginShadowPass( uint32_t atlas );
 void RHI_EndShadowPass( void );
+bool RHI_BindShadowAtlas( uint32_t atlas, uint32_t slot );
 
 constexpr uint32_t RHI_MAX_TIMINGS = 32;
 struct rhiTiming_t {

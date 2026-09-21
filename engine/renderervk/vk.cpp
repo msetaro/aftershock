@@ -2355,6 +2355,22 @@ void vk_update_attachment_descriptors( void ) {
 			}
 		}
 	}
+	for ( uint32_t index = 0; index < 2; ++index ) {
+		if ( !vk.shadow_image_view[index] || !vk.shadow_descriptor[index] )
+			continue;
+		Vk_Sampler_Def sampler = {};
+		sampler.gl_mag_filter = sampler.gl_min_filter = FILTER_NEAREST;
+		sampler.address_mode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		sampler.noAnisotropy = qtrue;
+		const VkDescriptorImageInfo image = { vk_find_sampler( &sampler ), vk.shadow_image_view[index], VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL };
+		VkWriteDescriptorSet write = {};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.dstSet = vk.shadow_descriptor[index];
+		write.descriptorCount = 1;
+		write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		write.pImageInfo = &image;
+		qvkUpdateDescriptorSets( vk.device, 1, &write, 0, NULL );
+	}
 }
 
 
@@ -2460,9 +2476,13 @@ void vk_impl_InitDescriptors( void ) {
 
 		alloc.descriptorSetCount = 1;
 		VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.screenMap.color_descriptor ) ); // screenmap
-
-		vk_update_attachment_descriptors();
 	}
+	alloc.pSetLayouts = &vk.set_layout_sampler;
+	for ( i = 0; i < 2; ++i ) {
+		if ( vk.shadow_image_view[i] )
+			VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.shadow_descriptor[i] ) );
+	}
+	vk_update_attachment_descriptors();
 }
 
 
@@ -3899,6 +3919,8 @@ rhiStatus_t vk_impl_Initialize( void ) {
 
 		pool_size[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		pool_size[0].descriptorCount = vk_config.maxImages + 1 + 1 + 1 + VK_NUM_BLOOM_PASSES * 2; // color, screenmap, bloom descriptors
+		if ( vk_config.shadowMapSize )
+			pool_size[0].descriptorCount += 2;
 
 		pool_size[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 		pool_size[1].descriptorCount = NUM_COMMAND_BUFFERS;
@@ -4400,6 +4422,14 @@ rhiDeviceDescription_t RHI_GetDeviceDescription( void ) {
 
 void RHI_BindScreenMap( uint32_t slot ) {
 	vk_update_descriptor( slot, vk.screenMap.color_descriptor );
+}
+
+bool RHI_BindShadowAtlas( uint32_t atlas, uint32_t slot ) {
+	if ( !vk.cmd || atlas >= 2 || !vk.shadow_descriptor[atlas] || slot < RHI_BINDING_TEXTURE0 ||
+		 slot >= vk.maxBoundDescriptorSets || slot >= ARRAY_LEN( vk.cmd->descriptor_set.current ) || vk.renderPassIndex == RENDER_PASS_SHADOW )
+		return false;
+	vk_update_descriptor( slot, vk.shadow_descriptor[atlas] );
+	return true;
 }
 
 void RHI_BindIndices( rhiGeometryBuffer_t buffer, uint32_t offset ) {

@@ -54,6 +54,16 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
+## #14 shadow sampling implementation checkpoint
+
+Test-first b5e7d5ef precedes allocation of two atlas sampler descriptors from the
+existing pool. Nearest/clamped sampling supports manual depth comparison without
+requiring filterable D32. Existing resize/filter refresh updates both bindings;
+invalid slots/atlases and sampling during a depth pass are rejected. GCC/Clang
+native graph observation, RHI upload/alternative-backend checks, CMake build and
+format/type/boundary gates pass (lighting-shadow-sampling*.log). No new shader or
+accepted reference changed. Caster/receiver draw submission remains next.
+
 ## #14 shadow sampling test-first checkpoint
 
 Extend the same native graph observation to descriptor allocation, depth-read-only
