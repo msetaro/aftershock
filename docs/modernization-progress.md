@@ -80,6 +80,16 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 residency ownership test-first
+
+The native RHI probe now requires a reusable device-memory budget with actual
+Vulkan requirements, independent replacement descriptors and a retirement fence.
+A full pool must refuse new images until old use completes, then reuse the freed
+space without another device-memory allocation. Failed creation must release its
+partial image, and shutdown must reclaim every handle. Initial compilation fails
+on the absent residency API (fidelity-residency-before.log). Renderer/source-cache
+integration and hardware/software fly-through acceptance still remain.
+
 ## #161 asynchronous upload component
 
 The RHI now has explicit map-load initialization, queue, nonblocking poll and
