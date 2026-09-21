@@ -70,6 +70,18 @@ No system package, licensed pak copy or host display session was needed. Establi
 the stated resolution/quality/frame budget and repeated per-pass measurement before
 #14 acceptance. Existing Mesa goldens remain the deterministic rendering gate.
 
+## #14 initial shadow graph contract
+
+The existing graph contract now requires two opt-in sampled depth atlases
+(local lights and cascaded sun), depth-only clear/store passes, explicit depth
+write-to-fragment-read dependencies and shadow writers ordered before the main
+scene. Existing pass/target IDs and disabled native descriptors remain fixed.
+Before implementation it fails on the absent shadowSize/LocalShadow/SunShadow
+contract (lighting-shadow-graph-before.log). Atlas dimensions must be bounded
+powers of two. This is a resource/dependency test, not proof of rendered shadows;
+frontend caster views, receiver shading and actual visual/performance acceptance
+remain mandatory.
+
 ## #14 directional runtime checkpoint
 
 The first renderer slice builds and passes actual OA/Q3 native tests with both
