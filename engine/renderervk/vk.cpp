@@ -8501,7 +8501,7 @@ rhiStatus_t RHI_InitTextureUploads() {
 	if ( !vk.device )
 		return rhiStatus_t::Unavailable;
 	const rhiStatus_t status = vk_call( [&]() {
-		vk_create_staging_buffer( &vk_stream.staging, 4 * 1024 * 1024 );
+		vk_create_staging_buffer( &vk_stream.staging, 1024 * 1024 );
 		VkCommandBufferAllocateInfo commands{};
 		commands.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		commands.commandPool = vk.command_pool;

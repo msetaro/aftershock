@@ -49,7 +49,7 @@ budgets on the reference GPU, then complete the combined PBR/effects/decal/LOD/
 TAA/filmic visual scene and new reviewed software references. Bounded residency,
 async upload and the larger-than-budget runtime/hot-reload/restart checks pass.
 The 1244-configuration lifetime scan passed. Initial 4 MiB streaming transfers
-exceed CPU/GPU budgets; reduce the batch size and remeasure. Descriptor restoration is adopted; RTX
+missed both budgets; 1 MiB transfers pass the same serial hardware workload. Descriptor restoration is adopted; RTX
 post runs complete. Initial copy-back exceeds its declared budget, so the post
 path stays default off. Camera jitter, history resolve, copied native IQM skin
 motion, reactive fallback and motion blur now execute but are not final visual
@@ -81,6 +81,24 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 one-MiB streaming hardware budget pass
+
+With the fixed staging/submission bound reduced to 1 MiB, the identical serial
+RTX workload passes the unchanged budgets. Active CPU p50/p95/p99 is
+0.044/0.117/0.181 ms (244 samples, max 0.196); upload GPU p50/p95/p99 is
+0.323216/0.325984/0.330272 ms (156 individually observed samples, max 0.338208).
+Final frame CPU p50/p95/p99 is 3.080/6.452/8.088 ms. Hardware, resolution, source
+set, budgets, 4096 warm frames and four cold/visible cycles are unchanged.
+Evidence: fidelity-hardware-streaming-1m/report.json, capture and .log. The failed
+4 MiB report is retained separately. The native same-byte/row/timestamp test now
+passes with 22 submissions per 4K BC7 chain; the client rebuild passes. Smaller
+batches trade a longer promotion for bounded frame work. The software hot-reload/
+restart gate passes at this final bound (fidelity-streaming-runtime-1m.log), as do
+GCC/Clang native probes and formatting. The hardware baseline frame CPU was
+3.044/3.387/5.853 ms p50/p95/p99; the measured transition workload ends at
+3.080/6.452/8.088 ms. Combined-scene acceptance and exact-head/current-main gates
+are still outstanding.
 
 ## #161 smaller transfer test-first
 

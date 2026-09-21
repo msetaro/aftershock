@@ -1368,8 +1368,8 @@ reload and renderer restart, retaining profiler reports/captures in its output
 directory. The runtime controls are `r_textureStreaming` (default 0),
 `r_textureBudgetMB` (default 256) and `r_textureSourceMB` (default 256), all latched.
 The device budget owns only streamed cooked mip chains; legacy textures and render
-targets keep their existing allocations. The separate source arena retains
-compressed mip bytes, with no filesystem reads or engine heap allocation during
+targets keep their existing allocations. Each asynchronous submission copies at most 1 MiB through fixed staging.
+The separate source arena retains compressed mip bytes, with no filesystem reads or engine heap allocation during
 frame streaming. Source exhaustion reports an error. Same-size/smaller reloads
 reuse source slots; growing reloads consume arena space until renderer restart.
 Profiler `textureStreaming` reports both budgets, occupied/retired/peak bytes,
