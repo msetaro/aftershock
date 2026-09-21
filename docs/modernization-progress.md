@@ -25,7 +25,8 @@ Active implementation: issue/14-lighting in
 the shadow-only atlas scissor correction now pass rendered point/spot/sun checks.
 Main 782c0dbc is merged forward. Mask/animated-caster/module-restart
 checks now pass. Reflection baking/application now passes smooth/rough/toggle/restart checks.
-Next implement SSAO, then finish reference-GPU acceptance and full hosted gates. #161 follows #14 in
+SSAO graph/resources/shaders are implemented locally; its native rendered and lifecycle checks are running.
+Next finish SSAO validation, then reference-GPU acceptance and full hosted gates. #161 follows #14 in
 updated #25. Do not claim full #14 acceptance or regenerate accepted references.
 
 #160 repair PR #162 merged into main as
@@ -49,6 +50,21 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #14 SSAO native work in progress
+
+Test-first 6a40804e fails on absent graph declarations. The implementation now
+passes the graph contract and unchanged 36-configuration native descriptor hash.
+Two R8 targets retain sampled main depth, including MSAA/stencil, and apply before
+bloom through a compatible load pass. A depth-only view keeps stencil out of the
+sampled descriptor. Existing resource teardown handles restart/resize.
+
+New rendered test initially fails against 35c68d79 with zero changed bytes
+(lighting-ssao-runtime-before.log). SSAO is opt-in (r_ssao 1 half / 2 full,
+requires r_fbo 1), with live radius/strength controls. Five new shader programs
+append through bin2hex; all previous 83 arrays remain untouched. CMake build
+passes. Rendered output/lifecycle, expanded native declarations, final GPU budget
+and current-head hosted gates remain outstanding; no acceptance is claimed.
 
 ## #14 SSAO graph test-first checkpoint
 
