@@ -51,9 +51,10 @@ picking, selection and reload share existing UI functions. The Range rewrite pas
 actions are implemented. All five original editor tests are now migrated and pass locally on both
 content sets. The full OpenArena devtools rebuild proves shipping exclusion.
 Material registry/selection/override commands now pass both UI and recook image
-checks on Q3/OA; initial absence is in agent-material-before.log. Finish the
-remaining cook_runtime.py pixel-input rewrite, GPU/memory/net telemetry, and
-remaining shared controls; gameplay event/assert acceptance remains.
+checks on Q3/OA; initial absence is in agent-material-before.log. The cook_runtime.py rewrite fails first on missing profile.memory
+(agent-cook-before.log). Add memory/GPU/net telemetry, validate preserved reload
+latency/pose/handle/memory/capture assertions on static and module clients, then
+finish remaining shared controls; gameplay event/assert acceptance remains.
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
