@@ -1,6 +1,7 @@
 // Graph declarations must retain dependencies and target lifetimes without aliasing.
 #include "../../engine/rhi/rhi_public.h"
 #include <assert.h>
+#include <initializer_list>
 
 static uint32_t target( rhiGraphTarget_t value ) {
 	return (uint32_t)value;
@@ -82,7 +83,16 @@ int main( void ) {
 	// precede every scene consumer even though public legacy pass IDs stay fixed.
 	config.shadowSize = 2048;
 	assert( RHI_CompileGraph( &config, &graph ) );
-	assert( graph.targetCount == 18 && graph.passCount == 16 );
+	assert( graph.targetCount == 18 && graph.passCount == 18 );
+	for ( const auto id : { rhiGraphPass_t::MainResume, rhiGraphPass_t::ScreenResume } ) {
+		const auto &node = graph.passes[pass( id )];
+		assert( node.enabled && node.depth == 1 );
+		for ( uint32_t i = 0; i < node.attachmentCount; ++i ) {
+			assert( node.attachments[i].load == rhiGraphLoad_t::Load );
+			assert( node.attachments[i].store == rhiGraphStore_t::Store );
+			assert( !graph.targets[target( node.attachments[i].target )].transient );
+		}
+	}
 	const rhiGraphTarget_t shadowTargets[] = { rhiGraphTarget_t::LocalShadow, rhiGraphTarget_t::SunShadow };
 	const rhiGraphPass_t shadowPasses[] = { rhiGraphPass_t::LocalShadow, rhiGraphPass_t::SunShadow };
 	for ( int i = 0; i < 2; ++i ) {

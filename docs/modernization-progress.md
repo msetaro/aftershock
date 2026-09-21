@@ -53,6 +53,15 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
+## #14 shadow recording test-first checkpoint
+
+The graph/native observation now requires load/store continuation passes before
+implementing shadow command recording. Mocked native calls check two depth-only
+clears, main/screen-map state restoration, invalid atlas rejection and duplicate
+end safety. Main, MSAA and screen depth must survive a shadow interlude. The
+pre-implementation build fails on absent continuation fields/API
+(lighting-shadow-record-before.log). Legacy disabled descriptors remain frozen.
+
 ## #14 shadow-view implementation checkpoint
 
 Test-first commit 8e8252ef precedes tr_shadow.cpp. The shared spot projection also

@@ -92,6 +92,45 @@ static VkResult VKAPI_CALL createFramebuffer( VkDevice, const VkFramebufferCreat
 	*out = (VkFramebuffer)(uintptr_t)framebufferCount;
 	return VK_SUCCESS;
 }
+static uint32_t begun, ended, depthBegun, resumed;
+static void VKAPI_CALL beginPass( VkCommandBuffer, const VkRenderPassBeginInfo *p, VkSubpassContents ) {
+	++begun;
+	if ( p->renderPass == vk.render_pass.shadow[0] || p->renderPass == vk.render_pass.shadow[1] ) {
+		++depthBegun;
+		assert( p->clearValueCount == 1 && p->pClearValues[0].depthStencil.depth == 0 );
+		assert( p->renderArea.extent.width == 1024 && p->renderArea.extent.height == 1024 );
+	} else if ( p->clearValueCount == 0 ) {
+		++resumed;
+		assert( p->renderPass == vk.render_pass.resume[0] || p->renderPass == vk.render_pass.resume[1] );
+	}
+}
+static void VKAPI_CALL endPass( VkCommandBuffer ) {
+	++ended;
+}
+static void shadowCommands( bool screen ) {
+	vk.cmd = &vk.tess[0];
+	begun = ended = depthBegun = resumed = 0;
+	if ( screen )
+		vk_begin_screenmap_render_pass();
+	else
+		RHI_BeginMainPass();
+	const auto area = RHI_GetRenderArea();
+	const auto pass = vk.renderPassIndex;
+	assert( !RHI_BeginShadowPass( 2 ) && begun == 1 && ended == 0 );
+	assert( RHI_BeginShadowPass( 0 ) );
+	assert( RHI_GetRenderArea().width == 1024 );
+	assert( RHI_BeginShadowPass( 1 ) );
+	assert( depthBegun == 2 && begun == 3 && ended == 2 );
+	RHI_EndShadowPass();
+	assert( begun == 4 && ended == 3 && resumed == 1 );
+	assert( vk.renderPassIndex == pass );
+	const auto restored = RHI_GetRenderArea();
+	assert( restored.width == area.width && restored.height == area.height );
+	assert( restored.scaleX == area.scaleX && restored.scaleY == area.scaleY );
+	RHI_EndShadowPass(); // No active shadow pass: do not terminate the resumed scene.
+	assert( begun == 4 && ended == 3 );
+	RHI_EndPass();
+}
 int main( int argc, char ** ) {
 	qvkCreateRenderPass = createPass;
 	qvkCreateFramebuffer = createFramebuffer;
@@ -99,6 +138,8 @@ int main( int argc, char ** ) {
 	qvkGetImageMemoryRequirements = memoryRequirements;
 	qvkGetPhysicalDeviceMemoryProperties = memoryProperties;
 	qvkAllocateMemory = allocationBoundary;
+	qvkCmdBeginRenderPass = beginPass;
+	qvkCmdEndRenderPass = endPass;
 	for ( uint32_t mode = 0; mode < 36; ++mode ) {
 		vk = {};
 		vk_config = {};
@@ -136,7 +177,12 @@ int main( int argc, char ** ) {
 		captureImages();
 		vk_create_render_passes();
 		vk_create_framebuffers();
-		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?2u:0u));
+		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u));
 		assert( shadowPassCount == ( argc > 1 ? 2u : 0u ) && shadowImageCount == shadowPassCount );
+		if ( argc > 1 ) {
+			shadowCommands( false );
+			if ( offscreen )
+				shadowCommands( true );
+		}
 	}
 }
