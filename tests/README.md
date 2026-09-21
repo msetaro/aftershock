@@ -1294,5 +1294,8 @@ rectangle. The Profile panel reports active marks, draws, drops and replacements
 The Effects editor accepts `.asdc` assets: Project at aim traces the world surface,
 and Clear decals resets the ring. Its source editor uses the same guarded save
 and backup workflow as effects. `--editor` checks those actions, a saved/reloaded
-color change and clear. Final reference artwork and budgets remain #161 work;
-these component captures are not frame goldens.
+color change and clear. Original CC0 bullet/scorch/blood references live under `tests/assets/decals`,
+including initial authoring source and pinned provenance. `effects_reference.py`
+verifies/cooks them; `effects_reference_runtime.py` captures each on the native
+floor and checks clear restores the baseline. Budgets and the combined scene
+remain #161 work; these component captures are not frame goldens.

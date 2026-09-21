@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "name": "scorch",
+  "color_map": "textures/decals/reference/scorch.ktx2",
+  "normal_map": "textures/decals/reference/scorch_normal.ktx2",
+  "size": [
+    96,
+    96,
+    8
+  ],
+  "lifetime_ms": 15000,
+  "fade_ms": 3000,
+  "color": [
+    1,
+    1,
+    1,
+    1
+  ],
+  "normal_strength": 1
+}

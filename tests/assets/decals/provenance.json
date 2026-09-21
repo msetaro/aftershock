@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "license": "CC0-1.0",
+  "author": "Aftershock original procedural reference fixtures",
+  "files": {
+    "CREDITS.txt": "12ae75cf84ef984e6a752b19d55c610b55268c3a089eb7b6ef767742a5b86af9",
+    "assets.json": "f02f09c2b8e618f27ff859b9337fa2bd602e43c36fde1a085437c84c21004710",
+    "blood.json": "5c10b3f74d5e1da8bc426290b2d7011dfcf1bc7c0b38c6397e53b7fc4738dfa3",
+    "blood.png": "0656279327b9f81be38b61f8378ddeb0706297b6d5358fb94530a689c0943a6f",
+    "blood_normal.png": "175a7cea6fa56f45a3265498ac725a1ca0de908a5529f43cb0535f2e87a09525",
+    "bullet.json": "2a84b70c0ed52839c8eb4739eca5a3d242a6b56eca0e7aa769f109f2c8279f7d",
+    "bullet.png": "6cfdb126c498ef7a9290073be50e4bbbd4e52c94367d206cca6a84477df8c46e",
+    "bullet_normal.png": "0f700d3a0d73c54b94cf64f1cf879a1079d3f2684a58e44e4658f48a1104c8ba",
+    "export.py": "5b276a33645349a76aba77427a0a4830144c11def71449ec59d3e859824421aa",
+    "scorch.json": "84fcba4e2c7ef52b83a57105fe05015c6770a70c48749d836ce4b1cb83211437",
+    "scorch.png": "4a97e4d93d19ac4425d8e5e869acd179b79002183e9bd650b6299cf18d9a8256",
+    "scorch_normal.png": "dbd149015245ae8a93292ea88053a4300afb87b912d82f163169f4c9ee868043"
+  }
+}

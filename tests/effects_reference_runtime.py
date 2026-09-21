@@ -25,12 +25,13 @@ args.output.mkdir(parents=True,exist_ok=True)
 fixture=ROOT/'tests/assets/effects'
 with tempfile.TemporaryDirectory(prefix='aftershock-reference-effects-') as temporary:
     root=Path(temporary)
-    with Engine(args.binary,args.data,args.content,home=root/'home',arguments=['+set','cg_draw2D','0','+set','cg_drawGun','0','+set','con_notifytime','0']) as engine:
+    with Engine(args.binary,args.data,args.content,home=root/'home',arguments=['+set','r_fbo','1','+set','r_decals','1','+set','cg_draw2D','0','+set','cg_drawGun','0','+set','con_notifytime','0']) as engine:
         source=root/'source'
         shutil.copytree(ROOT/'tests/assets/levels',source)
         subprocess.run([sys.executable,'tools/level',str(source/'two_lane.json'),'--output',str(root/'compiled')],cwd=ROOT,check=True)
         shutil.copytree(root/'compiled',engine.base,dirs_exist_ok=True)
         cook(fixture/'assets.json',engine.base)
+        cook(ROOT/'tests/assets/decals/assets.json',engine.base)
         shutil.copyfile(fixture/'reference.shader',engine.base/'scripts/reference.shader')
         engine.request('session',dt=20,seed=161)
         engine.request('map',name='two_lane')
@@ -64,5 +65,20 @@ with tempfile.TemporaryDirectory(prefix='aftershock-reference-effects-') as temp
                 assert report[name]['lights']>0
             engine.step(140)
             assert engine.request('effects')['particles']==0
+        engine.request('camera',mode='pose',origin=[-100,-160,100],angles=[90,0,0]);engine.step(4)
+        baseline=capture('decal-baseline')
+        for name in ('bullet','scorch','blood'):
+            asset=engine.request('decals.load',path=f'decals/reference/{name}.asdc')['handle']
+            engine.request('decals.project',asset=asset,origin=[-100,-160,0],angles=[0,0,0]);engine.step(1)
+            active=capture('decal-'+name)
+            difference=sum(ImageStat.Stat(ImageChops.difference(baseline,active)).sum)
+            stats=engine.request('decals')
+            assert stats['active']==1 and stats['draws']>0 and stats['dropped']==0,stats
+            assert difference>1000,(name,difference)
+            report['decal-'+name]=dict(difference=difference,draws=stats['draws'])
+            engine.request('decals.clear');engine.step(2)
+            clean=capture('cleared-'+name)
+            assert sum(ImageStat.Stat(ImageChops.difference(baseline,clean)).sum)==0
+        (args.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
         shutil.copyfile(engine.log_path,args.output/'engine.log')
 print('PASS: all original reference sprite/mesh/trail effects change native frames and expire')

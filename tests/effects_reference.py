@@ -50,3 +50,21 @@ for name in names:
 assert (args.output/'models/reference_shell.iqm').is_file()
 assert cook(fixture/'assets.json',args.output)['built']==[]
 print('PASS: original reference effects, fixed provenance, required emitter paths and incremental cooking')
+
+fixture=ROOT/'tests/assets/decals'
+provenance=json.loads((fixture/'provenance.json').read_text())
+assert provenance['license']=='CC0-1.0'
+for name,expected in provenance['files'].items():
+    assert hashlib.sha256((fixture/name).read_bytes()).hexdigest()==expected,name
+from PIL import Image
+for name in ('bullet','scorch','blood'):
+    with Image.open(fixture/(name+'.png')) as image:
+        assert image.mode=='RGBA' and image.size==(256,256)
+        assert image.getchannel('A').getextrema()[0]==0 and image.getchannel('A').getextrema()[1]>200
+    with Image.open(fixture/(name+'_normal.png')) as image:
+        assert image.size==(256,256) and image.getchannel('R').getextrema()[0]<100
+cook(fixture/'assets.json',args.output/'decals')
+for name in ('bullet','scorch','blood'):
+    assert (args.output/f'decals/decals/reference/{name}.asdc').is_file()
+assert cook(fixture/'assets.json',args.output/'decals')['built']==[]
+print('PASS: original projected bullet/scorch/blood colors and normals, provenance and repeated cook')

@@ -1,0 +1,3 @@
+Original procedural test artwork authored for Aftershock, 2026-09-21.
+CC0-1.0: https://creativecommons.org/publicdomain/zero/1.0/
+No game content or third-party artwork. export.py records initial authoring; CI never regenerates it.

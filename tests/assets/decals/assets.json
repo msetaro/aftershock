@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "name": "textures/decals/reference/bullet",
+      "kind": "texture",
+      "source": "bullet.png",
+      "srgb": true
+    },
+    {
+      "name": "textures/decals/reference/bullet_normal",
+      "kind": "texture",
+      "source": "bullet_normal.png",
+      "format": "bc5",
+      "normal": true
+    },
+    {
+      "name": "decals/reference/bullet",
+      "kind": "decal",
+      "source": "bullet.json"
+    },
+    {
+      "name": "textures/decals/reference/scorch",
+      "kind": "texture",
+      "source": "scorch.png",
+      "srgb": true
+    },
+    {
+      "name": "textures/decals/reference/scorch_normal",
+      "kind": "texture",
+      "source": "scorch_normal.png",
+      "format": "bc5",
+      "normal": true
+    },
+    {
+      "name": "decals/reference/scorch",
+      "kind": "decal",
+      "source": "scorch.json"
+    },
+    {
+      "name": "textures/decals/reference/blood",
+      "kind": "texture",
+      "source": "blood.png",
+      "srgb": true
+    },
+    {
+      "name": "textures/decals/reference/blood_normal",
+      "kind": "texture",
+      "source": "blood_normal.png",
+      "format": "bc5",
+      "normal": true
+    },
+    {
+      "name": "decals/reference/blood",
+      "kind": "decal",
+      "source": "blood.json"
+    }
+  ]
+}

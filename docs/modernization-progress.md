@@ -37,7 +37,8 @@ initial floating HDR targets and native mesh LOD selection. The initial native O
 unchanged accepted frame hash (fidelity-legacy-demo.log). No accepted fixture or
 existing shader changed; three new particle shaders are appended through bin2hex. Details and test-first failures are below.
 
-Next implementation: finish original projected-decal reference artwork, then the post stack and streaming. The original nine-effect set, material impacts,
+Next implementation: the post stack and streaming. Projected decal material-hit
+binding, live editor and original bullet/scorch/blood references now pass. The original nine-effect set, material impacts,
 live source editing, light hooks, depth-soft particles and profiler counters
 now pass component controls. Filmic/LUT/post/TAA with real motion vectors, mip streaming/async uploads,
 reviewed software frames and hardware budgets all remain required. Cooked
@@ -62,6 +63,23 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 original projected decal references pass
+
+New original CC0 bullet-hole, scorch and blood sources are frozen under
+tests/assets/decals (256-square RGBA plus height-derived normal maps). The
+initial exporter refuses populated output; provenance pins every source. Existing
+effect artwork and all accepted fixtures remain unchanged. The existing reference
+check now validates/cooks both sets and repeated cooking makes no changes
+(fidelity-reference-decals.log). Native review runs all nine effects and all three
+marks; each mark visibly projects onto the floor and clearing restores the exact
+baseline (fidelity-reference-decals-runtime.log). Captures reviewed: small dark
+recessed hole/rim, broad radial scorch, red splatter. Component captures only.
+
+Format, boundary/type and authored-schema checks pass after the material-hit and
+editor work (fidelity-hit-decals-{format,boundaries,types,formats}.log). Full
+post/TAA/motion vectors, streaming, combined scene, budgets and exact-head/main
+hosted checks remain before #161 acceptance. No PR is open yet.
 
 ## #161 live decal editor passes
 
