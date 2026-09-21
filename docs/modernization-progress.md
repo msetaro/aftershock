@@ -44,9 +44,8 @@ and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
 unchanged. Main is merged forward here. Build/publication 35613793896 passed;
 regression 35613793817 passed all ten active jobs. #31 is accepted again.
 
-Next: add nonblocking upload timestamp reporting and measure streaming CPU/GPU
-budgets on the reference GPU, then complete the combined PBR/effects/decal/LOD/
-TAA/filmic visual scene and new reviewed software references. Bounded residency,
+Next: complete the combined PBR/effects/decal/LOD/TAA/filmic visual scene and new reviewed software
+references. Nonblocking upload timestamps and reference-GPU budgets pass. Bounded residency,
 async upload and the larger-than-budget runtime/hot-reload/restart checks pass.
 The 1244-configuration lifetime scan passed. Initial 4 MiB streaming transfers
 missed both budgets; 1 MiB transfers pass the same serial hardware workload. Descriptor restoration is adopted; RTX
@@ -81,6 +80,19 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 permanent streaming measurement command
+
+`tests/streaming_runtime.py --measure-gpu` now reproduces the serial reference
+hardware gate using the same generated assets and runtime setup as software CI.
+It requires an explicit Vulkan driver and verifies RTX 3080 Ti in the engine log,
+retains every-frame profiles and completed-upload samples before budget assertions,
+and then runs the ordinary fly-through/reload/restart controls. The permanent
+command passes: active CPU p95 0.081 ms (244 samples), GPU p95 0.327328 ms
+(156 samples), against the unchanged 0.25/0.50 ms limits. Evidence:
+fidelity-stream-permanent-hardware.log and fidelity-streaming-runtime/gpu-report.json
+plus gpu-engine.log. Software CI does not claim hardware performance. No golden
+or authored asset changed. Next: combined scene and per-system acceptance.
 
 ## #161 one-MiB streaming hardware budget pass
 

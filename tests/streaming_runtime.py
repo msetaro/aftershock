@@ -2,6 +2,8 @@
 """Stream an owned 4K texture set larger than its residency budget on a generated level."""
 import argparse
 import json
+import os
+import statistics
 from pathlib import Path
 import shutil
 import subprocess
@@ -18,7 +20,11 @@ parser.add_argument('--binary', type=Path, required=True)
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 parser.add_argument('--data', type=Path, default=Path.home()/'.q3a/baseq3')
 parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-streaming-runtime')
+parser.add_argument('--measure-gpu', action='store_true',
+                    help='measure declared 1440p streaming budgets on the reference RTX 3080 Ti')
 args = parser.parse_args()
+if args.measure_gpu and not os.environ.get('VK_DRIVER_FILES'):
+    parser.error('--measure-gpu requires explicit VK_DRIVER_FILES for the reference GPU')
 args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)
 source = args.output/'source'
@@ -40,6 +46,11 @@ arguments = ['+set', 'dev_reloadAssets', '1', '+set', 'r_textureStreaming', '1',
              '+set', 'r_textureSourceMB', '128', '+set', 'r_drawentities', '0',
              '+set', 'cg_draw2D', '0', '+set', 'cg_drawGun', '0', '+set', 'con_notifytime', '0',
              '+set', 'r_mode', '-1', '+set', 'r_customwidth', '320', '+set', 'r_customheight', '240']
+if args.measure_gpu:
+    arguments += ['+set', 'r_customwidth', '640', '+set', 'r_customheight', '360',
+                  '+set', 'r_fbo', '1', '+set', 'r_renderScale', '1',
+                  '+set', 'r_renderWidth', '2560', '+set', 'r_renderHeight', '1440',
+                  '+set', 'com_maxfps', '0']
 profiles = []
 with tempfile.TemporaryDirectory(prefix='aftershock-streaming-') as temporary:
     with Engine(args.binary, args.data, args.content, home=Path(temporary), arguments=arguments) as engine:
@@ -59,6 +70,45 @@ with tempfile.TemporaryDirectory(prefix='aftershock-streaming-') as temporary:
             assert stats['failures'] == 0, stats
             profiles.append(profile)
             return stats
+
+        if args.measure_gpu:
+            engine.request('camera', mode='pose', origin=[-100, -160, 100], angles=[45, 20, 0])
+            engine.step(4096)
+            baseline = engine.request('profile')
+            previous = baseline['textureStreaming']
+            measured, cpu, gpu = [], [], []
+            for cycle in range(4):
+                for visible in (0, 1):
+                    engine.request('cvar.set', name='r_drawworld', value=str(visible))
+                    for frame in range(180):
+                        engine.step(1)
+                        current = sample()
+                        measured.append(profiles[-1])
+                        if current['gpuSamples'] != previous['gpuSamples']:
+                            assert current['gpuSamples'] == previous['gpuSamples']+1, (previous, current)
+                            gpu.append(current['gpuUsec']/1000)
+                        if (current['pending'] or previous['pending'] or current['retiredBytes'] or
+                                previous['retiredBytes'] or current['uploadSubmissions'] != previous['uploadSubmissions']):
+                            cpu.append(current['cpuUsec']/1000)
+                        previous = current
+
+            def percentiles(values):
+                assert values, 'no completed streaming timing samples'
+                values = sorted(values)
+                return dict(p50=statistics.median(values), p95=values[int(.95*(len(values)-1))],
+                            p99=values[int(.99*(len(values)-1))], maximum=max(values), samples=len(values))
+
+            report = dict(budgets_ms=dict(cpu=.25, gpu=.50), cpu_ms=percentiles(cpu), gpu_ms=percentiles(gpu),
+                          method='1440p offscreen / 640x360 present; 4096 warm frames; four cold/visible cycles; '
+                                 'every-frame sampling, active-transition CPU, one GPU sample per completed submission',
+                          baseline=baseline, profiles=measured)
+            (args.output/'gpu-report.json').write_text(json.dumps(report, indent=2)+'\n')
+            shutil.copyfile(engine.log_path, args.output/'gpu-engine.log')
+            log = engine.log_path.read_text()
+            assert 'NVIDIA' in log and 'RTX 3080 Ti' in log, 'budget gate requires the reference GPU'
+            print('Streaming CPU ms:', report['cpu_ms'], 'GPU ms:', report['gpu_ms'], flush=True)
+            assert report['cpu_ms']['p95'] <= .25, report['cpu_ms']
+            assert report['gpu_ms']['p95'] <= .50, report['gpu_ms']
 
         first = sample()
         assert first['promotions'] > 0, first

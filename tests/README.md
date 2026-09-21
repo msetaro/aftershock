@@ -1353,13 +1353,12 @@ under UBSan. The input costs are Vulkan allocation requirements for each mip
 chain; pending and retired allocations count against the same peak budget. Coarse
 tails stay resident, recently bound textures win quality, equal-priority views
 retain current quality, and eviction precedes promotion. One transition at a time
-bounds staging/retirement; the native asynchronous upload integration and large
-4K-set fly-through remain #161 work. No asset fixture is regenerated.
+bounds staging/retirement; native upload and large-set runtime controls follow below. No asset fixture is regenerated.
 
 The native `tests/rhi.py` upload probe also checks asynchronous compressed mip
 transfers through fixed staging: bounded submissions, exact destination rows and
 bytes, zero-timeout fence polling, completion after the final fence, and device
-loss. This component does not yet establish the large-set streaming runtime gate.
+loss, completed GPU timestamps and fence-safe residency reclamation.
 
 `tests/streaming_runtime.py --binary PATH --content openarena --data PATH` cooks
 five original 4K BC7 textures and exercises a 32 MiB residency pool on the generated
@@ -1374,4 +1373,18 @@ frame streaming. Source exhaustion reports an error. Same-size/smaller reloads
 reuse source slots; growing reloads consume arena space until renderer restart.
 Profiler `textureStreaming` reports both budgets, occupied/retired/peak bytes,
 source usage, transitions, reloads, deferrals and CPU processing time. Hardware
-transfer/CPU budgets and final combined visual acceptance remain required.
+transfer timing is reported only after its existing completion fence.
+
+Run the hardware gate serially on the reference RTX 3080 Ti:
+
+```sh
+VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nvidia_icd.json python3 tests/streaming_runtime.py --binary PATH --content openarena --data PATH --measure-gpu --output /tmp/streaming-hardware
+```
+
+It measures 2560x1440 offscreen rendering with 640x360 presentation after 4096
+warm frames, then four cold/visible cycles sampled every frame. Active-transition
+CPU p95 must be at most 0.25 ms; completed upload GPU p95 at most 0.50 ms. It retains
+`gpu-report.json` and `gpu-engine.log` before checking the budgets, including the
+frame CPU percentiles and each observed submission. Software CI runs the functional
+gate without this option; it does not substitute for the reference hardware gate.
+Final combined visual acceptance remains required.
