@@ -24,8 +24,9 @@ upstream; historical upstream PR references below are completed past work.
 Its final head f638330b60bd2c68c30050c9aae4cf76190f3941 passed exact build
 35545635052 and regression 35545635067, with every required gate successful.
 The tested and merge trees both equal 60c07dae01241ebb2feaabd609cfa6c385c4fe68.
-Merged-tree build 35546603122 and regression 35546603116 are queued/running.
-Require those gates before closing #13/checking #25. The earlier 2ed8cf56
+Merged-tree regression 35546603116 passed. All compilation jobs in build
+35546603122 passed; its publication failed on separately tracked CI defect #158.
+Wait for #159 actual main publication before final closure/checking #25. The earlier 2ed8cf56
 regression was cancelled after the main workflow changed and is not acceptance.
 
 Main 81a0f9dc and the new AGENTS workflow are already merged forward into the
@@ -52,6 +53,24 @@ f30abf9b5723b4d0aa20dc7600be1a7348050e5f. #28, #27 and #31 are closed/checked.
 all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
+
+## #14 shadow recording implementation checkpoint
+
+Test-first e2bbbf9b precedes native depth-pass recording. Shadow-enabled graph
+configurations retain scene color/MSAA/depth/stencil and create compatible load
+continuations; disabled native descriptors still match all 36 frozen cases.
+RHI_BeginShadowPass clears exactly one reversed-depth attachment and supports
+local-to-sun transition; EndShadowPass restores main/screen state, viewport scale
+and dirty-depth tracking. Continuation dependencies cover color and depth writes.
+Native recording observation passes all 36 enabled cases on GCC and Clang/libc++,
+along with the portable graph checks (lighting-shadow-record.log). CMake builds successfully
+(lighting-shadow-record-build.log). No accepted fixture or shader changed.
+
+Format/type/boundary and alternative-backend/upload checks also pass
+(lighting-shadow-record-{clang,rhi}.log).
+
+Actual caster draw/atlas descriptors, receiver shading and full lighting acceptance
+remain next. No main/default scene calls these APIs until that frontend is ready.
 
 ## #14 shadow recording test-first checkpoint
 

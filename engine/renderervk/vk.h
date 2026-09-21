@@ -53,6 +53,7 @@ typedef enum {
 	RENDER_PASS_MAIN = 0,
 	RENDER_PASS_SCREENMAP,
 	RENDER_PASS_POST_BLOOM,
+	RENDER_PASS_SHADOW,
 	RENDER_PASS_COUNT
 } renderPass_t;
 
@@ -164,6 +165,7 @@ typedef struct {
 
 	struct {
 		VkRenderPass shadow[2];
+		VkRenderPass resume[2];
 		VkRenderPass main;
 		VkRenderPass screenmap;
 		VkRenderPass gamma;
@@ -362,6 +364,9 @@ typedef struct {
 	float renderScaleY;
 
 	renderPass_t renderPassIndex;
+	renderPass_t shadowResumePass;
+	rhiRenderArea_t shadowResumeArea;
+	int32_t shadowResumeDirtyDepth;
 
 	uint32_t screenMapWidth;
 	uint32_t screenMapHeight;

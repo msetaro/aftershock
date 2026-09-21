@@ -180,11 +180,48 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 				RHI_GRAPH_DEPTH_WRITE, RHI_GRAPH_SHADER_READ, false, false };
 			graph->executionOrder[graph->executionCount++] = id;
 		}
+		// A shadow interlude can occur after UI or another scene. Retain every
+		// attachment and resume with compatible load passes, never another clear.
+		for ( uint32_t index = 0; index < ( c.offscreen ? 2u : 1u ); ++index ) {
+			const P source = index ? P::ScreenMap : P::Main;
+			const P id = index ? P::ScreenResume : P::MainResume;
+			rhiGraphPassDesc_t &scene = graph->passes[(uint32_t)source];
+			rhiGraphPassDesc_t &resume = Pass( graph, id, scene.width, scene.height, scene.readMask, !c.offscreen );
+			resume.dependencies[0] = { rhiGraphStage_t::SceneAttachments, rhiGraphStage_t::SceneAttachments,
+				RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_WRITE,
+				RHI_GRAPH_COLOR_READ | RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_READ | RHI_GRAPH_DEPTH_WRITE, true, true };
+			resume.color = scene.color;
+			resume.depth = scene.depth;
+			resume.resolve = scene.resolve;
+			for ( uint32_t i = 0; i < scene.attachmentCount; ++i ) {
+				auto &attachment = scene.attachments[i];
+				attachment.store = Store::Store;
+				if ( c.stencil && i == scene.depth )
+					attachment.stencilStore = Store::Store;
+				graph->targets[(uint32_t)attachment.target].transient = false;
+				Attachment( resume, attachment.target, Load::Load, Store::Store,
+					attachment.initialLayout, attachment.finalLayout,
+					c.stencil && i == scene.depth ? Load::Load : Load::Discard, attachment.stencilStore );
+			}
+		}
+		if ( c.offscreen && c.bloom ) {
+			auto &post = graph->passes[(uint32_t)P::PostBloom];
+			for ( uint32_t i = 0; i < post.attachmentCount; ++i ) {
+				post.attachments[i].store = Store::Store;
+				if ( c.stencil && i == post.depth )
+					post.attachments[i].stencilStore = Store::Store;
+			}
+		}
 	}
 	// Preserve the legacy IDs/possible-pass intervals when lighting is disabled.
 	// Creation order is independent of this dependency/lifetime order.
-	for ( uint32_t p = 0; p < (uint32_t)P::LocalShadow; ++p )
+	for ( uint32_t p = 0; p < (uint32_t)P::LocalShadow; ++p ) {
 		graph->executionOrder[graph->executionCount++] = (P)p;
+		if ( c.shadowSize && p == (uint32_t)P::Main )
+			graph->executionOrder[graph->executionCount++] = P::MainResume;
+		if ( c.shadowSize && c.offscreen && p == (uint32_t)P::ScreenMap )
+			graph->executionOrder[graph->executionCount++] = P::ScreenResume;
+	}
 
 	uint32_t writers[(uint32_t)T::Count] = {};
 	uint32_t readers[(uint32_t)T::Count] = {};

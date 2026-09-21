@@ -85,6 +85,10 @@ const rhiError_t *RHI_GetError( void );
 // Record into the current frame's command list, preserving submission order.
 void RHI_DrawIndexed( uint32_t indexCount, uint32_t firstIndex );
 void RHI_EndPass( void );
+// Suspend a scene pass, clear a sampled-depth atlas, then resume its stored data.
+// Atlas 0 is local lights; atlas 1 is the sun. Invalid/disabled atlases return false.
+bool RHI_BeginShadowPass( uint32_t atlas );
+void RHI_EndShadowPass( void );
 
 constexpr uint32_t RHI_MAX_TIMINGS = 32;
 struct rhiTiming_t {
@@ -541,6 +545,8 @@ enum class rhiGraphPass_t : uint32_t {
 	Gamma,
 	LocalShadow,
 	SunShadow,
+	MainResume,
+	ScreenResume,
 	Count
 };
 enum class rhiGraphFormat_t : uint32_t { Color,
@@ -563,7 +569,8 @@ enum class rhiGraphStore_t : uint32_t { Discard,
 	Store };
 enum class rhiGraphStage_t : uint32_t { Fragment,
 	ColorOutput,
-	DepthTests };
+	DepthTests,
+	SceneAttachments };
 enum : uint32_t {
 	RHI_GRAPH_COLOR = 1,
 	RHI_GRAPH_SAMPLED = 2,

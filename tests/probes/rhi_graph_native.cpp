@@ -116,6 +116,7 @@ static void shadowCommands( bool screen ) {
 		RHI_BeginMainPass();
 	const auto area = RHI_GetRenderArea();
 	const auto pass = vk.renderPassIndex;
+	vk_world.dirty_depth_attachment = GLS_DEPTHMASK_TRUE;
 	assert( !RHI_BeginShadowPass( 2 ) && begun == 1 && ended == 0 );
 	assert( RHI_BeginShadowPass( 0 ) );
 	assert( RHI_GetRenderArea().width == 1024 );
@@ -124,6 +125,7 @@ static void shadowCommands( bool screen ) {
 	RHI_EndShadowPass();
 	assert( begun == 4 && ended == 3 && resumed == 1 );
 	assert( vk.renderPassIndex == pass );
+	assert( vk_world.dirty_depth_attachment == GLS_DEPTHMASK_TRUE );
 	const auto restored = RHI_GetRenderArea();
 	assert( restored.width == area.width && restored.height == area.height );
 	assert( restored.scaleX == area.scaleX && restored.scaleY == area.scaleY );

@@ -759,7 +759,7 @@ static_assert( RHI_GRAPH_BLOOM_PASSES == VK_NUM_BLOOM_PASSES );
 static_assert( ARRAY_LEN( vk_graph.targetOrder ) == MAX_ATTACHMENTS_IN_POOL );
 static const char *const vk_graph_names[] = {
 	"screenmap", "main", "bloom_extract", "blur 0", "blur 1", "blur 2", "blur 3",
-	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma", "local shadow", "sun shadow"
+	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma", "local shadow", "sun shadow", "main resumed", "screenmap resumed"
 };
 static_assert( ARRAY_LEN( vk_graph_names ) == (uint32_t)rhiGraphPass_t::Count );
 
@@ -810,6 +810,10 @@ static VkRenderPass *vk_graph_pass( rhiGraphPass_t pass ) {
 		return &vk.render_pass.shadow[0];
 	case P::SunShadow:
 		return &vk.render_pass.shadow[1];
+	case P::MainResume:
+		return &vk.render_pass.resume[0];
+	case P::ScreenResume:
+		return &vk.render_pass.resume[1];
 	case P::PostBloom:
 		return &vk.render_pass.post_bloom;
 	case P::BloomExtract:
@@ -846,6 +850,8 @@ static VkAccessFlags vk_graph_access( uint32_t access ) {
 }
 
 static VkPipelineStageFlags vk_graph_stage( rhiGraphStage_t stage ) {
+	if ( stage == rhiGraphStage_t::SceneAttachments )
+		return VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 	if ( stage == rhiGraphStage_t::DepthTests )
 		return VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 	return stage == rhiGraphStage_t::Fragment ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT : VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -4117,6 +4123,9 @@ static void vk_destroy_render_passes( void ) {
 		if ( vk.render_pass.shadow[index] )
 			qvkDestroyRenderPass( vk.device, vk.render_pass.shadow[index], NULL );
 		vk.render_pass.shadow[index] = VK_NULL_HANDLE;
+		if ( vk.render_pass.resume[index] )
+			qvkDestroyRenderPass( vk.device, vk.render_pass.resume[index], NULL );
+		vk.render_pass.resume[index] = VK_NULL_HANDLE;
 	}
 	uint32_t i;
 
@@ -6169,12 +6178,12 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 	multisample_state.pNext = NULL;
 	multisample_state.flags = 0;
 
-	multisample_state.rasterizationSamples = (VkSampleCountFlagBits)( ( renderPassIndex == RENDER_PASS_SCREENMAP ) ? vk.screenMapSamples : vkSamples );
+	multisample_state.rasterizationSamples = renderPassIndex == RENDER_PASS_SHADOW ? VK_SAMPLE_COUNT_1_BIT : (VkSampleCountFlagBits)( ( renderPassIndex == RENDER_PASS_SCREENMAP ) ? vk.screenMapSamples : vkSamples );
 
 	multisample_state.sampleShadingEnable = VK_FALSE;
 	multisample_state.minSampleShading = 1.0f;
 	multisample_state.pSampleMask = NULL;
-	multisample_state.alphaToCoverageEnable = alphaToCoverage;
+	multisample_state.alphaToCoverageEnable = renderPassIndex == RENDER_PASS_SHADOW ? VK_FALSE : alphaToCoverage;
 	multisample_state.alphaToOneEnable = VK_FALSE;
 
 	Com_Memset( &depth_stencil_state, 0, sizeof( depth_stencil_state ) );
@@ -6310,8 +6319,8 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 	blend_state.flags = 0;
 	blend_state.logicOpEnable = VK_FALSE;
 	blend_state.logicOp = VK_LOGIC_OP_COPY;
-	blend_state.attachmentCount = 1;
-	blend_state.pAttachments = &attachment_blend_state;
+	blend_state.attachmentCount = renderPassIndex == RENDER_PASS_SHADOW ? 0 : 1;
+	blend_state.pAttachments = renderPassIndex == RENDER_PASS_SHADOW ? NULL : &attachment_blend_state;
 	blend_state.blendConstants[0] = 0.0f;
 	blend_state.blendConstants[1] = 0.0f;
 	blend_state.blendConstants[2] = 0.0f;
@@ -6343,7 +6352,9 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 	else
 		create_info.layout = vk.pipeline_layout;
 
-	if ( renderPassIndex == RENDER_PASS_SCREENMAP )
+	if ( renderPassIndex == RENDER_PASS_SHADOW )
+		create_info.renderPass = vk.render_pass.shadow[0];
+	else if ( renderPassIndex == RENDER_PASS_SCREENMAP )
 		create_info.renderPass = vk.render_pass.screenmap;
 	else
 		create_info.renderPass = vk.render_pass.main;
@@ -6741,6 +6752,10 @@ static void vk_begin_render_pass( VkRenderPass renderPass, VkFramebuffer frameBu
 		render_pass_begin_info.pClearValues = clear_values;
 
 		vk_world.dirty_depth_attachment = 0;
+		if ( renderPass == vk.render_pass.shadow[0] || renderPass == vk.render_pass.shadow[1] ) {
+			clear_values[0].depthStencil.depth = 0;
+			render_pass_begin_info.clearValueCount = 1;
+		}
 	} else {
 		render_pass_begin_info.clearValueCount = 0;
 		render_pass_begin_info.pClearValues = NULL;
@@ -6759,6 +6774,14 @@ static void vk_begin_render_pass( VkRenderPass renderPass, VkFramebuffer frameBu
 		name = "bloom extract";
 	else if ( renderPass == vk.render_pass.post_bloom )
 		name = "post bloom";
+	else if ( renderPass == vk.render_pass.shadow[0] )
+		name = "local shadow";
+	else if ( renderPass == vk.render_pass.shadow[1] )
+		name = "sun shadow";
+	else if ( renderPass == vk.render_pass.resume[0] )
+		name = "main resumed";
+	else if ( renderPass == vk.render_pass.resume[1] )
+		name = "screenmap resumed";
 	vk.cmd->profile.passScope = RHI_BeginScope( name );
 	qvkCmdBeginRenderPass( vk.cmd->command_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE );
 
@@ -6852,6 +6875,37 @@ void RHI_EndPass( void ) {
 	vk.cmd->profile.passScope = RHI_INVALID_OFFSET;
 
 	//	vk.renderPassIndex = RENDER_PASS_MAIN;
+}
+
+bool RHI_BeginShadowPass( uint32_t atlas ) {
+	if ( !vk.cmd || atlas >= 2 || !vk.render_pass.shadow[atlas] )
+		return false;
+	if ( vk.renderPassIndex != RENDER_PASS_SHADOW ) {
+		vk.shadowResumePass = vk.renderPassIndex;
+		vk.shadowResumeArea = RHI_GetRenderArea();
+		vk.shadowResumeDirtyDepth = vk_world.dirty_depth_attachment;
+	}
+	RHI_EndPass();
+	vk.renderPassIndex = RENDER_PASS_SHADOW;
+	vk.renderWidth = vk.renderHeight = vk_config.shadowMapSize;
+	vk.renderScaleX = vk.renderScaleY = 1;
+	vk_begin_render_pass( vk.render_pass.shadow[atlas], vk.framebuffers.shadow[atlas], qtrue, vk.renderWidth, vk.renderHeight );
+	return true;
+}
+
+void RHI_EndShadowPass( void ) {
+	if ( !vk.cmd || vk.renderPassIndex != RENDER_PASS_SHADOW )
+		return;
+	RHI_EndPass();
+	vk.renderPassIndex = vk.shadowResumePass;
+	vk.renderWidth = vk.shadowResumeArea.width;
+	vk.renderHeight = vk.shadowResumeArea.height;
+	vk.renderScaleX = vk.shadowResumeArea.scaleX;
+	vk.renderScaleY = vk.shadowResumeArea.scaleY;
+	vk_world.dirty_depth_attachment = vk.shadowResumeDirtyDepth;
+	const bool screen = vk.renderPassIndex == RENDER_PASS_SCREENMAP;
+	const VkFramebuffer framebuffer = screen ? vk.framebuffers.screenmap : vk.framebuffers.main[vk.cmd->swapchain_image_index];
+	vk_begin_render_pass( vk.render_pass.resume[screen ? 1 : 0], framebuffer, qfalse, vk.renderWidth, vk.renderHeight );
 }
 
 

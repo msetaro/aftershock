@@ -87,6 +87,9 @@ int main( void ) {
 	for ( const auto id : { rhiGraphPass_t::MainResume, rhiGraphPass_t::ScreenResume } ) {
 		const auto &node = graph.passes[pass( id )];
 		assert( node.enabled && node.depth == 1 );
+		assert( node.dependencies[0].sourceStage == rhiGraphStage_t::SceneAttachments );
+		assert( node.dependencies[0].sourceAccess & RHI_GRAPH_DEPTH_WRITE );
+		assert( node.dependencies[0].destinationAccess & RHI_GRAPH_DEPTH_READ );
 		for ( uint32_t i = 0; i < node.attachmentCount; ++i ) {
 			assert( node.attachments[i].load == rhiGraphLoad_t::Load );
 			assert( node.attachments[i].store == rhiGraphStore_t::Store );
