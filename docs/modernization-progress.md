@@ -62,6 +62,22 @@ After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
 
+## #16 client playback checkpoint
+
+2366b157 records the real-client failure before registration/playback existed
+(audio-runtime-before.log and audio-runtime-before/client.log). OpenArena now
+passes tests/audio_runtime.py through the SDL dummy output backend: one cooked
+PCM buffer stays at 28,800 bytes across three plays (including HRTF), every voice
+retires, and peak mixed output is 5,656.854 PCM units. The private client log is
+in audio-runtime-oa/. GCC development client/server builds pass. Authored events
+use the existing sound handle/animation-notify path and platform output. Up to
+128 event records, 512 prepared PCM samples and 64 MiB are retained until sound
+shutdown; individual PCM resources are capped at 16 MiB. Registration failure
+rolls back newly prepared storage. Mixing, position updates and voice admission
+make no allocation/file calls. No legacy sample path or accepted fixture changes.
+This is an intermediate check: real weapon near/far, occlusion/reverb, streams,
+VoIP, allocation instrumentation and final multi-platform gates remain.
+
 ## #16 mixed PCM checkpoint
 
 76876e91 records the missing mixer API failure (audio-playback-before.log).

@@ -194,7 +194,7 @@ void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, i
 		const float seconds = voiceAudible ? 0.005f : 0.25f;
 		mixer->duck += ( target - mixer->duck ) / ( rate * seconds );
 		for ( uint32_t bus = 0; bus < S_BUS_COUNT; ++bus ) {
-			float gain = std::clamp( mixer->busGain[bus], 0.0f, 1.0f );
+			float gain = std::isfinite( mixer->busGain[bus] ) ? std::clamp( mixer->busGain[bus], 0.0f, 1.0f ) : 0.0f;
 			if ( bus == S_BUS_MUSIC )
 				gain *= 1.0f - mixer->duck * 0.65f;
 			else if ( bus == S_BUS_AMBIENT )

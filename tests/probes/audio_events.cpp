@@ -67,4 +67,34 @@ int main( int argc, char **argv ) {
 			assert( std::isfinite( frame[0] ) && std::isfinite( frame[1] ) );
 	}
 	assert( mixer.active == 0 );
+	// Bus attenuation and voice ducking operate on actual mixed samples.
+	mixer = {};
+	auto music = event, speech = event;
+	music.bus = S_BUS_MUSIC;
+	speech.bus = S_BUS_VOICE;
+	music.layerCount = speech.layerCount = 1;
+	music.layers[0].gain = speech.layers[0].gain = 1;
+	static int16_t sustained[48000];
+	for ( auto &sample : sustained )
+		sample = 1000;
+	samples[0] = { sustained, 48000, 48000, 1 };
+	mixer.busGain[S_BUS_MUSIC] = .5f;
+	assert( S_StartEventVoice( &mixer, &music, samples, spatial, false, 48000, .0875f ) >= 0 );
+	memset( output, 0, sizeof( output ) );
+	S_MixEvents( &mixer, output, 256, 48000 );
+	assert( std::fabs( output[100][1] - 500 ) < .01f );
+	const int talker = S_StartEventVoice( &mixer, &speech, samples, spatial, false, 48000, .0875f );
+	assert( talker >= 0 );
+	for ( int i = 0; i < 10; ++i ) {
+		memset( output, 0, sizeof( output ) );
+		S_MixEvents( &mixer, output, 256, 48000 );
+	}
+	assert( output[100][1] > 1174 && output[100][1] < 1180 );
+	mixer.voices[talker].event = nullptr;
+	--mixer.active;
+	for ( int i = 0; i < 100; ++i ) {
+		memset( output, 0, sizeof( output ) );
+		S_MixEvents( &mixer, output, 256, 48000 );
+	}
+	assert( output[100][1] > 450 && output[100][1] < 500 );
 }
