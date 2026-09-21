@@ -49,6 +49,15 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 theme-license contract
+
+Before fetching art, a new test requires tools/assets validate to enforce complete
+file coverage, source URL/author/license/retrieval metadata, original and cooked
+SHA256 hashes and generated CREDITS. Controls reject an unlisted file, CC-BY without
+an explicit maintainer allowlist, incorrect hashes and an unapproved image
+provider. It fails first because the tool does not exist (sketch-license-before.log).
+Default external asset license is CC0-1.0; no new non-CC0 permission is inferred.
+
 ## #164 unread-mark accounting passes
 
 Every remaining known-color component now becomes a numbered unread mark with
