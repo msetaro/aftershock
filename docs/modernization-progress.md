@@ -67,6 +67,22 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #161 hardware measurement preparation
+
+The existing renderer runs on the local RTX 3080 Ti at verified 2560x1440
+capture/render resolution. Presenting a full-size image to private Xvfb adds
+substantial CPU cost (44.033 ms median); this is not evidence of GPU overload.
+Using existing r_fbo/r_renderScale with a 2560x1440 offscreen target and 640x360
+presentation gives CPU frame p50/p95/p99 4.689/6.386/9.009 ms after 4096 warm
+frames. Across 50 samples, GPU main p50/p95 is 1.096/1.100 ms and gamma is
+0.271/0.275 ms. NVIDIA ICD/device and the saved 1440p PNG dimensions are checked.
+Evidence: fidelity-hardware-{baseline,small-present}.py/.log and the corresponding
+report.json/capture directories in the private modernization cache. This is a
+static existing-renderer baseline, not #161 feature/streaming acceptance. The two
+runs use different offscreen settings and are not a feature A/B comparison.
+All later hardware budgets must use a consistent render/presentation configuration.
+No repository renderer or accepted frame changes were made for this experiment.
+
 ## #161 native fixed-pool effect contract
 
 The native probe specifies trivial fixed storage, valid cooked definition opening,
