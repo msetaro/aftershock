@@ -13,6 +13,7 @@ import tempfile
 from run import ROOT
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--compile', action='store_true')
+parser.add_argument('--output',type=Path,help='retain compiled overhead evidence')
 args = parser.parse_args()
 fixture = ROOT/'tests/assets/levels'
 legacy = json.loads((fixture/'two_lane.json').read_text())
@@ -78,6 +79,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
         overhead = compare(a['bsp'],interpretation,folder/'overhead',threshold=.93)
         assert overhead['passed'] and all(v['iou']>.93 for v in overhead['classes'].values()),overhead
         assert (folder/'overhead/compiled-overhead.png').is_file() and (folder/'overhead/overhead-difference.png').is_file()
+        if args.output:
+            shutil.copytree(folder/'overhead',args.output,dirs_exist_ok=True)
         wrong = copy.deepcopy(interpretation)
         wrong['marks'][0]['pixel_polygon'] = [[x+100,y] for x,y in wrong['marks'][0]['pixel_polygon']]
         mismatch = compare(a['bsp'],wrong,folder/'wrong-overhead',threshold=.93)
@@ -119,6 +122,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
     assert not solid(upper,[-128,-160,80]), 'rule-based street-facing window absent'
     assert solid(upper,[-144,0,120]), 'upper floor slab absent'
     assert not solid(upper,[0,-32,248]), 'roof stairwell must remain open'
+    sys.path.insert(0,str(ROOT/'tools/level'))
+    from headless import flythrough
+    cameras = flythrough(changed)
+    assert len(cameras)>=4 and any(c['origin'][2]>280 for c in cameras), 'v2 flythrough never reaches the roof'
+    assert all(not solid(upper,c['origin']) for c in cameras), 'flythrough camera inside a compiled brush'
+
     def groups(data):
         parts = re.split(r'// shape ([a-z0-9_]+)\n',data.decode())
         assert len(parts)>1, 'v2 MAP needs stable source shape labels'

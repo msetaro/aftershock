@@ -52,6 +52,18 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 v2 fly-through contract
+
+The multi-storey fixture now requires automatic camera samples reaching the roof
+without entering compiled brush interiors. It fails because the old fly-through
+reads v1 rooms (sketch-flythrough-before.log). Reuse the existing player-clearance
+search paths for v2 instead of inventing a second navigation sampler.
+
+Compiled-overhead implementation has passed its independent control: building and
+solid class IoUs are 1.0 at threshold 0.93; displaced expected geometry fails.
+The actual 30-triangle class image was reviewed. Retained report/images:
+/home/matt/.cache/aftershock-modernization/sketch-overhead-evidence.
+
 ## #164 compiled-overhead contract
 
 The compiled polygon test now requires a CPU orthographic projection of actual
