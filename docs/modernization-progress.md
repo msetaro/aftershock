@@ -76,6 +76,14 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 pinned recipe interpreter control
+
+The recipe harness launched through a private venv fails the new prefix check:
+its shell commands fall back to system python3 (agent-recipe-python-before.log).
+Prepend the selected interpreter's bin directory to the recipe PATH so hosted
+recipes inherit the same pinned cooker environment. The client total-deadline
+control now passes with the ordinary stdout/stderr launcher contract.
+
 ## #163 client deadline test-first checkpoint
 
 The client contract proves that queued events currently restart request timeout

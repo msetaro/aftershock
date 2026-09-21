@@ -88,6 +88,8 @@ print(json.dumps(value))
                BISECT_GOOD=good,BISECT_BAD=bad,VERIFIED_COMMIT=bad,NEW_KNOWN_GOOD='known-good-2099-01-01',
                CLIENT=str(args.client.resolve()),SERVER=str(args.server.resolve()),
                CONTENT=args.content,DATA=str(args.data.resolve()),MAP='oa_dm1' if args.content=='openarena' else 'q3dm17')
+    selected_prefix = subprocess.check_output(['python3','-c','import sys; print(sys.prefix)'],env=env,text=True).strip()
+    assert selected_prefix == sys.prefix, 'recipe shell escaped the selected Python environment'
     for name,command in commands.items():
         destination = output/name
         destination.mkdir()
