@@ -322,7 +322,14 @@ volumes. Voice activity ducks music/ambient with a 5 ms attack and 250 ms releas
 `s_audioInfo` reports prepared storage and mixed output. Registration retains at
 most 128 events, 512 PCM resources and 64 MiB until sound shutdown (16 MiB per
 resource); registration rejects exhausted capacity. Ordinary sound paths retain
-the legacy behavior. Room acoustics/streaming/voice integration remain in progress.
+the legacy behavior. The runtime check also compiles an owned room with `audio_zones`, checks a
+nonzero wet tail indoors and dry output outside, and verifies a native wall trace.
+Each optional zone contains `mins`, `maxs`, `wet` (0–1), `decay` (0.1–10 seconds),
+and `damping` (0–0.95); up to 32 zones are supported, first matching zone wins.
+`s_event path.asevt x y z` plays at a world position. Occlusion uses at most eight
+round-robin static-world traces per spatial update, with a smoothed low-pass/gain
+response; moving entity occluders are outside this implementation. Streaming and
+voice integration remain in progress.
 
 `python3 tests/audio_spatial.py` checks the authored-audio spatial component
 with UBSan (also accepts `--cxx 'clang++ -stdlib=libc++'`). It covers stereo

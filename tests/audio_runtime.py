@@ -6,6 +6,8 @@ import math
 import os
 from pathlib import Path
 import re
+import shutil
+import sys
 import struct
 import subprocess
 import tempfile
@@ -31,10 +33,21 @@ with tempfile.TemporaryDirectory(prefix='aftershock-audio-runtime-') as temporar
     home = Path(temporary)
     base = home / ('baseoa' if args.content == 'openarena' else 'baseq3')
     base.mkdir()
-    for pak in paks:
-        (base / pak.name).symlink_to(pak)
     source = home / 'source'
     source.mkdir()
+    fixture = ROOT / 'tests/assets/levels'
+    level = json.loads((fixture / 'two_lane.json').read_text())
+    level['name'] = 'audio_room'
+    level['audio_zones'] = [dict(mins=[-256,-256,0], maxs=[256,256,192], wet=.6, decay=.5, damping=.3)]
+    shutil.copytree(fixture / 'assets', source / 'assets')
+    level_path = source / 'level.json'
+    level_path.write_text(json.dumps(level))
+    with (args.output / 'compile.json').open('w') as log:
+        subprocess.run([sys.executable, str(ROOT / 'tools/level'), str(level_path), '--output', str(base)],
+                       cwd=ROOT, stdout=log, check=True, timeout=600)
+    shutil.copyfile(base / 'compile.log', args.output / 'compile.log')
+    for pak in paks:
+        (base / pak.name).symlink_to(pak)
     with wave.open(str(source / 'tone.wav'), 'wb') as stream:
         stream.setparams((1, 2, 48000, 14400, 'NONE', 'not compressed'))
         stream.writeframes(b''.join(struct.pack('<h', round(8000 * math.sin(i * math.tau * 440 / 48000)))
@@ -54,6 +67,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-audio-runtime-') as temporar
                 'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
                 'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
                 'set s_hrtf 1', 'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
+                'devmap audio_room', 'wait 120', 'setviewpos -160 -160 24 0', 'wait 10', 's_stop',
+                'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
+                'setviewpos 1696 160 56 180', 'wait 10', 's_stop',
+                'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
+                'setviewpos -160 -160 24 0', 'wait 10', 's_stop',
+                's_event sound/audio_event.asevt 768 0 50', 'wait 90', 's_audioInfo',
                 'disconnect', 'quit']
     (base / 'audio-test.cfg').write_text('\n'.join(commands) + '\n')
     command = ['xvfb-run', '-a', str(args.binary.resolve()), '+set', 'fs_basepath', str(home),
@@ -67,9 +86,15 @@ with tempfile.TemporaryDirectory(prefix='aftershock-audio-runtime-') as temporar
                        check=True, timeout=120)
 text = (args.output / 'client.log').read_text(errors='replace')
 stats = re.findall(r'Audio events: events=(\d+) samples=(\d+) bytes=(\d+) active=(\d+) started=(\d+) mixed=(\d+) peak=([\d.]+)', text)
-assert len(stats) == 3, 'all authored playback checkpoints must run'
+assert len(stats) == 6, 'all authored playback checkpoints must run'
 assert all(row[:4] == ('1', '1', '28800', '0') for row in stats), stats
-assert [int(row[4]) for row in stats] == [1, 2, 3], stats
-assert all(int(row[5]) >= (i + 1) * 14400 and float(row[6]) > 1000 for i, row in enumerate(stats)), stats
-assert 'Audio event rejected' not in text
-print('PASS: cooked event PCM reaches output, playback cache stays fixed, HRTF voice retires')
+assert [int(row[4]) for row in stats[:3]] == [1, 2, 3], stats
+assert all(int(row[5]) >= (i + 1) * 14400 and float(row[6]) > 1000 for i, row in enumerate(stats[:3])), stats
+acoustics = re.findall(r'zones=(\d+) zone=(-?\d+) wet=([\d.]+) traced=(\d+) blocked=(\d+) wetPeak=([\d.]+)', text)
+assert len(acoustics) == 6, acoustics
+room, outdoors, wall = acoustics[3:]
+assert room[:2] == ('1', '0') and float(room[2]) > .59 and float(room[5]) > 1, room
+assert outdoors[:2] == ('1', '-1') and float(outdoors[5]) == 0, outdoors
+assert int(wall[3]) > 0 and int(wall[4]) > 0, wall
+assert 'Audio event rejected' not in text and 'Audio zone rejected' not in text
+print('PASS: cooked PCM playback, fixed cache, HRTF retirement, authored room/outdoor reverb and native wall occlusion')

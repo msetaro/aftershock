@@ -62,6 +62,25 @@ After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
 
+## #16 authored room and occlusion acceptance
+
+29f17b9d records the optional level-field failure before audio_zones existed
+(audio-level-before.log). The v1/v2 level contracts now accept up to 32 AABB audio
+volumes and emit audio_zone_N worldspawn keys. First matching volume wins; outside
+volumes is dry. The existing two_lane MAP remains byte-identical when no zone is
+authored (tests/level.py). The native reader rejects invalid bounds/parameters.
+Both content sets now pass the extended real-client test with an owned compiled
+room: wet peak 414.676 PCM units indoors, 0 outdoors; wall traces are blocked
+(10/10 OpenArena, 7/7 Quake 3). A fixed 28,800-byte prepared buffer is reused
+throughout, and every voice retires. Logs: audio-acoustics-oa/ and
+ audio-acoustics-q3/, plus their matching .log summaries. The room level is a new
+private derivative of owned source; accepted maps/goldens were not regenerated.
+`s_event path.asevt x y z` exercises world-position playback; s_audioInfo includes
+zone, wet peak and trace counters. This validates native static-world occlusion
+and data-authored reverb, not yet actual weapon near/far or streaming/VoIP.
+Next address streamed music/ambient with bounded reusable I/O, then VoIP and final
+weapon acceptance. PR171 remains draft; final gates must include current main.
+
 ## #16 acoustic DSP checkpoint
 
 Draft PR171 is open against main at 646dec73 for early compiler/regression feedback;

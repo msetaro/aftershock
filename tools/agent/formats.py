@@ -63,8 +63,10 @@ def level_schema():
                   rules=obj({key:num(1,64000,True) for key in ('min_corridor_width','min_door_height','max_sightline','max_cover_gap')}),
                   rooms=array(room,1), connections=array(connection), spawns=array(spawn,1), cover=array(cover,1),
                   props=array(prop), pickups=array(obj(dict(classname=enum(*pickups),origin=vector()))),
-                  lighting=lighting, viewpoints=array(view,0,64))
-    legacy = obj(fields,[key for key in fields if key!='viewpoints'])
+                  lighting=lighting, viewpoints=array(view,0,64),
+                  audio_zones=array(obj(dict(mins=vector(integer=False),maxs=vector(integer=False),
+                                             wet=num(0,1),decay=num(.1,10),damping=num(0,.95))),0,32))
+    legacy = obj(fields,[key for key in fields if key not in ('viewpoints','audio_zones')])
     from tools.level.schema import version2
     return {'if':dict(properties=dict(version=dict(const=2)),required=['version']),
             'then':version2(legacy),'else':legacy}

@@ -20,7 +20,7 @@ static struct {
 } samples[512];
 static uint32_t eventCount, sampleCount, sampleBytes, started;
 static uint64_t mixed;
-static float peak;
+static float peak, wetPeak;
 static sEventMixer_t mixer;
 static sReverb_t reverb;
 static struct {
@@ -49,8 +49,28 @@ bool S_AuthoredHandle( sfxHandle_t handle ) {
 }
 
 static void Info() {
-	Com_Printf( "Audio events: events=%u samples=%u bytes=%u active=%u started=%u mixed=%" PRIu64 " peak=%.3f zones=%u zone=%d wet=%.3f traced=%u blocked=%u\n",
-		eventCount, sampleCount, sampleBytes, mixer.active, started, mixed, double( peak ), zoneCount, zoneIndex, double( reverb.wet ), traced, blocked );
+	Com_Printf( "Audio events: events=%u samples=%u bytes=%u active=%u started=%u mixed=%" PRIu64 " peak=%.3f zones=%u zone=%d wet=%.3f traced=%u blocked=%u wetPeak=%.3f\n",
+		eventCount, sampleCount, sampleBytes, mixer.active, started, mixed, double( peak ), zoneCount, zoneIndex, double( reverb.wet ), traced, blocked, double( wetPeak ) );
+}
+
+static void PlayAt() {
+	if ( Cmd_Argc() != 5 ) {
+		Com_Printf( "Usage: s_event <event.asevt> <x> <y> <z>\n" );
+		return;
+	}
+	vec3_t origin;
+	for ( int i = 0; i < 3; ++i ) {
+		char *end;
+		const char *text = Cmd_Argv( i + 2 );
+		origin[i] = strtof( text, &end );
+		if ( end == text || *end || !std::isfinite( origin[i] ) || std::fabs( origin[i] ) > 32000 ) {
+			Com_Printf( "Audio event rejected: position\n" );
+			return;
+		}
+	}
+	const auto handle = S_AuthoredRegister( Cmd_Argv( 1 ) );
+	if ( handle )
+		S_AuthoredStart( origin, ENTITYNUM_WORLD, handle );
 }
 
 void S_AuthoredInit() {
@@ -66,6 +86,7 @@ void S_AuthoredInit() {
 		Cvar_CheckRange( busVolumes[bus], "0", "1", CV_FLOAT );
 	}
 	Cmd_AddCommand( "s_audioInfo", Info );
+	Cmd_AddCommand( "s_event", PlayAt );
 }
 
 void S_AuthoredClear() {
@@ -74,7 +95,7 @@ void S_AuthoredClear() {
 	memset( entities, 0, sizeof( entities ) );
 	started = 0;
 	mixed = 0;
-	peak = 0.0f;
+	peak = wetPeak = 0.0f;
 	memset( &reverb, 0, sizeof( reverb ) );
 	S_ConfigureReverb( &reverb, dma.speed, 0.0f, 1.0f, 0.5f );
 	zoneIndex = -2;
@@ -89,6 +110,7 @@ void S_AuthoredShutdown() {
 	memset( events, 0, sizeof( events ) );
 	eventCount = sampleCount = sampleBytes = 0;
 	Cmd_RemoveCommand( "s_audioInfo" );
+	Cmd_RemoveCommand( "s_event" );
 	hrtf = nullptr;
 	zoneCount = 0;
 }
@@ -331,6 +353,7 @@ void S_AuthoredPaint( portable_samplepair_t *paint, int frames, float volume ) {
 	for ( int frame = 0; frame < frames; ++frame ) {
 		float wet[2];
 		S_ReverbSample( &reverb, sends[frame], wet );
+		wetPeak = std::max( wetPeak, std::max( std::fabs( wet[0] ), std::fabs( wet[1] ) ) );
 		output[frame][0] += wet[0];
 		output[frame][1] += wet[1];
 		peak = std::max( peak, std::max( std::fabs( output[frame][0] ), std::fabs( output[frame][1] ) ) );
