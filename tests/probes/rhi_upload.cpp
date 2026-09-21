@@ -182,7 +182,7 @@ static void check_compressed_uploads() {
 	vk.staging_buffer = {};
 }
 
-static uint8_t streamStaging[4 * 1024 * 1024], streamSource[24 * 1024 * 1024];
+static uint8_t streamStaging[1024 * 1024], streamSource[24 * 1024 * 1024];
 static uint32_t streamSubmits, streamCopied, streamAllocations, streamTransitions;
 static bool streamReady;
 static uint32_t streamWidth = 4096, streamHeight = 4096, streamBlockBytes = 16;
@@ -258,11 +258,11 @@ static void check_async_texture_upload() {
 	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete && streamSubmits == 1 );
 	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete && streamSubmits == 1 );
 	streamReady = true;
-	for ( uint32_t i = 0; i < 10 && !complete; ++i )
+	for ( uint32_t i = 0; i < 32 && !complete; ++i )
 		assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success );
-	assert( complete && streamCopied == size && streamSubmits == 6 && streamTransitions == 2 && streamAllocations == allocated );
+	assert( complete && streamCopied == size && streamSubmits == 22 && streamTransitions == 2 && streamAllocations == allocated );
 	const auto timed = RHI_GetTextureUploadStats();
-	assert( timed.submissions == 6 && timed.submittedBytes == size && timed.gpuSamples == 6 );
+	assert( timed.submissions == 22 && timed.submittedBytes == size && timed.gpuSamples == 22 );
 	assert( fabs( timed.gpuUsec - .022 ) < 1e-9 ); // Eight-bit timestamp wrap: 11 ticks at 2 ns.
 
 	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete );

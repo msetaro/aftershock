@@ -82,6 +82,14 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 smaller transfer test-first
+
+The native probe now requires 1 MiB fixed staging and 22 submissions for the same
+4K BC7 chain, preserving every mip row/byte and every GPU timing sample. It fails
+against the 4 MiB implementation at the staging-size assertion
+(fidelity-stream-1m-before.log). This changes the throughput/latency tradeoff to
+meet the existing measured budgets; the budget thresholds stay unchanged.
+
 ## #161 first streaming hardware measurement: budget miss
 
 Nonblocking GPU timestamp reporting passes native GCC/Clang probes and real RTX
