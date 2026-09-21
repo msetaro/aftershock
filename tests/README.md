@@ -1435,7 +1435,9 @@ checks FP control preservation, hashes ordered final positions/quaternions, and
 requires a changed impulse to change the result. A second independent replay
 must match exactly. Each process also repeats setup/teardown and replay, checks
 that caller allocators are preserved, rejects partial allocator registration,
-and requires zero outstanding blocks before reinitialization. It creates no accepted golden and needs no game content.
+and requires zero outstanding blocks before reinitialization. A child-process
+check requires explicit failure at temporary-buffer exhaustion; its diagnostic
+is retained in `temporary-exhaustion.log`. It creates no accepted golden and needs no game content.
 
 Use `--cxx 'clang++ -stdlib=libc++' --output /tmp/physics-clang` for the second
 compiler. CMake, Ninja and the selected compiler/runtime are required. Builds

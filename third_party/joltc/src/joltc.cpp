@@ -793,15 +793,8 @@ bool JPH_Init()
 	// Register all Jolt physics types
 	JPH::RegisterTypes();
 
-#if defined(__SANITIZE_THREAD__) || defined(ENABLE_SANITIZER)
-	// ThreadSanitizer does not understand Jolt's lock-free 8MB bump allocator
-	// and will flag cross-frame memory reuse as data races.
-	// We fall back to standard malloc/free which TSan can track perfectly.
-	s_TempAllocator = new TempAllocatorMalloc();
-#else
-	// High-performance lock-free allocator for production
-	s_TempAllocator = new TempAllocatorImplWithMallocFallback(8 * 1024 * 1024);
-#endif
+	// Aftershock: fixed legacy API storage; Update2 accepts a caller-sized buffer.
+	s_TempAllocator = new TempAllocatorImpl(8 * 1024 * 1024);
 
 	s_initialized = true;
 
@@ -11800,7 +11793,7 @@ void JPH_LinearCurve_GetPoints(const JPH_LinearCurve* curve, JPH_Point* points, 
 
 JPH_TempAllocator *JPH_TempAllocator_Create(uint32_t size)
 {
-    return ToTempAllocator(new TempAllocatorImplWithMallocFallback(size));
+    return ToTempAllocator(new TempAllocatorImpl(size));
 }
 
 JPH_TempAllocator *JPH_TempAllocatorMalloc_Create(void)

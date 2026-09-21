@@ -49,7 +49,8 @@ assert first == repeat, 'same ordered commands must reproduce final transforms'
 assert first != changed, 'changed impulse must fail the replay comparison'
 exhausted = subprocess.run([str(probe), str(scene), str(args.output/'tiny.bin'), 'tiny'],
                           cwd=ROOT, env=ENV, capture_output=True, text=True, timeout=30)
+(args.output/'temporary-exhaustion.log').write_text(exhausted.stderr)
 assert exhausted.returncode and 'TempAllocator: Out of memory' in exhausted.stderr, exhausted.stderr
 assert 'physics step' not in exhausted.stderr, 'temporary exhaustion must not fall back to allocation'
-print('PASS: recorded props, constraints, allocation-free steps and replay negative control',
+print('PASS: recorded props, constraints, allocation-free steps, bounded temporary storage and replay negative control',
       hashlib.sha256(first).hexdigest())

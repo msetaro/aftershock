@@ -28,21 +28,25 @@ f21454591ae494c1f7d023b6fd5d063c005a4b29. Known-good remains object 8bc8c94c
 pointing to 81a0f9dc, verified against origin after the merge.
 
 Merged-tree build/publication 35638549208 passed. Regression 35638548512 has nine
-active jobs passing, including lifetimes; runtime is still running. Watch it; do not mark #161 accepted in #25 until publication and all ten active
-regression jobs pass. The merged tree is identical to the tested head.
+active jobs passing, including lifetimes; runtime is still running. Watch it;
+do not mark #161 accepted in #25 until publication and all ten active regression
+jobs pass. The merged tree is identical to the tested head.
 
 Continue #15 on issue/15-jolt-physics in
 /home/matt/.cache/aftershock-modernization/physics-tree, branched from main 0928be35.
-Read issue #15 and preserve the existing movement, traces, triggers, movers,
-hit registration and authoritative weapon trajectories. Jolt is for cosmetic
-props/grenade bodies and skeleton-driven death presentation. The first permanent allocation/determinism test is written and fails at missing
-cmake/Physics.cmake before any dependency or engine implementation is imported.
-Pinned original Jolt/joltc sources and a scoped offline CMake helper are imported.
-The permanent UBSan probe builds and fails on one allocation at step 0. Reserved-scratch/job-page changes now pass the permanent GCC and Clang/libc++
-UBSan tests. Caller allocator ownership and full initialization/shutdown now pass on both
-compilers. Next prove no-fallback temporary storage, then implement the owned POD
-physics boundary and full-capacity/recycle controls. No #15 PR
-or engine implementation exists yet.
+Preserve existing movement, traces, triggers, movers, hit registration and
+all authoritative weapon trajectories. Jolt is for cosmetic props/grenade bodies
+and skeleton-driven death presentation. The pinned dependency and scoped offline
+CMake helper are imported. Permanent GCC and Clang/libc++ UBSan checks now pass
+recorded replay, changed-input comparison, zero step allocations, caller allocator
+ownership, complete teardown/reinitialization, FP control and fixed temporary
+buffer exhaustion. Each change followed its recorded failing test.
+
+Next implement/test the owned POD physics boundary with caller-owned arena
+storage and prepared body/shape pools. Prove full-capacity spawn/recycle and
+queries before connecting client props, skeleton death presentation and tooling.
+No engine target links physics yet, and #15 has no PR. The branch checkpoint is
+pushed through 7b483e71; later ownership/buffer commits will be pushed together.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
 /home/matt/.cache/aftershock-modernization/physics-research.md. Pinned Jolt 5.6.0
@@ -68,6 +72,20 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 standard temporary storage is bounded
+
+The C binding's standard explicit buffer and legacy default now use fixed
+TempAllocatorImpl storage. The 1 KiB child-process case reports explicit exhaustion
+instead of allocating; GCC and Clang/libc++ UBSan both pass the normal/restart,
+changed-impulse and exhausted-buffer checks. The scene hash remains be15e66a...
+(the complete hash is recorded below). Evidence: physics-temp-after.log /
+physics-temp-clang.log; the driver retains temporary-exhaustion.log.
+
+Next implement/test the owned POD physics boundary, using caller-owned arena
+storage and prepared body/shape pools. Prove full capacity, spawn/recycle and
+queries before connecting client props, skeleton death presentation and tooling.
+The dependency is still not linked into engine targets. #15 has no PR yet.
 
 ## #15 temporary-buffer negative control fails before fallback removal
 
