@@ -49,6 +49,17 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 theme-license enforcement passes
+
+The initial manifest validator passes all required negative controls and emits
+CREDITS from validated entries (sketch-license.log). Source/cooked files must have
+matching SHA256 records; every kit file is covered, with metadata files explicitly
+excluded. Policy lives in the repository, not in untrusted kit data: CC0-1.0 only,
+no image generators, and only explicitly requested Blender 5.0.1 for procedural
+art with script/parameter hashes. Fetch/search and real provider integration are
+next; no external art has been imported. Blender's verified archive is still
+downloading into user cache; do not claim installation before its hash passes.
+
 ## #164 theme-license contract
 
 Before fetching art, a new test requires tools/assets validate to enforce complete

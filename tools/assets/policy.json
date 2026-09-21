@@ -1,0 +1,5 @@
+{
+  "licenses": ["CC0-1.0"],
+  "image_generators": [],
+  "procedural_tools": {"Blender": "5.0.1"}
+}
