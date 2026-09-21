@@ -26,3 +26,10 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-fno-sanitize-recover=all', 'tests/probes/scene_lights.cpp',
      'engine/qcommon/q_math.cpp', '-Wl,--gc-sections', '-o', scene])
 run([scene])
+
+raster = args.output.resolve() / 'raster'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-Wall', '-Wextra', '-Werror', '-DUSE_VULKAN_API', '-ffunction-sections',
+     '-fdata-sections', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     'tests/probes/shadow_raster.cpp', '-Wl,--gc-sections', '-o', raster])
+run([raster])

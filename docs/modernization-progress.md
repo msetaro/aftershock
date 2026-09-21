@@ -21,35 +21,55 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Active implementation: issue/14-lighting in
-/home/matt/.cache/aftershock-modernization/level-tree. Baked directional lighting,
-shadow graph/native resources, stable point/spot/sun view math, retained scene
-continuations, sampled atlas descriptors, native light admission and masked caster
-shaders are committed. Caster scene submission now builds/runs; receiver shading
-is next. The new --shadows runtime contract still fails at zero lit/occluded pixels
-because that receiver pass does not exist. Do not claim #14 acceptance. Continue
-with receiver shading, rendered point/spot/sun/mask checks, reflection probes,
-SSAO and reference-GPU timing. Follow the updated #25 order: #161 is after #14.
+/home/matt/.cache/aftershock-modernization/level-tree. Caster submission is
+committed through 0ca975c0. Receiver integration is in the working tree and its
+point/spot/sun image round trips pass, but review found the new atlas path still
+clamped scissors to window size. The added all-tile raster test fails before the
+correction (lighting-shadow-scissor-before.log). Fix that integration error, rerun
+rendered checks and finish mask/animated-caster/lifecycle coverage. Reflection
+probes, SSAO and reference-GPU timing remain. #161 follows #14 in updated #25.
 
-Root checkout's #160 repair PR #162 merged into main as
+#160 repair PR #162 merged into main as
 782c0dbc51e4acf119ccce49a69301408dac1ae7 after exact f04e87c3 passed build
 35548379300 and regression 35548379306. Main's base 567cc664 was rechecked
 immediately before merge. Head and merge trees match
 2fd24fa811a286079aa8945b1b9cfd66cf3f788e. Merged build/publication 35549415371
-and regression 35549415277 are pending. Require both, including actual immutable
-build publication, before closing #160 and #158. Merge accepted main forward into
-#14 before its final PR gates. No main commit was pushed directly.
+and regression 35549415277 now both PASS: all 16 compiler legs, all 10 required
+regression legs and actual create-testing publication. Repository prerelease
+build-782c0dbc51e4acf119ccce49a69301408dac1ae7 contains six platform archives.
+Issues #160, #158 and #13 are closed; #13 is checked in #25. Merge accepted main
+forward into #14 before final PR gates. No #14 PR exists yet.
 
 #159's earlier merge 567cc664 had a duplicate permissions collision with concurrent
-main commits 06d15a8d/8dbb4461, despite its passing exact-head gates. Its merged
-regression 35548259084 passed but build workflow 35548258547 could not load. #162
-removes only the duplicates and documents the base-commit recheck in AGENTS.
-#13 PR #157 at a4358019 passed merged regression 35546603116 and all compiler
-jobs; its publication failure is isolated in #158. After the repaired merged main
-passes, close #13/#158/#160 and check #13 in #25. No #14 PR exists yet.
+main commits 06d15a8d/8dbb4461, despite passing exact-head gates. Merged regression
+35548259084 passed but build workflow 35548258547 could not load. #162 removed
+only the duplicates and documented the current-base recheck in AGENTS. #13 PR
+#157 at a4358019 had already passed merged regression 35546603116 and compiler
+jobs; repaired main publication now clears its last integration blocker.
 
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #14 receiver / atlas scissor test-first checkpoint
+
+The new receiver path adds bounded per-light forward draws before fog, with world
+normal/tangent transforms, point-face selection, spot falloff, four sun cascades
+and tile-clamped manual depth comparison. Two new shader programs preserve all
+previous 80 arrays; pinned fresh/cache compilation matches 82 programs, package
+d86e9f0063a51f5a097f18dec310c5b27659d58ca86217f8646773aa4ae6d29e.
+The native additive/depth-equal pipeline check passes GCC/Clang; CMake and RHI
+checks pass. The initial rendered run caught the new pass incorrectly honoring
+PBR's legacy-only SURF_NODLIGHT flag. Admitting PBR materials corrected that.
+
+OA point/spot/sun now change 407783/88245/425643 channel bytes with exact restored
+unshadowed images (lighting-direct-runtime.log). However, visual/source review
+found the atlas reused window-clamped scissors. These early occlusion counts are
+not full-atlas acceptance. tests/shadow_views.py now checks every 4x4/2x2 tile in
+an atlas larger than the window and fails at the production scissor calculation.
+Apply the shadow-only correction and rerun rendered evidence before committing
+the receiver implementation. Display-space additive composition is transitional;
+#161 owns the single HDR/tone-map resolve. No accepted shader/reference changed.
 
 ## #14 caster submission checkpoint
 
