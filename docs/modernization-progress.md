@@ -74,6 +74,23 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 restored RTX post measurements
+
+The descriptor correction removes the RTX crash: 4096 warm frames plus 50 profile
+samples complete on the RTX 3080 Ti at 2560x1440 offscreen / 640x360 presentation.
+The owned street capture was reviewed; these are timing controls, not the final
+combined PBR/effects acceptance scene. Baseline post p50/p95 is 0.137216/0.514048 ms;
+copy is 0.108544/0.547840 ms. CPU p50/p95/p99 is 3.613/5.391/8.500 ms.
+With LUT/sharpen/vignette/grain and nine-tap depth blur enabled, post is
+0.510976/0.630784 ms, copy 0.115712/0.625664 ms; CPU 3.686/5.484/9.149 ms.
+Evidence: fidelity-hardware-post-restored and fidelity-hardware-post-all report.json,
+captures and logs. Runs are serial and use real platform/GPU clocks.
+
+Filmic p95 passes its declared 0.75 ms budget; copy p95 exceeds its 0.20 ms budget.
+Therefore r_postProcess stays default off. No budget was increased to pass the
+measurement. Final combined-scene measurements remain required; TAA, blur using
+motion vectors and streaming are not implemented by this timing checkpoint.
+
 ## #161 descriptor restoration adoption
 
 Main's accepted helper now restores cached descriptors after the new effects and
