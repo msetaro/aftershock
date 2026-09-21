@@ -76,6 +76,16 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 schemas test-first checkpoint
+
+The six-format describe/validate contract fails first on the missing describe
+subcommand (agent-formats-before.log). It requires a valid JSON Schema and minimal
+example for each kind, plus a deliberately invalid file reported with its file,
+JSON path and expected type/range. Schemas will be checked against existing
+loaders; semantic asset/geometry checks remain in those loaders. Effects have no
+runtime loader until #161: define an explicitly authoring-only versioned contract
+here and keep runtime/cooker support in #161, without claiming effects render.
+
 ## #163 CLI and gameplay checkpoint
 
 The CLI now builds a Debug developer client when --binary is omitted, validates
