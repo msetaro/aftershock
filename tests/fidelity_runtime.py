@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import re
 import statistics
 from pathlib import Path
 import shutil
@@ -77,6 +78,16 @@ with tempfile.TemporaryDirectory(prefix='aftershock-fidelity-') as temporary:
         engine.request('session', dt=20, seed=161)
         engine.request('map', name='two_lane')
         engine.step(160)
+        driver = None
+        if not args.measure_gpu:
+            log = engine.log_path.read_text()
+            versions = set(re.findall(r'Driver: (\d+\.\d+\.\d+)', log))
+            assert 'llvmpipe' in log and len(versions) == 1, 'reference frames require one identified Mesa software driver'
+            driver = versions.pop()
+            if driver != '26.0.8':
+                reference = reference/('mesa-'+driver)
+            if args.record_reference:
+                reference.mkdir(parents=True, exist_ok=True)
         engine.request('camera', mode='pose', origin=[-230, 0, 110], angles=[18, 0, 0])
         engine.step(32)
 
@@ -111,7 +122,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-fidelity-') as temporary:
         effects, decals = engine.request('effects'), engine.request('decals')
         materials = engine.request('assets', kind='materials', filter='models/sphere')['items']
         models = engine.request('assets', kind='models', filter='models/sphere.iqm')['items']
-        report = dict(triangles=triangles, profile=profile, effects=effects, decals=decals, materials=materials, models=models)
+        report = dict(driver=driver, triangles=triangles, profile=profile, effects=effects, decals=decals, materials=materials, models=models)
         assert any(row['metallicRoughness'] for row in materials), materials
         assert models[0]['lods'] == 3 and sum(models[0]['lodDraws']) > 0, models
         assert effects['draws'] > 0 and effects['softDraws'] > 0 and effects['lightDraws'] > 0, effects

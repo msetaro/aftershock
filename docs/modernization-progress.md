@@ -44,7 +44,7 @@ and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
 unchanged. Main is merged forward here. Build/publication 35613793896 passed;
 regression 35613793817 passed all ten active jobs. #31 is accepted again.
 
-Next: complete final local gates and self-review for draft PR169, then require all 16 compiler legs and ten active regression jobs on a head
+Next: compare new Mesa 25.2.8 references with retained hosted captures, then require all 16 compiler legs and ten active regression jobs on a head
 containing current main. Combined software references and serial hardware budgets
 now pass. Optional resolution upscaling is deliberately omitted from this issue;
 the existing render-scale hook remains, and a quality upscaler can follow a measured
@@ -52,7 +52,7 @@ need. All existing accepted fixtures/shader arrays are unchanged. The bounded
 compressed-source cache ceiling is documented; no frame-time filesystem reads.
 Post remains default off because the earlier street-scene copy-back budget miss
 is retained. Do not reinterpret this simpler combined scene as erasing that miss.
-Draft PR169 head b2f545c7 contains main 07304b32; no maintainer input is needed.
+Draft PR169 head 8213e810 contains main 07304b32; no maintainer input is needed.
 
 Initial post budgets before measurement: 0.75 ms for filmic controls and 0.20 ms
 for copy-back at 1440p on the reference GPU. Advanced lens effects remain default
@@ -77,6 +77,47 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 per-Mesa exact references pass locally
+
+The separately reviewed Mesa 25.2.8 frames pass a fresh exact comparison, and
+Mesa 26.0.8 still passes its unchanged original four PNGs. Evidence:
+fidelity-mesa25-reference.log, fidelity-mesa25-verify.log and
+fidelity-mesa26-verify.log. Between drivers the maximum per-channel difference is
+two RGB code values; mean channel error is below 0.022. This explains why a single
+cross-driver exact reference failed, but the gate remains exact per driver.
+New 25.2.8 captures are under tests/golden/fidelity/mesa-25.2.8; hosted artifact
+comparison remains required. No shader, engine behavior or accepted golden changed.
+
+## #161 hosted software-driver reference mismatch
+
+Initial runtime 35628249523 passes streaming and the individual presentation
+controls, then fails the combined baseline's exact comparison. Hosted replay logs
+identify Mesa 25.2.8; the existing new local fidelity frames use 26.0.8. The same
+failure is reproduced locally with privately extracted Ubuntu Mesa 25.2.8 and
+LLVM 20 packages (fidelity-mesa25-before.log); no system package is installed.
+Driver package SHA256 is b3be471db0ec27eb28c1ea75a4d2e6bb3207c5904bdc3823dbba9ce530026939,
+verified against packages.ubuntu.com/noble-updates/amd64/mesa-vulkan-drivers/download.
+
+Follow the existing replay gate's per-Mesa exact-reference convention: retain the
+four accepted 26.0.8 PNGs byte-for-byte, add separately reviewed 25.2.8 references,
+and fail unknown/missing driver references. No tolerance is relaxed and CI cannot
+record frames. New references must repeat exactly locally and match the retained
+hosted captures before acceptance. Current head 8213e810 otherwise passes all
+16 compiler legs and eight active regression jobs; runtime and lifetimes remain.
+
+## #161 latest checks and supplemental street capture
+
+At 8213e810, build 35629405112 passes all 16 compiler legs. Regression 35629405076
+has passed GCC unit, format, sanitizers and both cross variants; remaining jobs
+are running. Only this head's complete required checks count for merge.
+
+A supplemental real-GPU capture reuses the accepted sketch_reference street and
+all nine reference effects with TAA/post/decal/soft-particle controls enabled.
+Reviewed captures and report are retained in fidelity-street-visual/ and its
+adjacent script/log. It reports zero effect/light/upload/decal/temporal drops.
+This is additional visual evidence, not a replacement for exact software
+references or previous hardware performance measurements; no fixtures changed.
 
 ## #161 all compiler legs pass; retain hosted presentation evidence
 

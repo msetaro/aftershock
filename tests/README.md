@@ -1394,7 +1394,13 @@ Final combined visual acceptance remains required.
 all nine unchanged reference effects, three projected decals, an owned PBR sphere
 with 576/288/144-triangle cooked LODs, TAA and filmic post on the generated two_lane
 level. It checks active passes, visible output, bounded pools and reduced geometry,
-and compares four software captures against `tests/golden/fidelity/*.png` exactly.
+and compares four software captures exactly. Mesa 26.0.8 uses the retained
+`tests/golden/fidelity/*.png`; Mesa 25.2.8 uses the separately reviewed
+`tests/golden/fidelity/mesa-25.2.8/*.png`. The renderer log must identify llvmpipe
+and one Mesa version; unknown/missing references fail. Like fixed replay frames,
+these are per-driver exact references, not a tolerance-based comparison. The
+25.2.8/26.0.8 difference is at most two RGB code values per channel (mean error
+below 0.022 per channel); both versions must match their own reference exactly.
 The new sphere recipe explicitly uses `lod_error=.1` to reach its requested ratios;
 this does not change any shipped asset or cooker default. The lowest LOD saves 75%
 of triangles. These CC0 captures contain only the generated level and owned assets.
