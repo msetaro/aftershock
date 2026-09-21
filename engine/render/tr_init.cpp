@@ -2304,6 +2304,7 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
 	re.AddSkeletalEntityToScene = RE_AddSkeletalEntityToScene;
 	re.AddMaterialEntityToScene = RE_AddMaterialEntityToScene;
+	re.AddTemporalEntityToScene = RE_AddTemporalEntityToScene;
 	re.AddPolyToScene = RE_AddPolyToScene;
 	re.LightForPoint = R_LightForPoint;
 	re.AddLightToScene = RE_AddLightToScene;

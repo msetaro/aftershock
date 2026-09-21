@@ -259,10 +259,30 @@ void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime ) {
 	backEndData->entities[r_numentities].intShaderTime = intShaderTime;
 	backEndData->entities[r_numentities].skeletalPose = nullptr;
 	backEndData->entities[r_numentities].materialOverride = {};
+	backEndData->entities[r_numentities].temporalIdentity = 0;
 
 	r_numentities++;
 }
 
+
+bool RE_AddTemporalEntityToScene( const refEntity_t *ent, uint64_t identity, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime ) {
+	if ( !ent || !identity || ent->reType != RT_MODEL )
+		return false;
+	const int previous = r_numentities;
+	if ( instance ) {
+		if ( !RE_AddMaterialEntityToScene( ent, instance, pose, modelHash, intShaderTime ) )
+			return false;
+	} else if ( pose ) {
+		if ( !RE_AddSkeletalEntityToScene( ent, pose, modelHash, intShaderTime ) )
+			return false;
+	} else {
+		RE_AddRefEntityToScene( ent, intShaderTime );
+	}
+	if ( previous == r_numentities )
+		return false;
+	backEndData->entities[previous].temporalIdentity = identity;
+	return true;
+}
 
 bool RE_AddMaterialEntityToScene( const refEntity_t *ent, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime ) {
 	const materialParams_t base = {};

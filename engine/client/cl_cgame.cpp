@@ -657,6 +657,10 @@ bool CGameImport_R_AddSkeletalEntityToScene( const void *entity, const void *pos
 	return re.AddSkeletalEntityToScene( (const refEntity_t *)entity, (const animPose_t *)pose, modelHash, qfalse );
 }
 
+bool CGameImport_R_AddTemporalEntityToScene( const void *entity, uint64_t identity, const void *instance, const void *pose, const uint8_t modelHash[32] ) {
+	return re.AddTemporalEntityToScene( (const refEntity_t *)entity, identity, (const materialOverride_t *)instance, (const animPose_t *)pose, modelHash, qfalse );
+}
+
 bool CGameImport_R_AddMaterialEntityToScene( const void *entity, const void *instance, const void *pose, const uint8_t modelHash[32] ) {
 	return re.AddMaterialEntityToScene( (const refEntity_t *)entity, (const materialOverride_t *)instance, (const animPose_t *)pose, modelHash, qfalse );
 }

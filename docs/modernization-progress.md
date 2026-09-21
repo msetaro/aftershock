@@ -69,6 +69,24 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 explicit temporal submission identities
+
+Test-first ecc74e8d extends the existing animation-render probe; it fails on the
+absent submission API/identity field (fidelity-temporal-submit-before.log).
+The new wrapper reuses existing material/pose validation and assigns identity
+only after successful submission. Ordinary submissions clear it; failed graph
+bindings cannot leak an ID to the next entity. Native body and view-weapon calls
+now supply separate stable owner/part IDs including the teleport toggle.
+The legacy refEntity and game-state layouts are unchanged. Renderer API is now
+27 development / 21 shipping for the additional submission function.
+
+GCC/Clang animation/render probes, native owned body/rifle gameplay and replicated
+hit-box runtime, C/game/engine ABI, format and boundary gates pass
+(fidelity-temporal-submit{,-clang,-runtime,-abi,-format,-boundaries}.log).
+This only carries identity; GPU motion and TAA remain unimplemented. Legacy
+models/brush movers still need IDs, and the history cache is not yet connected
+to the rendered-view lifecycle. PR168 continues its expected long runtime gate.
+
 ## #161 temporal history component implemented
 
 The pure renderer cache now keeps two bounded views and up to 256 entity/skin

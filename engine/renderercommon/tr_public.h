@@ -30,9 +30,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 26
+#define REF_API_VERSION 27
 #else
-#define REF_API_VERSION 20
+#define REF_API_VERSION 21
 #endif
 
 //
@@ -106,6 +106,7 @@ typedef struct {
 	void ( *AddRefEntityToScene )( const refEntity_t *re, qboolean intShaderTime );
 	bool ( *AddSkeletalEntityToScene )( const refEntity_t *re, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 	// Copies the override into this frame. Optional pose/hash use the skeletal path.
+	bool ( *AddTemporalEntityToScene )( const refEntity_t *ent, uint64_t identity, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 	bool ( *AddMaterialEntityToScene )( const refEntity_t *re, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 	void ( *AddPolyToScene )( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
 	int ( *LightForPoint )( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir );

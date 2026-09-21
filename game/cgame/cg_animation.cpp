@@ -148,7 +148,8 @@ bool CG_AnimationPlayer( centity_t *cent ) {
 	if ( owner == cg.snap->ps.clientNum && !cg.renderingThirdPerson )
 		entity.renderfx |= RF_THIRD_PERSON;
 	memset( entity.shaderRGBA, 255, sizeof( entity.shaderRGBA ) );
-	if ( !CGameImport_R_AddSkeletalEntityToScene( &entity, &pose, animationRigs[0].asset.header.modelHash ) )
+	const uint64_t identity = ( (uint64_t)( owner + 1 ) << 32 ) | 0x80000000u | (uint32_t)( cent->currentState.eFlags & EF_TELEPORT_BIT );
+	if ( !CGameImport_R_AddTemporalEntityToScene( &entity, identity, nullptr, &pose, animationRigs[0].asset.header.modelHash ) )
 		CG_Error( "Animation rejected: body render binding" );
 	++bodyDraws;
 	return true;
@@ -197,7 +198,8 @@ bool CG_AnimationViewWeapon( const playerState_t *ps, const vec3_t origin, const
 	entity.nonNormalizedAxes = qtrue;
 	entity.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT;
 	memset( entity.shaderRGBA, 255, sizeof( entity.shaderRGBA ) );
-	if ( !CGameImport_R_AddSkeletalEntityToScene( &entity, &pose, animationRigs[1].asset.header.modelHash ) )
+	const uint64_t identity = ( (uint64_t)( ps->clientNum + 1 ) << 32 ) | 0x80010000u | (uint32_t)( ps->eFlags & EF_TELEPORT_BIT );
+	if ( !CGameImport_R_AddTemporalEntityToScene( &entity, identity, nullptr, &pose, animationRigs[1].asset.header.modelHash ) )
 		CG_Error( "Animation rejected: rifle render binding" );
 	if ( ads == 1 && !strcmp( Anim_StateName( asset, state.current ), "ads" ) && blend == 1 ) {
 		const int optic = Anim_BoneIndex( asset, "optic" );

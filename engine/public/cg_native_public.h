@@ -60,6 +60,7 @@ void CGameImport_R_RegisterFont( const char *fontName, int pointSize, void *font
 void CGameImport_R_ClearScene( void );
 void CGameImport_R_AddRefEntityToScene( const void *entity );
 bool CGameImport_R_AddSkeletalEntityToScene( const void *entity, const void *pose, const uint8_t modelHash[32] );
+bool CGameImport_R_AddTemporalEntityToScene( const void *entity, uint64_t identity, const void *instance, const void *pose, const uint8_t modelHash[32] );
 bool CGameImport_R_AddMaterialEntityToScene( const void *entity, const void *instance, const void *pose, const uint8_t modelHash[32] );
 void CGameImport_R_AddPolyToScene( int hShader, int numVerts, const void *verts );
 void CGameImport_R_AddPolysToScene( int hShader, int numVerts, const void *verts, int num );

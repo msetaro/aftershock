@@ -231,6 +231,7 @@ typedef struct {
 	qboolean intShaderTime;
 	const skeletalPose_t *skeletalPose; // Points into the owning renderer frame.
 	materialOverride_t materialOverride;
+	uint64_t temporalIdentity;
 } trRefEntity_t;
 
 
@@ -1928,6 +1929,7 @@ void R_InitNextFrame( void );
 void RE_ClearScene( void );
 void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
 bool RE_AddSkeletalEntityToScene( const refEntity_t *ent, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
+bool RE_AddTemporalEntityToScene( const refEntity_t *ent, uint64_t identity, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 bool RE_AddMaterialEntityToScene( const refEntity_t *ent, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
 extern int r_numdlights;
