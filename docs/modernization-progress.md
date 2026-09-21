@@ -56,6 +56,22 @@ compiled overhead comparison and the one-command agent playtest. Follow #164
 with #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Known-good tags remain unchanged.
 
+## #163 merged; #164 transition draft
+
+PR166 merged into main as ee4e95fcdd21c6a67cdac2372a931d8f0ef1ad24 after final
+head 9db00c0c passed all 16 build / ten required regression jobs. Current main
+was rechecked immediately before merge and had not advanced. Merge and tested
+head trees both equal fe1c5fd9e67fee7ba0894386c6f3508d2552c57f. Merged build
+35571273115 and regression 35571273155 are now queued; verify publication too.
+Known-good object/target remain unchanged. #163 can be checked in #25 after
+those integration gates pass. Merge main forward into this #164 branch now.
+
+The elevation MAP test passes with generated physical stair steps and ramp planes,
+separate non-bullet-solid fence material and overheads. Navigation samples square
+player clearance on all surfaces, retaining multiple floors at the same XY.
+This draft still needs its full compile pass and schema integration; no #164
+acceptance is claimed. Log: sketch-elevation.log in the user cache.
+
 ## #164 elevation contract
 
 The next contract adds a terrace reached by stairs/ramp, bullet-transparent fence

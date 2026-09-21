@@ -131,6 +131,29 @@ def pieces(level):
                 'shape outside playable boundary: '+identity)
         material = item.get('material','wall' if item['kind']=='building' else 'cover')
         require(material in level['materials'], 'unknown material role: '+material)
+        if item.get('bullet_solid') is False:
+            require(item['kind']=='wall', 'bullet transparency is only supported for wall/fence shapes')
+            material = 'level/fence'
+        if item['kind']=='transition':
+            path = item['shape'].get('path',{})
+            require(len(path.get('points',[]))==2, 'transition needs a two-point path')
+            start,end = path['points']
+            width = path['thickness']
+            length = math.dist(start,end)
+            require(width>=max(64,level['rules']['min_corridor_width']), 'transition width below player/design clearance')
+            require(item['height']/length<=.5, 'transition slope exceeds walking limit')
+            a,b = (Z,z) if item.get('descending',False) else (z,Z)
+            if item['transition']=='ramp':
+                add(identity,p,z-16,Z,material,(start,end,width,a,b))
+            else:
+                count = math.ceil(item['height']/16)
+                require(length/count>=32, 'stair tread below 32 units')
+                for i in range(count):
+                    points = [[start[k]+(end[k]-start[k])*f/count for k in (0,1)] for f in (i,i+1)]
+                    section = LineString(points).buffer(width/2,cap_style='flat',join_style='mitre')
+                    top = a+(b-a)*(i if a>b else i+1)/count
+                    add(identity,section,z-16,top,material)
+            continue
         if item['kind']!='building':
             add(identity,p,z,Z,material)
             continue
@@ -165,7 +188,7 @@ def pieces(level):
 
 def generate(level):
     _,records = pieces(level)
-    world = [prism(poly,record['low'],record['high'],level['materials'][record['material']],record['slope'])
+    world = [prism(poly,record['low'],record['high'],level['materials'].get(record['material'],record['material']),record['slope'])
              for record in records for poly in convex_parts(record['polygon'])]
     require(len(world)<=8192, 'convex brush budget exceeded')
     entities = []
@@ -186,36 +209,61 @@ def generate(level):
     return entity(worldspawn,world)+''.join(entities)
 
 
+def surface_height(record,x,y):
+    if record['slope'] is None:
+        return record['high']
+    start,end,_,z,Z = record['slope']
+    dx,dy = end[0]-start[0],end[1]-start[1]
+    fraction = ((x-start[0])*dx+(y-start[1])*dy)/(dx*dx+dy*dy)
+    return z+(Z-z)*max(0,min(1,fraction))
+
+
 def navigation(level, records):
-    """Clearance layers retain separate floors at the same XY, with 18-unit steps."""
+    """Sample a square player hull at each surface; separate floors share XY nodes."""
     from collections import deque
-    import numpy as np
     area = polygon(level['boundary']['polygon'],level['boundary'].get('holes',[]))
     x,y,X,Y = area.bounds
     require((X-x)*(Y-y)<=16*16*262144, 'navigation grid exceeds 262144 cells')
-    xy = np.array([(a,b) for a in range(math.ceil(x/16)*16,math.floor(X/16)*16+1,16)
-                   for b in range(math.ceil(y/16)*16,math.floor(Y/16)*16+1,16)])
-    points = shapely.points(xy)
-    layers,cells = {},{}
-    for z in sorted({record['high'] for record in records}):
-        if z>=level['boundary']['ceiling']:
-            continue
-        support = shapely.union_all([r['polygon'] for r in records if r['high']==z])
-        obstacles = shapely.union_all([r['polygon'] for r in records if r['low']<z+56 and r['high']>z+1e-5])
-        # Square player hull: bevel-free mitred buffers conservatively keep corners clear.
-        free = support.buffer(-15,join_style='mitre').difference(obstacles.buffer(15,join_style='mitre'))
-        layers[z] = free
-        for a,b in xy[shapely.covers(free,points)]:
-            cells.setdefault((int(a),int(b)),[]).append(z)
+    tree = shapely.STRtree([r['polygon'] for r in records])
+    def walkable(a,b):
+        hull = box(a-15,b-15,a+15,b+15)
+        nearby = [records[i] for i in tree.query(hull,predicate='intersects')]
+        candidates = {surface_height(r,a,b) for r in nearby if r['polygon'].covers(Point(a,b))}
+        result = []
+        for candidate in sorted(candidates):
+            heights = []
+            for dx,dy in ((0,0),(-15,-15),(-15,15),(15,-15),(15,15),(-15,0),(15,0),(0,-15),(0,15)):
+                point = Point(a+dx,b+dy)
+                surfaces = [surface_height(r,a+dx,b+dy) for r in nearby if r['polygon'].covers(point)]
+                heights.append(max((h for h in surfaces if h<=candidate+18),default=-math.inf))
+            top = max(heights)
+            if top-min(heights)>18 or top>=level['boundary']['ceiling']:
+                continue
+            blocked = False
+            for r in nearby:
+                intersection = hull.intersection(r['polygon'])
+                if intersection.is_empty or intersection.area<1e-6:
+                    continue
+                high = max(surface_height(r,u,v) for u,v in shapely.get_coordinates(intersection))
+                if r['low']<top+56 and high>top+1e-5:
+                    blocked = True
+                    break
+            if not blocked and not any(abs(top-h)<1e-5 for h in result):
+                result.append(top)
+        return result
+    cells = {}
+    for a in range(math.ceil(x/16)*16,math.floor(X/16)*16+1,16):
+        for b in range(math.ceil(y/16)*16,math.floor(Y/16)*16+1,16):
+            heights = walkable(a,b)
+            if heights:
+                cells[a,b] = heights
     require(sum(map(len,cells.values()))<=262144, 'navigation cell budget exceeded')
     starts = []
     for spawn in level['spawns']:
         a,b,z = spawn['origin']
-        floor = z-24
-        require(any(abs(floor-h)<.01 and region.covers(Point(a,b)) for h,region in layers.items()),
-                'spawn outside player clearance')
+        require(any(abs(z-24-h)<.01 for h in walkable(a,b)), 'spawn outside player clearance')
         near = [(math.hypot(A-a,B-b),(A,B,h)) for A,B in cells if abs(A-a)<=16 and abs(B-b)<=16
-                for h in cells[A,B] if abs(h-floor)<18]
+                for h in cells[A,B] if abs(h-(z-24))<=18]
         require(near, 'spawn has no navigation cell')
         starts.append(min(near)[1])
     require(starts, 'at least one spawn required')
@@ -229,8 +277,7 @@ def navigation(level, records):
                 node = (*target,h)
                 if abs(h-z)>18 or node in seen:
                     continue
-                # The swept center segment must remain in the union of adjacent layers.
-                if not layers[z].union(layers[h]).covers(LineString([(a,b),target])):
+                if not any(abs(m-z)<=18 and abs(m-h)<=18 for m in walkable(a+dx/2,b+dy/2)):
                     continue
                 seen.add(node)
                 queue.append(node)

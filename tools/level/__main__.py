@@ -25,10 +25,16 @@ def shaders(level):
         azimuth = math.degrees(math.atan2(y,x))
         elevation = math.degrees(math.atan2(z,math.hypot(x,y)))
         sun = f"    q3map_sun {vector(s['color'])} {s['intensity']} {azimuth:.9g} {elevation:.9g}\n"
+    extra = ''
+    if level['version']==2:
+        extra = ('textures/level/fence\n{\n    surfaceparm nonsolid\n    surfaceparm playerclip\n'
+                 '    surfaceparm alphashadow\n    cull none\n    {\n'
+                 f'        map textures/{level["materials"]["trim"]}\n'
+                 '        rgbGen identity\n    }\n}\n')
     return (f'textures/{sky}\n{{\n    qer_editorimage textures/{sky}\n'
             '    surfaceparm sky\n    surfaceparm noimpact\n    surfaceparm nolightmap\n'
             f'{sun}    skyparms - 512 -\n    {{\n        map textures/{sky}\n        rgbGen identity\n    }}\n}}\n'
-            'textures/level/playerclip\n{\n    surfaceparm nodraw\n    surfaceparm nonsolid\n    surfaceparm playerclip\n}\n')
+            'textures/level/playerclip\n{\n    surfaceparm nodraw\n    surfaceparm nonsolid\n    surfaceparm playerclip\n}\n'+extra)
 
 
 def main():
