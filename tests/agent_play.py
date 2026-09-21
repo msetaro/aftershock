@@ -47,6 +47,7 @@ for _ in range(2):
             with Image.open(engine.base/'screenshots/agent-reference.tga') as reference:
                 assert image.convert('RGB').tobytes() == reference.convert('RGB').tobytes()
         profile = engine.request('profile')
+        assert isinstance(profile['gpu'], list) and profile['memory']['hunkTotal'] > 0
         assert profile['samples'] == 262 and 0 <= profile['p50_ms'] <= profile['p95_ms'] <= profile['p99_ms']
         assert profile['cpu'] and 'snapshots' in profile['network']
         engine.request('usercmd', forwardmove=127, rightmove=0, upmove=0,

@@ -2,6 +2,11 @@
 #include "../../engine/devtools/dev_agent.cpp"
 #include <assert.h>
 
+void Com_DeveloperMemory( devMemory_t *memory ) {
+	*memory = {};
+	for ( auto &name : memory->names )
+		name = "stub";
+}
 int Key_StringToKeynum( const char * ) {
 	return -1;
 }

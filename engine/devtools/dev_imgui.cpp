@@ -768,12 +768,12 @@ bool DevTools_SelectAsset( const char *kind, int index ) {
 		return false;
 	return true;
 }
-bool DevTools_MaterialPreview( int index, bool enabled ) {
+bool DevTools_MaterialPreview( int index, bool previewEnabled ) {
 	devMaterial_t material;
 	if ( !editorRenderer || !editorRenderer->GetDeveloperMaterial( index, &material ) || !material.metallicRoughness )
 		return false;
-	materialPreview.enabled = enabled;
-	if ( enabled ) {
+	materialPreview.enabled = previewEnabled;
+	if ( previewEnabled ) {
 		materialPreview.instance.mask = 63;
 		materialPreview.instance.values = material.params;
 	}

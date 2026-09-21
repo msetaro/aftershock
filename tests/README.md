@@ -1126,3 +1126,13 @@ msetaro/aftershock. Only publication jobs have contents-write permission. Retry
 can replace that build's archive assets after verifying the immutable tag target;
 it never moves a tag or changes known-good rollback points. Ordinary release
 uploads retain their explicit release-event workflow.
+
+The #163 channel exposes asset registry pages, material overrides and structured
+CPU/GPU/memory/network telemetry. `tests/cook_runtime.py` now uses these queries
+and shared animation controls for watched texture/model/material edits, stable
+handles and memory, sub-second texture-to-frame latency and renderer restart.
+It samples the reported preview rectangle and preserves the prior image thresholds.
+Pass `--output DIR` to retain PNGs/logs or `--modules` to build the optional module
+configuration. Source assets are copied into private scratch; installed paks are
+only symlinked. `tests/agent_channel.py --binary DEDICATED` checks pipe stepping,
+idle clock and EOF; `tests/agent_play.py --binary CLIENT` checks seeded gameplay.

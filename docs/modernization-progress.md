@@ -28,51 +28,33 @@ regression 35555156633 all pass. Six platform archives are published in this
 repository, #14 is checked in #25, and known-good is unchanged. Its retained
 worktree /home/matt/.cache/aftershock-modernization/level-tree is historical.
 
-#163 now has a private NDJSON pipe, bounded typed replies, cvars/console commands,
-seeded explicit steps, map loading, player/camera state, high-level and raw local
-usercmds, entity CRUD/save, CPU/network/frame-percentile queries, native PNG
-capture and error/warning/hit/kill event hooks. A free camera updates cgame view
-construction and local snapshot visibility without moving the player. Same-frame
-PNG and TGA pixels match exactly. Two seeded playthroughs produce identical
-player snapshots on installed Quake 3 and OpenArena; the extended tests also
-cover entity edits, profiler reads, camera switching, and a structured error that
-stops the remaining requested steps. No faketime or accepted fixture changes.
+#163 has a private NDJSON pipe, typed bounded replies, seeded explicit steps,
+map/player/camera/input controls, entity CRUD/save/reload/picking, native PNG,
+shared World/Animation/Graph/Range/material controls, registry and authoritative
+actor queries, CPU/GPU/memory/network telemetry and error/warning/hit/kill hooks.
+All five original editor tests plus material/cooker drivers use structured
+commands. Q3/OA deterministic playthroughs and panel checks pass. Source-reload
+checks also pass with an OA renderer module; no screen-click calls remain in
+test drivers. Shipping exclusion passes in the full devtools rebuild. Legacy
+accepted goldens and source assets are unchanged.
 
-The shared World/Animation panel contract now passes on both content sets.
-Panel selection, collision/navigation flags and animation load/frame/play controls
-use the same functions as ImGui (agent-panels.log / agent-panels-openarena.log).
-The animation editor is rewritten on shared graph commands and passes Q3/OA: edit,
-undo, numbered backup, watched recook and changed preview. The prior missing graph
-operation is recorded in agent-editor-before.log. Entity save/reload also passes on both content sets via JSON, retaining every
-original key, angle aliases and numbered-save checks. The World panel rewrite
-now passes after its absent-operation check (agent-world-before.log): placement,
-picking, selection and reload share existing UI functions. The Range rewrite passes on both content sets after its missing-operation check
-(agent-range-before.log). Authoritative weapon/animation queries and shared Range
-actions are implemented. All five original editor tests are now migrated and pass locally on both
-content sets. The full OpenArena devtools rebuild proves shipping exclusion.
-Material registry/selection/override commands now pass both UI and recook image
-checks on Q3/OA; initial absence is in agent-material-before.log. The cook_runtime.py rewrite fails first on missing profile.memory
-(agent-cook-before.log). Add memory/GPU/net telemetry, validate preserved reload
-latency/pose/handle/memory/capture assertions on static and module clients, then
-finish remaining shared controls; gameplay event/assert acceptance remains.
-Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
-acceptance, complete weapon/animation state queries, every shared panel action,
-then replace the five click-driven tests. Finish the CLI/playtest scripts and
-format schemas, scratch/display/port isolation and concurrent full suites,
-affected-test mapping, and executable docs/agents recipes. Require all #163
-acceptance criteria, full current-main gates and self-review before readiness or
-merge. Continue #164 -> #161 -> #15 and the remaining #25 roadmap after #163.
+Next: assertion events and gameplay hit/kill acceptance; finish remaining command
+metadata/UI coverage, the tools/agent CLI and scripted route/fire/report with three
+captures, six format schemas/describe/errors, per-invocation scratch/display/port
+isolation and concurrent full suites, affected-test mapping and executable
+docs/agents recipes. Audit every #163 acceptance requirement before readiness.
+Then full current-main gates/self-review/merge and continue #164 -> #161 -> #15
+through the remaining #25 roadmap. PR166 stays draft until complete.
 
-PR166's initial build 35556998279 failed on unavailable libc++ floating-point
-from_chars and legacy JSON width conversions; both are corrected. Portable head
-5691795f passes all 16 compiler jobs in build 35557138685. Its regression
-35557139029 caught GCC's setjmp clobber warning in the new Com_Frame argument
-assignment (unit GCC and runtime developer-data probe). The correction keeps
-noDelay immutable and uses a separate explicit-step condition; the exact local
-developer-data reproducer now passes. Head 5af3024b passes all compiler jobs in build 35557826494; regression
-35557826527 is still running. Monitor fresh gates. Earlier failed/superseded heads are not
-acceptance. Native command GCC/Clang/libc++ UBSan, current playthrough checks,
-format and boundaries pass locally; detailed logs are in the persistent cache.
+Hosted f7c3d616 build 35560464296 fails only MSVC's conservative uninitialized
+registry-copy warning; explicit zero initialization corrects it. Earlier shadow
+and int/float warnings are corrected too. Runtime 35560464259 has advanced beyond
+the startup failure: Noble's xvfb-run merged stderr into stdout. The launcher now
+redirects stderr inside that wrapper; the permanent wrapper contract and full
+seeded playthrough under Noble's actual script pass. Latest source needs fresh
+hosted gates; no failed/superseded head is acceptance. Local GCC -Wshadow and
+Clang/libc++ UBSan command probes, boundaries, formatting and shader-free runtime
+checks pass. Detailed evidence and commit history follow below.
 
 All existing exclusions remain in force. Nothing leaves msetaro/aftershock;
 shipping binaries exclude this tooling. No PR against another repository, no
@@ -99,6 +81,25 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 character reload / telemetry checkpoint
+
+The last pixel-click driver, cook_runtime.py, now uses explicit frames, shared
+animation controls and structured asset reload/memory counters. It preserves
+watched texture-to-render latency below one second, changed model pose at the
+same handle/frame, renamed clip, repeated material reloads without memory growth,
+idle UI allocation checks and video restart. Captures sample the reported preview
+rectangle with prior pixel thresholds. Q3/OA static and OA module runs pass
+(agent-cook.log, agent-cook-openarena.log, agent-cook-modules.log).
+
+Profile replies now include GPU scopes, all tagged/hunk memory and remaining
+bounded network telemetry. GCC -Wshadow and Clang/libc++ command probes pass.
+MSVC's conservative analysis on f7c3d616 flagged registry records behind the
+kind-selected callback; explicit zero initialization resolves its C4701 warning.
+The new GPU count and preview-enabled parameter also avoid shadowing. Hosted
+runtime 35560464259 has advanced beyond the prior startup failure; final fresh
+compiler/regression gates remain required. No screen-click calls remain in test
+drivers. Dedicated channel checks are now wired after the CI server build.
 
 ## #163 material controls checkpoint
 

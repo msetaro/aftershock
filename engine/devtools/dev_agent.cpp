@@ -509,9 +509,9 @@ static bool Agent_Assets( const char *request, const char *end, agentReply_t &re
 	uint32_t count = 0, next = offset;
 	bool finished = false;
 	for ( ; next <= 65535 && count < limit; ++next ) {
-		devImage_t image;
-		devMaterial_t material;
-		devModel_t model;
+		devImage_t image{};
+		devMaterial_t material{};
+		devModel_t model{};
 		const bool images = !strcmp( kind, "images" ), materials = !strcmp( kind, "materials" );
 		const bool found = images ? renderer->GetDeveloperImage( (int)next, &image ) : materials ? renderer->GetDeveloperMaterial( (int)next, &material )
 																								 : renderer->GetDeveloperModel( (int)next, &model );
@@ -662,6 +662,33 @@ static void Agent_EditorState( agentReply_t &reply ) {
 }
 #endif
 
+static void Agent_Memory( agentReply_t &reply ) {
+	devMemory_t memory;
+	Com_DeveloperMemory( &memory );
+	reply.Text( "{\"tags\":[" );
+	for ( int tag = 0; tag < TAG_COUNT; ++tag ) {
+		if ( tag )
+			reply.Text( "," );
+		reply.Text( "{\"name\":" );
+		reply.String( memory.names[tag] );
+		reply.Text( ",\"bytes\":" );
+		reply.Number( memory.bytes[tag] );
+		reply.Text( ",\"blocks\":" );
+		reply.Number( memory.blocks[tag] );
+		reply.Text( "}" );
+	}
+	reply.Text( "]" );
+	reply.Text( ",\"hunkTotal\":" );
+	reply.Number( memory.hunkTotal );
+	reply.Text( ",\"hunkPermanent\":" );
+	reply.Number( memory.hunkPermanent );
+	reply.Text( ",\"hunkTemporary\":" );
+	reply.Number( memory.hunkTemporary );
+	reply.Text( ",\"hunkFree\":" );
+	reply.Number( memory.hunkFree );
+	reply.Text( "}" );
+}
+
 static void Agent_Profile( agentReply_t &reply ) {
 	int64_t sorted[ARRAY_LEN( agentFrameTimes )];
 	const uint32_t count = MIN( agentSamples, (uint32_t)ARRAY_LEN( sorted ) );
@@ -687,7 +714,25 @@ static void Agent_Profile( agentReply_t &reply ) {
 		reply.Number( double( cpu[i].microseconds ) / 1000 );
 		reply.Text( "}" );
 	}
-	reply.Text( "],\"network\":{" );
+	reply.Text( "],\"gpu\":[" );
+#ifndef DEDICATED
+	if ( const auto *renderer = DevTools_Renderer() ) {
+		devGpuTiming_t timings[32];
+		const uint32_t gpuCount = renderer->GetDeveloperTimings( timings, ARRAY_LEN( timings ) );
+		for ( uint32_t i = 0; i < gpuCount; ++i ) {
+			if ( i )
+				reply.Text( "," );
+			reply.Text( "{\"name\":" );
+			reply.String( timings[i].name );
+			reply.Text( ",\"ms\":" );
+			reply.Number( timings[i].microseconds / 1000 );
+			reply.Text( "}" );
+		}
+	}
+#endif
+	reply.Text( "],\"memory\":" );
+	Agent_Memory( reply );
+	reply.Text( ",\"network\":{" );
 	const auto *net = DevTools_Network();
 	char counters[512];
 	snprintf( counters, sizeof( counters ), "\"snapshots\":%" PRIu64 ",\"predictions\":%" PRIu64 ",\"rewindReports\":%" PRIu64 ",\"rewindHits\":%" PRIu64 ",\"incomingBytes\":%" PRIu64 ",\"outgoingBytes\":%" PRIu64,
@@ -697,6 +742,26 @@ static void Agent_Profile( agentReply_t &reply ) {
 	reply.Number( net->predictionError );
 	reply.Text( ",\"predictionPeak\":" );
 	reply.Number( net->predictionPeak );
+	reply.Text( ",\"snapshotBits\":" );
+	reply.Number( net->snapshotBits );
+	reply.Text( ",\"predictionSum\":" );
+	reply.Number( net->predictionSum );
+	reply.Text( ",\"rewindClamped\":" );
+	reply.Number( net->rewindClamped );
+	reply.Text( ",\"rewindAge\":" );
+	reply.Number( net->rewindAge );
+	reply.Text( ",\"rewindLimit\":" );
+	reply.Number( net->rewindLimit );
+	reply.Text( ",\"incomingPackets\":" );
+	reply.Number( net->packets[0] );
+	reply.Text( ",\"incomingLastPacket\":" );
+	reply.Number( net->lastPacket[0] );
+	reply.Text( ",\"outgoingPackets\":" );
+	reply.Number( net->packets[1] );
+	reply.Text( ",\"outgoingLastPacket\":" );
+	reply.Number( net->lastPacket[1] );
+	reply.Text( ",\"delta\":" );
+	reply.Text( net->delta ? "true" : "false" );
 	reply.Text( "},\"events\":{" );
 	snprintf( counters, sizeof( counters ), "\"hits\":%" PRIu64 ",\"kills\":%" PRIu64 ",\"errors\":%" PRIu64 ",\"warnings\":%" PRIu64, agentHits, agentKills, agentErrors, agentWarnings );
 	reply.Text( counters );
