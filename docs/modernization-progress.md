@@ -62,6 +62,17 @@ After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
 
+## #16 authored event contract
+
+The full development client/server build passes with the spatial component
+(private audio-configure.log and audio-build.log). tests/audio_events.py now
+exercises the real cooker for an authored mechanical/tail/distant event, existing
+hash envelope, bus/group/priority/voice limit, spatial settings and incremental
+edits. The first run fails because sound-event is not an implemented asset kind
+(private audio-events-before.log). Next implement cooking/schema and native
+registration/playback. #15 merged-tree lifetime analysis has passed; runtime is
+the only active regression job still running.
+
 ## #16 binaural component checkpoint
 
 5981cabe records the missing-API failure for the binaural test
