@@ -54,6 +54,13 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
+## #14 shadow sampling test-first checkpoint
+
+Extend the same native graph observation to descriptor allocation, depth-read-only
+layout, nearest/clamped sampling, atlas binding and existing descriptor refresh.
+The pre-implementation native probe fails on missing shadow descriptors/binding
+(lighting-shadow-sampling-before.log). This remains ordinary feature coverage.
+
 ## #14 shadow recording implementation checkpoint
 
 Test-first e2bbbf9b precedes native depth-pass recording. Shadow-enabled graph

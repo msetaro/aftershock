@@ -133,6 +133,49 @@ static void shadowCommands( bool screen ) {
 	assert( begun == 4 && ended == 3 );
 	RHI_EndPass();
 }
+static uint32_t descriptorCount, depthWrites;
+static VkSampler nearestSampler;
+static VkResult VKAPI_CALL allocateDescriptors( VkDevice, const VkDescriptorSetAllocateInfo *p, VkDescriptorSet *out ) {
+	assert( p->descriptorSetCount == 1 );
+	*out = (VkDescriptorSet)(uintptr_t)++descriptorCount;
+	return VK_SUCCESS;
+}
+static VkResult VKAPI_CALL createSampler( VkDevice, const VkSamplerCreateInfo *p, const VkAllocationCallbacks *, VkSampler *out ) {
+	*out = (VkSampler)(uintptr_t)( 100 + vk.samplers.count );
+	if ( p->magFilter == VK_FILTER_NEAREST && p->minFilter == VK_FILTER_NEAREST ) {
+		assert( p->addressModeU == VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE );
+		assert( p->addressModeV == VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE );
+		assert( !p->anisotropyEnable && !p->compareEnable );
+		nearestSampler = *out;
+	}
+	return VK_SUCCESS;
+}
+static void VKAPI_CALL updateDescriptors( VkDevice, uint32_t count, const VkWriteDescriptorSet *writes, uint32_t, const VkCopyDescriptorSet * ) {
+	for ( uint32_t i = 0; i < count; ++i ) {
+		const auto &write = writes[i];
+		if ( write.descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER || write.pImageInfo->imageLayout != VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL )
+			continue;
+		assert( write.descriptorCount == 1 && write.pImageInfo->sampler == nearestSampler );
+		const uint32_t index = depthWrites++ % 2;
+		assert( write.pImageInfo->imageView == vk.shadow_image_view[index] );
+		assert( write.dstSet == vk.shadow_descriptor[index] );
+	}
+}
+static void shadowDescriptors() {
+	descriptorCount = depthWrites = 0;
+	vk.blitFilter = FILTER_LINEAR;
+	vk.maxBoundDescriptorSets = 5;
+	vk_impl_InitDescriptors();
+	assert( depthWrites == 2 );
+	assert( RHI_BindShadowAtlas( 0, 4 ) );
+	assert( vk.cmd->descriptor_set.current[4] == vk.shadow_descriptor[0] );
+	assert( RHI_BindShadowAtlas( 1, 4 ) );
+	assert( vk.cmd->descriptor_set.current[4] == vk.shadow_descriptor[1] );
+	assert( !RHI_BindShadowAtlas( 2, 4 ) && !RHI_BindShadowAtlas( 0, 0 ) && !RHI_BindShadowAtlas( 0, 5 ) );
+	// Resize and texture-filter changes use this existing descriptor refresh.
+	vk_update_attachment_descriptors();
+	assert( depthWrites == 4 );
+}
 int main( int argc, char ** ) {
 	qvkCreateRenderPass = createPass;
 	qvkCreateFramebuffer = createFramebuffer;
@@ -142,6 +185,9 @@ int main( int argc, char ** ) {
 	qvkAllocateMemory = allocationBoundary;
 	qvkCmdBeginRenderPass = beginPass;
 	qvkCmdEndRenderPass = endPass;
+	qvkAllocateDescriptorSets = allocateDescriptors;
+	qvkCreateSampler = createSampler;
+	qvkUpdateDescriptorSets = updateDescriptors;
 	for ( uint32_t mode = 0; mode < 36; ++mode ) {
 		vk = {};
 		vk_config = {};
@@ -185,6 +231,7 @@ int main( int argc, char ** ) {
 			shadowCommands( false );
 			if ( offscreen )
 				shadowCommands( true );
+			shadowDescriptors();
 		}
 	}
 }
