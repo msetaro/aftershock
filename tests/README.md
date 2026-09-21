@@ -1009,3 +1009,16 @@ SERVER` requires a real native client to enter play and chat on a password-prote
 package checksum membership, duplicate and aggregate verification remain active.
 This validates content agreement, not executable attestation. Existing non-pure
 replay fixtures are unchanged; no fixture regeneration is required.
+
+## Main build publication
+
+`python3 tests/publish_build.py` replaces gh with an offline temporary stub. It
+checks initial publication, asset retry, an existing tag with a different target,
+API/upload/create failures and rejection of other repositories/non-SHA targets.
+It never accesses a remote service or creates a real release.
+
+Successful main builds publish `build-<full commit SHA>` prereleases inside
+msetaro/aftershock. Only publication jobs have contents-write permission. Retry
+can replace that build's archive assets after verifying the immutable tag target;
+it never moves a tag or changes known-good rollback points. Ordinary release
+uploads retain their explicit release-event workflow.

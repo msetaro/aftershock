@@ -58,6 +58,31 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
+## #158 publication self-review
+
+The offline contract was committed first at 7d88a53a and failed because the
+publisher did not exist. It now passes creation, same-tag retry, existing-tag
+collision, API/create/upload failures and repository/SHA guards. Bash syntax,
+actionlint for build.yml and explicit workflow permission checks pass. Existing
+CRLF in build.yml is preserved; whitespace checking uses cr-at-eol for that file.
+
+Only publication jobs receive contents-write/actions-read. The installed gh CLI
+replaces the rolling-tag action; no new dependency or external destination. Build
+publication uses a build-<full SHA> prerelease inside msetaro/aftershock, verifies
+any existing exact tag object and retries only archive assets. It never moves a
+tag or changes the stable latest release pointer. GH_HOST is fixed to github.com.
+The published archives/content are the existing engine build outputs, unchanged.
+
+Scope is #158 CI publication only. No engine code, FP arithmetic, layouts,
+allocation, destructor, OS boundary or accepted fixture is changed. The test is
+wired into the regression format job and documented in AGENTS/tests README.
+Required full hosted build/regression remain mandatory before merge. The actual
+publication job is intentionally main-event-only; require its successful merged
+run before closing #158. Main a4358019's publication failed with the same baseline
+permission defect in run 35546603122; its compilation jobs all passed, and its
+independent regression 35546603116 is still running. Do not conflate publication
+failure with #13 engine/runtime correctness or waive either acceptance step.
+
 ## #13 preparatory failing material contract
 
 Metallic/roughness is the selected workflow, matching glTF 2.0. The explicit model

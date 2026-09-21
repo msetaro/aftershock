@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - name: Immutable build publication contract
+        run: python3 tests/publish_build.py
       - name: Enforce reviewed clang-format version and style
         run: python3 tests/check_format.py --clang-format 'pipx run --spec clang-format==21.1.8 clang-format'
 

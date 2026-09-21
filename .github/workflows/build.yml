@@ -187,6 +187,9 @@ jobs:
         if-no-files-found: error
         retention-days: 5
   create-testing:
+    permissions:
+      contents: write
+      actions: read
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs:
     - unix
@@ -194,6 +197,7 @@ jobs:
     - windows-msys
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v7
     - name: Download Artifacts
       uses: actions/download-artifact@v8
     - name: Create binary archives
@@ -204,16 +208,14 @@ jobs:
         7z a -r quake3e-windows-msvc-arm64.zip   ./windows-msvc-arm64/*
         7z a -r quake3e-macos-x86_64.zip         ./macos-x86_64/*
         7z a -r quake3e-macos-aarch64.zip        ./macos-aarch64/*
-    - name: Create latest build
-      uses: czietz/action-automatic-releases@latest
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        automatic_release_tag: latest
-        prerelease: false
-        title: Latest Build
-        files: |
-          *.zip
+    - name: Publish immutable build
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: bash tools/publish_build.sh ./*.zip
   update-release:
+    permissions:
+      contents: write
+      actions: read
     if: ${{ github.event_name == 'release' }}
     needs:
     - unix

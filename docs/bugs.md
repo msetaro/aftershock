@@ -1008,3 +1008,9 @@ installed gh CLI to publish immutable per-commit build tags, verifying any
 existing target before retrying assets. `python3 tests/publish_build.py` is an
 offline fake-CLI contract; it fails before the publisher is implemented. No
 engine bug, accepted golden, sanitizer suppression or external publication.
+
+#158 implementation: the test-first contract 7d88a53a fails on the missing
+publisher, then passes immutable creation/retry/collision and API failure cases.
+Bash syntax, build workflow actionlint and scoped permission checks pass. Full
+hosted gates and successful main publication remain required before this entry
+can be marked fixed. No history or rollback tag is rewritten.
