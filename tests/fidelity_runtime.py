@@ -33,6 +33,8 @@ if args.measure_gpu and (args.record_reference or not os.environ.get('VK_DRIVER_
 args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)
 reference = ROOT/'tests/golden/fidelity'
+if args.content != 'openarena':
+    reference = reference/args.content
 if args.record_reference:
     reference.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(prefix='aftershock-fidelity-') as temporary:

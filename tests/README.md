@@ -1398,7 +1398,9 @@ and compares four software captures exactly. Mesa 26.0.8 uses the retained
 `tests/golden/fidelity/*.png`; Mesa 25.2.8 uses the separately reviewed
 `tests/golden/fidelity/mesa-25.2.8/*.png`. The renderer log must identify llvmpipe
 and one Mesa version; unknown/missing references fail. Like fixed replay frames,
-these are per-driver exact references, not a tolerance-based comparison. The
+Quake 3 local runs use the separate `tests/golden/fidelity/quake3/` references
+(Mesa 26.0.8). No installed paks are copied or uploaded. These are per-content,
+per-driver exact references, not a tolerance-based comparison. The
 25.2.8/26.0.8 difference is at most two RGB code values per channel (mean error
 below 0.022 per channel); both versions must match their own reference exactly.
 The new sphere recipe explicitly uses `lod_error=.1` to reach its requested ratios;

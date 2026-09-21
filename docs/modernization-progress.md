@@ -44,7 +44,7 @@ and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
 unchanged. Main is merged forward here. Build/publication 35613793896 passed;
 regression 35613793817 passed all ten active jobs. #31 is accepted again.
 
-Next: compare new Mesa 25.2.8 references with retained hosted captures, then require all 16 compiler legs and ten active regression jobs on a head
+Next: finish the final PR169 hosted gates and require all 16 compiler legs and ten active regression jobs on a head
 containing current main. Combined software references and serial hardware budgets
 now pass. Optional resolution upscaling is deliberately omitted from this issue;
 the existing render-scale hook remains, and a quality upscaler can follow a measured
@@ -77,6 +77,29 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 hosted/reference agreement and local content repeat
+
+All four PNGs downloaded from presentation-metrics artifact 10653769125 on run
+35629405076 match the independently generated Mesa 25.2.8 references pixel-for-pixel.
+Artifacts are retained under fidelity-ci-presentation/. The local Quake 3 / Mesa
+26.0.8 captures were reviewed and a fresh comparison passes
+(fidelity-quake3-reference.log / fidelity-quake3-repeat.log). Exact references now
+cover OpenArena on both supported Mesa versions and installed Quake 3 on local
+Mesa 26.0.8. Only new version/content variants were added; no accepted PNG changed.
+At 8d737daf, all compiler legs and eight active regression jobs pass; runtime and
+lifetimes are still running. The content-selector checkpoint requires its own
+final-head hosted success before merge. No engine or shader code changed.
+
+## #161 local Quake 3 content control
+
+The documented default local invocation was also checked against ~/.q3a. Its
+owned-scene baseline differs from OpenArena at a few edge pixels (mean channel
+error below 0.0033, maximum 84). The new test therefore follows the existing replay
+content separation as well: new Quake 3 / Mesa 26.0.8 frames live under
+fidelity/quake3, while all OpenArena references stay unchanged. Installed paks are
+only linked into the private engine home; none are copied or uploaded. New local
+content references still require review and an independent exact repeat.
 
 ## #161 per-Mesa exact references pass locally
 
