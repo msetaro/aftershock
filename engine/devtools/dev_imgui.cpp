@@ -21,6 +21,28 @@ static devUiCommand_t commands[4096];
 static const refexport_t *editorRenderer;
 static int selectedImage, selectedMaterial;
 static char requestedPanel[32], activePanel[32];
+static char filters[3][128], selectedCvar[MAX_STRING_CHARS], cvarValue[MAX_CVAR_VALUE_STRING];
+
+bool DevTools_Filter( const char *kind, const char *value ) {
+	const int index = !strcmp( kind, "cvars" ) ? 0 : !strcmp( kind, "images" )	? 1
+												 : !strcmp( kind, "materials" ) ? 2
+																				: -1;
+	if ( index < 0 || strlen( value ) >= sizeof( filters[0] ) )
+		return false;
+	if ( value != filters[index] )
+		Q_strncpyz( filters[index], value, sizeof( filters[0] ) );
+	return true;
+}
+bool DevTools_SelectCvar( const char *name ) {
+	for ( const cvar_t *var = Cvar_First(); var; var = var->next ) {
+		if ( var->name && !strcmp( name, var->name ) ) {
+			Q_strncpyz( selectedCvar, name, sizeof( selectedCvar ) );
+			Q_strncpyz( cvarValue, var->string, sizeof( cvarValue ) );
+			return true;
+		}
+	}
+	return false;
+}
 
 static bool BeginPanel( const char *name, bool *open = nullptr, ImGuiTabItemFlags flags = ImGuiTabItemFlags_None ) {
 	if ( !strcmp( name, requestedPanel ) )
@@ -801,8 +823,9 @@ bool DevTools_SetMaterial( int index, const materialParams_t *params ) {
 
 static void InspectAssets( const refexport_t *renderer ) {
 	if ( BeginPanel( "Textures" ) ) {
-		static char filter[128];
-		ImGui::InputText( "Filter textures", filter, sizeof( filter ) );
+		auto &filter = filters[1];
+		if ( ImGui::InputText( "Filter textures", filter, sizeof( filter ) ) )
+			DevTools_Filter( "images", filter );
 		if ( ImGui::BeginChild( "Images", ImVec2( 0, 120 ), ImGuiChildFlags_Borders ) ) {
 			devImage_t image;
 			for ( int i = 0; renderer->GetDeveloperImage( i, &image ); ++i ) {
@@ -819,8 +842,9 @@ static void InspectAssets( const refexport_t *renderer ) {
 		ImGui::EndTabItem();
 	}
 	if ( BeginPanel( "Materials" ) ) {
-		static char filter[128];
-		ImGui::InputText( "Filter materials", filter, sizeof( filter ) );
+		auto &filter = filters[2];
+		if ( ImGui::InputText( "Filter materials", filter, sizeof( filter ) ) )
+			DevTools_Filter( "materials", filter );
 		if ( ImGui::BeginChild( "Shaders", ImVec2( 0, 120 ), ImGuiChildFlags_Borders ) ) {
 			devMaterial_t material;
 			for ( int i = 0; renderer->GetDeveloperMaterial( i, &material ); ++i ) {
@@ -935,6 +959,8 @@ bool DevTools_SetWorld( bool collision, bool navigation, bool entitiesVisible, f
 void DevTools_EditorState( devEditorState_t *state ) {
 	*state = {};
 	Q_strncpyz( state->panel, activePanel, sizeof( state->panel ) );
+	Q_strncpyz( state->cvar, selectedCvar, sizeof( state->cvar ) );
+	memcpy( state->filters, filters, sizeof( filters ) );
 	Q_strncpyz( state->clip, animation.clipName, sizeof( state->clip ) );
 	state->frames = renderedFrames;
 	state->allocations = allocations;
@@ -1517,7 +1543,10 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	if ( animation.fps < 1 )
 		animation.fps = 15;
 	ImGui::NewFrame();
-	static char command[1024], filter[128], selected[MAX_STRING_CHARS], value[MAX_CVAR_VALUE_STRING];
+	static char command[1024];
+	auto &filter = filters[0];
+	auto &selected = selectedCvar;
+	auto &value = cvarValue;
 	bool execute = false, apply = false;
 	ImGui::SetNextWindowSize( ImVec2( (float)MIN( width - 20, 700 ), (float)MIN( height - 20, 540 ) ), ImGuiCond_FirstUseEver );
 	ImGui::SetNextWindowPos( ImVec2( 10, 10 ), ImGuiCond_FirstUseEver );
@@ -1534,15 +1563,14 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 				ImGui::EndTabItem();
 			}
 			if ( BeginPanel( "Cvars" ) ) {
-				ImGui::InputText( "Search", filter, sizeof( filter ) );
+				if ( ImGui::InputText( "Search", filter, sizeof( filter ) ) )
+					DevTools_Filter( "cvars", filter );
 				if ( ImGui::BeginChild( "Variables", ImVec2( 0, -110 ), ImGuiChildFlags_Borders ) ) {
 					for ( const cvar_t *var = Cvar_First(); var; var = var->next ) {
 						if ( !var->name || ( *filter && !Q_stristr( var->name, filter ) && ( !var->description || !Q_stristr( var->description, filter ) ) ) )
 							continue;
-						if ( ImGui::Selectable( var->name, !strcmp( selected, var->name ) ) ) {
-							Q_strncpyz( selected, var->name, sizeof( selected ) );
-							Q_strncpyz( value, var->string, sizeof( value ) );
-						}
+						if ( ImGui::Selectable( var->name, !strcmp( selected, var->name ) ) )
+							DevTools_SelectCvar( var->name );
 						if ( !strcmp( selected, var->name ) && var->description )
 							ImGui::TextWrapped( "%s", var->description );
 					}

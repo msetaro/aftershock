@@ -72,6 +72,7 @@ uint32_t DevTools_DebugDropped( void );
 bool DevTools_Project( const refdef_t *view, const float *point, float *screen );
 int DevTools_PickEntity( float x, float y );
 struct devEditorState_t {
+	char cvar[MAX_STRING_CHARS], filters[3][128];
 	char panel[32], clip[64], graphState[64], graphEvent[64], graphResult[32];
 	uint32_t frames, lines, labels, worldLines, animationPreviews, allocations;
 	uint64_t arena;
@@ -85,6 +86,8 @@ struct devEditorState_t {
 	bool collision, navigation, entities, animationPlay;
 };
 bool DevTools_SelectPanel( const char *name );
+bool DevTools_SelectCvar( const char *name );
+bool DevTools_Filter( const char *kind, const char *value );
 bool DevTools_SelectEntity( int entity );
 int DevTools_PickCrosshair( void );
 bool DevTools_EntityAtCamera( float *origin );

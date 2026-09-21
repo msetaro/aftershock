@@ -76,6 +76,15 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 shared cvar controls
+
+Cvar listing now returns bounded pages with values/defaults/descriptions/flags.
+The channel and UI share cvar selection and cvar/image/material filter state.
+Material asset replies include each stage's presence, state bits and texture IDs.
+Native protocol/assertion/release-object checks and Q3 devtools runtime pass;
+OpenArena and material runtime checks are running. Graph table queries/subtabs
+remain next, followed by affected-test selection and executable handbook recipes.
+
 ## #163 editor metadata test-first checkpoint
 
 The extended devtools runtime check fails against the previous development binary

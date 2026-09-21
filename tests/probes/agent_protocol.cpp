@@ -27,6 +27,15 @@ bool DevTools_SetMaterial( int, const materialParams_t * ) {
 bool DevTools_SelectPanel( const char * ) {
 	return false;
 }
+bool DevTools_SelectCvar( const char * ) {
+	return false;
+}
+bool DevTools_Filter( const char *, const char * ) {
+	return false;
+}
+const cvar_t *Cvar_First( void ) {
+	return nullptr;
+}
 bool DevTools_SetWorld( bool, bool, bool, float ) {
 	return false;
 }

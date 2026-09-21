@@ -479,6 +479,44 @@ static void Agent_State( agentReply_t &reply ) {
 	reply.Text( "}}" );
 }
 
+static bool Agent_Cvars( const char *request, const char *end, agentReply_t &reply ) {
+	char filter[128] = {};
+	const char *p = JSON_ObjectGetNamedValue( request, end, "filter" );
+	if ( p && !Agent_String( p, end, filter, sizeof( filter ) ) )
+		return reply.Error( "invalid_argument", "$.filter", "Use a name or description substring shorter than 128 bytes." );
+	uint32_t offset = 0, limit = 16;
+	if ( ( JSON_ObjectGetNamedValue( request, end, "offset" ) && !Agent_Integer( request, end, "offset", offset ) ) || offset > 65535 ||
+		 ( JSON_ObjectGetNamedValue( request, end, "limit" ) && !Agent_Integer( request, end, "limit", limit ) ) || limit < 1 || limit > 16 )
+		return reply.Error( "invalid_argument", "$", "Use offset 0..65535 and limit 1..16; restart pagination after registering new cvars." );
+	reply.Text( ",\"ok\":true,\"result\":{\"items\":[" );
+	uint32_t next = 0, count = 0;
+	const cvar_t *var = Cvar_First();
+	for ( ; var && count < limit; var = var->next, ++next ) {
+		if ( next < offset || !var->name || ( *filter && !Q_stristr( var->name, filter ) && ( !var->description || !Q_stristr( var->description, filter ) ) ) )
+			continue;
+		if ( count++ )
+			reply.Text( "," );
+		reply.Text( "{\"name\":" );
+		reply.String( var->name );
+		reply.Text( ",\"value\":" );
+		reply.String( var->string );
+		reply.Text( ",\"default\":" );
+		reply.String( var->resetString ? var->resetString : "" );
+		reply.Text( ",\"description\":" );
+		reply.String( var->description ? var->description : "" );
+		reply.Text( ",\"flags\":" );
+		reply.Number( var->flags );
+		reply.Text( "}" );
+	}
+	reply.Text( "],\"next\":" );
+	if ( var )
+		reply.Number( next );
+	else
+		reply.Text( "null" );
+	reply.Text( "}}" );
+	return reply.valid;
+}
+
 #ifndef DEDICATED
 static void Agent_MaterialParams( agentReply_t &reply, const materialParams_t &params ) {
 	reply.Text( "{\"color\":[" );
@@ -579,6 +617,23 @@ static bool Agent_Assets( const char *request, const char *end, agentReply_t &re
 			reply.Text( material.metallicRoughness ? "true" : "false" );
 			reply.Text( ",\"params\":" );
 			Agent_MaterialParams( reply, material.params );
+			reply.Text( ",\"stageInfo\":[" );
+			for ( int stage = 0; stage < material.stages; ++stage ) {
+				if ( stage )
+					reply.Text( "," );
+				reply.Text( "{\"present\":" );
+				reply.Text( material.present[stage] ? "true" : "false" );
+				reply.Text( ",\"stateBits\":" );
+				reply.Number( material.stateBits[stage] );
+				reply.Text( ",\"textures\":[" );
+				for ( int texture = 0; texture < 3; ++texture ) {
+					if ( texture )
+						reply.Text( "," );
+					reply.Number( material.textures[stage][texture] );
+				}
+				reply.Text( "]}" );
+			}
+			reply.Text( "]" );
 		} else {
 			reply.Text( ",\"type\":" );
 			reply.Number( model.type );
@@ -605,6 +660,15 @@ static void Agent_EditorState( agentReply_t &reply ) {
 	DevTools_EditorState( &state );
 	reply.Text( ",\"ok\":true,\"result\":{\"panel\":" );
 	reply.String( state.panel );
+	reply.Text( ",\"cvar\":" );
+	reply.String( state.cvar );
+	reply.Text( ",\"filters\":{\"cvars\":" );
+	reply.String( state.filters[0] );
+	reply.Text( ",\"images\":" );
+	reply.String( state.filters[1] );
+	reply.Text( ",\"materials\":" );
+	reply.String( state.filters[2] );
+	reply.Text( "}" );
 	reply.Text( ",\"entity\":" );
 	reply.Number( state.selectedEntity );
 	reply.Text( ",\"frames\":" );
@@ -1038,7 +1102,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
 	} else if ( !strcmp( op, "assets" ) || !strcmp( op, "asset.select" ) || !strcmp( op, "material.set" ) || !strcmp( op, "material.preview" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Renderer assets require a client build." );
@@ -1342,6 +1406,26 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 			agentError[0] = 0;
 			agentStepId = sequence;
 		}
+	} else if ( !strcmp( op, "cvar.list" ) ) {
+		return Agent_Cvars( request, end, reply );
+	} else if ( !strcmp( op, "cvar.select" ) || !strcmp( op, "editor.filter" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Editor controls require a client build." );
+#else
+		if ( capacity < 1024 )
+			return false;
+		if ( !strcmp( op, "cvar.select" ) ) {
+			p = JSON_ObjectGetNamedValue( request, end, "name" );
+			if ( !Agent_String( p, end, name, sizeof( name ) ) || !DevTools_SelectCvar( name ) )
+				return reply.Error( "invalid_argument", "$.name", "Select a registered cvar from cvar.list." );
+		} else {
+			p = JSON_ObjectGetNamedValue( request, end, "kind" );
+			const char *v = JSON_ObjectGetNamedValue( request, end, "value" );
+			if ( !Agent_String( p, end, name, sizeof( name ) ) || !Agent_String( v, end, value, 128 ) || !DevTools_Filter( name, value ) )
+				return reply.Error( "invalid_argument", "$", "Use kind cvars/images/materials and a value shorter than 128 bytes." );
+		}
+		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+#endif
 	} else if ( !strcmp( op, "cvar.get" ) || !strcmp( op, "cvar.set" ) ) {
 		p = JSON_ObjectGetNamedValue( request, end, "name" );
 		if ( !Agent_String( p, end, name, sizeof( name ) ) || !name[0] )
