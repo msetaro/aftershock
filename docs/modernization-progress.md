@@ -77,6 +77,15 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 CLI test-first checkpoint
+
+The one-command driver contract now requires a walked waypoint, tracked target
+fire, hit/error/assert/p99 assertions, three real PNGs, a retained failure report,
+and file/JSON-path diagnostics. Before implementation it fails because tools/agent
+has no __main__ (agent-cli-before.log). Gameplay event acceptance independently
+confirms normal rail damage/death on Q3; the OA encounter setup still needs a
+clear firing position. No engine behavior or accepted fixtures are changed.
+
 ## #163 assertion checkpoint
 
 The test-first native assertion contract failed with no event before abort
