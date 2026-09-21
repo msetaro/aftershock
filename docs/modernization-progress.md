@@ -46,8 +46,9 @@ undo, numbered backup, watched recook and changed preview. The prior missing gra
 operation is recorded in agent-editor-before.log. Entity save/reload also passes on both content sets via JSON, retaining every
 original key, angle aliases and numbered-save checks. The World panel rewrite
 now passes after its absent-operation check (agent-world-before.log): placement,
-picking, selection and reload share existing UI functions. Continue Range and
-the remaining general/asset panel controls.
+picking, selection and reload share existing UI functions. The Range rewrite now fails first on absent range operation
+(agent-range-before.log). Implement its shared actions and authoritative
+weapon/animation state queries, then the remaining general/asset controls.
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
