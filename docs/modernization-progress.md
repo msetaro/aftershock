@@ -38,17 +38,24 @@ checks also pass with an OA renderer module; no screen-click calls remain in
 test drivers. Shipping exclusion passes in the full devtools rebuild. Legacy
 accepted goldens and source assets are unchanged.
 
-Next: start two simultaneous complete local
-suite runs from clean detached worktrees at this branch's final head. Metadata,
-root isolation, the full-suite catalog, affected-test selection and all seven
-executable handbook recipes are implemented. Run fresh hosted/current-main gates,
-review every #163 requirement, ready/merge PR166, verify merged gates, then continue
-#164 -> #161 -> #15 through #25. PR166 stays draft until acceptance is complete.
+Next: wait for the final documentation checkpoint's hosted checks to all pass,
+recheck PR166 base and current main, mark ready, and merge with a merge commit.
+Then verify merged main build/publication/regression, close/check #163 in #25,
+and continue #164 -> #161 -> #15 through #25. No maintainer input is needed.
+PR166 stays draft until its final head is green. Metadata, root isolation, local
+suite catalog, affected-test selection and all seven handbook recipes are complete.
 
-2d013965 build 35564020843 and regression 35564020842 both pass. Newer db72e197
-build 35565432449 passes; regression 35565432535 is still running. These do not
-accept later handbook/self-review changes. Main remains 4ade5c3a9cad9cd71a04ca2641db2f74b8355774
-as rechecked through the API before handbook completion.
+Functional head c56bde87f4ec73f83bf9ddcc1ddeeaff74cc9ab7 passes build 35567139821
+(all 16 compiler legs) and regression 35567139815 (all ten required active variants).
+Both complete local suites at that same head also PASS, started together from
+clean detached worktrees agent-suite-a and agent-suite-b. Each ran all ten job
+variants / 96 workflow steps, including runtime/module checks and independent
+private-kind lifecycles. Both worktrees remained clean. Their full reports and
+logs are under /home/matt/.cache/aftershock-modernization/agent-suite-{a,b}-c56bde87.
+The final checkpoint changes documentation only; its exact-head hosted gates still
+must pass before merge. Earlier failed/partial runs below are not acceptance.
+Main remains 4ade5c3a9cad9cd71a04ca2641db2f74b8355774, rechecked after both runs.
+Known-good tag object/target are unchanged; recheck immediately before merge.
 
 All existing exclusions remain in force. Nothing leaves msetaro/aftershock;
 shipping binaries exclude this tooling. No PR against another repository, no
@@ -75,6 +82,36 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 full concurrency acceptance
+
+Both c56bde87 full-suite processes exited 0, with full=true, ok=true, dirty=false
+and ten successful jobs each. Sequential step time totals are 1724.5s / 1723.7s;
+the runs started simultaneously and shared only immutable/pinned tool caches.
+Report SHA-256 values:
+
+- A: 5e0bf78d8038a3f0d3f6e2c0484e9187b9e5c2ca13fbee0e4868f9b7ad72b045
+- B: 639c3966d41184ec502f3cef6f28e158d7079fbc0318e9dade78f8e86d40b741
+
+The runtime recipe steps pass after installing their prerequisites; no system
+packages were installed locally. GCC/clang, sanitizer, lifetime, boundary, shader,
+unchanged golden, headless runtime, cross-build and match lifecycle gates all ran.
+All original accepted goldens and the immutable known-good tag remain unchanged.
+Self-review is recorded below. Final documentation-only head still needs its own
+hosted checks before readiness/merge; a passing older head is not substituted.
+
+## #163 corrected full runs started
+
+Both completed 7342518d runs passed format, tidy, lifetimes, sanitizers, both cross
+builds and simultaneous private-kind match lifecycle, but each failed both unit
+variants and runtime on the duplicate interpreter path. Corrected independent
+GCC and clang job runs pass (agent-suite-python-gcc.log and clang result in
+agent-suite-python-unit/suite-report.json); these are explicitly partial runs.
+
+Fresh complete runs started together in clean detached worktrees at c56bde87.
+Their reports and logs are under agent-suite-{a,b}-c56bde87. PR166 remains draft;
+monitor these and fresh hosted gates, record acceptance, then recheck current main
+and known-good before readiness/merge. No accepted golden changed.
 
 ## #163 local runner correction and hosted prerequisite order
 
