@@ -23,7 +23,7 @@ int main( int argc, char **argv ) {
 	static_assert( std::is_trivially_copyable_v<fxAsset_t> );
 	static_assert( sizeof( fxFileHeader_t ) == 36 );
 	static_assert( sizeof( fxFileEmitter_t ) == 304 );
-	assert(argc == 2);
+	assert(argc == 3);
 	FILE *file = fopen( argv[1], "rb" );
 	assert(file);
 	const size_t size = fread( bytes, 1, sizeof( bytes ), file );
@@ -157,5 +157,35 @@ int main( int argc, char **argv ) {
 	assert(state.stats.particles == FX_MAX_PARTICLES && state.stats.dropped == FX_MAX_PARTICLES);
 	FX_Update( &state, 1000, nullptr, nullptr );
 	assert(state.stats.particles == 0);
+	// Projected decals retain a copied definition in a fixed insertion ring.
+	file = fopen( argv[2], "rb" );
+	assert( file );
+	const size_t decalSize = fread( bytes, 1, sizeof( bytes ), file );
+	assert( !ferror( file ) );
+	fclose( file );
+	decalAsset_t decal{};
+	assert( DCL_Open( bytes, decalSize, &decal ) );
+	assert( decal.halfSize[0] == 8 && decal.halfSize[2] == 2 );
+	static decalSystem_t decals;
+	static_assert( std::is_trivially_destructible_v<decalSystem_t> );
+	DCL_Reset( &decals );
+	const uint32_t first = DCL_Add( &decals, &decal, origin, axis );
+	assert( first && decals.active == 1 && DCL_Opacity( &decals.items[0] ) == 1 );
+	decal.color[0] = .5f;
+	assert( decals.items[0].asset.color[0] == 1 );
+	for ( uint32_t i = 1; i < DCL_MAX_DECALS; ++i )
+		assert( DCL_Add( &decals, &decal, origin, turned ) );
+	assert( decals.active == DCL_MAX_DECALS && decals.replaced == 0 );
+	assert( DCL_Add( &decals, &decal, origin, axis ) != first );
+	assert( decals.items[0].handle != first && decals.replaced == 1 );
+	DCL_Update( &decals, 500 );
+	assert( DCL_Opacity( &decals.items[0] ) == 1 );
+	DCL_Update( &decals, 400 );
+	assert( DCL_Opacity( &decals.items[0] ) == .5f );
+	DCL_Update( &decals, 100 );
+	assert( decals.active == 0 && DCL_Opacity( &decals.items[0] ) == 0 );
+	assert( DCL_Add( &decals, &decal, origin, axis ) );
+	DCL_Update( &decals, UINT32_MAX );
+	assert( decals.active == 0 );
 	puts( "PASS: fixed effect pools, rate carry, expiry, stale handles, native motion, collision and overflow counters" );
 }

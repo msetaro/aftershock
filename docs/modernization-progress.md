@@ -65,6 +65,15 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 projected-decal data/ring test first
+
+The existing effect test now requires a versioned .asdc definition with color and
+normal-map paths, volume size, lifetime/fade, color and normal strength. Its native
+contract requires a copied definition in a fixed 128-entry insertion ring,
+overwrite counters, bounded aging and fade-to-expiry. It fails before implementation
+on the absent decal cook kind (fidelity-decals-before.log). These are new feature
+contracts in the existing effect target, not changes to accepted content.
+
 ## #161 sampled-depth particle pass passes component gates
 
 Soft sprite/trail quads reuse the bounded scene polygon storage and sort their

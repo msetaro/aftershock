@@ -54,13 +54,26 @@ with tempfile.TemporaryDirectory(prefix='aftershock-effect-source-') as temporar
     index=(args.output/'cook.index').read_bytes()
     assert struct.unpack_from('<I',index,48)[0]==1 and struct.unpack_from('<I',index,152)[0]==8
     assert cook(project,args.output)['built']==[]
+    decal_definition=dict(version=1,name='bullet',color_map='textures/bullet.ktx2',normal_map='textures/bullet_n.ktx2',
+                          size=[16,16,4],lifetime_ms=1000,fade_ms=200,color=[1,1,1,1],normal_strength=1)
+    (source/'bullet.json').write_text(json.dumps(decal_definition))
+    decals=source/'decals.json'
+    decals.write_text(json.dumps(dict(version=1,assets=[dict(name='decals/bullet',kind='decal',source='bullet.json')])))
+    cook(decals,args.output/'decals')
+    decal_path=args.output/'decals/decals/bullet.asdc'
+    decal_data=decal_path.read_bytes()
+    assert struct.unpack_from('<8sII',decal_data)==(b'ASDECAL\0',1,200)
+    assert hashlib.sha256(decal_data[48:]).digest()==decal_data[16:48]
+    assert len(decal_data)==248
+    assert struct.unpack_from('<3f',decal_data,216)==(8,8,2)
+    assert cook(decals,args.output/'decals')['built']==[]
     sha_object=args.output/'sha256.o'
     run([*shlex.split(args.cc),'-std=c99','-O2','-c','third_party/sha256/sha-256.c','-o',sha_object])
     probe=args.output/'native-probe'
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti','-ffp-contract=off','-fno-fast-math',
          '-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all',
          'tests/probes/effects.cpp','engine/effects/effects.cpp',sha_object,'-o',probe])
-    run([probe,path])
+    run([probe,path,decal_path])
     impact=args.output/'impact-probe'
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti','-ffp-contract=off','-fno-fast-math',
          '-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all',
