@@ -2648,7 +2648,12 @@ void Sys_QueEvent( int evTime, sysEventType_t evType, int value, int value2, int
 		Sys_EventName( evType ), evTime, eventTail, eventHead );
 #endif
 
-	if ( evTime == 0 ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		evTime = DevTools_AgentTime();
+	else
+#endif
+		if ( evTime == 0 ) {
 		evTime = Sys_Milliseconds();
 	}
 
@@ -2701,6 +2706,10 @@ static sysEvent_t Com_GetSystemEvent( void ) {
 	Sys_SendKeyEvents();
 
 	evTime = Sys_Milliseconds();
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		evTime = DevTools_AgentTime();
+#endif
 
 	// check for console commands
 	s = Sys_ConsoleInput();
@@ -3731,7 +3740,9 @@ void Com_Frame( qboolean noDelay ) {
 	}
 
 #ifdef AFTERSHOCK_DEVTOOLS
-	DevTools_BeginFrame( Cvar_VariableIntegerValue( "dev_tools" ) != 0 );
+	if ( DevTools_AgentActive() )
+		noDelay = qtrue;
+	DevTools_BeginFrame( DevTools_AgentActive() || Cvar_VariableIntegerValue( "dev_tools" ) != 0 );
 #endif
 	minMsec = 0; // silent compiler warning
 
@@ -3831,6 +3842,10 @@ void Com_Frame( qboolean noDelay ) {
 
 	// mess with msec if needed
 	msec = Com_ModifyMsec( realMsec );
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		msec = realMsec;
+#endif
 
 	//
 	// server side

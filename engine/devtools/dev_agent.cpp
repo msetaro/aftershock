@@ -6,6 +6,23 @@
 
 // Requests and replies are bounded POD data; the inactive channel allocates nothing.
 static constexpr uint32_t agentLimit = 16384;
+static bool agentActive;
+static uint32_t agentFrame, agentSteps, agentStepId;
+static int agentTime = 1000, agentDt = 8, agentSeed = 1;
+
+void DevTools_AgentEnable( void ) {
+	agentActive = true;
+}
+bool DevTools_AgentActive( void ) {
+	return agentActive;
+}
+int DevTools_AgentTime( void ) {
+	return agentTime;
+}
+int DevTools_AgentSeed( void ) {
+	return agentSeed;
+}
+
 
 struct agentReply_t {
 	char *data;
@@ -227,6 +244,15 @@ static bool Agent_Value( const char *&p, const char *end, uint32_t depth ) {
 	return true;
 }
 
+static bool Agent_Integer( const char *request, const char *end, const char *name, uint32_t &value ) {
+	const char *p = JSON_ObjectGetNamedValue( request, end, name );
+	if ( !p )
+		return false;
+	const char *stop = JSON_SkipValue( p, end );
+	const auto result = std::from_chars( p, stop, value );
+	return result.ec == std::errc{} && result.ptr == stop;
+}
+
 bool DevTools_AgentRequest( const char *request, uint32_t length, char *response, uint32_t capacity ) {
 	if ( !response || capacity < 2 )
 		return false;
@@ -262,7 +288,36 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\"]}}" );
+	} else if ( !strcmp( op, "session" ) ) {
+		uint32_t dt, seed;
+		if ( !agentActive || agentFrame )
+			return reply.Error( "invalid_state", "$", "Configure an --agent process before its first step." );
+		if ( !Agent_Integer( request, end, "dt", dt ) || dt < 1 || dt > 100 )
+			return reply.Error( "invalid_argument", "$.dt", "Use an integer timestep from 1 to 100 milliseconds." );
+		if ( !Agent_Integer( request, end, "seed", seed ) || seed > INT32_MAX )
+			return reply.Error( "invalid_argument", "$.seed", "Use an integer seed from 0 to 2147483647." );
+		char result[128];
+		snprintf( result, sizeof( result ), ",\"ok\":true,\"result\":{\"dt\":%u,\"seed\":%u}}", dt, seed );
+		reply.Text( result );
+		if ( reply.valid ) {
+			agentDt = (int)dt;
+			agentSeed = (int)seed;
+			srand( seed );
+		}
+	} else if ( !strcmp( op, "step" ) ) {
+		uint32_t frames;
+		if ( !agentActive || agentSteps )
+			return reply.Error( "invalid_state", "$", "Step an idle --agent process." );
+		if ( !Agent_Integer( request, end, "frames", frames ) || frames < 1 || frames > 10000 ||
+			 (uint64_t)agentTime + (uint64_t)frames * (uint32_t)agentDt > INT32_MAX )
+			return reply.Error( "invalid_argument", "$.frames", "Use 1 to 10000 frames within the session clock range." );
+		// Reserve enough room before accepting work. The transport replies after completion.
+		reply.Text( ",\"ok\":true,\"result\":{\"pending\":true}}" );
+		if ( reply.valid ) {
+			agentSteps = frames;
+			agentStepId = sequence;
+		}
 	} else if ( !strcmp( op, "cvar.get" ) || !strcmp( op, "cvar.set" ) ) {
 		p = JSON_ObjectGetNamedValue( request, end, "name" );
 		if ( !Agent_String( p, end, name, sizeof( name ) ) || !name[0] )
@@ -301,4 +356,37 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	} else
 		return reply.Error( "unknown_operation", "$.op", "Use a command name from hello." );
 	return reply.valid;
+}
+
+static void Agent_Send( const char *response ) {
+	if ( !Sys_AgentWrite( response, (uint32_t)strlen( response ) ) || !Sys_AgentWrite( "\n", 1 ) )
+		Com_Quit_f();
+}
+
+bool DevTools_AgentNextFrame( void ) {
+	if ( !agentSteps ) {
+		static char request[agentLimit], response[65536];
+		const int length = Sys_AgentRead( request, sizeof( request ) );
+		if ( length < 0 ) {
+			Com_Quit_f();
+			return false;
+		}
+		if ( !DevTools_AgentRequest( request, (uint32_t)length, response, sizeof( response ) ) )
+			Agent_Send( "{\"id\":null,\"ok\":false,\"error\":{\"code\":\"response_limit\",\"path\":\"$\",\"hint\":\"Request a smaller result.\"}}" );
+		else if ( !agentSteps )
+			Agent_Send( response );
+		if ( !agentSteps )
+			return false;
+	}
+	agentTime += agentDt;
+	return true;
+}
+
+void DevTools_AgentEndFrame( void ) {
+	++agentFrame;
+	if ( --agentSteps == 0 ) {
+		char reply[160];
+		snprintf( reply, sizeof( reply ), "{\"id\":%u,\"ok\":true,\"result\":{\"frame\":%u,\"time\":%d,\"dt\":%d}}", agentStepId, agentFrame, agentTime, agentDt );
+		Agent_Send( reply );
+	}
 }

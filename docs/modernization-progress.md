@@ -36,10 +36,11 @@ contract is committed before implementation: protocol version/command discovery,
 structured correlated replies, cvar get/set with read-only protection, escaped
 strings, console command queuing, typed errors with JSON paths/hints, and bounded
 output without partial execution. It fails on missing dev_agent.cpp as intended
-(agent-protocol-before.log). The channel is not implemented yet.
+(agent-protocol-before.log). The initial channel and dedicated-server stepping test now pass.
 Main 4ade5c3a is merged forward here. The initial command layer now passes GCC
-and Clang/UBSan (agent-protocol-{gcc,clang}.log). Next add platform stdin/stdout
-transport and fixed-dt stepping, then the rest of #163. Since the merged #14
+and Clang/UBSan (agent-protocol-{gcc,clang}.log). Platform pipe transport and explicit frame stepping now pass the dedicated
+server check; next implement map/state/input commands and verify two identical
+seeded local playthroughs, then finish the rest of #163. Since the merged #14
 tree exactly equals its tested head, isolated #163 implementation proceeds while
 integration verification finishes; opening its PR still waits for #14 acceptance.
 No PR for #163 opens before #14 acceptance. Updated #25 sequence is #163 -> #164
@@ -71,6 +72,22 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 pipe and explicit-step checkpoint
+
+Development builds accept --agent as the first argument. Platform code owns
+blocking stdin and complete stdout writes; ordinary logs remain on stderr. EOF
+quits cleanly. The parent waits for each response. A session configures dt/seed
+before stepping, and step replies only after the requested Com_Frame calls.
+Agent events use the explicit clock; the usual real profiler clock is retained.
+The native game gets the session seed, and idle dedicated-server waiting yields
+to the parent pipe in this mode. Shipping/default branches retain their behavior.
+
+Native command GCC/Clang UBSan, dedicated pipe/idle-clock/EOF tests, boundary and
+format checks pass. MinGW compiles the dispatcher and platform transport. Evidence:
+agent-channel.log and agent-protocol-{gcc,clang}.log. This is not full playthrough
+determinism evidence yet. Client/server Release development builds pass locally.
+Main #14 regression now has only runtime still running; lifetimes passed.
 
 ## #163 initial command implementation
 

@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../../qcommon/q_shared.h"
 #include "../../qcommon/qcommon_public.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../../devtools/devtools_public.h"
+#endif
 #ifndef DEDICATED
 #include "../../client/client_public.h"
 #endif
@@ -138,6 +141,13 @@ Sys_Print
 ==============
 */
 void Sys_Print( const char *msg ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() ) {
+		DWORD written;
+		WriteFile( GetStdHandle( STD_ERROR_HANDLE ), msg, (DWORD)strlen( msg ), &written, nullptr );
+		return;
+	}
+#endif
 	Conbuf_AppendText( msg );
 }
 
@@ -786,6 +796,12 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	//SetDPIAwareness();
 
 	g_wv.hInstance = hInstance;
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( !strncmp( lpCmdLine, "--agent", 7 ) && ( lpCmdLine[7] == 0 || lpCmdLine[7] == ' ' ) ) {
+		DevTools_AgentEnable();
+		lpCmdLine += 7;
+	}
+#endif
 	Q_strncpyz( sys_cmdline, lpCmdLine, sizeof( sys_cmdline ) );
 
 	useXYpos = Com_EarlyParseCmdLine( sys_cmdline, con_title, sizeof( con_title ), &xpos, &ypos );
@@ -808,6 +824,10 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	// main game loop
 	while ( 1 ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+		if ( DevTools_AgentActive() && !DevTools_AgentNextFrame() )
+			continue;
+#endif
 		// set low precision every frame, because some system calls
 		// reset it arbitrarily
 		// _controlfp( _PC_24, _MCW_PC );
@@ -821,6 +841,10 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		IN_Frame();
 		// run the game
 		Com_Frame( CL_NoDelay() );
+#endif
+#ifdef AFTERSHOCK_DEVTOOLS
+		if ( DevTools_AgentActive() )
+			DevTools_AgentEndFrame();
 #endif
 	}
 
