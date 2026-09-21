@@ -73,6 +73,22 @@ accepted frame fixtures and shader arrays are unchanged.
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
 
+## #15 prepared slots use collision-layer activation
+
+The initial owned POD module caught a real recycle allocation: AddBody allocates
+BroadPhaseQuadTree LayerState after a RemoveBody. Evidence is
+physics-boundary-after.log and a debugger stack through AddBodiesPrepare.
+The module now retains prepared bodies in the broadphase, deactivating them on
+an object layer with no collision pairs and excluding that layer from queries.
+No additional vendor patch is needed. GCC UBSan passes all 256 prepared slots,
+four complete recycle cycles, ray queries and two arena-owned lifetimes with no
+post-setup allocation. Inactive-query coverage caught a callback-table lifetime error during development;
+the table now has static POD storage, as required by the C binding's retained
+pointer. GCC and Clang/libc++ UBSan both pass the active/inactive query checks
+and repeat lifetimes (physics-boundary-final.log / physics-boundary-clang.log).
+The module remains standalone, not linked to client targets; constraints, shape
+queries, map collision and presentation integration still remain.
+
 ## #15 owned-boundary failing test
 
 The permanent driver now requires the owned physics module. Its probe prepares

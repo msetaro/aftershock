@@ -34,6 +34,9 @@ int main() {
 		}
 		assert(Phys_Prepare(&floor) == PHYS_INVALID_BODY);
 		assert(Phys_Start());
+		const float unusedOrigin[3] = { -20, 0, 3 }, across[3] = { 40, 0, 0 };
+		float unusedFraction = 1;
+		assert(!Phys_Ray(unusedOrigin, across, &unusedFraction));
 		const auto baseline = Phys_Stats();
 		for ( unsigned cycle = 0; cycle < 4; ++cycle ) {
 			for ( unsigned i = 1; i < PHYS_MAX_BODIES; ++i ) {
@@ -58,6 +61,8 @@ int main() {
 				assert(Phys_Despawn(i));
 				assert(!Phys_Transform(i, &pose));
 			}
+			const float sleepingOrigin[3] = { -20, 0, .245f };
+			assert(!Phys_Ray(sleepingOrigin, across, &unusedFraction));
 			const auto current = Phys_Stats();
 			assert(current.allocations == baseline.allocations);
 			assert(current.used == baseline.used);
