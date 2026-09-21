@@ -2,13 +2,14 @@
 """Check team voter counts without overwriting the adjacent spawn state."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 
 from run import run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='clang')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-team-voters'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-team-voters'))
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 binary = args.output.resolve() / 'check'

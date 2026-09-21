@@ -8,6 +8,8 @@ import subprocess
 import tempfile
 import threading
 
+from tools.scratch import ROOT as SCRATCH
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -15,10 +17,7 @@ class Engine:
     """One private engine, home directory and optional headless display."""
 
     def __init__(self, binary, data=None, content='quake3', *, headless=True, arguments=(), home=None):
-        parent = os.environ.get('AFTERSHOCK_SCRATCH')
-        if parent:
-            Path(parent).mkdir(parents=True, exist_ok=True)
-        self.temporary = tempfile.TemporaryDirectory(prefix='aftershock-agent-', dir=parent)
+        self.temporary = tempfile.TemporaryDirectory(prefix='aftershock-agent-', dir=SCRATCH)
         self.root = Path(self.temporary.name)
         self.home = Path(home).resolve() if home else self.root/'home'
         self.game = 'baseoa' if content == 'openarena' else 'baseq3'

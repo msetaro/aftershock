@@ -2,13 +2,14 @@
 """Check the native UI's negative weapon sentinel against its real state type."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 
 from run import run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cxx', default='clang++')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-ui-weapon'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-ui-weapon'))
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 binary = args.output.resolve() / 'check'

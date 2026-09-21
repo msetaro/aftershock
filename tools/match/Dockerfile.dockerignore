@@ -13,3 +13,4 @@
 
 !tools/agent/__init__.py
 !tools/agent/formats.py
+!tools/scratch.py

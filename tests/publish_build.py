@@ -3,6 +3,7 @@
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import subprocess
 import tempfile
 

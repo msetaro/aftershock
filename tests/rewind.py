@@ -2,13 +2,14 @@
 """Validate bounded server hit-box history under deterministic latency/loss/jitter."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 
 from run import run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cxx', default='g++')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-rewind'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-rewind'))
 args = parser.parse_args()
 args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)

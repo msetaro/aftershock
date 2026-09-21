@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Reject mislabeled renderers and unequal repeats before accepting frame evidence."""
 from pathlib import Path
+from run import SCRATCH
 import tempfile
 import json
 import frames

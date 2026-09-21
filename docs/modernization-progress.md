@@ -76,14 +76,32 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 schema CI correction
+
+Schema head 84da36a8 build 35563076825 passes. Runtime 35563076817 fails in
+schema-to-animation parity because its early system Pillow lacks ImageMath's
+lambda_eval. Run that contract in the existing pinned cooker venv after installing
+its requirements. The local pinned-Pillow contract passes; this is a CI dependency
+ordering correction. No engine or source-data change is needed. Fresh hosted gates
+remain required; the failed runtime is not acceptance.
+
 ## #163 isolation migration in progress
 
-The scratch root helper passes its concurrency/inheritance contract. Fixed Python
-output defaults now derive from it, and CI allocates one exported root per job.
-These changes are still under validation. A second test-first check catches local
-Compose's fixed published ports and basename-derived project collision
-(agent-compose-before.log); use automatic ports/private project names next.
-The two-full-suite concurrency acceptance, cache audit and handbook still remain.
+The scratch root helper passes concurrent creation, inherited temporary paths,
+explicit roots with spaces and exclusive pinned-tool installation. Fixed defaults
+in 61 Python test modules now derive from it. CI exports one root per job; test
+subprocesses share it. Mutable cooker builds also live beneath that root, while
+pinned tool installs are serialized before reuse. The new check_isolation gate
+rejects active code's fixed temporary paths and tests its negative control.
+
+Local Compose now chooses private project names and Docker-assigned published
+ports; explicit --port remains available. Kubernetes generation accepts/chooses a
+private namespace and its acceptance driver passes that namespace consistently.
+Unit goldens/negative control, complete cooker, OA CLI, formatting and workflow
+lint pass (agent-isolation-*.log). The local private kind acceptance is running
+in agent-isolation-kind; its result is still pending. All legacy accepted artifacts
+remain unchanged. The two-full-suite concurrency acceptance and handbook remain;
+this is not final #163 acceptance.
 
 ## #163 isolation test-first checkpoint
 

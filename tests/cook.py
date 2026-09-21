@@ -8,6 +8,7 @@ import wave
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import struct
 import shlex
 import shutil
@@ -213,7 +214,7 @@ def check_texture(path, vk_format, block_bytes):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-cook-tests'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-cook-tests'))
     parser.add_argument('--cxx', default=os.environ.get('CXX', 'g++'))
     args = parser.parse_args()
     os.environ['CXX'] = args.cxx

@@ -54,3 +54,30 @@ with tempfile.TemporaryDirectory(prefix='aftershock-compose-isolation-') as temp
                    if name.startswith('match-') and not name.endswith('-ship'))
     assert all(project.get('name') for project in projects) and projects[0]['name'] != projects[1]['name']
 print('PASS: private Compose names and OS-assigned published ports')
+
+# Pinned compiler/tool archives may be reused, but installation cannot overlap.
+with tempfile.TemporaryDirectory(prefix='aftershock-cache-lock-') as temporary:
+    source = '''import sys
+from pathlib import Path
+from tools.scratch import cache_lock
+with cache_lock(Path(sys.argv[1])):
+ print('locked',flush=True)
+ sys.stdin.readline()
+'''
+    import select
+    first = subprocess.Popen([sys.executable,'-c',source,temporary],cwd=ROOT,stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
+    second = None
+    try:
+        assert first.stdout.readline() == 'locked\n'
+        second = subprocess.Popen([sys.executable,'-c',source,temporary],cwd=ROOT,stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
+        assert not select.select([second.stdout],[],[],.2)[0], 'second installer entered while the first held its lock'
+        first.communicate('\n',timeout=10)
+        assert second.stdout.readline() == 'locked\n'
+        second.communicate('\n',timeout=10)
+        assert first.returncode == second.returncode == 0
+    finally:
+        for child in (first,second):
+            if child and child.poll() is None:
+                child.kill()
+                child.communicate()
+print('PASS: shared pinned tool installation is serialized')

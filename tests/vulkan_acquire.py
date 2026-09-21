@@ -2,6 +2,7 @@
 """Check frame acquisition result handling without a GPU or window."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import subprocess
 
@@ -11,7 +12,7 @@ from run import run
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cxx', default='g++')
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-vulkan-acquire-tests'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-vulkan-acquire-tests'))
     args = parser.parse_args()
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=True)

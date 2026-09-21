@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import struct
 import tempfile
@@ -14,7 +15,7 @@ from cook import cook, source_assets
 from run import run
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-animation'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-animation'))
 parser.add_argument('--cc', default='gcc')
 parser.add_argument('--cxx', default='g++')
 args = parser.parse_args()

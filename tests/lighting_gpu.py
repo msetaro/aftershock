@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import re
 import shutil
 import statistics
@@ -15,7 +16,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', required=True, type=Path)
 parser.add_argument('--icd', required=True, type=Path, help='reference GPU Vulkan ICD; do not use software rendering')
 parser.add_argument('--data', type=Path, default=Path.home()/'.q3a/baseq3')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-lighting-gpu'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-lighting-gpu'))
 args = parser.parse_args()
 paks = sorted(args.data.resolve().glob('*.pk3'))
 if not paks or not args.icd.is_file():

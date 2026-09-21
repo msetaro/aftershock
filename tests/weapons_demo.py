@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import re
 import shutil
 import subprocess
@@ -26,7 +27,7 @@ def states(text, side):
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path)
 parser.add_argument('--modules', action='store_true')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-weapons-demo'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-weapons-demo'))
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
 parser.add_argument('--record-fixture', action='store_true', help='explicitly record only this content set’s #11 fixture')

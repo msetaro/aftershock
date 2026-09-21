@@ -3,6 +3,7 @@
 import argparse
 import json
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import tempfile
 
@@ -11,7 +12,7 @@ from run import run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cxx', default='g++')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-iqm-scale'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-iqm-scale'))
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 binary = args.output.resolve() / 'check'

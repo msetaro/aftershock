@@ -2,12 +2,13 @@
 """Check development renderer snapshots and allocator accounting without a GPU."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 from run import run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cxx', default='g++')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-devtools-data'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-devtools-data'))
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 for probe in ('assets', 'memory', 'profile', 'debug'):

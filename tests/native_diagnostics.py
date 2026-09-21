@@ -2,6 +2,7 @@
 """Check native diagnostic routing and explicit formatter capacity with small text."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import subprocess
 
@@ -9,7 +10,7 @@ from run import ENV, ROOT, run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cxx', default='g++')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-native-diagnostics'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-native-diagnostics'))
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 for module, cases in (

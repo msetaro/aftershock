@@ -5,6 +5,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
+from run import SCRATCH
 import re
 import shlex
 import subprocess
@@ -15,7 +16,7 @@ from run import ROOT, ENV, configure, compilation_commands
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--clang-tidy', default='clang-tidy')
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-tidy'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-tidy'))
     parser.add_argument('--jobs', type=int, default=4)
     args = parser.parse_args()
     if args.jobs < 1:

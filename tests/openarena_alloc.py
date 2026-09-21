@@ -3,6 +3,7 @@
 import argparse
 import io
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import subprocess
 import tarfile
@@ -13,8 +14,8 @@ REVISION = '331464ca396d80e91cf9be273588f2b5f4b7afc8'
 REPOSITORY = 'https://github.com/OpenArena/gamecode'
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='gcc')
-parser.add_argument('--source', type=Path, default=Path('/tmp/aftershock-oa-native-source'))
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-openarena-alloc'))
+parser.add_argument('--source', type=Path, default=(SCRATCH / 'aftershock-oa-native-source'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-openarena-alloc'))
 args = parser.parse_args()
 source, output = args.source.resolve(), args.output.resolve()
 if not source.exists():

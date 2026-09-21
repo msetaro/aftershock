@@ -2,6 +2,7 @@
 """Keep JSON separate from logs when a headless wrapper merges stderr into stdout."""
 import os
 from pathlib import Path
+from run import SCRATCH
 import sys
 import tempfile
 from unittest.mock import patch

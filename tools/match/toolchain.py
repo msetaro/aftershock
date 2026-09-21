@@ -21,19 +21,23 @@ TOOLS={
 def tool(name):
     if platform.system()!='Linux' or platform.machine()!='x86_64':
         raise ValueError('kind acceptance tooling is pinned for Linux x86_64')
-    url,digest,member=TOOLS[name]
-    ROOT.mkdir(parents=True,exist_ok=True)
-    archive=ROOT/(name+'.download')
-    if not archive.exists() or hashlib.sha256(archive.read_bytes()).hexdigest()!=digest:
-        with urllib.request.urlopen(url,timeout=60) as response:
-            data=response.read(256*1024*1024+1)
-        if hashlib.sha256(data).hexdigest()!=digest:raise ValueError(name+' download SHA256 mismatch')
-        archive.write_bytes(data)
-    data=archive.read_bytes()
-    if member:
-        with tarfile.open(fileobj=io.BytesIO(data)) as tar:data=tar.extractfile(member).read()
-    target=ROOT/name
-    if not target.exists() or target.read_bytes()!=data:
-        target.write_bytes(data)
-    if member or name in ('kind','kubectl'):target.chmod(0o755)
+    import sys
+    sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+    from tools.scratch import cache_lock
+    with cache_lock(ROOT):
+        url,digest,member=TOOLS[name]
+        ROOT.mkdir(parents=True,exist_ok=True)
+        archive=ROOT/(name+'.download')
+        if not archive.exists() or hashlib.sha256(archive.read_bytes()).hexdigest()!=digest:
+            with urllib.request.urlopen(url,timeout=60) as response:
+                data=response.read(256*1024*1024+1)
+            if hashlib.sha256(data).hexdigest()!=digest:raise ValueError(name+' download SHA256 mismatch')
+            archive.write_bytes(data)
+        data=archive.read_bytes()
+        if member:
+            with tarfile.open(fileobj=io.BytesIO(data)) as tar:data=tar.extractfile(member).read()
+        target=ROOT/name
+        if not target.exists() or target.read_bytes()!=data:
+            target.write_bytes(data)
+        if member or name in ('kind','kubectl'):target.chmod(0o755)
     return str(target)

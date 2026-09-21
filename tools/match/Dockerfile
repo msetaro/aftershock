@@ -7,6 +7,7 @@ COPY engine/ engine/
 COPY game/ game/
 COPY third_party/ third_party/
 COPY tools/level/ tools/level/
+COPY tools/scratch.py tools/scratch.py
 COPY tools/agent/__init__.py tools/agent/formats.py tools/agent/
 COPY tools/match/content.py tools/match/content.py
 COPY tests/assets/levels/ tests/assets/levels/

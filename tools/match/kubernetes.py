@@ -5,15 +5,18 @@ import base64
 import json
 from pathlib import Path
 import secrets
+import re
 
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--image',default='aftershock-match:issue28')
+parser.add_argument('--namespace',default='aftershock-'+secrets.token_hex(6))
 parser.add_argument('--ci-content',help='optional node-local OpenArena test root (never added to the image)')
 args=parser.parse_args()
+namespace=args.namespace
+if not re.fullmatch(r'[a-z][a-z0-9-]{0,61}[a-z0-9]',namespace):parser.error('namespace must be a DNS label of 2..63 characters')
 if args.output.exists():parser.error('choose a new output directory')
 args.output.mkdir(parents=True,mode=0o700)
-namespace='aftershock-match'
 spec=dict(id='kind-'+secrets.token_hex(8),map='two_lane',mode=0,frag_limit=0,time_limit=1,players=2,
           password=secrets.token_hex(16),token=secrets.token_hex(16))
 security=dict(runAsNonRoot=True,runAsUser=65532,runAsGroup=65532,readOnlyRootFilesystem=True,

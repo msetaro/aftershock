@@ -15,6 +15,7 @@ from toolchain import compile_map
 from validate import validate
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from tools.scratch import ROOT as SCRATCH
 from tools.agent.formats import validate as validate_format, diagnostic
 
 

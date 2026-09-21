@@ -3,6 +3,7 @@
 import argparse
 import os
 from pathlib import Path
+from run import SCRATCH
 import signal
 import socket
 import subprocess
@@ -15,7 +16,7 @@ parser.add_argument('--client',type=Path,required=True)
 parser.add_argument('--server',type=Path,required=True)
 parser.add_argument('--content',choices=['quake3','openarena'],default='quake3')
 parser.add_argument('--data',type=Path,default=Path.home()/'.q3a/baseq3')
-parser.add_argument('--output',type=Path,default=Path('/tmp/aftershock-native-pure-runtime'))
+parser.add_argument('--output',type=Path,default=(SCRATCH / 'aftershock-native-pure-runtime'))
 args=parser.parse_args()
 args.output.mkdir(parents=True,exist_ok=True)
 paks=sorted(args.data.resolve().glob('*.pk3'));assert paks,'installed content is required'

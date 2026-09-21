@@ -21,6 +21,7 @@ import weapon
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT))
+from tools.scratch import ROOT as SCRATCH
 from tools.agent.formats import validate as validate_format, diagnostic
 
 

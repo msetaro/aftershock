@@ -5,6 +5,7 @@ import ctypes
 import ctypes.util
 import os
 from pathlib import Path
+from run import SCRATCH
 import re
 import shutil
 import struct
@@ -87,7 +88,7 @@ def main():
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-window-tests'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-window-tests'))
     parser.add_argument('--inside-xvfb', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
     if not args.inside_xvfb:

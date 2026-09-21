@@ -3,6 +3,7 @@
 import argparse
 import os
 from pathlib import Path
+from run import SCRATCH
 import re
 import shutil
 import subprocess
@@ -15,7 +16,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path)
 parser.add_argument('--modules', action='store_true')
 parser.add_argument('--server-fps', type=int, choices=[20, 100], default=20)
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-animation-runtime'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-animation-runtime'))
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 args = parser.parse_args()

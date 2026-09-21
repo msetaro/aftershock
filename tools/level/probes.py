@@ -6,9 +6,13 @@ import os
 from pathlib import Path
 import struct
 import subprocess
+import sys
 import tempfile
 
 from PIL import Image
+
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+from tools.scratch import ROOT as SCRATCH
 
 # Forward/right/up for cg_fov=90 and square engine views. Image rows go downward.
 ANGLES = ((0,0,0),(0,180,0),(0,90,0),(0,270,0),(-90,0,0),(90,0,0))

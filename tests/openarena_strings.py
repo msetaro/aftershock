@@ -2,6 +2,7 @@
 """Check OpenArena's string helpers using its pinned public source."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 
 from run import run
@@ -9,8 +10,8 @@ from openarena_native import stage_source
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='gcc')
-parser.add_argument('--source', type=Path, default=Path('/tmp/aftershock-oa-native-source'))
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-openarena-strings'))
+parser.add_argument('--source', type=Path, default=(SCRATCH / 'aftershock-oa-native-source'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-openarena-strings'))
 args = parser.parse_args()
 output = stage_source(args.output, args.source)
 binary = output / 'check'

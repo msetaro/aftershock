@@ -8,6 +8,8 @@ import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT))
+from tools.scratch import ROOT as SCRATCH
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('output',type=Path)
 args = parser.parse_args()

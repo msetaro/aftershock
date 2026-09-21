@@ -2,6 +2,7 @@
 """Compare static restart/map changes with the reviewed DLL-reload reference."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import re
 import subprocess
 import tempfile
@@ -12,7 +13,7 @@ from run import ROOT, ENV, build, compare
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
 parser.add_argument('--debug-movement', action='store_true', help='also compare movement debug counters')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-native-lifecycle'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-native-lifecycle'))
 args = parser.parse_args()
 output = args.output.resolve()
 output.mkdir(parents=True, exist_ok=True)

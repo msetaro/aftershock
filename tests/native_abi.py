@@ -2,6 +2,7 @@
 """Compare current C, C++ game and engine wire/module layouts."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import subprocess
 
@@ -10,7 +11,7 @@ from run import ROOT, ENV
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='gcc')
 parser.add_argument('--cxx', default='g++')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-native-abi'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-native-abi'))
 args = parser.parse_args()
 args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)

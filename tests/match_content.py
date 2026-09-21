@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """The match image carries only the reproducible owned sample, never installed paks."""
 from pathlib import Path
+from run import SCRATCH
 import subprocess
 import sys
 import tempfile

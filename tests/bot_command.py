@@ -2,13 +2,14 @@
 """Check bot movement conversion preserves command bytes without float UB."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 
 from run import run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='clang')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-bot-command'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-bot-command'))
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 binary = args.output.resolve() / 'check'

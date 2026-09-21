@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import shutil
 import subprocess
 import struct
@@ -18,7 +19,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path, required=True)
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 parser.add_argument('--data', type=Path, default=Path.home()/'.q3a/baseq3')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-lighting-runtime'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-lighting-runtime'))
 parser.add_argument('--lifecycle', action='store_true', help='check shadow atlas recreation across renderer restart')
 parser.add_argument('--shadows', action='store_true', help='check point, spot, cascaded-sun and alpha-mask occlusion')
 args = parser.parse_args()
