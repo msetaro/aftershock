@@ -35,9 +35,11 @@ Continue #15 on issue/15-jolt-physics in
 /home/matt/.cache/aftershock-modernization/physics-tree, branched from main 0928be35.
 Read issue #15 and preserve the existing movement, traces, triggers, movers,
 hit registration and authoritative weapon trajectories. Jolt is for cosmetic
-props/grenade bodies and skeleton-driven death presentation. Implement the first
-permanent failing allocation/determinism test before importing the dependency
-and engine integration. No #15 PR or implementation exists yet.
+props/grenade bodies and skeleton-driven death presentation. The first permanent allocation/determinism test is written and fails at missing
+cmake/Physics.cmake before any dependency or engine implementation is imported.
+Next import the pinned original sources/build helper, demonstrate the actual
+step-allocation failure, then apply reviewed reserved-scratch changes. No #15 PR
+or engine implementation exists yet.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
 /home/matt/.cache/aftershock-modernization/physics-research.md. Pinned Jolt 5.6.0
@@ -63,6 +65,16 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 first permanent test
+
+Added tests/physics.py, its native probe and a four-command recorded prop scene.
+The probe drives 32 bodies with 16 constraints over 600 fixed steps, checks Jolt
+allocator calls and FP control state, and writes ordered final transforms. The
+driver compares independent replays and changes the final impulse as a negative
+control. No accepted golden is created or overwritten. The initial command fails
+at the absent CMake integration, as expected; physics-test-before.log retains it.
+Dependency import and actual allocation failure/fix are next; this is not acceptance.
 
 ## #161 merge verification
 
