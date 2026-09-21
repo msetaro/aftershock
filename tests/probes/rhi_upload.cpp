@@ -228,6 +228,21 @@ static void check_async_texture_upload() {
 	};
 	qvkDeviceWaitIdle = []( VkDevice ) { assert( false && "async upload must not wait idle" ); return VK_SUCCESS; };
 	qvkQueueWaitIdle = []( VkQueue ) { assert( false && "async upload must not wait queue" ); return VK_SUCCESS; };
+	vk.timestampBits = 8;
+	vk.timestampPeriod = 2.0f;
+	qvkCreateQueryPool = []( VkDevice, const VkQueryPoolCreateInfo *info, const VkAllocationCallbacks *, VkQueryPool *pool ) { assert( info->queryType == VK_QUERY_TYPE_TIMESTAMP && info->queryCount == 2 ); *pool = (VkQueryPool)(uintptr_t)33; return VK_SUCCESS; };
+	qvkDestroyQueryPool = []( VkDevice, VkQueryPool, const VkAllocationCallbacks * ) {};
+	qvkCmdResetQueryPool = []( VkCommandBuffer, VkQueryPool, uint32_t first, uint32_t count ) { assert( first == 0 && count == 2 ); };
+	qvkCmdWriteTimestamp = []( VkCommandBuffer, VkPipelineStageFlagBits stage, VkQueryPool, uint32_t query ) { assert( query <= 1 && stage == ( query ? VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT ) ); };
+	qvkGetQueryPoolResults = []( VkDevice, VkQueryPool, uint32_t first, uint32_t count, size_t size, void *data, VkDeviceSize stride, VkQueryResultFlags flags ) {
+		assert( first == 0 && count == 2 && size == 32 && stride == 16 && flags == ( VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT ) );
+		uint64_t *values = (uint64_t *)data;
+		values[0] = 250;
+		values[1] = 1;
+		values[2] = 5;
+		values[3] = 1;
+		return VK_SUCCESS;
+	};
 	assert( RHI_InitTextureUploads() == rhiStatus_t::Success );
 	const uint32_t allocated = streamAllocations;
 	const rhiTexture_t texture = { 11, 12, 13, 0 };
@@ -246,6 +261,10 @@ static void check_async_texture_upload() {
 	for ( uint32_t i = 0; i < 10 && !complete; ++i )
 		assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success );
 	assert( complete && streamCopied == size && streamSubmits == 6 && streamTransitions == 2 && streamAllocations == allocated );
+	const auto timed = RHI_GetTextureUploadStats();
+	assert( timed.submissions == 6 && timed.submittedBytes == size && timed.gpuSamples == 6 );
+	assert( fabs( timed.gpuUsec - .022 ) < 1e-9 ); // Eight-bit timestamp wrap: 11 ticks at 2 ns.
+
 	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete );
 	streamWidth = 7;
 	streamHeight = 5;
@@ -267,6 +286,9 @@ static void check_async_texture_upload() {
 	qvkFreeMemory = []( VkDevice, VkDeviceMemory, const VkAllocationCallbacks * ) {};
 	qvkDestroyFence = []( VkDevice, VkFence, const VkAllocationCallbacks * ) {};
 	assert( RHI_ShutdownTextureUploads() == rhiStatus_t::Success );
+	vk.timestampBits = 0;
+	vk.timestampPeriod = 0;
+
 	qvkQueueSubmit = []( VkQueue, uint32_t, const VkSubmitInfo *, VkFence ) { return VK_SUCCESS; };
 	qvkQueueWaitIdle = []( VkQueue ) { return VK_SUCCESS; };
 	qvkCmdPipelineBarrier = []( VkCommandBuffer, VkPipelineStageFlags, VkPipelineStageFlags, VkDependencyFlags, uint32_t, const VkMemoryBarrier *, uint32_t, const VkBufferMemoryBarrier *, uint32_t, const VkImageMemoryBarrier * ) {};

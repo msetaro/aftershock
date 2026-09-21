@@ -81,6 +81,16 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 upload timing test-first
+
+The native upload probe now requires per-submission GPU timestamps and cumulative
+submitted-byte/submission/sample counters. Readback must happen after the existing
+transfer fence without a query wait; an eight-bit counter-wrap case requires 11
+ticks at 2 ns to report 0.022 microseconds. Initial compilation fails on the absent
+upload-statistics API (fidelity-stream-timing-before.log). The frontend component's
+lifetime scan is still running against unchanged engine sources before this timing
+implementation begins.
+
 ## #161 frontend residency integration under test
 
 The first software larger-than-budget run passes: five original 4K textures,
