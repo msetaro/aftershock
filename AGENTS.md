@@ -49,6 +49,8 @@ for the constraints and code rules below.
   never merge with a red or skipped required check. Never force-push; never rewrite history;
   never delete or move `known-good-*` tags (they are the rollback points). The old
   `modernization` integration branch is retired.
+- Final gates must include the current `main` commit. Recheck the PR base commit just before
+  merging; if main advanced during the checks, merge it forward and rerun the gates first.
 - Checkpoint in `docs/modernization-progress.md`: per-issue status, decisions, "next action".
   Update after every meaningful step; on start, resume from it.
 - Bugs found while doing something else go in `docs/bugs.md` and are fixed only in their own PR with a test. No unrelated refactoring in any PR.
@@ -182,6 +184,7 @@ python3 tests/match_exit.py --server SERVER
 python3 tests/match_runtime.py --controller CONTROLLER --server SERVER --client CLIENT
 python3 tests/match_kind.py --image aftershock-match:issue28 --client CLIENT
 (cd tools/match && go test -race ./...)
+python3 tests/publish_build.py
 python3 tests/check_format.py
 python3 tests/check_types.py
 python3 tests/check_tidy.py

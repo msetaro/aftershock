@@ -23,7 +23,7 @@ upstream; historical upstream PR references below are completed past work.
 Active implementation: issue/14-lighting in
 /home/matt/.cache/aftershock-modernization/level-tree. Native receiver shading and
 the shadow-only atlas scissor correction now pass rendered point/spot/sun checks.
-Next merge accepted main forward, then complete mask/animated-caster/lifecycle
+Main 782c0dbc is merged forward. Next complete mask/animated-caster/lifecycle
 coverage, reflection probes, SSAO and reference-GPU timing. #161 follows #14 in
 updated #25. Do not claim full #14 acceptance or regenerate accepted references.
 
@@ -35,8 +35,9 @@ immediately before merge. Head and merge trees match
 and regression 35549415277 now both PASS: all 16 compiler legs, all 10 required
 regression legs and actual create-testing publication. Repository prerelease
 build-782c0dbc51e4acf119ccce49a69301408dac1ae7 contains six platform archives.
-Issues #160, #158 and #13 are closed; #13 is checked in #25. Merge accepted main
-forward into #14 before final PR gates. No #14 PR exists yet.
+Issues #160, #158 and #13 are closed; #13 is checked in #25. This branch includes
+accepted main 782c0dbc; recheck current main before final gates/merge. No #14 PR
+exists yet.
 
 #159's earlier merge 567cc664 had a duplicate permissions collision with concurrent
 main commits 06d15a8d/8dbb4461, despite passing exact-head gates. Merged regression
@@ -358,6 +359,42 @@ Reference acceptance target is 1280x720 at 60 Hz on the recorded RTX 3080 Ti:
 median and p95 per pass, with actual shadowed q3dm17 and explicit quality values.
 These are targets, not measured acceptance or console-hardware claims. Software
 renderers continue to supply deterministic functional gates.
+
+## #160 publication merge repair self-review
+
+The pre-change actionlint run failed on both duplicate keys. Removing four lines
+restores exactly the build.yml bytes tested by #159; contents-write/actions-read
+remain limited to publication jobs. bash syntax, the offline publisher contract,
+actionlint and CRLF-aware whitespace checking pass. Final hosted gates and actual
+main publication remain required. No engine FP, ABI/layout, allocation, OS access,
+destructor, accepted golden or fixture changes. The merge-base check in AGENTS
+addresses the missed concurrent update without changing either contributor's
+intended job permissions. No tag was moved and no main commit was pushed directly.
+
+## #158 publication self-review
+
+The offline contract was committed first at 7d88a53a and failed because the
+publisher did not exist. It now passes creation, same-tag retry, existing-tag
+collision, API/create/upload failures and repository/SHA guards. Bash syntax,
+actionlint for build.yml and explicit workflow permission checks pass. Existing
+CRLF in build.yml is preserved; whitespace checking uses cr-at-eol for that file.
+
+Only publication jobs receive contents-write/actions-read. The installed gh CLI
+replaces the rolling-tag action; no new dependency or external destination. Build
+publication uses a build-<full SHA> prerelease inside msetaro/aftershock, verifies
+any existing exact tag object and retries only archive assets. It never moves a
+tag or changes the stable latest release pointer. GH_HOST is fixed to github.com.
+The published archives/content are the existing engine build outputs, unchanged.
+
+Scope is #158 CI publication only. No engine code, FP arithmetic, layouts,
+allocation, destructor, OS boundary or accepted fixture is changed. The test is
+wired into the regression format job and documented in AGENTS/tests README.
+Required full hosted build/regression remain mandatory before merge. The actual
+publication job is intentionally main-event-only; require its successful merged
+run before closing #158. Main a4358019's publication failed with the same baseline
+permission defect in run 35546603122; its compilation jobs all passed, and its
+independent regression 35546603116 is still running. Do not conflate publication
+failure with #13 engine/runtime correctness or waive either acceptance step.
 
 ## #13 preparatory failing material contract
 
