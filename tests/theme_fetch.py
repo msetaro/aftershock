@@ -49,6 +49,11 @@ with tempfile.TemporaryDirectory(prefix='aftershock-fetch-') as temporary:
         return {p.relative_to(out).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in out.rglob('*') if p.is_file()}
     a,b=fetch(root/'a'),fetch(root/'b')
     assert a==b,'pinned theme content depends on output path or fetch run'
+    old=json.loads((root/'a/manifest.json').read_text()); old['preparation_sha256']='0'*64
+    (root/'a/manifest.json').write_text(json.dumps(old))
+    result=subprocess.run([sys.executable,'tools/assets','fetch','--theme','owned_test','--lock',str(source),
+                           '--offline','--out',str(root/'a')],cwd=ROOT,env=env,text=True,capture_output=True)
+    assert result.returncode and 'preparation' in result.stderr.lower(), 'stale prepared output was reused'
     (cache/files['color']['sha256']).write_bytes(b'changed')
     result=subprocess.run([sys.executable,'tools/assets','fetch','--theme','owned_test','--lock',str(source),
                            '--offline','--out',str(root/'bad')],cwd=ROOT,env=env,text=True,capture_output=True)

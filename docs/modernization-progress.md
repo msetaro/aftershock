@@ -49,6 +49,14 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 preparation fingerprint control
+
+The new fetch test corrupts an otherwise valid kit's preparation fingerprint.
+It fails because the existing-output fast path reuses the stale kit
+(sketch-preparation-before.log). Include the fetch/manifest source, pinned Pillow
+version and the existing cooker's own tool hash in that fingerprint, and refuse
+reuse after a mismatch. A fresh output remains the explicit upgrade path.
+
 ## #164 source-range correction passes
 
 The owned 16-bit gradient contract passes after normalization before RGBA conversion
