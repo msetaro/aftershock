@@ -33,7 +33,7 @@ class Engine:
             if not target.exists():
                 target.symlink_to(pak)
         self.log_path = self.root/'engine.log'
-        self.log = self.log_path.open('wb')
+        self.log = self.log_path.open('ab', buffering=0)
         command = [str(Path(binary).resolve()), '--agent', '+set', 'fs_basepath', str(self.home),
                    '+set', 'fs_homepath', str(self.home), '+set', 'fs_game', self.game,
                    '+set', 'net_enabled', '0', '+set', 'sv_pure', '0', '+set', 's_initsound', '0',
@@ -42,7 +42,10 @@ class Engine:
                    '+set', 'com_skipIdLogo', '1', *map(str, arguments)]
         env = dict(os.environ)
         if headless and os.name != 'nt':
-            command = ['xvfb-run', '-a', *command]
+            # Older xvfb-run merges child stderr into stdout. Redirect inside it.
+            command = ['xvfb-run', '-a', 'sh', '-c',
+                       'agent_log_path=$1; shift; exec "$@" 2>>"$agent_log_path"',
+                       'aftershock-agent', str(self.log_path), *command]
             if not env.get('VK_DRIVER_FILES'):
                 icds = list(Path('/usr/share/vulkan/icd.d').glob('lvp*.json'))
                 if len(icds) != 1:

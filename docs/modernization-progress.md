@@ -115,13 +115,20 @@ The new diagnostic identifies the ordinary Q3 startup banner. Root cause:
 Ubuntu Noble's official xvfb-run redirects its child's stderr to stdout; the
 local newer script preserves them. Running the Noble script locally reproduces
 the identical error (agent-xvfb-before.log). tests/agent_client.py also fails first
-with a tiny wrapper reproducing that documented stream redirection. Fix the
-Python launcher inside the wrapper, preserving strict JSON validation.
+with a tiny wrapper reproducing that documented stream redirection. The launcher now redirects engine stderr from inside the wrapper, with quoted
+arguments and append-only logs. The permanent wrapper test passes, as does the
+full seeded playthrough under the actual Noble script (agent-xvfb.log). This
+corrects the launch integration; strict JSON validation stays enabled. The unit
+CI legs now run the wrapper contract too. Official source inspected:
+https://git.launchpad.net/ubuntu/+source/xorg-server/plain/debian/local/xvfb-run?h=ubuntu/noble
 
 Build 35559673078 catches MSVC int-to-float conversions in the graph/animation
 play ternaries. Use explicit float literals. These hosted heads remain unaccepted.
-The material UI factors already pass locally; recooked normal-map captures need
-to await the existing real-time asset poll via structured reload counters.
+Material UI and recook variants now pass locally, including normal-map response.
+The migrated driver waits for structured reload counters after offline cooking.
+Its sampled disc derives from the reported viewport and preview FOV/framing,
+retaining the original pixel-difference and exact-round-trip checks. OA validation
+and final commit of material commands remain next.
 
 ## #163 Range and actor-state checkpoint
 
