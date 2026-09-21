@@ -20,41 +20,543 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active root branch: issue/160-publication-merge, from main 567cc664. Repair the
-publication YAML collision in #160, then require exact-head build/regression,
-unchanged current main base before merge, and actual merged publication/regression.
-#159 merged as 567cc664174eb1ddd418e93d4fb4782cba23a8dc after its exact head
-1502d251 passed build 35547041859 (16 jobs) and regression 35547041884 (10 jobs).
-However, concurrent main commits 06d15a8d/8dbb4461 added second permissions blocks.
-The automatic merge was textually clean but build workflow 35548258547 cannot
-load duplicate keys. The merged tree is NOT identical to the tested head: only
-four duplicate permission/comment lines differ. #158 is not accepted/closed.
+Two worktrees: #14 is /home/matt/.cache/aftershock-modernization/level-tree at
+bda5ed1f (draft PR165); its final exact-head build 35553788956 and regression
+35553788957 are pending. Local self-review and GPU acceptance are recorded below.
+Finish those gates, recheck current main immediately before merge, self-merge
+with a merge commit, and verify the merged tree. Do not skip that predecessor.
 
-Reproducer on merged main: actionlint -shellcheck= .github/workflows/build.yml
-reports duplicate permissions at lines 194 and 222; persistent evidence is
-publication-merge-before.log. Remove those duplicate blocks, retaining the tested
-contents-write/actions-read permissions and immutable publisher. Preserve CRLF.
-AGENTS now requires checking the base commit immediately before merging, and
-merging/retesting an advanced main. No engine or fixture change.
+#163 test preparation is /home/matt/.cache/aftershock-modernization/agent-tree,
+branch issue/163-agent-interface from main 782c0dbc. The initial native command
+contract is committed before implementation: protocol version/command discovery,
+structured correlated replies, cvar get/set with read-only protection, escaped
+strings, console command queuing, typed errors with JSON paths/hints, and bounded
+output without partial execution. It fails on missing dev_agent.cpp as intended
+(agent-protocol-before.log). No channel or engine implementation exists yet.
+After #14 acceptance, merge main forward here and implement the command layer,
+then platform stdin/stdout transport, fixed-dt stepping and the rest of #163.
+No PR for #163 opens before #14 acceptance. Updated #25 sequence is #163 -> #164
+-> #161 -> #15 and the remaining roadmap. All existing exclusions remain in force.
 
-#13 PR #157's merged-tree regression 35546603116 passed at a4358019. Its exact
-head build/regression were 35545635052/35545635067 and merge tree matched the
-head. Every compilation job in its main build passed; publication failed on #158.
-After successful repaired main publication/regression, close #13 and #158/#160,
-and check #13 in #25. Do not waive the failing publication or call it accepted.
+The new test uses a unique TemporaryDirectory, optionally under
+AFTERSHOCK_SCRATCH, and has no fixed scratch path. Existing JSON helpers are the
+required parser foundation; ordinary console logs must not mix with NDJSON
+responses. Shipping builds must contain none of the new command/channel code.
 
-Preserve #14 in the extra worktree /home/matt/.cache/aftershock-modernization/level-tree:
-issue/14-lighting at 18de4839. Directional baking/native shading passes both content
-sets and unchanged classic replay. Shadow graph/native allocation, stable
-point/spot/sun view math, native depth recording with retained scene continuation,
-and sampled atlas descriptor refresh pass local GCC/Clang/native checks. Actual
-caster/receiver submission, reflection probes, SSAO and reference GPU budget remain.
-No #14 PR/acceptance yet. Detailed evidence is on that branch. Merge accepted main
-forward before its final gates. Continue there while #160 checks run.
+#160 repair PR #162 merged into main as
+782c0dbc51e4acf119ccce49a69301408dac1ae7 after exact f04e87c3 passed build
+35548379300 and regression 35548379306. Main's base 567cc664 was rechecked
+immediately before merge. Head and merge trees match
+2fd24fa811a286079aa8945b1b9cfd66cf3f788e. Merged build/publication 35549415371
+and regression 35549415277 now both PASS: all 16 compiler legs, all 10 required
+regression legs and actual create-testing publication. Repository prerelease
+build-782c0dbc51e4acf119ccce49a69301408dac1ae7 contains six platform archives.
+Issues #160, #158 and #13 are closed; #13 is checked in #25. This branch includes
+accepted main 782c0dbc; recheck current main before final gates/merge. Draft #14 PR #165 targets main and remains unmerged.
 
-Known-good-2026-09-20 remains object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
-resolving to 81a0f9dc05c340f30182c34134bde67290c21774. Nothing leaves this repo;
-new branches/PRs use main, merge commits only, no history rewriting.
+#159's earlier merge 567cc664 had a duplicate permissions collision with concurrent
+main commits 06d15a8d/8dbb4461, despite passing exact-head gates. Merged regression
+35548259084 passed but build workflow 35548258547 could not load. #162 removed
+only the duplicates and documented the current-base recheck in AGENTS. #13 PR
+#157 at a4358019 had already passed merged regression 35546603116 and compiler
+jobs; repaired main publication now clears its last integration blocker.
+
+Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
+target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
+in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #14 final local self-review / hosted gates pending
+
+Local verification is complete. The corrected developer module configuration
+passes all point/spot/sun, alpha-mask, animated-pose and restart checks, matching
+the static results (lighting-ci-module-runtime.log). A shipping-client control
+contains the expected missing dev_light/dev_view diagnostics. The final Q3 demo
+replay retains 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(lighting-final-classic.log). GCC/Clang native contracts, RHI, pinned shaders,
+format, types and subsystem boundaries pass. No accepted fixture changes; all
+76 shader arrays accepted on main remain byte-identical, with 12 new programs.
+
+Self-review: all changes implement #14 lighting or its tests/tooling. New shadow
+and probe paths use bounded POD storage and prewarmed pipelines; no per-frame
+heap allocation, non-trivial engine-core destructors or new portable OS calls.
+Light/probe/uniform layouts have assertions; the offline probe loader validates
+lengths/capacities and finite bounds. No authoritative simulation, collision,
+movement or snapshot arithmetic changes. No unrelated engine bug fixes. LDR
+probe capture and composed-color SSAO limits are explicit and assigned to #161.
+
+PR165 stays draft until full current-head build/regression succeed. c9dc3835
+started build 35553623895 and regression 35553623871; this final documentation
+checkpoint must receive fresh gates as well. Recheck main/PR base immediately
+before merge, merge forward and rerun if it advances, then verify the merged tree.
+Main is still 782c0dbc at this checkpoint. Known-good tags remain untouched.
+Issue14 evidence: issuecomment-5754550155; subsequent final gate IDs go on the
+issue and in the post-merge continuation checkpoint.
+
+Fresh tracking issue #25 inserts #163 (agent-native interface) and #164
+(sketch-to-level) immediately after #14 and before #161. Both issue specs were
+read. Continue #163 -> #164 -> #161 -> #15 and the remaining recorded sequence;
+the earlier direct #14 -> #161 note is superseded. #163 owns structured local
+control, deterministic stepping and isolation; no speculative #161 work started.
+
+## #14 reference GPU acceptance measurement
+
+The committed `tests/lighting_gpu.py` reproduces the final q3dm17 run with installed
+Q3 pak symlinks only. RTX 3080 Ti, driver 595.91.07, 1280x720, shadow quality 2,
+half-resolution SSAO, bloom, point light plus four sun cascades, 200 warm frames,
+100 samples per baseline/point/combined phase. Camera (488,1096,416), angles
+(15,270,0); point (488,1096,512), radius 768, RGB (1,.8,.5), intensity 3. GPU clock
+is real; simulation uses the existing fixed tick. Combined capture was reviewed.
+
+Combined recorded GPU scopes: median 1.933 ms, p95 1.969 ms, below the stated
+16.67 ms reference budget. Median local/sun shadow 0.259/0.345 ms (3 ms combined
+budget); SSAO evaluate/filter/apply 0.155/0.070/0.054 ms (1 ms budget);
+main resumed 0.620 ms (10 ms main budget). Bloom extraction/eight blur passes/blend
+remain below the 1 ms allocation. All repeated blur labels are summed, not
+silently overwritten. Raw JSON/logs: lighting-gpu-final/timings.json and client.log
+in the persistent modernization cache. Captures stay local. These are GPU pass
+intervals, excluding presentation waits, and do not predict console performance.
+Reflection/directional quality is covered separately on owned assets; q3dm17
+retains its original baked lightmap content. Hosted gates/self-review still remain.
+
+## #14 hosted module configuration correction
+
+35c68d79 regression 35552046263 completed with the module shadow round-trip test
+failing; static shadow/probe checks passed. Its preceding animation-demo command
+builds a shipping client (AFTERSHOCK_DEVTOOLS defaults OFF), so dev_light is absent.
+The local module build that passed had developer tools ON. The workflow now
+explicitly rebuilds that module client with developer tools ON after the shipping
+demo check, and the shadow test rejects the game's lowercase unknown-command
+message directly. Diagnostics now retain the module lighting outputs. This is
+#14 test configuration, not an engine bug fix. Required skipped successors on
+that failed run are not acceptance. The newer 607855b9 gates are also superseded
+by this correction and the native test's formatting correction; full checks rerun.
+
+## #14 SSAO rendered checkpoint
+
+Owned OA scene checks pass: half resolution changes 197438 channel bytes, full
+resolution 176117, half resolution with 4x MSAA+bloom 197208. Every strength toggle
+and renderer restart restores its expected image exactly. Full-resolution output
+was reviewed (lighting-ssao-runtime.log). GCC/Clang native graph checks cover 32
+SSAO configurations; existing 36 disabled and 36 shadow configurations retain their
+contracts. Fresh pinned compilation matches 88 cached programs, package
+4518cf5bca779b8ddd83778b7d3e8d9feacc926c0d1a2452c2bc5900c694af71. Prior 83 arrays
+are unchanged. Static and module runtime coverage is wired into hosted CI.
+
+Local module/RHI checks now pass: Q3 module SSAO has the same channel counts and
+exact restart behavior; OA module probes match smooth/rough static results.
+Remaining: measure the complete reference-GPU lighting path, rerun current-main
+hosted gates and self-review. SSAO currently
+attenuates forward-composed scene color; HDR ambient/direct separation is #161.
+No accepted classic fixture, simulation expression or external repository changes.
+
+## #14 SSAO native work in progress
+
+Test-first 6a40804e fails on absent graph declarations. The implementation now
+passes the graph contract and unchanged 36-configuration native descriptor hash.
+Two R8 targets retain sampled main depth, including MSAA/stencil, and apply before
+bloom through a compatible load pass. A depth-only view keeps stencil out of the
+sampled descriptor. Existing resource teardown handles restart/resize.
+
+New rendered test initially fails against 35c68d79 with zero changed bytes
+(lighting-ssao-runtime-before.log). SSAO is opt-in (r_ssao 1 half / 2 full,
+requires r_fbo 1), with live radius/strength controls. Five new shader programs
+append through bin2hex; all previous 83 arrays remain untouched. CMake build
+passes. Rendered output/lifecycle, expanded native declarations, final GPU budget
+and current-head hosted gates remain outstanding; no acceptance is claimed.
+
+## #14 SSAO graph test-first checkpoint
+
+The graph contract now requires retained sampled scene depth, separate occlusion
+and bilateral-filter targets, and a load-only scene application pass before bloom.
+It covers full/half resolution, single/multisampled depth, stencil, bloom and both
+shadow configurations. The initial contract fails to compile on the absent SSAO
+graph declarations; implementation follows. Default-path descriptors and accepted
+images remain unchanged. Current 35c68d79 build 35552046249 passes all compiler
+legs; regression 35552046263 still awaits runtime/lifetimes, so it is not acceptance.
+
+## #14 native reflection checkpoint
+
+The baked atlas loader validates the version/length/capacity/finite positions,
+then creates map-lifetime images and prewarms additive material pipelines. Dynamic
+opaque/masked PBR objects blend their strongest two spherical probe influences;
+normal/roughness/metallic inputs control sampling. The existing diffuse light grid
+is unchanged. r_reflectionProbes defaults to 0 and can toggle live. No frame heap
+allocation or classic-shader change. New reflection program reuses the existing
+PBR vertex shader; all previous 82 arrays remain identical. Pinned fresh/cache
+compilation agrees on 83 programs, package
+d19c0c492f5a4c341dfade123d90f9a5546f373224cc660aa3b8922dff495e0e.
+
+Actual OA owned-scene test now changes 100501 smooth / 108624 rough dynamic-model
+channel bytes, distinguishes roughness contributions and restores exactly on
+both disable and renderer restart (lighting-probe-lifecycle.log). The capture was
+reviewed. GCC/Clang native graph/pipeline checks, RHI checks, baker unit checks and
+CMake build pass. Tests and explicit bake command are documented and wired to CI.
+Limitations are recorded: linear 8-bit radiance from LDR captures, spherical
+influence without parallax correction; #161 owns HDR composition/capture.
+SSAO and final GPU/hosted acceptance still remain; #14 is not complete.
+
+## #14 reflection baker / rendered test-first checkpoint
+
+The bounded offline baker now captures six native square views and filters linear
+radiance into five GGX roughness levels using deterministic Hammersley samples.
+Camera-direction/constant-color/filtering/binary-format checks pass; an actual
+32px OA owned-level bake also passes (lighting-probe-bake.log). The versioned
+ASPROBE file holds 1..32 bounded sphere probes with packed linear RGBA atlases.
+Captures use private paths and symlink installed content; nothing is uploaded.
+
+The new native sphere acceptance test successfully bakes the owned map, then
+fails as intended with zero changed reflection pixels because native loading and
+sampling are absent (lighting-probe-runtime-before.log). Implement those next.
+The diffuse source remains the existing q3map2 light grid; HDR capture/composition
+is deferred to #161's renderer transition, not claimed by this LDR baker.
+
+## #14 reflection bake test-first checkpoint
+
+The new offline producer contract (tests/probes.py) currently fails because
+tools/level/probes.py is absent (lighting-probes-before.log). It requires all
+six engine camera directions, deterministic GGX roughness filtering in linear
+radiance and a fixed versioned atlas format. This is new feature coverage; no
+accepted fixture or legacy shader changes. Implement the baker, then native
+probe loading/material sampling and actual owned-scene acceptance. Existing
+q3map2 light-grid probes remain the dynamic-object diffuse source.
+
+## #14 caster/lifecycle and initial GPU checkpoint
+
+The extended owned-level runtime compares opaque, checker-cutout and empty
+casters only on common receiver pixels. Cutout versus empty changes 16518 channel
+bytes. Two owned skinned idle/prone poses change 7033 common receiver bytes, with
+exact light/shadow round trips. The first pose test placed the model before the
+camera command had settled; increasing that wait produced the intended placement
+and passes. No engine change was needed. Optional renderer module plus restart
+recreates the exact shadowed image, both Q3 and OA content (lighting-shadow-module.log,
+lighting-shadow-animated-settled.log). The latter includes the final pose coverage.
+
+A real-clock RTX 3080 Ti / driver 595.91.07 q3dm17 sample at 1280x720, quality 2,
+200 warm frames and 100 samples: baseline main median/p95 161.120/165.632 us;
+point local shadow 260.096/261.120 us, resumed main 435.200/450.560 us, summed GPU
+scopes 717.520/732.640 us. Camera (488,1096,416), angles (15,270,0); light
+(488,1096,512), radius 768, RGB (1,.8,.5), intensity 3. Captures were reviewed.
+Persistent JSON/logs: lighting-reference-gpu/timings.json and client.log;
+reproducer /tmp/aftershock-lighting-gpu.py. This is partial lighting evidence,
+not full #14/SSAO/probe acceptance or a console-hardware performance claim.
+
+Draft PR #165 at 62c2745c started build 35550910077 and regression 35550910304.
+Runtime failed compiling the pinned OA C adapter because the new owned wrapper's
+sceneLight_t pointer lacked a C declaration. The adapter now forward-declares
+that unused opaque type; it does not import the C++ layout. Rebuilt OA classic
+demos pass unchanged 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(lighting-oa-classic.log). Q3 classic replay also remains unchanged 43c52e51...
+(lighting-direct-classic.log). All final current-main gates remain mandatory.
+
+## #14 receiver implementation checkpoint
+
+Test-first a613524c caught window-sized clipping of larger atlas tiles. The
+shadow-only raster branch now uses the complete atlas viewport; all tile checks
+pass GCC and Clang/libc++ under UBSan. Native graph/pipeline observations, RHI,
+format/type/boundary checks and the CMake client build pass. Fresh pinned shader
+compilation matches all 82 cached programs and every previous 80-array byte is
+unchanged. The shaders use prewarmed additive/depth-equal pipelines; new receiver
+draws run before fog and bounded native light storage is reused without heap work.
+
+Corrected actual OA image evidence (lighting-direct-full-atlas.log): point
+407783 lit / 42922 shadowed channel bytes; spot 88245 / 3133; sun 425643 /
+188040. All three restore the unshadowed image exactly. Captures were reviewed:
+point cover projects a visible floor shadow; sun also attenuates wall/floor areas.
+The earlier low occlusion counts below were incomplete-atlas evidence and are
+superseded. These are feature checks, not reference-GPU performance acceptance.
+Mask/animated geometry/lifecycle and remaining #14 lighting features still remain.
+
+## #14 receiver / atlas scissor test-first checkpoint
+
+The new receiver path adds bounded per-light forward draws before fog, with world
+normal/tangent transforms, point-face selection, spot falloff, four sun cascades
+and tile-clamped manual depth comparison. Two new shader programs preserve all
+previous 80 arrays; pinned fresh/cache compilation matches 82 programs, package
+d86e9f0063a51f5a097f18dec310c5b27659d58ca86217f8646773aa4ae6d29e.
+The native additive/depth-equal pipeline check passes GCC/Clang; CMake and RHI
+checks pass. The initial rendered run caught the new pass incorrectly honoring
+PBR's legacy-only SURF_NODLIGHT flag. Admitting PBR materials corrected that.
+
+OA point/spot/sun now change 407783/88245/425643 channel bytes with exact restored
+unshadowed images (lighting-direct-runtime.log). However, visual/source review
+found the atlas reused window-clamped scissors. These early occlusion counts are
+not full-atlas acceptance. tests/shadow_views.py now checks every 4x4/2x2 tile in
+an atlas larger than the window and fails at the production scissor calculation.
+Apply the shadow-only correction and rerun rendered evidence before committing
+the receiver implementation. Display-space additive composition is transitional;
+#161 owns the single HDR/tone-map resolve. No accepted shader/reference changed.
+
+## #14 caster submission checkpoint
+
+Test-first rendered contract is 5cf631f3. The local client now submits new native
+point/spot data through dev_light (local cheats/development only), with per-frame
+copies and a 16-tile local atlas. Point cameras draw six faces, spots one, sun four
+cascades. Shadow views reuse existing world and MD3/MDR/IQM geometry, include
+third-person bodies but omit first-person/no-shadow/depth-hacked entities. They
+bypass camera PVS and restore visibility for the main view; entity lighting and
+legacy stencil/projected shadows are skipped in these new depth views.
+
+The backend records depth-only masked draws and resumes preserved scene contents.
+Screen-map duplication/scanning skips caster commands. Half the surface array is
+reserved for normal scene draws; shadow overflow rolls back its queued commands
+and disables that scene's new lighting instead of wrapping existing geometry.
+Opaque/masked caster pipelines are warmed at startup in three culling modes.
+Quality 0 (default) keeps legacy behavior; qualities 1..3 allocate 1024/2048/4096
+atlases and larger uniform slots. Sun distance/split/intensity, comparison toggle
+and depth bias are bounded cvars. Legacy dynamic light calls are unchanged.
+
+The initial build needed an explicit uint32_t conversion for the conditional
+uniform size. Fixed CMake build, GCC/Clang UBSan view/submission checks, developer
+contracts, native descriptors and format/type/boundary checks pass. Actual OA
+client loads and captures all point/spot/sun cases without a reported GPU error,
+then fails expectedly with zero lit/occluded pixels; receiver shading is not yet
+implemented (lighting-shadow-caster-built-runtime.log). The earlier caster-runtime
+log used the old binary after the first failed build and is not evidence.
+Classic Q3 replay in a separate clean build directory passes unchanged
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(lighting-shadow-caster-classic.log). The first default output path had another
+worktree's CMake cache; no reference was changed to resolve it.
+
+Receiver integration details: shadowLight_t owns world-to-clip matrices for up to
+six faces; tr.refdef.sun owns four matrices and split distances. Matrices include
+the same Vulkan Y flip as RB_GetMVP; local atlas tiles are 4x4, sun 2x2 with top-row
+UV indexing. New lighting can use binding 4 (five total sets required); new direct
+passes can reuse base/normal/metal texture bindings without changing accepted PBR
+or legacy programs. Atlas bind is forbidden during depth passes. Complete actual
+occlusion/mask and optional-module tests before acceptance; no accepted goldens
+or shader bytes may be regenerated.
+
+## #14 rendered shadow test-first checkpoint
+
+`tests/lighting_runtime.py --shadows` reuses the owned level and native client,
+with a neutral normal map/darker diffuse material. It compares point, spot and sun
+lighting with occlusion disabled/enabled, requires attenuation and an exact return
+to the unshadowed image. Before native light controls/caster/receiver wiring it
+fails with point light changed=0, occluded=0 (lighting-shadow-runtime-before.log;
+client captures in /tmp/aftershock-shadow-runtime-before). No frame baseline was
+accepted or regenerated. Implement the actual draw path before rerunning it.
+
+## #14 shadow caster shader implementation checkpoint
+
+Test-first d33b7a6b precedes two new depth-only GLSL programs with vertex alpha,
+base texture and explicit opaque/GE/LT/GT mask modes. Their native pipeline uses
+single-sample reversed depth, zero color attachments and no stencil/coverage.
+All previous 78 SPIR-V arrays remain an identical prefix; only bin2hex appended
+new arrays. Fresh pinned compilation matches all 80 cached programs/interfaces:
+2380ed012d93f6cbbaa4e14c10a2c199b1147f7c4b7fcaa1c0ff606937c700d9.
+Logs lighting-shadow-{shaders,shader-native,shader-clang,shader-build}.log record
+shader, native descriptor/pipeline and CMake success. Native scene caster/receiver
+submission and rendered mask/occlusion acceptance still remain.
+
+## #14 shadow caster shader test-first checkpoint
+
+The native observation now requires a dedicated caster pipeline with position,
+base UV and vertex alpha, two shadow shader modules, zero color attachments,
+single-sample reversed depth, and no stencil/alpha-to-coverage. Before adding the
+new program it fails on absent modules/type (lighting-shadow-shader-before.log).
+Existing 78 shader arrays remain accepted and must stay byte-identical.
+
+## #14 native light submission implementation checkpoint
+
+Test-first 368269f5 precedes the 56-byte trivial sceneLight_t API and native client/
+cgame forwarding. Renderer versions advance to 15 shipping/19 development. The
+existing scene/frame storage owns copies and rejects invalid point/spot values or
+exhausted 16-light/16-local-tile capacities; point lights consume six tiles, spots
+one. Valid spot directions normalize once. Legacy lights/wire structs are unchanged.
+GCC/Clang UBSan shadow-view/submission probes, unchanged 33-line native ABI and
+native CMake build pass (lighting-scene-lights-{gcc,clang,abi,build}.log). These are
+submission contracts only; actual caster/receiver recording remains next.
+
+## #14 native light submission test-first checkpoint
+
+The same shadow-view driver now compiles a submission probe before implementation:
+it requires copied point/spot data, normalized spot direction, bounded per-frame
+storage and per-scene 16-tile admission (six faces per point, one per spot), valid
+cones and clean frame/scene reset. It fails on the absent scene-light contract
+(lighting-scene-lights-before.log). Existing legacy lights and wire structs stay
+unchanged. This prepares the native caster/receiver path, not feature acceptance.
+
+Roadmap #25 now places #161 visual fidelity immediately after #14; follow it before
+#15. #160/PR #162 repairs the independent publication YAML collision on main while
+this branch continues. Do not merge #14 before its final current-main gates.
+
+## #14 shadow sampling implementation checkpoint
+
+Test-first b5e7d5ef precedes allocation of two atlas sampler descriptors from the
+existing pool. Nearest/clamped sampling supports manual depth comparison without
+requiring filterable D32. Existing resize/filter refresh updates both bindings;
+invalid slots/atlases and sampling during a depth pass are rejected. GCC/Clang
+native graph observation, RHI upload/alternative-backend checks, CMake build and
+format/type/boundary gates pass (lighting-shadow-sampling*.log). No new shader or
+accepted reference changed. Caster/receiver draw submission remains next.
+
+## #14 shadow sampling test-first checkpoint
+
+Extend the same native graph observation to descriptor allocation, depth-read-only
+layout, nearest/clamped sampling, atlas binding and existing descriptor refresh.
+The pre-implementation native probe fails on missing shadow descriptors/binding
+(lighting-shadow-sampling-before.log). This remains ordinary feature coverage.
+
+## #14 shadow recording implementation checkpoint
+
+Test-first e2bbbf9b precedes native depth-pass recording. Shadow-enabled graph
+configurations retain scene color/MSAA/depth/stencil and create compatible load
+continuations; disabled native descriptors still match all 36 frozen cases.
+RHI_BeginShadowPass clears exactly one reversed-depth attachment and supports
+local-to-sun transition; EndShadowPass restores main/screen state, viewport scale
+and dirty-depth tracking. Continuation dependencies cover color and depth writes.
+Native recording observation passes all 36 enabled cases on GCC and Clang/libc++,
+along with the portable graph checks (lighting-shadow-record.log). CMake builds successfully
+(lighting-shadow-record-build.log). No accepted fixture or shader changed.
+
+Format/type/boundary and alternative-backend/upload checks also pass
+(lighting-shadow-record-{clang,rhi}.log).
+
+Actual caster draw/atlas descriptors, receiver shading and full lighting acceptance
+remain next. No main/default scene calls these APIs until that frontend is ready.
+
+## #14 shadow recording test-first checkpoint
+
+The graph/native observation now requires load/store continuation passes before
+implementing shadow command recording. Mocked native calls check two depth-only
+clears, main/screen-map state restoration, invalid atlas rejection and duplicate
+end safety. Main, MSAA and screen depth must survive a shadow interlude. The
+pre-implementation build fails on absent continuation fields/API
+(lighting-shadow-record-before.log). Legacy disabled descriptors remain frozen.
+
+## #14 shadow-view implementation checkpoint
+
+Test-first commit 8e8252ef precedes tr_shadow.cpp. The shared spot projection also
+constructs six point faces. Four sun cameras mix logarithmic/linear splits, enclose
+receiver frustum spheres, snap lateral centers to texels and retain bounded
+upstream caster coverage. Existing scene/FP projections are untouched. GCC and
+Clang/libc++ analytical UBSan checks pass, including rotated cameras/oblique sun,
+with all split mixtures; logs lighting-shadow-views-{gcc,clang}.log. Native CMake
+build passes (lighting-shadow-views-build.log), as do format/type/boundary gates.
+The test runs on both hosted unit compiler legs. No accepted reference changed.
+
+This is allocation-free view construction only; it is not yet called by rendering.
+Next connect caster submission and depth-pass recording, then receiver lighting.
+Shadow quality, reflections/SSAO and reference-GPU acceptance remain outstanding.
+
+## #14 shadow-view test-first checkpoint
+
+The new tests/shadow_views.py compiles an analytical probe with UBSan. It specifies
+six point faces, a spot cone, reversed near/far depth, handedness, five culling
+planes, four sun-slice corner coverage, off-camera casters and a stable texel grid
+under small camera motion. It fails on missing view constructors before their
+implementation (lighting-shadow-views-before.log). No accepted fixture is changed.
+Native pass submission and receiver shading remain outstanding after this math.
+
+## #14 shadow resource implementation checkpoint
+
+The graph/native resource slice builds and passes both the frozen 36 legacy
+configurations and 36 new shadow-enabled configurations. Two fixed sampled D32
+atlases use depth-only clear/store passes and explicit depth-test write to fragment
+read dependencies. A separate possible execution order places both writers before
+scene consumers while preserving legacy IDs and disabled descriptor bytes.
+Power-of-two atlas dimensions are bounded to 128..8192. Attachments use the
+existing pooled allocator and resize/restart teardown; no frame allocation.
+Logs: lighting-shadow-native.log, lighting-shadow-build.log. Format/type/boundary
+checks pass. Native configuration keeps shadowMapSize zero until caster/view and
+receiver submission are implemented; this is not rendered-shadow acceptance.
+
+## #14 initial shadow graph contract
+
+The existing graph contract now requires two opt-in sampled depth atlases
+(local lights and cascaded sun), depth-only clear/store passes, explicit depth
+write-to-fragment-read dependencies and shadow writers ordered before the main
+scene. Existing pass/target IDs and disabled native descriptors remain fixed.
+Before implementation it fails on the absent shadowSize/LocalShadow/SunShadow
+contract (lighting-shadow-graph-before.log). Atlas dimensions must be bounded
+powers of two. This is a resource/dependency test, not proof of rendered shadows;
+frontend caster views, receiver shading and actual visual/performance acceptance
+remain mandatory.
+
+## #14 directional runtime checkpoint
+
+The first renderer slice builds and passes actual OA/Q3 native tests with both
+separate and merged lightmaps. Reversed owned normal data changes 438,166 channel
+bytes on OA and 438,096 on Q3; restoring the cvar gives exact original static
+pixels. Reviewed images retain baked occlusion with normal mapping disabled and
+reverse the lighting with the deliberately inverted normals. Logs:
+lighting-runtime-first.log, lighting-runtime-q3.log. These are new diagnostics,
+not regenerated references.
+
+The explicit BSP marker selects paired loading and even-index remapping. Intensity
+retains legacy conversion; raw direction bytes use a separate half of a combined
+atlas at the existing fifth descriptor slot. Unsupported four-set hardware reports
+light-grid fallback. `r_directionalLightmaps` switches the normal response live.
+The new material iterator supplies existing lightmap UVs; ordinary Quake materials
+retain their intensity stages. All allocation is at map load, through existing
+hunk/images; frame data stays bounded POD. Two new offline programs implement a
+bounded dominant-direction approximation. All previous 76 shader byte arrays are
+unchanged; 78-program cache/fresh compile matches package
+327bdca2c2e65c383328540d3fc28f7a6e764deac4f9c7fd53d0fcc4595f1b0e
+(lighting-shaders.log).
+
+Classic Q3 replay still matches
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4
+(lighting-classic.log). RHI/alternative-backend and all 36 frozen graph descriptor
+configurations pass (lighting-rhi.log, lighting-graph.log); format/type/boundary
+gates pass. CI and AGENTS/tests docs include the bake/native commands. Full final
+#14 checks/self-review wait for remaining scope: point/spot and cascaded sun
+shadows, reflection probes, SSAO and actual reference-GPU budgets. No #14 PR yet.
+
+#157's main-target head f638330b passed every build leg in 35545635052.
+Regression 35545635067 is still running its runtime/lifetime jobs; all other gates
+passed at last check. Superseded 2ed8cf56 regression 35544991093 was cancelled;
+never count it as acceptance. The rollback tag remains at 81a0f9dc.
+
+## #14 first bake implementation
+
+The opt-in compiler slice passes `tests/lighting.py --compile`: two independent
+bakes produce identical intensity/direction pairs and retain 594 light-grid
+probes. `tests/level.py --compile` still matches all accepted MAP/BSP/AAS hashes.
+Logs: lighting-bake-worldspawn.log and lighting-default-level-final.log.
+`compile_map` reads the explicit marker from q3map2's compiled worldspawn before
+its light stage, so JSON and existing MAP entry points agree. No bake container,
+ray tracer, accepted fixture or compiler dependency was added. Native direction
+sampling is not implemented yet; the README's renderer description is the intended
+#14 contract, not a claim of completed runtime acceptance.
+
+Maintainer workflow changed during this slice: main 81a0f9dc is the integration
+baseline, known-good-2026-09-20 remains unchanged. #157 is retargeted to main;
+its updated head f638330b runs build 35545635052/regression 35545635067. Preserve
+these existing issue branches by merging main forward without rebasing. New issue
+branches start from main. All required gates must pass before a self-merge.
+
+The native visual contract `tests/lighting_runtime.py` compiles the owned
+opt-in level and cooks ordinary wall/floor PBR materials, then runs the actual OA
+client with merged/unmerged lightmaps. Before renderer implementation it fails
+because native directional pages are not recognized (lighting-runtime-before.log).
+The required assertions include changed static pixels with direction mapping on
+and an exact off/on/off restored view; no accepted visual reference is created.
+
+## #14 initial failing directional-bake contract
+
+`python3 tests/lighting.py` fails before implementation with `missing or unknown
+fields: directional` (lighting-before.log). The new opt-in JSON field is
+`lighting.directional: true`; disabled/omitted output must retain the accepted
+MAP/BSP/AAS bytes. The full `--compile` gate will compare independent bakes,
+require paired intensity/model-space direction pages referenced by even surface
+indices, preserve the existing baked light-grid probes and validate AAS output.
+No new fixture or reference bytes are recorded.
+
+The pinned q3map2 2.5.17n-git-68ecbed already supports `-deluxe -deluxemode 0`.
+Its lightmaps_ydnar.cpp stores direction RGB immediately after each intensity page;
+light.cpp confirms the mode. Reuse that ordinary IBSP 46 representation, with an
+explicit `_aftershock_deluxe` worldspawn marker. A custom lighting container or
+new offline ray tracer is unnecessary. Runtime direction sampling and the rest of
+#14 still need implementation and tests; this bake contract alone is not acceptance.
+Source: https://github.com/Garux/netradiant-custom/blob/68ecbed/tools/quake3/q3map2/lightmaps_ydnar.cpp.
+
+Reference acceptance target is 1280x720 at 60 Hz on the recorded RTX 3080 Ti:
+16.67 ms total GPU frame, with initial budgets of 3 ms shadow maps, 1 ms SSAO,
+1 ms bloom, 10 ms main scene and 1.67 ms remaining work. Measure warm-frame
+median and p95 per pass, with actual shadowed q3dm17 and explicit quality values.
+These are targets, not measured acceptance or console-hardware claims. Software
+renderers continue to supply deterministic functional gates.
 
 ## #160 publication merge repair self-review
 
