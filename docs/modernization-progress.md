@@ -38,17 +38,17 @@ checks also pass with an OA renderer module; no screen-click calls remain in
 test drivers. Shipping exclusion passes in the full devtools rebuild. Legacy
 accepted goldens and source assets are unchanged.
 
-Next: finish remaining command metadata/UI coverage and per-invocation scratch/display/port
-isolation and concurrent full suites, affected-test mapping and executable
-docs/agents recipes. Audit every #163 acceptance requirement before readiness.
-Then full current-main gates/self-review/merge and continue #164 -> #161 -> #15
-through the remaining #25 roadmap. PR166 stays draft until complete.
+Next: finish channel self-review, then start two simultaneous complete local
+suite runs from clean detached worktrees at this branch's final head. Metadata,
+root isolation, the full-suite catalog, affected-test selection and all seven
+executable handbook recipes are implemented. Run fresh hosted/current-main gates,
+review every #163 requirement, ready/merge PR166, verify merged gates, then continue
+#164 -> #161 -> #15 through #25. PR166 stays draft until acceptance is complete.
 
-Hosted assertion head 8213ac3d build 35561708602 passes all compiler legs.
-Regression 35561708597 passes format, match-server, both unit/cross legs, tidy
-and sanitizers; runtime/lifetimes are still running. CLI head f0e768cb build 35562297132 also passes; regression 35562297425
-has passed lifetimes and is still running runtime. Latest schema changes need
-fresh hosted gates. No failed/superseded head is acceptance.
+2d013965 build 35564020843 and regression 35564020842 both pass. Newer db72e197
+build 35565432449 passes; regression 35565432535 is still running. These do not
+accept later handbook/self-review changes. Main remains 4ade5c3a9cad9cd71a04ca2641db2f74b8355774
+as rechecked through the API before handbook completion.
 
 All existing exclusions remain in force. Nothing leaves msetaro/aftershock;
 shipping binaries exclude this tooling. No PR against another repository, no
@@ -75,6 +75,20 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 executable handbook checkpoint
+
+All seven handbook recipes pass with OA development binaries (agent-recipes.log):
+new weapon cook/probe, owned level compile/headless report, glTF import, effect
+schema-only contract, deterministic prediction report, private Git bisect, and
+local annotated tag creation after recorded green main checks. Red/skipped jobs
+and existing tags fail without tag replacement. No real repository tags change.
+
+AGENTS links to the handbook and tests reference instead of retaining its growing
+command list. Format CI checks every shell block; runtime CI executes them after
+building the development server in the pinned cooker environment. Workflow lint,
+suite catalog and affected-selector contracts pass. Full simultaneous worktree
+runs remain pending; the recipe smoke is not full-suite acceptance.
 
 ## #163 handbook test-first checkpoint
 

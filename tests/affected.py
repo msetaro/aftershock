@@ -18,6 +18,7 @@ FAST = ('agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
         'devtools_data', 'check_boundaries', 'check_types', 'check_format',
         'check_isolation', 'isolation', 'suite_contract', 'publish_build', 'match_content')
 COMMANDS = {name: [sys.executable, 'tests/'+name+'.py'] for name in FAST}
+COMMANDS['recipes'] = [sys.executable, 'tests/agent_recipes.py', '--check']
 COMMANDS['unit'] = [sys.executable, 'tests/run.py', 'unit', '--negative-control']
 COMMANDS['match_go'] = ['go', '-C', 'tools/match', 'test', '-race', './...']
 # Prefix matches compose: a cooker animation edit needs both cooker and animation checks.
@@ -39,6 +40,7 @@ RULES = (
     (('tests/suite', '.github/workflows/'), ('suite_contract', 'publish_build', 'check_isolation', 'unit')),
     (('CMakeLists.txt', 'CMakePresets.json', 'cmake/', 'third_party/'), ('unit', 'check_boundaries')),
     (('.clang',), ('check_format',)),
+    (('docs/agents/', 'tests/agent_recipes.py'), ('recipes',)),
     (('docs/', 'AGENTS.md', 'README.md'), ('check_isolation',)),
 )
 

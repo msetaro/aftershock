@@ -4,6 +4,16 @@ For related commands, allocate one root first: `export AFTERSHOCK_SCRATCH="$(mkt
 Otherwise each invocation gets a fresh root; children inherit it. Retain the root
 for logs/build reuse, then remove it when its evidence is no longer needed.
 
+See [the agent handbook](../docs/agents/README.md) for executable task recipes.
+`python3 tests/affected.py BASE_REF` selects fast probes within a stated 600-second
+budget; incomplete runs exit 2. `python3 tests/suite.py --glslang PATH
+--openarena-data PATH` runs the ten active regression job variants locally with
+preinstalled tools. Its JSON report records the revision, dirty state and whether
+the whole suite ran. Hosted compiler jobs remain required. `tests/agent_recipes.py`
+executes handbook commands with development client/server paths and installed
+content; `--check` only validates shell syntax. Git recipe tests use private
+fixture histories and never alter repository rollback tags.
+
 Run from the repository root with Python 3, CMake 3.25+, Ninja, GCC or Clang, and binutils.
 Tests call real engine functions with production flags from CMake's compile database. Test drivers provide only
 isolated allocator/log/file stubs and instrumentation; production code is unchanged.
