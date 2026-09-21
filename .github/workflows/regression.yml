@@ -105,6 +105,7 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/post.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/audio_events.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          python3 tests/audio_spatial.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/temporal.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/streaming.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects_reference.py
@@ -247,7 +248,6 @@ jobs:
         run: python3 tests/download.py
       - name: Native ALSA thread checks
         run: python3 tests/audio.py
-        run: python3 tests/audio_spatial.py
       - name: Collision and both-map bot goldens
         run: |
           python3 tests/run.py differential --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
@@ -353,6 +353,14 @@ jobs:
         run: python3 tests/devtools.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-devtools-tests --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Cosmetic props and grenade contacts
         run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/physics_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Authored audio playback and cache lifetime
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/audio_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Authored audio evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: authored-audio
+          path: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-audio-runtime/*.log
       - name: Cosmetic physics evidence
         if: always()
         uses: actions/upload-artifact@v7

@@ -62,6 +62,17 @@ After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
 
+## #16 both-content playback verification
+
+3b84dd1d passes the real-client playback test for both Quake 3 and OpenArena
+(audio-runtime-q3.log / audio-runtime-oa.log). Direct PCM checks also cover bus
+gain and voice-driven duck/release. Added the runtime command and log artifact to
+CI; spatial tests now run on both unit compilers. Workflow self-review caught a
+duplicate run key in the earlier spatial-test insertion, which would have replaced
+the ALSA command. It is removed; the existing ALSA command remains and the new
+spatial command is in the unit step. No affected head was merged. Native source
+format/types/boundaries pass at 495/414/415 before the next acoustic changes.
+
 ## #16 client playback checkpoint
 
 2366b157 records the real-client failure before registration/playback existed

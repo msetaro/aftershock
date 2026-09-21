@@ -312,7 +312,17 @@ record with mechanical/tail/distant roles, per-layer distance ranges, mix bus,
 group/priority/voice limit, attenuation, Doppler/occlusion flags and reverb send.
 Use `python3 tools/agent describe sound-event` for the source schema. Cooked
 `.asevt` records use the existing hashed envelope and resource-index kind 12.
-Playback registration is still under development in #16.
+`python3 tests/audio_runtime.py --binary CLIENT` cooks an owned tone/event,
+plays it through SDL dummy output, and checks repeated cache reuse and HRTF voice
+retirement. Both content sets are supported. Authored `.asevt` paths work through
+ordinary sound registration and existing weapon notify paths; `s_hrtf` and
+`s_headRadius` control the optional headphone model. `s_busWeapons`,
+`s_busAmbient`, `s_busMusic`, `s_busVoice`, and `s_busUI` control authored bus
+volumes. Voice activity ducks music/ambient with a 5 ms attack and 250 ms release.
+`s_audioInfo` reports prepared storage and mixed output. Registration retains at
+most 128 events, 512 PCM resources and 64 MiB until sound shutdown (16 MiB per
+resource); registration rejects exhausted capacity. Ordinary sound paths retain
+the legacy behavior. Room acoustics/streaming/voice integration remain in progress.
 
 `python3 tests/audio_spatial.py` checks the authored-audio spatial component
 with UBSan (also accepts `--cxx 'clang++ -stdlib=libc++'`). It covers stereo
@@ -320,7 +330,7 @@ placement, linear/inverse attenuation, radial Doppler, invalid-input rejection,
 and the optional spherical-head filter's impulse delay, head shadow, mirrored
 placement and DC stability at 8–192 kHz. The bounded filter follows the head
 component of Brown/Duda (1998); it does not model individual pinnae or elevation.
-These are component checks, not yet acceptance of authored playback integration.
+These component checks complement the real-client playback test.
 
 `python3 tests/audio.py` verifies the native ALSA callbacks have pthread-compatible
 types, submits samples through both MMAP and DIRECT paths to ALSA's `null` output,
