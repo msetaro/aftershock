@@ -61,6 +61,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-effect-source-') as temporar
          '-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all',
          'tests/probes/effects.cpp','engine/effects/effects.cpp',sha_object,'-o',probe])
     run([probe,path])
+    impact=args.output/'impact-probe'
+    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti','-ffp-contract=off','-fno-fast-math',
+         '-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all',
+         '-U_GNU_SOURCE','-D_DEFAULT_SOURCE','-ffunction-sections','-fdata-sections','tests/probes/weapon_effects.cpp',
+         'engine/qcommon/q_shared.cpp','engine/qcommon/q_math.cpp','-Wl,--gc-sections','-o',impact])
+    run([impact])
 
     definition['emitters'][0]['size']=4
     effect.write_text(json.dumps(definition))

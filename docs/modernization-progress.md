@@ -38,7 +38,8 @@ unchanged accepted frame hash (fidelity-legacy-demo.log). No accepted fixture or
 existing shader changed. Details and test-first failures are below.
 
 Next implementation: finish the full #161 effect set/material impact binding, soft particles,
-mesh/trail/light coverage, live ImGui authoring and counters. Projected normal-map
+mesh/trail/reference coverage. Live source editing, initial light hooks and
+profiler counters now pass. Projected normal-map
 decals, filmic/LUT/post/TAA with real motion vectors, mip streaming/async uploads,
 reviewed software frames and hardware budgets all remain required. Cooked
 LOD output is now selected by the renderer through hash-bound cooked manifests.
@@ -62,6 +63,15 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 weapon material-effect contract fails first
+
+A new probe calls the actual cgame material-hit presentation function. Authored
+.asfx material effects must start a native burst with the hit origin/normal;
+legacy shader references retain marks/explosions. The first executable fails on
+missing burst dispatch (fidelity-weapon-effect-before-2.log), after correcting its
+standalone native include/build setup. No damage, hit selection, weapon simulation
+or snapshot representation changes are needed. Add typed presentation imports next.
 
 ## #161 live effect source editor passes
 
