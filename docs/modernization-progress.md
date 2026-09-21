@@ -63,6 +63,21 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 shaped native effects and light hooks pass
+
+Native sprite size evolution/rotation and bounded per-emitter light submission
+pass visible frame, expiry, stable memory, watched reload and restart controls
+(fidelity-effect-lights.log). The active capture was reviewed: rotated larger
+marker plus colored light on the nearby floor. The scene light pool bounds work;
+agent counters expose accepted and dropped light submissions. The build initially
+caught a missing declaration for the existing scene light count; corrected before
+passing. This remains component evidence, not the final reference effect set.
+
+The next test requires an Effects ImGui source panel shared with native agent
+edit actions, save backups/conflict protection, then recook/replay. Its initial
+run fails on absent effects.edit (fidelity-effect-editor-before.log). Implement
+by reusing the existing source editor's file helpers and preservation rules.
+
 ## #161 seeded effect shaping passes
 
 GCC and Clang/libc++ UBSan pass version-2 cooked records, stable seeded spread,

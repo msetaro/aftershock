@@ -1320,6 +1320,10 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 			reply.Number( stats.reloads );
 			reply.Text( ",\"draws\":" );
 			reply.Number( stats.draws );
+			reply.Text( ",\"lightDraws\":" );
+			reply.Number( stats.lightDraws );
+			reply.Text( ",\"lightDrops\":" );
+			reply.Number( stats.lightDrops );
 			reply.Text( "}}" );
 			return reply.valid;
 		}

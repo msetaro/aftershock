@@ -1874,6 +1874,7 @@ void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
 bool RE_AddSkeletalEntityToScene( const refEntity_t *ent, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 bool RE_AddMaterialEntityToScene( const refEntity_t *ent, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
+extern int r_numdlights;
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
 bool RE_AddSceneLight( const sceneLight_t *light );
 void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b );

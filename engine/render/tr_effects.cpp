@@ -14,14 +14,14 @@ static struct {
 	effectBinding_t bindings;
 } effectAssets[MAX_EFFECT_ASSETS];
 static effectBinding_t effectBindings[FX_MAX_INSTANCES];
-static uint32_t effectCount, effectReloads, effectDraws, effectTime;
+static uint32_t effectCount, effectReloads, effectDraws, effectTime, effectLightDraws, effectLightDrops;
 static bool effectClock;
 
 void R_InitEffects( void ) {
 	FX_Reset( &effects );
 	memset( effectAssets, 0, sizeof( effectAssets ) );
 	memset( effectBindings, 0, sizeof( effectBindings ) );
-	effectCount = effectReloads = effectDraws = effectTime = 0;
+	effectCount = effectReloads = effectDraws = effectTime = effectLightDraws = effectLightDrops = 0;
 	effectClock = false;
 }
 static bool ReadEffect( uint32_t index, const char *path, const cookedEntry_t *published = nullptr ) {
@@ -79,7 +79,7 @@ bool RE_StopEffect( uint32_t handle ) {
 	return FX_Stop( &effects, handle );
 }
 void RE_EffectStats( fxRenderStats_t *stats ) {
-	*stats = { effects.stats, effectCount, effectReloads, effectDraws };
+	*stats = { effects.stats, effectCount, effectReloads, effectDraws, effectLightDraws, effectLightDrops };
 }
 static bool EffectTrace( const float start[3], const float end[3], fxTrace_t *result, void * ) {
 	if ( !ri.CM_BoxTrace )
@@ -102,16 +102,20 @@ void R_AddEffects( const refdef_t *view ) {
 	effectTime = now;
 	if ( !effects.stats.particles )
 		return;
+	float lights[FX_MAX_INSTANCES][FX_MAX_EMITTERS]{};
 	for ( const auto &particle : effects.particles ) {
 		if ( !particle.active )
 			continue;
 		const auto &instance = effects.instances[particle.instance];
 		const auto &emitter = instance.asset.emitters[particle.emitter];
 		const auto &binding = effectBindings[particle.instance];
+		const float life = float( particle.ageMs ) / float( emitter.lifetimeMs );
+		const float size = emitter.size + ( emitter.endSize - emitter.size ) * life;
+		lights[particle.instance][particle.emitter] = std::max( lights[particle.instance][particle.emitter], 1 - life );
 		color4ub_t color;
 		for ( uint32_t c = 0; c < 4; ++c )
 			color.rgba[c] = (byte)( emitter.color[c] * 255 );
-		color.rgba[3] = (byte)( float( color.rgba[3] ) * ( 1 - float( particle.ageMs ) / float( emitter.lifetimeMs ) ) );
+		color.rgba[3] = (byte)( float( color.rgba[3] ) * ( 1 - life ) );
 		if ( emitter.kind == FX_MESH ) {
 			refEntity_t entity{};
 			entity.reType = RT_MODEL;
@@ -121,7 +125,14 @@ void R_AddEffects( const refdef_t *view ) {
 			VectorCopy( particle.previous, entity.oldorigin );
 			VectorCopy( particle.origin, entity.lightingOrigin );
 			for ( uint32_t i = 0; i < 3; ++i )
-				VectorScale( instance.axis[i], emitter.size, entity.axis[i] );
+				VectorScale( instance.axis[i], size, entity.axis[i] );
+			if ( particle.rotation ) {
+				for ( uint32_t i = 1; i < 3; ++i ) {
+					vec3_t rotated;
+					RotatePointAroundVector( rotated, instance.axis[0], instance.axis[i], particle.rotation );
+					VectorScale( rotated, size, entity.axis[i] );
+				}
+			}
 			entity.nonNormalizedAxes = qtrue;
 			entity.shader = color;
 			RE_AddRefEntityToScene( &entity, qfalse );
@@ -134,15 +145,22 @@ void R_AddEffects( const refdef_t *view ) {
 						color.rgba[c] = (byte)( float( color.rgba[c] ) * std::clamp( ( ambient[c] + directed[c] ) / 255.f, 0.f, 1.f ) );
 			}
 			vec3_t right, up;
-			VectorScale( view->viewaxis[1], emitter.size, right );
-			VectorScale( view->viewaxis[2], emitter.size, up );
+			VectorScale( view->viewaxis[1], size, right );
+			VectorScale( view->viewaxis[2], size, up );
 			if ( emitter.kind == FX_TRAIL ) {
 				VectorSubtract( particle.origin, particle.previous, up );
 				CrossProduct( up, view->viewaxis[0], right );
 				if ( VectorNormalize( right ) == 0 )
 					continue;
-				VectorScale( right, emitter.size, right );
+				VectorScale( right, size, right );
 				VectorScale( up, .5f, up );
+			}
+			if ( emitter.kind == FX_SPRITE && particle.rotation ) {
+				vec3_t rotated;
+				RotatePointAroundVector( rotated, view->viewaxis[0], right, particle.rotation );
+				VectorCopy( rotated, right );
+				RotatePointAroundVector( rotated, view->viewaxis[0], up, particle.rotation );
+				VectorCopy( rotated, up );
 			}
 			const float u = float( particle.frame % emitter.columns ) / float( emitter.columns );
 			const float v = float( particle.frame / emitter.columns ) / float( emitter.rows );
@@ -160,6 +178,24 @@ void R_AddEffects( const refdef_t *view ) {
 			RE_AddPolyToScene( binding.shader[particle.emitter], 4, vertices, 1 );
 		}
 		++effectDraws;
+	}
+	// One light per active emitter, bounded by the scene's existing light pool.
+	for ( uint32_t i = 0; i < FX_MAX_INSTANCES; i++ ) {
+		const auto &instance = effects.instances[i];
+		if ( !instance.handle )
+			continue;
+		for ( uint32_t e = 0; e < instance.asset.header.emitterCount; e++ ) {
+			const auto &emitter = instance.asset.emitters[e];
+			const float intensity = lights[i][e] * emitter.lightIntensity;
+			if ( intensity <= 0 || emitter.lightRadius <= 0 )
+				continue;
+			const int before = r_numdlights;
+			RE_AddLightToScene( instance.origin, emitter.lightRadius, emitter.lightColor[0] * intensity, emitter.lightColor[1] * intensity, emitter.lightColor[2] * intensity );
+			if ( r_numdlights > before )
+				++effectLightDraws;
+			else
+				++effectLightDrops;
+		}
 	}
 }
 #ifdef AFTERSHOCK_DEVTOOLS
