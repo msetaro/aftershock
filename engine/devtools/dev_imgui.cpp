@@ -891,6 +891,10 @@ void DevTools_EditorState( devEditorState_t *state ) {
 	Q_strncpyz( state->panel, activePanel, sizeof( state->panel ) );
 	Q_strncpyz( state->clip, animation.clipName, sizeof( state->clip ) );
 	state->frames = renderedFrames;
+	state->allocations = allocations;
+	state->arena = Z_DevMemoryUsed();
+	state->enabled = enabled && enabled->integer;
+	state->inputCaptured = inputCaptured;
 	state->lines = drawnLines;
 	state->labels = drawnLabels;
 	const devLine_t *lines;

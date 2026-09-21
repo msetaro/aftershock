@@ -62,7 +62,10 @@ class Engine:
     def _read(self):
         try:
             for line in self.process.stdout:
-                self.replies.put(json.loads(line))
+                try:
+                    self.replies.put(json.loads(line))
+                except ValueError as error:
+                    raise ValueError(f'invalid channel line: {line[:512]!r}') from error
         except (ValueError, OSError) as error:
             self.replies.put(error)
         finally:

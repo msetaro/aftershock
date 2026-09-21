@@ -1,5 +1,8 @@
 #include "devtools_public.h"
 #include "../qcommon/qcommon_public.h"
+#ifndef DEDICATED
+#include "../qcommon/keys_public.h"
+#endif
 #define JSON_IMPLEMENTATION
 #include "../qcommon/json.h"
 #include <charconv>
@@ -474,6 +477,14 @@ static void Agent_EditorState( agentReply_t &reply ) {
 	reply.Number( state.selectedEntity );
 	reply.Text( ",\"frames\":" );
 	reply.Number( state.frames );
+	reply.Text( ",\"allocations\":" );
+	reply.Number( state.allocations );
+	reply.Text( ",\"arena\":" );
+	reply.Number( state.arena );
+	reply.Text( ",\"enabled\":" );
+	reply.Text( state.enabled ? "true" : "false" );
+	reply.Text( ",\"inputCaptured\":" );
+	reply.Text( state.inputCaptured ? "true" : "false" );
 	reply.Text( ",\"lines\":" );
 	reply.Number( state.lines );
 	reply.Text( ",\"labels\":" );
@@ -823,7 +834,22 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"range\",\"actor\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"range\",\"actor\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+	} else if ( !strcmp( op, "key" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Keyboard events require a client build." );
+#else
+		bool down;
+		p = JSON_ObjectGetNamedValue( request, end, "name" );
+		if ( !Agent_String( p, end, name, sizeof( name ) ) || !Agent_Bool( request, end, "down", down ) )
+			return reply.Error( "invalid_argument", "$", "Use a key name (e.g. F8/ESCAPE) and boolean down." );
+		const int key = Key_StringToKeynum( name );
+		if ( key < 0 || key >= MAX_KEYS )
+			return reply.Error( "invalid_argument", "$.name", "Use an engine binding key name." );
+		reply.Text( ",\"ok\":true,\"result\":{\"queued\":true}}" );
+		if ( reply.valid )
+			Sys_QueEvent( 0, SE_KEY, key, down ? 1 : 0, 0, nullptr );
+#endif
 	} else if ( !strcmp( op, "actor" ) ) {
 		int owner = DevTools_ViewClient();
 		if ( JSON_ObjectGetNamedValue( request, end, "owner" ) ) {

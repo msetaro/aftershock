@@ -2,6 +2,11 @@
 #include "../../engine/devtools/dev_agent.cpp"
 #include <assert.h>
 
+int Key_StringToKeynum( const char * ) {
+	return -1;
+}
+void Sys_QueEvent( int, sysEventType_t, int, int, int, void * ) {
+}
 bool DevTools_SelectPanel( const char * ) {
 	return false;
 }

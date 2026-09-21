@@ -48,9 +48,9 @@ original key, angle aliases and numbered-save checks. The World panel rewrite
 now passes after its absent-operation check (agent-world-before.log): placement,
 picking, selection and reload share existing UI functions. The Range rewrite passes on both content sets after its missing-operation check
 (agent-range-before.log). Authoritative weapon/animation queries and shared Range
-actions are implemented. The devtools.py rewrite fails first on absent allocation state
-(agent-devtools-before.log); expose counters and queued named-key input, then
-finish general/asset controls and the material UI test; gameplay event/assert acceptance remains.
+actions are implemented. All five original editor tests are now migrated and pass locally on both
+content sets. The full OpenArena devtools rebuild proves shipping exclusion.
+Continue asset/material commands and the material UI rewrite; gameplay event/assert acceptance remains.
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
@@ -95,6 +95,26 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 inspector lifecycle checkpoint
+
+Named key requests queue ordinary SE_KEY events; actual key handling, bindings
+and held-key release on overlay reopen are unchanged. Structured editor state
+exposes arena/allocation counters and capture/enabled flags. The rewritten
+devtools test passes on Q3 and OA with panel captures, 80 allocation-free idle
+frames, video restart, animation and bound-key release. Its full OA rebuild also
+verifies shipping excludes UI/channel symbols and development includes them
+(agent-devtools.log / agent-devtools-full.log). Native protocol GCC/Clang-libc++,
+format and boundaries pass. All five original editor drivers are now migrated;
+material runtime still has pixel input and needs shared material/asset controls.
+
+Hosted panel-head regression 35559027970 fails in entity startup: the reader sees
+non-JSON before its first session response and stderr is empty. The existing
+reader discarded that offending line, so it now includes a bounded repr in the
+error to identify the root cause on the next fresh run; it does not silently skip
+non-JSON output. The earlier MSVC shadow correction is also awaiting fresh gates.
+Do not claim hosted acceptance yet. Continue material controls and the remaining
+#163 deliverables while the corrected-head CI runs.
 
 ## #163 Range and actor-state checkpoint
 

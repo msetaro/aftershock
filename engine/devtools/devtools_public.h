@@ -73,7 +73,9 @@ bool DevTools_Project( const refdef_t *view, const float *point, float *screen )
 int DevTools_PickEntity( float x, float y );
 struct devEditorState_t {
 	char panel[32], clip[64], graphState[64], graphEvent[64], graphResult[32];
-	uint32_t frames, lines, labels, worldLines, animationPreviews;
+	uint32_t frames, lines, labels, worldLines, animationPreviews, allocations;
+	uint64_t arena;
+	bool enabled, inputCaptured;
 	int32_t model, animationFrame, selectedEntity;
 	uint32_t graphPreviews, graphTime;
 	bool graphDirty, graphPlay;

@@ -270,7 +270,7 @@ jobs:
             /tmp/aftershock-level-runtime
             /tmp/aftershock-level-validation
       - name: Development overlay input and renderer restart
-        run: python3 tests/devtools.py --content openarena --data /tmp/aftershock-openarena-baseoa
+        run: python3 tests/devtools.py --output /tmp/aftershock-devtools-tests --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Optional renderer module replay
         run: python3 tests/demo.py --modules --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-demo-modules
       - name: Owned animation replay through renderer module
@@ -345,7 +345,7 @@ jobs:
             /tmp/aftershock-animation-demo-modules/*.tga
             /tmp/aftershock-animation-demo-modules/*.json
             /tmp/aftershock-devtools-tests/**/*.log
-            /tmp/aftershock-devtools-tests/runtime/*.tga
+            /tmp/aftershock-devtools-tests/runtime/*.png
             /tmp/tests-native-runtime/**/*.log
             /tmp/tests-native-demo/**/*.log
             /tmp/tests-native-demo/*.tga

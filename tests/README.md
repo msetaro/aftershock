@@ -412,19 +412,17 @@ and rotates an existing renderer scene. Entity tools edit a local native game st
 the crosshair or by clicking outside the tools. Enabled renderer
 modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
 
-`python3 tests/devtools.py` builds both variants, verifies symbols, then uses real
-XTest input on a private Xvfb display to select/edit a cvar. It verifies 80 idle
-frames without further ImGui allocations, bounded arena use and video restart.
-It also holds a real game-bound key while reopening the overlay and checks that
-the release command runs before input capture resumes.
-It also opens each current inspector and captures its output.
-`python3 tests/devtools_data.py` checks real registry copies and allocator accounting
-without a GPU. The UI test requires libX11, libXtst (`libxtst6` in hosted CI), xwininfo/xprop (`x11-utils`),
-Xvfb and lavapipe. The window PID must belong to the launched client. Screenshots
-and logs stay under `--output`. `--binary` tests an existing development client;
-`--content openarena --data /tmp/aftershock-openarena-baseoa` selects hosted assets.
-The OpenArena UI check links the same pinned native OpenArena game objects as
-the replay gate, matching the fixture's game protocol.
+`python3 tests/devtools.py` builds both variants, verifies shipping excludes the
+UI and agent symbols, then uses the local JSON channel to select panels and edit
+cvars. It checks 80 idle frames without further ImGui allocations, bounded arena
+use, renderer restart, animation and a normal game-bound key held while reopening
+the overlay. Named key requests enter the normal event queue; no X11 pointer
+coordinates or console regex are used. Each inspector produces a PNG capture.
+`python3 tests/devtools_data.py` checks registry copies and allocator accounting
+without a GPU. Runtime requires Xvfb/lavapipe and installed content. Pass
+`--output DIR` to retain logs/captures, or `--binary PATH` for an existing developer
+client. Both content sets now use the owned native game; this test no longer
+replays a legacy demo or requires imported OpenArena game objects.
 
 ImGui core v1.92.9b is pinned under `third_party/imgui` with its unchanged license
 and source hashes. Default vendor OS, file, shell and time services are disabled.
