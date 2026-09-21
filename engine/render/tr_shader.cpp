@@ -49,6 +49,26 @@ uint32_t R_FindPipeline( uint32_t base, const rhiPipelineDesc_t *desc, bool eage
 void R_InitBuiltinPipelines( void ) {
 	unsigned int state_bits;
 	rhiPipelineDesc_t def;
+	if ( r_shadowQuality->integer ) {
+		def = {};
+		def.shader_type = TYPE_SHADOW;
+		def.state_bits = GLS_DEPTHMASK_TRUE;
+		def.polygon_offset = 1;
+		for ( uint32_t cull = 0; cull < 3; ++cull ) {
+			def.face_culling = (cullType_t)cull;
+			r_pipelines.shadowCaster[cull] = R_FindPipeline( 0, &def, true );
+			for ( uint32_t mirror = 0; mirror < 2; ++mirror ) {
+				for ( uint32_t offset = 0; offset < 2; ++offset ) {
+					auto direct = def;
+					direct.shader_type = TYPE_DIRECT;
+					direct.state_bits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL;
+					direct.mirror = (qboolean)mirror;
+					direct.polygon_offset = (qboolean)offset;
+					r_pipelines.directLight[cull][mirror][offset] = R_FindPipeline( 0, &direct, true );
+				}
+			}
+		}
+	}
 
 	// skybox
 	{
@@ -3883,7 +3903,8 @@ static shader_t *R_ApplyPbrMaterial( const cookedPbrMaterial_t *material, shader
 	}
 	shader.metallicRoughness = true;
 	shader.materialParams = material->params;
-	shader.lightmapIndex = LIGHTMAP_NONE;
+	if ( !tr.bakedLightmaps || ( material->params.flags & 2 ) )
+		shader.lightmapIndex = LIGHTMAP_NONE;
 	shader.explicitlyDefined = qtrue;
 	shader.needsNormal = qtrue;
 	shader.surfaceFlags |= SURF_NODLIGHT; // PBR uses the entity's combined light-grid/dynamic lighting.
@@ -3905,7 +3926,7 @@ static shader_t *R_ApplyPbrMaterial( const cookedPbrMaterial_t *material, shader
 		stage->bundle[i].tcGen = TCGEN_TEXTURE;
 	}
 	rhiPipelineDesc_t desc = {};
-	desc.shader_type = TYPE_PBR;
+	desc.shader_type = shader.lightmapIndex >= 0 ? TYPE_PBR_BAKED : TYPE_PBR;
 	desc.face_culling = shader.cullType;
 	desc.state_bits = stage->stateBits;
 	desc.allow_discard = ( material->params.flags & 12 ) != 0;

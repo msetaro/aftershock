@@ -52,7 +52,17 @@ The root object contains:
 - `lighting`: `ambient`, optional `sun: {direction, color, intensity}` and
   `lights: [{id, origin, color, intensity}]`. Colors are linear RGB in 0..1;
   sun direction points from the sky toward the map. Named lights remain editable
-  in generated MAP source.
+  in generated MAP source. Optional `directional: true` bakes paired intensity and
+  model-space light-direction pages with pinned q3map2 `-deluxe -deluxemode 0`.
+  It retains the BSP light grid for dynamic-object probes. Omitted/false preserves
+  the accepted default bake. Existing MAP projects opt in with worldspawn key
+  `_aftershock_deluxe` set to `1`; `0` disables it. Both compiler entry points read
+  that key from the compiled worldspawn before lighting. The output remains IBSP
+  46, with even surface lightmap indices and the corresponding direction page
+  immediately following each intensity page. The #14 renderer consumes these
+  directions separately from color data; ordinary Quake renderers still use the
+  intensity pages. `python3 tests/lighting.py --compile` checks repeated output and
+  unchanged default fixtures without recording references.
 
 Compiler acceptance includes containment, player clearances, connected spawn
 navigation, sightline limits, cover distance, asset existence, and raw repeated
@@ -156,3 +166,40 @@ MAP, with syntax/bounds checks but no declarative world-space containment test.
 MAP input is capped at 16 MiB. No package files are copied into the tool workspace.
 The acceptance test removes a ceiling from an owned valid MAP and requires a clear
 leak failure; disconnected JSON spawns fail separately before engine startup.
+
+## Reflection probes (#14)
+
+Bake authored loose content using a development client and installed game data:
+
+```sh
+python3 tools/level/probes.py probes.json --client /path/quake3e.x64 \
+  --base /path/authored/baseq3 --data ~/.q3a/baseq3 --output /path/authored/baseq3
+```
+
+```json
+{"map":"two_lane","probes":[{"origin":[0,0,96],"radius":512}]}
+```
+
+Use `--content openarena --data /tmp/aftershock-openarena-baseoa` for hosted
+content. The tool symlinks installed paks only in its temporary capture directory.
+It runs six square views in the native client under Xvfb/lavapipe, converts display
+RGB to linear radiance, then filters five roughness levels. `--size` selects
+16/32/64/128 pixels per face (default 32); `--samples` selects 32/64/128/256
+GGX importance samples (default 64). The sampling equations follow
+[Filament's IBL derivation](https://google.github.io/filament/main/filament.html#annex/importancesamplingfortheibl).
+Captures are LDR and do not claim HDR radiance. Each probe should be placed in
+free space near its intended dynamic objects; diffuse lighting still uses the
+BSP light grid baked by q3map2.
+
+The output is `maps/<map>.asprobe`: little-endian magic `ASPROBE\0`, four uint32
+fields (version 1, count, face size, roughness levels 5), followed per probe by
+four floats (XYZ/radius) and RGBA8 pixels. Each atlas has six face columns in
++X/-X/+Y/-Y/+Z/-Z order and five roughness rows. Count is bounded at 32, position
+magnitude/radius at 32752. Renderer validation requires exact lengths and finite
+coordinates; uploads keep the already-linear bytes unchanged. At the default
+size each atlas consumes 120 KiB before GPU allocation alignment.
+
+Set `r_reflectionProbes 1` to enable the bounded two-probe blend on dynamic PBR
+objects. The default is off. Influence is spherical, without box parallax
+correction; future authored room volumes can extend that approximation. The
+#161 HDR renderer transition owns replacing LDR capture/composition.

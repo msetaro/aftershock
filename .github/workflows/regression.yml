@@ -85,7 +85,10 @@ jobs:
           /tmp/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           /tmp/aftershock-cook-python/bin/python tests/weapons.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
       - name: Declarative level language and design rules
-        run: python3 tests/level.py
+        run: |
+          python3 tests/level.py
+          python3 tests/lighting.py
+          /tmp/aftershock-cook-python/bin/python tests/probes.py
       - name: Protocol, rewind, replication and identity contracts
         run: |
           /tmp/aftershock-cook-python/bin/python tests/netcode_cleanup.py
@@ -99,7 +102,9 @@ jobs:
       - name: RHI contract and frame uploads
         run: python3 tests/rhi.py --cxx '${{ matrix.cxx }}'
       - name: Render graph dependencies and native reference trace
-        run: python3 tests/render_graph.py --cxx '${{ matrix.cxx }}'
+        run: |
+          python3 tests/render_graph.py --cxx '${{ matrix.cxx }}'
+          python3 tests/shadow_views.py --cxx '${{ matrix.cxx }}'
       - name: Verify pinned offline shader compilation
         if: matrix.cc == 'gcc'
         run: |
@@ -246,6 +251,11 @@ jobs:
         run: |
           /tmp/aftershock-cook-python/bin/pip install -r tools/level/requirements.txt
           /tmp/aftershock-cook-python/bin/python tests/level.py --compile
+          /tmp/aftershock-cook-python/bin/python tests/lighting.py --compile
+          /tmp/aftershock-cook-python/bin/python tests/probes_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          /tmp/aftershock-cook-python/bin/python tests/ssao_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          /tmp/aftershock-cook-python/bin/python tests/lighting_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          /tmp/aftershock-cook-python/bin/python tests/lighting_runtime.py --shadows --lifecycle --output /tmp/aftershock-shadow-runtime --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
           /tmp/aftershock-cook-python/bin/python tests/level_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Headless level reports and fixed-camera PNGs
         run: /tmp/aftershock-cook-python/bin/python tests/level_validate.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
@@ -263,6 +273,15 @@ jobs:
         run: python3 tests/demo.py --modules --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-demo-modules
       - name: Owned animation replay through renderer module
         run: /tmp/aftershock-cook-python/bin/python tests/animation_demo.py --modules --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-animation-demo-modules
+      - name: Shadow casters and renderer module restart
+        run: |
+          cmake -S . -B /tmp/aftershock-animation-demo-modules/build -DAFTERSHOCK_DEVTOOLS=ON
+          cmake --build /tmp/aftershock-animation-demo-modules/build --parallel 4
+          /tmp/aftershock-cook-python/bin/python tests/lighting_runtime.py --shadows --lifecycle --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-lighting-modules
+      - name: Probe and SSAO renderer module restart
+        run: |
+          /tmp/aftershock-cook-python/bin/python tests/probes_runtime.py --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-probes-modules
+          /tmp/aftershock-cook-python/bin/python tests/ssao_runtime.py --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-ssao-modules
       - name: Owned weapon replay through renderer module
         run: /tmp/aftershock-cook-python/bin/python tests/weapons_demo.py --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-weapons-demo-modules
       - name: RHI replay measurements
@@ -299,6 +318,14 @@ jobs:
             /tmp/aftershock-material-ui/*.log
             /tmp/aftershock-material-ui/*.tga
             /tmp/aftershock-material-ui/*.json
+            /tmp/aftershock-ssao-runtime/*
+            /tmp/aftershock-ssao-modules/*
+            /tmp/aftershock-reflection-runtime/*
+            /tmp/aftershock-probes-modules/*
+            /tmp/aftershock-shadow-runtime/*
+            /tmp/aftershock-lighting-modules/*
+            /tmp/aftershock-lighting-runtime/*.log
+            /tmp/aftershock-lighting-runtime/*.tga
             /tmp/aftershock-weapons-runtime/*
             /tmp/aftershock-weapon-range/*
             /tmp/aftershock-weapons-demo/*

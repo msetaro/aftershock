@@ -136,4 +136,7 @@ def generate(level):
     for light in level['lighting']['lights']:
         entities.append(entity({'classname':'light','targetname':light['id'],'origin':vector(light['origin']),
                                 '_color':vector(light['color']),'light':light['intensity']}))
-    return entity({'classname':'worldspawn','message':level['name'],'_minlight':level['lighting']['ambient']},world)+''.join(entities)
+    worldspawn = {'classname':'worldspawn','message':level['name'],'_minlight':level['lighting']['ambient']}
+    if level['lighting'].get('directional',False):
+        worldspawn['_aftershock_deluxe'] = 1
+    return entity(worldspawn,world)+''.join(entities)

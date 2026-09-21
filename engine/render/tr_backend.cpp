@@ -41,6 +41,10 @@ static qboolean RB_FindScreenMapDrawSurfs( void ) {
 			break;
 		case RC_DRAW_SURFS:
 			ds_cmd = (const drawSurfsCommand_t *)curCmd;
+			if ( ds_cmd->viewParms.shadowView ) {
+				curCmd = (const void *)( ds_cmd + 1 );
+				break;
+			}
 			return ds_cmd->refdef.needScreenMap;
 		default:
 			return qfalse;
@@ -133,6 +137,11 @@ static void RB_GetViewport( rhiViewport_t *viewport, rhiDepthRange_t depth_range
 }
 
 static void RB_GetScissorRect( rhiRect_t *r ) {
+
+	if ( backEnd.viewParms.shadowView ) {
+		RB_GetViewportRect( r );
+		return;
+	}
 
 	if ( backEnd.viewParms.portalView != PV_NONE ) {
 		r->offset.x = backEnd.viewParms.scissorX;
@@ -1531,6 +1540,16 @@ static const void *RB_DrawSurfs( const void *data ) {
 #ifdef USE_VBO
 	VBO_UnBind();
 #endif
+	if ( backEnd.viewParms.shadowView ) {
+		if ( backEnd.viewParms.shadowFirst && !RHI_BeginShadowPass( backEnd.viewParms.shadowView - 1 ) )
+			ri.Error( ERR_DROP, "Shadow atlas is unavailable" );
+		backEnd.projection2D = qfalse;
+		SetViewportAndScissor();
+		RB_RenderDrawSurfList( cmd->drawSurfs, cmd->numDrawSurfs );
+		if ( backEnd.viewParms.shadowLast )
+			RHI_EndShadowPass();
+		return (const void *)( cmd + 1 );
+	}
 
 	// clear the z buffer, set the modelview, etc
 	RB_BeginDrawingView();
@@ -1557,6 +1576,13 @@ static const void *RB_DrawSurfs( const void *data ) {
 		RB_LightingPass();
 	}
 #endif
+
+	if ( r_ssao->integer && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) &&
+		 backEnd.viewParms.portalView == PV_NONE && !cmd->refdef.switchRenderPass ) {
+		rhiRect_t viewport;
+		RB_GetViewportRect( &viewport );
+		RHI_Occlusion( backEnd.viewParms.projectionMatrix, &viewport, r_ssaoRadius->value, r_ssaoStrength->value );
+	}
 
 	// draw main system development information (surface outlines, etc)
 	RB_DebugGraphics();

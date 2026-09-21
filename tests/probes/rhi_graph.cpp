@@ -1,6 +1,7 @@
 // Graph declarations must retain dependencies and target lifetimes without aliasing.
 #include "../../engine/rhi/rhi_public.h"
 #include <assert.h>
+#include <initializer_list>
 
 static uint32_t target( rhiGraphTarget_t value ) {
 	return (uint32_t)value;
@@ -78,6 +79,100 @@ int main( void ) {
 			}
 		}
 	}
+	// New depth-only shadow atlases are explicit graph resources. Their writers
+	// precede every scene consumer even though public legacy pass IDs stay fixed.
+	config.shadowSize = 2048;
+	assert( RHI_CompileGraph( &config, &graph ) );
+	assert( graph.targetCount == 18 && graph.passCount == 18 );
+	for ( const auto id : { rhiGraphPass_t::MainResume, rhiGraphPass_t::ScreenResume } ) {
+		const auto &node = graph.passes[pass( id )];
+		assert( node.enabled && node.depth == 1 );
+		assert( node.dependencies[0].sourceStage == rhiGraphStage_t::SceneAttachments );
+		assert( node.dependencies[0].sourceAccess & RHI_GRAPH_DEPTH_WRITE );
+		assert( node.dependencies[0].destinationAccess & RHI_GRAPH_DEPTH_READ );
+		for ( uint32_t i = 0; i < node.attachmentCount; ++i ) {
+			assert( node.attachments[i].load == rhiGraphLoad_t::Load );
+			assert( node.attachments[i].store == rhiGraphStore_t::Store );
+			assert( !graph.targets[target( node.attachments[i].target )].transient );
+		}
+	}
+	const rhiGraphTarget_t shadowTargets[] = { rhiGraphTarget_t::LocalShadow, rhiGraphTarget_t::SunShadow };
+	const rhiGraphPass_t shadowPasses[] = { rhiGraphPass_t::LocalShadow, rhiGraphPass_t::SunShadow };
+	for ( int i = 0; i < 2; ++i ) {
+		const auto &resource = graph.targets[target( shadowTargets[i] )];
+		const auto &node = graph.passes[pass( shadowPasses[i] )];
+		assert( resource.width == 2048 && resource.height == 2048 && resource.samples == 1 );
+		assert( resource.usage == ( RHI_GRAPH_DEPTH | RHI_GRAPH_SAMPLED ) && !resource.transient );
+		assert( resource.format == rhiGraphFormat_t::ShadowDepth );
+		assert( node.color == RHI_INVALID_OFFSET && node.depth == 0 && node.attachmentCount == 1 );
+		assert( node.attachments[0].load == rhiGraphLoad_t::Clear && node.attachments[0].store == rhiGraphStore_t::Store );
+		assert( node.attachments[0].finalLayout == rhiGraphLayout_t::DepthSampled );
+		assert( node.dependencies[1].sourceAccess & RHI_GRAPH_DEPTH_WRITE );
+		assert( node.dependencies[1].destinationAccess & RHI_GRAPH_SHADER_READ );
+		assert( graph.executionOrder[i] == shadowPasses[i] );
+		assert( graph.passes[pass( rhiGraphPass_t::Main )].dependencyMask & ( UINT32_C( 1 ) << pass( shadowPasses[i] ) ) );
+		assert( resource.firstUse < graph.targets[target( rhiGraphTarget_t::MainColor )].firstUse );
+	}
+	// SSAO samples retained scene depth, filters separately, then resumes the
+	// scene with load operations. Exercise MSAA, stencil, bloom and shadows.
+	for ( const uint32_t scale : { 1u, 2u } ) {
+		for ( const uint32_t samples : { 1u, 4u } ) {
+			for ( const bool bloom : { false, true } ) {
+				for ( const uint32_t shadows : { 0u, 2048u } ) {
+					config.occlusionScale = scale;
+					config.samples = samples;
+					config.bloom = bloom;
+					config.shadowSize = shadows;
+					assert( RHI_CompileGraph( &config, &graph ) );
+					const auto &depth = graph.targets[target( rhiGraphTarget_t::MainDepth )];
+					assert( !depth.transient && depth.samples == samples );
+					assert( depth.usage & RHI_GRAPH_SAMPLED );
+					assert( depth.initialLayout == rhiGraphLayout_t::DepthSampled );
+					for ( const auto id : { rhiGraphTarget_t::Occlusion, rhiGraphTarget_t::OcclusionBlur } ) {
+						const auto &image = graph.targets[target( id )];
+						assert( image.width == config.renderWidth / scale && image.height == config.renderHeight / scale );
+						assert( image.samples == 1 && image.usage == ( RHI_GRAPH_COLOR | RHI_GRAPH_SAMPLED ) );
+					}
+					const auto &ao = graph.passes[pass( rhiGraphPass_t::Occlusion )];
+					const auto &blur = graph.passes[pass( rhiGraphPass_t::OcclusionBlur )];
+					const auto &apply = graph.passes[pass( rhiGraphPass_t::OcclusionApply )];
+					assert( ao.readMask & bit( rhiGraphTarget_t::MainDepth ) );
+					assert( blur.readMask & bit( rhiGraphTarget_t::MainDepth ) );
+					assert( blur.dependencyMask & ( 1u << pass( rhiGraphPass_t::Occlusion ) ) );
+					assert( apply.dependencyMask & ( 1u << pass( rhiGraphPass_t::OcclusionBlur ) ) );
+					assert( apply.readMask & bit( rhiGraphTarget_t::OcclusionBlur ) );
+					assert( apply.depth == 1 && apply.attachmentCount == ( samples > 1 ? 3u : 2u ) );
+					for ( uint32_t i = 0; i < apply.attachmentCount; ++i ) {
+						assert( apply.attachments[i].load == rhiGraphLoad_t::Load );
+						assert( apply.attachments[i].store == rhiGraphStore_t::Store );
+					}
+					const auto &main = graph.passes[pass( rhiGraphPass_t::Main )];
+					assert( main.dependencies[1].sourceAccess & RHI_GRAPH_DEPTH_WRITE );
+					assert( main.dependencies[1].destinationAccess & RHI_GRAPH_SHADER_READ );
+					uint32_t seen = 0;
+					for ( uint32_t i = 0; i < graph.executionCount; ++i ) {
+						const auto id = graph.executionOrder[i];
+						const auto &node = graph.passes[pass( id )];
+						if ( !node.enabled )
+							continue;
+						assert( !( node.dependencyMask & ~seen ) );
+						seen |= 1u << pass( id );
+					}
+					if ( bloom )
+						assert( graph.passes[pass( rhiGraphPass_t::BloomExtract )].dependencyMask & ( 1u << pass( rhiGraphPass_t::OcclusionApply ) ) );
+				}
+			}
+		}
+	}
+	config.offscreen = false;
+	assert( !RHI_CompileGraph( &config, &graph ) );
+	config.offscreen = true;
+	config.occlusionScale = 3;
+	assert( !RHI_CompileGraph( &config, &graph ) );
+	config.occlusionScale = 0;
+	config.shadowSize = 17;
+	assert( !RHI_CompileGraph( &config, &graph ) );
+	config.shadowSize = 0;
 	config.renderWidth = 0;
 	assert( !RHI_CompileGraph( &config, &graph ) );
 }

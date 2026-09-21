@@ -788,6 +788,13 @@ static void R_MarkLeaves( void ) {
 	mnode_t *leaf, *parent;
 	int i;
 	int cluster;
+	if ( tr.viewParms.shadowView ) {
+		++tr.visCount;
+		for ( i = 0; i < tr.world->numnodes; ++i )
+			if ( tr.world->nodes[i].contents != CONTENTS_SOLID )
+				tr.world->nodes[i].visframe = tr.visCount;
+		return;
+	}
 
 	// lockpvs lets designers walk around to determine the
 	// extent of the current pvs

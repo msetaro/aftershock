@@ -274,7 +274,7 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 #endif
 
 	// don't add third_person objects if not in a portal
-	personalModel = (qboolean)( ( ent->e.renderfx & RF_THIRD_PERSON ) && ( tr.viewParms.portalView == PV_NONE ) );
+	personalModel = (qboolean)( ( ent->e.renderfx & RF_THIRD_PERSON ) && ( tr.viewParms.portalView == PV_NONE ) && !tr.viewParms.shadowView );
 
 	if ( ent->e.renderfx & RF_WRAP_FRAMES ) {
 		ent->e.frame %= tr.currentModel->md3[0]->numFrames;
@@ -314,7 +314,7 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 	//
 	// set up lighting now that we know we aren't culled
 	//
-	if ( !personalModel || r_shadows->integer > 1 ) {
+	if ( !tr.viewParms.shadowView && ( !personalModel || r_shadows->integer > 1 ) ) {
 		R_SetupEntityLighting( &tr.refdef, ent );
 	}
 
@@ -375,12 +375,12 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 		// we will add shadows even if the main object isn't visible in the view
 
 		// stencil shadows can't do personal models unless I polyhedron clip
-		if ( !personalModel && r_shadows->integer == 2 && fogNum == 0 && !( ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK ) ) && shader->sort == (float)SS_OPAQUE ) {
+		if ( !tr.viewParms.shadowView && !personalModel && r_shadows->integer == 2 && fogNum == 0 && !( ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK ) ) && shader->sort == (float)SS_OPAQUE ) {
 			R_AddDrawSurf( (surfaceType_t *)(void *)surface, tr.shadowShader, 0, 0 );
 		}
 
 		// projection shadows work fine with personal models
-		if ( r_shadows->integer == 3 && fogNum == 0 && ( ent->e.renderfx & RF_SHADOW_PLANE ) && shader->sort == (float)SS_OPAQUE ) {
+		if ( !tr.viewParms.shadowView && r_shadows->integer == 3 && fogNum == 0 && ( ent->e.renderfx & RF_SHADOW_PLANE ) && shader->sort == (float)SS_OPAQUE ) {
 			R_AddDrawSurf( (surfaceType_t *)(void *)surface, tr.projectionShadowShader, 0, 0 );
 		}
 

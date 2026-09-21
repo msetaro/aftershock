@@ -85,6 +85,11 @@ const rhiError_t *RHI_GetError( void );
 // Record into the current frame's command list, preserving submission order.
 void RHI_DrawIndexed( uint32_t indexCount, uint32_t firstIndex );
 void RHI_EndPass( void );
+// Suspend a scene pass, clear a sampled-depth atlas, then resume its stored data.
+// Atlas 0 is local lights; atlas 1 is the sun. Invalid/disabled atlases return false.
+bool RHI_BeginShadowPass( uint32_t atlas );
+void RHI_EndShadowPass( void );
+bool RHI_BindShadowAtlas( uint32_t atlas, uint32_t slot );
 
 constexpr uint32_t RHI_MAX_TIMINGS = 32;
 struct rhiTiming_t {
@@ -179,6 +184,7 @@ uint32_t RHI_UploadIndices( uint32_t count, const void *indices );
 #define RHI_BINDING_TEXTURE1     2
 #define RHI_BINDING_TEXTURE2     3
 #define RHI_BINDING_FOG_COLLAPSE 4
+#define RHI_BINDING_BAKED_LIGHT 4 // PBR uses a separate fog pass.
 #define RHI_BINDING_COUNT        5
 
 #define RHI_BINDING_TEXTURE_BASE RHI_BINDING_TEXTURE0
@@ -282,7 +288,11 @@ enum rhiShader_t : uint32_t {
 	TYPE_BLEND3_DST_COLOR_SRC_ALPHA_ENV,
 
 	TYPE_GENERIC_END = TYPE_BLEND3_MIX_ONE_MINUS_ALPHA_ENV,
-	TYPE_PBR = TYPE_BLEND3_DST_COLOR_SRC_ALPHA_ENV + 1
+	TYPE_PBR = TYPE_BLEND3_DST_COLOR_SRC_ALPHA_ENV + 1,
+	TYPE_PBR_BAKED,
+	TYPE_SHADOW,
+	TYPE_DIRECT,
+	TYPE_REFLECTION
 
 };
 
@@ -403,6 +413,8 @@ void RHI_ClearDepth( bool stencil, const rhiRect_t *rect );
 // Exact 4x4 shader transform bytes; matrix generation belongs to the frontend.
 void RHI_PushTransform( const float *matrix );
 void RHI_Bloom( const float *restoreTransform );
+// Projection is the frontend perspective matrix; viewport is in render pixels.
+void RHI_Occlusion( const float *projection, const rhiRect_t *viewport, float radius, float strength );
 // Existing one-frame delayed, coherent visibility storage; no additional wait.
 bool RHI_ReadVisibility( uint32_t index );
 void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount, const rhiRasterState_t *raster );
@@ -469,6 +481,8 @@ struct rhiDeviceConfig_t {
 	float offsetFactor;
 	rhiFilter_t textureMin, textureMag;
 	bool textureFilterValid;
+	uint32_t shadowMapSize;
+	uint32_t occlusionScale;
 };
 struct rhiDeviceInfo_t {
 	char renderer[1024], vendor[1024], version[1024], extensions[8192];
@@ -517,6 +531,10 @@ enum class rhiGraphTarget_t : uint32_t {
 	Capture,
 	MainDepth,
 	Present,
+	LocalShadow,
+	SunShadow,
+	Occlusion,
+	OcclusionBlur,
 	Count
 };
 enum class rhiGraphPass_t : uint32_t {
@@ -534,26 +552,38 @@ enum class rhiGraphPass_t : uint32_t {
 	PostBloom,
 	Capture,
 	Gamma,
+	LocalShadow,
+	SunShadow,
+	MainResume,
+	ScreenResume,
+	Occlusion,
+	OcclusionBlur,
+	OcclusionApply,
 	Count
 };
 enum class rhiGraphFormat_t : uint32_t { Color,
 	Depth,
 	Bloom,
 	Capture,
-	Present };
+	Present,
+	ShadowDepth,
+	Occlusion };
 enum class rhiGraphLayout_t : uint32_t { Undefined,
 	Sampled,
 	Color,
 	Depth,
 	TransferSource,
-	Present };
+	Present,
+	DepthSampled };
 enum class rhiGraphLoad_t : uint32_t { Discard,
 	Clear,
 	Load };
 enum class rhiGraphStore_t : uint32_t { Discard,
 	Store };
 enum class rhiGraphStage_t : uint32_t { Fragment,
-	ColorOutput };
+	ColorOutput,
+	DepthTests,
+	SceneAttachments };
 enum : uint32_t {
 	RHI_GRAPH_COLOR = 1,
 	RHI_GRAPH_SAMPLED = 2,
@@ -561,13 +591,17 @@ enum : uint32_t {
 	RHI_GRAPH_DEPTH = 8,
 	RHI_GRAPH_COLOR_READ = 1,
 	RHI_GRAPH_COLOR_WRITE = 2,
-	RHI_GRAPH_SHADER_READ = 4
+	RHI_GRAPH_SHADER_READ = 4,
+	RHI_GRAPH_DEPTH_READ = 8,
+	RHI_GRAPH_DEPTH_WRITE = 16
 };
 struct rhiGraphConfig_t {
 	uint32_t renderWidth, renderHeight, windowWidth, windowHeight;
 	uint32_t captureWidth, captureHeight, screenWidth, screenHeight;
 	uint32_t samples, screenSamples;
 	bool offscreen, bloom, capture, stencil;
+	uint32_t shadowSize; // Zero disables both depth atlases.
+	uint32_t occlusionScale; // 0 off, 1 full resolution, 2 half resolution; requires offscreen.
 };
 struct rhiGraphTargetDesc_t {
 	uint32_t width, height, samples, usage;
@@ -599,7 +633,8 @@ struct rhiGraph_t {
 	rhiGraphPassDesc_t passes[(uint32_t)rhiGraphPass_t::Count];
 	rhiGraphTarget_t targetOrder[(uint32_t)rhiGraphTarget_t::Count - 1];
 	rhiGraphPass_t passOrder[(uint32_t)rhiGraphPass_t::Count];
-	uint32_t targetCount, passCount;
+	rhiGraphPass_t executionOrder[(uint32_t)rhiGraphPass_t::Count];
+	uint32_t targetCount, passCount, executionCount;
 };
 static_assert( std::is_trivially_copyable_v<rhiGraph_t> );
 static_assert( (uint32_t)rhiGraphTarget_t::Count <= 32 && (uint32_t)rhiGraphPass_t::Count <= 32 );

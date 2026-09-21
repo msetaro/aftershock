@@ -24,13 +24,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_types_public.h"
 #include "tr_material_public.h"
+#include "tr_lighting_public.h"
 #include "../animation/animation_public.h"
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 18
+#define REF_API_VERSION 19
 #else
-#define REF_API_VERSION 14
+#define REF_API_VERSION 15
 #endif
 
 //
@@ -84,6 +85,8 @@ typedef struct {
 	void ( *AddPolyToScene )( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
 	int ( *LightForPoint )( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir );
 	void ( *AddLightToScene )( const vec3_t org, float intensity, float r, float g, float b );
+	// Copied into bounded frame storage. False for invalid data or exhausted tiles.
+	bool ( *AddSceneLight )( const sceneLight_t *light );
 	void ( *AddAdditiveLightToScene )( const vec3_t org, float intensity, float r, float g, float b );
 	void ( *AddLinearLightToScene )( const vec3_t start, const vec3_t end, float intensity, float r, float g, float b );
 	void ( *RenderScene )( const refdef_t *fd );

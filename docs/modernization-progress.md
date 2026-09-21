@@ -21,10 +21,12 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Two worktrees: #14 is /home/matt/.cache/aftershock-modernization/level-tree at
-bda5ed1f (draft PR165); its final exact-head build 35553788956 and regression
-35553788957 are pending. Local self-review and GPU acceptance are recorded below.
-Finish those gates, recheck current main immediately before merge, self-merge
-with a merge commit, and verify the merged tree. Do not skip that predecessor.
+bda5ed1f (PR165 merged as 4ade5c3a). Exact-head build 35553788956 (16 compiler
+legs) and regression 35553788957 (10 required legs) both passed. Main/base
+782c0dbc was rechecked immediately before the merge. Merge and head share tree
+4088ff6eea6cb060f109a9b7e33fe9f1bd9919f2; known-good is unchanged. Merged build /
+actual publication 35555156611 and regression 35555156633 are now running.
+Finish those integration gates before accepting #14 and opening #163's PR.
 
 #163 test preparation is /home/matt/.cache/aftershock-modernization/agent-tree,
 branch issue/163-agent-interface from main 782c0dbc. The initial native command
@@ -33,7 +35,7 @@ structured correlated replies, cvar get/set with read-only protection, escaped
 strings, console command queuing, typed errors with JSON paths/hints, and bounded
 output without partial execution. It fails on missing dev_agent.cpp as intended
 (agent-protocol-before.log). No channel or engine implementation exists yet.
-After #14 acceptance, merge main forward here and implement the command layer,
+Main 4ade5c3a is merged forward here. After #14 integration acceptance, implement the command layer,
 then platform stdin/stdout transport, fixed-dt stepping and the rest of #163.
 No PR for #163 opens before #14 acceptance. Updated #25 sequence is #163 -> #164
 -> #161 -> #15 and the remaining roadmap. All existing exclusions remain in force.
@@ -64,6 +66,19 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #14 merged; integration verification pending
+
+PR165 was marked ready and merged 2026-09-21 after all required exact-head jobs
+passed on bda5ed1f. Fresh main and PR base both equaled 782c0dbc immediately
+before the merge. Merge commit 4ade5c3a9cad9cd71a04ca2641db2f74b8355774 has
+parents 782c0dbc and bda5ed1f and exactly the tested tree
+4088ff6eea6cb060f109a9b7e33fe9f1bd9919f2. Known-good-2026-09-20 remains unchanged.
+Merged build/publication 35555156611 and regression 35555156633 still must pass.
+No #163 engine implementation or PR yet; its initial failing command contract
+is d429929d. Earlier superseded 607855b9/c9dc3835 regression runs were cancelled
+to free runners; neither was accepted. Fresh #25 ordering remains #163, #164,
+#161, then #15 and the remaining roadmap.
 
 ## #14 final local self-review / hosted gates pending
 
