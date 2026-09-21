@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "tracer",
+  "emitters": [
+    {
+      "name": "tracer",
+      "kind": "trail",
+      "material": "effects/reference/spark",
+      "capacity": 64,
+      "rate": 0,
+      "burst": 1,
+      "lifetime_ms": 120,
+      "size": 0.6,
+      "end_size": 0.2,
+      "velocity": [
+        2400,
+        0,
+        0
+      ],
+      "color": [
+        1,
+        0.85,
+        0.5,
+        1
+      ]
+    }
+  ]
+}

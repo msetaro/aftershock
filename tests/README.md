@@ -1248,3 +1248,13 @@ with `.asfx` material references, checks registration/draws and compares the
 visible impact frame with its expiry. Legacy material shader paths retain their
 old mark/explosion behavior. `tests/effects.py` also checks this dispatch directly
 through the production cgame function under UBSan.
+
+
+`python3 tests/effects_reference.py` verifies and cooks the original CC0 reference
+set under `tests/assets/effects`: muzzle flash, metal/stone impacts, smoke, sparks,
+dust, shell, explosion and tracer. Provenance pins every source byte; normal CI
+never runs its authoring exporter. `tests/effects_reference_runtime.py --binary
+PATH --content openarena --data PATH` captures all nine native effects, checks
+visible changes, light hooks and expiry. These are component review captures;
+final feature-on frame goldens and hardware budgets remain #161 work. The smoke
+soft-depth flag is authored but its renderer implementation is still pending.

@@ -24,8 +24,8 @@ upstream; historical upstream PR references below are completed past work.
 Final head 5a9b98a1 passed build 35584845138 (all 16 compiler legs) and regression
 35584845147 (all 10 active jobs). Main/base was rechecked immediately before the
 merge. Tested and merged tree both equal e615033d2dcd39b966d8ba51bb38c59ec8e4358e.
-Known-good remains 8bc8c94c -> 81a0f9dc. Merged-tree build/publication 35589995081
-and regression 35589995016 are running; monitor both and require success before
+Known-good remains 8bc8c94c -> 81a0f9dc. Merged-tree build/publication 35589995081 passed (all 16 legs and publication);
+regression 35589995016 is running. Require its success before
 marking #164 accepted in #25. No source changes remain in its sketch-tree branch.
 
 Continue #161 in /home/matt/.cache/aftershock-modernization/fidelity-tree,
@@ -63,6 +63,23 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 original reference effect set passes
+
+The nine original CC0 reference definitions, procedural PNG atlases and brass
+shell source are now frozen with per-file provenance. The authoring exporter
+refuses an existing populated directory and is never run by CI. Initial authoring
+validation caught texture/effect name collisions and inward shell winding/normals;
+these were corrected before freezing the new sources. PNG bytes were not rerun
+or regenerated; no existing fixture changed. Geometry assertions require outward
+triangle winding and normals (fidelity-reference-geometry.log).
+
+The native renderer draws all nine effects, produces visible image changes and
+expires every pool entry (fidelity-reference-runtime.log). All captures were
+reviewed: distinct flash/light, sparks, dusty/smoky puffs, brass shell, explosion
+and tracer. These are component captures, not accepted frame goldens or a final
+artistic scene. Pure reference and native lifecycle commands are in regression CI.
+Soft-depth flags remain metadata until their renderer path is implemented.
 
 ## #161 single-sided impact visual control now passes
 

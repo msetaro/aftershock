@@ -12,7 +12,7 @@ from run import ROOT, SCRATCH
 
 # These are asset-independent entry points with no required binary arguments.
 FAST = ('agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
-        'animation', 'weapons', 'effects', 'lod', 'native_math', 'native_shared', 'replication',
+        'animation', 'weapons', 'effects', 'effects_reference', 'lod', 'native_math', 'native_shared', 'replication',
         'protocol', 'rewind', 'replication_policy', 'identity', 'rhi', 'render_graph',
         'shadow_views', 'probes', 'materials', 'cook', 'level', 'lighting',
         'devtools_data', 'check_boundaries', 'check_types', 'check_format',
@@ -24,7 +24,7 @@ COMMANDS['match_go'] = ['go', '-C', 'tools/match', 'test', '-race', './...']
 # Prefix matches compose: a cooker animation edit needs both cooker and animation checks.
 RULES = (
     (('engine/devtools/', 'tools/agent/'), ('agent_protocol', 'agent_client', 'agent_formats', 'devtools_data')),
-    (('engine/effects/', 'tools/cook/effect', 'tests/assets/effects/'), ('effects',)),
+    (('engine/effects/', 'tools/cook/effect', 'tests/assets/effects/'), ('effects', 'effects_reference')),
     (('tools/cook/lod', 'engine/render/tr_model', 'engine/render/tr_mesh'), ('lod',)),
     (('engine/animation/', 'tools/cook/animation', 'tests/assets/animation/'), ('animation',)),
     (('engine/weapons/', 'tools/cook/weapon', 'tests/assets/weapons/'), ('weapons',)),

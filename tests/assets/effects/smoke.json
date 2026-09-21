@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "name": "smoke",
+  "emitters": [
+    {
+      "name": "smoke",
+      "kind": "sprite",
+      "material": "effects/reference/smoke",
+      "capacity": 64,
+      "rate": 0,
+      "burst": 16,
+      "lifetime_ms": 1800,
+      "size": 10,
+      "end_size": 32,
+      "velocity": [
+        0,
+        0,
+        18
+      ],
+      "velocity_spread": [
+        8,
+        8,
+        8
+      ],
+      "origin_spread": [
+        5,
+        5,
+        3
+      ],
+      "drag": 0.2,
+      "color": [
+        0.7,
+        0.72,
+        0.75,
+        0.35
+      ],
+      "rotation_spread": 180,
+      "angular_velocity": 12,
+      "flipbook": {
+        "columns": 4,
+        "rows": 2,
+        "fps": 4
+      },
+      "soft": true,
+      "lit": true
+    }
+  ]
+}
