@@ -31,8 +31,8 @@ running; monitor them and check #163 in #25 once accepted. Known-good unchanged.
 #164 has test-first polygon geometry, holes, rotated/curved/concave solids and
 shell openings. Initial repeated MAP/BSP/AAS output passes and all accepted v1
 fixtures stay byte-identical. Next contract adds terrace stairs/ramp, fences and
-overheads; its MAP occupancy/navigation pass. Complete formal schema integration
-and full compile, then connected multi-floor buildings, interpretation/tracing,
+overheads; its MAP occupancy/navigation pass. Formal schema integration
+and full compile pass. Next: connected multi-floor buildings, interpretation/tracing,
 licensed assets/Blender theme kit, shooter intent checks, compiled overhead
 comparison and the one-command agent playtest. This is partial work, not #164
 acceptance. The issue and checkpoint contain measured results and decisions.
@@ -47,6 +47,20 @@ library APIs are reachable; no assets imported yet and no local system packages.
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 schema and compiled elevation checkpoint
+
+V2 now has a structural JSON Schema exposed through the existing agent format
+commands, without loading Shapely for v1/schema-only callers. The full polygon
+contract passes with terrace stairs/ramp, a player-clipping fence shader and an
+overhead canopy; repeated base/elevated BSP/AAS builds succeed. The runtime job
+now executes that contract after installing pinned level requirements. All v1
+language controls and original MAP/BSP/AAS fixture bytes remain unchanged.
+Schema/production-loader agreement passes; its first invocation lacked Go on PATH,
+then passed with the existing cached Go toolchain. No toolchain was installed.
+Logs: sketch-elevation-compile.log, sketch-v1.log, sketch-formats.log in user cache.
+Next: connected multi-floor shell/roof access, rule-based openings and sunken
+zones, followed by the sketch/theme/intent pipeline. PR remains incomplete.
 
 ## #163 merged; #164 transition draft
 

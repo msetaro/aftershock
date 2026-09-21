@@ -207,3 +207,35 @@ Set `r_reflectionProbes 1` to enable the bounded two-probe blend on dynamic PBR
 objects. The default is off. Influence is spherical, without box parallax
 correction; future authored room volumes can extend that approximation. The
 #161 HDR renderer transition owns replacing LDR capture/composition.
+
+## Version 2 polygon geometry (#164, in progress)
+
+Version 1 retains its original generator and exact fixtures. Version 2 shares its
+materials, rules, spawns, pickups and lighting, replacing rooms/connections/cover
+with `boundary` and `shapes`. Discover the complete structural contract using
+`python3 tools/agent describe level`. Install the pinned level requirements for v2.
+
+The boundary has a `polygon` ring, optional `holes`, `floor` and `ceiling` heights.
+A shape has a stable `id`, `kind`, `shape`, `base`, `height` and optional material
+role. Footprints accept `polygon` with optional holes, `rectangle` with center,
+size and angle, `circle` with center/radius/tolerance, `arc` with those fields plus
+start/end/thickness, or `path` with points/thickness. Coordinates are finite Quake
+units. Curve tolerance is the maximum radial chord error, with at most 256 segments.
+Pinned Shapely constrained triangulation preserves concavity and holes in brushes.
+
+`solid`, `platform`, `wall` and `overhead` extrude their footprints. A wall may set
+`bullet_solid: false` for player clipping with bullet-transparent collision.
+`transition` uses a straight two-point path and `transition: stairs|ramp`; its
+height rises along the path unless `descending: true`. Existing minimum width,
+1:2 slope, 16-unit riser and 32-unit tread limits apply. A `building` subtracts its
+interior with `wall_thickness` (default 16), and accepts explicit `openings` with
+zero-based edge index, distance `at` along that edge, width, sill and height.
+Exterior polygon edges run counter-clockwise; rectangle edge zero is its lower
+edge before rotation. Floors/roof have 16-unit slabs. Multi-floor access, automatic
+opening rules and theme props are not yet complete; this is not final #164 acceptance.
+
+`python3 tests/level_polygons.py --compile` checks physical brush occupancy,
+player-clearance reachability, repeated MAP/BSP/AAS bytes and unchanged v1 fixtures.
+Navigation retains separate surfaces at the same horizontal coordinate, checks
+square player clearance and midpoint traversal with at most an 18-unit step.
+The full sketch interpretation/theme/intent pipeline is the remaining #164 work.

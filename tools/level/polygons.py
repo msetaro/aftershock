@@ -294,6 +294,8 @@ def navigation(level, records):
 
 def validate(level, assets):
     from validate import material_sources
+    from tools.agent.formats import validate as validate_format
+    validate_format('level',level,'<level>')
     sources = material_sources(level['materials'],assets)
     area,records = pieces(level)
     require(not level['props'], 'v2 mesh props require theme assembly before validation')

@@ -10,7 +10,7 @@ import subprocess
 import sys
 import tempfile
 
-ROOT = Path(__file__).resolve().parents[1]
+from run import ROOT
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--compile', action='store_true')
 args = parser.parse_args()
