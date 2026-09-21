@@ -82,7 +82,9 @@ CPU scopes and network counters as JSON. Frame samples use real microseconds in
 a bounded 4096-entry ring; queries sort a POD copy. Mutating entity replies reserve
 capacity before invoking callbacks, lists page at 32 entries. GCC/Clang UBSan
 protocol and the complete two-run Q3 playthrough pass (agent-entities.log).
-Next: capture/camera, raw commands and structured events, then shared panel
+The PNG extension fails first on unknown capture operation
+(agent-capture-before.log); it will decode the result using Pillow and require
+a populated 640x480 PNG. Next: capture/camera, raw commands and structured events, then shared panel
 controls and the remaining #163 tooling/CI requirements.
 
 ## #163 first deterministic local playthrough

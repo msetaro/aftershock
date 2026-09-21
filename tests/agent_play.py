@@ -2,6 +2,7 @@
 """Check seeded local play and input through the real snapshot/usercmd path."""
 import argparse
 from pathlib import Path
+from PIL import Image
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -37,8 +38,13 @@ for _ in range(2):
         assert listed[0]['entity'] == entity and listed[0]['origin'] == [1, 2, 128]
         engine.request('entity.delete', entity=entity)
         assert all(row['entity'] != entity for row in engine.request('entity.list', offset=entity, limit=1)['entities'])
+        capture = engine.request('capture', name='agent-check')
+        engine.step(2)
+        with Image.open(engine.base/capture['path']) as image:
+            assert image.format == 'PNG' and image.size == (640, 480)
+            assert len(image.convert('RGB').getcolors(640*480)) > 100
         profile = engine.request('profile')
-        assert profile['samples'] == 260 and 0 <= profile['p50_ms'] <= profile['p95_ms'] <= profile['p99_ms']
+        assert profile['samples'] == 262 and 0 <= profile['p50_ms'] <= profile['p95_ms'] <= profile['p99_ms']
         assert profile['cpu'] and 'snapshots' in profile['network']
 assert trajectories[0] == trajectories[1], trajectories
 print('PASS: two seeded map runs produce identical player snapshots through injected usercmds')
