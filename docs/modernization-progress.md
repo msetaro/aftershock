@@ -37,7 +37,8 @@ MSAA and the fixed OpenArena replay hash. All 96 shaders reproduce; existing
 accepted fixtures/shader arrays remain unchanged. Detailed failures and evidence
 are below; these checks do not constitute final #161 acceptance.
 
-Next: measure the initial post hardware budget, then implement temporal motion history, jitter/TAA
+Next: finish the separate #31 descriptor-restoration fix in descriptor-tree, merge
+its accepted main forward, then remeasure the initial post hardware budget and implement temporal motion history, jitter/TAA
 and motion blur, followed by mip streaming/async uploads. Real previous rendered
 poses/transforms are required: oldorigin/oldframe are animation interpolation,
 not prior-frame history. Reference scene/goldens, all hardware budgets and final
@@ -67,6 +68,21 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 RTX failure isolated; #31 fix in progress
+
+Initial post-enabled RTX run crashes in RHI_PrepareDraw before producing timing
+(fidelity-hardware-post.log, fidelity-post-gdb.log). The identical post-disabled
+control passes: CPU p50/p95/p99 4.688/6.207/6.739 ms, GPU main p50/p95
+1.099824/1.137120 ms and gamma 0.275456/0.278528 ms. These are control results,
+not acceptance of the new post path.
+
+Descriptor restoration uses the device's supported-set count as an index into
+the engine's five-entry cache. Main's existing SSAO path has the same defect;
+a separate issue/31-descriptor-restore branch at main 81e40b0c now reproduces it
+with a 32-set device in the native graph probe. #31 reopened; comment 5761425851.
+The new effects/post restoration will adopt the same correction after the #31
+fix passes its required gates and merges. Do not accept #161 timing before that.
 
 ## #161 filmic component gates pass
 
