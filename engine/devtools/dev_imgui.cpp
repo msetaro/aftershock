@@ -1602,6 +1602,15 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 	ImGui::Text( "Post draws %u / drops %u / profile loads %u", post.draws, post.dropped, post.loads );
 	ImGui::Text( "Temporal frames %u / drops %u; motion draws %u / reactive %u", post.temporalFrames, post.temporalDropped, post.motionDraws, post.reactiveDraws );
 	ImGui::Text( "History entities %u / matched %u / rejected %u / overflow %u", post.historyStored, post.historyMatched, post.historyRejected, post.historyOverflow );
+	textureStreamingStats_t textures;
+	renderer->TextureStats( &textures );
+	ImGui::Text( "Texture residency %.1f / %.1f MiB; source %.1f / %.1f MiB",
+		(double)textures.usedBytes / ( 1024 * 1024 ), (double)textures.budgetBytes / ( 1024 * 1024 ),
+		(double)textures.sourceBytes / ( 1024 * 1024 ), (double)textures.sourceBudgetBytes / ( 1024 * 1024 ) );
+	ImGui::Text( "Textures %u / full %u; promotions %u / demotions %u / deferred %u / failed %u",
+		textures.images, textures.fullResolution, textures.promotions, textures.demotions, textures.deferred, textures.failures );
+	ImGui::Text( "Streaming CPU %.3f ms; pending %u; retiring %.1f MiB; reloads %u", (double)textures.cpuUsec / 1000,
+		textures.pending, (double)textures.retiredBytes / ( 1024 * 1024 ), textures.reloads );
 	ImGui::TextUnformatted( "Completed GPU frame (no additional wait)" );
 	for ( uint32_t i = 0; i < count; ++i )
 		ImGui::Text( "%s: %.3f ms", timings[i].name, timings[i].microseconds / 1000.0 );

@@ -30,9 +30,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 28
+#define REF_API_VERSION 29
 #else
-#define REF_API_VERSION 22
+#define REF_API_VERSION 23
 #endif
 
 //
@@ -44,6 +44,13 @@ typedef enum {
 	REF_DESTROY_WINDOW,
 	REF_UNLOAD_DLL
 } refShutdownCode_t;
+
+struct textureStreamingStats_t {
+	uint64_t budgetBytes, usedBytes, peakBytes, retiredBytes, sourceBytes, sourceBudgetBytes;
+	uint64_t cpuUsec, cpuPeakUsec;
+	uint32_t images, fullResolution, promotions, demotions, deferred, failures, pending, reloads;
+};
+static_assert( std::is_trivially_copyable_v<textureStreamingStats_t> );
 
 struct postRenderStats_t {
 	uint32_t loads, draws, dropped;
@@ -105,6 +112,7 @@ typedef struct {
 	void ( *ClearDecals )();
 	void ( *DecalStats )( decalRenderStats_t *stats );
 	void ( *PostStats )( postRenderStats_t *stats );
+	void ( *TextureStats )( textureStreamingStats_t *stats );
 	void ( *AddRefEntityToScene )( const refEntity_t *re, qboolean intShaderTime );
 	bool ( *AddSkeletalEntityToScene )( const refEntity_t *re, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 	// Copies the override into this frame. Optional pose/hash use the skeletal path.

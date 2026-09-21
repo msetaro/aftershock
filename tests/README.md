@@ -1360,3 +1360,18 @@ The native `tests/rhi.py` upload probe also checks asynchronous compressed mip
 transfers through fixed staging: bounded submissions, exact destination rows and
 bytes, zero-timeout fence polling, completion after the final fence, and device
 loss. This component does not yet establish the large-set streaming runtime gate.
+
+`tests/streaming_runtime.py --binary PATH --content openarena --data PATH` cooks
+five original 4K BC7 textures and exercises a 32 MiB residency pool on the generated
+two_lane level. It checks promotion, cold-tail eviction, rewarming, texture hot
+reload and renderer restart, retaining profiler reports/captures in its output
+directory. The runtime controls are `r_textureStreaming` (default 0),
+`r_textureBudgetMB` (default 256) and `r_textureSourceMB` (default 256), all latched.
+The device budget owns only streamed cooked mip chains; legacy textures and render
+targets keep their existing allocations. The separate source arena retains
+compressed mip bytes, with no filesystem reads or engine heap allocation during
+frame streaming. Source exhaustion reports an error. Same-size/smaller reloads
+reuse source slots; growing reloads consume arena space until renderer restart.
+Profiler `textureStreaming` reports both budgets, occupied/retired/peak bytes,
+source usage, transitions, reloads, deferrals and CPU processing time. Hardware
+transfer/CPU budgets and final combined visual acceptance remain required.

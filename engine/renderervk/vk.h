@@ -343,6 +343,7 @@ typedef struct {
 
 	float maxAnisotropy;
 	float maxLod;
+	uint32_t maxCompressedTextureSize;
 
 	VkFormat color_format;
 	VkFormat capture_format;

@@ -44,10 +44,11 @@ and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
 unchanged. Main is merged forward here. Build/publication 35613793896 passed;
 regression 35613793817 passed all ten active jobs. #31 is accepted again.
 
-Next: strengthen temporal moving-object/disocclusion and history-quality checks,
-measure camera/geometry/resolve/copy/blur budgets on the reference GPU, then
-complete mip streaming integration. Bounded residency policy and asynchronous upload
-components pass; renderer adoption and large-set runtime remain outstanding. Descriptor restoration is adopted; RTX
+Next: add nonblocking upload timestamp reporting and measure streaming CPU/GPU
+budgets on the reference GPU, then complete the combined PBR/effects/decal/LOD/
+TAA/filmic visual scene and new reviewed software references. Bounded residency,
+async upload and the larger-than-budget runtime/hot-reload/restart checks pass.
+The lifetime scan is still running. Descriptor restoration is adopted; RTX
 post runs complete. Initial copy-back exceeds its declared budget, so the post
 path stays default off. Camera jitter, history resolve, copied native IQM skin
 motion, reactive fallback and motion blur now execute but are not final visual
@@ -79,6 +80,31 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 frontend residency integration under test
+
+The first software larger-than-budget run passes: five original 4K textures,
+111848240 compressed source bytes, 33554432-byte residency pool, peak occupied
+regions 32506880 bytes, 13 promotions/7 demotions, no deferred requests/failures.
+Cold demand falls to 28160 resident bytes; rewarming and vid_restart restore
+quality (fidelity-streaming-runtime-after.log/report.json). The arena reserves its
+configured device budget; used/peak report occupied regions, not additional pools.
+
+The initial integration run rejected all five textures at the intentional legacy
+2048-pixel resampler/chunk cap. Streamed cooked mip chains now use the separate
+physical compressed-image limit (up to 16384); the legacy path retains its cap.
+CPU source storage is allocated once at renderer initialization, async work runs
+only after frame submission, and profiler/ImGui counters expose residency/source
+usage and transitions. Renderer API is 29 development / 23 shipping. Source slots
+are reused for same-size or smaller reloads; growth consumes arena space until
+renderer restart. Hot reload passes: a 4K floor is replaced by a differently colored
+512-square texture, the source slot is reused, and the captures visibly change
+(fidelity-streaming-runtime-reload.log). Final pre-restart counters are 17 promotions,
+7 demotions, one reload, no failures/deferrals. Native GCC/Clang RHI, native ABI,
+format, types, boundaries and workflow syntax pass. Disabled OpenArena replay is
+still 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(fidelity-stream-legacy-demo.log). The full lifetime scan remains in progress.
+Real GPU transfer/CPU budget measurements remain outstanding. No fixture regenerated.
 
 ## #161 streaming runtime test-first and source-storage decision
 

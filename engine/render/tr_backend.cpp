@@ -2133,6 +2133,7 @@ static const void *RB_SwapBuffers( const void *data ) {
 		ri.Printf( PRINT_DEVELOPER, "GPU presentation: device lost\n" ); // Preserve the existing continuation policy.
 	else
 		R_CheckRHI( presentStatus, "PresentFrame" );
+	R_StreamImages();
 #else
 	ri.GLimp_EndFrame();
 #endif

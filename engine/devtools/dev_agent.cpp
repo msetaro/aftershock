@@ -989,6 +989,16 @@ static void Agent_Profile( agentReply_t &reply ) {
 			post.temporalFrames, post.temporalDropped, post.motionDraws, post.reactiveDraws,
 			post.historyStored, post.historyMatched, post.historyRejected, post.historyOverflow );
 		reply.Text( status );
+		textureStreamingStats_t textures;
+		renderer->TextureStats( &textures );
+		char residency[768];
+		snprintf( residency, sizeof( residency ),
+			",\"textureStreaming\":{\"budgetBytes\":%" PRIu64 ",\"usedBytes\":%" PRIu64 ",\"peakBytes\":%" PRIu64 ",\"retiredBytes\":%" PRIu64
+			",\"sourceBytes\":%" PRIu64 ",\"sourceBudgetBytes\":%" PRIu64 ",\"cpuUsec\":%" PRIu64 ",\"cpuPeakUsec\":%" PRIu64
+			",\"images\":%u,\"fullResolution\":%u,\"promotions\":%u,\"demotions\":%u,\"deferred\":%u,\"failures\":%u,\"pending\":%u,\"reloads\":%u}",
+			textures.budgetBytes, textures.usedBytes, textures.peakBytes, textures.retiredBytes, textures.sourceBytes, textures.sourceBudgetBytes,
+			textures.cpuUsec, textures.cpuPeakUsec, textures.images, textures.fullResolution, textures.promotions, textures.demotions, textures.deferred, textures.failures, textures.pending, textures.reloads );
+		reply.Text( residency );
 	}
 #endif
 	reply.Text( ",\"network\":{" );

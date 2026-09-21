@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from PIL import Image
+from PIL import Image, ImageChops, ImageStat
 from cook import cook
 from run import ROOT, SCRATCH
 sys.path.insert(0, str(ROOT))
@@ -36,7 +36,7 @@ source_bytes = sum(path.stat().st_size for path in (args.output/'cooked/textures
 assert source_bytes > 32*1024*1024
 subprocess.run([sys.executable, 'tools/level', str(ROOT/'tests/assets/levels/two_lane.json'),
                 '--output', str(args.output/'compiled')], cwd=ROOT, check=True)
-arguments = ['+set', 'r_textureStreaming', '1', '+set', 'r_textureBudgetMB', '32',
+arguments = ['+set', 'dev_reloadAssets', '1', '+set', 'r_textureStreaming', '1', '+set', 'r_textureBudgetMB', '32',
              '+set', 'r_textureSourceMB', '128', '+set', 'r_drawentities', '0',
              '+set', 'cg_draw2D', '0', '+set', 'cg_drawGun', '0', '+set', 'con_notifytime', '0',
              '+set', 'r_mode', '-1', '+set', 'r_customwidth', '320', '+set', 'r_customheight', '240']
@@ -74,9 +74,27 @@ with tempfile.TemporaryDirectory(prefix='aftershock-streaming-') as temporary:
         engine.step(180)
         hot = sample()
         assert hot['promotions'] > cold['promotions'] and hot['fullResolution'] > 0, hot
-        capture = engine.request('capture', name='streamed')
-        engine.step(2)
-        shutil.copyfile(engine.base/capture['path'], args.output/'streamed.png')
+        engine.request('camera', mode='pose', origin=[-100, -160, 100], angles=[45, 20, 0])
+        engine.step(160)
+
+        def capture(name):
+            result = engine.request('capture', name=name)
+            engine.step(2)
+            path = engine.base/result['path']
+            shutil.copyfile(path, args.output/(name+'.png'))
+            with Image.open(path) as image:
+                return image.convert('RGB')
+
+        before = capture('streamed')
+        source_used = sample()['sourceBytes']
+        Image.new('RGB', (512, 512), (240, 180, 20)).save(source/'floor.png')
+        cook(project, engine.base)
+        engine.step(180)
+        reloaded = sample()
+        assert reloaded['reloads'] == 1 and reloaded['sourceBytes'] == source_used, reloaded
+        after = capture('reloaded')
+        assert sum(ImageStat.Stat(ImageChops.difference(before, after)).mean) > 3, 'texture reload did not change the floor'
+
         engine.request('exec', command='vid_restart')
         engine.step(180)
         sample()

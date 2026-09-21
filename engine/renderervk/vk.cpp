@@ -3963,6 +3963,8 @@ rhiStatus_t vk_impl_Initialize( void ) {
 
 	// fill glConfig information
 
+	vk.maxCompressedTextureSize = MIN( props.limits.maxImageDimension2D, 16384u );
+
 	// maxTextureSize must not exceed IMAGE_CHUNK_SIZE
 	maxSize = (uint32_t)( sqrtf( IMAGE_CHUNK_SIZE / 4 ) );
 	// round down to next power of 2
@@ -4704,7 +4706,7 @@ bool RHI_Available( void ) {
 rhiCapabilities_t RHI_GetCapabilities( void ) {
 	return { vk.active != qfalse, vk.wideLines != qfalse, vk.fragmentStores != qfalse,
 		vk.clearAttachment != qfalse, vk.fboActive != qfalse, vk.offscreenRender != qfalse,
-		vk.maxBoundDescriptorSets };
+		vk.maxBoundDescriptorSets, vk.maxCompressedTextureSize };
 }
 
 rhiFrameState_t RHI_GetFrameState( void ) {
@@ -8714,7 +8716,7 @@ rhiStatus_t RHI_AdoptResidentTexture( rhiTexture_t *live, rhiTexture_t *replacem
 	if ( !live || !replacement || live == replacement || live->image == replacement->image )
 		return rhiStatus_t::Error;
 	const uint32_t old = vk_resident_image( live->image ), next = vk_resident_image( replacement->image );
-	if ( old == UINT32_MAX || next == UINT32_MAX || vk_residency.waiting || vk_stream.active || vk_stream.failed || vk_stream.image != (VkImage)(uintptr_t)replacement->image )
+	if ( old == UINT32_MAX || next == UINT32_MAX || vk.frame_count || vk_residency.waiting || vk_stream.active || vk_stream.failed || vk_stream.image != (VkImage)(uintptr_t)replacement->image )
 		return rhiStatus_t::Unavailable;
 	return vk_call( [&]() {
 		VK_CHECK( qvkResetFences( vk.device, 1, &vk_residency.fence ) );

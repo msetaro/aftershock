@@ -2307,6 +2307,7 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.ClearDecals = RE_ClearDecals;
 	re.DecalStats = RE_DecalStats;
 	re.PostStats = RE_PostStats;
+	re.TextureStats = RE_TextureStats;
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
 	re.AddSkeletalEntityToScene = RE_AddSkeletalEntityToScene;
 	re.AddMaterialEntityToScene = RE_AddMaterialEntityToScene;

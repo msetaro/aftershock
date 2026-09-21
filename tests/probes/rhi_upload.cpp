@@ -357,6 +357,9 @@ static void check_texture_residency() {
 	vk_stream.active = true;
 	assert( RHI_AdoptResidentTexture( &a, &b ) == rhiStatus_t::Unavailable );
 	vk_stream.active = false;
+	vk.frame_count = 1;
+	assert( RHI_AdoptResidentTexture( &a, &b ) == rhiStatus_t::Unavailable );
+	vk.frame_count = 0;
 	assert( RHI_AdoptResidentTexture( &a, &b ) == rhiStatus_t::Success && a.image == replacement && !b.image );
 	assert( RHI_GetTextureResidencyStats().usedBytes == 12288 && RHI_GetTextureResidencyStats().retiredBytes == 4096 );
 	assert( RHI_PollTextureResidency() == rhiStatus_t::Success && residentImages == 3 );
@@ -386,8 +389,9 @@ int main( void ) {
 	assert( !RHI_GetCapabilities().active );
 	vk.active = vk.wideLines = vk.fragmentStores = vk.clearAttachment = vk.fboActive = vk.offscreenRender = qtrue;
 	vk.maxBoundDescriptorSets = 8;
+	vk.maxCompressedTextureSize = 16384;
 	const rhiCapabilities_t caps = RHI_GetCapabilities();
-	assert( caps.active && caps.wideLines && caps.fragmentStores && caps.clearAttachment && caps.fboActive && caps.offscreenRender && caps.maxBoundDescriptorSets == 8 );
+	assert( caps.active && caps.wideLines && caps.fragmentStores && caps.clearAttachment && caps.fboActive && caps.offscreenRender && caps.maxBoundDescriptorSets == 8 && caps.maxCompressedTextureSize == 16384 );
 	vk.pipelines_count = 92;
 	RHI_MarkWorldPipelines();
 	assert( vk.pipelines_world_base == 92 );

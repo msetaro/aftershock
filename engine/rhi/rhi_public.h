@@ -37,6 +37,7 @@ struct rhiCapabilities_t {
 	bool fboActive;
 	bool offscreenRender;
 	uint32_t maxBoundDescriptorSets;
+	uint32_t maxCompressedTextureSize; // Residency arena; independent of legacy resampling/chunk limits.
 };
 static_assert( std::is_trivially_copyable_v<rhiCapabilities_t> );
 rhiCapabilities_t RHI_GetCapabilities( void );
