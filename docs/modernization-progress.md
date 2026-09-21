@@ -34,10 +34,12 @@ PR/push filters now do too. Future new issue branches start from main. The remot
 known-good-2026-09-20 tag still has object 8bc8c94c and resolves to 81a0f9dc;
 it was not moved. No external-repository write occurred.
 
-The primary checkout remains on completed issue/13-materials. Active #14 work is
+The primary checkout is on issue/158-main-publication (draft PR #159 into main).
+Its immutable-tag CI publication repair is isolated from engine work; exact-head
+build 35547041859 passes and regression 35547041884 is running. Active #14 work is
 in the extra level-tree worktree on issue/14-lighting: directional baking/native
-shading passes locally; the next slice supplies sampled shadow-atlas graph/native
-descriptors. Merge the accepted main commit forward after checkpointing that work.
+shading passes locally; sampled shadow-atlas graph/native
+descriptors pass. Main a4358019 is already merged forward at ea0efdc2.
 Continue caster views/receiver shading, cascaded sun, reflection probes, SSAO and
 reference-GPU budgets. Do not open/accept #14 before #13's merged-tree regression
 passes. All #14 work stays in the same issue branch/PR; no accepted goldens change.
@@ -50,6 +52,15 @@ f30abf9b5723b4d0aa20dc7600be1a7348050e5f. #28, #27 and #31 are closed/checked.
 all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
+
+## #14 shadow-view test-first checkpoint
+
+The new tests/shadow_views.py compiles an analytical probe with UBSan. It specifies
+six point faces, a spot cone, reversed near/far depth, handedness, five culling
+planes, four sun-slice corner coverage, off-camera casters and a stable texel grid
+under small camera motion. It fails on missing view constructors before their
+implementation (lighting-shadow-views-before.log). No accepted fixture is changed.
+Native pass submission and receiver shading remain outstanding after this math.
 
 ## #14 shadow resource implementation checkpoint
 
