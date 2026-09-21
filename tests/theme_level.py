@@ -72,6 +72,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
     assert report['report']['reachable_spawns']==2
     assert ' 0 0 0 0.0625 0.0625 ' in (root/'compiled/maps/theme_test.map').read_text(), 'theme texture scale ignored'
     assert (root/'compiled/textures/theme/ground.asmat').is_file(), 'PBR material lost during map staging'
+
+    if args.client:
+        from overhead import triangles
+        vertices=[v for shader,tri in triangles((root/'compiled/maps/theme_test.bsp').read_bytes())
+                  if shader=='textures/theme/kit_facade' for v in tri]
+        assert vertices and abs(max(v[2] for v in vertices)-128)<.01, 'compiled facade axes differ from declared native bounds'
     aliases=list((root/'compiled/textures/s').rglob('*.asmat'))
     assert aliases, 'source-labeled brush materials lost their PBR bindings'
     runtime_shaders=(root/'compiled/scripts/level.shader').read_text()
@@ -95,6 +101,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
         native=run(['tools/level','validate',root/'a/level.json','--output',args.output,
                     '--client',args.client,'--server',args.server,'--content',args.content,'--data',args.data])
         assert native['status']=='passed' and native['bots']['samples']>=100,native
+        assert native['bots']['kills']>=2 and native['bots']['stuck']==[],native['bots']
         assert native['views'] or native['flythrough'], 'native theme captures absent'
         log=(args.output/'client.log').read_text(errors='replace')
         assert 'Invalid or unavailable cooked material' not in log and 'Failed to load model' not in log

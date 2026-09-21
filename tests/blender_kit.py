@@ -50,6 +50,15 @@ with tempfile.TemporaryDirectory(prefix='aftershock-blender-kit-') as temporary:
                            for other_height,other in tops[i+1:]), ('coplanar overlap',name)
             assert (output/'source'/name/(name+'_lod1.gltf')).is_file(),name
             assert (output/'source'/name/'baked.png').is_file(),name
+            # q3map2's OBJ importer maps (x,y,z) to (x,-z,y).
+            vertices=[(float(v[1]),-float(v[3]),float(v[2]))
+                      for line in (output/'source'/name/(name+'.obj')).read_text().splitlines()
+                      if (v:=line.split()) and v[0]=='v']
+            actual=[[min(v[k] for v in vertices) for k in range(3)],
+                    [max(v[k] for v in vertices) for k in range(3)]]
+            expected=next(m['bounds'] for m in report['modules'] if m['name']==name)
+            assert all(abs(a-b)<.001 for aa,bb in zip(actual,expected) for a,b in zip(aa,bb)), ('OBJ/native axes differ',name,actual,expected)
+
             model=output/'cooked/models/theme'/(name+'.iqm')
             assert model.read_bytes()[:16]==b'INTERQUAKEMODEL\0',name
             assert struct.unpack_from('<I',model.read_bytes(),16)[0]==2

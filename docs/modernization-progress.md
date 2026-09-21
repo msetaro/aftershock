@@ -52,6 +52,22 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 native review exposes OBJ axes and idle OpenArena bots
+
+The OpenArena trace/capture process completed, but it is NOT reference-map
+acceptance: its report contains zero kills and two inactivity warnings. The test
+now requires at least two kills and no observed stuck bots. The earlier Quake 3
+runs measured 13 kills/zero stuck; content-specific behavior cannot be assumed.
+The authored sample has no pickups; give bots deliberate reachable item goals.
+
+The new module camera also shows frames lying flat. q3map2's documented source
+converts OBJ (x,y,z) to (x,-z,y), while the procedural export used Z-up. New controls
+compare the exported OBJ after that conversion against native bounds and require
+compiled facade surfaces to reach z=128. Fix the #164 export/validation convention
+and repeat; do not change the compiler or v1 goldens. Primary source:
+https://github.com/Garux/netradiant-custom/blob/master/libs/picomodel/pm_obj.c
+The old failing evidence remains in sketch-theme-agent/images/modules.png.
+
 ## #164 compiled-world agent traces pass
 
 The protocol gate and fresh client/dedicated release builds pass after making the
@@ -59,8 +75,8 @@ existing vector reader available to both command dispatchers. Real OpenArena
 native-map queries pass: the doorway sightline is clear, the adjacent wall stops
 at y=63.875, and the standard player box contacts the floor at z=24.125. Evidence:
 sketch-theme-agent/agent-traces.json; sketch-trace-query.log; sketch-build.log.
-Boundary/type/format checks pass. The associated bot/capture run is finishing;
-then use the query for shooter metrics and explicit intent checks. This command
+Boundary/type/format checks pass. The associated bot/capture process finished but exposed the acceptance problems
+recorded above. After correcting them, use the query for shooter metrics and explicit intent checks. This command
 only exposes existing static-world collision in development builds.
 
 ## #164 agent collision-query contract
