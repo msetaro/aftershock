@@ -324,6 +324,10 @@ void NORETURN FORMAT_PRINTF( 2, 3 ) QDECL Com_Error( errorParm_t code, const cha
 	va_start( argptr, fmt );
 	Q_vsnprintf( com_errorMessage, sizeof( com_errorMessage ), fmt, argptr );
 	va_end( argptr );
+#ifdef AFTERSHOCK_DEVTOOLS
+	Dev_AgentEvent( "error", -1, -1, code, com_errorMessage );
+	DevTools_AgentFlushEvents(); // Fatal errors can exit before the next frame boundary.
+#endif
 
 	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
 		// we can't recover from ERR_FATAL so there is no recipients for com_errorMessage
@@ -2648,7 +2652,12 @@ void Sys_QueEvent( int evTime, sysEventType_t evType, int value, int value2, int
 		Sys_EventName( evType ), evTime, eventTail, eventHead );
 #endif
 
-	if ( evTime == 0 ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		evTime = DevTools_AgentTime();
+	else
+#endif
+		if ( evTime == 0 ) {
 		evTime = Sys_Milliseconds();
 	}
 
@@ -2701,6 +2710,10 @@ static sysEvent_t Com_GetSystemEvent( void ) {
 	Sys_SendKeyEvents();
 
 	evTime = Sys_Milliseconds();
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		evTime = DevTools_AgentTime();
+#endif
 
 	// check for console commands
 	s = Sys_ConsoleInput();
@@ -3731,7 +3744,10 @@ void Com_Frame( qboolean noDelay ) {
 	}
 
 #ifdef AFTERSHOCK_DEVTOOLS
-	DevTools_BeginFrame( Cvar_VariableIntegerValue( "dev_tools" ) != 0 );
+	const bool explicitStep = DevTools_AgentActive();
+	DevTools_BeginFrame( DevTools_AgentActive() || Cvar_VariableIntegerValue( "dev_tools" ) != 0 );
+#else
+	const bool explicitStep = false;
 #endif
 	minMsec = 0; // silent compiler warning
 
@@ -3778,7 +3794,7 @@ void Com_Frame( qboolean noDelay ) {
 #endif
 	} else {
 #ifndef DEDICATED
-		if ( noDelay ) {
+		if ( noDelay || explicitStep ) {
 			minMsec = 0;
 			bias = 0;
 		} else {
@@ -3802,8 +3818,14 @@ void Com_Frame( qboolean noDelay ) {
 #endif
 	}
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	// Explicit steps still service the queued-message work normally done while waiting.
+	if ( DevTools_AgentActive() && com_sv_running->integer )
+		SV_SendQueuedPackets();
+#endif
+
 	// waiting for incoming packets
-	if ( noDelay == qfalse )
+	if ( noDelay == qfalse && !explicitStep )
 		do {
 			if ( com_sv_running->integer ) {
 				timeValSV = SV_SendQueuedPackets();
@@ -3831,6 +3853,10 @@ void Com_Frame( qboolean noDelay ) {
 
 	// mess with msec if needed
 	msec = Com_ModifyMsec( realMsec );
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		msec = realMsec;
+#endif
 
 	//
 	// server side

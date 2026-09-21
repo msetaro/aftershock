@@ -7,15 +7,16 @@ import os
 from pathlib import Path
 import shutil
 import struct
-import subprocess
 import sys
 import tempfile
+import time
 
 from PIL import Image
 
 from cook import cook
-from run import ROOT, content_maps, content_settings
-from window import XInput, wait_for
+from run import ROOT, content_maps
+sys.path.insert(0, str(ROOT))
+from tools.agent import Engine
 
 
 def source(directory):
@@ -82,125 +83,123 @@ def main():
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-material-runtime'))
+    parser.add_argument('--output', type=Path)
     parser.add_argument('--ui', action='store_true', help='exercise shared and per-instance ImGui factor edits')
-    parser.add_argument('--inside-xvfb', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if not args.inside_xvfb:
-        subprocess.run(['timeout', '150', 'xvfb-run', '-a', sys.executable, str(Path(__file__).resolve()),
-                        *sys.argv[1:], '--inside-xvfb'], cwd=ROOT, check=True)
-        return
+    temporary_output = tempfile.TemporaryDirectory(prefix='aftershock-material-output-', dir=os.environ.get('AFTERSHOCK_SCRATCH'))
+    args.output = args.output.resolve() if args.output else Path(temporary_output.name)
     args.output.mkdir(parents=True, exist_ok=True)
-    paks = sorted(args.data.resolve().glob('*.pk3'))
-    icds = list(Path('/usr/share/vulkan/icd.d').glob('lvp*.json'))
-    if not paks or len(icds) != 1:
-        parser.error('installed content and one lavapipe ICD are required')
     names = ['before', 'controls', 'shared', 'instance', 'cleared'] if args.ui else [
         'diffuse', 'metal', 'rough', 'normal_flat', 'normal', 'emissive', 'masked', 'blend', 'unlit', 'restored']
-    with tempfile.TemporaryDirectory(prefix='aftershock-pbr-') as temporary:
+    with temporary_output, tempfile.TemporaryDirectory(prefix='aftershock-pbr-', dir=os.environ.get('AFTERSHOCK_SCRATCH')) as temporary:
         home = Path(temporary)
         base = home / ('baseoa' if args.content == 'openarena' else 'baseq3')
         base.mkdir()
-        for pak in paks:
-            (base / pak.name).symlink_to(pak)
         inputs = home / 'source'
         inputs.mkdir()
         project, document = source(inputs)
         cook(project, base)
-        commands = [f'devmap {content_maps(args.content)[0]}', 'wait 10', 'set timescale 0',
-                    'set dev_reloadAssets 1', 'dev_reloadAssets', 'echo pbr_ready', 'wait 240']
-        for name in names:
-            commands += ['screenshot ' + name, 'wait 3', 'echo pbr_' + name, 'wait 240' if args.ui else 'wait 100']
-        commands += ['devtools_status', 'quit']
-        (base / 'pbr.cfg').write_text('\n'.join(commands) + '\n')
-        env = dict(os.environ, LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
-        command = [str(args.binary.resolve()), '+set', 'fs_basepath', str(home), '+set', 'fs_homepath', str(home),
-                   *content_settings(args.content), '+set', 'net_enabled', '0', '+set', 'sv_pure', '0',
-                   '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '0',
-                   '+set', 'r_gamma', '1', '+set', 'r_overBrightBits', '0', '+set', 'r_intensity', '1',
-                   '+set', 'dev_tools', '1', '+set', 'dev_reloadAssets', '1', '+set', 'com_maxfps', '20',
-                   '+set', 'cl_autoRecordDemo', '0', '+exec', 'pbr.cfg']
-        log_path = args.output / 'client.log'
-        with log_path.open('wb') as log:
-            process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
-            device = XInput()
-            try:
-                wait_for(lambda: b'pbr_ready' in log_path.read_bytes(), process)
-                device.verify_window(process)
-                device.click(440, 64)
-                device.click(120, 91)
-                for char in 'models/sphere.iqm':
-                    device.key({'/': 'slash', '.': 'period'}.get(char, char))
-                device.click(80, 137)
-                material = document['materials'][0]
-                pbr = material['pbrMetallicRoughness']
-                for name in names:
-                    wait_for(lambda: ('pbr_' + name).encode() in log_path.read_bytes().splitlines(), process)
-                    shutil.copyfile(base / ('screenshots/' + name + '.tga'), args.output / (name + '.tga'))
-                    if args.ui:
-                        if name == 'before':
-                            device.click(235, 64)
-                            device.click(120, 87)
-                            for char in 'models/sphere':
-                                device.key('slash' if char == '/' else char)
-                            device.click(100, 116)
-                        elif name == 'controls':
-                            device.click(380, 371)
-                            device.click(440, 64)
-                        elif name == 'shared':
-                            device.click(235, 64)
-                            device.click(26, 309)
-                            device.click(25, 371)
-                            device.click(440, 64)
-                        elif name == 'instance':
-                            device.click(235, 64)
-                            device.click(26, 309)
-                            device.click(440, 64)
-                        continue
-                    if name == 'diffuse':
-                        pbr['metallicFactor'] = 1
-                    elif name == 'metal':
-                        pbr['roughnessFactor'] = 0.15
-                    elif name == 'rough':
-                        pbr.update(metallicFactor=0, roughnessFactor=0.7)
-                    elif name == 'normal_flat':
-                        # Opposite tangent-space Z gives a clear response even
-                        # when a content set's preview sun lights the far side.
-                        Image.new('RGBA', (32, 32), (128, 128, 0, 255)).save(inputs / 'normal.png')
-                    elif name == 'normal':
-                        material['emissiveFactor'] = [0.5, 1, 0.5]
-                    elif name == 'emissive':
-                        material.update(alphaMode='MASK', alphaCutoff=0.75)
-                    elif name == 'masked':
-                        material['alphaMode'] = 'BLEND'
-                    elif name == 'blend':
-                        material['alphaMode'] = 'OPAQUE'
-                        material['emissiveFactor'] = [0, 0, 0]
-                        pbr.update(metallicFactor=0, roughnessFactor=0.7)
-                        Image.new('RGBA', (32, 32), (128, 128, 255, 255)).save(inputs / 'normal.png')
-                        material['extensions'] = {'KHR_materials_unlit': {}}
-                        document['extensionsUsed'] = ['KHR_materials_unlit']
-                    elif name == 'unlit':
-                        del material['extensions']
-                        del document['extensionsUsed']
-                    (inputs / 'sphere.gltf').write_text(json.dumps(document))
-                    cook(project, base)
-                process.wait(timeout=15)
-                assert process.returncode == 0
-            finally:
-                if process.poll() is None:
-                    process.kill()
-                    process.wait()
-                device.close()
-        text = log_path.read_text()
-        assert not any(s in text for s in ('ERROR:', 'Signal caught', 'Invalid or unavailable', 'Invalid or unsupported'))
-        if not args.ui:
-            assert text.count('Cooked material reloaded:') >= 6
-        images = {name: Image.open(args.output / (name + '.tga')).convert('RGB') for name in names}
+        arguments = ['+set', 'r_gamma', '1', '+set', 'r_overBrightBits', '0', '+set', 'r_intensity', '1',
+                     '+set', 'dev_reloadAssets', '1']
+        with Engine(args.binary, args.data, args.content, home=home, arguments=arguments) as engine:
+            engine.request('session', dt=8, seed=123)
+            engine.request('map', name=content_maps(args.content)[0])
+            engine.step(200)
+            engine.request('panel', name='Animation')
+            engine.request('animation.load', path='models/sphere.iqm')
+            engine.step(3)
+            materials = engine.request('assets', kind='materials', filter='models/sphere')['items']
+            assert len(materials) == 1 and materials[0]['metallicRoughness'], materials
+            for entry in materials:
+                assert len(entry['stageInfo']) == entry['stages'], entry
+                assert all(isinstance(stage['present'], bool) and len(stage['textures']) == 3
+                           and isinstance(stage['stateBits'], int) for stage in entry['stageInfo']), entry
+            models = engine.request('assets', kind='models', filter='models/sphere')['items']
+            assert len(models) == 1 and models[0]['frames'] > 0, models
+            engine.request('asset.select', kind='models', index=models[0]['index'])
+            material_index = materials[0]['index']
+            params = materials[0]['params']
+            baseline = dict(params)
+            material = document['materials'][0]
+            pbr = material['pbrMetallicRoughness']
+            for name in names:
+                capture = engine.request('capture', name=name)
+                engine.step(2)
+                shutil.copyfile(base / capture['path'], args.output / (name + '.png'))
+                preview = engine.request('editor.state')['animation']['viewport']
+                if args.ui:
+                    if name == 'before':
+                        engine.request('panel', name='Materials')
+                        engine.request('asset.select', kind='materials', index=material_index)
+                    elif name == 'controls':
+                        params = dict(baseline, metallic=1)
+                        engine.request('material.set', index=material_index, **params)
+                        engine.request('panel', name='Animation')
+                    elif name == 'shared':
+                        engine.request('material.preview', index=material_index, enabled=True)
+                        engine.request('material.set', index=material_index, **baseline)
+                    elif name == 'instance':
+                        engine.request('material.preview', index=material_index, enabled=False)
+                    engine.step(3)
+                    continue
+                if name == 'diffuse':
+                    pbr['metallicFactor'] = 1
+                elif name == 'metal':
+                    pbr['roughnessFactor'] = 0.15
+                elif name == 'rough':
+                    pbr.update(metallicFactor=0, roughnessFactor=0.7)
+                elif name == 'normal_flat':
+                    # Opposite tangent-space Z gives a clear response even
+                    # when a content set's preview sun lights the far side.
+                    Image.new('RGBA', (32, 32), (128, 128, 0, 255)).save(inputs / 'normal.png')
+                elif name == 'normal':
+                    material['emissiveFactor'] = [0.5, 1, 0.5]
+                elif name == 'emissive':
+                    material.update(alphaMode='MASK', alphaCutoff=0.75)
+                elif name == 'masked':
+                    material['alphaMode'] = 'BLEND'
+                elif name == 'blend':
+                    material['alphaMode'] = 'OPAQUE'
+                    material['emissiveFactor'] = [0, 0, 0]
+                    pbr.update(metallicFactor=0, roughnessFactor=0.7)
+                    Image.new('RGBA', (32, 32), (128, 128, 255, 255)).save(inputs / 'normal.png')
+                    material['extensions'] = {'KHR_materials_unlit': {}}
+                    document['extensionsUsed'] = ['KHR_materials_unlit']
+                elif name == 'unlit':
+                    del material['extensions']
+                    del document['extensionsUsed']
+                def reload_count():
+                    return sum(item['reloads'] for kind in ('images', 'materials')
+                               for item in engine.request('assets', kind=kind, filter='models/sphere')['items'])
+
+                previous = reload_count()
+                revision = (base / 'cook.revision').read_bytes()
+                (inputs / 'sphere.gltf').write_text(json.dumps(document))
+                cook(project, base)
+                if (base / 'cook.revision').read_bytes() != revision:
+                    # Offline hot reload polls real time; wait for its reported
+                    # publication before sampling. Simulation still steps explicitly.
+                    deadline = time.monotonic() + 10
+                    while reload_count() <= previous:
+                        assert time.monotonic() < deadline, 'cooked asset reload timed out'
+                        engine.step(2)
+                        time.sleep(0.01)
+                engine.step(3)
+            registry = engine.request('assets', kind='materials', filter='models/sphere')['items']
+            if not args.ui:
+                assert registry[0]['reloads'] >= 6, registry
+            shutil.copyfile(engine.log_path, args.output / 'client.log')
+        images = {name: Image.open(args.output / (name + '.png')).convert('RGB') for name in names}
         # The preview is drawn over the running map. Sample only the sphere's
         # interior, excluding that changing background, HUD and antialiased edge.
-        points = [(x, y) for x in range(278, 363) for y in range(354, 439)
-                  if (x - 320) ** 2 + (y - 396) ** 2 < 42 ** 2]
+        x, y, width, height = preview
+        center_x, center_y = x + width / 2, y + height / 2
+        # This unit sphere is framed at four radii with a 40-degree vertical FOV.
+        # Keep 90% of its projected radius, excluding the antialiased edge.
+        radius = max(1, int(height * 0.9 / (8 * math.tan(math.radians(20)))))
+        points = [(px, py) for px in range(int(center_x - radius), int(center_x + radius))
+                  for py in range(int(center_y - radius), int(center_y + radius))
+                  if (px - center_x) ** 2 + (py - center_y) ** 2 < radius ** 2]
         measurements = {}
         comparisons = [('before', 'shared'), ('shared', 'instance'), ('instance', 'cleared')] if args.ui else list(zip(names, names[1:]))
         for first, second in comparisons:

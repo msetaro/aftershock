@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import struct
 import subprocess
@@ -15,7 +16,7 @@ from run import ROOT, ENV, run
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='gcc')
 parser.add_argument('--cxx', default='g++')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-weapons'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-weapons'))
 args = parser.parse_args()
 args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)

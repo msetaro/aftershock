@@ -19,6 +19,26 @@ struct devNetwork_t {
 	uint32_t rewindAge, rewindLimit;
 	bool delta;
 };
+struct devAgentInput_t {
+	int32_t forward, right, up, buttons, weapon;
+	float pitch, yaw;
+	int32_t angles[3];
+	bool active, raw;
+};
+const float *DevTools_AgentCamera( void );
+void DevTools_AgentView( refdef_t *view );
+void DevTools_AgentInput( usercmd_t *command, float *viewangles, const int32_t *deltaAngles );
+bool CL_AgentPlayer( playerState_t *player );
+void DevTools_AgentEnable( void );
+bool DevTools_AgentActive( void );
+int DevTools_AgentTime( void );
+int DevTools_AgentSeed( void );
+bool DevTools_AgentNextFrame( void );
+void DevTools_AgentFlushEvents( void );
+void DevTools_AgentEndFrame( void );
+int Sys_AgentRead( char *line, uint32_t capacity );
+bool Sys_AgentWrite( const char *text, uint32_t length );
+bool DevTools_AgentRequest( const char *request, uint32_t length, char *response, uint32_t capacity );
 void DevTools_BeginFrame( bool enabled );
 uint32_t DevTools_CpuTimings( const devCpuTiming_t **timings );
 void DevTools_Packet( bool outgoing, uint32_t bytes );
@@ -51,6 +71,46 @@ uint32_t DevTools_Text( const devText_t **text );
 uint32_t DevTools_DebugDropped( void );
 bool DevTools_Project( const refdef_t *view, const float *point, float *screen );
 int DevTools_PickEntity( float x, float y );
+struct devEditorState_t {
+	char cvar[MAX_STRING_CHARS], filters[3][128];
+	char graphTab[16];
+	char panel[32], clip[64], graphState[64], graphEvent[64], graphResult[32];
+	uint32_t frames, lines, labels, worldLines, animationPreviews, allocations;
+	uint64_t arena;
+	bool enabled, inputCaptured;
+	int32_t model, animationFrame, selectedEntity, viewport[4];
+	uint32_t graphPreviews, graphTime;
+	bool graphDirty, graphPlay;
+	bool rangeLoaded, rangeAds;
+	int32_t rangeSlot, rangeAttachments;
+	char rangeName[64];
+	bool collision, navigation, entities, animationPlay;
+};
+bool DevTools_SelectPanel( const char *name );
+bool DevTools_SelectCvar( const char *name );
+bool DevTools_Filter( const char *kind, const char *value );
+bool DevTools_SelectEntity( int entity );
+int DevTools_PickCrosshair( void );
+bool DevTools_EntityAtCamera( float *origin );
+bool DevTools_ReloadEntities( void );
+bool DevTools_SetWorld( bool collision, bool navigation, bool entities, float radius );
+bool DevTools_LoadAnimation( const char *path, const char *skin );
+bool DevTools_SetAnimation( const char *field, float value );
+bool DevTools_Graph( const char *action, const char *text, float value );
+const animAsset_t *DevTools_GraphAsset( const float **parameters );
+// Both consumers read validated loaded records without unaligned structure casts.
+template <typename T>
+T DevTools_GraphRecord( const animAsset_t *asset, animSectionIndex_t section, uint32_t index ) {
+	T record;
+	memcpy( &record, asset->data + asset->header.sections[section].offset + index * sizeof( T ), sizeof( record ) );
+	return record;
+}
+bool DevTools_Range( const char *action, const char *path, int value );
+const refexport_t *DevTools_Renderer( void );
+bool DevTools_SelectAsset( const char *kind, int index );
+bool DevTools_MaterialPreview( int index, bool enabled );
+bool DevTools_SetMaterial( int index, const materialParams_t *params );
+void DevTools_EditorState( devEditorState_t *state );
 void DevTools_Init( void );
 void DevTools_Reset( void );
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds );

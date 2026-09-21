@@ -3117,6 +3117,9 @@ static void FORMAT_PRINTF( 2, 3 ) QDECL CL_RefPrintf( printParm_t level, const c
 		Com_DPrintf( "%s", msg );
 		break;
 	case PRINT_WARNING:
+#ifdef AFTERSHOCK_DEVTOOLS
+		Dev_AgentEvent( "warning", -1, -1, 0, msg );
+#endif
 		Com_Printf( S_COLOR_WARNING "%s", msg );
 		break;
 	case PRINT_ERROR:
@@ -3298,6 +3301,10 @@ CL_ScaledMilliseconds
 ============
 */
 int CL_ScaledMilliseconds( void ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		return DevTools_AgentTime();
+#endif
 	return (int)( Sys_Milliseconds() * com_timescale->value );
 }
 
@@ -3466,6 +3473,9 @@ static void CL_InitRef( void ) {
 	rimp.VK_CreateSurface = VK_CreateSurface;
 #endif
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	rimp.AssertReport = Dev_AgentAssert;
+#endif
 	ret = GetRefAPI( REF_API_VERSION, &rimp );
 
 	Com_Printf( "-------------------------------\n" );
@@ -5054,3 +5064,12 @@ void CL_SoundStopped( void ) {
 void CL_SoundRegistrationCleared( void ) {
 	cls.soundRegistered = qfalse;
 }
+
+#ifdef AFTERSHOCK_DEVTOOLS
+bool CL_AgentPlayer( playerState_t *player ) {
+	if ( cls.state != CA_ACTIVE || !cl.snap.valid )
+		return false;
+	*player = cl.snap.ps;
+	return true;
+}
+#endif

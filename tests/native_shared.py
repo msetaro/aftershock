@@ -2,6 +2,7 @@
 """Compare native C/C++ math words and case conversion on the same host."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import subprocess
 
@@ -10,7 +11,7 @@ from run import ROOT, ENV
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='gcc')
 parser.add_argument('--cxx', default='g++')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-native-shared'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-native-shared'))
 args = parser.parse_args()
 output = args.output.resolve()
 output.mkdir(parents=True, exist_ok=True)

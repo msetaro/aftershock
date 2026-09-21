@@ -10,10 +10,13 @@ import re
 import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools.scratch import ROOT as SCRATCH
 SOURCES = 'q_shared q_math msg huffman huffman_static cmd cvar files net_chan net_ip md4 cm_load cm_patch cm_polylib cm_test cm_trace'.split()
 ENV = dict(os.environ, SOURCE_DATE_EPOCH='1789257600', LC_ALL='C')
 
@@ -259,7 +262,7 @@ def runtime(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('check', choices=['unit', 'differential', 'runtime'])
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-tests'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-tests'))
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
     parser.add_argument('--known-bugs', action='store_true')

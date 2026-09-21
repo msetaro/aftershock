@@ -20,6 +20,17 @@ static struct {
 static vmCvar_t animationTrace;
 static bool animationEnabled;
 
+#ifdef AFTERSHOCK_DEVTOOLS
+bool G_DevAnimation( int owner, int rig, devAnimationState_t *out ) {
+	if ( !animationEnabled || owner < 0 || owner >= level.maxclients || rig < 0 || rig > 1 || !animationActors[owner].active )
+		return false;
+	*out = {};
+	out->state = animationActors[owner].state[rig];
+	Q_strncpyz( out->name, Anim_StateName( &animationRigs[rig].asset, out->state.current ), sizeof( out->name ) );
+	return true;
+}
+#endif
+
 void G_ShutdownAnimation( void ) {
 	for ( auto &rig : animationRigs ) {
 		Anim_FreeFile( rig.storage );

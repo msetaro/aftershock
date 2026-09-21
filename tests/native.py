@@ -3,6 +3,7 @@
 import argparse
 import json
 from pathlib import Path
+from run import SCRATCH
 import re
 import shlex
 import subprocess
@@ -95,7 +96,7 @@ if __name__ == '__main__':
     parser.add_argument('--cxx', default='c++')
     parser.add_argument('--language', choices=['c', 'c++'], default='c')
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-native'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-native'))
     args = parser.parse_args()
     for module, binary in build_modules(args.output, args.cc, cxx=args.cxx, language=args.language, content=args.content).items():
         print(module, binary)

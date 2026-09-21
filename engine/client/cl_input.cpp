@@ -753,6 +753,9 @@ static usercmd_t CL_CreateCmd( void ) {
 
 	// store out the final values
 	CL_FinishMove( &cmd );
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_AgentInput( &cmd, cl.viewangles, cl.snap.ps.delta_angles );
+#endif
 
 	// draw debug graphs of turning for mouse testing
 	if ( cl_debugMove->integer ) {

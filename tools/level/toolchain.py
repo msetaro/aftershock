@@ -20,42 +20,46 @@ def tools():
     if platform.system()!='Linux' or platform.machine() not in ('x86_64','AMD64'):
         raise ValueError('pinned BSP/AAS toolchain requires Linux x86_64; --map-only is portable')
     cache = Path(os.environ.get('XDG_CACHE_HOME',Path.home()/'.cache'))/'aftershock-level-tools'
-    cache.mkdir(parents=True,exist_ok=True)
-    archive = cache/ARCHIVE
-    if not archive.is_file():
-        with tempfile.NamedTemporaryFile(dir=cache,delete=False) as stream:
-            temporary = Path(stream.name)
+    import sys
+    sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+    from tools.scratch import cache_lock
+    with cache_lock(cache):
+        cache.mkdir(parents=True,exist_ok=True)
+        archive = cache/ARCHIVE
+        if not archive.is_file():
+            with tempfile.NamedTemporaryFile(dir=cache,delete=False) as stream:
+                temporary = Path(stream.name)
+                try:
+                    with urllib.request.urlopen(URL,timeout=120) as response:
+                        shutil.copyfileobj(response,stream)
+                    stream.flush()
+                    if hashlib.sha256(temporary.read_bytes()).hexdigest()!=SHA256:
+                        raise ValueError('map tool archive SHA256 mismatch')
+                    os.replace(temporary,archive)
+                finally:
+                    temporary.unlink(missing_ok=True)
+        if hashlib.sha256(archive.read_bytes()).hexdigest()!=SHA256:
+            raise ValueError('map tool archive SHA256 mismatch: '+str(archive))
+        root = cache/'squashfs-root'
+        if not (root/'usr/bin/q3map2.x86_64').is_file() or not (root/'usr/bin/mbspc.x86_64').is_file():
             try:
-                with urllib.request.urlopen(URL,timeout=120) as response:
-                    shutil.copyfileobj(response,stream)
-                stream.flush()
-                if hashlib.sha256(temporary.read_bytes()).hexdigest()!=SHA256:
-                    raise ValueError('map tool archive SHA256 mismatch')
-                os.replace(temporary,archive)
-            finally:
-                temporary.unlink(missing_ok=True)
-    if hashlib.sha256(archive.read_bytes()).hexdigest()!=SHA256:
-        raise ValueError('map tool archive SHA256 mismatch: '+str(archive))
-    root = cache/'squashfs-root'
-    if not (root/'usr/bin/q3map2.x86_64').is_file() or not (root/'usr/bin/mbspc.x86_64').is_file():
-        try:
-            import libarchive
-        except ImportError as exc:
-            raise ValueError('install tools/level/requirements.txt into a Python venv to extract the pinned toolchain') from exc
-        image = cache/'NetRadiant-Custom-x86_64.AppImage'
-        found = False
-        with libarchive.file_reader(str(archive)) as entries:
-            for entry in entries:
-                if entry.pathname==image.name:
-                    with image.open('wb') as stream:
-                        for block in entry.get_blocks():
-                            stream.write(block)
-                    found = True
-        if not found:
-            raise ValueError('pinned tool archive has no AppImage')
-        image.chmod(0o755)
-        with (cache/'extract.log').open('w') as log:
-            subprocess.run([str(image),'--appimage-extract'],cwd=cache,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=120)
+                import libarchive
+            except ImportError as exc:
+                raise ValueError('install tools/level/requirements.txt into a Python venv to extract the pinned toolchain') from exc
+            image = cache/'NetRadiant-Custom-x86_64.AppImage'
+            found = False
+            with libarchive.file_reader(str(archive)) as entries:
+                for entry in entries:
+                    if entry.pathname==image.name:
+                        with image.open('wb') as stream:
+                            for block in entry.get_blocks():
+                                stream.write(block)
+                        found = True
+            if not found:
+                raise ValueError('pinned tool archive has no AppImage')
+            image.chmod(0o755)
+            with (cache/'extract.log').open('w') as log:
+                subprocess.run([str(image),'--appimage-extract'],cwd=cache,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=120)
     env = dict(os.environ,LD_LIBRARY_PATH=str(root/'usr/lib'),LC_ALL='C',TZ='UTC')
     return root/'usr/bin/q3map2.x86_64',root/'usr/bin/mbspc.x86_64',env
 

@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "server.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 
 // Build and write run consecutively on the server thread; no per-client candidate allocation.
 static entityState_t *pendingReplication[MAX_GENTITIES];
@@ -371,7 +374,12 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 				continue;
 		}
 
-		if ( !SV_EntityRelevant( ent, frame->ps.origin ) )
+		const float *relevanceOrigin = frame->ps.origin;
+#ifdef AFTERSHOCK_DEVTOOLS
+		if ( frame->ps.clientNum == DevTools_ViewClient() && DevTools_AgentCamera() )
+			relevanceOrigin = DevTools_AgentCamera();
+#endif
+		if ( !SV_EntityRelevant( ent, relevanceOrigin ) )
 			continue;
 
 		svEnt = &sv.svEntities[es->number];
@@ -659,6 +667,10 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	// find the client's viewpoint
 	VectorCopy( ps->origin, org );
 	org[2] += ps->viewheight;
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( ps->clientNum == DevTools_ViewClient() && DevTools_AgentCamera() )
+		VectorCopy( DevTools_AgentCamera(), org );
+#endif
 
 	// add all the entities directly visible to the eye, which
 	// may include portal entities that merge other viewpoints

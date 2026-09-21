@@ -4,12 +4,13 @@ import argparse
 import hashlib
 import io
 from pathlib import Path
+from run import SCRATCH
 import urllib.request
 import zipfile
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--data', type=Path, default=Path('/usr/share/games/openarena/baseoa'))
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-openarena-baseoa'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-openarena-baseoa'))
 args = parser.parse_args()
 paks = sorted(args.data.resolve().glob('*.pk3'))
 if not paks:

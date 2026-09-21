@@ -2,6 +2,7 @@
 """Check in-place native info-string removal with the real GPL helpers."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 
 from run import run
@@ -9,7 +10,7 @@ from run import run
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='clang')
 parser.add_argument('--variant', choices=['small', 'big'])
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-native-info'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-native-info'))
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 binary = args.output.resolve() / 'check'

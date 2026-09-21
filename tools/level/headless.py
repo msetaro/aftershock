@@ -203,7 +203,9 @@ def main(argv):
         level = None
         authored = {}
         if source.suffix.lower()=='.json':
-            level = json.loads(source.read_bytes())
+            sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+            from tools.agent.formats import validate as validate_format
+            level = validate_format('level',json.loads(source.read_bytes()),source)
             _,authored = validate(level,source.parent/'assets')
             name = level['name']
         elif source.suffix.lower()=='.map':

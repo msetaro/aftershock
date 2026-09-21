@@ -6,6 +6,7 @@ import heapq
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import random
 import re
 import selectors
@@ -116,7 +117,7 @@ def main():
     parser.add_argument('--snapshot-budget', type=int, default=0)
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-netcode-runtime'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-netcode-runtime'))
     args = parser.parse_args()
     if not 20 <= args.client_fps <= 200:
         parser.error('client FPS must be in 20..200')

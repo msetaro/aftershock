@@ -2,13 +2,14 @@
 """Check the imported game math word width against the original 32-bit routine."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='cc')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-native-math'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-native-math'))
 args = parser.parse_args()
 args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)

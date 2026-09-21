@@ -3,6 +3,7 @@
 import argparse
 import io
 from pathlib import Path
+from run import SCRATCH
 import re
 import shlex
 import subprocess
@@ -14,7 +15,7 @@ REVISION = '331464ca396d80e91cf9be273588f2b5f4b7afc8'
 REPOSITORY = 'https://github.com/OpenArena/gamecode'
 
 
-def stage_source(output, source=Path('/tmp/aftershock-oa-native-source')):
+def stage_source(output, source=(SCRATCH / 'aftershock-oa-native-source')):
     output = Path(output).resolve()
     source = Path(source).resolve()
     if not source.exists():
@@ -151,7 +152,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cc', default='gcc')
     parser.add_argument('--static', action='store_true', help='emit isolated C objects for the native engine')
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-openarena-native'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-openarena-native'))
     args = parser.parse_args()
     for module, binary in build_modules(args.output, args.cc, static=args.static).items():
         print(module, binary)

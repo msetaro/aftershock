@@ -7,6 +7,7 @@ import difflib
 import hashlib
 import json
 from pathlib import Path
+from run import SCRATCH
 import re
 import shlex
 import subprocess
@@ -19,7 +20,7 @@ sys.path.insert(0, str(ROOT / 'tools/port'))
 import gates
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-native-gates'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-native-gates'))
 parser.add_argument('--jobs', type=int, default=4)
 parser.add_argument('--tidy', action='store_true', help='also retain the focused G7 diagnostics')
 args = parser.parse_args()

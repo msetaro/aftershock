@@ -1,5 +1,19 @@
 # Permanent regression suite (#3)
 
+For related commands, allocate one root first: `export AFTERSHOCK_SCRATCH="$(mktemp -d)"`.
+Otherwise each invocation gets a fresh root; children inherit it. Retain the root
+for logs/build reuse, then remove it when its evidence is no longer needed.
+
+See [the agent handbook](../docs/agents/README.md) for executable task recipes.
+`python3 tests/affected.py BASE_REF` selects fast probes within a stated 600-second
+budget; incomplete runs exit 2. `python3 tests/suite.py --glslang PATH
+--openarena-data PATH` runs the ten active regression job variants locally with
+preinstalled tools. Its JSON report records the revision, dirty state and whether
+the whole suite ran. Hosted compiler jobs remain required. `tests/agent_recipes.py`
+executes handbook commands with development client/server paths and installed
+content; `--check` only validates shell syntax. Git recipe tests use private
+fixture histories and never alter repository rollback tags.
+
 Run from the repository root with Python 3, CMake 3.25+, Ninja, GCC or Clang, and binutils.
 Tests call real engine functions with production flags from CMake's compile database. Test drivers provide only
 isolated allocator/log/file stubs and instrumentation; production code is unchanged.
@@ -27,7 +41,7 @@ python3 tests/shadow_views.py
 python3 tests/cook.py
 python3 tests/iqm_scale.py
 python3 tests/cook_runtime.py
-python3 tests/cook_runtime.py --modules --output /tmp/cook-modules
+python3 tests/cook_runtime.py --modules --output $AFTERSHOCK_SCRATCH/cook-modules
 python3 tests/devtools.py
 python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
 python3 tests/vulkan_acquire.py
@@ -37,11 +51,11 @@ python3 tests/check_tidy.py
 python3 tests/check_lifetimes.py
 python3 tests/check_boundaries.py
 python3 tests/run.py unit --negative-control
-python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
+python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output $AFTERSHOCK_SCRATCH/tests-clang
 python3 tests/check_known_bugs.py
 python3 tests/check_frames.py
-python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
-python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
+python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output $AFTERSHOCK_SCRATCH/tests-sanitized
+python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output $AFTERSHOCK_SCRATCH/tests-pointers
 ```
 
 ## Netcode contracts (#12)
@@ -85,7 +99,7 @@ python3 tests/netcode_runtime.py --client /path/quake3e.x64 --server /path/quake
 ```
 
 These use installed Quake 3 content by default. Hosted CI passes `--content
-openarena --data /tmp/aftershock-openarena-baseoa`; both run the owned native game.
+openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa`; both run the owned native game.
 The latter also needs the cooker prerequisites, Xvfb and Mesa lavapipe. Its
 private loopback relay models 100 ms RTT, +/-15 ms combined jitter and 5% loss.
 The independent interpolated-box oracle requires >=99% agreement over >=100
@@ -137,8 +151,10 @@ independent and reset when frame storage is reused.
 `python3 tests/materials_runtime.py --binary CLIENT` loads an owned glTF sphere
 under Xvfb/lavapipe. It measures metallic, roughness, normal, emissive, mask and
 blend source edits in the sphere interior and requires an exact restored image.
-`--ui --output /tmp/material-ui` uses real ImGui input to edit a shared factor,
-override only the preview instance and restore both independently. Both commands
+`--ui --output DIR` calls shared panel commands through JSON to edit a shared
+factor, override only the preview instance and restore both independently.
+Registry queries locate the material; the reported preview rectangle determines
+the sampled sphere interior. Recook captures wait for structured reload counters. Both commands
 accept the existing `--content`/`--data` options; CI uses OpenArena. Their new
 captures are diagnostics, never replacements for the classic replay goldens.
 
@@ -155,7 +171,7 @@ model/clip and material changes, stable handles and storage across repeated
 updates, idle UI allocations, and reload/rendering after video restart. Use
 `--modules` to build the optional renderer module, or `--binary` to reuse an
 existing development client. Defaults use installed Quake 3; hosted runs pass
-`--content openarena --data /tmp/aftershock-openarena-baseoa`. No game paks are
+`--content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa`. No game paks are
 committed or uploaded. Screenshot/log artifacts are separate from accepted goldens.
 
 
@@ -355,7 +371,7 @@ a 32,000-byte formatting buffer must reach the fatal error before writing beyond
 ```
 python3 tests/run.py differential
 python3 tests/run.py runtime
-python3 tests/run.py runtime --sanitize --output /tmp/tests-runtime-ubsan
+python3 tests/run.py runtime --sanitize --output $AFTERSHOCK_SCRATCH/tests-runtime-ubsan
 python3 tests/demo.py
 ```
 
@@ -380,9 +396,9 @@ The runtime CI job installs `openarena-data`, `faketime`, `xvfb`, and
 
 ```
 python3 tests/openarena.py
-python3 tests/run.py differential --content openarena --data /tmp/aftershock-openarena-baseoa
-python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
-python3 tests/demo.py --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/run.py differential --content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa
+python3 tests/run.py runtime --content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa
+python3 tests/demo.py --content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa
 ```
 
 OpenArena uses `+set fs_game baseoa`, oa_dm1/oa_dm7, Sarge/Beret, and separate
@@ -412,19 +428,17 @@ and rotates an existing renderer scene. Entity tools edit a local native game st
 the crosshair or by clicking outside the tools. Enabled renderer
 modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
 
-`python3 tests/devtools.py` builds both variants, verifies symbols, then uses real
-XTest input on a private Xvfb display to select/edit a cvar. It verifies 80 idle
-frames without further ImGui allocations, bounded arena use and video restart.
-It also holds a real game-bound key while reopening the overlay and checks that
-the release command runs before input capture resumes.
-It also opens each current inspector and captures its output.
-`python3 tests/devtools_data.py` checks real registry copies and allocator accounting
-without a GPU. The UI test requires libX11, libXtst (`libxtst6` in hosted CI), xwininfo/xprop (`x11-utils`),
-Xvfb and lavapipe. The window PID must belong to the launched client. Screenshots
-and logs stay under `--output`. `--binary` tests an existing development client;
-`--content openarena --data /tmp/aftershock-openarena-baseoa` selects hosted assets.
-The OpenArena UI check links the same pinned native OpenArena game objects as
-the replay gate, matching the fixture's game protocol.
+`python3 tests/devtools.py` builds both variants, verifies shipping excludes the
+UI and agent symbols, then uses the local JSON channel to select panels and edit
+cvars. It checks 80 idle frames without further ImGui allocations, bounded arena
+use, renderer restart, animation and a normal game-bound key held while reopening
+the overlay. Named key requests enter the normal event queue; no X11 pointer
+coordinates or console regex are used. Each inspector produces a PNG capture.
+`python3 tests/devtools_data.py` checks registry copies and allocator accounting
+without a GPU. Runtime requires Xvfb/lavapipe and installed content. Pass
+`--output DIR` to retain logs/captures, or `--binary PATH` for an existing developer
+client. Both content sets now use the owned native game; this test no longer
+replays a legacy demo or requires imported OpenArena game objects.
 
 ImGui core v1.92.9b is pinned under `third_party/imgui` with its unchanged license
 and source hashes. Default vendor OS, file, shell and time services are disabled.
@@ -435,8 +449,8 @@ or interaction-driven UI allocations are distinct from the checked idle-frame pa
 Lifetime/tidy gates now cover shipping/development and static/module configurations.
 The primary build matrix enables tooling in Debug and excludes it in Release.
 
-`python3 tests/dev_world_ui.py` drives the live native game through real XTest
-input: spawn at the camera, select that entity in world, enable collision and
+`python3 tests/dev_world_ui.py` drives the live native game through the local
+JSON channel and shared panel controls: spawn at the camera, select that entity in world, enable collision and
 navigation, and capture the drawn volumes/label. The World tab uses explicit
 refresh, caching at most 4,096 edges around the camera (up to 1,024 brushes).
 Brush/patch surfaces are exact clipped faces. Optimized AAS files that omit face
@@ -546,8 +560,8 @@ Initial Mesa profiles can also be established from reviewed hosted artifacts,
 without ever running regeneration in CI:
 
 ```
-gh run download RUN_ID -R msetaro/aftershock -n runtime-diagnostics -D /tmp/replay-evidence
-python3 tests/frames.py --output /tmp/replay-evidence/aftershock-demo-tests --content openarena --regenerate
+gh run download RUN_ID -R msetaro/aftershock -n runtime-diagnostics -D $AFTERSHOCK_SCRATCH/replay-evidence
+python3 tests/frames.py --output $AFTERSHOCK_SCRATCH/replay-evidence/aftershock-demo-tests --content openarena --regenerate
 ```
 
 Review the job's fixture hashes and all screenshots first. The evidence checker
@@ -555,7 +569,7 @@ requires both repetitions, the Vulkan renderer identity, one Mesa version, and t
 changing samples per map. This explicit local command hashes the downloaded TGA
 files itself; it does not trust a hash manifest supplied by CI. Each initial
 profile and its run/source provenance must be explained in the PR.
-Add the same `--content openarena --data /tmp/aftershock-openarena-baseoa` arguments
+Add the same `--content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa` arguments
 to select that content set. Review demo logs/screenshots and explain every changed
 hash or gameplay event in the PR. All golden writes are rejected when `CI` is set;
 CI compares committed outputs and never regenerates them.
@@ -591,8 +605,8 @@ Hosted CI uses the pinned OpenArena B52 C source and the reviewed #31 patches:
 
 ```
 python3 tests/openarena_native.py --static
-python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
-python3 tests/demo.py --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/run.py runtime --content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa
+python3 tests/demo.py --content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa
 ```
 
 The runtime/replay commands stage C module objects automatically and link them to
@@ -791,7 +805,7 @@ Cooked asset runtime check (#9): `python3 tests/cook_runtime.py` builds the enab
 client, cooks the owned Blender fixture, opens it through real ImGui input and
 edits a copied source texture. The fixed-camera before/after screenshots must
 show the edit within one second. `--binary` reuses a development client;
-`--content openarena --data /tmp/aftershock-openarena-baseoa` selects hosted content.
+`--content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa` selects hosted content.
 Use the tools/cook Python requirements in a venv. The watcher and client use only
 private temporary source/output trees; installed paks are symlinked locally.
 
@@ -799,7 +813,7 @@ private temporary source/output trees; installed paks are symlinked locally.
 
 ```
 python3 tests/animation.py
-python3 tests/animation.py --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/aftershock-animation-clang
+python3 tests/animation.py --cc clang --cxx 'clang++ -stdlib=libc++' --output $AFTERSHOCK_SCRATCH/aftershock-animation-clang
 python3 tests/animation_runtime.py
 python3 tests/animation_editor.py
 ```
@@ -816,7 +830,7 @@ poses and frame copies use bounded POD storage.
 The live check exercises the original rifle/body in the owned native game, including
 when using OpenArena art. It checks events, render submissions, retained body turns,
 centered settled ADS optics and matching received client/server hit-box digests.
-Use `--content openarena --data /tmp/aftershock-openarena-baseoa` for hosted content;
+Use `--content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa` for hosted content;
 `--binary PATH` reuses a client, and `--modules` builds optional renderer modules.
 Classic runtime/demo commands continue using their original content-specific game
 implementations and accepted fixtures. No existing golden is regenerated here.
@@ -851,8 +865,10 @@ tables, and a JSON source editor. It accepts up to 65535 source bytes, keeps num
 text on failure. The external cooker validates JSON and reports errors in its own
 output; load the cooked graph after a successful cook. Enable `dev_reloadAssets` to
 reload changed models/materials too. Editor previews never replace live game assets.
-`tests/animation_editor.py` edits a graph through real X input, verifies its backup,
-observes the watcher revision and previews the changed initial state.
+`tests/animation_editor.py` edits a graph through shared JSON/panel commands,
+checks undo and its backup, observes the watcher revision and previews the changed
+initial state. These migrated tests use fresh temporary output by default; pass
+`--output DIR` to retain logs/captures. Game assets remain installed read-only.
 
 `python3 tests/animation_runtime.py --server-fps 100` also checks that faster server
 frames never publish multiple transforms under one 20 ms animation tick.
@@ -868,7 +884,7 @@ The only explicit animation fixture replacement command is:
 
 ```
 python3 tests/animation_demo.py --record-fixture
-python3 tests/animation_demo.py --record-fixture --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/animation_demo.py --record-fixture --content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa
 ```
 
 This replaces only `tests/golden/animation/<content>/rifle-body.dm_68` and its JSON
@@ -886,7 +902,7 @@ owned GPL artifacts; map art remains in the user's installed content packages.
 `python3 tests/weapons.py` cooks two rifles from data and runs the seeded 1000-shot
 reference, fixed-tick lifecycle, real snapshot codec, penetration, projectile math
 and graph-notify checks under UBSan. Select the other supported compiler with
-`--cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/weapons-clang`.
+`--cc clang --cxx 'clang++ -stdlib=libc++' --output $AFTERSHOCK_SCRATCH/weapons-clang`.
 
 `python3 tests/weapons_runtime.py --binary PATH` exercises native server/client
 weapon and animation prediction, data-only selection, attachments, grenade
@@ -894,10 +910,11 @@ prediction, rendered ADS and exactly-once notify audio. It saves an ADS capture
 for review and uses SDL dummy audio to verify dispatch and decoded resident
 samples. Add `--lifecycle` for spectator/rejoin record reuse, connection-generation
 audio, and the 64-projectile capacity/ammo/prediction check.
-`python3 tests/weapon_range.py --binary PATH` drives the actual ImGui
-range controls with X11 input and saves a panel capture. Both require a development
+`python3 tests/weapon_range.py --binary PATH` renders the Range panel and calls
+its shared controls through JSON. It checks authoritative weapon selection, ammo,
+reload, ADS and animation state, then saves a PNG panel capture. Both require a development
 client, Xvfb/lavapipe and installed content; hosted content uses
-`--content openarena --data /tmp/aftershock-openarena-baseoa`. Local Q3 uses
+`--content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa`. Local Q3 uses
 `~/.q3a/baseq3`. Neither command copies game paks into the repository.
 
 In a development client, `dev_weapon_range` opens the range panel on a local
@@ -937,7 +954,7 @@ Recording equality is not a gate. CI never records. Explicit replacement command
 
 ```
 python3 tests/weapons_demo.py --record-fixture --binary PATH
-python3 tests/weapons_demo.py --record-fixture --binary PATH --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/weapons_demo.py --record-fixture --binary PATH --content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa
 ```
 
 These affect only `tests/golden/weapons/<content>/range.dm_68` and its manifest.
@@ -958,7 +975,7 @@ Pillow and Mesa prerequisites as the material tests. The client must enable
 `AFTERSHOCK_DEVTOOLS` for the fixed spectator camera. It cooks owned wall/floor
 PBR materials on the opted-in level, checks separate and merged lightmap pages,
 compares direction-mapped pixels and requires an exact quality-setting round trip.
-Use `--content openarena --data /tmp/aftershock-openarena-baseoa` in hosted CI.
+Use `--content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa` in hosted CI.
 These captures are diagnostics; neither command records accepted references.
 
 The new material path uses an intensity/direction atlas at the existing spare
@@ -1063,7 +1080,7 @@ reach the middle-room shotgun, an east-room pickup and repeated combat. It repea
 with only the door/stair lane and only the ramp lane, so one good route cannot
 hide a broken second route. The client captures fixed views of all three rooms
 under Xvfb/lavapipe. Hosted CI uses `--content openarena --data
-/tmp/aftershock-openarena-baseoa`; local runs default to installed Quake 3 paks.
+$AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa`; local runs default to installed Quake 3 paks.
 Content paks are temporary symlinks and never enter the compiler's workspace.
 Only owned art and compiler outputs are committed.
 
@@ -1083,7 +1100,7 @@ JSON/text report and 240 bot position samples, and requires clear failures for a
 unreachable spawn, outside camera and deliberately open ceiling. Small controls
 also verify stationary/moving/dead bot inactivity classification. Add the same
 OpenArena content flags as `tests/level_runtime.py` for hosted content. Artifacts
-are JSON/text, engine/compiler logs and PNGs under `/tmp/aftershock-level-validation`.
+are JSON/text, engine/compiler logs and PNGs under `$AFTERSHOCK_SCRATCH/aftershock-level-validation`.
 No accepted demo, frame or level fixture is regenerated. See `tools/level/README.md`
 for report semantics, conservative design checks and the inactivity heuristic.
 
@@ -1106,7 +1123,7 @@ real filesystem pure list with statically linked modules and retained content-pa
 checksum accounting. `python3 tests/native_pure_runtime.py --client CLIENT --server
 SERVER` requires a real native client to enter play and chat on a password-protected
 `sv_pure=1` server. It defaults to local Quake 3; hosted CI passes `--content openarena
---data /tmp/aftershock-openarena-baseoa`. Native cgame/UI slots are explicitly zero;
+--data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa`. Native cgame/UI slots are explicitly zero;
 package checksum membership, duplicate and aggregate verification remain active.
 This validates content agreement, not executable attestation. Existing non-pure
 replay fixtures are unchanged; no fixture regeneration is required.
@@ -1123,3 +1140,47 @@ msetaro/aftershock. Only publication jobs have contents-write permission. Retry
 can replace that build's archive assets after verifying the immutable tag target;
 it never moves a tag or changes known-good rollback points. Ordinary release
 uploads retain their explicit release-event workflow.
+
+The #163 channel exposes asset registry pages, material overrides and structured
+CPU/GPU/memory/network telemetry. `tests/cook_runtime.py` now uses these queries
+and shared animation controls for watched texture/model/material edits, stable
+handles and memory, sub-second texture-to-frame latency and renderer restart.
+It samples the reported preview rectangle and preserves the prior image thresholds.
+Pass `--output DIR` to retain PNGs/logs or `--modules` to build the optional module
+configuration. Source assets are copied into private scratch; installed paks are
+only symlinked. `tests/agent_channel.py --binary DEDICATED` checks pipe stepping,
+idle clock and EOF; `tests/agent_play.py --binary CLIENT` checks seeded gameplay.
+
+### Scripted agent acceptance (#163)
+
+`python3 tests/agent_cli.py --binary CLIENT` checks a walked waypoint, live-target
+fire, hit/error/assert/p99 assertions, three PNG captures, failure reports and
+schema diagnostics. Add the usual `--content openarena --data PATH` for OA.
+`tests/agent_play.py --binary CLIENT` also checks real bot damage/death events.
+The standalone build/run command and script contract are documented in
+[tools/agent/README.md](../tools/agent/README.md); jsonschema is required for the CLI.
+
+`python3 tests/agent_formats.py` checks the six authoring schemas, example and
+error commands, cooker/level diagnostic integration, and production loader range
+parity. It needs jsonschema, Pillow, the cooker prerequisites and Go on PATH.
+Effects remain authoring-only pending #161; see the agent tool README.
+
+### Local full regression workflow
+
+`python3 tests/suite.py --list` lists the ten active regression job variants from
+regression.yml itself. With no job filter it runs every test command in those
+variants, records per-step logs and `suite-report.json` under the invocation root,
+and exits nonzero on any failure. Hosted package/tool installation is replaced
+by your installed prerequisites; nothing is installed into the local system.
+Use the pinned shader compiler and the installed OpenArena data source:
+
+```sh
+python3 tests/suite.py --glslang /path/to/glslang-16.6.0/bin/glslang --openarena-data /path/to/openarena/baseoa
+```
+
+Go 1.27.1, PyYAML, the cookbook requirements, both native compilers and cross
+compilers, clang-query/tidy, Docker and the usual runtime prerequisites must be
+available. `--job runtime` (or another listed id) runs a subset and explicitly
+marks the report `full: false`. Every subprocess inherits its job's private root;
+run in separate worktrees with separate roots for concurrency acceptance. The
+full hosted build matrix, including MSVC, remains a separate required merge gate.

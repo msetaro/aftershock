@@ -5,6 +5,7 @@
 #include "../qcommon/keys_public.h"
 #include "../../third_party/imgui/imgui.h"
 #include <inttypes.h>
+#include <cmath>
 
 static cvar_t *enabled;
 static ImGuiContext *context;
@@ -16,6 +17,44 @@ static uint32_t renderedFrames, allocations, animationFrames, drawnLines, drawnL
 static devUiVertex_t vertices[65536];
 static uint32_t indices[196608];
 static devUiCommand_t commands[4096];
+
+static const refexport_t *editorRenderer;
+static int selectedImage, selectedMaterial;
+static char requestedPanel[32], activePanel[32];
+static char filters[3][128], selectedCvar[MAX_STRING_CHARS], cvarValue[MAX_CVAR_VALUE_STRING];
+
+bool DevTools_Filter( const char *kind, const char *value ) {
+	const int index = !strcmp( kind, "cvars" ) ? 0 : !strcmp( kind, "images" )	? 1
+												 : !strcmp( kind, "materials" ) ? 2
+																				: -1;
+	if ( index < 0 || strlen( value ) >= sizeof( filters[0] ) )
+		return false;
+	if ( value != filters[index] )
+		Q_strncpyz( filters[index], value, sizeof( filters[0] ) );
+	return true;
+}
+bool DevTools_SelectCvar( const char *name ) {
+	for ( const cvar_t *var = Cvar_First(); var; var = var->next ) {
+		if ( var->name && !strcmp( name, var->name ) ) {
+			Q_strncpyz( selectedCvar, name, sizeof( selectedCvar ) );
+			Q_strncpyz( cvarValue, var->string, sizeof( cvarValue ) );
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool BeginPanel( const char *name, bool *open = nullptr, ImGuiTabItemFlags flags = ImGuiTabItemFlags_None ) {
+	if ( !strcmp( name, requestedPanel ) )
+		flags |= ImGuiTabItemFlags_SetSelected;
+	const bool shown = ImGui::BeginTabItem( name, open, flags );
+	if ( shown ) {
+		Q_strncpyz( activePanel, name, sizeof( activePanel ) );
+		if ( !strcmp( name, requestedPanel ) )
+			requestedPanel[0] = 0;
+	}
+	return shown;
+}
 
 static struct {
 	char path[MAX_QPATH], skinPath[MAX_QPATH];
@@ -35,7 +74,8 @@ static struct {
 // assets. Cooking stays offline; a map restart selects a new gameplay revision.
 static struct {
 	char path[MAX_QPATH], source[MAX_QPATH], loadedSource[MAX_QPATH];
-	char text[65536], saved[65536], status[256], lastEvent[64];
+	char text[65536], saved[65536], status[256], lastEvent[64], result[32];
+	char requestedTab[16], activeTab[16];
 	animAsset_t asset;
 	void *storage;
 	animState_t state;
@@ -52,6 +92,51 @@ static struct {
 	weaponDef_t definition;
 } weaponRange;
 
+bool DevTools_Range( const char *action, const char *path, int value ) {
+	if ( weaponRange.action )
+		return false;
+	int command = 0;
+	if ( !strcmp( action, "inspect" ) ) {
+		if ( !path[0] || strlen( path ) >= sizeof( weaponRange.path ) )
+			return false;
+		if ( path != weaponRange.path )
+			Q_strncpyz( weaponRange.path, path, sizeof( weaponRange.path ) );
+		command = 1;
+	} else if ( !strcmp( action, "capture" ) )
+		command = 12;
+	else if ( !strcmp( action, "close" ) ) {
+		weaponRange.visible = false;
+		return true;
+	} else {
+		if ( !DevTools_Game() || !Cvar_VariableIntegerValue( "sv_cheats" ) || DevTools_ViewClient() < 0 )
+			return false;
+		if ( !strcmp( action, "target" ) )
+			command = 2;
+		else if ( !strcmp( action, "select" ) && value >= 1 && value <= int( WEAPON_MAX_DEFINITIONS ) ) {
+			weaponRange.slot = value;
+			command = 3;
+		} else if ( !strcmp( action, "fire" ) )
+			command = 5;
+		else if ( !strcmp( action, "reload" ) )
+			command = 6;
+		else if ( !strcmp( action, "melee" ) )
+			command = 7;
+		else if ( !strcmp( action, "offhand" ) )
+			command = 8;
+		else if ( !strcmp( action, "ads" ) && ( value == 0 || value == 1 ) ) {
+			weaponRange.ads = value != 0;
+			command = 9;
+		} else if ( !strcmp( action, "attachments" ) && weaponRange.loaded && value >= 0 && value < ( 1 << weaponRange.definition.attachmentCount ) ) {
+			weaponRange.attachments = value;
+			command = 10;
+		} else if ( !strcmp( action, "restart" ) && weaponRange.loaded )
+			command = 11;
+		else
+			return false;
+	}
+	weaponRange.action = command;
+	return true;
+}
 static void WeaponRangeCommand( void ) {
 	weaponRange.visible = weaponRange.select = true;
 	weaponRange.slot = 1;
@@ -60,7 +145,7 @@ static void WeaponRangeCommand( void ) {
 		const char *cursor = Cvar_VariableString( "g_weapons" );
 		Q_strncpyz( weaponRange.path, COM_Parse( &cursor ), sizeof( weaponRange.path ) );
 	}
-	weaponRange.action = 1;
+	DevTools_Range( "inspect", weaponRange.path, 0 );
 	Com_Printf( "Developer weapon range: opened\n" );
 }
 static void InspectWeaponRange( void ) {
@@ -68,13 +153,13 @@ static void InspectWeaponRange( void ) {
 		return;
 	const auto flags = weaponRange.select ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
 	weaponRange.select = false;
-	if ( !ImGui::BeginTabItem( "Range", &weaponRange.visible, flags ) )
+	if ( !BeginPanel( "Range", &weaponRange.visible, flags ) )
 		return;
 	ImGui::SetNextItemWidth( 450 );
 	ImGui::InputText( "##Weapon asset", weaponRange.path, sizeof( weaponRange.path ) );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Inspect" ) )
-		weaponRange.action = 1;
+		DevTools_Range( "inspect", weaponRange.path, 0 );
 	if ( weaponRange.loaded ) {
 		const auto &weapon = weaponRange.definition;
 		ImGui::Text( "%s | damage %.1f | interval %u ms | magazine %u + 1", weapon.name, double( weapon.damage ), weapon.intervalMs, weapon.magazine );
@@ -85,40 +170,40 @@ static void InspectWeaponRange( void ) {
 	const bool local = DevTools_Game() && Cvar_VariableIntegerValue( "sv_cheats" ) && DevTools_ViewClient() >= 0;
 	ImGui::BeginDisabled( !local );
 	if ( ImGui::Button( "Spawn moving target", ImVec2( 162, 20 ) ) )
-		weaponRange.action = 2;
+		DevTools_Range( "target", "", 0 );
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth( 90 );
 	ImGui::InputInt( "##Weapon slot", &weaponRange.slot );
 	weaponRange.slot = MAX( 1, MIN( weaponRange.slot, int( WEAPON_MAX_DEFINITIONS ) ) );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Select slot", ImVec2( 90, 20 ) ) )
-		weaponRange.action = 3;
+		DevTools_Range( "select", "", weaponRange.slot );
 	ImGui::SetCursorPosY( 184 );
 	if ( ImGui::Button( "Fire", ImVec2( 42, 20 ) ) )
-		weaponRange.action = 5;
+		DevTools_Range( "fire", "", 0 );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Reload", ImVec2( 60, 20 ) ) )
-		weaponRange.action = 6;
+		DevTools_Range( "reload", "", 0 );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Melee", ImVec2( 55, 20 ) ) )
-		weaponRange.action = 7;
+		DevTools_Range( "melee", "", 0 );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Offhand", ImVec2( 70, 20 ) ) )
-		weaponRange.action = 8;
+		DevTools_Range( "offhand", "", 0 );
 	if ( ImGui::Checkbox( "ADS", &weaponRange.ads ) )
-		weaponRange.action = 9;
+		DevTools_Range( "ads", "", weaponRange.ads ? 1 : 0 );
 	if ( weaponRange.loaded && weaponRange.definition.attachmentCount ) {
 		ImGui::SliderInt( "Attachment mask", &weaponRange.attachments, 0, ( 1 << weaponRange.definition.attachmentCount ) - 1 );
 		if ( ImGui::Button( "Apply attachments" ) )
-			weaponRange.action = 10;
+			DevTools_Range( "attachments", "", weaponRange.attachments );
 	}
 	ImGui::SetCursorPosY( 276 );
 	if ( ImGui::Button( "Restart with inspected weapon", ImVec2( 260, 20 ) ) )
-		weaponRange.action = 11;
+		DevTools_Range( "restart", "", 0 );
 	ImGui::EndDisabled();
 	ImGui::SameLine();
 	if ( ImGui::Button( "Capture panel", ImVec2( 120, 20 ) ) )
-		weaponRange.action = 12;
+		DevTools_Range( "capture", "", 0 );
 	if ( !local )
 		ImGui::TextWrapped( "Open a local developer map to use range controls." );
 	ImGui::TextWrapped( "Inspect a cooked weapon, tune its source and recook, then restart. The active game keeps its map-start revision. Start the map with g_rewind 1 for moving targets." );
@@ -182,21 +267,73 @@ static void EditWeaponRange( void ) {
 
 template <typename T>
 static T GraphRecord( animSectionIndex_t section, uint32_t index ) {
-	T record;
-	memcpy( &record, graph.asset.data + graph.asset.header.sections[section].offset + index * sizeof( T ), sizeof( record ) );
-	return record;
+	return DevTools_GraphRecord<T>( &graph.asset, section, index );
+}
+const animAsset_t *DevTools_GraphAsset( const float **parameters ) {
+	*parameters = graph.parameters;
+	return graph.storage ? &graph.asset : nullptr;
+}
+static bool BeginGraphTab( const char *name ) {
+	const bool selected = !strcmp( name, graph.requestedTab );
+	if ( !ImGui::BeginTabItem( name, nullptr, selected ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None ) )
+		return false;
+	Q_strncpyz( graph.activeTab, name, sizeof( graph.activeTab ) );
+	if ( selected )
+		graph.requestedTab[0] = 0;
+	return true;
+}
+bool DevTools_Graph( const char *action, const char *text, float value ) {
+	if ( !strcmp( action, "tab" ) ) {
+		if ( strcmp( text, "Preview" ) && strcmp( text, "Source" ) && strcmp( text, "Tables" ) )
+			return false;
+		Q_strncpyz( graph.requestedTab, text, sizeof( graph.requestedTab ) );
+		graph.select = true;
+	} else if ( !strcmp( action, "load" ) || !strcmp( action, "source" ) ) {
+		if ( !text[0] || strlen( text ) >= MAX_QPATH )
+			return false;
+		const bool load = !strcmp( action, "load" );
+		char *path = load ? graph.path : graph.source;
+		if ( text != path )
+			Q_strncpyz( path, text, MAX_QPATH );
+		if ( load )
+			graph.load = true;
+		else
+			graph.read = true;
+		graph.select = true;
+	} else if ( !strcmp( action, "text" ) ) {
+		if ( strlen( text ) >= sizeof( graph.text ) )
+			return false;
+		if ( text != graph.text )
+			Q_strncpyz( graph.text, text, sizeof( graph.text ) );
+	} else if ( !strcmp( action, "save" ) ) {
+		if ( !graph.loadedSource[0] || graph.read )
+			return false;
+		graph.save = true;
+	} else if ( !strcmp( action, "undo" ) )
+		Q_strncpyz( graph.text, graph.saved, sizeof( graph.text ) );
+	else if ( !strcmp( action, "play" ) && ( value == 0 || value == 1 ) )
+		graph.play = value != 0;
+	else if ( !strcmp( action, "reset" ) && graph.storage ) {
+		graph.time = graph.remainder = 0;
+		Anim_Reset( &graph.asset, 0, &graph.state );
+	} else if ( !strcmp( action, "parameter" ) && graph.storage && std::isfinite( value ) ) {
+		for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_PARAMETERS].count; ++i ) {
+			const auto parameter = GraphRecord<animFileParameter_t>( ANIM_PARAMETERS, i );
+			if ( !strcmp( parameter.name, text ) ) {
+				if ( value < parameter.minimum || value > parameter.maximum )
+					return false;
+				graph.parameters[i] = value;
+				return true;
+			}
+		}
+		return false;
+	} else
+		return false;
+	return true;
 }
 static void GraphCommand( void ) {
-	const char *operation = Cmd_Argv( 1 );
-	if ( !strcmp( operation, "load" ) ) {
-		Q_strncpyz( graph.path, Cmd_Argv( 2 ), sizeof( graph.path ) );
-		graph.load = graph.select = true;
-	} else if ( !strcmp( operation, "source" ) ) {
-		Q_strncpyz( graph.source, Cmd_Argv( 2 ), sizeof( graph.source ) );
-		graph.read = graph.select = true;
-	} else {
+	if ( !DevTools_Graph( Cmd_Argv( 1 ), Cmd_Argv( 2 ), 0 ) )
 		Com_Printf( "dev_animation load <cooked.asanim> | source <animation_source/file.json>\n" );
-	}
 }
 static bool GraphReadSource( const char *path, char *text, size_t capacity ) {
 	fileHandle_t file;
@@ -235,9 +372,11 @@ static void EditGraph( const refexport_t *renderer ) {
 			graph.lastEvent[0] = '\0';
 			Anim_Reset( &asset, 0, &graph.state );
 			Anim_DefaultParameters( &asset, graph.parameters );
+			Q_strncpyz( graph.result, "loaded", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Graph loaded. Gameplay keeps its map-start revision.", sizeof( graph.status ) );
 			Com_Printf( "Animation graph loaded: state=%s\n", Anim_StateName( &asset, graph.state.current ) );
 		} else {
+			Q_strncpyz( graph.result, "load_failed", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Graph load failed; the previous preview remains available.", sizeof( graph.status ) );
 		}
 	}
@@ -249,25 +388,30 @@ static void EditGraph( const refexport_t *renderer ) {
 		for ( const char *p = graph.source; *p; ++p )
 			valid &= ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '/' || *p == '_' || *p == '-' || *p == '.';
 		if ( !valid ) {
+			Q_strncpyz( graph.result, "invalid_path", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Use a lowercase animation_source/*.json path.", sizeof( graph.status ) );
 			return;
 		}
 		char current[sizeof( graph.text )];
 		if ( !GraphReadSource( graph.source, current, sizeof( current ) ) ) {
+			Q_strncpyz( graph.result, "read_failed", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Source read failed or exceeds 65535 bytes; edits retained.", sizeof( graph.status ) );
 			return;
 		}
 		if ( read ) {
 			if ( strcmp( graph.text, graph.saved ) ) {
+				Q_strncpyz( graph.result, "unsaved_edits", sizeof( graph.result ) );
 				Q_strncpyz( graph.status, "Unsaved edits: save or undo them before loading another source.", sizeof( graph.status ) );
 				return;
 			}
 			Q_strncpyz( graph.text, current, sizeof( graph.text ) );
 			Q_strncpyz( graph.saved, current, sizeof( graph.saved ) );
 			Q_strncpyz( graph.loadedSource, graph.source, sizeof( graph.loadedSource ) );
+			Q_strncpyz( graph.result, "source_loaded", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Source loaded. Save keeps a numbered backup; the cooker validates JSON.", sizeof( graph.status ) );
 		} else {
 			if ( strcmp( graph.source, graph.loadedSource ) || strcmp( current, graph.saved ) ) {
+				Q_strncpyz( graph.result, "source_changed", sizeof( graph.result ) );
 				Q_strncpyz( graph.status, "Source changed outside the editor; save refused, edits retained.", sizeof( graph.status ) );
 				return;
 			}
@@ -279,14 +423,17 @@ static void EditGraph( const refexport_t *renderer ) {
 					break;
 			}
 			if ( revision == 1000 || !GraphWriteSource( backup, current ) ) {
+				Q_strncpyz( graph.result, "backup_failed", sizeof( graph.result ) );
 				Q_strncpyz( graph.status, "Backup failed or 1000 revisions reached; source unchanged.", sizeof( graph.status ) );
 				return;
 			}
 			if ( !GraphWriteSource( graph.source, graph.text ) || !GraphReadSource( graph.source, current, sizeof( current ) ) || strcmp( current, graph.text ) ) {
+				Q_strncpyz( graph.result, "save_failed", sizeof( graph.result ) );
 				Com_sprintf( graph.status, sizeof( graph.status ), "Save failed; edits retained, previous source in %s.", backup );
 				return;
 			}
 			Q_strncpyz( graph.saved, graph.text, sizeof( graph.saved ) );
+			Q_strncpyz( graph.result, "saved", sizeof( graph.result ) );
 			Q_strncpyz( graph.status, "Source saved. Check cooker output, then load the cooked graph.", sizeof( graph.status ) );
 			Com_Printf( "Animation source saved: %s (backup %s)\n", graph.source, backup );
 		}
@@ -295,30 +442,32 @@ static void EditGraph( const refexport_t *renderer ) {
 static void InspectGraph( uint32_t elapsed ) {
 	const ImGuiTabItemFlags flags = graph.select ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
 	graph.select = false;
-	if ( !ImGui::BeginTabItem( "Graph", nullptr, flags ) )
+	if ( !BeginPanel( "Graph", nullptr, flags ) )
 		return;
 	ImGui::SetNextItemWidth( 370 );
 	ImGui::InputText( "##Cooked graph", graph.path, sizeof( graph.path ) );
 	ImGui::SameLine();
-	graph.load |= ImGui::Button( "Load graph" );
+	if ( ImGui::Button( "Load graph" ) )
+		DevTools_Graph( "load", graph.path, 0 );
 	if ( ImGui::BeginTabBar( "Graph views" ) ) {
-		if ( ImGui::BeginTabItem( "Preview" ) ) {
+		if ( BeginGraphTab( "Preview" ) ) {
 			if ( graph.storage ) {
 				ImGui::Text( "State: %s | last event: %s", Anim_StateName( &graph.asset, graph.state.current ), graph.lastEvent );
-				ImGui::Checkbox( "Play fixed steps", &graph.play );
+				if ( ImGui::Checkbox( "Play fixed steps", &graph.play ) )
+					DevTools_Graph( "play", "", graph.play ? 1.0f : 0.0f );
 				ImGui::SameLine();
-				if ( ImGui::Button( "Reset" ) ) {
-					graph.time = graph.remainder = 0;
-					Anim_Reset( &graph.asset, 0, &graph.state );
-				}
+				if ( ImGui::Button( "Reset" ) )
+					DevTools_Graph( "reset", "", 0 );
 				if ( ImGui::BeginChild( "Inputs", ImVec2( 0, 110 ), ImGuiChildFlags_Borders ) ) {
 					for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_PARAMETERS].count; ++i ) {
 						const auto parameter = GraphRecord<animFileParameter_t>( ANIM_PARAMETERS, i );
-						ImGui::SliderFloat( parameter.name, &graph.parameters[i], parameter.minimum, parameter.maximum );
+						if ( ImGui::SliderFloat( parameter.name, &graph.parameters[i], parameter.minimum, parameter.maximum ) )
+							DevTools_Graph( "parameter", parameter.name, graph.parameters[i] );
 					}
 				}
 				ImGui::EndChild();
-				ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 );
+				if ( ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 ) )
+					DevTools_SetAnimation( "yaw", animation.yaw );
 				if ( graph.play ) {
 					graph.remainder += MIN( elapsed, 250U );
 					while ( graph.remainder >= 20 ) {
@@ -327,6 +476,7 @@ static void InspectGraph( uint32_t elapsed ) {
 						animEvents_t events;
 						if ( !Anim_Tick( &graph.asset, graph.parameters, graph.time, &graph.state, &events ) ) {
 							graph.play = false;
+							Q_strncpyz( graph.result, "tick_failed", sizeof( graph.result ) );
 							Q_strncpyz( graph.status, "Graph tick failed; preview paused.", sizeof( graph.status ) );
 							break;
 						}
@@ -345,19 +495,22 @@ static void InspectGraph( uint32_t elapsed ) {
 			}
 			ImGui::EndTabItem();
 		}
-		if ( ImGui::BeginTabItem( "Source" ) ) {
+		if ( BeginGraphTab( "Source" ) ) {
 			ImGui::SetNextItemWidth( 460 );
 			ImGui::InputText( "##Source path", graph.source, sizeof( graph.source ) );
-			graph.read |= ImGui::Button( "Load source" );
+			if ( ImGui::Button( "Load source" ) )
+				DevTools_Graph( "source", graph.source, 0 );
 			ImGui::SameLine();
-			graph.save |= ImGui::Button( "Save + backup" );
+			if ( ImGui::Button( "Save + backup" ) )
+				DevTools_Graph( "save", "", 0 );
 			ImGui::SameLine();
 			if ( ImGui::Button( "Undo edits" ) )
-				Q_strncpyz( graph.text, graph.saved, sizeof( graph.text ) );
-			ImGui::InputTextMultiline( "##Graph JSON", graph.text, sizeof( graph.text ), ImVec2( -1, 210 ), ImGuiInputTextFlags_AllowTabInput );
+				DevTools_Graph( "undo", "", 0 );
+			if ( ImGui::InputTextMultiline( "##Graph JSON", graph.text, sizeof( graph.text ), ImVec2( -1, 210 ), ImGuiInputTextFlags_AllowTabInput ) )
+				DevTools_Graph( "text", graph.text, 0 );
 			ImGui::EndTabItem();
 		}
-		if ( ImGui::BeginTabItem( "Tables" ) ) {
+		if ( BeginGraphTab( "Tables" ) ) {
 			if ( graph.storage ) {
 				if ( ImGui::TreeNode( "States / events" ) ) {
 					for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_STATES].count; ++i ) {
@@ -457,6 +610,7 @@ void DevTools_Init( void ) {
 
 void DevTools_Reset( void ) {
 	inputCaptured = false;
+	editorRenderer = nullptr;
 	DevTools_ClearWorld();
 	DevTools_SetView( nullptr );
 	if ( context )
@@ -631,44 +785,97 @@ static void ImagePreview( const refexport_t *renderer, int index, float extent )
 	}
 }
 
+const refexport_t *DevTools_Renderer( void ) {
+	return editorRenderer;
+}
+bool DevTools_SelectAsset( const char *kind, int index ) {
+	if ( !editorRenderer )
+		return false;
+	if ( !strcmp( kind, "images" ) ) {
+		devImage_t image;
+		if ( !editorRenderer->GetDeveloperImage( index, &image ) )
+			return false;
+		selectedImage = index;
+	} else if ( !strcmp( kind, "materials" ) ) {
+		devMaterial_t material;
+		if ( !editorRenderer->GetDeveloperMaterial( index, &material ) )
+			return false;
+		selectedMaterial = index;
+	} else if ( !strcmp( kind, "models" ) )
+		return DevTools_SetAnimation( "model", (float)index );
+	else
+		return false;
+	return true;
+}
+bool DevTools_MaterialPreview( int index, bool previewEnabled ) {
+	devMaterial_t material;
+	if ( !editorRenderer || !editorRenderer->GetDeveloperMaterial( index, &material ) || !material.metallicRoughness )
+		return false;
+	materialPreview.enabled = previewEnabled;
+	if ( previewEnabled ) {
+		materialPreview.instance.mask = 63;
+		materialPreview.instance.values = material.params;
+	}
+	return true;
+}
+bool DevTools_SetMaterial( int index, const materialParams_t *params ) {
+	devMaterial_t material;
+	if ( !params || !editorRenderer || !editorRenderer->GetDeveloperMaterial( index, &material ) || !material.metallicRoughness || params->flags != material.params.flags )
+		return false;
+	for ( float value : params->color )
+		if ( !( value >= 0 && value <= 1 ) )
+			return false;
+	for ( float value : params->emissive )
+		if ( !( value >= 0 && value <= 1 ) )
+			return false;
+	if ( !( params->metallic >= 0 && params->metallic <= 1 && params->roughness >= 0 && params->roughness <= 1 &&
+			 params->alphaCutoff >= 0 && params->alphaCutoff <= 1 && std::isfinite( params->normalScale ) ) )
+		return false;
+	if ( materialPreview.enabled ) {
+		materialPreview.instance.values = *params;
+		return true;
+	}
+	return editorRenderer->SetDeveloperMaterial( index, params );
+}
+
 static void InspectAssets( const refexport_t *renderer ) {
-	if ( ImGui::BeginTabItem( "Textures" ) ) {
-		static char filter[128];
-		static int selected;
-		ImGui::InputText( "Filter textures", filter, sizeof( filter ) );
+	if ( BeginPanel( "Textures" ) ) {
+		auto &filter = filters[1];
+		if ( ImGui::InputText( "Filter textures", filter, sizeof( filter ) ) )
+			DevTools_Filter( "images", filter );
 		if ( ImGui::BeginChild( "Images", ImVec2( 0, 120 ), ImGuiChildFlags_Borders ) ) {
 			devImage_t image;
 			for ( int i = 0; renderer->GetDeveloperImage( i, &image ); ++i ) {
 				if ( *filter && !Q_stristr( image.name, filter ) )
 					continue;
 				ImGui::PushID( i );
-				if ( ImGui::Selectable( image.name, selected == i ) )
-					selected = i;
+				if ( ImGui::Selectable( image.name, selectedImage == i ) )
+					DevTools_SelectAsset( "images", i );
 				ImGui::PopID();
 			}
 		}
 		ImGui::EndChild();
-		ImagePreview( renderer, selected, 200 );
+		ImagePreview( renderer, selectedImage, 200 );
 		ImGui::EndTabItem();
 	}
-	if ( ImGui::BeginTabItem( "Materials" ) ) {
-		static char filter[128];
-		static int selected;
-		ImGui::InputText( "Filter materials", filter, sizeof( filter ) );
+	if ( BeginPanel( "Materials" ) ) {
+		auto &filter = filters[2];
+		if ( ImGui::InputText( "Filter materials", filter, sizeof( filter ) ) )
+			DevTools_Filter( "materials", filter );
 		if ( ImGui::BeginChild( "Shaders", ImVec2( 0, 120 ), ImGuiChildFlags_Borders ) ) {
 			devMaterial_t material;
 			for ( int i = 0; renderer->GetDeveloperMaterial( i, &material ); ++i ) {
 				if ( *filter && !Q_stristr( material.name, filter ) )
 					continue;
 				ImGui::PushID( i );
-				if ( ImGui::Selectable( material.name, selected == i ) )
-					selected = i;
+				if ( ImGui::Selectable( material.name, selectedMaterial == i ) )
+					DevTools_SelectAsset( "materials", i );
 				ImGui::PopID();
 			}
 		}
 		ImGui::EndChild();
 		devMaterial_t material;
-		if ( renderer->GetDeveloperMaterial( selected, &material ) ) {
+		if ( renderer->GetDeveloperMaterial( selectedMaterial, &material ) ) {
 			ImGui::TextWrapped( "%s", material.name );
 			ImGui::Text( "sort %.2f cull %d surface 0x%x content 0x%x", material.sort,
 				material.cull, (uint32_t)material.surfaceFlags, (uint32_t)material.contentFlags );
@@ -680,10 +887,8 @@ static void InspectAssets( const refexport_t *renderer ) {
 			}
 			if ( material.metallicRoughness ) {
 				ImGui::TextUnformatted( "Metallic / roughness; edits last until source reload" );
-				if ( ImGui::Checkbox( "Override preview instance", &materialPreview.enabled ) && materialPreview.enabled ) {
-					materialPreview.instance.mask = 63;
-					materialPreview.instance.values = material.params;
-				}
+				if ( ImGui::Checkbox( "Override preview instance", &materialPreview.enabled ) )
+					DevTools_MaterialPreview( selectedMaterial, materialPreview.enabled );
 				if ( materialPreview.enabled )
 					material.params = materialPreview.instance.values;
 				bool changed = ImGui::ColorEdit4( "Base color / opacity", material.params.color );
@@ -692,12 +897,8 @@ static void InspectAssets( const refexport_t *renderer ) {
 				changed |= ImGui::SliderFloat( "Roughness", &material.params.roughness, 0, 1 );
 				changed |= ImGui::SliderFloat( "Normal scale", &material.params.normalScale, 0, 2 );
 				changed |= ImGui::SliderFloat( "Mask cutoff", &material.params.alphaCutoff, 0, 1 );
-				if ( changed ) {
-					if ( materialPreview.enabled )
-						materialPreview.instance.values = material.params;
-					else
-						renderer->SetDeveloperMaterial( selected, &material.params );
-				}
+				if ( changed )
+					DevTools_SetMaterial( selectedMaterial, &material.params );
 			}
 			for ( int stage = 0; stage < material.stages; ++stage ) {
 				if ( !material.present[stage] ) {
@@ -716,7 +917,7 @@ static void InspectAssets( const refexport_t *renderer ) {
 }
 
 static void InspectMemory( void ) {
-	if ( !ImGui::BeginTabItem( "Memory" ) )
+	if ( !BeginPanel( "Memory" ) )
 		return;
 	devMemory_t memory;
 	Com_DeveloperMemory( &memory );
@@ -747,14 +948,83 @@ static struct {
 	float radius = 512;
 } worldDebug;
 
+bool DevTools_SelectPanel( const char *name ) {
+	static constexpr const char *panels[] = { "Console", "Cvars", "Textures", "Materials", "Profile", "Memory", "Animation", "Entities", "World", "Graph", "Range" };
+	for ( const char *panel : panels ) {
+		if ( !strcmp( name, panel ) ) {
+			Q_strncpyz( requestedPanel, panel, sizeof( requestedPanel ) );
+			if ( !strcmp( name, "Range" ) )
+				weaponRange.visible = true;
+			Cvar_Set( "dev_tools", "1" );
+			return true;
+		}
+	}
+	return false;
+}
+
+bool DevTools_SetWorld( bool collision, bool navigation, bool entitiesVisible, float radius ) {
+	if ( !std::isfinite( radius ) || radius < 64 || radius > 2048 )
+		return false;
+	worldDebug.collision = collision;
+	worldDebug.navigation = navigation;
+	worldDebug.entities = entitiesVisible;
+	worldDebug.radius = radius;
+	worldDebug.refresh = true;
+	return true;
+}
+
+void DevTools_EditorState( devEditorState_t *state ) {
+	*state = {};
+	Q_strncpyz( state->panel, activePanel, sizeof( state->panel ) );
+	Q_strncpyz( state->cvar, selectedCvar, sizeof( state->cvar ) );
+	memcpy( state->filters, filters, sizeof( filters ) );
+	Q_strncpyz( state->clip, animation.clipName, sizeof( state->clip ) );
+	state->frames = renderedFrames;
+	state->allocations = allocations;
+	state->arena = Z_DevMemoryUsed();
+	state->enabled = enabled && enabled->integer;
+	state->inputCaptured = inputCaptured;
+	state->lines = drawnLines;
+	state->labels = drawnLabels;
+	const devLine_t *lines;
+	state->worldLines = DevTools_Lines( &lines, true );
+	state->collision = worldDebug.collision;
+	state->navigation = worldDebug.navigation;
+	state->entities = worldDebug.entities;
+	state->selectedEntity = entities.selected;
+	state->model = animation.model;
+	state->animationFrame = animation.frame;
+	state->viewport[0] = animation.x;
+	state->viewport[1] = animation.y;
+	state->viewport[2] = animation.width;
+	state->viewport[3] = animation.height;
+	state->animationPreviews = animationFrames;
+	state->animationPlay = animation.play;
+	Q_strncpyz( state->graphState, graph.storage ? Anim_StateName( &graph.asset, graph.state.current ) : "", sizeof( state->graphState ) );
+	Q_strncpyz( state->graphEvent, graph.lastEvent, sizeof( state->graphEvent ) );
+	Q_strncpyz( state->graphResult, graph.result, sizeof( state->graphResult ) );
+	Q_strncpyz( state->graphTab, graph.activeTab, sizeof( state->graphTab ) );
+	state->graphPreviews = graph.previews;
+	state->graphTime = graph.time;
+	state->graphDirty = strcmp( graph.text, graph.saved ) != 0;
+	state->graphPlay = graph.play;
+	state->rangeLoaded = weaponRange.loaded;
+	state->rangeAds = weaponRange.ads;
+	state->rangeSlot = weaponRange.slot;
+	state->rangeAttachments = weaponRange.attachments;
+	Q_strncpyz( state->rangeName, weaponRange.loaded ? weaponRange.definition.name : "", sizeof( state->rangeName ) );
+}
+
 static void InspectWorld( void ) {
-	if ( !ImGui::BeginTabItem( "World" ) )
+	if ( !BeginPanel( "World" ) )
 		return;
-	worldDebug.refresh |= ImGui::Checkbox( "Collision surfaces", &worldDebug.collision );
-	worldDebug.refresh |= ImGui::Checkbox( "Navigation areas and routes", &worldDebug.navigation );
-	ImGui::Checkbox( "Live entity bounds", &worldDebug.entities );
+	bool refresh = ImGui::Checkbox( "Collision surfaces", &worldDebug.collision );
+	refresh |= ImGui::Checkbox( "Navigation areas and routes", &worldDebug.navigation );
+	refresh |= ImGui::Checkbox( "Live entity bounds", &worldDebug.entities );
 	ImGui::SliderFloat( "Radius", &worldDebug.radius, 64, 2048 );
-	worldDebug.refresh |= ImGui::Button( "Refresh around camera" );
+	refresh |= ImGui::Button( "Refresh around camera" );
+	if ( refresh )
+		DevTools_SetWorld( worldDebug.collision, worldDebug.navigation, worldDebug.entities, worldDebug.radius );
 	const devLine_t *lines;
 	ImGui::Text( "World cache %u / 4096 lines; omitted %u", DevTools_Lines( &lines, true ), DevTools_DebugDropped() );
 	ImGui::TextWrapped( "X-ray wireframes: cyan world brushes, pink patch facets, green navigation, orange reachability. Stripped AAS files show area bounds in place of missing ground faces. Cached surfaces refresh on request, up to 1024 nearby brushes. Navigation requires a local server with loaded AAS. Refresh after moving." );
@@ -836,8 +1106,37 @@ static void DrawWorldDebug( void ) {
 	draw->PopClipRect();
 }
 
+bool DevTools_SelectEntity( int entity ) {
+	const auto *game = DevTools_Game();
+	devEntity_t info;
+	if ( entity != -1 && ( !game || !game->ReadEntity( entity, &info ) ) )
+		return false;
+	entities.selected = entity;
+	return true;
+}
+bool DevTools_EntityAtCamera( float *origin ) {
+	const auto *view = DevTools_View();
+	if ( !view )
+		return false;
+	VectorMA( view->vieworg, 64, view->viewaxis[0], origin );
+	return true;
+}
+int DevTools_PickCrosshair( void ) {
+	const auto *view = DevTools_View();
+	const int picked = view ? DevTools_PickEntity( (float)view->x + (float)view->width * 0.5f, (float)view->y + (float)view->height * 0.5f ) : -1;
+	DevTools_SelectEntity( picked );
+	return picked;
+}
+bool DevTools_ReloadEntities( void ) {
+	if ( !DevTools_Game() || !Cvar_VariableIntegerValue( "sv_cheats" ) || !*Cvar_VariableString( "dev_entityFile" ) )
+		return false;
+	Cvar_Set( "dev_loadEntities", "1" );
+	Cbuf_AddText( "map_restart 0\n" );
+	return true;
+}
+
 static void InspectEntities( void ) {
-	if ( !ImGui::BeginTabItem( "Entities" ) )
+	if ( !BeginPanel( "Entities" ) )
 		return;
 	const devGameTools_t *game = DevTools_Game();
 	if ( !game ) {
@@ -858,7 +1157,7 @@ static void InspectEntities( void ) {
 			char label[96];
 			Com_sprintf( label, sizeof( label ), "%d: %s", i, info.classname );
 			if ( ImGui::Selectable( label, i == entities.selected ) )
-				entities.selected = i;
+				DevTools_SelectEntity( i );
 		}
 	}
 	ImGui::EndChild();
@@ -886,10 +1185,8 @@ static void InspectEntities( void ) {
 	ImGui::Separator();
 	ImGui::InputText( "Spawn class", entities.classname, sizeof( entities.classname ) );
 	ImGui::InputFloat3( "Spawn origin", entities.origin );
-	if ( ImGui::Button( "At camera" ) ) {
-		if ( const refdef_t *view = DevTools_View() )
-			VectorMA( view->vieworg, 64, view->viewaxis[0], entities.origin );
-	}
+	if ( ImGui::Button( "At camera" ) )
+		DevTools_EntityAtCamera( entities.origin );
 	ImGui::SameLine();
 	ImGui::BeginDisabled( !editable );
 	if ( ImGui::Button( "Spawn" ) )
@@ -919,24 +1216,16 @@ static void EditEntities( void ) {
 		success = game->Delete( entities.selected );
 		break;
 	case 3:
-		entities.selected = game->Spawn( entities.classname, entities.origin );
-		success = entities.selected >= 0;
+		success = DevTools_SelectEntity( game->Spawn( entities.classname, entities.origin ) ) && entities.selected >= 0;
 		break;
 	case 4:
 		success = DevTools_SaveEntities();
 		break;
 	case 6:
-		if ( const refdef_t *view = DevTools_View() ) {
-			entities.selected = DevTools_PickEntity( (float)view->x + (float)view->width * 0.5f, (float)view->y + (float)view->height * 0.5f );
-			success = entities.selected >= 0;
-		}
+		success = DevTools_PickCrosshair() >= 0;
 		break;
 	case 5:
-		if ( *Cvar_VariableString( "dev_entityFile" ) ) {
-			Cvar_Set( "dev_loadEntities", "1" );
-			Cbuf_AddText( "map_restart 0\n" );
-			success = true;
-		}
+		success = DevTools_ReloadEntities();
 		break;
 	default:
 		break;
@@ -945,13 +1234,62 @@ static void EditEntities( void ) {
 	Com_Printf( "Developer entity action %d: %s (entity %d)\n", entities.action, success ? "completed" : "rejected", entities.selected );
 }
 
+bool DevTools_LoadAnimation( const char *path, const char *skin ) {
+	if ( !path[0] || strlen( path ) >= sizeof( animation.path ) || strlen( skin ) >= sizeof( animation.skinPath ) )
+		return false;
+	if ( path != animation.path )
+		Q_strncpyz( animation.path, path, sizeof( animation.path ) );
+	if ( skin != animation.skinPath )
+		Q_strncpyz( animation.skinPath, skin, sizeof( animation.skinPath ) );
+	animation.load = true;
+	return true;
+}
+
+bool DevTools_SetAnimation( const char *field, float value ) {
+	if ( !std::isfinite( value ) || !editorRenderer )
+		return false;
+	if ( !strcmp( field, "play" ) && ( value == 0 || value == 1 ) )
+		animation.play = value != 0;
+	else if ( !strcmp( field, "fps" ) && value >= 1 && value <= 60 )
+		animation.fps = value;
+	else if ( !strcmp( field, "yaw" ) && value >= -180 && value <= 180 )
+		animation.yaw = value;
+	else if ( !strcmp( field, "model" ) && value >= 1 && value <= 4096 && std::trunc( value ) == value ) {
+		devModel_t model;
+		if ( !editorRenderer->GetDeveloperModel( (int)value, &model ) || model.frames < 1 )
+			return false;
+		animation.model = (int)value;
+		animation.frame = animation.clip = 0;
+		animation.phase = 0;
+		Q_strncpyz( animation.path, model.name, sizeof( animation.path ) );
+	} else if ( !strcmp( field, "clip" ) && value >= 0 && value <= 4096 && std::trunc( value ) == value ) {
+		modelAnimation_t clip;
+		if ( !editorRenderer->GetModelAnimation( animation.model, (int)value, &clip ) )
+			return false;
+		animation.clip = (int)value;
+		animation.frame = (int)clip.firstFrame;
+		animation.phase = (float)clip.firstFrame;
+		animation.fps = clip.framesPerSecond;
+	} else if ( !strcmp( field, "frame" ) && value >= 0 && value < 2147483648.0f && std::trunc( value ) == value ) {
+		devModel_t model;
+		if ( !editorRenderer->GetDeveloperModel( animation.model, &model ) || value >= (float)model.frames )
+			return false;
+		animation.frame = (int)value;
+		animation.play = false;
+		animation.phase = value;
+	} else
+		return false;
+	return true;
+}
+
 static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
-	animation.draw = animation.load = false;
-	if ( !ImGui::BeginTabItem( "Animation" ) )
+	animation.draw = false;
+	if ( !BeginPanel( "Animation" ) )
 		return;
 	ImGui::InputText( "Model", animation.path, sizeof( animation.path ) );
 	ImGui::InputText( "Skin (optional)", animation.skinPath, sizeof( animation.skinPath ) );
-	animation.load = ImGui::Button( "Load model / skin" );
+	if ( ImGui::Button( "Load model / skin" ) )
+		DevTools_LoadAnimation( animation.path, animation.skinPath );
 	if ( ImGui::BeginChild( "Loaded models", ImVec2( 0, 70 ), ImGuiChildFlags_Borders ) ) {
 		devModel_t model;
 		for ( int i = 1; renderer->GetDeveloperModel( i, &model ); ++i ) {
@@ -959,11 +1297,7 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 				continue;
 			ImGui::PushID( i );
 			if ( ImGui::Selectable( model.name, i == animation.model ) ) {
-				animation.model = i;
-				animation.frame = 0;
-				animation.phase = 0;
-				animation.clip = 0;
-				Q_strncpyz( animation.path, model.name, sizeof( animation.path ) );
+				DevTools_SetAnimation( "model", (float)i );
 			}
 			ImGui::PopID();
 		}
@@ -984,11 +1318,8 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 				modelAnimation_t choice;
 				for ( int i = 0; renderer->GetModelAnimation( animation.model, i, &choice ); i++ ) {
 					if ( ImGui::Selectable( choice.name, animation.clip == i ) ) {
-						animation.clip = i;
+						DevTools_SetAnimation( "clip", (float)i );
 						clip = choice;
-						animation.frame = (int)clip.firstFrame;
-						animation.phase = (float)clip.firstFrame;
-						animation.fps = clip.framesPerSecond;
 					}
 				}
 				ImGui::EndCombo();
@@ -1003,13 +1334,15 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 		}
 		animation.frame = MAX( firstFrame, MIN( animation.frame, lastFrame ) );
 		if ( ImGui::SliderInt( "Frame", &animation.frame, firstFrame, lastFrame ) ) {
-			animation.play = false;
-			animation.phase = (float)animation.frame;
+			DevTools_SetAnimation( "frame", (float)animation.frame );
 		}
-		ImGui::Checkbox( "Play", &animation.play );
+		if ( ImGui::Checkbox( "Play", &animation.play ) )
+			DevTools_SetAnimation( "play", animation.play ? 1.0f : 0.0f );
 		ImGui::SameLine();
-		ImGui::SliderFloat( "FPS", &animation.fps, 1, 60 );
-		ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 );
+		if ( ImGui::SliderFloat( "FPS", &animation.fps, 1, 60 ) )
+			DevTools_SetAnimation( "fps", animation.fps );
+		if ( ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 ) )
+			DevTools_SetAnimation( "yaw", animation.yaw );
 		if ( animation.play ) {
 			animation.phase = MAX( (float)firstFrame, animation.phase ) + (float)MIN( elapsed, 250U ) * animation.fps * 0.001f;
 			if ( clip.flags & 1 )
@@ -1038,8 +1371,9 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 	ImGui::EndTabItem();
 }
 
-static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
+static void LoadAnimation( const refexport_t *renderer ) {
 	if ( animation.load ) {
+		animation.load = false;
 		animation.model = renderer->RegisterModel( animation.path );
 		animation.skin = *animation.skinPath ? renderer->RegisterSkin( animation.skinPath ) : 0;
 		animation.phase = 0;
@@ -1053,6 +1387,10 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 			animation.fps = clip.framesPerSecond;
 		}
 	}
+}
+
+static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
+	LoadAnimation( renderer );
 	devModel_t model;
 	const int modelHandle = graph.draw ? graph.model : animation.model;
 	if ( !( animation.draw || graph.draw ) || !renderer->GetDeveloperModel( modelHandle, &model ) || model.frames < 1 )
@@ -1126,7 +1464,7 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 		}
 		previousTime = milliseconds;
 	}
-	if ( !ImGui::BeginTabItem( "Profile" ) )
+	if ( !BeginPanel( "Profile" ) )
 		return;
 	ImGui::PlotLines( "Frame ms", history, ARRAY_LEN( history ), (int)( cursor % ARRAY_LEN( history ) ), nullptr, 0, 100, ImVec2( 0, 80 ) );
 	devGpuTiming_t timings[32];
@@ -1163,6 +1501,14 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 }
 
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds ) {
+	editorRenderer = renderer;
+	EditWeaponRange();
+	EditGraph( renderer );
+	LoadAnimation( renderer );
+	if ( worldDebug.refresh ) {
+		DevTools_RebuildWorld( worldDebug.collision, worldDebug.navigation, worldDebug.radius );
+		worldDebug.refresh = false;
+	}
 	if ( !enabled || !enabled->integer || width <= 0 || height <= 0 ) {
 		inputCaptured = false;
 		return;
@@ -1207,23 +1553,25 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	const uint32_t elapsed = lastTime ? (uint32_t)milliseconds - lastTime : 0;
 	io.DeltaTime = lastTime ? Com_Clamp( 0.001f, 0.25f, (float)elapsed * 0.001f ) : 1.0f / 60.0f;
 	lastTime = (uint32_t)milliseconds;
-	animation.draw = animation.load = false;
+	animation.draw = false;
 	graph.draw = false;
 	entities.action = 0;
-	worldDebug.refresh = false;
 	if ( !*entities.classname )
 		Q_strncpyz( entities.classname, "target_position", sizeof( entities.classname ) );
 	if ( animation.fps < 1 )
 		animation.fps = 15;
 	ImGui::NewFrame();
-	static char command[1024], filter[128], selected[MAX_STRING_CHARS], value[MAX_CVAR_VALUE_STRING];
+	static char command[1024];
+	auto &filter = filters[0];
+	auto &selected = selectedCvar;
+	auto &value = cvarValue;
 	bool execute = false, apply = false;
 	ImGui::SetNextWindowSize( ImVec2( (float)MIN( width - 20, 700 ), (float)MIN( height - 20, 540 ) ), ImGuiCond_FirstUseEver );
 	ImGui::SetNextWindowPos( ImVec2( 10, 10 ), ImGuiCond_FirstUseEver );
 	if ( ImGui::Begin( "Aftershock developer tools" ) ) {
 		ImGui::Text( "Escape closes | UI arena %zu / 16777216 bytes", Z_DevMemoryUsed() );
 		if ( ImGui::BeginTabBar( "Tools" ) ) {
-			if ( ImGui::BeginTabItem( "Console" ) ) {
+			if ( BeginPanel( "Console" ) ) {
 				if ( ImGui::BeginChild( "Output", ImVec2( 0, -38 ), ImGuiChildFlags_Borders ) )
 					ImGui::TextUnformatted( DevTools_Console() );
 				ImGui::EndChild();
@@ -1232,16 +1580,15 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 				execute |= ImGui::Button( "Run" );
 				ImGui::EndTabItem();
 			}
-			if ( ImGui::BeginTabItem( "Cvars" ) ) {
-				ImGui::InputText( "Search", filter, sizeof( filter ) );
+			if ( BeginPanel( "Cvars" ) ) {
+				if ( ImGui::InputText( "Search", filter, sizeof( filter ) ) )
+					DevTools_Filter( "cvars", filter );
 				if ( ImGui::BeginChild( "Variables", ImVec2( 0, -110 ), ImGuiChildFlags_Borders ) ) {
 					for ( const cvar_t *var = Cvar_First(); var; var = var->next ) {
 						if ( !var->name || ( *filter && !Q_stristr( var->name, filter ) && ( !var->description || !Q_stristr( var->description, filter ) ) ) )
 							continue;
-						if ( ImGui::Selectable( var->name, !strcmp( selected, var->name ) ) ) {
-							Q_strncpyz( selected, var->name, sizeof( selected ) );
-							Q_strncpyz( value, var->string, sizeof( value ) );
-						}
+						if ( ImGui::Selectable( var->name, !strcmp( selected, var->name ) ) )
+							DevTools_SelectCvar( var->name );
 						if ( !strcmp( selected, var->name ) && var->description )
 							ImGui::TextWrapped( "%s", var->description );
 					}
@@ -1279,10 +1626,12 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	EditGraph( renderer );
 	DrawAnimation( renderer, milliseconds );
 	EditEntities();
-	if ( worldDebug.refresh )
+	if ( worldDebug.refresh ) {
 		DevTools_RebuildWorld( worldDebug.collision, worldDebug.navigation, worldDebug.radius );
+		worldDebug.refresh = false;
+	}
 	if ( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) && !io.WantCaptureMouse )
-		entities.selected = DevTools_PickEntity( io.MousePos.x, io.MousePos.y );
+		DevTools_SelectEntity( DevTools_PickEntity( io.MousePos.x, io.MousePos.y ) );
 	if ( apply && *selected )
 		Cvar_Set2( selected, value, qfalse );
 	if ( execute && *command ) {

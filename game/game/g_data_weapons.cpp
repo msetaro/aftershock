@@ -14,6 +14,25 @@ static struct {
 } weaponActors[MAX_CLIENTS];
 static vmCvar_t weaponTrace;
 
+#ifdef AFTERSHOCK_DEVTOOLS
+bool G_DevWeapon( int owner, int hand, devWeaponState_t *out ) {
+	if ( owner < 0 || owner >= level.maxclients || hand < 0 || hand > 1 || !weaponActors[owner].active )
+		return false;
+	const auto &actor = weaponActors[owner];
+	const int selected = actor.selected[hand];
+	*out = {};
+	out->state = actor.inventory[hand][selected];
+	out->animation = actor.animation[hand];
+	out->selected = selected;
+	out->attachments = actor.attachments[hand][selected];
+	Q_strncpyz( out->name, actor.configured[hand].name, sizeof( out->name ) );
+	const auto *asset = BG_WeaponAnimation( selected );
+	if ( asset && out->animation.initialized )
+		Q_strncpyz( out->animationName, Anim_StateName( asset, out->animation.current ), sizeof( out->animationName ) );
+	return true;
+}
+#endif
+
 void G_InitWeapons( void ) {
 	BG_ClearWeapons();
 	memset( weaponActors, 0, sizeof( weaponActors ) );

@@ -77,7 +77,7 @@ def check(path, text):
                 if path.parts[0] == 'engine' and target.parts[0] == 'game':
                     reason = 'engine must not include game'
                 elif target.parts[0] in ('engine', 'game') and target.parts[:2] != subsystem:
-                    public = target.name.endswith('_public.h') or target in (Path('engine/qcommon/q_shared.h'), Path('game/bg/q_shared.h'))
+                    public = target.name.endswith('_public.h') or target in (Path('engine/qcommon/q_shared.h'), Path('engine/qcommon/json.h'), Path('game/bg/q_shared.h'))
                     if not public:
                         reason = 'cross-subsystem include requires a public header'
                 elif target.parts[0] not in ('engine', 'game', 'third_party'):

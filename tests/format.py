@@ -2,6 +2,7 @@
 """Check shared formatting capacity with the real engine and native helpers."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import subprocess
 
@@ -10,7 +11,7 @@ from run import ENV, ROOT, run
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='cc')
 parser.add_argument('--cxx', default='c++')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-format'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-format'))
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 for name, directory, compiler, mode, defines in (

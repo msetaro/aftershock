@@ -1,5 +1,9 @@
 # Offline cooker (#9, in progress)
 
+For related commands, allocate one root first: `export AFTERSHOCK_SCRATCH="$(mktemp -d)"`.
+Otherwise each invocation gets a fresh root; children inherit it. Retain the root
+for logs/build reuse, then remove it when its evidence is no longer needed.
+
 Offline mesh/texture cooking and native KTX2 BC loading are available. Cooked
 material loading and development texture/material/model/animation reload are available.
 Audio/shader inputs are available; final acceptance remains before #9 is complete.
@@ -10,7 +14,7 @@ The small pinned BC7 helper builds into the user's cache on its first invocation
 It is never linked into the engine. `CXX` selects its host compiler.
 
 ```
-python3 tools/cook tests/assets/cook-character/assets.json --output /tmp/aftershock-cooked
+python3 tools/cook tests/assets/cook-character/assets.json --output $AFTERSHOCK_SCRATCH/aftershock-cooked
 python3 tests/cook.py
 ```
 

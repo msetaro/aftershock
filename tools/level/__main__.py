@@ -14,6 +14,10 @@ from geometry import generate, vector
 from toolchain import compile_map
 from validate import validate
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from tools.scratch import ROOT as SCRATCH
+from tools.agent.formats import validate as validate_format, diagnostic
+
 
 def shaders(level):
     sky = level['materials']['sky']
@@ -47,7 +51,7 @@ def main():
         source,output = args.source.resolve(),args.output.resolve()
         if source.stat().st_size>1024*1024:
             raise ValueError('level description exceeds 1 MiB')
-        level = json.loads(source.read_bytes())
+        level = validate_format('level', json.loads(source.read_bytes()), source)
         sources,report = validate(level,source.parent/'assets')
         if output==source.parent or output.is_relative_to(source.parent/'assets'):
             raise ValueError('output must not overwrite the source/assets directory')
@@ -81,7 +85,7 @@ def main():
         print(json.dumps(dict(version=level['version'],name=level['name'],**paths,report=report,
                               sha256={kind:hashlib.sha256((output/path).read_bytes()).hexdigest() for kind,path in paths.items() if path}),sort_keys=True))
     except (OSError,ValueError,KeyError,TypeError,subprocess.SubprocessError) as exc:
-        print('level: '+str(exc),file=sys.stderr)
+        print(json.dumps(dict(ok=False,error=diagnostic(exc,args.source,'check geometry/assets and tools/agent describe level'))),file=sys.stderr)
         return 1
     return 0
 

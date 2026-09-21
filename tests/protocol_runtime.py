@@ -3,6 +3,7 @@
 import argparse
 import os
 from pathlib import Path
+from run import SCRATCH
 import socket
 import subprocess
 import tempfile
@@ -16,7 +17,7 @@ parser.add_argument('--server', type=Path, required=True)
 parser.add_argument('--other-server', type=Path, required=True, help='built with AFTERSHOCK_NET_VERSION=3')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-protocol-runtime'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-protocol-runtime'))
 args = parser.parse_args()
 args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)

@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import shutil
 import signal
 import socket
@@ -16,8 +17,8 @@ parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--controller',type=Path,required=True)
 parser.add_argument('--server',type=Path,required=True)
 parser.add_argument('--client',type=Path)
-parser.add_argument('--data',type=Path,default=Path('/tmp/aftershock-openarena-baseoa'))
-parser.add_argument('--output',type=Path,default=Path('/tmp/aftershock-match-runtime'))
+parser.add_argument('--data',type=Path,default=(SCRATCH / 'aftershock-openarena-baseoa'))
+parser.add_argument('--output',type=Path,default=(SCRATCH / 'aftershock-match-runtime'))
 args=parser.parse_args()
 args.output.mkdir(parents=True,exist_ok=True)
 def free_port(kind):
