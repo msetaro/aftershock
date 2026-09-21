@@ -254,6 +254,7 @@ struct temporalEntity_t {
 struct temporalStats_t {
 	uint32_t stored, matched, rejected, overflow;
 };
+bool R_TemporalJitter( uint32_t frame, uint32_t width, uint32_t height, float projection[16] );
 void R_TemporalReset();
 bool R_TemporalBeginView( const temporalView_t *view );
 const temporalView_t *R_TemporalPreviousView();

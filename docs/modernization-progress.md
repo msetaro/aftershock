@@ -74,6 +74,18 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 jitter and restored software controls
+
+Test-first 06b43fd4 requires an eight-frame centered, subpixel projection jitter
+sequence which changes only projection entries 8/9 and preserves invalid-size
+inputs. GCC/Clang UBSan temporal probes pass (fidelity-jitter-{after,clang}.log).
+This presentation helper is not enabled until motion/resolve wiring is complete;
+authoritative camera/simulation state and culling stay untouched.
+
+After descriptor adoption, software 4x MSAA post controls (exposure, LUT, sharpen,
+vignette, grain, depth blur, reload/restart) and projected decal/editor/HUD controls
+pass (fidelity-restored-{post,decals}-runtime.log). No accepted fixture changed.
+
 ## #161 restored RTX post measurements
 
 The descriptor correction removes the RTX crash: 4096 warm frames plus 50 profile

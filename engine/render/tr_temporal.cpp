@@ -78,6 +78,21 @@ static bool ValidEntity( const trRefEntity_t *entity ) {
 }
 } // namespace
 
+bool R_TemporalJitter( uint32_t frame, uint32_t width, uint32_t height, float projection[16] ) {
+	if ( !width || !height || !projection )
+		return false;
+	// Eight Halton(2,3) samples, centered to avoid a persistent camera offset.
+	static constexpr float samples[8][2] = {
+		{ 7.0f / 128, -1.0f / 6 }, { -25.0f / 128, 1.0f / 6 },
+		{ 39.0f / 128, -7.0f / 18 }, { -41.0f / 128, -1.0f / 18 },
+		{ 23.0f / 128, 5.0f / 18 }, { -9.0f / 128, -5.0f / 18 },
+		{ 55.0f / 128, 1.0f / 18 }, { -49.0f / 128, 7.0f / 18 }
+	};
+	projection[8] += 2 * samples[frame & 7][0] / (float)width;
+	projection[9] += 2 * samples[frame & 7][1] / (float)height;
+	return true;
+}
+
 void R_TemporalReset() {
 	memset( frames, 0, sizeof( frames ) );
 	current = 0;
