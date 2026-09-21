@@ -38,7 +38,7 @@ checks also pass with an OA renderer module; no screen-click calls remain in
 test drivers. Shipping exclusion passes in the full devtools rebuild. Legacy
 accepted goldens and source assets are unchanged.
 
-Next: finish channel self-review, then start two simultaneous complete local
+Next: start two simultaneous complete local
 suite runs from clean detached worktrees at this branch's final head. Metadata,
 root isolation, the full-suite catalog, affected-test selection and all seven
 executable handbook recipes are implemented. Run fresh hosted/current-main gates,
@@ -75,6 +75,25 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 final self-review checkpoint
+
+The client uses one request deadline across events, and recipe subprocesses inherit
+the selected Python environment. All seven recipes pass from a private venv
+(agent-recipe-python.log); OA seeded play and the CLI route/fire/capture/error
+controls pass (agent-reviewed-play.log / agent-reviewed-cli.log).
+
+Self-review: changes match #163; channel/PNG/assertion hooks are development-only;
+input uses normal usercmds; simulation FP expressions and accepted goldens remain
+unchanged; no core non-trivial lifetime or per-frame allocation is added; platform
+owns pipe I/O. Shared UI commands and typed queries replace pixel-click tests.
+Authoring effect support remains explicitly schema-only until #161.
+
+The two 2626372d local runs passed format/tidy and were stopped during lifetimes
+because review changed their head. They are not acceptance. Restart both complete
+runs on the reviewed head in clean worktrees, retaining these earlier logs. Main
+and immutable known-good tag were rechecked unchanged; repeat that check before
+merge. Fresh hosted gates and the two final full passes remain required.
 
 ## #163 pinned recipe interpreter control
 

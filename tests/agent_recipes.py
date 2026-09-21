@@ -84,7 +84,7 @@ else:
 print(json.dumps(value))
 ''')
     gh.chmod(0o755)
-    env.update(PATH=str(stub)+os.pathsep+env['PATH'],RECIPE_REPOSITORY=str(fixture),
+    env.update(PATH=str(stub)+os.pathsep+str(Path(sys.executable).parent)+os.pathsep+env['PATH'],RECIPE_REPOSITORY=str(fixture),
                BISECT_GOOD=good,BISECT_BAD=bad,VERIFIED_COMMIT=bad,NEW_KNOWN_GOOD='known-good-2099-01-01',
                CLIENT=str(args.client.resolve()),SERVER=str(args.server.resolve()),
                CONTENT=args.content,DATA=str(args.data.resolve()),MAP='oa_dm1' if args.content=='openarena' else 'q3dm17')

@@ -7,6 +7,7 @@ import signal
 import subprocess
 import tempfile
 import threading
+import time
 
 from tools.scratch import ROOT as SCRATCH
 
@@ -77,9 +78,13 @@ class Engine:
         self.sequence += 1
         self.process.stdin.write(json.dumps(dict(id=self.sequence, op=op, **fields))+'\n')
         self.process.stdin.flush()
+        deadline = time.monotonic() + timeout
         while True:
             try:
-                reply = self.replies.get(timeout=timeout)
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise queue.Empty
+                reply = self.replies.get(timeout=remaining)
             except queue.Empty as error:
                 raise TimeoutError(f'{op}: no reply; {self.log_path.read_text(errors="replace")[-2000:]}') from error
             if isinstance(reply, Exception):
