@@ -34,8 +34,11 @@ to update that rolling tag. Repair publication in its own main-target PR, using
 job-scoped contents-write and immutable build-<full SHA> tags via installed gh.
 Never force/move a tag; retries must verify its target before replacing assets.
 An offline fake-CLI contract fails before the publisher exists (publish-before.log).
-Implement it, run the contract/full hosted gates, commit the self-review, then
-self-merge and require successful actual main publication. No engine change.
+Implementation, offline contract, workflow lint and committed self-review now pass.
+Draft PR #159 targets main. Its first head 2b49604c queued build 35546986757 and
+regression 35546986754; this documentation checkpoint requires fresh exact-head
+gates and supersedes those runs. Once every required check passes, ready/merge
+#159 and require successful actual main publication. No engine change.
 
 Preserve #14 in the extra level-tree worktree: issue/14-lighting at ea0efdc2 has
 main a4358019 merged forward. Directional bake/native shading passes both content
