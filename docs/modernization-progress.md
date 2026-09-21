@@ -74,6 +74,18 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 descriptor restoration adoption
+
+Main's accepted helper now restores cached descriptors after the new effects and
+post passes. Test-first d35a53ed fails the sparse restoration mask in
+particleCommands (fidelity-restore-before.log/fidelity-restore-assert.log).
+The correction replaces the device-limit dirty range with the shared bounded
+helper, retaining scissor invalidation. GCC/Clang graph tests and client build
+pass (fidelity-restore-{after,clang,build}.log); format passes. Tests cover live
+slots 0/1/3, skipped null slots and saved dynamic offset on a 32-set-capable device.
+RTX post timing and software controls are next. PR168's merged-tree runs are
+build/publication 35613793896 and regression 35613793817, still in progress.
+
 ## #161 temporal graph resources
 
 Test-first c13573bd/4a0ecc1e require distinct persistent history images and four

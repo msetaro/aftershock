@@ -7922,8 +7922,7 @@ bool RHI_DrawParticle( const rhiParticle_t *particle, const rhiTexture_t *textur
 void RHI_EndEffects() {
 	RHI_EndPass();
 	vk_begin_render_pass( vk.render_pass.particlesResume, vk.framebuffers.main[vk.cmd->swapchain_image_index], qfalse, vk_config.renderWidth, vk_config.renderHeight );
-	vk.cmd->descriptor_set.start = 0;
-	vk.cmd->descriptor_set.end = vk.maxBoundDescriptorSets - 1;
+	vk_restore_descriptor_sets();
 	vk.cmd->last_pipeline = VK_NULL_HANDLE;
 	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
 	vk.cmd->scissor_rect = {}; // Direct effect/post scissors bypass the ordinary state cache.
