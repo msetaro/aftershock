@@ -38,8 +38,9 @@ player snapshots on installed Quake 3 and OpenArena; the extended tests also
 cover entity edits, profiler reads, camera switching, and a structured error that
 stops the remaining requested steps. No faketime or accepted fixture changes.
 
-The next shared world/animation panel contract is tests/agent_panels.py; it
-fails on absent panel operation before implementation (agent-panels-before.log).
+The shared World/Animation panel contract now passes on both content sets.
+Panel selection, collision/navigation flags and animation load/frame/play controls
+use the same functions as ImGui (agent-panels.log / agent-panels-openarena.log).
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
@@ -54,8 +55,8 @@ from_chars and legacy JSON width conversions; both are corrected. Portable head
 35557139029 caught GCC's setjmp clobber warning in the new Com_Frame argument
 assignment (unit GCC and runtime developer-data probe). The correction keeps
 noDelay immutable and uses a separate explicit-step condition; the exact local
-developer-data reproducer now passes. Push this correction with the camera
-checkpoint and monitor fresh gates. Earlier failed/superseded heads are not
+developer-data reproducer now passes. Head 5af3024b passes all compiler jobs in build 35557826494; regression
+35557826527 is still running. Monitor fresh gates. Earlier failed/superseded heads are not
 acceptance. Native command GCC/Clang/libc++ UBSan, current playthrough checks,
 format and boundaries pass locally; detailed logs are in the persistent cache.
 
@@ -84,6 +85,17 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 shared panel checkpoint
+
+World and Animation controls now share bounded functions between the panel and
+JSON channel. Asset loading and world rebuilding remain queued inside the normal
+frame, outside ImGui calls. Structured editor state reports the selected panel,
+rendered frames/lines/labels, world flags and animation model/frame/previews.
+The pre-implementation panel test failed on missing panel; it now passes on Q3
+and OA without X11 clicks. Native GCC and Clang/libc++ UBSan contracts, boundaries
+and formatting pass. This is the first panel slice; Graph, Range, asset controls
+and the existing five click-driven test rewrites remain required.
 
 ## #163 raw input / camera checkpoint
 

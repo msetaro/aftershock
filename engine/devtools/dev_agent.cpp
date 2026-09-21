@@ -127,6 +127,14 @@ struct agentReply_t {
 		memcpy( data + length, text, size + 1 );
 		length += (uint32_t)size;
 	}
+	template <typename T>
+		requires std::is_integral_v<T>
+	void Number( T value ) {
+		char text[32];
+		const auto result = std::to_chars( text, text + sizeof( text ) - 1, value );
+		*result.ptr = 0;
+		Text( text );
+	}
 	void Number( double value ) {
 		char text[64];
 		if ( std::isfinite( value ) )
@@ -456,6 +464,40 @@ static void Agent_State( agentReply_t &reply ) {
 	reply.Text( "}}" );
 }
 
+#ifndef DEDICATED
+static void Agent_EditorState( agentReply_t &reply ) {
+	devEditorState_t state;
+	DevTools_EditorState( &state );
+	reply.Text( ",\"ok\":true,\"result\":{\"panel\":" );
+	reply.String( state.panel );
+	reply.Text( ",\"frames\":" );
+	reply.Number( state.frames );
+	reply.Text( ",\"lines\":" );
+	reply.Number( state.lines );
+	reply.Text( ",\"labels\":" );
+	reply.Number( state.labels );
+	reply.Text( ",\"world\":{\"lines\":" );
+	reply.Number( state.worldLines );
+	reply.Text( ",\"collision\":" );
+	reply.Text( state.collision ? "true" : "false" );
+	reply.Text( ",\"navigation\":" );
+	reply.Text( state.navigation ? "true" : "false" );
+	reply.Text( ",\"entities\":" );
+	reply.Text( state.entities ? "true" : "false" );
+	reply.Text( "},\"animation\":{\"model\":" );
+	reply.Number( state.model );
+	reply.Text( ",\"frame\":" );
+	reply.Number( state.animationFrame );
+	reply.Text( ",\"previews\":" );
+	reply.Number( state.animationPreviews );
+	reply.Text( ",\"play\":" );
+	reply.Text( state.animationPlay ? "true" : "false" );
+	reply.Text( ",\"clip\":" );
+	reply.String( state.clip );
+	reply.Text( "}}}" );
+}
+#endif
+
 static void Agent_Profile( agentReply_t &reply ) {
 	int64_t sorted[ARRAY_LEN( agentFrameTimes )];
 	const uint32_t count = MIN( agentSamples, (uint32_t)ARRAY_LEN( sorted ) );
@@ -633,7 +675,50 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"usercmd\",\"camera\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+	} else if ( !strcmp( op, "panel" ) || !strcmp( op, "world" ) || !strcmp( op, "editor.state" ) || !strcmp( op, "animation.load" ) || !strcmp( op, "animation.set" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Editor actions require a client build." );
+#else
+		if ( capacity < 1024 )
+			return false;
+		if ( !strcmp( op, "editor.state" ) ) {
+			Agent_EditorState( reply );
+			return reply.valid;
+		}
+		bool accepted = false;
+		if ( !strcmp( op, "panel" ) ) {
+			p = JSON_ObjectGetNamedValue( request, end, "name" );
+			if ( !Agent_String( p, end, name, sizeof( name ) ) )
+				return reply.Error( "invalid_argument", "$.name", "Provide the case-sensitive panel name." );
+			accepted = DevTools_SelectPanel( name );
+		} else if ( !strcmp( op, "world" ) ) {
+			bool collision, navigation, entities;
+			float radius;
+			if ( !Agent_Bool( request, end, "collision", collision ) || !Agent_Bool( request, end, "navigation", navigation ) ||
+				 !Agent_Bool( request, end, "entities", entities ) || !Agent_Number( request, end, "radius", radius, 64, 2048 ) )
+				return reply.Error( "invalid_argument", "$", "Use boolean collision/navigation/entities and radius in [64,2048]." );
+			accepted = DevTools_SetWorld( collision, navigation, entities, radius );
+		} else if ( !strcmp( op, "animation.load" ) ) {
+			p = JSON_ObjectGetNamedValue( request, end, "path" );
+			if ( !Agent_String( p, end, name, MAX_QPATH ) )
+				return reply.Error( "invalid_argument", "$.path", "Provide a model path shorter than 64 bytes." );
+			p = JSON_ObjectGetNamedValue( request, end, "skin" );
+			value[0] = 0;
+			if ( p && !Agent_String( p, end, value, MAX_QPATH ) )
+				return reply.Error( "invalid_argument", "$.skin", "Provide an optional skin path shorter than 64 bytes." );
+			accepted = DevTools_LoadAnimation( name, value );
+		} else {
+			float number;
+			p = JSON_ObjectGetNamedValue( request, end, "field" );
+			if ( !Agent_String( p, end, name, sizeof( name ) ) || !Agent_Number( request, end, "value", number, -180, 16777215 ) )
+				return reply.Error( "invalid_argument", "$", "Provide field (model/clip/frame/play/fps/yaw) and its numeric value." );
+			accepted = DevTools_SetAnimation( name, number );
+		}
+		if ( !accepted )
+			return reply.Error( "rejected", "$", "Check the panel, model, clip/frame bounds or property range; step after loading." );
+		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+#endif
 	} else if ( !strcmp( op, "subscribe" ) ) {
 		bool enabled;
 		if ( !Agent_Bool( request, end, "enabled", enabled ) )

@@ -2,6 +2,21 @@
 #include "../../engine/devtools/dev_agent.cpp"
 #include <assert.h>
 
+bool DevTools_SelectPanel( const char * ) {
+	return false;
+}
+bool DevTools_SetWorld( bool, bool, bool, float ) {
+	return false;
+}
+bool DevTools_LoadAnimation( const char *, const char * ) {
+	return false;
+}
+bool DevTools_SetAnimation( const char *, float ) {
+	return false;
+}
+void DevTools_EditorState( devEditorState_t *state ) {
+	*state = {};
+}
 const devGameTools_t *DevTools_Game( void ) {
 	return nullptr;
 }

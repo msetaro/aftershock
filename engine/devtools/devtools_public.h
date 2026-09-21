@@ -71,6 +71,17 @@ uint32_t DevTools_Text( const devText_t **text );
 uint32_t DevTools_DebugDropped( void );
 bool DevTools_Project( const refdef_t *view, const float *point, float *screen );
 int DevTools_PickEntity( float x, float y );
+struct devEditorState_t {
+	char panel[32], clip[64];
+	uint32_t frames, lines, labels, worldLines, animationPreviews;
+	int32_t model, animationFrame;
+	bool collision, navigation, entities, animationPlay;
+};
+bool DevTools_SelectPanel( const char *name );
+bool DevTools_SetWorld( bool collision, bool navigation, bool entities, float radius );
+bool DevTools_LoadAnimation( const char *path, const char *skin );
+bool DevTools_SetAnimation( const char *field, float value );
+void DevTools_EditorState( devEditorState_t *state );
 void DevTools_Init( void );
 void DevTools_Reset( void );
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds );

@@ -5,6 +5,7 @@
 #include "../qcommon/keys_public.h"
 #include "../../third_party/imgui/imgui.h"
 #include <inttypes.h>
+#include <cmath>
 
 static cvar_t *enabled;
 static ImGuiContext *context;
@@ -16,6 +17,21 @@ static uint32_t renderedFrames, allocations, animationFrames, drawnLines, drawnL
 static devUiVertex_t vertices[65536];
 static uint32_t indices[196608];
 static devUiCommand_t commands[4096];
+
+static const refexport_t *editorRenderer;
+static char requestedPanel[32], activePanel[32];
+
+static bool BeginPanel( const char *name, bool *open = nullptr, ImGuiTabItemFlags flags = ImGuiTabItemFlags_None ) {
+	if ( !strcmp( name, requestedPanel ) )
+		flags |= ImGuiTabItemFlags_SetSelected;
+	const bool shown = ImGui::BeginTabItem( name, open, flags );
+	if ( shown ) {
+		Q_strncpyz( activePanel, name, sizeof( activePanel ) );
+		if ( !strcmp( name, requestedPanel ) )
+			requestedPanel[0] = 0;
+	}
+	return shown;
+}
 
 static struct {
 	char path[MAX_QPATH], skinPath[MAX_QPATH];
@@ -68,7 +84,7 @@ static void InspectWeaponRange( void ) {
 		return;
 	const auto flags = weaponRange.select ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
 	weaponRange.select = false;
-	if ( !ImGui::BeginTabItem( "Range", &weaponRange.visible, flags ) )
+	if ( !BeginPanel( "Range", &weaponRange.visible, flags ) )
 		return;
 	ImGui::SetNextItemWidth( 450 );
 	ImGui::InputText( "##Weapon asset", weaponRange.path, sizeof( weaponRange.path ) );
@@ -295,7 +311,7 @@ static void EditGraph( const refexport_t *renderer ) {
 static void InspectGraph( uint32_t elapsed ) {
 	const ImGuiTabItemFlags flags = graph.select ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
 	graph.select = false;
-	if ( !ImGui::BeginTabItem( "Graph", nullptr, flags ) )
+	if ( !BeginPanel( "Graph", nullptr, flags ) )
 		return;
 	ImGui::SetNextItemWidth( 370 );
 	ImGui::InputText( "##Cooked graph", graph.path, sizeof( graph.path ) );
@@ -318,7 +334,8 @@ static void InspectGraph( uint32_t elapsed ) {
 					}
 				}
 				ImGui::EndChild();
-				ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 );
+				if ( ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 ) )
+					DevTools_SetAnimation( "yaw", animation.yaw );
 				if ( graph.play ) {
 					graph.remainder += MIN( elapsed, 250U );
 					while ( graph.remainder >= 20 ) {
@@ -457,6 +474,7 @@ void DevTools_Init( void ) {
 
 void DevTools_Reset( void ) {
 	inputCaptured = false;
+	editorRenderer = nullptr;
 	DevTools_ClearWorld();
 	DevTools_SetView( nullptr );
 	if ( context )
@@ -632,7 +650,7 @@ static void ImagePreview( const refexport_t *renderer, int index, float extent )
 }
 
 static void InspectAssets( const refexport_t *renderer ) {
-	if ( ImGui::BeginTabItem( "Textures" ) ) {
+	if ( BeginPanel( "Textures" ) ) {
 		static char filter[128];
 		static int selected;
 		ImGui::InputText( "Filter textures", filter, sizeof( filter ) );
@@ -651,7 +669,7 @@ static void InspectAssets( const refexport_t *renderer ) {
 		ImagePreview( renderer, selected, 200 );
 		ImGui::EndTabItem();
 	}
-	if ( ImGui::BeginTabItem( "Materials" ) ) {
+	if ( BeginPanel( "Materials" ) ) {
 		static char filter[128];
 		static int selected;
 		ImGui::InputText( "Filter materials", filter, sizeof( filter ) );
@@ -716,7 +734,7 @@ static void InspectAssets( const refexport_t *renderer ) {
 }
 
 static void InspectMemory( void ) {
-	if ( !ImGui::BeginTabItem( "Memory" ) )
+	if ( !BeginPanel( "Memory" ) )
 		return;
 	devMemory_t memory;
 	Com_DeveloperMemory( &memory );
@@ -747,14 +765,59 @@ static struct {
 	float radius = 512;
 } worldDebug;
 
+bool DevTools_SelectPanel( const char *name ) {
+	static constexpr const char *panels[] = { "Console", "Cvars", "Textures", "Materials", "Profile", "Memory", "Animation", "Entities", "World", "Graph", "Range" };
+	for ( const char *panel : panels ) {
+		if ( !strcmp( name, panel ) ) {
+			Q_strncpyz( requestedPanel, panel, sizeof( requestedPanel ) );
+			if ( !strcmp( name, "Range" ) )
+				weaponRange.visible = true;
+			Cvar_Set( "dev_tools", "1" );
+			return true;
+		}
+	}
+	return false;
+}
+
+bool DevTools_SetWorld( bool collision, bool navigation, bool entitiesVisible, float radius ) {
+	if ( !std::isfinite( radius ) || radius < 64 || radius > 2048 )
+		return false;
+	worldDebug.collision = collision;
+	worldDebug.navigation = navigation;
+	worldDebug.entities = entitiesVisible;
+	worldDebug.radius = radius;
+	worldDebug.refresh = true;
+	return true;
+}
+
+void DevTools_EditorState( devEditorState_t *state ) {
+	*state = {};
+	Q_strncpyz( state->panel, activePanel, sizeof( state->panel ) );
+	Q_strncpyz( state->clip, animation.clipName, sizeof( state->clip ) );
+	state->frames = renderedFrames;
+	state->lines = drawnLines;
+	state->labels = drawnLabels;
+	const devLine_t *lines;
+	state->worldLines = DevTools_Lines( &lines, true );
+	state->collision = worldDebug.collision;
+	state->navigation = worldDebug.navigation;
+	state->entities = worldDebug.entities;
+	state->model = animation.model;
+	state->animationFrame = animation.frame;
+	state->animationPreviews = animationFrames;
+	state->animationPlay = animation.play;
+}
+
 static void InspectWorld( void ) {
-	if ( !ImGui::BeginTabItem( "World" ) )
+	if ( !BeginPanel( "World" ) )
 		return;
-	worldDebug.refresh |= ImGui::Checkbox( "Collision surfaces", &worldDebug.collision );
-	worldDebug.refresh |= ImGui::Checkbox( "Navigation areas and routes", &worldDebug.navigation );
-	ImGui::Checkbox( "Live entity bounds", &worldDebug.entities );
+	bool refresh = ImGui::Checkbox( "Collision surfaces", &worldDebug.collision );
+	refresh |= ImGui::Checkbox( "Navigation areas and routes", &worldDebug.navigation );
+	refresh |= ImGui::Checkbox( "Live entity bounds", &worldDebug.entities );
 	ImGui::SliderFloat( "Radius", &worldDebug.radius, 64, 2048 );
-	worldDebug.refresh |= ImGui::Button( "Refresh around camera" );
+	refresh |= ImGui::Button( "Refresh around camera" );
+	if ( refresh )
+		DevTools_SetWorld( worldDebug.collision, worldDebug.navigation, worldDebug.entities, worldDebug.radius );
 	const devLine_t *lines;
 	ImGui::Text( "World cache %u / 4096 lines; omitted %u", DevTools_Lines( &lines, true ), DevTools_DebugDropped() );
 	ImGui::TextWrapped( "X-ray wireframes: cyan world brushes, pink patch facets, green navigation, orange reachability. Stripped AAS files show area bounds in place of missing ground faces. Cached surfaces refresh on request, up to 1024 nearby brushes. Navigation requires a local server with loaded AAS. Refresh after moving." );
@@ -837,7 +900,7 @@ static void DrawWorldDebug( void ) {
 }
 
 static void InspectEntities( void ) {
-	if ( !ImGui::BeginTabItem( "Entities" ) )
+	if ( !BeginPanel( "Entities" ) )
 		return;
 	const devGameTools_t *game = DevTools_Game();
 	if ( !game ) {
@@ -945,13 +1008,62 @@ static void EditEntities( void ) {
 	Com_Printf( "Developer entity action %d: %s (entity %d)\n", entities.action, success ? "completed" : "rejected", entities.selected );
 }
 
+bool DevTools_LoadAnimation( const char *path, const char *skin ) {
+	if ( !path[0] || strlen( path ) >= sizeof( animation.path ) || strlen( skin ) >= sizeof( animation.skinPath ) )
+		return false;
+	if ( path != animation.path )
+		Q_strncpyz( animation.path, path, sizeof( animation.path ) );
+	if ( skin != animation.skinPath )
+		Q_strncpyz( animation.skinPath, skin, sizeof( animation.skinPath ) );
+	animation.load = true;
+	return true;
+}
+
+bool DevTools_SetAnimation( const char *field, float value ) {
+	if ( !std::isfinite( value ) || !editorRenderer )
+		return false;
+	if ( !strcmp( field, "play" ) && ( value == 0 || value == 1 ) )
+		animation.play = value != 0;
+	else if ( !strcmp( field, "fps" ) && value >= 1 && value <= 60 )
+		animation.fps = value;
+	else if ( !strcmp( field, "yaw" ) && value >= -180 && value <= 180 )
+		animation.yaw = value;
+	else if ( !strcmp( field, "model" ) && value >= 1 && value <= 4096 && std::trunc( value ) == value ) {
+		devModel_t model;
+		if ( !editorRenderer->GetDeveloperModel( (int)value, &model ) || model.frames < 1 )
+			return false;
+		animation.model = (int)value;
+		animation.frame = animation.clip = 0;
+		animation.phase = 0;
+		Q_strncpyz( animation.path, model.name, sizeof( animation.path ) );
+	} else if ( !strcmp( field, "clip" ) && value >= 0 && value <= 4096 && std::trunc( value ) == value ) {
+		modelAnimation_t clip;
+		if ( !editorRenderer->GetModelAnimation( animation.model, (int)value, &clip ) )
+			return false;
+		animation.clip = (int)value;
+		animation.frame = (int)clip.firstFrame;
+		animation.phase = (float)clip.firstFrame;
+		animation.fps = clip.framesPerSecond;
+	} else if ( !strcmp( field, "frame" ) && value >= 0 && value < 2147483648.0f && std::trunc( value ) == value ) {
+		devModel_t model;
+		if ( !editorRenderer->GetDeveloperModel( animation.model, &model ) || value >= (float)model.frames )
+			return false;
+		animation.frame = (int)value;
+		animation.play = false;
+		animation.phase = value;
+	} else
+		return false;
+	return true;
+}
+
 static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
-	animation.draw = animation.load = false;
-	if ( !ImGui::BeginTabItem( "Animation" ) )
+	animation.draw = false;
+	if ( !BeginPanel( "Animation" ) )
 		return;
 	ImGui::InputText( "Model", animation.path, sizeof( animation.path ) );
 	ImGui::InputText( "Skin (optional)", animation.skinPath, sizeof( animation.skinPath ) );
-	animation.load = ImGui::Button( "Load model / skin" );
+	if ( ImGui::Button( "Load model / skin" ) )
+		DevTools_LoadAnimation( animation.path, animation.skinPath );
 	if ( ImGui::BeginChild( "Loaded models", ImVec2( 0, 70 ), ImGuiChildFlags_Borders ) ) {
 		devModel_t model;
 		for ( int i = 1; renderer->GetDeveloperModel( i, &model ); ++i ) {
@@ -959,11 +1071,7 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 				continue;
 			ImGui::PushID( i );
 			if ( ImGui::Selectable( model.name, i == animation.model ) ) {
-				animation.model = i;
-				animation.frame = 0;
-				animation.phase = 0;
-				animation.clip = 0;
-				Q_strncpyz( animation.path, model.name, sizeof( animation.path ) );
+				DevTools_SetAnimation( "model", (float)i );
 			}
 			ImGui::PopID();
 		}
@@ -984,11 +1092,8 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 				modelAnimation_t choice;
 				for ( int i = 0; renderer->GetModelAnimation( animation.model, i, &choice ); i++ ) {
 					if ( ImGui::Selectable( choice.name, animation.clip == i ) ) {
-						animation.clip = i;
+						DevTools_SetAnimation( "clip", (float)i );
 						clip = choice;
-						animation.frame = (int)clip.firstFrame;
-						animation.phase = (float)clip.firstFrame;
-						animation.fps = clip.framesPerSecond;
 					}
 				}
 				ImGui::EndCombo();
@@ -1003,13 +1108,15 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 		}
 		animation.frame = MAX( firstFrame, MIN( animation.frame, lastFrame ) );
 		if ( ImGui::SliderInt( "Frame", &animation.frame, firstFrame, lastFrame ) ) {
-			animation.play = false;
-			animation.phase = (float)animation.frame;
+			DevTools_SetAnimation( "frame", (float)animation.frame );
 		}
-		ImGui::Checkbox( "Play", &animation.play );
+		if ( ImGui::Checkbox( "Play", &animation.play ) )
+			DevTools_SetAnimation( "play", animation.play ? 1 : 0 );
 		ImGui::SameLine();
-		ImGui::SliderFloat( "FPS", &animation.fps, 1, 60 );
-		ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 );
+		if ( ImGui::SliderFloat( "FPS", &animation.fps, 1, 60 ) )
+			DevTools_SetAnimation( "fps", animation.fps );
+		if ( ImGui::SliderFloat( "Yaw", &animation.yaw, -180, 180 ) )
+			DevTools_SetAnimation( "yaw", animation.yaw );
 		if ( animation.play ) {
 			animation.phase = MAX( (float)firstFrame, animation.phase ) + (float)MIN( elapsed, 250U ) * animation.fps * 0.001f;
 			if ( clip.flags & 1 )
@@ -1038,8 +1145,9 @@ static void InspectAnimation( const refexport_t *renderer, uint32_t elapsed ) {
 	ImGui::EndTabItem();
 }
 
-static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
+static void LoadAnimation( const refexport_t *renderer ) {
 	if ( animation.load ) {
+		animation.load = false;
 		animation.model = renderer->RegisterModel( animation.path );
 		animation.skin = *animation.skinPath ? renderer->RegisterSkin( animation.skinPath ) : 0;
 		animation.phase = 0;
@@ -1053,6 +1161,10 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 			animation.fps = clip.framesPerSecond;
 		}
 	}
+}
+
+static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
+	LoadAnimation( renderer );
 	devModel_t model;
 	const int modelHandle = graph.draw ? graph.model : animation.model;
 	if ( !( animation.draw || graph.draw ) || !renderer->GetDeveloperModel( modelHandle, &model ) || model.frames < 1 )
@@ -1126,7 +1238,7 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 		}
 		previousTime = milliseconds;
 	}
-	if ( !ImGui::BeginTabItem( "Profile" ) )
+	if ( !BeginPanel( "Profile" ) )
 		return;
 	ImGui::PlotLines( "Frame ms", history, ARRAY_LEN( history ), (int)( cursor % ARRAY_LEN( history ) ), nullptr, 0, 100, ImVec2( 0, 80 ) );
 	devGpuTiming_t timings[32];
@@ -1163,6 +1275,12 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 }
 
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds ) {
+	editorRenderer = renderer;
+	LoadAnimation( renderer );
+	if ( worldDebug.refresh ) {
+		DevTools_RebuildWorld( worldDebug.collision, worldDebug.navigation, worldDebug.radius );
+		worldDebug.refresh = false;
+	}
 	if ( !enabled || !enabled->integer || width <= 0 || height <= 0 ) {
 		inputCaptured = false;
 		return;
@@ -1207,10 +1325,9 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	const uint32_t elapsed = lastTime ? (uint32_t)milliseconds - lastTime : 0;
 	io.DeltaTime = lastTime ? Com_Clamp( 0.001f, 0.25f, (float)elapsed * 0.001f ) : 1.0f / 60.0f;
 	lastTime = (uint32_t)milliseconds;
-	animation.draw = animation.load = false;
+	animation.draw = false;
 	graph.draw = false;
 	entities.action = 0;
-	worldDebug.refresh = false;
 	if ( !*entities.classname )
 		Q_strncpyz( entities.classname, "target_position", sizeof( entities.classname ) );
 	if ( animation.fps < 1 )
@@ -1223,7 +1340,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	if ( ImGui::Begin( "Aftershock developer tools" ) ) {
 		ImGui::Text( "Escape closes | UI arena %zu / 16777216 bytes", Z_DevMemoryUsed() );
 		if ( ImGui::BeginTabBar( "Tools" ) ) {
-			if ( ImGui::BeginTabItem( "Console" ) ) {
+			if ( BeginPanel( "Console" ) ) {
 				if ( ImGui::BeginChild( "Output", ImVec2( 0, -38 ), ImGuiChildFlags_Borders ) )
 					ImGui::TextUnformatted( DevTools_Console() );
 				ImGui::EndChild();
@@ -1232,7 +1349,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 				execute |= ImGui::Button( "Run" );
 				ImGui::EndTabItem();
 			}
-			if ( ImGui::BeginTabItem( "Cvars" ) ) {
+			if ( BeginPanel( "Cvars" ) ) {
 				ImGui::InputText( "Search", filter, sizeof( filter ) );
 				if ( ImGui::BeginChild( "Variables", ImVec2( 0, -110 ), ImGuiChildFlags_Borders ) ) {
 					for ( const cvar_t *var = Cvar_First(); var; var = var->next ) {
@@ -1279,8 +1396,10 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	EditGraph( renderer );
 	DrawAnimation( renderer, milliseconds );
 	EditEntities();
-	if ( worldDebug.refresh )
+	if ( worldDebug.refresh ) {
 		DevTools_RebuildWorld( worldDebug.collision, worldDebug.navigation, worldDebug.radius );
+		worldDebug.refresh = false;
+	}
 	if ( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) && !io.WantCaptureMouse )
 		entities.selected = DevTools_PickEntity( io.MousePos.x, io.MousePos.y );
 	if ( apply && *selected )
