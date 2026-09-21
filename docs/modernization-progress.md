@@ -76,6 +76,15 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 isolation migration in progress
+
+The scratch root helper passes its concurrency/inheritance contract. Fixed Python
+output defaults now derive from it, and CI allocates one exported root per job.
+These changes are still under validation. A second test-first check catches local
+Compose's fixed published ports and basename-derived project collision
+(agent-compose-before.log); use automatic ports/private project names next.
+The two-full-suite concurrency acceptance, cache audit and handbook still remain.
+
 ## #163 isolation test-first checkpoint
 
 The shared scratch-root contract fails first because tools.scratch does not yet

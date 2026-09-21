@@ -41,3 +41,16 @@ finally:
     for root in roots:
         shutil.rmtree(root)
 print('PASS: concurrent fresh roots, explicit root creation and inherited temporary directories')
+
+with tempfile.TemporaryDirectory(prefix='aftershock-compose-isolation-') as temporary:
+    projects = []
+    for side in ('a','b'):
+        output = Path(temporary)/side/'same-name'
+        subprocess.run([sys.executable,'tools/match/dev.py','--matches','2','--output',str(output)],cwd=ROOT,
+                       check=True,stdout=subprocess.DEVNULL)
+        project = json.loads((output/'compose.json').read_text())
+        projects.append(project)
+        assert all(service['ports'] == ['127.0.0.1::27960/udp'] for name,service in project['services'].items()
+                   if name.startswith('match-') and not name.endswith('-ship'))
+    assert all(project.get('name') for project in projects) and projects[0]['name'] != projects[1]['name']
+print('PASS: private Compose names and OS-assigned published ports')
