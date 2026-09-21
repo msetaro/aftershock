@@ -31,6 +31,7 @@ bool DevTools_AgentActive( void );
 int DevTools_AgentTime( void );
 int DevTools_AgentSeed( void );
 bool DevTools_AgentNextFrame( void );
+void DevTools_AgentFlushEvents( void );
 void DevTools_AgentEndFrame( void );
 int Sys_AgentRead( char *line, uint32_t capacity );
 bool Sys_AgentWrite( const char *text, uint32_t length );

@@ -3117,6 +3117,9 @@ static void FORMAT_PRINTF( 2, 3 ) QDECL CL_RefPrintf( printParm_t level, const c
 		Com_DPrintf( "%s", msg );
 		break;
 	case PRINT_WARNING:
+#ifdef AFTERSHOCK_DEVTOOLS
+		Dev_AgentEvent( "warning", -1, -1, 0, msg );
+#endif
 		Com_Printf( S_COLOR_WARNING "%s", msg );
 		break;
 	case PRINT_ERROR:

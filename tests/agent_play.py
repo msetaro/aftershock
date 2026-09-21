@@ -16,7 +16,7 @@ args = parser.parse_args()
 map_name = 'oa_dm1' if args.content == 'openarena' else 'q3dm17'
 trajectories = []
 for _ in range(2):
-    with Engine(args.binary, args.data, args.content) as engine:
+    with Engine(args.binary, args.data, args.content, arguments=('+set', 'developer', '1')) as engine:
         engine.request('hello')
         engine.request('session', dt=8, seed=123)
         engine.request('map', name=map_name)
@@ -56,7 +56,7 @@ for _ in range(2):
         except ValueError as error:
             assert error.args[0]['code'] == 'engine_error', error
         else:
-            raise AssertionError('a dropped frame must fail the step request')
+            raise AssertionError(('a dropped frame must fail the step request', engine.events, engine.log_path.read_text(errors='replace')[-3000:]))
         errors = [event for event in engine.events if event['event'] == 'error']
         assert len(errors) == 1 and errors[0]['detail'] == 'Testing drop error', errors
         assert engine.request('state')['player'] is None

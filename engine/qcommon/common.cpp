@@ -324,6 +324,10 @@ void NORETURN FORMAT_PRINTF( 2, 3 ) QDECL Com_Error( errorParm_t code, const cha
 	va_start( argptr, fmt );
 	Q_vsnprintf( com_errorMessage, sizeof( com_errorMessage ), fmt, argptr );
 	va_end( argptr );
+#ifdef AFTERSHOCK_DEVTOOLS
+	Dev_AgentEvent( "error", -1, -1, code, com_errorMessage );
+	DevTools_AgentFlushEvents(); // Fatal errors can exit before the next frame boundary.
+#endif
 
 	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
 		// we can't recover from ERR_FATAL so there is no recipients for com_errorMessage

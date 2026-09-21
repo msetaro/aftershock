@@ -10,11 +10,52 @@
 // Requests and replies are bounded POD data; the inactive channel allocates nothing.
 static constexpr uint32_t agentLimit = 16384;
 static bool agentActive;
+static uint32_t agentFrame, agentSteps, agentStepId;
+static int agentTime = 1000, agentDt = 8, agentSeed = 1;
+
 static devAgentInput_t agentInput;
 static int64_t agentFrameStart, agentFrameTimes[4096];
 static uint32_t agentSamples;
-static uint32_t agentFrame, agentSteps, agentStepId;
-static int agentTime = 1000, agentDt = 8, agentSeed = 1;
+static bool agentSubscribed;
+static char agentError[256];
+struct agentEvent_t {
+	char type[16], detail[256];
+	int32_t actor, target, value, time;
+	uint32_t frame;
+};
+static agentEvent_t agentEvents[256];
+static uint32_t agentEventCount, agentEventsDropped;
+static uint64_t agentHits, agentKills, agentErrors, agentWarnings;
+
+void Dev_AgentEvent( const char *type, int actor, int target, int value, const char *detail ) {
+	if ( !agentActive )
+		return;
+	if ( !strcmp( type, "hit" ) )
+		++agentHits;
+	if ( !strcmp( type, "kill" ) )
+		++agentKills;
+	if ( !strcmp( type, "warning" ) )
+		++agentWarnings;
+	if ( !strcmp( type, "error" ) || !strcmp( type, "assert" ) ) {
+		++agentErrors;
+		Q_strncpyz( agentError, detail, sizeof( agentError ) );
+	}
+	if ( !agentSubscribed )
+		return;
+	if ( agentEventCount == ARRAY_LEN( agentEvents ) ) {
+		++agentEventsDropped;
+		return;
+	}
+	auto &event = agentEvents[agentEventCount++];
+	Q_strncpyz( event.type, type, sizeof( event.type ) );
+	Q_strncpyz( event.detail, detail, sizeof( event.detail ) );
+	event.actor = actor;
+	event.target = target;
+	event.value = value;
+	event.frame = agentFrame;
+	event.time = agentTime;
+}
+
 
 void DevTools_AgentEnable( void ) {
 	agentActive = true;
@@ -303,7 +344,6 @@ static bool Agent_Number( const char *request, const char *end, const char *name
 	return true;
 }
 
-#ifndef DEDICATED
 static bool Agent_Bool( const char *request, const char *end, const char *name, bool &value ) {
 	const char *p = JSON_ObjectGetNamedValue( request, end, name );
 	if ( !p ) {
@@ -321,7 +361,6 @@ static bool Agent_Bool( const char *request, const char *end, const char *name, 
 	return false;
 }
 
-#endif
 
 static void Agent_State( agentReply_t &reply ) {
 	reply.Text( ",\"ok\":true,\"result\":{\"frame\":" );
@@ -407,6 +446,9 @@ static void Agent_Profile( agentReply_t &reply ) {
 	reply.Number( net->predictionError );
 	reply.Text( ",\"predictionPeak\":" );
 	reply.Number( net->predictionPeak );
+	reply.Text( "},\"events\":{" );
+	snprintf( counters, sizeof( counters ), "\"hits\":%" PRIu64 ",\"kills\":%" PRIu64 ",\"errors\":%" PRIu64 ",\"warnings\":%" PRIu64, agentHits, agentKills, agentErrors, agentWarnings );
+	reply.Text( counters );
 	reply.Text( "}}}" );
 }
 
@@ -546,7 +588,16 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"profile\",\"capture\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+	} else if ( !strcmp( op, "subscribe" ) ) {
+		bool enabled;
+		if ( !Agent_Bool( request, end, "enabled", enabled ) )
+			return reply.Error( "invalid_argument", "$.enabled", "Use true to receive structured events, false to stop." );
+		reply.Text( ",\"ok\":true,\"result\":{\"enabled\":" );
+		reply.Text( enabled ? "true" : "false" );
+		reply.Text( "}}" );
+		if ( reply.valid )
+			agentSubscribed = enabled;
 	} else if ( !strncmp( op, "entity.", 7 ) ) {
 		return Agent_Entity( op, request, end, reply );
 	} else if ( !strcmp( op, "profile" ) ) {
@@ -647,6 +698,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		reply.Text( ",\"ok\":true,\"result\":{\"pending\":true}}" );
 		if ( reply.valid ) {
 			agentSteps = frames;
+			agentError[0] = 0;
 			agentStepId = sequence;
 		}
 	} else if ( !strcmp( op, "cvar.get" ) || !strcmp( op, "cvar.set" ) ) {
@@ -694,6 +746,37 @@ static void Agent_Send( const char *response ) {
 		Com_Quit_f();
 }
 
+void DevTools_AgentFlushEvents( void ) {
+	for ( uint32_t i = 0; i < agentEventCount; ++i ) {
+		const auto &event = agentEvents[i];
+		char buffer[2048];
+		agentReply_t reply{ buffer, sizeof( buffer ), 0, true };
+		reply.Text( "{\"event\":" );
+		reply.String( event.type );
+		reply.Text( ",\"frame\":" );
+		reply.Number( event.frame );
+		reply.Text( ",\"time\":" );
+		reply.Number( event.time );
+		reply.Text( ",\"actor\":" );
+		reply.Number( event.actor );
+		reply.Text( ",\"target\":" );
+		reply.Number( event.target );
+		reply.Text( ",\"value\":" );
+		reply.Number( event.value );
+		reply.Text( ",\"detail\":" );
+		reply.String( event.detail );
+		reply.Text( "}" );
+		Agent_Send( buffer );
+	}
+	agentEventCount = 0;
+	if ( agentEventsDropped ) {
+		char overflow[128];
+		snprintf( overflow, sizeof( overflow ), "{\"event\":\"overflow\",\"dropped\":%u}", agentEventsDropped );
+		Agent_Send( overflow );
+		agentEventsDropped = 0;
+	}
+}
+
 bool DevTools_AgentNextFrame( void ) {
 	if ( !agentSteps ) {
 		static char request[agentLimit], response[65536];
@@ -716,6 +799,17 @@ bool DevTools_AgentNextFrame( void ) {
 
 void DevTools_AgentEndFrame( void ) {
 	agentFrameTimes[agentSamples++ % ARRAY_LEN( agentFrameTimes )] = MAX( INT64_C( 0 ), Sys_Microseconds() - agentFrameStart );
+	DevTools_AgentFlushEvents();
+	if ( agentError[0] ) {
+		char buffer[2048], prefix[64];
+		snprintf( prefix, sizeof( prefix ), "{\"id\":%u", agentStepId );
+		agentReply_t reply{ buffer, sizeof( buffer ), 0, true };
+		reply.Text( prefix );
+		reply.Error( "engine_error", "$", agentError );
+		agentSteps = 0;
+		Agent_Send( buffer );
+		return;
+	}
 	++agentFrame;
 	if ( --agentSteps == 0 ) {
 		char reply[160];

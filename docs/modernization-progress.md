@@ -75,6 +75,24 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 structured events / compiler checkpoint
+
+Native error, renderer-warning, applied-damage and player-death hooks feed a
+bounded event queue only in agent mode; subscribers receive JSON events between
+request/reply messages. Overflow is explicitly reported. A Com_Error fails the
+pending step and stops its remaining frames; fatal errors flush events before
+shutdown. The ordinary developer `error drop` test emits exactly one error event,
+fails the step with engine_error, and leaves the process queryable with no active
+player. This test requires +set developer 1 because that ordinary command is
+registered only in developer mode. No new error-injection command was added.
+
+PNG/TGA images captured in the same frame match pixel-for-pixel. The full Q3
+playthrough, Clang/libc++ UBSan protocol, boundaries and format pass
+(agent-events.log). Hit/kill hooks still need their gameplay acceptance; assert
+events remain to implement. Draft PR166 remains incomplete. Portable conversion
+head 5691795f passes all 16 compiler jobs in build 35557138685; its regression
+35557139029 remains running. Earlier build 35556998279 is not accepted.
+
 ## #163 PNG capture checkpoint
 
 The capture command schedules the existing renderer readback and returns a
