@@ -38,7 +38,9 @@ checks also pass with an OA renderer module; no screen-click calls remain in
 test drivers. Shipping exclusion passes in the full devtools rebuild. Legacy
 accepted goldens and source assets are unchanged.
 
-Next: assertion events and gameplay hit/kill acceptance; finish remaining command
+Next: the native assertion contract fails first because Q_ASSERT aborts without
+a structured event (agent-assert-before.log). Add a development-only reporter
+while retaining standard abort and release identity, then gameplay hit/kill acceptance; finish remaining command
 metadata/UI coverage, the tools/agent CLI and scripted route/fire/report with three
 captures, six format schemas/describe/errors, per-invocation scratch/display/port
 isolation and concurrent full suites, affected-test mapping and executable

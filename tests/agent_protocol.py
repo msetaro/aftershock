@@ -5,6 +5,9 @@ import json
 import os
 from pathlib import Path
 import shlex
+import signal
+import subprocess
+import resource
 import tempfile
 from run import run
 
@@ -34,4 +37,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-agent-protocol-', dir=scratc
         reply = replies[index]
         assert not reply['ok'] and reply['error']['code'] == code
         assert reply['error']['path'] == path and reply['error']['hint']
+    resource.setrlimit(resource.RLIMIT_CORE, (0, resource.getrlimit(resource.RLIMIT_CORE)[1]))
+    failed = subprocess.run([binary, '--assert'], cwd=temporary, capture_output=True, timeout=10)
+    assert failed.returncode == -signal.SIGABRT and b'agent assertion contract' in failed.stderr
+    events = [json.loads(line) for line in failed.stdout.splitlines()]
+    assert len(events) == 1 and events[0]['event'] == 'assert', events
+    assert 'agent assertion contract' in events[0]['detail'] and events[0]['value'] > 0
 print('PASS: native JSON replies, escaped strings, cvar protections and bounded command dispatch')

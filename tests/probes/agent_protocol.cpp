@@ -122,7 +122,20 @@ static void request( const char *text ) {
 	assert( DevTools_AgentRequest( text, (uint32_t)strlen( text ), response, sizeof( response ) ) );
 	puts( response );
 }
-int main() {
+bool Sys_AgentWrite( const char *text, uint32_t length ) {
+	const bool written = fwrite( text, 1, length, stdout ) == length;
+	fflush( stdout );
+	return written;
+}
+int main( int argc, char ** ) {
+	if ( argc > 1 ) {
+		DevTools_AgentEnable();
+		char response[1024];
+		const char *subscribe = R"({"id":1,"op":"subscribe","enabled":true})";
+		assert( DevTools_AgentRequest( subscribe, (uint32_t)strlen( subscribe ), response, sizeof( response ) ) );
+		Q_ASSERT( false && "agent assertion contract" );
+		return 2;
+	}
 	request( R"({"id":1,"op":"hello"})" );
 	request( R"({"id":2,"op":"cvar.get","name":"example"})" );
 	request( R"({"id":3,"op":"cvar.set","name":"example","value":"quote \" slash \\ newline\n"})" );
