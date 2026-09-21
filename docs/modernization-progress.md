@@ -20,20 +20,34 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active #13 branch: `issue/13-materials`, draft PR #157 now targets `main`.
-Main baseline 81a0f9dc (known-good-2026-09-20) is merged forward without rewriting
-history; AGENTS now specifies self-merged PRs into main after all required checks.
-The regression workflow's PR/push filters also change to main, otherwise the
-retargeted PR would silently miss its regression gates. Build triggers are checked
-as part of this migration. The tag is unchanged.
+Active branch: issue/158-main-publication, created from main a4358019 after the
+maintainer retired modernization. #13 PR #157 merged as
+a43580198b09c8b08f3bf30f08e77bf69e201cfe after exact-head build 35545635052 and
+regression 35545635067 passed. Its tested f638330b and merge trees are identical:
+60c07dae01241ebb2feaabd609cfa6c385c4fe68. Merged-tree regression 35546603116 and
+build 35546603122 are running. Wait for regression before closing #13/checking #25.
 
-Previous material head 2ed8cf56 passed all build legs (35544991054); regression
-35544991093 was still running runtime/lifetimes when the workflow changed. These
-runs are evidence for that earlier head only. Require fresh exact-head build and
-regression for this updated branch, then mark #157 ready, merge with a merge
-commit and verify main's merged-tree regression before closing #13/checking #25.
-Committed self-review and final local material evidence are below. No accepted
-fixture or shader bytes changed.
+Main's newly active publication job has a separate infrastructure defect #158:
+baseline 81a0f9dc passed every compilation leg but create-testing in 35545534633
+failed with `Resource not accessible by integration` creating latest, then tried
+to update that rolling tag. Repair publication in its own main-target PR, using
+job-scoped contents-write and immutable build-<full SHA> tags via installed gh.
+Never force/move a tag; retries must verify its target before replacing assets.
+An offline fake-CLI contract fails before the publisher exists (publish-before.log).
+Implement it, run the contract/full hosted gates, commit the self-review, then
+self-merge and require successful actual main publication. No engine change.
+
+Preserve #14 in the extra level-tree worktree: issue/14-lighting at ea0efdc2 has
+main a4358019 merged forward. Directional bake/native shading passes both content
+sets and unchanged classic replay. The sampled-depth shadow graph slice passes
+36 frozen legacy and 36 new native descriptor configurations; actual caster/view,
+receiver, cascaded sun, reflection/SSAO and GPU-budget work remains. No #14 PR or
+acceptance yet. Its detailed evidence is committed on that branch. Resume it while
+#158/#13 hosted gates run, then continue #25. No accepted goldens are regenerated.
+
+Known-good-2026-09-20 still has remote object 8bc8c94c and target 81a0f9dc.
+New branches and all PRs use main. Required checks must succeed; no red or skipped
+required check can be waived, and nothing is published outside this repository.
 
 #28 PR #156 is fully accepted: merge 646a63e82c0a74307d0e830ca6c626eca985ed60,
 exact build 35542300540/regression 35542300709, merged-tree regression 35543218326
@@ -43,14 +57,6 @@ f30abf9b5723b4d0aa20dc7600be1a7348050e5f. #28, #27 and #31 are closed/checked.
 all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
-
-The extra level-tree worktree has preparatory `issue/14-lighting` commits
-91acce4a/fd82f6ee and four uncommitted level-tool edits. Its new directional-bake
-test failed first on the absent option, then passed repeated paired BSP/AAS output
-and the existing default fixture gate. Preserve this work, checkpoint it and merge
-the new main history forward; never rebase. #14 is not accepted and still needs
-runtime lighting/shadows/probes/postprocessing and performance gates. Future new
-issue branches start from main. Continue #25 after #13 is integrated.
 
 ## #13 preparatory failing material contract
 
