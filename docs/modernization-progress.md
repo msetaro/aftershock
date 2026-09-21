@@ -23,8 +23,9 @@ upstream; historical upstream PR references below are completed past work.
 Active implementation: issue/14-lighting in
 /home/matt/.cache/aftershock-modernization/level-tree. Native receiver shading and
 the shadow-only atlas scissor correction now pass rendered point/spot/sun checks.
-Main 782c0dbc is merged forward. Next complete mask/animated-caster/lifecycle
-coverage, reflection probes, SSAO and reference-GPU timing. #161 follows #14 in
+Main 782c0dbc is merged forward. Mask/animated-caster/module-restart
+checks now pass. Next implement reflection probe baking/application and SSAO,
+then finish reference-GPU acceptance and the full hosted gates. #161 follows #14 in
 updated #25. Do not claim full #14 acceptance or regenerate accepted references.
 
 #160 repair PR #162 merged into main as
@@ -36,8 +37,7 @@ and regression 35549415277 now both PASS: all 16 compiler legs, all 10 required
 regression legs and actual create-testing publication. Repository prerelease
 build-782c0dbc51e4acf119ccce49a69301408dac1ae7 contains six platform archives.
 Issues #160, #158 and #13 are closed; #13 is checked in #25. This branch includes
-accepted main 782c0dbc; recheck current main before final gates/merge. No #14 PR
-exists yet.
+accepted main 782c0dbc; recheck current main before final gates/merge. Draft #14 PR #165 targets main and remains unmerged.
 
 #159's earlier merge 567cc664 had a duplicate permissions collision with concurrent
 main commits 06d15a8d/8dbb4461, despite passing exact-head gates. Merged regression
@@ -49,6 +49,34 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #14 caster/lifecycle and initial GPU checkpoint
+
+The extended owned-level runtime compares opaque, checker-cutout and empty
+casters only on common receiver pixels. Cutout versus empty changes 16518 channel
+bytes. Two owned skinned idle/prone poses change 7033 common receiver bytes, with
+exact light/shadow round trips. The first pose test placed the model before the
+camera command had settled; increasing that wait produced the intended placement
+and passes. No engine change was needed. Optional renderer module plus restart
+recreates the exact shadowed image, both Q3 and OA content (lighting-shadow-module.log,
+lighting-shadow-animated-settled.log). The latter includes the final pose coverage.
+
+A real-clock RTX 3080 Ti / driver 595.91.07 q3dm17 sample at 1280x720, quality 2,
+200 warm frames and 100 samples: baseline main median/p95 161.120/165.632 us;
+point local shadow 260.096/261.120 us, resumed main 435.200/450.560 us, summed GPU
+scopes 717.520/732.640 us. Camera (488,1096,416), angles (15,270,0); light
+(488,1096,512), radius 768, RGB (1,.8,.5), intensity 3. Captures were reviewed.
+Persistent JSON/logs: lighting-reference-gpu/timings.json and client.log;
+reproducer /tmp/aftershock-lighting-gpu.py. This is partial lighting evidence,
+not full #14/SSAO/probe acceptance or a console-hardware performance claim.
+
+Draft PR #165 at 62c2745c started build 35550910077 and regression 35550910304.
+Runtime failed compiling the pinned OA C adapter because the new owned wrapper's
+sceneLight_t pointer lacked a C declaration. The adapter now forward-declares
+that unused opaque type; it does not import the C++ layout. Rebuilt OA classic
+demos pass unchanged 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(lighting-oa-classic.log). Q3 classic replay also remains unchanged 43c52e51...
+(lighting-direct-classic.log). All final current-main gates remain mandatory.
 
 ## #14 receiver implementation checkpoint
 

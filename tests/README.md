@@ -984,7 +984,10 @@ API versions are 15 shipping / 19 development for the new function pointer.
 
 `python3 tests/lighting_runtime.py --shadows --binary CLIENT` adds point, spot and
 sun comparisons on the owned level: light must affect the image, depth comparison
-must attenuate it, and disabling comparison must restore it exactly. The same
+must attenuate it, and disabling comparison must restore it exactly. It compares
+opaque/cutout/empty casters and two owned skinned poses on common receiver pixels.
+`--lifecycle` also requires an exact image after renderer restart; the same test
+accepts a development client built with `USE_RENDERER_DLOPEN=ON`. The same
 `--content`/`--data` arguments apply. `tests/shadow_views.py` also verifies every
 atlas tile's raster/scissor against an atlas larger than the window.
 
@@ -1002,8 +1005,8 @@ Development builds provide `dev_light point x y z radius r g b intensity`,
 `dev_light spot x y z radius r g b intensity dx dy dz inner outer` and
 `dev_light off` on local cheat-enabled servers. Cone angles are half angles in degrees.
 
-Mask/animated-caster/lifecycle coverage, reflection baking, SSAO and reference-GPU
-budget acceptance remain before #14 can close.
+Reflection baking, SSAO and final reference-GPU budget acceptance remain before
+#14 can close.
 
 ## Declarative level authoring (#26)
 
