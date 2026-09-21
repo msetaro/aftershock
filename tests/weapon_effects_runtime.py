@@ -55,8 +55,20 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapon-effects-') as tempora
         shutil.copyfile(engine.log_path,args.output/'engine.log')
         assert stats['registered']>=len(definition['materials']) and stats['draws']>0,stats
         assert 'Weapon impact: material=effects/range_default.asfx' in engine.log_path.read_text()
-        camera=engine.request('state')['camera']
-        engine.request('camera',mode='pose',origin=camera['origin'],angles=[45,0,0])
+        player=engine.request('state')['player']['origin']
+        entities=[]
+        offset=0
+        while offset is not None:
+            page=engine.request('entity.list',offset=offset,limit=32)
+            entities.extend(page['entities'])
+            offset=page['next']
+        (args.output/'entities.json').write_text(json.dumps(entities,indent=2)+'\n')
+        hits=[row['origin'] for row in entities if row['classname']=='weapon_effect' and row['origin'][2]<player[2]-12]
+        assert hits,'no floor-hit event remains for the capture'
+        target=[sum(point[axis] for point in hits)/len(hits) for axis in range(3)]
+        engine.request('cvar.set',name='cg_fov',value='50')
+        # Use the actual hit events, excluding the animated local-player model.
+        engine.request('camera',mode='pose',origin=[target[0],target[1],target[2]+80],angles=[90,0,0])
         def capture(name):
             frame=engine.request('capture',name=name)
             engine.step(2)

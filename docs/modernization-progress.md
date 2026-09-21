@@ -64,6 +64,16 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 visual control caught new particle winding error
+
+Removing the player from the comparison made the stricter visual test fail. Using
+actual floor-hit event positions still showed no particles
+(fidelity-weapon-effect-runtime-{overhead,hit-view}.log). Review against the existing
+sprite tessellator found the new #161 particle quads wound backwards; earlier
+white-marker tests used two-sided shaders and masked it. Commit the stronger test
+before correcting this unmerged feature. Fix only the new effect quad order/UVs;
+no legacy renderer or accepted shader changes are needed.
+
 ## #161 live weapon material effects pass
 
 The new typed cgame imports register/start effects at the existing client renderer
@@ -75,8 +85,10 @@ Release build, formatting and C/game/engine ABI checks pass.
 The real client fires 20 material hits on the unchanged owned level and reports
 two registered effects, 5464 submitted particle draws, no pool drops. A tightened
 run uses degree-based input, disables HUD/gun/console notifications, fixes the
-camera and compares visible impacts with the expired frame; it passes and the
-capture is reviewed (fidelity-weapon-effect-runtime-visible.log). The first test
+camera and compares visible impacts with the expired frame. Numeric comparison passes, but capture
+review found the animated player obscuring the impact area; that run is not
+accepted visual evidence (fidelity-weapon-effect-runtime-visible.log). The next
+run uses a narrow overhead view of the floor impact to exclude the player. The first test
 used raw 16-bit angles; it exercised dispatch but was insufficient visual evidence.
 Both versions are retained. The visible lifecycle command is now in runtime CI.
 No authoritative damage, weapon arithmetic, hit selection or snapshot change.
