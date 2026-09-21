@@ -54,6 +54,11 @@ int main() {
 			float fraction = 1;
 			assert(Phys_Ray(origin, direction, &fraction));
 			assert(std::fabs(fraction - .5f) < .001f);
+			physTransform_t sweep = { { 30, 30, 5 }, { 0, 0, 0, 1 } };
+			fraction = 1;
+			assert(Phys_Sweep(1, &sweep, direction, &fraction));
+			assert(std::fabs(fraction - .475f) < .001f);
+			assert(!Phys_Sweep(PHYS_INVALID_BODY, &sweep, direction, &fraction));
 			for ( unsigned i = 1; i < PHYS_MAX_BODIES; ++i ) {
 				physTransform_t pose;
 				assert(Phys_Transform(i, &pose));

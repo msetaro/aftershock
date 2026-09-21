@@ -73,6 +73,13 @@ accepted frame fixtures and shader arrays are unchanged.
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
 
+## #15 shape sweep test first
+
+The boundary probe now requires a prepared sphere sweep against the floor,
+checking its contact fraction separately from the ray and rejecting an invalid
+slot. This first run fails to compile because Phys_Sweep is not implemented
+(physics-sweep-before.log). The existing allocation counters cover the new query.
+
 ## #15 prepared slots use collision-layer activation
 
 The initial owned POD module caught a real recycle allocation: AddBody allocates
