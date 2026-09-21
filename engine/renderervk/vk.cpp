@@ -1,6 +1,7 @@
 #include "vk.h"
 #include "../qcommon/qcommon_public.h"
 #include <setjmp.h>
+#include <algorithm>
 
 constexpr int FILTER_NEAREST = (int)rhiFilter_t::Nearest;
 constexpr int FILTER_LINEAR = (int)rhiFilter_t::Linear;
@@ -21,6 +22,22 @@ static struct {
 	bool active, waiting, failed;
 } vk_stream;
 static void vk_clean_texture_uploads();
+static struct {
+	struct image_t {
+		rhiTexture_t texture;
+		uint64_t offset, size;
+	} images[2049]; // 2048 resident images plus one replacement/retirement.
+	VkDeviceMemory memory;
+	VkDescriptorPool descriptors;
+	VkFence fence;
+	uint64_t budget, used, peak;
+	uint32_t memoryType, retiring;
+	bool waiting;
+} vk_residency;
+static void vk_clean_texture_residency();
+enum class vkTextureMemory_t { Map,
+	Owned,
+	Resident };
 static rhiDeviceConfig_t vk_config;
 static rhiHost_t vk_host;
 static rhiPostProcess_t vk_post;
@@ -95,7 +112,7 @@ static void vk_impl_Shutdown( void );
 static void vk_impl_UploadWorldGeometry( const uint8_t *data, int32_t size );
 static void vk_impl_UpdatePostProcess( int32_t overbrightBits );
 static void vk_impl_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height );
-static void vk_impl_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, rhiAddress_t address, const char *label, bool owned = false, bool deferSampler = false );
+static void vk_impl_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, rhiAddress_t address, const char *label, vkTextureMemory_t allocationType = vkTextureMemory_t::Map, bool deferSampler = false );
 static void vk_impl_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update, int32_t blockExtent = 1 );
 static void vk_impl_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t address, bool mipmap );
 static rhiStatus_t vk_impl_SetTextureFilter( rhiFilter_t minimize, rhiFilter_t magnify, bool *changed );
@@ -4777,6 +4794,7 @@ void vk_impl_ReleaseResources( void ) {
 
 	vk_wait_idle();
 	vk_clean_texture_uploads();
+	vk_clean_texture_residency();
 
 	for ( i = 0; i < vk_world.num_image_chunks; i++ )
 		qvkFreeMemory( vk.device, vk_world.image_chunks[i].memory, NULL );
@@ -4884,7 +4902,80 @@ static VkSamplerAddressMode vk_texture_address( rhiAddress_t address ) {
 	return VK_SAMPLER_ADDRESS_MODE_REPEAT;
 }
 
-void vk_impl_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mip_levels, rhiFormat_t imageFormat, rhiAddress_t address, const char *label, bool owned, bool deferSampler ) {
+static VkImage vk_create_texture_image( int32_t width, int32_t height, int32_t mip_levels, rhiFormat_t imageFormat ) {
+	VkImageCreateInfo desc;
+
+	desc.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	desc.pNext = NULL;
+	desc.flags = 0;
+	desc.imageType = VK_IMAGE_TYPE_2D;
+	desc.format = vk_texture_format( imageFormat );
+	desc.extent.width = width;
+	desc.extent.height = height;
+	desc.extent.depth = 1;
+	desc.mipLevels = mip_levels;
+	desc.arrayLayers = 1;
+	desc.samples = VK_SAMPLE_COUNT_1_BIT;
+	desc.tiling = VK_IMAGE_TILING_OPTIMAL;
+	desc.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	desc.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	desc.queueFamilyIndexCount = 0;
+	desc.pQueueFamilyIndices = NULL;
+	desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+	VkImage handle;
+	VK_CHECK( qvkCreateImage( vk.device, &desc, NULL, &handle ) );
+	return handle;
+}
+
+static uint32_t vk_resident_image( uint64_t image ) {
+	if ( image && vk_residency.descriptors )
+		for ( uint32_t i = 0; i < ARRAY_LEN( vk_residency.images ); ++i )
+			if ( vk_residency.images[i].texture.image == image )
+				return i;
+	return UINT32_MAX;
+}
+
+static void vk_bind_resident_image( const rhiTexture_t *texture ) {
+	VkMemoryRequirements requirements;
+	qvkGetImageMemoryRequirements( vk.device, (VkImage)(uintptr_t)texture->image, &requirements );
+	uint32_t order[ARRAY_LEN( vk_residency.images )], count = 0, slot = UINT32_MAX;
+	for ( uint32_t i = 0; i < ARRAY_LEN( vk_residency.images ); ++i ) {
+		if ( vk_residency.images[i].texture.image )
+			order[count++] = i;
+		else if ( slot == UINT32_MAX )
+			slot = i;
+	}
+	if ( slot == UINT32_MAX || requirements.size > vk_residency.budget || requirements.alignment > vk_residency.budget )
+		vk_fail( ERR_DROP, rhiStatus_t::OutOfMemory, "texture residency capacity exhausted" );
+	std::sort( order, order + count, []( uint32_t a, uint32_t b ) { return vk_residency.images[a].offset < vk_residency.images[b].offset; } );
+	uint64_t offset = 0;
+	for ( uint32_t i = 0; i < count; ++i ) {
+		const auto &occupied = vk_residency.images[order[i]];
+		offset = PAD( offset, requirements.alignment );
+		if ( offset <= occupied.offset && requirements.size <= occupied.offset - offset )
+			break;
+		offset = occupied.offset + occupied.size;
+	}
+	offset = PAD( offset, requirements.alignment );
+	if ( offset > vk_residency.budget || requirements.size > vk_residency.budget - offset )
+		vk_fail( ERR_DROP, rhiStatus_t::OutOfMemory, "texture residency budget exhausted" );
+	if ( !vk_residency.memory ) {
+		vk_residency.memoryType = find_memory_type( requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+		VkMemoryAllocateInfo allocation{};
+		allocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocation.allocationSize = vk_residency.budget;
+		allocation.memoryTypeIndex = vk_residency.memoryType;
+		VK_CHECK( qvkAllocateMemory( vk.device, &allocation, nullptr, &vk_residency.memory ) );
+	} else if ( !( requirements.memoryTypeBits & ( 1u << vk_residency.memoryType ) ) )
+		vk_fail( ERR_DROP, rhiStatus_t::Unavailable, "texture residency memory type mismatch" );
+	vk_residency.images[slot] = { *texture, offset, requirements.size };
+	vk_residency.used += requirements.size;
+	vk_residency.peak = MAX( vk_residency.peak, vk_residency.used );
+	VK_CHECK( qvkBindImageMemory( vk.device, (VkImage)(uintptr_t)texture->image, vk_residency.memory, offset ) );
+}
+
+void vk_impl_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mip_levels, rhiFormat_t imageFormat, rhiAddress_t address, const char *label, vkTextureMemory_t allocationType, bool deferSampler ) {
 
 	const VkFormat format = vk_texture_format( imageFormat );
 
@@ -4905,31 +4996,11 @@ void vk_impl_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height
 
 	// create image
 	{
-		VkImageCreateInfo desc;
-
-		desc.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		desc.pNext = NULL;
-		desc.flags = 0;
-		desc.imageType = VK_IMAGE_TYPE_2D;
-		desc.format = format;
-		desc.extent.width = width;
-		desc.extent.height = height;
-		desc.extent.depth = 1;
-		desc.mipLevels = mip_levels;
-		desc.arrayLayers = 1;
-		desc.samples = VK_SAMPLE_COUNT_1_BIT;
-		desc.tiling = VK_IMAGE_TILING_OPTIMAL;
-		desc.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		desc.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		desc.queueFamilyIndexCount = 0;
-		desc.pQueueFamilyIndices = NULL;
-		desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-		VkImage handle;
-		VK_CHECK( qvkCreateImage( vk.device, &desc, NULL, &handle ) );
+		const VkImage handle = vk_create_texture_image( width, height, mip_levels, imageFormat );
 		texture->image = (uint64_t)(uintptr_t)handle;
-
-		if ( owned ) {
+		if ( allocationType == vkTextureMemory_t::Resident ) {
+			vk_bind_resident_image( texture );
+		} else if ( allocationType == vkTextureMemory_t::Owned ) {
 			VkMemoryRequirements requirements;
 			qvkGetImageMemoryRequirements( vk.device, handle, &requirements );
 			VkMemoryAllocateInfo allocation = {};
@@ -4976,7 +5047,7 @@ void vk_impl_CreateTexture( rhiTexture_t *texture, int32_t width, int32_t height
 
 		desc.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		desc.pNext = NULL;
-		desc.descriptorPool = vk.descriptor_pool;
+		desc.descriptorPool = allocationType == vkTextureMemory_t::Resident ? vk_residency.descriptors : vk.descriptor_pool;
 		desc.descriptorSetCount = 1;
 		desc.pSetLayouts = &vk.set_layout_sampler;
 
@@ -5147,6 +5218,7 @@ void vk_impl_UpdateTextureSampler( const rhiTexture_t *texture, rhiAddress_t add
 
 
 void RHI_DestroyTexture( rhiTexture_t *texture ) {
+	const uint32_t resident = vk_resident_image( texture->image );
 	if ( texture->image ) {
 		qvkDestroyImage( vk.device, (VkImage)(uintptr_t)texture->image, NULL );
 		texture->image = 0;
@@ -5158,6 +5230,15 @@ void RHI_DestroyTexture( rhiTexture_t *texture ) {
 	if ( texture->memory ) {
 		qvkFreeMemory( vk.device, (VkDeviceMemory)(uintptr_t)texture->memory, NULL );
 		texture->memory = 0;
+	}
+	if ( resident != UINT32_MAX ) {
+		if ( texture->binding ) {
+			const VkDescriptorSet binding = (VkDescriptorSet)(uintptr_t)texture->binding;
+			qvkFreeDescriptorSets( vk.device, vk_residency.descriptors, 1, &binding );
+		}
+		texture->binding = 0;
+		vk_residency.used -= vk_residency.images[resident].size;
+		vk_residency.images[resident] = {};
 	}
 }
 
@@ -8299,6 +8380,9 @@ rhiStatus_t RHI_Shutdown( void ) {
 	const rhiStatus_t uploads = RHI_ShutdownTextureUploads();
 	if ( uploads != rhiStatus_t::Success )
 		return uploads;
+	const rhiStatus_t residency = RHI_ShutdownTextureResidency();
+	if ( residency != rhiStatus_t::Success )
+		return residency;
 	return vk_call( [&]() {
 		vk_impl_Shutdown();
 		return rhiStatus_t::Success;
@@ -8528,6 +8612,138 @@ rhiStatus_t RHI_PollTextureUpload( bool *complete ) {
 	return status;
 }
 
+static bool vk_valid_resident_dimensions( int32_t width, int32_t height, int32_t levels, rhiFormat_t format ) {
+	return width > 0 && height > 0 && width <= 16384 && height <= 16384 && levels > 0 && levels <= 15 &&
+		   ( MAX( width, height ) >> ( levels - 1 ) ) && format >= rhiFormat_t::BC4 && format <= rhiFormat_t::BC7_SRGB;
+}
+
+rhiStatus_t RHI_TextureResidencyBytes( int32_t width, int32_t height, int32_t levels, rhiFormat_t format, uint64_t *bytes ) {
+	if ( !bytes || !vk_valid_resident_dimensions( width, height, levels, format ) )
+		return rhiStatus_t::Error;
+	*bytes = 0;
+	return vk_call( [&]() {
+		if ( !vk_texture_supported( format ) )
+			return rhiStatus_t::Unavailable;
+		const VkImage image = vk_create_texture_image( width, height, levels, format );
+		VkMemoryRequirements requirements;
+		qvkGetImageMemoryRequirements( vk.device, image, &requirements );
+		qvkDestroyImage( vk.device, image, nullptr );
+		*bytes = requirements.size;
+		return rhiStatus_t::Success;
+	} );
+}
+
+static void vk_clean_texture_residency() {
+	for ( auto &image : vk_residency.images ) {
+		rhiTexture_t texture = image.texture;
+		if ( texture.image )
+			RHI_DestroyTexture( &texture );
+	}
+	if ( vk_residency.memory )
+		qvkFreeMemory( vk.device, vk_residency.memory, nullptr );
+	if ( vk_residency.descriptors )
+		qvkDestroyDescriptorPool( vk.device, vk_residency.descriptors, nullptr );
+	if ( vk_residency.fence )
+		qvkDestroyFence( vk.device, vk_residency.fence, nullptr );
+	vk_residency = {};
+}
+
+rhiStatus_t RHI_InitTextureResidency( uint64_t budget ) {
+	if ( budget < 4096 || budget > UINT64_C( 4096 ) * 1024 * 1024 )
+		return rhiStatus_t::Error;
+	if ( vk_residency.descriptors )
+		return budget == vk_residency.budget ? rhiStatus_t::Success : rhiStatus_t::Error;
+	if ( !vk.device )
+		return rhiStatus_t::Unavailable;
+	const rhiStatus_t status = vk_call( [&]() {
+		vk_residency.budget = budget;
+		const VkDescriptorPoolSize size = { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, ARRAY_LEN( vk_residency.images ) };
+		VkDescriptorPoolCreateInfo pool{};
+		pool.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		pool.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		pool.maxSets = size.descriptorCount;
+		pool.poolSizeCount = 1;
+		pool.pPoolSizes = &size;
+		VK_CHECK( qvkCreateDescriptorPool( vk.device, &pool, nullptr, &vk_residency.descriptors ) );
+		VkFenceCreateInfo fence{};
+		fence.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		VK_CHECK( qvkCreateFence( vk.device, &fence, nullptr, &vk_residency.fence ) );
+		return rhiStatus_t::Success;
+	} );
+	if ( status != rhiStatus_t::Success )
+		vk_clean_texture_residency();
+	return status;
+}
+
+rhiStatus_t RHI_ShutdownTextureResidency() {
+	const rhiStatus_t uploads = RHI_ShutdownTextureUploads();
+	if ( uploads != rhiStatus_t::Success )
+		return uploads;
+	if ( vk_residency.descriptors ) {
+		const rhiStatus_t status = RHI_WaitIdle();
+		if ( status != rhiStatus_t::Success && status != rhiStatus_t::DeviceLost )
+			return status;
+	}
+	vk_clean_texture_residency();
+	return rhiStatus_t::Success;
+}
+
+rhiTextureResidencyStats_t RHI_GetTextureResidencyStats() {
+	return { vk_residency.budget, vk_residency.used, vk_residency.peak,
+		vk_residency.waiting ? vk_residency.images[vk_residency.retiring].size : 0 };
+}
+
+rhiStatus_t RHI_CreateResidentTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t levels, rhiFormat_t format, rhiAddress_t address, const char *label ) {
+	if ( !texture || texture->image || texture->view || texture->binding || texture->memory || !vk_valid_resident_dimensions( width, height, levels, format ) )
+		return rhiStatus_t::Error;
+	if ( !vk_residency.descriptors )
+		return rhiStatus_t::Unavailable;
+	const rhiStatus_t status = vk_call( [&]() {
+		if ( !vk_texture_supported( format ) )
+			return rhiStatus_t::Unavailable;
+		vk_impl_CreateTexture( texture, width, height, levels, format, address, label, vkTextureMemory_t::Resident );
+		vk_residency.images[vk_resident_image( texture->image )].texture = *texture;
+		return rhiStatus_t::Success;
+	} );
+	if ( status != rhiStatus_t::Success )
+		RHI_DestroyTexture( texture );
+	return status;
+}
+
+rhiStatus_t RHI_AdoptResidentTexture( rhiTexture_t *live, rhiTexture_t *replacement ) {
+	if ( !live || !replacement || live == replacement || live->image == replacement->image )
+		return rhiStatus_t::Error;
+	const uint32_t old = vk_resident_image( live->image ), next = vk_resident_image( replacement->image );
+	if ( old == UINT32_MAX || next == UINT32_MAX || vk_residency.waiting || vk_stream.active || vk_stream.failed || vk_stream.image != (VkImage)(uintptr_t)replacement->image )
+		return rhiStatus_t::Unavailable;
+	return vk_call( [&]() {
+		VK_CHECK( qvkResetFences( vk.device, 1, &vk_residency.fence ) );
+		VkSubmitInfo submit{};
+		submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		VK_CHECK( qvkQueueSubmit( vk.queue, 1, &submit, vk_residency.fence ) );
+		vk_residency.retiring = old;
+		vk_residency.waiting = true;
+		*live = *replacement;
+		*replacement = {};
+		vk_stream.image = VK_NULL_HANDLE;
+		return rhiStatus_t::Success;
+	} );
+}
+
+rhiStatus_t RHI_PollTextureResidency() {
+	if ( !vk_residency.waiting )
+		return rhiStatus_t::Success;
+	const VkResult status = qvkWaitForFences( vk.device, 1, &vk_residency.fence, VK_TRUE, 0 );
+	if ( status == VK_TIMEOUT )
+		return rhiStatus_t::Success;
+	if ( status != VK_SUCCESS )
+		return vk_status( status );
+	rhiTexture_t texture = vk_residency.images[vk_residency.retiring].texture;
+	RHI_DestroyTexture( &texture );
+	vk_residency.waiting = false;
+	return rhiStatus_t::Success;
+}
+
 rhiStatus_t RHI_ReplaceCompressedTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, rhiAddress_t address, const char *label ) {
 	if ( !texture || !blocks || width < 1 || height < 1 || width > 16384 || height > 16384 || mipLevels < 1 || mipLevels > 15 || format < rhiFormat_t::BC4 || format > rhiFormat_t::BC7_SRGB )
 		return rhiStatus_t::Error;
@@ -8539,7 +8755,7 @@ rhiStatus_t RHI_ReplaceCompressedTexture( rhiTexture_t *texture, int32_t width, 
 	status = vk_call( [&]() {
 		if ( !vk_texture_supported( format ) )
 			return rhiStatus_t::Unavailable;
-		vk_impl_CreateTexture( &replacement, width, height, mipLevels, format, address, label, true, true );
+		vk_impl_CreateTexture( &replacement, width, height, mipLevels, format, address, label, vkTextureMemory_t::Owned, true );
 		return rhiStatus_t::Success;
 	} );
 	if ( status == rhiStatus_t::Success )

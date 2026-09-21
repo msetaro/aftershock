@@ -47,6 +47,29 @@ rhiStatus_t RHI_PollTextureUpload( bool *complete ) {
 		*complete = false;
 	return rhiStatus_t::Unavailable;
 }
+rhiStatus_t RHI_InitTextureResidency( uint64_t ) {
+	return rhiStatus_t::Unavailable;
+}
+rhiStatus_t RHI_TextureResidencyBytes( int32_t, int32_t, int32_t, rhiFormat_t, uint64_t *bytes ) {
+	if ( bytes )
+		*bytes = 0;
+	return rhiStatus_t::Unavailable;
+}
+rhiStatus_t RHI_CreateResidentTexture( rhiTexture_t *, int32_t, int32_t, int32_t, rhiFormat_t, rhiAddress_t, const char * ) {
+	return rhiStatus_t::Unavailable;
+}
+rhiStatus_t RHI_AdoptResidentTexture( rhiTexture_t *, rhiTexture_t * ) {
+	return rhiStatus_t::Unavailable;
+}
+rhiStatus_t RHI_PollTextureResidency() {
+	return rhiStatus_t::Unavailable;
+}
+rhiTextureResidencyStats_t RHI_GetTextureResidencyStats() {
+	return {};
+}
+rhiStatus_t RHI_ShutdownTextureResidency() {
+	return rhiStatus_t::Success;
+}
 rhiStatus_t RHI_ShutdownTextureUploads() {
 	return rhiStatus_t::Success;
 }

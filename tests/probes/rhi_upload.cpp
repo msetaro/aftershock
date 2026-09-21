@@ -320,7 +320,7 @@ static void check_texture_replacement() {
 
 static uint32_t residentMemoryAllocations, residentImages, residentViews, residentBindings;
 static uint64_t residentHandle = 500;
-static bool retirementReady;
+static bool retirementReady, residentFailView;
 static void check_texture_residency() {
 	vk.device = (VkDevice)(uintptr_t)20;
 	vk.compressionBC = qtrue;
@@ -333,7 +333,7 @@ static void check_texture_residency() {
 	qvkAllocateMemory = []( VkDevice, const VkMemoryAllocateInfo *info, const VkAllocationCallbacks *, VkDeviceMemory *memory ) { assert( info->allocationSize == 12288 ); *memory = (VkDeviceMemory)(uintptr_t)503; residentMemoryAllocations++; return VK_SUCCESS; };
 	qvkFreeMemory = []( VkDevice, VkDeviceMemory, const VkAllocationCallbacks * ) { assert( residentMemoryAllocations ); residentMemoryAllocations--; };
 	qvkBindImageMemory = []( VkDevice, VkImage, VkDeviceMemory memory, VkDeviceSize offset ) { assert( (uintptr_t)memory == 503 && offset % 4096 == 0 && offset < 12288 ); return VK_SUCCESS; };
-	qvkCreateImageView = []( VkDevice, const VkImageViewCreateInfo *, const VkAllocationCallbacks *, VkImageView *view ) { *view = (VkImageView)(uintptr_t)++residentHandle; residentViews++; return VK_SUCCESS; };
+	qvkCreateImageView = []( VkDevice, const VkImageViewCreateInfo *, const VkAllocationCallbacks *, VkImageView *view ) { if ( residentFailView ) return VK_ERROR_OUT_OF_DEVICE_MEMORY; *view = (VkImageView)(uintptr_t)++residentHandle; residentViews++; return VK_SUCCESS; };
 	qvkDestroyImageView = []( VkDevice, VkImageView, const VkAllocationCallbacks * ) { assert( residentViews ); residentViews--; };
 	qvkAllocateDescriptorSets = []( VkDevice, const VkDescriptorSetAllocateInfo *info, VkDescriptorSet *binding ) { assert( (uintptr_t)info->descriptorPool == 501 ); *binding = (VkDescriptorSet)(uintptr_t)++residentHandle; residentBindings++; return VK_SUCCESS; };
 	qvkFreeDescriptorSets = []( VkDevice, VkDescriptorPool pool, uint32_t count, const VkDescriptorSet * ) { assert( (uintptr_t)pool == 501 && count == 1 && residentBindings ); residentBindings--; return VK_SUCCESS; };
@@ -352,7 +352,11 @@ static void check_texture_residency() {
 	assert( RHI_CreateResidentTexture( &extra, 16, 16, 1, rhiFormat_t::BC7, rhiAddress_t::Repeat, "full" ) == rhiStatus_t::OutOfMemory && !extra.image );
 	assert( residentImages == 3 && residentViews == 3 && residentBindings == 3 );
 	const uint64_t replacement = b.image;
+	assert( RHI_AdoptResidentTexture( &a, &b ) == rhiStatus_t::Unavailable );
 	vk_stream.image = (VkImage)(uintptr_t)b.image; // Completed upload; transfer fence is separately tested above.
+	vk_stream.active = true;
+	assert( RHI_AdoptResidentTexture( &a, &b ) == rhiStatus_t::Unavailable );
+	vk_stream.active = false;
 	assert( RHI_AdoptResidentTexture( &a, &b ) == rhiStatus_t::Success && a.image == replacement && !b.image );
 	assert( RHI_GetTextureResidencyStats().usedBytes == 12288 && RHI_GetTextureResidencyStats().retiredBytes == 4096 );
 	assert( RHI_PollTextureResidency() == rhiStatus_t::Success && residentImages == 3 );
@@ -360,6 +364,11 @@ static void check_texture_residency() {
 	retirementReady = true;
 	assert( RHI_PollTextureResidency() == rhiStatus_t::Success && residentImages == 2 );
 	assert( RHI_GetTextureResidencyStats().usedBytes == 8192 && !RHI_GetTextureResidencyStats().retiredBytes );
+	residentFailView = true;
+	assert( RHI_CreateResidentTexture( &extra, 16, 16, 1, rhiFormat_t::BC7, rhiAddress_t::Repeat, "failed view" ) == rhiStatus_t::OutOfMemory );
+	assert( !extra.image && !extra.view && !extra.binding && residentImages == 2 && residentViews == 2 && residentBindings == 2 );
+	assert( RHI_GetTextureResidencyStats().usedBytes == 8192 );
+	residentFailView = false;
 	assert( RHI_CreateResidentTexture( &extra, 16, 16, 1, rhiFormat_t::BC7, rhiAddress_t::Repeat, "reused" ) == rhiStatus_t::Success );
 	assert( residentMemoryAllocations == 1 );
 	assert( RHI_ShutdownTextureResidency() == rhiStatus_t::Success );

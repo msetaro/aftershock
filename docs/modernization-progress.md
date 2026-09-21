@@ -80,6 +80,27 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 reclaimable residency component
+
+The RHI owns a fixed-capacity residency arena: one device-memory allocation,
+2049 image records (2048 resident plus one transition), a reusable descriptor
+pool and one retirement fence. Allocations use actual Vulkan requirements and
+aligned free gaps; pending/retired images remain charged. Each replacement gets
+its own descriptor. Adoption between submitted frames inserts a last-use fence;
+zero-timeout polling releases the old image only after completion. Shutdown
+cancels uploads before freeing residency. Driver image/view objects are still
+created for replacements; no engine heap or new device-memory allocation occurs
+per promotion. Fragmentation may refuse a request; it cannot overrun the budget.
+
+GCC/Clang native probes, upload ASan/UBSan, client build, formatting, types and
+boundaries pass (fidelity-residency-{after,clang,sanitized,build,format,types,boundaries}).
+Tests require full-pool refusal while retirement is pending, byte accounting,
+distinct descriptors, no adoption of unfinished uploads, exact reuse after the
+fence, rollback of a failed view and full cleanup. The generic texture creation
+and staging helpers are shared; no accepted shader/fixture changed. This remains
+unconnected to image loading/binding; bounded source storage, hot reload and
+large-set fly-through/real GPU acceptance are next.
+
 ## #161 residency ownership test-first
 
 The native RHI probe now requires a reusable device-memory budget with actual

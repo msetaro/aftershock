@@ -149,6 +149,21 @@ static_assert( sizeof( rhiTexture_t ) == 32 && std::is_trivially_copyable_v<rhiT
 [[nodiscard]] rhiStatus_t RHI_PollTextureUpload( bool *complete );
 // Only map unload/restart may block; cancels any pending request after GPU completion.
 [[nodiscard]] rhiStatus_t RHI_ShutdownTextureUploads();
+// Separate reclaimable texture arena. Initialize/query at map load; allocation
+// uses one device-memory block and a bounded descriptor pool. Driver image/view
+// objects are created per replacement; engine heap allocations are not required.
+struct rhiTextureResidencyStats_t {
+	uint64_t budgetBytes, usedBytes, peakBytes, retiredBytes;
+};
+[[nodiscard]] rhiStatus_t RHI_InitTextureResidency( uint64_t budget );
+[[nodiscard]] rhiStatus_t RHI_TextureResidencyBytes( int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, uint64_t *bytes );
+[[nodiscard]] rhiStatus_t RHI_CreateResidentTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, rhiFormat_t format, rhiAddress_t address, const char *label );
+// Call between submitted frames, after upload completion; never while recording
+// commands which reference the old descriptor. Its last-use marker retires it.
+[[nodiscard]] rhiStatus_t RHI_AdoptResidentTexture( rhiTexture_t *live, rhiTexture_t *replacement );
+[[nodiscard]] rhiStatus_t RHI_PollTextureResidency();
+rhiTextureResidencyStats_t RHI_GetTextureResidencyStats();
+[[nodiscard]] rhiStatus_t RHI_ShutdownTextureResidency();
 // Development replacement waits for GPU use, then commits image/view/binding atomically.
 // Failure retains the live image; separately owned memory is reclaimed on replacement.
 [[nodiscard]] rhiStatus_t RHI_ReplaceCompressedTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, rhiAddress_t address, const char *label );
