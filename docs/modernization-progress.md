@@ -37,8 +37,13 @@ MSAA and the fixed OpenArena replay hash. All 96 shaders reproduce; existing
 accepted fixtures/shader arrays remain unchanged. Detailed failures and evidence
 are below; these checks do not constitute final #161 acceptance.
 
-Next: finish the separate #31 descriptor-restoration fix in descriptor-tree, merge
-its accepted main forward, then remeasure the initial post hardware budget and implement temporal motion history, jitter/TAA
+PR168 merged as 07304b324c75085a2403994030aceec73d4de8e1 after exact head
+dd4feacb passed all 16 compiler and ten active regression jobs (35607504307 /
+35607504311). Main/base remained 81e40b0c immediately before merge. Both tested
+and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
+unchanged. Main is merged forward here; merged-tree CI is pending.
+
+Next: adopt the descriptor restoration helper in the new effects/post path, then remeasure the initial post hardware budget and implement temporal motion history, jitter/TAA
 and motion blur, followed by mip streaming/async uploads. Real previous rendered
 poses/transforms are required: oldorigin/oldframe are animation interpolation,
 not prior-frame history. Reference scene/goldens, all hardware budgets and final
@@ -788,6 +793,30 @@ ImGui tooling and render graph. #161 is presentation-only: no authoritative
 movement/snapshot arithmetic or per-frame allocation. Reference effects, projected
 decals, post/TAA, LOD/streaming, live data editing and real 1440p GPU measurements
 are still required; this first contract is not implementation or acceptance.
+
+## #31 descriptor restoration local verification
+
+Test-first commit 629bd78b advertises a device with 32 descriptor sets while the
+engine cache/layout has five; the native SSAO assertion fails before the fix
+(descriptor-before.log). Actual accepted #164 binary also crashes with r_ssao 1
+on the owned street on RTX 3080 Ti (descriptor-rtx-before.log). The correction
+rebinds only initialized cache slots with the saved uniform dynamic offset and
+clears the dirty range. No invalid trailing slot or hardware-limit array access.
+
+GCC/Clang native graph checks now cover device capacities 4/5/32 with sparse
+bindings, unchanged descriptors, exact dynamic offsets and cache reset. Both
+pass (descriptor-after.log, descriptor-clang.log). Repeated mocked pipeline
+creation initially needed the test's fake handle reset; no production workaround
+was added. RTX SSAO then passes (descriptor-rtx-after.log). Software half/full
+SSAO and 4x MSAA+bloom pass exact disable/restart comparisons
+(descriptor-ssao.log). Fixed OpenArena replay hash remains
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(descriptor-demo.log). Format, boundaries and type checks pass.
+
+Self-review: one descriptor-state bug, fixed-capacity stack state only, no new
+OS access, allocation, nontrivial lifetime, ABI/layout or simulation FP changes.
+No accepted fixture, expected-failure entry or UBSan suppression is changed.
+All writes stay in msetaro/aftershock; hosted gates remain mandatory before merge.
 
 ## #164 default command and final self-review
 
