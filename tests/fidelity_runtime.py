@@ -107,7 +107,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-fidelity-') as temporary:
         assert decals['active'] >= 3 and decals['draws'] > 0 and decals['dropped'] == 0, decals
         assert profile['post']['draws'] > 0 and profile['post']['dropped'] == 0, profile['post']
         assert sum(ImageStat.Stat(ImageChops.difference(baseline, active)).sum) > 100000, 'combined presentation absent'
+        timings = profile['presentationCpuUsec']
+        assert all(timings[name] > 0 for name in ('effects', 'decals', 'effectsDraw', 'lod')), timings
         names = {row['name'] for row in profile['gpu']}
+        assert 'decals' in names, names
         assert {'camera motion', 'object motion', 'temporal resolve', 'temporal copy'} <= names, names
         assert profile['temporal']['frames'] > 0 and profile['temporal']['dropped'] == 0, profile['temporal']
         engine.step(12)

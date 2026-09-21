@@ -97,8 +97,9 @@ decal frontend CPU 0.25 ms; LOD selection CPU 0.10 ms; inclusive effects GPU pas
 1.50 ms, decal GPU subset 0.75 ms. Nested decal time is not counted twice. Existing
 post/temporal/streaming thresholds remain unchanged. The fresh comparison run passes all four references exactly
 (fidelity-combined-verify.log); the runtime command is added to hosted CI and
-AGENTS.md. Next: add cumulative CPU and nested decal GPU timing, then measure the
-combined workload.
+AGENTS.md. The new timing assertion fails first with missing `presentationCpuUsec`
+(fidelity-timing-before.log). Next: implement cumulative CPU and nested decal GPU
+timing, then measure the combined workload.
 
 ## #161 permanent streaming measurement command
 
