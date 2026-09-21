@@ -760,7 +760,7 @@ static_assert( RHI_GRAPH_BLOOM_PASSES == VK_NUM_BLOOM_PASSES );
 static_assert( ARRAY_LEN( vk_graph.targetOrder ) == MAX_ATTACHMENTS_IN_POOL );
 static const char *const vk_graph_names[] = {
 	"screenmap", "main", "bloom_extract", "blur 0", "blur 1", "blur 2", "blur 3",
-	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma", "local shadow", "sun shadow", "main resumed", "screenmap resumed", "ssao", "ssao blur", "ssao apply", "effects", "effects resumed"
+	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma", "local shadow", "sun shadow", "main resumed", "screenmap resumed", "ssao", "ssao blur", "ssao apply", "effects", "effects resumed", "post", "post apply"
 };
 static_assert( ARRAY_LEN( vk_graph_names ) == (uint32_t)rhiGraphPass_t::Count );
 
@@ -807,6 +807,9 @@ static VkImageLayout vk_graph_layout( rhiGraphLayout_t layout ) {
 static VkRenderPass *vk_graph_pass( rhiGraphPass_t pass ) {
 	using P = rhiGraphPass_t;
 	switch ( pass ) {
+	case P::Post:
+	case P::PostApply:
+		return &vk.render_pass.post[(uint32_t)pass - (uint32_t)P::Post];
 	case P::Effects:
 		return &vk.render_pass.particles;
 	case P::EffectsResume:
@@ -2411,6 +2414,11 @@ void vk_update_attachment_descriptors( void ) {
 		sampler.gl_mag_filter = sampler.gl_min_filter = FILTER_LINEAR;
 		image.sampler = vk_find_sampler( &sampler );
 		image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		if ( vk.post_image_view ) {
+			image.imageView = vk.post_image_view;
+			write.dstSet = vk.post_descriptor;
+			qvkUpdateDescriptorSets( vk.device, 1, &write, 0, NULL );
+		}
 		for ( uint32_t i = 0; i < 2; ++i ) {
 			if ( !vk.occlusion_image_view[i] )
 				continue;
@@ -2530,6 +2538,8 @@ void vk_impl_InitDescriptors( void ) {
 		if ( vk.shadow_image_view[i] )
 			VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.shadow_descriptor[i] ) );
 	}
+	if ( vk.post_image_view )
+		VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.post_descriptor ) );
 	if ( vk.depth_sample_view ) {
 		VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.depth_descriptor ) );
 		for ( i = 0; i < 2; ++i )
@@ -3263,6 +3273,10 @@ static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCo
 static void vk_graph_target( rhiGraphTarget_t target, VkImage **image, VkImageView **view ) {
 	using T = rhiGraphTarget_t;
 	switch ( target ) {
+	case T::PostColor:
+		*image = &vk.post_image;
+		*view = &vk.post_image_view;
+		break;
 	case T::Occlusion:
 	case T::OcclusionBlur: {
 		const uint32_t index = (uint32_t)target - (uint32_t)T::Occlusion;
@@ -3321,7 +3335,7 @@ static void vk_create_attachments( void ) {
 		(uint32_t)vk.screenMapWidth, (uint32_t)vk.screenMapHeight,
 		(uint32_t)vkSamples, (uint32_t)vk.screenMapSamples,
 		vk.fboActive != qfalse, vk_config.bloom != 0, vk_config.supersample != 0, vk_config.stencilBits != 0,
-		vk_config.shadowMapSize, vk_config.occlusionScale, vk_config.depthEffects
+		vk_config.shadowMapSize, vk_config.occlusionScale, vk_config.depthEffects, vk_config.postProcess
 	};
 	if ( !RHI_CompileGraph( &config, &vk_graph ) )
 		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: invalid render graph dimensions" );
@@ -3407,6 +3421,9 @@ static void vk_graph_framebuffer( rhiGraphPass_t id, uint32_t swapchainIndex, Vk
 
 static void vk_create_framebuffers( void ) {
 	using P = rhiGraphPass_t;
+	if ( vk_config.postProcess )
+		for ( uint32_t i = 0; i < 2; ++i )
+			vk_graph_framebuffer( (P)( (uint32_t)P::Post + i ), 0, &vk.framebuffers.post[i] );
 	if ( vk_config.depthEffects )
 		vk_graph_framebuffer( P::Effects, 0, &vk.framebuffers.particles );
 	for ( uint32_t i = 0; i < 2; ++i ) {
@@ -3600,6 +3617,11 @@ static void vk_destroy_sync_primitives( void ) {
 
 
 static void vk_destroy_framebuffers( void ) {
+	for ( auto &framebuffer : vk.framebuffers.post ) {
+		if ( framebuffer )
+			qvkDestroyFramebuffer( vk.device, framebuffer, NULL );
+		framebuffer = VK_NULL_HANDLE;
+	}
 	if ( vk.framebuffers.particles )
 		qvkDestroyFramebuffer( vk.device, vk.framebuffers.particles, NULL );
 	vk.framebuffers.particles = VK_NULL_HANDLE;
@@ -4182,6 +4204,12 @@ static void vk_destroy_attachments( void ) {
 		qvkDestroyImageView( vk.device, vk.depth_sample_view, NULL );
 		vk.depth_sample_view = VK_NULL_HANDLE;
 	}
+	if ( vk.post_image ) {
+		qvkDestroyImageView( vk.device, vk.post_image_view, NULL );
+		qvkDestroyImage( vk.device, vk.post_image, NULL );
+		vk.post_image_view = VK_NULL_HANDLE;
+		vk.post_image = VK_NULL_HANDLE;
+	}
 	for ( uint32_t i = 0; i < 2; ++i ) {
 		if ( vk.occlusion_image[i] ) {
 			qvkDestroyImageView( vk.device, vk.occlusion_image_view[i], NULL );
@@ -4265,6 +4293,11 @@ static void vk_destroy_attachments( void ) {
 
 
 static void vk_destroy_render_passes( void ) {
+	for ( auto &pass : vk.render_pass.post ) {
+		if ( pass )
+			qvkDestroyRenderPass( vk.device, pass, NULL );
+		pass = VK_NULL_HANDLE;
+	}
 	if ( vk.render_pass.particles )
 		qvkDestroyRenderPass( vk.device, vk.render_pass.particles, NULL );
 	if ( vk.render_pass.particlesResume )

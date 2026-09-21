@@ -347,7 +347,8 @@ int main( int argc, char **argv ) {
 		puts( "PASS: floating HDR target and unchanged legacy color formats" );
 		return 0;
 	}
-	const bool particles = argc > 1 && !strcmp( argv[1], "--particles" );
+	const bool post = argc > 1 && !strcmp( argv[1], "--post" );
+	const bool particles = post || ( argc > 1 && !strcmp( argv[1], "--particles" ) );
 	const bool occlusion = argc > 1 && !strcmp( argv[1], "--ssao" );
 	qvkCreateRenderPass = createPass;
 	qvkCreateFramebuffer = createFramebuffer;
@@ -371,6 +372,7 @@ int main( int argc, char **argv ) {
 		const uint32_t options = offscreen ? mode - 4 : mode;
 		vk_config.occlusionScale = occlusion ? 1 + mode % 2 : ( particles ? mode % 2 : 0 );
 		vk_config.depthEffects = particles;
+		vk_config.postProcess = post;
 		vk_config.fbo = offscreen;
 		vk_config.bloom = options & 1;
 		vk_config.stencilBits = options & 2 ? 8 : 0;
@@ -401,7 +403,7 @@ int main( int argc, char **argv ) {
 		captureImages();
 		vk_create_render_passes();
 		vk_create_framebuffers();
-		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u)+(vk_config.occlusionScale?3u:0u)+(particles?2u:0u));
+		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u)+(vk_config.occlusionScale?3u:0u)+(particles?2u:0u)+(post?2u:0u));
 		assert( shadowPassCount == ( argc > 1 ? 2u : 0u ) && shadowImageCount == shadowPassCount );
 		if ( argc > 1 ) {
 			shadowCommands( false );
@@ -419,7 +421,16 @@ int main( int argc, char **argv ) {
 				const auto &depth = vk_graph.targets[(uint32_t)rhiGraphTarget_t::MainDepth];
 				assert( depth.usage & RHI_GRAPH_SAMPLED && !depth.transient );
 			}
+			if ( post ) {
+				assert( vk.post_image && vk.post_image_view );
+				assert( vk.render_pass.post[0] && vk.render_pass.post[1] );
+				assert( vk.framebuffers.post[0] && vk.framebuffers.post[1] );
+				const auto &node = vk_graph.passes[(uint32_t)rhiGraphPass_t::PostApply];
+				assert( node.depth == RHI_INVALID_OFFSET && node.resolve == ( vk.msaaActive ? 0u : RHI_INVALID_OFFSET ) );
+			}
 			shadowDescriptors();
+			if ( post )
+				assert( vk.post_descriptor );
 			vk.modules.shadow_vs = (VkShaderModule)(uintptr_t)11;
 			vk.modules.shadow_fs = (VkShaderModule)(uintptr_t)12;
 			rhiPipelineDesc_t depth = {};

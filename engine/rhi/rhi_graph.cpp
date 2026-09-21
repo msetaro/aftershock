@@ -63,7 +63,7 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 		return false;
 	if ( c.shadowSize && ( c.shadowSize < 128 || c.shadowSize > 8192 || ( c.shadowSize & ( c.shadowSize - 1 ) ) ) )
 		return false;
-	if ( ( c.depthEffects && !c.offscreen ) || ( c.occlusionScale && ( !c.offscreen || c.occlusionScale > 2 ) ) )
+	if ( ( c.postProcess && !c.depthEffects ) || ( c.depthEffects && !c.offscreen ) || ( c.occlusionScale && ( !c.offscreen || c.occlusionScale > 2 ) ) )
 		return false;
 	using T = rhiGraphTarget_t;
 	using P = rhiGraphPass_t;
@@ -107,6 +107,8 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 			Target( graph, (T)( (uint32_t)T::Occlusion + i ), c.renderWidth / c.occlusionScale,
 				c.renderHeight / c.occlusionScale, 1, F::Occlusion, sampledColor, L::Sampled );
 	}
+	if ( c.postProcess )
+		Target( graph, T::PostColor, c.renderWidth, c.renderHeight, 1, F::Color, sampledColor, L::Sampled );
 	if ( c.occlusionScale || c.depthEffects ) {
 		auto &depth = graph->targets[(uint32_t)T::MainDepth];
 		depth.usage |= RHI_GRAPH_SAMPLED;
@@ -296,10 +298,31 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 				c.stencil && i == scene.depth ? Load::Load : Load::Discard, a.stencilStore );
 		}
 	}
+	if ( c.postProcess ) {
+		auto &post = Pass( graph, P::Post, c.renderWidth, c.renderHeight, TargetBit( T::MainColor ) | TargetBit( T::MainDepth ) );
+		Attachment( post, T::PostColor, Load::Discard, Store::Store, L::Sampled, L::Sampled );
+		post.dependencies[0] = { rhiGraphStage_t::SceneAttachments, rhiGraphStage_t::FragmentColor,
+			RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_WRITE, RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE, true, false };
+		auto &apply = Pass( graph, P::PostApply, c.renderWidth, c.renderHeight, TargetBit( T::PostColor ) );
+		const auto &effects = graph->passes[(uint32_t)P::Effects];
+		apply.color = effects.color;
+		apply.resolve = effects.resolve;
+		apply.dependencies[0] = { rhiGraphStage_t::FragmentColor, rhiGraphStage_t::FragmentColor,
+			RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE, RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE, true, false };
+		apply.dependencies[1] = effects.dependencies[1];
+		for ( uint32_t i = 0; i < effects.attachmentCount; ++i ) {
+			const auto &a = effects.attachments[i];
+			Attachment( apply, a.target, Load::Discard, Store::Store, a.initialLayout, a.finalLayout );
+		}
+	}
 	// Preserve the legacy IDs/possible-pass intervals when lighting is disabled.
 	// Creation order is independent of this dependency/lifetime order.
 	for ( uint32_t p = 0; p < (uint32_t)P::LocalShadow; ++p ) {
 		graph->executionOrder[graph->executionCount++] = (P)p;
+		if ( c.postProcess && p == (uint32_t)P::PostBloom ) {
+			graph->executionOrder[graph->executionCount++] = P::Post;
+			graph->executionOrder[graph->executionCount++] = P::PostApply;
+		}
 		if ( c.shadowSize && p == (uint32_t)P::Main )
 			graph->executionOrder[graph->executionCount++] = P::MainResume;
 		if ( c.occlusionScale && p == (uint32_t)P::Main ) {

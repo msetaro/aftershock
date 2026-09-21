@@ -498,6 +498,7 @@ struct rhiDeviceConfig_t {
 	uint32_t shadowMapSize;
 	uint32_t occlusionScale;
 	bool depthEffects = false;
+	bool postProcess = false;
 };
 struct rhiDeviceInfo_t {
 	char renderer[1024], vendor[1024], version[1024], extensions[8192];
@@ -550,6 +551,7 @@ enum class rhiGraphTarget_t : uint32_t {
 	SunShadow,
 	Occlusion,
 	OcclusionBlur,
+	PostColor,
 	Count
 };
 enum class rhiGraphPass_t : uint32_t {
@@ -576,6 +578,8 @@ enum class rhiGraphPass_t : uint32_t {
 	OcclusionApply,
 	Effects,
 	EffectsResume,
+	Post,
+	PostApply,
 	Count
 };
 enum class rhiGraphFormat_t : uint32_t { Color,
@@ -621,6 +625,7 @@ struct rhiGraphConfig_t {
 	uint32_t shadowSize; // Zero disables both depth atlases.
 	uint32_t occlusionScale; // 0 off, 1 full resolution, 2 half resolution; requires offscreen.
 	bool depthEffects = false;
+	bool postProcess = false;
 };
 struct rhiGraphTargetDesc_t {
 	uint32_t width, height, samples, usage;

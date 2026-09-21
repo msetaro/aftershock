@@ -64,6 +64,18 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 native post resources pass; image contract first
+
+The graph/native backend now create the separate post target and two passes;
+32 combinations cover MSAA, retained depth/stencil, bloom, capture and shadows.
+GCC/Clang graph checks pass and the disabled descriptor oracle remains unchanged
+(fidelity-post-graph-{native,clang}.log). The development client builds. There
+are no post draw calls/shaders yet. The native image test first fails because
+editing exposure leaves the frame unchanged (fidelity-post-native-before.log).
+It next requires LUT, sharpen/vignette/grain/depth blur, reload and restart.
+Implement shaders and per-world-view dispatch before HUD, then run both sample
+modes; proper temporal vectors/TAA and asynchronous streaming remain outstanding.
+
 ## #161 post graph contract first
 
 The graph test now requires a separate sampled post-color target, a scene/depth
