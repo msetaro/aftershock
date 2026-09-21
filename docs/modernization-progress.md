@@ -76,6 +76,16 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 local-suite catalog checkpoint
+
+`tests/suite.py` derives all ten active regression job variants and their actual
+test commands from regression.yml. Local prerequisite installation is omitted;
+tests are retained, conditional matrix legs are selected explicitly, and commands
+are parsed as Bash before acceptance by suite_contract.py. Each job gets its own
+root and per-step logs/report. Optional --job filtering marks full=false. Timeouts
+terminate the step's process group. The local format job passes through this
+runner (agent-suite-format.log); no full concurrent-run claim is made yet.
+
 ## #163 full-suite runner test-first checkpoint
 
 The local suite catalog contract fails first because tests/suite.py is absent

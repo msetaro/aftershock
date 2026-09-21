@@ -1154,3 +1154,23 @@ The standalone build/run command and script contract are documented in
 error commands, cooker/level diagnostic integration, and production loader range
 parity. It needs jsonschema, Pillow, the cooker prerequisites and Go on PATH.
 Effects remain authoring-only pending #161; see the agent tool README.
+
+### Local full regression workflow
+
+`python3 tests/suite.py --list` lists the ten active regression job variants from
+regression.yml itself. With no job filter it runs every test command in those
+variants, records per-step logs and `suite-report.json` under the invocation root,
+and exits nonzero on any failure. Hosted package/tool installation is replaced
+by your installed prerequisites; nothing is installed into the local system.
+Use the pinned shader compiler and the installed OpenArena data source:
+
+```sh
+python3 tests/suite.py --glslang /path/to/glslang-16.6.0/bin/glslang --openarena-data /path/to/openarena/baseoa
+```
+
+Go 1.27.1, PyYAML, the cookbook requirements, both native compilers and cross
+compilers, clang-query/tidy, Docker and the usual runtime prerequisites must be
+available. `--job runtime` (or another listed id) runs a subset and explicitly
+marks the report `full: false`. Every subprocess inherits its job's private root;
+run in separate worktrees with separate roots for concurrency acceptance. The
+full hosted build matrix, including MSVC, remains a separate required merge gate.
