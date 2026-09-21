@@ -11,6 +11,18 @@ bool DevTools_SetWorld( bool, bool, bool, float ) {
 bool DevTools_LoadAnimation( const char *, const char * ) {
 	return false;
 }
+bool DevTools_SelectEntity( int ) {
+	return true;
+}
+int DevTools_PickCrosshair( void ) {
+	return -1;
+}
+bool DevTools_EntityAtCamera( float * ) {
+	return false;
+}
+bool DevTools_ReloadEntities( void ) {
+	return false;
+}
 bool DevTools_Graph( const char *, const char *, float ) {
 	return true;
 }

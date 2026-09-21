@@ -470,6 +470,8 @@ static void Agent_EditorState( agentReply_t &reply ) {
 	DevTools_EditorState( &state );
 	reply.Text( ",\"ok\":true,\"result\":{\"panel\":" );
 	reply.String( state.panel );
+	reply.Text( ",\"entity\":" );
+	reply.Number( state.selectedEntity );
 	reply.Text( ",\"frames\":" );
 	reply.Number( state.frames );
 	reply.Text( ",\"lines\":" );
@@ -600,6 +602,30 @@ static bool Agent_Entity( const char *op, const char *request, const char *end, 
 		reply.Text( "}}" );
 		return reply.valid;
 	}
+#ifndef DEDICATED
+	if ( !strcmp( op, "entity.at_camera" ) ) {
+		float origin[3];
+		if ( !DevTools_EntityAtCamera( origin ) )
+			return reply.Error( "invalid_state", "$", "Step a local map to establish a camera." );
+		reply.Text( ",\"ok\":true,\"result\":{\"origin\":" );
+		reply.Vector( origin );
+		reply.Text( "}}" );
+		return reply.valid;
+	}
+	if ( !strcmp( op, "entity.pick" ) ) {
+		const int entity = DevTools_PickCrosshair();
+		reply.Text( ",\"ok\":true,\"result\":{\"entity\":" );
+		reply.Number( entity );
+		reply.Text( "}}" );
+		return reply.valid;
+	}
+	if ( !strcmp( op, "entity.reload" ) ) {
+		if ( !DevTools_ReloadEntities() )
+			return reply.Error( "rejected", "$", "Save entities in a local developer map before reloading." );
+		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+		return reply.valid;
+	}
+#endif
 	if ( !strcmp( op, "entity.spawn" ) ) {
 		char classname[64];
 		const char *p = JSON_ObjectGetNamedValue( request, end, "classname" );
@@ -611,6 +637,9 @@ static bool Agent_Entity( const char *op, const char *request, const char *end, 
 		const int entity = tools->Spawn( classname, origin );
 		if ( entity < 0 )
 			return reply.Error( "rejected", "$.classname", "Check local cheats, supported spawn classes and entity capacity." );
+#ifndef DEDICATED
+		DevTools_SelectEntity( entity );
+#endif
 		reply.Text( ",\"ok\":true,\"result\":{\"entity\":" );
 		reply.Number( entity );
 		reply.Text( "}}" );
@@ -627,6 +656,14 @@ static bool Agent_Entity( const char *op, const char *request, const char *end, 
 	uint32_t entity;
 	if ( !Agent_Integer( request, end, "entity", entity ) || entity >= MAX_GENTITIES )
 		return reply.Error( "invalid_argument", "$.entity", "Use an entity id from entity.list." );
+#ifndef DEDICATED
+	if ( !strcmp( op, "entity.select" ) ) {
+		if ( !DevTools_SelectEntity( (int)entity ) )
+			return reply.Error( "not_found", "$.entity", "Select a live entity id from entity.list." );
+		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+		return reply.valid;
+	}
+#endif
 	if ( !strcmp( op, "entity.delete" ) ) {
 		if ( !tools->Delete( (int)entity ) )
 			return reply.Error( "rejected", "$.entity", "Delete a mutable map entity in a local developer map." );
@@ -689,7 +726,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
 	} else if ( !strcmp( op, "graph" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Graph actions require a client build." );

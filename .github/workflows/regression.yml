@@ -216,9 +216,9 @@ jobs:
       - name: Developer registry and allocator snapshots
         run: python3 tests/devtools_data.py
       - name: Native entity edit and save/reload
-        run: python3 tests/dev_entities.py --content openarena --data /tmp/aftershock-openarena-baseoa
+        run: python3 tests/dev_entities.py --output /tmp/aftershock-dev-entities --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Native entity and world tools through real input
-        run: python3 tests/dev_world_ui.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+        run: python3 tests/dev_world_ui.py --output /tmp/aftershock-dev-world-ui --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Cooked character and visible source reload
         run: |
           python3 -m venv /tmp/aftershock-cook-python
@@ -231,7 +231,7 @@ jobs:
       - name: Owned animation gameplay and graph authoring
         run: |
           /tmp/aftershock-cook-python/bin/python tests/animation_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          /tmp/aftershock-cook-python/bin/python tests/animation_editor.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          /tmp/aftershock-cook-python/bin/python tests/animation_editor.py --output /tmp/aftershock-animation-editor --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
           /tmp/aftershock-cook-python/bin/python tests/animation_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --server-fps 100 --output /tmp/aftershock-animation-runtime-100
           /tmp/aftershock-cook-python/bin/python tests/animation_demo.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
       - name: Weapon lifecycle, range controls and fixed replay
@@ -310,7 +310,7 @@ jobs:
             /tmp/aftershock-netcode-runtime/*.log
             /tmp/aftershock-dev-entities/**/*.log
             /tmp/aftershock-dev-world-ui/*.log
-            /tmp/aftershock-dev-world-ui/*.tga
+            /tmp/aftershock-dev-world-ui/*.png
             /tmp/aftershock-cook-runtime-test/*.log
             /tmp/aftershock-cook-runtime-test/*.tga
             /tmp/aftershock-cook-runtime-test/latency.txt
@@ -336,7 +336,7 @@ jobs:
             /tmp/aftershock-animation-runtime/*.log
             /tmp/aftershock-animation-runtime/*.tga
             /tmp/aftershock-animation-editor/*.log
-            /tmp/aftershock-animation-editor/*.tga
+            /tmp/aftershock-animation-editor/*.png
             /tmp/aftershock-animation-runtime-100/*.log
             /tmp/aftershock-animation-demo/*.log
             /tmp/aftershock-animation-demo/*.tga

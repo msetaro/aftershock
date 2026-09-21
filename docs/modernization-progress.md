@@ -45,8 +45,9 @@ The animation editor is rewritten on shared graph commands and passes Q3/OA: edi
 undo, numbered backup, watched recook and changed preview. The prior missing graph
 operation is recorded in agent-editor-before.log. Entity save/reload also passes on both content sets via JSON, retaining every
 original key, angle aliases and numbered-save checks. The World panel rewrite
-fails first on absent entity.at_camera (agent-world-before.log); implement the
-shared placement/picking/selection controls next.
+now passes after its absent-operation check (agent-world-before.log): placement,
+picking, selection and reload share existing UI functions. Continue Range and
+the remaining general/asset panel controls.
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
@@ -91,6 +92,18 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 world controls checkpoint
+
+World/entity placement, crosshair picking, selection and reload now use shared
+functions; the picker and simulation math are unchanged. Q3/OA World checks pass
+with visible lines and labels and 640x480 PNGs (agent-world*.log). Entity reload
+passes using its dedicated shared action. Native GCC/Clang-libc++ UBSan,
+boundaries and formatting pass. CI explicitly supplies its existing retained
+output locations for the migrated tests, preserving dependent build reuse until
+the required workflow-wide scratch migration; PNG artifact patterns replace TGA.
+No accepted image goldens are changed. Next: Range/remaining panel actions and
+complete runtime queries, then finish #163 isolation/tools/schemas/recipes.
 
 ## #163 entity test checkpoint
 

@@ -74,12 +74,16 @@ int DevTools_PickEntity( float x, float y );
 struct devEditorState_t {
 	char panel[32], clip[64], graphState[64], graphEvent[64], graphResult[32];
 	uint32_t frames, lines, labels, worldLines, animationPreviews;
-	int32_t model, animationFrame;
+	int32_t model, animationFrame, selectedEntity;
 	uint32_t graphPreviews, graphTime;
 	bool graphDirty, graphPlay;
 	bool collision, navigation, entities, animationPlay;
 };
 bool DevTools_SelectPanel( const char *name );
+bool DevTools_SelectEntity( int entity );
+int DevTools_PickCrosshair( void );
+bool DevTools_EntityAtCamera( float *origin );
+bool DevTools_ReloadEntities( void );
 bool DevTools_SetWorld( bool collision, bool navigation, bool entities, float radius );
 bool DevTools_LoadAnimation( const char *path, const char *skin );
 bool DevTools_SetAnimation( const char *field, float value );

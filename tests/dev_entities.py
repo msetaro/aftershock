@@ -60,8 +60,7 @@ with temporary, Engine(args.binary, args.data, args.content, home=Path(temporary
     engine.request('entity.delete', entity=entity)
     engine.request('entity.save')
     engine.request('cvar.set', name='dev_entityFile', value=f'maps/{map_name}.dev.001.ent')
-    engine.request('cvar.set', name='dev_loadEntities', value='1')
-    engine.request('exec', command='map_restart 0')
+    engine.request('entity.reload')
     engine.step(200)
     # Map records can acquire new runtime ids on restart; locate by authored key.
     offset = 0

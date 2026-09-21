@@ -435,8 +435,8 @@ or interaction-driven UI allocations are distinct from the checked idle-frame pa
 Lifetime/tidy gates now cover shipping/development and static/module configurations.
 The primary build matrix enables tooling in Debug and excludes it in Release.
 
-`python3 tests/dev_world_ui.py` drives the live native game through real XTest
-input: spawn at the camera, select that entity in world, enable collision and
+`python3 tests/dev_world_ui.py` drives the live native game through the local
+JSON channel and shared panel controls: spawn at the camera, select that entity in world, enable collision and
 navigation, and capture the drawn volumes/label. The World tab uses explicit
 refresh, caching at most 4,096 edges around the camera (up to 1,024 brushes).
 Brush/patch surfaces are exact clipped faces. Optimized AAS files that omit face
@@ -851,8 +851,10 @@ tables, and a JSON source editor. It accepts up to 65535 source bytes, keeps num
 text on failure. The external cooker validates JSON and reports errors in its own
 output; load the cooked graph after a successful cook. Enable `dev_reloadAssets` to
 reload changed models/materials too. Editor previews never replace live game assets.
-`tests/animation_editor.py` edits a graph through real X input, verifies its backup,
-observes the watcher revision and previews the changed initial state.
+`tests/animation_editor.py` edits a graph through shared JSON/panel commands,
+checks undo and its backup, observes the watcher revision and previews the changed
+initial state. These migrated tests use fresh temporary output by default; pass
+`--output DIR` to retain logs/captures. Game assets remain installed read-only.
 
 `python3 tests/animation_runtime.py --server-fps 100` also checks that faster server
 frames never publish multiple transforms under one 20 ms animation tick.

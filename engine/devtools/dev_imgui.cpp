@@ -853,6 +853,7 @@ void DevTools_EditorState( devEditorState_t *state ) {
 	state->collision = worldDebug.collision;
 	state->navigation = worldDebug.navigation;
 	state->entities = worldDebug.entities;
+	state->selectedEntity = entities.selected;
 	state->model = animation.model;
 	state->animationFrame = animation.frame;
 	state->animationPreviews = animationFrames;
@@ -957,6 +958,35 @@ static void DrawWorldDebug( void ) {
 	draw->PopClipRect();
 }
 
+bool DevTools_SelectEntity( int entity ) {
+	const auto *game = DevTools_Game();
+	devEntity_t info;
+	if ( entity != -1 && ( !game || !game->ReadEntity( entity, &info ) ) )
+		return false;
+	entities.selected = entity;
+	return true;
+}
+bool DevTools_EntityAtCamera( float *origin ) {
+	const auto *view = DevTools_View();
+	if ( !view )
+		return false;
+	VectorMA( view->vieworg, 64, view->viewaxis[0], origin );
+	return true;
+}
+int DevTools_PickCrosshair( void ) {
+	const auto *view = DevTools_View();
+	const int picked = view ? DevTools_PickEntity( (float)view->x + (float)view->width * 0.5f, (float)view->y + (float)view->height * 0.5f ) : -1;
+	DevTools_SelectEntity( picked );
+	return picked;
+}
+bool DevTools_ReloadEntities( void ) {
+	if ( !DevTools_Game() || !Cvar_VariableIntegerValue( "sv_cheats" ) || !*Cvar_VariableString( "dev_entityFile" ) )
+		return false;
+	Cvar_Set( "dev_loadEntities", "1" );
+	Cbuf_AddText( "map_restart 0\n" );
+	return true;
+}
+
 static void InspectEntities( void ) {
 	if ( !BeginPanel( "Entities" ) )
 		return;
@@ -979,7 +1009,7 @@ static void InspectEntities( void ) {
 			char label[96];
 			Com_sprintf( label, sizeof( label ), "%d: %s", i, info.classname );
 			if ( ImGui::Selectable( label, i == entities.selected ) )
-				entities.selected = i;
+				DevTools_SelectEntity( i );
 		}
 	}
 	ImGui::EndChild();
@@ -1007,10 +1037,8 @@ static void InspectEntities( void ) {
 	ImGui::Separator();
 	ImGui::InputText( "Spawn class", entities.classname, sizeof( entities.classname ) );
 	ImGui::InputFloat3( "Spawn origin", entities.origin );
-	if ( ImGui::Button( "At camera" ) ) {
-		if ( const refdef_t *view = DevTools_View() )
-			VectorMA( view->vieworg, 64, view->viewaxis[0], entities.origin );
-	}
+	if ( ImGui::Button( "At camera" ) )
+		DevTools_EntityAtCamera( entities.origin );
 	ImGui::SameLine();
 	ImGui::BeginDisabled( !editable );
 	if ( ImGui::Button( "Spawn" ) )
@@ -1040,24 +1068,16 @@ static void EditEntities( void ) {
 		success = game->Delete( entities.selected );
 		break;
 	case 3:
-		entities.selected = game->Spawn( entities.classname, entities.origin );
-		success = entities.selected >= 0;
+		success = DevTools_SelectEntity( game->Spawn( entities.classname, entities.origin ) ) && entities.selected >= 0;
 		break;
 	case 4:
 		success = DevTools_SaveEntities();
 		break;
 	case 6:
-		if ( const refdef_t *view = DevTools_View() ) {
-			entities.selected = DevTools_PickEntity( (float)view->x + (float)view->width * 0.5f, (float)view->y + (float)view->height * 0.5f );
-			success = entities.selected >= 0;
-		}
+		success = DevTools_PickCrosshair() >= 0;
 		break;
 	case 5:
-		if ( *Cvar_VariableString( "dev_entityFile" ) ) {
-			Cvar_Set( "dev_loadEntities", "1" );
-			Cbuf_AddText( "map_restart 0\n" );
-			success = true;
-		}
+		success = DevTools_ReloadEntities();
 		break;
 	default:
 		break;
@@ -1460,7 +1480,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 		worldDebug.refresh = false;
 	}
 	if ( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) && !io.WantCaptureMouse )
-		entities.selected = DevTools_PickEntity( io.MousePos.x, io.MousePos.y );
+		DevTools_SelectEntity( DevTools_PickEntity( io.MousePos.x, io.MousePos.y ) );
 	if ( apply && *selected )
 		Cvar_Set2( selected, value, qfalse );
 	if ( execute && *command ) {
