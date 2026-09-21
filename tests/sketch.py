@@ -75,6 +75,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-sketch-') as temporary:
     changed['key'][0].update(kind='solid',floors=1,reading='red is solid in this drawing')
     _,rekeyed = trace(changed,root/'rekeyed')
     assert all(s['kind']=='solid' for s in rekeyed['shapes']), 'fixed global legend overrode drawing key'
+    # A mark whose color is known still needs an explicit numbered interpretation.
+    pen.ellipse((270,275,310,315),outline=blue,width=3)
+    pen.text((310,320),'?',fill=green)
+    drawing.save(image)
+    unmatched,_ = trace(notes,root/'unmatched')
+    assert any(m['id'].startswith('unread_') for m in unmatched['marks']), 'known-color marks silently discarded'
+    assert any(a['id'].startswith('unread_') for a in unmatched['assumptions']), 'unread marks need an assumption'
     changed = copy.deepcopy(notes)
     changed['marks'][2].update(confidence=.3,reading='arrow might be a ramp')
     uncertain,_ = trace(changed,root/'ambiguous')

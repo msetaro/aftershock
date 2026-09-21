@@ -49,6 +49,15 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 unmatched-mark negative control
+
+The next tracing test adds a known-color intent circle and annotation without
+agent associations. It fails because those marks were silently omitted despite
+the color being recognized (sketch-marks-before.log). Every remaining component
+must receive a numbered unread mark and an assumption; an authoritative key is
+not evidence that all text/arrows have been interpreted. Fix this shared marking
+pass before extending curve/line measurement and the build pipeline.
+
 ## #164 initial tracing checkpoint; #163 integration accepted
 
 The original playbook test passes with pinned OpenCV color separation, stroke-gap
