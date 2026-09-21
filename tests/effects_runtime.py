@@ -35,7 +35,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-effects-live-') as temporary
         shutil.copytree(root/'compiled',engine.base,dirs_exist_ok=True)
         (engine.base/'scripts/effects.shader').write_text('effects/test\n{\ncull disable\n{\nmap $whiteimage\nblendFunc GL_SRC_ALPHA GL_ONE\nrgbGen vertex\nalphaGen vertex\n}\n}\n')
         definition=dict(version=1,name='test',emitters=[dict(name='spark',kind='sprite',material='effects/test',
-                        capacity=16,rate=0,burst=8,lifetime_ms=1000,size=16,color=[1,.2,.05,1])])
+                        capacity=16,rate=0,burst=8,lifetime_ms=1000,size=16,end_size=32,angular_velocity=90,color=[1,.2,.05,1],
+                        light=dict(radius=128,intensity=2,color=[1,.2,.05]))])
         effect=source/'test.effect.json'
         effect.write_text(json.dumps(definition))
         project=source/'effects.json'
@@ -44,6 +45,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-effects-live-') as temporary
         engine.request('session',dt=20,seed=161)
         engine.request('map',name='two_lane')
         engine.step(150)
+        assert 'lightDraws' in engine.request('effects'),'native effect light hooks are absent'
         engine.request('camera',mode='pose',origin=[-160,0,80],angles=[0,0,0])
         engine.step(4)
         def capture(name):
@@ -62,7 +64,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-effects-live-') as temporary
         engine.step(5)
         active=capture('active')
         stats=engine.request('effects')
-        assert stats['particles']==8 and stats['draws']>=8,stats
+        assert stats['particles']==8 and stats['draws']>=8 and stats['lightDraws']>0,stats
         difference=ImageChops.difference(before,active)
         assert sum(ImageStat.Stat(difference).sum)>10000,'effect did not change the native frame'
         engine.step(60)
