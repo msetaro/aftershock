@@ -64,6 +64,16 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 weapon-effect native boundary checkpoint
+
+The actual cgame material-hit probe now passes GCC and Clang/libc++ UBSan, including
+unchanged legacy mark/explosion behavior (fidelity-weapon-effect{,-clang}.log).
+Only typed presentation imports and effect dispatch change; simulation is untouched.
+The new real-client test fires a cooked weapon whose material paths end in .asfx.
+Against the prior binary it reaches weapon hits but reports zero registered/drawn
+effects, failing as intended (fidelity-weapon-effect-runtime-before.log). Commit
+this live contract before rebuilding the client with the native import change.
+
 ## #161 weapon material-effect contract fails first
 
 A new probe calls the actual cgame material-hit presentation function. Authored
