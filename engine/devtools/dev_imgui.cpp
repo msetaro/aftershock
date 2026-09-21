@@ -70,11 +70,24 @@ static struct {
 	materialOverride_t instance;
 } materialPreview;
 
+struct sourceEditor_t {
+	char path[MAX_QPATH], loadedPath[MAX_QPATH];
+	char text[65536], saved[65536], status[256], result[32];
+	bool read, save;
+};
+static sourceEditor_t effectSource;
+static struct {
+	char path[MAX_QPATH];
+	qhandle_t asset;
+	uint32_t instance;
+	bool load, start, stop;
+} effectPreview;
+
 // The graph editor keeps source text and preview state separate from live game
 // assets. Cooking stays offline; a map restart selects a new gameplay revision.
 static struct {
-	char path[MAX_QPATH], source[MAX_QPATH], loadedSource[MAX_QPATH];
-	char text[65536], saved[65536], status[256], lastEvent[64], result[32];
+	char path[MAX_QPATH], lastEvent[64];
+	sourceEditor_t source;
 	char requestedTab[16], activeTab[16];
 	animAsset_t asset;
 	void *storage;
@@ -82,7 +95,7 @@ static struct {
 	float parameters[ANIM_MAX_PARAMETERS];
 	uint32_t time, remainder, previews;
 	int model;
-	bool load, read, save, select, play, draw;
+	bool load, select, play, draw;
 } graph;
 
 static struct {
@@ -292,25 +305,25 @@ bool DevTools_Graph( const char *action, const char *text, float value ) {
 		if ( !text[0] || strlen( text ) >= MAX_QPATH )
 			return false;
 		const bool load = !strcmp( action, "load" );
-		char *path = load ? graph.path : graph.source;
+		char *path = load ? graph.path : graph.source.path;
 		if ( text != path )
 			Q_strncpyz( path, text, MAX_QPATH );
 		if ( load )
 			graph.load = true;
 		else
-			graph.read = true;
+			graph.source.read = true;
 		graph.select = true;
 	} else if ( !strcmp( action, "text" ) ) {
-		if ( strlen( text ) >= sizeof( graph.text ) )
+		if ( strlen( text ) >= sizeof( graph.source.text ) )
 			return false;
-		if ( text != graph.text )
-			Q_strncpyz( graph.text, text, sizeof( graph.text ) );
+		if ( text != graph.source.text )
+			Q_strncpyz( graph.source.text, text, sizeof( graph.source.text ) );
 	} else if ( !strcmp( action, "save" ) ) {
-		if ( !graph.loadedSource[0] || graph.read )
+		if ( !graph.source.loadedPath[0] || graph.source.read )
 			return false;
-		graph.save = true;
+		graph.source.save = true;
 	} else if ( !strcmp( action, "undo" ) )
-		Q_strncpyz( graph.text, graph.saved, sizeof( graph.text ) );
+		Q_strncpyz( graph.source.text, graph.source.saved, sizeof( graph.source.text ) );
 	else if ( !strcmp( action, "play" ) && ( value == 0 || value == 1 ) )
 		graph.play = value != 0;
 	else if ( !strcmp( action, "reset" ) && graph.storage ) {
@@ -357,6 +370,66 @@ static bool GraphWriteSource( const char *path, const char *text ) {
 	FS_FCloseFile( file );
 	return success;
 }
+static void EditSource( sourceEditor_t &editor, const char *prefix ) {
+	if ( editor.read || editor.save ) {
+		const bool read = editor.read;
+		editor.read = editor.save = false;
+		// Restrict source edits to a dedicated loose-file project in fs_homepath.
+		bool valid = !strncmp( editor.path, prefix, strlen( prefix ) ) && !strstr( editor.path, ".." ) && COM_CompareExtension( editor.path, ".json" );
+		for ( const char *p = editor.path; *p; ++p )
+			valid &= ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '/' || *p == '_' || *p == '-' || *p == '.';
+		if ( !valid ) {
+			Q_strncpyz( editor.result, "invalid_path", sizeof( editor.result ) );
+			Com_sprintf( editor.status, sizeof( editor.status ), "Use a lowercase %s*.json path.", prefix );
+			return;
+		}
+		char current[sizeof( editor.text )];
+		if ( !GraphReadSource( editor.path, current, sizeof( current ) ) ) {
+			Q_strncpyz( editor.result, "read_failed", sizeof( editor.result ) );
+			Q_strncpyz( editor.status, "Source read failed or exceeds 65535 bytes; edits retained.", sizeof( editor.status ) );
+			return;
+		}
+		if ( read ) {
+			if ( strcmp( editor.text, editor.saved ) ) {
+				Q_strncpyz( editor.result, "unsaved_edits", sizeof( editor.result ) );
+				Q_strncpyz( editor.status, "Unsaved edits: save or undo them before loading another source.", sizeof( editor.status ) );
+				return;
+			}
+			Q_strncpyz( editor.text, current, sizeof( editor.text ) );
+			Q_strncpyz( editor.saved, current, sizeof( editor.saved ) );
+			Q_strncpyz( editor.loadedPath, editor.path, sizeof( editor.loadedPath ) );
+			Q_strncpyz( editor.result, "source_loaded", sizeof( editor.result ) );
+			Q_strncpyz( editor.status, "Source loaded. Save keeps a numbered backup; the cooker validates JSON.", sizeof( editor.status ) );
+		} else {
+			if ( strcmp( editor.path, editor.loadedPath ) || strcmp( current, editor.saved ) ) {
+				Q_strncpyz( editor.result, "source_changed", sizeof( editor.result ) );
+				Q_strncpyz( editor.status, "Source changed outside the editor; save refused, edits retained.", sizeof( editor.status ) );
+				return;
+			}
+			char backup[MAX_QPATH + 16];
+			int revision;
+			for ( revision = 0; revision < 1000; ++revision ) {
+				Com_sprintf( backup, sizeof( backup ), "%s.bak.%03d", editor.path, revision );
+				if ( !FS_FileExists( backup ) )
+					break;
+			}
+			if ( revision == 1000 || !GraphWriteSource( backup, current ) ) {
+				Q_strncpyz( editor.result, "backup_failed", sizeof( editor.result ) );
+				Q_strncpyz( editor.status, "Backup failed or 1000 revisions reached; source unchanged.", sizeof( editor.status ) );
+				return;
+			}
+			if ( !GraphWriteSource( editor.path, editor.text ) || !GraphReadSource( editor.path, current, sizeof( current ) ) || strcmp( current, editor.text ) ) {
+				Q_strncpyz( editor.result, "save_failed", sizeof( editor.result ) );
+				Com_sprintf( editor.status, sizeof( editor.status ), "Save failed; edits retained, previous source in %s.", backup );
+				return;
+			}
+			Q_strncpyz( editor.saved, editor.text, sizeof( editor.saved ) );
+			Q_strncpyz( editor.result, "saved", sizeof( editor.result ) );
+			Q_strncpyz( editor.status, "Source saved. Check cooker output for validation and reload status.", sizeof( editor.status ) );
+			Com_Printf( "Source saved: %s (backup %s)\n", editor.path, backup );
+		}
+	}
+}
 static void EditGraph( const refexport_t *renderer ) {
 	if ( graph.load ) {
 		graph.load = false;
@@ -372,72 +445,98 @@ static void EditGraph( const refexport_t *renderer ) {
 			graph.lastEvent[0] = '\0';
 			Anim_Reset( &asset, 0, &graph.state );
 			Anim_DefaultParameters( &asset, graph.parameters );
-			Q_strncpyz( graph.result, "loaded", sizeof( graph.result ) );
-			Q_strncpyz( graph.status, "Graph loaded. Gameplay keeps its map-start revision.", sizeof( graph.status ) );
+			Q_strncpyz( graph.source.result, "loaded", sizeof( graph.source.result ) );
+			Q_strncpyz( graph.source.status, "Graph loaded. Gameplay keeps its map-start revision.", sizeof( graph.source.status ) );
 			Com_Printf( "Animation graph loaded: state=%s\n", Anim_StateName( &asset, graph.state.current ) );
 		} else {
-			Q_strncpyz( graph.result, "load_failed", sizeof( graph.result ) );
-			Q_strncpyz( graph.status, "Graph load failed; the previous preview remains available.", sizeof( graph.status ) );
+			Q_strncpyz( graph.source.result, "load_failed", sizeof( graph.source.result ) );
+			Q_strncpyz( graph.source.status, "Graph load failed; the previous preview remains available.", sizeof( graph.source.status ) );
 		}
 	}
-	if ( graph.read || graph.save ) {
-		const bool read = graph.read;
-		graph.read = graph.save = false;
-		// Restrict source edits to a dedicated loose-file project in fs_homepath.
-		bool valid = !strncmp( graph.source, "animation_source/", 17 ) && !strstr( graph.source, ".." ) && COM_CompareExtension( graph.source, ".json" );
-		for ( const char *p = graph.source; *p; ++p )
-			valid &= ( *p >= 'a' && *p <= 'z' ) || ( *p >= '0' && *p <= '9' ) || *p == '/' || *p == '_' || *p == '-' || *p == '.';
-		if ( !valid ) {
-			Q_strncpyz( graph.result, "invalid_path", sizeof( graph.result ) );
-			Q_strncpyz( graph.status, "Use a lowercase animation_source/*.json path.", sizeof( graph.status ) );
-			return;
-		}
-		char current[sizeof( graph.text )];
-		if ( !GraphReadSource( graph.source, current, sizeof( current ) ) ) {
-			Q_strncpyz( graph.result, "read_failed", sizeof( graph.result ) );
-			Q_strncpyz( graph.status, "Source read failed or exceeds 65535 bytes; edits retained.", sizeof( graph.status ) );
-			return;
-		}
-		if ( read ) {
-			if ( strcmp( graph.text, graph.saved ) ) {
-				Q_strncpyz( graph.result, "unsaved_edits", sizeof( graph.result ) );
-				Q_strncpyz( graph.status, "Unsaved edits: save or undo them before loading another source.", sizeof( graph.status ) );
-				return;
-			}
-			Q_strncpyz( graph.text, current, sizeof( graph.text ) );
-			Q_strncpyz( graph.saved, current, sizeof( graph.saved ) );
-			Q_strncpyz( graph.loadedSource, graph.source, sizeof( graph.loadedSource ) );
-			Q_strncpyz( graph.result, "source_loaded", sizeof( graph.result ) );
-			Q_strncpyz( graph.status, "Source loaded. Save keeps a numbered backup; the cooker validates JSON.", sizeof( graph.status ) );
-		} else {
-			if ( strcmp( graph.source, graph.loadedSource ) || strcmp( current, graph.saved ) ) {
-				Q_strncpyz( graph.result, "source_changed", sizeof( graph.result ) );
-				Q_strncpyz( graph.status, "Source changed outside the editor; save refused, edits retained.", sizeof( graph.status ) );
-				return;
-			}
-			char backup[MAX_QPATH + 16];
-			int revision;
-			for ( revision = 0; revision < 1000; ++revision ) {
-				Com_sprintf( backup, sizeof( backup ), "%s.bak.%03d", graph.source, revision );
-				if ( !FS_FileExists( backup ) )
-					break;
-			}
-			if ( revision == 1000 || !GraphWriteSource( backup, current ) ) {
-				Q_strncpyz( graph.result, "backup_failed", sizeof( graph.result ) );
-				Q_strncpyz( graph.status, "Backup failed or 1000 revisions reached; source unchanged.", sizeof( graph.status ) );
-				return;
-			}
-			if ( !GraphWriteSource( graph.source, graph.text ) || !GraphReadSource( graph.source, current, sizeof( current ) ) || strcmp( current, graph.text ) ) {
-				Q_strncpyz( graph.result, "save_failed", sizeof( graph.result ) );
-				Com_sprintf( graph.status, sizeof( graph.status ), "Save failed; edits retained, previous source in %s.", backup );
-				return;
-			}
-			Q_strncpyz( graph.saved, graph.text, sizeof( graph.saved ) );
-			Q_strncpyz( graph.result, "saved", sizeof( graph.result ) );
-			Q_strncpyz( graph.status, "Source saved. Check cooker output, then load the cooked graph.", sizeof( graph.status ) );
-			Com_Printf( "Animation source saved: %s (backup %s)\n", graph.source, backup );
-		}
+	EditSource( graph.source, "animation_source/" );
+}
+bool DevTools_EffectEditor( const char *action, const char *text ) {
+	if ( !strcmp( action, "source" ) || !strcmp( action, "load" ) ) {
+		if ( !text[0] || strlen( text ) >= MAX_QPATH )
+			return false;
+		const bool source = !strcmp( action, "source" );
+		char *path = source ? effectSource.path : effectPreview.path;
+		if ( path != text )
+			Q_strncpyz( path, text, MAX_QPATH );
+		if ( source )
+			effectSource.read = true;
+		else
+			effectPreview.load = true;
+	} else if ( !strcmp( action, "text" ) ) {
+		if ( strlen( text ) >= sizeof( effectSource.text ) )
+			return false;
+		if ( text != effectSource.text )
+			Q_strncpyz( effectSource.text, text, sizeof( effectSource.text ) );
+	} else if ( !strcmp( action, "save" ) ) {
+		if ( !effectSource.loadedPath[0] || effectSource.read )
+			return false;
+		effectSource.save = true;
+	} else if ( !strcmp( action, "undo" ) )
+		Q_strncpyz( effectSource.text, effectSource.saved, sizeof( effectSource.text ) );
+	else if ( !strcmp( action, "start" ) )
+		effectPreview.start = true;
+	else if ( !strcmp( action, "stop" ) )
+		effectPreview.stop = true;
+	else
+		return false;
+	return true;
+}
+static void EditEffects( const refexport_t *renderer ) {
+	EditSource( effectSource, "effects_source/" );
+	if ( effectPreview.load ) {
+		effectPreview.load = false;
+		effectPreview.asset = renderer->RegisterEffect( effectPreview.path );
+		Q_strncpyz( effectSource.result, effectPreview.asset ? "loaded" : "load_failed", sizeof( effectSource.result ) );
 	}
+	if ( effectPreview.start ) {
+		effectPreview.start = false;
+		const auto *view = DevTools_View();
+		vec3_t origin;
+		if ( view && DevTools_EntityAtCamera( origin ) )
+			effectPreview.instance = renderer->StartEffect( effectPreview.asset, origin, view->viewaxis, 161 );
+	}
+	if ( effectPreview.stop ) {
+		effectPreview.stop = false;
+		renderer->StopEffect( effectPreview.instance );
+	}
+}
+static void InspectEffects( const refexport_t *renderer ) {
+	if ( !BeginPanel( "Effects" ) )
+		return;
+	ImGui::SetNextItemWidth( 330 );
+	ImGui::InputText( "Cooked effect", effectPreview.path, sizeof( effectPreview.path ) );
+	if ( ImGui::Button( "Load effect" ) )
+		DevTools_EffectEditor( "load", effectPreview.path );
+	ImGui::SameLine();
+	if ( ImGui::Button( "Play at camera" ) )
+		DevTools_EffectEditor( "start", "" );
+	ImGui::SameLine();
+	if ( ImGui::Button( "Stop emission" ) )
+		DevTools_EffectEditor( "stop", "" );
+	fxRenderStats_t stats;
+	renderer->EffectStats( &stats );
+	ImGui::Text( "Particles %u / %u | instances %u / %u | dropped %" PRIu64,
+		stats.pool.particles, FX_MAX_PARTICLES, stats.pool.instances, FX_MAX_INSTANCES, stats.pool.dropped );
+	ImGui::Text( "Draws %u | lights %u | dropped lights %u | reloads %u", stats.draws, stats.lightDraws, stats.lightDrops, stats.reloads );
+	ImGui::SetNextItemWidth( 330 );
+	ImGui::InputText( "Source JSON", effectSource.path, sizeof( effectSource.path ) );
+	if ( ImGui::Button( "Load source" ) )
+		DevTools_EffectEditor( "source", effectSource.path );
+	ImGui::SameLine();
+	if ( ImGui::Button( "Save + backup" ) )
+		DevTools_EffectEditor( "save", "" );
+	ImGui::SameLine();
+	if ( ImGui::Button( "Undo edits" ) )
+		DevTools_EffectEditor( "undo", "" );
+	ImGui::InputTextMultiline( "##Effect JSON", effectSource.text, sizeof( effectSource.text ), ImVec2( -1, 175 ), ImGuiInputTextFlags_AllowTabInput );
+	ImGui::TextWrapped( "%s", effectSource.status );
+	ImGui::TextWrapped( "Run the cooker watcher for effects_source. Saved definitions reload for new bursts; active particles finish with their original definition." );
+	ImGui::EndTabItem();
 }
 static void InspectGraph( uint32_t elapsed ) {
 	const ImGuiTabItemFlags flags = graph.select ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
@@ -476,8 +575,8 @@ static void InspectGraph( uint32_t elapsed ) {
 						animEvents_t events;
 						if ( !Anim_Tick( &graph.asset, graph.parameters, graph.time, &graph.state, &events ) ) {
 							graph.play = false;
-							Q_strncpyz( graph.result, "tick_failed", sizeof( graph.result ) );
-							Q_strncpyz( graph.status, "Graph tick failed; preview paused.", sizeof( graph.status ) );
+							Q_strncpyz( graph.source.result, "tick_failed", sizeof( graph.source.result ) );
+							Q_strncpyz( graph.source.status, "Graph tick failed; preview paused.", sizeof( graph.source.status ) );
 							break;
 						}
 						if ( events.count )
@@ -497,17 +596,17 @@ static void InspectGraph( uint32_t elapsed ) {
 		}
 		if ( BeginGraphTab( "Source" ) ) {
 			ImGui::SetNextItemWidth( 460 );
-			ImGui::InputText( "##Source path", graph.source, sizeof( graph.source ) );
+			ImGui::InputText( "##Source path", graph.source.path, sizeof( graph.source.path ) );
 			if ( ImGui::Button( "Load source" ) )
-				DevTools_Graph( "source", graph.source, 0 );
+				DevTools_Graph( "source", graph.source.path, 0 );
 			ImGui::SameLine();
 			if ( ImGui::Button( "Save + backup" ) )
 				DevTools_Graph( "save", "", 0 );
 			ImGui::SameLine();
 			if ( ImGui::Button( "Undo edits" ) )
 				DevTools_Graph( "undo", "", 0 );
-			if ( ImGui::InputTextMultiline( "##Graph JSON", graph.text, sizeof( graph.text ), ImVec2( -1, 210 ), ImGuiInputTextFlags_AllowTabInput ) )
-				DevTools_Graph( "text", graph.text, 0 );
+			if ( ImGui::InputTextMultiline( "##Graph JSON", graph.source.text, sizeof( graph.source.text ), ImVec2( -1, 210 ), ImGuiInputTextFlags_AllowTabInput ) )
+				DevTools_Graph( "text", graph.source.text, 0 );
 			ImGui::EndTabItem();
 		}
 		if ( BeginGraphTab( "Tables" ) ) {
@@ -561,7 +660,7 @@ static void InspectGraph( uint32_t elapsed ) {
 		}
 		ImGui::EndTabBar();
 	}
-	ImGui::TextWrapped( "%s", graph.status );
+	ImGui::TextWrapped( "%s", graph.source.status );
 	ImGui::EndTabItem();
 }
 
@@ -619,6 +718,9 @@ void DevTools_Reset( void ) {
 	fontTexture = 0;
 	lastTime = 0;
 	animation.model = animation.skin = 0;
+	effectPreview.asset = 0;
+	effectPreview.instance = 0;
+	effectPreview.load = effectPreview.start = effectPreview.stop = false;
 	Anim_FreeFile( graph.storage );
 	graph.storage = nullptr;
 	graph.model = 0;
@@ -949,7 +1051,7 @@ static struct {
 } worldDebug;
 
 bool DevTools_SelectPanel( const char *name ) {
-	static constexpr const char *panels[] = { "Console", "Cvars", "Textures", "Materials", "Profile", "Memory", "Animation", "Entities", "World", "Graph", "Range" };
+	static constexpr const char *panels[] = { "Console", "Cvars", "Textures", "Materials", "Profile", "Memory", "Animation", "Entities", "World", "Graph", "Range", "Effects" };
 	for ( const char *panel : panels ) {
 		if ( !strcmp( name, panel ) ) {
 			Q_strncpyz( requestedPanel, panel, sizeof( requestedPanel ) );
@@ -1002,11 +1104,13 @@ void DevTools_EditorState( devEditorState_t *state ) {
 	state->animationPlay = animation.play;
 	Q_strncpyz( state->graphState, graph.storage ? Anim_StateName( &graph.asset, graph.state.current ) : "", sizeof( state->graphState ) );
 	Q_strncpyz( state->graphEvent, graph.lastEvent, sizeof( state->graphEvent ) );
-	Q_strncpyz( state->graphResult, graph.result, sizeof( state->graphResult ) );
+	Q_strncpyz( state->graphResult, graph.source.result, sizeof( state->graphResult ) );
 	Q_strncpyz( state->graphTab, graph.activeTab, sizeof( state->graphTab ) );
 	state->graphPreviews = graph.previews;
 	state->graphTime = graph.time;
-	state->graphDirty = strcmp( graph.text, graph.saved ) != 0;
+	Q_strncpyz( state->effectResult, effectSource.result, sizeof( state->effectResult ) );
+	state->effectDirty = strcmp( effectSource.text, effectSource.saved ) != 0;
+	state->graphDirty = strcmp( graph.source.text, graph.source.saved ) != 0;
 	state->graphPlay = graph.play;
 	state->rangeLoaded = weaponRange.loaded;
 	state->rangeAds = weaponRange.ads;
@@ -1435,7 +1539,7 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 		animPose_t pose;
 		if ( !Anim_Evaluate( &graph.asset, &graph.state, graph.parameters, graph.time, &pose ) ||
 			 !( materialPreview.enabled ? renderer->AddMaterialEntityToScene( &entity, &materialPreview.instance, &pose, graph.asset.header.modelHash, qfalse ) : renderer->AddSkeletalEntityToScene( &entity, &pose, graph.asset.header.modelHash, qfalse ) ) ) {
-			Q_strncpyz( graph.status, "Graph/model revision mismatch or pose rejected; reload both together.", sizeof( graph.status ) );
+			Q_strncpyz( graph.source.status, "Graph/model revision mismatch or pose rejected; reload both together.", sizeof( graph.source.status ) );
 			return;
 		}
 		++graph.previews;
@@ -1479,6 +1583,10 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 		ImGui::Text( "%s: %.3f ms", timings[i].name, timings[i].microseconds / 1000.0 );
 	if ( !count )
 		ImGui::TextUnformatted( "GPU timestamp results unavailable" );
+	fxRenderStats_t effects;
+	renderer->EffectStats( &effects );
+	ImGui::Text( "Effects: %u particles / %u instances; %" PRIu64 " dropped", effects.pool.particles, effects.pool.instances, effects.pool.dropped );
+	ImGui::Text( "Effect draws %u / lights %u; light drops %u", effects.draws, effects.lightDraws, effects.lightDrops );
 	ImGui::Separator();
 	ImGui::Text( "Connected server RX / client TX %.0f / %.0f bytes/s", rate[0], rate[1] );
 	ImGui::Text( "Packets %" PRIu64 " / %" PRIu64 "; last datagram %u / %u bytes",
@@ -1504,6 +1612,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	editorRenderer = renderer;
 	EditWeaponRange();
 	EditGraph( renderer );
+	EditEffects( renderer );
 	LoadAnimation( renderer );
 	if ( worldDebug.refresh ) {
 		DevTools_RebuildWorld( worldDebug.collision, worldDebug.navigation, worldDebug.radius );
@@ -1608,6 +1717,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 			InspectWorld();
 			InspectGraph( elapsed );
 			InspectWeaponRange();
+			InspectEffects( renderer );
 			ImGui::EndTabBar();
 		}
 	}
@@ -1624,6 +1734,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	// Engine mutation/error handling runs after all vendor UI calls return.
 	EditWeaponRange();
 	EditGraph( renderer );
+	EditEffects( renderer );
 	DrawAnimation( renderer, milliseconds );
 	EditEntities();
 	if ( worldDebug.refresh ) {

@@ -1163,7 +1163,8 @@ The standalone build/run command and script contract are documented in
 `python3 tests/agent_formats.py` checks the six authoring schemas, example and
 error commands, cooker/level diagnostic integration, and production loader range
 parity. It needs jsonschema, Pillow, the cooker prerequisites and Go on PATH.
-Effects remain authoring-only pending #161; see the agent tool README.
+Effects have initial cooked/native/editor coverage on #161; final reference art,
+soft depth and full scene/performance acceptance remain pending. See below.
 
 ### Local full regression workflow
 
@@ -1223,3 +1224,20 @@ checks visible near/far draws, stable memory, watched removal/restoration of the
 LOD set and renderer restart. The supplied binary must enable development tools.
 The test authors temporary sources and captures; it never regenerates accepted
 fixtures. Native `assets` model rows expose `lods` and `lodDraws[4]`.
+
+
+`python3 tests/effects.py` checks the version-2 cooked effect record, seeded
+presentation spread/spin, bounded pools, motion/collision, overflow and lifetime.
+Optional emitter fields include velocity/origin spread, end size, rotation/spin
+and light radius/intensity/color. `tests/effects_runtime.py --binary PATH`
+checks native shaped sprites/lights, watched reload, expiry, memory and restart.
+Both runtime effect tests accept `--content openarena --data PATH`.
+
+`tests/effects_editor.py --binary PATH` checks the Effects ImGui source panel via
+its shared `effects.edit` agent actions: source/text/save/undo/load/start/stop.
+Use a loose `effects_source/*.json` project beneath the engine content home and
+run `tools/cook PROJECT --output CONTENT_HOME --watch`. Saves retain numbered
+backups and refuse external-edit conflicts. The cooker validates definitions;
+new bursts use the new publication while active particles retain their original
+parameters. Effects and Profile panels expose pool and light counters. The
+existing animation editor uses the same guarded source-saving helper.

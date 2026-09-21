@@ -57,6 +57,9 @@ bool DevTools_ReloadEntities( void ) {
 bool DevTools_Range( const char *, const char *, int ) {
 	return true;
 }
+bool DevTools_EffectEditor( const char *, const char * ) {
+	return true;
+}
 bool DevTools_Graph( const char *, const char *, float ) {
 	return true;
 }

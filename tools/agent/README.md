@@ -71,11 +71,14 @@ with `file`, `path` and `hint`; a semantic error concerning the whole document
 uses `$`. A valid level/animation example still needs its referenced source assets.
 
 Material recipes select `legacy` or `metallic-roughness`; the material schema
-describes fields from both source shapes. The schema's effect format is an
-**authoring-only contract pending #161**. Validation does not imply that an effect
-can be cooked or rendered yet. Its current minimal emitter fields establish the
-versioned input; #161 must add loader parity and runtime evidence as it implements
-that contract. Match examples use development-only placeholder credentials.
+describes fields from both source shapes. Effects cook to version-2 `.asfx`
+records and run in fixed client-only pools. `effects.load/start/stop` control them;
+`effects` reports particle/light counters. The Effects ImGui panel and
+`effects.edit` share source/text/save/undo/load/start/stop actions. Source editing
+uses loose `effects_source/*.json` files with backups and external-change checks;
+run the cooker watcher to publish changes. Active bursts retain their parameters.
+Full reference art, soft depth and final #161 scene/performance gates remain pending.
+Match examples use development-only placeholder credentials.
 
 ## Editor metadata
 

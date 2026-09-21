@@ -63,6 +63,23 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 live effect source editor passes
+
+The Effects ImGui panel and effects.edit share queued source/preview actions.
+The existing source-saving logic now serves both animation and effects: bounded
+loose JSON paths, numbered backups, read-back validation and refusal to overwrite
+external changes. Effect and Profile panels expose fixed-pool/light counters.
+Both effect editing/replay and the unchanged animation editor pass
+(fidelity-effect-editor.log, fidelity-shared-source-editor.log). The Effects
+panel capture was reviewed. Renderer reset clears its preview handles.
+
+The regression workflow now includes GCC/Clang pure effects/LOD checks and native
+effect, effect-editor and LOD lifecycle commands. Full #161 hosted/current-main
+gates remain later; no PR is open yet. Next: reference effect art and weapon
+material-hit bindings, then depth-soft particles/projected decals/post/TAA and
+budgeted streaming. Final reviewed scene and measured hardware budgets remain
+mandatory, and none of these component checks claim full issue completion.
+
 ## #161 shaped native effects and light hooks pass
 
 Native sprite size evolution/rotation and bounded per-emitter light submission

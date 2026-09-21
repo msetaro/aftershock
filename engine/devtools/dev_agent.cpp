@@ -890,6 +890,10 @@ static void Agent_EditorState( agentReply_t &reply ) {
 	reply.Text( state.graphDirty ? "true" : "false" );
 	reply.Text( ",\"play\":" );
 	reply.Text( state.graphPlay ? "true" : "false" );
+	reply.Text( "},\"effects\":{\"result\":" );
+	reply.String( state.effectResult );
+	reply.Text( ",\"dirty\":" );
+	reply.Text( state.effectDirty ? "true" : "false" );
 	reply.Text( "},\"range\":{\"loaded\":" );
 	reply.Text( state.rangeLoaded ? "true" : "false" );
 	reply.Text( ",\"ads\":" );
@@ -1268,7 +1272,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"effects\",\"effects.load\",\"effects.start\",\"effects.stop\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"trace\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"effects\",\"effects.load\",\"effects.start\",\"effects.stop\",\"effects.edit\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"trace\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
 	} else if ( !strcmp( op, "effects" ) || !strcmp( op, "effects.load" ) || !strcmp( op, "effects.start" ) || !strcmp( op, "effects.stop" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Presentation effects require a client build." );
@@ -1418,16 +1422,16 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 #else
 		return Agent_GraphTable( request, end, reply );
 #endif
-	} else if ( !strcmp( op, "graph" ) ) {
+	} else if ( !strcmp( op, "graph" ) || !strcmp( op, "effects.edit" ) ) {
 #ifdef DEDICATED
-		return reply.Error( "unsupported", "$", "Graph actions require a client build." );
+		return reply.Error( "unsupported", "$", "Source editor actions require a client build." );
 #else
 		if ( capacity < 1024 )
 			return false;
 		static char text[65536];
 		p = JSON_ObjectGetNamedValue( request, end, "action" );
 		if ( !Agent_String( p, end, name, sizeof( name ) ) )
-			return reply.Error( "invalid_argument", "$.action", "Use load/source/text/save/undo/play/reset/parameter." );
+			return reply.Error( "invalid_argument", "$.action", "Use source/text/save/undo, or a supported preview action." );
 		p = JSON_ObjectGetNamedValue( request, end, "text" );
 		text[0] = 0;
 		if ( p && !Agent_String( p, end, text, sizeof( text ) ) )
@@ -1435,8 +1439,8 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		float number = 0;
 		if ( ( !strcmp( name, "play" ) || !strcmp( name, "parameter" ) ) && !Agent_Number( request, end, "value", number, -1e30f, 1e30f ) )
 			return reply.Error( "invalid_argument", "$.value", "Provide the numeric parameter value, or 0/1 for play." );
-		if ( !DevTools_Graph( name, text, number ) )
-			return reply.Error( "rejected", "$", "Check action/path/parameter bounds; load a graph/source first. Step to finish queued IO and inspect editor.state.graph.result." );
+		if ( !( !strcmp( op, "effects.edit" ) ? DevTools_EffectEditor( name, text ) : DevTools_Graph( name, text, number ) ) )
+			return reply.Error( "rejected", "$", "Check the action and path; load a source before saving. Step to finish queued IO and inspect editor.state." );
 		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
 #endif
 	} else if ( !strcmp( op, "panel" ) || !strcmp( op, "world" ) || !strcmp( op, "editor.state" ) || !strcmp( op, "animation.load" ) || !strcmp( op, "animation.set" ) ) {
