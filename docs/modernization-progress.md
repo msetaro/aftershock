@@ -20,46 +20,52 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active branch: issue/158-main-publication, created from main a4358019 after the
-maintainer retired modernization. #13 PR #157 merged as
-a43580198b09c8b08f3bf30f08e77bf69e201cfe after exact-head build 35545635052 and
-regression 35545635067 passed. Its tested f638330b and merge trees are identical:
-60c07dae01241ebb2feaabd609cfa6c385c4fe68. Merged-tree regression 35546603116 and
-build 35546603122 are running. Wait for regression before closing #13/checking #25.
+Active root branch: issue/160-publication-merge, from main 567cc664. Repair the
+publication YAML collision in #160, then require exact-head build/regression,
+unchanged current main base before merge, and actual merged publication/regression.
+#159 merged as 567cc664174eb1ddd418e93d4fb4782cba23a8dc after its exact head
+1502d251 passed build 35547041859 (16 jobs) and regression 35547041884 (10 jobs).
+However, concurrent main commits 06d15a8d/8dbb4461 added second permissions blocks.
+The automatic merge was textually clean but build workflow 35548258547 cannot
+load duplicate keys. The merged tree is NOT identical to the tested head: only
+four duplicate permission/comment lines differ. #158 is not accepted/closed.
 
-Main's newly active publication job has a separate infrastructure defect #158:
-baseline 81a0f9dc passed every compilation leg but create-testing in 35545534633
-failed with `Resource not accessible by integration` creating latest, then tried
-to update that rolling tag. Repair publication in its own main-target PR, using
-job-scoped contents-write and immutable build-<full SHA> tags via installed gh.
-Never force/move a tag; retries must verify its target before replacing assets.
-An offline fake-CLI contract fails before the publisher exists (publish-before.log).
-Implementation, offline contract, workflow lint and committed self-review now pass.
-Draft PR #159 targets main. Its first head 2b49604c queued build 35546986757 and
-regression 35546986754; this documentation checkpoint requires fresh exact-head
-gates and supersedes those runs. Once every required check passes, ready/merge
-#159 and require successful actual main publication. No engine change.
+Reproducer on merged main: actionlint -shellcheck= .github/workflows/build.yml
+reports duplicate permissions at lines 194 and 222; persistent evidence is
+publication-merge-before.log. Remove those duplicate blocks, retaining the tested
+contents-write/actions-read permissions and immutable publisher. Preserve CRLF.
+AGENTS now requires checking the base commit immediately before merging, and
+merging/retesting an advanced main. No engine or fixture change.
 
-Preserve #14 in the extra level-tree worktree: issue/14-lighting at ea0efdc2 has
-main a4358019 merged forward. Directional bake/native shading passes both content
-sets and unchanged classic replay. The sampled-depth shadow graph slice passes
-36 frozen legacy and 36 new native descriptor configurations; actual caster/view,
-receiver, cascaded sun, reflection/SSAO and GPU-budget work remains. No #14 PR or
-acceptance yet. Its detailed evidence is committed on that branch. Resume it while
-#158/#13 hosted gates run, then continue #25. No accepted goldens are regenerated.
+#13 PR #157's merged-tree regression 35546603116 passed at a4358019. Its exact
+head build/regression were 35545635052/35545635067 and merge tree matched the
+head. Every compilation job in its main build passed; publication failed on #158.
+After successful repaired main publication/regression, close #13 and #158/#160,
+and check #13 in #25. Do not waive the failing publication or call it accepted.
 
-Known-good-2026-09-20 still has remote object 8bc8c94c and target 81a0f9dc.
-New branches and all PRs use main. Required checks must succeed; no red or skipped
-required check can be waived, and nothing is published outside this repository.
+Preserve #14 in the extra worktree /home/matt/.cache/aftershock-modernization/level-tree:
+issue/14-lighting at 18de4839. Directional baking/native shading passes both content
+sets and unchanged classic replay. Shadow graph/native allocation, stable
+point/spot/sun view math, native depth recording with retained scene continuation,
+and sampled atlas descriptor refresh pass local GCC/Clang/native checks. Actual
+caster/receiver submission, reflection probes, SSAO and reference GPU budget remain.
+No #14 PR/acceptance yet. Detailed evidence is on that branch. Merge accepted main
+forward before its final gates. Continue there while #160 checks run.
 
-#28 PR #156 is fully accepted: merge 646a63e82c0a74307d0e830ca6c626eca985ed60,
-exact build 35542300540/regression 35542300709, merged-tree regression 35543218326
-all passed. Tested 04a86876 and merge share tree
-f30abf9b5723b4d0aa20dc7600be1a7348050e5f. #28, #27 and #31 are closed/checked.
-#28's final local kind report measured 45,748,224 bytes and 0.00380977 vCPU across
-all three containers with one idle player; this is not saturated capacity. All
-private clusters were removed. The older implementation record below preserves
-its self-review and previous measurements.
+Known-good-2026-09-20 remains object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
+resolving to 81a0f9dc05c340f30182c34134bde67290c21774. Nothing leaves this repo;
+new branches/PRs use main, merge commits only, no history rewriting.
+
+## #160 publication merge repair self-review
+
+The pre-change actionlint run failed on both duplicate keys. Removing four lines
+restores exactly the build.yml bytes tested by #159; contents-write/actions-read
+remain limited to publication jobs. bash syntax, the offline publisher contract,
+actionlint and CRLF-aware whitespace checking pass. Final hosted gates and actual
+main publication remain required. No engine FP, ABI/layout, allocation, OS access,
+destructor, accepted golden or fixture changes. The merge-base check in AGENTS
+addresses the missed concurrent update without changing either contributor's
+intended job permissions. No tag was moved and no main commit was pushed directly.
 
 ## #158 publication self-review
 

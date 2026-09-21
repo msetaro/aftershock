@@ -49,6 +49,8 @@ for the constraints and code rules below.
   never merge with a red or skipped required check. Never force-push; never rewrite history;
   never delete or move `known-good-*` tags (they are the rollback points). The old
   `modernization` integration branch is retired.
+- Final gates must include the current `main` commit. Recheck the PR base commit just before
+  merging; if main advanced during the checks, merge it forward and rerun the gates first.
 - Checkpoint in `docs/modernization-progress.md`: per-issue status, decisions, "next action".
   Update after every meaningful step; on start, resume from it.
 - Bugs found while doing something else go in `docs/bugs.md` and are fixed only in their own PR with a test. No unrelated refactoring in any PR.
