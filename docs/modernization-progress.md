@@ -52,6 +52,16 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 compiled overlap and v2 camera paths pass
+
+Repeated compiled geometry, the 0.93 overhead gate and its displaced-building
+negative control pass. The owned fixture measures 1.0 building/solid IoU; shader
+aliases carry IDs but classification pixels come only from compiled triangles.
+V2 fly-through paths now reuse the clearance BFS, reach the roof and remain out of
+compiled solid interiors (sketch-flythrough.log). Accepted v1 MAP/BSP/AAS bytes
+still match. These components still need the integrated sketch/theme build and
+actual native bot/capture acceptance; #164 remains a draft.
+
 ## #164 v2 fly-through contract
 
 The multi-storey fixture now requires automatic camera samples reaching the roof

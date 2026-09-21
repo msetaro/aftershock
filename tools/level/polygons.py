@@ -189,7 +189,7 @@ def pieces(level):
     ids = set()
     for item,p in authored:
         identity = item['id']
-        require(identity not in ids, 'duplicate shape id: '+identity)
+        require(identity not in ids and not identity.startswith('boundary_'), 'duplicate/reserved shape id: '+identity)
         ids.add(identity)
         z,Z = item['base'],item['base']+item['height']
         require(area.buffer(-16,join_style='mitre').covers(p) and min([floor]+[r['base'] for r,_ in sunken])<=z<Z<=ceiling,
@@ -260,7 +260,7 @@ def pieces(level):
             slab = inner.difference(well) if i<=stair_count else inner
             add(identity,slab,top-16,top,'trim')
     for prop in level['props']:
-        require(prop['id'] not in ids, 'duplicate shape/prop id: '+prop['id'])
+        require(prop['id'] not in ids and not prop['id'].startswith('boundary_'), 'duplicate/reserved shape/prop id: '+prop['id'])
         ids.add(prop['id'])
         p,z,Z = prop_bounds(prop)
         require(area.buffer(-16,join_style='mitre').covers(p) and min([floor]+[r['base'] for r,_ in sunken])<=z<Z<=ceiling,
@@ -271,9 +271,26 @@ def pieces(level):
     return area,result
 
 
+def surface_material(level,record):
+    material = record['material']
+    if record['id'].startswith('boundary_') or material.startswith('level/'):
+        return level['materials'].get(material,material)
+    return 's/'+record['id']+'/'+material
+
+
+def surface_shaders(level):
+    _,records = pieces(level)
+    aliases = sorted({(surface_material(level,r),level['materials'].get(r['material'],r['material']))
+                      for r in records if not r['id'].startswith('boundary_') and not r['material'].startswith('level/')})
+    return ''.join(f'textures/{alias}\n{{\n    qer_editorimage textures/{source}\n'
+                   '    {\n        map $lightmap\n        rgbGen identity\n    }\n'
+                   f'    {{\n        map textures/{source}\n        blendFunc filter\n        rgbGen identity\n    }}\n}}\n'
+                   for alias,source in aliases)
+
+
 def generate(level):
     _,records = pieces(level)
-    world = ['// shape '+record['id']+'\n'+prism(poly,record['low'],record['high'],level['materials'].get(record['material'],record['material']),record['slope'])
+    world = ['// shape '+record['id']+'\n'+prism(poly,record['low'],record['high'],surface_material(level,record),record['slope'])
              for record in records for poly in convex_parts(record['polygon'])]
     require(len(world)<=8192, 'convex brush budget exceeded')
     entities = []
@@ -303,7 +320,7 @@ def surface_height(record,x,y):
     return z+(Z-z)*max(0,min(1,fraction))
 
 
-def navigation(level, records):
+def navigation(level, records, routes=None):
     """Sample a square player hull at each surface; separate floors share XY nodes."""
     from collections import deque
     area = polygon(level['boundary']['polygon'],level['boundary'].get('holes',[]))
@@ -354,6 +371,7 @@ def navigation(level, records):
     require(starts, 'at least one spawn required')
     seen = {starts[0]}
     queue = deque(seen)
+    parents = {starts[0]:None} if routes is not None else None
     while queue:
         a,b,z = queue.popleft()
         for dx,dy in ((16,0),(-16,0),(0,16),(0,-16)):
@@ -365,8 +383,17 @@ def navigation(level, records):
                 if not any(abs(m-z)<=18 and abs(m-h)<=18 for m in walkable(a+dx/2,b+dy/2)):
                     continue
                 seen.add(node)
+                if parents is not None:
+                    parents[node] = (a,b,z)
                 queue.append(node)
     require(all(p in seen for p in starts), 'unreachable spawn: disconnected walkable regions')
+    if routes is not None:
+        for target in starts:
+            route = []
+            while target is not None:
+                route.append(target)
+                target = parents[target]
+            routes.append(list(reversed(route)))
     cover = shapely.union_all([r['polygon'] for r in records if not r['id'].startswith('boundary_')])
     require(not cover.is_empty, 'cover gap: at least one shape is required')
     gap = max(float(v) for v in shapely.distance(cover,shapely.points([(a,b) for a,b,_ in seen])))+math.sqrt(2)*8

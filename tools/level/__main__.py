@@ -31,7 +31,8 @@ def shaders(level):
         sun = f"    q3map_sun {vector(s['color'])} {s['intensity']} {azimuth:.9g} {elevation:.9g}\n"
     extra = ''
     if level['version']==2:
-        extra = ('textures/level/fence\n{\n    surfaceparm nonsolid\n    surfaceparm playerclip\n'
+        from polygons import surface_shaders
+        extra = surface_shaders(level)+('textures/level/fence\n{\n    surfaceparm nonsolid\n    surfaceparm playerclip\n'
                  '    surfaceparm alphashadow\n    cull none\n    {\n'
                  f'        map textures/{level["materials"]["trim"]}\n'
                  '        rgbGen identity\n    }\n}\n')

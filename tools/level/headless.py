@@ -44,6 +44,21 @@ def structure(base,name,authored):
 
 
 def flythrough(level):
+    if level.get('version')==2:
+        from polygons import pieces,navigation
+        _,records = pieces(level)
+        routes = []
+        navigation(level,records,routes)
+        views = []
+        for route in routes:
+            # Keep endpoints and sample roughly 64 interior path positions.
+            stride = max(8,math.ceil(sum(len(r) for r in routes)/max(1,64-len(routes))))
+            for index in sorted(set(range(0,len(route),stride))|{len(route)-1}):
+                a = route[index]
+                b = route[min(index+1,len(route)-1)] if index<len(route)-1 else route[max(0,index-1)]
+                yaw = math.degrees(math.atan2(b[1]-a[1],b[0]-a[0]))
+                views.append(dict(id=f'auto_{len(views):03d}_path',origin=[a[0],a[1],a[2]+48],angles=[0,yaw,0]))
+        return views
     rooms = {r['id']:r for r in level['rooms']}
     views,used = [],set()
 

@@ -300,3 +300,16 @@ or straighten curves. Interpretation JSON records the measured dominant angles.
 Optional `corners` (page TL/TR/BR/BL in the source image) and `rectified_size`
 remove camera perspective and UI borders. All notes/mark coordinates then refer
 to the rectified image. The original size and transform remain in the report.
+
+V2 fly-through cameras follow the same clearance-grid search paths used for spawn
+connectivity, including stairs and roof access. They sample fixed eye positions
+48 units above those surfaces. Screenshots remain native engine captures.
+
+The sketch overhead verifier projects actual upward-facing compiled BSP triangles
+orthographically on the CPU. V2 shader aliases retain source IDs; their ordinary
+lightmap/material stages preserve the assigned role. The projection uses the
+recorded sketch scale and center transform, so it cannot hide layout errors by
+freely translating or rotating the result. It emits `compiled-overhead.png`,
+`overhead-difference.png` (green overlap, red missing, blue excess), per-class IoU
+and the BSP SHA256. This is a geometry/class image, not a textured GPU screenshot.
+The independent control requires 0.93 IoU and rejects a displaced expected building.
