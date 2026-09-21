@@ -70,7 +70,8 @@ All writes remain in msetaro/aftershock. Never alter known-good or accepted gold
 ## #161 native fixed-pool effect contract
 
 The native probe specifies trivial fixed storage, valid cooked definition opening,
-constant-velocity movement, flipbook progression, lifetime expiry, fractional rate
+constant-velocity/rotated-axis movement, gravity/drag, per-emitter capacity,
+flipbook progression, lifetime expiry, fractional rate
 carry, stop/stale-handle behavior, collision reflection through a caller callback,
 independent presentation state and visible fixed-pool overflow counters. The
 pre-implementation compile fails on engine/effects/effects_public.h. The effects

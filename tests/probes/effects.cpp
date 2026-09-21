@@ -57,6 +57,28 @@ int main( int argc, char **argv ) {
 	FX_Update( &state, 900, nullptr, nullptr );
 	assert(state.stats.particles == 0 && state.stats.instances == 0);
 
+	// Emitters use local axes; gravity and drag affect presentation particles.
+	const float turned[3][3] = { { 0, 1, 0 }, { -1, 0, 0 }, { 0, 0, 1 } };
+	emitter.gravity[2] = -80;
+	emitter.drag = .5f;
+	FX_Reset( &state );
+	assert(FX_Start(&state, &asset, origin, turned, 164));
+	FX_Update( &state, 100, nullptr, nullptr );
+	for ( const auto &particle : state.particles ) {
+		if ( !particle.active )
+			continue;
+		assert(std::fabs(particle.origin[0]) < .001f);
+		assert(particle.origin[1] > 9 && particle.origin[1] < 10);
+		assert(particle.origin[2] < 0 && particle.velocity[2] < 0);
+		assert(particle.velocity[1] > 90 && particle.velocity[1] < 100);
+	}
+	emitter.gravity[2] = emitter.drag = 0;
+	emitter.capacity = 3;
+	FX_Reset( &state );
+	assert(FX_Start(&state, &asset, origin, axis, 164));
+	assert(state.stats.particles == 3 && state.stats.dropped == 5);
+	emitter.capacity = 16;
+
 	// A continuous emitter carries fractional particles without heap allocation.
 	emitter.burst = 0;
 	emitter.rate = 5;
