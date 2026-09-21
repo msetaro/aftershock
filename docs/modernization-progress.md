@@ -82,6 +82,10 @@ An insufficient reply buffer prevents mutation. No OS calls or new allocations.
 The existing json.h utility is explicitly recognized as a shared public header
 by the include boundary gate. Native protocol tests pass GCC and Clang/UBSan.
 The test's Cvar_Flags stub now matches the production unsigned signature.
+The next test, tests/agent_channel.py, launches a private-home dedicated server
+over pipes, requests a seed/dt and two frame batches separated by wall-clock
+sleep, and checks exact engine times plus EOF shutdown. Before transport it
+fails with no JSON response as expected (agent-channel-before.log).
 This is only the first command slice, not #163 acceptance. Transport, stepping,
 shared UI actions, tools/schemas/isolation/recipes and full gates remain.
 
