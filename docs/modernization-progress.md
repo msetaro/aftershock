@@ -86,7 +86,10 @@ to the parent pipe in this mode. Shipping/default branches retain their behavior
 Native command GCC/Clang UBSan, dedicated pipe/idle-clock/EOF tests, boundary and
 format checks pass. MinGW compiles the dispatcher and platform transport. Evidence:
 agent-channel.log and agent-protocol-{gcc,clang}.log. This is not full playthrough
-determinism evidence yet. Client/server Release development builds pass locally.
+determinism evidence yet. The next test, tests/agent_play.py, uses the new small
+Python pipe client and unique home/display to compare two seeded local-player
+trajectories. It fails on unknown operation map before command implementation
+(agent-play-before.log). Client/server Release development builds pass locally.
 Main #14 regression now has only runtime still running; lifetimes passed.
 
 ## #163 initial command implementation
