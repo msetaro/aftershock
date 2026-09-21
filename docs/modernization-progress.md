@@ -44,7 +44,7 @@ sufficient. Private read-only findings and primary references are in
 /home/matt/.cache/aftershock-modernization/audio-research.md. A private SDL dummy
 output baseline passed; it does not establish any #16 feature.
 
-Next implement native .asevt registration and bounded playback of its cooked
+Next implement .asevt registration and bounded playback of its cooked
 PCM layers, integrating the tested spatial/HRTF component. Then continue the
 remaining issue scope and runtime acceptance. Record failures before fixes. No maintainer input is currently needed.
 
@@ -72,8 +72,10 @@ model, Doppler/occlusion flags, reverb send, and mechanical/tail/distant PCM
 paths with gains and distance ranges. Incremental no-op and edited-layer cooks
 pass. Renderer resource-index validation admits the new kind; no renderer
 behavior changes. Existing weapon sound path strings can reference this record
-without changing weapon layout. Native event loading and audible playback are
-not implemented yet; no #16 completion or runtime acceptance is claimed.
+without changing weapon layout. Native event decoding and layer selection now pass the real cooked round trip
+following the missing-API failure in 6704d956 (audio-event-native-before.log).
+The decoder checks the existing hash envelope, fields and sample qpaths into
+a fixed POD record with layout assertions. Native playback is not wired yet; no #16 completion or runtime acceptance is claimed.
 
 ## #16 authored event contract
 
