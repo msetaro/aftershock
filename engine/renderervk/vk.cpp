@@ -11,6 +11,16 @@ constexpr int FILTER_LINEAR_MIPMAP_LINEAR = (int)rhiFilter_t::LinearMipmapLinear
 
 static Vk_Instance vk;
 static Vk_World vk_world;
+static struct {
+	Vk_Instance::staging_buffer_s staging;
+	VkCommandBuffer command;
+	VkFence fence;
+	VkImage image;
+	const uint8_t *source;
+	uint32_t width, height, levels, blockBytes, size, offset, mip, row;
+	bool active, waiting, failed;
+} vk_stream;
+static void vk_clean_texture_uploads();
 static rhiDeviceConfig_t vk_config;
 static rhiHost_t vk_host;
 static rhiPostProcess_t vk_post;
@@ -1092,29 +1102,26 @@ static void vk_flush_staging_buffer( qboolean final ) {
 #endif // USE_UPLOAD_QUEUE
 
 
-static void vk_alloc_staging_buffer( VkDeviceSize size ) {
+static void vk_create_staging_buffer( Vk_Instance::staging_buffer_s *staging, VkDeviceSize size ) {
 	VkBufferCreateInfo buffer_desc;
 	VkMemoryRequirements memory_requirements;
 	VkMemoryAllocateInfo alloc_info;
 	uint32_t memory_type;
 	void *data;
 
-	vk_clean_staging_buffer();
-
-	vk.staging_buffer.size = MAX( size, STAGING_BUFFER_SIZE );
-	vk.staging_buffer.size = PAD( vk.staging_buffer.size, 1024 * 1024 );
+	staging->size = size;
 
 	buffer_desc.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	buffer_desc.pNext = NULL;
 	buffer_desc.flags = 0;
-	buffer_desc.size = vk.staging_buffer.size;
+	buffer_desc.size = staging->size;
 	buffer_desc.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	buffer_desc.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	buffer_desc.queueFamilyIndexCount = 0;
 	buffer_desc.pQueueFamilyIndices = NULL;
-	VK_CHECK(qvkCreateBuffer(vk.device, &buffer_desc, NULL, &vk.staging_buffer.handle));
+	VK_CHECK(qvkCreateBuffer(vk.device, &buffer_desc, NULL, &staging->handle));
 
-	qvkGetBufferMemoryRequirements( vk.device, vk.staging_buffer.handle, &memory_requirements );
+	qvkGetBufferMemoryRequirements( vk.device, staging->handle, &memory_requirements );
 
 	memory_type = find_memory_type( memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 
@@ -1123,16 +1130,21 @@ static void vk_alloc_staging_buffer( VkDeviceSize size ) {
 	alloc_info.allocationSize = memory_requirements.size;
 	alloc_info.memoryTypeIndex = memory_type;
 
-	VK_CHECK(qvkAllocateMemory(vk.device, &alloc_info, NULL, &vk.staging_buffer.memory));
-	VK_CHECK(qvkBindBufferMemory(vk.device, vk.staging_buffer.handle, vk.staging_buffer.memory, 0));
+	VK_CHECK(qvkAllocateMemory(vk.device, &alloc_info, NULL, &staging->memory));
+	VK_CHECK(qvkBindBufferMemory(vk.device, staging->handle, staging->memory, 0));
 
-	VK_CHECK(qvkMapMemory(vk.device, vk.staging_buffer.memory, 0, VK_WHOLE_SIZE, 0, &data));
-	vk.staging_buffer.ptr = (byte *)data;
+	VK_CHECK(qvkMapMemory(vk.device, staging->memory, 0, VK_WHOLE_SIZE, 0, &data));
+	staging->ptr = (byte *)data;
 #ifdef USE_UPLOAD_QUEUE
-	vk.staging_buffer.offset = 0;
+	staging->offset = 0;
 #endif
-	SET_OBJECT_NAME( vk.staging_buffer.handle, "staging buffer", VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT );
-	SET_OBJECT_NAME( vk.staging_buffer.memory, "staging buffer memory", VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT );
+	SET_OBJECT_NAME( staging->handle, "staging buffer", VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT );
+	SET_OBJECT_NAME( staging->memory, "staging buffer memory", VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT );
+}
+
+static void vk_alloc_staging_buffer( VkDeviceSize size ) {
+	vk_clean_staging_buffer();
+	vk_create_staging_buffer( &vk.staging_buffer, PAD( MAX( size, STAGING_BUFFER_SIZE ), 1024 * 1024 ) );
 }
 
 
@@ -4764,6 +4776,7 @@ void vk_impl_ReleaseResources( void ) {
 	int i, j;
 
 	vk_wait_idle();
+	vk_clean_texture_uploads();
 
 	for ( i = 0; i < vk_world.num_image_chunks; i++ )
 		qvkFreeMemory( vk.device, vk_world.image_chunks[i].memory, NULL );
@@ -8283,6 +8296,9 @@ rhiStatus_t RHI_ReleaseResources( void ) {
 }
 
 rhiStatus_t RHI_Shutdown( void ) {
+	const rhiStatus_t uploads = RHI_ShutdownTextureUploads();
+	if ( uploads != rhiStatus_t::Success )
+		return uploads;
 	return vk_call( [&]() {
 		vk_impl_Shutdown();
 		return rhiStatus_t::Success;
@@ -8340,37 +8356,176 @@ rhiStatus_t RHI_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y
 	} );
 }
 
+static uint32_t vk_compressed_upload_bytes( const rhiTexture_t *texture, int32_t width, int32_t height, int32_t levels, const uint8_t *blocks, uint32_t size, rhiFormat_t format ) {
+	uint32_t blockBytes;
+	switch ( format ) {
+	case rhiFormat_t::BC4:
+		blockBytes = 8;
+		break;
+	case rhiFormat_t::BC5:
+	case rhiFormat_t::BC7:
+	case rhiFormat_t::BC7_SRGB:
+		blockBytes = 16;
+		break;
+	default:
+		return 0;
+	}
+	if ( !texture || !texture->image || !blocks || width < 1 || height < 1 || width > 32768 || height > 32768 || levels < 1 || levels > 16 )
+		return 0;
+	uint64_t expected = 0;
+	for ( int32_t level = 0; level < levels; ++level ) {
+		expected += (uint64_t)( ( width + 3 ) / 4 ) * ( ( height + 3 ) / 4 ) * blockBytes;
+		if ( width == 1 && height == 1 && level + 1 != levels )
+			return 0;
+		width = MAX( 1, width / 2 );
+		height = MAX( 1, height / 2 );
+	}
+	return expected == size && expected <= INT32_MAX ? blockBytes : 0;
+}
+
 rhiStatus_t RHI_UploadCompressedTexture( const rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, bool update ) {
 	return vk_call( [&]() {
-		int32_t blockBytes;
-		switch ( format ) {
-		case rhiFormat_t::BC4:
-			blockBytes = 8;
-			break;
-		case rhiFormat_t::BC5:
-		case rhiFormat_t::BC7:
-		case rhiFormat_t::BC7_SRGB:
-			blockBytes = 16;
-			break;
-		default:
-			return rhiStatus_t::Error;
-		}
-		if ( !texture || !texture->image || !blocks || width < 1 || height < 1 || width > 32768 || height > 32768 || mipLevels < 1 || mipLevels > 16 )
-			return rhiStatus_t::Error;
-		uint64_t expected = 0;
-		int32_t w = width, h = height;
-		for ( int32_t level = 0; level < mipLevels; level++ ) {
-			expected += (uint64_t)( ( w + 3 ) / 4 ) * ( ( h + 3 ) / 4 ) * blockBytes;
-			if ( w == 1 && h == 1 && level + 1 != mipLevels )
-				return rhiStatus_t::Error;
-			w = MAX( 1, w / 2 );
-			h = MAX( 1, h / 2 );
-		}
-		if ( expected != size || expected > INT32_MAX )
+		const uint32_t blockBytes = vk_compressed_upload_bytes( texture, width, height, mipLevels, blocks, size, format );
+		if ( !blockBytes )
 			return rhiStatus_t::Error;
 		vk_impl_UploadTexture( texture, 0, 0, width, height, mipLevels, blocks, blockBytes, update, 4 );
 		return rhiStatus_t::Success;
 	} );
+}
+
+static void vk_clean_texture_uploads() {
+	if ( vk_stream.command )
+		qvkFreeCommandBuffers( vk.device, vk.command_pool, 1, &vk_stream.command );
+	if ( vk_stream.fence )
+		qvkDestroyFence( vk.device, vk_stream.fence, nullptr );
+	if ( vk_stream.staging.handle )
+		qvkDestroyBuffer( vk.device, vk_stream.staging.handle, nullptr );
+	if ( vk_stream.staging.memory )
+		qvkFreeMemory( vk.device, vk_stream.staging.memory, nullptr );
+	vk_stream = {};
+}
+
+rhiStatus_t RHI_InitTextureUploads() {
+	if ( vk_stream.command && vk_stream.fence && vk_stream.staging.ptr )
+		return rhiStatus_t::Success;
+	if ( !vk.device )
+		return rhiStatus_t::Unavailable;
+	const rhiStatus_t status = vk_call( [&]() {
+		vk_create_staging_buffer( &vk_stream.staging, 4 * 1024 * 1024 );
+		VkCommandBufferAllocateInfo commands{};
+		commands.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		commands.commandPool = vk.command_pool;
+		commands.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		commands.commandBufferCount = 1;
+		VK_CHECK( qvkAllocateCommandBuffers( vk.device, &commands, &vk_stream.command ) );
+		VkFenceCreateInfo fence{};
+		fence.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		VK_CHECK( qvkCreateFence( vk.device, &fence, nullptr, &vk_stream.fence ) );
+		return rhiStatus_t::Success;
+	} );
+	if ( status != rhiStatus_t::Success )
+		vk_clean_texture_uploads();
+	return status;
+}
+
+rhiStatus_t RHI_ShutdownTextureUploads() {
+	if ( vk_stream.waiting ) {
+		const rhiStatus_t status = RHI_WaitIdle();
+		if ( status != rhiStatus_t::Success && status != rhiStatus_t::DeviceLost )
+			return status;
+	}
+	vk_clean_texture_uploads();
+	return rhiStatus_t::Success;
+}
+
+rhiStatus_t RHI_QueueTextureUpload( const rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format ) {
+	const uint32_t blockBytes = vk_compressed_upload_bytes( texture, width, height, mipLevels, blocks, size, format );
+	if ( !blockBytes )
+		return rhiStatus_t::Error;
+	if ( !vk_stream.staging.ptr || vk_stream.active || vk_stream.failed )
+		return rhiStatus_t::Unavailable;
+	vk_stream.image = (VkImage)(uintptr_t)texture->image;
+	vk_stream.source = blocks;
+	vk_stream.width = width;
+	vk_stream.height = height;
+	vk_stream.levels = mipLevels;
+	vk_stream.blockBytes = blockBytes;
+	vk_stream.size = size;
+	vk_stream.offset = vk_stream.mip = vk_stream.row = 0;
+	vk_stream.active = true;
+	return rhiStatus_t::Success;
+}
+
+rhiStatus_t RHI_PollTextureUpload( bool *complete ) {
+	if ( !complete )
+		return rhiStatus_t::Error;
+	*complete = false;
+	if ( vk_stream.failed )
+		return rhiStatus_t::Error;
+	if ( !vk_stream.active )
+		return rhiStatus_t::Success;
+	const rhiStatus_t status = vk_call( [&]() {
+		if ( vk_stream.waiting ) {
+			const VkResult ready = qvkWaitForFences( vk.device, 1, &vk_stream.fence, VK_TRUE, 0 );
+			if ( ready == VK_TIMEOUT )
+				return rhiStatus_t::Success;
+			if ( ready != VK_SUCCESS )
+				return vk_status( ready );
+			vk_stream.waiting = false;
+			if ( vk_stream.offset == vk_stream.size ) {
+				vk_stream.active = false;
+				vk_stream.source = nullptr;
+				*complete = true;
+				return rhiStatus_t::Success;
+			}
+		}
+		VK_CHECK( qvkResetFences( vk.device, 1, &vk_stream.fence ) );
+		VK_CHECK( qvkResetCommandBuffer( vk_stream.command, 0 ) );
+		VkCommandBufferBeginInfo begin{};
+		begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		VK_CHECK( qvkBeginCommandBuffer( vk_stream.command, &begin ) );
+		if ( !vk_stream.offset )
+			record_image_layout_transition( vk_stream.command, vk_stream.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 0 );
+		VkBufferImageCopy regions[16]{};
+		uint32_t count = 0, bytes = 0;
+		while ( vk_stream.mip < vk_stream.levels && count < ARRAY_LEN( regions ) ) {
+			const uint32_t width = MAX( 1u, vk_stream.width >> vk_stream.mip );
+			const uint32_t height = MAX( 1u, vk_stream.height >> vk_stream.mip );
+			const uint32_t stride = ( ( width + 3 ) / 4 ) * vk_stream.blockBytes;
+			const uint32_t rows = MIN( ( height + 3 ) / 4 - vk_stream.row, ( (uint32_t)vk_stream.staging.size - bytes ) / stride );
+			if ( !rows )
+				break;
+			auto &region = regions[count++];
+			region.bufferOffset = bytes;
+			region.imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, vk_stream.mip, 0, 1 };
+			region.imageOffset.y = vk_stream.row * 4;
+			region.imageExtent = { width, MIN( rows * 4, height - vk_stream.row * 4 ), 1 };
+			const uint32_t size = rows * stride;
+			memcpy( vk_stream.staging.ptr + bytes, vk_stream.source + vk_stream.offset, size );
+			bytes += size;
+			vk_stream.offset += size;
+			vk_stream.row += rows;
+			if ( vk_stream.row == ( height + 3 ) / 4 ) {
+				vk_stream.mip++;
+				vk_stream.row = 0;
+			}
+		}
+		qvkCmdCopyBufferToImage( vk_stream.command, vk_stream.staging.handle, vk_stream.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, count, regions );
+		if ( vk_stream.offset == vk_stream.size )
+			record_image_layout_transition( vk_stream.command, vk_stream.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0 );
+		VK_CHECK( qvkEndCommandBuffer( vk_stream.command ) );
+		VkSubmitInfo submit{};
+		submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submit.commandBufferCount = 1;
+		submit.pCommandBuffers = &vk_stream.command;
+		VK_CHECK( qvkQueueSubmit( vk.queue, 1, &submit, vk_stream.fence ) );
+		vk_stream.waiting = true;
+		return rhiStatus_t::Success;
+	} );
+	if ( status != rhiStatus_t::Success )
+		vk_stream.failed = true;
+	return status;
 }
 
 rhiStatus_t RHI_ReplaceCompressedTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, rhiAddress_t address, const char *label ) {

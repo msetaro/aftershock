@@ -141,6 +141,14 @@ static_assert( sizeof( rhiTexture_t ) == 32 && std::is_trivially_copyable_v<rhiT
 [[nodiscard]] rhiStatus_t RHI_UploadTexture( const rhiTexture_t *texture, int32_t x, int32_t y, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *pixels, int32_t bytesPerPixel, bool update );
 // Whole BC mip chain, largest level first, tightly packed 4x4 blocks.
 [[nodiscard]] rhiStatus_t RHI_UploadCompressedTexture( const rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, bool update );
+// Initialize fixed staging at map load. Poll once per frame; never waits for GPU work.
+// Queue accepts a fresh, unsampled image. Source bytes and image stay alive until
+// completion or shutdown; descriptor adoption/old-image retirement belong to caller.
+[[nodiscard]] rhiStatus_t RHI_InitTextureUploads();
+[[nodiscard]] rhiStatus_t RHI_QueueTextureUpload( const rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format );
+[[nodiscard]] rhiStatus_t RHI_PollTextureUpload( bool *complete );
+// Only map unload/restart may block; cancels any pending request after GPU completion.
+[[nodiscard]] rhiStatus_t RHI_ShutdownTextureUploads();
 // Development replacement waits for GPU use, then commits image/view/binding atomically.
 // Failure retains the live image; separately owned memory is reclaimed on replacement.
 [[nodiscard]] rhiStatus_t RHI_ReplaceCompressedTexture( rhiTexture_t *texture, int32_t width, int32_t height, int32_t mipLevels, const uint8_t *blocks, uint32_t size, rhiFormat_t format, rhiAddress_t address, const char *label );

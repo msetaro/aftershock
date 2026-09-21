@@ -36,6 +36,20 @@ rhiStatus_t RHI_ReplaceCompressedTexture( rhiTexture_t *, int32_t, int32_t, int3
 rhiStatus_t RHI_UploadCompressedTexture( const rhiTexture_t *, int32_t, int32_t, int32_t, const uint8_t *, uint32_t, rhiFormat_t, bool ) {
 	return rhiStatus_t::Unavailable;
 }
+rhiStatus_t RHI_InitTextureUploads() {
+	return rhiStatus_t::Unavailable;
+}
+rhiStatus_t RHI_QueueTextureUpload( const rhiTexture_t *, int32_t, int32_t, int32_t, const uint8_t *, uint32_t, rhiFormat_t ) {
+	return rhiStatus_t::Unavailable;
+}
+rhiStatus_t RHI_PollTextureUpload( bool *complete ) {
+	if ( complete )
+		*complete = false;
+	return rhiStatus_t::Unavailable;
+}
+rhiStatus_t RHI_ShutdownTextureUploads() {
+	return rhiStatus_t::Success;
+}
 rhiStatus_t RHI_UploadTexture( const rhiTexture_t *, int32_t, int32_t, int32_t, int32_t, int32_t, const uint8_t *, int32_t, bool ) {
 	return rhiStatus_t::Unavailable;
 }

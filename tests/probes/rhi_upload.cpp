@@ -185,6 +185,7 @@ static void check_compressed_uploads() {
 static uint8_t streamStaging[4 * 1024 * 1024], streamSource[24 * 1024 * 1024];
 static uint32_t streamSubmits, streamCopied, streamAllocations, streamTransitions;
 static bool streamReady;
+static uint32_t streamWidth = 4096, streamHeight = 4096, streamBlockBytes = 16;
 static VkResult streamFenceResult = VK_SUCCESS;
 static void check_async_texture_upload() {
 	vk.device = (VkDevice)(uintptr_t)20;
@@ -209,7 +210,17 @@ static void check_async_texture_upload() {
 		assert( layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && count <= 16 );
 		for ( uint32_t i = 0; i < count; ++i ) {
 			const auto &r = regions[i];
-			const uint32_t bytes = ( ( r.imageExtent.width + 3 ) / 4 ) * ( ( r.imageExtent.height + 3 ) / 4 ) * 16;
+			uint32_t mip = 0, offset = streamCopied, width = streamWidth, height = streamHeight;
+			while ( offset >= ( ( width + 3 ) / 4 ) * ( ( height + 3 ) / 4 ) * streamBlockBytes ) {
+				offset -= ( ( width + 3 ) / 4 ) * ( ( height + 3 ) / 4 ) * streamBlockBytes;
+				width = MAX( 1u, width / 2 );
+				height = MAX( 1u, height / 2 );
+				mip++;
+			}
+			assert( r.imageSubresource.mipLevel == mip && r.imageExtent.width == width );
+			assert( (uint32_t)r.imageOffset.y == offset / ( ( width + 3 ) / 4 * streamBlockBytes ) * 4 );
+			assert( r.imageOffset.y + r.imageExtent.height <= height );
+			const uint32_t bytes = ( ( r.imageExtent.width + 3 ) / 4 ) * ( ( r.imageExtent.height + 3 ) / 4 ) * streamBlockBytes;
 			assert( r.bufferOffset + bytes <= sizeof( streamStaging ) && r.imageOffset.y % 4 == 0 );
 			assert( memcmp( streamStaging + r.bufferOffset, streamSource + streamCopied, bytes ) == 0 );
 			streamCopied += bytes;
@@ -236,6 +247,15 @@ static void check_async_texture_upload() {
 		assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success );
 	assert( complete && streamCopied == size && streamSubmits == 6 && streamTransitions == 2 && streamAllocations == allocated );
 	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete );
+	streamWidth = 7;
+	streamHeight = 5;
+	streamBlockBytes = 8;
+	streamTransitions = streamCopied = 0;
+	assert( RHI_QueueTextureUpload( &texture, 7, 5, 3, streamSource, 48, rhiFormat_t::BC4 ) == rhiStatus_t::Success );
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && !complete );
+	assert( RHI_PollTextureUpload( &complete ) == rhiStatus_t::Success && complete && streamCopied == 48 );
+	streamWidth = streamHeight = 4096;
+	streamBlockBytes = 16;
 	assert( RHI_QueueTextureUpload( &texture, 4096, 4096, 13, streamSource, size, rhiFormat_t::BC7 ) == rhiStatus_t::Success );
 	streamTransitions = 0;
 	streamCopied = 0;
@@ -247,6 +267,10 @@ static void check_async_texture_upload() {
 	qvkFreeMemory = []( VkDevice, VkDeviceMemory, const VkAllocationCallbacks * ) {};
 	qvkDestroyFence = []( VkDevice, VkFence, const VkAllocationCallbacks * ) {};
 	assert( RHI_ShutdownTextureUploads() == rhiStatus_t::Success );
+	qvkQueueSubmit = []( VkQueue, uint32_t, const VkSubmitInfo *, VkFence ) { return VK_SUCCESS; };
+	qvkQueueWaitIdle = []( VkQueue ) { return VK_SUCCESS; };
+	qvkCmdPipelineBarrier = []( VkCommandBuffer, VkPipelineStageFlags, VkPipelineStageFlags, VkDependencyFlags, uint32_t, const VkMemoryBarrier *, uint32_t, const VkBufferMemoryBarrier *, uint32_t, const VkImageMemoryBarrier * ) {};
+
 	vk.device = VK_NULL_HANDLE;
 }
 

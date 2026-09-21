@@ -46,7 +46,8 @@ regression 35613793817 passed all ten active jobs. #31 is accepted again.
 
 Next: strengthen temporal moving-object/disocclusion and history-quality checks,
 measure camera/geometry/resolve/copy/blur budgets on the reference GPU, then
-implement mip streaming/async uploads. Descriptor restoration is adopted; RTX
+complete mip streaming integration. Bounded residency policy and asynchronous upload
+components pass; renderer adoption and large-set runtime remain outstanding. Descriptor restoration is adopted; RTX
 post runs complete. Initial copy-back exceeds its declared budget, so the post
 path stays default off. Camera jitter, history resolve, copied native IQM skin
 motion, reactive fallback and motion blur now execute but are not final visual
@@ -78,6 +79,25 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 asynchronous upload component
+
+The RHI now has explicit map-load initialization, queue, nonblocking poll and
+shutdown calls. It reuses staging allocation and BC validation helpers; one fixed
+4 MiB buffer, command buffer and fence stream complete rows through at most sixteen
+regions per submission. Source storage is borrowed until final-fence completion.
+No GPU idle wait or resource allocation occurs in queue/poll. Map release/shutdown
+cleans the resources. Descriptor adoption and residency integration are still next.
+
+GCC/Clang RHI probes pass, including a 4K chain in six submissions, exact destination
+mip/row and source bytes, non-block-aligned BC4 dimensions, busy refusal, final-fence
+completion and device loss (fidelity-stream-upload-{after,clang}.log). The first
+runtime probe needed its temporary Vulkan observers restored before the older
+replacement test; production behavior was unchanged. The native upload probe also
+passes ASan/UBSan; running the entire RHI driver with those extra flags reached an
+unrelated image-probe linker failure because ASan retains its unused loader table.
+Only the upload binary is claimed as sanitized acceptance. Client build, graph,
+format, types and boundaries pass. Shader package/accepted fixtures stay unchanged.
 
 ## #161 asynchronous upload test-first
 

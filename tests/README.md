@@ -1355,3 +1355,8 @@ tails stay resident, recently bound textures win quality, equal-priority views
 retain current quality, and eviction precedes promotion. One transition at a time
 bounds staging/retirement; the native asynchronous upload integration and large
 4K-set fly-through remain #161 work. No asset fixture is regenerated.
+
+The native `tests/rhi.py` upload probe also checks asynchronous compressed mip
+transfers through fixed staging: bounded submissions, exact destination rows and
+bytes, zero-timeout fence polling, completion after the final fence, and device
+loss. This component does not yet establish the large-set streaming runtime gate.
