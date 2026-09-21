@@ -62,6 +62,16 @@ After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
 
+## #16 initial spatial contract
+
+Decision recorded on #16 in comment 5767944870; #15 merge report is comment
+5767944695. tests/audio_spatial.py now specifies equal-power stereo placement,
+linear/inverse distance attenuation, radial Doppler and invalid-input rejection.
+The first run fails at compilation because the new snd_spatial API does not yet
+exist (private audio-spatial-before.log). This is an API-first failure, not a
+claim that legacy playback failed. Next implement and validate this component;
+engine integration and the remaining #16 scope are still pending.
+
 ## #15 merge checkpoint
 
 PR170 merged into main as 0561e0f0446e96f6dca51f86bae56337d6cd23f5, with parents
