@@ -1975,6 +1975,7 @@ bool R_IQMLodCompatible( const iqmData_t *base, const iqmData_t *level );
 bool R_PrepareIQMPose( const iqmData_t *data, const animPose_t *pose, skeletalPose_t *out );
 bool R_ReplaceIQM( model_t *mod, void *buffer, int filesize, const char *name );
 void R_AddIQMSurfaces( trRefEntity_t *ent );
+bool R_IQMPreviousPositions( const srfIQModel_t *surface, const temporalEntity_t *previous, vec4_t *positions, uint32_t capacity );
 void RB_IQMSurfaceAnim( const surfaceType_t *surface );
 int R_IQMLerpTag( orientation_t *tag, iqmData_t *data,
 	int startFrame, int endFrame,

@@ -23,4 +23,4 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
      '-ffunction-sections', '-fdata-sections', 'tests/probes/temporal_skin.cpp', '-Wl,--gc-sections', '-o', skin])
 run([skin])
-print('PASS: bounded rendered-frame history, copied poses, camera cuts, identity and failed-frame rejection')
+print('PASS: bounded rendered-frame history, copied poses, camera cuts, identity, failed-frame rejection and previous skin vertices')

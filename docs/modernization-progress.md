@@ -69,6 +69,24 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 previous-pose vertex component
+
+Test-first 022fb33b fails on missing R_IQMPreviousPositions
+(fidelity-temporal-skin-before.log). The implementation reuses the current IQM
+influence-matrix arithmetic for both ordinary drawing and saved history; no
+expression order is changed. Previous local positions come from the copied skin
+pose, or the saved frame/oldframe/backlerp for legacy IQM clips, before the
+separate object/world transform. Output is bounded by the supplied capacity.
+
+GCC/Clang UBSan probes pass analytical two-bone blended positions, float/byte
+weights, static vertices and legacy clip interpolation, and match the ordinary
+renderer vertex bytes exactly (fidelity-temporal-skin{,-clang}.log). Actual fixed
+OpenArena animation replay reports are identical between accepted #164's binary
+and the rebuilt feature binary: all 253 authoritative box hashes and sampled
+frames 050/100/200 agree (fidelity-temporal-demo-{before,after}.log/replay.json).
+No fixture or shader array is regenerated. This still needs motion-pass wiring;
+no temporal anti-aliasing or hardware budget is claimed yet.
+
 ## #161 explicit temporal submission identities
 
 Test-first ecc74e8d extends the existing animation-render probe; it fails on the

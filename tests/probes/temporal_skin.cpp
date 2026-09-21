@@ -2,6 +2,26 @@
 #include "../../engine/render/tr_model_iqm.cpp"
 #include <assert.h>
 
+backEndState_t backEnd;
+shaderCommands_t tess;
+void RB_CheckOverflow( int vertices, int indexes ) {
+	assert( tess.numVertexes + vertices <= SHADER_MAX_VERTEXES );
+	assert( tess.numIndexes + indexes <= SHADER_MAX_INDEXES );
+}
+static void matchCurrent( const srfIQModel_t *surface, const temporalEntity_t &previous, const vec4_t *positions ) {
+	trRefEntity_t entity{};
+	entity.e = previous.entity;
+	entity.skeletalPose = previous.hasPose ? &previous.pose : nullptr;
+	backEnd.currentEntity = &entity;
+	static shader_t shader;
+	tess.shader = &shader;
+	tess.numVertexes = tess.numIndexes = 0;
+	RB_IQMSurfaceAnim( &surface->surfaceType );
+	assert( tess.numVertexes == surface->num_vertexes );
+	for ( int vertex = 0; vertex < surface->num_vertexes; ++vertex )
+		assert( !memcmp( tess.xyz[vertex], positions[vertex], sizeof( vec3_t ) ) );
+}
+
 int main() {
 	float positions[] = { 1, 0, 0, 0, 1, 0, 1, 1, 0 };
 	int influences[] = { 0, 0, 1 };
@@ -11,6 +31,11 @@ int main() {
 	data.num_joints = 2;
 	data.num_vertexes = 3;
 	data.positions = positions;
+	float normals[9]{}, uv[6]{};
+	int triangles[] = { 0, 1, 2 };
+	data.normals = normals;
+	data.texcoords = uv;
+	data.triangles = triangles;
 	data.influences = influences;
 	data.influenceBlendIndexes = joints;
 	data.influenceBlendWeights.f = weights;
@@ -31,6 +56,7 @@ int main() {
 	assert( !R_IQMPreviousPositions( &surface, &previous, output, 2 ) );
 	assert( output[0][0] == 0 );
 	assert( R_IQMPreviousPositions( &surface, &previous, output, 3 ) );
+	matchCurrent( &surface, previous, output );
 	const vec3_t expected[] = { { 1.25f, 2.25f, 0 }, { .25f, 1.75f, 0 }, { -1, 3, 0 } };
 	for ( int i = 0; i < 3; ++i ) {
 		for ( int axis = 0; axis < 3; ++axis )
@@ -41,12 +67,14 @@ int main() {
 	data.blendWeightsType = IQM_UBYTE;
 	data.influenceBlendWeights.b = byteWeights;
 	assert( R_IQMPreviousPositions( &surface, &previous, output, 3 ) );
+	matchCurrent( &surface, previous, output );
 	assert( fabsf( output[0][0] - 5 * ( 64.0f / 255 ) ) < .000001f );
 	assert( fabsf( output[0][1] - 3 * ( 191.0f / 255 ) ) < .000001f );
 	previous.pose.jointCount = 1;
 	assert( !R_IQMPreviousPositions( &surface, &previous, output, 3 ) );
 	previous.hasPose = false;
 	assert( R_IQMPreviousPositions( &surface, &previous, output, 3 ) );
+	matchCurrent( &surface, previous, output );
 	for ( int i = 0; i < 3; ++i )
 		assert( !memcmp( output[i], positions + i * 3, sizeof( vec3_t ) ) );
 	data.blendWeightsType = IQM_FLOAT;
@@ -69,6 +97,7 @@ int main() {
 	previous.entity.oldframe = 0;
 	previous.entity.backlerp = .25f;
 	assert( R_IQMPreviousPositions( &surface, &previous, output, 3 ) );
+	matchCurrent( &surface, previous, output );
 	assert( output[0][0] == 4.75f && output[1][0] == 3.75f && output[2][0] == 4 );
 	assert( output[0][1] == 0 && output[1][1] == 1 && output[2][1] == 1 );
 }
