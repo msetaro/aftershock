@@ -36,11 +36,10 @@ scoped to msetaro/aftershock. Evidence is under the persistent modernization cac
 While those gates run, #161 test-first preparation is isolated in
 /home/matt/.cache/aftershock-modernization/fidelity-tree, branch
 issue/161-visual-fidelity from current main. Its initial tests/effects.py contract
-fails on the absent effect cooker (effects-cook-before.log). No #161 implementation
-or PR yet. It must integrate accepted #164 main before proceeding to its final
-implementation/gates/merge; no old issue is redone and no accepted fixture changes.
+fails on the absent effect cooker (effects-cook-before.log). Its pure effect implementation is now proceeding locally; no PR yet. It must
+integrate accepted #164 main before its PR/final gates/merge; no old issue is redone and no accepted fixture changes.
 Read issue #161 as the spec. Native fixed-pool contract is also committed and fails on the absent public header
-(effects-native-before.log). Implement only after #164 acceptance. Do not mix either branch's source edits.
+(effects-native-before.log). Keep #164 fixed while the independent effect code progresses here. Do not mix either branch's source edits.
 
 Measured #164 reference: per-class compiled IoU 1.0 (threshold 0.93), safe spawns,
 5.2-second resting-start route, 6000 bot frames, 17 kills/53 pickups and no observed
@@ -66,6 +65,16 @@ module contract also passes. All payloads stay in user cache; no local system pa
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #161 independent implementation sequencing
+
+The previous checkpoint conservatively deferred all implementation until #164's
+merged-tree acceptance. The pure effect cooker/runtime does not depend on #164,
+so continue it in this isolated issue branch while the unchanged #164 head runs
+CI. This avoids idle gating time without mixing source changes or weakening any
+merge gate. Integrate accepted #164 main before opening the #161 PR, and require
+current-main exact-head plus merged-tree checks as usual. Effects, HDR and LOD
+failing contracts are committed first. No #164 check is bypassed or restarted.
 
 ## #161 initial mesh LOD contract
 
