@@ -83,7 +83,8 @@ with Engine(args.binary, args.data, args.content, arguments=['+set', 'handicap',
         origin = engine.request('state')['player']['origin']
         engine.request('exec', command='physics_status')
         engine.step(2)
-        engine.request('exec', command=f'give health; setviewpos {origin[0]} {origin[1]} {origin[2]+320} 0')
+        height = 320 if args.content == 'openarena' else 256
+        engine.request('exec', command=f'give health; setviewpos {origin[0]} {origin[1]} {origin[2]+height} 0')
         engine.step(300)
         health = engine.request('state')['player']['health']
         assert -40 < health <= 0, f'ordinary fall death required, health={health}'
@@ -105,6 +106,8 @@ assert 'Physics ragdoll death: owner=0 serial=1 joints=16' in text
 assert re.search(r'Physics ragdoll status: prepared=4 spawned=1 active=1 draws=[1-9]\d*', text)
 statuses = re.findall(r'Physics ragdoll status: prepared=4 spawned=(\d+) active=(\d+) draws=(\d+)', text)
 assert len(statuses) == 3 and statuses[-1][1] == '0', 'restart must retire cosmetic deaths'
+storage = re.findall(r'Physics status: steps=\d+ arena=(\d+) allocations=(\d+) live=(\d+)', text)
+assert len(storage) == 3 and len(set(storage)) == 1, 'death/restart must not allocate'
 assert 'Physics shutdown: live=0' in text
 assert 'arena exhausted' not in text and 'contact capacity exceeded' not in text
 print('PASS: replicated fall death activates and renders a skeleton ragdoll; restart releases storage')

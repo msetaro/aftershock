@@ -80,6 +80,24 @@ accepted frame fixtures and shader arrays are unchanged.
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
 
+## #15 death/runtime and unchanged replay checkpoint
+
+Both complete content runtime commands now pass: four prop/contact map lifetimes
+plus normal fall-damage deaths on q3dm1 and oa_dm7, rendered ragdoll captures,
+fixed allocation/live-block counters through activation and map_restart, and
+zero live blocks on disconnect. The failing restart assertion now passes after
+CG_ClearPhysics resets props/ragdolls on both map restart and time discontinuity.
+Quake 3 uses a 256-unit drop and OpenArena 320 units, below/within their respective
+map geometry. Captures were reviewed; the owned articulated body renders.
+
+Both accepted fixed-demo sets are unchanged: Q3 digest 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4,
+OpenArena 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+Format, affected/suite contracts and workflow syntax pass. Tidy source selection
+had the same generated dependency PCH failure as lifetimes (physics-tidy-before.log);
+apply the same owned-source filter and rerun. Full hosted gates remain pending.
+Issue checkpoint: comment 5766814918. Next finish local analysis, open #15 PR into
+main and require all hosted checks green before merge.
+
 ## #15 replicated death and restart test first
 
 A normal fall-damage death activates/renders the 16-joint skeleton on q3dm1 and

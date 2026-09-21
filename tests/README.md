@@ -1456,8 +1456,8 @@ required), prepares four ragdolls, samples their poses through three recycle
 cycles and repeats full teardown/reinitialization. Ragdolls share the 256-body
 capacity. Rigid unit-scale skeletons use authored bone boxes and small connector
 spheres; unsupported scaled skeletons retain native death presentation. The
-client pool holds four cosmetic deaths for fifteen seconds. These component
-checks do not establish runtime death-presentation acceptance.
+client pool holds up to four cosmetic deaths for fifteen seconds. The runtime driver additionally requires a replicated fall-damage death, rendered
+ragdoll capture, fixed allocation counters and retirement on map restart.
 
 `python3 tests/physics_runtime.py --binary CLIENT` exercises cosmetic boxes and
 inert grenades over both installed-content maps, requiring gravity, a bounce,

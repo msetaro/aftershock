@@ -79,6 +79,14 @@ static void PhysicsAxis( const float q[4], vec3_t axis[3] ) {
 	VectorSet( axis[1], 2 * ( x * y - w * z ), 1 - 2 * ( x * x + z * z ), 2 * ( y * z + w * x ) );
 	VectorSet( axis[2], 2 * ( x * z + w * y ), 2 * ( y * z - w * x ), 1 - 2 * ( x * x + y * y ) );
 }
+void CG_ClearPhysics() {
+	for ( auto &prop : physicsProps ) {
+		Phys_Despawn( prop.slot );
+		prop.expires = 0;
+	}
+	CG_ClearRagdolls();
+	physicsTick = -1;
+}
 void CG_AddPhysics() {
 #ifdef AFTERSHOCK_DEVTOOLS
 	trap_Cvar_Update( &physicsDebug );
@@ -87,11 +95,7 @@ void CG_AddPhysics() {
 	if ( physicsTick < 0 )
 		physicsTick = tick;
 	if ( tick < physicsTick || tick - physicsTick > 120 ) {
-		for ( auto &prop : physicsProps ) {
-			Phys_Despawn( prop.slot );
-			prop.expires = 0;
-		}
-		CG_ClearRagdolls();
+		CG_ClearPhysics();
 		physicsTick = tick; // A seek/stall retires cosmetic state; never catch up without a bound.
 	}
 	while ( physicsTick < tick ) {

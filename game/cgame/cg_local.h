@@ -1696,6 +1696,7 @@ void CG_InitPhysics();
 void CG_PhysicsProp();
 void CG_PhysicsStatus();
 void CG_AddPhysics();
+void CG_ClearPhysics();
 
 void CG_PrepareRagdolls();
 void CG_ClearRagdolls();
