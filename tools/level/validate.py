@@ -50,7 +50,7 @@ def camera_specs(viewpoints):
     return viewpoints
 
 
-def material_sources(materials, assets):
+def material_sources(materials, assets, *, pbr=False):
     sources = {}
     for role,path in materials.items():
         qpath(path)
@@ -61,7 +61,7 @@ def material_sources(materials, assets):
         require(found.resolve().is_relative_to(assets.resolve()), 'material outside asset directory')
         sources[found.relative_to(assets).as_posix()] = found
         material = assets/'textures'/(path+'.asmat')
-        if material.is_file():
+        if pbr and material.is_file():
             require(material.resolve().is_relative_to(assets.resolve()), 'material outside asset directory')
             data = material.read_bytes()
             require(len(data)==288 and struct.unpack_from('<8sII',data)==(b'ASMAT\0\0\0',2,240) and
@@ -97,7 +97,7 @@ def prop_asset(prop, assets, y_up=False):
             if y_up:
                 vertex = [vertex[0],-vertex[2],vertex[1]]
             vector(vertex,integer=False)
-            require(all(abs(v-c)<=s/2+1e-5 for v,c,s in zip(vertex,prop.get('bounds_center',[0,0,0]),prop['size'])), 'prop geometry outside declared size')
+            require(all(abs(v-c)<=s/2+(1e-5 if y_up else 0) for v,c,s in zip(vertex,prop.get('bounds_center',[0,0,0]),prop['size'])), 'prop geometry outside declared size')
             vertices.append(vertex)
         elif tokens[0]=='f':
             require(len(tokens)>=4, 'OBJ faces require at least three vertices')

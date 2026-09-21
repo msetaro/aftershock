@@ -408,7 +408,7 @@ def validate(level, assets):
     from validate import material_sources, prop_asset
     from tools.agent.formats import validate as validate_format
     validate_format('level',level,'<level>')
-    sources = material_sources(level['materials'],assets)
+    sources = material_sources(level['materials'],assets,pbr=True)
     area,records = pieces(level)
     for prop in level['props']:
         require(prop['material'] in level['materials'], 'unknown prop material role')

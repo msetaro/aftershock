@@ -21,25 +21,31 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Active worktree: /home/matt/.cache/aftershock-modernization/sketch-tree, branch
-issue/164-sketch-level from main, now integrating accepted #163 main ee4e95fc.
-PR166 merged after exact-head 9db00c0c passed build 35569450314 (16 compiler jobs)
-and regression 35569450324 (ten required active variants). Both concurrent local
-full suites at functional c56bde87 passed 96 steps each. Tested and merged trees
-match. Merged main build/publication 35571273115 and regression 35571273155 both PASS,
-including actual publication of six platform archives. #163 is closed and checked
-in #25. Known-good unchanged.
+issue/164-sketch-level, draft PR167 into current main ee4e95fc (#163 accepted).
+#164 implementation, reference/iteration, supplied retarget and exact default
+command all pass locally. Self-review is complete below. Commit/push the final
+v1-compatibility narrowing and documentation; then require all exact-head hosted
+checks before readiness/merge. Preceding 107da048 passed 16 compiler and ten active
+regression variants. Pushed b48ff26b build 35584110416 passes; regression
+35584110359 is running. Recheck PR base and API main immediately before merge;
+merge forward and rerun if either advanced from ee4e95fc. After merging, verify
+tested/merged tree equality and all main build/publication/regression checks;
+then continue #161 on its own branch from the accepted main.
 
-#164 has test-first polygon geometry, holes, rotated/curved/concave solids and
-shell openings. Initial repeated MAP/BSP/AAS output passes and all accepted v1
-fixtures stay byte-identical. Next contract adds terrace stairs/ramp, fences and
-overheads; its MAP occupancy/navigation pass. Formal schema, connected storeys/roofs,
-sunken zones and full compile pass. Initial interpretation, licensed materials and
-pinned Blender modules pass. Rotated v2 props now compile and solid props join
-clearance checks, including foot-origin bounds. Additional tracing, compiled-overhead comparison and v2 navigation cameras now
-pass. Theme assembly, native PBR, OBJ axes and strict OpenArena bot/capture controls
-now pass. Shooter intent and physical-route controls pass. Next: full reference acceptance of the one-command sketch/agent pipeline,
-Supplied-rig retargeting also passes. Finish the native reference iteration, self-review and all final gates. This is partial work, not #164
-acceptance. The issue and checkpoint contain measured results and decisions.
+Measured reference: per-class compiled IoU 1.0 (threshold 0.93), native spawn safety,
+5.2-second resting-start route, 6000 bot frames, 17 kills/53 pickups, 240 samples,
+no observed stuck bots, two named and 18 fly-through captures. Agent-command
+building-7 iteration adds the second storey/window and changes only that source-ID
+MAP group; it has 16 kills/49 pickups, the same overlap/timing and no stuck bots.
+Reviewed the native street, doorway, stairs and upper window images. Evidence is
+in sketch-reference-resting{,-edited} and sketch-window-review under the cache.
+
+Existing supplied GPL rigs/clips retarget through pinned Blender with preserved
+exported bind matrices/root motion, repeated output bytes and native IQM/PBR cook.
+Their private outputs retain GPL and fail the unchanged CC0 publication gate.
+No character sources were generated or changed. See sketch-retarget-pbr.log.
+The new owned CC0 reference drawing, all source licenses, and accepted v1 fixtures
+are recorded/verified. No game paks or accepted goldens are committed.
 
 Drawing decisions: its own handwritten key is authoritative. Geometry, annotation
 and gameplay intent stay distinct; use original owned reference drawings and
@@ -52,6 +58,42 @@ module contract also passes. All payloads stay in user cache; no local system pa
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 default command and final self-review
+
+The exact documented build command (no supplied binaries or prepared kits) passes
+with locally installed Quake 3 content: automatic pinned material fetch, Blender
+kit, Release development client/server build, repeated MAP/BSP/AAS, 1.0 per-class
+overlap, safe spawns, 5.2-second route, 6000 bot frames, 18 kills/51 pickups, no
+observed stuck bots, two named/eighteen fly-through captures and no warnings.
+Evidence: sketch-default-command/report.json/build.log and its private kit/build
+outputs. No installed paks enter the published output; engine homes use symlinks.
+
+V1 compatibility narrowing passes both compiled gates (sketch-v1-final.log,
+sketch-v2-final.log): accepted MAP/BSP/AAS hashes remain 555965db / 0d0fcf2c /
+12889533. Native agent protocol, strict source format, tracing/ambiguity and shooter
+controls pass again. The full build ambiguity negative also fails explicitly
+with its retained assumptions/overlay (sketch-ambiguous-build.log). Supplied-retarget PBR/byte-repeatability/license controls
+pass (sketch-retarget-pbr.log). Workflow lint/isolation passed; final hosted gates
+remain mandatory. Known-good tag object/target remain 8bc8c94c / 81a0f9dc.
+
+Self-review: changes match #164's geometry/sketch/licensed-theme/agent acceptance
+scope. The only native addition is a development-only static collision query using
+existing CM_BoxTrace and trivial stack fields. No simulation FP, wire/file layout,
+core ownership/allocation, production OS access or gameplay behavior changes.
+V1 keeps its generator, material lookup and exact OBJ bounds. Theme publication
+still permits only maintainer-listed licenses; private provided-rig processing
+preserves licenses and cannot enter a theme when disallowed. No accepted fixture,
+shader data, rollback tag or external repository is changed. Original drawing and
+new tool controls are test-first; intermediate failures remain in the checkpoint.
+
+Declared limits: the agent supplies semantic readings; unresolved marks remain
+assumptions and fail integrated acceptance. Overhead is an honest CPU geometry
+projection of compiled BSP. Contact/cover metrics are sampled estimates; route
+times are native movement measurements. Full bot acceptance currently uses FFA.
+The reference theme has no ambient/decal/effect assets; those sets are empty.
+Supplied retargeting requires applied object transforms, one mapped root and
+rotation/root-motion clips; unsupported animation scale fails explicitly.
 
 ## #164 full iteration passes; v1 compatibility review
 

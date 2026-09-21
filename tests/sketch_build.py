@@ -17,6 +17,7 @@ from theme import assemble
 from polygons import footprint,ruled_openings
 from tools.agent.formats import validate as validate_format
 from validate import validate
+from tools.assets.manifest import validate as validate_manifest
 
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--library',type=Path,required=True)
@@ -28,6 +29,7 @@ parser.add_argument('--content',choices=['quake3','openarena'],default='quake3')
 parser.add_argument('--data',type=Path,default=Path.home()/'.q3a/baseq3')
 args=parser.parse_args()
 fixture=ROOT/'tests/assets/sketch'
+validate_manifest(fixture)
 notes=json.loads((fixture/'notes.json').read_text())
 with Image.open(fixture/'reference.png') as image:
     interpretation,level,_=measure(image,notes)
@@ -95,4 +97,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-sketch-build-') as temporary
         assert before.keys()==after.keys() and all((before[k]!=after[k])==(k=='building_7') for k in before)
         repeated=subprocess.run(command,cwd=ROOT,capture_output=True,text=True)
         assert repeated.returncode and 'exists' in repeated.stderr, 'existing evidence was overwritten'
+        uncertain=copy.deepcopy(notes)
+        next(m for m in uncertain['marks'] if m.get('kind')=='route')['confidence']=.3
+        edited_notes.write_text(json.dumps(uncertain))
+        ambiguous=command[:]
+        ambiguous[ambiguous.index('--notes')+1]=str(edited_notes)
+        ambiguous[ambiguous.index('--out')+1]=str(args.output.with_name(args.output.name+'-ambiguous'))
+        rejected=subprocess.run(ambiguous,cwd=ROOT,capture_output=True,text=True)
+        assert rejected.returncode and json.loads(rejected.stdout)['assumptions'], 'integrated build silently accepted ambiguity'
+
 print('PASS: owned reference semantics, recorded entrances and stable building-7 edit'+('; complete native build/agent iteration' if args.client else ''))
