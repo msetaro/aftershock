@@ -90,8 +90,17 @@ static void captureImages() {
 	if ( !setjmp( imageDone ) )
 		vk_create_attachments();
 }
-static uint32_t framebufferCount;
+static uint32_t framebufferCount, historyFramebuffers;
 static VkResult VKAPI_CALL createFramebuffer( VkDevice, const VkFramebufferCreateInfo *p, const VkAllocationCallbacks *, VkFramebuffer *out ) {
+	if ( vk_config.temporal && p->renderPass == vk.render_pass.temporal[2] ) {
+		assert( p->attachmentCount == 1 );
+		if ( p->pAttachments[0] == vk.temporal_image_view[1] )
+			historyFramebuffers |= 1;
+		else {
+			assert( p->pAttachments[0] == vk.temporal_image_view[2] );
+			historyFramebuffers |= 2;
+		}
+	}
 	row( "framebuffer", framebufferCount++, (uintptr_t)p->renderPass, p->flags, p->attachmentCount, p->width, p->height, p->layers );
 	for ( uint32_t i = 0; i < p->attachmentCount; ++i )
 		row( "view", (uintptr_t)p->pAttachments[i] );
@@ -394,7 +403,8 @@ int main( int argc, char **argv ) {
 		puts( "PASS: floating HDR target and unchanged legacy color formats" );
 		return 0;
 	}
-	const bool post = argc > 1 && !strcmp( argv[1], "--post" );
+	const bool temporal = argc > 1 && !strcmp( argv[1], "--temporal" );
+	const bool post = temporal || ( argc > 1 && !strcmp( argv[1], "--post" ) );
 	const bool particles = post || ( argc > 1 && !strcmp( argv[1], "--particles" ) );
 	const bool occlusion = argc > 1 && !strcmp( argv[1], "--ssao" );
 	qvkCreateRenderPass = createPass;
@@ -413,13 +423,16 @@ int main( int argc, char **argv ) {
 		qvkCreateGraphicsPipelines = createDepthPipeline;
 		vk = {};
 		vk_config = {};
-		passCount = imageCount = framebufferCount = shadowPassCount = shadowImageCount = 0;
+		passCount = imageCount = framebufferCount = shadowPassCount = shadowImageCount = historyFramebuffers = 0;
 		vk_config.shadowMapSize = argc > 1 ? 1024 : 0;
 		const bool offscreen = mode >= 4;
 		const uint32_t options = offscreen ? mode - 4 : mode;
 		vk_config.occlusionScale = occlusion ? 1 + mode % 2 : ( particles ? mode % 2 : 0 );
 		vk_config.depthEffects = particles;
 		vk_config.postProcess = post;
+		vk_config.temporal = temporal;
+		if ( temporal && ( options & 4 ) )
+			continue;
 		vk_config.fbo = offscreen;
 		vk_config.bloom = options & 1;
 		vk_config.stencilBits = options & 2 ? 8 : 0;
@@ -467,6 +480,15 @@ int main( int argc, char **argv ) {
 				assert( vk.framebuffers.occlusion[0] && vk.framebuffers.occlusion[1] );
 				const auto &depth = vk_graph.targets[(uint32_t)rhiGraphTarget_t::MainDepth];
 				assert( depth.usage & RHI_GRAPH_SAMPLED && !depth.transient );
+			}
+			if ( temporal ) {
+				assert( historyFramebuffers == 3 );
+				for ( uint32_t i = 0; i < 3; ++i )
+					assert( vk.temporal_image[i] && vk.temporal_image_view[i] && vk.temporal_descriptor[i] );
+				for ( uint32_t i = 0; i < 4; ++i )
+					assert( vk.render_pass.temporal[i] );
+				for ( uint32_t i = 0; i < 5; ++i )
+					assert( vk.framebuffers.temporal[i] );
 			}
 			if ( post ) {
 				assert( vk.post_image && vk.post_image_view );
