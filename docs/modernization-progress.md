@@ -66,6 +66,16 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #161 native effect rendering contract
+
+The client-level test now requests effects/load/start/stop through the native
+agent, then requires visible sprites, counters, expiry, stable engine memory,
+watched definition reload and renderer restart on the existing owned two-lane
+level. Its pre-implementation run fails immediately because those commands are
+absent (fidelity-effects-runtime-before.log). No new golden is accepted yet;
+soft particles, mesh/trail/light paths and reviewed reference effects remain
+additional required coverage. Implement the shared renderer/public controls next.
+
 ## #161 floating target component pass
 
 hdr=2 now selects RGBA16F for offscreen rendering and reports its format; existing
