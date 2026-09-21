@@ -50,6 +50,16 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #14 SSAO graph test-first checkpoint
+
+The graph contract now requires retained sampled scene depth, separate occlusion
+and bilateral-filter targets, and a load-only scene application pass before bloom.
+It covers full/half resolution, single/multisampled depth, stencil, bloom and both
+shadow configurations. The initial contract fails to compile on the absent SSAO
+graph declarations; implementation follows. Default-path descriptors and accepted
+images remain unchanged. Current 35c68d79 build 35552046249 passes all compiler
+legs; regression 35552046263 still awaits runtime/lifetimes, so it is not acceptance.
+
 ## #14 native reflection checkpoint
 
 The baked atlas loader validates the version/length/capacity/finite positions,
