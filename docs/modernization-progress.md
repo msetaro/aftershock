@@ -53,6 +53,22 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 supplied-rig retarget contract
+
+The existing owned three-joint character and sixteen-joint body/walk clip are
+inputs to a new private conversion test; their accepted glTF/binary bytes remain
+unchanged. The test fails first on the absent `tools/blender retarget` command
+(sketch-retarget-before.log). It requires explicit bone mapping, rest-offset
+preservation, transferred motion/root displacement, native IQM cook, repeated
+bytes, source hash rejection and complete retained source licenses.
+
+Decision: import/retarget is private processing, not theme publication. Existing
+GPL inputs retain GPL in output provenance; `tools/assets validate` and theme
+assembly must still reject them under the unchanged CC0 publication policy. No
+new character, rig, weapon, hands or weighted animation is authored or sourced.
+Use only the supplied existing fixtures for this test. The command must stage
+verified dependencies and publish no partial output after an import/mapping error.
+
 ## #164 route-start review catches teleport launch
 
 The initial native reference run passes compiled geometry overlap (all three
