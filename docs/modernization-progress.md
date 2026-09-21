@@ -20,54 +20,48 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Pause #161 for a separate #31 descriptor-restoration fix on
-issue/31-descriptor-restore, based on main 81e40b0c. The RTX post run crashes
-inside RHI_PrepareDraw; the identical scene with post disabled passes (CPU
-p50/p95/p99 4.688/6.207/6.739 ms). Existing main SSAO restoration also uses the
-hardware descriptor limit as an index into the five-entry descriptor cache.
-The native graph reproducer now advertises 32 device sets; run it before fixing.
-No #161 timing is accepted. Resume #161 after this fix passes all hosted gates
-and merges into main. No accepted fixtures or suppression entries change.
+#164 is accepted: PR167 merged at main 81e40b0c. Exact head 5a9b98a1 passed
+build 35584845138 and regression 35584845147; merged-tree build/publication
+35589995081 and regression 35589995016 passed. Tested/merged tree matches
+e615033d2dcd39b966d8ba51bb38c59ec8e4358e. Known-good remains 8bc8c94c -> 81a0f9dc.
 
+Active: issue/31-descriptor-restore in
+/home/matt/.cache/aftershock-modernization/descriptor-tree, based on 81e40b0c.
+Commit/push the descriptor restoration fix, require all 16 compiler and ten active
+regression jobs, recheck main/base, self-merge only green with a merge commit,
+then verify merged-tree gates. No human approval or maintainer dependency exists.
 
-Active worktree: /home/matt/.cache/aftershock-modernization/sketch-tree, branch
-issue/164-sketch-level, draft PR167 into current main ee4e95fc (#163 accepted).
-#164 implementation, reference/iteration, supplied retarget and exact default
-command all pass locally. Self-review is complete below. Commit/push the final
-v1-compatibility narrowing and documentation; then require all exact-head hosted
-checks before readiness/merge. Preceding 107da048 passed 16 compiler and ten active
-regression variants. Pushed b48ff26b build 35584110416 passes; regression
-35584110359 is running. Recheck PR base and API main immediately before merge;
-merge forward and rerun if either advanced from ee4e95fc. After merging, verify
-tested/merged tree equality and all main build/publication/regression checks;
-then continue #161 on its own branch from the accepted main.
+#161 is paused in fidelity-tree at 4739d42a. Its RTX post run crashes in
+RHI_PrepareDraw; the same scene with post disabled passes. Main's existing SSAO
+path has the same descriptor-range defect and also crashes on RTX before the fix.
+After this #31 merge, merge main into #161 and reuse the corrected restoration
+for its new effects/post pass. Then measure post budgets and continue real
+previous-frame motion history/TAA, mip streaming and full #161 acceptance.
+No #161 post timing is accepted yet. Continue #161 -> #15 and the rest of #25.
 
-Measured reference: per-class compiled IoU 1.0 (threshold 0.93), native spawn safety,
-5.2-second resting-start route, 6000 bot frames, 17 kills/53 pickups, 240 samples,
-no observed stuck bots, two named and 18 fly-through captures. Agent-command
-building-7 iteration adds the second storey/window and changes only that source-ID
-MAP group; it has 16 kills/49 pickups, the same overlap/timing and no stuck bots.
-Reviewed the native street, doorway, stairs and upper window images. Evidence is
-in sketch-reference-resting{,-edited} and sketch-window-review under the cache.
+## #31 descriptor restoration local verification
 
-Existing supplied GPL rigs/clips retarget through pinned Blender with preserved
-exported bind matrices/root motion, repeated output bytes and native IQM/PBR cook.
-Their private outputs retain GPL and fail the unchanged CC0 publication gate.
-No character sources were generated or changed. See sketch-retarget-pbr.log.
-The new owned CC0 reference drawing, all source licenses, and accepted v1 fixtures
-are recorded/verified. No game paks or accepted goldens are committed.
+Test-first commit 629bd78b advertises a device with 32 descriptor sets while the
+engine cache/layout has five; the native SSAO assertion fails before the fix
+(descriptor-before.log). Actual accepted #164 binary also crashes with r_ssao 1
+on the owned street on RTX 3080 Ti (descriptor-rtx-before.log). The correction
+rebinds only initialized cache slots with the saved uniform dynamic offset and
+clears the dirty range. No invalid trailing slot or hardware-limit array access.
 
-Drawing decisions: its own handwritten key is authoritative. Geometry, annotation
-and gameplay intent stay distinct; use original owned reference drawings and
-report ambiguity. Reuse pinned q3map2/MBSPC; Shapely 2.1.2 handles polygon operations
-and OpenCV 4.12.0.88 handles image measurements. Private-cache venv:
-/home/matt/.cache/aftershock-modernization/sketch-python. Blender 5.0.1 is installed
-in user cache from the official RWTH mirror after pinned SHA256 verification. Both CC0
-library APIs have produced a pinned, cooked reference material kit; the Blender
-module contract also passes. All payloads stay in user cache; no local system packages.
+GCC/Clang native graph checks now cover device capacities 4/5/32 with sparse
+bindings, unchanged descriptors, exact dynamic offsets and cache reset. Both
+pass (descriptor-after.log, descriptor-clang.log). Repeated mocked pipeline
+creation initially needed the test's fake handle reset; no production workaround
+was added. RTX SSAO then passes (descriptor-rtx-after.log). Software half/full
+SSAO and 4x MSAA+bloom pass exact disable/restart comparisons
+(descriptor-ssao.log). Fixed OpenArena replay hash remains
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(descriptor-demo.log). Format, boundaries and type checks pass.
 
-Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
-All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+Self-review: one descriptor-state bug, fixed-capacity stack state only, no new
+OS access, allocation, nontrivial lifetime, ABI/layout or simulation FP changes.
+No accepted fixture, expected-failure entry or UBSan suppression is changed.
+All writes stay in msetaro/aftershock; hosted gates remain mandatory before merge.
 
 ## #164 default command and final self-review
 

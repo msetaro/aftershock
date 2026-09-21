@@ -226,11 +226,20 @@ static VkResult VKAPI_CALL createOcclusionPipeline( VkDevice, VkPipelineCache, u
 	*out = (VkPipeline)(uintptr_t)1;
 	return VK_SUCCESS;
 }
-static uint32_t occlusionDraws;
+static uint32_t occlusionDraws, restoredSets;
 static void VKAPI_CALL bindPostPipeline( VkCommandBuffer, VkPipelineBindPoint, VkPipeline pipeline ) {
 	assert( pipeline );
 }
-static void VKAPI_CALL bindPostDescriptors( VkCommandBuffer, VkPipelineBindPoint, VkPipelineLayout, uint32_t first, uint32_t count, const VkDescriptorSet *sets, uint32_t offsets, const uint32_t * ) {
+static void VKAPI_CALL bindPostDescriptors( VkCommandBuffer, VkPipelineBindPoint, VkPipelineLayout, uint32_t first, uint32_t count, const VkDescriptorSet *sets, uint32_t offsets, const uint32_t *dynamicOffsets ) {
+	if ( occlusionDraws == 3 ) {
+		assert( count == 1 && first < RHI_BINDING_COUNT );
+		assert( sets[0] && sets[0] == vk.cmd->descriptor_set.current[first] );
+		assert( offsets == ( first == RHI_BINDING_UNIFORM ? 1U : 0U ) );
+		if ( offsets )
+			assert( dynamicOffsets && *dynamicOffsets == 32 );
+		restoredSets |= 1U << first;
+		return;
+	}
 	assert( first == 0 && ( count == 2 || count == 3 ) && offsets == 1 );
 	for ( uint32_t i = 0; i < count; ++i )
 		assert( sets[i] );
@@ -239,11 +248,12 @@ static void VKAPI_CALL drawPost( VkCommandBuffer, uint32_t vertices, uint32_t in
 	assert( vertices == 4 && instances == 1 && first == 0 && instance == 0 );
 	++occlusionDraws;
 }
-static void occlusionCommands() {
-	vk.maxBoundDescriptorSets = 32; // Device capacity exceeds our five-set pipeline layout.
+static void occlusionCommands( uint32_t deviceSets ) {
+	vk.maxBoundDescriptorSets = deviceSets; // Exercise minimum, exact and larger device capacities.
 	qvkCreateGraphicsPipelines = createOcclusionPipeline;
 	for ( uint32_t i = 0; i < 3; ++i ) {
 		const auto &node = vk_graph.passes[(uint32_t)rhiGraphPass_t::Occlusion + i];
+		vk.occlusion_pipeline[i] = VK_NULL_HANDLE; // No driver objects in this probe.
 		vk_create_post_process_pipeline( 4 + (int)i, node.width, node.height );
 	}
 	qvkCmdBindPipeline = bindPostPipeline;
@@ -256,17 +266,23 @@ static void occlusionCommands() {
 	vk_config.uniformBytes = 64;
 	vk.uniform_alignment = vk.uniform_item_size = 64;
 	vk.geometry_buffer_size = sizeof( upload );
+	vk.cmd->descriptor_set = {};
+	vk.cmd->descriptor_set.current[0] = vk.cmd->uniform_descriptor;
+	vk.cmd->descriptor_set.current[1] = (VkDescriptorSet)(uintptr_t)123;
+	vk.cmd->descriptor_set.current[3] = (VkDescriptorSet)(uintptr_t)456;
+	vk.cmd->descriptor_set.offset[0] = 32;
 	const auto descriptors = vk.cmd->descriptor_set;
 	RHI_BeginMainPass();
 	const float projection[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.001f, -1, 0, 0, 4, 0 };
 	const rhiRect_t viewport = { { 0, 0 }, { 640, 480 } };
-	occlusionDraws = 0;
+	occlusionDraws = restoredSets = 0;
 	RHI_Occlusion( projection, &viewport, 32, 0 );
 	assert( occlusionDraws == 0 && vk.cmd->vertex_buffer_offset == 0 );
 	RHI_Occlusion( projection, &viewport, 32, 1 );
 	assert( occlusionDraws == 3 && vk.cmd->uniform_read_offset == 32 );
 	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
-	assert( vk.cmd->descriptor_set.start == 0 && vk.cmd->descriptor_set.end == 4 );
+	assert( restoredSets == 0x0b );
+	assert( vk.cmd->descriptor_set.start == ~0U && vk.cmd->descriptor_set.end == 0 );
 	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
 	RHI_EndPass();
 }
@@ -362,8 +378,11 @@ int main( int argc, char **argv ) {
 			vk.modules.reflection_fs = (VkShaderModule)(uintptr_t)16;
 			direct.shader_type = TYPE_REFLECTION;
 			assert( create_pipeline( &direct, RENDER_PASS_MAIN, 0 ) != VK_NULL_HANDLE );
-			if ( occlusion )
-				occlusionCommands();
+			if ( occlusion ) {
+				const uint32_t capacities[] = { 4, 5, 32 };
+				for ( uint32_t deviceSets : capacities )
+					occlusionCommands( deviceSets );
+			}
 		}
 	}
 }

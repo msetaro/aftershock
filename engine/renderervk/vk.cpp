@@ -6811,6 +6811,19 @@ void vk_update_descriptor_offset( int index, uint32_t offset ) {
 }
 
 
+static void vk_restore_descriptor_sets() {
+	// Restore initialized engine slots, not the device's larger capacity.
+	for ( uint32_t i = 0; i < ARRAY_LEN( vk.cmd->descriptor_set.current ); ++i ) {
+		if ( vk.cmd->descriptor_set.current[i] == VK_NULL_HANDLE )
+			continue;
+		const bool uniform = i == RHI_BINDING_UNIFORM;
+		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout,
+			i, 1, &vk.cmd->descriptor_set.current[i], uniform ? 1 : 0, uniform ? &vk.cmd->descriptor_set.offset[i] : NULL );
+	}
+	vk.cmd->descriptor_set.start = ~0U;
+	vk.cmd->descriptor_set.end = 0;
+}
+
 static void vk_bind_descriptor_sets( const rhiTexture_t *fallback ) {
 	uint32_t offsets[2], offset_count;
 	uint32_t start, end, count, i;
@@ -7710,8 +7723,7 @@ void RHI_Occlusion( const float *projection, const rhiRect_t *viewport, float ra
 	}
 	vk.cmd->descriptor_set = descriptors;
 	vk.cmd->uniform_read_offset = previousUniform;
-	vk.cmd->descriptor_set.start = 0;
-	vk.cmd->descriptor_set.end = vk.maxBoundDescriptorSets - 1;
+	vk_restore_descriptor_sets();
 	vk.cmd->last_pipeline = VK_NULL_HANDLE;
 	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
 }
