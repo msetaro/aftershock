@@ -73,6 +73,13 @@ accepted frame fixtures and shader arrays are unchanged.
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
 
+## #15 prepared joint test first
+
+The full-capacity boundary scene now requires a swing/twist joint between two
+prepared body slots, including invalid-slot rejection. Its existing four-cycle
+and shutdown checks cover activation, reuse and lifetime. Initial compilation
+fails at the absent joint API (physics-joint-before.log); implementation follows.
+
 ## #15 shape sweep test first
 
 The boundary probe now requires a prepared sphere sweep against the floor,

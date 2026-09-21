@@ -33,6 +33,16 @@ int main() {
 			assert(Phys_Prepare(&body) == i);
 		}
 		assert(Phys_Prepare(&floor) == PHYS_INVALID_BODY);
+		physJointDesc_t joint{};
+		joint.a = 1;
+		joint.b = 2;
+		joint.anchorA[0] = .5f;
+		joint.anchorB[0] = -.5f;
+		joint.swing = .5f;
+		joint.twist = .25f;
+		assert(Phys_PrepareJoint(&joint));
+		joint.b = PHYS_INVALID_BODY;
+		assert(!Phys_PrepareJoint(&joint));
 		assert(Phys_Start());
 		const float unusedOrigin[3] = { -20, 0, 3 }, across[3] = { 40, 0, 0 };
 		float unusedFraction = 1;
