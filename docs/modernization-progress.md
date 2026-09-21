@@ -76,6 +76,15 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 handbook test-first checkpoint
+
+The handbook contract requires executable shell blocks for seven task recipes and
+fails first because docs/agents/add-weapon.md is absent (agent-recipes-before.log).
+Runtime CI will execute authoring/playtest commands with owned source fixtures and
+installed OA. Git bisect/tag commands run against a private tiny Git history and
+recorded API shapes, including red/skipped-check and existing-tag negative controls;
+the test never mutates repository rollback tags or publishes anything.
+
 ## #163 fast-feedback selector
 
 `python3 tests/affected.py BASE_REF` includes committed, staged, unstaged and
