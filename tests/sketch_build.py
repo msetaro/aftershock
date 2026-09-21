@@ -3,6 +3,7 @@
 import argparse
 import copy
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -37,7 +38,7 @@ assert interpretation['notes']['free_text']==notes['free_text'], 'free text/deci
 assert not interpretation['assumptions'], interpretation['assumptions']
 assert len([s for s in level['shapes'] if s['kind']=='building'])==3
 assert any(s['kind']=='wall' for s in level['shapes']) and len(level['shapes'])==6
-validate_format('level',level)
+validate_format('level',level,fixture/'notes.json')
 with tempfile.TemporaryDirectory(prefix='aftershock-sketch-build-') as temporary:
     root=Path(temporary)
     theme=json.loads((ROOT/'tools/level/themes/manhattan.json').read_text())
@@ -73,6 +74,25 @@ with tempfile.TemporaryDirectory(prefix='aftershock-sketch-build-') as temporary
         assert report['runtime']['views'] and report['runtime']['flythrough']
         for name in ('report.json','trace/overlay.png','overhead/compiled-overhead.png','overhead/overhead-difference.png','project/assets/CREDITS'):
             assert (args.output/name).is_file(),name
+        edited_notes=root/'edited-notes.json'
+        edited_notes.write_text(json.dumps(changed))
+        next_output=args.output.with_name(args.output.name+'-edited')
+        follow=command[:]
+        follow[1]='tools/agent'
+        follow[follow.index('--notes')+1]=str(edited_notes)
+        follow[follow.index('--out')+1]=str(next_output)
+        follow.extend(['--previous',str(args.output/'trace/interpretation.json')])
+        result=subprocess.run(follow,cwd=ROOT,capture_output=True,text=True)
+        assert result.returncode==0,result.stderr+'\n'+result.stdout
+        assert json.loads(result.stdout)['status']=='passed'
+        def groups(path):
+            parts=re.split(r'// shape ([a-z0-9_]+)\n',path.read_text())
+            result={}
+            for identity,text in zip(parts[1::2],parts[2::2]):
+                result.setdefault(identity,[]).extend(re.findall(r'\{\s*(?:\([^\n]+\n)+\}',text))
+            return result
+        before,after=[groups(out/'compiled/maps/sketch_reference.map') for out in (args.output,next_output)]
+        assert before.keys()==after.keys() and all((before[k]!=after[k])==(k=='building_7') for k in before)
         repeated=subprocess.run(command,cwd=ROOT,capture_output=True,text=True)
         assert repeated.returncode and 'exists' in repeated.stderr, 'existing evidence was overwritten'
-print('PASS: owned reference semantics, recorded entrances, stable building-7 edit and integrated native pipeline')
+print('PASS: owned reference semantics, recorded entrances and stable building-7 edit'+('; complete native build/agent iteration' if args.client else ''))

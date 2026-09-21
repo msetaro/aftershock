@@ -272,12 +272,20 @@ def measure(image,notes,previous=None):
     boundary = orient(Polygon([world(p) for p in boundary]),sign=1)
     require(boundary.is_valid and boundary.area>0, 'interpreted boundary must be a simple polygon')
     intents = []
+    spawns = copy.deepcopy(notes.get('spawns',[]))
     for mark in marks:
         if mark['classification']=='intent' and mark.get('kind')!='unread':
-            intent = {k:copy.deepcopy(v) for k,v in mark.items() if k not in ('classification','confidence','reading','color')}
-            if 'points' in intent:
-                intent['points'] = [world(p) for p in intent['points']]
-            intents.append(intent)
+            points = [world(p) for p in mark.get('points',[])]
+            if mark['kind']=='spawn':
+                require(len(points)==1, 'spawn marker needs exactly one point: '+mark['id'])
+                point = points[0]
+                spawns.append(dict(team=mark.get('team','ffa'),angle=mark.get('angle',0),
+                                   origin=[round(point[0]),round(point[1]),round((point[2] if len(point)>2 else 0)+24)]))
+            else:
+                intent = {k:copy.deepcopy(v) for k,v in mark.items() if k in
+                          ('id','kind','width','radius','target_seconds','tolerance_seconds','min_visible_directions','blocked','team','mode')}
+                intent['points'] = points
+                intents.append(intent)
     # Unknown ink is evidence too: retain an assumption, never silently turn it into walls.
     border_mask = np.zeros_like(available)
     if notes.get('boundary'):
@@ -292,11 +300,13 @@ def measure(image,notes,previous=None):
                  materials={role:'level/'+role for role in ('floor','wall','trim','cover','prop','sky')},
                  rules=notes.get('rules',dict(min_corridor_width=64,min_door_height=80,max_sightline=8192,max_cover_gap=2048)),
                  boundary=dict(polygon=[list(p) for p in boundary.exterior.coords[:-1]],floor=0,ceiling=1024),
-                 shapes=shapes,spawns=copy.deepcopy(notes.get('spawns',[])),props=[],pickups=[],
+                 shapes=shapes,spawns=spawns,props=[],pickups=copy.deepcopy(notes.get('pickups',[])),
+                 viewpoints=copy.deepcopy(notes.get('viewpoints',[])),
                  lighting=dict(ambient=48,lights=[]),intents=intents)
     interpretation = dict(version=1,image_size=list(image.size),original_size=list(original_size),
                           perspective=transform.tolist() if transform is not None else None,
-                          scale=scale,dominant_angles_degrees=dominant,key=keys,marks=marks,assumptions=assumptions)
+                          scale=scale,dominant_angles_degrees=dominant,key=keys,marks=marks,assumptions=assumptions,
+                          notes=copy.deepcopy(notes))
     return interpretation,level,image
 
 

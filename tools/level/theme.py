@@ -78,11 +78,30 @@ def assemble(level,theme,library,modules,output,seed):
     result['materials']={role:'theme/'+name for role,name in theme['materials'].items()}
     result['lighting']=copy.deepcopy(theme['lighting'])
     result['texture_scale']=copy.deepcopy(theme.get('texture_scale',{}))
+    decisions=[]
+    plaza=polygon(level['boundary']['polygon'],level['boundary'].get('holes',[])).centroid
+    for item in result['shapes']:
+        if item['kind']!='building' or 'openings' in item:
+            continue
+        p=footprint(item['shape'])
+        points=list(p.exterior.coords)
+        candidates=[]
+        for edge,(a,b) in enumerate(zip(points,points[1:])):
+            length=math.dist(a,b)
+            dx,dy=b[0]-a[0],b[1]-a[1]
+            facing=((plaza.x-(a[0]+b[0])/2)*dy-(plaza.y-(a[1]+b[1])/2)*dx)/length
+            if length>=128 and facing>0:
+                candidates.append((facing,edge,length))
+        if not candidates:
+            raise ValueError('no doorway-sized wall faces the plaza: '+item['id']+'; supply an explicit opening')
+        _,edge,length=max(candidates)
+        item['openings']=[dict(edge=edge,at=length/2,width=96,sill=0,height=96)]
+        decisions.append(dict(id=item['id'],decision='96-unit doorway centered on the wall facing the boundary centroid',opening=item['openings'][0]))
     placement=theme['placement']
     if not (0<=placement['density']<=1 and 64<=placement['spacing']<=2048 and
             all(32<=placement[k]<=512 for k in ('door_clearance','spawn_clearance','lane_clearance'))):
         raise ValueError('theme placement density/clearances outside limits')
-    shapes=[(s,footprint(s['shape'])) for s in level['shapes']]
+    shapes=[(s,footprint(s['shape'])) for s in result['shapes']]
     keep=[]
     for shape,p in shapes:
         if shape['kind']=='building':
@@ -134,5 +153,6 @@ def assemble(level,theme,library,modules,output,seed):
                     result['props'].append(prop)
     if len(result['props'])>128:
         raise ValueError('theme exceeds the 128-prop level budget; reduce density')
+    (output/'assembly.json').write_text(json.dumps(dict(seed=seed,decisions=decisions),sort_keys=True,indent=2)+'\n')
     (output/'level.json').write_text(json.dumps(result,sort_keys=True,indent=2)+'\n')
     return result

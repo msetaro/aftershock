@@ -104,6 +104,9 @@ def main():
 
 
 if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='build':
+        from build import main as build_main
+        sys.exit(build_main(sys.argv[2:]))
     if len(sys.argv)>1 and sys.argv[1]=='trace':
         from sketch import main as trace_main
         sys.exit(trace_main(sys.argv[2:]))

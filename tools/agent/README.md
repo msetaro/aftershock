@@ -107,3 +107,11 @@ example, a floor trace can stop a standing player origin at 24.125).
 This query covers static BSP collision; dynamic entities use the game queries.
 It is available in development client and dedicated builds through the private
 local channel. Simulation and shipping builds retain their existing behavior.
+
+
+`python3 tools/agent build --sketch IMAGE --notes NOTES --theme manhattan --out DIR`
+exposes the complete sketch-to-level pipeline described in
+[`tools/level/README.md`](../level/README.md#complete-sketch-build). It returns the
+same JSON report and nonzero failures. `--playtest FILE` follows the compiled-world
+checks with a script in the same 20-ms session. Inputs, output ownership and kit
+license checks are shared with `tools/level build`.

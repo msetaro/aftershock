@@ -3,6 +3,7 @@
 import argparse
 import copy
 import json
+import math
 from pathlib import Path
 import subprocess
 import shutil
@@ -109,6 +110,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
             (args.output/'shooter-negative.json').write_text(json.dumps(shooter,indent=2)+'\n')
             routes=play_routes(engine,a,args.output/'routes')
             assert routes['passed'] and routes['routes'][0]['measured_seconds']>0,routes
+            start=routes['routes'][0]['start_state']['player']
+            assert math.dist(start['origin'],[-900,-256,24])<=8 and math.hypot(*start['velocity'])<1, 'timing started during teleport launch'
+
             impossible=copy.deepcopy(a)
             impossible['intents'][0].update(target_seconds=0,tolerance_seconds=.1)
             late=play_routes(engine,impossible,args.output/'routes-too-fast')

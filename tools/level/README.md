@@ -256,7 +256,7 @@ writes a draft `level.json`, `interpretation.json`, and numbered interpretation
 and geometry overlays. The agent reads the drawing and its key first; this tool
 measures strokes and preserves that reading, rather than claiming handwriting
 recognition. Install level requirements in a Python 3.12 venv for the pinned image
-and polygon wheels. Build/playtest integration is still in progress.
+and polygon wheels. The complete build command below uses the same interpretation.
 
 Notes contain `version: 1`, a map `name`, scale `{pixels, units}`, the playable
 boundary in pixels, and a per-drawing `key` list. Each key entry supplies a pen
@@ -333,8 +333,7 @@ cooked materials retain their ordinary lightmapped shaders.
 `python3 tests/theme_level.py` exercises the real pinned kits and assembly.
 `--library DIR --modules DIR` reuses already validated kits. Add `--client PATH
 --server PATH --output DIR` for retained native bot and eye-level/fly-through
-capture evidence. The integrated sketch command and shooter-intent acceptance
-are still being implemented; these component checks do not claim that completion.
+capture evidence. The integrated command below combines these component checks with shooter reports and actual player movement.
 
 V2 may add material roles (lowercase identifiers, at most 12 characters) alongside
 the six required roles. That bound preserves native qpath limits for source-ID
@@ -348,3 +347,62 @@ validation/output contract and accepted fixtures. The strict reference theme bot
 check requires at least two kills and zero observed inactivity windows. Reachable
 item goals are authored explicitly, rather than assuming identical bot behavior
 between installed content sets.
+
+
+## Complete sketch build
+
+```sh
+python3 tools/level build --sketch tests/assets/sketch/reference.png --notes tests/assets/sketch/notes.json --theme manhattan --out "$AFTERSHOCK_SCRATCH/sketch-build"
+```
+
+The default fetches pinned CC0 materials, builds the pinned Blender modules and a
+Release development client/server, compiles the level, compares its compiled
+geometry to the trace, queries native collision, walks the annotated routes,
+runs a 6000-frame bot match and captures eye-level/fly-through views. Prerequisites
+and installed content are the same as headless validation. `--client`/`--server`
+reuse existing development binaries; `--library`/`--modules` reuse validated kits.
+`--content openarena --data DIR` selects installed OpenArena content.
+
+`tools/agent build` exposes the identical command. Optional `--playtest FILE` runs
+an additional agent script after the route checks, with the same seed and 20-ms
+session; script cvar overrides require a separate session. These commands never
+copy installed paks into their output. The output directory must be fresh, and
+failures retain a `status: failed` report with their diagnostic evidence.
+
+Outputs include `trace/interpretation.json` (full notes/assumptions), the numbered
+`trace/overlay.png`, `project/level.json` plus licensed assets/CREDITS,
+`project/assembly.json` (default entrance decisions), `compiled/` MAP/BSP/AAS,
+`overhead/` class images/differences/IoU, `shooter.json`, native `routes/` reports,
+and `runtime/` bot logs and PNGs. Unresolved assumptions fail the integrated build
+but preserve the draft for review. The overlap threshold defaults to 0.93 per
+class; spawn exposure, collision, route timing, fewer than two bot kills, observed
+stuck bots, missing captures and differing repeated compiled bytes also fail.
+
+Spawn marks use `kind: spawn`, one pixel point, `team` and `angle`; their origin
+is 24 units above the stated floor. Intent points accept `[pixel_x,pixel_y]` or
+`[pixel_x,pixel_y,floor_units]`. Explicit `spawns`, `pickups` and `viewpoints` in
+notes use world coordinates. Notes/free text stay in the interpretation. A
+building without an explicit `openings` field gets one recorded 96-by-96 doorway
+centered on the wall facing the boundary centroid; explicit empty openings remain
+closed. Per-ID overrides remain authoritative.
+
+For iteration, edit only `notes.overrides.building_7` and use a fresh output plus
+`--previous earlier/trace/interpretation.json`. The reference follow-up sets
+`floors: 2`, `height: 256` and an `opening_rules` entry with `face_point: [0,-154]`,
+`spacing: 1024`, `width: 96`, `sill: 48`, `height: 48`, `floors: [1]`. Geometry is
+compared by source ID; lighting/BSP visibility may change elsewhere after a height
+edit. Full native acceptance currently uses FFA; other modes fail explicitly.
+Static shooter reports additionally validate authored paired CTF objectives.
+
+Shooter metrics distinguish estimates from measurements: first-contact estimates
+assume symmetric 320-unit/s travel along the clearance path, while annotated route
+timing is measured through native player input/physics. Sightlines use eight rays
+per sampled lane position; cover density counts nearby waist-height collision.
+The native report contains suggested fixes for failed constraints. This sampling
+is an authoring aid, not a proof about every possible combat position.
+
+The new original reference drawing has a CC0 manifest. Its explicit source command
+is `python3 tests/assets/sketch/export.py --write`, refused in CI; accepted drawing
+bytes are consumed unchanged. `tests/sketch_build.py` checks semantic conversion,
+connected entrances, the building-7 edit and, with binaries/output supplied, both
+complete native builds via the level and agent entry points.

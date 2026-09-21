@@ -37,7 +37,7 @@ sunken zones and full compile pass. Initial interpretation, licensed materials a
 pinned Blender modules pass. Rotated v2 props now compile and solid props join
 clearance checks, including foot-origin bounds. Additional tracing, compiled-overhead comparison and v2 navigation cameras now
 pass. Theme assembly, native PBR, OBJ axes and strict OpenArena bot/capture controls
-now pass. Next: shooter intent checks and the one-command sketch/agent pipeline,
+now pass. Shooter intent and physical-route controls pass. Next: full reference acceptance of the one-command sketch/agent pipeline,
 then supplied-rig retargeting and full reference-drawing acceptance. This is partial work, not #164
 acceptance. The issue and checkpoint contain measured results and decisions.
 
@@ -52,6 +52,42 @@ module contract also passes. All payloads stay in user cache; no local system pa
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 route-start review catches teleport launch
+
+The initial native reference run passes compiled geometry overlap (all three
+classes 1.0), spawn safety (656 queries, no errors) and its provisional timed lane.
+Review of its starting state found that the existing setviewpos command launches
+players at 400 units/s: the timer begins about 32 units beyond the annotation.
+This is a setup flaw in the new #164 tool, not an engine movement bug. A new
+resting-start assertion fails on the retained report (sketch-route-start-before.log).
+Return to the annotated start through normal walking and allow velocity to settle
+before measuring. Prior 5.5/5.06-second numbers are provisional, not final timing
+acceptance. Repeat native timing/negative controls after correcting the harness.
+
+The first integrated native build is still collecting its bot/capture evidence.
+The one-command implementation and agent alias retain fresh output ownership,
+notes/overlays, complete kit manifests, compiled IoU, shooter/routes and repeated
+compile/native reports. The follow-up native iteration contract compares source-ID
+MAP groups and requires the agent entry point. Full #164 acceptance remains open.
+
+## #164 native route negative control passes
+
+sketch-route-native-4 passes the complete combined OpenArena gate. Actual 1800-unit
+walking takes 5.5 simulation seconds: accepted at 6 +/- 2 seconds and rejected at
+0 +/- 0.1 seconds. The deliberately exposed spawn pair is rejected by native
+collision sight queries. The subsequent strict 6000-frame bot/capture gate passes.
+No duplicate screenshots or existing evidence are overwritten.
+
+The owned drawing now converts explicit spawn markers, preserves pickups/cameras
+and full notes, and strips drawing-only fields from playable intents. Theme
+assembly supplies a recorded 96-unit entrance facing the boundary centroid only
+when openings were not explicitly supplied. Existing explicit/empty openings
+remain authoritative. The reference and two-storey building-7 variant pass schema,
+physical geometry and connected-spawn checks; other shapes and dressing remain
+identical (sketch-build-semantics.log). The integrated native command is running
+in sketch-reference-native. Its compiled overhead scores 1.0 for building, solid
+and wall classes against a 0.93 threshold; native shooter/bot results are pending.
 
 ## #164 route playback and owned reference contract
 
