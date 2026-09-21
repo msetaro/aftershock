@@ -24,7 +24,7 @@ Continue #16 on issue/16-audio-engine in
 /home/matt/.cache/aftershock-modernization/audio-tree, branched from main
 0561e0f0446e96f6dca51f86bae56337d6cd23f5. #15 PR170 is merged; its tested and merged
 trees are identical. Do not redo the physics port, accepted fixtures or finished
-network-driver evidence. No #16 implementation or PR exists yet.
+network-driver evidence. The first isolated spatial component is implemented; no #16 PR exists yet.
 
 #16 decision: extend the in-house mixer and keep the existing SDL/native device
 backends. Reuse cooked PCM assets and weapon animation-notify deduplication. Add
@@ -44,8 +44,8 @@ sufficient. Private read-only findings and primary references are in
 /home/matt/.cache/aftershock-modernization/audio-research.md. A private SDL dummy
 output baseline passed; it does not establish any #16 feature.
 
-Next write the first failing #16 spatial/mix contract test, implement the smallest
-POD path that satisfies it, then continue the remaining issue scope and runtime
+Next add the optional bounded binaural filter and its impulse/spectral checks,
+then integrate authored playback and continue the remaining issue scope and runtime
 acceptance. Record failures before fixes. No maintainer input is currently needed.
 
 Monitor merged-tree #15 build/publication 35658235970 and regression 35658235841.
@@ -69,8 +69,9 @@ Decision recorded on #16 in comment 5767944870; #15 merge report is comment
 linear/inverse distance attenuation, radial Doppler and invalid-input rejection.
 The first run fails at compilation because the new snd_spatial API does not yet
 exist (private audio-spatial-before.log). This is an API-first failure, not a
-claim that legacy playback failed. Next implement and validate this component;
-engine integration and the remaining #16 scope are still pending.
+claim that legacy playback failed. The implementation now passes with GCC and Clang/libc++ under UBSan. It uses
+no allocation or engine state and is listed in the client CMake sources. Engine
+integration and the remaining #16 scope are still pending.
 
 ## #15 merge checkpoint
 
