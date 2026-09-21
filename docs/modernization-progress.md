@@ -76,6 +76,22 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 local runner correction and hosted prerequisite order
+
+The interpreter execution contract now passes: only bare python3 tokens are
+replaced, leaving selected absolute interpreter paths intact. Both corrected
+unit variants get through cooking; clang's complete local job passes. The GCC
+spot run omitted the documented --glslang argument and failed its pinned compiler
+check; rerun with the installed 16.6.0 path, without altering shader references.
+
+Hosted 7342518d passes every active job except runtime's handbook step, which
+runs before the existing level requirements installation and lacks libarchive-c
+(agent-recipes-ci.log). Move that step after the headless level checks; the same
+commands then have their prerequisites. No engine change is needed. Earlier
+concurrent runs also pass both cross builds and are completing private kind;
+three jobs in each failed on the already reproduced interpreter substitution.
+Fresh complete concurrent/hosted runs are still required; PR166 remains draft.
+
 ## #163 full-run runner failure and reproducer
 
 Both simultaneous clean 7342518d runs pass format, tidy, lifetime analysis and

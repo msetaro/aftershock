@@ -43,7 +43,7 @@ def local_command(command, matrix, args):
         # Use the caller's pinned compiler; shaders.py verifies its version and bytes.
         command = 'python3 tests/shaders.py --compiler '+shlex.quote(str(args.glslang))
     command = command.replace(token+'/aftershock-cook-python/bin/python',shlex.quote(sys.executable))
-    command = re.sub(r'\bpython3\b',shlex.quote(sys.executable),command)
+    command = re.sub(r'(?<![\w/])python3\b',shlex.quote(sys.executable),command)
     command = command.replace(" --clang-format 'pipx run --spec clang-format==21.1.8 clang-format'",'')
     for key,value in matrix.items():
         command = command.replace('${{ matrix.'+key+' }}',str(value))
