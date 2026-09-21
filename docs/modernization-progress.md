@@ -29,7 +29,7 @@ regression 35589995016 passed all 10 active jobs. #164 is accepted and checked
 in #25. No source changes remain in its sketch-tree branch.
 
 Continue #161 in /home/matt/.cache/aftershock-modernization/fidelity-tree,
-issue/161-visual-fidelity. Main 07304b32 is merged forward. No #161 PR yet.
+issue/161-visual-fidelity. Main 07304b32 is merged forward. Draft PR169 targets main.
 Effects, reference art, material-hit dispatch, light hooks, soft depth, projected
 normal-mapped decals/editor, native LOD selection and initial filmic/LUT/lens
 post controls pass component checks. Post resources preserve HUD composition,
@@ -44,8 +44,7 @@ and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
 unchanged. Main is merged forward here. Build/publication 35613793896 passed;
 regression 35613793817 passed all ten active jobs. #31 is accepted again.
 
-Next: complete final local gates and self-review, open the #161 PR into main,
-then require all 16 compiler legs and ten active regression jobs on a head
+Next: complete final local gates and self-review for draft PR169, then require all 16 compiler legs and ten active regression jobs on a head
 containing current main. Combined software references and serial hardware budgets
 now pass. Optional resolution upscaling is deliberately omitted from this issue;
 the existing render-scale hook remains, and a quality upscaler can follow a measured
@@ -53,7 +52,7 @@ need. All existing accepted fixtures/shader arrays are unchanged. The bounded
 compressed-source cache ceiling is documented; no frame-time filesystem reads.
 Post remains default off because the earlier street-scene copy-back budget miss
 is retained. Do not reinterpret this simpler combined scene as erasing that miss.
-No #161 PR yet. Main remains 07304b32; no maintainer input is needed.
+Draft PR169 head 31049488 contains main 07304b32; no maintainer input is needed.
 
 Initial post budgets before measurement: 0.75 ms for filmic controls and 0.20 ms
 for copy-back at 1440p on the reference GPU. Advanced lens effects remain default
@@ -78,6 +77,38 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 MSVC shadow diagnostic
+
+Build 35628249560 fails MSVC C4457 because the new decal half-size loop named its
+local `size`, hiding DCL_Open's byte-count parameter. The loop variable is renamed
+to `extent`; validation/arithmetic are unchanged and warning policy is retained.
+This is a correction to unmerged #161 code. Log: fidelity-ci-msvc.log.
+
+## #161 first hosted unit failures and local gates
+
+PR169 regression 35628249523 fails both unit legs in the cook publication probe:
+GCC/Clang retain references to new streaming RHI functions that the mock did not
+define. Logs: fidelity-ci-unit-gcc.log / fidelity-ci-unit-clang.log. The probe now
+supplies abort-on-call implementations so unchanged publications still prove zero
+GPU access. No engine behavior changes. Full cooker reruns now pass under GCC and Clang/libc++
+(fidelity-final-cook-gcc.log and fidelity-final-cook-clang.log).
+
+Local tidy passes all 1306 configurations. Final legacy OpenArena replay matches
+accepted hash 17a172f7 (fidelity-final-demo.log). RHI/render-graph, temporal,
+residency-policy and affected-contract controls pass; all 101 shader binaries and
+interfaces reproduce. Known-bug harness controls pass. Expanded lifetime scan is
+still running. Hosted runs at 31049488 are evidence only until all failures are
+resolved and the final head is green.
+
+## #161 draft PR169 and final gate status
+
+Draft PR169 is open against main at 31049488. All writes stay in this repository.
+RHI checks pass, and all 101 shader binaries/interfaces match package d533f8bf;
+no accepted array changed. The expanded 1248-command lifetime scan and tidy gates
+are running. Hosted compiler/regression checks must pass before ready/merge;
+recheck main immediately before acceptance. No red or skipped required job is
+acceptable. The new software references pass exact comparison.
 
 ## #161 final gate integration review
 

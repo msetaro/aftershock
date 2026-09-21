@@ -223,8 +223,8 @@ bool DCL_Open( const void *data, size_t size, decalAsset_t *asset ) {
 		 !Text( result.normalMap, sizeof( result.normalMap ) ) || !result.lifetimeMs || result.lifetimeMs > 600000 ||
 		 !result.fadeMs || result.fadeMs > result.lifetimeMs || !Between( result.normalStrength, 0, 4 ) )
 		return false;
-	for ( float size : result.halfSize )
-		if ( !Between( size, .005f, 2048 ) )
+	for ( float extent : result.halfSize )
+		if ( !Between( extent, .005f, 2048 ) )
 			return false;
 	for ( float color : result.color )
 		if ( !Between( color, 0, 1 ) )

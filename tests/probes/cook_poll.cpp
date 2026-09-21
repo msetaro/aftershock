@@ -32,6 +32,47 @@ rhiStatus_t RHI_ReplaceCompressedTexture( rhiTexture_t *, int32_t, int32_t, int3
 	abort();
 }
 
+// Any GPU access during an unchanged publication is a test failure.
+rhiCapabilities_t RHI_GetCapabilities( void ) {
+	abort();
+}
+rhiStatus_t RHI_PollTextureUpload( bool * ) {
+	abort();
+}
+rhiStatus_t RHI_AdoptResidentTexture( rhiTexture_t *, rhiTexture_t * ) {
+	abort();
+}
+rhiStatus_t RHI_WaitIdle( void ) {
+	abort();
+}
+rhiTextureResidencyStats_t RHI_GetTextureResidencyStats() {
+	abort();
+}
+rhiStatus_t RHI_PollTextureResidency() {
+	abort();
+}
+rhiStatus_t RHI_TextureResidencyBytes( int32_t, int32_t, int32_t, rhiFormat_t, uint64_t * ) {
+	abort();
+}
+rhiStatus_t RHI_CreateResidentTexture( rhiTexture_t *, int32_t, int32_t, int32_t, rhiFormat_t, rhiAddress_t, const char * ) {
+	abort();
+}
+rhiStatus_t RHI_ShutdownTextureUploads() {
+	abort();
+}
+void RHI_DestroyTexture( rhiTexture_t * ) {
+	abort();
+}
+rhiStatus_t RHI_InitTextureUploads() {
+	abort();
+}
+rhiStatus_t RHI_UploadCompressedTexture( const rhiTexture_t *, int32_t, int32_t, int32_t, const uint8_t *, uint32_t, rhiFormat_t, bool ) {
+	abort();
+}
+rhiStatus_t RHI_QueueTextureUpload( const rhiTexture_t *, int32_t, int32_t, int32_t, const uint8_t *, uint32_t, rhiFormat_t ) {
+	abort();
+}
+
 int main() {
 	ri.Microseconds = clockTime;
 	ri.Malloc = allocate;
