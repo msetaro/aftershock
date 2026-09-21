@@ -1401,3 +1401,19 @@ of triangles. These CC0 captures contain only the generated level and owned asse
 Initial reference creation uses `--record-reference`, which refuses to overwrite
 existing references. CI never passes that flag. Reference changes require an
 explicit behavior-change decision and review, as with the other golden fixtures.
+
+
+The same combined test accepts `--measure-gpu` with explicit
+`VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nvidia_icd.json` on the reference RTX 3080 Ti.
+Hardware captures do not replace software references. After 4096 warm frames and
+64 effect warm frames it samples 400 consecutive frames at 2560x1440 offscreen,
+with all nine effects and three decals spawned every 20 frames. It records each
+profile, frame CPU percentiles, p50/p95/p99 per-system timings, budgets and failures
+in `gpu-report.json` before enforcing the declared limits. Persistent engine memory
+must stay stable and effects/decals must report no capacity/upload drops.
+CPU p95 limits (ms): effects preparation .50, decal preparation .25, soft/decal
+backend submission .50, LOD selection .10. GPU limits: inclusive effects 1.50,
+nested decals .75, post .75, post copy .20, camera motion .30, object motion .50,
+temporal resolve .80, temporal copy .30. Nested decal time is already included
+in effects time. Earlier street-scene post-copy budget misses remain recorded;
+this simpler scene passing does not enable post processing by default.

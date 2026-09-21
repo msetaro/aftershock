@@ -44,18 +44,16 @@ and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
 unchanged. Main is merged forward here. Build/publication 35613793896 passed;
 regression 35613793817 passed all ten active jobs. #31 is accepted again.
 
-Next: complete the combined PBR/effects/decal/LOD/TAA/filmic visual scene and new reviewed software
-references. Nonblocking upload timestamps and reference-GPU budgets pass. Bounded residency,
-async upload and the larger-than-budget runtime/hot-reload/restart checks pass.
-The 1244-configuration lifetime scan passed. Initial 4 MiB streaming transfers
-missed both budgets; 1 MiB transfers pass the same serial hardware workload. Descriptor restoration is adopted; RTX
-post runs complete. Initial copy-back exceeds its declared budget, so the post
-path stays default off. Camera jitter, history resolve, copied native IQM skin
-motion, reactive fallback and motion blur now execute but are not final visual
-acceptance. Oldorigin/oldframe remain interpolation inputs, not prior-frame
-history. Final combined reference scene/goldens, all hardware budgets and
-exact-head/current-main gates remain required. Preserve LOD hash/stale-file
-controls and measure its savings in the final scene.
+Next: complete final local gates and self-review, open the #161 PR into main,
+then require all 16 compiler legs and ten active regression jobs on a head
+containing current main. Combined software references and serial hardware budgets
+now pass. Optional resolution upscaling is deliberately omitted from this issue;
+the existing render-scale hook remains, and a quality upscaler can follow a measured
+need. All existing accepted fixtures/shader arrays are unchanged. The bounded
+compressed-source cache ceiling is documented; no frame-time filesystem reads.
+Post remains default off because the earlier street-scene copy-back budget miss
+is retained. Do not reinterpret this simpler combined scene as erasing that miss.
+No #161 PR yet. Main remains 07304b32; no maintainer input is needed.
 
 Initial post budgets before measurement: 0.75 ms for filmic controls and 0.20 ms
 for copy-back at 1440p on the reference GPU. Advanced lens effects remain default
@@ -80,6 +78,24 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 combined hardware budget pass
+
+The permanent `tests/fidelity_runtime.py --measure-gpu` passes serially on RTX
+3080 Ti / 595.91.07 at 2560x1440 offscreen, 640x360 present. After 4096 warm frames
+and 64 effect warm frames, all 400 consecutive samples pass unchanged budgets.
+CPU p95 ms: effects 0.140, decals 0.011, soft/decal backend 0.101, LOD 0.002.
+GPU p95 ms: inclusive effects 0.784384, nested decals 0.446464, post 0.314368,
+post copy 0.143360, camera motion 0.144384, object motion 0.090112, resolve
+0.400384, temporal copy 0.144384. Final frame CPU p50/p95/p99 is
+4.154/5.475/8.746 ms. The workload repeats all nine effects and three decals every
+20 frames, ending with 478 particles / 26 instances / 72 decals, 1215 collisions,
+and zero pool/light/upload/decal drops. Hunk and zone-tag memory remain identical
+to baseline. The 1440p capture was reviewed. Evidence: fidelity-combined-hardware/
+gpu-report.json, gpu-engine.log, hardware.png and fidelity-combined-hardware.log.
+The earlier street-scene post-copy miss remains; the post path stays default off.
+Optional upscaling is not required for this issue and is deferred; no new upscaler
+or dependency is introduced. Remaining: exact-head/current-main gates and review.
 
 ## #161 presentation timing implementation
 
