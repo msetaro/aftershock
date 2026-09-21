@@ -38,6 +38,8 @@ player snapshots on installed Quake 3 and OpenArena; the extended tests also
 cover entity edits, profiler reads, camera switching, and a structured error that
 stops the remaining requested steps. No faketime or accepted fixture changes.
 
+The next shared world/animation panel contract is tests/agent_panels.py; it
+fails on absent panel operation before implementation (agent-panels-before.log).
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
