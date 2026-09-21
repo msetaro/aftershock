@@ -76,6 +76,15 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 full-suite runner test-first checkpoint
+
+The local suite catalog contract fails first because tests/suite.py is absent
+(agent-suite-before.log). Reuse the active regression workflow's actual commands
+and ten job variants, with local preinstalled prerequisites and isolated roots,
+rather than maintaining a second divergent test list. The catalog must retain all
+test commands. Use it for the required simultaneous runs in two worktrees after
+remaining feature edits are complete; hosted compiler gates still remain required.
+
 ## #163 schema CI correction
 
 Schema head 84da36a8 build 35563076825 passes. Runtime 35563076817 fails in
@@ -98,8 +107,8 @@ Local Compose now chooses private project names and Docker-assigned published
 ports; explicit --port remains available. Kubernetes generation accepts/chooses a
 private namespace and its acceptance driver passes that namespace consistently.
 Unit goldens/negative control, complete cooker, OA CLI, formatting and workflow
-lint pass (agent-isolation-*.log). The local private kind acceptance is running
-in agent-isolation-kind; its result is still pending. All legacy accepted artifacts
+lint pass (agent-isolation-*.log). The local private kind acceptance passes
+(agent-isolation-kind.log): allocation, native player, final ingest and replacement. All legacy accepted artifacts
 remain unchanged. The two-full-suite concurrency acceptance and handbook remain;
 this is not final #163 acceptance.
 
