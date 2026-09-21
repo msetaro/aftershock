@@ -80,6 +80,16 @@ accepted frame fixtures and shader arrays are unchanged.
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
 
+## #15 skeleton ragdoll test first
+
+The permanent physics driver now requires four prepared ragdolls from the owned
+16-joint body animation asset, three activation/pose/recycle cycles, two complete
+lifetimes and unchanged allocation counters after setup. It fails at the absent
+ragdoll API (physics-ragdoll-before.log). Use the pinned binding's existing
+Skeleton/Ragdoll APIs behind POD records, with load-time preparation and excluded
+inactive layers; do not recreate a foreign RAII implementation in engine code.
+Cgame death/corpse presentation and runtime death evidence follow the owned gate.
+
 ## #15 Physics panel and gate wiring
 
 The shared developer test now opens Physics, throws a box, verifies twelve

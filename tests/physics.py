@@ -42,6 +42,12 @@ target_include_directories(physics_collision PRIVATE "{ROOT}")
 target_compile_features(physics_collision PRIVATE cxx_std_20)
 target_compile_options(physics_collision PRIVATE -UNDEBUG -Wall -Wextra -Werror -ffunction-sections -fdata-sections)
 target_link_options(physics_collision PRIVATE -Wl,--gc-sections)
+add_executable(physics_ragdoll "{ROOT}/tests/probes/physics_ragdoll.cpp" "{ROOT}/engine/physics/physics.cpp"
+  "{ROOT}/engine/animation/animation.cpp" "{ROOT}/third_party/sha256/sha-256.c")
+target_include_directories(physics_ragdoll PRIVATE "{ROOT}")
+target_link_libraries(physics_ragdoll PRIVATE joltc Jolt)
+target_compile_features(physics_ragdoll PRIVATE cxx_std_20)
+target_compile_options(physics_ragdoll PRIVATE -UNDEBUG -Wall -Wextra -Werror)
 ''')
 compiler = shlex.split(args.cxx)
 flags = shlex.join(compiler[1:]) + ' -fno-exceptions -fno-rtti -ffp-contract=off -fsanitize=undefined -fno-sanitize-recover=all'
@@ -49,6 +55,10 @@ build = args.output/'build'
 run(['cmake', '-S', project, '-B', build, '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=Release',
      '-DCMAKE_CXX_COMPILER='+compiler[0], '-DCMAKE_CXX_FLAGS='+flags])
 run(['cmake', '--build', build, '-j', '4'])
+from cook import cook
+owned = args.output/'animation'
+cook(ROOT/'tests/assets/animation/rigs.json', owned)
+run([build/'physics_ragdoll', owned/'animations/anim_body.asanim'])
 run([build/'physics_collision'])
 run([build/'physics_boundary'])
 missing_joint = subprocess.run([str(build/'physics_boundary'), 'without-joint'],
