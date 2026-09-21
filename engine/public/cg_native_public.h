@@ -53,6 +53,8 @@ void CGameImport_R_LoadWorldMap( const char *mapname );
 int CGameImport_R_RegisterModel( const char *name );
 int CGameImport_R_RegisterSkin( const char *name );
 int CGameImport_R_RegisterShader( const char *name );
+int CGameImport_R_RegisterEffect( const char *name );
+uint32_t CGameImport_R_StartEffect( int handle, const float *origin, const float axis[3][3], uint32_t seed );
 int CGameImport_R_RegisterShaderNoMip( const char *name );
 void CGameImport_R_RegisterFont( const char *fontName, int pointSize, void *font );
 void CGameImport_R_ClearScene( void );

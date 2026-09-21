@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 
+from PIL import Image,ImageChops,ImageStat
 from cook import cook
 from run import ROOT,SCRATCH
 sys.path.insert(0,str(ROOT))
@@ -23,7 +24,7 @@ args.output=args.output.resolve()
 args.output.mkdir(parents=True,exist_ok=True)
 with tempfile.TemporaryDirectory(prefix='aftershock-weapon-effects-') as temporary:
     root=Path(temporary)
-    with Engine(args.binary,args.data,args.content,home=root/'home',arguments=['+set','cg_weaponTrace','1','+set','g_weapons','weapons/range_rifle.asweapon']) as engine:
+    with Engine(args.binary,args.data,args.content,home=root/'home',arguments=['+set','cg_weaponTrace','1','+set','g_weapons','weapons/range_rifle.asweapon','+set','cg_draw2D','0','+set','cg_drawGun','0','+set','con_notifytime','0']) as engine:
         source=root/'source'
         shutil.copytree(ROOT/'tests/assets/levels',source)
         subprocess.run([sys.executable,'tools/level',str(source/'two_lane.json'),'--output',str(root/'compiled')],cwd=ROOT,check=True)
@@ -46,16 +47,27 @@ with tempfile.TemporaryDirectory(prefix='aftershock-weapon-effects-') as tempora
         engine.request('session',dt=20,seed=161)
         engine.request('map',name='two_lane')
         engine.step(150)
-        engine.request('usercmd',forwardmove=0,rightmove=0,upmove=0,angles=[45,0,0],buttons=1,weapon=1)
+        engine.request('input',forward=0,right=0,up=0,pitch=45,yaw=0,fire=True)
         engine.step(80)
-        engine.request('usercmd',forwardmove=0,rightmove=0,upmove=0,angles=[45,0,0],buttons=0,weapon=1)
+        engine.request('input',forward=0,right=0,up=0,pitch=45,yaw=0,fire=False)
         engine.step(2)
         stats=engine.request('effects')
         shutil.copyfile(engine.log_path,args.output/'engine.log')
         assert stats['registered']>=len(definition['materials']) and stats['draws']>0,stats
         assert 'Weapon impact: material=effects/range_default.asfx' in engine.log_path.read_text()
-        capture=engine.request('capture',name='weapon-effects')
-        engine.step(2)
-        shutil.copyfile(engine.base/capture['path'],args.output/'impact.png')
+        camera=engine.request('state')['camera']
+        engine.request('camera',mode='pose',origin=camera['origin'],angles=[45,0,0])
+        def capture(name):
+            frame=engine.request('capture',name=name)
+            engine.step(2)
+            path=engine.base/frame['path']
+            shutil.copyfile(path,args.output/(name+'.png'))
+            with Image.open(path) as image:
+                return image.convert('RGB')
+        active=capture('impact')
+        engine.step(70)
+        expired=capture('expired')
+        assert engine.request('effects')['particles']==0
+        assert sum(ImageStat.Stat(ImageChops.difference(active,expired)).sum)>10000,'material-hit particles did not visibly change the native frame'
         (args.output/'stats.json').write_text(json.dumps(stats,indent=2)+'\n')
 print('PASS: authored weapon hits dispatch visible cooked effects through the native renderer imports')

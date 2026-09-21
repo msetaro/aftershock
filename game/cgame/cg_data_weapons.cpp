@@ -1,5 +1,9 @@
 #include "cg_local.h"
 
+static bool CookedWeaponEffect( const char *name ) {
+	const size_t length = strlen( name );
+	return length >= 5 && !strcmp( name + length - 5, ".asfx" );
+}
 static vmCvar_t weaponTrace;
 static sfxHandle_t weaponSounds[WEAPON_MAX_DEFINITIONS][WEAPON_MAX_ROWS];
 static weaponNotifyHistory_t weaponNotifyHistory[MAX_CLIENTS][2];
@@ -190,7 +194,8 @@ void CG_InitWeapons( void ) {
 		if ( !weaponProjectileModels[index] )
 			CG_Error( "Weapon rejected: projectile model %s", definition->projectile.model );
 		for ( uint32_t material = 0; material < definition->materialCount; ++material ) {
-			weaponImpacts[index][material] = trap_R_RegisterShader( definition->materials[material].effect );
+			const char *effect = definition->materials[material].effect;
+			weaponImpacts[index][material] = CookedWeaponEffect( effect ) ? trap_R_RegisterEffect( effect ) : trap_R_RegisterShader( effect );
 			if ( !weaponImpacts[index][material] )
 				CG_Error( "Weapon rejected: impact effect %s", definition->materials[material].effect );
 		}
@@ -360,7 +365,13 @@ void CG_WeaponImpact( const entityState_t *entity, const vec3_t position ) {
 		CG_Error( "Weapon rejected: impact effect %s", material.effect );
 	vec3_t normal;
 	ByteToDir( entity->eventParm, normal );
-	if ( entity->generic1 ) {
+	if ( CookedWeaponEffect( material.effect ) ) {
+		vec3_t axis[3];
+		VectorCopy( normal, axis[0] );
+		PerpendicularVector( axis[1], axis[0] );
+		CrossProduct( axis[0], axis[1], axis[2] );
+		trap_R_StartEffect( shader, position, axis, uint32_t( entity->time ) ^ ( uint32_t( entity->number ) << 16 ) );
+	} else if ( entity->generic1 ) {
 		vec3_t origin;
 		VectorCopy( position, origin );
 		CG_MakeExplosion( origin, normal, 0, shader, 250, qtrue );

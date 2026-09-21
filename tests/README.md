@@ -1241,3 +1241,10 @@ backups and refuse external-edit conflicts. The cooker validates definitions;
 new bursts use the new publication while active particles retain their original
 parameters. Effects and Profile panels expose pool and light counters. The
 existing animation editor uses the same guarded source-saving helper.
+
+
+`tests/weapon_effects_runtime.py --binary PATH` fires the owned native weapon
+with `.asfx` material references, checks registration/draws and compares the
+visible impact frame with its expiry. Legacy material shader paths retain their
+old mark/explosion behavior. `tests/effects.py` also checks this dispatch directly
+through the production cgame function under UBSan.

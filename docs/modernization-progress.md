@@ -64,6 +64,23 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 live weapon material effects pass
+
+The new typed cgame imports register/start effects at the existing client renderer
+boundary. Map-start registration selects .asfx material references; hit presentation
+uses the existing hit normal/origin and a presentation-only seed. Legacy material
+shader references keep their previous mark/explosion behavior. GCC/Clang UBSan,
+Release build, formatting and C/game/engine ABI checks pass.
+
+The real client fires 20 material hits on the unchanged owned level and reports
+two registered effects, 5464 submitted particle draws, no pool drops. A tightened
+run uses degree-based input, disables HUD/gun/console notifications, fixes the
+camera and compares visible impacts with the expired frame; it passes and the
+capture is reviewed (fidelity-weapon-effect-runtime-visible.log). The first test
+used raw 16-bit angles; it exercised dispatch but was insufficient visual evidence.
+Both versions are retained. The visible lifecycle command is now in runtime CI.
+No authoritative damage, weapon arithmetic, hit selection or snapshot change.
+
 ## #161 weapon-effect native boundary checkpoint
 
 The actual cgame material-hit probe now passes GCC and Clang/libc++ UBSan, including

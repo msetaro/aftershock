@@ -628,6 +628,12 @@ int CGameImport_R_RegisterShader( const char *name ) {
 
 	return re.RegisterShader( (const char *)name );
 }
+int CGameImport_R_RegisterEffect( const char *name ) {
+	return re.RegisterEffect( name );
+}
+uint32_t CGameImport_R_StartEffect( int handle, const float *origin, const float axis[3][3], uint32_t seed ) {
+	return re.StartEffect( handle, origin, axis, seed );
+}
 int CGameImport_R_RegisterShaderNoMip( const char *name ) {
 
 	return re.RegisterShaderNoMip( (const char *)name );

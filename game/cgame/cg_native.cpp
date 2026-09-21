@@ -151,6 +151,12 @@ qhandle_t trap_R_RegisterSkin( const char *name ) {
 qhandle_t trap_R_RegisterShader( const char *name ) {
 	return CGameImport_R_RegisterShader( name );
 }
+qhandle_t trap_R_RegisterEffect( const char *name ) {
+	return CGameImport_R_RegisterEffect( name );
+}
+uint32_t trap_R_StartEffect( qhandle_t handle, const vec3_t origin, const vec3_t axis[3], uint32_t seed ) {
+	return CGameImport_R_StartEffect( handle, origin, axis, seed );
+}
 qhandle_t trap_R_RegisterShaderNoMip( const char *name ) {
 	return CGameImport_R_RegisterShaderNoMip( name );
 }
