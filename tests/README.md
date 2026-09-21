@@ -1327,3 +1327,14 @@ cache with GCC/Clang and UBSan. It copies up to 256 entity transforms/skin poses
 per view in less than 4 MiB, rejecting stale identities/models, skipped or failed
 frames, teleports, view cuts and viewport changes. This is the CPU history
 component; motion-vector rendering, jitter and TAA acceptance are still pending.
+
+`tests/temporal_runtime.py --binary PATH --content openarena --data PATH` enables
+`r_fbo 1`, `r_postProcess 1`, and `r_taa 1` on an owned generated level, with
+entities hidden to isolate camera history. It checks actual temporal GPU passes,
+small camera movement, a large camera/FOV cut, restart and disable. TAA selects
+single-sample rendering; the saved MSAA setting applies when TAA is disabled.
+The current camera component uses an eight-frame centered Halton jitter,
+linear-color history, depth rejection and neighborhood clamping. Optional
+`motion_blur` affects the display copy, leaving history sharp. Moving/skinned
+object motion and final visual/performance acceptance are still unfinished;
+`r_taa` and `r_postProcess` remain default off.

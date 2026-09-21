@@ -75,7 +75,7 @@ cvar_t *r_dynamiclight;
 cvar_t *r_mergeLightmaps;
 cvar_t *r_directionalLightmaps;
 cvar_t *r_reflectionProbes;
-cvar_t *r_softParticles, *r_decals, *r_postProcess, *r_postProfile;
+cvar_t *r_softParticles, *r_decals, *r_postProcess, *r_postProfile, *r_taa;
 cvar_t *r_ssao, *r_ssaoRadius, *r_ssaoStrength;
 cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
@@ -551,9 +551,11 @@ static void R_InitDevice( void ) {
 	const rhiDeviceConfig_t config = {
 		glConfig.vidWidth, glConfig.vidHeight, gls.windowWidth, gls.windowHeight,
 		gls.captureWidth, gls.captureHeight, glConfig.depthBits, glConfig.stencilBits,
-		MAX_TEXTURE_SIZE, MAX_TEXTURE_UNITS, MAX_DRAWIMAGES, MAX_FLARES, r_shadowQuality->integer ? 1024u : r_decals->integer	   ? (uint32_t)sizeof( rhiDecal_t )
-																										: r_softParticles->integer ? (uint32_t)sizeof( rhiParticle_t )
-																																   : (uint32_t)sizeof( shaderUniform_t ),
+		MAX_TEXTURE_SIZE, MAX_TEXTURE_UNITS, MAX_DRAWIMAGES, MAX_FLARES,
+		r_shadowQuality->integer ? 1024u : r_decals->integer	  ? (uint32_t)sizeof( rhiDecal_t )
+									   : r_taa->integer			  ? (uint32_t)sizeof( rhiTemporal_t )
+									   : r_softParticles->integer ? (uint32_t)sizeof( rhiParticle_t )
+																  : (uint32_t)sizeof( shaderUniform_t ),
 		r_fbo->integer,
 		r_bloom->integer,
 		r_postProcess->integer ? 2 : r_hdr->integer,
@@ -561,7 +563,7 @@ static void R_InitDevice( void ) {
 		r_device->integer,
 		r_ext_texture_filter_anisotropic->integer,
 		r_ext_max_anisotropy->integer,
-		r_ext_multisample->integer,
+		r_taa->integer && r_postProcess->integer ? 0 : r_ext_multisample->integer,
 		r_ext_supersample->integer,
 		r_renderScale->integer,
 		r_offsetUnits->value,
@@ -570,7 +572,8 @@ static void R_InitDevice( void ) {
 		r_shadowQuality->integer ? 512u << r_shadowQuality->integer : 0,
 		r_fbo->integer && r_ssao->integer ? (uint32_t)( 3 - r_ssao->integer ) : 0,
 		r_fbo->integer && ( r_softParticles->integer || r_decals->integer || r_postProcess->integer ),
-		r_fbo->integer && r_postProcess->integer
+		r_fbo->integer && r_postProcess->integer,
+		r_fbo->integer && r_postProcess->integer && r_taa->integer
 	};
 	const rhiHost_t host = { ri.Malloc, ri.Free, R_PrintRHI, R_IsMinimized, R_SwapInterval, ri.VK_GetInstanceProcAddr, R_CreateSurface };
 	rhiDeviceInfo_t info;
@@ -1704,6 +1707,9 @@ static void R_Register( void ) {
 	r_reflectionProbes = ri.Cvar_Get( "r_reflectionProbes", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_reflectionProbes, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_reflectionProbes, "Use authored reflection probes on dynamic PBR objects; requires five texture bindings." );
+	r_taa = ri.Cvar_Get( "r_taa", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	ri.Cvar_CheckRange( r_taa, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_taa, "Temporal scene antialiasing; requires r_postProcess and selects single-sample rendering." );
 	r_postProcess = ri.Cvar_Get( "r_postProcess", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_postProcess, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_postProcess, "Filmic scene post-processing before HUD; requires r_fbo 1." );

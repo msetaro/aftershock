@@ -15,6 +15,7 @@ void R_PostDrawResult( bool drawn ) {
 }
 
 void R_InitPost() {
+	R_TemporalReset();
 	postStats = {};
 	post = { "default", "", 0, 0, 0, 0, 1, 256, 128, 0, 0 };
 	postLut = tr.whiteImage;
@@ -85,4 +86,5 @@ void R_AddPost() {
 	tr.refdef.post.projection[2] = (float)( (uint32_t)tr.refdef.time & 65535u );
 	tr.refdef.post.projection[3] = (float)( 1 << tr.overbrightBits );
 	tr.refdef.postLut = postLut;
+	tr.refdef.temporalBlur = post.motionBlur;
 }

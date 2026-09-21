@@ -74,6 +74,31 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 camera-view temporal integration
+
+The opt-in r_taa path now jitters only the backend presentation projection,
+records camera history around a rendered main view, dispatches motion/resolve
+before effects, and consumes authored motion_blur in the display copy. It forces
+single-sample rendering while enabled; disabling it restores the saved MSAA
+configuration. Uniform reservation covers the actual 192-byte camera record
+without inflating ordinary draws to the shadow path's 1024-byte range.
+
+The first private smoke omitted required r_fbo 1 and correctly failed its missing
+pass assertion; adding the prerequisite made camera-only captures/profiling pass
+(fidelity-temporal-camera-smoke.log). Captures were inspected. The permanent
+camera-only test passes motion, large camera/FOV cuts, restart and explicit
+disable on an owned generated map (fidelity-temporal-view-runtime-final.log).
+It is wired into runtime CI. Client build, format, boundaries, types and actionlint
+pass. Fixed OpenArena replay still matches accepted hash
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(fidelity-temporal-legacy-demo.log); no accepted fixture was regenerated.
+
+Moving/skinned entity motion is NOT wired yet: the runtime test deliberately
+hides entities to isolate camera reconstruction. Next add the geometry overlay
+using copied previous skin positions and entity transforms, preserve alpha/depth
+masks, test moving models and disocclusion, then measure all new GPU passes.
+No final TAA quality or combined-scene acceptance is claimed.
+
 ## #161 temporal fullscreen dispatch component
 
 Test-first e46a0ec8 fails on missing temporal uniform/dispatch declarations.

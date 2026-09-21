@@ -1579,6 +1579,52 @@ static void RB_PresentationEffects() {
 	RHI_EndEffects();
 }
 
+static temporalView_t RB_TemporalView() {
+	temporalView_t view{};
+	view.frame = (uint32_t)backEnd.viewParms.frameCount;
+	view.width = (uint32_t)glConfig.vidWidth;
+	view.height = (uint32_t)glConfig.vidHeight;
+	RB_GetViewportRect( &view.viewport );
+	VectorCopy( backEnd.viewParms.orientation.origin, view.origin );
+	AxisCopy( backEnd.viewParms.orientation.axis, view.axis );
+	view.fovX = backEnd.viewParms.fovX;
+	view.fovY = backEnd.viewParms.fovY;
+	float projection[16];
+	memcpy( projection, backEnd.viewParms.projectionMatrix, sizeof( projection ) );
+	projection[5] = -projection[5];
+	myGlMultMatrix( backEnd.viewParms.world.modelMatrix, projection, view.viewProjection );
+	return view;
+}
+
+static void RB_TemporalResolve( const temporalView_t &view ) {
+	rhiTemporal_t uniform{};
+	VectorCopy( view.origin, uniform.origin );
+	VectorCopy( view.axis[0], uniform.forward );
+	VectorNegate( view.axis[1], uniform.right );
+	VectorNegate( view.axis[2], uniform.down );
+	const float *projection = backEnd.viewParms.projectionMatrix;
+	uniform.projection[0] = projection[0];
+	uniform.projection[1] = projection[5];
+	uniform.projection[2] = projection[10];
+	uniform.projection[3] = projection[14];
+	uniform.jitter[0] = projection[8];
+	uniform.jitter[1] = projection[9];
+	uniform.viewport[0] = (float)view.viewport.offset.x;
+	uniform.viewport[1] = (float)view.viewport.offset.y;
+	uniform.viewport[2] = (float)view.viewport.extent.width;
+	uniform.viewport[3] = (float)view.viewport.extent.height;
+	uniform.settings[0] = (float)( 1 << tr.overbrightBits );
+	uniform.settings[2] = backEnd.refdef.temporalBlur;
+	if ( const auto *previous = R_TemporalPreviousView() ) {
+		memcpy( uniform.previous, previous->viewProjection, sizeof( uniform.previous ) );
+		uniform.settings[1] = 1;
+	}
+	const bool started = RHI_BeginTemporal( &uniform );
+	if ( started )
+		RHI_ResolveTemporal();
+	R_TemporalEndView( started );
+}
+
 static const void *RB_DrawSurfs( const void *data ) {
 	const drawSurfsCommand_t *cmd;
 
@@ -1602,6 +1648,18 @@ static const void *RB_DrawSurfs( const void *data ) {
 		if ( backEnd.viewParms.shadowLast )
 			RHI_EndShadowPass();
 		return (const void *)( cmd + 1 );
+	}
+
+	const bool temporal = r_taa->integer && r_postProcess->integer && r_fbo->integer &&
+						  !( backEnd.refdef.rdflags & ( RDF_NOWORLDMODEL | RDF_HYPERSPACE ) ) &&
+						  backEnd.viewParms.portalView == PV_NONE && !cmd->refdef.switchRenderPass;
+	temporalView_t temporalView{};
+	if ( temporal ) {
+		rhiRect_t viewport;
+		RB_GetViewportRect( &viewport );
+		R_TemporalJitter( (uint32_t)backEnd.viewParms.frameCount, viewport.extent.width, viewport.extent.height, backEnd.viewParms.projectionMatrix );
+		temporalView = RB_TemporalView();
+		R_TemporalBeginView( &temporalView );
 	}
 
 	// clear the z buffer, set the modelview, etc
@@ -1636,6 +1694,9 @@ static const void *RB_DrawSurfs( const void *data ) {
 		RB_GetViewportRect( &viewport );
 		RHI_Occlusion( backEnd.viewParms.projectionMatrix, &viewport, r_ssaoRadius->value, r_ssaoStrength->value );
 	}
+
+	if ( temporal )
+		RB_TemporalResolve( temporalView );
 
 	RB_PresentationEffects();
 	if ( r_postProcess->integer && r_fbo->integer && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) &&
