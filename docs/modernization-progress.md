@@ -24,7 +24,7 @@ Continue #16 on issue/16-audio-engine in
 /home/matt/.cache/aftershock-modernization/audio-tree, branched from main
 0561e0f0446e96f6dca51f86bae56337d6cd23f5. #15 PR170 is merged; its tested and merged
 trees are identical. Do not redo the physics port, accepted fixtures or finished
-network-driver evidence. The first isolated spatial component is implemented; no #16 PR exists yet.
+network-driver evidence. Spatial/HRTF and cooked-event components are implemented and tested; no #16 PR exists yet.
 
 #16 decision: extend the in-house mixer and keep the existing SDL/native device
 backends. Reuse cooked PCM assets and weapon animation-notify deduplication. Add
@@ -48,8 +48,9 @@ Next implement .asevt registration and bounded playback of its cooked
 PCM layers, integrating the tested spatial/HRTF component. Then continue the
 remaining issue scope and runtime acceptance. Record failures before fixes. No maintainer input is currently needed.
 
-Monitor merged-tree #15 build/publication 35658235970 and regression 35658235841.
-After they pass, mark #15 accepted in #25. This does not replace #16's own final
+Merged-tree #15 build/publication 35658235970 passed. Regression 35658235841
+has nine active jobs passing and runtime still running. After runtime passes,
+mark #15 accepted in #25. This does not replace #16's own final
 checks against current main. One issue branch/PR, merge commit only, all required
 checks green; no external repository writes, no force pushes or tag changes.
 
@@ -61,6 +62,27 @@ Never install local system packages, copy game paks, or regenerate accepted gold
 After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
+
+## #16 latest verification
+
+Through bcdabe5d, both new component probes pass with GCC and Clang/libc++ under
+UBSan. The development client/server rebuild passes (audio-build-events.log),
+as do the existing full cooker and authored-schema regressions (audio-cook.log,
+audio-formats.log). Agent-format checking first failed because Go was absent
+from PATH; rerun with the documented private Go toolchain passed. Format (494),
+types (413), boundaries (414), affected/suite contracts and diff whitespace pass.
+No runtime feature claim is made: authored registration, mixing, buses/ducking,
+occlusion, map reverb, bounded streams and functional VoIP still need implementation
+and full gates. No accepted golden/demo changed. Issue #16 checkpoint comment
+5768068520 records scope and evidence.
+
+Next trace registration lifetime and layer sample ownership before wiring playback.
+Existing legacy sample chunks can be evicted and loaded during playback; do not
+claim that reusing a handle guarantees no frame allocation. Reuse existing codec
+and platform paths, but keep prepared authored PCM bounded and retained for active
+voices. Preserve ordinary sample behavior and the existing animation-notify dedup.
+Private current development outputs are in audio-client-build/release-linux-x86_64.
+All private evidence paths here are relative to the modernization cache.
 
 ## #16 authored event cooking
 
