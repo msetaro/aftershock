@@ -62,6 +62,21 @@ After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
 
+## #16 binaural component checkpoint
+
+5981cabe records the missing-API failure for the binaural test
+(private audio-hrtf-before.log). The implementation uses Brown/Duda equations
+2–5, verified against the primary paper, with a causal fractional delay and
+one-pole/zero shadow filter. Per-voice storage is a fixed 512-sample ring and
+trivial state; coefficients are configured outside the sample loop. Supported
+rates are 8–192 kHz and head radius is tunable within 5–15 cm. No pinna/elevation
+or subjective listening validation is claimed. GCC and Clang/libc++ UBSan probes
+pass: impulse arrival, shadow energy, mirrored channels and DC stability.
+Format (491), types (411) and boundaries (412) pass. The component is in CMake,
+CI and affected-test selection; actual mixer integration remains next.
+Merged-tree #15 build/publication 35658235970 passed; regression still has
+lifetime/runtime jobs running, with the other eight active jobs passing.
+
 ## #16 initial spatial contract
 
 Decision recorded on #16 in comment 5767944870; #15 merge report is comment

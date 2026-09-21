@@ -307,6 +307,14 @@ and an empty base. File/cvar/UI operations are isolated by test stubs. Explicit
 `python3 tests/download.py --regenerate` creates the reviewed URL golden; CI never
 regenerates it. `--cc` and `--cxx` select the compiler as in the unit driver.
 
+`python3 tests/audio_spatial.py` checks the authored-audio spatial component
+with UBSan (also accepts `--cxx 'clang++ -stdlib=libc++'`). It covers stereo
+placement, linear/inverse attenuation, radial Doppler, invalid-input rejection,
+and the optional spherical-head filter's impulse delay, head shadow, mirrored
+placement and DC stability at 8–192 kHz. The bounded filter follows the head
+component of Brown/Duda (1998); it does not model individual pinnae or elevation.
+These are component checks, not yet acceptance of authored playback integration.
+
 `python3 tests/audio.py` verifies the native ALSA callbacks have pthread-compatible
 types, submits samples through both MMAP and DIRECT paths to ALSA's `null` output,
 and joins both threads. It needs ALSA development files (`libasound2-dev` on Ubuntu)

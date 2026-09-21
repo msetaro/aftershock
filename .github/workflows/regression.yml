@@ -246,6 +246,7 @@ jobs:
         run: python3 tests/download.py
       - name: Native ALSA thread checks
         run: python3 tests/audio.py
+        run: python3 tests/audio_spatial.py
       - name: Collision and both-map bot goldens
         run: |
           python3 tests/run.py differential --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
