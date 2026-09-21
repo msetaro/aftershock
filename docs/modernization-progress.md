@@ -50,6 +50,13 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 v2 prop contract
+
+The rotated OBJ prop contract fails first because the v2 schema lacks yaw
+(sketch-props-before.log). It also requires solid props to participate in spawn
+clearance. Reuse the existing self-contained OBJ validation, preserve v1 outputs,
+and add v2 placement/collision without changing engine code or accepted fixtures.
+
 ## #164 procedural overlap correction passes
 
 The new coplanar-triangle control passes for every module, and both complete kits

@@ -127,6 +127,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
     assert not solid(below,[96,-352,-8]), 'original ground seals the sunken area'
     assert solid(below,[96,-352,-72]), 'sunken floor is absent'
     changed = copy.deepcopy(level)
+    changed['props'] = [dict(id='dressed_crate',model='models/crate.obj',origin=[-256,256,32],size=[64,64,64],
+                             material='prop',solid=False,angle=30)]
+    dressed = compile(changed,'dressed',full=args.compile)
+    assert b'"classname" "misc_model"' in dressed['map'] and b'"angle" "30"' in dressed['map']
+    changed['props'][0].update(solid=True,origin=[0,-384,32])
+    compile(changed,'blocked-prop',fail='spawn')
+    changed = copy.deepcopy(level)
     changed['shapes'][1]['id'] = 'building_7'
     compile(changed,'duplicate',fail='duplicate')
     changed = copy.deepcopy(level)
