@@ -113,6 +113,9 @@ static void Many( void *, JPH_JobFunction *job, void **arguments, uint32_t count
 	for ( uint32_t i = 0; i < count; ++i )
 		job( arguments[i] );
 }
+static void JPH_API_CALL Trace( const char *message ) {
+	std::fprintf( stderr, "%s\n", message );
+}
 static uint64_t FPControl() {
 #if defined( __SSE__ )
 	return _mm_getcsr() & ~uint32_t( 0x3f ); // Arithmetic status flags may change.
@@ -127,6 +130,8 @@ static uint64_t FPControl() {
 
 static void Replay( int argc, char **argv ) {
 	assert(argc == 3 || argc == 4);
+	const bool tiny = argc == 4 && !std::strcmp( argv[3], "tiny" );
+	assert(argc == 3 || tiny || !std::strcmp(argv[3], "changed"));
 	struct Command {
 		uint32_t step, body;
 		JPH_Vec3 impulse;
@@ -147,7 +152,7 @@ static void Replay( int argc, char **argv ) {
 	}
 	assert(!std::ferror(file) && commandCount);
 	std::fclose( file );
-	if ( argc == 4 )
+	if ( argc == 4 && !tiny )
 		commands[commandCount - 1].impulse.x += 2;
 	JPH::RegisterDefaultAllocator();
 	allocateOriginal = JPH::Allocate;
@@ -165,11 +170,12 @@ static void Replay( int argc, char **argv ) {
 	assert(!JPH_Init() && liveBlocks == 0);
 	JPH::Free = Free;
 	assert(JPH_Init());
+	JPH_SetTraceHandler( Trace );
 	assert(JPH::Allocate == Allocate && JPH::Reallocate == Reallocate && JPH::Free == Free);
 	assert(JPH::AlignedAllocate == Aligned && JPH::AlignedFree == AlignedFree);
 	const JPH_JobSystemConfig jobsConfig = { nullptr, One, Many, 1, 8 };
 	auto *jobs = JPH_JobSystemCallback_Create( &jobsConfig );
-	auto *temporary = JPH_TempAllocator_Create( 16 * 1024 * 1024 );
+	auto *temporary = JPH_TempAllocator_Create( tiny ? 1024 : 16 * 1024 * 1024 );
 	auto *pairs = JPH_ObjectLayerPairFilterTable_Create( 2 );
 	JPH_ObjectLayerPairFilterTable_EnableCollision( pairs, 0, 1 );
 	JPH_ObjectLayerPairFilterTable_EnableCollision( pairs, 1, 1 );

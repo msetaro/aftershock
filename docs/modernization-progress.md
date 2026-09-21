@@ -69,6 +69,15 @@ accepted frame fixtures and shader arrays are unchanged.
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
 
+## #15 temporary-buffer negative control fails before fallback removal
+
+The permanent probe now runs a 1 KiB temporary-buffer case in a child process.
+It requires an explicit TempAllocator exhaustion diagnostic and rejects a heap
+fallback. The baseline instead reports five allocation calls on step 0 and fails
+(physics-temp-before.log). Normal-size runs still pass. Next replace standard
+and legacy-default fallback buffers with fixed-capacity TempAllocatorImpl and
+verify the negative control on both compilers.
+
 ## #15 caller ownership and full restart pass
 
 JPH_Init now preserves a complete caller allocator configuration and rejects a

@@ -5,8 +5,9 @@ import hashlib
 import json
 from pathlib import Path
 import shlex
+import subprocess
 
-from run import ROOT, SCRATCH, run
+from run import ENV, ROOT, SCRATCH, run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cxx', default='g++')
@@ -46,5 +47,9 @@ first, repeat, changed = [path.read_bytes() for path in outputs]
 assert len(first) == 32*7*4, 'one position/quaternion per recorded prop'
 assert first == repeat, 'same ordered commands must reproduce final transforms'
 assert first != changed, 'changed impulse must fail the replay comparison'
+exhausted = subprocess.run([str(probe), str(scene), str(args.output/'tiny.bin'), 'tiny'],
+                          cwd=ROOT, env=ENV, capture_output=True, text=True, timeout=30)
+assert exhausted.returncode and 'TempAllocator: Out of memory' in exhausted.stderr, exhausted.stderr
+assert 'physics step' not in exhausted.stderr, 'temporary exhaustion must not fall back to allocation'
 print('PASS: recorded props, constraints, allocation-free steps and replay negative control',
       hashlib.sha256(first).hexdigest())
