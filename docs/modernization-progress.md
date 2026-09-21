@@ -74,6 +74,17 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 entity and profiler checkpoint
+
+The playthrough now also spawns, edits, reads, lists and deletes an entity through
+the native game's existing developer callbacks. It reads frame-time p50/p95/p99,
+CPU scopes and network counters as JSON. Frame samples use real microseconds in
+a bounded 4096-entry ring; queries sort a POD copy. Mutating entity replies reserve
+capacity before invoking callbacks, lists page at 32 entries. GCC/Clang UBSan
+protocol and the complete two-run Q3 playthrough pass (agent-entities.log).
+Next: capture/camera, raw commands and structured events, then shared panel
+controls and the remaining #163 tooling/CI requirements.
+
 ## #163 first deterministic local playthrough
 
 Map loading, structured player/camera snapshots and high-level input are wired.

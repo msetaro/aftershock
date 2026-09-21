@@ -2,6 +2,20 @@
 #include "../../engine/devtools/dev_agent.cpp"
 #include <assert.h>
 
+const devGameTools_t *DevTools_Game( void ) {
+	return nullptr;
+}
+bool DevTools_SaveEntities( void ) {
+	return false;
+}
+uint32_t DevTools_CpuTimings( const devCpuTiming_t **cpu ) {
+	*cpu = nullptr;
+	return 0;
+}
+const devNetwork_t *DevTools_Network( void ) {
+	static devNetwork_t network;
+	return &network;
+}
 int FS_ReadFile( const char *, void ** ) {
 	return -1;
 }

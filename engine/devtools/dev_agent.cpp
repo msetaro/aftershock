@@ -3,6 +3,7 @@
 #define JSON_IMPLEMENTATION
 #include "../qcommon/json.h"
 #include <charconv>
+#include <algorithm>
 #include <cmath>
 #include <inttypes.h>
 
@@ -10,6 +11,8 @@
 static constexpr uint32_t agentLimit = 16384;
 static bool agentActive;
 static devAgentInput_t agentInput;
+static int64_t agentFrameStart, agentFrameTimes[4096];
+static uint32_t agentSamples;
 static uint32_t agentFrame, agentSteps, agentStepId;
 static int agentTime = 1000, agentDt = 8, agentSeed = 1;
 
@@ -289,7 +292,6 @@ static bool Agent_Integer( const char *request, const char *end, const char *nam
 	return result.ec == std::errc{} && result.ptr == stop;
 }
 
-#ifndef DEDICATED
 static bool Agent_Number( const char *request, const char *end, const char *name, float &value, float minimum, float maximum ) {
 	const char *p = JSON_ObjectGetNamedValue( request, end, name );
 	if ( !p )
@@ -299,6 +301,7 @@ static bool Agent_Number( const char *request, const char *end, const char *name
 	return result.ec == std::errc{} && result.ptr == stop && std::isfinite( value ) && value >= minimum && value <= maximum;
 }
 
+#ifndef DEDICATED
 static bool Agent_Bool( const char *request, const char *end, const char *name, bool &value ) {
 	const char *p = JSON_ObjectGetNamedValue( request, end, name );
 	if ( !p ) {
@@ -367,6 +370,145 @@ static void Agent_State( agentReply_t &reply ) {
 	reply.Text( "}}" );
 }
 
+static void Agent_Profile( agentReply_t &reply ) {
+	int64_t sorted[ARRAY_LEN( agentFrameTimes )];
+	const uint32_t count = MIN( agentSamples, (uint32_t)ARRAY_LEN( sorted ) );
+	memcpy( sorted, agentFrameTimes, count * sizeof( sorted[0] ) );
+	std::sort( sorted, sorted + count );
+	reply.Text( ",\"ok\":true,\"result\":{\"samples\":" );
+	reply.Number( count );
+	reply.Text( ",\"p50_ms\":" );
+	reply.Number( count ? double( sorted[( count - 1 ) * 50 / 100] ) / 1000 : 0 );
+	reply.Text( ",\"p95_ms\":" );
+	reply.Number( count ? double( sorted[( count - 1 ) * 95 / 100] ) / 1000 : 0 );
+	reply.Text( ",\"p99_ms\":" );
+	reply.Number( count ? double( sorted[( count - 1 ) * 99 / 100] ) / 1000 : 0 );
+	reply.Text( ",\"cpu\":[" );
+	const devCpuTiming_t *cpu;
+	const uint32_t scopes = DevTools_CpuTimings( &cpu );
+	for ( uint32_t i = 0; i < scopes; ++i ) {
+		if ( i )
+			reply.Text( "," );
+		reply.Text( "{\"name\":" );
+		reply.String( cpu[i].name );
+		reply.Text( ",\"milliseconds\":" );
+		reply.Number( double( cpu[i].microseconds ) / 1000 );
+		reply.Text( "}" );
+	}
+	reply.Text( "],\"network\":{" );
+	const auto *net = DevTools_Network();
+	char counters[512];
+	snprintf( counters, sizeof( counters ), "\"snapshots\":%" PRIu64 ",\"predictions\":%" PRIu64 ",\"rewindReports\":%" PRIu64 ",\"rewindHits\":%" PRIu64 ",\"incomingBytes\":%" PRIu64 ",\"outgoingBytes\":%" PRIu64,
+		net->snapshots, net->predictions, net->rewindReports, net->rewindHits, net->bytes[0], net->bytes[1] );
+	reply.Text( counters );
+	reply.Text( ",\"predictionError\":" );
+	reply.Number( net->predictionError );
+	reply.Text( ",\"predictionPeak\":" );
+	reply.Number( net->predictionPeak );
+	reply.Text( "}}}" );
+}
+
+static bool Agent_Entity( const char *op, const char *request, const char *end, agentReply_t &reply ) {
+	const devGameTools_t *tools = DevTools_Game();
+	if ( !tools )
+		return reply.Error( "invalid_state", "$", "Load a local native developer map first." );
+	// Mutation responses have bounded fields. Reserve before calling into the game.
+	if ( reply.capacity < 1024 )
+		return false;
+	if ( !strcmp( op, "entity.list" ) ) {
+		uint32_t offset = 0, limit = 32;
+		if ( ( JSON_ObjectGetNamedValue( request, end, "offset" ) && !Agent_Integer( request, end, "offset", offset ) ) || offset >= MAX_GENTITIES )
+			return reply.Error( "invalid_argument", "$.offset", "Use an entity offset from 0 to 1023." );
+		if ( ( JSON_ObjectGetNamedValue( request, end, "limit" ) && !Agent_Integer( request, end, "limit", limit ) ) || limit < 1 || limit > 32 )
+			return reply.Error( "invalid_argument", "$.limit", "Request 1 to 32 entities per page." );
+		reply.Text( ",\"ok\":true,\"result\":{\"entities\":[" );
+		uint32_t count = 0, next = offset;
+		for ( ; next < MAX_GENTITIES && count < limit; ++next ) {
+			devEntity_t entity;
+			if ( !tools->ReadEntity( (int)next, &entity ) )
+				continue;
+			if ( count++ )
+				reply.Text( "," );
+			reply.Text( "{\"entity\":" );
+			reply.Number( next );
+			reply.Text( ",\"classname\":" );
+			reply.String( entity.classname );
+			reply.Text( ",\"origin\":" );
+			reply.Vector( entity.origin );
+			reply.Text( ",\"mins\":" );
+			reply.Vector( entity.mins );
+			reply.Text( ",\"maxs\":" );
+			reply.Vector( entity.maxs );
+			reply.Text( ",\"health\":" );
+			reply.Number( entity.health );
+			reply.Text( ",\"source\":" );
+			reply.Number( entity.source );
+			reply.Text( ",\"linked\":" );
+			reply.Text( entity.linked ? "true" : "false" );
+			reply.Text( "}" );
+		}
+		reply.Text( "],\"next\":" );
+		if ( next < MAX_GENTITIES )
+			reply.Number( next );
+		else
+			reply.Text( "null" );
+		reply.Text( "}}" );
+		return reply.valid;
+	}
+	if ( !strcmp( op, "entity.spawn" ) ) {
+		char classname[64];
+		const char *p = JSON_ObjectGetNamedValue( request, end, "classname" );
+		float origin[3];
+		if ( !Agent_String( p, end, classname, sizeof( classname ) ) || !classname[0] )
+			return reply.Error( "invalid_argument", "$.classname", "Use a supported point-entity class shorter than 64 bytes." );
+		if ( !Agent_Number( request, end, "x", origin[0], -32752, 32752 ) || !Agent_Number( request, end, "y", origin[1], -32752, 32752 ) || !Agent_Number( request, end, "z", origin[2], -32752, 32752 ) )
+			return reply.Error( "invalid_argument", "$", "Provide finite x, y and z coordinates within [-32752,32752]." );
+		const int entity = tools->Spawn( classname, origin );
+		if ( entity < 0 )
+			return reply.Error( "rejected", "$.classname", "Check local cheats, supported spawn classes and entity capacity." );
+		reply.Text( ",\"ok\":true,\"result\":{\"entity\":" );
+		reply.Number( entity );
+		reply.Text( "}}" );
+		return reply.valid;
+	}
+	if ( !strcmp( op, "entity.save" ) ) {
+		if ( !DevTools_SaveEntities() )
+			return reply.Error( "rejected", "$", "Check local cheats, source retention and writable home directory." );
+		reply.Text( ",\"ok\":true,\"result\":{\"path\":" );
+		reply.String( Cvar_VariableString( "dev_entityFile" ) );
+		reply.Text( "}}" );
+		return reply.valid;
+	}
+	uint32_t entity;
+	if ( !Agent_Integer( request, end, "entity", entity ) || entity >= MAX_GENTITIES )
+		return reply.Error( "invalid_argument", "$.entity", "Use an entity id from entity.list." );
+	if ( !strcmp( op, "entity.delete" ) ) {
+		if ( !tools->Delete( (int)entity ) )
+			return reply.Error( "rejected", "$.entity", "Delete a mutable map entity in a local developer map." );
+	} else if ( !strcmp( op, "entity.get" ) || !strcmp( op, "entity.set" ) ) {
+		char key[128], value[1024];
+		const char *p = JSON_ObjectGetNamedValue( request, end, "key" );
+		if ( !Agent_String( p, end, key, sizeof( key ) ) )
+			return reply.Error( "invalid_argument", "$.key", "Provide the name of an editable entity field." );
+		if ( !strcmp( op, "entity.get" ) ) {
+			if ( !tools->ReadField( (int)entity, key, value, sizeof( value ) ) )
+				return reply.Error( "not_found", "$.key", "Choose an existing entity and supported field." );
+			reply.Text( ",\"ok\":true,\"result\":{\"value\":" );
+			reply.String( value );
+			reply.Text( "}}" );
+			return reply.valid;
+		}
+		p = JSON_ObjectGetNamedValue( request, end, "value" );
+		if ( !Agent_String( p, end, value, sizeof( value ) ) )
+			return reply.Error( "invalid_argument", "$.value", "Provide a string shorter than 1024 bytes." );
+		if ( !tools->WriteField( (int)entity, key, value ) )
+			return reply.Error( "rejected", "$.value", "Check field type, entity mutability and local cheats." );
+	} else
+		return reply.Error( "unknown_operation", "$.op", "Use an entity operation from hello." );
+	reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+	return reply.valid;
+}
+
 bool DevTools_AgentRequest( const char *request, uint32_t length, char *response, uint32_t capacity ) {
 	if ( !response || capacity < 2 )
 		return false;
@@ -402,7 +544,11 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"profile\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+	} else if ( !strncmp( op, "entity.", 7 ) ) {
+		return Agent_Entity( op, request, end, reply );
+	} else if ( !strcmp( op, "profile" ) ) {
+		Agent_Profile( reply );
 	} else if ( !strcmp( op, "state" ) ) {
 		Agent_State( reply );
 	} else if ( !strcmp( op, "map" ) ) {
@@ -541,10 +687,12 @@ bool DevTools_AgentNextFrame( void ) {
 			return false;
 	}
 	agentTime += agentDt;
+	agentFrameStart = Sys_Microseconds();
 	return true;
 }
 
 void DevTools_AgentEndFrame( void ) {
+	agentFrameTimes[agentSamples++ % ARRAY_LEN( agentFrameTimes )] = MAX( INT64_C( 0 ), Sys_Microseconds() - agentFrameStart );
 	++agentFrame;
 	if ( --agentSteps == 0 ) {
 		char reply[160];
