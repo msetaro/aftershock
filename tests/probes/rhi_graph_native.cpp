@@ -420,6 +420,54 @@ static void filmCommands() {
 	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
 	RHI_EndPass();
 }
+static VkResult VKAPI_CALL createTemporalPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
+	assert( count == 1 && p->layout == vk.pipeline_layout );
+	assert( p->renderPass == vk.render_pass.temporal[0] || p->renderPass == vk.render_pass.temporal[2] || p->renderPass == vk.render_pass.temporal[3] );
+	assert( p->pMultisampleState->rasterizationSamples == VK_SAMPLE_COUNT_1_BIT );
+	assert( !p->pDepthStencilState->depthTestEnable && !p->pDepthStencilState->depthWriteEnable );
+	assert( !p->pColorBlendState->pAttachments[0].blendEnable );
+	*out = (VkPipeline)(uintptr_t)99;
+	return VK_SUCCESS;
+}
+static void temporalCommands() {
+	qvkCreateGraphicsPipelines = createTemporalPipeline;
+	for ( int i = 0; i < 3; ++i )
+		vk_create_post_process_pipeline( 12 + i, 640, 480 );
+	uint8_t upload[512]{};
+	vk.cmd->vertex_buffer_ptr = upload;
+	vk.cmd->uniform_read_offset = 32;
+	vk_config.uniformBytes = sizeof( rhiTemporal_t );
+	vk.uniform_item_size = 256;
+	vk.geometry_buffer_size = sizeof( upload );
+	rhiTemporal_t uniform{};
+	uniform.settings[0] = 1;
+	uniform.settings[1] = 1;
+	uniform.viewport[2] = 640;
+	uniform.viewport[3] = 480;
+	RHI_ResetTemporal();
+	for ( uint32_t frame = 0; frame < 3; ++frame ) {
+		vk.cmd->vertex_buffer_offset = 0;
+		occlusionDraws = restoredSets = 0;
+		RHI_BeginMainPass();
+		assert( RHI_BeginTemporal( &uniform ) );
+		assert( occlusionDraws == 1 );
+		const auto *copied = (const rhiTemporal_t *)upload;
+		assert( copied->settings[1] == ( frame ? 1 : 0 ) );
+		RHI_ResolveTemporal();
+		assert( occlusionDraws == 3 && restoredSets == 0x0b );
+		assert( vk.temporal_history == ( ( frame + 1 ) & 1 ) );
+		assert( vk.temporal_valid && vk.cmd->uniform_read_offset == 32 );
+		assert( vk.cmd->descriptor_set.start == ~0U && vk.cmd->descriptor_set.end == 0 );
+		RHI_EndPass();
+	}
+	RHI_BeginMainPass();
+	vk.cmd->vertex_buffer_offset = sizeof( upload );
+	assert( !RHI_BeginTemporal( &uniform ) );
+	assert( !vk.temporal_valid && vk.temporal_history == 1 );
+	RHI_EndPass();
+	RHI_ResetTemporal();
+	assert( !vk.temporal_valid && vk.temporal_history == 0 );
+}
 int main( int argc, char **argv ) {
 	if ( argc == 2 && !strcmp( argv[1], "--hdr" ) ) {
 		const VkFormat base = VK_FORMAT_R8G8B8A8_UNORM;
@@ -569,6 +617,8 @@ int main( int argc, char **argv ) {
 				particleCommands();
 			if ( post )
 				filmCommands();
+			if ( temporal )
+				temporalCommands();
 		}
 	}
 }
