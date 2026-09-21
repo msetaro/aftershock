@@ -2,6 +2,7 @@
 """Check download URLs and curl options without network access."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import subprocess
 
@@ -12,7 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cc', default='gcc')
     parser.add_argument('--cxx', default='g++')
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-download-tests'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-download-tests'))
     parser.add_argument('--regenerate', action='store_true')
     args = parser.parse_args()
     args.output = args.output.resolve()

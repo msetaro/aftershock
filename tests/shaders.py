@@ -8,6 +8,7 @@ import struct
 import importlib.util
 import tempfile
 from pathlib import Path
+from run import SCRATCH
 import subprocess
 import sys
 
@@ -17,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--compiler', required=True, help='glslang 16.6.0 executable')
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-shader-tests'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-shader-tests'))
     args = parser.parse_args()
     for mode in ('cached', 'compiled'):
         command = [sys.executable, 'tools/shaders/build.py', '--output', str(args.output / mode)]

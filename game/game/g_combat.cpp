@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // g_combat.c
 
 #include "g_local.h"
+#include "../../engine/public/dev_public.h"
 
 static int deathAnimationIndex;
 
@@ -451,6 +452,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	if ( level.intermissiontime ) {
 		return;
 	}
+
+	Dev_AgentEvent( "kill", attacker ? attacker->s.number : -1, self->s.number, meansOfDeath, "player death" );
 
 	// check for an almost capture
 	CheckAlmostCapture( self, attacker );
@@ -1031,6 +1034,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	// do the damage
 	if ( take ) {
 		targ->health = targ->health - take;
+		Dev_AgentEvent( "hit", attacker ? attacker->s.number : -1, targ->s.number, take, "damage applied" );
 		if ( targ->client ) {
 			targ->client->ps.stats[STAT_HEALTH] = targ->health;
 		}

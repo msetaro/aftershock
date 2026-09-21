@@ -20,15 +20,46 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active implementation: issue/14-lighting in
-/home/matt/.cache/aftershock-modernization/level-tree. Native receiver shading and
-the shadow-only atlas scissor correction now pass rendered point/spot/sun checks.
-Main 782c0dbc is merged forward. Mask/animated-caster/module-restart
-checks now pass. Reflection baking/application now passes smooth/rough/toggle/restart checks.
-SSAO graph, rendered, module and restart checks pass; reference-GPU acceptance is
-recorded below. Next validate the hosted module configuration correction, finish
-current-main hosted gates and self-review, then ready/merge PR #165. Fresh #25 now orders #163, then #164, then #161
-after #14; follow that updated sequence. Do not claim full #14 acceptance or regenerate accepted references.
+Active worktree: /home/matt/.cache/aftershock-modernization/agent-tree, branch
+issue/163-agent-interface, draft PR166 into main. Main/base is 4ade5c3a; recheck
+it immediately before final gates and merge. #14 PR165 is accepted: exact-head
+build 35553788956/regression 35553788957 and merged build/publication 35555156611 /
+regression 35555156633 all pass. Six platform archives are published in this
+repository, #14 is checked in #25, and known-good is unchanged. Its retained
+worktree /home/matt/.cache/aftershock-modernization/level-tree is historical.
+
+#163 has a private NDJSON pipe, typed bounded replies, seeded explicit steps,
+map/player/camera/input controls, entity CRUD/save/reload/picking, native PNG,
+shared World/Animation/Graph/Range/material controls, registry and authoritative
+actor queries, CPU/GPU/memory/network telemetry and error/warning/hit/kill hooks.
+All five original editor tests plus material/cooker drivers use structured
+commands. Q3/OA deterministic playthroughs and panel checks pass. Source-reload
+checks also pass with an OA renderer module; no screen-click calls remain in
+test drivers. Shipping exclusion passes in the full devtools rebuild. Legacy
+accepted goldens and source assets are unchanged.
+
+Next: wait for the final documentation checkpoint's hosted checks to all pass,
+recheck PR166 base and current main, mark ready, and merge with a merge commit.
+Then verify merged main build/publication/regression, close/check #163 in #25,
+and continue #164 -> #161 -> #15 through #25. No maintainer input is needed.
+PR166 stays draft until its final head is green. Metadata, root isolation, local
+suite catalog, affected-test selection and all seven handbook recipes are complete.
+
+Functional head c56bde87f4ec73f83bf9ddcc1ddeeaff74cc9ab7 passes build 35567139821
+(all 16 compiler legs) and regression 35567139815 (all ten required active variants).
+Both complete local suites at that same head also PASS, started together from
+clean detached worktrees agent-suite-a and agent-suite-b. Each ran all ten job
+variants / 96 workflow steps, including runtime/module checks and independent
+private-kind lifecycles. Both worktrees remained clean. Their full reports and
+logs are under /home/matt/.cache/aftershock-modernization/agent-suite-{a,b}-c56bde87.
+The final checkpoint changes documentation only; its exact-head hosted gates still
+must pass before merge. Earlier failed/partial runs below are not acceptance.
+Main remains 4ade5c3a9cad9cd71a04ca2641db2f74b8355774, rechecked after both runs.
+Known-good tag object/target are unchanged; recheck immediately before merge.
+
+All existing exclusions remain in force. Nothing leaves msetaro/aftershock;
+shipping binaries exclude this tooling. No PR against another repository, no
+history rewriting, no accepted golden regeneration, no known-good tag changes.
 
 #160 repair PR #162 merged into main as
 782c0dbc51e4acf119ccce49a69301408dac1ae7 after exact f04e87c3 passed build
@@ -51,6 +82,629 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 full concurrency acceptance
+
+Both c56bde87 full-suite processes exited 0, with full=true, ok=true, dirty=false
+and ten successful jobs each. Sequential step time totals are 1724.5s / 1723.7s;
+the runs started simultaneously and shared only immutable/pinned tool caches.
+Report SHA-256 values:
+
+- A: 5e0bf78d8038a3f0d3f6e2c0484e9187b9e5c2ca13fbee0e4868f9b7ad72b045
+- B: 639c3966d41184ec502f3cef6f28e158d7079fbc0318e9dade78f8e86d40b741
+
+The runtime recipe steps pass after installing their prerequisites; no system
+packages were installed locally. GCC/clang, sanitizer, lifetime, boundary, shader,
+unchanged golden, headless runtime, cross-build and match lifecycle gates all ran.
+All original accepted goldens and the immutable known-good tag remain unchanged.
+Self-review is recorded below. Final documentation-only head still needs its own
+hosted checks before readiness/merge; a passing older head is not substituted.
+
+## #163 corrected full runs started
+
+Both completed 7342518d runs passed format, tidy, lifetimes, sanitizers, both cross
+builds and simultaneous private-kind match lifecycle, but each failed both unit
+variants and runtime on the duplicate interpreter path. Corrected independent
+GCC and clang job runs pass (agent-suite-python-gcc.log and clang result in
+agent-suite-python-unit/suite-report.json); these are explicitly partial runs.
+
+Fresh complete runs started together in clean detached worktrees at c56bde87.
+Their reports and logs are under agent-suite-{a,b}-c56bde87. PR166 remains draft;
+monitor these and fresh hosted gates, record acceptance, then recheck current main
+and known-good before readiness/merge. No accepted golden changed.
+
+## #163 local runner correction and hosted prerequisite order
+
+The interpreter execution contract now passes: only bare python3 tokens are
+replaced, leaving selected absolute interpreter paths intact. Both corrected
+unit variants get through cooking; clang's complete local job passes. The GCC
+spot run omitted the documented --glslang argument and failed its pinned compiler
+check; rerun with the installed 16.6.0 path, without altering shader references.
+
+Hosted 7342518d passes every active job except runtime's handbook step, which
+runs before the existing level requirements installation and lacks libarchive-c
+(agent-recipes-ci.log). Move that step after the headless level checks; the same
+commands then have their prerequisites. No engine change is needed. Earlier
+concurrent runs also pass both cross builds and are completing private kind;
+three jobs in each failed on the already reproduced interpreter substitution.
+Fresh complete concurrent/hosted runs are still required; PR166 remains draft.
+
+## #163 full-run runner failure and reproducer
+
+Both simultaneous clean 7342518d runs pass format, tidy, lifetime analysis and
+sanitizers, but both unit variants fail when the local runner transforms the
+cooker Python command into /usr/bin//usr/bin/python3. Their remaining jobs continue
+for diagnostics; these failed suites are not acceptance. The new suite contract
+executes the rendered Python command and fails first (agent-suite-python-before.log).
+Limit bare-python substitution so an already selected absolute interpreter path
+is not rewritten. Fresh full concurrent runs remain required after correction.
+
+Hosted older 2626372d runtime also failed its handbook step on system Pillow,
+confirming the selected-interpreter defect already fixed in 7342518d
+(agent-old-recipes-ci.log). Current 7342518d has all 16 compiler legs green;
+its latest hosted runtime remains pending. No red/skipped required check is accepted.
+
+## #163 final self-review checkpoint
+
+The client uses one request deadline across events, and recipe subprocesses inherit
+the selected Python environment. All seven recipes pass from a private venv
+(agent-recipe-python.log); OA seeded play and the CLI route/fire/capture/error
+controls pass (agent-reviewed-play.log / agent-reviewed-cli.log).
+
+Self-review: changes match #163; channel/PNG/assertion hooks are development-only;
+input uses normal usercmds; simulation FP expressions and accepted goldens remain
+unchanged; no core non-trivial lifetime or per-frame allocation is added; platform
+owns pipe I/O. Shared UI commands and typed queries replace pixel-click tests.
+Authoring effect support remains explicitly schema-only until #161.
+
+The two 2626372d local runs passed format/tidy and were stopped during lifetimes
+because review changed their head. They are not acceptance. Restart both complete
+runs on the reviewed head in clean worktrees, retaining these earlier logs. Main
+and immutable known-good tag were rechecked unchanged; repeat that check before
+merge. Fresh hosted gates and the two final full passes remain required.
+
+## #163 pinned recipe interpreter control
+
+The recipe harness launched through a private venv fails the new prefix check:
+its shell commands fall back to system python3 (agent-recipe-python-before.log).
+Prepend the selected interpreter's bin directory to the recipe PATH so hosted
+recipes inherit the same pinned cooker environment. The client total-deadline
+control now passes with the ordinary stdout/stderr launcher contract.
+
+## #163 client deadline test-first checkpoint
+
+The client contract proves that queued events currently restart request timeout
+instead of consuming its total budget (agent-client-deadline-before.log). Use one
+monotonic deadline per request. Both concurrent baseline runs have now passed
+format and tidy and are in lifetime analysis; latest hosted 2626372d compiler
+workflow 35565832968 passes. No later head has final full-suite acceptance yet.
+
+## #163 critical-event correction verified
+
+The shared event function now flushes a full queue before accepting either error
+or assert. Both GCC and clang/libc++ controls pass with exactly one dropped warning
+and the critical event retained; release assertion objects still match. Pending
+concurrency runs use the previous head and are not final acceptance.
+
+## #163 concurrent runs and shared critical-event review
+
+Two clean detached worktrees agent-suite-a and agent-suite-b are running the full
+ten-variant suite concurrently at 2626372d, with separate roots ending
+agent-suite-{a,b}-2626372d. Both format jobs pass; static analysis is running.
+No accepted golden diff exists and known-good tag object/target remain unchanged.
+
+Review of every critical-event caller found the same full-queue loss for engine
+errors. The new error control fails first (agent-error-queue-before.log). Move
+queue flushing into the shared error/assert path rather than treating assertions
+specially. Fresh final-head concurrency acceptance remains required after this
+correction; current runs are useful prerequisite/coverage evidence only.
+
+## #163 pre-concurrency review checkpoint
+
+Fatal assertions now flush the pending event queue before their own report. GCC
+and clang/libc++ full-queue controls pass, preserve one dropped-warning report,
+and retain identical release assertion objects. The unused XInput click helper
+and pointer-coordinate bookkeeping are removed; no active test calls click.
+Formatting and diff whitespace checks pass. Next run all ten local regression
+variants simultaneously in two clean worktrees, then review fresh hosted gates.
+
+## #163 assertion delivery self-review
+
+A new full-queue assertion control fails first: 257 queued warnings cause the
+fatal assertion event to be dropped (agent-assert-queue-before.log). This is an
+unmerged #163 channel defect. Flush pending events before queuing the fatal report,
+then flush it before abort. Preserve the explicit overflow count and release
+assertion object identity. This does not alter shipping error handling.
+
+## #163 executable handbook checkpoint
+
+All seven handbook recipes pass with OA development binaries (agent-recipes.log):
+new weapon cook/probe, owned level compile/headless report, glTF import, effect
+schema-only contract, deterministic prediction report, private Git bisect, and
+local annotated tag creation after recorded green main checks. Red/skipped jobs
+and existing tags fail without tag replacement. No real repository tags change.
+
+AGENTS links to the handbook and tests reference instead of retaining its growing
+command list. Format CI checks every shell block; runtime CI executes them after
+building the development server in the pinned cooker environment. Workflow lint,
+suite catalog and affected-selector contracts pass. Full simultaneous worktree
+runs remain pending; the recipe smoke is not full-suite acceptance.
+
+## #163 handbook test-first checkpoint
+
+The handbook contract requires executable shell blocks for seven task recipes and
+fails first because docs/agents/add-weapon.md is absent (agent-recipes-before.log).
+Runtime CI will execute authoring/playtest commands with owned source fixtures and
+installed OA. Git bisect/tag commands run against a private tiny Git history and
+recorded API shapes, including red/skipped-check and existing-tag negative controls;
+the test never mutates repository rollback tags or publishes anything.
+
+## #163 fast-feedback selector
+
+`python3 tests/affected.py BASE_REF` includes committed, staged, unstaged and
+untracked paths. Composing prefix mappings select existing asset-independent
+probes; unknown paths are named and fall back to core/boundary checks. The default
+600-second total budget retains logs/report, exits 1 on failure and 2 on timeout
+or remaining checks. `--list` explains commands without running. This is explicitly
+partial feedback, never merge acceptance. The contract passes including process
+timeout and nonzero exit controls; actual HEAD feedback passes (agent-affected.log).
+Format CI executes the selector contract. Executable handbook recipes remain next.
+
+## #163 graph metadata and affected-test checkpoint
+
+Graph Preview/Source/Tables selection and all displayed record tables now share
+loaded editor state. Queries page typed parameters/states/transitions/conditions/
+events/nodes/masks/joints; no new asset parser or source reload. Q3 and OA editor
+round trips pass, as do GCC and clang/libc++ protocol/assertion/release-object
+checks and formatting. No accepted asset or golden changes.
+
+The affected-test contract fails first on missing tests/affected.py
+(agent-affected-before.log). Implement conservative changed-path mapping, a stated
+600-second default total budget, retained logs, and explicit incomplete status.
+Full suites and hosted gates remain mandatory for merges.
+
+## #163 graph tables test-first checkpoint
+
+The graph editor contract now checks subtab selection and every displayed table
+with one-record pagination. It first fails on the rejected tab action against
+185b6723 (agent-graph-table-before.log). Implement read-only typed views over the
+already loaded graph; do not reload or reinterpret the authoring source.
+
+## #163 shared cvar controls
+
+Cvar listing now returns bounded pages with values/defaults/descriptions/flags.
+The channel and UI share cvar selection and cvar/image/material filter state.
+Material asset replies include each stage's presence, state bits and texture IDs.
+Native protocol/assertion/release-object checks and Q3 devtools runtime pass;
+OpenArena devtools and material UI runtime checks also pass. Graph table queries/subtabs
+remain next, followed by affected-test selection and executable handbook recipes.
+
+## #163 editor metadata test-first checkpoint
+
+The extended devtools runtime check fails against the previous development binary
+with unknown_operation for cvar.list (agent-metadata-before.log). Add paged cvar
+metadata, shared filter/selection controls, and material stage metadata to the
+existing command layer; preserve normal Cvar_Set2 permission handling. Latest
+2d013965 compiler workflow 35564020843 passes; active regression legs pass except
+runtime, which is still running. PR166 remains draft.
+
+## #163 local-suite catalog checkpoint
+
+`tests/suite.py` derives all ten active regression job variants and their actual
+test commands from regression.yml. Local prerequisite installation is omitted;
+tests are retained, conditional matrix legs are selected explicitly, and commands
+are parsed as Bash before acceptance by suite_contract.py. Each job gets its own
+root and per-step logs/report. Optional --job filtering marks full=false. Timeouts
+terminate the step's process group. The local format job passes through this
+runner (agent-suite-format.log); no full concurrent-run claim is made yet.
+
+## #163 full-suite runner test-first checkpoint
+
+The local suite catalog contract fails first because tests/suite.py is absent
+(agent-suite-before.log). Reuse the active regression workflow's actual commands
+and ten job variants, with local preinstalled prerequisites and isolated roots,
+rather than maintaining a second divergent test list. The catalog must retain all
+test commands. Use it for the required simultaneous runs in two worktrees after
+remaining feature edits are complete; hosted compiler gates still remain required.
+
+## #163 schema CI correction
+
+Schema head 84da36a8 build 35563076825 passes. Runtime 35563076817 fails in
+schema-to-animation parity because its early system Pillow lacks ImageMath's
+lambda_eval. Run that contract in the existing pinned cooker venv after installing
+its requirements. The local pinned-Pillow contract passes; this is a CI dependency
+ordering correction. No engine or source-data change is needed. Fresh hosted gates
+remain required; the failed runtime is not acceptance.
+
+## #163 isolation migration in progress
+
+The scratch root helper passes concurrent creation, inherited temporary paths,
+explicit roots with spaces and exclusive pinned-tool installation. Fixed defaults
+in 61 Python test modules now derive from it. CI exports one root per job; test
+subprocesses share it. Mutable cooker builds also live beneath that root, while
+pinned tool installs are serialized before reuse. The new check_isolation gate
+rejects active code's fixed temporary paths and tests its negative control.
+
+Local Compose now chooses private project names and Docker-assigned published
+ports; explicit --port remains available. Kubernetes generation accepts/chooses a
+private namespace and its acceptance driver passes that namespace consistently.
+Unit goldens/negative control, complete cooker, OA CLI, formatting and workflow
+lint pass (agent-isolation-*.log). The local private kind acceptance passes
+(agent-isolation-kind.log): allocation, native player, final ingest and replacement. All legacy accepted artifacts
+remain unchanged. The two-full-suite concurrency acceptance and handbook remain;
+this is not final #163 acceptance.
+
+## #163 isolation test-first checkpoint
+
+The shared scratch-root contract fails first because tools.scratch does not yet
+exist (agent-isolation-before.log). It requires separate roots for concurrent
+invocations and inherited temporary directories below an explicitly supplied root,
+including paths with spaces. Next replace fixed test outputs, preserve intentional
+within-suite build reuse through one exported root, and verify simultaneous suites.
+Xvfb already uses automatic displays and loopback tests mostly allocate OS ports;
+audit remaining defaults and writable shared build caches as part of this change.
+
+## #163 authored-schema checkpoint
+
+`tools/agent describe` emits schemas/examples for level, weapon, animation,
+material, effect and match-spec. `validate` reports file/JSON-path/type/range/hint
+errors. Structural/range boundaries are checked against production Python loaders
+and the actual Go match-spec source; existing owned sources validate. The cooker
+and level tools use these schemas before compiling, retain semantic/resource
+checks, and emit structured diagnostics. The watcher test now checks the error
+object and verifies the previous published revision remains intact.
+
+Effects are explicitly authoring-only until #161 supplies the runtime/cooker;
+this is a schema contract, not a claim that effects render. Material recipes
+still choose legacy/PBR. Schemas cannot encode resource relationships or all
+cross-field geometry checks; the real loaders retain that responsibility.
+
+Local agent-formats, cooker, weapon, animation, PBR material, level and owned match
+package checks pass (agent-format-*.log). The accepted MAP and owned package bytes
+are unchanged. The match Docker image builds locally as aftershock-match:issue163
+with the schema dependency; it is not published. CI installs the dependency in
+each consuming environment and runs the six-format/loader check. Changes to the
+schema source participate in the cook recipe hash. Fresh full hosted gates remain
+required before readiness; no fixture regeneration or shipping engine changes.
+
+## #163 schemas test-first checkpoint
+
+The six-format describe/validate contract fails first on the missing describe
+subcommand (agent-formats-before.log). It requires a valid JSON Schema and minimal
+example for each kind, plus a deliberately invalid file reported with its file,
+JSON path and expected type/range. Schemas will be checked against existing
+loaders; semantic asset/geometry checks remain in those loaders. Effects have no
+runtime loader until #161: define an explicitly authoring-only versioned contract
+here and keep runtime/cooker support in #161, without claiming effects render.
+
+## #163 CLI and gameplay checkpoint
+
+The CLI now builds a Debug developer client when --binary is omitted, validates
+playtest JSON before launch, walks bounded waypoints through normal input, tracks
+live targets while firing, captures PNGs and checks hit/kill/error/assert/warning/
+p99 limits. It retains report.json and engine.log on failure. Its JSON Schema
+uses the existing distribution jsonschema package; hosted runtime installs it.
+The example and tests share tools/agent/examples/playtest.json. Q3 and OA pass
+three captures, route displacement, real moving-target hits and both negative
+controls (agent-cli.log / agent-cli-openarena.log). The exact one-command default
+build also passes in a fresh directory (agent-cli-built.log and report.json).
+
+The permanent playthrough additionally shoots a paused ordinary bot using normal
+rail damage/death; Q3 module and OA static runs confirm correlated hit/kill actor,
+target, frame and time (agent-hit-modules.log / agent-hit-openarena.log). OA's
+spawn has an obstruction on the +X side; its encounter setup teleports to the
+clear -X side instead. No simulation expressions change. CI runs the CLI on its
+existing developer build. actionlint reports only the three pre-existing
+matrix.cc references in non-matrix cache keys; this checkpoint does not claim a
+clean actionlint run. Full new-head hosted acceptance remains pending.
+
+## #163 CLI test-first checkpoint
+
+The one-command driver contract now requires a walked waypoint, tracked target
+fire, hit/error/assert/p99 assertions, three real PNGs, a retained failure report,
+and file/JSON-path diagnostics. Before implementation it fails because tools/agent
+has no __main__ (agent-cli-before.log). Gameplay event acceptance independently
+confirms normal rail damage/death on Q3; the OA encounter setup still needs a
+clear firing position. No engine behavior or accepted fixtures are changed.
+
+## #163 assertion checkpoint
+
+The test-first native assertion contract failed with no event before abort
+(agent-assert-before.log). Development debug Q_ASSERT now reports through a
+trivial callback before standard assert aborts. Renderer modules receive that
+callback through their existing import table (development ABI 20; shipping 15
+unchanged). No allocation or OS access is added. GCC and Clang/libc++ verify one
+flushed event and SIGABRT, and compare release object bytes against standard
+assert exactly. The tidy controls use the actual macro and reject side effects.
+Full tidy passes 1,286 configurations (agent-tidy.log). Debug seeded playthroughs
+pass with static and module renderers (agent-debug-play.log and
+agent-debug-modules-play.log). No accepted fixtures change.
+
+## #163 character reload / telemetry checkpoint
+
+The last pixel-click driver, cook_runtime.py, now uses explicit frames, shared
+animation controls and structured asset reload/memory counters. It preserves
+watched texture-to-render latency below one second, changed model pose at the
+same handle/frame, renamed clip, repeated material reloads without memory growth,
+idle UI allocation checks and video restart. Captures sample the reported preview
+rectangle with prior pixel thresholds. Q3/OA static and OA module runs pass
+(agent-cook.log, agent-cook-openarena.log, agent-cook-modules.log).
+
+Profile replies now include GPU scopes, all tagged/hunk memory and remaining
+bounded network telemetry. GCC -Wshadow and Clang/libc++ command probes pass.
+MSVC's conservative analysis on f7c3d616 flagged registry records behind the
+kind-selected callback; explicit zero initialization resolves its C4701 warning.
+The new GPU count and preview-enabled parameter also avoid shadowing. Hosted
+runtime 35560464259 has advanced beyond the prior startup failure; final fresh
+compiler/regression gates remain required. No screen-click calls remain in test
+drivers. Dedicated channel checks are now wired after the CI server build.
+
+## #163 material controls checkpoint
+
+Assets queries copy the existing image/material/model registries with bounded
+pagination and filtering. Selection and PBR shared/preview edits use the same
+functions as ImGui. Model preview state includes its viewport rectangle.
+Both material test variants pass on Q3 and OA: source metallic/roughness/normal/
+emission/mask/blend/unlit changes, exact restoration, and shared/instance factor
+round trips (agent-material-{ui,runtime}*.log). Original image thresholds remain;
+the sample disc derives from viewport/framing. Offline recooking waits for
+structured reload counters rather than wall-time guesses or console regex.
+
+The temporary agent_panels.py contract is folded into devtools.py and
+dev_world_ui.py; coverage for explicit frame selection remains in devtools.
+Both native command probes, boundaries, format and the wrapper contract pass.
+CI now explicitly installs Pillow for new early runtime PNG checks and runs the
+seeded local playthrough on its already-built developer client. Output artifact
+patterns use PNG for migrated tests. Remaining pixel input is cook_runtime.py;
+netcode_runtime uses named keys, not screen clicks. Final full gates still pending.
+
+## #163 inspector lifecycle checkpoint
+
+Named key requests queue ordinary SE_KEY events; actual key handling, bindings
+and held-key release on overlay reopen are unchanged. Structured editor state
+exposes arena/allocation counters and capture/enabled flags. The rewritten
+devtools test passes on Q3 and OA with panel captures, 80 allocation-free idle
+frames, video restart, animation and bound-key release. Its full OA rebuild also
+verifies shipping excludes UI/channel symbols and development includes them
+(agent-devtools.log / agent-devtools-full.log). Native protocol GCC/Clang-libc++,
+format and boundaries pass. All five original editor drivers are now migrated;
+material runtime still has pixel input and needs shared material/asset controls.
+
+Hosted runs 35559027970 and 35559673071 fail before the first channel reply.
+The new diagnostic identifies the ordinary Q3 startup banner. Root cause:
+Ubuntu Noble's official xvfb-run redirects its child's stderr to stdout; the
+local newer script preserves them. Running the Noble script locally reproduces
+the identical error (agent-xvfb-before.log). tests/agent_client.py also fails first
+with a tiny wrapper reproducing that documented stream redirection. The launcher now redirects engine stderr from inside the wrapper, with quoted
+arguments and append-only logs. The permanent wrapper test passes, as does the
+full seeded playthrough under the actual Noble script (agent-xvfb.log). This
+corrects the launch integration; strict JSON validation stays enabled. The unit
+CI legs now run the wrapper contract too. Official source inspected:
+https://git.launchpad.net/ubuntu/+source/xorg-server/plain/debian/local/xvfb-run?h=ubuntu/noble
+
+Build 35559673078 catches MSVC int-to-float conversions in the graph/animation
+play ternaries. Use explicit float literals. These hosted heads remain unaccepted.
+Material UI and recook variants now pass locally, including normal-map response.
+The migrated driver waits for structured reload counters after offline cooking.
+Its sampled disc derives from the reported viewport and preview FOV/framing,
+retaining the original pixel-difference and exact-round-trip checks. OA validation also passes for both material variants; the material commands are
+ready for their implementation checkpoint. Continue the remaining cooker test.
+
+## #163 Range and actor-state checkpoint
+
+Range actions now share the existing queued control path with ImGui, including
+inspect/target/slot/fire/reload/melee/offhand/ADS/attachments/restart/capture.
+The actor query uses optional native-game read callbacks: both hands' complete
+weapon state, selected definition/attachments and graph state, plus both body/rig
+animation states. Responses identify server authority; inactive records are null.
+These read-only copies are development-only; no simulation expressions change.
+
+Q3 and OA pass the rewritten Range test: panel render, existing moving target,
+data-defined second slot, spent ammo, active/completed reload, ADS and animation
+state (agent-range*.log). GCC/Clang-libc++ UBSan protocol, boundaries and format
+pass. Hosted panel head 5dfdf535 caught MSVC C4456 for nested numeric locals;
+renaming the request-id parse result removes that shadow. A fresh full build is
+required; this failed head is not accepted. The test probe also gained the new
+read-only view-client stub. CI retains Range output explicitly until the global
+scratch migration, matching the other migrated editor tests.
+
+## #163 world controls checkpoint
+
+World/entity placement, crosshair picking, selection and reload now use shared
+functions; the picker and simulation math are unchanged. Q3/OA World checks pass
+with visible lines and labels and 640x480 PNGs (agent-world*.log). Entity reload
+passes using its dedicated shared action. Native GCC/Clang-libc++ UBSan,
+boundaries and formatting pass. CI explicitly supplies its existing retained
+output locations for the migrated tests, preserving dependent build reuse until
+the required workflow-wide scratch migration; PNG artifact patterns replace TGA.
+No accepted image goldens are changed. Next: Range/remaining panel actions and
+complete runtime queries, then finish #163 isolation/tools/schemas/recipes.
+
+## #163 entity test checkpoint
+
+tests/dev_entities.py now uses channel requests and structured entity fields.
+Q3 and OA pass (agent-entity-reload*.log), including all original/unknown map keys,
+spawn/edit/delete, angle/angles aliases, numbered saves and reload equivalence.
+The World panel rewrite is test-first: shared placement, crosshair picking,
+selection, wireframes and projected labels; absent entity.at_camera fails before
+implementation (agent-world-before.log). No fixed screen coordinates remain in
+that rewritten test. The earlier 5af3024b hosted regression has passed nine
+required jobs; runtime is still running, and none is accepted as final #163 gates.
+
+## #163 graph editor checkpoint
+
+Graph commands now share load/source/text/save/undo/play/reset/parameter functions
+with ImGui and the existing developer console command. IO stays queued inside
+Com_Frame, outside ImGui calls. Structured graph state includes preview state,
+event, time, dirty/play flags and stable IO result codes, avoiding log parsing.
+The request limit is 512 KiB so the existing 65535-byte source editor fits even
+when JSON escaping expands each source byte; buffers remain static and bounded.
+No game simulation arithmetic or accepted fixture changes.
+
+The rewritten tests/animation_editor.py passes for Q3 and OA, preserving the
+original source backup, watched cook revision and changed ADS preview. The PNG
+was visually reviewed. GCC/Clang-libc++ UBSan protocol, boundaries and formatting
+pass. Original click coordinates, console regex and fixed output default are
+removed from this test; legacy tests/panels remain to migrate.
+
+## #163 shared panel checkpoint
+
+World and Animation controls now share bounded functions between the panel and
+JSON channel. Asset loading and world rebuilding remain queued inside the normal
+frame, outside ImGui calls. Structured editor state reports the selected panel,
+rendered frames/lines/labels, world flags and animation model/frame/previews.
+The pre-implementation panel test failed on missing panel; it now passes on Q3
+and OA without X11 clicks. Native GCC and Clang/libc++ UBSan contracts, boundaries
+and formatting pass. This is the first panel slice; Graph, Range, asset controls
+and the existing five click-driven test rewrites remain required.
+
+## #163 raw input / camera checkpoint
+
+Raw commands accept bounded movement/buttons/weapon/16-bit angles while the
+normal usercmd path owns serverTime. The same seeded snapshots remain identical.
+Camera pose control overrides cgame view construction before entity presentation,
+and the local server snapshot uses that camera for visibility/relevance. The
+player's simulation position is unchanged; switching back restores its view.
+Renderer area bits are computed for the camera immediately, even before the next
+snapshot arrives. Q3 and OA extended playthroughs pass
+(agent-camera.log and agent-camera-openarena.log). Exact camera assertions use
+integer coordinates so the test does not compare Python float64 addition with
+expected engine float32 rounding. No existing simulation expression is rewritten.
+
+The GCC 14 CI probe exposed an argument modified after setjmp in Com_Frame. The
+new mode now uses a separate immutable condition, leaving noDelay untouched.
+The developer-data reproducer passes (agent-devtools-data.log), as do the current
+Clang/libc++ UBSan protocol, boundaries and formatting. Fresh hosted gates remain.
+
+## #163 structured events / compiler checkpoint
+
+Native error, renderer-warning, applied-damage and player-death hooks feed a
+bounded event queue only in agent mode; subscribers receive JSON events between
+request/reply messages. Overflow is explicitly reported. A Com_Error fails the
+pending step and stops its remaining frames; fatal errors flush events before
+shutdown. The ordinary developer `error drop` test emits exactly one error event,
+fails the step with engine_error, and leaves the process queryable with no active
+player. This test requires +set developer 1 because that ordinary command is
+registered only in developer mode. No new error-injection command was added.
+
+PNG/TGA images captured in the same frame match pixel-for-pixel. The full Q3
+playthrough, Clang/libc++ UBSan protocol, boundaries and format pass
+(agent-events.log). The raw-input/camera extension fails first on missing usercmd
+(agent-camera-before.log). It requires direct command fields and a pose override
+that restores the player camera. Hit/kill hooks still need gameplay acceptance; assert
+events remain to implement. Draft PR166 remains incomplete. Portable conversion
+head 5691795f passes all 16 compiler jobs in build 35557138685; its regression
+35557139029 remains running. Earlier build 35556998279 is not accepted.
+
+## #163 PNG capture checkpoint
+
+The capture command schedules the existing renderer readback and returns a
+structured relative path. Two explicit frames complete a populated 640x480 PNG,
+validated by Pillow in the full deterministic playthrough (agent-capture.log).
+The native writer reuses the engine's CRC helper and emits stored DEFLATE, avoiding
+an added encoder dependency. It allocates temporary hunk memory only for an
+explicit capture and is excluded from shipping builds. PNG captures refuse
+existing output names. GCC/Clang protocol, boundaries and formatting pass.
+The macOS --agent argument removal now preserves argv[0] for bundle discovery.
+OpenArena also passes the full play/entity/profile/PNG test
+(agent-capture-openarena.log). The native command contract is now in both CI
+unit compiler legs; build Debug legs already compile developer tools on all
+platforms. Draft PR #166 is open at 20c92d52. Initial build 35556998279 caught libc++
+floating-point from_chars availability and MSVC width diagnostics in the
+previously unused json.h implementation. Correct those integration issues and
+rerun all gates. The dispatcher now uses the existing bounded JSON numeric
+helper; explicit safe length conversions remove MSVC narrowing diagnostics.
+Native protocol passes GCC and Clang/libc++ locally. Keep the PR draft
+until every remaining acceptance requirement and final gate is complete.
+The next error-stream assertion fails first on missing subscribe
+(agent-events-before.log); the new PNG/TGA pixel-equivalence assertion already
+passes. Next: camera poses/raw usercmds/events and shared UI commands, then the remaining
+#163 tools/schemas/isolation/recipes and final full gates.
+
+## #163 entity and profiler checkpoint
+
+The playthrough now also spawns, edits, reads, lists and deletes an entity through
+the native game's existing developer callbacks. It reads frame-time p50/p95/p99,
+CPU scopes and network counters as JSON. Frame samples use real microseconds in
+a bounded 4096-entry ring; queries sort a POD copy. Mutating entity replies reserve
+capacity before invoking callbacks, lists page at 32 entries. GCC/Clang UBSan
+protocol and the complete two-run Q3 playthrough pass (agent-entities.log).
+The PNG extension fails first on unknown capture operation
+(agent-capture-before.log); it will decode the result using Pillow and require
+a populated 640x480 PNG. Next: capture/camera, raw commands and structured events, then shared panel
+controls and the remaining #163 tooling/CI requirements.
+
+## #163 first deterministic local playthrough
+
+Map loading, structured player/camera snapshots and high-level input are wired.
+Input fills the usual client usercmd immediately after normal command creation;
+server movement/prediction arithmetic is unchanged. Renderer time follows the
+explicit clock while profiler time stays real. Explicit frames also service the
+queued packets normally sent during the wait loop, and their rate timestamps use
+the same agent clock. This corrected an incomplete new step loop: the first
+playthrough stalled after handshake because queued fragments were never sent.
+
+The entity/profile extension is test-first: agent-entities-before.log records
+unknown operation entity.spawn before implementation. It specifies spawn/edit/
+inspect/list/delete and real frame-time percentiles plus CPU/network counters.
+
+Two independent seed-123, dt-8 runs now return exactly identical player snapshots
+before movement, after 30 movement frames, and after 30 released-input frames.
+The test passes on both installed Quake 3 and OpenArena (agent-play.log and
+agent-play-openarena.log); no faketime or accepted fixture changes. Dedicated
+pipe stepping, GCC/Clang protocol, formatting and boundaries also pass. Next
+extend commands to entities, raw input, profiling/events/captures and shared UI
+actions, then complete tools/schemas/isolation/recipes and all required gates.
+
+## #163 pipe and explicit-step checkpoint
+
+Development builds accept --agent as the first argument. Platform code owns
+blocking stdin and complete stdout writes; ordinary logs remain on stderr. EOF
+quits cleanly. The parent waits for each response. A session configures dt/seed
+before stepping, and step replies only after the requested Com_Frame calls.
+Agent events use the explicit clock; the usual real profiler clock is retained.
+The native game gets the session seed, and idle dedicated-server waiting yields
+to the parent pipe in this mode. Shipping/default branches retain their behavior.
+
+Native command GCC/Clang UBSan, dedicated pipe/idle-clock/EOF tests, boundary and
+format checks pass. MinGW compiles the dispatcher and platform transport. Evidence:
+agent-channel.log and agent-protocol-{gcc,clang}.log. This is not full playthrough
+determinism evidence yet. The next test, tests/agent_play.py, uses the new small
+Python pipe client and unique home/display to compare two seeded local-player
+trajectories. It fails on unknown operation map before command implementation
+(agent-play-before.log). Client/server Release development builds pass locally.
+Main #14 regression now has only runtime still running; lifetimes passed.
+
+## #163 initial command implementation
+
+The development-only dispatcher uses the existing JSON member helpers after a
+bounded syntax/depth check, decodes escaped strings, and writes correlated JSON
+into the caller's buffer. Cvar updates respect startup/read-only/cheat/developer
+flags and use Cvar_Set2 without forcing; exec queues the ordinary console path.
+An insufficient reply buffer prevents mutation. No OS calls or new allocations.
+The existing json.h utility is explicitly recognized as a shared public header
+by the include boundary gate. Native protocol tests pass GCC and Clang/UBSan.
+The test's Cvar_Flags stub now matches the production unsigned signature.
+The next test, tests/agent_channel.py, launches a private-home dedicated server
+over pipes, requests a seed/dt and two frame batches separated by wall-clock
+sleep, and checks exact engine times plus EOF shutdown. Before transport it
+fails with no JSON response as expected (agent-channel-before.log).
+This is only the first command slice, not #163 acceptance. Transport, stepping,
+shared UI actions, tools/schemas/isolation/recipes and full gates remain.
+
+## #14 accepted on main
+
+PR165 was marked ready and merged 2026-09-21 after all required exact-head jobs
+passed on bda5ed1f. Fresh main and PR base both equaled 782c0dbc immediately
+before the merge. Merge commit 4ade5c3a9cad9cd71a04ca2641db2f74b8355774 has
+parents 782c0dbc and bda5ed1f and exactly the tested tree
+4088ff6eea6cb060f109a9b7e33fe9f1bd9919f2. Known-good-2026-09-20 remains unchanged.
+Merged build/publication 35555156611 and regression 35555156633 both PASS:
+16 compiler legs, 10 required regression jobs, and actual six-platform prerelease.
+#14 is checked in #25. #163 implementation is underway as recorded above; its
+initial failing command contract was d429929d. Earlier superseded 607855b9/c9dc3835 regression runs were cancelled
+to free runners; neither was accepted. Fresh #25 ordering remains #163, #164,
+#161, then #15 and the remaining roadmap.
 
 ## #14 final local self-review / hosted gates pending
 

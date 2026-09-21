@@ -1,44 +1,30 @@
 #!/usr/bin/env python3
-"""Exercise target-range controls through real ImGui input on a private display."""
+"""Exercise shared target-range controls and inspect authoritative weapon state."""
 import argparse
 import json
 import os
 from pathlib import Path
 import shutil
-import subprocess
 import sys
 import tempfile
-import time
 
 from cook import cook
-from run import ROOT, content_maps, content_settings
-from window import XInput, wait_for
+from run import ROOT, content_maps
+sys.path.insert(0, str(ROOT))
+from tools.agent import Engine
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path, required=True)
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-weapon-range'))
+parser.add_argument('--output', type=Path)
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
-parser.add_argument('--inside-xvfb', action='store_true', help=argparse.SUPPRESS)
 args = parser.parse_args()
-if not args.inside_xvfb:
-    subprocess.run(['timeout', '90', 'xvfb-run', '-a', sys.executable, str(Path(__file__).resolve()),
-                    '--inside-xvfb', '--binary', str(args.binary.resolve()), '--output', str(args.output.resolve()),
-                    '--content', args.content, '--data', str(args.data.resolve())], cwd=ROOT, check=True)
-    raise SystemExit(0)
-args.output = args.output.resolve()
-args.output.mkdir(parents=True, exist_ok=True)
-paks = sorted(args.data.resolve().glob('*.pk3'))
-icds = list(Path('/usr/share/vulkan/icd.d').glob('lvp*.json'))
-if not paks or len(icds) != 1:
-    parser.error('installed content and one lavapipe ICD are required')
-with tempfile.TemporaryDirectory(prefix='aftershock-range-ui-') as temporary:
-    home = Path(temporary)
+with tempfile.TemporaryDirectory(prefix='aftershock-range-ui-', dir=os.environ.get('AFTERSHOCK_SCRATCH')) as temporary:
+    home = Path(temporary) / 'home'
+    output = args.output.resolve() if args.output else Path(temporary) / 'output'
+    output.mkdir(parents=True, exist_ok=True)
     base = home / ('baseoa' if args.content == 'openarena' else 'baseq3')
-    base.mkdir()
-    for pak in paks:
-        (base / pak.name).symlink_to(pak)
-    sources = home / 'sources'
+    sources = Path(temporary) / 'sources'
     sources.mkdir()
     definition = json.loads((ROOT / 'tests/assets/weapons/rifle.weapon.json').read_text())
     (sources / 'rifle.json').write_text(json.dumps(definition))
@@ -48,54 +34,51 @@ with tempfile.TemporaryDirectory(prefix='aftershock-range-ui-') as temporary:
     (sources / 'assets.json').write_text(json.dumps(project))
     cook(sources / 'assets.json', base)
     cook(ROOT / 'tests/assets/range.json', base)
-    (base / 'range.cfg').write_text('\n'.join([
-        'set g_weapons "weapons/range_rifle.asweapon weapons/second.asweapon"',
-        'set g_rewind 1', 'set g_weaponTrace 1', 'set cg_weaponTrace 1',
-        f'devmap {content_maps(args.content)[0]}', 'wait 30', 'dev_weapon_range',
-        'bind F10 "screenshot range;wait 2;quit"']) + '\n')
-    env = dict(os.environ, SDL_AUDIODRIVER='dummy', LP_NUM_THREADS='1',
-               VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
-    logfile = args.output / 'client.log'
-    with logfile.open('wb') as log:
-        process = subprocess.Popen([str(args.binary.resolve()), '+set', 'fs_basepath', str(home),
-            '+set', 'fs_homepath', str(home), *content_settings(args.content),
-            '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '1',
-            '+set', 'com_maxfps', '50', '+set', 'net_enabled', '0', '+set', 'sv_pure', '0',
-            '+set', 'cl_autoRecordDemo', '0', '+exec', 'range.cfg'],
-            cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
-        device = XInput()
-        try:
-            wait_for(lambda: 'Developer weapon range: opened' in logfile.read_text(), process, seconds=15)
-            device.verify_window(process)
-            time.sleep(0.5)
-            # Stable rows within the selected range panel.
-            device.click(90, 180)  # Spawn moving target.
-            wait_for(lambda: 'Rewind target created:' in logfile.read_text(), process)
-            device.click(207, 180)  # Any loaded definition can be selected by slot.
-            device.key('Home')
-            device.key('Delete')
-            device.key('2')
-            device.key('Return')
-            device.click(325, 180)
-            wait_for(lambda: 'Weapon switch: owner=0 hand=0 from=0 to=1' in logfile.read_text(), process)
-            device.click(35, 204)  # One trigger pulse.
-            wait_for(lambda: 'Weapon event: owner=0 hand=0 kind=0' in logfile.read_text(), process)
-            device.click(90, 204)  # Reload.
-            wait_for(lambda: 'Weapon event: owner=0 hand=0 kind=4' in logfile.read_text(), process)
-            time.sleep(1.2)
-            device.click(340, 296)
-            wait_for(lambda: (base / 'screenshots/range-panel.tga').is_file(), process)
-            device.key('Escape')
-            device.key('F10')
-            process.wait(timeout=20)
-            assert process.returncode == 0
-        finally:
-            if process.poll() is None:
-                process.kill()
-                process.wait()
-            device.close()
-    assert 'Developer weapon range: target' in logfile.read_text()
-    assert 'Developer weapon range: fire' in logfile.read_text()
-    for name in ('range', 'range-panel'):
-        shutil.copyfile(base / 'screenshots' / (name + '.tga'), args.output / (name + '.tga'))
-print('PASS: real ImGui target spawn, data-only rifle selection, trigger and reload')
+    arguments = ['+set', 'g_weapons', 'weapons/range_rifle.asweapon weapons/second.asweapon',
+                 '+set', 'g_rewind', '1', '+set', 'g_animationBody', 'animations/anim_body.asanim',
+                 '+set', 'g_animationRifle', 'animations/range_rifle.asanim']
+    with Engine(args.binary, args.data, args.content, home=home, arguments=arguments) as engine:
+        engine.request('session', dt=20, seed=123)
+        engine.request('map', name=content_maps(args.content)[0])
+        engine.step(100)
+        engine.request('panel', name='Range')
+        engine.request('range', action='inspect', path='weapons/range_rifle.asweapon')
+        engine.step(3)
+        state = engine.request('editor.state')
+        assert state['panel'] == 'Range' and state['range']['loaded'], state
+        assert state['range']['name'] == definition['name'], state
+        engine.request('range', action='target')
+        engine.step(3)
+        entities = []
+        offset = 0
+        while offset is not None:
+            page = engine.request('entity.list', offset=offset)
+            entities.extend(page['entities'])
+            offset = page['next']
+        assert any(row['classname'] == 'rewind_target' for row in entities), entities
+        engine.request('range', action='select', value=2)
+        engine.step(30)
+        actor = engine.request('actor')
+        assert actor['weapons'][0]['selected'] == 1 and actor['weapons'][0]['name'] == 'range_second', actor
+        assert all(rig and rig['state'] for rig in actor['animation']), actor
+        before = actor['weapons'][0]['sequence']
+        ammo = actor['weapons'][0]['magazine'] + actor['weapons'][0]['chamber']
+        engine.request('range', action='fire')
+        engine.step(20)
+        weapon = engine.request('actor')['weapons'][0]
+        assert weapon['sequence'] > before and weapon['magazine'] + weapon['chamber'] < ammo, weapon
+        engine.request('range', action='reload')
+        engine.step(8)
+        assert engine.request('actor')['weapons'][0]['reloadStage'] != 0xffffffff
+        engine.step(150)
+        weapon = engine.request('actor')['weapons'][0]
+        assert weapon['reloadStage'] == 0xffffffff and weapon['magazine'] + weapon['chamber'] >= ammo, weapon
+        engine.request('range', action='ads', value=1)
+        engine.step(30)
+        assert engine.request('actor')['weapons'][0]['adsQ16'] > 0
+        engine.request('range', action='ads', value=0)
+        capture = engine.request('capture', name='range-panel')
+        engine.step(2)
+        shutil.copyfile(base / capture['path'], output / 'range-panel.png')
+        shutil.copyfile(engine.log_path, output / 'client.log')
+print('PASS: shared range panel, moving target, data-only rifle selection, trigger, reload, ADS and animation state')

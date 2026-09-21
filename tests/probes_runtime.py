@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import shutil
 import subprocess
 import sys
@@ -17,7 +18,7 @@ parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary',required=True,type=Path)
 parser.add_argument('--data',type=Path,default=Path.home()/'.q3a/baseq3')
 parser.add_argument('--content',choices=('quake3','openarena'),default='quake3')
-parser.add_argument('--output',type=Path,default=Path('/tmp/aftershock-reflection-runtime'))
+parser.add_argument('--output',type=Path,default=(SCRATCH / 'aftershock-reflection-runtime'))
 args=parser.parse_args();args.output.mkdir(parents=True,exist_ok=True)
 icds=list(Path('/usr/share/vulkan/icd.d').glob('lvp*.json'))
 paks=sorted(args.data.resolve().glob('*.pk3'))

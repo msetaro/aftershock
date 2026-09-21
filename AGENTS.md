@@ -124,102 +124,20 @@ found automatically; never commit or copy pak files into the repo.
 
 ## Verification commands
 
-Permanent regression commands (see `tests/README.md` for content and prerequisites):
+Start with the [agent handbook](docs/agents/README.md): executable authoring,
+playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructions.
+[tests/README.md](tests/README.md) is the individual-command and prerequisite reference.
 
-```
-python3 tests/native_math.py
-python3 tests/replication.py
-python3 tests/protocol.py
-python3 tests/rewind.py
-python3 tests/replication_policy.py
-python3 tests/identity.py
-python3 tests/native_pure.py
-python3 tests/native_pure_runtime.py --client CLIENT --server SERVER
-python3 tests/native_shared.py
-python3 tests/native_abi.py
-python3 tests/animation.py
-python3 tests/animation_runtime.py
-python3 tests/animation_editor.py
-python3 tests/animation_demo.py
-python3 tests/weapons.py
-python3 tests/weapons_runtime.py --binary PATH --lifecycle
-python3 tests/weapon_range.py --binary PATH
-python3 tests/weapons_demo.py
-python3 tests/netcode_cleanup.py
-python3 tests/netcode_runtime.py --weapons --client-fps 20 --client PATH --server PATH --snapshot-budget 256
-python3 tests/native.py --content openarena
-python3 tests/openarena_strings.py
-python3 tests/ui_weapon.py
-python3 tests/ui_skill.py
-python3 tests/team_voters.py
-python3 tests/team_flags.py
-python3 tests/team_message.py
-python3 tests/native_diagnostics.py
-python3 tests/bot_command.py
-python3 tests/native_info.py
-python3 tests/rhi.py
-python3 tests/render_graph.py
-python3 tests/shadow_views.py
-python3 tests/probes.py
-python3 tests/probes_runtime.py --binary CLIENT
-python3 tests/ssao_runtime.py --binary CLIENT
-python3 tests/lighting_gpu.py --binary CLIENT --icd /path/to/reference-gpu-icd.json
-python3 tests/cook.py
-python3 tests/materials.py
-python3 tests/materials_runtime.py --binary CLIENT
-python3 tests/materials_runtime.py --binary CLIENT --ui --output /tmp/material-ui
-python3 tests/iqm_scale.py
-python3 tests/cook_runtime.py
-python3 tests/cook_runtime.py --modules --output /tmp/cook-modules
-python3 tests/devtools.py
-python3 tests/devtools_data.py
-python3 tests/dev_entities.py
-python3 tests/dev_world_ui.py
-python3 tests/shaders.py --compiler /path/to/glslang-16.6.0
-python3 tests/vulkan_acquire.py
-python3 tests/level.py
-python3 tests/level.py --compile
-python3 tests/lighting.py --compile
-python3 tests/lighting_runtime.py --binary CLIENT
-python3 tests/level_runtime.py --client CLIENT --server SERVER
-python3 tests/level_validate.py --client CLIENT --server SERVER
-python3 tests/match_content.py
-python3 tests/match_exit.py --server SERVER
-python3 tests/match_runtime.py --controller CONTROLLER --server SERVER --client CLIENT
-python3 tests/match_kind.py --image aftershock-match:issue28 --client CLIENT
-(cd tools/match && go test -race ./...)
-python3 tests/publish_build.py
-python3 tests/check_format.py
-python3 tests/check_types.py
-python3 tests/check_tidy.py
-python3 tests/check_lifetimes.py
-python3 tests/check_boundaries.py
-python3 tests/run.py unit --negative-control
-python3 tests/run.py unit --cc clang --cxx 'clang++ -stdlib=libc++' --output /tmp/tests-clang
-python3 tests/run.py differential
-python3 tests/run.py runtime
-python3 tests/run.py runtime --sanitize --output /tmp/tests-runtime-ubsan
-python3 tests/demo.py
-python3 tests/demo.py --pipeline-cache
-python3 tests/window.py --binary build/release/release-linux-x86_64/quake3e.x64
-python3 tests/demo.py --lifecycle
-python3 tests/demo.py --modules --lifecycle
-python3 tests/native_lifecycle.py --debug-movement
-python3 tests/download.py
-python3 tests/audio.py
-python3 tests/teamleader.py
-python3 tests/bot_move.py
-python3 tests/affinity.py
-python3 tests/chat_offset.py
-python3 tests/format.py
-python3 tests/check_known_bugs.py
-python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs --output /tmp/tests-sanitized
-python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
-```
+- Fast feedback: `python3 tests/affected.py BASE_REF` (600-second default budget;
+  timeout/incomplete is a nonzero result, never merge acceptance).
+- Full local regression: `python3 tests/suite.py --glslang PATH --openarena-data PATH`.
+  Each invocation/job owns its scratch root. Hosted compiler checks remain required.
+- Recipe syntax: `python3 tests/agent_recipes.py --check`; runtime CI executes the
+  same shell blocks using owned fixtures and private Git histories.
 
 Local runtime/differential/demo commands use installed Quake 3 paks. Hosted CI uses
 OpenArena: stage with `python3 tests/openarena.py`, then pass
-`--content openarena --data /tmp/aftershock-openarena-baseoa` to those three commands.
+`--content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa` to those three commands.
 The finished network driver is retained unchanged; its evidence belongs to #3
 merge `8692b422`, before the path/build migrations. Do not rerun its negative control. `tests/README.md` documents explicit fixture
 regeneration; CI never regenerates. Existing port-era layout/symbol/codegen oracles

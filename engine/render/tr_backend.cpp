@@ -1919,6 +1919,12 @@ static const void *RB_SwapBuffers( const void *data ) {
 				ri.Printf( PRINT_ALL, "Wrote %s\n", backEnd.screenshotBMP );
 			}
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		if ( backEnd.screenshotMask & SCREENSHOT_PNG && backEnd.screenshotPNG[0] ) {
+			RB_TakeScreenshotPNG( gls.captureWidth, gls.captureHeight, backEnd.screenshotPNG );
+			backEnd.screenshotPNG[0] = 0;
+		}
+#endif
 		if ( backEnd.screenshotMask & SCREENSHOT_AVI ) {
 			RB_TakeVideoFrameCmd( &backEnd.vcmd );
 		}

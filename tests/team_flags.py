@@ -2,13 +2,14 @@
 """Check real team flag initialization and updates under UBSan."""
 import argparse
 from pathlib import Path
+from run import SCRATCH
 import shlex
 
 from run import run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cc', default='clang')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-team-flags'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-team-flags'))
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 for mode, flags in [('base', []), ('missionpack', ['-DMISSIONPACK'])]:

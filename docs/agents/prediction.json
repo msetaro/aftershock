@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dt": 8,
+  "seed": 123,
+  "steps": [
+    {"op": "request", "request": {"op": "profile"}},
+    {"op": "request", "request": {"op": "input", "forward": 1, "right": 0, "up": 0, "yaw": 0, "pitch": 0}},
+    {"op": "step", "frames": 100},
+    {"op": "request", "request": {"op": "input", "forward": 0, "right": 0, "up": 0, "yaw": 0, "pitch": 0}},
+    {"op": "request", "request": {"op": "state"}},
+    {"op": "request", "request": {"op": "profile"}},
+    {"op": "assert", "metric": "errors", "max": 0},
+    {"op": "capture", "name": "prediction"}
+  ]
+}

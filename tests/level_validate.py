@@ -7,6 +7,7 @@ import json
 import os
 import re
 from pathlib import Path
+from run import SCRATCH
 import shutil
 import subprocess
 import sys
@@ -19,7 +20,7 @@ parser.add_argument('--client',type=Path,required=True)
 parser.add_argument('--server',type=Path,required=True)
 parser.add_argument('--content',choices=['quake3','openarena'],default='quake3')
 parser.add_argument('--data',type=Path,default=Path.home()/'.q3a/baseq3')
-parser.add_argument('--output',type=Path,default=Path('/tmp/aftershock-level-validation'))
+parser.add_argument('--output',type=Path,default=(SCRATCH / 'aftershock-level-validation'))
 args = parser.parse_args()
 args.output = args.output.resolve()
 args.output.mkdir(parents=True,exist_ok=True)

@@ -3,6 +3,7 @@
 import argparse
 import json
 from pathlib import Path
+from run import SCRATCH
 import re
 import shutil
 import subprocess
@@ -64,7 +65,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--clang-query', default=shutil.which('clang-query') or
                         shutil.which('clang-query-21'))
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-lifetimes'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-lifetimes'))
     args = parser.parse_args()
     if not args.clang_query:
         parser.error('clang-query is required (CI installs clang-tools)')

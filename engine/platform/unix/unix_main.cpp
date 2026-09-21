@@ -50,6 +50,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../../qcommon/q_shared.h"
 #include "../../qcommon/qcommon_public.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../../devtools/devtools_public.h"
+#endif
 #include "../../renderercommon/tr_public.h"
 
 #include "linux_local.h" // bk001204
@@ -317,6 +320,10 @@ void floating_point_exception_handler( int whatever [[maybe_unused]] ) {
 // initialize the console input (tty mode if wanted and possible)
 // warning: might be called from signal handler
 tty_err Sys_ConsoleInputInit( void ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		return TTY_DISABLED;
+#endif
 	struct termios tc;
 	const char *term;
 
@@ -393,6 +400,10 @@ tty_err Sys_ConsoleInputInit( void ) {
 
 
 char *Sys_ConsoleInput( void ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		return nullptr;
+#endif
 	// we use this when sending back commands
 	static char text[sizeof( tty_con.buffer )];
 	int avail;
@@ -876,6 +887,14 @@ int main( int argc, const char *argv[] ) {
 	}
 #endif
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( argc > 1 && !strcmp( argv[1], "--agent" ) ) {
+		DevTools_AgentEnable();
+		argv[1] = argv[0]; // Preserve the executable path for macOS bundle discovery.
+		++argv;
+		--argc;
+	}
+#endif
 	if ( Sys_ParseArgs( argc, argv ) ) {
 		return 0; // print version and exit
 	}
@@ -928,6 +947,10 @@ int main( int argc, const char *argv[] ) {
 #endif
 
 	while ( 1 ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+		if ( DevTools_AgentActive() && !DevTools_AgentNextFrame() )
+			continue;
+#endif
 
 #ifdef DEDICATED
 		// run the game
@@ -937,6 +960,10 @@ int main( int argc, const char *argv[] ) {
 		IN_Frame();
 		// run the game
 		Com_Frame( CL_NoDelay() );
+#endif
+#ifdef AFTERSHOCK_DEVTOOLS
+		if ( DevTools_AgentActive() )
+			DevTools_AgentEndFrame();
 #endif
 	}
 	// never gets here

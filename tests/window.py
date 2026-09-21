@@ -5,6 +5,7 @@ import ctypes
 import ctypes.util
 import os
 from pathlib import Path
+from run import SCRATCH
 import re
 import shutil
 import struct
@@ -28,7 +29,7 @@ def wait_for(predicate, process, seconds=30):
 
 
 class XInput:
-    """Real pointer/key input, used only inside a private Xvfb invocation."""
+    """Real key input, used only inside a private Xvfb invocation."""
     def __init__(self):
         self.x11 = ctypes.CDLL(ctypes.util.find_library('X11'))
         self.xt = ctypes.CDLL(ctypes.util.find_library('Xtst'))
@@ -40,24 +41,9 @@ class XInput:
         self.x11.XStringToKeysym.restype = ctypes.c_ulong
         self.x11.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
         self.x11.XKeysymToKeycode.restype = ctypes.c_ubyte
-        self.xt.XTestFakeRelativeMotionEvent.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_ulong]
-        self.xt.XTestFakeButtonEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
         self.xt.XTestFakeKeyEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
         self.display = self.x11.XOpenDisplay(None)
         assert self.display
-        self.cursor = [320, 240]
-
-    def click(self, x, y):
-        self.xt.XTestFakeRelativeMotionEvent(self.display, x - self.cursor[0], y - self.cursor[1], 0)
-        self.x11.XSync(self.display, 0)
-        time.sleep(0.15)
-        self.xt.XTestFakeButtonEvent(self.display, 1, 1, 0)
-        self.x11.XSync(self.display, 0)
-        time.sleep(0.1)
-        self.xt.XTestFakeButtonEvent(self.display, 1, 0, 0)
-        self.x11.XSync(self.display, 0)
-        time.sleep(0.2)
-        self.cursor[:] = [x, y]
 
     def key_event(self, name, down):
         code = self.x11.XKeysymToKeycode(self.display, self.x11.XStringToKeysym(name.encode()))
@@ -87,7 +73,7 @@ def main():
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
     parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
-    parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-window-tests'))
+    parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-window-tests'))
     parser.add_argument('--inside-xvfb', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
     if not args.inside_xvfb:

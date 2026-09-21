@@ -1,11 +1,15 @@
 # One match per server
 
+For related commands, allocate one root first: `export AFTERSHOCK_SCRATCH="$(mktemp -d)"`.
+Otherwise each invocation gets a fresh root; children inherit it. Retain the root
+for logs/build reuse, then remove it when its evidence is no longer needed.
+
 Build the dedicated-server image from the repository root:
 
 ```
 docker build -f tools/match/Dockerfile -t aftershock-match:issue28 .
-python3 tools/match/dev.py --matches 2 --output /tmp/my-aftershock-matches
-docker compose -p my-aftershock-matches -f /tmp/my-aftershock-matches/compose.json up
+python3 tools/match/dev.py --matches 2 --output $AFTERSHOCK_SCRATCH/my-aftershock-matches
+docker compose -p my-aftershock-matches -f $AFTERSHOCK_SCRATCH/my-aftershock-matches/compose.json up
 ```
 
 The generator gives every match a separate password/token and writable home,
@@ -103,7 +107,7 @@ The automated check owns a randomly named kind cluster and private kubeconfig:
 
 ```
 python3 tests/match_kind.py --image aftershock-match:issue28 --client /path/to/quake3e.x64 \
-  --data /tmp/aftershock-openarena-baseoa --output /tmp/new-match-kind-run
+  --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa --output $AFTERSHOCK_SCRATCH/new-match-kind-run
 ```
 
 It uses SHA256-pinned user-cache kind 0.33.0, Kubernetes 1.35.8, kubectl 1.35.8,
@@ -132,10 +136,16 @@ Additional checks (Go 1.27.1):
 
 ```
 (cd tools/match && go test -race ./...)
-python3 tests/match_exit.py --server SERVER --content openarena --data /tmp/aftershock-openarena-baseoa
+python3 tests/match_exit.py --server SERVER --content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa
 python3 tests/match_runtime.py --controller CONTROLLER --server SERVER --client CLIENT
 ```
 
 The native tests use temporary homes; existing Quake 3/OpenArena golden fixtures
 are never regenerated. The runtime driver uses installed OA content for its
 optional client and only owned content for server-only runs.
+
+Local Compose generation uses a unique project name and Docker-assigned host UDP
+ports by default. Discover them with `docker compose -f PATH/compose.json port
+--protocol udp match-1 27960`; pass `--port` only when deliberately reserving a
+host range. Kubernetes generation likewise chooses a private namespace unless
+`--namespace` is supplied. Internal container ports are unchanged.

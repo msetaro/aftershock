@@ -11,6 +11,17 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - name: Allocate isolated job scratch
+        run: echo "AFTERSHOCK_SCRATCH=$(mktemp -d "$RUNNER_TEMP/aftershock.XXXXXX")" >> "$GITHUB_ENV"
+      - name: Install workflow parser
+        run: sudo apt-get update && sudo apt-get install -y python3-yaml
+      - name: Test invocation isolation
+        run: |
+          python3 tests/isolation.py
+          python3 tests/check_isolation.py
+          python3 tests/suite_contract.py
+          python3 tests/affected_contract.py
+          python3 tests/agent_recipes.py --check
       - name: Immutable build publication contract
         run: python3 tests/publish_build.py
       - name: Enforce reviewed clang-format version and style
@@ -20,6 +31,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - name: Allocate isolated job scratch
+        run: echo "AFTERSHOCK_SCRATCH=$(mktemp -d "$RUNNER_TEMP/aftershock.XXXXXX")" >> "$GITHUB_ENV"
       - name: Install Clang analysis and build headers
         run: sudo apt-get update && sudo apt-get install -y ninja-build clang-tidy libsdl2-dev libcurl4-openssl-dev mesa-common-dev
       - name: Enforce readability and report advisory checks
@@ -29,25 +42,27 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: clang-tidy
-          path: /tmp/aftershock-tidy
+          path: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-tidy
 
   lifetimes:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - name: Allocate isolated job scratch
+        run: echo "AFTERSHOCK_SCRATCH=$(mktemp -d "$RUNNER_TEMP/aftershock.XXXXXX")" >> "$GITHUB_ENV"
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: regression-${{ github.job }}-${{ matrix.cc }}
+          key: regression-${{ github.job }}
       - name: Install Clang analysis and build headers
         run: sudo apt-get update && sudo apt-get install -y ninja-build clang-tools libsdl2-dev libcurl4-openssl-dev mesa-common-dev
       - name: Reject unsupported build architectures
         run: |
           for arch in i686 armv7 ppc64le; do
-            if cmake -S . -B "/tmp/reject-$arch" -G Ninja -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR="$arch" > "/tmp/reject-$arch.log" 2>&1; then
+            if cmake -S . -B "${{ env.AFTERSHOCK_SCRATCH }}/reject-$arch" -G Ninja -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR="$arch" > "${{ env.AFTERSHOCK_SCRATCH }}/reject-$arch.log" 2>&1; then
               echo "FAIL: unsupported architecture $arch configured"
               exit 1
             fi
-            grep -F 'Aftershock supports 64-bit little-endian x86_64 and aarch64' "/tmp/reject-$arch.log"
+            grep -F 'Aftershock supports 64-bit little-endian x86_64 and aarch64' "${{ env.AFTERSHOCK_SCRATCH }}/reject-$arch.log"
           done
       - name: Enforce integer type policy
         run: python3 tests/check_types.py
@@ -68,6 +83,8 @@ jobs:
             cxx: clang++ -stdlib=libc++
     steps:
       - uses: actions/checkout@v7
+      - name: Allocate isolated job scratch
+        run: echo "AFTERSHOCK_SCRATCH=$(mktemp -d "$RUNNER_TEMP/aftershock.XXXXXX")" >> "$GITHUB_ENV"
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: regression-${{ github.job }}-${{ matrix.cc }}
@@ -76,22 +93,22 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build libc++-dev libc++abi-dev
       - name: Cook owned source assets and verify production poses
         run: |
-          sudo apt-get update && sudo apt-get install -y python3-venv ninja-build
-          python3 -m venv /tmp/aftershock-cook-python
-          /tmp/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt
-          /tmp/aftershock-cook-python/bin/python tests/cook.py --cxx '${{ matrix.cxx }}'
-          CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' /tmp/aftershock-cook-python/bin/python tests/materials.py
-          /tmp/aftershock-cook-python/bin/python tests/iqm_scale.py --cxx '${{ matrix.cxx }}'
-          /tmp/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
-          /tmp/aftershock-cook-python/bin/python tests/weapons.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          sudo apt-get update && sudo apt-get install -y python3-venv python3-jsonschema ninja-build
+          python3 -m venv ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/cook.py --cxx '${{ matrix.cxx }}'
+          CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/materials.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/iqm_scale.py --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
       - name: Declarative level language and design rules
         run: |
           python3 tests/level.py
           python3 tests/lighting.py
-          /tmp/aftershock-cook-python/bin/python tests/probes.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/probes.py
       - name: Protocol, rewind, replication and identity contracts
         run: |
-          /tmp/aftershock-cook-python/bin/python tests/netcode_cleanup.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/netcode_cleanup.py
           python3 tests/replication.py --cxx '${{ matrix.cxx }}'
           python3 tests/protocol.py --cxx '${{ matrix.cxx }}'
           python3 tests/rewind.py --cxx '${{ matrix.cxx }}'
@@ -99,6 +116,10 @@ jobs:
           python3 tests/identity.py --cxx '${{ matrix.cxx }}'
           python3 tests/native_pure.py --cxx '${{ matrix.cxx }}'
           python3 tests/devtools_data.py --cxx '${{ matrix.cxx }}'
+      - name: Structured local developer command contract
+        run: |
+          python3 tests/agent_protocol.py --cxx '${{ matrix.cxx }}'
+          python3 tests/agent_client.py
       - name: RHI contract and frame uploads
         run: python3 tests/rhi.py --cxx '${{ matrix.cxx }}'
       - name: Render graph dependencies and native reference trace
@@ -108,11 +129,11 @@ jobs:
       - name: Verify pinned offline shader compilation
         if: matrix.cc == 'gcc'
         run: |
-          curl --fail --location --retry 3 https://github.com/KhronosGroup/glslang/releases/download/16.6.0/glslang-16.6.0-linux-x86_64-release.tar.gz -o /tmp/glslang.tar.gz
-          echo '2c34071f56ecf39d16233294d3739cf43f981fd39080f2fd9dccb782101191ce  /tmp/glslang.tar.gz' | sha256sum --check
-          mkdir -p /tmp/aftershock-glslang
-          tar -xzf /tmp/glslang.tar.gz -C /tmp/aftershock-glslang
-          /tmp/aftershock-cook-python/bin/python tests/shaders.py --compiler /tmp/aftershock-glslang/bin/glslang
+          curl --fail --location --retry 3 https://github.com/KhronosGroup/glslang/releases/download/16.6.0/glslang-16.6.0-linux-x86_64-release.tar.gz -o ${{ env.AFTERSHOCK_SCRATCH }}/glslang.tar.gz
+          echo '2c34071f56ecf39d16233294d3739cf43f981fd39080f2fd9dccb782101191ce  ${{ env.AFTERSHOCK_SCRATCH }}/glslang.tar.gz' | sha256sum --check
+          mkdir -p ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-glslang
+          tar -xzf ${{ env.AFTERSHOCK_SCRATCH }}/glslang.tar.gz -C ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-glslang
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/shaders.py --compiler ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-glslang/bin/glslang
       - name: Vulkan image acquisition status
         run: python3 tests/vulkan_acquire.py --cxx '${{ matrix.cxx }}'
       - name: Frame evidence negative controls
@@ -126,7 +147,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: native-abi-${{ matrix.cc }}
-          path: /tmp/aftershock-native-abi
+          path: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-native-abi
       - name: OpenArena string helpers
         run: python3 tests/openarena_strings.py --cc '${{ matrix.cc }}'
       - name: OpenArena native allocation alignment
@@ -167,15 +188,17 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - name: Allocate isolated job scratch
+        run: echo "AFTERSHOCK_SCRATCH=$(mktemp -d "$RUNNER_TEMP/aftershock.XXXXXX")" >> "$GITHUB_ENV"
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: regression-${{ github.job }}-${{ matrix.cc }}
+          key: regression-${{ github.job }}
       - name: Check known-bug classification
         run: python3 tests/check_known_bugs.py
       - name: ASan and UBSan with the existing suppression file
         run: python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --known-bugs
       - name: ASan pointer comparisons
-        run: python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output /tmp/tests-pointers
+        run: python3 tests/run.py unit --cc clang --cxx clang++ --sanitize --pointer-compare --output ${{ env.AFTERSHOCK_SCRATCH }}/tests-pointers
 
   fuzz:
     continue-on-error: true # pending #35
@@ -192,11 +215,16 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - name: Allocate isolated job scratch
+        run: echo "AFTERSHOCK_SCRATCH=$(mktemp -d "$RUNNER_TEMP/aftershock.XXXXXX")" >> "$GITHUB_ENV"
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: regression-${{ github.job }}-${{ matrix.cc }}
+          key: regression-${{ github.job }}
       - name: Install runtime tools and OpenArena content
-        run: sudo apt-get update && sudo apt-get install -y python3-venv ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data libarchive-dev
+        run: sudo apt-get update && sudo apt-get install -y python3-venv python3-pil python3-jsonschema ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data libarchive-dev
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.27.1'
       - name: Stage pinned upstream OpenArena gamecode
         run: python3 tests/openarena.py
       - name: Download URL construction
@@ -205,148 +233,156 @@ jobs:
         run: python3 tests/audio.py
       - name: Collision and both-map bot goldens
         run: |
-          python3 tests/run.py differential --content openarena --data /tmp/aftershock-openarena-baseoa
-          python3 tests/run.py runtime --content openarena --data /tmp/aftershock-openarena-baseoa
+          python3 tests/run.py differential --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          python3 tests/run.py runtime --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Both-map Mesa timedemo frames
-        run: python3 tests/demo.py --measure-gpu --pipeline-cache --content openarena --data /tmp/aftershock-openarena-baseoa
+        run: python3 tests/demo.py --measure-gpu --pipeline-cache --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Window resize and hide/restore lifecycle
-        run: python3 tests/window.py --binary /tmp/aftershock-demo-tests/build-vulkan/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+        run: python3 tests/window.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-demo-tests/build-vulkan/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Developer registry and allocator snapshots
         run: python3 tests/devtools_data.py
       - name: Native entity edit and save/reload
-        run: python3 tests/dev_entities.py --content openarena --data /tmp/aftershock-openarena-baseoa
-      - name: Native entity and world tools through real input
-        run: python3 tests/dev_world_ui.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+        run: python3 tests/dev_entities.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Native entity and world tools through shared controls
+        run: python3 tests/dev_world_ui.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-world-ui --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Seeded local agent playthrough
+        run: python3 tests/agent_play.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Agent scripted route, fire and capture report
+        run: python3 tests/agent_cli.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Cooked character and visible source reload
         run: |
-          python3 -m venv /tmp/aftershock-cook-python
-          /tmp/aftershock-cook-python/bin/pip install -r tools/cook/requirements.txt
-          /tmp/aftershock-cook-python/bin/python tests/cook_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          python3 -m venv ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install -r tools/cook/requirements.txt
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/agent_formats.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/cook_runtime.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-runtime-test --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: PBR material channels and ImGui instance edits
         run: |
-          /tmp/aftershock-cook-python/bin/python tests/materials_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          /tmp/aftershock-cook-python/bin/python tests/materials_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --ui --output /tmp/aftershock-material-ui
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/materials_runtime.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-material-runtime --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/materials_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --ui --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-material-ui
       - name: Owned animation gameplay and graph authoring
         run: |
-          /tmp/aftershock-cook-python/bin/python tests/animation_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          /tmp/aftershock-cook-python/bin/python tests/animation_editor.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          /tmp/aftershock-cook-python/bin/python tests/animation_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --server-fps 100 --output /tmp/aftershock-animation-runtime-100
-          /tmp/aftershock-cook-python/bin/python tests/animation_demo.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation_editor.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-editor --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --server-fps 100 --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-runtime-100
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation_demo.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Weapon lifecycle, range controls and fixed replay
         run: |
-          /tmp/aftershock-cook-python/bin/python tests/weapons_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --lifecycle
-          /tmp/aftershock-cook-python/bin/python tests/weapon_range.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          /tmp/aftershock-cook-python/bin/python tests/weapons_demo.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --lifecycle
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapon_range.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapon-range --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons_demo.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Real protocol agreement and delayed hitscan with a snapshot budget
         run: |
-          cmake -S . -B /tmp/aftershock-dev-entities/build -DBUILD_SERVER=ON
-          cmake --build /tmp/aftershock-dev-entities/build --parallel 4
-          cmake -S . -B /tmp/aftershock-protocol-v2 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_CLIENT=OFF -DUSE_CURL=OFF -DAFTERSHOCK_EXTRA_FLAGS=-DAFTERSHOCK_NET_VERSION=3
-          cmake --build /tmp/aftershock-protocol-v2 --parallel 4
-          python3 tests/native_pure_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          python3 tests/protocol_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --other-server /tmp/aftershock-protocol-v2/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          /tmp/aftershock-cook-python/bin/python tests/netcode_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --snapshot-budget 48
-          /tmp/aftershock-cook-python/bin/python tests/netcode_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --weapons --client-fps 20 --snapshot-budget 256 --output /tmp/aftershock-weapons-network
+          cmake -S . -B ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build -DBUILD_SERVER=ON
+          cmake --build ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build --parallel 4
+          python3 tests/agent_channel.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          cmake -S . -B ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-protocol-v2 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_CLIENT=OFF -DUSE_CURL=OFF -DAFTERSHOCK_EXTRA_FLAGS=-DAFTERSHOCK_NET_VERSION=3
+          cmake --build ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-protocol-v2 --parallel 4
+          python3 tests/native_pure_runtime.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          python3 tests/protocol_runtime.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --other-server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-protocol-v2/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/netcode_runtime.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --snapshot-budget 48
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/netcode_runtime.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --weapons --client-fps 20 --snapshot-budget 256 --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapons-network
       - name: Deterministic authored level and native bot paths
         run: |
-          /tmp/aftershock-cook-python/bin/pip install -r tools/level/requirements.txt
-          /tmp/aftershock-cook-python/bin/python tests/level.py --compile
-          /tmp/aftershock-cook-python/bin/python tests/lighting.py --compile
-          /tmp/aftershock-cook-python/bin/python tests/probes_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          /tmp/aftershock-cook-python/bin/python tests/ssao_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          /tmp/aftershock-cook-python/bin/python tests/lighting_runtime.py --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          /tmp/aftershock-cook-python/bin/python tests/lighting_runtime.py --shadows --lifecycle --output /tmp/aftershock-shadow-runtime --binary /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
-          /tmp/aftershock-cook-python/bin/python tests/level_runtime.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install -r tools/level/requirements.txt
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/level.py --compile
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/lighting.py --compile
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/probes_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ssao_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/lighting_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/lighting_runtime.py --shadows --lifecycle --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-shadow-runtime --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/level_runtime.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Headless level reports and fixed-camera PNGs
-        run: /tmp/aftershock-cook-python/bin/python tests/level_validate.py --client /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server /tmp/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/level_validate.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Execute agent handbook recipes
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/agent_recipes.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Authored level evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: level-authoring
           path: |
-            /tmp/aftershock-level-runtime
-            /tmp/aftershock-level-validation
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-level-runtime
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-level-validation
       - name: Development overlay input and renderer restart
-        run: python3 tests/devtools.py --content openarena --data /tmp/aftershock-openarena-baseoa
+        run: python3 tests/devtools.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-devtools-tests --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Optional renderer module replay
-        run: python3 tests/demo.py --modules --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-demo-modules
+        run: python3 tests/demo.py --modules --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-demo-modules
       - name: Owned animation replay through renderer module
-        run: /tmp/aftershock-cook-python/bin/python tests/animation_demo.py --modules --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-animation-demo-modules
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation_demo.py --modules --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules
       - name: Shadow casters and renderer module restart
         run: |
-          cmake -S . -B /tmp/aftershock-animation-demo-modules/build -DAFTERSHOCK_DEVTOOLS=ON
-          cmake --build /tmp/aftershock-animation-demo-modules/build --parallel 4
-          /tmp/aftershock-cook-python/bin/python tests/lighting_runtime.py --shadows --lifecycle --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-lighting-modules
+          cmake -S . -B ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/build -DAFTERSHOCK_DEVTOOLS=ON
+          cmake --build ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/build --parallel 4
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/lighting_runtime.py --shadows --lifecycle --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-lighting-modules
       - name: Probe and SSAO renderer module restart
         run: |
-          /tmp/aftershock-cook-python/bin/python tests/probes_runtime.py --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-probes-modules
-          /tmp/aftershock-cook-python/bin/python tests/ssao_runtime.py --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-ssao-modules
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/probes_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-probes-modules
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ssao_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-ssao-modules
       - name: Owned weapon replay through renderer module
-        run: /tmp/aftershock-cook-python/bin/python tests/weapons_demo.py --binary /tmp/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/aftershock-weapons-demo-modules
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons_demo.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapons-demo-modules
       - name: RHI replay measurements
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: rhi-replay-metrics
-          path: /tmp/aftershock-demo-tests/*.log
+          path: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-demo-tests/*.log
       - name: GCC UBSan bot smoke
-        run: python3 tests/run.py runtime --sanitize --content openarena --data /tmp/aftershock-openarena-baseoa --output /tmp/tests-runtime-ubsan
+        run: python3 tests/run.py runtime --sanitize --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/tests-runtime-ubsan
       - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: runtime-diagnostics
           path: |
-            /tmp/aftershock-tests/**/*.log
-            /tmp/tests-runtime-ubsan/**/*.log
-            /tmp/aftershock-demo-tests/**/*.log
-            /tmp/aftershock-demo-tests/*.tga
-            /tmp/aftershock-demo-modules/**/*.log
-            /tmp/aftershock-demo-modules/*.tga
-            /tmp/aftershock-window-tests/*
-            /tmp/aftershock-protocol-runtime/*.log
-            /tmp/aftershock-netcode-runtime/*.log
-            /tmp/aftershock-dev-entities/**/*.log
-            /tmp/aftershock-dev-world-ui/*.log
-            /tmp/aftershock-dev-world-ui/*.tga
-            /tmp/aftershock-cook-runtime-test/*.log
-            /tmp/aftershock-cook-runtime-test/*.tga
-            /tmp/aftershock-cook-runtime-test/latency.txt
-            /tmp/aftershock-material-runtime/*.log
-            /tmp/aftershock-material-runtime/*.tga
-            /tmp/aftershock-material-runtime/*.json
-            /tmp/aftershock-material-ui/*.log
-            /tmp/aftershock-material-ui/*.tga
-            /tmp/aftershock-material-ui/*.json
-            /tmp/aftershock-ssao-runtime/*
-            /tmp/aftershock-ssao-modules/*
-            /tmp/aftershock-reflection-runtime/*
-            /tmp/aftershock-probes-modules/*
-            /tmp/aftershock-shadow-runtime/*
-            /tmp/aftershock-lighting-modules/*
-            /tmp/aftershock-lighting-runtime/*.log
-            /tmp/aftershock-lighting-runtime/*.tga
-            /tmp/aftershock-weapons-runtime/*
-            /tmp/aftershock-weapon-range/*
-            /tmp/aftershock-weapons-demo/*
-            /tmp/aftershock-weapons-network/*
-            /tmp/aftershock-weapons-demo-modules/*
-            /tmp/aftershock-animation-runtime/*.log
-            /tmp/aftershock-animation-runtime/*.tga
-            /tmp/aftershock-animation-editor/*.log
-            /tmp/aftershock-animation-editor/*.tga
-            /tmp/aftershock-animation-runtime-100/*.log
-            /tmp/aftershock-animation-demo/*.log
-            /tmp/aftershock-animation-demo/*.tga
-            /tmp/aftershock-animation-demo/*.json
-            /tmp/aftershock-animation-demo-modules/*.log
-            /tmp/aftershock-animation-demo-modules/*.tga
-            /tmp/aftershock-animation-demo-modules/*.json
-            /tmp/aftershock-devtools-tests/**/*.log
-            /tmp/aftershock-devtools-tests/runtime/*.tga
-            /tmp/tests-native-runtime/**/*.log
-            /tmp/tests-native-demo/**/*.log
-            /tmp/tests-native-demo/*.tga
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-tests/**/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/tests-runtime-ubsan/**/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-demo-tests/**/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-demo-tests/*.tga
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-demo-modules/**/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-demo-modules/*.tga
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-window-tests/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-protocol-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-netcode-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/**/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-world-ui/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-world-ui/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-runtime-test/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-runtime-test/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-runtime-test/latency.txt
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-material-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-material-runtime/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-material-runtime/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-material-ui/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-material-ui/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-material-ui/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-ssao-runtime/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-ssao-modules/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-reflection-runtime/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-probes-modules/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-shadow-runtime/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-lighting-modules/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-lighting-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-lighting-runtime/*.tga
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapons-runtime/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapon-range/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapons-demo/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapons-network/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapons-demo-modules/*
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-runtime/*.tga
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-editor/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-editor/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-runtime-100/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo/*.tga
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/*.tga
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-devtools-tests/**/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-devtools-tests/runtime/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/tests-native-runtime/**/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/tests-native-demo/**/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/tests-native-demo/*.tga
 
   cross:
     runs-on: ubuntu-24.04
@@ -364,6 +400,8 @@ jobs:
             toolchain: mingw64
     steps:
       - uses: actions/checkout@v7
+      - name: Allocate isolated job scratch
+        run: echo "AFTERSHOCK_SCRATCH=$(mktemp -d "$RUNNER_TEMP/aftershock.XXXXXX")" >> "$GITHUB_ENV"
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: regression-${{ github.job }}-${{ matrix.cc }}
@@ -385,6 +423,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - name: Allocate isolated job scratch
+        run: echo "AFTERSHOCK_SCRATCH=$(mktemp -d "$RUNNER_TEMP/aftershock.XXXXXX")" >> "$GITHUB_ENV"
       - uses: actions/setup-go@v7
         with:
           go-version: '1.27.1'
@@ -393,7 +433,7 @@ jobs:
         with:
           key: regression-match-server
       - name: Install native client and public test-content prerequisites
-        run: sudo apt-get update && sudo apt-get install -y ninja-build faketime xvfb xauth mesa-vulkan-drivers libsdl2-dev libasound2-dev mesa-common-dev openarena-data
+        run: sudo apt-get update && sudo apt-get install -y python3-jsonschema ninja-build faketime xvfb xauth mesa-vulkan-drivers libsdl2-dev libasound2-dev mesa-common-dev openarena-data
       - name: Match contracts and acknowledged result delivery
         run: |
           cd tools/match
@@ -404,22 +444,22 @@ jobs:
         run: |
           python3 tests/match_content.py
           python3 tests/openarena.py
-          cmake -S . -B /tmp/aftershock-match-ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DUSE_CURL=OFF
-          cmake --build /tmp/aftershock-match-ci --parallel 4
-          python3 tests/match_exit.py --server /tmp/aftershock-match-ci/release-linux-x86_64/quake3e.ded.x64 --content openarena --data /tmp/aftershock-openarena-baseoa
+          cmake -S . -B ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DUSE_CURL=OFF
+          cmake --build ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci --parallel 4
+          python3 tests/match_exit.py --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Build non-root distroless match image
         run: docker build -f tools/match/Dockerfile -t aftershock-match:issue28 .
       - name: Private kind allocation, native player, final ingest and replacement
-        run: python3 tests/match_kind.py --image aftershock-match:issue28 --client /tmp/aftershock-match-ci/release-linux-x86_64/quake3e.x64 --data /tmp/aftershock-openarena-baseoa
+        run: python3 tests/match_kind.py --image aftershock-match:issue28 --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci/release-linux-x86_64/quake3e.x64 --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Match lifecycle and measured resource evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: match-server
           path: |
-            /tmp/aftershock-match-kind/*.log
-            /tmp/aftershock-match-kind/report.json
-            /tmp/aftershock-match-kind/events.jsonl
-            /tmp/aftershock-match-kind/density.json
-            /tmp/aftershock-match-kind/density-samples.json
-            /tmp/aftershock-match-exit/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-kind/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-kind/report.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-kind/events.jsonl
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-kind/density.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-kind/density-samples.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-exit/*.log

@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import re
 import subprocess
 import tempfile
@@ -13,7 +14,7 @@ from run import ROOT, content_maps, content_settings
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path, required=True)
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-weapons-runtime'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-weapons-runtime'))
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
 parser.add_argument('--lifecycle', action='store_true', help='also exercise spectator/respawn record reuse')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')

@@ -9,9 +9,9 @@ parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--matches',type=int,default=2)
 parser.add_argument('--image',default='aftershock-match:issue28')
 parser.add_argument('--output',type=Path,required=True)
-parser.add_argument('--port',type=int,default=27960)
+parser.add_argument('--port',type=int,help='explicit host base port; default lets Docker assign ports')
 args=parser.parse_args()
-if not 1<=args.matches<=32 or not 1024<=args.port<=65535-args.matches:
+if not 1<=args.matches<=32 or (args.port is not None and not 1024<=args.port<=65536-args.matches):
     parser.error('require 1..32 matches and an unprivileged port range')
 if args.output.exists():parser.error('choose a new output directory; match homes must not be reused')
 args.output.mkdir(parents=True,mode=0o700)
@@ -24,13 +24,13 @@ for i in range(args.matches):
               password=secrets.token_hex(16),token=secrets.token_hex(16))
     specs.append(spec);tokens[name]=spec['token'];volumes[name]={}
     services[name]=dict(base,command=['run'],environment=dict(MATCH_SPEC=json.dumps(spec)),
-                       volumes=[name+':/home/match'],ports=[f'127.0.0.1:{args.port+i}:27960/udp'],
+                       volumes=[name+':/home/match'],ports=[f"127.0.0.1:{args.port+i if args.port is not None else ''}:27960/udp"],
                        depends_on=['ingest',name+'-ship'])
     services[name+'-ship']=dict(base,command=['ship'],environment=dict(MATCH_INGEST='ingest:50051',MATCH_DEV_INSECURE='1'),
                               volumes=[name+':/home/match'],depends_on=['ingest'])
 services['ingest']=dict(base,command=['stub'],environment=dict(MATCH_DEV_INSECURE='1',MATCH_TOKENS=json.dumps(tokens)),
                         volumes=['results:/state'])
-compose=dict(services=services,volumes=volumes)
+compose=dict(name='aftershock-'+secrets.token_hex(6),services=services,volumes=volumes)
 (args.output/'compose.json').write_text(json.dumps(compose,indent=2)+'\n')
 (args.output/'matches.json').write_text(json.dumps(specs,indent=2)+'\n')
 print(args.output/'compose.json')

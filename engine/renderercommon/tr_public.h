@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 19
+#define REF_API_VERSION 20
 #else
 #define REF_API_VERSION 15
 #endif
@@ -255,6 +255,9 @@ typedef struct {
 	void *( *VK_GetInstanceProcAddr )( uint64_t instance, const char *name );
 	qboolean ( *VK_CreateSurface )( uint64_t instance, uint64_t *pSurface );
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	void ( *AssertReport )( const char *expression, const char *file, int line );
+#endif
 } refimport_t;
 
 extern refimport_t ri;

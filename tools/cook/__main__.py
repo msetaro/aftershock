@@ -20,6 +20,9 @@ import weapon
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
+sys.path.insert(0, str(ROOT))
+from tools.scratch import ROOT as SCRATCH
+from tools.agent.formats import validate as validate_format, diagnostic
 
 
 def digest(data):
@@ -34,7 +37,7 @@ def tool_hash():
     paths = [p for p in HERE.iterdir() if p.suffix in ('.py', '.cpp', '.txt')]
     vendor = ROOT / 'third_party/bc7enc'
     paths.extend(vendor / name for name in ('bc7enc.cpp', 'bc7enc.h', 'provenance.json'))
-    paths.extend(ROOT / path for path in ('cmake/Sources.cmake', 'tools/shaders/build.py', 'engine/renderervk/shaders/manifest.json'))
+    paths.extend(ROOT / path for path in ('cmake/Sources.cmake', 'tools/shaders/build.py', 'engine/renderervk/shaders/manifest.json', 'tools/agent/formats.py'))
     for codec in ('libogg', 'libvorbis'):
         paths.extend(p for p in (ROOT / 'third_party' / codec).rglob('*') if p.suffix in ('.c', '.h'))
     return digest(b''.join(str(p.relative_to(ROOT)).encode() + b'\0' + p.read_bytes() for p in sorted(paths)))
@@ -103,23 +106,28 @@ def cook(project, output):
                 return data
 
             source = below(root, asset['source'])
-            if asset['kind'] == 'model':
-                payloads = model.cook(source, name, asset, read)
-            elif asset['kind'] == 'animation':
-                models = [dict(a, _source=below(root, a['source'])) for a in definition['assets'] if a['kind'] == 'model']
-                payloads = animation.cook(source, name, asset, read, models)
-            elif asset['kind'] == 'weapon':
-                payloads = weapon.cook(source, name, read)
-            elif asset['kind'] == 'material':
-                payloads = model.cook_material(source, name, read, asset)
-            elif asset['kind'] == 'audio':
-                payloads = {name + '.wav': audio.cook(read(source), source.suffix.lower())}
-            elif asset['kind'] == 'shader':
-                payloads = {name + '.asspv': shader.cook(source, root, asset, read)}
-            elif asset['kind'] == 'texture':
-                payloads = {name + '.ktx2': texture.cook(read(source), asset)}
-            else:
-                raise ValueError('asset kind is not implemented yet: ' + asset['kind'])
+            try:
+                if asset['kind'] in ('weapon', 'animation', 'material'):
+                    validate_format(asset['kind'], json.loads(read(source)), source)
+                if asset['kind'] == 'model':
+                    payloads = model.cook(source, name, asset, read)
+                elif asset['kind'] == 'animation':
+                    models = [dict(a, _source=below(root, a['source'])) for a in definition['assets'] if a['kind'] == 'model']
+                    payloads = animation.cook(source, name, asset, read, models)
+                elif asset['kind'] == 'weapon':
+                    payloads = weapon.cook(source, name, read)
+                elif asset['kind'] == 'material':
+                    payloads = model.cook_material(source, name, read, asset)
+                elif asset['kind'] == 'audio':
+                    payloads = {name + '.wav': audio.cook(read(source), source.suffix.lower())}
+                elif asset['kind'] == 'shader':
+                    payloads = {name + '.asspv': shader.cook(source, root, asset, read)}
+                elif asset['kind'] == 'texture':
+                    payloads = {name + '.ktx2': texture.cook(read(source), asset)}
+                else:
+                    raise ValueError('asset kind is not implemented yet: ' + asset['kind'])
+            except (OSError, ValueError, KeyError, IndexError, TypeError) as error:
+                raise ValueError(diagnostic(error, source, 'check the asset references and tools/agent describe '+asset['kind'])) from error
             records = []
             for path, data in sorted(payloads.items()):
                 if len(path.encode()) >= 64:
@@ -202,7 +210,7 @@ def main():
                 error_message = None
         except (OSError, ValueError, KeyError, IndexError, TypeError) as error:
             if str(error) != error_message:
-                print('cook: ' + str(error), file=sys.stderr, flush=True)
+                print(json.dumps(dict(ok=False, error=diagnostic(error, args.project, 'check the project and referenced sources'))), file=sys.stderr, flush=True)
                 error_message = str(error)
             if not args.watch:
                 return 1

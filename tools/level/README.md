@@ -1,13 +1,17 @@
 # Declarative levels (version 1)
 
+For related commands, allocate one root first: `export AFTERSHOCK_SCRATCH="$(mktemp -d)"`.
+Otherwise each invocation gets a fresh root; children inherit it. Retain the root
+for logs/build reuse, then remove it when its evidence is no longer needed.
+
 The provisional format is JSON, matching the asset cooker and #18's data-format
 decision. The compiler emits ordinary Quake 3 MAP, BSP and AAS content. Existing
 Radiant maps remain usable. `tests/assets/levels/two_lane.json` is the complete
 three-room, two-lane example; its art is owned GPL content.
 
 ```
-python3 tools/level level.json --output /tmp/my-level/baseq3
-python3 tools/level level.json --output /tmp/my-level/baseq3 --map-only
+python3 tools/level level.json --output $AFTERSHOCK_SCRATCH/my-level/baseq3
+python3 tools/level level.json --output $AFTERSHOCK_SCRATCH/my-level/baseq3 --map-only
 ```
 
 The first command also runs pinned q3map2 and MBSPC; the second only emits the MAP
@@ -114,13 +118,13 @@ at 262144 cells. These are authoring limits, not engine format limits.
 ## Headless validation (#27)
 
 ```
-python3 tools/level validate tests/assets/levels/two_lane.json --output /tmp/level-report --client PATH/quake3e.x64 --server PATH/quake3e.ded.x64
+python3 tools/level validate tests/assets/levels/two_lane.json --output $AFTERSHOCK_SCRATCH/level-report --client PATH/quake3e.x64 --server PATH/quake3e.ded.x64
 ```
 
 Both binaries must use `-DAFTERSHOCK_DEVTOOLS=ON`. Install the same pinned
 `requirements.txt` in a venv; Pillow encodes screenshots as PNG. Xvfb, faketime and
 Mesa lavapipe are required, but a display is not. Content defaults to installed
-`~/.q3a/baseq3`; use `--content openarena --data /tmp/aftershock-openarena-baseoa`
+`~/.q3a/baseq3`; use `--content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa`
 for hosted tests. Licensed packages are only symlinked into the private runtime
 home after compilation and are never published as artifacts.
 
@@ -180,7 +184,7 @@ python3 tools/level/probes.py probes.json --client /path/quake3e.x64 \
 {"map":"two_lane","probes":[{"origin":[0,0,96],"radius":512}]}
 ```
 
-Use `--content openarena --data /tmp/aftershock-openarena-baseoa` for hosted
+Use `--content openarena --data $AFTERSHOCK_SCRATCH/aftershock-openarena-baseoa` for hosted
 content. The tool symlinks installed paks only in its temporary capture directory.
 It runs six square views in the native client under Xvfb/lavapipe, converts display
 RGB to linear radiance, then filters five roughness levels. `--size` selects

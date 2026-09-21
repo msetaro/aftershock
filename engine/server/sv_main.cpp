@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "server.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 #include "../public/g_native_public.h"
 
 serverStatic_t svs; // persistant server info
@@ -1293,7 +1296,11 @@ void SV_Frame( int msec ) {
 	}
 
 	if ( !com_sv_running->integer ) {
-		if ( com_dedicated->integer ) {
+		if ( com_dedicated->integer
+#ifdef AFTERSHOCK_DEVTOOLS
+			 && !DevTools_AgentActive()
+#endif
+		) {
 			// Block indefinitely until something interesting happens
 			// on STDIN.
 			Sys_Sleep( -1 );
@@ -1434,6 +1441,10 @@ int SV_RateMsec( const client_t *client ) {
 
 	rateMsec = messageSize * 1000 / ( (int)( client->rate * com_timescale->value ) );
 	rate = Sys_Milliseconds() - client->netchan.lastSentTime;
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		rate = DevTools_AgentTime() - client->netchan.lastSentTime;
+#endif
 
 	if ( rate > rateMsec )
 		return 0;

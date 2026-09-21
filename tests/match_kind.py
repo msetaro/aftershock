@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+from run import SCRATCH
 import shutil
 import signal
 import socket
@@ -20,8 +21,8 @@ from toolchain import NODE,tool
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--image',default='aftershock-match:issue28')
 parser.add_argument('--client',type=Path,required=True)
-parser.add_argument('--data',type=Path,default=Path('/tmp/aftershock-openarena-baseoa'))
-parser.add_argument('--output',type=Path,default=Path('/tmp/aftershock-match-kind'))
+parser.add_argument('--data',type=Path,default=(SCRATCH / 'aftershock-openarena-baseoa'))
+parser.add_argument('--output',type=Path,default=(SCRATCH / 'aftershock-match-kind'))
 args=parser.parse_args()
 if args.output.exists():parser.error('choose a new output directory')
 args.output.mkdir(parents=True,mode=0o700)
@@ -29,8 +30,9 @@ output=args.output.resolve()
 docker=shutil.which('docker');assert docker,'Docker is required'
 kind,kubectl,helm,chart=[tool(name) for name in ('kind','kubectl','helm','agones-1.60.0.tgz')]
 cluster='aftershock-'+uuid.uuid4().hex[:10]
+namespace=cluster
 kubeconfig=output/'kubeconfig'
-ctl=[kubectl,'--kubeconfig',str(kubeconfig),'-n','aftershock-match']
+ctl=[kubectl,'--kubeconfig',str(kubeconfig),'-n',namespace]
 processes=[];streams=[];created=False
 
 def command(arguments,**kwargs):
@@ -68,12 +70,12 @@ try:
     log_run('image.log',[kind,'load','docker-image',args.image,'--name',cluster],timeout=120)
     # Generate manifest metadata before Helm so namespace-specific SDK RBAC exists.
     manifests=output/'manifests'
-    command([sys.executable,ROOT/'tools/match/kubernetes.py','--image',args.image,'--output',manifests,'--ci-content','/aftershock-ci'])
-    log_run('namespace.log',[*ctl,'create','namespace','aftershock-match'])
+    command([sys.executable,ROOT/'tools/match/kubernetes.py','--namespace',namespace,'--image',args.image,'--output',manifests,'--ci-content','/aftershock-ci'])
+    log_run('namespace.log',[*ctl,'create','namespace',namespace])
     log_run('agones.log',[helm,'install','agones',chart,'--namespace','agones-system','--create-namespace','--kubeconfig',kubeconfig,
         '--server-side=false','--set','agones.allocator.install=false','--set','agones.ping.install=false','--set','agones.controller.replicas=1',
         '--set','agones.controller.numWorkers=2','--set','agones.image.sdk.memoryRequest=32Mi','--set','agones.image.sdk.memoryLimit=128Mi',
-        '--set','gameservers.namespaces[0]=aftershock-match','--set','gameservers.minPort=7000',
+        '--set','gameservers.namespaces[0]='+namespace,'--set','gameservers.minPort=7000',
         '--set','gameservers.maxPort=7001','--wait','--timeout','180s'],timeout=240)
     node=cluster+'-control-plane'
     with tempfile.TemporaryDirectory(prefix='aftershock-match-client-') as temporary:

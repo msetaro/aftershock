@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 from pathlib import Path
+from run import SCRATCH
 import shlex
 import runpy
 import subprocess
@@ -12,7 +13,7 @@ from run import ROOT, ENV, run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cxx', default='g++')
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-replication'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-replication'))
 args = parser.parse_args()
 args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)

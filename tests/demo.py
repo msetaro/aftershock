@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import os
 from pathlib import Path
+from run import SCRATCH
 import shutil
 import subprocess
 import tempfile
@@ -14,7 +15,7 @@ from frames import check_frames
 from native import engine_objects, verify_static
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--output', type=Path, default=Path('/tmp/aftershock-demo-tests'))
+parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-demo-tests'))
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 parser.add_argument('--cc', default='gcc')

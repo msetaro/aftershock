@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "identity_public.h"
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "../public/dev_game_public.h"
+#include "../devtools/devtools_public.h"
 #endif
 #include "../public/g_native_public.h"
 
@@ -1074,7 +1075,12 @@ static void SV_InitNativeGame( qboolean restart ) {
 
 	// use the current msec count for a random seed
 	// init for this gamestate
-	Game_Init( sv.time, Com_Milliseconds(), restart );
+	int randomSeed = Com_Milliseconds();
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( DevTools_AgentActive() )
+		randomSeed = DevTools_AgentSeed();
+#endif
+	Game_Init( sv.time, randomSeed, restart );
 #ifdef AFTERSHOCK_DEVTOOLS
 	if ( developerEntities ) {
 		FS_FreeFile( developerEntities );
