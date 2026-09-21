@@ -25,6 +25,8 @@ parser.add_argument('--measure-gpu', action='store_true', help='measure the decl
 parser.add_argument('--record-reference', action='store_true', help='create new reviewed software references; refuses existing files')
 parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-fidelity-runtime')
 args = parser.parse_args()
+if args.record_reference and os.environ.get('CI'):
+    parser.error('CI must never create or regenerate reference frames')
 if args.measure_gpu and (args.record_reference or not os.environ.get('VK_DRIVER_FILES')):
     parser.error('--measure-gpu requires explicit VK_DRIVER_FILES and cannot record software references')
 args.output = args.output.resolve()

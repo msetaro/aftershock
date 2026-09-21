@@ -52,7 +52,7 @@ need. All existing accepted fixtures/shader arrays are unchanged. The bounded
 compressed-source cache ceiling is documented; no frame-time filesystem reads.
 Post remains default off because the earlier street-scene copy-back budget miss
 is retained. Do not reinterpret this simpler combined scene as erasing that miss.
-Draft PR169 head 31049488 contains main 07304b32; no maintainer input is needed.
+Draft PR169 head b2f545c7 contains main 07304b32; no maintainer input is needed.
 
 Initial post budgets before measurement: 0.75 ms for filmic controls and 0.20 ms
 for copy-back at 1440p on the reference GPU. Advanced lens effects remain default
@@ -77,6 +77,36 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 all compiler legs pass; retain hosted presentation evidence
+
+At b2f545c7, build 35628975625 passes all 16 compiler legs. Publication jobs are
+conditional/non-required and skip on PRs. Regression format, sanitizer and both
+cross jobs pass; longer jobs remain running. The workflow now uploads owned
+presentation PNGs, JSON reports and logs (no paks/content archives) even on failure,
+so hosted visual results are reviewable. Reference creation is explicitly rejected
+in CI, in addition to refusing existing-file replacement. This final gate/evidence
+checkpoint will trigger all checks on its own head; prior results remain evidence,
+not a substitute for final-head success.
+
+## #161 self-review and current hosted head
+
+AGENTS self-review: changes match #161 presentation scope; authoritative movement,
+collision, snapshot and damage arithmetic are unchanged. The separate descriptor
+bug is already on main through PR168. No new OS calls escape platform/filesystem
+interfaces; frame state is bounded/POD and no engine heap allocation was added to
+frame evaluation. Cooked layout assertions and new native ABI checks are retained.
+Effects are included in the passing lifetime scan. Existing goldens are unchanged:
+only four new fidelity PNGs are added. Existing generated shader data is unchanged:
+4589 appended lines, zero removed. Known-good object 8bc8c94c still targets 81a0f9dc.
+Issue comments record measurements, failed attempts, limitations and decisions.
+
+Current head b2f545c7 runs build 35628975625 and regression 35628975619. Superseded
+intermediate regression 35628745426 was canceled to free runner slots; its build
+35628745374 had already completed with the corrected-next-head MSVC diagnostics.
+Initial runtime 35628249523 is retained for earlier feedback on presentation tests.
+Only final-head checks count for merge. Main must be rechecked immediately before
+ready/merge; all 16 compiler legs and ten active regression jobs must succeed.
 
 ## #161 second hosted MSVC diagnostics
 

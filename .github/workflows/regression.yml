@@ -363,6 +363,21 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ssao_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-ssao-modules
       - name: Owned weapon replay through renderer module
         run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons_demo.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapons-demo-modules
+      - name: Presentation reference frames and residency evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: presentation-metrics
+          path: |
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-fidelity-runtime/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-fidelity-runtime/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-fidelity-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-streaming-runtime/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-streaming-runtime/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-streaming-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-temporal-runtime/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-temporal-runtime/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-temporal-runtime/*.log
       - name: RHI replay measurements
         if: always()
         uses: actions/upload-artifact@v7
