@@ -294,11 +294,13 @@ static bool Agent_Integer( const char *request, const char *end, const char *nam
 
 static bool Agent_Number( const char *request, const char *end, const char *name, float &value, float minimum, float maximum ) {
 	const char *p = JSON_ObjectGetNamedValue( request, end, name );
-	if ( !p )
+	if ( !p || !( *p == '-' || ( *p >= '0' && *p <= '9' ) ) || JSON_SkipValue( p, end ) - p >= 128 )
 		return false;
-	const char *stop = JSON_SkipValue( p, end );
-	const auto result = std::from_chars( p, stop, value );
-	return result.ec == std::errc{} && result.ptr == stop && std::isfinite( value ) && value >= minimum && value <= maximum;
+	const double number = JSON_ValueGetDouble( p, end );
+	if ( !std::isfinite( number ) || number < minimum || number > maximum )
+		return false;
+	value = (float)number;
+	return true;
 }
 
 #ifndef DEDICATED

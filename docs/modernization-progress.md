@@ -91,7 +91,9 @@ unit compiler legs; build Debug legs already compile developer tools on all
 platforms. Draft PR #166 is open at 20c92d52. Initial build 35556998279 caught libc++
 floating-point from_chars availability and MSVC width diagnostics in the
 previously unused json.h implementation. Correct those integration issues and
-rerun all gates. Keep the PR draft
+rerun all gates. The dispatcher now uses the existing bounded JSON numeric
+helper; explicit safe length conversions remove MSVC narrowing diagnostics.
+Native protocol passes GCC and Clang/libc++ locally. Keep the PR draft
 until every remaining acceptance requirement and final gate is complete.
 The next error-stream assertion fails first on missing subscribe
 (agent-events-before.log); the new PNG/TGA pixel-equivalence assertion already

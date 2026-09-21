@@ -203,7 +203,7 @@ const char *JSON_ArrayGetValue( const char *json, const char *jsonEnd, unsigned 
 // --------------------------------------------------------------------------
 
 const char *JSON_ObjectGetNamedValue( const char *json, const char *jsonEnd, const char *name ) {
-	unsigned int nameLen = strlen( name );
+	size_t nameLen = strlen( name );
 
 	for ( json = JSON_ArrayGetFirstValue( json, jsonEnd ); json; json = JSON_ArrayGetNextValue( json, jsonEnd ) ) {
 		if ( *json == '"' ) {
@@ -214,7 +214,7 @@ const char *JSON_ObjectGetNamedValue( const char *json, const char *jsonEnd, con
 			thisNameEnd = json - 1;
 			json = JSON_SkipSeparators( json, jsonEnd );
 
-			if ( (unsigned int)( thisNameEnd - thisNameStart ) == nameLen )
+			if ( (size_t)( thisNameEnd - thisNameStart ) == nameLen )
 				if ( strncmp( thisNameStart, name, nameLen ) == 0 )
 					return json;
 		}
@@ -264,14 +264,14 @@ unsigned int JSON_ValueGetString( const char *json, const char *jsonEnd, char *o
 
 	stringLen--;
 	if ( stringLen > stringEnd - stringStart )
-		stringLen = stringEnd - stringStart;
+		stringLen = (unsigned int)( stringEnd - stringStart );
 
 	json = stringStart;
 	while ( stringLen-- )
 		*outString++ = *json++;
 	*outString = '\0';
 
-	return stringEnd - stringStart;
+	return (unsigned int)( stringEnd - stringStart );
 }
 
 double JSON_ValueGetDouble( const char *json, const char *jsonEnd ) {
