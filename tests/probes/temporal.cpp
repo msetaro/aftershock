@@ -5,6 +5,36 @@
 int main() {
 	static_assert( std::is_trivially_copyable_v<temporalView_t> );
 	static_assert( std::is_trivially_copyable_v<temporalEntity_t> );
+	float baseProjection[16]{};
+	baseProjection[0] = 1.5f;
+	baseProjection[5] = 2;
+	baseProjection[8] = .1f;
+	baseProjection[9] = -.2f;
+	baseProjection[10] = .001f;
+	baseProjection[11] = -1;
+	baseProjection[14] = 4;
+	float sum[2]{};
+	for ( uint32_t frame = 0; frame < 8; ++frame ) {
+		float projection[16], repeated[16];
+		memcpy( projection, baseProjection, sizeof( projection ) );
+		memcpy( repeated, baseProjection, sizeof( repeated ) );
+		assert( R_TemporalJitter( frame, 640, 480, projection ) );
+		assert( R_TemporalJitter( frame + 8, 640, 480, repeated ) );
+		assert( !memcmp( projection, repeated, sizeof( projection ) ) );
+		for ( int i = 0; i < 16; ++i )
+			if ( i != 8 && i != 9 )
+				assert( projection[i] == baseProjection[i] );
+		for ( int axis = 0; axis < 2; ++axis ) {
+			const float pixels = ( projection[8 + axis] - baseProjection[8 + axis] ) * ( axis ? 480 : 640 ) * .5f;
+			assert( fabsf( pixels ) < .5f );
+			sum[axis] += pixels;
+		}
+	}
+	assert( fabsf( sum[0] ) < .0001f && fabsf( sum[1] ) < .0001f );
+	float invalid[16];
+	memcpy( invalid, baseProjection, sizeof( invalid ) );
+	assert( !R_TemporalJitter( 0, 0, 480, invalid ) );
+	assert( !memcmp( invalid, baseProjection, sizeof( invalid ) ) );
 	R_TemporalReset();
 	temporalView_t view{};
 	view.frame = 10;
