@@ -69,6 +69,22 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 effects scissor restoration
+
+While #31 PR168 runs required gates, a separate test on the unmerged #161 code
+reproduces stale scissor state (70f14376, fidelity-scissor-before.log and
+fidelity-scissor-assert.log). Direct effects/post calls change the GPU scissor
+without changing its ordinary draw cache. After a small decal rectangle, the
+next full-screen draw sees its old cached rectangle and skips the required GPU
+update. RHI_EndEffects now invalidates that cache alongside depth range, so the
+next ordinary draw installs its actual rectangle. This correction is confined
+to new #161 code; main's #31 descriptor fix remains isolated in PR168.
+Native GCC/Clang graph checks pass (fidelity-scissor-{after,clang}.log), as do
+the decal editor/reload/restart lifecycle and four-sample MSAA post/HUD checks
+(fidelity-scissor-{decals,post}.log). Format passes all 472 owned files. No
+accepted fixtures change. #31 PR168 now has every required check except runtime
+green; its descriptor correction is still awaiting merge.
+
 ## #161 RTX failure isolated; #31 fix in progress
 
 Initial post-enabled RTX run crashes in RHI_PrepareDraw before producing timing

@@ -7861,6 +7861,7 @@ void RHI_EndEffects() {
 	vk.cmd->descriptor_set.end = vk.maxBoundDescriptorSets - 1;
 	vk.cmd->last_pipeline = VK_NULL_HANDLE;
 	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
+	vk.cmd->scissor_rect = {}; // Direct effect/post scissors bypass the ordinary state cache.
 }
 
 bool RHI_DrawPost( const rhiPostDraw_t *settings, const rhiTexture_t *lut ) {
