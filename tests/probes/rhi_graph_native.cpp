@@ -438,10 +438,30 @@ static VkResult VKAPI_CALL createTemporalPipeline( VkDevice, VkPipelineCache, ui
 	*out = (VkPipeline)(uintptr_t)99;
 	return VK_SUCCESS;
 }
+static VkResult VKAPI_CALL createMotionPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
+	assert( count == 1 && p->layout == vk.pipeline_layout && p->renderPass == vk.render_pass.temporal[1] );
+	assert( p->pMultisampleState->rasterizationSamples == VK_SAMPLE_COUNT_1_BIT );
+	assert( p->pDepthStencilState->depthTestEnable && !p->pDepthStencilState->depthWriteEnable );
+	assert( p->pDepthStencilState->depthCompareOp == VK_COMPARE_OP_GREATER_OR_EQUAL );
+	assert( !p->pColorBlendState->pAttachments[0].blendEnable );
+	assert( p->pVertexInputState->vertexBindingDescriptionCount == 4 );
+	assert( p->pVertexInputState->vertexAttributeDescriptionCount == 4 );
+	const auto &previous = p->pVertexInputState->pVertexAttributeDescriptions[3];
+	assert( previous.location == 3 && previous.binding == 5 && previous.format == VK_FORMAT_R32G32B32A32_SFLOAT );
+	*out = (VkPipeline)(uintptr_t)98;
+	return VK_SUCCESS;
+}
 static void temporalCommands() {
 	qvkCreateGraphicsPipelines = createTemporalPipeline;
 	for ( int i = 0; i < 3; ++i )
 		vk_create_post_process_pipeline( 12 + i, 640, 480 );
+	qvkCreateGraphicsPipelines = createMotionPipeline;
+	vk.modules.motion_vs = (VkShaderModule)(uintptr_t)23;
+	vk.modules.motion_fs = (VkShaderModule)(uintptr_t)24;
+	rhiPipelineDesc_t motion{};
+	motion.shader_type = TYPE_MOTION;
+	motion.face_culling = CT_TWO_SIDED;
+	assert( create_pipeline( &motion, RENDER_PASS_MAIN, 0 ) );
 	uint8_t upload[512]{};
 	vk.cmd->vertex_buffer_ptr = upload;
 	vk.cmd->uniform_read_offset = 32;
