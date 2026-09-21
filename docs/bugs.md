@@ -1014,3 +1014,12 @@ publisher, then passes immutable creation/retry/collision and API failure cases.
 Bash syntax, build workflow actionlint and scoped permission checks pass. Full
 hosted gates and successful main publication remain required before this entry
 can be marked fixed. No history or rollback tag is rewritten.
+
+## #160: publication workflow permission collision
+
+Open, CI only. Main merge 567cc664 combined two concurrent permission changes,
+leaving duplicate YAML keys in create-testing and update-release. Build workflow
+35548258547 cannot load. Reproduce with `actionlint -shellcheck=
+.github/workflows/build.yml` at that commit (duplicate keys at lines 194/222).
+The issue branch removes only the redundant blocks; full required gates and actual
+merged publication are pending. #158 stays open until that publication succeeds.
