@@ -1,6 +1,8 @@
 """Version 1 schema and conservative design-rule checks for brush levels."""
 from collections import deque
 import math
+import hashlib
+import struct
 from pathlib import PurePosixPath
 import re
 
@@ -58,6 +60,20 @@ def material_sources(materials, assets):
         require(found is not None, 'missing material: '+path)
         require(found.resolve().is_relative_to(assets.resolve()), 'material outside asset directory')
         sources[found.relative_to(assets).as_posix()] = found
+        material = assets/'textures'/(path+'.asmat')
+        if material.is_file():
+            require(material.resolve().is_relative_to(assets.resolve()), 'material outside asset directory')
+            data = material.read_bytes()
+            require(len(data)==288 and struct.unpack_from('<8sII',data)==(b'ASMAT\0\0\0',2,240) and
+                    hashlib.sha256(data[48:]).digest()==data[16:48], 'level materials require valid cooked PBR v2')
+            sources[material.relative_to(assets).as_posix()] = material
+            for offset in (96,160,224):
+                name = data[offset:offset+64].split(b'\0',1)[0].decode()
+                qpath(name)
+                texture = assets/name
+                require(name.endswith('.ktx2') and texture.is_file() and texture.resolve().is_relative_to(assets.resolve()),
+                        'missing/outside cooked material texture: '+name)
+                sources[name] = texture
     return sources
 
 

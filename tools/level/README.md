@@ -313,3 +313,30 @@ freely translating or rotating the result. It emits `compiled-overhead.png`,
 `overhead-difference.png` (green overlap, red missing, blue excess), per-class IoU
 and the BSP SHA256. This is a geometry/class image, not a textured GPU screenshot.
 The independent control requires 0.93 IoU and rejects a displaced expected building.
+
+Theme assembly uses `tools/level/themes/manhattan.json`: material-role mappings,
+per-role brush `texture_scale`, lighting and seeded module placement. It reuses
+both validated CC0 source kits, carries their file hashes/licenses into the
+assembled `assets/manifest.json` and generates combined credits. Each building
+has its own seeded random stream; editing one building does not re-roll others.
+Props remain non-solid and are rejected when their bounds overlap authored solids,
+other props, doorway clearance, explicit route lanes or spawn clearance.
+The empty ambient-audio/decal/effect lists reserve no generated or unlicensed art.
+
+Optional v2 `texture_scale` maps material roles to positive MAP texture scales
+(default 1). Cooked PBR v2 sidecars beside role images bring their three verified
+KTX2 dependencies into the output. Source-labeled brush ASMAT aliases reuse those
+same payloads; their compiler-only image/lightmap shaders are removed at runtime
+because explicit scripts would take precedence over cooked PBR. Levels without
+cooked materials retain their ordinary lightmapped shaders.
+
+`python3 tests/theme_level.py` exercises the real pinned kits and assembly.
+`--library DIR --modules DIR` reuses already validated kits. Add `--client PATH
+--server PATH --output DIR` for retained native bot and eye-level/fly-through
+capture evidence. The integrated sketch command and shooter-intent acceptance
+are still being implemented; these component checks do not claim that completion.
+
+V2 may add material roles (lowercase identifiers, at most 12 characters) alongside
+the six required roles. That bound preserves native qpath limits for source-ID
+aliases. Reference facade/cornice modules bind their own baked PBR materials;
+their glTF/OBJ UVs are not remapped to the building's repeating wall image.

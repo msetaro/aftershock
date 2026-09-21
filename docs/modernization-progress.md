@@ -52,6 +52,28 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 module material correction passes
+
+The material-role assertion fails before the binding change
+(sketch-theme-module-material-before.log). V2 now allows additional material roles
+of at most 12 characters, keeping native shader paths inside the existing limit.
+Facade/cornice props use their own baked PBR materials instead of wall UVs. A fresh
+native run passes and its street image was reviewed (sketch-theme-baked.log and
+sketch-theme-baked/images in user cache). Brush texture scales remain explicit;
+no engine change or accepted fixture regeneration was needed for this correction.
+
+## #164 themed PBR staging and scale pass
+
+The scale assertion fails before implementation (sketch-theme-scale-before.log),
+then passes with explicit 0.0625 brush-role scales. Native facade/street captures
+were reviewed at /home/matt/.cache/aftershock-modernization/sketch-theme-scaled.
+The repeated 6000-frame run again reports 13 kills, 240 samples, no stuck bots and
+no warnings. Schema/trace controls and compiled polygon/v1 identity gates pass
+(sketch-theme-formats.log, sketch-theme-trace.log, sketch-theme-polygons.log).
+CI now exercises real pinned theme fetch/module assembly; it continues to use
+owned game content for its later runtime gates. Next integrate the command and
+add agent-backed intent/shooter checks; supplied-rig retargeting is also open.
+
 ## #164 initial themed native run passes
 
 Real pinned material and Blender kits assemble repeatably with complete source

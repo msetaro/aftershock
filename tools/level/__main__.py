@@ -19,7 +19,7 @@ from tools.scratch import ROOT as SCRATCH
 from tools.agent.formats import validate as validate_format, diagnostic
 
 
-def shaders(level):
+def shaders(level,cooked=()):
     sky = level['materials']['sky']
     lighting = level['lighting']
     sun = ''
@@ -32,7 +32,7 @@ def shaders(level):
     extra = ''
     if level['version']==2:
         from polygons import surface_shaders
-        extra = surface_shaders(level)+('textures/level/fence\n{\n    surfaceparm nonsolid\n    surfaceparm playerclip\n'
+        extra = surface_shaders(level,cooked)+('textures/level/fence\n{\n    surfaceparm nonsolid\n    surfaceparm playerclip\n'
                  '    surfaceparm alphashadow\n    cull none\n    {\n'
                  f'        map textures/{level["materials"]["trim"]}\n'
                  '        rgbGen identity\n    }\n}\n')
@@ -78,6 +78,18 @@ def main():
                     if (stage/'compile.log').exists():
                         output.mkdir(parents=True,exist_ok=True)
                         shutil.copyfile(stage/'compile.log',output/'compile.log')
+
+            cooked = {role:path for role,path in level['materials'].items() if (stage/'textures'/(path+'.asmat')).is_file()}
+            if level['version']==2 and cooked:
+                from polygons import pieces,surface_material
+                for record in pieces(level)[1]:
+                    if record['material'] in cooked and not record['id'].startswith('boundary_'):
+                        target = stage/'textures'/(surface_material(level,record)+'.asmat')
+                        target.parent.mkdir(parents=True,exist_ok=True)
+                        shutil.copyfile(stage/'textures'/(cooked[record['material']]+'.asmat'),target)
+                # q3map2 uses the image/lightmap shader; native rendering resolves
+                # the cooked PBR alias. An explicit runtime shader would shadow it.
+                (stage/'scripts/level.shader').write_bytes(shaders(level,cooked).encode())
             for path in sorted(stage.rglob('*')):
                 if path.is_file():
                     target = output/path.relative_to(stage)

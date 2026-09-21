@@ -73,7 +73,7 @@ def convex_parts(shape):
     return sorted((orient(p,sign=1) for p in pieces if p.area>1e-6),key=lambda p:(p.bounds,p.wkb_hex))
 
 
-def prism(poly, low, high, material, slope=None):
+def prism(poly, low, high, material, slope=None, texture_scale=1):
     points = list(poly.exterior.coords)[:-1]
     x,y = points[0]
     planes = [((x,y,low),(x+16,y,low),(x,y+16,low))]
@@ -88,7 +88,7 @@ def prism(poly, low, high, material, slope=None):
     for a,b in zip(points,points[1:]+points[:1]):
         planes.append(((a[0],a[1],low),(a[0],a[1],low+16),(b[0],b[1],low)))
     return '{\n'+''.join(' '.join('( '+vector(point)+' )' for point in plane)+
-                         f' {material} 0 0 0 1 1 0 0 0\n' for plane in planes)+'}\n'
+                         f' {material} 0 0 0 {texture_scale:.9g} {texture_scale:.9g} 0 0 0\n' for plane in planes)+'}\n'
 
 
 def opening_polygon(poly, opening, thickness):
@@ -278,10 +278,10 @@ def surface_material(level,record):
     return 's/'+record['id']+'/'+material
 
 
-def surface_shaders(level):
+def surface_shaders(level,cooked=()):
     _,records = pieces(level)
     aliases = sorted({(surface_material(level,r),level['materials'].get(r['material'],r['material']))
-                      for r in records if not r['id'].startswith('boundary_') and not r['material'].startswith('level/')})
+                      for r in records if not r['id'].startswith('boundary_') and not r['material'].startswith('level/') and r['material'] not in cooked})
     return ''.join(f'textures/{alias}\n{{\n    qer_editorimage textures/{source}\n'
                    '    {\n        map $lightmap\n        rgbGen identity\n    }\n'
                    f'    {{\n        map textures/{source}\n        blendFunc filter\n        rgbGen identity\n    }}\n}}\n'
@@ -290,7 +290,7 @@ def surface_shaders(level):
 
 def generate(level):
     _,records = pieces(level)
-    world = ['// shape '+record['id']+'\n'+prism(poly,record['low'],record['high'],surface_material(level,record),record['slope'])
+    world = ['// shape '+record['id']+'\n'+prism(poly,record['low'],record['high'],surface_material(level,record),record['slope'],level.get('texture_scale',{}).get(record['material'],1))
              for record in records for poly in convex_parts(record['polygon'])]
     require(len(world)<=8192, 'convex brush budget exceeded')
     entities = []
@@ -411,6 +411,7 @@ def validate(level, assets):
     sources = material_sources(level['materials'],assets)
     area,records = pieces(level)
     for prop in level['props']:
+        require(prop['material'] in level['materials'], 'unknown prop material role')
         sources[prop['model']] = prop_asset(prop,assets)
     report = navigation(level,records)
     report.update(shapes=len(level['shapes']),playable_area=round(area.area,3),brushes=sum(len(convex_parts(r['polygon'])) for r in records))

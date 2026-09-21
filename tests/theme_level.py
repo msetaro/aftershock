@@ -52,6 +52,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
     b=assemble(level,theme,library,modules,root/'b',seed=164)
     assert a==b and a['props'], 'theme placement must be seeded and repeatable'
     assert a['shapes']==level['shapes'], 'dressing changed authored geometry'
+    assert any(p['material']=='kit_facade' for p in a['props']), 'facade modules must retain their baked material'
     for prop in a['props']:
         p,_,_=prop_bounds(prop)
         assert not p.intersects(LineString(level['intents'][0]['points']).buffer(64)), 'prop obstructs explicit lane'

@@ -10,6 +10,10 @@ def version2(legacy):
         del fields[key]
     fields['props']['items']['properties'].update(angle=num(-360,360),bounds_center=vector(integer=False))
     identity = fields['name']
+    role = dict(type='string',pattern='^[a-z][a-z0-9_]{0,11}$')
+    fields['materials']['propertyNames'] = role
+    fields['materials']['additionalProperties'] = copy.deepcopy(fields['materials']['properties']['wall'])
+    fields['props']['items']['properties']['material'] = role
     xy = vector(integer=False,count=2)
     ring = array(xy,3,256)
     holes = array(ring,0,16)
@@ -22,9 +26,14 @@ def version2(legacy):
     opening = obj(dict(edge=num(0,255,True),at=num(0,64000),width=num(32,8192),sill=num(0,8192),height=num(1,8192)))
     rule = obj(dict(face_point=xy,spacing=num(64,8192),width=num(32,8192),sill=num(0,8192),height=num(1,8192),floors=array(num(0,7,True),1,8)),['face_point','spacing','width','sill','height'])
     item = obj(dict(id=identity,kind=enum('solid','building','platform','wall','overhead','transition'),shape=shape,base=num(-32000,32000),height=num(1,8192),
-                    material=enum(*fields['materials']['properties']),wall_thickness=num(4,128),floors=num(1,8,True),
+                    material=role,wall_thickness=num(4,128),floors=num(1,8,True),
                     openings=array(opening),opening_rules=array(rule,0,16),roof_access=dict(type='boolean'),transition=enum('stairs','ramp'),descending=dict(type='boolean'),bullet_solid=dict(type='boolean')),['id','kind','shape','base','height'])
     item['allOf'] = [{'if':dict(properties=dict(kind=dict(const='transition'))),'then':dict(required=['transition'])}]
+    fields['texture_scale'] = dict(type='object',propertyNames=role,additionalProperties=num(.001,16))
+    fields['intents'] = array(obj(dict(id=identity,kind=enum('route','sightline','hold','engagement','objective'),
+        points=array(xy,1,256),width=num(1,8192),radius=num(1,8192),target_seconds=num(0,300),
+        tolerance_seconds=num(0,300),blocked=dict(type='boolean'),team=enum('ffa','red','blue'),
+        mode=enum('ffa','team','ctf')),['id','kind','points']),0,128)
     fields.update(version=dict(const=2),boundary=obj(dict(polygon=ring,holes=holes,floor=num(-32000,32000),ceiling=num(-32000,32000)),
                   ['polygon','floor','ceiling']),shapes=array(item,1))
-    return obj(fields,[key for key in fields if key!='viewpoints'])
+    return obj(fields,[key for key in fields if key not in ('viewpoints','intents','texture_scale')])

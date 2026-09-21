@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "name": "manhattan",
+  "license": "CC0-1.0",
+  "materials": {
+    "floor": "ground",
+    "wall": "facade",
+    "trim": "ground",
+    "cover": "facade",
+    "prop": "prop",
+    "sky": "sky",
+    "kit_facade": "kit_facade",
+    "kit_cornice": "kit_cornice"
+  },
+  "sky_color": [
+    110,
+    145,
+    180
+  ],
+  "lighting": {
+    "ambient": 32,
+    "directional": true,
+    "lights": [],
+    "sun": {
+      "direction": [
+        0.3,
+        0.4,
+        -1
+      ],
+      "color": [
+        1,
+        0.94,
+        0.85
+      ],
+      "intensity": 90
+    }
+  },
+  "placement": {
+    "door_clearance": 64,
+    "spawn_clearance": 96,
+    "lane_clearance": 64,
+    "spacing": 192,
+    "density": 0.8
+  },
+  "props": [
+    {
+      "module": "facade",
+      "material": "kit_facade",
+      "offset": 20,
+      "height": 0
+    },
+    {
+      "module": "cornice",
+      "material": "kit_cornice",
+      "offset": 20,
+      "height": 112
+    },
+    {
+      "module": "crate",
+      "material": "prop",
+      "offset": 64,
+      "height": 0
+    }
+  ],
+  "ambient_audio": [],
+  "decals": [],
+  "effects": [],
+  "texture_scale": {
+    "floor": 0.0625,
+    "wall": 0.0625,
+    "trim": 0.0625,
+    "cover": 0.0625,
+    "prop": 0.0625
+  }
+}
