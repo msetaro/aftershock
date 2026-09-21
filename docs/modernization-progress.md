@@ -81,6 +81,25 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 combined visual scene and remaining declared budgets
+
+The new `tests/fidelity_runtime.py` combines the generated two_lane level, nine
+unchanged reference effects, three projected decals, an owned PBR sphere, TAA and
+filmic post. Two independent initial runs were byte-identical. New baseline,
+combined, settling and reduced-LOD frames were reviewed; existing goldens and
+assets are untouched. The sphere's authored `lod_error=.1` permits 576/288/144
+triangles (75% savings at the lowest level); the default .01 held both requested
+reductions at 470, so only this new test recipe opts into the larger error.
+
+Remaining budgets declared on #161 before measurement at 1440p / RTX 3080 Ti:
+effects frontend CPU p95 0.50 ms; combined soft-particle/decal backend CPU 0.50 ms;
+decal frontend CPU 0.25 ms; LOD selection CPU 0.10 ms; inclusive effects GPU pass
+1.50 ms, decal GPU subset 0.75 ms. Nested decal time is not counted twice. Existing
+post/temporal/streaming thresholds remain unchanged. The fresh comparison run passes all four references exactly
+(fidelity-combined-verify.log); the runtime command is added to hosted CI and
+AGENTS.md. Next: add cumulative CPU and nested decal GPU timing, then measure the
+combined workload.
+
 ## #161 permanent streaming measurement command
 
 `tests/streaming_runtime.py --measure-gpu` now reproduces the serial reference

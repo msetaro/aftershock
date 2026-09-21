@@ -1388,3 +1388,16 @@ CPU p95 must be at most 0.25 ms; completed upload GPU p95 at most 0.50 ms. It re
 frame CPU percentiles and each observed submission. Software CI runs the functional
 gate without this option; it does not substitute for the reference hardware gate.
 Final combined visual acceptance remains required.
+
+
+`tests/fidelity_runtime.py --binary PATH --content openarena --data PATH` combines
+all nine unchanged reference effects, three projected decals, an owned PBR sphere
+with 576/288/144-triangle cooked LODs, TAA and filmic post on the generated two_lane
+level. It checks active passes, visible output, bounded pools and reduced geometry,
+and compares four software captures against `tests/golden/fidelity/*.png` exactly.
+The new sphere recipe explicitly uses `lod_error=.1` to reach its requested ratios;
+this does not change any shipped asset or cooker default. The lowest LOD saves 75%
+of triangles. These CC0 captures contain only the generated level and owned assets.
+Initial reference creation uses `--record-reference`, which refuses to overwrite
+existing references. CI never passes that flag. Reference changes require an
+explicit behavior-change decision and review, as with the other golden fixtures.
