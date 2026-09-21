@@ -52,3 +52,27 @@ failure. Invalid scripts fail before launch with file/path/type diagnostics.
 Build output is in `build.log`. Each launch has a private home and automatic
 X display; `AFTERSHOCK_SCRATCH` selects the parent of its unique temporary root.
 The Python `Engine` context manager exposes `request()`, `step()` and `events`.
+
+## Authoring schemas
+
+```sh
+python3 tools/agent describe weapon
+python3 tools/agent validate weapon tests/assets/weapons/rifle.weapon.json
+```
+
+`describe` emits `{kind, schema, example, notes}`. Supported kinds are `level`,
+`weapon`, `animation`, `material`, `effect` and `match-spec`. These are JSON Schema
+2020-12 documents. `validate` checks structure, field types and ranges; it does
+not cook resources or replace the loader's geometry, reference, ordering and
+cross-field checks. Run the cooker/level compiler to check those too. Schema
+boundaries are compared with the production loaders in `tests/agent_formats.py`.
+The cooker and level compiler apply the same schemas and emit JSON error objects
+with `file`, `path` and `hint`; a semantic error concerning the whole document
+uses `$`. A valid level/animation example still needs its referenced source assets.
+
+Material recipes select `legacy` or `metallic-roughness`; the material schema
+describes fields from both source shapes. The schema's effect format is an
+**authoring-only contract pending #161**. Validation does not imply that an effect
+can be cooked or rendered yet. Its current minimal emitter fields establish the
+versioned input; #161 must add loader parity and runtime evidence as it implements
+that contract. Match examples use development-only placeholder credentials.

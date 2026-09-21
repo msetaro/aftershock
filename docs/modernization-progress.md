@@ -38,8 +38,7 @@ checks also pass with an OA renderer module; no screen-click calls remain in
 test drivers. Shipping exclusion passes in the full devtools rebuild. Legacy
 accepted goldens and source assets are unchanged.
 
-Next: finish remaining command metadata/UI coverage, six format
-schemas/describe/errors, per-invocation scratch/display/port
+Next: finish remaining command metadata/UI coverage and per-invocation scratch/display/port
 isolation and concurrent full suites, affected-test mapping and executable
 docs/agents recipes. Audit every #163 acceptance requirement before readiness.
 Then full current-main gates/self-review/merge and continue #164 -> #161 -> #15
@@ -47,7 +46,8 @@ through the remaining #25 roadmap. PR166 stays draft until complete.
 
 Hosted assertion head 8213ac3d build 35561708602 passes all compiler legs.
 Regression 35561708597 passes format, match-server, both unit/cross legs, tidy
-and sanitizers; runtime/lifetimes are still running. Latest CLI changes need
+and sanitizers; runtime/lifetimes are still running. CLI head f0e768cb build 35562297132 also passes; regression 35562297425
+has passed lifetimes and is still running runtime. Latest schema changes need
 fresh hosted gates. No failed/superseded head is acceptance.
 
 All existing exclusions remain in force. Nothing leaves msetaro/aftershock;
@@ -75,6 +75,29 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 authored-schema checkpoint
+
+`tools/agent describe` emits schemas/examples for level, weapon, animation,
+material, effect and match-spec. `validate` reports file/JSON-path/type/range/hint
+errors. Structural/range boundaries are checked against production Python loaders
+and the actual Go match-spec source; existing owned sources validate. The cooker
+and level tools use these schemas before compiling, retain semantic/resource
+checks, and emit structured diagnostics. The watcher test now checks the error
+object and verifies the previous published revision remains intact.
+
+Effects are explicitly authoring-only until #161 supplies the runtime/cooker;
+this is a schema contract, not a claim that effects render. Material recipes
+still choose legacy/PBR. Schemas cannot encode resource relationships or all
+cross-field geometry checks; the real loaders retain that responsibility.
+
+Local agent-formats, cooker, weapon, animation, PBR material, level and owned match
+package checks pass (agent-format-*.log). The accepted MAP and owned package bytes
+are unchanged. The match Docker image builds locally as aftershock-match:issue163
+with the schema dependency; it is not published. CI installs the dependency in
+each consuming environment and runs the six-format/loader check. Changes to the
+schema source participate in the cook recipe hash. Fresh full hosted gates remain
+required before readiness; no fixture regeneration or shipping engine changes.
 
 ## #163 schemas test-first checkpoint
 

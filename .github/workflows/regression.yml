@@ -76,7 +76,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build libc++-dev libc++abi-dev
       - name: Cook owned source assets and verify production poses
         run: |
-          sudo apt-get update && sudo apt-get install -y python3-venv ninja-build
+          sudo apt-get update && sudo apt-get install -y python3-venv python3-jsonschema ninja-build
           python3 -m venv /tmp/aftershock-cook-python
           /tmp/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt
           /tmp/aftershock-cook-python/bin/python tests/cook.py --cxx '${{ matrix.cxx }}'
@@ -201,6 +201,11 @@ jobs:
           key: regression-${{ github.job }}-${{ matrix.cc }}
       - name: Install runtime tools and OpenArena content
         run: sudo apt-get update && sudo apt-get install -y python3-venv python3-pil python3-jsonschema ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data libarchive-dev
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.27.1'
+      - name: Authored schemas and loader parity
+        run: python3 tests/agent_formats.py
       - name: Stage pinned upstream OpenArena gamecode
         run: python3 tests/openarena.py
       - name: Download URL construction
@@ -402,7 +407,7 @@ jobs:
         with:
           key: regression-match-server
       - name: Install native client and public test-content prerequisites
-        run: sudo apt-get update && sudo apt-get install -y ninja-build faketime xvfb xauth mesa-vulkan-drivers libsdl2-dev libasound2-dev mesa-common-dev openarena-data
+        run: sudo apt-get update && sudo apt-get install -y python3-jsonschema ninja-build faketime xvfb xauth mesa-vulkan-drivers libsdl2-dev libasound2-dev mesa-common-dev openarena-data
       - name: Match contracts and acknowledged result delivery
         run: |
           cd tools/match

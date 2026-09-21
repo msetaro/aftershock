@@ -1145,3 +1145,8 @@ schema diagnostics. Add the usual `--content openarena --data PATH` for OA.
 `tests/agent_play.py --binary CLIENT` also checks real bot damage/death events.
 The standalone build/run command and script contract are documented in
 [tools/agent/README.md](../tools/agent/README.md); jsonschema is required for the CLI.
+
+`python3 tests/agent_formats.py` checks the six authoring schemas, example and
+error commands, cooker/level diagnostic integration, and production loader range
+parity. It needs jsonschema, Pillow, the cooker prerequisites and Go on PATH.
+Effects remain authoring-only pending #161; see the agent tool README.

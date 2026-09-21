@@ -10,3 +10,6 @@
 !tests/assets/levels/**
 !tests/golden/levels/**
 **/__pycache__/**
+
+!tools/agent/__init__.py
+!tools/agent/formats.py

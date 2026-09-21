@@ -321,9 +321,15 @@ def main():
                 revision = (material_output / 'cook.revision').read_bytes()
                 (directory / 'paint.json').write_text('{')
                 deadline = time.monotonic() + 15
-                while 'cook:' not in (args.output / 'watch.log').read_text():
+                def reported_errors():
+                    rows = (args.output / 'watch.log').read_text().splitlines(keepends=True)
+                    messages = [json.loads(row) for row in rows if row.endswith('\n') and row.startswith('{')]
+                    return [row['error'] for row in messages if row.get('ok') is False]
+                while not reported_errors():
                     assert watcher.poll() is None and time.monotonic() < deadline
                     time.sleep(0.05)
+                error = reported_errors()[0]
+                assert error['file'] == str(directory / 'paint.json') and error['path'] == '$' and error['hint'], error
                 assert (material_output / 'cook.revision').read_bytes() == revision
             finally:
                 watcher.terminate()

@@ -1,5 +1,5 @@
 FROM debian:bookworm-slim@sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251 AS engine
-RUN apt-get update && apt-get install -y --no-install-recommends g++ cmake ninja-build python3 ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends g++ cmake ninja-build python3 python3-jsonschema ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /source
 COPY CMakeLists.txt COPYING.txt ./
 COPY cmake/ cmake/
@@ -7,6 +7,7 @@ COPY engine/ engine/
 COPY game/ game/
 COPY third_party/ third_party/
 COPY tools/level/ tools/level/
+COPY tools/agent/__init__.py tools/agent/formats.py tools/agent/
 COPY tools/match/content.py tools/match/content.py
 COPY tests/assets/levels/ tests/assets/levels/
 COPY tests/golden/levels/ tests/golden/levels/

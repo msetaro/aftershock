@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from tools.agent import Engine, ROOT
 from tools.agent.playtest import load_script, run_script
+from tools.agent.formats import KINDS, describe, validate
 
 
 def main():
@@ -23,8 +24,20 @@ def main():
     run.add_argument('--data', type=Path, default=Path.home()/'.q3a/baseq3')
     run.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
     run.add_argument('--jobs', type=int, default=min(8, os.cpu_count() or 1))
+    description = commands.add_parser('describe')
+    description.add_argument('kind', choices=KINDS)
+    validation = commands.add_parser('validate')
+    validation.add_argument('kind', choices=KINDS)
+    validation.add_argument('source', type=Path)
     args = parser.parse_args()
     try:
+        if args.command == 'describe':
+            print(json.dumps(describe(args.kind), indent=2))
+            return 0
+        if args.command == 'validate':
+            validate(args.kind, json.loads(args.source.read_text()), args.source)
+            print(json.dumps(dict(ok=True, kind=args.kind, file=str(args.source))))
+            return 0
         script = load_script(args.script)
         output = args.out.resolve()
         output.mkdir(parents=True, exist_ok=True)
@@ -51,7 +64,7 @@ def main():
         return 0 if report['ok'] else 1
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
         detail = error.args[0] if isinstance(error, ValueError) and isinstance(error.args[0], dict) else dict(
-            file=str(args.script), path='$', hint=str(error)+'; check script/content and build.log')
+            file=str(getattr(args, 'script', getattr(args, 'source', ''))), path='$', hint=str(error)+'; check the source document or build.log')
         print(json.dumps(dict(ok=False, error=detail)), file=sys.stderr)
         return 1
 
