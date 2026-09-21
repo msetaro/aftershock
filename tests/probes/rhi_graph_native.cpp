@@ -284,8 +284,10 @@ static VkResult VKAPI_CALL createParticlePipeline( VkDevice, VkPipelineCache, ui
 static void VKAPI_CALL particleViewport( VkCommandBuffer, uint32_t first, uint32_t count, const VkViewport *view ) {
 	assert( first == 0 && count == 1 && view->width == 640 && view->height == 480 );
 }
+static VkRect2D observedScissor;
 static void VKAPI_CALL particleScissor( VkCommandBuffer, uint32_t first, uint32_t count, const VkRect2D *area ) {
-	assert( first == 0 && count == 1 && area->extent.width == 640 && area->extent.height == 480 );
+	assert( first == 0 && count == 1 );
+	observedScissor = *area;
 }
 static void particleCommands() {
 	qvkCreateGraphicsPipelines = createParticlePipeline;
@@ -324,9 +326,19 @@ static void particleCommands() {
 	assert( RHI_DrawDecal( &decal, &image, &image, &viewport ) );
 	assert( !RHI_DrawDecal( &decal, &image, &image, &viewport ) );
 	assert( occlusionDraws == 2 && vk.cmd->uniform_read_offset == 32 );
+	vk.cmd->scissor_rect = { { 0, 0 }, { 640, 480 } };
+	const rhiRect_t decalArea = { { 16, 24 }, { 32, 48 } };
+	RHI_EffectsScissor( &decalArea );
 	RHI_EndEffects();
+	rhiRasterState_t raster{};
+	raster.scissor = viewport;
+	raster.viewport = { 0, 0, 640, 480, 0, 1 };
+	raster.depthRange = DEPTH_RANGE_NORMAL;
+	vk_update_depth_range( &raster );
+	assert( observedScissor.offset.x == 0 && observedScissor.offset.y == 0 );
+	assert( observedScissor.extent.width == 640 && observedScissor.extent.height == 480 );
 	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
-	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
+	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_NORMAL );
 	RHI_EndPass();
 }
 static VkResult VKAPI_CALL createFilmPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
