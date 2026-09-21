@@ -80,7 +80,7 @@ static struct {
 	char path[MAX_QPATH];
 	qhandle_t asset;
 	uint32_t instance;
-	bool load, start, stop;
+	bool load, start, stop, decal;
 } effectPreview;
 
 // The graph editor keeps source text and preview state separate from live game
@@ -490,33 +490,48 @@ static void EditEffects( const refexport_t *renderer ) {
 	EditSource( effectSource, "effects_source/" );
 	if ( effectPreview.load ) {
 		effectPreview.load = false;
-		effectPreview.asset = renderer->RegisterEffect( effectPreview.path );
+		effectPreview.decal = COM_CompareExtension( effectPreview.path, ".asdc" );
+		effectPreview.asset = effectPreview.decal ? renderer->RegisterDecal( effectPreview.path ) : renderer->RegisterEffect( effectPreview.path );
 		Q_strncpyz( effectSource.result, effectPreview.asset ? "loaded" : "load_failed", sizeof( effectSource.result ) );
 	}
 	if ( effectPreview.start ) {
 		effectPreview.start = false;
 		const auto *view = DevTools_View();
 		vec3_t origin;
-		if ( view && DevTools_EntityAtCamera( origin ) )
+		if ( view && effectPreview.decal ) {
+			VectorMA( view->vieworg, 8192, view->viewaxis[0], origin );
+			trace_t hit;
+			CM_BoxTrace( &hit, view->vieworg, origin, vec3_origin, vec3_origin, 0, CONTENTS_SOLID, qfalse );
+			if ( !hit.startsolid && !hit.allsolid && hit.fraction < 1 ) {
+				vec3_t axis[3];
+				VectorCopy( hit.plane.normal, axis[2] );
+				PerpendicularVector( axis[0], axis[2] );
+				CrossProduct( axis[2], axis[0], axis[1] );
+				effectPreview.instance = renderer->ProjectDecal( effectPreview.asset, hit.endpos, axis );
+			}
+		} else if ( view && DevTools_EntityAtCamera( origin ) )
 			effectPreview.instance = renderer->StartEffect( effectPreview.asset, origin, view->viewaxis, 161 );
 	}
 	if ( effectPreview.stop ) {
 		effectPreview.stop = false;
-		renderer->StopEffect( effectPreview.instance );
+		if ( effectPreview.decal )
+			renderer->ClearDecals();
+		else
+			renderer->StopEffect( effectPreview.instance );
 	}
 }
 static void InspectEffects( const refexport_t *renderer ) {
 	if ( !BeginPanel( "Effects" ) )
 		return;
 	ImGui::SetNextItemWidth( 330 );
-	ImGui::InputText( "Cooked effect", effectPreview.path, sizeof( effectPreview.path ) );
-	if ( ImGui::Button( "Load effect" ) )
+	ImGui::InputText( "Effect or decal", effectPreview.path, sizeof( effectPreview.path ) );
+	if ( ImGui::Button( "Load asset" ) )
 		DevTools_EffectEditor( "load", effectPreview.path );
 	ImGui::SameLine();
-	if ( ImGui::Button( "Play at camera" ) )
+	if ( ImGui::Button( effectPreview.decal ? "Project at aim" : "Play at camera" ) )
 		DevTools_EffectEditor( "start", "" );
 	ImGui::SameLine();
-	if ( ImGui::Button( "Stop emission" ) )
+	if ( ImGui::Button( effectPreview.decal ? "Clear decals" : "Stop emission" ) )
 		DevTools_EffectEditor( "stop", "" );
 	fxRenderStats_t stats;
 	renderer->EffectStats( &stats );
@@ -524,6 +539,9 @@ static void InspectEffects( const refexport_t *renderer ) {
 		stats.pool.particles, FX_MAX_PARTICLES, stats.pool.instances, FX_MAX_INSTANCES, stats.pool.dropped );
 	ImGui::Text( "Draws %u | lights %u | dropped lights %u | reloads %u", stats.draws, stats.lightDraws, stats.lightDrops, stats.reloads );
 	ImGui::Text( "Soft particle draws %u | upload drops %u", stats.softDraws, stats.softDrops );
+	decalRenderStats_t decals;
+	renderer->DecalStats( &decals );
+	ImGui::Text( "Decals %u / %u | draws %u | drops %u | replaced %" PRIu64, decals.active, DCL_MAX_DECALS, decals.draws, decals.dropped, decals.replaced );
 	ImGui::SetNextItemWidth( 330 );
 	ImGui::InputText( "Source JSON", effectSource.path, sizeof( effectSource.path ) );
 	if ( ImGui::Button( "Load source" ) )
@@ -536,7 +554,7 @@ static void InspectEffects( const refexport_t *renderer ) {
 		DevTools_EffectEditor( "undo", "" );
 	ImGui::InputTextMultiline( "##Effect JSON", effectSource.text, sizeof( effectSource.text ), ImVec2( -1, 175 ), ImGuiInputTextFlags_AllowTabInput );
 	ImGui::TextWrapped( "%s", effectSource.status );
-	ImGui::TextWrapped( "Run the cooker watcher for effects_source. Saved definitions reload for new bursts; active particles finish with their original definition." );
+	ImGui::TextWrapped( "Run the cooker watcher for effects_source. Saved definitions reload for new bursts; active particles and decals finish with their original definition." );
 	ImGui::EndTabItem();
 }
 static void InspectGraph( uint32_t elapsed ) {

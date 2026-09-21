@@ -37,8 +37,7 @@ initial floating HDR targets and native mesh LOD selection. The initial native O
 unchanged accepted frame hash (fidelity-legacy-demo.log). No accepted fixture or
 existing shader changed; three new particle shaders are appended through bin2hex. Details and test-first failures are below.
 
-Next implementation: finish projected decal material-hit/editor bindings and
-original reference artwork, then the post stack and streaming. The original nine-effect set, material impacts,
+Next implementation: finish original projected-decal reference artwork, then the post stack and streaming. The original nine-effect set, material impacts,
 live source editing, light hooks, depth-soft particles and profiler counters
 now pass component controls. Filmic/LUT/post/TAA with real motion vectors, mip streaming/async uploads,
 reviewed software frames and hardware budgets all remain required. Cooked
@@ -63,6 +62,17 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 live decal editor passes
+
+The Effects panel now loads .asdc through its existing asset control, projects at
+the aimed collision surface, clears the fixed ring, and reports decal counters.
+Source editing reuses the existing path/backup/conflict protections. The native
+editor mode passes projection, guarded save, cooked reload and clear
+(fidelity-decals-editor.log); the existing particle editor still passes
+(fidelity-effects-editor-v3.log). CI runs the editor variant plus the separate
+MSAA lifecycle. Original bullet/scorch/blood artwork is next; final #161
+post/TAA/streaming, scene and budget acceptance remain outstanding.
 
 ## #161 material-hit decal binding passes; editor test first
 
