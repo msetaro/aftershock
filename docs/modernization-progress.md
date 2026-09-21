@@ -33,8 +33,10 @@ in #25. Known-good unchanged.
 shell openings. Initial repeated MAP/BSP/AAS output passes and all accepted v1
 fixtures stay byte-identical. Next contract adds terrace stairs/ramp, fences and
 overheads; its MAP occupancy/navigation pass. Formal schema, connected storeys/roofs,
-sunken zones and full compile pass. Next: interpretation/tracing,
-licensed assets/Blender theme kit, shooter intent checks, compiled overhead
+sunken zones and full compile pass. Initial interpretation, licensed materials and
+pinned Blender modules pass. Rotated v2 props now compile and solid props join
+clearance checks, including foot-origin bounds. Next: remaining tracing cases,
+theme assembly, supplied-rig retargeting, shooter intent checks, compiled overhead
 comparison and the one-command agent playtest. This is partial work, not #164
 acceptance. The issue and checkpoint contain measured results and decisions.
 
@@ -49,6 +51,15 @@ module contract also passes. All payloads stay in user cache; no local system pa
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 v2 props pass
+
+Rotated props compile through pinned q3map2/MBSPC and solid props correctly reject
+blocked spawns (sketch-props.log). Local `bounds_center` supports foot-origin
+modules without changing mesh geometry; its independent MAP occupancy check passes
+(sketch-props-offset.log). Shared OBJ source validation retains the v1 contract;
+legacy controls and accepted MAP bytes pass (sketch-props-v1.log). No accepted
+fixture, engine code or game package changed.
 
 ## #164 v2 prop contract
 

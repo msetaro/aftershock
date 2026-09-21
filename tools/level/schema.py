@@ -8,6 +8,7 @@ def version2(legacy):
     fields = copy.deepcopy(legacy['properties'])
     for key in ('rooms','connections','cover'):
         del fields[key]
+    fields['props']['items']['properties'].update(angle=num(-360,360),bounds_center=vector(integer=False))
     identity = fields['name']
     xy = vector(integer=False,count=2)
     ring = array(xy,3,256)

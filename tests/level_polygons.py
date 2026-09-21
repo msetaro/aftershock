@@ -131,7 +131,15 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
                              material='prop',solid=False,angle=30)]
     dressed = compile(changed,'dressed',full=args.compile)
     assert b'"classname" "misc_model"' in dressed['map'] and b'"angle" "30"' in dressed['map']
-    changed['props'][0].update(solid=True,origin=[0,-384,32])
+    shifted = folder/'assets/models/foot_crate.obj'
+    shifted.write_text('\n'.join('v '+ ' '.join([tokens[1],tokens[2],str(float(tokens[3])+32)])
+                                if tokens and tokens[0]=='v' else line
+                                for line in (folder/'assets/models/crate.obj').read_text().splitlines()
+                                for tokens in [line.split()])+'\n')
+    changed['props'][0].update(model='models/foot_crate.obj',origin=[-256,256,0],bounds_center=[0,0,32],solid=True)
+    foot = compile(changed,'foot-prop')
+    assert solid(brushes(foot['map'].decode()),[-256,256,48]), 'local bounds center lost foot-origin collision'
+    changed['props'][0].update(origin=[0,-384,0])
     compile(changed,'blocked-prop',fail='spawn')
     changed = copy.deepcopy(level)
     changed['shapes'][1]['id'] = 'building_7'

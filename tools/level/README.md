@@ -276,3 +276,10 @@ coordinates then refer to the rectified image. The interpretation retains the
 transform and original dimensions. A rerun in the same output directory matches
 prior contours to preserve IDs; `overrides` applies per-ID decisions afterward.
 The agent must review the overlay and assumptions before the later build gate.
+
+Version 2 props additionally accept `angle` (yaw in degrees) and `bounds_center`
+(the local-space center of the declared `size`, default `[0,0,0]`). This supports
+foot-origin environment modules without shifting the mesh. The declared bounds
+must contain every OBJ vertex; yaw rotates both those bounds and the actual model.
+Solid props emit player-clip brushes and participate in spawn/navigation clearance.
+All props must fit the playable boundary, including its holes and vertical limits.

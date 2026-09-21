@@ -154,6 +154,17 @@ def ruled_openings(item,p,floors):
     return result
 
 
+def prop_bounds(prop):
+    x,y,z = prop['origin']
+    a,b,c = prop.get('bounds_center',[0,0,0])
+    w,d,h = prop['size']
+    angle = math.radians(prop.get('angle',0))
+    cosine,sine = math.cos(angle),math.sin(angle)
+    shape = footprint(dict(rectangle=dict(center=[x+a*cosine-b*sine,y+a*sine+b*cosine],
+                                          size=[w,d],angle=prop.get('angle',0))))
+    return shape,z+c-h/2,z+c+h/2
+
+
 def pieces(level):
     boundary = level['boundary']
     area = polygon(boundary['polygon'],boundary.get('holes',[]))
@@ -248,6 +259,14 @@ def pieces(level):
             top = z+item['height']*i/floors
             slab = inner.difference(well) if i<=stair_count else inner
             add(identity,slab,top-16,top,'trim')
+    for prop in level['props']:
+        require(prop['id'] not in ids, 'duplicate shape/prop id: '+prop['id'])
+        ids.add(prop['id'])
+        p,z,Z = prop_bounds(prop)
+        require(area.buffer(-16,join_style='mitre').covers(p) and min([floor]+[r['base'] for r,_ in sunken])<=z<Z<=ceiling,
+                'prop outside playable boundary: '+prop['id'])
+        if prop['solid']:
+            add(prop['id'],p,z,Z,'level/playerclip')
     require(len(result)<=4096, 'level piece budget exceeded')
     return area,result
 
@@ -267,7 +286,7 @@ def generate(level):
         entities.append(entity({'classname':'light','targetname':light['id'],'origin':vector(light['origin']),
                                 '_color':vector(light['color']),'light':light['intensity']}))
     for prop in level['props']:
-        entities.append(entity({'classname':'misc_model','model':prop['model'],'origin':vector(prop['origin']),
+        entities.append(entity({'classname':'misc_model','model':prop['model'],'origin':vector(prop['origin']),'angle':prop.get('angle',0),
                                 '_remap':'*;textures/'+level['materials'][prop['material']]}))
     worldspawn = {'classname':'worldspawn','message':level['name'],'_minlight':level['lighting']['ambient']}
     if level['lighting'].get('directional',False):
@@ -359,12 +378,13 @@ def navigation(level, records):
 
 
 def validate(level, assets):
-    from validate import material_sources
+    from validate import material_sources, prop_asset
     from tools.agent.formats import validate as validate_format
     validate_format('level',level,'<level>')
     sources = material_sources(level['materials'],assets)
     area,records = pieces(level)
-    require(not level['props'], 'v2 mesh props require theme assembly before validation')
+    for prop in level['props']:
+        sources[prop['model']] = prop_asset(prop,assets)
     report = navigation(level,records)
     report.update(shapes=len(level['shapes']),playable_area=round(area.area,3),brushes=sum(len(convex_parts(r['polygon'])) for r in records))
     return sources,report
