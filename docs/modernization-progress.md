@@ -76,6 +76,17 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 fast-feedback selector
+
+`python3 tests/affected.py BASE_REF` includes committed, staged, unstaged and
+untracked paths. Composing prefix mappings select existing asset-independent
+probes; unknown paths are named and fall back to core/boundary checks. The default
+600-second total budget retains logs/report, exits 1 on failure and 2 on timeout
+or remaining checks. `--list` explains commands without running. This is explicitly
+partial feedback, never merge acceptance. The contract passes including process
+timeout and nonzero exit controls; actual HEAD feedback passes (agent-affected.log).
+Format CI executes the selector contract. Executable handbook recipes remain next.
+
 ## #163 graph metadata and affected-test checkpoint
 
 Graph Preview/Source/Tables selection and all displayed record tables now share

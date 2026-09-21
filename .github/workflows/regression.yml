@@ -20,6 +20,7 @@ jobs:
           python3 tests/isolation.py
           python3 tests/check_isolation.py
           python3 tests/suite_contract.py
+          python3 tests/affected_contract.py
       - name: Immutable build publication contract
         run: python3 tests/publish_build.py
       - name: Enforce reviewed clang-format version and style
