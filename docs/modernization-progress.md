@@ -41,14 +41,19 @@ recorded replay, changed-input comparison, zero step allocations, caller allocat
 ownership, complete teardown/reinitialization, FP control and fixed temporary
 buffer exhaustion. Each change followed its recorded failing test.
 
-The owned POD boundary now passes caller-owned storage, all 256 prepared body
-slots, four spawn/recycle cycles, inactive filtering, ray/convex queries and
-swing/twist joint reuse on both compilers. Independent C++ allocation counters
-caught query-filter wrappers outside the arena; their registered allocation
-operators now pass too. The full client/server build and owned lifetime AST pass. Map collision and first cosmetic prop runtime are implemented. Next resolve the
-OpenArena discrete-contact bounce failure, then skeleton deaths and tooling. Preserve native
-movement/hit registration and run fixed demos. The client owns map loading/teardown and cgame prop presentation; #15 has no PR. The branch checkpoint is
-pushed through 0aeeb11c; issue comment 5765963611 records the dependency evidence.
+The owned POD boundary passes caller-owned storage, 256 prepared slots, four
+spawn/recycle cycles, inactive filtering, ray/convex queries and reusable swing/
+twist joints on both compilers. The client owns map allocation/teardown and
+cgame prop presentation. All four Q3/OpenArena runtime maps now pass cosmetic
+motion/bounce, fixed counters and zero-block teardown. A real runtime failure
+found reversed CM-to-Jolt triangle winding; the failing orientation test and
+fixed export are recorded below. No native trace arithmetic changed.
+
+Next finish skeleton-driven cosmetic deaths, verify the new ImGui Physics panel,
+wire physics into permanent CI/suite/affected commands, and run unchanged fixed
+demos plus all required gates. #15 has no PR yet. Current runtime/panel checkpoint
+is 780f1f5b; the winding fix is being recorded after both compiler/content checks.
+Issue comment 5766196162 records the earlier owned-boundary checkpoint.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
 /home/matt/.cache/aftershock-modernization/physics-research.md. Pinned Jolt 5.6.0
@@ -74,6 +79,20 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 outward winding passes all four runtime maps
+
+The fan export now swaps its second/third vertices, leaving the original CM
+winding and trace code untouched. The outward-normal check fails before the fix
+and passes after it. GCC and Clang/libc++ UBSan pass all component checks
+(physics-winding-after.log / physics-winding-clang.log). Both Quake 3 maps and
+both OpenArena maps pass real client prop/grenade motion, floor bounce, unchanged
+allocation/high-water/live counters and zero live blocks at every map teardown
+(physics-runtime-q3.log / physics-runtime-oa.log, adjacent client.log artifacts).
+Continuous collision detection remains enabled for small dynamic cosmetics;
+it alone was insufficient to fix the reversed faces. The ImGui Physics tab is
+built and its shared panel/collision-bound visualization test is running.
+Skeleton deaths, fixture/demo gates and hosted acceptance remain.
 
 ## #15 runtime found reversed exported triangle winding
 

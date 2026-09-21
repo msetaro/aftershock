@@ -1452,3 +1452,13 @@ counters must remain unchanged after setup, with no outstanding arena blocks at
 shutdown. Slots stay in the broadphase on an excluded, non-colliding object layer
 while unused; setup uses a bounded monotonic arena reclaimed at map teardown.
 These checks do not establish client integration or ragdoll presentation acceptance.
+
+`python3 tests/physics_runtime.py --binary CLIENT` exercises cosmetic boxes and
+inert grenades over both installed-content maps, requiring gravity, a bounce,
+fixed arena counters after setup, and zero live dependency blocks on map teardown.
+Hosted form adds `--content openarena --data PATH`. It uses private Xvfb/lavapipe,
+links installed paks into a temporary home, and retains `client.log`; it never
+changes accepted fixtures. `physics_prop box`, `physics_prop grenade` and
+`physics_prop grenade drop` are local cosmetic commands; `physics_status` reports
+motion/storage. Development builds add the Physics panel and `cg_physicsDebug`
+collision bounds. Damage-bearing trajectories remain native weapon/CM state.

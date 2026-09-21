@@ -9,7 +9,8 @@ static bool CM_PhysicsWinding( winding_t *winding, bool ( *triangle )( void *, c
 		return true;
 	bool accepted = true;
 	for ( int i = 1; i + 1 < winding->numpoints && accepted; ++i )
-		accepted = triangle( context, winding->p[0], winding->p[i], winding->p[i + 1] );
+		// CM windings are clockwise; the cosmetic mesh requires outward CCW faces.
+		accepted = triangle( context, winding->p[0], winding->p[i + 1], winding->p[i] );
 	FreeWinding( winding );
 	return accepted;
 }
