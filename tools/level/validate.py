@@ -48,13 +48,9 @@ def camera_specs(viewpoints):
     return viewpoints
 
 
-def validate(level, assets):
-    fields(level, ('version','name','materials','rules','rooms','connections','spawns','cover','props','pickups','lighting'), ('viewpoints',))
-    require(type(level['version']) is int and level['version']==1, 'level version must be 1')
-    require(isinstance(level['name'],str) and re.fullmatch(r'[a-z][a-z0-9_]{0,31}',level['name']), 'invalid map name')
-    fields(level['materials'], ('floor','wall','trim','cover','prop','sky'))
+def material_sources(materials, assets):
     sources = {}
-    for role,path in level['materials'].items():
+    for role,path in materials.items():
         qpath(path)
         require(path != 'level/playerclip', 'reserved material name')
         candidates = [assets / 'textures' / (path+extension) for extension in ('.tga','.png','.jpg')]
@@ -62,6 +58,18 @@ def validate(level, assets):
         require(found is not None, 'missing material: '+path)
         require(found.resolve().is_relative_to(assets.resolve()), 'material outside asset directory')
         sources[found.relative_to(assets).as_posix()] = found
+    return sources
+
+
+def validate(level, assets):
+    if level.get('version')==2:
+        from polygons import validate as validate_polygons
+        return validate_polygons(level,assets)
+    fields(level, ('version','name','materials','rules','rooms','connections','spawns','cover','props','pickups','lighting'), ('viewpoints',))
+    require(type(level['version']) is int and level['version']==1, 'level version must be 1')
+    require(isinstance(level['name'],str) and re.fullmatch(r'[a-z][a-z0-9_]{0,31}',level['name']), 'invalid map name')
+    fields(level['materials'], ('floor','wall','trim','cover','prop','sky'))
+    sources = material_sources(level['materials'],assets)
     rules = level['rules']
     fields(rules, ('min_corridor_width','min_door_height','max_sightline','max_cover_gap'))
     for v in rules.values():

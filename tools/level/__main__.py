@@ -72,7 +72,7 @@ def main():
                     target = output/path.relative_to(stage)
                     target.parent.mkdir(parents=True,exist_ok=True)
                     shutil.copyfile(path,target)
-        print(json.dumps(dict(version=1,name=level['name'],**paths,report=report,
+        print(json.dumps(dict(version=level['version'],name=level['name'],**paths,report=report,
                               sha256={kind:hashlib.sha256((output/path).read_bytes()).hexdigest() for kind,path in paths.items() if path}),sort_keys=True))
     except (OSError,ValueError,KeyError,TypeError,subprocess.SubprocessError) as exc:
         print('level: '+str(exc),file=sys.stderr)

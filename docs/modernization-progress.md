@@ -34,8 +34,10 @@ The first polygon contract fails on unsupported v2 fields, as intended; log:
 /home/matt/.cache/aftershock-modernization/sketch-polygons-before.log. It checks
 physical brush occupancy for a shell doorway, concavity, rotation and curved
 footprints, validation failures, deterministic compilation and unchanged v1
-fixtures. No compiler implementation is added yet. Merge accepted #163 main
-forward into this branch before implementing its schema/agent integration.
+fixtures. The initial polygon implementation now passes MAP and repeated BSP/AAS checks;
+all accepted v1 MAP/BSP/AAS bytes remain unchanged. Merge accepted #163 main
+forward before wiring its schema/agent integration. Initial v2 geometry is
+independent of that channel; formal schema integration remains pending.
 
 #164 decisions from its three maintainer comments: the drawing's own key is
 authoritative; interpretation separates geometry, annotation and gameplay intent.
@@ -53,6 +55,17 @@ interpretation/tracing, licensed theme assets/Blender, shooter intent checks,
 compiled overhead comparison and the one-command agent playtest. Follow #164
 with #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Known-good tags remain unchanged.
+
+## #164 initial polygon compiler
+
+Pinned Shapely performs boundary-hole triangulation and shell/opening subtraction.
+The new v2 generator handles rotated rectangles, circles/arcs, thick paths and
+concave polygons; v1 retains its original generator. Material resolution is shared.
+Physical MAP plane occupancy checks pass, as do two identical pinned BSP/AAS
+compilations and byte comparisons against every original v1 level fixture.
+Logs: sketch-polygons.log and sketch-polygons-compile.log in the user cache.
+This is partial implementation, not #164 acceptance: formal v2 schema integration,
+elevation/connected floors and the sketch/theme/intent pipeline remain unfinished.
 
 ## #14 final local self-review / hosted gates pending
 
