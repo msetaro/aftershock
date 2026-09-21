@@ -38,6 +38,7 @@ def tool_hash():
     paths = [p for p in HERE.iterdir() if p.suffix in ('.py', '.cpp', '.txt')]
     vendor = ROOT / 'third_party/bc7enc'
     paths.extend(vendor / name for name in ('bc7enc.cpp', 'bc7enc.h', 'provenance.json'))
+    paths.extend(p for p in (ROOT / 'third_party/meshoptimizer').rglob('*') if p.is_file())
     paths.extend(ROOT / path for path in ('cmake/Sources.cmake', 'tools/shaders/build.py', 'engine/renderervk/shaders/manifest.json', 'tools/agent/formats.py'))
     for codec in ('libogg', 'libvorbis'):
         paths.extend(p for p in (ROOT / 'third_party' / codec).rglob('*') if p.suffix in ('.c', '.h'))

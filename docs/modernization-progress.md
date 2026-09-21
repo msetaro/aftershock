@@ -67,6 +67,24 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #161 offline mesh LODs pass
+
+Pinned meshoptimizer 1.2 at 9d9890c73011d75920af614485296d1e03e95448 supplies
+only its allocator/simplifier/header and MIT license; provenance records all file
+and source archive SHA256 hashes. It is linked only into the offline cooker helper.
+Optional lod_ratios produces up to three compact native IQMs, using position,
+normal, UV and skin-weight error with locked joint-set and mesh boundaries.
+The original full-detail geometry stays unchanged; all vertex attributes are
+retained from original vertices. Unsupported reductions may stop at the error
+limit rather than discard geometry arbitrarily.
+
+The owned animated grid reduces 512/289 triangles/vertices to 256/161 and 128/97;
+files shrink from 23320 to 13080 and 7960 bytes. Joint/pose/animation bytes remain
+identical and repeated output is deterministic (fidelity-lod.log). Native screen
+selection, animated visual comparisons and performance remain outstanding. No
+accepted asset or existing shader was regenerated. Official pin/source:
+https://github.com/zeux/meshoptimizer/tree/v1.2.
+
 ## #161 initial native sprite/reload/restart pass
 
 Release client/server build succeeds with the fixed effect code linked into the

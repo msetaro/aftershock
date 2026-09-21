@@ -430,7 +430,12 @@ def cook(path, name, options, read):
                 # glTF faces are counter-clockwise; the engine's IQM path uses clockwise.
                 local_faces.append(converted_face if mirrored else [converted_face[0], converted_face[2], converted_face[1]])
             flush()
+    import lod
+    ratios,error=lod.ratios(options)
     outputs[name + '.iqm'] = pack_iqm(vertices, triangles, meshes, joints, clips, poses, doc, options)
+    for level,ratio in enumerate(ratios,1):
+        lod_vertices,lod_triangles,lod_meshes=lod.simplify(vertices,triangles,meshes,ratio,error)
+        outputs[name + f'_lod{level}.iqm'] = pack_iqm(lod_vertices,lod_triangles,lod_meshes,joints,clips,poses,doc,options)
     return outputs
 
 
