@@ -5,7 +5,7 @@
 static constexpr uint32_t MAX_EFFECT_ASSETS = 64;
 static fxSystem_t effects;
 struct effectBinding_t {
-	qhandle_t shader[FX_MAX_EMITTERS], model[FX_MAX_EMITTERS];
+	qhandle_t shader[FX_MAX_EMITTERS], model[FX_MAX_EMITTERS], decal;
 };
 static struct {
 	char path[MAX_QPATH];
@@ -37,6 +37,11 @@ static bool ReadEffect( uint32_t index, const char *path, const cookedEntry_t *p
 	if ( !valid )
 		return false;
 	effectBinding_t bindings{};
+	if ( asset.header.decal[0] ) {
+		bindings.decal = RE_RegisterDecal( asset.header.decal );
+		if ( !bindings.decal )
+			return false;
+	}
 	for ( uint32_t i = 0; i < asset.header.emitterCount; ++i ) {
 		bindings.shader[i] = RE_RegisterShader( asset.emitters[i].material );
 		if ( asset.emitters[i].kind == FX_MESH )
@@ -73,6 +78,14 @@ uint32_t RE_StartEffect( qhandle_t asset, const vec3_t origin, const vec3_t axis
 				effectBindings[i] = record.bindings;
 				break;
 			}
+	if ( handle && record.bindings.decal ) {
+		// Material-hit effects point local X along the surface normal; decals use Z.
+		vec3_t decalAxis[3];
+		VectorCopy( axis[1], decalAxis[0] );
+		VectorCopy( axis[2], decalAxis[1] );
+		VectorCopy( axis[0], decalAxis[2] );
+		RE_ProjectDecal( record.bindings.decal, origin, decalAxis );
+	}
 	return handle;
 }
 bool RE_StopEffect( uint32_t handle ) {

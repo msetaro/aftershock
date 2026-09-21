@@ -142,7 +142,7 @@ def effect_schema():
                        color=vector(0,1,False,4),flipbook=obj(dict(columns=num(1,64,True),rows=num(1,64,True),fps=num(.01,1000)))),
                   ['name','kind','material','capacity','rate','burst','lifetime_ms','size'])
     emitter['allOf'] = [{'if':dict(properties=dict(kind=dict(const='mesh'))),'then':dict(required=['model'])}]
-    return obj(dict(version=dict(const=1),name=qpath(31),emitters=array(emitter,1,32)))
+    return obj(dict(version=dict(const=1),name=qpath(31),decal=qpath(),emitters=array(emitter,1,32)),['version','name','emitters'])
 
 
 def decal_schema():

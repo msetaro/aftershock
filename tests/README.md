@@ -1226,9 +1226,11 @@ The test authors temporary sources and captures; it never regenerates accepted
 fixtures. Native `assets` model rows expose `lods` and `lodDraws[4]`.
 
 
-`python3 tests/effects.py` checks the version-2 cooked effect record, seeded
+`python3 tests/effects.py` checks the version-3 cooked effect record, seeded
 presentation spread/spin, bounded pools, motion/collision, overflow and lifetime.
-Optional emitter fields include velocity/origin spread, end size, rotation/spin
+The optional top-level `decal` qpath selects one `.asdc` mark per burst. Effect
+local X becomes the decal outward normal; material-hit effects already use that
+orientation. Optional emitter fields include velocity/origin spread, end size, rotation/spin
 and light radius/intensity/color. `tests/effects_runtime.py --binary PATH`
 checks native shaped sprites/lights, watched reload, expiry, memory and restart.
 Both runtime effect tests accept `--content openarena --data PATH`.
@@ -1247,7 +1249,9 @@ existing animation editor uses the same guarded source-saving helper.
 with `.asfx` material references, checks registration/draws and compares the
 visible impact frame with its expiry. Legacy material shader paths retain their
 old mark/explosion behavior. `tests/effects.py` also checks this dispatch directly
-through the production cgame function under UBSan.
+through the production cgame function under UBSan. Add `--decals` to the native
+weapon test to check material-specific decal registration, visible projection,
+and persistence after particles expire.
 
 
 `python3 tests/effects_reference.py` verifies and cooks the original CC0 reference

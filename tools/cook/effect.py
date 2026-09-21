@@ -11,7 +11,7 @@ def cook(source,name,read):
     emitters=definition['emitters']
     if len({row['name'] for row in emitters})!=len(emitters):
         raise ValueError('duplicate effect emitter name')
-    data=bytearray(struct.pack('<32sI',text(definition['name'],32),len(emitters)))
+    data=bytearray(struct.pack('<32sI64s',text(definition['name'],32),len(emitters),text(definition['decal']) if definition.get('decal') else bytes(64)))
     for row in emitters:
         flip=row.get('flipbook',dict(columns=1,rows=1,fps=1))
         flags=sum(bit for field,bit in [('collision',1),('soft',2),('lit',4)] if row.get(field,False))
@@ -23,7 +23,7 @@ def cook(source,name,read):
             *row.get('velocity_spread',[0,0,0]),*row.get('origin_spread',[0,0,0]),row.get('end_size',row['size']),
             row.get('rotation',0),row.get('rotation_spread',0),row.get('angular_velocity',0),
             row.get('light',{}).get('radius',0),row.get('light',{}).get('intensity',0),*row.get('light',{}).get('color',[1,1,1])))
-    return {name+'.asfx':wrapped(b'ASEFFECT',data,version=2)}
+    return {name+'.asfx':wrapped(b'ASEFFECT',data,version=3)}
 
 
 def cook_decal(source,name,read):

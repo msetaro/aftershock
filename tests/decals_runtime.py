@@ -18,6 +18,7 @@ parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary',type=Path,required=True)
 parser.add_argument('--content',choices=['quake3','openarena'],default='quake3')
 parser.add_argument('--data',type=Path,default=Path.home()/'.q3a/baseq3')
+parser.add_argument('--editor',action='store_true')
 parser.add_argument('--samples',type=int,default=0)
 parser.add_argument('--output',type=Path,default=SCRATCH/'aftershock-decals-runtime')
 args=parser.parse_args()
@@ -54,7 +55,17 @@ with tempfile.TemporaryDirectory(prefix='aftershock-decals-') as temporary:
         def project_at(height):
             return engine.request('decals.project',asset=asset,origin=[-100,-160,height],angles=[0,0,0])['handle']
         memory=engine.request('profile')['memory']
-        assert project_at(0)
+        if args.editor:
+            edit_source=engine.base/'effects_source'
+            edit_source.mkdir()
+            edit_file=edit_source/'bullet.json'
+            edit_file.write_text(json.dumps(definition))
+            engine.request('effects.edit',action='source',text='effects_source/bullet.json')
+            engine.request('effects.edit',action='load',text='decals/bullet.asdc');engine.step(2)
+            assert engine.request('editor.state')['effects']['result']=='loaded'
+            engine.request('effects.edit',action='start');engine.step(1)
+        else:
+            assert project_at(0)
         engine.step(1);active=capture('active');stats=engine.request('decals')
         assert stats['active']==1 and stats['draws']>0 and stats['dropped']==0,stats
         assert difference(baseline,active)>100000,'projected decal is absent'
@@ -79,11 +90,23 @@ with tempfile.TemporaryDirectory(prefix='aftershock-decals-') as temporary:
         tilted=capture('tilted')
         assert difference(active,tilted)>1000,'normal map did not affect projected lighting'
         engine.request('decals.clear')
-        definition['color']=[.3,1,.3,1];decal.write_text(json.dumps(definition))
+        definition['color']=[.3,1,.3,1]
+        if args.editor:
+            original=edit_file.read_bytes()
+            engine.request('effects.edit',action='text',text=json.dumps(definition))
+            engine.request('effects.edit',action='save');engine.step(2)
+            assert engine.request('editor.state')['effects']['result']=='saved'
+            assert (edit_source/'bullet.json.bak.000').read_bytes()==original
+            decal.write_bytes(edit_file.read_bytes())
+        else:
+            decal.write_text(json.dumps(definition))
         cook(project,engine.base);engine.step(60)
         assert engine.request('decals')['reloads']>0
         assert project_at(0);engine.step(1)
         assert difference(tilted,capture('reloaded'))>1000
+        if args.editor:
+            engine.request('effects.edit',action='stop');engine.step(2)
+            assert engine.request('decals')['active']==0
         engine.request('exec',command='vid_restart');engine.step(40)
         assert engine.request('decals')['registered']==0
         shutil.copyfile(engine.log_path,args.output/'engine.log')

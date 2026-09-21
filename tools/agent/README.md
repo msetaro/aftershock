@@ -71,13 +71,15 @@ with `file`, `path` and `hint`; a semantic error concerning the whole document
 uses `$`. A valid level/animation example still needs its referenced source assets.
 
 Material recipes select `legacy` or `metallic-roughness`; the material schema
-describes fields from both source shapes. Effects cook to version-2 `.asfx`
+describes fields from both source shapes. Effects cook to version-3 `.asfx`
 records and run in fixed client-only pools. `effects.load/start/stop` control them;
 `effects` reports particle/light counters. The Effects ImGui panel and
 `effects.edit` share source/text/save/undo/load/start/stop actions. Source editing
 uses loose `effects_source/*.json` files with backups and external-change checks;
 run the cooker watcher to publish changes. Active bursts retain their parameters.
-Full reference art, soft depth and final #161 scene/performance gates remain pending.
+An optional effect `decal` path emits one projected mark per burst, using local X
+as its outward surface normal. Reference effects and soft depth have component
+checks; final #161 scene/performance gates remain pending.
 Match examples use development-only placeholder credentials.
 
 ## Editor metadata

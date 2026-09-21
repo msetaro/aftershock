@@ -23,7 +23,7 @@ bool FX_Open( const void *data, size_t size, fxAsset_t *asset ) {
 	const auto *bytes = (const uint8_t *)data;
 	uint32_t envelope[2];
 	std::memcpy( envelope, bytes + 8, sizeof( envelope ) );
-	if ( std::memcmp( bytes, "ASEFFECT", 8 ) || envelope[0] != 2 || envelope[1] != size - 48 )
+	if ( std::memcmp( bytes, "ASEFFECT", 8 ) || envelope[0] != 3 || envelope[1] != size - 48 )
 		return false;
 	uint8_t hash[32];
 	calc_sha_256( hash, bytes + 48, size - 48 );
@@ -32,7 +32,7 @@ bool FX_Open( const void *data, size_t size, fxAsset_t *asset ) {
 	fxAsset_t result{};
 	std::memcpy( &result, bytes + 48, size - 48 );
 	const auto &header = result.header;
-	if ( !Text( header.name, sizeof( header.name ) ) || !header.emitterCount || header.emitterCount > FX_MAX_EMITTERS ||
+	if ( !Text( header.name, sizeof( header.name ) ) || ( header.decal[0] && !Text( header.decal, sizeof( header.decal ) ) ) || !header.emitterCount || header.emitterCount > FX_MAX_EMITTERS ||
 		 size != 48 + sizeof( header ) + header.emitterCount * sizeof( fxFileEmitter_t ) )
 		return false;
 	for ( uint32_t i = 0; i < header.emitterCount; ++i ) {

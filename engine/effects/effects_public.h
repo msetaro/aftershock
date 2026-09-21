@@ -14,6 +14,7 @@ enum : uint32_t { FX_COLLISION = 1,
 struct fxFileHeader_t {
 	char name[32];
 	uint32_t emitterCount;
+	char decal[64];
 };
 struct fxFileEmitter_t {
 	char name[32], material[64], model[64];
@@ -53,7 +54,7 @@ struct fxTrace_t {
 	float fraction, normal[3];
 };
 using fxTraceCallback_t = bool ( * )( const float start[3], const float end[3], fxTrace_t *trace, void *context );
-static_assert( sizeof( fxFileHeader_t ) == 36 && sizeof( fxFileEmitter_t ) == 304 );
+static_assert( sizeof( fxFileHeader_t ) == 100 && sizeof( fxFileEmitter_t ) == 304 );
 static_assert( offsetof( fxFileEmitter_t, kind ) == 160 && offsetof( fxFileEmitter_t, rate ) == 188 );
 static_assert( std::is_trivially_copyable_v<fxAsset_t> && std::is_trivially_copyable_v<fxSystem_t> );
 bool FX_Open( const void *data, size_t size, fxAsset_t *asset );

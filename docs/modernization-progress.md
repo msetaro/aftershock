@@ -64,6 +64,21 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 material-hit decal binding passes; editor test first
+
+The version-3 optional effect decal field passes GCC and Clang/libc++ UBSan
+(fidelity-hit-decals-{pure,clang}.log). The renderer preloads the mark and projects
+it once when an effect starts, rotating the effect's normal axis into decal Z.
+Actual per-material weapon impacts register all referenced marks, draw them on
+the floor, retain them after particle expiry and visibly clear them
+(fidelity-hit-decals-runtime.log). No weapon payload/game import or simulation
+changes; existing reference source bytes stay frozen. This native mode joins CI.
+
+The existing projected-decal lifecycle test now also has an editor mode. Before
+implementation it fails because effects.edit cannot load an .asdc
+(fidelity-decals-editor-before.log). Reuse the same guarded source editor and
+trace the aimed surface for preview; keep all work presentation-only.
+
 ## #161 material-hit decal contract first
 
 The effect definition gains an optional decal reference, so existing per-material
