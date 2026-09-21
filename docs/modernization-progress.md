@@ -41,6 +41,9 @@ stops the remaining requested steps. No faketime or accepted fixture changes.
 The shared World/Animation panel contract now passes on both content sets.
 Panel selection, collision/navigation flags and animation load/frame/play controls
 use the same functions as ImGui (agent-panels.log / agent-panels-openarena.log).
+The animation editor rewrite now fails first on missing graph operation
+(agent-editor-before.log); it retains edit/undo, backup, watched recook and
+changed-preview assertions. Implement shared graph controls next.
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
