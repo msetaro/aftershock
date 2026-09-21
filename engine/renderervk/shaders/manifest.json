@@ -2013,6 +2013,214 @@
           }
         ]
       }
+    },
+    {
+      "name": "decal_frag_spv",
+      "source": "decal.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "38764ca11bdd8368c84491e0906a396f28c0d67bdf944b93991168b6015427e5",
+      "spirv_sha256": "e6f541d029ec7412a683909ea19a7a945b2aec587896f8443fa5ea3e35fd2acb",
+      "recipe_sha256": "f17eebf3268ed652e067238fa676a254d340eb1a087e303dc7f05360ccadbdf6",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "50": {
+            "binding": 0,
+            "set": 1
+          },
+          "64": {
+            "binding": 0,
+            "set": 0
+          },
+          "221": {
+            "binding": 0,
+            "set": 2
+          },
+          "230": {
+            "binding": 0,
+            "set": 3
+          },
+          "356": {
+            "location": 0
+          },
+          "365": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 62,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 62,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 62,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 62,
+            "member": 3,
+            "offset": 48
+          },
+          {
+            "type": 62,
+            "member": 4,
+            "offset": 64
+          },
+          {
+            "type": 62,
+            "member": 5,
+            "offset": 80
+          },
+          {
+            "type": 62,
+            "member": 6,
+            "offset": 96
+          },
+          {
+            "type": 62,
+            "member": 7,
+            "offset": 144
+          },
+          {
+            "type": 62,
+            "member": 8,
+            "offset": 160
+          },
+          {
+            "type": 62,
+            "member": 9,
+            "offset": 176
+          },
+          {
+            "type": 62,
+            "member": 10,
+            "offset": 192
+          },
+          {
+            "type": 62,
+            "member": 11,
+            "offset": 208
+          }
+        ]
+      }
+    },
+    {
+      "name": "decal_ms_frag_spv",
+      "source": "decal.frag",
+      "stage": "frag",
+      "defines": [
+        "MULTISAMPLE"
+      ],
+      "source_sha256": "38764ca11bdd8368c84491e0906a396f28c0d67bdf944b93991168b6015427e5",
+      "spirv_sha256": "e84f8ba2c3152ed80d8e10041829dee7a8ce0d9715b5db8aa59e433d094a60b3",
+      "recipe_sha256": "424b3dfd897e493d836c508dc0ffc28d2113d5f0aaccd6eb08f9143c64a78cb8",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "60": {
+            "binding": 0,
+            "set": 1
+          },
+          "83": {
+            "binding": 0,
+            "set": 0
+          },
+          "241": {
+            "binding": 0,
+            "set": 2
+          },
+          "250": {
+            "binding": 0,
+            "set": 3
+          },
+          "376": {
+            "location": 0
+          },
+          "385": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 81,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 81,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 81,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 81,
+            "member": 3,
+            "offset": 48
+          },
+          {
+            "type": 81,
+            "member": 4,
+            "offset": 64
+          },
+          {
+            "type": 81,
+            "member": 5,
+            "offset": 80
+          },
+          {
+            "type": 81,
+            "member": 6,
+            "offset": 96
+          },
+          {
+            "type": 81,
+            "member": 7,
+            "offset": 144
+          },
+          {
+            "type": 81,
+            "member": 8,
+            "offset": 160
+          },
+          {
+            "type": 81,
+            "member": 9,
+            "offset": 176
+          },
+          {
+            "type": 81,
+            "member": 10,
+            "offset": 192
+          },
+          {
+            "type": 81,
+            "member": 11,
+            "offset": 208
+          }
+        ]
+      }
     }
   ]
 }

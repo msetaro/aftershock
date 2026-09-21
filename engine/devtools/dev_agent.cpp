@@ -1272,7 +1272,56 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"effects\",\"effects.load\",\"effects.start\",\"effects.stop\",\"effects.edit\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"trace\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"effects\",\"effects.load\",\"effects.start\",\"effects.stop\",\"effects.edit\",\"decals\",\"decals.load\",\"decals.project\",\"decals.clear\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"trace\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+	} else if ( !strcmp( op, "decals" ) || !strcmp( op, "decals.load" ) || !strcmp( op, "decals.project" ) || !strcmp( op, "decals.clear" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Projected decals require a client build." );
+#else
+		const refexport_t *renderer = DevTools_Renderer();
+		if ( !renderer )
+			return reply.Error( "invalid_state", "$", "Load a rendered map before controlling decals." );
+		uint32_t handle = 0;
+		if ( !strcmp( op, "decals.load" ) ) {
+			p = JSON_ObjectGetNamedValue( request, end, "path" );
+			if ( !Agent_String( p, end, name, MAX_QPATH ) )
+				return reply.Error( "invalid_argument", "$.path", "Use a cooked .asdc qpath." );
+			handle = (uint32_t)renderer->RegisterDecal( name );
+			if ( !handle )
+				return reply.Error( "load_failed", "$.path", "Use a cooked decal with available color and normal textures." );
+		} else if ( !strcmp( op, "decals.project" ) ) {
+			uint32_t asset;
+			vec3_t origin, angles, axis[3];
+			if ( !Agent_Integer( request, end, "asset", asset ) || asset > INT32_MAX ||
+				 !Agent_Vector( request, end, "origin", origin, -65536, 65536 ) || !Agent_Vector( request, end, "angles", angles, -360, 360 ) )
+				return reply.Error( "invalid_argument", "$", "Use an asset handle, origin and projection angles; local Z is the surface normal." );
+			AnglesToAxis( angles, axis );
+			handle = renderer->ProjectDecal( (qhandle_t)asset, origin, axis );
+			if ( !handle )
+				return reply.Error( "project_failed", "$.asset", "Use a loaded decal and finite projection axes." );
+		} else {
+			if ( !strcmp( op, "decals.clear" ) )
+				renderer->ClearDecals();
+			decalRenderStats_t stats;
+			renderer->DecalStats( &stats );
+			reply.Text( ",\"ok\":true,\"result\":{\"active\":" );
+			reply.Number( stats.active );
+			reply.Text( ",\"registered\":" );
+			reply.Number( stats.registered );
+			reply.Text( ",\"reloads\":" );
+			reply.Number( stats.reloads );
+			reply.Text( ",\"draws\":" );
+			reply.Number( stats.draws );
+			reply.Text( ",\"dropped\":" );
+			reply.Number( stats.dropped );
+			reply.Text( ",\"replaced\":" );
+			reply.Number( (double)stats.replaced );
+			reply.Text( "}}" );
+			return reply.valid;
+		}
+		reply.Text( ",\"ok\":true,\"result\":{\"handle\":" );
+		reply.Number( handle );
+		reply.Text( "}}" );
+#endif
 	} else if ( !strcmp( op, "effects" ) || !strcmp( op, "effects.load" ) || !strcmp( op, "effects.start" ) || !strcmp( op, "effects.stop" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Presentation effects require a client build." );

@@ -63,7 +63,7 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 		return false;
 	if ( c.shadowSize && ( c.shadowSize < 128 || c.shadowSize > 8192 || ( c.shadowSize & ( c.shadowSize - 1 ) ) ) )
 		return false;
-	if ( ( c.softParticles && !c.offscreen ) || ( c.occlusionScale && ( !c.offscreen || c.occlusionScale > 2 ) ) )
+	if ( ( c.depthEffects && !c.offscreen ) || ( c.occlusionScale && ( !c.offscreen || c.occlusionScale > 2 ) ) )
 		return false;
 	using T = rhiGraphTarget_t;
 	using P = rhiGraphPass_t;
@@ -107,7 +107,7 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 			Target( graph, (T)( (uint32_t)T::Occlusion + i ), c.renderWidth / c.occlusionScale,
 				c.renderHeight / c.occlusionScale, 1, F::Occlusion, sampledColor, L::Sampled );
 	}
-	if ( c.occlusionScale || c.softParticles ) {
+	if ( c.occlusionScale || c.depthEffects ) {
 		auto &depth = graph->targets[(uint32_t)T::MainDepth];
 		depth.usage |= RHI_GRAPH_SAMPLED;
 		depth.initialLayout = L::DepthSampled;
@@ -226,7 +226,7 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 			}
 		}
 	}
-	if ( c.occlusionScale || c.softParticles ) {
+	if ( c.occlusionScale || c.depthEffects ) {
 		// Depth must survive every scene interlude, including shadow resumption.
 		for ( uint32_t p = 0; p < (uint32_t)P::Count; ++p ) {
 			auto &scene = graph->passes[p];
@@ -268,9 +268,9 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 				c.stencil && i == scene.depth ? Load::Load : Load::Discard, a.stencilStore );
 		}
 	}
-	if ( c.softParticles ) {
+	if ( c.depthEffects ) {
 		const auto &scene = graph->passes[(uint32_t)P::Main];
-		auto &particles = Pass( graph, P::Particles, scene.width, scene.height, TargetBit( T::MainDepth ) );
+		auto &particles = Pass( graph, P::Effects, scene.width, scene.height, TargetBit( T::MainDepth ) );
 		Attachment( particles, T::MainColor, Load::Load, Store::Store, L::Sampled, L::Sampled );
 		if ( msaa ) {
 			Attachment( particles, T::MainMsaa, Load::Load, Store::Store, L::Color, L::Color );
@@ -283,7 +283,7 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 		particles.dependencies[1] = { rhiGraphStage_t::FragmentColor, rhiGraphStage_t::SceneAttachments,
 			RHI_GRAPH_SHADER_READ | RHI_GRAPH_COLOR_WRITE,
 			RHI_GRAPH_COLOR_READ | RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_READ | RHI_GRAPH_DEPTH_WRITE, false, false };
-		auto &resume = Pass( graph, P::ParticlesResume, scene.width, scene.height, scene.readMask );
+		auto &resume = Pass( graph, P::EffectsResume, scene.width, scene.height, scene.readMask );
 		resume.color = scene.color;
 		resume.depth = scene.depth;
 		resume.resolve = scene.resolve;
@@ -307,9 +307,9 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 			graph->executionOrder[graph->executionCount++] = P::OcclusionBlur;
 			graph->executionOrder[graph->executionCount++] = P::OcclusionApply;
 		}
-		if ( c.softParticles && p == (uint32_t)P::Main ) {
-			graph->executionOrder[graph->executionCount++] = P::Particles;
-			graph->executionOrder[graph->executionCount++] = P::ParticlesResume;
+		if ( c.depthEffects && p == (uint32_t)P::Main ) {
+			graph->executionOrder[graph->executionCount++] = P::Effects;
+			graph->executionOrder[graph->executionCount++] = P::EffectsResume;
 		}
 		if ( c.shadowSize && c.offscreen && p == (uint32_t)P::ScreenMap )
 			graph->executionOrder[graph->executionCount++] = P::ScreenResume;

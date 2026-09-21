@@ -58,7 +58,7 @@ static VkResult VKAPI_CALL createImage( VkDevice, const VkImageCreateInfo *p, co
 	if ( ( p->usage & ( VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT ) ) ==
 		 ( VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT ) ) {
 		if ( p->format != VK_FORMAT_D32_SFLOAT ) {
-			assert( ( vk_config.occlusionScale || vk_config.softParticles ) && p->extent.width == 640 && p->extent.height == 480 );
+			assert( ( vk_config.occlusionScale || vk_config.depthEffects ) && p->extent.width == 640 && p->extent.height == 480 );
 			assert( p->samples == vkSamples && !( p->usage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT ) );
 			*out = (VkImage)(uintptr_t)imageCount;
 			return VK_SUCCESS;
@@ -231,7 +231,7 @@ static void VKAPI_CALL bindPostPipeline( VkCommandBuffer, VkPipelineBindPoint, V
 	assert( pipeline );
 }
 static void VKAPI_CALL bindPostDescriptors( VkCommandBuffer, VkPipelineBindPoint, VkPipelineLayout, uint32_t first, uint32_t count, const VkDescriptorSet *sets, uint32_t offsets, const uint32_t * ) {
-	assert( first == 0 && ( count == 2 || count == 3 ) && offsets == 1 );
+	assert( first == 0 && ( count == 2 || count == 3 || count == 4 ) && offsets == 1 );
 	for ( uint32_t i = 0; i < count; ++i )
 		assert( sets[i] );
 }
@@ -290,7 +290,7 @@ static void VKAPI_CALL particleScissor( VkCommandBuffer, uint32_t first, uint32_
 static void particleCommands() {
 	qvkCreateGraphicsPipelines = createParticlePipeline;
 	particlePipelines = 0;
-	for ( int i = 0; i < 2; ++i )
+	for ( int i = 0; i < 3; ++i )
 		vk_create_post_process_pipeline( 7 + i, 640, 480 );
 	qvkCmdBindPipeline = bindPostPipeline;
 	qvkCmdBindDescriptorSets = bindPostDescriptors;
@@ -308,7 +308,7 @@ static void particleCommands() {
 	const auto descriptors = vk.cmd->descriptor_set;
 	const rhiRect_t viewport = { { 0, 0 }, { 640, 480 } };
 	RHI_BeginMainPass();
-	assert( RHI_BeginParticles( &viewport ) );
+	assert( RHI_BeginEffects( &viewport ) );
 	rhiParticle_t draw{};
 	rhiTexture_t image{};
 	image.binding = 123;
@@ -316,7 +316,15 @@ static void particleCommands() {
 	assert( RHI_DrawParticle( &draw, &image, false ) );
 	assert( !RHI_DrawParticle( &draw, &image, true ) ); // Upload exhaustion stays bounded.
 	assert( occlusionDraws == 1 && vk.cmd->uniform_read_offset == 32 );
-	RHI_EndParticles();
+	rhiDecal_t decal{};
+	assert( !RHI_DrawDecal( &decal, &image, &image, &viewport ) );
+	vk.cmd->vertex_buffer_offset = 0;
+	vk_config.uniformBytes = sizeof( decal );
+	vk.uniform_item_size = sizeof( upload );
+	assert( RHI_DrawDecal( &decal, &image, &image, &viewport ) );
+	assert( !RHI_DrawDecal( &decal, &image, &image, &viewport ) );
+	assert( occlusionDraws == 2 && vk.cmd->uniform_read_offset == 32 );
+	RHI_EndEffects();
 	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
 	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
 	RHI_EndPass();
@@ -362,7 +370,7 @@ int main( int argc, char **argv ) {
 		const bool offscreen = mode >= 4;
 		const uint32_t options = offscreen ? mode - 4 : mode;
 		vk_config.occlusionScale = occlusion ? 1 + mode % 2 : ( particles ? mode % 2 : 0 );
-		vk_config.softParticles = particles;
+		vk_config.depthEffects = particles;
 		vk_config.fbo = offscreen;
 		vk_config.bloom = options & 1;
 		vk_config.stencilBits = options & 2 ? 8 : 0;

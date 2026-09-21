@@ -75,7 +75,7 @@ cvar_t *r_dynamiclight;
 cvar_t *r_mergeLightmaps;
 cvar_t *r_directionalLightmaps;
 cvar_t *r_reflectionProbes;
-cvar_t *r_softParticles;
+cvar_t *r_softParticles, *r_decals;
 cvar_t *r_ssao, *r_ssaoRadius, *r_ssaoStrength;
 cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
@@ -551,8 +551,9 @@ static void R_InitDevice( void ) {
 	const rhiDeviceConfig_t config = {
 		glConfig.vidWidth, glConfig.vidHeight, gls.windowWidth, gls.windowHeight,
 		gls.captureWidth, gls.captureHeight, glConfig.depthBits, glConfig.stencilBits,
-		MAX_TEXTURE_SIZE, MAX_TEXTURE_UNITS, MAX_DRAWIMAGES, MAX_FLARES, r_shadowQuality->integer ? 1024u : r_softParticles->integer ? (uint32_t)sizeof( rhiParticle_t )
-																																	 : (uint32_t)sizeof( shaderUniform_t ),
+		MAX_TEXTURE_SIZE, MAX_TEXTURE_UNITS, MAX_DRAWIMAGES, MAX_FLARES, r_shadowQuality->integer ? 1024u : r_decals->integer	   ? (uint32_t)sizeof( rhiDecal_t )
+																										: r_softParticles->integer ? (uint32_t)sizeof( rhiParticle_t )
+																																   : (uint32_t)sizeof( shaderUniform_t ),
 		r_fbo->integer,
 		r_bloom->integer,
 		r_hdr->integer,
@@ -568,7 +569,7 @@ static void R_InitDevice( void ) {
 		(rhiFilter_t)gl_filter_min, (rhiFilter_t)gl_filter_max, textureFilterValid,
 		r_shadowQuality->integer ? 512u << r_shadowQuality->integer : 0,
 		r_fbo->integer && r_ssao->integer ? (uint32_t)( 3 - r_ssao->integer ) : 0,
-		r_fbo->integer && r_softParticles->integer
+		r_fbo->integer && ( r_softParticles->integer || r_decals->integer )
 	};
 	const rhiHost_t host = { ri.Malloc, ri.Free, R_PrintRHI, R_IsMinimized, R_SwapInterval, ri.VK_GetInstanceProcAddr, R_CreateSurface };
 	rhiDeviceInfo_t info;
@@ -1702,6 +1703,9 @@ static void R_Register( void ) {
 	r_reflectionProbes = ri.Cvar_Get( "r_reflectionProbes", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_reflectionProbes, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_reflectionProbes, "Use authored reflection probes on dynamic PBR objects; requires five texture bindings." );
+	r_decals = ri.Cvar_Get( "r_decals", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	ri.Cvar_CheckRange( r_decals, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_decals, "Projected normal-mapped decals; requires r_fbo 1." );
 	r_softParticles = ri.Cvar_Get( "r_softParticles", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_softParticles, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_softParticles, "Depth-faded effect sprites; requires r_fbo 1." );
@@ -2100,6 +2104,7 @@ void R_Init( void ) {
 
 	R_ModelInit();
 	R_InitEffects();
+	R_InitDecals();
 
 	R_InitFreeType();
 
@@ -2284,6 +2289,10 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.StartEffect = RE_StartEffect;
 	re.StopEffect = RE_StopEffect;
 	re.EffectStats = RE_EffectStats;
+	re.RegisterDecal = RE_RegisterDecal;
+	re.ProjectDecal = RE_ProjectDecal;
+	re.ClearDecals = RE_ClearDecals;
+	re.DecalStats = RE_DecalStats;
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
 	re.AddSkeletalEntityToScene = RE_AddSkeletalEntityToScene;
 	re.AddMaterialEntityToScene = RE_AddMaterialEntityToScene;

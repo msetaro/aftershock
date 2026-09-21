@@ -35,7 +35,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-decals-') as temporary:
     project.write_text(json.dumps(dict(version=1,assets=[dict(name='textures/decal_color',kind='texture',source='color.png'),
         dict(name='textures/decal_normal',kind='texture',source='normal.png',format='bc5'),
         dict(name='decals/bullet',kind='decal',source='bullet.json')])))
-    settings=['+set','r_fbo','1','+set','r_decals','1','+set','r_ext_multisample',str(args.samples),
+    settings=['+set','dev_reloadAssets','1','+set','r_fbo','1','+set','r_decals','1','+set','r_ext_multisample',str(args.samples),
               '+set','cg_draw2D','0','+set','cg_drawGun','0','+set','con_notifytime','0']
     with Engine(args.binary,args.data,args.content,home=root/'home',arguments=settings) as engine:
         shutil.copytree(root/'compiled',engine.base,dirs_exist_ok=True)
@@ -45,6 +45,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-decals-') as temporary:
         engine.request('camera',mode='pose',origin=[-100,-160,100],angles=[90,0,0]);engine.step(4)
         def capture(name):
             frame=engine.request('capture',name=name);engine.step(2)
+            shutil.copyfile(engine.log_path,args.output/'engine.log')
             path=engine.base/frame['path'];shutil.copyfile(path,args.output/(name+'.png'))
             with Image.open(path) as image:return image.convert('RGB')
         def difference(a,b):return sum(ImageStat.Stat(ImageChops.difference(a,b)).sum)
@@ -52,6 +53,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-decals-') as temporary:
         asset=engine.request('decals.load',path='decals/bullet.asdc')['handle']
         def project_at(height):
             return engine.request('decals.project',asset=asset,origin=[-100,-160,height],angles=[0,0,0])['handle']
+        memory=engine.request('profile')['memory']
         assert project_at(0)
         engine.step(1);active=capture('active');stats=engine.request('decals')
         assert stats['active']==1 and stats['draws']>0 and stats['dropped']==0,stats
@@ -60,6 +62,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-decals-') as temporary:
         assert 0<difference(baseline,faded)<difference(baseline,active)*.8
         engine.step(40);assert engine.request('decals')['active']==0
         assert difference(baseline,capture('expired'))==0
+        after=engine.request('profile')['memory']
+        assert memory['hunkPermanent']==after['hunkPermanent'] and memory['tags']==after['tags']
+        for i in range(129):assert project_at(0)
+        engine.step(1)
+        ring=engine.request('decals')
+        assert ring['active']==128 and ring['replaced']==1 and ring['dropped']==0,ring
+        engine.request('decals.clear')
         # A projected volume floating above the floor must not become a billboard.
         assert project_at(32);engine.step(1)
         assert difference(baseline,capture('outside'))==0

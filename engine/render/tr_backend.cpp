@@ -1527,8 +1527,8 @@ static void RB_DebugGraphics( void ) {
 RB_DrawSurfs
 =============
 */
-static void RB_SoftParticles() {
-	if ( !r_softParticles->integer || ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ||
+static void RB_PresentationEffects() {
+	if ( ( !r_softParticles->integer && !r_decals->integer ) || ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ||
 		 backEnd.viewParms.portalView != PV_NONE || backEnd.refdef.switchRenderPass )
 		return;
 	const srfPoly_t *polys[FX_MAX_PARTICLES];
@@ -1536,7 +1536,7 @@ static void RB_SoftParticles() {
 	for ( int i = 0; i < backEnd.refdef.numPolys && count < FX_MAX_PARTICLES; ++i )
 		if ( backEnd.refdef.polys[i].softDistance > 0 )
 			polys[count++] = &backEnd.refdef.polys[i];
-	if ( !count )
+	if ( !count && !backEnd.refdef.numDecals )
 		return;
 	std::sort( polys, polys + count, []( const srfPoly_t *a, const srfPoly_t *b ) {
 		float distance = 0;
@@ -1546,12 +1546,14 @@ static void RB_SoftParticles() {
 	} );
 	rhiRect_t viewport;
 	RB_GetViewportRect( &viewport );
-	if ( !RHI_BeginParticles( &viewport ) )
+	if ( !RHI_BeginEffects( &viewport ) )
 		return;
 	float projection[16], transform[16];
 	Com_Memcpy( projection, backEnd.viewParms.projectionMatrix, sizeof( projection ) );
 	projection[5] = -projection[5];
 	myGlMultMatrix( backEnd.viewParms.world.modelMatrix, projection, transform );
+	RB_DrawDecals( &viewport, transform );
+	RHI_EffectsScissor( &viewport );
 	for ( uint32_t i = 0; i < count; ++i ) {
 		const auto *poly = polys[i];
 		const auto *stage = R_GetShaderByHandle( poly->hShader )->stages[0];
@@ -1574,7 +1576,7 @@ static void RB_SoftParticles() {
 		image->frameUsed = tr.frameCount;
 		R_EffectSoftDraw( RHI_DrawParticle( &draw, &image->texture, ( stage->stateBits & GLS_DSTBLEND_BITS ) == GLS_DSTBLEND_ONE ) );
 	}
-	RHI_EndParticles();
+	RHI_EndEffects();
 }
 
 static const void *RB_DrawSurfs( const void *data ) {
@@ -1635,7 +1637,7 @@ static const void *RB_DrawSurfs( const void *data ) {
 		RHI_Occlusion( backEnd.viewParms.projectionMatrix, &viewport, r_ssaoRadius->value, r_ssaoStrength->value );
 	}
 
-	RB_SoftParticles();
+	RB_PresentationEffects();
 
 	// draw main system development information (surface outlines, etc)
 	RB_DebugGraphics();

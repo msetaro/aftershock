@@ -760,7 +760,7 @@ static_assert( RHI_GRAPH_BLOOM_PASSES == VK_NUM_BLOOM_PASSES );
 static_assert( ARRAY_LEN( vk_graph.targetOrder ) == MAX_ATTACHMENTS_IN_POOL );
 static const char *const vk_graph_names[] = {
 	"screenmap", "main", "bloom_extract", "blur 0", "blur 1", "blur 2", "blur 3",
-	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma", "local shadow", "sun shadow", "main resumed", "screenmap resumed", "ssao", "ssao blur", "ssao apply", "particles", "particles resumed"
+	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma", "local shadow", "sun shadow", "main resumed", "screenmap resumed", "ssao", "ssao blur", "ssao apply", "effects", "effects resumed"
 };
 static_assert( ARRAY_LEN( vk_graph_names ) == (uint32_t)rhiGraphPass_t::Count );
 
@@ -807,9 +807,9 @@ static VkImageLayout vk_graph_layout( rhiGraphLayout_t layout ) {
 static VkRenderPass *vk_graph_pass( rhiGraphPass_t pass ) {
 	using P = rhiGraphPass_t;
 	switch ( pass ) {
-	case P::Particles:
+	case P::Effects:
 		return &vk.render_pass.particles;
-	case P::ParticlesResume:
+	case P::EffectsResume:
 		return &vk.render_pass.particlesResume;
 	case P::Occlusion:
 	case P::OcclusionBlur:
@@ -1292,7 +1292,7 @@ static VkFormat get_depth_format( VkPhysicalDevice physical_device ) {
 
 	for ( i = 0; (size_t)i < ARRAY_LEN( formats ); i++ ) {
 		qvkGetPhysicalDeviceFormatProperties( physical_device, formats[i], &props );
-		const VkFormatFeatureFlags needed = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT | ( ( vk_config.occlusionScale || vk_config.softParticles ) ? VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT : 0 );
+		const VkFormatFeatureFlags needed = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT | ( ( vk_config.occlusionScale || vk_config.depthEffects ) ? VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT : 0 );
 		if ( ( props.optimalTilingFeatures & needed ) == needed ) {
 			return formats[i];
 		}
@@ -2748,6 +2748,8 @@ static void vk_create_shader_modules( void ) {
 	vk.modules.particle_vs = SHADER_MODULE( particle_vert_spv );
 	vk.modules.particle_fs[0] = SHADER_MODULE( particle_frag_spv );
 	vk.modules.particle_fs[1] = SHADER_MODULE( particle_ms_frag_spv );
+	vk.modules.decal_fs[0] = SHADER_MODULE( decal_frag_spv );
+	vk.modules.decal_fs[1] = SHADER_MODULE( decal_ms_frag_spv );
 	vk.modules.direct_vs = SHADER_MODULE( direct_vert_spv );
 	vk.modules.direct_fs = SHADER_MODULE( direct_frag_spv );
 	vk.modules.pbr_vs = SHADER_MODULE( pbr_vert_spv );
@@ -2972,8 +2974,8 @@ void vk_update_post_process_pipelines( void ) {
 				vk_create_post_process_pipeline( 4 + (int)i, pass.width, pass.height );
 			}
 		}
-		if ( vk_config.softParticles )
-			for ( int i = 0; i < 2; ++i )
+		if ( vk_config.depthEffects )
+			for ( int i = 0; i < 3; ++i )
 				vk_create_post_process_pipeline( 7 + i, vk_config.renderWidth, vk_config.renderHeight );
 		// update gamma shader
 		vk_create_post_process_pipeline( 0, 0, 0 );
@@ -3319,7 +3321,7 @@ static void vk_create_attachments( void ) {
 		(uint32_t)vk.screenMapWidth, (uint32_t)vk.screenMapHeight,
 		(uint32_t)vkSamples, (uint32_t)vk.screenMapSamples,
 		vk.fboActive != qfalse, vk_config.bloom != 0, vk_config.supersample != 0, vk_config.stencilBits != 0,
-		vk_config.shadowMapSize, vk_config.occlusionScale, vk_config.softParticles
+		vk_config.shadowMapSize, vk_config.occlusionScale, vk_config.depthEffects
 	};
 	if ( !RHI_CompileGraph( &config, &vk_graph ) )
 		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: invalid render graph dimensions" );
@@ -3344,7 +3346,7 @@ static void vk_create_attachments( void ) {
 	}
 
 	vk_alloc_attachments();
-	if ( vk_config.occlusionScale || vk_config.softParticles ) {
+	if ( vk_config.occlusionScale || vk_config.depthEffects ) {
 		VkImageViewCreateInfo view = {};
 		view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		view.image = vk.depth_image;
@@ -3405,8 +3407,8 @@ static void vk_graph_framebuffer( rhiGraphPass_t id, uint32_t swapchainIndex, Vk
 
 static void vk_create_framebuffers( void ) {
 	using P = rhiGraphPass_t;
-	if ( vk_config.softParticles )
-		vk_graph_framebuffer( P::Particles, 0, &vk.framebuffers.particles );
+	if ( vk_config.depthEffects )
+		vk_graph_framebuffer( P::Effects, 0, &vk.framebuffers.particles );
 	for ( uint32_t i = 0; i < 2; ++i ) {
 		const P id = (P)( (uint32_t)P::Occlusion + i );
 		if ( vk_graph.passes[(uint32_t)id].enabled )
@@ -4025,7 +4027,7 @@ rhiStatus_t vk_impl_Initialize( void ) {
 
 		pool_size[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		pool_size[0].descriptorCount = vk_config.maxImages + 1 + 1 + 1 + VK_NUM_BLOOM_PASSES * 2; // color, screenmap, bloom descriptors
-		if ( vk_config.occlusionScale || vk_config.softParticles )
+		if ( vk_config.occlusionScale || vk_config.depthEffects )
 			pool_size[0].descriptorCount += 1;
 		if ( vk_config.occlusionScale )
 			pool_size[0].descriptorCount += 2;
@@ -4325,6 +4327,9 @@ static void vk_destroy_render_passes( void ) {
 
 
 static void vk_destroy_pipelines( qboolean resetCounter ) {
+	if ( vk.decal_pipeline )
+		qvkDestroyPipeline( vk.device, vk.decal_pipeline, NULL );
+	vk.decal_pipeline = VK_NULL_HANDLE;
 	for ( auto &pipeline : vk.particle_pipeline ) {
 		if ( pipeline )
 			qvkDestroyPipeline( vk.device, pipeline, NULL );
@@ -4505,6 +4510,8 @@ void vk_impl_Shutdown( void ) {
 			qvkDestroyShaderModule( vk.device, vk.modules.occlusion_fs[filter][multisample], NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.occlusion_apply_fs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.particle_vs, NULL );
+	for ( auto module : vk.modules.decal_fs )
+		qvkDestroyShaderModule( vk.device, module, NULL );
 	for ( auto module : vk.modules.particle_fs )
 		qvkDestroyShaderModule( vk.device, module, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.direct_vs, NULL );
@@ -5111,6 +5118,15 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 	} frag_spec_data;
 
 	switch ( program_index ) {
+	case 9:
+		pipeline = &vk.decal_pipeline;
+		fsmodule = vk.modules.decal_fs[vkSamples > VK_SAMPLE_COUNT_1_BIT];
+		renderpass = vk.render_pass.particles;
+		layout = vk.pipeline_layout;
+		samples = (VkSampleCountFlagBits)vkSamples;
+		pipeline_name = "projected decal pipeline";
+		blend = qtrue;
+		break;
 	case 7:
 	case 8:
 		pipeline = &vk.particle_pipeline[program_index - 7];
@@ -5185,7 +5201,7 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 	vertex_input_state.pVertexBindingDescriptions = NULL;
 
 	// shaders
-	set_shader_stage_desc( shader_stages + 0, VK_SHADER_STAGE_VERTEX_BIT, program_index >= 7 ? vk.modules.particle_vs : vk.modules.gamma_vs, "main" );
+	set_shader_stage_desc( shader_stages + 0, VK_SHADER_STAGE_VERTEX_BIT, program_index == 7 || program_index == 8 ? vk.modules.particle_vs : vk.modules.gamma_vs, "main" );
 	set_shader_stage_desc( shader_stages + 1, VK_SHADER_STAGE_FRAGMENT_BIT, fsmodule, "main" );
 
 	frag_spec_data.gamma = (float)( 1.0 / ( vk_post.gamma ) );
@@ -7004,9 +7020,9 @@ static void vk_begin_render_pass( VkRenderPass renderPass, VkFramebuffer frameBu
 		if ( renderPass == vk.render_pass.occlusion[i] )
 			name = vk_graph_names[(uint32_t)rhiGraphPass_t::Occlusion + i];
 	if ( renderPass == vk.render_pass.particles )
-		name = "particles";
+		name = "effects";
 	else if ( renderPass == vk.render_pass.particlesResume )
-		name = "particles resumed";
+		name = "effects resumed";
 	else if ( renderPass == vk.render_pass.main )
 		name = "main";
 	else if ( renderPass == vk.render_pass.screenmap )
@@ -7733,8 +7749,27 @@ void vk_impl_ReadPixels( byte *buffer, uint32_t width, uint32_t height ) {
 }
 
 
-bool RHI_BeginParticles( const rhiRect_t *viewport ) {
-	if ( !vk_config.softParticles || !vk.cmd || vk.renderPassIndex != RENDER_PASS_MAIN )
+void RHI_EffectsScissor( const rhiRect_t *scissor ) {
+	const VkRect2D area = { { scissor->offset.x, scissor->offset.y }, { scissor->extent.width, scissor->extent.height } };
+	qvkCmdSetScissor( vk.cmd->command_buffer, 0, 1, &area );
+}
+bool RHI_DrawDecal( const rhiDecal_t *decal, const rhiTexture_t *color, const rhiTexture_t *normal, const rhiRect_t *scissor ) {
+	const auto descriptors = vk.cmd->descriptor_set;
+	const uint32_t previous = vk.cmd->uniform_read_offset;
+	const uint32_t offset = RHI_UploadUniform( decal, sizeof( *decal ) );
+	vk.cmd->descriptor_set = descriptors;
+	vk.cmd->uniform_read_offset = previous;
+	if ( offset == RHI_INVALID_OFFSET )
+		return false;
+	RHI_EffectsScissor( scissor );
+	qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.decal_pipeline );
+	const VkDescriptorSet sets[] = { vk.cmd->uniform_descriptor, vk.depth_descriptor, (VkDescriptorSet)(uintptr_t)color->binding, (VkDescriptorSet)(uintptr_t)normal->binding };
+	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout, 0, 4, sets, 1, &offset );
+	vk_draw( 4 );
+	return true;
+}
+bool RHI_BeginEffects( const rhiRect_t *viewport ) {
+	if ( !vk_config.depthEffects || !vk.cmd || vk.renderPassIndex != RENDER_PASS_MAIN )
 		return false;
 	RHI_EndPass();
 	vk_begin_render_pass( vk.render_pass.particles, vk.framebuffers.particles, qfalse, vk_config.renderWidth, vk_config.renderHeight );
@@ -7758,7 +7793,7 @@ bool RHI_DrawParticle( const rhiParticle_t *particle, const rhiTexture_t *textur
 	vk_draw( 4 );
 	return true;
 }
-void RHI_EndParticles() {
+void RHI_EndEffects() {
 	RHI_EndPass();
 	vk_begin_render_pass( vk.render_pass.particlesResume, vk.framebuffers.main[vk.cmd->swapchain_image_index], qfalse, vk_config.renderWidth, vk_config.renderHeight );
 	vk.cmd->descriptor_set.start = 0;

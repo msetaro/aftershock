@@ -418,9 +418,16 @@ struct rhiParticle_t {
 	float clip[4][4], uv[4][4], color[4], depth[4];
 };
 static_assert( sizeof( rhiParticle_t ) == 160 && offsetof( rhiParticle_t, depth ) == 144 );
-bool RHI_BeginParticles( const rhiRect_t *viewport );
+struct rhiDecal_t {
+	float origin[4], right[4], down[4], forward[4], projection[4], viewport[4];
+	float volume[3][4], color[4], settings[4], lightDirection[4], ambient[4], directed[4];
+};
+static_assert( sizeof( rhiDecal_t ) == 224 && offsetof( rhiDecal_t, volume ) == 96 );
+bool RHI_DrawDecal( const rhiDecal_t *decal, const rhiTexture_t *color, const rhiTexture_t *normal, const rhiRect_t *scissor );
+void RHI_EffectsScissor( const rhiRect_t *scissor );
+bool RHI_BeginEffects( const rhiRect_t *viewport );
 bool RHI_DrawParticle( const rhiParticle_t *particle, const rhiTexture_t *texture, bool additive );
-void RHI_EndParticles();
+void RHI_EndEffects();
 void RHI_Occlusion( const float *projection, const rhiRect_t *viewport, float radius, float strength );
 // Existing one-frame delayed, coherent visibility storage; no additional wait.
 bool RHI_ReadVisibility( uint32_t index );
@@ -490,7 +497,7 @@ struct rhiDeviceConfig_t {
 	bool textureFilterValid;
 	uint32_t shadowMapSize;
 	uint32_t occlusionScale;
-	bool softParticles = false;
+	bool depthEffects = false;
 };
 struct rhiDeviceInfo_t {
 	char renderer[1024], vendor[1024], version[1024], extensions[8192];
@@ -567,8 +574,8 @@ enum class rhiGraphPass_t : uint32_t {
 	Occlusion,
 	OcclusionBlur,
 	OcclusionApply,
-	Particles,
-	ParticlesResume,
+	Effects,
+	EffectsResume,
 	Count
 };
 enum class rhiGraphFormat_t : uint32_t { Color,
@@ -613,7 +620,7 @@ struct rhiGraphConfig_t {
 	bool offscreen, bloom, capture, stencil;
 	uint32_t shadowSize; // Zero disables both depth atlases.
 	uint32_t occlusionScale; // 0 off, 1 full resolution, 2 half resolution; requires offscreen.
-	bool softParticles = false;
+	bool depthEffects = false;
 };
 struct rhiGraphTargetDesc_t {
 	uint32_t width, height, samples, usage;

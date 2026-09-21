@@ -296,7 +296,7 @@ typedef struct {
 		VkShaderModule direct_vs, direct_fs;
 		VkShaderModule reflection_fs;
 		VkShaderModule occlusion_fs[2][2], occlusion_apply_fs;
-		VkShaderModule particle_vs, particle_fs[2];
+		VkShaderModule particle_vs, particle_fs[2], decal_fs[2];
 		VkShaderModule pbr_baked_vs, pbr_baked_fs;
 		VkShaderModule shadow_vs, shadow_fs;
 
@@ -327,7 +327,7 @@ typedef struct {
 
 	VkPipeline gamma_pipeline;
 	VkPipeline capture_pipeline;
-	VkPipeline occlusion_pipeline[3], particle_pipeline[2];
+	VkPipeline occlusion_pipeline[3], particle_pipeline[2], decal_pipeline;
 	VkPipeline bloom_extract_pipeline;
 	VkPipeline blur_pipeline[VK_NUM_BLOOM_PASSES * 2]; // horizontal & vertical pairs
 	VkPipeline bloom_blend_pipeline;

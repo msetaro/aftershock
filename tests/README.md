@@ -1273,3 +1273,19 @@ load operations. Effects/Profile expose `softDraws` and `softDrops`; upload
 exhaustion drops a draw without allocating. It remains opt-in pending hardware
 budget and final artistic-scene acceptance. The graph probe checks disabled
 legacy descriptors and the new native pass, blend and upload-bound contracts.
+
+
+`tools/agent describe decal` describes cooked `.asdc` definitions: color/normal
+texture paths, full volume size (U/V/depth), lifetime/fade, color and normal strength.
+The existing `tests/effects.py` checks the 128-entry insertion ring under UBSan.
+`tests/decals_runtime.py --binary PATH` checks actual depth projection, no floating
+billboard, normal-map lighting, fade/expiry, ring replacement, stable memory,
+watched texture/definition reload and restart. Use `--samples 4` for the MSAA path;
+`--content openarena --data PATH` selects hosted content. `r_decals 1; r_fbo 1`
+selects the opt-in path before renderer initialization. The native commands are
+`decals.load`, `decals.project` (origin and angles; local Z points out of the
+surface), `decals.clear`, and `decals` (counts). The shared depth-detached effects
+pass renders decals before soft particles and clips each projection to a screen
+rectangle. The Profile panel reports active marks, draws, drops and replacements.
+Final reference artwork, material-hit/editor integration and budgets are still
+#161 work; these component captures are not frame goldens.

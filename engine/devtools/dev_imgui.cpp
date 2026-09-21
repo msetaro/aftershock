@@ -1589,6 +1589,9 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 	ImGui::Text( "Effects: %u particles / %u instances; %" PRIu64 " dropped", effects.pool.particles, effects.pool.instances, effects.pool.dropped );
 	ImGui::Text( "Effect draws %u / lights %u; light drops %u", effects.draws, effects.lightDraws, effects.lightDrops );
 	ImGui::Text( "Soft particle draws %u / upload drops %u", effects.softDraws, effects.softDrops );
+	decalRenderStats_t decals;
+	renderer->DecalStats( &decals );
+	ImGui::Text( "Decals %u / %u | draws %u | drops %u | replaced %" PRIu64, decals.active, DCL_MAX_DECALS, decals.draws, decals.dropped, decals.replaced );
 	ImGui::Separator();
 	ImGui::Text( "Connected server RX / client TX %.0f / %.0f bytes/s", rate[0], rate[1] );
 	ImGui::Text( "Packets %" PRIu64 " / %" PRIu64 "; last datagram %u / %u bytes",

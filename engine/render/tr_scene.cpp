@@ -70,6 +70,7 @@ void R_InitNextFrame( void ) {
 	r_firstScenePoly = 0;
 
 	r_numpolyverts = 0;
+	backEndData->numDecals = 0;
 }
 
 
@@ -542,6 +543,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 #endif
 
 	R_AddEffects( fd );
+	R_AddDecals( fd );
 	tr.refdef.num_entities = r_numentities - r_firstSceneEntity;
 	tr.refdef.entities = &backEndData->entities[r_firstSceneEntity];
 

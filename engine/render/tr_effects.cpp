@@ -202,7 +202,9 @@ void R_AddEffects( const refdef_t *view ) {
 	}
 }
 #ifdef AFTERSHOCK_DEVTOOLS
+static void ReloadDecals( const cookedIndex_t *index );
 void R_ReloadEffects( const cookedIndex_t *index ) {
+	ReloadDecals( index );
 	for ( uint32_t row = 0; row < index->count; ++row ) {
 		cookedEntry_t entry;
 		memcpy( &entry, index->entries + row * sizeof( entry ), sizeof( entry ) );
@@ -216,6 +218,202 @@ void R_ReloadEffects( const cookedIndex_t *index ) {
 			memcpy( old, effectAssets[i].hash, sizeof( old ) );
 			if ( ReadEffect( i, effectAssets[i].path, &entry ) && memcmp( old, effectAssets[i].hash, sizeof( old ) ) )
 				++effectReloads;
+		}
+	}
+}
+#endif
+
+static decalSystem_t decals;
+struct decalBinding_t {
+	image_t *color, *normal;
+};
+static struct {
+	char path[MAX_QPATH];
+	uint8_t hash[32];
+	decalAsset_t asset;
+	decalBinding_t binding;
+} decalAssets[64];
+static decalBinding_t decalBindings[DCL_MAX_DECALS];
+static uint32_t decalCount, decalReloads, decalDraws, decalDrops, decalTime;
+static bool decalClock;
+void RE_ClearDecals() {
+	DCL_Reset( &decals );
+	decalClock = false;
+}
+void R_InitDecals() {
+	RE_ClearDecals();
+	memset( decalAssets, 0, sizeof( decalAssets ) );
+	memset( decalBindings, 0, sizeof( decalBindings ) );
+	decalCount = decalReloads = decalDraws = decalDrops = decalTime = 0;
+}
+static bool ReadDecal( uint32_t index, const char *path, const cookedEntry_t *published = nullptr ) {
+	void *data = nullptr;
+	const int size = ri.FS_ReadFile( path, &data );
+	decalAsset_t asset;
+	const bool valid = size > 0 && ( !published || ( (uint32_t)size == published->size && R_CookedHashMatches( data, (size_t)size, published->hash ) ) ) && DCL_Open( data, (size_t)size, &asset );
+	uint8_t hash[32];
+	if ( valid )
+		memcpy( hash, (const byte *)data + 16, sizeof( hash ) );
+	if ( data )
+		ri.FS_FreeFile( data );
+	if ( !valid )
+		return false;
+	const auto flags = (imgFlags_t)( IMGFLAG_MIPMAP | IMGFLAG_CLAMPTOEDGE );
+	decalBinding_t binding{ R_FindImageFile( asset.colorMap, flags ), R_FindImageFile( asset.normalMap, flags ) };
+	if ( !binding.color || !binding.normal )
+		return false;
+	auto &record = decalAssets[index];
+	record.asset = asset;
+	record.binding = binding;
+	memcpy( record.hash, hash, sizeof( hash ) );
+	if ( path != record.path )
+		Q_strncpyz( record.path, path, sizeof( record.path ) );
+	return true;
+}
+qhandle_t RE_RegisterDecal( const char *path ) {
+	if ( !path || !path[0] || strlen( path ) >= MAX_QPATH || path[0] == '/' || strstr( path, ".." ) )
+		return 0;
+	for ( uint32_t i = 0; i < decalCount; ++i )
+		if ( !strcmp( path, decalAssets[i].path ) )
+			return (qhandle_t)( i + 1 );
+	if ( decalCount == ARRAY_LEN( decalAssets ) || !ReadDecal( decalCount, path ) )
+		return 0;
+	return (qhandle_t)++decalCount;
+}
+uint32_t RE_ProjectDecal( qhandle_t asset, const vec3_t origin, const vec3_t axis[3] ) {
+	if ( asset <= 0 || (uint32_t)asset > decalCount )
+		return 0;
+	const uint32_t slot = decals.next;
+	const auto &record = decalAssets[asset - 1];
+	const uint32_t handle = DCL_Add( &decals, &record.asset, origin, axis );
+	if ( handle )
+		decalBindings[slot] = record.binding;
+	return handle;
+}
+void RE_DecalStats( decalRenderStats_t *stats ) {
+	*stats = { decals.active, decalCount, decalReloads, decalDraws, decalDrops, decals.replaced };
+}
+void R_AddDecals( const refdef_t *view ) {
+	tr.refdef.numDecals = 0;
+	tr.refdef.decals = &backEndData->decals[backEndData->numDecals];
+	if ( view->rdflags & RDF_NOWORLDMODEL )
+		return;
+	const uint32_t now = (uint32_t)view->time;
+	if ( decalClock && int32_t( now - decalTime ) < 0 )
+		DCL_Reset( &decals );
+	else if ( decalClock && now != decalTime )
+		DCL_Update( &decals, now - decalTime );
+	decalClock = true;
+	decalTime = now;
+	if ( !r_fbo->integer || !r_decals->integer )
+		return;
+	// Insertion order keeps newer marks over older ones when the ring wraps.
+	for ( uint32_t n = 0; n < DCL_MAX_DECALS; ++n ) {
+		const uint32_t index = ( decals.next + n ) % DCL_MAX_DECALS;
+		const auto &instance = decals.items[index];
+		if ( !instance.handle )
+			continue;
+		if ( backEndData->numDecals == MAX_DECAL_DRAWS ) {
+			++decalDrops;
+			continue;
+		}
+		auto &draw = backEndData->decals[backEndData->numDecals++];
+		++tr.refdef.numDecals;
+		draw = {};
+		draw.color = decalBindings[index].color;
+		draw.normal = decalBindings[index].normal;
+		auto &u = draw.parameters;
+		for ( uint32_t i = 0; i < 3; ++i ) {
+			for ( uint32_t j = 0; j < 3; ++j )
+				u.volume[i][j] = instance.axis[i][j] / instance.asset.halfSize[i];
+			u.volume[i][3] = -DotProduct( u.volume[i], instance.origin );
+			float radius = 0;
+			for ( uint32_t j = 0; j < 3; ++j )
+				radius += fabsf( instance.axis[j][i] ) * instance.asset.halfSize[j];
+			draw.bounds[0][i] = instance.origin[i] - radius;
+			draw.bounds[1][i] = instance.origin[i] + radius;
+		}
+		memcpy( u.color, instance.asset.color, sizeof( u.color ) );
+		u.color[3] *= DCL_Opacity( &instance );
+		u.settings[0] = instance.asset.normalStrength;
+		vec3_t at;
+		VectorMA( instance.origin, .5f, instance.axis[2], at );
+		if ( R_LightForPoint( at, u.ambient, u.directed, u.lightDirection ) ) {
+			VectorScale( u.ambient, 1.f / 255, u.ambient );
+			VectorScale( u.directed, 1.f / 255, u.directed );
+		} else
+			VectorSet( u.ambient, 1, 1, 1 );
+	}
+}
+void RB_DrawDecals( const rhiRect_t *viewport, const float *transform ) {
+	for ( int i = 0; i < backEnd.refdef.numDecals; ++i ) {
+		const auto &draw = backEnd.refdef.decals[i];
+		rhiDecal_t u = draw.parameters;
+		float low[2] = { 1, 1 }, high[2] = { -1, -1 };
+		uint32_t behind = 0;
+		for ( uint32_t corner = 0; corner < 8; ++corner ) {
+			float clip[4];
+			for ( uint32_t row = 0; row < 4; ++row ) {
+				clip[row] = transform[12 + row];
+				for ( uint32_t axis = 0; axis < 3; ++axis )
+					clip[row] += draw.bounds[( corner >> axis ) & 1][axis] * transform[axis * 4 + row];
+			}
+			if ( clip[3] <= .001f ) {
+				++behind;
+				continue;
+			}
+			for ( uint32_t axis = 0; axis < 2; ++axis ) {
+				low[axis] = std::min( low[axis], clip[axis] / clip[3] );
+				high[axis] = std::max( high[axis], clip[axis] / clip[3] );
+			}
+		}
+		if ( behind == 8 )
+			continue;
+		rhiRect_t scissor = *viewport;
+		if ( !behind ) {
+			const int32_t x = (int32_t)floorf( ( std::clamp( low[0], -1.f, 1.f ) + 1 ) * .5f * (float)viewport->extent.width );
+			const int32_t y = (int32_t)floorf( ( std::clamp( low[1], -1.f, 1.f ) + 1 ) * .5f * (float)viewport->extent.height );
+			scissor.offset.x += x;
+			scissor.offset.y += y;
+			scissor.extent.width = (uint32_t)std::max( 0, (int32_t)ceilf( ( std::clamp( high[0], -1.f, 1.f ) + 1 ) * .5f * (float)viewport->extent.width ) - x );
+			scissor.extent.height = (uint32_t)std::max( 0, (int32_t)ceilf( ( std::clamp( high[1], -1.f, 1.f ) + 1 ) * .5f * (float)viewport->extent.height ) - y );
+		}
+		if ( !scissor.extent.width || !scissor.extent.height )
+			continue;
+		VectorCopy( backEnd.refdef.vieworg, u.origin );
+		VectorScale( backEnd.viewParms.orientation.axis[1], -1, u.right );
+		VectorScale( backEnd.viewParms.orientation.axis[2], -1, u.down );
+		VectorCopy( backEnd.viewParms.orientation.axis[0], u.forward );
+		const float *p = backEnd.viewParms.projectionMatrix;
+		u.projection[0] = p[0];
+		u.projection[1] = p[5];
+		u.projection[2] = p[10];
+		u.projection[3] = p[14];
+		u.viewport[0] = (float)viewport->offset.x;
+		u.viewport[1] = (float)viewport->offset.y;
+		u.viewport[2] = (float)viewport->extent.width;
+		u.viewport[3] = (float)viewport->extent.height;
+		draw.color->frameUsed = draw.normal->frameUsed = tr.frameCount;
+		if ( RHI_DrawDecal( &u, &draw.color->texture, &draw.normal->texture, &scissor ) )
+			++decalDraws;
+		else
+			++decalDrops;
+	}
+}
+#ifdef AFTERSHOCK_DEVTOOLS
+static void ReloadDecals( const cookedIndex_t *index ) {
+	for ( uint32_t row = 0; row < index->count; ++row ) {
+		cookedEntry_t entry;
+		memcpy( &entry, index->entries + row * sizeof( entry ), sizeof( entry ) );
+		if ( entry.kind != 10 )
+			continue;
+		for ( uint32_t i = 0; i < decalCount; ++i ) {
+			if ( strcmp( entry.path, decalAssets[i].path ) )
+				continue;
+			uint8_t old[32];
+			memcpy( old, decalAssets[i].hash, sizeof( old ) );
+			if ( ReadDecal( i, decalAssets[i].path, &entry ) && memcmp( old, decalAssets[i].hash, sizeof( old ) ) )
+				++decalReloads;
 		}
 	}
 }

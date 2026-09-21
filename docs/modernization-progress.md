@@ -31,17 +31,16 @@ in #25. No source changes remain in its sketch-tree branch.
 Continue #161 in /home/matt/.cache/aftershock-modernization/fidelity-tree,
 issue/161-visual-fidelity. The #164 main merge is integrated forward here; resolve
 progress/hello-command overlap by retaining both histories and all trace/effect
-commands. No #161 PR yet. Current code passes pure effect/cooker GCC and Clang,
-native sprite/control/reload/restart, initial floating HDR target, and offline
-mesh LOD checks. The initial native OpenArena fixed-demo comparison passes its
+commands. No #161 PR yet. Current code passes pure effect/decal/LOD cooker GCC and Clang,
+native reference effects, soft depth and projected normal-mapped decal lifecycle,
+initial floating HDR targets and native mesh LOD selection. The initial native OpenArena fixed-demo comparison passes its
 unchanged accepted frame hash (fidelity-legacy-demo.log). No accepted fixture or
 existing shader changed; three new particle shaders are appended through bin2hex. Details and test-first failures are below.
 
-Next implementation: projected normal-map decals and their material-hit bindings,
-then the post stack and streaming. The original nine-effect set, material impacts,
+Next implementation: finish projected decal material-hit/editor bindings and
+original reference artwork, then the post stack and streaming. The original nine-effect set, material impacts,
 live source editing, light hooks, depth-soft particles and profiler counters
-now pass component controls. Projected normal-map
-decals, filmic/LUT/post/TAA with real motion vectors, mip streaming/async uploads,
+now pass component controls. Filmic/LUT/post/TAA with real motion vectors, mip streaming/async uploads,
 reviewed software frames and hardware budgets all remain required. Cooked
 LOD output is now selected by the renderer through hash-bound cooked manifests.
 Keep its animation/geometry and stale-file lifecycle controls; hardware savings
@@ -64,6 +63,43 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 projected decal verification checkpoint
+
+The MSAA lifecycle and strengthened native ring/memory checks pass
+(fidelity-decals-native-{msaa,ring}.log). The same test places 129 marks, retains
+128, reports one replacement and zero drops, then clears them. GCC/Clang graph,
+format/boundary/type, agent protocol and all 93 pinned shader checks pass.
+Most importantly, the actual OpenArena fixed-demo replay retains the unchanged
+accepted frame hash 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(fidelity-decals-legacy-demo.log). No fixture regeneration. Native decal commands
+are now included in runtime CI; main/exact-head hosted gates still belong to the
+complete #161 PR, which is not open yet. Finish material-hit/editor integration
+and owned bullet/scorch/blood references next; post/TAA/streaming remain required.
+
+## #161 native projected decals: initial component pass
+
+The depth-detached pass is now shared by projected decals and soft particles.
+Decals reconstruct world positions from scene depth, clip to an oriented volume,
+apply color and normal textures with light-grid illumination, and use a conservative
+projected scissor. Frame-owned records copy at most four full rings; overflow and
+upload drops are counted. Pool order retains newer marks over older ones.
+
+The native test passes projection, fade/expiry, the volume-misses-floor negative
+control, changed normal lighting, watched texture/definition edits and restart
+(fidelity-decals-native-watch.log). Active/tilted captures were reviewed: the
+same floor patch changes lighting with its tangent-space normal. The first reload
+comparison omitted dev_reloadAssets; enabling the existing watcher corrected the
+test setup. Initial missing captures exposed command-buffer misalignment caused
+by my new draw-count field. Reordering only the new fields and asserting the
+command offset restores capture (fidelity-decals-capture-debug.log). No legacy
+command-reader or unrelated engine code changed.
+
+Native graph checks pass for both pipelines and bounded uniform uploads while the
+legacy descriptor oracle remains identical (fidelity-decals-graph.log). Two new
+shaders are generated with bin2hex; all previous 91 arrays stay unchanged. MSAA,
+shader/compiler checks and the new profiler counter build are next. Material-hit
+dispatch, live editor preview and original decal reference artwork remain pending.
 
 ## #161 native projection test first
 

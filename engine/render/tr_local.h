@@ -644,6 +644,8 @@ typedef struct {
 	shadowLight_t *sceneLights;
 	shadowSun_t sun;
 
+	int numDecals;
+	struct decalDraw_s *decals;
 	int numPolys;
 	struct srfPoly_s *polys;
 
@@ -681,6 +683,14 @@ typedef struct image_s {
 #endif
 
 } image_t;
+
+struct decalDraw_s {
+	rhiDecal_t parameters;
+	image_t *color, *normal;
+	vec3_t bounds[2];
+};
+// ponytail: four full rings per frame; additional views report dropped records.
+inline constexpr uint32_t MAX_DECAL_DRAWS = DCL_MAX_DECALS * 4;
 
 static_assert( sizeof( image_t ) == 88 && alignof( image_t ) == 8 );
 static_assert( offsetof( image_t, texture ) == 56 );
@@ -1453,7 +1463,7 @@ extern cvar_t *r_dynamiclight; // dynamic lights enabled/disabled
 extern cvar_t *r_mergeLightmaps;
 extern cvar_t *r_directionalLightmaps;
 extern cvar_t *r_reflectionProbes;
-extern cvar_t *r_softParticles;
+extern cvar_t *r_softParticles, *r_decals;
 extern cvar_t *r_ssao, *r_ssaoRadius, *r_ssaoStrength;
 extern cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
@@ -1567,6 +1577,13 @@ void R_AddLightningBoltSurfaces( trRefEntity_t *e );
 
 void R_AddPolygonSurfaces( void );
 void R_EffectSoftDraw( bool drawn );
+void R_InitDecals();
+void R_AddDecals( const refdef_t *view );
+void RB_DrawDecals( const rhiRect_t *viewport, const float *transform );
+qhandle_t RE_RegisterDecal( const char *path );
+uint32_t RE_ProjectDecal( qhandle_t asset, const vec3_t origin, const vec3_t axis[3] );
+void RE_ClearDecals();
+void RE_DecalStats( decalRenderStats_t *stats );
 void R_AddEffectPoly( qhandle_t shader, const polyVert_t *vertices, float softDistance );
 
 void R_DecomposeSort( unsigned sort, int *entityNum, shader_t **shader,
@@ -2088,8 +2105,11 @@ typedef struct {
 	skeletalPose_t skeletalPoses[MAX_SKELETAL_POSES];
 	srfPoly_t *polys; //[MAX_POLYS];
 	polyVert_t *polyVerts; //[MAX_POLYVERTS];
+	uint32_t numDecals;
+	decalDraw_s decals[MAX_DECAL_DRAWS];
 	renderCommandList_t commands;
 } backEndData_t;
+static_assert( offsetof( backEndData_t, commands ) % alignof( void * ) == 0 );
 
 extern int max_polys;
 extern int max_polyverts;
