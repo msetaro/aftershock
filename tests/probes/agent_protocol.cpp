@@ -99,6 +99,20 @@ bool CL_AgentPlayer( playerState_t * ) {
 	return false;
 }
 
+int CM_NumInlineModels( void ) {
+	return 1;
+}
+void CM_BoxTrace( trace_t *trace, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+	clipHandle_t model, int mask, qboolean capsule ) {
+	assert( start[0] == 1 && end[2] == 7 && mins[0] == 0 && maxs[2] == 0 );
+	assert( model == 0 && mask == CONTENTS_SOLID && !capsule );
+	*trace = {};
+	trace->fraction = 0.25f;
+	VectorSet( trace->endpos, 2, 3, 4 );
+	VectorSet( trace->plane.normal, 0, 0, 1 );
+	trace->contents = CONTENTS_SOLID;
+}
+
 static char value[128] = "initial";
 static char queued[256];
 static cvar_t variable;
@@ -172,6 +186,7 @@ int main( int argc, char **argv ) {
 	request( R"({"id":8,"op":"cvar.set","name":"example","value":42})" );
 	assert( !strcmp( value, "quote \" slash \\ newline\n" ) );
 	request( R"({"id":9,"op":"cvar.get","name":"missing"})" );
+	request( R"({"id":10,"op":"trace","start":[1,2,3],"end":[5,6,7],"hull":"point"})" );
 	char tiny[2] = { 'x', 'y' };
 	const char *text = R"({"id":10,"op":"exec","command":"must not run"})";
 	assert( !DevTools_AgentRequest( text, (uint32_t)strlen( text ), tiny, sizeof( tiny ) ) );

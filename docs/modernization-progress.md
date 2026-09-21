@@ -52,6 +52,15 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 agent collision-query contract
+
+Shooter intent validation needs compiled-world sight and player-clearance queries
+through the existing local agent channel. The dispatcher test fails first because
+`trace` is absent (sketch-trace-query-before.log). Add a development-only command
+that calls the existing CM_BoxTrace with either a point/solid mask or the standard
+player box/player-solid mask. This is a new authoring query, not an engine bug fix
+or a simulation change. Actual owned-map clear/blocked traces will verify it.
+
 ## #164 module material correction passes
 
 The material-role assertion fails before the binding change
