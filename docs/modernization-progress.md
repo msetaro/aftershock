@@ -76,6 +76,15 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 pre-concurrency review checkpoint
+
+Fatal assertions now flush the pending event queue before their own report. GCC
+and clang/libc++ full-queue controls pass, preserve one dropped-warning report,
+and retain identical release assertion objects. The unused XInput click helper
+and pointer-coordinate bookkeeping are removed; no active test calls click.
+Formatting and diff whitespace checks pass. Next run all ten local regression
+variants simultaneously in two clean worktrees, then review fresh hosted gates.
+
 ## #163 assertion delivery self-review
 
 A new full-queue assertion control fails first: 257 queued warnings cause the

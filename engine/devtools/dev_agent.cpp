@@ -67,6 +67,7 @@ void Dev_AgentAssert( const char *expression, const char *file, int line ) {
 		return;
 	char detail[256];
 	snprintf( detail, sizeof( detail ), "%s:%d: %s", file, line, expression );
+	DevTools_AgentFlushEvents();
 	Dev_AgentEvent( "assert", -1, -1, line, detail );
 	DevTools_AgentFlushEvents();
 }
