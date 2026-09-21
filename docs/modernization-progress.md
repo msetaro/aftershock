@@ -39,8 +39,9 @@ props/grenade bodies and skeleton-driven death presentation. The first permanent
 cmake/Physics.cmake before any dependency or engine implementation is imported.
 Pinned original Jolt/joltc sources and a scoped offline CMake helper are imported.
 The permanent UBSan probe builds and fails on one allocation at step 0. Reserved-scratch/job-page changes now pass the permanent GCC and Clang/libc++
-UBSan tests. Next implement bounded allocator ownership and the engine physics
-boundary, with initialization/shutdown and full-capacity tests first. No #15 PR
+UBSan tests. Caller allocator ownership and full initialization/shutdown now pass on both
+compilers. Next prove no-fallback temporary storage, then implement the owned POD
+physics boundary and full-capacity/recycle controls. No #15 PR
 or engine implementation exists yet.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
@@ -67,6 +68,26 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 caller ownership and full restart pass
+
+JPH_Init now preserves a complete caller allocator configuration and rejects a
+partial one before allocation. The opaque world wrapper uses Jolt's allocation
+operators. Destroying the final world clears the lookup table's backing storage.
+The intermediate test caught exactly one retained block before that cleanup
+(physics-ownership-reset-before.log); initialization callback replacement is
+retained separately in physics-ownership-before.log.
+
+GCC and Clang/libc++ UBSan tests now pass full setup/600-step/teardown twice per
+process for each replay variant. Setup makes no C++ allocation outside registered
+callbacks, stepping makes no allocation, shutdown has zero outstanding blocks,
+and reinitialization produces identical results. Partial allocator configuration
+is rejected. The recorded-scene hash is unchanged. Evidence:
+physics-ownership-after.log / physics-ownership-clang.log.
+
+Next: prove temporary-buffer exhaustion cannot fall back to allocation, then
+implement the owned POD physics boundary and fixed-capacity lifecycle. No engine
+target links physics yet, and #15 acceptance remains open.
 
 ## #15 allocator ownership test fails before initialization changes
 

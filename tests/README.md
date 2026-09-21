@@ -1433,7 +1433,9 @@ replays `tests/assets/physics/props.txt` against 32 bodies and 16 constraints fo
 600 fixed steps. It rejects Jolt allocator and C++ allocation calls during steps,
 checks FP control preservation, hashes ordered final positions/quaternions, and
 requires a changed impulse to change the result. A second independent replay
-must match exactly. It creates no accepted golden and needs no game content.
+must match exactly. Each process also repeats setup/teardown and replay, checks
+that caller allocators are preserved, rejects partial allocator registration,
+and requires zero outstanding blocks before reinitialization. It creates no accepted golden and needs no game content.
 
 Use `--cxx 'clang++ -stdlib=libc++' --output /tmp/physics-clang` for the second
 compiler. CMake, Ninja and the selected compiler/runtime are required. Builds

@@ -161,6 +161,9 @@ static void Replay( int argc, char **argv ) {
 	JPH::Free = Free;
 	JPH::AlignedFree = AlignedFree;
 	cppAllocations = 0;
+	JPH::Free = nullptr;
+	assert(!JPH_Init() && liveBlocks == 0);
+	JPH::Free = Free;
 	assert(JPH_Init());
 	assert(JPH::Allocate == Allocate && JPH::Reallocate == Reallocate && JPH::Free == Free);
 	assert(JPH::AlignedAllocate == Aligned && JPH::AlignedFree == AlignedFree);

@@ -778,7 +778,11 @@ bool JPH_Init()
 	if (s_initialized)
 		return true;
 
-	JPH::RegisterDefaultAllocator();
+	// Aftershock: preserve a complete caller-owned allocator configuration.
+	if (!JPH::Allocate && !JPH::Reallocate && !JPH::Free && !JPH::AlignedAllocate && !JPH::AlignedFree)
+		JPH::RegisterDefaultAllocator();
+	if (!JPH::Allocate || !JPH::Reallocate || !JPH::Free || !JPH::AlignedAllocate || !JPH::AlignedFree)
+		return false;
 
 	JPH::Trace = TraceImpl;
 	JPH_IF_ENABLE_ASSERTS(JPH::AssertFailed = AssertFailedImpl;)
@@ -1006,6 +1010,7 @@ void JPH_DrawSettings_InitDefault(JPH_DrawSettings* settings)
 /* JPH_PhysicsSystem */
 struct JPH_PhysicsSystem final
 {
+	JPH_OVERRIDE_NEW_DELETE
 	JPH::BroadPhaseLayerInterface* broadPhaseLayerInterface = nullptr;
 	JPH::ObjectLayerPairFilter* objectLayerPairFilter = nullptr;
 	JPH::ObjectVsBroadPhaseLayerFilter* objectVsBroadPhaseLayerFilter = nullptr;
@@ -1043,6 +1048,9 @@ void JPH_PhysicsSystem_Destroy(JPH_PhysicsSystem* system)
 	if (system)
 	{
 		s_PhysicsSystems.erase(system->physicsSystem);
+		// Aftershock: the caller may retire its arena after the last world.
+		if (s_PhysicsSystems.empty())
+			s_PhysicsSystems.clear();
 		delete system->physicsSystem;
 		delete system->broadPhaseLayerInterface;
 		delete system->objectVsBroadPhaseLayerFilter;
