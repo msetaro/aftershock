@@ -65,6 +65,15 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 native projection test first
+
+The new real-client decal test requires a projected textured floor patch, lifetime
+fade/expiry, no floating billboard when its volume misses the floor, normal-map
+lighting changes, watched texture/definition edits and renderer restart. It fails
+at the absent decals.load command before native implementation
+(fidelity-decals-native-before.log). Implement through the retained-depth effects
+pass; keep sampled depth detached and copy bounded draw records per scene.
+
 ## #161 decal data and fixed ring pass
 
 The existing effects module now accepts a 200-byte .asdc payload and owns a
