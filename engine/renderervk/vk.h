@@ -292,6 +292,7 @@ typedef struct {
 		VkShaderModule color_vs;
 		VkShaderModule pbr_vs, pbr_fs;
 		VkShaderModule pbr_baked_vs, pbr_baked_fs;
+		VkShaderModule shadow_vs, shadow_fs;
 
 		VkShaderModule bloom_fs;
 		VkShaderModule blur_fs;

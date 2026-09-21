@@ -1159,6 +1159,89 @@
           }
         ]
       }
+    },
+    {
+      "name": "shadow_vert_spv",
+      "source": "shadow.vert",
+      "stage": "vert",
+      "defines": [],
+      "source_sha256": "97eb4312cec104a70e0e0bc59ec9d8b1ae4749a6e0acb56007164800c0884909",
+      "includes": {},
+      "recipe_sha256": "aad401f52e7cf277bbb3e5c0dcb84e0a28af75d7e6b5dd853b1b8d6fa84ff262",
+      "spirv_sha256": "a10339150bcaf3af9e8e800450839637b6458e511b4ffc2b413a5a6e0801fc69",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "vert",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "22": {
+            "location": 0
+          },
+          "34": {
+            "location": 0
+          },
+          "36": {
+            "location": 2
+          },
+          "39": {
+            "location": 1
+          },
+          "41": {
+            "location": 1
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 14,
+            "member": 0,
+            "offset": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "shadow_frag_spv",
+      "source": "shadow.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "fec499373f8becb86eb3e674e2a0ab34479a646a3fc32ab56efdab6e3c692ec6",
+      "includes": {},
+      "recipe_sha256": "7ec4f60c697f23be5430a78abec6c591377522d39896269692d7c4d4d950dee9",
+      "spirv_sha256": "3ceb79f0009c14510b24eeb307fa988efcf2056e1b02246387b730d57ca0826e",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "10": {
+            "binding": 0,
+            "set": 0
+          },
+          "28": {
+            "binding": 0,
+            "set": 1
+          },
+          "32": {
+            "location": 0
+          },
+          "38": {
+            "location": 1
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 8,
+            "member": 0,
+            "offset": 0
+          }
+        ]
+      }
     }
   ]
 }

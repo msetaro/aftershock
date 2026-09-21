@@ -54,6 +54,18 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
+## #14 shadow caster shader implementation checkpoint
+
+Test-first d33b7a6b precedes two new depth-only GLSL programs with vertex alpha,
+base texture and explicit opaque/GE/LT/GT mask modes. Their native pipeline uses
+single-sample reversed depth, zero color attachments and no stencil/coverage.
+All previous 78 SPIR-V arrays remain an identical prefix; only bin2hex appended
+new arrays. Fresh pinned compilation matches all 80 cached programs/interfaces:
+2380ed012d93f6cbbaa4e14c10a2c199b1147f7c4b7fcaa1c0ff606937c700d9.
+Logs lighting-shadow-{shaders,shader-native,shader-clang,shader-build}.log record
+shader, native descriptor/pipeline and CMake success. Native scene caster/receiver
+submission and rendered mask/occlusion acceptance still remain.
+
 ## #14 shadow caster shader test-first checkpoint
 
 The native observation now requires a dedicated caster pipeline with position,

@@ -2689,6 +2689,8 @@ static void vk_create_shader_modules( void ) {
 	vk.modules.pbr_fs = SHADER_MODULE( pbr_frag_spv );
 	vk.modules.pbr_baked_vs = SHADER_MODULE( pbr_baked_vert_spv );
 	vk.modules.pbr_baked_fs = SHADER_MODULE( pbr_baked_frag_spv );
+	vk.modules.shadow_vs = SHADER_MODULE( shadow_vert_spv );
+	vk.modules.shadow_fs = SHADER_MODULE( shadow_frag_spv );
 
 	vk.modules.vert.gen[0][0][0][0] = SHADER_MODULE( vert_tx0 );
 	vk.modules.vert.gen[0][0][0][1] = SHADER_MODULE( vert_tx0_fog );
@@ -4359,6 +4361,8 @@ void vk_impl_Shutdown( void ) {
 	qvkDestroyShaderModule( vk.device, vk.modules.pbr_fs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.pbr_baked_vs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.pbr_baked_fs, NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.shadow_vs, NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.shadow_fs, NULL );
 
 	qvkDestroyShaderModule( vk.device, vk.modules.fog_vs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.fog_fs, NULL );
@@ -5422,6 +5426,11 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 
 	switch ( def->shader_type ) {
 
+	case TYPE_SHADOW:
+		vs_module = &vk.modules.shadow_vs;
+		fs_module = &vk.modules.shadow_fs;
+		break;
+
 	case TYPE_PBR_BAKED:
 		vs_module = &vk.modules.pbr_baked_vs;
 		fs_module = &vk.modules.pbr_baked_fs;
@@ -5868,6 +5877,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 		push_attr( 2, 2, VK_FORMAT_R32G32_SFLOAT );
 		break;
 
+	case TYPE_SHADOW:
 	case TYPE_SIGNLE_TEXTURE:
 		push_bind( 0, sizeof( vec4_t ) ); // xyz array
 		push_bind( 1, sizeof( color4ub_t ) ); // color array
