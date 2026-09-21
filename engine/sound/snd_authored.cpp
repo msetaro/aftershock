@@ -1,6 +1,7 @@
 #include "snd_local.h"
 #include "snd_codec.h"
 #include "snd_event.h"
+#include "../qcommon/cm_public.h"
 #include <algorithm>
 #include <cmath>
 #include <inttypes.h>
@@ -21,6 +22,14 @@ static uint32_t eventCount, sampleCount, sampleBytes, started;
 static uint64_t mixed;
 static float peak;
 static sEventMixer_t mixer;
+static sReverb_t reverb;
+static struct {
+	vec3_t mins, maxs;
+	float wet, decay, damping;
+} zones[32];
+static uint32_t zoneCount, traceCursor, traced, blocked;
+static int zoneIndex = -2;
+
 static cvar_t *hrtf, *headRadius, *busVolumes[S_BUS_COUNT];
 static vec3_t listener, right = { 0, -1, 0 };
 static int listenerEntity;
@@ -40,8 +49,8 @@ bool S_AuthoredHandle( sfxHandle_t handle ) {
 }
 
 static void Info() {
-	Com_Printf( "Audio events: events=%u samples=%u bytes=%u active=%u started=%u mixed=%" PRIu64 " peak=%.3f\n",
-		eventCount, sampleCount, sampleBytes, mixer.active, started, mixed, double( peak ) );
+	Com_Printf( "Audio events: events=%u samples=%u bytes=%u active=%u started=%u mixed=%" PRIu64 " peak=%.3f zones=%u zone=%d wet=%.3f traced=%u blocked=%u\n",
+		eventCount, sampleCount, sampleBytes, mixer.active, started, mixed, double( peak ), zoneCount, zoneIndex, double( reverb.wet ), traced, blocked );
 }
 
 void S_AuthoredInit() {
@@ -66,6 +75,10 @@ void S_AuthoredClear() {
 	started = 0;
 	mixed = 0;
 	peak = 0.0f;
+	memset( &reverb, 0, sizeof( reverb ) );
+	S_ConfigureReverb( &reverb, dma.speed, 0.0f, 1.0f, 0.5f );
+	zoneIndex = -2;
+	traceCursor = traced = blocked = 0;
 }
 
 void S_AuthoredShutdown() {
@@ -76,6 +89,8 @@ void S_AuthoredShutdown() {
 	memset( events, 0, sizeof( events ) );
 	eventCount = sampleCount = sampleBytes = 0;
 	Cmd_RemoveCommand( "s_audioInfo" );
+	hrtf = nullptr;
+	zoneCount = 0;
 }
 
 static int PrepareSample( const char *name ) {
@@ -209,10 +224,68 @@ void S_AuthoredStart( const vec3_t origin, int entity, sfxHandle_t handle ) {
 	++started;
 }
 
+void S_LoadWorldAudio() {
+	if ( !hrtf )
+		return;
+	zoneCount = 0;
+	zoneIndex = -2;
+	const char *cursor = CM_EntityString();
+	if ( !cursor || strcmp( COM_Parse( &cursor ), "{" ) )
+		return;
+	for ( ;; ) {
+		char key[64];
+		Q_strncpyz( key, COM_Parse( &cursor ), sizeof( key ) );
+		if ( !key[0] || !strcmp( key, "}" ) )
+			break;
+		const char *value = COM_Parse( &cursor );
+		if ( strncmp( key, "audio_zone_", 11 ) )
+			continue;
+		if ( zoneCount == 32 ) {
+			Com_Printf( "Audio zone rejected: capacity\n" );
+			continue;
+		}
+		auto &zone = zones[zoneCount];
+		char extra;
+		bool valid = sscanf( value, "%f %f %f %f %f %f %f %f %f %c",
+						 &zone.mins[0], &zone.mins[1], &zone.mins[2], &zone.maxs[0], &zone.maxs[1], &zone.maxs[2],
+						 &zone.wet, &zone.decay, &zone.damping, &extra ) == 9;
+		for ( int axis = 0; axis < 3; ++axis )
+			valid &= std::isfinite( zone.mins[axis] ) && std::isfinite( zone.maxs[axis] ) &&
+					 zone.mins[axis] >= -32000 && zone.maxs[axis] <= 32000 && zone.mins[axis] < zone.maxs[axis];
+		valid &= std::isfinite( zone.wet ) && zone.wet >= 0 && zone.wet <= 1 &&
+				 std::isfinite( zone.decay ) && zone.decay >= .1f && zone.decay <= 10 &&
+				 std::isfinite( zone.damping ) && zone.damping >= 0 && zone.damping <= .95f;
+		if ( valid )
+			++zoneCount;
+		else
+			Com_Printf( "Audio zone rejected: %s\n", key );
+	}
+	Com_Printf( "Audio world: zones=%u\n", zoneCount );
+}
+
 void S_AuthoredRespatialize( int entity, const vec3_t head, vec3_t axis[3] ) {
 	listenerEntity = entity;
 	VectorCopy( head, listener );
 	VectorNegate( axis[1], right );
+	int selected = -1;
+	for ( uint32_t i = 0; i < zoneCount; ++i ) {
+		bool inside = true;
+		for ( int axis = 0; axis < 3; ++axis )
+			inside &= head[axis] >= zones[i].mins[axis] && head[axis] < zones[i].maxs[axis];
+		if ( inside ) {
+			selected = int( i );
+			break;
+		}
+	}
+	if ( selected != zoneIndex ) {
+		if ( selected >= 0 ) {
+			const auto &zone = zones[selected];
+			S_ConfigureReverb( &reverb, dma.speed, zone.wet, zone.decay, zone.damping );
+		} else
+			S_ConfigureReverb( &reverb, dma.speed, 0.0f, 1.0f, 0.5f );
+		zoneIndex = selected;
+	}
+
 	for ( uint32_t i = 0; i < 96; ++i ) {
 		auto &voice = mixer.voices[i];
 		if ( !voice.event )
@@ -225,19 +298,41 @@ void S_AuthoredRespatialize( int entity, const vec3_t head, vec3_t axis[3] ) {
 			--mixer.active;
 		}
 	}
+	// ponytail: eight round-robin static-world traces per frame; dynamic occluders need a game trace service.
+	const uint32_t first = traceCursor;
+	uint32_t budget = 8;
+	for ( uint32_t step = 0; budget && step < 96 && CM_NumInlineModels(); ++step ) {
+		const uint32_t index = ( first + step ) % 96;
+		auto &voice = mixer.voices[index];
+		if ( !voice.event || !( voice.event->flags & S_EVENT_OCCLUSION ) || sources[index].entity == listenerEntity )
+			continue;
+		trace_t trace;
+		CM_BoxTrace( &trace, listener, sources[index].origin, vec3_origin, vec3_origin, 0, CONTENTS_SOLID, qfalse );
+		voice.occlusion = trace.fraction < 1.0f ? 1.0f : 0.0f;
+		++traced;
+		if ( voice.occlusion > 0 )
+			++blocked;
+		traceCursor = ( index + 1 ) % 96;
+		--budget;
+	}
 }
 
 void S_AuthoredPaint( portable_samplepair_t *paint, int frames, float volume ) {
-	if ( !mixer.active || frames <= 0 || frames > PAINTBUFFER_SIZE )
+	if ( ( !mixer.active && !reverb.remaining ) || frames <= 0 || frames > PAINTBUFFER_SIZE )
 		return;
 	volume = std::isfinite( volume ) ? std::clamp( volume, 0.0f, 127.0f ) : 0.0f;
-	static float output[PAINTBUFFER_SIZE][2];
+	static float output[PAINTBUFFER_SIZE][2], sends[PAINTBUFFER_SIZE];
+	memset( sends, 0, size_t( frames ) * sizeof( sends[0] ) );
 	memset( output, 0, size_t( frames ) * sizeof( output[0] ) );
 	for ( uint32_t bus = 0; bus < S_BUS_COUNT; ++bus )
 		mixer.busGain[bus] = busVolumes[bus]->value;
-	S_MixEvents( &mixer, output, uint32_t( frames ), dma.speed );
+	S_MixEvents( &mixer, output, uint32_t( frames ), dma.speed, sends );
 	mixed += uint32_t( frames );
 	for ( int frame = 0; frame < frames; ++frame ) {
+		float wet[2];
+		S_ReverbSample( &reverb, sends[frame], wet );
+		output[frame][0] += wet[0];
+		output[frame][1] += wet[1];
 		peak = std::max( peak, std::max( std::fabs( output[frame][0] ), std::fabs( output[frame][1] ) ) );
 		paint[frame].left = int( std::clamp( double( paint[frame].left ) + output[frame][0] * volume, -2147483647.0, 2147483647.0 ) );
 		paint[frame].right = int( std::clamp( double( paint[frame].right ) + output[frame][1] * volume, -2147483647.0, 2147483647.0 ) );

@@ -56,6 +56,7 @@ struct sEventVoice_t {
 	uint64_t sequence;
 	uint32_t tail;
 	bool binaural;
+	float occlusion, occlusionSmooth, filtered;
 };
 
 struct sEventMixer_t {
@@ -72,6 +73,16 @@ int S_StartEventVoice( sEventMixer_t *mixer, const sSoundEvent_t *event, const s
 	const sSpatialInput_t &spatial, bool binaural, int rate, float headRadius );
 bool S_UpdateEventVoice( sEventVoice_t *voice, const sSpatialInput_t &spatial, int rate, float headRadius );
 // Add PCM-unit stereo output. No allocation, file access or device calls.
-void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, int rate );
+void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, int rate, float *reverbSend = nullptr );
+
+struct sReverb_t {
+	float lines[4][16384];
+	float filtered[4], feedback[4];
+	uint32_t cursor[4], length[4], rate, remaining, tail;
+	float wet, targetWet, wetStep, damping;
+};
+static_assert( std::is_trivially_destructible_v<sReverb_t> );
+bool S_ConfigureReverb( sReverb_t *state, int rate, float wet, float decay, float damping );
+void S_ReverbSample( sReverb_t *state, float input, float output[2] );
 
 #endif

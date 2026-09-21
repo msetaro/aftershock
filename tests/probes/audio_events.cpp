@@ -121,4 +121,21 @@ int main( int argc, char **argv ) {
 		S_MixEvents( &mixer, output, 256, 48000 );
 	}
 	assert( output[100][1] > 450 && output[100][1] < 500 );
+	mixer = {};
+	for ( int i = 0; i < 48000; ++i )
+		sustained[i] = i % 2 ? 1000 : -1000;
+	const int blocked = S_StartEventVoice( &mixer, &music, samples, spatial, false, 48000, .0875f );
+	assert( blocked >= 0 );
+	mixer.voices[blocked].occlusion = 1;
+	for ( int i = 0; i < 40; ++i ) {
+		memset( output, 0, sizeof( output ) );
+		S_MixEvents( &mixer, output, 256, 48000 );
+	}
+	assert( std::fabs( output[100][1] ) < 40 ); // Shadow is frequency-dependent, not just quieter.
+	mixer.voices[blocked].occlusion = 0;
+	for ( int i = 0; i < 40; ++i ) {
+		memset( output, 0, sizeof( output ) );
+		S_MixEvents( &mixer, output, 256, 48000 );
+	}
+	assert( std::fabs( output[100][1] ) > 990 );
 }

@@ -145,11 +145,17 @@ static float MonoSample( const sEventPCM_t &pcm, uint32_t frame ) {
 	return pcm.channels == 2 ? ( float( samples[0] ) + samples[1] ) * 0.5f : samples[0];
 }
 
-void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, int rate ) {
+void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, int rate, float *reverbSend ) {
 	if ( !mixer || !output || rate < 8000 || rate > 192000 )
 		return;
+	if ( !mixer->active ) {
+		mixer->duck = 0.0f;
+		return;
+	}
+	const float closedAlpha = 1.0f - std::exp( -2.0f * 3.14159265f * 1200.0f / rate );
 	for ( uint32_t frame = 0; frame < frames; ++frame ) {
 		float buses[S_BUS_COUNT][2] = {};
+		float sends[S_BUS_COUNT] = {};
 		bool voiceAudible = false;
 		for ( auto &voice : mixer->voices ) {
 			if ( !voice.event )
@@ -174,6 +180,10 @@ void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, i
 			}
 			if ( !playing )
 				--voice.tail;
+			voice.occlusionSmooth += ( voice.occlusion - voice.occlusionSmooth ) / ( rate * 0.03f );
+			const float alpha = 1.0f - voice.occlusionSmooth * ( 1.0f - closedAlpha );
+			voice.filtered += alpha * ( sample - voice.filtered );
+			sample = voice.filtered * ( 1.0f - 0.65f * voice.occlusionSmooth );
 			float ears[2];
 			if ( voice.binaural ) {
 				S_HrtfSample( voice.hrtf, &voice.history, sample, ears );
@@ -187,6 +197,7 @@ void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, i
 			const auto bus = voice.event->bus;
 			buses[bus][0] += ears[0];
 			buses[bus][1] += ears[1];
+			sends[bus] += ( ears[0] + ears[1] ) * 0.5f * voice.event->reverbSend;
 			voiceAudible |= bus == S_BUS_VOICE && ( std::fabs( ears[0] ) + std::fabs( ears[1] ) > 1.0f );
 		}
 		// Fast voice attack, slower release; a zeroed mixer begins unducked.
@@ -201,6 +212,49 @@ void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, i
 				gain *= 1.0f - mixer->duck * 0.5f;
 			output[frame][0] += buses[bus][0] * gain;
 			output[frame][1] += buses[bus][1] * gain;
+			if ( reverbSend )
+				reverbSend[frame] += sends[bus] * gain;
 		}
+	}
+}
+
+bool S_ConfigureReverb( sReverb_t *state, int rate, float wet, float decay, float damping ) {
+	if ( !state || rate < 8000 || rate > 192000 || !Range( wet, 0.0f, 1.0f ) ||
+		 !Range( decay, 0.1f, 10.0f ) || !Range( damping, 0.0f, 0.95f ) )
+		return false;
+	if ( state->rate != uint32_t( rate ) )
+		memset( state, 0, sizeof( *state ) );
+	state->rate = uint32_t( rate );
+	state->targetWet = wet;
+	state->wetStep = 1.0f / ( rate * 0.05f );
+	state->damping = damping;
+	state->tail = uint32_t( ( decay + 0.1f ) * rate );
+	// ponytail: four damped parallel combs; authored room coloration, not convolution acoustics.
+	static const float seconds[4] = { 0.0297f, 0.0371f, 0.0411f, 0.0437f };
+	for ( uint32_t i = 0; i < 4; ++i ) {
+		state->length[i] = uint32_t( seconds[i] * rate );
+		state->feedback[i] = std::pow( 0.001f, float( state->length[i] ) / ( rate * decay ) );
+	}
+	return true;
+}
+
+void S_ReverbSample( sReverb_t *state, float input, float output[2] ) {
+	output[0] = output[1] = 0.0f;
+	if ( !state || !state->rate )
+		return;
+	if ( std::fabs( input ) > 1e-10f )
+		state->remaining = state->tail;
+	else if ( state->remaining )
+		--state->remaining;
+	state->wet += ( state->targetWet - state->wet ) * state->wetStep;
+	for ( uint32_t i = 0; i < 4; ++i ) {
+		float &cell = state->lines[i][state->cursor[i]];
+		const float delayed = cell;
+		state->filtered[i] += ( delayed - state->filtered[i] ) * ( 1.0f - state->damping );
+		cell = input * 0.25f + state->filtered[i] * state->feedback[i];
+		if ( std::fabs( cell ) < 1e-20f )
+			cell = 0;
+		output[i & 1u] += delayed * state->wet * 0.5f;
+		state->cursor[i] = ( state->cursor[i] + 1u ) % state->length[i];
 	}
 }

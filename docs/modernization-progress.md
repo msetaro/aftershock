@@ -24,7 +24,7 @@ Continue #16 on issue/16-audio-engine in
 /home/matt/.cache/aftershock-modernization/audio-tree, branched from main
 0561e0f0446e96f6dca51f86bae56337d6cd23f5. #15 PR170 is merged; its tested and merged
 trees are identical. Do not redo the physics port, accepted fixtures or finished
-network-driver evidence. Spatial/HRTF and cooked-event components are implemented and tested; no #16 PR exists yet.
+network-driver evidence. Spatial/HRTF and cooked-event components are implemented and tested; #16 draft PR171 targets main.
 
 #16 decision: extend the in-house mixer and keep the existing SDL/native device
 backends. Reuse cooked PCM assets and weapon animation-notify deduplication. Add
@@ -61,6 +61,20 @@ Never install local system packages, copy game paks, or regenerate accepted gold
 After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
+
+## #16 acoustic DSP checkpoint
+
+Draft PR171 is open against main at 646dec73 for early compiler/regression feedback;
+it is explicitly incomplete. 6ef49949 records the missing reverb API failure
+(audio-reverb-before.log). GCC/Clang component probes now show a decaying room
+response, dry outdoor output, frequency-dependent occlusion and recovery.
+The reverb uses four fixed damped combs with rate-bounded delay storage and a
+smoothed wet gain; no convolution/personal acoustic calibration is claimed.
+Native acoustic wiring reads bounded audio_zone_N worldspawn metadata after CM
+load and spends at most eight round-robin static-world traces per spatial update.
+Dynamic occluders are not yet represented. The first build caught COM_Parse's
+const cursor contract; corrected before continuing. Authored level emission and
+real room/occlusion runtime acceptance remain next, followed by streams/VoIP.
 
 ## #16 both-content playback verification
 
