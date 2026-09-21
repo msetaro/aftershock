@@ -25,8 +25,8 @@ Final head 5a9b98a1 passed build 35584845138 (all 16 compiler legs) and regressi
 35584845147 (all 10 active jobs). Main/base was rechecked immediately before the
 merge. Tested and merged tree both equal e615033d2dcd39b966d8ba51bb38c59ec8e4358e.
 Known-good remains 8bc8c94c -> 81a0f9dc. Merged-tree build/publication 35589995081 passed (all 16 legs and publication);
-regression 35589995016 is running. Require its success before
-marking #164 accepted in #25. No source changes remain in its sketch-tree branch.
+regression 35589995016 passed all 10 active jobs. #164 is accepted and checked
+in #25. No source changes remain in its sketch-tree branch.
 
 Continue #161 in /home/matt/.cache/aftershock-modernization/fidelity-tree,
 issue/161-visual-fidelity. The #164 main merge is integrated forward here; resolve
@@ -63,6 +63,14 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 soft-particle graph test first
+
+The graph contract now requires retained sampled scene depth, a particle pass
+without a depth attachment, and a compatible loaded scene resume. It covers
+single/multisample color with SSAO, stencil, bloom and shadows. Before implementation
+it fails compiling the absent softParticles/pass declarations
+(fidelity-soft-before.log). Keep the disabled descriptor oracle unchanged.
 
 ## #161 original reference effect set passes
 

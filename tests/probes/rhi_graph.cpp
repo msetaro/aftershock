@@ -164,9 +164,42 @@ int main( void ) {
 			}
 		}
 	}
+	// Soft particles sample depth while it is detached, then resume every scene
+	// attachment with load operations, including multisample color and stencil.
+	for ( uint32_t samples : { 1u, 4u } ) {
+		for ( uint32_t ao : { 0u, 2u } ) {
+			config.samples = samples;
+			config.occlusionScale = ao;
+			config.softParticles = true;
+			assert( RHI_CompileGraph( &config, &graph ) );
+			const auto &depth = graph.targets[target( rhiGraphTarget_t::MainDepth )];
+			assert( !depth.transient && ( depth.usage & RHI_GRAPH_SAMPLED ) );
+			const auto &fx = graph.passes[pass( rhiGraphPass_t::Particles )];
+			const auto &resume = graph.passes[pass( rhiGraphPass_t::ParticlesResume )];
+			assert( fx.enabled && fx.depth == RHI_INVALID_OFFSET );
+			assert( fx.readMask & bit( rhiGraphTarget_t::MainDepth ) );
+			assert( !( fx.writeMask & bit( rhiGraphTarget_t::MainDepth ) ) );
+			assert( fx.attachmentCount == ( samples > 1 ? 2u : 1u ) );
+			assert( resume.enabled && resume.depth == 1 );
+			assert( resume.dependencyMask & ( 1u << pass( rhiGraphPass_t::Particles ) ) );
+			for ( uint32_t i = 0; i < resume.attachmentCount; ++i ) {
+				assert( resume.attachments[i].load == rhiGraphLoad_t::Load );
+				assert( resume.attachments[i].store == rhiGraphStore_t::Store );
+			}
+			uint32_t seen = 0;
+			for ( uint32_t i = 0; i < graph.executionCount; ++i ) {
+				const auto id = graph.executionOrder[i];
+				const auto &node = graph.passes[pass( id )];
+				if ( !node.enabled ) continue;
+				assert( !( node.dependencyMask & ~seen ) );
+				seen |= 1u << pass( id );
+			}
+		}
+	}
 	config.offscreen = false;
 	assert( !RHI_CompileGraph( &config, &graph ) );
 	config.offscreen = true;
+	config.softParticles = false;
 	config.occlusionScale = 3;
 	assert( !RHI_CompileGraph( &config, &graph ) );
 	config.occlusionScale = 0;
