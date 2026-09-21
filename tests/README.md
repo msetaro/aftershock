@@ -1318,9 +1318,8 @@ exposure, constant LUT grading, sharpening, vignette, time-varying grain, bounde
 nine-tap depth blur, watcher reload, exact restoration and renderer restart.
 `--samples 4` selects MSAA. Post profiles reload through the existing cooker
 watcher; invalid profiles retain the preceding settings. Profile exposes draw,
-upload-drop and load counters. Motion-blur data is reserved for the pending
-motion-vector implementation; TAA, final scene/goldens and budgets are still
-#161 work. The post stack remains opt-in until those gates pass.
+upload-drop and load counters. Motion blur consumes temporal vectors with `r_taa 1`; final temporal quality,
+scene/goldens and budgets are still #161 work. The post stack remains opt-in until those gates pass.
 
 `python3 tests/temporal.py` checks the renderer's fixed-capacity previous-view
 cache with GCC/Clang and UBSan. It copies up to 256 entity transforms/skin poses
@@ -1335,6 +1334,16 @@ small camera movement, a large camera/FOV cut, restart and disable. TAA selects
 single-sample rendering; the saved MSAA setting applies when TAA is disabled.
 The current camera component uses an eight-frame centered Halton jitter,
 linear-color history, depth rejection and neighborhood clamping. Optional
-`motion_blur` affects the display copy, leaving history sharp. Moving/skinned
-object motion and final visual/performance acceptance are still unfinished;
+`motion_blur` affects the display copy, leaving history sharp. `--models` additionally cooks the owned rigs and verifies matched pose history
+and actual motion draws through ADS, fire/reload and third-person movement.
+Unknown identities and changed legacy MD3/MDR vertex animation reject history;
+native IQM skin poses and rigid transforms have previous-position motion. Final
+visual/performance acceptance is still unfinished;
 `r_taa` and `r_postProcess` remain default off.
+
+`tests/animation_runtime.py --taa --binary PATH` exercises the same native
+rifle/body events and replicated hit-box checks with the temporal renderer.
+Its 320x240 software captures are correctness controls, not GPU budget evidence.
+The development profiler/agent `temporal` object reports cumulative frame/drop,
+motion/reactive draw counts and latest-view stored/matched/rejected/overflow
+history counts. Geometry/uniform exhaustion rejects the whole frame's history.

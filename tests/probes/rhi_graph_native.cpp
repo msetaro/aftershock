@@ -489,12 +489,12 @@ static void temporalCommands() {
 		assert( vk.cmd->descriptor_set.start == ~0U && vk.cmd->descriptor_set.end == 0 );
 		RHI_EndPass();
 	}
-	for ( bool geometryOverflow : { false, true } ) {
+	for ( uint32_t failure = 0; failure < 2; ++failure ) {
 		RHI_BeginMainPass();
 		vk.cmd->vertex_buffer_offset = 0;
 		assert( RHI_BeginTemporal( &uniform ) );
 		const auto history = vk.temporal_history;
-		if ( geometryOverflow )
+		if ( failure )
 			vk.geometry_buffer_size_new = 1024;
 		else
 			RHI_RejectTemporal();

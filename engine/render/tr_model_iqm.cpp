@@ -1602,6 +1602,9 @@ void RB_IQMSurfaceAnim( const surfaceType_t *surface ) {
 		*ptr++ = base + ( *tri++ - surf->first_vertex );
 	}
 
+	if ( backEnd.temporalMotion && backEnd.temporalPrevious )
+		tess.previousPositions = R_IQMPreviousPositions( surf, backEnd.temporalPrevious, tess.previousXYZ + tess.numVertexes, SHADER_MAX_VERTEXES - (uint32_t)tess.numVertexes );
+
 	tess.numIndexes += 3 * surf->num_triangles;
 	tess.numVertexes += surf->num_vertexes;
 }

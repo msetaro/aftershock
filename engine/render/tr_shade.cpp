@@ -413,7 +413,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	shader_t *state;
 
 #ifdef USE_VBO
-	if ( shader->isStaticShader && !shader->remappedShader && !backEnd.viewParms.shadowView && !backEnd.refdef.numSceneLights && !backEnd.refdef.sun.enabled ) {
+	if ( shader->isStaticShader && !shader->remappedShader && !backEnd.viewParms.shadowView && !backEnd.temporalMotion && !backEnd.refdef.numSceneLights && !backEnd.refdef.sun.enabled ) {
 		tess.allowVBO = qtrue;
 	} else {
 		tess.allowVBO = qfalse;
@@ -446,6 +446,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
+	tess.previousPositions = false;
 	tess.shader = state;
 	if ( state->metallicRoughness || backEnd.refdef.numSceneLights || backEnd.refdef.sun.enabled )
 		Com_Memset( tess.tangent, 0, sizeof( tess.tangent ) );
@@ -1435,16 +1436,14 @@ static void RB_DirectLights( void ) {
 	}
 }
 
-static void RB_StageIteratorShadow( void ) {
-	if ( tess.shader->isSky || tess.shader->sort > (float)SS_SEE_THROUGH )
-		return;
-	RB_DeformTessGeometry();
-	vec4_t mask = { 1, 0.5f, 0, 0 };
+static bool RB_BindSurfaceMask( vec4_t mask, bool motion ) {
 	const shaderStage_t *masked = nullptr;
 	if ( tess.shader->metallicRoughness ) {
 		materialParams_t material;
-		if ( !R_ResolveMaterialParams( &tess.shader->materialParams, &backEnd.currentEntity->materialOverride, &material ) || ( material.flags & 4 ) )
-			return;
+		if ( !R_ResolveMaterialParams( &tess.shader->materialParams, &backEnd.currentEntity->materialOverride, &material ) || ( ( material.flags & 4 ) && !motion ) )
+			return false;
+		if ( material.flags & 4 )
+			mask[3] = 1;
 		if ( material.flags & 8 ) {
 			masked = tess.xstages[0];
 			mask[0] = material.color[3];
@@ -1473,12 +1472,79 @@ static void RB_StageIteratorShadow( void ) {
 	} else {
 		GL_Bind( tr.whiteImage );
 	}
+	return true;
+}
+
+static void RB_StageIteratorShadow( void ) {
+	if ( tess.shader->isSky || tess.shader->sort > (float)SS_SEE_THROUGH )
+		return;
+	RB_DeformTessGeometry();
+	vec4_t mask = { 1, 0.5f, 0, 0 };
+	if ( !RB_BindSurfaceMask( mask, false ) )
+		return;
 	if ( RHI_UploadUniform( mask, sizeof( mask ) ) == RHI_INVALID_OFFSET )
 		return;
 	RB_BindPipeline( r_pipelines.shadowCaster[tess.shader->cullType] );
 	RB_BindIndex();
 	RB_BindGeometry( TESS_XYZ | TESS_ST0 | TESS_RGBA0 );
 	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
+}
+
+static void RB_StageIteratorMotion() {
+	if ( tess.shader->isSky )
+		return;
+	RB_DeformTessGeometry();
+	struct Uniform {
+		float previous[16];
+		vec4_t viewport, target, mask, flags;
+	} uniform{};
+	static_assert( sizeof( Uniform ) == 128 && offsetof( Uniform, flags ) == 112 );
+	uniform.mask[0] = 1;
+	uniform.mask[1] = .5f;
+	if ( !RB_BindSurfaceMask( uniform.mask, true ) )
+		return;
+	const auto *previousView = R_TemporalPreviousView();
+	const auto *previous = backEnd.temporalPrevious;
+	uniform.flags[2] = previousView && previous && tess.previousPositions && !tess.shader->numDeforms &&
+							   tess.shader->sort <= (float)SS_SEE_THROUGH && !uniform.mask[3]
+						   ? 1
+						   : 0;
+	if ( uniform.flags[2] ) {
+		float object[16]{};
+		for ( int i = 0; i < 3; ++i ) {
+			for ( int j = 0; j < 3; ++j )
+				object[i * 4 + j] = previous->entity.axis[i][j];
+			object[12 + i] = previous->entity.origin[i];
+		}
+		object[15] = 1;
+		myGlMultMatrix( object, previousView->viewProjection, uniform.previous );
+	}
+	rhiRasterState_t raster;
+	RB_GetRaster( tess.depthRange, &raster );
+	uniform.viewport[0] = raster.viewport.x;
+	uniform.viewport[1] = raster.viewport.y;
+	uniform.viewport[2] = raster.viewport.width;
+	uniform.viewport[3] = raster.viewport.height;
+	uniform.target[0] = (float)glConfig.vidWidth;
+	uniform.target[1] = (float)glConfig.vidHeight;
+	uniform.flags[0] = raster.viewport.maxDepth - raster.viewport.minDepth;
+	uniform.flags[1] = raster.viewport.minDepth;
+	if ( RHI_UploadUniform( &uniform, sizeof( uniform ) ) == RHI_INVALID_OFFSET ) {
+		RHI_RejectTemporal();
+		return;
+	}
+	RB_BindPipeline( r_pipelines.motion[tess.shader->cullType][tess.shader->polygonOffset != 0] );
+	RB_BindIndex();
+	RB_BindGeometry( TESS_XYZ | TESS_ST0 | TESS_RGBA0 );
+	rhiVertexStream_t streams[RHI_MAX_VERTEX_STREAMS]{};
+	streams[5].data = tess.previousXYZ;
+	streams[5].size = (uint32_t)tess.numVertexes * sizeof( vec4_t );
+	RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, 1u << 5, streams );
+	if ( RHI_PrepareDraw( &raster, &tr.whiteImage->texture ) ) {
+		RHI_DrawBoundIndices();
+		R_PostMotionDraw( uniform.flags[2] == 0 );
+	} else
+		RHI_RejectTemporal();
 }
 
 struct reflectionUniform_t {
@@ -1798,7 +1864,9 @@ void RB_EndSurface( void ) {
 	//
 	// call off to shader specific tess end function
 	//
-	if ( backEnd.viewParms.shadowView )
+	if ( backEnd.temporalMotion )
+		RB_StageIteratorMotion();
+	else if ( backEnd.viewParms.shadowView )
 		RB_StageIteratorShadow();
 	else
 		tess.shader->optimalStageIteratorFunc();
@@ -1806,10 +1874,10 @@ void RB_EndSurface( void ) {
 	//
 	// draw debugging stuff
 	//
-	if ( !backEnd.viewParms.shadowView && r_showtris->integer ) {
+	if ( !backEnd.temporalMotion && !backEnd.viewParms.shadowView && r_showtris->integer ) {
 		DrawTris( input );
 	}
-	if ( !backEnd.viewParms.shadowView && r_shownormals->integer ) {
+	if ( !backEnd.temporalMotion && !backEnd.viewParms.shadowView && r_shownormals->integer ) {
 		DrawNormals( input );
 	}
 

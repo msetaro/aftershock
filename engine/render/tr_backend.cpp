@@ -1596,7 +1596,59 @@ static temporalView_t RB_TemporalView() {
 	return view;
 }
 
-static void RB_TemporalResolve( const temporalView_t &view ) {
+static void RB_TemporalGeometry( const drawSurfsCommand_t *cmd ) {
+	const temporalEntity_t *previous[MAX_REFENTITIES] = {};
+	for ( int i = 0; i < backEnd.refdef.num_entities; ++i ) {
+		const auto &entity = backEnd.refdef.entities[i];
+		if ( entity.temporalIdentity )
+			previous[i] = R_TemporalEntity( entity.temporalIdentity, &entity, R_GetModelByHandle( entity.e.hModel )->cookedHash );
+	}
+	const double originalTime = backEnd.refdef.floatTime;
+	backEnd.temporalMotion = true;
+	for ( int i = 0; i < cmd->numDrawSurfs; ++i ) {
+		const auto &surface = cmd->drawSurfs[i];
+		int entityNum, fogNum, dlighted;
+		shader_t *shader;
+		R_DecomposeSort( surface.sort, &entityNum, &shader, &fogNum, &dlighted );
+		if ( shader->isSky || shader == tr.shadowShader )
+			continue;
+		if ( entityNum == REFENTITYNUM_WORLD && !shader->numDeforms && shader->sort <= (float)SS_OPAQUE )
+			continue; // Static opaque world motion was reconstructed from depth.
+		backEnd.currentEntity = entityNum == REFENTITYNUM_WORLD ? &tr.worldEntity : &backEnd.refdef.entities[entityNum];
+		backEnd.temporalPrevious = entityNum == REFENTITYNUM_WORLD ? nullptr : previous[entityNum];
+		backEnd.refdef.floatTime = originalTime;
+		if ( entityNum == REFENTITYNUM_WORLD )
+			backEnd.orientation = backEnd.viewParms.world;
+		else {
+			const auto &entity = *backEnd.currentEntity;
+			backEnd.refdef.floatTime -= entity.intShaderTime ? (double)entity.e.shaderTime.i * .001 : (double)entity.e.shaderTime.f;
+			R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.orientation );
+		}
+		Com_Memcpy( r_modelview, backEnd.orientation.modelMatrix, sizeof( r_modelview ) );
+		RB_UpdateMVP( nullptr );
+		RB_BeginSurface( shader, fogNum );
+		tess.depthRange = backEnd.currentEntity->e.renderfx & RF_DEPTHHACK ? DEPTH_RANGE_WEAPON : DEPTH_RANGE_NORMAL;
+		rb_surfaceTable[*surface.surface]( surface.surface );
+		if ( !tess.previousPositions ) {
+			memcpy( tess.previousXYZ, tess.xyz, (size_t)tess.numVertexes * sizeof( vec4_t ) );
+			const auto *saved = backEnd.temporalPrevious;
+			const auto &current = backEnd.currentEntity->e;
+			// Rigid surfaces reuse local vertices. Changed legacy animation rejects history.
+			tess.previousPositions = saved && !saved->hasPose && saved->entity.frame == current.frame &&
+									 saved->entity.oldframe == current.oldframe && saved->entity.backlerp == current.backlerp;
+		}
+		RB_EndSurface();
+	}
+	backEnd.temporalMotion = false;
+	backEnd.temporalPrevious = nullptr;
+	backEnd.currentEntity = &tr.worldEntity;
+	backEnd.orientation = backEnd.viewParms.world;
+	backEnd.refdef.floatTime = originalTime;
+	Com_Memcpy( r_modelview, backEnd.orientation.modelMatrix, sizeof( r_modelview ) );
+	RB_UpdateMVP( nullptr );
+}
+
+static void RB_TemporalResolve( const temporalView_t &view, const drawSurfsCommand_t *cmd ) {
 	rhiTemporal_t uniform{};
 	VectorCopy( view.origin, uniform.origin );
 	VectorCopy( view.axis[0], uniform.forward );
@@ -1619,10 +1671,14 @@ static void RB_TemporalResolve( const temporalView_t &view ) {
 		memcpy( uniform.previous, previous->viewProjection, sizeof( uniform.previous ) );
 		uniform.settings[1] = 1;
 	}
+	bool rendered = false;
 	const bool started = RHI_BeginTemporal( &uniform );
-	if ( started )
-		RHI_ResolveTemporal();
-	R_TemporalEndView( started );
+	if ( started ) {
+		RB_TemporalGeometry( cmd );
+		rendered = RHI_ResolveTemporal();
+	}
+	R_TemporalEndView( rendered );
+	R_PostTemporalResult( rendered );
 }
 
 static const void *RB_DrawSurfs( const void *data ) {
@@ -1696,7 +1752,7 @@ static const void *RB_DrawSurfs( const void *data ) {
 	}
 
 	if ( temporal )
-		RB_TemporalResolve( temporalView );
+		RB_TemporalResolve( temporalView, cmd );
 
 	RB_PresentationEffects();
 	if ( r_postProcess->integer && r_fbo->integer && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) &&

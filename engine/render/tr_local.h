@@ -97,7 +97,7 @@ struct rendererPipelines_t {
 	// Standard pipelines.
 	//
 	uint32_t skybox_pipeline;
-	uint32_t shadowCaster[3];
+	uint32_t shadowCaster[3], motion[3][2];
 	uint32_t directLight[3][2][2];
 	uint32_t reflection[3][2][2];
 
@@ -1293,6 +1293,8 @@ typedef struct {
 	backEndCounters_t pc;
 	qboolean isHyperspace;
 	const trRefEntity_t *currentEntity;
+	const temporalEntity_t *temporalPrevious;
+	bool temporalMotion;
 	qboolean skyRenderedThisView; // flag for drawing sun
 
 	qboolean projection2D; // if qtrue, drawstretchpic doesn't need to change modes
@@ -1679,6 +1681,8 @@ model_t *R_AllocModel( void );
 
 void RE_PostStats( postRenderStats_t *stats );
 void R_PostDrawResult( bool drawn );
+void R_PostTemporalResult( bool drawn );
+void R_PostMotionDraw( bool reactive );
 void R_InitPost();
 void R_UpdatePostProfile();
 void R_AddPost();
@@ -1748,6 +1752,7 @@ typedef struct shaderCommands_s {
 #pragma pack( push, 16 )
 	glIndex_t indexes[SHADER_MAX_INDEXES] QALIGN( 16 );
 	vec4_t xyz[SHADER_MAX_VERTEXES * 2] QALIGN( 16 ); // 2x needed for shadows
+	vec4_t previousXYZ[SHADER_MAX_VERTEXES] QALIGN( 16 );
 	vec4_t normal[SHADER_MAX_VERTEXES] QALIGN( 16 );
 	vec4_t tangent[SHADER_MAX_VERTEXES] QALIGN( 16 ); // PBR only; w=0 selects derivative basis.
 	vec2_t texCoords[2][SHADER_MAX_VERTEXES] QALIGN( 16 );
@@ -1776,6 +1781,7 @@ typedef struct shaderCommands_s {
 #endif
 	int numIndexes;
 	int numVertexes;
+	bool previousPositions;
 
 #ifdef USE_PMLIGHT
 	const dlight_t *light;

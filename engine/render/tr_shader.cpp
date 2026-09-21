@@ -70,6 +70,18 @@ void R_InitBuiltinPipelines( void ) {
 		}
 	}
 
+	if ( r_taa->integer && r_postProcess->integer && r_fbo->integer ) {
+		def = {};
+		def.shader_type = TYPE_MOTION;
+		for ( uint32_t cull = 0; cull < 3; ++cull ) {
+			def.face_culling = (cullType_t)cull;
+			for ( uint32_t offset = 0; offset < 2; ++offset ) {
+				def.polygon_offset = offset;
+				r_pipelines.motion[cull][offset] = R_FindPipeline( 0, &def, true );
+			}
+		}
+	}
+
 	// skybox
 	{
 		Com_Memset( &def, 0, sizeof( def ) );

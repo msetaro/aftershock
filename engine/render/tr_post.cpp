@@ -9,7 +9,21 @@ static postRenderStats_t postStats;
 
 void RE_PostStats( postRenderStats_t *stats ) {
 	*stats = postStats;
+	const auto history = R_TemporalStats();
+	stats->historyStored = history.stored;
+	stats->historyMatched = history.matched;
+	stats->historyRejected = history.rejected;
+	stats->historyOverflow = history.overflow;
 }
+void R_PostTemporalResult( bool drawn ) {
+	++( drawn ? postStats.temporalFrames : postStats.temporalDropped );
+}
+void R_PostMotionDraw( bool reactive ) {
+	++postStats.motionDraws;
+	if ( reactive )
+		++postStats.reactiveDraws;
+}
+
 void R_PostDrawResult( bool drawn ) {
 	++( drawn ? postStats.draws : postStats.dropped );
 }

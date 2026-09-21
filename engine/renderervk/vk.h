@@ -356,7 +356,7 @@ typedef struct {
 	VkImageView temporal_image_view[3];
 	VkDescriptorSet temporal_descriptor[3];
 	uint32_t temporal_history, temporal_uniform;
-	bool temporal_valid, temporal_active;
+	bool temporal_valid, temporal_active, temporal_failed;
 	VkImage post_image;
 	VkImageView post_image_view;
 	VkDescriptorSet post_descriptor;

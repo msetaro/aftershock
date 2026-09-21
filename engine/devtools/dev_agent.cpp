@@ -982,8 +982,12 @@ static void Agent_Profile( agentReply_t &reply ) {
 	if ( const auto *renderer = DevTools_Renderer() ) {
 		postRenderStats_t post;
 		renderer->PostStats( &post );
-		char status[128];
+		char status[384];
 		snprintf( status, sizeof( status ), ",\"post\":{\"loads\":%u,\"draws\":%u,\"dropped\":%u}", post.loads, post.draws, post.dropped );
+		reply.Text( status );
+		snprintf( status, sizeof( status ), ",\"temporal\":{\"frames\":%u,\"dropped\":%u,\"motionDraws\":%u,\"reactiveDraws\":%u,\"stored\":%u,\"matched\":%u,\"rejected\":%u,\"overflow\":%u}",
+			post.temporalFrames, post.temporalDropped, post.motionDraws, post.reactiveDraws,
+			post.historyStored, post.historyMatched, post.historyRejected, post.historyOverflow );
 		reply.Text( status );
 	}
 #endif

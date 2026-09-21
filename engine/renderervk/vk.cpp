@@ -7985,7 +7985,7 @@ void RHI_EndEffects() {
 
 void RHI_ResetTemporal() {
 	vk.temporal_history = 0;
-	vk.temporal_valid = vk.temporal_active = false;
+	vk.temporal_valid = vk.temporal_active = vk.temporal_failed = false;
 }
 
 static void vk_temporal_pass( uint32_t pass, VkFramebuffer framebuffer ) {
@@ -8013,6 +8013,7 @@ bool RHI_BeginTemporal( const rhiTemporal_t *view ) {
 		return false;
 	}
 	vk.temporal_active = true;
+	vk.temporal_failed = false;
 	vk_temporal_pass( 0, vk.framebuffers.temporal[0] );
 	qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.temporal_pipeline[0] );
 	const VkDescriptorSet sets[] = { vk.cmd->uniform_descriptor, vk.depth_descriptor };
@@ -8022,9 +8023,19 @@ bool RHI_BeginTemporal( const rhiTemporal_t *view ) {
 	return true;
 }
 
-void RHI_ResolveTemporal() {
+void RHI_RejectTemporal() {
+	vk.temporal_failed = true;
+	vk.cmd->uniform_read_offset = vk.cmd->descriptor_set.offset[RHI_BINDING_UNIFORM];
+}
+
+bool RHI_ResolveTemporal() {
 	if ( !vk.temporal_active )
-		return;
+		return false;
+	if ( vk.temporal_failed || vk.geometry_buffer_size_new ) {
+		vk.temporal_valid = vk.temporal_active = false;
+		RHI_EndEffects();
+		return false;
+	}
 	const uint32_t write = 1 + vk.temporal_history, read = 1 + ( vk.temporal_history ^ 1 );
 	vk_temporal_pass( 2, vk.framebuffers.temporal[2 + vk.temporal_history] );
 	qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.temporal_pipeline[1] );
@@ -8040,6 +8051,7 @@ void RHI_ResolveTemporal() {
 	vk.temporal_valid = true;
 	vk.temporal_active = false;
 	RHI_EndEffects();
+	return true;
 }
 
 bool RHI_DrawPost( const rhiPostDraw_t *settings, const rhiTexture_t *lut ) {

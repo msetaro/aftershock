@@ -15,6 +15,7 @@ from run import ROOT, build, content_maps, content_settings
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path)
 parser.add_argument('--modules', action='store_true')
+parser.add_argument('--taa', action='store_true', help='exercise temporal IQM geometry with the owned poses')
 parser.add_argument('--server-fps', type=int, choices=[20, 100], default=20)
 parser.add_argument('--output', type=Path, default=(SCRATCH / 'aftershock-animation-runtime'))
 parser.add_argument('--data', type=Path, default=Path.home() / '.q3a/baseq3')
@@ -53,11 +54,15 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-live-') as tempora
         'cmd anim crouch 1', 'wait 20', 'cmd anim prone 1', 'wait 20',
         'cmd anim lean_left 1', 'wait 20', '+right', 'wait 35', '-right', 'wait 80',
         'anim_status', 'wait 3', 'quit']) + '\n')
-    command = ['timeout', '60', 'xvfb-run', '-a', str(args.binary.resolve()),
+    command = ['timeout', '180' if args.taa else '60', 'xvfb-run', '-a', str(args.binary.resolve()),
                '+set', 'fs_basepath', str(home), '+set', 'fs_homepath', str(home),
                *content_settings(args.content), '+set', 'net_enabled', '0', '+set', 'sv_pure', '0',
                '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '0',
                '+set', 'con_notifytime', '0', '+set', 'com_maxfps', '0', '+set', 'cl_autoRecordDemo', '0', '+exec', 'animation.cfg']
+    if args.taa:
+        command[command.index('+exec'):command.index('+exec')] = [
+            '+set', 'r_fbo', '1', '+set', 'r_postProcess', '1', '+set', 'r_taa', '1',
+            '+set', 'r_mode', '-1', '+set', 'r_customwidth', '320', '+set', 'r_customheight', '240']
     env = dict(os.environ, LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
     log = args.output / 'client.log'
     with log.open('wb') as stream:

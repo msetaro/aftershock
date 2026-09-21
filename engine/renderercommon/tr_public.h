@@ -30,9 +30,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 27
+#define REF_API_VERSION 28
 #else
-#define REF_API_VERSION 21
+#define REF_API_VERSION 22
 #endif
 
 //
@@ -47,6 +47,8 @@ typedef enum {
 
 struct postRenderStats_t {
 	uint32_t loads, draws, dropped;
+	uint32_t temporalFrames, temporalDropped, motionDraws, reactiveDraws;
+	uint32_t historyStored, historyMatched, historyRejected, historyOverflow;
 };
 static_assert( std::is_trivially_copyable_v<postRenderStats_t> );
 struct decalRenderStats_t {

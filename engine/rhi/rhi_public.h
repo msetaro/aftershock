@@ -523,7 +523,8 @@ struct rhiTemporal_t {
 static_assert( sizeof( rhiTemporal_t ) == 192 && offsetof( rhiTemporal_t, previous ) == 112 );
 void RHI_ResetTemporal();
 bool RHI_BeginTemporal( const rhiTemporal_t *view );
-void RHI_ResolveTemporal();
+void RHI_RejectTemporal();
+bool RHI_ResolveTemporal();
 
 struct rhiPostDraw_t {
 	float curve[4], lens[4], projection[4], viewport[4];

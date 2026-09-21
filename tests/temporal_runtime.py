@@ -9,11 +9,13 @@ import sys
 import tempfile
 from PIL import Image, ImageChops, ImageStat
 from run import ROOT, SCRATCH
+from cook import cook
 sys.path.insert(0, str(ROOT))
 from tools.agent import Engine
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path, required=True)
+parser.add_argument('--models', action='store_true', help='also exercise native body/view-weapon pose history')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 parser.add_argument('--data', type=Path, default=Path.home()/'.q3a/baseq3')
 parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-temporal-runtime')
@@ -29,6 +31,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-temporal-runtime-') as tempo
                  '+set', 'r_drawentities', '0', '+set', 'cg_draw2D', '0', '+set', 'cg_drawGun', '0', '+set', 'con_notifytime', '0']
     with Engine(args.binary, args.data, args.content, home=root/'home', arguments=arguments) as engine:
         shutil.copytree(root/'compiled', engine.base, dirs_exist_ok=True)
+        if args.models:
+            cook(ROOT/'tests/assets/animation/rigs.json', engine.base)
+            engine.request('exec', command='set g_animationBody animations/anim_body.asanim')
+            engine.request('exec', command='set g_animationRifle animations/anim_rifle.asanim')
         engine.request('session', dt=20, seed=161)
         engine.request('map', name='two_lane')
         engine.step(100)
@@ -70,6 +76,30 @@ with tempfile.TemporaryDirectory(prefix='aftershock-temporal-runtime-') as tempo
         engine.step(32)
         capture('restart')
         active()
+        if args.models:
+            engine.request('camera', mode='player')
+            engine.request('cvar.set', name='r_drawentities', value='1')
+            engine.request('cvar.set', name='cg_drawGun', value='1')
+            engine.request('exec', command='cmd anim ads 1')
+            engine.step(32)
+            capture('owned-ads')
+            first = active()['temporal']
+            assert first['matched'] > 0 and first['motionDraws'] > first['reactiveDraws'], first
+            engine.request('exec', command='cmd anim fire 1')
+            engine.step(8)
+            engine.request('exec', command='cmd anim fire 0')
+            engine.request('exec', command='cmd anim reload 1')
+            engine.step(20)
+            capture('owned-reload')
+            engine.request('cvar.set', name='cg_thirdPerson', value='1')
+            engine.request('exec', command='+forward')
+            engine.step(32)
+            engine.request('exec', command='-forward')
+            capture('owned-body')
+            last = active()['temporal']
+            assert last['matched'] > 0 and last['motionDraws'] > first['motionDraws'], last
+            assert last['reactiveDraws'] > 0 and last['stored'] <= 256 and last['overflow'] == last['dropped'] == 0, last
+            (args.output/'models.json').write_text(json.dumps(last, indent=2)+'\n')
         engine.request('cvar.set', name='r_taa', value='0')
         engine.request('exec', command='vid_restart')
         engine.step(32)

@@ -29,11 +29,11 @@ regression 35589995016 passed all 10 active jobs. #164 is accepted and checked
 in #25. No source changes remain in its sketch-tree branch.
 
 Continue #161 in /home/matt/.cache/aftershock-modernization/fidelity-tree,
-issue/161-visual-fidelity. Accepted #164 main is merged forward. No #161 PR yet.
+issue/161-visual-fidelity. Main 07304b32 is merged forward. No #161 PR yet.
 Effects, reference art, material-hit dispatch, light hooks, soft depth, projected
 normal-mapped decals/editor, native LOD selection and initial filmic/LUT/lens
 post controls pass component checks. Post resources preserve HUD composition,
-MSAA and the fixed OpenArena replay hash. All 96 shaders reproduce; existing
+MSAA and the fixed OpenArena replay hash. All 101 shaders reproduce; existing
 accepted fixtures/shader arrays remain unchanged. Detailed failures and evidence
 are below; these checks do not constitute final #161 acceptance.
 
@@ -41,13 +41,18 @@ PR168 merged as 07304b324c75085a2403994030aceec73d4de8e1 after exact head
 dd4feacb passed all 16 compiler and ten active regression jobs (35607504307 /
 35607504311). Main/base remained 81e40b0c immediately before merge. Both tested
 and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
-unchanged. Main is merged forward here; merged-tree CI is pending.
+unchanged. Main is merged forward here. Build/publication 35613793896 passed;
+regression 35613793817 remains in its long level/bot runtime step.
 
-Next: adopt the descriptor restoration helper in the new effects/post path, then remeasure the initial post hardware budget and implement temporal motion history, jitter/TAA
-and motion blur, followed by mip streaming/async uploads. Real previous rendered
-poses/transforms are required: oldorigin/oldframe are animation interpolation,
-not prior-frame history. Reference scene/goldens, all hardware budgets and final
-exact-head/current-main gates remain required. Keep LOD hash/stale-file lifecycle
+Next: strengthen temporal moving-object/disocclusion and history-quality checks,
+measure camera/geometry/resolve/copy/blur budgets on the reference GPU, then
+implement mip streaming/async uploads. Descriptor restoration is adopted; RTX
+post runs complete. Initial copy-back exceeds its declared budget, so the post
+path stays default off. Camera jitter, history resolve, copied native IQM skin
+motion, reactive fallback and motion blur now execute but are not final visual
+acceptance. Oldorigin/oldframe remain interpolation inputs, not prior-frame
+history. Final combined reference scene/goldens, all hardware budgets and
+exact-head/current-main gates remain required. Preserve LOD hash/stale-file
 controls and measure its savings in the final scene.
 
 Initial post budgets before measurement: 0.75 ms for filmic controls and 0.20 ms
@@ -73,6 +78,45 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 native geometry motion and visible counters
+
+The motion traversal records submitted entity identities once, draws current
+geometry against scene depth and pairs native IQM vertices with copied prior
+skin positions. Rigid unchanged local geometry uses prior transforms. Unknown
+identities, changed legacy MD3/MDR animation, deforms and translucent inputs
+conservatively reject history; this is deliberate until those inputs have
+reliable prior vertices. Alpha-mask setup is shared with shadow rendering, and
+motion pipelines preserve culling and polygon-offset variants. No simulation
+arithmetic or per-frame allocation was added.
+
+Test-first 944a20ec requires rejection after geometry/uniform exhaustion; the
+implementation restores the main pass without rotating/committing history.
+GCC/Clang graph tests pass (fidelity-motion-overflow-{after,clang}.log); the test
+initially needed its two-case loop changed to avoid an undeclared initializer-list
+header. GCC/Clang skin probes verify the motion vertex stream retains old values
+when the current pose changes (fidelity-motion-skin{,-clang}.log). The owned
+rifle/body gameplay run passes with --taa, including replicated hit-box equality
+(fidelity-motion-animation-final.log); ADS/body captures were inspected.
+
+The runtime --models gate now observes actual profiler counters through ADS,
+fire/reload and third-person movement. Final report: 130 temporal frames, 1994
+motion draws, 680 reactive draws, one stored/matched entity, no rejected records,
+no overflow and no dropped temporal frame (fidelity-motion-models-runtime).
+An initial harness attempt used cvar.set before the game registered its settings;
+using the existing console set command before map load fixed the test setup.
+Renderer API is 28 development / 22 shipping for the expanded statistics record.
+
+Client builds, shadow-view tests, native ABI, format, boundaries and types pass.
+Disabled-path OpenArena replay remains exactly
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(fidelity-motion-legacy-demo.log). No accepted fixture changed. Stronger pixel
+checks for moving silhouettes/disocclusion, reactive animated materials, final
+reference goldens and GPU budgets remain required before accepting TAA.
+
+Declared temporal pass budgets before hardware measurement at 1440p:
+camera motion 0.30 ms, geometry motion 0.50 ms, resolve 0.80 ms, display copy
+0.30 ms (0.80 ms with optional motion blur). Over-budget paths stay default off.
 
 ## #161 geometry-motion pipeline component
 

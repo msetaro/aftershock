@@ -20,6 +20,23 @@ static void matchCurrent( const srfIQModel_t *surface, const temporalEntity_t &p
 	assert( tess.numVertexes == surface->num_vertexes );
 	for ( int vertex = 0; vertex < surface->num_vertexes; ++vertex )
 		assert( !memcmp( tess.xyz[vertex], positions[vertex], sizeof( vec3_t ) ) );
+	backEnd.temporalMotion = true;
+	backEnd.temporalPrevious = &previous;
+	skeletalPose_t changed = previous.pose;
+	if ( previous.hasPose ) {
+		changed.skin[0][3] += 9;
+		entity.skeletalPose = &changed;
+	}
+	tess.numVertexes = tess.numIndexes = 0;
+	tess.previousPositions = false;
+	RB_IQMSurfaceAnim( &surface->surfaceType );
+	assert( tess.previousPositions );
+	for ( int vertex = 0; vertex < surface->num_vertexes; ++vertex )
+		assert( !memcmp( tess.previousXYZ[vertex], positions[vertex], sizeof( vec4_t ) ) );
+	if ( previous.hasPose )
+		assert( tess.xyz[0][0] != tess.previousXYZ[0][0] );
+	backEnd.temporalMotion = false;
+	backEnd.temporalPrevious = nullptr;
 }
 
 int main() {
