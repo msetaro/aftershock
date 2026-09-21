@@ -44,9 +44,9 @@ sufficient. Private read-only findings and primary references are in
 /home/matt/.cache/aftershock-modernization/audio-research.md. A private SDL dummy
 output baseline passed; it does not establish any #16 feature.
 
-Next implement .asevt registration and bounded playback of its cooked
-PCM layers, integrating the tested spatial/HRTF component. Then continue the
-remaining issue scope and runtime acceptance. Record failures before fixes. No maintainer input is currently needed.
+Next add collision occlusion and authored map reverb volumes, followed by
+allocation-free streaming, functional VoIP and real weapon near/far acceptance.
+Prepared event registration/playback and both-content output checks now pass. Record failures before fixes. No maintainer input is currently needed.
 
 #15 is accepted and checked in #25: merged-tree build/publication 35658235970
 and all ten active regression jobs in 35658235841 passed, including runtime. This does not replace #16's own final
