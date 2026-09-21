@@ -72,7 +72,7 @@ All writes remain in msetaro/aftershock. Never alter known-good or accepted gold
 The native probe specifies trivial fixed storage, valid cooked definition opening,
 constant-velocity/rotated-axis movement, gravity/drag, per-emitter capacity,
 flipbook progression, lifetime expiry, fractional rate
-carry, stop/stale-handle behavior, collision reflection through a caller callback,
+carry, stop/stale-handle behavior including expired-slot reuse, collision reflection through a caller callback,
 independent presentation state and visible fixed-pool overflow counters. The
 pre-implementation compile fails on engine/effects/effects_public.h. The effects
 driver will compile it with strict FP/UBSan and the existing SHA256 implementation

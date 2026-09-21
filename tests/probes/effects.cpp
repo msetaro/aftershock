@@ -57,6 +57,14 @@ int main( int argc, char **argv ) {
 	FX_Update( &state, 900, nullptr, nullptr );
 	assert(state.stats.particles == 0 && state.stats.instances == 0);
 
+	// Reusing an expired instance slot must not revive its old handle.
+	const uint32_t replacement = FX_Start( &state, &asset, origin, axis, 165 );
+	assert(replacement && replacement != handle);
+	assert(!FX_Stop(&state, handle));
+	assert(FX_Stop(&state, replacement));
+	FX_Update( &state, 1000, nullptr, nullptr );
+	assert(state.stats.particles == 0 && state.stats.instances == 0);
+
 	// Emitters use local axes; gravity and drag affect presentation particles.
 	const float turned[3][3] = { { 0, 1, 0 }, { -1, 0, 0 }, { 0, 0, 1 } };
 	emitter.gravity[2] = -80;
