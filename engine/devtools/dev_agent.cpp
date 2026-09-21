@@ -14,6 +14,8 @@ static uint32_t agentFrame, agentSteps, agentStepId;
 static int agentTime = 1000, agentDt = 8, agentSeed = 1;
 
 static devAgentInput_t agentInput;
+static bool agentCamera;
+static vec3_t agentCameraOrigin, agentCameraAngles;
 static int64_t agentFrameStart, agentFrameTimes[4096];
 static uint32_t agentSamples;
 static bool agentSubscribed;
@@ -71,6 +73,30 @@ int DevTools_AgentSeed( void ) {
 }
 
 
+const float *DevTools_AgentCamera( void ) {
+	return agentActive && agentCamera ? agentCameraOrigin : nullptr;
+}
+
+int Dev_AgentCameraPose( float *origin, float *angles ) {
+	if ( !DevTools_AgentCamera() )
+		return 0;
+	VectorCopy( agentCameraOrigin, origin );
+	VectorCopy( agentCameraAngles, angles );
+	return 1;
+}
+
+void DevTools_AgentView( refdef_t *view ) {
+	if ( !DevTools_AgentCamera() || ( view->rdflags & RDF_NOWORLDMODEL ) )
+		return;
+	VectorCopy( agentCameraOrigin, view->vieworg );
+	AnglesToAxis( agentCameraAngles, view->viewaxis );
+	const int area = CM_LeafArea( CM_PointLeafnum( agentCameraOrigin ) );
+	memset( view->areamask, 0, sizeof( view->areamask ) );
+	CM_WriteAreaBits( view->areamask, area );
+	for ( auto &bits : view->areamask )
+		bits = (byte)~bits;
+}
+
 void DevTools_AgentInput( usercmd_t *command, float *viewangles, const int32_t *deltaAngles ) {
 	if ( !agentActive || !agentInput.active )
 		return;
@@ -82,7 +108,7 @@ void DevTools_AgentInput( usercmd_t *command, float *viewangles, const int32_t *
 		command->weapon = (uint8_t)agentInput.weapon;
 	const float angles[3] = { agentInput.pitch, agentInput.yaw, 0 };
 	for ( int i = 0; i < 3; ++i ) {
-		command->angles[i] = ( ANGLE2SHORT( angles[i] ) - deltaAngles[i] ) & 65535;
+		command->angles[i] = agentInput.raw ? agentInput.angles[i] : ( ANGLE2SHORT( angles[i] ) - deltaAngles[i] ) & 65535;
 		viewangles[i] = (float)SHORT2ANGLE( command->angles[i] );
 	}
 }
@@ -324,7 +350,8 @@ static bool Agent_Value( const char *&p, const char *end, uint32_t depth ) {
 	return true;
 }
 
-static bool Agent_Integer( const char *request, const char *end, const char *name, uint32_t &value ) {
+template <typename T>
+static bool Agent_Integer( const char *request, const char *end, const char *name, T &value ) {
 	const char *p = JSON_ObjectGetNamedValue( request, end, name );
 	if ( !p )
 		return false;
@@ -343,6 +370,24 @@ static bool Agent_Number( const char *request, const char *end, const char *name
 	value = (float)number;
 	return true;
 }
+
+#ifndef DEDICATED
+static bool Agent_Vector( const char *request, const char *end, const char *name, float *value, float minimum, float maximum ) {
+	const char *p = JSON_ObjectGetNamedValue( request, end, name );
+	if ( JSON_ValueGetType( p, end ) != JSONTYPE_ARRAY || JSON_ArrayGetIndex( p, end, nullptr, 0 ) != 3 )
+		return false;
+	for ( int i = 0; i < 3; ++i ) {
+		const char *element = JSON_ArrayGetValue( p, end, (uint32_t)i );
+		if ( !element || !( *element == '-' || ( *element >= '0' && *element <= '9' ) ) || JSON_SkipValue( element, end ) - element >= 128 )
+			return false;
+		const double number = JSON_ValueGetDouble( element, end );
+		if ( !std::isfinite( number ) || number < minimum || number > maximum )
+			return false;
+		value[i] = (float)number;
+	}
+	return true;
+}
+#endif
 
 static bool Agent_Bool( const char *request, const char *end, const char *name, bool &value ) {
 	const char *p = JSON_ObjectGetNamedValue( request, end, name );
@@ -588,7 +633,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"usercmd\",\"camera\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
 	} else if ( !strcmp( op, "subscribe" ) ) {
 		bool enabled;
 		if ( !Agent_Bool( request, end, "enabled", enabled ) )
@@ -638,9 +683,55 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		reply.Text( ",\"ok\":true,\"result\":{\"queued\":true}}" );
 		if ( reply.valid ) {
 			agentInput = {};
+			agentCamera = false;
 			snprintf( value, sizeof( value ), "devmap %s\n", name );
 			Cbuf_AddText( value );
 		}
+	} else if ( !strcmp( op, "camera" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Camera control requires a client build." );
+#else
+		p = JSON_ObjectGetNamedValue( request, end, "mode" );
+		if ( !Agent_String( p, end, name, sizeof( name ) ) || ( strcmp( name, "pose" ) && strcmp( name, "player" ) ) )
+			return reply.Error( "invalid_argument", "$.mode", "Choose player or pose." );
+		const bool pose = !strcmp( name, "pose" );
+		float origin[3]{}, angles[3]{};
+		if ( pose && ( !Agent_Vector( request, end, "origin", origin, -32752, 32752 ) || !Agent_Vector( request, end, "angles", angles, -360, 360 ) ) )
+			return reply.Error( "invalid_argument", "$", "Provide origin [x,y,z] within world bounds and angles [pitch,yaw,roll] in degrees." );
+		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+		if ( reply.valid ) {
+			agentCamera = pose;
+			VectorCopy( origin, agentCameraOrigin );
+			VectorCopy( angles, agentCameraAngles );
+		}
+#endif
+	} else if ( !strcmp( op, "usercmd" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Raw local input requires a client build." );
+#else
+		devAgentInput_t input{};
+		float angles[3];
+		if ( !agentActive )
+			return reply.Error( "invalid_state", "$", "Launch with --agent." );
+		if ( !Agent_Integer( request, end, "forwardmove", input.forward ) || input.forward < -127 || input.forward > 127 ||
+			 !Agent_Integer( request, end, "rightmove", input.right ) || input.right < -127 || input.right > 127 ||
+			 !Agent_Integer( request, end, "upmove", input.up ) || input.up < -127 || input.up > 127 )
+			return reply.Error( "invalid_argument", "$", "Use integer forwardmove/rightmove/upmove in [-127,127]." );
+		if ( !Agent_Integer( request, end, "buttons", input.buttons ) || input.buttons < 0 || input.buttons > 65535 ||
+			 !Agent_Integer( request, end, "weapon", input.weapon ) || input.weapon < 0 || input.weapon > 255 )
+			return reply.Error( "invalid_argument", "$", "Use integer buttons in [0,65535] and weapon in [0,255]." );
+		if ( !Agent_Vector( request, end, "angles", angles, 0, 65535 ) )
+			return reply.Error( "invalid_argument", "$.angles", "Use three unsigned 16-bit command angles." );
+		for ( int i = 0; i < 3; ++i ) {
+			if ( std::trunc( angles[i] ) != angles[i] )
+				return reply.Error( "invalid_argument", "$.angles", "Raw command angles must be integers." );
+			input.angles[i] = (int32_t)angles[i];
+		}
+		input.active = input.raw = true;
+		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+		if ( reply.valid )
+			agentInput = input;
+#endif
 	} else if ( !strcmp( op, "input" ) ) {
 		if ( !agentActive )
 			return reply.Error( "invalid_state", "$", "Launch a development client with --agent." );

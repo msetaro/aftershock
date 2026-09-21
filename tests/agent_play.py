@@ -55,10 +55,10 @@ for _ in range(2):
         raw = engine.request('state')
         assert raw['player']['commandTime'] > stopped['player']['commandTime']
         trajectories[-1].append(raw['player'])
-        origin = [raw['camera']['origin'][0]+32, raw['camera']['origin'][1], raw['camera']['origin'][2]+64]
+        origin = [round(value)+offset for value, offset in zip(raw['camera']['origin'], (32, 0, 64))]
         engine.request('camera', mode='pose', origin=origin, angles=[30, 90, 0])
         engine.step(2)
-        assert engine.request('state')['camera']['origin'] == origin
+        assert engine.request('state')['camera']['origin'] == origin, (engine.request('state')['camera']['origin'], origin)
         engine.request('camera', mode='player')
         engine.step(2)
         assert engine.request('state')['camera']['origin'] != origin

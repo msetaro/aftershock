@@ -22,8 +22,11 @@ struct devNetwork_t {
 struct devAgentInput_t {
 	int32_t forward, right, up, buttons, weapon;
 	float pitch, yaw;
-	bool active;
+	int32_t angles[3];
+	bool active, raw;
 };
+const float *DevTools_AgentCamera( void );
+void DevTools_AgentView( refdef_t *view );
 void DevTools_AgentInput( usercmd_t *command, float *viewangles, const int32_t *deltaAngles );
 bool CL_AgentPlayer( playerState_t *player );
 void DevTools_AgentEnable( void );

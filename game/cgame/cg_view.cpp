@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cg_view.c -- setup all the parameters (position, angle, etc)
 // for a 3D rendering
 #include "cg_local.h"
+#include "../../engine/public/dev_public.h"
 
 
 /*
@@ -802,6 +803,12 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// build cg.refdef
 	inwater = CG_CalcViewValues();
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( Dev_AgentCameraPose( cg.refdef.vieworg, cg.refdefViewAngles ) ) {
+		AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
+		cg.renderingThirdPerson = qtrue; // Independent camera includes the local body, not a floating view weapon.
+	}
+#endif
 
 	// first person blend blobs, done after AnglesToAxis
 	if ( !cg.renderingThirdPerson ) {

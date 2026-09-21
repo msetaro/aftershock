@@ -20,38 +20,46 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Two worktrees: #14 is /home/matt/.cache/aftershock-modernization/level-tree at
-bda5ed1f (PR165 merged as 4ade5c3a). Exact-head build 35553788956 (16 compiler
-legs) and regression 35553788957 (10 required legs) both passed. Main/base
-782c0dbc was rechecked immediately before the merge. Merge and head share tree
-4088ff6eea6cb060f109a9b7e33fe9f1bd9919f2; known-good is unchanged. Merged build /
-actual publication 35555156611 passed, including all 16 compiler legs and six
-platform archives in repository prerelease build-4ade5c3a9cad9cd71a04ca2641db2f74b8355774.
-Regression 35555156633 passed all 10 required legs. #14 is accepted and checked
-in #25; both merged-tree workflows are green. Continue #163 below.
+Active worktree: /home/matt/.cache/aftershock-modernization/agent-tree, branch
+issue/163-agent-interface, draft PR166 into main. Main/base is 4ade5c3a; recheck
+it immediately before final gates and merge. #14 PR165 is accepted: exact-head
+build 35553788956/regression 35553788957 and merged build/publication 35555156611 /
+regression 35555156633 all pass. Six platform archives are published in this
+repository, #14 is checked in #25, and known-good is unchanged. Its retained
+worktree /home/matt/.cache/aftershock-modernization/level-tree is historical.
 
-#163 test preparation is /home/matt/.cache/aftershock-modernization/agent-tree,
-branch issue/163-agent-interface from main 782c0dbc. The initial native command
-contract is committed before implementation: protocol version/command discovery,
-structured correlated replies, cvar get/set with read-only protection, escaped
-strings, console command queuing, typed errors with JSON paths/hints, and bounded
-output without partial execution. It fails on missing dev_agent.cpp as intended
-(agent-protocol-before.log). The initial channel and dedicated-server stepping test now pass.
-Main 4ade5c3a is merged forward here. The initial command layer now passes GCC
-and Clang/UBSan (agent-protocol-{gcc,clang}.log). Platform pipe transport and explicit frame stepping now pass the dedicated
-server check; map/state/input now pass identical seeded playthrough checks on both content
-sets. Next extend entities, raw input, profiling/events/captures and shared UI
-actions, then finish the rest of #163. Since the merged #14
-tree exactly equals its tested head, isolated #163 implementation proceeds while
-integration verification finishes; opening its PR still waits for #14 acceptance.
-#14 integration acceptance is now complete; #163 may open its own draft PR when
-its next coherent checkpoint is ready. Updated #25 sequence is #163 -> #164
--> #161 -> #15 and the remaining roadmap. All existing exclusions remain in force.
+#163 now has a private NDJSON pipe, bounded typed replies, cvars/console commands,
+seeded explicit steps, map loading, player/camera state, high-level and raw local
+usercmds, entity CRUD/save, CPU/network/frame-percentile queries, native PNG
+capture and error/warning/hit/kill event hooks. A free camera updates cgame view
+construction and local snapshot visibility without moving the player. Same-frame
+PNG and TGA pixels match exactly. Two seeded playthroughs produce identical
+player snapshots on installed Quake 3 and OpenArena; the extended tests also
+cover entity edits, profiler reads, camera switching, and a structured error that
+stops the remaining requested steps. No faketime or accepted fixture changes.
 
-The new test uses a unique TemporaryDirectory, optionally under
-AFTERSHOCK_SCRATCH, and has no fixed scratch path. Existing JSON helpers are the
-required parser foundation; ordinary console logs must not mix with NDJSON
-responses. Shipping builds must contain none of the new command/channel code.
+Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
+acceptance, complete weapon/animation state queries, every shared panel action,
+then replace the five click-driven tests. Finish the CLI/playtest scripts and
+format schemas, scratch/display/port isolation and concurrent full suites,
+affected-test mapping, and executable docs/agents recipes. Require all #163
+acceptance criteria, full current-main gates and self-review before readiness or
+merge. Continue #164 -> #161 -> #15 and the remaining #25 roadmap after #163.
+
+PR166's initial build 35556998279 failed on unavailable libc++ floating-point
+from_chars and legacy JSON width conversions; both are corrected. Portable head
+5691795f passes all 16 compiler jobs in build 35557138685. Its regression
+35557139029 caught GCC's setjmp clobber warning in the new Com_Frame argument
+assignment (unit GCC and runtime developer-data probe). The correction keeps
+noDelay immutable and uses a separate explicit-step condition; the exact local
+developer-data reproducer now passes. Push this correction with the camera
+checkpoint and monitor fresh gates. Earlier failed/superseded heads are not
+acceptance. Native command GCC/Clang/libc++ UBSan, current playthrough checks,
+format and boundaries pass locally; detailed logs are in the persistent cache.
+
+All existing exclusions remain in force. Nothing leaves msetaro/aftershock;
+shipping binaries exclude this tooling. No PR against another repository, no
+history rewriting, no accepted golden regeneration, no known-good tag changes.
 
 #160 repair PR #162 merged into main as
 782c0dbc51e4acf119ccce49a69301408dac1ae7 after exact f04e87c3 passed build
@@ -74,6 +82,24 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 raw input / camera checkpoint
+
+Raw commands accept bounded movement/buttons/weapon/16-bit angles while the
+normal usercmd path owns serverTime. The same seeded snapshots remain identical.
+Camera pose control overrides cgame view construction before entity presentation,
+and the local server snapshot uses that camera for visibility/relevance. The
+player's simulation position is unchanged; switching back restores its view.
+Renderer area bits are computed for the camera immediately, even before the next
+snapshot arrives. Q3 and OA extended playthroughs pass
+(agent-camera.log and agent-camera-openarena.log). Exact camera assertions use
+integer coordinates so the test does not compare Python float64 addition with
+expected engine float32 rounding. No existing simulation expression is rewritten.
+
+The GCC 14 CI probe exposed an argument modified after setjmp in Com_Frame. The
+new mode now uses a separate immutable condition, leaving noDelay untouched.
+The developer-data reproducer passes (agent-devtools-data.log), as do the current
+Clang/libc++ UBSan protocol, boundaries and formatting. Fresh hosted gates remain.
 
 ## #163 structured events / compiler checkpoint
 

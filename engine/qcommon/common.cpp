@@ -3744,9 +3744,10 @@ void Com_Frame( qboolean noDelay ) {
 	}
 
 #ifdef AFTERSHOCK_DEVTOOLS
-	if ( DevTools_AgentActive() )
-		noDelay = qtrue;
+	const bool explicitStep = DevTools_AgentActive();
 	DevTools_BeginFrame( DevTools_AgentActive() || Cvar_VariableIntegerValue( "dev_tools" ) != 0 );
+#else
+	const bool explicitStep = false;
 #endif
 	minMsec = 0; // silent compiler warning
 
@@ -3793,7 +3794,7 @@ void Com_Frame( qboolean noDelay ) {
 #endif
 	} else {
 #ifndef DEDICATED
-		if ( noDelay ) {
+		if ( noDelay || explicitStep ) {
 			minMsec = 0;
 			bias = 0;
 		} else {
@@ -3824,7 +3825,7 @@ void Com_Frame( qboolean noDelay ) {
 #endif
 
 	// waiting for incoming packets
-	if ( noDelay == qfalse )
+	if ( noDelay == qfalse && !explicitStep )
 		do {
 			if ( com_sv_running->integer ) {
 				timeValSV = SV_SendQueuedPackets();
