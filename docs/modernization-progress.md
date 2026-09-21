@@ -76,6 +76,21 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 full-run runner failure and reproducer
+
+Both simultaneous clean 7342518d runs pass format, tidy, lifetime analysis and
+sanitizers, but both unit variants fail when the local runner transforms the
+cooker Python command into /usr/bin//usr/bin/python3. Their remaining jobs continue
+for diagnostics; these failed suites are not acceptance. The new suite contract
+executes the rendered Python command and fails first (agent-suite-python-before.log).
+Limit bare-python substitution so an already selected absolute interpreter path
+is not rewritten. Fresh full concurrent runs remain required after correction.
+
+Hosted older 2626372d runtime also failed its handbook step on system Pillow,
+confirming the selected-interpreter defect already fixed in 7342518d
+(agent-old-recipes-ci.log). Current 7342518d has all 16 compiler legs green;
+its latest hosted runtime remains pending. No red/skipped required check is accepted.
+
 ## #163 final self-review checkpoint
 
 The client uses one request deadline across events, and recipe subprocesses inherit

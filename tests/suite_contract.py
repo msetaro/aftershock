@@ -3,6 +3,9 @@
 import json
 import subprocess
 import sys
+from pathlib import Path
+from types import SimpleNamespace
+from suite import local_command
 from run import ROOT
 
 result = subprocess.run([sys.executable,'tests/suite.py','--list'],cwd=ROOT,capture_output=True,text=True)
@@ -20,4 +23,9 @@ commands = '\n'.join(step['command'] for row in jobs for step in row['steps'])
 for test in ('agent_formats','agent_cli','check_lifetimes','check_tidy','native_abi','demo','match_kind','protocol_runtime'):
     assert 'tests/'+test+'.py' in commands, test
 assert 'clang++ -stdlib=libc++' in commands and 'mingw64.cmake' in commands and 'aarch64-linux.cmake' in commands
-print('PASS: local suite retains all ten active CI job variants and their test commands')
+probe = local_command("${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python -c 'import sys; print(sys.executable)'",
+                      {}, SimpleNamespace(glslang=Path('glslang'), openarena_data=None))
+executed = subprocess.run(['bash', '-e', '-c', probe], capture_output=True, text=True)
+assert executed.returncode == 0 and executed.stdout.strip() == sys.executable, (probe, executed.stderr)
+print('PASS: all ten active job variants, shell syntax and selected Python execution')
+
