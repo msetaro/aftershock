@@ -1005,8 +1005,21 @@ Development builds provide `dev_light point x y z radius r g b intensity`,
 `dev_light spot x y z radius r g b intensity dx dy dz inner outer` and
 `dev_light off` on local cheat-enabled servers. Cone angles are half angles in degrees.
 
-Reflection baking, SSAO and final reference-GPU budget acceptance remain before
-#14 can close.
+`python3 tests/probes.py` checks six engine camera directions, deterministic GGX
+filtering in linear radiance and the packed atlas format. `python3
+tests/probes_runtime.py --binary CLIENT` bakes the owned level through the native
+client, applies its reflection to a dynamic metallic model, compares smooth/rough
+responses and requires exact toggle/restart round trips. The content arguments
+match the other runtime commands. Neither command replaces accepted references.
+
+`tools/level/probes.py` bakes 1..32 positioned spherical reflection probes; see
+`tools/level/README.md`. `r_reflectionProbes 1` enables their specular contribution
+on opaque/masked dynamic PBR objects (default 0). The two strongest influence
+weights blend; existing q3map2 light-grid probes still supply diffuse irradiance.
+Atlas allocation/pipeline creation happens at map load, with no frame allocations.
+The five roughness levels contain linear 8-bit radiance from LDR captures. This
+approximation has no box parallax correction; HDR capture/composition is #161.
+SSAO and final reference-GPU budget acceptance remain before #14 can close.
 
 ## Declarative level authoring (#26)
 

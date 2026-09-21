@@ -178,9 +178,9 @@ static void shadowDescriptors() {
 }
 static VkResult VKAPI_CALL createDepthPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
 	assert( count == 1 );
-	if ( p->pStages[0].module == vk.modules.direct_vs ) {
+	if ( p->pStages[0].module == vk.modules.direct_vs || p->pStages[1].module == vk.modules.reflection_fs ) {
 		assert( p->renderPass == vk.render_pass.main );
-		assert( p->stageCount == 2 && p->pStages[1].module == vk.modules.direct_fs );
+		assert( p->stageCount == 2 && p->pStages[1].module == ( p->pStages[0].module == vk.modules.direct_vs ? vk.modules.direct_fs : vk.modules.reflection_fs ) );
 		assert( p->pColorBlendState->attachmentCount == 1 );
 		const auto &blend = p->pColorBlendState->pAttachments[0];
 		assert( blend.blendEnable && blend.srcColorBlendFactor == VK_BLEND_FACTOR_ONE && blend.dstColorBlendFactor == VK_BLEND_FACTOR_ONE );
@@ -275,6 +275,10 @@ int main( int argc, char ** ) {
 			direct.shader_type = TYPE_DIRECT;
 			direct.state_bits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL;
 			direct.mirror = qtrue;
+			assert( create_pipeline( &direct, RENDER_PASS_MAIN, 0 ) != VK_NULL_HANDLE );
+			vk.modules.pbr_vs = (VkShaderModule)(uintptr_t)15;
+			vk.modules.reflection_fs = (VkShaderModule)(uintptr_t)16;
+			direct.shader_type = TYPE_REFLECTION;
 			assert( create_pipeline( &direct, RENDER_PASS_MAIN, 0 ) != VK_NULL_HANDLE );
 		}
 	}

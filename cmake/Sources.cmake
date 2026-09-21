@@ -198,6 +198,7 @@ set(VULKAN_SOURCES
   engine/renderercommon/tr_noise.cpp
   engine/render/tr_scene.cpp
   engine/render/tr_shadow.cpp
+  engine/render/tr_probes.cpp
   engine/render/tr_shade.cpp
   engine/render/tr_shade_calc.cpp
   engine/render/tr_shader.cpp

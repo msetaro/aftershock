@@ -1481,6 +1481,53 @@ static void RB_StageIteratorShadow( void ) {
 	RB_DrawGeometry( DEPTH_RANGE_NORMAL, qtrue );
 }
 
+struct reflectionUniform_t {
+	vec4_t axis[3], eye, color, surface, metal, shape;
+};
+static_assert( sizeof( reflectionUniform_t ) == 128 );
+static_assert( offsetof( reflectionUniform_t, shape ) == 112 );
+
+static void RB_Reflection( const materialParams_t &material ) {
+	if ( !r_reflectionProbes->integer || !tr.numReflectionProbes || backEnd.currentEntity == &tr.worldEntity || ( material.flags & ( 2 | 4 ) ) )
+		return;
+	const reflectionProbe_t *selected[2] = {};
+	float weights[2] = {};
+	// ponytail: scan at most 32 authored probes and blend the strongest two.
+	for ( uint32_t i = 0; i < tr.numReflectionProbes; ++i ) {
+		const auto &probe = tr.reflectionProbes[i];
+		vec3_t delta;
+		VectorSubtract( backEnd.currentEntity->e.origin, probe.origin, delta );
+		const float weight = 1 - DotProduct( delta, delta ) / ( probe.radius * probe.radius );
+		if ( weight > weights[0] ) {
+			selected[1] = selected[0];
+			weights[1] = weights[0];
+			selected[0] = &probe;
+			weights[0] = weight;
+		} else if ( weight > weights[1] ) {
+			selected[1] = &probe;
+			weights[1] = weight;
+		}
+	}
+	if ( !selected[0] )
+		return;
+	reflectionUniform_t params = {};
+	for ( int i = 0; i < 3; ++i )
+		VectorCopy( backEnd.orientation.axis[i], params.axis[i] );
+	VectorCopy( backEnd.orientation.viewOrigin, params.eye );
+	Vector4Copy( material.color, params.color );
+	VectorSet( params.surface, material.roughness, material.normalScale, material.alphaCutoff );
+	params.metal[0] = material.metallic;
+	for ( int i = 0; i < 3; ++i )
+		RHI_BindTexture( RHI_BINDING_TEXTURE0 + i, &tess.xstages[0]->bundle[i].image[0]->texture );
+	RB_BindPipeline( r_pipelines.reflection[tess.shader->cullType][backEnd.viewParms.portalView == PV_MIRROR][tess.shader->polygonOffset != 0] );
+	for ( int i = 0; i < 2 && selected[i]; ++i ) {
+		params.shape[2] = weights[i] / ( weights[0] + weights[1] );
+		RHI_BindTexture( RHI_BINDING_BAKED_LIGHT, &selected[i]->image->texture );
+		if ( RHI_UploadUniform( &params, sizeof( params ) ) != RHI_INVALID_OFFSET )
+			RB_DrawGeometry( tess.depthRange, qtrue );
+	}
+}
+
 void RB_StageIteratorPbr( void ) {
 	RB_DeformTessGeometry();
 	materialParams_t material;
@@ -1532,6 +1579,7 @@ void RB_StageIteratorPbr( void ) {
 	RHI_BindVertexStreams( rhiGeometryBuffer_t::Frame, 1U << 6, streams );
 	RB_DrawGeometry( tess.depthRange, qtrue );
 	RB_DirectLights();
+	RB_Reflection( material );
 	if ( tess.fogNum && tess.shader->fogPass )
 		RB_FogPass( qfalse );
 }

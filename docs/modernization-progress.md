@@ -24,8 +24,8 @@ Active implementation: issue/14-lighting in
 /home/matt/.cache/aftershock-modernization/level-tree. Native receiver shading and
 the shadow-only atlas scissor correction now pass rendered point/spot/sun checks.
 Main 782c0dbc is merged forward. Mask/animated-caster/module-restart
-checks now pass. Next implement reflection probe baking/application and SSAO,
-then finish reference-GPU acceptance and the full hosted gates. #161 follows #14 in
+checks now pass. Reflection baking/application now passes smooth/rough/toggle/restart checks.
+Next implement SSAO, then finish reference-GPU acceptance and full hosted gates. #161 follows #14 in
 updated #25. Do not claim full #14 acceptance or regenerate accepted references.
 
 #160 repair PR #162 merged into main as
@@ -49,6 +49,27 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #14 native reflection checkpoint
+
+The baked atlas loader validates the version/length/capacity/finite positions,
+then creates map-lifetime images and prewarms additive material pipelines. Dynamic
+opaque/masked PBR objects blend their strongest two spherical probe influences;
+normal/roughness/metallic inputs control sampling. The existing diffuse light grid
+is unchanged. r_reflectionProbes defaults to 0 and can toggle live. No frame heap
+allocation or classic-shader change. New reflection program reuses the existing
+PBR vertex shader; all previous 82 arrays remain identical. Pinned fresh/cache
+compilation agrees on 83 programs, package
+d19c0c492f5a4c341dfade123d90f9a5546f373224cc660aa3b8922dff495e0e.
+
+Actual OA owned-scene test now changes 100501 smooth / 108624 rough dynamic-model
+channel bytes, distinguishes roughness contributions and restores exactly on
+both disable and renderer restart (lighting-probe-lifecycle.log). The capture was
+reviewed. GCC/Clang native graph/pipeline checks, RHI checks, baker unit checks and
+CMake build pass. Tests and explicit bake command are documented and wired to CI.
+Limitations are recorded: linear 8-bit radiance from LDR captures, spherical
+influence without parallax correction; #161 owns HDR composition/capture.
+SSAO and final GPU/hosted acceptance still remain; #14 is not complete.
 
 ## #14 reflection baker / rendered test-first checkpoint
 

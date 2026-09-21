@@ -166,3 +166,40 @@ MAP, with syntax/bounds checks but no declarative world-space containment test.
 MAP input is capped at 16 MiB. No package files are copied into the tool workspace.
 The acceptance test removes a ceiling from an owned valid MAP and requires a clear
 leak failure; disconnected JSON spawns fail separately before engine startup.
+
+## Reflection probes (#14)
+
+Bake authored loose content using a development client and installed game data:
+
+```sh
+python3 tools/level/probes.py probes.json --client /path/quake3e.x64 \
+  --base /path/authored/baseq3 --data ~/.q3a/baseq3 --output /path/authored/baseq3
+```
+
+```json
+{"map":"two_lane","probes":[{"origin":[0,0,96],"radius":512}]}
+```
+
+Use `--content openarena --data /tmp/aftershock-openarena-baseoa` for hosted
+content. The tool symlinks installed paks only in its temporary capture directory.
+It runs six square views in the native client under Xvfb/lavapipe, converts display
+RGB to linear radiance, then filters five roughness levels. `--size` selects
+16/32/64/128 pixels per face (default 32); `--samples` selects 32/64/128/256
+GGX importance samples (default 64). The sampling equations follow
+[Filament's IBL derivation](https://google.github.io/filament/main/filament.html#annex/importancesamplingfortheibl).
+Captures are LDR and do not claim HDR radiance. Each probe should be placed in
+free space near its intended dynamic objects; diffuse lighting still uses the
+BSP light grid baked by q3map2.
+
+The output is `maps/<map>.asprobe`: little-endian magic `ASPROBE\0`, four uint32
+fields (version 1, count, face size, roughness levels 5), followed per probe by
+four floats (XYZ/radius) and RGBA8 pixels. Each atlas has six face columns in
++X/-X/+Y/-Y/+Z/-Z order and five roughness rows. Count is bounded at 32, position
+magnitude/radius at 32752. Renderer validation requires exact lengths and finite
+coordinates; uploads keep the already-linear bytes unchanged. At the default
+size each atlas consumes 120 KiB before GPU allocation alignment.
+
+Set `r_reflectionProbes 1` to enable the bounded two-probe blend on dynamic PBR
+objects. The default is off. Influence is spherical, without box parallax
+correction; future authored room volumes can extend that approximation. The
+#161 HDR renderer transition owns replacing LDR capture/composition.

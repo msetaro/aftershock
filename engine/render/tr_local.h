@@ -99,6 +99,7 @@ struct rendererPipelines_t {
 	uint32_t skybox_pipeline;
 	uint32_t shadowCaster[3];
 	uint32_t directLight[3][2][2];
+	uint32_t reflection[3][2][2];
 
 	// dim 0: 0 - front side, 1 - back size
 	// dim 1: 0 - normal view, 1 - mirror view
@@ -1278,6 +1279,14 @@ typedef struct drawSurfsCommand_s drawSurfsCommand_t;
 ** but may read fields that aren't dynamically modified
 ** by the frontend.
 */
+constexpr uint32_t MAX_REFLECTION_PROBES = 32;
+struct reflectionProbe_t {
+	vec3_t origin;
+	float radius;
+	image_t *image;
+};
+void R_LoadReflectionProbes( const char *worldName );
+
 typedef struct {
 	qboolean registered; // cleared at shutdown, set at beginRegistration
 	qboolean inited; // cleared at shutdown, set at InitOpenGL
@@ -1320,6 +1329,8 @@ typedef struct {
 	int numLightmaps;
 	image_t **lightmaps;
 	bool deluxeMapping;
+	uint32_t numReflectionProbes;
+	reflectionProbe_t reflectionProbes[MAX_REFLECTION_PROBES];
 	image_t **bakedLightmaps; // Intensity above raw model-space directions.
 
 	qboolean mergeLightmaps;
@@ -1432,6 +1443,7 @@ extern cvar_t *r_drawSun; // controls drawing of sun quad
 extern cvar_t *r_dynamiclight; // dynamic lights enabled/disabled
 extern cvar_t *r_mergeLightmaps;
 extern cvar_t *r_directionalLightmaps;
+extern cvar_t *r_reflectionProbes;
 extern cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
 extern cvar_t *r_dlightMode; // 0 - vq3, 1 - pmlight

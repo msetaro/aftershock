@@ -74,6 +74,7 @@ cvar_t *r_drawSun;
 cvar_t *r_dynamiclight;
 cvar_t *r_mergeLightmaps;
 cvar_t *r_directionalLightmaps;
+cvar_t *r_reflectionProbes;
 cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
 cvar_t *r_dlightMode;
@@ -1613,6 +1614,9 @@ static void R_Register( void ) {
 	r_directionalLightmaps = ri.Cvar_Get( "r_directionalLightmaps", "1", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_directionalLightmaps, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_directionalLightmaps, "Normal-map directional baked lighting on opted-in levels." );
+	r_reflectionProbes = ri.Cvar_Get( "r_reflectionProbes", "0", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( r_reflectionProbes, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_reflectionProbes, "Use authored reflection probes on dynamic PBR objects; requires five texture bindings." );
 	r_shadowQuality = ri.Cvar_Get( "r_shadowQuality", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_shadowQuality, "0", "3", CV_INTEGER );
 	ri.Cvar_SetDescription( r_shadowQuality, "Shadow atlas quality: 0 disabled, 1 1024, 2 2048, 3 4096. Requires five texture bindings." );
