@@ -48,6 +48,21 @@ with tempfile.TemporaryDirectory(prefix='aftershock-animation-editor-', dir=os.e
                 state = engine.request('editor.state')
                 assert state['panel'] == 'Graph' and state['graph']['state'] == 'idle', state
                 assert state['graph']['previews'] > 0 and not state['graph']['dirty'], state
+                for tab in ('Tables', 'Source', 'Preview'):
+                    engine.request('graph', action='tab', text=tab)
+                    engine.step(2)
+                    assert engine.request('editor.state')['graph']['tab'] == tab
+                for section in ('parameters', 'states', 'transitions', 'conditions', 'events', 'nodes', 'masks', 'joints'):
+                    rows, offset = [], 0
+                    while offset is not None:
+                        page = engine.request('graph.table', section=section, offset=offset, limit=1)
+                        rows.extend(page['items'])
+                        offset = page['next']
+                    assert len(rows) == page['total'] and all(row['index'] == index for index, row in enumerate(rows)), (section, rows)
+                    if section == 'states':
+                        assert {row['name'] for row in rows} == {row['name'] for row in document['states']}
+                    if section == 'parameters':
+                        assert all(row['minimum'] <= row['value'] <= row['maximum'] for row in rows)
                 document['initial_state'] = 'ads'
                 edited = json.dumps(document, indent=2) + '\n'
                 engine.request('graph', action='text', text=edited)
