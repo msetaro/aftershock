@@ -49,6 +49,20 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 real two-provider kit checkpoint
+
+Live API searches and both adapters pass. The reviewed reference lock pins Poly
+Haven brick_wall_001 (authors Dimitrios Savva/Rob Tuytel, revision fd60577b...) and
+ambientCG PavingStones036 (2018-11-28 release plus archive SHA256 256824ad...).
+All ten PBR channel files have exact SHA256 pins; provider metadata/attribution and
+license URLs are retained. No art payload is committed: only the lock lives in
+tools/assets/themes/manhattan.json. The actual kit in the user cache cooks both
+materials and validates 36 covered files plus CREDITS (sketch-fetch-live.log).
+Color textures were visually reviewed. Before accepting source preparation, add
+and fix a 16-bit grayscale control: the ambientCG displacement original is I;16,
+and the current convenience RGBA conversion clamps its prepared copy. Original
+bytes are preserved; this is an unmerged #164 tooling correction, not an engine bug.
+
 ## #164 provider adapter contract
 
 A new offline API-shape test requires tag search, explicit provider/license filters,

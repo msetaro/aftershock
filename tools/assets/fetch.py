@@ -120,6 +120,8 @@ def fetch(lock_path,out,offline=False):
             (source/'material.json').write_text(json.dumps(material,sort_keys=True)+'\n')
             recipes.append(dict(name='textures/theme/'+role,kind='material',source='source/'+role+'/material.json',material_model='metallic-roughness'))
             entry = {key:asset[key] for key in ('id','provider','source_url','author','license','retrieved','attribution')}
+            if 'license_url' in asset:
+                entry['license_url'] = asset['license_url']
             entry.update(id=asset['provider']+'/'+asset['id'],version=asset['version'],originals=originals,cooked=[])
             entries.append(entry)
         (stage/'assets.json').write_text(json.dumps(dict(version=1,assets=recipes),indent=2,sort_keys=True)+'\n')
