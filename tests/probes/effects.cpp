@@ -22,7 +22,7 @@ int main( int argc, char **argv ) {
 	static_assert( std::is_trivially_destructible_v<fxSystem_t> );
 	static_assert( std::is_trivially_copyable_v<fxAsset_t> );
 	static_assert( sizeof( fxFileHeader_t ) == 36 );
-	static_assert( sizeof( fxFileEmitter_t ) == 244 );
+	static_assert( sizeof( fxFileEmitter_t ) == 304 );
 	assert(argc == 2);
 	FILE *file = fopen( argv[1], "rb" );
 	assert(file);
@@ -125,6 +125,30 @@ int main( int argc, char **argv ) {
 				assert(a.origin[k] == b.origin[k] && a.velocity[k] == b.velocity[k]);
 		}
 	}
+	// Spread is seeded presentation state; it must separate particles reproducibly.
+	emitter.flags = 0;
+	emitter.velocitySpread[0] = 20;
+	emitter.originSpread[1] = 3;
+	emitter.rotation = 10;
+	emitter.rotationSpread = 5;
+	emitter.angularVelocity = 90;
+	FX_Reset( &state );
+	FX_Reset( &other );
+	assert( FX_Start( &state, &asset, origin, axis, 164 ) );
+	assert( FX_Start( &other, &asset, origin, axis, 164 ) );
+	assert( state.particles[0].velocity[0] != state.particles[1].velocity[0] );
+	for ( uint32_t i = 0; i < 8; ++i ) {
+		const auto &a = state.particles[i], &b = other.particles[i];
+		assert( a.velocity[0] >= 80 && a.velocity[0] <= 120 && a.velocity[0] == b.velocity[0] );
+		assert( a.origin[1] >= -3 && a.origin[1] <= 3 && a.origin[1] == b.origin[1] );
+		assert( a.rotation >= 5 && a.rotation <= 15 && a.rotation == b.rotation );
+	}
+	const float rotation = state.particles[0].rotation;
+	FX_Update( &state, 100, nullptr, nullptr );
+	assert( std::fabs( state.particles[0].rotation - rotation - 9 ) < .001f );
+	FX_Reset( &other );
+	assert( FX_Start( &other, &asset, origin, axis, 165 ) );
+	assert( state.particles[0].velocity[0] != other.particles[0].velocity[0] );
 	emitter.flags = 0;
 	emitter.burst = emitter.capacity = FX_MAX_PARTICLES;
 	FX_Reset( &state );

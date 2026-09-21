@@ -37,16 +37,18 @@ with tempfile.TemporaryDirectory(prefix='aftershock-effect-source-') as temporar
     path=args.output/'effects/impact.asfx'
     data=path.read_bytes()
     magic,version,size,hashed=struct.unpack_from('<8sII32s',data)
-    assert magic==b'ASEFFECT' and version==1 and size==len(data)-48
+    assert magic==b'ASEFFECT' and version==2 and size==len(data)-48
     assert hashlib.sha256(data[48:]).digest()==hashed
     assert data[48:80].split(b'\0',1)[0]==b'impact'
     assert struct.unpack_from('<I',data,80)[0]==1
-    assert size==36+244, 'effect payload must match the fixed native record layout'
+    assert size==36+304, 'effect payload must match the fixed native record layout'
     name,material,model=struct.unpack_from('<32s64s64s',data,84)
     assert name.split(b'\0',1)[0]==b'sparks' and material.split(b'\0',1)[0]==b'effects/spark' and not model.strip(b'\0')
     assert struct.unpack_from('<7I',data,244)==(0,16,8,1000,3,4,2)
     values=struct.unpack_from('<14f',data,272)
     assert values[:9]==(0,2,100,0,40,0,0,-80,.5) and values[-1]==16
+    extras=struct.unpack_from('<15f',data,328)
+    assert extras==(0,0,0,0,0,0,2,0,0,0,0,0,1,1,1)
     manifest=json.loads((args.output/'effects/impact.manifest.json').read_text())
     assert {f['path'] for f in manifest['inputs']}=={effect.name}
     index=(args.output/'cook.index').read_bytes()

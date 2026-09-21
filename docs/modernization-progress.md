@@ -63,6 +63,16 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 reference-effect shaping contract
+
+The next effect test requires seeded velocity/origin spread and rotation/spin,
+plus fixed cooked fields for size evolution and light emission. These are needed
+for distinct sparks/smoke/shells rather than coincident identical particles. The
+new cooked envelope is version 2; no accepted effect asset exists or is regenerated.
+The test fails on the old version before implementation
+(fidelity-effect-shaping-before.log). Add shaping and native light hooks next;
+soft depth and full reference/material/editor coverage remain outstanding.
+
 ## #161 native LOD lifecycle passes
 
 The owned grid now passes both GCC and Clang/libc++ with UBSan, including unchanged
