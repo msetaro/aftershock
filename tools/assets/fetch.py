@@ -5,7 +5,6 @@ import json
 import os
 from pathlib import Path
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -13,7 +12,7 @@ from urllib.parse import urlparse
 import urllib.request
 import zipfile
 
-from PIL import Image
+from PIL import Image, __version__ as PILLOW_VERSION
 
 from tools.assets.manifest import digest,require,validate
 from tools.scratch import cache_lock
@@ -71,11 +70,16 @@ def fetch(lock_path,out,offline=False):
     cache = Path(os.environ.get('XDG_CACHE_HOME',Path.home()/'.cache'))/'aftershock-assets'
     out = out.resolve()
     out.parent.mkdir(parents=True,exist_ok=True)
+    sys.path.insert(0,str(ROOT/'tools/cook'))
+    from tools.cook.__main__ import tool_hash
+    fingerprint = hashlib.sha256(Path(__file__).read_bytes()+Path(__file__).with_name('manifest.py').read_bytes()+
+                                 PILLOW_VERSION.encode()+tool_hash().encode()).hexdigest()
     if out.exists():
         validate(out)
+        require(json.loads((out/'manifest.json').read_text()).get('preparation_sha256')==fingerprint,
+                'preparation tool changed; choose a fresh output directory')
         require(json.loads((out/'assets.lock.json').read_text())==lock, 'output uses another lock; choose a fresh output directory')
         return dict(ok=True,output=str(out),reused=True,**{k:v for k,v in validate(out).items() if k!='ok'})
-    sys.path.insert(0,str(ROOT/'tools/cook'))
     from texture import mipmaps
     with tempfile.TemporaryDirectory(prefix='aftershock-theme-',dir=out.parent) as temporary:
         stage = Path(temporary)/'kit'
@@ -145,7 +149,7 @@ def fetch(lock_path,out,offline=False):
             if path.is_file():
                 entries[0]['cooked'].append(dict(path=path.relative_to(stage).as_posix(),sha256=digest(path)))
         (stage/'assets.lock.json').write_text(json.dumps(lock,indent=2,sort_keys=True)+'\n')
-        (stage/'manifest.json').write_text(json.dumps(dict(version=1,assets=entries),indent=2,sort_keys=True)+'\n')
+        (stage/'manifest.json').write_text(json.dumps(dict(version=1,preparation_sha256=fingerprint,assets=entries),indent=2,sort_keys=True)+'\n')
         report = validate(stage)
         os.replace(stage,out)
     return dict(report,output=str(out),credits=str(out/'CREDITS'),reused=False)

@@ -49,6 +49,17 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 asset preparation acceptance / CI wiring
+
+The preparation fingerprint control passes along with repeated offline kits and
+cache hash verification (sketch-preparation.log). Fingerprints include fetch and
+manifest sources, the pinned Pillow version and the existing cooker's tool hash.
+The runtime job now runs sketch interpretation, manifest/license controls, API
+adapter controls and offline fetch/cook reproducibility after level dependencies
+are installed. All are owned/offline CI controls; actual two-provider sourcing was
+also measured locally above. Next: pinned Blender reference kit, remaining tracing
+measurements, shooter intent/overhead/runtime integration and final #164 gates.
+
 ## #164 preparation fingerprint control
 
 The new fetch test corrupts an otherwise valid kit's preparation fingerprint.

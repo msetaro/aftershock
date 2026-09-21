@@ -286,6 +286,10 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install -r tools/level/requirements.txt
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/level.py --compile
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/level_polygons.py --compile
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/sketch.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/theme_assets.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/asset_providers.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/theme_fetch.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/lighting.py --compile
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/probes_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ssao_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa

@@ -15,7 +15,8 @@ The reference lock pins Poly Haven `brick_wall_001` and ambientCG `PavingStones0
 at a 1024-pixel budget. Fetch checks every original SHA256, prepares native material
 inputs, runs the existing cooker, validates complete provenance and publishes the
 kit only after success. `--offline` requires all pinned source bytes in the cache.
-A repeated output is reused only after its manifest and lock match. Choose another
+A repeated output is reused only after its manifest, lock and preparation/cooker
+fingerprint match. Choose another
 output directory for a changed lock; existing kits are never silently replaced.
 
 A kit contains original PBR channels, prepared images/material definitions,
