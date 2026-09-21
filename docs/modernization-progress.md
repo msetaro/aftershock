@@ -43,7 +43,10 @@ Panel selection, collision/navigation flags and animation load/frame/play contro
 use the same functions as ImGui (agent-panels.log / agent-panels-openarena.log).
 The animation editor is rewritten on shared graph commands and passes Q3/OA: edit,
 undo, numbered backup, watched recook and changed preview. The prior missing graph
-operation is recorded in agent-editor-before.log. Continue the remaining panels.
+operation is recorded in agent-editor-before.log. Entity save/reload also passes on both content sets via JSON, retaining every
+original key, angle aliases and numbered-save checks. The World panel rewrite
+fails first on absent entity.at_camera (agent-world-before.log); implement the
+shared placement/picking/selection controls next.
 Resume with remaining #163 command/UI work: assertion events and gameplay hit/kill
 acceptance, complete weapon/animation state queries, every shared panel action,
 then replace the five click-driven tests. Finish the CLI/playtest scripts and
@@ -88,6 +91,17 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 entity test checkpoint
+
+tests/dev_entities.py now uses channel requests and structured entity fields.
+Q3 and OA pass (agent-entity-reload*.log), including all original/unknown map keys,
+spawn/edit/delete, angle/angles aliases, numbered saves and reload equivalence.
+The World panel rewrite is test-first: shared placement, crosshair picking,
+selection, wireframes and projected labels; absent entity.at_camera fails before
+implementation (agent-world-before.log). No fixed screen coordinates remain in
+that rewritten test. The earlier 5af3024b hosted regression has passed nine
+required jobs; runtime is still running, and none is accepted as final #163 gates.
 
 ## #163 graph editor checkpoint
 
