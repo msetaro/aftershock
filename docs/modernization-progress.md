@@ -78,7 +78,10 @@ After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependenc
 The boundary probe now requires a prepared sphere sweep against the floor,
 checking its contact fraction separately from the ray and rejecting an invalid
 slot. This first run fails to compile because Phys_Sweep is not implemented
-(physics-sweep-before.log). The existing allocation counters cover the new query.
+(physics-sweep-before.log). GCC and Clang/libc++ UBSan now pass the implemented convex sweep with zero
+post-setup allocation (physics-sweep-after.log / physics-sweep-clang.log).
+The query reuses a prepared shape and excludes its body and inactive slots;
+it does not allocate a query shape or collector container. Boundary checks pass.
 
 ## #15 prepared slots use collision-layer activation
 

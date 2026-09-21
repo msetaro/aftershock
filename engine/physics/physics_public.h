@@ -31,6 +31,8 @@ bool Phys_Despawn( uint32_t slot );
 bool Phys_Step(); // exactly 1/60 second
 bool Phys_Transform( uint32_t slot, physTransform_t *pose );
 bool Phys_Ray( const float origin[3], const float displacement[3], float *fraction );
+// Sweep a prepared convex shape, excluding its own body and inactive slots.
+bool Phys_Sweep( uint32_t slot, const physTransform_t *pose, const float displacement[3], float *fraction );
 physStats_t Phys_Stats();
 void Phys_Shutdown();
 #endif

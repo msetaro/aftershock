@@ -16,6 +16,8 @@ static struct {
 	JPH_JobSystem *jobs;
 	JPH_TempAllocator *temporary;
 	JPH_ObjectLayerFilter *queryFilter;
+	JPH_BodyFilter *bodyFilter;
+	JPH_BodyID queryIgnore;
 	JPH_BodyID ids[PHYS_MAX_BODIES];
 	bool dynamic[PHYS_MAX_BODIES], active[PHYS_MAX_BODIES];
 	uint32_t count;
@@ -81,6 +83,10 @@ static bool JPH_API_CALL QueryLayer( void *, JPH_ObjectLayer layer ) {
 	return layer != 2;
 }
 
+static bool JPH_API_CALL QueryBody( void *, JPH_BodyID body ) {
+	return body != physics.queryIgnore;
+}
+
 bool Phys_Init( void *storage, size_t bytes, void ( *fatal )() ) {
 	if ( physics.memory || !storage || bytes < 32 * 1024 * 1024 || !fatal )
 		return false;
@@ -111,6 +117,9 @@ bool Phys_Init( void *storage, size_t bytes, void ( *fatal )() ) {
 	static const JPH_ObjectLayerFilter_Procs queryProcs = { QueryLayer };
 	JPH_ObjectLayerFilter_SetProcs( &queryProcs );
 	physics.queryFilter = JPH_ObjectLayerFilter_Create( nullptr );
+	static const JPH_BodyFilter_Procs bodyProcs = { QueryBody, nullptr };
+	JPH_BodyFilter_SetProcs( &bodyProcs );
+	physics.bodyFilter = JPH_BodyFilter_Create( nullptr );
 	auto *filter = JPH_ObjectVsBroadPhaseLayerFilterTable_Create( broad, 2, pairs, 3 );
 	const JPH_PhysicsSystemSettings settings = { PHYS_MAX_BODIES, 0, 4096, 4096, 0, broad, pairs, filter };
 	physics.system = JPH_PhysicsSystem_Create( &settings );
@@ -198,6 +207,29 @@ bool Phys_Ray( const float origin[3], const float displacement[3], float *fracti
 	*fraction = result.fraction;
 	return true;
 }
+static float SweepHit( void *context, const JPH_ShapeCastResult *result ) {
+	auto *fraction = static_cast<float *>( context );
+	if ( result->fraction < *fraction )
+		*fraction = result->fraction;
+	return *fraction;
+}
+bool Phys_Sweep( uint32_t slot, const physTransform_t *pose, const float displacement[3], float *fraction ) {
+	if ( !physics.started || slot >= physics.count || !Pose( pose ) || !displacement || !fraction || !Finite( displacement, 3 ) )
+		return false;
+	const JPH_RVec3 origin = { pose->position[0], pose->position[1], pose->position[2] };
+	const JPH_Quat rotation = { pose->rotation[0], pose->rotation[1], pose->rotation[2], pose->rotation[3] };
+	const JPH_Vec3 direction = { displacement[0], displacement[1], displacement[2] };
+	JPH_RMat4 transform;
+	JPH_Mat4_RotationTranslation( &transform, &rotation, &origin );
+	JPH_ShapeCastSettings settings;
+	JPH_ShapeCastSettings_Init( &settings );
+	JPH_RVec3 offset = {};
+	physics.queryIgnore = physics.ids[slot];
+	*fraction = 1;
+	return JPH_NarrowPhaseQuery_CastShape( JPH_PhysicsSystem_GetNarrowPhaseQuery( physics.system ),
+		JPH_BodyInterface_GetShape( physics.bodies, physics.ids[slot] ), &transform, &direction,
+		&settings, &offset, SweepHit, fraction, nullptr, physics.queryFilter, physics.bodyFilter, nullptr );
+}
 physStats_t Phys_Stats() {
 	return physics.stats;
 }
@@ -208,6 +240,7 @@ void Phys_Shutdown() {
 		JPH_BodyInterface_RemoveBody( physics.bodies, physics.ids[i] );
 		JPH_BodyInterface_DestroyBody( physics.bodies, physics.ids[i] );
 	}
+	JPH_BodyFilter_Destroy( physics.bodyFilter );
 	JPH_ObjectLayerFilter_Destroy( physics.queryFilter );
 	JPH_PhysicsSystem_Destroy( physics.system );
 	JPH_TempAllocator_Destroy( physics.temporary );
