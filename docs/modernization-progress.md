@@ -76,6 +76,19 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 graph metadata and affected-test checkpoint
+
+Graph Preview/Source/Tables selection and all displayed record tables now share
+loaded editor state. Queries page typed parameters/states/transitions/conditions/
+events/nodes/masks/joints; no new asset parser or source reload. Q3 and OA editor
+round trips pass, as do GCC and clang/libc++ protocol/assertion/release-object
+checks and formatting. No accepted asset or golden changes.
+
+The affected-test contract fails first on missing tests/affected.py
+(agent-affected-before.log). Implement conservative changed-path mapping, a stated
+600-second default total budget, retained logs, and explicit incomplete status.
+Full suites and hosted gates remain mandatory for merges.
+
 ## #163 graph tables test-first checkpoint
 
 The graph editor contract now checks subtab selection and every displayed table

@@ -76,3 +76,18 @@ describes fields from both source shapes. The schema's effect format is an
 can be cooked or rendered yet. Its current minimal emitter fields establish the
 versioned input; #161 must add loader parity and runtime evidence as it implements
 that contract. Match examples use development-only placeholder credentials.
+
+## Editor metadata
+
+`cvar.list` accepts a name/description `filter`, `offset` (0..65535) and `limit`
+(1..16); it returns `items` with name/value/default/description/flags and `next`
+(null at end). Restart pagination after cvar registration changes. `cvar.select`
+takes `name`; `editor.filter` takes `kind` (cvars/images/materials) and `value`.
+These use the same selection/filter state as the panels, visible in editor.state.
+Material asset rows include `stageInfo` with presence/state bits/texture IDs.
+
+`graph` action `tab` selects Preview, Source or Tables using `text`.
+`graph.table` takes `section` (parameters/states/transitions/conditions/events/
+nodes/masks/joints), offset and limit with the same bounds. Replies include total,
+items and next. Indices refer to the loaded graph, parameter values are live, and
+mask weights follow joint order. Load a cooked graph and step before querying it.

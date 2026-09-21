@@ -518,6 +518,161 @@ static bool Agent_Cvars( const char *request, const char *end, agentReply_t &rep
 }
 
 #ifndef DEDICATED
+static bool Agent_GraphTable( const char *request, const char *end, agentReply_t &reply ) {
+	char name[32];
+	const char *p = JSON_ObjectGetNamedValue( request, end, "section" );
+	if ( !Agent_String( p, end, name, sizeof( name ) ) )
+		return reply.Error( "invalid_argument", "$.section", "Use parameters/states/transitions/conditions/events/nodes/masks/joints." );
+	const char *names[] = { "parameters", "states", "transitions", "conditions", "events", "nodes", "masks", "joints" };
+	const animSectionIndex_t sections[] = { ANIM_PARAMETERS, ANIM_STATES, ANIM_TRANSITIONS, ANIM_CONDITIONS, ANIM_EVENTS, ANIM_NODES, ANIM_MASKS, ANIM_JOINTS };
+	uint32_t selected = 0;
+	while ( selected < ARRAY_LEN( names ) && strcmp( name, names[selected] ) )
+		++selected;
+	if ( selected == ARRAY_LEN( names ) )
+		return reply.Error( "invalid_argument", "$.section", "Use parameters/states/transitions/conditions/events/nodes/masks/joints." );
+	const float *parameters;
+	const animAsset_t *asset = DevTools_GraphAsset( &parameters );
+	if ( !asset )
+		return reply.Error( "invalid_state", "$", "Load a cooked graph and step first." );
+	uint32_t offset = 0, limit = 16;
+	if ( ( JSON_ObjectGetNamedValue( request, end, "offset" ) && !Agent_Integer( request, end, "offset", offset ) ) || offset > 65535 ||
+		 ( JSON_ObjectGetNamedValue( request, end, "limit" ) && !Agent_Integer( request, end, "limit", limit ) ) || limit < 1 || limit > 16 )
+		return reply.Error( "invalid_argument", "$", "Use offset 0..65535 and limit 1..16." );
+	const auto section = sections[selected];
+	const uint32_t total = asset->header.sections[section].count;
+	reply.Text( ",\"ok\":true,\"result\":{\"total\":" );
+	reply.Number( total );
+	reply.Text( ",\"items\":[" );
+	uint32_t next = offset;
+	for ( ; next < total && next - offset < limit; ++next ) {
+		if ( next != offset )
+			reply.Text( "," );
+		reply.Text( "{\"index\":" );
+		reply.Number( next );
+		switch ( section ) {
+		case ANIM_PARAMETERS: {
+			const auto row = DevTools_GraphRecord<animFileParameter_t>( asset, section, next );
+			reply.Text( ",\"name\":" );
+			reply.String( row.name );
+			reply.Text( ",\"value\":" );
+			reply.Number( parameters[next] );
+			reply.Text( ",\"minimum\":" );
+			reply.Number( row.minimum );
+			reply.Text( ",\"maximum\":" );
+			reply.Number( row.maximum );
+			break;
+		}
+		case ANIM_STATES: {
+			const auto row = DevTools_GraphRecord<animFileState_t>( asset, section, next );
+			reply.Text( ",\"name\":" );
+			reply.String( row.name );
+			reply.Text( ",\"clip\":" );
+			reply.Number( row.clip );
+			reply.Text( ",\"flags\":" );
+			reply.Number( row.flags );
+			reply.Text( ",\"speedQ16\":" );
+			reply.Number( row.speedQ16 );
+			reply.Text( ",\"firstEvent\":" );
+			reply.Number( row.firstEvent );
+			reply.Text( ",\"eventCount\":" );
+			reply.Number( row.eventCount );
+			reply.Text( ",\"node\":" );
+			reply.Number( row.node );
+			break;
+		}
+		case ANIM_TRANSITIONS: {
+			const auto row = DevTools_GraphRecord<animFileTransition_t>( asset, section, next );
+			reply.Text( ",\"from\":" );
+			reply.Number( row.from );
+			reply.Text( ",\"to\":" );
+			reply.Number( row.to );
+			reply.Text( ",\"blendMs\":" );
+			reply.Number( row.blendMs );
+			reply.Text( ",\"firstCondition\":" );
+			reply.Number( row.firstCondition );
+			reply.Text( ",\"conditionCount\":" );
+			reply.Number( row.conditionCount );
+			reply.Text( ",\"flags\":" );
+			reply.Number( row.flags );
+			break;
+		}
+		case ANIM_CONDITIONS: {
+			const auto row = DevTools_GraphRecord<animFileCondition_t>( asset, section, next );
+			reply.Text( ",\"parameter\":" );
+			reply.Number( row.parameter );
+			reply.Text( ",\"operation\":" );
+			reply.Number( row.operation );
+			reply.Text( ",\"value\":" );
+			reply.Number( row.value );
+			break;
+		}
+		case ANIM_EVENTS: {
+			const auto row = DevTools_GraphRecord<animFileEvent_t>( asset, section, next );
+			reply.Text( ",\"name\":" );
+			reply.String( row.name );
+			reply.Text( ",\"timeMs\":" );
+			reply.Number( row.timeMs );
+			reply.Text( ",\"bone\":" );
+			reply.Number( row.bone );
+			break;
+		}
+		case ANIM_NODES: {
+			const auto row = DevTools_GraphRecord<animFileNode_t>( asset, section, next );
+			reply.Text( ",\"name\":" );
+			reply.String( row.name );
+			reply.Text( ",\"kind\":" );
+			reply.Number( row.kind );
+			reply.Text( ",\"a\":" );
+			reply.Number( row.a );
+			reply.Text( ",\"b\":" );
+			reply.Number( row.b );
+			reply.Text( ",\"reference\":" );
+			reply.Number( row.reference );
+			reply.Text( ",\"parameter\":" );
+			reply.Number( row.parameter );
+			reply.Text( ",\"mask\":" );
+			reply.Number( row.mask );
+			reply.Text( ",\"flags\":" );
+			reply.Number( row.flags );
+			reply.Text( ",\"weight\":" );
+			reply.Number( row.weight );
+			break;
+		}
+		case ANIM_MASKS: {
+			const auto row = DevTools_GraphRecord<animFileMask_t>( asset, section, next );
+			reply.Text( ",\"name\":" );
+			reply.String( row.name );
+			reply.Text( ",\"weights\":[" );
+			for ( uint32_t joint = 0; joint < asset->header.sections[ANIM_JOINTS].count; ++joint ) {
+				if ( joint )
+					reply.Text( "," );
+				reply.Number( row.weights[joint] );
+			}
+			reply.Text( "]" );
+			break;
+		}
+		case ANIM_JOINTS: {
+			const auto row = DevTools_GraphRecord<animFileJoint_t>( asset, section, next );
+			reply.Text( ",\"name\":" );
+			reply.String( row.name );
+			reply.Text( ",\"parent\":" );
+			reply.Number( row.parent );
+			break;
+		}
+		default:
+			break;
+		}
+		reply.Text( "}" );
+	}
+	reply.Text( "],\"next\":" );
+	if ( next < total )
+		reply.Number( next );
+	else
+		reply.Text( "null" );
+	reply.Text( "}}" );
+	return reply.valid;
+}
+
 static void Agent_MaterialParams( agentReply_t &reply, const materialParams_t &params ) {
 	reply.Text( "{\"color\":[" );
 	for ( int i = 0; i < 4; ++i ) {
@@ -716,6 +871,8 @@ static void Agent_EditorState( agentReply_t &reply ) {
 	reply.String( state.graphEvent );
 	reply.Text( ",\"result\":" );
 	reply.String( state.graphResult );
+	reply.Text( ",\"tab\":" );
+	reply.String( state.graphTab );
 	reply.Text( ",\"previews\":" );
 	reply.Number( state.graphPreviews );
 	reply.Text( ",\"time\":" );
@@ -1102,7 +1259,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
 	} else if ( !strcmp( op, "assets" ) || !strcmp( op, "asset.select" ) || !strcmp( op, "material.set" ) || !strcmp( op, "material.preview" ) ) {
 #ifdef DEDICATED
 		return reply.Error( "unsupported", "$", "Renderer assets require a client build." );
@@ -1183,6 +1340,12 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		if ( !DevTools_Range( name, value, (int)number ) )
 			return reply.Error( "rejected", "$", "Check action/value, loaded weapon and local devmap; step before another queued range action." );
 		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
+#endif
+	} else if ( !strcmp( op, "graph.table" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Graph tables require a client build." );
+#else
+		return Agent_GraphTable( request, end, reply );
 #endif
 	} else if ( !strcmp( op, "graph" ) ) {
 #ifdef DEDICATED

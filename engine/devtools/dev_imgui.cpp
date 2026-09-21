@@ -75,6 +75,7 @@ static struct {
 static struct {
 	char path[MAX_QPATH], source[MAX_QPATH], loadedSource[MAX_QPATH];
 	char text[65536], saved[65536], status[256], lastEvent[64], result[32];
+	char requestedTab[16], activeTab[16];
 	animAsset_t asset;
 	void *storage;
 	animState_t state;
@@ -266,12 +267,28 @@ static void EditWeaponRange( void ) {
 
 template <typename T>
 static T GraphRecord( animSectionIndex_t section, uint32_t index ) {
-	T record;
-	memcpy( &record, graph.asset.data + graph.asset.header.sections[section].offset + index * sizeof( T ), sizeof( record ) );
-	return record;
+	return DevTools_GraphRecord<T>( &graph.asset, section, index );
+}
+const animAsset_t *DevTools_GraphAsset( const float **parameters ) {
+	*parameters = graph.parameters;
+	return graph.storage ? &graph.asset : nullptr;
+}
+static bool BeginGraphTab( const char *name ) {
+	const bool selected = !strcmp( name, graph.requestedTab );
+	if ( !ImGui::BeginTabItem( name, nullptr, selected ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None ) )
+		return false;
+	Q_strncpyz( graph.activeTab, name, sizeof( graph.activeTab ) );
+	if ( selected )
+		graph.requestedTab[0] = 0;
+	return true;
 }
 bool DevTools_Graph( const char *action, const char *text, float value ) {
-	if ( !strcmp( action, "load" ) || !strcmp( action, "source" ) ) {
+	if ( !strcmp( action, "tab" ) ) {
+		if ( strcmp( text, "Preview" ) && strcmp( text, "Source" ) && strcmp( text, "Tables" ) )
+			return false;
+		Q_strncpyz( graph.requestedTab, text, sizeof( graph.requestedTab ) );
+		graph.select = true;
+	} else if ( !strcmp( action, "load" ) || !strcmp( action, "source" ) ) {
 		if ( !text[0] || strlen( text ) >= MAX_QPATH )
 			return false;
 		const bool load = !strcmp( action, "load" );
@@ -433,7 +450,7 @@ static void InspectGraph( uint32_t elapsed ) {
 	if ( ImGui::Button( "Load graph" ) )
 		DevTools_Graph( "load", graph.path, 0 );
 	if ( ImGui::BeginTabBar( "Graph views" ) ) {
-		if ( ImGui::BeginTabItem( "Preview" ) ) {
+		if ( BeginGraphTab( "Preview" ) ) {
 			if ( graph.storage ) {
 				ImGui::Text( "State: %s | last event: %s", Anim_StateName( &graph.asset, graph.state.current ), graph.lastEvent );
 				if ( ImGui::Checkbox( "Play fixed steps", &graph.play ) )
@@ -478,7 +495,7 @@ static void InspectGraph( uint32_t elapsed ) {
 			}
 			ImGui::EndTabItem();
 		}
-		if ( ImGui::BeginTabItem( "Source" ) ) {
+		if ( BeginGraphTab( "Source" ) ) {
 			ImGui::SetNextItemWidth( 460 );
 			ImGui::InputText( "##Source path", graph.source, sizeof( graph.source ) );
 			if ( ImGui::Button( "Load source" ) )
@@ -493,7 +510,7 @@ static void InspectGraph( uint32_t elapsed ) {
 				DevTools_Graph( "text", graph.text, 0 );
 			ImGui::EndTabItem();
 		}
-		if ( ImGui::BeginTabItem( "Tables" ) ) {
+		if ( BeginGraphTab( "Tables" ) ) {
 			if ( graph.storage ) {
 				if ( ImGui::TreeNode( "States / events" ) ) {
 					for ( uint32_t i = 0; i < graph.asset.header.sections[ANIM_STATES].count; ++i ) {
@@ -986,6 +1003,7 @@ void DevTools_EditorState( devEditorState_t *state ) {
 	Q_strncpyz( state->graphState, graph.storage ? Anim_StateName( &graph.asset, graph.state.current ) : "", sizeof( state->graphState ) );
 	Q_strncpyz( state->graphEvent, graph.lastEvent, sizeof( state->graphEvent ) );
 	Q_strncpyz( state->graphResult, graph.result, sizeof( state->graphResult ) );
+	Q_strncpyz( state->graphTab, graph.activeTab, sizeof( state->graphTab ) );
 	state->graphPreviews = graph.previews;
 	state->graphTime = graph.time;
 	state->graphDirty = strcmp( graph.text, graph.saved ) != 0;

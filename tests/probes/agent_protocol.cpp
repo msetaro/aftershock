@@ -60,6 +60,9 @@ bool DevTools_Range( const char *, const char *, int ) {
 bool DevTools_Graph( const char *, const char *, float ) {
 	return true;
 }
+const animAsset_t *DevTools_GraphAsset( const float ** ) {
+	return nullptr;
+}
 bool DevTools_SetAnimation( const char *, float ) {
 	return false;
 }

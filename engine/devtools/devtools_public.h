@@ -73,6 +73,7 @@ bool DevTools_Project( const refdef_t *view, const float *point, float *screen )
 int DevTools_PickEntity( float x, float y );
 struct devEditorState_t {
 	char cvar[MAX_STRING_CHARS], filters[3][128];
+	char graphTab[16];
 	char panel[32], clip[64], graphState[64], graphEvent[64], graphResult[32];
 	uint32_t frames, lines, labels, worldLines, animationPreviews, allocations;
 	uint64_t arena;
@@ -96,6 +97,14 @@ bool DevTools_SetWorld( bool collision, bool navigation, bool entities, float ra
 bool DevTools_LoadAnimation( const char *path, const char *skin );
 bool DevTools_SetAnimation( const char *field, float value );
 bool DevTools_Graph( const char *action, const char *text, float value );
+const animAsset_t *DevTools_GraphAsset( const float **parameters );
+// Both consumers read validated loaded records without unaligned structure casts.
+template <typename T>
+T DevTools_GraphRecord( const animAsset_t *asset, animSectionIndex_t section, uint32_t index ) {
+	T record;
+	memcpy( &record, asset->data + asset->header.sections[section].offset + index * sizeof( T ), sizeof( record ) );
+	return record;
+}
 bool DevTools_Range( const char *action, const char *path, int value );
 const refexport_t *DevTools_Renderer( void );
 bool DevTools_SelectAsset( const char *kind, int index );
