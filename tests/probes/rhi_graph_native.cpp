@@ -482,11 +482,25 @@ static void temporalCommands() {
 		assert( occlusionDraws == 1 );
 		const auto *copied = (const rhiTemporal_t *)upload;
 		assert( copied->settings[1] == ( frame ? 1 : 0 ) );
-		RHI_ResolveTemporal();
+		assert( RHI_ResolveTemporal() );
 		assert( occlusionDraws == 3 && restoredSets == 0x0b );
 		assert( vk.temporal_history == ( ( frame + 1 ) & 1 ) );
 		assert( vk.temporal_valid && vk.cmd->uniform_read_offset == 32 );
 		assert( vk.cmd->descriptor_set.start == ~0U && vk.cmd->descriptor_set.end == 0 );
+		RHI_EndPass();
+	}
+	for ( bool geometryOverflow : { false, true } ) {
+		RHI_BeginMainPass();
+		vk.cmd->vertex_buffer_offset = 0;
+		assert( RHI_BeginTemporal( &uniform ) );
+		const auto history = vk.temporal_history;
+		if ( geometryOverflow )
+			vk.geometry_buffer_size_new = 1024;
+		else
+			RHI_RejectTemporal();
+		assert( !RHI_ResolveTemporal() );
+		assert( !vk.temporal_valid && vk.temporal_history == history );
+		vk.geometry_buffer_size_new = 0;
 		RHI_EndPass();
 	}
 	RHI_BeginMainPass();
