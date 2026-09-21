@@ -74,6 +74,24 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 geometry-motion pipeline component
+
+Test-first 07cb7ec8 fails on the missing motion pipeline/modules. The new pipeline
+uses the retained scene depth with reverse-depth comparison and no depth writes,
+plus current position/color/UV and a separate previous-position vertex stream.
+Its shaders preserve alpha-test discard and encode prior clip position with the
+weapon viewport depth scale/bias. Untracked or rejected geometry writes invalid
+history instead of borrowing camera-only motion. Surface submission is next;
+this pipeline component does not yet draw moving objects.
+
+GCC/Clang native graph tests pass (fidelity-motion-pipeline-{after,clang}.log),
+and the client builds. Two new shader arrays are appended via bin2hex; all prior
+arrays remain unchanged. Fresh/cached compilation matches all 101 shaders
+(package d533f8bf7dfe1d7aef4c5b3d319c928bfe52357d1541c4e9e292abcc562c0335;
+fidelity-motion-shader-check.log). Next wire the geometry traversal and previous
+skin/rigid positions, preserving masks and conservative rejection for unsupported
+animated/deformed inputs, then test actual moving/skinned objects and disocclusion.
+
 ## #161 camera-view temporal integration
 
 The opt-in r_taa path now jitters only the backend presentation projection,

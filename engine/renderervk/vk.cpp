@@ -2775,6 +2775,8 @@ static void vk_create_shader_modules( void ) {
 	vk.modules.post_fs[0] = SHADER_MODULE( post_frag_spv );
 	vk.modules.post_fs[1] = SHADER_MODULE( post_ms_frag_spv );
 	vk.modules.post_copy_fs = SHADER_MODULE( post_copy_frag_spv );
+	vk.modules.motion_vs = SHADER_MODULE( motion_vert_spv );
+	vk.modules.motion_fs = SHADER_MODULE( motion_frag_spv );
 	vk.modules.temporal_fs[0] = SHADER_MODULE( motion_camera_frag_spv );
 	vk.modules.temporal_fs[1] = SHADER_MODULE( temporal_resolve_frag_spv );
 	vk.modules.temporal_fs[2] = SHADER_MODULE( temporal_copy_frag_spv );
@@ -4620,6 +4622,8 @@ void vk_impl_Shutdown( void ) {
 	for ( auto module : vk.modules.post_fs )
 		qvkDestroyShaderModule( vk.device, module, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.post_copy_fs, NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.motion_vs, NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.motion_fs, NULL );
 	for ( auto module : vk.modules.temporal_fs )
 		qvkDestroyShaderModule( vk.device, module, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.particle_vs, NULL );
@@ -5762,6 +5766,11 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 
 	switch ( def->shader_type ) {
 
+	case TYPE_MOTION:
+		vs_module = &vk.modules.motion_vs;
+		fs_module = &vk.modules.motion_fs;
+		break;
+
 	case TYPE_REFLECTION:
 		vs_module = &vk.modules.pbr_vs;
 		fs_module = &vk.modules.reflection_fs;
@@ -6223,6 +6232,17 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 		push_attr( 2, 2, VK_FORMAT_R32G32_SFLOAT );
 		break;
 
+	case TYPE_MOTION:
+		push_bind( 0, sizeof( vec4_t ) );
+		push_bind( 1, sizeof( color4ub_t ) );
+		push_bind( 2, sizeof( vec2_t ) );
+		push_bind( 5, sizeof( vec4_t ) );
+		push_attr( 0, 0, VK_FORMAT_R32G32B32A32_SFLOAT );
+		push_attr( 1, 1, VK_FORMAT_R8G8B8A8_UNORM );
+		push_attr( 2, 2, VK_FORMAT_R32G32_SFLOAT );
+		push_attr( 3, 5, VK_FORMAT_R32G32B32A32_SFLOAT );
+		break;
+
 	case TYPE_SHADOW:
 	case TYPE_SIGNLE_TEXTURE:
 		push_bind( 0, sizeof( vec4_t ) ); // xyz array
@@ -6566,7 +6586,7 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 	multisample_state.pNext = NULL;
 	multisample_state.flags = 0;
 
-	multisample_state.rasterizationSamples = renderPassIndex == RENDER_PASS_SHADOW ? VK_SAMPLE_COUNT_1_BIT : (VkSampleCountFlagBits)( ( renderPassIndex == RENDER_PASS_SCREENMAP ) ? vk.screenMapSamples : vkSamples );
+	multisample_state.rasterizationSamples = def->shader_type == TYPE_MOTION || renderPassIndex == RENDER_PASS_SHADOW ? VK_SAMPLE_COUNT_1_BIT : (VkSampleCountFlagBits)( ( renderPassIndex == RENDER_PASS_SCREENMAP ) ? vk.screenMapSamples : vkSamples );
 
 	multisample_state.sampleShadingEnable = VK_FALSE;
 	multisample_state.minSampleShading = 1.0f;
@@ -6740,7 +6760,9 @@ VkPipeline create_pipeline( const rhiPipelineDesc_t *def, renderPass_t renderPas
 	else
 		create_info.layout = vk.pipeline_layout;
 
-	if ( renderPassIndex == RENDER_PASS_SHADOW )
+	if ( def->shader_type == TYPE_MOTION )
+		create_info.renderPass = vk.render_pass.temporal[1];
+	else if ( renderPassIndex == RENDER_PASS_SHADOW )
 		create_info.renderPass = vk.render_pass.shadow[0];
 	else if ( renderPassIndex == RENDER_PASS_SCREENMAP )
 		create_info.renderPass = vk.render_pass.screenmap;

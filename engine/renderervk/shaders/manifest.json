@@ -2415,6 +2415,26 @@
       },
       "spirv_sha256": "41183e0316d5f42db2a8229e759cc2fbe5ed89376473600000ce10f7a0d7137e",
       "recipe_sha256": "230db65962a692d2822d8f567bac77f25f3c232e71cfd710aa20049b370f669a"
+    },
+    {
+      "name": "motion_vert_spv",
+      "source": "motion.vert",
+      "stage": "vert",
+      "defines": [],
+      "source_sha256": "5fa892c405b97ce75e02e56e8b4cc9de8385d47610f92399a807c1abf17f56c7",
+      "includes": {},
+      "spirv_sha256": "25ecaa534698ab8a872e55a750cd2d4a16f3ae0724c52d2f46dfc1693dbc3c11",
+      "recipe_sha256": "b151afc9a56da939ebcda92db7904ecfd78ca67f25539c3bd6adeff6644d6013"
+    },
+    {
+      "name": "motion_frag_spv",
+      "source": "motion.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "fc98e5e05fe8ccf3953e4dfd336ec06ca9736a5eb9a42c770b2bf5e998745415",
+      "includes": {},
+      "spirv_sha256": "6c8a9bafacbec0480c4412ccfe3d70c268c8d500e29f99a05a7f600b2783e81d",
+      "recipe_sha256": "1a63558f4bdf4b8d114cb529cc28bbd05f185c4cda8024be43a3671390535c61"
     }
   ]
 }

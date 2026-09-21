@@ -296,7 +296,7 @@ typedef struct {
 		VkShaderModule direct_vs, direct_fs;
 		VkShaderModule reflection_fs;
 		VkShaderModule occlusion_fs[2][2], occlusion_apply_fs;
-		VkShaderModule particle_vs, particle_fs[2], decal_fs[2], post_fs[2], post_copy_fs, temporal_fs[3];
+		VkShaderModule particle_vs, particle_fs[2], decal_fs[2], post_fs[2], post_copy_fs, temporal_fs[3], motion_vs, motion_fs;
 		VkShaderModule pbr_baked_vs, pbr_baked_fs;
 		VkShaderModule shadow_vs, shadow_fs;
 
