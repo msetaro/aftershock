@@ -31,6 +31,11 @@ add_executable(physics_probe "{ROOT}/tests/probes/physics.cpp")
 target_link_libraries(physics_probe PRIVATE joltc Jolt)
 target_compile_features(physics_probe PRIVATE cxx_std_20)
 target_compile_options(physics_probe PRIVATE -UNDEBUG -Wall -Wextra -Werror)
+add_executable(physics_boundary "{ROOT}/tests/probes/physics_boundary.cpp" "{ROOT}/engine/physics/physics.cpp")
+target_include_directories(physics_boundary PRIVATE "{ROOT}")
+target_link_libraries(physics_boundary PRIVATE joltc Jolt)
+target_compile_features(physics_boundary PRIVATE cxx_std_20)
+target_compile_options(physics_boundary PRIVATE -UNDEBUG -Wall -Wextra -Werror)
 ''')
 compiler = shlex.split(args.cxx)
 flags = shlex.join(compiler[1:]) + ' -fno-exceptions -fno-rtti -ffp-contract=off -fsanitize=undefined -fno-sanitize-recover=all'
@@ -38,6 +43,7 @@ build = args.output/'build'
 run(['cmake', '-S', project, '-B', build, '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=Release',
      '-DCMAKE_CXX_COMPILER='+compiler[0], '-DCMAKE_CXX_FLAGS='+flags])
 run(['cmake', '--build', build, '-j', '4'])
+run([build/'physics_boundary'])
 probe = build/'physics_probe'
 scene = ROOT/'tests/assets/physics/props.txt'
 outputs = [args.output/name for name in ('first.bin', 'repeat.bin', 'changed.bin')]

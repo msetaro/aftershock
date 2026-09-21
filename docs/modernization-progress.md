@@ -46,7 +46,7 @@ Next implement/test the owned POD physics boundary with caller-owned arena
 storage and prepared body/shape pools. Prove full-capacity spawn/recycle and
 queries before connecting client props, skeleton death presentation and tooling.
 No engine target links physics yet, and #15 has no PR. The branch checkpoint is
-pushed through 7b483e71; later ownership/buffer commits will be pushed together.
+pushed through 0aeeb11c; issue comment 5765963611 records the dependency evidence.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
 /home/matt/.cache/aftershock-modernization/physics-research.md. Pinned Jolt 5.6.0
@@ -72,6 +72,14 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 owned-boundary failing test
+
+The permanent driver now requires the owned physics module. Its probe prepares
+all 256 slots, exercises four full spawn/step/despawn cycles, casts a ray, compares
+allocation/high-water counters after setup, and tears down/reinitializes twice.
+The first run fails at the absent engine/physics/physics.cpp, retained in
+physics-boundary-before.log. Implementation follows this test; no runtime claim.
 
 ## #15 standard temporary storage is bounded
 
