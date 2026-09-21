@@ -55,9 +55,10 @@ for name in ('facade','doorway','cornice','curb','stairs','fence','barrier','cra
         sill=height*.3 if name=='facade' else 0
         opening_top=height*.8
         side=(width-opening_width)/2
+        frame_height=height-.16
         for sign in (-1,1):
-            box('jamb',(sign*(width/2-side/2),0,height/2),(side,thickness,height),stone)
-        box('lintel',(0,0,(opening_top+height)/2),(opening_width,thickness,height-opening_top),stone)
+            box('jamb',(sign*(width/2-side/2),0,frame_height/2),(side,thickness,frame_height),stone)
+        box('lintel',(0,0,(opening_top+frame_height)/2),(opening_width,thickness,frame_height-opening_top),stone)
         if sill:
             box('sill',(0,-thickness*.1,sill/2),(opening_width,thickness*1.25,sill),stone)
         box('cap',(0,0,height-.08),(width+.1,thickness+.12,.16),stone)

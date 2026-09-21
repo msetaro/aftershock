@@ -50,6 +50,17 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 procedural overlap correction passes
+
+The new coplanar-triangle control passes for every module, and both complete kits
+remain byte-identical (sketch-module-overlap.log). Facade/doorway frames now meet
+their caps instead of overlapping them. A fresh actual contact-sheet render was
+reviewed: the black top-face artifacts are gone. Corrected retained kit and image:
+/home/matt/.cache/aftershock-modernization/manhattan-modules-clean
+/home/matt/.cache/aftershock-modernization/manhattan-modules-clean-preview.png.
+Continue integrating these verified modules into v2 themes and actual map playtests;
+supplied-rig retargeting and remaining tracing/intent/overhead work remain open.
+
 ## #164 procedural visual review / coplanar control
 
 A retained kit at /home/matt/.cache/aftershock-modernization/manhattan-modules
