@@ -38,9 +38,7 @@ checks also pass with an OA renderer module; no screen-click calls remain in
 test drivers. Shipping exclusion passes in the full devtools rebuild. Legacy
 accepted goldens and source assets are unchanged.
 
-Next: the native assertion contract fails first because Q_ASSERT aborts without
-a structured event (agent-assert-before.log). Add a development-only reporter
-while retaining standard abort and release identity, then gameplay hit/kill acceptance; finish remaining command
+Next: verify gameplay hit/kill acceptance; finish remaining command
 metadata/UI coverage, the tools/agent CLI and scripted route/fire/report with three
 captures, six format schemas/describe/errors, per-invocation scratch/display/port
 isolation and concurrent full suites, affected-test mapping and executable
@@ -48,15 +46,10 @@ docs/agents recipes. Audit every #163 acceptance requirement before readiness.
 Then full current-main gates/self-review/merge and continue #164 -> #161 -> #15
 through the remaining #25 roadmap. PR166 stays draft until complete.
 
-Hosted f7c3d616 build 35560464296 fails only MSVC's conservative uninitialized
-registry-copy warning; explicit zero initialization corrects it. Earlier shadow
-and int/float warnings are corrected too. Runtime 35560464259 has advanced beyond
-the startup failure: Noble's xvfb-run merged stderr into stdout. The launcher now
-redirects stderr inside that wrapper; the permanent wrapper contract and full
-seeded playthrough under Noble's actual script pass. Latest source needs fresh
-hosted gates; no failed/superseded head is acceptance. Local GCC -Wshadow and
-Clang/libc++ UBSan command probes, boundaries, formatting and shader-free runtime
-checks pass. Detailed evidence and commit history follow below.
+Hosted 7e65095e build 35561020978 passes all compiler legs. Regression
+35561020980 has passed format, match-server, both unit/cross legs, tidy and
+sanitizers; runtime/lifetimes are still running. Latest assertion changes need
+fresh hosted gates. No failed/superseded head is acceptance.
 
 All existing exclusions remain in force. Nothing leaves msetaro/aftershock;
 shipping binaries exclude this tooling. No PR against another repository, no
@@ -83,6 +76,19 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 assertion checkpoint
+
+The test-first native assertion contract failed with no event before abort
+(agent-assert-before.log). Development debug Q_ASSERT now reports through a
+trivial callback before standard assert aborts. Renderer modules receive that
+callback through their existing import table (development ABI 20; shipping 15
+unchanged). No allocation or OS access is added. GCC and Clang/libc++ verify one
+flushed event and SIGABRT, and compare release object bytes against standard
+assert exactly. The tidy controls use the actual macro and reject side effects.
+Full tidy passes 1,286 configurations (agent-tidy.log). Debug seeded playthroughs
+pass with static and module renderers (agent-debug-play.log and
+agent-debug-modules-play.log). No accepted fixtures change.
 
 ## #163 character reload / telemetry checkpoint
 

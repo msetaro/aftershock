@@ -38,15 +38,16 @@ def main():
     (output / 'negative.log').write_text(diagnostic)
     if not negative.returncode or '[readability-duplicate-include,-warnings-as-errors]' not in diagnostic:
         raise RuntimeError('duplicate-include negative control escaped the policy')
-    control.write_text('#include <assert.h>\n#define Q_ASSERT assert\n'
-                       'float Q_fabs(float);\n'
+    assertion_header = f'#include "{ROOT / 'engine/public/assert_public.h'}"\n'
+    assertion_command = [*command, '-DAFTERSHOCK_DEVTOOLS']
+    control.write_text(assertion_header + 'float Q_fabs(float);\n'
                        'void check(int n) { Q_ASSERT(n >= 0); Q_ASSERT(Q_fabs(1.f) == 1.f); }\n')
-    positive = subprocess.run(command, env=ENV, text=True, capture_output=True)
+    positive = subprocess.run(assertion_command, env=ENV, text=True, capture_output=True)
     (output / 'assert-positive.log').write_text(positive.stdout + positive.stderr)
     positive.check_returncode()
-    control.write_text('#include <assert.h>\n#define Q_ASSERT assert\nint mutate();\nfloat Q_fabs(float);\n'
+    control.write_text(assertion_header + 'int mutate();\nfloat Q_fabs(float);\n'
                        'void rejected(int n) { Q_ASSERT(++n); Q_ASSERT(mutate()); Q_ASSERT(Q_fabs(++n)); }\n')
-    negative = subprocess.run(command, env=ENV, text=True, capture_output=True)
+    negative = subprocess.run(assertion_command, env=ENV, text=True, capture_output=True)
     diagnostic = negative.stdout + negative.stderr
     (output / 'assert-negative.log').write_text(diagnostic)
     if not negative.returncode or diagnostic.count('[bugprone-assert-side-effect,-warnings-as-errors]') != 3:

@@ -9,7 +9,7 @@ import signal
 import subprocess
 import resource
 import tempfile
-from run import run
+from run import ROOT, run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cxx', default='g++')
@@ -43,4 +43,15 @@ with tempfile.TemporaryDirectory(prefix='aftershock-agent-protocol-', dir=scratc
     events = [json.loads(line) for line in failed.stdout.splitlines()]
     assert len(events) == 1 and events[0]['event'] == 'assert', events
     assert 'agent assertion contract' in events[0]['detail'] and events[0]['value'] > 0
-print('PASS: native JSON replies, escaped strings, cvar protections and bounded command dispatch')
+    source = Path(temporary) / 'release.cpp'
+    bodies = ['#include <assert.h>\n#define Q_ASSERT assert\n',
+              '#include "' + str(ROOT / 'engine/public/assert_public.h') + '"\n']
+    objects = []
+    for index, header in enumerate(bodies):
+        source.write_text(header + 'int sample(int value) { Q_ASSERT(value > 0); return value + 1; }\n')
+        output = Path(temporary) / f'release-{index}.o'
+        run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-DNDEBUG', '-DAFTERSHOCK_DEVTOOLS',
+             '-c', source, '-o', output])
+        objects.append(output.read_bytes())
+    assert objects[0] == objects[1], 'release assertion code changed'
+print('PASS: native JSON contract, assertion event before abort and identical release assertion object')

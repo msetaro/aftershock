@@ -2238,6 +2238,10 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 		return NULL;
 	}
 
+#if defined( AFTERSHOCK_DEVTOOLS ) && !defined( NDEBUG )
+	q_assertReporter = ri.AssertReport;
+#endif
+
 	// the RE_ functions are Renderer Entry points
 
 	re.Shutdown = RE_Shutdown;

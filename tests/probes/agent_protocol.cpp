@@ -114,6 +114,9 @@ void QDECL Com_Printf( const char *, ... ) {
 	// Responses must use the caller's buffer, never console prose.
 	abort();
 }
+void Com_Quit_f( void ) {
+	abort();
+}
 void QDECL Com_Error( errorParm_t, const char *, ... ) {
 	abort();
 }

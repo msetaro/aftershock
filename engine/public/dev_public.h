@@ -12,6 +12,7 @@ uint64_t Dev_BeginScope( const char *name );
 void Dev_EndScope( uint64_t token );
 void Dev_PredictionError( float distance );
 int Dev_AgentCameraPose( float *origin, float *angles );
+void Dev_AgentAssert( const char *expression, const char *file, int line );
 void Dev_AgentEvent( const char *type, int actor, int target, int value, const char *detail );
 void Dev_RewindReport( uint32_t age, uint32_t limit, int clamped, int hit );
 // Colors are 0xAABBGGRR. Zero duration lasts one frame; positive durations cap at 60s.

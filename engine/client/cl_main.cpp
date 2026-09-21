@@ -3473,6 +3473,9 @@ static void CL_InitRef( void ) {
 	rimp.VK_CreateSurface = VK_CreateSurface;
 #endif
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	rimp.AssertReport = Dev_AgentAssert;
+#endif
 	ret = GetRefAPI( REF_API_VERSION, &rimp );
 
 	Com_Printf( "-------------------------------\n" );
