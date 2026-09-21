@@ -79,6 +79,17 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 final gate integration review
+
+Self-review found the new effects directory missing from the lifetime scanner's
+explicit core list; it is now included and the expanded 1248-command scan is
+running. Boundary/type/tidy scanners already discover owned sources. Subsystem
+ownership and the concise current AGENTS verification section now name the new
+presentation/streaming controls. Residency also participates in affected-test
+selection. Final software combined capture comparison passes with timing and
+hardware-command additions (fidelity-final-software.log). Main remains 07304b32.
+Next: finish final local gates and start the exact-head hosted PR checks.
+
 ## #161 combined hardware budget pass
 
 The permanent `tests/fidelity_runtime.py --measure-gpu` passes serially on RTX
