@@ -69,6 +69,23 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 temporal history test-first contract
+
+PR168's last runtime gate is still running; the previous accepted runtime took
+57 minutes, including 37 minutes in its authored-level/bot step. Independent
+#161 work continues while the isolated #31 fix awaits acceptance. The new
+`tests/temporal.py`/native probe specify bounded previous-rendered-view/entity
+history: copied skin poses, stable identity/model/hash checks, camera and object
+teleport rejection, resize/FOV/cut invalidation, missing/failed-frame rejection,
+capacity and unsigned frame wrap. The pre-implementation compiler fails on the
+absent temporal types/functions (fidelity-temporal-before.log). This is not TAA
+or motion-vector acceptance: actual submission identities, camera jitter,
+animated previous vertices, GPU resolve and visual/performance gates remain.
+
+The strengthened native decal lifecycle also verifies visible notification text
+after a small projected decal; it passes with the scissor correction
+(fidelity-scissor-hud.log). No accepted fixture changed.
+
 ## #161 effects scissor restoration
 
 While #31 PR168 runs required gates, a separate test on the unmerged #161 code

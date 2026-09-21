@@ -107,6 +107,16 @@ with tempfile.TemporaryDirectory(prefix='aftershock-decals-') as temporary:
         if args.editor:
             engine.request('effects.edit',action='stop');engine.step(2)
             assert engine.request('decals')['active']==0
+        engine.request('decals.clear')
+        engine.request('cvar.set',name='con_notifytime',value='5')
+        engine.request('exec',command='clear')
+        engine.request('exec',command='echo DECAL-HUD')
+        hud=capture('hud-clear').crop((0,0,640,64)).tobytes()
+        assert project_at(0);engine.step(1)
+        clipped=capture('hud-decal').crop((0,0,640,64)).tobytes()
+        opaque=[i for i in range(0,len(hud),3) if hud[i:i+3]==b'\xfe\xfe\xfe']
+        assert len(opaque)>20,'opaque HUD text is absent'
+        assert all(abs(hud[i+c]-clipped[i+c])<=2 for i in opaque for c in range(3)), 'decal scissor clipped the HUD'
         engine.request('exec',command='vid_restart');engine.step(40)
         assert engine.request('decals')['registered']==0
         shutil.copyfile(engine.log_path,args.output/'engine.log')
