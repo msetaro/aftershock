@@ -107,5 +107,25 @@ int main() {
 	}
 	assert( !R_ShadowSunViews( &camera, rays, 2, 2048, 2, 1024, sun, splits ) );
 	assert( !R_ShadowSunViews( &camera, vec3_origin, 2, 2048, 0.5f, 1024, sun, splits ) );
+	// Rotated camera and oblique sun still enclose every slice corner.
+	const vec3_t angles = { 35, 127, 12 };
+	AnglesToAxis( angles, camera.orientation.axis );
+	VectorCopy( origin, camera.orientation.origin );
+	for ( float weight : { 0.0f, 0.5f, 1.0f } ) {
+		assert( R_ShadowSunViews( &camera, direction, 2, 2048, weight, 1024, sun, splits ) );
+		nearDistance = 2;
+		for ( int cascade = 0; cascade < 4; cascade++ ) {
+			for ( float distance : { nearDistance, splits[cascade] } )
+				for ( int y : { -1, 1 } )
+					for ( int z : { -1, 1 } ) {
+						vec3_t corner;
+						VectorMA( origin, distance, camera.orientation.axis[0], corner );
+						VectorMA( corner, (float)y * distance, camera.orientation.axis[1], corner );
+						VectorMA( corner, (float)z * distance * tanf( (float)M_PI / 6 ), camera.orientation.axis[2], corner );
+						Inside( sun[cascade], corner );
+					}
+			nearDistance = splits[cascade];
+		}
+	}
 	puts( "PASS: six point faces, spot cone, reversed depth, cascade coverage and stable texel grid" );
 }

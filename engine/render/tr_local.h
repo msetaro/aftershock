@@ -742,6 +742,11 @@ typedef struct {
 #endif
 } viewParms_t;
 
+// Shadow directions follow light rays. Point faces are +X,-X,+Y,-Y,+Z,-Z.
+bool R_ShadowSpotView( const vec3_t origin, const vec3_t direction, float fov, float zNear, float zFar, int size, viewParms_t *view );
+bool R_ShadowPointView( const vec3_t origin, float zNear, float zFar, int face, int size, viewParms_t *view );
+bool R_ShadowSunViews( const viewParms_t *camera, const vec3_t direction, float zNear, float distance, float splitWeight, int size, viewParms_t views[4], float splits[4] );
+
 /*
 ==============================================================================
 

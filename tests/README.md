@@ -23,6 +23,7 @@ python3 tests/replication_policy.py
 python3 tests/identity.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
+python3 tests/shadow_views.py
 python3 tests/cook.py
 python3 tests/iqm_scale.py
 python3 tests/cook_runtime.py
@@ -967,6 +968,14 @@ Intensity keeps the legacy map color conversion; direction bytes never receive
 color/gamma processing. New baked shader programs leave all 76 earlier binaries
 unchanged. A dominant direction approximates multi-light irradiance, with grazing
 amplification bounded at 4x; it is not full spherical-harmonic irradiance.
+`python3 tests/shadow_views.py` compiles the portable shadow cameras with UBSan;
+`--cxx 'clang++ -stdlib=libc++'` checks the other compiler family. Analytical checks
+cover six point faces, spot cone, reversed depth, culling planes and all four sun
+cascades with rotated cameras and linear/logarithmic split mixtures. Sun extents
+use rotation-independent receiver spheres and snap to shadow texels. Caster
+extrusion is bounded by the configured shadow distance. This validates view math;
+it does not claim native shadow rendering or its performance budget.
+
 Dynamic shadow maps, sun cascades, reflection baking and SSAO still require their
 separate #14 implementation/acceptance before the issue can close.
 

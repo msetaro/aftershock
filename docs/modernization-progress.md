@@ -53,6 +53,21 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
+## #14 shadow-view implementation checkpoint
+
+Test-first commit 8e8252ef precedes tr_shadow.cpp. The shared spot projection also
+constructs six point faces. Four sun cameras mix logarithmic/linear splits, enclose
+receiver frustum spheres, snap lateral centers to texels and retain bounded
+upstream caster coverage. Existing scene/FP projections are untouched. GCC and
+Clang/libc++ analytical UBSan checks pass, including rotated cameras/oblique sun,
+with all split mixtures; logs lighting-shadow-views-{gcc,clang}.log. Native CMake
+build passes (lighting-shadow-views-build.log), as do format/type/boundary gates.
+The test runs on both hosted unit compiler legs. No accepted reference changed.
+
+This is allocation-free view construction only; it is not yet called by rendering.
+Next connect caster submission and depth-pass recording, then receiver lighting.
+Shadow quality, reflections/SSAO and reference-GPU acceptance remain outstanding.
+
 ## #14 shadow-view test-first checkpoint
 
 The new tests/shadow_views.py compiles an analytical probe with UBSan. It specifies
