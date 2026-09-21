@@ -64,6 +64,15 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 native LOD contract
+
+The cooker manifest now passes its initial assertions. A new native LOD probe
+requires unchanged animated joint matrices, compatible skeletons, projected-size
+selection, scaled-entity handling, bias clamps and no selection-time allocation.
+Its pre-implementation compile fails on absent R_IQMLodCompatible; the IQM branch
+of the existing LOD selector is also still absent. Native registration/reload and
+visual lifecycle coverage remain to follow.
+
 ## #161 LOD manifest contract fails before implementation
 
 The extended cooker test requires a versioned .aslod sidecar binding the original

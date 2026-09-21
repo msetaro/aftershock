@@ -3,14 +3,17 @@
 import argparse
 import hashlib
 import json
+import shlex
+import subprocess
 from pathlib import Path
 import struct
 import tempfile
 
 from cook import cook,model_header,source_assets
-from run import SCRATCH
+from run import ROOT, SCRATCH
 
 parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--cxx',default='c++')
 parser.add_argument('--output',type=Path,default=SCRATCH/'aftershock-lod')
 args=parser.parse_args()
 args.output=args.output.resolve()
@@ -90,4 +93,11 @@ with tempfile.TemporaryDirectory(prefix='aftershock-lod-source-') as temporary:
     cook(project,args.output/'repeat')
     assert hashes=={p.relative_to(args.output/'repeat').as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
                     for p in (args.output/'repeat').rglob('*.iqm')}
+probe=args.output/'lod-probe'
+subprocess.run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+                '-DUSE_VULKAN_API','-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+                '-ffp-contract=off','-fno-fast-math','-fsanitize=undefined','-fno-sanitize-recover=all',
+                'tests/probes/lod.cpp','engine/qcommon/q_shared.cpp','engine/qcommon/q_math.cpp',
+                '-Wl,--gc-sections','-o',str(probe)],cwd=ROOT,check=True)
+subprocess.run([str(probe),*[str(args.output/f'lod/models/grid{suffix}.iqm') for suffix in ('','_lod1','_lod2')]],check=True)
 print('PASS: compact mesh LODs, retained original/skeleton/animation and repeated deterministic cooking')
