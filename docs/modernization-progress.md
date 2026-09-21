@@ -27,8 +27,8 @@ legs) and regression 35553788957 (10 required legs) both passed. Main/base
 4088ff6eea6cb060f109a9b7e33fe9f1bd9919f2; known-good is unchanged. Merged build /
 actual publication 35555156611 passed, including all 16 compiler legs and six
 platform archives in repository prerelease build-4ade5c3a9cad9cd71a04ca2641db2f74b8355774.
-Regression 35555156633 remains in progress (runtime and lifetimes).
-Finish those integration gates before accepting #14 and opening #163's PR.
+Regression 35555156633 passed all 10 required legs. #14 is accepted and checked
+in #25; both merged-tree workflows are green. Continue #163 below.
 
 #163 test preparation is /home/matt/.cache/aftershock-modernization/agent-tree,
 branch issue/163-agent-interface from main 782c0dbc. The initial native command
@@ -44,7 +44,8 @@ sets. Next extend entities, raw input, profiling/events/captures and shared UI
 actions, then finish the rest of #163. Since the merged #14
 tree exactly equals its tested head, isolated #163 implementation proceeds while
 integration verification finishes; opening its PR still waits for #14 acceptance.
-No PR for #163 opens before #14 acceptance. Updated #25 sequence is #163 -> #164
+#14 integration acceptance is now complete; #163 may open its own draft PR when
+its next coherent checkpoint is ready. Updated #25 sequence is #163 -> #164
 -> #161 -> #15 and the remaining roadmap. All existing exclusions remain in force.
 
 The new test uses a unique TemporaryDirectory, optionally under
@@ -73,6 +74,19 @@ jobs; repaired main publication now clears its last integration blocker.
 Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+
+## #163 PNG capture checkpoint
+
+The capture command schedules the existing renderer readback and returns a
+structured relative path. Two explicit frames complete a populated 640x480 PNG,
+validated by Pillow in the full deterministic playthrough (agent-capture.log).
+The native writer reuses the engine's CRC helper and emits stored DEFLATE, avoiding
+an added encoder dependency. It allocates temporary hunk memory only for an
+explicit capture and is excluded from shipping builds. PNG captures refuse
+existing output names. GCC/Clang protocol, boundaries and formatting pass.
+The macOS --agent argument removal now preserves argv[0] for bundle discovery.
+Next: camera poses/raw usercmds/events and shared UI commands, then the remaining
+#163 tools/schemas/isolation/recipes and final full gates.
 
 ## #163 entity and profiler checkpoint
 
@@ -145,16 +159,17 @@ fails with no JSON response as expected (agent-channel-before.log).
 This is only the first command slice, not #163 acceptance. Transport, stepping,
 shared UI actions, tools/schemas/isolation/recipes and full gates remain.
 
-## #14 merged; integration verification pending
+## #14 accepted on main
 
 PR165 was marked ready and merged 2026-09-21 after all required exact-head jobs
 passed on bda5ed1f. Fresh main and PR base both equaled 782c0dbc immediately
 before the merge. Merge commit 4ade5c3a9cad9cd71a04ca2641db2f74b8355774 has
 parents 782c0dbc and bda5ed1f and exactly the tested tree
 4088ff6eea6cb060f109a9b7e33fe9f1bd9919f2. Known-good-2026-09-20 remains unchanged.
-Merged build/publication 35555156611 and regression 35555156633 still must pass.
-No #163 engine implementation or PR yet; its initial failing command contract
-is d429929d. Earlier superseded 607855b9/c9dc3835 regression runs were cancelled
+Merged build/publication 35555156611 and regression 35555156633 both PASS:
+16 compiler legs, 10 required regression jobs, and actual six-platform prerelease.
+#14 is checked in #25. #163 implementation is underway as recorded above; its
+initial failing command contract was d429929d. Earlier superseded 607855b9/c9dc3835 regression runs were cancelled
 to free runners; neither was accepted. Fresh #25 ordering remains #163, #164,
 #161, then #15 and the remaining roadmap.
 

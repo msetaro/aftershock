@@ -880,6 +880,72 @@ void RB_TakeScreenshot( int x, int y, int width, int height, const char *fileNam
 }
 
 
+#ifdef AFTERSHOCK_DEVTOOLS
+static void PNG_U32( byte *output, uint32_t value ) {
+	output[0] = (byte)( value >> 24 );
+	output[1] = (byte)( value >> 16 );
+	output[2] = (byte)( value >> 8 );
+	output[3] = (byte)value;
+}
+
+static void PNG_Chunk( byte *output, const char *type, uint32_t length ) {
+	PNG_U32( output, length );
+	memcpy( output + 4, type, 4 );
+	PNG_U32( output + 8 + length, crc32_buffer( output + 4, length + 4 ) );
+}
+
+void RB_TakeScreenshotPNG( int width, int height, const char *fileName ) {
+	if ( width <= 0 || height <= 0 || (uint64_t)width * (uint64_t)height > 16 * 1024 * 1024 ) {
+		ri.Printf( PRINT_WARNING, "Agent PNG capture exceeds 16 million pixels\n" );
+		return;
+	}
+	size_t offset = 0;
+	int padding;
+	byte *pixels = RB_ReadPixels( 0, 0, width, height, &offset, &padding, 0 );
+	const uint32_t stride = (uint32_t)width * 3;
+	const uint32_t rawLength = ( stride + 1 ) * (uint32_t)height;
+	const uint32_t blocks = ( rawLength + 65534 ) / 65535;
+	const uint32_t deflateLength = rawLength + 5 * blocks + 6;
+	const uint32_t fileLength = deflateLength + 57;
+	byte *png = (byte *)ri.Hunk_AllocateTempMemory( fileLength );
+	memcpy( png, "\x89PNG\r\n\x1a\n", 8 );
+	PNG_U32( png + 16, (uint32_t)width );
+	PNG_U32( png + 20, (uint32_t)height );
+	const byte format[5] = { 8, 2, 0, 0, 0 }; // RGB8, no interlace.
+	memcpy( png + 24, format, sizeof( format ) );
+	PNG_Chunk( png + 8, "IHDR", 13 );
+	byte *data = png + 41;
+	*data++ = 0x78;
+	*data++ = 0x01;
+	uint32_t remaining = rawLength, cursor = 0, a = 1, b = 0;
+	R_GammaCorrect( pixels + offset, (int)( ( stride + (uint32_t)padding ) * (uint32_t)height ) );
+	// ponytail: stored DEFLATE avoids a new encoder dependency; compress if capture size becomes a bottleneck.
+	while ( remaining ) {
+		const uint32_t size = MIN( remaining, 65535u );
+		*data++ = remaining == size ? 1 : 0;
+		*data++ = (byte)size;
+		*data++ = (byte)( size >> 8 );
+		*data++ = (byte)~size;
+		*data++ = (byte)( ~size >> 8 );
+		for ( uint32_t i = 0; i < size; ++i, ++cursor ) {
+			const uint32_t row = cursor / ( stride + 1 );
+			const uint32_t column = cursor % ( stride + 1 );
+			const byte value = column ? pixels[offset + ( (uint32_t)height - row - 1 ) * ( stride + (uint32_t)padding ) + column - 1] : 0;
+			*data++ = value; // Filter byte 0 precedes each top-to-bottom RGB row.
+			a = ( a + value ) % 65521;
+			b = ( b + a ) % 65521;
+		}
+		remaining -= size;
+	}
+	PNG_U32( data, ( b << 16 ) | a );
+	PNG_Chunk( png + 33, "IDAT", deflateLength );
+	PNG_Chunk( png + fileLength - 12, "IEND", 0 );
+	ri.FS_WriteFile( fileName, png, (int)fileLength );
+	ri.Hunk_FreeTempMemory( png );
+	ri.Hunk_FreeTempMemory( pixels );
+}
+#endif
+
 /*
 ==================
 RB_TakeScreenshotJPEG
@@ -1140,7 +1206,13 @@ static void R_ScreenShot_f( void ) {
 		return;
 	}
 
-	if ( Q_stricmp( ri.Cmd_Argv( 0 ), "screenshotJPEG" ) == 0 ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( Q_stricmp( ri.Cmd_Argv( 0 ), "screenshotPNG" ) == 0 ) {
+		typeMask = SCREENSHOT_PNG;
+		ext = "png";
+	} else
+#endif
+		if ( Q_stricmp( ri.Cmd_Argv( 0 ), "screenshotJPEG" ) == 0 ) {
 		typeMask = SCREENSHOT_JPG;
 		ext = "jpg";
 	} else if ( Q_stricmp( ri.Cmd_Argv( 0 ), "screenshotBMP" ) == 0 ) {
@@ -1179,7 +1251,12 @@ static void R_ScreenShot_f( void ) {
 
 	// we will make screenshot right at the end of RE_EndFrame()
 	backEnd.screenshotMask |= typeMask;
-	if ( typeMask == SCREENSHOT_JPG ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( typeMask == SCREENSHOT_PNG ) {
+		Q_strncpyz( backEnd.screenshotPNG, checkname, sizeof( backEnd.screenshotPNG ) );
+	} else
+#endif
+		if ( typeMask == SCREENSHOT_JPG ) {
 		backEnd.screenShotJPGsilent = silent;
 		Q_strncpyz( backEnd.screenshotJPG, checkname, sizeof( backEnd.screenshotJPG ) );
 	} else if ( typeMask == SCREENSHOT_BMP ) {
@@ -1565,6 +1642,9 @@ static void R_Register( void ) {
 	ri.Cmd_AddCommand( "skinlist", R_SkinList_f );
 	ri.Cmd_AddCommand( "modellist", R_Modellist_f );
 	ri.Cmd_AddCommand( "screenshot", R_ScreenShot_f );
+#ifdef AFTERSHOCK_DEVTOOLS
+	ri.Cmd_AddCommand( "screenshotPNG", R_ScreenShot_f );
+#endif
 	ri.Cmd_AddCommand( "screenshotJPEG", R_ScreenShot_f );
 	ri.Cmd_AddCommand( "screenshotBMP", R_ScreenShot_f );
 	ri.Cmd_AddCommand( "gfxinfo", GfxInfo_f );
@@ -2050,6 +2130,9 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 	ri.Cmd_RemoveCommand( "screenshotBMP" );
 	ri.Cmd_RemoveCommand( "screenshotJPEG" );
 	ri.Cmd_RemoveCommand( "screenshot" );
+#ifdef AFTERSHOCK_DEVTOOLS
+	ri.Cmd_RemoveCommand( "screenshotPNG" );
+#endif
 	ri.Cmd_RemoveCommand( "imagelist" );
 	ri.Cmd_RemoveCommand( "shaderlist" );
 	ri.Cmd_RemoveCommand( "skinlist" );

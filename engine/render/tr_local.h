@@ -1232,7 +1232,10 @@ enum {
 	SCREENSHOT_JPG = 1 << 1,
 	SCREENSHOT_BMP = 1 << 2,
 	SCREENSHOT_BMP_CLIPBOARD = 1 << 3,
-	SCREENSHOT_AVI = 1 << 4 // take video frame
+	SCREENSHOT_AVI = 1 << 4, // take video frame
+#ifdef AFTERSHOCK_DEVTOOLS
+	SCREENSHOT_PNG = 1 << 5
+#endif
 };
 
 // all state modified by the back end is separated
@@ -1253,6 +1256,9 @@ typedef struct {
 
 	int screenshotMask; // tga | jpg | bmp
 	char screenshotTGA[MAX_OSPATH];
+#ifdef AFTERSHOCK_DEVTOOLS
+	char screenshotPNG[MAX_OSPATH];
+#endif
 	char screenshotJPG[MAX_OSPATH];
 	char screenshotBMP[MAX_OSPATH];
 	qboolean screenShotTGAsilent;
@@ -2078,6 +2084,9 @@ extern backEndData_t *backEndData;
 
 void RB_ExecuteRenderCommands( const void *data );
 void RB_TakeScreenshot( int x, int y, int width, int height, const char *fileName );
+#ifdef AFTERSHOCK_DEVTOOLS
+void RB_TakeScreenshotPNG( int width, int height, const char *fileName );
+#endif
 void RB_TakeScreenshotJPEG( int x, int y, int width, int height, const char *fileName );
 void RB_TakeScreenshotBMP( int x, int y, int width, int height, const char *fileName, int clipboard );
 

@@ -544,13 +544,34 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	if ( !Agent_String( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
-		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"profile\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
+		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"exec\",\"cvar.get\",\"cvar.set\",\"session\",\"step\",\"map\",\"state\",\"input\",\"profile\",\"capture\",\"entity.list\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
 	} else if ( !strncmp( op, "entity.", 7 ) ) {
 		return Agent_Entity( op, request, end, reply );
 	} else if ( !strcmp( op, "profile" ) ) {
 		Agent_Profile( reply );
 	} else if ( !strcmp( op, "state" ) ) {
 		Agent_State( reply );
+	} else if ( !strcmp( op, "capture" ) ) {
+#ifdef DEDICATED
+		return reply.Error( "unsupported", "$", "Frame capture requires a client build." );
+#else
+		p = JSON_ObjectGetNamedValue( request, end, "name" );
+		if ( !Agent_String( p, end, name, 64 ) || !name[0] )
+			return reply.Error( "invalid_argument", "$.name", "Use a capture name shorter than 64 bytes." );
+		for ( const char *c = name; *c; ++c )
+			if ( !( ( *c >= 'a' && *c <= 'z' ) || ( *c >= 'A' && *c <= 'Z' ) || ( *c >= '0' && *c <= '9' ) || *c == '_' || *c == '-' ) )
+				return reply.Error( "invalid_argument", "$.name", "Use letters, digits, underscores or dashes." );
+		snprintf( value, sizeof( value ), "screenshots/%s.png", name );
+		if ( FS_FileExists( value ) )
+			return reply.Error( "exists", "$.name", "Choose a new name; captures never overwrite a file." );
+		reply.Text( ",\"ok\":true,\"result\":{\"path\":" );
+		reply.String( value );
+		reply.Text( ",\"queued\":true}}" );
+		if ( reply.valid ) {
+			snprintf( value, sizeof( value ), "screenshotPNG %s\n", name );
+			Cbuf_AddText( value );
+		}
+#endif
 	} else if ( !strcmp( op, "map" ) ) {
 		p = JSON_ObjectGetNamedValue( request, end, "name" );
 		if ( !Agent_String( p, end, name, MAX_QPATH ) || !name[0] || strstr( name, ".." ) )

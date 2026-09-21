@@ -890,6 +890,7 @@ int main( int argc, const char *argv[] ) {
 #ifdef AFTERSHOCK_DEVTOOLS
 	if ( argc > 1 && !strcmp( argv[1], "--agent" ) ) {
 		DevTools_AgentEnable();
+		argv[1] = argv[0]; // Preserve the executable path for macOS bundle discovery.
 		++argv;
 		--argc;
 	}

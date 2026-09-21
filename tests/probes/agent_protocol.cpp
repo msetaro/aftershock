@@ -16,6 +16,9 @@ const devNetwork_t *DevTools_Network( void ) {
 	static devNetwork_t network;
 	return &network;
 }
+qboolean FS_FileExists( const char * ) {
+	return qfalse;
+}
 int FS_ReadFile( const char *, void ** ) {
 	return -1;
 }
