@@ -42,10 +42,14 @@ recorded replay, changed-input comparison, zero step allocations, caller allocat
 ownership, complete teardown/reinitialization, FP control and fixed temporary
 buffer exhaustion. Each change followed its recorded failing test.
 
-Next implement/test the owned POD physics boundary with caller-owned arena
-storage and prepared body/shape pools. Prove full-capacity spawn/recycle and
-queries before connecting client props, skeleton death presentation and tooling.
-No engine target links physics yet, and #15 has no PR. The branch checkpoint is
+The owned POD boundary now passes caller-owned storage, all 256 prepared body
+slots, four spawn/recycle cycles, inactive filtering, ray/convex queries and
+swing/twist joint reuse on both compilers. Independent C++ allocation counters
+caught query-filter wrappers outside the arena; their registered allocation
+operators now pass too. Next link the client target, add map collision loading,
+client prop/grenade presentation, skeleton deaths and tooling. Preserve native
+movement/hit registration and run fixed demos. No engine target links physics
+yet, and #15 has no PR. The branch checkpoint is
 pushed through 0aeeb11c; issue comment 5765963611 records the dependency evidence.
 
 Private dependency research is recorded on #15 (comment 5765263819) and in
@@ -72,6 +76,15 @@ accepted frame fixtures and shader arrays are unchanged.
 
 After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. No maintainer input is currently needed.
+
+## #15 owned boundary and query allocator checks pass
+
+GCC and Clang/libc++ UBSan pass the full owned-boundary driver, including missing-
+joint control and zero independent C++ allocation calls during setup/steps.
+Managed object-layer/body filter wrappers now use Jolt's registered allocation
+operators; provenance retains the original hash and current adapted hash.
+Evidence: physics-filter-after.log / physics-filter-clang.log. The recorded
+foreign prop scene hash remains unchanged. Client linking/integration is next.
 
 ## #15 prepared joint test first
 

@@ -14,9 +14,9 @@
     "src/joltc_assert.cpp": "fbd37aa6beecc4db230ffe5cb9f6fe96a1faa68ad530faaa3a115d25c61ea483"
   },
   "local_changes": {
-    "reason": "Prepare the callback job page, preserve complete caller allocators, allocate the world wrapper through Jolt callbacks, release the last world lookup table and use fixed standard/legacy temporary buffers without heap fallback. Original hashes remain in files.",
+    "reason": "Prepare the callback job page, preserve complete caller allocators, allocate the world wrapper through Jolt callbacks, release the last world lookup table and use fixed standard/legacy temporary buffers without heap fallback. Original hashes remain in files. Managed object-layer/body query filters also use registered Jolt allocation operators.",
     "files": {
-      "src/joltc.cpp": "8e21e93ee549c3ed593e84b2fb05f158c66d08e36b2627c8cae5c6d670b85176"
+      "src/joltc.cpp": "3da13b73194fc5d86ad2136bff4f7df3ac59845222925e4605e78cc4db29a0ee"
     }
   }
 }

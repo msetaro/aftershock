@@ -1210,6 +1210,7 @@ static const JPH::ObjectLayerFilter& ToJolt(const JPH_ObjectLayerFilter* objectL
 class ManagedObjectLayerFilter final : public JPH::ObjectLayerFilter
 {
 public:
+	JPH_OVERRIDE_NEW_DELETE
 	static const JPH_ObjectLayerFilter_Procs* s_Procs;
 	void* userData = nullptr;
 
@@ -1262,6 +1263,7 @@ static const JPH::BodyFilter& ToJolt(const JPH_BodyFilter* bodyFilter)
 class ManagedBodyFilter final : public JPH::BodyFilter
 {
 public:
+	JPH_OVERRIDE_NEW_DELETE
 	static const JPH_BodyFilter_Procs* s_Procs;
 	void* userData = nullptr;
 

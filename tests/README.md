@@ -1443,5 +1443,12 @@ Use `--cxx 'clang++ -stdlib=libc++' --output /tmp/physics-clang` for the second
 compiler. CMake, Ninja and the selected compiler/runtime are required. Builds
 use only vendored sources; provenance retains original hashes and explicitly
 records the local scratch/job-page changes. GPU compute, newer x86 instruction
-requirements, exceptions and RTTI are disabled. This dependency test does not
-establish engine integration, full pool-capacity behavior or ragdoll acceptance.
+requirements, exceptions and RTTI are disabled. The owned boundary probe also prepares all 256 slots in caller-supplied storage,
+runs four full-capacity spawn/step/despawn cycles, excludes inactive bodies from
+queries, checks ray and convex-sweep fractions, and repeats the entire lifetime.
+A swing/twist joint resists opposing velocities; omitting it must fail the
+separation check (`missing-joint.log`). Both arena and independent C++ allocation
+counters must remain unchanged after setup, with no outstanding arena blocks at
+shutdown. Slots stay in the broadphase on an excluded, non-colliding object layer
+while unused; setup uses a bounded monotonic arena reclaimed at map teardown.
+These checks do not establish client integration or ragdoll presentation acceptance.
