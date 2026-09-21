@@ -9,6 +9,10 @@ static postRenderStats_t postStats;
 
 void RE_PostStats( postRenderStats_t *stats ) {
 	*stats = postStats;
+	stats->effectsCpuUsec = tr.effectsCpuUsec;
+	stats->decalsCpuUsec = tr.decalsCpuUsec;
+	stats->effectsDrawCpuUsec = tr.effectsDrawCpuUsec;
+	stats->lodCpuUsec = tr.lodCpuUsec;
 	const auto history = R_TemporalStats();
 	stats->historyStored = history.stored;
 	stats->historyMatched = history.matched;

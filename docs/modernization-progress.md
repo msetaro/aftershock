@@ -81,6 +81,19 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 presentation timing implementation
+
+The failing timing assertion now passes with the four software references still
+pixel-identical (fidelity-timing-after.log). Renderer API 31 development / 25
+shipping exposes cumulative microseconds for effect preparation, decal preparation,
+combined soft-particle/decal backend submission and model LOD selection. Agent
+`profile.presentationCpuUsec` and the profiler show these totals; hardware sampling
+differences consecutive totals. The existing no-wait GPU query pool also records
+a nested `decals` scope. No allocations or authoritative simulation edits were
+introduced. Native LOD timing uses a deterministic clock control and passes with
+six measured calls (fidelity-presentation-lod.log). Client build, format/types/
+boundaries and the native ABI gate pass. Next: serial combined hardware workload.
+
 ## #161 combined visual scene and remaining declared budgets
 
 The new `tests/fidelity_runtime.py` combines the generated two_lane level, nine

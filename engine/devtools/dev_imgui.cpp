@@ -1613,6 +1613,11 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 		textures.pending, (double)textures.retiredBytes / ( 1024 * 1024 ), textures.reloads );
 	ImGui::Text( "Texture upload GPU %.3f ms (%" PRIu64 " samples); %" PRIu64 " submissions / %.1f MiB",
 		textures.gpuUsec / 1000, textures.gpuSamples, textures.uploadSubmissions, (double)textures.uploadBytes / ( 1024 * 1024 ) );
+	postRenderStats_t presentation;
+	renderer->PostStats( &presentation );
+	ImGui::Text( "Cumulative presentation CPU ms: effects %.3f / decals %.3f / soft-decal backend %.3f / LOD %.3f",
+		(double)presentation.effectsCpuUsec / 1000, (double)presentation.decalsCpuUsec / 1000,
+		(double)presentation.effectsDrawCpuUsec / 1000, (double)presentation.lodCpuUsec / 1000 );
 	ImGui::TextUnformatted( "Completed GPU frame (no additional wait)" );
 	for ( uint32_t i = 0; i < count; ++i )
 		ImGui::Text( "%s: %.3f ms", timings[i].name, timings[i].microseconds / 1000.0 );

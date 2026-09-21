@@ -151,6 +151,7 @@ R_ComputeLOD
 =================
 */
 int R_ComputeLOD( trRefEntity_t *ent ) {
+	const uint64_t start = ri.Microseconds();
 	float radius;
 	float flod, lodscale;
 	float projectedRadius;
@@ -224,6 +225,7 @@ int R_ComputeLOD( trRefEntity_t *ent ) {
 	if ( lod < 0 )
 		lod = 0;
 
+	tr.lodCpuUsec += ri.Microseconds() - start;
 	return lod;
 }
 

@@ -1527,7 +1527,7 @@ static void RB_DebugGraphics( void ) {
 RB_DrawSurfs
 =============
 */
-static void RB_PresentationEffects() {
+static void RB_PresentationEffectsUnprofiled() {
 	if ( ( !r_softParticles->integer && !r_decals->integer ) || ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ||
 		 backEnd.viewParms.portalView != PV_NONE || backEnd.refdef.switchRenderPass )
 		return;
@@ -1577,6 +1577,12 @@ static void RB_PresentationEffects() {
 		R_EffectSoftDraw( RHI_DrawParticle( &draw, &image->texture, ( stage->stateBits & GLS_DSTBLEND_BITS ) == GLS_DSTBLEND_ONE ) );
 	}
 	RHI_EndEffects();
+}
+
+static void RB_PresentationEffects() {
+	const uint64_t start = ri.Microseconds();
+	RB_PresentationEffectsUnprofiled();
+	tr.effectsDrawCpuUsec += ri.Microseconds() - start;
 }
 
 static temporalView_t RB_TemporalView() {

@@ -983,6 +983,9 @@ static void Agent_Profile( agentReply_t &reply ) {
 		postRenderStats_t post;
 		renderer->PostStats( &post );
 		char status[384];
+		snprintf( status, sizeof( status ), ",\"presentationCpuUsec\":{\"effects\":%" PRIu64 ",\"decals\":%" PRIu64 ",\"effectsDraw\":%" PRIu64 ",\"lod\":%" PRIu64 "}",
+			post.effectsCpuUsec, post.decalsCpuUsec, post.effectsDrawCpuUsec, post.lodCpuUsec );
+		reply.Text( status );
 		snprintf( status, sizeof( status ), ",\"post\":{\"loads\":%u,\"draws\":%u,\"dropped\":%u}", post.loads, post.draws, post.dropped );
 		reply.Text( status );
 		snprintf( status, sizeof( status ), ",\"temporal\":{\"frames\":%u,\"dropped\":%u,\"motionDraws\":%u,\"reactiveDraws\":%u,\"stored\":%u,\"matched\":%u,\"rejected\":%u,\"overflow\":%u}",

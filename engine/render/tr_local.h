@@ -1419,6 +1419,7 @@ typedef struct {
 
 	frontEndCounters_t pc;
 	int frontEndMsec; // not in pc due to clearing issue
+	uint64_t effectsCpuUsec, decalsCpuUsec, effectsDrawCpuUsec, lodCpuUsec; // cumulative presentation clocks
 
 	//
 	// put large tables at the end, so most elements will be

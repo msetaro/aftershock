@@ -30,9 +30,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 30
+#define REF_API_VERSION 31
 #else
-#define REF_API_VERSION 24
+#define REF_API_VERSION 25
 #endif
 
 //
@@ -54,6 +54,7 @@ struct textureStreamingStats_t {
 static_assert( std::is_trivially_copyable_v<textureStreamingStats_t> );
 
 struct postRenderStats_t {
+	uint64_t effectsCpuUsec, decalsCpuUsec, effectsDrawCpuUsec, lodCpuUsec;
 	uint32_t loads, draws, dropped;
 	uint32_t temporalFrames, temporalDropped, motionDraws, reactiveDraws;
 	uint32_t historyStored, historyMatched, historyRejected, historyOverflow;

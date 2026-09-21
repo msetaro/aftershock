@@ -7,6 +7,10 @@ refimport_t ri;
 trGlobals_t tr;
 cvar_t *r_lodscale, *r_lodbias;
 static uint32_t allocations;
+static int64_t clockTime() {
+	static int64_t ticks;
+	return ++ticks;
+}
 static void *allocate( size_t size, ha_pref ) {
 	allocations++;
 	return calloc( 1, size );
@@ -41,6 +45,7 @@ int main( int argc, char **argv ) {
 	assert( argc == 4 );
 	ri.Hunk_Alloc = allocate;
 	ri.Printf = print;
+	ri.Microseconds = clockTime;
 	model_t models[3] = { load( argv[1] ), load( argv[2] ), load( argv[3] ) };
 	for ( int i = 1; i < 3; i++ ) {
 		const iqmData_t *base = (iqmData_t *)models[0].modelData;
@@ -84,6 +89,7 @@ int main( int argc, char **argv ) {
 	bias.integer = -99;
 	assert( R_ComputeLOD( &entity ) == 0 );
 	assert( allocations == 3 );
+	assert( tr.lodCpuUsec == 6 );
 	for ( model_t &model : models )
 		free( model.modelData );
 	puts( "PASS: native animated mesh LOD compatibility, projected size and scaled entities" );

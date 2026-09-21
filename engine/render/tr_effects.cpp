@@ -359,6 +359,7 @@ void R_AddDecals( const refdef_t *view ) {
 	}
 }
 void RB_DrawDecals( const rhiRect_t *viewport, const float *transform ) {
+	const uint32_t scope = backEnd.refdef.numDecals ? RHI_BeginScope( "decals" ) : RHI_INVALID_OFFSET;
 	for ( int i = 0; i < backEnd.refdef.numDecals; ++i ) {
 		const auto &draw = backEnd.refdef.decals[i];
 		rhiDecal_t u = draw.parameters;
@@ -412,6 +413,7 @@ void RB_DrawDecals( const rhiRect_t *viewport, const float *transform ) {
 		else
 			++decalDrops;
 	}
+	RHI_EndScope( scope );
 }
 #ifdef AFTERSHOCK_DEVTOOLS
 static void ReloadDecals( const cookedIndex_t *index ) {
