@@ -43,6 +43,11 @@ with tempfile.TemporaryDirectory(prefix='aftershock-agent-protocol-', dir=scratc
     events = [json.loads(line) for line in failed.stdout.splitlines()]
     assert len(events) == 1 and events[0]['event'] == 'assert', events
     assert 'agent assertion contract' in events[0]['detail'] and events[0]['value'] > 0
+    crowded = subprocess.run([binary, '--assert', '--full-queue'], cwd=temporary, capture_output=True, timeout=10)
+    assert crowded.returncode == -signal.SIGABRT
+    crowded_events = [json.loads(line) for line in crowded.stdout.splitlines()]
+    assert crowded_events[-1]['event'] == 'assert', 'full event queue lost the fatal assertion'
+    assert sum(row.get('dropped', 0) for row in crowded_events) == 1
     source = Path(temporary) / 'release.cpp'
     bodies = ['#include <assert.h>\n#define Q_ASSERT assert\n',
               '#include "' + str(ROOT / 'engine/public/assert_public.h') + '"\n']

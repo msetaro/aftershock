@@ -76,6 +76,14 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 assertion delivery self-review
+
+A new full-queue assertion control fails first: 257 queued warnings cause the
+fatal assertion event to be dropped (agent-assert-queue-before.log). This is an
+unmerged #163 channel defect. Flush pending events before queuing the fatal report,
+then flush it before abort. Preserve the explicit overflow count and release
+assertion object identity. This does not alter shipping error handling.
+
 ## #163 executable handbook checkpoint
 
 All seven handbook recipes pass with OA development binaries (agent-recipes.log):

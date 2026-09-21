@@ -148,6 +148,9 @@ int main( int argc, char ** ) {
 		char response[1024];
 		const char *subscribe = R"({"id":1,"op":"subscribe","enabled":true})";
 		assert( DevTools_AgentRequest( subscribe, (uint32_t)strlen( subscribe ), response, sizeof( response ) ) );
+		if ( argc > 2 )
+			for ( int i = 0; i < 257; ++i )
+				Dev_AgentEvent( "warning", -1, -1, 0, "queued before assert" );
 		Q_ASSERT( false && "agent assertion contract" );
 		return 2;
 	}
