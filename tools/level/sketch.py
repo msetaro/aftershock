@@ -63,11 +63,13 @@ def measure(image,notes,previous=None):
     require(type(gap) is int and 1<=gap<=31 and 0<simplify<=32, 'gap/simplification limits exceeded')
     kernel = np.ones((gap,gap),np.uint8)
     candidates = []
+    color_masks = []
     explained = np.zeros_like(available)
     for key in keys:
         color = rgb(key['color'])
         mask = (np.linalg.norm(pixels.astype(np.float32)-color,axis=2)<=notes.get('color_distance',65)).astype(np.uint8)*255
         explained |= mask
+        color_masks.append((key,mask))
         if key['classification']!='geometry':
             continue
         mask &= available
@@ -125,6 +127,47 @@ def measure(image,notes,previous=None):
     for mark in marks:
         if mark['classification']=='geometry' and mark['id'] not in used:
             assumptions.append(dict(id=mark['id'],reason='No measured geometry matches this mark',decision='not compiled'))
+    covered = np.zeros_like(available)
+    for mark in marks:
+        if 'region' in mark:
+            x,y,X,Y = map(int,mark['region'])
+            cv2.rectangle(covered,(x,y),(X,Y),255,-1)
+        if mark.get('pixel_polygon'):
+            cv2.fillPoly(covered,[np.array(mark['pixel_polygon'],dtype=np.int32)],255)
+        if mark.get('points'):
+            points = np.array(mark['points'],dtype=np.int32)
+            cv2.polylines(covered,[points],False,255,max(12,gap*2))
+            # The arrowhead belongs to the interpreted route endpoint.
+            for point in (points[0],points[-1]):
+                cv2.circle(covered,tuple(point),32,255,-1)
+    covered = cv2.dilate(covered,np.ones((5,5),np.uint8))
+    def unread_components(mask,classification,color=None):
+        # Group nearby letter strokes; retain boxes for the agent's vision reader.
+        joined = cv2.morphologyEx(mask,cv2.MORPH_CLOSE,np.ones((3,9),np.uint8))
+        count,labels,stats,centers = cv2.connectedComponentsWithStats(joined)
+        for index in range(1,count):
+            x,y,w,h,size = map(int,stats[index])
+            if size<4:
+                continue
+            identity = 'unread_'+str(1+sum(m['id'].startswith('unread_') for m in marks))
+            region = [x,y,x+w,y+h]
+            lines = cv2.HoughLinesP(mask[y:y+h,x:x+w],1,np.pi/180,12,minLineLength=16,maxLineGap=gap)
+            segments = [[[int(a)+x,int(b)+y],[int(c)+x,int(d)+y]] for a,b,c,d in (lines[:,0,:] if lines is not None else [])]
+            target = min((m for m in marks if m.get('pixel_polygon')),
+                         key=lambda m:Polygon(m['pixel_polygon']).distance(Point(*centers[index])),default=None)
+            mark = dict(id=identity,classification=classification,kind='unread',region=region,
+                        reading='Agent reading needed for unassociated '+classification+' strokes',confidence=.25,
+                        measured_segments=segments[:64])
+            if color:
+                mark['color'] = color
+            if target:
+                mark['nearest_geometry'] = target['id']
+            marks.append(mark)
+            assumptions.append(dict(id=identity,reason=mark['reading'],decision='retain numbered region; do not compile uncertain semantics'))
+    for key,mask in color_masks:
+        remaining = mask & cv2.bitwise_not(covered)
+        if remaining.any():
+            unread_components(remaining,key['classification'],key['color'])
     boundary = notes.get('boundary',[[8,8],[image.width-8,8],[image.width-8,image.height-8],[8,image.height-8]])
     if 'boundary' not in notes:
         assumptions.append(dict(id='boundary',reason='No explicit playable boundary reading',decision='use the image inset by eight pixels'))
@@ -132,19 +175,21 @@ def measure(image,notes,previous=None):
     require(boundary.is_valid and boundary.area>0, 'interpreted boundary must be a simple polygon')
     intents = []
     for mark in marks:
-        if mark['classification']=='intent':
+        if mark['classification']=='intent' and mark.get('kind')!='unread':
             intent = {k:copy.deepcopy(v) for k,v in mark.items() if k not in ('classification','confidence','reading','color')}
             if 'points' in intent:
                 intent['points'] = [world(p) for p in intent['points']]
             intents.append(intent)
     # Unknown ink is evidence too: retain an assumption, never silently turn it into walls.
     border_mask = np.zeros_like(available)
-    cv2.polylines(border_mask,[np.array(notes.get('boundary',[]),dtype=np.int32)],True,255,max(7,gap)) if notes.get('boundary') else None
+    if notes.get('boundary'):
+        cv2.polylines(border_mask,[np.array(notes['boundary'],dtype=np.int32)],True,255,max(7,gap))
     background = np.median(pixels.reshape(-1,3),axis=0)
     ink = np.linalg.norm(pixels.astype(np.float32)-background,axis=2)>60
     unexplained = ink & (explained==0) & (available!=0) & (border_mask==0)
     if int(unexplained.sum())>16:
-        assumptions.append(dict(id='unclassified_ink',reason=f'{int(unexplained.sum())} ink pixels are outside the read key/annotations',decision='omit from geometry; inspect interpretation overlay'))
+        unread_components(unexplained.astype(np.uint8)*255,'annotation')
+        assumptions.append(dict(id='unclassified_ink',reason=f'{int(unexplained.sum())} ink pixels are outside the read key/annotations',decision='provisionally label as unread annotation; agent must resolve the numbered regions'))
     level = dict(version=2,name=notes.get('name','sketch_level'),
                  materials={role:'level/'+role for role in ('floor','wall','trim','cover','prop','sky')},
                  rules=notes.get('rules',dict(min_corridor_width=64,min_door_height=80,max_sightline=8192,max_cover_gap=2048)),

@@ -49,6 +49,17 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 unread-mark accounting passes
+
+Every remaining known-color component now becomes a numbered unread mark with
+confidence, measured line segments, nearest geometry and an explicit assumption.
+Unknown ink also receives provisional annotated regions instead of disappearing.
+Agent-read route endpoints account for their arrowheads; explicit annotations and
+geometry regions remain separate. The new negative control and original tracing
+contract pass (sketch-marks.log). Unread semantic marks are not compiled into
+geometry or silently turned into gameplay assertions. Remaining scope includes
+complete line/curve/split inference, theme/license tooling and full integration.
+
 ## #164 unmatched-mark negative control
 
 The next tracing test adds a known-color intent circle and annotation without
