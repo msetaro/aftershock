@@ -1597,6 +1597,9 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 	ImGui::TextUnformatted( "Previous CPU frame (inclusive scopes)" );
 	for ( uint32_t i = 0; i < cpuCount; ++i )
 		ImGui::Text( "%s: %.3f ms", cpu[i].name, (double)cpu[i].microseconds / 1000.0 );
+	postRenderStats_t post;
+	renderer->PostStats( &post );
+	ImGui::Text( "Post draws %u / drops %u / profile loads %u", post.draws, post.dropped, post.loads );
 	ImGui::TextUnformatted( "Completed GPU frame (no additional wait)" );
 	for ( uint32_t i = 0; i < count; ++i )
 		ImGui::Text( "%s: %.3f ms", timings[i].name, timings[i].microseconds / 1000.0 );

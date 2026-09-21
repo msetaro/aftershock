@@ -105,7 +105,7 @@ static void VKAPI_CALL beginPass( VkCommandBuffer, const VkRenderPassBeginInfo *
 		++depthBegun;
 		assert( p->clearValueCount == 1 && p->pClearValues[0].depthStencil.depth == 0 );
 		assert( p->renderArea.extent.width == 1024 && p->renderArea.extent.height == 1024 );
-	} else if ( p->clearValueCount == 0 && p->renderPass != vk.render_pass.occlusion[0] && p->renderPass != vk.render_pass.occlusion[1] && p->renderPass != vk.render_pass.occlusion[2] && p->renderPass != vk.render_pass.particles && p->renderPass != vk.render_pass.particlesResume ) {
+	} else if ( p->clearValueCount == 0 && p->renderPass != vk.render_pass.occlusion[0] && p->renderPass != vk.render_pass.occlusion[1] && p->renderPass != vk.render_pass.occlusion[2] && p->renderPass != vk.render_pass.particles && p->renderPass != vk.render_pass.particlesResume && p->renderPass != vk.render_pass.post[0] && p->renderPass != vk.render_pass.post[1] ) {
 		++resumed;
 		assert( p->renderPass == vk.render_pass.resume[0] || p->renderPass == vk.render_pass.resume[1] );
 	}
@@ -231,7 +231,7 @@ static void VKAPI_CALL bindPostPipeline( VkCommandBuffer, VkPipelineBindPoint, V
 	assert( pipeline );
 }
 static void VKAPI_CALL bindPostDescriptors( VkCommandBuffer, VkPipelineBindPoint, VkPipelineLayout, uint32_t first, uint32_t count, const VkDescriptorSet *sets, uint32_t offsets, const uint32_t * ) {
-	assert( first == 0 && ( count == 2 || count == 3 || count == 4 ) && offsets == 1 );
+	assert( first == 0 && ( ( count == 1 && offsets == 0 ) || ( ( count == 2 || count == 3 || count == 4 ) && offsets == 1 ) ) );
 	for ( uint32_t i = 0; i < count; ++i )
 		assert( sets[i] );
 }
@@ -325,6 +325,41 @@ static void particleCommands() {
 	assert( !RHI_DrawDecal( &decal, &image, &image, &viewport ) );
 	assert( occlusionDraws == 2 && vk.cmd->uniform_read_offset == 32 );
 	RHI_EndEffects();
+	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
+	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
+	RHI_EndPass();
+}
+static VkResult VKAPI_CALL createFilmPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
+	assert( count == 1 && ( p->renderPass == vk.render_pass.post[0] || p->renderPass == vk.render_pass.post[1] ) );
+	const bool film = p->renderPass == vk.render_pass.post[0];
+	assert( p->layout == ( film ? vk.pipeline_layout : vk.pipeline_layout_post_process ) );
+	assert( p->pMultisampleState->rasterizationSamples == ( film ? VK_SAMPLE_COUNT_1_BIT : vkSamples ) );
+	assert( !p->pDepthStencilState->depthTestEnable && !p->pDepthStencilState->depthWriteEnable );
+	assert( !p->pColorBlendState->pAttachments[0].blendEnable );
+	assert( p->pDynamicState && p->pDynamicState->dynamicStateCount == 2 );
+	*out = (VkPipeline)(uintptr_t)( film ? 11 : 12 );
+	return VK_SUCCESS;
+}
+static void filmCommands() {
+	qvkCreateGraphicsPipelines = createFilmPipeline;
+	vk_create_post_process_pipeline( 10, 640, 480 );
+	vk_create_post_process_pipeline( 11, 640, 480 );
+	uint8_t upload[128]{};
+	vk.cmd->vertex_buffer_ptr = upload;
+	vk.cmd->vertex_buffer_offset = 0;
+	vk.cmd->uniform_read_offset = 32;
+	vk_config.uniformBytes = sizeof( rhiPostDraw_t );
+	vk.uniform_item_size = sizeof( upload );
+	vk.geometry_buffer_size = sizeof( upload );
+	const auto descriptors = vk.cmd->descriptor_set;
+	RHI_BeginMainPass();
+	rhiPostDraw_t post{};
+	rhiTexture_t lut{};
+	lut.binding = 123;
+	occlusionDraws = 0;
+	assert( RHI_DrawPost( &post, &lut ) );
+	assert( !RHI_DrawPost( &post, &lut ) );
+	assert( occlusionDraws == 2 && vk.cmd->uniform_read_offset == 32 );
 	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
 	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
 	RHI_EndPass();
@@ -457,6 +492,8 @@ int main( int argc, char **argv ) {
 				occlusionCommands();
 			if ( particles )
 				particleCommands();
+			if ( post )
+				filmCommands();
 		}
 	}
 }

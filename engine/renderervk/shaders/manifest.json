@@ -2221,6 +2221,164 @@
           }
         ]
       }
+    },
+    {
+      "name": "post_frag_spv",
+      "source": "post.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "40fce0a69fc7117c14b8849db38710481d9bc81cb75d8eb557fd26728cb5b0d4",
+      "spirv_sha256": "379d157cddaa153199c3d5e20a31c589c233d34f24b4a106ab1b5eb06725f102",
+      "recipe_sha256": "4f305794207cfd475afb93dcce8b25451607e4db78c698f7a86582a0ca8dbb03",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "72": {
+            "binding": 0,
+            "set": 1
+          },
+          "87": {
+            "binding": 0,
+            "set": 0
+          },
+          "119": {
+            "location": 0
+          },
+          "144": {
+            "location": 0
+          },
+          "176": {
+            "binding": 0,
+            "set": 2
+          },
+          "366": {
+            "binding": 0,
+            "set": 3
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 85,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 85,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 85,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 85,
+            "member": 3,
+            "offset": 48
+          }
+        ]
+      }
+    },
+    {
+      "name": "post_ms_frag_spv",
+      "source": "post.frag",
+      "stage": "frag",
+      "defines": [
+        "MULTISAMPLE"
+      ],
+      "source_sha256": "40fce0a69fc7117c14b8849db38710481d9bc81cb75d8eb557fd26728cb5b0d4",
+      "spirv_sha256": "99b3e5c641f139982f2397dcfab7269ad86f520632ba3e903130c78398dd2f40",
+      "recipe_sha256": "10d8e97cdefdff9061c6de62cd0c8a779e9a3b72b6f0b7cff894263bcd4b92ac",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "72": {
+            "binding": 0,
+            "set": 1
+          },
+          "87": {
+            "binding": 0,
+            "set": 0
+          },
+          "119": {
+            "location": 0
+          },
+          "144": {
+            "location": 0
+          },
+          "187": {
+            "binding": 0,
+            "set": 2
+          },
+          "385": {
+            "binding": 0,
+            "set": 3
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 85,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 85,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 85,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 85,
+            "member": 3,
+            "offset": 48
+          }
+        ]
+      }
+    },
+    {
+      "name": "post_copy_frag_spv",
+      "source": "post_copy.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "9bb768f3d4c23e618413cd85abe9b07af982d40ddd2f70283a7eafe816e12724",
+      "spirv_sha256": "eeb7e79c579ad6a8e59889fb0f745505e7cfc977e93831b59a74ec3a1dd8a9d5",
+      "recipe_sha256": "e699c1e4e3cbcd2101e646987f0b8bc246e9223d72f5b249279298c25c5d8ca3",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "9": {
+            "location": 0
+          },
+          "13": {
+            "binding": 0,
+            "set": 0
+          },
+          "17": {
+            "location": 0
+          }
+        },
+        "member_offsets": []
+      }
     }
   ]
 }

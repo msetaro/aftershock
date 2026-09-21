@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-post-runtime-') as temporary
     definition=dict(version=1,name='test',exposure_ev=0,lut='textures/grade.ktx2',lut_strength=0)
     path=source/'post.json';path.write_text(json.dumps(definition))
     project=source/'assets.json';project.write_text(json.dumps(dict(version=1,assets=[
-        dict(name='textures/grade',kind='texture',source='grade.png'),dict(name='post/test',kind='post',source='post.json')])))
+        dict(name='textures/grade',kind='texture',source='grade.png',srgb=False),dict(name='post/test',kind='post',source='post.json')])))
     arguments=['+set','r_fbo','1','+set','r_hdr','2','+set','r_postProcess','1','+set','r_postProfile','post/test.aspost',
                '+set','r_ext_multisample',str(args.samples),'+set','dev_reloadAssets','1',
                '+set','cg_draw2D','0','+set','cg_drawGun','0','+set','con_notifytime','0']
@@ -46,6 +46,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-post-runtime-') as temporary
         def edit(**values):
             definition.update(values);path.write_text(json.dumps(definition));cook(project,engine.base);engine.step(60)
         baseline=capture('baseline')
+        stats=engine.request('profile')['post'];assert stats['draws']>0 and stats['dropped']==0 and stats['loads']>0,stats
+        memory=engine.request('profile')['memory']
         edit(exposure_ev=2);bright=capture('bright')
         assert sum(ImageStat.Stat(bright).mean)>sum(ImageStat.Stat(baseline).mean)*1.15,'authored exposure did not brighten the scene'
         edit(exposure_ev=0,lut_strength=1);graded=capture('graded')
@@ -55,6 +57,23 @@ with tempfile.TemporaryDirectory(prefix='aftershock-post-runtime-') as temporary
         edit(sharpen=0,focus_distance=1000,focus_range=1,dof_radius=8);blur=capture('blur');assert difference(baseline,blur)>10000
         edit(dof_radius=0,grain=.5);grain=capture('grain');engine.step(1);assert difference(grain,capture('grain-next'))>10000
         edit(grain=0);assert difference(baseline,capture('restored'))==0
+        engine.request('cvar.set',name='con_notifytime',value='5')
+        def hud(name):
+            engine.request('exec',command='clear')
+            engine.request('exec',command='echo POST-HUD')
+            return capture(name)
+        normal_hud=hud('hud-normal')
+        edit(lut_strength=1);graded_hud=hud('hud-graded')
+        normal_pixels=normal_hud.tobytes();graded_pixels=graded_hud.tobytes()
+        # Legacy vertex-color modulation maps fully covered white to 254 here.
+        opaque=[i for i in range(0,len(normal_pixels),3) if normal_pixels[i:i+3]==b'\xfe\xfe\xfe']
+        assert len(opaque)>20,'opaque HUD text is absent'
+        # Near-opaque MSAA edge samples can retain up to two background code values.
+        assert all(abs(normal_pixels[i+c]-graded_pixels[i+c])<=2 for i in opaque for c in range(3)),'scene grading changed HUD text'
+        engine.request('cvar.set',name='con_notifytime',value='0');edit(lut_strength=0)
+        after=engine.request('profile')['memory']
+        assert memory['hunkPermanent']==after['hunkPermanent'] and memory['tags']==after['tags']
+        assert engine.request('profile')['post']['dropped']==0
         engine.request('exec',command='vid_restart');engine.step(60)
         assert difference(baseline,capture('restart'))==0
 print('PASS: native post exposure, LUT, sharpening, vignette, grain, depth of field, reload and restart')

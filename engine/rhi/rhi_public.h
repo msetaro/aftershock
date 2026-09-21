@@ -513,6 +513,12 @@ static_assert( std::is_trivially_copyable_v<rhiDeviceConfig_t> && std::is_trivia
 [[nodiscard]] rhiStatus_t RHI_Shutdown( void );
 [[nodiscard]] rhiStatus_t RHI_ReadPixels( uint8_t *buffer, uint32_t width, uint32_t height );
 [[nodiscard]] rhiStatus_t RHI_UploadWorldGeometry( const uint8_t *data, int32_t size );
+struct rhiPostDraw_t {
+	float curve[4], lens[4], projection[4], viewport[4];
+};
+static_assert( sizeof( rhiPostDraw_t ) == 64 && offsetof( rhiPostDraw_t, viewport ) == 48 );
+bool RHI_DrawPost( const rhiPostDraw_t *settings, const rhiTexture_t *lut );
+
 struct rhiPostProcess_t {
 	int32_t overbrightBits;
 	float gamma;

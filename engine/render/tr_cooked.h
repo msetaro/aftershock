@@ -74,5 +74,6 @@ enum class cookedModelStatus_t { Legacy,
 cookedModelStatus_t R_ReadCookedModel( const void *data, size_t size, uint8_t hash[32] );
 
 #ifdef AFTERSHOCK_DEVTOOLS
+void R_ReloadPost( const cookedIndex_t *index );
 void R_ReloadEffects( const cookedIndex_t *index );
 #endif

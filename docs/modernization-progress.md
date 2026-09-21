@@ -29,22 +29,26 @@ regression 35589995016 passed all 10 active jobs. #164 is accepted and checked
 in #25. No source changes remain in its sketch-tree branch.
 
 Continue #161 in /home/matt/.cache/aftershock-modernization/fidelity-tree,
-issue/161-visual-fidelity. The #164 main merge is integrated forward here; resolve
-progress/hello-command overlap by retaining both histories and all trace/effect
-commands. No #161 PR yet. Current code passes pure effect/decal/LOD cooker GCC and Clang,
-native reference effects, soft depth and projected normal-mapped decal lifecycle,
-initial floating HDR targets and native mesh LOD selection. The initial native OpenArena fixed-demo comparison passes its
-unchanged accepted frame hash (fidelity-legacy-demo.log). No accepted fixture or
-existing shader changed; three new particle shaders are appended through bin2hex. Details and test-first failures are below.
+issue/161-visual-fidelity. Accepted #164 main is merged forward. No #161 PR yet.
+Effects, reference art, material-hit dispatch, light hooks, soft depth, projected
+normal-mapped decals/editor, native LOD selection and initial filmic/LUT/lens
+post controls pass component checks. Post resources preserve HUD composition,
+MSAA and the fixed OpenArena replay hash. All 96 shaders reproduce; existing
+accepted fixtures/shader arrays remain unchanged. Detailed failures and evidence
+are below; these checks do not constitute final #161 acceptance.
 
-Next implementation: the post stack and streaming. Projected decal material-hit
-binding, live editor and original bullet/scorch/blood references now pass. The original nine-effect set, material impacts,
-live source editing, light hooks, depth-soft particles and profiler counters
-now pass component controls. Filmic/LUT/post/TAA with real motion vectors, mip streaming/async uploads,
-reviewed software frames and hardware budgets all remain required. Cooked
-LOD output is now selected by the renderer through hash-bound cooked manifests.
-Keep its animation/geometry and stale-file lifecycle controls; hardware savings
-and final artistic coverage remain required.
+Next: measure the initial post hardware budget, then implement temporal motion history, jitter/TAA
+and motion blur, followed by mip streaming/async uploads. Real previous rendered
+poses/transforms are required: oldorigin/oldframe are animation interpolation,
+not prior-frame history. Reference scene/goldens, all hardware budgets and final
+exact-head/current-main gates remain required. Keep LOD hash/stale-file lifecycle
+controls and measure its savings in the final scene.
+
+Initial post budgets before measurement: 0.75 ms for filmic controls and 0.20 ms
+for copy-back at 1440p on the reference GPU. Advanced lens effects remain default
+off; enabling the whole HDR path by default waits for full visual/performance
+acceptance. Hardware timing uses a private owned street scene and both CPU/GPU
+clocks, separately from software frame controls.
 
 Reference hardware: RTX 3080 Ti, 12288 MiB, driver 595.91.07. Use a real 1440p
 offscreen target with small Xvfb presentation for measured budgets; report CPU
@@ -63,6 +67,58 @@ preserves bind matrices/root motion/licenses. Final self-review is below.
 Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+
+## #161 filmic component gates pass
+
+Lifetimes pass all 1236 commands / 132 source paths across shipping/development
+and static/module configurations, including positive/seven-object negative
+controls (fidelity-post-lifetimes.log). The strengthened MSAA test also passes
+HUD preservation, zero upload drops and stable memory
+(fidelity-post-hud-msaa-final.log). Its near-opaque antialiased edge comparison
+allows two 8-bit code values: one MSAA edge retains a small background fraction;
+fully covered text remains white while the whole scene becomes orange.
+
+GCC/Clang final graph pipeline/upload checks, all 96 shader regeneration checks,
+472-file formatting, tracked boundaries, types, native ABI, authored schemas,
+agent protocol, isolation and workflow syntax pass. Renderer ABI is now 26 in
+development / 20 in shipping for the added post counters. Main was refreshed and
+remains 81e40b0c. Initial RTX post timing is running; no PR or default switch yet.
+Self-review: new presentation paths only, bounded uploads/fixed graph targets,
+no authoritative FP, per-frame allocation, OS access or accepted-fixture edits.
+
+## #161 post preservation checks pass
+
+The strengthened single-sample native check passes profile draw/drop/load
+counters, stable hunk/tag memory and unchanged fully covered notification text
+under a constant orange LUT (fidelity-post-hud-final.log). White is 254 in this
+legacy vertex-modulated HUD; antialiased edge pixels intentionally depend on the
+background. The OpenArena fixed replay still matches
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(fidelity-post-legacy-demo.log), and soft depth/MSAA/SSAO still pass
+(fidelity-post-soft-depth.log). The graph probe also checks both new pipeline
+blend/sample states, descriptor restoration and bounded upload exhaustion
+(fidelity-post-final-graph.log). ABI, agent protocol, boundaries/types, workflow
+syntax and isolation pass. Lifetimes and strengthened MSAA/HUD are running.
+
+## #161 initial native filmic/lens controls pass
+
+Three new shader arrays were appended through bin2hex; all previous 93 remain
+byte-identical. Fresh pinned compilation reproduces all 96 shaders
+(fidelity-post-shader-check.log). Post processes each world view after effects
+and before HUD, using one fixed float target plus copy-back; no per-frame heap.
+The existing watcher selects finite validated profiles and a 16-slice display
+LUT. The initial test correctly rejected its accidentally sRGB-cooked LUT;
+setting the authored recipe to srgb:false fixes the setup, with no loader bypass.
+
+Single and 4x-MSAA native tests pass exposure, LUT, sharpening, vignette, grain,
+depth blur, watched edits, exact restoration and restart
+(fidelity-post-native-{linear-lut,msaa}.log). Captures reviewed: bright exposure,
+constant orange grading, defocused floor. New profiler draw/drop/load counters
+are built; strengthened HUD/memory controls and legacy replay/lifetime gates are
+running. The HUD check initially included partially transparent glyph-edge pixels;
+those correctly blend with the changed scene. It now selects fully opaque white
+pixels. No engine workaround. Temporal vectors/TAA/motion blur and streaming are
+still absent; these are component passes, not final #161 acceptance.
 
 ## #161 native post resources pass; image contract first
 

@@ -1305,5 +1305,19 @@ remain #161 work; these component captures are not frame goldens.
 record, hash, incremental exposure edit and GCC/Clang UBSan decode. Profiles use
 `kind: post`, producing `.aspost`; `tools/agent describe post` lists the controls.
 Vignette, grain, depth-of-field radius and motion blur default to zero. The LUT
-qpath is optional. This is the data contract; render-graph/native visual coverage
-is still being implemented for #161.
+qpath is optional. `r_postProcess 1; r_fbo 1` enables the floating HDR scene target and two post
+passes before HUD drawing; `r_postProfile post/filmic.aspost` selects a profile.
+The optional LUT is a horizontal 16-slice, 256×16 BC7 image cooked with
+`srgb: false`; it maps display RGB after tone mapping. Existing PBR display
+encoding is decoded before the exposure/filmic operation. The tone curve uses
+[Krzysztof Narkowicz's CC0 ACES fit](https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/),
+not full ACES color management. Legacy gamma and HUD composition remain later.
+
+`tests/post_runtime.py --binary PATH --content openarena --data PATH` checks
+exposure, constant LUT grading, sharpening, vignette, time-varying grain, bounded
+nine-tap depth blur, watcher reload, exact restoration and renderer restart.
+`--samples 4` selects MSAA. Post profiles reload through the existing cooker
+watcher; invalid profiles retain the preceding settings. Profile exposes draw,
+upload-drop and load counters. Motion-blur data is reserved for the pending
+motion-vector implementation; TAA, final scene/goldens and budgets are still
+#161 work. The post stack remains opt-in until those gates pass.

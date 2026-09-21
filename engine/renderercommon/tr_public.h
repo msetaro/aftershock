@@ -30,9 +30,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 25
+#define REF_API_VERSION 26
 #else
-#define REF_API_VERSION 19
+#define REF_API_VERSION 20
 #endif
 
 //
@@ -45,6 +45,10 @@ typedef enum {
 	REF_UNLOAD_DLL
 } refShutdownCode_t;
 
+struct postRenderStats_t {
+	uint32_t loads, draws, dropped;
+};
+static_assert( std::is_trivially_copyable_v<postRenderStats_t> );
 struct decalRenderStats_t {
 	uint32_t active, registered, reloads, draws, dropped;
 	uint64_t replaced;
@@ -98,6 +102,7 @@ typedef struct {
 	uint32_t ( *ProjectDecal )( qhandle_t asset, const vec3_t origin, const vec3_t axis[3] );
 	void ( *ClearDecals )();
 	void ( *DecalStats )( decalRenderStats_t *stats );
+	void ( *PostStats )( postRenderStats_t *stats );
 	void ( *AddRefEntityToScene )( const refEntity_t *re, qboolean intShaderTime );
 	bool ( *AddSkeletalEntityToScene )( const refEntity_t *re, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 	// Copies the override into this frame. Optional pose/hash use the skeletal path.

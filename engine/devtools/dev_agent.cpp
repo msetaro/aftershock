@@ -978,6 +978,15 @@ static void Agent_Profile( agentReply_t &reply ) {
 #endif
 	reply.Text( "],\"memory\":" );
 	Agent_Memory( reply );
+#ifndef DEDICATED
+	if ( const auto *renderer = DevTools_Renderer() ) {
+		postRenderStats_t post;
+		renderer->PostStats( &post );
+		char status[128];
+		snprintf( status, sizeof( status ), ",\"post\":{\"loads\":%u,\"draws\":%u,\"dropped\":%u}", post.loads, post.draws, post.dropped );
+		reply.Text( status );
+	}
+#endif
 	reply.Text( ",\"network\":{" );
 	const auto *net = DevTools_Network();
 	char counters[512];

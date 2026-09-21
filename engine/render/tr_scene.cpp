@@ -544,6 +544,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 	R_AddEffects( fd );
 	R_AddDecals( fd );
+	R_AddPost();
 	tr.refdef.num_entities = r_numentities - r_firstSceneEntity;
 	tr.refdef.entities = &backEndData->entities[r_firstSceneEntity];
 

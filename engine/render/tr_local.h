@@ -646,6 +646,8 @@ typedef struct {
 
 	int numDecals;
 	struct decalDraw_s *decals;
+	rhiPostDraw_t post;
+	image_t *postLut;
 	int numPolys;
 	struct srfPoly_s *polys;
 
@@ -1463,7 +1465,7 @@ extern cvar_t *r_dynamiclight; // dynamic lights enabled/disabled
 extern cvar_t *r_mergeLightmaps;
 extern cvar_t *r_directionalLightmaps;
 extern cvar_t *r_reflectionProbes;
-extern cvar_t *r_softParticles, *r_decals;
+extern cvar_t *r_softParticles, *r_decals, *r_postProcess, *r_postProfile;
 extern cvar_t *r_ssao, *r_ssaoRadius, *r_ssaoStrength;
 extern cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
@@ -1644,6 +1646,11 @@ qboolean RE_GetEntityToken( char *buffer, int size );
 
 model_t *R_AllocModel( void );
 
+void RE_PostStats( postRenderStats_t *stats );
+void R_PostDrawResult( bool drawn );
+void R_InitPost();
+void R_UpdatePostProfile();
+void R_AddPost();
 void R_InitEffects( void );
 void R_AddEffects( const refdef_t *view );
 qhandle_t RE_RegisterEffect( const char *path );

@@ -1638,6 +1638,26 @@ static const void *RB_DrawSurfs( const void *data ) {
 	}
 
 	RB_PresentationEffects();
+	if ( r_postProcess->integer && r_fbo->integer && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) &&
+		 backEnd.viewParms.portalView == PV_NONE && !cmd->refdef.switchRenderPass ) {
+		RB_EndSurface();
+		if ( r_bloom->integer ) {
+			float transform[16];
+			RB_GetMVP( transform );
+			RHI_Bloom( transform );
+			backEnd.doneBloom = qtrue;
+		}
+		rhiRect_t viewport;
+		RB_GetViewportRect( &viewport );
+		auto post = backEnd.refdef.post;
+		post.projection[0] = backEnd.viewParms.projectionMatrix[10];
+		post.projection[1] = backEnd.viewParms.projectionMatrix[14];
+		post.viewport[0] = (float)viewport.offset.x / (float)glConfig.vidWidth;
+		post.viewport[1] = (float)viewport.offset.y / (float)glConfig.vidHeight;
+		post.viewport[2] = (float)viewport.extent.width / (float)glConfig.vidWidth;
+		post.viewport[3] = (float)viewport.extent.height / (float)glConfig.vidHeight;
+		R_PostDrawResult( RHI_DrawPost( &post, &backEnd.refdef.postLut->texture ) );
+	}
 
 	// draw main system development information (surface outlines, etc)
 	RB_DebugGraphics();

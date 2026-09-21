@@ -80,6 +80,10 @@ run the cooker watcher to publish changes. Active bursts retain their parameters
 An optional effect `decal` path emits one projected mark per burst, using local X
 as its outward surface normal. Reference effects and soft depth have component
 checks; final #161 scene/performance gates remain pending.
+Post profiles (`kind: post`, `.aspost`) select exposure, grading and lens controls;
+use `r_postProfile` and the existing cooker watcher. Grading LUTs are 256×16
+horizontal slices cooked as BC7 with `srgb: false`. The `profile` response exposes
+post draw/drop/load counters.
 Match examples use development-only placeholder credentials.
 
 ## Editor metadata

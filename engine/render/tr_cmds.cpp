@@ -290,6 +290,8 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		return;
 	}
 
+	if ( backEndData->commands.used == 0 )
+		R_UpdatePostProfile();
 #ifdef AFTERSHOCK_DEVTOOLS
 	if ( backEndData->commands.used == 0 )
 		R_PollCookedAssets();
