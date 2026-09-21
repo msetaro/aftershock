@@ -44,10 +44,23 @@ report ambiguity. Reuse pinned q3map2/MBSPC; Shapely 2.1.2 handles polygon opera
 and OpenCV 4.12.0.88 handles image measurements. Private-cache venv:
 /home/matt/.cache/aftershock-modernization/sketch-python. Blender 5.0.1 is installed
 in user cache from the official RWTH mirror after pinned SHA256 verification. Both CC0
-library APIs are reachable; no assets imported yet and no local system packages.
+library APIs have produced a pinned, cooked reference material kit; the Blender
+module contract also passes. All payloads stay in user cache; no local system packages.
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 procedural kit reproducibility passes
+
+Two fresh pinned Blender 5.0.1 builds pass with byte-identical published kits
+(sketch-blender.log). Nine module types have UVs, actual CPU diffuse-color bakes,
+strictly reduced triangle-count LODs, map-compiler OBJs and production IQM/PBR
+outputs. Complete manifests record CC0, generator version and script/parameter
+hashes, with every source/cooked file covered. The CLI refuses existing output.
+Hosted runtime now runs this contract and caches immutable pinned compiler,
+Blender archive/extraction and downloaded CC0 source bytes. No engine changes.
+Next retain/review a reference kit, accept supplied glTF/rig animation inputs,
+then finish tracing, themes and the full agent/overhead/intent acceptance.
 
 ## #164 procedural reference-kit contract
 

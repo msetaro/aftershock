@@ -220,6 +220,14 @@ jobs:
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: regression-${{ github.job }}
+      - name: Cache pinned offline content tools
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/aftershock-level-tools
+            ~/.cache/aftershock-assets
+            ~/.cache/aftershock-modernization/blender-5.0.1
+          key: content-tools-${{ runner.os }}-${{ hashFiles('tools/level/toolchain.py', 'tools/blender/toolchain.py', 'tools/assets/themes/manhattan.json') }}
       - name: Install runtime tools and OpenArena content
         run: sudo apt-get update && sudo apt-get install -y python3-venv python3-pil python3-jsonschema ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data libarchive-dev
       - uses: actions/setup-go@v7
@@ -290,6 +298,7 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/theme_assets.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/asset_providers.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/theme_fetch.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/blender_kit.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/lighting.py --compile
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/probes_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ssao_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
