@@ -42,12 +42,30 @@ Drawing decisions: its own handwritten key is authoritative. Geometry, annotatio
 and gameplay intent stay distinct; use original owned reference drawings and
 report ambiguity. Reuse pinned q3map2/MBSPC; Shapely 2.1.2 handles polygon operations
 and OpenCV 4.12.0.88 handles image measurements. Private-cache venv:
-/home/matt/.cache/aftershock-modernization/sketch-python. Blender 5.0.1 is downloading
-from the official RWTH mirror into user cache with SHA256 verification. Both CC0
+/home/matt/.cache/aftershock-modernization/sketch-python. Blender 5.0.1 is installed
+in user cache from the official RWTH mirror after pinned SHA256 verification. Both CC0
 library APIs are reachable; no assets imported yet and no local system packages.
 
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
+
+## #164 pinned fetch/cook passes; Blender verified
+
+The offline pin/cache contract passes (sketch-fetch.log): complete PBR source
+channels are retained, preparation reuses the production cooker's linear/normal
+mipmap filtering when a texture budget requires reduction, and ASMAT/KTX2 outputs
+come from tools/cook. Repeated kits are byte-identical and corrupted cached files
+fail SHA256 verification. AO/displacement sources remain in the kit; the current
+material runtime has no such channels, so their retention does not claim rendering.
+No partial kit is published after a failed cook or manifest check. Existing output
+is reused only after validation and an identical lock; another lock needs a fresh
+output directory. Next implement real Poly Haven/ambientCG discovery and pins.
+
+Blender 5.0.1 finished downloading from the official RWTH mirror. Archive SHA256
+8019580ee1b7262e505f4196a00237ccf743c88d205b38d34201510676e60b09 passed before
+extraction/execution. Binary:
+/home/matt/.cache/aftershock-modernization/blender-5.0.1/blender-5.0.1-linux-x64/blender
+reports version 5.0.1 / build a3db93c5b259. No local system packages installed.
 
 ## #164 pinned theme fetch contract
 
