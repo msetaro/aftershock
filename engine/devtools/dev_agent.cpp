@@ -44,6 +44,8 @@ void Dev_AgentEvent( const char *type, int actor, int target, int value, const c
 	if ( !strcmp( type, "error" ) || !strcmp( type, "assert" ) ) {
 		++agentErrors;
 		Q_strncpyz( agentError, detail, sizeof( agentError ) );
+		if ( agentEventCount == ARRAY_LEN( agentEvents ) )
+			DevTools_AgentFlushEvents();
 	}
 	if ( !agentSubscribed )
 		return;
@@ -67,7 +69,6 @@ void Dev_AgentAssert( const char *expression, const char *file, int line ) {
 		return;
 	char detail[256];
 	snprintf( detail, sizeof( detail ), "%s:%d: %s", file, line, expression );
-	DevTools_AgentFlushEvents();
 	Dev_AgentEvent( "assert", -1, -1, line, detail );
 	DevTools_AgentFlushEvents();
 }

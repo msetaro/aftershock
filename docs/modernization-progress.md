@@ -76,6 +76,13 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 critical-event correction verified
+
+The shared event function now flushes a full queue before accepting either error
+or assert. Both GCC and clang/libc++ controls pass with exactly one dropped warning
+and the critical event retained; release assertion objects still match. Pending
+concurrency runs use the previous head and are not final acceptance.
+
 ## #163 concurrent runs and shared critical-event review
 
 Two clean detached worktrees agent-suite-a and agent-suite-b are running the full
